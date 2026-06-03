@@ -40,10 +40,8 @@ final readonly class QuasiquoteTransformer implements QuasiquoteTransformerInter
      * @param bool|float|int|string|TypeInterface|null $form The form to quasiqoute
      *
      * @throws SpliceNotInListException
-     *
-     * @return bool|float|int|string|TypeInterface|null
      */
-    public function transform($form)
+    public function transform($form): TypeInterface|string|float|int|bool|null
     {
         $context = new GensymContext();
 
@@ -51,13 +49,9 @@ final readonly class QuasiquoteTransformer implements QuasiquoteTransformerInter
     }
 
     /**
-     * @param bool|float|int|string|TypeInterface|null $form
-     *
      * @throws SpliceNotInListException
-     *
-     * @return bool|float|int|string|TypeInterface|null
      */
-    private function doTransform($form, GensymContext $context)
+    private function doTransform(TypeInterface|string|float|int|bool|null $form, GensymContext $context): TypeInterface|string|float|int|bool|null
     {
         if ($this->isUnquote($form)) {
             /** @var PersistentList<mixed> $form */
@@ -190,7 +184,7 @@ final readonly class QuasiquoteTransformer implements QuasiquoteTransformerInter
     /**
      * @param bool|float|int|string|TypeInterface|null $x The form to check
      */
-    private function isLiteral($x): bool
+    private function isLiteral(bool|float|int|TypeInterface|string|null $x): bool
     {
         return is_string($x)
             || is_float($x)
@@ -200,10 +194,7 @@ final readonly class QuasiquoteTransformer implements QuasiquoteTransformerInter
             || $x instanceof Keyword;
     }
 
-    /**
-     * @param bool|float|int|string|TypeInterface|null $form
-     */
-    private function createOtherwise($form, GensymContext $context): PersistentListInterface|TypeInterface
+    private function createOtherwise(bool|float|int|TypeInterface|string|null $form, GensymContext $context): PersistentListInterface|TypeInterface
     {
         if ($form instanceof Symbol) {
             $name = $form->getFullName();

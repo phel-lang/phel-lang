@@ -14,7 +14,7 @@ use Phel\Nrepl\Domain\Op\OpStatus;
  * background work to interrupt; this handler simply acknowledges the op to
  * keep editors happy.
  */
-final class InterruptOp implements OpHandlerInterface
+final readonly class InterruptOp implements OpHandlerInterface
 {
     public function name(): string
     {

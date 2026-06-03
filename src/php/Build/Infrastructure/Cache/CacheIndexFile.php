@@ -23,7 +23,9 @@ use function is_string;
  */
 final readonly class CacheIndexFile
 {
-    private const string VERSION = '1.2';
+    // Bump when entry structure changes (namespace/source_hash/compiled_path/last_accessed keys).
+    // Decoupled from the Phel version for cache stability across minor releases.
+    private const string INDEX_FORMAT_VERSION = '1.2';
 
     public function __construct(
         private CacheDirectory $directory,
@@ -32,7 +34,7 @@ final readonly class CacheIndexFile
 
     public function version(): string
     {
-        return self::VERSION . ':' . $this->phelVersion;
+        return self::INDEX_FORMAT_VERSION . ':' . $this->phelVersion;
     }
 
     /**

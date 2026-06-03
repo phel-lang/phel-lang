@@ -7,6 +7,8 @@ namespace Phel\Lint\Application\Formatter;
 use InvalidArgumentException;
 use Phel\Lint\Domain\DiagnosticFormatterInterface;
 
+use function array_keys;
+use function implode;
 use function sprintf;
 
 /**

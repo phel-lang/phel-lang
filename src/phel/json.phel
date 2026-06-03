@@ -7,7 +7,7 @@
   [v]
   (or (int? v) (float? v) (symbol? v) (keyword? v) (string? v)))
 
-(declare encode-value [x])
+(declare encode-value)
 
 (defn- encode-value-iterable [x]
   (let [arr (php/array)]

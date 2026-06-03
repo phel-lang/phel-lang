@@ -19,7 +19,7 @@ use Phel\Shared\Exceptions\FileException;
  */
 final class TempDirFinder
 {
-    private string $finalTempDir = '';
+    private string $cachedTempDir = '';
 
     public function __construct(
         private readonly FileIoInterface $fileIo,
@@ -34,8 +34,8 @@ final class TempDirFinder
      */
     public function getOrCreateTempDir(): string
     {
-        if ($this->finalTempDir !== '') {
-            return $this->finalTempDir;
+        if ($this->cachedTempDir !== '') {
+            return $this->cachedTempDir;
         }
 
         $tempDir = $this->configTempDir;
@@ -59,12 +59,12 @@ final class TempDirFinder
 
             // @phpstan-ignore-next-line if.alwaysFalse
             if ($this->fileIo->isWritable($tempDir)) {
-                return $this->finalTempDir = $tempDir;
+                return $this->cachedTempDir = $tempDir;
             }
 
             throw FileException::directoryIsNotWritable($tempDir);
         }
 
-        return $this->finalTempDir = $tempDir;
+        return $this->cachedTempDir = $tempDir;
     }
 }

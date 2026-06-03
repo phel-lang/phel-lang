@@ -4,8 +4,6 @@ declare(strict_types=1);
 
 namespace Phel\Shared;
 
-use function in_array;
-
 final class VersionFinder
 {
     public const string LATEST_VERSION = 'v0.41.0';
@@ -54,7 +52,7 @@ final class VersionFinder
             return null;
         }
 
-        if (in_array(preg_match('/^[0-9a-f]{8,40}$/i', $reference), [0, false], true)) {
+        if (preg_match('/^[0-9a-f]{8,40}$/i', $reference) !== 1) {
             return null;
         }
 

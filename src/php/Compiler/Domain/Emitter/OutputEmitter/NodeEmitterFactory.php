@@ -179,15 +179,15 @@ final class NodeEmitterFactory
 
     private function getMethodEmitter(OutputEmitterInterface $outputEmitter): MethodEmitter
     {
-        $key = spl_object_id($outputEmitter);
+        $outputEmitterId = spl_object_id($outputEmitter);
 
-        return $this->methodEmitterCache[$key] ??= new MethodEmitter($outputEmitter, $this->getClosureHelper($outputEmitter));
+        return $this->methodEmitterCache[$outputEmitterId] ??= new MethodEmitter($outputEmitter, $this->getClosureHelper($outputEmitter));
     }
 
     private function getClosureHelper(OutputEmitterInterface $outputEmitter): ClosureEmitterHelper
     {
-        $key = spl_object_id($outputEmitter);
+        $outputEmitterId = spl_object_id($outputEmitter);
 
-        return $this->closureHelperCache[$key] ??= new ClosureEmitterHelper($outputEmitter);
+        return $this->closureHelperCache[$outputEmitterId] ??= new ClosureEmitterHelper($outputEmitter);
     }
 }
