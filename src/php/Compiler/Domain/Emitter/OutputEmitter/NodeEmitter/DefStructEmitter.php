@@ -9,12 +9,14 @@ use Phel\Compiler\Domain\Analyzer\Ast\DefStructNode;
 use Phel\Compiler\Domain\Emitter\OutputEmitter\NodeEmitterInterface;
 use Phel\Compiler\Domain\Emitter\OutputEmitterInterface;
 use Phel\Lang\Collections\Map\PersistentMapInterface;
+use Phel\Lang\Keyword;
 use Phel\Lang\SourceLocation;
 use Phel\Lang\Symbol;
 use Phel\Shared\PhpAttributeRenderer;
 
 use function assert;
 use function count;
+use function implode;
 
 final readonly class DefStructEmitter implements NodeEmitterInterface
 {
@@ -91,6 +93,7 @@ final readonly class DefStructEmitter implements NodeEmitterInterface
         $this->emitProperties($node);
         $this->emitConstructor($node);
         $this->emitInterfaces($node);
+        $this->emitJsonSerialize($node);
         $this->emitClassFooter($node);
     }
 
@@ -103,23 +106,79 @@ final readonly class DefStructEmitter implements NodeEmitterInterface
             $node->getStartSourceLocation(),
         );
 
-        if ($node->getInterfaces() !== []) {
-            $this->outputEmitter->emitStr(' implements ');
-        }
-
-        $interfaces = $node->getInterfaces();
-        $interfacesCount = count($interfaces);
-        foreach ($interfaces as $i => $defStruct) {
-            $this->outputEmitter->emitStr($defStruct->getAbsoluteInterfaceName());
-            if ($i < $interfacesCount - 1) {
-                $this->outputEmitter->emitStr(', ');
-            }
+        $interfaces = $this->interfaceNames($node);
+        if ($interfaces !== []) {
+            $this->outputEmitter->emitStr(' implements ' . implode(', ', $interfaces));
         }
 
         $this->outputEmitter->emitLine(' {');
 
         $this->outputEmitter->increaseIndentLevel();
         $this->outputEmitter->emitLine();
+    }
+
+    /**
+     * The full `implements` list: the Phel protocol interfaces plus the
+     * opt-in PHP marker interfaces requested via the struct-name meta
+     * (`^{:php/json true}` => `\JsonSerializable`, `^{:php/stringable true}`
+     * => `\Stringable`, satisfied by the inherited `__toString`).
+     *
+     * @return list<string>
+     */
+    private function interfaceNames(DefStructNode $node): array
+    {
+        $names = [];
+        foreach ($node->getInterfaces() as $defStruct) {
+            $names[] = $defStruct->getAbsoluteInterfaceName();
+        }
+
+        $meta = $node->getName()->getMeta();
+        if ($this->metaFlag($meta, 'json')) {
+            $names[] = '\JsonSerializable';
+        }
+
+        if ($this->metaFlag($meta, 'stringable')) {
+            $names[] = '\Stringable';
+        }
+
+        return $names;
+    }
+
+    /**
+     * Emits a `jsonSerialize(): array` returning the field map when the struct
+     * opts in with `^{:php/json true}`.
+     */
+    private function emitJsonSerialize(DefStructNode $node): void
+    {
+        if (!$this->metaFlag($node->getName()->getMeta(), 'json')) {
+            return;
+        }
+
+        $pairs = [];
+        foreach ($node->getParams() as $param) {
+            $pairs[] = "'" . $param->getName() . "' => \$this->" . $this->outputEmitter->mungeEncode($param->getName());
+        }
+
+        $this->outputEmitter->emitLine();
+        $this->outputEmitter->emitLine('public function jsonSerialize(): array {', $node->getStartSourceLocation());
+        $this->outputEmitter->increaseIndentLevel();
+        $this->outputEmitter->emitLine('return [' . implode(', ', $pairs) . '];', $node->getStartSourceLocation());
+        $this->outputEmitter->decreaseIndentLevel();
+        $this->outputEmitter->emitLine('}', $node->getStartSourceLocation());
+    }
+
+    /**
+     * Reads a boolean `:php/<name>` flag off the struct-name meta.
+     *
+     * @param PersistentMapInterface<mixed, mixed>|null $meta
+     */
+    private function metaFlag(?PersistentMapInterface $meta, string $name): bool
+    {
+        if (!$meta instanceof PersistentMapInterface) {
+            return false;
+        }
+
+        return $meta->find(Keyword::create($name, 'php')) === true;
     }
 
     private function emitAllowedKeys(DefStructNode $node): void

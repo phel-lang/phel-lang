@@ -1,0 +1,19 @@
+(ns phel-test.core.defstruct-json
+  (:require phel.test :refer [deftest is]))
+
+(defstruct ^{:php/json true} point [x y])
+(defstruct ^{:php/stringable true} label [text])
+(defstruct plain [a])
+
+(deftest json-serializable-struct
+  (let [p (point 1 2)]
+    (is (php/is_a p "JsonSerializable") "opted-in struct implements JsonSerializable")
+    (is (= "{\"x\":1,\"y\":2}" (php/json_encode p)) "json_encode emits the field map")))
+
+(deftest stringable-struct
+  (is (php/is_a (label "hi") "Stringable") "opted-in struct implements Stringable"))
+
+(deftest plain-struct-unaffected
+  (let [p (plain 1)]
+    (is (not (php/is_a p "JsonSerializable")) "untagged struct is not JsonSerializable")
+    (is (= 1 (p :a)) "untagged struct still behaves as a map")))
