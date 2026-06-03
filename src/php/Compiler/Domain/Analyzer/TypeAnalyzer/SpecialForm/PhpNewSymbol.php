@@ -34,13 +34,13 @@ final class PhpNewSymbol implements SpecialFormAnalyzerInterface
 
         $classEnv = $env->withExpressionContext()->withDisallowRecurFrame();
         $classExpr = $this->analyzeClassExpr($list->get(1), $classEnv);
-        $args = [];
-        for ($forms = $list->rest()->cdr(); $forms !== null; $forms = $forms->cdr()) {
-            $args[] = $this->analyzer->analyze(
-                $forms->first(),
-                $classEnv,
-            );
+
+        $forms = [];
+        for ($rest = $list->rest()->cdr(); $rest !== null; $rest = $rest->cdr()) {
+            $forms[] = $rest->first();
         }
+
+        $args = new PhpInteropArgsAnalyzer($this->analyzer)->analyze($forms, $classEnv, 'php/new', $list);
 
         return new PhpNewNode(
             $env,

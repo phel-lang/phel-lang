@@ -13,6 +13,7 @@ Call PHP from Phel and Phel from PHP.
 | Property access | `$obj->prop` | `(php/-> obj prop)` or `(.-prop obj)` |
 | Array access | `$arr[$key]` | `(php/aget arr key)` |
 | By-reference arg | `$obj->m($out)` (writes back into `$out`) | `(php/-> obj (m (php/ref out)))` |
+| Named arguments | `new Mailer(host: "smtp", port: 25)` | `(php/new \Mailer :& :host "smtp" :port 25)` |
 
 ## Calling PHP from Phel
 
@@ -95,6 +96,26 @@ It works the same way for plain PHP functions with output parameters (`preg_matc
 ```
 
 `php/ref` takes a local binding and works in `php/->`/`php/::` and plain function calls. The local stays bound by reference even when the call sits inside an expression the compiler wraps in a closure.
+
+### Named arguments
+
+Use the `:&` marker to pass PHP 8 named arguments in `php/new`, `php/->`, and `php/::`. Positional args come first; everything after `:&` is `:name value` pairs, where each keyword must match the PHP parameter name exactly:
+
+```phel
+(php/new \App\Mailer :& :host "smtp" :port 25 :secure true)
+;; => new \App\Mailer(host: "smtp", port: 25, secure: true)
+
+(php/new \DateTime "now" :& :timezone tz)        ; positional + named mix
+;; => new \DateTime("now", timezone: $tz)
+
+(php/-> client (request "POST" :& :uri "/x" :timeout 5))
+;; => $client->request("POST", uri: "/x", timeout: 5)
+
+(php/:: \DateTime (createFromFormat :& :format "Y-m-d" :datetime "2024-01-15"))
+;; => \DateTime::createFromFormat(format: "Y-m-d", datetime: "2024-01-15")
+```
+
+Without the `:&` marker a keyword is just a positional value, so existing calls are unaffected. `php/ref` may be used as a named-argument value (`:out (php/ref x)`).
 
 ### Working with PHP Arrays
 

@@ -10,6 +10,7 @@ use Phel\Compiler\Domain\Analyzer\Ast\DoNode;
 use Phel\Compiler\Domain\Analyzer\Ast\FnNode;
 use Phel\Compiler\Domain\Analyzer\Ast\LiteralNode;
 use Phel\Compiler\Domain\Analyzer\Ast\LocalVarNode;
+use Phel\Compiler\Domain\Analyzer\Ast\PhpNamedArgNode;
 use Phel\Compiler\Domain\Analyzer\Ast\PhpRefNode;
 use Phel\Compiler\Domain\Analyzer\Ast\PhpVarNode;
 use Phel\Compiler\Domain\Analyzer\Environment\NodeEnvironment;
@@ -37,6 +38,13 @@ final class ByRefLocalCollectorTest extends TestCase
         $outer = new DoNode($this->env(), [$this->literal()], $inner);
 
         self::assertSame(['m'], $this->collect($outer));
+    }
+
+    public function test_collects_php_ref_from_a_named_argument_value(): void
+    {
+        $named = new PhpNamedArgNode($this->env(), 'out', $this->ref('m'));
+
+        self::assertSame(['m'], $this->collect($named));
     }
 
     public function test_de_duplicates_repeated_locals(): void

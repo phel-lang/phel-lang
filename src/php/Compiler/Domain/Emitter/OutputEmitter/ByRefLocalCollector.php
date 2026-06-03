@@ -22,6 +22,7 @@ use Phel\Compiler\Domain\Analyzer\Ast\PhpArrayGetNode;
 use Phel\Compiler\Domain\Analyzer\Ast\PhpArrayPushNode;
 use Phel\Compiler\Domain\Analyzer\Ast\PhpArraySetNode;
 use Phel\Compiler\Domain\Analyzer\Ast\PhpArrayUnsetNode;
+use Phel\Compiler\Domain\Analyzer\Ast\PhpNamedArgNode;
 use Phel\Compiler\Domain\Analyzer\Ast\PhpNewNode;
 use Phel\Compiler\Domain\Analyzer\Ast\PhpObjectCallNode;
 use Phel\Compiler\Domain\Analyzer\Ast\PhpObjectSetNode;
@@ -101,6 +102,7 @@ final class ByRefLocalCollector
             $node instanceof PhpObjectSetNode => [$node->getLeftExpr(), $node->getRightExpr()],
             $node instanceof MethodCallNode => $node->getArgs(),
             $node instanceof PhpNewNode => [$node->getClassExpr(), ...$node->getArgs()],
+            $node instanceof PhpNamedArgNode => [$node->getValueExpr()],
             $node instanceof RecurNode => $node->getExpressions(),
             $node instanceof SetVarNode => [$node->getSymbol(), $node->getValueExpr()],
             $node instanceof PhpArraySetNode => [$node->getArrayExpr(), ...$node->getAccessExprs(), $node->getValueExpr()],

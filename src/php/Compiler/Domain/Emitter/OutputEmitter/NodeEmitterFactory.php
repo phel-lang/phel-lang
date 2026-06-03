@@ -30,6 +30,7 @@ use Phel\Compiler\Domain\Analyzer\Ast\PhpArrayPushNode;
 use Phel\Compiler\Domain\Analyzer\Ast\PhpArraySetNode;
 use Phel\Compiler\Domain\Analyzer\Ast\PhpArrayUnsetNode;
 use Phel\Compiler\Domain\Analyzer\Ast\PhpClassNameNode;
+use Phel\Compiler\Domain\Analyzer\Ast\PhpNamedArgNode;
 use Phel\Compiler\Domain\Analyzer\Ast\PhpNewNode;
 use Phel\Compiler\Domain\Analyzer\Ast\PhpObjectCallNode;
 use Phel\Compiler\Domain\Analyzer\Ast\PhpObjectSetNode;
@@ -74,6 +75,7 @@ use Phel\Compiler\Domain\Emitter\OutputEmitter\NodeEmitter\PhpArrayPushEmitter;
 use Phel\Compiler\Domain\Emitter\OutputEmitter\NodeEmitter\PhpArraySetEmitter;
 use Phel\Compiler\Domain\Emitter\OutputEmitter\NodeEmitter\PhpArrayUnsetEmitter;
 use Phel\Compiler\Domain\Emitter\OutputEmitter\NodeEmitter\PhpClassNameEmitter;
+use Phel\Compiler\Domain\Emitter\OutputEmitter\NodeEmitter\PhpNamedArgEmitter;
 use Phel\Compiler\Domain\Emitter\OutputEmitter\NodeEmitter\PhpNewEmitter;
 use Phel\Compiler\Domain\Emitter\OutputEmitter\NodeEmitter\PhpObjectCallEmitter;
 use Phel\Compiler\Domain\Emitter\OutputEmitter\NodeEmitter\PhpObjectSetEmitter;
@@ -139,6 +141,7 @@ final class NodeEmitterFactory
             VectorNode::class => new VectorEmitter($outputEmitter),
             SetNode::class => new SetEmitter($outputEmitter),
             PhpNewNode::class => new PhpNewEmitter($outputEmitter),
+            PhpNamedArgNode::class => new PhpNamedArgEmitter($outputEmitter),
             PhpVarNode::class => new PhpVarEmitter($outputEmitter),
             PhpObjectCallNode::class => new PhpObjectCallEmitter($outputEmitter),
             PhpRefNode::class => new PhpRefEmitter($outputEmitter),
