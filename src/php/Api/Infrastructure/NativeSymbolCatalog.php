@@ -357,6 +357,16 @@ Calls a static method or property from a PHP class. Both method-name and propert
             'desc' => 'Calls a static method or property from a PHP class. Both method-name and property must be symbols and cannot be an evaluated value.',
             'example' => '(php/:: DateTime (createFromFormat "Y-m-d" "2024-01-01"))',
         ],
+        Symbol::NAME_PHP_REF => [
+            'doc' => '```phel
+(php/-> object (method (php/ref local)))
+```
+Marks a local variable as passed by reference in a `php/->`/`php/::` interop call, so an output-parameter PHP method can write back into the Phel binding.',
+            'docUrl' => '/documentation/php-interop/',
+            'signatures' => ['(php/ref local)'],
+            'desc' => 'Passes a local variable by reference into a PHP interop call.',
+            'example' => '(php/-> stmt (bindColumn 1 (php/ref out)))',
+        ],
         Symbol::NAME_QUOTE => [
             'doc' => '```phel
 (quote form)

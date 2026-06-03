@@ -21,6 +21,7 @@ use function array_pop;
 use function array_values;
 use function count;
 use function end;
+use function in_array;
 use function is_null;
 use function strlen;
 
@@ -208,10 +209,13 @@ final class OutputEmitter implements OutputEmitterInterface
         }
     }
 
-    public function emitFnWrapPrefix(NodeEnvironmentInterface $env, ?SourceLocation $sl = null): void
+    /**
+     * @param list<string> $byRefLocalNames local names to capture by reference
+     */
+    public function emitFnWrapPrefix(NodeEnvironmentInterface $env, ?SourceLocation $sl = null, array $byRefLocalNames = []): void
     {
         $this->emitStr('(function()', $sl);
-        $this->emitUseClauseForWrap($env, $sl);
+        $this->emitUseClauseForWrap($env, $sl, $byRefLocalNames);
         $this->emitLine(' {', $sl);
         $this->increaseIndentLevel();
     }
@@ -283,7 +287,10 @@ final class OutputEmitter implements OutputEmitterInterface
         return $this->classScopeDepth > 0;
     }
 
-    private function emitUseClauseForWrap(NodeEnvironmentInterface $env, ?SourceLocation $sl): void
+    /**
+     * @param list<string> $byRefLocalNames local names to capture by reference
+     */
+    private function emitUseClauseForWrap(NodeEnvironmentInterface $env, ?SourceLocation $sl, array $byRefLocalNames = []): void
     {
         $locals = array_values($env->getLocals());
         $scope = $this->currentConstantScope();
@@ -300,7 +307,9 @@ final class OutputEmitter implements OutputEmitterInterface
         foreach ($locals as $local) {
             $first = $this->emitUseSeparator($first, $sl);
             $shadowed = $env->getShadowed($local);
-            $this->emitPhpVariable($shadowed instanceof Symbol ? $shadowed : $local, $sl);
+            $emitSymbol = $shadowed instanceof Symbol ? $shadowed : $local;
+            $byReference = in_array($emitSymbol->getName(), $byRefLocalNames, true);
+            $this->emitPhpVariable($emitSymbol, $sl, $byReference);
         }
 
         for ($i = 0; $i < $constantSlots; ++$i) {

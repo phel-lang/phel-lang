@@ -8,6 +8,7 @@ use Phel\Compiler\Domain\Analyzer\Ast\AbstractNode;
 use Phel\Compiler\Domain\Analyzer\Ast\MethodCallNode;
 use Phel\Compiler\Domain\Analyzer\Ast\PhpClassNameNode;
 use Phel\Compiler\Domain\Analyzer\Ast\PhpObjectCallNode;
+use Phel\Compiler\Domain\Analyzer\Ast\PhpRefNode;
 use Phel\Compiler\Domain\Analyzer\Ast\PropertyOrConstantAccessNode;
 use Phel\Compiler\Domain\Emitter\OutputEmitter\NodeEmitterInterface;
 use Phel\Lang\Symbol;
@@ -40,7 +41,11 @@ final class PhpObjectCallEmitter implements NodeEmitterInterface
             $this->outputEmitter->emitStr($targetExpr->getAbsolutePhpName(), $targetExpr->getName()->getStartLocation());
             $this->outputEmitter->emitStr($fnCode, $node->getStartSourceLocation());
         } else {
-            $this->outputEmitter->emitFnWrapPrefix($node->getEnv(), $node->getStartSourceLocation());
+            $this->outputEmitter->emitFnWrapPrefix(
+                $node->getEnv(),
+                $node->getStartSourceLocation(),
+                $this->byRefLocalNames($node),
+            );
 
             $targetSym = Symbol::gen('target_');
             $this->outputEmitter->emitPhpVariable($targetSym, $node->getStartSourceLocation());
@@ -68,6 +73,30 @@ final class PhpObjectCallEmitter implements NodeEmitterInterface
         } else {
             throw new RuntimeException('Not supported ' . $callExpr::class);
         }
+    }
+
+    /**
+     * Local names marked `(php/ref x)` in this call's arguments; the wrapping
+     * closure must capture them by reference so a by-ref PHP parameter writes
+     * back into the Phel binding.
+     *
+     * @return list<string>
+     */
+    private function byRefLocalNames(PhpObjectCallNode $node): array
+    {
+        $callExpr = $node->getCallExpr();
+        if (!$callExpr instanceof MethodCallNode) {
+            return [];
+        }
+
+        $names = [];
+        foreach ($callExpr->getArgs() as $arg) {
+            if ($arg instanceof PhpRefNode) {
+                $names[] = $arg->getName()->getName();
+            }
+        }
+
+        return $names;
     }
 
     private function emitPhpObjectCallEnd(PhpObjectCallNode $node): void

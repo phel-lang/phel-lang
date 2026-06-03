@@ -1,0 +1,16 @@
+(ns phel-test.core.interop-by-ref
+  (:require phel.test :refer [deftest is]))
+
+(def target "PhelTest\\Fixtures\\Interop\\ByRefTarget")
+
+(deftest php-ref-observes-by-reference-write
+  (let [t   (php/new target)
+        out "init"]
+    (php/-> t (writeInto (php/ref out) "written"))
+    (is (= "written" out) "a by-ref method writes back into the Phel local")))
+
+(deftest without-php-ref-the-write-is-not-observed
+  (let [t   (php/new target)
+        out "init"]
+    (php/-> t (writeInto out "written"))
+    (is (= "init" out) "a value-captured local is unaffected by the by-ref write")))

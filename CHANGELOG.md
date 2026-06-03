@@ -23,6 +23,7 @@ All notable changes to this project will be documented in this file.
 - `^{:php/doc ...}` emits a PHPDoc block on generated `defstruct` classes/fields and `definterface` interfaces/methods, so phpstan/psalm see Phel-generated code as typed; the value is a one-line string (`"@var list<int>"`) or a list/vector of strings for a multi-line block (#2295)
 - `hydrate`/`bean` bridge Phel maps and PHP objects: `hydrate` builds an instance of a class (bypassing its constructor, ORM/serializer style) and sets the declared properties from a map; `bean` reads a PHP object's public properties back into a keyword-keyed map (#2296)
 - `defexception`: takes an optional parent class to extend (`(defexception ProductNotFound \RuntimeException)`, defaults to `\Exception`) so frameworks can catch it by type, and `^{:php/attr [...]}` on the name emits class-level PHP attributes (#2297)
+- `php/ref`: marks a local as passed by reference in a `php/->`/`php/::` interop call (`(php/-> stmt (bindColumn 1 (php/ref out) ...))`), so the wrapping closure captures it with `use(&$out)` and an output-parameter PHP method writes back into the Phel binding (#2299)
 
 ### Changed
 

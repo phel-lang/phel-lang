@@ -33,6 +33,7 @@ use Phel\Compiler\Domain\Analyzer\Ast\PhpClassNameNode;
 use Phel\Compiler\Domain\Analyzer\Ast\PhpNewNode;
 use Phel\Compiler\Domain\Analyzer\Ast\PhpObjectCallNode;
 use Phel\Compiler\Domain\Analyzer\Ast\PhpObjectSetNode;
+use Phel\Compiler\Domain\Analyzer\Ast\PhpRefNode;
 use Phel\Compiler\Domain\Analyzer\Ast\PhpVarNode;
 use Phel\Compiler\Domain\Analyzer\Ast\QuoteNode;
 use Phel\Compiler\Domain\Analyzer\Ast\RecurNode;
@@ -76,6 +77,7 @@ use Phel\Compiler\Domain\Emitter\OutputEmitter\NodeEmitter\PhpClassNameEmitter;
 use Phel\Compiler\Domain\Emitter\OutputEmitter\NodeEmitter\PhpNewEmitter;
 use Phel\Compiler\Domain\Emitter\OutputEmitter\NodeEmitter\PhpObjectCallEmitter;
 use Phel\Compiler\Domain\Emitter\OutputEmitter\NodeEmitter\PhpObjectSetEmitter;
+use Phel\Compiler\Domain\Emitter\OutputEmitter\NodeEmitter\PhpRefEmitter;
 use Phel\Compiler\Domain\Emitter\OutputEmitter\NodeEmitter\PhpVarEmitter;
 use Phel\Compiler\Domain\Emitter\OutputEmitter\NodeEmitter\QuoteEmitter;
 use Phel\Compiler\Domain\Emitter\OutputEmitter\NodeEmitter\RecurEmitter;
@@ -139,6 +141,7 @@ final class NodeEmitterFactory
             PhpNewNode::class => new PhpNewEmitter($outputEmitter),
             PhpVarNode::class => new PhpVarEmitter($outputEmitter),
             PhpObjectCallNode::class => new PhpObjectCallEmitter($outputEmitter),
+            PhpRefNode::class => new PhpRefEmitter($outputEmitter),
             RecurNode::class => new RecurEmitter($outputEmitter),
             ThrowNode::class => new ThrowEmitter($outputEmitter),
             TryNode::class => new TryEmitter($outputEmitter),
