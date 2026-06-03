@@ -31,6 +31,10 @@ auto-format and rely on Rector for mechanical refactors.
 Phel source uses `;` for line comments (not `#`), `;;` for standalone comments, and kebab-case for functions and
 variables. Public functions should have `:doc`, `:see-also`, and `:example` metadata.
 
+Commas are optional whitespace (Clojure-aligned): use them between key/value pairs of a single-line map (`{:a 1, :b 2}`),
+not in multi-line maps, vectors, lists, or calls. Inside a `` ` `` quasiquote `,` is unquote, so never put commas in
+quasiquoted maps. `phel format` preserves commas but never inserts them.
+
 ## Testing Guidelines
 
 PHPUnit tests live alongside fixtures in `tests/php/{Unit,Integration}`, named `*Test.php` with snake_case method names

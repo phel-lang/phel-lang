@@ -141,7 +141,7 @@
   (let [api-key (resolve-api-key cfg)
         base    (resolve-base-url cfg :openai)
         msgs    (if system-prompt
-                  (concat [{:role "system" :content system-prompt}] messages)
+                  (concat [{:role "system", :content system-prompt}] messages)
                   messages)
         body    {:model (get cfg :model)
                  :max_tokens (get cfg :max-tokens)
@@ -307,7 +307,7 @@
     :api-key    - Override the configured API key"
   {:example "(chat [{:role \"user\" :content \"Hello!\"}])"
    :see-also ["complete" "configure" "with-config"]}
-  [messages & [{:keys [system] :as opts}]]
+  [messages & [{:keys [system], :as opts}]]
   (let [cfg      (apply-opts @config opts)
         provider (get cfg :provider)
         req      (if (= provider :openai)
@@ -325,7 +325,7 @@
   {:example "(complete \"Explain monads in one sentence\")"
    :see-also ["chat" "configure"]}
   [prompt & [opts]]
-  (chat [{:role "user" :content prompt}] opts))
+  (chat [{:role "user", :content prompt}] opts))
 
 (defn chat-with-history
   "Appends a new user message to an existing conversation history,
@@ -337,9 +337,9 @@
                              \"How are you?\")"
    :see-also ["chat" "complete"]}
   [history user-message & [opts]]
-  (let [messages (concat history [{:role "user" :content user-message}])
+  (let [messages (concat history [{:role "user", :content user-message}])
         response (chat messages opts)]
-    (concat messages [{:role "assistant" :content response}])))
+    (concat messages [{:role "assistant", :content response}])))
 
 ;; -----------
 ;; Schema helpers
@@ -362,8 +362,8 @@
     (= v "integer") {:type "integer"}
     (= v "number")  {:type "number"}
     (= v "boolean") {:type "boolean"}
-    (string? v)     {:type "string" :description v}
-    :else           {:type "string" :description (str v)}))
+    (string? v)     {:type "string", :description v}
+    :else           {:type "string", :description (str v)}))
 
 (defn- schema->json-schema
   "Converts a field schema map to a JSON Schema object for tool use."
@@ -504,7 +504,7 @@
   {:example "(chat-with-tools [{:role \"user\" :content \"What's the weather?\"}]
                              [(tool \"get-weather\" \"Gets weather\" {:city {:type \"string\"}})])"
    :see-also ["tool" "tool-calls" "tool-result" "extract" "run-tools"]}
-  [messages tools & [{:keys [system] :as opts}]]
+  [messages tools & [{:keys [system], :as opts}]]
   (let [cfg         (apply-opts @config opts)
         provider    (get cfg :provider)
         req         (if (= provider :openai)
@@ -672,7 +672,7 @@
     :provider - :openai (default) or :voyageai"
   {:example "(embed [\"hello world\"]) ; => [[0.123 -0.456 ...]]"
    :see-also ["embed-one" "cosine-similarity" "nearest"]}
-  [texts & [{:keys [model provider] :or {provider :openai}}]]
+  [texts & [{:keys [model provider], :or {provider :openai}}]]
   (embed-request provider texts model))
 
 (defn embed-one
@@ -715,7 +715,7 @@
   [texts & [opts]]
   (let [embeddings (embed texts opts)]
     (map (fn [text embedding]
-           {:text text :embedding embedding})
+           {:text text, :embedding embedding})
          texts embeddings)))
 
 (defn search
@@ -725,6 +725,6 @@
   Returns a vector of {:text, :embedding, :similarity} maps."
   {:example "(search \"greeting\" my-index 3)"
    :see-also ["nearest" "build-index" "embed-one"]}
-  [query index & [{:keys [k model provider] :or {k 5}}]]
-  (let [query-embedding (embed-one query {:model model :provider provider})]
+  [query index & [{:keys [k model provider], :or {k 5}}]]
+  (let [query-embedding (embed-one query {:model model, :provider provider})]
     (nearest query-embedding index k)))

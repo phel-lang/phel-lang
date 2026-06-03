@@ -54,7 +54,7 @@
   {:example "(rose-pure 42)"
    :see-also ["rose-tree" "rose-fmap"]}
   [x]
-  {:root x :children (lazy-seq nil)})
+  {:root x, :children (lazy-seq nil)})
 
 (defn rose-tree
   "Rose tree constructor. `children` should be a lazy sequence of rose
@@ -62,7 +62,7 @@
   {:example "(rose-tree 1 (list (rose-pure 0)))"
    :see-also ["rose-pure" "rose-fmap"]}
   [root children]
-  {:root root :children children})
+  {:root root, :children children})
 
 (defn rose-root
   "Returns the root value of rose tree `t`."

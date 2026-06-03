@@ -28,7 +28,7 @@
       (apply php/array coll))))
 
 (def defn-builder
-  {:macro true :private true}
+  {:macro true, :private true}
   (fn [name meta & fdecl]
     (let [sym-meta        (php/-> name (getMeta))
           meta            (if sym-meta (php/-> sym-meta (merge meta)) meta)
@@ -112,7 +112,7 @@
 (defmacro defmacro-
   "Define a private macro that will not be exported."
   [name & fdecl]
-  (apply defn-builder &form &env name {:macro true :private true} fdecl))
+  (apply defn-builder &form &env name {:macro true, :private true} fdecl))
 
 (defmacro defstruct
   "A Struct is a special kind of Map. It only supports a predefined number of keys and is associated to a global name. The Struct not only defines itself but also a predicate function."

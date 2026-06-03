@@ -37,3 +37,13 @@ Editing a `defmacro` body or `` ` `` quasiquote? Load [macro-hygiene.md](macro-h
 ## Formatting
 
 `*.phel` files auto-formatted by `.claude/hooks/format-phel.sh` after Edit/Write (runs `./bin/phel format <file>`). No manual run needed. Check without writing: `./bin/phel format --dry-run <file>`.
+
+## Commas
+
+Commas are optional whitespace — match Clojure:
+
+- Use them **between key/value pairs of a single-line map** to group visually: `{:a 1, :b 2}`.
+- Multi-line maps: no commas (the newline separates pairs).
+- Not in vectors, lists, or function calls.
+- `,` is **unquote** inside a `` ` `` quasiquote, so never add commas to quasiquoted maps.
+- `phel format` preserves commas but never inserts them (like cljfmt) — they are author's choice.

@@ -732,6 +732,6 @@
   {:doc "Searches a namespace index for functions matching a query."
    :example "(search-ns \"transform collections\" my-ns-index 5)"
    :see-also ["embed-ns" "ai/nearest" "ai/search"]}
-  [query ns-index & [{:k k :model model :provider provider}]]
-  (let [query-embedding (ai/embed-one query {:model model :provider provider})]
+  [query ns-index & [{:k k, :model model, :provider provider}]]
+  (let [query-embedding (ai/embed-one query {:model model, :provider provider})]
     (ai/nearest query-embedding ns-index (or k 5))))

@@ -204,14 +204,14 @@
              t (swap! tick #(php/+ 1 %))]
          (if (contains? c args)
            (let [entry (get c args)]
-             (swap! cache assoc args {:value (get entry :value) :accessed t})
+             (swap! cache assoc args {:value (get entry :value), :accessed t})
              (get entry :value))
            ;; Compute first so any recursive populates land in the atom; then
            ;; merge against the *current* cache and apply the LRU eviction.
            (let [res (apply f args)]
              (swap! cache
                     (fn [latest]
-                      (let [merged    (assoc latest args {:value res :accessed t})]
+                      (let [merged    (assoc latest args {:value res, :accessed t})]
                         (if (php/> (count merged) max-size)
                           (let [ks      (keys merged)
                                 lru-key (reduce

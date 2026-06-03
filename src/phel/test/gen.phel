@@ -317,7 +317,7 @@
   "Runs `g` once and returns a single value. Accepts `:size` and `:seed`."
   {:example "(generate int) ; => 42"}
   ([g] (generate g {}))
-  ([g {:size size :seed seed}]
+  ([g {:size size, :seed seed}]
    (seed-rng! seed)
    (g (or size default-size))))
 
@@ -327,7 +327,7 @@
   {:example "(sample int 5) ; => [3 -7 0 1 -2]"}
   ([g] (sample g 10 {}))
   ([g num-samples] (sample g num-samples {}))
-  ([g num-samples {:size size :seed seed}]
+  ([g num-samples {:size size, :seed seed}]
    (seed-rng! seed)
    (let [s (or size default-size)]
      (into [] (for [_ :range [0 num-samples]] (g s))))))
@@ -344,16 +344,16 @@
 (defn- run-trials [property args-gen num-tests size]
   (loop [i 0]
     (if (>= i num-tests)
-      {:result :pass :num-tests i}
+      {:result :pass, :num-tests i}
       (let [args    (args-gen size)
             outcome (trial-result property args)]
         (cond
           (= :pass outcome)
           (recur (inc i))
           (php/instanceof outcome \Throwable)
-          {:result :error :num-tests (inc i) :args args :exception outcome}
+          {:result :error, :num-tests (inc i), :args args, :exception outcome}
           :else
-          {:result :failed :num-tests (inc i) :args args})))))
+          {:result :failed, :num-tests (inc i), :args args})))))
 
 (defn- shrink-outcome
   "Given a failing trial `outcome`, runs the shrink driver on its args
@@ -389,7 +389,7 @@
   {:example "(quick-check 50 (tuple int int) (fn [a b] (= (+ a b) (+ b a))))"}
   ([num-tests args-gen property]
    (quick-check num-tests args-gen property {}))
-  ([num-tests args-gen property {:size size :seed seed :shrink? shrink?}]
+  ([num-tests args-gen property {:size size, :seed seed, :shrink? shrink?}]
    (let [effective-seed (or seed (fresh-seed))
          _              (seed-rng! effective-seed)
          outcome        (run-trials property args-gen num-tests (or size default-size))

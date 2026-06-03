@@ -74,7 +74,7 @@
 
 (defn- should-stop? []
   (and (deref fail-fast?)
-       (let [{:failed f :error e} (get (deref stats) :counts)]
+       (let [{:failed f, :error e} (get (deref stats) :counts)]
          (pos? (+ f e)))))
 
 (defn- testing-contexts-str []
@@ -402,7 +402,7 @@
                     (str "deftest requires a symbol name as its first argument, got "
                          (type test-name) ". Example: (deftest test-add ...)."))))
   (let [sym-meta (or (php/-> test-name (getMeta)) {})
-        base     {:test true :test-name (name test-name)}
+        base     {:test true, :test-name (name test-name)}
         merged   (merge sym-meta base)]
     `(defn ~test-name ~merged []
        (binding [*current-test-name* ~(name test-name)]
@@ -464,7 +464,7 @@
 ;; Built-in reporters
 ;; ---------------------
 
-(defn- print-headline [prefix {:test-name test-name :message message :location location}]
+(defn- print-headline [prefix {:test-name test-name, :message message, :location location}]
   (print prefix)
   (when message
     (print (str " in (" test-name " '" message "')")))
@@ -621,9 +621,9 @@
 
 (defn- print-error [data]
   (print-error-headline data)
-  (let [{:exception exception :form form} data
-        command-facade                    (php/new CommandFacade)
-        printer                           (php/-> command-facade (getExceptionPrinter))]
+  (let [{:exception exception, :form form} data
+        command-facade                     (php/new CommandFacade)
+        printer                            (php/-> command-facade (getExceptionPrinter))]
     (print-label "              Form" form)
     (println "             threw:" (php/get_class exception))
     (when-let [exception-message (ex-message exception)]
@@ -631,17 +631,17 @@
     (when (deref print-stack-trace?)
       (php/-> printer (printStackTrace exception)))))
 
-(defn- print-predicate-failure [{:pred pred :value value :result result}]
+(defn- print-predicate-failure [{:pred pred, :value value, :result result}]
   (print-form-evaluated "                 Form" value
                         "         evaluated to" result)
   (print-label "  but doesn't satisfy" pred))
 
-(defn- print-predicate-not-failure [{:pred pred :value value :result result}]
+(defn- print-predicate-not-failure [{:pred pred, :value value, :result result}]
   (print-form-evaluated "              Form" value
                         "      evaluated to" result)
   (print-label "  but does satisfy" pred " (it shouldn't)"))
 
-(defn- print-binary-failure [{:pred pred :expected expected :actual actual :result result}]
+(defn- print-binary-failure [{:pred pred, :expected expected, :actual actual, :result result}]
   (print-form-evaluated "          Form" actual
                         "  evaluated to" result)
   (print-label "    but is not" pred "to" (readable-str expected))
@@ -649,7 +649,7 @@
              (collection-diff-applicable? expected result))
     (print-collection-diff expected result)))
 
-(defn- print-binary-not-failure [{:pred pred :expected expected :actual actual :result result}]
+(defn- print-binary-not-failure [{:pred pred, :expected expected, :actual actual, :result result}]
   (print-form-evaluated "          Form" actual
                         "  evaluated to" result)
   (print-label "        but is" pred "to" (readable-str expected) "(it shouldn't be)")
@@ -657,11 +657,11 @@
              (collection-diff-applicable? expected result))
     (print-collection-diff expected result)))
 
-(defn- print-thrown-failure [{:form form :exception-symbol exception-symbol}]
+(defn- print-thrown-failure [{:form form, :exception-symbol exception-symbol}]
   (print-label "    expected" form)
   (println "  to throw a:" exception-symbol "(it didn't)"))
 
-(defn- print-thrown-with-msg-failure [{:form form :exception-symbol exception-symbol :expected-message expected-message :actual-message actual-message}]
+(defn- print-thrown-with-msg-failure [{:form form, :exception-symbol exception-symbol, :expected-message expected-message, :actual-message actual-message}]
   (if (nil? actual-message)
     (do
       (print-label "    expected" form)
@@ -672,7 +672,7 @@
       (println "  with message:" expected-message)
       (println "       but got:" actual-message))))
 
-(defn- print-any-failure [{:form form :result result}]
+(defn- print-any-failure [{:form form, :result result}]
   (print-label "          Form" form)
   (print-label "  evaluated to" result "(which is not truthy)"))
 
@@ -925,7 +925,7 @@
 
 (defn- junit-render [state]
   (let [suites (get state :testsuites)
-        parts  (for [{:name ns-name :tests t :failures f :errors e :time tm :cases cases} :in suites]
+        parts  (for [{:name ns-name, :tests t, :failures f, :errors e, :time tm, :cases cases} :in suites]
                  (str "<testsuite "
                       (junit-attr :name ns-name) " "
                       (junit-attr :tests t) " "
@@ -944,7 +944,7 @@
          "</testsuites>")))
 
 (def- empty-junit-suite
-  {:tests 0 :failures 0 :errors 0 :time 0.0 :cases []})
+  {:tests 0, :failures 0, :errors 0, :time 0.0, :cases []})
 
 (defn- junit-finalize-current [state]
   (let [current (:current state)]
@@ -1078,11 +1078,11 @@
 
 (defn- summary-event
   [snapshot]
-  (let [{:failed failed :error error :pass pass :skipped skipped}
+  (let [{:failed failed, :error error, :pass pass, :skipped skipped}
         (:counts snapshot)
-        failures                                                  (:failed snapshot)
-        skips                                                     (:skipped snapshot)
-        total                                                     (+ failed error pass)]
+        failures                                                     (:failed snapshot)
+        skips                                                        (:skipped snapshot)
+        total                                                        (+ failed error pass)]
     {:type :summary
      :failures failures
      :skips skips
@@ -1204,15 +1204,15 @@
   [options ns-name tests]
   (let [sel-opts (selector-options options)]
     (reduce
-     (fn [acc {:fn f :meta m}]
+     (fn [acc {:fn f, :meta m}]
        (if-let [reason (skip-reason sel-opts ns-name m)]
-         (update acc :skip conj {:fn f :meta m :reason reason})
-         (update acc :keep conj {:fn f :meta m})))
-     {:keep [] :skip []}
+         (update acc :skip conj {:fn f, :meta m, :reason reason})
+         (update acc :keep conj {:fn f, :meta m})))
+     {:keep [], :skip []}
      tests)))
 
 (defn- emit-skip-events! [ns-name skipped]
-  (dofor [{:meta m :reason reason} :in skipped]
+  (dofor [{:meta m, :reason reason} :in skipped]
     (report {:type :skipped
              :ns ns-name
              :test-name (:test-name m)
@@ -1241,11 +1241,11 @@
              (only-tests-matches? only-tests ns tname))))))
 
 (defn- failure-count []
-  (let [{:failed f :error e} (get (deref stats) :counts)]
+  (let [{:failed f, :error e} (get (deref stats) :counts)]
     (+ f e)))
 
 (defn- record-test-time! [ns test-name duration-ms]
-  (swap! timings conj {:ns ns :test-name test-name :duration-ms duration-ms}))
+  (swap! timings conj {:ns ns, :test-name test-name, :duration-ms duration-ms}))
 
 (defn- maybe-shuffle-tests
   "Returns `tests` shuffled when `:random-order` is set in `options` (or
@@ -1270,7 +1270,7 @@
    options
    (vec (filter (visible-test-pred options ns) (find-test-vars ns)))))
 
-(defn- run-one-test! [options ns each-wrap {:fn f :meta m}]
+(defn- run-one-test! [options ns each-wrap {:fn f, :meta m}]
   (let [test-name      (:test-name m)
         track-slowest? (pos? (or (:slowest options) 0))
         t0             (when track-slowest? (php/microtime true))
@@ -1359,9 +1359,9 @@
 
 (defn- run-one-ns! [options namespace]
   (let [ns-name (name namespace)]
-    (fan-out! {:type :begin-test-ns :ns ns-name})
+    (fan-out! {:type :begin-test-ns, :ns ns-name})
     (run-test options ns-name)
-    (fan-out! {:type :end-test-ns :ns ns-name})))
+    (fan-out! {:type :end-test-ns, :ns ns-name})))
 
 (defn- list-tests-for-ns! [options ns-name]
   (let [sel-opts (selector-options options)]
@@ -1466,7 +1466,7 @@
   "Checks if all tests passed."
   {:example "(successful?) # => true"}
   []
-  (let [{:failed failed :error error} (get (deref stats) :counts)]
+  (let [{:failed failed, :error error} (get (deref stats) :counts)]
     (zero? (+ failed error))))
 
 (defn get-stats

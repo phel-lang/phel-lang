@@ -25,7 +25,7 @@
 
 (defn- build-options-array
   "Converts Phel options to a PHP associative array for the transport."
-  [{:timeout timeout :follow-redirects follow-redirects :verify-ssl verify-ssl}]
+  [{:timeout timeout, :follow-redirects follow-redirects, :verify-ssl verify-ssl}]
   (let [arr (php/array)]
     (when timeout (php/aset arr "timeout" timeout))
     (when-not (nil? follow-redirects) (php/aset arr "follow_redirects" follow-redirects))

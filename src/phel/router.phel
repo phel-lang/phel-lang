@@ -113,7 +113,7 @@
         (get methods :default))))
 
 (defn- default-response [status body]
-  (constantly (h/response-from-map {:status status :body body})))
+  (constantly (h/response-from-map {:status status, :body body})))
 
 (definterface Router
               (routes [this] "Returns all registered routes as a vector of [path data] tuples.")
@@ -174,7 +174,7 @@
    by-name match response. Returns nil when the tuple is nil."
   [route]
   (when-let [[template data] route]
-    {:template template :data data}))
+    {:template template, :data data}))
 
 (defstruct SymfonyRouter [normalized-routes route-collection matcher generator]
            Router
@@ -210,10 +210,10 @@
   {:example "(router [[\"/ping\" {:get {:handler pong}}]])"
    :see-also ["compiled-router" "handler" "match-by-path"]}
   [raw-routes & [options]]
-  (let [{:path path :data data :or {path "" data {}}} (or options {})
-        normalized                                    (vec (flatten-routes raw-routes path data))
-        coll                                          (build-route-collection normalized)
-        ctx                                           (php/new RequestContext)]
+  (let [{:path path, :data data, :or {path "", data {}}} (or options {})
+        normalized                                       (vec (flatten-routes raw-routes path data))
+        coll                                             (build-route-collection normalized)
+        ctx                                              (php/new RequestContext)]
     (SymfonyRouter normalized coll
                    (php/new UrlMatcher coll ctx)
                    (php/new UrlGenerator coll ctx))))
@@ -240,16 +240,16 @@
   {:example "(compiled-router [[\"/ping\" {:get {:handler pong}}]])"
    :see-also ["router" "handler"]}
   [raw-routes & [options]]
-  (let [{:path path :data data :or {path "" data {}}} (or (eval options) {})
-        flattened-routes                              (vec (flatten-routes (eval raw-routes) path data))
-        indexed-routes                                (persistent
+  (let [{:path path, :data data, :or {path "", data {}}} (or (eval options) {})
+        flattened-routes                                 (vec (flatten-routes (eval raw-routes) path data))
+        indexed-routes                                   (persistent
                                                        (for [route :in flattened-routes
                                                              :reduce [acc (transient {})]]
                                                          (assoc! acc (route-name-of route) route)))
-        route-collection                              (build-route-collection flattened-routes)
-        compiled-matcher-routes                       (php/-> (php/new CompiledUrlMatcherDumper route-collection) (getCompiledRoutes))
-        compiled-generator-routes                     (php/-> (php/new CompiledUrlGeneratorDumper route-collection) (getCompiledRoutes))
-        ctx                                           (gensym)]
+        route-collection                                 (build-route-collection flattened-routes)
+        compiled-matcher-routes                          (php/-> (php/new CompiledUrlMatcherDumper route-collection) (getCompiledRoutes))
+        compiled-generator-routes                        (php/-> (php/new CompiledUrlGeneratorDumper route-collection) (getCompiledRoutes))
+        ctx                                              (gensym)]
     `(let [,ctx (php/new \Symfony\Component\Routing\RequestContext)]
        (CompiledSymfonyRouter
         ,flattened-routes
