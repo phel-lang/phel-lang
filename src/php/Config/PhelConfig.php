@@ -570,7 +570,7 @@ final readonly class PhelConfig implements JsonSerializable
      */
     public function validate(): array
     {
-        return new PhelConfigValidator()->validate($this->srcDirs, $this->testDirs, $this->vendorDir);
+        return new PhelConfigValidator()->validate($this);
     }
 
     // ========================================
@@ -604,8 +604,9 @@ final readonly class PhelConfig implements JsonSerializable
     }
 
     /**
-     * Returns a new instance with the supplied fields overridden. Internal
-     * plumbing for every `with*()` method — keeps each wither one line.
+     * Internal builder: returns a new instance with the supplied fields
+     * overridden. Each public `with*()` method delegates to this, allowing
+     * single-line immutable updates.
      *
      * @param array<string, mixed> $overrides
      */

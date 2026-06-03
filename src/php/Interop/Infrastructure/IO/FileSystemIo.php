@@ -17,10 +17,6 @@ final class FileSystemIo implements FileIoInterface
             return;
         }
 
-        if (is_dir($directory)) {
-            return;
-        }
-
         throw new RuntimeException(sprintf('Directory "%s" was not created', $directory));
     }
 

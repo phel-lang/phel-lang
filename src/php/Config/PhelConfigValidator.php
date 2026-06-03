@@ -9,17 +9,14 @@ use function sprintf;
 final class PhelConfigValidator
 {
     /**
-     * @param list<string> $srcDirs
-     * @param list<string> $testDirs
-     *
      * @return list<string>
      */
-    public function validate(array $srcDirs, array $testDirs, string $vendorDir): array
+    public function validate(PhelConfig $config): array
     {
         return [
-            ...$this->validateRelativeDirs($srcDirs, 'Source'),
-            ...$this->validateRelativeDirs($testDirs, 'Test'),
-            ...$this->validateVendorDir($vendorDir),
+            ...$this->validateRelativeDirs($config->srcDirs, 'Source'),
+            ...$this->validateRelativeDirs($config->testDirs, 'Test'),
+            ...$this->validateVendorDir($config->vendorDir),
         ];
     }
 

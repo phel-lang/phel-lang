@@ -9,7 +9,12 @@ use Phel\Nrepl\Domain\Op\OpRequest;
 use Phel\Nrepl\Domain\Op\OpResponse;
 use Phel\Nrepl\Domain\Op\OpStatus;
 
-final class InterruptOp implements OpHandlerInterface
+/**
+ * Interrupt op (no-op stub). Phel evaluates synchronously, so there is no
+ * background work to interrupt; this handler simply acknowledges the op to
+ * keep editors happy.
+ */
+final readonly class InterruptOp implements OpHandlerInterface
 {
     public function name(): string
     {

@@ -191,7 +191,7 @@
                               (php/. "Cannot convert into type " (type to))))))))
     (throw (php/new InvalidArgumentException "into expects 1, 2, or 3 arguments"))))
 
-(defn- conj-single
+(defn- conj-impl
   [coll value]
   (cond
     (php/=== coll nil)                            (list value)
@@ -216,9 +216,9 @@
   ([] [])
   ([coll] coll)
   ([coll value]
-   (conj-single coll value))
+   (conj-impl coll value))
   ([coll value & more]
-   (reduce conj-single (conj-single coll value) more)))
+   (reduce conj-impl (conj-impl coll value) more)))
 
 (defn- disj-single
   [coll k]

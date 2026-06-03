@@ -18,6 +18,8 @@ final readonly class ExceptionArgsPrinter implements ExceptionArgsPrinterInterfa
 {
     private const int MAX_ARG_LENGTH = 200;
 
+    private const int MAX_STRING_ARG_LENGTH = 15;
+
     public function __construct(
         private PrinterInterface $printer,
     ) {}
@@ -32,12 +34,7 @@ final readonly class ExceptionArgsPrinter implements ExceptionArgsPrinterInterfa
             $frameArgs,
         );
 
-        $argString = implode(' ', $argParts);
-        if ($argParts !== []) {
-            return ' ' . $argString;
-        }
-
-        return $argString;
+        return $argParts !== [] ? ' ' . implode(' ', $argParts) : '';
     }
 
     /**
@@ -73,8 +70,8 @@ final readonly class ExceptionArgsPrinter implements ExceptionArgsPrinterInterfa
 
         if (is_string($arg)) {
             $s = $arg;
-            if (strlen($s) > 15) {
-                $s = substr($s, 0, 15) . '...';
+            if (strlen($s) > self::MAX_STRING_ARG_LENGTH) {
+                $s = substr($s, 0, self::MAX_STRING_ARG_LENGTH) . '...';
             }
 
             return sprintf("'%s'", $s);
