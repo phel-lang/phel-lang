@@ -46,7 +46,7 @@
 
 (def ^:private *hierarchy*
   "Global hierarchy for keyword/symbol taxonomies."
-  (atom {:parents {} :descendants {} :ancestors {}}))
+  (atom {:parents {}, :descendants {}, :ancestors {}}))
 
 (defn make-hierarchy
   "Creates a fresh, empty hierarchy.
@@ -56,7 +56,7 @@
   destructure any of the three relationship views."
   {:see-also ["derive" "isa?" "parents" "ancestors" "descendants"]}
   []
-  {:parents {} :descendants {} :ancestors {}})
+  {:parents {}, :descendants {}, :ancestors {}})
 
 (defn- php-class-tag?
   "Returns true when tag is a PHP class/interface/trait name string."

@@ -392,7 +392,7 @@
                              (php/:: \Closure (fromCallable (fn [e] (on-err e)))))))
     d))
 
-(def- signal-numbers {:sigint 2 :sigterm 15 :sighup 1 :sigquit 3})
+(def- signal-numbers {:sigint 2, :sigterm 15, :sighup 1, :sigquit 3})
 
 (defn- register-signals [app sig-map]
   (foreach [entry sig-map]
@@ -426,7 +426,7 @@
   [name-or-spec & [commands]]
   (let [spec (if (map? name-or-spec)
                name-or-spec
-               {:name name-or-spec :commands commands})
+               {:name name-or-spec, :commands commands})
         app  (php/new Application
                       (get spec :name "console")
                       (or (get spec :version) "UNKNOWN"))]

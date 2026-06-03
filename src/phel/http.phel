@@ -373,7 +373,7 @@
 (defn response-from-map
   "Creates a response struct from a map with optional keys :status, :headers, :body, :version, and :reason."
   {:example "(response-from-map {:status 200 :body \"Hello World\"}) ; => (response 200 {} \"Hello World\" \"1.1\" \"OK\")"}
-  [{:status status :headers headers :body body :version version :reason reason}]
+  [{:status status, :headers headers, :body body, :version version, :reason reason}]
   (let [status  (or status 200)
         headers (or headers {})
         body    (or body "")
@@ -409,7 +409,7 @@
     :headers {:content-type "text/html; charset=utf-8"}
     :body    body}))
 
-(defn- emit-status-line [{:status status :reason reason :version version}]
+(defn- emit-status-line [{:status status, :reason reason, :version version}]
   (when-not (php/headers_sent)
     (let [version (or version "1.1")
           status  (or status 200)
@@ -435,7 +435,7 @@
     (throw (php/new InvalidArgumentException (str "Header must be a keyword or string. Given: " header-name))))
   (assert-no-crlf (php/ucwords (name header-name) "-")))
 
-(defn- emit-headers [{:status status :headers headers}]
+(defn- emit-headers [{:status status, :headers headers}]
   (when-not (php/headers_sent)
     (dofor [[header values] :pairs headers
             :let [normalized-name (normalize-header-name header)

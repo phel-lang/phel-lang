@@ -82,13 +82,13 @@
   `(if ~shape ~(and-checks inner-checks) false))
 
 (defn- compile-wildcard [_target _pattern]
-  {:check true :bindings []})
+  {:check true, :bindings []})
 
 (defn- compile-binding [target pattern]
-  {:check true :bindings [pattern target]})
+  {:check true, :bindings [pattern target]})
 
 (defn- compile-literal [target pattern]
-  {:check `(= ~target '~pattern) :bindings []})
+  {:check `(= ~target '~pattern), :bindings []})
 
 (defn- compile-as
   "(inner :as name): bind target to name, recurse on inner."
@@ -113,7 +113,7 @@
                     `(~pred ~target)
                     `(let ~bindings (~pred ~target)))
         combined  (and-checks [sub-check pred-expr])]
-    {:check combined :bindings bindings}))
+    {:check combined, :bindings bindings}))
 
 (defn- compile-or
   "(:or p1 p2 ...): succeeds if any alternative matches. Alternatives
@@ -129,7 +129,7 @@
                (throw (php/new \InvalidArgumentException
                                "match :or alternatives must not introduce bindings"))))
       (let [checks (for [c :in compiled] (get c :check))]
-        {:check `(or ~@checks) :bindings []}))))
+        {:check `(or ~@checks), :bindings []}))))
 
 (defn- index-of-rest
   "Linear scan for `&` inside a vector, comparing with `=` so that
@@ -189,7 +189,7 @@
                           [tail-sym `(vec (slice ~target ~fixed-len))]
                           [])
         all-bindings    (apply vector (concat elem-bindings tail-binding))]
-    {:check outer-check :bindings all-bindings}))
+    {:check outer-check, :bindings all-bindings}))
 
 (defn- compile-map
   "Map pattern: shape check, key-presence check, recurse on each value."
@@ -214,7 +214,7 @@
                                (apply concat
                                       (for [k :in key-specs]
                                         (get k :bindings))))]
-    {:check outer-check :bindings all-bindings}))
+    {:check outer-check, :bindings all-bindings}))
 
 (defn- compile-pattern
   "Dispatches on pattern shape and delegates to the kind-specific

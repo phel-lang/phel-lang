@@ -222,7 +222,7 @@
   (let [errors (-explain schema value [] [])]
     (if (empty? errors)
       nil
-      {:schema schema :value value :errors errors})))
+      {:schema schema, :value value, :errors errors})))
 
 (defn- format-error
   [err]

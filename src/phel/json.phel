@@ -31,7 +31,7 @@
 (defn encode
   "Encodes a Phel value to a JSON string."
   {:example "(encode {:name \"Alice\"}) ; => \"{\\\"name\\\":\\\"Alice\\\"}\""}
-  [value & [{:flags flags :depth depth}]]
+  [value & [{:flags flags, :depth depth}]]
   (let [flags (or flags 0)
         depth (or depth 512)]
     (when (php/is_resource value) (throw (php/new JsonException "Value can be any type except a resource.")))
@@ -55,7 +55,7 @@
 (defn decode
   "Decodes a JSON string to a Phel value."
   {:example "(decode \"{\\\"name\\\":\\\"Alice\\\"}\") ; => {:name \"Alice\"}"}
-  [json & [{:flags flags :depth depth}]]
+  [json & [{:flags flags, :depth depth}]]
   (let [flags (or flags 0)
         depth (or depth 512)]
     (when-not (string? json) (throw (php/new JsonException "Json must be a string.")))

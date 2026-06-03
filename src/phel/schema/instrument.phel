@@ -135,7 +135,7 @@
    :see-also ["unstrument!" "*schema-check*"]}
   [name f schema]
   (let [wrapped (wrap-with-function-schema f schema)]
-    (swap! instrumented assoc name {:original f :wrapped wrapped :schema schema})
+    (swap! instrumented assoc name {:original f, :wrapped wrapped, :schema schema})
     wrapped))
 
 (defn unstrument!
