@@ -10,13 +10,13 @@ All notable changes to this project will be documented in this file.
 - Printer: structs print with the `.` separator (`(my.ns.point 1 2)`) instead of `\` (#2255)
 - Docs: function `:example` outputs now match what the REPL prints, so `phel doc` and the phel-lang.org API reference are accurate
 - `phel->php`: integer/string map keys now convert instead of throwing `getName() on int` (unblocks PDO option maps) (#2298)
-- Structs: `$struct['field']` array access now accepts a plain PHP string offset (previously threw `getName() on string`); structs already implement `\Countable`/`\ArrayAccess`/`\IteratorAggregate`, so `count`/`$s['x']`/`foreach` work from PHP. Iteration keeps keyword keys to preserve the Phel map contract (#2313, #2319)
+- Structs: `$struct['field']` array access now accepts a plain PHP string offset (was keyword-only) (#2313, #2319)
 
 ### Added
 
-- `phel.reflect`: `class-attributes`/`method-attributes`/`property-attributes`/`attributes` read PHP 8 attributes off a class, method, or property as `{:name fqcn :args {...}}` maps (named args keyword-keyed, positional indexed), so Phel can consume attribute-annotated PHP/framework code (#2314, #2320)
-- `phel.reflect`: `enum->keyword`/`keyword->enum`/`enum-values` bridge a native PHP enum (Symfony/Doctrine column enums, library enums) to Phel keywords and back, round-tripping with `defenum`-generated enums (#2315, #2321)
-- `iterator-seq`: wraps a PHP `Traversable` (Iterator/Generator/IteratorAggregate) as a lazy seq, pulling one element at a time so a large or infinite cursor streams instead of materialising via `iterator_to_array` (#2312, #2318)
+- `phel.reflect`: `class-attributes`/`method-attributes`/`property-attributes`/`attributes` read PHP 8 attributes as `{:name :args}` maps (#2314, #2320)
+- `phel.reflect`: `enum->keyword`/`keyword->enum`/`enum-values` bridge native PHP enums to keywords and back (#2315, #2321)
+- `iterator-seq`: lazy seq over a PHP `Traversable`, pulled one element at a time (#2312, #2318)
 - `phel.http`: JSON request bodies decode into `:parsed-body`, plus `json-response`/`html-response` builders (#2271)
 - Docs: runnable `docs/examples/13_database-crud.phel` and a maps-not-entities Persistence section in `framework-integration.md` (#2281, #2282)
 
@@ -24,9 +24,9 @@ Richer PHP interop for bridging Phel to typed PHP / framework code (all opt-in, 
 
 - Generated classes carry opt-in metadata: `^{:php/attr}` PHP 8 attributes (class/method/parameter), `^{:tag}` typed signatures (incl. union/intersection), `^{:php/doc}` PHPDoc, and `^{:php/json}`/`^{:php/stringable}` on structs (#2280, #2289, #2292, #2293, #2294, #2295)
 - `defenum` native backed enums, and `defexception` with an optional parent class (#2291, #2297)
-- `php/ref` passes a local by reference into a `php/->`/`php/::` call (PDO `bindColumn`) (#2299), and now also into plain PHP function calls (`preg_match`, `sort`, `settype`, ...); the local is captured by reference even when the call is wrapped in a closure (#2310, #2316)
+- `php/ref` passes a local by reference into `php/->`/`php/::` (#2299) and plain PHP function calls like `preg_match`/`sort` (#2310, #2316)
 - `hydrate`/`bean` bridge a Phel map and a typed PHP object both ways (#2296)
-- PHP 8 named arguments in interop via the `:&` marker: `(php/new \App\Mailer :& :host "smtp" :port 25)`, also in `php/->`/`php/::` and mixable after positional args (#2311, #2317)
+- PHP 8 named arguments in `php/new`/`php/->`/`php/::` via the `:&` marker, e.g. `(php/new \App\Mailer :& :host "smtp")` (#2311, #2317)
 
 ### Changed
 
