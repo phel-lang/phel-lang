@@ -1,0 +1,16 @@
+(ns phel-test.core.interface-param-attributes
+  (:require phel.test :refer [deftest is]))
+
+(definterface Ctrl
+  (^{:php/attr [:Route "/x"]} act [this ^{:php/attr [:Autowire]} dep]))
+
+(defn- attr-names [attrs]
+  (map |(php/-> $ (getName)) attrs))
+
+(deftest method-and-param-attributes-are-emitted
+  (let [rm     (php/new \ReflectionMethod "phel_test\\core\\interface_param_attributes\\Ctrl" "act")
+        p0     (php/aget (php/-> rm (getParameters)) 0)
+        margs  (attr-names (php/-> rm (getAttributes)))
+        pargs  (attr-names (php/-> p0 (getAttributes)))]
+    (is (= ["Route"] margs) "method carries its #[Route] attribute")
+    (is (= ["Autowire"] pargs) "parameter carries its #[Autowire] attribute")))

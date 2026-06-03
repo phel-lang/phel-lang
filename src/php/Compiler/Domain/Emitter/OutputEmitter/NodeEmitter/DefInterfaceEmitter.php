@@ -118,6 +118,10 @@ final readonly class DefInterfaceEmitter implements NodeEmitterInterface
         $this->outputEmitter->emitStr('(', $sourceLocation);
 
         foreach ($method->getArgumentsWithoutFirst() as $i => $argument) {
+            foreach ($this->phpAttributeLines($this->attributeRenderer, $argument->getMeta()) as $attribute) {
+                $this->outputEmitter->emitStr($attribute . ' ', $sourceLocation);
+            }
+
             $argumentTag = $this->tagTypeFromMeta($argument->getMeta());
             if ($argumentTag !== null) {
                 $this->outputEmitter->emitStr($argumentTag . ' ', $sourceLocation);
