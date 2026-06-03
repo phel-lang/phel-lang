@@ -57,7 +57,10 @@ interface OutputEmitterInterface
 
     public function emitContextSuffix(NodeEnvironmentInterface $env, ?SourceLocation $sl = null): void;
 
-    public function emitFnWrapPrefix(NodeEnvironmentInterface $env, ?SourceLocation $sl = null): void;
+    /**
+     * @param list<string> $byRefLocalNames local names to capture by reference
+     */
+    public function emitFnWrapPrefix(NodeEnvironmentInterface $env, ?SourceLocation $sl = null, array $byRefLocalNames = []): void;
 
     public function emitPhpVariable(
         Symbol $symbol,

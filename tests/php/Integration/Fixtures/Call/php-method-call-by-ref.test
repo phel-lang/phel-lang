@@ -1,0 +1,9 @@
+--PHEL--
+(let [x 1 o (php/new \ArrayObject)] (php/-> o (offsetSet 0 (php/ref x))))
+--PHP--
+$x_1 = 1;
+$o_2 = (new \ArrayObject());
+(function() use(&$x_1,$o_2) {
+  $target_3 = $o_2;
+  return $target_3->offsetSet(0, $x_1);
+})();

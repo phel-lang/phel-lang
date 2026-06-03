@@ -66,6 +66,7 @@ Trailing `*` means not user-facing. Macros `defstruct`, `definterface`, `defexce
 | `php/new` (`new`) | `NAME_PHP_NEW` / `NAME_NEW` | `new Foo(...)` |
 | `php/->` | `NAME_PHP_OBJECT_CALL` | `$obj->method(...)` / `$obj->prop` |
 | `php/::` | `NAME_PHP_OBJECT_STATIC_CALL` | `Foo::method(...)` / `Foo::CONST` |
+| `php/ref` | `NAME_PHP_REF` | by-ref interop arg: captures the local `use(&$x)` so an output parameter writes back |
 | `php/oset` | `NAME_PHP_OBJECT_SET` | `$obj->prop = $v` |
 | `php/aget` | `NAME_PHP_ARRAY_GET` | `$arr[$k]` |
 | `php/aset` | `NAME_PHP_ARRAY_SET` | `$arr[$k] = $v` |
