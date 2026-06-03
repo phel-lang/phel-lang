@@ -56,7 +56,7 @@
       dirs)))
 
 (defn- eval-namespace [namespace]
-  (let [canonical    (php/:: Munge (canonicalNs namespace))
+  (let [canonical    (canonical-ns namespace)
         dependencies (php/-> build-facade (getDependenciesForNamespace (get-src-dirs) (php/array canonical)))
         found        (php/> (php/count dependencies) 0)]
     (when-not found
@@ -386,7 +386,7 @@
   {:example "(find-ns \"phel.core\") ; => \"phel.core\""
    :see-also ["create-ns" "remove-ns" "loaded-namespaces"]}
   [ns-str]
-  (let [canonical (php/:: Munge (canonicalNs ns-str))]
+  (let [canonical (canonical-ns ns-str)]
     (when (php/:: Phel (hasNamespace (munge-ns canonical)))
       (php/:: Munge (displayNs canonical)))))
 
@@ -396,7 +396,7 @@
   {:example "(create-ns \"my-app.tmp\") ; => \"my-app.tmp\""
    :see-also ["find-ns" "remove-ns" "intern"]}
   [ns-str]
-  (let [canonical (php/:: Munge (canonicalNs ns-str))]
+  (let [canonical (canonical-ns ns-str)]
     (php/:: Phel (registerNamespace (munge-ns canonical)))
     (php/:: Munge (displayNs canonical))))
 
@@ -417,7 +417,7 @@
   {:example "(intern \"user\" \"x\" 42) ; => user/x"
    :see-also ["find-ns" "create-ns" "ns-interns"]}
   [ns-str name-str & rest]
-  (let [canonical    (php/:: Munge (canonicalNs ns-str))
+  (let [canonical    (canonical-ns ns-str)
         encoded-ns   (munge-ns canonical)
         encoded-name (php/-> (php/new Munge) (encode name-str))
         value        (first rest)]
@@ -461,7 +461,7 @@
    :see-also ["ns-publics" "ns-refers" "loaded-namespaces"]}
   [ns-str]
   (let [env     (get-global-env)
-        aliases (php/-> env (getRequireAliases (php/:: Munge (canonicalNs ns-str))))
+        aliases (php/-> env (getRequireAliases (canonical-ns ns-str)))
         result  (transient {})]
     (foreach [alias-name target-sym aliases]
       (assoc! result alias-name (php/:: Munge (displayNs (php/-> target-sym (getName))))))
@@ -474,7 +474,7 @@
    :see-also ["ns-publics" "ns-aliases" "loaded-namespaces"]}
   [ns-str]
   (let [env    (get-global-env)
-        refers (php/-> env (getRefers (php/:: Munge (canonicalNs ns-str))))
+        refers (php/-> env (getRefers (canonical-ns ns-str)))
         result (transient {})]
     (foreach [refer-name source-sym refers]
       (assoc! result refer-name (php/:: Munge (displayNs (php/-> source-sym (getName))))))
