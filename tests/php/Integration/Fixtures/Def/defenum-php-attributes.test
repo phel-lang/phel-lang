@@ -1,0 +1,10 @@
+--PHEL--
+(defenum* ^{:php/attr :ORM/Suit} Suit :hearts "H" :spades "S")
+--PHP--
+if (!enum_exists('user\Suit')) {
+#[\ORM\Suit]
+enum Suit: string {
+  case hearts = 'H';
+  case spades = 'S';
+}
+}

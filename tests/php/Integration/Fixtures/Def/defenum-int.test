@@ -1,0 +1,9 @@
+--PHEL--
+(defenum* Priority :low 1 :high 10)
+--PHP--
+if (!enum_exists('user\Priority')) {
+enum Priority: int {
+  case low = 1;
+  case high = 10;
+}
+}

@@ -267,7 +267,7 @@
   `let`, and `try`."
   (hash-set 'def 'ns 'in-ns 'load 'fn 'quote 'var 'do 'if 'apply
             'let 'recur 'try 'throw 'loop 'foreach 'set-var
-            'defstruct* 'definterface* 'defexception* 'reify*
+            'defstruct* 'definterface* 'defexception* 'defenum* 'reify*
             'php/new 'php/-> 'php/:: 'php/aget 'php/aget-in
             'php/aset 'php/aset-in 'php/apush 'php/apush-in
             'php/aunset 'php/aunset-in 'php/oset
@@ -425,7 +425,7 @@
     (php/is_numeric x)                  (= 0 x)
     (php/is_string x)                   (true? (php/empty x))
     (php/instanceof x LazySeqInterface) (nil? (first x))
-    (php/instanceof x Cons)         false
+    (php/instanceof x Cons)             false
     :else                               (= 0 (count x))))
 
 (defn not-empty

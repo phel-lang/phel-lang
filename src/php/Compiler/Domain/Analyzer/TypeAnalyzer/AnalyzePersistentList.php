@@ -14,6 +14,7 @@ use Phel\Compiler\Domain\Analyzer\Exceptions\AnalyzerException;
 use Phel\Compiler\Domain\Analyzer\TypeAnalyzer\SpecialForm\ApplySymbol;
 use Phel\Compiler\Domain\Analyzer\TypeAnalyzer\SpecialForm\Binding\BindingValidator;
 use Phel\Compiler\Domain\Analyzer\TypeAnalyzer\SpecialForm\Binding\Deconstructor;
+use Phel\Compiler\Domain\Analyzer\TypeAnalyzer\SpecialForm\DefEnumSymbol;
 use Phel\Compiler\Domain\Analyzer\TypeAnalyzer\SpecialForm\DefExceptionSymbol;
 use Phel\Compiler\Domain\Analyzer\TypeAnalyzer\SpecialForm\DefInterfaceSymbol;
 use Phel\Compiler\Domain\Analyzer\TypeAnalyzer\SpecialForm\DefStructSymbol;
@@ -339,6 +340,7 @@ final class AnalyzePersistentList
             Symbol::NAME_FOREACH => new ForeachSymbol($this->analyzer),
             Symbol::NAME_DEF_STRUCT => new DefStructSymbol($this->analyzer, $this->munge, new MethodBodyAnalyzer($this->analyzer)),
             Symbol::NAME_DEF_EXCEPTION => new DefExceptionSymbol($this->analyzer),
+            Symbol::NAME_DEF_ENUM => new DefEnumSymbol($this->analyzer),
             Symbol::NAME_PHP_OBJECT_SET => new PhpOSetSymbol($this->analyzer),
             Symbol::NAME_SET_VAR => new SetVarSymbol($this->analyzer),
             Symbol::NAME_DEF_INTERFACE => new DefInterfaceSymbol($this->analyzer),

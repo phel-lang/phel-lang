@@ -15,6 +15,7 @@ All notable changes to this project will be documented in this file.
 - `phel.http`: JSON request bodies decode into `:parsed-body`, plus `json-response`/`html-response` builders that set the content-type and encode the body (#2271)
 - PHP interop: `^{:php/attr [...]}` emits PHP 8 attributes (e.g. `#[\ORM\Column(length: 255)]`) and `^{:tag <type>}` emits typed signatures on `defstruct`, `phel export` wrappers, and `definterface` — opt-in, untagged forms unchanged (#2280). The metadata also accepts terser shorthands: a bare keyword (`^{:php/attr :ORM/Entity}`) or a single spec without the outer vector (`^{:php/attr [:ORM/Column {:length 255}]}`) (#2289)
 - Docs: runnable `docs/examples/13_database-crud.phel` (maps-not-entities CRUD) and a Persistence section in `framework-integration.md` covering phel-sql + phel-pdo (#2281, #2282)
+- `defenum`: compiles to a native PHP backed enum (`enum Status: string { case active = 'active'; ... }`) with a generated `Name?` predicate; cases take an optional `int`/`string` value (all-or-none), and class-level `^{:php/attr [...]}` is supported (#2291)
 
 ### Changed
 
