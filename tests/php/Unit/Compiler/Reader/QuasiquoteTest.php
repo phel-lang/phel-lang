@@ -129,6 +129,55 @@ final class QuasiquoteTest extends TestCase
         );
     }
 
+    public function test_transform_empty_vector_is_quoted(): void
+    {
+        // An empty vector has count 0, so it skips the create-vector branch and,
+        // not being a literal, falls through to createOtherwise: (quote []).
+        $emptyVector = Phel::vector([]);
+
+        $q = new QuasiquoteTransformer(new GlobalEnvironment());
+        self::assertEquals(
+            Phel::list([
+                Symbol::create(Symbol::NAME_QUOTE),
+                Phel::vector([]),
+            ]),
+            $q->transform($emptyVector),
+        );
+    }
+
+    public function test_transform_empty_list_is_quoted(): void
+    {
+        // An empty list must not be mistaken for an (unquote ...)/(unquote-splicing ...)
+        // form: get(0) would throw on it. It skips the create-list branch and falls
+        // through to createOtherwise: (quote ()).
+        $emptyList = Phel::list([]);
+
+        $q = new QuasiquoteTransformer(new GlobalEnvironment());
+        self::assertEquals(
+            Phel::list([
+                Symbol::create(Symbol::NAME_QUOTE),
+                Phel::list([]),
+            ]),
+            $q->transform($emptyList),
+        );
+    }
+
+    public function test_transform_empty_map_is_quoted(): void
+    {
+        // An empty map has count 0, so it skips the create-map branch and,
+        // not being a literal, falls through to createOtherwise: (quote {}).
+        $emptyMap = Phel::map();
+
+        $q = new QuasiquoteTransformer(new GlobalEnvironment());
+        self::assertEquals(
+            Phel::list([
+                Symbol::create(Symbol::NAME_QUOTE),
+                Phel::map(),
+            ]),
+            $q->transform($emptyMap),
+        );
+    }
+
     public function test_transform_int(): void
     {
         $q = new QuasiquoteTransformer(new GlobalEnvironment());
