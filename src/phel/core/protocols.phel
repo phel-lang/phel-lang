@@ -876,10 +876,10 @@
       (err (str "if-let requires bindings to have 2 elements, "
                 (count bindings) " given"))))
 
-  (let [form (bindings 0) tst (bindings 1) temp-sym (gensym)]
-    `(let [temp-sym ~tst]
-       (if temp-sym
-         (let [~form temp-sym]
+  (let [form (bindings 0) tst (bindings 1)]
+    `(let [temp-sym# ~tst]
+       (if temp-sym#
+         (let [~form temp-sym#]
            ~then)
          ~else))))
 
@@ -896,10 +896,10 @@
       (err (str "when-let requires bindings to have 2 elements, "
                 (count bindings) " given"))))
 
-  (let [form (bindings 0) tst (bindings 1) temp-sym (gensym)]
-    `(let [temp-sym ~tst]
-       (when temp-sym
-         (let [~form temp-sym]
+  (let [form (bindings 0) tst (bindings 1)]
+    `(let [temp-sym# ~tst]
+       (when temp-sym#
+         (let [~form temp-sym#]
            ~@body)))))
 
 (defmacro if-some
@@ -918,10 +918,10 @@
       (err (str "if-some requires bindings to have 2 elements, "
                 (count bindings) " given"))))
 
-  (let [form (bindings 0) tst (bindings 1) temp-sym (gensym)]
-    `(let [temp-sym ~tst]
-       (if (not (nil? temp-sym))
-         (let [~form temp-sym]
+  (let [form (bindings 0) tst (bindings 1)]
+    `(let [temp-sym# ~tst]
+       (if (not (nil? temp-sym#))
+         (let [~form temp-sym#]
            ~then)
          ~else))))
 
@@ -948,10 +948,10 @@
       (err (str "when-first requires bindings to have 2 elements, "
                 (count bindings) " given"))))
 
-  (let [sym (bindings 0) coll (bindings 1) temp-sym (gensym)]
-    `(let [temp-sym (first ~coll)]
-       (when (not (nil? temp-sym))
-         (let [~sym temp-sym]
+  (let [sym (bindings 0) coll (bindings 1)]
+    `(let [temp-sym# (first ~coll)]
+       (when (not (nil? temp-sym#))
+         (let [~sym temp-sym#]
            ~@body)))))
 
 (defmacro letfn
