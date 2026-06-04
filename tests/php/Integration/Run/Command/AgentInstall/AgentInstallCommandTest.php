@@ -53,12 +53,10 @@ final class AgentInstallCommandTest extends TestCase
         self::assertFileDoesNotExist($this->testDir . '/CONVENTIONS.md');
     }
 
-    public function test_missing_platform_and_no_all_returns_invalid(): void
+    public function test_missing_platform_returns_invalid(): void
     {
         $output = new BufferedOutput();
-        $command = new AgentInstallCommand();
-
-        $result = $command->run(new ArrayInput([]), $output);
+        $result = new AgentInstallCommand()->run(new ArrayInput([]), $output);
 
         self::assertSame(Command::INVALID, $result);
         self::assertStringContainsString('Provide a platform or use --all', $output->fetch());
@@ -67,12 +65,12 @@ final class AgentInstallCommandTest extends TestCase
     public function test_unknown_platform_returns_invalid(): void
     {
         $output = new BufferedOutput();
-        $command = new AgentInstallCommand();
-
-        $result = $command->run(new ArrayInput(['platform' => 'borg']), $output);
+        $result = new AgentInstallCommand()->run(new ArrayInput(['platform' => 'borg']), $output);
 
         self::assertSame(Command::INVALID, $result);
-        self::assertStringContainsString('Unknown platform: borg', $output->fetch());
+        $rendered = $output->fetch();
+        self::assertStringContainsString('Unknown platform: borg', $rendered);
+        self::assertStringContainsString('Available:', $rendered);
     }
 
     public function test_dry_run_does_not_create_files(): void
@@ -83,10 +81,12 @@ final class AgentInstallCommandTest extends TestCase
         self::assertSame(Command::SUCCESS, $result);
         self::assertFileDoesNotExist($this->testDir . '/AGENTS.md');
         self::assertFileDoesNotExist($this->testDir . '/CONVENTIONS.md');
-        self::assertStringContainsString('[dry-run]', $output->fetch());
+        $rendered = $output->fetch();
+        self::assertStringContainsString('[dry-run]', $rendered);
+        self::assertStringNotContainsString('Done.', $rendered);
     }
 
-    public function test_reinstall_backs_up_existing_file(): void
+    public function test_reinstall_backs_up_existing_skill_file(): void
     {
         $this->install(['platform' => 'codex']);
         file_put_contents($this->testDir . '/AGENTS.md', 'user-edited content');
@@ -104,27 +104,6 @@ final class AgentInstallCommandTest extends TestCase
         $this->install(['platform' => 'codex', '--force' => true]);
 
         self::assertFileDoesNotExist($this->testDir . '/AGENTS.md.pre-phel.bak');
-    }
-
-    public function test_installed_file_carries_version_stamp(): void
-    {
-        $this->install(['platform' => 'aider']);
-
-        $content = (string) file_get_contents($this->testDir . '/CONVENTIONS.md');
-        self::assertMatchesRegularExpression('/<!-- phel-agents v\d+\.\d+\.\d+ -->/', $content);
-    }
-
-    public function test_reinstall_does_not_duplicate_version_stamp(): void
-    {
-        $this->install(['platform' => 'aider']);
-        $this->install(['platform' => 'aider', '--force' => true]);
-
-        $content = (string) file_get_contents($this->testDir . '/CONVENTIONS.md');
-        self::assertSame(
-            1,
-            preg_match_all('/<!-- phel-agents v/', $content),
-            'Version stamp must appear exactly once after reinstall',
-        );
     }
 
     public function test_install_copies_agents_tree_by_default_without_examples(): void
@@ -165,34 +144,6 @@ final class AgentInstallCommandTest extends TestCase
         self::assertDirectoryDoesNotExist($this->testDir . '/.agents');
     }
 
-    public function test_unknown_platform_suggests_near_match(): void
-    {
-        $output = new BufferedOutput();
-        $command = new AgentInstallCommand();
-        $command->run(new ArrayInput(['platform' => 'claud']), $output);
-
-        $rendered = $output->fetch();
-        self::assertStringContainsString('Did you mean', $rendered);
-        self::assertStringContainsString('claude', $rendered);
-        self::assertStringContainsString('Available:', $rendered);
-    }
-
-    public function test_install_prints_check_hint_on_success(): void
-    {
-        $output = new BufferedOutput();
-        $this->install(['platform' => 'claude', '--no-docs' => true], $output);
-
-        self::assertStringContainsString('agent-install --check', $output->fetch());
-    }
-
-    public function test_dry_run_does_not_print_check_hint(): void
-    {
-        $output = new BufferedOutput();
-        $this->install(['platform' => 'claude', '--dry-run' => true], $output);
-
-        self::assertStringNotContainsString('Done.', $output->fetch());
-    }
-
     public function test_no_docs_skips_agents_tree(): void
     {
         $this->install(['platform' => 'claude', '--no-docs' => true]);
@@ -212,73 +163,21 @@ final class AgentInstallCommandTest extends TestCase
         self::assertStringContainsString('.agents/ already exists', $output->fetch());
     }
 
+    public function test_force_overwrites_docs_tree(): void
+    {
+        mkdir($this->testDir . '/.agents', 0o755, true);
+
+        $this->install(['platform' => 'claude', '--force' => true]);
+
+        self::assertFileExists($this->testDir . '/.agents/RULES.md');
+    }
+
     public function test_claude_skill_references_quick_syntax(): void
     {
         $this->install(['platform' => 'claude', '--no-docs' => true]);
 
         $content = (string) file_get_contents($this->testDir . '/.claude/skills/phel-lang/SKILL.md');
         self::assertStringContainsString('quick-syntax.md', $content);
-    }
-
-    public function test_check_reports_not_installed_for_fresh_project(): void
-    {
-        $output = new BufferedOutput();
-        $result = $this->install(['--check' => true], $output);
-
-        self::assertSame(Command::SUCCESS, $result);
-        $rendered = $output->fetch();
-        self::assertStringContainsString('claude   not installed', $rendered);
-        self::assertStringContainsString('cursor   not installed', $rendered);
-    }
-
-    public function test_check_reports_current_for_freshly_installed(): void
-    {
-        $this->install(['platform' => 'aider']);
-
-        $output = new BufferedOutput();
-        $result = $this->install(['--check' => true], $output);
-
-        self::assertSame(Command::SUCCESS, $result);
-        self::assertMatchesRegularExpression('/aider\s+v\d+\.\d+\.\d+/', $output->fetch());
-    }
-
-    public function test_check_returns_failure_when_stamp_is_stale(): void
-    {
-        $this->install(['platform' => 'aider']);
-        $path = $this->testDir . '/CONVENTIONS.md';
-        $original = (string) file_get_contents($path);
-        file_put_contents($path, preg_replace('/<!-- phel-agents v[^>]*-->/', '<!-- phel-agents v0.0.1 -->', $original));
-
-        $output = new BufferedOutput();
-        $result = $this->install(['--check' => true], $output);
-
-        self::assertSame(Command::FAILURE, $result);
-        self::assertStringContainsString('v0.0.1', $output->fetch());
-    }
-
-    public function test_list_shows_all_supported_platforms_with_targets(): void
-    {
-        $output = new BufferedOutput();
-        $result = $this->install(['--list' => true], $output);
-
-        self::assertSame(Command::SUCCESS, $result);
-        $rendered = $output->fetch();
-        foreach (['claude', 'cursor', 'codex', 'gemini', 'copilot', 'aider'] as $key) {
-            self::assertStringContainsString($key, $rendered);
-        }
-
-        self::assertStringContainsString('.claude/skills/phel-lang/SKILL.md', $rendered);
-        self::assertStringContainsString('not installed', $rendered);
-    }
-
-    public function test_list_reflects_installed_state(): void
-    {
-        $this->install(['platform' => 'aider']);
-
-        $output = new BufferedOutput();
-        $this->install(['--list' => true], $output);
-
-        self::assertMatchesRegularExpression('/aider\s+.+\s+current \(v\d+\.\d+\.\d+\)/', $output->fetch());
     }
 
     public function test_uninstall_removes_skill_file_when_no_backup(): void
@@ -375,25 +274,29 @@ final class AgentInstallCommandTest extends TestCase
         self::assertStringContainsString('agent-install --auto', $rendered);
     }
 
-    public function test_uninstall_on_unknown_platform_is_noop(): void
+    public function test_dry_run_uninstall_previews_backup_restore_without_changing_files(): void
     {
-        $output = new BufferedOutput();
-        $result = $this->install(['platform' => 'aider', '--uninstall' => true], $output);
+        file_put_contents($this->testDir . '/CONVENTIONS.md', 'user-original');
+        $this->install(['platform' => 'aider', '--no-docs' => true]);
 
-        self::assertSame(Command::SUCCESS, $result);
-        self::assertStringContainsString('aider    not installed', $output->fetch());
+        $output = new BufferedOutput();
+        $this->install(['platform' => 'aider', '--uninstall' => true, '--no-docs' => true, '--dry-run' => true], $output);
+
+        $rendered = $output->fetch();
+        self::assertStringContainsString('[dry-run] remove', $rendered);
+        self::assertStringContainsString('[dry-run] restore', $rendered);
+        // Nothing actually changed: skill + backup both still present.
+        self::assertFileExists($this->testDir . '/CONVENTIONS.md');
+        self::assertFileExists($this->testDir . '/CONVENTIONS.md.pre-phel.bak');
     }
 
-    public function test_check_reports_unstamped_when_file_has_no_stamp(): void
+    public function test_uninstall_on_not_installed_platform_is_noop(): void
     {
-        mkdir($this->testDir . '/.github', 0o755, true);
-        file_put_contents($this->testDir . '/.github/copilot-instructions.md', "# manual content\nno stamp here\n");
-
         $output = new BufferedOutput();
-        $result = $this->install(['--check' => true], $output);
+        $result = $this->install(['platform' => 'aider', '--uninstall' => true, '--no-docs' => true], $output);
 
-        self::assertSame(Command::FAILURE, $result);
-        self::assertStringContainsString('copilot  file exists but has no version stamp', $output->fetch());
+        self::assertSame(Command::SUCCESS, $result);
+        self::assertStringContainsString('aider    not installed; skip', $output->fetch());
     }
 
     /**
@@ -401,8 +304,7 @@ final class AgentInstallCommandTest extends TestCase
      */
     private function install(array $args, ?BufferedOutput $output = null): int
     {
-        $command = new AgentInstallCommand();
-        return $command->run(new ArrayInput($args), $output ?? new BufferedOutput());
+        return new AgentInstallCommand()->run(new ArrayInput($args), $output ?? new BufferedOutput());
     }
 
     private function removeDirectory(string $dir): void

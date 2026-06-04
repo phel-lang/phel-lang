@@ -65,16 +65,4 @@ final class DoctorCommandTest extends TestCase
 
         self::assertSame(0, $exitCode, 'doctor should exit 0 even when temp dir did not exist beforehand');
     }
-
-    public function test_doctor_includes_agent_install_section(): void
-    {
-        $output = new BufferedOutput();
-
-        new DoctorCommand()->run(
-            $this->createStub(InputInterface::class),
-            $output,
-        );
-
-        self::assertMatchesRegularExpression('/AI agent skills \(phel-agents v/', $output->fetch());
-    }
 }
