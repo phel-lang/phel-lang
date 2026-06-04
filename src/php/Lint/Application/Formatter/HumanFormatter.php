@@ -8,6 +8,7 @@ use Phel\Api\Transfer\Diagnostic;
 use Phel\Lint\Domain\DiagnosticFormatterInterface;
 use Phel\Lint\Transfer\LintResult;
 
+use function implode;
 use function sprintf;
 
 /**
@@ -54,13 +55,13 @@ final class HumanFormatter implements DiagnosticFormatterInterface
             $diagnostic->uri,
             $diagnostic->startLine,
             $diagnostic->startCol,
-            $this->severityLabel($diagnostic->severity),
+            $this->formatSeverity($diagnostic->severity),
             $diagnostic->code,
             $diagnostic->message,
         );
     }
 
-    private function severityLabel(string $severity): string
+    private function formatSeverity(string $severity): string
     {
         return match ($severity) {
             Diagnostic::SEVERITY_ERROR => '[error]',

@@ -48,7 +48,7 @@ final readonly class DefStructEmitter implements NodeEmitterInterface
     private function emitViaEval(DefStructNode $node): void
     {
         $ns = $this->outputEmitter->mungeEncodePhpNs($node->getNamespace());
-        $fqcn = $ns . '\\' . $this->outputEmitter->mungeEncode($node->getName()->getName());
+        $fqcn = $this->buildFqcn($node);
 
         ob_start();
         $this->emitClassBody($node);
@@ -81,9 +81,18 @@ final readonly class DefStructEmitter implements NodeEmitterInterface
 
     private function emitClassExistsGuard(DefStructNode $node): void
     {
-        $fqcn = $this->outputEmitter->mungeEncodePhpNs($node->getNamespace())
-            . '\\' . $this->outputEmitter->mungeEncode($node->getName()->getName());
+        $fqcn = $this->buildFqcn($node);
         $this->outputEmitter->emitLine("if (!class_exists('" . $fqcn . "')) {", $node->getStartSourceLocation());
+    }
+
+    /**
+     * Builds the fully qualified PHP class name for the generated struct,
+     * encoding both the namespace and the class name through the munger.
+     */
+    private function buildFqcn(DefStructNode $node): string
+    {
+        return $this->outputEmitter->mungeEncodePhpNs($node->getNamespace())
+            . '\\' . $this->outputEmitter->mungeEncode($node->getName()->getName());
     }
 
     private function emitClassBody(DefStructNode $node): void

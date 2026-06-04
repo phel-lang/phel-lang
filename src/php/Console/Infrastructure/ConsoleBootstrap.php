@@ -18,6 +18,7 @@ use Symfony\Component\Console\Output\OutputInterface;
 use function array_slice;
 use function array_values;
 use function in_array;
+use function str_starts_with;
 
 #[ServiceMap(method: 'getFactory', className: ConsoleFactory::class)]
 final class ConsoleBootstrap extends Application

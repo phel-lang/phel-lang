@@ -14,6 +14,8 @@ use Phel\Lsp\Application\Rpc\ParamsExtractor;
 use Phel\Lsp\Application\Session\Session;
 use Phel\Lsp\Domain\HandlerInterface;
 
+use function array_values;
+
 /**
  * Lists all top-level definitions in the open document. Uses the project
  * index when available; otherwise runs a single-file indexing pass so the
@@ -84,11 +86,7 @@ final readonly class DocumentSymbolHandler implements HandlerInterface
         }
 
         $index = $this->apiFacade->indexProject([$path]);
-        $result = [];
-        foreach ($index->definitions as $def) {
-            $result[] = $def;
-        }
 
-        return $result;
+        return array_values($index->definitions);
     }
 }

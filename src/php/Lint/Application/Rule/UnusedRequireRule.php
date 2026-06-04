@@ -13,6 +13,7 @@ use Phel\Lint\Domain\FileAnalysis;
 use Phel\Lint\Domain\LintRuleInterface;
 
 use function count;
+use function explode;
 use function sprintf;
 
 /**

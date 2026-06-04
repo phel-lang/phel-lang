@@ -36,10 +36,7 @@ final readonly class LookupOp implements OpHandlerInterface
 
     public function handle(OpRequest $request): array
     {
-        $symbol = $request->stringParam('sym');
-        if ($symbol === '') {
-            $symbol = $request->stringParam('symbol');
-        }
+        $symbol = $this->extractSymbol($request);
 
         if ($symbol === '') {
             return [OpResponse::errorDone(
@@ -73,6 +70,16 @@ final readonly class LookupOp implements OpHandlerInterface
             ['info' => $info, 'eldoc' => $fn->signatures],
             [OpStatus::DONE],
         )];
+    }
+
+    private function extractSymbol(OpRequest $request): string
+    {
+        $symbol = $request->stringParam('sym');
+        if ($symbol === '') {
+            return $request->stringParam('symbol');
+        }
+
+        return $symbol;
     }
 
     private function resolveCurrentNamespace(OpRequest $request): string
