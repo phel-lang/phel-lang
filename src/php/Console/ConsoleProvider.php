@@ -43,6 +43,10 @@ final class ConsoleProvider extends AbstractProvider
     }
 
     /**
+     * Aggregates every CLI command from the per-module providers listed in
+     * commandProviders(); command order follows that list. Exposed as the
+     * COMMANDS dependency consumed by ConsoleBootstrap.
+     *
      * @return list<Command>
      */
     #[Provides(self::COMMANDS)]
@@ -90,6 +94,11 @@ final class ConsoleProvider extends AbstractProvider
         return InstalledVersions::getReference(self::PACKAGE_NAME) ?? '';
     }
 
+    /**
+     * Runs a git command and returns its first output line trimmed, or an empty
+     * string when git is unavailable or the command fails. Callers treat the
+     * empty result as the signal to fall back to Composer's InstalledVersions.
+     */
     private function execGitCommand(string $command): string
     {
         $output = [];

@@ -47,7 +47,9 @@ final class Promise implements Awaitable, FnInterface
 
     /**
      * Deliver $value and freeze the promise. Returns true on the first
-     * delivery, false when the promise is already delivered.
+     * delivery, false when the promise is already delivered. Callers that
+     * must enforce a deliver-exactly-once invariant should check the return
+     * value; a false result means another caller (or fiber) won the race.
      */
     public function deliver(mixed $value): bool
     {

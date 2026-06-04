@@ -107,7 +107,7 @@
       content)))
 
 (defn spit
-  "Writes data to file, returning number of bytest that were written or `nil`
+  "Writes data to file, returning number of bytes that were written or `nil`
   on failure. Accepts `opts` map for overriding default PHP file_put_contents
   arguments, as example to append to file use `{:flags php/FILE_APPEND}`.
 

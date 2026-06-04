@@ -25,6 +25,14 @@ final class ConsoleBootstrap extends Application
 {
     use ServiceResolverAwareTrait;
 
+    /**
+     * Sanitizes argv, strips deprecation flags, rewrites a bare --help/-h into the
+     * `list` command, then runs the Symfony application with auto-exit disabled.
+     *
+     * Does not return: after the application finishes it clears the filesystem
+     * cache and terminates via exit() with the resolved exit code, so any code
+     * placed after the call site is unreachable.
+     */
     #[Override]
     public function run(?InputInterface $input = null, ?OutputInterface $output = null): int
     {

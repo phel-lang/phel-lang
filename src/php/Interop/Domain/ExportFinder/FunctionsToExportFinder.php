@@ -72,6 +72,10 @@ final readonly class FunctionsToExportFinder implements FunctionsToExportFinderI
     }
 
     /**
+     * Scans every loaded Phel namespace and collects the definitions whose metadata
+     * carries `:export true`, grouped by namespace so the generator can emit one
+     * wrapper class per namespace.
+     *
      * @return array<string, list<FunctionToExport>>
      */
     private function findAllFunctionsToExport(): array

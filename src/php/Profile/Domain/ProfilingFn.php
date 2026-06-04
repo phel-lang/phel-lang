@@ -12,8 +12,10 @@ use function is_string;
 
 /**
  * Proxy that wraps a user `defn` so every call routed via `Registry`
- * is timed. Self-recursive calls that the compiler emits as `$this(...)`
- * bypass this proxy by design (see commit bee78ffe).
+ * is timed. Self-recursive calls are emitted by the compiler as
+ * `$this(...)` rather than a registry lookup, so they never reach this
+ * proxy and stay untimed; that bypass is a compiler emit detail, not a
+ * constraint of this class (see commit bee78ffe).
  */
 final class ProfilingFn extends AbstractFn
 {

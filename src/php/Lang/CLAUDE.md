@@ -13,7 +13,7 @@ Foundational leaf module with no Facade, Factory, or DependencyProvider. All typ
 - **Keyword**: interned pool; callable to access map values; implements `FnInterface`
 - **Atom**: mutable box with watches, validators, `deref` (Clojure-aligned; was `Variable`)
 - **PhelVar**: first-class handle to global `def`. Methods: `deref`, `meta`, `alterRoot`, `addWatch`/`removeWatch`, `alterMeta`/`resetMeta`, `isDynamic` (cached). Callable via `__invoke` to current root. Produced by `Registry::addDefinition`/`getVar` and `(var sym)` form
-- **PhelVarStateRegistry**: singleton side table for per-var watches, metadata, dynamic-flag cache keyed by `(ns, name)`; enables `PhelVar` to stay `readonly` while `alter-meta!` and `add-watch` mutate canonical state
+- **PhelVarStateRegistry**: singleton side table for per-var watches, metadata, dynamic-flag cache keyed by `(ns, name)`; enables `PhelVar` to stay `readonly` while `alter-meta!` and `add-watch` mutate canonical state. The `isDynamic` cache is cleared here via `invalidateDynamicCache(ns, name)` whenever metadata changes (`alter-meta!`/`reset-meta!` or a re-`def`), not in `PhelVar` itself
 
 **Numeric Types**
 - **BigInt**: arbitrary-precision signed integer (`final readonly`, `TypeInterface`); base-10^9 with sign. Methods: `fromInt`, `fromFloat`, `fromString`, `add`/`subtract`/`multiply`/`divide`/`mod`/`gcd`/`pow`/`negate`/`abs`, `compareTo`, `equals`, `hash`, `toInt`, `fitsInPhpInt`. No I/O or static state. Owns sign + metadata + signed semantics; delegates the sign-agnostic digit-array kernels to **BigIntMagnitude**
@@ -30,7 +30,7 @@ Foundational leaf module with no Facade, Factory, or DependencyProvider. All typ
 - **MapEntry**: typed two-element entry (`final readonly`, `TypeInterface, Countable, IteratorAggregate, FirstInterface, CdrInterface`). Equal by value to 2-element vector (both directions). Accessors: `key()`/`value()`; `first()` = key, `cdr()` = 1-vector with value
 
 **Lazy and Mutable**
-- **Delay**: lazy evaluation with caching
+- **Delay**: single-value lazy computation; `deref()` runs the thunk once and caches the result, `isRealized()` reports whether it has run. Use for single-value laziness (distinct from **LazySeq**, which is for sequences)
 - **Volatile**: lightweight mutable container for transducer state (no watches/validators)
 - **Reduced**: signals early termination from reduce/transduce
 - **Future**: Amphp adapter; exposes Phel deref/realized? protocol

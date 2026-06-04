@@ -73,22 +73,34 @@
   (php/>> x n))
 
 (defn bit-set
-  "Set bit an index `n`."
+  "Returns the integer `x` with the bit at index `n` (0-based, least
+  significant first) set to 1."
+  {:example "(bit-set 0 2) ; => 4"
+   :see-also ["bit-clear" "bit-flip" "bit-test"]}
   [x n]
   (bit-or x (bit-shift-left 1 n)))
 
 (defn bit-clear
-  "Clear bit an index `n`."
+  "Returns the integer `x` with the bit at index `n` (0-based, least
+  significant first) cleared to 0."
+  {:example "(bit-clear 7 1) ; => 5"
+   :see-also ["bit-set" "bit-flip" "bit-test"]}
   [x n]
   (bit-and x (bit-not (bit-shift-left 1 n))))
 
 (defn bit-flip
-  "Flip bit at index `n`."
+  "Returns the integer `x` with the bit at index `n` (0-based, least
+  significant first) toggled."
+  {:example "(bit-flip 5 1) ; => 7"
+   :see-also ["bit-set" "bit-clear" "bit-test"]}
   [x n]
   (bit-xor x (bit-shift-left 1 n)))
 
 (defn bit-test
-  "Test bit at index `n`."
+  "Returns `true` if the bit at index `n` (0-based, least significant
+  first) of the integer `x` is set, `false` otherwise."
+  {:example "(bit-test 5 0) ; => true"
+   :see-also ["bit-set" "bit-clear" "bit-flip"]}
   [x n]
   (php/!= 0 (bit-and x (bit-shift-left 1 n))))
 

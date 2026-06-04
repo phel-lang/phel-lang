@@ -183,15 +183,17 @@
 
 (defn contains?
   "True if s contains substr."
-  {:example "(contains? \"hello world\" \"lo wo\") ; => true"}
+  {:example "(contains? \"hello world\" \"lo wo\") ; => true"
+   :see-also ["includes?" "starts-with?" "ends-with?" "index-of"]}
   [s substr]
   (assert-string s)
   (assert-string substr)
   (php/str_contains s substr))
 
 (defn includes?
-  "True if s includes substr."
-  {:example "(includes? \"hello world\" \"world\") ; => true"}
+  "True if s includes substr. Synonym for `contains?`."
+  {:example "(includes? \"hello world\" \"world\") ; => true"
+   :see-also ["contains?" "starts-with?" "ends-with?"]}
   [s substr]
   (assert-string s)
   (assert-string substr)
@@ -214,8 +216,11 @@
     (php/implode "" mapped)))
 
 (defn index-of
-  "Returns the index of value in s, or nil if not found."
-  {:example "(index-of \"hello world\" \"world\") ; => 6"}
+  "Returns the index of the first occurrence of value in s, or nil if not
+  found. The optional from-index sets where the search begins; a negative
+  from-index counts back from the end of s."
+  {:example "(index-of \"hello world\" \"world\") ; => 6"
+   :see-also ["last-index-of" "contains?"]}
   [s value & [from-index]]
   (let [from-index (or from-index 0)
         from-index (let [abs (php/abs from-index)
@@ -232,8 +237,11 @@
       result)))
 
 (defn last-index-of
-  "Returns the last index of value in s, or nil if not found."
-  {:example "(last-index-of \"hello world world\" \"world\") ; => 12"}
+  "Returns the index of the last occurrence of value in s, or nil if not
+  found. The optional from-index sets the upper bound for the match; a
+  negative from-index counts back from the end of s."
+  {:example "(last-index-of \"hello world world\" \"world\") ; => 12"
+   :see-also ["index-of" "contains?"]}
   [s value & [from-index]]
   (let [len        (php/mb_strlen s)
         max-index  (dec len)

@@ -37,6 +37,7 @@ Richer PHP interop for bridging Phel to typed PHP / framework code (all opt-in, 
 - Internals: split seven oversized god-classes into focused single-responsibility collaborators across the compiler, runtime, build, and api modules (pure refactors, behavior unchanged): `CallSpecialization`, `CallEmitter` (#2273), `CompiledCodeCache` (#2274), `BigInt` (#2275), `NumericOperations` (#2276), `PhelFnLoader` (#2277), and `Parser` (#2278); also centralized the emitters' bare-expression capture into `OutputEmitter::captureNodeAsExpression()`
 - Tests: `RegistryTest` and `PhelVarTest` snapshot and restore the global `Registry`, fixing order-dependent `phel.core` suite failures (#2256)
 - Docs: condensed every `docs/` guide (~17% smaller), verified against the runtime, and cross-linked to phel-lang.org
+- Quality: repo-wide maintainability pass — explanatory docblocks and `:doc`/`:see-also`/`:example` metadata across modules, safe dead-code/type/naming cleanups, behavior-identical helper extractions, and ~40 new unit tests for previously untested utilities (no behavior change)
 
 ## [0.41.0](https://github.com/phel-lang/phel-lang/compare/v0.40.0...v0.41.0) - 2026-06-01
 

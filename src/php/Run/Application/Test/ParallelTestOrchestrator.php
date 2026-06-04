@@ -29,7 +29,9 @@ use function stream_select;
  * stays deterministic across runs.
  *
  * Concurrency primitive: blocking {@see stream_select} over worker stdouts
- * with a generous timeout. No threads, no pcntl, no shared memory.
+ * with a generous timeout ({@see self::SELECT_TIMEOUT_MICROS}). No threads,
+ * no pcntl, no shared memory. Parent and workers exchange length-prefixed
+ * JSON frames ({@see WorkerFrame}).
  */
 final readonly class ParallelTestOrchestrator
 {

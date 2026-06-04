@@ -19,8 +19,12 @@ interface Awaitable
     public function isRealized(): bool;
 
     /**
-     * Blocks until realized and returns the stored value. If the stored
-     * value is a Throwable it is rethrown.
+     * Blocks until realized and returns the stored value.
+     *
+     * A {@see Promise} returns its delivered value verbatim, even when that
+     * value is itself a Throwable. A {@see Future} additionally rethrows the
+     * exception its body threw (captured during execution), rather than
+     * returning it as a value.
      *
      * When called from inside a Fiber, suspends cooperatively. Outside a
      * Fiber context, falls back to a bounded usleep poll.

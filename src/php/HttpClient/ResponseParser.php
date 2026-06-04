@@ -9,15 +9,18 @@ namespace Phel\HttpClient;
  * into a structured associative array.
  *
  * Header names are lowercased. For duplicate header names (e.g. Set-Cookie),
- * only the last value is kept. Redirect chains are handled by resetting
- * status/version/reason on each new HTTP status line encountered.
+ * only the last value is kept: this is a deliberate trade-off to keep the
+ * returned map flat (string => string); callers needing every value of a
+ * multi-valued header must read the raw lines themselves. Redirect chains are
+ * handled by resetting status/version/reason on each new HTTP status line
+ * encountered.
  */
 final class ResponseParser
 {
     /**
      * @param list<string> $rawHeaders Raw header lines from $http_response_header
      *
-     * @return array{status: int, version: string, reason: string, headers: array<string, string>}
+     * @return array{status: int, version: string, reason: string, headers: array<string, string>} 'headers' keys are lowercased header names
      */
     public static function parse(array $rawHeaders): array
     {

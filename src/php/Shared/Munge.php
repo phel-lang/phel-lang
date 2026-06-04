@@ -48,6 +48,11 @@ final readonly class Munge implements MungeInterface
         private array $nsMapping = self::NAMESPACE_MAPPING,
     ) {}
 
+    /**
+     * Encodes a symbol name into a valid PHP identifier by replacing every
+     * special character per the configured mapping. `this` is special-cased
+     * because it is a reserved PHP variable name.
+     */
     public function encode(string $str): string
     {
         if ($str === 'this') {
@@ -73,6 +78,10 @@ final readonly class Munge implements MungeInterface
         return $this->encodeWithMap(self::canonicalNs($str), $this->nsMapping);
     }
 
+    /**
+     * Inverse of the namespace encoding: maps an encoded namespace string back
+     * to its canonical (dot) source form by applying the flipped mapping.
+     */
     public function decodeNs(string $str): string
     {
         return $this->encodeWithMap($str, array_flip($this->nsMapping));

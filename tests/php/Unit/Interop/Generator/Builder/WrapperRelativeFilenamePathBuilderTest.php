@@ -35,5 +35,31 @@ final class WrapperRelativeFilenamePathBuilderTest extends TestCase
             'the_project\\the_simple_file',
             'TheProject/TheSimpleFile.php',
         ];
+
+        yield 'single segment' => [
+            'export',
+            'Export.php',
+        ];
+
+        yield 'dot separator' => [
+            'test.export',
+            'Test/Export.php',
+        ];
+
+        yield 'multiple dot separators' => [
+            'a.b.c',
+            'A/B/C.php',
+        ];
+
+        yield 'mixed dot separators and underscores' => [
+            'my_lib.deep.export_util',
+            'MyLib/Deep/ExportUtil.php',
+        ];
+
+        // Hyphens are NOT treated as separators: only `\`, `.` and `_` are.
+        yield 'hyphen is left untouched' => [
+            'test-lib',
+            'Test-lib.php',
+        ];
     }
 }

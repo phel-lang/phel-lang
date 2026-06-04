@@ -186,7 +186,7 @@
                       unknown tag (both scalar and array forms). Receives
                       the bare tag name (e.g. \"point\", \":\", \"~\") and
                       the already-decoded representation."
-  {:example "(read-string \"[\\\"~:foo\\\", 1]\") ; => [:foo 1]"
+  {:example "(read-string \"[\\\"~:foo\\\", 1]\") ; => [:foo 1]\n(read-string \"[\\\"~#point\\\", [1, 2]]\" {:handlers {\"point\" (fn [v] v)}}) ; => [1 2]"
    :see-also ["write-string"]}
   ([s] (read-string s {}))
   ([s opts]

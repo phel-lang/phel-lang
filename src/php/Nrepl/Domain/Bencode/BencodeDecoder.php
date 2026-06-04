@@ -45,6 +45,12 @@ final class BencodeDecoder
         return [$value, $position];
     }
 
+    /**
+     * Recursive entry point shared by all internal decoders.
+     *
+     * @param int &$position IN/OUT: the offset to start at; on return it is
+     *                       advanced to the first byte after the decoded value
+     */
     private function decodeAt(string $input, int &$position): mixed
     {
         if ($position >= strlen($input)) {

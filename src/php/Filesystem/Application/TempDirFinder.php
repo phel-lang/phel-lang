@@ -7,6 +7,16 @@ namespace Phel\Filesystem\Application;
 use Phel\Filesystem\Domain\FileIoInterface;
 use Phel\Shared\Exceptions\FileException;
 
+/**
+ * Resolves the configured temp directory, creating it if missing and ensuring
+ * it is writable.
+ *
+ * The resolved path is cached on the instance after the first successful call,
+ * so subsequent calls return immediately without touching the filesystem.
+ * Creation is idempotent (a concurrently-created directory is tolerated), and
+ * a non-writable directory triggers a chmod 0777 retry before giving up with a
+ * FileException.
+ */
 final class TempDirFinder
 {
     private string $cachedTempDir = '';
@@ -32,6 +42,8 @@ final class TempDirFinder
 
         $this->ensureDirectoryExists($tempDir);
 
+        // Directory exists but is not writable: try to broaden permissions
+        // and re-check before failing.
         if (!$this->fileIo->isWritable($tempDir)) {
             @chmod($tempDir, 0777);
 

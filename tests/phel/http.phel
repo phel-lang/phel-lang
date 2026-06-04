@@ -364,6 +364,44 @@
   (foreach [[name response result] send-response-examples]
     (is (output? result (h/emit-response response)) name)))
 
+;; NOTE: The actual header strings sent by `emit-response` (via php/header)
+;; cannot be asserted from a test, since php/header writes to the SAPI and
+;; exposes nothing capturable. The tests below cover the observable parts of
+;; `emit-response`: it always echoes the body and returns nil, even when
+;; multiple-, list-, and empty-valued headers exercise the `emit-headers`
+;; branches that `test-send-response` (single string header) does not.
+
+(deftest test-emit-response-returns-nil
+  (is (nil? (h/emit-response (h/response-from-string "anything")))
+      "emit-response returns nil"))
+
+(deftest test-emit-response-echoes-body-with-multiple-headers
+  (is (output? "Body!"
+               (h/emit-response
+                (h/response 200
+                            {:content-type "text/plain" :x-custom "val"}
+                            "Body!"
+                            nil
+                            nil)))
+      "emit-response echoes the body even with several headers present"))
+
+(deftest test-emit-response-echoes-body-with-list-valued-header
+  ;; indexed (vector) header values exercise the `(indexed? values)` branch
+  ;; of emit-headers, e.g. multiple Set-Cookie lines.
+  (is (output? "Cookies"
+               (h/emit-response
+                (h/response 200
+                            {:set-cookie ["a=1" "b=2"]}
+                            "Cookies"
+                            nil
+                            nil)))
+      "emit-response echoes the body with a list-valued header"))
+
+(deftest test-emit-response-empty-body
+  (is (output? ""
+               (h/emit-response (h/response 204 {} "" nil nil)))
+      "emit-response emits no body output for an empty body"))
+
 ;; ---
 ;; Request body parsing
 ;; ---

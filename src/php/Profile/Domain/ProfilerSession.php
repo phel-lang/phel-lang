@@ -36,6 +36,10 @@ final class ProfilerSession implements ProfilerHookInterface
         $this->startedAtNs = hrtime(true);
     }
 
+    /**
+     * Wrap a fn in a {@see ProfilingFn} proxy. Idempotent: an already-wrapped
+     * fn is returned unchanged so the registry hook never double-wraps.
+     */
     public function wrapFn(AbstractFn $fn): ProfilingFn
     {
         if ($fn instanceof ProfilingFn) {
@@ -45,12 +49,22 @@ final class ProfilerSession implements ProfilerHookInterface
         return new ProfilingFn($fn, $this);
     }
 
+    /**
+     * Push a call frame onto the stack. Must be paired with `exit()`.
+     *
+     * @param string $name Fully-qualified fn name (the proxy's `BOUND_TO` value)
+     */
     public function enter(string $name): void
     {
         $this->stack[] = [$name, hrtime(true), 0];
         ++$this->depth;
     }
 
+    /**
+     * Pop the current frame and fold its inclusive time into the parent's
+     * child total (so the parent's self-time excludes this call). An unmatched
+     * exit on an empty stack is silently ignored.
+     */
     public function exit(): void
     {
         $frame = array_pop($this->stack);
@@ -68,11 +82,23 @@ final class ProfilerSession implements ProfilerHookInterface
         }
     }
 
+    /**
+     * Record elapsed time for one compile phase of one source. Accumulates:
+     * repeated calls for the same source/phase pair add up.
+     *
+     * @param string $phase     Compile phase name (e.g. lex, parse, read, analyze, emit)
+     * @param string $source    File path or namespace being compiled
+     * @param float  $elapsedMs Elapsed milliseconds to add to the running total
+     */
     public function recordPhase(string $phase, string $source, float $elapsedMs): void
     {
         $this->phaseMs[$source][$phase] = ($this->phaseMs[$source][$phase] ?? 0.0) + $elapsedMs;
     }
 
+    /**
+     * Finalize the session and snapshot the collected stats into an immutable
+     * report. Intended to be called once after the profiled run completes.
+     */
     public function stop(): ProfileReport
     {
         return new ProfileReport(

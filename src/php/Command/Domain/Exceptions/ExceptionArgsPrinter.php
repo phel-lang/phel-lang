@@ -60,7 +60,12 @@ final readonly class ExceptionArgsPrinter implements ExceptionArgsPrinterInterfa
     }
 
     /**
-     * Converts a PHP type to a string.
+     * Formats a single PHP value for display in a stack trace frame.
+     *
+     * Strings are quoted and truncated to 15 characters to keep trace lines
+     * readable; resources are rendered as their resource id, objects as their
+     * class name. This differs from {@see parseArgsAsString()}, which formats
+     * Phel function arguments via the {@see PrinterInterface}.
      */
     private function buildPhpArg(mixed $arg): string
     {

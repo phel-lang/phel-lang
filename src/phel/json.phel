@@ -19,7 +19,8 @@
 
 (defn encode-value
   "Converts a Phel value to JSON-compatible format."
-  {:example "(encode-value :name) ; => \"name\""}
+  {:example "(encode-value :name) ; => \"name\""
+   :see-also ["encode" "decode-value"]}
   [x]
   (cond
     (php/is_iterable x) (encode-value-iterable x)
@@ -42,7 +43,8 @@
 
 (defn decode-value
   "Converts a JSON value to Phel format."
-  {:example "(decode-value [1 2 3]) ; => [1 2 3]"}
+  {:example "(decode-value [1 2 3]) ; => [1 2 3]"
+   :see-also ["decode" "encode-value"]}
   [x]
   (cond
     (indexed? x)   (for [v :in x] (decode-value v))

@@ -93,6 +93,15 @@ use Phel\Compiler\Domain\Emitter\OutputEmitter\NodeEmitter\VarEmitter;
 use Phel\Compiler\Domain\Emitter\OutputEmitter\NodeEmitter\VectorEmitter;
 use Phel\Compiler\Domain\Emitter\OutputEmitterInterface;
 
+/**
+ * Creates and caches node emitters per OutputEmitter instance.
+ *
+ * Caches are keyed by the OutputEmitter's object identity (spl_object_id),
+ * so the same OutputEmitter reuses its emitter, method-emitter, and
+ * closure-helper instances across calls, while a different OutputEmitter
+ * gets a fresh set. This keeps stateful collaborators bound to the emitter
+ * that owns them without leaking instances between unrelated emitters.
+ */
 final class NodeEmitterFactory
 {
     /** @var array<int, array<string, NodeEmitterInterface>> */

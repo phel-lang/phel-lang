@@ -4,6 +4,13 @@ declare(strict_types=1);
 
 namespace Phel\Shared;
 
+/**
+ * Mutable configuration builder for a single compilation. Setters customize
+ * the source label, starting line, source-map emission, emit-only mode, and
+ * optimization level before the options are passed to
+ * {@see Facade\CompilerFacadeInterface::compile()}. Each setter returns `$this`
+ * for fluent chaining.
+ */
 final class CompileOptions
 {
     public const string DEFAULT_SOURCE = 'string';

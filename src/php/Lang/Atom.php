@@ -86,6 +86,11 @@ final class Atom extends AbstractType
         return $this->validator;
     }
 
+    /**
+     * Atoms compare by identity (`===`), never by their dereferenced value.
+     * This keeps watch callbacks and validators bound to the container itself,
+     * so two distinct atoms holding equal values are still considered different.
+     */
     public function equals(mixed $other): bool
     {
         return $this === $other;

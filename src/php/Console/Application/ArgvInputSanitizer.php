@@ -10,7 +10,14 @@ use function in_array;
 
 final class ArgvInputSanitizer
 {
-    /** @var list<string> */
+    /**
+     * Options understood by `phel run` itself, recognized only while they appear
+     * before the command name. Once the command token is reached, every remaining
+     * argument is forwarded verbatim after a `--` separator, so script options
+     * stay distinct from arguments meant for the user command.
+     *
+     * @var list<string>
+     */
     private const array RUN_OPTIONS = ['-t', '--with-time', '--clear-opcache'];
 
     /**

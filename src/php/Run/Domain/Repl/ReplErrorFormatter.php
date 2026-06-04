@@ -22,6 +22,12 @@ use const PHP_EOL;
 
 final readonly class ReplErrorFormatter
 {
+    /**
+     * Stack-frame paths belonging to the compiler, runtime, build, and CLI
+     * infrastructure that are filtered out of REPL error traces to keep them
+     * user-focused. When adding a new compiler/framework module, append its
+     * path here so its frames stay hidden.
+     */
     private const array INTERNAL_FRAME_PATHS = [
         '/phel-lang/src/php/Compiler/',
         '/phel-lang/src/php/Run/',

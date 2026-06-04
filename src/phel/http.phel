@@ -52,8 +52,12 @@
       [server-name server-port])))
 
 (defn uri-from-globals
-  "Extracts the URI from the `$_SERVER` variable."
-  {:example "(uri-from-globals) ; => (uri \"https\" nil \"example.com\" 443 \"/path\" \"foo=bar\" nil)"}
+  "Extracts the URI from the `$_SERVER` variable. The scheme is read from
+  `HTTP_X_FORWARDED_PROTO`, `REQUEST_SCHEME`, or `HTTPS`; the path from
+  `REQUEST_URI`; and the host/port via the `$_SERVER` host fields. Returns a
+  uri struct."
+  {:example "(uri-from-globals) ; => (uri \"https\" nil \"example.com\" 443 \"/path\" \"foo=bar\" nil)"
+   :see-also ["uri-from-string" "request-from-globals"]}
   [& [server]]
   (let [server (or server php/$_SERVER)
         scheme (cond
@@ -76,8 +80,11 @@
    url))
 
 (defn uri-from-string
-  "Create a uri struct from a string."
-  {:example "(uri-from-string \"https://example.com/path?foo=bar\") ; => (uri \"https\" nil \"example.com\" nil \"/path\" \"foo=bar\" nil)"}
+  "Parses a URI string into a uri struct. Handles UTF-8 URLs and IPv6
+  addresses in brackets. Throws `InvalidArgumentException` on a malformed
+  string."
+  {:example "(uri-from-string \"https://example.com/path?foo=bar\") ; => (uri \"https\" nil \"example.com\" nil \"/path\" \"foo=bar\" nil)"
+   :see-also ["uri-from-globals" "request-from-map"]}
   [url]
   (let [matches      (php/array)
         [prefix url] (if (one? (php/preg_match "%^(.*://\\[[0-9:a-f]+\\])(.*?)$%" url matches))
@@ -144,8 +151,11 @@
     (persistent res)))
 
 (defn files-from-globals
-  "Extracts the files from `$_FILES` and normalizes them to a map of \"uploaded-file\"."
-  {:example "(files-from-globals) ; => {:avatar (uploaded-file \"/tmp/phpYzdqkD\" 1024 0 \"photo.jpg\" \"image/jpeg\")}"}
+  "Extracts uploaded files from `$_FILES` and normalizes them to uploaded-file
+  structs. Handles both flat and nested file specs from multipart uploads.
+  Returns a map of field name to uploaded-file(s)."
+  {:example "(files-from-globals) ; => {:avatar (uploaded-file \"/tmp/phpYzdqkD\" 1024 0 \"photo.jpg\" \"image/jpeg\")}"
+   :see-also ["request-from-globals"]}
   [& [files]]
   (normalize-files (or files php/$_FILES)))
 
@@ -154,8 +164,11 @@
 ;; -------
 
 (defn headers-from-server
-  "Extracts all headers from the `$_SERVER` variable."
-  {:example "(headers-from-server) ; => {:host \"example.com\" :content-type \"application/json\"}"}
+  "Extracts all HTTP headers from the `$_SERVER` variable. Strips the `HTTP_`
+  prefix, normalizes underscores to hyphens, handles `CONTENT_*` keys, and
+  resolves `REDIRECT_*` keys. Returns a map with keyword keys."
+  {:example "(headers-from-server) ; => {:host \"example.com\" :content-type \"application/json\"}"
+   :see-also ["request-from-globals"]}
   [& [server]]
   (let [headers (transient {})
         server  (or server php/$_SERVER)]
@@ -233,7 +246,8 @@
   "Extracts a request from args. The optional `raw-body` (the raw request body
   string) is decoded into `:parsed-body` when the `Content-Type` is
   `application/json`; form bodies still come from `post-parameter`."
-  {:example "(request-from-globals-args php/$_SERVER php/$_GET php/$_POST php/$_COOKIE php/$_FILES (php/file_get_contents \"php://input\")) ; => (request \"GET\" (uri ...) {...} nil {...} {...} {...} {...} \"1.1\" {})"}
+  {:example "(request-from-globals-args php/$_SERVER php/$_GET php/$_POST php/$_COOKIE php/$_FILES (php/file_get_contents \"php://input\")) ; => (request \"GET\" (uri ...) {...} nil {...} {...} {...} {...} \"1.1\" {})"
+   :see-also ["request-from-globals" "request-from-map"]}
   [server get-parameter post-parameter cookies files & [raw-body]]
   (let [method          (get-method-from-globals server)
         uri             (uri-from-globals server)
@@ -266,15 +280,23 @@
 
 (defn request-from-globals
   "Extracts a request from `$_SERVER`, `$_GET`, `$_POST`, `$_COOKIE`, `$_FILES`
-  and, for JSON requests, the raw request body (`php://input`)."
-  {:example "(request-from-globals) ; => (request \"GET\" (uri ...) {...} nil {...} {...} {...} {...} \"1.1\" {})"}
+  and, for JSON requests, the raw request body (`php://input`). Requires a web
+  request context (PHP-FPM, mod_php, or `php -S`); it cannot be used from the
+  REPL or a CLI script - use `request-from-map` for testing."
+  {:example "(request-from-globals) ; => (request \"GET\" (uri ...) {...} nil {...} {...} {...} {...} \"1.1\" {})"
+   :see-also ["request-from-globals-args" "request-from-map"]}
   []
   (request-from-globals-args php/$_SERVER php/$_GET php/$_POST php/$_COOKIE php/$_FILES
                              (json-request-body php/$_SERVER)))
 
 (defn request-from-map
-  "Creates a request struct from a map with optional keys :method, :uri, :headers, etc."
-  {:example "(request-from-map {:method \"POST\" :uri \"https://api.example.com/users\"}) ; => (request \"POST\" (uri ...) {} nil {} {} {} [] \"1.1\" {})"}
+  "Creates a request struct from a map. Supports the optional keys `:method`,
+  `:uri` (a string parsed via `uri-from-string`, or a uri struct used as-is),
+  `:headers`, `:parsed-body`, `:query-params`, `:cookie-params`,
+  `:server-params`, `:uploaded-files`, `:version`, and `:attributes`. Missing
+  keys default to nil, `{}`, `[]`, or `\"1.1\"` as appropriate."
+  {:example "(request-from-map {:method \"POST\" :uri \"https://api.example.com/users\"}) ; => (request \"POST\" (uri ...) {} nil {} {} {} [] \"1.1\" {})"
+   :see-also ["request-from-globals" "response-from-map"]}
   [{:method method
     :uri uri
     :headers headers
@@ -371,8 +393,11 @@
                         511 "Network Authentication Required"})
 
 (defn response-from-map
-  "Creates a response struct from a map with optional keys :status, :headers, :body, :version, and :reason."
-  {:example "(response-from-map {:status 200 :body \"Hello World\"}) ; => (response 200 {} \"Hello World\" \"1.1\" \"OK\")"}
+  "Creates a response struct from a map. Optional keys: `:status` (defaults
+  200), `:headers` (`{}`), `:body` (`\"\"`), `:version` (`\"1.1\"`), and
+  `:reason` (auto-filled from the HTTP status code when omitted)."
+  {:example "(response-from-map {:status 200 :body \"Hello World\"}) ; => (response 200 {} \"Hello World\" \"1.1\" \"OK\")"
+   :see-also ["response-from-string" "json-response" "html-response"]}
   [{:status status, :headers headers, :body body, :version version, :reason reason}]
   (let [status  (or status 200)
         headers (or headers {})
@@ -382,8 +407,10 @@
     (response status headers body version reason)))
 
 (defn response-from-string
-  "Create a response from a string."
-  {:example "(response-from-string \"Hello World\") ; => (response 200 {} \"Hello World\" \"1.1\" \"OK\")"}
+  "Creates a 200 OK response with the given body string. Shorthand for
+  `(response-from-map {:body s})`."
+  {:example "(response-from-string \"Hello World\") ; => (response 200 {} \"Hello World\" \"1.1\" \"OK\")"
+   :see-also ["response-from-map" "json-response"]}
   [s]
   (response-from-map {:body s}))
 

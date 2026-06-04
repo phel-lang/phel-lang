@@ -173,4 +173,28 @@ final class FutureTest extends TestCase
 
         self::assertTrue($future->isCancelled());
     }
+
+    public function test_future_and_promise_interleave_on_concurrent_deref(): void
+    {
+        // A shared promise links two futures created back-to-back. The first
+        // future blocks on the promise (the consumer); the second delivers to
+        // it (the producer). Both fibers are enqueued in construction order,
+        // so the consumer must cooperatively yield until the producer runs and
+        // delivers, after which the consumer resumes with the delivered value.
+        $shared = new Promise($this->scheduler);
+
+        $consumer = new Future($this->scheduler, static fn(): mixed => $shared->deref());
+        $producer = new Future($this->scheduler, static function () use ($shared): string {
+            $shared->deliver('handed-off');
+            return 'delivered';
+        });
+
+        // Deref'ing the consumer drains the ready queue until both fibers
+        // complete; FIFO ordering guarantees the producer runs and delivers.
+        self::assertSame('handed-off', $consumer->deref());
+        self::assertSame('delivered', $producer->deref());
+        self::assertTrue($shared->isRealized());
+        self::assertTrue($consumer->isRealized());
+        self::assertTrue($producer->isRealized());
+    }
 }

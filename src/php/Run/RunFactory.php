@@ -105,6 +105,12 @@ class RunFactory extends AbstractFactory
         return Printer::readableWithColor();
     }
 
+    /**
+     * Builds the REPL input handler. Prefers the readline-backed
+     * {@see ReplCommandSystemIo} (line editing plus persisted history) when the
+     * `readline` extension is loaded, falling back to {@see ReplCommandFallbackIo}
+     * for environments without it (e.g. CI, web SAPI).
+     */
     public function createReplCommandIo(): ReplCommandIoInterface
     {
         if (extension_loaded('readline')) {

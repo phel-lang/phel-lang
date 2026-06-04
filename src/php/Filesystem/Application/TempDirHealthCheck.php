@@ -13,6 +13,14 @@ use function is_writable;
 use function mkdir;
 use function sprintf;
 
+/**
+ * Gacela module health check for the temp directory.
+ *
+ * Reports healthy only when the temp directory exists and is writable. The
+ * directory is auto-created on first check (idempotently), mirroring
+ * TempDirFinder's creation logic. It is kept separate from TempDirFinder so a
+ * health probe can run without caching the resolved path on a finder instance.
+ */
 final readonly class TempDirHealthCheck implements ModuleHealthCheckInterface
 {
     public function __construct(

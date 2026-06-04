@@ -55,13 +55,19 @@ final readonly class FileRunner
     }
 
     /**
-     * Seed the dependency walk with the script namespace, only the bundled
-     * `phel.*` modules the script actually references via fully qualified
-     * form (so `phel.async/delay` resolves without an explicit require),
-     * and the script's direct requires. The script's direct requires are
-     * kept because an ad-hoc script in `dirname` rather than configured
-     * `srcDirs` is not itself discoverable, so its transitive deps would
-     * otherwise be missed even when they live under `srcDirs`/vendor.
+     * Seeds the dependency walk. The union of four sources, in order:
+     *
+     * - the script's own namespace;
+     * - {@see CompilerConstants::PHEL_CORE_NAMESPACE}, always present;
+     * - bundled `phel.*` modules referenced via fully qualified form (so
+     *   `phel.async/delay` resolves without an explicit require) plus
+     *   Clojure-compatible requires remapped to their Phel equivalent
+     *   (e.g. `clojure.test` -> `phel.test`);
+     * - the script's own direct requires, kept because an ad-hoc script in
+     *   `dirname` rather than a configured `srcDir` is not itself
+     *   discoverable, so its transitive deps would otherwise be missed even
+     *   when they live under `srcDirs`/vendor. Missing seeds are ignored by
+     *   dependency resolution, so raw `clojure.*` deps are preserved.
      *
      * @return list<string>
      */
@@ -74,8 +80,6 @@ final readonly class FileRunner
             CompilerConstants::PHEL_CORE_NAMESPACE,
             ...$this->bundledNamespaceDetector->detect($filename),
             ...$this->bundledNamespaceDetector->remapClojureDependencies($dependencies),
-            // Missing seeds are ignored by dependency resolution, so keeping
-            // raw `clojure.*` deps preserves user-defined Clojure namespaces.
             ...$dependencies,
         ]));
     }

@@ -70,6 +70,12 @@ final class Registry
     }
 
     /**
+     * Stores a definition and returns a handle to it.
+     *
+     * Side effect: when {@see self::$profilerHook} is installed and `$value`
+     * is an `AbstractFn`, the stored value is the profiling wrapper, not the
+     * original function. Also clears the dynamic-flag cache for the slot.
+     *
      * @param PersistentMapInterface<mixed, mixed>|null $metaData
      */
     public function addDefinition(string $ns, string $name, mixed $value, ?PersistentMapInterface $metaData = null): PhelVar

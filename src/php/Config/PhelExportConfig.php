@@ -64,6 +64,10 @@ final readonly class PhelExportConfig implements JsonSerializable
     }
 
     /**
+     * Serializes to the Gacela wire format consumed by `AbstractConfig::get()`.
+     * The keys come from the `*_DIRECTORY`/`*_DIRECTORIES`/`*_PREFIX` constants
+     * and must never be renamed or recased without updating that contract.
+     *
      * @return array{target-directory: string, from-directories: list<string>, namespace-prefix: string}
      */
     public function jsonSerialize(): array

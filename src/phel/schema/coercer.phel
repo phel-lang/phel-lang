@@ -15,6 +15,9 @@
 
 (def invalid-marker :phel.schema/invalid)
 
+;; Coerces to int: parses integer-shaped strings, accepts floats only when
+;; they have no fractional part, and maps booleans to 1/0. Anything else
+;; (including floats like 1.5) passes through unchanged for validation.
 (defn- coerce-int [value]
   (cond
     (int? value)                                                          value
@@ -26,6 +29,8 @@
     (false? value)                                                        0
     :else                                                                 value))
 
+;; Coerces to float: promotes ints and parses numeric strings (with an
+;; optional decimal part). Non-numeric input passes through unchanged.
 (defn- coerce-float [value]
   (cond
     (float? value)                                                                             value
@@ -35,6 +40,9 @@
     (php/floatval value)
     :else                                                                                      value))
 
+;; Coerces to boolean: recognises the usual truthy/falsy strings
+;; ("true"/"false", "1"/"0", "yes"/"no", "on"/"off") and the ints 1/0.
+;; Unrecognised input passes through unchanged.
 (defn- coerce-boolean [value]
   (cond
     (boolean? value) value
@@ -53,6 +61,7 @@
     (= value 0)      false
     :else            value))
 
+;; Coerces strings and symbols to keywords; other input is unchanged.
 (defn- coerce-keyword [value]
   (cond
     (keyword? value) value
@@ -60,6 +69,7 @@
     (symbol? value)  (keyword (name value))
     :else            value))
 
+;; Coerces strings and keywords to symbols; other input is unchanged.
 (defn- coerce-symbol [value]
   (cond
     (symbol? value)  value
@@ -67,12 +77,17 @@
     (keyword? value) (symbol (name value))
     :else            value))
 
+;; Coerces UUID-shaped strings via `parse-uuid`; unparseable input is
+;; returned unchanged so validation can flag it.
 (defn- coerce-uuid [value]
   (cond
     (uuid? value)   value
     (string? value) (or (parse-uuid value) value)
     :else           value))
 
+;; Coerces to a `\DateTimeImmutable`: parses date strings and treats ints
+;; as UNIX timestamps. Invalid strings/timestamps are caught and the
+;; original value is returned unchanged.
 (defn- coerce-inst [value]
   (cond
     (php/instanceof value \DateTimeInterface) value
@@ -109,6 +124,10 @@
                           (fn [target] (coerce target value))
                           value)))
 
+;; Coerces a sequence into a target collection type. Each element is
+;; coerced against the element schema (the first schema arg, if any), and
+;; `type-ctor` is then applied to the resulting vector to build the final
+;; collection. Non-sequential input passes through unchanged.
 (defn- coerce-collection
   [schema value type-ctor]
   (let [args (v/schema-args schema)]

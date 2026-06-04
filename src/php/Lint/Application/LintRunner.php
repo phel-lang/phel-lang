@@ -86,6 +86,12 @@ final readonly class LintRunner
     }
 
     /**
+     * Builds the project-wide symbol index that rules consume for cross-file
+     * resolution. Only directories are indexed: individual files are already
+     * analysed in the main loop, so passing a directory lets the index cover
+     * sibling definitions. When no directories are given the index is empty
+     * and rules degrade gracefully (no cross-file resolution).
+     *
      * @param list<string> $paths
      */
     private function buildProjectIndex(array $paths): ProjectIndex

@@ -7,6 +7,12 @@ namespace Phel\Lsp\Application\Handler;
 use Phel\Lsp\Application\Session\Session;
 use Phel\Lsp\Domain\HandlerInterface;
 
+/**
+ * Handles the LSP `exit` notification: instructs the server to terminate.
+ * Per the LSP lifecycle this is sent after a `shutdown` request (see
+ * {@see ShutdownHandler}); unlike `shutdown` it is a notification (no response),
+ * hence {@see self::isNotification()} returns true.
+ */
 final class ExitHandler implements HandlerInterface
 {
     public function method(): string

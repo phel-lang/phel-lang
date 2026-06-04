@@ -20,6 +20,12 @@ final readonly class LineIndenter implements IndenterInterface
         return strlen($this->lastLineInString($this->priorLineString($loc)));
     }
 
+    /**
+     * Walks backwards (left, then up) from the given location, prepending each
+     * node's code, until a node containing a newline is reached or the root is
+     * hit. The returned string holds the source from the start of the current
+     * line up to the location.
+     */
     private function priorLineString(ParseTreeZipper $form): string
     {
         $loc = $form;
@@ -44,6 +50,10 @@ final readonly class LineIndenter implements IndenterInterface
         return $str;
     }
 
+    /**
+     * Returns the substring after the last newline (the final line), or the
+     * whole string when it contains no newline.
+     */
     private function lastLineInString(string $s): string
     {
         $pos = strrpos($s, "\n");

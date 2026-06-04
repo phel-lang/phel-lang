@@ -17,7 +17,13 @@ use function str_starts_with;
 use function trim;
 
 /**
- * Autocompleter for REPL suggestions in both PHP and Phel contexts.
+ * Lazy-loading autocompleter for REPL suggestions in both PHP and Phel contexts.
+ *
+ * The first call to {@see complete()} / {@see completeWithTypes()} pays a one-time
+ * setup cost: all Phel functions are loaded via the loader and the flag
+ * {@see $phelFunctionsLoaded} is set so subsequent calls reuse the registry.
+ * PHP builtin symbols are cached eagerly in the {@see PhpSymbolCatalog} created
+ * in the constructor.
  */
 final class ReplCompleter implements ReplCompleterInterface
 {

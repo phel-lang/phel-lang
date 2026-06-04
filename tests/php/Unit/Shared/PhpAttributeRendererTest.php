@@ -8,6 +8,7 @@ use Phel\Lang\Keyword;
 use Phel\Lang\TypeFactory;
 use Phel\Shared\PhpAttributeRenderer;
 use PHPUnit\Framework\TestCase;
+use stdClass;
 
 final class PhpAttributeRendererTest extends TestCase
 {
@@ -138,6 +139,99 @@ final class PhpAttributeRendererTest extends TestCase
         $specs = $this->vec($this->vec('not-a-keyword'));
 
         self::assertSame([], $this->renderer->render($specs));
+    }
+
+    public function test_non_vector_spec_in_list_is_skipped(): void
+    {
+        // Outer is a list-of-specs (first element is itself a vector), but one
+        // entry is a non-vector keyword spec and must be dropped silently.
+        $specs = $this->vec(
+            $this->vec(Keyword::create('Id', 'ORM')),
+            Keyword::create('not-a-spec'),
+        );
+
+        self::assertSame(['#[\ORM\Id]'], $this->renderer->render($specs));
+    }
+
+    public function test_nested_map_value_renders_as_php_array(): void
+    {
+        $specs = $this->vec($this->vec(
+            Keyword::create('Column', 'ORM'),
+            $this->map(
+                Keyword::create('options'),
+                $this->map(Keyword::create('default'), 0),
+            ),
+        ));
+
+        self::assertSame(
+            ["#[\\ORM\\Column(options: ['default' => 0])]"],
+            $this->renderer->render($specs),
+        );
+    }
+
+    public function test_nested_vector_of_vectors_renders_nested_arrays(): void
+    {
+        $specs = $this->vec($this->vec(
+            Keyword::create('Route'),
+            $this->vec($this->vec('GET'), $this->vec('POST')),
+        ));
+
+        self::assertSame(
+            ["#[\\Route([['GET'], ['POST']])]"],
+            $this->renderer->render($specs),
+        );
+    }
+
+    public function test_float_argument_is_rendered(): void
+    {
+        $specs = $this->vec($this->vec(
+            Keyword::create('Range'),
+            $this->map(Keyword::create('min'), 1.5),
+        ));
+
+        self::assertSame(['#[\Range(min: 1.5)]'], $this->renderer->render($specs));
+    }
+
+    public function test_keyword_value_renders_as_string(): void
+    {
+        $specs = $this->vec($this->vec(
+            Keyword::create('Column', 'ORM'),
+            $this->map(Keyword::create('type'), Keyword::create('integer')),
+        ));
+
+        self::assertSame(["#[\\ORM\\Column(type: 'integer')]"], $this->renderer->render($specs));
+    }
+
+    public function test_unsupported_value_renders_as_null(): void
+    {
+        $specs = $this->vec($this->vec(
+            Keyword::create('Thing'),
+            $this->map(Keyword::create('obj'), new stdClass()),
+        ));
+
+        self::assertSame(['#[\Thing(obj: null)]'], $this->renderer->render($specs));
+    }
+
+    public function test_non_keyword_map_key_is_skipped(): void
+    {
+        $specs = $this->vec($this->vec(
+            Keyword::create('Thing'),
+            $this->map('plainKey', 1, Keyword::create('kept'), 2),
+        ));
+
+        self::assertSame(['#[\Thing(kept: 2)]'], $this->renderer->render($specs));
+    }
+
+    public function test_empty_inner_spec_vector_is_skipped(): void
+    {
+        // Outer list-of-specs containing one valid spec and one empty vector
+        // (no name keyword) which must be dropped.
+        $specs = $this->vec(
+            $this->vec(Keyword::create('Id', 'ORM')),
+            $this->vec(),
+        );
+
+        self::assertSame(['#[\ORM\Id]'], $this->renderer->render($specs));
     }
 
     private function vec(mixed ...$values): mixed
