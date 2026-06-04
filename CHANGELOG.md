@@ -39,6 +39,7 @@ Richer PHP interop for bridging Phel to typed PHP / framework code (all opt-in, 
 - Tests: `RegistryTest` and `PhelVarTest` snapshot and restore the global `Registry`, fixing order-dependent `phel.core` suite failures (#2256)
 - Docs: condensed every `docs/` guide (~17% smaller), verified against the runtime, and cross-linked to phel-lang.org
 - Quality: repo-wide maintainability pass — explanatory docblocks and `:doc`/`:see-also`/`:example` metadata across modules, safe dead-code/type/naming cleanups, behavior-identical helper extractions, and ~40 new unit tests for previously untested utilities (no behavior change)
+- `agent-install`: simplified to just copying skill files and the `.agents/` docs tree; dropped version stamping, `--check`, and `--list`
 
 ## [0.41.0](https://github.com/phel-lang/phel-lang/compare/v0.40.0...v0.41.0) - 2026-06-01
 

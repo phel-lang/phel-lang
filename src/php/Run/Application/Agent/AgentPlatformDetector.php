@@ -10,15 +10,6 @@ use function file_exists;
 
 final readonly class AgentPlatformDetector
 {
-    private const array SIGNALS = [
-        'claude' => ['.claude'],
-        'cursor' => ['.cursor'],
-        'codex' => ['AGENTS.md', '.codex'],
-        'gemini' => ['GEMINI.md', '.gemini'],
-        'copilot' => ['.github/copilot-instructions.md'],
-        'aider' => ['CONVENTIONS.md', '.aider.conf.yml'],
-    ];
-
     public function __construct(private AgentPlatformRegistry $registry) {}
 
     /**
@@ -27,10 +18,10 @@ final readonly class AgentPlatformDetector
     public function detect(string $projectRoot): array
     {
         $detected = [];
-        foreach ($this->registry->keys() as $key) {
-            foreach (self::SIGNALS[$key] ?? [] as $signal) {
+        foreach ($this->registry->all() as $platform) {
+            foreach ($platform->signals as $signal) {
                 if (file_exists($projectRoot . '/' . $signal)) {
-                    $detected[] = $key;
+                    $detected[] = $platform->key;
                     break;
                 }
             }

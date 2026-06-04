@@ -14,12 +14,12 @@ final class AgentPlatformRegistry
     public function __construct()
     {
         $this->platforms = [
-            'claude' => new AgentPlatform('claude', 'skills/claude/phel-lang/SKILL.md', '.claude/skills/phel-lang/SKILL.md'),
-            'cursor' => new AgentPlatform('cursor', 'skills/cursor/phel.mdc', '.cursor/rules/phel.mdc'),
-            'codex' => new AgentPlatform('codex', 'skills/codex/AGENTS.md', 'AGENTS.md'),
-            'gemini' => new AgentPlatform('gemini', 'skills/gemini/GEMINI.md', 'GEMINI.md'),
-            'copilot' => new AgentPlatform('copilot', 'skills/copilot/copilot-instructions.md', '.github/copilot-instructions.md'),
-            'aider' => new AgentPlatform('aider', 'skills/aider/CONVENTIONS.md', 'CONVENTIONS.md'),
+            'claude' => new AgentPlatform('claude', 'skills/claude/phel-lang/SKILL.md', '.claude/skills/phel-lang/SKILL.md', ['.claude']),
+            'cursor' => new AgentPlatform('cursor', 'skills/cursor/phel.mdc', '.cursor/rules/phel.mdc', ['.cursor']),
+            'codex' => new AgentPlatform('codex', 'skills/codex/AGENTS.md', 'AGENTS.md', ['AGENTS.md', '.codex']),
+            'gemini' => new AgentPlatform('gemini', 'skills/gemini/GEMINI.md', 'GEMINI.md', ['GEMINI.md', '.gemini']),
+            'copilot' => new AgentPlatform('copilot', 'skills/copilot/copilot-instructions.md', '.github/copilot-instructions.md', ['.github/copilot-instructions.md']),
+            'aider' => new AgentPlatform('aider', 'skills/aider/CONVENTIONS.md', 'CONVENTIONS.md', ['CONVENTIONS.md', '.aider.conf.yml']),
         ];
     }
 

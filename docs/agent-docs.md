@@ -17,7 +17,7 @@ Platforms: `claude`, `cursor`, `codex`, `gemini`, `copilot`, `aider`. Omit the p
 
 `.agents/` docs (rules, task recipes, quick-syntax) are copied by default; `--no-docs` skips them. Example apps are excluded by default; `--with-examples` includes `.agents/examples/`.
 
-Existing targets back up to `<path>.pre-phel.bak`. `--force` skips backup, `--dry-run` previews, `--uninstall` removes a skill (restoring any backup). `--list` shows source/target/state per platform; `--check` reports version drift and exits 1 on any.
+Existing skill files back up to `<path>.pre-phel.bak`. `--force` skips backup and overwrites an existing `.agents/` tree, `--dry-run` previews, `--uninstall` removes the skill file(s) (restoring any backup) and the `.agents/` tree. Re-run any time to pull the latest docs.
 
 ## Destinations
 
