@@ -16,7 +16,9 @@ use Phel\Lint\Domain\LintRuleInterface;
 use function count;
 use function in_array;
 use function is_string;
+use function preg_match;
 use function sprintf;
+use function str_starts_with;
 
 /**
  * Flags references to definitions marked `^:deprecated` or

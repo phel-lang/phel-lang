@@ -65,8 +65,6 @@ use function substr;
 
 final class AnalyzePersistentList
 {
-    private const string EMPTY_SYMBOL_NAME = '';
-
     /** @var array<string, SpecialFormAnalyzerInterface> */
     private array $symbolAnalyzerCache = [];
 
@@ -108,7 +106,7 @@ final class AnalyzePersistentList
         $first = $list->first();
         return $first instanceof Symbol
             ? $first->getFullName()
-            : self::EMPTY_SYMBOL_NAME;
+            : '';
     }
 
     /**

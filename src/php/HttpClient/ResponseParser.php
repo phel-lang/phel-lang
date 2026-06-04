@@ -37,10 +37,9 @@ final class ResponseParser
                 continue;
             }
 
-            $colonPos = strpos($line, ':');
-            if ($colonPos !== false) {
-                $name = strtolower(trim(substr($line, 0, $colonPos)));
-                $value = trim(substr($line, $colonPos + 1));
+            $header = self::parseHeaderLine($line);
+            if ($header !== null) {
+                [$name, $value] = $header;
                 $headers[$name] = $value;
             }
         }
@@ -51,5 +50,23 @@ final class ResponseParser
             'reason' => $reason,
             'headers' => $headers,
         ];
+    }
+
+    /**
+     * Parses a single (non-status) header line into a lowercased name/value pair.
+     *
+     * @return array{0: string, 1: string}|null Null when the line has no colon separator
+     */
+    private static function parseHeaderLine(string $line): ?array
+    {
+        $colonPos = strpos($line, ':');
+        if ($colonPos === false) {
+            return null;
+        }
+
+        $name = strtolower(trim(substr($line, 0, $colonPos)));
+        $value = trim(substr($line, $colonPos + 1));
+
+        return [$name, $value];
     }
 }

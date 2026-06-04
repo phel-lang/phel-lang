@@ -266,10 +266,9 @@
   of that binding, then binds name to that result, repeating for each
   successive form, returning the result of the last form."
   [expr name & forms]
-  (let [x (gensym)]
-    `(let [~name ~expr
-           ~@(interleave (repeat (count forms) name) forms)]
-       ~name)))
+  `(let [~name ~expr
+         ~@(interleave (repeat (count forms) name) forms)]
+     ~name))
 
 (defmacro doto
   "Evaluates x then calls all of the methods and functions with the

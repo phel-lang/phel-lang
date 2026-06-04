@@ -6,11 +6,11 @@ namespace Phel\Shared;
 
 final readonly class Munge implements MungeInterface
 {
-    private const array DEFAULT_NS_MAPPING = [
+    private const array NAMESPACE_MAPPING = [
         '-' => '_',
     ];
 
-    private const array DEFAULT_MAPPING = [
+    private const array SYMBOL_MAPPING = [
         '-' => '_',
         '.' => '_DOT_',
         ':' => '_COLON_',
@@ -44,8 +44,8 @@ final readonly class Munge implements MungeInterface
      * @param array<string, string> $nsMapping
      */
     public function __construct(
-        private array $mapping = self::DEFAULT_MAPPING,
-        private array $nsMapping = self::DEFAULT_NS_MAPPING,
+        private array $mapping = self::SYMBOL_MAPPING,
+        private array $nsMapping = self::NAMESPACE_MAPPING,
     ) {}
 
     /**

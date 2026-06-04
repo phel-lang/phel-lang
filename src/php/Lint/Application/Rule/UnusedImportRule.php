@@ -105,7 +105,7 @@ final readonly class UnusedImportRule implements LintRuleInterface
             }
 
             $result[] = [
-                'alias' => $alias ?? $this->defaultAlias($item),
+                'alias' => $alias ?? $this->lastSegmentAlias($item),
                 'display' => $item->getName(),
                 'anchor' => $item,
             ];
@@ -114,7 +114,7 @@ final readonly class UnusedImportRule implements LintRuleInterface
         return $result;
     }
 
-    private function defaultAlias(Symbol $symbol): string
+    private function lastSegmentAlias(Symbol $symbol): string
     {
         $name = $symbol->getName();
         $parts = explode('\\', $name);

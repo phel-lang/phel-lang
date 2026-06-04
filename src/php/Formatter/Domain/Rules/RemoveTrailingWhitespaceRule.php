@@ -8,7 +8,7 @@ use Phel\Formatter\Domain\Rules\Zipper\ParseTreeZipper;
 use Phel\Formatter\Domain\Rules\Zipper\ZipperException;
 use Phel\Shared\Parser\Node\NodeInterface;
 
-final class RemoveTrailingWhitespaceRule implements RuleInterface
+final readonly class RemoveTrailingWhitespaceRule implements RuleInterface
 {
     public function transform(NodeInterface $node): NodeInterface
     {

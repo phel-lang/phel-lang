@@ -49,6 +49,30 @@ final class TableFormatter
     private function renderCompilePhases(ProfileReport $report): string
     {
         $phases = ['lex', 'parse', 'read', 'analyze', 'emit'];
+        $rows = $this->buildPhaseRows($report, $phases);
+
+        $sourceWidth = $this->calculateColumnWidth(array_map(static fn(array $r): string => (string) $r['source'], $rows));
+        $header = $this->phaseHeader($sourceWidth, $phases);
+        $body = '';
+        foreach ($rows as $row) {
+            $body .= '  ' . str_pad((string) $row['source'], $sourceWidth);
+            foreach ($phases as $p) {
+                $body .= '  ' . str_pad($this->fmt((float) $row[$p]), 8, ' ', STR_PAD_LEFT);
+            }
+
+            $body .= '  ' . str_pad($this->fmt((float) $row['total']), 8, ' ', STR_PAD_LEFT) . "\n";
+        }
+
+        return "Compile-time phases (ms)\n" . $header . $body;
+    }
+
+    /**
+     * @param list<string> $phases
+     *
+     * @return list<array<string, float|string>>
+     */
+    private function buildPhaseRows(ProfileReport $report, array $phases): array
+    {
         $rows = [];
         foreach ($report->phaseMs() as $source => $byPhase) {
             $row = ['source' => $this->shortenSource($source)];
@@ -65,19 +89,7 @@ final class TableFormatter
 
         uasort($rows, static fn(array $a, array $b): int => $b['total'] <=> $a['total']);
 
-        $sourceWidth = max(20, ...array_map(static fn(array $r): int => strlen($r['source']), $rows));
-        $header = $this->phaseHeader($sourceWidth, $phases);
-        $body = '';
-        foreach ($rows as $row) {
-            $body .= '  ' . str_pad($row['source'], $sourceWidth);
-            foreach ($phases as $p) {
-                $body .= '  ' . str_pad($this->fmt($row[$p]), 8, ' ', STR_PAD_LEFT);
-            }
-
-            $body .= '  ' . str_pad($this->fmt($row['total']), 8, ' ', STR_PAD_LEFT) . "\n";
-        }
-
-        return "Compile-time phases (ms)\n" . $header . $body;
+        return $rows;
     }
 
     /**
@@ -104,35 +116,47 @@ final class TableFormatter
         $rows = array_slice($stats, 0, $top, true);
 
         $names = array_map($this->displayName(...), array_keys($rows));
-        $nameWidth = max(20, ...array_map(strlen(...), $names));
+        $nameWidth = $this->calculateColumnWidth($names);
 
         $out = sprintf("Runtime fn profile (top %d, sort by %s)\n", count($rows), $sort->value);
-        $out .= '  ' . str_pad('fn', $nameWidth) . '  '
-            . str_pad('calls', 9, ' ', STR_PAD_LEFT) . '  '
-            . str_pad('self ms', 10, ' ', STR_PAD_LEFT) . '  '
-            . str_pad('total ms', 10, ' ', STR_PAD_LEFT) . '  '
-            . str_pad('avg us', 10, ' ', STR_PAD_LEFT) . '  '
-            . str_pad('max us', 10, ' ', STR_PAD_LEFT) . "\n";
+        $out .= $this->renderFnHeader($nameWidth);
 
         foreach ($rows as $boundTo => $r) {
-            $name = $this->displayName($boundTo);
-            $avgUs = $r['calls'] > 0 ? ((float) $r['totalNs'] / (float) $r['calls']) / 1_000.0 : 0.0;
-            $maxUs = (float) $r['maxNs'] / 1_000.0;
-            $selfMs = (float) $r['selfNs'] / 1_000_000.0;
-            $totalMs = (float) $r['totalNs'] / 1_000_000.0;
-
-            $out .= '  ' . str_pad($name, $nameWidth) . '  '
-                . str_pad((string) $r['calls'], 9, ' ', STR_PAD_LEFT) . '  '
-                . str_pad($this->fmt($selfMs), 10, ' ', STR_PAD_LEFT) . '  '
-                . str_pad($this->fmt($totalMs), 10, ' ', STR_PAD_LEFT) . '  '
-                . str_pad($this->fmt($avgUs), 10, ' ', STR_PAD_LEFT) . '  '
-                . str_pad($this->fmt($maxUs), 10, ' ', STR_PAD_LEFT) . "\n";
+            $out .= $this->renderFnRow($this->displayName($boundTo), $r, $nameWidth);
         }
 
         $totalSelfMs = array_sum(array_map(static fn(array $r): float => (float) $r['selfNs'] / 1_000_000.0, $stats));
         $totalCalls = array_sum(array_map(static fn(array $r): int => $r['calls'], $stats));
 
         return $out . sprintf("\nTotals: %d fns, %d calls, %s ms self.\n", count($stats), $totalCalls, $this->fmt($totalSelfMs));
+    }
+
+    private function renderFnHeader(int $nameWidth): string
+    {
+        return '  ' . str_pad('fn', $nameWidth) . '  '
+            . str_pad('calls', 9, ' ', STR_PAD_LEFT) . '  '
+            . str_pad('self ms', 10, ' ', STR_PAD_LEFT) . '  '
+            . str_pad('total ms', 10, ' ', STR_PAD_LEFT) . '  '
+            . str_pad('avg us', 10, ' ', STR_PAD_LEFT) . '  '
+            . str_pad('max us', 10, ' ', STR_PAD_LEFT) . "\n";
+    }
+
+    /**
+     * @param array{calls:int, totalNs:int, selfNs:int, maxNs:int} $r
+     */
+    private function renderFnRow(string $name, array $r, int $nameWidth): string
+    {
+        $avgUs = $r['calls'] > 0 ? ((float) $r['totalNs'] / (float) $r['calls']) / 1_000.0 : 0.0;
+        $maxUs = (float) $r['maxNs'] / 1_000.0;
+        $selfMs = (float) $r['selfNs'] / 1_000_000.0;
+        $totalMs = (float) $r['totalNs'] / 1_000_000.0;
+
+        return '  ' . str_pad($name, $nameWidth) . '  '
+            . str_pad((string) $r['calls'], 9, ' ', STR_PAD_LEFT) . '  '
+            . str_pad($this->fmt($selfMs), 10, ' ', STR_PAD_LEFT) . '  '
+            . str_pad($this->fmt($totalMs), 10, ' ', STR_PAD_LEFT) . '  '
+            . str_pad($this->fmt($avgUs), 10, ' ', STR_PAD_LEFT) . '  '
+            . str_pad($this->fmt($maxUs), 10, ' ', STR_PAD_LEFT) . "\n";
     }
 
     /**
@@ -146,6 +170,14 @@ final class TableFormatter
             SortOrder::Avg => static fn(array $a, array $b): int => ((float) $b['totalNs'] / (float) max($b['calls'], 1)) <=> ((float) $a['totalNs'] / (float) max($a['calls'], 1)),
             SortOrder::SelfTime => static fn(array $a, array $b): int => $b['selfNs'] <=> $a['selfNs'],
         };
+    }
+
+    /**
+     * @param list<string> $values
+     */
+    private function calculateColumnWidth(array $values, int $minWidth = 20): int
+    {
+        return max($minWidth, ...array_map(strlen(...), $values));
     }
 
     private function displayName(string $boundTo): string

@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Phel\Interop\Domain\Generator\Builder;
 
-final class WrapperRelativeFilenamePathBuilder
+final readonly class WrapperRelativeFilenamePathBuilder
 {
     public function build(string $phelNs): string
     {
