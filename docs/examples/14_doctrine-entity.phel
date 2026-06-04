@@ -1,0 +1,94 @@
+(ns examples.doctrine-entity
+  (:require phel.reflect :as reflect))
+
+;; Define a Doctrine ORM entity directly in Phel - no hand-written PHP class.
+;;
+;; `defstruct` emits a real PHP class, and `^{:php/attr ...}` metadata adds
+;; PHP 8 attributes to the class and its typed properties. That is exactly
+;; the mapping metadata Doctrine reads by reflection, so the generated class
+;; is a valid `#[ORM\Entity]` - the Phel equivalent of Symfony's
+;; `src/Entity/Product.php` (https://symfony.com/doc/current/doctrine.html).
+;;
+;; This file runs standalone with no doctrine/orm installed: `getAttributes()`
+;; reads an attribute's name and arguments without instantiating the attribute
+;; class, so we can prove the mapping is emitted using `phel.reflect` alone.
+
+;; --- The entity --------------------------------------------------------------
+;;
+;; Keyword namespaces map to PHP namespaces (`.` -> `\`), so
+;; `:Doctrine.ORM.Mapping/Column` emits `#[\Doctrine\ORM\Mapping\Column]`.
+;; Attribute arguments come from a map (named) or trailing values (positional):
+;; `{:length 255}` renders as `length: 255`.
+
+(defstruct
+ ^{:php/attr [[:Doctrine.ORM.Mapping/Entity {:repositoryClass "App\\Repository\\ProductRepository"}]]
+   :php/doc  "A product mapped to the `products` table."}
+ product
+ [^{:tag int    :php/attr [[:Doctrine.ORM.Mapping/Id]
+                           [:Doctrine.ORM.Mapping/GeneratedValue]
+                           [:Doctrine.ORM.Mapping/Column]]} id
+  ^{:tag string :php/attr [[:Doctrine.ORM.Mapping/Column {:length 255}]]} name
+  ^{:tag string :php/attr [[:Doctrine.ORM.Mapping/Column {:type "text"}]]} description
+  ^{:tag float  :php/attr [[:Doctrine.ORM.Mapping/Column {:type "float"}]]} price])
+
+;; The compiled PHP is a normal Doctrine entity:
+;;
+;;   #[\Doctrine\ORM\Mapping\Entity(repositoryClass: "App\\Repository\\ProductRepository")]
+;;   final class product extends \Phel\Lang\...\AbstractPersistentStruct {
+;;     #[\Doctrine\ORM\Mapping\Id]
+;;     #[\Doctrine\ORM\Mapping\GeneratedValue]
+;;     #[\Doctrine\ORM\Mapping\Column]
+;;     protected int $id;
+;;     #[\Doctrine\ORM\Mapping\Column(length: 255)]
+;;     protected string $name;
+;;     ...
+;;   }
+
+;; --- A struct is still an immutable Phel value -------------------------------
+
+(defn discount
+  "Pure: a new product with the price reduced by `pct` (0.0 .. 1.0).
+  Structs are immutable, so this returns a fresh value instead of mutating."
+  [p pct]
+  (put p :price (* (get p :price) (- 1 pct))))
+
+;; --- Prove the Doctrine mapping reached the generated PHP class --------------
+
+(defn- print-attrs [label attrs]
+  (println label)
+  (foreach [a attrs]
+    (println "  -" (get a :name) (get a :args))))
+
+(defn main []
+  (let [keyboard (product 1 "Keyboard" "Mechanical, brown switches" 49.9)]
+    (println "entity value:" keyboard)
+    (println "field access:" (get keyboard :name) "/" (get keyboard :price))
+    (println "as a map:    " (into {} keyboard))
+    (println "discounted:  " (discount keyboard 0.10))
+    (println)
+
+    ;; Read the emitted attributes back via reflection - this is the same
+    ;; metadata Doctrine's mapping driver consumes.
+    (print-attrs "class attributes:" (reflect/class-attributes keyboard))
+    (print-attrs "id property:"      (reflect/property-attributes keyboard "id"))
+    (print-attrs "name property:"    (reflect/property-attributes keyboard "name"))
+    (print-attrs "price property:"   (reflect/property-attributes keyboard "price"))))
+
+;; --- When to reach for this vs. plain maps -----------------------------------
+;;
+;; `defstruct` + `:php/attr` is the right tool when a framework demands a typed
+;; class carrying mapping metadata. Two caveats:
+;;
+;;   1. Attribute arguments are literals/maps; Phel cannot emit a `Foo::class`
+;;      constant. Pass a class-string (as `:repositoryClass` above) or write
+;;      that single entity in PHP when you need the constant form.
+;;   2. Structs are immutable. Doctrine *hydrates* them fine (reflection sets
+;;      protected properties, bypassing the constructor), but ORM change
+;;      tracking expects mutable managed entities, so write-heavy aggregates
+;;      fit the data-driven style better.
+;;
+;; For most persistence, prefer maps-not-entities (see 13_database-crud.phel)
+;; with phel-sql + phel-pdo. See the "Typed PHP from Phel definitions" section
+;; of docs/framework-integration.md for the full metadata reference.
+
+(main)

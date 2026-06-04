@@ -23,6 +23,7 @@ Standalone scripts from primitive literals through concurrency to a full CLI. Ru
 | 11 | `11_async-concurrency.phel` | AMPHP + fiber concurrency (`async`, `await`, `promise`) |
 | 12 | `12_cli.phel` | A todo-list CLI on `phel.cli` with subcommands and tables |
 | 13 | `13_database-crud.phel` | SQLite products CRUD: rows as immutable maps (not ORM entities), repository boundary, pure service transforms |
+| 14 | `14_doctrine-entity.phel` | Doctrine `#[ORM\Entity]` defined in Phel via `defstruct` + `:php/attr`, verified with `phel.reflect` |
 | extra | `transducers.phel` | Composable transformations: `into`, `transduce`, `sequence` |
 
 Copy any file into your project and tweak it.

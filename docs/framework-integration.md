@@ -327,6 +327,7 @@ See the [PHP interop reference on phel-lang.org](https://phel-lang.org/documenta
 - [PHP/Phel Interop](php-interop.md)
 - [Quickstart](quickstart.md)
 - [Database CRUD example](examples/13_database-crud.phel) — runnable maps-not-entities pattern
+- [Doctrine entity example](examples/14_doctrine-entity.phel) — runnable `#[ORM\Entity]` from `defstruct` + `:php/attr`
 - [phel-sql](https://github.com/phel-lang/phel-sql) and [phel-pdo](https://github.com/phel-lang/phel-pdo) — data-driven SQL + PDO wrapper
 
 ---

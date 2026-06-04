@@ -22,6 +22,7 @@ All notable changes to this project will be documented in this file.
 - `iterator-seq`: lazy seq over a PHP `Traversable`, pulled one element at a time (#2312, #2318)
 - `phel.http`: JSON request bodies decode into `:parsed-body`, plus `json-response`/`html-response` builders (#2271)
 - Docs: runnable `docs/examples/13_database-crud.phel` and a maps-not-entities Persistence section in `framework-integration.md` (#2281, #2282)
+- Docs: runnable `docs/examples/14_doctrine-entity.phel` shows a Doctrine `#[ORM\Entity]` defined in Phel via `defstruct` + `:php/attr`, verified with `phel.reflect`
 
 Richer PHP interop for bridging Phel to typed PHP / framework code (all opt-in, untagged forms unchanged):
 
