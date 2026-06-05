@@ -256,7 +256,7 @@
   start / advance / finish automatically."
   {:example "(run-with-progress ctx files (fn [f _] (process f)))"}
   [ctx coll step-fn & [opts]]
-  (let [bar (progress-bar ctx (put (or opts {}) :max (or (get opts :max) (count coll))))]
+  (let [bar (progress-bar ctx (assoc (or opts {}) :max (or (get opts :max) (count coll))))]
     (progress-start bar)
     (foreach [item coll]
       (step-fn item bar)

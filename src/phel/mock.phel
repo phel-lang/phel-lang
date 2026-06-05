@@ -16,8 +16,9 @@
                                        :reset-fn reset-fn})
    mock-fn))
 
-(defn- get-mock-calls [mock-fn]
+(defn- get-mock-calls
   "Gets the call history for a mock function"
+  [mock-fn]
   (let [mock-data (get (deref mock-registry) mock-fn)]
     (when mock-data
       (get mock-data :call-history))))

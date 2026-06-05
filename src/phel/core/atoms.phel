@@ -49,6 +49,12 @@
   [x]
   (php/instanceof x PhelVar))
 
+(defn- assert-var!
+  "Throws `InvalidArgumentException` with `msg` unless `v` is a `Var`."
+  [v msg]
+  (when-not (var? v)
+    (throw (php/new \InvalidArgumentException msg))))
+
 (defn reset!
   "Sets a new value on the given atom. Returns the new value."
   {:example "(def x (atom 10))"
@@ -114,9 +120,7 @@
   {:example "(def counter 0)\n(alter-var-root #'counter inc) ; => 1"
    :see-also ["var" "var?" "swap!"]}
   [v f & args]
-  (when-not (var? v)
-    (throw (php/new \InvalidArgumentException
-                    "alter-var-root expects a Var as first argument; use swap! for atoms")))
+  (assert-var! v "alter-var-root expects a Var as first argument; use swap! for atoms")
   (php/-> v (alterRoot (fn [current] (apply f current args)))))
 
 (defn bound?
@@ -125,9 +129,7 @@
   {:example "(bound? #'phel.core/map) ; => true"
    :see-also ["thread-bound?" "var-get" "find-var"]}
   [v]
-  (when-not (var? v)
-    (throw (php/new \InvalidArgumentException
-                    "bound? expects a Var as its argument")))
+  (assert-var! v "bound? expects a Var as its argument")
   (php/:: Phel (isDefined (php/-> v (getNamespace))
                           (php/-> v (getName)))))
 
@@ -137,9 +139,7 @@
   {:example "(binding [*foo* 1] (thread-bound? #'*foo*)) ; => true"
    :see-also ["bound?" "binding" "var-set"]}
   [v]
-  (when-not (var? v)
-    (throw (php/new \InvalidArgumentException
-                    "thread-bound? expects a Var as its argument")))
+  (assert-var! v "thread-bound? expects a Var as its argument")
   (let [scope (php/:: DynamicScope (getInstance))]
     (php/-> scope (hasBinding (php/-> v (getNamespace))
                               (php/-> v (getName))))))
@@ -151,9 +151,7 @@
   {:example "(def ^:dynamic *x* 0)\n(binding [*x* 1] (var-set #'*x* 2) *x*) ; => 2"
    :see-also ["binding" "thread-bound?" "alter-var-root"]}
   [v val]
-  (when-not (var? v)
-    (throw (php/new \InvalidArgumentException
-                    "var-set expects a Var as its first argument")))
+  (assert-var! v "var-set expects a Var as its first argument")
   (php/:: Phel (varSet (php/-> v (getNamespace))
                        (php/-> v (getName))
                        val)))

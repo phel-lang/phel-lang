@@ -488,6 +488,31 @@
                                       (str "No implementation of '" ~mname-str
                                            "' for type: " dk))))))))))))
 
+(defn- group-protocol-specs
+  "Splits a flat protocol spec list into `[[header [methods]] ...]` groups.
+  A spec for which `(header? spec)` is truthy starts a new group; every other
+  spec is a method appended to the current group. Used by `extend-type`,
+  `extend-protocol`, and `reify`, which differ only in the header predicate."
+  [specs header?]
+  (loop [remaining       specs
+         current-header  nil
+         current-methods []
+         result          []]
+    (if (nil? remaining)
+      (if current-header
+        (conj result [current-header current-methods])
+        result)
+      (let [item (first remaining)
+            rst  (next remaining)]
+        (if (header? item)
+          (recur rst item []
+                 (if current-header
+                   (conj result [current-header current-methods])
+                   result))
+          (recur rst current-header
+                 (conj current-methods item)
+                 result))))))
+
 (defmacro extend-type
   "Extends a type with protocol method implementations.
 
@@ -519,24 +544,7 @@
                    (let [munge    (php/new Munge)
                          name-str (php/-> type-spec (getName))]
                      (php/. (php/-> munge (encodePhpNs *ns*)) "\\" (php/-> munge (encode name-str)))))
-        groups   (loop [remaining       specs
-                        current-proto   nil
-                        current-methods []
-                        result          []]
-                   (if (nil? remaining)
-                     (if current-proto
-                       (conj result [current-proto current-methods])
-                       result)
-                     (let [item (first remaining)
-                           rst  (next remaining)]
-                       (if (php/instanceof item Symbol)
-                         (recur rst item []
-                                (if current-proto
-                                  (conj result [current-proto current-methods])
-                                  result))
-                         (recur rst current-proto
-                                (conj current-methods item)
-                                result)))))
+        groups   (group-protocol-specs specs #(php/instanceof % Symbol))
         swaps    (reduce
                   (fn [acc group]
                     (let [proto-name (first group)
@@ -593,22 +601,7 @@
   :int (describe [n] (str n)))"
    :see-also ["extend-type" "defprotocol"]}
   [protocol-name & specs]
-  (let [groups       (loop [remaining       specs
-                            current-type    nil
-                            current-methods []
-                            result          []]
-                       (if (nil? remaining)
-                         (if current-type
-                           (conj result [current-type current-methods])
-                           result)
-                         (let [item (first remaining)
-                               rst  (next remaining)]
-                           (if (list? item)
-                             (recur rst current-type (conj current-methods item) result)
-                             (recur rst item []
-                                    (if current-type
-                                      (conj result [current-type current-methods])
-                                      result))))))
+  (let [groups       (group-protocol-specs specs #(not (list? %)))
         extend-calls (for [[type-spec methods] :in groups]
                        `(extend-type ~type-spec ~protocol-name ~@methods))]
     `(do ~@extend-calls)))
@@ -633,24 +626,7 @@
         ;; Group specs into [[ProtocolSym [method1 method2 ...]] ...]
         ;; Same parsing pattern as extend-type: symbols start a new group,
         ;; lists are methods belonging to the current protocol.
-        proto-groups           (loop [remaining       specs
-                                      current-proto   nil
-                                      current-methods []
-                                      result          []]
-                                 (if (nil? remaining)
-                                   (if current-proto
-                                     (conj result [current-proto current-methods])
-                                     result)
-                                   (let [item (first remaining)
-                                         rst  (next remaining)]
-                                     (if (php/instanceof item Symbol)
-                                       (recur rst item []
-                                              (if current-proto
-                                                (conj result [current-proto current-methods])
-                                                result))
-                                       (recur rst current-proto
-                                              (conj current-methods item)
-                                              result)))))
+        proto-groups           (group-protocol-specs specs #(php/instanceof % Symbol))
         ;; Flatten all methods for the reify* special form (it only needs
         ;; method specs, protocol grouping is handled here for dispatch).
         all-methods            (reduce (fn [acc group] (concat acc (second group))) [] proto-groups)

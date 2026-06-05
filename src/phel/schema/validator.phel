@@ -152,42 +152,21 @@
   "Generic collection validator used by `[:vector s]` and `[:set s]`."
   [schema value type-pred elem-schemas]
   (and (type-pred value)
-       (if (empty? elem-schemas)
-         true
-         (let [elem-schema (first elem-schemas)
-               items       (into [] value)]
-           (loop [i 0]
-             (cond
-               (>= i (count items))                     true
-               (not (valid? elem-schema (get items i))) false
-               :else                                    (recur (+ i 1))))))))
+       (or (empty? elem-schemas)
+           (let [elem-schema (first elem-schemas)]
+             (every? #(valid? elem-schema %) value)))))
 
 (defn- validate-map-of
   [value key-schema val-schema]
   (and (map? value)
-       (let [pairs (into [] (for [[k v] :pairs value] [k v]))]
-         (loop [i 0]
-           (cond
-             (>= i (count pairs)) true
-             :else
-             (let [entry (get pairs i)
-                   k     (get entry 0)
-                   v     (get entry 1)]
-               (cond
-                 (not (valid? key-schema k)) false
-                 (not (valid? val-schema v)) false
-                 :else                       (recur (+ i 1)))))))))
+       (every? (fn [[k v]] (and (valid? key-schema k) (valid? val-schema v)))
+               (for [[k v] :pairs value] [k v]))))
 
 (defn- validate-tuple
   [value elem-schemas]
   (and (vector? value)
        (= (count value) (count elem-schemas))
-       (loop [i 0]
-         (if (>= i (count elem-schemas))
-           true
-           (if (valid? (get elem-schemas i) (get value i))
-             (recur (+ i 1))
-             false)))))
+       (every? true? (map-indexed (fn [i s] (valid? s (get value i))) elem-schemas))))
 
 (defn map-entry-options
   "Options map for a `[:map ...]` entry `[key opts? schema]`. Returns an

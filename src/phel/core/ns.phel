@@ -81,6 +81,17 @@
   (php/:: Phel (removeNamespace (core-munge-ns ns-str)))
   nil)
 
+(defn- defs->map
+  "Builds a {decoded-name => value} map of the definitions in `encoded-ns`,
+  keeping only those whose encoded `fn-name` satisfies `keep?`."
+  [encoded-ns keep?]
+  (let [defs   (php/:: Phel (getDefinitionInNamespace encoded-ns))
+        result (transient {})]
+    (foreach [fn-name value defs]
+      (when (keep? fn-name)
+        (assoc! result (php/-> munge-instance (decodeNs fn-name)) value)))
+    (persistent result)))
+
 (defn ns-interns
   "Returns a hash-map of {name => value} for every definition in the
   given namespace, including private ones. Returns an empty map if the
@@ -88,12 +99,7 @@
   {:example "(ns-interns \"phel\\core\")"
    :see-also ["ns-publics" "intern" "find-ns"]}
   [ns-str]
-  (let [defs   (php/:: Phel (getDefinitionInNamespace (core-munge-ns ns-str)))
-        munge  (php/new Munge)
-        result (transient {})]
-    (foreach [fn-name value defs]
-      (assoc! result (php/-> munge (decodeNs fn-name)) value))
-    (persistent result)))
+  (defs->map (core-munge-ns ns-str) (constantly true)))
 
 (defn intern
   "Finds or creates a definition named by name-str in namespace ns-str.
@@ -178,15 +184,10 @@
   {:example "(ns-publics \"phel\\core\") ; => {\"map\" <fn> \"filter\" <fn> ...}"
    :see-also ["ns-aliases" "ns-refers" "loaded-namespaces"]}
   [ns-str]
-  (let [encoded (core-munge-ns ns-str)
-        defs    (php/:: Phel (getDefinitionInNamespace encoded))
-        munge   (php/new Munge)
-        result  (transient {})]
-    (foreach [fn-name value defs]
-      (let [meta (php/:: Phel (getDefinitionMetaData encoded fn-name))]
-        (when-not (get meta :private)
-          (assoc! result (php/-> munge (decodeNs fn-name)) value))))
-    (persistent result)))
+  (let [encoded (core-munge-ns ns-str)]
+    (defs->map encoded
+               (fn [fn-name]
+                 (not (get (php/:: Phel (getDefinitionMetaData encoded fn-name)) :private))))))
 
 (defn ns-aliases
   "Returns a hash-map of {alias => namespace} for all require aliases in the

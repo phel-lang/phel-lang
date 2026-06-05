@@ -189,7 +189,7 @@
   (let [head (v/schema-head schema)
         args (v/schema-args schema)]
     (case head
-      :vector (coerce-collection schema value (fn [xs] (into [] xs)))
+      :vector (coerce-collection schema value vec)
       :list   (coerce-collection schema value (fn [xs] (apply list xs)))
       :set    (coerce-collection schema value (fn [xs] (into (hash-set) xs)))
       :map-of (coerce-map-of schema value)

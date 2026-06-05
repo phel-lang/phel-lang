@@ -181,23 +181,21 @@
   (assert-string substr)
   (php/str_ends_with s substr))
 
-(defn contains?
-  "True if s contains substr."
-  {:example "(contains? \"hello world\" \"lo wo\") ; => true"
-   :see-also ["includes?" "starts-with?" "ends-with?" "index-of"]}
+(defn includes?
+  "True if s includes substr."
+  {:example "(includes? \"hello world\" \"world\") ; => true"
+   :see-also ["contains?" "starts-with?" "ends-with?" "index-of"]}
   [s substr]
   (assert-string s)
   (assert-string substr)
   (php/str_contains s substr))
 
-(defn includes?
-  "True if s includes substr. Synonym for `contains?`."
-  {:example "(includes? \"hello world\" \"world\") ; => true"
-   :see-also ["contains?" "starts-with?" "ends-with?"]}
+(defn contains?
+  "True if s contains substr. Synonym for `includes?`."
+  {:example "(contains? \"hello world\" \"lo wo\") ; => true"
+   :see-also ["includes?" "starts-with?" "ends-with?"]}
   [s substr]
-  (assert-string s)
-  (assert-string substr)
-  (php/str_contains s substr))
+  (includes? s substr))
 
 (defn re-quote-replacement
   "Escapes special characters in a replacement string for literal use."
