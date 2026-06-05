@@ -58,7 +58,7 @@
 
 (deftest test-with-redefs-on-non-dynamic-var
   (with-redefs [*not-dynamic* :rebound]
-               (is (= :rebound *not-dynamic*) "with-redefs mutates the root in-place"))
+    (is (= :rebound *not-dynamic*) "with-redefs mutates the root in-place"))
   (is (= :root *not-dynamic*) "with-redefs restores the root on exit"))
 
 (deftest test-binding-on-non-dynamic-var-throws

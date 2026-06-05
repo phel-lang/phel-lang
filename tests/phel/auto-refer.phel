@@ -38,4 +38,3 @@
   (is (php/instanceof (atom 1) Atom))
   (is (php/instanceof (delay 1) Delay))
   (is (php/instanceof (volatile! 1) Volatile)))
-

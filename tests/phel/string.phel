@@ -54,7 +54,6 @@
   (is (= "OObarfoo" (s/replace-first "foobarfoo" "/f(o+)/" (fn [m g1] (s/upper-case g1)))))
   (is (= "baz\\bangslash" (s/replace-first "bazslashbangslash" "/slash/" (fn [m] "\\")))))
 
-
 (deftest test-join
   (is (= "" (s/join nil)))
   (is (= "" (s/join [])))

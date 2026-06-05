@@ -5,7 +5,6 @@
 
 ;; --- Side-effect loops ---
 
-
 (defn run!
   "Calls `(f x)` for each element in `coll` for side effects. Returns nil."
   {:example "(run! println [1 2 3])"
@@ -22,4 +21,4 @@
   (let [n-sym (gensym)]
     `(let [~n-sym ~n]
        (doseq [~binding :range [0 ~n-sym]]
-              ~@body))))
+         ~@body))))

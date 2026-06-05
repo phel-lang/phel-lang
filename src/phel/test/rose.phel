@@ -23,26 +23,26 @@
   which is incompatible with the self-recursive rose-tree structure."
   [f coll]
   (lazy-seq
-   (when-let [s (seq coll)]
-     (cons (f (first s)) (lazy-map f (rest s))))))
+    (when-let [s (seq coll)]
+      (cons (f (first s)) (lazy-map f (rest s))))))
 
 (defn- lazy-filter
   "One-element-at-a-time `filter`."
   [pred coll]
   (lazy-seq
-   (when-let [s (seq coll)]
-     (let [x (first s)]
-       (if (pred x)
-         (cons x (lazy-filter pred (rest s)))
-         (lazy-filter pred (rest s)))))))
+    (when-let [s (seq coll)]
+      (let [x (first s)]
+        (if (pred x)
+          (cons x (lazy-filter pred (rest s)))
+          (lazy-filter pred (rest s)))))))
 
 (defn- lazy-concat
   "One-element-at-a-time concatenation of two lazy seqs."
   [a b]
   (lazy-seq
-   (if-let [s (seq a)]
-     (cons (first s) (lazy-concat (rest s) b))
-     b)))
+    (if-let [s (seq a)]
+      (cons (first s) (lazy-concat (rest s) b))
+      b)))
 
 ;; ----------------
 ;; Constructors
@@ -156,9 +156,9 @@
   "Helper: lazily iterates each position in turn."
   [trees i n]
   (lazy-seq
-   (when (< i n)
-     (lazy-concat (positional-shrinks trees i)
-                  (shrinks-of-many* trees (+ i 1) n)))))
+    (when (< i n)
+      (lazy-concat (positional-shrinks trees i)
+                   (shrinks-of-many* trees (+ i 1) n)))))
 
 (defn- shrinks-of-many
   "Given a vector of rose trees, returns a lazy sequence of rose-tree

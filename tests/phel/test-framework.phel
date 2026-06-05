@@ -67,7 +67,7 @@
   (let [saved  (get-stats)
         _      (reset-stats)
         _      (with-output-buffer
-                (is (thrown? \InvalidArgumentException (+ 1 1))))
+                 (is (thrown? \InvalidArgumentException (+ 1 1))))
         counts (get (get-stats) :counts)]
     (restore-stats saved)
     (is (= 1 (:failed counts)) "thrown? without throw records a failure")))
@@ -91,7 +91,7 @@
   (let [saved  (get-stats)
         _      (reset-stats)
         _      (with-output-buffer
-                (is (thrown? (+ 1 2))))
+                 (is (thrown? (+ 1 2))))
         counts (get (get-stats) :counts)]
     (restore-stats saved)
     (is (= 1 (:failed counts))
@@ -117,7 +117,7 @@
   (let [saved  (get-stats)
         _      (reset-stats)
         _      (with-output-buffer
-                (is (thrown-with-msg? \InvalidArgumentException "boom" (+ 1 1))))
+                 (is (thrown-with-msg? \InvalidArgumentException "boom" (+ 1 1))))
         counts (get (get-stats) :counts)]
     (restore-stats saved)
     (is (= 1 (:failed counts)) "thrown-with-msg? without throw records a failure")))
@@ -126,8 +126,8 @@
   (let [saved  (get-stats)
         _      (reset-stats)
         _      (with-output-buffer
-                (is (thrown-with-msg? \InvalidArgumentException "expected"
-                                      (throw (php/new \InvalidArgumentException "different")))))
+                 (is (thrown-with-msg? \InvalidArgumentException "expected"
+                                       (throw (php/new \InvalidArgumentException "different")))))
         counts (get (get-stats) :counts)]
     (restore-stats saved)
     (is (= 1 (:failed counts)) "thrown-with-msg? with wrong message records a failure")))
@@ -143,7 +143,7 @@
   (let [saved  (get-stats)
         _      (reset-stats)
         _      (with-output-buffer
-                (is (output? "expected" (print "actual"))))
+                 (is (output? "expected" (print "actual"))))
         counts (get (get-stats) :counts)]
     (restore-stats saved)
     (is (= 1 (:failed counts)) "output? mismatch records a failure")))
@@ -241,7 +241,7 @@
   (let [saved  (get-stats)
         _      (reset-stats)
         _      (with-output-buffer
-                (is (= 1 (throw (php/new \RuntimeException "boom inside is")))))
+                 (is (= 1 (throw (php/new \RuntimeException "boom inside is")))))
         counts (get (get-stats) :counts)]
     (restore-stats saved)
     (is (= 1 (:error counts)) "uncaught exception in assertion is reported as :error")
@@ -294,8 +294,8 @@
   (let [saved    (get-stats)
         _        (reset-stats)
         _        (with-output-buffer
-                  (testing "math basics"
-                           (is (= 1 2) "addition")))
+                   (testing "math basics"
+                            (is (= 1 2) "addition")))
         snapshot (get-stats)]
     (restore-stats saved)
     (let [failure (first (get snapshot :failed))]

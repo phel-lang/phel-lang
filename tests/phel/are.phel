@@ -62,11 +62,11 @@
   (let [saved  (get-stats)
         _      (reset-stats)
         _      (with-output-buffer
-                (are [x y] (= x y)
-                     1 1
-                     2 3
-                     4 4
-                     5 6))
+                 (are [x y] (= x y)
+                      1 1
+                      2 3
+                      4 4
+                      5 6))
         counts (get (get-stats) :counts)]
     (restore-stats saved)
     (is (= 2 (:pass counts)) "two groups pass")
@@ -80,10 +80,10 @@
   (let [saved  (get-stats)
         _      (reset-stats)
         _      (with-output-buffer
-                (are [x y] (= x y)
-                     1 1
-                     2 2
-                     3))
+                 (are [x y] (= x y)
+                      1 1
+                      2 2
+                      3))
         counts (get (get-stats) :counts)]
     (restore-stats saved)
     (is (= 2 (:pass counts)) "only complete groups are asserted")
@@ -116,7 +116,7 @@
   (let [saved  (get-stats)
         _      (reset-stats)
         _      (with-output-buffer
-                (are [x y] (= x y)))
+                 (are [x y] (= x y)))
         counts (get (get-stats) :counts)]
     (restore-stats saved)
     (is (= 0 (:total counts)) "no assertions generated")))

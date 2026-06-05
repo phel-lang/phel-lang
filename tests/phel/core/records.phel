@@ -40,26 +40,26 @@
 ;; --- defrecord with inline protocol methods ---
 
 (defprotocol Drawable
-             (draw [this canvas]))
+  (draw [this canvas]))
 
 (defrecord Shape [label]
-           Drawable
-           (draw [this canvas] (str canvas ":" (get this :label))))
+  Drawable
+  (draw [this canvas] (str canvas ":" (get this :label))))
 
 (deftest test-defrecord-with-protocol
   (is (= "svg:hex" (draw (Shape "hex") "svg")) "inline protocol method dispatches"))
 
 (defprotocol Labellable
-             (label-of [this]))
+  (label-of [this]))
 
 (defprotocol Sized
-             (size-of [this]))
+  (size-of [this]))
 
 (defrecord Box [label w h]
-           Labellable
-           (label-of [this] (get this :label))
-           Sized
-           (size-of [this] (* (get this :w) (get this :h))))
+  Labellable
+  (label-of [this] (get this :label))
+  Sized
+  (size-of [this] (* (get this :w) (get this :h))))
 
 (deftest test-defrecord-multi-protocol
   (let [b (Box "crate" 3 4)]
@@ -95,7 +95,7 @@
 ;; --- deftype with inline protocol methods ---
 
 (defprotocol TypeDescribable
-             (describe-type [this]))
+  (describe-type [this]))
 
 (deftype TypeThing [name]
          TypeDescribable

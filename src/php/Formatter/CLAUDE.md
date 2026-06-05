@@ -18,11 +18,12 @@ Parses Phel source into AST, applies formatting rules, writes back.
 
 1. `RemoveSurroundingWhitespaceRule`
 2. `UnindentRule`
-3. `IndentRule` with indenters:
-   - `InnerIndenter`: `def`, `def-`, `defn`, `defn-`, `defmacro`, `defmacro-`, `deftest`, `fn`
-   - `BlockIndenter`: `catch`, `do`, `if`, `if-not`, `foreach`, `for`, `dofor`, `let`, `ns`, `loop`, `case`, `cond`, `condp`, `try`, `finally`, `when`, `when-not`, `when-let`, `when-some`, `if-let`, `if-some`, `binding`
-4. `AlignPairsRule`
-5. `RemoveTrailingWhitespaceRule`
+3. `RemoveConsecutiveBlankLinesRule` (collapses 2+ blank lines to one; cljfmt parity)
+4. `IndentRule` with indenters:
+   - `InnerIndenter`: `def`, `def-`, `defn`, `defn-`, `defmacro`, `defmacro-`, `deftest`, `fn`, `defstruct`, `defrecord`, `definterface`, `defexception`, `defenum`, `defprotocol`, `defmulti`, `defmethod`, `defonce`, `reify`
+   - `BlockIndenter`: `catch`, `do`, `if`, `if-not`, `foreach`, `for`, `dofor`, `let`, `ns`, `loop`, `case`, `cond`, `condp`, `try`, `finally`, `when`, `when-not`, `when-let`, `when-some`, `if-let`, `if-some`, `binding`, `when-first`, `doseq`, `dotimes`, `letfn`, `with-redefs`, `with-bindings`, `extend-type`, `extend-protocol`, `with-output-buffer`, `delay`, `lazy-seq`
+5. `AlignPairsRule`
+6. `RemoveTrailingWhitespaceRule`
 
 ## Dependencies
 

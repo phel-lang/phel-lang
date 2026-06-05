@@ -650,7 +650,6 @@
             (copy-meta coll result))))
     (throw (php/new InvalidArgumentException "distinct expects 0 or 1 arguments"))))
 
-
 (defn reverse
   "Reverses the order of the elements in the given sequence."
   {:example "(reverse [1 2 3 4]) ; => [4 3 2 1]"
@@ -781,7 +780,6 @@
     (foreach [k v arr]
       (php/-> res (put k v)))
     (persistent res)))
-
 
 (defn- phel->php-key
   "Converts a Phel map key into a valid PHP array key: named keys

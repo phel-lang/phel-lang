@@ -134,6 +134,3 @@
       "alter-var-root rejects atoms")
   (is (thrown? \InvalidArgumentException (alter-var-root nil inc))
       "alter-var-root rejects nil"))
-
-
-

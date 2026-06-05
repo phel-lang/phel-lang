@@ -126,7 +126,7 @@
 ;;   (defmethod report :custom-type [event] ...)
 ;; or by registering a function through `set-reporters!`/`add-reporter!`.
 (defmulti report
-          "Records a test-framework event and dispatches it to the active
+  "Records a test-framework event and dispatches it to the active
   reporters. `data` must contain a `:type` key (`:pass`, `:failed`,
   `:error`, `:begin-test-ns`, `:end-test-ns`, `:begin-test-run`,
   `:summary`, or a user-defined event). The default methods for
@@ -134,7 +134,7 @@
   registered reporter. Other event types flow straight through to the
   reporter set. Extend by registering
   `(defmethod report :custom-type [event] ...)`."
-          (fn [data] (:type data)))
+  (fn [data] (:type data)))
 
 (defn- report-assertion! [data]
   (let [decorated (decorate-event data)]
@@ -142,13 +142,13 @@
     (fan-out! decorated)))
 
 (defmethod report :pass [data]
-           (report-assertion! (assoc data :state :pass)))
+  (report-assertion! (assoc data :state :pass)))
 
 (defmethod report :failed [data]
-           (report-assertion! (assoc data :state :failed)))
+  (report-assertion! (assoc data :state :failed)))
 
 (defmethod report :error [data]
-           (report-assertion! (assoc data :state :error)))
+  (report-assertion! (assoc data :state :error)))
 
 ;; `:predicate`, `:binary`, `:any`, `:thrown`, `:thrown-with-msg` — the
 ;; legacy assertion-level types emitted by the built-in `is` macro. Each
@@ -180,11 +180,11 @@
   (swap! report-methods assoc event-type fan-out!))
 
 (defmethod report :skipped [data]
-           (record-skip! data)
-           (fan-out! data))
+  (record-skip! data)
+  (fan-out! data))
 
 (defmethod report :default [data]
-           (fan-out! (decorate-event data)))
+  (fan-out! (decorate-event data)))
 
 (defn do-report
   "Add file and line information to a test result and call report.
@@ -194,7 +194,6 @@
    :example "(do-report {:state :pass :type :any :message \"ok\"})"}
   [m]
   (report m))
-
 
 ;; ---------------------------
 ;; `is` macro and its asserts
@@ -326,28 +325,28 @@
 ;; returning a quoted form to be evaluated by `is`. Methods must be
 ;; loaded before any `is` form using their dispatch value is expanded.
 (defmulti assert-expr
-          (fn [_ form]
-            (if (and (list? form) (symbol? (first form)))
-              (first form)
-              :default)))
+  (fn [_ form]
+    (if (and (list? form) (symbol? (first form)))
+      (first form)
+      :default)))
 
 (defmethod assert-expr 'not [message form]
-           (let [inner (second form)]
-             (cond
-               (and (list? inner) (= 3 (count inner)))
-               (assert-binary inner message true)
-               (and (list? inner) (= 2 (count inner)))
-               (assert-predicate inner message true)
-               (assert-any form message))))
+  (let [inner (second form)]
+    (cond
+      (and (list? inner) (= 3 (count inner)))
+      (assert-binary inner message true)
+      (and (list? inner) (= 2 (count inner)))
+      (assert-predicate inner message true)
+      (assert-any form message))))
 
 (defmethod assert-expr 'thrown? [message form]
-           (assert-thrown form message))
+  (assert-thrown form message))
 
 (defmethod assert-expr 'thrown-with-msg? [message form]
-           (assert-thrown-with-msg form message))
+  (assert-thrown-with-msg form message))
 
 (defmethod assert-expr 'output? [message form]
-           (assert-output form message))
+  (assert-output form message))
 
 (def- assert-expr-special-forms
   ;; Special forms and structured-syntax macros that must not be treated as
@@ -358,15 +357,15 @@
             'cond 'case 'binding 'for 'dofor 'doseq))
 
 (defmethod assert-expr :default [message form]
-           (let [head    (when (list? form) (first form))
-                 fn-call (and (symbol? head)
-                              (not (contains? assert-expr-special-forms head)))]
-             (cond
-               (and fn-call (= 3 (count form)))
-               (assert-binary form message false)
-               (and fn-call (= 2 (count form)))
-               (assert-predicate form message false)
-               (assert-any form message))))
+  (let [head    (when (list? form) (first form))
+        fn-call (and (symbol? head)
+                     (not (contains? assert-expr-special-forms head)))]
+    (cond
+      (and fn-call (= 3 (count form)))
+      (assert-binary form message false)
+      (and fn-call (= 2 (count form)))
+      (assert-predicate form message false)
+      (assert-any form message))))
 
 (defmacro is
   "Asserts that an expression is true."

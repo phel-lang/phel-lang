@@ -25,10 +25,10 @@
   [expected actual]
   (let [rep (t/resolve-reporter :default)]
     (with-output-buffer
-     (rep {:type :begin-test-run})
-     (rep (failure-event expected actual))
-     (rep {:type :summary :total 1 :pass 0 :failed 1 :error 0
-           :failures [(failure-event expected actual)]}))))
+      (rep {:type :begin-test-run})
+      (rep (failure-event expected actual))
+      (rep {:type :summary :total 1 :pass 0 :failed 1 :error 0
+            :failures [(failure-event expected actual)]}))))
 
 ;; ---------------------------------------------------------------------------
 ;; Threshold: small primitive failures keep the legacy single-line summary
@@ -119,14 +119,14 @@
   (let [rep   (t/resolve-reporter :default)
         equal (vec (range 5))
         out   (with-output-buffer
-               (rep {:type :begin-test-run})
-               (rep {:type :binary :state :failed
-                     :pred 'not= :expected equal :actual 'actual-form
-                     :result equal
-                     :form '(not= expected actual)
-                     :location {:file "diff.phel" :line 1}})
-               (rep {:type :summary :total 1 :pass 0 :failed 1 :error 0
-                     :failures []}))]
+                (rep {:type :begin-test-run})
+                (rep {:type :binary :state :failed
+                      :pred 'not= :expected equal :actual 'actual-form
+                      :result equal
+                      :form '(not= expected actual)
+                      :location {:file "diff.phel" :line 1}})
+                (rep {:type :summary :total 1 :pass 0 :failed 1 :error 0
+                      :failures []}))]
     (is (= 0 (php/preg_match "/Diff:/" out))
         "no diff block for not= failures: the values are equal")))
 

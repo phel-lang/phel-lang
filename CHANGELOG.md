@@ -14,9 +14,11 @@ All notable changes to this project will be documented in this file.
 - Docs: function `:example` outputs now match REPL output, so `phel doc` and the API reference are accurate
 - `phel->php`: integer/string map keys now convert instead of throwing `getName() on int` (#2298)
 - Structs: `$struct['field']` array access now accepts a plain PHP string offset (was keyword-only) (#2313, #2319)
+- Dependencies: constrain `gacela-project/gacela` to `^1.14 <1.15`; 1.15.0 breaks the `run`/`build`/`export` console commands. Lift once Phel supports it
 
 ### Added
 
+- `phel format`: collapses consecutive blank lines to one, and indents more definition/body forms (`defstruct`, `defprotocol`, `defmethod`, `reify`, `doseq`, `letfn`, …) the cljfmt way instead of call-style alignment
 - Docs: `load`, `in-ns`, `use`, and `var` special forms now documented in the API reference and `phel doc`; a regression test fails if any registered special form lacks a catalog entry
 - Docs: `:example` (and missing `:see-also`) metadata on the core math (`+`, `-`, `*`, `/`, `bit-*`, `min`, `max`, `mean`, `median`, …) and predicate (`int?`, `float?`, `string?`, `keyword?`, `vector?`, `map?`, `seq?`, `empty?`, …) functions
 - `phel.reflect`: `class-attributes`/`method-attributes`/`property-attributes`/`attributes` read PHP 8 attributes as `{:name :args}` maps (#2314, #2320)
