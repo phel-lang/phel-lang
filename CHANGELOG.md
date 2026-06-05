@@ -36,6 +36,7 @@ Richer PHP interop for bridging Phel to typed PHP / framework code (all opt-in, 
 
 ### Changed
 
+- Dev: upgraded the test suite to PHPUnit 13 (from 10). Replaced removed/changed APIs (`assertContainsOnly` → `assertContainsOnlyString`, multiple `expectOutputRegex` calls, closure-comparison in one analyzer test). A follow-up will convert the remaining unconfigured mocks to stubs (PHPUnit-notice only, non-failing)
 - Internals: modular-architecture cleanup of `src/php/` — relocated leaky cross-module value objects to their proper homes and split many oversized analyzer/command/compiler/runtime classes into focused collaborators (pure refactors, no behavior change) (#2261, #2262, #2263, #2264, #2273, #2274, #2275, #2276, #2277, #2278)
 - Tests: `RegistryTest`/`PhelVarTest` snapshot and restore the global `Registry`, fixing order-dependent `phel.core` failures (#2256)
 - Docs: condensed every `docs/` guide (~17% smaller), verified against the runtime, cross-linked to phel-lang.org

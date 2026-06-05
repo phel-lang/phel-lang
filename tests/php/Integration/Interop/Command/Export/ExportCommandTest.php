@@ -33,14 +33,16 @@ final class ExportCommandTest extends TestCase
         Phel::bootstrap(__DIR__);
         $command = new ExportCommand();
 
-        $this->expectOutputRegex('~Exported namespaces:~');
-        $this->expectOutputRegex('~TestCmdExportMultiple/Adder~');
-        $this->expectOutputRegex('~TestCmdExportMultiple/Multiplier~');
-
+        ob_start();
         $command->run(
             $this->createStub(InputInterface::class),
             $this->stubOutput(),
         );
+        $output = (string) ob_get_clean();
+
+        self::assertMatchesRegularExpression('~Exported namespaces:~', $output);
+        self::assertMatchesRegularExpression('~TestCmdExportMultiple/Adder~', $output);
+        self::assertMatchesRegularExpression('~TestCmdExportMultiple/Multiplier~', $output);
 
         self::assertFileExists(__DIR__ . '/PhelGenerated/TestCmdExportMultiple/Adder.php');
         self::assertFileExists(__DIR__ . '/PhelGenerated/TestCmdExportMultiple/Multiplier.php');

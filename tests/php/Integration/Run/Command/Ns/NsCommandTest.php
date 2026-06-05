@@ -40,13 +40,15 @@ final class NsCommandTest extends AbstractTestCommand
             }
         };
 
-        $this->expectOutputRegex('/app\.foo/');
-        $this->expectOutputRegex('/app\.bar/');
-
+        ob_start();
         $command->run(
             self::createStub(InputInterface::class),
             $this->stubOutput(),
         );
+        $output = (string) ob_get_clean();
+
+        self::assertMatchesRegularExpression('/app\.foo/', $output);
+        self::assertMatchesRegularExpression('/app\.bar/', $output);
     }
 
     public function test_output_namespace_dependencies(): void
@@ -75,15 +77,17 @@ final class NsCommandTest extends AbstractTestCommand
         $input = self::createStub(InputInterface::class);
         $input->method('getArgument')->willReturn('app\\bar');
 
-        $this->expectOutputRegex('/Dependencies for namespace: app\.bar/');
-        $this->expectOutputRegex('/1\) Namespace: app\.foo/');
-        $this->expectOutputRegex('/2\) Namespace: app\.bar/');
-        $this->expectOutputRegex('/Dependencies \(1\): app\.foo/');
-        $this->expectOutputRegex('/File: bar\.phel/');
-
+        ob_start();
         $command->run(
             $input,
             $this->stubOutput(),
         );
+        $output = (string) ob_get_clean();
+
+        self::assertMatchesRegularExpression('/Dependencies for namespace: app\.bar/', $output);
+        self::assertMatchesRegularExpression('/1\) Namespace: app\.foo/', $output);
+        self::assertMatchesRegularExpression('/2\) Namespace: app\.bar/', $output);
+        self::assertMatchesRegularExpression('/Dependencies \(1\): app\.foo/', $output);
+        self::assertMatchesRegularExpression('/File: bar\.phel/', $output);
     }
 }
