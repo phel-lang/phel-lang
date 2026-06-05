@@ -55,8 +55,16 @@ final class IntegrationTest extends TestCase
             ->setSource($filename);
 
         BuildFacade::enableBuildMode();
-        $compiledCode = $this->compilerFacade->compile($phelCode, $options)->getPhpCode();
-        BuildFacade::disableBuildMode();
+        // Phel compiles by evaluating top-level forms, so a fixture with
+        // top-level side effects (e.g. `println`) runs during compilation.
+        // Capture that output so it never leaks into the test runner.
+        ob_start();
+        try {
+            $compiledCode = $this->compilerFacade->compile($phelCode, $options)->getPhpCode();
+        } finally {
+            ob_end_clean();
+            BuildFacade::disableBuildMode();
+        }
 
         self::assertSame(
             trim($expectedGeneratedCode),
