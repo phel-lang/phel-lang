@@ -147,10 +147,9 @@
 ;; is not one of the allowed members.
 (defn- -explain-enum
   [schema value path in]
-  (let [args (v/schema-args schema)]
-    (if (v/valid? schema value)
-      []
-      [(make-error path in schema value :mismatch)])))
+  (if (v/valid? schema value)
+    []
+    [(make-error path in schema value :mismatch)]))
 
 ;; Explains an `:and` schema: collects errors from every conjoined
 ;; sub-schema (all must pass), accumulating across all of them.

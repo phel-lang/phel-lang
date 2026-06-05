@@ -698,7 +698,7 @@
 (defn- print-failures-block [failures]
   (when-not (empty? failures)
     (println)
-    (for [data :in failures]
+    (dofor [data :in failures]
       (println "~~~~~~~~~~")
       (print-failure-or-error data))
     (println)))

@@ -240,23 +240,19 @@
         (php/apush pairs (encode v)))
       (php-indexed-array "~#cmap" pairs))))
 
-(defn- encode-vector [v]
+(defn- encode-sequential
+  "Encodes each element of `coll` into a PHP array. When `tag` is non-nil the
+  array is wrapped as a Transit tagged array (e.g. \"~#set\"); a nil `tag`
+  yields a bare array."
+  [coll tag]
   (let [arr (php/array)]
-    (foreach [x v]
+    (foreach [x coll]
       (php/apush arr (encode x)))
-    arr))
+    (if tag (php-indexed-array tag arr) arr)))
 
-(defn- encode-set [s]
-  (let [arr (php/array)]
-    (foreach [x s]
-      (php/apush arr (encode x)))
-    (php-indexed-array "~#set" arr)))
-
-(defn- encode-list [l]
-  (let [arr (php/array)]
-    (foreach [x l]
-      (php/apush arr (encode x)))
-    (php-indexed-array "~#list" arr)))
+(defn- encode-vector [v] (encode-sequential v nil))
+(defn- encode-set [s] (encode-sequential s "~#set"))
+(defn- encode-list [l] (encode-sequential l "~#list"))
 
 (defn- encode
   "Encodes a Phel value into the PHP-array shape consumed by

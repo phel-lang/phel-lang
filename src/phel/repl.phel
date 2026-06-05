@@ -16,6 +16,10 @@
 
 (def build-facade (php/new BuildFacade))
 
+(def- munge-instance
+  ;; Munge is a final readonly class; reuse one instance to avoid per-call allocation.
+  (php/new Munge))
+
 (def- src-dirs (php/array)) ; Set by ReplCommand; lazily resolved via get-src-dirs
 
 (defn- get-global-env []
@@ -27,7 +31,7 @@
   {:example "(loaded-namespaces) ; => [\"phel.core\" \"phel.repl\"]"}
   []
   (let [raw    (php/:: Phel (getNamespaces))
-        munge  (php/new Munge)
+        munge  munge-instance
         result (transient [])]
     (foreach [ns raw]
       (conj result (php/:: Munge (displayNs (php/-> munge (decodeNs ns))))))
@@ -230,7 +234,7 @@
 (defn- munge-ns
   "Encodes a namespace string for registry lookup."
   [ns-str]
-  (let [munge (php/new Munge)]
+  (let [munge munge-instance]
     (php/-> munge (encodeRegistryKey ns-str))))
 
 (defn get-symbol-info
@@ -243,7 +247,7 @@
   [ns-str name-str]
   (let [canonical    (canonical-ns ns-str)
         encoded-ns   (munge-ns canonical)
-        munge        (php/new Munge)
+        munge        munge-instance
         encoded-name (php/-> munge (encode name-str))
         meta         (php/:: Phel (getDefinitionMetaData encoded-ns encoded-name))]
     (when meta
@@ -284,7 +288,7 @@
   (let [ns-str  (name ns)
         encoded (munge-ns ns-str)
         defs    (php/:: Phel (getDefinitionInNamespace encoded))
-        munge   (php/new Munge)
+        munge   munge-instance
         names   (for [fn-name :keys defs
                       :let [meta (php/:: Phel (getDefinitionMetaData encoded fn-name))]
                       :when (not (get meta :private))]
@@ -308,7 +312,7 @@
   Searches across all loaded namespaces."
   {:example "(apropos \"map\") ; => [phel.core/flat-map phel.core/map ...]"}
   [search]
-  (let [munge   (php/new Munge)
+  (let [munge   munge-instance
         results (transient [])]
     (foreach [ns (php/:: Phel (getNamespaces))]
       (let [defs     (php/:: Phel (getDefinitionInNamespace ns))
@@ -328,7 +332,7 @@
   {:example "(find-fn \"map\") ; => [{:ns \"phel.core\" :name \"map\" ...} ...]"
    :see-also ["apropos" "search-doc" "get-symbol-info"]}
   [search]
-  (let [munge        (php/new Munge)
+  (let [munge        munge-instance
         search-lower (php/strtolower search)
         results      (transient [])]
     (foreach [ns (php/:: Phel (getNamespaces))]
@@ -419,7 +423,7 @@
   [ns-str name-str & rest]
   (let [canonical    (canonical-ns ns-str)
         encoded-ns   (munge-ns canonical)
-        encoded-name (php/-> (php/new Munge) (encode name-str))
+        encoded-name (php/-> munge-instance (encode name-str))
         value        (first rest)]
     (php/:: Phel (addDefinition encoded-ns encoded-name value))
     (php/:: Symbol (createForNamespace (php/:: Munge (displayNs canonical)) name-str))))
@@ -432,7 +436,7 @@
    :see-also ["ns-publics" "intern" "find-ns"]}
   [ns-str]
   (let [defs   (php/:: Phel (getDefinitionInNamespace (munge-ns ns-str)))
-        munge  (php/new Munge)
+        munge  munge-instance
         result (transient {})]
     (foreach [fn-name value defs]
       (assoc! result (php/-> munge (decodeNs fn-name)) value))
@@ -446,7 +450,7 @@
   [ns-str]
   (let [encoded (munge-ns ns-str)
         defs    (php/:: Phel (getDefinitionInNamespace encoded))
-        munge   (php/new Munge)
+        munge   munge-instance
         result  (transient {})]
     (foreach [fn-name value defs]
       (let [meta (php/:: Phel (getDefinitionMetaData encoded fn-name))]
@@ -485,7 +489,7 @@
   Prints matching function names and their documentation."
   {:example "(search-doc \"reduce\")"}
   [search]
-  (let [munge        (php/new Munge)
+  (let [munge        munge-instance
         search-lower (php/strtolower search)]
     (foreach [ns (php/:: Phel (getNamespaces))]
       (let [defs     (php/:: Phel (getDefinitionInNamespace ns))
@@ -620,6 +624,9 @@
          (when source
            (str "\nSource code:\n```phel\n" source "\n```\n")))))
 
+(def- phel-expert-preamble
+  "You are a Phel language expert. Phel is a Lisp that compiles to PHP.\n\n")
+
 (defn explain
   "Sends a Phel code string to the AI for explanation.
 
@@ -633,7 +640,7 @@
         expanded (try (let [form (eval-str (str "'" code-str))]
                         (str (macroexpand-form form)))
                       (catch \Throwable _e nil))
-        context  (str "You are a Phel language expert. Phel is a Lisp that compiles to PHP.\n\n"
+        context  (str phel-expert-preamble
                       "Explain the following Phel code clearly and concisely:\n\n"
                       "```phel\n" code-str "\n```\n"
                       (when compiled (str "\nCompiled PHP:\n```php\n" compiled "\n```\n"))
@@ -662,7 +669,7 @@
    :see-also ["explain" "fix"]}
   [description]
   (let [ns-context (build-namespace-context)
-        prompt     (str "You are a Phel language expert. Phel is a Lisp that compiles to PHP.\n\n"
+        prompt     (str phel-expert-preamble
                         "Environment:\n" ns-context "\n\n"
                         "Task: Write Phel code to accomplish the following:\n"
                         description "\n\n"
@@ -677,7 +684,7 @@
    :see-also ["explain" "suggest"]}
   [code-str error-msg]
   (let [ns-context (build-namespace-context)
-        prompt     (str "You are a Phel language expert. Phel is a Lisp that compiles to PHP.\n\n"
+        prompt     (str phel-expert-preamble
                         "Environment:\n" ns-context "\n\n"
                         "The following Phel code produced an error:\n\n"
                         "```phel\n" code-str "\n```\n\n"
@@ -693,7 +700,7 @@
    :see-also ["explain" "suggest" "fix"]}
   [code-str]
   (let [ns-context (build-namespace-context)
-        prompt     (str "You are a Phel language expert. Phel is a Lisp that compiles to PHP.\n\n"
+        prompt     (str phel-expert-preamble
                         "Environment:\n" ns-context "\n\n"
                         "Review the following Phel code for quality, idioms, and potential issues:\n\n"
                         "```phel\n" code-str "\n```\n\n"
