@@ -271,10 +271,7 @@
   {:example "(every? even? [2 4 6 8]) ; => true"
    :see-also ["all?" "not-every?"]}
   [pred coll]
-  (cond
-    (empty? coll)       true
-    (pred (first coll)) (recur pred (next coll))
-    false))
+  (all? pred coll))
 
 (defn not-every?
   "Returns false if `(pred x)` is logical true for every `x` in collection `coll`

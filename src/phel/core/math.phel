@@ -381,6 +381,19 @@ returns 1. If `xs` has one value, returns the reciprocal of x.
   [x]
   (int x))
 
+(defn- clamp-int
+  "Truncates a numeric `x` toward zero and range-checks it against `lo..hi`.
+   Raises `InvalidArgumentException` when `x` is non-numeric or out of range.
+   `label` names the target type for error messages."
+  [x lo hi label]
+  (if (number? x)
+    (let [truncated (int x)]
+      (if (or (php/< truncated lo) (php/> truncated hi))
+        (throw (php/new InvalidArgumentException
+                        (php/. "Value out of range for " label ": " (php/strval truncated))))
+        truncated))
+    (throw (php/new InvalidArgumentException (php/. label " expects a numeric value")))))
+
 (defn short
   "Coerces `x` to a signed 16-bit integer in the range `-32768..32767`.
    Decimal values are truncated toward zero. `Ratio` and `BigInt`
@@ -390,13 +403,7 @@ returns 1. If `xs` has one value, returns the reciprocal of x.
   {:example "(short 32767) ; => 32767\n(short 1.9) ; => 1\n(short -32768) ; => -32768"
    :see-also ["int" "byte" "long"]}
   [x]
-  (if (number? x)
-    (let [truncated (int x)]
-      (if (or (php/< truncated -32768) (php/> truncated 32767))
-        (throw (php/new InvalidArgumentException
-                        (php/. "Value out of range for short: " (php/strval truncated))))
-        truncated))
-    (throw (php/new InvalidArgumentException "short expects a numeric value"))))
+  (clamp-int x -32768 32767 "short"))
 
 (defn byte
   "Coerces `x` to a signed 8-bit integer in the range `-128..127`.
@@ -407,13 +414,7 @@ returns 1. If `xs` has one value, returns the reciprocal of x.
   {:example "(byte 127) ; => 127\n(byte 1.9) ; => 1\n(byte -128) ; => -128"
    :see-also ["int?" "float" "double"]}
   [x]
-  (if (number? x)
-    (let [truncated (int x)]
-      (if (or (php/< truncated -128) (php/> truncated 127))
-        (throw (php/new InvalidArgumentException
-                        (php/. "Value out of range for byte: " (php/strval truncated))))
-        truncated))
-    (throw (php/new InvalidArgumentException "byte expects a numeric value"))))
+  (clamp-int x -128 127 "byte"))
 
 (defn char
   "Coerces `x` to a single-character string representing the given

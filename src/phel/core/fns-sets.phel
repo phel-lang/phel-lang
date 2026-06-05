@@ -67,11 +67,7 @@
   [s1 s2]
   (if (> (count s1) (count s2))
     false
-    (let [result (atom true)]
-      (foreach [item s1]
-        (when-not (php/-> s2 (contains item))
-          (reset! result false)))
-      (deref result))))
+    (every? #(php/-> s2 (contains %)) s1)))
 
 (defn superset?
   "Returns true if `s1` is a superset of `s2`, i.e. every element in `s2` is also in `s1`."

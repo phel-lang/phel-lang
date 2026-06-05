@@ -234,7 +234,6 @@
   (let [pred               (first form)
         expected           (second form)
         actual             (second (next form))
-        type               (if negated :binary :binary-not)
         loc                (location form)
         expected-evaluated (gensym)
         actual-evaluated   (gensym)
@@ -244,8 +243,7 @@
            ~actual-evaluated   ~actual
            ~result             (~pred ~expected-evaluated ~actual-evaluated)
            ~result             (if ~negated (not ~result) ~result)
-           ~report-data        {:type ~type
-                                :message ~message
+           ~report-data        {:message ~message
                                 :location ~loc
                                 :pred '~pred
                                 :expected ~expected-evaluated
