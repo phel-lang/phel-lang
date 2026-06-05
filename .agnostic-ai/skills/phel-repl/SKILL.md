@@ -13,12 +13,17 @@ Evaluate Phel expressions to verify behavior without writing test files.
 
 1. Take the expression from `$ARGUMENTS` (or ask for one if empty).
 
-2. Evaluate it using the Phel CLI:
+2. Evaluate it using the Phel CLI `eval` command:
    ```bash
-   echo '$ARGUMENTS' | timeout 10 ./bin/phel run --eval
+   timeout 10 ./bin/phel eval '$ARGUMENTS'
    ```
 
-   If `--eval` is not available, write a temp file:
+   Or read the expression from stdin with `-`:
+   ```bash
+   echo '$ARGUMENTS' | timeout 10 ./bin/phel eval -
+   ```
+
+   For multi-form snippets that need a namespace, write a temp file:
    ```bash
    echo '(ns repl-test) $ARGUMENTS' > /tmp/phel-repl-test.phel
    timeout 10 ./bin/phel run /tmp/phel-repl-test.phel

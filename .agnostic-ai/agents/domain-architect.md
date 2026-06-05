@@ -21,7 +21,7 @@ Modular architecture expert for the Phel compiler and runtime. Maintains clean m
 |--------|---------------|-------------|
 | `Lang/` | Runtime types: Symbol, Keyword, PhelArray, Table, Set, Struct | None (foundational) |
 | `Compiler/` | Lexer → Parser → Analyzer → Emitter (Phel to PHP) | Lang |
-| `Printer/` | Value to string representation | Lang |
+| `Shared/Printer/` | Value to string representation (sub-module under `Shared/`) | Lang |
 | `Formatter/` | Code formatting | Compiler (parser) |
 | `Run/` | Script execution, test runner, REPL | Compiler, Lang |
 | `Command/` | CLI commands (Symfony Console) | Run, Compiler |
