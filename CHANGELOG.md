@@ -6,20 +6,19 @@ All notable changes to this project will be documented in this file.
 
 ### Fixed
 
-- `if-let`/`when-let`/`if-some`/`when-first`: now hygienic — a user binding named `temp-sym` is no longer shadowed by the macros' internal temporary
-- Quasiquote of an empty list (`` `() ``) no longer throws `Index out of bounds`; it yields an empty list, like empty vectors/maps already did
-- `str/index-of`: returns `nil` for an empty string instead of leaking a raw PHP `ValueError` (`(index-of "" "a")` => `nil`, `(index-of "" "")` => `0`)
-- Lexer: error/source-map columns are now counted in code points, not bytes, so locations are correct for multibyte (UTF-8) source
+- `if-let`/`when-let`/`if-some`/`when-first`: now hygienic — a user binding named `temp-sym` no longer collides with the macros' internal temporary
+- Quasiquote of an empty list (`` `() ``) yields an empty list instead of throwing `Index out of bounds`
+- `str/index-of`: returns `nil` for an empty string instead of a raw PHP `ValueError`
+- Lexer: error/source-map columns counted in code points, not bytes (correct locations for multibyte source)
 - Printer: structs print with the `.` separator (`(my.ns.point 1 2)`) instead of `\` (#2255)
-- Docs: function `:example` outputs now match what the REPL prints, so `phel doc` and the phel-lang.org API reference are accurate
-- `phel->php`: integer/string map keys now convert instead of throwing `getName() on int` (unblocks PDO option maps) (#2298)
+- Docs: function `:example` outputs now match REPL output, so `phel doc` and the API reference are accurate
+- `phel->php`: integer/string map keys now convert instead of throwing `getName() on int` (#2298)
 - Structs: `$struct['field']` array access now accepts a plain PHP string offset (was keyword-only) (#2313, #2319)
 
 ### Added
 
-- Docs: the `load` special form is now documented in the API reference and `phel doc load` (it was implemented but missing from the native symbol catalog)
-- Docs: the `in-ns`, `use`, and `var` special forms are now documented in the API reference and `phel doc`; a regression test now fails if any registered special form lacks a catalog entry
-- Docs: added `:example` (and missing `:see-also`) metadata to the core math (`+`, `-`, `*`, `/`, `inc`, `dec`, `bit-*`, `min`, `max`, `mean`, `median`, …) and predicate (`int?`, `float?`, `number?`, `string?`, `keyword?`, `vector?`, `map?`, `seq?`, `empty?`, …) functions, so they show runnable examples in `phel doc` and the API reference
+- Docs: `load`, `in-ns`, `use`, and `var` special forms now documented in the API reference and `phel doc`; a regression test fails if any registered special form lacks a catalog entry
+- Docs: `:example` (and missing `:see-also`) metadata on the core math (`+`, `-`, `*`, `/`, `bit-*`, `min`, `max`, `mean`, `median`, …) and predicate (`int?`, `float?`, `string?`, `keyword?`, `vector?`, `map?`, `seq?`, `empty?`, …) functions
 - `phel.reflect`: `class-attributes`/`method-attributes`/`property-attributes`/`attributes` read PHP 8 attributes as `{:name :args}` maps (#2314, #2320)
 - `phel.reflect`: `enum->keyword`/`keyword->enum`/`enum-values` bridge native PHP enums to keywords and back (#2315, #2321)
 - `iterator-seq`: lazy seq over a PHP `Traversable`, pulled one element at a time (#2312, #2318)
@@ -37,14 +36,14 @@ Richer PHP interop for bridging Phel to typed PHP / framework code (all opt-in, 
 
 ### Changed
 
-- Architecture: modular-architecture cleanup of `src/php/` (#2261, #2262, #2263, #2264) — relocated leaky cross-module value objects to their proper homes (`NamespaceInformation`, the parse-tree nodes + lexer `Token`, and the stateful `LoadClasspath`) and split four oversized analyzer/command classes (`DefSymbol`, `ParamTypeInferrer`, `TestCommand`, and `ConstantFolder`/`FnSymbol`) into focused collaborators. Pure refactors, no behavior change
-- Internals: split seven oversized god-classes into focused single-responsibility collaborators across the compiler, runtime, build, and api modules (pure refactors, behavior unchanged): `CallSpecialization`, `CallEmitter` (#2273), `CompiledCodeCache` (#2274), `BigInt` (#2275), `NumericOperations` (#2276), `PhelFnLoader` (#2277), and `Parser` (#2278); also centralized the emitters' bare-expression capture into `OutputEmitter::captureNodeAsExpression()`
-- Tests: `RegistryTest` and `PhelVarTest` snapshot and restore the global `Registry`, fixing order-dependent `phel.core` suite failures (#2256)
-- Docs: condensed every `docs/` guide (~17% smaller), verified against the runtime, and cross-linked to phel-lang.org
-- Quality: repo-wide maintainability pass — explanatory docblocks and `:doc`/`:see-also`/`:example` metadata across modules, safe dead-code/type/naming cleanups, behavior-identical helper extractions, and ~40 new unit tests for previously untested utilities (no behavior change)
-- `agent-install`: simplified to just copying skill files and the `.agents/` docs tree; dropped version stamping, `--check`, and `--list`
-- `phel.ai`: default chat model is now `claude-sonnet-4-6`; `nearest` computes the query magnitude once instead of per index item
-- Dropped redundant `(:require phel.core)` from 14 library namespaces (`phel.core` is always preloaded); kept only in `phel.string`, which needs the `core/` alias to call `core/reverse` from inside its own `reverse`
+- Architecture: `src/php/` cleanup (#2261, #2262, #2263, #2264) — relocated leaky cross-module value objects (`NamespaceInformation`, parse-tree nodes + lexer `Token`, `LoadClasspath`) to their proper homes and split four oversized analyzer/command classes (`DefSymbol`, `ParamTypeInferrer`, `TestCommand`, `ConstantFolder`/`FnSymbol`) into focused collaborators. Pure refactors
+- Internals: split seven oversized god-classes into focused collaborators across compiler/runtime/build/api (pure refactors): `CallSpecialization`, `CallEmitter` (#2273), `CompiledCodeCache` (#2274), `BigInt` (#2275), `NumericOperations` (#2276), `PhelFnLoader` (#2277), `Parser` (#2278); centralized bare-expression capture into `OutputEmitter::captureNodeAsExpression()`
+- Tests: `RegistryTest`/`PhelVarTest` snapshot and restore the global `Registry`, fixing order-dependent `phel.core` failures (#2256)
+- Docs: condensed every `docs/` guide (~17% smaller), verified against the runtime, cross-linked to phel-lang.org
+- Quality: repo-wide maintainability pass — docblocks and `:doc`/`:see-also`/`:example` metadata, dead-code/type/naming cleanups, helper extractions, ~40 new unit tests (no behavior change)
+- `agent-install`: simplified to copying skill files and the `.agents/` docs tree; dropped version stamping, `--check`, `--list`
+- `phel.ai`: default chat model is now `claude-sonnet-4-6`; `nearest` computes the query magnitude once instead of per item
+- Dropped redundant `(:require phel.core)` from 14 library namespaces (always preloaded); kept in `phel.string`, which needs the `core/` alias for `core/reverse`
 
 ## [0.41.0](https://github.com/phel-lang/phel-lang/compare/v0.40.0...v0.41.0) - 2026-06-01
 
