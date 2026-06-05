@@ -80,9 +80,7 @@
    url))
 
 (defn uri-from-string
-  "Parses a URI string into a uri struct. Handles UTF-8 URLs and IPv6
-  addresses in brackets. Throws `InvalidArgumentException` on a malformed
-  string."
+  "Parses a URI string into a uri struct. Handles UTF-8 URLs and IPv6 addresses in brackets. Throws `InvalidArgumentException` on a malformed string."
   {:example "(uri-from-string \"https://example.com/path?foo=bar\") ; => (uri \"https\" nil \"example.com\" nil \"/path\" \"foo=bar\" nil)"
    :see-also ["uri-from-globals" "request-from-map"]}
   [url]
@@ -151,9 +149,7 @@
     (persistent res)))
 
 (defn files-from-globals
-  "Extracts uploaded files from `$_FILES` and normalizes them to uploaded-file
-  structs. Handles both flat and nested file specs from multipart uploads.
-  Returns a map of field name to uploaded-file(s)."
+  "Extracts uploaded files from `$_FILES` and normalizes them to uploaded-file structs. Handles both flat and nested file specs from multipart uploads. Returns a map of field name to uploaded-file(s)."
   {:example "(files-from-globals) ; => {:avatar (uploaded-file \"/tmp/phpYzdqkD\" 1024 0 \"photo.jpg\" \"image/jpeg\")}"
    :see-also ["request-from-globals"]}
   [& [files]]
@@ -164,9 +160,7 @@
 ;; -------
 
 (defn headers-from-server
-  "Extracts all HTTP headers from the `$_SERVER` variable. Strips the `HTTP_`
-  prefix, normalizes underscores to hyphens, handles `CONTENT_*` keys, and
-  resolves `REDIRECT_*` keys. Returns a map with keyword keys."
+  "Extracts all HTTP headers from the `$_SERVER` variable. Strips the `HTTP_` prefix, normalizes underscores to hyphens, handles `CONTENT_*` keys, and resolves `REDIRECT_*` keys. Returns a map with keyword keys."
   {:example "(headers-from-server) ; => {:host \"example.com\" :content-type \"application/json\"}"
    :see-also ["request-from-globals"]}
   [& [server]]
@@ -226,15 +220,13 @@
                 (php/array "application/x-www-form-urlencoded" "multipart/form-data")))
 
 (defn- decode-json-body
-  "Decodes a JSON request body. Returns nil for an empty or malformed body so
-  handlers can distinguish 'no usable body' from a real value."
+  "Decodes a JSON request body. Returns nil for an empty or malformed body so handlers can distinguish 'no usable body' from a real value."
   [raw-body]
   (when (and (string? raw-body) (not= raw-body ""))
     (try (json/decode raw-body) (catch \Throwable _ nil))))
 
 (defn- resolve-parsed-body
-  "Resolves `:parsed-body`: form data from `$_POST`, a decoded JSON body, or nil.
-  The `:content-type` header is parsed once and matched against both cases."
+  "Resolves `:parsed-body`: form data from `$_POST`, a decoded JSON body, or nil. The `:content-type` header is parsed once and matched against both cases."
   [method headers post-parameter raw-body]
   (let [content-type (content-type-base headers)]
     (cond
@@ -269,8 +261,7 @@
      {})))
 
 (defn- json-request-body
-  "Reads the raw request body from `php://input`, but only when the request
-  declares a JSON content type. Other requests never touch the input stream."
+  "Reads the raw request body from `php://input`, but only when the request declares a JSON content type. Other requests never touch the input stream."
   [server]
   (let [content-type (php/strtolower (str (or (get server "CONTENT_TYPE")
                                               (get server "HTTP_CONTENT_TYPE")
@@ -279,10 +270,7 @@
       (php/file_get_contents "php://input"))))
 
 (defn request-from-globals
-  "Extracts a request from `$_SERVER`, `$_GET`, `$_POST`, `$_COOKIE`, `$_FILES`
-  and, for JSON requests, the raw request body (`php://input`). Requires a web
-  request context (PHP-FPM, mod_php, or `php -S`); it cannot be used from the
-  REPL or a CLI script - use `request-from-map` for testing."
+  "Extracts a request from `$_SERVER`, `$_GET`, `$_POST`, `$_COOKIE`, `$_FILES` and, for JSON requests, the raw request body (`php://input`). Requires a web request context (PHP-FPM, mod_php, or `php -S`); it cannot be used from the REPL or a CLI script - use `request-from-map` for testing."
   {:example "(request-from-globals) ; => (request \"GET\" (uri ...) {...} nil {...} {...} {...} {...} \"1.1\" {})"
    :see-also ["request-from-globals-args" "request-from-map"]}
   []

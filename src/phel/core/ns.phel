@@ -15,18 +15,14 @@
   (php/new Munge))
 
 (defn canonical-ns
-  "Returns the canonical (dot-separated) form of a namespace string.
-  Pass user-supplied namespace strings through this before any registry
-  lookup or write."
+  "Returns the canonical (dot-separated) form of a namespace string. Pass user-supplied namespace strings through this before any registry lookup or write."
   {:example "(canonical-ns \"phel\\core\") ; => \"phel.core\""
    :see-also ["display-ns" "find-ns" "create-ns" "intern"]}
   [ns-str]
   (php/:: Munge (canonicalNs ns-str)))
 
 (defn display-ns
-  "Returns the display (dot-separated) form of a namespace string.
-  Equivalent to `canonical-ns`; kept as a separate name so call sites
-  read intent (display vs. canonicalize)."
+  "Returns the display (dot-separated) form of a namespace string. Equivalent to `canonical-ns`; kept as a separate name so call sites read intent (display vs. canonicalize)."
   {:example "(display-ns \"phel\\core\") ; => \"phel.core\""
    :see-also ["canonical-ns" "find-ns" "loaded-namespaces"]}
   [ns-str]
@@ -53,8 +49,7 @@
   (php/-> munge-instance (encode name-str)))
 
 (defn find-ns
-  "Returns the namespace name in display form if it is loaded, or nil if no
-  namespace of that name exists. Accepts dot or backslash separators on input."
+  "Returns the namespace name in display form if it is loaded, or nil if no namespace of that name exists. Accepts dot or backslash separators on input."
   {:example "(find-ns \"phel.core\") ; => \"phel.core\""
    :see-also ["create-ns" "remove-ns" "loaded-namespaces"]}
   [ns-str]
@@ -63,8 +58,7 @@
       (display-ns canonical))))
 
 (defn create-ns
-  "Creates the given namespace if it does not already exist. Returns the
-  namespace name in display form. Existing namespaces are left untouched."
+  "Creates the given namespace if it does not already exist. Returns the namespace name in display form. Existing namespaces are left untouched."
   {:example "(create-ns \"my-app.tmp\") ; => \"my-app.tmp\""
    :see-also ["find-ns" "remove-ns" "intern"]}
   [ns-str]
@@ -73,8 +67,7 @@
     (display-ns canonical)))
 
 (defn remove-ns
-  "Removes the namespace and all of its definitions from the registry.
-  Use with caution. Returns nil."
+  "Removes the namespace and all of its definitions from the registry. Use with caution. Returns nil."
   {:example "(remove-ns \"my-app\\tmp\")"
    :see-also ["find-ns" "create-ns"]}
   [ns-str]
@@ -102,14 +95,7 @@
   (defs->map (core-munge-ns ns-str) (constantly true)))
 
 (defn intern
-  "Finds or creates a definition named by name-str in namespace ns-str.
-  When a value is supplied, sets the root value to val (overwriting any
-  existing value). When no value is supplied, returns the existing
-  definition unchanged, or creates a new one with nil if none exists.
-  Auto-registers the namespace when creating a new definition; the
-  arity-2 form is a no-op when the definition already exists.
-  Returns the fully qualified symbol naming the definition (with the
-  namespace in display form)."
+  "Finds or creates a definition named by name-str in namespace ns-str. When a value is supplied, sets the root value to val (overwriting any existing value). When no value is supplied, returns the existing definition unchanged, or creates a new one with nil if none exists. Auto-registers the namespace when creating a new definition; the arity-2 form is a no-op when the definition already exists. Returns the fully qualified symbol naming the definition (with the namespace in display form)."
   {:example "(intern \"user\" \"x\" 42) ; => user/x"
    :see-also ["var-get" "find-ns" "create-ns" "ns-interns"]}
   [ns-str name-str & rest]
@@ -159,10 +145,7 @@
      true                            not-found)))
 
 (defn find-var
-  "Returns the `Var` named by the fully-qualified symbol, or nil if no
-  matching definition exists. Tries the symbol name verbatim first (matching
-  how `def` stores entries), then falls back to the encoded form (matching
-  how `intern` stores entries)."
+  "Returns the `Var` named by the fully-qualified symbol, or nil if no matching definition exists. Tries the symbol name verbatim first (matching how `def` stores entries), then falls back to the encoded form (matching how `intern` stores entries)."
   {:example "(find-var 'phel.core/map) ; => #'phel.core/map"
    :see-also ["var-get" "intern" "find-ns"]}
   [sym]
@@ -216,9 +199,7 @@
     (persistent result)))
 
 (defn load-file
-  "Loads and evaluates a Phel source file. Reads the file content and
-  evaluates it using the compiler. Returns the result of the last
-  expression, or nil if the file cannot be read."
+  "Loads and evaluates a Phel source file. Reads the file content and evaluates it using the compiler. Returns the result of the last expression, or nil if the file cannot be read."
   {:example "(load-file \"src/my-module.phel\")"
    :see-also ["loaded-namespaces"]}
   [path]

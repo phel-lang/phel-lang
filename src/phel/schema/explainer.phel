@@ -232,8 +232,7 @@
     [(make-error path in schema value :mismatch)]))
 
 (defn explain
-  "Returns `nil` if `value` conforms to `schema`, otherwise a map
-  describing the violations."
+  "Returns `nil` if `value` conforms to `schema`, otherwise a map describing the violations."
   {:example "(explain :int :oops)"
    :see-also ["phel\\schema/validate" "phel\\schema/human-readable-explain"]}
   [schema value]
@@ -253,8 +252,7 @@
        (print-str (get err :value))))
 
 (defn human-readable-explain
-  "Renders an explain result as a multi-line human string suitable for
-  REPL or CI output. Returns `nil` for a `nil` result."
+  "Renders an explain result as a multi-line human string suitable for REPL or CI output. Returns `nil` for a `nil` result."
   {:example "(human-readable-explain (explain :int :oops))"
    :see-also ["explain"]}
   [result]

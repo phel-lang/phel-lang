@@ -80,9 +80,7 @@
       `(and ~@effective))))
 
 (defn- shape-gated-check
-  "Wraps an inner and-combined check behind a shape predicate. When the
-  target fails the shape check the expression short-circuits to `false`
-  so the inner accessors never see a mismatched value."
+  "Wraps an inner and-combined check behind a shape predicate. When the target fails the shape check the expression short-circuits to `false` so the inner accessors never see a mismatched value."
   [shape inner-checks]
   `(if ~shape ~(and-checks inner-checks) false))
 
@@ -105,9 +103,7 @@
      :bindings (vec (concat [name target] (get sub :bindings)))}))
 
 (defn- compile-guard
-  "(inner :guard pred): compile inner, and-combine with (pred target)
-  evaluated in the context of the inner bindings so the guard can see
-  bound symbols."
+  "(inner :guard pred): compile inner, and-combine with (pred target) evaluated in the context of the inner bindings so the guard can see bound symbols."
   [target pattern]
   (let [inner     (first pattern)
         pred      (get pattern 2)
@@ -121,8 +117,7 @@
     {:check combined, :bindings bindings}))
 
 (defn- compile-or
-  "(:or p1 p2 ...): succeeds if any alternative matches. Alternatives
-  may not introduce bindings (keeps v1 simple and predictable)."
+  "(:or p1 p2 ...): succeeds if any alternative matches. Alternatives may not introduce bindings (keeps v1 simple and predictable)."
   [target pattern]
   (let [alts (vec (next pattern))]
     (when (empty? alts)
@@ -137,9 +132,7 @@
         {:check `(or ~@checks), :bindings []}))))
 
 (defn- index-of-rest
-  "Linear scan for `&` inside a vector, comparing with `=` so that
-  freshly-read symbols match the `'&` literal. Returns the index or
-  nil."
+  "Linear scan for `&` inside a vector, comparing with `=` so that freshly-read symbols match the `'&` literal. Returns the index or nil."
   [pattern]
   (loop [i 0]
     (if (>= i (count pattern))
@@ -149,8 +142,7 @@
         (recur (+ i 1))))))
 
 (defn- split-vector-pattern
-  "Splits a vector pattern around `&`. Returns `[head tail-sym-or-nil]`.
-  Errors if `&` is not followed by exactly one symbol."
+  "Splits a vector pattern around `&`. Returns `[head tail-sym-or-nil]`. Errors if `&` is not followed by exactly one symbol."
   [pattern]
   (let [n   (count pattern)
         idx (index-of-rest pattern)]
@@ -168,8 +160,7 @@
           [(vec (take idx pattern)) tail])))))
 
 (defn- compile-vector
-  "Vector pattern: shape + length check, recursively compile each
-  element, optionally bind the rest of the slice."
+  "Vector pattern: shape + length check, recursively compile each element, optionally bind the rest of the slice."
   [target pattern]
   (let [[head tail-sym] (split-vector-pattern pattern)
         fixed-len       (count head)
@@ -222,8 +213,7 @@
     {:check outer-check, :bindings all-bindings}))
 
 (defn- compile-pattern
-  "Dispatches on pattern shape and delegates to the kind-specific
-  compiler. Returns `{:check expr :bindings [sym val ...]}`."
+  "Dispatches on pattern shape and delegates to the kind-specific compiler. Returns `{:check expr :bindings [sym val ...]}`."
   [target pattern]
   (cond
     (= pattern wildcard-symbol) (compile-wildcard target pattern)
@@ -256,9 +246,7 @@
     [(and-checks checks) bindings]))
 
 (defn- parse-clauses
-  "Walks the body splitting it into `[clauses default]`. `clauses` is a
-  vector of `[pattern-vec expr]`, `default` is the `:else` expression
-  or `nil`."
+  "Walks the body splitting it into `[clauses default]`. `clauses` is a vector of `[pattern-vec expr]`, `default` is the `:else` expression or `nil`."
   [body]
   (loop [remaining body
          clauses   []

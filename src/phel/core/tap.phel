@@ -13,8 +13,7 @@
 (def- *taps* (atom #{}))
 
 (defn add-tap
-  "Registers `f` as a tap. Every call to `tap>` invokes each registered tap
-  with the tapped value. Returns nil."
+  "Registers `f` as a tap. Every call to `tap>` invokes each registered tap with the tapped value. Returns nil."
   {:example "(add-tap println)\n(tap> 42) ; prints 42"
    :see-also ["remove-tap" "tap>"]}
   [f]
@@ -29,8 +28,7 @@
   nil)
 
 (defn tap>
-  "Sends `x` to every registered tap. Exceptions thrown by individual taps are
-  swallowed so one misbehaving tap does not affect the others. Returns true."
+  "Sends `x` to every registered tap. Exceptions thrown by individual taps are swallowed so one misbehaving tap does not affect the others. Returns true."
   {:example "(add-tap println)\n(tap> {:event :login :user \"alice\"})"
    :see-also ["add-tap" "remove-tap"]}
   [x]

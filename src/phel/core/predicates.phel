@@ -109,10 +109,7 @@
   (php/instanceof x PhpClass))
 
 (defn class
-  "Returns a `Phel\\Lang\\PhpClass` for `x`. With an object argument
-  returns the class of the object. With a string argument resolves the
-  named class or interface FQN. Throws `InvalidArgumentException` for
-  any other input."
+  "Returns a `Phel\\Lang\\PhpClass` for `x`. With an object argument returns the class of the object. With a string argument resolves the named class or interface FQN. Throws `InvalidArgumentException` for any other input."
   {:example "(class (php/new \\stdClass)) ; => stdClass"
    :see-also ["class?" "class-name" "type"]}
   [x]
@@ -123,8 +120,7 @@
     :else                       (throw-class-type-error "class" "an object or class-name string" x)))
 
 (defn class-name
-  "Returns the FQN string of `c` (a `Phel\\Lang\\PhpClass`). Leading
-  backslashes are not preserved (e.g. `\\stdClass` becomes `stdClass`)."
+  "Returns the FQN string of `c` (a `Phel\\Lang\\PhpClass`). Leading backslashes are not preserved (e.g. `\\stdClass` becomes `stdClass`)."
   {:example "(class-name (class \"stdClass\")) ; => \"stdClass\""
    :see-also ["class" "class?"]}
   [c]
@@ -149,8 +145,7 @@
       (php/instanceof x BigInt)))
 
 (defn int?
-  "Returns true if `x` is a fixed-precision PHP integer. `BigInt`
-   values return false; use `integer?` to accept either."
+  "Returns true if `x` is a fixed-precision PHP integer. `BigInt` values return false; use `integer?` to accept either."
   {:example "(int? 1) ; => true\n(int? 1.0) ; => false"
    :see-also ["integer?" "bigint?"]}
   [x]
@@ -164,24 +159,21 @@
   (php/:: NumericOperations (compare x 0)))
 
 (defn neg-int?
-  "Returns true if `x` is a negative integer. Accepts both fixed-precision
-  PHP `int` and arbitrary-precision `BigInt` values."
+  "Returns true if `x` is a negative integer. Accepts both fixed-precision PHP `int` and arbitrary-precision `BigInt` values."
   {:example "(neg-int? -1) ; => true\n(neg-int? 0) ; => false\n(neg-int? (bigint -5)) ; => true"
    :see-also ["int?" "integer?" "pos-int?" "nat-int?"]}
   [x]
   (and (integer? x) (php/< (compare-to-zero x) 0)))
 
 (defn pos-int?
-  "Returns true if `x` is a positive integer (greater than zero). Accepts both
-  fixed-precision PHP `int` and arbitrary-precision `BigInt` values."
+  "Returns true if `x` is a positive integer (greater than zero). Accepts both fixed-precision PHP `int` and arbitrary-precision `BigInt` values."
   {:example "(pos-int? 1) ; => true\n(pos-int? 0) ; => false\n(pos-int? (bigint 5)) ; => true"
    :see-also ["int?" "integer?" "neg-int?" "nat-int?"]}
   [x]
   (and (integer? x) (php/> (compare-to-zero x) 0)))
 
 (defn nat-int?
-  "Returns true if `x` is a non-negative integer (zero or positive). Accepts
-  both fixed-precision PHP `int` and arbitrary-precision `BigInt` values."
+  "Returns true if `x` is a non-negative integer (zero or positive). Accepts both fixed-precision PHP `int` and arbitrary-precision `BigInt` values."
   {:example "(nat-int? 0) ; => true\n(nat-int? 1) ; => true\n(nat-int? (bigint 5)) ; => true"
    :see-also ["int?" "integer?" "pos-int?" "neg-int?"]}
   [x]
@@ -199,19 +191,14 @@
       (php/instanceof x BigDecimal)))
 
 (defn ratio?
-  "Returns true if `x` is a `Ratio` value. Integer-valued rationals
-  auto-collapse to `int`/`BigInt` at construction time, so `(ratio? 2/2)`
-  is `false`."
+  "Returns true if `x` is a `Ratio` value. Integer-valued rationals auto-collapse to `int`/`BigInt` at construction time, so `(ratio? 2/2)` is `false`."
   {:example "(ratio? 1/2) ; => true\n(ratio? 0.5) ; => false"
    :see-also ["number?" "numerator" "denominator" "rationalize"]}
   [x]
   (php/instanceof x Ratio))
 
 (defn double?
-  "Returns true if `x` is a floating-point number, false otherwise.
-   Alias for `float?`, matching Clojure's `double?` naming. Since Phel
-   uses PHP floats (IEEE 754 doubles) there is no separate single-precision
-   float type."
+  "Returns true if `x` is a floating-point number, false otherwise. Alias for `float?`, matching Clojure's `double?` naming. Since Phel uses PHP floats (IEEE 754 doubles) there is no separate single-precision float type."
   {:example "(double? 1.0) ; => true"
    :see-also ["float?" "number?"]}
   [x]
@@ -306,8 +293,7 @@
   (= (type x) :function))
 
 (defn ifn?
-  "Returns true if `x` can be invoked as a function.
-   This includes functions, keywords, maps, vectors, sets, and lists."
+  "Returns true if `x` can be invoked as a function. This includes functions, keywords, maps, vectors, sets, and lists."
   {:example "(ifn? inc) ; => true\n(ifn? :a) ; => true\n(ifn? {}) ; => true\n(ifn? 42) ; => false"
    :see-also ["fn?"]}
   [x]
@@ -342,9 +328,7 @@
   (map? x))
 
 (defn vector?
-  "Returns true if `x` is a vector. Map entries returned by iterating a
-  hash map (`(first {:a 1})`) are vector-shaped two-element values, so
-  this predicate also accepts the typed `MapEntry`."
+  "Returns true if `x` is a vector. Map entries returned by iterating a hash map (`(first {:a 1})`) are vector-shaped two-element values, so this predicate also accepts the typed `MapEntry`."
   {:example "(vector? [1 2]) ; => true\n(vector? '(1 2)) ; => false"
    :see-also ["map?" "list?" "sequential?"]}
   [x]
@@ -362,8 +346,7 @@
       (and (vector? x) (php/=== 2 (php/count x)))))
 
 (defn list?
-  "Returns true if `x` is a list, false otherwise.
-  Returns false for the seq view of non-list collections produced by `seq`."
+  "Returns true if `x` is a list, false otherwise. Returns false for the seq view of non-list collections produced by `seq`."
   {:example "(list? '(1 2)) ; => true\n(list? [1 2]) ; => false"
    :see-also ["vector?" "seq?" "sequential?"]}
   [x]
@@ -392,9 +375,7 @@
   (if x true false))
 
 (defn any?
-  "Returns true given any argument, including `nil` and `false`. Mirrors
-  Clojure's `clojure.core/any?` — useful as a default predicate in spec
-  / validation contexts where every value should be accepted."
+  "Returns true given any argument, including `nil` and `false`. Mirrors Clojure's `clojure.core/any?` — useful as a default predicate in spec / validation contexts where every value should be accepted."
   {:example "(any? nil) ; => true\n(any? 0) ; => true"
    :see-also ["some?" "every?" "ifn?"]}
   [_]
@@ -443,16 +424,14 @@
 (defn lazy-seq?
   "Returns true if `x` is a lazy sequence, false otherwise.
 
-  Unlike `seq?`, this predicate is true only for lazy sequences, not for
-  realized lists. Use `seq?` if you want to accept either."
+Unlike `seq?`, this predicate is true only for lazy sequences, not for realized lists. Use `seq?` if you want to accept either."
   {:example "(lazy-seq? (map inc [1 2 3])) ; => true\n(lazy-seq? '(1 2 3))         ; => false\n(lazy-seq? [1 2 3])          ; => false"
    :see-also ["seq?" "realized?" "lazy-seq"]}
   [x]
   (php/instanceof x LazySeqInterface))
 
 (defn empty?
-  "Returns true if x would be 0, \"\" or empty collection, false otherwise.
-  Safe on infinite/lazy sequences: checks the first element instead of counting."
+  "Returns true if x would be 0, \"\" or empty collection, false otherwise. Safe on infinite/lazy sequences: checks the first element instead of counting."
   {:example "(empty? []) ; => true\n(empty? [1]) ; => false"
    :see-also ["not-empty" "empty" "count"]}
   [x]
@@ -473,8 +452,7 @@
     coll))
 
 (defn empty
-  "Returns an empty collection of the same category as `coll`, preserving
-  the original metadata, or nil if `coll` has no empty equivalent."
+  "Returns an empty collection of the same category as `coll`, preserving the original metadata, or nil if `coll` has no empty equivalent."
   {:example "(empty [1 2 3]) ; => []\n(empty {:a 1}) ; => {}\n(empty (range 10)) ; => ()"
    :see-also ["empty?" "not-empty"]}
   [coll]
@@ -500,12 +478,9 @@
   (php/:: Phel (seqList values)))
 
 (defn seq
-  "Returns a seq on the collection. Strings are converted to a vector of characters.
-  Other non-empty collections (vectors, sets, sorted-maps, sorted-sets, PHP arrays)
-  are converted to a non-list seq. Returns nil if `coll` is empty or nil.
+  "Returns a seq on the collection. Strings are converted to a vector of characters. Other non-empty collections (vectors, sets, sorted-maps, sorted-sets, PHP arrays) are converted to a non-list seq. Returns nil if `coll` is empty or nil.
 
-  This function is useful for explicitly converting strings to sequences of characters,
-  enabling sequence operations like map, filter, and frequencies."
+This function is useful for explicitly converting strings to sequences of characters, enabling sequence operations like map, filter, and frequencies."
   {:example "(seq \"hello\") ; => [\"h\" \"e\" \"l\" \"l\" \"o\"]\n(seq [1 2 3]) ; => (1 2 3)"
    :see-also ["count"]}
   [coll]
@@ -538,7 +513,7 @@
 (defn indexed?
   "Returns true if `x` is an indexed sequence, false otherwise.
 
-  Indexed sequences include lists, vectors, and indexed PHP arrays."
+Indexed sequences include lists, vectors, and indexed PHP arrays."
   {:example "(indexed? [1 2 3]) ; => true"}
   [x]
   (or (php/instanceof x PersistentVectorInterface)
@@ -558,10 +533,7 @@
       (php/is_array x)))
 
 (defn sequential?
-  "Returns true if `x` is a sequential collection (vector, list, or lazy
-   sequence), false otherwise. Sequential collections maintain insertion
-   order and support indexed or linear access. Maps, sets, and structs
-   are not sequential, matching Clojure's `Sequential` marker."
+  "Returns true if `x` is a sequential collection (vector, list, or lazy sequence), false otherwise. Sequential collections maintain insertion order and support indexed or linear access. Maps, sets, and structs are not sequential, matching Clojure's `Sequential` marker."
   {:example "(sequential? [1 2 3]) ; => true\n(sequential? {:a 1}) ; => false"
    :see-also ["coll?" "vector?" "list?" "seq?"]}
   [x]
@@ -585,9 +557,7 @@
       (php/instanceof x LazySeqInterface)))
 
 (defn seqable?
-  "Returns true if `(seq x)` is supported: collections (vectors, lists,
-   maps, sets, structs), lazy sequences, strings, PHP arrays, and nil.
-   Returns false for numbers, booleans, keywords, symbols, and other types."
+  "Returns true if `(seq x)` is supported: collections (vectors, lists, maps, sets, structs), lazy sequences, strings, PHP arrays, and nil. Returns false for numbers, booleans, keywords, symbols, and other types."
   {:example "(seqable? [1 2]) ; => true\n(seqable? 42) ; => false"
    :see-also ["seq" "coll?" "seq?"]}
   [x]

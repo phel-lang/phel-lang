@@ -8,9 +8,7 @@
   (php/base64_encode s))
 
 (defn decode
-  "Decodes a Base64 string. When `strict?` is true, validates that the
-  input contains only characters from the Base64 alphabet and returns
-  false on invalid input (defaults to false)."
+  "Decodes a Base64 string. When `strict?` is true, validates that the input contains only characters from the Base64 alphabet and returns false on invalid input (defaults to false)."
   {:example "(decode \"SGVsbG8=\") ; => \"Hello\""}
   [s & [strict?]]
   (php/base64_decode s (or strict? false)))

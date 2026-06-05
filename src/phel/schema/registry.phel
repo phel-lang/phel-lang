@@ -11,8 +11,7 @@
 (def- registry (atom {}))
 
 (defn register!
-  "Registers `schema` under `name` (usually a keyword). Overwrites any
-  previous entry. Returns the registered schema."
+  "Registers `schema` under `name` (usually a keyword). Overwrites any previous entry. Returns the registered schema."
   {:example "(register! :email [:and :string [:re #\"@\"]])"
    :see-also ["deref-ref" "registered?"]}
   [name schema]
@@ -28,8 +27,7 @@
   nil)
 
 (defn deref-ref
-  "Returns the schema registered under `name`, or `nil` if no schema is
-  registered with that name."
+  "Returns the schema registered under `name`, or `nil` if no schema is registered with that name."
   {:example "(deref-ref :email)"
    :see-also ["register!"]}
   [name]
@@ -43,8 +41,7 @@
   (contains? @registry name))
 
 (defn registry-snapshot
-  "Returns the current registry as a plain map. Intended for inspection
-  and testing."
+  "Returns the current registry as a plain map. Intended for inspection and testing."
   []
   @registry)
 

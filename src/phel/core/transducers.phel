@@ -48,8 +48,7 @@
       (if (reduced? ret) (reduced ret) ret))))
 
 (defn reduce
-  "Reduces collection to a single value by repeatedly applying function to accumulator and elements.
-  Respects early termination via `(reduced val)`."
+  "Reduces collection to a single value by repeatedly applying function to accumulator and elements. Respects early termination via `(reduced val)`."
   {:example "(reduce + [1 2 3 4]) ; => 10"
    :see-also ["transduce" "into" "reduced"]}
   [f & args]
@@ -72,8 +71,7 @@
     (throw (php/new InvalidArgumentException "expected 2 or 3 arguments in reduce"))))
 
 (defn completing
-  "Takes a reducing function `f` of 2 args and returns a fn suitable for transduce
-  by adding a 1-arity (completion) that calls `cf` (default: identity)."
+  "Takes a reducing function `f` of 2 args and returns a fn suitable for transduce by adding a 1-arity (completion) that calls `cf` (default: identity)."
   {:see-also ["transduce"]}
   [f & args]
   (let [cf (if (empty? args) identity (first args))]
@@ -101,8 +99,7 @@
     (throw (php/new InvalidArgumentException "transduce expects 3 or 4 arguments"))))
 
 (defn volatile!
-  "Creates a volatile mutable reference with initial value `val`.
-  Use for transducer state that needs fast mutation without watches."
+  "Creates a volatile mutable reference with initial value `val`. Use for transducer state that needs fast mutation without watches."
   {:see-also ["vreset!" "vswap!" "var"]}
   [val]
   (php/new Volatile val))
@@ -114,8 +111,7 @@
   (php/-> vol (reset val)))
 
 (defn vswap!
-  "Applies `f` to the current value of volatile `vol` plus `args`,
-  and sets the new value. Returns the new value."
+  "Applies `f` to the current value of volatile `vol` plus `args`, and sets the new value. Returns the new value."
   {:see-also ["volatile!" "vreset!"]}
   [vol f & args]
   (vreset! vol (apply f @vol args)))

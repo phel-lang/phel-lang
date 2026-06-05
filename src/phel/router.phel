@@ -62,8 +62,7 @@
   (partial (compose-middleware middlewares) handler))
 
 (defn- route-name-of
-  "Returns the Symfony route name for a `[path data]` tuple, falling back to
-   the path when `:name` isn't provided."
+  "Returns the Symfony route name for a `[path data]` tuple, falling back to the path when `:name` isn't provided."
   [route]
   (let [[path data] route]
     (if-let [name (get data :name)]
@@ -170,8 +169,7 @@
   (php/-> generator (generate (full-name route-name) (params->php-array parameters))))
 
 (defn- indexed-route->match
-  "Converts an `[path data]` tuple from the compiled router's index into a
-   by-name match response. Returns nil when the tuple is nil."
+  "Converts an `[path data]` tuple from the compiled router's index into a by-name match response. Returns nil when the tuple is nil."
   [route]
   (when-let [[template data] route]
     {:template template, :data data}))
@@ -229,14 +227,9 @@
             (generate-with generator route-name parameters)))
 
 (defmacro compiled-router
-  "Like `router` but performs Symfony's route compilation at macro-expansion
-  time. The resulting router uses Symfony's `CompiledUrlMatcher`/`Generator`
-  which are ~3x faster than their dynamic counterparts for large route
-  tables.
+  "Like `router` but performs Symfony's route compilation at macro-expansion time. The resulting router uses Symfony's `CompiledUrlMatcher`/`Generator` which are ~3x faster than their dynamic counterparts for large route tables.
 
-  Because compilation runs during macro expansion, `raw-routes` must be a
-  literal vector at the call site — it cannot be built from runtime values.
-  Use `router` if your routes are dynamic."
+Because compilation runs during macro expansion, `raw-routes` must be a literal vector at the call site — it cannot be built from runtime values. Use `router` if your routes are dynamic."
   {:example "(compiled-router [[\"/ping\" {:get {:handler pong}}]])"
    :see-also ["router" "handler"]}
   [raw-routes & [options]]

@@ -43,16 +43,14 @@
 (def- *reporters* (atom []))
 
 (defn set-reporters!
-  "Replaces the active reporter set with `reporters` (a sequence of
-  single-argument functions). Returns the new reporter list."
+  "Replaces the active reporter set with `reporters` (a sequence of single-argument functions). Returns the new reporter list."
   {:example "(set-reporters! [my-reporter-fn])"
    :see-also ["add-reporter!" "clear-reporters!" "report"]}
   [reporters]
   (reset! *reporters* (vec reporters)))
 
 (defn add-reporter!
-  "Appends `reporter-fn` to the active reporter set. Returns the updated
-  reporter list."
+  "Appends `reporter-fn` to the active reporter set. Returns the updated reporter list."
   {:example "(add-reporter! tap-reporter)"
    :see-also ["set-reporters!" "clear-reporters!" "report"]}
   [reporter-fn]
@@ -83,8 +81,7 @@
     (str (s/join " > " *testing-contexts*) " - ")))
 
 (defn- decorate-event
-  "Prepends testing-context information to the event message and injects
-  the current test name."
+  "Prepends testing-context information to the event message and injects the current test name."
   [data]
   (let [ctx  (testing-contexts-str)
         data (cond
@@ -187,9 +184,7 @@
   (fan-out! (decorate-event data)))
 
 (defn do-report
-  "Add file and line information to a test result and call report.
-  If you are writing a custom assert-expr method, call this function
-  to pass test results to report."
+  "Add file and line information to a test result and call report. If you are writing a custom assert-expr method, call this function to pass test results to report."
   {:see-also ["report" "assert-expr"]
    :example "(do-report {:state :pass :type :any :message \"ok\"})"}
   [m]
@@ -388,10 +383,7 @@
 (defmacro deftest
   "Defines a test function.
 
-  Metadata attached to `test-name` is forwarded to the defined function
-  so selectors can inspect it at runtime. `^:integration` (shorthand
-  for `{:integration true}`) and `^{:tags [:integration :slow]}`
-  multi-tag maps are both honoured."
+Metadata attached to `test-name` is forwarded to the defined function so selectors can inspect it at runtime. `^:integration` (shorthand for `{:integration true}`) and `^{:tags [:integration :slow]}` multi-tag maps are both honoured."
   {:example "(deftest test-add)"}
   [test-name & body]
   (when-not (symbol? test-name)
@@ -406,29 +398,21 @@
          ~@body))))
 
 (defmacro testing
-  "Adds a testing context string. Used inside deftest to describe a group of assertions.
-  The context string is prepended to failure messages for better diagnostics."
+  "Adds a testing context string. Used inside deftest to describe a group of assertions. The context string is prepended to failure messages for better diagnostics."
   {:example "(deftest test-math\n  (testing \"addition\"\n    (is (= 2 (+ 1 1)))))"}
   [context & body]
   `(binding [*testing-contexts* (conj *testing-contexts* ~context)]
      ~@body))
 
 (defn- quote-if-empty-list
-  "Wraps an empty-list cell in `(quote ())` so it survives compilation as
-  literal data. Phel's evaluator cannot apply an empty list as a call, so a
-  bare `()` placed in value position (e.g. as an `are` template cell) must be
-  quoted for the generated code to compile. Non-empty lists and other values
-  are returned unchanged — the caller can quote explicitly if needed."
+  "Wraps an empty-list cell in `(quote ())` so it survives compilation as literal data. Phel's evaluator cannot apply an empty list as a call, so a bare `()` placed in value position (e.g. as an `are` template cell) must be quoted for the generated code to compile. Non-empty lists and other values are returned unchanged — the caller can quote explicitly if needed."
   [value]
   (if (and (list? value) (empty? value))
     `(quote ~value)
     value))
 
 (defn- substitute-symbols
-  "Recursively replaces every occurrence of a key in `smap` within `form` with
-  its corresponding value, walking lists, vectors, hash-maps, and hash-sets.
-  Used by `are` to expand template cells at macro-expansion time rather than
-  let-binding them at runtime."
+  "Recursively replaces every occurrence of a key in `smap` within `form` with its corresponding value, walking lists, vectors, hash-maps, and hash-sets. Used by `are` to expand template cells at macro-expansion time rather than let-binding them at runtime."
   [smap form]
   (cond
     (contains? smap form) (quote-if-empty-list (get smap form))
@@ -481,15 +465,12 @@
   (php/-> readable-printer (print value)))
 
 (defn- print-label
-  "Prints `label:`, the readable form of `value`, then any extra
-  trailing words on a single line. Used by the built-in failure
-  printers to keep the right-aligned two-column layout consistent."
+  "Prints `label:`, the readable form of `value`, then any extra trailing words on a single line. Used by the built-in failure printers to keep the right-aligned two-column layout consistent."
   [label value & extras]
   (apply println (str label ":") (readable-str value) extras))
 
 (defn- print-form-evaluated
-  "Prints the `Form: ... / evaluated to: ...` pair shared by every
-  failure printer that reports a single value and its computed result."
+  "Prints the `Form: ... / evaluated to: ...` pair shared by every failure printer that reports a single value and its computed result."
   [label-form form label-eval result]
   (print-label label-form form)
   (print-label label-eval result))
@@ -509,23 +490,19 @@
   80)
 
 (defn- sequential?
-  "Returns true when `v` is a vector or a list: the two ordered shapes
-  the diff renderer aligns by index."
+  "Returns true when `v` is a vector or a list: the two ordered shapes the diff renderer aligns by index."
   [v]
   (or (vector? v) (list? v)))
 
 (defn- same-shape?
-  "Returns true when `a` and `b` are both maps, both sets, or both
-  sequential. Mixed-shape pairs fall back to the summary printer."
+  "Returns true when `a` and `b` are both maps, both sets, or both sequential. Mixed-shape pairs fall back to the summary printer."
   [a b]
   (or (and (map? a) (map? b))
       (and (set? a) (set? b))
       (and (sequential? a) (sequential? b))))
 
 (defn- diff-worth-rendering?
-  "Decides whether `expected` and `actual` are large enough to justify a
-  block-style diff. Below the thresholds the existing summary line is
-  more readable than the diff."
+  "Decides whether `expected` and `actual` are large enough to justify a block-style diff. Below the thresholds the existing summary line is more readable than the diff."
   [expected actual]
   (or (> (count expected) diff-min-count)
       (> (count actual) diff-min-count)
@@ -536,9 +513,7 @@
   (println (str "    " marker " " text)))
 
 (defn- sort-by-readable
-  "Sorts `coll` by the readable representation of each entry. Used to
-  give the diff a deterministic order even when keys or values mix
-  types that Phel's default comparator rejects."
+  "Sorts `coll` by the readable representation of each entry. Used to give the diff a deterministic order even when keys or values mix types that Phel's default comparator rejects."
   [coll]
   (sort-by readable-str coll))
 
@@ -610,8 +585,7 @@
     (print-sequential-diff expected actual)))
 
 (defn- collection-diff-applicable?
-  "Returns true when a `=`/`not=` failure carries two same-shape
-  collections big enough to benefit from a stacked diff."
+  "Returns true when a `=`/`not=` failure carries two same-shape collections big enough to benefit from a stacked diff."
   [expected actual]
   (and (same-shape? expected actual)
        (diff-worth-rendering? expected actual)))
@@ -727,9 +701,7 @@
   (case state :failed "F" :error "E" "."))
 
 (defn- default-reporter
-  "Human-readable dot output. Preserves the legacy behavior: `.` for
-  pass, `F` for fail, `E` for error, plus periodic newlines so long
-  runs wrap at 80 columns. `S` marks a skipped test."
+  "Human-readable dot output. Preserves the legacy behavior: `.` for pass, `F` for fail, `E` for error, plus periodic newlines so long runs wrap at 80 columns. `S` marks a skipped test."
   [event]
   ;; Dot/wrap branches are skipped when an outer `with-output-buffer`
   ;; silences this reporter: counting invisible dots and resetting the
@@ -752,8 +724,7 @@
       (emit-marker! "S"))))
 
 (defn- testdox-reporter
-  "Per-assertion single-line description used by the `--reporter=testdox`
-  flag."
+  "Per-assertion single-line description used by the `--reporter=testdox` flag."
   [event]
   (let [type (:type event)]
     (cond
@@ -835,9 +806,7 @@
     (s/join "\n" (filter some? output))))
 
 (defn- tap-reporter
-  "TAP v13 output. Emits `TAP version 13`, `1..N` plan, `ok`/`not ok`
-  lines per assertion, and a YAML block per failure. `N` is the total
-  number of assertions observed during the run."
+  "TAP v13 output. Emits `TAP version 13`, `1..N` plan, `ok`/`not ok` lines per assertion, and a YAML block per failure. `N` is the total number of assertions observed during the run."
   [event]
   (let [type (:type event)]
     (cond
@@ -972,8 +941,7 @@
             (= :error state)  (update :errors inc))))
 
 (defn- junit-ensure-current
-  "Ensures `state` has a `:current` suite; lazily initialised from the
-  event's `:ns` when a testcase arrives outside a `begin-test-ns`."
+  "Ensures `state` has a `:current` suite; lazily initialised from the event's `:ns` when a testcase arrives outside a `begin-test-ns`."
   [state event]
   (or (:current state)
       (assoc empty-junit-suite :name (or (:ns event) ""))))
@@ -1020,8 +988,7 @@
         (junit-write-output state)))))
 
 (defn set-junit-output!
-  "Configures the output path the JUnit reporter writes to. When `nil`,
-  the XML is printed to stdout."
+  "Configures the output path the JUnit reporter writes to. When `nil`, the XML is printed to stdout."
   {:example "(set-junit-output! \"build/junit.xml\")"}
   [path]
   (swap! junit-state assoc :output-path path))
@@ -1046,9 +1013,7 @@
     :else           nil))
 
 (defn resolve-reporter
-  "Returns the reporter function registered for `name` (keyword or
-  string). Checks user-registered reporters before the built-in set.
-  Returns `nil` if the name is unknown."
+  "Returns the reporter function registered for `name` (keyword or string). Checks user-registered reporters before the built-in set. Returns `nil` if the name is unknown."
   {:see-also ["set-reporters!" "register-reporter!"]
    :example "(resolve-reporter :junit-xml)"}
   [name]
@@ -1057,8 +1022,7 @@
         (get built-in-reporters kw))))
 
 (defn register-reporter!
-  "Registers a custom reporter function under `name` (keyword or
-  keyword-castable string). Returns `name`."
+  "Registers a custom reporter function under `name` (keyword or keyword-castable string). Returns `name`."
   {:example "(register-reporter! :my-reporter (fn [event] ...))"
    :see-also ["resolve-reporter"]}
   [name reporter-fn]
@@ -1090,9 +1054,7 @@
      :total total}))
 
 (defn print-summary
-  "Emits the `:summary` event to the active reporter set.
-  Kept for backwards compatibility; prefer letting `run-tests` emit the
-  event at the end of the run."
+  "Emits the `:summary` event to the active reporter set. Kept for backwards compatibility; prefer letting `run-tests` emit the event at the end of the run."
   {:example "(print-summary)"}
   []
   (fan-out! (summary-event (deref stats))))
@@ -1155,17 +1117,13 @@
 ;; -------------
 
 (defn- legacy-filter-matches?
-  "Back-compat: the original `--filter` option accepted a single
-  substring matched against the test name. When selectors are also
-  active, this check still applies so existing callers keep behaving."
+  "Back-compat: the original `--filter` option accepted a single substring matched against the test name. When selectors are also active, this check still applies so existing callers keep behaving."
   [filter-value test-name]
   (or (nil? filter-value)
       (s/contains? (or test-name "") filter-value)))
 
 (defn- find-test-vars
-  "Discovers every `deftest`-defined function in `ns` and returns a
-  vector of `{:fn <callable> :meta <map>}` entries. The caller is
-  responsible for applying selectors."
+  "Discovers every `deftest`-defined function in `ns` and returns a vector of `{:fn <callable> :meta <map>}` entries. The caller is responsible for applying selectors."
   [ns]
   (let [munge    (php/new Munge)
         munge-ns (php/-> munge (encodeRegistryKey ns))]
@@ -1176,9 +1134,7 @@
             :meta meta}))))
 
 (defn- selector-options
-  "Extracts the tag/namespace selector subset from the full options map.
-  Name-based filters (`:filter` / `:filters`) are handled separately as
-  discovery filters and are intentionally excluded here."
+  "Extracts the tag/namespace selector subset from the full options map. Name-based filters (`:filter` / `:filters`) are handled separately as discovery filters and are intentionally excluded here."
   [options]
   {:include     (:include options)
    :exclude     (:exclude options)
@@ -1225,8 +1181,7 @@
       (some (fn [t] (= t (str ns "/" test-name))) only-tests)))
 
 (defn- visible-test-pred
-  "Returns the predicate that decides whether a discovered test passes
-  the discovery filters (`:filter`, `:filters`, `:only-tests`)."
+  "Returns the predicate that decides whether a discovered test passes the discovery filters (`:filter`, `:filters`, `:only-tests`)."
   [options ns]
   (let [filter-value    (:filter options)
         filter-patterns (:filters options)
@@ -1245,10 +1200,7 @@
   (swap! timings conj {:ns ns, :test-name test-name, :duration-ms duration-ms}))
 
 (defn- maybe-shuffle-tests
-  "Returns `tests` shuffled when `:random-order` is set in `options` (or
-  an explicit `:seed` is supplied), or unchanged otherwise. The active
-  seed (`:seed-resolved`) reseeds PHP's Mersenne Twister so the resulting
-  order is reproducible."
+  "Returns `tests` shuffled when `:random-order` is set in `options` (or an explicit `:seed` is supplied), or unchanged otherwise. The active seed (`:seed-resolved`) reseeds PHP's Mersenne Twister so the resulting order is reproducible."
   [options tests]
   (if (or (:random-order options) (:seed options))
     (do
@@ -1301,8 +1253,7 @@
              (run-one-test! options ns each-wrap test))))))))
 
 (defn- coerce-reporter
-  "Turns a single `:reporters` entry (function, keyword, or string) into
-  a reporter function. Throws on unknown names or invalid values."
+  "Turns a single `:reporters` entry (function, keyword, or string) into a reporter function. Throws on unknown names or invalid values."
   [r]
   (cond
     (fn? r)
@@ -1326,9 +1277,7 @@
       [:default]))
 
 (defn- resolve-reporters-option
-  "Resolves the `:reporters` option into a vector of reporter functions.
-  Accepts a sequence of keywords or strings (built-in names), or a
-  sequence of functions, or a mix. Defaults to `[:default]`."
+  "Resolves the `:reporters` option into a vector of reporter functions. Accepts a sequence of keywords or strings (built-in names), or a sequence of functions, or a mix. Defaults to `[:default]`."
   [options]
   (vec (map coerce-reporter (requested-reporters options))))
 
@@ -1338,9 +1287,7 @@
   (php/random_int 0 php/PHP_INT_MAX))
 
 (defn- resolve-seed
-  "Returns the seed `run-tests` should use, or `nil` when ordering is
-  deterministic and no seed was requested. An explicit `:seed` always
-  wins; `:random-order` without a seed gets a freshly generated one."
+  "Returns the seed `run-tests` should use, or `nil` when ordering is deterministic and no seed was requested. An explicit `:seed` always wins; `:random-order` without a seed gets a freshly generated one."
   [options]
   (cond
     (:seed options)         (:seed options)
@@ -1416,8 +1363,7 @@
   (reset! failed-tests []))
 
 (defn- announce-seed!
-  "Prints `Seed: <n>` once at the start of a randomized run so failures
-  can be reproduced with `--seed=<n>`."
+  "Prints `Seed: <n>` once at the start of a randomized run so failures can be reproduced with `--seed=<n>`."
   [options]
   (when-let [seed (:seed-resolved options)]
     (println (str "Seed: " seed))))
@@ -1453,8 +1399,7 @@
       (execute-run! options namespaces))))
 
 (defn reset-stats
-  "Resets the test statistics to their initial state.
-  Call this before running a new batch of tests to get fresh results."
+  "Resets the test statistics to their initial state. Call this before running a new batch of tests to get fresh results."
   {:example "(reset-stats)"}
   []
   (reset! stats initial-stats))
@@ -1479,9 +1424,7 @@
   (reset! stats saved))
 
 (defn get-failed-tests
-  "Returns the names (`ns/test-name`) of tests that failed or errored
-  in the last run. Used by `--parallel` orchestration to aggregate
-  last-failed lists across worker processes."
+  "Returns the names (`ns/test-name`) of tests that failed or errored in the last run. Used by `--parallel` orchestration to aggregate last-failed lists across worker processes."
   {:example "(get-failed-tests) ; => [\"my-app/foo-test\"]"}
   []
   (deref failed-tests))

@@ -7,17 +7,11 @@
 ;; Clojure-parity async surface live alongside in `core/async.phel`.
 
 (defmacro future
-  "Starts evaluating `body` asynchronously and returns a `Future`
-  that can be `deref`ed (blocks the current fiber until the value is
-  available) or checked with `realized?`.
+  "Starts evaluating `body` asynchronously and returns a `Future` that can be `deref`ed (blocks the current fiber until the value is available) or checked with `realized?`.
 
-  Supports the 3-arg `(deref f timeout-ms timeout-val)` form for
-  time-bounded blocking, as well as `future-cancel`, `future-cancelled?`
-  and `future-done?` for lifecycle management.
+Supports the 3-arg `(deref f timeout-ms timeout-val)` form for time-bounded blocking, as well as `future-cancel`, `future-cancelled?` and `future-done?` for lifecycle management.
 
-  Must be called from inside a fiber context (e.g. the AMPHP event
-  loop or an enclosing `async` block), because `deref` resolves via
-  AMPHP's fiber-based `await`."
+Must be called from inside a fiber context (e.g. the AMPHP event loop or an enclosing `async` block), because `deref` resolves via AMPHP's fiber-based `await`."
   {:example "(let [f (future (expensive-computation))] @f)"
    :see-also ["realized?" "deref"]}
   [& body]

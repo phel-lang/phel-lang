@@ -46,10 +46,7 @@
                  (shrink-vector-tree v))))
 
 (defn value->rose
-  "Builds a rose tree for `v` using the built-in shrink strategy that
-  matches its runtime type. Integers shrink toward zero; strings,
-  vectors, lists, hash-maps and sets shrink by element removal plus
-  recursive element shrinks; everything else is a leaf."
+  "Builds a rose tree for `v` using the built-in shrink strategy that matches its runtime type. Integers shrink toward zero; strings, vectors, lists, hash-maps and sets shrink by element removal plus recursive element shrinks; everything else is a leaf."
   {:example "(value->rose 10)"
    :see-also ["phel\\test\\rose/int-rose-tree"]}
   [v]
@@ -67,8 +64,7 @@
 ;; ----------------
 
 (defn- fails?
-  "Returns `true` when `pred` fails for `value` (either returning a
-  non-truthy result or throwing)."
+  "Returns `true` when `pred` fails for `value` (either returning a non-truthy result or throwing)."
   [pred value]
   (try
     (not (pred value))
@@ -105,10 +101,7 @@
 ;; ----------------
 
 (defn args->rose
-  "Rose tree whose root is `args` and children shrink each positional
-  argument in place using its value-based shrinker. Arguments are
-  never dropped (they are function parameters, not collection
-  elements)."
+  "Rose tree whose root is `args` and children shrink each positional argument in place using its value-based shrinker. Arguments are never dropped (they are function parameters, not collection elements)."
   {:example "(args->rose [10])"
    :see-also ["value->rose"]}
   [args]

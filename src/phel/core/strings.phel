@@ -19,8 +19,7 @@
 ;;     keeping the trailing `.0`.
 
 (defn- to-symbol-part
-  "Extracts the underlying string from `x` for use as a symbol or
-  namespace component. Keywords and symbols pass through their `name`."
+  "Extracts the underlying string from `x` for use as a symbol or namespace component. Keywords and symbols pass through their `name`."
   [x]
   (if (php/=== nil x)
     nil
@@ -47,14 +46,9 @@
 (defn symbol
   "Returns a new symbol for the given name with an optional namespace.
 
-  With one argument, creates a symbol without namespace. Accepts a
-  string, a keyword, another symbol, or a `Var` (in which case the
-  result is a fully qualified symbol naming the var). With two
-  arguments, creates a symbol in the given namespace; a `nil`
-  namespace yields a symbol without a namespace.
+With one argument, creates a symbol without namespace. Accepts a string, a keyword, another symbol, or a `Var` (in which case the result is a fully qualified symbol naming the var). With two arguments, creates a symbol in the given namespace; a `nil` namespace yields a symbol without a namespace.
 
-  Throws `InvalidArgumentException` for any other input (including
-  functions, numbers, and collections)."
+Throws `InvalidArgumentException` for any other input (including functions, numbers, and collections)."
   {:example "(symbol \"foo\") ; => foo\n(symbol :abc) ; => abc\n(symbol nil \"foo\") ; => foo\n(symbol #'phel.core/+) ; => phel.core/+"}
   [name-or-ns & [name]]
   (if name
@@ -83,8 +77,7 @@
   (php/:: Symbol (gen)))
 
 (defn- float-to-str
-  "Renders a float so integer-valued floats keep the trailing `.0`, while `NaN`
-  and ±Infinity stringify readably."
+  "Renders a float so integer-valued floats keep the trailing `.0`, while `NaN` and ±Infinity stringify readably."
   [x]
   (if (php/is_nan x)
     "NaN"
@@ -96,10 +89,7 @@
           (php/. s ".0"))))))
 
 (defn- val-to-str
-  "Converts a value to its string representation. Booleans become \"true\" or
-\"false\". Nil becomes an empty string. Integer-valued floats keep their `.0`
-suffix (so `(str 0.0)` is `\"0.0\"`, not `\"0\"`). All other values use PHP
-string cast."
+  "Converts a value to its string representation. Booleans become \"true\" or \"false\". Nil becomes an empty string. Integer-valued floats keep their `.0` suffix (so `(str 0.0)` is `\"0.0\"`, not `\"0\"`). All other values use PHP string cast."
   [x]
   (if (php/=== x true)      "true"
       (if (php/=== x false)   "false"
@@ -108,10 +98,7 @@ string cast."
                   (php/. "" x))))))
 
 (defn str
-  "Creates a string by concatenating values together. If no arguments are
-provided an empty string is returned. Nil is represented as an empty string.
-Booleans are represented as \"true\" or \"false\" (matching Clojure semantics).
-Otherwise, it tries to call `__toString`."
+  "Creates a string by concatenating values together. If no arguments are provided an empty string is returned. Nil is represented as an empty string. Booleans are represented as \"true\" or \"false\" (matching Clojure semantics). Otherwise, it tries to call `__toString`."
   [& args]
   (let [cnt (php/count args)]
     (if (php/=== cnt 0)

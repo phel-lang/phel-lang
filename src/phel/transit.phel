@@ -71,16 +71,14 @@
        (php/=== c (php/substr s 0 1))))
 
 (defn- tag-string
-  "Returns the tag portion of a `~#tag`-encoded array marker, or nil
-  when `s` is not such a marker."
+  "Returns the tag portion of a `~#tag`-encoded array marker, or nil when `s` is not such a marker."
   [s]
   (when (and (php/is_string s)
              (php/=== "~#" (php/substr s 0 2)))
     (php/substr s 2)))
 
 (defn- decode-tagged-scalar
-  "Decodes a `~`-prefixed string. Returns the decoded value, or the
-  original string when the prefix is one of the escape forms."
+  "Decodes a `~`-prefixed string. Returns the decoded value, or the original string when the prefix is one of the escape forms."
   [s opts]
   (let [marker (php/substr s 1 1)
         rep    (php/substr s 2)]
@@ -105,8 +103,7 @@
                           (str "Unknown Transit scalar tag '~" marker "'"))))))))
 
 (defn- decode-cmap
-  "Decodes a `~#cmap` payload — a flat sequence of alternating key/value
-  representations — into a persistent map."
+  "Decodes a `~#cmap` payload — a flat sequence of alternating key/value representations — into a persistent map."
   [pairs opts]
   (let [acc (transient {})]
     (loop [items pairs]
@@ -136,8 +133,7 @@
                         (str "Unknown Transit tag '~#" tag "'")))))))
 
 (defn- decode-array
-  "Decodes a JSON array. Detects `[\"~#tag\", rep]` markers before
-  falling back to a positional vector decode."
+  "Decodes a JSON array. Detects `[\"~#tag\", rep]` markers before falling back to a positional vector decode."
   [arr opts]
   (let [head (php/aget arr 0)
         tag  (tag-string head)]
@@ -149,8 +145,7 @@
         (persistent acc)))))
 
 (defn- decode-object
-  "Decodes a JSON object (as PHP associative array) into a Phel map.
-  String keys may themselves be Transit-encoded (e.g. `\"~:foo\"`)."
+  "Decodes a JSON object (as PHP associative array) into a Phel map. String keys may themselves be Transit-encoded (e.g. `\"~:foo\"`)."
   [obj opts]
   (let [acc (transient {})]
     (foreach [k v obj]
@@ -241,9 +236,7 @@
       (php-indexed-array "~#cmap" pairs))))
 
 (defn- encode-sequential
-  "Encodes each element of `coll` into a PHP array. When `tag` is non-nil the
-  array is wrapped as a Transit tagged array (e.g. \"~#set\"); a nil `tag`
-  yields a bare array."
+  "Encodes each element of `coll` into a PHP array. When `tag` is non-nil the array is wrapped as a Transit tagged array (e.g. \"~#set\"); a nil `tag` yields a bare array."
   [coll tag]
   (let [arr (php/array)]
     (foreach [x coll]

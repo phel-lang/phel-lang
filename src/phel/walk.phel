@@ -1,10 +1,7 @@
 (ns phel.walk)
 
 (defn walk
-  "Traverses `form`, an arbitrary data structure. Applies `inner` to each
-  element of `form`, building up a data structure of the same type, then
-  applies `outer` to the result. Recognizes vectors, lists, hash-maps,
-  and hash-sets. Other types are returned as-is."
+  "Traverses `form`, an arbitrary data structure. Applies `inner` to each element of `form`, building up a data structure of the same type, then applies `outer` to the result. Recognizes vectors, lists, hash-maps, and hash-sets. Other types are returned as-is."
   {:doc "Generic tree walker for nested data structures."
    :see-also ["postwalk" "prewalk"]
    :example "(walk inc identity [1 2 3]) ; => [2 3 4]"}
@@ -26,9 +23,7 @@
      form)))
 
 (defn postwalk
-  "Performs a depth-first, post-order traversal of `form`. Calls `f` on each
-  sub-form, uses `f`'s return value in place of the original. Walks into
-  vectors, lists, hash-maps, and hash-sets."
+  "Performs a depth-first, post-order traversal of `form`. Calls `f` on each sub-form, uses `f`'s return value in place of the original. Walks into vectors, lists, hash-maps, and hash-sets."
   {:doc "Bottom-up tree walk — applies f after recursing into children."
    :see-also ["prewalk" "walk" "postwalk-replace"]
    :example "(postwalk inc [1 [2 3]]) ; => [2 [3 4]]"}
@@ -36,8 +31,7 @@
   (walk #(postwalk f %) f form))
 
 (defn prewalk
-  "Like `postwalk`, but does a pre-order traversal (applies `f` before recursing
-  into children)."
+  "Like `postwalk`, but does a pre-order traversal (applies `f` before recursing into children)."
   {:doc "Top-down tree walk — applies f before recursing into children."
    :see-also ["postwalk" "walk" "prewalk-replace"]
    :example "(prewalk identity [1 [2 3]]) ; => [1 [2 3]]"}

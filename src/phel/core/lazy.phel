@@ -10,8 +10,7 @@
 ;; --- Delay / Force ---
 
 (defmacro delay
-  "Takes a body of expressions and yields a Delay object that will invoke the
-  body only the first time it is forced (via force or deref/@), caching the result."
+  "Takes a body of expressions and yields a Delay object that will invoke the body only the first time it is forced (via force or deref/@), caching the result."
   {:example "(def d (delay (println \"computing\") 42))"
    :see-also ["force" "delay?" "realized?"]}
   [& body]

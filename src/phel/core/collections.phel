@@ -19,17 +19,14 @@
   (php/:: Phel (set (apply php/array xs))))
 
 (defn sorted-map
-  "Creates a new sorted map. Keys are in natural sorted order.
-  The number of parameters must be even."
+  "Creates a new sorted map. Keys are in natural sorted order. The number of parameters must be even."
   {:example "(sorted-map :c 3 :a 1 :b 2) ; keys iterate as :a :b :c"
    :see-also ["sorted-map-by" "hash-map"]}
   [& xs]
   (php/:: Phel (sortedMap (apply php/array xs))))
 
 (defn sorted-map-by
-  "Creates a new sorted map using the given comparator for key ordering.
-  The comparator takes two arguments and returns a negative integer,
-  zero, or a positive integer."
+  "Creates a new sorted map using the given comparator for key ordering. The comparator takes two arguments and returns a negative integer, zero, or a positive integer."
   {:example "(sorted-map-by (fn [a b] (compare b a)) :a 1 :b 2) ; keys iterate as :b :a"
    :see-also ["sorted-map" "compare"]}
   [comp & xs]

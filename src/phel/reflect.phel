@@ -12,8 +12,7 @@
   (php/new ReflectionClass class-or-name))
 
 (defn- type-string
-  "Renders a ReflectionType (named, union, or intersection) as a string.
-  Returns nil when the reflection type itself is nil (no declaration)."
+  "Renders a ReflectionType (named, union, or intersection) as a string. Returns nil when the reflection type itself is nil (no declaration)."
   [rt]
   (when rt (php/-> rt (__toString))))
 
@@ -63,8 +62,7 @@
            (property->map p)))))
 
 (defn supers
-  "Returns a set of fully qualified parent classes and implemented
-  interfaces for `class-or-name`."
+  "Returns a set of fully qualified parent classes and implemented interfaces for `class-or-name`."
   {:example "(supers \\RuntimeException)"}
   [class-or-name]
   (let [rc    (reflection-class class-or-name)
@@ -80,8 +78,7 @@
     (persistent! names)))
 
 (defn- attribute-args
-  "Builds the `:args` map for a `ReflectionAttribute`: named arguments become
-  keyword keys, positional arguments keep their integer index."
+  "Builds the `:args` map for a `ReflectionAttribute`: named arguments become keyword keys, positional arguments keep their integer index."
   [a]
   (let [res (transient {})]
     (foreach [k v (php/-> a (getArguments))]
@@ -97,9 +94,7 @@
          (attribute->map a))))
 
 (defn class-attributes
-  "Returns a vector of attribute maps for the class `class-or-name` (string FQN
-  or object). Each map is `{:name <attribute-fqcn> :args {...}}`, where `:args`
-  keys named arguments as keywords and positional arguments by index."
+  "Returns a vector of attribute maps for the class `class-or-name` (string FQN or object). Each map is `{:name <attribute-fqcn> :args {...}}`, where `:args` keys named arguments as keywords and positional arguments by index."
   {:example "(class-attributes \\App\\Controller\\ProductController)"
    :see-also ["method-attributes" "property-attributes" "attributes"]}
   [class-or-name]
@@ -120,8 +115,7 @@
   (attributes-of (php/-> (reflection-class class-or-name) (getProperty property-name))))
 
 (defn attributes
-  "Returns the class-level attribute maps for `obj-or-class`; an instance uses
-  its class. Convenience alias of `class-attributes`."
+  "Returns the class-level attribute maps for `obj-or-class`; an instance uses its class. Convenience alias of `class-attributes`."
   {:example "(attributes my-controller)"
    :see-also ["class-attributes" "method-attributes" "property-attributes"]}
   [obj-or-class]
@@ -159,8 +153,7 @@
   (keyword (php/-> enum-case name)))
 
 (defn keyword->enum
-  "Returns the case of the native PHP enum `enum-class` (string FQN) whose name
-  matches keyword `kw`, or nil when no case matches. Inverse of `enum->keyword`."
+  "Returns the case of the native PHP enum `enum-class` (string FQN) whose name matches keyword `kw`, or nil when no case matches. Inverse of `enum->keyword`."
   {:example "(keyword->enum \\App\\Status :Active)"
    :see-also ["enum->keyword" "enum-values"]}
   [enum-class kw]

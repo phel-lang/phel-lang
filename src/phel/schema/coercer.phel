@@ -13,8 +13,7 @@
 (declare coerce)
 
 (def invalid-marker
-  "Sentinel keyword returned by coercion when a value cannot be coerced to
-  the target schema. Re-exported as `phel.schema/invalid-marker`."
+  "Sentinel keyword returned by coercion when a value cannot be coerced to the target schema. Re-exported as `phel.schema/invalid-marker`."
   :phel.schema/invalid)
 
 ;; Coerces to int: parses integer-shaped strings, accepts floats only when
@@ -220,10 +219,7 @@
                             value))))
 
 (defn coerce
-  "Walks `schema` and returns `value` with string-typed inputs coerced
-  into their schema-required types. Already-typed values pass through.
-  Unknown or untranslatable values are returned unchanged so validation
-  can report the real failure."
+  "Walks `schema` and returns `value` with string-typed inputs coerced into their schema-required types. Already-typed values pass through. Unknown or untranslatable values are returned unchanged so validation can report the real failure."
   {:example "(coerce :int \"42\") ; => 42"
    :see-also ["phel\\schema/conform" "phel\\schema/validate"]}
   [schema value]
@@ -233,8 +229,7 @@
     :else             value))
 
 (defn conform
-  "Coerces `value` against `schema`. Returns the coerced value if it
-  then validates, otherwise the invalid marker `:phel.schema/invalid`."
+  "Coerces `value` against `schema`. Returns the coerced value if it then validates, otherwise the invalid marker `:phel.schema/invalid`."
   {:example "(conform :int \"42\") ; => 42"
    :see-also ["coerce" "phel\\schema/validate"]}
   [schema value]
