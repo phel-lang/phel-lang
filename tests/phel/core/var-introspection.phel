@@ -69,8 +69,8 @@
 
 (deftest test-with-bindings-rebinds-from-map
   (with-bindings {#'*intro-dyn* :wb-a #'*intro-dyn-2* :wb-b}
-                 (is (= :wb-a *intro-dyn*) "first var rebound")
-                 (is (= :wb-b *intro-dyn-2*) "second var rebound"))
+    (is (= :wb-a *intro-dyn*) "first var rebound")
+    (is (= :wb-b *intro-dyn-2*) "second var rebound"))
   (is (= :root *intro-dyn*) "first var restored")
   (is (= :root-2 *intro-dyn-2*) "second var restored"))
 
@@ -89,7 +89,7 @@
 
 (deftest test-with-redefs-rebinds-any-var
   (with-redefs [*intro-static* :swapped *intro-dyn* :also-swapped]
-               (is (= :swapped *intro-static*) "with-redefs accepts non-dynamic vars")
-               (is (= :also-swapped *intro-dyn*) "with-redefs accepts dynamic vars too"))
+    (is (= :swapped *intro-static*) "with-redefs accepts non-dynamic vars")
+    (is (= :also-swapped *intro-dyn*) "with-redefs accepts dynamic vars too"))
   (is (= :static-root *intro-static*) "static restored on exit")
   (is (= :root *intro-dyn*) "dynamic restored on exit"))

@@ -520,7 +520,6 @@
   (is (= 1.5M (bigdec "1.5")) "literal equals constructor")
   (is (= "1500" (str 1.5e3M)) "(str 1.5e3M)"))
 
-
 (deftest test-bigdec-coercions
   (is (= 0 (int 0M)) "(int 0M)")
   (is (= -1 (int -1M)) "(int -1M)")

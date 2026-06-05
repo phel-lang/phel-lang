@@ -15,9 +15,9 @@
 
 (deftest iterator-seq-is-composable-with-lazy-ops
   (is (= [2 3 4] (vec (->> (array-iterator 1 2 3 4 5)
-                              (iterator-seq)
-                              (map inc)
-                              (take 3))))
+                           (iterator-seq)
+                           (map inc)
+                           (take 3))))
       "map/take compose over an iterator-seq"))
 
 (deftest iterator-seq-empty-traversable

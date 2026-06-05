@@ -49,7 +49,6 @@
         nil
         (php/aget coll (php/- n 1))))))
 
-
 (defn push
   "Inserts `x` at the end of the sequence `coll`."
   {:deprecated "0.25.0"

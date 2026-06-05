@@ -169,9 +169,9 @@
 (deftest test-mocking-with-redefs
   (let [mock-http (mock {:id 1 :name "Alice"})]
     (with-redefs [fetch-user (fn [_ id] (mock-http id))]
-                 (let [result (fetch-user nil 123)]
-                   (is (= {:id 1 :name "Alice"} result) "uses mocked response")
-                   (is (called-with? mock-http 123) "verifies call arguments")))))
+      (let [result (fetch-user nil 123)]
+        (is (= {:id 1 :name "Alice"} result) "uses mocked response")
+        (is (called-with? mock-http 123) "verifies call arguments")))))
 
 (deftest test-with-mocks-macro
   (let [mock-http (mock {:status 200})
@@ -286,10 +286,10 @@
 (deftest test-email-sending-mock
   (let [mock-email (mock :sent)]
     (with-redefs [send-email (fn [_ to subject body] (mock-email to subject body))]
-                 (register-user nil {:email "user@example.com"})
-                 (is (called-once? mock-email) "sends exactly one email")
-                 (is (called-with? mock-email "user@example.com" "Welcome!" "Thanks for signing up")
-                     "sends correct email"))))
+      (register-user nil {:email "user@example.com"})
+      (is (called-once? mock-email) "sends exactly one email")
+      (is (called-with? mock-email "user@example.com" "Welcome!" "Thanks for signing up")
+          "sends correct email"))))
 
 (defn fetch-from-api [url]
   "Simulates API call"
@@ -298,9 +298,9 @@
 (deftest test-api-failure-with-mock-throwing
   (let [mock-api (mock-throwing (php/new \RuntimeException "API unavailable"))]
     (with-redefs [fetch-from-api (fn [url] (mock-api url))]
-                 (is (thrown? \RuntimeException (fetch-from-api "http://api.example.com"))
-                     "throws when API fails")
-                 (is (called-with? mock-api "http://api.example.com") "attempted call with URL"))))
+      (is (thrown? \RuntimeException (fetch-from-api "http://api.example.com"))
+          "throws when API fails")
+      (is (called-with? mock-api "http://api.example.com") "attempted call with URL"))))
 
 (defn retry-fetch [fetch-fn url max-retries]
   "Simulates retry logic"
@@ -318,9 +318,9 @@
                                      (when (nil? result)
                                        (throw (php/new \Exception "Failed")))
                                      result))]
-                 (is (= {:status 200} (retry-fetch fetch-from-api "http://api.example.com" 3))
-                     "succeeds after retries")
-                 (is (= 3 (call-count mock-api)) "retries correct number of times"))))
+      (is (= {:status 200} (retry-fetch fetch-from-api "http://api.example.com" 3))
+          "succeeds after retries")
+      (is (= 3 (call-count mock-api)) "retries correct number of times"))))
 
 ;; -----------
 ;; Interop/External Function Mocking Tests
@@ -334,6 +334,6 @@
   (let [mock-external (mock {:success true :data "mocked response"})]
     ;; Mock an external/foreign function by wrapping it
     (with-redefs [call-external-service (fn [_ endpoint] (mock-external endpoint))]
-                 (let [result (call-external-service nil "/api/data")]
-                   (is (= {:success true :data "mocked response"} result) "returns mocked response")
-                   (is (called-with? mock-external "/api/data") "verifies external call was made")))))
+      (let [result (call-external-service nil "/api/data")]
+        (is (= {:success true :data "mocked response"} result) "returns mocked response")
+        (is (called-with? mock-external "/api/data") "verifies external call was made")))))

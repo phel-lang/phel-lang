@@ -229,7 +229,7 @@
 (deftest test-eduction-doseq
   (let [seen (atom [])]
     (doseq [x (eduction (map inc) [10 20 30])]
-           (swap! seen conj x))
+      (swap! seen conj x))
     (is (= [11 21 31] @seen) "doseq iterates eduction")))
 
 (deftest test-eduction-reiterates-without-cache

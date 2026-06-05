@@ -44,4 +44,3 @@
     (cond
       (= s "true")  true
       (= s "false") false)))
-

@@ -22,7 +22,7 @@
                                (conj (vec (:reporters options)) capture))]
     (t/reset-stats)
     (with-output-buffer
-     (t/run-tests run-options fixture-ns))
+      (t/run-tests run-options fixture-ns))
     (let [snapshot (t/get-stats)]
       (t/set-reporters! saved-reporters)
       (t/restore-stats saved-stats)
@@ -61,7 +61,7 @@
         saved-stats     (t/get-stats)]
     (t/reset-stats)
     (with-output-buffer
-     (t/run-tests {:reporters [bump-reporter] :repeat 4} fixture-ns))
+      (t/run-tests {:reporters [bump-reporter] :repeat 4} fixture-ns))
     (t/set-reporters! saved-reporters)
     (t/restore-stats saved-stats)
     ;; 3 fixtures × 4 iterations = 12 pass events.
@@ -81,10 +81,10 @@
         saved-stats     (t/get-stats)]
     (t/reset-stats)
     (with-output-buffer
-     (t/run-tests {:reporters [capture]
-                   :random-order true
-                   :seed seed}
-                  fixture-ns))
+      (t/run-tests {:reporters [capture]
+                    :random-order true
+                    :seed seed}
+                   fixture-ns))
     (t/set-reporters! saved-reporters)
     (t/restore-stats saved-stats)
     (deref order)))

@@ -130,9 +130,9 @@
                       "match :or pattern requires at least one alternative")))
     (let [compiled (for [a :in alts] (compile-pattern target a))]
       (doseq [c :in compiled]
-             (when-not (empty? (get c :bindings))
-               (throw (php/new \InvalidArgumentException
-                               "match :or alternatives must not introduce bindings"))))
+        (when-not (empty? (get c :bindings))
+          (throw (php/new \InvalidArgumentException
+                          "match :or alternatives must not introduce bindings"))))
       (let [checks (for [c :in compiled] (get c :check))]
         {:check `(or ~@checks), :bindings []}))))
 

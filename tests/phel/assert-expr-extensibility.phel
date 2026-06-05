@@ -21,10 +21,10 @@
 ;; ---------------------------------------------------------------------------
 
 (defmethod phel.test/assert-expr 'approx= [message form]
-           (let [a       (second form)
-                 b       (second (next form))
-                 epsilon 0.001]
-             `(is (< (php/abs (- ~a ~b)) ~epsilon) ~message)))
+  (let [a       (second form)
+        b       (second (next form))
+        epsilon 0.001]
+    `(is (< (php/abs (- ~a ~b)) ~epsilon) ~message)))
 
 (deftest test-approx-equal-passes-within-epsilon
   (is (approx= 1.0 1.0001) "approx= passes when difference < epsilon")
@@ -43,9 +43,9 @@
 ;; ---------------------------------------------------------------------------
 
 (defmethod phel.test/assert-expr 'divisible? [message form]
-           (let [n (second form)
-                 d (second (next form))]
-             `(is (zero? (php/% ~n ~d)) ~message)))
+  (let [n (second form)
+        d (second (next form))]
+    `(is (zero? (php/% ~n ~d)) ~message)))
 
 (deftest test-divisible-passes-when-divisible
   (is (divisible? 10 5) "10 is divisible by 5")
@@ -65,8 +65,8 @@
 ;; ---------------------------------------------------------------------------
 
 (defmethod phel.test/assert-expr 'even-positive? [message form]
-           (let [n (second form)]
-             `(is (and (pos? ~n) (even? ~n)) ~message)))
+  (let [n (second form)]
+    `(is (and (pos? ~n) (even? ~n)) ~message)))
 
 (deftest test-even-positive-passes-for-positive-evens
   (is (even-positive? 2) "2 is positive and even")
@@ -89,7 +89,7 @@
 ;; ---------------------------------------------------------------------------
 
 (defmethod phel.test/assert-expr 'always-throws [_message _form]
-           `(throw (php/new \RuntimeException "boom from custom assertion")))
+  `(throw (php/new \RuntimeException "boom from custom assertion")))
 
 (deftest test-custom-method-exception-is-reported-as-error
   (let [saved  (get-stats)
@@ -122,26 +122,26 @@
 ;; ---------------------------------------------------------------------------
 
 (defmethod phel.test/assert-expr 'tagged= [message form]
-           `(is (= ~(second form) ~(second (next form))) ~message))
+  `(is (= ~(second form) ~(second (next form))) ~message))
 
 (deftest test-custom-dispatch-routes-through-new-method
   (is (tagged= 1 1) "tagged= dispatches through registered method")
   (is (tagged= "x" "x") "tagged= works for strings"))
 
 (defmethod t/assert-expr 'p/thrown? [message form]
-           (let [body (rest form)]
-             `(try
-                (let [result# (do ~@body)]
-                  (t/do-report {:type :fail
-                                :message ~message
-                                :expected '~form
-                                :actual result#}))
-                (catch ~'Throwable e#
-                  (t/do-report {:type :pass
-                                :message ~message
-                                :expected '~form
-                                :actual e#})
-                  e#))))
+  (let [body (rest form)]
+    `(try
+       (let [result# (do ~@body)]
+         (t/do-report {:type :fail
+                       :message ~message
+                       :expected '~form
+                       :actual result#}))
+       (catch ~'Throwable e#
+         (t/do-report {:type :pass
+                       :message ~message
+                       :expected '~form
+                       :actual e#})
+         e#))))
 
 (deftest test-custom-clojure-style-thrown-symbol-dispatches-through-new-method
   (let [saved  (get-stats)
