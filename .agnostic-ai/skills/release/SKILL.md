@@ -10,7 +10,7 @@ disable-model-invocation: true
 
 !`git branch --show-current`
 !`git status --porcelain`
-!`grep "VERSION = " src/php/Console/Application/VersionFinder.php`
+!`grep "LATEST_VERSION = " src/php/Shared/VersionFinder.php`
 
 ## Instructions
 
@@ -32,12 +32,12 @@ disable-model-invocation: true
 
 4. **If `--dry-run`**, show what would happen and stop:
    ```bash
-   ./build/release.sh --dry-run <version>
+   ./tools/release.sh --dry-run <version>
    ```
 
 5. **Run the release script**:
    ```bash
-   ./build/release.sh <version>
+   ./tools/release.sh <version>
    ```
 
    The script handles: version bump, changelog update, commit, PHAR build, git tag, push, GitHub release with PHAR attachment.
@@ -54,5 +54,5 @@ disable-model-invocation: true
 ## Reference
 
 - Full guide: `.github/RELEASE.md`
-- Release script: `build/release.sh`
-- Version file: `src/php/Console/Application/VersionFinder.php`
+- Release script: `tools/release.sh`
+- Version file: `src/php/Shared/VersionFinder.php`
