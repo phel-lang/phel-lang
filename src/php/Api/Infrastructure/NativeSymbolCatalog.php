@@ -209,6 +209,16 @@ Creates a new list. If no argument is provided, an empty list is created. Shortc
             'desc' => 'Creates a new list. If no argument is provided, an empty list is created.',
             'example' => "(list 1 2 3) ; => '(1 2 3)",
         ],
+        Symbol::NAME_LOAD => [
+            'doc' => '```phel
+(load path)
+```
+Loads a Phel source file into the caller namespace at runtime. Path resolution follows the spirit of Clojure\'s `clojure.core/load`: a path beginning with a slash is classpath-absolute (searched against the configured `phel\repl/src-dirs` roots); otherwise it is resolved relative to the caller file\'s compile-time location, so mutations to the runtime `*file*` value cannot break resolution. Pass the path without an extension (no `.phel`) and without a relative prefix (no `./` or `../`). Returns nil; the form runs for its side effects.',
+            'docUrl' => '/documentation/namespaces/',
+            'signatures' => ['(load path)'],
+            'desc' => 'Loads a Phel source file into the caller namespace at runtime, resolving the path relative to the caller file or against the configured classpath roots.',
+            'example' => '(load "core/meta") ; loads and evaluates core/meta into the current namespace',
+        ],
         Symbol::NAME_LOOP => [
             'doc' => '```phel
 (loop [bindings*] expr*)
