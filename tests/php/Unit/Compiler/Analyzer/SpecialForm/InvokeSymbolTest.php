@@ -340,25 +340,20 @@ final class InvokeSymbolTest extends TestCase
         $env = NodeEnvironment::empty();
         $node = new InvokeSymbol($this->analyzer)->analyze($list, $env);
 
-        $this->assertEquals(
-            new CallNode(
-                $env,
-                new GlobalVarNode(
-                    $env->withExpressionContext()->withDisallowRecurFrame(),
-                    'user',
-                    Symbol::create('my-inline-fn-with-arity'),
-                    Phel::map(
-                        Keyword::create('inline'),
-                        static fn($a, $b): int => 2,
-                        Keyword::create('inline-arity'),
-                        static fn($n): bool => $n === 2,
-                    ),
-                ),
-                [
-                    new LiteralNode($env->withExpressionContext()->withDisallowRecurFrame(), 'foo'),
-                ],
-            ),
-            $node,
+        // Arity mismatch: the inline expansion is skipped and a normal call to
+        // the global var is produced. The var meta carries the inline closures,
+        // which cannot be compared by value (PHPUnit compares closures by
+        // identity), so assert the structure instead of a full object equality.
+        self::assertInstanceOf(CallNode::class, $node);
+
+        $fn = $node->getFn();
+        self::assertInstanceOf(GlobalVarNode::class, $fn);
+        self::assertSame('user', $fn->getNamespace());
+        self::assertEquals(Symbol::create('my-inline-fn-with-arity'), $fn->getName());
+
+        self::assertEquals(
+            [new LiteralNode($env->withExpressionContext()->withDisallowRecurFrame(), 'foo')],
+            $node->getArguments(),
         );
     }
 

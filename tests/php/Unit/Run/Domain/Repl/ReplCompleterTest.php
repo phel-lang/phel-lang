@@ -227,7 +227,7 @@ final class ReplCompleterTest extends TestCase
         $results = $this->completer->complete('my');
 
         self::assertSame(['myfn'], $results);
-        self::assertContainsOnly('string', $results);
+        self::assertContainsOnlyString($results);
     }
 
     public function test_qualified_function_in_non_core_namespace(): void
