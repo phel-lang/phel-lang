@@ -14,7 +14,7 @@ All notable changes to this project will be documented in this file.
 - Docs: function `:example` outputs now match REPL output, so `phel doc` and the API reference are accurate
 - `phel->php`: integer/string map keys now convert instead of throwing `getName() on int` (#2298)
 - Structs: `$struct['field']` array access now accepts a plain PHP string offset (was keyword-only) (#2313, #2319)
-- Tests: isolate Gacela's per-project config cache between tests (a PHPUnit extension + dedicated cache dir), removing cross-test leakage via the shared on-disk cache; `gacela-project/gacela` stays pinned `<1.15` (1.15 changes that cache in a way that also affects the packaged `phel test`, pending a production cache-keying fix)
+- Dependencies: support `gacela-project/gacela` 1.15. Gacela 1.15 persists the merged app config (`gacela-merged-config.php`); Phel now points Gacela's cache at the project-relative `.phel/cache` (was the shared system temp dir) so one project's `srcDirs`/config can't leak into another — fixing the packaged `phel test`/`build` when run against a user project. Tests isolate the cache per run via a PHPUnit extension
 
 ### Added
 

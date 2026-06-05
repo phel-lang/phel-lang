@@ -30,12 +30,20 @@ class Phel
     private const string PHEL_CONFIG_LOCAL_FILE_NAME = 'phel-config-local.php';
 
     /**
-     * Use sys_get_temp_dir() by default.
-     * This can be overridden with the env variable: GACELA_CACHE_DIR=/tmp...
+     * Project-relative cache dir for Gacela's config/class caches.
+     *
+     * Gacela resolves a relative dir against the app root, so each project gets
+     * its own cache. This matters since Gacela >= 1.15 persists the merged app
+     * config (`gacela-merged-config.php`): an empty dir would resolve to the
+     * shared `sys_get_temp_dir()`, leaking one project's `srcDirs`/config into
+     * another (e.g. the PHAR running against a user project). Reuses Phel's
+     * existing `.phel/cache` convention.
+     *
+     * Can be overridden with the env variable: GACELA_CACHE_DIR=/tmp...
      *
      * @see https://github.com/gacela-project/gacela/pull/322
      */
-    private const string FILE_CACHE_DIR = '';
+    private const string FILE_CACHE_DIR = '.phel/cache';
 
     private static ?PhelConfig $autoDetectedConfig = null;
 
