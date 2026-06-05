@@ -14,7 +14,7 @@
   (:require phel.ai :as ai)
   (:require phel.test :as t))
 
-(def build-facade (php/new BuildFacade))
+(def- build-facade (php/new BuildFacade))
 
 (def- munge-instance
   ;; Munge is a final readonly class; reuse one instance to avoid per-call allocation.

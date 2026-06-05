@@ -189,6 +189,16 @@ The test evaluates to false if its value is false or equal to nil. Every other v
             'desc' => 'A control flow structure. First evaluates test. If test evaluates to true, only the then form is evaluated and the result is returned. If test evaluates to false only the else form is evaluated and the result is returned. If no else form is given, nil will be returned.',
             'example' => '(if (> x 0) "positive" "non-positive")',
         ],
+        Symbol::NAME_IN_NS => [
+            'doc' => '```phel
+(in-ns namespace)
+```
+Switches to an existing namespace without creating it. Intended for REPL use, e.g. navigating into a namespace to inspect or test private functions interactively. Avoid in source files: the build system assumes one namespace per file, and `in-ns` causes collisions in the dependency resolver.',
+            'docUrl' => '/documentation/namespaces/',
+            'signatures' => ['(in-ns namespace)'],
+            'desc' => 'Switches to an existing namespace without creating it (REPL-oriented).',
+            'example' => '(in-ns my-app\\core)',
+        ],
         Symbol::NAME_LET => [
             'doc' => '```phel
 (let [bindings*] expr*)
@@ -453,6 +463,26 @@ Values that should be evaluated in a macro are marked with the unquote function.
             'signatures' => ['(unquote-splicing expr)'],
             'desc' => 'Values that should be evaluated in a macro are marked with the unquote function. Shortcut: ,@',
             'example' => '`(+ ,@[1 2 3]) ; => (+ 1 2 3)',
+        ],
+        Symbol::NAME_USE => [
+            'doc' => '```phel
+(use ClassName [:as Alias])
+```
+Registers PHP class aliases in the current namespace without the full `(ns ... (:use ...))` form. Intended for files that join an existing namespace via `(in-ns ...)` and only want to declare the imports they actually use. Pure compile-time registration; emits no runtime code.',
+            'docUrl' => '/documentation/namespaces/',
+            'signatures' => ['(use ClassName & options)'],
+            'desc' => 'Registers PHP class aliases in the current namespace (compile-time only).',
+            'example' => '(use \\DateTimeImmutable :as Date)',
+        ],
+        Symbol::NAME_VAR => [
+            'doc' => '```phel
+(var sym)
+```
+Resolves `sym` against the current namespace, require aliases, and refers, yielding the first-class `Var` handle for that global definition. The reader shorthand `#\'sym` expands to `(var sym)`. Throws if `sym` does not resolve to a known global.',
+            'docUrl' => '/documentation/global-and-local-bindings/#variables',
+            'signatures' => ['(var sym)'],
+            'desc' => "Returns the Var handle for a global definition; reader shorthand is #'sym.",
+            'example' => '(var map) ; resolves to the Var for phel.core/map',
         ],
         Symbol::NAME_VECTOR => [
             'doc' => '```phel

@@ -12,7 +12,10 @@
 
 (declare coerce)
 
-(def invalid-marker :phel.schema/invalid)
+(def invalid-marker
+  "Sentinel keyword returned by coercion when a value cannot be coerced to
+  the target schema. Re-exported as `phel.schema/invalid-marker`."
+  :phel.schema/invalid)
 
 ;; Coerces to int: parses integer-shaped strings, accepts floats only when
 ;; they have no fractional part, and maps booleans to 1/0. Anything else
