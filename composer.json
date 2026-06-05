@@ -26,7 +26,7 @@
         "amphp/amp": "^3.1",
         "gacela-project/gacela": "^1.14",
         "symfony/console": "^6.0|^7.0|^8.0",
-        "symfony/routing": "^7.3"
+        "symfony/routing": "^7.3|^8.0"
     },
     "require-dev": {
         "ext-readline": "*",
@@ -37,7 +37,7 @@
         "phpunit/phpunit": "^10.5",
         "psalm/plugin-phpunit": "^0.19",
         "rector/rector": "^2.3",
-        "symfony/var-dumper": "^7.4",
+        "symfony/var-dumper": "^7.4|^8.0",
         "vimeo/psalm": "^6.16"
     },
     "autoload": {
