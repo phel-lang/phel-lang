@@ -14,6 +14,7 @@ All notable changes to this project will be documented in this file.
 - Docs: function `:example` outputs now match REPL output, so `phel doc` and the API reference are accurate
 - `phel->php`: integer/string map keys now convert instead of throwing `getName() on int` (#2298)
 - Structs: `$struct['field']` array access now accepts a plain PHP string offset (was keyword-only) (#2313, #2319)
+- Dependencies: constrain `gacela-project/gacela` to `^1.14 <1.15`; 1.15.0 breaks the `run`/`build`/`export` console commands. Lift once Phel supports it
 
 ### Added
 
