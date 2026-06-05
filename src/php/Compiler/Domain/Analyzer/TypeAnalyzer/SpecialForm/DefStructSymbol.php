@@ -13,7 +13,6 @@ use Phel\Compiler\Domain\Analyzer\Environment\NodeEnvironmentInterface;
 use Phel\Compiler\Domain\Analyzer\Exceptions\AnalyzerException;
 use Phel\Lang\Collections\LinkedList\PersistentListInterface;
 use Phel\Lang\Collections\Vector\PersistentVectorInterface;
-use Phel\Lang\Keyword;
 use Phel\Lang\Symbol;
 use Phel\Shared\MungeInterface;
 use ReflectionMethod;
@@ -31,6 +30,7 @@ final readonly class DefStructSymbol implements SpecialFormAnalyzerInterface
         private AnalyzerInterface $analyzer,
         private MungeInterface $munge,
         private MethodBodyAnalyzer $methodBodyAnalyzer,
+        private PhpBlockAnalyzer $phpBlockAnalyzer,
     ) {}
 
     /**
@@ -112,8 +112,8 @@ final readonly class DefStructSymbol implements SpecialFormAnalyzerInterface
         for (; $forms !== null; $forms = $forms->cdr()) {
             $first = $forms->first();
 
-            if ($this->isPhpBlockMarker($first)) {
-                [$interfaces[], $forms] = $this->phpBlock($forms, $env);
+            if ($this->phpBlockAnalyzer->isMarker($first)) {
+                [$interfaces[], $forms] = $this->phpBlockAnalyzer->analyze($forms, $env);
                 continue;
             }
 
@@ -165,92 +165,6 @@ final readonly class DefStructSymbol implements SpecialFormAnalyzerInterface
         }
 
         return $interfaces;
-    }
-
-    /**
-     * The `:php` marker opens a block of bare PHP methods that are emitted
-     * directly on the struct class without a backing interface. This is the
-     * only way to declare PHP magic methods (`__invoke`, `__toString`,
-     * `__get`, ...) that belong to no PHP interface.
-     */
-    private function isPhpBlockMarker(mixed $form): bool
-    {
-        return $form instanceof Keyword
-            && $form->getNamespace() === null
-            && $form->getName() === 'php';
-    }
-
-    /**
-     * Consumes every consecutive method form following the `:php` marker and
-     * returns the bare-method interface together with the cursor pointing at
-     * the last consumed form, so the caller's `cdr()` step resumes correctly.
-     *
-     * @param PersistentListInterface<mixed> $forms cursor positioned on `:php`
-     *
-     * @return array{0: DefStructInterface, 1: PersistentListInterface<mixed>}
-     */
-    private function phpBlock(PersistentListInterface $forms, NodeEnvironmentInterface $env): array
-    {
-        $methods = [];
-        while (($next = $forms->cdr()) instanceof PersistentListInterface
-            && $next->first() instanceof PersistentListInterface
-        ) {
-            $forms = $next;
-            /** @var PersistentListInterface<mixed> $methodForm */
-            $methodForm = $forms->first();
-            $this->assertCompatibleInvoke($methodForm);
-            $methods[] = $this->methodBodyAnalyzer->analyze($methodForm, $env);
-        }
-
-        return [new DefStructInterface('', $methods), $forms];
-    }
-
-    /**
-     * A struct is a persistent map, which already defines a callable
-     * `__invoke(mixed $key)` for key lookup. A user-supplied `__invoke` must
-     * keep a PHP-compatible signature, i.e. accept exactly one required call
-     * argument or be variadic; otherwise PHP raises an uncatchable fatal at
-     * class-declaration time. Surface that as a clear Phel error instead.
-     *
-     * @param PersistentListInterface<mixed> $methodForm
-     */
-    private function assertCompatibleInvoke(PersistentListInterface $methodForm): void
-    {
-        $name = $methodForm->get(0);
-        if (!$name instanceof Symbol || $this->munge->encode($name->getName()) !== '__invoke') {
-            return;
-        }
-
-        $arguments = $methodForm->get(1);
-        if (!$arguments instanceof PersistentVectorInterface) {
-            return;
-        }
-
-        $variadic = false;
-        $required = 0;
-        // Skip the leading `this`; count required call args until the `&` tail.
-        foreach ($arguments as $index => $argument) {
-            if ($index === 0) {
-                continue;
-            }
-
-            if ($argument instanceof Symbol && $argument->getName() === '&') {
-                $variadic = true;
-                break;
-            }
-
-            ++$required;
-        }
-
-        $compatible = $required === 1 || ($required === 0 && $variadic);
-        if (!$compatible) {
-            throw AnalyzerException::withLocation(
-                "A struct's '__invoke' must take exactly one call argument or be variadic "
-                . '(e.g. [this x] or [this & xs]), because a struct is already callable as a map. Got '
-                . $required . ' required argument(s).',
-                $methodForm,
-            );
-        }
     }
 
     /**
