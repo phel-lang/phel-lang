@@ -1,5 +1,4 @@
 (ns phel.schema.explainer
-  (:require phel.core)
   (:require phel.schema.registry :as reg)
   (:require phel.schema.validator :as v))
 

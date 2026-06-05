@@ -1,5 +1,4 @@
-(ns phel.async
-  (:require phel.core))
+(ns phel.async)
 
 ;; Historical home of Phel's async surface. As of #1548 the
 ;; Clojure-parity primitives (`async`, `await`, `await-all`, `await-any`,

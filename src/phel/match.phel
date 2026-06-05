@@ -1,5 +1,4 @@
-(ns phel.match
-  (:require phel.core))
+(ns phel.match)
 
 ;; Pattern matching macro that expands to nested `cond` + `let` bindings.
 ;;

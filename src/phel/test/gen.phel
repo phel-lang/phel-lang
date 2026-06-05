@@ -1,5 +1,4 @@
 (ns phel.test.gen
-  (:require phel.core)
   (:require phel.test :as t)
   (:require phel.test.shrink :as shrink)
   (:use InvalidArgumentException)
