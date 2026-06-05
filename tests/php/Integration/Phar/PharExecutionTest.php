@@ -51,7 +51,9 @@ final class PharExecutionTest extends TestCase
 
     protected function tearDown(): void
     {
-        if (is_dir($this->tempProjectDir)) {
+        // PHPUnit 13 runs tearDown even when setUp skipped the test (before
+        // $tempProjectDir was set), so guard against the uninitialized property.
+        if (isset($this->tempProjectDir) && is_dir($this->tempProjectDir)) {
             $this->removeDir($this->tempProjectDir);
         }
     }
