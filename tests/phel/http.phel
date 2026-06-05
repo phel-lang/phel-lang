@@ -372,8 +372,12 @@
 ;; branches that `test-send-response` (single string header) does not.
 
 (deftest test-emit-response-returns-nil
-  (is (nil? (h/emit-response (h/response-from-string "anything")))
-      "emit-response returns nil"))
+  ;; `emit-response` echoes the body straight to the SAPI; capture it in an
+  ;; output buffer so it doesn't leak into the test runner's progress output.
+  (let [result (atom :unset)]
+    (with-output-buffer
+     (reset! result (h/emit-response (h/response-from-string "anything"))))
+    (is (nil? @result) "emit-response returns nil")))
 
 (deftest test-emit-response-echoes-body-with-multiple-headers
   (is (output? "Body!"
