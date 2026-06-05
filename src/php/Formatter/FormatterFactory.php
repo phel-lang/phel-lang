@@ -28,6 +28,35 @@ use Phel\Shared\Facade\CommandFacadeInterface;
  */
 final class FormatterFactory extends AbstractFactory
 {
+    /**
+     * Definition forms whose body is indented two spaces under the head line.
+     *
+     * @var list<string>
+     */
+    private const array INNER_INDENT_SYMBOLS = [
+        'def', 'def-', 'defn', 'defn-', 'defmacro', 'defmacro-', 'deftest', 'fn',
+        'defstruct', 'defrecord', 'definterface', 'defexception', 'defenum',
+        'defprotocol', 'defmulti', 'defmethod', 'defonce', 'reify',
+    ];
+
+    /**
+     * Block forms mapped to the number of leading arguments before the body
+     * (the body switches to a two-space indent once it starts a line).
+     *
+     * @var array<string, int>
+     */
+    private const array BLOCK_INDENT_SYMBOLS = [
+        'do' => 0, 'cond' => 0, 'try' => 0, 'finally' => 0,
+        'with-output-buffer' => 0, 'delay' => 0, 'lazy-seq' => 0,
+        'if' => 1, 'if-not' => 1, 'foreach' => 1, 'for' => 1, 'dofor' => 1,
+        'let' => 1, 'ns' => 1, 'loop' => 1, 'case' => 1, 'when' => 1,
+        'when-not' => 1, 'when-let' => 1, 'when-some' => 1, 'if-let' => 1,
+        'if-some' => 1, 'binding' => 1, 'when-first' => 1, 'doseq' => 1,
+        'dotimes' => 1, 'letfn' => 1, 'with-redefs' => 1, 'with-bindings' => 1,
+        'extend-type' => 1, 'extend-protocol' => 1,
+        'catch' => 2, 'condp' => 2,
+    ];
+
     public function createPathsFormatter(): PathsFormatter
     {
         return new PathsFormatter(
@@ -70,60 +99,17 @@ final class FormatterFactory extends AbstractFactory
 
     private function createIndentRule(): IndentRule
     {
-        return new IndentRule([
-            new InnerIndenter('def', 0),
-            new InnerIndenter('def-', 0),
-            new InnerIndenter('defn', 0),
-            new InnerIndenter('defn-', 0),
-            new InnerIndenter('defmacro', 0),
-            new InnerIndenter('defmacro-', 0),
-            new InnerIndenter('deftest', 0),
-            new InnerIndenter('fn', 0),
-            new InnerIndenter('defstruct', 0),
-            new InnerIndenter('defrecord', 0),
-            new InnerIndenter('definterface', 0),
-            new InnerIndenter('defexception', 0),
-            new InnerIndenter('defenum', 0),
-            new InnerIndenter('defprotocol', 0),
-            new InnerIndenter('defmulti', 0),
-            new InnerIndenter('defmethod', 0),
-            new InnerIndenter('defonce', 0),
-            new InnerIndenter('reify', 0),
+        $inner = array_map(
+            static fn(string $symbol): InnerIndenter => new InnerIndenter($symbol, 0),
+            self::INNER_INDENT_SYMBOLS,
+        );
 
-            new BlockIndenter('catch', 2),
-            new BlockIndenter('do', 0),
-            new BlockIndenter('if', 1),
-            new BlockIndenter('if-not', 1),
-            new BlockIndenter('foreach', 1),
-            new BlockIndenter('for', 1),
-            new BlockIndenter('dofor', 1),
-            new BlockIndenter('let', 1),
-            new BlockIndenter('ns', 1),
-            new BlockIndenter('loop', 1),
-            new BlockIndenter('case', 1),
-            new BlockIndenter('cond', 0),
-            new BlockIndenter('condp', 2),
-            new BlockIndenter('try', 0),
-            new BlockIndenter('finally', 0),
-            new BlockIndenter('when', 1),
-            new BlockIndenter('when-not', 1),
-            new BlockIndenter('when-let', 1),
-            new BlockIndenter('when-some', 1),
-            new BlockIndenter('if-let', 1),
-            new BlockIndenter('if-some', 1),
-            new BlockIndenter('binding', 1),
-            new BlockIndenter('when-first', 1),
-            new BlockIndenter('doseq', 1),
-            new BlockIndenter('dotimes', 1),
-            new BlockIndenter('letfn', 1),
-            new BlockIndenter('with-redefs', 1),
-            new BlockIndenter('with-bindings', 1),
-            new BlockIndenter('extend-type', 1),
-            new BlockIndenter('extend-protocol', 1),
-            new BlockIndenter('with-output-buffer', 0),
-            new BlockIndenter('delay', 0),
-            new BlockIndenter('lazy-seq', 0),
-        ]);
+        $block = [];
+        foreach (self::BLOCK_INDENT_SYMBOLS as $symbol => $index) {
+            $block[] = new BlockIndenter($symbol, $index);
+        }
+
+        return new IndentRule([...$inner, ...$block]);
     }
 
     private function createAlignPairsRule(): AlignPairsRule
