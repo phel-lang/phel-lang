@@ -19,6 +19,7 @@ All notable changes to this project will be documented in this file.
 
 - Docs: the `load` special form is now documented in the API reference and `phel doc load` (it was implemented but missing from the native symbol catalog)
 - Docs: the `in-ns`, `use`, and `var` special forms are now documented in the API reference and `phel doc`; a regression test now fails if any registered special form lacks a catalog entry
+- Docs: added `:example` (and missing `:see-also`) metadata to the core math (`+`, `-`, `*`, `/`, `inc`, `dec`, `bit-*`, `min`, `max`, `mean`, `median`, …) and predicate (`int?`, `float?`, `number?`, `string?`, `keyword?`, `vector?`, `map?`, `seq?`, `empty?`, …) functions, so they show runnable examples in `phel doc` and the API reference
 - `phel.reflect`: `class-attributes`/`method-attributes`/`property-attributes`/`attributes` read PHP 8 attributes as `{:name :args}` maps (#2314, #2320)
 - `phel.reflect`: `enum->keyword`/`keyword->enum`/`enum-values` bridge native PHP enums to keywords and back (#2315, #2321)
 - `iterator-seq`: lazy seq over a PHP `Traversable`, pulled one element at a time (#2312, #2318)

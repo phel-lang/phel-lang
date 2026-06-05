@@ -29,7 +29,9 @@
 
 (defn bit-and
   "Bitwise and."
-  {:inline (fn [x y & args] `(do (assert-non-nil ~x ~y ~@args) (php/& ~x ~y ~@args)))}
+  {:inline (fn [x y & args] `(do (assert-non-nil ~x ~y ~@args) (php/& ~x ~y ~@args)))
+   :example "(bit-and 12 10) ; => 8"
+   :see-also ["bit-or" "bit-xor" "bit-not"]}
   [x y & args]
   (let [all (concat [x y] args)]
     (apply assert-non-nil all)
@@ -37,7 +39,9 @@
 
 (defn bit-or
   "Bitwise or."
-  {:inline (fn [x y & args] `(do (assert-non-nil ~x ~y ~@args) (php/| ~x ~y ~@args)))}
+  {:inline (fn [x y & args] `(do (assert-non-nil ~x ~y ~@args) (php/| ~x ~y ~@args)))
+   :example "(bit-or 12 10) ; => 14"
+   :see-also ["bit-and" "bit-xor" "bit-not"]}
   [x y & args]
   (let [all (concat [x y] args)]
     (apply assert-non-nil all)
@@ -45,7 +49,9 @@
 
 (defn bit-xor
   "Bitwise xor."
-  {:inline (fn [x y & args] `(do (assert-non-nil ~x ~y ~@args) (php/^ ~x ~y ~@args)))}
+  {:inline (fn [x y & args] `(do (assert-non-nil ~x ~y ~@args) (php/^ ~x ~y ~@args)))
+   :example "(bit-xor 12 10) ; => 6"
+   :see-also ["bit-and" "bit-or" "bit-not"]}
   [x y & args]
   (let [all (concat [x y] args)]
     (apply assert-non-nil all)
@@ -53,21 +59,27 @@
 
 (defn bit-not
   "Bitwise complement."
-  {:inline (fn [x] `(do (assert-non-nil ~x) (php/~ ~x)))}
+  {:inline (fn [x] `(do (assert-non-nil ~x) (php/~ ~x)))
+   :example "(bit-not 0) ; => -1"
+   :see-also ["bit-and" "bit-or" "bit-xor"]}
   [x]
   (assert-non-nil x)
   (php/~ x))
 
 (defn bit-shift-left
   "Bitwise shift left."
-  {:inline (fn [x n] `(do (assert-non-nil ~x ~n) (php/<< ~x ~n)))}
+  {:inline (fn [x n] `(do (assert-non-nil ~x ~n) (php/<< ~x ~n)))
+   :example "(bit-shift-left 1 4) ; => 16"
+   :see-also ["bit-shift-right"]}
   [x n]
   (assert-non-nil x n)
   (php/<< x n))
 
 (defn bit-shift-right
   "Bitwise shift right."
-  {:inline (fn [x n] `(do (assert-non-nil ~x ~n) (php/>> ~x ~n)))}
+  {:inline (fn [x n] `(do (assert-non-nil ~x ~n) (php/>> ~x ~n)))
+   :example "(bit-shift-right 16 2) ; => 4"
+   :see-also ["bit-shift-left"]}
   [x n]
   (assert-non-nil x n)
   (php/>> x n))
@@ -115,6 +127,8 @@
 (defn +
   "Returns the sum of all elements in `xs`. All elements `xs` must be numbers.
   If `xs` is empty, return 0."
+  {:example "(+ 1 2 3) ; => 6"
+   :see-also ["-" "*" "/" "sum"]}
   [& xs]
   (apply assert-non-nil xs)
   (case (count xs)
@@ -126,6 +140,8 @@
 (defn -
   "Returns the difference of all elements in `xs`. If `xs` is empty, return 0. If `xs`
   has one element, return the negative value of that element."
+  {:example "(- 10 3 2) ; => 5\n(- 4) ; => -4"
+   :see-also ["+" "*" "/"]}
   [& xs]
   (apply assert-non-nil xs)
   (case (count xs)
@@ -137,6 +153,8 @@
 (defn *
   "Returns the product of all elements in `xs`. All elements in `xs` must be
 numbers. If `xs` is empty, return 1."
+  {:example "(* 2 3 4) ; => 24"
+   :see-also ["+" "-" "/"]}
   [& xs]
   (apply assert-non-nil xs)
   (case (count xs)
@@ -152,6 +170,8 @@ returns 1. If `xs` has one value, returns the reciprocal of x.
   Integer division with a non-zero remainder returns a `Ratio`
   (e.g. `(/ 1 2) => 1/2`). Use `(/ 1.0 2)` or `(double ...)` for float
   division."
+  {:example "(/ 1 2) ; => 1/2\n(/ 10 2) ; => 5"
+   :see-also ["+" "-" "*" "quot" "mod"]}
   [& xs]
   (apply assert-non-nil xs)
   (case (count xs)
@@ -199,18 +219,24 @@ returns 1. If `xs` has one value, returns the reciprocal of x.
 
 (defn **
   "Return `a` to the power of `x`."
+  {:example "(** 2 8) ; => 256"
+   :see-also ["*" "sqrt"]}
   [a x]
   (assert-non-nil a x)
   (php/:: NumericOperations (power a x)))
 
 (defn inc
   "Increments `x` by one."
+  {:example "(inc 1) ; => 2"
+   :see-also ["dec" "+"]}
   [x]
   (assert-non-nil x)
   (php/:: NumericOperations (add x 1)))
 
 (defn dec
   "Decrements `x` by one."
+  {:example "(dec 5) ; => 4"
+   :see-also ["inc" "-"]}
   [x]
   (assert-non-nil x)
   (php/:: NumericOperations (subtract x 1)))
@@ -266,36 +292,50 @@ returns 1. If `xs` has one value, returns the reciprocal of x.
 
 (defn even?
   "Checks if `x` is even."
+  {:example "(even? 4) ; => true"
+   :see-also ["odd?" "zero?"]}
   [x]
   (php/:: NumericOperations (isZero (% x 2))))
 
 (defn odd?
   "Checks if `x` is odd."
+  {:example "(odd? 3) ; => true"
+   :see-also ["even?" "zero?"]}
   [x]
   (not (even? x)))
 
 (defn zero?
   "Checks if `x` is zero."
+  {:example "(zero? 0) ; => true"
+   :see-also ["pos?" "neg?" "one?"]}
   [x]
   (php/:: NumericOperations (isZero x)))
 
 (defn one?
   "Checks if `x` is one."
+  {:example "(one? 1) ; => true"
+   :see-also ["zero?"]}
   [x]
   (or (= x 1) (= x 1.0)))
 
 (defn pos?
   "Checks if `x` is greater than zero."
+  {:example "(pos? 3) ; => true"
+   :see-also ["neg?" "zero?"]}
   [x]
   (> x 0))
 
 (defn neg?
   "Checks if `x` is smaller than zero."
+  {:example "(neg? -2) ; => true"
+   :see-also ["pos?" "zero?"]}
   [x]
   (< x 0))
 
 (defn nan?
   "Checks if `x` is not a number."
+  {:example "(nan? ##NaN) ; => true"
+   :see-also ["NaN?" "inf?"]}
   [x]
   (if (nil? x)
     false
@@ -303,7 +343,8 @@ returns 1. If `xs` has one value, returns the reciprocal of x.
 
 (defn NaN?
   "Checks if `x` is not a number. Alias for `nan?`, matching Clojure's `NaN?`."
-  {:see-also ["nan?" "inf?"]}
+  {:example "(NaN? ##NaN) ; => true"
+   :see-also ["nan?" "inf?"]}
   [x]
   (nan? x))
 
@@ -461,17 +502,23 @@ returns 1. If `xs` has one value, returns the reciprocal of x.
 
 (defn rand-int
   "Returns a random number between 0 and `n`."
+  {:example "(rand-int 100) ; => 42"
+   :see-also ["rand" "rand-nth"]}
   [n]
   (php/random_int 0 n))
 
 (defn rand-nth
   "Returns a random item from xs."
+  {:example "(rand-nth [:a :b :c]) ; => :b"
+   :see-also ["rand" "rand-int"]}
   [xs]
   (when-not (nil? xs)
     (get xs (rand-int (dec (count xs))))))
 
 (defn extreme
   "Returns the most extreme value in `args` based on the binary `order` function."
+  {:example "(extreme > [1 5 2]) ; => 5"
+   :see-also ["min" "max" "reduce"]}
   [order args]
   (reduce #(if (order %1 %2) %1 %2) args))
 
@@ -482,6 +529,8 @@ returns 1. If `xs` has one value, returns the reciprocal of x.
 (defn min
   "Returns the minimum of all arguments. Returns `##NaN` whenever any
   numeric argument is `##NaN`."
+  {:example "(min 3 1 2) ; => 1"
+   :see-also ["max" "min-key" "extreme"]}
   [& numbers]
   (cond
     (php/=== 1 (count numbers)) (first numbers)
@@ -491,6 +540,8 @@ returns 1. If `xs` has one value, returns the reciprocal of x.
 (defn max
   "Returns the maximum of all arguments. Returns `##NaN` whenever any
   numeric argument is `##NaN`."
+  {:example "(max 3 1 2) ; => 3"
+   :see-also ["min" "max-key" "extreme"]}
   [& numbers]
   (cond
     (php/=== 1 (count numbers)) (first numbers)
@@ -527,6 +578,8 @@ returns 1. If `xs` has one value, returns the reciprocal of x.
 
 (defn coerce-in
   "Returns `v` if it is in the range, or `min` if `v` is less than `min`, or `max` if `v` is greater than `max`."
+  {:example "(coerce-in 5 0 10) ; => 5\n(coerce-in 15 0 10) ; => 10"
+   :see-also ["min" "max"]}
   [v min max]
   (when (< max min)
     (throw (php/new \InvalidArgumentException "Max values is bigger than min value")))
@@ -534,17 +587,23 @@ returns 1. If `xs` has one value, returns the reciprocal of x.
 
 (defn sum
   "Returns the sum of all elements is `xs`."
+  {:example "(sum [1 2 3]) ; => 6"
+   :see-also ["+" "mean" "median"]}
   [xs]
   (apply + xs))
 
 (defn mean
   "Returns the mean of `xs` as a float."
+  {:example "(mean [1 2 3]) ; => 2"
+   :see-also ["sum" "median"]}
   [xs]
   (php/fdiv (sum xs) (count xs)))
 
 (defn median
   "Returns the median of `xs`. With an even-sized collection the result is
   the float average of the two middle elements."
+  {:example "(median [3 1 2]) ; => 2\n(median [1 2 3 4]) ; => 2.5"
+   :see-also ["mean" "sum"]}
   [xs]
   (let [arr (to-php-array xs)
         cnt (count arr)]
