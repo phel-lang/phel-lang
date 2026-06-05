@@ -18,6 +18,7 @@ All notable changes to this project will be documented in this file.
 
 ### Added
 
+- `defstruct`: a `:php` block declares inline PHP magic methods (`__invoke`, `__toString`, `__get`, …) with no backing interface. A custom `__invoke` must stay map-call-compatible (one arg or variadic), enforced with a clear compile-time error
 - `phel format`: collapses consecutive blank lines to one, and indents more definition/body forms (`defstruct`, `defprotocol`, `defmethod`, `reify`, `doseq`, `letfn`, …) the cljfmt way instead of call-style alignment
 - Docs: the `load`/`in-ns`/`use`/`var` special forms are now in the API reference and `phel doc` (a regression test guards against gaps), and core math/predicate functions gained `:example`/`:see-also` metadata
 - `phel.reflect`: `class-attributes`/`method-attributes`/`property-attributes`/`attributes` read PHP 8 attributes as `{:name :args}` maps (#2314, #2320)

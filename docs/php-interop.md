@@ -192,6 +192,61 @@ Phel uses `.` as the namespace separator, matching Clojure. The legacy `\` separ
 (bean obj)                              ; public properties => {:key value}
 ```
 
+## PHP magic methods on structs
+
+A `defstruct` compiles to a real PHP class, so it can expose PHP magic methods
+(`__invoke`, `__toString`, `__get`, `__set`, `__call`, `__clone`, ...). Most of
+these belong to no PHP interface, so declare them inline through the `:php`
+marker block. Methods after `:php` are emitted directly on the class with no
+backing interface required:
+
+```phel
+(defstruct multiplier [factor]
+  :php
+  (__invoke   [this x] (* x (get this :factor)))
+  (__toString [this]   (str "x" (get this :factor))))
+
+(def m (multiplier 3))
+(php/is_callable m)   ; => true
+(m 14)                ; => 42   (PHP calls __invoke)
+(map m [1 2 3])       ; => [3 6 9]
+(php/strval m)        ; => "x3"  (PHP calls __toString)
+```
+
+The first method argument binds to `$this`; read fields with `(get this :field)`.
+A `:php` block coexists with regular interface implementations:
+
+```phel
+(definterface Labelled
+  (label [this]))
+
+(defstruct tagged [name]
+  Labelled
+  (label [this] (str "#" (get this :name)))
+  :php
+  (__toString [this] (get this :name)))
+```
+
+### `__invoke` is constrained by the map protocol
+
+A struct is a persistent map, which is already callable as a key lookup
+(`(my-struct :key)` via an inherited `__invoke(mixed $key)`). A custom
+`__invoke` therefore must keep a compatible signature: take **exactly one call
+argument** or be **variadic**. Phel rejects an incompatible arity at compile
+time with a clear error instead of letting PHP raise an uncatchable fatal.
+
+```phel
+(defstruct summer [base]
+  :php
+  (__invoke [this & xs] (apply + (get this :base) xs)))   ; variadic: ok
+
+;; (__invoke [this] ...)      -> compile error (zero call args)
+;; (__invoke [this x y] ...)  -> compile error (two required call args)
+```
+
+> `extend-type` does **not** add real PHP methods; it registers Phel protocol
+> dispatch only. Use the `:php` block when you need an actual PHP magic method.
+
 ## Calling Phel from PHP
 
 ### Basic Example

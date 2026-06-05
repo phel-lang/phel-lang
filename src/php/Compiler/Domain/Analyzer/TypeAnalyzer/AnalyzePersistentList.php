@@ -38,6 +38,7 @@ use Phel\Compiler\Domain\Analyzer\TypeAnalyzer\SpecialForm\PhpASetInSymbol;
 use Phel\Compiler\Domain\Analyzer\TypeAnalyzer\SpecialForm\PhpASetSymbol;
 use Phel\Compiler\Domain\Analyzer\TypeAnalyzer\SpecialForm\PhpAUnsetInSymbol;
 use Phel\Compiler\Domain\Analyzer\TypeAnalyzer\SpecialForm\PhpAUnsetSymbol;
+use Phel\Compiler\Domain\Analyzer\TypeAnalyzer\SpecialForm\PhpBlockAnalyzer;
 use Phel\Compiler\Domain\Analyzer\TypeAnalyzer\SpecialForm\PhpNewSymbol;
 use Phel\Compiler\Domain\Analyzer\TypeAnalyzer\SpecialForm\PhpObjectCallSymbol;
 use Phel\Compiler\Domain\Analyzer\TypeAnalyzer\SpecialForm\PhpOSetSymbol;
@@ -338,7 +339,12 @@ final class AnalyzePersistentList
             Symbol::NAME_THROW => new ThrowSymbol($this->analyzer),
             Symbol::NAME_LOOP => new LoopSymbol($this->analyzer, new BindingValidator()),
             Symbol::NAME_FOREACH => new ForeachSymbol($this->analyzer),
-            Symbol::NAME_DEF_STRUCT => new DefStructSymbol($this->analyzer, $this->munge, new MethodBodyAnalyzer($this->analyzer)),
+            Symbol::NAME_DEF_STRUCT => new DefStructSymbol(
+                $this->analyzer,
+                $this->munge,
+                new MethodBodyAnalyzer($this->analyzer),
+                new PhpBlockAnalyzer($this->munge, new MethodBodyAnalyzer($this->analyzer)),
+            ),
             Symbol::NAME_DEF_EXCEPTION => new DefExceptionSymbol($this->analyzer),
             Symbol::NAME_DEF_ENUM => new DefEnumSymbol($this->analyzer),
             Symbol::NAME_PHP_OBJECT_SET => new PhpOSetSymbol($this->analyzer),

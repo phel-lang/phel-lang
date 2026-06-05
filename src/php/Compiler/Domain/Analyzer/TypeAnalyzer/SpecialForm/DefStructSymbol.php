@@ -30,6 +30,7 @@ final readonly class DefStructSymbol implements SpecialFormAnalyzerInterface
         private AnalyzerInterface $analyzer,
         private MungeInterface $munge,
         private MethodBodyAnalyzer $methodBodyAnalyzer,
+        private PhpBlockAnalyzer $phpBlockAnalyzer,
     ) {}
 
     /**
@@ -110,6 +111,11 @@ final readonly class DefStructSymbol implements SpecialFormAnalyzerInterface
         $forms = $list;
         for (; $forms !== null; $forms = $forms->cdr()) {
             $first = $forms->first();
+
+            if ($this->phpBlockAnalyzer->isMarker($first)) {
+                [$interfaces[], $forms] = $this->phpBlockAnalyzer->analyze($forms, $env);
+                continue;
+            }
 
             if (!$first instanceof Symbol) {
                 throw AnalyzerException::withLocation('Expected a interface name in defstruct', $list);
