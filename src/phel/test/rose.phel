@@ -1,5 +1,4 @@
-(ns phel.test.rose
-  (:require phel.core))
+(ns phel.test.rose)
 
 ;; Rose trees used to carry a value alongside lazy shrink candidates.
 ;;

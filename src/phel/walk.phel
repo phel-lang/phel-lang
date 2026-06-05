@@ -1,5 +1,4 @@
-(ns phel.walk
-  (:require phel.core))
+(ns phel.walk)
 
 (defn walk
   "Traverses `form`, an arbitrary data structure. Applies `inner` to each

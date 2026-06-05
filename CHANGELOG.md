@@ -41,6 +41,7 @@ Richer PHP interop for bridging Phel to typed PHP / framework code (all opt-in, 
 - Quality: repo-wide maintainability pass — explanatory docblocks and `:doc`/`:see-also`/`:example` metadata across modules, safe dead-code/type/naming cleanups, behavior-identical helper extractions, and ~40 new unit tests for previously untested utilities (no behavior change)
 - `agent-install`: simplified to just copying skill files and the `.agents/` docs tree; dropped version stamping, `--check`, and `--list`
 - `phel.ai`: default chat model is now `claude-sonnet-4-6`; `nearest` computes the query magnitude once instead of per index item
+- Dropped redundant `(:require phel.core)` from 14 library namespaces (`phel.core` is always preloaded); kept only in `phel.string`, which needs the `core/` alias to call `core/reverse` from inside its own `reverse`
 
 ## [0.41.0](https://github.com/phel-lang/phel-lang/compare/v0.40.0...v0.41.0) - 2026-06-01
 
