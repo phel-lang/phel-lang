@@ -14,19 +14,17 @@ All notable changes to this project will be documented in this file.
 - Docs: function `:example` outputs now match REPL output, so `phel doc` and the API reference are accurate
 - `phel->php`: integer/string map keys now convert instead of throwing `getName() on int` (#2298)
 - Structs: `$struct['field']` array access now accepts a plain PHP string offset (was keyword-only) (#2313, #2319)
-- Dependencies: constrain `gacela-project/gacela` to `^1.14 <1.15`; 1.15.0 breaks the `run`/`build`/`export` console commands. Lift once Phel supports it
+- Tests: isolate Gacela's per-project config cache between tests (a PHPUnit extension + dedicated cache dir), removing cross-test leakage via the shared on-disk cache; `gacela-project/gacela` stays pinned `<1.15` (1.15 changes that cache in a way that also affects the packaged `phel test`, pending a production cache-keying fix)
 
 ### Added
 
 - `phel format`: collapses consecutive blank lines to one, and indents more definition/body forms (`defstruct`, `defprotocol`, `defmethod`, `reify`, `doseq`, `letfn`, …) the cljfmt way instead of call-style alignment
-- Docs: `load`, `in-ns`, `use`, and `var` special forms now documented in the API reference and `phel doc`; a regression test fails if any registered special form lacks a catalog entry
-- Docs: `:example` (and missing `:see-also`) metadata on the core math (`+`, `-`, `*`, `/`, `bit-*`, `min`, `max`, `mean`, `median`, …) and predicate (`int?`, `float?`, `string?`, `keyword?`, `vector?`, `map?`, `seq?`, `empty?`, …) functions
+- Docs: the `load`/`in-ns`/`use`/`var` special forms are now in the API reference and `phel doc` (a regression test guards against gaps), and core math/predicate functions gained `:example`/`:see-also` metadata
 - `phel.reflect`: `class-attributes`/`method-attributes`/`property-attributes`/`attributes` read PHP 8 attributes as `{:name :args}` maps (#2314, #2320)
 - `phel.reflect`: `enum->keyword`/`keyword->enum`/`enum-values` bridge native PHP enums to keywords and back (#2315, #2321)
 - `iterator-seq`: lazy seq over a PHP `Traversable`, pulled one element at a time (#2312, #2318)
 - `phel.http`: JSON request bodies decode into `:parsed-body`, plus `json-response`/`html-response` builders (#2271)
-- Docs: runnable `docs/examples/13_database-crud.phel` and a maps-not-entities Persistence section in `framework-integration.md` (#2281, #2282)
-- Docs: runnable `docs/examples/14_doctrine-entity.phel` shows a Doctrine `#[ORM\Entity]` defined in Phel via `defstruct` + `:php/attr`, verified with `phel.reflect`
+- Docs: runnable database-CRUD and Doctrine-entity examples (`docs/examples/13`/`14`) plus a maps-not-entities Persistence section in `framework-integration.md` (#2281, #2282)
 
 Richer PHP interop for bridging Phel to typed PHP / framework code (all opt-in, untagged forms unchanged):
 
@@ -38,8 +36,7 @@ Richer PHP interop for bridging Phel to typed PHP / framework code (all opt-in, 
 
 ### Changed
 
-- Architecture: `src/php/` cleanup (#2261, #2262, #2263, #2264) — relocated leaky cross-module value objects (`NamespaceInformation`, parse-tree nodes + lexer `Token`, `LoadClasspath`) to their proper homes and split four oversized analyzer/command classes (`DefSymbol`, `ParamTypeInferrer`, `TestCommand`, `ConstantFolder`/`FnSymbol`) into focused collaborators. Pure refactors
-- Internals: split seven oversized god-classes into focused collaborators across compiler/runtime/build/api (pure refactors): `CallSpecialization`, `CallEmitter` (#2273), `CompiledCodeCache` (#2274), `BigInt` (#2275), `NumericOperations` (#2276), `PhelFnLoader` (#2277), `Parser` (#2278); centralized bare-expression capture into `OutputEmitter::captureNodeAsExpression()`
+- Internals: modular-architecture cleanup of `src/php/` — relocated leaky cross-module value objects to their proper homes and split many oversized analyzer/command/compiler/runtime classes into focused collaborators (pure refactors, no behavior change) (#2261, #2262, #2263, #2264, #2273, #2274, #2275, #2276, #2277, #2278)
 - Tests: `RegistryTest`/`PhelVarTest` snapshot and restore the global `Registry`, fixing order-dependent `phel.core` failures (#2256)
 - Docs: condensed every `docs/` guide (~17% smaller), verified against the runtime, cross-linked to phel-lang.org
 - Docs: collapsed needlessly multiline `:doc`/docstrings across `src/phel/` (418 strings, 57 files) so prose renders on one line in `phel doc` and the API reference instead of with stray line-break spacing; structured docs (code blocks, aligned key tables, multi-paragraph, indented examples) are preserved (#2340)

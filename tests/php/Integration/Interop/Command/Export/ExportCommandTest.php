@@ -9,6 +9,7 @@ use Phel\Phel;
 use PhelTest\Integration\Interop\Command\Export\PhelGenerated\TestCmdExportMultiple\Adder;
 use PhelTest\Integration\Interop\Command\Export\PhelGenerated\TestCmdExportMultiple\Multiplier;
 use PhelTest\Integration\Util\DirectoryUtil;
+use PhelTest\Support\PerTestGacelaCache;
 use PHPUnit\Framework\Attributes\PreserveGlobalState;
 use PHPUnit\Framework\Attributes\RunInSeparateProcess;
 use PHPUnit\Framework\TestCase;
@@ -19,6 +20,9 @@ final class ExportCommandTest extends TestCase
 {
     protected function setUp(): void
     {
+        // Runs in a separate process, where the Gacela-cache PHPUnit extension
+        // does not apply; isolate the cache here so it cannot leak on disk.
+        new PerTestGacelaCache()->isolate();
         DirectoryUtil::removeDir(__DIR__ . '/PhelGenerated/');
     }
 
