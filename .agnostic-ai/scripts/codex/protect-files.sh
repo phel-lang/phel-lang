@@ -13,8 +13,8 @@ deny() {
 
 is_protected_path() {
   local path="$1"
-  [[ "$path" == */build/release.sh ]] \
-    || [[ "$path" == build/release.sh ]] \
+  [[ "$path" == */tools/release.sh ]] \
+    || [[ "$path" == tools/release.sh ]] \
     || [[ "$path" == */composer.lock ]] \
     || [[ "$path" == composer.lock ]] \
     || [[ "$path" == */.github/* ]] \
@@ -31,14 +31,14 @@ if [[ "$tool_name" == "Bash" ]]; then
 fi
 
 if [[ -n "$file_path" ]] && is_protected_path "$file_path"; then
-  deny "Protected file edit blocked. Ask the user to confirm before changing build/release.sh, composer.lock, or .github/*."
+  deny "Protected file edit blocked. Ask the user to confirm before changing tools/release.sh, composer.lock, or .github/*."
   exit 0
 fi
 
 if [[ "$tool_name" == "apply_patch" ]]; then
   while IFS= read -r path; do
     if is_protected_path "$path"; then
-      deny "Protected file edit blocked. Ask the user to confirm before changing build/release.sh, composer.lock, or .github/*."
+      deny "Protected file edit blocked. Ask the user to confirm before changing tools/release.sh, composer.lock, or .github/*."
       exit 0
     fi
   done < <(printf '%s' "$command" | sed -nE 's/^\*\*\* (Add|Update|Delete) File: (.*)$/\2/p')
