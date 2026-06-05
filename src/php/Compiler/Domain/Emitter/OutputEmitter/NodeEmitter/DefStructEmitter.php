@@ -139,7 +139,11 @@ final readonly class DefStructEmitter implements NodeEmitterInterface
     {
         $names = [];
         foreach ($node->getInterfaces() as $defStruct) {
-            $names[] = $defStruct->getAbsoluteInterfaceName();
+            // A `:php` bare-method block carries an empty interface name: its
+            // methods are emitted on the class but it adds no `implements` entry.
+            if ($defStruct->getAbsoluteInterfaceName() !== '') {
+                $names[] = $defStruct->getAbsoluteInterfaceName();
+            }
         }
 
         $meta = $node->getName()->getMeta();

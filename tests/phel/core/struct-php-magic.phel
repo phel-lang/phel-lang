@@ -1,0 +1,62 @@
+(ns phel-test.core.struct-php-magic
+  (:require phel.test :refer [deftest is thrown?]))
+
+;; Magic methods defined inline via the `:php` block need no backing interface.
+
+(defstruct multiplier [factor]
+  :php
+  (__invoke [this x] (* x (get this :factor)))
+  (__toString [this] (str "x" (get this :factor))))
+
+(deftest struct-invoke-is-callable
+  (let [m (multiplier 3)]
+    (is (php/is_callable m) "struct with __invoke is PHP-callable")
+    (is (= 42 (m 14)) "direct call triggers __invoke")
+    (is (= [3 6 9] (map m [1 2 3])) "usable anywhere a fn is expected")))
+
+(deftest struct-tostring-magic
+  (let [m (multiplier 7)]
+    (is (= "x7" (php/strval m)) "__toString emitted as a real PHP method")))
+
+;; The map protocol is unaffected by the extra magic methods.
+
+(deftest struct-map-protocol-intact
+  (let [m (multiplier 5)]
+    (is (= 5 (get m :factor)) "fields still read as a map")))
+
+;; A variadic `__invoke` is compatible with the inherited map-call signature.
+
+(defstruct summer [base]
+  :php
+  (__invoke [this & xs] (apply + (get this :base) xs)))
+
+(deftest struct-invoke-variadic
+  (let [s (summer 10)]
+    (is (= 16 (s 1 2 3)) "variadic __invoke collects all call args")
+    (is (= 10 (s)) "zero call args still works through the variadic tail")))
+
+;; `:php` block coexists with a real interface implementation.
+
+(definterface Labelled
+  (label [this]))
+
+(defstruct tagged [name]
+  Labelled
+  (label [this] (str "#" (get this :name)))
+  :php
+  (__toString [this] (get this :name)))
+
+(deftest struct-interface-plus-php-block
+  (let [t (tagged "ok")]
+    (is (= "#ok" (label t)) "interface method still works")
+    (is (= "ok" (php/strval t)) "php-block __toString works alongside it")))
+
+;; A zero-arg `__invoke` clashes with the inherited map-call signature and is
+;; rejected at compile time with a clear message instead of a PHP fatal.
+
+(deftest struct-invoke-bad-arity-rejected
+  (is (thrown? \Exception
+               (eval '(defstruct broken [x]
+                        :php
+                        (__invoke [this] (get this :x)))))
+      "zero-arg __invoke is rejected at analyze time"))
