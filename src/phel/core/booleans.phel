@@ -164,10 +164,7 @@
       (php/instanceof x BigDecimal)))
 
 (defn- assert-non-nil
-  "Rejects `nil` operands so ordered comparisons fail loudly instead of
-  silently coercing `nil` to 0. Mirrors the arithmetic functions, which
-  already reject `nil`, and matches Clojure/JVM (which throws). Defined
-  locally because `booleans` loads before the arithmetic module."
+  "Rejects `nil` operands so ordered comparisons fail loudly instead of silently coercing `nil` to 0. Mirrors the arithmetic functions, which already reject `nil`, and matches Clojure/JVM (which throws). Defined locally because `booleans` loads before the arithmetic module."
   [a b]
   (when (or (php/=== nil a) (php/=== nil b))
     (throw (php/new InvalidArgumentException "Comparison functions do not accept nil values"))))
@@ -239,9 +236,7 @@
       false)))
 
 (defn <=>
-  "Alias for the spaceship PHP operator in ascending order. Returns an int.
-  Dispatches on `Ratio` and `BigInt` so numeric ordering stays correct
-  for those types."
+  "Alias for the spaceship PHP operator in ascending order. Returns an int. Dispatches on `Ratio` and `BigInt` so numeric ordering stays correct for those types."
   [a b]
   (if (or (numeric-object? a) (numeric-object? b))
     (php/:: NumericOperations (compare a b))
@@ -266,16 +261,14 @@
     false))
 
 (defn every?
-  "Returns true if predicate is true for every element in collection, false otherwise.
-  Alias for `all?`."
+  "Returns true if predicate is true for every element in collection, false otherwise. Alias for `all?`."
   {:example "(every? even? [2 4 6 8]) ; => true"
    :see-also ["all?" "not-every?"]}
   [pred coll]
   (all? pred coll))
 
 (defn not-every?
-  "Returns false if `(pred x)` is logical true for every `x` in collection `coll`
-   or if `coll` is empty. Otherwise returns true."
+  "Returns false if `(pred x)` is logical true for every `x` in collection `coll` or if `coll` is empty. Otherwise returns true."
   {:example "(not-every? even? [2 3 4]) ; => true"
    :see-also ["every?" "all?" "not-any?"]}
   [pred coll]
@@ -285,8 +278,7 @@
 (declare name)
 
 (defn some?
-  "With 1 arg, returns true if `x` is not nil (Clojure semantics).
-   With 2 args, returns true if `pred` is true for at least one element in `coll`."
+  "With 1 arg, returns true if `x` is not nil (Clojure semantics). With 2 args, returns true if `pred` is true for at least one element in `coll`."
   {:example "(some? 1) ; => true\n(some? even? [1 3 5 6 7]) ; => true"}
   ([x] (not (nil? x)))
   ([pred coll]
@@ -296,8 +288,7 @@
      :else                         (recur pred (next coll)))))
 
 (defn not-any?
-  "Returns true if `(pred x)` is logical false for every `x` in `coll`
-   or if `coll` is empty. Otherwise returns false."
+  "Returns true if `(pred x)` is logical false for every `x` in `coll` or if `coll` is empty. Otherwise returns false."
   {:example "(not-any? even? [1 3 5]) ; => true"
    :see-also ["some?" "some" "not-every?"]}
   [pred coll]
@@ -375,9 +366,7 @@
   (or (= category :keyword) (= category :symbol)))
 
 (defn- compare-category
-  "Returns a coarse category for `compare`'s type compatibility check. `nil` is
-  its own category so it can be treated as less than anything. Numbers share a
-  category so `(compare 1 1.5)` works."
+  "Returns a coarse category for `compare`'s type compatibility check. `nil` is its own category so it can be treated as less than anything. Numbers share a category so `(compare 1 1.5)` works."
   [x]
   (cond
     (php/=== x nil)                               :nil

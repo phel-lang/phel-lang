@@ -85,32 +85,28 @@
   (php/>> x n))
 
 (defn bit-set
-  "Returns the integer `x` with the bit at index `n` (0-based, least
-  significant first) set to 1."
+  "Returns the integer `x` with the bit at index `n` (0-based, least significant first) set to 1."
   {:example "(bit-set 0 2) ; => 4"
    :see-also ["bit-clear" "bit-flip" "bit-test"]}
   [x n]
   (bit-or x (bit-shift-left 1 n)))
 
 (defn bit-clear
-  "Returns the integer `x` with the bit at index `n` (0-based, least
-  significant first) cleared to 0."
+  "Returns the integer `x` with the bit at index `n` (0-based, least significant first) cleared to 0."
   {:example "(bit-clear 7 1) ; => 5"
    :see-also ["bit-set" "bit-flip" "bit-test"]}
   [x n]
   (bit-and x (bit-not (bit-shift-left 1 n))))
 
 (defn bit-flip
-  "Returns the integer `x` with the bit at index `n` (0-based, least
-  significant first) toggled."
+  "Returns the integer `x` with the bit at index `n` (0-based, least significant first) toggled."
   {:example "(bit-flip 5 1) ; => 7"
    :see-also ["bit-set" "bit-clear" "bit-test"]}
   [x n]
   (bit-xor x (bit-shift-left 1 n)))
 
 (defn bit-test
-  "Returns `true` if the bit at index `n` (0-based, least significant
-  first) of the integer `x` is set, `false` otherwise."
+  "Returns `true` if the bit at index `n` (0-based, least significant first) of the integer `x` is set, `false` otherwise."
   {:example "(bit-test 5 0) ; => true"
    :see-also ["bit-set" "bit-clear" "bit-flip"]}
   [x n]
@@ -125,8 +121,7 @@
   php/NAN)
 
 (defn +
-  "Returns the sum of all elements in `xs`. All elements `xs` must be numbers.
-  If `xs` is empty, return 0."
+  "Returns the sum of all elements in `xs`. All elements `xs` must be numbers. If `xs` is empty, return 0."
   {:example "(+ 1 2 3) ; => 6"
    :see-also ["-" "*" "/" "sum"]}
   [& xs]
@@ -138,8 +133,7 @@
     (reduce #(php/:: NumericOperations (add %1 %2)) xs)))
 
 (defn -
-  "Returns the difference of all elements in `xs`. If `xs` is empty, return 0. If `xs`
-  has one element, return the negative value of that element."
+  "Returns the difference of all elements in `xs`. If `xs` is empty, return 0. If `xs` has one element, return the negative value of that element."
   {:example "(- 10 3 2) ; => 5\n(- 4) ; => -4"
    :see-also ["+" "*" "/"]}
   [& xs]
@@ -151,8 +145,7 @@
     (reduce #(php/:: NumericOperations (subtract %1 %2)) xs)))
 
 (defn *
-  "Returns the product of all elements in `xs`. All elements in `xs` must be
-numbers. If `xs` is empty, return 1."
+  "Returns the product of all elements in `xs`. All elements in `xs` must be numbers. If `xs` is empty, return 1."
   {:example "(* 2 3 4) ; => 24"
    :see-also ["+" "-" "/"]}
   [& xs]
@@ -181,9 +174,7 @@ returns 1. If `xs` has one value, returns the reciprocal of x.
     (reduce #(php/:: NumericOperations (divide %1 %2)) xs)))
 
 (defn quot
-  "Returns the truncated integer quotient of `dividend` / `divisor`.
-  Truncates toward zero. Throws `\\DivisionByZeroError` when `divisor`
-  is zero."
+  "Returns the truncated integer quotient of `dividend` / `divisor`. Truncates toward zero. Throws `\\DivisionByZeroError` when `divisor` is zero."
   {:example "(quot 7 3) ; => 2\n(quot -7 3) ; => -2"
    :see-also ["rem" "mod" "/"]}
   [dividend divisor]
@@ -191,8 +182,7 @@ returns 1. If `xs` has one value, returns the reciprocal of x.
   (php/:: NumericOperations (quot dividend divisor)))
 
 (defn rem
-  "Returns the truncated remainder of `dividend` / `divisor`. The result
-  has the same sign as `dividend` (matches PHP's `%`)."
+  "Returns the truncated remainder of `dividend` / `divisor`. The result has the same sign as `dividend` (matches PHP's `%`)."
   {:example "(rem 7 3) ; => 1\n(rem -7 3) ; => -1"
    :see-also ["quot" "mod" "%"]}
   [dividend divisor]
@@ -407,16 +397,14 @@ returns 1. If `xs` has one value, returns the reciprocal of x.
     :else                         (php/floatval x)))
 
 (defn double
-  "Coerces `x` to a double. In PHP there is no distinction between float and
-   double; both map to the same native PHP float type. Alias for `float`."
+  "Coerces `x` to a double. In PHP there is no distinction between float and double; both map to the same native PHP float type. Alias for `float`."
   {:example "(double 1) ; => 1"
    :see-also ["float" "int?" "number?"]}
   [x]
   (float x))
 
 (defn long
-  "Coerces `x` to a long integer. In PHP there is no distinction between int
-   and long; both map to the same native PHP int type. Alias for `int`."
+  "Coerces `x` to a long integer. In PHP there is no distinction between int and long; both map to the same native PHP int type. Alias for `int`."
   {:example "(long 1.9) ; => 1"
    :see-also ["int" "float" "double"]}
   [x]
@@ -436,36 +424,21 @@ returns 1. If `xs` has one value, returns the reciprocal of x.
     (throw (php/new InvalidArgumentException (php/. label " expects a numeric value")))))
 
 (defn short
-  "Coerces `x` to a signed 16-bit integer in the range `-32768..32767`.
-   Decimal values are truncated toward zero. `Ratio` and `BigInt`
-   values are accepted (truncate toward zero, then range-check). Values
-   outside the range or non-numeric inputs raise `InvalidArgumentException`.
-   Phel has no dedicated short type, so the result is a plain PHP int."
+  "Coerces `x` to a signed 16-bit integer in the range `-32768..32767`. Decimal values are truncated toward zero. `Ratio` and `BigInt` values are accepted (truncate toward zero, then range-check). Values outside the range or non-numeric inputs raise `InvalidArgumentException`. Phel has no dedicated short type, so the result is a plain PHP int."
   {:example "(short 32767) ; => 32767\n(short 1.9) ; => 1\n(short -32768) ; => -32768"
    :see-also ["int" "byte" "long"]}
   [x]
   (clamp-int x -32768 32767 "short"))
 
 (defn byte
-  "Coerces `x` to a signed 8-bit integer in the range `-128..127`.
-   Decimal values are truncated toward zero. `Ratio` and `BigInt`
-   values are accepted (truncate toward zero, then range-check). Values
-   outside the range or non-numeric inputs raise `InvalidArgumentException`.
-   Phel has no dedicated byte type, so the result is a plain PHP int."
+  "Coerces `x` to a signed 8-bit integer in the range `-128..127`. Decimal values are truncated toward zero. `Ratio` and `BigInt` values are accepted (truncate toward zero, then range-check). Values outside the range or non-numeric inputs raise `InvalidArgumentException`. Phel has no dedicated byte type, so the result is a plain PHP int."
   {:example "(byte 127) ; => 127\n(byte 1.9) ; => 1\n(byte -128) ; => -128"
    :see-also ["int?" "float" "double"]}
   [x]
   (clamp-int x -128 127 "byte"))
 
 (defn char
-  "Coerces `x` to a single-character string representing the given
-   Unicode code point. Accepts a non-negative integer (the code point,
-   converted via `mb_chr`) or a single-character string, which is
-   returned as-is. Phel has no dedicated char type — character literals
-   such as `\\A` are already single-character strings — so the result
-   is always a plain string. Matches Clojure's `char` for `.cljc`
-   interop; raises `InvalidArgumentException` on negative ints,
-   non-single-character strings, and all other inputs."
+  "Coerces `x` to a single-character string representing the given Unicode code point. Accepts a non-negative integer (the code point, converted via `mb_chr`) or a single-character string, which is returned as-is. Phel has no dedicated char type — character literals such as `\\A` are already single-character strings — so the result is always a plain string. Matches Clojure's `char` for `.cljc` interop; raises `InvalidArgumentException` on negative ints, non-single-character strings, and all other inputs."
   {:example "(char 65) ; => \"A\"\n(char 32) ; => \" \"\n(char \\A) ; => \"A\""
    :see-also ["byte" "int?" "string?"]}
   [x]
@@ -491,8 +464,7 @@ returns 1. If `xs` has one value, returns the reciprocal of x.
                     "char expects a non-negative integer or a single-character string"))))
 
 (defn rand
-  "Without arguments, returns a random number in `[0, 1)`. With one
-  argument `n`, returns a random number in `[0, n)`."
+  "Without arguments, returns a random number in `[0, 1)`. With one argument `n`, returns a random number in `[0, n)`."
   {:example "(rand) ; => 0.42\n(rand 100) ; => 73.2"
    :see-also ["rand-int" "rand-nth"]}
   ([]
@@ -527,8 +499,7 @@ returns 1. If `xs` has one value, returns the reciprocal of x.
   (and (php/is_float x) (php/is_nan x)))
 
 (defn min
-  "Returns the minimum of all arguments. Returns `##NaN` whenever any
-  numeric argument is `##NaN`."
+  "Returns the minimum of all arguments. Returns `##NaN` whenever any numeric argument is `##NaN`."
   {:example "(min 3 1 2) ; => 1"
    :see-also ["max" "min-key" "extreme"]}
   [& numbers]
@@ -538,8 +509,7 @@ returns 1. If `xs` has one value, returns the reciprocal of x.
     :else                       (extreme < numbers)))
 
 (defn max
-  "Returns the maximum of all arguments. Returns `##NaN` whenever any
-  numeric argument is `##NaN`."
+  "Returns the maximum of all arguments. Returns `##NaN` whenever any numeric argument is `##NaN`."
   {:example "(max 3 1 2) ; => 3"
    :see-also ["min" "max-key" "extreme"]}
   [& numbers]
@@ -600,8 +570,7 @@ returns 1. If `xs` has one value, returns the reciprocal of x.
   (php/fdiv (sum xs) (count xs)))
 
 (defn median
-  "Returns the median of `xs`. With an even-sized collection the result is
-  the float average of the two middle elements."
+  "Returns the median of `xs`. With an even-sized collection the result is the float average of the two middle elements."
   {:example "(median [3 1 2]) ; => 2\n(median [1 2 3 4]) ; => 2.5"
    :see-also ["mean" "sum"]}
   [xs]
@@ -641,11 +610,7 @@ returns 1. If `xs` has one value, returns the reciprocal of x.
   (bigdec? x))
 
 (defn bigdec
-  "Coerces `x` to a `Phel\\Lang\\BigDecimal`. Accepts `BigDecimal` (returned
-  as-is), ints, floats (via the shortest round-trip decimal of the
-  float), `BigInt`, `Ratio` (computed via exact decimal division;
-  throws `ArithmeticError` when the expansion does not terminate,
-  matching `(bigdec 1/3)`), and numeric strings."
+  "Coerces `x` to a `Phel\\Lang\\BigDecimal`. Accepts `BigDecimal` (returned as-is), ints, floats (via the shortest round-trip decimal of the float), `BigInt`, `Ratio` (computed via exact decimal division; throws `ArithmeticError` when the expansion does not terminate, matching `(bigdec 1/3)`), and numeric strings."
   {:example "(bigdec 1.5) ; => 1.5M\n(bigdec 1/2) ; => 0.5M\n(bigdec \"3.14\") ; => 3.14M"
    :see-also ["bigdec?" "decimal?" "rationalize"]}
   [x]
@@ -663,9 +628,7 @@ returns 1. If `xs` has one value, returns the reciprocal of x.
                            (php/get_debug_type x))))))
 
 (defn numerator
-  "Returns the numerator of `r`. For rationals the numerator collapses to a
-  PHP int when it fits; for plain ints and `BigInt` values `r` is returned
-  unchanged."
+  "Returns the numerator of `r`. For rationals the numerator collapses to a PHP int when it fits; for plain ints and `BigInt` values `r` is returned unchanged."
   {:example "(numerator 1/2) ; => 1\n(numerator 5) ; => 5"
    :see-also ["denominator" "rationalize" "ratio?"]}
   [r]
@@ -685,8 +648,7 @@ returns 1. If `xs` has one value, returns the reciprocal of x.
                          (type r))))))
 
 (defn denominator
-  "Returns the denominator of `r`. For rationals the denominator collapses
-  to a PHP int when it fits; integers and `BigInt` values report `1`."
+  "Returns the denominator of `r`. For rationals the denominator collapses to a PHP int when it fits; integers and `BigInt` values report `1`."
   {:example "(denominator 1/2) ; => 2\n(denominator 5) ; => 1"
    :see-also ["numerator" "rationalize" "ratio?"]}
   [r]
@@ -706,8 +668,7 @@ returns 1. If `xs` has one value, returns the reciprocal of x.
                          (type r))))))
 
 (defn- float-shortest-decimal
-  "Shortest %g-formatted decimal that round-trips back to `x`. Tries
-  increasing precision so 0.1 becomes \"0.1\", not \"0.10000000000000001\"."
+  "Shortest %g-formatted decimal that round-trips back to `x`. Tries increasing precision so 0.1 becomes \"0.1\", not \"0.10000000000000001\"."
   [x]
   (loop [p 1]
     (let [s (php/sprintf (str "%." p "g") x)]
@@ -744,8 +705,7 @@ returns 1. If `xs` has one value, returns the reciprocal of x.
         (php/:: Ratio (create num denom))))))
 
 (defn- float->rational
-  "Converts a finite float to a Ratio using its shortest round-trip
-  decimal expansion. Non-finite floats are rejected."
+  "Converts a finite float to a Ratio using its shortest round-trip decimal expansion. Non-finite floats are rejected."
   [x]
   (when (or (php/is_infinite x) (php/is_nan x))
     (throw (php/new InvalidArgumentException
@@ -753,12 +713,7 @@ returns 1. If `xs` has one value, returns the reciprocal of x.
   (decimal-string->rational (float-shortest-decimal x)))
 
 (defn rationalize
-  "Converts `x` to a `Ratio`. Floats use the shortest decimal expansion
-  that round-trips back to the same float, so `(rationalize 0.1)` is `1/10`
-  rather than the float-noise denominator. Ints, `BigInt`, and
-  integer-valued `BigDecimal` values become `n/1` and auto-collapse, so
-  they are returned as the integer value. `BigDecimal` with a fractional
-  part rationalizes through its canonical decimal form."
+  "Converts `x` to a `Ratio`. Floats use the shortest decimal expansion that round-trips back to the same float, so `(rationalize 0.1)` is `1/10` rather than the float-noise denominator. Ints, `BigInt`, and integer-valued `BigDecimal` values become `n/1` and auto-collapse, so they are returned as the integer value. `BigDecimal` with a fractional part rationalizes through its canonical decimal form."
   {:example "(rationalize 0.5) ; => 1/2\n(rationalize 3) ; => 3\n(rationalize 1M) ; => 1"
    :see-also ["numerator" "denominator" "ratio?"]}
   [x]
@@ -814,9 +769,7 @@ returns 1. If `xs` has one value, returns the reciprocal of x.
     (quot (- n (mod n d)) d)))
 
 (defn floor
-  "Returns the largest integer not greater than `x`. Ints and `BigInt`
-  values are returned unchanged. Ratios collapse via floor division.
-  Floats route through PHP's `floor`."
+  "Returns the largest integer not greater than `x`. Ints and `BigInt` values are returned unchanged. Ratios collapse via floor division. Floats route through PHP's `floor`."
   {:example "(floor 1.7) ; => 1\n(floor -1.2) ; => -2\n(floor 7/3) ; => 2"
    :see-also ["ceil" "round" "quot"]}
   [x]
@@ -831,9 +784,7 @@ returns 1. If `xs` has one value, returns the reciprocal of x.
                     (str "floor expects a number, got " (type x))))))
 
 (defn ceil
-  "Returns the smallest integer not less than `x`. Ints and `BigInt`
-  values are returned unchanged. Ratios collapse via ceiling division.
-  Floats route through PHP's `ceil`."
+  "Returns the smallest integer not less than `x`. Ints and `BigInt` values are returned unchanged. Ratios collapse via ceiling division. Floats route through PHP's `ceil`."
   {:example "(ceil 1.2) ; => 2\n(ceil -1.7) ; => -1\n(ceil 7/3) ; => 3"
    :see-also ["floor" "round" "quot"]}
   [x]
@@ -848,9 +799,7 @@ returns 1. If `xs` has one value, returns the reciprocal of x.
                     (str "ceil expects a number, got " (type x))))))
 
 (defn round
-  "Rounds `x` to the nearest integer using PHP's `round` (half away from
-  zero). Ints and `BigInt` values are returned unchanged. Ratios
-  and floats return floats."
+  "Rounds `x` to the nearest integer using PHP's `round` (half away from zero). Ints and `BigInt` values are returned unchanged. Ratios and floats return floats."
   {:example "(round 1.5) ; => 2\n(round -1.5) ; => -2\n(round 5) ; => 5"
    :see-also ["floor" "ceil"]}
   [x]

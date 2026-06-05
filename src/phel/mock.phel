@@ -50,16 +50,14 @@
      call-history)))
 
 (defn spy
-  "Wraps an existing function to track calls while preserving original behavior.
-  Alias for `mock-fn`."
+  "Wraps an existing function to track calls while preserving original behavior. Alias for `mock-fn`."
   {:example "(def original-fn (fn [x] (* x 2)))"
    :see-also ["mock-fn"]}
   [f]
   (mock-fn f))
 
 (defn mock-returning
-  "Creates a mock that returns different values for consecutive calls.
-  After exhausting values, returns the last value."
+  "Creates a mock that returns different values for consecutive calls. After exhausting values, returns the last value."
   {:example "(def my-mock (mock-returning [1 2 3]))"}
   [values]
   (let [call-history (atom [])
@@ -156,8 +154,7 @@
   (first (calls mock-fn)))
 
 (defn reset-mock!
-  "Resets the call history of a mock without removing it from the registry.
-  The mock can continue to be used and track new calls."
+  "Resets the call history of a mock without removing it from the registry. The mock can continue to be used and track new calls."
   {:example "(def my-mock (mock :result))"}
   [mock-fn]
   (let [mock-data (get (deref mock-registry) mock-fn)]
@@ -169,8 +166,7 @@
           (reset-fn))))))
 
 (defn clear-all-mocks!
-  "Clears the entire mock registry.
-  Useful for cleanup between test suites in long-running processes."
+  "Clears the entire mock registry. Useful for cleanup between test suites in long-running processes."
   {:example "(clear-all-mocks!) ; All mocks removed from registry"}
   []
   (reset! mock-registry {}))

@@ -11,9 +11,7 @@
 ;; --- UUID ---
 
 (defn uuid?
-  "Returns true if `x` is a `Phel\\Lang\\UUID` value, false otherwise.
-  Canonical UUID strings are rejected — wrap them with `parse-uuid` (or
-  the `#uuid \"...\"` literal) to obtain a typed value."
+  "Returns true if `x` is a `Phel\\Lang\\UUID` value, false otherwise. Canonical UUID strings are rejected — wrap them with `parse-uuid` (or the `#uuid \"...\"` literal) to obtain a typed value."
   {:example "(uuid? #uuid \"550e8400-e29b-41d4-a716-446655440000\") ; => true"
    :see-also ["random-uuid" "parse-uuid"]}
   [x]
@@ -42,9 +40,7 @@
     :else                   nil))
 
 (defn uuid=
-  "Returns true if `a` and `b` are `Phel\\Lang\\UUID` values with the
-  same canonical form. Strings (or anything else) are rejected even if
-  their textual content would match — coerce with `parse-uuid` first."
+  "Returns true if `a` and `b` are `Phel\\Lang\\UUID` values with the same canonical form. Strings (or anything else) are rejected even if their textual content would match — coerce with `parse-uuid` first."
   {:example "(uuid= #uuid \"550e8400-e29b-41d4-a716-446655440000\"
          #uuid \"550E8400-E29B-41D4-A716-446655440000\") ; => true"
    :see-also ["uuid?" "parse-uuid"]}
@@ -60,8 +56,7 @@
        (php/-> x (isNil))))
 
 (defn uuid-version
-  "Returns the version digit (1-5) encoded in UUID `x`, or nil if `x` is
-  not a `UUID` value."
+  "Returns the version digit (1-5) encoded in UUID `x`, or nil if `x` is not a `UUID` value."
   {:example "(uuid-version #uuid \"550e8400-e29b-41d4-a716-446655440000\") ; => 4"
    :see-also ["uuid?" "uuid-variant"]}
   [x]

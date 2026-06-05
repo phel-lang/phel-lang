@@ -42,6 +42,7 @@ Richer PHP interop for bridging Phel to typed PHP / framework code (all opt-in, 
 - Internals: split seven oversized god-classes into focused collaborators across compiler/runtime/build/api (pure refactors): `CallSpecialization`, `CallEmitter` (#2273), `CompiledCodeCache` (#2274), `BigInt` (#2275), `NumericOperations` (#2276), `PhelFnLoader` (#2277), `Parser` (#2278); centralized bare-expression capture into `OutputEmitter::captureNodeAsExpression()`
 - Tests: `RegistryTest`/`PhelVarTest` snapshot and restore the global `Registry`, fixing order-dependent `phel.core` failures (#2256)
 - Docs: condensed every `docs/` guide (~17% smaller), verified against the runtime, cross-linked to phel-lang.org
+- Docs: collapsed needlessly multiline `:doc`/docstrings across `src/phel/` (418 strings, 57 files) so prose renders on one line in `phel doc` and the API reference instead of with stray line-break spacing; structured docs (code blocks, aligned key tables, multi-paragraph, indented examples) are preserved (#2340)
 - Quality: repo-wide maintainability pass — docblocks and `:doc`/`:see-also`/`:example` metadata, dead-code/type/naming cleanups, helper extractions, ~40 new unit tests (no behavior change)
 - `agent-install`: simplified to copying skill files and the `.agents/` docs tree; dropped version stamping, `--check`, `--list`
 - `phel.ai`: default chat model is now `claude-sonnet-4-6`; `nearest` computes the query magnitude once instead of per item

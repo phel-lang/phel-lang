@@ -35,8 +35,7 @@
   (reset! schema-check?-atom (boolean enabled?)))
 
 (defn with-schema-check
-  "Runs thunk `f` with runtime validation set to `enabled?`, restoring
-  the previous value even if `f` throws."
+  "Runs thunk `f` with runtime validation set to `enabled?`, restoring the previous value even if `f` throws."
   [enabled? f]
   (let [prev @schema-check?-atom]
     (reset! schema-check?-atom (boolean enabled?))
@@ -127,9 +126,7 @@
   (wrap-with-schema f (get schema 1) (get schema 2)))
 
 (defn instrument!
-  "Registers `f` under `name` (any key) wrapped with `schema`. Returns
-  the wrapped fn. Subsequent calls to `unstrument!` with the same name
-  can restore the original via `(instrumented-original name)`."
+  "Registers `f` under `name` (any key) wrapped with `schema`. Returns the wrapped fn. Subsequent calls to `unstrument!` with the same name can restore the original via `(instrumented-original name)`."
   {:example "(def add* (instrument! :add add [:=> [:int :int] :int]))"
    :see-also ["unstrument!" "*schema-check*"]}
   [name f schema]
@@ -138,8 +135,7 @@
     wrapped))
 
 (defn unstrument!
-  "Unregisters the instrumentation bound to `name` and returns the
-  original (unwrapped) function if present, otherwise `nil`."
+  "Unregisters the instrumentation bound to `name` and returns the original (unwrapped) function if present, otherwise `nil`."
   {:example "(unstrument! :add)"
    :see-also ["instrument!"]}
   [name]

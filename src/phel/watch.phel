@@ -5,9 +5,7 @@
 (def- on-reload-hooks (atom {}))
 
 (defn register-on-reload
-  "Registers a zero-arg function to run every time `namespace` is
-  reloaded by the watcher. Replaces any previously registered hook
-  with the same `name`."
+  "Registers a zero-arg function to run every time `namespace` is reloaded by the watcher. Replaces any previously registered hook with the same `name`."
   {:example "(register-on-reload \"my-app\\core\" :refresh (fn [] (println \"reloaded\")))"}
   [namespace name hook-fn]
   (swap! on-reload-hooks
@@ -22,8 +20,7 @@
   (swap! on-reload-hooks (fn [m] (assoc m namespace {}))))
 
 (defn run-on-reload-hooks
-  "Executes every hook registered for `namespace`. Returns the
-  number of hooks that fired."
+  "Executes every hook registered for `namespace`. Returns the number of hooks that fired."
   {:example "(run-on-reload-hooks \"my-app\\core\")"}
   [namespace]
   (let [entry (get (deref on-reload-hooks) namespace {})]
@@ -34,9 +31,7 @@
     (count entry)))
 
 (defn watch!
-  "Starts the file watcher on the given vector of paths. Blocks until
-  the watcher is stopped (e.g. Ctrl+C). Reloads changed namespaces in
-  dependency order and runs any hooks registered with `register-on-reload`."
+  "Starts the file watcher on the given vector of paths. Blocks until the watcher is stopped (e.g. Ctrl+C). Reloads changed namespaces in dependency order and runs any hooks registered with `register-on-reload`."
   {:example "(watch! [\"src/\" \"tests/\"])"}
   [paths & [opts]]
   (let [facade  (php/new WatchFacade)

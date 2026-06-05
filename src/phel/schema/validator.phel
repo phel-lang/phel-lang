@@ -36,10 +36,7 @@
                     (str label ": " head)))))
 
 (defn resolve-or-default
-  "Like `resolve-or-throw`, but returns `default` when `head` is not
-  registered instead of throwing. Used by `coerce` where unknown heads
-  are intentionally passed through unchanged for downstream validation
-  to flag."
+  "Like `resolve-or-throw`, but returns `default` when `head` is not registered instead of throwing. Used by `coerce` where unknown heads are intentionally passed through unchanged for downstream validation to flag."
   [head f default]
   (if (reg/registered? head)
     (f (reg/deref-ref head))
@@ -50,8 +47,7 @@
 ;; ----------------
 
 (defn schema-head
-  "Returns the head (kind keyword) of `schema`. Keyword schemas are
-  their own head; vector schemas use their first element."
+  "Returns the head (kind keyword) of `schema`. Keyword schemas are their own head; vector schemas use their first element."
   [schema]
   (cond
     (keyword? schema)                            schema
@@ -59,10 +55,7 @@
     :else                                        nil))
 
 (defn- extract-options
-  "Returns `[options remaining]` where `options` is a map (possibly
-  empty) of trailing options pulled from the second position of a
-  parametric schema, and `remaining` is the rest of the args after
-  the options map."
+  "Returns `[options remaining]` where `options` is a map (possibly empty) of trailing options pulled from the second position of a parametric schema, and `remaining` is the rest of the args after the options map."
   [args]
   (if (and (not (empty? args))
            (map? (first args)))
@@ -70,8 +63,7 @@
     [{} args]))
 
 (defn schema-args
-  "Returns the positional arguments of `schema` (children past the
-  head and optional options map)."
+  "Returns the positional arguments of `schema` (children past the head and optional options map)."
   [schema]
   (if (vector? schema)
     (let [tail         (apply vector (next schema))
@@ -169,16 +161,14 @@
        (every? true? (map-indexed (fn [i s] (valid? s (get value i))) elem-schemas))))
 
 (defn map-entry-options
-  "Options map for a `[:map ...]` entry `[key opts? schema]`. Returns an
-  empty map when the entry has no options position."
+  "Options map for a `[:map ...]` entry `[key opts? schema]`. Returns an empty map when the entry has no options position."
   [entry]
   (if (and (>= (count entry) 3) (map? (get entry 1)))
     (get entry 1)
     {}))
 
 (defn map-entry-schema
-  "Inner schema of a `[:map ...]` entry, skipping the options map when
-  present."
+  "Inner schema of a `[:map ...]` entry, skipping the options map when present."
   [entry]
   (if (and (>= (count entry) 3) (map? (get entry 1)))
     (get entry 2)
@@ -243,8 +233,7 @@
       :else                          (recur (next schemas)))))
 
 (defn- pattern-source
-  "Returns the raw regex string for a `:re` schema. Accepts either a
-  string pattern (used verbatim) or a compiled PHP regex handle."
+  "Returns the raw regex string for a `:re` schema. Accepts either a string pattern (used verbatim) or a compiled PHP regex handle."
   [pattern]
   (cond
     (string? pattern) pattern

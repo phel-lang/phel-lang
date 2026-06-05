@@ -40,8 +40,7 @@
   (v/schema-head schema))
 
 (defn schema-args
-  "Returns the positional arguments of `schema` (children past the head
-  and optional options map)."
+  "Returns the positional arguments of `schema` (children past the head and optional options map)."
   {:example "(schema-args [:vector :int]) ; => [:int]"}
   [schema]
   (v/schema-args schema))
@@ -81,25 +80,21 @@
   (e/human-readable-explain result))
 
 (defn coerce
-  "Walks `schema` and coerces string-shaped input into schema-required
-  types. Idempotent for already-typed values."
+  "Walks `schema` and coerces string-shaped input into schema-required types. Idempotent for already-typed values."
   {:example "(coerce :int \"42\") ; => 42"
    :see-also ["conform" "validate"]}
   [schema value]
   (c/coerce schema value))
 
 (defn conform
-  "Coerces `value` against `schema`. Returns the coerced value on
-  success, otherwise `:phel.schema/invalid`."
+  "Coerces `value` against `schema`. Returns the coerced value on success, otherwise `:phel.schema/invalid`."
   {:example "(conform :int \"42\") ; => 42"
    :see-also ["coerce" "validate"]}
   [schema value]
   (c/conform schema value))
 
 (def invalid-marker
-  "Sentinel value (`:phel.schema/invalid`) returned by `conform` when a
-  value cannot be coerced to fit a schema. `conform` returns this marker
-  instead of throwing, so compare against it to detect failure."
+  "Sentinel value (`:phel.schema/invalid`) returned by `conform` when a value cannot be coerced to fit a schema. `conform` returns this marker instead of throwing, so compare against it to detect failure."
   c/invalid-marker)
 
 (defn generate
@@ -152,16 +147,14 @@
 ;; ------
 
 (defn schema-check?
-  "Returns `true` when runtime validation performed by the instrument
-  helpers is currently enabled."
+  "Returns `true` when runtime validation performed by the instrument helpers is currently enabled."
   {:example "(schema-check?) ; => true"
    :see-also ["set-schema-check!" "with-schema-check"]}
   []
   (i/schema-check?))
 
 (defn set-schema-check!
-  "Enables (`true`) or disables (`false`) runtime validation. Returns
-  the new value."
+  "Enables (`true`) or disables (`false`) runtime validation. Returns the new value."
   {:example "(set-schema-check! false)"
    :see-also ["schema-check?"]}
   [enabled?]
@@ -176,8 +169,7 @@
   (i/with-schema-check enabled? f))
 
 (defn wrap-with-schema
-  "Wraps `f` so calls validate arguments and return values against the
-  supplied schemas."
+  "Wraps `f` so calls validate arguments and return values against the supplied schemas."
   {:example "(wrap-with-schema add [:int :int] :int)"
    :see-also ["instrument!"]}
   [f arg-schema return-schema]
@@ -191,16 +183,14 @@
   (i/wrap-with-function-schema f schema))
 
 (defn instrument!
-  "Registers `f` wrapped with `schema` under `name`. Returns the wrapped
-  function. The original is preserved so `unstrument!` can restore it."
+  "Registers `f` wrapped with `schema` under `name`. Returns the wrapped function. The original is preserved so `unstrument!` can restore it."
   {:example "(instrument! :add add [:=> [:int :int] :int])"
    :see-also ["unstrument!"]}
   [name f schema]
   (i/instrument! name f schema))
 
 (defn unstrument!
-  "Removes the instrumentation registered under `name` and returns the
-  original, unwrapped function (or `nil` if no entry)."
+  "Removes the instrumentation registered under `name` and returns the original, unwrapped function (or `nil` if no entry)."
   {:example "(unstrument! :add)"}
   [name]
   (i/unstrument! name))

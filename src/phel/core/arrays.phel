@@ -57,10 +57,7 @@
     (to-php-array size-or-seq)))
 
 (defn to-array
-  "Returns a PHP array containing the elements of `coll`. Accepts any
-  collection (vector, list, set, map, PHP array) or `nil`, which yields
-  an empty PHP array. Matches Clojure's `to-array` for `.cljc` interop —
-  in Phel the result is a plain PHP array since PHP has no `Object[]`."
+  "Returns a PHP array containing the elements of `coll`. Accepts any collection (vector, list, set, map, PHP array) or `nil`, which yields an empty PHP array. Matches Clojure's `to-array` for `.cljc` interop — in Phel the result is a plain PHP array since PHP has no `Object[]`."
   {:example "(to-array [1 2 3]) ; => <PHP-Array [1, 2, 3]>\n(to-array nil) ; => <PHP-Array []>"
    :see-also ["to-php-array" "object-array"]}
   [coll]
@@ -90,12 +87,7 @@
     (throw (php/new InvalidArgumentException (str op-name " expects a PHP array")))))
 
 (defn aclone
-  "Returns a shallow copy of a PHP array. The returned array is a
-  distinct value — mutating the copy via `php/aset` does not affect the
-  original, and vice versa. Matches Clojure's `aclone` for `.cljc`
-  interop; raises `InvalidArgumentException` on non-array inputs since
-  Phel's persistent collections are already immutable and don't need
-  cloning."
+  "Returns a shallow copy of a PHP array. The returned array is a distinct value — mutating the copy via `php/aset` does not affect the original, and vice versa. Matches Clojure's `aclone` for `.cljc` interop; raises `InvalidArgumentException` on non-array inputs since Phel's persistent collections are already immutable and don't need cloning."
   {:example "(aclone (object-array 3)) ; => <PHP-Array [nil, nil, nil]>"
    :see-also ["object-array" "to-array"]}
   [arr]
@@ -167,41 +159,35 @@
   ([size init-val-or-seq] (typed-array php/intval 0 size init-val-or-seq)))
 
 (defn long-array
-  "Creates a PHP array of longs (same as int-array in PHP). Accepts the same
-  arities and semantics as `int-array`."
+  "Creates a PHP array of longs (same as int-array in PHP). Accepts the same arities and semantics as `int-array`."
   {:example "(long-array 3) ; => <PHP-Array [0, 0, 0]>\n(long-array 4 7) ; => <PHP-Array [7, 7, 7, 7]>"
    :see-also ["int-array" "float-array" "double-array" "short-array"]}
   ([size-or-seq] (typed-array php/intval 0 size-or-seq))
   ([size init-val-or-seq] (typed-array php/intval 0 size init-val-or-seq)))
 
 (defn float-array
-  "Creates a PHP array of floats. Accepts the same arities as `int-array`;
-  coerces elements to float via `floatval` and zero-pads with `0.0`."
+  "Creates a PHP array of floats. Accepts the same arities as `int-array`; coerces elements to float via `floatval` and zero-pads with `0.0`."
   {:example "(float-array 3) ; => <PHP-Array [0, 0, 0]>\n(float-array 4 1.5) ; => <PHP-Array [1.5, 1.5, 1.5, 1.5]>"
    :see-also ["double-array" "int-array" "long-array" "short-array"]}
   ([size-or-seq] (typed-array php/floatval 0.0 size-or-seq))
   ([size init-val-or-seq] (typed-array php/floatval 0.0 size init-val-or-seq)))
 
 (defn double-array
-  "Creates a PHP array of doubles (same as float-array in PHP). Accepts the same
-  arities and semantics as `float-array`."
+  "Creates a PHP array of doubles (same as float-array in PHP). Accepts the same arities and semantics as `float-array`."
   {:example "(double-array 3) ; => <PHP-Array [0, 0, 0]>\n(double-array 4 1.5) ; => <PHP-Array [1.5, 1.5, 1.5, 1.5]>"
    :see-also ["float-array" "int-array" "long-array" "short-array"]}
   ([size-or-seq] (typed-array php/floatval 0.0 size-or-seq))
   ([size init-val-or-seq] (typed-array php/floatval 0.0 size init-val-or-seq)))
 
 (defn short-array
-  "Creates a PHP array of shorts (16-bit integers). Accepts the same arities
-  and semantics as `int-array`."
+  "Creates a PHP array of shorts (16-bit integers). Accepts the same arities and semantics as `int-array`."
   {:example "(short-array 3) ; => <PHP-Array [0, 0, 0]>\n(short-array 4 7) ; => <PHP-Array [7, 7, 7, 7]>"
    :see-also ["int-array" "long-array" "float-array" "double-array"]}
   ([size-or-seq] (typed-array php/intval 0 size-or-seq))
   ([size init-val-or-seq] (typed-array php/intval 0 size init-val-or-seq)))
 
 (defn aget
-  "Returns the value at `index` in a PHP array. With multiple indices,
-   accesses nested arrays: `(aget arr i j)` is `(aget (aget arr i) j)`.
-   Matches Clojure's `aget` for `.cljc` interop."
+  "Returns the value at `index` in a PHP array. With multiple indices, accesses nested arrays: `(aget arr i j)` is `(aget (aget arr i) j)`. Matches Clojure's `aget` for `.cljc` interop."
   {:example "(aget (php/array 10 20 30) 1) ; => 20"
    :see-also ["aset" "aclone" "object-array"]}
   [arr & indices]

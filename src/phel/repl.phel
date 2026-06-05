@@ -26,8 +26,7 @@
   (php/:: GlobalEnvironmentSingleton (getInstance)))
 
 (defn loaded-namespaces
-  "Returns all namespaces currently loaded in the REPL, in dot-separated
-  display form."
+  "Returns all namespaces currently loaded in the REPL, in dot-separated display form."
   {:example "(loaded-namespaces) ; => [\"phel.core\" \"phel.repl\"]"}
   []
   (let [raw    (php/:: Phel (getNamespaces))
@@ -48,8 +47,7 @@
   (php/-> build-facade (evalFile file)))
 
 (defn- get-src-dirs
-  "Returns source directories for namespace resolution. Falls back to
-  CommandFacade when src-dirs has not been initialized (e.g. outside vanilla REPL)."
+  "Returns source directories for namespace resolution. Falls back to CommandFacade when src-dirs has not been initialized (e.g. outside vanilla REPL)."
   []
   (if (not (php/empty src-dirs))
     src-dirs
@@ -210,8 +208,7 @@
     (php/-> res (getCode))))
 
 (defn eval-str
-  "Evaluates a string of Phel code and returns the result.
-  If the string contains multiple expressions, returns the result of the last one."
+  "Evaluates a string of Phel code and returns the result. If the string contains multiple expressions, returns the result of the last one."
   {:example "(eval-str \"(+ 1 2)\") ; => 3"
    :see-also ["compile-str" "load-file"]}
   [s]
@@ -220,9 +217,7 @@
     (php/-> cf (eval s opts))))
 
 (defn load-file
-  "Loads and evaluates a Phel source file in the current REPL session.
-  Reads the file content and evaluates it using the compiler, preserving
-  the current REPL namespace context. Returns the result of the last expression."
+  "Loads and evaluates a Phel source file in the current REPL session. Reads the file content and evaluates it using the compiler, preserving the current REPL namespace context. Returns the result of the last expression."
   {:example "(load-file \"src/my-module.phel\")"}
   [path]
   (let [content (php/file_get_contents path)]
@@ -283,7 +278,7 @@
 (defn- dir-fn
   "Prints all public definitions in the given namespace symbol or string.
 
-  Returns nil. Prints one name per line, sorted alphabetically."
+Returns nil. Prints one name per line, sorted alphabetically."
   [ns]
   (let [ns-str  (name ns)
         encoded (munge-ns ns-str)
@@ -300,7 +295,7 @@
 (defmacro dir
   "Prints all public definitions in the given namespace symbol or string.
 
-  Returns nil. Prints one name per line, sorted alphabetically."
+Returns nil. Prints one name per line, sorted alphabetically."
   {:example "(dir phel\\string)"}
   [ns]
   (if (string? ns)
@@ -308,8 +303,7 @@
     `(dir-fn '~ns)))
 
 (defn apropos
-  "Returns a vector of symbols whose name contains the given search string.
-  Searches across all loaded namespaces."
+  "Returns a vector of symbols whose name contains the given search string. Searches across all loaded namespaces."
   {:example "(apropos \"map\") ; => [phel.core/flat-map phel.core/map ...]"}
   [search]
   (let [munge   munge-instance
@@ -327,8 +321,7 @@
     (sort (persistent results))))
 
 (defn find-fn
-  "Searches for functions whose name or docstring contains the search string.
-  Returns a vector of maps with :ns, :name, :doc, :private, :min-arity, :max-arity, :is-variadic."
+  "Searches for functions whose name or docstring contains the search string. Returns a vector of maps with :ns, :name, :doc, :private, :min-arity, :max-arity, :is-variadic."
   {:example "(find-fn \"map\") ; => [{:ns \"phel.core\" :name \"map\" ...} ...]"
    :see-also ["apropos" "search-doc" "get-symbol-info"]}
   [search]
@@ -359,8 +352,7 @@
     (persistent results)))
 
 (defn get-source-code
-  "Returns the source code of the definition identified by namespace and name
-  strings, or nil if the source file cannot be found or metadata is missing."
+  "Returns the source code of the definition identified by namespace and name strings, or nil if the source file cannot be found or metadata is missing."
   {:example "(get-source-code \"phel\\core\" \"map\")"
    :see-also ["source" "get-symbol-info"]}
   [ns-str name-str]
@@ -385,8 +377,7 @@
       `(get-source-code ~(namespace resolved-sym) ~(name resolved-sym)))))
 
 (defn find-ns
-  "Returns the namespace name in display form if it is loaded, or nil if no
-  namespace of that name exists. Accepts dot or backslash separators on input."
+  "Returns the namespace name in display form if it is loaded, or nil if no namespace of that name exists. Accepts dot or backslash separators on input."
   {:example "(find-ns \"phel.core\") ; => \"phel.core\""
    :see-also ["create-ns" "remove-ns" "loaded-namespaces"]}
   [ns-str]
@@ -395,8 +386,7 @@
       (php/:: Munge (displayNs canonical)))))
 
 (defn create-ns
-  "Creates the given namespace if it does not already exist. Returns the
-  namespace name in display form. Existing namespaces are left untouched."
+  "Creates the given namespace if it does not already exist. Returns the namespace name in display form. Existing namespaces are left untouched."
   {:example "(create-ns \"my-app.tmp\") ; => \"my-app.tmp\""
    :see-also ["find-ns" "remove-ns" "intern"]}
   [ns-str]
@@ -405,8 +395,7 @@
     (php/:: Munge (displayNs canonical))))
 
 (defn remove-ns
-  "Removes the namespace and all of its definitions from the registry.
-  Use with caution. Returns nil."
+  "Removes the namespace and all of its definitions from the registry. Use with caution. Returns nil."
   {:example "(remove-ns \"my-app.tmp\")"
    :see-also ["find-ns" "create-ns"]}
   [ns-str]
@@ -414,10 +403,7 @@
   nil)
 
 (defn intern
-  "Finds or creates a definition named by name-str in namespace ns-str,
-  setting its root value to val when supplied (defaults to nil). The
-  namespace is auto-registered by the underlying `addDefinition` call.
-  Returns the fully qualified symbol (with the namespace in display form)."
+  "Finds or creates a definition named by name-str in namespace ns-str, setting its root value to val when supplied (defaults to nil). The namespace is auto-registered by the underlying `addDefinition` call. Returns the fully qualified symbol (with the namespace in display form)."
   {:example "(intern \"user\" \"x\" 42) ; => user/x"
    :see-also ["find-ns" "create-ns" "ns-interns"]}
   [ns-str name-str & rest]
@@ -485,8 +471,7 @@
     (persistent result)))
 
 (defn search-doc
-  "Searches docstrings across all loaded namespaces for the given string.
-  Prints matching function names and their documentation."
+  "Searches docstrings across all loaded namespaces for the given string. Prints matching function names and their documentation."
   {:example "(search-doc \"reduce\")"}
   [search]
   (let [munge        munge-instance
@@ -536,10 +521,7 @@
          :error (php/-> e (getMessage))}))))
 
 (defn test-ns
-  "Runs all tests in a given namespace from the REPL.
-  Requires the namespace if not already loaded, finds all deftest definitions,
-  runs them, prints results, and returns a hash-map with :pass, :fail, and :error counts.
-  Preserves outer test state so it can be safely called during a test run."
+  "Runs all tests in a given namespace from the REPL. Requires the namespace if not already loaded, finds all deftest definitions, runs them, prints results, and returns a hash-map with :pass, :fail, and :error counts. Preserves outer test state so it can be safely called during a test run."
   {:example "(test-ns \"phel-test\\test\\core\")"
    :see-also ["dir" "loaded-namespaces"]}
   [ns-str]
@@ -556,10 +538,7 @@
         result))))
 
 (defn macroexpand-1-form
-  "Expands the given form once if it is a macro call.
-  Takes a quoted form and returns the expanded form, or the original
-  form unchanged if it is not a macro call. Uses the CompilerFacade
-  to perform the expansion without going through analyze+emit."
+  "Expands the given form once if it is a macro call. Takes a quoted form and returns the expanded form, or the original form unchanged if it is not a macro call. Uses the CompilerFacade to perform the expansion without going through analyze+emit."
   {:example "(macroexpand-1-form '(defn foo [x] x))"
    :see-also ["macroexpand-form" "macroexpand-1" "macroexpand"]}
   [form]
@@ -567,9 +546,7 @@
     (php/-> cf (macroexpand1 form))))
 
 (defn macroexpand-form
-  "Recursively expands the given form until it is no longer a macro call.
-  Takes a quoted form and returns the fully expanded form. Uses the
-  CompilerFacade to perform the expansion without going through analyze+emit."
+  "Recursively expands the given form until it is no longer a macro call. Takes a quoted form and returns the fully expanded form. Uses the CompilerFacade to perform the expansion without going through analyze+emit."
   {:example "(macroexpand-form '(defn foo [x] x))"
    :see-also ["macroexpand-1-form" "macroexpand-1" "macroexpand"]}
   [form]
@@ -577,16 +554,14 @@
     (php/-> cf (macroexpand form))))
 
 (defn macroexpand-1
-  "Expands the given form once if it is a macro call. The form must be
-  quoted to prevent evaluation, matching Clojure semantics."
+  "Expands the given form once if it is a macro call. The form must be quoted to prevent evaluation, matching Clojure semantics."
   {:example "(macroexpand-1 '(when true 1 2))"
    :see-also ["macroexpand" "macroexpand-1-form" "macroexpand-form"]}
   [form]
   (macroexpand-1-form form))
 
 (defn macroexpand
-  "Recursively expands the given form until it is no longer a macro call.
-  The form must be quoted to prevent evaluation, matching Clojure semantics."
+  "Recursively expands the given form until it is no longer a macro call. The form must be quoted to prevent evaluation, matching Clojure semantics."
   {:example "(macroexpand '(when true 1 2))"
    :see-also ["macroexpand-1" "macroexpand-1-form" "macroexpand-form"]}
   [form]
@@ -597,8 +572,7 @@
 ;; -----------
 
 (defn- build-namespace-context
-  "Builds a summary of available functions in the current namespace
-  and its aliases for AI context."
+  "Builds a summary of available functions in the current namespace and its aliases for AI context."
   []
   (let [ns           *ns*
         aliases      (ns-aliases ns)
@@ -630,8 +604,7 @@
 (defn explain
   "Sends a Phel code string to the AI for explanation.
 
-  Includes compilation output and namespace context to provide
-  a thorough, grounded explanation."
+Includes compilation output and namespace context to provide a thorough, grounded explanation."
   {:doc "Explains a Phel expression using AI and REPL introspection."
    :example "(explain \"(map inc [1 2 3])\")"
    :see-also ["suggest" "fix" "explain-sym"]}
@@ -662,8 +635,7 @@
           {:system "You are a Phel language assistant. Explain functions clearly, covering purpose, parameters, return value, and typical usage. Keep it concise."})))))
 
 (defn suggest
-  "Describes what you want to accomplish in natural language and
-  receives Phel code suggestions grounded in available functions."
+  "Describes what you want to accomplish in natural language and receives Phel code suggestions grounded in available functions."
   {:doc "Get AI-suggested Phel code for a natural language description."
    :example "(suggest \"filter even numbers from a vector\")"
    :see-also ["explain" "fix"]}
@@ -677,8 +649,7 @@
     (ai/complete prompt {:system "You are a Phel language assistant. Write idiomatic Phel code. Use existing core functions when possible. Be concise."})))
 
 (defn fix
-  "Given Phel code that produced an error, sends both to the AI
-  along with namespace context to suggest a fix."
+  "Given Phel code that produced an error, sends both to the AI along with namespace context to suggest a fix."
   {:doc "Suggests a fix for Phel code that produced an error."
    :example "(fix \"(+ 1 \\\"a\\\")\" \"Cannot add string to integer\")"
    :see-also ["explain" "suggest"]}
@@ -693,8 +664,7 @@
     (ai/complete prompt {:system "You are a Phel language assistant. Diagnose errors precisely and provide minimal, correct fixes."})))
 
 (defn review
-  "Sends Phel code to the AI for a code review, including namespace
-  context for awareness of available functions and conventions."
+  "Sends Phel code to the AI for a code review, including namespace context for awareness of available functions and conventions."
   {:doc "Gets an AI code review for Phel code."
    :example "(review \"(defn add [a b] (+ a b))\")"
    :see-also ["explain" "suggest" "fix"]}
@@ -710,10 +680,9 @@
 (defn embed-ns
   "Builds a searchable index of all public functions in a namespace.
 
-  Each entry contains the function name, docstring, and embedding
-  of the combined name+doc text. Useful for semantic code search.
+Each entry contains the function name, docstring, and embedding of the combined name+doc text. Useful for semantic code search.
 
-  Options are passed through to `ai/embed`."
+Options are passed through to `ai/embed`."
   {:doc "Builds a searchable index of public functions in a namespace."
    :example "(embed-ns \"phel\\core\")"
    :see-also ["search-ns" "ai/embed" "ai/nearest"]}
@@ -735,7 +704,7 @@
 (defn search-ns
   "Semantic search over a namespace index built by `embed-ns`.
 
-  Returns the k most relevant functions for the query."
+Returns the k most relevant functions for the query."
   {:doc "Searches a namespace index for functions matching a query."
    :example "(search-ns \"transform collections\" my-ns-index 5)"
    :see-also ["embed-ns" "ai/nearest" "ai/search"]}

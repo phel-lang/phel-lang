@@ -19,11 +19,7 @@
   "")
 
 (def *assert*
-  {:doc "Controls whether `assert` expands to a runtime check. When logical
-  false at macroexpansion time, `assert` expands to nil and performs no
-  runtime check, matching Clojure's compile-time `*assert*` semantics.
-  Defaults to `true`. To disable globally, set the core binding before
-  compilation via PHP: `\\Phel::addDefinition(\"phel\\\\core\", \"*assert*\", false)`."}
+  {:doc "Controls whether `assert` expands to a runtime check. When logical false at macroexpansion time, `assert` expands to nil and performs no runtime check, matching Clojure's compile-time `*assert*` semantics. Defaults to `true`. To disable globally, set the core binding before compilation via PHP: `\\Phel::addDefinition(\"phel\\\\core\", \"*assert*\", false)`."}
   true)
 
 ;; --------------------------------------------
@@ -43,9 +39,7 @@
     (php/:: Phel (vector (apply php/array xs)))))
 
 (def queue
-  {:doc "Creates a persistent FIFO queue. With no arguments returns an empty
-  queue; with arguments returns a queue with the values pushed in order so
-  that the first argument is at the front."
+  {:doc "Creates a persistent FIFO queue. With no arguments returns an empty queue; with arguments returns a queue with the values pushed in order so that the first argument is at the front."
    :example "(queue 1 2 3) ; => first 1, then 2, then 3"}
   (fn [& xs]
     (php/:: Phel (queue (apply php/array xs)))))
@@ -57,11 +51,7 @@
     (php/:: Phel (map (apply php/array xs)))))
 
 (def array-map
-  {:doc "Constructs a map from the given key/value pairs. If any keys are
-  equal, later values replace earlier ones, as if by repeated `assoc`.
-  Phel has no distinct array-map type, so the result is the same
-  persistent map as `hash-map` — `array-map` exists for `.cljc` interop
-  with Clojure sources."
+  {:doc "Constructs a map from the given key/value pairs. If any keys are equal, later values replace earlier ones, as if by repeated `assoc`. Phel has no distinct array-map type, so the result is the same persistent map as `hash-map` — `array-map` exists for `.cljc` interop with Clojure sources."
    :example "(array-map :a 1 :b 2) ; => {:a 1 :b 2}"
    :see-also ["hash-map"]}
   (fn [& xs]
@@ -146,9 +136,7 @@
 (def first
   {:doc "Returns the first element of a sequence, or nil if empty.
 
-  Maps are treated as a sequence of entries: `(first {:a 1})` returns a
-  typed `MapEntry` equal by value to `[:a 1]`. Strings are treated as
-  sequences of multibyte characters."
+Maps are treated as a sequence of entries: `(first {:a 1})` returns a typed `MapEntry` equal by value to `[:a 1]`. Strings are treated as sequences of multibyte characters."
    :example "(first [1 2 3]) ; => 1"}
   (fn [xs]
     (if (php/instanceof xs FirstInterface)         (php/-> xs (first))
@@ -202,8 +190,7 @@
     (if (php/=== prog nil) "" prog)))
 
 (def argv
-  "Vector of user arguments passed to the script (excludes program name).
-  Use *program* to get the script path or namespace."
+  "Vector of user arguments passed to the script (excludes program name). Use *program* to get the script path or namespace."
   (let [argv-raw (php/aget php/$GLOBALS "__phel_argv")]
     (if (php/=== argv-raw nil)
       []

@@ -80,8 +80,7 @@
 ;; ------------------
 
 (defn apply
-  "Applies function `f` to the argument list formed by prepending any
-  intervening arguments to the final collection argument."
+  "Applies function `f` to the argument list formed by prepending any intervening arguments to the final collection argument."
   {:example "(apply + [1 2 3]) ; => 6\n((identity apply) + 1 [2 3]) ; => 6"
    :see-also ["partial" "comp"]}
   ([f args] (apply f args))
@@ -101,14 +100,7 @@
   #(not (apply f %&)))
 
 (defn some-fn
-  "Takes a variadic set of predicates and returns a function `f` that,
-   when called with any number of arguments, returns the first logical
-   true value produced by applying any of the composing predicates to
-   any of its arguments, and `false` when none match. The returned
-   function short-circuits on the first truthy result: arguments after
-   it are not inspected, and predicates after it are not tried.
-   Predicates are consulted in the order supplied; for a given
-   predicate, arguments are consulted left-to-right."
+  "Takes a variadic set of predicates and returns a function `f` that, when called with any number of arguments, returns the first logical true value produced by applying any of the composing predicates to any of its arguments, and `false` when none match. The returned function short-circuits on the first truthy result: arguments after it are not inspected, and predicates after it are not tried. Predicates are consulted in the order supplied; for a given predicate, arguments are consulted left-to-right."
   {:example "((some-fn even? nil?) 1 2) ; => true\n((some-fn pos? even?) -3 -1) ; => false"
    :see-also ["some" "complement" "every?" "not-any?"]}
   ([]
@@ -129,19 +121,14 @@
      fs)))
 
 (defn partial
-  "Takes a function `f` and fewer than the normal number of arguments to `f`,
-  and returns a function that takes a variable number of additional arguments.
-  When called, `f` will be invoked with the bound `args` prepended to the
-  additional arguments."
+  "Takes a function `f` and fewer than the normal number of arguments to `f`, and returns a function that takes a variable number of additional arguments. When called, `f` will be invoked with the bound `args` prepended to the additional arguments."
   {:example "((partial + 10) 1 2) ; => 13"
    :see-also ["comp" "apply"]}
   [f & args]
   #(apply f (concat args %&)))
 
 (defn fnil
-  "Returns a function that replaces nil arguments with the provided defaults
-  before calling f. The number of defaults determines how many leading arguments
-  are nil-checked."
+  "Returns a function that replaces nil arguments with the provided defaults before calling f. The number of defaults determines how many leading arguments are nil-checked."
   {:example "(let [safe-inc (fnil inc 0)] (safe-inc nil)) ; => 1"
    :see-also ["partial" "comp"]}
   [f & defaults]
@@ -158,8 +145,7 @@
         (apply f patched)))))
 
 (defn memoize
-  "Returns a memoized version of the function `f`. The memoized function
-  caches the return value for each set of arguments."
+  "Returns a memoized version of the function `f`. The memoized function caches the return value for each set of arguments."
   {:example (str
              "(defn fact [n]" php/PHP_EOL
              "  (if (zero? n)" php/PHP_EOL
@@ -181,12 +167,9 @@
             res))))))
 
 (defn memoize-lru
-  "Returns a memoized version of the function `f` with an LRU (Least Recently Used)
-  cache limited to `max-size` entries. When the cache exceeds `max-size`, the
-  least recently used entry is evicted. This prevents unbounded memory growth
-  in long-running processes.
+  "Returns a memoized version of the function `f` with an LRU (Least Recently Used) cache limited to `max-size` entries. When the cache exceeds `max-size`, the least recently used entry is evicted. This prevents unbounded memory growth in long-running processes.
 
-  Without arguments, uses a default cache size of 128 entries."
+Without arguments, uses a default cache size of 128 entries."
   {:example (str
              "(defn fact [n]" php/PHP_EOL
              "  (if (zero? n)" php/PHP_EOL
@@ -230,11 +213,7 @@
 ;; -----------------------
 
 (defn tree-seq
-  "Returns a vector of the nodes in the tree, via a depth-first walk.
-  branch? is a function with one argument that returns true if the given node
-  has children.
-  children must be a function with one argument that returns the children of the node.
-  root the root node of the tree."
+  "Returns a vector of the nodes in the tree, via a depth-first walk. branch? is a function with one argument that returns true if the given node has children. children must be a function with one argument that returns the children of the node. root the root node of the tree."
   [branch? children root]
   (let [ret (transient [])]
     (loop [stack (php/array root)]
@@ -264,8 +243,7 @@
        (assoc! acc k v)))))
 
 (defn merge-with
-  "Merges multiple maps into one new map. If a key appears in more than one
-   collection, the result of `(f current-val next-val)` is used."
+  "Merges multiple maps into one new map. If a key appears in more than one collection, the result of `(f current-val next-val)` is used."
   [f & hash-maps]
   (case (count hash-maps)
     0 {}

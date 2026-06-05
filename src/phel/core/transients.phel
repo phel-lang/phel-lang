@@ -18,8 +18,7 @@
 (defn transient
   "Converts a persistent collection to a transient collection for efficient updates.
 
-  Transient collections provide faster performance for multiple sequential updates.
-  Use `persistent` to convert back."
+Transient collections provide faster performance for multiple sequential updates. Use `persistent` to convert back."
   {:example "(def t (transient []))"
    :see-also ["persistent"]}
   [coll]
@@ -33,8 +32,7 @@
   (php/-> coll (persistent)))
 
 (defn persistent!
-  "Converts a transient collection back to a persistent collection.
-   Alias for `persistent`, matching Clojure's `persistent!` naming."
+  "Converts a transient collection back to a persistent collection. Alias for `persistent`, matching Clojure's `persistent!` naming."
   {:example "(persistent! (conj! (transient []) 1 2 3)) ; => [1 2 3]"
    :see-also ["persistent" "transient"]}
   [coll]
@@ -80,16 +78,7 @@
                     (str "conj! expects a transient collection, got " (type tcoll))))))
 
 (defn conj!
-  "Adds `value` to the transient collection `tcoll`, mutating it in place,
-   and returns `tcoll`. The 'addition' may happen at different 'places'
-   depending on the concrete transient type: transient vectors append at
-   the tail, transient hash-sets add the element (no-op if already
-   present), and transient hash-maps treat `value` as a `[key value]`
-   pair (or an associative collection of entries).
-   With zero arguments returns a new empty transient vector. With one
-   argument returns `tcoll` unchanged. Variadic forms reduce `conj!` over
-   the remaining values. Raises `InvalidArgumentException` when `tcoll`
-   is not a transient collection. Matches Clojure's `conj!` semantics."
+  "Adds `value` to the transient collection `tcoll`, mutating it in place, and returns `tcoll`. The 'addition' may happen at different 'places' depending on the concrete transient type: transient vectors append at the tail, transient hash-sets add the element (no-op if already present), and transient hash-maps treat `value` as a `[key value]` pair (or an associative collection of entries). With zero arguments returns a new empty transient vector. With one argument returns `tcoll` unchanged. Variadic forms reduce `conj!` over the remaining values. Raises `InvalidArgumentException` when `tcoll` is not a transient collection. Matches Clojure's `conj!` semantics."
   {:example "(persistent (conj! (transient [1 2]) 3)) ; => [1 2 3]"
    :see-also ["conj" "transient" "persistent"]}
   ([] (transient []))
@@ -143,9 +132,7 @@
                     (str "dissoc! expects a transient map, got " (type tcoll))))))
 
 (defn dissoc!
-  "Dissociates one or more keys from a transient map, mutating it in place.
-   Raises `InvalidArgumentException` when `tcoll` is not a transient map.
-   Matches Clojure's `dissoc!` semantics."
+  "Dissociates one or more keys from a transient map, mutating it in place. Raises `InvalidArgumentException` when `tcoll` is not a transient map. Matches Clojure's `dissoc!` semantics."
   {:example "(persistent! (dissoc! (transient {:a 1 :b 2}) :a)) ; => {:b 2}"
    :see-also ["dissoc" "assoc!" "transient" "persistent!"]}
   ([tcoll] tcoll)
@@ -164,9 +151,7 @@
                     (str "disj! expects a transient set, got " (type tcoll))))))
 
 (defn disj!
-  "Removes one or more elements from a transient set, mutating it in place.
-   Raises `InvalidArgumentException` when `tcoll` is not a transient set.
-   Matches Clojure's `disj!` semantics."
+  "Removes one or more elements from a transient set, mutating it in place. Raises `InvalidArgumentException` when `tcoll` is not a transient set. Matches Clojure's `disj!` semantics."
   {:example "(persistent! (disj! (transient #{1 2 3}) 2)) ; => #{1 3}"
    :see-also ["disj" "conj!" "transient" "persistent!"]}
   ([tcoll] tcoll)
@@ -175,9 +160,7 @@
    (reduce disj-bang-single (disj-bang-single tcoll value) more)))
 
 (defn pop!
-  "Removes the last element from a transient vector, mutating it in place.
-   Raises `InvalidArgumentException` when `tcoll` is not a transient vector.
-   Matches Clojure's `pop!` semantics."
+  "Removes the last element from a transient vector, mutating it in place. Raises `InvalidArgumentException` when `tcoll` is not a transient vector. Matches Clojure's `pop!` semantics."
   {:example "(persistent! (pop! (transient [1 2 3]))) ; => [1 2]"
    :see-also ["pop" "conj!" "transient" "persistent!"]}
   [tcoll]

@@ -198,9 +198,7 @@
          (if (pred v) v (recur (inc i))))))))
 
 (defn sized
-  "Builds a generator from a function `f` of `size`. The returned generator
-  forwards its `size` into `f`, which must yield another generator that is
-  then invoked with the same size."
+  "Builds a generator from a function `f` of `size`. The returned generator forwards its `size` into `f`, which must yield another generator that is then invoked with the same size."
   {:example "(sized (fn [n] (return n)))"}
   [f]
   (fn [size] ((f size) size)))
@@ -232,8 +230,7 @@
     (fn [size] ((rand-elem v) size))))
 
 (defn frequency
-  "Generator that picks one of the `[weight gen]` pairs with probability
-  proportional to weight."
+  "Generator that picks one of the `[weight gen]` pairs with probability proportional to weight."
   {:example "((frequency [[9 (return :a)] [1 (return :b)]]) 100)"}
   [pairs]
   (let [v     (into [] pairs)
@@ -252,9 +249,7 @@
             (recur (inc i) next-remaining)))))))
 
 (defn tuple
-  "Generator of a fixed-length vector produced by running each of the given
-  generators in order. Accepts either a vector of generators or variadic
-  generator arguments."
+  "Generator of a fixed-length vector produced by running each of the given generators in order. Accepts either a vector of generators or variadic generator arguments."
   {:example "((tuple int boolean) 10) ; => [3 true]"}
   [& gens]
   (let [v (if (and (= 1 (count gens)) (vector? (first gens)))
@@ -288,8 +283,7 @@
     (apply list (for [_ :range [0 (rand-int* 0 (non-negative size))]] (g size)))))
 
 (defn map-of
-  "Generator of hash-maps with keys from `kg` and values from `vg`. Number of
-  entries is in `[0, size]`."
+  "Generator of hash-maps with keys from `kg` and values from `vg`. Number of entries is in `[0, size]`."
   {:example "((map-of keyword int) 2) ; => {:a 1 :b -3}"}
   [kg vg]
   (fn [size]
@@ -321,8 +315,7 @@
    (g (or size default-size))))
 
 (defn sample
-  "Runs `g` `num-samples` times (default 10) and returns a vector of values.
-  Accepts `:size` and `:seed`."
+  "Runs `g` `num-samples` times (default 10) and returns a vector of values. Accepts `:size` and `:seed`."
   {:example "(sample int 5) ; => [3 -7 0 1 -2]"}
   ([g] (sample g 10 {}))
   ([g num-samples] (sample g num-samples {}))
@@ -355,10 +348,7 @@
           {:result :failed, :num-tests (inc i), :args args})))))
 
 (defn- shrink-outcome
-  "Given a failing trial `outcome`, runs the shrink driver on its args
-  and returns an outcome augmented with `:original-args`, `:shrunk-args`
-  and `:shrink-steps`. If `shrink?` is falsy, returns `outcome`
-  unchanged."
+  "Given a failing trial `outcome`, runs the shrink driver on its args and returns an outcome augmented with `:original-args`, `:shrunk-args` and `:shrink-steps`. If `shrink?` is falsy, returns `outcome` unchanged."
   [outcome property shrink?]
   (let [failing? (or (= :failed (:result outcome))
                      (= :error (:result outcome)))]
@@ -397,9 +387,7 @@
      (assoc outcome :seed effective-seed))))
 
 (defn spec-failure-message
-  "Renders the human-readable failure message for a `defspec` outcome
-  map. Includes the shrink summary when the trial's arguments were
-  shrunk to a smaller counterexample."
+  "Renders the human-readable failure message for a `defspec` outcome map. Includes the shrink summary when the trial's arguments were shrunk to a smaller counterexample."
   {:example "(spec-failure-message \"my-spec\" {:result :failed ...})"
    :see-also ["quick-check" "defspec"]}
   [name-str res]
@@ -423,9 +411,7 @@
     (apply str (conj parts ")"))))
 
 (defn- emit-spec-failure-event!
-  "Fans out a `:defspec-failed` event carrying the rich outcome map so
-  reporters can surface the shrunk counterexample, seed, and shrink
-  step count."
+  "Fans out a `:defspec-failed` event carrying the rich outcome map so reporters can surface the shrunk counterexample, seed, and shrink step count."
   [name-str res]
   (t/do-report
    (merge

@@ -25,9 +25,7 @@
 ;; ------------------
 
 (defn peek
-  "Returns the head of a vector / PHP array (the last element) or the
-  head of a list / lazy sequence / queue (the first element). Returns nil
-  if `coll` is empty or nil."
+  "Returns the head of a vector / PHP array (the last element) or the head of a list / lazy sequence / queue (the first element). Returns nil if `coll` is empty or nil."
   {:example "(peek [1 2 3]) ; => 3\n(peek '(:a :b :c)) ; => :a"}
   [coll]
   (cond
@@ -194,8 +192,7 @@
          :else         (recur (php/- i 1) (next s)))))))
 
 (defn nthrest
-  "Returns the nth rest of `coll`, `coll` when `n` is less than 1. Returns
-  an empty list once the collection is exhausted."
+  "Returns the nth rest of `coll`, `coll` when `n` is less than 1. Returns an empty list once the collection is exhausted."
   {:example "(nthrest [1 2 3 4 5] 2) ; => [3 4 5]\n(nthrest [1 2] 5) ; => ()\n(nthrest nil 0) ; => nil\n(nthrest nil 3) ; => ()"
    :see-also ["nth" "nthnext" "drop"]}
   [coll n]
@@ -208,8 +205,7 @@
         (if (nil? s) '() s)))))
 
 (defn nthnext
-  "Returns the nth next of `coll`, `(seq coll)` when `n` is 0.
-   Returns nil if there are fewer than `n` elements remaining."
+  "Returns the nth next of `coll`, `(seq coll)` when `n` is 0. Returns nil if there are fewer than `n` elements remaining."
   {:example "(nthnext [1 2 3 4 5] 2) ; => (3 4 5)\n(nthnext [1 2] 5) ; => nil"
    :see-also ["nth" "nthrest" "drop"]}
   [coll n]
@@ -242,9 +238,7 @@
   (or (php/instanceof coll PersistentMapInterface) (php/instanceof coll TransientMapInterface)))
 
 (defn- vector-assoc
-  "Updates a vector at an integer index. Vectors index by int only; a
-   non-integer key raises a clean `InvalidArgumentException` instead of
-   leaking PHP's `update(): Argument #1 ($i) must be of type int` TypeError."
+  "Updates a vector at an integer index. Vectors index by int only; a non-integer key raises a clean `InvalidArgumentException` instead of leaking PHP's `update(): Argument #1 ($i) must be of type int` TypeError."
   [v key value]
   (if (integer? key)
     (php/-> v (update key value))
@@ -282,9 +276,7 @@
                     (str "assoc expects a map, vector, struct, or nil; got " (type ds))))))
 
 (defn assoc
-  "Associates one or more key-value pairs with a collection.
-  Additional key-value pairs beyond the first are applied in order.
-  Throws if an odd number of extra arguments is provided."
+  "Associates one or more key-value pairs with a collection. Additional key-value pairs beyond the first are applied in order. Throws if an odd number of extra arguments is provided."
   {:example "(assoc {:a 1} :b 2) ; => {:a 1, :b 2}\n(assoc {:a 1} :b 2 :c 3) ; => {:a 1, :b 2, :c 3}"}
   [ds key value & more]
   (when (php/!== 0 (php/& (count more) 1))

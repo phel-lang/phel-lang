@@ -252,8 +252,7 @@
 (defn progress-finish   "Finish + newline."     [bar] (php/-> bar (finish)) (println))
 
 (defn run-with-progress
-  "Iterate `coll` and invoke `(step-fn item bar)` for each, handling
-  start / advance / finish automatically."
+  "Iterate `coll` and invoke `(step-fn item bar)` for each, handling start / advance / finish automatically."
   {:example "(run-with-progress ctx files (fn [f _] (process f)))"}
   [ctx coll step-fn & [opts]]
   (let [bar (progress-bar ctx (assoc (or opts {}) :max (or (get opts :max) (count coll))))]
@@ -465,16 +464,14 @@
 ;; =============================================================================
 
 (defn argv
-  "Build an `ArgvInput` from a vector of string tokens. Positional args
-  and `--flag=value` are parsed just like a real shell command line."
+  "Build an `ArgvInput` from a vector of string tokens. Positional args and `--flag=value` are parsed just like a real shell command line."
   {:see-also ["argv-with-stdin" "buffered-output"]
    :example  "(argv [\"greet\" \"--loud\" \"alice\"])"}
   [args]
   (php/new ArgvInput (apply php/array (cons "_" args))))
 
 (defn argv-with-stdin
-  "Like `argv` but also wires a STDIN stream so `ask`/`confirm`/`choice`
-  prompts can be tested with canned answers."
+  "Like `argv` but also wires a STDIN stream so `ask`/`confirm`/`choice` prompts can be tested with canned answers."
   {:example "(argv-with-stdin [\"greet\"] \"alice\\n\")"}
   [args stdin-string]
   (let [input  (argv args)

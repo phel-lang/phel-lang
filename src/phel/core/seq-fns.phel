@@ -128,8 +128,7 @@
 (defn into
   "Returns `to` with all elements of `from` added.
 
-  When `from` is associative, it is treated as a sequence of key-value pairs.
-  Supports persistent and transient collections."
+When `from` is associative, it is treated as a sequence of key-value pairs. Supports persistent and transient collections."
   {:example "(into [] '(1 2 3)) ; => [1 2 3]"
    :see-also ["conj" "concat" "transduce"]}
   [to & rest]
@@ -232,8 +231,7 @@
                     (str "Cannot disj on type " (type coll))))))
 
 (defn disj
-  "Returns a new set that does not contain the given key(s). Works on hash-sets and sorted-sets.
-  Removing a non-existent key is a no-op. Returns `nil` when called on `nil`."
+  "Returns a new set that does not contain the given key(s). Works on hash-sets and sorted-sets. Removing a non-existent key is a no-op. Returns `nil` when called on `nil`."
   {:example "(disj #{1 2 3} 2) ; => #{1 3}"
    :see-also ["conj" "hash-set" "sorted-set"]}
   ([set] set)
@@ -252,8 +250,7 @@
     (throw (php/new InvalidArgumentException "Cannot slice"))))
 
 (defn set
-  "Coerces a collection to a set. Returns a set containing the distinct elements of `coll`.
-  For creating sets from arguments, use `hash-set`."
+  "Coerces a collection to a set. Returns a set containing the distinct elements of `coll`. For creating sets from arguments, use `hash-set`."
   {:example "(set [1 2 3 2 1]) ; => #{1 2 3}"
    :see-also ["hash-set" "vec" "into"]}
   [coll]
@@ -264,8 +261,7 @@
        (conj! acc x)))))
 
 (defn vec
-  "Coerces a collection to a vector. For hash-maps and structs, entries
-  are returned as 2-element `[key value]` vectors, matching Clojure."
+  "Coerces a collection to a vector. For hash-maps and structs, entries are returned as 2-element `[key value]` vectors, matching Clojure."
   {:example "(vec {:a 1 :b 2}) ; => [[:a 1] [:b 2]]"
    :see-also ["vector" "set" "into"]}
   [coll]
@@ -287,8 +283,7 @@
 (defn get-in
   "Accesses a value in a nested data structure via a sequence of keys.
 
-  Returns `opt` (default nil) when a key is missing mid-traversal.
-  When the path is nil or empty, returns `ds` as-is (which may be nil)."
+Returns `opt` (default nil) when a key is missing mid-traversal. When the path is nil or empty, returns `ds` as-is (which may be nil)."
   {:example "(get-in {:a {:b {:c 42}}} [:a :b :c]) ; => 42"
    :see-also ["assoc-in" "update-in"]}
   [ds ks & [opt]]
@@ -310,7 +305,7 @@
 (defn assoc-in
   "Associates a value in a nested data structure at the given path.
 
-  Creates intermediate maps if they don't exist."
+Creates intermediate maps if they don't exist."
   {:example "(assoc-in {:a {:b 1}} [:a :c] 2) ; => {:a {:b 1, :c 2}}"
    :see-also ["get-in" "update-in" "dissoc-in"]}
   [ds [k & ks] v]
@@ -362,8 +357,7 @@
   (dissoc-in ds ks))
 
 (defn drop
-  "Drops the first `n` elements of `coll`. Returns a lazy sequence.
-  When called with n only, returns a transducer."
+  "Drops the first `n` elements of `coll`. Returns a lazy sequence. When called with n only, returns a transducer."
   {:example "(drop 2 [1 2 3 4 5]) ; => @[3 4 5]"
    :see-also ["take" "drop-last" "transduce"]}
   [n & args]
@@ -385,10 +379,7 @@
     (throw (php/new InvalidArgumentException "drop expects 1 or 2 arguments"))))
 
 (defn drop-last
-  "Drops the last `n` elements of `coll`. `n` defaults to `1` when omitted,
-   matching Clojure's `(drop-last coll)` single-arity form. Returns an empty
-   sequence when `coll` is `nil`. Works with any seqable collection including
-   lazy sequences and ranges."
+  "Drops the last `n` elements of `coll`. `n` defaults to `1` when omitted, matching Clojure's `(drop-last coll)` single-arity form. Returns an empty sequence when `coll` is `nil`. Works with any seqable collection including lazy sequences and ranges."
   {:example "(drop-last [1 2 3 4 5]) ; => @[1 2 3 4]\n(drop-last 2 [1 2 3 4 5]) ; => @[1 2 3]\n(drop-last 5 nil) ; => @[]"
    :see-also ["drop" "butlast"]}
   ([coll] (drop-last 1 coll))
@@ -419,8 +410,7 @@
     (drop-last 1 coll)))
 
 (defn drop-while
-  "Drops all elements at the front of `coll` where `(pred x)` is true. Returns a lazy sequence.
-  When called with pred only, returns a transducer."
+  "Drops all elements at the front of `coll` where `(pred x)` is true. Returns a lazy sequence. When called with pred only, returns a transducer."
   {:example "(drop-while #(< % 5) [1 2 3 4 5 6 3 2 1]) ; => @[5 6 3 2 1]"
    :see-also ["take-while" "drop" "transduce"]}
   [pred & args]
@@ -439,8 +429,7 @@
     (throw (php/new InvalidArgumentException "drop-while expects 1 or 2 arguments"))))
 
 (defn take
-  "Takes the first `n` elements of `coll`.
-  When called with n only, returns a transducer."
+  "Takes the first `n` elements of `coll`. When called with n only, returns a transducer."
   [n & args]
   (case (count args)
     0 (fn [rf]
@@ -484,8 +473,7 @@
     :else (take-last-buffered n coll)))
 
 (defn take-while
-  "Takes all elements at the front of `coll` where `(pred x)` is true. Returns a lazy sequence.
-  When called with pred only, returns a transducer."
+  "Takes all elements at the front of `coll` where `(pred x)` is true. Returns a lazy sequence. When called with pred only, returns a transducer."
   {:example "(take-while #(< % 5) [1 2 3 4 5 6 3 2 1]) ; => @[1 2 3 4]"
    :see-also ["drop-while" "take" "transduce"]}
   [pred & args]
@@ -501,8 +489,7 @@
     (throw (php/new InvalidArgumentException "take-while expects 1 or 2 arguments"))))
 
 (defn take-nth
-  "Returns every nth item in `coll`. Returns a lazy sequence.
-  When called with n only, returns a transducer."
+  "Returns every nth item in `coll`. Returns a lazy sequence. When called with n only, returns a transducer."
   {:example "(take-nth 2 [0 1 2 3 4 5 6 7 8]) ; => @[0 2 4 6 8]"
    :see-also ["take" "filter" "transduce"]}
   [n & args]
@@ -523,8 +510,7 @@
     (throw (php/new InvalidArgumentException "take-nth expects 1 or 2 arguments"))))
 
 (defn filter
-  "Returns a lazy sequence of elements where predicate returns true.
-  When called with pred only, returns a transducer."
+  "Returns a lazy sequence of elements where predicate returns true. When called with pred only, returns a transducer."
   {:example "(filter even? [1 2 3 4 5 6]) ; => @[2 4 6]"
    :see-also ["remove" "keep" "transduce"]}
   [pred & args]
@@ -543,8 +529,7 @@
     (throw (php/new InvalidArgumentException "filter expects 1 or 2 arguments"))))
 
 (defn remove
-  "Returns a lazy sequence of elements where predicate returns false.
-   Opposite of filter. When called with pred only, returns a transducer."
+  "Returns a lazy sequence of elements where predicate returns false. Opposite of filter. When called with pred only, returns a transducer."
   {:example "(remove even? [1 2 3 4 5 6]) ; => @[1 3 5]"
    :see-also ["filter" "transduce"]}
   [pred & args]
@@ -554,8 +539,7 @@
     (throw (php/new InvalidArgumentException "remove expects 1 or 2 arguments"))))
 
 (defn keep
-  "Returns a lazy sequence of non-nil results of applying function to elements.
-  When called with f only, returns a transducer."
+  "Returns a lazy sequence of non-nil results of applying function to elements. When called with f only, returns a transducer."
   {:example "(keep #(when (even? %) (* % %)) [1 2 3 4 5]) ; => @[4 16]"
    :see-also ["keep-indexed" "filter" "transduce"]}
   [pred & args]
@@ -572,8 +556,7 @@
     (throw (php/new InvalidArgumentException "keep expects 1 or 2 arguments"))))
 
 (defn keep-indexed
-  "Returns a lazy sequence of non-nil results of `(pred i x)`.
-  When called with f only, returns a transducer."
+  "Returns a lazy sequence of non-nil results of `(pred i x)`. When called with f only, returns a transducer."
   {:example "(keep-indexed #(when (even? %1) %2) [\"a\" \"b\" \"c\" \"d\"]) ; => @[\"a\" \"c\"]"
    :see-also ["keep" "map-indexed" "transduce"]}
   [pred & args]
@@ -604,8 +587,7 @@
         (if (pred x) x (recur (next s)))))))
 
 (defn find
-  "When called with a collection first, returns `[key value]` when `key` is present.
-  Otherwise returns the first item in `coll` where `(pred item)` evaluates to true."
+  "When called with a collection first, returns `[key value]` when `key` is present. Otherwise returns the first item in `coll` where `(pred item)` evaluates to true."
   {:example "(find {:a 1} :a) ; => [:a 1]\n(find #(> % 5) [1 2 3 6 7 8]) ; => 6"
    :see-also ["find-index" "filter" "some?"]}
   [pred-or-coll coll-or-key]
@@ -626,8 +608,7 @@
       :else            (recur (next s) (php/+ i 1)))))
 
 (defn distinct
-  "Returns a lazy sequence with duplicated values removed in `coll`.
-  When called with no args, returns a transducer."
+  "Returns a lazy sequence with duplicated values removed in `coll`. When called with no args, returns a transducer."
   {:example "(distinct [1 2 1 3 2 4 3]) ; => @[1 2 3 4]"
    :see-also ["frequencies" "set" "dedupe" "transduce"]}
   [& args]
@@ -662,8 +643,7 @@
     (copy-meta coll result)))
 
 (defn reversible?
-  "Returns true if `coll` can be reverse-iterated in constant time.
-  Currently this is true for vectors, sorted-maps, and sorted-sets."
+  "Returns true if `coll` can be reverse-iterated in constant time. Currently this is true for vectors, sorted-maps, and sorted-sets."
   {:example "(reversible? [1 2 3]) ; => true"
    :see-also ["rseq" "reverse"]}
   [coll]
@@ -671,10 +651,7 @@
       (sorted? coll)))
 
 (defn rseq
-  "Returns, in constant time, a sequence of the items in `rev` in reverse
-  order. `rev` must be reversible (a vector, sorted-map, or sorted-set);
-  otherwise an exception is thrown. For sorted-maps, returns reversed `[key value]` pairs.
-  Returns nil if `rev` is empty."
+  "Returns, in constant time, a sequence of the items in `rev` in reverse order. `rev` must be reversible (a vector, sorted-map, or sorted-set); otherwise an exception is thrown. For sorted-maps, returns reversed `[key value]` pairs. Returns nil if `rev` is empty."
   {:example "(rseq [1 2 3]) ; => (3 2 1)"
    :see-also ["reversible?" "reverse"]}
   [rev]
@@ -687,7 +664,7 @@
 (defn frequencies
   "Returns a map from distinct items in `coll` to the number of times they appear.
 
-  Works with vectors, lists, sets, and strings."
+Works with vectors, lists, sets, and strings."
   {:example "(frequencies [:a :b :a :c :b :a]) ; => {:a 3, :b 2, :c 1}"}
   [coll]
   (let [result (persistent
@@ -698,25 +675,21 @@
     (copy-meta coll result)))
 
 (defn keys
-  "Returns a sequence of all keys in a map, or `nil` when the map is `nil`
-  or empty."
+  "Returns a sequence of all keys in a map, or `nil` when the map is `nil` or empty."
   {:example "(keys {:a 1 :b 2}) ; => [:a :b]\n(keys nil) ; => nil"}
   [coll]
   (when-not (empty? coll)
     (copy-meta coll (for [k :keys coll] k))))
 
 (defn vals
-  "Returns a sequence of all values in a map, or `nil` when the map is `nil`
-  or empty."
+  "Returns a sequence of all values in a map, or `nil` when the map is `nil` or empty."
   {:example "(vals {:a 1 :b 2}) ; => [1 2]\n(vals nil) ; => nil"}
   [coll]
   (when-not (empty? coll)
     (copy-meta coll (for [x :in coll] x))))
 
 (defn map-entry
-  "Returns a typed `Phel\\Lang\\Collections\\Map\\MapEntry` for `k`/`v`.
-  Equal to the two-element vector `[k v]` so existing code that
-  destructures `[k v]` keeps working."
+  "Returns a typed `Phel\\Lang\\Collections\\Map\\MapEntry` for `k`/`v`. Equal to the two-element vector `[k v]` so existing code that destructures `[k v]` keeps working."
   {:example "(map-entry :a 1) ; => [:a 1]"
    :see-also ["map-entry?" "key" "val"]}
   [k v]
@@ -826,7 +799,7 @@
 (defn php->phel
   "Recursively converts a PHP array to Phel data structures.
 
-  Indexed PHP arrays become vectors, associative PHP arrays become maps."
+Indexed PHP arrays become vectors, associative PHP arrays become maps."
   {:example "(php->phel (php-associative-array \"a\" 1 \"b\" 2)) ; => {\"a\" 1, \"b\" 2}"
    :see-also ["phel->php"]}
   [x]
@@ -846,8 +819,7 @@
     true                   x))
 
 (defn bean
-  "Returns a Phel map of the public properties of PHP object `obj`, with
-  keyword keys. Inverse of `hydrate` for public-property objects."
+  "Returns a Phel map of the public properties of PHP object `obj`, with keyword keys. Inverse of `hydrate` for public-property objects."
   {:example "(bean (hydrate \"My\\\\Dto\" {:id 1})) ; => {:id 1}"
    :see-also ["hydrate" "php-array-to-map" "php->phel"]}
   [obj]
@@ -857,10 +829,7 @@
     (persistent res)))
 
 (defn hydrate
-  "Creates an instance of PHP class `class-name` (a class-string) without
-  invoking its constructor, then sets each declared property named by the
-  keyword keys of map `m`. Mirrors how ORMs/serializers rebuild entities from
-  raw data; pairs with `bean` for the reverse direction."
+  "Creates an instance of PHP class `class-name` (a class-string) without invoking its constructor, then sets each declared property named by the keyword keys of map `m`. Mirrors how ORMs/serializers rebuild entities from raw data; pairs with `bean` for the reverse direction."
   {:example "(hydrate \"My\\\\Dto\" {:id 1 :name \"x\"})"
    :see-also ["bean"]}
   [class-name m]
@@ -878,12 +847,7 @@
   (some? #(= % val) (vals coll)))
 
 (defn- sort-comparator
-  "Wraps the user-supplied comparator (or `compare` when absent) so its
-  result is always an integer. A predicate-style comparator that
-  returns a boolean follows Clojure semantics: a truthy result means
-  the first argument should sort earlier (`-1`), the reverse-truthy
-  case means it should sort later (`+1`), otherwise the items are
-  considered equal."
+  "Wraps the user-supplied comparator (or `compare` when absent) so its result is always an integer. A predicate-style comparator that returns a boolean follows Clojure semantics: a truthy result means the first argument should sort earlier (`-1`), the reverse-truthy case means it should sort later (`+1`), otherwise the items are considered equal."
   [comp]
   (let [cmp (or comp compare)]
     (fn [a b]
@@ -923,7 +887,7 @@
 (defn sort-by
   "Returns a sorted vector where the sort order is determined by comparing `(keyfn item)`.
 
-  If no comparator is supplied compare is used."
+If no comparator is supplied compare is used."
   {:example "(sort-by count [\"aaa\" \"c\" \"bb\"]) ; => [\"c\" \"bb\" \"aaa\"]\n(sort-by count compare [\"aaa\" \"c\" \"bb\"]) ; => [\"c\" \"bb\" \"aaa\"]"
    :see-also ["sort" "compare"]}
   ([keyfn coll]
@@ -944,7 +908,7 @@
 (defn repeat
   "Returns a vector of length n where every element is x.
 
-  With one argument returns an infinite lazy sequence of x."
+With one argument returns an infinite lazy sequence of x."
   {:example "(repeat 3 :a) ; => [:a :a :a]"
    :see-also ["repeatedly" "cycle"]}
   [a & rest]
@@ -956,7 +920,7 @@
 (defn repeatedly
   "Returns a vector of length n with values produced by repeatedly calling f.
 
-  With one argument returns an infinite lazy sequence of calls to f."
+With one argument returns an infinite lazy sequence of calls to f."
   {:example "(repeatedly 3 rand) ; => [0.234 0.892 0.456] (random values)"
    :see-also ["repeat" "iterate"]}
   [a & rest]
@@ -996,19 +960,14 @@
   (lazy-seq-from-generator (php/:: Seq (iterate f x))))
 
 (defn iterator-seq
-  "Returns a lazy sequence over a PHP `Traversable` (Iterator, Generator,
-  IteratorAggregate, ...), pulling one element at a time. Unlike the eager
-  coercion that materialises a `Traversable` via `iterator_to_array`, this
-  streams a large or infinite source (DB cursor, stream reader, paginated
-  API), so `take`/`map`/`filter` only pull what they consume."
+  "Returns a lazy sequence over a PHP `Traversable` (Iterator, Generator, IteratorAggregate, ...), pulling one element at a time. Unlike the eager coercion that materialises a `Traversable` via `iterator_to_array`, this streams a large or infinite source (DB cursor, stream reader, paginated API), so `take`/`map`/`filter` only pull what they consume."
   {:example "(take 3 (iterator-seq (php/new \\ArrayIterator (php/array 1 2 3 4 5)))) ; => @[1 2 3]"
    :see-also ["lazy-seq" "map" "take"]}
   [traversable]
   (php/:: LazySeq (fromTraversable (php/new Hasher) (php/new Equalizer) traversable)))
 
 (defn cycle
-  "Returns an infinite lazy sequence that cycles through the elements of
-  collection. Maps are iterated as `[key value]` pairs."
+  "Returns an infinite lazy sequence that cycles through the elements of collection. Maps are iterated as `[key value]` pairs."
   {:example "(take 7 (cycle [1 2 3])) ; => @[1 2 3 1 2 3 1]"
    :see-also ["iterate" "repeat"]}
   [coll]
@@ -1063,8 +1022,7 @@
     (apply concat (apply map f args))))
 
 (defn interpose
-  "Returns elements separated by a separator. Returns a lazy sequence.
-  When called with sep only, returns a transducer."
+  "Returns elements separated by a separator. Returns a lazy sequence. When called with sep only, returns a transducer."
   {:example "(interpose 0 [1 2 3]) ; => @[1 0 2 0 3]"
    :see-also ["transduce"]}
   [sep & args]
@@ -1096,9 +1054,7 @@
 (defn map-indexed
   "Maps a function over a collection with index. Returns a lazy sequence.
 
-  Applies `f` to each element in `xs`. `f` is a two-argument function where
-  the first argument is the index (0-based) and the second is the element itself.
-  Works with infinite sequences."
+Applies `f` to each element in `xs`. `f` is a two-argument function where the first argument is the index (0-based) and the second is the element itself. Works with infinite sequences."
   {:example "(map-indexed vector [:a :b :c]) ; => @[[0 :a] [1 :b] [2 :c]]"}
   [f coll]
   (if (php/=== nil coll)
@@ -1110,12 +1066,7 @@
         (copy-meta coll result)))))
 
 (defn interleave
-  "Returns a lazy sequence of the first item in each `colls`, then the
-  second item in each, until any one of the collections is exhausted.
-  Any remaining items in the other collections are ignored. Returns an
-  empty sequence when no collections are supplied or when any
-  collection is empty or `nil`. Maps are iterated as `[key value]`
-  pairs."
+  "Returns a lazy sequence of the first item in each `colls`, then the second item in each, until any one of the collections is exhausted. Any remaining items in the other collections are ignored. Returns an empty sequence when no collections are supplied or when any collection is empty or `nil`. Maps are iterated as `[key value]` pairs."
   {:example "(interleave [1 2 3] [:a :b :c]) ; => @[1 :a 2 :b 3 :c]\n(interleave [1 2 3] [:a :b]) ; => @[1 :a 2 :b]"}
   [& colls]
   (cond
@@ -1184,8 +1135,7 @@
 (defn zipmap
   "Returns a new map with the keys mapped to the corresponding values.
 
-  Stops when the shorter of `keys` or `vals` is exhausted.
-  Works safely with infinite lazy sequences."
+Stops when the shorter of `keys` or `vals` is exhausted. Works safely with infinite lazy sequences."
   {:example "(zipmap [:a :b :c] [1 2 3]) ; => {:a 1, :b 2, :c 3}"
    :see-also ["zipcoll"]}
   [keys vals]
@@ -1213,7 +1163,7 @@
 (defn merge
   "Merges multiple maps into one new map.
 
-  If a key appears in more than one collection, later values replace previous ones."
+If a key appears in more than one collection, later values replace previous ones."
   {:example "(merge {:a 1 :b 2} {:b 3 :c 4}) ; => {:a 1, :b 3, :c 4}"}
   ([] nil)
   ([map] map)
@@ -1234,8 +1184,7 @@
       (copy-meta m result))))
 
 (defn rename-keys
-  "Returns the map with keys renamed according to kmap.
-  Keys not present in kmap are left unchanged."
+  "Returns the map with keys renamed according to kmap. Keys not present in kmap are left unchanged."
   {:example "(rename-keys {:a 1 :b 2 :c 3} {:a :x :b :y}) ; => {:x 1, :y 2, :c 3}"
    :see-also ["select-keys" "keys" "vals"]}
   [m kmap]
@@ -1247,7 +1196,7 @@
 (defn invert
   "Returns a new map where the keys and values are swapped.
 
-  If map has duplicated values, some keys will be ignored."
+If map has duplicated values, some keys will be ignored."
   {:example "(invert {:a 1 :b 2 :c 3}) ; => {1 :a, 2 :b, 3 :c}"}
   [map]
   (persistent
@@ -1280,8 +1229,7 @@
     true                                     (lazy-seq-from-generator (php/:: Seq (partitionBy f coll)))))
 
 (defn dedupe
-  "Returns a lazy sequence with consecutive duplicate values removed in `coll`.
-  When called with no args, returns a transducer."
+  "Returns a lazy sequence with consecutive duplicate values removed in `coll`. When called with no args, returns a transducer."
   {:example "(dedupe [1 1 2 2 2 3 1 1]) ; => @[1 2 3 1]"
    :see-also ["distinct" "transduce"]}
   [& args]
@@ -1322,8 +1270,7 @@
     (php/new Eduction xform coll)))
 
 (defn compact
-  "Returns a lazy sequence with specified values removed from `coll`.
-  If no values are specified, removes nil values by default."
+  "Returns a lazy sequence with specified values removed from `coll`. If no values are specified, removes nil values by default."
   {:example "(compact [1 nil 2 nil 3]) ; => @[1 2 3]"}
   [coll & values]
   (cond

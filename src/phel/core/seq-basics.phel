@@ -121,8 +121,7 @@
 (defn count
   "Counts the number of elements in a sequence. Can be used on everything that implements the PHP Countable interface.
 
-  Works with lists, vectors, hash-maps, sets, strings, and PHP arrays.
-  Returns 0 for nil."
+Works with lists, vectors, hash-maps, sets, strings, and PHP arrays. Returns 0 for nil."
   {:example "(count [1 2 3]) ; => 3"
    :see-also ["empty?" "seq"]}
   [coll]

@@ -22,11 +22,9 @@
 (defn atom
   "Creates a new atom with the given value.
 
-  Atoms provide a way to manage mutable state. Use `reset!` to set a new value
-  and `swap!` to update based on the current value.
+Atoms provide a way to manage mutable state. Use `reset!` to set a new value and `swap!` to update based on the current value.
 
-  Optional `:meta` and `:validator` keyword arguments may follow the value in
-  any order. The validator is applied to the initial value when set."
+Optional `:meta` and `:validator` keyword arguments may follow the value in any order. The validator is applied to the initial value when set."
   {:example "(def counter (atom 0))\n(atom 0 :meta {:tag :counter} :validator number?)"
    :see-also ["reset!" "deref" "swap!" "set-validator!"]}
   [value & opts]
@@ -43,8 +41,7 @@
   (php/instanceof x Atom))
 
 (defn var?
-  "Returns true if the given value is a `Var`, the first-class handle to a
-  global definition produced by `(var sym)` and `#'sym`."
+  "Returns true if the given value is a `Var`, the first-class handle to a global definition produced by `(var sym)` and `#'sym`."
   {:see-also ["var-get" "find-var" "alter-var-root"]}
   [x]
   (php/instanceof x PhelVar))
@@ -65,12 +62,9 @@
 (defn deref
   "Returns the current value inside an atom or var.
 
-  For atoms returns the current cell value; for `Var` instances returns the
-  current root binding from the namespace registry.
+For atoms returns the current cell value; for `Var` instances returns the current root binding from the namespace registry.
 
-  With three arguments, and when `variable` is a future or promise, blocks
-  for at most `timeout-ms` milliseconds waiting for it to resolve. If the
-  awaitable has not completed within the timeout, returns `timeout-val`."
+With three arguments, and when `variable` is a future or promise, blocks for at most `timeout-ms` milliseconds waiting for it to resolve. If the awaitable has not completed within the timeout, returns `timeout-val`."
   {:example "(deref (atom 42)) ; => 42\n(deref #'phel.core/map) ; => <function:map>"
    :see-also ["atom" "reset!" "swap!" "future" "var-get"]}
   [variable & args]
@@ -92,7 +86,7 @@
 (defn swap!
   "Atomically swaps the value of the atom to `(apply f current-value args)`.
 
-  Returns the new value after the swap."
+Returns the new value after the swap."
   {:example "(def counter (atom 0))"
    :see-also ["atom" "reset!" "deref"]}
   [variable f & args]
@@ -105,8 +99,7 @@
     (reset! variable next)))
 
 (defn add-watch
-  "Adds a watch function to a variable. The watch fn is called when the variable
-  changes with four arguments: key, ref, old-value, new-value."
+  "Adds a watch function to a variable. The watch fn is called when the variable changes with four arguments: key, ref, old-value, new-value."
   {:example "(add-watch my-var :logger (fn [key ref old new] (println old \"->\" new)))"
    :see-also ["remove-watch" "atom" "swap!"]}
   [variable key f]
@@ -114,9 +107,7 @@
   variable)
 
 (defn alter-var-root
-  "Replaces the root binding of `v` with `(apply f current-root args)`.
-  Returns the new root value. `v` must be a `Var`; pass an atom and you get a
-  clear error pointing at `swap!` instead."
+  "Replaces the root binding of `v` with `(apply f current-root args)`. Returns the new root value. `v` must be a `Var`; pass an atom and you get a clear error pointing at `swap!` instead."
   {:example "(def counter 0)\n(alter-var-root #'counter inc) ; => 1"
    :see-also ["var" "var?" "swap!"]}
   [v f & args]
@@ -124,8 +115,7 @@
   (php/-> v (alterRoot (fn [current] (apply f current args)))))
 
 (defn bound?
-  "Returns true when `v` has a current root binding in the namespace
-  registry. `v` must be a `Var`."
+  "Returns true when `v` has a current root binding in the namespace registry. `v` must be a `Var`."
   {:example "(bound? #'phel.core/map) ; => true"
    :see-also ["thread-bound?" "var-get" "find-var"]}
   [v]
@@ -134,8 +124,7 @@
                           (php/-> v (getName)))))
 
 (defn thread-bound?
-  "Returns true when a fiber-local `binding` (or `with-bindings`) frame
-  currently overrides the value of `v` on the calling fiber."
+  "Returns true when a fiber-local `binding` (or `with-bindings`) frame currently overrides the value of `v` on the calling fiber."
   {:example "(binding [*foo* 1] (thread-bound? #'*foo*)) ; => true"
    :see-also ["bound?" "binding" "var-set"]}
   [v]
@@ -173,8 +162,7 @@
                               "alter-meta! expects a Var or atom as first argument"))))
 
 (defn reset-meta!
-  "Installs `meta-map` as the metadata on `r`, replacing any prior metadata.
-  Works on `Var` handles and on atoms. Returns the installed map."
+  "Installs `meta-map` as the metadata on `r`, replacing any prior metadata. Works on `Var` handles and on atoms. Returns the installed map."
   {:example "(reset-meta! #'my-var {:tag :int})"
    :see-also ["alter-meta!" "meta" "with-meta"]}
   [r meta-map]
@@ -192,9 +180,7 @@
   variable)
 
 (defn set-validator!
-  "Sets a validator function on a variable. The validator is called before any
-  state change with the proposed new value. If it returns a falsy value, an
-  exception is thrown and the state is not changed. Pass nil to remove."
+  "Sets a validator function on a variable. The validator is called before any state change with the proposed new value. If it returns a falsy value, an exception is thrown and the state is not changed. Pass nil to remove."
   {:example "(set-validator! my-var pos?)"
    :see-also ["get-validator" "atom"]}
   [variable f]
@@ -212,8 +198,7 @@
 ;; --------
 
 (defn- lazy-seq-from-generator
-  "Wraps a PHP Generator in a ChunkedSeq for efficient lazy evaluation.
-  ChunkedSeq realizes elements in batches for better performance."
+  "Wraps a PHP Generator in a ChunkedSeq for efficient lazy evaluation. ChunkedSeq realizes elements in batches for better performance."
   [generator]
   (php/:: ChunkedSeq (fromGenerator
                       (php/new Hasher)
@@ -221,9 +206,7 @@
                       generator)))
 
 (defn range
-  "Creates a lazy sequence of numbers. With no arguments returns an infinite
-  sequence starting at 0. With one argument returns (0..n). With two (start..end).
-  With three (start..end step). Note: the infinite sequence is bounded by PHP_INT_MAX."
+  "Creates a lazy sequence of numbers. With no arguments returns an infinite sequence starting at 0. With one argument returns (0..n). With two (start..end). With three (start..end step). Note: the infinite sequence is bounded by PHP_INT_MAX."
   {:example "(range 5) ; => @[0 1 2 3 4]"
    :see-also ["iterate" "repeat"]}
   [& args]
@@ -324,8 +307,7 @@
        (deref ~res-sym))))
 
 (defmacro dofor
-  "Repeatedly executes body for side effects with bindings and modifiers as
-  provided by for. Returns nil."
+  "Repeatedly executes body for side effects with bindings and modifiers as provided by for. Returns nil."
   [head & body]
   (for-builder `(do ~@body) head 0))
 
@@ -352,11 +334,7 @@
   (conj (conj (conj head binding) verb) coll-expr))
 
 (defn- doseq-normalize
-  "Transforms Clojure-style doseq bindings into Phel dofor format.
-  Pairs `[x coll]` become triples `[x :in (doseq-iterable coll)]` so maps
-  iterate as entry pairs. Already-present verb triples `[x :in coll]` pass
-  through unchanged. Modifier keywords like `:when`, `:while`, `:let` pass
-  through unchanged."
+  "Transforms Clojure-style doseq bindings into Phel dofor format. Pairs `[x coll]` become triples `[x :in (doseq-iterable coll)]` so maps iterate as entry pairs. Already-present verb triples `[x :in coll]` pass through unchanged. Modifier keywords like `:when`, `:while`, `:let` pass through unchanged."
   [head]
   (loop [i      0
          result []]
@@ -394,8 +372,7 @@
   x)
 
 (defn- xf-step
-  "Creates a transducer reducing function that delegates 0/1 arity to rf
-  and calls step-fn for the 2-arity step. Eliminates repeated boilerplate."
+  "Creates a transducer reducing function that delegates 0/1 arity to rf and calls step-fn for the 2-arity step. Eliminates repeated boilerplate."
   [rf step-fn]
   (fn [& args]
     (case (count args)

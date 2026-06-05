@@ -21,8 +21,7 @@
 (defn chars
   "Returns a vector of characters from string s.
 
-  This is a convenience function for converting strings to character sequences.
-  Properly handles multibyte UTF-8 characters."
+This is a convenience function for converting strings to character sequences. Properly handles multibyte UTF-8 characters."
   {:example "(chars \"hello\") ; => [\"h\" \"e\" \"l\" \"l\" \"o\"]"
    :see-also ["seq"]}
   [s]
@@ -154,8 +153,7 @@
   (php/preg_replace "/[\s]+$/u" "" s))
 
 (defn blank?
-  "True if s is nil, empty, or contains only whitespace. Non-breaking
-  separators (`U+00A0`, `U+2007`, `U+202F`) are not treated as whitespace."
+  "True if s is nil, empty, or contains only whitespace. Non-breaking separators (`U+00A0`, `U+2007`, `U+202F`) are not treated as whitespace."
   {:example "(blank? \"   \") ; => true"}
   [s]
   (cond
@@ -214,9 +212,7 @@
     (php/implode "" mapped)))
 
 (defn index-of
-  "Returns the index of the first occurrence of value in s, or nil if not
-  found. The optional from-index sets where the search begins; a negative
-  from-index counts back from the end of s."
+  "Returns the index of the first occurrence of value in s, or nil if not found. The optional from-index sets where the search begins; a negative from-index counts back from the end of s."
   {:example "(index-of \"hello world\" \"world\") ; => 6"
    :see-also ["last-index-of" "contains?"]}
   [s value & [from-index]]
@@ -235,9 +231,7 @@
       result)))
 
 (defn last-index-of
-  "Returns the index of the last occurrence of value in s, or nil if not
-  found. The optional from-index sets the upper bound for the match; a
-  negative from-index counts back from the end of s."
+  "Returns the index of the last occurrence of value in s, or nil if not found. The optional from-index sets the upper bound for the match; a negative from-index counts back from the end of s."
   {:example "(last-index-of \"hello world world\" \"world\") ; => 12"
    :see-also ["index-of" "contains?"]}
   [s value & [from-index]]
