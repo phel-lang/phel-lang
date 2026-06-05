@@ -42,6 +42,16 @@ final class CallInlineRuntimeTest extends TestCase
         $this->compilerFacade = new CompilerFacade();
         self::$globalEnv->setNs('user');
         Symbol::resetGen();
+
+        // Phel compiles/evals by executing forms, so side-effecting callees
+        // (e.g. `php/printf`) emit to stdout during these cases. Capture it so
+        // it never leaks into the test runner output.
+        ob_start();
+    }
+
+    protected function tearDown(): void
+    {
+        ob_end_clean();
     }
 
     public function test_literal_call_folds_to_a_constant(): void
