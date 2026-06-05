@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "752d0e1cbe299e924e7d5e812899e3e3",
+    "content-hash": "bf3f895c66e75351eb2a45d85f0f6b60",
     "packages": [
         {
             "name": "amphp/amp",
@@ -157,20 +157,20 @@
         },
         {
             "name": "gacela-project/gacela",
-            "version": "1.14.4",
+            "version": "1.15.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/gacela-project/gacela.git",
-                "reference": "d3058fa16b4748adca17d7e5b940c0dc5daa3e61"
+                "reference": "378c69c45446f60c821ea1c3bb4638ca052c7d94"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/gacela-project/gacela/zipball/d3058fa16b4748adca17d7e5b940c0dc5daa3e61",
-                "reference": "d3058fa16b4748adca17d7e5b940c0dc5daa3e61",
+                "url": "https://api.github.com/repos/gacela-project/gacela/zipball/378c69c45446f60c821ea1c3bb4638ca052c7d94",
+                "reference": "378c69c45446f60c821ea1c3bb4638ca052c7d94",
                 "shasum": ""
             },
             "require": {
-                "gacela-project/container": "^0.8",
+                "gacela-project/container": "^0.8.1",
                 "php": ">=8.1"
             },
             "require-dev": {
@@ -210,8 +210,8 @@
             ],
             "authors": [
                 {
-                    "name": "Jose Maria Valera Reales",
-                    "email": "chemaclass@outlook.es",
+                    "name": "Jose M. Valera Reales",
+                    "email": "gacela@chemaclass.com",
                     "homepage": "https://chemaclass.com"
                 },
                 {
@@ -230,7 +230,7 @@
             ],
             "support": {
                 "issues": "https://github.com/gacela-project/gacela/issues",
-                "source": "https://github.com/gacela-project/gacela/tree/1.14.4"
+                "source": "https://github.com/gacela-project/gacela/tree/1.15.0"
             },
             "funding": [
                 {
@@ -238,7 +238,7 @@
                     "type": "custom"
                 }
             ],
-            "time": "2026-04-20T09:41:26+00:00"
+            "time": "2026-06-05T12:00:26+00:00"
         },
         {
             "name": "psr/container",
