@@ -28,7 +28,7 @@ Specialized reviewer for `.test` fixtures in `tests/php/Integration/Fixtures/`. 
 1. **Scope the impact**:
    - If the diff touches `src/php/Compiler/Domain/Lexer/` → fixtures most at risk: tokenizer edge cases (numeric literals, strings, keywords).
    - If it touches `Domain/Parser/` → AST-shape fixtures (`Apply`, `Call`, nested forms).
-   - If it touches `Domain/Analyzer/SpecialForm/*` → the fixture category matching that form (e.g. `Try`, `Let`, `Fn`, `Def`).
+   - If it touches `Domain/Analyzer/TypeAnalyzer/SpecialForm/*` → the fixture category matching that form (e.g. `Try`, `Let`, `Fn`, `Def`).
    - If it touches `Domain/Emitter/` → broadly every fixture; focus on node types the diff changed.
 
 2. **Run the integration suite** filtered to the most impacted categories:

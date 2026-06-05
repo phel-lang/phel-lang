@@ -48,7 +48,7 @@ You maintain CHANGELOG.md for the Phel project. Only update the `## Unreleased` 
 
 - `Add \`vec\` function to coerce collections to vectors` (good)
 - `Added stuff to core` (too vague)
-- `Refactored the EmitterNode to use visitor pattern` (too technical)
+- `Refactored the NodeEmitter to use visitor pattern` (too technical)
 
 ## Module Areas
 

@@ -10,7 +10,7 @@ cat <<'EOF'
 - Auto-fix: `composer fix` (rector + cs-fixer). PHP edits auto-format via PostToolUse hook.
 - Compiler: Lexer → Parser → Analyzer → Emitter (never skip phases)
 - Each `src/php/<Module>/CLAUDE.md` documents the module — read before modifying.
-- Protected files: `build/release.sh`, `.github/*`, `composer.lock`
+- Protected files: `tools/release.sh`, `.github/*`, `composer.lock`
 - PRs: follow `.github/PULL_REQUEST_TEMPLATE.md` exactly (with emoji prefixes).
 - `feat:`/`fix:` commits must update `CHANGELOG.md` under `## Unreleased`.
 EOF

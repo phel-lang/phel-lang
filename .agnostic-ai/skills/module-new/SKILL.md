@@ -17,7 +17,7 @@ Scaffolds a new module under `src/php/<ModuleName>/` following the project Gacel
 
 1. **Validate `$ARGUMENTS`**: must be PascalCase, not clash with an existing dir. If missing, ask.
 
-2. **Read a reference module** (pick a small one, e.g. `src/php/Printer/` or `src/php/Formatter/`) to mirror its layout. Record:
+2. **Read a reference module** (pick a small one, e.g. `src/php/Filesystem/` or `src/php/Formatter/`) to mirror its layout. Record:
    - Facade method shape
    - DependencyProvider constant names
    - CLAUDE.md section order

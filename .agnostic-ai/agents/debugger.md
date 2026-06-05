@@ -39,7 +39,7 @@ Every error originates in one compiler phase. Identify it first:
    - Parse: check if AST is well-formed
    - Analyze: check if the node tree is complete
    - Emit: check if PHP output matches expectations
-3. **Find the handler** — special forms have dedicated analyzers in `Domain/Analyzer/SpecialForm/`
+3. **Find the handler** — special forms have dedicated analyzers in `Domain/Analyzer/TypeAnalyzer/SpecialForm/`
 4. **Check the integration tests** — look for similar fixtures in `tests/php/Integration/Fixtures/`
 5. **Trace source locations** — verify `SourceLocation` propagates correctly for error messages
 

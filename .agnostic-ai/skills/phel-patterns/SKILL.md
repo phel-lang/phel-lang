@@ -10,7 +10,7 @@ user-invocable: false
 | Module | Purpose |
 |--------|---------|
 | `core.phel` | Fundamental functions (map, filter, reduce, etc.) |
-| `str.phel` | String manipulation |
+| `string.phel` | String manipulation |
 | `html.phel` | HTML generation |
 | `http.phel` | HTTP request/response |
 | `json.phel` | JSON encoding/decoding |
@@ -18,14 +18,14 @@ user-invocable: false
 | `pprint.phel` | Pretty printing |
 | `walk.phel` | Tree walking (postwalk, prewalk) |
 | `mock.phel` | Mocking utilities for tests |
-| `debug.phel` | Debugging utilities |
+| `reflect.phel` | PHP reflection / attribute bridging |
 | `repl.phel` | REPL functionality |
 | `base64.phel` | Base64 encoding/decoding |
 
 ## Common Idioms
 
 ```phel
-# Function definition with metadata
+; Function definition with metadata
 (defn my-fn
   {:doc "Description of what it does"
    :see-also ["related-fn" "other-fn"]
@@ -33,22 +33,22 @@ user-invocable: false
   [arg]
   (body))
 
-# Private function (not exported)
+; Private function (not exported)
 (defn- helper-fn [x] ...)
 
-# Struct definition
+; Struct definition
 (defstruct my-struct [field-a field-b])
 
-# Threading macros
-(-> value (fn1 arg) (fn2 arg))   # thread-first
-(->> value (fn1 arg) (fn2 arg))  # thread-last
+; Threading macros
+(-> value (fn1 arg) (fn2 arg))   ; thread-first
+(->> value (fn1 arg) (fn2 arg))  ; thread-last
 ```
 
 ## Testing Patterns
 
 ```phel
-(ns phel-test\module-name
-  (:require phel\test :refer [deftest is are]))
+(ns phel-test.module-name
+  (:require phel.test :refer [deftest is are]))
 
 (deftest test-descriptive-name
   (is (= expected (function-under-test input)))

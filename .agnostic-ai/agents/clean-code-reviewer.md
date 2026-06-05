@@ -30,9 +30,9 @@ Analyze staged changes (`git diff --cached`), unstaged changes (`git diff`), or 
 ## SOLID in Phel Context
 
 - **SRP**: `Lexer` only tokenizes, doesn't parse
-- **OCP**: Extend via new `EmitterNode` classes, not modifying existing ones
+- **OCP**: Extend via new `NodeEmitterInterface` implementations (e.g. `ApplyEmitter`, `DefEmitter`), not modifying existing ones
 - **LSP**: All `TypeInterface` implementations must be substitutable
-- **ISP**: Small interfaces (`HasMetaInterface`, `CountableInterface`)
+- **ISP**: Small interfaces (`MetaInterface`, `HashableInterface`)
 - **DIP**: Facades expose module APIs, not concrete classes
 
 ## PHP Smells (src/php/)

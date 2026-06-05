@@ -9,7 +9,7 @@ Phel macros non-hygienic. `let`/`binding` names in macro body silently shadow ho
 
 ## 1. Local names must not collide with referenced globals
 
-Canonical bug (`defn-builder`, fixed in `85be1479`):
+Canonical bug (`defn-builder`, fixed in `c1aec277`):
 
 ```phel
 ;; bad — local `memoize-lru` shadows global `memoize-lru` fn
