@@ -9,7 +9,7 @@
 
 (def- default-config
   {:provider :anthropic
-   :model "claude-sonnet-4-5"
+   :model "claude-sonnet-4-6"
    :max-tokens 1024
    :api-key nil
    :base-url nil
@@ -38,7 +38,7 @@
     :base-url    - Override the API base URL
     :timeout     - HTTP timeout in seconds (default 120)
     :max-retries - Retry attempts on 429/5xx (default 2)"
-  {:example "(configure {:api-key \"sk-ant-...\" :model \"claude-sonnet-4-5\"})"
+  {:example "(configure {:api-key \"sk-ant-...\" :model \"claude-sonnet-4-6\"})"
    :see-also ["config" "complete" "chat" "with-config"]}
   [opts]
   (swap! config merge opts))
@@ -624,17 +624,21 @@
   [v]
   (php/sqrt (apply + (map #(* % %) v))))
 
+(defn- similarity-with-mags
+  "Cosine similarity given each vector's precomputed L2 magnitude. Returns 0.0
+  when either magnitude is zero (and skips the dot product in that case)."
+  [a mag-a b mag-b]
+  (if (or (zero? mag-a) (zero? mag-b))
+    0.0
+    (/ (dot-product a b) (* mag-a mag-b))))
+
 (defn cosine-similarity
   "Computes the cosine similarity between two numeric vectors.
   Returns a float between -1.0 and 1.0, where 1.0 means identical direction."
   {:example "(cosine-similarity [1 0] [0 1]) ; => 0"
    :see-also ["dot-product" "magnitude" "nearest"]}
   [a b]
-  (let [mag-a (magnitude a)
-        mag-b (magnitude b)]
-    (if (or (zero? mag-a) (zero? mag-b))
-      0.0
-      (/ (dot-product a b) (* mag-a mag-b)))))
+  (similarity-with-mags a (magnitude a) b (magnitude b)))
 
 ;; -----------
 ;; Embedding API
@@ -697,9 +701,11 @@
    :see-also ["cosine-similarity" "build-index" "embed-one"]}
   [query-embedding index & [k]]
   (let [k      (if (nil? k) 5 k)
+        q-mag  (magnitude query-embedding)
         scored (for [item :in index]
-                 (assoc item :similarity
-                        (cosine-similarity query-embedding (get item :embedding))))
+                 (let [emb (get item :embedding)]
+                   (assoc item :similarity
+                          (similarity-with-mags query-embedding q-mag emb (magnitude emb)))))
         sorted (sort-by #(- (get % :similarity)) scored)]
     (take k sorted)))
 

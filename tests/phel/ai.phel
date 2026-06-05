@@ -86,7 +86,7 @@
 
 (deftest test-anthropic-response-extraction
   (let [response-body {:content [{:type "text" :text "Hello from Claude!"}]
-                       :model "claude-sonnet-4-5"
+                       :model "claude-sonnet-4-6"
                        :role "assistant"}]
     (is (= "Hello from Claude!"
            (get (first (get response-body :content)) :text))
@@ -304,6 +304,21 @@
   (let [results (ai/nearest [1 0] [{:text "a" :embedding [1 0]}])]
     (is (< (php/abs (- 1.0 (get (first results) :similarity))) 0.0001)
         "perfect match has similarity ~1.0")))
+
+(deftest test-nearest-similarity-matches-cosine-similarity
+  ;; nearest precomputes the query magnitude once; guard it never diverges
+  ;; from a direct per-pair cosine-similarity call.
+  (let [query   [0.2 -0.5 0.9]
+        index   [{:text "a" :embedding [0.1 0.3 -0.2]}
+                 {:text "b" :embedding [0.9 0.1 0.4]}
+                 {:text "c" :embedding [0 0 0]}]
+        results (ai/nearest query index 3)
+        by-text (reduce (fn [acc r] (put acc (get r :text) r)) {} results)]
+    (foreach [item index]
+      (let [r (get by-text (get item :text))]
+        (is (= (ai/cosine-similarity query (get item :embedding))
+               (get r :similarity))
+            (str "nearest similarity matches cosine-similarity for " (get item :text)))))))
 
 ;; --- Embedding API requires configuration ---
 
