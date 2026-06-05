@@ -17,8 +17,7 @@ All notable changes to this project will be documented in this file.
 
 ### Added
 
-- `phel format`: collapses runs of consecutive blank lines to a single blank line (cljfmt's `:remove-consecutive-blank-lines?`)
-- `phel format`: cljfmt-aligned indentation for more forms — `defstruct`, `defrecord`, `definterface`, `defexception`, `defenum`, `defprotocol`, `defmulti`, `defmethod`, `defonce`, `reify` (inner), and `when-first`, `doseq`, `dotimes`, `letfn`, `with-redefs`, `with-bindings`, `extend-type`, `extend-protocol`, `with-output-buffer`, `delay`, `lazy-seq` (block); previously these fell back to call-style alignment
+- `phel format`: collapses consecutive blank lines to one, and indents more definition/body forms (`defstruct`, `defprotocol`, `defmethod`, `reify`, `doseq`, `letfn`, …) the cljfmt way instead of call-style alignment
 - Docs: `load`, `in-ns`, `use`, and `var` special forms now documented in the API reference and `phel doc`; a regression test fails if any registered special form lacks a catalog entry
 - Docs: `:example` (and missing `:see-also`) metadata on the core math (`+`, `-`, `*`, `/`, `bit-*`, `min`, `max`, `mean`, `median`, …) and predicate (`int?`, `float?`, `string?`, `keyword?`, `vector?`, `map?`, `seq?`, `empty?`, …) functions
 - `phel.reflect`: `class-attributes`/`method-attributes`/`property-attributes`/`attributes` read PHP 8 attributes as `{:name :args}` maps (#2314, #2320)
