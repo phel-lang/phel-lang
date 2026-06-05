@@ -9,7 +9,7 @@ use Gacela\Framework\Gacela;
 use Phel\Build\Infrastructure\Command\BuildCommand;
 use Phel\Phel;
 use PhelTest\Integration\Util\DirectoryUtil;
-use PhelTest\Support\GacelaCacheIsolation;
+use PhelTest\Support\PerTestGacelaCache;
 use PHPUnit\Framework\Attributes\Depends;
 use PHPUnit\Framework\Attributes\PreserveGlobalState;
 use PHPUnit\Framework\Attributes\RunInSeparateProcess;
@@ -34,7 +34,7 @@ final class BuildCommandTest extends TestCase
         // These tests run in a separate process, where the PHPUnit extension
         // that isolates the Gacela cache does not apply; isolate it here so the
         // shared on-disk cache cannot leak between sibling process-isolated tests.
-        new GacelaCacheIsolation()->isolate();
+        new PerTestGacelaCache()->isolate();
         $this->command = new BuildCommand();
     }
 

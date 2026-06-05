@@ -16,7 +16,7 @@
         <ini name="memory_limit" value="1G"/>
     </php>
     <extensions>
-        <bootstrap class="PhelTest\Support\GacelaCacheIsolationExtension"/>
+        <bootstrap class="PhelTest\Support\PerTestGacelaCacheExtension"/>
     </extensions>
     <testsuites>
         <testsuite name="integration">
