@@ -16,6 +16,7 @@ use Phel\Formatter\Domain\Rules\AlignPairsRule;
 use Phel\Formatter\Domain\Rules\Indenter\BlockIndenter;
 use Phel\Formatter\Domain\Rules\Indenter\InnerIndenter;
 use Phel\Formatter\Domain\Rules\IndentRule;
+use Phel\Formatter\Domain\Rules\RemoveConsecutiveBlankLinesRule;
 use Phel\Formatter\Domain\Rules\RemoveSurroundingWhitespaceRule;
 use Phel\Formatter\Domain\Rules\RemoveTrailingWhitespaceRule;
 use Phel\Formatter\Domain\Rules\UnindentRule;
@@ -44,6 +45,7 @@ final class FormatterFactory extends AbstractFactory
             [
                 $this->createRemoveSurroundingWhitespaceRule(),
                 $this->createUnindentRule(),
+                $this->createRemoveConsecutiveBlankLinesRule(),
                 $this->createIndentRule(),
                 $this->createAlignPairsRule(),
                 $this->createRemoveTrailingWhitespaceRule(),
@@ -61,6 +63,11 @@ final class FormatterFactory extends AbstractFactory
         return new UnindentRule();
     }
 
+    private function createRemoveConsecutiveBlankLinesRule(): RemoveConsecutiveBlankLinesRule
+    {
+        return new RemoveConsecutiveBlankLinesRule();
+    }
+
     private function createIndentRule(): IndentRule
     {
         return new IndentRule([
@@ -72,6 +79,16 @@ final class FormatterFactory extends AbstractFactory
             new InnerIndenter('defmacro-', 0),
             new InnerIndenter('deftest', 0),
             new InnerIndenter('fn', 0),
+            new InnerIndenter('defstruct', 0),
+            new InnerIndenter('defrecord', 0),
+            new InnerIndenter('definterface', 0),
+            new InnerIndenter('defexception', 0),
+            new InnerIndenter('defenum', 0),
+            new InnerIndenter('defprotocol', 0),
+            new InnerIndenter('defmulti', 0),
+            new InnerIndenter('defmethod', 0),
+            new InnerIndenter('defonce', 0),
+            new InnerIndenter('reify', 0),
 
             new BlockIndenter('catch', 2),
             new BlockIndenter('do', 0),
@@ -95,6 +112,17 @@ final class FormatterFactory extends AbstractFactory
             new BlockIndenter('if-let', 1),
             new BlockIndenter('if-some', 1),
             new BlockIndenter('binding', 1),
+            new BlockIndenter('when-first', 1),
+            new BlockIndenter('doseq', 1),
+            new BlockIndenter('dotimes', 1),
+            new BlockIndenter('letfn', 1),
+            new BlockIndenter('with-redefs', 1),
+            new BlockIndenter('with-bindings', 1),
+            new BlockIndenter('extend-type', 1),
+            new BlockIndenter('extend-protocol', 1),
+            new BlockIndenter('with-output-buffer', 0),
+            new BlockIndenter('delay', 0),
+            new BlockIndenter('lazy-seq', 0),
         ]);
     }
 

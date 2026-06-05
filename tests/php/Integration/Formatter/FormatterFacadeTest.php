@@ -25,6 +25,8 @@ final class FormatterFacadeTest extends TestCase
     #[DataProvider('providerIndent')]
     #[DataProvider('providerReformatted')]
     #[DataProvider('providerRemoveTrailingWhitespaceRule')]
+    #[DataProvider('providerRemoveConsecutiveBlankLines')]
+    #[DataProvider('providerExtendedIndents')]
     public function test_format(array $actualLines, array $expectedLines): void
     {
         $formatted = $this->formatterFactory
@@ -472,6 +474,148 @@ final class FormatterFacadeTest extends TestCase
                 '  )',
             ],
             ['(foo)'],
+        ];
+    }
+
+    public static function providerRemoveConsecutiveBlankLines(): Generator
+    {
+        yield 'Collapse multiple blank lines between top-level forms' => [
+            [
+                '(def a 1)',
+                '',
+                '',
+                '',
+                '(def b 2)',
+            ],
+            [
+                '(def a 1)',
+                '',
+                '(def b 2)',
+            ],
+        ];
+
+        yield 'Keep a single blank line between top-level forms' => [
+            [
+                '(def a 1)',
+                '',
+                '(def b 2)',
+            ],
+            [
+                '(def a 1)',
+                '',
+                '(def b 2)',
+            ],
+        ];
+
+        yield 'Collapse blank lines inside a body' => [
+            [
+                '(defn foo []',
+                '  (println 1)',
+                '',
+                '',
+                '  (println 2))',
+            ],
+            [
+                '(defn foo []',
+                '  (println 1)',
+                '',
+                '  (println 2))',
+            ],
+        ];
+
+        yield 'Collapse blank lines after a comment' => [
+            [
+                ';; a comment',
+                '',
+                '',
+                '',
+                '(def a 1)',
+            ],
+            [
+                ';; a comment',
+                '',
+                '(def a 1)',
+            ],
+        ];
+    }
+
+    public static function providerExtendedIndents(): Generator
+    {
+        yield 'doseq body is block-indented' => [
+            [
+                '(doseq [x coll]',
+                '(println x))',
+            ],
+            [
+                '(doseq [x coll]',
+                '  (println x))',
+            ],
+        ];
+
+        yield 'dotimes body is block-indented' => [
+            [
+                '(dotimes [i 3]',
+                '(println i))',
+            ],
+            [
+                '(dotimes [i 3]',
+                '  (println i))',
+            ],
+        ];
+
+        yield 'defprotocol methods are inner-indented' => [
+            [
+                '(defprotocol Speakable',
+                '(speak [this]))',
+            ],
+            [
+                '(defprotocol Speakable',
+                '  (speak [this]))',
+            ],
+        ];
+
+        yield 'reify body is inner-indented' => [
+            [
+                '(reify Speakable',
+                '(speak [this] "hi"))',
+            ],
+            [
+                '(reify Speakable',
+                '  (speak [this] "hi"))',
+            ],
+        ];
+
+        yield 'lazy-seq body is block-indented' => [
+            [
+                '(lazy-seq',
+                '(cons 1 nil))',
+            ],
+            [
+                '(lazy-seq',
+                '  (cons 1 nil))',
+            ],
+        ];
+
+        yield 'with-output-buffer body is block-indented' => [
+            [
+                '(with-output-buffer',
+                '(print 1))',
+            ],
+            [
+                '(with-output-buffer',
+                '  (print 1))',
+            ],
+        ];
+
+        yield 'defstruct body is inner-indented' => [
+            [
+                '(defstruct point',
+                '[x y])',
+            ],
+            [
+                '(defstruct point',
+                '  [x y])',
+            ],
         ];
     }
 
