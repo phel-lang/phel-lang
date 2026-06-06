@@ -12,12 +12,14 @@ final class DefInterfaceNode extends AbstractNode
 {
     /**
      * @param list<DefInterfaceMethod> $methods
+     * @param list<PhpClassConst>      $consts
      */
     public function __construct(
         NodeEnvironmentInterface $env,
         private readonly string $namespace,
         private readonly Symbol $name,
         private readonly array $methods,
+        private readonly array $consts = [],
         ?SourceLocation $startSourceLocation = null,
     ) {
         parent::__construct($env, $startSourceLocation);
@@ -31,6 +33,14 @@ final class DefInterfaceNode extends AbstractNode
     public function getName(): Symbol
     {
         return $this->name;
+    }
+
+    /**
+     * @return list<PhpClassConst>
+     */
+    public function getConsts(): array
+    {
+        return $this->consts;
     }
 
     /**

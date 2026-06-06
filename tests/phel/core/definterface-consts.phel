@@ -1,0 +1,18 @@
+(ns phel-test.core.definterface-consts
+  (:require phel.test :refer [deftest is]))
+
+(definterface HasLimits
+  (within? [this n])
+  :php/const
+  (^{:tag int} MAX 100)
+  (^{:tag string} LABEL "limit"))
+
+(deftest typed-constants-are-readable
+  (is (= 100 (php/:: \phel_test\core\definterface_consts\HasLimits MAX)) "int const is reachable")
+  (is (= "limit" (php/:: \phel_test\core\definterface_consts\HasLimits LABEL)) "string const is reachable"))
+
+(deftest constant_is_typed
+  (let [rc   (php/new \ReflectionClassConstant
+                    "phel_test\\core\\definterface_consts\\HasLimits" "MAX")
+        type (php/-> rc (getType))]
+    (is (= "int" (php/-> type (getName))) "the constant carries its declared PHP type")))
