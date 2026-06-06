@@ -1,0 +1,36 @@
+(ns phel-test.core.defstruct-readonly
+  (:require phel.test :refer [deftest is]))
+
+(defstruct ^:php/readonly point [^{:tag int} x ^{:tag int} y])
+(defstruct ^:php/readonly untyped-point [a b])
+(defstruct plain-point [a b])
+
+(defn- readonly-prop? [class-fqn prop]
+  (let [rp (php/new \ReflectionProperty class-fqn prop)]
+    (php/-> rp (isReadonly))))
+
+(deftest readonly-struct-constructs-and-reads
+  (let [p (point 1 2)]
+    (is (= 1 (p :x)) "reads field x")
+    (is (= 2 (:y p)) "reads field y")))
+
+(deftest readonly-struct-properties-are-readonly
+  (let [ro (readonly-prop? "phel_test\\core\\defstruct_readonly\\point" "x")]
+    (is (true? ro) "x property is declared readonly")))
+
+(deftest readonly-struct-put-returns-new-instance
+  (let [p (point 1 2)
+        q (put p :x 9)]
+    (is (= 9 (q :x)) "put updates the field on the new instance")
+    (is (= 2 (q :y)) "other fields are preserved")
+    (is (= 1 (p :x)) "original struct is unchanged")))
+
+(deftest readonly-untyped-struct-still-works
+  (let [u (untyped-point 1 2)
+        v (put u :a 5)]
+    (is (= 5 (v :a)) "untyped readonly field updates via put")
+    (is (= 1 (u :a)) "original is unchanged")))
+
+(deftest plain-struct-is-not-readonly
+  (let [ro (readonly-prop? "phel_test\\core\\defstruct_readonly\\plain_point" "a")]
+    (is (not ro) "non-opted struct keeps mutable properties")))

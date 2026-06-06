@@ -101,6 +101,7 @@ final readonly class DefStructEmitter implements NodeEmitterInterface
         $this->emitAllowedKeys($node);
         $this->emitProperties($node);
         $this->emitConstructor($node);
+        $this->emitReadonlyPut($node);
         $this->emitInterfaces($node);
         $this->emitJsonSerialize($node);
         $this->emitClassFooter($node);
@@ -214,6 +215,7 @@ final readonly class DefStructEmitter implements NodeEmitterInterface
 
     private function emitProperties(DefStructNode $node): void
     {
+        $readonly = $this->metaFlag($node->getName()->getMeta(), 'readonly');
         $params = $node->getParams();
         foreach ($params as $param) {
             $meta = $param->getMeta();
@@ -221,9 +223,17 @@ final readonly class DefStructEmitter implements NodeEmitterInterface
             $this->emitAttributes($meta, $node->getStartSourceLocation());
 
             $this->outputEmitter->emitStr('protected ');
+            if ($readonly) {
+                $this->outputEmitter->emitStr('readonly ');
+            }
+
             $tag = $this->tagTypeFromMeta($meta);
             if ($tag !== null) {
                 $this->outputEmitter->emitStr($tag . ' ');
+            } elseif ($readonly) {
+                // A `readonly` property must be typed; default the untagged
+                // fields of a readonly struct to `mixed`.
+                $this->outputEmitter->emitStr('mixed ');
             }
 
             $this->outputEmitter->emitPhpVariable($param);
@@ -291,6 +301,49 @@ final readonly class DefStructEmitter implements NodeEmitterInterface
 
         $this->outputEmitter->decreaseIndentLevel();
         $this->outputEmitter->emitLine('}', $node->getStartSourceLocation());
+    }
+
+    /**
+     * Persistent update on a readonly struct can't use the base class'
+     * clone-and-write `put` (writing a readonly property from the base scope
+     * is illegal), so a readonly struct rebuilds itself through the
+     * constructor, which is the only scope allowed to initialise the props.
+     */
+    private function emitReadonlyPut(DefStructNode $node): void
+    {
+        if (!$this->metaFlag($node->getName()->getMeta(), 'readonly')) {
+            return;
+        }
+
+        $params = $node->getParams();
+        if ($params === []) {
+            return;
+        }
+
+        $location = $node->getStartSourceLocation();
+        $this->outputEmitter->emitLine();
+        $this->outputEmitter->emitLine(
+            'public function put($key, $value): \Phel\Lang\Collections\Map\PersistentMapInterface {',
+            $location,
+        );
+        $this->outputEmitter->increaseIndentLevel();
+        $this->outputEmitter->emitLine('$stringKey = $this->validateKey($key);', $location);
+        $this->outputEmitter->emitLine('return new self(', $location);
+        $this->outputEmitter->increaseIndentLevel();
+
+        foreach ($params as $param) {
+            $propertyName = $this->outputEmitter->mungeEncode($param->getName());
+            $this->outputEmitter->emitLine(
+                "\$stringKey === '" . $propertyName . "' ? \$value : \$this->" . $propertyName . ',',
+                $location,
+            );
+        }
+
+        $this->outputEmitter->emitLine('$this->meta,', $location);
+        $this->outputEmitter->decreaseIndentLevel();
+        $this->outputEmitter->emitLine(');', $location);
+        $this->outputEmitter->decreaseIndentLevel();
+        $this->outputEmitter->emitLine('}', $location);
     }
 
     private function emitInterfaces(DefStructNode $node): void

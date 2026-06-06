@@ -290,12 +290,15 @@ When the generated PHP must satisfy a framework's type expectations, opt-in meta
 | `^{:php/attr [...]}` | struct/interface name, field, method, param, exported `defn` | PHP 8 `#[Attr]` |
 | `^{:php/doc "..."}` | struct/interface name, field, method | PHPDoc block (phpstan/psalm) |
 | `^{:php/json true}` / `^{:php/stringable true}` | struct name | implements `\JsonSerializable` / `\Stringable` |
+| `^:php/readonly` | struct name | `readonly` typed properties (immutability visible to psalm/phpstan); untagged fields default to `readonly mixed` |
 
 ```phel
 (defstruct ^{:php/attr [:ORM/Entity] :php/json true} product
   [^{:tag int :php/attr [:ORM/Id]} id
    ^{:tag string} name])
 ```
+
+`^:php/readonly` surfaces the immutability that structs already guarantee. The generated class stays a plain `final class` (it can't be a PHP `readonly class`, since its base `AbstractPersistentStruct` is not readonly), but every field becomes a `readonly` property. Persistent updates keep working: `assoc`/`put` rebuilds the struct through its constructor instead of mutating in place.
 
 Every struct already implements `\Countable`, `\ArrayAccess`, and `\IteratorAggregate` (no opt-in needed), so PHP code can `count($s)` and read fields by a plain string offset (`$s['name']`) as well as a keyword. Structs are immutable, so writing an offset throws. Iteration keeps Phel's map contract (keyword keys), so `(into {} s)` and `(keys s)` stay keyword-keyed.
 
