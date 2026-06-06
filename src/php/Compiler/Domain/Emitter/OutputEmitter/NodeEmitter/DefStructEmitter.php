@@ -356,6 +356,8 @@ final readonly class DefStructEmitter implements NodeEmitterInterface
         foreach ($node->getInterfaces() as $defStruct) {
             foreach ($defStruct->getMethods() as $method) {
                 $this->outputEmitter->emitLine();
+                $this->emitDocBlock($method->getName()->getMeta(), $node->getStartSourceLocation());
+                $this->emitAttributes($method->getName()->getMeta(), $node->getStartSourceLocation());
                 $this->methodEmitter->emit($method->getName()->getName(), $method->getFnNode());
             }
         }

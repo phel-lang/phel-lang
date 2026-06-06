@@ -288,6 +288,7 @@ When the generated PHP must satisfy a framework's type expectations, opt-in meta
 |---|---|---|
 | `^{:tag T}` | struct field, interface param/return | typed signature; `(a b)` = union `a\|b`, `[a b]` = intersection `a&b` |
 | `^{:php/attr [...]}` | struct/interface name, field, method, param, exported `defn` | PHP 8 `#[Attr]` |
+| `^:php/override` | struct/enum/interface method | `#[\Override]` (PHP 8.3); sugar for `^{:php/attr [[:Override]]}` |
 | `^{:php/doc "..."}` | struct/interface name, field, method | PHPDoc block (phpstan/psalm) |
 | `^{:php/json true}` / `^{:php/stringable true}` | struct name | implements `\JsonSerializable` / `\Stringable` |
 | `^:php/readonly` | struct name | `readonly` typed properties (immutability visible to psalm/phpstan); untagged fields default to `readonly mixed` |

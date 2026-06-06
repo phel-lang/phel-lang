@@ -1,0 +1,23 @@
+(ns phel-test.core.defstruct-php-override
+  (:require phel.test :refer [deftest is]))
+
+(definterface Greeter
+  (greet [this]))
+
+(defstruct greeting [name]
+  Greeter
+  (^:php/override greet [this] (php/. "hi " (get this :name))))
+
+(defn- method-has-override? [class-fqn method]
+  (let [rm    (php/new \ReflectionMethod class-fqn method)
+        attrs (php/-> rm (getAttributes "Override"))]
+    (php/< 0 (php/count attrs))))
+
+(deftest override-method-still-runs
+  (is (= "hi sam" (greet (greeting "sam"))) "the overriding method behaves normally"))
+
+(deftest override-attribute-is-emitted
+  (let [present (method-has-override?
+                 "phel_test\\core\\defstruct_php_override\\greeting"
+                 "greet")]
+    (is (true? present) "the method carries the #[\\Override] attribute")))

@@ -131,6 +131,7 @@ final readonly class DefEnumEmitter implements NodeEmitterInterface
         foreach ($node->getInterfaces() as $interface) {
             foreach ($interface->getMethods() as $method) {
                 $this->outputEmitter->emitLine();
+                $this->emitAttributes($method->getName()->getMeta(), $node->getStartSourceLocation());
                 $this->methodEmitter->emit($method->getName()->getName(), $method->getFnNode());
             }
         }
