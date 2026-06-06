@@ -27,6 +27,13 @@
     (is (= 3 (count cases)) "pure enum exposes all cases")
     (is (true? (Color? (php/aget cases 0))) "pure case satisfies predicate")))
 
+(deftest bare-name-case-access
+  ;; The enum's bare name resolves to the namespaced PHP class, so the
+  ;; documented `EnumName/case` access form works (issue #2358).
+  (is (true? (Status? Status/active)) "Status/active resolves to a case")
+  (is (= "active" (php/-> Status/active value)) "the resolved case carries its value")
+  (is (true? (Color? Color/red)) "pure-enum case access works too"))
+
 ;; Enum with an implemented interface and a `:php` block of plain methods.
 (definterface Describable
   (describe [this]))

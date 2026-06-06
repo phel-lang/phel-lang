@@ -15,6 +15,7 @@ All notable changes to this project will be documented in this file.
 ### Fixed
 
 - `:tag` return-type checking: declaring `never`/`void`/`null` on a function whose body returns a concrete value is now a compile-time type error instead of emitting PHP that fatals at load; `mixed`, `?T` nullable, and union/intersection return tags continue to pass through
+- `defenum`: the bare enum name now resolves to its namespaced PHP class, so the documented `EnumName/case` access form works (previously failed with `Class "EnumName" not found`)
 
 ## [0.42.0](https://github.com/phel-lang/phel-lang/compare/v0.41.0...v0.42.0) - 2026-06-06
 
