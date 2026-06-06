@@ -11,6 +11,7 @@ use Phel\Lang\Keyword;
 use Phel\Lang\Symbol;
 use Phel\Shared\PhpAttributeRenderer;
 
+use function array_unshift;
 use function implode;
 use function is_string;
 
@@ -83,6 +84,8 @@ trait PhpAttributeEmitterTrait
     /**
      * Renders the `:php/attr` specs carried by the symbol meta into PHP
      * attribute lines (`#[...]`), or an empty list when none are present.
+     * The `^:php/override` flag is sugar for `#[\Override]` and is rendered
+     * first, before any explicit `:php/attr` lines.
      *
      * @param PersistentMapInterface<mixed, mixed>|null $meta
      *
@@ -94,7 +97,13 @@ trait PhpAttributeEmitterTrait
             return [];
         }
 
-        return $renderer->render($meta->find(Keyword::create('attr', 'php')));
+        $lines = $renderer->render($meta->find(Keyword::create('attr', 'php')));
+
+        if ($meta->find(Keyword::create('override', 'php')) === true) {
+            array_unshift($lines, '#[\Override]');
+        }
+
+        return $lines;
     }
 
     /**

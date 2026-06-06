@@ -87,6 +87,8 @@ The interface + `:php`-block parsing shared by `defstruct` and `defenum` lives i
 
 `^{:php/doc <str|[str...]>}` on any of those names/fields/methods emits a PHPDoc block (one-line string or multi-line list/vector) above the construct, so phpstan/psalm see generated classes as typed.
 
+`^:php/override` on a method (defstruct/defenum interface impls, definterface methods) is sugar for `#[\Override]` (PHP 8.3); `PhpAttributeEmitterTrait::phpAttributeLines` renders it ahead of any explicit `:php/attr` lines. Struct/enum inline method impls now emit method-level `:php/attr`/`:php/doc`/`^:php/override` too (previously only definterface methods did).
+
 All opt-in; untagged forms are byte-identical to before. Export wrappers carry the same `:php/attr` via `Interop`'s `CompiledPhpMethodBuilder` (see `src/php/Interop/CLAUDE.md`).
 
 ## Global Environment

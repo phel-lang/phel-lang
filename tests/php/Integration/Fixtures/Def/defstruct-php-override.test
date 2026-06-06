@@ -1,0 +1,24 @@
+--PHEL--
+(defstruct* Foo [x] \Stringable (^:php/override __toString [this] "foo"))
+--PHP--
+if (!class_exists('user\Foo')) {
+final class Foo extends \Phel\Lang\Collections\Struct\AbstractPersistentStruct implements \Stringable {
+
+  protected const array ALLOWED_KEYS = ['x'];
+
+  protected $x;
+
+  public function __construct($x, $meta = null) {
+    parent::__construct();
+    $this->x = $x;
+    $this->meta = $meta;
+  }
+
+  #[\Override]
+  public function __toString() {
+    $x = $this->x;
+    $this_1 = $this;
+    return "foo";
+  }
+}
+}
