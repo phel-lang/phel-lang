@@ -214,6 +214,35 @@ Phel uses `.` as the namespace separator, matching Clojure. The legacy `\` separ
 (bean obj)                              ; public properties => {:key value}
 ```
 
+## Typed generated PHP (`:tag`)
+
+`^{:tag T}` annotates the PHP type that a generated construct should carry, so a
+mixed PHP codebase and static analysers (psalm/phpstan) see real types. It works
+on `defstruct` fields, `definterface` params and return types, and the return
+type of a typed/exported `defn` (the tag goes on the param vector:
+`(defn f ^{:tag int} [x] ...)`).
+
+Any modern PHP type expression is accepted:
+
+```phel
+^{:tag int}            ; int
+^{:tag ?int}           ; ?int       (nullable: the value or nil)
+^{:tag mixed}          ; mixed      (any value)
+^{:tag never}          ; never      (return type only; the fn must not return)
+^{:tag (int string)}   ; int|string (a list => union)
+^{:tag [Countable Stringable]} ; Countable&Stringable (a vector => intersection)
+^{:tag \DateTimeImmutable}     ; a class FQN, verbatim
+```
+
+A bare symbol or string passes through verbatim, so PHP keywords (`mixed`,
+`never`, `iterable`, `self`, `static`) and pre-formed strings (`"int|null"`)
+also work. A `never` return is only valid when the function genuinely never
+returns (it throws or exits); declaring `never`/`void`/`null` on a function
+whose body returns a concrete value is reported as a type error at compile time.
+
+Nested DNF types like `(A|B)&C` are out of scope: use a flat union (a list) or a
+flat intersection (a vector).
+
 ## PHP magic methods on structs
 
 A `defstruct` compiles to a real PHP class, so it can expose PHP magic methods

@@ -9,6 +9,10 @@ All notable changes to this project will be documented in this file.
 - `php/callable`: first-class callable interop form emitting native PHP 8.1 `(...)` syntax for free functions (`(php/callable \strlen)`), static methods (`(php/callable Foo bar)`), and instance methods (`(php/callable obj method)`) — zero-overhead, no `fn` wrapper
 - `defstruct` `^:php/readonly`: emits the struct's typed fields as PHP `readonly` properties (untagged fields default to `readonly mixed`), making the immutability visible to psalm/phpstan; persistent `assoc`/`put` keeps working via a constructor-rebuild override
 
+### Fixed
+
+- `:tag` return-type checking: declaring `never`/`void`/`null` on a function whose body returns a concrete value is now a compile-time type error instead of emitting PHP that fatals at load; `mixed`, `?T` nullable, and union/intersection return tags continue to pass through
+
 ## [0.42.0](https://github.com/phel-lang/phel-lang/compare/v0.41.0...v0.42.0) - 2026-06-06
 
 ### Fixed
