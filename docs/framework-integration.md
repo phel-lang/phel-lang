@@ -304,7 +304,17 @@ Every struct already implements `\Countable`, `\ArrayAccess`, and `\IteratorAggr
 
 Two related forms:
 
-- `(defenum Status :active "active" :inactive "inactive")` — native PHP backed enum (Doctrine/Symfony columns) plus a `Status?` predicate.
+- `(defenum Status :active "active" :inactive "inactive")` — native PHP backed enum (Doctrine/Symfony columns) plus a `Status?` predicate. An enum can also implement interfaces and carry methods, reusing `defstruct`'s inline-impl machinery:
+
+  ```phel
+  (defenum Suit
+    :hearts :spades :clubs :diamonds
+    Describable                       ; implemented interface + its methods
+    (describe [this] (php/-> this name))
+    :php                              ; plain/magic methods, no interface
+    (label [this] (php/-> this name)))
+  ```
+  Cases come first; the implementations tail (interface symbols with their methods, then a `:php` block) follows. Works for both pure and backed enums.
 - `(defexception NotFound \RuntimeException)` — exception extending a chosen parent, so framework `catch` blocks match by type.
 
 See the [PHP interop reference on phel-lang.org](https://phel-lang.org/documentation/php-interop/) for the full semantics.

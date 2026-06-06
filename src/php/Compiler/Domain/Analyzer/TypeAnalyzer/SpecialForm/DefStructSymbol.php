@@ -5,17 +5,12 @@ declare(strict_types=1);
 namespace Phel\Compiler\Domain\Analyzer\TypeAnalyzer\SpecialForm;
 
 use Phel\Compiler\Domain\Analyzer\AnalyzerInterface;
-use Phel\Compiler\Domain\Analyzer\Ast\DefStructInterface;
-use Phel\Compiler\Domain\Analyzer\Ast\DefStructMethod;
 use Phel\Compiler\Domain\Analyzer\Ast\DefStructNode;
-use Phel\Compiler\Domain\Analyzer\Ast\PhpClassNameNode;
 use Phel\Compiler\Domain\Analyzer\Environment\NodeEnvironmentInterface;
 use Phel\Compiler\Domain\Analyzer\Exceptions\AnalyzerException;
 use Phel\Lang\Collections\LinkedList\PersistentListInterface;
 use Phel\Lang\Collections\Vector\PersistentVectorInterface;
 use Phel\Lang\Symbol;
-use Phel\Shared\MungeInterface;
-use ReflectionMethod;
 
 use function count;
 
@@ -28,9 +23,7 @@ final readonly class DefStructSymbol implements SpecialFormAnalyzerInterface
 {
     public function __construct(
         private AnalyzerInterface $analyzer,
-        private MungeInterface $munge,
-        private MethodBodyAnalyzer $methodBodyAnalyzer,
-        private PhpBlockAnalyzer $phpBlockAnalyzer,
+        private InterfaceImplementationsAnalyzer $implementationsAnalyzer,
     ) {}
 
     /**
@@ -69,9 +62,10 @@ final readonly class DefStructSymbol implements SpecialFormAnalyzerInterface
             $this->analyzer->getNamespace(),
             $structSymbol,
             $params,
-            $this->interfaces(
+            $this->implementationsAnalyzer->analyze(
                 $rest3,
                 $env->withMergedLocals($params),
+                'defstruct',
             ),
             $list->getStartLocation(),
         );
@@ -94,99 +88,5 @@ final readonly class DefStructSymbol implements SpecialFormAnalyzerInterface
         }
 
         return $params;
-    }
-
-    /**
-     * @param PersistentListInterface<mixed> $list
-     *
-     * @return list<DefStructInterface>
-     */
-    private function interfaces(PersistentListInterface $list, NodeEnvironmentInterface $env): array
-    {
-        if ($list->count() === 0) {
-            return [];
-        }
-
-        $interfaces = [];
-        $forms = $list;
-        for (; $forms !== null; $forms = $forms->cdr()) {
-            $first = $forms->first();
-
-            if ($this->phpBlockAnalyzer->isMarker($first)) {
-                [$interfaces[], $forms] = $this->phpBlockAnalyzer->analyze($forms, $env);
-                continue;
-            }
-
-            if (!$first instanceof Symbol) {
-                throw AnalyzerException::withLocation('Expected a interface name in defstruct', $list);
-            }
-
-            $classNode = $this->analyzer->resolve($first, $env);
-            if (!$classNode instanceof PhpClassNameNode) {
-                throw AnalyzerException::withLocation('Can not resolve interface ' . $first->getFullName(), $list);
-            }
-
-            $reflectionClass = $classNode->getReflectionClass();
-            if (!$reflectionClass->isInterface()) {
-                throw AnalyzerException::withLocation('Given interface ' . $first->getFullName() . ' is not an interface', $list);
-            }
-
-            $absoluteInterfaceName = $classNode->getAbsolutePhpName();
-            $expectedMethods = $reflectionClass->getMethods();
-            $expectedMethodIndex = [];
-            foreach ($expectedMethods as $method) {
-                $expectedMethodIndex[$method->getName()] = $method;
-            }
-
-            $methods = [];
-            $countExpectedMethods = count($expectedMethods);
-            for ($i = 0; $i < $countExpectedMethods; ++$i) {
-                $forms = $forms->cdr();
-                if (!$forms instanceof PersistentListInterface) {
-                    throw AnalyzerException::withLocation('Missing method for interface ' . $absoluteInterfaceName . ' in defstruct', $list);
-                }
-
-                $method = $forms->first();
-                if (!$method instanceof PersistentListInterface) {
-                    throw AnalyzerException::withLocation('Missing method for interface ' . $absoluteInterfaceName . ' in defstruct', $list);
-                }
-
-                $methods[] = $this->analyzeInterfaceMethod($method, $env, $expectedMethodIndex);
-            }
-
-            if (count($methods) !== count($expectedMethods)) {
-                throw AnalyzerException::withLocation('Missing method for interface ' . $absoluteInterfaceName . ' in defstruct', $list);
-            }
-
-            $interfaces[] = new DefStructInterface(
-                $absoluteInterfaceName,
-                $methods,
-            );
-        }
-
-        return $interfaces;
-    }
-
-    /**
-     * @param PersistentListInterface<mixed>  $list
-     * @param array<string, ReflectionMethod> $expectedMethodIndex
-     */
-    private function analyzeInterfaceMethod(
-        PersistentListInterface $list,
-        NodeEnvironmentInterface $env,
-        array $expectedMethodIndex,
-    ): DefStructMethod {
-        $methodName = $list->get(0);
-        if (!$methodName instanceof Symbol) {
-            throw AnalyzerException::wrongArgumentType('Method name', 'Symbol', $methodName, $list);
-        }
-
-        $mungedMethodName = $this->munge->encode($methodName->getName());
-
-        if (!isset($expectedMethodIndex[$mungedMethodName])) {
-            throw AnalyzerException::withLocation("The interface doesn't support this method: " . $methodName->getName(), $list);
-        }
-
-        return $this->methodBodyAnalyzer->analyze($list, $env);
     }
 }

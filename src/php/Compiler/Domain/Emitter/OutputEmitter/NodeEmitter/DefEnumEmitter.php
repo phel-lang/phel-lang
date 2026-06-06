@@ -22,6 +22,7 @@ final readonly class DefEnumEmitter implements NodeEmitterInterface
 
     public function __construct(
         private OutputEmitterInterface $outputEmitter,
+        private MethodEmitter $methodEmitter,
         private PhpAttributeRenderer $attributeRenderer = new PhpAttributeRenderer(),
     ) {}
 
@@ -83,6 +84,11 @@ final readonly class DefEnumEmitter implements NodeEmitterInterface
             $header .= ': ' . $backingType;
         }
 
+        $interfaceNames = $this->interfaceNames($node);
+        if ($interfaceNames !== []) {
+            $header .= ' implements ' . implode(', ', $interfaceNames);
+        }
+
         $this->outputEmitter->emitLine($header . ' {', $node->getStartSourceLocation());
         $this->outputEmitter->increaseIndentLevel();
 
@@ -96,8 +102,38 @@ final readonly class DefEnumEmitter implements NodeEmitterInterface
             $this->outputEmitter->emitLine($line . ';', $node->getStartSourceLocation());
         }
 
+        $this->emitMethods($node);
+
         $this->outputEmitter->decreaseIndentLevel();
         $this->outputEmitter->emitLine('}', $node->getStartSourceLocation());
+    }
+
+    /**
+     * The `implements` list: every named interface declared on the enum. A
+     * `:php` block carries an empty name and adds no `implements` entry.
+     *
+     * @return list<string>
+     */
+    private function interfaceNames(DefEnumNode $node): array
+    {
+        $names = [];
+        foreach ($node->getInterfaces() as $interface) {
+            if ($interface->getAbsoluteInterfaceName() !== '') {
+                $names[] = $interface->getAbsoluteInterfaceName();
+            }
+        }
+
+        return $names;
+    }
+
+    private function emitMethods(DefEnumNode $node): void
+    {
+        foreach ($node->getInterfaces() as $interface) {
+            foreach ($interface->getMethods() as $method) {
+                $this->outputEmitter->emitLine();
+                $this->methodEmitter->emit($method->getName()->getName(), $method->getFnNode());
+            }
+        }
     }
 
     /**

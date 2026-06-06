@@ -26,3 +26,36 @@
   (let [cases (php/:: \phel_test\core\defenum\Color (cases))]
     (is (= 3 (count cases)) "pure enum exposes all cases")
     (is (true? (Color? (php/aget cases 0))) "pure case satisfies predicate")))
+
+;; Enum with an implemented interface and a `:php` block of plain methods.
+(definterface Describable
+  (describe [this]))
+
+(defenum Suit
+  :hearts :spades :clubs :diamonds
+  Describable
+  (describe [this]
+            (let [n (php/-> this name)]
+              (if (or (= n "hearts") (= n "diamonds")) "red" "black")))
+  :php
+  (label [this] (php/-> this name)))
+
+;; Backed enum carrying a `:php` method that reads its own value.
+(defenum Coin
+  :penny 1 :nickel 5
+  :php
+  (doubled [this] (* 2 (php/-> this value))))
+
+(deftest enum-implements-interface
+  (let [hearts (php/:: \phel_test\core\defenum\Suit hearts)]
+    (is (php/is_a hearts "phel_test\\core\\defenum\\Describable") "enum implements the declared interface")
+    (is (= "red" (php/-> hearts (describe))) "interface method runs on a red suit")
+    (is (= "black" (php/-> (php/:: \phel_test\core\defenum\Suit spades) (describe))) "interface method runs on a black suit")))
+
+(deftest enum-php-block-method
+  (let [hearts (php/:: \phel_test\core\defenum\Suit hearts)]
+    (is (= "hearts" (php/-> hearts (label))) "a :php block method runs on a pure enum case")))
+
+(deftest backed-enum-php-method
+  (let [nickel (php/:: \phel_test\core\defenum\Coin (from 5))]
+    (is (= 10 (php/-> nickel (doubled))) "a :php method can read the backed value")))

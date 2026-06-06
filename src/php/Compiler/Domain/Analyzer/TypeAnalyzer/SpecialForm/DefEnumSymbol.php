@@ -4,11 +4,12 @@ declare(strict_types=1);
 
 namespace Phel\Compiler\Domain\Analyzer\TypeAnalyzer\SpecialForm;
 
+use Phel;
+use Phel\Compiler\Domain\Analyzer\AnalyzerInterface;
 use Phel\Compiler\Domain\Analyzer\Ast\DefEnumCase;
 use Phel\Compiler\Domain\Analyzer\Ast\DefEnumNode;
 use Phel\Compiler\Domain\Analyzer\Environment\NodeEnvironmentInterface;
 use Phel\Compiler\Domain\Analyzer\Exceptions\AnalyzerException;
-use Phel\Compiler\Domain\Analyzer\TypeAnalyzer\WithAnalyzerTrait;
 use Phel\Lang\Collections\LinkedList\PersistentListInterface;
 use Phel\Lang\Keyword;
 use Phel\Lang\Symbol;
@@ -19,15 +20,21 @@ use function is_int;
 use function is_string;
 
 /**
- * (defenum* Name :case-a value-a :case-b value-b ...).
+ * (defenum* Name :case-a value-a :case-b value-b ... <implementations>).
  *
- * Defines a native PHP backed enum. Each case is named by a keyword; an
- * optional scalar value (all `int` or all `string`) makes it a backed enum,
- * while value-less cases produce a pure enum.
+ * Defines a native PHP enum. Each case is named by a keyword; an optional
+ * scalar value (all `int` or all `string`) makes it a backed enum, while
+ * value-less cases produce a pure enum. After the cases, an optional
+ * implementations tail (interface symbols with their methods, and `:php`
+ * blocks of bare methods) is parsed like `defstruct`, so an enum can carry
+ * methods and implement interfaces.
  */
-final class DefEnumSymbol implements SpecialFormAnalyzerInterface
+final readonly class DefEnumSymbol implements SpecialFormAnalyzerInterface
 {
-    use WithAnalyzerTrait;
+    public function __construct(
+        private AnalyzerInterface $analyzer,
+        private InterfaceImplementationsAnalyzer $implementationsAnalyzer,
+    ) {}
 
     /**
      * @param PersistentListInterface<mixed> $list
@@ -43,7 +50,15 @@ final class DefEnumSymbol implements SpecialFormAnalyzerInterface
             throw AnalyzerException::wrongArgumentType("First argument of 'defenum", 'Symbol', $name, $list);
         }
 
-        $cases = $this->cases($list);
+        $elements = [];
+        foreach ($list as $element) {
+            $elements[] = $element;
+        }
+
+        // Drop the leading `defenum*` symbol and the enum name.
+        $elements = array_slice($elements, 2);
+
+        [$cases, $implementationForms] = $this->splitCasesFromImplementations($elements, $list);
         if ($cases === []) {
             throw AnalyzerException::withLocation("'defenum requires at least one case", $list);
         }
@@ -54,37 +69,39 @@ final class DefEnumSymbol implements SpecialFormAnalyzerInterface
             $name,
             $cases,
             $this->backingType($cases, $list),
+            $this->implementationsAnalyzer->analyze(
+                Phel::list($implementationForms),
+                $env,
+                'defenum',
+            ),
             $list->getStartLocation(),
         );
     }
 
     /**
+     * Cases come first as leading keyword (with optional scalar value) pairs.
+     * Parsing stops at the first non-case form: an interface symbol or the
+     * `:php` marker, which begins the implementations tail.
+     *
+     * @param list<mixed>                    $elements
      * @param PersistentListInterface<mixed> $list
      *
-     * @return list<DefEnumCase>
+     * @return array{0: list<DefEnumCase>, 1: list<mixed>}
      */
-    private function cases(PersistentListInterface $list): array
+    private function splitCasesFromImplementations(array $elements, PersistentListInterface $list): array
     {
-        $elements = [];
-        foreach ($list as $element) {
-            $elements[] = $element;
-        }
-
-        // Drop the leading `defenum*` symbol and the enum name.
-        $elements = array_slice($elements, 2);
         $count = count($elements);
-
         $cases = [];
         $index = 0;
         while ($index < $count) {
             $caseKeyword = $elements[$index];
-            if (!$caseKeyword instanceof Keyword) {
-                throw AnalyzerException::withLocation('Each enum case must be a keyword', $list);
+            if (!$caseKeyword instanceof Keyword || $this->implementationsAnalyzer->isPhpMarker($caseKeyword)) {
+                break;
             }
 
             $value = null;
             $next = $elements[$index + 1] ?? null;
-            if ($next !== null && !$next instanceof Keyword) {
+            if ($next !== null && !$next instanceof Keyword && !$next instanceof Symbol) {
                 if (!is_int($next) && !is_string($next)) {
                     throw AnalyzerException::withLocation('Enum case values must be int or string', $list);
                 }
@@ -97,7 +114,7 @@ final class DefEnumSymbol implements SpecialFormAnalyzerInterface
             ++$index;
         }
 
-        return $cases;
+        return [$cases, array_slice($elements, $index)];
     }
 
     /**

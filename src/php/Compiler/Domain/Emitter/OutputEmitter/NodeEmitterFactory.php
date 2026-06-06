@@ -169,7 +169,7 @@ final class NodeEmitterFactory
             ForeachNode::class => new ForeachEmitter($outputEmitter),
             DefStructNode::class => new DefStructEmitter($outputEmitter, $methodEmitter),
             DefExceptionNode::class => new DefExceptionEmitter($outputEmitter),
-            DefEnumNode::class => new DefEnumEmitter($outputEmitter),
+            DefEnumNode::class => new DefEnumEmitter($outputEmitter, $methodEmitter),
             PhpObjectSetNode::class => new PhpObjectSetEmitter($outputEmitter),
             MapNode::class => new MapEmitter($outputEmitter),
             SetVarNode::class => new SetVarEmitter($outputEmitter),

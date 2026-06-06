@@ -11,7 +11,8 @@ use Phel\Lang\Symbol;
 final class DefEnumNode extends AbstractNode
 {
     /**
-     * @param list<DefEnumCase> $cases
+     * @param list<DefEnumCase>        $cases
+     * @param list<DefStructInterface> $interfaces
      */
     public function __construct(
         NodeEnvironmentInterface $env,
@@ -19,6 +20,7 @@ final class DefEnumNode extends AbstractNode
         private readonly Symbol $name,
         private readonly array $cases,
         private readonly ?string $backingType,
+        private readonly array $interfaces = [],
         ?SourceLocation $sourceLocation = null,
     ) {
         parent::__construct($env, $sourceLocation);
@@ -48,5 +50,13 @@ final class DefEnumNode extends AbstractNode
     public function getBackingType(): ?string
     {
         return $this->backingType;
+    }
+
+    /**
+     * @return list<DefStructInterface>
+     */
+    public function getInterfaces(): array
+    {
+        return $this->interfaces;
     }
 }

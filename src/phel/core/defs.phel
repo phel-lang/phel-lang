@@ -144,12 +144,22 @@
        (defn ~is-name ~(php/. "Checks if `x` is an instance of the " name " exception.") [x] (php/is_a x ~class-name-str)))))
 
 (defmacro defenum
-  "Defines a native PHP backed enum. Each case is named by a keyword followed
-  by an optional scalar value (all `int` or all `string`); value-less cases
-  produce a pure enum. Also defines a `Name?` predicate.
+  "Defines a native PHP enum. Each case is named by a keyword followed by an
+  optional scalar value (all `int` or all `string`); value-less cases produce a
+  pure enum. After the cases, an optional implementations tail (interface
+  symbols with their methods, and a `:php` block of plain/magic methods) is
+  parsed like `defstruct`, so an enum can implement interfaces and carry
+  methods. Also defines a `Name?` predicate.
 
       (defenum Status :active \"active\" :inactive \"inactive\")
-      (Status? Status/active) # => true"
+      (Status? Status/active) # => true
+
+      (defenum Suit
+        :hearts :spades :clubs :diamonds
+        Describable
+        (describe [this] (php/-> this name))
+        :php
+        (label [this] (php/-> this name)))"
   [name & cases]
   (let [name-str       (php/-> name (getName))
         munge          (php/new Munge)

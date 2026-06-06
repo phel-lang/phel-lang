@@ -1,0 +1,17 @@
+--PHEL--
+(defenum* Level :low 1 :high 10 :php (doubled [this] (php/* 2 (php/-> this value))))
+--PHP--
+if (!enum_exists('user\Level')) {
+enum Level: int {
+  case low = 1;
+  case high = 10;
+
+  public function doubled() {
+    $this_1 = $this;
+    return (2 * (function() use($this_1) {
+      $target_2 = $this_1;
+      return $target_2->value;
+    })());
+  }
+}
+}

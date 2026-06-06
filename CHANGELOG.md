@@ -8,6 +8,7 @@ All notable changes to this project will be documented in this file.
 
 - `php/callable`: first-class callable interop form emitting native PHP 8.1 `(...)` syntax for free functions (`(php/callable \strlen)`), static methods (`(php/callable Foo bar)`), and instance methods (`(php/callable obj method)`) — zero-overhead, no `fn` wrapper
 - `defstruct` `^:php/readonly`: emits the struct's typed fields as PHP `readonly` properties (untagged fields default to `readonly mixed`), making the immutability visible to psalm/phpstan; persistent `assoc`/`put` keeps working via a constructor-rebuild override
+- `defenum` methods and interfaces: after the cases, a `defenum` can declare implemented interfaces (with their methods) and a `:php` block of plain/magic methods, reusing `defstruct`'s inline-implementation machinery; works for both pure and backed enums
 
 ### Fixed
 
