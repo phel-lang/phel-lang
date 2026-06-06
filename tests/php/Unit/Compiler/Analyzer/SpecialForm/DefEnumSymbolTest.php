@@ -11,9 +11,14 @@ use Phel\Compiler\Domain\Analyzer\Ast\DefEnumNode;
 use Phel\Compiler\Domain\Analyzer\Environment\GlobalEnvironment;
 use Phel\Compiler\Domain\Analyzer\Environment\NodeEnvironment;
 use Phel\Compiler\Domain\Analyzer\TypeAnalyzer\SpecialForm\DefEnumSymbol;
+use Phel\Compiler\Domain\Analyzer\TypeAnalyzer\SpecialForm\InterfaceImplementationsAnalyzer;
+use Phel\Compiler\Domain\Analyzer\TypeAnalyzer\SpecialForm\MethodBodyAnalyzer;
+use Phel\Compiler\Domain\Analyzer\TypeAnalyzer\SpecialForm\PhpBlockAnalyzer;
+use Phel\Lang\Collections\LinkedList\PersistentListInterface;
 use Phel\Lang\Keyword;
 use Phel\Lang\Symbol;
 use Phel\Shared\Exceptions\AbstractLocatedException;
+use Phel\Shared\Munge;
 use PHPUnit\Framework\TestCase;
 
 final class DefEnumSymbolTest extends TestCase
@@ -32,7 +37,7 @@ final class DefEnumSymbolTest extends TestCase
 
         $list = Phel::list([Symbol::create(Symbol::NAME_DEF_ENUM)]);
 
-        new DefEnumSymbol($this->analyzer)->analyze($list, NodeEnvironment::empty());
+        $this->analyze($list);
     }
 
     public function test_first_arg_is_not_symbol(): void
@@ -42,7 +47,7 @@ final class DefEnumSymbolTest extends TestCase
 
         $list = Phel::list([Symbol::create(Symbol::NAME_DEF_ENUM), 'no-symbol']);
 
-        new DefEnumSymbol($this->analyzer)->analyze($list, NodeEnvironment::empty());
+        $this->analyze($list);
     }
 
     public function test_requires_at_least_one_case(): void
@@ -52,21 +57,24 @@ final class DefEnumSymbolTest extends TestCase
 
         $list = Phel::list([Symbol::create(Symbol::NAME_DEF_ENUM), Symbol::create('Empty')]);
 
-        new DefEnumSymbol($this->analyzer)->analyze($list, NodeEnvironment::empty());
+        $this->analyze($list);
     }
 
-    public function test_case_must_be_a_keyword(): void
+    public function test_non_case_non_implementation_form_is_rejected(): void
     {
         $this->expectException(AbstractLocatedException::class);
-        $this->expectExceptionMessage('Each enum case must be a keyword');
+        $this->expectExceptionMessage('Expected a interface name in defenum');
 
+        // `:a 1` is a backed case; the trailing string is neither a `:php`
+        // marker nor an interface symbol, so it is an invalid implementation.
         $list = Phel::list([
             Symbol::create(Symbol::NAME_DEF_ENUM),
             Symbol::create('Bad'),
-            'not-a-keyword',
+            Keyword::create('a'), 1,
+            'not-an-interface',
         ]);
 
-        new DefEnumSymbol($this->analyzer)->analyze($list, NodeEnvironment::empty());
+        $this->analyze($list);
     }
 
     public function test_mixed_value_types_are_rejected(): void
@@ -81,7 +89,7 @@ final class DefEnumSymbolTest extends TestCase
             Keyword::create('b'), 'two',
         ]);
 
-        new DefEnumSymbol($this->analyzer)->analyze($list, NodeEnvironment::empty());
+        $this->analyze($list);
     }
 
     public function test_partial_values_are_rejected(): void
@@ -96,7 +104,7 @@ final class DefEnumSymbolTest extends TestCase
             Keyword::create('b'),
         ]);
 
-        new DefEnumSymbol($this->analyzer)->analyze($list, NodeEnvironment::empty());
+        $this->analyze($list);
     }
 
     public function test_string_backed_enum(): void
@@ -108,7 +116,7 @@ final class DefEnumSymbolTest extends TestCase
             Keyword::create('inactive'), 'inactive',
         ]);
 
-        $node = new DefEnumSymbol($this->analyzer)->analyze($list, NodeEnvironment::empty());
+        $node = $this->analyze($list);
 
         self::assertInstanceOf(DefEnumNode::class, $node);
         self::assertSame('string', $node->getBackingType());
@@ -126,7 +134,7 @@ final class DefEnumSymbolTest extends TestCase
             Keyword::create('high'), 10,
         ]);
 
-        $node = new DefEnumSymbol($this->analyzer)->analyze($list, NodeEnvironment::empty());
+        $node = $this->analyze($list);
 
         self::assertSame('int', $node->getBackingType());
         self::assertSame(10, $node->getCases()[1]->getValue());
@@ -141,10 +149,27 @@ final class DefEnumSymbolTest extends TestCase
             Keyword::create('green'),
         ]);
 
-        $node = new DefEnumSymbol($this->analyzer)->analyze($list, NodeEnvironment::empty());
+        $node = $this->analyze($list);
 
         self::assertNull($node->getBackingType());
         self::assertCount(2, $node->getCases());
         self::assertNull($node->getCases()[0]->getValue());
+    }
+
+    /**
+     * @param PersistentListInterface<mixed> $list
+     */
+    private function analyze(PersistentListInterface $list): DefEnumNode
+    {
+        $munge = new Munge();
+        $implementationsAnalyzer = new InterfaceImplementationsAnalyzer(
+            $this->analyzer,
+            $munge,
+            new MethodBodyAnalyzer($this->analyzer),
+            new PhpBlockAnalyzer($munge, new MethodBodyAnalyzer($this->analyzer)),
+        );
+
+        return new DefEnumSymbol($this->analyzer, $implementationsAnalyzer)
+            ->analyze($list, NodeEnvironment::empty());
     }
 }

@@ -14,10 +14,11 @@ use Phel\Lang\Symbol;
 use Phel\Shared\MungeInterface;
 
 /**
- * Handles the `:php` block of a `defstruct`: a sequence of bare PHP methods
- * emitted directly on the struct class with no backing interface. This is the
- * only way to declare PHP magic methods (`__invoke`, `__toString`, `__get`,
- * ...) that belong to no PHP interface.
+ * Handles the `:php` block of a `defstruct`/`defenum`: a sequence of bare PHP
+ * methods emitted directly on the generated class with no backing interface.
+ * This is the way to declare plain helper methods and PHP magic methods
+ * (`__invoke`, `__toString`, `__get`, ...) that belong to no PHP interface.
+ * The struct-specific `__invoke` arity guard is skipped for non-struct hosts.
  */
 final readonly class PhpBlockAnalyzer
 {
@@ -48,7 +49,7 @@ final readonly class PhpBlockAnalyzer
      *
      * @return array{0: DefStructInterface, 1: PersistentListInterface<mixed>}
      */
-    public function analyze(PersistentListInterface $forms, NodeEnvironmentInterface $env): array
+    public function analyze(PersistentListInterface $forms, NodeEnvironmentInterface $env, bool $enforceInvokeArity = true): array
     {
         $methods = [];
         while (($next = $forms->cdr()) instanceof PersistentListInterface
@@ -57,7 +58,10 @@ final readonly class PhpBlockAnalyzer
             $forms = $next;
             /** @var PersistentListInterface<mixed> $methodForm */
             $methodForm = $forms->first();
-            $this->assertCompatibleInvoke($methodForm);
+            if ($enforceInvokeArity) {
+                $this->assertCompatibleInvoke($methodForm);
+            }
+
             $methods[] = $this->methodBodyAnalyzer->analyze($methodForm, $env);
         }
 

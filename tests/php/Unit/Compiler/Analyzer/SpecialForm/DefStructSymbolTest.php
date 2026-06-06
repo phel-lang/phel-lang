@@ -11,6 +11,7 @@ use Phel\Compiler\Domain\Analyzer\Ast\DefStructNode;
 use Phel\Compiler\Domain\Analyzer\Environment\GlobalEnvironment;
 use Phel\Compiler\Domain\Analyzer\Environment\NodeEnvironment;
 use Phel\Compiler\Domain\Analyzer\TypeAnalyzer\SpecialForm\DefStructSymbol;
+use Phel\Compiler\Domain\Analyzer\TypeAnalyzer\SpecialForm\InterfaceImplementationsAnalyzer;
 use Phel\Compiler\Domain\Analyzer\TypeAnalyzer\SpecialForm\MethodBodyAnalyzer;
 use Phel\Compiler\Domain\Analyzer\TypeAnalyzer\SpecialForm\PhpBlockAnalyzer;
 use Phel\Lang\Symbol;
@@ -109,11 +110,16 @@ final class DefStructSymbolTest extends TestCase
 
     private function createSymbol(): DefStructSymbol
     {
+        $munge = new Munge();
+
         return new DefStructSymbol(
             $this->analyzer,
-            new Munge(),
-            new MethodBodyAnalyzer($this->analyzer),
-            new PhpBlockAnalyzer(new Munge(), new MethodBodyAnalyzer($this->analyzer)),
+            new InterfaceImplementationsAnalyzer(
+                $this->analyzer,
+                $munge,
+                new MethodBodyAnalyzer($this->analyzer),
+                new PhpBlockAnalyzer($munge, new MethodBodyAnalyzer($this->analyzer)),
+            ),
         );
     }
 }

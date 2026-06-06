@@ -24,6 +24,7 @@ use Phel\Compiler\Domain\Analyzer\TypeAnalyzer\SpecialForm\FnSymbol;
 use Phel\Compiler\Domain\Analyzer\TypeAnalyzer\SpecialForm\ForeachSymbol;
 use Phel\Compiler\Domain\Analyzer\TypeAnalyzer\SpecialForm\IfSymbol;
 use Phel\Compiler\Domain\Analyzer\TypeAnalyzer\SpecialForm\InNsSymbol;
+use Phel\Compiler\Domain\Analyzer\TypeAnalyzer\SpecialForm\InterfaceImplementationsAnalyzer;
 use Phel\Compiler\Domain\Analyzer\TypeAnalyzer\SpecialForm\InvokeSymbol;
 use Phel\Compiler\Domain\Analyzer\TypeAnalyzer\SpecialForm\LetSymbol;
 use Phel\Compiler\Domain\Analyzer\TypeAnalyzer\SpecialForm\LoadSymbol;
@@ -343,12 +344,13 @@ final class AnalyzePersistentList
             Symbol::NAME_FOREACH => new ForeachSymbol($this->analyzer),
             Symbol::NAME_DEF_STRUCT => new DefStructSymbol(
                 $this->analyzer,
-                $this->munge,
-                new MethodBodyAnalyzer($this->analyzer),
-                new PhpBlockAnalyzer($this->munge, new MethodBodyAnalyzer($this->analyzer)),
+                $this->createImplementationsAnalyzer(),
             ),
             Symbol::NAME_DEF_EXCEPTION => new DefExceptionSymbol($this->analyzer),
-            Symbol::NAME_DEF_ENUM => new DefEnumSymbol($this->analyzer),
+            Symbol::NAME_DEF_ENUM => new DefEnumSymbol(
+                $this->analyzer,
+                $this->createImplementationsAnalyzer(),
+            ),
             Symbol::NAME_PHP_OBJECT_SET => new PhpOSetSymbol($this->analyzer),
             Symbol::NAME_SET_VAR => new SetVarSymbol($this->analyzer),
             Symbol::NAME_DEF_INTERFACE => new DefInterfaceSymbol($this->analyzer),
@@ -359,5 +361,15 @@ final class AnalyzePersistentList
         $this->symbolAnalyzerCache[$symbolName] = $analyzer;
 
         return $analyzer;
+    }
+
+    private function createImplementationsAnalyzer(): InterfaceImplementationsAnalyzer
+    {
+        return new InterfaceImplementationsAnalyzer(
+            $this->analyzer,
+            $this->munge,
+            new MethodBodyAnalyzer($this->analyzer),
+            new PhpBlockAnalyzer($this->munge, new MethodBodyAnalyzer($this->analyzer)),
+        );
     }
 }
