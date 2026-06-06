@@ -1,0 +1,28 @@
+--PHEL--
+(defstruct* ^:php/readonly point [^{:tag int} x ^{:tag int} y])
+--PHP--
+if (!class_exists('user\point')) {
+final class point extends \Phel\Lang\Collections\Struct\AbstractPersistentStruct {
+
+  protected const array ALLOWED_KEYS = ['x', 'y'];
+
+  protected readonly int $x;
+  protected readonly int $y;
+
+  public function __construct($x, $y, $meta = null) {
+    parent::__construct();
+    $this->x = $x;
+    $this->y = $y;
+    $this->meta = $meta;
+  }
+
+  public function put($key, $value): \Phel\Lang\Collections\Map\PersistentMapInterface {
+    $stringKey = $this->validateKey($key);
+    return new self(
+      $stringKey === 'x' ? $value : $this->x,
+      $stringKey === 'y' ? $value : $this->y,
+      $this->meta,
+    );
+  }
+}
+}
