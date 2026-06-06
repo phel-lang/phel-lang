@@ -1,0 +1,10 @@
+--PHEL--
+(definterface* Effect (^{:tag never} fail [this]) (^{:tag mixed} unwrap [this]) (^{:tag ?int} maybe [this ^{:tag ?string} id]))
+--PHP--
+if (!interface_exists('user\Effect')) {
+interface Effect {
+  public function fail(): never;
+  public function unwrap(): mixed;
+  public function maybe(?string $id): ?int;
+}
+}

@@ -148,6 +148,11 @@ final class TagCompatibility
             'bool' => $literalType === 'bool',
             'array' => $literalType === 'vector' || $literalType === 'map',
             'iterable' => in_array($literalType, ['vector', 'map', 'set'], true),
+            // `null`/`void`/`never` cannot be satisfied by a concrete returned
+            // value: `null` only holds nil (handled above), a `void` fn must not
+            // return a value, and a `never` fn must not return at all, so any
+            // non-nil tail literal is incompatible with them.
+            'null', 'void', 'never' => false,
             default => true,
         };
     }

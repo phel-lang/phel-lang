@@ -20,3 +20,15 @@
         b (put a :value "two")]
     (is (= 1 (a :value)) "original is unchanged")
     (is (= "two" (b :value)) "put returns an updated copy")))
+
+;; Return type tags: `mixed` accepts any tail, `?T` accepts nil or T.
+(defn mixed-ret ^{:tag mixed} [x] x)
+(defn nullable-ret ^{:tag ?int} [b] (if b 1 nil))
+
+(deftest mixed-return-tag-accepts-any
+  (is (= 5 (mixed-ret 5)) "mixed return accepts an int")
+  (is (= "x" (mixed-ret "x")) "mixed return accepts a string"))
+
+(deftest nullable-return-tag-accepts-nil-and-value
+  (is (= 1 (nullable-ret true)) "nullable return yields the int")
+  (is (nil? (nullable-ret false)) "nullable return yields nil"))
