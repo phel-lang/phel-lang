@@ -7,6 +7,7 @@ namespace Phel\Compiler\Domain\Emitter\OutputEmitter\NodeEmitter;
 use Phel\Compiler\Domain\Analyzer\Ast\AbstractNode;
 use Phel\Compiler\Domain\Analyzer\Ast\DefInterfaceMethod;
 use Phel\Compiler\Domain\Analyzer\Ast\DefInterfaceNode;
+use Phel\Compiler\Domain\Analyzer\Ast\PhpClassConst;
 use Phel\Compiler\Domain\Emitter\OutputEmitter\NodeEmitterInterface;
 use Phel\Compiler\Domain\Emitter\OutputEmitterInterface;
 use Phel\Lang\Collections\Map\PersistentMapInterface;
@@ -14,6 +15,7 @@ use Phel\Lang\SourceLocation;
 use Phel\Shared\PhpAttributeRenderer;
 
 use function assert;
+use function var_export;
 
 final readonly class DefInterfaceEmitter implements NodeEmitterInterface
 {
@@ -98,12 +100,34 @@ final readonly class DefInterfaceEmitter implements NodeEmitterInterface
         );
         $this->outputEmitter->increaseIndentLevel();
 
+        foreach ($node->getConsts() as $const) {
+            $this->emitConst($node, $const);
+        }
+
         foreach ($node->getMethods() as $defInterfaceMethod) {
             $this->emitMethod($node, $defInterfaceMethod);
         }
 
         $this->outputEmitter->decreaseIndentLevel();
         $this->outputEmitter->emitLine('}', $sourceLocation);
+    }
+
+    private function emitConst(DefInterfaceNode $node, PhpClassConst $const): void
+    {
+        $sourceLocation = $node->getStartSourceLocation();
+        $this->emitDocBlock($const->getName()->getMeta(), $sourceLocation);
+        $this->emitAttributes($const->getName()->getMeta(), $sourceLocation);
+
+        $line = 'const ';
+        $tag = $this->tagTypeFromMeta($const->getName()->getMeta());
+        if ($tag !== null) {
+            $line .= $tag . ' ';
+        }
+
+        $line .= $this->outputEmitter->mungeEncode($const->getName()->getName())
+            . ' = ' . var_export($const->getValue(), true) . ';';
+
+        $this->outputEmitter->emitLine($line, $sourceLocation);
     }
 
     private function emitMethod(DefInterfaceNode $node, DefInterfaceMethod $method): void

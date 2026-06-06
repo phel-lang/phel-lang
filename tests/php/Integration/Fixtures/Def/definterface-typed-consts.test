@@ -1,0 +1,11 @@
+--PHEL--
+(definterface* HasMax (get-max [this]) :php/const (^{:tag int} MAX 100) (^{:tag string} LABEL "max") (UNTYPED true))
+--PHP--
+if (!interface_exists('user\HasMax')) {
+interface HasMax {
+  const int MAX = 100;
+  const string LABEL = 'max';
+  const UNTYPED = true;
+  public function get_max();
+}
+}

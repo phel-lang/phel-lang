@@ -28,7 +28,10 @@
   (let [name-str       (php/-> name (getName))
         munge          (php/new Munge)
         class-name-str (php/. (php/-> munge (encodePhpNs *ns*)) "\\" (php/-> munge (encode name-str)))
-        defs           (for [[fn-name args doc] :in fns
+        ;; Only method forms get a Phel wrapper fn; a trailing `:php/const`
+        ;; block (and its const forms) is passed through to `definterface*` only.
+        method-forms   (take-while |(not= $ :php/const) fns)
+        defs           (for [[fn-name args doc] :in method-forms
                              :let [fn-name-str (php/-> fn-name (getName))
                                    munged-fn-name (php/-> munge (encode fn-name-str))
                                    munged-fn-symbol (php/:: Symbol (create munged-fn-name))]]
