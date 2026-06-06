@@ -105,7 +105,8 @@ final readonly class PhpBlockAnalyzer
         if (!$compatible) {
             throw AnalyzerException::withLocation(
                 "A struct's '__invoke' must take exactly one call argument or be variadic "
-                . '(e.g. [this x] or [this & xs]), because a struct is already callable as a map. Got '
+                . '(e.g. [this x] or [this & xs]), because a struct is already callable as a map. '
+                . 'To accept a call with no meaningful argument, use a variadic tail and ignore it: [this & _]. Got '
                 . $required . ' required argument(s).',
                 $methodForm,
             );

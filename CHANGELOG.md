@@ -46,6 +46,7 @@ Richer PHP interop for bridging Phel to typed PHP / framework code (all opt-in, 
 - `agent-install`: simplified to copying skill files and the `.agents/` docs tree; dropped version stamping, `--check`, `--list`
 - `phel.ai`: default chat model is now `claude-sonnet-4-6`; `nearest` computes the query magnitude once instead of per item
 - Dropped redundant `(:require phel.core)` from 14 library namespaces (always preloaded); kept in `phel.string`, which needs the `core/` alias for `core/reverse`
+- `defstruct` `:php` block: the incompatible-`__invoke` arity error now points at the `[this & _]` workaround for callers that want a no-meaningful-argument invoke
 
 ## [0.41.0](https://github.com/phel-lang/phel-lang/compare/v0.40.0...v0.41.0) - 2026-06-01
 
