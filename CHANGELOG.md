@@ -4,6 +4,8 @@ All notable changes to this project will be documented in this file.
 
 ## Unreleased
 
+## [0.42.0](https://github.com/phel-lang/phel-lang/compare/v0.41.0...v0.42.0) - 2026-06-06
+
 ### Fixed
 
 - `if-let`/`when-let`/`if-some`/`when-first`: now hygienic — a user binding named `temp-sym` no longer collides with the macros' internal temporary
