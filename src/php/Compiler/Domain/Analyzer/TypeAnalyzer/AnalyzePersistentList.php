@@ -39,6 +39,7 @@ use Phel\Compiler\Domain\Analyzer\TypeAnalyzer\SpecialForm\PhpASetSymbol;
 use Phel\Compiler\Domain\Analyzer\TypeAnalyzer\SpecialForm\PhpAUnsetInSymbol;
 use Phel\Compiler\Domain\Analyzer\TypeAnalyzer\SpecialForm\PhpAUnsetSymbol;
 use Phel\Compiler\Domain\Analyzer\TypeAnalyzer\SpecialForm\PhpBlockAnalyzer;
+use Phel\Compiler\Domain\Analyzer\TypeAnalyzer\SpecialForm\PhpCallableSymbol;
 use Phel\Compiler\Domain\Analyzer\TypeAnalyzer\SpecialForm\PhpNewSymbol;
 use Phel\Compiler\Domain\Analyzer\TypeAnalyzer\SpecialForm\PhpObjectCallSymbol;
 use Phel\Compiler\Domain\Analyzer\TypeAnalyzer\SpecialForm\PhpOSetSymbol;
@@ -325,6 +326,7 @@ final class AnalyzePersistentList
             Symbol::NAME_PHP_NEW, Symbol::NAME_NEW => new PhpNewSymbol($this->analyzer),
             Symbol::NAME_PHP_OBJECT_CALL => new PhpObjectCallSymbol($this->analyzer, isStatic: false),
             Symbol::NAME_PHP_OBJECT_STATIC_CALL => new PhpObjectCallSymbol($this->analyzer, isStatic: true),
+            Symbol::NAME_PHP_CALLABLE => new PhpCallableSymbol($this->analyzer),
             Symbol::NAME_PHP_REF => new PhpRefSymbol($this->analyzer),
             Symbol::NAME_PHP_ARRAY_GET => new PhpAGetSymbol($this->analyzer),
             Symbol::NAME_PHP_ARRAY_GET_IN => new PhpAGetInSymbol($this->analyzer),

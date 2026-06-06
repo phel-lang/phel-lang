@@ -4,6 +4,10 @@ All notable changes to this project will be documented in this file.
 
 ## Unreleased
 
+### Added
+
+- `php/callable`: first-class callable interop form emitting native PHP 8.1 `(...)` syntax for free functions (`(php/callable \strlen)`), static methods (`(php/callable Foo bar)`), and instance methods (`(php/callable obj method)`) — zero-overhead, no `fn` wrapper
+
 ## [0.42.0](https://github.com/phel-lang/phel-lang/compare/v0.41.0...v0.42.0) - 2026-06-06
 
 ### Fixed

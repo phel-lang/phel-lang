@@ -1,0 +1,4 @@
+--PHEL--
+(php/callable \strtoupper)
+--PHP--
+(\strtoupper(...));

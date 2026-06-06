@@ -14,6 +14,7 @@ Call PHP from Phel and Phel from PHP.
 | Array access | `$arr[$key]` | `(php/aget arr key)` |
 | By-reference arg | `$obj->m($out)` (writes back into `$out`) | `(php/-> obj (m (php/ref out)))` |
 | Named arguments | `new Mailer(host: "smtp", port: 25)` | `(php/new \Mailer :& :host "smtp" :port 25)` |
+| First-class callable | `strlen(...)`, `$obj->m(...)`, `Foo::bar(...)` | `(php/callable \strlen)`, `(php/callable obj m)`, `(php/callable Foo bar)` |
 
 ## Calling PHP from Phel
 
@@ -116,6 +117,27 @@ Use the `:&` marker to pass PHP 8 named arguments in `php/new`, `php/->`, and `p
 ```
 
 Without the `:&` marker a keyword is just a positional value, so existing calls are unaffected. `php/ref` may be used as a named-argument value (`:out (php/ref x)`).
+
+### First-class callables
+
+`php/callable` builds a native PHP 8.1 first-class callable `(...)` from a PHP function or method. It is zero-overhead: no wrapping `fn` closure is allocated, and it reads cleaner when passing a method as a value:
+
+```phel
+;; Free function
+(map (php/callable \strtoupper) ["a" "b"])     ; => ["A" "B"]
+;; compiles to \strtoupper(...)
+
+;; Static method
+(php/callable \DateTimeImmutable createFromFormat)
+;; compiles to \DateTimeImmutable::createFromFormat(...)
+
+;; Instance method
+(let [list (php/new \ArrayObject [1 2 3])]
+  (php/callable list getArrayCopy))
+;; compiles to ($list)->getArrayCopy(...)
+```
+
+The first argument decides the target shape: a lone symbol is a free function, a class reference (`\Foo`, or an imported/uppercase class) plus a method name is a static call, and anything else plus a method name is an instance call on the evaluated object. The result is an ordinary callable, so it composes with `map`, `filter`, and friends.
 
 ### Working with PHP Arrays
 
