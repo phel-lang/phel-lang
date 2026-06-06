@@ -182,6 +182,11 @@ final readonly class DefStructEmitter implements NodeEmitterInterface
         $this->outputEmitter->emitLine('}', $node->getStartSourceLocation());
     }
 
+    private function isReadonly(DefStructNode $node): bool
+    {
+        return $this->metaFlag($node->getName()->getMeta(), 'readonly');
+    }
+
     /**
      * Reads a boolean `:php/<name>` flag off the struct-name meta.
      *
@@ -215,7 +220,7 @@ final readonly class DefStructEmitter implements NodeEmitterInterface
 
     private function emitProperties(DefStructNode $node): void
     {
-        $readonly = $this->metaFlag($node->getName()->getMeta(), 'readonly');
+        $readonly = $this->isReadonly($node);
         $params = $node->getParams();
         foreach ($params as $param) {
             $meta = $param->getMeta();
@@ -311,7 +316,7 @@ final readonly class DefStructEmitter implements NodeEmitterInterface
      */
     private function emitReadonlyPut(DefStructNode $node): void
     {
-        if (!$this->metaFlag($node->getName()->getMeta(), 'readonly')) {
+        if (!$this->isReadonly($node)) {
             return;
         }
 
