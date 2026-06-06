@@ -67,6 +67,8 @@ final class Symbol extends AbstractType implements IdenticalInterface, FnInterfa
 
     public const string NAME_PHP_OBJECT_STATIC_CALL = 'php/::';
 
+    public const string NAME_PHP_CALLABLE = 'php/callable';
+
     public const string NAME_QUOTE = 'quote';
 
     public const string NAME_VAR = 'var';

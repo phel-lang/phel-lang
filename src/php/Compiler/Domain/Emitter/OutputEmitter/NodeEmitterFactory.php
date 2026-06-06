@@ -29,6 +29,7 @@ use Phel\Compiler\Domain\Analyzer\Ast\PhpArrayGetNode;
 use Phel\Compiler\Domain\Analyzer\Ast\PhpArrayPushNode;
 use Phel\Compiler\Domain\Analyzer\Ast\PhpArraySetNode;
 use Phel\Compiler\Domain\Analyzer\Ast\PhpArrayUnsetNode;
+use Phel\Compiler\Domain\Analyzer\Ast\PhpCallableNode;
 use Phel\Compiler\Domain\Analyzer\Ast\PhpClassNameNode;
 use Phel\Compiler\Domain\Analyzer\Ast\PhpNamedArgNode;
 use Phel\Compiler\Domain\Analyzer\Ast\PhpNewNode;
@@ -74,6 +75,7 @@ use Phel\Compiler\Domain\Emitter\OutputEmitter\NodeEmitter\PhpArrayGetEmitter;
 use Phel\Compiler\Domain\Emitter\OutputEmitter\NodeEmitter\PhpArrayPushEmitter;
 use Phel\Compiler\Domain\Emitter\OutputEmitter\NodeEmitter\PhpArraySetEmitter;
 use Phel\Compiler\Domain\Emitter\OutputEmitter\NodeEmitter\PhpArrayUnsetEmitter;
+use Phel\Compiler\Domain\Emitter\OutputEmitter\NodeEmitter\PhpCallableEmitter;
 use Phel\Compiler\Domain\Emitter\OutputEmitter\NodeEmitter\PhpClassNameEmitter;
 use Phel\Compiler\Domain\Emitter\OutputEmitter\NodeEmitter\PhpNamedArgEmitter;
 use Phel\Compiler\Domain\Emitter\OutputEmitter\NodeEmitter\PhpNewEmitter;
@@ -153,6 +155,7 @@ final class NodeEmitterFactory
             PhpNamedArgNode::class => new PhpNamedArgEmitter($outputEmitter),
             PhpVarNode::class => new PhpVarEmitter($outputEmitter),
             PhpObjectCallNode::class => new PhpObjectCallEmitter($outputEmitter),
+            PhpCallableNode::class => new PhpCallableEmitter($outputEmitter),
             PhpRefNode::class => new PhpRefEmitter($outputEmitter),
             RecurNode::class => new RecurEmitter($outputEmitter),
             ThrowNode::class => new ThrowEmitter($outputEmitter),

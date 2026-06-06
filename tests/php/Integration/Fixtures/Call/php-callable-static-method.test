@@ -1,0 +1,4 @@
+--PHEL--
+(php/callable \DateTimeImmutable createFromFormat)
+--PHP--
+(\DateTimeImmutable::createFromFormat(...));

@@ -1,0 +1,5 @@
+--PHEL--
+(let [o (php/new \ArrayObject)] (php/callable o getArrayCopy))
+--PHP--
+$o_1 = (new \ArrayObject());
+(($o_1)->getArrayCopy(...));

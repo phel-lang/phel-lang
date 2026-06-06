@@ -382,6 +382,18 @@ Calls a static method or property from a PHP class. Both method-name and propert
             'desc' => 'Calls a static method or property from a PHP class. Both method-name and property must be symbols and cannot be an evaluated value.',
             'example' => '(php/:: DateTime (createFromFormat "Y-m-d" "2024-01-01"))',
         ],
+        Symbol::NAME_PHP_CALLABLE => [
+            'doc' => '```phel
+(php/callable \function)
+(php/callable Class method)
+(php/callable object method)
+```
+Builds a native PHP 8.1 first-class callable `(...)` from a free function, a static method, or an instance method, without allocating an `fn` wrapper.',
+            'docUrl' => '/documentation/php-interop/#php-first-class-callable',
+            'signatures' => ['(php/callable \function)', '(php/callable Class method)', '(php/callable object method)'],
+            'desc' => 'Builds a native PHP first-class callable from a function or method, without an fn wrapper.',
+            'example' => '(map (php/callable \strtoupper) ["a" "b"])',
+        ],
         Symbol::NAME_PHP_REF => [
             'doc' => '```phel
 (php/-> object (method (php/ref local)))
