@@ -40,13 +40,11 @@ final readonly class PhpCallableSymbol implements SpecialFormAnalyzerInterface
             );
         }
 
-        $exprEnv = $env->withExpressionContext()->withDisallowRecurFrame();
-
         if ($count === 2) {
             return $this->analyzeFreeFunction($list, $env);
         }
 
-        return $this->analyzeMethod($list, $env, $exprEnv);
+        return $this->analyzeMethod($list, $env);
     }
 
     /**
@@ -79,7 +77,6 @@ final readonly class PhpCallableSymbol implements SpecialFormAnalyzerInterface
     private function analyzeMethod(
         PersistentListInterface $list,
         NodeEnvironmentInterface $env,
-        NodeEnvironmentInterface $exprEnv,
     ): PhpCallableNode {
         $target = $list->get(1);
         $methodSymbol = $list->get(2);
@@ -89,6 +86,8 @@ final readonly class PhpCallableSymbol implements SpecialFormAnalyzerInterface
                 $list,
             );
         }
+
+        $exprEnv = $env->withExpressionContext()->withDisallowRecurFrame();
 
         $classNode = $this->resolveClassReference($target, $env, $exprEnv);
         if ($classNode instanceof PhpClassNameNode) {
