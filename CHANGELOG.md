@@ -6,16 +6,16 @@ All notable changes to this project will be documented in this file.
 
 ### Added
 
-- `php/callable`: first-class callable interop form emitting native PHP 8.1 `(...)` syntax for free functions (`(php/callable \strlen)`), static methods (`(php/callable Foo bar)`), and instance methods (`(php/callable obj method)`) — zero-overhead, no `fn` wrapper
-- `defstruct` `^:php/readonly`: emits the struct's typed fields as PHP `readonly` properties (untagged fields default to `readonly mixed`), making the immutability visible to psalm/phpstan; persistent `assoc`/`put` keeps working via a constructor-rebuild override
-- `defenum` methods and interfaces: after the cases, a `defenum` can declare implemented interfaces (with their methods) and a `:php` block of plain/magic methods, reusing `defstruct`'s inline-implementation machinery; works for both pure and backed enums
-- `^:php/override` method sugar: emits PHP 8.3 `#[\Override]` on a generated method (defstruct/defenum interface impls and definterface methods), short for `^{:php/attr [[:Override]]}`. Struct/enum inline method impls now also emit method-level `:php/attr` and `:php/doc`
-- `definterface` typed class constants: a trailing `:php/const` block declares PHP 8.3 typed constants, e.g. `:php/const (^{:tag int} MAX 100)` → `const int MAX = 100;` (values are int/float/string/bool/nil literals)
+- `php/callable`: first-class callable interop emitting native PHP 8.1 `(...)` syntax for free functions (`(php/callable \strlen)`), static methods (`(php/callable Foo bar)`), and instance methods (`(php/callable obj method)`); no `fn` wrapper
+- `defstruct` `^:php/readonly`: emits typed fields as PHP `readonly` properties (untagged default to `readonly mixed`); `put`/`assoc` still return updated copies via a constructor-rebuild override
+- `defenum` methods and interfaces: after the cases, an enum can implement interfaces and carry a `:php` block of methods, for both pure and backed enums
+- `^:php/override`: emits PHP 8.3 `#[\Override]` on a generated method (struct/enum interface impls, `definterface` methods); inline struct/enum methods also accept `:php/attr` and `:php/doc`
+- `definterface` typed class constants: a trailing `:php/const` block emits PHP 8.3 typed constants, e.g. `(^{:tag int} MAX 100)` → `const int MAX = 100;` (int/float/string/bool/nil values)
 
 ### Fixed
 
-- `:tag` return-type checking: declaring `never`/`void`/`null` on a function whose body returns a concrete value is now a compile-time type error instead of emitting PHP that fatals at load; `mixed`, `?T` nullable, and union/intersection return tags continue to pass through
-- `defenum`: the bare enum name now resolves to its namespaced PHP class, so the documented `EnumName/case` access form works (previously failed with `Class "EnumName" not found`)
+- `:tag`: a `never`/`void`/`null` return tag on a value-returning function is now a compile error instead of PHP that fatals at load; `mixed`, `?T`, and union/intersection tags still pass
+- `defenum`: the bare enum name now resolves to its PHP class, so `EnumName/case` access works
 
 ## [0.42.0](https://github.com/phel-lang/phel-lang/compare/v0.41.0...v0.42.0) - 2026-06-06
 

@@ -86,6 +86,30 @@ final class StaticTypeCheckerTest extends TestCase
         self::assertStringContainsString('?int', $php);
     }
 
+    public function test_never_return_rejects_concrete_value(): void
+    {
+        $this->expectExceptionMessageMatches(
+            "/Fn return type 'never' is incompatible with tail expression of type 'int'/",
+        );
+        $this->compile('(fn ^never [] 1)');
+    }
+
+    public function test_void_return_rejects_concrete_value(): void
+    {
+        $this->expectExceptionMessageMatches(
+            "/Fn return type 'void' is incompatible with tail expression of type 'string'/",
+        );
+        $this->compile('(fn ^void [] "x")');
+    }
+
+    public function test_null_return_rejects_concrete_value(): void
+    {
+        $this->expectExceptionMessageMatches(
+            "/Fn return type 'null' is incompatible with tail expression of type 'int'/",
+        );
+        $this->compile('(fn ^null [] 1)');
+    }
+
     public function test_inferred_int_param_flags_string_literal_at_call_site(): void
     {
         $this->expectExceptionMessageMatches(
