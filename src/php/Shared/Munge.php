@@ -110,10 +110,6 @@ final readonly class Munge implements MungeInterface
      */
     private function encodeWithMap(string $str, array $mapping): string
     {
-        return str_replace(
-            array_keys($mapping),
-            array_values($mapping),
-            $str,
-        );
+        return strtr($str, $mapping);
     }
 }
