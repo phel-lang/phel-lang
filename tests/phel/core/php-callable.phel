@@ -1,0 +1,25 @@
+(ns phel-test.core.php-callable
+  (:require phel.test :refer [deftest is]))
+
+;; Free function: emits `strtoupper(...)`.
+(def upper (php/callable \strtoupper))
+
+;; Static method: emits `\Phel\Lang\Keyword::create(...)`.
+(def make-kw (php/callable \Phel\Lang\Keyword create))
+
+;; Instance method: emits `($dt->format(...))`.
+(def formatter (php/callable (php/new \DateTime "2020-03-04") format))
+
+(deftest free-function-callable-runs
+  (is (= "HI" (upper "hi")) "the free-function callable invokes the PHP function")
+  (is (true? (function? upper)) "it is a real callable value"))
+
+(deftest static-method-callable-runs
+  (is (= :foo (make-kw "foo")) "the static-method callable invokes Keyword::create"))
+
+(deftest instance-method-callable-runs
+  (is (= "2020" (formatter "Y")) "the instance-method callable is bound to its object"))
+
+(deftest callable-is-first-class
+  ;; Usable wherever a function is expected, with no `fn` wrapper.
+  (is (= ["A" "B"] (map upper ["a" "b"])) "the callable passes straight into map"))
