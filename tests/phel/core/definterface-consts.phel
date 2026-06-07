@@ -19,7 +19,7 @@
   (is (= true (php/:: \phel_test\core\definterface_consts\HasLimits ENABLED)) "bool const value")
   (is (nil? (php/:: \phel_test\core\definterface_consts\HasLimits DEFAULT)) "nil const value"))
 
-(deftest constant_is_typed
+(deftest constant-is-typed
   (let [rc   (php/new \ReflectionClassConstant
                       "phel_test\\core\\definterface_consts\\HasLimits" "MAX")
         type (php/-> rc (getType))]
