@@ -45,7 +45,7 @@ Profile/
 ## Dependencies
 
 - **Run** (`RunFacade`): `runFile`, `runNamespace`, `autoDetectEntryPoint`, `writeLocatedException`, `writeStackTrace`
-- **Compiler** (`Munge`): namespace canonicalization
+- **Shared** (`Munge`): namespace canonicalization
 - **Lang** (`AbstractFn`, `ProfilerHookInterface`, `Registry`): fn proxy and hook installation
 
 ## Key Constraints
