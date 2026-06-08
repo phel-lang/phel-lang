@@ -37,6 +37,13 @@ final class VersionFinderTest extends TestCase
         self::assertSame(VersionFinder::LATEST_VERSION . '-beta#abcdef1', $finder->getVersion());
     }
 
+    public function test_empty_tag_commit_with_valid_current_returns_beta(): void
+    {
+        $finder = new VersionFinder('', '1234567890abcdef', false);
+
+        self::assertSame(VersionFinder::LATEST_VERSION . '-beta#1234567', $finder->getVersion());
+    }
+
     public function test_full_40_char_sha_is_truncated_to_seven(): void
     {
         $sha = 'a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2';
