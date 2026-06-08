@@ -18,6 +18,13 @@ interface RunFacadeInterface
     public function runFile(string $filename): void;
 
     /**
+     * Resolves the project's configured entry-point namespace, or null when
+     * none is detected. Used by tooling that runs a project without an
+     * explicit target.
+     */
+    public function autoDetectEntryPoint(): ?string;
+
+    /**
      * @return mixed The result of the executed code
      */
     public function eval(string $phelCode, CompileOptions $compileOptions): mixed;

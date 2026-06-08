@@ -283,6 +283,11 @@ final class FakeRunFacade implements RunFacadeInterface
 
     public function runFile(string $filename): void {}
 
+    public function autoDetectEntryPoint(): ?string
+    {
+        return null;
+    }
+
     public function eval(string $phelCode, CompileOptions $compileOptions): mixed
     {
         return null;

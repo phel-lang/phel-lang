@@ -20,6 +20,10 @@ All notable changes to this project will be documented in this file.
 - `LetSimplifier`: the unused-binding drop pass tracks live references in a name-keyed set, turning its O(n²) scan-and-rebuild into O(n) over a `let`'s bindings (matters for `let` blocks with many bindings)
 - Parser: `AtomParser` skips the anchored number-regex gauntlet for atoms that cannot start a number (first char not a digit/sign/dot), so symbol tokens parse straight through (~1.5× faster per symbol atom); `Parser` token-stream dispatch uses an `isset` keyed-map lookup instead of `in_array`
 
+### Changed
+
+- Architecture: the satellite-module factories (`Lsp`, `Lint`, `Watch`, `Nrepl`, `Profile`) now inject the `Phel\Shared\Facade\*FacadeInterface` contracts instead of neighbour modules' concrete facades, matching the core modules and the project's "inject interfaces" rule; `RunFacadeInterface` gains `autoDetectEntryPoint(): ?string` so the contract covers what `Profile` consumes
+
 ### Fixed
 
 - `:tag`: a `never`/`void`/`null` return tag on a value-returning function is now a compile error instead of PHP that fatals at load; `mixed`, `?T`, and union/intersection tags still pass

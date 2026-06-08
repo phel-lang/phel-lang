@@ -6,8 +6,6 @@ namespace Phel\Lint;
 
 use Gacela\Framework\AbstractFactory;
 use Phel\Api\ApiFacade;
-use Phel\Command\CommandFacade;
-use Phel\Compiler\CompilerFacade;
 use Phel\Lint\Application\Cache\LintCache;
 use Phel\Lint\Application\Config\ConfigLoader;
 use Phel\Lint\Application\Config\RuleRegistry;
@@ -31,7 +29,9 @@ use Phel\Lint\Application\Rule\UnusedRequireRule;
 use Phel\Lint\Application\RulePipeline;
 use Phel\Lint\Application\SourceReader;
 use Phel\Lint\Domain\LintRuleInterface;
-use Phel\Run\RunFacade;
+use Phel\Shared\Facade\CommandFacadeInterface;
+use Phel\Shared\Facade\CompilerFacadeInterface;
+use Phel\Shared\Facade\RunFacadeInterface;
 
 use function implode;
 use function md5;
@@ -117,17 +117,17 @@ final class LintFactory extends AbstractFactory
         return $this->getProvidedDependency(LintProvider::FACADE_API);
     }
 
-    public function getCompilerFacade(): CompilerFacade
+    public function getCompilerFacade(): CompilerFacadeInterface
     {
         return $this->getProvidedDependency(LintProvider::FACADE_COMPILER);
     }
 
-    public function getCommandFacade(): CommandFacade
+    public function getCommandFacade(): CommandFacadeInterface
     {
         return $this->getProvidedDependency(LintProvider::FACADE_COMMAND);
     }
 
-    public function getRunFacade(): RunFacade
+    public function getRunFacade(): RunFacadeInterface
     {
         return $this->getProvidedDependency(LintProvider::FACADE_RUN);
     }
