@@ -27,7 +27,6 @@ use function array_pop;
 use function array_slice;
 use function assert;
 use function count;
-use function in_array;
 use function is_scalar;
 use function is_string;
 use function max;
@@ -39,7 +38,8 @@ use function max;
  */
 final readonly class DefSymbol implements SpecialFormAnalyzerInterface
 {
-    private const array POSSIBLE_TUPLE_SIZES = [2, 3, 4];
+    /** @var array<int, true> */
+    private const array POSSIBLE_TUPLE_SIZES = [2 => true, 3 => true, 4 => true];
 
     /** Number of implicit parameters (`&form` and `&env`) injected into macro fns. */
     private const int MACRO_IMPLICIT_PARAMS = 2;
@@ -148,7 +148,7 @@ final readonly class DefSymbol implements SpecialFormAnalyzerInterface
     {
         $listSize = count($list);
 
-        if (!in_array($listSize, self::POSSIBLE_TUPLE_SIZES, true)) {
+        if (!isset(self::POSSIBLE_TUPLE_SIZES[$listSize])) {
             throw AnalyzerException::withLocation(
                 "Two or three arguments are required for 'def. Got " . $listSize,
                 $list,

@@ -55,9 +55,10 @@ final class ReturnTypeInferrer
         '<=>' => 'int', 'instanceof' => 'bool',
     ];
 
-    /** @var list<string> */
+    /** @var array<string, true> */
     private const array NUMERIC_OPS = [
-        '+', '-', '*', '/', '%', '**', '<<', '>>', '|', '&', '^',
+        '+' => true, '-' => true, '*' => true, '/' => true, '%' => true,
+        '**' => true, '<<' => true, '>>' => true, '|' => true, '&' => true, '^' => true,
     ];
 
     /**
@@ -343,7 +344,7 @@ final class ReturnTypeInferrer
             return $this->publish('string');
         }
 
-        if (in_array($op, self::NUMERIC_OPS, true)) {
+        if (isset(self::NUMERIC_OPS[$op])) {
             $this->sawOperator = true;
             return $this->inferNumeric($node, $locals);
         }

@@ -29,18 +29,19 @@ use function strlen;
  */
 final readonly class CallTypeExpectationResolver
 {
-    /** @var list<string> */
+    /** @var array<string, true> */
     private const array NUMERIC_OPS = [
-        '+', '-', '*', '/', '%', '**', '<<', '>>', '|', '&', '^',
+        '+' => true, '-' => true, '*' => true, '/' => true, '%' => true,
+        '**' => true, '<<' => true, '>>' => true, '|' => true, '&' => true, '^' => true,
     ];
 
     private const string STRING_CONCAT_OP = '.';
 
-    /** @var list<string> */
-    private const array IDENTITY_OPS = ['===', '!==', '==', '!='];
+    /** @var array<string, true> */
+    private const array IDENTITY_OPS = ['===' => true, '!==' => true, '==' => true, '!=' => true];
 
-    /** @var list<string> */
-    private const array ORDERING_OPS = ['<', '>', '<=', '>=', '<=>'];
+    /** @var array<string, true> */
+    private const array ORDERING_OPS = ['<' => true, '>' => true, '<=' => true, '>=' => true, '<=>' => true];
 
     /**
      * Tags that translate directly to a single PHP scalar and therefore
@@ -49,9 +50,9 @@ final readonly class CallTypeExpectationResolver
      * deliberately excluded: tightening them to bare `int` rejects
      * callers that the callee already accepts.
      *
-     * @var list<string>
+     * @var array<string, true>
      */
-    private const array PURE_PRIMITIVE_TAGS = ['int', 'float', 'string', 'bool', 'array'];
+    private const array PURE_PRIMITIVE_TAGS = ['int' => true, 'float' => true, 'string' => true, 'bool' => true, 'array' => true];
 
     /**
      * Curated allowlist of PHP stdlib fns whose arg types are stable
@@ -79,9 +80,9 @@ final readonly class CallTypeExpectationResolver
      * permissive so `BigInt` / `Ratio` polymorphism keeps
      * working at the call site.
      *
-     * @var list<string>
+     * @var array<string, true>
      */
-    private const array INT_STABLE_CORE_FNS = ['+', '-', '*', 'inc', 'dec'];
+    private const array INT_STABLE_CORE_FNS = ['+' => true, '-' => true, '*' => true, 'inc' => true, 'dec' => true];
 
     /**
      * `phel.core` arithmetic wrappers whose dispatch reduces to a PHP
@@ -93,9 +94,9 @@ final readonly class CallTypeExpectationResolver
      * inference path because the user reached for the PHP-native op
      * directly.
      *
-     * @var list<string>
+     * @var array<string, true>
      */
-    private const array NUMERIC_CORE_OBSERVERS = ['+', '-', '*', 'inc', 'dec'];
+    private const array NUMERIC_CORE_OBSERVERS = ['+' => true, '-' => true, '*' => true, 'inc' => true, 'dec' => true];
 
     /**
      * `phel.core` ordering wrappers. Each one reduces to the matching
@@ -103,9 +104,9 @@ final readonly class CallTypeExpectationResolver
      * runtime, so the ordering walker can lift a numeric tag the same
      * way it does for the PHP-native op.
      *
-     * @var list<string>
+     * @var array<string, true>
      */
-    private const array ORDERING_CORE_OBSERVERS = ['<', '<=', '>', '>=', '<=>'];
+    private const array ORDERING_CORE_OBSERVERS = ['<' => true, '<=' => true, '>' => true, '>=' => true, '<=>' => true];
 
     /**
      * Static fallback for `phel.core` callees whose compile-time
@@ -128,11 +129,11 @@ final readonly class CallTypeExpectationResolver
      * (e.g. `(bit-and nil 1)` against an `assert-non-nil` guard) keep
      * compiling and reach the runtime guard.
      *
-     * @var list<string>
+     * @var array<string, true>
      */
     private const array GUARD_GLOBALS = [
-        'assert-non-nil',
-        'assert',
+        'assert-non-nil' => true,
+        'assert' => true,
     ];
 
     /**
@@ -142,26 +143,26 @@ final readonly class CallTypeExpectationResolver
      * permissive even if a sibling branch concatenates or arithmetic's
      * the same param.
      *
-     * @var list<string>
+     * @var array<string, true>
      */
     private const array GUARD_PHP_FNS = [
-        'is_int', 'is_integer', 'is_long',
-        'is_float', 'is_double',
-        'is_string',
-        'is_bool',
-        'is_null',
-        'is_array',
-        'is_object',
-        'is_callable',
-        'is_numeric',
-        'is_iterable',
-        'is_countable',
-        'is_scalar',
+        'is_int' => true, 'is_integer' => true, 'is_long' => true,
+        'is_float' => true, 'is_double' => true,
+        'is_string' => true,
+        'is_bool' => true,
+        'is_null' => true,
+        'is_array' => true,
+        'is_object' => true,
+        'is_callable' => true,
+        'is_numeric' => true,
+        'is_iterable' => true,
+        'is_countable' => true,
+        'is_scalar' => true,
     ];
 
     public function isGuardPhpFn(string $op): bool
     {
-        return in_array($op, self::GUARD_PHP_FNS, true);
+        return isset(self::GUARD_PHP_FNS[$op]);
     }
 
     public function isStringConcatOp(string $op): bool
@@ -171,17 +172,17 @@ final readonly class CallTypeExpectationResolver
 
     public function isNumericOp(string $op): bool
     {
-        return in_array($op, self::NUMERIC_OPS, true);
+        return isset(self::NUMERIC_OPS[$op]);
     }
 
     public function isIdentityOp(string $op): bool
     {
-        return in_array($op, self::IDENTITY_OPS, true);
+        return isset(self::IDENTITY_OPS[$op]);
     }
 
     public function isOrderingOp(string $op): bool
     {
-        return in_array($op, self::ORDERING_OPS, true);
+        return isset(self::ORDERING_OPS[$op]);
     }
 
     /**
@@ -198,7 +199,7 @@ final readonly class CallTypeExpectationResolver
     public function isGuardGlobal(GlobalVarNode $fn): bool
     {
         $name = $fn->getName()->getName();
-        if (in_array($name, self::GUARD_GLOBALS, true)) {
+        if (isset(self::GUARD_GLOBALS[$name])) {
             return true;
         }
 
@@ -215,7 +216,7 @@ final readonly class CallTypeExpectationResolver
             return false;
         }
 
-        return in_array($fn->getName()->getName(), self::INT_STABLE_CORE_FNS, true);
+        return isset(self::INT_STABLE_CORE_FNS[$fn->getName()->getName()]);
     }
 
     public function isCoreNumericObserver(GlobalVarNode $fn): bool
@@ -224,7 +225,7 @@ final readonly class CallTypeExpectationResolver
             return false;
         }
 
-        return in_array($fn->getName()->getName(), self::NUMERIC_CORE_OBSERVERS, true);
+        return isset(self::NUMERIC_CORE_OBSERVERS[$fn->getName()->getName()]);
     }
 
     public function isCoreOrderingObserver(GlobalVarNode $fn): bool
@@ -233,7 +234,7 @@ final readonly class CallTypeExpectationResolver
             return false;
         }
 
-        return in_array($fn->getName()->getName(), self::ORDERING_CORE_OBSERVERS, true);
+        return isset(self::ORDERING_CORE_OBSERVERS[$fn->getName()->getName()]);
     }
 
     public function isCoreEqualityObserver(GlobalVarNode $fn): bool
@@ -350,7 +351,7 @@ final readonly class CallTypeExpectationResolver
             $expectations = [];
             $hasPrimitive = false;
             foreach ($paramTags as $tag) {
-                if (is_string($tag) && in_array($tag, self::PURE_PRIMITIVE_TAGS, true)) {
+                if (is_string($tag) && isset(self::PURE_PRIMITIVE_TAGS[$tag])) {
                     $expectations[] = $tag;
                     $hasPrimitive = true;
                 } else {
