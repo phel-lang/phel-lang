@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace Phel\Compiler\Domain\Emitter\OutputEmitter\SourceMap;
 
+use Phel\Shared\SourceMap\VLQ;
+
 final class SourceMapConsumer
 {
     /** @var array<int, list<int>> */

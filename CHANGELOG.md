@@ -25,6 +25,7 @@ All notable changes to this project will be documented in this file.
 - Architecture: the satellite-module factories (`Lsp`, `Lint`, `Watch`, `Nrepl`, `Profile`) now inject the `Phel\Shared\Facade\*FacadeInterface` contracts instead of neighbour modules' concrete facades, matching the core modules and the project's "inject interfaces" rule; `RunFacadeInterface` gains `autoDetectEntryPoint(): ?string` so the contract covers what `Profile` consumes
 - Architecture: the eval-result value objects (`EvalResult`, `EvalError`, `StackFrame`) moved from `Run\Domain\Repl` to the leaf `Phel\Shared\Eval` namespace, so `RunFacadeInterface::structuredEval()` and its Nrepl/Watch consumers no longer reach into another module's `Domain`. The compiler orchestration that produced them (formerly `EvalResult::fromEval`) now lives in `Run\Application\StructuredEvaluator`, keeping the moved VOs logic-free
 - Architecture: version detection consolidated into a new `Phel\Shared\VersionResolver` (git/Composer/official-release gathering on top of `VersionFinder`); both Console and Run resolve their version through it, removing Run's structural dependency on the whole Console module (it previously injected `ConsoleFacade` solely for `getVersion()`)
+- Architecture: the pure Base64-VLQ codec moved from `Compiler\Domain\Emitter\OutputEmitter\SourceMap\VLQ` to the leaf `Phel\Shared\SourceMap\VLQ` (it carries no compiler state and is a stateless utility like `Munge`/`VersionFinder`); the SourceMap producer/consumer keep their emitter behaviour in Compiler
 
 ### Fixed
 

@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace PhelTest\Unit\Compiler\Domain\Emitter\OutputEmitter\SourceMap;
+namespace PhelTest\Unit\Shared\SourceMap;
 
-use Phel\Compiler\Domain\Emitter\OutputEmitter\SourceMap\VLQ;
+use Phel\Shared\SourceMap\VLQ;
 use PHPUnit\Framework\TestCase;
 
 final class VLQTest extends TestCase
