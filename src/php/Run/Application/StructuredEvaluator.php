@@ -72,39 +72,36 @@ final readonly class StructuredEvaluator
 
             $prev = $e->getPrevious() instanceof Throwable ? $e->getPrevious() : $e;
 
-            return EvalResult::failure(new EvalError(
-                exceptionClass: array_reverse(explode('\\', $prev::class))[0],
-                message: $prev->getMessage(),
-                errorCode: null,
-                file: $prev->getFile(),
-                line: $prev->getLine(),
-                column: null,
-                endLine: null,
-                endColumn: null,
-                codeSnippet: null,
-                stackTrace: $prev->getTraceAsString(),
-                phase: 'eval',
-                frames: $this->extractFrames($prev),
-            ), $output);
+            return EvalResult::failure($this->errorFromThrowable($prev, 'eval'), $output);
         } catch (Throwable $e) {
             $output = (string) ob_get_clean();
             $this->restoreIfNeeded($env, $snapshot);
 
-            return EvalResult::failure(new EvalError(
-                exceptionClass: array_reverse(explode('\\', $e::class))[0],
-                message: $e->getMessage(),
-                errorCode: null,
-                file: $e->getFile(),
-                line: $e->getLine(),
-                column: null,
-                endLine: null,
-                endColumn: null,
-                codeSnippet: null,
-                stackTrace: $e->getTraceAsString(),
-                phase: 'runtime',
-                frames: $this->extractFrames($e),
-            ), $output);
+            return EvalResult::failure($this->errorFromThrowable($e, 'runtime'), $output);
         }
+    }
+
+    /**
+     * Builds an `EvalError` from a non-located throwable (eval/runtime phases).
+     * Located compiler failures are handled inline because they additionally
+     * carry source coordinates and a code snippet.
+     */
+    private function errorFromThrowable(Throwable $t, string $phase): EvalError
+    {
+        return new EvalError(
+            exceptionClass: array_reverse(explode('\\', $t::class))[0],
+            message: $t->getMessage(),
+            errorCode: null,
+            file: $t->getFile(),
+            line: $t->getLine(),
+            column: null,
+            endLine: null,
+            endColumn: null,
+            codeSnippet: null,
+            stackTrace: $t->getTraceAsString(),
+            phase: $phase,
+            frames: $this->extractFrames($t),
+        );
     }
 
     /**
