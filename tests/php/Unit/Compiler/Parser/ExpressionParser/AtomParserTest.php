@@ -936,4 +936,52 @@ final class AtomParserTest extends TestCase
         self::assertInstanceOf(NumberNode::class, $node);
         self::assertSame(PHP_INT_MAX, $node->getValue());
     }
+
+    public function test_parse_leading_dot_float_stays_number(): void
+    {
+        // `.5` is not matched by the anchored decimal regex but `is_numeric`
+        // accepts it; the first-char guard must keep `.` in the numeric set.
+        $parser = new AtomParser(new GlobalEnvironment());
+        $start = new SourceLocation('string', 0, 0);
+        $end = new SourceLocation('string', 0, 2);
+        $node = $parser->parse(new Token(Token::T_ATOM, '.5', $start, $end));
+
+        self::assertInstanceOf(NumberNode::class, $node);
+        self::assertSame(0.5, $node->getValue());
+    }
+
+    public function test_parse_signed_decimal_stays_number(): void
+    {
+        $parser = new AtomParser(new GlobalEnvironment());
+        $start = new SourceLocation('string', 0, 0);
+        $end = new SourceLocation('string', 0, 2);
+        $node = $parser->parse(new Token(Token::T_ATOM, '+5', $start, $end));
+
+        self::assertInstanceOf(NumberNode::class, $node);
+        self::assertSame(5, $node->getValue());
+    }
+
+    public function test_parse_alphabetic_word_is_symbol(): void
+    {
+        $parser = new AtomParser(new GlobalEnvironment());
+        $start = new SourceLocation('string', 0, 0);
+        $end = new SourceLocation('string', 0, 3);
+        $node = $parser->parse(new Token(Token::T_ATOM, 'map', $start, $end));
+
+        self::assertInstanceOf(SymbolNode::class, $node);
+        self::assertSame('map', $node->getValue()->getName());
+    }
+
+    public function test_parse_sign_only_word_is_symbol(): void
+    {
+        // `+` enters the numeric branch (sign first char) but matches no
+        // numeric form, so it falls through to a symbol — unchanged.
+        $parser = new AtomParser(new GlobalEnvironment());
+        $start = new SourceLocation('string', 0, 0);
+        $end = new SourceLocation('string', 0, 1);
+        $node = $parser->parse(new Token(Token::T_ATOM, '+', $start, $end));
+
+        self::assertInstanceOf(SymbolNode::class, $node);
+        self::assertSame('+', $node->getValue()->getName());
+    }
 }

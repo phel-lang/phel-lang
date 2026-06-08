@@ -32,23 +32,22 @@ use Phel\Shared\Parser\Node\WhitespaceNode;
 
 use SplStack;
 
-use function in_array;
-
 final readonly class Parser implements ParserInterface
 {
+    /** @var array<int, true> */
     private const array TOKENS_THAT_SHOULD_STREAM_NEXT = [
-        Token::T_WHITESPACE,
-        Token::T_NEWLINE,
-        Token::T_COMMENT_MACRO,
-        Token::T_COMMENT,
-        Token::T_ATOM,
-        Token::T_STRING,
-        Token::T_CHAR,
-        Token::T_REGEX,
-        Token::T_READER_COND,
-        Token::T_READER_COND_SPLICING,
-        Token::T_SYMBOLIC_NUMBER,
-        Token::T_TAGGED_LITERAL,
+        Token::T_WHITESPACE => true,
+        Token::T_NEWLINE => true,
+        Token::T_COMMENT_MACRO => true,
+        Token::T_COMMENT => true,
+        Token::T_ATOM => true,
+        Token::T_STRING => true,
+        Token::T_CHAR => true,
+        Token::T_REGEX => true,
+        Token::T_READER_COND => true,
+        Token::T_READER_COND_SPLICING => true,
+        Token::T_SYMBOLIC_NUMBER => true,
+        Token::T_TAGGED_LITERAL => true,
     ];
 
     /** @var SplStack<bool> */
@@ -184,7 +183,7 @@ final readonly class Parser implements ParserInterface
 
     private function shouldTokenStreamGoNext(int $tokenType): bool
     {
-        return in_array($tokenType, self::TOKENS_THAT_SHOULD_STREAM_NEXT, true);
+        return isset(self::TOKENS_THAT_SHOULD_STREAM_NEXT[$tokenType]);
     }
 
     private function canParseToken(TokenStream $tokenStream): bool
