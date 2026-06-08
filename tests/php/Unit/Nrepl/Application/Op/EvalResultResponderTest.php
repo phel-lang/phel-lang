@@ -7,8 +7,8 @@ namespace PhelTest\Unit\Nrepl\Application\Op;
 use Phel\Nrepl\Application\Op\EvalResultResponder;
 use Phel\Nrepl\Domain\Op\OpRequest;
 use Phel\Nrepl\Domain\Session\SessionRegistry;
-use Phel\Run\Domain\Repl\EvalError;
-use Phel\Run\Domain\Repl\EvalResult;
+use Phel\Shared\Eval\EvalError;
+use Phel\Shared\Eval\EvalResult;
 use Phel\Shared\Printer\PrinterInterface;
 use PHPUnit\Framework\TestCase;
 

@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace Phel\Shared\Facade;
 
-use Phel\Run\Domain\Repl\EvalResult;
 use Phel\Shared\CompileOptions;
+use Phel\Shared\Eval\EvalResult;
 use Phel\Shared\Exceptions\CompilerException;
 use Phel\Shared\NamespaceInformation;
 use Symfony\Component\Console\Output\OutputInterface;
@@ -34,7 +34,7 @@ interface RunFacadeInterface
      * Unlike eval(), this never throws — errors are captured in EvalResult.
      *
      * The returned {@see EvalResult} carries the failure details as an
-     * {@see \Phel\Run\Domain\Repl\EvalError}; both are sanctioned parts of this
+     * {@see \Phel\Shared\Eval\EvalError}; both are sanctioned parts of this
      * contract's value graph.
      */
     public function structuredEval(string $phelCode, CompileOptions $compileOptions): EvalResult;

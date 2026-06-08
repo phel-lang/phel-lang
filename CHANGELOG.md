@@ -23,6 +23,7 @@ All notable changes to this project will be documented in this file.
 ### Changed
 
 - Architecture: the satellite-module factories (`Lsp`, `Lint`, `Watch`, `Nrepl`, `Profile`) now inject the `Phel\Shared\Facade\*FacadeInterface` contracts instead of neighbour modules' concrete facades, matching the core modules and the project's "inject interfaces" rule; `RunFacadeInterface` gains `autoDetectEntryPoint(): ?string` so the contract covers what `Profile` consumes
+- Architecture: the eval-result value objects (`EvalResult`, `EvalError`, `StackFrame`) moved from `Run\Domain\Repl` to the leaf `Phel\Shared\Eval` namespace, so `RunFacadeInterface::structuredEval()` and its Nrepl/Watch consumers no longer reach into another module's `Domain`. The compiler orchestration that produced them (formerly `EvalResult::fromEval`) now lives in `Run\Application\StructuredEvaluator`, keeping the moved VOs logic-free
 
 ### Fixed
 

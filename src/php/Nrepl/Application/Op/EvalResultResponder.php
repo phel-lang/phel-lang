@@ -9,8 +9,8 @@ use Phel\Nrepl\Domain\Op\OpResponse;
 use Phel\Nrepl\Domain\Op\OpStatus;
 use Phel\Nrepl\Domain\Session\Session;
 use Phel\Nrepl\Domain\Session\SessionRegistry;
-use Phel\Run\Domain\Repl\EvalError;
-use Phel\Run\Domain\Repl\EvalResult;
+use Phel\Shared\Eval\EvalError;
+use Phel\Shared\Eval\EvalResult;
 use Phel\Shared\Printer\PrinterInterface;
 
 use function sprintf;
