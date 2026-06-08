@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace Phel\Compiler\Domain\Emitter\OutputEmitter\SourceMap;
 
+use Phel\Shared\SourceMap\VLQ;
+
 use function count;
 
 final readonly class SourceMapGenerator
