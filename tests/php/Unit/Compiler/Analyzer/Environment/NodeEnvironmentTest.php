@@ -1,0 +1,106 @@
+<?php
+
+declare(strict_types=1);
+
+namespace PhelTest\Unit\Compiler\Analyzer\Environment;
+
+use Phel\Compiler\Domain\Analyzer\Environment\NodeEnvironment;
+use Phel\Lang\Symbol;
+use PHPUnit\Framework\TestCase;
+
+final class NodeEnvironmentTest extends TestCase
+{
+    public function test_empty_has_no_locals(): void
+    {
+        $env = NodeEnvironment::empty();
+
+        self::assertFalse($env->hasLocal(Symbol::create('a')));
+    }
+
+    public function test_with_locals_indexes_lookups(): void
+    {
+        $env = NodeEnvironment::empty()
+            ->withLocals([Symbol::create('a'), Symbol::create('b')]);
+
+        self::assertTrue($env->hasLocal(Symbol::create('a')));
+        self::assertTrue($env->hasLocal(Symbol::create('b')));
+        self::assertFalse($env->hasLocal(Symbol::create('c')));
+    }
+
+    public function test_with_locals_is_immutable(): void
+    {
+        $base = NodeEnvironment::empty()->withLocals([Symbol::create('a')]);
+        $next = $base->withLocals([Symbol::create('b')]);
+
+        self::assertTrue($base->hasLocal(Symbol::create('a')));
+        self::assertFalse($base->hasLocal(Symbol::create('b')));
+        self::assertTrue($next->hasLocal(Symbol::create('b')));
+        self::assertFalse($next->hasLocal(Symbol::create('a')));
+    }
+
+    public function test_find_local_by_shadowed_name_returns_original_local(): void
+    {
+        $local = Symbol::create('x');
+        $shadow = Symbol::create('x_1');
+
+        $env = NodeEnvironment::empty()
+            ->withLocals([$local])
+            ->withShadowedLocal($local, $shadow);
+
+        $found = $env->findLocalByShadowedName('x_1');
+
+        self::assertNotNull($found);
+        self::assertSame('x', $found->getName());
+    }
+
+    public function test_find_local_by_shadowed_name_returns_null_when_unknown(): void
+    {
+        $env = NodeEnvironment::empty();
+
+        self::assertNull($env->findLocalByShadowedName('missing'));
+    }
+
+    public function test_find_local_by_shadowed_name_with_nested_shadowing(): void
+    {
+        $x = Symbol::create('x');
+        $shadowInner = Symbol::create('x_2');
+        $shadowOuter = Symbol::create('x_1');
+
+        $outer = NodeEnvironment::empty()
+            ->withLocals([$x])
+            ->withShadowedLocal($x, $shadowOuter);
+        $inner = $outer->withShadowedLocal($x, $shadowInner);
+
+        // Inner shadow wins for the same original name.
+        self::assertSame('x', $inner->findLocalByShadowedName('x_2')->getName());
+        // Outer environment is untouched by the inner clone.
+        self::assertSame('x', $outer->findLocalByShadowedName('x_1')->getName());
+        self::assertNull($outer->findLocalByShadowedName('x_2'));
+    }
+
+    public function test_without_shadowed_locals_clears_reverse_lookup(): void
+    {
+        $local = Symbol::create('x');
+        $shadow = Symbol::create('x_1');
+
+        $env = NodeEnvironment::empty()
+            ->withLocals([$local])
+            ->withShadowedLocal($local, $shadow)
+            ->withoutShadowedLocals([$local]);
+
+        self::assertNull($env->findLocalByShadowedName('x_1'));
+        self::assertNull($env->getShadowed($local));
+    }
+
+    public function test_with_merged_locals_keeps_unique_locals(): void
+    {
+        $env = NodeEnvironment::empty()
+            ->withLocals([Symbol::create('a'), Symbol::create('b')])
+            ->withMergedLocals([Symbol::create('b'), Symbol::create('c')]);
+
+        self::assertTrue($env->hasLocal(Symbol::create('a')));
+        self::assertTrue($env->hasLocal(Symbol::create('b')));
+        self::assertTrue($env->hasLocal(Symbol::create('c')));
+        self::assertCount(3, $env->getLocals());
+    }
+}

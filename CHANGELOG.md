@@ -12,6 +12,10 @@ All notable changes to this project will be documented in this file.
 - `^:php/override`: emits PHP 8.3 `#[\Override]` on a generated method (struct/enum interface impls, `definterface` methods); inline struct/enum methods also accept `:php/attr` and `:php/doc`
 - `definterface` typed class constants: a trailing `:php/const` block emits PHP 8.3 typed constants, e.g. `(^{:tag int} MAX 100)` → `const int MAX = 100;` (int/float/string/bool/nil values)
 
+### Performance
+
+- Compiler: `NodeEnvironment` local lookups are now O(1) hash-map indexed instead of linear/nested scans, so symbol resolution no longer degrades with `let`/`fn`/`loop` nesting depth (~1.7× faster at depth 20)
+
 ### Fixed
 
 - `:tag`: a `never`/`void`/`null` return tag on a value-returning function is now a compile error instead of PHP that fatals at load; `mixed`, `?T`, and union/intersection tags still pass
