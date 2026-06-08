@@ -9,10 +9,8 @@ use Gacela\Framework\AbstractFactory;
 use Phel\Console\Application\ArgvInputSanitizer;
 use Phel\Console\Infrastructure\ConsoleBootstrap;
 use Phel\Filesystem\FilesystemFacadeInterface;
-use Phel\Shared\VersionFinder;
+use Phel\Shared\VersionResolver;
 use Symfony\Component\Console\Command\Command;
-
-use function in_array;
 
 /**
  * @extends AbstractFactory<AbstractConfig>
@@ -29,7 +27,7 @@ final class ConsoleFactory extends AbstractFactory
     {
         return new ConsoleBootstrap(
             self::CONSOLE_NAME,
-            $this->createVersionFinder()->getVersion(),
+            $this->createVersionResolver()->resolve(),
         );
     }
 
@@ -46,35 +44,13 @@ final class ConsoleFactory extends AbstractFactory
         return $this->getProvidedDependency(ConsoleProvider::FACADE_FILESYSTEM);
     }
 
-    public function createVersionFinder(): VersionFinder
+    public function createVersionResolver(): VersionResolver
     {
-        return new VersionFinder(
-            $this->getProvidedDependency(ConsoleProvider::TAG_COMMIT_HASH),
-            $this->getProvidedDependency(ConsoleProvider::CURRENT_COMMIT),
-            isOfficialRelease: $this->getIsOfficialRelease(),
-        );
+        return new VersionResolver();
     }
 
     public function createArgvInputSanitizer(): ArgvInputSanitizer
     {
         return new ArgvInputSanitizer();
-    }
-
-    private function getIsOfficialRelease(): bool
-    {
-        // Check for a build-time config file (used when building PHAR)
-        $configFile = __DIR__ . '/../../../.phel-release.php';
-        if (file_exists($configFile)) {
-            return (bool) require $configFile;
-        }
-
-        // Check environment variable (for local development)
-        // Only treat explicit values as true: '1', 'true', 'yes' (case-insensitive)
-        $officialRelease = getenv('OFFICIAL_RELEASE');
-        if ($officialRelease === false) {
-            return false;
-        }
-
-        return in_array(strtolower($officialRelease), ['1', 'true', 'yes'], true);
     }
 }

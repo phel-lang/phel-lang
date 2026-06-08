@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace Phel\Console;
 
-use Composer\InstalledVersions;
 use Gacela\Framework\AbstractProvider;
 use Gacela\Framework\Attribute\Provides;
 use Gacela\Framework\Container\Container;
@@ -21,7 +20,6 @@ use Phel\Console\Infrastructure\Command\ProfileCommands;
 use Phel\Console\Infrastructure\Command\RunCommands;
 use Phel\Console\Infrastructure\Command\WatchCommands;
 use Phel\Filesystem\FilesystemFacade;
-use Phel\Shared\VersionFinder;
 use Symfony\Component\Console\Command\Command;
 
 final class ConsoleProvider extends AbstractProvider
@@ -29,12 +27,6 @@ final class ConsoleProvider extends AbstractProvider
     public const string COMMANDS = 'COMMANDS';
 
     public const string FACADE_FILESYSTEM = 'FACADE_FILESYSTEM';
-
-    public const string TAG_COMMIT_HASH = 'TAG_COMMIT_HASH';
-
-    public const string CURRENT_COMMIT = 'CURRENT_COMMIT';
-
-    private const string PACKAGE_NAME = 'phel-lang/phel-lang';
 
     #[Provides(self::FACADE_FILESYSTEM)]
     public function filesystemFacade(Container $container): FilesystemFacade
@@ -58,53 +50,6 @@ final class ConsoleProvider extends AbstractProvider
         }
 
         return $commands;
-    }
-
-    #[Provides(self::TAG_COMMIT_HASH)]
-    public function tagCommitHash(): string
-    {
-        $hash = $this->execGitCommand('git rev-list -n 1 ' . VersionFinder::LATEST_VERSION);
-        if ($hash !== '') {
-            return $hash;
-        }
-
-        if (!class_exists(InstalledVersions::class) || !InstalledVersions::isInstalled(self::PACKAGE_NAME)) {
-            return '';
-        }
-
-        if (InstalledVersions::getPrettyVersion(self::PACKAGE_NAME) !== VersionFinder::LATEST_VERSION) {
-            return '';
-        }
-
-        return InstalledVersions::getReference(self::PACKAGE_NAME) ?? '';
-    }
-
-    #[Provides(self::CURRENT_COMMIT)]
-    public function currentCommit(): string
-    {
-        $hash = $this->execGitCommand('git rev-parse --verify HEAD');
-        if ($hash !== '') {
-            return $hash;
-        }
-
-        if (!class_exists(InstalledVersions::class) || !InstalledVersions::isInstalled(self::PACKAGE_NAME)) {
-            return '';
-        }
-
-        return InstalledVersions::getReference(self::PACKAGE_NAME) ?? '';
-    }
-
-    /**
-     * Runs a git command and returns its first output line trimmed, or an empty
-     * string when git is unavailable or the command fails. Callers treat the
-     * empty result as the signal to fall back to Composer's InstalledVersions.
-     */
-    private function execGitCommand(string $command): string
-    {
-        $output = [];
-        @exec($command . ' 2>/dev/null', $output);
-
-        return trim($output[0] ?? '');
     }
 
     /**

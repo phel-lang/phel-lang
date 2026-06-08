@@ -11,7 +11,6 @@ use Phel\Api\ApiFacade;
 use Phel\Build\BuildFacade;
 use Phel\Command\CommandFacade;
 use Phel\Compiler\CompilerFacade;
-use Phel\Console\ConsoleFacade;
 
 final class RunProvider extends AbstractProvider
 {
@@ -22,8 +21,6 @@ final class RunProvider extends AbstractProvider
     public const string FACADE_BUILD = 'FACADE_BUILD';
 
     public const string FACADE_API = 'FACADE_API';
-
-    public const string FACADE_CONSOLE = 'FACADE_CONSOLE';
 
     #[Provides(self::FACADE_COMMAND)]
     public function commandFacade(Container $container): CommandFacade
@@ -47,11 +44,5 @@ final class RunProvider extends AbstractProvider
     public function apiFacade(Container $container): ApiFacade
     {
         return $container->getLocator()->getRequired(ApiFacade::class);
-    }
-
-    #[Provides(self::FACADE_CONSOLE)]
-    public function consoleFacade(Container $container): ConsoleFacade
-    {
-        return $container->getLocator()->getRequired(ConsoleFacade::class);
     }
 }

@@ -38,9 +38,9 @@ use Phel\Shared\Facade\ApiFacadeInterface;
 use Phel\Shared\Facade\BuildFacadeInterface;
 use Phel\Shared\Facade\CommandFacadeInterface;
 use Phel\Shared\Facade\CompilerFacadeInterface;
-use Phel\Shared\Facade\ConsoleFacadeInterface;
 use Phel\Shared\Printer\Printer;
 use Phel\Shared\Printer\PrinterInterface;
+use Phel\Shared\VersionResolver;
 
 use function extension_loaded;
 
@@ -177,9 +177,9 @@ class RunFactory extends AbstractFactory
         return $this->getProvidedDependency(RunProvider::FACADE_API);
     }
 
-    public function getConsoleFacade(): ConsoleFacadeInterface
+    public function createVersionResolver(): VersionResolver
     {
-        return $this->getProvidedDependency(RunProvider::FACADE_CONSOLE);
+        return new VersionResolver();
     }
 
     public function createEvalExecutor(): EvalExecutor

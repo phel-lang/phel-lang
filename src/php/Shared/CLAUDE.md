@@ -60,7 +60,8 @@ Strategy pattern via `TypePrinter/`: one class per Phel/PHP type; `WithColorTrai
 - `Munge`: namespace/symbol encoding; `encode()`, `encodePhpNs()`, `encodeRegistryKey()`, `decodeNs()`, `canonicalNs()`, `displayNs()`
 - `ResourceUsageFormatter`: returns "Time: HH:MM:SS.mmm, Memory: X.XX MB" snapshot
 - `PhelProjectDirectory`: manages `.phel/` directory; respects `PHEL_DIR` env var and `PhelConfig::setPhelDir()`
-- `VersionFinder`: resolves project version from git state or official release tag
+- `VersionFinder`: pure version-string builder from explicit git inputs (`tagCommitHash`, `currentCommit`, `isOfficialRelease`); no I/O
+- `VersionResolver`: gathers the ambient version inputs (git working copy, Composer `InstalledVersions`, build-time `.phel-release.php`/`OFFICIAL_RELEASE`) and returns `VersionFinder::getVersion()`. Both Console and Run consume it directly, so neither owns version-detection wiring
 - `CompileOptions`: constants for source maps, emit-only mode, optimization levels
 - `PhpAttributeRenderer`: renders `^{:php/attr ...}` metadata specs into PHP 8 attribute source lines (`#[\ORM\Column(length: 255)]`); pure, stateless. Accepts a bare keyword (`:ORM/Entity`), a single spec vector (`[:ORM/Column {:length 255}]`, first element is the name keyword), or a vector of specs (`[[:ORM/Id] [:ORM/Column]]`). Consumed by `DefStructEmitter`/`DefInterfaceEmitter` and the Interop export generator
 
