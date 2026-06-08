@@ -5,8 +5,8 @@ CLI application entry point: bootstraps Symfony Console, registers commands, det
 ## Gacela Pattern
 
 - **Facade**: `ConsoleFacade` implements `ConsoleFacadeInterface`
-- **Factory**: `ConsoleFactory` creates `ConsoleBootstrap`, `ArgvInputSanitizer`, `VersionFinder` (from `Phel\Shared`)
-- **Provider**: `ConsoleProvider` injects `COMMANDS`, `FACADE_FILESYSTEM`, `TAG_COMMIT_HASH`, `CURRENT_COMMIT`
+- **Factory**: `ConsoleFactory` creates `ConsoleBootstrap`, `ArgvInputSanitizer`, `VersionResolver` (from `Phel\Shared`)
+- **Provider**: `ConsoleProvider` injects `COMMANDS`, `FACADE_FILESYSTEM`
 
 ## Public API (Facade)
 

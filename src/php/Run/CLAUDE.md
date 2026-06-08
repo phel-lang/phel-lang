@@ -7,7 +7,7 @@ Runtime execution: runs Phel namespaces/files, REPL, evaluation, testing, and al
 - **Facade**: `RunFacade` implements `RunFacadeInterface`
 - **Factory**: `RunFactory` extends `AbstractFactory<RunConfig>`
 - **Config**: `RunConfig` : REPL startup file path
-- **Provider**: `RunProvider` : injects 5 facades: `CommandFacade`, `CompilerFacade`, `BuildFacade`, `ApiFacade`, `ConsoleFacade`
+- **Provider**: `RunProvider` : injects 4 facades: `CommandFacade`, `CompilerFacade`, `BuildFacade`, `ApiFacade`
 
 ## Public API (Facade)
 
@@ -45,7 +45,7 @@ Runtime execution: runs Phel namespaces/files, REPL, evaluation, testing, and al
 - **Build** (`BuildFacade`) : namespace extraction, dependency resolution, file evaluation
 - **Compiler** (`CompilerFacade`) : compilation, evaluation, environment management
 - **Command** (`CommandFacade`) : directories, error formatting
-- **Console** (`ConsoleFacade`) : version info
+- **Shared** (`VersionResolver`) : version string (git/Composer/official-release detection); Run resolves this directly, no Console dependency
 - **Api** (`ApiFacade`) : REPL autocompletion
 
 ## Structure
@@ -71,4 +71,4 @@ Run/
 - `ReplErrorFormatter` renders eval-time `Throwable`s with short headline, hints, and filtered trace
 - New `ReplHint` implementations register via `RunFactory::createReplHints()`
 - `BundledNamespaces` lists every `phel.*` module; `NamespaceLoader` (REPL startup) uses it as eager seeds. `FileRunner` instead uses `BundledNamespaceDetector` to seed only bundles referenced via fully qualified form (`phel.json/encode`) or matching Clojure-compatible requires (`clojure.test` -> `phel.test`) in the script, avoiding the cold-start penalty for scripts that don't reach into bundled modules
-- Most connected module: 5 Provider dependencies (Build, Compiler, Command, Console, Api)
+- Most connected module: 4 Provider dependencies (Build, Compiler, Command, Api); version comes from `Shared\VersionResolver`, so Run no longer depends on Console

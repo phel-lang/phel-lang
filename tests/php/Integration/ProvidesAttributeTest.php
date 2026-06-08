@@ -75,4 +75,15 @@ final class ProvidesAttributeTest extends TestCase
         self::assertIsString($version);
         self::assertNotEmpty($version);
     }
+
+    public function test_run_facade_version_resolves_without_console_dependency(): void
+    {
+        // Run no longer depends on Console for its version; both resolve the
+        // same string straight from the Shared VersionResolver.
+        $runVersion = new RunFacade()->getVersion();
+        $consoleVersion = new ConsoleFacade()->getVersion();
+
+        self::assertNotEmpty($runVersion);
+        self::assertSame($consoleVersion, $runVersion);
+    }
 }
