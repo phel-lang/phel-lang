@@ -93,6 +93,26 @@ final class LetSimplifierTest extends TestCase
         self::assertSame($node, $simplified);
     }
 
+    public function test_keeps_binding_referenced_only_via_a_later_init(): void
+    {
+        // (let [a 1 b a] b) — body references only `b`, but `b`'s init
+        // references `a`. `a` must survive the drop pass via the
+        // transitive reference set, otherwise `b`'s init would point at
+        // a missing binding. Nothing is dropped or inlined (b's init is
+        // not a literal), so the node is returned unchanged.
+        $env = NodeEnvironment::empty()->withExpressionContext();
+        $aBinding = $this->binding('a', new LiteralNode($env, 1));
+        $bBinding = $this->binding('b', new LocalVarNode($env, $aBinding->getShadow()));
+        $body = new DoNode($env, [], new LocalVarNode($env, $bBinding->getShadow()));
+        $node = new LetNode($env, [$aBinding, $bBinding], $body, false);
+
+        $simplified = new LetSimplifier()->simplify($node);
+
+        self::assertSame($node, $simplified);
+        self::assertInstanceOf(LetNode::class, $simplified);
+        self::assertCount(2, $simplified->getBindings());
+    }
+
     private function binding(string $name, mixed $init): BindingNode
     {
         $env = NodeEnvironment::empty()->withExpressionContext();

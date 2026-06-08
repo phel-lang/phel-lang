@@ -17,6 +17,7 @@ All notable changes to this project will be documented in this file.
 - Compiler: `NodeEnvironment` local lookups are now O(1) hash-map indexed instead of linear/nested scans, so symbol resolution no longer degrades with `let`/`fn`/`loop` nesting depth (~1.7× faster at depth 20)
 - `Symbol::hash()` caches its `crc32` in a readonly property (mirroring `Keyword`), so repeated hashing of the same symbol during compilation no longer recomputes (~1.9× faster per repeated hash)
 - Analyzer: static-set membership checks in the type analyzer (`CallTypeExpectationResolver`, `ReturnTypeInferrer`, `ConstantFolder`, `DefSymbol`) now use `isset` keyed-map lookups instead of `in_array` scans (~3.7× faster per check)
+- `LetSimplifier`: the unused-binding drop pass tracks live references in a name-keyed set, turning its O(n²) scan-and-rebuild into O(n) over a `let`'s bindings (matters for `let` blocks with many bindings)
 
 ### Fixed
 
