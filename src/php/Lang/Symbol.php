@@ -119,10 +119,14 @@ final class Symbol extends AbstractType implements IdenticalInterface, FnInterfa
 
     private static int $symGenCounter = 1;
 
+    private readonly int $hash;
+
     public function __construct(
         private readonly ?string $namespace,
         private readonly string $name,
-    ) {}
+    ) {
+        $this->hash = crc32($name);
+    }
 
     #[Override]
     public function __toString(): string
@@ -200,7 +204,7 @@ final class Symbol extends AbstractType implements IdenticalInterface, FnInterfa
 
     public function hash(): int
     {
-        return crc32($this->name);
+        return $this->hash;
     }
 
     public function equals(mixed $other): bool
