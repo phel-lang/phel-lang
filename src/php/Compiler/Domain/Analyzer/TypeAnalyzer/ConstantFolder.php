@@ -13,7 +13,6 @@ use Phel\Compiler\Domain\Analyzer\Ast\PhpVarNode;
 use Phel\Shared\CompilerConstants;
 
 use function count;
-use function in_array;
 
 /**
  * Compile-time evaluation of pure core fns whose arguments are all literal.
@@ -41,7 +40,8 @@ use function in_array;
  */
 final readonly class ConstantFolder
 {
-    private const array BOOL_PREDICATES = ['not', 'nil?', 'true?', 'false?', 'boolean'];
+    /** @var array<string, true> */
+    private const array BOOL_PREDICATES = ['not' => true, 'nil?' => true, 'true?' => true, 'false?' => true, 'boolean' => true];
 
     public function __construct(
         private LiteralArithmeticFolder $arithmeticFolder = new LiteralArithmeticFolder(),
@@ -72,7 +72,7 @@ final readonly class ConstantFolder
 
         $fnName = $fn->getName()->getName();
 
-        if (in_array($fnName, self::BOOL_PREDICATES, true)) {
+        if (isset(self::BOOL_PREDICATES[$fnName])) {
             $result = $this->foldBoolPredicate($fnName, $node->getArguments());
             if ($result === null) {
                 return null;
