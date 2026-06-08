@@ -63,7 +63,7 @@ Run/
 
 ## Key Constraints
 
-- `EvalResult` uses static constructors: `success()`, `incomplete()`, `failure()` : never throws
+- `StructuredEvaluator` (Application) produces the pure `Phel\Shared\Eval\EvalResult` VO via `success()`/`incomplete()`/`failure()`; it never throws and owns the snapshot/restore orchestration (the VOs themselves carry no logic and live in `Phel\Shared`)
 - REPL supports environment snapshot/restore on eval failure
 - `ReplCommandSystemIo` requires PHP `readline` extension; falls back to `ReplCommandFallbackIo`
 - `ReplHistoryPathResolver` returns `.phel/repl-history`; transparently migrates legacy `.phel-repl-history`

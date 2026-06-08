@@ -41,6 +41,7 @@ Located in `Exceptions/`:
 ## Value Objects
 
 - `NamespaceInformation`: pure `final readonly` DTO (`file`, `namespace`, `dependencies`, `isPrimaryDefinition`) produced by Build, consumed across Build/Run/Interop and returned by the Build/Run facade interfaces. Lives here so the Shared facade contracts no longer back-reference a foreign module's `Domain`.
+- `Eval/`: pure `final readonly` VOs describing an eval outcome — `EvalResult` (`success()`/`incomplete()`/`failure()` named constructors), `EvalError`, `StackFrame`. Returned by `RunFacadeInterface::structuredEval()` and consumed by Nrepl/Watch; the producing orchestration lives in `Run\Application\StructuredEvaluator`, so these stay logic-free. Lives here so the Run facade contract no longer exposes `Run\Domain`.
 
 ## Parser Model
 

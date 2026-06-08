@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace PhelTest\Unit\Run\Domain\Repl;
+namespace PhelTest\Unit\Run\Application;
 
 use ParseError;
 use Phel\Compiler\Domain\Analyzer\Environment\GlobalEnvironmentInterface;
@@ -11,10 +11,10 @@ use Phel\Compiler\Domain\Parser\Exceptions\UnfinishedParserException;
 use Phel\Compiler\Infrastructure\GlobalEnvironmentSingleton;
 use Phel\Lang\SourceLocation;
 use Phel\Lang\Symbol;
-use Phel\Run\Domain\Repl\EvalError;
-use Phel\Run\Domain\Repl\EvalResult;
-use Phel\Run\Domain\Repl\StackFrame;
+use Phel\Run\Application\StructuredEvaluator;
 use Phel\Shared\CompileOptions;
+use Phel\Shared\Eval\EvalResult;
+use Phel\Shared\Eval\StackFrame;
 use Phel\Shared\Exceptions\CompiledCodeIsMalformedException;
 use Phel\Shared\Exceptions\CompilerException;
 use Phel\Shared\Facade\CompilerFacadeInterface;
@@ -23,85 +23,26 @@ use Phel\Shared\Parser\ReadModel\CodeSnippet;
 use PHPUnit\Framework\TestCase;
 use RuntimeException;
 
-final class EvalResultTest extends TestCase
+final class StructuredEvaluatorTest extends TestCase
 {
     protected function setUp(): void
     {
         GlobalEnvironmentSingleton::reset();
     }
 
-    public function test_success_result(): void
-    {
-        $result = EvalResult::success(42);
-
-        self::assertTrue($result->success);
-        self::assertFalse($result->incomplete);
-        self::assertSame(42, $result->value);
-        self::assertNull($result->error);
-        self::assertSame('', $result->output);
-    }
-
-    public function test_stack_frame_value_object(): void
-    {
-        $frame = new StackFrame(
-            file: '/path/to/file.php',
-            line: 42,
-            class: 'MyClass',
-            function: 'myMethod',
-        );
-
-        self::assertSame('/path/to/file.php', $frame->file);
-        self::assertSame(42, $frame->line);
-        self::assertSame('MyClass', $frame->class);
-        self::assertSame('myMethod', $frame->function);
-    }
-
-    public function test_stack_frame_with_nullable_fields(): void
-    {
-        $frame = new StackFrame(
-            file: '/path/to/file.php',
-            line: 10,
-            class: null,
-            function: null,
-        );
-
-        self::assertNull($frame->class);
-        self::assertNull($frame->function);
-    }
-
-    public function test_success_result_with_output(): void
-    {
-        $result = EvalResult::success(null, "hello\n");
-
-        self::assertTrue($result->success);
-        self::assertNull($result->value);
-        self::assertSame("hello\n", $result->output);
-    }
-
-    public function test_incomplete_result(): void
-    {
-        $result = EvalResult::incomplete();
-
-        self::assertFalse($result->success);
-        self::assertTrue($result->incomplete);
-        self::assertNull($result->value);
-        self::assertNull($result->error);
-        self::assertSame('', $result->output);
-    }
-
-    public function test_from_eval_success(): void
+    public function test_eval_success(): void
     {
         $facade = $this->compilerFacadeMock();
         $facade->method('eval')->willReturn(42);
 
-        $result = EvalResult::fromEval($facade, '(+ 1 1)');
+        $result = $this->eval($facade, '(+ 1 1)');
 
         self::assertTrue($result->success);
         self::assertSame(42, $result->value);
         self::assertSame('', $result->output);
     }
 
-    public function test_from_eval_captures_printed_output(): void
+    public function test_eval_captures_printed_output(): void
     {
         $facade = $this->compilerFacadeMock();
         $facade->method('eval')->willReturnCallback(static function (): mixed {
@@ -110,14 +51,14 @@ final class EvalResultTest extends TestCase
             return null;
         });
 
-        $result = EvalResult::fromEval($facade, '(println "hello")');
+        $result = $this->eval($facade, '(println "hello")');
 
         self::assertTrue($result->success);
         self::assertNull($result->value);
         self::assertSame("hello\n", $result->output);
     }
 
-    public function test_from_eval_incomplete(): void
+    public function test_eval_incomplete(): void
     {
         $loc = new SourceLocation('string', 1, 0);
         $snippet = new CodeSnippet($loc, $loc, '(+ 1');
@@ -128,13 +69,13 @@ final class EvalResultTest extends TestCase
             UnfinishedParserException::forSnippet($snippet, $token, 'Unexpected end of input'),
         );
 
-        $result = EvalResult::fromEval($facade, '(+ 1');
+        $result = $this->eval($facade, '(+ 1');
 
         self::assertFalse($result->success);
         self::assertTrue($result->incomplete);
     }
 
-    public function test_from_eval_compiler_exception(): void
+    public function test_eval_compiler_exception(): void
     {
         $startLoc = new SourceLocation('test.phel', 3, 5);
         $endLoc = new SourceLocation('test.phel', 3, 10);
@@ -156,7 +97,7 @@ final class EvalResultTest extends TestCase
         $facade = $this->compilerFacadeMock();
         $facade->method('eval')->willThrowException($compilerException);
 
-        $result = EvalResult::fromEval($facade, '(unknown-fn)');
+        $result = $this->eval($facade, '(unknown-fn)');
 
         self::assertFalse($result->success);
         self::assertFalse($result->incomplete);
@@ -170,7 +111,7 @@ final class EvalResultTest extends TestCase
         self::assertSame('(unknown-fn)', $result->error->codeSnippet);
     }
 
-    public function test_from_eval_malformed_code(): void
+    public function test_eval_malformed_code(): void
     {
         $prev = new ParseError('syntax error', 0);
         $exception = CompiledCodeIsMalformedException::fromThrowable($prev);
@@ -178,7 +119,7 @@ final class EvalResultTest extends TestCase
         $facade = $this->compilerFacadeMock();
         $facade->method('eval')->willThrowException($exception);
 
-        $result = EvalResult::fromEval($facade, 'bad code');
+        $result = $this->eval($facade, 'bad code');
 
         self::assertFalse($result->success);
         self::assertNotNull($result->error);
@@ -186,12 +127,12 @@ final class EvalResultTest extends TestCase
         self::assertSame('eval', $result->error->phase);
     }
 
-    public function test_from_eval_runtime_exception(): void
+    public function test_eval_runtime_exception(): void
     {
         $facade = $this->compilerFacadeMock();
         $facade->method('eval')->willThrowException(new RuntimeException('division by zero'));
 
-        $result = EvalResult::fromEval($facade, '(/ 1 0)', new CompileOptions());
+        $result = $this->eval($facade, '(/ 1 0)');
 
         self::assertFalse($result->success);
         self::assertNotNull($result->error);
@@ -201,7 +142,7 @@ final class EvalResultTest extends TestCase
         self::assertSame('', $result->output);
     }
 
-    public function test_from_eval_captures_output_on_failure(): void
+    public function test_eval_captures_output_on_failure(): void
     {
         $facade = $this->compilerFacadeMock();
         $facade->method('eval')->willReturnCallback(static function (): never {
@@ -209,14 +150,14 @@ final class EvalResultTest extends TestCase
             throw new RuntimeException('boom');
         });
 
-        $result = EvalResult::fromEval($facade, '(do (print "partial output") (/ 1 0))');
+        $result = $this->eval($facade, '(do (print "partial output") (/ 1 0))');
 
         self::assertFalse($result->success);
         self::assertNotNull($result->error);
         self::assertSame('partial output', $result->output);
     }
 
-    public function test_from_eval_preserves_nested_output_buffering(): void
+    public function test_eval_preserves_nested_output_buffering(): void
     {
         $facade = $this->compilerFacadeMock();
         $facade->method('eval')->willReturnCallback(static function (): mixed {
@@ -227,7 +168,7 @@ final class EvalResultTest extends TestCase
 
         ob_start();
         echo 'outer-before:';
-        $result = EvalResult::fromEval($facade, '(print "inner")');
+        $result = $this->eval($facade, '(print "inner")');
         echo ':outer-after';
         $outerOutput = ob_get_clean();
 
@@ -240,7 +181,7 @@ final class EvalResultTest extends TestCase
         $facade = $this->compilerFacadeMock();
         $facade->method('eval')->willThrowException(new RuntimeException('division by zero'));
 
-        $result = EvalResult::fromEval($facade, '(/ 1 0)');
+        $result = $this->eval($facade, '(/ 1 0)');
 
         self::assertNotNull($result->error);
         self::assertNotEmpty($result->error->frames);
@@ -252,7 +193,7 @@ final class EvalResultTest extends TestCase
         $facade = $this->compilerFacadeMock();
         $facade->method('eval')->willThrowException(new RuntimeException('error'));
 
-        $result = EvalResult::fromEval($facade, '(error)');
+        $result = $this->eval($facade, '(error)');
 
         self::assertNotNull($result->error);
         $firstFrame = $result->error->frames[0];
@@ -277,7 +218,7 @@ final class EvalResultTest extends TestCase
         $facade = $this->compilerFacadeMock();
         $facade->method('eval')->willThrowException($compilerException);
 
-        $result = EvalResult::fromEval($facade, '(unknown-fn)');
+        $result = $this->eval($facade, '(unknown-fn)');
 
         self::assertNotNull($result->error);
         self::assertIsArray($result->error->frames);
@@ -292,40 +233,14 @@ final class EvalResultTest extends TestCase
         $facade = $this->compilerFacadeMock();
         $facade->method('eval')->willThrowException($exception);
 
-        $result = EvalResult::fromEval($facade, 'bad code');
+        $result = $this->eval($facade, 'bad code');
 
         self::assertNotNull($result->error);
         self::assertIsArray($result->error->frames);
         self::assertContainsOnlyInstancesOf(StackFrame::class, $result->error->frames);
     }
 
-    public function test_success_result_has_no_frames(): void
-    {
-        $result = EvalResult::success(42);
-
-        self::assertNull($result->error);
-    }
-
-    public function test_failure_with_default_empty_frames(): void
-    {
-        $error = new EvalError(
-            exceptionClass: 'TestException',
-            message: 'test',
-            errorCode: null,
-            file: null,
-            line: null,
-            column: null,
-            endLine: null,
-            endColumn: null,
-            codeSnippet: null,
-            stackTrace: '',
-            phase: 'runtime',
-        );
-
-        self::assertSame([], $error->frames);
-    }
-
-    public function test_from_eval_does_not_rollback_on_success(): void
+    public function test_eval_does_not_rollback_on_success(): void
     {
         $env = GlobalEnvironmentSingleton::initializeNew();
         $env->setNs('test-ns');
@@ -338,14 +253,14 @@ final class EvalResultTest extends TestCase
             return 42;
         });
 
-        $result = EvalResult::fromEval($facade, '(require alias-ns :as b)');
+        $result = $this->eval($facade, '(require alias-ns :as b)');
 
         self::assertTrue($result->success);
         self::assertTrue($env->hasRequireAlias('test-ns', Symbol::create('a')));
         self::assertTrue($env->hasRequireAlias('test-ns', Symbol::create('b')));
     }
 
-    public function test_from_eval_rolls_back_namespace_on_runtime_error(): void
+    public function test_eval_rolls_back_namespace_on_runtime_error(): void
     {
         $env = GlobalEnvironmentSingleton::initializeNew();
         $env->setNs('original-ns');
@@ -356,13 +271,13 @@ final class EvalResultTest extends TestCase
             throw new RuntimeException('boom');
         });
 
-        $result = EvalResult::fromEval($facade, '(ns dirty-ns)');
+        $result = $this->eval($facade, '(ns dirty-ns)');
 
         self::assertFalse($result->success);
         self::assertSame('original-ns', $env->getNs());
     }
 
-    public function test_from_eval_rolls_back_alias_on_compiler_error(): void
+    public function test_eval_rolls_back_alias_on_compiler_error(): void
     {
         $env = GlobalEnvironmentSingleton::initializeNew();
         $env->setNs('test-ns');
@@ -379,13 +294,13 @@ final class EvalResultTest extends TestCase
             throw $compilerException;
         });
 
-        $result = EvalResult::fromEval($facade, '(ns test-ns (:require dirty-ns :as dirty))');
+        $result = $this->eval($facade, '(ns test-ns (:require dirty-ns :as dirty))');
 
         self::assertFalse($result->success);
         self::assertFalse($env->hasRequireAlias('test-ns', Symbol::create('dirty')));
     }
 
-    public function test_from_eval_rolls_back_on_malformed_code(): void
+    public function test_eval_rolls_back_on_malformed_code(): void
     {
         $env = GlobalEnvironmentSingleton::initializeNew();
         $env->setNs('test-ns');
@@ -399,23 +314,28 @@ final class EvalResultTest extends TestCase
             throw $exception;
         });
 
-        $result = EvalResult::fromEval($facade, 'bad code');
+        $result = $this->eval($facade, 'bad code');
 
         self::assertFalse($result->success);
         self::assertFalse($env->hasUseAlias('test-ns', Symbol::create('DirtyClass')));
     }
 
-    public function test_from_eval_works_without_initialized_environment(): void
+    public function test_eval_works_without_initialized_environment(): void
     {
         GlobalEnvironmentSingleton::reset();
 
         $facade = $this->compilerFacadeMock();
         $facade->method('eval')->willThrowException(new RuntimeException('boom'));
 
-        $result = EvalResult::fromEval($facade, '(/ 1 0)');
+        $result = $this->eval($facade, '(/ 1 0)');
 
         self::assertFalse($result->success);
         self::assertSame('RuntimeException', $result->error->exceptionClass);
+    }
+
+    private function eval(CompilerFacadeInterface $facade, string $code): EvalResult
+    {
+        return new StructuredEvaluator($facade)->eval($code, new CompileOptions());
     }
 
     /**
