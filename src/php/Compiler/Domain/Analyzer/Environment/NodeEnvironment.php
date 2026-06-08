@@ -22,6 +22,22 @@ final class NodeEnvironment implements NodeEnvironmentInterface
     private bool $globalReference = false;
 
     /**
+     * Derived index of $locals keyed by name (first occurrence wins), kept in
+     * sync with $locals so lookups are O(1) instead of a linear scan.
+     *
+     * @var array<string, Symbol>
+     */
+    private array $localsByName;
+
+    /**
+     * Derived reverse index of $shadowed: shadow name => original local name,
+     * so findLocalByShadowedName() is O(1) instead of an O(m*n) double loop.
+     *
+     * @var array<string, string>
+     */
+    private array $shadowedReverse;
+
+    /**
      * @param array<int, Symbol>     $locals      A list of local symbols
      * @param string                 $context     The current context (Expression, Statement or Return)
      * @param array<string, Symbol>  $shadowed    A mapping list of local variables to shadowed names
@@ -34,7 +50,10 @@ final class NodeEnvironment implements NodeEnvironmentInterface
         private array $shadowed,
         private array $recurFrames,
         private string $boundTo = '',
-    ) {}
+    ) {
+        $this->localsByName = $this->indexLocalsByName($locals);
+        $this->shadowedReverse = $this->indexShadowedReverse($shadowed);
+    }
 
     public static function empty(): NodeEnvironmentInterface
     {
@@ -51,8 +70,7 @@ final class NodeEnvironment implements NodeEnvironmentInterface
 
     public function hasLocal(Symbol $x): bool
     {
-        $name = $x->getName();
-        return array_any($this->locals, static fn($local): bool => $local->getName() === $name);
+        return isset($this->localsByName[$x->getName()]);
     }
 
     /**
@@ -76,17 +94,12 @@ final class NodeEnvironment implements NodeEnvironmentInterface
 
     public function findLocalByShadowedName(string $shadowedName): ?Symbol
     {
-        foreach ($this->shadowed as $originalName => $shadowSymbol) {
-            if ($shadowSymbol->getName() === $shadowedName) {
-                foreach ($this->locals as $local) {
-                    if ($local->getName() === $originalName) {
-                        return $local;
-                    }
-                }
-            }
+        $originalName = $this->shadowedReverse[$shadowedName] ?? null;
+        if ($originalName === null) {
+            return null;
         }
 
-        return null;
+        return $this->localsByName[$originalName] ?? null;
     }
 
     public function isContext(string $context): bool
@@ -129,6 +142,7 @@ final class NodeEnvironment implements NodeEnvironmentInterface
     {
         $result = clone $this;
         $result->shadowed = array_merge($this->shadowed, [$local->getName() => $shadow]);
+        $result->shadowedReverse = $this->indexShadowedReverse($result->shadowed);
 
         return $result;
     }
@@ -143,6 +157,8 @@ final class NodeEnvironment implements NodeEnvironmentInterface
             unset($result->shadowed[$local->getName()]);
         }
 
+        $result->shadowedReverse = $this->indexShadowedReverse($result->shadowed);
+
         return $result;
     }
 
@@ -150,6 +166,7 @@ final class NodeEnvironment implements NodeEnvironmentInterface
     {
         $result = clone $this;
         $result->locals = $locals;
+        $result->localsByName = $this->indexLocalsByName($locals);
 
         return $result;
     }
@@ -231,5 +248,41 @@ final class NodeEnvironment implements NodeEnvironmentInterface
     public function useGlobalReference(): bool
     {
         return $this->globalReference;
+    }
+
+    /**
+     * @param array<int, Symbol> $locals
+     *
+     * @return array<string, Symbol>
+     */
+    private function indexLocalsByName(array $locals): array
+    {
+        $index = [];
+        foreach ($locals as $local) {
+            $name = $local->getName();
+            if (!isset($index[$name])) {
+                $index[$name] = $local;
+            }
+        }
+
+        return $index;
+    }
+
+    /**
+     * @param array<string, Symbol> $shadowed
+     *
+     * @return array<string, string>
+     */
+    private function indexShadowedReverse(array $shadowed): array
+    {
+        $reverse = [];
+        foreach ($shadowed as $originalName => $shadowSymbol) {
+            $shadowName = $shadowSymbol->getName();
+            if (!isset($reverse[$shadowName])) {
+                $reverse[$shadowName] = $originalName;
+            }
+        }
+
+        return $reverse;
     }
 }
