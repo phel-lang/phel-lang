@@ -88,6 +88,16 @@ final readonly class AtomParser
             return $this->parseKeyword($token);
         }
 
+        // Every numeric branch below (and `is_numeric` for a lexer token)
+        // requires the first character to be a digit, sign, or dot — the
+        // number regexes are all `^`-anchored on `[+-]?\d`/`0`/`.`. So any
+        // other leading char can only be a symbol; skip the whole regex
+        // gauntlet. Behaviour is identical, just without the dead probes.
+        $first = $word[0] ?? '';
+        if (!$this->couldStartNumber($first)) {
+            return new SymbolNode($word, $token->getStartLocation(), $token->getEndLocation(), Symbol::create($word));
+        }
+
         if (preg_match(self::REGEX_BINARY_NUMBER, $word, $matches)) {
             return $this->parseBinaryNumber($matches, $word, $token);
         }
@@ -131,6 +141,16 @@ final readonly class AtomParser
         }
 
         return new SymbolNode($word, $token->getStartLocation(), $token->getEndLocation(), Symbol::create($word));
+    }
+
+    /**
+     * A Phel numeric literal always begins with a digit, a leading sign,
+     * or a dot (`.5`, which `is_numeric` accepts). Any other first char
+     * rules out every numeric form.
+     */
+    private function couldStartNumber(string $first): bool
+    {
+        return ($first >= '0' && $first <= '9') || $first === '+' || $first === '-' || $first === '.';
     }
 
     private function parseKeyword(Token $token): KeywordNode
