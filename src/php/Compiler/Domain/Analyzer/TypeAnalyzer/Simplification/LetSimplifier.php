@@ -11,10 +11,10 @@ use Phel\Compiler\Domain\Analyzer\Ast\LiteralNode;
 use Phel\Compiler\Domain\Analyzer\Ast\LocalVarNode;
 use Phel\Compiler\Domain\Emitter\OutputEmitter\Cache\LocalVarReferences;
 
+use function array_fill_keys;
 use function array_reverse;
 use function array_slice;
 use function count;
-use function in_array;
 
 /**
  * Two-fold rewrite of `let` after analysis:
@@ -75,8 +75,11 @@ final readonly class LetSimplifier
             return $node;
         }
 
-        /** @var list<string> $allRefs */
-        $allRefs = $bodyRefs;
+        // Name-keyed set of live references, so membership is an O(1)
+        // isset and folding an init's refs in is O(1) per ref. A flat
+        // list would make this O(n^2) over the bindings (scan + rebuild).
+        /** @var array<string, true> $refSet */
+        $refSet = array_fill_keys($bodyRefs, true);
         $keepReversed = [];
         $dropped = false;
 
@@ -84,7 +87,7 @@ final readonly class LetSimplifier
             $shadow = $binding->getShadow()->getName();
             $init = $binding->getInitExpr();
 
-            $stillReferenced = in_array($shadow, $allRefs, true);
+            $stillReferenced = isset($refSet[$shadow]);
             $initPure = $this->purity->isPure($init);
 
             if ($stillReferenced || !$initPure) {
@@ -94,7 +97,9 @@ final readonly class LetSimplifier
                     return $node;
                 }
 
-                $allRefs = [...$allRefs, ...$extra];
+                foreach ($extra as $ref) {
+                    $refSet[$ref] = true;
+                }
 
                 continue;
             }
