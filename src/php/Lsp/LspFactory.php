@@ -43,7 +43,7 @@ use Phel\Lsp\Application\Rpc\RequestDispatcher;
 use Phel\Lsp\Application\Rpc\ResponseBuilder;
 use Phel\Lsp\Application\Rpc\StreamNotificationSink;
 use Phel\Lsp\Application\Session\Session;
-use Phel\Run\RunFacade;
+use Phel\Shared\Facade\RunFacadeInterface;
 
 /**
  * @extends AbstractFactory<LspConfig>
@@ -211,7 +211,7 @@ final class LspFactory extends AbstractFactory
         return $this->getProvidedDependency(LspProvider::FACADE_FORMATTER);
     }
 
-    public function getRunFacade(): RunFacade
+    public function getRunFacade(): RunFacadeInterface
     {
         return $this->getProvidedDependency(LspProvider::FACADE_RUN);
     }

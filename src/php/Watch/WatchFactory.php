@@ -6,9 +6,9 @@ namespace Phel\Watch;
 
 use Gacela\Framework\AbstractFactory;
 use Phel\Api\ApiFacade;
-use Phel\Build\BuildFacade;
-use Phel\Command\CommandFacade;
-use Phel\Run\RunFacade;
+use Phel\Shared\Facade\BuildFacadeInterface;
+use Phel\Shared\Facade\CommandFacadeInterface;
+use Phel\Shared\Facade\RunFacadeInterface;
 use Phel\Watch\Application\ApiProjectReindexer;
 use Phel\Watch\Application\MtimeFileSystemScanner;
 use Phel\Watch\Application\NamespaceResolver;
@@ -94,12 +94,12 @@ final class WatchFactory extends AbstractFactory
         return new NullReloadEventPublisher();
     }
 
-    public function getRunFacade(): RunFacade
+    public function getRunFacade(): RunFacadeInterface
     {
         return $this->getProvidedDependency(WatchProvider::FACADE_RUN);
     }
 
-    public function getBuildFacade(): BuildFacade
+    public function getBuildFacade(): BuildFacadeInterface
     {
         return $this->getProvidedDependency(WatchProvider::FACADE_BUILD);
     }
@@ -109,7 +109,7 @@ final class WatchFactory extends AbstractFactory
         return $this->getProvidedDependency(WatchProvider::FACADE_API);
     }
 
-    public function getCommandFacade(): CommandFacade
+    public function getCommandFacade(): CommandFacadeInterface
     {
         return $this->getProvidedDependency(WatchProvider::FACADE_COMMAND);
     }
