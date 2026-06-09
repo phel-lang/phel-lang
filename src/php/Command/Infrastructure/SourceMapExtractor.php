@@ -6,11 +6,11 @@ namespace Phel\Command\Infrastructure;
 
 use Phel\Command\Domain\Exceptions\Extractor\ReadModel\SourceMapInformation;
 use Phel\Command\Domain\Exceptions\Extractor\SourceMapExtractorInterface;
+use Phel\Shared\SourceMap\SourceMapSiblings;
 
 use function fclose;
 use function fgets;
 use function fopen;
-use function sprintf;
 use function str_starts_with;
 use function strlen;
 use function substr;
@@ -101,8 +101,8 @@ final class SourceMapExtractor implements SourceMapExtractorInterface
 
     private function extractFromSiblingFiles(string $filename): SourceMapInformation
     {
-        $mapFile = sprintf('%s.map', $filename);
-        $sourceFile = str_replace('.php', '.phel', $filename);
+        $mapFile = SourceMapSiblings::mapFile($filename);
+        $sourceFile = SourceMapSiblings::sourceFile($filename);
 
         if (!is_file($mapFile) || !is_file($sourceFile)) {
             return SourceMapInformation::none();
