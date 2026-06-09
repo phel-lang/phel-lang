@@ -8,10 +8,14 @@ use Phel\Command\Domain\Exceptions\Extractor\ReadModel\SourceMapInformation;
 use Phel\Command\Infrastructure\SourceMapExtractor;
 use PHPUnit\Framework\TestCase;
 
+use function array_map;
 use function file_put_contents;
+use function glob;
 use function mkdir;
+use function rmdir;
 use function sys_get_temp_dir;
 use function uniqid;
+use function unlink;
 
 final class SourceMapExtractorTest extends TestCase
 {
@@ -24,6 +28,12 @@ final class SourceMapExtractorTest extends TestCase
         $this->dir = sys_get_temp_dir() . '/phel-source-map-extractor-' . uniqid();
         mkdir($this->dir);
         $this->extractor = new SourceMapExtractor();
+    }
+
+    protected function tearDown(): void
+    {
+        array_map(unlink(...), glob($this->dir . '/*') ?: []);
+        rmdir($this->dir);
     }
 
     public function test_extracts_inline_metadata_from_eval_temp_file(): void

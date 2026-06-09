@@ -12,12 +12,16 @@ use PHPUnit\Framework\Attributes\PreserveGlobalState;
 use PHPUnit\Framework\Attributes\RunInSeparateProcess;
 use PHPUnit\Framework\TestCase;
 
+use function array_map;
 use function file;
+use function glob;
 use function mkdir;
+use function rmdir;
 use function sprintf;
 use function str_contains;
 use function sys_get_temp_dir;
 use function uniqid;
+use function unlink;
 
 /**
  * End-to-end check that exception positions inside `phel build` output can be
@@ -26,6 +30,16 @@ use function uniqid;
  */
 final class BuiltOutputSourceMapTest extends TestCase
 {
+    private string $outDir = '';
+
+    protected function tearDown(): void
+    {
+        if ($this->outDir !== '') {
+            array_map(unlink(...), glob($this->outDir . '/*') ?: []);
+            rmdir($this->outDir);
+        }
+    }
+
     #[RunInSeparateProcess]
     #[PreserveGlobalState(false)]
     public function test_built_output_position_maps_back_to_sibling_phel_source(): void
@@ -33,8 +47,9 @@ final class BuiltOutputSourceMapTest extends TestCase
         Phel::bootstrap(__DIR__);
 
         $srcFile = __DIR__ . '/Fixtures/main.phel';
-        $outDir = sys_get_temp_dir() . '/phel-built-source-map-' . uniqid();
-        mkdir($outDir);
+        $this->outDir = sys_get_temp_dir() . '/phel-built-source-map-' . uniqid();
+        mkdir($this->outDir);
+        $outDir = $this->outDir;
         $dest = $outDir . '/main.php';
 
         new BuildFacade()->compileFile($srcFile, $dest);

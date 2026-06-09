@@ -76,6 +76,9 @@ final class SourceMapExtractor implements SourceMapExtractorInterface
                     return null;
                 }
 
+                // The mappings check must come first: FILENAME_COMMENT_PREFIX
+                // is a prefix of MAPPINGS_COMMENT_PREFIX, so reversing the
+                // order would capture the mappings line as a filename.
                 if (str_starts_with($line, self::MAPPINGS_COMMENT_PREFIX)) {
                     if ($sourceFilename === '') {
                         return null;

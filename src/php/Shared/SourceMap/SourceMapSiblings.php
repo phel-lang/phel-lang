@@ -24,6 +24,8 @@ final class SourceMapSiblings
 
     private const string MAP_SUFFIX = '.map';
 
+    private function __construct() {}
+
     public static function mapFile(string $compiledFile): string
     {
         return sprintf('%s%s', $compiledFile, self::MAP_SUFFIX);
