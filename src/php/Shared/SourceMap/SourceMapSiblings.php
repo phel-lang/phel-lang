@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace Phel\Shared\SourceMap;
 
-use function sprintf;
 use function str_ends_with;
 use function strlen;
 use function substr;
@@ -28,7 +27,7 @@ final class SourceMapSiblings
 
     public static function mapFile(string $compiledFile): string
     {
-        return sprintf('%s%s', $compiledFile, self::MAP_SUFFIX);
+        return $compiledFile . self::MAP_SUFFIX;
     }
 
     public static function sourceFile(string $compiledFile): string
@@ -37,6 +36,6 @@ final class SourceMapSiblings
             $compiledFile = substr($compiledFile, 0, -strlen(self::PHP_SUFFIX));
         }
 
-        return sprintf('%s%s', $compiledFile, self::PHEL_SUFFIX);
+        return $compiledFile . self::PHEL_SUFFIX;
     }
 }

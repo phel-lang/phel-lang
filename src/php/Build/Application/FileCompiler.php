@@ -11,6 +11,7 @@ use Phel\Build\Domain\Extractor\NamespaceExtractorInterface;
 use Phel\Build\Domain\IO\FileIoInterface;
 use Phel\Shared\CompileOptions;
 use Phel\Shared\Facade\CompilerFacadeInterface;
+use Phel\Shared\SourceMap\BuiltFilePreamble;
 use Phel\Shared\SourceMap\SourceMapSiblings;
 
 use function function_exists;
@@ -40,7 +41,7 @@ final readonly class FileCompiler implements FileCompilerInterface
             BuildFacade::disableBuildMode();
         }
 
-        $phpCode = "<?php declare(strict_types=1);\n" . $result->getPhpCode();
+        $phpCode = BuiltFilePreamble::prepend($result->getPhpCode());
 
         $this->fileIo->putContents($dest, $phpCode);
         $this->writeSourceReference($dest, $phelCode);

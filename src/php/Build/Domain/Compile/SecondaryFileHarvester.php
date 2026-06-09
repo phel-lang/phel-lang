@@ -7,6 +7,7 @@ namespace Phel\Build\Domain\Compile;
 use Phel\Build\Domain\Cache\CompiledCodeCacheInterface;
 use Phel\Build\Domain\IO\FileIoInterface;
 use Phel\Shared\NamespaceInformation;
+use Phel\Shared\SourceMap\SourceMapSiblings;
 use RuntimeException;
 
 use function dirname;
@@ -54,7 +55,7 @@ final readonly class SecondaryFileHarvester
         $this->ensureDir(dirname($targetPath));
         $this->fileIo->putContents($targetPath, $this->fileIo->getContents($cachedPath));
         $this->fileIo->putContents(
-            (string) preg_replace('/\.php$/', '.phel', $targetPath),
+            SourceMapSiblings::sourceFile($targetPath),
             $sourceCode,
         );
     }

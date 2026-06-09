@@ -6,6 +6,8 @@ namespace Phel\Command\Infrastructure;
 
 use Phel\Command\Domain\Exceptions\Extractor\ReadModel\SourceMapInformation;
 use Phel\Command\Domain\Exceptions\Extractor\SourceMapExtractorInterface;
+use Phel\Shared\SourceMap\BuiltFilePreamble;
+use Phel\Shared\SourceMap\InlineSourceMapComments;
 use Phel\Shared\SourceMap\SourceMapSiblings;
 
 use function fclose;
@@ -33,20 +35,11 @@ use function trim;
 final class SourceMapExtractor implements SourceMapExtractorInterface
 {
     /**
-     * Inline metadata sits within the first lines of an eval temp file:
-     * `<?php`, an optional `declare(ticks=1);`, then the two comments.
+     * Inline metadata sits within the first lines of an eval temp file
+     * (written by RequireEvaluator): `<?php`, an optional `declare(ticks=1);`,
+     * then the two comments prepended by EmitterResult.
      */
     private const int MAX_HEADER_LINES = 4;
-
-    private const string FILENAME_COMMENT_PREFIX = '// ';
-
-    private const string MAPPINGS_COMMENT_PREFIX = '// ;;';
-
-    /**
-     * Built files start with a single `<?php declare(strict_types=1);` line
-     * (see FileCompiler), so the generated code begins on line 2.
-     */
-    private const int BUILT_FILE_CODE_START_LINE = 2;
 
     public function extractFromFile(string $filename): SourceMapInformation
     {
@@ -76,23 +69,23 @@ final class SourceMapExtractor implements SourceMapExtractorInterface
                     return null;
                 }
 
-                // The mappings check must come first: FILENAME_COMMENT_PREFIX
-                // is a prefix of MAPPINGS_COMMENT_PREFIX, so reversing the
-                // order would capture the mappings line as a filename.
-                if (str_starts_with($line, self::MAPPINGS_COMMENT_PREFIX)) {
+                // The mappings check must come first: FILENAME_PREFIX is a
+                // prefix of MAPPINGS_PREFIX, so reversing the order would
+                // capture the mappings line as a filename.
+                if (str_starts_with($line, InlineSourceMapComments::MAPPINGS_PREFIX)) {
                     if ($sourceFilename === '') {
                         return null;
                     }
 
                     return new SourceMapInformation(
                         $sourceFilename,
-                        trim(substr($line, strlen(self::MAPPINGS_COMMENT_PREFIX))),
+                        trim(substr($line, strlen(InlineSourceMapComments::MAPPINGS_PREFIX))),
                         $lineNumber + 1,
                     );
                 }
 
-                if (str_starts_with($line, self::FILENAME_COMMENT_PREFIX)) {
-                    $sourceFilename = trim(substr($line, strlen(self::FILENAME_COMMENT_PREFIX)));
+                if (str_starts_with($line, InlineSourceMapComments::FILENAME_PREFIX)) {
+                    $sourceFilename = trim(substr($line, strlen(InlineSourceMapComments::FILENAME_PREFIX)));
                 }
             }
         } finally {
@@ -120,7 +113,7 @@ final class SourceMapExtractor implements SourceMapExtractorInterface
         return new SourceMapInformation(
             $sourceFile,
             trim($mappings),
-            self::BUILT_FILE_CODE_START_LINE,
+            BuiltFilePreamble::codeStartLine(),
         );
     }
 }
