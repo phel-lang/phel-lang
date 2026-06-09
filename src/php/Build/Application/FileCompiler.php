@@ -11,6 +11,8 @@ use Phel\Build\Domain\Extractor\NamespaceExtractorInterface;
 use Phel\Build\Domain\IO\FileIoInterface;
 use Phel\Shared\CompileOptions;
 use Phel\Shared\Facade\CompilerFacadeInterface;
+use Phel\Shared\SourceMap\BuiltFilePreamble;
+use Phel\Shared\SourceMap\SourceMapSiblings;
 
 use function function_exists;
 
@@ -39,7 +41,7 @@ final readonly class FileCompiler implements FileCompilerInterface
             BuildFacade::disableBuildMode();
         }
 
-        $phpCode = "<?php declare(strict_types=1);\n" . $result->getPhpCode();
+        $phpCode = BuiltFilePreamble::prepend($result->getPhpCode());
 
         $this->fileIo->putContents($dest, $phpCode);
         $this->writeSourceReference($dest, $phelCode);
@@ -57,13 +59,13 @@ final readonly class FileCompiler implements FileCompilerInterface
 
     private function writeSourceReference(string $dest, string $phelCode): void
     {
-        $sourceFile = str_replace('.php', '.phel', $dest);
+        $sourceFile = SourceMapSiblings::sourceFile($dest);
         $this->fileIo->putContents($sourceFile, $phelCode);
     }
 
     private function writeSourceMap(string $dest, string $sourceMap, bool $enableSourceMaps): void
     {
-        $mapFile = $dest . '.map';
+        $mapFile = SourceMapSiblings::mapFile($dest);
 
         if ($enableSourceMaps) {
             $this->fileIo->putContents($mapFile, $sourceMap);

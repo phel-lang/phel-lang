@@ -64,6 +64,9 @@ Strategy pattern via `TypePrinter/`: one class per Phel/PHP type; `WithColorTrai
 - `VersionResolver`: gathers the ambient version inputs (git working copy, Composer `InstalledVersions`, build-time `.phel-release.php`/`OFFICIAL_RELEASE`) and returns `VersionFinder::getVersion()`. Both Console and Run consume it directly, so neither owns version-detection wiring
 - `CompileOptions`: constants for source maps, emit-only mode, optimization levels
 - `SourceMap/VLQ`: pure Base64-VLQ codec (`decode`, `encodeIntegers`, `encodeInteger`); stateless, no module deps. Consumed by Compiler's `SourceMapGenerator`/`SourceMapConsumer`
+- `SourceMap/SourceMapSiblings`: naming convention for the `<file>.php.map` + `<file>.phel` artifacts next to built files. Written by Build (`FileCompiler`, `SecondaryFileHarvester`), read by Command (`SourceMapExtractor`)
+- `SourceMap/BuiltFilePreamble`: the fixed `<?php declare(strict_types=1);` line before generated code in built files; `prepend()` for the writer (`FileCompiler`), `codeStartLine()` for the reader (`SourceMapExtractor`)
+- `SourceMap/InlineSourceMapComments`: `// `/`// ;;` metadata comment prefixes for inline source maps in eval'd code. Written by Compiler's `EmitterResult`, parsed by `SourceMapExtractor` and `EvaluatedCodeException`
 - `PhpAttributeRenderer`: renders `^{:php/attr ...}` metadata specs into PHP 8 attribute source lines (`#[\ORM\Column(length: 255)]`); pure, stateless. Accepts a bare keyword (`:ORM/Entity`), a single spec vector (`[:ORM/Column {:length 255}]`, first element is the name keyword), or a vector of specs (`[[:ORM/Id] [:ORM/Column]]`). Consumed by `DefStructEmitter`/`DefInterfaceEmitter` and the Interop export generator
 
 ## Dependencies

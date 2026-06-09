@@ -5,11 +5,13 @@ declare(strict_types=1);
 namespace Phel\Compiler\Domain\Evaluator\Exceptions;
 
 use Phel\Compiler\Domain\Emitter\OutputEmitter\SourceMap\SourceMapConsumer;
+use Phel\Shared\SourceMap\InlineSourceMapComments;
 use RuntimeException;
 use Throwable;
 
 use function explode;
 use function str_starts_with;
+use function strlen;
 use function substr;
 use function trim;
 
@@ -64,20 +66,23 @@ final class EvaluatedCodeException extends RuntimeException
         $filenameComment = $lines[0];
         $sourceMapComment = $lines[1] ?? '';
 
-        $file = str_starts_with($filenameComment, '// ')
-            ? trim(substr($filenameComment, 3))
+        $file = str_starts_with($filenameComment, InlineSourceMapComments::FILENAME_PREFIX)
+            ? trim(substr($filenameComment, strlen(InlineSourceMapComments::FILENAME_PREFIX)))
             : 'string';
 
-        if (!str_starts_with($sourceMapComment, '// ;;')) {
+        if (!str_starts_with($sourceMapComment, InlineSourceMapComments::MAPPINGS_PREFIX)) {
             return [$file, $generatedLine];
         }
 
-        $mapping = trim(substr($sourceMapComment, 3));
-        if ($mapping === '' || $mapping === ';;') {
+        $mappings = trim(substr($sourceMapComment, strlen(InlineSourceMapComments::MAPPINGS_PREFIX)));
+        if ($mappings === '') {
             return [$file, $generatedLine];
         }
 
-        $consumer = new SourceMapConsumer($mapping);
+        // The two metadata comment lines sit above the generated code, so the
+        // `;;` padding shifts the mapping by two lines and lets the consumer
+        // take raw eval line numbers directly.
+        $consumer = new SourceMapConsumer(';;' . $mappings);
         $originalLine = $consumer->getOriginalLine($generatedLine);
 
         return [$file, $originalLine ?? $generatedLine];
