@@ -4,6 +4,11 @@ All notable changes to this project will be documented in this file.
 
 ## Unreleased
 
+### Fixed
+
+- Runtime errors in `phel build` output now map back to the Phel source: the error printer reads the sibling `<file>.php.map` and `<file>.phel` artifacts (previously written but never consumed) and reports `out/foo.phel:42` instead of the generated PHP line
+- Inline source maps in eval temp files are detected again: the extractor now scans past the `<?php` opener (and optional `declare` statements) for the metadata comments instead of only reading the first two lines
+
 ## [0.43.0](https://github.com/phel-lang/phel-lang/compare/v0.42.0...v0.43.0) - 2026-06-09
 
 ### Added

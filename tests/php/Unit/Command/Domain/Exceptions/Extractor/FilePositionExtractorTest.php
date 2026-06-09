@@ -12,46 +12,74 @@ use PHPUnit\Framework\TestCase;
 
 final class FilePositionExtractorTest extends TestCase
 {
-    public function test_get_original(): void
+    public function test_returns_input_position_when_no_source_map(): void
     {
         $extractor = new FilePositionExtractor(
-            $this->stubSourceMapExtractor(),
+            $this->stubSourceMapExtractor(SourceMapInformation::none()),
         );
 
-        $filename = '/example-module-name/file-name.phel';
-        $line = 1;
-
         self::assertEquals(
-            new FilePosition($filename, $line),
-            $extractor->getOriginal($filename, $line),
+            new FilePosition('/example-module-name/file-name.php', 1),
+            $extractor->getOriginal('/example-module-name/file-name.php', 1),
         );
     }
 
-    public function test_get_original_with_file_name_comment(): void
+    public function test_replaces_filename_when_no_mappings_available(): void
     {
         $extractor = new FilePositionExtractor(
-            $this->stubSourceMapExtractor(
-                '// file-name/comment',
-            ),
+            $this->stubSourceMapExtractor(new SourceMapInformation('/src/main.phel', '')),
         );
 
-        $filename = '/example-module-name/file-name.phel';
-        $line = 1;
-
         self::assertEquals(
-            new FilePosition('file-name/comment', $line),
-            $extractor->getOriginal($filename, $line),
+            new FilePosition('/src/main.phel', 7),
+            $extractor->getOriginal('/tmp/__phel_abc.php', 7),
         );
     }
 
-    private function stubSourceMapExtractor(
-        string $filename = '',
-        string $sourceMap = '',
-    ): SourceMapExtractorInterface {
-        $sourceMapExtractor = $this->createMock(SourceMapExtractorInterface::class);
+    public function test_maps_line_through_mappings_relative_to_code_start(): void
+    {
+        // 'AACA' maps generated line 1 to original line 2; the generated code
+        // starts at file line 4, so trace line 4 is generated line 1.
+        $extractor = new FilePositionExtractor(
+            $this->stubSourceMapExtractor(new SourceMapInformation('/src/main.phel', 'AACA', 4)),
+        );
+
+        self::assertEquals(
+            new FilePosition('/src/main.phel', 2),
+            $extractor->getOriginal('/tmp/__phel_abc.php', 4),
+        );
+    }
+
+    public function test_keeps_line_when_mappings_have_no_entry_for_it(): void
+    {
+        $extractor = new FilePositionExtractor(
+            $this->stubSourceMapExtractor(new SourceMapInformation('/src/main.phel', 'AACA', 4)),
+        );
+
+        self::assertEquals(
+            new FilePosition('/src/main.phel', 9),
+            $extractor->getOriginal('/tmp/__phel_abc.php', 9),
+        );
+    }
+
+    public function test_keeps_line_when_trace_line_is_before_code_start(): void
+    {
+        $extractor = new FilePositionExtractor(
+            $this->stubSourceMapExtractor(new SourceMapInformation('/src/main.phel', 'AACA', 4)),
+        );
+
+        self::assertEquals(
+            new FilePosition('/src/main.phel', 2),
+            $extractor->getOriginal('/tmp/__phel_abc.php', 2),
+        );
+    }
+
+    private function stubSourceMapExtractor(SourceMapInformation $info): SourceMapExtractorInterface
+    {
+        $sourceMapExtractor = $this->createStub(SourceMapExtractorInterface::class);
         $sourceMapExtractor
             ->method('extractFromFile')
-            ->willReturn(new SourceMapInformation($filename, $sourceMap));
+            ->willReturn($info);
 
         return $sourceMapExtractor;
     }

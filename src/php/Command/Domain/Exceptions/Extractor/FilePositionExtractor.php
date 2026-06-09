@@ -18,32 +18,30 @@ final readonly class FilePositionExtractor implements FilePositionExtractorInter
     {
         $sourceMapInfo = $this->sourceMapExtractor->extractFromFile($filename);
 
+        if (!$sourceMapInfo->hasFilename()) {
+            return new FilePosition($filename, $line);
+        }
+
         return new FilePosition(
-            $this->extractOriginalFilename($sourceMapInfo, $filename),
+            $sourceMapInfo->filename(),
             $this->extractOriginalLine($sourceMapInfo, $line),
         );
     }
 
-    private function extractOriginalFilename(SourceMapInformation $sourceMapInfo, string $filename): string
-    {
-        if (!str_contains($sourceMapInfo->filename(), '// ')) {
-            return $filename;
-        }
-
-        return trim(substr($sourceMapInfo->filename(), 3));
-    }
-
     private function extractOriginalLine(SourceMapInformation $sourceMapInfo, int $line): int
     {
-        if (!str_contains($sourceMapInfo->filename(), '// ')
-            || !str_contains($sourceMapInfo->sourceMap(), '// ')
-        ) {
+        if (!$sourceMapInfo->hasMappings()) {
             return $line;
         }
 
-        $mapping = trim(substr($sourceMapInfo->sourceMap(), 3));
-        $sourceMapConsumer = new SourceMapConsumer($mapping);
-        $originalLine = $sourceMapConsumer->getOriginalLine($line - 1);
+        $generatedLine = $line - ($sourceMapInfo->codeStartLine() - 1);
+
+        if ($generatedLine < 1) {
+            return $line;
+        }
+
+        $sourceMapConsumer = new SourceMapConsumer($sourceMapInfo->mappings());
+        $originalLine = $sourceMapConsumer->getOriginalLine($generatedLine);
 
         if ($originalLine === null || $originalLine === 0) {
             return $line;

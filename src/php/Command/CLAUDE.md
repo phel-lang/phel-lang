@@ -42,6 +42,6 @@ Infrastructure/  ComposerVendorDirectoriesFinder, ErrorLog, SourceMapExtractor
 ## Key Constraints
 
 - `DirectoryFinder`: resolves paths, handles PHAR archives, caches results
-- `SourceMapExtractor`: maps compiled PHP back to Phel source locations
+- `SourceMapExtractor`: maps compiled PHP back to Phel source locations; reads inline `// `/`// ;;` header comments (eval temp files) or sibling `<file>.map` + `<file>.phel` artifacts (built output)
 - `TextExceptionPrinter`: renders with syntax highlighting and source pointers
 - Config includes stale output recovery hint for corrupted build state
