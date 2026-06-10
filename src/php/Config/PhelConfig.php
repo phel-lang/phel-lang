@@ -309,24 +309,46 @@ final readonly class PhelConfig implements JsonSerializable
     }
 
     /**
-     * Replace the whole build value object. Note: this overwrites anything set
-     * via the flattened build withers (`withMainPhelNamespace()`,
-     * `withMainPhpPath()`, `withBuildDestDir()`), so call it before them.
+     * Configure the build value object.
+     *
+     * Pass a `PhelBuildConfig` to replace it wholesale (this overwrites anything
+     * set via the flattened build withers, so call it first). Or pass a
+     * configurator closure to patch the current build config in place, which
+     * composes cleanly with the flattened withers regardless of call order:
+     *
+     *     ->withBuildConfig(fn (PhelBuildConfig $b) => $b->withDestDir('dist'))
+     *
+     * @param callable(PhelBuildConfig):PhelBuildConfig|PhelBuildConfig $buildConfig
      */
-    public function withBuildConfig(PhelBuildConfig $buildConfig): self
+    public function withBuildConfig(PhelBuildConfig|callable $buildConfig): self
     {
-        return $this->with(['buildConfig' => $buildConfig]);
+        $resolved = $buildConfig instanceof PhelBuildConfig
+            ? $buildConfig
+            : $buildConfig($this->buildConfig);
+
+        return $this->with(['buildConfig' => $resolved]);
     }
 
     /**
-     * Replace the whole export value object. Note: this overwrites anything set
-     * via the flattened export withers (`withExportNamespacePrefix()`,
-     * `withExportTargetDirectory()`, `withExportFromDirectories()`) and resets
-     * unspecified fields to their defaults, so call it before them.
+     * Configure the export value object.
+     *
+     * Pass a `PhelExportConfig` to replace it wholesale (this overwrites anything
+     * set via the flattened export withers and resets unspecified fields to their
+     * defaults, so call it first). Or pass a configurator closure to patch the
+     * current export config in place, which composes with the flattened withers
+     * regardless of call order:
+     *
+     *     ->withExportConfig(fn (PhelExportConfig $e) => $e->withNamespacePrefix('App'))
+     *
+     * @param callable(PhelExportConfig):PhelExportConfig|PhelExportConfig $exportConfig
      */
-    public function withExportConfig(PhelExportConfig $exportConfig): self
+    public function withExportConfig(PhelExportConfig|callable $exportConfig): self
     {
-        return $this->with(['exportConfig' => $exportConfig]);
+        $resolved = $exportConfig instanceof PhelExportConfig
+            ? $exportConfig
+            : $exportConfig($this->exportConfig);
+
+        return $this->with(['exportConfig' => $resolved]);
     }
 
     /**

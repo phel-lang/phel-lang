@@ -283,6 +283,33 @@ final class PhelConfigTest extends TestCase
         self::assertSame('/var/cache/phel', $config->jsonSerialize()[PhelConfig::PHEL_DIR]);
     }
 
+    public function test_with_build_config_closure_patches_in_place(): void
+    {
+        $config = new PhelConfig()
+            ->withMainPhelNamespace('app\\main')
+            ->withBuildConfig(static fn(PhelBuildConfig $b): PhelBuildConfig => $b->withDestDir('dist'));
+
+        $build = $config->jsonSerialize()[PhelConfig::BUILD_CONFIG];
+        // The closure form preserves the previously set namespace ...
+        self::assertSame('app\\main', $build[PhelBuildConfig::MAIN_PHEL_NAMESPACE]);
+        // ... and applies the patch, deriving the entry point under the new dest dir.
+        self::assertSame('dist', $build[PhelBuildConfig::DEST_DIR]);
+        self::assertSame('dist/index.php', $build[PhelBuildConfig::MAIN_PHP_PATH]);
+    }
+
+    public function test_with_export_config_closure_patches_in_place(): void
+    {
+        $config = new PhelConfig()
+            ->withExportTargetDirectory('gen')
+            ->withExportConfig(static fn(PhelExportConfig $e): PhelExportConfig => $e->withNamespacePrefix('App'));
+
+        $export = $config->jsonSerialize()[PhelConfig::EXPORT_CONFIG];
+        // Closure form keeps the earlier target directory ...
+        self::assertSame('gen', $export[PhelExportConfig::TARGET_DIRECTORY]);
+        // ... and patches the prefix.
+        self::assertSame('App', $export[PhelExportConfig::NAMESPACE_PREFIX]);
+    }
+
     public function test_with_methods_return_new_instance(): void
     {
         $original = new PhelConfig();
