@@ -7,6 +7,7 @@ namespace Phel;
 use Closure;
 use Gacela\Framework\Bootstrap\GacelaConfig;
 use Gacela\Framework\Config\Config;
+use Gacela\Framework\Config\MergedConfigCache;
 use Gacela\Framework\Gacela;
 use Phar;
 use Phel\Config\PhelConfig;
@@ -21,6 +22,7 @@ use function dirname;
 use function getcwd;
 use function in_array;
 use function is_array;
+use function is_string;
 
 /**
  * @internal use \Phel instead
@@ -101,6 +103,7 @@ class Phel
 
         Gacela::bootstrap($projectRootDir, self::configFn());
 
+        self::refreshStaleMergedConfigCache();
         self::mirrorPhelDirToEnv();
     }
 
@@ -187,6 +190,90 @@ class Phel
     public static function resetAutoDetectedConfig(): void
     {
         self::$autoDetectedConfig = null;
+    }
+
+    /**
+     * Invalidate Gacela's persisted merged-config cache when its inputs change.
+     *
+     * Gacela (>= 1.15) auto-warms the merged app config to
+     * `gacela-merged-config.php` on the first bootstrap and then reloads it
+     * unconditionally, with no freshness check. So editing `phel-config.php`
+     * (or upgrading Phel to a build with new `PhelConfig` keys) would otherwise
+     * be silently ignored until the cache file is deleted by hand.
+     *
+     * We fingerprint the cache inputs (the config files plus the config
+     * data-model classes) and, when the fingerprint changes, clear the merged
+     * cache and re-init so the current values take effect. When nothing changed
+     * this is a handful of stat/hash calls and the cache is reused as intended.
+     */
+    private static function refreshStaleMergedConfigCache(): void
+    {
+        $config = Config::getInstance();
+        $cache = self::mergedConfigCache($config->getCacheDir());
+
+        $fingerprintFile = preg_replace('/\.php$/', '.fingerprint', $cache->filename());
+        if ($fingerprintFile === null) {
+            return;
+        }
+
+        $current = self::configCacheFingerprint($config->getAppRootDir());
+        $stored = is_file($fingerprintFile) ? @file_get_contents($fingerprintFile) : null;
+        if ($stored === $current) {
+            return;
+        }
+
+        $cache->clear();
+        $config->init();
+
+        if (is_dir(dirname($fingerprintFile))) {
+            @file_put_contents($fingerprintFile, $current);
+        }
+    }
+
+    /**
+     * Rebuild Gacela's merged-config cache handle from public API only, so we
+     * can locate and clear it without touching `Config`'s `@internal` cache
+     * helpers. Mirrors how Gacela constructs it: the resolved cache dir plus the
+     * optional `APP_ENV` suffix.
+     */
+    private static function mergedConfigCache(string $cacheDir): MergedConfigCache
+    {
+        $env = getenv('APP_ENV');
+
+        return new MergedConfigCache($cacheDir, is_string($env) ? $env : '');
+    }
+
+    /**
+     * Content hash of everything that determines the merged config: the project
+     * config files plus the config data-model classes (whose keys define the
+     * wire format). Any change flips the hash and invalidates the cache.
+     */
+    private static function configCacheFingerprint(string $projectRootDir): string
+    {
+        $parts = [];
+
+        foreach ([self::PHEL_CONFIG_FILE_NAME, self::PHEL_CONFIG_LOCAL_FILE_NAME] as $name) {
+            $parts[] = $name . ':' . self::fileHash($projectRootDir . '/' . $name);
+        }
+
+        foreach (['PhelConfig.php', 'PhelBuildConfig.php', 'PhelExportConfig.php'] as $model) {
+            $parts[] = $model . ':' . self::fileHash(__DIR__ . '/Config/' . $model);
+        }
+
+        return md5(implode('|', $parts));
+    }
+
+    /**
+     * Stable content hash of a single cache-input file, or a placeholder when
+     * it is absent or unreadable.
+     */
+    private static function fileHash(string $path): string
+    {
+        if (!is_file($path)) {
+            return '-';
+        }
+
+        return md5_file($path) ?: '-';
     }
 
     /**
