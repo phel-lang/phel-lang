@@ -174,6 +174,22 @@ final class PhelConfigTest extends TestCase
         self::assertSame('build', $serialized[PhelConfig::BUILD_CONFIG][PhelBuildConfig::DEST_DIR]);
     }
 
+    public function test_main_php_path_follows_dest_dir_regardless_of_wither_order(): void
+    {
+        $nsFirst = new PhelConfig()
+            ->withMainPhelNamespace('app\\main')
+            ->withBuildDestDir('dist')
+            ->jsonSerialize();
+
+        $destFirst = new PhelConfig()
+            ->withBuildDestDir('dist')
+            ->withMainPhelNamespace('app\\main')
+            ->jsonSerialize();
+
+        self::assertSame('dist/index.php', $nsFirst[PhelConfig::BUILD_CONFIG][PhelBuildConfig::MAIN_PHP_PATH]);
+        self::assertSame($destFirst, $nsFirst);
+    }
+
     public function test_with_export_proxy_methods(): void
     {
         $config = new PhelConfig()

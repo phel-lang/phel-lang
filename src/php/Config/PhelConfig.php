@@ -306,20 +306,15 @@ final readonly class PhelConfig implements JsonSerializable
     /**
      * Flattens the build namespace onto PhelConfig.
      *
-     * Defaults the entry-point PHP path to `out/index.php` only when no custom
-     * path has been set yet, i.e. the current value is still empty or already
-     * the default `out/index.php`. Any other (custom) path is preserved, so
-     * calling this repeatedly is idempotent for zero-config projects.
+     * Only the namespace is set here; the entry-point PHP path is left to
+     * PhelBuildConfig's lazy derivation (`<destDir>/index.php`). This keeps the
+     * build withers order-independent: `withMainPhelNamespace()->withBuildDestDir('dist')`
+     * and the reverse both yield `dist/index.php`. Zero-config projects still
+     * derive `out/index.php` from the default dest dir.
      */
     public function withMainPhelNamespace(string $namespace): self
     {
-        $build = $this->buildConfig->withMainPhelNamespace($namespace);
-        $currentPath = $this->buildConfig->getMainPhpPath();
-        if ($currentPath === 'out/index.php' || $currentPath === '') {
-            $build = $build->withMainPhpPath('out/index.php');
-        }
-
-        return $this->with(['buildConfig' => $build]);
+        return $this->with(['buildConfig' => $this->buildConfig->withMainPhelNamespace($namespace)]);
     }
 
     public function withMainPhpPath(string $path): self
