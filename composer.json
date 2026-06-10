@@ -80,7 +80,7 @@
         "phpbench-ref": "./vendor/bin/phpbench run --ref=baseline --report=aggregate --progress=plain --ansi",
         "patch-psalm": "@php build/scripts/patch-psalm.php",
         "phpstan": "./vendor/bin/phpstan --memory-limit=1G",
-        "phpstan-compiler": "./vendor/bin/phpstan analyse -c phpstan-compiler.neon --memory-limit=1G",
+        "phpstan-strict": "./vendor/bin/phpstan analyse -c phpstan-strict.neon --memory-limit=1G",
         "post-install-cmd": "@patch-psalm",
         "post-update-cmd": "@patch-psalm",
         "psalm": [
@@ -109,7 +109,7 @@
             "@csrun",
             "@psalm",
             "@phpstan",
-            "@phpstan-compiler",
+            "@phpstan-strict",
             "@rector",
             "@validate-config"
         ],

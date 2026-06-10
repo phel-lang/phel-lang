@@ -88,11 +88,17 @@ final class NreplFactory extends AbstractFactory
 
     public function getRunFacade(): RunFacadeInterface
     {
-        return $this->getProvidedDependency(NreplProvider::FACADE_RUN);
+        /** @var RunFacadeInterface $facade */
+        $facade = $this->getProvidedDependency(NreplProvider::FACADE_RUN);
+
+        return $facade;
     }
 
     public function getApiFacade(): ApiFacadeInterface
     {
-        return $this->getProvidedDependency(NreplProvider::FACADE_API);
+        /** @var ApiFacadeInterface $facade */
+        $facade = $this->getProvidedDependency(NreplProvider::FACADE_API);
+
+        return $facade;
     }
 }

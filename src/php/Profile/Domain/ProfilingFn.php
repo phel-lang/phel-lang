@@ -34,8 +34,9 @@ final class ProfilingFn extends AbstractFn
     {
         $this->session->enter($this->boundTo);
         try {
-            /** @psalm-suppress InvalidFunctionCall */
-            return ($this->inner)(...$args);
+            // AbstractFn declares __invoke via @method; psalm does not honor it.
+            /** @psalm-suppress UndefinedMethod */
+            return $this->inner->__invoke(...$args);
         } finally {
             $this->session->exit();
         }

@@ -36,6 +36,7 @@ Sub-module in `Printer/` (see `Printer/CLAUDE.md`): stateless strategy-pattern p
 
 - `Munge`: namespace/symbol encoding; `encode()`, `encodePhpNs()`, `encodeRegistryKey()`, `decodeNs()`, `canonicalNs()`, `displayNs()`
 - `ColorStyle`: ANSI colors; factories `withStyles()`, `noStyles()`
+- `ScalarCoercion`: coerce loosely-typed config `mixed` to a scalar with a default; `toString()`, `toInt()`, `toFloat()`
 - `ResourceUsageFormatter`: "Time: HH:MM:SS.mmm, Memory: X.XX MB" snapshot
 - `PhelProjectDirectory`: manages `.phel/` directory; respects `PHEL_DIR` env var and `PhelConfig::setPhelDir()`
 - `VersionFinder`: pure version-string builder from explicit git inputs; no I/O. `VersionResolver`: gathers ambient version inputs (git working copy, Composer `InstalledVersions`, build-time `.phel-release.php`/`OFFICIAL_RELEASE`) and calls `VersionFinder`. Both Console and Run consume it directly, so neither owns version-detection wiring

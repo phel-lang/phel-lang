@@ -56,7 +56,7 @@ final class ProfilerSession implements ProfilerHookInterface
      */
     public function enter(string $name): void
     {
-        $this->stack[] = [$name, hrtime(true), 0];
+        $this->stack[] = [$name, (int) hrtime(true), 0];
         ++$this->depth;
     }
 

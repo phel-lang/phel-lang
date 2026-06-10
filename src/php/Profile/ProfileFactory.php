@@ -32,6 +32,9 @@ final class ProfileFactory extends AbstractFactory
 
     public function getRunFacade(): RunFacadeInterface
     {
-        return $this->getProvidedDependency(ProfileProvider::FACADE_RUN);
+        /** @var RunFacadeInterface $facade */
+        $facade = $this->getProvidedDependency(ProfileProvider::FACADE_RUN);
+
+        return $facade;
     }
 }

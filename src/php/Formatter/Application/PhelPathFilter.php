@@ -8,6 +8,7 @@ use FilesystemIterator;
 use Phel\Formatter\Domain\PathFilterInterface;
 use RecursiveDirectoryIterator;
 use RecursiveIteratorIterator;
+use SplFileInfo;
 
 final class PhelPathFilter implements PathFilterInterface
 {
@@ -29,6 +30,10 @@ final class PhelPathFilter implements PathFilterInterface
                 }
             } elseif (is_dir($path)) {
                 foreach ($this->createRecursiveIterator($path) as $fileInfo) {
+                    if (!$fileInfo instanceof SplFileInfo) {
+                        continue;
+                    }
+
                     if ($this->isPhelFile($fileInfo->getPathname())) {
                         $returnPaths[] = $fileInfo->getPathname();
                     }
@@ -36,7 +41,7 @@ final class PhelPathFilter implements PathFilterInterface
             }
         }
 
-        return array_unique($returnPaths);
+        return array_values(array_unique($returnPaths));
     }
 
     private function hasPhelExtension(string $path): bool

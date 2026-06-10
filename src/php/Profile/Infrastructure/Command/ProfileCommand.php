@@ -17,6 +17,7 @@ use Phel\Profile\ProfileFacade;
 use Phel\Profile\ProfileFactory;
 use Phel\Shared\Exceptions\CompilerException;
 use Phel\Shared\Munge;
+use Phel\Shared\ScalarCoercion;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
@@ -84,16 +85,18 @@ final class ProfileCommand extends Command
             return self::FAILURE;
         }
 
-        $sort = SortOrder::tryFrom((string) $input->getOption(self::OPT_SORT));
+        $sortOption = ScalarCoercion::toString($input->getOption(self::OPT_SORT));
+        $sort = SortOrder::tryFrom($sortOption);
         if ($sort === null) {
-            $this->writeUnknownOption($output, self::OPT_SORT, (string) $input->getOption(self::OPT_SORT), SortOrder::cases());
+            $this->writeUnknownOption($output, self::OPT_SORT, $sortOption, SortOrder::cases());
 
             return self::FAILURE;
         }
 
-        $format = ReportFormat::tryFrom((string) $input->getOption(self::OPT_FORMAT));
+        $formatOption = ScalarCoercion::toString($input->getOption(self::OPT_FORMAT));
+        $format = ReportFormat::tryFrom($formatOption);
         if ($format === null) {
-            $this->writeUnknownOption($output, self::OPT_FORMAT, (string) $input->getOption(self::OPT_FORMAT), ReportFormat::cases());
+            $this->writeUnknownOption($output, self::OPT_FORMAT, $formatOption, ReportFormat::cases());
 
             return self::FAILURE;
         }
@@ -201,7 +204,7 @@ final class ProfileCommand extends Command
 
     private function resolveTop(InputInterface $input): int
     {
-        $top = (int) $input->getOption(self::OPT_TOP);
+        $top = ScalarCoercion::toInt($input->getOption(self::OPT_TOP));
 
         return $top > 0 ? $top : ProfileConfig::DEFAULT_TOP;
     }

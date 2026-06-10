@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Phel\HttpClient;
 
+use Phel\Shared\ScalarCoercion;
 use RuntimeException;
 
 use function sprintf;
@@ -74,7 +75,7 @@ final class StreamTransport
 
         // Coerce option values defensively: a numeric-string timeout or a
         // truthy/falsy redirect/ssl flag is accepted and normalised here.
-        $timeout = (float) ($options['timeout'] ?? 30.0);
+        $timeout = ScalarCoercion::toFloat($options['timeout'] ?? null, 30.0);
         $followRedirects = (bool) ($options['follow_redirects'] ?? true);
         $verifySsl = (bool) ($options['verify_ssl'] ?? true);
 

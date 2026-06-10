@@ -1,0 +1,47 @@
+# Stricter PHPStan pass scoped to the modules that already pass the maximum level.
+#
+# The whole codebase is checked at `level: 6` (see phpstan.neon). The modules
+# listed below are additionally held to `level: 9` (the strictest level): the
+# correctness-critical compiler plus every module already hardened to it. Add a
+# module here once it is clean at level 9; when the whole tree reaches it, fold
+# the level into phpstan.neon and delete this file.
+#
+# `paths!` overrides (replaces) the inherited `paths` instead of appending to it,
+# so only the listed modules are analysed at this level; dependencies are still
+# autoloaded.
+includes:
+    - phpstan.neon
+
+parameters:
+    level: 9
+    # The shared baseline declares ignoreErrors for files outside this scope.
+    # Those patterns may not fire here, so silence the "unmatched ignored error"
+    # report.
+    reportUnmatchedIgnoredErrors: false
+    ignoreErrors:
+        # CompilerFacade::encodeNs() delegates through Gacela's cached() helper,
+        # which is typed `mixed`. The gacela.facadeOnlyDelegates rule forbids
+        # narrowing the result inline (a facade method must be a single
+        # delegation), so the mixed return cannot be cast away here.
+        -
+            identifier: return.type
+            path: src/php/Compiler/CompilerFacade.php
+        # PhelConfig::with() rebuilds the immutable config by spreading a merged
+        # array<string, mixed> into the constructor as named arguments. PHPStan
+        # cannot map the dynamic spread back to each typed parameter; the public
+        # with*() callers supply correctly-typed values.
+        -
+            identifier: argument.type
+            path: src/php/Config/PhelConfig.php
+    paths!:
+        - %currentWorkingDirectory%/src/php/Compiler/
+        - %currentWorkingDirectory%/src/php/Config/
+        - %currentWorkingDirectory%/src/php/Console/
+        - %currentWorkingDirectory%/src/php/Filesystem/
+        - %currentWorkingDirectory%/src/php/Formatter/
+        - %currentWorkingDirectory%/src/php/HttpClient/
+        - %currentWorkingDirectory%/src/php/Interop/
+        - %currentWorkingDirectory%/src/php/Lsp/
+        - %currentWorkingDirectory%/src/php/Nrepl/
+        - %currentWorkingDirectory%/src/php/Profile/
+        - %currentWorkingDirectory%/src/php/Watch/

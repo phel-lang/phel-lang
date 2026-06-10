@@ -56,5 +56,5 @@ jobs:
       - name: Run PHPStan on internal code
         run: ./vendor/bin/phpstan --memory-limit=516M --debug -vvv
 
-      - name: Run PHPStan (level 7) on the compiler
-        run: ./vendor/bin/phpstan analyse -c phpstan-compiler.neon --memory-limit=516M
+      - name: Run PHPStan (level 9) on strict modules
+        run: ./vendor/bin/phpstan analyse -c phpstan-strict.neon --memory-limit=516M
