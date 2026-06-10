@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Phel\Lint\Application\Cache;
 
 use Phel\Api\Transfer\Diagnostic;
+use Phel\Shared\ScalarCoercion;
 
 use Throwable;
 
@@ -65,14 +66,14 @@ final class LintCache
         $diagnostics = [];
         foreach ($entry['diagnostics'] as $data) {
             $diagnostics[] = new Diagnostic(
-                code: (string) ($data['code'] ?? ''),
-                severity: (string) ($data['severity'] ?? Diagnostic::SEVERITY_WARNING),
-                message: (string) ($data['message'] ?? ''),
-                uri: (string) ($data['uri'] ?? $filePath),
-                startLine: (int) ($data['startLine'] ?? 1),
-                startCol: (int) ($data['startCol'] ?? 1),
-                endLine: (int) ($data['endLine'] ?? 1),
-                endCol: (int) ($data['endCol'] ?? 1),
+                code: ScalarCoercion::toString($data['code'] ?? null),
+                severity: ScalarCoercion::toString($data['severity'] ?? null, Diagnostic::SEVERITY_WARNING),
+                message: ScalarCoercion::toString($data['message'] ?? null),
+                uri: ScalarCoercion::toString($data['uri'] ?? null, $filePath),
+                startLine: ScalarCoercion::toInt($data['startLine'] ?? null, 1),
+                startCol: ScalarCoercion::toInt($data['startCol'] ?? null, 1),
+                endLine: ScalarCoercion::toInt($data['endLine'] ?? null, 1),
+                endCol: ScalarCoercion::toInt($data['endCol'] ?? null, 1),
             );
         }
 

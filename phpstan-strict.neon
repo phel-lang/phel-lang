@@ -33,7 +33,14 @@ parameters:
         -
             identifier: argument.type
             path: src/php/Config/PhelConfig.php
+        # CommandFacade's directory getters delegate through Gacela's cached()
+        # helper (mixed return) and the gacela.facadeOnlyDelegates rule forbids
+        # inline narrowing, mirroring CompilerFacade::encodeNs above.
+        -
+            identifier: return.type
+            path: src/php/Command/CommandFacade.php
     paths!:
+        - %currentWorkingDirectory%/src/php/Command/
         - %currentWorkingDirectory%/src/php/Compiler/
         - %currentWorkingDirectory%/src/php/Config/
         - %currentWorkingDirectory%/src/php/Console/
@@ -41,6 +48,7 @@ parameters:
         - %currentWorkingDirectory%/src/php/Formatter/
         - %currentWorkingDirectory%/src/php/HttpClient/
         - %currentWorkingDirectory%/src/php/Interop/
+        - %currentWorkingDirectory%/src/php/Lint/
         - %currentWorkingDirectory%/src/php/Lsp/
         - %currentWorkingDirectory%/src/php/Nrepl/
         - %currentWorkingDirectory%/src/php/Profile/

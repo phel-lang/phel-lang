@@ -36,6 +36,7 @@ final readonly class SourceReader
      */
     public function read(string $source, string $uri): array
     {
+        /** @var list<bool|float|int|string|TypeInterface|null> $forms */
         $forms = [];
         $namespace = '';
 
@@ -62,6 +63,7 @@ final readonly class SourceReader
                     continue;
                 }
 
+                /** @var bool|float|int|string|TypeInterface|null $form */
                 $form = $readerResult->getAst();
 
                 if ($namespace === '') {

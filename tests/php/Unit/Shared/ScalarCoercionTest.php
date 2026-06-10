@@ -49,4 +49,17 @@ final class ScalarCoercionTest extends TestCase
         self::assertSame(0.0, ScalarCoercion::toFloat(null));
         self::assertSame(9.5, ScalarCoercion::toFloat('x', 9.5));
     }
+
+    public function test_to_string_list_coerces_array_elements(): void
+    {
+        self::assertSame(['a', 'b'], ScalarCoercion::toStringList(['a', 'b']));
+        self::assertSame(['1', '2'], ScalarCoercion::toStringList([1, 2]));
+        self::assertSame(['x'], ScalarCoercion::toStringList(['k' => 'x']));
+    }
+
+    public function test_to_string_list_returns_default_for_non_arrays(): void
+    {
+        self::assertSame([], ScalarCoercion::toStringList(null));
+        self::assertSame(['src'], ScalarCoercion::toStringList('nope', ['src']));
+    }
 }

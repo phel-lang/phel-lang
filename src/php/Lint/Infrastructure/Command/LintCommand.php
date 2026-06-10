@@ -13,6 +13,7 @@ use Phel\Lint\LintConfig;
 use Phel\Lint\LintFacade;
 use Phel\Lint\LintFactory;
 use Phel\Shared\PhelProjectDirectory;
+use Phel\Shared\ScalarCoercion;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
@@ -103,7 +104,7 @@ final class LintCommand extends Command
             return self::EXIT_INVOCATION_ERROR;
         }
 
-        $format = (string) $input->getOption(self::OPT_FORMAT);
+        $format = ScalarCoercion::toString($input->getOption(self::OPT_FORMAT));
         $formatters = $this->getFacade()->formatters();
         if (!$formatters->has($format)) {
             $output->writeln(sprintf(

@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Phel\Command\Domain\Exceptions;
 
 use Phel\Shared\Printer\PrinterInterface;
+use Phel\Shared\ScalarCoercion;
 
 use function is_array;
 use function is_bool;
@@ -101,6 +102,6 @@ final readonly class ExceptionArgsPrinter implements ExceptionArgsPrinterInterfa
             return 'Resource id #' . get_resource_id($arg);
         }
 
-        return (string) $arg;
+        return ScalarCoercion::toString($arg);
     }
 }
