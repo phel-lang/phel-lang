@@ -10,6 +10,7 @@ use Phel;
 use Phel\Nrepl\NreplConfig;
 use Phel\Nrepl\NreplFacade;
 use Phel\Nrepl\NreplFactory;
+use Phel\Shared\ScalarCoercion;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
@@ -53,8 +54,8 @@ final class NreplCommand extends Command
 
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
-        $port = (int) $input->getOption('port');
-        $host = (string) $input->getOption('host');
+        $port = ScalarCoercion::toInt($input->getOption('port'));
+        $host = ScalarCoercion::toString($input->getOption('host'));
 
         // Normalise runtime args so loaded code sees a clean argv.
         Phel::setupRuntimeArgs('nrepl', []);

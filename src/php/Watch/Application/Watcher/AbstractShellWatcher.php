@@ -95,6 +95,13 @@ abstract class AbstractShellWatcher implements FileWatcherInterface
 
         /** @psalm-suppress RedundantCondition */
         while ($this->running && $this->isAlive()) {
+            // phpstan sees $stdout as resource|null and needs the guard before
+            // fgets; psalm narrows it to non-null here and flags the check.
+            /** @psalm-suppress TypeDoesNotContainNull */
+            if ($this->stdout === null) {
+                break;
+            }
+
             $line = @fgets($this->stdout);
             if ($line !== false) {
                 $event = $this->parseLine($line);

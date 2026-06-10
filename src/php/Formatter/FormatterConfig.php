@@ -6,6 +6,11 @@ namespace Phel\Formatter;
 
 use Gacela\Framework\AbstractConfig;
 use Phel\Config\PhelConfig;
+use Phel\Shared\ScalarCoercion;
+
+use function array_map;
+use function array_values;
+use function is_array;
 
 final class FormatterConfig extends AbstractConfig
 {
@@ -16,6 +21,14 @@ final class FormatterConfig extends AbstractConfig
      */
     public function getFormatDirs(): array
     {
-        return $this->get(PhelConfig::FORMAT_DIRS, self::DEFAULT_FORMAT_DIRS);
+        $formatDirs = $this->get(PhelConfig::FORMAT_DIRS, self::DEFAULT_FORMAT_DIRS);
+        if (!is_array($formatDirs)) {
+            return self::DEFAULT_FORMAT_DIRS;
+        }
+
+        return array_values(array_map(
+            static fn(mixed $dir): string => ScalarCoercion::toString($dir),
+            $formatDirs,
+        ));
     }
 }

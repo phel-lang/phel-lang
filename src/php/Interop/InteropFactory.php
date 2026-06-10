@@ -38,7 +38,10 @@ final class InteropFactory extends AbstractFactory
 
     public function getCommandFacade(): CommandFacadeInterface
     {
-        return $this->getProvidedDependency(InteropProvider::FACADE_COMMAND);
+        /** @var CommandFacadeInterface $facade */
+        $facade = $this->getProvidedDependency(InteropProvider::FACADE_COMMAND);
+
+        return $facade;
     }
 
     private function createDirectoryRemover(): DirectoryRemoverInterface
@@ -93,7 +96,10 @@ final class InteropFactory extends AbstractFactory
 
     private function getBuildFacade(): BuildFacadeInterface
     {
-        return $this->getProvidedDependency(InteropProvider::FACADE_BUILD);
+        /** @var BuildFacadeInterface $facade */
+        $facade = $this->getProvidedDependency(InteropProvider::FACADE_BUILD);
+
+        return $facade;
     }
 
     private function createFileSystemIo(): FileIoInterface

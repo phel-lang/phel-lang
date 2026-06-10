@@ -89,7 +89,7 @@ final class TableFormatter
 
         uasort($rows, static fn(array $a, array $b): int => $b['total'] <=> $a['total']);
 
-        return $rows;
+        return array_values($rows);
     }
 
     /**

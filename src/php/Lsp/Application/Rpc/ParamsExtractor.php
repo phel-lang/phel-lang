@@ -93,7 +93,7 @@ final class ParamsExtractor
     }
 
     /**
-     * @param array<string, mixed> $range
+     * @param array<array-key, mixed> $range
      */
     public function isValidRange(array $range): bool
     {

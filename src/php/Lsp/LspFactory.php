@@ -198,21 +198,33 @@ final class LspFactory extends AbstractFactory
 
     public function getApiFacade(): ApiFacade
     {
-        return $this->getProvidedDependency(LspProvider::FACADE_API);
+        /** @var ApiFacade $facade */
+        $facade = $this->getProvidedDependency(LspProvider::FACADE_API);
+
+        return $facade;
     }
 
     public function getLintFacade(): LintFacade
     {
-        return $this->getProvidedDependency(LspProvider::FACADE_LINT);
+        /** @var LintFacade $facade */
+        $facade = $this->getProvidedDependency(LspProvider::FACADE_LINT);
+
+        return $facade;
     }
 
     public function getFormatterFacade(): FormatterFacade
     {
-        return $this->getProvidedDependency(LspProvider::FACADE_FORMATTER);
+        /** @var FormatterFacade $facade */
+        $facade = $this->getProvidedDependency(LspProvider::FACADE_FORMATTER);
+
+        return $facade;
     }
 
     public function getRunFacade(): RunFacadeInterface
     {
-        return $this->getProvidedDependency(LspProvider::FACADE_RUN);
+        /** @var RunFacadeInterface $facade */
+        $facade = $this->getProvidedDependency(LspProvider::FACADE_RUN);
+
+        return $facade;
     }
 }

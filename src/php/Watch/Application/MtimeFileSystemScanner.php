@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Phel\Watch\Application;
 
+use Phel\Shared\ScalarCoercion;
 use Phel\Watch\Domain\FileSystemScannerInterface;
 use RecursiveDirectoryIterator;
 use RecursiveIteratorIterator;
@@ -13,6 +14,7 @@ use UnexpectedValueException;
 use function clearstatcache;
 use function filemtime;
 use function filesize;
+use function is_array;
 use function is_dir;
 use function is_file;
 
@@ -58,11 +60,13 @@ final class MtimeFileSystemScanner implements FileSystemScannerInterface
             $filtered = new RegexIterator($iterator, self::PHEL_FILE_REGEX, RegexIterator::GET_MATCH);
 
             foreach ($filtered as $match) {
+                if (!is_array($match)) {
+                    continue;
+                }
                 if (!isset($match[0])) {
                     continue;
                 }
-
-                $this->statInto($snapshot, (string) $match[0]);
+                $this->statInto($snapshot, ScalarCoercion::toString($match[0]));
             }
         } catch (UnexpectedValueException) {
             // Unreadable directories are silently skipped — same convention as

@@ -6,6 +6,7 @@ namespace Phel\Filesystem;
 
 use Gacela\Framework\AbstractConfig;
 use Phel\Config\PhelConfig;
+use Phel\Shared\ScalarCoercion;
 
 final class FilesystemConfig extends AbstractConfig
 {
@@ -24,6 +25,6 @@ final class FilesystemConfig extends AbstractConfig
      */
     public function getTempDir(): string
     {
-        return (string) $this->get(PhelConfig::TEMP_DIR, sys_get_temp_dir());
+        return ScalarCoercion::toString($this->get(PhelConfig::TEMP_DIR, sys_get_temp_dir()), sys_get_temp_dir());
     }
 }

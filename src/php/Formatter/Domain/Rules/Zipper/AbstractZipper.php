@@ -102,6 +102,7 @@ abstract class AbstractZipper
         }
 
         $leftSiblings = $this->leftSiblings;
+        /** @var int $lastIndex */
         $lastIndex = array_key_last($leftSiblings);
         /** @var T $left */
         $left = $leftSiblings[$lastIndex];

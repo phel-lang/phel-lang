@@ -6,6 +6,7 @@ namespace Phel\Interop\Domain\Generator\Builder;
 
 use Phel\Interop\Domain\ReadModel\FunctionToExport;
 use Phel\Shared\PhpAttributeRenderer;
+use Phel\Shared\ScalarCoercion;
 use ReflectionClass;
 use ReflectionMethod;
 use ReflectionParameter;
@@ -32,7 +33,7 @@ final readonly class CompiledPhpMethodBuilder
     public function build(string $phelNs, FunctionToExport $functionToExport): string
     {
         $ref = new ReflectionClass($functionToExport->fn());
-        $boundTo = (string) $ref->getConstant('BOUND_TO');
+        $boundTo = ScalarCoercion::toString($ref->getConstant('BOUND_TO'));
         $refInvoke = $ref->getMethod('__invoke');
 
         return str_replace([

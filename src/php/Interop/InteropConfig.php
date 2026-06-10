@@ -7,6 +7,9 @@ namespace Phel\Interop;
 use Gacela\Framework\AbstractConfig;
 use Phel\Config\PhelConfig;
 use Phel\Config\PhelExportConfig;
+use Phel\Shared\ScalarCoercion;
+
+use function is_array;
 
 final class InteropConfig extends AbstractConfig
 {
@@ -24,12 +27,18 @@ final class InteropConfig extends AbstractConfig
 
     public function prefixNamespace(): string
     {
-        return (string) ($this->getExport()[PhelExportConfig::NAMESPACE_PREFIX] ?? self::DEFAULT_EXPORT_NAMESPACE_PREFIX);
+        return ScalarCoercion::toString(
+            $this->getExport()[PhelExportConfig::NAMESPACE_PREFIX] ?? null,
+            self::DEFAULT_EXPORT_NAMESPACE_PREFIX,
+        );
     }
 
     public function getExportTargetDirectory(): string
     {
-        return (string) ($this->getExport()[PhelExportConfig::TARGET_DIRECTORY] ?? self::DEFAULT_EXPORT_TARGET_DIRECTORY);
+        return ScalarCoercion::toString(
+            $this->getExport()[PhelExportConfig::TARGET_DIRECTORY] ?? null,
+            self::DEFAULT_EXPORT_TARGET_DIRECTORY,
+        );
     }
 
     /**
@@ -37,10 +46,15 @@ final class InteropConfig extends AbstractConfig
      */
     public function getExportDirectories(): array
     {
-        return array_map(
-            fn(string $dir): string => $this->getAppRootDir() . '/' . $dir,
-            $this->getExport()[PhelExportConfig::FROM_DIRECTORIES] ?? self::DEFAULT_EXPORT_DIRECTORIES,
-        );
+        $fromDirectories = $this->getExport()[PhelExportConfig::FROM_DIRECTORIES] ?? self::DEFAULT_EXPORT_DIRECTORIES;
+        if (!is_array($fromDirectories)) {
+            $fromDirectories = self::DEFAULT_EXPORT_DIRECTORIES;
+        }
+
+        return array_values(array_map(
+            fn(mixed $dir): string => $this->getAppRootDir() . '/' . ScalarCoercion::toString($dir),
+            $fromDirectories,
+        ));
     }
 
     /**
@@ -48,6 +62,8 @@ final class InteropConfig extends AbstractConfig
      */
     private function getExport(): array
     {
-        return $this->get(PhelConfig::EXPORT_CONFIG, self::DEFAULT_EXPORT);
+        $export = $this->get(PhelConfig::EXPORT_CONFIG, self::DEFAULT_EXPORT);
+
+        return is_array($export) ? $export : self::DEFAULT_EXPORT;
     }
 }

@@ -7,6 +7,7 @@ namespace Phel\Watch\Infrastructure\Command;
 use Gacela\Framework\ServiceResolver\ServiceMap;
 use Gacela\Framework\ServiceResolverAwareTrait;
 use Phel;
+use Phel\Shared\ScalarCoercion;
 use Phel\Watch\WatchConfig;
 use Phel\Watch\WatchFacade;
 use Phel\Watch\WatchFactory;
@@ -94,11 +95,11 @@ final class WatchCommand extends Command
             return self::FAILURE;
         }
 
-        $backend = (string) $input->getOption(self::OPT_BACKEND);
+        $backend = ScalarCoercion::toString($input->getOption(self::OPT_BACKEND));
         $backend = $backend === WatchConfig::defaultBackend() ? null : $backend;
 
-        $poll = (int) $input->getOption(self::OPT_POLL);
-        $debounce = (int) $input->getOption(self::OPT_DEBOUNCE);
+        $poll = ScalarCoercion::toInt($input->getOption(self::OPT_POLL));
+        $debounce = ScalarCoercion::toInt($input->getOption(self::OPT_DEBOUNCE));
 
         Phel::setupRuntimeArgs('watch', []);
         $this->getFactory()->getRunFacade()->loadPhelNamespaces();

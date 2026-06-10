@@ -8,6 +8,7 @@ use Phel;
 use Phel\Build\Domain\Extractor\ExtractorException;
 use Phel\Interop\Domain\ReadModel\FunctionToExport;
 use Phel\Lang\Collections\Map\PersistentMapInterface;
+use Phel\Lang\FnInterface;
 use Phel\Lang\Keyword;
 use Phel\Shared\Exceptions\CompiledCodeIsMalformedException;
 use Phel\Shared\Exceptions\CompilerException;
@@ -84,6 +85,10 @@ final readonly class FunctionsToExportFinder implements FunctionsToExportFinderI
 
         foreach (Phel::getNamespaces() as $ns) {
             foreach (Phel::getDefinitionInNamespace($ns) as $fnName => $fn) {
+                if (!$fn instanceof FnInterface) {
+                    continue;
+                }
+
                 $meta = $this->definitionMeta($ns, $fnName);
                 if ($this->isExport($meta)) {
                     $functionsToExport[$ns] ??= [];

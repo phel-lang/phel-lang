@@ -6,6 +6,7 @@ namespace Phel\Config;
 
 use Deprecated;
 use JsonSerializable;
+use Phel\Shared\ScalarCoercion;
 
 use function count;
 use function sprintf;
@@ -48,9 +49,9 @@ final readonly class PhelBuildConfig implements JsonSerializable
     public static function fromArray(array $array): self
     {
         return new self(
-            mainPhelNamespace: (string) ($array[self::MAIN_PHEL_NAMESPACE] ?? ''),
-            mainPhpPath: (string) ($array[self::MAIN_PHP_PATH] ?? ''),
-            destDir: (string) ($array[self::DEST_DIR] ?? ''),
+            mainPhelNamespace: ScalarCoercion::toString($array[self::MAIN_PHEL_NAMESPACE] ?? null),
+            mainPhpPath: ScalarCoercion::toString($array[self::MAIN_PHP_PATH] ?? null),
+            destDir: ScalarCoercion::toString($array[self::DEST_DIR] ?? null),
         );
     }
 
