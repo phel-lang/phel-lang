@@ -426,6 +426,15 @@ final class PhelConfigTest extends TestCase
         self::assertSame('.phel/cache', new PhelConfig()->getCacheDir());
     }
 
+    public function test_cache_dir_trailing_separator_normalized_in_constructor(): void
+    {
+        $viaConstructor = new PhelConfig(cacheDir: 'custom/cache/');
+        $viaWither = new PhelConfig()->withCacheDir('custom/cache/');
+
+        self::assertSame('custom/cache', $viaConstructor->getCacheDir());
+        self::assertSame('custom/cache', $viaWither->getCacheDir());
+    }
+
     #[Group('deprecated')]
     public function test_deprecated_setters_still_produce_equivalent_output(): void
     {

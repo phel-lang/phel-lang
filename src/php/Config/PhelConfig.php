@@ -54,6 +54,8 @@ final readonly class PhelConfig implements JsonSerializable
 
     public string $tempDir;
 
+    public string $cacheDir;
+
     /**
      * @param list<string> $srcDirs
      * @param list<string> $testDirs
@@ -72,7 +74,7 @@ final readonly class PhelConfig implements JsonSerializable
         public array $noCacheWhenBuilding = [],
         public bool $keepGeneratedTempFiles = false,
         ?string $tempDir = null,
-        public string $cacheDir = self::DEFAULT_CACHE_DIR,
+        string $cacheDir = self::DEFAULT_CACHE_DIR,
         public array $formatDirs = ['src', 'tests'],
         public bool $enableAsserts = true,
         public bool $warnDeprecations = false,
@@ -84,6 +86,7 @@ final readonly class PhelConfig implements JsonSerializable
         $this->tempDir = $tempDir === null
             ? sys_get_temp_dir() . self::PHEL_TEMP_SUBDIR . '/tmp'
             : rtrim($tempDir, DIRECTORY_SEPARATOR);
+        $this->cacheDir = rtrim($cacheDir, DIRECTORY_SEPARATOR);
     }
 
     /**
@@ -463,7 +466,8 @@ final readonly class PhelConfig implements JsonSerializable
      */
     public function withCacheDir(string $dir): self
     {
-        return $this->with(['cacheDir' => rtrim($dir, DIRECTORY_SEPARATOR)]);
+        // Trailing separators are normalized by the constructor.
+        return $this->with(['cacheDir' => $dir]);
     }
 
     /**

@@ -17,6 +17,7 @@ All notable changes to this project will be documented in this file.
 
 ### Fixed
 
+- `PhelConfig` `cacheDir` is now normalized in the constructor (trailing separator stripped), so `new PhelConfig(cacheDir: 'foo/')` and `->withCacheDir('foo/')` produce the same value instead of diverging
 - `PhelConfig` build withers are now order-independent: `withMainPhelNamespace(...)` no longer pins the entry point to `out/index.php`, so a following `withBuildDestDir('dist')` correctly yields `dist/index.php` (previously the entry point silently landed outside the dest dir depending on call order)
 - Runtime errors in `phel build` output now map back to the Phel source: the error printer reads the sibling `<file>.php.map` and `<file>.phel` artifacts (previously written but never consumed) and reports `out/foo.phel:42` instead of the generated PHP line
 - Inline source maps in eval temp files are detected again: the extractor now scans past the `<?php` opener (and optional `declare` statements) for the metadata comments instead of only reading the first two lines
