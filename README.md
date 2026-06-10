@@ -7,7 +7,7 @@
     <img src="https://github.com/phel-lang/phel-lang/workflows/CI/badge.svg" alt="GitHub Build Status">
   </a>
   <a href="https://github.com/phel-lang/phel-lang/blob/main/phpstan.neon">
-    <img src="https://img.shields.io/badge/PHPStan-level%206-brightgreen" alt="PHPStan level 6">
+    <img src="https://img.shields.io/badge/PHPStan-level%209-brightgreen" alt="PHPStan level 9">
   </a>
   <a href="https://github.com/phel-lang/phel-lang/blob/main/psalm.xml">
     <img src="https://img.shields.io/badge/Psalm-level%201-brightgreen" alt="Psalm level 1">
