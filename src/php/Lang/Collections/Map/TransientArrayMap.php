@@ -108,7 +108,7 @@ final class TransientArrayMap implements TransientMapInterface
 
     public function count(): int
     {
-        return (int) (count($this->array) / 2);
+        return intdiv(count($this->array), 2);
     }
 
     /**

@@ -41,7 +41,7 @@ interface PersistentMapInterface extends TypeInterface, Countable, IteratorAggre
     /**
      * @param K $key
      *
-     * @return V
+     * @return V|null Value for $key, or null when the key is absent
      */
     public function find(mixed $key);
 

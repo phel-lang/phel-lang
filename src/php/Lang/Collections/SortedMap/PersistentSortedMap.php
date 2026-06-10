@@ -144,7 +144,7 @@ final class PersistentSortedMap extends AbstractPersistentMap
 
     public function count(): int
     {
-        return (int) (count($this->array) / 2);
+        return intdiv(count($this->array), 2);
     }
 
     public function getIterator(): Traversable

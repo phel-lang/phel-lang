@@ -104,7 +104,7 @@ final class PersistentVector extends AbstractPersistentVector
      */
     public function count(): int
     {
-        return $this->count;
+        return max(0, $this->count);
     }
 
     /**
