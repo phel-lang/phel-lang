@@ -25,6 +25,7 @@ final readonly class EvalExecutor
         private ColorStyleInterface $style,
         private PrinterInterface $printer,
         private CompilerFacadeInterface $compilerFacade,
+        private int $optimizationLevel = CompileOptions::DEFAULT_OPTIMIZATION_LEVEL,
     ) {}
 
     public function execute(string $input): bool
@@ -39,7 +40,9 @@ final readonly class EvalExecutor
             return false;
         }
 
-        $options = new CompileOptions()->setStartingLine(1);
+        $options = new CompileOptions()
+            ->setStartingLine(1)
+            ->setOptimizationLevel($this->optimizationLevel);
 
         try {
             $result = $this->compilerFacade->eval($input, $options);

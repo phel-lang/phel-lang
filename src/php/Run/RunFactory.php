@@ -189,6 +189,7 @@ class RunFactory extends AbstractFactory
             $this->createColorStyle(),
             $this->createPrinter(),
             $this->getCompilerFacade(),
+            $this->getConfig()->getOptimizationLevel(),
         );
     }
 
@@ -196,6 +197,7 @@ class RunFactory extends AbstractFactory
     {
         return new CompileExecutor(
             $this->getCompilerFacade(),
+            $this->getConfig()->getOptimizationLevel(),
         );
     }
 

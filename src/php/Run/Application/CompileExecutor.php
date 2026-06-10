@@ -20,6 +20,7 @@ final readonly class CompileExecutor
 {
     public function __construct(
         private CompilerFacadeInterface $compilerFacade,
+        private int $optimizationLevel = CompileOptions::DEFAULT_OPTIMIZATION_LEVEL,
     ) {}
 
     /**
@@ -40,7 +41,9 @@ final readonly class CompileExecutor
         }
 
         try {
-            $options = new CompileOptions()->setEmitOnly(true);
+            $options = new CompileOptions()
+                ->setEmitOnly(true)
+                ->setOptimizationLevel($this->optimizationLevel);
             $result = $this->compilerFacade->compile($source, $options);
             $stdout($result->getPhpCode());
             return true;

@@ -6,5 +6,8 @@ namespace Phel\Build\Domain\Compile;
 
 interface FileCompilerInterface
 {
-    public function compileFile(string $src, string $dest, bool $enableSourceMaps): CompiledFile;
+    /**
+     * @param int|null $optimizationLevel `null` falls back to the implementation's configured default
+     */
+    public function compileFile(string $src, string $dest, bool $enableSourceMaps, ?int $optimizationLevel = null): CompiledFile;
 }

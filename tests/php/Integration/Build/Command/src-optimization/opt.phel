@@ -1,0 +1,8 @@
+(ns opt-ns.opt)
+
+(defn ^:pure add2 [a b] (+ a b))
+
+(defn countdown [n]
+  (if (<= n 0) n (countdown (- n 1))))
+
+(def result (add2 1 2))

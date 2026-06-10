@@ -4,6 +4,11 @@ All notable changes to this project will be documented in this file.
 
 ## Unreleased
 
+### Added
+
+- `PhelConfig::withOptimizationLevel(int)` (`optimization-level` config key, default 0): `phel build`, `phel run`, `phel test`, `phel eval`, and `phel compile` now compile at the configured level, making level 2 (`^:pure` call-site inlining + self-recursive tail-call rewriting) reachable for real projects; REPL and nREPL stay at level 0 (#2387)
+- `phel build -O <level>` (`--optimization-level`) CLI override taking precedence over the configured level; changing the level automatically invalidates both the incremental `phel build` output and the compiled-code cache
+
 ### Fixed
 
 - Runtime errors in `phel build` output now map back to the Phel source: the error printer reads the sibling `<file>.php.map` and `<file>.phel` artifacts (previously written but never consumed) and reports `out/foo.phel:42` instead of the generated PHP line

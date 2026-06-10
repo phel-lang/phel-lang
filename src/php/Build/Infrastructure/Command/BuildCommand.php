@@ -30,12 +30,20 @@ final class BuildCommand extends Command
 
     private const string OPTION_SOURCE_MAP = 'source-map';
 
+    private const string OPTION_OPTIMIZATION_LEVEL = 'optimization-level';
+
     protected function configure(): void
     {
         $this->setName('build')
             ->setDescription('Build the current project')
             ->addOption(self::OPTION_CACHE, null, InputOption::VALUE_NEGATABLE, 'Enable cache', true)
-            ->addOption(self::OPTION_SOURCE_MAP, null, InputOption::VALUE_NEGATABLE, 'Enable source maps', true);
+            ->addOption(self::OPTION_SOURCE_MAP, null, InputOption::VALUE_NEGATABLE, 'Enable source maps', true)
+            ->addOption(
+                self::OPTION_OPTIMIZATION_LEVEL,
+                'O',
+                InputOption::VALUE_REQUIRED,
+                'Override the configured optimization level (0 = off, 2 = inline + tail-call rewrite)',
+            );
     }
 
     protected function execute(InputInterface $input, OutputInterface $output): int
@@ -58,9 +66,12 @@ final class BuildCommand extends Command
 
     private function getBuildOptions(InputInterface $input): BuildOptions
     {
+        $rawLevel = $input->getOption(self::OPTION_OPTIMIZATION_LEVEL);
+
         return new BuildOptions(
             $input->getOption(self::OPTION_CACHE) === true,
             $input->getOption(self::OPTION_SOURCE_MAP) === true,
+            $rawLevel === null ? null : max(0, (int) $rawLevel),
         );
     }
 
