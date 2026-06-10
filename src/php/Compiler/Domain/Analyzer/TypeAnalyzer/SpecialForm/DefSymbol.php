@@ -81,6 +81,7 @@ final readonly class DefSymbol implements SpecialFormAnalyzerInterface
             $init = $rewriter->injectImplicitParams($init);
         }
 
+        /** @var bool|float|int|string|TypeInterface|null $init */
         $init = $rewriter->injectReturnTypeFromMeta($init, $metaMap);
 
         $initNode = $this->analyzeInit($init, $env, $namespace, $nameSymbol, $metaMap);
@@ -185,7 +186,8 @@ final readonly class DefSymbol implements SpecialFormAnalyzerInterface
         // `^:dynamic`, `^:private`, etc. attach to the name symbol
         // (`(def ^:dynamic *x* 1)`). Merge those flags into the def's
         // metadata map so runtime code can read them off the var.
-        $nameMeta = $list->get(1)->getMeta();
+        $nameForm = $list->get(1);
+        $nameMeta = $nameForm instanceof Symbol ? $nameForm->getMeta() : null;
         if ($nameMeta instanceof PersistentMapInterface) {
             foreach ($nameMeta->getIterator() as $key => $value) {
                 if ($key !== null) {

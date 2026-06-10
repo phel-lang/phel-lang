@@ -50,6 +50,7 @@ final class VectorBindingDeconstructor implements BindingDeconstructorInterface
         $bindings[] = [$arrSymbol, $value];
         $this->currentListSymbol = $arrSymbol;
 
+        /** @var PersistentVectorInterface<mixed> $binding */
         foreach ($binding as $current) {
             switch ($this->currentState) {
                 case self::STATE_START:

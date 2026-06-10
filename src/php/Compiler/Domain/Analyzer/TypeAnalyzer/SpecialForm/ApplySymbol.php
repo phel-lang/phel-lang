@@ -34,6 +34,7 @@ final class ApplySymbol implements SpecialFormAnalyzerInterface
 
         /** @var PersistentListInterface<mixed> $data */
         $data = $list->rest();
+        /** @var bool|float|int|string|TypeInterface|null $fnExpr */
         $fnExpr = $data->first();
         /** @var PersistentListInterface<mixed> $args */
         $args = $data->rest();
@@ -67,6 +68,7 @@ final class ApplySymbol implements SpecialFormAnalyzerInterface
         $args = [];
 
         foreach ($argsList as $element) {
+            /** @var bool|float|int|string|TypeInterface|null $element */
             $args[] = $this->fnExpr($element, $env);
         }
 

@@ -35,8 +35,9 @@ final class RecurSymbol implements SpecialFormAnalyzerInterface
 
         if (!$currentFrame instanceof RecurFrame) {
             $msg = "Can't call 'recur here. See more: https://phel-lang.org/blog/loop-and-recur";
-            /** @psalm-suppress PossiblyNullArgument */
-            throw AnalyzerException::withLocation($msg, $list->get(0));
+            /** @var Symbol $recurSymbol */
+            $recurSymbol = $list->get(0);
+            throw AnalyzerException::withLocation($msg, $recurSymbol);
         }
 
         if (count($list) - 1 !== count($currentFrame->getParams())) {

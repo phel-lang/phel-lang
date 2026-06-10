@@ -72,7 +72,7 @@ final class TrySymbol implements SpecialFormAnalyzerInterface
             $form = $forms->first();
 
             if ($this->isCatchForm($form)) {
-                /** @psalm-suppress PossiblyNullArgument -- $form is mixed from first(); null is valid here */
+                /** @var PersistentListInterface<mixed> $form */
                 $state = $this->handleCatchForm($state, $form, $catches, $list);
             } elseif ($this->isFinallyForm($form)) {
                 $state = $this->handleFinallyForm($state, $form, $finally, $list);
@@ -129,6 +129,7 @@ final class TrySymbol implements SpecialFormAnalyzerInterface
             throw AnalyzerException::withLocation("Unexpected form after 'finally", $list);
         }
 
+        /** @var PersistentListInterface<mixed> $form */
         $finally = $form;
         return self::STATE_DONE;
     }
@@ -205,6 +206,8 @@ final class TrySymbol implements SpecialFormAnalyzerInterface
         $name = $catch->get(2);
 
         $this->validateCatchArguments($type, $name, $catch);
+        /** @var Symbol $type */
+        /** @var Symbol $name */
 
         $resolvedType = $this->resolveCatchType($type, $env, $catch);
         $catchBody = $this->analyzeCatchBody($catch, $name, $env, $catchContext);
