@@ -72,6 +72,7 @@ Creates `phel-config.php`, `src/phel/main.phel`, `tests/phel/main_test.phel`. Th
 ./vendor/bin/phel run src/phel/main.phel   # run
 ./vendor/bin/phel test                     # tests
 ./vendor/bin/phel build                    # compile to PHP
+./vendor/bin/phel config                   # inspect the merged config
 ```
 
 **3. Eval inline or via stdin**

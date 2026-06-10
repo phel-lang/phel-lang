@@ -4,31 +4,28 @@ All notable changes to this project will be documented in this file.
 
 ## Unreleased
 
-This cycle includes a **project-configuration DX pass**: a new `phel config`
-command to inspect the effective merged configuration, a full
-[configuration reference](docs/configuration.md) (options, caching, precedence,
-`phel-config-local.php`), documented `with*()` semantics, composable
-`withBuildConfig()`/`withExportConfig()` closures, a self-documenting `phel init`
-template, and fixes for order-dependent build withers and `cacheDir`
-normalization.
+Project-configuration DX pass: a `phel config` command to inspect the merged
+configuration, a full [configuration reference](docs/configuration.md),
+documented and composable `with*()` semantics, a self-documenting `phel init`
+template, and several build/cache fixes.
 
 ### Added
 
-- `PhelConfig::withOptimizationLevel(int)` (`optimization-level` config key, default 0): `phel build`, `phel run`, `phel test`, `phel eval`, and `phel compile` now compile at the configured level, making level 2 (`^:pure` call-site inlining + self-recursive tail-call rewriting) reachable for real projects; REPL and nREPL stay at level 0 (#2387)
-- `phel build -O <level>` (`--optimization-level`) CLI override taking precedence over the configured level; changing the level automatically invalidates both the incremental `phel build` output and the compiled-code cache
-- `phel config`: new CLI command that prints the effective, merged project configuration (as JSON) together with its provenance — whether `phel-config.php` was found or auto-detected, whether `phel-config-local.php` was applied, and the `PHEL_DIR` env value. Use `phel config --json` for machine-readable output
-- `PhelConfig::withBuildConfig()` and `withExportConfig()` now also accept a configurator closure (`fn (PhelBuildConfig $b) => $b->withDestDir('dist')`) that patches the current nested config in place, instead of only a full replacement object — so they compose with the flattened `with*()` setters regardless of call order
+- `PhelConfig::withOptimizationLevel(int)` (`optimization-level`, default 0): `phel build`/`run`/`test`/`eval`/`compile` compile at the configured level, making level 2 (`^:pure` call-site inlining + self-recursive tail-call rewriting) usable in real projects; REPL/nREPL stay at level 0 (#2387)
+- `phel build -O <level>` (`--optimization-level`): override that takes precedence over the configured level and invalidates the incremental build and compiled-code caches
+- `phel config`: prints the effective merged config as JSON with its provenance (config file found or auto-detected, `phel-config-local.php` applied, `PHEL_DIR`); `--json` for machine-readable output
+- `PhelConfig::withBuildConfig()`/`withExportConfig()` also accept a configurator closure (`fn (PhelBuildConfig $b) => $b->withDestDir('dist')`) that patches the nested config in place, so they compose with the flattened setters regardless of call order
 
 ### Changed
 
-- `phel init` now scaffolds a `phel-config.php` with a comment header linking to the configuration docs and a few commented-out common tweaks, so newcomers can discover the available options
+- `phel init` scaffolds a `phel-config.php` with a docs link and commented-out common tweaks
 
 ### Fixed
 
-- `PhelConfig` `cacheDir` is now normalized in the constructor (trailing separator stripped), so `new PhelConfig(cacheDir: 'foo/')` and `->withCacheDir('foo/')` produce the same value instead of diverging
-- `PhelConfig` build withers are now order-independent: `withMainPhelNamespace(...)` no longer pins the entry point to `out/index.php`, so a following `withBuildDestDir('dist')` correctly yields `dist/index.php` (previously the entry point silently landed outside the dest dir depending on call order)
-- Runtime errors in `phel build` output now map back to the Phel source: the error printer reads the sibling `<file>.php.map` and `<file>.phel` artifacts (previously written but never consumed) and reports `out/foo.phel:42` instead of the generated PHP line
-- Inline source maps in eval temp files are detected again: the extractor now scans past the `<?php` opener (and optional `declare` statements) for the metadata comments instead of only reading the first two lines
+- `PhelConfig` `cacheDir` is normalized in the constructor (trailing separator stripped), so `new PhelConfig(cacheDir: 'foo/')` and `->withCacheDir('foo/')` agree
+- `PhelConfig` build withers are order-independent: `withMainPhelNamespace(...)` no longer pins the entry point, so a later `withBuildDestDir('dist')` yields `dist/index.php`
+- `phel build` runtime errors map back to Phel source: the error printer reads the sibling `.php.map`/`.phel` artifacts and reports `out/foo.phel:42` instead of the generated PHP line
+- Inline source maps in eval temp files are detected again: the extractor scans past `<?php` and `declare` statements instead of only the first two lines
 
 ## [0.43.0](https://github.com/phel-lang/phel-lang/compare/v0.42.0...v0.43.0) - 2026-06-09
 
