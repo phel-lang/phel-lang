@@ -216,7 +216,7 @@ final readonly class InvokeSymbol implements SpecialFormAnalyzerInterface
 
         $arityFn = $meta[Keyword::create('inline-arity')];
 
-        if (!$arityFn) {
+        if (!is_callable($arityFn)) {
             return true;
         }
 
@@ -367,6 +367,7 @@ final readonly class InvokeSymbol implements SpecialFormAnalyzerInterface
     {
         $result = [];
         foreach ($list->getIterator() as $item) {
+            /** @var array<mixed>|bool|float|int|string|TypeInterface|null $item */
             $result[] = $this->enrichLocation($item, $parent);
         }
 
@@ -421,7 +422,7 @@ final readonly class InvokeSymbol implements SpecialFormAnalyzerInterface
 
         $minArity = $data->find('min-arity');
 
-        if ($minArity === null) {
+        if (!is_int($minArity)) {
             return;
         }
 
@@ -429,7 +430,8 @@ final readonly class InvokeSymbol implements SpecialFormAnalyzerInterface
         $rest = $list->rest();
         $gotCount = count($rest);
         $isVariadic = (bool) $data->find('is-variadic');
-        $maxArity = $data->find('max-arity');
+        $maxArityValue = $data->find('max-arity');
+        $maxArity = is_int($maxArityValue) ? $maxArityValue : null;
 
         if ($gotCount < $minArity) {
             throw AnalyzerException::notEnoughArgsProvided($f, $list, $minArity, $isVariadic, $maxArity);

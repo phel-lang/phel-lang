@@ -74,7 +74,7 @@ final readonly class LiteralEmitter
         } elseif (is_array($x)) {
             $this->emitArray($x);
         } else {
-            $typeName = $x::class;
+            $typeName = get_debug_type($x);
 
             throw new RuntimeException('literal not supported: ' . $typeName);
         }

@@ -14,6 +14,7 @@ final class AtomReader
      */
     public function read(AbstractAtomNode $node): float|bool|int|string|TypeInterface|null
     {
+        /** @var bool|float|int|string|TypeInterface|null $value */
         $value = $node->getValue();
 
         if ($value instanceof TypeInterface) {

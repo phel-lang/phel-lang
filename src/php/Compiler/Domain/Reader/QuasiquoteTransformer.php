@@ -54,8 +54,12 @@ final readonly class QuasiquoteTransformer implements QuasiquoteTransformerInter
     private function doTransform(TypeInterface|string|float|int|bool|null $form, GensymContext $context): TypeInterface|string|float|int|bool|null
     {
         if ($this->isUnquote($form)) {
-            /** @var PersistentList<mixed> $form */
-            return $form->get(1);
+            /** @var PersistentList<mixed> $unquoteForm */
+            $unquoteForm = $form;
+            /** @var bool|float|int|string|TypeInterface|null $unquoted */
+            $unquoted = $unquoteForm->get(1);
+
+            return $unquoted;
         }
 
         if ($this->isUnquoteSplicing($form)) {
@@ -163,12 +167,15 @@ final readonly class QuasiquoteTransformer implements QuasiquoteTransformerInter
     {
         $xs = [];
         foreach ($seq as $item) {
+            /** @var bool|float|int|string|TypeInterface|null $item */
             if ($this->isUnquote($item)) {
+                /** @var PersistentListInterface<mixed> $item */
                 $xs[] = Phel::list([
                     (Symbol::create(Symbol::NAME_LIST))->copyLocationFrom($item),
                     $item->get(1),
                 ])->copyLocationFrom($item);
             } elseif ($this->isUnquoteSplicing($item)) {
+                /** @var PersistentListInterface<mixed> $item */
                 $xs[] = $item->get(1);
             } else {
                 $xs[] = Phel::list([

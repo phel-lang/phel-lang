@@ -81,6 +81,7 @@ final class MapBindingDeconstructor implements BindingDeconstructorInterface
         if ($orMap instanceof PersistentMapInterface) {
             foreach ($orMap as $sym => $default) {
                 if ($sym instanceof Symbol) {
+                    /** @var bool|float|int|string|TypeInterface|null $default */
                     $this->orDefaults[$sym->getName()] = $default;
                 }
             }
@@ -122,6 +123,8 @@ final class MapBindingDeconstructor implements BindingDeconstructorInterface
         }
 
         foreach ($normalBindings as [$key, $bindTo]) {
+            /** @var bool|float|int|string|TypeInterface|null $key */
+            /** @var bool|float|int|string|TypeInterface|null $bindTo */
             $this->bindingIteration($bindings, $binding, $key, $bindTo);
         }
     }

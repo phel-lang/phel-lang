@@ -13,6 +13,7 @@ use Phel\Compiler\Domain\Analyzer\TypeAnalyzer\SpecialForm\Binding\Deconstructor
 use Phel\Lang\Collections\Map\PersistentMapInterface;
 use Phel\Lang\Collections\Vector\PersistentVectorInterface;
 use Phel\Lang\Symbol;
+use Phel\Lang\TypeInterface;
 
 use function count;
 
@@ -49,6 +50,7 @@ final readonly class Deconstructor implements DeconstructorInterface
     ): void {
         $this->bindingValidator->assertSupportedBinding($binding);
 
+        /** @var bool|float|int|string|TypeInterface|null $value */
         $this->createDeconstructorForBinding($binding)
             ->deconstruct($bindings, $binding, $value);
     }

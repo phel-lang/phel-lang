@@ -25,6 +25,7 @@ final readonly class QuoasiquoteReader
      */
     public function read(QuoteNode $node, NodeInterface $root): float|bool|int|string|TypeInterface|null
     {
+        /** @var bool|float|int|string|TypeInterface|null $expression */
         $expression = $this->reader->readExpression($node->getExpression(), $root);
         $result = $this->quasiquoteTransformer->transform($expression);
 
