@@ -20,6 +20,8 @@ use RegexIterator;
 use SplFileInfo;
 use UnexpectedValueException;
 
+use function is_array;
+
 final class CachedNamespaceExtractor implements NamespaceExtractorInterface
 {
     private readonly NamespaceFileGrouper $grouper;
@@ -142,6 +144,11 @@ final class CachedNamespaceExtractor implements NamespaceExtractorInterface
 
             try {
                 foreach ($this->phelFileIterator($realpath) as $file) {
+                    if (!is_array($file)) {
+                        continue;
+                    }
+
+                    /** @var array<int, string> $file */
                     if ($this->excludedPaths->contains($file[0], $realpath)) {
                         continue;
                     }
@@ -157,13 +164,17 @@ final class CachedNamespaceExtractor implements NamespaceExtractorInterface
             }
         }
 
-        return array_unique($files);
+        return array_values(array_unique($files));
     }
 
     /**
      * Build the recursive iterator that yields `.phel`/`.cljc` files under
      * `$root`, pruning subtrees flagged by `ExcludedScanPaths` at descent
      * time so vendor/.git/node_modules never get walked.
+     *
+     * `RegexIterator::GET_MATCH` yields each path as a `preg_match` result
+     * array, so the offset-0 capture holds the matched filename (narrowed at
+     * the call site since `RegexIterator`'s generic cannot express it).
      *
      * @return Iterator<mixed, mixed>
      */

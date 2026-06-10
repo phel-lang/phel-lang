@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace Phel\Run\Domain\Repl;
 
+use Phel\Shared\ScalarCoercion;
+
 use function is_bool;
 use function is_null;
 use function is_string;
@@ -63,6 +65,6 @@ final readonly class InputResult
             return 'nil';
         }
 
-        return (string) $this->lastResult;
+        return ScalarCoercion::toString($this->lastResult);
     }
 }

@@ -16,6 +16,7 @@ use Symfony\Component\Console\Output\OutputInterface;
 
 use function implode;
 use function is_file;
+use function is_string;
 use function sprintf;
 
 final class AgentInstallCommand extends Command
@@ -224,7 +225,7 @@ HELP)
         }
 
         $platform = $input->getArgument(self::ARG_PLATFORM);
-        if ($platform === null) {
+        if (!is_string($platform)) {
             $detected = $this->detectAgents();
             if ($detected !== []) {
                 $output->writeln(sprintf('Detected installed agents: <info>%s</info>', implode(', ', $detected)));

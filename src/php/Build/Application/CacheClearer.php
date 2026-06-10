@@ -6,6 +6,7 @@ namespace Phel\Build\Application;
 
 use RecursiveDirectoryIterator;
 use RecursiveIteratorIterator;
+use SplFileInfo;
 
 use function is_dir;
 
@@ -46,6 +47,10 @@ final readonly class CacheClearer
         );
 
         foreach ($iterator as $file) {
+            if (!$file instanceof SplFileInfo) {
+                continue;
+            }
+
             if ($file->isDir()) {
                 @rmdir($file->getPathname());
             } else {

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Phel\Run\Infrastructure\Command;
 
+use ArrayAccess;
 use Gacela\Framework\ServiceResolver\ServiceMap;
 use Gacela\Framework\ServiceResolverAwareTrait;
 use Phel\Run\Domain\Test\TestCommandOptions;
@@ -13,6 +14,7 @@ use Phel\Shared\CompileOptions;
 use Phel\Shared\Exceptions\CompilerException;
 use Phel\Shared\NamespaceInformation;
 use Phel\Shared\ResourceUsageFormatter;
+use Phel\Shared\ScalarCoercion;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
@@ -21,6 +23,7 @@ use Symfony\Component\Console\Output\OutputInterface;
 use Throwable;
 
 use function count;
+use function is_array;
 use function sprintf;
 
 /**
@@ -214,8 +217,14 @@ final class TestCommand extends Command
                 return self::FAILURE;
             }
 
-            $successful = (bool) $result[0];
-            $total = (int) $result[1];
+            // `eval` returns the value of the generated test form, a Phel
+            // vector `[successful? total]` (ArrayAccess), or a plain array.
+            $successful = false;
+            $total = 0;
+            if (is_array($result) || $result instanceof ArrayAccess) {
+                $successful = (bool) ($result[0] ?? false);
+                $total = ScalarCoercion::toInt($result[1] ?? null);
+            }
 
             if ($this->isNoMatchWithSelectors($total, $options)) {
                 $output->writeln('<error>No tests matched the given selectors.</error>');

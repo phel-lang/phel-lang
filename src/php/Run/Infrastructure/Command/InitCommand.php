@@ -7,6 +7,7 @@ namespace Phel\Run\Infrastructure\Command;
 use Phel\Config\ProjectLayout;
 use Phel\Run\Domain\Init\NamespaceNormalizer;
 use Phel\Run\Domain\Init\ProjectTemplateGenerator;
+use Phel\Shared\ScalarCoercion;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
@@ -90,7 +91,7 @@ final class InitCommand extends Command
 
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
-        $projectName = (string) $input->getArgument(self::ARG_PROJECT_NAME);
+        $projectName = ScalarCoercion::toString($input->getArgument(self::ARG_PROJECT_NAME));
         $layout = $this->resolveLayout($input);
         $force = (bool) $input->getOption(self::OPT_FORCE);
         $dryRun = (bool) $input->getOption(self::OPT_DRY_RUN);

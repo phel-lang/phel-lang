@@ -138,14 +138,23 @@ final class PhpNamespaceCache implements NamespaceCacheInterface
             return [];
         }
 
+        $rawEntries = $data['entries'] ?? [];
+        if (!is_array($rawEntries)) {
+            return [];
+        }
+
         $entries = [];
-        foreach ($data['entries'] ?? [] as $file => $entryData) {
+        foreach ($rawEntries as $file => $entryData) {
+            if (!is_string($file)) {
+                continue;
+            }
+
             // Drop entries whose path now lives under an always-excluded
             // segment (vendor/, worktrees/, .agents/, ...). Without this,
             // pre-existing cache entries resurface as primary definitions
             // and trigger duplicate-namespace warnings against real sources
             // every time the exclusion policy gains a new prefix.
-            if (is_string($file) && ExcludedScanPaths::isAlwaysExcluded($file)) {
+            if (ExcludedScanPaths::isAlwaysExcluded($file)) {
                 $this->dirty = true;
                 continue;
             }

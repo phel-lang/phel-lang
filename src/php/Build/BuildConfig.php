@@ -9,6 +9,7 @@ use Phel\Config\PhelBuildConfig;
 use Phel\Config\PhelConfig;
 use Phel\Shared\CompileOptions;
 use Phel\Shared\PhelProjectDirectory;
+use Phel\Shared\ScalarCoercion;
 
 use function is_string;
 
@@ -19,7 +20,7 @@ final class BuildConfig extends AbstractConfig implements BuildConfigInterface
      */
     public function getPathsToIgnore(): array
     {
-        return $this->get(PhelConfig::IGNORE_WHEN_BUILDING, []);
+        return ScalarCoercion::toStringList($this->get(PhelConfig::IGNORE_WHEN_BUILDING, []));
     }
 
     /**
@@ -27,7 +28,7 @@ final class BuildConfig extends AbstractConfig implements BuildConfigInterface
      */
     public function getPathsToAvoidCache(): array
     {
-        return $this->get(PhelConfig::NO_CACHE_WHEN_BUILDING, []);
+        return ScalarCoercion::toStringList($this->get(PhelConfig::NO_CACHE_WHEN_BUILDING, []));
     }
 
     public function shouldCreateEntryPointPhpFile(): bool
@@ -37,7 +38,9 @@ final class BuildConfig extends AbstractConfig implements BuildConfigInterface
 
     public function getPhelBuildConfig(): PhelBuildConfig
     {
-        $config = PhelBuildConfig::fromArray((array) $this->get('out', []));
+        /** @var array<string, mixed> $out */
+        $out = (array) $this->get('out', []);
+        $config = PhelBuildConfig::fromArray($out);
 
         // Auto-detect namespace from core.phel if not explicitly configured
         if ($config->getMainPhelNamespace() === '') {
@@ -52,7 +55,7 @@ final class BuildConfig extends AbstractConfig implements BuildConfigInterface
 
     public function getOptimizationLevel(): int
     {
-        return max(0, (int) $this->get(PhelConfig::OPTIMIZATION_LEVEL, CompileOptions::DEFAULT_OPTIMIZATION_LEVEL));
+        return max(0, ScalarCoercion::toInt($this->get(PhelConfig::OPTIMIZATION_LEVEL, CompileOptions::DEFAULT_OPTIMIZATION_LEVEL)));
     }
 
     public function isNamespaceCacheEnabled(): bool
@@ -67,7 +70,7 @@ final class BuildConfig extends AbstractConfig implements BuildConfigInterface
 
     public function getTempDir(): string
     {
-        return (string) $this->get(PhelConfig::TEMP_DIR, sys_get_temp_dir() . '/phel');
+        return ScalarCoercion::toString($this->get(PhelConfig::TEMP_DIR, sys_get_temp_dir() . '/phel'));
     }
 
     public function getCacheDir(): string
@@ -77,8 +80,8 @@ final class BuildConfig extends AbstractConfig implements BuildConfigInterface
             return $envOverride;
         }
 
-        $cacheDir = (string) $this->get(PhelConfig::CACHE_DIR, '.phel/cache');
-        $phelDir = (string) $this->get(PhelConfig::PHEL_DIR, '');
+        $cacheDir = ScalarCoercion::toString($this->get(PhelConfig::CACHE_DIR, '.phel/cache'));
+        $phelDir = ScalarCoercion::toString($this->get(PhelConfig::PHEL_DIR, ''));
 
         return PhelProjectDirectory::resolve($this->getAppRootDir(), $cacheDir, $phelDir);
     }

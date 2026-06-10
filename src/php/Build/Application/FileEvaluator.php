@@ -11,6 +11,7 @@ use Phel\Build\Domain\Compile\CompiledFile;
 use Phel\Build\Domain\Extractor\FirstFormExtractor;
 use Phel\Build\Domain\Extractor\NamespaceExtractorInterface;
 use Phel\Compiler\Domain\Analyzer\Environment\NodeEnvironment;
+use Phel\Lang\TypeInterface;
 use Phel\Shared\CompileOptions;
 use Phel\Shared\Facade\CompilerFacadeInterface;
 use Phel\Shared\Parser\Node\NodeInterface;
@@ -76,6 +77,7 @@ final class FileEvaluator
                         $envData = $this->compiledCodeCache->getEnvironment($namespace);
 
                         if ($envData !== null) {
+                            /** @var array{refers: array<string, array{ns: ?string, name: string}>, require_aliases: array<string, array{ns: ?string, name: string}>, use_aliases: array<string, array{ns: ?string, name: string}>} $envData */
                             $this->compilerFacade->restoreNamespaceEnvironmentData($namespace, $envData);
                         } else {
                             $this->analyzeNsForm($code, $src);
@@ -170,8 +172,10 @@ final class FileEvaluator
                 }
 
                 $readerResult = $this->compilerFacade->read($parseTree);
+                /** @var bool|float|int|string|TypeInterface|null $ast */
+                $ast = $readerResult->getAst();
                 $this->compilerFacade->analyze(
-                    $readerResult->getAst(),
+                    $ast,
                     NodeEnvironment::empty(),
                 );
 

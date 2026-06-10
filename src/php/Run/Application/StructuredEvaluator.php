@@ -6,6 +6,7 @@ namespace Phel\Run\Application;
 
 use Phel\Compiler\Domain\Analyzer\Environment\GlobalEnvironmentInterface;
 use Phel\Compiler\Domain\Parser\Exceptions\UnfinishedParserException;
+use Phel\Lang\Symbol;
 use Phel\Shared\CompileOptions;
 use Phel\Shared\Eval\EvalError;
 use Phel\Shared\Eval\EvalResult;
@@ -142,7 +143,14 @@ final readonly class StructuredEvaluator
     }
 
     /**
-     * @param array<string, mixed>|null $snapshot
+     * @param array{
+     *     ns: string,
+     *     definitions: array<string, array<string, bool>>,
+     *     refers: array<string, array<string, Symbol>>,
+     *     requireAliases: array<string, array<string, Symbol>>,
+     *     useAliases: array<string, array<string, Symbol>>,
+     *     interfaces: array<string, array<string, Symbol>>,
+     * }|null $snapshot
      */
     private function restoreIfNeeded(?GlobalEnvironmentInterface $env, ?array $snapshot): void
     {
