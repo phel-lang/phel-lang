@@ -4,6 +4,14 @@ All notable changes to this project will be documented in this file.
 
 ## Unreleased
 
+This cycle includes a **project-configuration DX pass**: a new `phel config`
+command to inspect the effective merged configuration, a full
+[configuration reference](docs/configuration.md) (options, caching, precedence,
+`phel-config-local.php`), documented `with*()` semantics, composable
+`withBuildConfig()`/`withExportConfig()` closures, a self-documenting `phel init`
+template, and fixes for order-dependent build withers and `cacheDir`
+normalization.
+
 ### Added
 
 - `PhelConfig::withOptimizationLevel(int)` (`optimization-level` config key, default 0): `phel build`, `phel run`, `phel test`, `phel eval`, and `phel compile` now compile at the configured level, making level 2 (`^:pure` call-site inlining + self-recursive tail-call rewriting) reachable for real projects; REPL and nREPL stay at level 0 (#2387)
