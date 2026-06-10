@@ -10,38 +10,24 @@ final class ProjectTemplateGenerator
 {
     public function generateConfig(string $namespace, ProjectLayout $layout): string
     {
-        return match ($layout) {
-            ProjectLayout::Flat => <<<PHP
+        $layoutCase = $layout->name;
+
+        return <<<PHP
 <?php
 
 use Phel\\Config\\PhelConfig;
 use Phel\\Config\\ProjectLayout;
 
-return PhelConfig::forProject(ProjectLayout::Flat)
+// See https://github.com/phel-lang/phel-lang/blob/main/docs/configuration.md
+// for every option, caching flags, and precedence. Run `phel config` to print
+// the effective configuration. A few common tweaks:
+//     ->withWarnDeprecations(true)
+//     ->withOptimizationLevel(2)
+//     ->withIgnoreWhenBuilding(['src/scratch.phel'])
+return PhelConfig::forProject(ProjectLayout::{$layoutCase})
     ->withMainPhelNamespace('{$namespace}');
 
-PHP,
-            ProjectLayout::Nested => <<<PHP
-<?php
-
-use Phel\\Config\\PhelConfig;
-use Phel\\Config\\ProjectLayout;
-
-return PhelConfig::forProject(ProjectLayout::Nested)
-    ->withMainPhelNamespace('{$namespace}');
-
-PHP,
-            ProjectLayout::Root => <<<PHP
-<?php
-
-use Phel\\Config\\PhelConfig;
-use Phel\\Config\\ProjectLayout;
-
-return PhelConfig::forProject(ProjectLayout::Root)
-    ->withMainPhelNamespace('{$namespace}');
-
-PHP,
-        };
+PHP;
     }
 
     public function generateMainFile(string $namespace): string

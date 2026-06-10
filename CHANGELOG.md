@@ -11,6 +11,10 @@ All notable changes to this project will be documented in this file.
 - `phel config`: new CLI command that prints the effective, merged project configuration (as JSON) together with its provenance — whether `phel-config.php` was found or auto-detected, whether `phel-config-local.php` was applied, and the `PHEL_DIR` env value. Use `phel config --json` for machine-readable output
 - `PhelConfig::withBuildConfig()` and `withExportConfig()` now also accept a configurator closure (`fn (PhelBuildConfig $b) => $b->withDestDir('dist')`) that patches the current nested config in place, instead of only a full replacement object — so they compose with the flattened `with*()` setters regardless of call order
 
+### Changed
+
+- `phel init` now scaffolds a `phel-config.php` with a comment header linking to the configuration docs and a few commented-out common tweaks, so newcomers can discover the available options
+
 ### Fixed
 
 - `PhelConfig` build withers are now order-independent: `withMainPhelNamespace(...)` no longer pins the entry point to `out/index.php`, so a following `withBuildDestDir('dist')` correctly yields `dist/index.php` (previously the entry point silently landed outside the dest dir depending on call order)
