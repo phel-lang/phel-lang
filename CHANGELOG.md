@@ -26,6 +26,7 @@ template, and several build/cache fixes.
 - `PhelConfig` build withers are order-independent: `withMainPhelNamespace(...)` no longer pins the entry point, so a later `withBuildDestDir('dist')` yields `dist/index.php`
 - `phel build` runtime errors map back to Phel source: the error printer reads the sibling `.php.map`/`.phel` artifacts and reports `out/foo.phel:42` instead of the generated PHP line
 - Inline source maps in eval temp files are detected again: the extractor scans past `<?php` and `declare` statements instead of only the first two lines
+- editing `phel-config.php` takes effect immediately again: Phel fingerprints the merged-config cache inputs and clears Gacela's persisted `gacela-merged-config.php` when they change, instead of replaying a stale cache (Gacela `>= 1.15` auto-warms and reloads it with no freshness check); bumps the requirement to `gacela-project/gacela: ^1.15`
 
 ## [0.43.0](https://github.com/phel-lang/phel-lang/compare/v0.42.0...v0.43.0) - 2026-06-09
 
