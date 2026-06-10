@@ -2,7 +2,7 @@
 #
 # The whole codebase is checked at `level: 6` (see phpstan.neon). The compiler
 # (lexer/parser/reader/analyzer/emitter) is the correctness-critical core, so it
-# is held to `level: 7` on top of the shared baseline. Raise the level here as the
+# is held to `level: 8` on top of the shared baseline. Raise the level here as the
 # rest of the module is hardened; once the whole tree reaches a level, fold it back
 # into phpstan.neon and drop this file.
 #
@@ -12,7 +12,7 @@ includes:
     - phpstan.neon
 
 parameters:
-    level: 7
+    level: 8
     # The shared baseline declares ignoreErrors for files outside the compiler
     # (Config, Lang, BuildFacade). Those patterns never fire in this scoped run,
     # so silence the "unmatched ignored error" report here.
