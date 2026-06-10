@@ -14,7 +14,6 @@ use RuntimeException;
 
 use Stringable;
 
-use function array_values;
 use function count;
 
 /**
@@ -29,10 +28,10 @@ final class TransientVector implements TransientVectorInterface, Stringable
     private int $tailSize;
 
     /**
-     * @param int                      $count The number of elements inside this vector
-     * @param int                      $shift The shift value
-     * @param array<int, array<mixed>> $root  The root node of this vector
-     * @param T[]                      $tail  The tail of the vector. This is an optimization
+     * @param int               $count The number of elements inside this vector
+     * @param int               $shift The shift value
+     * @param array<int, mixed> $root  The root node (holds child nodes or, at the leaf level, values)
+     * @param T[]               $tail  The tail of the vector. This is an optimization
      */
     public function __construct(
         private readonly HasherInterface $hasher,
@@ -165,10 +164,11 @@ final class TransientVector implements TransientVectorInterface, Stringable
             if ($i >= $this->tailOffset()) {
                 $this->tail[$i & self::INDEX_MASK] = $value;
             } else {
-                $root = $this->root;
-                $this->updateInPlace($this->shift, $root, $i, $value);
-                /** @var array<int, array<mixed>> $root */
-                $this->root = $root;
+                // Pass the root array directly into the by-reference parameter
+                // so it is mutated in place. Copying it into a local first
+                // (then writing back) forces a copy-on-write separation of the
+                // whole root node on every update — ~2x slower at depth.
+                $this->updateInPlace($this->shift, $this->root, $i, $value);
             }
 
             return $this;
@@ -333,9 +333,14 @@ final class TransientVector implements TransientVectorInterface, Stringable
         }
 
         $subIndex = ($i >> $level) & self::INDEX_MASK;
-        /** @var array<int, mixed> $childNode */
-        $childNode = &$node[$subIndex];
-        $this->updateInPlace($level - self::SHIFT, $childNode, $i, $value);
+        // Pass the child node array directly into the by-reference parameter so
+        // PHP binds it in place. Binding it through an explicit `&$node[...]`
+        // reference variable first marks the element IS_REF and forces a
+        // copy-on-write separation at every trie level (~2x slower on update).
+        // The element is always a child array here (level > 0); the type is
+        // not expressible without that reference cost.
+        /** @phpstan-ignore argument.type */
+        $this->updateInPlace($level - self::SHIFT, $node[$subIndex], $i, $value);
     }
 
     /**
@@ -377,7 +382,12 @@ final class TransientVector implements TransientVectorInterface, Stringable
     {
         if ($i >= 0 && $i < $this->count) {
             if ($i >= $this->tailOffset()) {
-                return array_values($this->tail);
+                // The tail is built by sequential appends, so it is already a
+                // list; copy-on-write assignment keeps this zero-copy (unlike
+                // array_values, which always allocates a fresh array).
+                /** @var list<T> $tail */
+                $tail = $this->tail;
+                return $tail;
             }
 
             /** @var array<int, mixed> $node */
