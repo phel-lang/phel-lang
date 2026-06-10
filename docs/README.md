@@ -8,6 +8,7 @@
 2. [Common Patterns](patterns.md): everyday idioms
 3. [PHP/Phel Interop](php-interop.md): call PHP from Phel and back
 4. [Project Layout](project-layout.md): the `.phel/` directory and runtime state
+5. [Configuration](configuration.md): `phel-config.php` options, caching, precedence
 
 Coming from Clojure? Read [Clojure Migration](clojure-migration.md).
 
