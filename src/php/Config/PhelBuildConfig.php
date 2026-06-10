@@ -10,6 +10,12 @@ use JsonSerializable;
 use function count;
 use function sprintf;
 
+/**
+ * Immutable build configuration nested under {@see PhelConfig} (`out` key).
+ *
+ * Canonical API: the `with*()` setters. The `set*()` methods are deprecated
+ * since 0.37 and only shim to their `with*()` counterparts.
+ */
 final readonly class PhelBuildConfig implements JsonSerializable
 {
     public const string DEST_DIR = 'dir';

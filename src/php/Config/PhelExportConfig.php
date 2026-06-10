@@ -7,6 +7,12 @@ namespace Phel\Config;
 use Deprecated;
 use JsonSerializable;
 
+/**
+ * Immutable export configuration nested under {@see PhelConfig} (`export` key).
+ *
+ * Canonical API: the `with*()` setters. The `set*()` methods are deprecated
+ * since 0.37 and only shim to their `with*()` counterparts.
+ */
 final readonly class PhelExportConfig implements JsonSerializable
 {
     public const string FROM_DIRECTORIES = 'from-directories';

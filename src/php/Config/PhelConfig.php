@@ -7,6 +7,23 @@ namespace Phel\Config;
 use Deprecated;
 use JsonSerializable;
 
+/**
+ * Immutable project configuration returned by `phel-config.php`.
+ *
+ * Canonical API: build an instance with {@see self::forProject()} (or `new`)
+ * and chain the immutable `with*()` setters, each of which returns a new
+ * instance:
+ *
+ *     return PhelConfig::forProject(ProjectLayout::Nested)
+ *         ->withMainPhelNamespace('my-app\main');
+ *
+ * Every option is also readable via a `get*()`/`is*()`/`should*()` accessor.
+ * The `set*()` and `use*Layout()` methods are deprecated since 0.37 and exist
+ * only as backward-compatibility shims for the matching `with*()` methods.
+ *
+ * See docs/configuration.md for the full option reference, and run
+ * `phel config` to inspect the effective merged configuration.
+ */
 final readonly class PhelConfig implements JsonSerializable
 {
     public const string SRC_DIRS = 'src-dirs';
