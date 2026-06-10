@@ -21,11 +21,9 @@ final class SourceMapConsumer
 
     public function getOriginalLine(int $generatedLine): ?int
     {
-        if (isset($this->lineMapping[$generatedLine])) {
-            return min($this->lineMapping[$generatedLine]);
-        }
+        $mappings = $this->lineMapping[$generatedLine] ?? [];
 
-        return null;
+        return $mappings === [] ? null : min($mappings);
     }
 
     /**

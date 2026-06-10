@@ -250,7 +250,7 @@ final class Phel extends InternalPhel
     /**
      * Create a persistent list from an array of values.
      *
-     * @param list<mixed>|null $values
+     * @param array<int, mixed>|null $values
      *
      * @return PersistentListInterface<mixed>
      */

@@ -177,7 +177,7 @@ TXT;
      * Handles a single legacy flat entry (symbol followed by `:as` / `:refer`
      * options), advancing `$index` past the options this entry consumed.
      *
-     * @param list<mixed>                    $elements
+     * @param array<int, mixed>              $elements
      * @param PersistentListInterface<mixed> $import
      */
     private function analyzeRequireFlatEntry(
@@ -307,7 +307,7 @@ TXT;
     }
 
     /**
-     * @param list<mixed>                    $elements
+     * @param array<int, mixed>              $elements
      * @param PersistentListInterface<mixed> $import
      */
     private function consumeAsAlias(array $elements, int &$index, PersistentListInterface $import): Symbol
@@ -327,7 +327,7 @@ TXT;
     }
 
     /**
-     * @param list<mixed>                    $elements
+     * @param array<int, mixed>              $elements
      * @param PersistentListInterface<mixed> $import
      *
      * @return PersistentVectorInterface<mixed>

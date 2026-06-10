@@ -52,7 +52,7 @@ final class StringParser
             }
 
             if ($str[0] === 'x' || $str[0] === 'X') {
-                return chr(hexdec(substr((string) $str, 1)));
+                return chr((int) hexdec(substr((string) $str, 1)));
             }
 
             if ($str[0] === 'u') {
@@ -76,7 +76,7 @@ final class StringParser
     }
 
     /**
-     * @param list<string> $matches
+     * @param array<int, string> $matches
      *
      * @throws StringParserException
      */
@@ -88,7 +88,7 @@ final class StringParser
             $hexCodepoint = $matches[self::FIXED_UNICODE_ESCAPE_MATCH] ?? '';
         }
 
-        return $this->codePointToUtf8(hexdec($hexCodepoint));
+        return $this->codePointToUtf8((int) hexdec($hexCodepoint));
     }
 
     /**

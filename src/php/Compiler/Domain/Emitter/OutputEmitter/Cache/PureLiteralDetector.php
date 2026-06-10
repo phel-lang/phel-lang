@@ -31,7 +31,7 @@ final class PureLiteralDetector
     }
 
     /**
-     * @param list<AbstractNode> $nodes
+     * @param array<int, AbstractNode> $nodes
      */
     private static function allPure(array $nodes): bool
     {

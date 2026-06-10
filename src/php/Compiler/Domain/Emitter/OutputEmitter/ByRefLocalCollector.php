@@ -81,7 +81,7 @@ final class ByRefLocalCollector
     }
 
     /**
-     * @return list<AbstractNode>
+     * @return array<int, AbstractNode>
      */
     private function children(AbstractNode $node): array
     {
