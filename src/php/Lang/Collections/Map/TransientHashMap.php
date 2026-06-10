@@ -37,7 +37,10 @@ final class TransientHashMap implements TransientMapInterface
      */
     public static function empty(HasherInterface $hasher, EqualizerInterface $equalizer): self
     {
-        return new self($hasher, $equalizer, 0, null, false, null);
+        /** @var self<K, V> $result */
+        $result = new self($hasher, $equalizer, 0, null, false, null);
+
+        return $result;
     }
 
     public static function getNotFound(): stdClass

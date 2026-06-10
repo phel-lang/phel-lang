@@ -106,7 +106,10 @@ final class Cons extends AbstractType implements SeqInterface, IteratorAggregate
      */
     public function nextSeq(): ?self
     {
-        return self::fromCdr($this->hasher, $this->equalizer, $this->rest);
+        /** @var self<T>|null $next */
+        $next = self::fromCdr($this->hasher, $this->equalizer, $this->rest);
+
+        return $next;
     }
 
     /**

@@ -32,7 +32,10 @@ final class TransientArrayMap implements TransientMapInterface
      */
     public static function empty(HasherInterface $hasher, EqualizerInterface $equalizer): self
     {
-        return new self($hasher, $equalizer, []);
+        /** @var self<K, V> $result */
+        $result = new self($hasher, $equalizer, []);
+
+        return $result;
     }
 
     public function contains($key): bool
@@ -108,7 +111,7 @@ final class TransientArrayMap implements TransientMapInterface
 
     public function count(): int
     {
-        return intdiv(count($this->array), 2);
+        return max(0, intdiv(count($this->array), 2));
     }
 
     /**
@@ -144,7 +147,10 @@ final class TransientArrayMap implements TransientMapInterface
      */
     public function persistent(): PersistentMapInterface
     {
-        return new PersistentArrayMap($this->hasher, $this->equalizer, null, $this->array);
+        /** @var PersistentArrayMap<K, V> $result */
+        $result = new PersistentArrayMap($this->hasher, $this->equalizer, null, $this->array);
+
+        return $result;
     }
 
     /**

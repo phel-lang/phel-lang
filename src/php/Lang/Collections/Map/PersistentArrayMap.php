@@ -44,7 +44,10 @@ final class PersistentArrayMap extends AbstractPersistentMap
      */
     public static function empty(HasherInterface $hasher, EqualizerInterface $equalizer): self
     {
-        return new self($hasher, $equalizer, null, []);
+        /** @var self<K, V> $result */
+        $result = new self($hasher, $equalizer, null, []);
+
+        return $result;
     }
 
     /**
@@ -71,7 +74,10 @@ final class PersistentArrayMap extends AbstractPersistentMap
      */
     public function withMeta(?PersistentMapInterface $meta): static
     {
-        return new self($this->hasher, $this->equalizer, $meta, $this->array);
+        /** @var static $result */
+        $result = new self($this->hasher, $this->equalizer, $meta, $this->array);
+
+        return $result;
     }
 
     public function contains($key): bool
@@ -88,7 +94,10 @@ final class PersistentArrayMap extends AbstractPersistentMap
         }
 
         if ($index === false && $this->count() >= self::MAX_SIZE) {
-            return PersistentHashMap::fromArray($this->hasher, $this->equalizer, $this->array)->put($key, $value);
+            /** @var PersistentMapInterface<K, V> $promoted */
+            $promoted = PersistentHashMap::fromArray($this->hasher, $this->equalizer, $this->array)->put($key, $value);
+
+            return $promoted;
         }
 
         $newArray = $this->array;
@@ -99,7 +108,10 @@ final class PersistentArrayMap extends AbstractPersistentMap
             $newArray[$index + 1] = $value;
         }
 
-        return new self($this->hasher, $this->equalizer, $this->meta, $newArray);
+        /** @var self<K, V> $result */
+        $result = new self($this->hasher, $this->equalizer, $this->meta, $newArray);
+
+        return $result;
     }
 
     /**
@@ -118,7 +130,10 @@ final class PersistentArrayMap extends AbstractPersistentMap
         $newArray = $this->array;
         array_splice($newArray, $index, 2);
 
-        return new self($this->hasher, $this->equalizer, $this->meta, $newArray);
+        /** @var self<K, V> $result */
+        $result = new self($this->hasher, $this->equalizer, $this->meta, $newArray);
+
+        return $result;
     }
 
     public function find($key)
@@ -133,7 +148,7 @@ final class PersistentArrayMap extends AbstractPersistentMap
 
     public function count(): int
     {
-        return intdiv(count($this->array), 2);
+        return max(0, intdiv(count($this->array), 2));
     }
 
     /**
@@ -151,13 +166,16 @@ final class PersistentArrayMap extends AbstractPersistentMap
      */
     public function asTransient(): TransientMapWrapper
     {
-        return new TransientMapWrapper(
+        /** @var TransientMapWrapper<K, V> $result */
+        $result = new TransientMapWrapper(
             new TransientArrayMap(
                 $this->hasher,
                 $this->equalizer,
                 $this->array,
             ),
         );
+
+        return $result;
     }
 
     /**

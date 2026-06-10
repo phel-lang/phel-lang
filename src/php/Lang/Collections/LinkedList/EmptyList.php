@@ -47,7 +47,10 @@ final class EmptyList extends AbstractType implements PersistentListInterface
      */
     public function withMeta(?PersistentMapInterface $meta): static
     {
-        return new self($this->hasher, $this->equalizer, $meta, $this->isList);
+        /** @var self<T> $result */
+        $result = new self($this->hasher, $this->equalizer, $meta, $this->isList);
+
+        return $result;
     }
 
     public function isList(): bool
@@ -154,7 +157,10 @@ final class EmptyList extends AbstractType implements PersistentListInterface
      */
     public function concat($xs): PersistentListInterface
     {
-        return PersistentList::fromArray($this->hasher, $this->equalizer, $xs, $this->isList);
+        /** @var PersistentListInterface<T> $result */
+        $result = PersistentList::fromArray($this->hasher, $this->equalizer, $xs, $this->isList);
+
+        return $result;
     }
 
     /**

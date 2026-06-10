@@ -45,7 +45,10 @@ final class PersistentHashMap extends AbstractPersistentMap
      */
     public static function empty(HasherInterface $hasher, EqualizerInterface $equalizer): self
     {
-        return new self($hasher, $equalizer, null, 0, null, false, null);
+        /** @var self<K, V> $result */
+        $result = new self($hasher, $equalizer, null, 0, null, false, null);
+
+        return $result;
     }
 
     /**

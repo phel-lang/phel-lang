@@ -72,7 +72,9 @@ abstract class AbstractPersistentStruct extends AbstractPersistentMap
             return $this;
         }
 
-        return $this->toPersistentMapWithout($key);
+        /** @var PersistentMapInterface<Keyword, V> $result */
+        $result = $this->toPersistentMapWithout($key);
+        return $result;
     }
 
     public function count(): int
@@ -135,10 +137,10 @@ abstract class AbstractPersistentStruct extends AbstractPersistentMap
      */
     public function getAllowedKeys(): array
     {
-        return array_map(
+        return array_values(array_map(
             static fn(string $k): Keyword => Phel::keyword($k),
             static::ALLOWED_KEYS,
-        );
+        ));
     }
 
     protected function validateKey(Keyword $key): string
@@ -152,12 +154,12 @@ abstract class AbstractPersistentStruct extends AbstractPersistentMap
     }
 
     /**
-     * Coerces a string field name to its keyword; passes other offsets
+     * Coerces a string field name to its keyword; passes a keyword offset
      * through unchanged.
      *
      * @param Keyword|string $offset
      */
-    private function normalizeOffset(mixed $offset): mixed
+    private function normalizeOffset(mixed $offset): Keyword
     {
         return is_string($offset) ? Phel::keyword($offset) : $offset;
     }

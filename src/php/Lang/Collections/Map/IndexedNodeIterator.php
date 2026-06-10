@@ -109,7 +109,15 @@ final class IndexedNodeIterator implements Iterator
 
     private function initializeNestedIterator(int $index): void
     {
-        $this->nestedIterator = $this->entries[$index][1]->getIterator();
-        $this->nestedIterator->rewind();
+        $child = $this->entries[$index][1];
+        if (!$child instanceof HashMapNodeInterface) {
+            $this->nestedIterator = null;
+            return;
+        }
+
+        /** @var Iterator<K, V> $nestedIterator */
+        $nestedIterator = $child->getIterator();
+        $nestedIterator->rewind();
+        $this->nestedIterator = $nestedIterator;
     }
 }

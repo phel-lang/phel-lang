@@ -68,7 +68,8 @@ final class LazySeq extends AbstractType implements LazySeqInterface, Countable,
         Generator $generator,
         ?PersistentMapInterface $meta = null,
     ): self {
-        return new self(
+        /** @var self<U> $result */
+        $result = new self(
             $hasher,
             $equalizer,
             static function () use ($generator, $hasher, $equalizer): ?LazySeqInterface {
@@ -87,6 +88,8 @@ final class LazySeq extends AbstractType implements LazySeqInterface, Countable,
             },
             $meta,
         );
+
+        return $result;
     }
 
     /**
@@ -136,11 +139,17 @@ final class LazySeq extends AbstractType implements LazySeqInterface, Countable,
         ?PersistentMapInterface $meta = null,
     ): ?self {
         if (is_array($iterable)) {
-            return self::fromArray($hasher, $equalizer, $iterable, $meta);
+            /** @var self<U>|null $result */
+            $result = self::fromArray($hasher, $equalizer, $iterable, $meta);
+
+            return $result;
         }
 
         if ($iterable instanceof Generator) {
-            return self::fromGenerator($hasher, $equalizer, $iterable, $meta);
+            /** @var self<U> $result */
+            $result = self::fromGenerator($hasher, $equalizer, $iterable, $meta);
+
+            return $result;
         }
 
         // Convert to array for other iterables
@@ -149,7 +158,10 @@ final class LazySeq extends AbstractType implements LazySeqInterface, Countable,
             $array[] = $item;
         }
 
-        return self::fromArray($hasher, $equalizer, $array, $meta);
+        /** @var self<U>|null $result */
+        $result = self::fromArray($hasher, $equalizer, $array, $meta);
+
+        return $result;
     }
 
     /**
@@ -174,12 +186,15 @@ final class LazySeq extends AbstractType implements LazySeqInterface, Countable,
 
         $first = array_shift($array);
 
-        return new self(
+        /** @var self<U> $result */
+        $result = new self(
             $hasher,
             $equalizer,
             static fn(): ?LazySeq => self::fromArray($hasher, $equalizer, $array),
             $meta,
         )->cons($first);
+
+        return $result;
     }
 
     /**
@@ -237,7 +252,10 @@ final class LazySeq extends AbstractType implements LazySeqInterface, Countable,
             return $rest;
         }
 
-        return new self($this->hasher, $this->equalizer, static fn(): SeqInterface => $rest);
+        /** @var self<T> $result */
+        $result = new self($this->hasher, $this->equalizer, static fn(): SeqInterface => $rest);
+
+        return $result;
     }
 
     /**
@@ -272,12 +290,15 @@ final class LazySeq extends AbstractType implements LazySeqInterface, Countable,
         $equalizer = $this->equalizer;
         $self = $this;
 
-        return new self(
+        /** @var self<T> $result */
+        $result = new self(
             $hasher,
             $equalizer,
             static fn(): Cons => new Cons($hasher, $equalizer, $x, $self),
             $this->meta,
         );
+
+        return $result;
     }
 
     public function count(): int

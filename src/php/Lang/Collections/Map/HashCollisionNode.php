@@ -9,6 +9,7 @@ use Phel\Lang\HasherInterface;
 use Traversable;
 
 use function array_slice;
+use function array_values;
 
 /**
  * @template K
@@ -19,7 +20,7 @@ use function array_slice;
 final class HashCollisionNode implements HashMapNodeInterface
 {
     /**
-     * @param array{K,V,K,V} $objects
+     * @param list<K|V> $objects
      */
     public function __construct(
         private readonly HasherInterface $hasher,
@@ -40,19 +41,33 @@ final class HashCollisionNode implements HashMapNodeInterface
         if ($hash === $this->hash) {
             $index = $this->findIndex($key);
             if ($index !== -1) {
-                if ($this->equalizer->equals($this->objects[$index + 1], $value)) {
+                $existingPair = array_slice($this->objects, $index, 2);
+                if ($this->equalizer->equals($existingPair[1] ?? null, $value)) {
                     return $this;
                 }
 
-                return new self($this->hasher, $this->equalizer, $this->hash, $this->count, $this->cloneAndSet($index + 1, $value));
+                /** @var self<K, V> $updated */
+                $updated = new self($this->hasher, $this->equalizer, $this->hash, $this->count, $this->cloneAndSet($index + 1, $value));
+                return $updated;
             }
 
             $addedLeaf->setValue(true);
-            return new self($this->hasher, $this->equalizer, $this->hash, $this->count + 1, $this->cloneAndAdd($key, $value));
+            /** @var self<K, V> $added */
+            $added = new self($this->hasher, $this->equalizer, $this->hash, $this->count + 1, $this->cloneAndAdd($key, $value));
+            return $added;
         }
 
-        /** @var IndexedNode<K, V> $node */
-        $node = new IndexedNode($this->hasher, $this->equalizer, [$this->mask($this->hash, $shift) => [null, $this]]);
+        /** @var array<int, array{0: K|null, 1: HashMapNodeInterface<K, V>|V}> $childObjects */
+        $childObjects = [$this->mask($this->hash, $shift) => [null, $this]];
+        /**
+         * @var IndexedNode<K, V> $node
+         *
+         * @psalm-suppress InvalidArgument $childObjects holds a [null, childNode]
+         * pair by trie construction; psalm cannot reconcile the
+         * HashMapNodeInterface<K, V>|V element union with IndexedNode's own
+         * template parameters (a generic-variance limitation PHPStan accepts).
+         */
+        $node = new IndexedNode($this->hasher, $this->equalizer, $childObjects);
         return $node->put($shift, $hash, $key, $value, $addedLeaf);
     }
 
@@ -72,9 +87,17 @@ final class HashCollisionNode implements HashMapNodeInterface
             return null;
         }
 
-        return new self($this->hasher, $this->equalizer, $this->hash, $this->count - 1, $this->removePair($index));
+        /** @var self<K, V> $result */
+        $result = new self($this->hasher, $this->equalizer, $this->hash, $this->count - 1, $this->removePair($index));
+        return $result;
     }
 
+    /**
+     * @param mixed $key
+     * @param mixed $notFound
+     *
+     * @return ?mixed
+     */
     public function find(int $shift, int $hash, $key, $notFound)
     {
         $index = $this->findIndex($key);
@@ -82,8 +105,9 @@ final class HashCollisionNode implements HashMapNodeInterface
             return $notFound;
         }
 
+        $pair = array_slice($this->objects, $index, 2);
         /** @var V $value */
-        $value = $this->objects[$index + 1];
+        $value = $pair[1] ?? $notFound;
 
         return $value;
     }
@@ -93,7 +117,11 @@ final class HashCollisionNode implements HashMapNodeInterface
      */
     public function getIterator(): Traversable
     {
-        return new HashCollisionNodeIterator($this->objects);
+        /** @var array{K, V, K, V} $entries */
+        $entries = $this->objects;
+        /** @var HashCollisionNodeIterator<K, V> $iterator */
+        $iterator = new HashCollisionNodeIterator($entries);
+        return $iterator;
     }
 
     /**
@@ -113,21 +141,21 @@ final class HashCollisionNode implements HashMapNodeInterface
     /**
      * @param V $value
      *
-     * @return array<int, mixed>
+     * @return list<K|V>
      */
     private function cloneAndSet(int $index, mixed $value): array
     {
         $newObjects = $this->objects;
         $newObjects[$index] = $value;
 
-        return $newObjects;
+        return array_values($newObjects);
     }
 
     /**
      * @param K $key
      * @param V $value
      *
-     * @return array<int, mixed>
+     * @return list<K|V>
      */
     private function cloneAndAdd(mixed $key, mixed $value): array
     {
@@ -139,7 +167,7 @@ final class HashCollisionNode implements HashMapNodeInterface
     }
 
     /**
-     * @return array<int, mixed>
+     * @return list<K|V>
      */
     private function removePair(int $index): array
     {

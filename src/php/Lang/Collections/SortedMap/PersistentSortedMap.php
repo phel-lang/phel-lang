@@ -54,7 +54,10 @@ final class PersistentSortedMap extends AbstractPersistentMap
     {
         $closure = $comparator !== null ? SortedArrayHelper::resolveComparator($comparator) : null;
 
-        return new self($hasher, $equalizer, null, [], $closure);
+        /** @var self<K, V> $result */
+        $result = new self($hasher, $equalizer, null, [], $closure);
+
+        return $result;
     }
 
     /**
@@ -83,7 +86,10 @@ final class PersistentSortedMap extends AbstractPersistentMap
      */
     public function withMeta(?PersistentMapInterface $meta): static
     {
-        return new self($this->hasher, $this->equalizer, $meta, $this->array, $this->userComparator);
+        /** @var static $result */
+        $result = new self($this->hasher, $this->equalizer, $meta, $this->array, $this->userComparator);
+
+        return $result;
     }
 
     public function contains($key): bool
@@ -103,14 +109,20 @@ final class PersistentSortedMap extends AbstractPersistentMap
             $newArray = $this->array;
             $newArray[$idx + 1] = $value;
 
-            return new self($this->hasher, $this->equalizer, $this->meta, $newArray, $this->userComparator);
+            /** @var self<K, V> $updated */
+            $updated = new self($this->hasher, $this->equalizer, $this->meta, $newArray, $this->userComparator);
+
+            return $updated;
         }
 
         $insertAt = -($idx + 1);
         $newArray = $this->array;
         array_splice($newArray, $insertAt, 0, [$key, $value]);
 
-        return new self($this->hasher, $this->equalizer, $this->meta, $newArray, $this->userComparator);
+        /** @var self<K, V> $result */
+        $result = new self($this->hasher, $this->equalizer, $this->meta, $newArray, $this->userComparator);
+
+        return $result;
     }
 
     /**
@@ -129,7 +141,10 @@ final class PersistentSortedMap extends AbstractPersistentMap
         $newArray = $this->array;
         array_splice($newArray, $idx, 2);
 
-        return new self($this->hasher, $this->equalizer, $this->meta, $newArray, $this->userComparator);
+        /** @var self<K, V> $result */
+        $result = new self($this->hasher, $this->equalizer, $this->meta, $newArray, $this->userComparator);
+
+        return $result;
     }
 
     public function find($key)
@@ -144,7 +159,7 @@ final class PersistentSortedMap extends AbstractPersistentMap
 
     public function count(): int
     {
-        return intdiv(count($this->array), 2);
+        return max(0, intdiv(count($this->array), 2));
     }
 
     public function getIterator(): Traversable
@@ -159,7 +174,8 @@ final class PersistentSortedMap extends AbstractPersistentMap
      */
     public function asTransient(): TransientMapWrapper
     {
-        return new TransientMapWrapper(
+        /** @var TransientMapWrapper<K, V> $result */
+        $result = new TransientMapWrapper(
             new TransientSortedMap(
                 $this->hasher,
                 $this->equalizer,
@@ -167,6 +183,8 @@ final class PersistentSortedMap extends AbstractPersistentMap
                 $this->userComparator,
             ),
         );
+
+        return $result;
     }
 
     /**

@@ -17,7 +17,9 @@ use Phel\Lang\TypeInterface;
 use Stringable;
 use Traversable;
 
+use function get_debug_type;
 use function is_bool;
+use function is_scalar;
 use function is_string;
 use function sprintf;
 
@@ -194,6 +196,10 @@ final readonly class MapEntry implements TypeInterface, Stringable, Countable, I
             return $value ? 'true' : 'false';
         }
 
-        return (string) $value;
+        if (is_scalar($value) || $value instanceof Stringable) {
+            return (string) $value;
+        }
+
+        return get_debug_type($value);
     }
 }

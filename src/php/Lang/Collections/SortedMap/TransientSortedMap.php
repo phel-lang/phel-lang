@@ -104,7 +104,7 @@ final class TransientSortedMap implements TransientMapInterface
 
     public function count(): int
     {
-        return intdiv(count($this->array), 2);
+        return max(0, intdiv(count($this->array), 2));
     }
 
     /**
@@ -139,6 +139,9 @@ final class TransientSortedMap implements TransientMapInterface
     {
         $this->invalidateTransient();
 
-        return new PersistentSortedMap($this->hasher, $this->equalizer, null, $this->array, $this->userComparator);
+        /** @var PersistentSortedMap<K, V> $result */
+        $result = new PersistentSortedMap($this->hasher, $this->equalizer, null, $this->array, $this->userComparator);
+
+        return $result;
     }
 }

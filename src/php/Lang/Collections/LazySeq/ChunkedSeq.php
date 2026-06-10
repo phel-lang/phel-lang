@@ -167,11 +167,14 @@ final class ChunkedSeq extends AbstractType implements LazySeqInterface, Countab
         }
 
         if ($result instanceof SeqInterface) {
-            return LazySeq::fromIterable(
+            /** @var LazySeq<T>|null $lazy */
+            $lazy = LazySeq::fromIterable(
                 $this->hasher,
                 $this->equalizer,
                 $result->toArray(),
             );
+
+            return $lazy;
         }
 
         return null;

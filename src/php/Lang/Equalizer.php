@@ -42,6 +42,9 @@ final class Equalizer implements EqualizerInterface
         return false;
     }
 
+    /**
+     * @phpstan-assert-if-true int|BigInt $value
+     */
     private function isIntegralNumber(mixed $value): bool
     {
         return is_int($value) || $value instanceof BigInt;

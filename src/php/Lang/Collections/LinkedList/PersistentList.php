@@ -60,7 +60,10 @@ final class PersistentList extends AbstractType implements PersistentListInterfa
      */
     public static function empty(HasherInterface $hasher, EqualizerInterface $equalizer, bool $isList = true): PersistentListInterface
     {
-        return new EmptyList($hasher, $equalizer, null, $isList);
+        /** @var EmptyList<T> $result */
+        $result = new EmptyList($hasher, $equalizer, null, $isList);
+
+        return $result;
     }
 
     /**
@@ -235,7 +238,7 @@ final class PersistentList extends AbstractType implements PersistentListInterfa
      */
     public function toArray(): array
     {
-        return iterator_to_array($this->getIterator());
+        return array_values(iterator_to_array($this->getIterator()));
     }
 
     /**
@@ -247,7 +250,10 @@ final class PersistentList extends AbstractType implements PersistentListInterfa
      */
     public function concat($xs): PersistentListInterface
     {
-        return self::fromArray($this->hasher, $this->equalizer, [...$this->toArray(), ...$xs], $this->isList);
+        /** @var PersistentListInterface<T> $result */
+        $result = self::fromArray($this->hasher, $this->equalizer, [...$this->toArray(), ...$xs], $this->isList);
+
+        return $result;
     }
 
     /**
