@@ -8,6 +8,7 @@ All notable changes to this project will be documented in this file.
 
 - `PhelConfig::withOptimizationLevel(int)` (`optimization-level` config key, default 0): `phel build`, `phel run`, `phel test`, `phel eval`, and `phel compile` now compile at the configured level, making level 2 (`^:pure` call-site inlining + self-recursive tail-call rewriting) reachable for real projects; REPL and nREPL stay at level 0 (#2387)
 - `phel build -O <level>` (`--optimization-level`) CLI override taking precedence over the configured level; changing the level automatically invalidates both the incremental `phel build` output and the compiled-code cache
+- `phel config`: new CLI command that prints the effective, merged project configuration (as JSON) together with its provenance — whether `phel-config.php` was found or auto-detected, whether `phel-config-local.php` was applied, and the `PHEL_DIR` env value. Use `phel config --json` for machine-readable output
 
 ### Fixed
 

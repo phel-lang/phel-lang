@@ -17,7 +17,7 @@ Most connected module, 4 Provider facades: Build (namespace extraction, dependen
 
 ## Structure Notes
 
-- `Infrastructure/Command/`: 9 Symfony commands, one hidden `_test-worker`
+- `Infrastructure/Command/`: 10 Symfony commands (incl. `config` — dumps effective merged config), one hidden `_test-worker`
 - `Runtime/PhelSourceLoader`: cached-PHP boot entry
 
 ## Key Constraints
