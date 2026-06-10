@@ -63,9 +63,11 @@ final class MtimeFileSystemScanner implements FileSystemScannerInterface
                 if (!is_array($match)) {
                     continue;
                 }
+
                 if (!isset($match[0])) {
                     continue;
                 }
+
                 $this->statInto($snapshot, ScalarCoercion::toString($match[0]));
             }
         } catch (UnexpectedValueException) {
