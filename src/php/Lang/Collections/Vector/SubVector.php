@@ -37,7 +37,7 @@ final class SubVector extends AbstractPersistentVector
 
     public function count(): int
     {
-        return $this->end - $this->start;
+        return max(0, $this->end - $this->start);
     }
 
     /**

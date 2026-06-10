@@ -99,7 +99,7 @@ final class TransientVector implements TransientVectorInterface, Stringable
 
     public function count(): int
     {
-        return $this->count;
+        return max(0, $this->count);
     }
 
     /**

@@ -171,7 +171,7 @@ final class PersistentHashMap extends AbstractPersistentMap
 
     public function count(): int
     {
-        return $this->count;
+        return max(0, $this->count);
     }
 
     /**
