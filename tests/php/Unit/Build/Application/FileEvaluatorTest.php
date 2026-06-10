@@ -10,6 +10,7 @@ use Phel\Build\Domain\Extractor\FirstFormExtractor;
 use Phel\Build\Domain\Extractor\NamespaceExtractorInterface;
 use Phel\Build\Infrastructure\Cache\CompiledCodeCache;
 use Phel\Compiler\Domain\Emitter\EmitterResult;
+use Phel\Shared\CompileOptions;
 use Phel\Shared\Facade\CompilerFacadeInterface;
 use Phel\Shared\NamespaceInformation;
 use PHPUnit\Framework\TestCase;
@@ -488,6 +489,122 @@ final class FileEvaluatorTest extends TestCase
             $tracker,
         );
 
+        $evaluator->evalFile($sourceFile);
+    }
+
+    public function test_eval_file_passes_optimization_level_to_compiler(): void
+    {
+        $sourceFile = $this->tempDir . '/test.phel';
+        file_put_contents($sourceFile, '(ns test\\namespace)');
+        $namespace = 'test\\namespace';
+
+        $capturedOptions = null;
+        $compilerFacade = $this->createMock(CompilerFacadeInterface::class);
+        $compilerFacade->method('eval')
+            ->willReturnCallback(static function (string $code, CompileOptions $options) use (&$capturedOptions): mixed {
+                $capturedOptions = $options;
+
+                return null;
+            });
+
+        $namespaceExtractor = $this->createMock(NamespaceExtractorInterface::class);
+        $namespaceExtractor->method('getNamespaceFromFile')->willReturn(
+            new NamespaceInformation($sourceFile, $namespace, ['phel.core']),
+        );
+
+        $evaluator = new FileEvaluator(
+            $compilerFacade,
+            $namespaceExtractor,
+            optimizationLevel: 2,
+        );
+        $evaluator->evalFile($sourceFile);
+
+        self::assertInstanceOf(CompileOptions::class, $capturedOptions);
+        self::assertSame(2, $capturedOptions->getOptimizationLevel());
+    }
+
+    public function test_changing_optimization_level_invalidates_cached_code(): void
+    {
+        $sourceFile = $this->tempDir . '/test.phel';
+        $sourceCode = '(ns test\\namespace)';
+        file_put_contents($sourceFile, $sourceCode);
+        $cacheDir = $this->tempDir . '/cache';
+        $namespace = 'test\\namespace';
+
+        // Entry stored under the plain level-0 hash must not satisfy a level-2 run.
+        $cache = new CompiledCodeCache($cacheDir);
+        $cache->put($sourceFile, $namespace, md5($sourceCode), '$level0 = true;');
+
+        $capturedOptions = null;
+        $compilerFacade = $this->createMock(CompilerFacadeInterface::class);
+        $compilerFacade->expects($this->once())
+            ->method('compileForCache')
+            ->willReturnCallback(static function (string $code, CompileOptions $options) use (&$capturedOptions): EmitterResult {
+                $capturedOptions = $options;
+
+                return new EmitterResult(false, '$level2 = true;', '', '');
+            });
+
+        $namespaceExtractor = $this->createMock(NamespaceExtractorInterface::class);
+        $namespaceExtractor->method('getNamespaceFromFile')->willReturn(
+            new NamespaceInformation($sourceFile, $namespace, ['phel.core']),
+        );
+
+        $evaluator = new FileEvaluator(
+            $compilerFacade,
+            $namespaceExtractor,
+            $cache,
+            optimizationLevel: 2,
+        );
+        $evaluator->evalFile($sourceFile);
+
+        self::assertInstanceOf(CompileOptions::class, $capturedOptions);
+        self::assertSame(2, $capturedOptions->getOptimizationLevel());
+
+        // A second level-2 run must hit the freshly stored level-2 entry.
+        FileEvaluator::resetState();
+        $secondFacade = $this->createMock(CompilerFacadeInterface::class);
+        $secondFacade->expects($this->never())->method('compileForCache');
+        $secondFacade->expects($this->never())->method('eval');
+
+        $secondEvaluator = new FileEvaluator(
+            $secondFacade,
+            $namespaceExtractor,
+            $cache,
+            optimizationLevel: 2,
+        );
+        $result = $secondEvaluator->evalFile($sourceFile);
+
+        self::assertSame($namespace, $result->getNamespace());
+    }
+
+    public function test_level_zero_keeps_plain_source_hash(): void
+    {
+        $sourceFile = $this->tempDir . '/test.phel';
+        $sourceCode = '(ns test\\namespace)';
+        file_put_contents($sourceFile, $sourceCode);
+        $cacheDir = $this->tempDir . '/cache';
+        $namespace = 'test\\namespace';
+
+        // Pre-existing level-0 entry stays valid for a level-0 evaluator.
+        $cache = new CompiledCodeCache($cacheDir);
+        $cache->put($sourceFile, $namespace, md5($sourceCode), '$level0 = true;');
+
+        $compilerFacade = $this->createMock(CompilerFacadeInterface::class);
+        $compilerFacade->expects($this->never())->method('compileForCache');
+        $compilerFacade->expects($this->never())->method('eval');
+
+        $namespaceExtractor = $this->createMock(NamespaceExtractorInterface::class);
+        $namespaceExtractor->method('getNamespaceFromFile')->willReturn(
+            new NamespaceInformation($sourceFile, $namespace, ['phel.core']),
+        );
+
+        $evaluator = new FileEvaluator(
+            $compilerFacade,
+            $namespaceExtractor,
+            $cache,
+            optimizationLevel: 0,
+        );
         $evaluator->evalFile($sourceFile);
     }
 

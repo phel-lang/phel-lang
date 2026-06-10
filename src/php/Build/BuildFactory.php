@@ -66,6 +66,7 @@ final class BuildFactory extends AbstractFactory
             $this->getCompilerFacade(),
             $this->createNamespaceExtractor(),
             $this->createFileIo(),
+            $this->getConfig()->getOptimizationLevel(),
         );
     }
 
@@ -83,6 +84,7 @@ final class BuildFactory extends AbstractFactory
                 $this->createCompiledCodeCache(),
                 $this->createFirstFormExtractor(),
                 $this->createDependencyTracker(),
+                $this->getConfig()->getOptimizationLevel(),
             ),
         );
     }

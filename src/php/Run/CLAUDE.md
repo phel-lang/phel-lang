@@ -22,6 +22,7 @@ Most connected module, 4 Provider facades: Build (namespace extraction, dependen
 
 ## Key Constraints
 
+- `RunConfig::getOptimizationLevel()` (key `PhelConfig::OPTIMIZATION_LEVEL`) is injected into `EvalExecutor` (`phel eval`) and `CompileExecutor` (`phel compile`); `phel run`/`phel test` pick the level up via Build's `FileEvaluator`. The REPL and nREPL always compile at level 0 by design
 - `StructuredEvaluator` (Application) produces the pure `Phel\Shared\Eval\EvalResult` VO via `success()`/`incomplete()`/`failure()`; it never throws and owns the snapshot/restore orchestration (the VOs carry no logic and live in `Phel\Shared`)
 - REPL supports environment snapshot/restore on eval failure
 - `ReplCommandSystemIo` requires PHP `readline` extension; falls back to `ReplCommandFallbackIo`

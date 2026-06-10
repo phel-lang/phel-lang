@@ -25,6 +25,13 @@ use function sprintf;
 
 final readonly class ProjectCompiler
 {
+    /**
+     * Marker file in the output directory recording the optimization level of
+     * the last build. The incremental cache only compares mtimes, so without
+     * this record a level change would silently reuse stale output.
+     */
+    private const string OPTIMIZATION_LEVEL_FILE = '.phel-optimization-level';
+
     private CompiledTargetPathResolver $targetPathResolver;
 
     public function __construct(
@@ -71,6 +78,9 @@ final readonly class ProjectCompiler
         // sibling files during compile-time statement evaluation.
         LoadClasspath::publish($srcDirectories);
 
+        $optimizationLevel = $buildOptions->getOptimizationLevel() ?? $this->config->getOptimizationLevel();
+        $optimizationLevelChanged = $this->storedOptimizationLevel($dest) !== $optimizationLevel;
+
         $namespaceInformation = $this->namespaceExtractor->getNamespacesFromDirectories($srcDirectories);
         /** @var list<CompiledFile> $result */
         $result = [];
@@ -94,7 +104,7 @@ final readonly class ProjectCompiler
                 throw new RuntimeException(sprintf('Directory "%s" was not created', $targetDir));
             }
 
-            if ($this->canUseCache($buildOptions, $targetFile, $info)) {
+            if (!$optimizationLevelChanged && $this->canUseCache($buildOptions, $targetFile, $info)) {
                 // Load cached file to register definitions and execute top-level expressions
                 BuildFacade::enableBuildMode();
                 ob_start();
@@ -120,11 +130,13 @@ final readonly class ProjectCompiler
                 $info->getFile(),
                 $targetFile,
                 $buildOptions->isSourceMapEnabled(),
+                $optimizationLevel,
             );
 
             touch($targetFile, $this->getFileMtime($info->getFile()));
         }
 
+        $this->storeOptimizationLevel($dest, $optimizationLevel);
         $this->harvestSecondaries($namespaceInformation, $dest, $srcDirectories);
 
         if ($this->config->shouldCreateEntryPointPhpFile()) {
@@ -175,6 +187,33 @@ final readonly class ProjectCompiler
         }
 
         return array_all($this->config->getPathsToAvoidCache(), static fn(string $path): bool => !str_contains($targetFile, $path));
+    }
+
+    private function storedOptimizationLevel(string $dest): int
+    {
+        $file = $dest . '/' . self::OPTIMIZATION_LEVEL_FILE;
+
+        return is_file($file) ? (int) file_get_contents($file) : 0;
+    }
+
+    private function storeOptimizationLevel(string $dest, int $level): void
+    {
+        $file = $dest . '/' . self::OPTIMIZATION_LEVEL_FILE;
+
+        if ($level === 0) {
+            // Level 0 leaves no marker, keeping default builds byte-identical.
+            if (is_file($file)) {
+                @unlink($file);
+            }
+
+            return;
+        }
+
+        if (!is_dir($dest) && !mkdir($dest, 0777, true) && !is_dir($dest)) {
+            throw new RuntimeException(sprintf('Directory "%s" was not created', $dest));
+        }
+
+        file_put_contents($file, (string) $level);
     }
 
     private function getFileMtime(string $file): int

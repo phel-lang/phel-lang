@@ -9,6 +9,7 @@ final readonly class BuildOptions
     public function __construct(
         private bool $enableCache,
         private bool $enableSourceMap,
+        private ?int $optimizationLevel = null,
     ) {}
 
     public function isCacheEnabled(): bool
@@ -19,5 +20,14 @@ final readonly class BuildOptions
     public function isSourceMapEnabled(): bool
     {
         return $this->enableSourceMap;
+    }
+
+    /**
+     * CLI override for the configured optimization level; `null` means
+     * "use the level from `phel-config.php`".
+     */
+    public function getOptimizationLevel(): ?int
+    {
+        return $this->optimizationLevel;
     }
 }

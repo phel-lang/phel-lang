@@ -7,6 +7,7 @@ namespace Phel\Build;
 use Gacela\Framework\AbstractConfig;
 use Phel\Config\PhelBuildConfig;
 use Phel\Config\PhelConfig;
+use Phel\Shared\CompileOptions;
 use Phel\Shared\PhelProjectDirectory;
 
 use function is_string;
@@ -47,6 +48,11 @@ final class BuildConfig extends AbstractConfig implements BuildConfigInterface
         }
 
         return $config;
+    }
+
+    public function getOptimizationLevel(): int
+    {
+        return max(0, (int) $this->get(PhelConfig::OPTIMIZATION_LEVEL, CompileOptions::DEFAULT_OPTIMIZATION_LEVEL));
     }
 
     public function isNamespaceCacheEnabled(): bool

@@ -38,6 +38,7 @@ final class FileEvaluator
         private readonly ?CompiledCodeCacheInterface $compiledCodeCache = null,
         private readonly FirstFormExtractor $firstFormExtractor = new FirstFormExtractor(),
         private readonly ?DependencyTrackerInterface $dependencyTracker = null,
+        private readonly int $optimizationLevel = CompileOptions::DEFAULT_OPTIMIZATION_LEVEL,
     ) {}
 
     /**
@@ -65,7 +66,7 @@ final class FileEvaluator
         $namespace = $namespaceInfo->getNamespace();
 
         if ($this->compiledCodeCache instanceof CompiledCodeCacheInterface) {
-            $sourceHash = md5($code);
+            $sourceHash = $this->sourceHash($code);
             $cachedPath = $this->compiledCodeCache->get($src, $sourceHash);
 
             if ($cachedPath !== null) {
@@ -113,7 +114,8 @@ final class FileEvaluator
 
             $options = new CompileOptions()
                 ->setSource($src)
-                ->setIsEnabledSourceMaps(false);
+                ->setIsEnabledSourceMaps(false)
+                ->setOptimizationLevel($this->optimizationLevel);
 
             $result = $this->compilerFacade->compileForCache($code, $options);
             $this->compiledCodeCache->put($src, $namespace, $sourceHash, $result->getPhpCode());
@@ -130,11 +132,24 @@ final class FileEvaluator
 
         $options = new CompileOptions()
             ->setSource($src)
-            ->setIsEnabledSourceMaps(true);
+            ->setIsEnabledSourceMaps(true)
+            ->setOptimizationLevel($this->optimizationLevel);
 
         $this->compilerFacade->eval($code, $options);
 
         return new CompiledFile($src, '', $namespace);
+    }
+
+    /**
+     * Cache key for the compiled-code cache. The optimization level is mixed
+     * in so changing it invalidates entries compiled at another level; level 0
+     * keeps the historical plain `md5` so existing caches stay warm.
+     */
+    private function sourceHash(string $code): string
+    {
+        return $this->optimizationLevel > 0
+            ? md5($code . '|O' . $this->optimizationLevel)
+            : md5($code);
     }
 
     private function analyzeNsForm(string $code, string $src): void

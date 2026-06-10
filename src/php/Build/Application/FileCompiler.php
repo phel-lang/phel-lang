@@ -22,15 +22,17 @@ final readonly class FileCompiler implements FileCompilerInterface
         private CompilerFacadeInterface $compilerFacade,
         private NamespaceExtractorInterface $namespaceExtractor,
         private FileIoInterface $fileIo,
+        private int $defaultOptimizationLevel = CompileOptions::DEFAULT_OPTIMIZATION_LEVEL,
     ) {}
 
-    public function compileFile(string $src, string $dest, bool $enableSourceMaps): CompiledFile
+    public function compileFile(string $src, string $dest, bool $enableSourceMaps, ?int $optimizationLevel = null): CompiledFile
     {
         $phelCode = $this->fileIo->getContents($src);
 
         $options = new CompileOptions()
             ->setSource($src)
-            ->setIsEnabledSourceMaps($enableSourceMaps);
+            ->setIsEnabledSourceMaps($enableSourceMaps)
+            ->setOptimizationLevel($optimizationLevel ?? $this->defaultOptimizationLevel);
 
         BuildFacade::enableBuildMode();
         ob_start();

@@ -44,9 +44,35 @@ final class PhelConfigTest extends TestCase
             PhelConfig::ENABLE_COMPILED_CODE_CACHE => true,
             PhelConfig::CACHE_DIR => '.phel/cache',
             PhelConfig::PHEL_DIR => '',
+            PhelConfig::OPTIMIZATION_LEVEL => 0,
         ];
 
         self::assertSame($expected, $config->jsonSerialize());
+    }
+
+    public function test_optimization_level_defaults_to_zero(): void
+    {
+        $config = new PhelConfig();
+
+        self::assertSame(0, $config->getOptimizationLevel());
+    }
+
+    public function test_with_optimization_level(): void
+    {
+        $config = new PhelConfig();
+        $updated = $config->withOptimizationLevel(2);
+
+        self::assertNotSame($config, $updated);
+        self::assertSame(0, $config->getOptimizationLevel());
+        self::assertSame(2, $updated->getOptimizationLevel());
+        self::assertSame(2, $updated->jsonSerialize()[PhelConfig::OPTIMIZATION_LEVEL]);
+    }
+
+    public function test_with_optimization_level_clamps_negative_values(): void
+    {
+        $config = new PhelConfig()->withOptimizationLevel(-1);
+
+        self::assertSame(0, $config->getOptimizationLevel());
     }
 
     public function test_for_project_factory(): void
@@ -181,7 +207,8 @@ final class PhelConfigTest extends TestCase
             ->withFormatDirs(['src', 'tests', 'phel'])
             ->withEnableAsserts(false)
             ->withWarnDeprecations(true)
-            ->withCacheDir('.cache');
+            ->withCacheDir('.cache')
+            ->withOptimizationLevel(2);
 
         $expected = [
             PhelConfig::SRC_DIRS => ['some/directory'],
@@ -210,6 +237,7 @@ final class PhelConfigTest extends TestCase
             PhelConfig::ENABLE_COMPILED_CODE_CACHE => true,
             PhelConfig::CACHE_DIR => '.cache',
             PhelConfig::PHEL_DIR => '',
+            PhelConfig::OPTIMIZATION_LEVEL => 2,
         ];
 
         self::assertSame($expected, $config->jsonSerialize());

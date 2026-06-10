@@ -43,6 +43,8 @@ final readonly class PhelConfig implements JsonSerializable
 
     public const string PHEL_DIR = 'phel-dir';
 
+    public const string OPTIMIZATION_LEVEL = 'optimization-level';
+
     /** @var list<string> */
     public const array DEFAULT_SRC_DIRS = ['src'];
 
@@ -77,6 +79,7 @@ final readonly class PhelConfig implements JsonSerializable
         public bool $enableNamespaceCache = true,
         public bool $enableCompiledCodeCache = true,
         public string $phelDir = '',
+        public int $optimizationLevel = 0,
     ) {
         $this->tempDir = $tempDir === null
             ? sys_get_temp_dir() . self::PHEL_TEMP_SUBDIR . '/tmp'
@@ -208,6 +211,16 @@ final readonly class PhelConfig implements JsonSerializable
     public function getPhelDir(): string
     {
         return $this->phelDir;
+    }
+
+    /**
+     * Compiler optimization level: 0 = off (default), 1 = reserved for
+     * auto-inlining, 2 = `^:pure` call-site inlining + self-recursive
+     * tail-call rewriting. See `CompileOptions::DEFAULT_OPTIMIZATION_LEVEL`.
+     */
+    public function getOptimizationLevel(): int
+    {
+        return $this->optimizationLevel;
     }
 
     // ========================================
@@ -406,6 +419,17 @@ final readonly class PhelConfig implements JsonSerializable
     public function withPhelDir(string $dir): self
     {
         return $this->with(['phelDir' => $dir]);
+    }
+
+    /**
+     * Set the compiler optimization level applied by `phel build`, `phel run`,
+     * and `phel test` (REPL and nREPL always stay at 0). Negative values are
+     * clamped to 0. Level 2 enables `^:pure` call-site inlining and
+     * self-recursive tail-call rewriting.
+     */
+    public function withOptimizationLevel(int $level): self
+    {
+        return $this->with(['optimizationLevel' => max(0, $level)]);
     }
 
     // ========================================
@@ -608,6 +632,7 @@ final readonly class PhelConfig implements JsonSerializable
             self::ENABLE_COMPILED_CODE_CACHE => $this->enableCompiledCodeCache,
             self::CACHE_DIR => $this->cacheDir,
             self::PHEL_DIR => $this->phelDir,
+            self::OPTIMIZATION_LEVEL => $this->optimizationLevel,
         ];
     }
 
@@ -638,6 +663,7 @@ final readonly class PhelConfig implements JsonSerializable
             'enableNamespaceCache' => $this->enableNamespaceCache,
             'enableCompiledCodeCache' => $this->enableCompiledCodeCache,
             'phelDir' => $this->phelDir,
+            'optimizationLevel' => $this->optimizationLevel,
         ];
 
         return new self(...[...$base, ...$overrides]);

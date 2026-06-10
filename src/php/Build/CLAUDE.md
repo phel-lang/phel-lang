@@ -23,3 +23,4 @@ Compiler (Phel-to-PHP compilation), Command (output/source dirs, error formattin
 - `FileEvaluator` is singleton; repeated `(load ...)` calls reuse instance to preserve compiled-code index
 - Auto-detect main namespace: scans source dirs for `core.phel` or `main.phel`
 - Output directory pruned from extraction to prevent namespace shadowing
+- Optimization level: `BuildConfig::getOptimizationLevel()` (key `PhelConfig::OPTIMIZATION_LEVEL`) is injected into `FileCompiler` (constructor default; per-call override wins, used by `phel build -O`) and `FileEvaluator` (also mixed into the compiled-code cache hash when > 0). `ProjectCompiler` records the level in `<out>/.phel-optimization-level` and forces a recompile when it changes, because the incremental cache is mtime-only; level 0 leaves no marker

@@ -17,4 +17,6 @@ interface BuildConfigInterface
     public function getPathsToAvoidCache(): array;
 
     public function shouldCreateEntryPointPhpFile(): bool;
+
+    public function getOptimizationLevel(): int;
 }

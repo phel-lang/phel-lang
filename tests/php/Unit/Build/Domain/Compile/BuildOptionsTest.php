@@ -25,6 +25,20 @@ final class BuildOptionsTest extends TestCase
         self::assertFalse($options->isSourceMapEnabled());
     }
 
+    public function test_optimization_level_defaults_to_null(): void
+    {
+        $options = new BuildOptions(enableCache: true, enableSourceMap: true);
+
+        self::assertNull($options->getOptimizationLevel());
+    }
+
+    public function test_optimization_level_override(): void
+    {
+        $options = new BuildOptions(enableCache: true, enableSourceMap: true, optimizationLevel: 2);
+
+        self::assertSame(2, $options->getOptimizationLevel());
+    }
+
     public function test_flags_are_independent(): void
     {
         $cacheOnly = new BuildOptions(enableCache: true, enableSourceMap: false);
