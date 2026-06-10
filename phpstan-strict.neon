@@ -47,6 +47,7 @@ parameters:
             identifier: return.type
             path: src/php/Shared/Printer/Printer.php
     paths!:
+        - %currentWorkingDirectory%/src/Phel.php
         - %currentWorkingDirectory%/src/php/Api/
         - %currentWorkingDirectory%/src/php/Build/
         - %currentWorkingDirectory%/src/php/Command/
