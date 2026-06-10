@@ -27,7 +27,7 @@ final class ResourceUsageFormatter
             );
         }
 
-        $seconds = microtime(true) - $_SERVER['REQUEST_TIME_FLOAT'];
+        $seconds = microtime(true) - ScalarCoercion::toFloat($_SERVER['REQUEST_TIME_FLOAT']);
 
         return sprintf(
             'Time: %s, Memory: %s',

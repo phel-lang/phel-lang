@@ -9,6 +9,7 @@ use Phel\Api\Transfer\Completion;
 use Phel\Api\Transfer\Diagnostic;
 use Phel\Api\Transfer\Location;
 use Phel\Api\Transfer\ProjectIndex;
+use Phel\Shared\ScalarCoercion;
 use Throwable;
 
 use function is_array;
@@ -80,8 +81,8 @@ final class JsonRpcDispatcher
             'analyzeSource' => array_map(
                 static fn(Diagnostic $d): array => $d->toArray(),
                 $this->facade->analyzeSource(
-                    (string) ($params['source'] ?? ''),
-                    (string) ($params['uri'] ?? ''),
+                    ScalarCoercion::toString($params['source'] ?? null),
+                    ScalarCoercion::toString($params['uri'] ?? null),
                 ),
             ),
             'indexProject' => $this->indexProject($params),
@@ -125,8 +126,8 @@ final class JsonRpcDispatcher
         $index = $this->requireIndex();
         $definition = $this->facade->resolveSymbol(
             $index,
-            (string) ($params['namespace'] ?? ''),
-            (string) ($params['symbol'] ?? ''),
+            ScalarCoercion::toString($params['namespace'] ?? null),
+            ScalarCoercion::toString($params['symbol'] ?? null),
         );
 
         return $definition?->toArray();
@@ -142,8 +143,8 @@ final class JsonRpcDispatcher
         $index = $this->requireIndex();
         $locations = $this->facade->findReferences(
             $index,
-            (string) ($params['namespace'] ?? ''),
-            (string) ($params['symbol'] ?? ''),
+            ScalarCoercion::toString($params['namespace'] ?? null),
+            ScalarCoercion::toString($params['symbol'] ?? null),
         );
 
         return array_map(static fn(Location $loc): array => $loc->toArray(), $locations);
@@ -159,7 +160,7 @@ final class JsonRpcDispatcher
         $index = $this->requireIndex();
 
         $completions = $this->facade->completeAtPoint(
-            (string) ($params['source'] ?? ''),
+            ScalarCoercion::toString($params['source'] ?? null),
             is_int($params['line'] ?? null) ? $params['line'] : 1,
             is_int($params['col'] ?? null) ? $params['col'] : 1,
             $index,

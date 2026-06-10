@@ -6,6 +6,11 @@ namespace Phel\Shared\Printer\TypePrinter;
 
 use ReflectionClass;
 
+use function is_string;
+use function str_replace;
+use function strrpos;
+use function substr;
+
 /**
  * @implements TypePrinterInterface<object>
  */
@@ -29,16 +34,15 @@ final class FnPrinter implements TypePrinterInterface
     {
         $boundTo = new ReflectionClass($form)->getConstant('BOUND_TO');
 
-        if ($boundTo === false || $boundTo === '') {
+        if (!is_string($boundTo) || $boundTo === '') {
             return null;
         }
 
-        $lastSeparator = strrpos((string) $boundTo, '\\');
+        $lastSeparator = strrpos($boundTo, '\\');
         $encodedName = $lastSeparator !== false
-            ? substr((string) $boundTo, $lastSeparator + 1)
+            ? substr($boundTo, $lastSeparator + 1)
             : $boundTo;
 
-        /** @var string */
         return str_replace('_', '-', $encodedName);
     }
 }

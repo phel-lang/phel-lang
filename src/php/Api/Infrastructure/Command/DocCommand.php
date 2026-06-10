@@ -9,6 +9,7 @@ use Gacela\Framework\ServiceResolverAwareTrait;
 use InvalidArgumentException;
 use Phel\Api\ApiFacade;
 use Phel\Api\Transfer\PhelFunction;
+use Phel\Shared\ScalarCoercion;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Helper\Table;
 use Symfony\Component\Console\Input\InputArgument;
@@ -54,13 +55,13 @@ final class DocCommand extends Command
 
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
-        $namespaces = $this->normalizeNamespaces($input->getOption(self::OPTION_NAMESPACES));
+        $namespaces = $this->normalizeNamespaces(ScalarCoercion::toStringList($input->getOption(self::OPTION_NAMESPACES)));
         $phelFunctions = $this->getFacade()->getPhelFunctions($namespaces);
 
-        $search = $input->getArgument('search');
+        $search = ScalarCoercion::toString($input->getArgument('search'));
         $normalized = $this->normalizeGroupedFunctions($phelFunctions, $search);
 
-        $format = strtolower((string) $input->getOption(self::OPTION_FORMAT));
+        $format = strtolower(ScalarCoercion::toString($input->getOption(self::OPTION_FORMAT)));
         if (!in_array($format, self::AVAILABLE_FORMATS, true)) {
             $message = sprintf(
                 'Invalid format "%s". Allowed values: %s',
@@ -209,7 +210,7 @@ final class DocCommand extends Command
                 'signatures' => $phelFunction->signatures,
                 'doc' => $phelFunction->doc,
                 'description' => $description,
-                'example' => (string) ($phelFunction->meta['example'] ?? ''),
+                'example' => ScalarCoercion::toString($phelFunction->meta['example'] ?? null),
                 'githubUrl' => $phelFunction->githubUrl,
                 'docUrl' => $phelFunction->docUrl,
                 'percent' => (int) round($percent),

@@ -15,7 +15,12 @@ final class VLQ
     /** @var array<int, string> */
     private array $integerToChar = [];
 
-    /** @var array<string, int> */
+    /**
+     * Keyed by base64 character; PHP coerces the digit characters '0'-'9'
+     * to integer keys, hence the int|string key type.
+     *
+     * @var array<int|string, int>
+     */
     private array $charToInteger = [];
 
     /**
