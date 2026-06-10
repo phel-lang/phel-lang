@@ -21,6 +21,11 @@ use function sprintf;
  */
 final class NumericCoercion
 {
+    /**
+     * @phpstan-assert int|float|BigInt|Ratio|BigDecimal $value
+     *
+     * @psalm-assert int|float|BigInt|Ratio|BigDecimal $value
+     */
     public static function ensureNumeric(mixed $value): void
     {
         if (is_int($value) || is_float($value)) {
@@ -74,7 +79,13 @@ final class NumericCoercion
             return (float) (string) $value;
         }
 
-        return (float) $value;
+        if (is_int($value) || is_float($value)) {
+            return (float) $value;
+        }
+
+        throw new InvalidArgumentException(
+            sprintf('Cannot lift %s to float', get_debug_type($value)),
+        );
     }
 
     public static function toBigInt(mixed $value): BigInt
@@ -137,6 +148,12 @@ final class NumericCoercion
             return self::collapseBigInt($value->numerator()->divide($value->denominator()));
         }
 
-        return (int) $value;
+        if (is_float($value)) {
+            return (int) $value;
+        }
+
+        throw new InvalidArgumentException(
+            sprintf('Cannot truncate %s to an integer', get_debug_type($value)),
+        );
     }
 }

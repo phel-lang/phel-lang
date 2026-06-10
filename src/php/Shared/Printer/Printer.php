@@ -109,7 +109,7 @@ final readonly class Printer implements PrinterInterface
      * matched, so the dispatch is sound even though generic invariance
      * cannot relate `TypePrinterInterface<Concrete>` to the `<mixed>`
      * return type (an existential type PHPStan cannot express; see the
-     * documented ignore in phpstan-strict.neon).
+     * documented ignore in phpstan.neon).
      *
      * @return TypePrinterInterface<mixed>
      */

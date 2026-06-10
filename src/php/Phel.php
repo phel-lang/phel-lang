@@ -14,11 +14,13 @@ use Phel\Config\ProjectLayout;
 use Phel\Filesystem\FilesystemFacade;
 use Phel\Run\RunFacade;
 use Phel\Shared\PhelProjectDirectory;
+use Phel\Shared\ScalarCoercion;
 use RuntimeException;
 
 use function dirname;
 use function getcwd;
 use function in_array;
+use function is_array;
 
 /**
  * @internal use \Phel instead
@@ -65,7 +67,7 @@ class Phel
      */
     public static function getProgram(): string
     {
-        return $GLOBALS['__phel_program'] ?? '';
+        return ScalarCoercion::toString($GLOBALS['__phel_program'] ?? null);
     }
 
     /**
@@ -75,7 +77,7 @@ class Phel
      */
     public static function getArgv(): array
     {
-        return $GLOBALS['__phel_argv'] ?? [];
+        return ScalarCoercion::toStringList($GLOBALS['__phel_argv'] ?? null);
     }
 
     /**
@@ -199,8 +201,9 @@ class Phel
             return;
         }
 
-        $configured = (string) Config::getInstance()
-            ->get(PhelConfig::PHEL_DIR, '');
+        $configured = ScalarCoercion::toString(
+            Config::getInstance()->get(PhelConfig::PHEL_DIR, ''),
+        );
         if ($configured === '') {
             return;
         }
@@ -245,10 +248,17 @@ class Phel
      */
     private static function updateGlobalArgv(array $argv): void
     {
+        $globalArgv = $GLOBALS['argv'] ?? [];
+        if (!is_array($globalArgv)) {
+            return;
+        }
+
         foreach (array_filter($argv) as $value) {
-            if (!in_array($value, $GLOBALS['argv'], true)) {
-                $GLOBALS['argv'][] = $value;
+            if (!in_array($value, $globalArgv, true)) {
+                $globalArgv[] = $value;
             }
         }
+
+        $GLOBALS['argv'] = $globalArgv;
     }
 }
