@@ -10,6 +10,7 @@ use Phel\Lang\Registry;
 use Phel\Run\Application\Test\CpuCountDetector;
 use Phel\Run\Domain\Test\TestCommandOptions;
 use Phel\Shared\PhelProjectDirectory;
+use Phel\Shared\ScalarCoercion;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 
@@ -93,7 +94,7 @@ final readonly class TestCommandOptionParser
             TestCommandOptions::LIST_ONLY => $listOnly,
             TestCommandOptions::ONLY_TESTS => $lastFailed ? $this->readLastFailed() : [],
             TestCommandOptions::LAST_FAILED_FILE => $listOnly ? null : $lastFailedFile,
-            TestCommandOptions::SLOWEST => (int) $input->getOption(self::OPT_SLOWEST),
+            TestCommandOptions::SLOWEST => ScalarCoercion::toInt($input->getOption(self::OPT_SLOWEST)),
             TestCommandOptions::REPEAT => $this->parseRepeat($input),
             TestCommandOptions::SEED => $this->parseSeed($input),
             TestCommandOptions::RANDOM_ORDER => (bool) $input->getOption(self::OPT_RANDOM_ORDER),
@@ -139,7 +140,7 @@ final readonly class TestCommandOptionParser
         if (!is_numeric($raw)) {
             throw new InvalidArgumentException(sprintf(
                 '--parallel must be an integer >= 1, "auto", or "max", got %s.',
-                is_string($raw) ? $raw : (string) $raw,
+                ScalarCoercion::toString($raw),
             ));
         }
 
@@ -186,7 +187,7 @@ final readonly class TestCommandOptionParser
         if (!is_numeric($raw) || (int) $raw < 1) {
             throw new InvalidArgumentException(sprintf(
                 '--repeat must be a positive integer, got %s.',
-                (string) $raw,
+                ScalarCoercion::toString($raw),
             ));
         }
 
@@ -201,7 +202,7 @@ final readonly class TestCommandOptionParser
         }
 
         if (!is_numeric($raw)) {
-            throw new InvalidArgumentException(sprintf('--seed must be an integer, got %s.', (string) $raw));
+            throw new InvalidArgumentException(sprintf('--seed must be an integer, got %s.', ScalarCoercion::toString($raw)));
         }
 
         return (int) $raw;

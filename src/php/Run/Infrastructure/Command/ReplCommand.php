@@ -114,8 +114,9 @@ final class ReplCommand extends Command
             $this->getFacade()->loadPhelNamespaces($this->replStartupFile);
             Phel::addDefinition(CompilerConstants::PHEL_CORE_NAMESPACE, ReplConstants::REPL_MODE, true);
 
-            $this->history = $this->getFactory()->createReplHistory();
-            $this->history->register();
+            $history = $this->getFactory()->createReplHistory();
+            $this->history = $history;
+            $history->register();
 
             $this->loopReadLineAndAnalyze();
 

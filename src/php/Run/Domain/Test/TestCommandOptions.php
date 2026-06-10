@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Phel\Run\Domain\Test;
 
 use Phel\Shared\Printer\Printer;
+use Phel\Shared\ScalarCoercion;
 
 use function is_array;
 use function is_int;
@@ -97,12 +98,12 @@ final readonly class TestCommandOptions
             $lastFailedFile = null;
         }
 
-        $slowest = (int) ($options[self::SLOWEST] ?? 0);
+        $slowest = ScalarCoercion::toInt($options[self::SLOWEST] ?? null);
         if ($slowest < 0) {
             $slowest = 0;
         }
 
-        $repeat = (int) ($options[self::REPEAT] ?? 1);
+        $repeat = ScalarCoercion::toInt($options[self::REPEAT] ?? null, 1);
         if ($repeat < 1) {
             $repeat = 1;
         }
@@ -110,8 +111,10 @@ final readonly class TestCommandOptions
         $seedRaw = $options[self::SEED] ?? null;
         $seed = is_int($seedRaw) ? $seedRaw : null;
 
+        $filterRaw = $options[self::FILTER] ?? null;
+
         return new self(
-            $options[self::FILTER] ?? null,
+            is_string($filterRaw) ? $filterRaw : null,
             !empty($options[self::TESTDOX]),
             !empty($options[self::FAIL_FAST]),
             !empty($options[self::STACK_TRACE]),

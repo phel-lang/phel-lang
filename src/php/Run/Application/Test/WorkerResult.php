@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace Phel\Run\Application\Test;
 
+use Phel\Shared\ScalarCoercion;
+
 use function is_array;
 use function is_string;
 use function sprintf;
@@ -33,14 +35,18 @@ final readonly class WorkerResult
     public static function fromFrame(array $frame): self
     {
         $rawCounts = $frame[FrameKey::COUNTS] ?? [];
+        if (!is_array($rawCounts)) {
+            $rawCounts = [];
+        }
 
+        /** @var array<string, mixed> $rawCounts */
         return new self(
-            (int) ($frame[FrameKey::INDEX] ?? -1),
-            (string) ($frame[FrameKey::NS] ?? ''),
+            ScalarCoercion::toInt($frame[FrameKey::INDEX] ?? null, -1),
+            ScalarCoercion::toString($frame[FrameKey::NS] ?? null),
             (bool) ($frame[FrameKey::OK] ?? false),
-            (string) ($frame[FrameKey::OUTPUT] ?? ''),
+            ScalarCoercion::toString($frame[FrameKey::OUTPUT] ?? null),
             self::extractStringList($frame[FrameKey::FAILED_TESTS] ?? null),
-            is_array($rawCounts) ? Counts::fromArray($rawCounts) : new Counts(),
+            Counts::fromArray($rawCounts),
         );
     }
 

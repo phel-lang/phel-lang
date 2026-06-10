@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace Phel\Run\Application\Test;
 
+use Phel\Shared\ScalarCoercion;
+
 /**
  * Decoded parent-to-worker frame. Sibling of {@see WorkerResult}: both
  * value objects encapsulate the JSON wire format so the orchestrator
@@ -25,10 +27,10 @@ final readonly class WorkRequest
     public static function fromFrame(array $frame): self
     {
         return new self(
-            (int) ($frame[FrameKey::INDEX] ?? -1),
-            (string) ($frame[FrameKey::NS] ?? ''),
-            (string) ($frame[FrameKey::FILE] ?? ''),
-            (string) ($frame[FrameKey::OPTIONS] ?? '{}'),
+            ScalarCoercion::toInt($frame[FrameKey::INDEX] ?? null, -1),
+            ScalarCoercion::toString($frame[FrameKey::NS] ?? null),
+            ScalarCoercion::toString($frame[FrameKey::FILE] ?? null),
+            ScalarCoercion::toString($frame[FrameKey::OPTIONS] ?? null, '{}'),
         );
     }
 

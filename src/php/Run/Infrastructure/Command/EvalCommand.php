@@ -9,6 +9,7 @@ use Gacela\Framework\ServiceResolverAwareTrait;
 use Phel\Run\Domain\StdinReaderInterface;
 use Phel\Run\RunFacade;
 use Phel\Run\RunFactory;
+use Phel\Shared\ScalarCoercion;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
@@ -47,7 +48,7 @@ final class EvalCommand extends Command
     {
         $this->getFacade()->loadPhelNamespaces();
 
-        $expression = (string) ($input->getArgument('expression') ?? '');
+        $expression = ScalarCoercion::toString($input->getArgument('expression') ?? null);
         if ($expression === self::STDIN_MARKER) {
             $expression = ($this->stdinReader ?? $this->getFactory()->createStdinReader())->read();
         }

@@ -41,13 +41,11 @@ class NsCommand extends Command
         $nsToInspect = $input->getArgument('inspect');
         $isSimple = $input->getOption('simple') === true;
 
-        if ($nsToInspect === null) {
+        if (!is_string($nsToInspect)) {
             return $this->listLoadedNamespaces($output, $isSimple);
         }
 
-        $namespace = is_string($nsToInspect) ? Munge::canonicalNs($nsToInspect) : $nsToInspect;
-
-        return $this->displayNamespaceDependencies($namespace, $output, $isSimple);
+        return $this->displayNamespaceDependencies(Munge::canonicalNs($nsToInspect), $output, $isSimple);
     }
 
     private function listLoadedNamespaces(OutputInterface $output, bool $simple): int

@@ -9,6 +9,7 @@ use Phel\Run\Domain\Agent\AgentPlatform;
 use RecursiveDirectoryIterator;
 use RecursiveIteratorIterator;
 use RuntimeException;
+use SplFileInfo;
 
 use function dirname;
 use function in_array;
@@ -148,6 +149,10 @@ final class AgentInstaller
         );
 
         foreach ($iterator as $item) {
+            if (!$item instanceof SplFileInfo) {
+                continue;
+            }
+
             $sub = $iterator->getSubPathname();
             if (in_array(explode('/', $sub, 2)[0], $skipTopLevel, true)) {
                 continue;
@@ -170,6 +175,10 @@ final class AgentInstaller
         );
 
         foreach ($iterator as $item) {
+            if (!$item instanceof SplFileInfo) {
+                continue;
+            }
+
             if ($item->isDir()) {
                 rmdir($item->getPathname());
             } else {

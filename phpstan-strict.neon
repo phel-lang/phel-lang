@@ -48,6 +48,7 @@ parameters:
             path: src/php/Shared/Printer/Printer.php
     paths!:
         - %currentWorkingDirectory%/src/php/Api/
+        - %currentWorkingDirectory%/src/php/Build/
         - %currentWorkingDirectory%/src/php/Command/
         - %currentWorkingDirectory%/src/php/Compiler/
         - %currentWorkingDirectory%/src/php/Config/
@@ -60,5 +61,6 @@ parameters:
         - %currentWorkingDirectory%/src/php/Lsp/
         - %currentWorkingDirectory%/src/php/Nrepl/
         - %currentWorkingDirectory%/src/php/Profile/
+        - %currentWorkingDirectory%/src/php/Run/
         - %currentWorkingDirectory%/src/php/Shared/
         - %currentWorkingDirectory%/src/php/Watch/

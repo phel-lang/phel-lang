@@ -9,6 +9,7 @@ use Gacela\Framework\ServiceResolverAwareTrait;
 use Phel\Run\Domain\StdinReaderInterface;
 use Phel\Run\RunFacade;
 use Phel\Run\RunFactory;
+use Phel\Shared\ScalarCoercion;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
@@ -66,7 +67,7 @@ final class CompileCommand extends Command
     {
         $stderr = $output instanceof ConsoleOutputInterface ? $output->getErrorOutput() : $output;
 
-        $target = (string) $input->getOption('target');
+        $target = ScalarCoercion::toString($input->getOption('target'));
         if (!in_array($target, self::SUPPORTED_TARGETS, true)) {
             $stderr->writeln(
                 sprintf('Unsupported target "%s". Supported: %s', $target, implode(', ', self::SUPPORTED_TARGETS)),
@@ -76,7 +77,7 @@ final class CompileCommand extends Command
 
         $this->getFacade()->loadPhelNamespaces();
 
-        $source = $this->resolveSource((string) ($input->getArgument('source') ?? ''));
+        $source = $this->resolveSource(ScalarCoercion::toString($input->getArgument('source') ?? null));
 
         $ok = $this->getFactory()
             ->createCompileExecutor()

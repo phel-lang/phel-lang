@@ -80,7 +80,9 @@ final class WorkerFrame
         $length = (int) hexdec(substr($header, 0, self::HEADER_HEX_DIGITS));
         $body = '';
         while (strlen($body) < $length) {
-            $chunk = fread($stream, $length - strlen($body));
+            // The loop guard keeps the remainder positive; max() proves the
+            // int<1, max> bound fread() requires for its length argument.
+            $chunk = fread($stream, max(1, $length - strlen($body)));
             if ($chunk === false || $chunk === '') {
                 return null;
             }

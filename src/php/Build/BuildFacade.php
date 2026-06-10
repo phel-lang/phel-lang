@@ -83,8 +83,8 @@ final class BuildFacade extends AbstractFacade implements BuildFacadeInterface
      * namespaces from all Phel files in the give directories and then return a
      * topological sorted subset of this namespace information.
      *
-     * @param string[] $directories The list of the directories
-     * @param string[] $ns          A list of namespace for which we should find the subset
+     * @param list<string> $directories The list of the directories
+     * @param list<string> $ns          A list of namespace for which we should find the subset
      *
      * @return list<NamespaceInformation>
      */

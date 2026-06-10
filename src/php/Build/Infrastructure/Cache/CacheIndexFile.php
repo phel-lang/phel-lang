@@ -175,9 +175,15 @@ final readonly class CacheIndexFile
             return [];
         }
 
+        $rawEntries = $data['entries'] ?? [];
+        if (!is_array($rawEntries)) {
+            return [];
+        }
+
         $entries = [];
-        foreach ($data['entries'] ?? [] as $sourcePath => $entryData) {
-            if (is_array($entryData)
+        foreach ($rawEntries as $sourcePath => $entryData) {
+            if (is_string($sourcePath)
+                && is_array($entryData)
                 && isset($entryData['namespace'], $entryData['source_hash'], $entryData['compiled_path'])
                 && is_string($entryData['namespace'])
                 && is_string($entryData['source_hash'])

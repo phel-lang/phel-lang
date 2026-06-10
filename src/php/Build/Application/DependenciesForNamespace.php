@@ -11,6 +11,7 @@ use SplQueue;
 
 use function array_key_exists;
 use function in_array;
+use function is_string;
 
 final readonly class DependenciesForNamespace
 {
@@ -49,6 +50,9 @@ final readonly class DependenciesForNamespace
         $requiredNamespaces = [];
         while (!$queue->isEmpty()) {
             $currentNs = $queue->dequeue();
+            if (!is_string($currentNs)) {
+                continue;
+            }
 
             if (!array_key_exists($currentNs, $requiredNamespaces)
                 && array_key_exists($currentNs, $index)

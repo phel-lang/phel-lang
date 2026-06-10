@@ -7,6 +7,7 @@ namespace Phel\Run;
 use Gacela\Framework\AbstractConfig;
 use Phel\Config\PhelConfig;
 use Phel\Shared\CompileOptions;
+use Phel\Shared\ScalarCoercion;
 
 final class RunConfig extends AbstractConfig
 {
@@ -20,6 +21,6 @@ final class RunConfig extends AbstractConfig
 
     public function getOptimizationLevel(): int
     {
-        return max(0, (int) $this->get(PhelConfig::OPTIMIZATION_LEVEL, CompileOptions::DEFAULT_OPTIMIZATION_LEVEL));
+        return max(0, ScalarCoercion::toInt($this->get(PhelConfig::OPTIMIZATION_LEVEL, CompileOptions::DEFAULT_OPTIMIZATION_LEVEL)));
     }
 }

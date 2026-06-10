@@ -17,6 +17,7 @@ use Phel\Compiler\Domain\Lexer\Exceptions\LexerValueException;
 use Phel\Compiler\Domain\Parser\Exceptions\AbstractParserException;
 use Phel\Compiler\Domain\Reader\Exceptions\ReaderException;
 use Phel\Lang\Symbol;
+use Phel\Lang\TypeInterface;
 use Phel\Shared\Facade\CompilerFacadeInterface;
 use Phel\Shared\NamespaceInformation;
 use Phel\Shared\Parser\Node\NodeInterface;
@@ -25,6 +26,9 @@ use RecursiveDirectoryIterator;
 use RecursiveIteratorIterator;
 use RegexIterator;
 use UnexpectedValueException;
+
+use function array_values;
+use function is_array;
 
 final readonly class NamespaceExtractor implements NamespaceExtractorInterface
 {
@@ -60,6 +64,7 @@ final readonly class NamespaceExtractor implements NamespaceExtractorInterface
             }
 
             $readerResult = $this->compilerFacade->read($parseTree);
+            /** @var bool|float|int|string|TypeInterface|null $ast */
             $ast = $readerResult->getAst();
             $node = $this->compilerFacade->analyze($ast, NodeEnvironment::empty());
 
@@ -69,10 +74,10 @@ final readonly class NamespaceExtractor implements NamespaceExtractorInterface
                 return new NamespaceInformation(
                     $realFile !== false ? $realFile : $path,
                     $node->getNamespace(),
-                    array_unique(array_map(
+                    array_values(array_unique(array_map(
                         static fn(Symbol $s): string => $s->getFullName(),
                         $node->getRequireNs(),
-                    )),
+                    ))),
                     isPrimaryDefinition: true,
                 );
             }
@@ -137,6 +142,11 @@ final readonly class NamespaceExtractor implements NamespaceExtractorInterface
 
             $result = [];
             foreach ($phelIterator as $file) {
+                if (!is_array($file)) {
+                    continue;
+                }
+
+                /** @var array<int, string> $file */
                 if ($this->excludedPaths->contains($file[0], $realpath)) {
                     continue;
                 }

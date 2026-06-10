@@ -8,6 +8,7 @@ use Phel\Shared\Exceptions\AbstractLocatedException;
 use Phel\Shared\Facade\ApiFacadeInterface;
 use Phel\Shared\Facade\CommandFacadeInterface;
 use Phel\Shared\Parser\ReadModel\CodeSnippet;
+use Phel\Shared\ScalarCoercion;
 use Throwable;
 
 final readonly class ReplCommandSystemIo implements ReplCommandIoInterface
@@ -91,7 +92,7 @@ final readonly class ReplCommandSystemIo implements ReplCommandIoInterface
 
     public function isBracketedPasteSupported(): bool
     {
-        $haystack = readline_info('library_version') ?? '';
+        $haystack = ScalarCoercion::toString(readline_info('library_version'));
 
         return stripos($haystack, 'editline') === false;
     }

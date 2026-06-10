@@ -40,9 +40,11 @@ use Phel\Shared\Facade\CommandFacadeInterface;
 use Phel\Shared\Facade\CompilerFacadeInterface;
 use Phel\Shared\Printer\Printer;
 use Phel\Shared\Printer\PrinterInterface;
+use Phel\Shared\ScalarCoercion;
 use Phel\Shared\VersionResolver;
 
 use function extension_loaded;
+use function is_array;
 
 /**
  * @extends AbstractFactory<RunConfig>
@@ -59,17 +61,23 @@ class RunFactory extends AbstractFactory
 
     public function getCommandFacade(): CommandFacadeInterface
     {
-        return $this->getProvidedDependency(RunProvider::FACADE_COMMAND);
+        /** @var CommandFacadeInterface $facade */
+        $facade = $this->getProvidedDependency(RunProvider::FACADE_COMMAND);
+        return $facade;
     }
 
     public function getBuildFacade(): BuildFacadeInterface
     {
-        return $this->getProvidedDependency(RunProvider::FACADE_BUILD);
+        /** @var BuildFacadeInterface $facade */
+        $facade = $this->getProvidedDependency(RunProvider::FACADE_BUILD);
+        return $facade;
     }
 
     public function getCompilerFacade(): CompilerFacadeInterface
     {
-        return $this->getProvidedDependency(RunProvider::FACADE_COMPILER);
+        /** @var CompilerFacadeInterface $facade */
+        $facade = $this->getProvidedDependency(RunProvider::FACADE_COMPILER);
+        return $facade;
     }
 
     public function createNamespaceCollector(): NamespaceCollector
@@ -174,7 +182,9 @@ class RunFactory extends AbstractFactory
 
     public function getApiFacade(): ApiFacadeInterface
     {
-        return $this->getProvidedDependency(RunProvider::FACADE_API);
+        /** @var ApiFacadeInterface $facade */
+        $facade = $this->getProvidedDependency(RunProvider::FACADE_API);
+        return $facade;
     }
 
     public function createVersionResolver(): VersionResolver
@@ -255,9 +265,15 @@ class RunFactory extends AbstractFactory
 
     private function resolvePhelBinaryPath(): string
     {
-        $script = $_SERVER['SCRIPT_FILENAME'] ?? $_SERVER['argv'][0] ?? '';
+        $script = ScalarCoercion::toString($_SERVER['SCRIPT_FILENAME'] ?? null);
         if ($script !== '') {
             return $script;
+        }
+
+        $argv = $_SERVER['argv'] ?? null;
+        $firstArg = is_array($argv) ? ScalarCoercion::toString($argv[0] ?? null) : '';
+        if ($firstArg !== '') {
+            return $firstArg;
         }
 
         return __DIR__ . '/../../../bin/phel';
