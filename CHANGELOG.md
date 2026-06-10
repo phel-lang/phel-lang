@@ -5,57 +5,56 @@ All notable changes to this project will be documented in this file.
 ## Unreleased
 
 Project-configuration DX pass: a `phel config` command to inspect the merged
-configuration, a full [configuration reference](docs/configuration.md),
-documented and composable `with*()` semantics, a self-documenting `phel init`
-template, and several build/cache fixes.
+config, a [configuration reference](docs/configuration.md), composable
+`with*()` setters, a self-documenting `phel init`, plus build/cache fixes.
 
 ### Added
 
-- `PhelConfig::withOptimizationLevel(int)` (`optimization-level`, default 0): `phel build`/`run`/`test`/`eval`/`compile` compile at the configured level, making level 2 (`^:pure` call-site inlining + self-recursive tail-call rewriting) usable in real projects; REPL/nREPL stay at level 0 (#2387)
-- `phel build -O <level>` (`--optimization-level`): override that takes precedence over the configured level and invalidates the incremental build and compiled-code caches
-- `phel config`: prints the effective merged config as JSON with its provenance (config file found or auto-detected, `phel-config-local.php` applied, `PHEL_DIR`); `--json` for machine-readable output
-- `PhelConfig::withBuildConfig()`/`withExportConfig()` also accept a configurator closure (`fn (PhelBuildConfig $b) => $b->withDestDir('dist')`) that patches the nested config in place, so they compose with the flattened setters regardless of call order
+- `PhelConfig::withOptimizationLevel(int)` (default 0): `build`/`run`/`test`/`eval`/`compile` honor it; level 2 enables `^:pure` call-site inlining + self-recursive tail-call rewriting. REPL/nREPL stay at 0 (#2387)
+- `phel build -O <level>`: per-run override of the configured level; invalidates the incremental build and compiled-code caches
+- `phel config`: prints the effective merged config with its provenance (config file vs auto-detected, `phel-config-local.php`, `PHEL_DIR`); `--json` for machine output
+- `PhelConfig::withBuildConfig()`/`withExportConfig()` also accept a configurator closure (`fn ($b) => $b->withDestDir('dist')`), composing with the flattened setters in any order
 
 ### Changed
 
-- `phel init` scaffolds a `phel-config.php` with a docs link and commented-out common tweaks
+- `phel init` scaffolds a `phel-config.php` with a docs link and commented-out tweaks
 
 ### Fixed
 
-- `PhelConfig` `cacheDir` is normalized in the constructor (trailing separator stripped), so `new PhelConfig(cacheDir: 'foo/')` and `->withCacheDir('foo/')` agree
-- `PhelConfig` build withers are order-independent: `withMainPhelNamespace(...)` no longer pins the entry point, so a later `withBuildDestDir('dist')` yields `dist/index.php`
-- `phel build` runtime errors map back to Phel source: the error printer reads the sibling `.php.map`/`.phel` artifacts and reports `out/foo.phel:42` instead of the generated PHP line
-- Inline source maps in eval temp files are detected again: the extractor scans past `<?php` and `declare` statements instead of only the first two lines
-- editing `phel-config.php` takes effect immediately again: Phel fingerprints the merged-config cache inputs and clears Gacela's persisted `gacela-merged-config.php` when they change, instead of replaying a stale cache (Gacela `>= 1.15` auto-warms and reloads it with no freshness check); bumps the requirement to `gacela-project/gacela: ^1.15`
+- `cacheDir` is normalized in the constructor, so `new PhelConfig(cacheDir: 'foo/')` and `->withCacheDir('foo/')` agree
+- Build withers are order-independent: `withMainPhelNamespace(...)` no longer pins the entry point, so a later `withBuildDestDir('dist')` yields `dist/index.php`
+- `phel build` runtime errors map back to Phel source (`out/foo.phel:42`) via the sibling `.php.map`/`.phel` artifacts
+- Inline source maps in eval temp files are detected again (the extractor scans past `<?php`/`declare`)
+- Editing `phel-config.php` takes effect immediately again: Phel fingerprints the merged-config cache inputs and clears Gacela's stale `gacela-merged-config.php` (Gacela `>= 1.15` reloads it with no freshness check); bumps to `gacela-project/gacela: ^1.15`
 
 ## [0.43.0](https://github.com/phel-lang/phel-lang/compare/v0.42.0...v0.43.0) - 2026-06-09
 
 ### Added
 
-- `php/callable`: first-class callable interop emitting native PHP 8.1 `(...)` syntax for free functions (`(php/callable \strlen)`), static methods (`(php/callable Foo bar)`), and instance methods (`(php/callable obj method)`); no `fn` wrapper
-- `defstruct` `^:php/readonly`: emits typed fields as PHP `readonly` properties (untagged default to `readonly mixed`); `put`/`assoc` still return updated copies via a constructor-rebuild override
-- `defenum` methods and interfaces: after the cases, an enum can implement interfaces and carry a `:php` block of methods, for both pure and backed enums
-- `^:php/override`: emits PHP 8.3 `#[\Override]` on a generated method (struct/enum interface impls, `definterface` methods); inline struct/enum methods also accept `:php/attr` and `:php/doc`
-- `definterface` typed class constants: a trailing `:php/const` block emits PHP 8.3 typed constants, e.g. `(^{:tag int} MAX 100)` → `const int MAX = 100;` (int/float/string/bool/nil values)
+- `php/callable`: first-class callable interop emitting PHP 8.1 `(...)` for free functions (`(php/callable \strlen)`), static methods (`(php/callable Foo bar)`), and instance methods (`(php/callable obj method)`)
+- `defstruct` `^:php/readonly`: typed fields become PHP `readonly` properties (untagged → `readonly mixed`); `put`/`assoc` still return copies via a constructor rebuild
+- `defenum` methods and interfaces: after the cases, an enum can implement interfaces and carry a `:php` method block (pure and backed enums)
+- `^:php/override`: emits PHP 8.3 `#[\Override]` on generated methods (struct/enum interface impls, `definterface` methods); inline struct/enum methods also accept `:php/attr` and `:php/doc`
+- `definterface` typed class constants: a trailing `:php/const` block emits PHP 8.3 typed constants, e.g. `(^{:tag int} MAX 100)` → `const int MAX = 100;`
 
 ### Performance
 
-- Compiler: `NodeEnvironment` local lookups are now O(1) hash-map indexed instead of linear/nested scans, so symbol resolution no longer degrades with `let`/`fn`/`loop` nesting depth (~1.7× faster at depth 20)
-- `Symbol::hash()` caches its `crc32` in a readonly property (mirroring `Keyword`), so repeated hashing of the same symbol during compilation no longer recomputes (~1.9× faster per repeated hash)
-- Analyzer: static-set membership checks in the type analyzer (`CallTypeExpectationResolver`, `ReturnTypeInferrer`, `ConstantFolder`, `DefSymbol`) now use `isset` keyed-map lookups instead of `in_array` scans (~3.7× faster per check)
-- `LetSimplifier`: the unused-binding drop pass tracks live references in a name-keyed set, turning its O(n²) scan-and-rebuild into O(n) over a `let`'s bindings (matters for `let` blocks with many bindings)
-- Parser: `AtomParser` skips the anchored number-regex gauntlet for atoms that cannot start a number (first char not a digit/sign/dot), so symbol tokens parse straight through (~1.5× faster per symbol atom); `Parser` token-stream dispatch uses an `isset` keyed-map lookup instead of `in_array`
+- `NodeEnvironment` local lookups are now O(1) hash-indexed, so symbol resolution no longer degrades with `let`/`fn`/`loop` nesting depth (~1.7× faster at depth 20)
+- `Symbol::hash()` caches its `crc32` in a readonly property (like `Keyword`), so repeated hashing no longer recomputes (~1.9× faster)
+- Analyzer type-checker set-membership (`CallTypeExpectationResolver`, `ReturnTypeInferrer`, `ConstantFolder`, `DefSymbol`) uses `isset` maps instead of `in_array` scans (~3.7× faster)
+- `LetSimplifier`: the unused-binding pass tracks live references in a set, turning its O(n²) scan into O(n) over a `let`'s bindings
+- Parser: `AtomParser` skips the number-regex for atoms that cannot start a number (~1.5× faster per symbol atom); `Parser` dispatch uses an `isset` map instead of `in_array`
 
 ### Changed
 
-- Architecture: the satellite-module factories (`Lsp`, `Lint`, `Watch`, `Nrepl`, `Profile`) now inject the `Phel\Shared\Facade\*FacadeInterface` contracts instead of neighbour modules' concrete facades, matching the core modules and the project's "inject interfaces" rule; `RunFacadeInterface` gains `autoDetectEntryPoint(): ?string` so the contract covers what `Profile` consumes
-- Architecture: the eval-result value objects (`EvalResult`, `EvalError`, `StackFrame`) moved from `Run\Domain\Repl` to the leaf `Phel\Shared\Eval` namespace, so `RunFacadeInterface::structuredEval()` and its Nrepl/Watch consumers no longer reach into another module's `Domain`. The compiler orchestration that produced them (formerly `EvalResult::fromEval`) now lives in `Run\Application\StructuredEvaluator`, keeping the moved VOs logic-free
-- Architecture: version detection consolidated into a new `Phel\Shared\VersionResolver` (git/Composer/official-release gathering on top of `VersionFinder`); both Console and Run resolve their version through it, removing Run's structural dependency on the whole Console module (it previously injected `ConsoleFacade` solely for `getVersion()`)
-- Architecture: the pure Base64-VLQ codec moved from `Compiler\Domain\Emitter\OutputEmitter\SourceMap\VLQ` to the leaf `Phel\Shared\SourceMap\VLQ` (it carries no compiler state and is a stateless utility like `Munge`/`VersionFinder`); the SourceMap producer/consumer keep their emitter behaviour in Compiler
+- Architecture: satellite-module factories (`Lsp`, `Lint`, `Watch`, `Nrepl`, `Profile`) inject the `Phel\Shared\Facade\*FacadeInterface` contracts instead of neighbour modules' concrete facades, matching the "inject interfaces" rule; `RunFacadeInterface` gains `autoDetectEntryPoint(): ?string`
+- Architecture: the eval-result value objects (`EvalResult`, `EvalError`, `StackFrame`) moved to the leaf `Phel\Shared\Eval` namespace, and their orchestration to `Run\Application\StructuredEvaluator`, keeping the VOs logic-free
+- Architecture: version detection consolidated into `Phel\Shared\VersionResolver`; Console and Run both resolve through it, removing Run's dependency on the whole Console module
+- Architecture: the pure Base64-VLQ codec moved to the leaf `Phel\Shared\SourceMap\VLQ` (stateless, like `Munge`); the SourceMap producer/consumer stay in Compiler
 
 ### Fixed
 
-- `:tag`: a `never`/`void`/`null` return tag on a value-returning function is now a compile error instead of PHP that fatals at load; `mixed`, `?T`, and union/intersection tags still pass
+- `:tag`: a `never`/`void`/`null` return tag on a value-returning function is now a compile error instead of a load-time fatal; `mixed`, `?T`, and union/intersection tags still pass
 - `defenum`: the bare enum name now resolves to its PHP class, so `EnumName/case` access works
 
 ## [0.42.0](https://github.com/phel-lang/phel-lang/compare/v0.41.0...v0.42.0) - 2026-06-06
