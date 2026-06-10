@@ -9,8 +9,10 @@ use Phel\Command\Domain\CodeDirectories;
 use Phel\Config\PhelBuildConfig;
 use Phel\Config\PhelConfig;
 use Phel\Shared\PhelProjectDirectory;
+use Phel\Shared\ScalarCoercion;
 
 use function dirname;
+use function is_array;
 use function sprintf;
 
 final class CommandConfig extends AbstractConfig
@@ -28,6 +30,7 @@ final class CommandConfig extends AbstractConfig
     public function getCodeDirs(): CodeDirectories
     {
         $buildConfig = $this->get(PhelConfig::BUILD_CONFIG, []);
+        $buildConfig = is_array($buildConfig) ? $buildConfig : [];
 
         // Point at the parent `src` directory (which contains `phel/`) so
         // phel's own core library is discoverable whether phel runs from its
@@ -46,21 +49,21 @@ final class CommandConfig extends AbstractConfig
 
         return new CodeDirectories(
             $phelInternalSrcDir,
-            (array) $this->get(PhelConfig::SRC_DIRS, self::DEFAULT_SRC_DIRS),
-            (array) $this->get(PhelConfig::TEST_DIRS, self::DEFAULT_TEST_DIRS),
-            (string) ($buildConfig[PhelBuildConfig::DEST_DIR] ?? self::DEFAULT_OUTPUT_DIR),
+            ScalarCoercion::toStringList($this->get(PhelConfig::SRC_DIRS, self::DEFAULT_SRC_DIRS), self::DEFAULT_SRC_DIRS),
+            ScalarCoercion::toStringList($this->get(PhelConfig::TEST_DIRS, self::DEFAULT_TEST_DIRS), self::DEFAULT_TEST_DIRS),
+            ScalarCoercion::toString($buildConfig[PhelBuildConfig::DEST_DIR] ?? null, self::DEFAULT_OUTPUT_DIR),
         );
     }
 
     public function getVendorDir(): string
     {
-        return (string) $this->get(PhelConfig::VENDOR_DIR, self::DEFAULT_VENDOR_DIR);
+        return ScalarCoercion::toString($this->get(PhelConfig::VENDOR_DIR, self::DEFAULT_VENDOR_DIR), self::DEFAULT_VENDOR_DIR);
     }
 
     public function getErrorLogFile(): string
     {
-        $path = (string) $this->get(PhelConfig::ERROR_LOG_FILE, self::DEFAULT_ERROR_LOG_FILE);
-        $phelDir = (string) $this->get(PhelConfig::PHEL_DIR, '');
+        $path = ScalarCoercion::toString($this->get(PhelConfig::ERROR_LOG_FILE, self::DEFAULT_ERROR_LOG_FILE), self::DEFAULT_ERROR_LOG_FILE);
+        $phelDir = ScalarCoercion::toString($this->get(PhelConfig::PHEL_DIR, ''));
 
         return PhelProjectDirectory::resolve($this->getAppRootDir(), $path, $phelDir);
     }
@@ -74,10 +77,12 @@ final class CommandConfig extends AbstractConfig
     public function getStaleOutputHint(): string
     {
         $buildConfig = $this->get(PhelConfig::BUILD_CONFIG, []);
-        $outputDir = (string) ($buildConfig[PhelBuildConfig::DEST_DIR] ?? self::DEFAULT_OUTPUT_DIR);
+        $buildConfig = is_array($buildConfig) ? $buildConfig : [];
 
-        $cacheDir = (string) $this->get(PhelConfig::CACHE_DIR, '.phel/cache');
-        $phelDir = (string) $this->get(PhelConfig::PHEL_DIR, '');
+        $outputDir = ScalarCoercion::toString($buildConfig[PhelBuildConfig::DEST_DIR] ?? null, self::DEFAULT_OUTPUT_DIR);
+
+        $cacheDir = ScalarCoercion::toString($this->get(PhelConfig::CACHE_DIR, '.phel/cache'), '.phel/cache');
+        $phelDir = ScalarCoercion::toString($this->get(PhelConfig::PHEL_DIR, ''));
         $resolvedCacheDir = PhelProjectDirectory::resolve($this->getAppRootDir(), $cacheDir, $phelDir);
 
         return sprintf(

@@ -8,6 +8,7 @@ use Phel\Lang\Collections\LinkedList\PersistentListInterface;
 use Phel\Lang\Collections\Vector\PersistentVectorInterface;
 use Phel\Lang\Keyword;
 use Phel\Lang\Symbol;
+use Phel\Lang\TypeInterface;
 use Phel\Lint\Application\Config\RuleRegistry;
 use Phel\Lint\Domain\FileAnalysis;
 use Phel\Lint\Domain\LintRuleInterface;
@@ -81,7 +82,7 @@ final readonly class UnusedRequireRule implements LintRuleInterface
     /**
      * @param PersistentListInterface<mixed> $nsForm
      *
-     * @return list<array{alias:string, refers:list<string>, display:string, anchor: mixed}>
+     * @return list<array{alias:string, refers:list<string>, display:string, anchor: bool|float|int|string|TypeInterface|null}>
      */
     private function collectRequires(PersistentListInterface $nsForm): array
     {
@@ -98,7 +99,7 @@ final readonly class UnusedRequireRule implements LintRuleInterface
     /**
      * @param PersistentListInterface<mixed> $clause
      *
-     * @return list<array{alias:string, refers:list<string>, display:string, anchor: mixed}>
+     * @return list<array{alias:string, refers:list<string>, display:string, anchor: bool|float|int|string|TypeInterface|null}>
      */
     private function parseRequireClauseEntries(PersistentListInterface $clause): array
     {
@@ -127,7 +128,7 @@ final readonly class UnusedRequireRule implements LintRuleInterface
     /**
      * @param PersistentVectorInterface<mixed> $vector
      *
-     * @return array{alias:string, refers:list<string>, display:string, anchor: mixed}
+     * @return array{alias:string, refers:list<string>, display:string, anchor: bool|float|int|string|TypeInterface|null}
      */
     private function parseVectorEntry(PersistentVectorInterface $vector): array
     {
@@ -175,11 +176,12 @@ final readonly class UnusedRequireRule implements LintRuleInterface
     /**
      * @param PersistentListInterface<mixed> $clause
      *
-     * @return array{0: array{alias:string, refers:list<string>, display:string, anchor: mixed}, 1: int}
+     * @return array{0: array{alias:string, refers:list<string>, display:string, anchor: bool|float|int|string|TypeInterface|null}, 1: int}
      */
     private function parseFlatEntry(PersistentListInterface $clause, int $startIndex): array
     {
         $size = count($clause);
+        /** @var bool|float|int|string|TypeInterface|null $target */
         $target = $clause->get($startIndex);
         $alias = null;
         $refers = [];

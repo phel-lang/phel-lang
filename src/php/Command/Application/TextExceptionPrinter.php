@@ -19,6 +19,7 @@ use Phel\Shared\Parser\ReadModel\CodeSnippet;
 use ReflectionClass;
 use Throwable;
 
+use function is_string;
 use function sprintf;
 use function strlen;
 
@@ -150,7 +151,7 @@ final readonly class TextExceptionPrinter implements ExceptionPrinterInterface
                 $rf = new ReflectionClass($class);
                 if ($rf->implementsInterface(FnInterface::class)) {
                     $boundTo = $rf->getConstant('BOUND_TO');
-                    $fnName = $boundTo !== false ? $this->munge->decodeNs($boundTo) : '__invoke';
+                    $fnName = is_string($boundTo) ? $this->munge->decodeNs($boundTo) : '__invoke';
                     $argString = $this->exceptionArgsPrinter->parseArgsAsString($frame['args'] ?? []);
                     $pos = $this->filePositionExtractor->getOriginal($file, $line);
                     $str .= sprintf('#%d %s:%d (gen: %s:%d) : (%s%s)', $i, $pos->filename(), $pos->line(), $file, $line, $fnName, $argString) . PHP_EOL;

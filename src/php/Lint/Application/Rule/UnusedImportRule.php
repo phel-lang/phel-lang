@@ -7,6 +7,7 @@ namespace Phel\Lint\Application\Rule;
 use Phel\Lang\Collections\LinkedList\PersistentListInterface;
 use Phel\Lang\Keyword;
 use Phel\Lang\Symbol;
+use Phel\Lang\TypeInterface;
 use Phel\Lint\Application\Config\RuleRegistry;
 use Phel\Lint\Domain\FileAnalysis;
 use Phel\Lint\Domain\LintRuleInterface;
@@ -58,7 +59,7 @@ final readonly class UnusedImportRule implements LintRuleInterface
     /**
      * @param PersistentListInterface<mixed> $nsForm
      *
-     * @return list<array{alias:string, display:string, anchor: mixed}>
+     * @return list<array{alias:string, display:string, anchor: bool|float|int|string|TypeInterface|null}>
      */
     private function collectImports(PersistentListInterface $nsForm): array
     {
@@ -75,7 +76,7 @@ final readonly class UnusedImportRule implements LintRuleInterface
     /**
      * @param PersistentListInterface<mixed> $clause
      *
-     * @return list<array{alias:string, display:string, anchor: mixed}>
+     * @return list<array{alias:string, display:string, anchor: bool|float|int|string|TypeInterface|null}>
      */
     private function importsInClause(PersistentListInterface $clause): array
     {

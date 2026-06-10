@@ -4,11 +4,13 @@ declare(strict_types=1);
 
 namespace Phel\Lint\Application;
 
+use Phel\Shared\ScalarCoercion;
 use RecursiveDirectoryIterator;
 use RecursiveIteratorIterator;
 use RegexIterator;
 use UnexpectedValueException;
 
+use function is_array;
 use function is_dir;
 use function is_file;
 use function realpath;
@@ -71,7 +73,9 @@ final class FileCollector
         }
 
         foreach ($regex as $match) {
-            yield $match[0];
+            if (is_array($match) && isset($match[0])) {
+                yield ScalarCoercion::toString($match[0]);
+            }
         }
     }
 }
