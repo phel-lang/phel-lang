@@ -40,7 +40,7 @@ final class PersistentVector extends AbstractPersistentVector
     /**
      * @param PersistentMapInterface<mixed, mixed>|null $meta
      * @param int                                       $count The number of elements stored in this vector
-     * @param array<int, array<mixed>>                  $root  The root node of this vector
+     * @param array<int, mixed>                         $root  The root node (holds child nodes or, at the leaf level, values)
      * @param array<int, T>                             $tail  The tail of the vector. This is an optimization
      */
     public function __construct(
