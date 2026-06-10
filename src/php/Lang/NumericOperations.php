@@ -367,7 +367,7 @@ final class NumericOperations
             return NumericCoercion::collapseBigInt(NumericCoercion::toBigInt($a)->divide(NumericCoercion::toBigInt($b)));
         }
 
-        return intdiv((int) $a, (int) $b);
+        return intdiv($a, $b);
     }
 
     /**
@@ -384,7 +384,7 @@ final class NumericOperations
 
         if (is_float($a) || is_float($b)) {
             // Float wins over BigDecimal (`(rem 1.0M 1.0)` returns a float).
-            $q = (float) self::quot($a, $b);
+            $q = NumericCoercion::toFloat(self::quot($a, $b));
             return NumericCoercion::toFloat($a) - (NumericCoercion::toFloat($b) * $q);
         }
 
@@ -407,7 +407,7 @@ final class NumericOperations
             return NumericCoercion::collapseBigInt($aBig->subtract($bBig->multiply($q)));
         }
 
-        return ((int) $a) % ((int) $b);
+        return ($a) % ($b);
     }
 
     /**
