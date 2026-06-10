@@ -2,46 +2,19 @@
 
 Generates PHP wrapper classes for Phel functions marked with `^{:export true}`.
 
-## Gacela Pattern
-
-- **Facade**: `InteropFacade` implements `InteropFacadeInterface`
-- **Factory**: `InteropFactory`
-- **Config**: `InteropConfig` exposes export dirs, namespace prefix, target directory
-- **Provider**: injects `CommandFacade` (FACADE_COMMAND), `BuildFacade` (FACADE_BUILD)
-
 ## Public API (Facade)
 
-- `generateExportCode(): list<Wrapper>` orchestrates full pipeline
-- `writeLocatedException(OutputInterface, CompilerException): void`
-- `writeStackTrace(OutputInterface, Throwable): void`
+- `generateExportCode(): list<Wrapper>`: orchestrates full pipeline (`ExportCodeGenerator`)
+- `writeLocatedException` / `writeStackTrace`: delegate to Command
 
 ## Dependencies
 
-| Module | Usage |
-|--------|-------|
-| Command | Error/exception output via CommandFacade |
-| Build | Namespace extraction, compilation, evaluation |
-
-## Structure
-
-```
-Interop/
-├── Application/           ExportCodeGenerator (orchestrator)
-├── Domain/
-│   ├── DirectoryRemover/  Removes stale export dir
-│   ├── ExportFinder/      Scans for :export metadata (FunctionsToExportFinder)
-│   ├── FileCreator/       Writes Wrapper to filesystem
-│   ├── Generator/         WrapperGenerator, CompiledPhpClassBuilder, CompiledPhpMethodBuilder
-│   └── ReadModel/         Wrapper, FunctionToExport
-├── Infrastructure/        ExportCommand (CLI), FileSystemIo
-├── PhelCallerTrait.php    In generated wrappers; callPhel(ns, def, ...args)
-└── Gacela files
-```
+Command (error/exception output), Build (namespace extraction, compilation, evaluation). `InteropConfig` exposes export dirs, namespace prefix, target directory.
 
 ## Key Constraints
 
-- Only functions with `^{:export true}` metadata exported
+- Only functions with `^{:export true}` metadata exported (`Domain/ExportFinder/FunctionsToExportFinder`)
 - Phel namespaces to PHP: hyphens become CamelCase (my-lib -> MyLib)
-- Generated classes use PhelCallerTrait for cached definition resolution
+- Generated classes use `PhelCallerTrait` (`callPhel(ns, def, ...args)`) for cached definition resolution
 - Export directory wiped and regenerated each run
-- `^{:php/attr [...]}` metadata on an exported `defn` is threaded through `FunctionToExport` and rendered (via `Phel\Shared\PhpAttributeRenderer`) as PHP 8 attributes above the wrapper method (e.g. `#[\…\Route('/p')]`)
+- `^{:php/attr [...]}` metadata on an exported `defn` is threaded through `FunctionToExport` and rendered (via `Phel\Shared\PhpAttributeRenderer` in `CompiledPhpMethodBuilder`) as PHP 8 attributes above the wrapper method (e.g. `#[\…\Route('/p')]`)

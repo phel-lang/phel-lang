@@ -2,64 +2,30 @@
 
 Core compilation pipeline: Phel source to tokens to AST to analyzed nodes to PHP code.
 
-## Gacela Pattern
-
-- **Facade**: `CompilerFacade` implements `CompilerFacadeInterface`
-- **Factory**: `CompilerFactory` extends `AbstractFactory<CompilerConfig>`
-- **Config**: `CompilerConfig` exposes `assertsEnabled()`, `warnDeprecationsEnabled()`
-- **Provider**: `CompilerProvider` injects `FilesystemFacade` via `FACADE_FILESYSTEM`
-
 ## Public API (Facade)
 
 | Category | Methods |
 |----------|---------|
-| Compilation | `compile(string, CompileOptions): EmitterResult`, `compileForCache(...)`, `compileForm(mixed, CompileOptions): EmitterResult` |
-| Evaluation | `eval(string, CompileOptions): mixed`, `evalForm(mixed, CompileOptions): mixed` |
-| Pipeline | `lexString(string, ...): TokenStream`, `parseNext(TokenStream): ?NodeInterface`, `parseAll(TokenStream): FileNode`, `read(NodeInterface): ReaderResult`, `analyze(mixed, NodeEnvironmentInterface): AbstractNode` |
-| Macros | `macroexpand1(mixed): mixed`, `macroexpand(mixed): mixed` |
-| Environment | `initializeGlobalEnvironment(): void`, `resetGlobalEnvironment(): void`, `isGlobalEnvironmentInitialized(): bool`, `getGlobalEnvironment(): GlobalEnvironmentInterface`, `initializeNewGlobalEnvironment(): GlobalEnvironmentInterface`, `setGlobalEnvironment(GlobalEnvironmentInterface): void` |
-| Namespace state | `getNamespaceEnvironmentData(string): array`, `restoreNamespaceEnvironmentData(string, array): void` |
-| Debugging | `enableDebugLineTap(?string, string): void`, `disableDebugLineTap(): void` |
-| Utility | `encodeNs(string): string` (PHP-form via `Munge::encodePhpNs`), `hasBalancedParentheses(string): bool` |
+| Compilation | `compile`, `compileForCache`, `compileForm` (return `EmitterResult`) |
+| Evaluation | `eval(string, CompileOptions)`, `evalForm(mixed, CompileOptions)` |
+| Pipeline | `lexString → TokenStream`, `parseNext → ?NodeInterface`, `parseAll → FileNode`, `read → ReaderResult`, `analyze(mixed, NodeEnvironmentInterface) → AbstractNode` |
+| Macros | `macroexpand1`, `macroexpand` |
+| Environment | `initializeGlobalEnvironment`, `resetGlobalEnvironment`, `isGlobalEnvironmentInitialized`, `getGlobalEnvironment`, `initializeNewGlobalEnvironment`, `setGlobalEnvironment` |
+| Namespace state | `getNamespaceEnvironmentData`, `restoreNamespaceEnvironmentData` |
+| Debugging | `enableDebugLineTap`, `disableDebugLineTap` |
+| Utility | `encodeNs` (PHP-form via `Munge::encodePhpNs`), `hasBalancedParentheses` |
 
 ## Dependencies
 
-- **Filesystem**: `FilesystemFacade` for file I/O
-- **Shared**: `Munge`, `Printer`, exceptions
+Filesystem (file I/O); Shared (`Munge`, `Printer`, exceptions). `CompilerConfig` exposes `assertsEnabled()`, `warnDeprecationsEnabled()`.
 
 ## Phase Pipeline
 
-| Phase | Input | Output |
-|-------|-------|--------|
-| Lexer | Phel source string | `TokenStream` |
-| Parser | `TokenStream` | `FileNode` (parse tree) |
-| Reader | `NodeInterface` | `ReaderResult` (Phel data) |
-| Analyzer | Phel data | `AbstractNode` (AST with `NodeEnvironment`) |
-| Simplifier | `AbstractNode` | `AbstractNode` (optimized) |
-| Emitter | `AbstractNode` | `EmitterResult` (PHP code) |
+Lexer (source → `TokenStream`) → Parser (→ `FileNode` parse tree) → Reader (→ `ReaderResult` Phel data) → Analyzer (→ `AbstractNode` AST with `NodeEnvironment`) → Simplifier (→ optimized AST) → Emitter (→ `EmitterResult` PHP code).
 
 **Simplification pass** (runs after `ConstantFolder`): drops pure non-tail expressions from `(do ...)` via `PureExpressionDetector`; inlines calls at opt level >= 2 via `CallInliner` (delegates purity to `ConstantFolder` for known calls, `SymbolicPurityDetector` for structural checks). `^:pure` metadata opts a `defn` into inlining trust (author responsibility for correctness).
 
-## Structure
-
-```
-Compiler/
-├── Application/           Analyzer, CodeCompiler, EvalCompiler, Lexer, Parser, Reader, 
-│                         GlobalEnvironmentManager, MacroExpander, NamespaceEnvironmentSerializer
-├── Domain/
-│   ├── Analyzer/         AST nodes, ConstantFolder, TypeAnalyzer, special form handlers,
-│   │                     GlobalEnvironmentRegistry/Interface, SymbolSuggestionProvider
-│   ├── Compiler/         CodeCompilerInterface, EvalCompilerInterface
-│   ├── Emitter/          OutputEmitter, FileEmitter, StatementEmitter, *Specialization classes,
-│   │                     NodeEmitter/ (per-AST emitters; Specialized/ holds the CallEmitter families)
-│   ├── Evaluator/        InMemoryEvaluator, RequireEvaluator
-│   ├── Lexer/            TokenStream (Token + parse-tree nodes live in Phel\Shared\Parser\Node)
-│   ├── Parser/           ExpressionParserFactory (produces Shared\Parser\Node\* parse tree);
-│   │                     ExpressionParser/ sub-parsers (Atom, String, List, Quote, Meta, ReaderConditional)
-│   └── Reader/           ReaderInterface, QuasiquoteTransformer, ExpressionReaderFactory
-├── Infrastructure/       GlobalEnvironmentSingleton (ABI shim for generated PHP), DebugLineTap
-└── Gacela files          CompilerFacade, CompilerFactory, CompilerConfig, CompilerProvider
-```
+Note: lexer `Token` and parse-tree nodes live in `Phel\Shared\Parser\Node`; `ExpressionParserFactory` produces them (sub-parsers in `Domain/Parser/ExpressionParser/`).
 
 ## Key Constraints
 
@@ -87,7 +53,7 @@ The interface + `:php`-block parsing shared by `defstruct` and `defenum` lives i
 
 `^{:php/doc <str|[str...]>}` on any of those names/fields/methods emits a PHPDoc block (one-line string or multi-line list/vector) above the construct, so phpstan/psalm see generated classes as typed.
 
-`^:php/override` on a method (defstruct/defenum interface impls, definterface methods) is sugar for `#[\Override]` (PHP 8.3); `PhpAttributeEmitterTrait::phpAttributeLines` renders it ahead of any explicit `:php/attr` lines. Struct/enum inline method impls now emit method-level `:php/attr`/`:php/doc`/`^:php/override` too (previously only definterface methods did).
+`^:php/override` on a method (defstruct/defenum interface impls, definterface methods) is sugar for `#[\Override]` (PHP 8.3); `PhpAttributeEmitterTrait::phpAttributeLines` renders it ahead of any explicit `:php/attr` lines. Struct/enum inline method impls emit method-level `:php/attr`/`:php/doc`/`^:php/override` too.
 
 All opt-in; untagged forms are byte-identical to before. Export wrappers carry the same `:php/attr` via `Interop`'s `CompiledPhpMethodBuilder` (see `src/php/Interop/CLAUDE.md`).
 

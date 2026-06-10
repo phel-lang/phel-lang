@@ -1,74 +1,32 @@
 # Run Module
 
-Runtime execution: runs Phel namespaces/files, REPL, evaluation, testing, and all CLI commands.
-
-## Gacela Pattern
-
-- **Facade**: `RunFacade` implements `RunFacadeInterface`
-- **Factory**: `RunFactory` extends `AbstractFactory<RunConfig>`
-- **Config**: `RunConfig` : REPL startup file path
-- **Provider**: `RunProvider` : injects 4 facades: `CommandFacade`, `CompilerFacade`, `BuildFacade`, `ApiFacade`
+Runtime execution: runs Phel namespaces/files, REPL, evaluation, testing, and most CLI commands.
 
 ## Public API (Facade)
 
-**Execution**
-- `runNamespace(string): void` : execute a namespace with dependencies
-- `runFile(string): void` : execute a Phel file
-- `getNamespaceFromFile(string): NamespaceInformation`
-- `getDependenciesForNamespace(array, array): array` : topologically sorted
-- `getDependenciesFromPaths(array): array`
-- `evalFile(NamespaceInformation): void`
-- `eval(string, CompileOptions = new CompileOptions()): mixed` : compile + execute a Phel snippet
-- `structuredEval(string, CompileOptions = new CompileOptions()): EvalResult` : eval returning success/incomplete/failure result
-- `loadPhelNamespaces(?string = null): void` : load core + startup
-
-**Query**
-- `getAllPhelDirectories(): array`
-- `getLoadedNamespaces(): array`
-- `getVersion(): string`
-- `autoDetectEntryPoint(): ?string` : prefer `main.phel`, fall back to `core.phel`
-
-**Debugging**
-- `enableDebugLineTap(?string $phelFileFilter = null, string $logPath = './phel-debug.log'): void`
-- `disableDebugLineTap(): void`
-
-**Parallel testing**
-- `createParallelTestOrchestrator(): ParallelTestOrchestrator` : process-pool runner that spawns `phel _test-worker` subprocesses, dispatches one ns per work frame, buffers per-ns output, flushes in input order
-- `createCpuCountDetector(): CpuCountDetector` : honours `PHEL_TEST_WORKERS` env var, falls back to `nproc` / `sysctl` / `/proc/cpuinfo`, caps at 8
-
-**Error Handling**
-- `writeLocatedException(OutputInterface, CompilerException): void`
-- `writeStackTrace(OutputInterface, Throwable): void`
+- Execution: `runNamespace(string)`, `runFile(string)`, `evalFile(NamespaceInformation)`, `eval(string, CompileOptions)`, `structuredEval(string, CompileOptions): EvalResult` (success/incomplete/failure), `loadPhelNamespaces(?string)` (core + startup)
+- Namespaces: `getNamespaceFromFile`, `getDependenciesForNamespace` (topologically sorted), `getDependenciesFromPaths`
+- Query: `getAllPhelDirectories`, `getLoadedNamespaces`, `getVersion`, `autoDetectEntryPoint` (prefers `main.phel`, falls back to `core.phel`)
+- Debugging: `enableDebugLineTap(?string $phelFileFilter, string $logPath)`, `disableDebugLineTap`
+- Parallel testing: `createParallelTestOrchestrator()` (process pool spawning `phel _test-worker` subprocesses, one ns per length-prefixed JSON work frame, per-ns output buffered and flushed in input order), `createCpuCountDetector()` (honours `PHEL_TEST_WORKERS`, falls back to `nproc`/`sysctl`/`/proc/cpuinfo`, caps at 8)
+- Error handling: `writeLocatedException`, `writeStackTrace`
 
 ## Dependencies
 
-- **Build** (`BuildFacade`) : namespace extraction, dependency resolution, file evaluation
-- **Compiler** (`CompilerFacade`) : compilation, evaluation, environment management
-- **Command** (`CommandFacade`) : directories, error formatting
-- **Shared** (`VersionResolver`) : version string (git/Composer/official-release detection); Run resolves this directly, no Console dependency
-- **Api** (`ApiFacade`) : REPL autocompletion
+Most connected module, 4 Provider facades: Build (namespace extraction, dependency resolution, file evaluation), Compiler (compilation, evaluation, environment), Command (directories, error formatting), Api (REPL autocompletion). Version comes from `Shared\VersionResolver` directly, so Run does not depend on Console.
 
-## Structure
+## Structure Notes
 
-```
-Run/
-├── Application/        runners, loaders, REPL infrastructure, Agent/ install helpers, Test/ (parallel runner)
-├── Domain/             Agent/, Init/, Repl/ (+ Hint/), Runner/, Test/, stdin/loader interfaces
-├── Infrastructure/     Command/ (9 Symfony commands; one hidden `_test-worker`), PhpStdinReader
-├── Runtime/            PhelSourceLoader (cached-PHP boot entry)
-└── Gacela files        RunFacade, RunFactory, RunConfig, RunProvider
-```
-
-`Application/Test/`: `ParallelTestOrchestrator` (proc_open pool), `TestWorkerHandle` (one live subprocess), `WorkerFrame` (length-prefixed JSON framing), `CpuCountDetector` (cross-platform CPU autodetect, capped at 8).
+- `Infrastructure/Command/`: 9 Symfony commands, one hidden `_test-worker`
+- `Runtime/PhelSourceLoader`: cached-PHP boot entry
 
 ## Key Constraints
 
-- `StructuredEvaluator` (Application) produces the pure `Phel\Shared\Eval\EvalResult` VO via `success()`/`incomplete()`/`failure()`; it never throws and owns the snapshot/restore orchestration (the VOs themselves carry no logic and live in `Phel\Shared`)
+- `StructuredEvaluator` (Application) produces the pure `Phel\Shared\Eval\EvalResult` VO via `success()`/`incomplete()`/`failure()`; it never throws and owns the snapshot/restore orchestration (the VOs carry no logic and live in `Phel\Shared`)
 - REPL supports environment snapshot/restore on eval failure
 - `ReplCommandSystemIo` requires PHP `readline` extension; falls back to `ReplCommandFallbackIo`
 - `ReplHistoryPathResolver` returns `.phel/repl-history`; transparently migrates legacy `.phel-repl-history`
 - `ReplHistory` registers `*1`/`*2`/`*3`/`*e` in `phel.core` after REPL boot
 - `ReplErrorFormatter` renders eval-time `Throwable`s with short headline, hints, and filtered trace
 - New `ReplHint` implementations register via `RunFactory::createReplHints()`
-- `BundledNamespaces` lists every `phel.*` module; `NamespaceLoader` (REPL startup) uses it as eager seeds. `FileRunner` instead uses `BundledNamespaceDetector` to seed only bundles referenced via fully qualified form (`phel.json/encode`) or matching Clojure-compatible requires (`clojure.test` -> `phel.test`) in the script, avoiding the cold-start penalty for scripts that don't reach into bundled modules
-- Most connected module: 4 Provider dependencies (Build, Compiler, Command, Api); version comes from `Shared\VersionResolver`, so Run no longer depends on Console
+- `BundledNamespaces` lists every `phel.*` module; `NamespaceLoader` (REPL startup) uses it as eager seeds. `FileRunner` instead uses `BundledNamespaceDetector` to seed only bundles referenced via fully qualified form (`phel.json/encode`) or matching Clojure-compatible requires (`clojure.test` -> `phel.test`) in the script, avoiding cold-start penalty for scripts that don't reach into bundled modules

@@ -1,38 +1,18 @@
 # Config Module
 
-Pure data/model layer defining configuration structure for Phel projects.
-
-## No Gacela Pattern
-
-Leaf module; no Facade, Factory, or DependencyProvider. Config classes used directly by other modules' `*Config` classes via Gacela's `AbstractConfig`.
+Pure data/model layer defining configuration structure for Phel projects. No Gacela pattern: leaf module; config classes are used directly by other modules' `*Config` classes via Gacela's `AbstractConfig`.
 
 ## Key Classes
 
 ### PhelConfig
 
-Immutable `final readonly class`. Every mutation returns new instance via `with*()` methods.
+Immutable `final readonly class` (~650 LOC). Every mutation returns a new instance via `with*()` methods (directory, layout, build, export, cache, flag setters); `forProject(ProjectLayout = Flat, string $mainNamespace = '')` convenience constructor; `validate(): list<string>` (empty if valid); `jsonSerialize()`.
 
-**Factory**: `forProject(ProjectLayout $layout = Flat, string $mainNamespace = '')` convenience constructor.
+**Deprecated (since 0.37)**: `setX()` and `useLayout()`/`useNestedLayout()`/`useFlatLayout()` shim to `with*()` counterparts (marked `#[Deprecated]`). Permanent backward-compatibility aliases, not scheduled for removal in a minor release; removal would require a major version bump.
 
-**Public methods**:
-- Directory: `withSrcDirs()`, `withTestDirs()`, `withVendorDir()`, `withFormatDirs()`
-- Layout: `withLayout(ProjectLayout)` (resets src/test/format/export-from dirs per layout)
-- Build: `withMainPhelNamespace()`, `withMainPhpPath()`, `withBuildDestDir()`, `withBuildConfig(PhelBuildConfig)`
-- Export: `withExportNamespacePrefix()`, `withExportTargetDirectory()`, `withExportFromDirectories()`, `withExportConfig(PhelExportConfig)`
-- Cache: `withCacheDir()`, `withTempDir()`, `withEnableNamespaceCache()`, `withEnableCompiledCodeCache()`, `withPhelDir()`
-- Flags: `withIgnoreWhenBuilding()`, `withNoCacheWhenBuilding()`, `withKeepGeneratedTempFiles()`, `withEnableAsserts()`, `withWarnDeprecations()`, `withErrorLogFile()`
-- Validation: `validate(): list<string>` (empty if valid)
-- Serialization: `jsonSerialize(): array<string, mixed>`
+### PhelBuildConfig / PhelExportConfig
 
-**Deprecated (since 0.37)**: `setX()` and `useLayout()`/`useNestedLayout()`/`useFlatLayout()` shim to `with*()` counterparts (marked `#[Deprecated]`). These are permanent backward-compatibility aliases: they are not scheduled for removal in a minor release. Use `with*()` for new code; any eventual removal would require a major version bump.
-
-### PhelBuildConfig
-
-Immutable value object. Public methods: `withMainPhelNamespace()`, `withMainPhpPath()`, `withDestDir()`. Deprecated `setX()` shims retained.
-
-### PhelExportConfig
-
-Immutable value object. Public methods: `withFromDirectories()`, `withNamespacePrefix()`, `withTargetDirectory()`. Deprecated `setX()` shims retained.
+Immutable value objects (`withMainPhelNamespace`/`withMainPhpPath`/`withDestDir`; `withFromDirectories`/`withNamespacePrefix`/`withTargetDirectory`). Deprecated `setX()` shims retained.
 
 ### ProjectLayout (enum)
 
@@ -40,22 +20,7 @@ Immutable value object. Public methods: `withFromDirectories()`, `withNamespaceP
 - `Nested`: `src/phel`, `tests/phel` (PHP under `src/php/`)
 - `Root`: `.`, `.` (single-file or scratch)
 
-## Structure
-
-- `PhelConfig.php` (main config, ~650 LOC)
-- `PhelBuildConfig.php` (build destination metadata)
-- `PhelExportConfig.php` (export namespace/path mapping)
-- `ProjectLayout.php` (enum: src/test directory layout)
-- `PhelConfigValidator.php` (validation helper)
-- `CLAUDE.md` (this file)
-
-## Consumed By
-
-Build, Compiler, Filesystem, Interop, Command, Formatter, Run modules.
-
-## Dependencies
-
-None.
+`withLayout(ProjectLayout)` resets src/test/format/export-from dirs per layout.
 
 ## Key Constraints
 

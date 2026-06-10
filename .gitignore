@@ -47,5 +47,5 @@ agnostic-ai.local.yaml
 .claude/
 .codex/
 .agents/
-CLAUDE.md
-AGENTS.md
+/CLAUDE.md
+/AGENTS.md
