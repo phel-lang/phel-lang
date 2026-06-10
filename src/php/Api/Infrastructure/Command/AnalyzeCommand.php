@@ -8,6 +8,7 @@ use Gacela\Framework\ServiceResolver\ServiceMap;
 use Gacela\Framework\ServiceResolverAwareTrait;
 use Phel\Api\ApiFacade;
 use Phel\Api\Transfer\Diagnostic;
+use Phel\Shared\ScalarCoercion;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
@@ -35,7 +36,7 @@ final class AnalyzeCommand extends Command
 
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
-        $file = (string) $input->getArgument('file');
+        $file = ScalarCoercion::toString($input->getArgument('file'));
 
         if (!is_file($file)) {
             $output->writeln(sprintf('<error>File not found: %s</error>', $file));

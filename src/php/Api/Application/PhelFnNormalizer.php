@@ -10,6 +10,7 @@ use Phel\Api\Domain\PhelFnNormalizerInterface;
 use Phel\Api\Transfer\PhelFunction;
 use Phel\Lang\Collections\Map\PersistentMapInterface;
 use Phel\Lang\Keyword;
+use Phel\Shared\ScalarCoercion;
 
 final readonly class PhelFnNormalizer implements PhelFnNormalizerInterface
 {
@@ -57,7 +58,7 @@ final readonly class PhelFnNormalizer implements PhelFnNormalizerInterface
                 continue;
             }
 
-            $doc = (string) ($meta[Keyword::create('doc')] ?? '');
+            $doc = ScalarCoercion::toString($meta[Keyword::create('doc')] ?? null);
             $parsed = DocstringSignatureParser::parse($doc);
             $signatures = $parsed['signatures'];
             $description = $parsed['description'];
@@ -69,9 +70,9 @@ final readonly class PhelFnNormalizer implements PhelFnNormalizerInterface
             $line = 0;
             $location = $meta[Keyword::create('start-location')] ?? null;
             if ($location instanceof PersistentMapInterface) {
-                $file = (string) ($location[Keyword::create('file')] ?? '');
+                $file = ScalarCoercion::toString($location[Keyword::create('file')] ?? null);
                 $file = $this->toRelativeFile($file);
-                $line = (int) ($location[Keyword::create('line')] ?? 0);
+                $line = ScalarCoercion::toInt($location[Keyword::create('line')] ?? null);
             }
 
             $normalizedFns[$groupKey][$fnName] = new PhelFunction(
@@ -82,7 +83,7 @@ final readonly class PhelFnNormalizer implements PhelFnNormalizerInterface
                 description: $description,
                 groupKey: $groupKey,
                 githubUrl: $this->toGithubUrl($file, $line),
-                docUrl: (string) ($meta[Keyword::create('docUrl')] ?? ''),
+                docUrl: ScalarCoercion::toString($meta[Keyword::create('docUrl')] ?? null),
                 file: $file,
                 line: $line,
                 meta: $this->metaToArray($meta),
@@ -116,7 +117,7 @@ final readonly class PhelFnNormalizer implements PhelFnNormalizerInterface
     {
         $result = [];
         foreach ($meta as $key => $value) {
-            $name = $key instanceof Keyword ? $key->getName() : (string) $key;
+            $name = $key instanceof Keyword ? $key->getName() : ScalarCoercion::toString($key);
             $result[$name] = $value;
         }
 
@@ -153,7 +154,7 @@ final readonly class PhelFnNormalizer implements PhelFnNormalizerInterface
     }
 
     /**
-     * @param array<string, PhelFunction> $originalNormalizedFns
+     * @param array<array-key, PhelFunction> $originalNormalizedFns
      *
      * @return list<PhelFunction>
      */

@@ -39,7 +39,15 @@ parameters:
         -
             identifier: return.type
             path: src/php/Command/CommandFacade.php
+        # Printer's dispatchers select a TypePrinterInterface<Concrete> per
+        # runtime-matched type, which is sound by construction but an
+        # existential type: generic invariance cannot relate it to the
+        # declared TypePrinterInterface<mixed> return.
+        -
+            identifier: return.type
+            path: src/php/Shared/Printer/Printer.php
     paths!:
+        - %currentWorkingDirectory%/src/php/Api/
         - %currentWorkingDirectory%/src/php/Command/
         - %currentWorkingDirectory%/src/php/Compiler/
         - %currentWorkingDirectory%/src/php/Config/
@@ -52,4 +60,5 @@ parameters:
         - %currentWorkingDirectory%/src/php/Lsp/
         - %currentWorkingDirectory%/src/php/Nrepl/
         - %currentWorkingDirectory%/src/php/Profile/
+        - %currentWorkingDirectory%/src/php/Shared/
         - %currentWorkingDirectory%/src/php/Watch/

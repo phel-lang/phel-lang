@@ -9,9 +9,12 @@ use Phel\Api\Transfer\Diagnostic;
 use Phel\Compiler\Domain\Analyzer\Environment\NodeEnvironment;
 use Phel\Compiler\Domain\Analyzer\Exceptions\AnalyzerException;
 use Phel\Compiler\Domain\Reader\Exceptions\ReaderException;
+use Phel\Lang\TypeInterface;
 use Phel\Shared\Exceptions\ErrorCode;
 use Phel\Shared\Facade\CompilerFacadeInterface;
 use Phel\Shared\Parser\Node\NodeInterface;
+
+use function is_array;
 
 /**
  * Second stage: read each parse tree into a Phel value, then analyze
@@ -29,6 +32,9 @@ final readonly class ReadAndAnalyzeStage implements AnalysisStageInterface
     {
         $diagnostics = [];
         $parseTrees = $context['parseTrees'] ?? [];
+        if (!is_array($parseTrees)) {
+            $parseTrees = [];
+        }
 
         foreach ($parseTrees as $parseTree) {
             if (!$parseTree instanceof NodeInterface) {
@@ -37,8 +43,10 @@ final readonly class ReadAndAnalyzeStage implements AnalysisStageInterface
 
             try {
                 $readerResult = $this->compilerFacade->read($parseTree);
+                /** @var bool|float|int|string|TypeInterface|null $ast */
+                $ast = $readerResult->getAst();
                 $this->compilerFacade->analyze(
-                    $readerResult->getAst(),
+                    $ast,
                     NodeEnvironment::empty()->withReturnContext(),
                 );
             } catch (ReaderException $e) {

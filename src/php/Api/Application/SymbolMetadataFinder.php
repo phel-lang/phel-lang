@@ -11,6 +11,7 @@ use Phel\Api\Transfer\PhelFunction;
 use Phel\Lang\Collections\Map\PersistentMapInterface;
 use Phel\Lang\Keyword;
 use Phel\Shared\MungeInterface;
+use Phel\Shared\ScalarCoercion;
 
 use function preg_split;
 use function strrpos;
@@ -156,15 +157,15 @@ final class SymbolMetadataFinder implements SymbolMetadataFinderInterface
      */
     private function toPhelFunction(string $namespace, string $name, PersistentMapInterface $meta): PhelFunction
     {
-        $doc = (string) ($meta[Keyword::create('doc')] ?? '');
+        $doc = ScalarCoercion::toString($meta[Keyword::create('doc')] ?? null);
         $signatures = $this->extractSignatures($meta, $doc, $name);
 
         $file = '';
         $line = 0;
         $location = $meta[Keyword::create('start-location')] ?? null;
         if ($location instanceof PersistentMapInterface) {
-            $file = (string) ($location[Keyword::create('file')] ?? '');
-            $line = (int) ($location[Keyword::create('line')] ?? 0);
+            $file = ScalarCoercion::toString($location[Keyword::create('file')] ?? null);
+            $line = ScalarCoercion::toInt($location[Keyword::create('line')] ?? null);
         }
 
         return new PhelFunction(
@@ -192,7 +193,7 @@ final class SymbolMetadataFinder implements SymbolMetadataFinderInterface
         // docstring fallback.
         $arglists = $meta['arglists'] ?? $meta[Keyword::create('arglists')] ?? null;
         if ($arglists !== null && $arglists !== '') {
-            return $this->splitArglists((string) $arglists, $name);
+            return $this->splitArglists(ScalarCoercion::toString($arglists), $name);
         }
 
         return DocstringSignatureParser::parse($doc)['signatures'];

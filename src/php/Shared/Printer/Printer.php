@@ -105,83 +105,37 @@ final readonly class Printer implements PrinterInterface
     }
 
     /**
+     * Each branch builds a printer parameterised for the type it just
+     * matched, so the dispatch is sound even though generic invariance
+     * cannot relate `TypePrinterInterface<Concrete>` to the `<mixed>`
+     * return type (an existential type PHPStan cannot express; see the
+     * documented ignore in phpstan-strict.neon).
+     *
      * @return TypePrinterInterface<mixed>
      */
     private function createObjectTypePrinter(object $form): TypePrinterInterface
     {
-        if ($form instanceof AbstractPersistentStruct) {
-            return new StructPrinter($this);
-        }
-
-        if ($form instanceof PersistentListInterface) {
-            return new PersistentListPrinter($this);
-        }
-
-        if ($form instanceof PersistentVectorInterface) {
-            return new PersistentVectorPrinter($this);
-        }
-
-        if ($form instanceof PersistentMapInterface) {
-            return new PersistentMapPrinter($this);
-        }
-
-        if ($form instanceof PersistentHashSetInterface) {
-            return new PersistentHashSetPrinter($this);
-        }
-
-        if ($form instanceof Cons) {
-            return new ConsPrinter($this);
-        }
-
-        if ($form instanceof LazySeqInterface) {
-            return new LazySeqPrinter($this);
-        }
-
-        if ($form instanceof PersistentQueue) {
-            return new PersistentQueuePrinter($this);
-        }
-
-        if ($form instanceof Keyword) {
-            return new KeywordPrinter($this->withColor);
-        }
-
-        if ($form instanceof Symbol) {
-            return new SymbolPrinter($this->withColor);
-        }
-
-        if ($form instanceof Atom) {
-            return new AtomPrinter($this);
-        }
-
-        if ($form instanceof PhelVar) {
-            return new VarPrinter($this->withColor);
-        }
-
-        if ($form instanceof Ratio) {
-            return new RatioPrinter($this->withColor);
-        }
-
-        if ($form instanceof BigDecimal) {
-            return new BigDecimalPrinter($this->withColor);
-        }
-
-        if ($form instanceof UUID) {
-            return new UUIDPrinter($this->withColor);
-        }
-
-        if ($form instanceof FnInterface) {
-            return new FnPrinter();
-        }
-
-        if (method_exists($form, '__toString')) {
-            return new ToStringPrinter();
-        }
-
-        if (new ReflectionClass($form)->isAnonymous()) {
-            return new AnonymousClassPrinter();
-        }
-
-        return new NonPrintableClassPrinter($this->withColor);
+        return match (true) {
+            $form instanceof AbstractPersistentStruct => new StructPrinter($this),
+            $form instanceof PersistentListInterface => new PersistentListPrinter($this),
+            $form instanceof PersistentVectorInterface => new PersistentVectorPrinter($this),
+            $form instanceof PersistentMapInterface => new PersistentMapPrinter($this),
+            $form instanceof PersistentHashSetInterface => new PersistentHashSetPrinter($this),
+            $form instanceof Cons => new ConsPrinter($this),
+            $form instanceof LazySeqInterface => new LazySeqPrinter($this),
+            $form instanceof PersistentQueue => new PersistentQueuePrinter($this),
+            $form instanceof Keyword => new KeywordPrinter($this->withColor),
+            $form instanceof Symbol => new SymbolPrinter($this->withColor),
+            $form instanceof Atom => new AtomPrinter($this),
+            $form instanceof PhelVar => new VarPrinter($this->withColor),
+            $form instanceof Ratio => new RatioPrinter($this->withColor),
+            $form instanceof BigDecimal => new BigDecimalPrinter($this->withColor),
+            $form instanceof UUID => new UUIDPrinter($this->withColor),
+            $form instanceof FnInterface => new FnPrinter(),
+            method_exists($form, '__toString') => new ToStringPrinter(),
+            new ReflectionClass($form)->isAnonymous() => new AnonymousClassPrinter(),
+            default => new NonPrintableClassPrinter($this->withColor),
+        };
     }
 
     /**
