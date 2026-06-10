@@ -319,6 +319,11 @@ final readonly class CallInliner
      *
      * @return array<int, AbstractNode>|null
      */
+    /**
+     * @param array<int, AbstractNode> $nodes
+     *
+     * @return list<AbstractNode>|null
+     */
     private function rebaseElements(array $nodes, RebaseContext $ctx): ?array
     {
         $subCtx = $ctx->withContext(NodeEnvironment::CONTEXT_EXPRESSION);

@@ -157,7 +157,7 @@ final readonly class BodyConstantScanner
      * Auditing the {@see \Phel\Compiler\Domain\Analyzer\Ast} namespace when
      * introducing a new node type keeps this list current.
      *
-     * @return list<AbstractNode>
+     * @return array<int, AbstractNode>
      */
     private function children(AbstractNode $node): array
     {

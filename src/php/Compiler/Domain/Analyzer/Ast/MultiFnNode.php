@@ -42,7 +42,9 @@ final class MultiFnNode extends AbstractNode implements FnNodeInterface
 
     public function getMinArity(): int
     {
-        return min(array_map(static fn(FnNode $n): int => $n->getMinArity(), $this->fnNodes));
+        $arities = array_map(static fn(FnNode $n): int => $n->getMinArity(), $this->fnNodes);
+
+        return $arities === [] ? 0 : min($arities);
     }
 
     /**
@@ -54,7 +56,9 @@ final class MultiFnNode extends AbstractNode implements FnNodeInterface
             return null;
         }
 
-        return max(array_map(static fn(FnNode $n): int => $n->getMinArity(), $this->fnNodes));
+        $arities = array_map(static fn(FnNode $n): int => $n->getMinArity(), $this->fnNodes);
+
+        return $arities === [] ? 0 : max($arities);
     }
 
     /**

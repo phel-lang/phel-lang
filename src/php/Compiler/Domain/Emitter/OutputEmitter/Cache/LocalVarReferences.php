@@ -98,9 +98,9 @@ final class LocalVarReferences
     }
 
     /**
-     * @return list<AbstractNode>|null `null` for nodes whose shape is not
-     *                                 enumerated (forces a conservative
-     *                                 "assume references exist" result)
+     * @return array<int, AbstractNode>|null `null` for nodes whose shape is not
+     *                                       enumerated (forces a conservative
+     *                                       "assume references exist" result)
      */
     private static function children(AbstractNode $node): ?array
     {
