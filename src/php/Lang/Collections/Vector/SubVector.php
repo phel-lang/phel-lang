@@ -130,7 +130,9 @@ final class SubVector extends AbstractPersistentVector
     public function pop(): PersistentVectorInterface
     {
         if ($this->end - 1 <= $this->start) {
-            return PersistentVector::empty($this->hasher, $this->equalizer);
+            /** @var PersistentVector<T> $empty */
+            $empty = PersistentVector::empty($this->hasher, $this->equalizer);
+            return $empty;
         }
 
         return new self($this->hasher, $this->equalizer, $this->meta, $this->vector, $this->start, $this->end - 1);
@@ -146,7 +148,9 @@ final class SubVector extends AbstractPersistentVector
      */
     public function cons(mixed $x): PersistentVectorInterface
     {
-        return PersistentVector::fromArray($this->hasher, $this->equalizer, [$x, ...$this->toArray()]);
+        /** @var PersistentVectorInterface<T> $result */
+        $result = PersistentVector::fromArray($this->hasher, $this->equalizer, [$x, ...$this->toArray()]);
+        return $result;
     }
 
     /**

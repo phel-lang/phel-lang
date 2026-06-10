@@ -9,6 +9,8 @@ use Phel\Lang\EqualizerInterface;
 use Phel\Lang\HasherInterface;
 use Traversable;
 
+use function array_values;
+
 /**
  * @template K
  * @template V
@@ -18,7 +20,7 @@ use Traversable;
 final class ArrayNode implements HashMapNodeInterface, Countable
 {
     /**
-     * @param list<?HashMapNodeInterface<K, V>> $childNodes A fixed size array of nodes
+     * @param array<int, ?HashMapNodeInterface<K, V>> $childNodes A fixed size array of nodes
      */
     public function __construct(
         private readonly HasherInterface $hasher,
@@ -32,7 +34,9 @@ final class ArrayNode implements HashMapNodeInterface, Countable
      */
     public static function empty(HasherInterface $hasher, EqualizerInterface $equalizer): self
     {
-        return new self($hasher, $equalizer, 0, []);
+        /** @var self<K, V> $result */
+        $result = new self($hasher, $equalizer, 0, []);
+        return $result;
     }
 
     public function count(): int
@@ -53,6 +57,7 @@ final class ArrayNode implements HashMapNodeInterface, Countable
         if (isset($this->childNodes[$index])) {
             /** @var HashMapNodeInterface<K, V> $node */
             $node = $this->childNodes[$index];
+            /** @var HashMapNodeInterface<K, V> $n */
             $n = $node->put($shift + 5, $hash, $key, $value, $addedLeaf);
             if ($n === $node) {
                 return $this;
@@ -66,11 +71,14 @@ final class ArrayNode implements HashMapNodeInterface, Countable
             );
         }
 
+        /** @var HashMapNodeInterface<K, V> $newNode */
+        $newNode = IndexedNode::empty($this->hasher, $this->equalizer)->put($shift + 5, $hash, $key, $value, $addedLeaf);
+
         return new self(
             $this->hasher,
             $this->equalizer,
             $this->count + 1,
-            $this->cloneAndSet($index, IndexedNode::empty($this->hasher, $this->equalizer)->put($shift + 5, $hash, $key, $value, $addedLeaf)),
+            $this->cloneAndSet($index, $newNode),
         );
     }
 
@@ -128,13 +136,15 @@ final class ArrayNode implements HashMapNodeInterface, Countable
      */
     public function getIterator(): Traversable
     {
-        return new ArrayNodeIterator($this->childNodes);
+        /** @var ArrayNodeIterator<K, V> $iterator */
+        $iterator = new ArrayNodeIterator(array_values($this->childNodes));
+        return $iterator;
     }
 
     /**
      * @param HashMapNodeInterface<K, V>|null $node
      *
-     * @return list<?HashMapNodeInterface<K, V>>
+     * @return array<int, ?HashMapNodeInterface<K, V>>
      */
     private function cloneAndSet(int $index, ?HashMapNodeInterface $node): array
     {
@@ -149,7 +159,7 @@ final class ArrayNode implements HashMapNodeInterface, Countable
      */
     private function pack(int $index): HashMapNodeInterface
     {
-        /** @var list<array{0: K|null, 1: HashMapNodeInterface<K, V>|V}> $objects */
+        /** @var array<int, array{0: K|null, 1: HashMapNodeInterface<K, V>|V}> $objects */
         $objects = [];
         foreach ($this->childNodes as $i => $node) {
             if ($i === $index) {
@@ -163,7 +173,14 @@ final class ArrayNode implements HashMapNodeInterface, Countable
             $objects[$i] = [null, $node];
         }
 
-        /** @var IndexedNode<K, V> $result */
+        /**
+         * @var IndexedNode<K, V> $result
+         *
+         * @psalm-suppress InvalidArgument $objects holds [key, value] and
+         * [null, childNode] pairs by trie construction; psalm cannot reconcile
+         * the HashMapNodeInterface<K, V>|V element union with IndexedNode's
+         * own template parameters (a generic-variance limitation PHPStan accepts).
+         */
         $result = new IndexedNode($this->hasher, $this->equalizer, $objects);
         return $result;
     }

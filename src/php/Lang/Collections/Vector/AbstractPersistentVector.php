@@ -178,7 +178,9 @@ abstract class AbstractPersistentVector extends AbstractType implements Persiste
     public function concat($xs)
     {
         if ($this instanceof PersistentVector) {
-            $tv = $this->asTransient();
+            /** @var PersistentVector<T> $self */
+            $self = $this;
+            $tv = $self->asTransient();
             foreach ($xs as $x) {
                 $tv->append($x);
             }
@@ -217,7 +219,9 @@ abstract class AbstractPersistentVector extends AbstractType implements Persiste
         $end = min($start + $normalizedLength, $count);
 
         if ($start >= $count || $start - $end === 0) {
-            return PersistentVector::empty($this->hasher, $this->equalizer);
+            /** @var PersistentVector<T> $empty */
+            $empty = PersistentVector::empty($this->hasher, $this->equalizer);
+            return $empty;
         }
 
         return $this->sliceNormalized($start, $end);

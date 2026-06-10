@@ -12,6 +12,7 @@ use Phel\Lang\TypeFactory;
 use RecursiveDirectoryIterator;
 use RecursiveIteratorIterator;
 use RuntimeException;
+use SplFileInfo;
 use UnexpectedValueException;
 
 use function is_file;
@@ -89,6 +90,10 @@ final class FileGenerator
                 );
 
                 foreach ($iterator as $fileInfo) {
+                    if (!$fileInfo instanceof SplFileInfo) {
+                        continue;
+                    }
+
                     $pathname = $fileInfo->getPathname();
                     $realPath = $fileInfo->getRealPath();
 
@@ -162,7 +167,7 @@ final class FileGenerator
     }
 
     /**
-     * @return Generator<int, PersistentVectorInterface<string>>
+     * @return Generator<int, PersistentVectorInterface<mixed>>
      */
     public static function csvLines(
         string $filename,

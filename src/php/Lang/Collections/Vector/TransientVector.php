@@ -14,6 +14,7 @@ use RuntimeException;
 
 use Stringable;
 
+use function array_values;
 use function count;
 
 /**
@@ -143,6 +144,7 @@ final class TransientVector implements TransientVectorInterface, Stringable
 
         ++$this->count;
         $this->shift = $newShift;
+        /** @var array<int, array<mixed>> $newRoot */
         $this->root = $newRoot;
         $this->tail = [$value];
         $this->tailSize = 1;
@@ -163,7 +165,10 @@ final class TransientVector implements TransientVectorInterface, Stringable
             if ($i >= $this->tailOffset()) {
                 $this->tail[$i & self::INDEX_MASK] = $value;
             } else {
-                $this->updateInPlace($this->shift, $this->root, $i, $value);
+                $root = $this->root;
+                $this->updateInPlace($this->shift, $root, $i, $value);
+                /** @var array<int, array<mixed>> $root */
+                $this->root = $root;
             }
 
             return $this;
@@ -221,6 +226,7 @@ final class TransientVector implements TransientVectorInterface, Stringable
             $newShift -= self::SHIFT;
         }
 
+        /** @var array<int, array<mixed>> $newRoot */
         $this->root = $newRoot;
         $this->shift = $newShift;
         --$this->count;
@@ -280,7 +286,9 @@ final class TransientVector implements TransientVectorInterface, Stringable
 
         $subIndex = $this->count - 1 >> $level & PersistentVectorInterface::INDEX_MASK;
         if (count($parent) > $subIndex) {
-            $ret[$subIndex] = $this->pushTail($level - PersistentVectorInterface::SHIFT, $parent[$subIndex], $tailNode);
+            /** @var array<int, mixed> $childNode */
+            $childNode = $parent[$subIndex];
+            $ret[$subIndex] = $this->pushTail($level - PersistentVectorInterface::SHIFT, $childNode, $tailNode);
             return $ret;
         }
 
@@ -325,7 +333,9 @@ final class TransientVector implements TransientVectorInterface, Stringable
         }
 
         $subIndex = ($i >> $level) & self::INDEX_MASK;
-        $this->updateInPlace($level - self::SHIFT, $node[$subIndex], $i, $value);
+        /** @var array<int, mixed> $childNode */
+        $childNode = &$node[$subIndex];
+        $this->updateInPlace($level - self::SHIFT, $childNode, $i, $value);
     }
 
     /**
@@ -337,7 +347,9 @@ final class TransientVector implements TransientVectorInterface, Stringable
     {
         $subIndex = ($this->count - 2 >> $level) & self::INDEX_MASK;
         if ($level > self::SHIFT) {
-            $newChild = $this->popTail($level - self::SHIFT, $node[$subIndex]);
+            /** @var array<int, mixed> $childNode */
+            $childNode = $node[$subIndex];
+            $newChild = $this->popTail($level - self::SHIFT, $childNode);
 
             if ($newChild === null && $subIndex === 0) {
                 return null;
@@ -365,14 +377,17 @@ final class TransientVector implements TransientVectorInterface, Stringable
     {
         if ($i >= 0 && $i < $this->count) {
             if ($i >= $this->tailOffset()) {
-                return $this->tail;
+                return array_values($this->tail);
             }
 
+            /** @var array<int, mixed> $node */
             $node = $this->root;
             for ($level = $this->shift; $level > 0; $level -= self::SHIFT) {
+                /** @var array<int, mixed> $node */
                 $node = $node[($i >> $level) & self::INDEX_MASK];
             }
 
+            /** @var list<T> $node */
             return $node;
         }
 

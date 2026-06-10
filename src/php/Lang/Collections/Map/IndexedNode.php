@@ -20,7 +20,7 @@ use function count;
 final readonly class IndexedNode implements HashMapNodeInterface
 {
     /**
-     * @param list<array{
+     * @param array<int, array{
      *     0: TKey|null,
      *     1: HashMapNodeInterface<TKey, TValue>|TValue,
      * }> $objects
@@ -36,7 +36,9 @@ final readonly class IndexedNode implements HashMapNodeInterface
      */
     public static function empty(HasherInterface $hasher, EqualizerInterface $equalizer): self
     {
-        return new self($hasher, $equalizer, []);
+        /** @var self<TKey, TValue> $result */
+        $result = new self($hasher, $equalizer, []);
+        return $result;
     }
 
     /**
@@ -100,8 +102,10 @@ final readonly class IndexedNode implements HashMapNodeInterface
 
             if ($n instanceof HashMapNodeInterface) {
                 $newObjects = $this->objects;
-                $newObjects[$index][1] = $n;
-                return new self($this->hasher, $this->equalizer, $newObjects);
+                $newObjects[$index] = [$currentKey, $n];
+                /** @var self<TKey, TValue> $result */
+                $result = new self($this->hasher, $this->equalizer, $newObjects);
+                return $result;
             }
 
             if (count($this->objects) === 1) {
@@ -110,7 +114,9 @@ final readonly class IndexedNode implements HashMapNodeInterface
 
             $newObjects = $this->objects;
             unset($newObjects[$index]);
-            return new self($this->hasher, $this->equalizer, $newObjects);
+            /** @var self<TKey, TValue> $result */
+            $result = new self($this->hasher, $this->equalizer, $newObjects);
+            return $result;
         }
 
         if ($this->equalizer->equals($key, $currentKey)) {
@@ -120,7 +126,9 @@ final readonly class IndexedNode implements HashMapNodeInterface
 
             $newObjects = $this->objects;
             unset($newObjects[$index]);
-            return new self($this->hasher, $this->equalizer, $newObjects);
+            /** @var self<TKey, TValue> $result */
+            $result = new self($this->hasher, $this->equalizer, $newObjects);
+            return $result;
         }
 
         return $this;
@@ -160,7 +168,9 @@ final readonly class IndexedNode implements HashMapNodeInterface
      */
     public function getIterator(): Traversable
     {
-        return new IndexedNodeIterator($this->objects);
+        /** @var IndexedNodeIterator<TKey, TValue> $iterator */
+        $iterator = new IndexedNodeIterator($this->objects);
+        return $iterator;
     }
 
     /**
@@ -175,7 +185,9 @@ final readonly class IndexedNode implements HashMapNodeInterface
     {
         $key1Hash = $this->hasher->hash($key1);
         if ($key1Hash === $key2Hash) {
-            return new HashCollisionNode($this->hasher, $this->equalizer, $key1Hash, 2, [$key1, $value1, $key2, $value2]);
+            /** @var HashCollisionNode<TKey, TValue> $collisionNode */
+            $collisionNode = new HashCollisionNode($this->hasher, $this->equalizer, $key1Hash, 2, [$key1, $value1, $key2, $value2]);
+            return $collisionNode;
         }
 
         $addedLeaf = new Box(null);
@@ -197,8 +209,11 @@ final readonly class IndexedNode implements HashMapNodeInterface
         }
 
         $newObjects = $this->objects;
-        $newObjects[$index][1] = $newValue;
-        return new self($this->hasher, $this->equalizer, $newObjects);
+        $currentKey = $newObjects[$index][0];
+        $newObjects[$index] = [$currentKey, $newValue];
+        /** @var self<TKey, TValue> $result */
+        $result = new self($this->hasher, $this->equalizer, $newObjects);
+        return $result;
     }
 
     /**
@@ -218,8 +233,11 @@ final readonly class IndexedNode implements HashMapNodeInterface
         }
 
         $newObjects = $this->objects;
-        $newObjects[$idx][1] = $newChild;
-        return new self($this->hasher, $this->equalizer, $newObjects);
+        $currentKey = $newObjects[$idx][0];
+        $newObjects[$idx] = [$currentKey, $newChild];
+        /** @var self<TKey, TValue> $result */
+        $result = new self($this->hasher, $this->equalizer, $newObjects);
+        return $result;
     }
 
     /**
@@ -245,17 +263,31 @@ final readonly class IndexedNode implements HashMapNodeInterface
      */
     private function splitNode(int $idx, int $shift, int $hash, mixed $key, mixed $value, Box $addedLeaf): HashMapNodeInterface
     {
+        /** @var array<int, ?HashMapNodeInterface<TKey, TValue>> $nodes */
         $nodes = []; // array_fill(0, 32, null);
         $empty = self::empty($this->hasher, $this->equalizer);
         $nodes[$idx] = $empty->put($shift + 5, $hash, $key, $value, $addedLeaf);
         for ($i = 0; $i < 32; ++$i) {
             if (array_key_exists($i, $this->objects)) {
-                /** @var TValue $v */
                 [$k, $v] = $this->objects[$i];
-                $nodes[$i] = ($k === null) ? $v : $empty->put($shift + 5, $this->hasher->hash($k), $k, $v, $addedLeaf);
+                if ($k === null) {
+                    /** @var HashMapNodeInterface<TKey, TValue> $childNode */
+                    $childNode = $v;
+                    $nodes[$i] = $childNode;
+                } else {
+                    /** @var TValue $leafValue */
+                    $leafValue = $v;
+                    $nodes[$i] = $empty->put($shift + 5, $this->hasher->hash($k), $k, $leafValue, $addedLeaf);
+                }
             }
         }
 
+        /**
+         * @psalm-suppress InvalidArgument $nodes is a list of child nodes built
+         * from this node's entries; psalm cannot reconcile the resolved element
+         * type with ArrayNode's own template parameters (a generic-variance
+         * limitation PHPStan accepts).
+         */
         return new ArrayNode($this->hasher, $this->equalizer, count($this->objects) + 1, $nodes);
     }
 
@@ -270,7 +302,9 @@ final readonly class IndexedNode implements HashMapNodeInterface
         $newObjects = $this->objects;
         $newObjects[$idx] = [$key, $value];
         $addedLeaf->setValue(true);
-        return new self($this->hasher, $this->equalizer, $newObjects);
+        /** @var self<TKey, TValue> $result */
+        $result = new self($this->hasher, $this->equalizer, $newObjects);
+        return $result;
     }
 
     private function mask(int $hash, int $shift): int

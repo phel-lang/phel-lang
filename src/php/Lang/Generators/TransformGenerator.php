@@ -28,20 +28,15 @@ final class TransformGenerator
      * matching Clojure's seq-on-a-map semantics: `(map identity {:k :v})`
      * produces `[[:k :v]]`, not `[:v]`.
      *
-     * @template T
-     * @template U
+     * @param callable(mixed):mixed $f
      *
-     * @param callable(T):U      $f
-     * @param iterable<T>|string $iterable
-     *
-     * @return Generator<int, U>
+     * @return Generator<int, mixed>
      */
     public static function map(callable $f, mixed $iterable): Generator
     {
         if ($iterable instanceof PersistentMapInterface) {
             $typeFactory = TypeFactory::getInstance();
             foreach ($iterable as $k => $v) {
-                /** @psalm-suppress InvalidArgument map entries are pair vectors, not `T` */
                 yield $f($typeFactory->persistentVectorFromArray([$k, $v]));
             }
 
@@ -60,12 +55,9 @@ final class TransformGenerator
      *   filter(fn($x) => $x > 2, [1, 2, 3, 4, 5])  // => [3, 4, 5]
      *   filter(fn($c) => $c !== 'b', 'abc')        // => ['a', 'c']
      *
-     * @template T
+     * @param callable(mixed):bool $predicate
      *
-     * @param callable(T):bool   $predicate
-     * @param iterable<T>|string $iterable
-     *
-     * @return Generator<int, T>
+     * @return Generator<int, mixed>
      */
     public static function filter(callable $predicate, mixed $iterable): Generator
     {
@@ -84,13 +76,9 @@ final class TransformGenerator
      *   keep(fn($x) => $x > 2 ? $x * 10 : null, [1, 2, 3, 4])  // => [30, 40]
      *   keep(fn($x) => $x % 2 === 0 ? $x : null, [1, 2, 3, 4]) // => [2, 4]
      *
-     * @template T
-     * @template U
+     * @param callable(mixed):mixed $f
      *
-     * @param callable(T):?U     $f
-     * @param iterable<T>|string $iterable
-     *
-     * @return Generator<int, U>
+     * @return Generator<int, mixed>
      */
     public static function keep(callable $f, mixed $iterable): Generator
     {
@@ -109,13 +97,9 @@ final class TransformGenerator
      *   keepIndexed(fn($i, $v) => $i % 2 === 0 ? $v : null, ['a', 'b', 'c', 'd'])  // => ['a', 'c']
      *   keepIndexed(fn($i, $v) => $i > 0 ? "$i:$v" : null, ['a', 'b', 'c'])        // => ['1:b', '2:c']
      *
-     * @template T
-     * @template U
+     * @param callable(int, mixed):mixed $f
      *
-     * @param callable(int, T):?U $f
-     * @param iterable<T>|string  $iterable
-     *
-     * @return Generator<int, U>
+     * @return Generator<int, mixed>
      */
     public static function keepIndexed(callable $f, mixed $iterable): Generator
     {
@@ -171,13 +155,9 @@ final class TransformGenerator
      *   mapIndexed(fn($i, $v) => "$i:$v", ['a', 'b', 'c'])  // => ['0:a', '1:b', '2:c']
      *   mapIndexed(fn($i, $v) => $i * $v, [1, 2, 3])        // => [0, 2, 6]
      *
-     * @template T
-     * @template U
+     * @param callable(int, mixed):mixed $f The mapping function that takes index and value
      *
-     * @param callable(int, T): U $f        The mapping function that takes index and value
-     * @param iterable<T>|string  $iterable The input sequence
-     *
-     * @return Generator<int, U>
+     * @return Generator<int, mixed>
      */
     public static function mapIndexed(callable $f, mixed $iterable): Generator
     {

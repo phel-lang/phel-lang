@@ -49,7 +49,7 @@ final class TypeFactory
      */
     public function persistentMapFromKVs(...$kvs): PersistentMapInterface
     {
-        return $this->persistentMapFromArray($kvs);
+        return $this->persistentMapFromArray(array_values($kvs));
     }
 
     /**

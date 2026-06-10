@@ -166,7 +166,9 @@ final class Registry
             return null;
         }
 
-        return $this->definitionsMetaData[$ns][$name] ?? Phel::map();
+        /** @var PersistentMapInterface<mixed, mixed>|null $meta */
+        $meta = $this->definitionsMetaData[$ns][$name] ?? Phel::map();
+        return $meta;
     }
 
     /**

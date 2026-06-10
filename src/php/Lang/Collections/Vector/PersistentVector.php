@@ -148,6 +148,7 @@ final class PersistentVector extends AbstractPersistentVector
             $newRoot = $this->pushTail($this->shift, $this->root, $tailNode);
         }
 
+        /** @var array<int, array<mixed>> $newRoot */
         return new self(
             $this->hasher,
             $this->equalizer,
@@ -192,13 +193,16 @@ final class PersistentVector extends AbstractPersistentVector
                 );
             }
 
+            /** @var array<int, array<mixed>> $updatedRoot */
+            $updatedRoot = $this->doUpdate($this->shift, $this->root, $i, $value);
+
             return new self(
                 $this->hasher,
                 $this->equalizer,
                 $this->meta,
                 $this->count,
                 $this->shift,
-                $this->doUpdate($this->shift, $this->root, $i, $value),
+                $updatedRoot,
                 $this->tail,
             );
         }
@@ -233,8 +237,10 @@ final class PersistentVector extends AbstractPersistentVector
                 return $this->tail;
             }
 
+            /** @var array<int, mixed> $node */
             $node = $this->root;
             for ($level = $this->shift; $level > 0; $level -= self::SHIFT) {
+                /** @var array<int, mixed> $node */
                 $node = $node[($i >> $level) & self::INDEX_MASK];
             }
 
@@ -294,7 +300,9 @@ final class PersistentVector extends AbstractPersistentVector
             $newShift -= self::SHIFT;
         }
 
-        return new self(
+        /** @var array<int, array<mixed>> $newRoot */
+        /** @var self<T> $result */
+        $result = new self(
             $this->hasher,
             $this->equalizer,
             $this->meta,
@@ -303,6 +311,8 @@ final class PersistentVector extends AbstractPersistentVector
             $newRoot,
             $newTail,
         );
+
+        return $result;
     }
 
     /**
@@ -365,6 +375,7 @@ final class PersistentVector extends AbstractPersistentVector
      */
     public function cons(mixed $x): PersistentVectorInterface
     {
+        /** @var TransientVector<T> $transient */
         $transient = TransientVector::empty($this->hasher, $this->equalizer);
         $transient->append($x);
         foreach ($this as $item) {
@@ -399,7 +410,9 @@ final class PersistentVector extends AbstractPersistentVector
 
         $subIndex = $this->count - 1 >> $level & self::INDEX_MASK;
         if (count($parent) > $subIndex) {
-            $ret[$subIndex] = $this->pushTail($level - self::SHIFT, $parent[$subIndex], $tailNode);
+            /** @var array<int, mixed> $childNode */
+            $childNode = $parent[$subIndex];
+            $ret[$subIndex] = $this->pushTail($level - self::SHIFT, $childNode, $tailNode);
             return $ret;
         }
 
@@ -435,7 +448,9 @@ final class PersistentVector extends AbstractPersistentVector
             $ret[$i & self::INDEX_MASK] = $value;
         } else {
             $subIndex = ($i >> $level) & self::INDEX_MASK;
-            $ret[$subIndex] = $this->doUpdate($level - self::SHIFT, $node[$subIndex], $i, $value);
+            /** @var array<int, mixed> $childNode */
+            $childNode = $node[$subIndex];
+            $ret[$subIndex] = $this->doUpdate($level - self::SHIFT, $childNode, $i, $value);
         }
 
         return $ret;
@@ -450,7 +465,9 @@ final class PersistentVector extends AbstractPersistentVector
     {
         $subIndex = ($this->count - 2 >> $level) & self::INDEX_MASK;
         if ($level > self::SHIFT) {
-            $newChild = $this->popTail($level - self::SHIFT, $node[$subIndex]);
+            /** @var array<int, mixed> $childNode */
+            $childNode = $node[$subIndex];
+            $newChild = $this->popTail($level - self::SHIFT, $childNode);
             if ($newChild === null && $subIndex === 0) {
                 return null;
             }
@@ -479,6 +496,7 @@ final class PersistentVector extends AbstractPersistentVector
         $shift -= self::SHIFT;
         if ($shift >= 0) {
             foreach ($node as $x) {
+                /** @var array<int, mixed> $x */
                 $this->flattenIntoArray($x, $shift, $targetArr);
             }
         } else {

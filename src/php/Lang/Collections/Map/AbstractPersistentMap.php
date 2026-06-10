@@ -98,7 +98,10 @@ abstract class AbstractPersistentMap extends AbstractType implements PersistentM
                 $tm->put($k, $v);
             }
 
-            return $tm->persistent();
+            /** @var PersistentMapInterface<K, V> $result */
+            $result = $tm->persistent();
+
+            return $result;
         }
 
         $m = $this;
