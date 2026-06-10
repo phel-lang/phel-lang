@@ -287,7 +287,7 @@ final class Phel extends InternalPhel
             $firstArgument = $kvs[0] ?? null;
 
             if (\is_array($firstArgument)) {
-                return $typeFactory->persistentMapFromArray($firstArgument);
+                return $typeFactory->persistentMapFromArray(\array_values($firstArgument));
             }
 
             if ($firstArgument === null) {
@@ -295,7 +295,7 @@ final class Phel extends InternalPhel
             }
         }
 
-        return $typeFactory->persistentMapFromKVs(...$kvs);
+        return $typeFactory->persistentMapFromArray(\array_values($kvs));
     }
 
     /**
@@ -349,10 +349,10 @@ final class Phel extends InternalPhel
     {
         $typeFactory = TypeFactory::getInstance();
         if (\count($kvs) === 1 && \is_array($kvs[0])) {
-            return $typeFactory->persistentSortedMapFromArray($kvs[0]);
+            return $typeFactory->persistentSortedMapFromArray(\array_values($kvs[0]));
         }
 
-        return $typeFactory->persistentSortedMapFromArray($kvs);
+        return $typeFactory->persistentSortedMapFromArray(\array_values($kvs));
     }
 
     /**
@@ -364,10 +364,10 @@ final class Phel extends InternalPhel
     {
         $typeFactory = TypeFactory::getInstance();
         if (\count($kvs) === 1 && \is_array($kvs[0])) {
-            return $typeFactory->persistentSortedMapFromArray($kvs[0], $comparator);
+            return $typeFactory->persistentSortedMapFromArray(\array_values($kvs[0]), $comparator);
         }
 
-        return $typeFactory->persistentSortedMapFromArray($kvs, $comparator);
+        return $typeFactory->persistentSortedMapFromArray(\array_values($kvs), $comparator);
     }
 
     /**
