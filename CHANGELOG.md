@@ -18,6 +18,7 @@ config, a [configuration reference](docs/configuration.md), composable
 ### Changed
 
 - `phel init` scaffolds a `phel-config.php` with a docs link and commented-out tweaks
+- Docs: a [Deployment guide](docs/deployment.md) covering shared-nothing vs worker runtimes (FrankenPHP/RoadRunner), with a load-once-before-the-loop example
 
 ### Fixed
 

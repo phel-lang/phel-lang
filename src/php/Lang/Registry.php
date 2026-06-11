@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace Phel\Lang;
 
-use Phel;
 use Phel\Lang\Collections\Map\PersistentMapInterface;
 use RuntimeException;
 
@@ -167,7 +166,7 @@ final class Registry
         }
 
         /** @var PersistentMapInterface<mixed, mixed>|null $meta */
-        $meta = $this->definitionsMetaData[$ns][$name] ?? Phel::map();
+        $meta = $this->definitionsMetaData[$ns][$name] ?? TypeFactory::getInstance()->persistentMapFromArray([]);
         return $meta;
     }
 

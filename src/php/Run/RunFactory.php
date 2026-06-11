@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace Phel\Run;
 
 use Gacela\Framework\AbstractFactory;
+use Gacela\Framework\Health\ModuleHealthCheckInterface;
+use Phel\Filesystem\FilesystemFacadeInterface;
 use Phel\Run\Application\BundledNamespaceDetector;
 use Phel\Run\Application\BundledNamespaces;
 use Phel\Run\Application\CompileExecutor;
@@ -185,6 +187,24 @@ class RunFactory extends AbstractFactory
         /** @var ApiFacadeInterface $facade */
         $facade = $this->getProvidedDependency(RunProvider::FACADE_API);
         return $facade;
+    }
+
+    public function getFilesystemFacade(): FilesystemFacadeInterface
+    {
+        /** @var FilesystemFacadeInterface $facade */
+        $facade = $this->getProvidedDependency(RunProvider::FACADE_FILESYSTEM);
+        return $facade;
+    }
+
+    /**
+     * @return list<ModuleHealthCheckInterface>
+     */
+    public function getModuleHealthChecks(): array
+    {
+        return [
+            $this->getBuildFacade()->getHealthCheck(),
+            $this->getFilesystemFacade()->getHealthCheck(),
+        ];
     }
 
     public function createVersionResolver(): VersionResolver

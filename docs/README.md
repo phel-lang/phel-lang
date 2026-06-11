@@ -44,6 +44,7 @@ Coming from Clojure? Read [Clojure Migration](clojure-migration.md).
 ## Apps
 
 - [Framework Integration](framework-integration.md): Laravel, Symfony, framework-less
+- [Deployment](deployment.md): worker runtimes (FrankenPHP, RoadRunner), shared-nothing vs persistent state
 - [Examples](examples/README.md): runnable single-file samples
 
 ## Internals

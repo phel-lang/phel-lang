@@ -11,6 +11,7 @@ use Phel\Api\ApiFacade;
 use Phel\Build\BuildFacade;
 use Phel\Command\CommandFacade;
 use Phel\Compiler\CompilerFacade;
+use Phel\Filesystem\FilesystemFacade;
 
 final class RunProvider extends AbstractProvider
 {
@@ -21,6 +22,8 @@ final class RunProvider extends AbstractProvider
     public const string FACADE_BUILD = 'FACADE_BUILD';
 
     public const string FACADE_API = 'FACADE_API';
+
+    public const string FACADE_FILESYSTEM = 'FACADE_FILESYSTEM';
 
     #[Provides(self::FACADE_COMMAND)]
     public function commandFacade(Container $container): CommandFacade
@@ -44,5 +47,11 @@ final class RunProvider extends AbstractProvider
     public function apiFacade(Container $container): ApiFacade
     {
         return $container->getLocator()->getRequired(ApiFacade::class);
+    }
+
+    #[Provides(self::FACADE_FILESYSTEM)]
+    public function filesystemFacade(Container $container): FilesystemFacade
+    {
+        return $container->getLocator()->getRequired(FilesystemFacade::class);
     }
 }

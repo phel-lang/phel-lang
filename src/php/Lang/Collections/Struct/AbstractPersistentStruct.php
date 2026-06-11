@@ -6,7 +6,6 @@ namespace Phel\Lang\Collections\Struct;
 
 use InvalidArgumentException;
 use Override;
-use Phel;
 use Phel\Lang\Collections\Exceptions\MethodNotSupportedException;
 use Phel\Lang\Collections\Map\AbstractPersistentMap;
 use Phel\Lang\Collections\Map\PersistentMapInterface;
@@ -113,7 +112,7 @@ abstract class AbstractPersistentStruct extends AbstractPersistentMap
     public function getIterator(): Traversable
     {
         foreach (static::ALLOWED_KEYS as $key) {
-            yield Phel::keyword($key) => $this->{$this->keyEncoder->encode($key)};
+            yield Keyword::create($key) => $this->{$this->keyEncoder->encode($key)};
         }
     }
 
@@ -138,7 +137,7 @@ abstract class AbstractPersistentStruct extends AbstractPersistentMap
     public function getAllowedKeys(): array
     {
         return array_values(array_map(
-            static fn(string $k): Keyword => Phel::keyword($k),
+            static fn(string $k): Keyword => Keyword::create($k),
             static::ALLOWED_KEYS,
         ));
     }
@@ -161,7 +160,7 @@ abstract class AbstractPersistentStruct extends AbstractPersistentMap
      */
     private function normalizeOffset(mixed $offset): Keyword
     {
-        return is_string($offset) ? Phel::keyword($offset) : $offset;
+        return is_string($offset) ? Keyword::create($offset) : $offset;
     }
 
     /**
@@ -171,7 +170,7 @@ abstract class AbstractPersistentStruct extends AbstractPersistentMap
     {
         $kvs = [];
         foreach (static::ALLOWED_KEYS as $allowedKey) {
-            $entryKey = Phel::keyword($allowedKey);
+            $entryKey = Keyword::create($allowedKey);
             if ($this->equalizer->equals($entryKey, $key)) {
                 continue;
             }

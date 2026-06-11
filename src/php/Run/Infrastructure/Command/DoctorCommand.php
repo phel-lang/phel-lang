@@ -4,11 +4,11 @@ declare(strict_types=1);
 
 namespace Phel\Run\Infrastructure\Command;
 
-use Gacela\Framework\Gacela;
 use Gacela\Framework\Health\HealthChecker;
 use Gacela\Framework\Health\HealthStatus;
-use Phel\Build\BuildFacade;
-use Phel\Filesystem\FilesystemFacade;
+use Gacela\Framework\ServiceResolver\ServiceMap;
+use Gacela\Framework\ServiceResolverAwareTrait;
+use Phel\Run\RunFacade;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
@@ -16,8 +16,14 @@ use Symfony\Component\Console\Output\OutputInterface;
 use function extension_loaded;
 use function sprintf;
 
+/**
+ * @method RunFacade getFacade()
+ */
+#[ServiceMap(method: 'getFacade', className: RunFacade::class)]
 final class DoctorCommand extends Command
 {
+    use ServiceResolverAwareTrait;
+
     protected function configure(): void
     {
         $this->setName('doctor')
@@ -68,10 +74,7 @@ final class DoctorCommand extends Command
         $output->writeln('');
         $output->writeln('Checking module health:');
 
-        $report = new HealthChecker([
-            Gacela::getRequired(FilesystemFacade::class)->getHealthCheck(),
-            Gacela::getRequired(BuildFacade::class)->getHealthCheck(),
-        ])->checkAll();
+        $report = new HealthChecker($this->getFacade()->getModuleHealthChecks())->checkAll();
 
         foreach ($report->getResults() as $moduleName => $status) {
             $output->writeln(sprintf(

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Phel\Shared\Facade;
 
+use Gacela\Framework\Health\ModuleHealthCheckInterface;
 use Phel\Build\Domain\Compile\CompiledFile;
 use Phel\Shared\NamespaceInformation;
 
@@ -56,4 +57,9 @@ interface BuildFacadeInterface
      * @param string $src The source file
      */
     public function evalFile(string $src): CompiledFile;
+
+    /**
+     * Returns the module's health check for diagnostics (`phel doctor`).
+     */
+    public function getHealthCheck(): ModuleHealthCheckInterface;
 }
