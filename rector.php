@@ -30,7 +30,7 @@ return RectorConfig::configure()
         // converting to `array_all` with an arrow fn would silently
         // drop the reference because arrow functions capture by value.
         ForeachToArrayAllRector::class => [
-            __DIR__ . '/src/php/Compiler/Domain/Emitter/OutputEmitter/Cache/LocalVarReferences.php',
+            __DIR__ . '/src/php/Compiler/Domain/Analyzer/Ast/Reference/LocalVarReferences.php',
         ],
         ReturnTypeFromReturnNewRector::class => [
             __DIR__ . '/tests/php/Unit/Interop/Generator/CompiledPhpMethodBuilderTest.php',

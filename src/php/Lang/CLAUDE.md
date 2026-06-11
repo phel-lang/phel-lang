@@ -37,7 +37,6 @@ Other utilities: `DynamicScope` (dynamic bindings), `Truthy`, `TypeStringifier`,
 - **TypeFactory**: singleton creating persistent collections; provides `Hasher`/`Equalizer` singletons
 - **Seq**: static utility for sequence ops; **TagRegistry**: reader literal tag handler dispatch (`TagHandlers/`: `#inst`, `#uuid`, regex)
 - **LoadClasspath**: static accessor for the `(load ...)` classpath, stored in `Registry` under `phel.core/*load-classpath*`. Lives here (not Compiler) because its state is a `Registry` slot; FQN baked into generated PHP by `LoadEmitter`; do not rename
-- **Phel**: static helper for namespace/definition lookups (used by Api, Interop)
 
 ## Interfaces
 

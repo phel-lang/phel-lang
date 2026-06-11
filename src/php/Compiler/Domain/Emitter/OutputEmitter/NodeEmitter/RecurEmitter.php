@@ -6,7 +6,7 @@ namespace Phel\Compiler\Domain\Emitter\OutputEmitter\NodeEmitter;
 
 use Phel\Compiler\Domain\Analyzer\Ast\AbstractNode;
 use Phel\Compiler\Domain\Analyzer\Ast\RecurNode;
-use Phel\Compiler\Domain\Emitter\OutputEmitter\Cache\LocalVarReferences;
+use Phel\Compiler\Domain\Analyzer\Ast\Reference\LocalVarReferences;
 use Phel\Compiler\Domain\Emitter\OutputEmitter\NodeEmitterInterface;
 use Phel\Lang\Symbol;
 

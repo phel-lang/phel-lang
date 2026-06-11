@@ -17,7 +17,7 @@ Core compilation pipeline: Phel source to tokens to AST to analyzed nodes to PHP
 
 ## Dependencies
 
-Filesystem (file I/O); Shared (`Munge`, `Printer`, exceptions). `CompilerConfig` exposes `assertsEnabled()`, `warnDeprecationsEnabled()`.
+Filesystem (file I/O); Config (`PhelConfig` data model, wrapped by `CompilerConfig`); Shared (`Munge`, `Printer`, exceptions). `CompilerConfig` exposes `assertsEnabled()`, `warnDeprecationsEnabled()`.
 
 ## Phase Pipeline
 

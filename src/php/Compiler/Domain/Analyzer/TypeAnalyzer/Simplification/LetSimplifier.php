@@ -9,7 +9,7 @@ use Phel\Compiler\Domain\Analyzer\Ast\DoNode;
 use Phel\Compiler\Domain\Analyzer\Ast\LetNode;
 use Phel\Compiler\Domain\Analyzer\Ast\LiteralNode;
 use Phel\Compiler\Domain\Analyzer\Ast\LocalVarNode;
-use Phel\Compiler\Domain\Emitter\OutputEmitter\Cache\LocalVarReferences;
+use Phel\Compiler\Domain\Analyzer\Ast\Reference\LocalVarReferences;
 
 use function array_fill_keys;
 use function array_reverse;

@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Phel\Compiler\Domain\Emitter\OutputEmitter\Cache;
+namespace Phel\Compiler\Domain\Analyzer\Ast\Reference;
 
 use Phel\Compiler\Domain\Analyzer\Ast\AbstractNode;
 use Phel\Compiler\Domain\Analyzer\Ast\ApplyNode;

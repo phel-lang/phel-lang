@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace Phel\Lang\Generators;
 
 use Generator;
-use Phel;
 use Phel\Lang\Collections\Vector\PersistentVectorInterface;
 use Phel\Lang\TypeFactory;
 
@@ -29,7 +28,7 @@ final class PartitionGenerator
             $partition[] = $value;
 
             if (count($partition) === $n) {
-                yield Phel::vector($partition);
+                yield TypeFactory::getInstance()->persistentVectorFromArray($partition);
                 $partition = [];
             }
         }
@@ -51,13 +50,13 @@ final class PartitionGenerator
             $partition[] = $value;
 
             if (count($partition) === $n) {
-                yield Phel::vector($partition);
+                yield TypeFactory::getInstance()->persistentVectorFromArray($partition);
                 $partition = [];
             }
         }
 
         if ($partition !== []) {
-            yield Phel::vector($partition);
+            yield TypeFactory::getInstance()->persistentVectorFromArray($partition);
         }
     }
 
@@ -79,14 +78,14 @@ final class PartitionGenerator
                 $prevKey = $key;
                 $first = false;
             } else {
-                yield Phel::vector($partition);
+                yield TypeFactory::getInstance()->persistentVectorFromArray($partition);
                 $partition = [$value];
                 $prevKey = $key;
             }
         }
 
         if ($partition !== []) {
-            yield Phel::vector($partition);
+            yield TypeFactory::getInstance()->persistentVectorFromArray($partition);
         }
     }
 

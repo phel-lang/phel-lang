@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace PhelTest\Unit\Compiler\Domain\Emitter\OutputEmitter\ConstantHoisting;
+namespace PhelTest\Unit\Compiler\Domain\Analyzer\Ast\Reference;
 
 use Phel\Compiler\Domain\Analyzer\Ast\CallNode;
 use Phel\Compiler\Domain\Analyzer\Ast\LiteralNode;
@@ -10,8 +10,8 @@ use Phel\Compiler\Domain\Analyzer\Ast\LocalVarNode;
 use Phel\Compiler\Domain\Analyzer\Ast\MethodCallNode;
 use Phel\Compiler\Domain\Analyzer\Ast\PhpObjectCallNode;
 use Phel\Compiler\Domain\Analyzer\Ast\PhpVarNode;
+use Phel\Compiler\Domain\Analyzer\Ast\Reference\LocalVarReferences;
 use Phel\Compiler\Domain\Analyzer\Environment\NodeEnvironment;
-use Phel\Compiler\Domain\Emitter\OutputEmitter\Cache\LocalVarReferences;
 use Phel\Lang\Symbol;
 use PHPUnit\Framework\TestCase;
 
