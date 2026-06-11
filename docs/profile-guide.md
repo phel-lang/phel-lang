@@ -7,10 +7,8 @@
 ```sh
 ./vendor/bin/phel profile src/phel/main.phel
 ./vendor/bin/phel profile my.namespace
-./vendor/bin/phel profile               # auto-detects entry point
+./vendor/bin/phel profile               # auto-detect: tries main.phel, then core.phel
 ```
-
-Without an argument the command auto-detects the entry point, trying `main.phel` first, then `core.phel`.
 
 ## Sample output
 
@@ -55,7 +53,7 @@ Argv after the path is forwarded to the script:
 
 ## How it works
 
-An **instrumentation** profiler, not a sampler.
+An **instrumentation** profiler, not a sampler:
 
 1. `Registry::$profilerHook` is set before the run. While set, `Registry::addDefinition` wraps every `AbstractFn` in a `ProfilingFn` proxy.
 2. `GlobalVarEmitter` already routes every global-fn call through `\Phel::getDefinition(...)`, so each call hits the proxy's `__invoke`; no emitter or fixture changes.

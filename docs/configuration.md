@@ -1,9 +1,8 @@
 # Configuration
 
-A Phel project is configured by a `phel-config.php` file at the project root
-that returns a `Phel\Config\PhelConfig` object. Phel works with **zero config**:
-if the file is absent, the project layout is auto-detected. Add the file when
-you need to change defaults.
+A Phel project is configured by a `phel-config.php` at the project root that
+returns a `Phel\Config\PhelConfig` object. Phel works with **zero config**: if
+the file is absent, the layout is auto-detected. Add the file to change defaults.
 
 ```php
 <?php
@@ -18,7 +17,7 @@ return PhelConfig::forProject(ProjectLayout::Nested)
 ```
 
 Every option has an immutable `with*()` setter that returns a new instance, so
-calls chain. Inspect the effective, merged result at any time with:
+calls chain. Inspect the effective, merged result with:
 
 ```bash
 phel config          # human-readable, with sources
@@ -30,7 +29,7 @@ phel config --json   # just the resolved config map
 `PhelConfig::forProject(ProjectLayout $layout = Flat, string $mainNamespace = '')`
 and `withLayout(ProjectLayout)` set the source/test/format/export directories in
 one step. `withLayout()` resets all four directory groups to the layout's
-defaults (it does not touch build, cache, or flags).
+defaults; it leaves build, cache, and flags untouched.
 
 | Layout   | src dirs     | test dirs      | format dirs              | export-from   |
 | -------- | ------------ | -------------- | ------------------------ | ------------- |
@@ -58,7 +57,7 @@ All directory paths are relative to the project root.
 | `withNoCacheWhenBuilding(array)`| `no-cache-when-building`     | `[]`               | Force recompilation of files during `phel build` (see below). |
 | `withEnableNamespaceCache(bool)`| `enable-namespace-cache`     | `true`             | Cache parsed namespace metadata (see [caching](#caching)). |
 | `withEnableCompiledCodeCache(bool)` | `enable-compiled-code-cache` | `true`         | Cache compiled PHP output (see [caching](#caching)). |
-| `withOptimizationLevel(int)`    | `optimization-level`         | `0`                | Compiler optimization level for `build`/`run`/`test` (REPL/nREPL stay at 0). |
+| `withOptimizationLevel(int)`    | `optimization-level`         | `0`                | Compiler optimization level for `build`/`run`/`test` (see [performance.md](performance.md) for level semantics). |
 | `withTempDir(string)`           | `temp-dir`                   | system temp `/phel/tmp` | Transient compilation artifacts (e.g. `(load ...)`). |
 | `withCacheDir(string)`          | `cache-dir`                  | `'.phel/cache'`    | Persistent cache root (overridden by `PHEL_CACHE_DIR`). |
 | `withPhelDir(string)`           | `phel-dir`                   | `''`               | Relocate the whole `.phel/` state dir (overridden by `PHEL_DIR`). See [Project Layout](project-layout.md). |
@@ -86,10 +85,13 @@ Set via flattened setters, or by passing a `PhelExportConfig` to
 | `withExportNamespacePrefix(string)` | `namespace-prefix` | `'PhelGenerated'`  | PHP namespace prefix for generated wrappers. |
 | `withExportTargetDirectory(string)` | `target-directory` | `'src/PhelGenerated'` | Directory `phel export` writes generated PHP into. |
 
-> **Ordering:** `withBuildConfig()` and `withExportConfig()` replace the whole
-> value object, overwriting anything set via the flattened setters above (and
-> resetting unspecified fields to their defaults). Call them *before* the
-> flattened setters, or just use the flattened setters.
+> **Ordering:** `withBuildConfig()` / `withExportConfig()` accept either form:
+> - A `PhelBuildConfig` / `PhelExportConfig` **replaces the whole value object**,
+>   overwriting anything set via the flattened setters above and resetting
+>   unspecified fields to their defaults, so call it *before* the flattened setters.
+> - A **configurator closure** (`fn ($b) => $b->withDestDir('dist')`) patches the
+>   current value object in place and composes with the flattened setters
+>   regardless of call order.
 
 ## Ignore vs. no-cache when building
 
@@ -116,17 +118,17 @@ Phel keeps two independent caches under the cache dir; both are on by default.
 | `enable-namespace-cache`      | parsed namespace metadata (`(ns ...)` deps) | `<cache-dir>/namespace-cache.php` |
 | `enable-compiled-code-cache`  | compiled PHP output, keyed by content hash | `<cache-dir>/compiled/`        |
 
-The compiled-code cache is also invalidated when the optimization level
-changes. Disable either flag to force re-parsing / recompilation (useful when
-hacking on the compiler itself). See [Performance](performance.md) for cache
-reset tips and [Project Layout](project-layout.md) for the `.phel/` directory.
+Disable either flag to force re-parsing / recompilation (useful when hacking on
+the compiler). See [Performance](performance.md) for cache reset tips, opcache
+interaction, and optimization-level invalidation, and [Project Layout](project-layout.md)
+for relocating the `.phel/` directory.
 
 ## Local overrides: `phel-config-local.php`
 
-A second, optional `phel-config-local.php` at the project root is merged on top
-of `phel-config.php`. Use it for per-developer or per-machine settings you do
-not want to commit (`phel init` adds it to `.gitignore`). It returns a
-`PhelConfig` just like the main file:
+An optional `phel-config-local.php` at the project root is merged on top of
+`phel-config.php`. Use it for per-developer or per-machine settings you do not
+want to commit (`phel init` adds it to `.gitignore`). It returns a `PhelConfig`
+like the main file:
 
 ```php
 <?php
@@ -151,4 +153,6 @@ When the same setting comes from multiple sources, the highest wins:
 4. `PhelConfig` constructor defaults
 5. Auto-detected layout (only when no `phel-config.php` exists)
 
-Run `phel config` to see which files were applied and the resulting values.
+Run `phel config` to see which files were applied and the resulting values. For
+`.phel/` relocation and the `PHEL_DIR` / `PHEL_CACHE_DIR` / `withCacheDir` env-var
+precedence, see [Project Layout](project-layout.md).

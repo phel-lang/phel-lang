@@ -25,7 +25,7 @@ Three concerns: types, per-namespace `Registry`, value equality + hashing.
 | `Delay` | One-shot lazy value (not a sequence). |
 | `Volatile` | Mutable box for transducer state. |
 | `Reduced` | Early-termination sentinel for `reduce`/`transduce`. |
-| `Future` | Promise/future for `Fiber/`. |
+| `Future` | Amphp-backed future wrapper; `deref` awaits inside a fiber. Used by `async`/`await` (see `src/phel/core/async.phel`). |
 | `SourceLocation` | File + line + column on every readable form. |
 
 All types implement `TypeInterface` (composes `MetaInterface`, `SourceLocationInterface`, `EqualsInterface`, `HashableInterface`).
@@ -69,9 +69,9 @@ Each top-level form compiles + evaluates before the next is analysed, so both st
 
 `src/Phel.php` is the runtime ABI. Cached `.php` files in the wild call into it. Signature changes are breaking.
 
-- `addDefinition($ns, $name, $value, $meta = null)`
+- `addDefinition($ns, $name, $value, $meta = null)` (delegated to `Registry` via `__callStatic`)
 - `keyword($name, $namespace = null)` / `symbol($name)`
-- `vector(...$items)` / `map(...$kvs)` / `set(...$items)`
+- `vector(?array $values = [])` / `set(?array $values = [])` / `map(...$kvs)`
 
 Changing a signature requires auditing `Compiler/Domain/Emitter/OutputEmitter/NodeEmitter/*Emitter.php`.
 

@@ -1,6 +1,6 @@
 # Building CLIs with `phel.cli`
 
-`phel.cli` is a data-driven wrapper over [`symfony/console`](https://symfony.com/doc/current/components/console.html) (which ships with phel-lang, no extra dependency). Subcommands, arguments, options, prompts, tables, progress bars, shell completion, and signal handling are all plain Phel maps.
+`phel.cli` is a data-driven wrapper over [`symfony/console`](https://symfony.com/doc/current/components/console.html) (bundled with phel-lang, no extra dependency). Subcommands, arguments, options, prompts, tables, progress bars, shell completion, and signal handling are all plain Phel maps.
 
 ## Quickstart
 
@@ -173,10 +173,10 @@ Available `:style` values: `:default`, `:borderless`, `:compact`, `:symfony`, `:
          :complete (fn [_input] ["dev" "staging" "prod"])}]}
 ```
 
-Symfony calls your completion function on `<TAB>` once the shell completion script is installed:
+Symfony calls your completion function on `<TAB>` once the shell completion script is installed. Dump it with the built-in `completion` command (supports `bash`, `zsh`, `fish`):
 
 ```bash
-my-tool _complete --generate-hook=bash > ~/.bash_completion.d/my-tool
+my-tool completion bash > ~/.bash_completion.d/my-tool
 ```
 
 ## Signal handling
@@ -229,7 +229,7 @@ For prompt testing, pipe canned STDIN:
 
 ## Running under `phel run`
 
-Under `./bin/phel run path/to/script.phel arg1 arg2`, Phel's own console occupies `$_SERVER['argv']`; user args arrive through the core var `argv`. Pass them explicitly:
+Under `./bin/phel run path/to/script.phel arg1 arg2`, Phel's own console occupies `$_SERVER['argv']`; user args arrive through the core var `argv`. Pass them explicitly.
 
 ```phel
 ;; Bad: reads the wrapper's argv, so "run" looks like your first command.
@@ -239,7 +239,7 @@ Under `./bin/phel run path/to/script.phel arg1 arg2`, Phel's own console occupie
 (cli/run app (cli/argv argv))
 ```
 
-Only needed under `phel run`. A standalone binary built with `phel build` reads `$_SERVER['argv']` directly, so `(cli/run app)` is fine there.
+This is only needed under `phel run`. A standalone binary built with `phel build` reads `$_SERVER['argv']` directly, so `(cli/run app)` works there.
 
 ## Best practices
 

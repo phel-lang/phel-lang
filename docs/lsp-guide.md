@@ -50,12 +50,12 @@ vim.lsp.start({
 
 ## Diagnostics
 
-Compiler errors, unresolved symbols, arity mismatches, and lint violations. Publication is debounced so typing does not thrash.
+Compiler errors, unresolved symbols, arity mismatches, and lint violations. Publication is debounced (200ms default) so typing does not thrash.
 
 ## Pitfalls
 
 - The server scans files under the project root. Keep `phel-config.php` current for require resolution.
-- LSP runs in its own PHP process. REPL state is not shared with a running `phel nrepl`.
+- LSP runs in its own PHP process; REPL state is not shared with a running `phel nrepl`.
 
 ## See also
 

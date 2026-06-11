@@ -12,7 +12,7 @@ Seven-stage pipeline. Each stage consumes only the previous stage's output. Sour
 | Emitter | `Domain/Emitter/OutputEmitter.php` | `AbstractNode` | PHP `string` |
 | Evaluator | `Domain/Evaluator/` | PHP `string` | values / side effects |
 
-Paths are relative to `src/php/Compiler/`.
+Paths are relative to `src/php/Compiler/`, except `Shared/Munge.php` (under `src/php/`).
 
 ## Public entry points (`CompilerFacade`)
 

@@ -31,7 +31,7 @@ Quasiquote (`` ` ``) is like quote but allows selective evaluation with unquote 
 
 ### Auto-gensym `name#`
 
-Inside a syntax-quote, a symbol ending in `#` expands to a fresh unique name. All occurrences of the same `name#` in one syntax-quote share that name, giving hygienic macros without calling `gensym`:
+Inside a syntax-quote, a symbol ending in `#` expands to a fresh unique name. All occurrences of the same `name#` within one syntax-quote share that name, giving hygienic macros without calling `gensym`:
 
 ```phel
 (defmacro time [expr]
@@ -65,7 +65,7 @@ Resolved at parse time. `#?()` selects one form by platform key; `#?@()` splices
 
 ## Tagged Literals `#<tag> form`
 
-Tagged literals convert a form to a value at read time. Three ship built-in:
+Tagged literals convert a form to a value at read time. Three are built-in:
 
 ```phel
 #inst "2026-01-01T00:00:00Z"                   ; reads as \DateTimeImmutable

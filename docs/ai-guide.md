@@ -35,9 +35,9 @@
 | `:timeout` | `120` | HTTP timeout (seconds) |
 | `:max-retries` | `2` | Retry 429/5xx with exponential backoff |
 
-Default model evolves with `src/phel/ai.phel`; check there for the current value.
+The default model evolves with `src/phel/ai.phel`; check there for the current value.
 
-Every per-call `opts` map (on `chat`, `complete`, `chat-with-tools`, `extract`, `extract-many`) accepts the same keys for per-request overrides:
+Every per-call `opts` map (`chat`, `complete`, `chat-with-tools`, `extract`, `extract-many`) accepts these keys for per-request overrides:
 
 ```phel
 (ai/complete "Summarize the news" {:provider :openai :model "gpt-4o-mini"})
@@ -97,7 +97,7 @@ Define tools with provider-agnostic `tool`, then either hand off to `run-tools` 
 ;; => "It's 72F and sunny in Paris."
 ```
 
-`run-tools` sends the conversation, resolves tool calls via `handlers` (tool name to fn), feeds results back, and stops when the model returns plain text or `:max-turns` is reached. Anthropic-only.
+`run-tools` sends the conversation, resolves tool calls via `handlers` (tool-name to fn), feeds results back, and stops when the model returns plain text or `:max-turns` is reached. Anthropic-only.
 
 For finer control, use `chat-with-tools` directly:
 
@@ -142,7 +142,7 @@ All failures throw `\RuntimeException`. Messages include HTTP status and provide
 
 ## Testing without a live API
 
-`phel.ai` exposes an HTTP seam `*http-post*` that tests rebind to return canned responses. Combined with `phel.mock`, this removes the dependency on a real provider.
+`phel.ai` exposes an HTTP seam `*http-post*` that tests rebind to return canned responses. Combined with `phel.mock`, this removes the dependency on a live provider.
 
 ```phel
 (ns my-app.test.ai-test

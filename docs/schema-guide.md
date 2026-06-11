@@ -9,7 +9,7 @@
   (:require phel.schema :as s))
 
 (def User
-  [:map {:closed? true}
+  [:map {:closed true}
    [:id    :int]
    [:email [:re #"^[^@]+@[^@]+$"]]
    [:age   [:maybe :int]]])
@@ -19,7 +19,7 @@
 (s/coerce   User {"id" "1" "email" "a@b.co" "age" nil})
 ```
 
-`[:maybe T]` makes the *value* nilable but the key is still required-present; omit it on a `{:closed? true}` map and validation fails with `:type :missing`.
+`[:maybe T]` makes the *value* nilable but the key is still required-present; omit the key on a `{:closed true}` map and validation fails with `:type :missing`.
 
 ## Schema kinds
 
@@ -29,7 +29,7 @@
 | collection | `[:vector :int]`, `[:set :string]`, `[:map-of :keyword :int]` |
 | map | `[:map [:k :int] [:k2 :string]]` |
 | tuple | `[:tuple :int :string]` |
-| choice | `[:enum :a :b]`, `[:or :int :string]`, `[:and :int pos-int?]`, `[:maybe :int]` |
+| choice | `[:enum :a :b]`, `[:or :int :string]`, `[:and :int [:fn pos-int?]]`, `[:maybe :int]` |
 | regex | `[:re #"pattern"]` |
 | predicate | `[:fn even?]` |
 | reference | `[:ref :my/User]` |
@@ -62,9 +62,10 @@
 
 ## Pitfalls
 
-- `:map` is open by default; add `{:closed? true}` to reject extra keys
-- `[:maybe T]` allows a nil value but does not make the key optional
-- `[:re ...]` expects a `#"regex"` literal, not a string
+- `:map` is open by default; add `{:closed true}` to reject extra keys (note: `:closed`, not `:closed?`; a `?` key is silently ignored)
+- `[:maybe T]` allows a nil value but does not make the key optional; use `{:optional true}` on the entry for that
+- `[:and ...]` children must be schemas; wrap a bare predicate as `[:fn pred]` (e.g. `[:fn pos-int?]`, not `pos-int?`)
+- `[:re ...]` expects a `#"regex"` literal (or a PCRE string *with* delimiters, e.g. `"/^[0-9]+$/"`); a bare pattern string like `"^[0-9]+$"` silently fails
 - `generate` may fail on over-constrained `[:and ...]` or `[:re ...]` schemas; pass `{:gen <gen-fn>}` in schema options to override
 
 ## See also

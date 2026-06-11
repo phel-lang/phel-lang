@@ -1,12 +1,13 @@
 # Parallel Test Runner
 
-`phel test --parallel=<N|auto|max>` fans out test namespaces across a pool of subprocess workers, mirroring Clojure's [eftest](https://github.com/eftest/eftest) `:multithread? :namespaces` mode: opt-in, default workers ≈ CPU count, deterministic output, no impact on serial runs.
+`phel test --parallel=<N|auto|max>` fans out test namespaces across a pool of subprocess workers, mirroring Clojure's [eftest](https://github.com/weavejester/eftest) `:multithread? :namespaces` mode: opt-in, default workers ≈ CPU count, deterministic output, no impact on serial runs.
 
 ## When to use it
 
-Use it for suites with non-trivial per-namespace work (DB spin-up, AST benchmarks, heavy property tests), or CI where wall clock dominates worker spawn cost.
-
-Skip it for tiny suites, or when a per-namespace fixture spins up a shared resource (DB, port, fixture file) that can't tolerate N concurrent loaders.
+| Use it | Skip it |
+|---|---|
+| Non-trivial per-namespace work (DB spin-up, AST benchmarks, heavy property tests) | Tiny suites |
+| CI where wall clock dominates worker spawn cost | Per-namespace fixtures sharing a resource (DB, port, fixture file) that can't tolerate N concurrent loaders |
 
 ## Usage
 
@@ -45,9 +46,11 @@ Output is **deterministic in input order**: workers complete in arbitrary order,
 
 `--parallel` silently downgrades to serial when:
 
-- `--reporter=tap`: TAP needs a monotonic test counter.
-- `--list`: discovery only, nothing to fan out.
-- A profiler hook is installed: counts only accrue in the parent.
+| Condition | Reason |
+|---|---|
+| `--reporter=tap` | TAP needs a monotonic test counter |
+| `--list` | Discovery only, nothing to fan out |
+| A profiler hook is installed | Counts only accrue in the parent |
 
 Run with `-v` to see why:
 
@@ -65,7 +68,7 @@ Ignoring --parallel: TAP reporter requires a monotonic test counter.
 4. `/proc/cpuinfo` line count (Linux without `nproc`)
 5. Hardcoded `4`
 
-`auto` clamps to a cap of 8 to stay kind to laptops and shared CI runners; `max` skips the cap.
+`auto` clamps to a cap of 8 (kind to laptops and shared CI runners); `max` skips the cap.
 
 ## Architecture
 

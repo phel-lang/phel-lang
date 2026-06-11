@@ -25,13 +25,13 @@ REPL `(macroexpand-1 'form)` and nREPL `macroexpand` op route here.
 
 ```phel
 (macroexpand-1 '(when x y z))
-;; => (if x (do y z) nil)
+;; => (if x (do y z))
 
 (macroexpand '(or a b c))
-;; => (let [or__1 a] (if or__1 or__1 (let [or__2 b] (if or__2 or__2 c))))
+;; => (let [__phel_1 a] (if __phel_1 __phel_1 (or b c)))
 ```
 
-Outermost only. No recursion into subforms (analyzer's job).
+Outermost only. No recursion into subforms (analyzer's job): the nested `(or b c)` above stays unexpanded because it is not at the head.
 
 ## Macro arguments
 
@@ -64,10 +64,10 @@ Hard half of hygiene: binding names. Inside a quasiquote, trailing `#` produces 
 
 ```phel
 `(let [x# 1] (+ x# x#))
-;; ≈ (let [x__123__auto__ 1] (+ x__123__auto__ x__123__auto__))
+;; => (let [x__1 1] (+ x__1 x__1))
 ```
 
-`Compiler/Domain/Reader/GensymContext.php`: per-quasiquote map from `"x#"` to a generated `Symbol`. First sight: `Symbol::gen("x")`. Subsequent: reuse. New context per top-level quasiquote.
+`Compiler/Domain/Reader/GensymContext.php`: per-quasiquote map from base `"x__"` (the `#` is stripped and `__` appended) to a generated `Symbol`. First sight: `Symbol::gen("x__")` (→ `x__N`). Subsequent: reuse. New context per top-level quasiquote.
 
 Explicit form: `(gensym)` or `(gensym "prefix")`.
 

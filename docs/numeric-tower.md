@@ -10,7 +10,7 @@ Phel has a numeric tower built around five scalar shapes:
 | `Phel\Lang\BigDecimal` | `1.5M` literal, `bigdec` | Arbitrary-precision exact decimal |
 | `float` | Native PHP `float` (IEEE-754 double) | Inexact |
 
-`+`, `-`, `*`, `/`, comparisons, and the predicates dispatch on these types via `Phel\Lang\NumericOperations`. PHP's native operators do not dispatch on objects, so the runtime helper does.
+`+`, `-`, `*`, `/`, comparisons, and the predicates dispatch on these types via `Phel\Lang\NumericOperations`, since PHP's native operators don't dispatch on objects.
 
 ## Notes
 
@@ -35,7 +35,7 @@ Promote with the explicit constructors. A `BigInt` prints as a plain integer (no
 (rationalize 0.1)   ; => 1/10
 ```
 
-The promoting arithmetic ops (`+'`, `-'`, `*'`, `inc'`, `dec'`) auto-promote to `BigInt` on overflow, so use them whenever overflow is possible:
+The promoting arithmetic ops (`+'`, `-'`, `*'`, `inc'`, `dec'`) auto-promote to `BigInt` on overflow. Use them whenever overflow is possible:
 
 ```phel
 (*' 1000000000 1000000000 1000000000)  ; => 1000000000000000000000000000 (BigInt)
@@ -48,7 +48,7 @@ The promoting arithmetic ops (`+'`, `-'`, `*'`, `inc'`, `dec'`) auto-promote to 
 12345678901234567890   ; => float (PHP int range overflow)
 ```
 
-PHP's lexer parses oversize integer literals as `float`, so the same happens in Phel source. Wrap with `bigint` to keep precision:
+PHP's lexer parses oversize integer literals as `float`, and so does Phel's. Wrap with `bigint` to keep precision:
 
 ```phel
 (bigint "12345678901234567890")
@@ -64,7 +64,7 @@ Clojure's `(==)` and `(== x)` return `true` for any single argument. Phel's `==`
 
 ### `rationalize` uses shortest round-trip decimal
 
-`(rationalize 0.1) ; => 1/10`, not `10000000000000001/100000000000000000`. The conversion picks the shortest decimal expansion that round-trips back to the same `float`, so binary-noise digits do not leak into the result. Floats whose exact value has no short decimal representation (e.g. `(/ 1.0 3.0)`) keep that round-trip representation as a `Ratio`.
+`(rationalize 0.1) ; => 1/10`, not `10000000000000001/100000000000000000`. The conversion picks the shortest decimal expansion that round-trips back to the same `float`, so binary-noise digits don't leak in. Floats with no short decimal representation (e.g. `(/ 1.0 3.0)`) keep their round-trip representation as a `Ratio`.
 
 `(rationalize ##Inf)`, `(rationalize ##-Inf)`, and `(rationalize ##NaN)` throw `InvalidArgumentException`.
 

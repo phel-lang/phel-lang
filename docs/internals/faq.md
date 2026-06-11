@@ -8,7 +8,7 @@ Grouped by reader.
 
 **What does emitted PHP look like?** Cached files under `.phel/cache/` after one `phel run`, or the `--PHP--` section of any fixture in `tests/php/Integration/Fixtures/`. Regular PHP calling `\Phel::*` with dot-form registry keys like `"phel.core"`.
 
-**Why `\Phel::addDefinition()` instead of plain functions?** Phel namespaces are runtime values (see [runtime.md](runtime.md)). Single static surface tracks definitions, metadata, reloads. One `require` registers a whole namespace, no per-definition class-loading.
+**Why `\Phel::addDefinition()` instead of plain functions?** Phel namespaces are runtime values (see [runtime.md](runtime.md)). A single static surface tracks definitions, metadata, and reloads; one `require` registers a whole namespace with no per-definition class-loading.
 
 **How does `(my-fn arg)` reach my PHP?** Phel function: compiles to a class with `__invoke`, call site emits `(($lookup))($arg)`. Interop: `(php/-> $obj method arg)` and friends compile to literal `$obj->method($arg)`. See [special-forms.md](special-forms.md).
 
@@ -51,7 +51,7 @@ $emit   = $facade->compile('(print "hi")', new CompileOptions());
 
 **Add a core function.** Pure Phel: `src/phel/core/...` with `:doc`, `:see-also`, `:example`. Run `composer test-core`. Needs PHP: thin wrapper under `src/phel/...` calling a PHP helper, run `composer test-compiler` + `composer test-core`.
 
-**`NodeEnvironment` context.** `Expression`, `Statement`, `Return`. Analyzer picks based on position (function body last form: `Return`; `if` branch in expression position: `Expression`). Wrong PHP output is usually a wrong context, not an emitter bug. Helpers: `withReturnContext()`, `withStatementContext()`, `withExpressionContext()`.
+**`NodeEnvironment` context.** `Expression`, `Statement`, `Return`. Analyzer picks by position (function body's last form: `Return`; `if` branch in expression position: `Expression`). Wrong PHP output is usually a wrong context, not an emitter bug. Helpers: `withReturnContext()`, `withStatementContext()`, `withExpressionContext()`.
 
 **Broken integration fixture.** Update only if new PHP is intentional. Verify by hand first. The `fixture-reviewer` agent (`.claude/agents/`) audits drift.
 

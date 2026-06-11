@@ -96,7 +96,7 @@
 
 ## Pattern Matching
 
-`phel.match` destructures by shape and binds symbols in one step. Use it when `cond`/`case` would re-query the same value from multiple angles.
+`phel.match` destructures by shape and binds symbols in one step. Use it where `cond`/`case` would re-query the same value from multiple angles.
 
 ```phel
 (ns app.commands
@@ -297,7 +297,7 @@ Without `:else`, `match` throws `RuntimeException` when nothing fits. Add `:else
 (defn valid-age? [age]
   (and (int? age) (>= age 0) (<= age 150)))
 
-;; Collect errors with a transient
+;; Collect errors with a transient (see Transient Collections in data-structures-guide.md)
 (defn validate-user [user]
   (let [errors (transient [])]
     (when-not (valid-email? (get user :email)) (conj! errors "Invalid email"))
@@ -377,7 +377,7 @@ Every `defmacro` body has two implicit symbols:
 
 ### Extending `is` with custom assertions
 
-`phel.test/assert-expr` is an open multimethod. Teach `is` to expand new assertion forms via `defmethod`. The method takes the user-supplied `message` and original `form` (matching `clojure.test/assert-expr`) and returns the code `is` should run:
+`phel.test/assert-expr` is an open multimethod. Teach `is` new assertion forms via `defmethod`. The method takes the user-supplied `message` and original `form` (matching `clojure.test/assert-expr`) and returns the code `is` should run:
 
 ```phel
 (ns my-app.test.helpers
@@ -400,7 +400,7 @@ When the dispatch symbol has no registered method (e.g. `(is (= 1 1))`), the `:d
 
 ## Build-safe Entry Points
 
-`phel build` evaluates every top-level form at compile time so macros, `def`, `defn`, and `ns` register. Top-level **side effects** (game loops, `stdin` reads, sockets, sleeps) also run and can block the build indefinitely. Guard imperative entry calls with `*build-mode*`:
+`phel build` evaluates every top-level form at compile time so macros, `def`, `defn`, and `ns` register. Top-level **side effects** (game loops, `stdin` reads, sockets, sleeps) also run and can block the build indefinitely. Guard imperative entry points with `*build-mode*`:
 
 ```phel
 (ns app.main)

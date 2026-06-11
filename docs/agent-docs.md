@@ -13,11 +13,18 @@ composer require phel-lang/phel-lang
 ./vendor/bin/phel agent-install --all --with-examples  # also copy runnable example apps
 ```
 
-Platforms: `claude`, `cursor`, `codex`, `gemini`, `copilot`, `aider`. Omit the platform with `--auto` to install only for agents already present (`.claude/`, `.cursor/`, `AGENTS.md`, ...).
+Platforms: `claude`, `cursor`, `codex`, `gemini`, `copilot`, `aider`. `--auto` installs only for agents already present (`.claude/`, `.cursor/`, `AGENTS.md`, ...).
 
-`.agents/` docs (rules, task recipes, quick-syntax) are copied by default; `--no-docs` skips them. Example apps are excluded by default; `--with-examples` includes `.agents/examples/`.
+| Flag | Effect |
+|------|--------|
+| (default) | Copies `.agents/` docs (rules, task recipes, quick-syntax) |
+| `--no-docs` | Skip the `.agents/` docs tree |
+| `--with-examples` | Also copy `.agents/examples/` (excluded by default) |
+| `--force` | Skip the `<path>.pre-phel.bak` backup; overwrite existing skill files and `.agents/` tree |
+| `--dry-run` | Preview without writing |
+| `--uninstall` | Remove skill file(s) (restoring any backup) and the `.agents/` tree |
 
-Existing skill files back up to `<path>.pre-phel.bak`. `--force` skips backup and overwrites an existing `.agents/` tree, `--dry-run` previews, `--uninstall` removes the skill file(s) (restoring any backup) and the `.agents/` tree. Re-run any time to pull the latest docs.
+Re-run any time to pull the latest docs.
 
 ## Destinations
 
@@ -40,9 +47,11 @@ Each installed file routes the agent to `.agents/index.md` for task recipes: sca
 - `http-json-api/`: three JSON endpoints
 - `cli-wordcount/`: stdin + argv, PHP shim binary
 
+`composer test-agents` runs every example's tests against current source; breaking a public API surfaces as a red build on PR.
+
 ## Sync
 
-`resources/agents/VERSION` tracks the targeted phel-lang release. `composer test-agents` runs every example's tests against current source; breaking a public API surfaces as a red build on PR.
+`resources/agents/VERSION` tracks the targeted phel-lang release.
 
 ## Repository maintenance adapters
 
