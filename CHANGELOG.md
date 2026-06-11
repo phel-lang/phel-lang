@@ -4,29 +4,29 @@ All notable changes to this project will be documented in this file.
 
 ## Unreleased
 
-Project-configuration DX pass: a `phel config` command to inspect the merged
-config, a [configuration reference](docs/configuration.md), composable
-`with*()` setters, a self-documenting `phel init`, plus build/cache fixes.
+Project-configuration DX pass: a `phel config` command, a [configuration
+reference](docs/configuration.md), composable `with*()` setters, and
+build/cache fixes.
 
 ### Added
 
-- `PhelConfig::withOptimizationLevel(int)` (default 0): `build`/`run`/`test`/`eval`/`compile` honor it; level 2 enables `^:pure` call-site inlining + self-recursive tail-call rewriting. REPL/nREPL stay at 0 (#2387)
-- `phel build -O <level>`: per-run override of the configured level; invalidates the incremental build and compiled-code caches
-- `phel config`: prints the effective merged config with its provenance (config file vs auto-detected, `phel-config-local.php`, `PHEL_DIR`); `--json` for machine output
-- `PhelConfig::withBuildConfig()`/`withExportConfig()` also accept a configurator closure (`fn ($b) => $b->withDestDir('dist')`), composing with the flattened setters in any order
+- `PhelConfig::withOptimizationLevel(int)` (default 0), honored by `build`/`run`/`test`/`eval`/`compile`; level 2 enables `^:pure` inlining + self-recursive tail-call rewriting. REPL/nREPL stay at 0 (#2387)
+- `phel build -O <level>`: per-run override; invalidates the build and compiled-code caches
+- `phel config`: prints the merged config with provenance; `--json` for machine output
+- `withBuildConfig()`/`withExportConfig()` accept a configurator closure, composing with the flattened setters in any order
 
 ### Changed
 
 - `phel init` scaffolds a `phel-config.php` with a docs link and commented-out tweaks
-- Docs: a [Deployment guide](docs/deployment.md) covering shared-nothing vs worker runtimes (FrankenPHP/RoadRunner), with a load-once-before-the-loop example
+- New [Deployment guide](docs/deployment.md): shared-nothing vs worker runtimes (FrankenPHP/RoadRunner)
 
 ### Fixed
 
-- `cacheDir` is normalized in the constructor, so `new PhelConfig(cacheDir: 'foo/')` and `->withCacheDir('foo/')` agree
-- Build withers are order-independent: `withMainPhelNamespace(...)` no longer pins the entry point, so a later `withBuildDestDir('dist')` yields `dist/index.php`
-- `phel build` runtime errors map back to Phel source (`out/foo.phel:42`) via the sibling `.php.map`/`.phel` artifacts
-- Inline source maps in eval temp files are detected again (the extractor scans past `<?php`/`declare`)
-- Editing `phel-config.php` takes effect immediately again: Phel fingerprints the merged-config cache inputs and clears Gacela's stale `gacela-merged-config.php` (Gacela `>= 1.15` reloads it with no freshness check); bumps to `gacela-project/gacela: ^1.15`
+- `cacheDir` is normalized in the constructor, so the named-arg and wither forms agree
+- Build withers are order-independent: `withMainPhelNamespace(...)` no longer pins the entry point
+- `phel build` runtime errors map back to Phel source via the sibling `.php.map`/`.phel` artifacts
+- Inline source maps in eval temp files are detected again (scans past `<?php`/`declare`)
+- Editing `phel-config.php` takes effect immediately again: Phel clears Gacela's stale `gacela-merged-config.php` (Gacela `>= 1.15` skips its own freshness check); bumps to `gacela-project/gacela: ^1.15`
 
 ## [0.43.0](https://github.com/phel-lang/phel-lang/compare/v0.42.0...v0.43.0) - 2026-06-09
 
