@@ -1,6 +1,6 @@
 # Data Structures Manipulation Guide
 
-Functions for Phel's immutable, persistent data structures (vectors, maps, sets, lists). Operations return new versions while sharing structure with the original: reads stay O(1) amortized, updates cost log32(n). Names follow Clojure conventions. See the [quick reference](#quick-reference).
+Functions for Phel's immutable, persistent data structures (vectors, maps, sets, lists). Operations return new versions while sharing structure with the original: reads stay O(1) amortized, updates cost log32(n). Names follow Clojure conventions. Jump to the [quick reference](#quick-reference).
 
 ## Strings as Sequences
 
@@ -120,16 +120,16 @@ Returns `true` if the key/index exists. Checks **keys/indices, not values**. **S
 (contains? [10 20 30] 3)    ; => false ; index 3 doesn't
 ```
 
-### `find` : find first match
+### `find` : find entry or first match
 
-Returns the first item where the predicate is true, else `nil`. **Signature:** `[pred coll]`
+Two modes by first arg. Associative (or `nil`) first arg: returns the `[key value]` entry when the key is present, else `nil` (Clojure-aligned). Otherwise treats the first arg as a predicate and returns the first item where it is true, else `nil`. **Signature:** `[pred-or-coll coll-or-key]`
 
 ```phel
-(find #(> % 5) [1 3 7 2 9])  ; => 7
+(find {:a 1 :b 2} :a)        ; => [:a 1]   ; entry lookup
+(find {:a 1} :x)             ; => nil
+(find #(> % 5) [1 3 7 2 9])  ; => 7        ; predicate search
 (find even? [1 3 5 7])       ; => nil
 ```
-
-**Clojure note:** Clojure's `find` returns a `[key value]` entry on associative structures; Phel's `find` is a general search function.
 
 ## Modifying
 
@@ -232,7 +232,7 @@ Remove a key (`dissoc`) or a nested key (`dissoc-in` ⭐). **Signatures:** `[ds 
 
 ## Transient Collections
 
-For hot paths with many sequential updates, use transients: efficient in-place mutation, then convert back to persistent. Mutate with the bang variants `conj!`, `assoc!`, `dissoc!`; finish with `persistent` (or its alias `persistent!`). Do not use a transient after converting it.
+For hot paths with many sequential updates, use transients: in-place mutation, then convert back to persistent. Mutate with the bang variants `conj!`, `assoc!`, `dissoc!`; finish with `persistent` (or its alias `persistent!`). Never use a transient after converting it.
 
 ```phel
 (def t (transient []))

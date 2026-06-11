@@ -1,8 +1,8 @@
 # Project Layout
 
 Phel writes per-project runtime state under a single `.phel/` directory at the
-project root. The directory is created lazily on first use and is auto-ignored
-by Git via a self-seeded `.phel/.gitignore` (`*`).
+project root. It is created lazily on first use and auto-ignored by Git via a
+self-seeded `.phel/.gitignore` (`*`).
 
 | Path                            | Owner            | Purpose                              |
 | ------------------------------- | ---------------- | ------------------------------------ |
@@ -27,14 +27,14 @@ For the full list of `phel-config.php` options, caching flags, and precedence, s
 
 ## Migration
 
-Existing projects with a top-level `.phel-repl-history` get the file renamed
-into `.phel/repl-history` automatically the next time the REPL boots. No
-action required; the legacy filename will be removed in a future release.
+Existing projects with a top-level `.phel-repl-history` get it renamed into
+`.phel/repl-history` automatically the next time the REPL boots. No action
+required; the legacy filename will be removed in a future release.
 
 ## Read-only filesystems
 
 Directory creation is best-effort. On a read-only filesystem (Lambda, Docker
-`:ro` mounts, sandbox runners), Phel skips `.phel/` creation silently and
-runs without cache, last-failed tracking, or REPL history persistence. Set
+`:ro` mounts, sandbox runners), Phel skips `.phel/` creation silently and runs
+without cache, last-failed tracking, or REPL history persistence. Set
 `PHEL_CACHE_DIR=/some/writable/path` (e.g. `/tmp/phel-cache`) to relocate the
 build cache when you still want caching.

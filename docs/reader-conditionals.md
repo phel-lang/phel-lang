@@ -1,6 +1,6 @@
 # Reader Conditionals in Phel
 
-Reader conditionals enable platform-specific code in shared source files. They resolve at parse time, before compilation. Phel selects the `:phel` branch, ignores other platforms (`:clj`, `:cljs`, ...), and falls back to `:default` when present. This is what makes `.cljc` files shareable between Phel, Clojure, and other Lisp dialects.
+Reader conditionals enable platform-specific code in shared source files. They resolve at parse time, before compilation. Phel selects the `:phel` branch, ignores other platforms (`:clj`, `:cljs`, ...), and falls back to `:default` when present. This makes `.cljc` files shareable between Phel, Clojure, and other Lisp dialects.
 
 ## Basic usage: `#?()`
 
@@ -37,7 +37,7 @@ Selects one form based on platform:
 
 ## Splicing: `#?@()`
 
-Splices multiple elements from a collection into the surrounding form. The matched branch **must be a sequential collection** (vector or list); its elements are spliced in and the wrapper is removed.
+Splices a collection's elements into the surrounding form. The matched branch **must be a sequential collection** (vector or list); its elements are spliced in and the wrapper removed.
 
 ```phel
 [1 #?@(:phel [2 3]) 4]              ; => [1 2 3 4]
@@ -78,7 +78,7 @@ Phel discovers and compiles `.cljc` files alongside `.phel` files:
      :default "unknown"))
 ```
 
-> **Tip:** `.cljc` files should use `.` as the namespace separator (`shared.utils`) so the file parses cleanly under Clojure too. The legacy `\` separator (`shared\utils`) still resolves but is deprecated.
+> **Tip:** use `.` as the namespace separator (`shared.utils`) so `.cljc` files parse cleanly under Clojure too. The legacy `\` separator (`shared\utils`) still resolves but is deprecated.
 
 ### Platform-specific dependencies
 
@@ -117,15 +117,13 @@ Reader conditionals resolve at parse time, so they work inside any form:
 
 ## How it works
 
-Reader conditionals resolve during the **parsing phase** (Lexer -> **Parser** -> Analyzer -> Emitter). The parser:
+Reader conditionals resolve during the **parsing phase** (Lexer -> **Parser** -> Analyzer -> Emitter), so the analyzer and emitter only ever see the selected form. The parser:
 
 1. Reads keyword-form pairs inside `#?()` or `#?@()`.
 2. Selects `:phel` if present, else `:default`.
 3. `#?()`: replaces the conditional with the selected form.
 4. `#?@()`: splices the selected collection into the parent.
 5. No match: drops the conditional as trivia.
-
-The analyzer and emitter only see the selected form.
 
 ## Summary
 

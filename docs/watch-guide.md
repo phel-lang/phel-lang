@@ -10,7 +10,7 @@
 ./vendor/bin/phel watch -b polling --poll=250   # force polling, 250ms interval
 ```
 
-On each change, `phel watch` reloads the changed namespace and its dependents in topological order.
+On each change, the changed namespace and its dependents reload in topological order.
 
 ## Options
 
@@ -29,7 +29,7 @@ On each change, `phel watch` reloads the changed namespace and its dependents in
 (watch! ["src/" "tests/"])
 ```
 
-Blocks until interrupted (Ctrl+C). Reloads changed namespaces in dependency order. Register per-namespace hooks with `register-on-reload`.
+Blocks until interrupted (Ctrl+C), reloading changed namespaces in dependency order. Register per-namespace reload hooks with `(register-on-reload namespace name hook-fn)`.
 
 ## Pitfalls
 

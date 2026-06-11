@@ -12,6 +12,8 @@ build/        PHAR + release tooling
 
 Compiler is PHP. Stdlib is Phel: `src/phel/core.phel` bootstraps the core namespace by loading sub-files from `src/phel/core/`.
 
+`src/php/` modules use PSR-4 prefix `Phel\`. The global `\Phel` runtime facade lives at `src/Phel.php` (distinct from the `Phel\Phel` bootstrap in `src/php/Phel.php`).
+
 ## Modules
 
 Every directory under `src/php/` is a [Gacela](https://gacela-project.com/) module. `Facade` for public API, `Provider` for cross-module deps, `Factory` for internal wiring.
@@ -103,6 +105,6 @@ Same physical PHP process (REPL, `phel run`) or different (cached files in a fra
 | Core fn in Phel | `src/phel/core/…` |
 | CLI subcommand | new module or `Run/` + `Command/` registration |
 | LSP capability | `Lsp/Domain/` |
-| Lint rule | `Lint/Domain/Analyzer/` |
+| Lint rule | `Lint/Application/Rule/` |
 
 `grep -r "FACADE_" src/php/<Module>/<Module>Provider.php` shows a module's deps.

@@ -5,15 +5,13 @@
 ## Starting the server
 
 ```bash
-./vendor/bin/phel nrepl                    # port 7888, 127.0.0.1
+./vendor/bin/phel nrepl                    # port 7888, host 127.0.0.1 (defaults)
 ./vendor/bin/phel nrepl --port=0           # bind a random free port
-./vendor/bin/phel nrepl -p 7888            # short form of --port
+./vendor/bin/phel nrepl -p 7888            # -p is short for --port
 ./vendor/bin/phel nrepl --host=0.0.0.0 --port=7888
 ```
 
-Short form: `-p`.
-
-The server prints the bound port to stdout for client auto-discovery.
+The server prints the bound `host:port` to stdout for client auto-discovery.
 
 ## Operations
 
@@ -24,7 +22,7 @@ The server prints the bound port to stdout for client auto-discovery.
 | `close` | close a session |
 | `describe` | capability discovery |
 | `load-file` | slurp-and-eval a file's contents |
-| `interrupt` | stop a running `eval` in a session |
+| `interrupt` | acknowledged for editor compatibility (no-op: Phel evals synchronously, nothing to interrupt) |
 | `completions` | return candidate completions for a prefix |
 | `lookup` | return symbol metadata (arglists, doc, file:line) |
 | `info` | equivalent to `lookup` under a different name |
@@ -45,13 +43,13 @@ Run `Calva: Connect to a running REPL`, choose `Generic nREPL`, and point at `12
 
 ### Neovim (vim-iced or Conjure)
 
-Both detect `.nrepl-port` in the repo root. Set it after launching the server.
+Both auto-detect a `.nrepl-port` file in the repo root. Phel does not write it, so create it with the bound port after launching the server.
 
 ## Pitfalls
 
 - Single-user by default. Multiple clients sharing a session see interleaved output.
 - Bind to `127.0.0.1` unless on a trusted network. No auth.
-- `interrupt` stops the eval in that session only, not other sessions or fibers.
+- `interrupt` is a no-op stub: Phel evaluates synchronously, so a running `eval` cannot be cancelled mid-flight. The op is acknowledged only to keep editors happy.
 
 ## See also
 

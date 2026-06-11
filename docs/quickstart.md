@@ -62,7 +62,7 @@ user:5> (/ 1 0)
 user:6> *e                        ; last exception
 ```
 
-The prompt shows the current namespace; it switches on `(ns ...)` / `(in-ns ...)`. `*1`, `*2`, `*3` hold the last three results; `*e` holds the last exception. Type `exit` or Ctrl-D to quit.
+The prompt shows the current namespace, switching on `(ns ...)` / `(in-ns ...)`. `*1`, `*2`, `*3` hold the last three results; `*e` holds the last exception.
 
 ## Collections
 
@@ -168,7 +168,7 @@ require __DIR__ . '/../vendor/autoload.php';
 echo \Phel::getDefinition('app.greet', 'hello')('World');
 ```
 
-`getDefinition` resolves any Phel function as a PHP callable. Namespace hyphens become underscores in registry keys (`my-app.lib` becomes `my_app.lib`). Full HTTP example: [Framework Integration](framework-integration.md).
+`getDefinition` resolves any Phel function as a PHP callable. Namespace hyphens become underscores in registry keys (`my-app.lib` → `my_app.lib`). Full HTTP example: [Framework Integration](framework-integration.md).
 
 ## Tests
 

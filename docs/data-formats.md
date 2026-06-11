@@ -1,11 +1,11 @@
 # Data Interchange Formats
 
-Phel ships two eval-free interchange modules for talking to other Clojure-aligned runtimes (or to itself across process boundaries):
+Phel ships two eval-free interchange modules for exchanging data with other Clojure-aligned runtimes (or with itself across process boundaries):
 
-- [`phel.edn`](#phel-edn): [Extensible Data Notation](https://github.com/edn-format/edn), the Clojure-native subset of reader syntax.
-- [`phel.transit`](#phel-transit): [Transit](https://github.com/cognitect/transit-format) layered on top of JSON.
+- [`phel.edn`](#pheledn): [Extensible Data Notation](https://github.com/edn-format/edn), the Clojure-native subset of reader syntax.
+- [`phel.transit`](#pheltransit): [Transit](https://github.com/cognitect/transit-format) layered on top of JSON.
 
-Neither goes through `eval`, so both are safe to point at untrusted input.
+Neither goes through `eval`, so both are safe on untrusted input.
 
 ## `phel.edn`
 
@@ -29,7 +29,7 @@ Neither goes through `eval`, so both are safe to point at untrusted input.
 
 `phel.edn` delegates reading to Phel's own reader and writing to `Printer::readable()`, so every value Phel can print readably round-trips: nil, booleans, integers, floats, strings, characters, keywords, symbols, lists, vectors, maps, sets, the `#_` discard form, `;` comments, and built-in tagged literals (`#uuid`, `#inst`, `#regex`).
 
-The lexer accepts EDN's full tag grammar, so namespaced tags (`#my.app/Person`, `#myapp/double`, `#my.app.module`) lex as a single tag. Unqualified tags (`#uuid`, `#inst`) work unchanged.
+The lexer accepts EDN's full tag grammar: namespaced tags (`#my.app/Person`, `#myapp/double`, `#my.app.module`) lex as a single tag, and unqualified tags (`#uuid`, `#inst`) work unchanged.
 
 ### Examples
 
@@ -65,7 +65,7 @@ The lexer accepts EDN's full tag grammar, so namespaced tags (`#my.app/Person`, 
 | `(read-string s)` / `(read-string s opts)` | Decode one Transit+JSON-Verbose value. |
 | `(write-string v)` | Encode `v` to a Transit+JSON-Verbose string. |
 
-This first iteration implements **JSON-Verbose** only: maps with string keys serialise to ordinary JSON objects (no key caching); any other map serialises as a `~#cmap`.
+This first iteration implements **JSON-Verbose** only (no key caching): maps with string keys serialise to ordinary JSON objects; any other map serialises as a `~#cmap`.
 
 ### Options map
 

@@ -1,14 +1,14 @@
 # Deployment & Worker Runtimes
 
 By default PHP is **shared-nothing**: every request boots a fresh process, so a
-Phel namespace does not persist between requests. `phel build` compiles your
+Phel namespace does not persist between requests. `phel build` compiles
 namespaces to PHP ahead of time and [opcache](performance.md) caches that
 bytecode, so nothing re-parses per request — but each request still re-runs
 every loaded namespace's top-level forms to register its `def`s.
 
-A **worker runtime** keeps the PHP process alive across requests. Your
-namespaces load **once** at boot and in-memory state survives between requests —
-much closer to the JVM/Clojure model.
+A **worker runtime** keeps the PHP process alive across requests: namespaces
+load **once** at boot and in-memory state survives between requests, much closer
+to the JVM/Clojure model.
 
 ## The one rule
 
@@ -33,8 +33,8 @@ require __DIR__ . '/vendor/autoload.php';
 require __DIR__ . '/build/app/main.php'; // once, outside the loop
 
 $handler = static function (): void {
-    // call an exported Phel function per request
-    echo \App\Main\handle_request();
+    // call an exported Phel wrapper per request
+    echo \App\PhelGenerated\App\Main::handleRequest();
 };
 
 while (frankenphp_handle_request($handler)) {
@@ -49,16 +49,16 @@ frankenphp php-server --root . --worker ./worker.php
 ```
 
 > **State is per-worker.** FrankenPHP runs several worker instances, each with
-> its own memory. An in-process value (an `atom`, a cache) is shared between
-> requests handled by the *same* worker, not across all of them. For state that
-> must be global, use Redis/APCu/DB. Append `,1` to the worker path
+> its own memory. An in-process value (an `atom`, a cache) is shared across
+> requests handled by the *same* worker, not across all of them. For global
+> state, use Redis/APCu/DB. Append `,1` to the worker path
 > (`--worker ./worker.php,1`) to pin a single worker.
 
 ## RoadRunner
 
 Same shape: require the built entry point once, then handle requests in the
-worker loop (via `spiral/roadrunner-http`'s PSR-7 worker), calling your exported
-Phel functions per request.
+worker loop (via `spiral/roadrunner-http`'s PSR-7 worker), calling exported Phel
+functions per request.
 
 ## When you do not need a worker runtime
 

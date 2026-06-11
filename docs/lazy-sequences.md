@@ -4,7 +4,7 @@ Defer computation until values are needed. Two constructs: `lazy-seq` wraps an e
 
 ## `lazy-seq`
 
-Takes a body returning a sequence or nil. Yields a LazySeq that runs the body on first access (`first`, `rest`, `take`, ...) and caches the result. Mechanically: it builds a zero-arg thunk over the body, returns a LazySeq holding it, and evaluates+caches on first access.
+Takes a body returning a sequence or nil. Wraps it in a zero-arg thunk and returns a LazySeq that, on first access (`first`, `rest`, `take`, ...), evaluates the body and caches the result.
 
 ```phel
 (def my-lazy-seq
@@ -125,7 +125,7 @@ These return lazy sequences:
 
 ### Chunking
 
-Lazy sequences realize elements in chunks (lower overhead), so side effects may run for more elements than you consume:
+Lazy sequences may realize more elements than you consume (e.g. `take` forces one extra), so side effects can run for elements you never read:
 
 ```phel
 (take 5 (map (fn [x] (do (println x) x)) (range 100)))
@@ -135,8 +135,8 @@ Lazy sequences realize elements in chunks (lower overhead), so side effects may 
 ### Realizing
 
 ```phel
-(doall lazy-seq)  ; realizes entire sequence, returns it
-(dorun lazy-seq)  ; realizes entire sequence, returns nil
+(doall lazy-seq)  ; realizes entire sequence, returns it as a vector
+(dorun lazy-seq)  ; realizes entire sequence for side effects, returns nil
 ```
 
 ## Gotchas

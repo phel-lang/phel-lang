@@ -29,7 +29,7 @@ Prefix any global or namespaced PHP function with `php/`:
 (php/max 1 5 3)                   ; => 5
 ```
 
-The name after `php/` is the full PHP path with case preserved. `\`, `.`, and `/` are interchangeable as namespace separators, so the backslash-free forms work in `.cljc` files or shared snippets without escaping:
+The name after `php/` is the full PHP path with case preserved. `\`, `.`, and `/` are interchangeable separators, so backslash-free forms work in `.cljc` files or shared snippets without escaping:
 
 ```phel
 (php/Amp\trapSignal [php/SIGINT php/SIGTERM])   ; all three compile to
@@ -79,7 +79,7 @@ Capture references with `def` to shorten calls:
 
 ### Output parameters (by reference)
 
-Some PHP methods write into an argument (`PDOStatement::bindColumn`, `bindParam`). Wrap the local in `php/ref` so the result is observable from Phel:
+Some PHP methods write into an argument (`PDOStatement::bindColumn`, `bindParam`). Wrap the local in `php/ref` so the write is observable from Phel:
 
 ```phel
 (let [out "INIT"]
@@ -88,7 +88,7 @@ Some PHP methods write into an argument (`PDOStatement::bindColumn`, `bindParam`
   out)                              ; => the fetched column value
 ```
 
-It works the same way for plain PHP functions with output parameters (`preg_match`, `sort`, `settype`, `array_push`, ...):
+Plain PHP functions with output parameters work the same way (`preg_match`, `sort`, `settype`, `array_push`, ...):
 
 ```phel
 (let [matches nil]
@@ -120,7 +120,7 @@ Without the `:&` marker a keyword is just a positional value, so existing calls 
 
 ### First-class callables
 
-`php/callable` builds a native PHP 8.1 first-class callable `(...)` from a PHP function or method. It is zero-overhead: no wrapping `fn` closure is allocated, and it reads cleaner when passing a method as a value:
+`php/callable` builds a native PHP 8.1 first-class callable `(...)` from a PHP function or method. It is zero-overhead (no wrapping `fn` closure is allocated) and reads cleaner when passing a method as a value:
 
 ```phel
 ;; Free function
@@ -137,7 +137,13 @@ Without the `:&` marker a keyword is just a positional value, so existing calls 
 ;; compiles to ($list)->getArrayCopy(...)
 ```
 
-The first argument decides the target shape: a lone symbol is a free function, a class reference (`\Foo`, or an imported/uppercase class) plus a method name is a static call, and anything else plus a method name is an instance call on the evaluated object. The result is an ordinary callable, so it composes with `map`, `filter`, and friends.
+The first argument decides the target shape:
+
+- a lone symbol → free function;
+- a class reference (`\Foo`, or an imported/uppercase class) plus a method name → static call;
+- anything else plus a method name → instance call on the evaluated object.
+
+The result is an ordinary callable, so it composes with `map`, `filter`, and friends.
 
 ### Working with PHP Arrays
 
@@ -216,10 +222,10 @@ Phel uses `.` as the namespace separator, matching Clojure. The legacy `\` separ
 
 ## Typed generated PHP (`:tag`)
 
-`^{:tag T}` annotates the PHP type that a generated construct should carry, so a
-mixed PHP codebase and static analysers (psalm/phpstan) see real types. It works
-on `defstruct` fields, `definterface` params and return types, and the return
-type of a typed/exported `defn` (the tag goes on the param vector:
+`^{:tag T}` annotates the PHP type a generated construct should carry, so a mixed
+PHP codebase and static analysers (psalm/phpstan) see real types. It works on
+`defstruct` fields, `definterface` params and return types, and the return type
+of a typed/exported `defn` (the tag goes on the param vector:
 `(defn f ^{:tag int} [x] ...)`).
 
 Any modern PHP type expression is accepted:
@@ -246,10 +252,10 @@ flat intersection (a vector).
 ## PHP magic methods on structs
 
 A `defstruct` compiles to a real PHP class, so it can expose PHP magic methods
-(`__invoke`, `__toString`, `__get`, `__set`, `__call`, `__clone`, ...). Most of
-these belong to no PHP interface, so declare them inline through the `:php`
-marker block. Methods after `:php` are emitted directly on the class with no
-backing interface required:
+(`__invoke`, `__toString`, `__get`, `__set`, `__call`, `__clone`, ...). Most
+belong to no PHP interface, so declare them inline through the `:php` marker
+block. Methods after `:php` are emitted directly on the class with no backing
+interface required:
 
 ```phel
 (defstruct multiplier [factor]
@@ -280,9 +286,9 @@ A `:php` block coexists with regular interface implementations:
 
 ### `__invoke` is constrained by the map protocol
 
-A struct is a persistent map, which is already callable as a key lookup
+A struct is a persistent map, already callable as a key lookup
 (`(my-struct :key)` via an inherited `__invoke(mixed $key)`). A custom
-`__invoke` therefore must keep a compatible signature: take **exactly one call
+`__invoke` must therefore keep a compatible signature: take **exactly one call
 argument** or be **variadic**. Phel rejects an incompatible arity at compile
 time with a clear error instead of letting PHP raise an uncatchable fatal.
 
@@ -388,9 +394,9 @@ $response->send();
 ## Performance Tips
 
 ```phel
-;; Transients: mutable during batch build, then freeze
+;; Transients: mutable during batch build, then freeze (see Transient Collections in data-structures-guide.md)
 (persistent!
-  (reduce (fn [acc x] (conj acc (* x 2))) (transient []) large-list))
+  (reduce (fn [acc x] (conj! acc (* x 2))) (transient []) large-list))
 
 ;; Prefer PHP's optimized functions for heavy lifting on PHP arrays
 (php/array_map #(* % 2) php-array)
@@ -467,12 +473,8 @@ $response->send();
 - **Deref**: `@my-atom` shortcuts `(deref my-atom)`.
 - **Import classes**: `:use` in `ns`, not `:import`.
 - **Require vectors**: `(:require [phel.string :as str :refer [upper-case]])` works alongside the list form.
-- **Namespace separators**: Phel uses `.` matching Clojure; legacy `\` is deprecated.
-- **Reader conditionals**: `#?(:phel ...)` and `#?@(:phel ...)` for `.cljc` files.
-- **Unquote**: `~` and `~@` inside syntax-quote (`,` / `,@` deprecated).
-- **Auto-gensym**: `name#` inside syntax-quote produces a unique symbol (`name$` deprecated).
 - **Macro env**: `&form` and `&env` are implicit in every `defmacro`. `&env` is a map of in-scope locals keyed by symbol. `(:ns &env)` is always `nil`, so the `.cljc` `(if (:ns &env) "cljs" ...)` trick lands on the non-cljs branch.
-- **Lambda syntax**: `#(+ %1 %2)` recommended; `|(+ $1 $2)` deprecated.
+- **Reader syntax**: reader macros and their deprecated Phel-specific forms (`#(...)` lambdas, `~`/`~@` unquote, `name#` auto-gensym, `#?(:phel ...)` reader conditionals) live in [Reader Shortcuts](reader-shortcuts.md).
 
 ## See Also
 

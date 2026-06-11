@@ -2,9 +2,9 @@
 
 Two concurrency layers over PHP fibers. Most primitives live in `phel.core` (no require). `delay` lives in `phel.async` because Phel's `delay` sleeps, unlike `clojure.core/delay` (a lazy-thunk wrapper).
 
-**AMPHP-backed layer.** Built on `amphp/amp`; an event loop drives fiber-based IO, timers, and combinators. `async`, `await`, `await-all`, `await-any`, `pmap`, `future`, `future-cancel`, `future-cancelled?` in `phel.core`; `delay` in `phel.async`. Use inside an event loop, for timers, IO multiplexing, or fan-out across many Futures.
+**AMPHP-backed layer.** Built on `amphp/amp`; an event loop drives fiber-based IO, timers, and combinators. Functions: `async`, `await`, `await-all`, `await-any`, `pmap`, `future`, `future-cancel`, `future-cancelled?` (in `phel.core`); `delay` (in `phel.async`). Use inside an event loop, for timers, IO multiplexing, or fan-out across many Futures.
 
-**Fiber-backed layer.** Cooperative single-threaded scheduler in `\Phel\Fiber\FiberFacade`, no event loop. `promise`, `deliver`, `future-call`, `future-fiber`, `future?` in `phel.core`. Safe at the top level of a script or REPL. Good for CPU coordination, producer/consumer handoffs, lightweight deref-with-timeout.
+**Fiber-backed layer.** Cooperative single-threaded scheduler in `\Phel\Fiber\FiberFacade`, no event loop. Functions: `promise`, `deliver`, `future-call`, `future-fiber`, `future?` (in `phel.core`). Safe at the top level of a script or REPL. Good for CPU coordination, producer/consumer handoffs, lightweight deref-with-timeout.
 
 ## When to use which
 
@@ -22,7 +22,7 @@ Rule of thumb: fiber layer for plain scripts; AMPHP layer when IO, timers, or AM
 
 ### `async`
 
-`(async body...)` schedules `body` on the AMPHP event loop in a fresh fiber and returns `Amp\Future`. Amp v3 manages the loop automatically; no explicit `Loop::run` needed. Exceptions surface when awaited.
+`(async body...)` schedules `body` on the AMPHP event loop in a fresh fiber and returns `Amp\Future`. Amp v3 manages the loop automatically; no explicit `Loop::run` needed. Exceptions surface when awaited. Captures the caller's dynamic `binding`s and reinstalls them inside the fiber (binding conveyance, as in Clojure's `future`).
 
 ```phel
 (await (async (+ 1 2))) ;; => 3
@@ -45,7 +45,7 @@ Rule of thumb: fiber layer for plain scripts; AMPHP layer when IO, timers, or AM
 
 ### `delay` (in `phel.async`)
 
-`(delay seconds)` suspends for `seconds` (float) via `Amp\delay`. At top level it behaves like `php/sleep`; inside an `async`/`future` body it suspends the *fiber* only and becomes cancellable via `future-cancel`.
+`(delay seconds)` suspends for `seconds` (any number; cast to float) via `Amp\delay`. At top level it behaves like `php/sleep`; inside an `async`/`future` body it suspends the *fiber* only and becomes cancellable via `future-cancel`.
 
 > **Not Clojure's `delay`.** `clojure.core/delay` is a lazy-thunk wrapper, not a sleep. Phel's `delay` lives in `phel.async` (not `phel.core`) to keep the difference visible to `.cljc` portable code.
 
@@ -69,7 +69,7 @@ Rule of thumb: fiber layer for plain scripts; AMPHP layer when IO, timers, or AM
 
 ### `pmap`
 
-`(pmap f coll)` / `(pmap f coll1 coll2 ...)` is concurrent `map` via fibers; results in input order. PHP fibers are cooperative on a single thread: `pmap` overlaps IO-bound work (HTTP, DB, file IO) but does **not** parallelize CPU work across cores. ClojureScript and Basilisp follow the same single-threaded model; `clojure.core/pmap` uses a thread pool.
+`(pmap f coll)` / `(pmap f coll1 coll2 ...)` is concurrent `map` via fibers; results in input order. With multiple collections, stops at the shortest. PHP fibers are cooperative on a single thread: `pmap` overlaps IO-bound work (HTTP, DB, file IO) but does **not** parallelize CPU work across cores. ClojureScript and Basilisp follow the same single-threaded model; `clojure.core/pmap` uses a thread pool.
 
 ### `future`
 

@@ -13,15 +13,15 @@ opcache.max_accelerated_files=20000
 opcache.interned_strings_buffer=16
 ```
 
-Create the directory once: `mkdir -p /tmp/php-opcache`. Restart your shell. Repeat runs of `./vendor/bin/phel test` drop from ~12 s to sub-second on warm cache.
+Create the directory once (`mkdir -p /tmp/php-opcache`) and restart your shell. Repeat runs of `./vendor/bin/phel test` then drop from ~12 s to sub-second on a warm cache.
 
 ## Why it is slow without opcache
 
 Every `./vendor/bin/phel` invocation is a fresh PHP process. Without CLI opcache, PHP re-parses every `.php` file each run (`vendor/`, Phel compiler, Symfony console, project classes). `opcache.file_cache` persists compiled bytecode across processes.
 
-Phel adds a compiled-code cache under `.phel/cache/` memoizing Phel-to-PHP compilation per source hash. The two complement each other: Phel's cache skips recompilation; opcache skips re-parsing the resulting PHP.
+Phel adds a compiled-code cache under `.phel/cache/` that memoizes Phel-to-PHP compilation per source hash (the cache flags and their semantics live in [configuration.md](configuration.md#caching)). The two complement each other: Phel's cache skips recompilation; opcache skips re-parsing the resulting PHP.
 
-Invalidation is automatic: each run hashes the `.phel` source (`md5`) against the stored entry, and on mismatch recompiles the file and its transitive dependents. Fresh compiles also `opcache_compile_file()` the generated PHP. Use the reset steps below only if something gets wedged.
+Invalidation is automatic, and changing the optimization level forces a full recompile. Each run hashes the `.phel` source (`md5`) against the stored entry; on mismatch it recompiles the file and its transitive dependents. Fresh compiles also `opcache_compile_file()` the generated PHP. Use the [reset steps](#cache-reset) only if something gets wedged.
 
 For hot numeric/string fns, add `:tag` annotations on params and the return slot (`^int`, `^float`, `^string`, `^bool`). The compiler emits matching PHP type declarations and infers the return type from primitive ops in tail position, letting the tracing JIT specialize the call. Tag mismatches surface as Phel diagnostics at compile time. Measure with `composer bench-jit-baseline` and `composer bench-jit-tracing` (see [`internals/benchmarks.md`](internals/benchmarks.md)).
 
@@ -50,7 +50,7 @@ Level 2 trade-offs:
 
 ## Memory limit
 
-`./vendor/bin/phel` raises `memory_limit` to `-1` automatically. If you invoke PHP directly (`php ./vendor/bin/phel ...`) or embed Phel, bump the limit yourself. The compiler's `token_get_all` validation can exceed 128M on large projects.
+`./vendor/bin/phel` raises `memory_limit` to `-1` automatically. If you invoke PHP directly (`php ./vendor/bin/phel ...`) or embed Phel, bump the limit yourself: the compiler's `token_get_all` validation can exceed 128M on large projects.
 
 ```bash
 php -d memory_limit=-1 ./vendor/bin/phel test
@@ -74,14 +74,12 @@ Prints `bool(true)` when CLI opcache is on.
 
 ## Cache reset
 
-If a run behaves oddly (stale compiled code, missing definitions, cache-hit crashes), wipe both caches and retry:
+If a run behaves oddly (stale compiled code, missing definitions, cache-hit crashes), wipe both caches and retry. The next invocation repopulates cleanly.
 
 ```bash
 rm -rf .phel/cache
 rm -rf /tmp/php-opcache
 ```
-
-Next invocation repopulates cleanly.
 
 ## Benchmarks (reference)
 

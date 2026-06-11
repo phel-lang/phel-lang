@@ -51,7 +51,7 @@
 - Each pattern vector length must equal the target count
 - `:else` must be the final clause
 - Nested patterns bind left-to-right; a later binding shadows an earlier one with the same name
-- A `:guard` predicate runs against the raw value. Numeric predicates like `pos?` coerce non-numbers in Phel (so `(pos? [1 2])` is truthy), so put literal/structural patterns before an open numeric guard.
+- A `:guard` predicate runs against the raw value. Numeric predicates like `pos?` coerce non-numbers (`(pos? [1 2])` is truthy), so put literal/structural patterns before an open numeric guard.
 
 ## See also
 

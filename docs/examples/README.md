@@ -1,10 +1,12 @@
 # Phel single-file showcase
 
-Standalone scripts from primitive literals through concurrency to a full CLI. Run any file with:
+Standalone scripts, from primitive literals through concurrency to a full CLI. Run any file with:
 
 ```bash
 ./bin/phel run docs/examples/<file>.phel
 ```
+
+Copy any file into your project and tweak it.
 
 ## Example overview
 
@@ -25,8 +27,6 @@ Standalone scripts from primitive literals through concurrency to a full CLI. Ru
 | 13 | `13_database-crud.phel` | SQLite products CRUD: rows as immutable maps (not ORM entities), repository boundary, pure service transforms |
 | 14 | `14_doctrine-entity.phel` | Doctrine `#[ORM\Entity]` defined in Phel via `defstruct` + `:php/attr`, verified with `phel.reflect` |
 | extra | `transducers.phel` | Composable transformations: `into`, `transduce`, `sequence` |
-
-Copy any file into your project and tweak it.
 
 ## Snippets
 
@@ -53,7 +53,7 @@ Copy any file into your project and tweak it.
 | `atom`, `swap!`, `reset!` | `snippets/atom.phel` |
 | `phel.string` ops | `snippets/string.phel` |
 
-Each snippet is runnable: `./bin/phel run docs/examples/snippets/<name>.phel`. Use as REPL warm-ups or copy-paste recipes.
+Run any snippet (`./bin/phel run docs/examples/snippets/<name>.phel`) as a REPL warm-up or copy-paste recipe.
 
 ## Run all
 

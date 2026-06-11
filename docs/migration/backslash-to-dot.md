@@ -1,34 +1,34 @@
 # Migration: Backslash Namespace Separator to Dot
 
-Phel historically used the PHP-style backslash (`\`) as the namespace separator in every position: `ns` forms, `:require`/`:use` clauses, fully-qualified call sites, and class FQNs. The dot (`.`) is the target form going forward. The backslash form is **deprecated** and will be removed in a future release.
+Phel historically used the PHP-style backslash (`\`) as the namespace separator everywhere: `ns` forms, `:require`/`:use` clauses, fully-qualified call sites, and class FQNs. The dot (`.`) is the target form going forward. The backslash form is **deprecated** and will be removed in a future release.
 
 Tracking issue: [phel-lang/phel-lang#1567](https://github.com/phel-lang/phel-lang/issues/1567).
 
 ## Opt-in to deprecation warnings
 
-Three equivalent ways. Pick whichever fits your pipeline.
+Three equivalent ways; pick whichever fits your pipeline.
 
-**CLI flag** (recommended for one-off runs and CI configs):
+**CLI flag**, for one-off runs and CI:
 
 ```bash
 vendor/bin/phel run --warn-deprecations src/app.phel
 vendor/bin/phel test --warn-deprecations
 ```
 
-**Environment variable** (recommended for shell-wide sessions):
+**Environment variable**, for shell-wide sessions:
 
 ```bash
 PHEL_WARN_DEPRECATIONS=1 vendor/bin/phel run src/app.phel
 ```
 
-**Project config** (recommended when every local command should opt in):
+**Project config**, when every local command should opt in:
 
 ```php
 return PhelConfig::forProject()
     ->withWarnDeprecations(true);
 ```
 
-When enabled, the compiler emits one `E_USER_DEPRECATED` per unique `(file, symbol)` pair so large projects do not drown in duplicates. `--warn-deprecations` is consumed by the `phel` bootstrap before Symfony's per-command parsers run, so it works with every subcommand.
+When enabled, the compiler emits one `E_USER_DEPRECATED` per unique `(file, symbol)` pair, so large projects do not drown in duplicates. `--warn-deprecations` is consumed by the `phel` bootstrap before Symfony's per-command parsers run, so it works with every subcommand.
 
 ## What is detected today
 
@@ -48,11 +48,11 @@ Tracked as follow-up sub-tasks in #1567:
 - `load` forms (take strings, not symbols)
 - Reader-macro / quoting forms that carry namespace strings as data
 
-Migrate the non-detected positions by hand now. The new dot forms already work at the language level.
+Migrate these positions by hand now; the dot forms already work at the language level.
 
 ## Suppression
 
-Warnings are suppressed automatically for files under phel's bundled stdlib. User projects that use the nested `src/phel` layout still emit warnings normally.
+Warnings are suppressed automatically for files under phel's bundled stdlib. User projects using the nested `src/phel` layout still emit warnings normally.
 
 ## Removal target
 

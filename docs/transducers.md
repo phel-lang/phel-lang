@@ -1,6 +1,6 @@
 # Transducers in Phel
 
-Transducers are composable pipelines that decouple the transformation (map, filter, take) from the consumer (build a vector, sum, write to a file). They turn one reducing function into another without intermediate collections.
+Transducers are composable pipelines that decouple the transformation (map, filter, take) from the consumer (build a vector, sum, write to a file). They turn one reducing function into another, with no intermediate collections.
 
 A normal pipeline allocates at every step; transducers fuse the steps into a single pass:
 
@@ -33,7 +33,7 @@ Three ways to consume a transducer:
 
 ## Transducer-producing functions
 
-Most sequence functions are dual-purpose. Called **with** a collection they return a lazy sequence; called **without** they return a transducer.
+Most sequence functions are dual-purpose: called **with** a collection they return a lazy sequence; called **without** one they return a transducer.
 
 | Function | Transducer form | Description |
 |---|---|---|
@@ -123,7 +123,7 @@ A transducer takes a reducing function `rf` and returns a new one handling three
 - **1** (completion): return `(rf result)`, optionally flush state
 - **2** (step): the transformation logic
 
-Dispatch on arity with a variadic `[& args]` plus `case (count args)`. This is the shape Phel's own core transducers use internally, and it works correctly when the returned fn closes over `rf` or other state. (A multi-arity `fn` with `([] ...) ([result] ...) ([result input] ...)` clauses reads cleaner but does not currently compile for transducers, so prefer the variadic form.)
+Dispatch on arity with a variadic `[& args]` plus `case (count args)`, the shape Phel's own core transducers use internally. It works correctly when the returned fn closes over `rf` or other state. (A multi-arity `fn` with `([] ...) ([result] ...) ([result input] ...)` clauses reads cleaner but does not currently compile for transducers, so prefer the variadic form.)
 
 ```phel
 ;; A transducer that doubles every element
@@ -207,7 +207,7 @@ Every dual-purpose function has two modes:
 
 **When to use which:**
 
-- **Lazy sequences**: simple linear pipelines. Compose with `->>`.
+- **Lazy sequences**: simple linear pipelines; compose with `->>`.
 - **Transducers**: avoid intermediates in multi-step pipelines, reuse one transformation across sources/destinations, or reduce into something that isn't a sequence (sums, maps, side effects).
 
 ```phel

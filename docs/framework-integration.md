@@ -6,7 +6,7 @@ Add Phel to a PHP project without touching `app/` or `src/`.
 
 1. Keep Phel sources under `phel/`.
 2. Mark public functions with `{:export true}`.
-3. Create one main namespace (`app.main`) that `:require`s every feature namespace. Loading it registers all exported functions at once.
+3. Create one main namespace (`app.main`) that `:require`s every feature namespace; loading it registers all exported functions at once.
 4. Export PHP wrappers under your framework's `App\` PSR-4 root via `phel export`.
 5. Prod: `phel build` at deploy, `require 'build/app/main.php'` at boot. Dev: `\Phel::run($root, 'app.main')` compiles on first call.
 
@@ -231,7 +231,7 @@ echo $greet('World') . "\n";
 
 ## Persistence: maps, not entities
 
-Phel models data as immutable values, not mutable identity-tracked objects. An ORM entity (Doctrine, Eloquent) is the opposite: a mutable object the framework hydrates and dirty-tracks. Trying to make a Phel struct *be* an ORM entity fights the language. The functional path keeps rows as plain maps and pushes the database write to the edge.
+Phel models data as immutable values, not mutable identity-tracked objects. An ORM entity (Doctrine, Eloquent) is the opposite: a mutable object the framework hydrates and dirty-tracks. Making a Phel struct *be* an ORM entity fights the language. The functional path keeps rows as plain maps and pushes the database write to the edge.
 
 Two small libraries cover it:
 
@@ -271,14 +271,12 @@ phel-pdo can also wrap an existing PDO handle so its map-returning helpers run o
 
 ### When you really need the object
 
-Some host APIs demand a concrete instance (a typed DTO, a value object a library type-hints). Bridge at the boundary instead of modeling your domain as objects: `hydrate` builds an instance from a map without running its constructor (the ORM/serializer pattern), and `bean` reads a public-property object back into a keyword-keyed map.
+Some host APIs demand a concrete instance (a typed DTO, a value object a library type-hints). Bridge at the boundary instead of modeling your domain as objects: `hydrate` builds an instance from a map without running its constructor (the ORM/serializer pattern), and `bean` reads a public-property object back into a keyword-keyed map. Keep maps as the working representation; reach for them only at the edge where a typed object is unavoidable.
 
 ```phel
 (def dto (hydrate "App\\Dto\\Product" {:id 1 :name "Keyboard" :price 49.9}))
 (bean dto)  ; => {:id 1 :name "Keyboard" :price 49.9}
 ```
-
-Keep maps as the working representation; reach for `hydrate`/`bean` only at the edge where a typed object is unavoidable.
 
 ### Typed PHP from Phel definitions
 

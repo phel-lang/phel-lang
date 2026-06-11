@@ -1,10 +1,10 @@
 # Special Forms
 
-A list with a recognised head symbol routes to a dedicated analyzer. Anything else (not a special form, not a macro, not a literal collection) is a function call. Macros expand into special forms; special forms are the bottom.
+A list with a recognised head symbol routes to a dedicated analyzer. Anything else (not a special form, macro, or literal collection) is a function call. Macros expand into special forms; special forms are the bottom layer.
 
 ## Dispatch
 
-`Compiler/Domain/Analyzer/TypeAnalyzer/AnalyzePersistentList.php` matches the head against `Symbol::NAME_*` constants in `src/php/Lang/Symbol.php`. On match, dispatches to a `SpecialFormAnalyzerInterface` impl in `Compiler/Domain/Analyzer/TypeAnalyzer/SpecialForm/`. On miss, falls through to `InvokeSymbol`.
+`Compiler/Domain/Analyzer/TypeAnalyzer/AnalyzePersistentList.php` matches the head against `Symbol::NAME_*` constants in `src/php/Lang/Symbol.php`. On match it dispatches to a `SpecialFormAnalyzerInterface` impl in `Compiler/Domain/Analyzer/TypeAnalyzer/SpecialForm/`; on miss it falls through to `InvokeSymbol`.
 
 ```php
 match ($symbolName) {
@@ -18,7 +18,7 @@ match ($symbolName) {
 };
 ```
 
-Each handler returns one `AbstractNode`. Emitter has 1:1 mapping to `*Emitter.php` under `Compiler/Domain/Emitter/OutputEmitter/NodeEmitter/`.
+Each handler returns one `AbstractNode`. Every node maps 1:1 to an `*Emitter.php` under `Compiler/Domain/Emitter/OutputEmitter/NodeEmitter/`.
 
 ## Core
 
@@ -66,7 +66,7 @@ Trailing `*` means not user-facing. Macros `defstruct`, `definterface`, `defexce
 | `php/new` (`new`) | `NAME_PHP_NEW` / `NAME_NEW` | `new Foo(...)` |
 | `php/->` | `NAME_PHP_OBJECT_CALL` | `$obj->method(...)` / `$obj->prop` |
 | `php/::` | `NAME_PHP_OBJECT_STATIC_CALL` | `Foo::method(...)` / `Foo::CONST` |
-| `php/ref` | `NAME_PHP_REF` | by-ref interop arg: captures the local `use(&$x)` so an output parameter writes back |
+| `php/ref` | `NAME_PHP_REF` | by-ref interop arg; captures local via `use(&$x)` so an output parameter writes back |
 | `php/oset` | `NAME_PHP_OBJECT_SET` | `$obj->prop = $v` |
 | `php/aget` | `NAME_PHP_ARRAY_GET` | `$arr[$k]` |
 | `php/aset` | `NAME_PHP_ARRAY_SET` | `$arr[$k] = $v` |
@@ -89,10 +89,10 @@ Run `(macroexpand-1 'form)` to see the truth.
 1. `public const string NAME_FOO = 'foo';` in `src/php/Lang/Symbol.php`
 2. `FooNode extends AbstractNode` in `Compiler/Domain/Analyzer/Ast/`
 3. `FooSymbol implements SpecialFormAnalyzerInterface` in `Compiler/Domain/Analyzer/TypeAnalyzer/SpecialForm/`: validate, recurse via `$this->analyzer->analyze(...)`, return `FooNode`
-4. Branch in `AnalyzePersistentList`'s `match`
-5. `FooEmitter` in `Compiler/Domain/Emitter/OutputEmitter/NodeEmitter/`, register in `NodeEmitterFactory`. Honor `NodeEnvironment` context
+4. Branch in the `AnalyzePersistentList` `match`
+5. `FooEmitter` in `Compiler/Domain/Emitter/OutputEmitter/NodeEmitter/`, registered in `NodeEmitterFactory`; honor `NodeEnvironment` context
 
-Add fixture `tests/php/Integration/Fixtures/Foo/foo-basic.test` + analyzer PHPUnit test.
+Add a fixture `tests/php/Integration/Fixtures/Foo/foo-basic.test` plus an analyzer PHPUnit test.
 
 ## See also
 

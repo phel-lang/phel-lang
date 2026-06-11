@@ -34,7 +34,7 @@
 
 ## Configuration
 
-Drop `phel-lint.phel` at the project root (resolved from the working directory when you run `phel lint`).
+Drop `phel-lint.phel` at the project root (resolved from the working directory). Pass a custom path with `--config=path/to/lint.phel`.
 
 ```phel
 {:rules
@@ -47,11 +47,9 @@ Drop `phel-lint.phel` at the project root (resolved from the working directory w
 
 Severities: `:error`, `:warning`, `:info`, `:hint`, `:off`. Patterns in `:exclude` match file paths (if containing `/` or `.phel`) or namespace names via `fnmatch`.
 
-Pass a custom path with `--config=path/to/lint.phel`.
-
 ## Cache
 
-Results are cached per file by content hash. Subsequent runs only reanalyze changed files. Disable with `--no-cache`.
+Results are cached per file by content hash at `.phel/lint-cache/index.json`. Subsequent runs only reanalyze changed files. Adding/removing rules or editing `phel-lint.phel` invalidates the cache. Disable with `--no-cache`.
 
 ## Editor integration
 
