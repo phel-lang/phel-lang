@@ -37,6 +37,7 @@ Other utilities: `DynamicScope` (dynamic bindings), `Truthy`, `TypeStringifier`,
 - **TypeFactory**: singleton creating persistent collections; provides `Hasher`/`Equalizer` singletons
 - **Seq**: static utility for sequence ops; **TagRegistry**: reader literal tag handler dispatch (`TagHandlers/`: `#inst`, `#uuid`, regex)
 - **LoadClasspath**: static accessor for the `(load ...)` classpath, stored in `Registry` under `phel.core/*load-classpath*`. Lives here (not Compiler) because its state is a `Registry` slot; FQN baked into generated PHP by `LoadEmitter`; do not rename
+- **`\Phel`** (global, `src/Phel.php` — NOT a Lang class): thin root facade that proxies static calls to the `Registry` singleton via `__callStatic`; Api/Interop use it for namespace/definition lookups (`getNamespaces`, `getDefinition`, `getDefinitionMetaData`). Lang's own code must not call it (leaf → root cycle); use `Registry`/`TypeFactory` directly here
 
 ## Interfaces
 
