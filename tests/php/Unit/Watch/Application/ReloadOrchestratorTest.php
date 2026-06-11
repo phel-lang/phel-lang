@@ -328,6 +328,11 @@ final class FakeRunFacade implements RunFacadeInterface
     }
 
     public function loadPhelNamespaces(?string $replStartupFile = null): void {}
+
+    public function getModuleHealthChecks(): array
+    {
+        return [];
+    }
 }
 
 final class FakeProjectReindexer implements ProjectReindexerInterface

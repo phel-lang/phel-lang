@@ -13,7 +13,7 @@ Runtime execution: runs Phel namespaces/files, REPL, evaluation, testing, and mo
 
 ## Dependencies
 
-Most connected module, 4 Provider facades: Build (namespace extraction, dependency resolution, file evaluation), Compiler (compilation, evaluation, environment), Command (directories, error formatting), Api (REPL autocompletion). Version comes from `Shared\VersionResolver` directly, so Run does not depend on Console.
+Most connected module, 5 Provider facades: Build (namespace extraction, dependency resolution, file evaluation), Compiler (compilation, evaluation, environment), Command (directories, error formatting), Api (REPL autocompletion), Filesystem (module health check, surfaced by `phel doctor`). Version comes from `Shared\VersionResolver` directly, so Run does not depend on Console.
 
 ## Structure Notes
 

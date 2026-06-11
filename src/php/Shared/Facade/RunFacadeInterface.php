@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Phel\Shared\Facade;
 
+use Gacela\Framework\Health\ModuleHealthCheckInterface;
 use Phel\Shared\CompileOptions;
 use Phel\Shared\Eval\EvalResult;
 use Phel\Shared\Exceptions\CompilerException;
@@ -80,4 +81,11 @@ interface RunFacadeInterface
      * @param string|null $replStartupFile Optional startup file path, defaults to config value if null
      */
     public function loadPhelNamespaces(?string $replStartupFile = null): void;
+
+    /**
+     * Health checks for the modules surfaced by `phel doctor`.
+     *
+     * @return list<ModuleHealthCheckInterface>
+     */
+    public function getModuleHealthChecks(): array;
 }

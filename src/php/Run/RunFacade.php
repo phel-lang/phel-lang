@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Phel\Run;
 
 use Gacela\Framework\AbstractFacade;
+use Gacela\Framework\Health\ModuleHealthCheckInterface;
 use Phel\Run\Application\Test\CpuCountDetector;
 use Phel\Run\Application\Test\ParallelTestOrchestrator;
 use Phel\Shared\CompileOptions;
@@ -161,5 +162,13 @@ final class RunFacade extends AbstractFacade implements RunFacadeInterface
     public function createCpuCountDetector(): CpuCountDetector
     {
         return $this->getFactory()->createCpuCountDetector();
+    }
+
+    /**
+     * @return list<ModuleHealthCheckInterface>
+     */
+    public function getModuleHealthChecks(): array
+    {
+        return $this->getFactory()->getModuleHealthChecks();
     }
 }
