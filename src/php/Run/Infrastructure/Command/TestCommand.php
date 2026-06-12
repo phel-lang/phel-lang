@@ -226,8 +226,8 @@ final class TestCommand extends Command
                 $total = ScalarCoercion::toInt($result[1] ?? null);
             }
 
-            if ($this->isNoMatchWithSelectors($total, $options)) {
-                $output->writeln('<error>No tests matched the given selectors.</error>');
+            if ($this->isNoMatchWithSelectors($total, $options, $paths)) {
+                $output->writeln('<error>No tests matched the given paths or selectors.</error>');
 
                 return self::FAILURE;
             }
@@ -243,16 +243,24 @@ final class TestCommand extends Command
     }
 
     /**
-     * Returns true when at least one test-narrowing selector was active AND zero tests ran.
-     * Only selectors that narrow the test set are checked (--filter, --ns, --include,
-     * --exclude, --last-failed / --only-tests). Structural options (--fail-fast, --reporter,
-     * etc.) are ignored.
+     * Returns true when the test set was explicitly narrowed AND zero tests ran.
+     * Narrowing means explicit path arguments or selectors (--filter, --ns,
+     * --include, --exclude, --last-failed / --only-tests). Structural options
+     * (--fail-fast, --reporter, etc.) are ignored. Running zero tests against
+     * an explicit narrowing must fail loudly instead of passing silently.
      *
      * @param array<string, mixed> $options
+     * @param list<string>         $paths
      */
-    private function isNoMatchWithSelectors(int $total, array $options): bool
+    private function isNoMatchWithSelectors(int $total, array $options, array $paths): bool
     {
         if ($total > 0) {
+            return false;
+        }
+
+        // --list never executes tests, so the run-total is always zero there;
+        // the listing itself is the result.
+        if (!empty($options[TestCommandOptions::LIST_ONLY])) {
             return false;
         }
 
@@ -262,7 +270,8 @@ final class TestCommand extends Command
         $excludes = $options[TestCommandOptions::EXCLUDE] ?? [];
         $onlyTests = $options[TestCommandOptions::ONLY_TESTS] ?? [];
 
-        return $filters !== []
+        return $paths !== []
+            || $filters !== []
             || $nsPatterns !== []
             || $includes !== []
             || $excludes !== []

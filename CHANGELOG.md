@@ -22,6 +22,9 @@ build/cache fixes.
 
 ### Fixed
 
+- `phel test <path>` for a file outside the configured src/test directories now runs its tests instead of silently passing with `Total: 0`
+- `phel test` with explicit paths or selectors that match zero tests now fails with `No tests matched the given paths or selectors.` instead of exiting 0
+- `phel test --list` combined with a selector no longer reports a false `No tests matched` failure after listing matching tests
 - `cacheDir` is normalized in the constructor, so the named-arg and wither forms agree
 - Build withers are order-independent: `withMainPhelNamespace(...)` no longer pins the entry point
 - `phel build` runtime errors map back to Phel source via the sibling `.php.map`/`.phel` artifacts

@@ -1,0 +1,3 @@
+(ns test-cmd-out-of-tree\no-tests)
+
+(defn helper [x] (+ x 1))

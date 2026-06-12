@@ -61,6 +61,24 @@ final class TestCommandFilterNoMatchesTest extends TestCase
         ]));
     }
 
+    public function test_explicit_paths_zero_total_is_a_no_match(): void
+    {
+        self::assertTrue($this->isNoMatch(0, [], ['some/file.phel']));
+    }
+
+    public function test_explicit_paths_nonzero_total_is_not_a_no_match(): void
+    {
+        self::assertFalse($this->isNoMatch(2, [], ['some/file.phel']));
+    }
+
+    public function test_list_only_zero_total_is_not_a_no_match(): void
+    {
+        self::assertFalse($this->isNoMatch(0, [
+            TestCommandOptions::LIST_ONLY => true,
+            TestCommandOptions::FILTERS => ['my-test'],
+        ], ['some/file.phel']));
+    }
+
     public function test_structural_options_only_zero_total_is_not_a_no_match(): void
     {
         self::assertFalse($this->isNoMatch(0, [
@@ -81,11 +99,12 @@ final class TestCommandFilterNoMatchesTest extends TestCase
 
     /**
      * @param array<string, mixed> $options
+     * @param list<string>         $paths
      */
-    private function isNoMatch(int $total, array $options): bool
+    private function isNoMatch(int $total, array $options, array $paths = []): bool
     {
         $method = new ReflectionMethod(TestCommand::class, 'isNoMatchWithSelectors');
 
-        return (bool) $method->invoke(new TestCommand(), $total, $options);
+        return (bool) $method->invoke(new TestCommand(), $total, $options, $paths);
     }
 }

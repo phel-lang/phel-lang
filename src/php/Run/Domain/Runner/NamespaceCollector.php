@@ -68,7 +68,41 @@ final readonly class NamespaceCollector
             ...array_keys($bundled),
         ]));
 
-        return $this->buildFacade->getDependenciesForNamespace($allDirs, $seeds);
+        $dependencies = $this->buildFacade->getDependenciesForNamespace($allDirs, $seeds);
+
+        return $this->appendUnresolvedPathInfos($paths, $dependencies);
+    }
+
+    /**
+     * Explicit paths may live outside every configured directory. The
+     * dependency walk can only map namespaces back to files inside those
+     * directories, so such files would be silently dropped from the run.
+     * Append their own namespace information instead; their bundled phel.*
+     * dependencies are already part of the walk result via the seeds.
+     *
+     * @param list<string>               $paths
+     * @param list<NamespaceInformation> $dependencies
+     *
+     * @return list<NamespaceInformation>
+     */
+    private function appendUnresolvedPathInfos(array $paths, array $dependencies): array
+    {
+        $resolved = [];
+        foreach ($dependencies as $info) {
+            $resolved[$info->getNamespace()] = true;
+        }
+
+        foreach ($paths as $path) {
+            $info = $this->buildFacade->getNamespaceFromFile($path);
+            if (isset($resolved[$info->getNamespace()])) {
+                continue;
+            }
+
+            $dependencies[] = $info;
+            $resolved[$info->getNamespace()] = true;
+        }
+
+        return $dependencies;
     }
 
     /**
