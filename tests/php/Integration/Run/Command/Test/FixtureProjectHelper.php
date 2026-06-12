@@ -104,12 +104,15 @@ final readonly class FixtureProjectHelper
             if ($entry === '.') {
                 continue;
             }
+
             if ($entry === '..') {
                 continue;
             }
+
             if ($entry === '.phel') {
                 continue;
             }
+
             $source = $from . '/' . $entry;
             $target = $to . '/' . $entry;
 
