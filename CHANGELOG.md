@@ -16,6 +16,7 @@ build/cache fixes.
 - `withBuildConfig()`/`withExportConfig()` accept a configurator closure, composing with the flattened setters in any order
 - `phel test` failure output: string `=` mismatches print a windowed expected/actual pair with a caret under the first differing character
 - `phel test --watch`: re-runs the selected tests whenever a `.phel` file (or `phel-config.php`) under the project source/test directories changes
+- `phel test` startup feedback: prints `Discovering tests...` and a live `Loading namespaces 12/45 (...)` counter on stderr instead of staying silent for seconds while compiling; machine-readable stdout reporters (TAP, junit-xml) are unaffected
 
 ### Changed
 
