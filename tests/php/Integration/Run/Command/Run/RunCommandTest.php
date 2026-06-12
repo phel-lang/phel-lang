@@ -146,8 +146,8 @@ final class RunCommandTest extends AbstractTestCommand
 
         self::assertStringContainsString('boom from error-lib', $output);
         self::assertMatchesRegularExpression('~at .*error-lib\.phel:\d+~', $output);
-        self::assertMatchesRegularExpression('~#\d+ .*\.phel:\d+ : \(test\\\\error-lib\\\\boom-fn 1\)~', $output);
-        self::assertMatchesRegularExpression('~#\d+ .*\.phel:\d+ : \(test\\\\error-trace-script\\\\caller 1\)~', $output);
+        self::assertMatchesRegularExpression('~#\d+ .*\.phel:\d+ : \(test\\\\error-lib\\\\boom-fn~', $output);
+        self::assertMatchesRegularExpression('~#\d+ .*\.phel:\d+ : \(test\\\\error-trace-script\\\\caller~', $output);
         self::assertMatchesRegularExpression('~\.\.\. \d+ internal frames?~', $output);
     }
 
@@ -160,7 +160,7 @@ final class RunCommandTest extends AbstractTestCommand
 
         self::assertStringContainsString('boom from error-lib', $output);
         self::assertMatchesRegularExpression('~at .*error-lib\.phel:\d+~', $output);
-        self::assertMatchesRegularExpression('~#\d+ .*\.phel:\d+ : \(test\\\\error-lib\\\\boom-fn 1\)~', $output);
+        self::assertMatchesRegularExpression('~#\d+ .*\.phel:\d+ : \(test\\\\error-lib\\\\boom-fn~', $output);
     }
 
     public function test_macro_expansion_error_includes_definition_location(): void
