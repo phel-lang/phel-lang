@@ -4,38 +4,29 @@ All notable changes to this project will be documented in this file.
 
 ## Unreleased
 
-Two DX passes: project configuration (`phel config`, a [configuration
-reference](https://phel-lang.org/documentation/configuration/), composable `with*()` setters, build/cache
-fixes) and the test runner (`--watch`, startup progress, better failure
-output, loud exit codes).
+Two themes: project configuration (`phel config`, optimization levels, composable config setters) and a sharper test runner (`--watch`, startup progress, clearer failures).
 
 ### Added
 
-- `PhelConfig::withOptimizationLevel(int)` (default 0), honored by `build`/`run`/`test`/`eval`/`compile`; level 2 enables `^:pure` inlining + self-recursive tail-call rewriting. REPL/nREPL stay at 0 (#2387)
-- `phel build -O <level>`: per-run override; invalidates the build caches
-- `phel config`: prints the merged config with provenance; `--json` for machine output
-- `withBuildConfig()`/`withExportConfig()` accept a configurator closure, composing with the flattened setters in any order
-- `phel test --watch`: re-runs the selected tests on every `.phel`/`phel-config.php` change under the project src/test dirs
-- `phel test` startup progress on stderr (`Discovering tests...`, live `Loading namespaces 12/45` counter); TAP/junit-xml stdout stays clean
-- `phel test`: failed string `=` assertions print an expected/actual diff with a caret at the first mismatch
+- `phel config`: prints the merged config with provenance (`--json` for machine output)
+- Optimization levels: `PhelConfig::withOptimizationLevel(int)` and `phel build -O <level>`; level 2 enables `^:pure` inlining + self-recursive tail-call rewriting (REPL/nREPL stay at 0) (#2387)
+- `phel test --watch`: re-runs the selected tests on every `.phel`/`phel-config.php` change
+- `phel test`: startup progress on stderr, and an expected/actual diff with a caret on failed `=` assertions
+- `withBuildConfig()`/`withExportConfig()` accept a configurator closure
 
 ### Changed
 
-- `phel test`: `FAIL`/`ERROR` headlines always carry the `deftest` name (`FAIL my-test (file.phel:4)`)
-- `phel init` scaffolds a `phel-config.php` with a docs link and commented-out tweaks
-- New [Deployment guide](https://phel-lang.org/documentation/deployment/): shared-nothing vs worker runtimes (FrankenPHP/RoadRunner)
-- Moved user-facing guides from `docs/` to [phel-lang.org](https://phel-lang.org/documentation/); `docs/` is now contributor-facing only (#2424)
+- `phel test`: `FAIL`/`ERROR` headlines now carry the `deftest` name (`FAIL my-test (file.phel:4)`)
+- `phel init` scaffolds a documented `phel-config.php`
+- User-facing guides moved to [phel-lang.org](https://phel-lang.org/documentation/) (incl. a new Deployment guide); `docs/` is now contributor-facing only (#2424)
 
 ### Fixed
 
-- `phel test` no longer exits 0 when nothing ran: out-of-tree file paths now run their tests, and zero matches for explicit paths/selectors fail with `No tests matched the given paths or selectors.`
-- `phel test --list` with a selector no longer appends a false `No tests matched` failure
-- Removed the docs doctest harness (`composer test-docs`, `tests/doctest/`): its curated guides moved to phel-lang.org, so it no longer had in-repo sources to scan
-- `cacheDir` is normalized in the constructor, so the named-arg and wither forms agree
-- Build withers are order-independent: `withMainPhelNamespace(...)` no longer pins the entry point
-- `phel build` runtime errors map back to Phel source via the sibling `.php.map`/`.phel` artifacts
-- Inline source maps in eval temp files are detected again (scans past `<?php`/`declare`)
-- Editing `phel-config.php` takes effect immediately again: Phel clears Gacela's stale merged-config cache; bumps to `gacela-project/gacela: ^1.15`
+- `phel test` exit codes: no longer exits 0 when nothing ran, bad paths/selectors fail loudly, and `--list` no longer appends a false `No tests matched`
+- Editing `phel-config.php` takes effect immediately again: Phel clears Gacela's stale merged-config cache (requires `gacela-project/gacela: ^1.15`)
+- Build config withers are order-independent: `cacheDir` is normalized and `withMainPhelNamespace(...)` no longer pins the entry point
+- Source maps resolve again: `phel build` runtime errors map back to `.phel`, and inline eval maps are scanned past `<?php`/`declare`
+- Removed the docs doctest harness (`composer test-docs`, `tests/doctest/`): its guides moved to phel-lang.org
 
 ## [0.43.0](https://github.com/phel-lang/phel-lang/compare/v0.42.0...v0.43.0) - 2026-06-09
 
