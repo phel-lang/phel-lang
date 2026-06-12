@@ -22,7 +22,6 @@ use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
 use Throwable;
 
-use function array_slice;
 use function count;
 use function is_array;
 use function sprintf;
@@ -258,7 +257,10 @@ final class TestCommand extends Command
      */
     private function runWatchMode(OutputInterface $output): int
     {
-        $command = $this->buildWatchRerunShellCommand();
+        $command = new WatchRerunCommandBuilder()->build(
+            ScalarCoercion::toStringList($_SERVER['argv'] ?? null),
+            ScalarCoercion::toString($_SERVER['SCRIPT_FILENAME'] ?? null),
+        );
         $runTests = static function () use ($command): int {
             $exitCode = 1;
             passthru($command, $exitCode);
@@ -267,25 +269,6 @@ final class TestCommand extends Command
         };
 
         return $this->getFacade()->runTestWatchLoop($runTests, $output);
-    }
-
-    private function buildWatchRerunShellCommand(): string
-    {
-        $argv = ScalarCoercion::toStringList($_SERVER['argv'] ?? null);
-        $arguments = [];
-        foreach (array_slice($argv, 1) as $argument) {
-            if ($argument !== '--' . TestCommandOptionParser::OPT_WATCH) {
-                $arguments[] = $argument;
-            }
-        }
-
-        $script = ScalarCoercion::toString($_SERVER['SCRIPT_FILENAME'] ?? null);
-        $parts = [escapeshellarg(PHP_BINARY), escapeshellarg($script)];
-        foreach ($arguments as $argument) {
-            $parts[] = escapeshellarg($argument);
-        }
-
-        return implode(' ', $parts);
     }
 
     /**

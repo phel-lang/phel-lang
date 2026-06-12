@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Phel\Run\Application\Test;
 
+use Closure;
 use Phel\Run\Domain\Test\WatchFileScannerInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 
@@ -17,36 +18,43 @@ final readonly class TestWatchLoop
 {
     public const int POLL_INTERVAL_MS = 500;
 
+    /** @var Closure(int):void milliseconds */
+    private Closure $sleep;
+
+    /**
+     * @param callable(int):void|null $sleep milliseconds; injectable for tests, defaults to usleep
+     */
     public function __construct(
         private WatchFileScannerInterface $scanner,
-    ) {}
+        ?callable $sleep = null,
+    ) {
+        $this->sleep = $sleep === null
+            ? static function (int $ms): void {
+                usleep($ms * 1000);
+            }
+        : $sleep(...);
+    }
 
     /**
      * Blocks until terminated (Ctrl+C) unless `$maxRuns` is given (used by
      * tests). Returns the exit code of the most recent test run.
      *
-     * @param list<string>       $directories
-     * @param callable():int     $runTests
-     * @param callable(int):void $sleep       milliseconds; injectable for tests
+     * @param list<string>   $directories
+     * @param callable():int $runTests
      */
     public function run(
         array $directories,
         callable $runTests,
         OutputInterface $output,
-        ?callable $sleep = null,
         ?int $maxRuns = null,
     ): int {
-        $sleep ??= static function (int $ms): void {
-            usleep($ms * 1000);
-        };
-
         $exitCode = $runTests();
         $runs = 1;
         $snapshot = $this->scanner->snapshot($directories);
         $this->announceWatching($output);
 
         while ($maxRuns === null || $runs < $maxRuns) {
-            $sleep(self::POLL_INTERVAL_MS);
+            ($this->sleep)(self::POLL_INTERVAL_MS);
 
             $next = $this->scanner->snapshot($directories);
             if ($next === $snapshot) {

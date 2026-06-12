@@ -39,8 +39,7 @@ final class WatchFileScanner implements WatchFileScannerInterface
                     continue;
                 }
 
-                $mtime = $file->getMTime();
-                $snapshot[$file->getPathname()] = $mtime;
+                $snapshot[$file->getPathname()] = $file->getMTime();
             }
         }
 

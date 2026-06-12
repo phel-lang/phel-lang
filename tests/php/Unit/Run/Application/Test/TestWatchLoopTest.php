@@ -19,7 +19,7 @@ final class TestWatchLoopTest extends TestCase
             ['a.phel' => 1],
             ['a.phel' => 1],
             ['a.phel' => 1],
-        ]));
+        ]), static function (int $ms): void {});
 
         $runs = 0;
         $output = new BufferedOutput();
@@ -32,7 +32,6 @@ final class TestWatchLoopTest extends TestCase
                 return 0;
             },
             $output,
-            static function (int $ms): void {},
             maxRuns: 1,
         );
 
@@ -47,7 +46,7 @@ final class TestWatchLoopTest extends TestCase
             ['a.phel' => 1],  // after initial run
             ['a.phel' => 2],  // poll detects change
             ['a.phel' => 2],  // re-scan after second run
-        ]));
+        ]), static function (int $ms): void {});
 
         $exitCodes = [1, 0];
         $runs = 0;
@@ -59,7 +58,6 @@ final class TestWatchLoopTest extends TestCase
                 return $exitCodes[$runs++];
             },
             $output,
-            static function (int $ms): void {},
             maxRuns: 2,
         );
 
@@ -70,16 +68,21 @@ final class TestWatchLoopTest extends TestCase
 
     public function test_unchanged_polls_do_not_rerun(): void
     {
-        $loop = new TestWatchLoop($this->scannerReturning([
-            ['a.phel' => 1],
-            ['a.phel' => 1],
-            ['a.phel' => 1],
-            ['a.phel' => 2],
-            ['a.phel' => 2],
-        ]));
+        $sleeps = 0;
+        $loop = new TestWatchLoop(
+            $this->scannerReturning([
+                ['a.phel' => 1],
+                ['a.phel' => 1],
+                ['a.phel' => 1],
+                ['a.phel' => 2],
+                ['a.phel' => 2],
+            ]),
+            static function (int $ms) use (&$sleeps): void {
+                ++$sleeps;
+            },
+        );
 
         $runs = 0;
-        $sleeps = 0;
 
         $loop->run(
             ['/src'],
@@ -89,9 +92,6 @@ final class TestWatchLoopTest extends TestCase
                 return 0;
             },
             new BufferedOutput(),
-            static function (int $ms) use (&$sleeps): void {
-                ++$sleeps;
-            },
             maxRuns: 2,
         );
 
