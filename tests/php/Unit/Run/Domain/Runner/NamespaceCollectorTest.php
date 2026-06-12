@@ -47,6 +47,50 @@ final class NamespaceCollectorTest extends TestCase
         self::assertSame(['phel.async', 'phel.test'], $unique);
     }
 
+    public function test_appends_namespace_info_for_path_dropped_by_dependency_walk(): void
+    {
+        $buildFacade = $this->createMock(BuildFacadeInterface::class);
+        $commandFacade = $this->createStub(CommandFacadeInterface::class);
+
+        $commandFacade->method('getSourceDirectories')->willReturn(['/src']);
+        $commandFacade->method('getVendorSourceDirectories')->willReturn(['/vendor']);
+        $commandFacade->method('getTestDirectories')->willReturn(['/tests']);
+
+        $outOfTree = new NamespaceInformation('/elsewhere/my-test.phel', 'app.my-test', ['phel.test']);
+
+        $buildFacade->method('getNamespaceFromFile')->willReturn($outOfTree);
+        $buildFacade->method('getNamespaceFromDirectories')->willReturn([]);
+        // The walk cannot resolve `app.my-test` to a file: it only sees the
+        // configured directories, so the result misses the explicit path.
+        $buildFacade->method('getDependenciesForNamespace')->willReturn([]);
+
+        $result = new NamespaceCollector($buildFacade, $commandFacade)
+            ->getDependenciesFromPaths(['/elsewhere/my-test.phel']);
+
+        self::assertSame([$outOfTree], $result);
+    }
+
+    public function test_does_not_duplicate_namespace_info_resolved_by_dependency_walk(): void
+    {
+        $buildFacade = $this->createMock(BuildFacadeInterface::class);
+        $commandFacade = $this->createStub(CommandFacadeInterface::class);
+
+        $commandFacade->method('getSourceDirectories')->willReturn(['/src']);
+        $commandFacade->method('getVendorSourceDirectories')->willReturn(['/vendor']);
+        $commandFacade->method('getTestDirectories')->willReturn(['/tests']);
+
+        $inTree = new NamespaceInformation('/tests/my-test.phel', 'app.my-test', ['phel.test']);
+
+        $buildFacade->method('getNamespaceFromFile')->willReturn($inTree);
+        $buildFacade->method('getNamespaceFromDirectories')->willReturn([$inTree]);
+        $buildFacade->method('getDependenciesForNamespace')->willReturn([$inTree]);
+
+        $result = new NamespaceCollector($buildFacade, $commandFacade)
+            ->getDependenciesFromPaths(['/tests/my-test.phel']);
+
+        self::assertSame([$inTree], $result);
+    }
+
     /**
      * Run the collector against a stubbed bundled-namespace scan and return
      * the seed list it produces.

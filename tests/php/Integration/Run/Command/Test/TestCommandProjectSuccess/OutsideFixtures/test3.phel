@@ -1,0 +1,5 @@
+(ns test-cmd-out-of-tree\test3
+  (:require phel\test :refer [deftest is]))
+
+(deftest my-out-of-tree-test
+  (is (true? true)))
