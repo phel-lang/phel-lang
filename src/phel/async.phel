@@ -13,7 +13,7 @@
 ;; for `.cljc` portability work and avoids silently hijacking the
 ;; Clojure name in core.
 ;;
-;; See `docs/async-guide.md` for the full decision guide and examples.
+;; See https://phel-lang.org/documentation/language/async/ for the full decision guide and examples.
 
 (defn delay
   "Suspends execution for `seconds`. Accepts any number (int, float, or

@@ -8,8 +8,8 @@
 ;; namespaces that don't use them pay no runtime cost.
 ;;
 ;; `delay` deliberately stays in `phel.async` because `clojure.core/delay`
-;; is a lazy-computation wrapper, not a sleep. See `docs/async-guide.md`
-;; for the broader decision guide.
+;; is a lazy-computation wrapper, not a sleep. See
+;; https://phel-lang.org/documentation/language/async/ for the broader decision guide.
 
 (defn- fiber-facade
   "Lazily resolves the shared FiberFacade instance."

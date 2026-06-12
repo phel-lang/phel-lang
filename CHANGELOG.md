@@ -5,7 +5,7 @@ All notable changes to this project will be documented in this file.
 ## Unreleased
 
 Two DX passes: project configuration (`phel config`, a [configuration
-reference](docs/configuration.md), composable `with*()` setters, build/cache
+reference](https://phel-lang.org/documentation/configuration/), composable `with*()` setters, build/cache
 fixes) and the test runner (`--watch`, startup progress, better failure
 output, loud exit codes).
 
@@ -23,13 +23,14 @@ output, loud exit codes).
 
 - `phel test`: `FAIL`/`ERROR` headlines always carry the `deftest` name (`FAIL my-test (file.phel:4)`)
 - `phel init` scaffolds a `phel-config.php` with a docs link and commented-out tweaks
-- New [Deployment guide](docs/deployment.md): shared-nothing vs worker runtimes (FrankenPHP/RoadRunner)
+- New [Deployment guide](https://phel-lang.org/documentation/deployment/): shared-nothing vs worker runtimes (FrankenPHP/RoadRunner)
+- Moved user-facing guides from `docs/` to [phel-lang.org](https://phel-lang.org/documentation/); `docs/` is now contributor-facing only (#2424)
 
 ### Fixed
 
 - `phel test` no longer exits 0 when nothing ran: out-of-tree file paths now run their tests, and zero matches for explicit paths/selectors fail with `No tests matched the given paths or selectors.`
 - `phel test --list` with a selector no longer appends a false `No tests matched` failure
-- Docs doctests no longer execute as a hidden side effect of `phel test` discovery (the runner moved out of the test dirs; `composer test-docs` owns it)
+- Removed the docs doctest harness (`composer test-docs`, `tests/doctest/`): its curated guides moved to phel-lang.org, so it no longer had in-repo sources to scan
 - `cacheDir` is normalized in the constructor, so the named-arg and wither forms agree
 - Build withers are order-independent: `withMainPhelNamespace(...)` no longer pins the entry point
 - `phel build` runtime errors map back to Phel source via the sibling `.php.map`/`.phel` artifacts

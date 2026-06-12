@@ -18,13 +18,13 @@ Grouped by reader.
 
 ## Coming from Clojure
 
-**Missing features.** No agents, no STM/refs (use `Atom` + `swap!`), no `core.async` (Phel has fibers + futures via `Fiber/`, see [async-guide.md](../async-guide.md)), no protocols (use `definterface`), no records (use `defstruct`).
+**Missing features.** No agents, no STM/refs (use `Atom` + `swap!`), no `core.async` (Phel has fibers + futures via `Fiber/`, see [async](https://phel-lang.org/documentation/language/async/)), no protocols (use `definterface`), no records (use `defstruct`).
 
 **Real persistent collections?** Yes. `PersistentVector` (32-way trie), `PersistentHashMap` (HAMT), `LazySeq` (per-element realisation). Under `Lang/Collections/`.
 
 **Hygienic macros?** Quasiquote namespace-qualifies symbols at read time. `x#` inside a quasiquote expands to a fresh gensym consistent within that quasiquote. See [macros.md](macros.md).
 
-**REPL? nREPL?** Both. `phel repl` is interactive. `phel nrepl` runs over bencode/TCP. See [nrepl-guide.md](../nrepl-guide.md).
+**REPL? nREPL?** Both. `phel repl` is interactive. `phel nrepl` runs over bencode/TCP. See [REPL & nREPL](https://phel-lang.org/documentation/tooling/repl/).
 
 **`recur` and tail calls.** Loop body becomes `while (true) { ... }` rebinding parameters. No stack growth. PHP has no TCO; `recur` does not need it.
 

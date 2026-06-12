@@ -21,15 +21,15 @@
 ;; `{:length 255}` renders as `length: 255`.
 
 (defstruct
- ^{:php/attr [[:Doctrine.ORM.Mapping/Entity {:repositoryClass "App\\Repository\\ProductRepository"}]]
-   :php/doc  "A product mapped to the `products` table."}
- product
- [^{:tag int    :php/attr [[:Doctrine.ORM.Mapping/Id]
-                           [:Doctrine.ORM.Mapping/GeneratedValue]
-                           [:Doctrine.ORM.Mapping/Column]]} id
-  ^{:tag string :php/attr [[:Doctrine.ORM.Mapping/Column {:length 255}]]} name
-  ^{:tag string :php/attr [[:Doctrine.ORM.Mapping/Column {:type "text"}]]} description
-  ^{:tag float  :php/attr [[:Doctrine.ORM.Mapping/Column {:type "float"}]]} price])
+  ^{:php/attr [[:Doctrine.ORM.Mapping/Entity {:repositoryClass "App\\Repository\\ProductRepository"}]]
+    :php/doc  "A product mapped to the `products` table."}
+  product
+  [^{:tag int    :php/attr [[:Doctrine.ORM.Mapping/Id]
+                            [:Doctrine.ORM.Mapping/GeneratedValue]
+                            [:Doctrine.ORM.Mapping/Column]]} id
+   ^{:tag string :php/attr [[:Doctrine.ORM.Mapping/Column {:length 255}]]} name
+   ^{:tag string :php/attr [[:Doctrine.ORM.Mapping/Column {:type "text"}]]} description
+   ^{:tag float  :php/attr [[:Doctrine.ORM.Mapping/Column {:type "float"}]]} price])
 
 ;; The compiled PHP is a normal Doctrine entity:
 ;;
@@ -89,6 +89,6 @@
 ;;
 ;; For most persistence, prefer maps-not-entities (see 13_database-crud.phel)
 ;; with phel-sql + phel-pdo. See the "Typed PHP from Phel definitions" section
-;; of docs/framework-integration.md for the full metadata reference.
+;; of https://phel-lang.org/documentation/web/framework-integration/ for the full metadata reference.
 
 (main)

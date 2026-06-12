@@ -17,7 +17,7 @@
 | PHP array assoc | `#php {"k" "v"}` |
 | Catch | `(catch php\SomeException e ...)` |
 
-Full table: `docs/php-interop.md`.
+Full table: <https://phel-lang.org/documentation/php-interop/>.
 
 ## Guzzle
 
@@ -83,4 +83,4 @@ composer require guzzlehttp/guzzle
 
 ## See also
 
-- `docs/php-interop.md`, `docs/framework-integration.md`
+- <https://phel-lang.org/documentation/php-interop/>, <https://phel-lang.org/documentation/web/framework-integration/>

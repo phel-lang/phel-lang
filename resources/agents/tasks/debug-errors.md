@@ -109,4 +109,4 @@ Check `~`, `` ` ``, auto-gensym `name#`.
 ## See also
 
 - `tasks/repl-workflow.md`, `tasks/typed-defn.md`, `tasks/write-macros.md`
-- `docs/patterns.md` § Error Handling, `docs/php-interop.md` § Error Handling
+- <https://phel-lang.org/documentation/language/error-handling/>, <https://phel-lang.org/documentation/php-interop/>
