@@ -38,6 +38,11 @@ final readonly class CommandExceptionWriter implements CommandExceptionWriterInt
             $output->writeln($cause->getMessage());
         } else {
             $this->writeUserError($output, $cause);
+
+            $trace = $this->exceptionPrinter->getUserFacingTraceString($cause);
+            if ($trace !== '') {
+                $output->writeln(rtrim($trace));
+            }
         }
 
         $this->errorLog->writeln($this->getStackTraceString($e));

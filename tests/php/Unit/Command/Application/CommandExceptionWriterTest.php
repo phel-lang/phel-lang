@@ -91,6 +91,31 @@ final class CommandExceptionWriterTest extends TestCase
         self::assertSame("internal\n", $output->fetch());
     }
 
+    public function test_writes_user_facing_trace_after_error_location(): void
+    {
+        $extractor = $this->createStub(FilePositionExtractorInterface::class);
+        $extractor->method('getOriginal')->willReturn(new FilePosition('/proj/src/main.phel', 3));
+
+        $printer = $this->createStub(ExceptionPrinterInterface::class);
+        $printer->method('getUserFacingTraceString')
+            ->willReturn("#0 /proj/src/main.phel:6 : (app\\main\\level3 1)\n   ... 4 internal frames\n");
+
+        $writer = new CommandExceptionWriter(
+            $printer,
+            $this->createStub(ErrorLogInterface::class),
+            $extractor,
+            'stale hint',
+        );
+
+        $output = new BufferedOutput();
+        $writer->writeStackTrace($output, $this->errorAt('boom', '/tmp/__phel_abc.php', 9));
+
+        $text = $output->fetch();
+
+        self::assertStringContainsString('#0 /proj/src/main.phel:6 : (app\\main\\level3 1)', $text);
+        self::assertStringContainsString('... 4 internal frames', $text);
+    }
+
     private function errorAt(string $message, string $file, int $line): RuntimeException
     {
         // Use the previous-exception slot, which writer prefers when present

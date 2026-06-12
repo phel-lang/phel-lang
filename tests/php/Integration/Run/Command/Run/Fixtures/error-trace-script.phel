@@ -1,0 +1,7 @@
+(ns test\error-trace-script
+  (:require test\error-lib))
+
+(defn caller [x]
+  (test\error-lib/boom-fn x))
+
+(caller 1)

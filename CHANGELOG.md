@@ -22,6 +22,7 @@ Two themes: project configuration (`phel config`, optimization levels, composabl
 
 ### Fixed
 
+- Runtime stack traces point at `.phel` sources (#2428): `phel run` prints the Phel frames of an uncaught error as `file.phel:line` (PHP-internal frames collapsed), also when the namespace was loaded from the build cache; the REPL no longer hides user fn frames; `phel test --stack-trace` actually prints the trace; macro-expansion errors show where the macro was defined (`Defined: file.phel:line`)
 - `phel test` exit codes: no longer exits 0 when nothing ran, bad paths/selectors fail loudly, and `--list` no longer appends a false `No tests matched`
 - `await-all` (and `pmap`, which builds on it) now return results in input order; `Amp\Future\await` fills its result array in completion order, so concurrent Futures that resolved out of order came back shuffled
 - Editing `phel-config.php` takes effect immediately again: Phel clears Gacela's stale merged-config cache (requires `gacela-project/gacela: ^1.15`)

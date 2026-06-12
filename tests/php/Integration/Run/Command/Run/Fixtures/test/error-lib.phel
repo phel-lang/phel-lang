@@ -1,0 +1,4 @@
+(ns test\error-lib)
+
+(defn boom-fn [x]
+  (throw (php/new \RuntimeException "boom from error-lib")))
