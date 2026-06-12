@@ -10,7 +10,7 @@ newcomer runs.
 ```bash
 composer test-docs
 # or
-./bin/phel run tests/phel/doctest/runner.phel
+./bin/phel run tests/doctest/runner.phel
 ```
 
 Exits non-zero (and lists every mismatch as `expected:` / `got:`) when an example

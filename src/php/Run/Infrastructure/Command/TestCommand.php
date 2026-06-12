@@ -149,8 +149,10 @@ final class TestCommand extends Command
         }
 
         $optionParser = new TestCommandOptionParser();
+        $feedback = TestLoadingFeedback::fromOutput($output);
 
         try {
+            $feedback->discovering();
             /** @var list<string> $paths */
             $paths = (array) $input->getArgument(TestCommandOptionParser::ARG_PATHS);
             $namespacesInformation = $this->getFacade()->getDependenciesFromPaths($paths);
@@ -160,11 +162,14 @@ final class TestCommand extends Command
             $namespacesInformation = new TestNamespacePruner()->prune($namespacesInformation, $nsPatterns);
 
             // Suppress output during file loading phase and filter out integration test fixtures
+            $feedback->startLoading(count($namespacesInformation));
             ob_start();
             $filteredNamespaces = [];
             /** @var list<array{0: NamespaceInformation, 1: Throwable}> $compileErrors */
             $compileErrors = [];
             foreach ($namespacesInformation as $info) {
+                $feedback->advance($info->getNamespace());
+
                 // Skip integration test fixture files - they are for PHPUnit tests only
                 if (str_contains($info->getFile(), 'tests/php/Integration/')) {
                     continue;
@@ -180,6 +185,7 @@ final class TestCommand extends Command
                 } catch (Throwable $e) {
                     if ($failFast) {
                         ob_end_clean();
+                        $feedback->finishLoading();
                         throw $e;
                     }
 
@@ -188,6 +194,7 @@ final class TestCommand extends Command
             }
 
             ob_end_clean();
+            $feedback->finishLoading();
 
             $this->reportCompileErrors($output, $compileErrors);
 

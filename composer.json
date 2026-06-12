@@ -107,7 +107,7 @@
         "test-agents": "./tools/validate-agents.sh",
         "test-tools": "./tools/bashunit tools/*-test.sh --simple",
         "test-core": "php -d memory_limit=256M ./bin/phel test",
-        "test-docs": "php -d memory_limit=256M ./bin/phel run tests/phel/doctest/runner.phel",
+        "test-docs": "php -d memory_limit=256M ./bin/phel run tests/doctest/runner.phel",
         "test-quality": [
             "@csrun",
             "@psalm",
