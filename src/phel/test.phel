@@ -447,8 +447,10 @@ Metadata attached to `test-name` is forwarded to the defined function so selecto
 
 (defn- print-headline [prefix {:test-name test-name, :message message, :location location}]
   (print prefix)
+  (when test-name
+    (print (str " " test-name)))
   (when message
-    (print (str " in (" test-name " '" message "')")))
+    (print (str " '" message "'")))
   (when location
     (print (str " (" (php/basename (get location :file)) ":" (get location :line) ")")))
   (println))
@@ -590,6 +592,62 @@ Metadata attached to `test-name` is forwarded to the defined function so selecto
   (and (same-shape? expected actual)
        (diff-worth-rendering? expected actual)))
 
+;; --------------------------
+;; String diff (= failures)
+;; --------------------------
+
+(def- string-diff-context
+  ;; Characters of context shown before the first mismatch when windowing
+  ;; a long string; the window also extends this far after the mismatch.
+  40)
+
+(defn- first-mismatch-index
+  "0-based index of the first differing character between strings `a` and `b`. When one string is a prefix of the other, the mismatch is the length of the shorter one. Returns nil for equal strings."
+  [a b]
+  (let [n (min (php/strlen a) (php/strlen b))]
+    (loop [i 0]
+      (cond
+        (>= i n)
+        (if (= (php/strlen a) (php/strlen b)) nil n)
+
+        (not= (php/substr a i 1) (php/substr b i 1))
+        i
+
+        :else                                        (recur (inc i))))))
+
+(defn- escape-for-string-diff
+  "Escapes backslashes, quotes, and control whitespace so every character renders one-or-more visible columns and the caret stays aligned."
+  [s]
+  (let [s (php/str_replace "\\" "\\\\" s)
+        s (php/str_replace "\n" "\\n" s)
+        s (php/str_replace "\t" "\\t" s)
+        s (php/str_replace "\r" "\\r" s)]
+    (php/str_replace "\"" "\\\"" s)))
+
+(defn- string-diff-window
+  "Renders string `s` windowed from `start` to just past mismatch index `idx` (plus trailing context), quoted and escaped, with `...` markers for clipped ends. Returns [rendered caret-column] where caret-column points at the mismatch within the rendered text."
+  [s start idx]
+  (let [len    (php/strlen s)
+        end    (min len (+ idx string-diff-context))
+        window (php/substr s start (- end start))
+        prefix (php/substr s start (- idx start))
+        lead   (if (pos? start) "..." "")
+        trail  (if (< end len) "..." "")]
+    [(str lead "\"" (escape-for-string-diff window) "\"" trail)
+     (+ (php/strlen lead) 1 (php/strlen (escape-for-string-diff prefix)))]))
+
+(defn- print-string-diff
+  "Prints a windowed expected/actual pair with a caret under the first differing character. Supplements the summary line for `=` failures over two strings."
+  [expected actual]
+  (when-let [idx (first-mismatch-index expected actual)]
+    (let [start            (max 0 (- idx string-diff-context))
+          [exp-line _]     (string-diff-window expected start idx)
+          [act-line caret] (string-diff-window actual start idx)]
+      (println (str "  String diff (first mismatch at index " idx "):"))
+      (println (str "    expected: " exp-line))
+      (println (str "    actual:   " act-line))
+      (println (str (php/str_repeat " " (+ 14 caret)) "^")))))
+
 (defn- print-error [data]
   (print-error-headline data)
   (let [{:exception exception, :form form} data
@@ -616,9 +674,11 @@ Metadata attached to `test-name` is forwarded to the defined function so selecto
   (print-form-evaluated "          Form" actual
                         "  evaluated to" result)
   (print-label "    but is not" pred "to" (readable-str expected))
-  (when (and (= pred '=)
-             (collection-diff-applicable? expected result))
-    (print-collection-diff expected result)))
+  (when (= pred '=)
+    (when (collection-diff-applicable? expected result)
+      (print-collection-diff expected result))
+    (when (and (string? expected) (string? result))
+      (print-string-diff expected result))))
 
 (defn- print-binary-not-failure [{:pred pred, :expected expected, :actual actual, :result result}]
   (print-form-evaluated "          Form" actual

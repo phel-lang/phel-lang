@@ -14,9 +14,11 @@ build/cache fixes.
 - `phel build -O <level>`: per-run override; invalidates the build and compiled-code caches
 - `phel config`: prints the merged config with provenance; `--json` for machine output
 - `withBuildConfig()`/`withExportConfig()` accept a configurator closure, composing with the flattened setters in any order
+- `phel test` failure output: string `=` mismatches print a windowed expected/actual pair with a caret under the first differing character
 
 ### Changed
 
+- `phel test` failure output: `FAIL`/`ERROR` headlines always include the `deftest` name (`FAIL my-test (file.phel:4)`), not only when an assertion message is present
 - `phel init` scaffolds a `phel-config.php` with a docs link and commented-out tweaks
 - New [Deployment guide](docs/deployment.md): shared-nothing vs worker runtimes (FrankenPHP/RoadRunner)
 
