@@ -51,13 +51,18 @@
   (php/-> (unwrap-future future) (await)))
 
 (defn await-all
-  "Awaits all Futures in the given collection. Returns a vector of results. Accepts a mix of raw `Amp\\Future` and `Future` wrappers."
+  "Awaits all Futures in the given collection. Returns a vector of results in the same order as the input collection, regardless of which Future resolves first. Accepts a mix of raw `Amp\\Future` and `Future` wrappers."
   {:example "(await-all [(async 1) (async 2)])"
    :see-also ["await" "await-any" "pmap"]}
   [futures]
-  (let [php-futures (to-php-array (map unwrap-future futures))]
-    (for [v :in (php/amp\future\await php-futures)]
-      v)))
+  (let [php-futures (to-php-array (map unwrap-future futures))
+        ;; `Amp\\Future\\await` preserves the original integer keys but
+        ;; fills the result array in *completion* order, so we re-read by
+        ;; index (0..n-1, contiguous from `to-php-array`) to restore the
+        ;; caller's input order — `pmap` and `.cljc` parity rely on it.
+        results     (php/amp\future\await php-futures)]
+    (for [i :in (range (php/count results))]
+      (php/aget results i))))
 
 (defn await-any
   "Awaits the first Future to resolve. Returns its value. Accepts a mix of raw `Amp\\Future` and `Future` wrappers."

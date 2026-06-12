@@ -1,5 +1,6 @@
 (ns phel-test.core.async-in-core
-  (:require phel.test :refer [deftest is]))
+  (:require phel.test :refer [deftest is])
+  (:require phel.async :refer [delay]))
 
 ;; Regression test for https://github.com/phel-lang/phel-lang/issues/1548
 ;; The Clojure-parity async surface (and Phel's fiber combinators that
@@ -25,6 +26,26 @@
 
 (deftest test-pmap-is-available-without-require
   (is (= [2 3 4] (pmap inc [1 2 3])) "pmap is in core"))
+
+;; Regression: `await-all` must return results in *input* order even when
+;; later Futures resolve first. `Amp\Future\await` fills its result array
+;; in completion order, so a naive value-iteration returned them shuffled.
+(deftest test-await-all-preserves-input-order
+  (is (= [:a0 :a1 :a2 :a3]
+         (await-all
+          [(async (do (delay 0.20) :a0))
+           (async (do (delay 0.15) :a1))
+           (async (do (delay 0.10) :a2))
+           (async (do (delay 0.01) :a3))]))
+      "await-all keeps input order despite reverse completion order"))
+
+;; Regression: `pmap` documents "results in the original order"; it builds
+;; on `await-all`, so the same completion-order bug reversed its output.
+(deftest test-pmap-preserves-input-order
+  (is (= [10 20 30 40 50]
+         (pmap (fn [x] (delay (/ (- 10 x) 50.0)) (* x 10))
+               [1 2 3 4 5]))
+      "pmap keeps input order when later elements finish first"))
 
 (deftest test-promise-deliver-deref-are-available-without-require
   (let [p (promise)]
