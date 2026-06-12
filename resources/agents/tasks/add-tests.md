@@ -94,11 +94,11 @@ Compose outer-to-inner. Keyed by `*ns*`.
 
 Helpers: `mock` (fixed return), `mock-fn` (custom behavior), `mock-returning` (sequence), `mock-throwing` (error), `spy` (wrap real fn).
 
-Full: `docs/mocking-guide.md`.
+Full: <https://phel-lang.org/documentation/testing/>.
 
 ## Extend `is`
 
-`phel\test/assert-expr` is an open multimethod. Register a `defmethod` to teach `is` a new form. See `docs/patterns.md` § Writing Macros.
+`phel\test/assert-expr` is an open multimethod. Register a `defmethod` to teach `is` a new form. See <https://phel-lang.org/documentation/language/macros/>.
 
 ## Gotchas
 
@@ -111,5 +111,5 @@ Full: `docs/mocking-guide.md`.
 ## See also
 
 - `tasks/typed-defn.md` — typed fns under test
-- `docs/mocking-guide.md`
+- <https://phel-lang.org/documentation/testing/>
 - `src/phel/test.phel`, `tests/phel/*.phel`

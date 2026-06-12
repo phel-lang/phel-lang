@@ -181,4 +181,4 @@ Swap `\Phel::run(...)` for `require` of compiled boot file.
 
 - `tasks/use-php-libs.md`, `tasks/add-tests.md`
 - `src/phel/router.phel`, `src/phel/http.phel`, `src/phel/http-client.phel`
-- `docs/framework-integration.md`
+- <https://phel-lang.org/documentation/web/framework-integration/>

@@ -23,7 +23,7 @@ self-seeded `.phel/.gitignore` (`*`).
 - **`PHEL_CACHE_DIR` env var**: final cache override; wins over `PHEL_DIR` and `withCacheDir()`. Useful for CI / Nix builds.
 - **`PHEL_QUIET_MIGRATION=1`**: silences the stderr notice when legacy `.phel-repl-history` migrates into `.phel/repl-history`.
 
-For the full list of `phel-config.php` options, caching flags, and precedence, see [Configuration](configuration.md).
+For the full list of `phel-config.php` options, caching flags, and precedence, see [Configuration](https://phel-lang.org/documentation/configuration/).
 
 ## Migration
 

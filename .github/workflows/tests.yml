@@ -50,16 +50,6 @@ jobs:
       - name: Run tests to the core library
         run: composer run-script test-core
 
-  docs-tests:
-    name: Documentation doctests
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v6
-      - uses: ./.github/actions/setup-phel
-
-      - name: Run doctests over the curated guides
-        run: composer run-script test-docs
-
   bench-tests:
     name: Bench tests
     runs-on: ubuntu-latest

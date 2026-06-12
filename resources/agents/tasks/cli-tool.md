@@ -2,7 +2,7 @@
 
 Use `phel\cli` — data-driven wrapper over `symfony/console` (bundled, no extra deps). Describe commands as Phel maps; get subcommands, args, options, prompts, tables, progress bars, shell completion, signals, test helpers.
 
-Full reference: `docs/cli-guide.md`. Module: `src/phel/cli.phel`.
+Full reference: <https://phel-lang.org/documentation/tooling/cli-commands/>. Module: `src/phel/cli.phel`.
 
 ## Quickstart
 
@@ -217,5 +217,5 @@ Example: `.agents/examples/cli-wordcount/`.
 ## See also
 
 - `tasks/add-tests.md` — test fixtures for handler fns
-- `docs/cli-guide.md`, `docs/framework-integration.md`
+- <https://phel-lang.org/documentation/tooling/cli-commands/>, <https://phel-lang.org/documentation/web/framework-integration/>
 - `src/phel/cli.phel`

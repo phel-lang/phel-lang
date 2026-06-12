@@ -168,9 +168,9 @@ echo '(println "hi")' | ./vendor/bin/phel eval -
 
 ## Documentation
 
-- [Quick Start](docs/quickstart.md): install, REPL, first script (5 min)
-- [Documentation Index](docs/README.md): every guide, grouped by purpose
-- [phel-lang.org](https://phel-lang.org): tutorials, exercises, blog
+- [Getting Started](https://phel-lang.org/documentation/getting-started/): install, REPL, first script (5 min)
+- [phel-lang.org](https://phel-lang.org/documentation/): full documentation, tutorials, exercises, blog
+- [Contributor docs](docs/README.md): repository internals, agent tooling, project layout
 - [Packagist](https://packagist.org/packages/phel-lang/phel-lang)
 - [CONTRIBUTING.md](.github/CONTRIBUTING.md): setup and workflow
 - [AGENTS.md](AGENTS.md): architecture and review expectations

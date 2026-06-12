@@ -73,4 +73,4 @@ Per-fn call counts and self/total/avg/max plus compile-phase costs. Use to pick 
 ## See also
 
 - `tasks/use-core-lib.md`, `tasks/debug-errors.md`, `tasks/typed-defn.md`
-- `src/phel/repl.phel`, `docs/nrepl-guide.md`
+- `src/phel/repl.phel`, <https://phel-lang.org/documentation/tooling/repl/>

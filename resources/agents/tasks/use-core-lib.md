@@ -158,4 +158,4 @@ Detail: [`tasks/typed-defn.md`](typed-defn.md). Find candidates: `phel profile <
 ## See also
 
 - `tasks/typed-defn.md`, `tasks/http-app.md`, `tasks/cli-tool.md`, `tasks/async.md`, `tasks/memoize.md`
-- `docs/patterns.md`, `docs/data-structures-guide.md`, `docs/lazy-sequences.md`, `docs/transducers.md`
+- <https://phel-lang.org/documentation/guides/cookbook/>, <https://phel-lang.org/documentation/language/data-structures/>, <https://phel-lang.org/documentation/language/lazy-sequences/>, <https://phel-lang.org/documentation/language/transducers/>

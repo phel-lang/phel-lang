@@ -86,5 +86,5 @@ Carried lexer to AST to emitted source map. Don't drop. When constructing a form
 ## See also
 
 - `src/php/Lang/CLAUDE.md`
-- [data-structures-guide.md](../data-structures-guide.md): user view
+- [Data structures](https://phel-lang.org/documentation/language/data-structures/): user view
 - [compiler.md](compiler.md): emit path

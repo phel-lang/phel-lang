@@ -51,4 +51,4 @@ Each pattern is a vector whose length must equal the target count.
 ## See also
 
 - `validate-with-schema.md` for declaring reusable shapes
-- `docs/match-guide.md` for full reference
+- <https://phel-lang.org/documentation/language/functions-and-recursion/> for full reference

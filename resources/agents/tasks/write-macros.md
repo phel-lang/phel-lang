@@ -75,6 +75,6 @@ Anything outside `` ` `` is evaluated when the macro fires, not when the caller 
 
 ## See also
 
-- `docs/patterns.md` § Writing Macros
+- <https://phel-lang.org/documentation/language/macros/>
 - `tasks/debug-errors.md` § Macro surprises
 - `RULES.md` § New features (records / protocols / multimethods as alternatives when a fn or protocol would suffice)

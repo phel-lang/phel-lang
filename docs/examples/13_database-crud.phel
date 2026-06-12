@@ -8,7 +8,7 @@
 ;; Persistence here is raw PDO interop so the file runs standalone. A
 ;; real app swaps this repository layer for phel-sql (data -> [sql params])
 ;; + phel-pdo, reusing the framework's connection - see the "Persistence"
-;; section of docs/framework-integration.md.
+;; section of https://phel-lang.org/documentation/web/framework-integration/.
 
 (def db
   (let [pdo (php/new \PDO "sqlite::memory:")]

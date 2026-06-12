@@ -18,7 +18,7 @@ final class ProjectTemplateGenerator
 use Phel\\Config\\PhelConfig;
 use Phel\\Config\\ProjectLayout;
 
-// See https://github.com/phel-lang/phel-lang/blob/main/docs/configuration.md
+// See https://phel-lang.org/documentation/configuration/
 // for every option, caching flags, and precedence. Run `phel config` to print
 // the effective configuration. A few common tweaks:
 //     ->withWarnDeprecations(true)

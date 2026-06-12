@@ -50,5 +50,5 @@
 
 ## See also
 
-- `docs/schema-guide.md` for full reference
+- <https://phel-lang.org/documentation/guides/schema/> for full reference
 - `use-core-lib.md` for combining with `get-in`, `update-in`

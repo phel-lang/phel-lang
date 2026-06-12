@@ -1,66 +1,47 @@
 # Phel Documentation
 
-**Prerequisites**: PHP >= 8.4, Composer.
+This `docs/` tree is **contributor-facing**: it covers the repository internals,
+agent tooling, and project layout. User-facing guides (language, tooling,
+modules, deployment) live on **[phel-lang.org](https://phel-lang.org/documentation/)**.
 
-## Start here
+## What lives here
 
-1. [Quick Start](quickstart.md): install, REPL, first script
-2. [Common Patterns](patterns.md): everyday idioms
-3. [PHP/Phel Interop](php-interop.md): call PHP from Phel and back
-4. [Project Layout](project-layout.md): the `.phel/` directory and runtime state
-5. [Configuration](configuration.md): `phel-config.php` options, caching, precedence
-
-Coming from Clojure? Read [Clojure Migration](clojure-migration.md).
-
-## Language
-
-- [Reader Shortcuts](reader-shortcuts.md): `#inst`, `#regex`, `#php`, anonymous fn `#(...)`
-- [Reader Conditionals](reader-conditionals.md): `.cljc` portability
-- [Data Structures](data-structures-guide.md): vectors, maps, sets, transients
-- [Numeric Tower](numeric-tower.md): `int`, `float`, `BigInt`, `BigDecimal`, `Ratio`
-- [Lazy Sequences](lazy-sequences.md): `lazy-seq`, infinite seqs, realization
-- [Transducers](transducers.md): composable transformations
-- [Pattern Matching](match-guide.md): `match` with guards and destructuring
-
-## Tooling
-
-- [REPL & nREPL](nrepl-guide.md): editor integration over bencode/TCP
-- [Language Server](lsp-guide.md): hover, definition, references, completion
-- [Linter](lint-guide.md): `phel lint` rules and config
-- [Watch](watch-guide.md): hot-reload changed namespaces
-- [CLI Builder](cli-guide.md): build CLIs with `phel.cli`
-- [Performance](performance.md): opcache setup, cache reset
-- [Profile](profile-guide.md): `phel profile` per-fn timings and compile-phase costs
-- [Mocking](mocking-guide.md): test seams for PHP calls
-- [Parallel Tests](parallel-tests.md): `phel test --parallel=<N|auto|max>` worker pool
-
-## Modules
-
-- [Async](async-guide.md): fibers, promises, futures, AMPHP
-- [Schema](schema-guide.md): validate, coerce, generate
-- [AI](ai-guide.md): `chat-with-tools`, OpenAI tool use
-- [Data Interchange Formats](data-formats.md): `phel.edn`, `phel.transit`
-
-## Apps
-
-- [Framework Integration](framework-integration.md): Laravel, Symfony, framework-less
-- [Deployment](deployment.md): worker runtimes (FrankenPHP, RoadRunner), shared-nothing vs persistent state
-- [Examples](examples/README.md): runnable single-file samples
-
-## Internals
-
-Overview: [internals/](internals/README.md).
-
-- [Architecture](internals/architecture.md): modules, Gacela pattern, dependency map
-- [Compiler](internals/compiler.md): phases, AST, emitter
-- [Special forms](internals/special-forms.md): list, dispatch, how to add one
-- [Macros](internals/macros.md): `macroexpand`, quasiquote, gensym
-- [Runtime](internals/runtime.md): `Lang/`, persistent collections, `Registry`
-- [FAQ](internals/faq.md): questions grouped by reader
-- [Benchmarks](internals/benchmarks.md): PHPBench setup
+- [Project Layout](project-layout.md): the `.phel/` directory and runtime state
+- [Internals](internals/README.md): architecture, compiler phases, AST, emitter,
+  macros, runtime, FAQ, benchmarks
 - [Migration: backslash to dot](migration/backslash-to-dot.md)
-
-## AI agents
-
-- [resources/agents/](../resources/agents/README.md): Claude Code, Cursor, Codex, Gemini, Copilot, Aider
+- [Examples](examples/README.md): runnable single-file samples
+- [AI agents](../resources/agents/README.md): Claude Code, Cursor, Codex, Gemini, Copilot, Aider
 - [agent-docs](agent-docs.md) · [agent-metrics](agent-metrics.md)
+
+## User-facing guides moved to phel-lang.org
+
+The guides below were ported to the website and removed from this repo. Use these
+links instead:
+
+| Topic | Website |
+|---|---|
+| Getting started / quickstart | https://phel-lang.org/documentation/getting-started/ |
+| Configuration | https://phel-lang.org/documentation/configuration/ |
+| PHP interop | https://phel-lang.org/documentation/php-interop/ |
+| Coming from Clojure | https://phel-lang.org/documentation/guides/coming-from-clojure/ |
+| CLI commands | https://phel-lang.org/documentation/tooling/cli-commands/ |
+| Lint / profile / watch | https://phel-lang.org/documentation/tooling/cli-commands/ |
+| Data structures | https://phel-lang.org/documentation/language/data-structures/ |
+| Cookbook / patterns | https://phel-lang.org/documentation/guides/cookbook/ |
+| Editor support (LSP) | https://phel-lang.org/documentation/tooling/editor-support/ |
+| REPL / nREPL | https://phel-lang.org/documentation/tooling/repl/ |
+| Testing / mocking / parallel tests | https://phel-lang.org/documentation/testing/ |
+| Pattern matching (`match`) | https://phel-lang.org/documentation/language/functions-and-recursion/ |
+| Reader shortcuts | https://phel-lang.org/documentation/language/reader-shortcuts/ |
+| Reader conditionals | https://phel-lang.org/documentation/language/reader-conditionals/ |
+| Numeric tower | https://phel-lang.org/documentation/language/numeric-tower/ |
+| Lazy sequences | https://phel-lang.org/documentation/language/lazy-sequences/ |
+| Transducers | https://phel-lang.org/documentation/language/transducers/ |
+| Async / fibers | https://phel-lang.org/documentation/language/async/ |
+| Schema | https://phel-lang.org/documentation/guides/schema/ |
+| AI | https://phel-lang.org/documentation/guides/ai/ |
+| Data interchange formats | https://phel-lang.org/documentation/guides/data-formats/ |
+| Performance | https://phel-lang.org/documentation/performance/ |
+| Deployment | https://phel-lang.org/documentation/deployment/ |
+| Framework integration | https://phel-lang.org/documentation/web/framework-integration/ |
