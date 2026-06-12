@@ -1,0 +1,215 @@
+;; Doctest harness: extracts ```phel fenced code blocks from a curated set of
+;; high-value guides (see `doc-files`), evaluates them, and asserts that every
+;; `; => <value>` annotation matches the value the annotated form actually
+;; evaluates to. Skip-heavy guides (network ai, REPL transcripts, reader
+;; conditionals, PHP-class interop) are intentionally out of scope.
+;;
+;; Each markdown file gets one fresh namespace; the runnable blocks in it are
+;; split into top-level forms which are evaluated once, in document order, so
+;; `def` setup and atom mutation in one block stay visible to later forms and
+;; blocks (just like loading the file in a REPL). A form is checked when its
+;; closing line (or the comment line right after it) carries a `; => <value>`
+;; annotation. Annotations whose expected text is not a literal Phel value
+;; (prose like `; => recursive`) are ignored. A block is skipped entirely when it
+;; contains the marker `doctest: skip` or an `(ns ` form (those pull in PHP
+;; classes / external services and are illustrative, not runnable).
+(ns doctest.runner
+  (:require phel.string :as str))
+
+;; Readable printer, matching what the REPL shows (strings quoted, etc.).
+(def- printer (php/:: \Phel\Shared\Printer\Printer (readable)))
+
+(defn- repr [v]
+  (php/-> printer (print v)))
+
+;; Normalize a printed value for comparison: the doctest gate cares about the
+;; VALUE, not REPL-only formatting. Strip the lazy/seq `@` marker, treat commas
+;; as the optional whitespace they are, and unify list/lazyseq/vector brackets so
+;; equal ordered sequences compare equal. Applied identically to both sides, so
+;; it can never mask a real value diff.
+(defn- norm [s]
+  (let [s (php/str_replace "@" "" s)
+        s (php/str_replace "," " " s)
+        s (php/str_replace "(" "[" s)
+        s (php/str_replace ")" "]" s)
+        s (php/preg_replace #"\s+" " " s)]
+    (php/trim s)))
+
+;; One throwaway namespace per file keeps each file's defs isolated.
+(def- gen-counter (atom 0))
+
+(defn- file-requires
+  "Rebuild the `:require <module> :as <alias>` clauses declared anywhere in the
+   file (list or vector form) so blocks that use `str/`, `json/`, ... still
+   resolve even though their `(ns ...)` block is skipped."
+  [text]
+  (let [m (php/array)]
+    (php/preg_match_all #"(?m):require\s+\[?\s*([\w.\\]+)\s+:as\s+([\w.<>=*+!?-]+)" text (php/ref m))
+    (let [mods (php->phel (php/aget m 1))
+          als  (php->phel (php/aget m 2))
+          ;; `str` is the universal alias for phel.string; many examples assume it
+          ;; without a visible require, so seed it by default.
+          decl (for [i :range [0 (count mods)]]
+                 (str "(:require " (get mods i) " :as " (get als i) ")"))]
+      (str/join " " (distinct (cons "(:require phel.string :as str)" decl))))))
+
+(defn- fresh-ns! [requires]
+  (let [n (swap! gen-counter inc)]
+    (try
+      (eval (read-string (str "(ns doctest-gen-" n " " requires ")")))
+      (catch \Throwable _
+        (eval (read-string (str "(ns doctest-gen-" n ")")))))))
+
+;; Matches an expected annotation that looks like a real Phel value, not prose.
+(def- value-like #"(?s)^(nil|true|false|-?\d|\"|\[|\{|\(|:|#|'|\\)")
+
+(defn- phel-blocks
+  "List of ```phel block bodies inside markdown `text`."
+  [text]
+  (let [m (php/array)]
+    (php/preg_match_all #"(?s)```phel\n(.*?)```" text (php/ref m))
+    (php->phel (php/aget m 1))))
+
+;; Substrings that mark a block as not a runnable, deterministic, pure-Phel
+;; doctest. Such blocks are illustrative only and excluded from evaluation.
+(def- skip-substrings
+  ["doctest: skip"  ; explicit opt-out
+   "(ns "           ; pulls in PHP classes / external requires
+   "#php"])         ; reader-array form; annotation shows the constructor, not output
+
+(defn- runnable-block? [block]
+  (and (not (some |(str/includes? block $) skip-substrings))
+       ;; REPL transcripts (`app.hello:3>`) are not evaluable source.
+       (not= 1 (php/preg_match #"(?m)^\s*[\w.-]+:\d+>" block))))
+
+(defn- annotation
+  "If `line` carries a `; => <value-like>` assertion, return the expected string,
+   else nil."
+  [line]
+  (let [m (php/array)]
+    (when (= 1 (php/preg_match #"(?:^|\s);+\s*=>\s*(.+?)\s*$" line (php/ref m)))
+      ;; Drop trailing explanatory notes after the value: ` ; note` and ` (note)`
+      ;; (the paren form only when a value precedes it, so a `(1 2 3)` value stays).
+      (let [raw      (php/aget m 1)
+            raw      (php/preg_replace #"\s+;.*$" "" raw)
+            raw      (php/preg_replace #"(\S)\s+\([^()]*\)\s*$" "$1" raw)
+            expected (str/trim raw)]
+        ;; A real value to assert: value-like and not an `...` ellipsis placeholder.
+        (when (and (= 1 (php/preg_match value-like expected))
+                   (not (str/includes? expected "...")))
+          expected)))))
+
+(defn- back-prefix
+  "Index of the start of the reader-macro run (` ' ~ @ # ^) immediately before
+   position `i`, so a form like `` `(1 2 3) `` keeps its quote prefix."
+  [block i]
+  (loop [j (dec i)]
+    (if (and (>= j 0) (= 1 (php/preg_match #"[`'~@#^]" (php/substr block j 1))))
+      (recur (dec j))
+      (inc j))))
+
+(defn- split-forms
+  "Split a block into top-level parenthesized forms, paren-aware (ignores
+   brackets inside strings and `;` comments). Returns a vector of
+   {:src form-source, :endline 0-based line index of the closing bracket}."
+  [block]
+  (let [n (php/strlen block)]
+    (loop [i 0, depth 0, in-str false, esc false, in-com false, start -1, line 0, forms []]
+      (if (>= i n)
+        forms
+        (let [c     (php/substr block i 1)
+              nl?   (= c "\n")
+              nline (if nl? (inc line) line)]
+          (cond
+            in-com
+            (recur (inc i) depth in-str esc (not nl?) start nline forms)
+
+            in-str
+            (recur (inc i) depth (if esc true (not= c "\"")) (and (not esc) (= c "\\")) in-com start nline forms)
+
+            (= c ";")
+            (recur (inc i) depth in-str esc true start nline forms)
+
+            (= c "\"")
+            (recur (inc i) depth true esc in-com (if (< start 0) i start) nline forms)
+
+            (or (= c "(") (= c "[") (= c "{"))
+            (recur (inc i) (inc depth) in-str esc in-com (if (< start 0) (back-prefix block i) start) nline forms)
+
+            (or (= c ")") (= c "]") (= c "}"))
+            (let [d (dec depth)]
+              (if (and (= d 0) (>= start 0))
+                (recur (inc i) 0 in-str esc in-com -1 nline
+                       (push forms {:src (php/substr block start (- (inc i) start)) :endline line}))
+                (recur (inc i) (max d 0) in-str esc in-com start nline forms)))
+
+            :else
+            (recur (inc i) depth in-str esc in-com start nline forms)))))))
+
+(defn- eval-form
+  "Eval one form, swallowing stdout; return [:ok value] or [:err message]."
+  [src]
+  (php/ob_start)
+  (let [result (try
+                 [:ok (eval (read-string src))]
+                 (catch \Throwable e
+                   [:err (php/-> e (getMessage))]))]
+    (php/ob_end_clean)
+    result))
+
+(defn- check-file
+  "Evaluate every runnable block in `file` in one fresh namespace and return a
+   vector of result maps {:status :file :expected :got} for each annotated form."
+  [file]
+  (let [text   (php/file_get_contents file)
+        blocks (filter runnable-block? (phel-blocks text))]
+    (fresh-ns! (file-requires text))
+    (apply concat
+           (for [block :in blocks
+                 :let [lines (str/split-lines block)
+                       n     (count lines)]]
+             (keep
+              (fn [form]
+                (let [[tag v] (eval-form (:src form))
+                      el      (:endline form)
+                      next-ln (if (< (inc el) n) (get lines (inc el) "") "")
+                      ann     (or (annotation (get lines el ""))
+                                  ;; Borrow the next line's annotation only when it is
+                                  ;; comment-only, so a following form's own inline
+                                  ;; `; =>` is never mis-attributed to this form.
+                                  (when (= 1 (php/preg_match #"^\s*;" next-ln))
+                                    (annotation next-ln)))]
+                  (when ann
+                    (let [got (if (= tag :ok) (repr v) (str "ERROR: " v))
+                          ok? (and (= tag :ok) (= (norm got) (norm ann)))]
+                      {:status (if ok? :pass :fail) :file file :expected ann :got got}))))
+              (split-forms block))))))
+
+;; Curated high-value guides: pure-Phel, deterministic, copy-paste-first
+;; examples. Skip-heavy guides (network ai, REPL transcripts, reader
+;; conditionals, PHP-class interop) are intentionally out of scope.
+(def- doc-files
+  ["docs/quickstart.md"
+   "docs/data-structures-guide.md"
+   "docs/transducers.md"
+   "docs/numeric-tower.md"
+   "docs/lazy-sequences.md"
+   "docs/patterns.md"])
+
+(defn- run []
+  (let [files   doc-files
+        results (apply concat (map check-file files))
+        fails   (filter |(= (:status $) :fail) results)
+        passes  (filter |(= (:status $) :pass) results)]
+    (println (str "Doctest: " (count passes) " passed, " (count fails) " failed"
+                  " (" (count files) " files scanned)"))
+    (when (not (empty? fails))
+      (println)
+      (foreach [r fails]
+        (println (str "FAIL " (:file r)))
+        (println (str "  expected: " (:expected r)))
+        (println (str "  got:      " (:got r)))))
+    (when (not (empty? fails))
+      (php/exit 1))))
+
+(run)

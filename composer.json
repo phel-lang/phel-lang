@@ -99,13 +99,15 @@
             "@static-clear-cache",
             "@test-quality",
             "@test-compiler",
-            "@test-core"
+            "@test-core",
+            "@test-docs"
         ],
         "test-compiler": "./vendor/bin/phpunit --testsuite=unit,integration --log-junit=data/log-junit.xml",
         "test-compiler:coverage": "XDEBUG_MODE=coverage ./vendor/bin/phpunit --testsuite=unit,integration --coverage-html=data/coverage-html --coverage-xml=data/coverage-xml --log-junit=data/coverage-xml/junit.xml",
         "test-agents": "./tools/validate-agents.sh",
         "test-tools": "./tools/bashunit tools/*-test.sh --simple",
         "test-core": "php -d memory_limit=256M ./bin/phel test",
+        "test-docs": "php -d memory_limit=256M ./bin/phel run tests/phel/doctest/runner.phel",
         "test-quality": [
             "@csrun",
             "@psalm",

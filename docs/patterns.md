@@ -45,7 +45,7 @@
 ;; partition / group-by
 (partition 2 [1 2 3 4 5 6])                   ; => [[1 2] [3 4] [5 6]]
 (partition-all 3 [1 2 3 4 5])                 ; => [[1 2 3] [4 5]]
-(group-by even? [1 2 3 4 5 6])                ; => {true [2 4 6] false [1 3 5]}
+(group-by even? [1 2 3 4 5 6])                ; => {false [1 3 5] true [2 4 6]}
 (group-by :type [{:type :fruit :name "apple"}
                  {:type :veg :name "carrot"}])
 ;; => {:fruit [...] :veg [...]}
@@ -175,7 +175,7 @@ Without `:else`, `match` throws `RuntimeException` when nothing fits. Add `:else
    #(str/trim %)])
 
 (validate email-validations "  user@example.com  ")
-;; => "user@example.com" or nil
+;; the trimmed email, or nil if any check fails
 ```
 
 ## State Management
@@ -372,7 +372,7 @@ Every `defmacro` body has two implicit symbols:
 
 ```phel
 (defmacro dialect [] (if (:ns &env) "cljs" "phel"))
-(dialect)                                      ; => "phel" when compiled by Phel
+(dialect)                                      ; => "phel"  ; when compiled by Phel
 ```
 
 ### Extending `is` with custom assertions

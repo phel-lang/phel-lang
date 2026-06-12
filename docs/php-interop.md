@@ -25,7 +25,7 @@ Prefix any global or namespaced PHP function with `php/`:
 ```phel
 (php/strlen "hello")              ; => 5
 (php/str_replace "o" "0" "hello") ; => "hell0"
-(php/array_merge [1 2] [3 4])     ; => [1 2 3 4]
+(php/intdiv 17 5)                 ; => 3
 (php/max 1 5 3)                   ; => 5
 ```
 
