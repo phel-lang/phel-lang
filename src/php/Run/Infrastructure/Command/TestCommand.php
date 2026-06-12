@@ -22,6 +22,7 @@ use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
 use Throwable;
 
+use function array_slice;
 use function count;
 use function is_array;
 use function sprintf;
@@ -134,11 +135,20 @@ final class TestCommand extends Command
                 null,
                 InputOption::VALUE_REQUIRED,
                 'Run namespaces in parallel using subprocess workers. Accepts an integer worker count, "auto" (CPU detection capped at 8), or "max" (every core the kernel reports, uncapped). Auto-disabled for --reporter=tap, --list, or when a profiler hook is installed.',
+            )->addOption(
+                TestCommandOptionParser::OPT_WATCH,
+                null,
+                InputOption::VALUE_NONE,
+                'Re-run the selected tests whenever a .phel file (or phel-config.php) under the project source/test directories changes. Press Ctrl+C to stop.',
             );
     }
 
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
+        if ((bool) $input->getOption(TestCommandOptionParser::OPT_WATCH)) {
+            return $this->runWatchMode($output);
+        }
+
         $optionParser = new TestCommandOptionParser();
 
         try {
@@ -240,6 +250,42 @@ final class TestCommand extends Command
         }
 
         return self::FAILURE;
+    }
+
+    /**
+     * Watch mode: re-runs this same invocation (minus --watch) as a subprocess
+     * whenever a watched file changes, so each run starts from a clean runtime.
+     */
+    private function runWatchMode(OutputInterface $output): int
+    {
+        $command = $this->buildWatchRerunShellCommand();
+        $runTests = static function () use ($command): int {
+            $exitCode = 1;
+            passthru($command, $exitCode);
+
+            return $exitCode;
+        };
+
+        return $this->getFacade()->runTestWatchLoop($runTests, $output);
+    }
+
+    private function buildWatchRerunShellCommand(): string
+    {
+        $argv = ScalarCoercion::toStringList($_SERVER['argv'] ?? null);
+        $arguments = [];
+        foreach (array_slice($argv, 1) as $argument) {
+            if ($argument !== '--' . TestCommandOptionParser::OPT_WATCH) {
+                $arguments[] = $argument;
+            }
+        }
+
+        $script = ScalarCoercion::toString($_SERVER['SCRIPT_FILENAME'] ?? null);
+        $parts = [escapeshellarg(PHP_BINARY), escapeshellarg($script)];
+        foreach ($arguments as $argument) {
+            $parts[] = escapeshellarg($argument);
+        }
+
+        return implode(' ', $parts);
     }
 
     /**

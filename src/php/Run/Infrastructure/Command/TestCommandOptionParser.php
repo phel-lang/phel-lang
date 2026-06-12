@@ -63,6 +63,8 @@ final readonly class TestCommandOptionParser
 
     public const string OPT_PARALLEL = 'parallel';
 
+    public const string OPT_WATCH = 'watch';
+
     private const string LAST_FAILED_FILENAME = 'last-failed.txt';
 
     /**
