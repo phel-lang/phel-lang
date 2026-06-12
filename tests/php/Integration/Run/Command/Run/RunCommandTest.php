@@ -138,6 +138,55 @@ final class RunCommandTest extends AbstractTestCommand
         self::assertMatchesRegularExpression('~first:--verbose~', $output);
     }
 
+    public function test_runtime_error_maps_phel_frames_to_source_locations(): void
+    {
+        $output = $this->captureRunOutput(
+            __DIR__ . '/Fixtures/error-trace-script.phel',
+        );
+
+        self::assertStringContainsString('boom from error-lib', $output);
+        self::assertMatchesRegularExpression('~at .*error-lib\.phel:\d+~', $output);
+        self::assertMatchesRegularExpression('~#\d+ .*\.phel:\d+ : \(test\\\\error-lib\\\\boom-fn~', $output);
+        self::assertMatchesRegularExpression('~#\d+ .*\.phel:\d+ : \(test\\\\error-trace-script\\\\caller~', $output);
+        self::assertMatchesRegularExpression('~\.\.\. \d+ internal frames?~', $output);
+    }
+
+    public function test_runtime_error_maps_phel_frames_on_repeated_run(): void
+    {
+        $scriptPath = __DIR__ . '/Fixtures/error-trace-script.phel';
+
+        $this->captureRunOutput($scriptPath);
+        $output = $this->captureRunOutput($scriptPath);
+
+        self::assertStringContainsString('boom from error-lib', $output);
+        self::assertMatchesRegularExpression('~at .*error-lib\.phel:\d+~', $output);
+        self::assertMatchesRegularExpression('~#\d+ .*\.phel:\d+ : \(test\\\\error-lib\\\\boom-fn~', $output);
+    }
+
+    public function test_macro_expansion_error_includes_definition_location(): void
+    {
+        $tmpFile = __DIR__ . '/macro-error-script.phel';
+        file_put_contents($tmpFile, <<<'PHEL'
+(ns test\macro-error-script)
+
+(defmacro broken-macro [x]
+  (throw (php/new \RuntimeException "macro exploded")))
+
+(broken-macro 1)
+PHEL);
+
+        try {
+            $output = $this->captureRunOutput($tmpFile);
+        } finally {
+            unlink($tmpFile);
+        }
+
+        self::assertStringContainsString('Error in expanding macro', $output);
+        self::assertStringContainsString('Expanding: (broken-macro 1)', $output);
+        self::assertStringContainsString('Cause: macro exploded', $output);
+        self::assertMatchesRegularExpression('~Defined: .*macro-error-script\.phel:3~', $output);
+    }
+
     private function captureRunOutput(string $path, array $argv = []): string
     {
         ob_start();

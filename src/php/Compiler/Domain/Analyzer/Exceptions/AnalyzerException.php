@@ -7,6 +7,8 @@ namespace Phel\Compiler\Domain\Analyzer\Exceptions;
 use Exception;
 use Phel\Compiler\Domain\Analyzer\Ast\GlobalVarNode;
 use Phel\Lang\Collections\LinkedList\PersistentListInterface;
+use Phel\Lang\Collections\Map\PersistentMapInterface;
+use Phel\Lang\Keyword;
 use Phel\Lang\TypeInterface;
 use Phel\Shared\Exceptions\AbstractLocatedException;
 use Phel\Shared\Exceptions\ErrorCode;
@@ -16,6 +18,8 @@ use function count;
 use function get_debug_type;
 use function implode;
 use function is_array;
+use function is_int;
+use function is_string;
 use function sprintf;
 
 final class AnalyzerException extends AbstractLocatedException
@@ -159,6 +163,7 @@ final class AnalyzerException extends AbstractLocatedException
                 $node->getName()->getName(),
                 $list,
                 $exception->getMessage(),
+                self::definitionLocation($node),
             ),
             $list,
             $exception,
@@ -183,6 +188,7 @@ final class AnalyzerException extends AbstractLocatedException
                 $node->getName()->getName(),
                 $list,
                 $exception->getMessage(),
+                self::definitionLocation($node),
             ),
             $list,
             $exception,
@@ -219,10 +225,11 @@ final class AnalyzerException extends AbstractLocatedException
         string $name,
         PersistentListInterface $form,
         string $causeMessage,
+        ?string $definedAt = null,
     ): string {
         $formString = Printer::readable()->print($form);
 
-        return sprintf(
+        $message = sprintf(
             "Error in expanding %s \"%s\\%s\"\n  Expanding: %s\n  Cause: %s",
             $type,
             $namespace,
@@ -230,6 +237,33 @@ final class AnalyzerException extends AbstractLocatedException
             $formString,
             $causeMessage,
         );
+
+        if ($definedAt !== null) {
+            $message .= "\n  Defined: " . $definedAt;
+        }
+
+        return $message;
+    }
+
+    /**
+     * Returns `<file>:<line>` where the macro/inline fn was defined, read from
+     * the `:start-location` metadata attached by `def`, or null when absent.
+     */
+    private static function definitionLocation(GlobalVarNode $node): ?string
+    {
+        $startLocation = $node->getMeta()[Keyword::create('start-location')] ?? null;
+        if (!$startLocation instanceof PersistentMapInterface) {
+            return null;
+        }
+
+        $file = $startLocation[Keyword::create('file')] ?? null;
+        $line = $startLocation[Keyword::create('line')] ?? null;
+
+        if (!is_string($file) || !is_int($line)) {
+            return null;
+        }
+
+        return sprintf('%s:%d', $file, $line);
     }
 
     /**

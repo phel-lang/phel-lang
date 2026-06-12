@@ -116,11 +116,11 @@ final class FileEvaluator
 
             $options = new CompileOptions()
                 ->setSource($src)
-                ->setIsEnabledSourceMaps(false)
+                ->setIsEnabledSourceMaps(true)
                 ->setOptimizationLevel($this->optimizationLevel);
 
             $result = $this->compilerFacade->compileForCache($code, $options);
-            $this->compiledCodeCache->put($src, $namespace, $sourceHash, $result->getPhpCode());
+            $this->compiledCodeCache->put($src, $namespace, $sourceHash, $result->getCodeWithSourceMap());
 
             $envData = $this->compilerFacade->getNamespaceEnvironmentData($namespace);
             $this->compiledCodeCache->putEnvironment($namespace, $envData);

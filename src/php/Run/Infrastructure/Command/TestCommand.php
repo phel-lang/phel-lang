@@ -328,7 +328,7 @@ final class TestCommand extends Command
             if ($e instanceof CompilerException) {
                 $this->getFacade()->writeLocatedException($output, $e);
             } else {
-                $output->writeln($e->getMessage());
+                $this->getFacade()->writeStackTrace($output, $e);
             }
         }
 

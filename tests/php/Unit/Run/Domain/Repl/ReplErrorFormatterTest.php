@@ -72,6 +72,40 @@ final class ReplErrorFormatterTest extends TestCase
         self::assertStringContainsString('2 internal frames hidden', $result->trace);
     }
 
+    public function test_keeps_phel_fn_frames_even_when_gen_path_is_internal(): void
+    {
+        $trace = implode(PHP_EOL, [
+            "#0 /repo/phel-lang/src/php/Compiler/Domain/Evaluator/InMemoryEvaluator.php(26) : eval()'d code:30 (gen: /repo/phel-lang/src/php/Compiler/Domain/Evaluator/InMemoryEvaluator.php(26) : eval()'d code:30) : (user\\f3)",
+            '#1 /repo/phel-lang/src/php/Compiler/Application/EvalCompiler.php(116): Foo->bar()',
+        ]);
+
+        $formatter = $this->buildFormatter($trace);
+        $result = $formatter->format(new RuntimeException('boom'));
+
+        self::assertStringContainsString('(user\\f3)', $result->trace);
+        self::assertStringContainsString('1 internal frame hidden', $result->trace);
+    }
+
+    public function test_compacts_eval_code_frames_to_repl_location(): void
+    {
+        $trace = "#0 /repo/src/php/Compiler/Domain/Evaluator/InMemoryEvaluator.php(26) : eval()'d code:30 (gen: /repo/src/php/Compiler/Domain/Evaluator/InMemoryEvaluator.php(26) : eval()'d code:30) : (user\\f3)";
+
+        $formatter = $this->buildFormatter($trace);
+        $result = $formatter->format(new RuntimeException('boom'));
+
+        self::assertSame('#0 repl : (user\\f3)', $result->trace);
+    }
+
+    public function test_strips_generated_location_from_mapped_phel_frames(): void
+    {
+        $trace = '#0 /proj/src/main.phel:6 (gen: /tmp/phel/__phel_abc.php:23) : (app\\main\\level3 3)';
+
+        $formatter = $this->buildFormatter($trace);
+        $result = $formatter->format(new RuntimeException('boom'));
+
+        self::assertSame('#0 /proj/src/main.phel:6 : (app\\main\\level3 3)', $result->trace);
+    }
+
     public function test_unwraps_evaluated_code_exception_for_headline_and_hint(): void
     {
         $original = new Error('Object of type Phel\\Lang\\Collections\\LazySeq\\ChunkedSeq is not callable');
@@ -178,6 +212,11 @@ final class ReplErrorFormatterTest extends TestCase
             }
 
             public function printStackTrace(Throwable $e): void {}
+
+            public function getUserFacingTraceString(Throwable $e): string
+            {
+                return '';
+            }
 
             public function printException(AbstractLocatedException $e, CodeSnippet $codeSnippet): void {}
 

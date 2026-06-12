@@ -104,7 +104,9 @@ final readonly class TextExceptionPrinter implements ExceptionPrinterInterface
 
     public function printStackTrace(Throwable $e): void
     {
-        $this->errorLog->writeln($this->getStackTraceString($e));
+        $trace = $this->getStackTraceString($e);
+        echo $trace . PHP_EOL;
+        $this->errorLog->writeln($trace);
     }
 
     public function getStackTraceString(Throwable $e): string
@@ -138,29 +140,89 @@ final readonly class TextExceptionPrinter implements ExceptionPrinterInterface
         return $str . $this->renderTrace($e);
     }
 
+    /**
+     * Renders only the frames that originate in Phel code, each mapped back to
+     * its `.phel` source location. Runs of PHP-native frames (vendor, runtime
+     * internals) are collapsed into a dimmed `... N internal frame(s)` marker;
+     * the full unfiltered trace is always available in the error log.
+     */
+    public function getUserFacingTraceString(Throwable $e): string
+    {
+        $str = '';
+        $hidden = 0;
+
+        foreach ($e->getTrace() as $i => $frame) {
+            $fnName = $this->phelFnName($frame['class'] ?? null);
+
+            if ($fnName === null) {
+                ++$hidden;
+                continue;
+            }
+
+            $str .= $this->hiddenFramesMarker($hidden);
+            $hidden = 0;
+
+            $file = $frame['file'] ?? 'unknown_file';
+            $line = $frame['line'] ?? 0;
+            $argString = $this->exceptionArgsPrinter->parseArgsAsString($frame['args'] ?? []);
+            $pos = $this->filePositionExtractor->getOriginal($file, $line);
+            $str .= sprintf('#%d %s:%d : (%s%s)', $i, $pos->filename(), $pos->line(), $fnName, $argString) . PHP_EOL;
+        }
+
+        return $str . $this->hiddenFramesMarker($hidden);
+    }
+
+    private function hiddenFramesMarker(int $hidden): string
+    {
+        if ($hidden === 0) {
+            return '';
+        }
+
+        return sprintf('   ... %d internal frame%s', $hidden, $hidden === 1 ? '' : 's') . PHP_EOL;
+    }
+
+    /**
+     * Returns the decoded Phel function name when the frame's class is a
+     * compiled Phel fn, or null for PHP-native frames.
+     */
+    private function phelFnName(?string $class): ?string
+    {
+        if ($class === null || !class_exists($class)) {
+            return null;
+        }
+
+        $rf = new ReflectionClass($class);
+        if (!$rf->implementsInterface(FnInterface::class)) {
+            return null;
+        }
+
+        if (!$rf->hasConstant('BOUND_TO')) {
+            return '__invoke';
+        }
+
+        $boundTo = $rf->getConstant('BOUND_TO');
+
+        return is_string($boundTo) ? $this->munge->decodeNs($boundTo) : '__invoke';
+    }
+
     private function renderTrace(Throwable $e): string
     {
         $str = '';
 
         foreach ($e->getTrace() as $i => $frame) {
-            $class = $frame['class'] ?? null;
             $file = $frame['file'] ?? 'unknown_file';
             $line = $frame['line'] ?? 0;
 
-            if ($class !== null) {
-                $rf = new ReflectionClass($class);
-                if ($rf->implementsInterface(FnInterface::class)) {
-                    $boundTo = $rf->getConstant('BOUND_TO');
-                    $fnName = is_string($boundTo) ? $this->munge->decodeNs($boundTo) : '__invoke';
-                    $argString = $this->exceptionArgsPrinter->parseArgsAsString($frame['args'] ?? []);
-                    $pos = $this->filePositionExtractor->getOriginal($file, $line);
-                    $str .= sprintf('#%d %s:%d (gen: %s:%d) : (%s%s)', $i, $pos->filename(), $pos->line(), $file, $line, $fnName, $argString) . PHP_EOL;
+            $fnName = $this->phelFnName($frame['class'] ?? null);
+            if ($fnName !== null) {
+                $argString = $this->exceptionArgsPrinter->parseArgsAsString($frame['args'] ?? []);
+                $pos = $this->filePositionExtractor->getOriginal($file, $line);
+                $str .= sprintf('#%d %s:%d (gen: %s:%d) : (%s%s)', $i, $pos->filename(), $pos->line(), $file, $line, $fnName, $argString) . PHP_EOL;
 
-                    continue;
-                }
+                continue;
             }
 
-            $class ??= '';
+            $class = $frame['class'] ?? '';
             $type = $frame['type'] ?? '';
             $fn = $frame['function'] ?? ''; // @phpstan-ignore-line
             $argString = $this->exceptionArgsPrinter->buildPhpArgsString($frame['args'] ?? []);

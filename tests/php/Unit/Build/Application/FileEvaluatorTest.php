@@ -124,6 +124,39 @@ final class FileEvaluatorTest extends TestCase
         self::assertStringContainsString($compiledCode, (string) file_get_contents($cachedPath));
     }
 
+    public function test_eval_file_caches_code_with_inline_source_map(): void
+    {
+        $sourceFile = $this->tempDir . '/test.phel';
+        $sourceCode = '(ns test\\namespace)';
+        file_put_contents($sourceFile, $sourceCode);
+        $cacheDir = $this->tempDir . '/cache';
+        $namespace = 'test\\namespace';
+
+        $cache = new CompiledCodeCache($cacheDir);
+
+        $compilerFacade = $this->createMock(CompilerFacadeInterface::class);
+        $compilerFacade->expects(self::once())
+            ->method('compileForCache')
+            ->with($sourceCode, self::callback(
+                static fn(CompileOptions $options): bool => $options->isSourceMapsEnabled(),
+            ))
+            ->willReturn(new EmitterResult(true, '$result = 123;', 'AAAA', $sourceFile));
+
+        $namespaceExtractor = $this->createMock(NamespaceExtractorInterface::class);
+        $namespaceExtractor->method('getNamespaceFromFile')->willReturn(
+            new NamespaceInformation($sourceFile, $namespace, ['phel.core']),
+        );
+
+        $evaluator = new FileEvaluator($compilerFacade, $namespaceExtractor, $cache);
+        $evaluator->evalFile($sourceFile);
+
+        $cachedPath = $cache->get($sourceFile, md5($sourceCode));
+        self::assertNotNull($cachedPath);
+        $cachedCode = (string) file_get_contents($cachedPath);
+        self::assertStringContainsString('// ' . $sourceFile, $cachedCode);
+        self::assertStringContainsString('// ;;AAAA', $cachedCode);
+    }
+
     public function test_eval_file_without_cache_compiles_directly(): void
     {
         $sourceFile = $this->tempDir . '/test.phel';

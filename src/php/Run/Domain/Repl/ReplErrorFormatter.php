@@ -145,7 +145,7 @@ final readonly class ReplErrorFormatter
                 }
 
                 $keepingCurrentFrame = true;
-                $kept[] = $line;
+                $kept[] = $this->compactPhelFrame($line);
                 continue;
             }
 
@@ -163,7 +163,42 @@ final readonly class ReplErrorFormatter
 
     private function isInternalFrame(string $line): bool
     {
+        // Phel fn frames are rendered as `#N <file>:<line> (gen: <php-file>:<line>) : (...)`.
+        // The generated-code path often points into the compiler (eval'd code),
+        // so they must never be classified as internal.
+        if ($this->isPhelFrame($line)) {
+            return false;
+        }
+
         return array_any(self::INTERNAL_FRAME_PATHS, static fn(string $needle): bool => str_contains($line, $needle));
+    }
+
+    private function isPhelFrame(string $line): bool
+    {
+        return str_contains($line, ' (gen: ');
+    }
+
+    /**
+     * Strips the generated-code location from a Phel fn frame. Fns defined at
+     * the REPL prompt live in eval'd code with no stable source file, so their
+     * location is replaced by `repl`; fns loaded from files keep their mapped
+     * `.phel` location.
+     */
+    private function compactPhelFrame(string $line): string
+    {
+        if (!$this->isPhelFrame($line)) {
+            return $line;
+        }
+
+        if (str_contains($line, "eval()'d code")) {
+            $compacted = preg_replace('/^#(\d+) .* : (\(.*\))$/', '#$1 repl : $2', $line);
+
+            return $compacted ?? $line;
+        }
+
+        $compacted = preg_replace('/ \(gen: .*\) : \(/', ' : (', $line);
+
+        return $compacted ?? $line;
     }
 
     private function shortClassName(string $fqcn): string

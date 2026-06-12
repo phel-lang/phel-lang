@@ -19,4 +19,10 @@ interface ExceptionPrinterInterface
     public function printStackTrace(Throwable $e): void;
 
     public function getStackTraceString(Throwable $e): string;
+
+    /**
+     * Trace limited to frames originating in Phel code, mapped back to their
+     * `.phel` source locations; PHP-native frames are collapsed.
+     */
+    public function getUserFacingTraceString(Throwable $e): string;
 }

@@ -18,6 +18,7 @@ Compiler (Phel-to-PHP compilation), Command (output/source dirs, error formattin
 ## Key Constraints
 
 - Two-level caching: namespace extraction (optional) + compiled code (optional)
+- `FileEvaluator` compiles with source maps enabled and caches `getCodeWithSourceMap()`, so runtime errors from cache-loaded namespaces still map back to `.phel` locations via the inline `// `/`// ;;` header comments
 - `Infrastructure/Cache/CompiledCodeCache` is the policy orchestrator; delegates to `CacheDirectory` (layout), `CacheIndexFile` (index load/save/merge), `NamespaceEnvironmentStore` (env data), `CachePathResolver`, `AtomicFileWriter`
 - `TopologicalNamespaceSorter` orders compilation to resolve dependencies
 - `FileEvaluator` is singleton; repeated `(load ...)` calls reuse instance to preserve compiled-code index
