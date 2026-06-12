@@ -15,6 +15,7 @@ build/cache fixes.
 - `phel config`: prints the merged config with provenance; `--json` for machine output
 - `withBuildConfig()`/`withExportConfig()` accept a configurator closure, composing with the flattened setters in any order
 - `phel test` failure output: string `=` mismatches print a windowed expected/actual pair with a caret under the first differing character
+- `phel test --watch`: re-runs the selected tests whenever a `.phel` file (or `phel-config.php`) under the project source/test directories changes
 
 ### Changed
 

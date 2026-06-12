@@ -10,6 +10,7 @@ use function dirname;
 use function escapeshellarg;
 use function exec;
 use function implode;
+use function is_resource;
 use function sprintf;
 
 /**
@@ -96,6 +97,57 @@ final readonly class FixtureProjectHelper
         exec($cmd, $output, $exitCode);
 
         return [$exitCode, implode("\n", $output)];
+    }
+
+    /**
+     * Runs `phel test --watch`, waits for the first idle announcement,
+     * touches `$relativeFileToTouch` (with a future mtime so the second-level
+     * granularity scanner is guaranteed to see it), waits for the watcher to
+     * go idle again, then terminates the process. Returns everything written
+     * to stdout/stderr.
+     */
+    public function runPhelTestWatchCycle(string $relativeFileToTouch, int $timeoutSeconds = 60): string
+    {
+        $cmd = 'cd ' . escapeshellarg($this->projectDir)
+            . ' && exec php -d memory_limit=256M ' . escapeshellarg($this->repoRoot . '/bin/phel')
+            . ' test --watch 2>&1';
+
+        $process = proc_open($cmd, [1 => ['pipe', 'w']], $pipes);
+        if (!is_resource($process)) {
+            throw new RuntimeException('Cannot start phel test --watch');
+        }
+
+        stream_set_blocking($pipes[1], false);
+
+        $output = '';
+        $touched = false;
+        $deadline = microtime(true) + $timeoutSeconds;
+        $idleMarker = 'Watching for file changes';
+
+        while (microtime(true) < $deadline) {
+            $chunk = stream_get_contents($pipes[1]);
+            if ($chunk !== false && $chunk !== '') {
+                $output .= $chunk;
+            }
+
+            $idleCount = substr_count($output, $idleMarker);
+            if (!$touched && $idleCount >= 1) {
+                touch($this->projectDir . '/' . $relativeFileToTouch, time() + 2);
+                $touched = true;
+            }
+
+            if ($touched && $idleCount >= 2) {
+                break;
+            }
+
+            usleep(100_000);
+        }
+
+        proc_terminate($process, 9);
+        fclose($pipes[1]);
+        proc_close($process);
+
+        return $output;
     }
 
     private static function copyPhelFiles(string $from, string $to): void

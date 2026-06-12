@@ -165,6 +165,20 @@ final class RunFacade extends AbstractFacade implements RunFacadeInterface
     }
 
     /**
+     * Runs `$runTests` once, then again on every change under the project's
+     * source and test directories. Blocks until terminated; returns the exit
+     * code of the most recent run.
+     *
+     * @param callable():int $runTests
+     */
+    public function runTestWatchLoop(callable $runTests, OutputInterface $output): int
+    {
+        return $this->getFactory()
+            ->createTestWatchRunner()
+            ->run($runTests, $output);
+    }
+
+    /**
      * @return list<ModuleHealthCheckInterface>
      */
     public function getModuleHealthChecks(): array

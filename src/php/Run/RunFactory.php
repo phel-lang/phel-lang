@@ -20,6 +20,9 @@ use Phel\Run\Application\ReplHistoryPathResolver;
 use Phel\Run\Application\StructuredEvaluator;
 use Phel\Run\Application\Test\CpuCountDetector;
 use Phel\Run\Application\Test\ParallelTestOrchestrator;
+use Phel\Run\Application\Test\TestWatchLoop;
+use Phel\Run\Application\Test\TestWatchRunner;
+use Phel\Run\Application\Test\WatchFileScanner;
 use Phel\Run\Domain\Repl\Hint\ArgumentCountHint;
 use Phel\Run\Domain\Repl\Hint\NotCallableHint;
 use Phel\Run\Domain\Repl\Hint\ReplHintInterface;
@@ -281,6 +284,14 @@ class RunFactory extends AbstractFactory
     public function createCpuCountDetector(): CpuCountDetector
     {
         return new CpuCountDetector();
+    }
+
+    public function createTestWatchRunner(): TestWatchRunner
+    {
+        return new TestWatchRunner(
+            $this->getCommandFacade(),
+            new TestWatchLoop(new WatchFileScanner()),
+        );
     }
 
     private function resolvePhelBinaryPath(): string

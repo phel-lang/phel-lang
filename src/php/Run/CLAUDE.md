@@ -9,6 +9,7 @@ Runtime execution: runs Phel namespaces/files, REPL, evaluation, testing, and mo
 - Query: `getAllPhelDirectories`, `getLoadedNamespaces`, `getVersion`, `autoDetectEntryPoint` (prefers `main.phel`, falls back to `core.phel`)
 - Debugging: `enableDebugLineTap(?string $phelFileFilter, string $logPath)`, `disableDebugLineTap`
 - Parallel testing: `createParallelTestOrchestrator()` (process pool spawning `phel _test-worker` subprocesses, one ns per length-prefixed JSON work frame, per-ns output buffered and flushed in input order), `createCpuCountDetector()` (honours `PHEL_TEST_WORKERS`, falls back to `nproc`/`sysctl`/`/proc/cpuinfo`, caps at 8)
+- Watch testing: `runTestWatchLoop(callable $runTests, OutputInterface)` (`phel test --watch`: polls project src/test dirs for `.phel`/`phel-config.php` mtime changes every 500ms, re-invokes `$runTests` subprocess per change)
 - Error handling: `writeLocatedException`, `writeStackTrace`
 
 ## Dependencies
