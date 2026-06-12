@@ -4,36 +4,37 @@ All notable changes to this project will be documented in this file.
 
 ## Unreleased
 
-Project-configuration DX pass: a `phel config` command, a [configuration
-reference](docs/configuration.md), composable `with*()` setters, and
-build/cache fixes.
+Two DX passes: project configuration (`phel config`, a [configuration
+reference](docs/configuration.md), composable `with*()` setters, build/cache
+fixes) and the test runner (`--watch`, startup progress, better failure
+output, loud exit codes).
 
 ### Added
 
 - `PhelConfig::withOptimizationLevel(int)` (default 0), honored by `build`/`run`/`test`/`eval`/`compile`; level 2 enables `^:pure` inlining + self-recursive tail-call rewriting. REPL/nREPL stay at 0 (#2387)
-- `phel build -O <level>`: per-run override; invalidates the build and compiled-code caches
+- `phel build -O <level>`: per-run override; invalidates the build caches
 - `phel config`: prints the merged config with provenance; `--json` for machine output
 - `withBuildConfig()`/`withExportConfig()` accept a configurator closure, composing with the flattened setters in any order
-- `phel test` failure output: string `=` mismatches print a windowed expected/actual pair with a caret under the first differing character
-- `phel test --watch`: re-runs the selected tests whenever a `.phel` file (or `phel-config.php`) under the project source/test directories changes
-- `phel test` startup feedback: prints `Discovering tests...` and a live `Loading namespaces 12/45 (...)` counter on stderr instead of staying silent for seconds while compiling; machine-readable stdout reporters (TAP, junit-xml) are unaffected
+- `phel test --watch`: re-runs the selected tests on every `.phel`/`phel-config.php` change under the project src/test dirs
+- `phel test` startup progress on stderr (`Discovering tests...`, live `Loading namespaces 12/45` counter); TAP/junit-xml stdout stays clean
+- `phel test`: failed string `=` assertions print an expected/actual diff with a caret at the first mismatch
 
 ### Changed
 
-- `phel test` failure output: `FAIL`/`ERROR` headlines always include the `deftest` name (`FAIL my-test (file.phel:4)`), not only when an assertion message is present
+- `phel test`: `FAIL`/`ERROR` headlines always carry the `deftest` name (`FAIL my-test (file.phel:4)`)
 - `phel init` scaffolds a `phel-config.php` with a docs link and commented-out tweaks
 - New [Deployment guide](docs/deployment.md): shared-nothing vs worker runtimes (FrankenPHP/RoadRunner)
 
 ### Fixed
 
-- `phel test <path>` for a file outside the configured src/test directories now runs its tests instead of silently passing with `Total: 0`
-- `phel test` with explicit paths or selectors that match zero tests now fails with `No tests matched the given paths or selectors.` instead of exiting 0
-- `phel test --list` combined with a selector no longer reports a false `No tests matched` failure after listing matching tests
+- `phel test` no longer exits 0 when nothing ran: out-of-tree file paths now run their tests, and zero matches for explicit paths/selectors fail with `No tests matched the given paths or selectors.`
+- `phel test --list` with a selector no longer appends a false `No tests matched` failure
+- Docs doctests no longer execute as a hidden side effect of `phel test` discovery (the runner moved out of the test dirs; `composer test-docs` owns it)
 - `cacheDir` is normalized in the constructor, so the named-arg and wither forms agree
 - Build withers are order-independent: `withMainPhelNamespace(...)` no longer pins the entry point
 - `phel build` runtime errors map back to Phel source via the sibling `.php.map`/`.phel` artifacts
 - Inline source maps in eval temp files are detected again (scans past `<?php`/`declare`)
-- Editing `phel-config.php` takes effect immediately again: Phel clears Gacela's stale `gacela-merged-config.php` (Gacela `>= 1.15` skips its own freshness check); bumps to `gacela-project/gacela: ^1.15`
+- Editing `phel-config.php` takes effect immediately again: Phel clears Gacela's stale merged-config cache; bumps to `gacela-project/gacela: ^1.15`
 
 ## [0.43.0](https://github.com/phel-lang/phel-lang/compare/v0.42.0...v0.43.0) - 2026-06-09
 
