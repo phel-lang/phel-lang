@@ -93,7 +93,7 @@ A reducing function signals "stop" by wrapping its return value in `reduced`:
 `take` and `take-while` use `reduced` internally, so the outer `reduce`/`transduce` stops rather than walking the rest:
 
 ```phel
-(transduce (take 2) conj [1 2 3 4 5])  ; => [1 2], does not touch the rest
+(transduce (take 2) conj [1 2 3 4 5])  ; => [1 2]  ; does not touch the rest
 ```
 
 ## Stateful transducers
