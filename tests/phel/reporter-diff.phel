@@ -155,3 +155,82 @@
         "diff renders for maps with mixed-type keys")
     (is (php/preg_match "/~ \"b\" 2 -> 99/" out)
         "string-keyed change is reported")))
+
+;; ---------------------------------------------------------------------------
+;; Headline: FAIL/ERROR lines carry the deftest name (and optional message)
+;; ---------------------------------------------------------------------------
+
+(defn- named-failure-event [extra]
+  (merge {:type :binary
+          :state :failed
+          :pred '=
+          :expected 1
+          :actual 'actual-form
+          :result 2
+          :form '(= 1 2)
+          :test-name "my-test"
+          :location {:file "diff.phel" :line 7}}
+         extra))
+
+(defn- run-default-reporter-event [event]
+  (let [rep (t/resolve-reporter :default)]
+    (with-output-buffer
+      (rep {:type :begin-test-run})
+      (rep event)
+      (rep {:type :summary :total 1 :pass 0 :failed 1 :error 0
+            :failures [event]}))))
+
+(deftest test-failure-headline-shows-test-name
+  (let [out (run-default-reporter-event (named-failure-event {}))]
+    (is (php/preg_match "/FAIL my-test \\(diff\\.phel:7\\)/" out)
+        "headline carries the deftest name before the location")))
+
+(deftest test-failure-headline-shows-message-after-test-name
+  (let [out (run-default-reporter-event (named-failure-event {:message "boom"}))]
+    (is (php/preg_match "/FAIL my-test 'boom' \\(diff\\.phel:7\\)/" out)
+        "headline carries the name, then the quoted message, then the location")))
+
+(deftest test-error-headline-shows-test-name
+  (let [out (run-default-reporter-event
+             (named-failure-event {:state :error
+                                   :exception (php/new \RuntimeException "kaput")}))]
+    (is (php/preg_match "/ERROR my-test \\(diff\\.phel:7\\)/" out)
+        "error headline carries the deftest name before the location")))
+
+;; ---------------------------------------------------------------------------
+;; String diff: windowed expected/actual pair with a caret at the mismatch
+;; ---------------------------------------------------------------------------
+
+(deftest test-string-diff-marks-first-mismatch
+  (let [out (run-default-reporter "abcdef" "abcXef")]
+    (is (php/preg_match "/String diff \\(first mismatch at index 3\\):/" out)
+        "reports the index of the first differing character")
+    (is (php/preg_match "/expected: \"abcdef\"/" out) "shows the expected string")
+    (is (php/preg_match "/actual:   \"abcXef\"/" out) "shows the actual string")
+    (is (php/preg_match "/(?m)^ {18}\\^$/" out)
+        "caret sits under the mismatch column (14 label cols + quote + 3 chars)")))
+
+(deftest test-string-diff-windows-long-strings
+  (let [prefix (php/str_repeat "x" 100)
+        out    (run-default-reporter (str prefix "abc") (str prefix "abd"))]
+    (is (php/preg_match "/first mismatch at index 102/" out)
+        "index refers to the full string, not the window")
+    (is (php/preg_match "/expected: \\.\\.\\.\"/" out)
+        "clipped leading context is marked with ...")))
+
+(deftest test-string-diff-prefix-case-points-past-shorter-string
+  (let [out (run-default-reporter "abc" "abcdef")]
+    (is (php/preg_match "/first mismatch at index 3/" out)
+        "a strict prefix mismatches at the shorter string's length")))
+
+(deftest test-string-diff-escapes-control-characters
+  (let [out (run-default-reporter "a\nb" "a\nc")]
+    (is (php/preg_match "/expected: \"a\\\\nb\"/" out)
+        "newlines render as the two-column escape \\n")
+    (is (php/preg_match "/first mismatch at index 2/" out)
+        "index counts the raw newline as one character")))
+
+(deftest test-string-diff-not-rendered-for-non-strings
+  (let [out (run-default-reporter 1 2)]
+    (is (= 0 (php/preg_match "/String diff/" out))
+        "no string diff block for non-string values")))
