@@ -32,7 +32,7 @@ final class CommandFactory extends AbstractFactory
         return new CommandExceptionWriter(
             $this->createExceptionPrinter(),
             new ErrorLog($this->getConfig()->getErrorLogFile()),
-            new FilePositionExtractor(new SourceMapExtractor()),
+            $this->createFilePositionExtractor(),
             $this->getConfig()->getStaleOutputHint(),
         );
     }
@@ -43,9 +43,14 @@ final class CommandFactory extends AbstractFactory
             new ExceptionArgsPrinter(Printer::readable()),
             ColorStyle::withStyles(),
             new Munge(),
-            new FilePositionExtractor(new SourceMapExtractor()),
+            $this->createFilePositionExtractor(),
             new ErrorLog($this->getConfig()->getErrorLogFile()),
         );
+    }
+
+    public function createFilePositionExtractor(): FilePositionExtractor
+    {
+        return new FilePositionExtractor(new SourceMapExtractor());
     }
 
     public function createDirectoryFinder(): DirectoryFinderInterface

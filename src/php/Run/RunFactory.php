@@ -18,6 +18,8 @@ use Phel\Run\Application\NamespaceRunner;
 use Phel\Run\Application\NamespacesLoader;
 use Phel\Run\Application\ReplHistoryPathResolver;
 use Phel\Run\Application\StructuredEvaluator;
+use Phel\Run\Application\Test\Coverage\CoverageAggregator;
+use Phel\Run\Application\Test\Coverage\CoverageDriver;
 use Phel\Run\Application\Test\CpuCountDetector;
 use Phel\Run\Application\Test\ParallelTestOrchestrator;
 use Phel\Run\Application\Test\TestWatchLoop;
@@ -69,6 +71,20 @@ class RunFactory extends AbstractFactory
         /** @var CommandFacadeInterface $facade */
         $facade = $this->getProvidedDependency(RunProvider::FACADE_COMMAND);
         return $facade;
+    }
+
+    public function createCoverageDriver(): ?CoverageDriver
+    {
+        return CoverageDriver::detect();
+    }
+
+    public function createCoverageAggregator(string $driverName): CoverageAggregator
+    {
+        return new CoverageAggregator(
+            $this->getCommandFacade(),
+            $this->getCommandFacade()->getProjectSourceDirectories(),
+            $driverName,
+        );
     }
 
     public function getBuildFacade(): BuildFacadeInterface

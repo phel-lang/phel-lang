@@ -28,6 +28,25 @@ final readonly class FilePositionExtractor implements FilePositionExtractorInter
         );
     }
 
+    public function getFileLineMap(string $filename): array
+    {
+        $sourceMapInfo = $this->sourceMapExtractor->extractFromFile($filename);
+
+        if (!$sourceMapInfo->hasFilename() || !$sourceMapInfo->hasMappings()) {
+            return ['filename' => '', 'lines' => []];
+        }
+
+        $offset = $sourceMapInfo->codeStartLine() - 1;
+        $consumer = new SourceMapConsumer($sourceMapInfo->mappings());
+
+        $lines = [];
+        foreach ($consumer->getMappedLines() as $generatedLine => $phelLine) {
+            $lines[$generatedLine + $offset] = $phelLine;
+        }
+
+        return ['filename' => $sourceMapInfo->filename(), 'lines' => $lines];
+    }
+
     private function extractOriginalLine(SourceMapInformation $sourceMapInfo, int $line): int
     {
         if (!$sourceMapInfo->hasMappings()) {

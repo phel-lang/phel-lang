@@ -7,6 +7,8 @@ namespace Phel\Run\Infrastructure\Command;
 use ArrayAccess;
 use Gacela\Framework\ServiceResolver\ServiceMap;
 use Gacela\Framework\ServiceResolverAwareTrait;
+use Phel\Run\Application\Test\Coverage\CoverageDriver;
+use Phel\Run\Application\Test\Coverage\CoverageReport;
 use Phel\Run\Domain\Test\TestCommandOptions;
 use Phel\Run\Domain\Test\TestNamespacePruner;
 use Phel\Run\RunFacade;
@@ -23,8 +25,12 @@ use Symfony\Component\Console\Output\OutputInterface;
 use Throwable;
 
 use function count;
+use function file_put_contents;
 use function is_array;
+use function is_string;
 use function sprintf;
+use function strtolower;
+use function time;
 
 /**
  * @method RunFacade getFacade()
@@ -35,6 +41,10 @@ final class TestCommand extends Command
     use ServiceResolverAwareTrait;
 
     public const string COMMAND_NAME = 'test';
+
+    private const string OPT_COVERAGE = 'coverage';
+
+    private const string OPT_COVERAGE_OUTPUT = 'coverage-output';
 
     protected function configure(): void
     {
@@ -139,6 +149,17 @@ final class TestCommand extends Command
                 null,
                 InputOption::VALUE_NONE,
                 'Re-run the selected tests whenever a .phel file (or phel-config.php) under the project source/test directories changes. Press Ctrl+C to stop.',
+            )->addOption(
+                self::OPT_COVERAGE,
+                null,
+                InputOption::VALUE_OPTIONAL,
+                'Collect line coverage (via pcov or xdebug) mapped back to .phel sources. Value is the format: "text" (default) or "clover".',
+                false,
+            )->addOption(
+                self::OPT_COVERAGE_OUTPUT,
+                null,
+                InputOption::VALUE_REQUIRED,
+                'Write the coverage report to a file instead of stdout (use with --coverage=clover for CI).',
             );
     }
 
@@ -202,12 +223,31 @@ final class TestCommand extends Command
                 return ($compileErrors === []) ? self::SUCCESS : self::FAILURE;
             }
 
+            $coverageRequested = $input->getOption(self::OPT_COVERAGE) !== false;
+            $coverageDriver = null;
+            if ($coverageRequested) {
+                $coverageDriver = $this->getFacade()->detectCoverageDriver();
+                if (!$coverageDriver instanceof CoverageDriver) {
+                    $output->writeln(
+                        '<error>--coverage requires the pcov or xdebug extension; neither is loaded.</error>',
+                    );
+                    return self::FAILURE;
+                }
+            }
+
             $workerCount = $optionParser->decideParallelism(
                 $input,
                 $output,
                 $this->getFacade()->createCpuCountDetector(),
             );
             $options = $optionParser->collectOptions($input);
+
+            // Coverage runs serially: workers are separate processes whose
+            // coverage cannot be merged here. Tell the user and fall back.
+            if ($coverageDriver instanceof CoverageDriver && $workerCount !== null) {
+                $output->writeln('<comment>--coverage is not supported with --parallel; running serially.</comment>');
+                $workerCount = null;
+            }
 
             if ($workerCount !== null) {
                 $success = $this->getFacade()
@@ -225,7 +265,17 @@ final class TestCommand extends Command
 
             $phelCode = $this->generatePhelTestCodeFromOptions($options, $filteredNamespaces);
             $compileOptions = new CompileOptions()->setIsEnabledSourceMaps(false);
+
+            $coverageDriver?->start();
             $result = $this->getFacade()->eval($phelCode, $compileOptions);
+            if ($coverageDriver instanceof CoverageDriver) {
+                $this->renderCoverage(
+                    $output,
+                    $this->getFacade()->buildCoverageReport($coverageDriver->stop(), $coverageDriver->name()),
+                    ScalarCoercion::toString($input->getOption(self::OPT_COVERAGE)),
+                    $input->getOption(self::OPT_COVERAGE_OUTPUT),
+                );
+            }
 
             $output->writeln(new ResourceUsageFormatter()->resourceUsageSinceStartOfRequest());
 
@@ -312,6 +362,26 @@ final class TestCommand extends Command
             || $includes !== []
             || $excludes !== []
             || $onlyTests !== [];
+    }
+
+    private function renderCoverage(
+        OutputInterface $output,
+        CoverageReport $report,
+        string $format,
+        mixed $outputPath,
+    ): void {
+        $format = $format === '' ? 'text' : strtolower($format);
+        $content = $format === 'clover'
+            ? $report->toClover(time())
+            : $report->toText();
+
+        if (is_string($outputPath) && $outputPath !== '') {
+            file_put_contents($outputPath, $content);
+            $output->writeln(sprintf('Coverage report written to %s', $outputPath));
+            return;
+        }
+
+        $output->writeln($content);
     }
 
     /**
