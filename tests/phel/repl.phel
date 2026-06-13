@@ -1,8 +1,9 @@
 (ns phel-test.repl
-  (:require phel.repl :refer [apropos dir search-doc get-symbol-info get-source-code ns-publics ns-aliases ns-refers ns-interns find-fn test-ns eval-capturing eval-str macroexpand-1-form macroexpand-form macroexpand-1 macroexpand ns-list loaded-namespaces explain suggest fix review embed-ns search-ns find-ns create-ns remove-ns intern])
+  (:require phel.repl :refer [apropos dir search-doc get-symbol-info get-source-code ns-publics ns-aliases ns-refers ns-interns find-fn test-ns run-tests run-test reload! reload-all! eval-capturing eval-str macroexpand-1-form macroexpand-form macroexpand-1 macroexpand ns-list loaded-namespaces explain suggest fix review embed-ns search-ns find-ns create-ns remove-ns intern])
   (:require phel.ai :as ai)
   (:require phel.string :as s)
-  (:require phel.test :refer [deftest is]))
+  (:require phel-test.fixtures.tagged-tests)
+  (:require phel.test :as t :refer [deftest is]))
 
 ;; -------
 ;; apropos
@@ -607,3 +608,46 @@
     (is (nil? (find-ns ns)) "find-ns returns nil after remove-ns")
     (is (= {} (ns-interns ns))
         "ns-interns returns an empty map after remove-ns")))
+
+;; ---------
+;; run-tests / run-test
+;; ---------
+
+(def- fixture-ns 'phel-test.fixtures.tagged-tests)
+
+(defn- quiet-run [thunk]
+  "Runs a REPL test helper while suppressing its reporter output and restoring
+  the outer test stats afterwards. Returns the thunk's value."
+  (let [saved  (t/get-stats)
+        result (atom nil)]
+    (with-output-buffer (reset! result (thunk)))
+    (t/restore-stats saved)
+    (deref result)))
+
+(deftest test-run-tests-returns-summary-map
+  (let [result (quiet-run (fn [] (run-tests fixture-ns)))]
+    (is (= 3 (:pass result)) "run-tests counts every passing fixture test")
+    (is (= 0 (:fail result)) "run-tests reports no failures")
+    (is (= 0 (:error result)) "run-tests reports no errors")))
+
+(deftest test-run-tests-accepts-multiple-namespaces
+  (let [result (quiet-run (fn [] (run-tests fixture-ns fixture-ns)))]
+    (is (= 6 (:pass result))
+        "run-tests runs each named namespace, so passing twice doubles the count")))
+
+(deftest test-run-test-runs-a-single-test
+  (let [result (quiet-run
+                (fn [] (run-test 'phel-test.fixtures.tagged-tests/fixture-unit-passes)))]
+    (is (= 1 (:pass result)) "run-test runs exactly the named test")
+    (is (= 0 (:fail result)) "run-test reports no failures")))
+
+(deftest test-run-test-isolates-the-named-test
+  (let [result (quiet-run
+                (fn [] (run-test 'phel-test.fixtures.tagged-tests/fixture-integration-passes)))]
+    (is (= 1 (:pass result))
+        "run-test selects only the requested test, not its siblings")))
+
+(deftest test-run-tests-preserves-current-namespace
+  (let [before *ns*]
+    (quiet-run (fn [] (run-tests fixture-ns)))
+    (is (= before *ns*) "run-tests restores the caller's namespace")))

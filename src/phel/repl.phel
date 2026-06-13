@@ -520,6 +520,163 @@ Returns nil. Prints one name per line, sorted alphabetically."
          :success false
          :error (php/-> e (getMessage))}))))
 
+;; -------------------------------------------------------------------
+;; Namespace reloading
+;; -------------------------------------------------------------------
+
+(def- reload-state
+  ;; ns (display form) -> content hash recorded at last load/reload.
+  (atom {}))
+
+(defn- file-hash [file]
+  (when (php/is_file file)
+    (php/md5_file file)))
+
+(defn- reloadable?
+  "A namespace is reloadable from the REPL when it is a project namespace,
+  i.e. not one of the bundled `phel.*` standard-library modules."
+  [ns-name]
+  (not (php/str_starts_with ns-name "phel.")))
+
+(defn- reloadable-ns-infos
+  "Returns the NamespaceInformation objects for every loaded project
+  namespace, topologically sorted (dependencies first)."
+  []
+  (let [project  (filter reloadable? (loaded-namespaces))
+        ns-array (apply php/array (map canonical-ns project))]
+    (if (php/empty ns-array)
+      (php/array)
+      (filter (fn [info] (reloadable? (php/-> info (getNamespace))))
+              (php/-> build-facade (getDependenciesForNamespace (get-src-dirs) ns-array))))))
+
+(defn- force-eval-file!
+  "Re-evaluates a Phel source file, re-registering its definitions even when
+  the namespace is already loaded. Bypasses the build cache so edits always
+  take effect."
+  [file]
+  (let [content (php/file_get_contents file)]
+    (when content
+      (let [cf   (php/new CompilerFacade)
+            opts (php/-> (php/new CompileOptions) (setSource file))]
+        (php/-> cf (eval content opts))))))
+
+(defn- with-repl-mode
+  "Runs `thunk` with `*repl-mode*` enabled so re-evaluating a definition does
+  not trip the duplicate-definition guard, restoring the previous mode after."
+  [thunk]
+  (let [previous (php/:: Phel (getDefinition "phel.core" "*repl-mode*"))]
+    (php/:: Phel (addDefinition "phel.core" "*repl-mode*" true))
+    (try
+      (thunk)
+      (finally
+        (php/:: Phel (addDefinition "phel.core" "*repl-mode*" previous))))))
+
+(defn- reload-infos!
+  "Reloads the given namespace infos (topologically sorted) when their source
+  changed or a dependency was reloaded in this pass. When `force?` is true,
+  every namespace is reloaded regardless of mtime. Returns a vector of the
+  reloaded namespace names in load order."
+  [infos force?]
+  (let [dirty      (atom {})
+        reloaded   (atom [])
+        current-ns *ns*]
+    (with-repl-mode
+     (fn []
+       (foreach [info infos]
+         (let [ns-name   (canonical-ns (php/-> info (getNamespace)))
+               file      (php/-> info (getFile))
+               deps      (map canonical-ns (php/-> info (getDependencies)))
+               cur-hash  (file-hash file)
+               prev-hash (get (deref reload-state) ns-name)
+               self?     (or force? (not= cur-hash prev-hash))
+               dep?      (some (fn [d] (get (deref dirty) d)) deps)]
+           (when (or self? dep?)
+             (force-eval-file! file)
+             (swap! dirty assoc ns-name true)
+             (swap! reloaded conj ns-name))
+           (swap! reload-state assoc ns-name cur-hash)))))
+    ;; Re-evaluating files switches the current namespace; restore the caller's.
+    (php/-> (get-global-env) (setNs current-ns))
+    (set-ns current-ns)
+    (deref reloaded)))
+
+(defn reload!
+  "Re-evaluates project namespaces whose source files changed since the last
+  load, in dependency order, reloading dependents of changed namespaces too.
+  The first call (no recorded baseline) reloads every loaded project namespace.
+  REPL session state in namespaces without a source file (e.g. `user`) is
+  preserved. A compile error is reported and aborts the offending file without
+  corrupting already-reloaded namespaces. Returns a vector of reloaded
+  namespace names."
+  {:example "(reload!) ; => [\"my-app.lib\" \"my-app.core\"]"
+   :see-also ["reload-all!" "loaded-namespaces"]}
+  []
+  (reload-infos! (reloadable-ns-infos) false))
+
+(defn reload-all!
+  "Force-reloads every loaded project namespace in dependency order, ignoring
+  mtimes. Returns a vector of reloaded namespace names."
+  {:example "(reload-all!) ; => [\"my-app.lib\" \"my-app.core\"]"
+   :see-also ["reload!" "loaded-namespaces"]}
+  []
+  (reload-infos! (reloadable-ns-infos) true))
+
+;; -------------------------------------------------------------------
+;; Running tests from the REPL
+;; -------------------------------------------------------------------
+
+(defn- load-namespace!
+  "Loads a namespace from source if not already loaded, restoring the caller's
+  current namespace afterwards (evaluating a file switches `*ns*`). Namespaces
+  defined directly in the session (no source file) are already loaded and left
+  untouched."
+  [ns-str]
+  (when-not (find-ns ns-str)
+    (let [current *ns*]
+      (eval-namespace ns-str)
+      (php/-> (get-global-env) (setNs current))
+      (set-ns current))))
+
+(defn- run-tests-collecting
+  "Runs `t/run-tests` with the given options and namespace symbols, preserving
+  any outer test state, and returns a {:pass :fail :error} summary."
+  [options namespaces]
+  (let [saved-stats (t/get-stats)]
+    (t/reset-stats)
+    (apply t/run-tests options namespaces)
+    (let [{:counts counts} (t/get-stats)
+          result           {:pass (get counts :pass)
+                            :fail (get counts :failed)
+                            :error (get counts :error)}]
+      (t/restore-stats saved-stats)
+      result)))
+
+(defn run-tests
+  "Runs all tests in the given namespaces from the REPL, loading each namespace
+  first if needed. Each namespace is a symbol, e.g. `'my-app.foo-test`. Prints
+  results through the default reporter and returns a {:pass :fail :error}
+  summary."
+  {:example "(run-tests 'my-app.foo-test 'my-app.bar-test)"
+   :see-also ["run-test" "test-ns" "reload!"]}
+  [& namespaces]
+  (let [ns-syms (map (fn [n] (php/:: Symbol (create (canonical-ns (name n))))) namespaces)]
+    (foreach [n ns-syms]
+      (load-namespace! (name n)))
+    (run-tests-collecting {} ns-syms)))
+
+(defn run-test
+  "Runs a single test from the REPL, identified by a fully qualified symbol
+  `'my-app.foo-test/my-test`. Loads the namespace if needed. Prints results
+  through the default reporter and returns a {:pass :fail :error} summary."
+  {:example "(run-test 'my-app.foo-test/my-test)"
+   :see-also ["run-tests" "test-ns"]}
+  [test-sym]
+  (let [ns-str    (canonical-ns (namespace test-sym))
+        test-name (name test-sym)
+        ns-symbol (php/:: Symbol (create ns-str))]
+    (load-namespace! ns-str)
+    (run-tests-collecting {:only-tests [(str ns-str "/" test-name)]} [ns-symbol])))
+
 (defn test-ns
   "Runs all tests in a given namespace from the REPL. Requires the namespace if not already loaded, finds all deftest definitions, runs them, prints results, and returns a hash-map with :pass, :fail, and :error counts. Preserves outer test state so it can be safely called during a test run."
   {:example "(test-ns \"phel-test\\test\\core\")"

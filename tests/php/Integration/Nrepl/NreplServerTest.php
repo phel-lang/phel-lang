@@ -177,6 +177,142 @@ final class NreplServerTest extends TestCase
         $server->stop();
     }
 
+    #[RunInSeparateProcess]
+    #[PreserveGlobalState(false)]
+    public function test_it_runs_tests_and_reloads_over_a_live_socket(): void
+    {
+        Phel::bootstrap(__DIR__);
+        Phel::clear();
+        Symbol::resetGen();
+        GlobalEnvironmentSingleton::initializeNew();
+
+        $facade = new NreplFacade();
+        $facade->loadPhelNamespaces();
+
+        $server = $facade->createSocketServer(0, '127.0.0.1');
+        $server->start();
+
+        $client = @stream_socket_client(
+            sprintf('tcp://127.0.0.1:%d', $server->port()),
+            $errno,
+            $errstr,
+            2.0,
+        );
+        if ($client === false) {
+            $server->stop();
+            self::fail(sprintf('Could not connect to server: %s', $errstr));
+        }
+
+        stream_set_blocking($client, false);
+        stream_set_timeout($client, 2);
+
+        $encoder = new BencodeEncoder();
+        $decoder = new BencodeStreamDecoder();
+
+        // describe advertises the new ops
+        $this->writeMessage($client, $encoder->encode(['op' => 'describe', 'id' => 'd1']));
+        $describe = $this->readUntil($client, $decoder, $server, 1);
+        self::assertArrayHasKey('reload', $describe[0]['ops']);
+        self::assertArrayHasKey('run-tests', $describe[0]['ops']);
+
+        $this->writeMessage($client, $encoder->encode(['op' => 'clone', 'id' => 'c1']));
+        $clone = $this->readUntil($client, $decoder, $server, 1);
+        $sessionId = $clone[0]['new-session'];
+
+        // Define a test namespace in the session.
+        $this->writeMessage($client, $encoder->encode([
+            'op' => 'eval',
+            'id' => 'e1',
+            'session' => $sessionId,
+            'code' => '(ns nrepl-sample-test (:require phel\\test :refer [deftest is])) '
+                . '(deftest a-passing-test (is (= 1 1))) '
+                . '(deftest a-failing-test (is (= 1 2)))',
+        ]));
+        $this->readUntil($client, $decoder, $server, 2);
+
+        // run-tests over the whole namespace.
+        $this->writeMessage($client, $encoder->encode([
+            'op' => 'run-tests',
+            'id' => 'r1',
+            'session' => $sessionId,
+            'ns' => 'nrepl-sample-test',
+        ]));
+        $runTests = $this->readUntilDone($client, $decoder, $server);
+        $value = $this->firstWithKey($runTests, 'value');
+        self::assertNotNull($value, 'run-tests should return a summary value');
+        self::assertStringContainsString(':pass 1', (string) $value['value']);
+        self::assertStringContainsString(':fail 1', (string) $value['value']);
+        self::assertNotNull($this->firstWithStatus($runTests, 'done'));
+
+        // run-tests for a single test via the var param.
+        $this->writeMessage($client, $encoder->encode([
+            'op' => 'run-tests',
+            'id' => 'r2',
+            'session' => $sessionId,
+            'ns' => 'nrepl-sample-test',
+            'var' => 'a-passing-test',
+        ]));
+        $runOne = $this->readUntilDone($client, $decoder, $server);
+        $oneValue = $this->firstWithKey($runOne, 'value');
+        self::assertNotNull($oneValue);
+        self::assertStringContainsString(':pass 1', (string) $oneValue['value']);
+        self::assertStringContainsString(':fail 0', (string) $oneValue['value']);
+
+        // reload returns a vector of reloaded namespaces without erroring.
+        $this->writeMessage($client, $encoder->encode([
+            'op' => 'reload',
+            'id' => 'rl1',
+            'session' => $sessionId,
+        ]));
+        $reload = $this->readUntilDone($client, $decoder, $server);
+        self::assertNotNull($this->firstWithStatus($reload, 'done'));
+        self::assertNull(
+            $this->firstWithStatus($reload, 'eval-error'),
+            'reload should not report an eval error',
+        );
+
+        fclose($client);
+        $server->stop();
+    }
+
+    /**
+     * Reads frames until one carries a `done` status, returning everything
+     * collected. Reporter output arrives as several `out` frames before the
+     * value/done pair, so a fixed message count is not reliable here.
+     *
+     * @param resource $client
+     *
+     * @return list<array<string, mixed>>
+     */
+    private function readUntilDone($client, BencodeStreamDecoder $decoder, NreplSocketServer $server, int $timeoutMs = 3000): array
+    {
+        $start = (int) (microtime(true) * 1000);
+        $collected = [];
+
+        while (true) {
+            $this->pump($server);
+            $chunk = @fread($client, 8192);
+            if ($chunk !== false && $chunk !== '') {
+                $decoder->feed($chunk);
+                foreach ($decoder->drain() as $msg) {
+                    if (is_array($msg)) {
+                        $collected[] = $msg;
+                    }
+                }
+            }
+
+            if ($this->firstWithStatus($collected, 'done') !== null) {
+                return $collected;
+            }
+
+            if ((int) (microtime(true) * 1000) - $start > $timeoutMs) {
+                self::fail('Timed out waiting for a done frame.');
+            }
+
+            usleep(2000);
+        }
+    }
+
     /**
      * @param resource $client
      */
