@@ -66,4 +66,12 @@ interface CommandFacadeInterface
      * @return array<string,mixed>
      */
     public function readPhelConfig(string $absolutePath): array;
+
+    /**
+     * Maps every mapped generated line of a compiled PHP file back to its Phel
+     * source, for coverage reporting. Empty filename when no source map.
+     *
+     * @return array{filename: string, lines: array<int, int>}
+     */
+    public function getCompiledFileLineMap(string $compiledFile): array;
 }

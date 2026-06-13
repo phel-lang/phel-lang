@@ -27,6 +27,25 @@ final class SourceMapConsumer
     }
 
     /**
+     * Every mapped generated line and the original Phel line it points at
+     * (the earliest, matching {@see getOriginalLine}). Used to enumerate the
+     * coverable Phel lines of a compiled file for coverage reporting.
+     *
+     * @return array<int, int> generated line (1-based) => original Phel line
+     */
+    public function getMappedLines(): array
+    {
+        $result = [];
+        foreach ($this->lineMapping as $generatedLine => $originalLines) {
+            if ($originalLines !== []) {
+                $result[$generatedLine] = min($originalLines);
+            }
+        }
+
+        return $result;
+    }
+
+    /**
      * @return array<int, list<int>>
      */
     private function decodeMapping(string $mapping): array

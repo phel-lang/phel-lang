@@ -54,6 +54,13 @@ final class CommandFacade extends AbstractFacade implements CommandFacadeInterfa
         return $this->getFactory()->createExceptionPrinter();
     }
 
+    public function getCompiledFileLineMap(string $compiledFile): array
+    {
+        return $this->getFactory()
+            ->createFilePositionExtractor()
+            ->getFileLineMap($compiledFile);
+    }
+
     /**
      * @return list<string>
      */

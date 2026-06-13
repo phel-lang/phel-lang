@@ -11,6 +11,7 @@ Runtime execution: runs Phel namespaces/files, REPL, evaluation, testing, and mo
 - Parallel testing: `createParallelTestOrchestrator()` (process pool spawning `phel _test-worker` subprocesses, one ns per length-prefixed JSON work frame, per-ns output buffered and flushed in input order), `createCpuCountDetector()` (honours `PHEL_TEST_WORKERS`, falls back to `nproc`/`sysctl`/`/proc/cpuinfo`, caps at 8)
 - Watch testing: `runTestWatchLoop(callable $runTests, OutputInterface)` (`phel test --watch`: polls project src/test dirs for `.phel`/`phel-config.php` mtime changes every 500ms, re-invokes `$runTests` subprocess per change)
 - Error handling: `writeLocatedException`, `writeStackTrace`
+- Coverage: `detectCoverageDriver()` (pcov/xdebug, null if neither), `buildCoverageReport(rawCoverage, driverName)` → `CoverageReport`. `phel test --coverage[=text|clover]` wraps the serial test eval with the driver, maps raw PHP line coverage to `.phel` via `CommandFacade::getCompiledFileLineMap`, filters to project source dirs (`Application/Test/Coverage/`: `CoverageDriver`, `CoverageAggregator`, `CoverageReport`, `CoverageFile`). Coverage forces serial execution (parallel workers can't merge)
 
 ## Dependencies
 

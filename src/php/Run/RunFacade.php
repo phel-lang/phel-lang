@@ -6,6 +6,8 @@ namespace Phel\Run;
 
 use Gacela\Framework\AbstractFacade;
 use Gacela\Framework\Health\ModuleHealthCheckInterface;
+use Phel\Run\Application\Test\Coverage\CoverageDriver;
+use Phel\Run\Application\Test\Coverage\CoverageReport;
 use Phel\Run\Application\Test\CpuCountDetector;
 use Phel\Run\Application\Test\ParallelTestOrchestrator;
 use Phel\Shared\CompileOptions;
@@ -184,5 +186,26 @@ final class RunFacade extends AbstractFacade implements RunFacadeInterface
     public function getModuleHealthChecks(): array
     {
         return $this->getFactory()->getModuleHealthChecks();
+    }
+
+    /**
+     * Detect the loaded line-coverage driver (pcov preferred, else xdebug), or
+     * null when neither extension is available.
+     */
+    public function detectCoverageDriver(): ?CoverageDriver
+    {
+        return $this->getFactory()->createCoverageDriver();
+    }
+
+    /**
+     * Build a per-`.phel`-file coverage report from raw PHP line coverage.
+     *
+     * @param array<string, array<int, int>> $rawCoverage
+     */
+    public function buildCoverageReport(array $rawCoverage, string $driverName): CoverageReport
+    {
+        return $this->getFactory()
+            ->createCoverageAggregator($driverName)
+            ->aggregate($rawCoverage);
     }
 }
