@@ -7,11 +7,8 @@ namespace Phel\Api\Application;
 use Phel\Api\Transfer\PhpInteropContext;
 
 use function ltrim;
-use function max;
 use function preg_match;
 use function preg_quote;
-use function preg_split;
-use function substr;
 use function trim;
 
 /**
@@ -29,7 +26,7 @@ final readonly class PhpInteropContextResolver
      */
     public function resolve(string $source, int $line, int $col): PhpInteropContext
     {
-        $before = $this->textBeforeCursor($source, $line, $col);
+        $before = CursorText::before($source, $line, $col);
 
         // (php/-> receiver method|)  or  (php/-> receiver (method|))
         if (preg_match('/\(\s*php\/->\s+(.+?)\s+\(?([A-Za-z0-9_]*)$/s', $before, $m) === 1) {
@@ -126,15 +123,5 @@ final readonly class PhpInteropContextResolver
         }
 
         return '';
-    }
-
-    private function textBeforeCursor(string $source, int $line, int $col): string
-    {
-        $lines = preg_split('/\r?\n/', $source) ?: [];
-        if (!isset($lines[$line - 1])) {
-            return '';
-        }
-
-        return substr($lines[$line - 1], 0, max(0, $col - 1));
     }
 }

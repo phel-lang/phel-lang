@@ -7,12 +7,9 @@ namespace Phel\Api\Application;
 use Phel\Api\Transfer\PhpInteropContext;
 
 use function ltrim;
-use function max;
 use function preg_match;
-use function preg_split;
 use function sprintf;
 use function strlen;
-use function substr;
 
 /**
  * Hover and signature-help text for PHP-interop symbols, backed by the same
@@ -35,7 +32,7 @@ final readonly class PhpInteropDocResolver
     {
         // Extend the cursor to the end of the identifier so the resolver sees
         // the whole symbol as the "prefix", then look that exact name up.
-        $wordEndCol = $this->wordEndColumn($source, $line, $col);
+        $wordEndCol = CursorText::wordEndColumn($source, $line, $col);
         $context = $this->contextResolver->resolve($source, $line, $wordEndCol);
 
         return match ($context->kind) {
@@ -56,7 +53,7 @@ final readonly class PhpInteropDocResolver
      */
     public function signatureAt(string $source, int $line, int $col): ?array
     {
-        $before = $this->textBeforeCursor($source, $line, $col);
+        $before = CursorText::before($source, $line, $col);
 
         // (php/new \Class <args>
         if (preg_match('/\(\s*php\/new\s+\\\\?([A-Za-z0-9_\\\\]+)\s/', $before, $m) === 1) {
@@ -148,26 +145,4 @@ final readonly class PhpInteropDocResolver
         ];
     }
 
-    private function wordEndColumn(string $source, int $line, int $col): int
-    {
-        $lines = preg_split('/\r?\n/', $source) ?: [];
-        $text = $lines[$line - 1] ?? '';
-        $offset = max(0, $col - 1);
-
-        if (preg_match('/[A-Za-z0-9_]+/A', substr($text, $offset), $m) === 1) {
-            return $col + strlen($m[0]);
-        }
-
-        return $col;
-    }
-
-    private function textBeforeCursor(string $source, int $line, int $col): string
-    {
-        $lines = preg_split('/\r?\n/', $source) ?: [];
-        if (!isset($lines[$line - 1])) {
-            return '';
-        }
-
-        return substr($lines[$line - 1], 0, max(0, $col - 1));
-    }
 }
