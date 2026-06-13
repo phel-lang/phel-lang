@@ -33,6 +33,7 @@ use Phel\Lsp\Application\Handler\InitializeHandler;
 use Phel\Lsp\Application\Handler\ReferencesHandler;
 use Phel\Lsp\Application\Handler\RenameHandler;
 use Phel\Lsp\Application\Handler\ShutdownHandler;
+use Phel\Lsp\Application\Handler\SignatureHelpHandler;
 use Phel\Lsp\Application\Handler\SymbolResolver;
 use Phel\Lsp\Application\Handler\WorkspaceSymbolHandler;
 use Phel\Lsp\Application\Rpc\LspServer;
@@ -98,6 +99,7 @@ final class LspFactory extends AbstractFactory
         $dispatcher->register(new DefinitionHandler($this->getApiFacade(), $locations, $params, $symbols));
         $dispatcher->register(new ReferencesHandler($this->getApiFacade(), $locations, $params, $symbols));
         $dispatcher->register(new CompletionHandler($this->getApiFacade(), $completions, $params));
+        $dispatcher->register(new SignatureHelpHandler($this->getApiFacade(), $params));
         $dispatcher->register(new DocumentSymbolHandler($this->getApiFacade(), $uris, $symbolBuilder, $params));
         $dispatcher->register(new WorkspaceSymbolHandler($symbolBuilder));
         $dispatcher->register(new RenameHandler($this->getApiFacade(), $positions, $uris, $params, $symbols));

@@ -10,6 +10,8 @@ use Phel\Api\Application\Analysis\PreloadDependenciesStage;
 use Phel\Api\Application\Analysis\ReadAndAnalyzeStage;
 use Phel\Api\Application\PhelFnGroupKeyGenerator;
 use Phel\Api\Application\PhelFnNormalizer;
+use Phel\Api\Application\PhpInteropCompleter;
+use Phel\Api\Application\PhpInteropDocResolver;
 use Phel\Api\Application\PointCompleter;
 use Phel\Api\Application\ProjectIndexer;
 use Phel\Api\Application\ReferenceFinder;
@@ -92,7 +94,13 @@ final class ApiFactory extends AbstractFactory
         return new PointCompleter(
             $this->getCompilerFacade(),
             $this->createPhelFnNormalizer(),
+            new PhpInteropCompleter(),
         );
+    }
+
+    public function createPhpInteropDocResolver(): PhpInteropDocResolver
+    {
+        return new PhpInteropDocResolver();
     }
 
     public function createApiDaemon(ApiFacade $facade): ApiDaemon

@@ -9,6 +9,7 @@ REPL autocompletion, function introspection, documentation, and user-code semant
 - `analyzeSource(string, string): list<Diagnostic>`: parse and analyze, return diagnostics
 - `findSymbolMetadata(string, string = 'user')`: symbol lookup in registry and static catalog
 - `indexProject`, `resolveSymbol`, `findReferences`, `completeAtPoint`: project-level symbol tooling (`ProjectIndex`, `Definition`, `Location`, `Completion` transfers)
+- PHP interop tooling: `completeAtPoint` returns interop completions when the cursor is in a `php/`-interop position (else Phel completions); `phpInteropHoverAt`/`phpInteropSignatureAt` return reflected hover markdown / LSP signature help. Backed by `PhpInteropReflector` (reflection + composer classmap), `PhpInteropContextResolver` (lexical receiver-type resolution from `:tag`/inline `php/new`/binding), `PhpInteropCompleter`, and `PhpInteropDocResolver`. All degrade to empty/null on unknown types or reflection failure
 - `createApiDaemon()`: long-running JSON-RPC daemon
 
 ## Dependencies

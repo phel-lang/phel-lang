@@ -123,4 +123,28 @@ final class ApiFacade extends AbstractFacade implements ApiFacadeInterface
             ->createSymbolMetadataFinder()
             ->find($symbol, $currentNs);
     }
+
+    /**
+     * Markdown hover for the PHP-interop symbol under the cursor (method,
+     * static member, global function, class), or null when not applicable.
+     */
+    public function phpInteropHoverAt(string $source, int $line, int $col): ?string
+    {
+        return $this->getFactory()
+            ->createPhpInteropDocResolver()
+            ->hoverAt($source, $line, $col);
+    }
+
+    /**
+     * LSP SignatureHelp payload for the PHP-interop call enclosing the cursor,
+     * or null when not applicable.
+     *
+     * @return array{signatures: list<array{label: string}>, activeSignature: int, activeParameter: int}|null
+     */
+    public function phpInteropSignatureAt(string $source, int $line, int $col): ?array
+    {
+        return $this->getFactory()
+            ->createPhpInteropDocResolver()
+            ->signatureAt($source, $line, $col);
+    }
 }

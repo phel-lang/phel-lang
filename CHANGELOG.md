@@ -9,6 +9,7 @@ Two themes: project configuration (`phel config`, optimization levels, composabl
 ### Added
 
 - `phel config`: prints the merged config with provenance (`--json` for machine output)
+- LSP PHP interop (#2431): completion for instance methods/properties after `(php/-> receiver ...)`, static methods/constants after `(php/:: Class ...)`, class names in `(php/new ...)` and `\Fully\Qualified` positions, and global functions after `php/`; hover with the reflected signature for PHP methods/functions/classes; signature help for `(php/new ...)` and method calls. Receiver types come from `:tag` metadata, inline `(php/new \Foo)`, or a local `(php/new ...)` binding; an unknown type degrades to no completion with no diagnostics
 - `phel init --template=<name>` (`-t`): scaffold a runnable project from a bundled example (`http-json-api`, `todo-app`, `cli-wordcount`), with namespaces/composer/entry points renamed to the project name; `--list-templates` (or `-t` with no value) lists them. Composes with `--dry-run`/`--force`. Templates are sourced from `resources/agents/examples/` (now shipped inside `phel.phar`) (#2430)
 - Optimization levels: `PhelConfig::withOptimizationLevel(int)` and `phel build -O <level>`; level 2 enables `^:pure` inlining + self-recursive tail-call rewriting (REPL/nREPL stay at 0) (#2387)
 - `phel test --watch`: re-runs the selected tests on every `.phel`/`phel-config.php` change
