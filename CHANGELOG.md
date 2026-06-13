@@ -4,6 +4,8 @@ All notable changes to this project will be documented in this file.
 
 ## Unreleased
 
+## [0.44.0](https://github.com/phel-lang/phel-lang/compare/v0.43.0...v0.44.0) - 2026-06-13
+
 Two themes: project configuration (`phel config`, optimization levels, composable config setters) and a sharper test runner (`--watch`, startup progress, clearer failures).
 
 ### Added
