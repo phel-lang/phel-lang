@@ -286,6 +286,7 @@ final class PharBuilder
 
             $this->addFiles($phar);
             $this->addReplStartupFile($phar);
+            $this->addExampleTemplates($phar);
             $this->setStub($phar);
             $this->compressPhar($phar);
             $phar->setSignatureAlgorithm(Phar::SHA256);
@@ -559,6 +560,39 @@ final class PharBuilder
         $size = @filesize($startup);
         if ($size !== false) {
             $this->stats['total_size'] += $size;
+        }
+    }
+
+    /**
+     * `resources/` is excluded from the generic walker, but the example app
+     * templates must ship inside the PHAR so `phel init --template` works from
+     * a standalone phar (the rest of `resources/agents/` stays out).
+     */
+    private function addExampleTemplates(Phar $phar): void
+    {
+        $examplesRoot = $this->root . '/resources/agents/examples';
+        if (!is_dir($examplesRoot)) {
+            return;
+        }
+
+        $iterator = new RecursiveIteratorIterator(
+            new RecursiveDirectoryIterator($examplesRoot, FilesystemIterator::SKIP_DOTS),
+        );
+
+        foreach ($iterator as $fileInfo) {
+            if (!$fileInfo->isFile()) {
+                continue;
+            }
+
+            $absolute = $fileInfo->getPathname();
+            $relative = ltrim(str_replace('\\', '/', substr($absolute, \strlen($this->root))), '/');
+            $phar->addFile($absolute, $relative);
+            ++$this->stats['files_added'];
+
+            $size = @filesize($absolute);
+            if ($size !== false) {
+                $this->stats['total_size'] += $size;
+            }
         }
     }
 

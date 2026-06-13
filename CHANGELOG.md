@@ -9,6 +9,7 @@ Two themes: project configuration (`phel config`, optimization levels, composabl
 ### Added
 
 - `phel config`: prints the merged config with provenance (`--json` for machine output)
+- `phel init --template=<name>` (`-t`): scaffold a runnable project from a bundled example (`http-json-api`, `todo-app`, `cli-wordcount`), with namespaces/composer/entry points renamed to the project name; `--list-templates` (or `-t` with no value) lists them. Composes with `--dry-run`/`--force`. Templates are sourced from `resources/agents/examples/` (now shipped inside `phel.phar`) (#2430)
 - Optimization levels: `PhelConfig::withOptimizationLevel(int)` and `phel build -O <level>`; level 2 enables `^:pure` inlining + self-recursive tail-call rewriting (REPL/nREPL stay at 0) (#2387)
 - `phel test --watch`: re-runs the selected tests on every `.phel`/`phel-config.php` change
 - `phel test`: startup progress on stderr, and an expected/actual diff with a caret on failed `=` assertions

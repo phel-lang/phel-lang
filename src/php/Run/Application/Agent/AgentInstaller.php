@@ -46,7 +46,10 @@ final class AgentInstaller
     {
         foreach ([5, 4, 6] as $levels) {
             $candidate = dirname(__DIR__, $levels) . '/resources/agents';
-            if (is_dir($candidate)) {
+            // The VERSION marker ships only with the full agent docs tree, not
+            // with the examples-only subtree bundled inside phel.phar, so this
+            // keeps reporting the Composer-install hint when run from the PHAR.
+            if (is_file($candidate . '/VERSION')) {
                 return $candidate;
             }
         }

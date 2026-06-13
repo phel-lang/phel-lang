@@ -96,6 +96,10 @@ mkdir -p "$WORK_DIR" "$CACHE_DIR" "$OUTPUT_DIR"
 # Sync Project Files
 # ============================================================================
 rsync -a "$REPO_ROOT/" "$WORK_DIR/" \
+  --include='resources/' \
+  --include='resources/agents/' \
+  --include='resources/agents/examples/***' \
+  --exclude='resources/agents/**' \
   --exclude='.git' \
   --exclude='.github' \
   --exclude='.idea' \
@@ -112,7 +116,6 @@ rsync -a "$REPO_ROOT/" "$WORK_DIR/" \
   --exclude='data' \
   --exclude='vendor' \
   --exclude='build' \
-  --exclude='resources/agents' \
   --exclude='tools' \
   --exclude='examples' \
   --exclude='fixtures' \
