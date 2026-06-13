@@ -13,6 +13,7 @@ Two themes: project configuration (`phel config`, optimization levels, composabl
 - `phel test --watch`: re-runs the selected tests on every `.phel`/`phel-config.php` change
 - `phel test`: startup progress on stderr, and an expected/actual diff with a caret on failed `=` assertions
 - `withBuildConfig()`/`withExportConfig()` accept a configurator closure
+- REPL-driven workflow (#2429): `(reload!)` re-evaluates project namespaces whose source changed since the last load (plus their dependents) in dependency order; `(reload-all!)` force-reloads every project namespace; `(run-tests 'ns ...)` and `(run-test 'ns/test)` run tests from the REPL. Matching nREPL ops `reload` (`all` param) and `run-tests` (`ns` + optional `var` param) let editors bind "reload changed" and "run test under cursor"
 
 ### Changed
 

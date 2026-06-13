@@ -10,7 +10,7 @@ nREPL protocol server; bencode-over-TCP for editor tooling (Cursive, Calva, CIDE
 
 ## Supported Ops
 
-Core: `clone`, `close`, `describe`, `eval`, `load-file`, `interrupt`. Via Api facade: `completions` (replCompleteWithTypes), `lookup`/`info`/`eldoc` (findSymbolMetadata).
+Core: `clone`, `close`, `describe`, `eval`, `load-file`, `interrupt`. Via Api facade: `completions` (replCompleteWithTypes), `lookup`/`info`/`eldoc` (findSymbolMetadata). REPL-workflow ops delegate to `phel\repl` via `structuredEval`: `reload` (changed project namespaces; `all` param → `reload-all!`), `run-tests` (`ns` param → `phel\repl/run-tests`; add `var` param → `phel\repl/run-test` for a single test).
 
 ## Dependencies
 

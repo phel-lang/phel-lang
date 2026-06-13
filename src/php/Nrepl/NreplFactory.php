@@ -14,6 +14,8 @@ use Phel\Nrepl\Application\Op\EvalResultResponder;
 use Phel\Nrepl\Application\Op\InterruptOp;
 use Phel\Nrepl\Application\Op\LoadFileOp;
 use Phel\Nrepl\Application\Op\LookupOp;
+use Phel\Nrepl\Application\Op\ReloadOp;
+use Phel\Nrepl\Application\Op\RunTestsOp;
 use Phel\Nrepl\Domain\Bencode\BencodeDecoder;
 use Phel\Nrepl\Domain\Bencode\BencodeEncoder;
 use Phel\Nrepl\Domain\Op\OpDispatcher;
@@ -52,6 +54,8 @@ final class NreplFactory extends AbstractFactory
         $dispatcher->register(new CloseOp($sessions));
         $dispatcher->register(new EvalOp($this->getRunFacade(), $responder));
         $dispatcher->register(new LoadFileOp($this->getRunFacade(), $responder));
+        $dispatcher->register(new ReloadOp($this->getRunFacade(), $responder));
+        $dispatcher->register(new RunTestsOp($this->getRunFacade(), $responder));
         $dispatcher->register(new InterruptOp());
         $dispatcher->register(new CompletionsOp($this->getApiFacade()));
         $dispatcher->register(new LookupOp($this->getApiFacade(), 'lookup', $sessions));
