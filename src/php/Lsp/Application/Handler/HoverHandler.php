@@ -47,7 +47,11 @@ final readonly class HoverHandler implements HandlerInterface
             return null;
         }
 
-        $markdown = $this->markdownFor($context->word, $session->projectIndex());
+        // PHP-interop symbols (methods, static members, global functions,
+        // classes) resolve via reflection before the Phel symbol lookup.
+        [$line, $col] = $context->document->oneBasedLineCol($context->position);
+        $markdown = $this->apiFacade->phpInteropHoverAt($context->document->text, $line, $col)
+            ?? $this->markdownFor($context->word, $session->projectIndex());
         if ($markdown === null) {
             return null;
         }

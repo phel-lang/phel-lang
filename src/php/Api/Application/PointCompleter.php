@@ -40,6 +40,7 @@ final readonly class PointCompleter implements PointCompleterInterface
     public function __construct(
         private CompilerFacadeInterface $compilerFacade,
         private PhelFnNormalizerInterface $phelFnNormalizer,
+        private PhpInteropCompleter $phpInteropCompleter = new PhpInteropCompleter(),
     ) {}
 
     /**
@@ -47,6 +48,13 @@ final readonly class PointCompleter implements PointCompleterInterface
      */
     public function completeAtPoint(string $source, int $line, int $col, ProjectIndex $index): array
     {
+        // PHP-interop positions (php/->, php/::, php/new, \FQN, php/fn) take
+        // precedence; a null result means the cursor is not in such a position.
+        $phpCompletions = $this->phpInteropCompleter->completeAtPoint($source, $line, $col);
+        if ($phpCompletions !== null) {
+            return $phpCompletions;
+        }
+
         $prefix = $this->extractPrefix($source, $line, $col);
 
         $locals = $this->collectLocalsAtPoint($source, $line, $col);

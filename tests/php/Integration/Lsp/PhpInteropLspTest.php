@@ -1,0 +1,168 @@
+<?php
+
+declare(strict_types=1);
+
+namespace PhelTest\Integration\Lsp;
+
+use Phel;
+use Phel\Api\ApiFacade;
+use Phel\Compiler\Infrastructure\GlobalEnvironmentSingleton;
+use Phel\Lang\Symbol;
+use Phel\Lsp\Application\Convert\CompletionConverter;
+use Phel\Lsp\Application\Document\DocumentStore;
+use Phel\Lsp\Application\Handler\CompletionHandler;
+use Phel\Lsp\Application\Handler\HoverHandler;
+use Phel\Lsp\Application\Handler\SignatureHelpHandler;
+use Phel\Lsp\Application\Handler\SymbolResolver;
+use Phel\Lsp\Application\Rpc\ParamsExtractor;
+use Phel\Lsp\Application\Session\Session;
+use Phel\Lsp\Domain\NotificationSink;
+use PHPUnit\Framework\Attributes\PreserveGlobalState;
+use PHPUnit\Framework\Attributes\RunInSeparateProcess;
+use PHPUnit\Framework\TestCase;
+
+use function array_column;
+
+final class PhpInteropLspTest extends TestCase
+{
+    #[PreserveGlobalState(false)]
+    #[RunInSeparateProcess]
+    public function test_completion_lists_instance_methods_for_tagged_receiver(): void
+    {
+        $uri = 'file:///x.phel';
+        $source = "(let [^\\DateTimeImmutable dt (x)]\n  (php/-> dt (get))";
+        // Cursor right after "(get".
+        $session = $this->sessionWith($uri, $source);
+
+        $result = $this->completion()->handle(
+            $this->params($uri, line: 1, character: 13),
+            $session,
+        );
+
+        $labels = array_column($result['items'], 'label');
+        self::assertContains('getTimestamp', $labels);
+        self::assertContains('getOffset', $labels);
+    }
+
+    #[PreserveGlobalState(false)]
+    #[RunInSeparateProcess]
+    public function test_completion_lists_class_names_after_php_new(): void
+    {
+        $uri = 'file:///x.phel';
+        $source = '(php/new \\DateTimeImm)';
+        $session = $this->sessionWith($uri, $source);
+
+        // Cursor right after "DateTimeImm".
+        $result = $this->completion()->handle(
+            $this->params($uri, line: 0, character: 20),
+            $session,
+        );
+
+        $labels = array_column($result['items'], 'label');
+        self::assertContains('DateTimeImmutable', $labels);
+    }
+
+    #[PreserveGlobalState(false)]
+    #[RunInSeparateProcess]
+    public function test_hover_shows_global_function_signature(): void
+    {
+        $uri = 'file:///x.phel';
+        $source = '(php/strlen x)';
+        $session = $this->sessionWith($uri, $source);
+
+        // Cursor on "strlen".
+        $result = $this->hover()->handle(
+            $this->params($uri, line: 0, character: 8),
+            $session,
+        );
+
+        self::assertIsArray($result);
+        self::assertStringContainsString('strlen(', (string) $result['contents']['value']);
+    }
+
+    #[PreserveGlobalState(false)]
+    #[RunInSeparateProcess]
+    public function test_signature_help_for_php_new(): void
+    {
+        $uri = 'file:///x.phel';
+        $source = '(php/new \\DateTimeImmutable )';
+        $session = $this->sessionWith($uri, $source);
+
+        // Cursor inside the argument list.
+        $result = $this->signatureHelp()->handle(
+            $this->params($uri, line: 0, character: 28),
+            $session,
+        );
+
+        self::assertIsArray($result);
+        self::assertStringContainsString('new', (string) $result['signatures'][0]['label']);
+    }
+
+    #[PreserveGlobalState(false)]
+    #[RunInSeparateProcess]
+    public function test_completion_falls_back_to_phel_for_plain_code(): void
+    {
+        $uri = 'file:///x.phel';
+        $source = '(de)';
+        $session = $this->sessionWith($uri, $source);
+
+        // Cursor after "(de".
+        $result = $this->completion()->handle(
+            $this->params($uri, line: 0, character: 3),
+            $session,
+        );
+
+        $labels = array_column($result['items'], 'label');
+        self::assertContains('def', $labels, 'plain Phel completion still works');
+    }
+
+    private function completion(): CompletionHandler
+    {
+        return new CompletionHandler(
+            $this->apiFacade(),
+            new CompletionConverter(),
+            new ParamsExtractor(),
+        );
+    }
+
+    private function hover(): HoverHandler
+    {
+        return new HoverHandler($this->apiFacade(), new ParamsExtractor(), new SymbolResolver());
+    }
+
+    private function signatureHelp(): SignatureHelpHandler
+    {
+        return new SignatureHelpHandler($this->apiFacade(), new ParamsExtractor());
+    }
+
+    private function apiFacade(): ApiFacade
+    {
+        Phel::bootstrap(__DIR__);
+        Phel::clear();
+        Symbol::resetGen();
+        GlobalEnvironmentSingleton::initializeNew();
+
+        return new ApiFacade();
+    }
+
+    private function sessionWith(string $uri, string $source): Session
+    {
+        $session = new Session(new DocumentStore(), new class() implements NotificationSink {
+            public function notify(string $method, array $params): void {}
+        });
+        $session->documents()->open($uri, 'phel', 1, $source);
+
+        return $session;
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    private function params(string $uri, int $line, int $character): array
+    {
+        return [
+            'textDocument' => ['uri' => $uri],
+            'position' => ['line' => $line, 'character' => $character],
+        ];
+    }
+}

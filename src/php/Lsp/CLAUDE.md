@@ -11,7 +11,8 @@ Language Server Protocol v3.17 over stdio (JSON-RPC 2.0 with `Content-Length` fr
 
 - Lifecycle: initialize, initialized, shutdown, exit
 - Text sync: didOpen, didChange, didClose, didSave
-- Language features: hover, definition, references, completion, documentSymbol, workspace/symbol, rename, formatting
+- Language features: hover, definition, references, completion, signatureHelp, documentSymbol, workspace/symbol, rename, formatting
+- PHP interop (completion/hover/signatureHelp) is resolved by the Api facade (`phpInteropHoverAt`, `phpInteropSignatureAt`; completion via `completeAtPoint`). `CompletionHandler`/`HoverHandler` try the interop path first and fall back to Phel symbols; `SignatureHelpHandler` is interop-only
 - Diagnostics: publishDiagnostics (debounced 200ms on change, immediate on save)
 
 ## Dependencies

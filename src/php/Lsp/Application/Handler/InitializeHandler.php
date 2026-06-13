@@ -61,6 +61,9 @@ final readonly class InitializeHandler implements HandlerInterface
                     'triggerCharacters' => ['/', ':', '.'],
                     'resolveProvider' => false,
                 ],
+                'signatureHelpProvider' => [
+                    'triggerCharacters' => [' ', '('],
+                ],
                 'documentSymbolProvider' => true,
                 'workspaceSymbolProvider' => true,
                 'renameProvider' => true,
