@@ -8,6 +8,7 @@ use Gacela\Framework\ServiceResolver\ServiceMap;
 use Gacela\Framework\ServiceResolverAwareTrait;
 use Phel\Build\BuildFacade;
 use Phel\Build\Domain\Compile\BuildOptions;
+use Phel\Build\Domain\Compile\BuildReport;
 use Phel\Build\Domain\Compile\CompiledFile;
 use Phel\Shared\Exceptions\CompilerException;
 use Phel\Shared\ResourceUsageFormatter;
@@ -20,6 +21,7 @@ use Throwable;
 
 use function array_filter;
 use function count;
+use function hrtime;
 use function sprintf;
 
 #[ServiceMap(method: 'getFacade', className: BuildFacade::class)]
@@ -33,6 +35,8 @@ final class BuildCommand extends Command
 
     private const string OPTION_OPTIMIZATION_LEVEL = 'optimization-level';
 
+    private const string OPTION_REPORT = 'report';
+
     protected function configure(): void
     {
         $this->setName('build')
@@ -44,16 +48,30 @@ final class BuildCommand extends Command
                 'O',
                 InputOption::VALUE_REQUIRED,
                 'Override the configured optimization level (0 = off, 2 = inline + tail-call rewrite)',
+            )
+            ->addOption(
+                self::OPTION_REPORT,
+                null,
+                InputOption::VALUE_NONE,
+                'Print a build report: namespace count, per-namespace compiled size, total size, and build time',
             );
     }
 
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
         $buildOptions = $this->getBuildOptions($input);
+        $report = (bool) $input->getOption(self::OPTION_REPORT);
 
         try {
+            $startedAt = hrtime(true);
             $compiledProject = $this->getFacade()->compileProject($buildOptions);
-            $this->printOutput($output, $compiledProject);
+            $durationMs = (hrtime(true) - $startedAt) / 1_000_000;
+
+            if ($report) {
+                $this->printReport($output, BuildReport::fromCompiledFiles($compiledProject, $durationMs));
+            } else {
+                $this->printOutput($output, $compiledProject);
+            }
         } catch (CompilerException $e) {
             $this->getFacade()->writeLocatedException($output, $e);
         } catch (Throwable $e) {
@@ -63,6 +81,50 @@ final class BuildCommand extends Command
         $output->writeln(new ResourceUsageFormatter()->resourceUsageSinceStartOfRequest());
 
         return self::SUCCESS;
+    }
+
+    private function printReport(OutputInterface $output, BuildReport $report): void
+    {
+        if ($report->namespaceCount() === 0) {
+            $output->writeln('No Phel namespaces found to build.');
+            return;
+        }
+
+        $output->writeln('Build report');
+        $output->writeln('============');
+
+        foreach ($report->entries() as $entry) {
+            $output->writeln(sprintf(
+                '  %-40s %9s  %s',
+                $entry->namespace,
+                $this->formatBytes($entry->bytes),
+                $entry->cached ? '(cached)' : '(fresh)',
+            ));
+        }
+
+        $output->writeln('');
+        $output->writeln(sprintf(
+            'Namespaces: %d (%d fresh, %d cached) | Total: %s | Time: %.1f ms | Output: %s',
+            $report->namespaceCount(),
+            $report->freshCount(),
+            $report->cachedCount(),
+            $this->formatBytes($report->totalBytes()),
+            $report->durationMs(),
+            $this->getFacade()->getOutputDirectory(),
+        ));
+    }
+
+    private function formatBytes(int $bytes): string
+    {
+        if ($bytes >= 1_048_576) {
+            return sprintf('%.2f MB', $bytes / 1_048_576);
+        }
+
+        if ($bytes >= 1024) {
+            return sprintf('%.2f KB', $bytes / 1024);
+        }
+
+        return $bytes . ' B';
     }
 
     private function getBuildOptions(InputInterface $input): BuildOptions
