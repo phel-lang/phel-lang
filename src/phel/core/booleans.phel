@@ -309,7 +309,7 @@
   "Checks if value is exactly true (not just truthy)."
   {:example "(true? 1) ; => false"}
   [x]
-  (id x true))
+  (identical? x true))
 
 (defn truthy?
   "Checks if `x` is truthy. Same as `x == true` in PHP."
@@ -320,13 +320,13 @@
   "Checks if value is exactly false (not just falsy)."
   {:example "(false? nil) ; => false"}
   [x]
-  (id x false))
+  (identical? x false))
 
 (defn nil?
   "Returns true if value is nil, false otherwise."
   {:example "(nil? (get {:a 1} :b)) ; => true"}
   [x]
-  (id x nil))
+  (identical? x nil))
 
 (defn str-contains?
   "Returns true if str contains s."

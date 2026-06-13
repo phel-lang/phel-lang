@@ -167,16 +167,16 @@
   (let [headers (transient {})
         server  (or server php/$_SERVER)]
     (dofor [[k v] :pairs server
-            :let [redirected? (id 0 (php/strpos k "REDIRECT_"))
+            :let [redirected? (identical? 0 (php/strpos k "REDIRECT_"))
                   redirected-key (when redirected? (php/substr k 9))
                   k (if (and redirected? (not (php/array_key_exists redirected-key server)))
                       redirected-key
                       k)]]
       (cond
-        (and v (id 0 (php/strpos k "HTTP_")))
+        (and v (identical? 0 (php/strpos k "HTTP_")))
         (let [name (php/strtr (php/strtolower (php/substr k 5)) "_" "-")]
           (assoc headers (keyword name) v))
-        (and v (id 0 (php/strpos k "CONTENT_")))
+        (and v (identical? 0 (php/strpos k "CONTENT_")))
         (let [name (str "content-" (php/strtolower (php/substr k 8)))]
           (assoc headers (keyword name) v))))
     (persistent headers)))
@@ -453,8 +453,8 @@
   (when-not (php/headers_sent)
     (dofor [[header values] :pairs headers
             :let [normalized-name (normalize-header-name header)
-                  replace (and (id 0 (php/strcasecmp normalized-name "Content-Type"))
-                               (not (id 0 (php/strcasecmp normalized-name "Set-Cookie"))))]]
+                  replace (and (identical? 0 (php/strcasecmp normalized-name "Content-Type"))
+                               (not (identical? 0 (php/strcasecmp normalized-name "Set-Cookie"))))]]
       (cond
         (string? values)
         (php/header (php/sprintf "%s: %s" normalized-name (assert-no-crlf values)) replace status)
