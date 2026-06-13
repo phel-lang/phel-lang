@@ -549,17 +549,6 @@ Returns nil. Prints one name per line, sorted alphabetically."
       (filter (fn [info] (reloadable? (php/-> info (getNamespace))))
               (php/-> build-facade (getDependenciesForNamespace (get-src-dirs) ns-array))))))
 
-(defn- force-eval-file!
-  "Re-evaluates a Phel source file, re-registering its definitions even when
-  the namespace is already loaded. Bypasses the build cache so edits always
-  take effect."
-  [file]
-  (let [content (php/file_get_contents file)]
-    (when content
-      (let [cf   (php/new CompilerFacade)
-            opts (php/-> (php/new CompileOptions) (setSource file))]
-        (php/-> cf (eval content opts))))))
-
 (defn- with-repl-mode
   "Runs `thunk` with `*repl-mode*` enabled so re-evaluating a definition does
   not trip the duplicate-definition guard, restoring the previous mode after."
@@ -591,7 +580,9 @@ Returns nil. Prints one name per line, sorted alphabetically."
                self?     (or force? (not= cur-hash prev-hash))
                dep?      (some (fn [d] (get (deref dirty) d)) deps)]
            (when (or self? dep?)
-             (force-eval-file! file)
+             ;; load-file re-evaluates the file fresh, bypassing the build
+             ;; cache, so edits always take effect.
+             (load-file file)
              (swap! dirty assoc ns-name true)
              (swap! reloaded conj ns-name))
            (swap! reload-state assoc ns-name cur-hash)))))
@@ -680,19 +671,10 @@ Returns nil. Prints one name per line, sorted alphabetically."
 (defn test-ns
   "Runs all tests in a given namespace from the REPL. Requires the namespace if not already loaded, finds all deftest definitions, runs them, prints results, and returns a hash-map with :pass, :fail, and :error counts. Preserves outer test state so it can be safely called during a test run."
   {:example "(test-ns \"phel-test\\test\\core\")"
-   :see-also ["dir" "loaded-namespaces"]}
+   :see-also ["run-tests" "run-test" "dir" "loaded-namespaces"]}
   [ns-str]
-  (eval-namespace ns-str)
-  (let [saved-stats (t/get-stats)]
-    (t/reset-stats)
-    (let [sym (php/:: Symbol (create ns-str))]
-      (t/run-tests {} sym)
-      (let [{:counts counts} (t/get-stats)
-            result           {:pass (get counts :pass)
-                              :fail (get counts :failed)
-                              :error (get counts :error)}]
-        (t/restore-stats saved-stats)
-        result))))
+  (load-namespace! ns-str)
+  (run-tests-collecting {} [(php/:: Symbol (create (canonical-ns ns-str)))]))
 
 (defn macroexpand-1-form
   "Expands the given form once if it is a macro call. Takes a quoted form and returns the expanded form, or the original form unchanged if it is not a macro call. Uses the CompilerFacade to perform the expansion without going through analyze+emit."
