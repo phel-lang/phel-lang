@@ -13,7 +13,7 @@ final class SystemFileIo implements FileIoInterface
 {
     public function getContents(string $filename): string
     {
-        $contents = file_get_contents($filename);
+        $contents = @file_get_contents($filename);
 
         if ($contents === false) {
             throw new RuntimeException(sprintf('Unable to read file "%s".', $filename));
