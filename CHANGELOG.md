@@ -4,6 +4,10 @@ All notable changes to this project will be documented in this file.
 
 ## Unreleased
 
+### Fixed
+
+- `phel test`/`phel run` with a missing file path: no longer leaks a raw `file_get_contents(): Failed to open stream` PHP warning before the clean `Unable to read file "..."` error
+
 ## [0.44.0](https://github.com/phel-lang/phel-lang/compare/v0.43.0...v0.44.0) - 2026-06-13
 
 Two themes: project configuration (`phel config`, optimization levels, composable config setters) and a sharper test runner (`--watch`, startup progress, clearer failures).
