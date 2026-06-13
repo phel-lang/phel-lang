@@ -4,7 +4,9 @@ declare(strict_types=1);
 
 namespace PhelTest\Integration\Run\Command\Init;
 
+use Iterator;
 use Phel\Run\Infrastructure\Command\InitCommand;
+use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\ArrayInput;
@@ -413,6 +415,140 @@ final class InitCommandTest extends TestCase
 
         self::assertFileDoesNotExist($this->testDir . '/.gitignore');
         self::assertFileExists($this->testDir . '/phel-config.php');
+    }
+
+    public function test_lists_templates(): void
+    {
+        $command = new InitCommand();
+        $output = new BufferedOutput();
+
+        chdir($this->testDir);
+        $result = $command->run(new ArrayInput(['--list-templates' => true]), $output);
+
+        self::assertSame(Command::SUCCESS, $result);
+        $text = $output->fetch();
+        self::assertStringContainsString('http-json-api', $text);
+        self::assertStringContainsString('todo-app', $text);
+        self::assertStringContainsString('cli-wordcount', $text);
+        self::assertDirectoryDoesNotExist($this->testDir . '/src');
+    }
+
+    public function test_scaffolds_template_with_renamed_namespaces(): void
+    {
+        $command = new InitCommand();
+        $output = new BufferedOutput();
+
+        chdir($this->testDir);
+        $result = $command->run(new ArrayInput([
+            'project-name' => 'my-api',
+            '--template' => 'http-json-api',
+        ]), $output);
+
+        self::assertSame(Command::SUCCESS, $result);
+        self::assertFileExists($this->testDir . '/src/entry.phel');
+        self::assertFileExists($this->testDir . '/public/index.php');
+        self::assertFileExists($this->testDir . '/composer.json');
+
+        $entry = (string) file_get_contents($this->testDir . '/src/entry.phel');
+        self::assertStringContainsString('(ns my-api\\entry', $entry);
+        self::assertStringNotContainsString('http-json-api', $entry);
+
+        $composer = (string) file_get_contents($this->testDir . '/composer.json');
+        self::assertStringContainsString('my-api', $composer);
+
+        $index = (string) file_get_contents($this->testDir . '/public/index.php');
+        self::assertStringContainsString("'my-api\\\\entry'", $index);
+    }
+
+    /**
+     * @return Iterator<int<0, max>, array{string, string}>
+     */
+    public static function templateProvider(): Iterator
+    {
+        yield ['http-json-api', 'src/entry.phel'];
+        yield ['todo-app', 'src/store.phel'];
+        yield ['cli-wordcount', 'src/counts.phel'];
+    }
+
+    #[DataProvider('templateProvider')]
+    public function test_scaffolds_each_template(string $template, string $markerFile): void
+    {
+        $command = new InitCommand();
+        $output = new BufferedOutput();
+
+        chdir($this->testDir);
+        $result = $command->run(new ArrayInput([
+            'project-name' => 'proj',
+            '--template' => $template,
+        ]), $output);
+
+        self::assertSame(Command::SUCCESS, $result);
+        self::assertFileExists($this->testDir . '/' . $markerFile);
+        self::assertFileExists($this->testDir . '/composer.json');
+    }
+
+    public function test_unknown_template_fails_and_lists_options(): void
+    {
+        $command = new InitCommand();
+        $output = new BufferedOutput();
+
+        chdir($this->testDir);
+        $result = $command->run(new ArrayInput([
+            'project-name' => 'my-api',
+            '--template' => 'does-not-exist',
+        ]), $output);
+
+        self::assertSame(Command::FAILURE, $result);
+        $text = $output->fetch();
+        self::assertStringContainsString('Unknown template', $text);
+        self::assertStringContainsString('http-json-api', $text);
+        self::assertFileDoesNotExist($this->testDir . '/composer.json');
+    }
+
+    public function test_dry_run_template_creates_no_files(): void
+    {
+        $command = new InitCommand();
+        $output = new BufferedOutput();
+
+        chdir($this->testDir);
+        $result = $command->run(new ArrayInput([
+            'project-name' => 'my-api',
+            '--template' => 'cli-wordcount',
+            '--dry-run' => true,
+        ]), $output);
+
+        self::assertSame(Command::SUCCESS, $result);
+        self::assertFileDoesNotExist($this->testDir . '/composer.json');
+        self::assertFileDoesNotExist($this->testDir . '/src/counts.phel');
+        self::assertStringContainsString('[DRY-RUN]', $output->fetch());
+    }
+
+    public function test_force_overwrites_scaffolded_template_files(): void
+    {
+        chdir($this->testDir);
+
+        $first = new InitCommand();
+        $first->run(new ArrayInput([
+            'project-name' => 'my-api',
+            '--template' => 'cli-wordcount',
+        ]), new BufferedOutput());
+
+        file_put_contents($this->testDir . '/composer.json', 'tampered');
+
+        $skipOutput = new BufferedOutput();
+        new InitCommand()->run(new ArrayInput([
+            'project-name' => 'my-api',
+            '--template' => 'cli-wordcount',
+        ]), $skipOutput);
+        self::assertSame('tampered', file_get_contents($this->testDir . '/composer.json'));
+        self::assertStringContainsString('already exists', $skipOutput->fetch());
+
+        new InitCommand()->run(new ArrayInput([
+            'project-name' => 'my-api',
+            '--template' => 'cli-wordcount',
+            '--force' => true,
+        ]), new BufferedOutput());
+        self::assertStringContainsString('phel-examples/my-api', (string) file_get_contents($this->testDir . '/composer.json'));
     }
 
     private function removeDirectory(string $dir): void
