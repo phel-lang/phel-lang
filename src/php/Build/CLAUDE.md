@@ -7,6 +7,7 @@ Compiles Phel projects to PHP: dependency resolution, caching, namespace extract
 - `getNamespaceFromFile(string)` / `getNamespaceFromDirectories(array)`: extract `NamespaceInformation` (the VO lives in `Phel\Shared`, not here; Build produces it)
 - `getDependenciesForNamespace(array $dirs, array $ns)`: topologically sorted dependencies
 - `compileFile(src, dest)` / `evalFile(src)` / `compileProject(BuildOptions)`: compile to PHP (evalFile skips writing output)
+- `phel build --report` builds a `BuildReport` (`Domain/Compile/BuildReport` + `BuildReportEntry`) from the returned `CompiledFile[]` + build duration: namespace count, per-namespace compiled byte size (read from each target file), total size, fresh/cached counts. Pure VO with `toArray()`; the command renders it
 - `clearCache(): string[]`: paths cleared from temp/cache dirs
 - `getHealthCheck()`: cache, output, source dir checks
 - `writeLocatedException` / `writeStackTrace` / `getOutputDirectory`: delegate to Command facade

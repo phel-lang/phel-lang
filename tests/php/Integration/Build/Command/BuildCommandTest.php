@@ -15,6 +15,7 @@ use PHPUnit\Framework\Attributes\PreserveGlobalState;
 use PHPUnit\Framework\Attributes\RunInSeparateProcess;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\Console\Input\ArrayInput;
+use Symfony\Component\Console\Output\BufferedOutput;
 use Symfony\Component\Console\Output\OutputInterface;
 
 use function ob_get_clean;
@@ -156,6 +157,33 @@ TXT;
         ob_end_clean();
 
         $this->assertFileDoesNotExist(__DIR__ . '/out/main.php');
+    }
+
+    #[PreserveGlobalState(false)]
+    #[RunInSeparateProcess]
+    public function test_build_report_prints_namespaces_sizes_and_timing(): void
+    {
+        DirectoryUtil::removeDir(__DIR__ . '/out');
+        $this->bootstrapGacela();
+
+        $output = new BufferedOutput();
+        $this->command->run(
+            new ArrayInput([
+                '--no-source-map' => true,
+                '--no-cache' => true,
+                '--report' => true,
+            ]),
+            $output,
+        );
+        $text = $output->fetch();
+
+        self::assertStringContainsString('Build report', $text);
+        self::assertMatchesRegularExpression('/Namespaces: \d+ \(\d+ fresh, \d+ cached\)/', $text);
+        self::assertMatchesRegularExpression('/Total: [\d.]+ (B|KB|MB)/', $text);
+        self::assertMatchesRegularExpression('/Time: [\d.]+ ms/', $text);
+        self::assertStringContainsString('(fresh)', $text);
+        self::assertStringContainsString('phel.core', $text);
+        self::assertStringContainsString('test-ns.hello', $text);
     }
 
     private function bootstrapGacela(): void

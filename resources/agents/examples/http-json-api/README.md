@@ -10,6 +10,16 @@ composer install
 php -S localhost:8000 -t public
 ```
 
+## Build & deploy
+
+```bash
+./vendor/bin/phel build --report   # compile ahead of time + size/timing summary
+```
+
+See [DEPLOYMENT.md](DEPLOYMENT.md) for the production story: build flow, opcache,
+the included multi-stage [Dockerfile](Dockerfile), nginx + php-fpm, and
+worker-mode (FrankenPHP) caveats.
+
 ## Endpoints
 
 | Method | Path | Returns |
