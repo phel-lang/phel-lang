@@ -276,7 +276,7 @@
     (loop []
       (let [line (php/fgets handle)]
         (when-not (false? line)
-          (push out (php/rtrim line "\r\n"))
+          (conj out (php/rtrim line "\r\n"))
           (recur))))
     (php/fclose handle)
     (persistent out)))

@@ -51,13 +51,13 @@
    :see-also ["phel\\test\\rose/int-rose-tree"]}
   [v]
   (cond
-    (int? v)      (r/int-rose-tree v)
-    (string? v)   (shrink-string-tree v)
-    (vector? v)   (shrink-vector-tree v)
-    (list? v)     (shrink-list-tree v)
-    (hash-map? v) (shrink-map-tree v)
-    (set? v)      (shrink-set-tree v)
-    :else         (r/rose-pure v)))
+    (int? v)    (r/int-rose-tree v)
+    (string? v) (shrink-string-tree v)
+    (vector? v) (shrink-vector-tree v)
+    (list? v)   (shrink-list-tree v)
+    (map? v)    (shrink-map-tree v)
+    (set? v)    (shrink-set-tree v)
+    :else       (r/rose-pure v)))
 
 ;; ----------------
 ;; Shrink driver

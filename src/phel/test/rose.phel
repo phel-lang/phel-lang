@@ -85,7 +85,7 @@
   "Returns `true` if `x` looks like a rose tree."
   {:example "(rose? (rose-pure 1)) ; => true"}
   [x]
-  (and (hash-map? x) (contains? x :root) (contains? x :children)))
+  (and (map? x) (contains? x :root) (contains? x :children)))
 
 ;; ----------------
 ;; Structural ops
