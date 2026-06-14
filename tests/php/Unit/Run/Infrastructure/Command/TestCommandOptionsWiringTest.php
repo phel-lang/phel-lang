@@ -8,6 +8,7 @@ use Phel\Run\Infrastructure\Command\TestCommand;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\Console\Input\InputDefinition;
 use Symfony\Component\Console\Input\InputOption;
+use Symfony\Component\Console\Tester\CommandCompletionTester;
 
 final class TestCommandOptionsWiringTest extends TestCase
 {
@@ -125,6 +126,30 @@ final class TestCommandOptionsWiringTest extends TestCase
         self::assertStringContainsString('tag', strtolower($include->getDescription()));
         self::assertStringContainsString('skip', strtolower($exclude->getDescription()));
         self::assertStringContainsString('glob', strtolower($ns->getDescription()));
+    }
+
+    public function test_coverage_option_completes_formats(): void
+    {
+        $tester = new CommandCompletionTester(new TestCommand());
+
+        self::assertSame(['text', 'clover'], $tester->complete(['--coverage', '']));
+    }
+
+    public function test_reporter_option_completes_builtins(): void
+    {
+        $tester = new CommandCompletionTester(new TestCommand());
+
+        self::assertSame(
+            ['default', 'testdox', 'dot', 'tap', 'junit-xml'],
+            $tester->complete(['--reporter', '']),
+        );
+    }
+
+    public function test_parallel_option_completes_keywords(): void
+    {
+        $tester = new CommandCompletionTester(new TestCommand());
+
+        self::assertSame(['auto', 'max'], $tester->complete(['--parallel', '']));
     }
 
     private function definition(): InputDefinition

@@ -60,6 +60,7 @@ final class CompileCommand extends Command
                 InputOption::VALUE_REQUIRED,
                 'Compilation target. Currently only "php" is supported.',
                 self::TARGET_PHP,
+                self::SUPPORTED_TARGETS,
             );
     }
 

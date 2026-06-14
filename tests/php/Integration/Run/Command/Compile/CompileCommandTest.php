@@ -8,6 +8,7 @@ use Phel\Phel;
 use Phel\Run\Infrastructure\Command\CompileCommand;
 use Phel\Run\Infrastructure\PhpStdinReader;
 use PhelTest\Integration\Run\Command\AbstractTestCommand;
+use Symfony\Component\Console\Tester\CommandCompletionTester;
 use Symfony\Component\Console\Tester\CommandTester;
 
 final class CompileCommandTest extends AbstractTestCommand
@@ -119,6 +120,14 @@ final class CompileCommandTest extends AbstractTestCommand
         $tester->assertCommandIsSuccessful();
         self::assertStringNotContainsString('compile-time-leak', $phpStdout);
         self::assertStringContainsString('"println"', $tester->getDisplay());
+    }
+
+    public function test_target_option_completes_supported_targets(): void
+    {
+        $tester = new CommandCompletionTester(new CompileCommand());
+        $suggestions = $tester->complete(['--target', '']);
+
+        self::assertSame(['php'], $suggestions);
     }
 
     private function stdinReader(string $contents): PhpStdinReader
