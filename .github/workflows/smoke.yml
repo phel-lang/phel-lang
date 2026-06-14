@@ -112,3 +112,15 @@ jobs:
           echo "::group::phel analyze (JSON diagnostics)"
           "$PHAR" analyze src/main.phel > /tmp/analyze.json
           echo "::endgroup::"
+
+          echo "::group::precompiled stdlib bundle (phel.core served from PHAR, never recompiled)"
+          php -r 'exit(isset((new Phar($argv[1]))["src/phel/core.php"]) ? 0 : 1);' "$PHAR" \
+            || { echo "❌ PHAR is missing the precompiled src/phel/core.php sibling"; exit 1; }
+          rm -rf .phel
+          "$PHAR" run src/main.phel >/dev/null
+          if ls .phel/cache/compiled/ 2>/dev/null | grep -q '^phel\.core'; then
+            echo "❌ phel.core was recompiled into the user cache; the bundled sibling was not used"
+            exit 1
+          fi
+          echo "✅ cold run used the bundled phel.core"
+          echo "::endgroup::"

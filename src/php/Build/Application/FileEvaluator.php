@@ -16,9 +16,12 @@ use Phel\Shared\CompileOptions;
 use Phel\Shared\Facade\CompilerFacadeInterface;
 use Phel\Shared\Parser\Node\NodeInterface;
 use Phel\Shared\Parser\Node\TriviaNodeInterface;
+use Phel\Shared\SourceMap\BuiltFilePreamble;
 use RuntimeException;
 use Throwable;
 
+use function is_file;
+use function preg_replace;
 use function sprintf;
 
 final class FileEvaluator
@@ -65,6 +68,15 @@ final class FileEvaluator
 
         $namespaceInfo = $this->namespaceExtractor->getNamespaceFromFile($src);
         $namespace = $namespaceInfo->getNamespace();
+
+        $precompiledSibling = $this->precompiledSiblingPath($src);
+        if ($precompiledSibling !== null) {
+            $this->compilerFacade->initializeGlobalEnvironment();
+            /** @psalm-suppress UnresolvableInclude */
+            require $precompiledSibling;
+
+            return new CompiledFile($src, $precompiledSibling, $namespace);
+        }
 
         if ($this->compiledCodeCache instanceof CompiledCodeCacheInterface) {
             $sourceHash = $this->sourceHash($code);
@@ -152,6 +164,34 @@ final class FileEvaluator
         return $this->optimizationLevel > 0
             ? md5($code . '|O' . $this->optimizationLevel)
             : md5($code);
+    }
+
+    /**
+     * Returns the path of a precompiled `.php` sibling shipped next to a
+     * `.phel`/`.cljc` source (the stdlib bundled in the PHAR), or null when
+     * none applies.
+     *
+     * When present, the sibling is `require`d directly, skipping the
+     * lex/parse/analyze/emit pipeline and the compiled-code cache entirely:
+     * running the compiled file registers every definition (with macro meta)
+     * in the runtime registry, which is all the analyzer needs to resolve
+     * those symbols when it later compiles user code. The file must carry the
+     * build preamble so a hand-written PHP file that merely happens to sit
+     * next to a Phel source is never executed.
+     */
+    private function precompiledSiblingPath(string $src): ?string
+    {
+        $sibling = preg_replace('/\.(phel|cljc)$/i', '.php', $src);
+        if ($sibling === null || $sibling === $src || !is_file($sibling)) {
+            return null;
+        }
+
+        $head = @file_get_contents($sibling, length: 64);
+        if ($head === false || !BuiltFilePreamble::isPresent($head)) {
+            return null;
+        }
+
+        return $sibling;
     }
 
     private function analyzeNsForm(string $code, string $src): void

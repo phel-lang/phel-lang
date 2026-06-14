@@ -31,4 +31,15 @@ final class BuiltFilePreamble
     {
         return substr_count(self::CONTENT, "\n") + 1;
     }
+
+    /**
+     * Whether the given code begins with the build preamble, marking it as a
+     * `phel build` artifact. Used to tell an intentionally precompiled `.php`
+     * sibling apart from an unrelated hand-written PHP file sitting next to a
+     * Phel source.
+     */
+    public static function isPresent(string $code): bool
+    {
+        return str_starts_with($code, self::CONTENT);
+    }
 }

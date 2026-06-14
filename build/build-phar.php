@@ -8,6 +8,26 @@ declare(strict_types=1);
 // ============================================================================
 final class PharBuilder
 {
+    /**
+     * Stdlib namespaces precompiled into `.php` siblings shipped next to their
+     * `.phel` sources inside the PHAR. `phel.core` is the universal cold-start
+     * cost paid by every command and is fully self-contained (it only `:use`s
+     * PHP classes and `(load ...)`s its own secondaries), so shipping it adds
+     * no transitive-dependency requirements.
+     *
+     * Other modules compile on demand into the user's cache on first use, so
+     * they are left out to keep the PHAR within its size budget. A module may
+     * only be added here together with its full transitive `(:require ...)`
+     * closure, because a FILE-mode compiled namespace `require_once`s its
+     * dependency siblings directly.
+     *
+     * Each entry matches the source path relative to `src/phel`: an exact file
+     * or a directory prefix (covering all `(in-ns ...)` secondaries).
+     */
+    private const array BUNDLED_STDLIB_PATHS = [
+        'core.phel',
+        'core/',
+    ];
     private string $root;
     private string $pharFile;
     private string $releaseConfigFile;
@@ -83,8 +103,6 @@ final class PharBuilder
      */
     private string $versionedDocPattern = '/^(README|CHANGELOG|CHANGES|UPGRADE|HISTORY)(-[\w.]+)?\.(md|rst|txt)$/i';
 
-    private string $stdlibCacheDir;
-
     public function __construct(string $root)
     {
         $this->root = realpath($root) ?: $root;
@@ -92,7 +110,6 @@ final class PharBuilder
         $this->releaseConfigFile = $this->root . '/.phel-release.php';
         $this->stats['start_time'] = microtime(true);
         $this->isOfficialRelease = $this->checkOfficialRelease();
-        $this->stdlibCacheDir = (string) (getenv('STDLIB_CACHE_DIR') ?: '');
     }
 
     public function validate(): void
@@ -154,49 +171,25 @@ final class PharBuilder
     }
 
     /**
-     * Pre-compile all stdlib .phel modules into cache/compiled/ so the PHAR
-     * ships ready-to-run code. Without this, modules other than phel\core
-     * would fail to compile at runtime when phar.readonly=On.
+     * Compile the bundled stdlib modules to PHP ahead of time. The output is
+     * a path-structured tree of compiled `.php` under `out/phel/` (the normal
+     * `phel build` deployment layout): primaries plus every `(in-ns ...)`
+     * secondary, each with the runtime `(load ...)` sibling resolution baked
+     * in. `addPrecompiledStdlibSiblings()` later ships the bundled subset of
+     * these next to their `.phel` sources inside the PHAR.
      */
     public function preCompileStdlib(): void
     {
-        $cacheDir = $this->root . '/cache';
-        $compiledDir = $cacheDir . '/compiled';
         $outDir = $this->root . '/out';
 
-        // Clean previous compiled cache to avoid stale entries. Wipe both the
-        // compiled/ files and the sibling compiled-index.php — leaving the
-        // index in place can fool the next run into seeing a populated cache
-        // that no longer points at real files.
-        if (is_dir($compiledDir)) {
-            $files = glob($compiledDir . '/*');
-            if ($files !== false) {
-                foreach ($files as $file) {
-                    @unlink($file);
-                }
-            }
-        }
-
-        $staleIndex = $cacheDir . '/compiled-index.php';
-        if (is_file($staleIndex)) {
-            @unlink($staleIndex);
-        }
-
-        $hash = $this->stdlibSourceHash();
-        if ($this->restoreStdlibFromCache($hash, $cacheDir, $compiledDir)) {
-            return;
-        }
-
         // rsync excludes out/, so phel build has nowhere to write. Create it
-        // up front; otherwise build aborts with a file_put_contents warning
-        // and only appears to succeed because a previous /tmp/phel/cache run
-        // is still around.
+        // up front; otherwise build aborts with a file_put_contents warning.
         if (!is_dir($outDir) && !mkdir($outDir, 0o755, true) && !is_dir($outDir)) {
             throw new RuntimeException("Failed to create build output dir: {$outDir}");
         }
 
-        // Build the project using Phel's build command — this compiles all
-        // stdlib modules through the normal pipeline, populating the temp cache.
+        // Build the project using Phel's build command — this compiles every
+        // stdlib module through the normal FILE-mode pipeline into out/phel/.
         $exitCode = 0;
         passthru(
             \sprintf('cd %s && php bin/phel build --quiet 2>&1', escapeshellarg($this->root)),
@@ -206,68 +199,6 @@ final class PharBuilder
         if ($exitCode !== 0) {
             throw new RuntimeException("phel build failed with exit code {$exitCode}");
         }
-
-        // Copy the compiled cache from the temp dir to the project-local cache/
-        // so the files get bundled into the PHAR.
-        $tempCacheDir = sys_get_temp_dir() . '/phel/cache';
-
-        if (!is_dir($tempCacheDir . '/compiled')) {
-            echo "⚠️  No compiled cache found at {$tempCacheDir}/compiled\n";
-            return;
-        }
-
-        if (!is_dir($compiledDir)) {
-            mkdir($compiledDir, 0755, true);
-        }
-
-        // Copy only stdlib compiled files. Cache filenames use the canonical
-        // dot-separated namespace prefix since #1798 (e.g. `phel.core__abc.php`),
-        // so match both the legacy underscore prefix and the current dotted one.
-        $compiledFiles = array_merge(
-            glob($tempCacheDir . '/compiled/phel.*') ?: [],
-            glob($tempCacheDir . '/compiled/phel_*') ?: [],
-        );
-        if ($compiledFiles === []) {
-            echo "⚠️  No compiled phel.* / phel_* files found in {$tempCacheDir}/compiled\n";
-            return;
-        }
-
-        $copiedCount = 0;
-        foreach ($compiledFiles as $file) {
-            $basename = basename($file);
-            if (copy($file, $compiledDir . '/' . $basename)) {
-                ++$copiedCount;
-            }
-        }
-
-        // Copy the compiled index (filtered to only stdlib entries)
-        $indexFile = $tempCacheDir . '/compiled-index.php';
-        if (file_exists($indexFile)) {
-            $indexData = @include $indexFile;
-            if (\is_array($indexData) && isset($indexData['entries'])) {
-                $stdlibEntries = [];
-                foreach ($indexData['entries'] as $namespace => $entry) {
-                    if (str_starts_with($namespace, 'phel.') || str_starts_with($namespace, 'phel\\')) {
-                        // Rewrite compiled_path to be relative to phar cache dir
-                        $entry['compiled_path'] = $compiledDir . '/' . basename($entry['compiled_path']);
-                        // Drop wall-clock timestamps so the index is deterministic
-                        if (\array_key_exists('last_accessed', $entry)) {
-                            $entry['last_accessed'] = 0;
-                        }
-                        $stdlibEntries[$namespace] = $entry;
-                    }
-                }
-                $indexData['entries'] = $stdlibEntries;
-                file_put_contents(
-                    $cacheDir . '/compiled-index.php',
-                    '<?php return ' . var_export($indexData, true) . ';',
-                );
-            }
-        }
-
-        echo "📦  Pre-compiled {$copiedCount} stdlib module(s) into cache/compiled/\n";
-
-        $this->persistStdlibCache($hash, $compiledDir, $cacheDir);
     }
 
     /**
@@ -285,6 +216,7 @@ final class PharBuilder
             $phar->startBuffering();
 
             $this->addFiles($phar);
+            $this->addPrecompiledStdlibSiblings($phar);
             $this->addReplStartupFile($phar);
             $this->addExampleTemplates($phar);
             $this->setStub($phar);
@@ -342,96 +274,125 @@ final class PharBuilder
         return file_exists($this->pharFile) && is_executable($this->pharFile);
     }
 
-    private function stdlibSourceHash(): string
+    /**
+     * Ship the precompiled stdlib `.php` next to their `.phel` sources inside
+     * the PHAR, so a cold `phel run`/`phel test` reuses them directly
+     * (FileEvaluator's precompiled-sibling fast path) instead of recompiling
+     * core on first use.
+     *
+     * Compiled outputs are matched back to their canonical (kebab-case) source
+     * path by content hash, so the namespace munging `phel build` applies to
+     * primary filenames (e.g. `http-client` -> `http_client.php`) never causes
+     * a sibling to land at the wrong path.
+     */
+    private function addPrecompiledStdlibSiblings(Phar $phar): void
     {
-        $sourceDir = $this->root . '/src/phel';
-        if (!is_dir($sourceDir)) {
-            return '';
+        $srcPhelDir = $this->root . '/src/phel';
+        $outPhelDir = $this->root . '/out/phel';
+
+        if (!is_dir($outPhelDir)) {
+            $this->stats['errors'][] = "No precompiled stdlib found at {$outPhelDir}";
+            return;
         }
 
-        $iter = new RecursiveIteratorIterator(
-            new RecursiveDirectoryIterator($sourceDir, FilesystemIterator::SKIP_DOTS),
-        );
-
-        $files = [];
-        foreach ($iter as $f) {
-            if ($f->isFile() && str_ends_with($f->getFilename(), '.phel')) {
-                $files[] = $f->getPathname();
+        // Map source content hash -> relative kebab path (e.g. 'core/meta.phel')
+        // for the bundled subset only.
+        $byHash = [];
+        foreach ($this->iteratePhpFiles($srcPhelDir, 'phel') as $absSrc) {
+            $relative = substr($absSrc, \strlen($srcPhelDir) + 1);
+            if ($this->isBundledStdlibSource($relative)) {
+                $byHash[md5((string) file_get_contents($absSrc))] = $relative;
             }
-        }
-
-        sort($files);
-
-        $ctx = hash_init('sha256');
-        foreach ($files as $path) {
-            hash_update($ctx, substr($path, \strlen($sourceDir)));
-            hash_update_file($ctx, $path);
-        }
-
-        return hash_final($ctx);
-    }
-
-    private function restoreStdlibFromCache(string $hash, string $cacheDir, string $compiledDir): bool
-    {
-        if ($this->stdlibCacheDir === '' || $hash === '') {
-            return false;
-        }
-
-        $bucket = $this->stdlibCacheDir . '/' . $hash;
-        if (!is_dir($bucket . '/compiled') || !is_file($bucket . '/compiled-index.php')) {
-            return false;
-        }
-
-        $cached = glob($bucket . '/compiled/*') ?: [];
-        if ($cached === []) {
-            // Empty bucket means an earlier build wrote the index without any
-            // compiled files. Treat it as a miss and force a rebuild.
-            return false;
-        }
-
-        if (!is_dir($compiledDir) && !mkdir($compiledDir, 0o755, true) && !is_dir($compiledDir)) {
-            return false;
         }
 
         $count = 0;
-        foreach ($cached as $file) {
-            if (copy($file, $compiledDir . '/' . basename($file))) {
-                ++$count;
+        foreach ($this->iteratePhpFiles($outPhelDir, 'php') as $compiled) {
+            $sourceSibling = preg_replace('/\.php$/', '.phel', $compiled);
+            if ($sourceSibling === null || !is_file($sourceSibling)) {
+                continue;
+            }
+
+            $relative = $byHash[md5((string) file_get_contents($sourceSibling))] ?? null;
+            if ($relative === null) {
+                continue;
+            }
+
+            $pharPath = 'src/phel/' . preg_replace('/\.(phel|cljc)$/i', '.php', $relative);
+            $code = $this->stripInlineSourceMap((string) file_get_contents($compiled));
+
+            $phar->addFromString($pharPath, $code);
+            ++$this->stats['files_added'];
+            $this->stats['total_size'] += \strlen($code);
+            ++$count;
+        }
+
+        echo "📦  Bundled {$count} precompiled stdlib file(s) as PHAR siblings\n";
+    }
+
+    private function isBundledStdlibSource(string $relativePath): bool
+    {
+        foreach (self::BUNDLED_STDLIB_PATHS as $entry) {
+            if (str_ends_with($entry, '/')) {
+                if (str_starts_with($relativePath, $entry)) {
+                    return true;
+                }
+            } elseif ($relativePath === $entry) {
+                return true;
             }
         }
 
-        copy($bucket . '/compiled-index.php', $cacheDir . '/compiled-index.php');
-
-        echo "📦  Reused {$count} cached stdlib module(s) for hash " . substr($hash, 0, 12) . "\n";
-        return true;
+        return false;
     }
 
-    private function persistStdlibCache(string $hash, string $compiledDir, string $cacheDir): void
+    /**
+     * Removes the leading inline source-map comment lines a cache-mode
+     * compile prepends (`// <file>` then `// ;;<mappings>`) right after the
+     * `<?php` opener. Keeps the shipped siblings lean; runtime errors in the
+     * stdlib are rare and still resolve via the on-disk `.phel` source.
+     */
+    private function stripInlineSourceMap(string $php): string
     {
-        if ($this->stdlibCacheDir === '' || $hash === '') {
-            return;
+        $lines = explode("\n", $php);
+        $result = [];
+        $inHeader = true;
+
+        foreach ($lines as $line) {
+            if ($inHeader) {
+                $trimmed = ltrim($line);
+                if ($trimmed === '' || str_starts_with($trimmed, '<?php')) {
+                    $result[] = $line;
+                    continue;
+                }
+
+                if (str_starts_with($trimmed, '// ')) {
+                    continue;
+                }
+
+                $inHeader = false;
+            }
+
+            $result[] = $line;
         }
 
-        $files = glob($compiledDir . '/*') ?: [];
-        if ($files === []) {
-            // Refuse to persist an empty bucket — a future restore would think
-            // it succeeded and ship a PHAR without any compiled stdlib.
-            return;
-        }
+        return implode("\n", $result);
+    }
 
-        $bucket = $this->stdlibCacheDir . '/' . $hash;
-        $bucketCompiled = $bucket . '/compiled';
-        if (!is_dir($bucketCompiled) && !mkdir($bucketCompiled, 0o755, true) && !is_dir($bucketCompiled)) {
-            return;
-        }
+    /**
+     * Yields every file with the given extension under $dir (recursive).
+     *
+     * @return iterable<string>
+     */
+    private function iteratePhpFiles(string $dir, string $extension): iterable
+    {
+        $iterator = new RecursiveIteratorIterator(
+            new RecursiveDirectoryIterator($dir, FilesystemIterator::SKIP_DOTS),
+        );
 
-        foreach ($files as $file) {
-            @copy($file, $bucketCompiled . '/' . basename($file));
-        }
-
-        $indexFile = $cacheDir . '/compiled-index.php';
-        if (is_file($indexFile)) {
-            @copy($indexFile, $bucket . '/compiled-index.php');
+        $suffix = '.' . $extension;
+        foreach ($iterator as $fileInfo) {
+            if ($fileInfo->isFile() && str_ends_with($fileInfo->getFilename(), $suffix)) {
+                yield $fileInfo->getPathname();
+            }
         }
     }
 
