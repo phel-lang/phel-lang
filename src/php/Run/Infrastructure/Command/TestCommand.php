@@ -84,6 +84,7 @@ final class TestCommand extends Command
                 InputOption::VALUE_REQUIRED | InputOption::VALUE_IS_ARRAY,
                 'Reporter to emit test events through. Repeatable. Built-ins: default, testdox, dot, tap, junit-xml.',
                 [],
+                ['default', 'testdox', 'dot', 'tap', 'junit-xml'],
             )->addOption(
                 TestCommandOptionParser::OPT_OUTPUT,
                 null,
@@ -144,6 +145,8 @@ final class TestCommand extends Command
                 null,
                 InputOption::VALUE_REQUIRED,
                 'Run namespaces in parallel using subprocess workers. Accepts an integer worker count, "auto" (CPU detection capped at 8), or "max" (every core the kernel reports, uncapped). Auto-disabled for --reporter=tap, --list, or when a profiler hook is installed.',
+                null,
+                ['auto', 'max'],
             )->addOption(
                 TestCommandOptionParser::OPT_WATCH,
                 null,
@@ -155,6 +158,7 @@ final class TestCommand extends Command
                 InputOption::VALUE_OPTIONAL,
                 'Collect line coverage (via pcov or xdebug) mapped back to .phel sources. Value is the format: "text" (default) or "clover".',
                 false,
+                ['text', 'clover'],
             )->addOption(
                 self::OPT_COVERAGE_OUTPUT,
                 null,
