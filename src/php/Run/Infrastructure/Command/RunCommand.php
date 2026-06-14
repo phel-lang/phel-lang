@@ -7,14 +7,12 @@ namespace Phel\Run\Infrastructure\Command;
 use Gacela\Framework\ServiceResolver\ServiceMap;
 use Gacela\Framework\ServiceResolverAwareTrait;
 use Phel\Phel;
-use Phel\Run\Application\NamespaceCompletionFilter;
 use Phel\Run\RunFacade;
 use Phel\Shared\Exceptions\CompilerException;
 use Phel\Shared\Munge;
 use Phel\Shared\ResourceUsageFormatter;
 
 use Symfony\Component\Console\Command\Command;
-use Symfony\Component\Console\Completion\CompletionInput;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
@@ -43,10 +41,7 @@ final class RunCommand extends Command
                 InputArgument::OPTIONAL,
                 'The file path or namespace to execute (auto-detects main.phel or core.phel if omitted)',
                 null,
-                fn(CompletionInput $input): array => NamespaceCompletionFilter::matching(
-                    $this->getFacade()->getAllNamespaces(),
-                    $input->getCompletionValue(),
-                ),
+                fn(): array => $this->getFacade()->getAllNamespaces(),
             )->addArgument(
                 'argv',
                 InputArgument::IS_ARRAY | InputArgument::OPTIONAL,

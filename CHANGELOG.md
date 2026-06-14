@@ -10,7 +10,7 @@ All notable changes to this project will be documented in this file.
 - `phel doctor`: a "Checking performance" section now reports whether OPcache is configured to persist the compiled-code cache across CLI runs (`opcache.enable_cli`, `opcache.file_cache`) and prints actionable tips when it is not, helping warm `phel run`/`phel test` invocations approach native PHP speed (#2444)
 - `phel doc` now offers shell completion for its arguments: `phel doc <TAB>` completes fully qualified function names (`core/map`, ...), `--ns=<TAB>` completes the namespaces that own documented functions, and `--format=<TAB>` completes `table`/`json`. Install the completion script with `phel completion zsh` (or `bash`/`fish`) (#2451)
 - More shell completion for known option values: `phel compile --target=<TAB>` (`php`), plus `phel test --coverage=<TAB>` (`text`/`clover`), `--reporter=<TAB>` (`default`/`testdox`/`dot`/`tap`/`junit-xml`), and `--parallel=<TAB>` (`auto`/`max`) (#2451)
-- `phel run <TAB>` and `phel test <TAB>` / `phel test --ns=<TAB>` now complete the project's namespaces (source, test, and vendor source dirs), filtered by what you've typed. Backed by a new `RunFacade::getAllNamespaces()` (#2451)
+- `phel run <TAB>` and `phel test <TAB>` / `phel test --ns=<TAB>` now complete the project's namespaces (source, test, and vendor source dirs); the shell narrows them as you type. Backed by a new `RunFacade::getAllNamespaces()` (#2451)
 
 ### Fixed
 

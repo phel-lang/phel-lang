@@ -7,7 +7,6 @@ namespace Phel\Run\Infrastructure\Command;
 use ArrayAccess;
 use Gacela\Framework\ServiceResolver\ServiceMap;
 use Gacela\Framework\ServiceResolverAwareTrait;
-use Phel\Run\Application\NamespaceCompletionFilter;
 use Phel\Run\Application\Test\Coverage\CoverageDriver;
 use Phel\Run\Application\Test\Coverage\CoverageReport;
 use Phel\Run\Domain\Test\TestCommandOptions;
@@ -19,7 +18,6 @@ use Phel\Shared\NamespaceInformation;
 use Phel\Shared\ResourceUsageFormatter;
 use Phel\Shared\ScalarCoercion;
 use Symfony\Component\Console\Command\Command;
-use Symfony\Component\Console\Completion\CompletionInput;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
@@ -59,7 +57,7 @@ final class TestCommand extends Command
                 InputArgument::IS_ARRAY | InputArgument::OPTIONAL,
                 'The file paths that you want to test.',
                 [],
-                fn(CompletionInput $input): array => $this->completeNamespaces($input),
+                fn(): array => $this->getFacade()->getAllNamespaces(),
             )->addOption(
                 TestCommandOptionParser::OPT_FILTER,
                 'f',
@@ -111,7 +109,7 @@ final class TestCommand extends Command
                 InputOption::VALUE_REQUIRED | InputOption::VALUE_IS_ARRAY,
                 "Namespace glob (e.g. phel.http.*). Repeatable; globs are OR'd. `*` matches one segment, `**` any.",
                 [],
-                fn(CompletionInput $input): array => $this->completeNamespaces($input),
+                fn(): array => $this->getFacade()->getAllNamespaces(),
             )->addOption(
                 TestCommandOptionParser::OPT_LIST,
                 null,
@@ -314,20 +312,6 @@ final class TestCommand extends Command
         }
 
         return self::FAILURE;
-    }
-
-    /**
-     * Suggests the project's known namespaces for the path argument and the
-     * `--ns` selector. Powers `phel test <TAB>` / `phel test --ns=<TAB>`.
-     *
-     * @return list<string>
-     */
-    private function completeNamespaces(CompletionInput $input): array
-    {
-        return NamespaceCompletionFilter::matching(
-            $this->getFacade()->getAllNamespaces(),
-            $input->getCompletionValue(),
-        );
     }
 
     /**
