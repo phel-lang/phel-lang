@@ -119,6 +119,20 @@ final class RunFacade extends AbstractFacade implements RunFacadeInterface
     }
 
     /**
+     * Distinct, sorted namespace names declared across the project's source,
+     * test, and vendor source directories. Powers shell completion for
+     * `phel run` / `phel test`.
+     *
+     * @return list<string>
+     */
+    public function getAllNamespaces(): array
+    {
+        return $this->getFactory()
+            ->createProjectNamespaceLister()
+            ->listAll();
+    }
+
+    /**
      * @return list<NamespaceInformation>
      */
     public function getLoadedNamespaces(): array
