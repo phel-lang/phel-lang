@@ -43,6 +43,20 @@ final class DoctorCommandTest extends TestCase
         self::assertMatchesRegularExpression('/Your system meets all requirements/', $output->fetch());
     }
 
+    public function test_doctor_command_reports_opcache_performance(): void
+    {
+        $output = new BufferedOutput();
+
+        new DoctorCommand()->run(
+            $this->createStub(InputInterface::class),
+            $output,
+        );
+
+        $rendered = $output->fetch();
+        self::assertStringContainsString('Checking performance:', $rendered);
+        self::assertStringContainsString('OPcache CLI caching:', $rendered);
+    }
+
     public function test_doctor_succeeds_when_temp_dir_does_not_exist_yet(): void
     {
         $this->resetContainer();

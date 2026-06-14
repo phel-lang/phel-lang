@@ -4,6 +4,10 @@ All notable changes to this project will be documented in this file.
 
 ## Unreleased
 
+### Added
+
+- `phel doctor`: a "Checking performance" section now reports whether OPcache is configured to persist the compiled-code cache across CLI runs (`opcache.enable_cli`, `opcache.file_cache`) and prints actionable tips when it is not, helping warm `phel run`/`phel test` invocations approach native PHP speed (#2444)
+
 ### Fixed
 
 - `phel test`/`phel run` with a missing file path: no longer leaks a raw `file_get_contents(): Failed to open stream` PHP warning before the clean `Unable to read file "..."` error
