@@ -11,6 +11,7 @@ All notable changes to this project will be documented in this file.
 
 ### Fixed
 
+- `phel build` run from the PHAR now compiles and harvests every `(load ...)` secondary of the bundled stdlib into the output tree, instead of short-circuiting to the precompiled siblings — so the deployable artifact (`php out/index.php`) is complete and runs standalone. `(load ...)` resolution and `PhelSourceLoader` now keep build mode active across a whole build so secondaries are recompiled rather than served from the PHAR bundle (regression from the precompiled-stdlib bundle; #2443)
 - `phel test`/`phel run` with a missing file path: no longer leaks a raw `file_get_contents(): Failed to open stream` PHP warning before the clean `Unable to read file "..."` error
 
 ## [0.44.0](https://github.com/phel-lang/phel-lang/compare/v0.43.0...v0.44.0) - 2026-06-13
