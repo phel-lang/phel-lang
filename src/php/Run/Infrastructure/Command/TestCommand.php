@@ -57,6 +57,7 @@ final class TestCommand extends Command
                 InputArgument::IS_ARRAY | InputArgument::OPTIONAL,
                 'The file paths that you want to test.',
                 [],
+                fn(): array => $this->getFacade()->getAllNamespaces(),
             )->addOption(
                 TestCommandOptionParser::OPT_FILTER,
                 'f',
@@ -108,6 +109,7 @@ final class TestCommand extends Command
                 InputOption::VALUE_REQUIRED | InputOption::VALUE_IS_ARRAY,
                 "Namespace glob (e.g. phel.http.*). Repeatable; globs are OR'd. `*` matches one segment, `**` any.",
                 [],
+                fn(): array => $this->getFacade()->getAllNamespaces(),
             )->addOption(
                 TestCommandOptionParser::OPT_LIST,
                 null,

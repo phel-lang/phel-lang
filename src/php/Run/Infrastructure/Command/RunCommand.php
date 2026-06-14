@@ -40,6 +40,8 @@ final class RunCommand extends Command
                 'path',
                 InputArgument::OPTIONAL,
                 'The file path or namespace to execute (auto-detects main.phel or core.phel if omitted)',
+                null,
+                fn(): array => $this->getFacade()->getAllNamespaces(),
             )->addArgument(
                 'argv',
                 InputArgument::IS_ARRAY | InputArgument::OPTIONAL,

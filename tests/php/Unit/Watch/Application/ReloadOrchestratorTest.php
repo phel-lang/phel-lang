@@ -317,6 +317,11 @@ final class FakeRunFacade implements RunFacadeInterface
 
     public function writeStackTrace(OutputInterface $output, Throwable $e): void {}
 
+    public function getAllNamespaces(): array
+    {
+        return [];
+    }
+
     public function getLoadedNamespaces(): array
     {
         return [];

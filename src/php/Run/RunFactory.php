@@ -16,6 +16,7 @@ use Phel\Run\Application\FileRunner;
 use Phel\Run\Application\NamespaceLoader;
 use Phel\Run\Application\NamespaceRunner;
 use Phel\Run\Application\NamespacesLoader;
+use Phel\Run\Application\ProjectNamespaceLister;
 use Phel\Run\Application\ReplHistoryPathResolver;
 use Phel\Run\Application\StructuredEvaluator;
 use Phel\Run\Application\Test\Coverage\CoverageAggregator;
@@ -104,6 +105,14 @@ class RunFactory extends AbstractFactory
     public function createNamespaceCollector(): NamespaceCollector
     {
         return new NamespaceCollector(
+            $this->getBuildFacade(),
+            $this->getCommandFacade(),
+        );
+    }
+
+    public function createProjectNamespaceLister(): ProjectNamespaceLister
+    {
+        return new ProjectNamespaceLister(
             $this->getBuildFacade(),
             $this->getCommandFacade(),
         );
