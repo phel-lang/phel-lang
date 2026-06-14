@@ -7,6 +7,7 @@ namespace Phel\Build;
 use Gacela\Framework\AbstractFactory;
 use Gacela\Framework\Health\ModuleHealthCheckInterface;
 use Phel\Build\Application\BuildHealthCheck;
+use Phel\Build\Application\BundledPrecompiler;
 use Phel\Build\Application\CacheClearer;
 use Phel\Build\Application\CachedNamespaceExtractor;
 use Phel\Build\Application\DependenciesForNamespace;
@@ -27,6 +28,7 @@ use Phel\Build\Domain\Extractor\NamespaceExtractorInterface;
 use Phel\Build\Domain\Extractor\NamespaceSorterInterface;
 use Phel\Build\Domain\Extractor\TopologicalNamespaceSorter;
 use Phel\Build\Domain\IO\FileIoInterface;
+use Phel\Build\Infrastructure\Cache\BundledCompiledCache;
 use Phel\Build\Infrastructure\Cache\CompiledCodeCache;
 use Phel\Build\Infrastructure\Cache\DependencyTracker;
 use Phel\Build\Infrastructure\Cache\PhpNamespaceCache;
@@ -89,6 +91,16 @@ final class BuildFactory extends AbstractFactory
             ),
         );
         return $evaluator;
+    }
+
+    public function createBundledPrecompiler(): BundledPrecompiler
+    {
+        return new BundledPrecompiler();
+    }
+
+    public function getCacheDir(): string
+    {
+        return $this->getConfig()->getCacheDir();
     }
 
     public function createNamespaceExtractor(): NamespaceExtractorInterface
@@ -182,9 +194,12 @@ final class BuildFactory extends AbstractFactory
             return null;
         }
 
+        $bundledDir = $this->getConfig()->getBundledPrecompiledDir();
+
         return new CompiledCodeCache(
             $this->getConfig()->getCacheDir(),
             VersionFinder::LATEST_VERSION,
+            bundled: $bundledDir !== null ? new BundledCompiledCache($bundledDir) : null,
         );
     }
 

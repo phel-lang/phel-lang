@@ -9,6 +9,7 @@ use Gacela\Framework\Health\ModuleHealthCheckInterface;
 use Phel\Filesystem\FilesystemFacadeInterface;
 use Phel\Run\Application\BundledNamespaceDetector;
 use Phel\Run\Application\BundledNamespaces;
+use Phel\Run\Application\BundledStdlibPrecompiler;
 use Phel\Run\Application\CompileExecutor;
 use Phel\Run\Application\EntryPointDetector;
 use Phel\Run\Application\EvalExecutor;
@@ -120,6 +121,15 @@ class RunFactory extends AbstractFactory
     public function createBundledNamespaceDetector(): BundledNamespaceDetector
     {
         return new BundledNamespaceDetector(
+            $this->createBundledNamespaces(),
+        );
+    }
+
+    public function createBundledStdlibPrecompiler(): BundledStdlibPrecompiler
+    {
+        return new BundledStdlibPrecompiler(
+            $this->getBuildFacade(),
+            $this->getCommandFacade(),
             $this->createBundledNamespaces(),
         );
     }

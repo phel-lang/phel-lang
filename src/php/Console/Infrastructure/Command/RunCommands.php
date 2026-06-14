@@ -12,6 +12,7 @@ use Phel\Run\Infrastructure\Command\DoctorCommand;
 use Phel\Run\Infrastructure\Command\EvalCommand;
 use Phel\Run\Infrastructure\Command\InitCommand;
 use Phel\Run\Infrastructure\Command\NsCommand;
+use Phel\Run\Infrastructure\Command\PrecompileBundledCommand;
 use Phel\Run\Infrastructure\Command\ReplCommand;
 use Phel\Run\Infrastructure\Command\RunCommand;
 use Phel\Run\Infrastructure\Command\TestCommand;
@@ -31,6 +32,7 @@ final class RunCommands implements ConsoleCommandProviderInterface
             new RunCommand(),
             new TestCommand(),
             new TestWorkerCommand(),
+            new PrecompileBundledCommand(),
             new DoctorCommand(),
             new ConfigCommand(),
         ];

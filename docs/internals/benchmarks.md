@@ -56,3 +56,9 @@ opcache.file_cache_only=1              ; persist across short-lived CLI processe
 `opcache.enable_cli` and `opcache.file_cache` are `PHP_INI_SYSTEM` settings, so they must be set in `php.ini` or via `php -d ...` before the process starts (they cannot be changed at runtime).
 
 Run `phel doctor` to check the current configuration: its "Checking performance" section reports whether OPcache CLI caching is fully configured and prints tips otherwise.
+
+## Precompiled stdlib in the PHAR
+
+A cold run still has to compile the bundled `phel.*` stdlib (most of the cost is `phel.core`) before it can run your code. To avoid that, the PHAR ships a read-only, content-addressed bundle of the precompiled stdlib under `cache/precompiled/`, generated at build time by `build/build-phar.php` (which invokes the internal `phel _precompile-bundled <dir>` command).
+
+At runtime the compiled-code cache (`CompiledCodeCache`) consults this bundle whenever its writable cache misses, keyed by the source content hash. So a cold `phel run` in any project reuses the precompiled stdlib instead of recompiling it, approaching warm-cache speed on the very first run. The writable project cache still wins when present, and the bundle is ignored entirely for plain source or composer checkouts (where it is not shipped), leaving their behaviour unchanged.

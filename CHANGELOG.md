@@ -6,6 +6,7 @@ All notable changes to this project will be documented in this file.
 
 ### Added
 
+- Cold-start speedup: the PHAR now ships a read-only, content-addressed precompiled `phel.*` stdlib bundle (`cache/precompiled/`) that the compiled-code cache consults on a miss. A cold `phel run`/`phel test` in any project reuses the precompiled stdlib (incl. `phel.core`) instead of recompiling it, so first runs approach warm-cache speed. The bundle is keyed by source content hash, so it works regardless of where the PHAR is mounted; it stays inert (no behaviour change) for plain source/composer checkouts (#2443)
 - `phel doctor`: a "Checking performance" section now reports whether OPcache is configured to persist the compiled-code cache across CLI runs (`opcache.enable_cli`, `opcache.file_cache`) and prints actionable tips when it is not, helping warm `phel run`/`phel test` invocations approach native PHP speed (#2444)
 
 ### Fixed

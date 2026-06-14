@@ -37,6 +37,13 @@ final class RunFacade extends AbstractFacade implements RunFacadeInterface
             ->run($filename);
     }
 
+    public function precompileBundledStdlib(string $targetDir): int
+    {
+        return $this->getFactory()
+            ->createBundledStdlibPrecompiler()
+            ->precompile($targetDir);
+    }
+
     public function getNamespaceFromFile(string $fileOrPath): NamespaceInformation
     {
         return $this->getFactory()

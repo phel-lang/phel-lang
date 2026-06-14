@@ -62,4 +62,15 @@ interface BuildFacadeInterface
      * Returns the module's health check for diagnostics (`phel doctor`).
      */
     public function getHealthCheck(): ModuleHealthCheckInterface;
+
+    /**
+     * Exports the populated compiled-code cache into a read-only,
+     * content-addressed bundle under `$targetDir`. Used at distribution-build
+     * time so a cold run can reuse the precompiled stdlib instead of
+     * recompiling it. The caller is responsible for having compiled the
+     * bundled namespaces first (e.g. by evaluating them).
+     *
+     * @return int number of compiled files written
+     */
+    public function precompileBundledStdlib(string $targetDir): int;
 }

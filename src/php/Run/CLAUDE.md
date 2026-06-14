@@ -19,7 +19,7 @@ Most connected module, 5 Provider facades: Build (namespace extraction, dependen
 
 ## Structure Notes
 
-- `Infrastructure/Command/`: 10 Symfony commands (incl. `config` — dumps effective merged config), one hidden `_test-worker`
+- `Infrastructure/Command/`: 10 Symfony commands (incl. `config` — dumps effective merged config), two hidden: `_test-worker` and `_precompile-bundled <dir>` (precompiles the bundled stdlib into a content-addressed bundle at PHAR build time, via `RunFacade::precompileBundledStdlib()` → `Application/BundledStdlibPrecompiler`, which evals all `phel.*` then delegates to `BuildFacade::precompileBundledStdlib()`)
 - `Runtime/PhelSourceLoader`: cached-PHP boot entry
 
 ## Key Constraints

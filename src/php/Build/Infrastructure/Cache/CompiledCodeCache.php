@@ -73,6 +73,7 @@ final class CompiledCodeCache implements CompiledCodeCacheInterface
         ?CacheDirectory $directory = null,
         ?CacheIndexFile $indexFile = null,
         ?NamespaceEnvironmentStore $environmentStore = null,
+        private readonly ?BundledCompiledCache $bundled = null,
     ) {
         $this->directory = $directory ?? new CacheDirectory($cacheDir);
         $this->pathResolver = $pathResolver ?? new CachePathResolver($cacheDir);
@@ -91,27 +92,8 @@ final class CompiledCodeCache implements CompiledCodeCacheInterface
      */
     public function get(string $sourcePath, string $sourceHash): ?string
     {
-        $this->loadEntries();
-
-        $entry = $this->entries[$sourcePath] ?? null;
-        if ($entry === null) {
-            return null;
-        }
-
-        if ($entry['source_hash'] !== $sourceHash) {
-            return null;
-        }
-
-        $compiledPath = $this->getCompiledPath($sourcePath, $entry['namespace']);
-
-        if (!file_exists($compiledPath)) {
-            return null;
-        }
-
-        $this->entries[$sourcePath]['last_accessed'] = time();
-        $this->touchedThisProcess[$sourcePath] = true;
-
-        return $compiledPath;
+        return $this->getFromEntries($sourcePath, $sourceHash)
+            ?? $this->bundled?->compiledPath($sourceHash);
     }
 
     /**
@@ -193,7 +175,8 @@ final class CompiledCodeCache implements CompiledCodeCacheInterface
      */
     public function getEnvironment(string $namespace): ?array
     {
-        return $this->environmentStore->get($namespace);
+        return $this->environmentStore->get($namespace)
+            ?? $this->bundled?->environment($namespace);
     }
 
     /**
@@ -240,6 +223,34 @@ final class CompiledCodeCache implements CompiledCodeCacheInterface
         $this->touchedThisProcess = [];
         $this->saveEntries();
         $this->environmentStore->clearMemo();
+    }
+
+    /**
+     * Looks up the writable, path-keyed cache only (no bundled fallback).
+     */
+    private function getFromEntries(string $sourcePath, string $sourceHash): ?string
+    {
+        $this->loadEntries();
+
+        $entry = $this->entries[$sourcePath] ?? null;
+        if ($entry === null) {
+            return null;
+        }
+
+        if ($entry['source_hash'] !== $sourceHash) {
+            return null;
+        }
+
+        $compiledPath = $this->getCompiledPath($sourcePath, $entry['namespace']);
+
+        if (!file_exists($compiledPath)) {
+            return null;
+        }
+
+        $this->entries[$sourcePath]['last_accessed'] = time();
+        $this->touchedThisProcess[$sourcePath] = true;
+
+        return $compiledPath;
     }
 
     private function loadEntries(): void

@@ -271,6 +271,41 @@ final class PharBuilder
     }
 
     /**
+     * Generate the read-only, content-addressed precompiled stdlib bundle
+     * under cache/precompiled/ so it ships inside the PHAR. At runtime the
+     * compiled-code cache consults it (keyed by source content hash), so a
+     * cold `phel run` in any project reuses the precompiled stdlib instead of
+     * recompiling it. Unlike preCompileStdlib()'s path-keyed cache, this one
+     * is install-location independent.
+     */
+    public function preCompileBundled(): void
+    {
+        $bundleDir = $this->root . '/cache/precompiled';
+
+        // Clean previous bundle to avoid stale, source-mismatched entries.
+        if (is_dir($bundleDir)) {
+            $files = glob($bundleDir . '/*') ?: [];
+            foreach ($files as $file) {
+                @unlink($file);
+            }
+        }
+
+        $exitCode = 0;
+        passthru(
+            \sprintf(
+                'cd %s && php bin/phel _precompile-bundled %s 2>&1',
+                escapeshellarg($this->root),
+                escapeshellarg($bundleDir),
+            ),
+            $exitCode,
+        );
+
+        if ($exitCode !== 0) {
+            throw new RuntimeException("Bundled stdlib precompile failed with exit code {$exitCode}");
+        }
+    }
+
+    /**
      * Build the PHAR archive
      */
     public function build(): void
@@ -278,6 +313,7 @@ final class PharBuilder
         $this->validate();
         $this->prepareReleaseConfig();
         $this->preCompileStdlib();
+        $this->preCompileBundled();
         $this->cleanup();
 
         try {

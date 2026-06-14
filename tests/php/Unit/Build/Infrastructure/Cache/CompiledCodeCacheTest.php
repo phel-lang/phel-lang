@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace PhelTest\Unit\Build\Infrastructure\Cache;
 
+use Phel\Build\Infrastructure\Cache\BundledCompiledCache;
 use Phel\Build\Infrastructure\Cache\CompiledCodeCache;
 use PHPUnit\Framework\TestCase;
 use RecursiveDirectoryIterator;
@@ -388,6 +389,63 @@ final class CompiledCodeCacheTest extends TestCase
         $cache->putEnvironment('test\\namespace', $envData);
 
         self::assertSame($envData, $cache->getEnvironment('test\\namespace'));
+    }
+
+    public function test_get_falls_back_to_bundled_when_writable_cache_misses(): void
+    {
+        $bundledDir = $this->cacheDir . '/bundled';
+        mkdir($bundledDir, 0755, true);
+        $bundled = new BundledCompiledCache($bundledDir);
+        file_put_contents($bundled->compiledTarget('bundled_hash'), "<?php\n// bundled");
+
+        $cache = new CompiledCodeCache(
+            $this->cacheDir,
+            bundled: $bundled,
+        );
+
+        $result = $cache->get('/any/uncached.phel', 'bundled_hash');
+
+        self::assertNotNull($result);
+        self::assertStringContainsString('// bundled', (string) file_get_contents($result));
+    }
+
+    public function test_get_prefers_writable_cache_over_bundled(): void
+    {
+        $bundledDir = $this->cacheDir . '/bundled';
+        mkdir($bundledDir, 0755, true);
+        $bundled = new BundledCompiledCache($bundledDir);
+        file_put_contents($bundled->compiledTarget('hash'), "<?php\n// bundled");
+
+        $cache = new CompiledCodeCache($this->cacheDir, bundled: $bundled);
+        $cache->put($this->sourceFile, 'test\\namespace', 'hash', '// writable');
+
+        $result = $cache->get($this->sourceFile, 'hash');
+
+        self::assertNotNull($result);
+        self::assertStringContainsString('// writable', (string) file_get_contents($result));
+    }
+
+    public function test_get_environment_falls_back_to_bundled(): void
+    {
+        $bundledDir = $this->cacheDir . '/bundled';
+        mkdir($bundledDir, 0755, true);
+        $bundled = new BundledCompiledCache($bundledDir);
+        $envData = ['refers' => [], 'require_aliases' => [], 'use_aliases' => []];
+        file_put_contents(
+            $bundled->environmentTarget('phel\\core'),
+            '<?php return ' . var_export($envData, true) . ';',
+        );
+
+        $cache = new CompiledCodeCache($this->cacheDir, bundled: $bundled);
+
+        self::assertSame($envData, $cache->getEnvironment('phel\\core'));
+    }
+
+    public function test_get_without_bundled_returns_null_on_miss(): void
+    {
+        $cache = new CompiledCodeCache($this->cacheDir);
+
+        self::assertNull($cache->get('/any/uncached.phel', 'whatever'));
     }
 
     private function removeDir(string $dir): void

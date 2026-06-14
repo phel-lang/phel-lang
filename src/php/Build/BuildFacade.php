@@ -8,6 +8,7 @@ use Gacela\Framework\AbstractFacade;
 use Gacela\Framework\Health\ModuleHealthCheckInterface;
 use Phel\Build\Domain\Compile\BuildOptions;
 use Phel\Build\Domain\Compile\CompiledFile;
+use Phel\Build\Infrastructure\Cache\BundledCompiledCache;
 use Phel\Lang\Registry;
 use Phel\Shared\BuildConstants;
 use Phel\Shared\CompilerConstants;
@@ -168,5 +169,15 @@ final class BuildFacade extends AbstractFacade implements BuildFacadeInterface
         return $this->getFactory()
             ->getCommandFacade()
             ->getOutputDirectory();
+    }
+
+    public function precompileBundledStdlib(string $targetDir): int
+    {
+        return $this->getFactory()
+            ->createBundledPrecompiler()
+            ->exportFromCache(
+                $this->getFactory()->getCacheDir(),
+                new BundledCompiledCache($targetDir),
+            );
     }
 }

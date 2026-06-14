@@ -256,6 +256,11 @@ final readonly class FakeBuildFacade implements BuildFacadeInterface
     {
         return '';
     }
+
+    public function precompileBundledStdlib(string $targetDir): int
+    {
+        return 0;
+    }
 }
 
 final class FakeRunFacade implements RunFacadeInterface

@@ -11,6 +11,7 @@ use Phel\Shared\CompileOptions;
 use Phel\Shared\PhelProjectDirectory;
 use Phel\Shared\ScalarCoercion;
 
+use function dirname;
 use function is_string;
 
 final class BuildConfig extends AbstractConfig implements BuildConfigInterface
@@ -89,6 +90,25 @@ final class BuildConfig extends AbstractConfig implements BuildConfigInterface
     public function getNamespaceCacheFile(): string
     {
         return $this->getCacheDir() . '/namespace-cache.php';
+    }
+
+    /**
+     * Directory of the read-only, content-addressed precompiled stdlib bundle
+     * shipped with the distribution (primarily the PHAR), or null when it is
+     * not present (e.g. a plain source checkout). Resolved relative to the Phel
+     * package root so it works whether Phel runs from its own tree or a PHAR
+     * (where `dirname(__DIR__, 3)` is the `phar://...` mount root).
+     */
+    public function getBundledPrecompiledDir(): ?string
+    {
+        $envOverride = getenv('PHEL_BUNDLED_PRECOMPILED_DIR');
+        if (is_string($envOverride) && $envOverride !== '') {
+            return is_dir($envOverride) ? $envOverride : null;
+        }
+
+        $dir = dirname(__DIR__, 3) . '/cache/precompiled';
+
+        return is_dir($dir) ? $dir : null;
     }
 
     /**
