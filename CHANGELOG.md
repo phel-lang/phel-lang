@@ -8,6 +8,7 @@ All notable changes to this project will be documented in this file.
 
 - Cold-start speedup: the PHAR now ships `phel.core` precompiled to PHP as `.php` siblings next to its `.phel` sources, so a cold `phel run`/`phel test`/`phel eval` reuses them directly instead of recompiling core on first use (measured ~1.2s -> ~0.2s on an empty project cache). `FileEvaluator` gains a precompiled-sibling fast path: when a `phel build`-style `<name>.php` sits next to a `<name>.phel` source, it is required directly, skipping the lexer/parser/analyzer/emitter pipeline and the compiled-code cache. Inert for plain source/composer checkouts, which ship no siblings (#2443)
 - `phel doctor`: a "Checking performance" section now reports whether OPcache is configured to persist the compiled-code cache across CLI runs (`opcache.enable_cli`, `opcache.file_cache`) and prints actionable tips when it is not, helping warm `phel run`/`phel test` invocations approach native PHP speed (#2444)
+- `phel doc` now offers shell completion for its arguments: `phel doc <TAB>` completes fully qualified function names (`core/map`, ...), `--ns=<TAB>` completes the namespaces that own documented functions, and `--format=<TAB>` completes `table`/`json`. Install the completion script with `phel completion zsh` (or `bash`/`fish`) (#2451)
 
 ### Fixed
 

@@ -11,6 +11,7 @@ use Phel\Api\ApiFacade;
 use Phel\Api\Transfer\PhelFunction;
 use Phel\Shared\ScalarCoercion;
 use Symfony\Component\Console\Command\Command;
+use Symfony\Component\Console\Completion\CompletionInput;
 use Symfony\Component\Console\Helper\Table;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
@@ -36,13 +37,20 @@ final class DocCommand extends Command
     {
         $this->setName('doc')
             ->setDescription('Display the docs for any/all phel functions')
-            ->addArgument('search', InputArgument::OPTIONAL, 'Search input that look for a similar function name', '')
+            ->addArgument(
+                'search',
+                InputArgument::OPTIONAL,
+                'Search input that look for a similar function name',
+                '',
+                fn(CompletionInput $input): array => $this->completeFunctionNames($input),
+            )
             ->addOption(
                 self::OPTION_NAMESPACES,
                 null,
                 InputOption::VALUE_OPTIONAL | InputOption::VALUE_IS_ARRAY,
                 'Specify which namespaces to load.',
                 [],
+                fn(CompletionInput $input): array => $this->completeNamespaces($input),
             )
             ->addOption(
                 self::OPTION_FORMAT,
@@ -50,6 +58,7 @@ final class DocCommand extends Command
                 InputOption::VALUE_REQUIRED,
                 'Specify the output format.',
                 'table',
+                self::AVAILABLE_FORMATS,
             );
     }
 
@@ -80,6 +89,54 @@ final class DocCommand extends Command
         $this->printFunctionsAsTable($output, $normalized);
 
         return self::SUCCESS;
+    }
+
+    /**
+     * Suggests fully qualified function names (`namespace/name`) matching the
+     * partial value the user has typed so far. Powers `phel doc <TAB>`.
+     *
+     * @return list<string>
+     */
+    private function completeFunctionNames(CompletionInput $input): array
+    {
+        $typed = $input->getCompletionValue();
+
+        $names = [];
+        /** @var PhelFunction $phelFunction */
+        foreach ($this->getFacade()->getPhelFunctions() as $phelFunction) {
+            $fnName = $phelFunction->namespace . '/' . $phelFunction->name;
+            if ($typed === '' || str_contains($fnName, $typed)) {
+                $names[] = $fnName;
+            }
+        }
+
+        sort($names);
+
+        return $names;
+    }
+
+    /**
+     * Suggests the distinct namespaces that own at least one documented
+     * function. Powers `phel doc --ns=<TAB>`.
+     *
+     * @return list<string>
+     */
+    private function completeNamespaces(CompletionInput $input): array
+    {
+        $typed = $input->getCompletionValue();
+
+        $namespaces = [];
+        /** @var PhelFunction $phelFunction */
+        foreach ($this->getFacade()->getPhelFunctions() as $phelFunction) {
+            $ns = $phelFunction->namespace;
+            if (($typed === '' || str_contains($ns, $typed)) && !in_array($ns, $namespaces, true)) {
+                $namespaces[] = $ns;
+            }
+        }
+
+        sort($namespaces);
+
+        return $namespaces;
     }
 
     /**
