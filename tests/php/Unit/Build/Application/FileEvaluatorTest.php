@@ -66,6 +66,67 @@ final class FileEvaluatorTest extends TestCase
         self::assertStringEndsWith('.php', $result->getTargetFile());
     }
 
+    public function test_eval_file_uses_precompiled_sibling_when_present(): void
+    {
+        $sourceFile = $this->tempDir . '/test.phel';
+        file_put_contents($sourceFile, '(ns test\\namespace)');
+        $namespace = 'test\\namespace';
+
+        // A precompiled `.php` sibling carrying the build preamble must be
+        // required directly, bypassing the cache and the compiler entirely.
+        $siblingFile = $this->tempDir . '/test.php';
+        file_put_contents(
+            $siblingFile,
+            "<?php declare(strict_types=1);\n\$GLOBALS['phel_precompiled_sibling_ran'] = true;\n",
+        );
+
+        $compilerFacade = $this->createMock(CompilerFacadeInterface::class);
+        $compilerFacade->expects($this->once())->method('initializeGlobalEnvironment');
+        $compilerFacade->expects($this->never())->method('compileForCache');
+        $compilerFacade->expects($this->never())->method('eval');
+
+        $namespaceExtractor = $this->createMock(NamespaceExtractorInterface::class);
+        $namespaceExtractor->method('getNamespaceFromFile')->willReturn(
+            new NamespaceInformation($sourceFile, $namespace, ['phel.core']),
+        );
+
+        $evaluator = new FileEvaluator($compilerFacade, $namespaceExtractor);
+        $result = $evaluator->evalFile($sourceFile);
+
+        self::assertSame($sourceFile, $result->getSourceFile());
+        self::assertSame($siblingFile, $result->getTargetFile());
+        self::assertSame($namespace, $result->getNamespace());
+        self::assertTrue($GLOBALS['phel_precompiled_sibling_ran'] ?? false);
+
+        unset($GLOBALS['phel_precompiled_sibling_ran']);
+    }
+
+    public function test_eval_file_ignores_non_phel_php_sibling(): void
+    {
+        $sourceFile = $this->tempDir . '/test.phel';
+        $sourceCode = '(ns test\\namespace)';
+        file_put_contents($sourceFile, $sourceCode);
+        $namespace = 'test\\namespace';
+
+        // A hand-written PHP file next to a Phel source (no build preamble)
+        // must NOT be treated as a precompiled artifact.
+        file_put_contents($this->tempDir . '/test.php', "<?php\nthrow new \\RuntimeException('must not run');\n");
+
+        $compilerFacade = $this->createMock(CompilerFacadeInterface::class);
+        $compilerFacade->expects($this->once())->method('eval');
+
+        $namespaceExtractor = $this->createMock(NamespaceExtractorInterface::class);
+        $namespaceExtractor->method('getNamespaceFromFile')->willReturn(
+            new NamespaceInformation($sourceFile, $namespace, ['phel.core']),
+        );
+
+        $evaluator = new FileEvaluator($compilerFacade, $namespaceExtractor);
+        $result = $evaluator->evalFile($sourceFile);
+
+        self::assertSame($namespace, $result->getNamespace());
+        self::assertSame('', $result->getTargetFile());
+    }
+
     public function test_eval_file_compiles_on_cache_miss(): void
     {
         $sourceFile = $this->tempDir . '/test.phel';
