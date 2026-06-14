@@ -39,3 +39,20 @@ composer bench-jit-tracing    # opcache on, tracing JIT
 ```
 
 See the [PHPBench docs](https://phpbench.readthedocs.io/) for advanced reporting.
+
+## Speeding up CLI runs with OPcache
+
+Phel compiles each `.phel` file to PHP and caches the result under the Phel cache dir (`.phel/cache/compiled/` by default). A warm `phel run` then just `require`s the cached PHP instead of recompiling. The remaining gap versus native PHP comes from PHP re-parsing those cached files on every process, because **OPcache is disabled on the CLI by default** (`opcache.enable_cli=0`).
+
+To let the compiled cache survive across CLI invocations, enable OPcache with its file cache:
+
+```ini
+; php.ini (or a -d flag on the CLI)
+opcache.enable_cli=1
+opcache.file_cache=/tmp/phel-opcache   ; any writable directory
+opcache.file_cache_only=1              ; persist across short-lived CLI processes
+```
+
+`opcache.enable_cli` and `opcache.file_cache` are `PHP_INI_SYSTEM` settings, so they must be set in `php.ini` or via `php -d ...` before the process starts (they cannot be changed at runtime).
+
+Run `phel doctor` to check the current configuration: its "Checking performance" section reports whether OPcache CLI caching is fully configured and prints tips otherwise.

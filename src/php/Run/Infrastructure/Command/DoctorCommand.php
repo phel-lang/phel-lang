@@ -9,11 +9,13 @@ use Gacela\Framework\Health\HealthStatus;
 use Gacela\Framework\ServiceResolver\ServiceMap;
 use Gacela\Framework\ServiceResolverAwareTrait;
 use Phel\Run\RunFacade;
+use Phel\Shared\Performance\OpcacheAdvisor;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 
 use function extension_loaded;
+use function ini_get;
 use function sprintf;
 
 /**
@@ -34,6 +36,7 @@ final class DoctorCommand extends Command
     {
         $systemOk = $this->checkSystemRequirements($output);
         $modulesOk = $this->checkModuleHealth($output);
+        $this->checkPerformance($output);
 
         if ($systemOk && $modulesOk) {
             $output->writeln('<info>Your system meets all requirements.</info>');
@@ -86,6 +89,28 @@ final class DoctorCommand extends Command
         }
 
         return !$report->hasUnhealthyModules();
+    }
+
+    private function checkPerformance(OutputInterface $output): void
+    {
+        $output->writeln('');
+        $output->writeln('Checking performance:');
+
+        $advice = new OpcacheAdvisor()->advise(
+            opcacheLoaded: extension_loaded('Zend OPcache'),
+            enableCli: (bool) ini_get('opcache.enable_cli'),
+            fileCacheConfigured: (string) ini_get('opcache.file_cache') !== '',
+        );
+
+        if ($advice->optimal) {
+            $output->writeln(sprintf(' - OPcache CLI caching: <info>OK</info> %s', $advice->messages[0]));
+
+            return;
+        }
+
+        foreach ($advice->messages as $message) {
+            $output->writeln(sprintf(' - OPcache CLI caching: <comment>TIP</comment> %s', $message));
+        }
     }
 
     private function formatLevel(HealthStatus $status): string
