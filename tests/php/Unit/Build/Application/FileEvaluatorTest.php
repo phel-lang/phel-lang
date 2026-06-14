@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace PhelTest\Unit\Build\Application;
 
 use Phel\Build\Application\FileEvaluator;
+use Phel\Build\BuildFacade;
 use Phel\Build\Domain\Cache\DependencyTrackerInterface;
 use Phel\Build\Domain\Extractor\FirstFormExtractor;
 use Phel\Build\Domain\Extractor\NamespaceExtractorInterface;
@@ -99,6 +100,43 @@ final class FileEvaluatorTest extends TestCase
         self::assertTrue($GLOBALS['phel_precompiled_sibling_ran'] ?? false);
 
         unset($GLOBALS['phel_precompiled_sibling_ran']);
+    }
+
+    public function test_eval_file_ignores_precompiled_sibling_during_build(): void
+    {
+        $sourceFile = $this->tempDir . '/test.phel';
+        file_put_contents($sourceFile, '(ns test\\namespace)');
+        $namespace = 'test\\namespace';
+
+        // A precompiled sibling exists, but `phel build` must compile the
+        // source (and harvest its secondaries) rather than short-circuit to
+        // the bundled artifact.
+        file_put_contents(
+            $this->tempDir . '/test.php',
+            "<?php declare(strict_types=1);\n\$GLOBALS['phel_build_sibling_ran'] = true;\n",
+        );
+
+        $compilerFacade = $this->createMock(CompilerFacadeInterface::class);
+        $compilerFacade->expects($this->once())
+            ->method('compileForCache')
+            ->willReturn(new EmitterResult(false, '$compiled = true;', '', ''));
+
+        $namespaceExtractor = $this->createMock(NamespaceExtractorInterface::class);
+        $namespaceExtractor->method('getNamespaceFromFile')->willReturn(
+            new NamespaceInformation($sourceFile, $namespace, ['phel.core']),
+        );
+
+        $cache = new CompiledCodeCache($this->tempDir . '/cache');
+        $evaluator = new FileEvaluator($compilerFacade, $namespaceExtractor, $cache);
+
+        BuildFacade::enableBuildMode();
+        try {
+            $evaluator->evalFile($sourceFile);
+        } finally {
+            BuildFacade::disableBuildMode();
+        }
+
+        self::assertArrayNotHasKey('phel_build_sibling_ran', $GLOBALS);
     }
 
     public function test_eval_file_ignores_non_phel_php_sibling(): void

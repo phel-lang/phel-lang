@@ -110,6 +110,14 @@ final class LoadEmitter implements NodeEmitterInterface
         $this->outputEmitter->emitLine(';');
 
         $this->outputEmitter->emitLine('$__phelLoadPath = null;');
+
+        // While `phel build` is producing a deployable artifact, `(load ...)`
+        // must resolve to `.phel` and recompile so the secondary is cached and
+        // harvested into the output tree. Otherwise a precompiled `.php`
+        // (e.g. a stdlib sibling shipped in the PHAR) would be required
+        // directly and the build would emit no compiled file for it. Inert at
+        // deploy time, where build mode is off.
+        $this->outputEmitter->emitLine('$__phelBuildMode = \\Phel\\Lang\\Registry::getInstance()->getDefinition(\'phel.core\', \'*build-mode*\') === true;');
     }
 
     private function emitSiblingCompiledCheck(bool $skip): void
@@ -119,7 +127,7 @@ final class LoadEmitter implements NodeEmitterInterface
         }
 
         $this->outputEmitter->emitLine('$__phelSibling = __DIR__ . DIRECTORY_SEPARATOR . $__phelLoadKey . \'.php\';');
-        $this->outputEmitter->emitLine('if (file_exists($__phelSibling)) {');
+        $this->outputEmitter->emitLine('if (!$__phelBuildMode && file_exists($__phelSibling)) {');
         $this->outputEmitter->increaseIndentLevel();
         $this->outputEmitter->emitLine('$__phelLoadPath = $__phelSibling;');
         $this->outputEmitter->decreaseIndentLevel();
@@ -146,7 +154,7 @@ final class LoadEmitter implements NodeEmitterInterface
         $this->outputEmitter->emitLine('foreach ([$__phelFullKey, $__phelLoadKey] as $__phelAttempt) {');
         $this->outputEmitter->increaseIndentLevel();
         $this->outputEmitter->emitLine('$__phelCandidatePhp = $__phelSrcDir . \'/\' . $__phelAttempt . \'.php\';');
-        $this->outputEmitter->emitLine('if (file_exists($__phelCandidatePhp)) { $__phelLoadPath = $__phelCandidatePhp; break 2; }');
+        $this->outputEmitter->emitLine('if (!$__phelBuildMode && file_exists($__phelCandidatePhp)) { $__phelLoadPath = $__phelCandidatePhp; break 2; }');
         $this->outputEmitter->emitLine('$__phelCandidatePhel = $__phelSrcDir . \'/\' . $__phelAttempt . \'.phel\';');
         $this->outputEmitter->emitLine('if (file_exists($__phelCandidatePhel)) { $__phelLoadPath = $__phelCandidatePhel; break 2; }');
         $this->outputEmitter->decreaseIndentLevel();

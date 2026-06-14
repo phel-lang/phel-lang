@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Phel\Build\Application;
 
 use ParseError;
+use Phel\Build\BuildFacade;
 use Phel\Build\Domain\Cache\CompiledCodeCacheInterface;
 use Phel\Build\Domain\Cache\DependencyTrackerInterface;
 use Phel\Build\Domain\Compile\CompiledFile;
@@ -181,6 +182,15 @@ final class FileEvaluator
      */
     private function precompiledSiblingPath(string $src): ?string
     {
+        // `phel build` must compile every namespace into its output tree
+        // (including `(load ...)` secondaries harvested from the cache), so the
+        // runtime fast path is disabled while building a deployable artifact —
+        // otherwise a bundled sibling would short-circuit compilation and the
+        // emitted tree would miss those secondaries.
+        if (BuildFacade::isBuildMode()) {
+            return null;
+        }
+
         $sibling = preg_replace('/\.(phel|cljc)$/i', '.php', $src);
         if ($sibling === null || $sibling === $src || !is_file($sibling)) {
             return null;

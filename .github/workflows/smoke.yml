@@ -94,6 +94,13 @@ jobs:
 
           echo "::group::phel build"
           "$PHAR" build
+          # The deployable artifact must contain phel.core's (load ...) secondaries,
+          # not just the primary — building from the PHAR must recompile + harvest
+          # them rather than short-circuit to the bundled siblings.
+          harvested=$(ls out/phel/core/*.php 2>/dev/null | wc -l | tr -d ' ')
+          echo "harvested core secondaries: $harvested"
+          test "$harvested" -ge 20 \
+            || { echo "❌ phel build harvested only $harvested core secondaries (expected >= 20)"; exit 1; }
           echo "::endgroup::"
 
           echo "::group::phel lint"
