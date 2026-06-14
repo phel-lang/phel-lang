@@ -56,3 +56,23 @@ opcache.file_cache_only=1              ; persist across short-lived CLI processe
 `opcache.enable_cli` and `opcache.file_cache` are `PHP_INI_SYSTEM` settings, so they must be set in `php.ini` or via `php -d ...` before the process starts (they cannot be changed at runtime).
 
 Run `phel doctor` to check the current configuration: its "Checking performance" section reports whether OPcache CLI caching is fully configured and prints tips otherwise.
+
+## Ahead-of-time builds vs runtime compilation
+
+For the fastest, closest-to-native execution, compile the project ahead of time and run the generated PHP directly, so the Phel compiler never runs:
+
+```bash
+composer install --no-dev --optimize-autoloader
+./vendor/bin/phel build          # writes plain PHP to out/
+php out/index.php                 # runs the built entry, zero runtime compilation
+```
+
+The built entry (`out/index.php`) requires the compiled namespace tree, which require-chains the precompiled `phel.core`. No lexer/parser/analyzer/emitter runs on the request path. Indicative CLI process-startup, best-of-5 on a trivial script (your numbers depend on how much stdlib the entry touches and on OPcache):
+
+| Execution mode | Startup |
+|---|---|
+| `php out/index.php` (ahead-of-time build) | ~0.11s |
+| `phel run` (warm cache) | ~0.20s |
+| native PHP equivalent | ~0.05s |
+
+The ahead-of-time artifact roughly halves the gap to native versus a warm `phel run`. See the example deployment guide (`resources/agents/examples/http-json-api/DEPLOYMENT.md`) for the full production flow (Docker, OPcache preload, php-fpm, worker mode).
