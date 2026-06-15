@@ -345,6 +345,14 @@ final class NumericOperations
      */
     public static function quot(mixed $a, mixed $b): mixed
     {
+        if (is_int($a) && is_int($b)) {
+            if ($b === 0) {
+                throw new DivisionByZeroError('Division by zero');
+            }
+
+            return intdiv($a, $b);
+        }
+
         NumericCoercion::ensureNumeric($a);
         NumericCoercion::ensureNumeric($b);
 
@@ -371,11 +379,7 @@ final class NumericOperations
             return NumericCoercion::truncateToInt($quotient);
         }
 
-        if ($a instanceof BigInt || $b instanceof BigInt) {
-            return NumericCoercion::collapseBigInt(NumericCoercion::toBigInt($a)->divide(NumericCoercion::toBigInt($b)));
-        }
-
-        return intdiv($a, $b);
+        return NumericCoercion::collapseBigInt(NumericCoercion::toBigInt($a)->divide(NumericCoercion::toBigInt($b)));
     }
 
     /**
@@ -383,6 +387,14 @@ final class NumericOperations
      */
     public static function rem(mixed $a, mixed $b): mixed
     {
+        if (is_int($a) && is_int($b)) {
+            if ($b === 0) {
+                throw new DivisionByZeroError('Division by zero');
+            }
+
+            return $a % $b;
+        }
+
         NumericCoercion::ensureNumeric($a);
         NumericCoercion::ensureNumeric($b);
 
@@ -408,14 +420,11 @@ final class NumericOperations
             return self::subtract($a, self::multiply($b, $q));
         }
 
-        if ($a instanceof BigInt || $b instanceof BigInt) {
-            $aBig = NumericCoercion::toBigInt($a);
-            $bBig = NumericCoercion::toBigInt($b);
-            $q = $aBig->divide($bBig);
-            return NumericCoercion::collapseBigInt($aBig->subtract($bBig->multiply($q)));
-        }
+        $aBig = NumericCoercion::toBigInt($a);
+        $bBig = NumericCoercion::toBigInt($b);
+        $q = $aBig->divide($bBig);
 
-        return ($a) % ($b);
+        return NumericCoercion::collapseBigInt($aBig->subtract($bBig->multiply($q)));
     }
 
     /**
@@ -424,6 +433,21 @@ final class NumericOperations
      */
     public static function mod(mixed $a, mixed $b): mixed
     {
+        if (is_int($a) && is_int($b)) {
+            if ($b === 0) {
+                throw new DivisionByZeroError('Modulo by zero');
+            }
+
+            $rem = $a % $b;
+            // Floor-modulo: the result takes the sign of the divisor, so a
+            // truncated remainder whose sign differs is shifted by `b`.
+            if ($rem !== 0 && ($rem < 0) !== ($b < 0)) {
+                return $rem + $b;
+            }
+
+            return $rem;
+        }
+
         NumericCoercion::ensureNumeric($a);
         NumericCoercion::ensureNumeric($b);
 
