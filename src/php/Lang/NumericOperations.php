@@ -12,6 +12,7 @@ use function fdiv;
 use function floor;
 use function intdiv;
 use function is_float;
+use function is_int;
 
 /**
  * Runtime numeric dispatch for `+ - * /` and friends across native PHP
@@ -36,6 +37,17 @@ final class NumericOperations
 {
     public static function add(mixed $a, mixed $b): mixed
     {
+        // Fast path for the overwhelmingly common case: two native ints.
+        // `is_int` doubles as the numeric check, so it skips `ensureNumeric`
+        // and the whole `is_float`/`instanceof` ladder below.
+        if (is_int($a) && is_int($b)) {
+            if (IntegerOverflow::onAdd($a, $b)) {
+                return NumericCoercion::collapseBigInt(BigInt::fromInt($a)->add(BigInt::fromInt($b)));
+            }
+
+            return $a + $b;
+        }
+
         NumericCoercion::ensureNumeric($a);
         NumericCoercion::ensureNumeric($b);
 
@@ -58,19 +70,21 @@ final class NumericOperations
             return $b->add(NumericCoercion::rationalOperand($a));
         }
 
-        if ($a instanceof BigInt || $b instanceof BigInt) {
-            return NumericCoercion::collapseBigInt(NumericCoercion::toBigInt($a)->add(NumericCoercion::toBigInt($b)));
-        }
-
-        if (IntegerOverflow::onAdd($a, $b)) {
-            return NumericCoercion::collapseBigInt(BigInt::fromInt($a)->add(BigInt::fromInt($b)));
-        }
-
-        return $a + $b;
+        // int+int is handled by the fast path, so at least one operand is a
+        // BigInt here; lift both and collapse the result back when it fits.
+        return NumericCoercion::collapseBigInt(NumericCoercion::toBigInt($a)->add(NumericCoercion::toBigInt($b)));
     }
 
     public static function subtract(mixed $a, mixed $b): mixed
     {
+        if (is_int($a) && is_int($b)) {
+            if (IntegerOverflow::onSubtract($a, $b)) {
+                return NumericCoercion::collapseBigInt(BigInt::fromInt($a)->subtract(BigInt::fromInt($b)));
+            }
+
+            return $a - $b;
+        }
+
         NumericCoercion::ensureNumeric($a);
         NumericCoercion::ensureNumeric($b);
 
@@ -91,19 +105,19 @@ final class NumericOperations
             return self::negate($b->subtract(NumericCoercion::rationalOperand($a)));
         }
 
-        if ($a instanceof BigInt || $b instanceof BigInt) {
-            return NumericCoercion::collapseBigInt(NumericCoercion::toBigInt($a)->subtract(NumericCoercion::toBigInt($b)));
-        }
-
-        if (IntegerOverflow::onSubtract($a, $b)) {
-            return NumericCoercion::collapseBigInt(BigInt::fromInt($a)->subtract(BigInt::fromInt($b)));
-        }
-
-        return $a - $b;
+        return NumericCoercion::collapseBigInt(NumericCoercion::toBigInt($a)->subtract(NumericCoercion::toBigInt($b)));
     }
 
     public static function multiply(mixed $a, mixed $b): mixed
     {
+        if (is_int($a) && is_int($b)) {
+            if (IntegerOverflow::onMultiply($a, $b)) {
+                return NumericCoercion::collapseBigInt(BigInt::fromInt($a)->multiply(BigInt::fromInt($b)));
+            }
+
+            return $a * $b;
+        }
+
         NumericCoercion::ensureNumeric($a);
         NumericCoercion::ensureNumeric($b);
 
@@ -123,15 +137,7 @@ final class NumericOperations
             return $b->multiply(NumericCoercion::rationalOperand($a));
         }
 
-        if ($a instanceof BigInt || $b instanceof BigInt) {
-            return NumericCoercion::collapseBigInt(NumericCoercion::toBigInt($a)->multiply(NumericCoercion::toBigInt($b)));
-        }
-
-        if (IntegerOverflow::onMultiply($a, $b)) {
-            return NumericCoercion::collapseBigInt(BigInt::fromInt($a)->multiply(BigInt::fromInt($b)));
-        }
-
-        return $a * $b;
+        return NumericCoercion::collapseBigInt(NumericCoercion::toBigInt($a)->multiply(NumericCoercion::toBigInt($b)));
     }
 
     /**
@@ -140,6 +146,18 @@ final class NumericOperations
      */
     public static function divide(mixed $a, mixed $b): mixed
     {
+        if (is_int($a) && is_int($b)) {
+            if ($b === 0) {
+                throw new DivisionByZeroError('Division by zero');
+            }
+
+            if ($a % $b === 0) {
+                return intdiv($a, $b);
+            }
+
+            return Ratio::create($a, $b);
+        }
+
         NumericCoercion::ensureNumeric($a);
         NumericCoercion::ensureNumeric($b);
 
@@ -170,19 +188,9 @@ final class NumericOperations
             return self::divide(self::multiply($a, $b->denominator()), $b->numerator());
         }
 
-        if ($a instanceof BigInt || $b instanceof BigInt) {
-            return Ratio::create(NumericCoercion::toBigInt($a), NumericCoercion::toBigInt($b));
-        }
-
-        if ($b === 0) {
-            throw new DivisionByZeroError('Division by zero');
-        }
-
-        if ($a % $b === 0) {
-            return intdiv($a, $b);
-        }
-
-        return Ratio::create($a, $b);
+        // int/int is handled by the fast path, so at least one BigInt operand
+        // remains; an exact rational result is created and auto-collapsed.
+        return Ratio::create(NumericCoercion::toBigInt($a), NumericCoercion::toBigInt($b));
     }
 
     public static function negate(mixed $a): mixed
@@ -206,6 +214,10 @@ final class NumericOperations
 
     public static function compare(mixed $a, mixed $b): int
     {
+        if (is_int($a) && is_int($b)) {
+            return $a <=> $b;
+        }
+
         NumericCoercion::ensureNumeric($a);
         NumericCoercion::ensureNumeric($b);
 
@@ -225,15 +237,15 @@ final class NumericOperations
             return -$b->compareTo(NumericCoercion::rationalOperand($a));
         }
 
-        if ($a instanceof BigInt || $b instanceof BigInt) {
-            return NumericCoercion::toBigInt($a)->compareTo(NumericCoercion::toBigInt($b));
-        }
-
-        return $a <=> $b;
+        return NumericCoercion::toBigInt($a)->compareTo(NumericCoercion::toBigInt($b));
     }
 
     public static function isEqual(mixed $a, mixed $b): bool
     {
+        if (is_int($a) && is_int($b)) {
+            return $a === $b;
+        }
+
         NumericCoercion::ensureNumeric($a);
         NumericCoercion::ensureNumeric($b);
 
@@ -253,11 +265,7 @@ final class NumericOperations
             return $b->equals($a);
         }
 
-        if ($a instanceof BigInt || $b instanceof BigInt) {
-            return NumericCoercion::toBigInt($a)->equals(NumericCoercion::toBigInt($b));
-        }
-
-        return $a === $b;
+        return NumericCoercion::toBigInt($a)->equals(NumericCoercion::toBigInt($b));
     }
 
     public static function isZero(mixed $a): bool
