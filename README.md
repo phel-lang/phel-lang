@@ -83,6 +83,30 @@ echo '(println "hi")' | ./vendor/bin/phel eval -
 ./vendor/bin/phel eval - < script.phel
 ```
 
+**4. Enable shell completion (optional)**
+
+`./vendor/bin/phel completion` dumps a tab-completion script for `bash`, `zsh`, or `fish`. It completes commands, their options, and dynamic values (function names for `doc`, project namespaces for `run`/`test`).
+
+```sh
+# bash — restart your shell afterwards
+./vendor/bin/phel completion bash | sudo tee /etc/bash_completion.d/phel
+
+# zsh — write into a directory on your $fpath
+./vendor/bin/phel completion zsh > "${fpath[1]}/_phel"
+
+# fish
+./vendor/bin/phel completion fish > ~/.config/fish/completions/phel.fish
+```
+
+The zsh script starts with `#compdef phel`, so completion only triggers for a binary named `phel` on your `$PATH`. If you call `./vendor/bin/phel` (or `./bin/phel` in a dev checkout), symlink a global `phel` first, e.g. on macOS + Homebrew:
+
+```sh
+phel completion zsh > "$(brew --prefix)/share/zsh/site-functions/_phel"
+ln -sf "$PWD/bin/phel" "$(brew --prefix)/bin/phel"   # global `phel` so #compdef matches
+rm -f ~/.zcompdump*                                  # force compinit to rebuild
+# then open a new shell
+```
+
 > Prefer a project template? [`web-skeleton`](https://github.com/phel-lang/web-skeleton) or [`cli-skeleton`](https://github.com/phel-lang/cli-skeleton): click **Use this template** for a one-click start.
 
 <details>

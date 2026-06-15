@@ -11,6 +11,7 @@ All notable changes to this project will be documented in this file.
 - `phel doc` now offers shell completion for its arguments: `phel doc <TAB>` completes fully qualified function names (`core/map`, ...), `--ns=<TAB>` completes the namespaces that own documented functions, and `--format=<TAB>` completes `table`/`json`. Install the completion script with `phel completion zsh` (or `bash`/`fish`) (#2451)
 - More shell completion for known option values: `phel compile --target=<TAB>` (`php`), plus `phel test --coverage=<TAB>` (`text`/`clover`), `--reporter=<TAB>` (`default`/`testdox`/`dot`/`tap`/`junit-xml`), and `--parallel=<TAB>` (`auto`/`max`) (#2451)
 - `phel run <TAB>` and `phel test <TAB>` / `phel test --ns=<TAB>` now complete the project's namespaces (source, test, and vendor source dirs); the shell narrows them as you type. Backed by a new `RunFacade::getAllNamespaces()` (#2451)
+- README "Get Started" now documents shell completion: `bash`/`zsh`/`fish` install snippets plus the `#compdef phel` global-binary prerequisite (completion only fires for a binary named `phel` on `$PATH`, so `./vendor/bin/phel` and `./bin/phel` dev checkouts need a global symlink first) (#2451)
 
 ### Fixed
 
