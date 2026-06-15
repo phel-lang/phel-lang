@@ -13,6 +13,10 @@ All notable changes to this project will be documented in this file.
 - `phel run <TAB>` and `phel test <TAB>` / `phel test --ns=<TAB>` now complete the project's namespaces (source, test, and vendor source dirs); the shell narrows them as you type. Backed by a new `RunFacade::getAllNamespaces()` (#2451)
 - README "Get Started" now documents shell completion: `bash`/`zsh`/`fish` install snippets plus the `#compdef phel` global-binary prerequisite (completion only fires for a binary named `phel` on `$PATH`, so `./vendor/bin/phel` and `./bin/phel` dev checkouts need a global symlink first) (#2451)
 
+### Changed
+
+- Faster native-int arithmetic: `NumericOperations` (`+ - * /`, `compare`, `=`) now fast-paths two native PHP ints ahead of the `is_float`/`instanceof` dispatch ladder, skipping the per-call `ensureNumeric` validation and the type probes that the common case never needs. Micro-benchmarked per 32 ops (`NumericOperationsBench`): `compare` 2.01μs→0.56μs and `=` 2.05μs→0.56μs (~3.7x), `+` 2.49μs→1.00μs (~2.5x), `*` 3.45μs→1.94μs (~1.8x). Behaviour, contagion order, and overflow-to-`BigInt` promotion are unchanged
+
 ### Fixed
 
 - `phel build` run from the PHAR now compiles and harvests every `(load ...)` secondary of the bundled stdlib into the output tree, instead of short-circuiting to the precompiled siblings — so the deployable artifact (`php out/index.php`) is complete and runs standalone. `(load ...)` resolution and `PhelSourceLoader` now keep build mode active across a whole build so secondaries are recompiled rather than served from the PHAR bundle (regression from the precompiled-stdlib bundle; #2443)
