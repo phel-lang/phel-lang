@@ -66,4 +66,32 @@ final class AbstractFnTest extends TestCase
 
         self::assertSame('Hello, <function:name>!', $result);
     }
+
+    public function test_to_string_does_not_deprecate_when_bound_to_is_absent(): void
+    {
+        $fn = new class() extends AbstractFn {
+            public function __invoke(...$args): mixed
+            {
+                return 'test';
+            }
+        };
+
+        $deprecations = [];
+        set_error_handler(
+            static function (int $errno, string $message) use (&$deprecations): bool {
+                $deprecations[] = $message;
+                return true;
+            },
+            E_DEPRECATED,
+        );
+
+        try {
+            $rendered = (string) $fn;
+        } finally {
+            restore_error_handler();
+        }
+
+        self::assertSame('<function>', $rendered);
+        self::assertSame([], $deprecations);
+    }
 }

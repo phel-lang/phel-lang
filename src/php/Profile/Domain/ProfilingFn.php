@@ -25,7 +25,10 @@ final class ProfilingFn extends AbstractFn
         private readonly AbstractFn $inner,
         private readonly ProfilerSession $session,
     ) {
-        $constant = new ReflectionClass($inner)->getConstant('BOUND_TO');
+        $reflection = new ReflectionClass($inner);
+        $constant = $reflection->hasConstant('BOUND_TO')
+            ? $reflection->getConstant('BOUND_TO')
+            : null;
         $this->boundTo = is_string($constant) && $constant !== '' ? $constant : '<anonymous>';
         $this->withMeta($inner->getMeta());
     }

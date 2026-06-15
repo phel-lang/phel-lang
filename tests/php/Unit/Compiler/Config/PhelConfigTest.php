@@ -9,6 +9,7 @@ use Phel\Config\PhelConfig;
 use Phel\Config\PhelExportConfig;
 use Phel\Config\ProjectLayout;
 use PHPUnit\Framework\Attributes\Group;
+use PHPUnit\Framework\Attributes\IgnoreDeprecations;
 use PHPUnit\Framework\TestCase;
 
 final class PhelConfigTest extends TestCase
@@ -436,6 +437,7 @@ final class PhelConfigTest extends TestCase
     }
 
     #[Group('deprecated')]
+    #[IgnoreDeprecations]
     public function test_deprecated_setters_still_produce_equivalent_output(): void
     {
         /** @psalm-suppress DeprecatedMethod */
@@ -467,6 +469,7 @@ final class PhelConfigTest extends TestCase
     }
 
     #[Group('deprecated')]
+    #[IgnoreDeprecations]
     public function test_deprecated_layout_shortcuts_match_with_layout(): void
     {
         /** @psalm-suppress DeprecatedMethod */
