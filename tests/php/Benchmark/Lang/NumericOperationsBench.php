@@ -66,4 +66,40 @@ final class NumericOperationsBench
             NumericOperations::multiply($i, 3);
         }
     }
+
+    /**
+     * @Revs(50000)
+     *
+     * @Iterations(5)
+     */
+    public function bench_int_quot(): void
+    {
+        for ($i = 0; $i < 32; ++$i) {
+            NumericOperations::quot($i, 3);
+        }
+    }
+
+    /**
+     * @Revs(50000)
+     *
+     * @Iterations(5)
+     */
+    public function bench_int_rem(): void
+    {
+        for ($i = 0; $i < 32; ++$i) {
+            NumericOperations::rem($i, 3);
+        }
+    }
+
+    /**
+     * @Revs(50000)
+     *
+     * @Iterations(5)
+     */
+    public function bench_int_mod(): void
+    {
+        for ($i = 0; $i < 32; ++$i) {
+            NumericOperations::mod($i, 3);
+        }
+    }
 }
