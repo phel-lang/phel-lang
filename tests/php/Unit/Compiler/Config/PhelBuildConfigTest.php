@@ -6,6 +6,7 @@ namespace PhelTest\Unit\Compiler\Config;
 
 use Phel\Config\PhelBuildConfig;
 use PHPUnit\Framework\Attributes\Group;
+use PHPUnit\Framework\Attributes\IgnoreDeprecations;
 use PHPUnit\Framework\TestCase;
 
 final class PhelBuildConfigTest extends TestCase
@@ -159,6 +160,7 @@ final class PhelBuildConfigTest extends TestCase
     }
 
     #[Group('deprecated')]
+    #[IgnoreDeprecations]
     public function test_deprecated_setters_still_work(): void
     {
         /** @psalm-suppress DeprecatedMethod */

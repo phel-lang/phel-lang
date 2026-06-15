@@ -33,7 +33,9 @@ final readonly class CompiledPhpMethodBuilder
     public function build(string $phelNs, FunctionToExport $functionToExport): string
     {
         $ref = new ReflectionClass($functionToExport->fn());
-        $boundTo = ScalarCoercion::toString($ref->getConstant('BOUND_TO'));
+        $boundTo = $ref->hasConstant('BOUND_TO')
+            ? ScalarCoercion::toString($ref->getConstant('BOUND_TO'))
+            : '';
         $refInvoke = $ref->getMethod('__invoke');
 
         return str_replace([

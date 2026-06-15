@@ -21,4 +21,32 @@ final class FnPrinterTest extends TestCase
 
         self::assertSame('<function>', new FnPrinter()->print($class));
     }
+
+    public function test_print_does_not_deprecate_without_bound_to(): void
+    {
+        $class = new class() implements FnInterface {
+            public function __invoke(): string
+            {
+                return 'invoke method';
+            }
+        };
+
+        $deprecations = [];
+        set_error_handler(
+            static function (int $errno, string $message) use (&$deprecations): bool {
+                $deprecations[] = $message;
+                return true;
+            },
+            E_DEPRECATED,
+        );
+
+        try {
+            $rendered = new FnPrinter()->print($class);
+        } finally {
+            restore_error_handler();
+        }
+
+        self::assertSame('<function>', $rendered);
+        self::assertSame([], $deprecations);
+    }
 }
