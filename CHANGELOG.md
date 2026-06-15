@@ -17,6 +17,7 @@ All notable changes to this project will be documented in this file.
 
 - Faster native-int arithmetic: `NumericOperations` (`+ - * /`, `compare`, `=`) now fast-paths two native PHP ints ahead of the `is_float`/`instanceof` dispatch ladder, skipping the per-call `ensureNumeric` validation and the type probes that the common case never needs. Micro-benchmarked per 32 ops (`NumericOperationsBench`): `compare` 2.01μs→0.56μs and `=` 2.05μs→0.56μs (~3.7x), `+` 2.49μs→1.00μs (~2.5x), `*` 3.45μs→1.94μs (~1.8x). Behaviour, contagion order, and overflow-to-`BigInt` promotion are unchanged
 - Faster native-int `quot`/`rem`/`mod` (`NumericOperations`): same native-int fast path now covers integer quotient, remainder and floor-modulo. `mod` benefits most because it previously composed `rem`, `isZero`, two `compare`s and `add` (each running its own dispatch ladder); the int path now computes directly. Micro-benchmarked per 32 ops: `mod` 7.41μs→0.90μs (~8.2x), `rem` 2.97μs→0.63μs (~4.7x), `quot` 3.00μs→0.76μs (~4x). Results unchanged
+- Faster core arithmetic wrappers: `+ - * /` and `bit-and`/`bit-or`/`bit-xor` no longer round-trip their already-collected variadic args through `apply` to reach the internal nil check. The hot path now calls `assert-non-nil-coll` on the arg collection directly, removing one function call plus an argument spread-and-re-collect per arithmetic operation. An arithmetic-dense workload (~8M ops via `reduce`) drops from ~32.8s to ~24.3s (~26% faster) end to end; the nil-argument error is unchanged
 
 ### Fixed
 
