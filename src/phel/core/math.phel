@@ -17,11 +17,15 @@
 ;; Math helpers
 ;; ---
 
-(defn- assert-non-nil
-  [& xs]
+(defn- assert-non-nil-coll
+  [xs]
   (foreach [x xs]
     (when (php/=== nil x)
       (throw (php/new \InvalidArgumentException "Arithmetic functions do not accept nil values")))))
+
+(defn- assert-non-nil
+  [& xs]
+  (assert-non-nil-coll xs))
 
 ;; -----------------
 ;; Bitwise operation
@@ -34,7 +38,7 @@
    :see-also ["bit-or" "bit-xor" "bit-not"]}
   [x y & args]
   (let [all (concat [x y] args)]
-    (apply assert-non-nil all)
+    (assert-non-nil-coll all)
     (reduce #(php/& %1 %2) all)))
 
 (defn bit-or
@@ -44,7 +48,7 @@
    :see-also ["bit-and" "bit-xor" "bit-not"]}
   [x y & args]
   (let [all (concat [x y] args)]
-    (apply assert-non-nil all)
+    (assert-non-nil-coll all)
     (reduce #(php/| %1 %2) all)))
 
 (defn bit-xor
@@ -54,7 +58,7 @@
    :see-also ["bit-and" "bit-or" "bit-not"]}
   [x y & args]
   (let [all (concat [x y] args)]
-    (apply assert-non-nil all)
+    (assert-non-nil-coll all)
     (reduce #(php/^ %1 %2) all)))
 
 (defn bit-not
@@ -125,7 +129,7 @@
   {:example "(+ 1 2 3) ; => 6"
    :see-also ["-" "*" "/" "sum"]}
   [& xs]
-  (apply assert-non-nil xs)
+  (assert-non-nil-coll xs)
   (case (count xs)
     0 0
     1 (first xs)
@@ -137,7 +141,7 @@
   {:example "(- 10 3 2) ; => 5\n(- 4) ; => -4"
    :see-also ["+" "*" "/"]}
   [& xs]
-  (apply assert-non-nil xs)
+  (assert-non-nil-coll xs)
   (case (count xs)
     0 0
     1 (php/:: NumericOperations (negate (first xs)))
@@ -149,7 +153,7 @@
   {:example "(* 2 3 4) ; => 24"
    :see-also ["+" "-" "/"]}
   [& xs]
-  (apply assert-non-nil xs)
+  (assert-non-nil-coll xs)
   (case (count xs)
     0 1
     1 (first xs)
@@ -166,7 +170,7 @@ returns 1. If `xs` has one value, returns the reciprocal of x.
   {:example "(/ 1 2) ; => 1/2\n(/ 10 2) ; => 5"
    :see-also ["+" "-" "*" "quot" "mod"]}
   [& xs]
-  (apply assert-non-nil xs)
+  (assert-non-nil-coll xs)
   (case (count xs)
     0 1
     1 (php/:: NumericOperations (divide 1 (first xs)))
