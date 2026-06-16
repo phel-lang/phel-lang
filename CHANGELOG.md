@@ -7,21 +7,23 @@ All notable changes to this project will be documented in this file.
 ### Added
 
 - Cold-start speedup: the PHAR ships `phel.core` precompiled to `.php` siblings, so a cold `phel run`/`test`/`eval` reuses them instead of recompiling core (~1.2s → ~0.2s on an empty cache) (#2443)
-- `phel doctor`: a "Checking performance" section reports whether OPcache persists the compiled-code cache across CLI runs, with copy-paste fixes (#2444)
+- `phel doctor`: a "Checking performance" section reports whether OPcache persists the compiled-code cache across CLI runs, with copy-paste fixes (#2446)
 - `phel doc` shell completion: function names, `--ns`, and `--format` (#2451)
 - Shell completion for known option values: `phel compile --target`, and `phel test --coverage`/`--reporter`/`--parallel` (#2451)
 - `phel run`/`phel test`/`phel test --ns` complete the project's namespaces, via a new `RunFacade::getAllNamespaces()` (#2451)
 - README "Get Started" documents shell completion install (`bash`/`zsh`/`fish`) and the `#compdef phel` global-binary prerequisite (#2451)
 
-### Changed
+### Performance
 
-- Faster native-int arithmetic: `NumericOperations` fast-paths two native ints ahead of the `is_float`/`instanceof` ladder for `+ - * / < =` and `quot`/`rem`/`mod`. Per-op micro-benchmarks ~1.8–8x faster (`mod` ~8.2x); behaviour and overflow-to-`BigInt` promotion unchanged (#2458, #2459)
-- Faster core arithmetic wrappers: `+ - * /` and `bit-and`/`bit-or`/`bit-xor` drop the per-op `apply` round-trip in the nil check (~26% on an arithmetic-heavy workload) (#2460)
+Dispatch / call sites:
+
+- Native-int fast path in `NumericOperations` for `+ - * / < =` and `quot`/`rem`/`mod`: skip the `is_float`/`instanceof` ladder when both operands are ints; ~1.8–8x per op (`mod` ~8.2x), overflow-to-`BigInt` promotion unchanged (#2458 #2459)
+- Core arithmetic wrappers `+ - * /` and `bit-and`/`bit-or`/`bit-xor` drop the per-op `apply` round-trip in the nil check; ~26% on an arithmetic-heavy workload (#2460)
 
 ### Fixed
 
 - `phel build` from the PHAR now compiles and harvests every `(load ...)` stdlib secondary into the output tree, so `php out/index.php` runs standalone (regression from the precompiled-stdlib bundle; #2443)
-- `phel test`/`phel run` with a missing file path no longer leaks a raw `file_get_contents()` warning before the clean `Unable to read file "..."` error
+- `phel test`/`phel run` with a missing file path no longer leaks a raw `file_get_contents()` warning before the clean `Unable to read file "..."` error (#2442)
 - PHP 8.5: guard `ReflectionClass::getConstant('BOUND_TO')` behind `hasConstant()` and mark the deprecated-setter tests `#[IgnoreDeprecations]`, so `composer test` runs deprecation-free (#2455)
 
 ## [0.44.0](https://github.com/phel-lang/phel-lang/compare/v0.43.0...v0.44.0) - 2026-06-13
