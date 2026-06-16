@@ -8,10 +8,7 @@ All notable changes to this project will be documented in this file.
 
 - Cold-start speedup: the PHAR ships `phel.core` precompiled to `.php` siblings, so a cold `phel run`/`test`/`eval` reuses them instead of recompiling core (~1.2s → ~0.2s on an empty cache) (#2443)
 - `phel doctor`: a "Checking performance" section reports whether OPcache persists the compiled-code cache across CLI runs, with copy-paste fixes (#2446)
-- `phel doc` shell completion: function names, `--ns`, and `--format` (#2451)
-- Shell completion for known option values: `phel compile --target`, and `phel test --coverage`/`--reporter`/`--parallel` (#2451)
-- `phel run`/`phel test`/`phel test --ns` complete the project's namespaces, via a new `RunFacade::getAllNamespaces()` (#2451)
-- README "Get Started" documents shell completion install (`bash`/`zsh`/`fish`) and the `#compdef phel` global-binary prerequisite (#2451)
+- Shell completion: `phel doc` (function names, `--ns`, `--format`), option values (`compile --target`, `test --coverage`/`--reporter`/`--parallel`), and project namespaces for `run`/`test`/`test --ns`; README documents install (`bash`/`zsh`/`fish`) and the `#compdef phel` global-binary prerequisite (#2451)
 
 ### Performance
 
