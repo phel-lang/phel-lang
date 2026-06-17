@@ -22,6 +22,7 @@ use PHPUnit\Framework\Attributes\RunInSeparateProcess;
 use PHPUnit\Framework\TestCase;
 
 use function array_column;
+use function strlen;
 
 final class PhpInteropLspTest extends TestCase
 {
@@ -134,6 +135,27 @@ final class PhpInteropLspTest extends TestCase
 
         self::assertIsArray($result);
         self::assertStringContainsString('new', (string) $result['signatures'][0]['label']);
+    }
+
+    #[PreserveGlobalState(false)]
+    #[RunInSeparateProcess]
+    public function test_signature_help_targets_innermost_chained_method(): void
+    {
+        $uri = 'file:///x.phel';
+        $source = '(php/-> (php/new \\DateTimeImmutable) (modify "x") (setDate 2020 ';
+        $session = $this->sessionWith($uri, $source);
+
+        // Cursor past the first argument of the innermost `setDate` call.
+        $result = $this->signatureHelp()->handle(
+            $this->params($uri, line: 0, character: strlen($source)),
+            $session,
+        );
+
+        self::assertIsArray($result);
+        $signature = $result['signatures'][0];
+        self::assertStringContainsString('setDate(', (string) $signature['label']);
+        self::assertCount(3, $signature['parameters']);
+        self::assertSame(1, $result['activeParameter']);
     }
 
     #[PreserveGlobalState(false)]

@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Phel\Api\Application;
 
 use Phel\Api\Transfer\Completion;
+use Phel\Api\Transfer\PhpInteropSignature;
 use ReflectionClass;
 use ReflectionException;
 use ReflectionFunction;
@@ -26,9 +27,13 @@ use function interface_exists;
 use function is_array;
 use function is_file;
 use function ltrim;
+use function preg_replace;
+use function preg_split;
+use function rtrim;
 use function sprintf;
 use function str_starts_with;
 use function strtolower;
+use function trim;
 
 /**
  * Reflection-backed catalog for PHP interop completion, hover, and signature
@@ -192,16 +197,33 @@ final class PhpInteropReflector
      */
     public function methodSignature(string $class, string $method): ?string
     {
+        return $this->methodSignatureInfo($class, $method)?->label;
+    }
+
+    /**
+     * Structured signature (label, per-parameter substrings, phpdoc) for a class
+     * method, or null when unresolvable. Used for signature help.
+     */
+    public function methodSignatureInfo(string $class, string $method): ?PhpInteropSignature
+    {
         $reflection = $this->reflect($class);
         if (!$reflection instanceof ReflectionClass) {
             return null;
         }
 
         try {
-            return $this->renderMethod($reflection->getMethod($method));
+            return $this->methodInfo($reflection->getMethod($method));
         } catch (ReflectionException) {
             return null;
         }
+    }
+
+    /**
+     * Whether the given class or interface can be reflected.
+     */
+    public function classExists(string $class): bool
+    {
+        return $this->reflect($class) instanceof ReflectionClass;
     }
 
     /**
@@ -236,6 +258,15 @@ final class PhpInteropReflector
         );
     }
 
+    private function methodInfo(ReflectionMethod $method): PhpInteropSignature
+    {
+        return new PhpInteropSignature(
+            $this->renderMethod($method),
+            $this->parameterLabels($method->getParameters()),
+            $this->docBlock($method),
+        );
+    }
+
     private function renderMethod(ReflectionMethod $method): string
     {
         return sprintf(
@@ -251,14 +282,52 @@ final class PhpInteropReflector
      */
     private function renderParameters(array $parameters): string
     {
-        $rendered = [];
+        return implode(', ', $this->parameterLabels($parameters));
+    }
+
+    /**
+     * One `type $name` label per parameter, each a substring of the rendered
+     * method/function label so an editor can highlight the active argument.
+     *
+     * @param list<ReflectionParameter> $parameters
+     *
+     * @return list<string>
+     */
+    private function parameterLabels(array $parameters): array
+    {
+        $labels = [];
         foreach ($parameters as $parameter) {
             $type = $this->renderType($parameter->getType());
             $name = ($parameter->isVariadic() ? '...$' : '$') . $parameter->getName();
-            $rendered[] = $type === '' ? $name : $type . ' ' . $name;
+            $labels[] = $type === '' ? $name : $type . ' ' . $name;
         }
 
-        return implode(', ', $rendered);
+        return $labels;
+    }
+
+    /**
+     * The method's phpdoc as plain text (delimiters and leading `*` stripped),
+     * or an empty string when there is none. Internal PHP classes rarely carry
+     * doc comments, so this is usually empty for them.
+     */
+    private function docBlock(ReflectionMethod $method): string
+    {
+        $doc = $method->getDocComment();
+        if ($doc === false) {
+            return '';
+        }
+
+        $lines = preg_split('/\r?\n/', $doc) ?: [];
+        $cleaned = [];
+        foreach ($lines as $line) {
+            $line = trim($line);
+            $line = preg_replace('#^/\*\*+#', '', $line) ?? $line;
+            $line = preg_replace('#\*+/$#', '', $line) ?? $line;
+            $line = preg_replace('#^\*\s?#', '', $line) ?? $line;
+            $cleaned[] = rtrim($line);
+        }
+
+        return trim(implode("\n", $cleaned));
     }
 
     private function renderReturn(?ReflectionType $type): string

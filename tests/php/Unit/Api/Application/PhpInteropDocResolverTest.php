@@ -87,6 +87,49 @@ final class PhpInteropDocResolverTest extends TestCase
         self::assertStringContainsString('getTimestamp', $hover);
     }
 
+    public function test_signature_help_populates_parameters(): void
+    {
+        $source = '(php/-> (php/new \\DateTimeImmutable) (setDate ';
+        $help = $this->resolver->signatureAt($source, 1, strlen($source) + 1);
+
+        self::assertNotNull($help);
+        $parameters = $help['signatures'][0]['parameters'];
+        self::assertCount(3, $parameters, 'setDate(int $year, int $month, int $day)');
+        self::assertArrayHasKey('label', $parameters[0]);
+    }
+
+    public function test_signature_help_active_parameter_tracks_cursor(): void
+    {
+        $source = '(php/-> (php/new \\DateTimeImmutable) (setDate 2020 1 ';
+        $help = $this->resolver->signatureAt($source, 1, strlen($source) + 1);
+
+        self::assertNotNull($help);
+        self::assertStringContainsString('setDate(', $help['signatures'][0]['label']);
+        self::assertSame(2, $help['activeParameter']);
+    }
+
+    public function test_signature_help_chained_call_targets_innermost_method(): void
+    {
+        // A lazy regex would latch onto the first `(modify ...)` segment; the
+        // structural scan must report the enclosing `setDate` instead.
+        $source = '(php/-> (php/new \\DateTimeImmutable) (modify "x") (setDate 2020 ';
+        $help = $this->resolver->signatureAt($source, 1, strlen($source) + 1);
+
+        self::assertNotNull($help);
+        self::assertStringContainsString('setDate(', $help['signatures'][0]['label']);
+        self::assertStringNotContainsString('modify(', $help['signatures'][0]['label']);
+        self::assertSame(1, $help['activeParameter']);
+    }
+
+    public function test_signature_help_constructor_label_uses_class_name(): void
+    {
+        $source = '(php/new \\DateTimeImmutable ';
+        $help = $this->resolver->signatureAt($source, 1, strlen($source) + 1);
+
+        self::assertNotNull($help);
+        self::assertStringStartsWith('new DateTimeImmutable(', $help['signatures'][0]['label']);
+    }
+
     public function test_signature_help_null_for_plain_phel(): void
     {
         self::assertNull($this->resolver->signatureAt('(map inc ', 1, 9));
