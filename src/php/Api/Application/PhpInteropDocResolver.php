@@ -4,10 +4,14 @@ declare(strict_types=1);
 
 namespace Phel\Api\Application;
 
+use Phel\Api\Transfer\PhpInteropCall;
 use Phel\Api\Transfer\PhpInteropContext;
+use Phel\Api\Transfer\PhpInteropSignature;
 
+use function count;
+use function implode;
 use function ltrim;
-use function preg_match;
+use function min;
 use function sprintf;
 use function strlen;
 
@@ -22,6 +26,7 @@ final readonly class PhpInteropDocResolver
     public function __construct(
         private PhpInteropContextResolver $contextResolver = new PhpInteropContextResolver(),
         private PhpInteropReflector $reflector = new PhpInteropReflector(),
+        private PhpInteropCallScanner $callScanner = new PhpInteropCallScanner(),
     ) {}
 
     /**
@@ -47,54 +52,64 @@ final readonly class PhpInteropDocResolver
     /**
      * LSP SignatureHelp payload for the interop call enclosing the cursor, or
      * null. Covers `(php/new \Class ...)`, `(php/-> recv (method ...))`, and
-     * `(php/:: Class (method ...))`.
+     * `(php/:: Class (method ...))`. The enclosing call is found structurally so
+     * chained calls report the innermost method, and `activeParameter` tracks
+     * the argument the cursor sits on.
      *
-     * @return array{signatures: list<array{label: string}>, activeSignature: int, activeParameter: int}|null
+     * @return array{signatures: list<array{label: string, parameters: list<array{label: string}>, documentation?: string}>, activeSignature: int, activeParameter: int}|null
      */
     public function signatureAt(string $source, int $line, int $col): ?array
     {
-        $before = CursorText::before($source, $line, $col);
+        $call = $this->callScanner->scan(CursorText::before($source, $line, $col));
 
-        // (php/new \Class <args>
-        if (preg_match('/\(\s*php\/new\s+\\\\?([A-Za-z0-9_\\\\]+)\s/', $before, $m) === 1) {
-            $signature = $this->reflector->methodSignature($m[1], '__construct')
-                ?? ($m[1] . '()');
-
-            return $this->signatureResponse(sprintf('new %s', $signature));
-        }
-
-        // (php/:: Class (method <args>
-        if (preg_match('/\(\s*php\/::\s+(.+?)\s+\(([A-Za-z0-9_]+)\s/s', $before, $m) === 1) {
-            return $this->callSignature($m[1], $m[2]);
-        }
-
-        // (php/-> receiver (method <args>
-        if (preg_match('/\(\s*php\/->\s+(.+?)\s+\(([A-Za-z0-9_]+)\s/s', $before, $m) === 1) {
-            return $this->callSignature($m[1], $m[2]);
-        }
-
-        return null;
+        return match ($call->kind) {
+            PhpInteropCall::KIND_CONSTRUCTOR => $this->constructorSignature($call),
+            PhpInteropCall::KIND_METHOD => $this->methodCallSignature($call),
+            default => null,
+        };
     }
 
     /**
-     * @return array{signatures: list<array{label: string}>, activeSignature: int, activeParameter: int}|null
+     * @return array{signatures: list<array{label: string, parameters: list<array{label: string}>, documentation?: string}>, activeSignature: int, activeParameter: int}|null
      */
-    private function callSignature(string $receiver, string $method): ?array
+    private function constructorSignature(PhpInteropCall $call): ?array
     {
-        $context = $this->contextResolver->resolve(
-            sprintf('(php/-> %s x', $receiver),
-            1,
-            strlen(sprintf('(php/-> %s x', $receiver)) + 1,
-        );
-
-        $class = $context->class;
-        if ($class === '') {
+        $class = ltrim($call->receiver, '\\');
+        if (!$this->reflector->classExists($class)) {
             return null;
         }
 
-        $signature = $this->reflector->methodSignature($class, $method);
+        // A class without an explicit constructor still gets a `new Class()` hint.
+        $info = $this->reflector->methodSignatureInfo($class, '__construct');
+        $parameters = $info instanceof PhpInteropSignature ? $info->parameters : [];
+        $documentation = $info instanceof PhpInteropSignature ? $info->documentation : '';
 
-        return $signature === null ? null : $this->signatureResponse($signature);
+        return $this->signatureResponse(
+            new PhpInteropSignature(
+                sprintf('new %s(%s)', $class, implode(', ', $parameters)),
+                $parameters,
+                $documentation,
+            ),
+            $call->activeParameter,
+        );
+    }
+
+    /**
+     * @return array{signatures: list<array{label: string, parameters: list<array{label: string}>, documentation?: string}>, activeSignature: int, activeParameter: int}|null
+     */
+    private function methodCallSignature(PhpInteropCall $call): ?array
+    {
+        $probe = sprintf('(php/-> %s x', $call->receiver);
+        $context = $this->contextResolver->resolve($probe, 1, strlen($probe) + 1);
+        if ($context->class === '') {
+            return null;
+        }
+
+        $info = $this->reflector->methodSignatureInfo($context->class, $call->method);
+
+        return $info instanceof PhpInteropSignature
+            ? $this->signatureResponse($info, $call->activeParameter)
+            : null;
     }
 
     private function memberHover(PhpInteropContext $context): ?string
@@ -134,15 +149,39 @@ final readonly class PhpInteropDocResolver
     }
 
     /**
-     * @return array{signatures: list<array{label: string}>, activeSignature: int, activeParameter: int}
+     * @return array{signatures: list<array{label: string, parameters: list<array{label: string}>, documentation?: string}>, activeSignature: int, activeParameter: int}
      */
-    private function signatureResponse(string $label): array
+    private function signatureResponse(PhpInteropSignature $signature, int $activeParameter): array
     {
+        $information = [
+            'label' => $signature->label,
+            'parameters' => $this->parameterInformation($signature->parameters),
+        ];
+        if ($signature->documentation !== '') {
+            $information['documentation'] = $signature->documentation;
+        }
+
+        $count = count($signature->parameters);
+
         return [
-            'signatures' => [['label' => $label]],
+            'signatures' => [$information],
             'activeSignature' => 0,
-            'activeParameter' => 0,
+            'activeParameter' => $count === 0 ? 0 : min($activeParameter, $count - 1),
         ];
     }
 
+    /**
+     * @param list<string> $parameters
+     *
+     * @return list<array{label: string}>
+     */
+    private function parameterInformation(array $parameters): array
+    {
+        $information = [];
+        foreach ($parameters as $parameter) {
+            $information[] = ['label' => $parameter];
+        }
+
+        return $information;
+    }
 }

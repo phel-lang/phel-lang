@@ -58,13 +58,14 @@ final class CursorText
     }
 
     /**
-     * Returns `$prefix` from the position of the outermost `(` that is still
-     * open at its end, so callers only see the form the cursor is inside.
+     * Indices of every `(` still open at the end of `$prefix`, outermost first.
      * String literals and `;` line comments are skipped while balancing. Only
-     * parens are tracked (not `[`/`{`): the interop regexes are paren-delimited,
-     * so brackets/braces do not affect which `(` is outermost.
+     * parens are tracked (not `[`/`{`): the interop forms are paren-delimited,
+     * so brackets/braces do not affect which `(` is open.
+     *
+     * @return list<int>
      */
-    private static function fromEnclosingForm(string $prefix): string
+    public static function openParenPositions(string $prefix): array
     {
         $length = strlen($prefix);
         $openParens = [];
@@ -102,6 +103,16 @@ final class CursorText
             ++$i;
         }
 
+        return $openParens;
+    }
+
+    /**
+     * Returns `$prefix` from the position of the outermost `(` that is still
+     * open at its end, so callers only see the form the cursor is inside.
+     */
+    private static function fromEnclosingForm(string $prefix): string
+    {
+        $openParens = self::openParenPositions($prefix);
         if ($openParens === []) {
             return $prefix;
         }

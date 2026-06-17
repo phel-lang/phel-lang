@@ -6,6 +6,7 @@ namespace PhelTest\Unit\Api\Application;
 
 use Phel\Api\Application\PhpInteropReflector;
 use Phel\Api\Transfer\Completion;
+use PhelTest\Unit\Api\Application\Fixtures\SignatureFixture;
 use PHPUnit\Framework\TestCase;
 
 use function array_map;
@@ -107,6 +108,37 @@ final class PhpInteropReflectorTest extends TestCase
     public function test_function_signature_null_for_unknown(): void
     {
         self::assertNull($this->reflector->functionSignature('this_function_does_not_exist_zzz'));
+    }
+
+    public function test_method_signature_info_exposes_parameter_substrings(): void
+    {
+        $info = $this->reflector->methodSignatureInfo(SignatureFixture::class, 'greet');
+
+        self::assertNotNull($info);
+        self::assertSame(['string $name', 'int $times'], $info->parameters);
+        self::assertStringContainsString('greet(string $name, int $times): string', $info->label);
+    }
+
+    public function test_method_signature_info_carries_cleaned_phpdoc(): void
+    {
+        $info = $this->reflector->methodSignatureInfo(SignatureFixture::class, 'greet');
+
+        self::assertNotNull($info);
+        self::assertStringContainsString('Greets a person', $info->documentation);
+        self::assertStringNotContainsString('/**', $info->documentation);
+        self::assertStringNotContainsString('*/', $info->documentation);
+    }
+
+    public function test_method_signature_info_null_for_unknown(): void
+    {
+        self::assertNull($this->reflector->methodSignatureInfo('\\Nope', 'foo'));
+        self::assertNull($this->reflector->methodSignatureInfo('\\DateTimeImmutable', 'noSuchMethod'));
+    }
+
+    public function test_class_exists_reflects_known_and_unknown_classes(): void
+    {
+        self::assertTrue($this->reflector->classExists('\\DateTimeImmutable'));
+        self::assertFalse($this->reflector->classExists('\\This\\Does\\Not\\Exist'));
     }
 
     /**
