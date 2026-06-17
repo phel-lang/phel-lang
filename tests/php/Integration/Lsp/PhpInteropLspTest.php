@@ -46,6 +46,44 @@ final class PhpInteropLspTest extends TestCase
 
     #[PreserveGlobalState(false)]
     #[RunInSeparateProcess]
+    public function test_completion_lists_static_members_for_use_aliased_class(): void
+    {
+        $uri = 'file:///x.phel';
+        $source = "(ns app (:use DateTimeImmutable :as DT))\n(php/:: DT createFr)";
+        $session = $this->sessionWith($uri, $source);
+
+        // Cursor right after "createFr" on line 2.
+        $result = $this->completion()->handle(
+            $this->params($uri, line: 1, character: 19),
+            $session,
+        );
+
+        $labels = array_column($result['items'], 'label');
+        self::assertContains('createFromFormat', $labels);
+        self::assertContains('createFromInterface', $labels);
+    }
+
+    #[PreserveGlobalState(false)]
+    #[RunInSeparateProcess]
+    public function test_completion_lists_instance_methods_for_multiline_receiver(): void
+    {
+        $uri = 'file:///x.phel';
+        $source = "(php/-> (php/new \\DateTimeImmutable)\n  (getTim))";
+        $session = $this->sessionWith($uri, $source);
+
+        // Cursor right after "(getTim" on line 2.
+        $result = $this->completion()->handle(
+            $this->params($uri, line: 1, character: 9),
+            $session,
+        );
+
+        $labels = array_column($result['items'], 'label');
+        self::assertContains('getTimestamp', $labels);
+        self::assertContains('getTimezone', $labels);
+    }
+
+    #[PreserveGlobalState(false)]
+    #[RunInSeparateProcess]
     public function test_completion_lists_class_names_after_php_new(): void
     {
         $uri = 'file:///x.phel';

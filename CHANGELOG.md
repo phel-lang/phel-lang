@@ -19,6 +19,7 @@ Dispatch / call sites:
 
 ### Fixed
 
+- PHP interop completion/hover/signature help now resolves the receiver class through `(:use ...)`/`(use ...)` import aliases and across multi-line forms (follow-up to #2431; #2461)
 - `phel build` from the PHAR now compiles and harvests every `(load ...)` stdlib secondary into the output tree, so `php out/index.php` runs standalone (regression from the precompiled-stdlib bundle in #2443; #2449)
 - `phel test`/`phel run` with a missing file path no longer leaks a raw `file_get_contents()` warning before the clean `Unable to read file "..."` error (#2442)
 - PHP 8.5: guard `ReflectionClass::getConstant('BOUND_TO')` behind `hasConstant()` and mark the deprecated-setter tests `#[IgnoreDeprecations]`, so `composer test` runs deprecation-free (#2455)

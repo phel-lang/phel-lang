@@ -4,10 +4,14 @@ declare(strict_types=1);
 
 namespace Phel\Api\Application;
 
+use function array_pop;
+use function array_slice;
+use function implode;
 use function max;
 use function preg_match;
 use function preg_split;
 use function strlen;
+use function strpos;
 use function substr;
 
 /**
@@ -17,7 +21,11 @@ use function substr;
 final class CursorText
 {
     /**
-     * The text on `$line` up to (not including) the cursor column.
+     * The source up to (not including) the cursor, trimmed to the start of the
+     * outermost interop form still open at the cursor. Spanning multiple lines
+     * lets the resolver see a `(php/-> recv\n  (method ...))` whose opener sits
+     * on an earlier line; trimming to the enclosing form stops an earlier,
+     * already-closed sibling form from hijacking the (anchored, lazy) regexes.
      */
     public static function before(string $source, int $line, int $col): string
     {
@@ -26,7 +34,10 @@ final class CursorText
             return '';
         }
 
-        return substr($lines[$line - 1], 0, max(0, $col - 1));
+        $prefixLines = array_slice($lines, 0, $line - 1);
+        $prefixLines[] = substr($lines[$line - 1], 0, max(0, $col - 1));
+
+        return self::fromEnclosingForm(implode("\n", $prefixLines));
     }
 
     /**
@@ -44,5 +55,57 @@ final class CursorText
         }
 
         return $col;
+    }
+
+    /**
+     * Returns `$prefix` from the position of the outermost `(` that is still
+     * open at its end, so callers only see the form the cursor is inside.
+     * String literals and `;` line comments are skipped while balancing. Only
+     * parens are tracked (not `[`/`{`): the interop regexes are paren-delimited,
+     * so brackets/braces do not affect which `(` is outermost.
+     */
+    private static function fromEnclosingForm(string $prefix): string
+    {
+        $length = strlen($prefix);
+        $openParens = [];
+        $inString = false;
+        $i = 0;
+
+        while ($i < $length) {
+            $char = $prefix[$i];
+
+            if ($inString) {
+                if ($char === '\\') {
+                    $i += 2;
+                    continue;
+                }
+
+                if ($char === '"') {
+                    $inString = false;
+                }
+            } elseif ($char === '"') {
+                $inString = true;
+            } elseif ($char === ';') {
+                $newline = strpos($prefix, "\n", $i);
+                if ($newline === false) {
+                    break;
+                }
+
+                $i = $newline + 1;
+                continue;
+            } elseif ($char === '(') {
+                $openParens[] = $i;
+            } elseif ($char === ')') {
+                array_pop($openParens);
+            }
+
+            ++$i;
+        }
+
+        if ($openParens === []) {
+            return $prefix;
+        }
+
+        return substr($prefix, $openParens[0]);
     }
 }
