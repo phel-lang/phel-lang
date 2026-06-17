@@ -17,6 +17,7 @@ use Phel\Lsp\Application\Handler\SymbolResolver;
 use Phel\Lsp\Application\Rpc\ParamsExtractor;
 use Phel\Lsp\Application\Session\Session;
 use Phel\Lsp\Domain\NotificationSink;
+use PhelTest\Unit\Api\Application\Fixtures\HoverFixture;
 use PHPUnit\Framework\Attributes\PreserveGlobalState;
 use PHPUnit\Framework\Attributes\RunInSeparateProcess;
 use PHPUnit\Framework\TestCase;
@@ -117,6 +118,25 @@ final class PhpInteropLspTest extends TestCase
 
         self::assertIsArray($result);
         self::assertStringContainsString('strlen(', (string) $result['contents']['value']);
+    }
+
+    #[PreserveGlobalState(false)]
+    #[RunInSeparateProcess]
+    public function test_hover_shows_instance_property_with_phpdoc(): void
+    {
+        $uri = 'file:///x.phel';
+        $source = '(let [^\\' . HoverFixture::class . " obj (x)]\n  (php/-> obj count))";
+        $session = $this->sessionWith($uri, $source);
+
+        // Cursor on "count" on line 2.
+        $result = $this->hover()->handle(
+            $this->params($uri, line: 1, character: 15),
+            $session,
+        );
+
+        self::assertIsArray($result);
+        self::assertStringContainsString('int $count', (string) $result['contents']['value']);
+        self::assertStringContainsString('The current count', (string) $result['contents']['value']);
     }
 
     #[PreserveGlobalState(false)]

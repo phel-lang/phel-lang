@@ -6,6 +6,9 @@ namespace PhelTest\Unit\Api\Application;
 
 use Phel\Api\Application\PhpInteropReflector;
 use Phel\Api\Transfer\Completion;
+use PhelTest\Unit\Api\Application\Fixtures\HoverContract;
+use PhelTest\Unit\Api\Application\Fixtures\HoverEnum;
+use PhelTest\Unit\Api\Application\Fixtures\HoverFixture;
 use PhelTest\Unit\Api\Application\Fixtures\SignatureFixture;
 use PHPUnit\Framework\TestCase;
 
@@ -139,6 +142,55 @@ final class PhpInteropReflectorTest extends TestCase
     {
         self::assertTrue($this->reflector->classExists('\\DateTimeImmutable'));
         self::assertFalse($this->reflector->classExists('\\This\\Does\\Not\\Exist'));
+    }
+
+    public function test_instance_member_info_resolves_public_property(): void
+    {
+        $info = $this->reflector->instanceMemberInfo(HoverFixture::class, 'count');
+
+        self::assertNotNull($info);
+        self::assertSame('int $count', $info->label);
+        self::assertStringContainsString('The current count', $info->documentation);
+    }
+
+    public function test_static_member_info_resolves_constant_with_value(): void
+    {
+        $info = $this->reflector->staticMemberInfo(HoverFixture::class, 'MAX');
+
+        self::assertNotNull($info);
+        self::assertSame('const MAX = 10', $info->label);
+        self::assertStringContainsString('largest value', $info->documentation);
+    }
+
+    public function test_static_member_info_resolves_enum_case(): void
+    {
+        $info = $this->reflector->staticMemberInfo(HoverEnum::class, 'First');
+
+        self::assertNotNull($info);
+        self::assertSame('case First = "first"', $info->label);
+        self::assertStringContainsString('very first case', $info->documentation);
+    }
+
+    public function test_class_info_exposes_kind_parent_interfaces_and_constructor(): void
+    {
+        $info = $this->reflector->classInfo(HoverFixture::class);
+
+        self::assertNotNull($info);
+        self::assertSame('final class', $info->kind);
+        self::assertNull($info->parent);
+        self::assertContains(HoverContract::class, $info->interfaces);
+        self::assertStringContainsString('counter', $info->documentation);
+        self::assertNotNull($info->constructor);
+        self::assertSame(['string $label'], $info->constructor->parameters);
+    }
+
+    public function test_function_signature_info_exposes_parameters(): void
+    {
+        $info = $this->reflector->functionSignatureInfo('strlen');
+
+        self::assertNotNull($info);
+        self::assertStringContainsString('strlen(', $info->label);
+        self::assertNotSame([], $info->parameters);
     }
 
     /**

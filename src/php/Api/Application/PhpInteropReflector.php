@@ -4,9 +4,12 @@ declare(strict_types=1);
 
 namespace Phel\Api\Application;
 
+use BackedEnum;
 use Phel\Api\Transfer\Completion;
+use Phel\Api\Transfer\PhpInteropClass;
 use Phel\Api\Transfer\PhpInteropSignature;
 use ReflectionClass;
+use ReflectionClassConstant;
 use ReflectionException;
 use ReflectionFunction;
 use ReflectionMethod;
@@ -25,7 +28,11 @@ use function getcwd;
 use function implode;
 use function interface_exists;
 use function is_array;
+use function is_bool;
 use function is_file;
+use function is_float;
+use function is_int;
+use function is_string;
 use function ltrim;
 use function preg_replace;
 use function preg_split;
@@ -231,6 +238,15 @@ final class PhpInteropReflector
      */
     public function functionSignature(string $function): ?string
     {
+        return $this->functionSignatureInfo($function)?->label;
+    }
+
+    /**
+     * Structured signature (label, per-parameter substrings, phpdoc) for a
+     * global function, or null when unresolvable.
+     */
+    public function functionSignatureInfo(string $function): ?PhpInteropSignature
+    {
         if (!function_exists($function)) {
             return null;
         }
@@ -241,11 +257,98 @@ final class PhpInteropReflector
             return null;
         }
 
-        return sprintf(
-            '%s(%s)%s',
-            $function,
-            $this->renderParameters($reflection->getParameters()),
-            $this->renderReturn($reflection->getReturnType()),
+        return new PhpInteropSignature(
+            sprintf(
+                '%s(%s)%s',
+                $function,
+                $this->renderParameters($reflection->getParameters()),
+                $this->renderReturn($reflection->getReturnType()),
+            ),
+            $this->parameterLabels($reflection->getParameters()),
+            $this->cleanDoc($reflection->getDocComment()),
+        );
+    }
+
+    /**
+     * Hover signature for an instance member of a class: a non-static method or
+     * a public instance property. Null when neither resolves.
+     */
+    public function instanceMemberInfo(string $class, string $member): ?PhpInteropSignature
+    {
+        $method = $this->methodSignatureInfo($class, $member);
+        if ($method instanceof PhpInteropSignature) {
+            return $method;
+        }
+
+        $reflection = $this->reflect($class);
+        if (!$reflection instanceof ReflectionClass || !$reflection->hasProperty($member)) {
+            return null;
+        }
+
+        $property = $reflection->getProperty($member);
+        if (!$property->isPublic() || $property->isStatic()) {
+            return null;
+        }
+
+        $type = $this->renderType($property->getType());
+        $label = ($type === '' ? '' : $type . ' ') . '$' . $property->getName();
+
+        return new PhpInteropSignature($label, [], $this->cleanDoc($property->getDocComment()));
+    }
+
+    /**
+     * Hover signature for a static member of a class: a static method, a class
+     * constant, or an enum case. Null when none resolves.
+     */
+    public function staticMemberInfo(string $class, string $member): ?PhpInteropSignature
+    {
+        $method = $this->methodSignatureInfo($class, $member);
+        if ($method instanceof PhpInteropSignature) {
+            return $method;
+        }
+
+        $reflection = $this->reflect($class);
+        if (!$reflection instanceof ReflectionClass || !$reflection->hasConstant($member)) {
+            return null;
+        }
+
+        try {
+            $constant = $reflection->getReflectionConstant($member);
+        } catch (ReflectionException) {
+            return null;
+        }
+
+        if ($constant === false || !$constant->isPublic()) {
+            return null;
+        }
+
+        return new PhpInteropSignature(
+            $this->renderConstant($constant),
+            [],
+            $this->cleanDoc($constant->getDocComment()),
+        );
+    }
+
+    /**
+     * Reflected class details for hover (kind, parent, interfaces, phpdoc,
+     * constructor), or null when the class cannot be reflected.
+     */
+    public function classInfo(string $class): ?PhpInteropClass
+    {
+        $reflection = $this->reflect($class);
+        if (!$reflection instanceof ReflectionClass) {
+            return null;
+        }
+
+        $parent = $reflection->getParentClass();
+
+        return new PhpInteropClass(
+            $reflection->getName(),
+            $this->classKind($reflection),
+            $parent === false ? null : $parent->getName(),
+            $reflection->getInterfaceNames(),
+            $this->cleanDoc($reflection->getDocComment()),
+            $this->methodSignatureInfo($class, '__construct'),
         );
     }
 
@@ -263,7 +366,7 @@ final class PhpInteropReflector
         return new PhpInteropSignature(
             $this->renderMethod($method),
             $this->parameterLabels($method->getParameters()),
-            $this->docBlock($method),
+            $this->cleanDoc($method->getDocComment()),
         );
     }
 
@@ -306,13 +409,12 @@ final class PhpInteropReflector
     }
 
     /**
-     * The method's phpdoc as plain text (delimiters and leading `*` stripped),
-     * or an empty string when there is none. Internal PHP classes rarely carry
-     * doc comments, so this is usually empty for them.
+     * A raw `getDocComment()` result as plain text (delimiters and leading `*`
+     * stripped), or an empty string when there is none. Internal PHP symbols
+     * rarely carry doc comments, so this is usually empty for them.
      */
-    private function docBlock(ReflectionMethod $method): string
+    private function cleanDoc(string|false $doc): string
     {
-        $doc = $method->getDocComment();
         if ($doc === false) {
             return '';
         }
@@ -349,6 +451,46 @@ final class PhpInteropReflector
         }
 
         return '';
+    }
+
+    /**
+     * @param ReflectionClass<object> $reflection
+     */
+    private function classKind(ReflectionClass $reflection): string
+    {
+        return match (true) {
+            $reflection->isInterface() => 'interface',
+            $reflection->isEnum() => 'enum',
+            $reflection->isTrait() => 'trait',
+            $reflection->isAbstract() => 'abstract class',
+            $reflection->isFinal() => 'final class',
+            default => 'class',
+        };
+    }
+
+    private function renderConstant(ReflectionClassConstant $constant): string
+    {
+        if ($constant->isEnumCase()) {
+            $value = $constant->getValue();
+            $suffix = $value instanceof BackedEnum ? ' = ' . $this->renderConstantValue($value->value) : '';
+
+            return 'case ' . $constant->getName() . $suffix;
+        }
+
+        $rendered = $this->renderConstantValue($constant->getValue());
+
+        return 'const ' . $constant->getName() . ($rendered === '' ? '' : ' = ' . $rendered);
+    }
+
+    private function renderConstantValue(mixed $value): string
+    {
+        return match (true) {
+            is_string($value) => '"' . $value . '"',
+            is_bool($value) => $value ? 'true' : 'false',
+            $value === null => 'null',
+            is_int($value), is_float($value) => (string) $value,
+            default => '',
+        };
     }
 
     /**

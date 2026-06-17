@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace PhelTest\Unit\Api\Application;
 
 use Phel\Api\Application\PhpInteropDocResolver;
+use PhelTest\Unit\Api\Application\Fixtures\HoverEnum;
+use PhelTest\Unit\Api\Application\Fixtures\HoverFixture;
 use PHPUnit\Framework\TestCase;
 
 use function strlen;
@@ -85,6 +87,68 @@ final class PhpInteropDocResolverTest extends TestCase
 
         self::assertNotNull($hover);
         self::assertStringContainsString('getTimestamp', $hover);
+    }
+
+    public function test_hover_on_method_includes_phpdoc(): void
+    {
+        $source = '(let [^\\' . HoverFixture::class . " obj (x)]\n  (php/-> obj increment))";
+
+        $hover = $this->resolver->hoverAt($source, 2, 16);
+
+        self::assertNotNull($hover);
+        self::assertStringContainsString('increment(', $hover);
+        self::assertStringContainsString('Increments the counter', $hover);
+    }
+
+    public function test_hover_on_instance_property(): void
+    {
+        $source = '(let [^\\' . HoverFixture::class . " obj (x)]\n  (php/-> obj count))";
+
+        $hover = $this->resolver->hoverAt($source, 2, 16);
+
+        self::assertNotNull($hover);
+        self::assertStringContainsString('int $count', $hover);
+        self::assertStringContainsString('The current count', $hover);
+    }
+
+    public function test_hover_on_static_constant(): void
+    {
+        $prefix = '(php/:: \\' . HoverFixture::class . ' ';
+        $source = $prefix . 'MAX)';
+
+        $hover = $this->resolver->hoverAt($source, 1, strlen($prefix) + 2);
+
+        self::assertNotNull($hover);
+        self::assertStringContainsString('const MAX = 10', $hover);
+        self::assertStringContainsString('largest value', $hover);
+    }
+
+    public function test_hover_on_enum_case(): void
+    {
+        $prefix = '(php/:: \\' . HoverEnum::class . ' ';
+        $source = $prefix . 'First)';
+
+        $hover = $this->resolver->hoverAt($source, 1, strlen($prefix) + 2);
+
+        self::assertNotNull($hover);
+        self::assertStringContainsString('case First = "first"', $hover);
+        self::assertStringContainsString('very first case', $hover);
+    }
+
+    public function test_hover_on_class_shows_kind_interfaces_and_constructor(): void
+    {
+        $source = '(php/new \\' . HoverFixture::class . ')';
+        $col = (int) strpos($source, 'HoverFixture') + 4;
+
+        $hover = $this->resolver->hoverAt($source, 1, $col);
+
+        self::assertNotNull($hover);
+        self::assertStringContainsString('final class', $hover);
+        self::assertStringContainsString('implements', $hover);
+        self::assertStringContainsString('HoverContract', $hover);
+        self::assertStringContainsString('new ', $hover);
+        self::assertStringContainsString('string $label', $hover);
+        self::assertStringContainsString('counter', $hover);
     }
 
     public function test_signature_help_populates_parameters(): void
