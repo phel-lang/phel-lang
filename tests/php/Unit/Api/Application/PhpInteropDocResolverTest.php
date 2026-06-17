@@ -67,6 +67,26 @@ final class PhpInteropDocResolverTest extends TestCase
         self::assertStringContainsString('setTimestamp(', $help['signatures'][0]['label']);
     }
 
+    public function test_signature_help_for_multiline_method_call(): void
+    {
+        $source = "(php/-> (php/new \\DateTimeImmutable)\n  (setTimestamp ";
+        $help = $this->resolver->signatureAt($source, 2, strlen('  (setTimestamp ') + 1);
+
+        self::assertNotNull($help);
+        self::assertStringContainsString('setTimestamp(', $help['signatures'][0]['label']);
+    }
+
+    public function test_hover_on_multiline_instance_method(): void
+    {
+        // Line 2 is "  getTimestamp"; cursor sits inside the method name.
+        $source = "(php/-> (php/new \\DateTimeImmutable)\n  getTimestamp";
+
+        $hover = $this->resolver->hoverAt($source, 2, 6);
+
+        self::assertNotNull($hover);
+        self::assertStringContainsString('getTimestamp', $hover);
+    }
+
     public function test_signature_help_null_for_plain_phel(): void
     {
         self::assertNull($this->resolver->signatureAt('(map inc ', 1, 9));

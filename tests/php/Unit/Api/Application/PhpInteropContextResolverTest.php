@@ -91,6 +91,72 @@ final class PhpInteropContextResolverTest extends TestCase
         self::assertSame('strle', $context->prefix);
     }
 
+    public function test_static_member_via_use_alias(): void
+    {
+        $source = "(ns app (:use Some\\Long\\Widget))\n(php/:: Widget create";
+        $context = $this->resolveAtEnd($source);
+
+        self::assertSame(PhpInteropContext::KIND_STATIC_MEMBER, $context->kind);
+        self::assertSame('Some\\Long\\Widget', $context->class);
+        self::assertSame('create', $context->prefix);
+    }
+
+    public function test_static_member_via_use_alias_with_as(): void
+    {
+        $source = "(ns app (:use Some\\Long\\Widget :as W))\n(php/:: W create";
+        $context = $this->resolveAtEnd($source);
+
+        self::assertSame(PhpInteropContext::KIND_STATIC_MEMBER, $context->kind);
+        self::assertSame('Some\\Long\\Widget', $context->class);
+    }
+
+    public function test_static_member_via_top_level_use(): void
+    {
+        $source = "(use Some\\Long\\Widget)\n(php/:: Widget create";
+        $context = $this->resolveAtEnd($source);
+
+        self::assertSame(PhpInteropContext::KIND_STATIC_MEMBER, $context->kind);
+        self::assertSame('Some\\Long\\Widget', $context->class);
+    }
+
+    public function test_instance_member_via_use_alias_php_new_binding(): void
+    {
+        $source = "(ns app (:use Some\\Long\\Widget))\n(let [w (php/new Widget)]\n  (php/-> w handle";
+        $context = $this->resolveAtEnd($source);
+
+        self::assertSame(PhpInteropContext::KIND_INSTANCE_MEMBER, $context->kind);
+        self::assertSame('Some\\Long\\Widget', $context->class);
+        self::assertSame('handle', $context->prefix);
+    }
+
+    public function test_instance_member_via_use_alias_reader_tag(): void
+    {
+        $source = "(ns app (:use Some\\Long\\Widget :as W))\n(let [^W w (x)]\n  (php/-> w handle";
+        $context = $this->resolveAtEnd($source);
+
+        self::assertSame(PhpInteropContext::KIND_INSTANCE_MEMBER, $context->kind);
+        self::assertSame('Some\\Long\\Widget', $context->class);
+    }
+
+    public function test_instance_member_with_multiline_form(): void
+    {
+        $source = "(php/-> (php/new \\DateTimeImmutable)\n  get";
+        $context = $this->resolveAtEnd($source);
+
+        self::assertSame(PhpInteropContext::KIND_INSTANCE_MEMBER, $context->kind);
+        self::assertSame('DateTimeImmutable', $context->class);
+        self::assertSame('get', $context->prefix);
+    }
+
+    public function test_earlier_closed_form_does_not_hijack_completion(): void
+    {
+        $source = "(php/-> (php/new \\DateTimeImmutable) (getTimestamp))\n(php/strle";
+        $context = $this->resolveAtEnd($source);
+
+        self::assertSame(PhpInteropContext::KIND_GLOBAL_FUNCTION, $context->kind);
+        self::assertSame('strle', $context->prefix);
+    }
+
     public function test_unknown_receiver_type_is_none(): void
     {
         $source = '(php/-> mystery-thing get';
