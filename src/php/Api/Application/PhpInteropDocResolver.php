@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Phel\Api\Application;
 
 use Phel\Api\Transfer\PhpInteropCall;
+use Phel\Api\Transfer\PhpInteropClass;
 use Phel\Api\Transfer\PhpInteropContext;
 use Phel\Api\Transfer\PhpInteropSignature;
 
@@ -118,34 +119,63 @@ final readonly class PhpInteropDocResolver
             return null;
         }
 
-        $signature = $this->reflector->methodSignature($context->class, $context->prefix);
-        if ($signature === null) {
-            return null;
-        }
+        $info = $context->kind === PhpInteropContext::KIND_STATIC_MEMBER
+            ? $this->reflector->staticMemberInfo($context->class, $context->prefix)
+            : $this->reflector->instanceMemberInfo($context->class, $context->prefix);
 
-        return $this->markdown(sprintf('%s::%s', $context->class, $context->prefix), $signature);
+        return $info instanceof PhpInteropSignature
+            ? $this->memberMarkdown(sprintf('%s::%s', $context->class, $context->prefix), $info)
+            : null;
     }
 
     private function functionHover(string $function): ?string
     {
-        $signature = $this->reflector->functionSignature($function);
+        $info = $this->reflector->functionSignatureInfo($function);
 
-        return $signature === null ? null : $this->markdown('php/' . $function, $signature);
+        return $info instanceof PhpInteropSignature
+            ? $this->memberMarkdown('php/' . $function, $info)
+            : null;
     }
 
     private function classHover(string $class): ?string
     {
-        $name = ltrim($class, '\\');
-        if ($name === '' || $this->reflector->classNames($name) === []) {
-            return null;
-        }
+        $info = $this->reflector->classInfo($class);
 
-        return sprintf('**\\%s** _(php class)_', $name);
+        return $info instanceof PhpInteropClass ? $this->classMarkdown($info) : null;
     }
 
-    private function markdown(string $title, string $signature): string
+    private function memberMarkdown(string $title, PhpInteropSignature $info): string
     {
-        return sprintf("**%s** _(php)_\n\n```php\n%s\n```", $title, $signature);
+        return $this->withDoc(
+            sprintf("**%s** _(php)_\n\n```php\n%s\n```", $title, $info->label),
+            $info->documentation,
+        );
+    }
+
+    private function classMarkdown(PhpInteropClass $info): string
+    {
+        $declaration = $info->kind . ' ' . $info->name;
+        if ($info->parent !== null) {
+            $declaration .= ' extends ' . $info->parent;
+        }
+
+        if ($info->interfaces !== []) {
+            $declaration .= ' implements ' . implode(', ', $info->interfaces);
+        }
+
+        $code = $info->constructor instanceof PhpInteropSignature
+            ? sprintf("%s\nnew %s(%s)", $declaration, $info->name, implode(', ', $info->constructor->parameters))
+            : $declaration;
+
+        return $this->withDoc(
+            sprintf("**\\%s** _(php %s)_\n\n```php\n%s\n```", $info->name, $info->kind, $code),
+            $info->documentation,
+        );
+    }
+
+    private function withDoc(string $markdown, string $documentation): string
+    {
+        return $documentation === '' ? $markdown : $markdown . "\n\n" . $documentation;
     }
 
     /**
