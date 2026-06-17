@@ -60,12 +60,14 @@ final class CursorText
     /**
      * Returns `$prefix` from the position of the outermost `(` that is still
      * open at its end, so callers only see the form the cursor is inside.
-     * String literals and `;` line comments are skipped while balancing.
+     * String literals and `;` line comments are skipped while balancing. Only
+     * parens are tracked (not `[`/`{`): the interop regexes are paren-delimited,
+     * so brackets/braces do not affect which `(` is outermost.
      */
     private static function fromEnclosingForm(string $prefix): string
     {
         $length = strlen($prefix);
-        $depthOpen = [];
+        $openParens = [];
         $inString = false;
         $i = 0;
 
@@ -89,21 +91,21 @@ final class CursorText
                     break;
                 }
 
-                $i = $newline;
+                $i = $newline + 1;
                 continue;
             } elseif ($char === '(') {
-                $depthOpen[] = $i;
+                $openParens[] = $i;
             } elseif ($char === ')') {
-                array_pop($depthOpen);
+                array_pop($openParens);
             }
 
             ++$i;
         }
 
-        if ($depthOpen === []) {
+        if ($openParens === []) {
             return $prefix;
         }
 
-        return substr($prefix, $depthOpen[0]);
+        return substr($prefix, $openParens[0]);
     }
 }

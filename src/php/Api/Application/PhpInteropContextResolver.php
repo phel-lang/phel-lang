@@ -6,13 +6,9 @@ namespace Phel\Api\Application;
 
 use Phel\Api\Transfer\PhpInteropContext;
 
-use function count;
-use function explode;
 use function ltrim;
 use function preg_match;
-use function preg_match_all;
 use function preg_quote;
-use function preg_split;
 use function str_replace;
 use function trim;
 
@@ -23,12 +19,16 @@ use function trim;
  * position yields {@see PhpInteropContext::none()} so completion degrades to
  * the normal Phel behaviour.
  *
- * Short class names imported via `(ns ... (:use Foo\Bar [:as B]))` or top-level
- * `(use ...)` are mapped back to their fully-qualified name so the reflector can
- * resolve them.
+ * Short class names imported via `(ns ... (:use Foo\Bar :as B))` or top-level
+ * `(use ...)` are mapped back to their fully-qualified name (via
+ * {@see PhpImportAliasExtractor}) so the reflector can resolve them.
  */
 final readonly class PhpInteropContextResolver
 {
+    public function __construct(
+        private PhpImportAliasExtractor $aliasExtractor = new PhpImportAliasExtractor(),
+    ) {}
+
     /**
      * @param int $line 1-based line number
      * @param int $col  1-based cursor column
@@ -39,22 +39,12 @@ final readonly class PhpInteropContextResolver
 
         // (php/-> receiver method|)  or  (php/-> receiver (method|))
         if (preg_match('/\(\s*php\/->\s+(.+?)\s+\(?([A-Za-z0-9_]*)$/s', $before, $m) === 1) {
-            $class = $this->resolveReceiverClass($m[1], $source);
-            if ($class !== '') {
-                return new PhpInteropContext(PhpInteropContext::KIND_INSTANCE_MEMBER, $m[2], $class);
-            }
-
-            return PhpInteropContext::none();
+            return $this->memberContext(PhpInteropContext::KIND_INSTANCE_MEMBER, $m, $source);
         }
 
         // (php/:: Class method|)  or  (php/:: Class (method|))
         if (preg_match('/\(\s*php\/::\s+(.+?)\s+\(?([A-Za-z0-9_]*)$/s', $before, $m) === 1) {
-            $class = $this->resolveReceiverClass($m[1], $source);
-            if ($class !== '') {
-                return new PhpInteropContext(PhpInteropContext::KIND_STATIC_MEMBER, $m[2], $class);
-            }
-
-            return PhpInteropContext::none();
+            return $this->memberContext(PhpInteropContext::KIND_STATIC_MEMBER, $m, $source);
         }
 
         // (php/new \Foo|
@@ -76,38 +66,58 @@ final readonly class PhpInteropContextResolver
     }
 
     /**
+     * Builds an instance/static member context from a matched `(php/-> ...)` /
+     * `(php/:: ...)` form, resolving the receiver to a class. Yields
+     * {@see PhpInteropContext::none()} when the receiver type is unknown.
+     *
+     * @param array{0: string, 1: string, 2: string} $m
+     */
+    private function memberContext(string $kind, array $m, string $source): PhpInteropContext
+    {
+        $aliases = $this->aliasExtractor->extract($source);
+        $class = $this->resolveReceiverClass($m[1], $source, $aliases);
+
+        if ($class === '') {
+            return PhpInteropContext::none();
+        }
+
+        return new PhpInteropContext($kind, $m[2], $class);
+    }
+
+    /**
      * Resolves a receiver expression to a class name. Handles a class literal
      * (`\Foo`, `Foo\Bar`), an inline `(php/new \Foo ...)`, an imported short
      * name (`(:use Foo\Bar)` → `Bar`), or a bare symbol whose `:tag` /
      * reader-tag / `(php/new ...)` binding is found in the source. Returns ''
      * when the type is unknown.
+     *
+     * @param array<string, string> $aliases
      */
-    private function resolveReceiverClass(string $receiver, string $source): string
+    private function resolveReceiverClass(string $receiver, string $source, array $aliases): string
     {
         $receiver = trim($receiver);
 
         // Inline construction: (php/-> (php/new \Foo ...) ...)
         if (preg_match('/\(\s*php\/new\s+\\\\?([A-Za-z0-9_\\\\.]+)/', $receiver, $m) === 1) {
-            return $this->mapAlias($m[1], $source);
+            return $this->mapAlias($m[1], $aliases);
         }
 
-        // Class literal: \Foo, \Foo\Bar, or Foo\Bar.
+        // Class literal kept separate from the bare-symbol branch below so a
+        // single unqualified name (e.g. `Widget`) is NOT treated as a literal
+        // and can instead resolve through the import-alias table.
+        // Multi-segment literal: \Foo\Bar or Foo\Bar.
         if (preg_match('/^\\\\?([A-Za-z_]\w*(?:\\\\[A-Za-z_]\w*)+)$/', $receiver, $m) === 1) {
             return ltrim($m[1], '\\');
         }
 
+        // Single segment with a leading backslash: \Foo.
         if (preg_match('/^\\\\([A-Za-z_]\w*)$/', $receiver, $m) === 1) {
             return $m[1];
         }
 
         // Bare symbol: an imported short name first, else a typed local binding.
         if (preg_match('/^[A-Za-z_][A-Za-z0-9_\-]*$/', $receiver) === 1) {
-            $imported = $this->aliasMap($source)[$receiver] ?? '';
-            if ($imported !== '') {
-                return $imported;
-            }
-
-            return $this->resolveSymbolTag($receiver, $source);
+            return $aliases[$receiver] ?? $this->resolveSymbolTag($receiver, $source, $aliases);
         }
 
         return '';
@@ -118,8 +128,10 @@ final readonly class PhpInteropContextResolver
      * `$symbol`: a `^{:tag \Type}` map, a `^\Type` reader tag, or a
      * `[symbol (php/new \Type ...)]` binding. The resolved name is mapped
      * through the import-alias table so a `:use`d short name becomes its FQN.
+     *
+     * @param array<string, string> $aliases
      */
-    private function resolveSymbolTag(string $symbol, string $source): string
+    private function resolveSymbolTag(string $symbol, string $source, array $aliases): string
     {
         $quoted = preg_quote($symbol, '/');
         $name = '';
@@ -139,80 +151,20 @@ final readonly class PhpInteropContextResolver
             return '';
         }
 
-        return $this->mapAlias($name, $source);
+        return $this->mapAlias($name, $aliases);
     }
 
     /**
      * Maps a (possibly short, possibly `.`-separated) class name to its
      * fully-qualified `\`-separated form, using the import-alias table when the
      * name is an imported alias and otherwise normalising it as-is.
+     *
+     * @param array<string, string> $aliases
      */
-    private function mapAlias(string $name, string $source): string
+    private function mapAlias(string $name, array $aliases): string
     {
         $normalized = str_replace('.', '\\', ltrim($name, '\\'));
 
-        return $this->aliasMap($source)[$normalized] ?? $normalized;
-    }
-
-    /**
-     * Builds the `short-name => FQN` table from every `(:use ...)` (inside an
-     * `ns` form) and top-level `(use ...)` clause in the source. Honours
-     * `:as Alias`; otherwise the alias is the last `\`-segment of the import.
-     *
-     * @return array<string, string>
-     */
-    private function aliasMap(string $source): array
-    {
-        $map = [];
-
-        if (preg_match_all('/\(\s*(?::use|use)\s+([^()]*)\)/', $source, $clauses) === false) {
-            return $map;
-        }
-
-        foreach ($clauses[1] as $clause) {
-            $this->collectAliases($clause, $map);
-        }
-
-        return $map;
-    }
-
-    /**
-     * @param array<string, string> $map
-     */
-    private function collectAliases(string $clause, array &$map): void
-    {
-        $tokens = preg_split('/\s+/', trim($clause)) ?: [];
-        $count = count($tokens);
-        $i = 0;
-
-        while ($i < $count) {
-            $token = $tokens[$i];
-            ++$i;
-            if ($token === '') {
-                continue;
-            }
-
-            if ($token[0] === ':') {
-                continue;
-            }
-
-            $fqn = str_replace('.', '\\', ltrim($token, '\\'));
-            if ($fqn === '') {
-                continue;
-            }
-
-            $alias = '';
-            if ($i + 1 < $count && $tokens[$i] === ':as') {
-                $alias = $tokens[$i + 1];
-                $i += 2;
-            }
-
-            if ($alias === '') {
-                $parts = explode('\\', $fqn);
-                $alias = $parts[count($parts) - 1];
-            }
-
-            $map[str_replace('.', '\\', ltrim($alias, '\\'))] = $fqn;
-        }
+        return $aliases[$normalized] ?? $normalized;
     }
 }

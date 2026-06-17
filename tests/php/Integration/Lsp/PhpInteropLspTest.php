@@ -54,7 +54,7 @@ final class PhpInteropLspTest extends TestCase
 
         // Cursor right after "createFr" on line 2.
         $result = $this->completion()->handle(
-            $this->params($uri, line: 1, character: 18),
+            $this->params($uri, line: 1, character: 19),
             $session,
         );
 
