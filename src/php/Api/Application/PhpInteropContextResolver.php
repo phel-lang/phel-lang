@@ -41,6 +41,12 @@ final readonly class PhpInteropContextResolver
     {
         $before = CursorText::before($source, $line, $col);
 
+        // Interop-looking text inside a string literal or `;` comment (e.g. a
+        // `\Foo` path in a string) is not an interop position.
+        if (CursorText::cursorInStringOrComment($before)) {
+            return PhpInteropContext::none();
+        }
+
         // (php/-> receiver method|)  or  (php/-> receiver (method|))
         if (preg_match('/\(\s*php\/->\s+(.+?)\s+\(?([A-Za-z0-9_]*)$/s', $before, $m) === 1) {
             return $this->memberContext(PhpInteropContext::KIND_INSTANCE_MEMBER, $m, $source);

@@ -228,6 +228,36 @@ final class PhpInteropContextResolverTest extends TestCase
         self::assertTrue($context->isNone());
     }
 
+    public function test_class_literal_inside_string_is_none(): void
+    {
+        // The `\DateTime...` lives inside a string literal, not an interop slot.
+        $context = $this->resolveAtEnd('(println "path \\DateTimeImm');
+
+        self::assertTrue($context->isNone());
+    }
+
+    public function test_class_literal_inside_line_comment_is_none(): void
+    {
+        $context = $this->resolveAtEnd('; see \\DateTimeImm');
+
+        self::assertTrue($context->isNone());
+    }
+
+    public function test_interop_form_inside_string_is_none(): void
+    {
+        $context = $this->resolveAtEnd('(str "x" "(php/-> obj ge');
+
+        self::assertTrue($context->isNone());
+    }
+
+    public function test_completed_string_argument_does_not_suppress_interop(): void
+    {
+        $context = $this->resolveAtEnd('(php/-> (php/new \\DateTimeImmutable "now") ge');
+
+        self::assertSame(PhpInteropContext::KIND_INSTANCE_MEMBER, $context->kind);
+        self::assertSame('DateTimeImmutable', $context->class);
+    }
+
     private function resolveAtEnd(string $source): PhpInteropContext
     {
         $lastNewline = strrpos($source, "\n");

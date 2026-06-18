@@ -49,9 +49,11 @@ final readonly class PointCompleter implements PointCompleterInterface
     public function completeAtPoint(string $source, int $line, int $col, ProjectIndex $index): array
     {
         // PHP-interop positions (php/->, php/::, php/new, \FQN, php/fn) take
-        // precedence; a null result means the cursor is not in such a position.
+        // precedence. A null result means the cursor is not in such a position;
+        // an empty list means it is, but nothing matched, so fall through to
+        // Phel completion rather than suppressing it.
         $phpCompletions = $this->phpInteropCompleter->completeAtPoint($source, $line, $col);
-        if ($phpCompletions !== null) {
+        if ($phpCompletions !== null && $phpCompletions !== []) {
             return $phpCompletions;
         }
 
