@@ -76,7 +76,9 @@ final readonly class PhpInteropDocResolver
     private function constructorSignature(PhpInteropCall $call): ?array
     {
         $class = ltrim($call->receiver, '\\');
-        if (!$this->reflector->classExists($class)) {
+        // No constructor help for interfaces, abstract classes, or enums:
+        // `(php/new \FilterIterator ...)` cannot be instantiated.
+        if (!$this->reflector->isInstantiable($class)) {
             return null;
         }
 

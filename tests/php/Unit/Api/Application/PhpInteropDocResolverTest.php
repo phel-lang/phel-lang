@@ -194,6 +194,15 @@ final class PhpInteropDocResolverTest extends TestCase
         self::assertStringStartsWith('new DateTimeImmutable(', $help['signatures'][0]['label']);
     }
 
+    public function test_signature_help_null_for_uninstantiable_class(): void
+    {
+        // FilterIterator is abstract: `(php/new \FilterIterator ...)` has no
+        // usable constructor signature.
+        $source = '(php/new \\FilterIterator ';
+
+        self::assertNull($this->resolver->signatureAt($source, 1, strlen($source) + 1));
+    }
+
     public function test_signature_help_null_for_plain_phel(): void
     {
         self::assertNull($this->resolver->signatureAt('(map inc ', 1, 9));

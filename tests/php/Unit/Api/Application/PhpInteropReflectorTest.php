@@ -208,6 +208,48 @@ final class PhpInteropReflectorTest extends TestCase
         self::assertSame('', $this->reflector->methodReturnType('\\Nope', 'foo'));
     }
 
+    public function test_class_names_include_interfaces(): void
+    {
+        $completions = $this->reflector->classNames('Countab');
+        $labels = $this->labels($completions);
+
+        self::assertContains('Countable', $labels);
+        self::assertNotSame([], $completions);
+        self::assertSame('interface', $completions[0]->detail);
+    }
+
+    public function test_static_members_label_enum_cases(): void
+    {
+        $cases = $this->reflector->staticMembers(HoverEnum::class, 'First');
+
+        self::assertNotSame([], $cases);
+        self::assertSame('First', $cases[0]->label);
+        self::assertSame('enum case', $cases[0]->detail);
+    }
+
+    public function test_static_members_label_plain_constants(): void
+    {
+        $members = $this->reflector->staticMembers('\\DateTimeImmutable', 'ATOM');
+
+        $atom = null;
+        foreach ($members as $member) {
+            if ($member->label === 'ATOM') {
+                $atom = $member;
+            }
+        }
+
+        self::assertNotNull($atom);
+        self::assertSame('constant', $atom->detail);
+    }
+
+    public function test_is_instantiable_guards_abstract_and_interfaces(): void
+    {
+        self::assertTrue($this->reflector->isInstantiable('\\DateTimeImmutable'));
+        self::assertFalse($this->reflector->isInstantiable('\\FilterIterator'));
+        self::assertFalse($this->reflector->isInstantiable('\\Countable'));
+        self::assertFalse($this->reflector->isInstantiable('\\This\\Does\\Not\\Exist'));
+    }
+
     /**
      * @param list<Completion> $completions
      *
