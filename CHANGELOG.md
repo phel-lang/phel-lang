@@ -17,6 +17,8 @@ All notable changes to this project will be documented in this file.
 
 ### Fixed
 
+- `phel\html`: void elements (`br`, `img`, `input`, ...) are now always self-closing and ignore supplied children, instead of emitting invalid markup like `<br>content</br>`
+- `phel\transit`: empty maps now round-trip as maps (were decoding as empty vectors), and numeric string keys (e.g. `{"1" "one"}`) stay strings instead of becoming ints
 - Reading a struct field with a non-keyword key (e.g. `(get s 'field)`) no longer crashes with a PHP `TypeError`; symbols and strings match by name, other key types return `nil`
 - `phel\string`: `pad-left`/`pad-right`/`pad-both` with an empty pad string now fall back to a single space instead of raising a PHP error
 - `phel\json`: an empty map now encodes to `{}` (was `[]`), and numeric object keys now decode to keywords instead of collapsing to a single `nil` key

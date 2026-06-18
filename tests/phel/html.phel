@@ -25,6 +25,13 @@
   (is (= "<colgroup span=\"2\"></colgroup>" (html [:colgroup {:span 2}])))
   (is (= "<colgroup><col /></colgroup>" (html [:colgroup [:col]]))))
 
+(deftest void-tags-ignore-content
+  ;; Void elements stay self-closing even when children are (mistakenly)
+  ;; supplied; they must not emit a closing tag (e.g. never "<br>x</br>").
+  (is (= "<br />" (html [:br "ignored"])))
+  (is (= "<img src=\"x\" />" (html [:img {:src "x"} "alt"])))
+  (is (= "<input type=\"text\" />" (html [:input {:type "text"} "x"]))))
+
 (deftest tags-with-text-content
   (is (= "<text>Lorem Ipsum</text>" (html [:text "Lorem Ipsum"])))
   (is (= "<text>foobar</text>" (html [:text "foo" "bar"]))))
