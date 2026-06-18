@@ -6,35 +6,36 @@ All notable changes to this project will be documented in this file.
 
 ### Added
 
-- Cold-start speedup: the PHAR ships `phel.core` precompiled to `.php` siblings, so a cold `phel run`/`test`/`eval` reuses them instead of recompiling core (~1.2s → ~0.2s on an empty cache) (#2443)
+- Cold-start speedup: the PHAR ships `phel.core` precompiled, so a cold `phel run`/`test`/`eval` reuses it instead of recompiling core (~1.2s → ~0.2s on an empty cache) (#2443)
 - `phel doctor`: a "Checking performance" section reports whether OPcache persists the compiled-code cache across CLI runs, with copy-paste fixes (#2446)
-- Shell completion: `phel doc` (function names, `--ns`, `--format`), option values (`compile --target`, `test --coverage`/`--reporter`/`--parallel`), and project namespaces for `run`/`test`/`test --ns`; README documents install (`bash`/`zsh`/`fish`) and the `#compdef phel` global-binary prerequisite (#2451)
+- Shell completion for `phel doc`, command option values, and project namespaces (`run`/`test`); README documents `bash`/`zsh`/`fish` install (#2451)
 
 ### Performance
 
-Dispatch / call sites:
-
-- Native-int fast path in `NumericOperations` for `+ - * / < =` and `quot`/`rem`/`mod`: skip the `is_float`/`instanceof` ladder when both operands are ints; ~1.8–8x per op (`mod` ~8.2x), overflow-to-`BigInt` promotion unchanged (#2458 #2459)
-- Core arithmetic wrappers `+ - * /` and `bit-and`/`bit-or`/`bit-xor` drop the per-op `apply` round-trip in the nil check; ~26% on an arithmetic-heavy workload (#2460)
+- Native-int fast path in `NumericOperations` for `+ - * / < =` and `quot`/`rem`/`mod` when both operands are ints; ~1.8–8x per op, overflow-to-`BigInt` promotion unchanged (#2458 #2459)
+- Core arithmetic `+ - * /` and `bit-and`/`bit-or`/`bit-xor` drop the per-op `apply` round-trip; ~26% on arithmetic-heavy workloads (#2460)
 
 ### Fixed
 
-- `phel\html`: void elements (`br`, `img`, `input`, ...) are now always self-closing and ignore any mistakenly-supplied children, instead of emitting invalid markup like `<br>content</br>`
-- `phel\transit`: empty maps now round-trip as maps (were decoding back as empty vectors), and numeric string keys (e.g. `{"1" "one"}`) stay strings instead of becoming ints after a write/read round-trip
-- Reading a struct field with a non-keyword key (e.g. `(get s 'field)` with a symbol) no longer crashes with a PHP `TypeError`; symbols and strings match the field by name (consistent with `find`/`contains?`) and other key types miss gracefully (return `nil`)
-- `phel\string`: `pad-left`/`pad-right`/`pad-both` with an empty pad string now fall back to a single space instead of raising an uncatchable PHP `str_pad(): Argument #3 must not be empty` error
-- `phel\json`: an empty map now encodes to `{}` (was `[]`), and numeric JSON object keys (which `json_decode` coerces to ints) now decode to keywords instead of collapsing to a single `nil` key
-- `defmacro` with only one of the implicit `&form`/`&env` params declared (e.g. `(defmacro m [&form x] ...)`) no longer fails to compile with `Redefinition of parameter $_AMPERSAND_form`; the injector now de-duplicates a partially-declared implicit param
-- Printing a `NAN` value (e.g. `(println (/ 0.0 0.0))`) no longer leaks a PHP `unexpected NAN value was coerced to string` warning; it renders `NAN`, matching `INF`/`-INF`
-- PHP interop completion/hover/signature help now resolves the receiver class through `(:use ...)`/`(use ...)` import aliases and across multi-line forms (follow-up to #2431; #2461)
-- PHP interop signature help is now complete against LSP 3.17: each signature carries per-parameter `parameters` and the method's phpdoc, `activeParameter` tracks the argument under the cursor, and the enclosing call is found by a balanced-paren scan so a chained `(php/-> x (a ...) (b ...) (c ⟂` reports the innermost method instead of the first (follow-up to #2431; #2462)
-- PHP interop hover now covers instance properties, static constants and enum cases, and classes (kind, parent/interfaces, constructor signature), and renders the symbol's phpdoc (method/function/property/constant/class) when present, instead of only resolving methods (follow-up to #2431; #2463)
-- PHP interop completion/hover/signature help now resolves the receiver type through multi-hop `php/->` chains (walking each method's reflected return type, including the class member of a `Foo|false` union or `Foo&Bar` intersection return), factory bindings (`[x (php/:: \Foo make)]`), and indirect `let` rebinds, wherever the return type is reflectable (follow-up to #2431; #2464)
-- PHP interop completion/hover no longer fires inside string literals or `;` comments (a `\Foo` path in a string is not an interop position), and Phel completion is no longer suppressed when an interop position yields no match (follow-up to #2431; #2465)
-- PHP interop polish: class-name completion now lists interfaces (labeled `interface`), enum cases read `enum case` instead of `constant`, the `php/` array/object special forms (`php/aget`, `php/aset`, `php/oset`, ...) no longer surface as global functions, and `(php/new ...)` signature help is suppressed for uninstantiable types (interfaces, abstract classes, enums) (follow-up to #2431; #2466)
-- `phel build` from the PHAR now compiles and harvests every `(load ...)` stdlib secondary into the output tree, so `php out/index.php` runs standalone (regression from the precompiled-stdlib bundle in #2443; #2449)
-- `phel test`/`phel run` with a missing file path no longer leaks a raw `file_get_contents()` warning before the clean `Unable to read file "..."` error (#2442)
-- PHP 8.5: guard `ReflectionClass::getConstant('BOUND_TO')` behind `hasConstant()` and mark the deprecated-setter tests `#[IgnoreDeprecations]`, so `composer test` runs deprecation-free (#2455)
+- `phel\html`: void elements (`br`, `img`, `input`, ...) are now always self-closing and ignore supplied children, instead of emitting invalid markup like `<br>content</br>`
+- `phel\transit`: empty maps now round-trip as maps (were decoding as empty vectors), and numeric string keys (e.g. `{"1" "one"}`) stay strings instead of becoming ints
+- Reading a struct field with a non-keyword key (e.g. `(get s 'field)`) no longer crashes with a PHP `TypeError`; symbols and strings match by name, other key types return `nil`
+- `phel\string`: `pad-left`/`pad-right`/`pad-both` with an empty pad string now fall back to a single space instead of raising a PHP error
+- `phel\json`: an empty map now encodes to `{}` (was `[]`), and numeric object keys now decode to keywords instead of collapsing to a single `nil` key
+- `defmacro` declaring only one of the implicit `&form`/`&env` params no longer fails to compile with `Redefinition of parameter`
+- Printing a `NAN` value no longer leaks a PHP coercion warning; it renders `NAN`, matching `INF`/`-INF`
+- `phel build` from the PHAR now compiles and harvests every `(load ...)` stdlib secondary, so `php out/index.php` runs standalone (#2449)
+- `phel test`/`phel run` with a missing file path no longer leaks a raw `file_get_contents()` warning before the clean error (#2442)
+- PHP 8.5: guard `ReflectionClass::getConstant` behind `hasConstant()` and mark the deprecated-setter tests `#[IgnoreDeprecations]` (#2455)
+
+PHP interop completion/hover/signature help (follow-up to #2431):
+
+- resolves the receiver class through `(:use ...)`/`(use ...)` aliases and multi-line forms (#2461)
+- full LSP 3.17 signature help: per-parameter info, phpdoc, cursor `activeParameter`, and balanced-paren detection of the enclosing call in chains (#2462)
+- hover for instance properties, static constants, enum cases, and classes, with phpdoc (#2463)
+- resolves the receiver type through multi-hop `php/->` chains, `Foo|false`/`Foo&Bar` return types, factory bindings, and indirect `let` rebinds (#2464)
+- no longer fires inside strings or `;` comments, and no longer suppresses Phel completion on no match (#2465)
+- class-name completion lists interfaces, enum cases labeled correctly, `php/` array/object forms hidden, and `php/new` help suppressed for uninstantiable types (#2466)
 
 ## [0.44.0](https://github.com/phel-lang/phel-lang/compare/v0.43.0...v0.44.0) - 2026-06-13
 

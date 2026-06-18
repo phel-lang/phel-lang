@@ -10,6 +10,7 @@ use PhelTest\Unit\Api\Application\Fixtures\ChainFixture;
 use PhelTest\Unit\Api\Application\Fixtures\HoverContract;
 use PhelTest\Unit\Api\Application\Fixtures\HoverEnum;
 use PhelTest\Unit\Api\Application\Fixtures\HoverFixture;
+use PhelTest\Unit\Api\Application\Fixtures\IntersectionReturnFixture;
 use PhelTest\Unit\Api\Application\Fixtures\SignatureFixture;
 use PHPUnit\Framework\TestCase;
 
@@ -210,9 +211,9 @@ final class PhpInteropReflectorTest extends TestCase
 
     public function test_method_return_type_resolves_class_from_union_and_intersection(): void
     {
-        // `self|int` and `self&Stringable`: the class member drives chain walking.
+        // `self|int` and `ChainFixture&Stringable`: the class member drives chain walking.
         self::assertSame(ChainFixture::class, $this->reflector->methodReturnType(ChainFixture::class, 'orInt'));
-        self::assertSame(ChainFixture::class, $this->reflector->methodReturnType(ChainFixture::class, 'andStringable'));
+        self::assertSame(ChainFixture::class, $this->reflector->methodReturnType(IntersectionReturnFixture::class, 'andStringable'));
     }
 
     public function test_class_names_include_interfaces(): void
