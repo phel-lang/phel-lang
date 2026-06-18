@@ -38,3 +38,8 @@
           :vat_number "12345678901"
           :zip_code "10000"}
          (json/decode sample-data)))))
+
+(deftest test-json-decode-numeric-keys-become-keywords
+  ; php/json_decode coerces numeric object keys to ints; they must still
+  ; become keywords, not collapse to a single nil key.
+  (is (= {:1 "one" :2 "two"} (json/decode "{\"1\":\"one\",\"2\":\"two\"}"))))
