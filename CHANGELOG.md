@@ -19,6 +19,7 @@ Dispatch / call sites:
 
 ### Fixed
 
+- `phel\transit`: empty maps now round-trip as maps (were decoding back as empty vectors), and numeric string keys (e.g. `{"1" "one"}`) stay strings instead of becoming ints after a write/read round-trip
 - Reading a struct field with a non-keyword key (e.g. `(get s 'field)` with a symbol) no longer crashes with a PHP `TypeError`; symbols and strings match the field by name (consistent with `find`/`contains?`) and other key types miss gracefully (return `nil`)
 - `phel\string`: `pad-left`/`pad-right`/`pad-both` with an empty pad string now fall back to a single space instead of raising an uncatchable PHP `str_pad(): Argument #3 must not be empty` error
 - `phel\json`: an empty map now encodes to `{}` (was `[]`), and numeric JSON object keys (which `json_decode` coerces to ints) now decode to keywords instead of collapsing to a single `nil` key

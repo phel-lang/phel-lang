@@ -52,3 +52,12 @@
                    {:name "Bob"   :tags #{:guest}}]
            :total 2}]
     (is (= v (transit/read-string (transit/write-string v))))))
+
+(deftest test-round-trip-empty-and-numeric-keyed-maps
+  (let [rt (fn [x] (transit/read-string (transit/write-string x)))]
+    ;; empty maps must stay maps (used to decode back as empty vectors)
+    (is (= {} (rt {})))
+    (is (= {:a {}} (rt {:a {}})))
+    ;; numeric string keys must stay strings (json coerces them to ints)
+    (is (= {"1" "one" "2" "two"} (rt {"1" "one" "2" "two"})))
+    (is (= {"a" 1 "b" 2} (rt {"a" 1 "b" 2})))))

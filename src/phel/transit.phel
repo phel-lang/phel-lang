@@ -149,7 +149,11 @@
   [obj opts]
   (let [acc (transient {})]
     (foreach [k v obj]
-      (php/-> acc (put (decode k opts) (decode v opts))))
+      ;; JSON object keys are always strings, but php/json_decode coerces
+      ;; numeric ones to ints; restore the string so a key like "1" decodes
+      ;; to the string "1" rather than the int 1.
+      (let [k (if (php/is_int k) (php/strval k) k)]
+        (php/-> acc (put (decode k opts) (decode v opts)))))
     (persistent acc)))
 
 (defn- decode
@@ -219,9 +223,12 @@
   (str "~t" (php/-> d (format "Y-m-d\\TH:i:s.vP"))))
 
 (defn- string-keys?
-  "True when every key in `m` is a plain Phel string."
+  "True when `m` is non-empty and every key is a plain Phel string. An empty
+  map is excluded so it round-trips through the `~#cmap` form instead of an
+  empty JSON array (which would decode back as a vector)."
   [m]
-  (every? string? (keys m)))
+  (and (not (empty? m))
+       (every? string? (keys m))))
 
 (defn- encode-map [m]
   (if (string-keys? m)
