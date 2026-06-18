@@ -12,6 +12,7 @@ use Phel\Lang\Keyword;
 use Phel\Lang\Symbol;
 
 use function count;
+use function in_array;
 use function is_string;
 
 /**
@@ -164,7 +165,7 @@ final readonly class MacroFormRewriter
     private function prependImplicitParams(PersistentVectorInterface $params): PersistentVectorInterface
     {
         // Idempotency / shadowing guard: if the first two params are already `&form` and `&env`,
-        // leave the vector untouched so users can explicitly shadow.
+        // leave the vector untouched so users can explicitly shadow (preserves vector meta).
         if (count($params) >= 2) {
             $first = $params->get(0);
             $second = $params->get(1);
@@ -176,10 +177,22 @@ final readonly class MacroFormRewriter
             }
         }
 
+        // Otherwise drop any stray `&form`/`&env` the user declared (only one of
+        // them, or not as the leading pair): re-injecting alongside it would emit
+        // a duplicate PHP parameter and fail to compile. Then prepend both.
+        $rest = [];
+        foreach ($params->toArray() as $param) {
+            if ($param instanceof Symbol && in_array($param->getName(), ['&form', '&env'], true)) {
+                continue;
+            }
+
+            $rest[] = $param;
+        }
+
         $formSymbol = Symbol::create('&form')->copyLocationFrom($params);
         $envSymbol = Symbol::create('&env')->copyLocationFrom($params);
 
-        return Phel::vector([$formSymbol, $envSymbol, ...$params->toArray()])
+        return Phel::vector([$formSymbol, $envSymbol, ...$rest])
             ->copyLocationFrom($params);
     }
 }
