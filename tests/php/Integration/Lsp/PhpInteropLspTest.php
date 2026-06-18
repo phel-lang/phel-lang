@@ -124,6 +124,24 @@ final class PhpInteropLspTest extends TestCase
 
     #[PreserveGlobalState(false)]
     #[RunInSeparateProcess]
+    public function test_completion_lists_interfaces_in_class_name_position(): void
+    {
+        $uri = 'file:///x.phel';
+        $source = '(def x \\Countab';
+        $session = $this->sessionWith($uri, $source);
+
+        // Cursor right after "\Countab".
+        $result = $this->completion()->handle(
+            $this->params($uri, line: 0, character: strlen($source)),
+            $session,
+        );
+
+        $labels = array_column($result['items'], 'label');
+        self::assertContains('Countable', $labels, 'interfaces appear in class-name completion');
+    }
+
+    #[PreserveGlobalState(false)]
+    #[RunInSeparateProcess]
     public function test_hover_shows_global_function_signature(): void
     {
         $uri = 'file:///x.phel';

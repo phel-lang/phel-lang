@@ -92,6 +92,14 @@ final class PhpInteropContextResolverTest extends TestCase
         self::assertSame('strle', $context->prefix);
     }
 
+    public function test_interop_special_form_is_not_a_global_function(): void
+    {
+        // php/aset, php/oset, ... are special forms, not callable functions.
+        self::assertTrue($this->resolveAtEnd('(php/aset')->isNone());
+        self::assertTrue($this->resolveAtEnd('(php/oset')->isNone());
+        self::assertTrue($this->resolveAtEnd('(php/aget')->isNone());
+    }
+
     public function test_static_member_via_use_alias(): void
     {
         $source = "(ns app (:use Some\\Long\\Widget))\n(php/:: Widget create";

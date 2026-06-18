@@ -137,12 +137,16 @@ final class PhpInteropReflector
             }
         }
 
-        foreach (array_keys($reflection->getConstants()) as $name) {
-            if ($this->matches($name, $prefix)) {
+        foreach ($reflection->getReflectionConstants() as $constant) {
+            if (!$constant->isPublic()) {
+                continue;
+            }
+
+            if ($this->matches($constant->getName(), $prefix)) {
                 $completions[] = new Completion(
-                    label: $name,
+                    label: $constant->getName(),
                     kind: Completion::KIND_KEYWORD,
-                    detail: 'constant',
+                    detail: $constant->isEnumCase() ? 'enum case' : 'constant',
                 );
             }
         }
@@ -151,8 +155,9 @@ final class PhpInteropReflector
     }
 
     /**
-     * PHP class names matching a prefix, drawn from the already-declared
-     * classes plus the project's composer classmap when present.
+     * PHP class and interface names matching a prefix, drawn from the
+     * already-declared classes/interfaces plus the project's composer classmap
+     * when present.
      *
      * @return list<Completion>
      */
@@ -162,13 +167,13 @@ final class PhpInteropReflector
         $seen = [];
         $completions = [];
 
-        foreach ([...get_declared_classes(), ...$this->classmap()] as $class) {
+        foreach ([...get_declared_classes(), ...get_declared_interfaces(), ...$this->classmap()] as $class) {
             if ($this->matches($class, $normalized) && !array_key_exists($class, $seen)) {
                 $seen[$class] = true;
                 $completions[] = new Completion(
                     label: $class,
                     kind: Completion::KIND_GLOBAL,
-                    detail: 'class',
+                    detail: interface_exists($class) ? 'interface' : 'class',
                 );
             }
         }
@@ -232,6 +237,17 @@ final class PhpInteropReflector
     public function classExists(string $class): bool
     {
         return $this->reflect($class) instanceof ReflectionClass;
+    }
+
+    /**
+     * Whether the class can be instantiated with `new` (not an interface,
+     * abstract class, or enum). False for unreflectable names.
+     */
+    public function isInstantiable(string $class): bool
+    {
+        $reflection = $this->reflect($class);
+
+        return $reflection instanceof ReflectionClass && $reflection->isInstantiable();
     }
 
     /**

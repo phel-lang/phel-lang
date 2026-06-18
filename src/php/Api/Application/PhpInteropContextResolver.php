@@ -27,6 +27,16 @@ use function trim;
  */
 final readonly class PhpInteropContextResolver
 {
+    /**
+     * Word-form `php/<name>` interop special forms (array/object/new/ref/
+     * callable): not PHP global functions, so they must not route to global-
+     * function completion. Mirrors the `Symbol::NAME_PHP_*` constants whose
+     * value has no `-`/symbolic suffix.
+     */
+    private const array INTEROP_SPECIAL_FORMS = [
+        'new', 'aget', 'aset', 'apush', 'aunset', 'ref', 'callable', 'oset',
+    ];
+
     public function __construct(
         private PhpImportAliasExtractor $aliasExtractor = new PhpImportAliasExtractor(),
         private PhpInteropReflector $reflector = new PhpInteropReflector(),
@@ -68,7 +78,8 @@ final readonly class PhpInteropContextResolver
         }
 
         // php/<fn> global function (excluding the interop special forms).
-        if (preg_match('/(?:^|[\s(\[{])php\/(\w+)$/', $before, $m) === 1 && $m[1] !== 'new') {
+        if (preg_match('/(?:^|[\s(\[{])php\/(\w+)$/', $before, $m) === 1
+            && !in_array($m[1], self::INTEROP_SPECIAL_FORMS, true)) {
             return new PhpInteropContext(PhpInteropContext::KIND_GLOBAL_FUNCTION, $m[1]);
         }
 
