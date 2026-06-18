@@ -21,8 +21,11 @@
                  "hr" "img" "input" "keygen" "link" "meta" "param"
                  "source" "track" "wbr"))
 
-(defn- container-tag? [tag content]
-  (or content (not (contains? void-tags tag))))
+(defn- container-tag? [tag]
+  ; Void elements (br, img, input, ...) are always self-closing per the HTML
+  ; spec: they never render a closing tag or children, even if children were
+  ; mistakenly supplied.
+  (not (contains? void-tags tag)))
 
 (defn- normalize-element [[tag & content]]
   (do
@@ -74,7 +77,7 @@
   "Renders an Element."
   [element]
   (let [[tag attrs content] (normalize-element element)]
-    (if (container-tag? tag content)
+    (if (container-tag? tag)
       (str
        "<" tag (render-attrs attrs) ">"
        (render-html content)
@@ -115,7 +118,7 @@
   "Compiles a element."
   [element]
   (let [[tag attrs content] (normalize-element element)]
-    (if (container-tag? tag content)
+    (if (container-tag? tag)
       `(str
         ~(str "<" tag) ~(compile-attrs attrs) ">"
         ~@(compile-seq content)
