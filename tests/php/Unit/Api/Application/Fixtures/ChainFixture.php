@@ -45,9 +45,4 @@ final class ChainFixture implements Stringable
     {
         return $this->name === '' ? 0 : $this;
     }
-
-    public function andStringable(): self&Stringable
-    {
-        return $this;
-    }
 }
