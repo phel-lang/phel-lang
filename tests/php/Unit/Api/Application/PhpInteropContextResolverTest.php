@@ -186,6 +186,16 @@ final class PhpInteropContextResolverTest extends TestCase
         self::assertSame('siz', $context->prefix);
     }
 
+    public function test_instance_member_through_union_returning_hop(): void
+    {
+        // `orInt` returns `self|int`; the class member advances the chain.
+        $source = '(php/-> (php/new \\' . ChainFixture::class . ') (orInt) siz';
+        $context = $this->resolveAtEnd($source);
+
+        self::assertSame(PhpInteropContext::KIND_INSTANCE_MEMBER, $context->kind);
+        self::assertSame(ChainFixture::class, $context->class);
+    }
+
     public function test_factory_static_return_binding_resolves_receiver(): void
     {
         $source = '(let [x (php/:: \\' . ChainFixture::class . " make)]\n  (php/-> x siz";
@@ -254,6 +264,15 @@ final class PhpInteropContextResolverTest extends TestCase
     public function test_interop_form_inside_string_is_none(): void
     {
         $context = $this->resolveAtEnd('(str "x" "(php/-> obj ge');
+
+        self::assertTrue($context->isNone());
+    }
+
+    public function test_escaped_quote_does_not_reopen_interop_inside_string(): void
+    {
+        // The \" is an escaped quote: the string stays open, so the trailing
+        // \DateTimeImm is still inside it and must not resolve to a class.
+        $context = $this->resolveAtEnd('(println "a\\"b \\DateTimeImm');
 
         self::assertTrue($context->isNone());
     }
