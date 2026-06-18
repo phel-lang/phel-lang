@@ -19,6 +19,7 @@ Dispatch / call sites:
 
 ### Fixed
 
+- Reading a struct field with a non-keyword key (e.g. `(get s 'field)` with a symbol) no longer crashes with a PHP `TypeError`; symbols and strings match the field by name (consistent with `find`/`contains?`) and other key types miss gracefully (return `nil`)
 - `phel\string`: `pad-left`/`pad-right`/`pad-both` with an empty pad string now fall back to a single space instead of raising an uncatchable PHP `str_pad(): Argument #3 must not be empty` error
 - `phel\json`: an empty map now encodes to `{}` (was `[]`), and numeric JSON object keys (which `json_decode` coerces to ints) now decode to keywords instead of collapsing to a single `nil` key
 - `defmacro` with only one of the implicit `&form`/`&env` params declared (e.g. `(defmacro m [&form x] ...)`) no longer fails to compile with `Redefinition of parameter $_AMPERSAND_form`; the injector now de-duplicates a partially-declared implicit param

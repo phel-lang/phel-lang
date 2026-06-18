@@ -9,6 +9,7 @@ use Phel;
 use Phel\Lang\Collections\Map\PersistentHashMap;
 use Phel\Lang\Collections\Map\PersistentMapInterface;
 use Phel\Lang\Keyword;
+use Phel\Lang\Symbol;
 use Phel\Lang\TypeFactory;
 use PHPUnit\Framework\TestCase;
 
@@ -40,6 +41,26 @@ final class StructTest extends TestCase
         $s = FakeStruct::fromKVs(Keyword::create('a'), 1, Keyword::create('b'), 2);
         $isset = isset($s[Keyword::create('c')]);
         self::assertFalse($isset);
+    }
+
+    public function test_offset_get_with_symbol_matches_by_name(): void
+    {
+        $s = FakeStruct::fromKVs(Keyword::create('a'), 1, Keyword::create('b'), 2);
+        self::assertSame(1, $s[Symbol::create('a')]);
+        self::assertArrayHasKey(Symbol::create('a'), $s);
+    }
+
+    public function test_offset_get_with_string_matches_by_name(): void
+    {
+        $s = FakeStruct::fromKVs(Keyword::create('a'), 1, Keyword::create('b'), 2);
+        self::assertSame(2, $s['b']);
+    }
+
+    public function test_offset_get_with_unsupported_key_misses_without_error(): void
+    {
+        $s = FakeStruct::fromKVs(Keyword::create('a'), 1, Keyword::create('b'), 2);
+        self::assertNull($s[42]);
+        self::assertArrayNotHasKey(42, $s);
     }
 
     public function test_remove(): void

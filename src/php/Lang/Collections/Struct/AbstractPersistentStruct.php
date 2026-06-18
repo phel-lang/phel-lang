@@ -10,6 +10,7 @@ use Phel\Lang\Collections\Exceptions\MethodNotSupportedException;
 use Phel\Lang\Collections\Map\AbstractPersistentMap;
 use Phel\Lang\Collections\Map\PersistentMapInterface;
 use Phel\Lang\Keyword;
+use Phel\Lang\NamedInterface;
 use Phel\Lang\TypeFactory;
 use Phel\Shared\Munge;
 use Phel\Shared\MungeInterface;
@@ -97,7 +98,9 @@ abstract class AbstractPersistentStruct extends AbstractPersistentMap
     #[Override]
     public function offsetGet(mixed $offset): mixed
     {
-        return $this->find($this->normalizeOffset($offset));
+        $key = $this->normalizeOffset($offset);
+
+        return $key instanceof Keyword ? $this->find($key) : null;
     }
 
     /**
@@ -106,7 +109,9 @@ abstract class AbstractPersistentStruct extends AbstractPersistentMap
     #[Override]
     public function offsetExists(mixed $offset): bool
     {
-        return $this->contains($this->normalizeOffset($offset));
+        $key = $this->normalizeOffset($offset);
+
+        return $key instanceof Keyword && $this->contains($key);
     }
 
     public function getIterator(): Traversable
@@ -153,14 +158,26 @@ abstract class AbstractPersistentStruct extends AbstractPersistentMap
     }
 
     /**
-     * Coerces a string field name to its keyword; passes a keyword offset
-     * through unchanged.
-     *
-     * @param Keyword|string $offset
+     * Coerces an offset to the keyword used as the struct key: a keyword passes
+     * through, a string or any named value (e.g. a symbol) maps by name —
+     * consistent with `find`/`contains`, which already match by name. Any other
+     * key type yields null so the lookup misses instead of raising a TypeError.
      */
-    private function normalizeOffset(mixed $offset): Keyword
+    private function normalizeOffset(mixed $offset): ?Keyword
     {
-        return is_string($offset) ? Keyword::create($offset) : $offset;
+        if ($offset instanceof Keyword) {
+            return $offset;
+        }
+
+        if (is_string($offset)) {
+            return Keyword::create($offset);
+        }
+
+        if ($offset instanceof NamedInterface) {
+            return Keyword::create($offset->getName());
+        }
+
+        return null;
     }
 
     /**
