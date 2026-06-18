@@ -12,10 +12,12 @@ use ReflectionClass;
 use ReflectionClassConstant;
 use ReflectionException;
 use ReflectionFunction;
+use ReflectionIntersectionType;
 use ReflectionMethod;
 use ReflectionNamedType;
 use ReflectionParameter;
 use ReflectionType;
+use ReflectionUnionType;
 use Throwable;
 
 use function array_key_exists;
@@ -253,8 +255,9 @@ final class PhpInteropReflector
     /**
      * The class name a method returns, for walking a `php/->` chain: `self`,
      * `static`, and `$this` resolve to the declaring class, `parent` to its
-     * parent. Returns '' for scalar/union/unknown return types or when the
-     * method cannot be reflected.
+     * parent. For a union/intersection return (e.g. `Foo|false`, `Foo&Bar`) the
+     * first reflectable class member is used. Returns '' for scalar/unknown
+     * return types or when the method cannot be reflected.
      */
     public function methodReturnType(string $class, string $method): string
     {
@@ -269,22 +272,7 @@ final class PhpInteropReflector
             return '';
         }
 
-        if (!$type instanceof ReflectionNamedType) {
-            return '';
-        }
-
-        $name = $type->getName();
-        if (in_array($name, ['self', 'static', '$this'], true)) {
-            return $reflection->getName();
-        }
-
-        if ($name === 'parent') {
-            $parent = $reflection->getParentClass();
-
-            return $parent === false ? '' : $parent->getName();
-        }
-
-        return $this->reflect($name) instanceof ReflectionClass ? ltrim($name, '\\') : '';
+        return $this->returnClass($type, $reflection);
     }
 
     /**
@@ -404,6 +392,45 @@ final class PhpInteropReflector
             $this->cleanDoc($reflection->getDocComment()),
             $this->methodSignatureInfo($class, '__construct'),
         );
+    }
+
+    /**
+     * @param ReflectionClass<object> $declaring
+     */
+    private function returnClass(?ReflectionType $type, ReflectionClass $declaring): string
+    {
+        if ($type instanceof ReflectionNamedType) {
+            return $this->namedReturnClass($type->getName(), $declaring);
+        }
+
+        if ($type instanceof ReflectionUnionType || $type instanceof ReflectionIntersectionType) {
+            foreach ($type->getTypes() as $member) {
+                $resolved = $this->returnClass($member, $declaring);
+                if ($resolved !== '') {
+                    return $resolved;
+                }
+            }
+        }
+
+        return '';
+    }
+
+    /**
+     * @param ReflectionClass<object> $declaring
+     */
+    private function namedReturnClass(string $name, ReflectionClass $declaring): string
+    {
+        if (in_array($name, ['self', 'static', '$this'], true)) {
+            return $declaring->getName();
+        }
+
+        if ($name === 'parent') {
+            $parent = $declaring->getParentClass();
+
+            return $parent === false ? '' : $parent->getName();
+        }
+
+        return $this->reflect($name) instanceof ReflectionClass ? ltrim($name, '\\') : '';
     }
 
     private function methodCompletion(ReflectionMethod $method): Completion

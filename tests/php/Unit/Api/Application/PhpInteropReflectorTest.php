@@ -208,6 +208,13 @@ final class PhpInteropReflectorTest extends TestCase
         self::assertSame('', $this->reflector->methodReturnType('\\Nope', 'foo'));
     }
 
+    public function test_method_return_type_resolves_class_from_union_and_intersection(): void
+    {
+        // `self|int` and `self&Stringable`: the class member drives chain walking.
+        self::assertSame(ChainFixture::class, $this->reflector->methodReturnType(ChainFixture::class, 'orInt'));
+        self::assertSame(ChainFixture::class, $this->reflector->methodReturnType(ChainFixture::class, 'andStringable'));
+    }
+
     public function test_class_names_include_interfaces(): void
     {
         $completions = $this->reflector->classNames('Countab');

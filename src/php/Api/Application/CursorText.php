@@ -58,7 +58,8 @@ final class CursorText
             $char = $before[$i];
 
             if ($inString) {
-                if ($char === '\\') {
+                if ($char === '\\' && $i + 1 < $length) {
+                    // Skip the escaped character so `\"` does not close the string.
                     $i += 2;
                     continue;
                 }
