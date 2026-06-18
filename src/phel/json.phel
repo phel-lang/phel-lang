@@ -23,11 +23,14 @@
    :see-also ["encode" "decode-value"]}
   [x]
   (cond
-    (php/is_iterable x) (encode-value-iterable x)
-    (symbol? x)         (name x)
-    (keyword? x)        (name x)
-    (float? x)          (str x)
-    true                x))
+    ; An empty map must encode as a JSON object `{}`, not the `[]` an empty
+    ; php/array would produce; a stdClass forces object encoding.
+    (and (map? x) (empty? x)) (php/new \stdClass)
+    (php/is_iterable x)       (encode-value-iterable x)
+    (symbol? x)               (name x)
+    (keyword? x)              (name x)
+    (float? x)                (str x)
+    true                      x))
 
 (defn encode
   "Encodes a Phel value to a JSON string."
@@ -50,7 +53,10 @@
     (indexed? x)   (for [v :in x] (decode-value v))
     (php-array? x) (let [hashmap (transient {})]
                      (foreach [k v x]
-                       (php/-> hashmap (put (keyword k) (decode-value v))))
+                       ; JSON object keys are strings, but php/json_decode coerces
+                       ; numeric keys to ints; stringify first so `(keyword k)`
+                       ; never collapses them to a single nil key.
+                       (php/-> hashmap (put (keyword (str k)) (decode-value v))))
                      (persistent hashmap))
     true           x))
 

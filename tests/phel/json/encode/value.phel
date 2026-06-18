@@ -56,6 +56,10 @@
   (is (= "[1,2,3]" (json/encode [1 2 3])))
   (is (= "[1,2,[1,2]]" (json/encode [1 2 [1 2]]))))
 
+(deftest test-json-encode-empty-map-is-object
+  (is (= "{}" (json/encode {})))
+  (is (= "[]" (json/encode []))))
+
 (deftest test-json-encode-set
   (is (= "[1,2,3]" (json/encode (hash-set 1 2 3))))
   (is (= "[1,2,[1,2]]" (json/encode (hash-set 1 2 (hash-set 1 2))))))

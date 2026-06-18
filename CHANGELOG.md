@@ -19,6 +19,8 @@ Dispatch / call sites:
 
 ### Fixed
 
+- `phel\string`: `pad-left`/`pad-right`/`pad-both` with an empty pad string now fall back to a single space instead of raising an uncatchable PHP `str_pad(): Argument #3 must not be empty` error
+- `phel\json`: an empty map now encodes to `{}` (was `[]`), and numeric JSON object keys (which `json_decode` coerces to ints) now decode to keywords instead of collapsing to a single `nil` key
 - `defmacro` with only one of the implicit `&form`/`&env` params declared (e.g. `(defmacro m [&form x] ...)`) no longer fails to compile with `Redefinition of parameter $_AMPERSAND_form`; the injector now de-duplicates a partially-declared implicit param
 - Printing a `NAN` value (e.g. `(println (/ 0.0 0.0))`) no longer leaks a PHP `unexpected NAN value was coerced to string` warning; it renders `NAN`, matching `INF`/`-INF`
 - PHP interop completion/hover/signature help now resolves the receiver class through `(:use ...)`/`(use ...)` import aliases and across multi-line forms (follow-up to #2431; #2461)
