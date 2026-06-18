@@ -7,11 +7,8 @@ namespace Phel\Api\Application;
 use Phel\Api\Transfer\PhpInteropCall;
 
 use function count;
-use function in_array;
 use function max;
 use function preg_match;
-use function strlen;
-use function strpos;
 use function substr;
 
 /**
@@ -24,8 +21,12 @@ use function substr;
  * its enclosing `php/->`/`php/::` form, together with the argument index the
  * caret sits on for `activeParameter`.
  */
-final class PhpInteropCallScanner
+final readonly class PhpInteropCallScanner
 {
+    public function __construct(
+        private PhpFormTokenizer $tokenizer = new PhpFormTokenizer(),
+    ) {}
+
     public function scan(string $before): PhpInteropCall
     {
         $open = CursorText::openParenPositions($before);
@@ -34,7 +35,7 @@ final class PhpInteropCallScanner
             return PhpInteropCall::none();
         }
 
-        [$innerTokens, $innerEndsOpen] = $this->splitTopLevel(substr($before, $open[$depth - 1] + 1));
+        [$innerTokens, $innerEndsOpen] = $this->tokenizer->topLevel(substr($before, $open[$depth - 1] + 1));
         if ($innerTokens === []) {
             return PhpInteropCall::none();
         }
@@ -78,7 +79,7 @@ final class PhpInteropCallScanner
         array $innerTokens,
         bool $innerEndsOpen,
     ): PhpInteropCall {
-        [$parentTokens] = $this->splitTopLevel(substr($before, $parentPos + 1));
+        [$parentTokens] = $this->tokenizer->topLevel(substr($before, $parentPos + 1));
         $parentHead = $parentTokens[0] ?? '';
         if ($parentHead !== 'php/->' && $parentHead !== 'php/::') {
             return PhpInteropCall::none();
@@ -93,91 +94,5 @@ final class PhpInteropCallScanner
         $active = max(0, count($innerTokens) - 1 - ($innerEndsOpen ? 1 : 0));
 
         return new PhpInteropCall(PhpInteropCall::KIND_METHOD, $receiver, $method, $active);
-    }
-
-    /**
-     * Splits a frame's content into its top-level tokens (nested forms kept
-     * whole, string literals and `;` comments skipped, commas treated as
-     * whitespace) and reports whether the content ends mid-token, i.e. the caret
-     * is still inside the last argument rather than past it.
-     *
-     * @return array{0: list<string>, 1: bool}
-     */
-    private function splitTopLevel(string $content): array
-    {
-        $length = strlen($content);
-        $tokens = [];
-        $current = '';
-        $depth = 0;
-        $inString = false;
-        $i = 0;
-
-        while ($i < $length) {
-            $char = $content[$i];
-
-            if ($inString) {
-                $current .= $char;
-                if ($char === '\\' && $i + 1 < $length) {
-                    $current .= $content[$i + 1];
-                    $i += 2;
-                    continue;
-                }
-
-                if ($char === '"') {
-                    $inString = false;
-                }
-
-                ++$i;
-                continue;
-            }
-
-            if ($char === '"') {
-                $inString = true;
-                $current .= $char;
-                ++$i;
-                continue;
-            }
-
-            if ($char === ';' && $depth === 0) {
-                if ($current !== '') {
-                    $tokens[] = $current;
-                    $current = '';
-                }
-
-                $newline = strpos($content, "\n", $i);
-                if ($newline === false) {
-                    return [$tokens, false];
-                }
-
-                $i = $newline + 1;
-                continue;
-            }
-
-            if ($depth === 0 && (in_array($char, [' ', "\t", "\n", "\r", ','], true))) {
-                if ($current !== '') {
-                    $tokens[] = $current;
-                    $current = '';
-                }
-
-                ++$i;
-                continue;
-            }
-
-            if ($char === '(') {
-                ++$depth;
-            } elseif ($char === ')' && $depth > 0) {
-                --$depth;
-            }
-
-            $current .= $char;
-            ++$i;
-        }
-
-        $endsOpen = $current !== '';
-        if ($endsOpen) {
-            $tokens[] = $current;
-        }
-
-        return [$tokens, $endsOpen];
     }
 }

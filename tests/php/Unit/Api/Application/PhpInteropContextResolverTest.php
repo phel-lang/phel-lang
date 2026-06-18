@@ -6,6 +6,7 @@ namespace PhelTest\Unit\Api\Application;
 
 use Phel\Api\Application\PhpInteropContextResolver;
 use Phel\Api\Transfer\PhpInteropContext;
+use PhelTest\Unit\Api\Application\Fixtures\ChainFixture;
 use PHPUnit\Framework\TestCase;
 
 use function strlen;
@@ -155,6 +156,61 @@ final class PhpInteropContextResolverTest extends TestCase
 
         self::assertSame(PhpInteropContext::KIND_GLOBAL_FUNCTION, $context->kind);
         self::assertSame('strle', $context->prefix);
+    }
+
+    public function test_instance_member_through_chained_method_hop(): void
+    {
+        $source = '(let [^\\' . ChainFixture::class . " c (x)]\n  (php/-> c (withName \"a\") nex";
+        $context = $this->resolveAtEnd($source);
+
+        self::assertSame(PhpInteropContext::KIND_INSTANCE_MEMBER, $context->kind);
+        self::assertSame(ChainFixture::class, $context->class);
+        self::assertSame('nex', $context->prefix);
+    }
+
+    public function test_instance_member_through_inline_multi_hop_chain(): void
+    {
+        $source = '(php/-> (php/new \\' . ChainFixture::class . ') (withName "a") (next) siz';
+        $context = $this->resolveAtEnd($source);
+
+        self::assertSame(PhpInteropContext::KIND_INSTANCE_MEMBER, $context->kind);
+        self::assertSame(ChainFixture::class, $context->class);
+        self::assertSame('siz', $context->prefix);
+    }
+
+    public function test_factory_static_return_binding_resolves_receiver(): void
+    {
+        $source = '(let [x (php/:: \\' . ChainFixture::class . " make)]\n  (php/-> x siz";
+        $context = $this->resolveAtEnd($source);
+
+        self::assertSame(PhpInteropContext::KIND_INSTANCE_MEMBER, $context->kind);
+        self::assertSame(ChainFixture::class, $context->class);
+    }
+
+    public function test_indirect_binding_follows_alias(): void
+    {
+        $source = '(let [a (php/new \\' . ChainFixture::class . ") b a]\n  (php/-> b siz";
+        $context = $this->resolveAtEnd($source);
+
+        self::assertSame(PhpInteropContext::KIND_INSTANCE_MEMBER, $context->kind);
+        self::assertSame(ChainFixture::class, $context->class);
+    }
+
+    public function test_chain_hop_with_scalar_return_is_none(): void
+    {
+        // `size` returns int, so the following hop has no class to resolve.
+        $source = '(php/-> (php/new \\' . ChainFixture::class . ') (size) foo';
+        $context = $this->resolveAtEnd($source);
+
+        self::assertTrue($context->isNone());
+    }
+
+    public function test_cyclic_indirect_binding_does_not_loop(): void
+    {
+        $source = "(let [a b b a]\n  (php/-> a foo";
+        $context = $this->resolveAtEnd($source);
+
+        self::assertTrue($context->isNone());
     }
 
     public function test_unknown_receiver_type_is_none(): void
