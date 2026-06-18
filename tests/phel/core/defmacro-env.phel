@@ -73,3 +73,19 @@
 
 (deftest test-explicit-shadow-receives-call-form
   (is (= '(explicit-shadow :marker) (explicit-shadow :marker))))
+
+;; --- Declaring only one of &form / &env must not duplicate the injected
+;;     parameter (regression: `[&form]` / `[&env x]` alone used to fail to
+;;     compile with "Redefinition of parameter $_AMPERSAND_form"). ---
+
+(defmacro only-form [&form x] `'~&form)
+
+(deftest test-shadow-only-form-receives-call-form
+  (is (= '(only-form 7) (only-form 7))))
+
+(defmacro only-env-has-local? [&env sym] (contains? &env sym))
+
+(deftest test-shadow-only-env-reflects-bindings
+  (let [a 1]
+    (is (= true (only-env-has-local? a)))
+    (is (= false (only-env-has-local? b)))))
