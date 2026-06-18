@@ -20,6 +20,7 @@ Dispatch / call sites:
 ### Fixed
 
 - `defmacro` with only one of the implicit `&form`/`&env` params declared (e.g. `(defmacro m [&form x] ...)`) no longer fails to compile with `Redefinition of parameter $_AMPERSAND_form`; the injector now de-duplicates a partially-declared implicit param
+- Printing a `NAN` value (e.g. `(println (/ 0.0 0.0))`) no longer leaks a PHP `unexpected NAN value was coerced to string` warning; it renders `NAN`, matching `INF`/`-INF`
 - PHP interop completion/hover/signature help now resolves the receiver class through `(:use ...)`/`(use ...)` import aliases and across multi-line forms (follow-up to #2431; #2461)
 - PHP interop signature help is now complete against LSP 3.17: each signature carries per-parameter `parameters` and the method's phpdoc, `activeParameter` tracks the argument under the cursor, and the enclosing call is found by a balanced-paren scan so a chained `(php/-> x (a ...) (b ...) (c ⟂` reports the innermost method instead of the first (follow-up to #2431; #2462)
 - PHP interop hover now covers instance properties, static constants and enum cases, and classes (kind, parent/interfaces, constructor signature), and renders the symbol's phpdoc (method/function/property/constant/class) when present, instead of only resolving methods (follow-up to #2431; #2463)

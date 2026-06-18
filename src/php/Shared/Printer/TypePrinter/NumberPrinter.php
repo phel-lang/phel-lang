@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace Phel\Shared\Printer\TypePrinter;
 
+use function is_float;
+use function is_nan;
 use function sprintf;
 
 /**
@@ -18,6 +20,12 @@ final class NumberPrinter implements TypePrinterInterface
      */
     public function print(mixed $form): string
     {
+        // Casting NAN to string emits a PHP warning; render it explicitly,
+        // matching the `INF`/`-INF` rendering PHP produces for infinities.
+        if (is_float($form) && is_nan($form)) {
+            return $this->color('NAN');
+        }
+
         return $this->color((string) $form);
     }
 
