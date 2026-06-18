@@ -226,6 +226,12 @@
   (is (= " foo " (s/pad-both "foo" 5)))
   (is (= "0foo0" (s/pad-both "foo" 5 "0"))))
 
+(deftest test-pad-empty-pad-string-falls-back-to-space
+  ; An empty pad string used to throw an uncatchable PHP str_pad error.
+  (is (= "  foo" (s/pad-left "foo" 5 "")))
+  (is (= "foo  " (s/pad-right "foo" 5 "")))
+  (is (= " foo " (s/pad-both "foo" 5 ""))))
+
 ;; `n`/`k`/`i` are bound (not literals) so the compile-time string-param tag
 ;; check doesn't fire; this exercises the runtime guard the way the
 ;; clojure-test-suite does (values flow in through an `are` binding).

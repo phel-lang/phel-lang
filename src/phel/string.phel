@@ -260,23 +260,29 @@ This is a convenience function for converting strings to character sequences. Pr
   [s]
   (split s "/\\r?\\n/"))
 
+(defn- pad-or-space
+  "The pad string to use, defaulting to a single space. An empty (or nil) pad
+  string would make PHP's `str_pad` raise an uncatchable argument error."
+  [pad-str]
+  (if (or (nil? pad-str) (= "" pad-str)) " " pad-str))
+
 (defn pad-left
   "Returns a string padded on the left side to length len."
   {:example "(pad-left \"hello\" 10) ; => \"     hello\""}
   [s len & [pad-str]]
   (assert-string s)
-  (php/str_pad s len (or pad-str " ") php/STR_PAD_LEFT))
+  (php/str_pad s len (pad-or-space pad-str) php/STR_PAD_LEFT))
 
 (defn pad-right
   "Returns a string padded on the right side to length len."
   {:example "(pad-right \"hello\" 10) ; => \"hello     \""}
   [s len & [pad-str]]
   (assert-string s)
-  (php/str_pad s len (or pad-str " ") php/STR_PAD_RIGHT))
+  (php/str_pad s len (pad-or-space pad-str) php/STR_PAD_RIGHT))
 
 (defn pad-both
   "Returns a string padded on both sides to length len."
   {:example "(pad-both \"hello\" 11) ; => \"   hello   \""}
   [s len & [pad-str]]
   (assert-string s)
-  (php/str_pad s len (or pad-str " ") php/STR_PAD_BOTH))
+  (php/str_pad s len (pad-or-space pad-str) php/STR_PAD_BOTH))
