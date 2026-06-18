@@ -41,6 +41,51 @@ final class CursorText
     }
 
     /**
+     * Whether the cursor sits inside a string literal or a `;` line comment,
+     * given the {@see self::before()} prefix. Used to suppress interop detection
+     * there, since the prefix may contain interop-looking text (`\Foo`,
+     * `php/->`) that is really part of a string or comment. The prefix begins at
+     * an open `(` found outside any string/comment, so scanning it from the
+     * start reflects the cursor's state correctly.
+     */
+    public static function cursorInStringOrComment(string $before): bool
+    {
+        $length = strlen($before);
+        $inString = false;
+        $i = 0;
+
+        while ($i < $length) {
+            $char = $before[$i];
+
+            if ($inString) {
+                if ($char === '\\') {
+                    $i += 2;
+                    continue;
+                }
+
+                if ($char === '"') {
+                    $inString = false;
+                }
+            } elseif ($char === '"') {
+                $inString = true;
+            } elseif ($char === ';') {
+                $newline = strpos($before, "\n", $i);
+                if ($newline === false) {
+                    // The comment runs unbroken to the cursor.
+                    return true;
+                }
+
+                $i = $newline + 1;
+                continue;
+            }
+
+            ++$i;
+        }
+
+        return $inString;
+    }
+
+    /**
      * The column just past the identifier the cursor sits on, so a resolver
      * sees the whole word rather than only the part before the caret.
      */

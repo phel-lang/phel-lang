@@ -216,6 +216,43 @@ final class PhpInteropLspTest extends TestCase
         self::assertContains('def', $labels, 'plain Phel completion still works');
     }
 
+    #[PreserveGlobalState(false)]
+    #[RunInSeparateProcess]
+    public function test_completion_inside_string_does_not_offer_php_classes(): void
+    {
+        $uri = 'file:///x.phel';
+        $source = '(println "see \\DateTimeImm';
+        $session = $this->sessionWith($uri, $source);
+
+        // Cursor inside the (unterminated) string literal.
+        $result = $this->completion()->handle(
+            $this->params($uri, line: 0, character: strlen($source)),
+            $session,
+        );
+
+        $labels = array_column($result['items'], 'label');
+        self::assertNotContains('DateTimeImmutable', $labels, 'interop suppressed inside a string');
+    }
+
+    #[PreserveGlobalState(false)]
+    #[RunInSeparateProcess]
+    public function test_completion_falls_back_to_phel_when_interop_has_no_match(): void
+    {
+        $uri = 'file:///x.phel';
+        // `ma` matches no DateTimeImmutable instance method, so completion must
+        // fall through to Phel rather than returning an empty list.
+        $source = '(php/-> (php/new \\DateTimeImmutable) ma';
+        $session = $this->sessionWith($uri, $source);
+
+        $result = $this->completion()->handle(
+            $this->params($uri, line: 0, character: strlen($source)),
+            $session,
+        );
+
+        $labels = array_column($result['items'], 'label');
+        self::assertContains('map', $labels, 'Phel core completion offered when interop has no match');
+    }
+
     private function completion(): CompletionHandler
     {
         return new CompletionHandler(
