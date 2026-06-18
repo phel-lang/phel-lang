@@ -17,6 +17,7 @@ use Phel\Lsp\Application\Handler\SymbolResolver;
 use Phel\Lsp\Application\Rpc\ParamsExtractor;
 use Phel\Lsp\Application\Session\Session;
 use Phel\Lsp\Domain\NotificationSink;
+use PhelTest\Unit\Api\Application\Fixtures\ChainFixture;
 use PhelTest\Unit\Api\Application\Fixtures\HoverFixture;
 use PHPUnit\Framework\Attributes\PreserveGlobalState;
 use PHPUnit\Framework\Attributes\RunInSeparateProcess;
@@ -82,6 +83,25 @@ final class PhpInteropLspTest extends TestCase
         $labels = array_column($result['items'], 'label');
         self::assertContains('getTimestamp', $labels);
         self::assertContains('getTimezone', $labels);
+    }
+
+    #[PreserveGlobalState(false)]
+    #[RunInSeparateProcess]
+    public function test_completion_lists_methods_through_a_chained_receiver(): void
+    {
+        $uri = 'file:///x.phel';
+        $source = '(php/-> (php/new \\' . ChainFixture::class . ') (withName "a") (nex';
+        $session = $this->sessionWith($uri, $source);
+
+        // Cursor right after "(nex": the receiver type comes from withName()'s
+        // return type, not the constructor.
+        $result = $this->completion()->handle(
+            $this->params($uri, line: 0, character: strlen($source)),
+            $session,
+        );
+
+        $labels = array_column($result['items'], 'label');
+        self::assertContains('next', $labels, 'receiver type advanced through the withName() hop');
     }
 
     #[PreserveGlobalState(false)]

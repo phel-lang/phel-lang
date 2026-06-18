@@ -6,6 +6,7 @@ namespace PhelTest\Unit\Api\Application;
 
 use Phel\Api\Application\PhpInteropReflector;
 use Phel\Api\Transfer\Completion;
+use PhelTest\Unit\Api\Application\Fixtures\ChainFixture;
 use PhelTest\Unit\Api\Application\Fixtures\HoverContract;
 use PhelTest\Unit\Api\Application\Fixtures\HoverEnum;
 use PhelTest\Unit\Api\Application\Fixtures\HoverFixture;
@@ -191,6 +192,20 @@ final class PhpInteropReflectorTest extends TestCase
         self::assertNotNull($info);
         self::assertStringContainsString('strlen(', $info->label);
         self::assertNotSame([], $info->parameters);
+    }
+
+    public function test_method_return_type_resolves_self_to_declaring_class(): void
+    {
+        self::assertSame(ChainFixture::class, $this->reflector->methodReturnType(ChainFixture::class, 'make'));
+        self::assertSame(ChainFixture::class, $this->reflector->methodReturnType(ChainFixture::class, 'withName'));
+        self::assertSame(ChainFixture::class, $this->reflector->methodReturnType(ChainFixture::class, 'next'));
+    }
+
+    public function test_method_return_type_is_empty_for_scalar_or_unknown(): void
+    {
+        self::assertSame('', $this->reflector->methodReturnType(ChainFixture::class, 'size'));
+        self::assertSame('', $this->reflector->methodReturnType(ChainFixture::class, 'noSuchMethod'));
+        self::assertSame('', $this->reflector->methodReturnType('\\Nope', 'foo'));
     }
 
     /**

@@ -26,6 +26,7 @@ use function get_declared_classes;
 use function get_defined_functions;
 use function getcwd;
 use function implode;
+use function in_array;
 use function interface_exists;
 use function is_array;
 use function is_bool;
@@ -231,6 +232,43 @@ final class PhpInteropReflector
     public function classExists(string $class): bool
     {
         return $this->reflect($class) instanceof ReflectionClass;
+    }
+
+    /**
+     * The class name a method returns, for walking a `php/->` chain: `self`,
+     * `static`, and `$this` resolve to the declaring class, `parent` to its
+     * parent. Returns '' for scalar/union/unknown return types or when the
+     * method cannot be reflected.
+     */
+    public function methodReturnType(string $class, string $method): string
+    {
+        $reflection = $this->reflect($class);
+        if (!$reflection instanceof ReflectionClass) {
+            return '';
+        }
+
+        try {
+            $type = $reflection->getMethod($method)->getReturnType();
+        } catch (ReflectionException) {
+            return '';
+        }
+
+        if (!$type instanceof ReflectionNamedType) {
+            return '';
+        }
+
+        $name = $type->getName();
+        if (in_array($name, ['self', 'static', '$this'], true)) {
+            return $reflection->getName();
+        }
+
+        if ($name === 'parent') {
+            $parent = $reflection->getParentClass();
+
+            return $parent === false ? '' : $parent->getName();
+        }
+
+        return $this->reflect($name) instanceof ReflectionClass ? ltrim($name, '\\') : '';
     }
 
     /**
