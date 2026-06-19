@@ -118,11 +118,17 @@ final readonly class LoopSymbol implements SpecialFormAnalyzerInterface
         $bindings = $this->analyzeBindings($bindingVector, $env->withDisallowRecurFrame());
 
         $locals = [];
+        $shadows = [];
         foreach ($bindings as $binding) {
             $locals[] = $binding->getSymbol();
+            $shadows[] = $binding->getShadow();
         }
 
-        $recurFrame = new RecurFrame($locals);
+        // `recur` must assign to the loop's own binding variables (the shadow
+        // names), not whatever inner `let` happens to re-shadow the same name
+        // at the recur site — otherwise a shadowing `let` makes the loop
+        // binding never update and the loop spins forever.
+        $recurFrame = new RecurFrame($locals, $shadows);
 
         $bodyEnv = $env->withMergedLocals($locals);
         $bodyEnv = ($env->isContext(NodeEnvironment::CONTEXT_EXPRESSION))

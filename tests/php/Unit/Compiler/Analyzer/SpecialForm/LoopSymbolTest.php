@@ -130,12 +130,12 @@ final class LoopSymbolTest extends TestCase
                     ),
                 ],
                 new DoNode(
-                    $env->withAddedRecurFrame(new RecurFrame([Symbol::create('a')]))
+                    $env->withAddedRecurFrame(new RecurFrame([Symbol::create('a')], [Symbol::create('a_1')]))
                         ->withLocals([Symbol::create('a')])
                         ->withShadowedLocal(Symbol::create('a'), Symbol::create('a_1')),
                     [],
                     new LiteralNode(
-                        $env->withAddedRecurFrame(new RecurFrame([Symbol::create('a')]))
+                        $env->withAddedRecurFrame(new RecurFrame([Symbol::create('a')], [Symbol::create('a_1')]))
                             ->withLocals([Symbol::create('a')])
                             ->withShadowedLocal(Symbol::create('a'), Symbol::create('a_1')),
                         null,

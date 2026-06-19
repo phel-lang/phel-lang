@@ -37,13 +37,11 @@ final class RecurEmitter implements NodeEmitterInterface
      */
     private function emitDirect(RecurNode $node): void
     {
-        $params = $node->getFrame()->getParams();
+        $shadows = $node->getFrame()->getShadows();
         foreach ($node->getExpressions() as $i => $expr) {
-            $paramSym = $params[$i];
-            $shadowedSymbol = $node->getEnv()->getShadowed($paramSym);
-            $normalizedParam = $shadowedSymbol instanceof Symbol ? $shadowedSymbol : $paramSym;
+            $targetSym = $shadows[$i];
 
-            $this->outputEmitter->emitPhpVariable($normalizedParam, $paramSym->getStartLocation());
+            $this->outputEmitter->emitPhpVariable($targetSym, $targetSym->getStartLocation());
             $this->outputEmitter->emitStr(' = ', $node->getStartSourceLocation());
             $this->outputEmitter->emitNode($expr);
             $this->outputEmitter->emitLine(';', $node->getStartSourceLocation());
@@ -68,14 +66,12 @@ final class RecurEmitter implements NodeEmitterInterface
             $this->outputEmitter->emitLine(';', $node->getStartSourceLocation());
         }
 
-        $params = $node->getFrame()->getParams();
+        $shadows = $node->getFrame()->getShadows();
 
         foreach ($tempSyms as $i => $tempSym) {
-            $paramSym = $params[$i];
-            $shadowedSymbol = $node->getEnv()->getShadowed($paramSym);
-            $normalizedParam = $shadowedSymbol instanceof Symbol ? $shadowedSymbol : $paramSym;
+            $targetSym = $shadows[$i];
 
-            $this->outputEmitter->emitPhpVariable($normalizedParam, $paramSym->getStartLocation());
+            $this->outputEmitter->emitPhpVariable($targetSym, $targetSym->getStartLocation());
             $this->outputEmitter->emitStr(' = ', $node->getStartSourceLocation());
             $this->outputEmitter->emitPhpVariable($tempSym, $node->getStartSourceLocation());
             $this->outputEmitter->emitLine(';', $node->getStartSourceLocation());
@@ -93,16 +89,13 @@ final class RecurEmitter implements NodeEmitterInterface
      */
     private function canSkipTempVars(RecurNode $node): bool
     {
-        $env = $node->getEnv();
-
-        // For each param slot, the recur emit assigns to the *shadowed*
-        // PHP variable. Match against the same shadowed name that any
-        // `LocalVarNode` in the recur expressions will carry, so the
+        // For each param slot, the recur emit assigns to the frame's own
+        // target (shadow) PHP variable. Match against the same name that any
+        // `LocalVarNode` in the recur expressions resolves to, so the
         // detector compares apples to apples.
         $paramNames = [];
-        foreach ($node->getFrame()->getParams() as $p) {
-            $shadow = $env->getShadowed($p);
-            $paramNames[] = $shadow instanceof Symbol ? $shadow->getName() : $p->getName();
+        foreach ($node->getFrame()->getShadows() as $shadow) {
+            $paramNames[] = $shadow->getName();
         }
 
         foreach ($node->getExpressions() as $i => $expr) {
