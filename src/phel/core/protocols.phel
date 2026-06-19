@@ -437,32 +437,38 @@ A `:default` type can be registered via `extend-type` as a fallback when no spec
    :see-also ["extend-type" "satisfies?" "extends?" "protocol-type-key"]}
   [protocol-name & method-specs]
   (let [pname-str (php/-> protocol-name (getName))
+        ;; `arglists` holds every declared arity vector, so a multi-arity
+        ;; method like `(say [this] [this name])` dispatches on all of them.
+        ;; Keep only the arity vectors: a spec may carry a trailing docstring
+        ;; (`(bar [this a b] "doc")`), which must not be treated as an arity.
         methods   (for [spec :in method-specs
                         :let [mname (first spec)
                               mname-str (php/-> mname (getName))
-                              margs (second spec)
+                              arglists (filter vector? (rest spec))
                               dsym (php/:: Symbol
                                            (create (php/. pname-str "--" mname-str "--dispatch")))]]
-                    [mname mname-str margs dsym])]
+                    [mname mname-str arglists dsym])]
     `(do
        ~@(for [[_ _ _ dsym] :in methods]
            `(def ~dsym {:private true} (atom {})))
        (def ~protocol-name
          {:name ~pname-str
           :dispatch [~@(for [[_ _ _ dsym] :in methods] dsym)]})
-       ~@(for [[mname mname-str margs dsym] :in methods]
-           `(defn ~mname ~margs
-              (let [dk             (protocol-type-key ~(first margs))
-                    dispatch-table (deref ~dsym)
-                    impl           (get dispatch-table dk)]
-                (if impl
-                  (impl ~@margs)
-                  (let [default-impl (get dispatch-table :default)]
-                    (if default-impl
-                      (default-impl ~@margs)
-                      (throw (php/new \InvalidArgumentException
-                                      (str "No implementation of '" ~mname-str
-                                           "' for type: " dk))))))))))))
+       ~@(for [[mname mname-str arglists dsym] :in methods]
+           `(defn ~mname
+              ~@(for [margs :in arglists]
+                  `(~margs
+                    (let [dk             (protocol-type-key ~(first margs))
+                          dispatch-table (deref ~dsym)
+                          impl           (get dispatch-table dk)]
+                      (if impl
+                        (impl ~@margs)
+                        (let [default-impl (get dispatch-table :default)]
+                          (if default-impl
+                            (default-impl ~@margs)
+                            (throw (php/new \InvalidArgumentException
+                                            (str "No implementation of '" ~mname-str
+                                                 "' for type: " dk))))))))))))))
 
 (defn- group-protocol-specs
   "Splits a flat protocol spec list into `[[header [methods]] ...]` groups.
@@ -530,17 +536,18 @@ A `:default` type can be registered via `extend-type` as a fallback when no spec
                           proto-tag  (if proto-ns
                                        (php/-> proto-name (getFullName))
                                        (php/. *ns* "\\" proto-str))]
-                      (reduce
-                       (fn [inner method]
-                         (let [mname-str (php/-> (first method) (getName))
-                               margs     (second method)
-                               body      (next (next method))
-                               dsym      (php/:: Symbol
-                                                 (create (php/. proto-str "--" mname-str "--dispatch")))]
-                           (conj inner `(swap! ~dsym assoc ~type-key (fn ~margs ~@body)))))
+                      ;; Group the impls by method name so a method declared
+                      ;; with several arities installs ONE multi-arity fn,
+                      ;; instead of each arity overwriting the previous swap.
+                      (concat
                        (conj acc
                              `(register-protocol-implementor! ~type-key ~proto-name ~proto-tag))
-                       methods)))
+                       (for [[mname-str method-group] :pairs (group-by (fn [m] (php/-> (first m) (getName))) methods)]
+                         (let [dsym (php/:: Symbol
+                                            (create (php/. proto-str "--" mname-str "--dispatch")))]
+                           `(swap! ~dsym assoc ~type-key
+                                   (fn ~@(for [arity :in method-group]
+                                           `(~(second arity) ~@(next (next arity)))))))))))
                   []
                   groups)]
     `(do ~@swaps)))
