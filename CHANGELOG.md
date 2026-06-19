@@ -17,6 +17,7 @@ All notable changes to this project will be documented in this file.
 
 ### Fixed
 
+- `NAN` used as a map/set key is now retrievable: `get`/`contains?` find it and re-`assoc` updates in place, while scalar `(= NAN NAN)` stays `false` (#2475)
 - `phel\html`: void elements (`br`, `img`, `input`, ...) are now always self-closing and ignore supplied children, instead of emitting invalid markup like `<br>content</br>`
 - `phel\transit`: empty maps now round-trip as maps (were decoding as empty vectors), and numeric string keys (e.g. `{"1" "one"}`) stay strings instead of becoming ints
 - Reading a struct field with a non-keyword key (e.g. `(get s 'field)`) no longer crashes with a PHP `TypeError`; symbols and strings match by name, other key types return `nil`

@@ -100,4 +100,25 @@ final class EqualizerTest extends TestCase
         self::assertTrue($this->equalizer->equals($sameHalf, $half));
         self::assertFalse($this->equalizer->equals($half, $third));
     }
+
+    public function test_scalar_equals_keeps_nan_unequal(): void
+    {
+        // Scalar `=` follows IEEE-754: NaN is never equal to itself.
+        self::assertFalse($this->equalizer->equals(NAN, NAN));
+    }
+
+    public function test_equals_key_treats_nan_as_equal(): void
+    {
+        // Collection key equality follows Java Double.equals: NaN matches
+        // itself so it can serve as a stable map/set key.
+        self::assertTrue($this->equalizer->equalsKey(NAN, NAN));
+    }
+
+    public function test_equals_key_matches_equals_for_non_nan(): void
+    {
+        self::assertTrue($this->equalizer->equalsKey(1, 1));
+        self::assertFalse($this->equalizer->equalsKey(1, 2));
+        self::assertFalse($this->equalizer->equalsKey(NAN, 1.0));
+        self::assertFalse($this->equalizer->equalsKey(1.0, NAN));
+    }
 }
