@@ -9,6 +9,9 @@ use Phel\Lang\Collections\Map\PersistentMapInterface;
 use Phel\Lang\HasherInterface;
 use Traversable;
 
+use function is_float;
+use function is_nan;
+
 /**
  * @template V
  *
@@ -110,6 +113,13 @@ final class PersistentHashSet extends AbstractType implements PersistentHashSetI
         }
 
         foreach ($this as $value) {
+            // A NaN element is never `=` to itself, so a set carrying one is
+            // unequal to any distinct set (identical sets short-circuit via
+            // `===` before reaching here). Membership lookup still matches NaN.
+            if (is_float($value) && is_nan($value)) {
+                return false;
+            }
+
             if (!$other->contains($value)) {
                 return false;
             }

@@ -15,3 +15,10 @@
 
 (deftest test-scalar-equality-of-nan-unchanged
   (is (not (= nan nan)) "scalar = keeps NaN unequal to itself (IEEE-754)"))
+
+(deftest test-collections-with-nan-are-structurally-unequal
+  ;; Key lookup matches NaN, but structural = of distinct collections does
+  ;; not (matches Clojure; see clojure-test-suite eq.cljc "collections unequal").
+  (is (not (= {nan 1} {nan 1})) "distinct maps with a NaN key are not =")
+  (is (not (= (set [nan]) (set [nan]))) "distinct sets with a NaN element are not =")
+  (is (not (= [nan] [nan])) "distinct vectors with a NaN element are not ="))

@@ -9,6 +9,9 @@ use Phel\Lang\Collections\Exceptions\MethodNotSupportedException;
 use Phel\Lang\EqualizerInterface;
 use Phel\Lang\HasherInterface;
 
+use function is_float;
+use function is_nan;
+
 /**
  * @template K
  * @template V
@@ -73,6 +76,13 @@ abstract class AbstractPersistentMap extends AbstractType implements PersistentM
         }
 
         foreach ($this as $key => $value) {
+            // A NaN key is never `=` to itself, so a map carrying one is
+            // unequal to any distinct map (identical maps short-circuit via
+            // `===` before reaching here). Key *lookup* still matches NaN.
+            if (is_float($key) && is_nan($key)) {
+                return false;
+            }
+
             if (!$other->contains($key)) {
                 return false;
             }
