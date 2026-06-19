@@ -25,4 +25,12 @@
           ["" {:name ::admin}]
           ["/db" {:name ::db :middleware [::connect]}]]
          ["/ping" {:name ::ping}]] "" {}))
-      "nested routes"))
+      "nested routes")
+  (is (= [] (flatten-routes [] "" {}))
+      "empty route vector flattens to no routes"))
+
+(deftest flatten-routes-rejects-bare-string-test
+  (is (thrown? \InvalidArgumentException (flatten-routes "/ping" "" {}))
+      "a bare string is rejected instead of iterated character-by-character")
+  (is (thrown? \InvalidArgumentException (flatten-routes ["/ping" "/pong"] "" {}))
+      "a sequence of bare strings is rejected instead of producing garbage routes"))

@@ -18,6 +18,7 @@ All notable changes to this project will be documented in this file.
 
 ### Fixed
 
+- `phel\router`: passing a bare string (or a sequence of bare strings) now raises a clear error instead of silently iterating the string character-by-character into garbage routes (#2487)
 - `NAN` map/set keys are now retrievable via `get`/`contains?`/`assoc`, while `(= NAN NAN)` stays `false` (#2475)
 - `phel\json`: floats encode as JSON numbers so values round-trip; empty maps encode to `{}` (#2477)
 - Keyword literals with multiple slashes (`:a/b/c`) keep everything after the first `/` as the name, matching Clojure (#2478)
