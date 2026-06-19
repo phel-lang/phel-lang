@@ -27,7 +27,11 @@ use function strlen;
 
 final readonly class AtomParser
 {
-    private const string REGEX_KEYWORD = '/:(?<second_colon>:?)((?<namespace>[^\/]+)\/)?(?<keyword>[^\/]+)/';
+    // Anchored end-to-end so the whole token is consumed. The name part
+    // allows `/` after its first char, matching Clojure: `:a/b/c` is
+    // namespace `a` with name `b/c` (previously the trailing `/c` was
+    // silently dropped). A bare `:/` still fails (name cannot start with `/`).
+    private const string REGEX_KEYWORD = '/^:(?<second_colon>:?)((?<namespace>[^\/]+)\/)?(?<keyword>[^\/].*)$/';
 
     private const string REGEX_BINARY_NUMBER = '/^([+-])?0[bB]([01]+(?:_[01]+)*)$/';
 
