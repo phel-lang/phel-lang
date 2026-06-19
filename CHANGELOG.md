@@ -16,6 +16,10 @@ All notable changes to this project will be documented in this file.
 - Native-int fast path in `NumericOperations` for `+ - * / < =`, `quot`/`rem`/`mod`; ~1.8–8x per op (#2458 #2459)
 - Core arithmetic and `bit-*` ops drop the per-op `apply` round-trip; ~26% on arithmetic-heavy workloads (#2460)
 
+### Changed
+
+- **Breaking**: the runtime CLI-args var is now `*argv*` (earmuffed), matching `*program*` and Clojure's `*command-line-args*`; the old `argv` name was removed. Replace `argv` with `*argv*` in scripts that read command-line arguments (#2494)
+
 ### Fixed
 
 - `NAN` map/set keys are now retrievable via `get`/`contains?`/`assoc`, while `(= NAN NAN)` stays `false` (#2475)

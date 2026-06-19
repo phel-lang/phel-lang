@@ -89,7 +89,7 @@
                  :aliases ["clear"]
                  :run     wipe-todos}]}))
 
-;; Pass Phel's `argv` explicitly so Symfony sees the user arguments rather
+;; Pass Phel's `*argv*` explicitly so Symfony sees the user arguments rather
 ;; than `phel run <file> ...`. `cli/argv` wraps a vector of tokens into a
 ;; Symfony `ArgvInput`.
-(cli/run app (cli/argv argv))
+(cli/run app (cli/argv *argv*))
