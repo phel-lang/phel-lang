@@ -189,7 +189,7 @@ Maps are treated as a sequence of entries: `(first {:a 1})` returns a typed `Map
   (let [prog (php/aget php/$GLOBALS "__phel_program")]
     (if (php/=== prog nil) "" prog)))
 
-(def argv
+(def *argv*
   "Vector of user arguments passed to the script (excludes program name). Use *program* to get the script path or namespace."
   (let [argv-raw (php/aget php/$GLOBALS "__phel_argv")]
     (if (php/=== argv-raw nil)
