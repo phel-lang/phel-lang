@@ -291,3 +291,21 @@
   (is (= 5 (sz "hello")) "extend-protocol one-arg")
   (is (= "5px" (sz "hello" "px")) "extend-protocol two-arg")
   (is (= 3 (sz [1 2 3])) "extend-protocol single-arity type"))
+
+;; --- Protocol method with a trailing docstring ---
+;; A docstring after the arity vector(s) must not be treated as an arity.
+
+(defprotocol Depictable
+  (depict [this a b] "depict docstring")
+  (outline [this] [this detail] "outline docstring"))
+
+(extend-type :string
+  Depictable
+  (depict [this a b] (str this ":" a b))
+  (outline [this] (str "outline:" this))
+  (outline [this detail] (str "outline:" this ":" detail)))
+
+(deftest test-protocol-method-with-docstring
+  (is (= "x:12" (depict "x" 1 2)) "single-arity method with docstring dispatches")
+  (is (= "outline:x" (outline "x")) "multi-arity-with-docstring: one-arg")
+  (is (= "outline:x:big" (outline "x" "big")) "multi-arity-with-docstring: two-arg"))

@@ -439,10 +439,12 @@ A `:default` type can be registered via `extend-type` as a fallback when no spec
   (let [pname-str (php/-> protocol-name (getName))
         ;; `arglists` holds every declared arity vector, so a multi-arity
         ;; method like `(say [this] [this name])` dispatches on all of them.
+        ;; Keep only the arity vectors: a spec may carry a trailing docstring
+        ;; (`(bar [this a b] "doc")`), which must not be treated as an arity.
         methods   (for [spec :in method-specs
                         :let [mname (first spec)
                               mname-str (php/-> mname (getName))
-                              arglists (rest spec)
+                              arglists (filter vector? (rest spec))
                               dsym (php/:: Symbol
                                            (create (php/. pname-str "--" mname-str "--dispatch")))]]
                     [mname mname-str arglists dsym])]
