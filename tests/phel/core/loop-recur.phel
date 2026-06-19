@@ -1,0 +1,46 @@
+(ns phel-test.core.loop-recur
+  (:require phel.test :refer [deftest is]))
+
+;; --- Regression: recur inside a let that shadows the loop binding ---
+;; Previously recur assigned the inner let's variable instead of the loop's,
+;; so the loop binding never updated and the loop spun forever (#2482).
+
+(deftest test-recur-with-shadowing-let
+  (is (= :done
+         (loop [x 0]
+           (if (>= x 3)
+             :done
+             (let [x (+ x 100)]
+               (recur (+ x 1))))))
+      "recur targets the loop binding, not the shadowing let"))
+
+(deftest test-recur-in-fn-with-shadowing-let
+  (let [f (fn f [x]
+            (if (>= x 3)
+              :done
+              (let [x (+ x 100)]
+                (recur (+ x 1)))))]
+    (is (= :done (f 0))
+        "fn recur targets the param, not the shadowing let")))
+
+(deftest test-recur-multi-binding-one-shadowed
+  (is (= [2 13]
+         (loop [x 0 y 10]
+           (if (>= x 2)
+             [x y]
+             (let [x (+ x 1)]
+               (recur x (+ y x))))))
+      "only the shadowed binding is re-bound; the other recurs normally"))
+
+;; --- Existing behaviour stays correct ---
+
+(deftest test-recur-plain-loop
+  (is (= 10 (loop [i 0 acc 0]
+              (if (>= i 5) acc (recur (inc i) (+ acc i)))))
+      "plain loop accumulates"))
+
+(deftest test-recur-swap-uses-temp-vars
+  (is (= [2 1]
+         (loop [a 1 b 2 n 0]
+           (if (>= n 3) [a b] (recur b a (inc n)))))
+      "swapping recur args reads the pre-recur values"))
