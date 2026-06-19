@@ -15,7 +15,8 @@
   (is (= "1" (json/encode 1))))
 
 (deftest test-json-encode-float
-  (is (= "\"3.14\"" (json/encode 3.14))))
+  (is (= "3.14" (json/encode 3.14)) "a float encodes as a JSON number, not a string")
+  (is (= 3.14 (json/decode (json/encode 3.14))) "a float round-trips through encode/decode"))
 
 (deftest test-json-encode-string
   (is (= "\"string\"" (json/encode "string"))))

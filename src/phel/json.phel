@@ -9,12 +9,21 @@
 
 (declare encode-value)
 
+(defn- encode-key
+  "Encodes a map key. JSON object keys are always strings, and a PHP array
+  float key would be truncated to an int, so floats are stringified here
+  (values keep their numeric type via `encode-value`)."
+  [k]
+  (if (float? k)
+    (str k)
+    (encode-value k)))
+
 (defn- encode-value-iterable [x]
   (let [arr (php/array)]
     (foreach [k v x]
       (when-not (valid-key? k)
         (throw (php/new JsonException "Key can only be an integer, float, symbol, keyword or a string.")))
-      (php/aset arr (encode-value k) (encode-value v)))
+      (php/aset arr (encode-key k) (encode-value v)))
     arr))
 
 (defn encode-value
@@ -29,7 +38,6 @@
     (php/is_iterable x)       (encode-value-iterable x)
     (symbol? x)               (name x)
     (keyword? x)              (name x)
-    (float? x)                (str x)
     true                      x))
 
 (defn encode
