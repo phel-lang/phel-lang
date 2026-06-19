@@ -19,8 +19,15 @@
   (mapcat |(walk-one $ prefix-path prev-data) routes))
 
 (defn- walk-one [routes prefix-path prev-data]
+  (when (string? routes)
+    (throw (php/new \InvalidArgumentException
+                    (str "router expects a route vector `[path data? children*]` or a vector of such routes, got a bare string: \""
+                         routes "\". Wrap it like [\"" routes "\"]."))))
   (let [head (first routes)]
     (cond
+      (empty? routes)
+      []
+
       (vector? head)
       (walk-many routes prefix-path prev-data)
 
@@ -34,7 +41,12 @@
             next-data     (deep-merge prev-data data)]
         (if (empty? childs)
           [[full-path next-data]]
-          (walk-many (keep identity childs) full-path next-data))))))
+          (walk-many (keep identity childs) full-path next-data)))
+
+      :else
+      (throw (php/new \InvalidArgumentException
+                      (str "router route must start with a string path, got: "
+                           (type head) " in route " (print-str routes)))))))
 
 (defn flatten-routes
   "Flattens nested routes to a vector of `[path data]` tuples.
