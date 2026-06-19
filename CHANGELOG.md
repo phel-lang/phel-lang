@@ -6,40 +6,31 @@ All notable changes to this project will be documented in this file.
 
 ### Added
 
-- Cold-start speedup: the PHAR ships `phel.core` precompiled, so a cold `phel run`/`test`/`eval` reuses it instead of recompiling core (~1.2s → ~0.2s on an empty cache) (#2443)
-- `phel doctor`: a "Checking performance" section reports whether OPcache persists the compiled-code cache across CLI runs, with copy-paste fixes (#2446)
-- Shell completion for `phel doc`, command option values, and project namespaces (`run`/`test`); README documents `bash`/`zsh`/`fish` install (#2451)
+- The PHAR ships `phel.core` precompiled, cutting cold-start `run`/`test`/`eval` from ~1.2s to ~0.2s (#2443)
+- `phel doctor` reports whether OPcache persists the compiled-code cache across CLI runs, with fixes (#2446)
+- Shell completion for `phel doc`, option values, and project namespaces; `bash`/`zsh`/`fish` install docs (#2451)
+- LSP PHP interop completion/hover/signature help (follow-up to #2431): `(:use ...)`/`(use ...)` alias resolution (#2461), LSP 3.17 signature help (#2462), hover for properties/constants/enum cases/classes (#2463), `php/->` chain and union/intersection type resolution (#2464), suppression inside strings and comments (#2465), and refined class-name completion (#2466)
 
 ### Performance
 
-- Native-int fast path in `NumericOperations` for `+ - * / < =` and `quot`/`rem`/`mod` when both operands are ints; ~1.8–8x per op, overflow-to-`BigInt` promotion unchanged (#2458 #2459)
-- Core arithmetic `+ - * /` and `bit-and`/`bit-or`/`bit-xor` drop the per-op `apply` round-trip; ~26% on arithmetic-heavy workloads (#2460)
+- Native-int fast path in `NumericOperations` for `+ - * / < =`, `quot`/`rem`/`mod`; ~1.8–8x per op (#2458 #2459)
+- Core arithmetic and `bit-*` ops drop the per-op `apply` round-trip; ~26% on arithmetic-heavy workloads (#2460)
 
 ### Fixed
 
-- `NAN` used as a map/set key is now retrievable: `get`/`contains?` find it and re-`assoc` updates in place, while scalar `(= NAN NAN)` stays `false` (#2475)
-- `phel\json`: `encode` now emits floats as JSON numbers (`(json/encode 3.14)` → `3.14`) instead of quoted strings, so values round-trip; float map keys stay quoted strings as JSON requires (#2477)
-- A keyword literal with multiple slashes (e.g. `:a/b/c`) now keeps everything after the first `/` as the name (namespace `a`, name `b/c`), matching Clojure, instead of silently truncating to `:a/b` (#2478)
-- Float printing is now consistent between `str` and `print`/`println`/`print-str`/REPL: integer-valued floats keep their `.0` (`17.0`, not `17`), and the special values render `NaN`/`Infinity`/`-Infinity` (not `NAN`/`INF`/`-INF`) (#2479)
-- `phel\html`: void elements (`br`, `img`, `input`, ...) are now always self-closing and ignore supplied children, instead of emitting invalid markup like `<br>content</br>`
-- `phel\transit`: empty maps now round-trip as maps (were decoding as empty vectors), and numeric string keys (e.g. `{"1" "one"}`) stay strings instead of becoming ints
-- Reading a struct field with a non-keyword key (e.g. `(get s 'field)`) no longer crashes with a PHP `TypeError`; symbols and strings match by name, other key types return `nil`
-- `phel\string`: `pad-left`/`pad-right`/`pad-both` with an empty pad string now fall back to a single space instead of raising a PHP error
-- `phel\json`: an empty map now encodes to `{}` (was `[]`), and numeric object keys now decode to keywords instead of collapsing to a single `nil` key
-- `defmacro` declaring only one of the implicit `&form`/`&env` params no longer fails to compile with `Redefinition of parameter`
-- Printing a `NAN` value no longer leaks a PHP coercion warning; it renders `NAN`, matching `INF`/`-INF`
-- `phel build` from the PHAR now compiles and harvests every `(load ...)` stdlib secondary, so `php out/index.php` runs standalone (#2449)
-- `phel test`/`phel run` with a missing file path no longer leaks a raw `file_get_contents()` warning before the clean error (#2442)
-- PHP 8.5: guard `ReflectionClass::getConstant` behind `hasConstant()` and mark the deprecated-setter tests `#[IgnoreDeprecations]` (#2455)
-
-PHP interop completion/hover/signature help (follow-up to #2431):
-
-- resolves the receiver class through `(:use ...)`/`(use ...)` aliases and multi-line forms (#2461)
-- full LSP 3.17 signature help: per-parameter info, phpdoc, cursor `activeParameter`, and balanced-paren detection of the enclosing call in chains (#2462)
-- hover for instance properties, static constants, enum cases, and classes, with phpdoc (#2463)
-- resolves the receiver type through multi-hop `php/->` chains, `Foo|false`/`Foo&Bar` return types, factory bindings, and indirect `let` rebinds (#2464)
-- no longer fires inside strings or `;` comments, and no longer suppresses Phel completion on no match (#2465)
-- class-name completion lists interfaces, enum cases labeled correctly, `php/` array/object forms hidden, and `php/new` help suppressed for uninstantiable types (#2466)
+- `NAN` map/set keys are now retrievable via `get`/`contains?`/`assoc`, while `(= NAN NAN)` stays `false` (#2475)
+- `phel\json`: floats encode as JSON numbers so values round-trip; empty maps encode to `{}` (#2477)
+- Keyword literals with multiple slashes (`:a/b/c`) keep everything after the first `/` as the name, matching Clojure (#2478)
+- Consistent float printing across `str`/`print`/REPL: integer floats keep `.0`, specials render `NaN`/`Infinity`/`-Infinity` (#2479)
+- `phel\html`: void elements (`br`, `img`, ...) are always self-closing and ignore children
+- `phel\transit`: empty maps round-trip as maps, and numeric string keys stay strings
+- Reading a struct field with a non-keyword key no longer crashes; symbols/strings match by name, else `nil`
+- `phel\string`: `pad-*` with an empty pad string falls back to a single space
+- `defmacro` declaring only one of `&form`/`&env` no longer fails with `Redefinition of parameter`
+- Printing `NAN` no longer leaks a PHP coercion warning
+- `phel build` from the PHAR harvests every `(load ...)` stdlib secondary so the output runs standalone (#2449)
+- `phel test`/`phel run` with a missing file path no longer leaks a `file_get_contents()` warning (#2442)
+- PHP 8.5 compatibility: guard `ReflectionClass::getConstant` and mark deprecated-setter tests (#2455)
 
 ## [0.44.0](https://github.com/phel-lang/phel-lang/compare/v0.43.0...v0.44.0) - 2026-06-13
 
