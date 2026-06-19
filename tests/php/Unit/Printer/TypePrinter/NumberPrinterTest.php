@@ -33,18 +33,23 @@ final class NumberPrinterTest extends TestCase
             1.02,
         ];
 
+        yield 'integer-valued float keeps .0' => [
+            '17.0',
+            17.0,
+        ];
+
         yield 'nan' => [
-            'NAN',
+            'NaN',
             NAN,
         ];
 
         yield 'positive infinity' => [
-            'INF',
+            'Infinity',
             INF,
         ];
 
         yield 'negative infinity' => [
-            '-INF',
+            '-Infinity',
             -INF,
         ];
     }
@@ -56,7 +61,7 @@ final class NumberPrinterTest extends TestCase
         });
 
         try {
-            self::assertSame('NAN', new NumberPrinter()->print(NAN));
+            self::assertSame('NaN', new NumberPrinter()->print(NAN));
         } finally {
             restore_error_handler();
         }
