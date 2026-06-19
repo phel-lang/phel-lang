@@ -35,7 +35,11 @@
       "keyword literal with special characters round-trips against (keyword string)")
   (is (= :abc*+!-_'?<>=/abc*+!-_'?<>=
          (keyword "abc*+!-_'?<>=" "abc*+!-_'?<>="))
-      "namespaced keyword literal with special characters round-trips against (keyword ns name)"))
+      "namespaced keyword literal with special characters round-trips against (keyword ns name)")
+  (is (= "b/c" (name :a/b/c)) "keyword literal keeps everything after the first / as the name")
+  (is (= "a" (namespace :a/b/c)) "keyword literal namespace is the part before the first /")
+  (is (not (= :a/b/c :a/b)) "a multi-slash keyword is not truncated to its first segment")
+  (is (= :a/b/c (keyword "a" "b/c")) "multi-slash keyword literal matches (keyword ns name)"))
 
 (deftest create-hash-map
   (is (= {:a 1 :b 2} (hash-map :a 1 :b 2)) "construct hash-map"))

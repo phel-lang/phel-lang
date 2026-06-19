@@ -158,6 +158,26 @@ final class AtomParserTest extends TestCase
         );
     }
 
+    public function test_parse_keyword_with_slash_in_name(): void
+    {
+        // Clojure keeps everything after the first `/` as the name, so
+        // `:a/b/c` is namespace `a` with name `b/c` (not silently truncated).
+        $parser = new AtomParser(new GlobalEnvironment());
+        $start = new SourceLocation('string', 0, 0);
+        $end = new SourceLocation('string', 0, 6);
+        $this->assertEquals(
+            new KeywordNode(
+                ':a/b/c',
+                $start,
+                $end,
+                Keyword::create('b/c', 'a'),
+            ),
+            $parser->parse(
+                new Token(Token::T_ATOM, ':a/b/c', $start, $end),
+            ),
+        );
+    }
+
     public function test_parse_invalid_keyword(): void
     {
         $this->expectException(KeywordParserException::class);
