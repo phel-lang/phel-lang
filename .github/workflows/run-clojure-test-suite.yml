@@ -38,7 +38,7 @@ jobs:
           # PR/push runs gate against a pinned, reproducible suite commit; the
           # nightly cron tracks `main` to surface upstream drift; dispatch can
           # override either way.
-          ref: ${{ github.event.inputs.suite-ref || (github.event_name == 'schedule' && 'main' || '7d3db18b7d55abcae3411dcfdede99049f1bfe8a') }}
+          ref: ${{ github.event.inputs.suite-ref || (github.event_name == 'schedule' && 'main' || 'c79e3f988799ce39d65632b1388b407d62612435') }}
           path: clojure-test-suite
 
       - uses: shivammathur/setup-php@v2

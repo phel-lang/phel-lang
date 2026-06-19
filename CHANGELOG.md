@@ -20,6 +20,7 @@ All notable changes to this project will be documented in this file.
 - `NAN` used as a map/set key is now retrievable: `get`/`contains?` find it and re-`assoc` updates in place, while scalar `(= NAN NAN)` stays `false` (#2475)
 - `phel\json`: `encode` now emits floats as JSON numbers (`(json/encode 3.14)` → `3.14`) instead of quoted strings, so values round-trip; float map keys stay quoted strings as JSON requires (#2477)
 - A keyword literal with multiple slashes (e.g. `:a/b/c`) now keeps everything after the first `/` as the name (namespace `a`, name `b/c`), matching Clojure, instead of silently truncating to `:a/b` (#2478)
+- Float printing is now consistent between `str` and `print`/`println`/`print-str`/REPL: integer-valued floats keep their `.0` (`17.0`, not `17`), and the special values render `NaN`/`Infinity`/`-Infinity` (not `NAN`/`INF`/`-INF`) (#2479)
 - `phel\html`: void elements (`br`, `img`, `input`, ...) are now always self-closing and ignore supplied children, instead of emitting invalid markup like `<br>content</br>`
 - `phel\transit`: empty maps now round-trip as maps (were decoding as empty vectors), and numeric string keys (e.g. `{"1" "one"}`) stay strings instead of becoming ints
 - Reading a struct field with a non-keyword key (e.g. `(get s 'field)`) no longer crashes with a PHP `TypeError`; symbols and strings match by name, other key types return `nil`
