@@ -160,7 +160,7 @@ final class TransientArrayMap implements TransientMapInterface
     {
         for ($i = 0, $cnt = count($this->array); $i < $cnt; $i += 2) {
             $k = $this->array[$i];
-            if ($this->equalizer->equals($k, $key)) {
+            if ($this->equalizer->equalsKey($k, $key)) {
                 return $i;
             }
         }

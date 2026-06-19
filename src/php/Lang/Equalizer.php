@@ -6,6 +6,7 @@ namespace Phel\Lang;
 
 use Gacela\Container\Attribute\Singleton;
 
+use function is_float;
 use function is_int;
 
 #[Singleton]
@@ -40,6 +41,17 @@ final class Equalizer implements EqualizerInterface
         }
 
         return false;
+    }
+
+    public function equalsKey(mixed $a, mixed $b): bool
+    {
+        if ($this->equals($a, $b)) {
+            return true;
+        }
+
+        // Collection key equality treats NaN as equal to itself so a NaN key
+        // stays retrievable, unlike scalar `=` which follows IEEE-754.
+        return is_float($a) && is_float($b) && is_nan($a) && is_nan($b);
     }
 
     /**

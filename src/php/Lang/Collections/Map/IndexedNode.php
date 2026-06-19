@@ -58,7 +58,7 @@ final readonly class IndexedNode implements HashMapNodeInterface
             }
 
             /** @var TValue $currentValue */
-            if ($this->equalizer->equals($key, $currentKey)) {
+            if ($this->equalizer->equalsKey($key, $currentKey)) {
                 return $this->updateKey($index, $currentValue, $value);
             }
 
@@ -119,7 +119,7 @@ final readonly class IndexedNode implements HashMapNodeInterface
             return $result;
         }
 
-        if ($this->equalizer->equals($key, $currentKey)) {
+        if ($this->equalizer->equalsKey($key, $currentKey)) {
             if (count($this->objects) === 1) {
                 return null;
             }
@@ -156,7 +156,7 @@ final readonly class IndexedNode implements HashMapNodeInterface
             return $node->find($shift + 5, $hash, $key, $notFound);
         }
 
-        if ($this->equalizer->equals($key, $currentKey)) {
+        if ($this->equalizer->equalsKey($key, $currentKey)) {
             return $currentValue;
         }
 

@@ -1,0 +1,17 @@
+(ns phel-test.core.nan-map-keys
+  (:require phel.test :refer [deftest is]))
+
+(def- nan php/NAN)
+
+(deftest test-nan-as-map-key
+  (is (= "value" (get {nan "value"} nan)) "get with a NaN key returns its value")
+  (is (contains? {nan "value"} nan) "contains? finds a NaN key")
+  (is (= 1 (count (assoc (assoc {} nan 1) nan 2))) "re-assoc with the same NaN key updates in place")
+  (is (= 2 (get (assoc (assoc {} nan 1) nan 2) nan)) "re-assoc with the same NaN key overwrites the value"))
+
+(deftest test-nan-as-set-element
+  (is (contains? (set [nan]) nan) "contains? finds a NaN set element")
+  (is (= 1 (count (set [nan nan]))) "duplicate NaN elements collapse into one"))
+
+(deftest test-scalar-equality-of-nan-unchanged
+  (is (not (= nan nan)) "scalar = keeps NaN unequal to itself (IEEE-754)"))

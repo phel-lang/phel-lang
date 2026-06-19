@@ -130,7 +130,7 @@ final class HashCollisionNode implements HashMapNodeInterface
     private function findIndex(mixed $key): int
     {
         for ($i = 0; $i < 2 * $this->count; $i += 2) {
-            if ($this->equalizer->equals($key, $this->objects[$i])) {
+            if ($this->equalizer->equalsKey($key, $this->objects[$i])) {
                 return $i;
             }
         }
