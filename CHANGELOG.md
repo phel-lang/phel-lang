@@ -22,6 +22,7 @@ All notable changes to this project will be documented in this file.
 - `phel\json`: floats encode as JSON numbers so values round-trip; empty maps encode to `{}` (#2477)
 - Keyword literals with multiple slashes (`:a/b/c`) keep everything after the first `/` as the name, matching Clojure (#2478)
 - Consistent float printing across `str`/`print`/REPL: integer floats keep `.0`, specials render `NaN`/`Infinity`/`-Infinity` (#2479)
+- Protocol methods declared with multiple arities now dispatch on every arity, not just the last installed one (#2481)
 - `phel\html`: void elements (`br`, `img`, ...) are always self-closing and ignore children
 - `phel\transit`: empty maps round-trip as maps, and numeric string keys stay strings
 - Reading a struct field with a non-keyword key no longer crashes; symbols/strings match by name, else `nil`

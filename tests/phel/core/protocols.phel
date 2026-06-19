@@ -255,3 +255,39 @@
 (deftest test-protocol-multi-expression-body
   (is (= "3 items, first: :a" (summarize [:a :b :c]))
       "multi-expression body works"))
+
+;; --- Multi-arity protocol methods ---
+
+(defprotocol Greet
+  (say [this]
+       [this name]
+       [this greeting name]))
+
+(extend-type :string
+  Greet
+  (say [this] (str "hi from " this))
+  (say [this name] (str this " says hi to " name))
+  (say [this greeting name] (str this ": " greeting ", " name)))
+
+(extend-type :default
+  Greet
+  (say [this] "default greeting"))
+
+(deftest test-multi-arity-protocol-dispatch
+  (is (= "hi from a" (say "a")) "one-arg arity")
+  (is (= "a says hi to b" (say "a" "b")) "two-arg arity")
+  (is (= "a: hello, b" (say "a" "hello" "b")) "three-arg arity"))
+
+(deftest test-multi-arity-protocol-default-fallback
+  (is (= "default greeting" (say 42)) "falls back to :default for the supported arity"))
+
+(defprotocol Sized
+  (sz [this] [this unit]))
+
+(deftest test-multi-arity-via-extend-protocol
+  (extend-protocol Sized
+    :string (sz [this] (php/strlen this)) (sz [this unit] (str (php/strlen this) unit))
+    :vector (sz [this] (count this)))
+  (is (= 5 (sz "hello")) "extend-protocol one-arg")
+  (is (= "5px" (sz "hello" "px")) "extend-protocol two-arg")
+  (is (= 3 (sz [1 2 3])) "extend-protocol single-arity type"))
