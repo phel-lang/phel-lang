@@ -4,7 +4,7 @@ Error reporting, exception formatting, directory discovery.
 
 ## Public API (Facade)
 
-- Exceptions: `writeLocatedException`, `writeStackTrace`, `getExceptionString`, `getStackTraceString`, `getExceptionPrinter`
+- Exceptions: `writeLocatedException`, `writeStackTrace`, `getExceptionString`, `getStackTraceString`, `getExceptionPrinter`, `getExceptionHintResolver` (shared `Phel\Shared\Exceptions\Hint\ExceptionHintResolver`)
 - Directories: `getAllPhelDirectories()` (internal phel + project + vendor), `getSourceDirectories()` (project + vendor), `getProjectSourceDirectories()` (user-configured only), `getTestDirectories()`, `getVendorSourceDirectories()`, `getOutputDirectory()`
 - `readPhelConfig(string): array`
 
@@ -19,3 +19,4 @@ No facade dependencies; Provider exposes `PHP_CONFIG_READER`. Uses Shared (`Abst
 - `FilePositionExtractor::getFileLineMap()` (exposed via `CommandFacade::getCompiledFileLineMap`): returns the full `[phpLine => phelLine]` map + originating `.phel` filename for a compiled file; used by `phel test --coverage` to enumerate coverable Phel lines
 - `TextExceptionPrinter`: renders with syntax highlighting and source pointers; `getUserFacingTraceString()` keeps only Phel fn frames (mapped to `.phel:line`) and collapses PHP-native runs, used by `CommandExceptionWriter::writeStackTrace` for console output (full trace still goes to the error log)
 - Config includes stale output recovery hint for corrupted build state
+- `CommandExceptionWriter` appends an actionable hint (from `ExceptionHintResolver`) after both located-exception and stack-trace output, so failing `phel run`/`test`/`eval` get the same guidance as the REPL. Hints are pure utilities in `Phel\Shared\Exceptions\Hint\`; register new ones in `CommandFactory::createExceptionHints()`

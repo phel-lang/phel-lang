@@ -2,14 +2,14 @@
 
 declare(strict_types=1);
 
-namespace Phel\Run\Domain\Repl\Hint;
+namespace Phel\Shared\Exceptions\Hint;
 
 use Throwable;
 
 use function preg_match;
 use function sprintf;
 
-final class UndefinedSymbolHint implements ReplHintInterface
+final class UndefinedSymbolHint implements ExceptionHintInterface
 {
     public function appliesTo(Throwable $e): bool
     {

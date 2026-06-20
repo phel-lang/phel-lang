@@ -13,6 +13,7 @@ All notable changes to this project will be documented in this file.
 - Consistent CLI short aliases (additive, no renames): `--format` also accepts `-f` (`doc`, `lint`, `profile`), `--output` accepts `-o` (`profile`, `test`), and `--sort` accepts `-s` (`profile`); conventions documented in `docs/internals/cli-flag-conventions.md` (#2502)
 - Every CLI command's `--help` now includes a usage example block (previously most had only a one-line description); a test guards that coverage going forward (#2503)
 - REPL/nREPL autocompletion now also completes special forms and native symbols (`def`, `defn`, `fn`, `let`, `if`, `recur`, `try`, `ns`, ...), which previously never appeared since they are compiler symbols, not registry definitions (#2505)
+- Non-REPL command errors (`phel run`/`test`/`eval`/...) now print the same actionable hints the REPL shows (undefined symbol, wrong arity, value not callable), e.g. `hint: 'foo' is not defined. Check the spelling, or add (:require ...) ...` (#2506)
 - LSP PHP interop completion/hover/signature help (follow-up to #2431): `(:use ...)`/`(use ...)` alias resolution (#2461), LSP 3.17 signature help (#2462), hover for properties/constants/enum cases/classes (#2463), `php/->` chain and union/intersection type resolution (#2464), suppression inside strings and comments (#2465), and refined class-name completion (#2466)
 
 ### Performance

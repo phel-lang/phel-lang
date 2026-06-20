@@ -6,6 +6,7 @@ namespace Phel\Shared\Facade;
 
 use Phel\Command\Domain\Exceptions\ExceptionPrinterInterface;
 use Phel\Shared\Exceptions\AbstractLocatedException;
+use Phel\Shared\Exceptions\Hint\ExceptionHintResolver;
 use Phel\Shared\Parser\ReadModel\CodeSnippet;
 use Symfony\Component\Console\Output\OutputInterface;
 use Throwable;
@@ -25,6 +26,8 @@ interface CommandFacadeInterface
     public function getStackTraceString(Throwable $e): string;
 
     public function getExceptionPrinter(): ExceptionPrinterInterface;
+
+    public function getExceptionHintResolver(): ExceptionHintResolver;
 
     /**
      * All src, tests, and vendor directories.

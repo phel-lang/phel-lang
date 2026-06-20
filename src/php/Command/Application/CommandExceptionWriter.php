@@ -9,6 +9,7 @@ use Phel\Command\Domain\ErrorLogInterface;
 use Phel\Command\Domain\Exceptions\ExceptionPrinterInterface;
 use Phel\Command\Domain\Exceptions\Extractor\FilePositionExtractorInterface;
 use Phel\Shared\Exceptions\AbstractLocatedException;
+use Phel\Shared\Exceptions\Hint\ExceptionHintResolver;
 use Phel\Shared\Parser\ReadModel\CodeSnippet;
 use Symfony\Component\Console\Output\OutputInterface;
 use Throwable;
@@ -28,6 +29,7 @@ final readonly class CommandExceptionWriter implements CommandExceptionWriterInt
         private ErrorLogInterface $errorLog,
         private FilePositionExtractorInterface $filePositionExtractor,
         private string $staleOutputHint,
+        private ExceptionHintResolver $hintResolver,
     ) {}
 
     public function writeStackTrace(OutputInterface $output, Throwable $e): void
@@ -45,6 +47,7 @@ final readonly class CommandExceptionWriter implements CommandExceptionWriterInt
             }
         }
 
+        $this->writeHint($output, $e);
         $this->errorLog->writeln($this->getStackTraceString($e));
     }
 
@@ -54,6 +57,7 @@ final readonly class CommandExceptionWriter implements CommandExceptionWriterInt
         CodeSnippet $codeSnippet,
     ): void {
         $output->writeln($this->getExceptionString($e, $codeSnippet));
+        $this->writeHint($output, $e);
     }
 
     public function getExceptionString(AbstractLocatedException $e, CodeSnippet $codeSnippet): string
@@ -64,6 +68,18 @@ final readonly class CommandExceptionWriter implements CommandExceptionWriterInt
     public function getStackTraceString(Throwable $e): string
     {
         return $this->exceptionPrinter->getStackTraceString($e);
+    }
+
+    /**
+     * Appends an actionable hint (undefined symbol, wrong arity, not callable,
+     * ...) when one applies, matching the guidance the REPL shows.
+     */
+    private function writeHint(OutputInterface $output, Throwable $e): void
+    {
+        $hint = $this->hintResolver->hintFor($e);
+        if ($hint !== null) {
+            $output->writeln('hint: ' . $hint);
+        }
     }
 
     /**

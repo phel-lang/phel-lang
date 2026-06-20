@@ -9,6 +9,12 @@ use Phel\Command\Domain\ErrorLogInterface;
 use Phel\Command\Domain\Exceptions\ExceptionPrinterInterface;
 use Phel\Command\Domain\Exceptions\Extractor\FilePositionExtractorInterface;
 use Phel\Command\Domain\Exceptions\Extractor\ReadModel\FilePosition;
+use Phel\Lang\SourceLocation;
+use Phel\Shared\Exceptions\AbstractLocatedException;
+use Phel\Shared\Exceptions\Hint\ExceptionHintResolver;
+use Phel\Shared\Exceptions\Hint\NotCallableHint;
+use Phel\Shared\Exceptions\Hint\UndefinedSymbolHint;
+use Phel\Shared\Parser\ReadModel\CodeSnippet;
 use PHPUnit\Framework\TestCase;
 use RuntimeException;
 use Symfony\Component\Console\Output\BufferedOutput;
@@ -31,6 +37,7 @@ final class CommandExceptionWriterTest extends TestCase
             $this->createStub(ErrorLogInterface::class),
             $extractor,
             'stale compiled output? try `rm -rf out /var/state/cache` and rebuild.',
+            new ExceptionHintResolver([]),
         );
 
         $output = new BufferedOutput();
@@ -58,6 +65,7 @@ final class CommandExceptionWriterTest extends TestCase
             $this->createStub(ErrorLogInterface::class),
             $extractor,
             'stale compiled output? try `rm -rf out /var/state/cache` and rebuild.',
+            new ExceptionHintResolver([]),
         );
 
         $output = new BufferedOutput();
@@ -80,6 +88,7 @@ final class CommandExceptionWriterTest extends TestCase
             $this->createStub(ErrorLogInterface::class),
             $extractor,
             'stale compiled output? try `rm -rf out /var/state/cache` and rebuild.',
+            new ExceptionHintResolver([]),
         );
 
         $output = new BufferedOutput();
@@ -105,6 +114,7 @@ final class CommandExceptionWriterTest extends TestCase
             $this->createStub(ErrorLogInterface::class),
             $extractor,
             'stale hint',
+            new ExceptionHintResolver([]),
         );
 
         $output = new BufferedOutput();
@@ -114,6 +124,59 @@ final class CommandExceptionWriterTest extends TestCase
 
         self::assertStringContainsString('#0 /proj/src/main.phel:6 : (app\\main\\level3 1)', $text);
         self::assertStringContainsString('... 4 internal frames', $text);
+    }
+
+    public function test_located_exception_emits_hint_for_unresolved_symbol(): void
+    {
+        $printer = $this->createStub(ExceptionPrinterInterface::class);
+        $printer->method('getExceptionString')->willReturn("Cannot resolve symbol 'foo'");
+
+        $located = new class("Cannot resolve symbol 'foo'") extends AbstractLocatedException {};
+
+        $writer = new CommandExceptionWriter(
+            $printer,
+            $this->createStub(ErrorLogInterface::class),
+            $this->createStub(FilePositionExtractorInterface::class),
+            'stale hint',
+            new ExceptionHintResolver([new UndefinedSymbolHint()]),
+        );
+
+        $loc = new SourceLocation('foo.phel', 1, 1);
+        $output = new BufferedOutput();
+        $writer->writeLocatedException($output, $located, new CodeSnippet($loc, $loc, '(foo)'));
+
+        $text = $output->fetch();
+
+        self::assertStringContainsString("hint: 'foo' is not defined", $text);
+    }
+
+    public function test_emits_actionable_hint_for_known_error(): void
+    {
+        $extractor = $this->createStub(FilePositionExtractorInterface::class);
+        $extractor->method('getOriginal')->willReturn(new FilePosition('/proj/src/main.phel', 3));
+
+        $writer = new CommandExceptionWriter(
+            $this->createStub(ExceptionPrinterInterface::class),
+            $this->createStub(ErrorLogInterface::class),
+            $extractor,
+            'stale hint',
+            new ExceptionHintResolver([new NotCallableHint()]),
+        );
+
+        $output = new BufferedOutput();
+        $writer->writeStackTrace(
+            $output,
+            $this->errorAt(
+                'Object of type Phel\\Lang\\Collections\\Vector\\PersistentVector is not callable',
+                '/proj/src/main.phel',
+                3,
+            ),
+        );
+
+        $text = $output->fetch();
+
+        self::assertStringContainsString('hint:', $text);
+        self::assertStringContainsString("'vector' is not a function", $text);
     }
 
     private function errorAt(string $message, string $file, int $line): RuntimeException

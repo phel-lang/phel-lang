@@ -5,13 +5,14 @@ declare(strict_types=1);
 namespace PhelTest\Integration\Run\Command\Repl;
 
 use Phel\Command\Domain\Exceptions\ExceptionPrinterInterface;
-use Phel\Run\Domain\Repl\Hint\ArgumentCountHint;
-use Phel\Run\Domain\Repl\Hint\NotCallableHint;
-use Phel\Run\Domain\Repl\Hint\UndefinedSymbolHint;
 use Phel\Run\Domain\Repl\ReplCommandIoInterface;
 use Phel\Run\Domain\Repl\ReplErrorFormatter;
 use Phel\Shared\ColorStyle;
 use Phel\Shared\Exceptions\AbstractLocatedException;
+use Phel\Shared\Exceptions\Hint\ArgumentCountHint;
+use Phel\Shared\Exceptions\Hint\ExceptionHintResolver;
+use Phel\Shared\Exceptions\Hint\NotCallableHint;
+use Phel\Shared\Exceptions\Hint\UndefinedSymbolHint;
 use Phel\Shared\Parser\ReadModel\CodeSnippet;
 use Throwable;
 
@@ -35,11 +36,11 @@ final class ReplTestIo implements ReplCommandIoInterface
         ?ReplErrorFormatter $errorFormatter = null,
     ) {
         $this->errorFormatter = $errorFormatter ?? new ReplErrorFormatter(
-            [
+            new ExceptionHintResolver([
                 new NotCallableHint(),
                 new ArgumentCountHint(),
                 new UndefinedSymbolHint(),
-            ],
+            ]),
             $exceptionPrinter,
             ColorStyle::noStyles(),
         );
