@@ -6,6 +6,7 @@ modules, deployment) live on **[phel-lang.org](https://phel-lang.org/documentati
 
 ## What lives here
 
+- [CLI Reference & DX Guide](cli-reference.md): every command, the dev loop, and compile vs eval vs run vs build
 - [Project Layout](project-layout.md): the `.phel/` directory and runtime state
 - [Internals](internals/README.md): architecture, compiler phases, AST, emitter,
   macros, runtime, FAQ, benchmarks
