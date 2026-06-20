@@ -27,6 +27,12 @@ re-declare them or reuse their short letters.
 `-t` is command-local (`compile --target`, `init --template`, `run --with-time`),
 `-p` = port (`nrepl`), `-m` = minimal (`init`), `-b` = backend (`watch`).
 
+## Command aliases
+
+High-frequency commands have short aliases (Symfony `setAliases`): `run`→`r`,
+`test`→`t`, `build`→`b`, `eval`→`e`, `format`→`fmt`. Keep aliases unique across
+the whole command surface; an ambiguous alias makes `find()` throw.
+
 ## Known drift (deferred — needs a deprecation cycle)
 
 These would be breaking renames, so they are intentionally left for a separate

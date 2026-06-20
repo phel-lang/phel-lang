@@ -36,6 +36,7 @@ final class EvalCommand extends Command
     protected function configure(): void
     {
         $this->setName('eval')
+            ->setAliases(['e'])
             ->setDescription('Evaluate a Phel expression and print the result')
             ->setHelp(<<<'HELP'
 Evaluates a Phel expression (or stdin) and prints its value.

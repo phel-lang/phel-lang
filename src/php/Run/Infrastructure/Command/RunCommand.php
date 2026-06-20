@@ -35,6 +35,7 @@ final class RunCommand extends Command
     protected function configure(): void
     {
         $this->setName('run')
+            ->setAliases(['r'])
             ->setDescription('Runs a script')
             ->setHelp(<<<'HELP'
 Compiles and runs a Phel file or namespace (auto-detects the entry point
