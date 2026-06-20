@@ -3,7 +3,8 @@
   (:use Phel.Lang.Symbol)
   (:use Phel.Lang.UUID)
   (:use \JSON_UNESCAPED_SLASHES)
-  (:use \JSON_UNESCAPED_UNICODE))
+  (:use \JSON_UNESCAPED_UNICODE)
+  (:use \JSON_PRESERVE_ZERO_FRACTION))
 
 ;; phel.transit: read and write Transit+JSON-Verbose data.
 ;;
@@ -56,7 +57,9 @@
 (def- RESERVED-LETTERS #{"~" "^" "`"})
 
 (def- json-flags
-  (bit-or JSON_UNESCAPED_SLASHES JSON_UNESCAPED_UNICODE))
+  ;; JSON_PRESERVE_ZERO_FRACTION keeps whole-number floats (1.0, -0.0, 1.5e10)
+  ;; rendered with a decimal point so they read back as floats, not ints.
+  (bit-or JSON_UNESCAPED_SLASHES JSON_UNESCAPED_UNICODE JSON_PRESERVE_ZERO_FRACTION))
 
 ;; ---------------------------------------------------------------------------
 ;; Reading

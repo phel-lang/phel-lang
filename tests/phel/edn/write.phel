@@ -14,6 +14,15 @@
   (is (= "-7"   (edn/write-string -7)))
   (is (= "3.14" (edn/write-string 3.14))))
 
+(deftest test-round-trip-floats
+  ;; whole-number floats must stay floats through a write/read round-trip
+  ;; (a writer that drops the trailing `.0` would read them back as ints)
+  (let [rt (fn [x] (edn/read-string (edn/write-string x)))]
+    (foreach [v [1.0 0.0 100.0 1.5e10 3.14]]
+      (is (= v (rt v)) (str "round-trip " v))
+      (is (float? (rt v)) (str "stays float " v)))
+    (is (= "-0.0" (edn/write-string -0.0)))))
+
 (deftest test-write-string
   (is (= "\"hello\"" (edn/write-string "hello"))))
 

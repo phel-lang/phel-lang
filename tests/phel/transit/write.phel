@@ -61,3 +61,19 @@
     ;; numeric string keys must stay strings (json coerces them to ints)
     (is (= {"1" "one" "2" "two"} (rt {"1" "one" "2" "two"})))
     (is (= {"a" 1 "b" 2} (rt {"a" 1 "b" 2})))))
+
+(deftest test-write-float-keeps-decimal
+  ;; whole-number floats must serialise with a decimal point so they
+  ;; read back as floats, not ints (JSON_PRESERVE_ZERO_FRACTION)
+  (is (= "1.0" (transit/write-string 1.0)))
+  (is (= "0.0" (transit/write-string 0.0)))
+  (is (= "-0.0" (transit/write-string -0.0)))
+  (is (= "100.0" (transit/write-string 100.0))))
+
+(deftest test-round-trip-floats
+  (let [rt (fn [x] (transit/read-string (transit/write-string x)))]
+    (foreach [v [1.0 0.0 100.0 1.5e10 3.14]]
+      (is (= v (rt v)) (str "round-trip " v))
+      (is (float? (rt v)) (str "stays float " v)))
+    ;; -0.0 keeps its negative sign through the round-trip
+    (is (= "-0.0" (transit/write-string (rt -0.0))))))
