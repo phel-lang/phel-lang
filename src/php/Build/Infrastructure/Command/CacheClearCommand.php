@@ -21,7 +21,13 @@ final class CacheClearCommand extends Command
     protected function configure(): void
     {
         $this->setName('cache:clear')
-            ->setDescription('Clear the temp and cache directories');
+            ->setDescription('Clear the temp and cache directories')
+            ->setHelp(<<<'HELP'
+Removes compiled-code, namespace, and temp caches; the next run rebuilds them.
+
+<info>Example:</info>
+  <comment>phel cache:clear</comment>
+HELP);
     }
 
     protected function execute(InputInterface $input, OutputInterface $output): int

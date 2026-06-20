@@ -36,6 +36,13 @@ final class NreplCommand extends Command
     protected function configure(): void
     {
         $this->setDescription('Start an nREPL server for editor tooling (bencode-over-TCP protocol).')
+            ->setHelp(<<<'HELP'
+Starts an nREPL server your editor (Cursive, Calva, CIDER, Conjure) connects to.
+
+<info>Examples:</info>
+  <comment>phel nrepl</comment>             Listen on the default 127.0.0.1:7888
+  <comment>phel nrepl --port=0</comment>    Bind a random free port
+HELP)
             ->addOption(
                 'port',
                 'p',

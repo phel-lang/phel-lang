@@ -31,6 +31,12 @@ final class AnalyzeCommand extends Command
     {
         $this->setName('analyze')
             ->setDescription('Run semantic analysis on a single Phel source file and emit JSON diagnostics')
+            ->setHelp(<<<'HELP'
+Emits analyzer diagnostics (unresolved symbols, arity errors, ...) as JSON.
+
+<info>Example:</info>
+  <comment>phel analyze src/main.phel</comment>
+HELP)
             ->addArgument('file', InputArgument::REQUIRED, 'Path to a .phel source file');
     }
 

@@ -52,6 +52,13 @@ final class WatchCommand extends Command
     protected function configure(): void
     {
         $this->setDescription('Watch Phel files and reload namespaces on change.')
+            ->setHelp(<<<'HELP'
+Watches source dirs and re-evaluates changed namespaces in dependency order.
+
+<info>Examples:</info>
+  <comment>phel watch</comment>                Watch the configured source dirs
+  <comment>phel watch src -b polling</comment>   Watch a dir with the polling backend
+HELP)
             ->addArgument(
                 self::ARG_PATHS,
                 InputArgument::IS_ARRAY,

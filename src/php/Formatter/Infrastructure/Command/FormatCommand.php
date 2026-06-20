@@ -27,6 +27,13 @@ final class FormatCommand extends Command
     {
         $this->setName('format')
             ->setDescription('Formats the given files')
+            ->setHelp(<<<'HELP'
+Reformats `.phel` files in place (defaults to the project's format dirs).
+
+<info>Examples:</info>
+  <comment>phel format</comment>                Format all configured directories
+  <comment>phel format src/main.phel --dry-run</comment>   Preview changes only
+HELP)
             ->setAliases(['fmt'])
             ->addArgument(
                 'paths',

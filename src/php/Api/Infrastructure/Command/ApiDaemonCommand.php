@@ -24,7 +24,13 @@ final class ApiDaemonCommand extends Command
         $this->setName('api-daemon')
             ->setDescription(
                 'Long-running JSON-RPC daemon exposing the Api semantic analysis facade over newline-delimited JSON (stdio).',
-            );
+            )
+            ->setHelp(<<<'HELP'
+Editors/tools drive this over stdio; you rarely run it by hand.
+
+<info>Example:</info>
+  <comment>phel api-daemon</comment>   Start the daemon, reading JSON-RPC from stdin
+HELP);
     }
 
     protected function execute(InputInterface $input, OutputInterface $output): int

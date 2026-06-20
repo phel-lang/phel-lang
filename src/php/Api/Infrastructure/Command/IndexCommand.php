@@ -31,6 +31,12 @@ final class IndexCommand extends Command
     {
         $this->setName('index')
             ->setDescription('Build a project-level symbol index across one or more source directories')
+            ->setHelp(<<<'HELP'
+Scans directories for `.phel` files and indexes their symbols (for tooling).
+
+<info>Example:</info>
+  <comment>phel index src tests --out=index.json</comment>
+HELP)
             ->addArgument(
                 'dirs',
                 InputArgument::IS_ARRAY | InputArgument::REQUIRED,

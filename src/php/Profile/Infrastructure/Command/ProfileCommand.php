@@ -64,6 +64,13 @@ final class ProfileCommand extends Command
     protected function configure(): void
     {
         $this->setDescription('Profile a Phel script: per-fn call counts and timings, plus compile-time phase costs.')
+            ->setHelp(<<<'HELP'
+Runs a script under the profiler and reports the hottest functions.
+
+<info>Examples:</info>
+  <comment>phel profile src/main.phel</comment>            Table of the top functions
+  <comment>phel profile src/main.phel --sort=total --format=json</comment>
+HELP)
             ->addArgument(self::ARG_PATH, InputArgument::OPTIONAL, 'File path or namespace to profile.')
             ->addArgument(self::ARG_ARGV, InputArgument::IS_ARRAY | InputArgument::OPTIONAL, 'Optional script arguments.', [])
             ->addOption(self::OPT_TOP, null, InputOption::VALUE_REQUIRED, 'Show top N fns in the table.', (string) ProfileConfig::DEFAULT_TOP)

@@ -62,6 +62,14 @@ final class LintCommand extends Command
     protected function configure(): void
     {
         $this->setDescription('Run the semantic linter on one or more Phel files or directories.')
+            ->setHelp(<<<'HELP'
+Reports semantic issues (unresolved symbols, arity, unused bindings, ...)
+without rewriting files. Exit code 1 on errors.
+
+<info>Examples:</info>
+  <comment>phel lint</comment>                  Lint the configured source dirs
+  <comment>phel lint src --format=json</comment>   Machine-readable diagnostics
+HELP)
             ->addArgument(
                 self::ARG_PATHS,
                 InputArgument::IS_ARRAY,

@@ -37,6 +37,13 @@ final class DocCommand extends Command
     {
         $this->setName('doc')
             ->setDescription('Display the docs for any/all phel functions')
+            ->setHelp(<<<'HELP'
+Prints docstrings, signatures, and examples for Phel functions.
+
+<info>Examples:</info>
+  <comment>phel doc map</comment>              Show docs for a single function
+  <comment>phel doc --format=json</comment>    Emit all docs as JSON
+HELP)
             ->addArgument(
                 'search',
                 InputArgument::OPTIONAL,

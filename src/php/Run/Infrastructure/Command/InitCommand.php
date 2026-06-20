@@ -54,6 +54,14 @@ final class InitCommand extends Command
     {
         $this->setName('init')
             ->setDescription('Initialize a new Phel project with minimal configuration')
+            ->setHelp(<<<'HELP'
+Scaffolds phel-config.php, a main namespace, a test, and .gitignore in the
+current directory. Use --template to start from a bundled example.
+
+<info>Examples:</info>
+  <comment>phel init my-app</comment>                Flat layout in the current directory
+  <comment>phel init my-app --template=http-json-api</comment>   Scaffold an example
+HELP)
             ->addArgument(
                 self::ARG_PROJECT_NAME,
                 InputArgument::OPTIONAL,
