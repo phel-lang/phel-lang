@@ -25,6 +25,7 @@ All notable changes to this project will be documented in this file.
 
 ### Changed
 
+- CLI flag renames with backward-compatible deprecated aliases: `phel index --output`/`-o` (old `--out` still works), `phel config --format=json` (old `--json` still works). Deprecated flags print a notice on stderr; stdout stays clean. `phel test --reporter` is intentionally kept distinct (#2511)
 - **Breaking**: the runtime CLI-args var is now `*argv*` (earmuffed), matching `*program*` and Clojure's `*command-line-args*`; the old `argv` name was removed. Replace `argv` with `*argv*` in scripts that read command-line arguments (#2494)
 
 ### Fixed

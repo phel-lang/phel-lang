@@ -6,6 +6,8 @@ namespace Phel\Run\Infrastructure\Command;
 
 use Phel\Run\Domain\Config\EffectiveConfigReader;
 use Phel\Run\Domain\Config\EffectiveConfigResult;
+use Phel\Shared\Console\DeprecatedOptionWarner;
+use Phel\Shared\ScalarCoercion;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
@@ -22,6 +24,12 @@ final class ConfigCommand extends Command
 {
     private const string OPT_JSON = 'json';
 
+    private const string OPT_FORMAT = 'format';
+
+    private const string FORMAT_TEXT = 'text';
+
+    private const string FORMAT_JSON = 'json';
+
     public function __construct(
         private readonly EffectiveConfigReader $reader = new EffectiveConfigReader(),
     ) {
@@ -36,14 +44,22 @@ final class ConfigCommand extends Command
 Prints the merged config (defaults + phel-config.php + overrides) and its source.
 
 <info>Examples:</info>
-  <comment>phel config</comment>          Human-readable, annotated with origins
-  <comment>phel config --json</comment>   Machine-readable effective config
+  <comment>phel config</comment>             Human-readable, annotated with origins
+  <comment>phel config --format=json</comment>   Machine-readable effective config
 HELP)
+            ->addOption(
+                self::OPT_FORMAT,
+                'f',
+                InputOption::VALUE_REQUIRED,
+                'Output format: text, json',
+                self::FORMAT_TEXT,
+                [self::FORMAT_TEXT, self::FORMAT_JSON],
+            )
             ->addOption(
                 self::OPT_JSON,
                 null,
                 InputOption::VALUE_NONE,
-                'Print only the effective config as JSON (machine-readable)',
+                '[deprecated] use --format=json instead',
             );
     }
 
@@ -52,6 +68,13 @@ HELP)
         $effective = $this->reader->read();
 
         if ($input->getOption(self::OPT_JSON) === true) {
+            DeprecatedOptionWarner::warn($output, 'json', 'format=json');
+        }
+
+        $asJson = $input->getOption(self::OPT_JSON) === true
+            || ScalarCoercion::toString($input->getOption(self::OPT_FORMAT)) === self::FORMAT_JSON;
+
+        if ($asJson) {
             $output->writeln($this->toJson($effective->values));
 
             return Command::SUCCESS;
