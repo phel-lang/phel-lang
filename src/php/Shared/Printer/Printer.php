@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Phel\Shared\Printer;
 
+use DateTimeInterface;
 use Phel\Lang\Atom;
 use Phel\Lang\BigDecimal;
 use Phel\Lang\Collections\HashSet\PersistentHashSetInterface;
@@ -28,6 +29,7 @@ use Phel\Shared\Printer\TypePrinter\AtomPrinter;
 use Phel\Shared\Printer\TypePrinter\BigDecimalPrinter;
 use Phel\Shared\Printer\TypePrinter\BooleanPrinter;
 use Phel\Shared\Printer\TypePrinter\ConsPrinter;
+use Phel\Shared\Printer\TypePrinter\DateTimePrinter;
 use Phel\Shared\Printer\TypePrinter\FnPrinter;
 use Phel\Shared\Printer\TypePrinter\KeywordPrinter;
 use Phel\Shared\Printer\TypePrinter\LazySeqPrinter;
@@ -131,6 +133,7 @@ final readonly class Printer implements PrinterInterface
             $form instanceof Ratio => new RatioPrinter($this->withColor),
             $form instanceof BigDecimal => new BigDecimalPrinter($this->withColor),
             $form instanceof UUID => new UUIDPrinter($this->withColor),
+            $form instanceof DateTimeInterface => new DateTimePrinter($this->withColor),
             $form instanceof FnInterface => new FnPrinter(),
             method_exists($form, '__toString') => new ToStringPrinter(),
             new ReflectionClass($form)->isAnonymous() => new AnonymousClassPrinter(),

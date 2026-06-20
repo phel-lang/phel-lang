@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace PhelTest\Unit\Printer\TypePrinter;
 
-use DateTime;
+use ArrayObject;
 use Generator;
 use Phel\Shared\Printer\TypePrinter\NonPrintableClassPrinter;
 use PHPUnit\Framework\Attributes\DataProvider;
@@ -21,9 +21,9 @@ final class NonPrintableClassPrinterTest extends TestCase
 
     public static function providerPrint(): Generator
     {
-        yield 'cannot print DateTime' => [
-            new DateTime(),
-            'Printer cannot print this type: DateTime',
+        yield 'cannot print ArrayObject' => [
+            new ArrayObject(),
+            'Printer cannot print this type: ArrayObject',
         ];
 
         yield 'cannot print stdClass' => [

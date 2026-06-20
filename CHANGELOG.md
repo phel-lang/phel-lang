@@ -22,6 +22,7 @@ All notable changes to this project will be documented in this file.
 
 ### Fixed
 
+- `phel\edn`: `#inst` values (`\DateTimeInterface`) now write back as `#inst "<ISO-8601>"` instead of an error string, so they round-trip (mirrors `#uuid`); the readable Printer gained a `DateTimePrinter` strategy (#2486)
 - Constant folding of integer arithmetic (`+`/`-`/`*`) that overflows `PHP_INT_MAX` no longer disagrees with the runtime: `(* 2 4611686018427387904)` now keeps runtime dispatch and promotes to `BigInt` (matching the `let`-bound form) instead of silently folding to a `float`; also fixes a stray PHP warning at the exact `2^63` boundary (#2483)
 - `phel\transit`: whole-number floats (`1.0`, `0.0`, `-0.0`, `1.5e10`) now round-trip as floats instead of decoding back as ints, by preserving the trailing decimal in the JSON output (`JSON_PRESERVE_ZERO_FRACTION`) (#2485)
 - `phel\router`: passing a bare string (or a sequence of bare strings) now raises a clear error instead of silently iterating the string character-by-character into garbage routes (#2487)
