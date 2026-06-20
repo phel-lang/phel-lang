@@ -193,6 +193,7 @@ rm -f ~/.zcompdump*                                  # force compinit to rebuild
 ## Documentation
 
 - [Getting Started](https://phel-lang.org/documentation/getting-started/): install, REPL, first script (5 min)
+- [CLI Reference & DX Guide](docs/cli-reference.md): every command, the dev loop, compile vs eval vs run vs build
 - [phel-lang.org](https://phel-lang.org/documentation/): full documentation, tutorials, exercises, blog
 - [Contributor docs](docs/README.md): repository internals, agent tooling, project layout
 - [Packagist](https://packagist.org/packages/phel-lang/phel-lang)
