@@ -53,6 +53,14 @@ final readonly class NumericOperationSpecialization
         '>=' => '>=',
     ];
 
+    /**
+     * Arithmetic ops whose int result can overflow `PHP_INT_MAX` and promote
+     * to `BigInt` at runtime. Comparison ops are excluded — they never overflow.
+     *
+     * @var list<string>
+     */
+    private const array ARITHMETIC_OPS = ['+', '-', '*'];
+
     /** @var list<string> */
     private const array NUMERIC_PRIMITIVE_TAGS = ['int', 'float'];
 
@@ -280,7 +288,7 @@ final readonly class NumericOperationSpecialization
      */
     private static function isOverflowProneLiteralArithmetic(string $name, array $args): bool
     {
-        if (!in_array($name, ['+', '-', '*'], true)) {
+        if (!in_array($name, self::ARITHMETIC_OPS, true)) {
             return false;
         }
 
@@ -339,7 +347,7 @@ final readonly class NumericOperationSpecialization
         }
 
         $name = $fn->getName()->getName();
-        if (!in_array($name, ['+', '-', '*'], true)) {
+        if (!in_array($name, self::ARITHMETIC_OPS, true)) {
             return null;
         }
 
