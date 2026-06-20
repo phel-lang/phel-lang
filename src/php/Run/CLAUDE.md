@@ -30,6 +30,6 @@ Most connected module, 5 Provider facades: Build (namespace extraction, dependen
 - `ReplCommandSystemIo` requires PHP `readline` extension; falls back to `ReplCommandFallbackIo`
 - `ReplHistoryPathResolver` returns `.phel/repl-history`; transparently migrates legacy `.phel-repl-history`
 - `ReplHistory` registers `*1`/`*2`/`*3`/`*e` in `phel.core` after REPL boot
-- `ReplErrorFormatter` renders eval-time `Throwable`s with short headline, hints, and filtered trace
-- New `ReplHint` implementations register via `RunFactory::createReplHints()`
+- `ReplErrorFormatter` renders eval-time `Throwable`s with short headline, hints, and filtered trace; hints come from the shared `ExceptionHintResolver` via `CommandFacade::getExceptionHintResolver()` (same hints used for non-REPL command errors)
+- Error hints live in `Phel\Shared\Exceptions\Hint\` (pure utilities). Add a new hint there and register it in `CommandFactory::createExceptionHints()`; both the REPL and CLI command error paths pick it up
 - `BundledNamespaces` lists every `phel.*` module; `NamespaceLoader` (REPL startup) uses it as eager seeds. `FileRunner` instead uses `BundledNamespaceDetector` to seed only bundles referenced via fully qualified form (`phel.json/encode`) or matching Clojure-compatible requires (`clojure.test` -> `phel.test`) in the script, avoiding cold-start penalty for scripts that don't reach into bundled modules

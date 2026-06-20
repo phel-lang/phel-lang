@@ -17,6 +17,7 @@ Contract layer: facade interfaces, constants, cross-module value objects, and pu
 - `CompilerException`: wraps `AbstractLocatedException` with `CodeSnippet`
 - `AbstractLocatedException`: base for located errors with `SourceLocation` and `ErrorCode` (enum, PHEL001-PHEL310: analyzer, parser, reader, lexer)
 - `FileException` (file/directory ops), `CompiledCodeIsMalformedException` (wraps PHP `eval()` parse errors)
+- `Exceptions/Hint/`: pure error→hint mappers (`ExceptionHintInterface` + `UndefinedSymbolHint`, `ArgumentCountHint`, `NotCallableHint`) and `ExceptionHintResolver` (returns the first applicable hint, unwrapping one `getPrevious()` level). Shared so both the REPL formatter (Run) and the CLI command error writer (Command) surface the same guidance
 
 ## Value Objects
 

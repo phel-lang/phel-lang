@@ -2,14 +2,14 @@
 
 declare(strict_types=1);
 
-namespace Phel\Run\Domain\Repl\Hint;
+namespace Phel\Shared\Exceptions\Hint;
 
 use Throwable;
 
 use function preg_match;
 use function sprintf;
 
-final class NotCallableHint implements ReplHintInterface
+final class NotCallableHint implements ExceptionHintInterface
 {
     private const array PHEL_TYPE_LABELS = [
         '/^Phel\\\\Lang\\\\Collections\\\\LazySeq\\\\/' => 'sequence',

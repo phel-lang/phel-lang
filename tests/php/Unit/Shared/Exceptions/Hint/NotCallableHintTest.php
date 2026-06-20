@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace PhelTest\Unit\Run\Domain\Repl\Hint;
+namespace PhelTest\Unit\Shared\Exceptions\Hint;
 
 use Error;
-use Phel\Run\Domain\Repl\Hint\NotCallableHint;
+use Phel\Shared\Exceptions\Hint\NotCallableHint;
 use PHPUnit\Framework\TestCase;
 use RuntimeException;
 

@@ -19,6 +19,11 @@ use Phel\Command\Infrastructure\ComposerVendorDirectoriesFinder;
 use Phel\Command\Infrastructure\ErrorLog;
 use Phel\Command\Infrastructure\SourceMapExtractor;
 use Phel\Shared\ColorStyle;
+use Phel\Shared\Exceptions\Hint\ArgumentCountHint;
+use Phel\Shared\Exceptions\Hint\ExceptionHintInterface;
+use Phel\Shared\Exceptions\Hint\ExceptionHintResolver;
+use Phel\Shared\Exceptions\Hint\NotCallableHint;
+use Phel\Shared\Exceptions\Hint\UndefinedSymbolHint;
 use Phel\Shared\Munge;
 use Phel\Shared\Printer\Printer;
 
@@ -34,7 +39,25 @@ final class CommandFactory extends AbstractFactory
             new ErrorLog($this->getConfig()->getErrorLogFile()),
             $this->createFilePositionExtractor(),
             $this->getConfig()->getStaleOutputHint(),
+            $this->createExceptionHintResolver(),
         );
+    }
+
+    public function createExceptionHintResolver(): ExceptionHintResolver
+    {
+        return new ExceptionHintResolver($this->createExceptionHints());
+    }
+
+    /**
+     * @return list<ExceptionHintInterface>
+     */
+    public function createExceptionHints(): array
+    {
+        return [
+            new NotCallableHint(),
+            new ArgumentCountHint(),
+            new UndefinedSymbolHint(),
+        ];
     }
 
     public function createExceptionPrinter(): ExceptionPrinterInterface

@@ -8,6 +8,7 @@ use Gacela\Framework\AbstractFacade;
 use Gacela\Framework\Attribute\Cacheable;
 use Phel\Command\Domain\Exceptions\ExceptionPrinterInterface;
 use Phel\Shared\Exceptions\AbstractLocatedException;
+use Phel\Shared\Exceptions\Hint\ExceptionHintResolver;
 use Phel\Shared\Facade\CommandFacadeInterface;
 use Phel\Shared\Parser\ReadModel\CodeSnippet;
 use Symfony\Component\Console\Output\OutputInterface;
@@ -52,6 +53,11 @@ final class CommandFacade extends AbstractFacade implements CommandFacadeInterfa
     public function getExceptionPrinter(): ExceptionPrinterInterface
     {
         return $this->getFactory()->createExceptionPrinter();
+    }
+
+    public function getExceptionHintResolver(): ExceptionHintResolver
+    {
+        return $this->getFactory()->createExceptionHintResolver();
     }
 
     public function getCompiledFileLineMap(string $compiledFile): array

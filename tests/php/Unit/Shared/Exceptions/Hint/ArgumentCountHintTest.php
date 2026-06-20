@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace PhelTest\Unit\Run\Domain\Repl\Hint;
+namespace PhelTest\Unit\Shared\Exceptions\Hint;
 
 use ArgumentCountError;
-use Phel\Run\Domain\Repl\Hint\ArgumentCountHint;
+use Phel\Shared\Exceptions\Hint\ArgumentCountHint;
 use PHPUnit\Framework\TestCase;
 use RuntimeException;
 

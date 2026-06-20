@@ -26,10 +26,6 @@ use Phel\Run\Application\Test\ParallelTestOrchestrator;
 use Phel\Run\Application\Test\TestWatchLoop;
 use Phel\Run\Application\Test\TestWatchRunner;
 use Phel\Run\Application\Test\WatchFileScanner;
-use Phel\Run\Domain\Repl\Hint\ArgumentCountHint;
-use Phel\Run\Domain\Repl\Hint\NotCallableHint;
-use Phel\Run\Domain\Repl\Hint\ReplHintInterface;
-use Phel\Run\Domain\Repl\Hint\UndefinedSymbolHint;
 use Phel\Run\Domain\Repl\ReplCommandFallbackIo;
 use Phel\Run\Domain\Repl\ReplCommandIoInterface;
 use Phel\Run\Domain\Repl\ReplCommandSystemIo;
@@ -174,22 +170,10 @@ class RunFactory extends AbstractFactory
     public function createReplErrorFormatter(): ReplErrorFormatter
     {
         return new ReplErrorFormatter(
-            $this->createReplHints(),
+            $this->getCommandFacade()->getExceptionHintResolver(),
             $this->getCommandFacade()->getExceptionPrinter(),
             $this->createColorStyle(),
         );
-    }
-
-    /**
-     * @return list<ReplHintInterface>
-     */
-    public function createReplHints(): array
-    {
-        return [
-            new NotCallableHint(),
-            new ArgumentCountHint(),
-            new UndefinedSymbolHint(),
-        ];
     }
 
     public function createReplHistory(): ReplHistory

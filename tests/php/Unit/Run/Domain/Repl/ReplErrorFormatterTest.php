@@ -7,10 +7,11 @@ namespace PhelTest\Unit\Run\Domain\Repl;
 use Error;
 use Phel\Command\Domain\Exceptions\ExceptionPrinterInterface;
 use Phel\Compiler\Domain\Evaluator\Exceptions\EvaluatedCodeException;
-use Phel\Run\Domain\Repl\Hint\NotCallableHint;
 use Phel\Run\Domain\Repl\ReplErrorFormatter;
 use Phel\Shared\ColorStyle;
 use Phel\Shared\Exceptions\AbstractLocatedException;
+use Phel\Shared\Exceptions\Hint\ExceptionHintResolver;
+use Phel\Shared\Exceptions\Hint\NotCallableHint;
 use Phel\Shared\Parser\ReadModel\CodeSnippet;
 use PHPUnit\Framework\TestCase;
 use RuntimeException;
@@ -112,7 +113,7 @@ final class ReplErrorFormatterTest extends TestCase
         $wrapped = EvaluatedCodeException::fromThrowableAndCompiledCode($original, "// some.phel\n", 0);
 
         $formatter = new ReplErrorFormatter(
-            [new NotCallableHint()],
+            new ExceptionHintResolver([new NotCallableHint()]),
             $this->stubPrinter(''),
             ColorStyle::noStyles(),
         );
@@ -136,7 +137,7 @@ final class ReplErrorFormatterTest extends TestCase
     public function test_includes_hint_when_match(): void
     {
         $formatter = new ReplErrorFormatter(
-            [new NotCallableHint()],
+            new ExceptionHintResolver([new NotCallableHint()]),
             $this->stubPrinter(''),
             ColorStyle::noStyles(),
         );
@@ -152,7 +153,7 @@ final class ReplErrorFormatterTest extends TestCase
     public function test_no_hint_section_when_no_match(): void
     {
         $formatter = new ReplErrorFormatter(
-            [new NotCallableHint()],
+            new ExceptionHintResolver([new NotCallableHint()]),
             $this->stubPrinter(''),
             ColorStyle::noStyles(),
         );
@@ -195,7 +196,7 @@ final class ReplErrorFormatterTest extends TestCase
     private function buildFormatter(string $trace): ReplErrorFormatter
     {
         return new ReplErrorFormatter(
-            [],
+            new ExceptionHintResolver([]),
             $this->stubPrinter($trace),
             ColorStyle::noStyles(),
         );

@@ -6,8 +6,8 @@ namespace Phel\Run\Domain\Repl;
 
 use Phel\Command\Domain\Exceptions\ExceptionPrinterInterface;
 use Phel\Compiler\Domain\Evaluator\Exceptions\EvaluatedCodeException;
-use Phel\Run\Domain\Repl\Hint\ReplHintInterface;
 use Phel\Shared\ColorStyleInterface;
+use Phel\Shared\Exceptions\Hint\ExceptionHintResolver;
 use Throwable;
 
 use function explode;
@@ -38,11 +38,8 @@ final readonly class ReplErrorFormatter
         '/phel-lang/bin/phel',
     ];
 
-    /**
-     * @param list<ReplHintInterface> $hints
-     */
     public function __construct(
-        private array $hints,
+        private ExceptionHintResolver $hintResolver,
         private ExceptionPrinterInterface $exceptionPrinter,
         private ColorStyleInterface $style,
     ) {}
@@ -54,7 +51,7 @@ final readonly class ReplErrorFormatter
 
         return new ReplFormattedError(
             $this->buildHeadline($cause),
-            $this->lookupHint($cause),
+            $this->hintResolver->hintFor($cause),
             $this->filterTrace($fullTrace),
             $fullTrace,
         );
@@ -107,17 +104,6 @@ final readonly class ReplErrorFormatter
         );
 
         return trim($cleaned ?? $message);
-    }
-
-    private function lookupHint(Throwable $e): ?string
-    {
-        foreach ($this->hints as $hint) {
-            if ($hint->appliesTo($e)) {
-                return $hint->hint($e);
-            }
-        }
-
-        return null;
     }
 
     private function filterTrace(string $trace): string

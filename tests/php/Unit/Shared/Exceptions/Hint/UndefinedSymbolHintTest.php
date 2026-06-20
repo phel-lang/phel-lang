@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace PhelTest\Unit\Run\Domain\Repl\Hint;
+namespace PhelTest\Unit\Shared\Exceptions\Hint;
 
 use Error;
-use Phel\Run\Domain\Repl\Hint\UndefinedSymbolHint;
+use Phel\Shared\Exceptions\Hint\UndefinedSymbolHint;
 use PHPUnit\Framework\TestCase;
 
 final class UndefinedSymbolHintTest extends TestCase
