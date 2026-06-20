@@ -4,6 +4,8 @@ All notable changes to this project will be documented in this file.
 
 ## Unreleased
 
+## [0.45.0](https://github.com/phel-lang/phel-lang/compare/v0.44.0...v0.45.0) - 2026-06-20
+
 ### Added
 
 - The PHAR ships `phel.core` precompiled, cutting cold-start `run`/`test`/`eval` from ~1.2s to ~0.2s (#2443)
