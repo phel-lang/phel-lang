@@ -4,6 +4,8 @@ All notable changes to this project will be documented in this file.
 
 ## Unreleased
 
+## [0.45.1](https://github.com/phel-lang/phel-lang/compare/v0.45.0...v0.45.1) - 2026-06-20
+
 ### Fixed
 
 - The PHAR now ships Symfony's shell-completion scripts, so `phel completion bash|zsh|fish` works for PHAR installs again (the build excluded `.bash`/`.zsh`/`.fish` files, which silently dropped the completion templates) (#2522)
