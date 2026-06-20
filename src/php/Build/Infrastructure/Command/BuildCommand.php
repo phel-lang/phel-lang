@@ -40,6 +40,7 @@ final class BuildCommand extends Command
     protected function configure(): void
     {
         $this->setName('build')
+            ->setAliases(['b'])
             ->setDescription('Build the current project')
             ->setHelp(<<<'HELP'
 Compiles every project namespace to PHP in the output directory.

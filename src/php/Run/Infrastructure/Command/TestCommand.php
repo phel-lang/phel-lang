@@ -49,6 +49,7 @@ final class TestCommand extends Command
     protected function configure(): void
     {
         $this->setName(self::COMMAND_NAME)
+            ->setAliases(['t'])
             ->setDescription(
                 'Tests the given files. If no filenames are provided all tests in the "tests" directory are executed',
             )
