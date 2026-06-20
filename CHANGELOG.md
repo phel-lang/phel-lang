@@ -31,20 +31,20 @@ All notable changes to this project will be documented in this file.
 
 ### Fixed
 
-- `phel\edn`: `#inst` (`DateTimeInterface`) values now write back as `#inst "..."` and round-trip (#2486)
+- `phel.edn`: `#inst` (`DateTimeInterface`) values now write back as `#inst "..."` and round-trip (#2486)
 - Constant folding of overflowing int arithmetic (`+`/`-`/`*`) now promotes to `BigInt` like the runtime instead of folding to `float` (#2483)
-- `phel\transit`: whole-number floats (`1.0`, `-0.0`, `1.5e10`) round-trip as floats, not ints (#2485)
-- `phel\router`: passing a bare string (or a sequence of bare strings) now raises a clear error instead of silently iterating the string character-by-character into garbage routes (#2487)
+- `phel.transit`: whole-number floats (`1.0`, `-0.0`, `1.5e10`) round-trip as floats, not ints (#2485)
+- `phel.router`: passing a bare string (or a sequence of bare strings) now raises a clear error instead of silently iterating the string character-by-character into garbage routes (#2487)
 - `loop`/`fn` `recur` inside a `let` (or any inner binding) that shadows a loop binding / fn param now updates the loop variable instead of the shadowing binding, fixing a silent infinite loop (#2482)
 - `NAN` map/set keys are now retrievable via `get`/`contains?`/`assoc`, while `(= NAN NAN)` stays `false` (#2475)
-- `phel\json`: floats encode as JSON numbers so values round-trip; empty maps encode to `{}` (#2477)
+- `phel.json`: floats encode as JSON numbers so values round-trip; empty maps encode to `{}` (#2477)
 - Keyword literals with multiple slashes (`:a/b/c`) keep everything after the first `/` as the name, matching Clojure (#2478)
 - Consistent float printing across `str`/`print`/REPL: integer floats keep `.0`, specials render `NaN`/`Infinity`/`-Infinity` (#2479)
 - Protocol methods declared with multiple arities now dispatch on every arity, not just the last installed one (#2481)
-- `phel\html`: void elements (`br`, `img`, ...) are always self-closing and ignore children
-- `phel\transit`: empty maps round-trip as maps, and numeric string keys stay strings
+- `phel.html`: void elements (`br`, `img`, ...) are always self-closing and ignore children
+- `phel.transit`: empty maps round-trip as maps, and numeric string keys stay strings
 - Reading a struct field with a non-keyword key no longer crashes; symbols/strings match by name, else `nil`
-- `phel\string`: `pad-*` with an empty pad string falls back to a single space
+- `phel.string`: `pad-*` with an empty pad string falls back to a single space
 - `defmacro` declaring only one of `&form`/`&env` no longer fails with `Redefinition of parameter`
 - Printing `NAN` no longer leaks a PHP coercion warning
 - `phel build` from the PHAR harvests every `(load ...)` stdlib secondary so the output runs standalone (#2449)
