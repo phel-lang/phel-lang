@@ -11,6 +11,8 @@ use Phel\Shared\Parser\ReadModel\CodeSnippet;
 use Phel\Shared\ScalarCoercion;
 use Throwable;
 
+use function count;
+
 final readonly class ReplCommandSystemIo implements ReplCommandIoInterface
 {
     public function __construct(
@@ -20,7 +22,7 @@ final readonly class ReplCommandSystemIo implements ReplCommandIoInterface
         private ReplErrorFormatter $errorFormatter,
     ) {
         readline_completion_function(
-            $this->apiFacade->replComplete(...),
+            $this->completeWithInlineDoc(...),
         );
     }
 
@@ -95,6 +97,27 @@ final readonly class ReplCommandSystemIo implements ReplCommandIoInterface
         $haystack = ScalarCoercion::toString(readline_info('library_version'));
 
         return stripos($haystack, 'editline') === false;
+    }
+
+    /**
+     * Completion callback that, when the input resolves to a single candidate,
+     * prints that candidate's one-line doc inline before readline redraws the
+     * prompt — so Tab on a unique/focused symbol surfaces its signature + doc.
+     *
+     * @return list<string>
+     */
+    private function completeWithInlineDoc(string $input): array
+    {
+        $matches = $this->apiFacade->replComplete($input);
+
+        if (count($matches) === 1) {
+            $doc = $this->apiFacade->completionDoc($matches[0]);
+            if ($doc !== null && $doc !== '') {
+                echo PHP_EOL . $doc . PHP_EOL; // phpcs:ignore
+            }
+        }
+
+        return $matches;
     }
 
 }

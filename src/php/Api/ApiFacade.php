@@ -124,6 +124,13 @@ final class ApiFacade extends AbstractFacade implements ApiFacadeInterface
             ->find($symbol, $currentNs);
     }
 
+    public function completionDoc(string $candidate, string $currentNs = 'user'): ?string
+    {
+        return $this->getFactory()
+            ->createCompletionDocResolver()
+            ->resolve($candidate, $currentNs);
+    }
+
     /**
      * Markdown hover for the PHP-interop symbol under the cursor (method,
      * static member, global function, class), or null when not applicable.
