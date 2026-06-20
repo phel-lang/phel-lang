@@ -9,14 +9,14 @@ All notable changes to this project will be documented in this file.
 - The PHAR ships `phel.core` precompiled, cutting cold-start `run`/`test`/`eval` from ~1.2s to ~0.2s (#2443)
 - `phel doctor` reports whether OPcache persists the compiled-code cache across CLI runs, with fixes (#2446)
 - Shell completion for `phel doc`, option values, and project namespaces; `bash`/`zsh`/`fish` install docs (#2451)
-- `phel init` and `phel agent-install` now end with an optional shell-completion tip tailored to your `$SHELL` (`phel completion zsh`, ...), pointing at the README install steps (#2501)
-- Consistent CLI short aliases (additive, no renames): `--format` also accepts `-f` (`doc`, `lint`, `profile`), `--output` accepts `-o` (`profile`, `test`), and `--sort` accepts `-s` (`profile`); conventions documented in `docs/internals/cli-flag-conventions.md` (#2502)
-- Every CLI command's `--help` now includes a usage example block (previously most had only a one-line description); a test guards that coverage going forward (#2503)
-- REPL/nREPL autocompletion now also completes special forms and native symbols (`def`, `defn`, `fn`, `let`, `if`, `recur`, `try`, `ns`, ...), which previously never appeared since they are compiler symbols, not registry definitions (#2505)
-- REPL Tab on a unique completion now shows the symbol's inline doc (`<signature>: <summary>`); also exposed as `ApiFacade::completionDoc()` (#2515)
-- Non-REPL command errors (`phel run`/`test`/`eval`/...) now print the same actionable hints the REPL shows (undefined symbol, wrong arity, value not callable), e.g. `hint: 'foo' is not defined. Check the spelling, or add (:require ...) ...` (#2506)
-- Short aliases for high-frequency commands: `phel r` (run), `t` (test), `b` (build), `e` (eval); `fmt` (format) already existed (#2507)
-- New `docs/cli-reference.md` (CLI reference & DX guide): every command in one table, the dev loop, and a `compile` vs `eval` vs `run` vs `build` comparison (#2508)
+- `phel init`/`agent-install` end with an optional shell-completion tip for your `$SHELL` (#2501)
+- Consistent CLI short aliases: `-f` (format), `-o` (output), `-s` (sort) across `doc`/`lint`/`profile`/`test` (#2502)
+- Every CLI command's `--help` now includes a usage example (#2503)
+- REPL/nREPL autocompletion now completes special forms and native symbols (`def`, `fn`, `let`, `recur`, ...) (#2505)
+- REPL Tab on a unique completion shows the symbol's inline doc (signature + summary) (#2515)
+- Non-REPL command errors (`run`/`test`/`eval`) now print the same actionable hints as the REPL (#2506)
+- Short aliases for high-frequency commands: `r` (run), `t` (test), `b` (build), `e` (eval) (#2507)
+- New `docs/cli-reference.md`: every command, the dev loop, and compile vs eval vs run vs build (#2508)
 - LSP PHP interop completion/hover/signature help (follow-up to #2431): `(:use ...)`/`(use ...)` alias resolution (#2461), LSP 3.17 signature help (#2462), hover for properties/constants/enum cases/classes (#2463), `php/->` chain and union/intersection type resolution (#2464), suppression inside strings and comments (#2465), and refined class-name completion (#2466)
 
 ### Performance
@@ -26,14 +26,14 @@ All notable changes to this project will be documented in this file.
 
 ### Changed
 
-- CLI flag renames with backward-compatible deprecated aliases: `phel index --output`/`-o` (old `--out` still works), `phel config --format=json` (old `--json` still works). Deprecated flags print a notice on stderr; stdout stays clean. `phel test --reporter` is intentionally kept distinct (#2511)
+- CLI flag renames with deprecated aliases kept: `index --output`/`-o` (was `--out`), `config --format=json` (was `--json`); old flags warn on stderr (#2511)
 - **Breaking**: the runtime CLI-args var is now `*argv*` (earmuffed), matching `*program*` and Clojure's `*command-line-args*`; the old `argv` name was removed. Replace `argv` with `*argv*` in scripts that read command-line arguments (#2494)
 
 ### Fixed
 
-- `phel\edn`: `#inst` values (`\DateTimeInterface`) now write back as `#inst "<ISO-8601>"` instead of an error string, so they round-trip (mirrors `#uuid`); the readable Printer gained a `DateTimePrinter` strategy (#2486)
-- Constant folding of integer arithmetic (`+`/`-`/`*`) that overflows `PHP_INT_MAX` no longer disagrees with the runtime: `(* 2 4611686018427387904)` now keeps runtime dispatch and promotes to `BigInt` (matching the `let`-bound form) instead of silently folding to a `float`; also fixes a stray PHP warning at the exact `2^63` boundary (#2483)
-- `phel\transit`: whole-number floats (`1.0`, `0.0`, `-0.0`, `1.5e10`) now round-trip as floats instead of decoding back as ints, by preserving the trailing decimal in the JSON output (`JSON_PRESERVE_ZERO_FRACTION`) (#2485)
+- `phel\edn`: `#inst` (`DateTimeInterface`) values now write back as `#inst "..."` and round-trip (#2486)
+- Constant folding of overflowing int arithmetic (`+`/`-`/`*`) now promotes to `BigInt` like the runtime instead of folding to `float` (#2483)
+- `phel\transit`: whole-number floats (`1.0`, `-0.0`, `1.5e10`) round-trip as floats, not ints (#2485)
 - `phel\router`: passing a bare string (or a sequence of bare strings) now raises a clear error instead of silently iterating the string character-by-character into garbage routes (#2487)
 - `loop`/`fn` `recur` inside a `let` (or any inner binding) that shadows a loop binding / fn param now updates the loop variable instead of the shadowing binding, fixing a silent infinite loop (#2482)
 - `NAN` map/set keys are now retrievable via `get`/`contains?`/`assoc`, while `(= NAN NAN)` stays `false` (#2475)
