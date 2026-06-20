@@ -120,6 +120,8 @@ HELP)
         if (!$dryRun) {
             $output->writeln('');
             $output->writeln('<info>Done.</info>');
+
+            ShellCompletionTip::writeTo($output);
         }
 
         return Command::SUCCESS;

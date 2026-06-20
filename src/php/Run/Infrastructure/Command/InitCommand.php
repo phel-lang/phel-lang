@@ -398,6 +398,8 @@ final class InitCommand extends Command
         $output->writeln('  1. Install dependencies: <comment>composer install</comment>');
         $output->writeln('  2. Run the tests:        <comment>./vendor/bin/phel test</comment>');
         $output->writeln('  3. See the README for how to run the app.');
+
+        ShellCompletionTip::writeTo($output);
     }
 
     private function printNextSteps(OutputInterface $output, string $mainFilename, bool $noTests): void
@@ -415,5 +417,7 @@ final class InitCommand extends Command
 
         $output->writeln(sprintf('  %d. Start the REPL: <comment>./vendor/bin/phel repl</comment>', $step++));
         $output->writeln(sprintf('  %d. Build for production: <comment>./vendor/bin/phel build</comment>', $step));
+
+        ShellCompletionTip::writeTo($output);
     }
 }
