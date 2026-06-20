@@ -31,6 +31,13 @@ use function min;
 final readonly class LiteralArithmeticFolder
 {
     /**
+     * `2^63`, the smallest float strictly above `PHP_INT_MAX` (2^63 - 1).
+     * Used as the exclusive upper bound for the int range because
+     * `(float) PHP_INT_MAX` rounds up to this same value.
+     */
+    private const float INT_RANGE_UPPER_BOUND = 9223372036854775808.0;
+
+    /**
      * Variadic numeric reducers. `+` and `*` define an identity element so
      * `(+)` and `(*)` are also foldable. `-` and `/` use one-arg semantics
      * that differ from a reducer and live in their own helpers.
@@ -380,10 +387,16 @@ final readonly class LiteralArithmeticFolder
     /**
      * Convert a float result back to int when it fits exactly in PHP's
      * int range. Otherwise bail so the runtime can promote to `BigInt`.
+     *
+     * `PHP_INT_MAX` (2^63 - 1) is not representable as a float; the nearest
+     * float rounds up to 2^63, which equals the float an overflowing product
+     * lands on. Comparing against `(float) PHP_INT_MAX` would therefore miss
+     * that boundary and reach the lossy `(int)` cast (a PHP warning), so the
+     * upper bound is the exact float `2^63` with a strict `>=`.
      */
     private function checkedInt(float $value): ?int
     {
-        if ($value < PHP_INT_MIN || $value > PHP_INT_MAX) {
+        if ($value < (float) PHP_INT_MIN || $value >= self::INT_RANGE_UPPER_BOUND) {
             return null;
         }
 

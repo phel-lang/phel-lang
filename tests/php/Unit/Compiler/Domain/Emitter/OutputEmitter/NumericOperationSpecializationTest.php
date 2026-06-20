@@ -17,6 +17,8 @@ use Phel\Lang\Symbol;
 use Phel\Shared\CompilerConstants;
 use PHPUnit\Framework\TestCase;
 
+use function sprintf;
+
 final class NumericOperationSpecializationTest extends TestCase
 {
     public function test_not_eq_peephole_fires_when_inner_eq_is_typed(): void
@@ -131,6 +133,51 @@ final class NumericOperationSpecializationTest extends TestCase
         ]);
 
         self::assertNull(NumericOperationSpecialization::typedVariadicChain($node));
+    }
+
+    public function test_typed_binary_op_skips_two_int_literal_arithmetic(): void
+    {
+        // `(* 2 <bigint>)` over two int literals only reaches the emitter when
+        // the constant folder refused it (native product overflows PHP_INT_MAX).
+        // Emitting a native PHP `*` would yield a float, diverging from the
+        // runtime's BigInt promotion — keep it on the runtime dispatch.
+        $env = $this->env();
+        foreach (['+', '-', '*'] as $op) {
+            $node = $this->coreCall($op, [
+                new LiteralNode($env, 2),
+                new LiteralNode($env, 4611686018427387904),
+            ]);
+
+            self::assertNull(
+                NumericOperationSpecialization::typedBinaryOpName($node),
+                sprintf('arithmetic op %s over two int literals must not specialise', $op),
+            );
+        }
+    }
+
+    public function test_typed_binary_op_keeps_literal_mixed_with_typed_local(): void
+    {
+        // A literal paired with a tagged local is the opt-in case: the user
+        // promised the binding is an int, so the native op stays.
+        $env = $this->env();
+        $node = $this->coreCall('*', [
+            $this->localWithTag('a', 'int'),
+            new LiteralNode($env, 2),
+        ]);
+
+        self::assertSame('*', NumericOperationSpecialization::typedBinaryOpName($node));
+    }
+
+    public function test_typed_binary_op_keeps_two_literal_comparison(): void
+    {
+        // Comparisons cannot overflow, so a two-literal `<` stays specialised.
+        $env = $this->env();
+        $node = $this->coreCall('<', [
+            new LiteralNode($env, 2),
+            new LiteralNode($env, 4611686018427387904),
+        ]);
+
+        self::assertSame('<', NumericOperationSpecialization::typedBinaryOpName($node));
     }
 
     private function env(): NodeEnvironment

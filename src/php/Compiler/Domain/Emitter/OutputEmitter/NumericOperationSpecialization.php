@@ -53,6 +53,14 @@ final readonly class NumericOperationSpecialization
         '>=' => '>=',
     ];
 
+    /**
+     * Arithmetic ops whose int result can overflow `PHP_INT_MAX` and promote
+     * to `BigInt` at runtime. Comparison ops are excluded — they never overflow.
+     *
+     * @var list<string>
+     */
+    private const array ARITHMETIC_OPS = ['+', '-', '*'];
+
     /** @var list<string> */
     private const array NUMERIC_PRIMITIVE_TAGS = ['int', 'float'];
 
@@ -130,6 +138,10 @@ final readonly class NumericOperationSpecialization
         $name = $fn->getName()->getName();
 
         if (isset(self::NUMERIC_BINARY_OPS[$name])) {
+            if (self::isOverflowProneLiteralArithmetic($name, $args)) {
+                return null;
+            }
+
             return self::bothArgsHavePrimitiveTag($args, self::NUMERIC_PRIMITIVE_TAGS)
                 ? self::NUMERIC_BINARY_OPS[$name]
                 : null;
@@ -264,6 +276,29 @@ final readonly class NumericOperationSpecialization
     }
 
     /**
+     * Arithmetic (`+`, `-`, `*`) over two int literals only reaches the
+     * emitter when the constant folder declined it — which, for int literals,
+     * happens exactly when the native result overflows `PHP_INT_MAX`. Emitting
+     * a native PHP op there would yield a `float`, diverging from the runtime's
+     * `BigInt` promotion, so the call stays on the runtime dispatch. Mirrors
+     * the literal exclusion already applied to {@see self::typedVariadicChain()}
+     * for N>=3. Comparisons can't overflow and are left specialised.
+     *
+     * @param list<AbstractNode> $args
+     */
+    private static function isOverflowProneLiteralArithmetic(string $name, array $args): bool
+    {
+        if (!in_array($name, self::ARITHMETIC_OPS, true)) {
+            return false;
+        }
+
+        return array_all(
+            $args,
+            static fn(AbstractNode $arg): bool => $arg instanceof LiteralNode && is_int($arg->getValue()),
+        );
+    }
+
+    /**
      * @param list<AbstractNode> $args
      */
     private static function allArgsAreTaggedNumericLocals(array $args): bool
@@ -312,7 +347,7 @@ final readonly class NumericOperationSpecialization
         }
 
         $name = $fn->getName()->getName();
-        if (!in_array($name, ['+', '-', '*'], true)) {
+        if (!in_array($name, self::ARITHMETIC_OPS, true)) {
             return null;
         }
 
