@@ -230,6 +230,53 @@ final class ReplCompleterTest extends TestCase
         self::assertContainsOnlyString($results);
     }
 
+    public function test_special_forms_are_completed(): void
+    {
+        $phelFnLoader = self::createStub(PhelFnLoaderInterface::class);
+        $completer = new ReplCompleter(
+            $phelFnLoader,
+            [],
+            null,
+            null,
+            ['def', 'defn', 'defmacro', 'let', 'if'],
+        );
+
+        $matches = $completer->complete('def');
+
+        self::assertContains('def', $matches);
+        self::assertContains('defn', $matches);
+        self::assertContains('defmacro', $matches);
+        self::assertNotContains('let', $matches);
+    }
+
+    public function test_special_form_has_special_form_type(): void
+    {
+        $phelFnLoader = self::createStub(PhelFnLoaderInterface::class);
+        $completer = new ReplCompleter($phelFnLoader, [], null, null, ['recur']);
+
+        $results = $completer->completeWithTypes('rec');
+
+        self::assertCount(1, $results);
+        self::assertSame('recur', $results[0]->candidate);
+        self::assertSame('special-form', $results[0]->type);
+    }
+
+    public function test_registry_definition_wins_over_native_symbol_type(): void
+    {
+        // A real def shadowing a native name keeps its richer registry type.
+        $fn = self::createStub(FnInterface::class);
+        Phel::addDefinition('phel.core', 'apply', $fn);
+
+        $phelFnLoader = self::createStub(PhelFnLoaderInterface::class);
+        $completer = new ReplCompleter($phelFnLoader, [], null, null, ['apply']);
+
+        $results = $completer->completeWithTypes('app');
+        $apply = array_find($results, static fn($r): bool => $r->candidate === 'apply');
+
+        self::assertNotNull($apply);
+        self::assertSame('function', $apply->type);
+    }
+
     public function test_qualified_function_in_non_core_namespace(): void
     {
         $fn = self::createStub(FnInterface::class);

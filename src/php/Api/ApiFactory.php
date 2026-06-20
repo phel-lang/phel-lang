@@ -31,6 +31,7 @@ use Phel\Api\Domain\SourceAnalyzerInterface;
 use Phel\Api\Domain\SymbolMetadataFinderInterface;
 use Phel\Api\Domain\SymbolResolverInterface;
 use Phel\Api\Infrastructure\Daemon\ApiDaemon;
+use Phel\Api\Infrastructure\NativeSymbolCatalog;
 use Phel\Api\Infrastructure\PhelFnLoader;
 use Phel\Api\Infrastructure\PhelFunctionRuntimeLoader;
 use Phel\Shared\Facade\CompilerFacadeInterface;
@@ -48,6 +49,7 @@ final class ApiFactory extends AbstractFactory
             $this->createPhelFnLoader(),
             $this->getConfig()->allNamespaces(),
             $this->getCompilerFacade()->getGlobalEnvironment(),
+            nativeSymbolNames: array_keys(NativeSymbolCatalog::definitions()),
         );
     }
 

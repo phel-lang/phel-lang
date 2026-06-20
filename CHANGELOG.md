@@ -12,6 +12,7 @@ All notable changes to this project will be documented in this file.
 - `phel init` and `phel agent-install` now end with an optional shell-completion tip tailored to your `$SHELL` (`phel completion zsh`, ...), pointing at the README install steps (#2501)
 - Consistent CLI short aliases (additive, no renames): `--format` also accepts `-f` (`doc`, `lint`, `profile`), `--output` accepts `-o` (`profile`, `test`), and `--sort` accepts `-s` (`profile`); conventions documented in `docs/internals/cli-flag-conventions.md` (#2502)
 - Every CLI command's `--help` now includes a usage example block (previously most had only a one-line description); a test guards that coverage going forward (#2503)
+- REPL/nREPL autocompletion now also completes special forms and native symbols (`def`, `defn`, `fn`, `let`, `if`, `recur`, `try`, `ns`, ...), which previously never appeared since they are compiler symbols, not registry definitions (#2505)
 - LSP PHP interop completion/hover/signature help (follow-up to #2431): `(:use ...)`/`(use ...)` alias resolution (#2461), LSP 3.17 signature help (#2462), hover for properties/constants/enum cases/classes (#2463), `php/->` chain and union/intersection type resolution (#2464), suppression inside strings and comments (#2465), and refined class-name completion (#2466)
 
 ### Performance
