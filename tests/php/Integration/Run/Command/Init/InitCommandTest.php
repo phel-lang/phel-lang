@@ -328,6 +328,7 @@ final class InitCommandTest extends TestCase
         self::assertStringContainsString('phel test', $outputContent);
         self::assertStringContainsString('phel repl', $outputContent);
         self::assertStringContainsString('phel build', $outputContent);
+        self::assertStringContainsString('phel completion', $outputContent);
     }
 
     public function test_does_not_show_message_for_existing_gitignore(): void
