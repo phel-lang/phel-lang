@@ -20,6 +20,17 @@ final class UndefinedSymbolHintTest extends TestCase
         self::assertStringContainsString(':require', $hint->hint($e));
     }
 
+    public function test_extracts_when_compiler_appends_did_you_mean(): void
+    {
+        // The analyzer appends ". Did you mean ...?" for near-matches; the
+        // period after the quoted name must not stop the hint from firing.
+        $hint = new UndefinedSymbolHint();
+        $e = new Error("Cannot resolve symbol 'nope'. Did you mean 'not', 'not=', or 'name'?");
+
+        self::assertTrue($hint->appliesTo($e));
+        self::assertStringContainsString("'nope' is not defined", $hint->hint($e));
+    }
+
     public function test_extracts_undefined_function(): void
     {
         $hint = new UndefinedSymbolHint();

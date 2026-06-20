@@ -29,7 +29,8 @@ final class UndefinedSymbolHint implements ExceptionHintInterface
     private function extract(string $message): ?string
     {
         $patterns = [
-            '/Cannot resolve symbol \'?([^\']+?)\'?(?:\s|$)/',
+            // Trailing `.` covers the analyzer's `. Did you mean ...?` suffix.
+            '/Cannot resolve symbol \'?([^\']+?)\'?(?:[.\s]|$)/',
             '/Undefined (?:variable|constant|function) [\'"$]?([^\'"]+?)[\'"]?(?:\s|$|\.)/',
             '/Call to undefined function ([\\w\\\\]+)\\(\\)/',
         ];
