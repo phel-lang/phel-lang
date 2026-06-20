@@ -29,7 +29,14 @@ final class DoctorCommand extends Command
     protected function configure(): void
     {
         $this->setName('doctor')
-            ->setDescription('Check system requirements for running the Phel CLI');
+            ->setDescription('Check system requirements for running the Phel CLI')
+            ->setHelp(<<<'HELP'
+Checks PHP version/extensions, module health, and cold-start performance
+(OPcache CLI caching), printing actionable fixes for anything missing.
+
+<info>Example:</info>
+  <comment>phel doctor</comment>
+HELP);
     }
 
     protected function execute(InputInterface $input, OutputInterface $output): int

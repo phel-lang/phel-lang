@@ -32,6 +32,13 @@ final class ConfigCommand extends Command
     {
         $this->setName('config')
             ->setDescription('Show the effective Phel configuration and where it comes from')
+            ->setHelp(<<<'HELP'
+Prints the merged config (defaults + phel-config.php + overrides) and its source.
+
+<info>Examples:</info>
+  <comment>phel config</comment>          Human-readable, annotated with origins
+  <comment>phel config --json</comment>   Machine-readable effective config
+HELP)
             ->addOption(
                 self::OPT_JSON,
                 null,

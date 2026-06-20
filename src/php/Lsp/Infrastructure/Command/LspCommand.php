@@ -37,7 +37,14 @@ final class LspCommand extends Command
     {
         $this->setDescription(
             'Start the Phel Language Server (LSP v3.17 over stdio, JSON-RPC 2.0 with Content-Length framing).',
-        );
+        )
+            ->setHelp(<<<'HELP'
+Editors spawn this over stdio for hover/completion/diagnostics; you rarely
+run it by hand.
+
+<info>Example:</info>
+  <comment>phel lsp</comment>   Start the language server on stdio
+HELP);
     }
 
     protected function execute(InputInterface $input, OutputInterface $output): int

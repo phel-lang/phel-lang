@@ -49,6 +49,13 @@ final class CompileCommand extends Command
     {
         $this->setName('compile')
             ->setDescription('Compile a Phel snippet and print the emitted PHP. Does not evaluate.')
+            ->setHelp(<<<'HELP'
+Prints the PHP a snippet/file/stdin compiles to, without running it.
+
+<info>Examples:</info>
+  <comment>phel compile '(+ 1 2)'</comment>      Compile an inline expression
+  <comment>echo '(println "hi")' | phel compile -</comment>   Compile from stdin
+HELP)
             ->addArgument(
                 'source',
                 InputArgument::OPTIONAL,

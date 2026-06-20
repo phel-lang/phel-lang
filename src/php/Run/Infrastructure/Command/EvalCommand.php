@@ -37,6 +37,13 @@ final class EvalCommand extends Command
     {
         $this->setName('eval')
             ->setDescription('Evaluate a Phel expression and print the result')
+            ->setHelp(<<<'HELP'
+Evaluates a Phel expression (or stdin) and prints its value.
+
+<info>Examples:</info>
+  <comment>phel eval '(+ 1 2)'</comment>      Evaluate an inline expression
+  <comment>echo '(* 6 7)' | phel eval -</comment>   Evaluate from stdin
+HELP)
             ->addArgument(
                 'expression',
                 InputArgument::OPTIONAL,

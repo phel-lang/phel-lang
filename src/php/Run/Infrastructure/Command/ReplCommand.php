@@ -92,7 +92,13 @@ final class ReplCommand extends Command
 
     protected function configure(): void
     {
-        $this->setDescription('Start a Repl');
+        $this->setDescription('Start a Repl')
+            ->setHelp(<<<'HELP'
+Starts an interactive Phel REPL with history, completion, and *1/*2/*3/*e.
+
+<info>Example:</info>
+  <comment>phel repl</comment>
+HELP);
     }
 
     protected function execute(InputInterface $input, OutputInterface $output): int

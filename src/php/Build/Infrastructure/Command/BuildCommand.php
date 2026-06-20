@@ -41,6 +41,13 @@ final class BuildCommand extends Command
     {
         $this->setName('build')
             ->setDescription('Build the current project')
+            ->setHelp(<<<'HELP'
+Compiles every project namespace to PHP in the output directory.
+
+<info>Examples:</info>
+  <comment>phel build</comment>                  Incremental build using the cache
+  <comment>phel build --no-cache -O2</comment>     Clean, fully optimized build
+HELP)
             ->addOption(self::OPTION_CACHE, null, InputOption::VALUE_NEGATABLE, 'Enable cache', true)
             ->addOption(self::OPTION_SOURCE_MAP, null, InputOption::VALUE_NEGATABLE, 'Enable source maps', true)
             ->addOption(

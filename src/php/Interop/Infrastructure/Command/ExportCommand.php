@@ -26,7 +26,14 @@ final class ExportCommand extends Command
     protected function configure(): void
     {
         $this->setName('export')
-            ->setDescription('Export all definitions with the meta data `{:export true}` as PHP classes');
+            ->setDescription('Export all definitions with the meta data `{:export true}` as PHP classes')
+            ->setHelp(<<<'HELP'
+Generates PHP wrapper classes for every `^{:export true}` Phel function so
+PHP code can call them. Reads the export dirs/prefix from your config.
+
+<info>Example:</info>
+  <comment>phel export</comment>
+HELP);
     }
 
     protected function execute(InputInterface $input, OutputInterface $output): int

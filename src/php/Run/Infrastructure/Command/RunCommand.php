@@ -36,6 +36,14 @@ final class RunCommand extends Command
     {
         $this->setName('run')
             ->setDescription('Runs a script')
+            ->setHelp(<<<'HELP'
+Compiles and runs a Phel file or namespace (auto-detects the entry point
+when omitted). Arguments after the path are passed to the script as *argv*.
+
+<info>Examples:</info>
+  <comment>phel run</comment>                    Run the auto-detected entry point
+  <comment>phel run src/main.phel arg1 arg2</comment>   Run a file with arguments
+HELP)
             ->addArgument(
                 'path',
                 InputArgument::OPTIONAL,
