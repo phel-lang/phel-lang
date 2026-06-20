@@ -33,16 +33,18 @@ High-frequency commands have short aliases (Symfony `setAliases`): `run`→`r`,
 `test`→`t`, `build`→`b`, `eval`→`e`, `format`→`fmt`. Keep aliases unique across
 the whole command surface; an ambiguous alias makes `find()` throw.
 
-## Known drift (deferred — needs a deprecation cycle)
+## Renamed options (deprecated aliases kept)
 
-These would be breaking renames, so they are intentionally left for a separate
-change that keeps the old name as a deprecated alias first:
+These were aligned to the conventions above; the old names still work but are
+marked `[deprecated]` and print a one-line notice (via
+`Phel\Shared\Console\DeprecatedOptionWarner`, written to stderr so it never
+corrupts machine-readable stdout):
 
-- `phel index --out` should become `--output` (`-o`) to match `profile`/`test`.
-- `phel test --reporter` overlaps conceptually with `--format`; it stays a
-  distinct, repeatable flag for now (it selects reporters, not a single format).
-- `phel config --json` is a boolean shorthand for "format = json"; left as-is.
+- `phel index --output` (`-o`) is canonical; `--out` is the deprecated alias.
+- `phel config --format=json` is canonical; `--json` is the deprecated alias.
+- `phel test --reporter` stays a distinct, repeatable flag (it selects
+  reporters, not a single output format) — intentionally **not** renamed.
 
-When adding such a rename, register the new name + short alias, keep the old
-option accepted (mark it deprecated in the description), and read whichever is
-provided.
+When renaming an option: register the new name + short alias, keep the old
+option accepted (mark it `[deprecated]` in the description), warn via
+`DeprecatedOptionWarner`, and read whichever is provided (new wins).

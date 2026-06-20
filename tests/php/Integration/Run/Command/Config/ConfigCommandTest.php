@@ -51,11 +51,11 @@ final class ConfigCommandTest extends TestCase
         self::assertStringContainsString('not found', $display);
     }
 
-    public function test_json_option_emits_only_valid_json(): void
+    public function test_format_json_emits_only_valid_json(): void
     {
         $tester = new CommandTester(new ConfigCommand());
 
-        $exitCode = $tester->execute(['--json' => true]);
+        $exitCode = $tester->execute(['--format' => 'json']);
 
         self::assertSame(0, $exitCode);
 
@@ -64,5 +64,18 @@ final class ConfigCommandTest extends TestCase
         self::assertSame(['src/phel'], $decoded[PhelConfig::SRC_DIRS]);
         self::assertSame('vendor', $decoded[PhelConfig::VENDOR_DIR]);
         self::assertArrayNotHasKey('Sources:', $decoded);
+    }
+
+    public function test_deprecated_json_flag_still_emits_json_with_a_warning(): void
+    {
+        $tester = new CommandTester(new ConfigCommand());
+
+        $exitCode = $tester->execute(['--json' => true], ['capture_stderr_separately' => true]);
+
+        self::assertSame(0, $exitCode);
+        // stdout stays valid JSON; the deprecation notice goes to stderr.
+        $decoded = json_decode($tester->getDisplay(), true, 512, JSON_THROW_ON_ERROR);
+        self::assertSame(['src/phel'], $decoded[PhelConfig::SRC_DIRS]);
+        self::assertStringContainsString('--json is deprecated', $tester->getErrorOutput());
     }
 }

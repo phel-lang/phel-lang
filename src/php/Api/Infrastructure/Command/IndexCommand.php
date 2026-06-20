@@ -7,6 +7,7 @@ namespace Phel\Api\Infrastructure\Command;
 use Gacela\Framework\ServiceResolver\ServiceMap;
 use Gacela\Framework\ServiceResolverAwareTrait;
 use Phel\Api\ApiFacade;
+use Phel\Shared\Console\DeprecatedOptionWarner;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
@@ -35,7 +36,7 @@ final class IndexCommand extends Command
 Scans directories for `.phel` files and indexes their symbols (for tooling).
 
 <info>Example:</info>
-  <comment>phel index src tests --out=index.json</comment>
+  <comment>phel index src tests --output=index.json</comment>
 HELP)
             ->addArgument(
                 'dirs',
@@ -43,10 +44,16 @@ HELP)
                 'Directories to scan for .phel files',
             )
             ->addOption(
+                'output',
+                'o',
+                InputOption::VALUE_REQUIRED,
+                'Optional path to persist the full index as JSON',
+            )
+            ->addOption(
                 'out',
                 null,
                 InputOption::VALUE_REQUIRED,
-                'Optional path to persist the full index as JSON',
+                '[deprecated] use --output instead',
             );
     }
 
@@ -65,7 +72,16 @@ HELP)
 
         $output->writeln(json_encode($summary, JSON_THROW_ON_ERROR | JSON_PRETTY_PRINT));
 
-        $out = $input->getOption('out');
+        $deprecatedOut = $input->getOption('out');
+        if (is_string($deprecatedOut) && $deprecatedOut !== '') {
+            DeprecatedOptionWarner::warn($output, 'out', 'output');
+        }
+
+        $out = $input->getOption('output');
+        if (!is_string($out) || $out === '') {
+            $out = $deprecatedOut;
+        }
+
         if (is_string($out) && $out !== '') {
             $written = @file_put_contents(
                 $out,
