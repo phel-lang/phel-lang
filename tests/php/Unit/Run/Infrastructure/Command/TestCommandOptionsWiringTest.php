@@ -128,6 +128,12 @@ final class TestCommandOptionsWiringTest extends TestCase
         self::assertStringContainsString('glob', strtolower($ns->getDescription()));
     }
 
+    public function test_output_option_has_o_short_alias(): void
+    {
+        // CLI flag convention: --output is -o across commands.
+        self::assertSame('o', $this->optionFor('output')->getShortcut());
+    }
+
     public function test_coverage_option_completes_formats(): void
     {
         $tester = new CommandCompletionTester(new TestCommand());
