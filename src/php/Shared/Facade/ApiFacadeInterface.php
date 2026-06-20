@@ -35,4 +35,11 @@ interface ApiFacadeInterface
      * session-defined definitions in addition to core/library functions.
      */
     public function findSymbolMetadata(string $symbol, string $currentNs = 'user'): ?PhelFunction;
+
+    /**
+     * One-line documentation (`<signature>: <summary>`) for a completion
+     * candidate, shown inline in the REPL on Tab. Null when the candidate has
+     * no Phel metadata (e.g. `php/...` interop names).
+     */
+    public function completionDoc(string $candidate, string $currentNs = 'user'): ?string;
 }

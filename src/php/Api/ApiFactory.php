@@ -8,6 +8,8 @@ use Gacela\Framework\AbstractFactory;
 use Phel\Api\Application\Analysis\LexAndParseStage;
 use Phel\Api\Application\Analysis\PreloadDependenciesStage;
 use Phel\Api\Application\Analysis\ReadAndAnalyzeStage;
+use Phel\Api\Application\CompletionDocFormatter;
+use Phel\Api\Application\CompletionDocResolver;
 use Phel\Api\Application\PhelFnGroupKeyGenerator;
 use Phel\Api\Application\PhelFnNormalizer;
 use Phel\Api\Application\PhpInteropCompleter;
@@ -50,6 +52,14 @@ final class ApiFactory extends AbstractFactory
             $this->getConfig()->allNamespaces(),
             $this->getCompilerFacade()->getGlobalEnvironment(),
             nativeSymbolNames: array_keys(NativeSymbolCatalog::definitions()),
+        );
+    }
+
+    public function createCompletionDocResolver(): CompletionDocResolver
+    {
+        return new CompletionDocResolver(
+            $this->createSymbolMetadataFinder(),
+            new CompletionDocFormatter(),
         );
     }
 

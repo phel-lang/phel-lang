@@ -13,6 +13,7 @@ All notable changes to this project will be documented in this file.
 - Consistent CLI short aliases (additive, no renames): `--format` also accepts `-f` (`doc`, `lint`, `profile`), `--output` accepts `-o` (`profile`, `test`), and `--sort` accepts `-s` (`profile`); conventions documented in `docs/internals/cli-flag-conventions.md` (#2502)
 - Every CLI command's `--help` now includes a usage example block (previously most had only a one-line description); a test guards that coverage going forward (#2503)
 - REPL/nREPL autocompletion now also completes special forms and native symbols (`def`, `defn`, `fn`, `let`, `if`, `recur`, `try`, `ns`, ...), which previously never appeared since they are compiler symbols, not registry definitions (#2505)
+- REPL Tab on a unique completion now shows the symbol's inline doc (`<signature>: <summary>`); also exposed as `ApiFacade::completionDoc()` (#2515)
 - Non-REPL command errors (`phel run`/`test`/`eval`/...) now print the same actionable hints the REPL shows (undefined symbol, wrong arity, value not callable), e.g. `hint: 'foo' is not defined. Check the spelling, or add (:require ...) ...` (#2506)
 - Short aliases for high-frequency commands: `phel r` (run), `t` (test), `b` (build), `e` (eval); `fmt` (format) already existed (#2507)
 - New `docs/cli-reference.md` (CLI reference & DX guide): every command in one table, the dev loop, and a `compile` vs `eval` vs `run` vs `build` comparison (#2508)
