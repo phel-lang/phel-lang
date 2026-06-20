@@ -45,6 +45,17 @@
     (is (php/instanceof round-tripped \Phel\Lang\UUID))
     (is (= (str u) (str round-tripped)) "UUID round-trips through EDN")))
 
+(deftest test-write-inst-round-trip
+  (let [i             (edn/read-string "#inst \"2026-06-17T08:30:15Z\"")
+        written       (edn/write-string i)
+        round-tripped (edn/read-string written)]
+    (is (= "#inst \"2026-06-17T08:30:15+00:00\"" written) "inst writes as #inst literal")
+    (is (php/instanceof round-tripped \DateTimeImmutable))
+    (is (php/== i round-tripped) "inst round-trips to an equal instant"))
+  ;; sub-second precision survives the round-trip
+  (let [micros (edn/read-string "#inst \"2026-06-17T08:30:15.123456Z\"")]
+    (is (php/== micros (edn/read-string (edn/write-string micros))))))
+
 (deftest test-write-string-all
   (is (= "1 2 3" (edn/write-string-all [1 2 3])))
   (is (= ""      (edn/write-string-all [])))
