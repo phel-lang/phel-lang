@@ -380,10 +380,16 @@ final readonly class LiteralArithmeticFolder
     /**
      * Convert a float result back to int when it fits exactly in PHP's
      * int range. Otherwise bail so the runtime can promote to `BigInt`.
+     *
+     * `PHP_INT_MAX` (2^63 - 1) is not representable as a float; the nearest
+     * float rounds up to 2^63, which equals the float an overflowing product
+     * lands on. Comparing against `(float) PHP_INT_MAX` would therefore miss
+     * that boundary and reach the lossy `(int)` cast (a PHP warning), so the
+     * upper bound is the exact float `2^63` with a strict `>=`.
      */
     private function checkedInt(float $value): ?int
     {
-        if ($value < PHP_INT_MIN || $value > PHP_INT_MAX) {
+        if ($value < (float) PHP_INT_MIN || $value >= 9223372036854775808.0) {
             return null;
         }
 

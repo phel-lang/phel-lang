@@ -6,6 +6,7 @@ namespace PhelTest\Unit\Compiler\Analyzer\TypeAnalyzer;
 
 use Phel\Compiler\Domain\Analyzer\TypeAnalyzer\LiteralArithmeticFolder;
 use PHPUnit\Framework\TestCase;
+use RuntimeException;
 
 final class LiteralArithmeticFolderTest extends TestCase
 {
@@ -30,6 +31,24 @@ final class LiteralArithmeticFolderTest extends TestCase
     public function test_multiplication_overflow_bails_to_null(): void
     {
         self::assertNull($this->folder->compute('*', [9_000_000_000_000_000_000, 9_000_000_000_000_000_000]));
+    }
+
+    public function test_multiplication_at_int_max_boundary_bails_without_warning(): void
+    {
+        // 2 * 2^62 = 2^63 = PHP_INT_MAX + 1. `(float) PHP_INT_MAX` rounds up
+        // to 2^63, so a naive `> PHP_INT_MAX` check misses the overflow and
+        // reaches the lossy `(int)` cast, emitting a PHP warning. The fold
+        // must bail on the exact float bound instead — no warning.
+        set_error_handler(static function (int $severity, string $message): bool {
+            throw new RuntimeException('Unexpected PHP warning during fold: ' . $message);
+        }, E_WARNING);
+
+        try {
+            self::assertNull($this->folder->compute('*', [2, 4_611_686_018_427_387_904]));
+            self::assertNull($this->folder->compute('+', [PHP_INT_MAX, 1]));
+        } finally {
+            restore_error_handler();
+        }
     }
 
     public function test_equality_is_type_strict(): void

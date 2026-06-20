@@ -130,6 +130,10 @@ final readonly class NumericOperationSpecialization
         $name = $fn->getName()->getName();
 
         if (isset(self::NUMERIC_BINARY_OPS[$name])) {
+            if (self::isOverflowProneLiteralArithmetic($name, $args)) {
+                return null;
+            }
+
             return self::bothArgsHavePrimitiveTag($args, self::NUMERIC_PRIMITIVE_TAGS)
                 ? self::NUMERIC_BINARY_OPS[$name]
                 : null;
@@ -260,6 +264,29 @@ final readonly class NumericOperationSpecialization
         return array_all(
             $args,
             static fn(AbstractNode $arg): bool => self::isPrimitiveOperand($arg, $acceptedTags),
+        );
+    }
+
+    /**
+     * Arithmetic (`+`, `-`, `*`) over two int literals only reaches the
+     * emitter when the constant folder declined it — which, for int literals,
+     * happens exactly when the native result overflows `PHP_INT_MAX`. Emitting
+     * a native PHP op there would yield a `float`, diverging from the runtime's
+     * `BigInt` promotion, so the call stays on the runtime dispatch. Mirrors
+     * the literal exclusion already applied to {@see self::typedVariadicChain()}
+     * for N>=3. Comparisons can't overflow and are left specialised.
+     *
+     * @param list<AbstractNode> $args
+     */
+    private static function isOverflowProneLiteralArithmetic(string $name, array $args): bool
+    {
+        if (!in_array($name, ['+', '-', '*'], true)) {
+            return false;
+        }
+
+        return array_all(
+            $args,
+            static fn(AbstractNode $arg): bool => $arg instanceof LiteralNode && is_int($arg->getValue()),
         );
     }
 

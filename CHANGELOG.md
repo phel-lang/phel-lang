@@ -22,6 +22,7 @@ All notable changes to this project will be documented in this file.
 
 ### Fixed
 
+- Constant folding of integer arithmetic (`+`/`-`/`*`) that overflows `PHP_INT_MAX` no longer disagrees with the runtime: `(* 2 4611686018427387904)` now keeps runtime dispatch and promotes to `BigInt` (matching the `let`-bound form) instead of silently folding to a `float`; also fixes a stray PHP warning at the exact `2^63` boundary (#2483)
 - `phel\router`: passing a bare string (or a sequence of bare strings) now raises a clear error instead of silently iterating the string character-by-character into garbage routes (#2487)
 - `loop`/`fn` `recur` inside a `let` (or any inner binding) that shadows a loop binding / fn param now updates the loop variable instead of the shadowing binding, fixing a silent infinite loop (#2482)
 - `NAN` map/set keys are now retrievable via `get`/`contains?`/`assoc`, while `(= NAN NAN)` stays `false` (#2475)
