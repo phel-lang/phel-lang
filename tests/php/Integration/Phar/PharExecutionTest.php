@@ -145,6 +145,26 @@ final class PharExecutionTest extends TestCase
         );
     }
 
+    public function test_phar_ships_shell_completion_scripts(): void
+    {
+        // Regression: the PHAR build must not exclude Symfony's
+        // Resources/completion.{bash,zsh,fish} (e.g. via a `.bash`/`.zsh`/`.fish`
+        // extension filter), or `phel completion <shell>` reports
+        // "supported shells: ''" and tab-completion is dead for PHAR installs.
+        $bash = $this->runPhar(['completion', 'bash']);
+        self::assertSame(
+            0,
+            $bash['exit'],
+            sprintf("completion bash failed.\nstdout:\n%s\nstderr:\n%s", $bash['stdout'], $bash['stderr']),
+        );
+        self::assertStringNotContainsString('not supported', $bash['stdout'] . $bash['stderr']);
+        self::assertStringContainsString('complete', $bash['stdout']);
+
+        $zsh = $this->runPhar(['completion', 'zsh']);
+        self::assertSame(0, $zsh['exit']);
+        self::assertStringContainsString('#compdef', $zsh['stdout']);
+    }
+
     public function test_phar_eval_stdin(): void
     {
         $result = $this->runPharWithStdin(['eval', '-'], "(println (+ 1 2 3))\n");

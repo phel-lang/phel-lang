@@ -92,9 +92,6 @@ final class PharBuilder
     private array $excludeExtensions = [
         '.log' => true,
         '.svg' => true,
-        '.bash' => true,
-        '.zsh' => true,
-        '.fish' => true,
     ];
 
     /**
