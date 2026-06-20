@@ -144,6 +144,35 @@ final class CompiledCodeCacheIntegrationTest extends TestCase
         self::assertNotSame($pathA, $pathB);
     }
 
+    public function test_editing_one_namespace_keeps_a_siblings_compiled_file(): void
+    {
+        // Dev-loop guarantee (phel watch / test --watch): a single-file edit
+        // must recompile only that file. The unchanged sibling stays a cache
+        // hit and its compiled file is not rewritten.
+        $changedFile = $this->cacheDir . '/changed.phel';
+        $stableFile = $this->cacheDir . '/stable.phel';
+
+        $cache = new CompiledCodeCache($this->cacheDir);
+        $cache->put($changedFile, 'app\\changed', md5('v1'), '$x = 1;');
+        $cache->put($stableFile, 'app\\stable', md5('stable'), '$y = 2;');
+
+        $stablePath = $cache->getCompiledPath($stableFile, 'app\\stable');
+        $stableMtimeBefore = filemtime($stablePath);
+
+        // Simulate editing only `changed.phel` (new source hash).
+        clearstatcache();
+        $cache->put($changedFile, 'app\\changed', md5('v2'), '$x = 2;');
+
+        $fresh = new CompiledCodeCache($this->cacheDir);
+        // Unchanged sibling: still a hit, same file, not rewritten.
+        self::assertNotNull($fresh->get($stableFile, md5('stable')));
+        clearstatcache();
+        self::assertSame($stableMtimeBefore, filemtime($stablePath), 'sibling compiled file must not be rewritten');
+        // Edited namespace: old hash misses, new hash hits.
+        self::assertNull($fresh->get($changedFile, md5('v1')));
+        self::assertNotNull($fresh->get($changedFile, md5('v2')));
+    }
+
     public function test_put_preserves_entries_written_by_other_instances(): void
     {
         // A (load ...) form creates a nested CompiledCodeCache instance that
