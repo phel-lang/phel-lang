@@ -33,12 +33,16 @@ final class ReplCompleter implements ReplCompleterInterface
 
     /**
      * @param list<string> $allNamespaces
+     * @param list<string> $nativeSymbolNames special-form / native symbol names
+     *                                        (def, fn, let, ...) to offer as
+     *                                        completions
      */
     public function __construct(
         private readonly PhelFnLoaderInterface $phelFnLoader,
         private readonly array $allNamespaces = [],
         private readonly ?GlobalEnvironmentInterface $globalEnvironment = null,
         ?PhpSymbolCatalog $phpSymbols = null,
+        private readonly array $nativeSymbolNames = [],
     ) {
         $this->phpSymbols = $phpSymbols ?? new PhpSymbolCatalog();
     }
@@ -156,6 +160,16 @@ final class ReplCompleter implements ReplCompleterInterface
                     $type = $this->resolveDefinitionType($nsName, $name, $definition);
                     $matches[$name] = new CompletionResultTransfer($name, $type);
                 }
+            }
+        }
+
+        // Special forms and other native symbols (def, fn, let, if, recur,
+        // try, throw, ns, ...) are compiler symbols, not registry definitions,
+        // so they are absent above. Add any that match and were not already
+        // contributed by the registry (real defs keep their richer type).
+        foreach ($this->nativeSymbolNames as $name) {
+            if (str_starts_with($name, $input) && !isset($matches[$name])) {
+                $matches[$name] = new CompletionResultTransfer($name, 'special-form');
             }
         }
 
