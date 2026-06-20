@@ -88,7 +88,7 @@ final class TestCommand extends Command
                 ['default', 'testdox', 'dot', 'tap', 'junit-xml'],
             )->addOption(
                 TestCommandOptionParser::OPT_OUTPUT,
-                null,
+                'o',
                 InputOption::VALUE_REQUIRED,
                 'Write the junit-xml reporter to a file instead of stdout.',
             )->addOption(

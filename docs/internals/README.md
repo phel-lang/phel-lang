@@ -9,6 +9,7 @@
 5. [Runtime](runtime.md): `Lang/`, persistent collections, `Registry`, `\Phel` facade.
 6. [Benchmarks](benchmarks.md): PHPBench setup.
 7. [FAQ](faq.md): grouped by reader.
+8. [CLI flag conventions](cli-flag-conventions.md): standard option names + short aliases.
 
 ## What to read for what
 

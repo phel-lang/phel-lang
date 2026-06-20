@@ -54,7 +54,7 @@ final class DocCommand extends Command
             )
             ->addOption(
                 self::OPTION_FORMAT,
-                null,
+                'f',
                 InputOption::VALUE_REQUIRED,
                 'Specify the output format.',
                 'table',

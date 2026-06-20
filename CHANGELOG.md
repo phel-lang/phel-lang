@@ -10,6 +10,7 @@ All notable changes to this project will be documented in this file.
 - `phel doctor` reports whether OPcache persists the compiled-code cache across CLI runs, with fixes (#2446)
 - Shell completion for `phel doc`, option values, and project namespaces; `bash`/`zsh`/`fish` install docs (#2451)
 - `phel init` and `phel agent-install` now end with an optional shell-completion tip tailored to your `$SHELL` (`phel completion zsh`, ...), pointing at the README install steps (#2501)
+- Consistent CLI short aliases (additive, no renames): `--format` also accepts `-f` (`doc`, `lint`, `profile`), `--output` accepts `-o` (`profile`, `test`), and `--sort` accepts `-s` (`profile`); conventions documented in `docs/internals/cli-flag-conventions.md` (#2502)
 - LSP PHP interop completion/hover/signature help (follow-up to #2431): `(:use ...)`/`(use ...)` alias resolution (#2461), LSP 3.17 signature help (#2462), hover for properties/constants/enum cases/classes (#2463), `php/->` chain and union/intersection type resolution (#2464), suppression inside strings and comments (#2465), and refined class-name completion (#2466)
 
 ### Performance

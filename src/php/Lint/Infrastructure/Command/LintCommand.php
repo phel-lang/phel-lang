@@ -70,7 +70,7 @@ final class LintCommand extends Command
             )
             ->addOption(
                 self::OPT_FORMAT,
-                null,
+                'f',
                 InputOption::VALUE_REQUIRED,
                 'Output format: human, json, github.',
                 HumanFormatter::NAME,
