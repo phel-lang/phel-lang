@@ -48,6 +48,7 @@ final readonly class InvokeSymbol implements SpecialFormAnalyzerInterface
     public function __construct(
         private AnalyzerInterface $analyzer,
         ?CallInliner $callInliner = null,
+        private ConstantFolder $constantFolder = new ConstantFolder(),
     ) {
         $this->callInliner = $callInliner ?? new CallInliner();
     }
@@ -100,7 +101,7 @@ final readonly class InvokeSymbol implements SpecialFormAnalyzerInterface
             $list->getStartLocation(),
         );
 
-        return new ConstantFolder()->fold($call) ?? $call;
+        return $this->constantFolder->fold($call) ?? $call;
     }
 
     /**

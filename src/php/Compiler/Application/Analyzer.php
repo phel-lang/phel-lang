@@ -37,6 +37,8 @@ use function is_string;
 
 final class Analyzer implements AnalyzerInterface
 {
+    private ?AnalyzeLiteral $literalAnalyzer = null;
+
     private ?AnalyzePersistentList $listAnalyzer = null;
 
     private ?AnalyzeSymbol $symbolAnalyzer = null;
@@ -159,7 +161,8 @@ final class Analyzer implements AnalyzerInterface
         NodeEnvironmentInterface $env,
     ): AbstractNode {
         if ($this->isLiteral($x)) {
-            return new AnalyzeLiteral()->analyze($x, $env);
+            $this->literalAnalyzer ??= new AnalyzeLiteral();
+            return $this->literalAnalyzer->analyze($x, $env);
         }
 
         if ($x instanceof Symbol) {
@@ -191,7 +194,8 @@ final class Analyzer implements AnalyzerInterface
         // yields `DateTimeImmutable`). Any object that is not one of the
         // persistent types above is treated as an opaque literal value.
         if (is_object($x) && !$x instanceof TypeInterface) {
-            return new AnalyzeLiteral()->analyze($x, $env);
+            $this->literalAnalyzer ??= new AnalyzeLiteral();
+            return $this->literalAnalyzer->analyze($x, $env);
         }
 
         throw new AnalyzerException('Unhandled type: ' . var_export($x, true));

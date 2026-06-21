@@ -23,6 +23,8 @@ final class IfSymbol implements SpecialFormAnalyzerInterface
 {
     use WithAnalyzerTrait;
 
+    private ?ConstantFolder $constantFolder = null;
+
     /**
      * @param PersistentListInterface<mixed> $list
      */
@@ -38,7 +40,8 @@ final class IfSymbol implements SpecialFormAnalyzerInterface
             $list->getStartLocation(),
         );
 
-        return new ConstantFolder()->foldIf($node) ?? $node;
+        $this->constantFolder ??= new ConstantFolder();
+        return $this->constantFolder->foldIf($node) ?? $node;
     }
 
     /**

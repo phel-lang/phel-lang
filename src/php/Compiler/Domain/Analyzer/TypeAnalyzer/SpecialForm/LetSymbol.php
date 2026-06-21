@@ -31,6 +31,7 @@ final readonly class LetSymbol implements SpecialFormAnalyzerInterface
     public function __construct(
         private AnalyzerInterface $analyzer,
         private DeconstructorInterface $deconstructor,
+        private LetSimplifier $letSimplifier = new LetSimplifier(),
     ) {}
 
     /**
@@ -115,7 +116,7 @@ final readonly class LetSymbol implements SpecialFormAnalyzerInterface
             $list->getStartLocation(),
         );
 
-        return new LetSimplifier()->simplify($node);
+        return $this->letSimplifier->simplify($node);
     }
 
     /**
