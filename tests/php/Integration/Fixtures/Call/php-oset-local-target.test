@@ -1,0 +1,6 @@
+--PHEL--
+(let [o (php/new \stdClass)]
+  (php/oset (php/-> o name) "test"))
+--PHP--
+$o_1 = (new \stdClass());
+$o_1->name = "test";

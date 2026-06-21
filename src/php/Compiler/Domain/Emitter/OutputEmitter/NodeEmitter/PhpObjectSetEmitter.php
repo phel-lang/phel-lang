@@ -7,6 +7,7 @@ namespace Phel\Compiler\Domain\Emitter\OutputEmitter\NodeEmitter;
 use Phel\Compiler\Domain\Analyzer\Ast\AbstractNode;
 use Phel\Compiler\Domain\Analyzer\Ast\PhpObjectSetNode;
 use Phel\Compiler\Domain\Analyzer\Ast\PropertyOrConstantAccessNode;
+use Phel\Compiler\Domain\Analyzer\Environment\NodeEnvironment;
 use Phel\Compiler\Domain\Emitter\OutputEmitter\ByRefLocalCollector;
 use Phel\Compiler\Domain\Emitter\OutputEmitter\NodeEmitterInterface;
 use Phel\Lang\Symbol;
@@ -25,6 +26,24 @@ final class PhpObjectSetEmitter implements NodeEmitterInterface
         $targetExpr = $node->getLeftExpr()->getTargetExpr();
         $callExpr = $node->getLeftExpr()->getCallExpr();
         assert($callExpr instanceof PropertyOrConstantAccessNode);
+
+        // `php/oset` is contractually required to evaluate to the *target
+        // object* (not the assigned value, as a bare PHP `$o->p = v` would
+        // yield). Whenever the value is consumed - expression or return
+        // context - we must host a temp + `return $target` inside an IIFE to
+        // preserve that semantics. In statement context the value is
+        // discarded, so we emit the assignment directly with no closure and
+        // no temp: the target is still evaluated exactly once inline.
+        if ($node->getEnv()->isContext(NodeEnvironment::CONTEXT_STATEMENT)) {
+            $this->outputEmitter->emitNode($targetExpr);
+            $this->outputEmitter->emitStr($fnCode, $node->getStartSourceLocation());
+            $this->outputEmitter->emitStr($callExpr->getName()->getName(), $callExpr->getName()->getStartLocation());
+            $this->outputEmitter->emitStr(' = ', $node->getStartSourceLocation());
+            $this->outputEmitter->emitNode($node->getRightExpr());
+            $this->outputEmitter->emitStr(';', $node->getStartSourceLocation());
+
+            return;
+        }
 
         $this->outputEmitter->emitContextPrefix($node->getEnv(), $node->getStartSourceLocation());
 

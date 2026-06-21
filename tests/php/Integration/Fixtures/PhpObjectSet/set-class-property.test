@@ -11,8 +11,4 @@
     \Phel\Lang\Keyword::create("end-location"), \Phel::location("PhpObjectSet/set-class-property.test", 1, 27)
   )
 );
-(function() {
-  $target_1 = \Phel::getDefinition("user", "a");
-  $target_1->name = "test";
-  return $target_1;
-})();
+\Phel::getDefinition("user", "a")->name = "test";

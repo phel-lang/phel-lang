@@ -7,6 +7,7 @@ All notable changes to this project will be documented in this file.
 ### Performance
 
 - `php/->` and `php/::` now emit leaner PHP, dropping the closure wrapper for simple targets and statement/return-context calls (#2524)
+- `php/oset` in statement context now compiles to a direct property assignment instead of a closure wrapper (#2525)
 
 ### Fixed
 
