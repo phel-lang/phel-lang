@@ -6,13 +6,14 @@ namespace Phel\Console\Infrastructure\Command;
 
 use Phel\Console\Domain\ConsoleCommandProviderInterface;
 use Phel\Formatter\Infrastructure\Command\FormatCommand;
+use Symfony\Component\Console\Command\LazyCommand;
 
 final class FormatterCommands implements ConsoleCommandProviderInterface
 {
-    public function commands(): array
+    public function lazyCommands(): array
     {
         return [
-            new FormatCommand(),
+            new LazyCommand('format', ['fmt'], 'Formats the given files', false, static fn(): FormatCommand => new FormatCommand()),
         ];
     }
 }

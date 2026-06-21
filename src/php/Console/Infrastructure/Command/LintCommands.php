@@ -6,13 +6,14 @@ namespace Phel\Console\Infrastructure\Command;
 
 use Phel\Console\Domain\ConsoleCommandProviderInterface;
 use Phel\Lint\Infrastructure\Command\LintCommand;
+use Symfony\Component\Console\Command\LazyCommand;
 
 final class LintCommands implements ConsoleCommandProviderInterface
 {
-    public function commands(): array
+    public function lazyCommands(): array
     {
         return [
-            new LintCommand(),
+            new LazyCommand('lint', [], 'Run the semantic linter on one or more Phel files or directories.', false, static fn(): LintCommand => new LintCommand()),
         ];
     }
 }
