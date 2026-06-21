@@ -16,6 +16,7 @@ All notable changes to this project will be documented in this file.
 - The analyzer no longer clones the node environment when a context/binding setter is a no-op, cutting allocations on call-heavy code (#2552)
 - `(= x :keyword)` now compiles to a native identity check instead of dispatching through the runtime equality fn (#2561)
 - CLI commands are now lazy-loaded via Symfony's command loader, so each invocation constructs only the dispatched command instead of every command (#2558)
+- A typed `defn` now walks its body twice instead of three times: return-type inference runs once after param tags are grafted instead of also running inline in `FnSymbol` (#2555)
 
 ### Fixed
 

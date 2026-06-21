@@ -1,0 +1,38 @@
+--PHEL--
+(defn poly ([a] (php/+ a 1)) ([a b] (php/+ a b)))
+--PHP--
+\Phel::addDefinition(
+  "user",
+  "poly",
+  new class() extends \Phel\Lang\AbstractFn {
+    public const BOUND_TO = "user\\poly";
+    private $fn0;
+    private $fn1;
+
+    public function __construct() {
+      $this->fn0 = (function($a) {
+        return ($a + 1);
+      });
+      $this->fn1 = (function($a, $b) {
+        return ($a + $b);
+      });
+    }
+
+    public function __invoke(...$args) {
+      return match (\count($args)) {
+        1 => ($this->fn0)($args[0]),
+        2 => ($this->fn1)($args[0], $args[1]),
+        default => throw new \InvalidArgumentException("No matching function arity"),
+      };
+    }
+  },
+  \Phel::map(
+    \Phel\Lang\Keyword::create("doc"), "```phel\n(poly a)\n(poly a b)\n```\n",
+    \Phel\Lang\Keyword::create("start-location"), \Phel::location("Def/defn-multi-arity-infers-return.test", 1, 0),
+    \Phel\Lang\Keyword::create("end-location"), \Phel::location("Def/defn-multi-arity-infers-return.test", 1, 49),
+    "min-arity", 1,
+    "is-variadic", false,
+    "max-arity", 2,
+    "arglists", "([a] [a b])"
+  )
+);

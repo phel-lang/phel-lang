@@ -63,9 +63,21 @@ interface NodeEnvironmentInterface extends ContextualEnvironmentInterface
 
     public function withBoundTo(string $boundTo): self;
 
+    /**
+     * Marks the env of a `def`-owned single-arity fn whose return-type
+     * inference is deferred to `DefSymbol`. Set so `FnSymbol::analyzeSingle`
+     * skips its inline {@see \Phel\Compiler\Domain\Analyzer\TypeAnalyzer\SpecialForm\ReturnTypeInferrer}
+     * walk (one body traversal), letting `DefSymbol` run it once after
+     * param tags are grafted. Anonymous, multi-arity, and nested fns leave
+     * it `false`.
+     */
+    public function withReturnInferenceDeferred(bool $deferred): self;
+
     public function getCurrentRecurFrame(): ?RecurFrame;
 
     public function getBoundTo(): string;
+
+    public function isReturnInferenceDeferred(): bool;
 
     public function useGlobalReference(): bool;
 

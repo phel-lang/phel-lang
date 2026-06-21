@@ -304,7 +304,14 @@ final readonly class DefSymbol implements SpecialFormAnalyzerInterface
     ): AbstractNode {
         $initEnv = $env
             ->withExpressionContext()
-            ->withDisallowRecurFrame();
+            ->withDisallowRecurFrame()
+            // A single-arity def fn defers its return-type inference to
+            // `graftInferredParamTags` (run once after param tags are grafted),
+            // so `FnSymbol::analyzeSingle` skips its inline inference walk and
+            // the body is traversed twice instead of three times. `FnSymbol`
+            // clears this flag for nested and multi-arity fns, which keep
+            // inferring their return type inline.
+            ->withReturnInferenceDeferred(true);
 
         // The self-call shortcut keys off boundTo. For memoised defs the
         // wrapper, not the inner fn, must receive recursive calls, so leave
@@ -419,10 +426,17 @@ final readonly class DefSymbol implements SpecialFormAnalyzerInterface
      *
      * Mutates the param Symbols held by `FnNode::$params` in place via
      * `Symbol::withMeta`. The variadic tail and any leading macro
-     * implicit params are excluded. After grafting, re-runs return-type
-     * inference so the body's tail expression sees the now-tagged
-     * locals and the fn surfaces a return-type declaration when it
-     * could not before.
+     * implicit params are excluded.
+     *
+     * This is also where the fn's single return-type inference walk runs:
+     * `FnSymbol::analyzeSingle` defers it (see
+     * {@see NodeEnvironmentInterface::withReturnInferenceDeferred()}) so the
+     * walk happens exactly once here, AFTER param tags are grafted, letting
+     * the body's tail expression see the now-tagged locals. The ordering is
+     * load-bearing: graft first, infer the return type second. The
+     * inference still runs when no param tag is grafted (or there are no
+     * scalar params), because `FnSymbol` skipped its inline walk; a declared
+     * return type is left untouched by `fillInferredReturnType`.
      */
     private function graftInferredParamTags(
         FnNode $fnNode,
@@ -431,43 +445,39 @@ final readonly class DefSymbol implements SpecialFormAnalyzerInterface
         ?string $selfName = null,
     ): void {
         $params = $this->scalarParamSlice($fnNode, $skipFirst);
-        if ($params === []) {
-            return;
-        }
 
-        $inferred = new ParamTypeInferrer()->infer(
-            $fnNode->getBody(),
-            $params,
-            $fnNode->isVariadic(),
-            $selfNamespace,
-            $selfName,
-        );
+        if ($params !== []) {
+            $inferred = new ParamTypeInferrer()->infer(
+                $fnNode->getBody(),
+                $params,
+                $fnNode->isVariadic(),
+                $selfNamespace,
+                $selfName,
+            );
 
-        if ($inferred === []) {
-            return;
-        }
+            foreach ($params as $param) {
+                $tag = $inferred[$param->getName()] ?? null;
+                if ($tag === null) {
+                    continue;
+                }
 
-        $grafted = false;
-        foreach ($params as $param) {
-            $tag = $inferred[$param->getName()] ?? null;
-            if ($tag === null) {
-                continue;
+                $existing = $param->getMeta();
+                if ($existing instanceof PersistentMapInterface
+                    && $existing->find(Keyword::create('tag')) !== null
+                ) {
+                    continue;
+                }
+
+                $merged = ($existing ?? Phel::map())
+                    ->put(Keyword::create('tag'), Symbol::create($tag));
+                $param->withMeta($merged);
             }
-
-            $existing = $param->getMeta();
-            if ($existing instanceof PersistentMapInterface
-                && $existing->find(Keyword::create('tag')) !== null
-            ) {
-                continue;
-            }
-
-            $merged = ($existing ?? Phel::map())
-                ->put(Keyword::create('tag'), Symbol::create($tag));
-            $param->withMeta($merged);
-            $grafted = true;
         }
 
-        if ($grafted && $fnNode->getReturnType() === null) {
+        // Single return-type walk for the def fn, deferred from
+        // `FnSymbol::analyzeSingle`. Runs after grafting so the tail sees the
+        // tagged locals; a no-op when the fn already carries a declared type.
+        if ($fnNode->getReturnType() === null) {
             $fnNode->fillInferredReturnType(
                 new ReturnTypeInferrer()->infer(
                     $fnNode->getBody(),

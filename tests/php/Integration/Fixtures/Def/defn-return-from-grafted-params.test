@@ -1,0 +1,23 @@
+--PHEL--
+(defn add2 [a b] (php/+ (php/+ a b) 0))
+--PHP--
+\Phel::addDefinition(
+  "user",
+  "add2",
+  new class() extends \Phel\Lang\AbstractFn {
+    public const BOUND_TO = "user\\add2";
+
+    public function __invoke(int $a, int $b): int {
+      return (($a + $b) + 0);
+    }
+  },
+  \Phel::map(
+    \Phel\Lang\Keyword::create("doc"), "```phel\n(add2 a b)\n```\n",
+    \Phel\Lang\Keyword::create("start-location"), \Phel::location("Def/defn-return-from-grafted-params.test", 1, 0),
+    \Phel\Lang\Keyword::create("end-location"), \Phel::location("Def/defn-return-from-grafted-params.test", 1, 39),
+    "min-arity", 2,
+    "is-variadic", false,
+    "arglists", "[a b]",
+    \Phel\Lang\Keyword::create("tag"), "int"
+  )
+);

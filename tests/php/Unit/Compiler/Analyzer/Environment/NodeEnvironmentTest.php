@@ -154,4 +154,28 @@ final class NodeEnvironmentTest extends TestCase
         self::assertSame('user\\foo', $next->getBoundTo());
         self::assertSame('', $env->getBoundTo());
     }
+
+    public function test_return_inference_deferred_defaults_to_false(): void
+    {
+        $env = NodeEnvironment::empty();
+
+        self::assertFalse($env->isReturnInferenceDeferred());
+    }
+
+    public function test_with_return_inference_deferred_returns_same_instance_when_unchanged(): void
+    {
+        $env = NodeEnvironment::empty();
+
+        self::assertSame($env, $env->withReturnInferenceDeferred(false));
+    }
+
+    public function test_with_return_inference_deferred_returns_new_instance_when_changed(): void
+    {
+        $env = NodeEnvironment::empty();
+        $next = $env->withReturnInferenceDeferred(true);
+
+        self::assertNotSame($env, $next);
+        self::assertTrue($next->isReturnInferenceDeferred());
+        self::assertFalse($env->isReturnInferenceDeferred());
+    }
 }
