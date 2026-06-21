@@ -193,6 +193,10 @@ final class NodeEnvironment implements NodeEnvironmentInterface
 
     public function withContext(string $context): static
     {
+        if ($this->context === $context) {
+            return $this;
+        }
+
         $result = clone $this;
         $result->context = $context;
 
@@ -201,6 +205,10 @@ final class NodeEnvironment implements NodeEnvironmentInterface
 
     public function withUseGlobalReference(bool $useGlobalReference): NodeEnvironmentInterface
     {
+        if ($this->globalReference === $useGlobalReference) {
+            return $this;
+        }
+
         $result = clone $this;
         $result->globalReference = $useGlobalReference;
 
@@ -225,6 +233,10 @@ final class NodeEnvironment implements NodeEnvironmentInterface
 
     public function withBoundTo(string $boundTo): NodeEnvironmentInterface
     {
+        if ($this->boundTo === $boundTo) {
+            return $this;
+        }
+
         $result = clone $this;
         $result->boundTo = $boundTo;
 

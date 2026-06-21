@@ -13,6 +13,7 @@ All notable changes to this project will be documented in this file.
 - The analyzer reuses stateless sub-analyzers (literal/constant-folder/let-simplifier) instead of allocating them per node (#2553)
 - The lexer skips per-token deprecation checks for the common token types via a single lookup (#2546)
 - Global symbol reads skip the per-call dynamic-scope/Fiber check when no dynamic bindings are active (#2545)
+- The analyzer no longer clones the node environment when a context/binding setter is a no-op, cutting allocations on call-heavy code (#2552)
 
 ### Fixed
 

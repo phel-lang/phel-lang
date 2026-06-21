@@ -103,4 +103,55 @@ final class NodeEnvironmentTest extends TestCase
         self::assertTrue($env->hasLocal(Symbol::create('c')));
         self::assertCount(3, $env->getLocals());
     }
+
+    public function test_with_context_returns_same_instance_when_unchanged(): void
+    {
+        $env = NodeEnvironment::empty();
+
+        self::assertSame($env, $env->withContext($env->getContext()));
+    }
+
+    public function test_with_context_returns_new_instance_when_changed(): void
+    {
+        $env = NodeEnvironment::empty();
+        $next = $env->withContext(NodeEnvironment::CONTEXT_EXPRESSION);
+
+        self::assertNotSame($env, $next);
+        self::assertSame(NodeEnvironment::CONTEXT_EXPRESSION, $next->getContext());
+        self::assertSame(NodeEnvironment::CONTEXT_STATEMENT, $env->getContext());
+    }
+
+    public function test_with_use_global_reference_returns_same_instance_when_unchanged(): void
+    {
+        $env = NodeEnvironment::empty();
+
+        self::assertSame($env, $env->withUseGlobalReference($env->useGlobalReference()));
+    }
+
+    public function test_with_use_global_reference_returns_new_instance_when_changed(): void
+    {
+        $env = NodeEnvironment::empty();
+        $next = $env->withUseGlobalReference(true);
+
+        self::assertNotSame($env, $next);
+        self::assertTrue($next->useGlobalReference());
+        self::assertFalse($env->useGlobalReference());
+    }
+
+    public function test_with_bound_to_returns_same_instance_when_unchanged(): void
+    {
+        $env = NodeEnvironment::empty();
+
+        self::assertSame($env, $env->withBoundTo($env->getBoundTo()));
+    }
+
+    public function test_with_bound_to_returns_new_instance_when_changed(): void
+    {
+        $env = NodeEnvironment::empty();
+        $next = $env->withBoundTo('user\\foo');
+
+        self::assertNotSame($env, $next);
+        self::assertSame('user\\foo', $next->getBoundTo());
+        self::assertSame('', $env->getBoundTo());
+    }
 }
