@@ -10,6 +10,7 @@ All notable changes to this project will be documented in this file.
 - Type-tagged core calls now compile straight to native operations: `push`/`dissoc` to persistent-collection methods (#2527), `second`/`get-in` to direct vector/map access (#2530, #2529), and `count`/`first` on strings to `mb_strlen`/`mb_substr` (#2528)
 - `=` and `not=` over string literals now fold to a boolean at compile time (#2531)
 - The lexer skips per-token deprecation checks for the common token types via a single lookup (#2546)
+- Global symbol reads skip the per-call dynamic-scope/Fiber check when no dynamic bindings are active (#2545)
 
 ### Fixed
 
