@@ -34,6 +34,8 @@ final class PersistentHashMapBench
 
     private int $queryKey = 0;
 
+    private int $absentKey = 0;
+
     /**
      * @BeforeMethods("setUpMap")
      *
@@ -105,6 +107,45 @@ final class PersistentHashMapBench
     }
 
     /**
+     * Remove of a key that is not present (`size + 1`). This exercises
+     * the full HAMT descent to a missing leaf and the no-op return path,
+     * which differs from `bench_remove` (an existing key that triggers
+     * node collapse).
+     *
+     * @BeforeMethods("setUpMap")
+     *
+     * @ParamProviders("provideSizes")
+     *
+     * @Revs(1000)
+     *
+     * @Iterations(10)
+     */
+    public function bench_remove_absent(): void
+    {
+        $this->map->remove($this->absentKey);
+    }
+
+    /**
+     * Full traversal of the map via its `Traversable`. Walks every leaf
+     * once so iterator allocation and HAMT descent cost is measured end
+     * to end.
+     *
+     * @BeforeMethods("setUpMap")
+     *
+     * @ParamProviders("provideSizes")
+     *
+     * @Revs(1000)
+     *
+     * @Iterations(10)
+     */
+    public function bench_iterate(): void
+    {
+        foreach ($this->map as $_value) {
+            // Drain the iterator; the body is intentionally empty.
+        }
+    }
+
+    /**
      * @return iterable<string, array<string, int>>
      */
     public function provideSizes(): iterable
@@ -126,5 +167,6 @@ final class PersistentHashMapBench
 
         $this->nextKey = $size;
         $this->queryKey = intdiv($size, 2);
+        $this->absentKey = $size + 1;
     }
 }
