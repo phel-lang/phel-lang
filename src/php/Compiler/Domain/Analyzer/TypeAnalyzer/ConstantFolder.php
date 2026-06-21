@@ -47,6 +47,7 @@ final readonly class ConstantFolder
         private LiteralArithmeticFolder $arithmeticFolder = new LiteralArithmeticFolder(),
         private LiteralCollectionFolder $collectionFolder = new LiteralCollectionFolder(),
         private LiteralBitwiseFolder $bitwiseFolder = new LiteralBitwiseFolder(),
+        private LiteralStringFolder $stringFolder = new LiteralStringFolder(),
     ) {}
 
     public function fold(CallNode $node): ?AbstractNode
@@ -97,6 +98,13 @@ final readonly class ConstantFolder
             $strResult = $this->collectionFolder->foldStr($node->getArguments());
             if ($strResult !== null) {
                 return new LiteralNode($node->getEnv(), $strResult, $node->getStartSourceLocation());
+            }
+        }
+
+        if ($this->stringFolder->supports($fnName)) {
+            $stringResult = $this->stringFolder->fold($fnName, $node->getArguments());
+            if ($stringResult !== null) {
+                return new LiteralNode($node->getEnv(), $stringResult, $node->getStartSourceLocation());
             }
         }
 

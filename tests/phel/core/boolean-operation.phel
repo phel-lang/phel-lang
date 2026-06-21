@@ -45,6 +45,24 @@
   (is (true? (= :test :test)) "keywords are always equal")
   (is (true? (= 'test 'test)) "symbol are always equal"))
 
+(deftest test-=-string
+  ;; String literals fold at compile time (ConstantFolder/LiteralStringFolder);
+  ;; results must stay identical to the runtime `=` dispatch.
+  (is (true? (= "a" "a")) "(= \"a\" \"a\")")
+  (is (false? (= "a" "b")) "(= \"a\" \"b\")")
+  (is (true? (= "x" "x" "x")) "(= \"x\" \"x\" \"x\") n-ary equal")
+  (is (false? (= "x" "x" "y")) "(= \"x\" \"x\" \"y\") n-ary unequal")
+  (is (true? (= "" "")) "two empty strings are equal")
+  (is (true? (= "café" "café")) "multibyte strings are equal")
+  ;; Cross-type must NOT mis-fold: a string and a numeric-looking value differ.
+  (is (false? (= "1" 1)) "(= \"1\" 1) stays type-strict")
+  (is (false? (= "true" true)) "(= \"true\" true) stays type-strict"))
+
+(deftest test-not=-string
+  (is (true? (not= "a" "b")) "(not= \"a\" \"b\")")
+  (is (false? (not= "a" "a")) "(not= \"a\" \"a\")")
+  (is (true? (not= "1" 1)) "(not= \"1\" 1) stays type-strict"))
+
 (deftest test-=-vector
   (is (true? (= [] [])) "two empty vectors are equal")
   (is (true? (= ["hello"] ["hello"])) "two vectors with the same values")
