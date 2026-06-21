@@ -15,6 +15,7 @@ use Phel\Build\Application\FileEvaluator;
 use Phel\Build\Application\NamespaceExtractor;
 use Phel\Build\Application\ProjectCompiler;
 use Phel\Build\Domain\Cache\NamespaceCacheInterface;
+use Phel\Build\Domain\Cache\ScanIndexCacheInterface;
 use Phel\Build\Domain\Compile\CompiledTargetPathResolver;
 use Phel\Build\Domain\Compile\FileCompilerInterface;
 use Phel\Build\Domain\Compile\Output\EntryPointPhpFile;
@@ -30,6 +31,7 @@ use Phel\Build\Domain\IO\FileIoInterface;
 use Phel\Build\Infrastructure\Cache\CompiledCodeCache;
 use Phel\Build\Infrastructure\Cache\DependencyTracker;
 use Phel\Build\Infrastructure\Cache\PhpNamespaceCache;
+use Phel\Build\Infrastructure\Cache\PhpScanIndexCache;
 use Phel\Build\Infrastructure\IO\SystemFileIo;
 use Phel\Shared\Facade\CommandFacadeInterface;
 use Phel\Shared\Facade\CompilerFacadeInterface;
@@ -115,6 +117,7 @@ final class BuildFactory extends AbstractFactory
                     $this->createNamespaceCache(),
                     $this->createNamespaceSorter(),
                     $excludedPaths,
+                    $this->createScanIndexCache(),
                 );
             },
         );
@@ -203,6 +206,11 @@ final class BuildFactory extends AbstractFactory
     private function createNamespaceCache(): NamespaceCacheInterface
     {
         return new PhpNamespaceCache($this->getConfig()->getNamespaceCacheFile());
+    }
+
+    private function createScanIndexCache(): ScanIndexCacheInterface
+    {
+        return new PhpScanIndexCache($this->getConfig()->getScanIndexCacheFile());
     }
 
     private function createMainPhpEntryPointFile(): EntryPointPhpFileInterface

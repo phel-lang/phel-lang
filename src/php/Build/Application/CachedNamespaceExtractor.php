@@ -7,11 +7,14 @@ namespace Phel\Build\Application;
 use Iterator;
 use Phel\Build\Domain\Cache\NamespaceCacheEntry;
 use Phel\Build\Domain\Cache\NamespaceCacheInterface;
+use Phel\Build\Domain\Cache\ScanIndexCacheInterface;
+use Phel\Build\Domain\Cache\ScanIndexEntry;
 use Phel\Build\Domain\Extractor\ExcludedScanPaths;
 use Phel\Build\Domain\Extractor\ExtractorException;
 use Phel\Build\Domain\Extractor\NamespaceExtractorInterface;
 use Phel\Build\Domain\Extractor\NamespaceFileGrouper;
 use Phel\Build\Domain\Extractor\NamespaceSorterInterface;
+use Phel\Build\Infrastructure\Cache\NullScanIndexCache;
 use Phel\Shared\NamespaceInformation;
 use RecursiveCallbackFilterIterator;
 use RecursiveDirectoryIterator;
@@ -31,14 +34,18 @@ final class CachedNamespaceExtractor implements NamespaceExtractorInterface
     /** @var array<string, list<NamespaceInformation>> */
     private array $directoriesScanCache = [];
 
+    private readonly ScanIndexCacheInterface $scanIndexCache;
+
     public function __construct(
         private readonly NamespaceExtractorInterface $innerExtractor,
         private readonly NamespaceCacheInterface $cache,
         NamespaceSorterInterface $namespaceSorter,
         ?ExcludedScanPaths $excludedPaths = null,
+        ?ScanIndexCacheInterface $scanIndexCache = null,
     ) {
         $this->grouper = new NamespaceFileGrouper($namespaceSorter);
         $this->excludedPaths = $excludedPaths ?? ExcludedScanPaths::none();
+        $this->scanIndexCache = $scanIndexCache ?? new NullScanIndexCache();
     }
 
     public function getNamespaceFromFile(string $path): NamespaceInformation
@@ -67,8 +74,22 @@ final class CachedNamespaceExtractor implements NamespaceExtractorInterface
     public function getNamespacesFromDirectories(array $directories): array
     {
         $cacheKey = $this->scanCacheKey($directories);
+
+        // First-level, intra-process cache: an exact dir-set repeat within the
+        // same run skips even the persisted-index validation.
         if (isset($this->directoriesScanCache[$cacheKey])) {
             return $this->directoriesScanCache[$cacheKey];
+        }
+
+        // Second-level, cross-process cache: serve the persisted scan index
+        // when both the per-directory fingerprint (mtime + phel-file count) and
+        // every stored per-file mtime still validate, skipping the directory
+        // walk entirely.
+        $persisted = $this->scanIndexCache->get($cacheKey);
+        if ($persisted instanceof ScanIndexEntry
+            && $persisted->isValid(fn(string $dir): int => $this->countPhelFiles($dir))
+        ) {
+            return $this->directoriesScanCache[$cacheKey] = $persisted->infos;
         }
 
         $allInfos = [];
@@ -84,7 +105,79 @@ final class CachedNamespaceExtractor implements NamespaceExtractorInterface
             }
         }
 
-        return $this->directoriesScanCache[$cacheKey] = $this->grouper->groupAndSort($allInfos);
+        $grouped = $this->grouper->groupAndSort($allInfos);
+        $this->scanIndexCache->put($cacheKey, $this->perDirFingerprint($directories), $grouped);
+
+        return $this->directoriesScanCache[$cacheKey] = $grouped;
+    }
+
+    /**
+     * Per-directory validation fingerprint for the persisted scan index: the
+     * resolved directory's own mtime paired with its phel-file count. The count
+     * catches same-second add/remove churn that the 1s-resolution mtime alone
+     * would miss.
+     *
+     * @param list<string> $directories
+     *
+     * @return array<string, array{mtime: int, fileCount: int}>
+     */
+    private function perDirFingerprint(array $directories): array
+    {
+        $perDir = [];
+        foreach ($directories as $directory) {
+            $realpath = $this->resolvePath($directory);
+            if ($realpath === null) {
+                continue;
+            }
+
+            if (!is_dir($realpath)) {
+                continue;
+            }
+
+            $mtime = @filemtime($realpath);
+            if ($mtime === false) {
+                continue;
+            }
+
+            $perDir[$realpath] = [
+                'mtime' => $mtime,
+                'fileCount' => $this->countPhelFiles($realpath),
+            ];
+        }
+
+        return $perDir;
+    }
+
+    /**
+     * Count the `.phel`/`.cljc` files reachable under a resolved directory,
+     * applying the same pruning + exclusion rules as the full scan so the
+     * count matches what `findAllPhelFiles` would have collected.
+     */
+    private function countPhelFiles(string $realpath): int
+    {
+        if (!is_dir($realpath)) {
+            return 0;
+        }
+
+        $count = 0;
+        try {
+            foreach ($this->phelFileIterator($realpath) as $file) {
+                if (!is_array($file)) {
+                    continue;
+                }
+
+                /** @var array<int, string> $file */
+                if ($this->excludedPaths->contains($file[0], $realpath)) {
+                    continue;
+                }
+
+                ++$count;
+            }
+        } catch (UnexpectedValueException) {
+            return 0;
+        }
+
+        return $count;
     }
 
     /**

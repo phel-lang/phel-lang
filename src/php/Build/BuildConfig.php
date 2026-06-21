@@ -91,6 +91,11 @@ final class BuildConfig extends AbstractConfig implements BuildConfigInterface
         return $this->getCacheDir() . '/namespace-cache.php';
     }
 
+    public function getScanIndexCacheFile(): string
+    {
+        return $this->getCacheDir() . '/scan-index.php';
+    }
+
     /**
      * Auto-detect the main namespace from conventional entry point files.
      * Looks for core.phel or main.phel in source directories.

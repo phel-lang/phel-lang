@@ -19,6 +19,7 @@ All notable changes to this project will be documented in this file.
 - A typed `defn` now walks its body twice instead of three times: return-type inference runs once after param tags are grafted instead of also running inline in `FnSymbol` (#2555)
 - The REPL now loads only `phel.core` (plus the startup namespace's requires) at boot; other bundled `phel.*` modules load lazily on first reference, cutting time-to-prompt by ~34% (#2559)
 - `Symbol` equality short-circuits on identity and compares its backing fields directly instead of through getters, speeding up the symbol comparisons that dominate compiler environment lookups (#2551)
+- The directory-scan namespace index is now persisted across runs, so warm invocations skip re-walking the source tree (and its per-file `filemtime` sweep) when nothing changed; per-file mtimes plus a directory mtime + file-count check keep it from ever serving stale namespace info (#2560)
 
 ### Fixed
 
