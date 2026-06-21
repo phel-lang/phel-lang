@@ -13,10 +13,12 @@ All notable changes to this project will be documented in this file.
 - `(second v)` on a tagged persistent vector now compiles to a guarded `($v->count() > 1 ? $v->get(1) : null)` instead of the runtime `first`/`next` dispatch, preserving the nil-out-of-range contract (#2530)
 - `=` and `not=` over string literals now fold to a boolean at compile time instead of dispatching at runtime (#2531)
 - `get-in` with a literal key path on a `:tag`ged map/vector now compiles to an unrolled null-coalescing subscript chain instead of dispatching to the runtime traversal loop (#2529)
+- The interop emitters (`php/->`, `php/oset`, `php/new`) now share one context-aware IIFE/statement kernel and only scan for `php/ref` by-reference locals when an IIFE is actually emitted, cutting compile-time work (#2536, subsumes #2532)
 
 ### Fixed
 
 - The "not defined" error hint now also shows when the compiler appends a `Did you mean ...?` suggestion (a trailing period previously suppressed it)
+- `php/oset` in return context now elides the redundant closure wrapper, matching `php/->`'s return-context behavior (#2536)
 
 ## [0.45.1](https://github.com/phel-lang/phel-lang/compare/v0.45.0...v0.45.1) - 2026-06-20
 
