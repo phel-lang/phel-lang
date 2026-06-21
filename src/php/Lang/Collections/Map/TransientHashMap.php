@@ -126,7 +126,7 @@ final class TransientHashMap implements TransientMapInterface
 
         $newRoot = $this->root->remove(0, $this->hasher->hash($key), $key);
 
-        if ($newRoot != $this->root) {
+        if ($newRoot !== $this->root) {
             $this->root = $newRoot;
             --$this->count;
         }
