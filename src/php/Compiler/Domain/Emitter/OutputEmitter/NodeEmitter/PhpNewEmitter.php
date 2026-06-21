@@ -8,8 +8,7 @@ use Phel\Compiler\Domain\Analyzer\Ast\AbstractNode;
 use Phel\Compiler\Domain\Analyzer\Ast\LiteralNode;
 use Phel\Compiler\Domain\Analyzer\Ast\PhpClassNameNode;
 use Phel\Compiler\Domain\Analyzer\Ast\PhpNewNode;
-use Phel\Compiler\Domain\Analyzer\Environment\NodeEnvironment;
-use Phel\Compiler\Domain\Emitter\OutputEmitter\ByRefLocalCollector;
+use Phel\Compiler\Domain\Emitter\OutputEmitter\ContextualWrapEmitter;
 use Phel\Compiler\Domain\Emitter\OutputEmitter\NodeEmitterInterface;
 use Phel\Lang\Symbol;
 
@@ -86,54 +85,40 @@ final class PhpNewEmitter implements NodeEmitterInterface
 
     /**
      * Emits a runtime-class construction with a `target_` temp and an
-     * `is_string()/is_object()` guard. The construction is wrapped in an IIFE
+     * `is_string()/is_object()` guard. The shared kernel wraps it in an IIFE
      * only in expression context; in statement/return context the temp, guard
      * and `new` are emitted as plain statements.
      */
     private function emitDynamicNew(PhpNewNode $node, AbstractNode $classExpr): void
     {
-        $isExpr = $node->getEnv()->isContext(NodeEnvironment::CONTEXT_EXPRESSION);
-
-        if ($isExpr) {
-            $this->outputEmitter->emitFnWrapPrefix(
-                $node->getEnv(),
-                $node->getStartSourceLocation(),
-                new ByRefLocalCollector()->collect($node),
-            );
-        }
-
         $targetSym = Symbol::gen('target_');
-        $this->outputEmitter->emitPhpVariable($targetSym, $node->getStartSourceLocation());
-        $this->outputEmitter->emitStr(' = ', $node->getStartSourceLocation());
-        $this->outputEmitter->emitNode($classExpr);
-        $this->outputEmitter->emitLine(';', $node->getStartSourceLocation());
-
         $targetVar = '$' . $targetSym->getName();
-        $this->outputEmitter->emitStr(
-            'if (!is_string(' . $targetVar . ') && !is_object(' . $targetVar . ')) {',
-            $node->getStartSourceLocation(),
-        );
-        $this->outputEmitter->emitLine();
-        $this->outputEmitter->emitStr(
-            'throw new \InvalidArgumentException(sprintf("php/new expects a class name or object, %s given (%s)", get_debug_type(' . $targetVar . '), var_export(' . $targetVar . ', true)));',
-            $node->getStartSourceLocation(),
-        );
-        $this->outputEmitter->emitLine();
-        $this->outputEmitter->emitLine('}', $node->getStartSourceLocation());
 
-        if ($isExpr) {
-            $this->outputEmitter->emitStr('return new ' . $targetVar . '(', $node->getStartSourceLocation());
-            $this->outputEmitter->emitArgList($node->getArgs(), $node->getStartSourceLocation());
-            $this->outputEmitter->emitStr(');', $node->getStartSourceLocation());
-            $this->outputEmitter->emitFnWrapSuffix($node->getStartSourceLocation());
-            $this->outputEmitter->emitContextSuffix($node->getEnv(), $node->getStartSourceLocation());
-            return;
-        }
+        new ContextualWrapEmitter($this->outputEmitter)->emit(
+            $node,
+            function () use ($node, $classExpr, $targetSym, $targetVar): void {
+                $this->outputEmitter->emitPhpVariable($targetSym, $node->getStartSourceLocation());
+                $this->outputEmitter->emitStr(' = ', $node->getStartSourceLocation());
+                $this->outputEmitter->emitNode($classExpr);
+                $this->outputEmitter->emitLine(';', $node->getStartSourceLocation());
 
-        $this->outputEmitter->emitContextPrefix($node->getEnv(), $node->getStartSourceLocation());
-        $this->outputEmitter->emitStr('new ' . $targetVar . '(', $node->getStartSourceLocation());
-        $this->outputEmitter->emitArgList($node->getArgs(), $node->getStartSourceLocation());
-        $this->outputEmitter->emitStr(')', $node->getStartSourceLocation());
-        $this->outputEmitter->emitContextSuffix($node->getEnv(), $node->getStartSourceLocation());
+                $this->outputEmitter->emitStr(
+                    'if (!is_string(' . $targetVar . ') && !is_object(' . $targetVar . ')) {',
+                    $node->getStartSourceLocation(),
+                );
+                $this->outputEmitter->emitLine();
+                $this->outputEmitter->emitStr(
+                    'throw new \InvalidArgumentException(sprintf("php/new expects a class name or object, %s given (%s)", get_debug_type(' . $targetVar . '), var_export(' . $targetVar . ', true)));',
+                    $node->getStartSourceLocation(),
+                );
+                $this->outputEmitter->emitLine();
+                $this->outputEmitter->emitLine('}', $node->getStartSourceLocation());
+            },
+            function () use ($node, $targetVar): void {
+                $this->outputEmitter->emitStr('new ' . $targetVar . '(', $node->getStartSourceLocation());
+                $this->outputEmitter->emitArgList($node->getArgs(), $node->getStartSourceLocation());
+                $this->outputEmitter->emitStr(')', $node->getStartSourceLocation());
+            },
+        );
     }
 }

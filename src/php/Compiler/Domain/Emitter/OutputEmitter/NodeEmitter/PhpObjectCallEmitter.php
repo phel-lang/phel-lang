@@ -11,8 +11,8 @@ use Phel\Compiler\Domain\Analyzer\Ast\PhpClassNameNode;
 use Phel\Compiler\Domain\Analyzer\Ast\PhpNamedArgNode;
 use Phel\Compiler\Domain\Analyzer\Ast\PhpObjectCallNode;
 use Phel\Compiler\Domain\Analyzer\Ast\PropertyOrConstantAccessNode;
-use Phel\Compiler\Domain\Analyzer\Environment\NodeEnvironment;
 use Phel\Compiler\Domain\Emitter\OutputEmitter\ByRefLocalCollector;
+use Phel\Compiler\Domain\Emitter\OutputEmitter\ContextualWrapEmitter;
 use Phel\Compiler\Domain\Emitter\OutputEmitter\NodeEmitterInterface;
 use Phel\Lang\Symbol;
 use RuntimeException;
@@ -41,9 +41,10 @@ final class PhpObjectCallEmitter implements NodeEmitterInterface
         // An instance call whose method receives a bare local argument relies
         // on the IIFE's by-value `use($local)` capture as a copy barrier: a
         // by-reference PHP parameter must not write back into the Phel binding
-        // (only `(php/ref local)` opts into that). Keep the IIFE in that case.
+        // (only `(php/ref local)` opts into that). Keep the IIFE in that case,
+        // in every context.
         if ($this->hasByValueLocalArg($node)) {
-            $this->emitWrappedTarget($node);
+            $this->emitForcedWrappedTarget($node);
 
             return;
         }
@@ -54,13 +55,7 @@ final class PhpObjectCallEmitter implements NodeEmitterInterface
             return;
         }
 
-        if ($node->getEnv()->isContext(NodeEnvironment::CONTEXT_EXPRESSION)) {
-            $this->emitWrappedTarget($node);
-
-            return;
-        }
-
-        $this->emitStatementTarget($node);
+        $this->emitComputedTarget($node);
     }
 
     /**
@@ -81,10 +76,32 @@ final class PhpObjectCallEmitter implements NodeEmitterInterface
     }
 
     /**
-     * Computed target in expression context: wrap in an IIFE so the temp var
-     * (which guarantees exactly-once target evaluation) can host a `return`.
+     * Computed target: a `target_` temp guarantees exactly-once target
+     * evaluation. The shared kernel wraps it in an IIFE only in expression
+     * context (where a `return` is needed); in statement/return context it
+     * emits plain statements.
      */
-    private function emitWrappedTarget(PhpObjectCallNode $node): void
+    private function emitComputedTarget(PhpObjectCallNode $node): void
+    {
+        $targetSym = Symbol::gen('target_');
+
+        new ContextualWrapEmitter($this->outputEmitter)->emit(
+            $node,
+            function () use ($node, $targetSym): void {
+                $this->emitTempAssignment($node, $targetSym);
+            },
+            function () use ($node, $targetSym): void {
+                $this->emitTargetCall($node, $targetSym);
+            },
+        );
+    }
+
+    /**
+     * Forced IIFE: the by-value `use($local)` capture is a copy barrier that
+     * must hold in every context, so the closure is emitted regardless of
+     * whether the result is consumed.
+     */
+    private function emitForcedWrappedTarget(PhpObjectCallNode $node): void
     {
         $this->outputEmitter->emitContextPrefix($node->getEnv(), $node->getStartSourceLocation());
 
@@ -103,21 +120,6 @@ final class PhpObjectCallEmitter implements NodeEmitterInterface
 
         $this->outputEmitter->emitFnWrapSuffix($node->getStartSourceLocation());
 
-        $this->outputEmitter->emitContextSuffix($node->getEnv(), $node->getStartSourceLocation());
-    }
-
-    /**
-     * Computed target in statement/return context: emit plain statements
-     * (`$target_N = <target>;` then the call) without an IIFE. The temp var
-     * still guarantees exactly-once target evaluation.
-     */
-    private function emitStatementTarget(PhpObjectCallNode $node): void
-    {
-        $targetSym = Symbol::gen('target_');
-        $this->emitTempAssignment($node, $targetSym);
-
-        $this->outputEmitter->emitContextPrefix($node->getEnv(), $node->getStartSourceLocation());
-        $this->emitTargetCall($node, $targetSym);
         $this->outputEmitter->emitContextSuffix($node->getEnv(), $node->getStartSourceLocation());
     }
 

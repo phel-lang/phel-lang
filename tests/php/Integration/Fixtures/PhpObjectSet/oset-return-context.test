@@ -1,0 +1,8 @@
+--PHEL--
+(fn [] (php/oset (php/-> (php/new \stdClass) name) "test"))
+--PHP--
+(function() {
+  $target_1 = (new \stdClass());
+  $target_1->name = "test";
+  return $target_1;
+});
