@@ -13,10 +13,19 @@ use function array_key_exists;
 use function in_array;
 use function is_string;
 
-final readonly class DependenciesForNamespace
+final class DependenciesForNamespace
 {
+    /**
+     * Intra-process memo keyed by `(dirs, seeds)` so the three root callers
+     * (`FileRunner`, `DataReadersLoader`, `NamespaceLoader`) don't each re-derive
+     * the same transitive dependency closure within one process.
+     *
+     * @var array<string, list<NamespaceInformation>>
+     */
+    private array $memo = [];
+
     public function __construct(
-        private NamespaceExtractorInterface $namespaceExtractor,
+        private readonly NamespaceExtractorInterface $namespaceExtractor,
     ) {}
 
     /**
@@ -27,6 +36,11 @@ final readonly class DependenciesForNamespace
      */
     public function getDependenciesForNamespace(array $directories, array $ns): array
     {
+        $memoKey = $this->memoKey($directories, $ns);
+        if (isset($this->memo[$memoKey])) {
+            return $this->memo[$memoKey];
+        }
+
         $namespaceInformation = $this->namespaceExtractor->getNamespacesFromDirectories($directories);
 
         $index = [];
@@ -79,6 +93,20 @@ final readonly class DependenciesForNamespace
             }
         }
 
-        return $result;
+        return $this->memo[$memoKey] = $result;
+    }
+
+    /**
+     * @param list<string> $directories
+     * @param list<string> $ns
+     */
+    private function memoKey(array $directories, array $ns): string
+    {
+        $dirs = $directories;
+        sort($dirs);
+        $seeds = $ns;
+        sort($seeds);
+
+        return implode("\0", $dirs) . "\x01" . implode("\0", $seeds);
     }
 }
