@@ -15,6 +15,7 @@ use Phel\Lang\Collections\Vector\SubVector;
 use Phel\Lang\Collections\Vector\TransientVector;
 use PhelTest\Unit\Lang\Collections\ModuloHasher;
 use PhelTest\Unit\Lang\Collections\SimpleEqualizer;
+use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 use RuntimeException;
 
@@ -409,6 +410,98 @@ final class PersistentVectorTest extends TestCase
 
         $this->assertTrue($vector1->equals($vector2));
         $this->assertTrue($vector2->equals($vector1));
+    }
+
+    public function test_equals_empty_vectors(): void
+    {
+        $vector1 = PersistentVector::empty(new ModuloHasher(), new SimpleEqualizer());
+        $vector2 = PersistentVector::empty(new ModuloHasher(), new SimpleEqualizer());
+
+        $this->assertTrue($vector1->equals($vector2));
+        $this->assertTrue($vector2->equals($vector1));
+    }
+
+    public function test_equals_identity_short_circuit(): void
+    {
+        $vector = PersistentVector::fromArray(new ModuloHasher(), new SimpleEqualizer(), range(0, 100));
+
+        $this->assertTrue($vector->equals($vector));
+    }
+
+    #[DataProvider('provideMultiChunkSizes')]
+    public function test_equals_multi_chunk_equal_vectors(int $size): void
+    {
+        $elements = range(0, $size - 1);
+        $vector1 = PersistentVector::fromArray(new ModuloHasher(), new SimpleEqualizer(), $elements);
+        $vector2 = PersistentVector::fromArray(new ModuloHasher(), new SimpleEqualizer(), $elements);
+
+        $this->assertNotSame($vector1, $vector2);
+        $this->assertTrue($vector1->equals($vector2));
+        $this->assertTrue($vector2->equals($vector1));
+    }
+
+    #[DataProvider('provideMultiChunkSizes')]
+    public function test_equals_multi_chunk_differs_at_first(int $size): void
+    {
+        $base = range(0, $size - 1);
+        $changed = $base;
+        $changed[0] = -1;
+
+        $vector1 = PersistentVector::fromArray(new ModuloHasher(), new SimpleEqualizer(), $base);
+        $vector2 = PersistentVector::fromArray(new ModuloHasher(), new SimpleEqualizer(), $changed);
+
+        $this->assertFalse($vector1->equals($vector2));
+        $this->assertFalse($vector2->equals($vector1));
+    }
+
+    #[DataProvider('provideMultiChunkSizes')]
+    public function test_equals_multi_chunk_differs_at_middle(int $size): void
+    {
+        $base = range(0, $size - 1);
+        $changed = $base;
+        $changed[intdiv($size, 2)] = -1;
+
+        $vector1 = PersistentVector::fromArray(new ModuloHasher(), new SimpleEqualizer(), $base);
+        $vector2 = PersistentVector::fromArray(new ModuloHasher(), new SimpleEqualizer(), $changed);
+
+        $this->assertFalse($vector1->equals($vector2));
+        $this->assertFalse($vector2->equals($vector1));
+    }
+
+    #[DataProvider('provideMultiChunkSizes')]
+    public function test_equals_multi_chunk_differs_at_last(int $size): void
+    {
+        $base = range(0, $size - 1);
+        $changed = $base;
+        $changed[$size - 1] = -1;
+
+        $vector1 = PersistentVector::fromArray(new ModuloHasher(), new SimpleEqualizer(), $base);
+        $vector2 = PersistentVector::fromArray(new ModuloHasher(), new SimpleEqualizer(), $changed);
+
+        $this->assertFalse($vector1->equals($vector2));
+        $this->assertFalse($vector2->equals($vector1));
+    }
+
+    public function test_equals_multi_chunk_different_length(): void
+    {
+        $vector1 = PersistentVector::fromArray(new ModuloHasher(), new SimpleEqualizer(), range(0, 99));
+        $vector2 = PersistentVector::fromArray(new ModuloHasher(), new SimpleEqualizer(), range(0, 100));
+
+        $this->assertFalse($vector1->equals($vector2));
+        $this->assertFalse($vector2->equals($vector1));
+    }
+
+    /**
+     * @return iterable<string, array{int}>
+     */
+    public static function provideMultiChunkSizes(): iterable
+    {
+        yield 'single element' => [1];
+        yield 'full first chunk' => [31];
+        yield 'chunk boundary' => [32];
+        yield 'crosses one chunk' => [33];
+        yield 'depth two boundary' => [1024];
+        yield 'crosses depth two' => [1025];
     }
 
     public function test_offset_get(): void
