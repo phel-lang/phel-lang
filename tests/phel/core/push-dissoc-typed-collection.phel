@@ -1,0 +1,45 @@
+(ns phel-test.core.push-dissoc-typed-collection
+  (:require phel.test :refer [deftest is]))
+
+;; Tagged targets take the specialised emitter path
+;; (direct PersistentVector::append / PersistentMap::remove chain);
+;; the untagged counterparts go through the runtime dispatch. Both
+;; must agree.
+
+(defn- push-tagged [^"\Phel\Lang\Collections\Vector\PersistentVectorInterface" v x]
+  (push v x))
+
+(defn- push-untagged [v x]
+  (push v x))
+
+(defn- dissoc-tagged [^"\Phel\Lang\Collections\Map\PersistentMapInterface" m & ks]
+  (apply dissoc m ks))
+
+(defn- dissoc-tagged-2 [^"\Phel\Lang\Collections\Map\PersistentMapInterface" m a b]
+  (dissoc m a b))
+
+(defn- dissoc-tagged-3 [^"\Phel\Lang\Collections\Map\PersistentMapInterface" m a b c]
+  (dissoc m a b c))
+
+(defn- dissoc-tagged-1 [^"\Phel\Lang\Collections\Map\PersistentMapInterface" m a]
+  (dissoc m a))
+
+(deftest test-push-typed-vector-matches-runtime
+  (is (= [1 2 3] (push-tagged [1 2] 3)) "specialised push appends to a vector")
+  (is (= (push-untagged [1 2] 3) (push-tagged [1 2] 3))
+      "tagged push agrees with untagged push")
+  (is (= [99] (push-tagged [] 99)) "specialised push onto empty vector"))
+
+(deftest test-dissoc-variadic-typed-map-matches-runtime
+  (is (= {:b 2} (dissoc-tagged-1 {:a 1 :b 2} :a))
+      "single-key dissoc removes the key")
+  (is (= {:c 3} (dissoc-tagged-2 {:a 1 :b 2 :c 3} :a :b))
+      "two-key dissoc removes both keys")
+  (is (= {} (dissoc-tagged-3 {:a 1 :b 2 :c 3} :a :b :c))
+      "three-key dissoc removes all keys")
+  (is (= {:b 2 :c 3} (dissoc-tagged {:a 1 :b 2 :c 3} :a :missing))
+      "dissoc ignores missing keys, applied left-to-right"))
+
+(deftest test-dissoc-key-order-independent-of-tag
+  (is (= (dissoc {:a 1 :b 2 :c 3} :a :c) (dissoc-tagged-2 {:a 1 :b 2 :c 3} :a :c))
+      "tagged variadic dissoc agrees with untagged runtime dissoc"))

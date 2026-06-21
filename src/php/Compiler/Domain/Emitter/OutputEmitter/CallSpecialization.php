@@ -126,6 +126,10 @@ final readonly class CallSpecialization
             return true;
         }
 
+        if (AssocConjSpecialization::isTypedDissocKeys($node)) {
+            return true;
+        }
+
         if (AssocConjSpecialization::isTypedAssocConjDissoc($node)) {
             return true;
         }
