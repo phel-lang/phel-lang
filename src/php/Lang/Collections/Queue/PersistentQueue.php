@@ -43,6 +43,15 @@ use function array_reverse;
  */
 final class PersistentQueue extends AbstractType implements TypeInterface, Countable, IteratorAggregate, FirstInterface, CdrInterface, ConsInterface, PushInterface, PopInterface
 {
+    /**
+     * Keeps the rolling hash accumulator inside a 32-bit unsigned range so
+     * `31 * $hash` never exceeds PHP_INT_MAX and silently promotes to float
+     * (which would throw a TypeError when assigned to `?int $hashCache`
+     * under strict_types for large queues). Kept in lockstep with vector,
+     * list and map hashing.
+     */
+    private const int HASH_MASK = 0xFFFFFFFF;
+
     private ?int $hashCache = null;
 
     /**
@@ -229,7 +238,7 @@ final class PersistentQueue extends AbstractType implements TypeInterface, Count
 
         $hash = 1;
         foreach ($this as $value) {
-            $hash = 31 * $hash + $this->hasher->hash($value);
+            $hash = (31 * $hash + $this->hasher->hash($value)) & self::HASH_MASK;
         }
 
         return $this->hashCache = $hash;

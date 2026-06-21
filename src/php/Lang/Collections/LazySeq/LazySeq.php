@@ -33,6 +33,14 @@ use function is_object;
  */
 final class LazySeq extends AbstractType implements LazySeqInterface, Countable, IteratorAggregate
 {
+    /**
+     * Keeps the rolling hash accumulator inside a 32-bit unsigned range so
+     * `31 * $hash` never exceeds PHP_INT_MAX and silently promotes to float
+     * (which would throw a TypeError on the `: int` return for long
+     * sequences). Kept in lockstep with vector, list, queue and map hashing.
+     */
+    private const int HASH_MASK = 0xFFFFFFFF;
+
     /** @var callable|null The thunk that produces the sequence (null once realized) */
     private $fn;
 
@@ -407,7 +415,7 @@ final class LazySeq extends AbstractType implements LazySeqInterface, Countable,
         // Realize and hash the sequence (similar to PersistentList)
         $hash = 1;
         foreach ($this as $value) {
-            $hash = 31 * $hash + $this->hasher->hash($value);
+            $hash = (31 * $hash + $this->hasher->hash($value)) & self::HASH_MASK;
         }
 
         return $hash;

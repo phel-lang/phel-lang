@@ -418,4 +418,20 @@ final class LazySeqTest extends TestCase
         $lazySeq->first();
         $this->assertSame(1, $accessCount, 'Should use cached value');
     }
+
+    /**
+     * Regression for the int->float overflow in the `31 * $hash + ...`
+     * accumulator: hashing a long lazy seq must return a stable int instead
+     * of overflowing to a float and throwing a TypeError on the `: int`
+     * return.
+     */
+    public function test_hash_large_lazy_seq_returns_stable_int(): void
+    {
+        $lazySeq = LazySeq::fromArray($this->hasher, $this->equalizer, range(0, 999));
+
+        $hash = $lazySeq->hash();
+
+        $this->assertIsInt($hash);
+        $this->assertSame($hash, $lazySeq->hash());
+    }
 }

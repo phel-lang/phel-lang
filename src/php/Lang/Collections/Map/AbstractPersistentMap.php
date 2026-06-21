@@ -22,6 +22,15 @@ use function is_nan;
  */
 abstract class AbstractPersistentMap extends AbstractType implements PersistentMapInterface
 {
+    /**
+     * Keeps the rolling hash accumulator inside a 32-bit unsigned range so
+     * the running sum can never silently promote to float (which would
+     * throw a TypeError when assigned to `?int $hashCache` under
+     * strict_types for large maps). Kept in lockstep with vector and list
+     * hashing.
+     */
+    private const int HASH_MASK = 0xFFFFFFFF;
+
     private ?int $hashCache = null;
 
     /**
@@ -59,7 +68,7 @@ abstract class AbstractPersistentMap extends AbstractType implements PersistentM
 
         $hash = 1;
         foreach ($this as $key => $value) {
-            $hash += $this->hasher->hash($key) ^ $this->hasher->hash($value);
+            $hash = ($hash + (($this->hasher->hash($key) ^ $this->hasher->hash($value)) & self::HASH_MASK)) & self::HASH_MASK;
         }
 
         return $this->hashCache = $hash;

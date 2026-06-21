@@ -26,6 +26,15 @@ use function count;
  */
 final class PersistentList extends AbstractType implements PersistentListInterface
 {
+    /**
+     * Keeps the rolling hash accumulator inside a 32-bit unsigned range so
+     * `31 * $hash` never exceeds PHP_INT_MAX and silently promotes to float
+     * (which would throw a TypeError when assigned to `?int $hashCache`
+     * under strict_types for long lists). Kept in lockstep with vector and
+     * map hashing.
+     */
+    private const int HASH_MASK = 0xFFFFFFFF;
+
     private ?int $hashCache = null;
 
     /**
@@ -189,7 +198,7 @@ final class PersistentList extends AbstractType implements PersistentListInterfa
 
         $hash = 1;
         foreach ($this as $value) {
-            $hash = 31 * $hash + $this->hasher->hash($value);
+            $hash = (31 * $hash + $this->hasher->hash($value)) & self::HASH_MASK;
         }
 
         return $this->hashCache = $hash;

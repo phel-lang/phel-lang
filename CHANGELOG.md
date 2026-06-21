@@ -29,6 +29,7 @@ All notable changes to this project will be documented in this file.
 
 ### Fixed
 
+- Hashing a persistent collection (vector, list, queue, lazy seq, hash/sorted set, or map) no longer throws a `TypeError` once it grows past ~13 elements: the rolling hash accumulator now wraps within a 32-bit range instead of silently overflowing to a float (#2567)
 - The "not defined" error hint now also shows when the compiler appends a `Did you mean ...?` suggestion (a trailing period previously suppressed it)
 - `php/oset` in return context now elides the redundant closure wrapper, matching `php/->`'s return-context behavior (#2536)
 

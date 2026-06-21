@@ -5,14 +5,18 @@ declare(strict_types=1);
 namespace PhelTest\Unit\Lang\Collections\Vector;
 
 use InvalidArgumentException;
+use Iterator;
 use Phel;
 use Phel\Lang\Collections\Exceptions\IndexOutOfBoundsException;
+use Phel\Lang\Collections\Map\PersistentHashMap;
 use Phel\Lang\Collections\Map\PersistentMapInterface;
 use Phel\Lang\Collections\Vector\PersistentVector;
 use Phel\Lang\Collections\Vector\PersistentVectorInterface;
 use Phel\Lang\Collections\Vector\RangeIterator;
 use Phel\Lang\Collections\Vector\SubVector;
 use Phel\Lang\Collections\Vector\TransientVector;
+use Phel\Lang\Equalizer;
+use Phel\Lang\Hasher;
 use PhelTest\Unit\Lang\Collections\ModuloHasher;
 use PhelTest\Unit\Lang\Collections\SimpleEqualizer;
 use PHPUnit\Framework\Attributes\DataProvider;
@@ -549,5 +553,55 @@ final class PersistentVectorTest extends TestCase
         $this->assertTrue($vector->contains(0));
         $this->assertTrue($vector->contains(1));
         $this->assertFalse($vector->contains(2));
+    }
+
+    /**
+     * Regression for the int->float overflow: the rolling `31 * $hash + ...`
+     * accumulator used to promote to float once a vector had ~13+ elements,
+     * which then threw a TypeError when assigned to the `?int $hashCache`.
+     */
+    #[DataProvider('provideLargeVectorSizes')]
+    public function test_hash_large_vector_returns_stable_int(int $size): void
+    {
+        $vector = PersistentVector::fromArray(new Hasher(), new Equalizer(), range(0, $size - 1));
+
+        $hash = $vector->hash();
+
+        $this->assertIsInt($hash);
+        // Cached: a second call must return the exact same value.
+        $this->assertSame($hash, $vector->hash());
+    }
+
+    public static function provideLargeVectorSizes(): Iterator
+    {
+        yield '13 elements' => [13];
+        yield '40 elements' => [40];
+        yield '1000 elements' => [1000];
+    }
+
+    public function test_equal_large_vectors_have_equal_hash(): void
+    {
+        $left = PersistentVector::fromArray(new Hasher(), new Equalizer(), range(0, 999));
+        $right = PersistentVector::fromArray(new Hasher(), new Equalizer(), range(0, 999));
+
+        $this->assertTrue($left->equals($right));
+        $this->assertSame($left->hash(), $right->hash());
+    }
+
+    public function test_large_vector_works_as_hash_map_key(): void
+    {
+        $key = PersistentVector::fromArray(new Hasher(), new Equalizer(), range(0, 999));
+        $equalKey = PersistentVector::fromArray(new Hasher(), new Equalizer(), range(0, 999));
+
+        $map = PersistentHashMap::empty(new Hasher(), new Equalizer())
+            ->put($key, 'value');
+
+        // Lookup with an equal-but-distinct vector instance.
+        $this->assertSame('value', $map->find($equalKey));
+
+        // Inserting the equal key must dedup, not grow the map.
+        $map = $map->put($equalKey, 'other');
+        $this->assertCount(1, $map);
+        $this->assertSame('other', $map->find($key));
     }
 }

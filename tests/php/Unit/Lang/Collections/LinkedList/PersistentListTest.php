@@ -14,6 +14,8 @@ use Phel\Lang\Collections\LinkedList\PersistentListInterface;
 use Phel\Lang\Collections\Map\PersistentArrayMap;
 use Phel\Lang\Collections\Map\PersistentMapInterface;
 use Phel\Lang\Collections\Vector\PersistentVector;
+use Phel\Lang\Equalizer;
+use Phel\Lang\Hasher;
 use PhelTest\Unit\Lang\Collections\ModuloHasher;
 use PhelTest\Unit\Lang\Collections\SimpleEqualizer;
 use PHPUnit\Framework\TestCase;
@@ -188,6 +190,21 @@ final class PersistentListTest extends TestCase
         $list = PersistentList::fromArray(new ModuloHasher(), new SimpleEqualizer(), [2]);
 
         $this->assertSame(33, $list->hash());
+    }
+
+    /**
+     * Regression for the int->float overflow in the `31 * $hash + ...`
+     * accumulator: a long list must still return a stable int hash instead
+     * of throwing a TypeError on the `?int $hashCache` assignment.
+     */
+    public function test_hash_large_list_returns_stable_int(): void
+    {
+        $list = PersistentList::fromArray(new Hasher(), new Equalizer(), range(0, 999));
+
+        $hash = $list->hash();
+
+        $this->assertIsInt($hash);
+        $this->assertSame($hash, $list->hash());
     }
 
     public function test_iterator(): void
