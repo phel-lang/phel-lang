@@ -1,0 +1,9 @@
+--PHEL--
+(fn [^string s] (count s))
+(fn [^string s] (first s))
+--PHP--
+(function(string $s) {
+  return mb_strlen($s);
+});(function(string $s) {
+  return ($s === '' ? null : mb_substr($s, 0, 1));
+});

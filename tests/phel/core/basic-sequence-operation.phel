@@ -40,6 +40,26 @@
   (is (contains? #{[1] [2]} (first #{[1] [2]})) "first of set")
   (is (nil? (first nil)) "frist of nil"))
 
+;; `^string`-tagged count/first lower to native `mb_strlen` /
+;; `mb_substr`; assert they equal the untagged runtime dispatch,
+;; including multibyte (codepoint, not byte) input.
+(defn- count-tagged [^string s] (count s))
+(defn- first-tagged [^string s] (first s))
+
+(deftest test-count-tagged-string
+  (is (= (count "hello") (count-tagged "hello")) "count tagged ascii")
+  (is (= (count "héllo") (count-tagged "héllo")) "count tagged multibyte")
+  (is (= 5 (count-tagged "héllo")) "count tagged multibyte is codepoints not bytes")
+  (is (= (count "😀x") (count-tagged "😀x")) "count tagged astral plane")
+  (is (= (count "") (count-tagged "")) "count tagged empty"))
+
+(deftest test-first-tagged-string
+  (is (= (first "hello") (first-tagged "hello")) "first tagged ascii")
+  (is (= (first "héllo") (first-tagged "héllo")) "first tagged multibyte")
+  (is (= "😀" (first-tagged "😀x")) "first tagged astral plane is a full codepoint")
+  (is (= (first "😀x") (first-tagged "😀x")) "first tagged astral plane matches runtime")
+  (is (nil? (first-tagged "")) "first tagged empty is nil"))
+
 (deftest test-ffirst
   (is (= 1 (ffirst [[1]])) "ffirst of nested vector")
   (is (nil? (ffirst [1])) "ffirst of vector")
