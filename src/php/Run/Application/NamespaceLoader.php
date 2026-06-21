@@ -11,17 +11,12 @@ use Phel\Shared\Facade\BuildFacadeInterface;
 use Phel\Shared\Facade\CommandFacadeInterface;
 use Phel\Shared\Facade\CompilerFacadeInterface;
 
-use function array_unique;
-use function array_values;
 use function dirname;
 use function file_exists;
 use function getcwd;
 
 final class NamespaceLoader
 {
-    /** @var array<string, true> */
-    private static array $loadedFiles = [];
-
     private static bool $dataReadersLoaded = false;
 
     public function __construct(
@@ -29,12 +24,13 @@ final class NamespaceLoader
         private readonly CommandFacadeInterface $commandFacade,
         private readonly CompilerFacadeInterface $compilerFacade,
         private readonly BundledNamespaces $bundledNamespaces,
+        private readonly NamespaceFileTracker $fileTracker,
         private readonly string $defaultReplStartupFile,
     ) {}
 
     public static function reset(): void
     {
-        self::$loadedFiles = [];
+        NamespaceFileTracker::reset();
         self::$dataReadersLoaded = false;
     }
 
@@ -65,6 +61,7 @@ final class NamespaceLoader
         Phel::addDefinition(CompilerConstants::PHEL_CORE_NAMESPACE, '*file*', '');
 
         $this->loadDataReaders($srcDirectories);
+        $this->registerLazyBundledNamespaceResolver($srcDirectories);
     }
 
     /**
@@ -79,20 +76,25 @@ final class NamespaceLoader
     }
 
     /**
-     * Seed dependency resolution with both the startup namespace and every
-     * bundled `phel.*` module so fully qualified references like
-     * `phel.async/delay` or `phel.json/encode` work without forcing user code
-     * to spell out a `(:require ...)` for each one.
+     * Seed dependency resolution with the startup namespace and `phel.core`
+     * only. The other bundled `phel.*` modules (`phel.html`, `phel.json`,
+     * `phel.test`, ...) load lazily on first fully qualified reference or
+     * explicit `(require ...)`, so time-to-prompt drops to roughly the
+     * `phel.core`-only load cost. The lazy loader is wired in
+     * {@see registerLazyBundledNamespaceResolver()}.
      *
      * @return list<string>
      */
     private function resolveSeeds(string $startupNamespace): array
     {
-        return array_values(array_unique([
+        if ($startupNamespace === CompilerConstants::PHEL_CORE_NAMESPACE) {
+            return [CompilerConstants::PHEL_CORE_NAMESPACE];
+        }
+
+        return [
             $startupNamespace,
             CompilerConstants::PHEL_CORE_NAMESPACE,
-            ...$this->bundledNamespaces->all(),
-        ]));
+        ];
     }
 
     /**
@@ -103,11 +105,31 @@ final class NamespaceLoader
     {
         foreach ($this->buildFacade->getDependenciesForNamespace($srcDirectories, $seeds) as $info) {
             $file = $info->getFile();
-            if (!isset(self::$loadedFiles[$file])) {
+            if (!$this->fileTracker->isLoaded($file)) {
                 $this->buildFacade->evalFile($file);
-                self::$loadedFiles[$file] = true;
+                $this->fileTracker->markLoaded($file);
             }
         }
+    }
+
+    /**
+     * Registers the on-demand resolver so a fully qualified reference to a
+     * bundled namespace that was not seeded eagerly (`phel.json/encode`) loads
+     * that namespace the first time the analyzer meets it, instead of failing
+     * with "not defined".
+     *
+     * @param list<string> $srcDirectories
+     */
+    private function registerLazyBundledNamespaceResolver(array $srcDirectories): void
+    {
+        $this->compilerFacade->getGlobalEnvironment()->setBundledNamespaceResolver(
+            new LazyBundledNamespaceResolver(
+                $this->buildFacade,
+                $this->bundledNamespaces->all(),
+                $srcDirectories,
+                $this->fileTracker,
+            ),
+        );
     }
 
     /**

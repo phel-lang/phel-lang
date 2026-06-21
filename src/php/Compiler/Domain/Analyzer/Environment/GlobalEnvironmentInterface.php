@@ -15,6 +15,10 @@ interface GlobalEnvironmentInterface
 
     public function setNs(string $ns): void;
 
+    public function setBundledNamespaceResolver(?BundledNamespaceResolverInterface $resolver): void;
+
+    public function getBundledNamespaceResolver(): ?BundledNamespaceResolverInterface;
+
     public function addDefinition(string $namespace, Symbol $name, bool $allowRedefinition = false): void;
 
     /**
