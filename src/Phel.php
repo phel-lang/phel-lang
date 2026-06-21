@@ -66,12 +66,17 @@ final class Phel extends InternalPhel
      */
     public static function getDefinition(string $ns, string $name): mixed
     {
-        // Hot path: every resolved symbol hits this. Probe the scope for
-        // *any* live frame first (O(1)) so the common "no binding active"
-        // case skips the string concat and stack walk entirely.
-        $scope = DynamicScope::getInstance();
-        if ($scope->hasAnyBinding() && $scope->hasBinding($ns, $name)) {
-            return $scope->getBinding($ns, $name);
+        // Hot path: every resolved symbol hits this. Read the process-global
+        // latch first so that when no dynamic binding has ever been
+        // established (the overwhelming common case) we skip the singleton
+        // fetch and the `Fiber::getCurrent()` call inside hasAnyBinding()
+        // entirely. A stale `true` falls through to the full hasAnyBinding()
+        // + hasBinding() check, which correctly returns the registry value.
+        if (DynamicScope::$anyActive) {
+            $scope = DynamicScope::getInstance();
+            if ($scope->hasAnyBinding() && $scope->hasBinding($ns, $name)) {
+                return $scope->getBinding($ns, $name);
+            }
         }
 
         return Registry::getInstance()->getDefinition($ns, $name);
