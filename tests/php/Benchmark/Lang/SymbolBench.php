@@ -21,9 +21,12 @@ final class SymbolBench
 {
     private Symbol $symbol;
 
+    private Symbol $valueEqual;
+
     public function setUp(): void
     {
         $this->symbol = Symbol::createForNamespace('phel\\core', 'map-indexed');
+        $this->valueEqual = Symbol::createForNamespace('phel\\core', 'map-indexed');
     }
 
     /**
@@ -38,6 +41,29 @@ final class SymbolBench
         $symbol = $this->symbol;
         for ($i = 0; $i < 16; ++$i) {
             $symbol->hash();
+        }
+    }
+
+    /**
+     * `Symbol::equals()` micro-benchmark.
+     *
+     * Environment lookups compare a symbol against itself (identity fast
+     * path) and against distinct, value-equal instances (field comparison).
+     * Both branches are exercised here.
+     *
+     * @Revs(100000)
+     *
+     * @Iterations(5)
+     *
+     * @BeforeMethods("setUp")
+     */
+    public function bench_equals(): void
+    {
+        $symbol = $this->symbol;
+        $valueEqual = $this->valueEqual;
+        for ($i = 0; $i < 16; ++$i) {
+            $symbol->equals($symbol);
+            $symbol->equals($valueEqual);
         }
     }
 }

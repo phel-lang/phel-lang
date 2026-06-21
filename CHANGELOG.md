@@ -18,6 +18,7 @@ All notable changes to this project will be documented in this file.
 - CLI commands are now lazy-loaded via Symfony's command loader, so each invocation constructs only the dispatched command instead of every command (#2558)
 - A typed `defn` now walks its body twice instead of three times: return-type inference runs once after param tags are grafted instead of also running inline in `FnSymbol` (#2555)
 - The REPL now loads only `phel.core` (plus the startup namespace's requires) at boot; other bundled `phel.*` modules load lazily on first reference, cutting time-to-prompt by ~34% (#2559)
+- `Symbol` equality short-circuits on identity and compares its backing fields directly instead of through getters, speeding up the symbol comparisons that dominate compiler environment lookups (#2551)
 
 ### Fixed
 
