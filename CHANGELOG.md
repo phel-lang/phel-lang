@@ -14,6 +14,7 @@ All notable changes to this project will be documented in this file.
 - The lexer skips per-token deprecation checks for the common token types via a single lookup (#2546)
 - Global symbol reads skip the per-call dynamic-scope/Fiber check when no dynamic bindings are active (#2545)
 - The analyzer no longer clones the node environment when a context/binding setter is a no-op, cutting allocations on call-heavy code (#2552)
+- `(= x :keyword)` now compiles to a native identity check instead of dispatching through the runtime equality fn (#2561)
 
 ### Fixed
 
