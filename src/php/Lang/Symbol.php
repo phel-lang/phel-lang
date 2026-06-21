@@ -209,9 +209,14 @@ final class Symbol extends AbstractType implements IdenticalInterface, FnInterfa
 
     public function equals(mixed $other): bool
     {
-        return $other instanceof self
-            && $this->name === $other->getName()
-            && $this->namespace === $other->getNamespace();
+        // Identity is sufficient (but not necessary): Symbols are not interned
+        // (each carries a per-occurrence source location), so two value-equal
+        // Symbols may be distinct instances. The `===` true case is a correct
+        // shortcut; the false case falls through to direct field comparison.
+        return $this === $other
+            || ($other instanceof self
+                && $this->name === $other->name
+                && $this->namespace === $other->namespace);
     }
 
     public function identical(mixed $other): bool
