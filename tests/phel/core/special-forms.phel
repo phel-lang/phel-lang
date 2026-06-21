@@ -18,6 +18,18 @@
         xml        (php/new \SimpleXMLElement xml-string)]
     (is (= "John" (str (php/-> xml user name))))))
 
+(deftest test-php-new-dynamic-class-from-variable
+  (let [cls "\\DateTimeZone"
+        tz  (php/new cls "Europe/Berlin")]
+    (is (= "Europe/Berlin" (php/-> tz (getName)))
+        "php/new with a class held in a variable resolves at runtime")))
+
+(deftest test-php-new-dynamic-invalid-class-throws
+  (is (thrown? \InvalidArgumentException
+        (let [cls 42]
+          (php/new cls)))
+      "php/new with a non-string, non-object class value throws InvalidArgumentException"))
+
 (deftest test-def-duplication
   (let [form (read-string "(do (def a \"first\") (def a \"second\") a)")]
     (is (= "second" (eval form)))))

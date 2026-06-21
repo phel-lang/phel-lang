@@ -1,0 +1,9 @@
+--PHEL--
+(let [cls "\\DateTimeImmutable"] (php/new cls) :done)
+--PHP--
+$cls_1 = "\\DateTimeImmutable";
+$target_2 = $cls_1;
+if (!is_string($target_2) && !is_object($target_2)) {
+throw new \InvalidArgumentException(sprintf("php/new expects a class name or object, %s given (%s)", get_debug_type($target_2), var_export($target_2, true)));
+}
+new $target_2();
