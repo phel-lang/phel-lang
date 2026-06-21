@@ -8,10 +8,7 @@ enum Level: int {
 
   public function doubled() {
     $this_1 = $this;
-    return (2 * (function() use($this_1) {
-      $target_2 = $this_1;
-      return $target_2->value;
-    })());
+    return (2 * ($this_1->value));
   }
 }
 }

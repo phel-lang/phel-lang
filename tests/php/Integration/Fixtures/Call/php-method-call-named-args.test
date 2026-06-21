@@ -2,7 +2,4 @@
 (let [o (php/new \ArrayObject)] (php/-> o (setFlags :& :flags 1)))
 --PHP--
 $o_1 = (new \ArrayObject());
-(function() use($o_1) {
-  $target_2 = $o_1;
-  return $target_2->setFlags(flags: 1);
-})();
+($o_1->setFlags(flags: 1));

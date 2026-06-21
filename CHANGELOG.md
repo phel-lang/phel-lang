@@ -4,6 +4,10 @@ All notable changes to this project will be documented in this file.
 
 ## Unreleased
 
+### Performance
+
+- `php/->` and `php/::` now emit leaner PHP, dropping the closure wrapper for simple targets and statement/return-context calls (#2524)
+
 ### Fixed
 
 - The "not defined" error hint now also shows when the compiler appends a `Did you mean ...?` suggestion (a trailing period previously suppressed it)
