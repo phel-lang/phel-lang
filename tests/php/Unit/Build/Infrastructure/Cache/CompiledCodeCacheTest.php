@@ -139,6 +139,7 @@ final class CompiledCodeCacheTest extends TestCase
         $cache1->put($fileB, 'shared\\ns', 'hashB', '// B');
         $cache1->invalidate($fileA);
         $cache1->put($fileB, 'shared\\ns', 'hashB2', '// B2');
+        $cache1->save();
 
         $cache2 = new CompiledCodeCache($this->cacheDir);
 
@@ -231,6 +232,7 @@ final class CompiledCodeCacheTest extends TestCase
     {
         $cache1 = new CompiledCodeCache($this->cacheDir);
         $cache1->put($this->sourceFile, 'test\\namespace', 'hash', '// code');
+        $cache1->save();
 
         $cache2 = new CompiledCodeCache($this->cacheDir);
 
@@ -241,6 +243,7 @@ final class CompiledCodeCacheTest extends TestCase
     {
         $cache1 = new CompiledCodeCache($this->cacheDir, 'v1.0.0');
         $cache1->put($this->sourceFile, 'test\\namespace', 'hash', '// code');
+        $cache1->save();
 
         $cache2 = new CompiledCodeCache($this->cacheDir, 'v1.0.0');
 
@@ -251,6 +254,7 @@ final class CompiledCodeCacheTest extends TestCase
     {
         $cache1 = new CompiledCodeCache($this->cacheDir, 'v1.0.0');
         $cache1->put($this->sourceFile, 'test\\namespace', 'hash', '// code');
+        $cache1->save();
 
         $cache2 = new CompiledCodeCache($this->cacheDir, 'v2.0.0');
 
@@ -267,6 +271,8 @@ final class CompiledCodeCacheTest extends TestCase
         for ($i = 1; $i <= 5; ++$i) {
             $seed->put($this->cacheDir . sprintf('/ns%d.phel', $i), 'ns' . $i, 'hash' . $i, '// code ' . $i);
         }
+
+        $seed->save();
 
         $cache = new CompiledCodeCache($this->cacheDir, '', 5);
 
@@ -287,6 +293,7 @@ final class CompiledCodeCacheTest extends TestCase
         $seed->put($this->cacheDir . '/ns1.phel', 'ns1', 'hash1', '// code 1');
         $seed->put($this->cacheDir . '/ns2.phel', 'ns2', 'hash2', '// code 2');
         $seed->put($this->cacheDir . '/ns3.phel', 'ns3', 'hash3', '// code 3');
+        $seed->save();
 
         $path1 = $seed->getCompiledPath($this->cacheDir . '/ns1.phel', 'ns1');
         self::assertFileExists($path1);
@@ -328,6 +335,87 @@ final class CompiledCodeCacheTest extends TestCase
         for ($i = 1; $i <= 5; ++$i) {
             self::assertNotNull($cache->get($this->cacheDir . sprintf('/ns%d.phel', $i), 'hash' . $i));
         }
+    }
+
+    public function test_puts_do_not_write_index_until_flush(): void
+    {
+        // Deferred-flush guarantee: a cold build of N namespaces writes the
+        // index exactly once at shutdown, not once per put. Until save() the
+        // on-disk index file must not exist, yet in-memory reads still hit.
+        $cache = new CompiledCodeCache($this->cacheDir);
+        $indexFile = $this->cacheDir . '/compiled-index.php';
+
+        for ($i = 1; $i <= 5; ++$i) {
+            $cache->put($this->cacheDir . sprintf('/ns%d.phel', $i), 'ns' . $i, 'hash' . $i, '// code ' . $i);
+            self::assertFileDoesNotExist($indexFile, sprintf('index must not be written on put #%d', $i));
+            self::assertNotNull(
+                $cache->get($this->cacheDir . sprintf('/ns%d.phel', $i), 'hash' . $i),
+                'in-memory entry must be readable before flush',
+            );
+        }
+
+        $cache->save();
+
+        self::assertFileExists($indexFile, 'index is written once at flush');
+    }
+
+    public function test_single_flush_persists_all_put_entries(): void
+    {
+        $cache1 = new CompiledCodeCache($this->cacheDir);
+        for ($i = 1; $i <= 5; ++$i) {
+            $cache1->put($this->cacheDir . sprintf('/ns%d.phel', $i), 'ns' . $i, 'hash' . $i, '// code ' . $i);
+        }
+
+        $cache1->save();
+
+        // A fresh instance reads only what the single flush wrote; all five
+        // entries must be present.
+        $cache2 = new CompiledCodeCache($this->cacheDir);
+        for ($i = 1; $i <= 5; ++$i) {
+            self::assertNotNull(
+                $cache2->get($this->cacheDir . sprintf('/ns%d.phel', $i), 'hash' . $i),
+                sprintf('entry ns%d must survive the single flush', $i),
+            );
+        }
+    }
+
+    public function test_invalidate_is_reflected_after_flush(): void
+    {
+        $cache1 = new CompiledCodeCache($this->cacheDir);
+        $fileA = $this->cacheDir . '/a.phel';
+        $fileB = $this->cacheDir . '/b.phel';
+        $cache1->put($fileA, 'shared\\ns', 'hashA', '// A');
+        $cache1->put($fileB, 'shared\\ns', 'hashB', '// B');
+        $cache1->invalidate($fileA);
+        $cache1->save();
+
+        $cache2 = new CompiledCodeCache($this->cacheDir);
+
+        self::assertFalse($cache2->has($fileA), 'invalidated entry must not be flushed to disk');
+        self::assertNotNull($cache2->get($fileB, 'hashB'), 'untouched entry must survive the flush');
+    }
+
+    public function test_flush_preserves_entries_written_by_another_instance(): void
+    {
+        // Concurrent-merge guarantee: two instances each put a distinct entry
+        // and flush. The second flush read-merges the first instance's on-disk
+        // entry, so the final index is the union (no lost entries) — the same
+        // path two parallel `phel test` workers exercise across processes.
+        $fileA = $this->cacheDir . '/a.phel';
+        $fileB = $this->cacheDir . '/b.phel';
+
+        $cacheA = new CompiledCodeCache($this->cacheDir);
+        $cacheB = new CompiledCodeCache($this->cacheDir);
+
+        $cacheA->put($fileA, 'ns\\a', 'hashA', '// A');
+        $cacheB->put($fileB, 'ns\\b', 'hashB', '// B');
+
+        $cacheA->save();
+        $cacheB->save();
+
+        $fresh = new CompiledCodeCache($this->cacheDir);
+        self::assertNotNull($fresh->get($fileA, 'hashA'), 'first instance entry must survive the second flush');
+        self::assertNotNull($fresh->get($fileB, 'hashB'), 'second instance entry must be present');
     }
 
     public function test_put_environment_and_get_environment_round_trip(): void
