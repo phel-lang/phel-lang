@@ -16,6 +16,7 @@ use Phel\Compiler\Domain\Emitter\OutputEmitter\GlobalCallTarget;
 use Phel\Compiler\Domain\Emitter\OutputEmitter\NodeEmitter\Specialized\AssocConjCallEmitter;
 use Phel\Compiler\Domain\Emitter\OutputEmitter\NodeEmitter\Specialized\AtomMethodCallEmitter;
 use Phel\Compiler\Domain\Emitter\OutputEmitter\NodeEmitter\Specialized\CoreFnCallEmitter;
+use Phel\Compiler\Domain\Emitter\OutputEmitter\NodeEmitter\Specialized\GetInCallEmitter;
 use Phel\Compiler\Domain\Emitter\OutputEmitter\NodeEmitter\Specialized\NilBooleanCallEmitter;
 use Phel\Compiler\Domain\Emitter\OutputEmitter\NodeEmitter\Specialized\NumericOperationCallEmitter;
 use Phel\Compiler\Domain\Emitter\OutputEmitter\NodeEmitter\Specialized\SpecializedCallEmitterInterface;
@@ -46,6 +47,7 @@ final readonly class CallEmitter implements NodeEmitterInterface
         $this->specializedEmitters = [
             new TypedValueCallEmitter($outputEmitter),
             new CoreFnCallEmitter($outputEmitter),
+            new GetInCallEmitter($outputEmitter),
             new NilBooleanCallEmitter($outputEmitter),
             new TypePredicateCallEmitter($outputEmitter),
             new AtomMethodCallEmitter($outputEmitter),

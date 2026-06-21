@@ -12,6 +12,7 @@ All notable changes to this project will be documented in this file.
 - `push` on a tagged `PersistentVectorInterface` and variadic `dissoc` on a tagged `PersistentMapInterface` now compile to direct persistent-collection method calls (`->append(...)`, chained `->remove(...)`) instead of routing through the runtime dispatch (#2527)
 - `(second v)` on a tagged persistent vector now compiles to a guarded `($v->count() > 1 ? $v->get(1) : null)` instead of the runtime `first`/`next` dispatch, preserving the nil-out-of-range contract (#2530)
 - `=` and `not=` over string literals now fold to a boolean at compile time instead of dispatching at runtime (#2531)
+- `get-in` with a literal key path on a `:tag`ged map/vector now compiles to an unrolled null-coalescing subscript chain instead of dispatching to the runtime traversal loop (#2529)
 
 ### Fixed
 

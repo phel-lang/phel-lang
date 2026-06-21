@@ -32,6 +32,7 @@ use Phel\Compiler\Domain\Analyzer\Ast\ThrowNode;
 use Phel\Compiler\Domain\Analyzer\Ast\TryNode;
 use Phel\Compiler\Domain\Analyzer\Ast\VectorNode;
 use Phel\Compiler\Domain\Emitter\OutputEmitter\CallSpecialization;
+use Phel\Compiler\Domain\Emitter\OutputEmitter\GetInSpecialization;
 use Phel\Compiler\Domain\Emitter\OutputEmitter\GlobalCallTarget;
 use Phel\Compiler\Domain\Emitter\OutputEmitter\NodeEmitter\IfChainMatchLowerer;
 use Phel\Lang\Keyword;
@@ -56,6 +57,24 @@ final readonly class BodyConstantScanner
         // Nested function bodies own their own scope; skip.
         if ($node instanceof FnNode || $node instanceof MultiFnNode || $node instanceof ReifyNode) {
             return;
+        }
+
+        // A specialised `(get-in coll [k1 k2 …])` emits its literal path
+        // elements inline (each subscript key) and never the path vector
+        // itself, so reserving a slot for the whole vector would leave an
+        // orphan `$__phel_const_N`. Walk the target and the individual path
+        // keys instead — the keys still hoist as cacheable keyword/collection
+        // literals where eligible.
+        if ($node instanceof CallNode) {
+            $getInKeys = GetInSpecialization::literalPathKeys($node);
+            if ($getInKeys !== null) {
+                $this->walk($node->getArguments()[0], $scope, $cacheCalls);
+                foreach ($getInKeys as $key) {
+                    $this->walk($key, $scope, $cacheCalls);
+                }
+
+                return;
+            }
         }
 
         if ($this->isCacheableCollection($node) || $this->isCacheableKeyword($node)) {

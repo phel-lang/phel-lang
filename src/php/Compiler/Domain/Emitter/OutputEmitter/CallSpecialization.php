@@ -66,6 +66,10 @@ final readonly class CallSpecialization
             return true;
         }
 
+        if (GetInSpecialization::isLiteralPathGetIn($node)) {
+            return true;
+        }
+
         if (self::isTypedPhpArrayGet($node)) {
             return true;
         }
