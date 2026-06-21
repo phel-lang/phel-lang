@@ -1,0 +1,7 @@
+--PHEL--
+(fn [m] [(:a m) (:b m) (:a m) (:b m)])
+--PHP--
+(function($m) {
+  static $__phel_const_0, $__phel_const_1;
+  return \Phel::vector([(($__phel_const_0 ??= \Phel\Lang\Keyword::create("a")))($m), (($__phel_const_1 ??= \Phel\Lang\Keyword::create("b")))($m), (($__phel_const_0 ??= \Phel\Lang\Keyword::create("a")))($m), (($__phel_const_1 ??= \Phel\Lang\Keyword::create("b")))($m)]);
+});
