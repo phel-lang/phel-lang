@@ -1,0 +1,4 @@
+--PHEL--
+(php/new "\\DateTimeZone" "Europe/Berlin")
+--PHP--
+(new \DateTimeZone("Europe/Berlin"));

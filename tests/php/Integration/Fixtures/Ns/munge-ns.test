@@ -52,10 +52,7 @@ final class abc extends \Phel\Lang\Collections\Struct\AbstractPersistentStruct {
     public const BOUND_TO = "hello_world\\abc";
 
     public function __invoke($a) {
-      return (function() use($a) {
-        $target_1 = "hello_world\\abc";
-        return new $target_1($a);
-      })();
+      return (new \hello_world\abc($a));
     }
   },
   \Phel::map(

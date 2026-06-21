@@ -7,6 +7,7 @@ All notable changes to this project will be documented in this file.
 ### Performance
 
 - `php/->` and `php/::` now emit leaner PHP, dropping the closure wrapper for simple targets and statement/return-context calls (#2524)
+- `php/new` with a known class now compiles to a direct `(new Class(...))` instead of a closure wrapper with a runtime guard (#2526)
 
 ### Fixed
 
