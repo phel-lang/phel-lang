@@ -1,0 +1,7 @@
+--PHEL--
+(fn [m] (get-in m [:a :b]))
+--PHP--
+(function($m) {
+  static $__phel_const_0, $__phel_call_0;
+  return ($__phel_call_0 ??= \Phel::getDefinition("phel.core", "get-in"))->__invoke($m, ($__phel_const_0 ??= \Phel::vector([\Phel\Lang\Keyword::create("a"), \Phel\Lang\Keyword::create("b")])));
+});

@@ -1,0 +1,6 @@
+--PHEL--
+(fn [^"\\Phel\\Lang\\Collections\\Vector\\PersistentVectorInterface" v] (get-in v [0 1]))
+--PHP--
+(function(\Phel\Lang\Collections\Vector\PersistentVectorInterface $v) {
+  return (($v[(0)] ?? null)[(1)] ?? null);
+});

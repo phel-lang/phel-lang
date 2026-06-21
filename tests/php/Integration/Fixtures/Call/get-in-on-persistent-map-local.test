@@ -1,0 +1,7 @@
+--PHEL--
+(fn [^"\\Phel\\Lang\\Collections\\Map\\PersistentMapInterface" m] (get-in m [:a :b :c]))
+--PHP--
+(function(\Phel\Lang\Collections\Map\PersistentMapInterface $m) {
+  static $__phel_const_0, $__phel_const_1, $__phel_const_2;
+  return ((($m[(($__phel_const_0 ??= \Phel\Lang\Keyword::create("a")))] ?? null)[(($__phel_const_1 ??= \Phel\Lang\Keyword::create("b")))] ?? null)[(($__phel_const_2 ??= \Phel\Lang\Keyword::create("c")))] ?? null);
+});

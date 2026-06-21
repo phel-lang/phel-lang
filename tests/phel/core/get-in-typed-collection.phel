@@ -1,0 +1,53 @@
+(ns phel-test.core.get-in-typed-collection
+  (:require phel.test :refer [deftest is]))
+
+;; Specialised path: literal vector path on a tagged target unrolls into a
+;; null-coalescing subscript chain. The untagged variants keep the runtime
+;; `phel.core/get-in` dispatch, so each `*-spec` / `*-rt` pair must agree.
+
+(defn- get-in-map-spec [^"\Phel\Lang\Collections\Map\PersistentMapInterface" m]
+  (get-in m [:a :b :c]))
+
+(defn- get-in-map-rt [m]
+  (get-in m [:a :b :c]))
+
+(defn- get-in-vec-spec [^"\Phel\Lang\Collections\Vector\PersistentVectorInterface" v]
+  (get-in v [0 1]))
+
+(defn- get-in-vec-rt [v]
+  (get-in v [0 1]))
+
+(deftest test-get-in-map-hit
+  (let [m {:a {:b {:c 42}}}]
+    (is (= 42 (get-in-map-spec m)) "specialised get-in hits nested map value")
+    (is (= (get-in-map-rt m) (get-in-map-spec m)) "specialised matches runtime on hit")))
+
+(deftest test-get-in-map-top-miss
+  (let [m {:x 1}]
+    (is (nil? (get-in-map-spec m)) "specialised get-in returns nil on top-level miss")
+    (is (= (get-in-map-rt m) (get-in-map-spec m)) "specialised matches runtime on top miss")))
+
+(deftest test-get-in-map-intermediate-miss
+  (let [m {:a {:b {}}}]
+    (is (nil? (get-in-map-spec m)) "specialised get-in returns nil when an intermediate key is missing")
+    (is (= (get-in-map-rt m) (get-in-map-spec m)) "specialised matches runtime on intermediate miss")))
+
+(deftest test-get-in-map-intermediate-nil-value
+  ;; An explicit nil value mid-path must also yield nil (not throw): the
+  ;; runtime treats nil as a miss and so does the `?? null` chain.
+  (let [m {:a {:b nil}}]
+    (is (nil? (get-in-map-spec m)) "specialised get-in returns nil on an explicit-nil intermediate")
+    (is (= (get-in-map-rt m) (get-in-map-spec m)) "specialised matches runtime on explicit-nil intermediate")))
+
+(deftest test-get-in-vector-hit
+  (let [v [[10 20] [30 40]]]
+    (is (= 20 (get-in-vec-spec v)) "specialised get-in hits nested vector value")
+    (is (= (get-in-vec-rt v) (get-in-vec-spec v)) "specialised matches runtime on vector hit")))
+
+(deftest test-get-in-vector-out-of-bounds-miss
+  ;; Out-of-bounds index must return nil, never throw — the `??` operator
+  ;; consults offsetExists first.
+  (is (nil? (get-in-vec-spec [])) "specialised get-in returns nil on out-of-bounds top index")
+  (is (= (get-in-vec-rt []) (get-in-vec-spec [])) "specialised matches runtime on top out-of-bounds")
+  (is (nil? (get-in-vec-spec [[10]])) "specialised get-in returns nil on out-of-bounds inner index")
+  (is (= (get-in-vec-rt [[10]]) (get-in-vec-spec [[10]])) "specialised matches runtime on inner out-of-bounds"))
