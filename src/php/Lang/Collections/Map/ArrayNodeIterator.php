@@ -30,10 +30,12 @@ final class ArrayNodeIterator implements Iterator
     private ?Iterator $nestedIterator = null;
 
     /**
-     * @param list<?HashMapNodeInterface<K, V>> $childNodes
+     * @param array<int, ?HashMapNodeInterface<K, V>> $childNodes
      */
     public function __construct(array $childNodes)
     {
+        // array_filter drops the null slots and array_values re-indexes
+        // into a gap-free list, so the caller may pass a sparse array.
         $this->childNodes = array_values(array_filter($childNodes));
         $this->count = count($this->childNodes);
     }
