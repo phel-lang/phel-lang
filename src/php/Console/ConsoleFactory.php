@@ -7,10 +7,12 @@ namespace Phel\Console;
 use Gacela\Framework\AbstractConfig;
 use Gacela\Framework\AbstractFactory;
 use Phel\Console\Application\ArgvInputSanitizer;
+use Phel\Console\Infrastructure\Command\LazyCommandLoader;
 use Phel\Console\Infrastructure\ConsoleBootstrap;
 use Phel\Filesystem\FilesystemFacadeInterface;
 use Phel\Shared\VersionResolver;
-use Symfony\Component\Console\Command\Command;
+use Symfony\Component\Console\Command\LazyCommand;
+use Symfony\Component\Console\CommandLoader\CommandLoaderInterface;
 
 /**
  * @extends AbstractFactory<AbstractConfig>
@@ -25,21 +27,18 @@ final class ConsoleFactory extends AbstractFactory
 
     public function createConsoleBootstrap(): ConsoleBootstrap
     {
-        return new ConsoleBootstrap(
+        $bootstrap = new ConsoleBootstrap(
             self::CONSOLE_NAME,
             $this->createVersionResolver()->resolve(),
         );
+        $bootstrap->setCommandLoader($this->createCommandLoader());
+
+        return $bootstrap;
     }
 
-    /**
-     * @return list<Command>
-     */
-    public function getConsoleCommands(): array
+    public function createCommandLoader(): CommandLoaderInterface
     {
-        /** @var list<Command> $commands */
-        $commands = $this->getProvidedDependency(ConsoleProvider::COMMANDS);
-
-        return $commands;
+        return new LazyCommandLoader($this->getLazyCommands());
     }
 
     public function getFilesystemFacade(): FilesystemFacadeInterface
@@ -58,5 +57,16 @@ final class ConsoleFactory extends AbstractFactory
     public function createArgvInputSanitizer(): ArgvInputSanitizer
     {
         return new ArgvInputSanitizer();
+    }
+
+    /**
+     * @return list<LazyCommand>
+     */
+    private function getLazyCommands(): array
+    {
+        /** @var list<LazyCommand> $commands */
+        $commands = $this->getProvidedDependency(ConsoleProvider::LAZY_COMMANDS);
+
+        return $commands;
     }
 }

@@ -20,11 +20,11 @@ use Phel\Console\Infrastructure\Command\ProfileCommands;
 use Phel\Console\Infrastructure\Command\RunCommands;
 use Phel\Console\Infrastructure\Command\WatchCommands;
 use Phel\Filesystem\FilesystemFacade;
-use Symfony\Component\Console\Command\Command;
+use Symfony\Component\Console\Command\LazyCommand;
 
 final class ConsoleProvider extends AbstractProvider
 {
-    public const string COMMANDS = 'COMMANDS';
+    public const string LAZY_COMMANDS = 'LAZY_COMMANDS';
 
     public const string FACADE_FILESYSTEM = 'FACADE_FILESYSTEM';
 
@@ -35,18 +35,22 @@ final class ConsoleProvider extends AbstractProvider
     }
 
     /**
-     * Aggregates every CLI command from the per-module providers listed in
-     * commandProviders(); command order follows that list. Exposed as the
-     * COMMANDS dependency consumed by ConsoleBootstrap.
+     * Aggregates the lazily-instantiated CLI commands from the per-module
+     * providers listed in commandProviders(); command order follows that list.
+     * Exposed as the LAZY_COMMANDS dependency consumed by ConsoleBootstrap to
+     * build the lazy command loader, so only the dispatched command is
+     * instantiated per invocation while list/help metadata stays available.
      *
-     * @return list<Command>
+     * @return list<LazyCommand>
      */
-    #[Provides(self::COMMANDS)]
-    public function commands(): array
+    #[Provides(self::LAZY_COMMANDS)]
+    public function lazyCommands(): array
     {
         $commands = [];
         foreach ($this->commandProviders() as $provider) {
-            array_push($commands, ...$provider->commands());
+            foreach ($provider->lazyCommands() as $command) {
+                $commands[] = $command;
+            }
         }
 
         return $commands;
