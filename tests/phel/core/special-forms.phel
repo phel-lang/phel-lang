@@ -4,6 +4,15 @@
 (deftest test-set-object-property
   (is (= "foo" (php/-> (php/oset (php/-> (php/new \stdClass) name) "foo") name)) "set value to stdClass"))
 
+(deftest test-oset-expression-returns-target-object
+  ;; `php/oset` as an expression must evaluate to the *target object*, not
+  ;; the assigned value (a bare PHP `$o->p = v` would yield `v`). Reading the
+  ;; property back off the result proves the target object flowed out.
+  (let [o   (php/new \stdClass)
+        ret (php/oset (php/-> o name) "bar")]
+    (is (php/=== o ret) "oset expression returns the same target object")
+    (is (= "bar" (php/-> ret name)) "the property was set on the returned object")))
+
 (deftest test-nested-php-object-call
   (let [xml-string "<root><user id='1'><name>John</name></user></root>"
         xml        (php/new \SimpleXMLElement xml-string)]
