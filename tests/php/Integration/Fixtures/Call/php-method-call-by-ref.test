@@ -3,7 +3,4 @@
 --PHP--
 $x_1 = 1;
 $o_2 = (new \ArrayObject());
-(function() use(&$x_1,$o_2) {
-  $target_3 = $o_2;
-  return $target_3->offsetSet(0, $x_1);
-})();
+($o_2->offsetSet(0, $x_1));
