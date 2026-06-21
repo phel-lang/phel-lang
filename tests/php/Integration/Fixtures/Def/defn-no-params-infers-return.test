@@ -1,0 +1,23 @@
+--PHEL--
+(defn two [] (php/+ 1 1))
+--PHP--
+\Phel::addDefinition(
+  "user",
+  "two",
+  new class() extends \Phel\Lang\AbstractFn {
+    public const BOUND_TO = "user\\two";
+
+    public function __invoke(): int {
+      return (1 + 1);
+    }
+  },
+  \Phel::map(
+    \Phel\Lang\Keyword::create("doc"), "```phel\n(two)\n```\n",
+    \Phel\Lang\Keyword::create("start-location"), \Phel::location("Def/defn-no-params-infers-return.test", 1, 0),
+    \Phel\Lang\Keyword::create("end-location"), \Phel::location("Def/defn-no-params-infers-return.test", 1, 25),
+    "min-arity", 0,
+    "is-variadic", false,
+    "arglists", "[]",
+    \Phel\Lang\Keyword::create("tag"), "int"
+  )
+);

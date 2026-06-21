@@ -65,6 +65,11 @@ final readonly class FnSymbol implements SpecialFormAnalyzerInterface
             throw AnalyzerException::withLocation("Second argument of 'fn must be a vector", $list);
         }
 
+        // Multi-arity defs do not get the deferred-then-grafted single walk
+        // (`DefSymbol::graftInferredParamTags` only runs for single-arity
+        // FnNodes), so each child must keep inferring its return type inline.
+        $childEnv = $env->withReturnInferenceDeferred(false);
+
         $fnNodes = [];
         $hasVariadic = false;
         $count = count($list);
@@ -79,7 +84,7 @@ final readonly class FnSymbol implements SpecialFormAnalyzerInterface
                     Symbol::create(Symbol::NAME_FN)->copyLocationFrom($clause),
                     ...$clause->toArray(),
                 ])->copyLocationFrom($clause),
-                $env,
+                $childEnv,
                 $name,
             );
 
@@ -187,14 +192,23 @@ final readonly class FnSymbol implements SpecialFormAnalyzerInterface
             );
         }
 
-        $returnType = $declaredReturnType
-            ?? $this->returnTypeInferrer->infer(
-                $body,
-                $fnSymbolTuple->params(),
-                $fnSymbolTuple->isVariadic(),
-                $selfNs,
-                $selfNameStr,
-            );
+        // For a `def`-owned single-arity fn the return-type inference is
+        // deferred to `DefSymbol::graftInferredParamTags`, which runs the
+        // single walk after grafting param tags. Skip the inline walk here so
+        // the body is not traversed an extra time; leave the type null for
+        // `DefSymbol` to fill. A declared `:tag` always wins and never defers.
+        if ($declaredReturnType === null && $env->isReturnInferenceDeferred()) {
+            $returnType = null;
+        } else {
+            $returnType = $declaredReturnType
+                ?? $this->returnTypeInferrer->infer(
+                    $body,
+                    $fnSymbolTuple->params(),
+                    $fnSymbolTuple->isVariadic(),
+                    $selfNs,
+                    $selfNameStr,
+                );
+        }
 
         return new FnNode(
             $env,
@@ -314,7 +328,11 @@ final readonly class FnSymbol implements SpecialFormAnalyzerInterface
         $bodyEnv = $env
             ->withMergedLocals($locals)
             ->withReturnContext()
-            ->withAddedRecurFrame($recurFrame);
+            ->withAddedRecurFrame($recurFrame)
+            // The deferral applies only to this fn's own return type; nested
+            // fns inside the body have no grafting step, so they must keep
+            // inferring their return type inline.
+            ->withReturnInferenceDeferred(false);
 
         return $this->analyzer->analyze($body, $bodyEnv);
     }

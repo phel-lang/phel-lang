@@ -22,6 +22,13 @@ final class NodeEnvironment implements NodeEnvironmentInterface
     private bool $globalReference = false;
 
     /**
+     * Set by `DefSymbol` on a `def`-owned single-arity fn so
+     * `FnSymbol::analyzeSingle` skips its inline return-type inference walk;
+     * `DefSymbol` runs that walk once after grafting param tags.
+     */
+    private bool $returnInferenceDeferred = false;
+
+    /**
      * Derived index of $locals keyed by name (first occurrence wins), kept in
      * sync with $locals so lookups are O(1) instead of a linear scan.
      *
@@ -241,6 +248,23 @@ final class NodeEnvironment implements NodeEnvironmentInterface
         $result->boundTo = $boundTo;
 
         return $result;
+    }
+
+    public function withReturnInferenceDeferred(bool $deferred): NodeEnvironmentInterface
+    {
+        if ($this->returnInferenceDeferred === $deferred) {
+            return $this;
+        }
+
+        $result = clone $this;
+        $result->returnInferenceDeferred = $deferred;
+
+        return $result;
+    }
+
+    public function isReturnInferenceDeferred(): bool
+    {
+        return $this->returnInferenceDeferred;
     }
 
     public function getCurrentRecurFrame(): ?RecurFrame
