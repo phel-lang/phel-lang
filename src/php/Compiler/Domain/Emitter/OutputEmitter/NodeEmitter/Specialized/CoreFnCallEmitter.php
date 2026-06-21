@@ -36,7 +36,15 @@ final readonly class CoreFnCallEmitter implements SpecializedCallEmitterInterfac
             return true;
         }
 
-        return $this->tryEmitTypedPhpArrayCount($node);
+        if ($this->tryEmitTypedPhpArrayCount($node)) {
+            return true;
+        }
+
+        if ($this->tryEmitTypedStringCount($node)) {
+            return true;
+        }
+
+        return $this->tryEmitTypedStringFirst($node);
     }
 
     /**
@@ -145,6 +153,50 @@ final readonly class CoreFnCallEmitter implements SpecializedCallEmitterInterfac
         $this->outputEmitter->emitStr('count(', $loc);
         $this->outputEmitter->emitNode($node->getArguments()[0]);
         $this->outputEmitter->emitStr(')', $loc);
+        return true;
+    }
+
+    /**
+     * Specialise `(count s)` on a target tagged `string` to a native
+     * `mb_strlen($s)` call. The runtime `count` body reaches
+     * `(php/mb_strlen coll)` for the string branch, so the multibyte
+     * codepoint count is byte-for-byte identical.
+     */
+    private function tryEmitTypedStringCount(CallNode $node): bool
+    {
+        if (!CallSpecialization::isTypedStringCount($node)) {
+            return false;
+        }
+
+        $loc = $node->getStartSourceLocation();
+        $this->outputEmitter->emitStr('mb_strlen(', $loc);
+        $this->outputEmitter->emitNode($node->getArguments()[0]);
+        $this->outputEmitter->emitStr(')', $loc);
+        return true;
+    }
+
+    /**
+     * Specialise `(first s)` on a target tagged `string` to the native
+     * multibyte first-char slice with the empty-string nil guard. The
+     * runtime `first` reaches `first-of-string`, i.e.
+     * `(if (php/=== "" s) nil (php/mb_substr s 0 1))`; the emitted
+     * `($s === '' ? null : mb_substr($s, 0, 1))` preserves both the nil
+     * contract and the multibyte slice.
+     */
+    private function tryEmitTypedStringFirst(CallNode $node): bool
+    {
+        if (!CallSpecialization::isTypedStringFirst($node)) {
+            return false;
+        }
+
+        $loc = $node->getStartSourceLocation();
+        $arg = $node->getArguments()[0];
+
+        $this->outputEmitter->emitStr('(', $loc);
+        $this->outputEmitter->emitNode($arg);
+        $this->outputEmitter->emitStr(" === '' ? null : mb_substr(", $loc);
+        $this->outputEmitter->emitNode($arg);
+        $this->outputEmitter->emitStr(', 0, 1))', $loc);
         return true;
     }
 }

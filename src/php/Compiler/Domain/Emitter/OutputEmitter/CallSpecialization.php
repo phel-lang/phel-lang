@@ -78,6 +78,14 @@ final readonly class CallSpecialization
             return true;
         }
 
+        if (self::isTypedStringCount($node)) {
+            return true;
+        }
+
+        if (self::isTypedStringFirst($node)) {
+            return true;
+        }
+
         if (NilAndBooleanCheckSpecialization::isNilCheck($node)) {
             return true;
         }
@@ -300,6 +308,35 @@ final readonly class CallSpecialization
     }
 
     /**
+     * `(count s)` where the analyser has tagged `s` as a PHP `string`.
+     * The runtime `count` body walks a cond chain over the standard
+     * collection shapes before reaching `(php/mb_strlen coll)` for the
+     * `(php/is_string coll)` branch; for a `string`-tagged target the
+     * only branch that ever fires is that multibyte length. The emitter
+     * lowers it to `mb_strlen($s)` — the same default-encoding call the
+     * runtime makes, so it stays byte-for-byte equivalent for multibyte
+     * input.
+     */
+    public static function isTypedStringCount(CallNode $node): bool
+    {
+        return self::isTypedStringCall($node, 'count');
+    }
+
+    /**
+     * `(first s)` where the analyser has tagged `s` as a PHP `string`.
+     * The runtime `first` body reaches `first-of-string` for the
+     * `(php/is_string xs)` branch, which is
+     * `(if (php/=== "" s) nil (php/mb_substr s 0 1))`. The emitter lowers
+     * it to `($s === '' ? null : mb_substr($s, 0, 1))` — the same
+     * default-encoding multibyte slice plus the empty-string nil guard,
+     * preserving the contract that an empty string yields nil.
+     */
+    public static function isTypedStringFirst(CallNode $node): bool
+    {
+        return self::isTypedStringCall($node, 'first');
+    }
+
+    /**
      * `(str ...)` whose every argument compiles to a string-typed
      * expression: string literals or `LocalVarNode`s tagged `string`.
      */
@@ -322,6 +359,36 @@ final readonly class CallSpecialization
         }
 
         return array_all($args, static fn(AbstractNode $arg): bool => self::isStringConcatable($arg));
+    }
+
+    /**
+     * Shared shape check for a single-arg `phel.core` call whose only
+     * argument is a `LocalVarNode` tagged as a PHP `string`.
+     */
+    private static function isTypedStringCall(CallNode $node, string $fnName): bool
+    {
+        $fn = $node->getFn();
+        if (!$fn instanceof GlobalVarNode) {
+            return false;
+        }
+
+        if ($fn->getNamespace() !== CompilerConstants::PHEL_CORE_NAMESPACE
+            || $fn->getName()->getName() !== $fnName
+        ) {
+            return false;
+        }
+
+        $args = $node->getArguments();
+        if (count($args) !== 1) {
+            return false;
+        }
+
+        $target = $args[0];
+        if (!$target instanceof LocalVarNode) {
+            return false;
+        }
+
+        return TagNormalizer::normalise($target->getInferredType()) === 'string';
     }
 
     private static function isStringConcatable(AbstractNode $arg): bool

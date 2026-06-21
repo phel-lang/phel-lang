@@ -14,6 +14,7 @@ All notable changes to this project will be documented in this file.
 - `=` and `not=` over string literals now fold to a boolean at compile time instead of dispatching at runtime (#2531)
 - `get-in` with a literal key path on a `:tag`ged map/vector now compiles to an unrolled null-coalescing subscript chain instead of dispatching to the runtime traversal loop (#2529)
 - The interop emitters (`php/->`, `php/oset`, `php/new`) now share one context-aware IIFE/statement kernel and only scan for `php/ref` by-reference locals when an IIFE is actually emitted, cutting compile-time work (#2536, subsumes #2532)
+- `count` and `first` on a `^string`-tagged target now compile to native multibyte ops (`mb_strlen($s)`, `($s === '' ? null : mb_substr($s, 0, 1))`) instead of dispatching to the runtime collection cond chain (#2528)
 
 ### Fixed
 
