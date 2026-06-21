@@ -5,8 +5,12 @@ declare(strict_types=1);
 namespace PhelTest\Unit\Compiler\Analyzer\Environment;
 
 use Phel\Compiler\Domain\Analyzer\Environment\NodeEnvironment;
+use Phel\Compiler\Domain\Analyzer\Environment\NodeEnvironmentInterface;
 use Phel\Lang\Symbol;
 use PHPUnit\Framework\TestCase;
+use ReflectionObject;
+
+use function sprintf;
 
 final class NodeEnvironmentTest extends TestCase
 {
@@ -155,6 +159,65 @@ final class NodeEnvironmentTest extends TestCase
         self::assertSame('', $env->getBoundTo());
     }
 
+    public function test_with_local_and_shadow_matches_rebuild_for_distinct_bindings(): void
+    {
+        $pairs = [
+            [Symbol::create('a'), Symbol::create('a_1')],
+            [Symbol::create('b'), Symbol::create('b_1')],
+            [Symbol::create('c'), Symbol::create('c_1')],
+        ];
+
+        $this->assertIncrementalEqualsRebuild($pairs);
+    }
+
+    public function test_with_local_and_shadow_matches_rebuild_when_rebinding_same_name(): void
+    {
+        $pairs = [
+            [Symbol::create('a'), Symbol::create('a_1')],
+            [Symbol::create('a'), Symbol::create('a_2')],
+        ];
+
+        $env = $this->assertIncrementalEqualsRebuild($pairs);
+
+        // The last shadow wins; the earlier shadow name is no longer reachable.
+        self::assertSame('a', $env->findLocalByShadowedName('a_2')?->getName());
+        self::assertNull($env->findLocalByShadowedName('a_1'));
+        self::assertCount(1, $env->getLocals());
+    }
+
+    public function test_with_local_and_shadow_matches_rebuild_for_colliding_shadow_names(): void
+    {
+        $pairs = [
+            [Symbol::create('a'), Symbol::create('x')],
+            [Symbol::create('b'), Symbol::create('x')],
+        ];
+
+        $env = $this->assertIncrementalEqualsRebuild($pairs);
+
+        // First binding wins the colliding shadow name in the reverse index.
+        self::assertSame('a', $env->findLocalByShadowedName('x')?->getName());
+        self::assertCount(2, $env->getLocals());
+    }
+
+    public function test_with_locals_and_shadows_batch_matches_per_pair(): void
+    {
+        $pairs = [
+            [Symbol::create('a'), Symbol::create('a_1')],
+            [Symbol::create('a'), Symbol::create('a_2')],
+            [Symbol::create('b'), Symbol::create('a_1')],
+            [Symbol::create('c'), Symbol::create('c_1')],
+        ];
+
+        $perPair = NodeEnvironment::empty();
+        foreach ($pairs as [$local, $shadow]) {
+            $perPair = $perPair->withLocalAndShadow($local, $shadow);
+        }
+
+        $batch = NodeEnvironment::empty()->withLocalsAndShadows($pairs);
+
+        $this->assertEnvIndexesEqual($perPair, $batch);
+    }
+
     public function test_return_inference_deferred_defaults_to_false(): void
     {
         $env = NodeEnvironment::empty();
@@ -177,5 +240,47 @@ final class NodeEnvironmentTest extends TestCase
         self::assertNotSame($env, $next);
         self::assertTrue($next->isReturnInferenceDeferred());
         self::assertFalse($env->isReturnInferenceDeferred());
+    }
+
+    /**
+     * Builds an env through the incremental `withLocalAndShadow()` path and
+     * through the legacy chained `withMergedLocals()->withShadowedLocal()`
+     * rebuild path, asserting the four derived state arrays are identical.
+     *
+     * @param list<array{Symbol, Symbol}> $pairs
+     */
+    private function assertIncrementalEqualsRebuild(array $pairs): NodeEnvironmentInterface
+    {
+        $incremental = NodeEnvironment::empty();
+        $rebuilt = NodeEnvironment::empty();
+
+        foreach ($pairs as [$local, $shadow]) {
+            $incremental = $incremental->withLocalAndShadow($local, $shadow);
+            $rebuilt = $rebuilt->withMergedLocals([$local])->withShadowedLocal($local, $shadow);
+        }
+
+        $this->assertEnvIndexesEqual($rebuilt, $incremental);
+
+        return $incremental;
+    }
+
+    private function assertEnvIndexesEqual(
+        NodeEnvironmentInterface $expected,
+        NodeEnvironmentInterface $actual,
+    ): void {
+        foreach (['locals', 'localsByName', 'shadowed', 'shadowedReverse'] as $property) {
+            self::assertSame(
+                $this->readPrivate($expected, $property),
+                $this->readPrivate($actual, $property),
+                sprintf('Index "%s" diverged from the rebuild path', $property),
+            );
+        }
+    }
+
+    private function readPrivate(NodeEnvironmentInterface $env, string $property): mixed
+    {
+        $reflection = new ReflectionObject($env);
+
+        return $reflection->getProperty($property)->getValue($env);
     }
 }

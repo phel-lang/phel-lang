@@ -154,6 +154,52 @@ final class NodeEnvironment implements NodeEnvironmentInterface
         return $result;
     }
 
+    public function withLocalAndShadow(Symbol $local, Symbol $shadow): NodeEnvironmentInterface
+    {
+        return $this->withLocalsAndShadows([[$local, $shadow]]);
+    }
+
+    /**
+     * @param list<array{Symbol, Symbol}> $pairs
+     */
+    public function withLocalsAndShadows(array $pairs): NodeEnvironmentInterface
+    {
+        $result = clone $this;
+
+        foreach ($pairs as [$local, $shadow]) {
+            $localName = $local->getName();
+            $shadowName = $shadow->getName();
+
+            // locals + localsByName: first occurrence of a name wins.
+            if (!isset($result->localsByName[$localName])) {
+                $result->locals[] = $local;
+                $result->localsByName[$localName] = $local;
+            }
+
+            // shadowed forward map: last write wins. A rebind of the same
+            // name first drops the prior entry (freeing its insertion slot)
+            // and re-appends at the end — matching the chained
+            // `withoutShadowedLocals()->withShadowedLocal()` path — then the
+            // reverse index is recomputed because the freed slot can change
+            // which local wins a colliding shadow name. The common case (a
+            // fresh name with a fresh shadow) stays O(1).
+            if (array_key_exists($localName, $result->shadowed)) {
+                unset($result->shadowed[$localName]);
+                $result->shadowed[$localName] = $shadow;
+                $result->shadowedReverse = $this->indexShadowedReverse($result->shadowed);
+            } else {
+                $result->shadowed[$localName] = $shadow;
+
+                // shadowedReverse: first occurrence of a shadow name wins.
+                if (!isset($result->shadowedReverse[$shadowName])) {
+                    $result->shadowedReverse[$shadowName] = $localName;
+                }
+            }
+        }
+
+        return $result;
+    }
+
     /**
      * @param array<int, Symbol> $locals
      */

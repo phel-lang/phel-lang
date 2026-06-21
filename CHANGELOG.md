@@ -6,6 +6,8 @@ All notable changes to this project will be documented in this file.
 
 ### Performance
 
+- Analysing `let`/`loop` bindings now updates the node environment's derived local/shadow indexes incrementally (one append per binding) instead of rebuilding them from scratch for every binding, turning the per-scope binding work from O(N²) into O(N) (#2554)
+
 - PHP interop (`php/->`, `php/::`, `php/new`, `php/oset`) now compiles to direct expressions or statements instead of wrapping every call in a closure (#2524, #2525, #2526, #2532, #2536)
 - Type-tagged core calls now compile straight to native operations: `push`/`dissoc` to persistent-collection methods (#2527), `second`/`get-in` to direct vector/map access (#2530, #2529), and `count`/`first` on strings to `mb_strlen`/`mb_substr` (#2528)
 - `=` and `not=` over string literals now fold to a boolean at compile time (#2531)
