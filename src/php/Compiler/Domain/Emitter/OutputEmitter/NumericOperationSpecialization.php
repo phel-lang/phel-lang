@@ -10,9 +10,11 @@ use Phel\Compiler\Domain\Analyzer\Ast\GlobalVarNode;
 use Phel\Compiler\Domain\Analyzer\Ast\LiteralNode;
 use Phel\Compiler\Domain\Analyzer\Ast\LocalVarNode;
 use Phel\Compiler\Domain\Analyzer\Ast\PhpVarNode;
+use Phel\Lang\Keyword;
 use Phel\Shared\CompilerConstants;
 
 use function array_all;
+use function array_any;
 use function count;
 use function in_array;
 use function is_bool;
@@ -148,6 +150,10 @@ final readonly class NumericOperationSpecialization
         }
 
         if ($name === '=') {
+            if (self::eitherArgIsKeywordLiteral($args)) {
+                return '===';
+            }
+
             return self::bothArgsHavePrimitiveTag($args, self::EQUALITY_PRIMITIVE_TAGS)
                 ? '==='
                 : null;
@@ -255,6 +261,36 @@ final readonly class NumericOperationSpecialization
         // float) or `int` so it can emit `($a + ($b * $c))` instead of a
         // runtime dispatch around the inner native expression.
         return self::numericTypeOfTypedBinaryCall($arg);
+    }
+
+    /**
+     * `true` when at least one operand of a two-arg `=` is a compile-time
+     * keyword literal. Keywords are interned singletons
+     * ({@see Keyword::create()} returns the same object for equal ns/name),
+     * and {@see \Phel\Lang\Equalizer::equals()} short-circuits on `===`, so:
+     *
+     *  - keyword vs keyword → equal keywords are `===`, unequal are not →
+     *    native `===` is exact;
+     *  - keyword vs non-keyword → `Equalizer::equals` returns false and PHP
+     *    `===` of a `Keyword` object against any non-`Keyword` value is also
+     *    false → identical result.
+     *
+     * So `($x === <hoisted-kw>)` is behaviour-preserving for *every* runtime
+     * value of the other operand, regardless of its static type or tag — no
+     * tag is required. Restricted to {@see Keyword} only: `Symbol` is not
+     * interned, so `===` would diverge from `=` for equal-but-distinct
+     * symbol objects.
+     *
+     * @param list<AbstractNode> $args
+     */
+    private static function eitherArgIsKeywordLiteral(array $args): bool
+    {
+        return array_any($args, static fn(AbstractNode $arg): bool => self::isKeywordLiteral($arg));
+    }
+
+    private static function isKeywordLiteral(AbstractNode $arg): bool
+    {
+        return $arg instanceof LiteralNode && $arg->getValue() instanceof Keyword;
     }
 
     /**

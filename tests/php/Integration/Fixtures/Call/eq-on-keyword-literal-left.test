@@ -1,0 +1,7 @@
+--PHEL--
+(fn [x] (= :foo x))
+--PHP--
+(function($x) {
+  static $__phel_const_0;
+  return (($__phel_const_0 ??= \Phel\Lang\Keyword::create("foo")) === $x);
+});
