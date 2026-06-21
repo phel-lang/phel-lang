@@ -6,15 +6,9 @@ All notable changes to this project will be documented in this file.
 
 ### Performance
 
-- `php/->` and `php/::` now emit leaner PHP, dropping the closure wrapper for simple targets and statement/return-context calls (#2524)
-- `php/new` with a known class now compiles to a direct `(new Class(...))` instead of a closure wrapper with a runtime guard (#2526)
-- `php/oset` in statement context now compiles to a direct property assignment instead of a closure wrapper (#2525)
-- `push` on a tagged `PersistentVectorInterface` and variadic `dissoc` on a tagged `PersistentMapInterface` now compile to direct persistent-collection method calls (`->append(...)`, chained `->remove(...)`) instead of routing through the runtime dispatch (#2527)
-- `(second v)` on a tagged persistent vector now compiles to a guarded `($v->count() > 1 ? $v->get(1) : null)` instead of the runtime `first`/`next` dispatch, preserving the nil-out-of-range contract (#2530)
-- `=` and `not=` over string literals now fold to a boolean at compile time instead of dispatching at runtime (#2531)
-- `get-in` with a literal key path on a `:tag`ged map/vector now compiles to an unrolled null-coalescing subscript chain instead of dispatching to the runtime traversal loop (#2529)
-- The interop emitters (`php/->`, `php/oset`, `php/new`) now share one context-aware IIFE/statement kernel and only scan for `php/ref` by-reference locals when an IIFE is actually emitted, cutting compile-time work (#2536, subsumes #2532)
-- `count` and `first` on a `^string`-tagged target now compile to native multibyte ops (`mb_strlen($s)`, `($s === '' ? null : mb_substr($s, 0, 1))`) instead of dispatching to the runtime collection cond chain (#2528)
+- PHP interop (`php/->`, `php/::`, `php/new`, `php/oset`) now compiles to direct expressions or statements instead of wrapping every call in a closure (#2524, #2525, #2526, #2532, #2536)
+- Type-tagged core calls now compile straight to native operations: `push`/`dissoc` to persistent-collection methods (#2527), `second`/`get-in` to direct vector/map access (#2530, #2529), and `count`/`first` on strings to `mb_strlen`/`mb_substr` (#2528)
+- `=` and `not=` over string literals now fold to a boolean at compile time (#2531)
 
 ### Fixed
 
