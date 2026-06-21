@@ -1,0 +1,7 @@
+--PHEL--
+(fn [m] [(:status m) (:status m) (:status m)])
+--PHP--
+(function($m) {
+  static $__phel_const_0;
+  return \Phel::vector([(($__phel_const_0 ??= \Phel\Lang\Keyword::create("status")))($m), (($__phel_const_0 ??= \Phel\Lang\Keyword::create("status")))($m), (($__phel_const_0 ??= \Phel\Lang\Keyword::create("status")))($m)]);
+});

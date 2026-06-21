@@ -4,6 +4,6 @@
   [(assoc m :k 1) (conj v 99) (dissoc m :k)])
 --PHP--
 (function(\Phel\Lang\Collections\Map\PersistentMapInterface $m, \Phel\Lang\Collections\Vector\PersistentVectorInterface $v) {
-  static $__phel_const_0, $__phel_const_1;
-  return \Phel::vector([($m->put(($__phel_const_0 ??= \Phel\Lang\Keyword::create("k")), 1)), ($v->append(99)), ($m->remove(($__phel_const_1 ??= \Phel\Lang\Keyword::create("k"))))]);
+  static $__phel_const_0;
+  return \Phel::vector([($m->put(($__phel_const_0 ??= \Phel\Lang\Keyword::create("k")), 1)), ($v->append(99)), ($m->remove(($__phel_const_0 ??= \Phel\Lang\Keyword::create("k"))))]);
 });

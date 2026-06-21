@@ -9,6 +9,8 @@ use Phel\Build\BuildFacade;
 use Phel\Compiler\CompilerFacade;
 use Phel\Compiler\Domain\Analyzer\Environment\GlobalEnvironmentInterface;
 use Phel\Compiler\Infrastructure\GlobalEnvironmentSingleton;
+use Phel\Lang\Collections\Vector\PersistentVectorInterface;
+use Phel\Lang\Keyword;
 use Phel\Lang\Symbol;
 use Phel\Shared\CompileOptions;
 use PHPUnit\Framework\TestCase;
@@ -99,6 +101,38 @@ final class ConstantHoistingRuntimeTest extends TestCase
         $second = $fn(42);
 
         self::assertSame($first, $second);
+    }
+
+    public function test_repeated_keyword_dedups_to_one_slot_without_changing_runtime(): void
+    {
+        // `:k` appears three times in the body. The slots dedup to a single
+        // `$__phel_const_0`, but the runtime result must be unchanged: each
+        // keyword accessor still reads the right value from the map.
+        $php = $this->compilerFacade
+            ->compile('(fn [m] [(:k m) (:k m) (:k m)])', new CompileOptions())
+            ->getPhpCode();
+
+        self::assertStringContainsString('static $__phel_const_0;', $php);
+        self::assertStringNotContainsString('$__phel_const_1', $php);
+
+        /** @var callable $fn */
+        $fn = $this->compilerFacade->eval('(fn [m] [(:k m) (:k m) (:k m)])', new CompileOptions());
+        /** @var PersistentVectorInterface $result */
+        $result = $fn(Phel::map(Keyword::create('k'), 7));
+
+        self::assertSame(7, $result[0]);
+        self::assertSame(7, $result[1]);
+        self::assertSame(7, $result[2]);
+    }
+
+    public function test_distinct_keywords_keep_distinct_slots(): void
+    {
+        $php = $this->compilerFacade
+            ->compile('(fn [m] [(:a m) (:b m) (:a m)])', new CompileOptions())
+            ->getPhpCode();
+
+        self::assertStringContainsString('static $__phel_const_0, $__phel_const_1;', $php);
+        self::assertStringNotContainsString('$__phel_const_2', $php);
     }
 
     public function test_nested_fn_has_independent_static_scope(): void
