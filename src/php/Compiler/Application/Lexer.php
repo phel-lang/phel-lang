@@ -56,6 +56,20 @@ final class Lexer implements LexerInterface
         "(#')", // var-quote prefix (index: 29 = T_VAR_QUOTE) - `#'foo` expands to `(var foo)` in the reader, yielding a `PhelVar` handle to the named definition
     ];
 
+    /**
+     * Token types that can trigger a deprecation warning. Common tokens
+     * (parens, atoms, whitespace, ...) are absent, so a single isset() lookup
+     * lets them skip the per-token deprecation checks below entirely.
+     *
+     * @var array<int,true>
+     */
+    private const array DEPRECATABLE_TYPES = [
+        Token::T_COMMENT => true,
+        Token::T_FN => true,
+        Token::T_UNQUOTE_SPLICING => true,
+        Token::T_UNQUOTE => true,
+    ];
+
     private const string MULTILINE_COMMENT_BEGIN = '#|';
 
     private const string MULTILINE_COMMENT_END = '|#';
@@ -118,32 +132,34 @@ final class Lexer implements LexerInterface
                 $endLocation = $this->createSourceLocation($source);
                 $tokenType = count($matches);
 
-                if ($tokenType === Token::T_COMMENT && str_starts_with($matches[0], '#')) {
-                    @trigger_error(
-                        sprintf('Bare "#" line comments are deprecated and will be removed in Phel v0.33. Use ";" or ";;" instead (at %s:%d:%d)', $source, $startLocation->getLine(), $startLocation->getColumn()),
-                        E_USER_DEPRECATED,
-                    );
-                }
+                if (isset(self::DEPRECATABLE_TYPES[$tokenType])) {
+                    if ($tokenType === Token::T_COMMENT && str_starts_with($matches[0], '#')) {
+                        @trigger_error(
+                            sprintf('Bare "#" line comments are deprecated and will be removed in Phel v0.33. Use ";" or ";;" instead (at %s:%d:%d)', $source, $startLocation->getLine(), $startLocation->getColumn()),
+                            E_USER_DEPRECATED,
+                        );
+                    }
 
-                if ($tokenType === Token::T_FN) {
-                    @trigger_error(
-                        sprintf('Using "|()" for short functions is deprecated, use "#()" instead (at %s:%d:%d)', $source, $startLocation->getLine(), $startLocation->getColumn()),
-                        E_USER_DEPRECATED,
-                    );
-                }
+                    if ($tokenType === Token::T_FN) {
+                        @trigger_error(
+                            sprintf('Using "|()" for short functions is deprecated, use "#()" instead (at %s:%d:%d)', $source, $startLocation->getLine(), $startLocation->getColumn()),
+                            E_USER_DEPRECATED,
+                        );
+                    }
 
-                if ($tokenType === Token::T_UNQUOTE_SPLICING && $matches[0] === ',@') {
-                    @trigger_error(
-                        sprintf('Using "," for unquote-splicing is deprecated, use "~@" instead (at %s:%d:%d)', $source, $startLocation->getLine(), $startLocation->getColumn()),
-                        E_USER_DEPRECATED,
-                    );
-                }
+                    if ($tokenType === Token::T_UNQUOTE_SPLICING && $matches[0] === ',@') {
+                        @trigger_error(
+                            sprintf('Using "," for unquote-splicing is deprecated, use "~@" instead (at %s:%d:%d)', $source, $startLocation->getLine(), $startLocation->getColumn()),
+                            E_USER_DEPRECATED,
+                        );
+                    }
 
-                if ($tokenType === Token::T_UNQUOTE && $matches[0] === ',') {
-                    @trigger_error(
-                        sprintf('Using "," for unquote is deprecated, use "~" instead (at %s:%d:%d)', $source, $startLocation->getLine(), $startLocation->getColumn()),
-                        E_USER_DEPRECATED,
-                    );
+                    if ($tokenType === Token::T_UNQUOTE && $matches[0] === ',') {
+                        @trigger_error(
+                            sprintf('Using "," for unquote is deprecated, use "~" instead (at %s:%d:%d)', $source, $startLocation->getLine(), $startLocation->getColumn()),
+                            E_USER_DEPRECATED,
+                        );
+                    }
                 }
 
                 yield new Token($tokenType, $matches[0], $startLocation, $endLocation);
