@@ -471,6 +471,23 @@ final class LexerTest extends TestCase
         self::assertNull($warning);
     }
 
+    public function test_non_deprecatable_token_stream_emits_no_deprecation(): void
+    {
+        $warning = null;
+        set_error_handler(static function (int $errno, string $errstr) use (&$warning): bool {
+            $warning = $errstr;
+            return true;
+        }, E_USER_DEPRECATED);
+
+        try {
+            $this->lex('(+ 1 2)');
+        } finally {
+            restore_error_handler();
+        }
+
+        self::assertNull($warning);
+    }
+
     public function test_regex_literal(): void
     {
         self::assertEquals(
