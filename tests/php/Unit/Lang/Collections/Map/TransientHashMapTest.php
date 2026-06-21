@@ -120,4 +120,38 @@ final class TransientHashMapTest extends TestCase
         self::assertFalse($h->contains(1));
         self::assertNull($h->find(1));
     }
+
+    public function test_remove_absent_key_on_large_map_is_noop(): void
+    {
+        $size = 100;
+        $h = TransientHashMap::empty(new ModuloHasher(), new SimpleEqualizer());
+        for ($i = 0; $i < $size; ++$i) {
+            $h = $h->put($i, $i);
+        }
+
+        $result = $h->remove($size + 1);
+
+        // No-op removal leaves count and entries untouched (O(1) identity check).
+        self::assertSame($h, $result);
+        self::assertCount($size, $result);
+        self::assertTrue($result->contains(0));
+        self::assertTrue($result->contains($size - 1));
+    }
+
+    public function test_remove_present_key_on_large_map(): void
+    {
+        $size = 100;
+        $h = TransientHashMap::empty(new ModuloHasher(), new SimpleEqualizer());
+        for ($i = 0; $i < $size; ++$i) {
+            $h = $h->put($i, $i);
+        }
+
+        $h->remove(42);
+
+        self::assertCount($size - 1, $h);
+        self::assertFalse($h->contains(42));
+        self::assertNull($h->find(42));
+        self::assertTrue($h->contains(41));
+        self::assertTrue($h->contains(43));
+    }
 }

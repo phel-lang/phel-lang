@@ -148,7 +148,7 @@ final class PersistentHashMap extends AbstractPersistentMap
 
         $newRoot = $this->root->remove(0, $this->hasher->hash($key), $key);
 
-        if ($newRoot == $this->root) {
+        if ($newRoot === $this->root) {
             return $this;
         }
 

@@ -136,6 +136,42 @@ final class PersistentHashMapTest extends TestCase
         self::assertNull($h->find(1));
     }
 
+    public function test_remove_absent_key_on_large_map_returns_same_instance(): void
+    {
+        $size = 100;
+        $h = PersistentHashMap::empty(new ModuloHasher(), new SimpleEqualizer());
+        for ($i = 0; $i < $size; ++$i) {
+            $h = $h->put($i, $i);
+        }
+
+        $result = $h->remove($size + 1);
+
+        // No-op removal returns the original map by identity (O(1) identity check).
+        self::assertSame($h, $result);
+        self::assertTrue($h->equals($result));
+        self::assertCount($size, $result);
+    }
+
+    public function test_remove_present_key_on_large_map(): void
+    {
+        $size = 100;
+        $h = PersistentHashMap::empty(new ModuloHasher(), new SimpleEqualizer());
+        for ($i = 0; $i < $size; ++$i) {
+            $h = $h->put($i, $i);
+        }
+
+        $result = $h->remove(42);
+
+        self::assertNotSame($h, $result);
+        self::assertCount($size - 1, $result);
+        self::assertFalse($result->contains(42));
+        self::assertNull($result->find(42));
+        // Original map is untouched (persistent).
+        self::assertCount($size, $h);
+        self::assertTrue($h->contains(42));
+        self::assertSame(42, $h->find(42));
+    }
+
     public function test_equals(): void
     {
         $h1 = PersistentHashMap::empty(new ModuloHasher(), new SimpleEqualizer())
