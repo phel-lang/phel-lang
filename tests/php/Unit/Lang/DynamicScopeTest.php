@@ -30,6 +30,56 @@ final class DynamicScopeTest extends TestCase
         self::assertFalse($scope->hasAnyBinding(), 'fresh scope reports no active frames');
     }
 
+    public function test_any_active_latch_is_false_before_any_push(): void
+    {
+        // With no dynamic binding ever established, the latch stays false so
+        // the hot global-read path skips getInstance() + Fiber::getCurrent().
+        self::assertFalse(DynamicScope::$anyActive);
+
+        $scope = DynamicScope::getInstance();
+        // A read still resolves correctly while the latch is false.
+        self::assertFalse($scope->hasBinding('ns', 'x'));
+    }
+
+    public function test_any_active_latch_sets_on_push_and_stays_set_after_pop(): void
+    {
+        $scope = DynamicScope::getInstance();
+        self::assertFalse(DynamicScope::$anyActive);
+
+        $scope->pushFrame(['ns/x' => 1]);
+        self::assertTrue(DynamicScope::$anyActive, 'latch flips on first frame push');
+
+        // Conservative one-way latch: popping all frames does NOT reset it,
+        // so a binding live in any fiber can never be missed.
+        $scope->popFrame();
+        self::assertTrue(DynamicScope::$anyActive, 'latch stays set after pop');
+    }
+
+    public function test_any_active_latch_resets_only_on_clear(): void
+    {
+        $scope = DynamicScope::getInstance();
+        $scope->pushFrame(['ns/x' => 1]);
+        $scope->popFrame();
+        self::assertTrue(DynamicScope::$anyActive);
+
+        $scope->clear();
+        self::assertFalse(DynamicScope::$anyActive, 'clear() resets the latch');
+    }
+
+    public function test_bound_value_is_seen_inside_binding_with_latch_set(): void
+    {
+        $scope = DynamicScope::getInstance();
+
+        $seen = $scope->withFrame(['ns/x' => 'bound'], static function () use ($scope): mixed {
+            self::assertTrue(DynamicScope::$anyActive, 'latch is set inside the binding');
+            self::assertTrue($scope->hasAnyBinding());
+
+            return $scope->getBinding('ns', 'x');
+        });
+
+        self::assertSame('bound', $seen);
+    }
+
     public function test_has_any_binding_flips_with_push_pop(): void
     {
         $scope = DynamicScope::getInstance();

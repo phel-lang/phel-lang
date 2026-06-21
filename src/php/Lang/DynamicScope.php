@@ -28,6 +28,22 @@ final class DynamicScope
 
     public const string MODE_REDEFS = 'redefs';
 
+    /**
+     * Conservative one-way latch: flipped to `true` the first time any
+     * binding frame is pushed and only reset in {@see self::clear()}.
+     * It is never cleared on `popFrame()`, so it can read stale-`true`
+     * (frames were pushed then all popped) but never stale-`false` while
+     * a binding is live in any fiber. The hot global-read path
+     * ({@see \Phel::getDefinition()}) reads this static first and only
+     * pays the {@see self::getInstance()} singleton fetch plus the
+     * `Fiber::getCurrent()` call in {@see self::hasAnyBinding()} when the
+     * latch is set. A stale `true` harmlessly falls through to that
+     * correct slow check, which reports "no binding" and returns the
+     * registry value; a `false` is only ever seen before any frame was
+     * ever pushed, so skipping the scope probe is always correct.
+     */
+    public static bool $anyActive = false;
+
     private static ?DynamicScope $instance = null;
 
     /**
@@ -71,6 +87,7 @@ final class DynamicScope
 
     public function clear(): void
     {
+        self::$anyActive = false;
         $this->mainStack = [];
         $this->mainRecordings = [];
         /** @var WeakMap<Fiber<mixed, mixed, mixed, mixed>, list<array<string, mixed>>> $map */
@@ -147,6 +164,12 @@ final class DynamicScope
      */
     public function pushFrame(array $frame): void
     {
+        // Latch on the first (and every) read-visible frame push. This is
+        // the sole path that installs a frame onto mainStack/fiberStacks;
+        // setBinding only mutates existing frames, recordings are not
+        // read-visible, so keying the latch here covers every path.
+        self::$anyActive = true;
+
         /** @var Fiber<mixed, mixed, mixed, mixed>|null $fiber */
         $fiber = Fiber::getCurrent();
         if (!$fiber instanceof Fiber) {
