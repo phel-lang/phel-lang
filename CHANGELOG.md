@@ -9,6 +9,7 @@ All notable changes to this project will be documented in this file.
 - `php/->` and `php/::` now emit leaner PHP, dropping the closure wrapper for simple targets and statement/return-context calls (#2524)
 - `php/new` with a known class now compiles to a direct `(new Class(...))` instead of a closure wrapper with a runtime guard (#2526)
 - `php/oset` in statement context now compiles to a direct property assignment instead of a closure wrapper (#2525)
+- `push` on a tagged `PersistentVectorInterface` and variadic `dissoc` on a tagged `PersistentMapInterface` now compile to direct persistent-collection method calls (`->append(...)`, chained `->remove(...)`) instead of routing through the runtime dispatch (#2527)
 
 ### Fixed
 

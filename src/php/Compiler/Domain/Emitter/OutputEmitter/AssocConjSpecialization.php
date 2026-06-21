@@ -28,15 +28,19 @@ final readonly class AssocConjSpecialization
     private function __construct() {}
 
     /**
-     * `(assoc coll k v)` 3-arg / `(conj coll x)` 2-arg / `(dissoc coll k)` 2-arg
-     * specialise to a direct method call when the target carries an
-     * inferred persistent-collection tag:
+     * `(assoc coll k v)` 3-arg / `(conj coll x)` 2-arg / `(push coll x)`
+     * 2-arg / `(dissoc coll k)` 2-arg specialise to a direct method call
+     * when the target carries an inferred persistent-collection tag:
      *
-     *  - `PersistentMapInterface`  → `put` / `cons` (n/a) / `remove`
-     *  - `PersistentVectorInterface` → `update` / `append` / (n/a)
+     *  - `PersistentMapInterface`  → `put` / `remove`
+     *  - `PersistentVectorInterface` → `update` / `append`
      *
-     * Skips variadic / extra-arg arities — those need a loop the runtime
-     * dispatch handles separately.
+     * `push` is the deprecated alias for the 2-arg `conj` (its body is
+     * `(conj coll x)`), so on a vector it appends exactly like `conj`.
+     *
+     * Variadic `dissoc` is handled by {@see self::typedDissocKeys()};
+     * variadic `assoc` / `conj` need a runtime loop and are not specialised
+     * here.
      */
     public static function typedAssocConjDissocMethod(CallNode $node): ?string
     {
@@ -71,7 +75,7 @@ final readonly class AssocConjSpecialization
             };
         }
 
-        if ($name === 'conj' && $argCount === 2) {
+        if (($name === 'conj' || $name === 'push') && $argCount === 2) {
             return match ($tag) {
                 PersistentVectorInterface::class => 'append',
                 default => null,
@@ -88,6 +92,56 @@ final readonly class AssocConjSpecialization
     public static function isTypedAssocConjDissoc(CallNode $node): bool
     {
         return self::typedAssocConjDissocMethod($node) !== null;
+    }
+
+    /**
+     * `(dissoc m k1 k2 …)` on a `PersistentMapInterface`-tagged target with
+     * one or more keys specialises to a chain of `->remove($k)` calls. The
+     * runtime `dissoc` loops `dissoc-one` over the keys left-to-right, each
+     * step calling `remove` on the map, so the emitted chain preserves key
+     * order.
+     *
+     * The single-key arity overlaps {@see self::typedAssocConjDissocMethod()}
+     * — both lower to the same `->remove($k)` — but the emitter consults
+     * this predicate first, so the variadic emitter owns every typed
+     * `dissoc`.
+     *
+     * @return list<AbstractNode>|null the key argument nodes, or null when
+     *                                 the call is not a typed `dissoc`
+     */
+    public static function typedDissocKeys(CallNode $node): ?array
+    {
+        $fn = $node->getFn();
+        if (!$fn instanceof GlobalVarNode) {
+            return null;
+        }
+
+        if ($fn->getNamespace() !== CompilerConstants::PHEL_CORE_NAMESPACE
+            || $fn->getName()->getName() !== 'dissoc'
+        ) {
+            return null;
+        }
+
+        $args = $node->getArguments();
+        if (count($args) < 2) {
+            return null;
+        }
+
+        $target = $args[0];
+        if (!$target instanceof LocalVarNode) {
+            return null;
+        }
+
+        if (TagNormalizer::normalise($target->getInferredType()) !== PersistentMapInterface::class) {
+            return null;
+        }
+
+        return array_slice($args, 1);
+    }
+
+    public static function isTypedDissocKeys(CallNode $node): bool
+    {
+        return self::typedDissocKeys($node) !== null;
     }
 
     /**

@@ -13,8 +13,9 @@ use function count;
 
 /**
  * Specialisations gated by {@see AssocConjSpecialization}: a transient-backed
- * chain of `(assoc m k v)` / `(conj v x)` calls, and the single-step
- * `(assoc ...)` / `(conj ...)` / `(dissoc ...)` on a typed persistent target.
+ * chain of `(assoc m k v)` / `(conj v x)` calls, the variadic
+ * `(dissoc m k1 k2 …)` lowered to a `->remove()` chain, and the single-step
+ * `(assoc ...)` / `(conj ...)` / `(push ...)` on a typed persistent target.
  */
 final readonly class AssocConjCallEmitter implements SpecializedCallEmitterInterface
 {
@@ -28,7 +29,42 @@ final readonly class AssocConjCallEmitter implements SpecializedCallEmitterInter
             return true;
         }
 
+        if ($this->tryEmitTypedDissocKeys($node)) {
+            return true;
+        }
+
         return $this->tryEmitTypedAssocConjDissoc($node);
+    }
+
+    /**
+     * Specialise `(dissoc m k1 k2 …)` on a `PersistentMapInterface`-tagged
+     * target to a chain of `->remove($k)` calls — one per key, in the same
+     * left-to-right order the runtime `dissoc` loop applies them. Each
+     * `remove` returns a new persistent map, so chaining matches the
+     * runtime's per-key folding semantics. Owns every typed `dissoc`
+     * (including the single-key arity, which emits the same `->remove($k)`
+     * the generic single-step path would).
+     */
+    private function tryEmitTypedDissocKeys(CallNode $node): bool
+    {
+        $keys = AssocConjSpecialization::typedDissocKeys($node);
+        if ($keys === null) {
+            return false;
+        }
+
+        $args = $node->getArguments();
+        $loc = $node->getStartSourceLocation();
+        $this->outputEmitter->emitStr('(', $loc);
+        $this->outputEmitter->emitNode($args[0]);
+
+        foreach ($keys as $key) {
+            $this->outputEmitter->emitStr('->remove(', $loc);
+            $this->outputEmitter->emitNode($key);
+            $this->outputEmitter->emitStr(')', $loc);
+        }
+
+        $this->outputEmitter->emitStr(')', $loc);
+        return true;
     }
 
     /**
