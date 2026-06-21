@@ -22,7 +22,29 @@ use PhpBench\Benchmark\Metadata\Annotations\Revs;
  */
 final class PersistentVectorBench
 {
+    private const int EQUAL_SIZE = 1024;
+
+    /**
+     * Largest element count whose `31 * hash + element` accumulator stays
+     * within PHP's signed-int range. Beyond this the running hash promotes
+     * to float and `AbstractPersistentVector::hash` (typed `?int` cache)
+     * would fatal, so the hash bench stops short of it. This is the
+     * effective ceiling of the production hash path, not an arbitrary
+     * choice.
+     */
+    private const int HASH_SIZE = 12;
+
     private PersistentVector $vector;
+
+    /**
+     * A structurally-equal but distinct vector, so `equals` walks the
+     * whole length instead of short-circuiting on identity.
+     */
+    private PersistentVector $equalVector;
+
+    private Hasher $hasher;
+
+    private Equalizer $equalizer;
 
     private int $nextValue = 0;
 
@@ -71,6 +93,47 @@ final class PersistentVectorBench
     }
 
     /**
+     * Element-wise equality of two large, distinct-but-equal vectors.
+     * Identity short-circuits are avoided (the vectors are separate
+     * instances), so the full O(n) `Equalizer` walk is measured.
+     *
+     * @BeforeMethods("setUpEqualVectors")
+     *
+     * @Revs(1000)
+     *
+     * @Iterations(10)
+     */
+    public function bench_equals(): void
+    {
+        $this->vector->equals($this->equalVector);
+    }
+
+    /**
+     * Full-length hash walk. `AbstractPersistentVector::hash` memoises its
+     * result, so a fresh vector is built per revolution to keep the O(n)
+     * `Hasher` walk in the measurement rather than returning a cached
+     * value. Build cost is shared overhead common to any change, so
+     * regressions in `Hasher` still surface here. The element count is
+     * capped at `HASH_SIZE` (see that constant) because the production
+     * `31 * hash` accumulator overflows beyond it.
+     *
+     * @BeforeMethods("setUpHasher")
+     *
+     * @Revs(1000)
+     *
+     * @Iterations(10)
+     */
+    public function bench_hash(): void
+    {
+        $vector = PersistentVector::empty($this->hasher, $this->equalizer);
+        for ($i = 0; $i < self::HASH_SIZE; ++$i) {
+            $vector = $vector->append($i);
+        }
+
+        $vector->hash();
+    }
+
+    /**
      * @return iterable<string, array<string, int>>
      */
     public function provideSizes(): iterable
@@ -92,5 +155,22 @@ final class PersistentVectorBench
 
         $this->nextValue = $size;
         $this->updateIndex = intdiv($size, 2);
+    }
+
+    public function setUpEqualVectors(): void
+    {
+        $this->vector = PersistentVector::empty(new Hasher(), new Equalizer());
+        $this->equalVector = PersistentVector::empty(new Hasher(), new Equalizer());
+
+        for ($i = 0; $i < self::EQUAL_SIZE; ++$i) {
+            $this->vector = $this->vector->append($i);
+            $this->equalVector = $this->equalVector->append($i);
+        }
+    }
+
+    public function setUpHasher(): void
+    {
+        $this->hasher = new Hasher();
+        $this->equalizer = new Equalizer();
     }
 }
