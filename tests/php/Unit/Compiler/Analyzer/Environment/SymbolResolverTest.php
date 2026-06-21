@@ -10,6 +10,7 @@ use Phel\Compiler\Domain\Analyzer\Ast\GlobalVarNode;
 use Phel\Compiler\Domain\Analyzer\Ast\LiteralNode;
 use Phel\Compiler\Domain\Analyzer\Ast\PhpClassNameNode;
 use Phel\Compiler\Domain\Analyzer\Environment\BackslashSeparatorDeprecator;
+use Phel\Compiler\Domain\Analyzer\Environment\BundledNamespaceResolverInterface;
 use Phel\Compiler\Domain\Analyzer\Environment\GlobalEnvironment;
 use Phel\Compiler\Domain\Analyzer\Environment\MagicConstantResolver;
 use Phel\Compiler\Domain\Analyzer\Environment\NodeEnvironment;
@@ -460,6 +461,96 @@ final class SymbolResolverTest extends TestCase
         self::assertEquals(
             new GlobalVarNode($nodeEnv, 'phel.my-lib', Symbol::create('some-fn'), Phel::map()),
             $this->resolver->resolve(Symbol::createForNamespace('clojure.my-lib', 'some-fn'), $nodeEnv),
+        );
+    }
+
+    public function test_fqn_to_unloaded_bundled_namespace_loads_on_demand_then_resolves(): void
+    {
+        // Simulates the lazy REPL: `phel.json` is not loaded yet, so the first
+        // resolution attempt fails. The registered resolver "loads" it (here by
+        // registering the definition), then resolution retries and succeeds.
+        $this->globalEnv->setNs('user');
+
+        $loadCalls = [];
+        $globalEnv = $this->globalEnv;
+        $this->globalEnv->setBundledNamespaceResolver(
+            new class($globalEnv, $loadCalls) implements BundledNamespaceResolverInterface {
+                /**
+                 * @param list<string> $loadCalls
+                 */
+                public function __construct(
+                    private readonly GlobalEnvironment $env,
+                    private array &$loadCalls,
+                ) {}
+
+                public function resolveBundledNamespace(string $namespace): bool
+                {
+                    $this->loadCalls[] = $namespace;
+                    $this->env->addDefinition($namespace, Symbol::create('encode'));
+
+                    return true;
+                }
+            },
+        );
+
+        $nodeEnv = NodeEnvironment::empty();
+
+        self::assertEquals(
+            new GlobalVarNode($nodeEnv, 'phel.json', Symbol::create('encode'), Phel::map()),
+            $this->resolver->resolve(Symbol::createForNamespace('phel.json', 'encode'), $nodeEnv),
+        );
+        self::assertSame(['phel.json'], $loadCalls);
+    }
+
+    public function test_fqn_resolution_does_not_invoke_loader_when_already_resolvable(): void
+    {
+        $this->globalEnv->setNs('user');
+        $this->globalEnv->addDefinition('phel.json', Symbol::create('encode'));
+
+        $loadCalls = [];
+        $this->globalEnv->setBundledNamespaceResolver(
+            new class($loadCalls) implements BundledNamespaceResolverInterface {
+                /**
+                 * @param list<string> $loadCalls
+                 */
+                public function __construct(private array &$loadCalls) {}
+
+                public function resolveBundledNamespace(string $namespace): bool
+                {
+                    $this->loadCalls[] = $namespace;
+
+                    return false;
+                }
+            },
+        );
+
+        $nodeEnv = NodeEnvironment::empty();
+
+        self::assertEquals(
+            new GlobalVarNode($nodeEnv, 'phel.json', Symbol::create('encode'), Phel::map()),
+            $this->resolver->resolve(Symbol::createForNamespace('phel.json', 'encode'), $nodeEnv),
+        );
+        self::assertSame([], $loadCalls, 'Loader must not run when the symbol already resolves');
+    }
+
+    public function test_fqn_resolution_returns_null_when_loader_loads_nothing(): void
+    {
+        $this->globalEnv->setNs('user');
+
+        $this->globalEnv->setBundledNamespaceResolver(
+            new class() implements BundledNamespaceResolverInterface {
+                public function resolveBundledNamespace(string $namespace): bool
+                {
+                    return false;
+                }
+            },
+        );
+
+        self::assertNull(
+            $this->resolver->resolve(
+                Symbol::createForNamespace('phel.not-bundled', 'nope'),
+                NodeEnvironment::empty(),
+            ),
         );
     }
 }

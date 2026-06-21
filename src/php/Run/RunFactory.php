@@ -13,6 +13,7 @@ use Phel\Run\Application\CompileExecutor;
 use Phel\Run\Application\EntryPointDetector;
 use Phel\Run\Application\EvalExecutor;
 use Phel\Run\Application\FileRunner;
+use Phel\Run\Application\NamespaceFileTracker;
 use Phel\Run\Application\NamespaceLoader;
 use Phel\Run\Application\NamespaceRunner;
 use Phel\Run\Application\NamespacesLoader;
@@ -250,6 +251,7 @@ class RunFactory extends AbstractFactory
             $this->getCommandFacade(),
             $this->getCompilerFacade(),
             $this->createBundledNamespaces(),
+            new NamespaceFileTracker(),
             $this->getConfig()->getReplStartupFile(),
         );
     }

@@ -159,7 +159,30 @@ final readonly class SymbolResolver
 
         $ns = $this->globalEnv->resolveAlias($normalizedAlias) ?? $normalizedAlias;
 
-        return $this->resolveInterfaceOrDefinition($finalName, $env, $ns);
+        $resolved = $this->resolveInterfaceOrDefinition($finalName, $env, $ns);
+        if ($resolved instanceof AbstractNode) {
+            return $resolved;
+        }
+
+        // A fully qualified reference to a bundled `phel.*` namespace that the
+        // REPL did not seed eagerly resolves once the namespace is loaded on
+        // demand. Retry after a successful load so the user never sees a
+        // spurious "not defined" for an unloaded bundle.
+        if ($this->loadBundledNamespaceOnDemand($ns)) {
+            return $this->resolveInterfaceOrDefinition($finalName, $env, $ns);
+        }
+
+        return null;
+    }
+
+    private function loadBundledNamespaceOnDemand(string $namespace): bool
+    {
+        $resolver = $this->globalEnv->getBundledNamespaceResolver();
+        if (!$resolver instanceof BundledNamespaceResolverInterface) {
+            return false;
+        }
+
+        return $resolver->resolveBundledNamespace($namespace);
     }
 
     /**

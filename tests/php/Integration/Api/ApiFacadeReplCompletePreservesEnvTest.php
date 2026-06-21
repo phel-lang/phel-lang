@@ -76,4 +76,22 @@ final class ApiFacadeReplCompletePreservesEnvTest extends TestCase
 
         self::assertSame('user-map', Phel::getDefinition('phel\\core', 'map'));
     }
+
+    #[PreserveGlobalState(false)]
+    #[RunInSeparateProcess]
+    public function test_repl_complete_enumerates_bundled_fns_without_eager_repl_load(): void
+    {
+        // The lazy REPL does not seed `phel.html` at boot, yet completion must
+        // still offer its functions: the completer builds its catalog from the
+        // documented-namespace list, independent of what the REPL loaded.
+        Phel::bootstrap(__DIR__);
+        Phel::clear();
+        Symbol::resetGen();
+        GlobalEnvironmentSingleton::initializeNew();
+        GlobalEnvironmentSingleton::getInstance()->setNs('user');
+
+        $candidates = new ApiFacade()->replComplete('phel.html\\escape');
+
+        self::assertContains('phel.html\\escape-html', $candidates);
+    }
 }

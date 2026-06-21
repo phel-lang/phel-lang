@@ -61,6 +61,8 @@ final class GlobalEnvironment implements GlobalEnvironmentInterface
 
     private int $allowPrivateAccessCounter = 0;
 
+    private ?BundledNamespaceResolverInterface $bundledNamespaceResolver = null;
+
     private readonly SymbolResolver $symbolResolver;
 
     public function __construct()
@@ -81,6 +83,16 @@ final class GlobalEnvironment implements GlobalEnvironmentInterface
     public function setNs(string $ns): void
     {
         $this->ns = $ns;
+    }
+
+    public function setBundledNamespaceResolver(?BundledNamespaceResolverInterface $resolver): void
+    {
+        $this->bundledNamespaceResolver = $resolver;
+    }
+
+    public function getBundledNamespaceResolver(): ?BundledNamespaceResolverInterface
+    {
+        return $this->bundledNamespaceResolver;
     }
 
     public function addDefinition(string $namespace, Symbol $name, bool $allowRedefinition = false): void
