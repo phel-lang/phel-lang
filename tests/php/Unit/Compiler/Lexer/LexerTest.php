@@ -1058,6 +1058,23 @@ final class LexerTest extends TestCase
         self::assertSame('\\spaces', $tokens[0]->getCode());
     }
 
+    public function test_ascii_columns_use_byte_length_fast_path(): void
+    {
+        // Pure-ASCII source takes the strlen() fast path in moveCursor. Columns
+        // must still be byte-for-byte identical to the code-point count: this
+        // exercises both the no-newline increment branch and the post-newline
+        // reset branch over a multi-line ASCII source.
+        self::assertEquals(
+            [
+                new Token(Token::T_ATOM, 'foo', new SourceLocation('string', 1, 0), new SourceLocation('string', 1, 3)),
+                new Token(Token::T_NEWLINE, "\n", new SourceLocation('string', 1, 3), new SourceLocation('string', 2, 0)),
+                new Token(Token::T_ATOM, 'barbaz', new SourceLocation('string', 2, 0), new SourceLocation('string', 2, 6)),
+                new Token(Token::T_EOF, '', new SourceLocation('string', 2, 6), new SourceLocation('string', 2, 6)),
+            ],
+            $this->lex("foo\nbarbaz"),
+        );
+    }
+
     private function lex(string $string): array
     {
         $lexer = $this->compilerFactory->createLexer();
