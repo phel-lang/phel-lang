@@ -9,8 +9,6 @@ use Phel\Lang\EqualizerInterface;
 use Phel\Lang\HasherInterface;
 use Traversable;
 
-use function array_values;
-
 /**
  * @template K
  * @template V
@@ -137,7 +135,7 @@ final class ArrayNode implements HashMapNodeInterface, Countable
     public function getIterator(): Traversable
     {
         /** @var ArrayNodeIterator<K, V> $iterator */
-        $iterator = new ArrayNodeIterator(array_values($this->childNodes));
+        $iterator = new ArrayNodeIterator($this->childNodes);
         return $iterator;
     }
 

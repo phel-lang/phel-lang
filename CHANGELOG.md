@@ -24,6 +24,7 @@ All notable changes to this project will be documented in this file.
 - Persistent vector equality (`=`) now short-circuits on identical instances and walks both vectors with their chunk-aware iterators instead of repeated O(log32 n) `get` lookups, making element-wise comparison O(n) (#2549)
 - The emitter no longer compiles a regex per call when splicing a captured node into an expression position (`if` ternary, `and`/`or` short-circuit, type predicates); it uses a plain prefix check instead, with byte-identical output (#2565)
 - The compiled-code cache index is now written once at shutdown instead of after every compiled file, so a cold build of N namespaces no longer rewrites the whole index N times (O(N²) → O(N) index bytes written); the atomic-write + `flock` + disk-merge still keeps concurrent `phel test` workers from clobbering each other's entries (#2557)
+- Iterating a large persistent hash map no longer copies an `ArrayNode`'s child-node array twice: the redundant outer `array_values` is dropped so `ArrayNodeIterator` performs the single remaining copy (#2550)
 
 ### Fixed
 

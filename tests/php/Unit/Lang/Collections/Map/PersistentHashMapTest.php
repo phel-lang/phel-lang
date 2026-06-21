@@ -265,6 +265,95 @@ final class PersistentHashMapTest extends TestCase
         $this->assertSame([], $result);
     }
 
+    public function test_iteratable_on_large_map_yields_every_entry(): void
+    {
+        // A map this large forces IndexedNode promotion to ArrayNode
+        // (>= 16 children in a single node), so iteration walks the
+        // ArrayNode -> ArrayNodeIterator path under test.
+        $size = 2000;
+        $h = PersistentHashMap::empty(new ModuloHasher(), new SimpleEqualizer());
+        $expected = [];
+        for ($i = 0; $i < $size; ++$i) {
+            $h = $h->put($i, $i * 2);
+            $expected[$i] = $i * 2;
+        }
+
+        $collected = [];
+        foreach ($h as $k => $v) {
+            $collected[$k] = $v;
+        }
+
+        ksort($collected);
+
+        self::assertCount($size, $collected);
+        self::assertSame($expected, $collected);
+    }
+
+    public function test_iteratable_on_large_map_after_removals_drops_null_slots(): void
+    {
+        // After dissoc-ing keys, ArrayNode child slots become null. The
+        // iterator must still yield exactly the remaining entries and
+        // never surface a null slot (array_filter in ArrayNodeIterator).
+        $size = 2000;
+        $h = PersistentHashMap::empty(new ModuloHasher(), new SimpleEqualizer());
+        $expected = [];
+        for ($i = 0; $i < $size; ++$i) {
+            $h = $h->put($i, $i * 2);
+            $expected[$i] = $i * 2;
+        }
+
+        foreach ([0, 5, 500, 1234, 1500, 1999] as $removed) {
+            $h = $h->remove($removed);
+            unset($expected[$removed]);
+        }
+
+        $collected = [];
+        foreach ($h as $k => $v) {
+            $collected[$k] = $v;
+        }
+
+        ksort($collected);
+
+        self::assertCount($size - 6, $collected);
+        self::assertSame($expected, $collected);
+    }
+
+    public function test_merge_and_equals_on_large_maps(): void
+    {
+        // Behavioural guard over the iterator path: merge walks the
+        // source map's entries, and equals walks both. Two large maps
+        // built in different insertion orders must merge and compare
+        // identically.
+        $size = 1500;
+        $a = PersistentHashMap::empty(new ModuloHasher(), new SimpleEqualizer());
+        $b = PersistentHashMap::empty(new ModuloHasher(), new SimpleEqualizer());
+        for ($i = 0; $i < $size; ++$i) {
+            $a = $a->put($i, $i);
+        }
+
+        for ($i = $size - 1; $i >= 0; --$i) {
+            $b = $b->put($i, $i);
+        }
+
+        self::assertTrue($a->equals($b));
+        self::assertTrue($b->equals($a));
+
+        $merged = $a->merge($b);
+        self::assertCount($size, $merged);
+        self::assertTrue($merged->equals($a));
+
+        $collected = [];
+        foreach ($merged as $k => $v) {
+            $collected[$k] = $v;
+        }
+
+        ksort($collected);
+        self::assertCount($size, $collected);
+        for ($i = 0; $i < $size; ++$i) {
+            self::assertSame($i, $collected[$i]);
+        }
+    }
+
     public function test_hash_on_empty_map(): void
     {
         $h = PersistentHashMap::empty(new ModuloHasher(), new SimpleEqualizer());
