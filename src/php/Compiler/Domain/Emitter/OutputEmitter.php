@@ -23,7 +23,9 @@ use function count;
 use function end;
 use function in_array;
 use function is_null;
+use function str_starts_with;
 use function strlen;
+use function substr;
 
 final class OutputEmitter implements OutputEmitterInterface
 {
@@ -138,8 +140,14 @@ final class OutputEmitter implements OutputEmitterInterface
         // the caller splices the chunk into a surrounding expression position
         // (ternary arm, `if (…)` test, native-op fragment), where a `return`
         // prefix or trailing `;` would be invalid PHP. Strip both so the
-        // chunk renders as a bare expression.
-        $buf = preg_replace('/^return\s+/', '', $buf) ?? '';
+        // chunk renders as a bare expression. `emitContextPrefix` only ever
+        // emits the literal `return ` (single trailing space), so a
+        // `str_starts_with` + `substr` is byte-equivalent to the previous
+        // `/^return\s+/` regex while avoiding a per-call regex compile.
+        if (str_starts_with($buf, 'return ')) {
+            $buf = substr($buf, 7);
+        }
+
         $buf = rtrim($buf);
         if ($buf !== '' && str_ends_with($buf, ';')) {
             return substr($buf, 0, -1);

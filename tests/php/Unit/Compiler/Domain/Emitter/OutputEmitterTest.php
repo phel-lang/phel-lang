@@ -43,4 +43,25 @@ final class OutputEmitterTest extends TestCase
 
         self::assertSame('42', $this->outputEmitter->captureNodeAsExpression($node));
     }
+
+    public function test_capture_does_not_strip_return_inside_string_literal(): void
+    {
+        // A string literal whose value starts with the word `return` must
+        // keep that text: only the emitted `return ` statement prefix is
+        // stripped, never content embedded in the value. Guards the
+        // `str_starts_with` + `substr` replacement against over-stripping.
+        $node = new LiteralNode(NodeEnvironment::empty()->withExpressionContext(), 'return x');
+
+        self::assertSame('"return x"', $this->outputEmitter->captureNodeAsExpression($node));
+    }
+
+    public function test_capture_strips_return_prefix_for_string_literal_in_return_context(): void
+    {
+        // In RETURN context the same string literal emits
+        // `return "return x";`; only the leading statement prefix and the
+        // trailing `;` are stripped, leaving the bare expression intact.
+        $node = new LiteralNode(NodeEnvironment::empty()->withReturnContext(), 'return x');
+
+        self::assertSame('"return x"', $this->outputEmitter->captureNodeAsExpression($node));
+    }
 }
