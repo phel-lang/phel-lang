@@ -21,6 +21,7 @@ All notable changes to this project will be documented in this file.
 - `Symbol` equality short-circuits on identity and compares its backing fields directly instead of through getters, speeding up the symbol comparisons that dominate compiler environment lookups (#2551)
 - The directory-scan namespace index is now persisted across runs, so warm invocations skip re-walking the source tree (and its per-file `filemtime` sweep) when nothing changed; per-file mtimes plus a directory mtime + file-count check keep it from ever serving stale namespace info (#2560)
 - Repeating the same keyword (or scalar) literal in a function body now shares one cached `static` slot instead of one per occurrence, shrinking generated PHP and the closure capture list (#2564)
+- Persistent vector equality (`=`) now short-circuits on identical instances and walks both vectors with their chunk-aware iterators instead of repeated O(log32 n) `get` lookups, making element-wise comparison O(n) (#2549)
 
 ### Fixed
 
