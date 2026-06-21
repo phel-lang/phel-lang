@@ -12,9 +12,10 @@ use function count;
 
 /**
  * Specialisations gated by {@see TypedCollectionMethodSpecialization}:
- * `(nth v i)` / `(count v)` on a tagged `PersistentVectorInterface`, and
- * `(first s)` / `(rest s)` on a tagged seq. Each collapses a runtime cond
- * chain over the collection shapes to one direct method call.
+ * `(nth v i)` / `(count v)` / `(second v)` on a tagged
+ * `PersistentVectorInterface`, and `(first s)` / `(rest s)` on a tagged
+ * seq. Each collapses a runtime cond chain over the collection shapes to
+ * one direct method call.
  */
 final readonly class TypedCollectionCallEmitter implements SpecializedCallEmitterInterface
 {
@@ -24,11 +25,40 @@ final readonly class TypedCollectionCallEmitter implements SpecializedCallEmitte
 
     public function tryEmit(CallNode $node): bool
     {
+        if ($this->tryEmitTypedVectorSecond($node)) {
+            return true;
+        }
+
         if ($this->tryEmitTypedVectorAccessor($node)) {
             return true;
         }
 
         return $this->tryEmitTypedSeqAccessor($node);
+    }
+
+    /**
+     * Specialise `(second v)` on a tagged `PersistentVectorInterface`
+     * target. The runtime `phel.core/second` is `(first (next v))`,
+     * which returns nil — never throws — when the vector has fewer than
+     * two elements. A bare `$v->get(1)` would throw out of range, so the
+     * lowering keeps the nil contract behind a length guard:
+     * `($v->count() > 1 ? $v->get(1) : null)`. The target is a
+     * `LocalVarNode` (a bare variable), so emitting it twice is safe.
+     */
+    private function tryEmitTypedVectorSecond(CallNode $node): bool
+    {
+        if (!TypedCollectionMethodSpecialization::isTypedVectorSecond($node)) {
+            return false;
+        }
+
+        $target = $node->getArguments()[0];
+        $loc = $node->getStartSourceLocation();
+        $this->outputEmitter->emitStr('(', $loc);
+        $this->outputEmitter->emitNode($target);
+        $this->outputEmitter->emitStr('->count() > 1 ? ', $loc);
+        $this->outputEmitter->emitNode($target);
+        $this->outputEmitter->emitStr('->get(1) : null)', $loc);
+        return true;
     }
 
     /**

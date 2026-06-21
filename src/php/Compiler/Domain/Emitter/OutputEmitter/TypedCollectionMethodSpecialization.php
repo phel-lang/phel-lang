@@ -84,7 +84,49 @@ final readonly class TypedCollectionMethodSpecialization
 
     public static function isTypedVectorAccessor(CallNode $node): bool
     {
-        return self::typedVectorMethodCall($node) !== null;
+        if (self::typedVectorMethodCall($node) !== null) {
+            return true;
+        }
+
+        return self::isTypedVectorSecond($node);
+    }
+
+    /**
+     * `(second v)` where the analyser has tagged the target as
+     * `PersistentVectorInterface`. The runtime `phel.core/second` is
+     * `(first (next v))`, which returns nil when the vector has fewer
+     * than two elements — it never throws. A bare `$v->get(1)` would
+     * throw out of range, so this is only safe behind a length guard;
+     * {@see NodeEmitter\Specialized\TypedCollectionCallEmitter} emits
+     * `($v->count() > 1 ? $v->get(1) : null)`, preserving the nil
+     * contract while collapsing the runtime `first`/`next` cond chains.
+     */
+    public static function isTypedVectorSecond(CallNode $node): bool
+    {
+        $fn = $node->getFn();
+        if (!$fn instanceof GlobalVarNode) {
+            return false;
+        }
+
+        if ($fn->getNamespace() !== CompilerConstants::PHEL_CORE_NAMESPACE) {
+            return false;
+        }
+
+        if ($fn->getName()->getName() !== 'second') {
+            return false;
+        }
+
+        $args = $node->getArguments();
+        if (count($args) !== 1) {
+            return false;
+        }
+
+        $target = $args[0];
+        if (!$target instanceof LocalVarNode) {
+            return false;
+        }
+
+        return TagNormalizer::normalise($target->getInferredType()) === PersistentVectorInterface::class;
     }
 
     /**
