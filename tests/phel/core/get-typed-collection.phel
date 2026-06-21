@@ -1,11 +1,17 @@
 (ns phel-test.core.get-typed-collection
-  (:require phel.test :refer [deftest is]))
+  (:require phel.test :refer [deftest is thrown?]))
 
 (defn- read-vec [^"\Phel\Lang\Collections\Vector\PersistentVectorInterface" v ^int i]
   (get v i))
 
 (defn- read-map [^"\Phel\Lang\Collections\Map\PersistentMapInterface" m k]
   (get m k))
+
+(defn- nth-const [^"\Phel\Lang\Collections\Vector\PersistentVectorInterface" v]
+  (nth v 1))
+
+(defn- second-vec [^"\Phel\Lang\Collections\Vector\PersistentVectorInterface" v]
+  (second v))
 
 (deftest test-get-on-typed-vector
   (is (= 10 (read-vec [10 20 30] 0)) "specialised get hits PersistentVector::get")
@@ -14,3 +20,17 @@
 (deftest test-get-on-typed-map-miss-returns-nil
   (is (= 1 (read-map {:a 1 :b 2} :a)) "specialised get hits PersistentMap::find")
   (is (nil? (read-map {:a 1} :missing)) "specialised get returns nil for missing key"))
+
+(deftest test-nth-constant-index-on-typed-vector
+  (is (= 20 (nth-const [10 20 30])) "specialised constant-index nth hits PersistentVector::get")
+  (is (thrown? \Throwable (nth-const [10]))
+      "specialised nth throws out of range, matching runtime nth")
+  (is (thrown? \Throwable (nth [10] 1))
+      "runtime nth also throws out of range"))
+
+(deftest test-second-on-typed-vector
+  (is (= 20 (second-vec [10 20 30])) "specialised second returns the element at index 1")
+  (is (nil? (second-vec [10])) "specialised second returns nil out of range, never throws")
+  (is (nil? (second-vec [])) "specialised second on empty vector returns nil")
+  (is (= (second [10 20]) (second-vec [10 20])) "specialised second matches runtime in range")
+  (is (= (second [10]) (second-vec [10])) "specialised second matches runtime out of range"))
