@@ -41,6 +41,7 @@ final class CompiledCodeCacheIntegrationTest extends TestCase
 
         $cache = new CompiledCodeCache($this->cacheDir);
         $cache->put($this->sourceFile, $namespace, $sourceHash, $phpCode);
+        $cache->save();
 
         $freshCache = new CompiledCodeCache($this->cacheDir);
         $cachedPath = $freshCache->get($this->sourceFile, $sourceHash);
@@ -87,6 +88,7 @@ final class CompiledCodeCacheIntegrationTest extends TestCase
 
         $cache1 = new CompiledCodeCache($this->cacheDir);
         $cache1->put($this->sourceFile, $namespace, $sourceHash, $phpCode);
+        $cache1->save();
 
         $cache2 = new CompiledCodeCache($this->cacheDir);
         $result = $cache2->get($this->sourceFile, $sourceHash);
@@ -162,6 +164,7 @@ final class CompiledCodeCacheIntegrationTest extends TestCase
         // Simulate editing only `changed.phel` (new source hash).
         clearstatcache();
         $cache->put($changedFile, 'app\\changed', md5('v2'), '$x = 2;');
+        $cache->save();
 
         $fresh = new CompiledCodeCache($this->cacheDir);
         // Unchanged sibling: still a hit, same file, not rewritten.
@@ -175,10 +178,12 @@ final class CompiledCodeCacheIntegrationTest extends TestCase
 
     public function test_put_preserves_entries_written_by_other_instances(): void
     {
-        // A (load ...) form creates a nested CompiledCodeCache instance that
-        // writes entries for sub-files. The outer instance must not clobber
-        // those entries when it saves its own, or the next run will see a
-        // cache miss and recompile everything.
+        // Two instances each put a distinct entry and flush at shutdown
+        // (here driven explicitly via save()). The second flush must read-
+        // merge the first instance's on-disk entry before writing, or the
+        // next run sees a cache miss and recompiles everything. This guards
+        // both the (load ...) nested-instance case and concurrent
+        // `phel test` workers writing the index in separate processes.
         $outerFile = $this->cacheDir . '/outer.phel';
         $nestedFile = $this->cacheDir . '/nested.phel';
 
@@ -186,8 +191,10 @@ final class CompiledCodeCacheIntegrationTest extends TestCase
         $nested = new CompiledCodeCache($this->cacheDir);
 
         $nested->put($nestedFile, 'nested\\ns', 'hash_nested', '$result = "nested";');
+        $nested->save();
 
         $outer->put($outerFile, 'outer\\ns', 'hash_outer', '$result = "outer";');
+        $outer->save();
 
         $fresh = new CompiledCodeCache($this->cacheDir);
         self::assertNotNull($fresh->get($outerFile, 'hash_outer'));
