@@ -25,6 +25,7 @@ All notable changes to this project will be documented in this file.
 - The emitter no longer compiles a regex per call when splicing a captured node into an expression position (`if` ternary, `and`/`or` short-circuit, type predicates); it uses a plain prefix check instead, with byte-identical output (#2565)
 - The compiled-code cache index is now written once at shutdown instead of after every compiled file, so a cold build of N namespaces no longer rewrites the whole index N times (O(N²) → O(N) index bytes written); the atomic-write + `flock` + disk-merge still keeps concurrent `phel test` workers from clobbering each other's entries (#2557)
 - Iterating a large persistent hash map no longer copies an `ArrayNode`'s child-node array twice: the redundant outer `array_values` is dropped so `ArrayNodeIterator` performs the single remaining copy (#2550)
+- The lexer advances column positions with `strlen` instead of `mb_strlen` when the whole source is ASCII (decided once per parse via a single high-bit scan); multibyte sources keep the code-point `mb_strlen` path so reported columns are unchanged (#2547)
 
 ### Fixed
 

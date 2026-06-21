@@ -80,6 +80,13 @@ final class Lexer implements LexerInterface
 
     private int $column = 0;
 
+    /**
+     * Whole-source ASCII flag, computed once per lexString. When the source
+     * contains no high-bit bytes, byte length equals code-point length, so
+     * column math can use the cheaper strlen() instead of mb_strlen().
+     */
+    private bool $isAscii = true;
+
     private readonly string $combinedRegex;
 
     public function __construct(
@@ -106,6 +113,9 @@ final class Lexer implements LexerInterface
         $this->cursor = 0;
         $this->line = $startingLine;
         $this->column = 0;
+        // One-time whole-source scan: most Phel source is pure ASCII, where
+        // strlen() === mb_strlen(), so moveCursor can take the cheaper path.
+        $this->isAscii = preg_match('/[\x80-\xFF]/', $code) === 0;
         $end = strlen($code);
 
         $startLocation = $this->createSourceLocation($source);
@@ -180,14 +190,21 @@ final class Lexer implements LexerInterface
         // however, are reported in code points so error locations line up with
         // what a user sees in multibyte (UTF-8) source. For ASCII the two are
         // identical, so column numbers are unchanged for ASCII-only code.
+        //
+        // When the whole source is ASCII (see $this->isAscii, set once per
+        // lexString) the byte count is the code-point count, so strlen() is
+        // used for the column math in both branches as a fast path; multibyte
+        // sources keep the mb_strlen() path for byte-for-byte identical
+        // columns.
         $this->cursor += strlen($str);
         $lastNewLinePos = strrpos($str, "\n");
 
         if ($lastNewLinePos !== false) {
             $this->line += substr_count($str, "\n");
-            $this->column = mb_strlen(substr($str, $lastNewLinePos + 1), 'UTF-8');
+            $tail = substr($str, $lastNewLinePos + 1);
+            $this->column = $this->isAscii ? strlen($tail) : mb_strlen($tail, 'UTF-8');
         } else {
-            $this->column += mb_strlen($str, 'UTF-8');
+            $this->column += $this->isAscii ? strlen($str) : mb_strlen($str, 'UTF-8');
         }
     }
 
