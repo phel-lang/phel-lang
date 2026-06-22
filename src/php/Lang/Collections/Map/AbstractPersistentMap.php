@@ -62,6 +62,10 @@ abstract class AbstractPersistentMap extends AbstractType implements PersistentM
 
     public function equals(mixed $other): bool
     {
+        if ($this === $other) {
+            return true;
+        }
+
         if (!$other instanceof PersistentMapInterface) {
             return false;
         }

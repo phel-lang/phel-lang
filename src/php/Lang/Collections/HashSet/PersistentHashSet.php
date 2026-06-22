@@ -104,6 +104,10 @@ final class PersistentHashSet extends AbstractType implements PersistentHashSetI
 
     public function equals(mixed $other): bool
     {
+        if ($this === $other) {
+            return true;
+        }
+
         if (!$other instanceof PersistentHashSetInterface) {
             return false;
         }

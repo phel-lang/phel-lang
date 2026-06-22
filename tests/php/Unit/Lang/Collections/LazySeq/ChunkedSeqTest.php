@@ -365,4 +365,20 @@ final class ChunkedSeqTest extends TestCase
         // (memoization should prevent re-invocation)
         $this->assertSame($countAfterFirst, $countAfterSecond, 'Generator should not be invoked again');
     }
+
+    /**
+     * Regression for the int->float overflow in the `31 * $hash + ...`
+     * accumulator: ChunkedSeq::hash() bypassed the 32-bit-masked orderedHash
+     * migration (#2585), so a long chunked seq would overflow to a float and
+     * throw a TypeError on the `: int` return. It must return a stable int.
+     */
+    public function test_hash_large_chunked_seq_returns_stable_int(): void
+    {
+        $chunkedSeq = ChunkedSeq::fromArray($this->hasher, $this->equalizer, range(0, 999), 32);
+
+        $hash = $chunkedSeq->hash();
+
+        $this->assertIsInt($hash);
+        $this->assertSame($hash, $chunkedSeq->hash());
+    }
 }

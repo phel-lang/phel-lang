@@ -179,6 +179,21 @@ final class PersistentArrayMapTest extends TestCase
         $this->assertTrue($h2->equals($h1));
     }
 
+    /**
+     * Regression: a map carrying a NaN key was not equal to *itself*, because
+     * the element walk compares NaN against NaN (never `=`). The `$this ===
+     * $other` identity short-circuit — which the equals() comment already
+     * promised — makes a map reflexively equal again.
+     */
+    public function test_equals_is_reflexive_with_nan_key(): void
+    {
+        $h = PersistentArrayMap::empty(new ModuloHasher(), new SimpleEqualizer())
+            ->put(NAN, 'foo')
+            ->put(1, 'bar');
+
+        $this->assertTrue($h->equals($h));
+    }
+
     public function test_equals_different_keys(): void
     {
         $h1 = PersistentArrayMap::empty(new ModuloHasher(), new SimpleEqualizer())
