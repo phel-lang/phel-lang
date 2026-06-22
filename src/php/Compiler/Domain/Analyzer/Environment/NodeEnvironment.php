@@ -154,6 +154,48 @@ final class NodeEnvironment implements NodeEnvironmentInterface
         return $result;
     }
 
+    public function withLocalAndShadow(Symbol $local, Symbol $shadow): NodeEnvironmentInterface
+    {
+        $result = clone $this;
+        $name = $local->getName();
+
+        // First-occurrence-wins: append and index the local only when its
+        // name is new, exactly as `withMergedLocals` dedups. A rebinding of
+        // the same name keeps the first symbol (and its position).
+        if (!isset($this->localsByName[$name])) {
+            $result->locals[] = $local;
+            $result->localsByName[$name] = $local;
+        }
+
+        // The forward map is last-wins for a repeated name: `withMergedLocals`
+        // drops the current shadow (`withoutShadowedLocals`) and
+        // `withShadowedLocal` re-appends it at the end. Replicate that so the
+        // array — and its insertion order — stays identical to the rebuild.
+        $shadowed = $this->shadowed;
+        $reverse = $this->shadowedReverse;
+        if (isset($shadowed[$name])) {
+            unset($reverse[$shadowed[$name]->getName()], $shadowed[$name]);
+        }
+
+        $shadowed[$name] = $shadow;
+
+        // Reverse index keeps the FIRST original name per shadow name, exactly
+        // as `indexShadowedReverse`. The dropped old entry above (rebind case)
+        // frees this name's previous shadow; for a brand-new shadow name the
+        // guard is a no-op since fresh gensyms never collide. The guard only
+        // matters in the (gensym-impossible) event that two locals share a
+        // shadow name — there the first wins, matching the rebuild.
+        $shadowName = $shadow->getName();
+        if (!isset($reverse[$shadowName])) {
+            $reverse[$shadowName] = $name;
+        }
+
+        $result->shadowed = $shadowed;
+        $result->shadowedReverse = $reverse;
+
+        return $result;
+    }
+
     /**
      * @param array<int, Symbol> $locals
      */

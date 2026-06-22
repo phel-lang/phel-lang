@@ -138,7 +138,7 @@ final readonly class LoopSymbol implements SpecialFormAnalyzerInterface
         $bodyEnv = $bodyEnv->withAddedRecurFrame($recurFrame);
 
         foreach ($bindings as $binding) {
-            $bodyEnv = $bodyEnv->withShadowedLocal($binding->getSymbol(), $binding->getShadow());
+            $bodyEnv = $bodyEnv->withLocalAndShadow($binding->getSymbol(), $binding->getShadow());
         }
 
         $bodyExpr = $this->analyzer->analyze(
@@ -188,7 +188,7 @@ final readonly class LoopSymbol implements SpecialFormAnalyzerInterface
                 $sym->getStartLocation(),
             );
 
-            $initEnv = $initEnv->withMergedLocals([$sym])->withShadowedLocal($sym, $shadowSym);
+            $initEnv = $initEnv->withLocalAndShadow($sym, $shadowSym);
         }
 
         return $nodes;

@@ -92,7 +92,7 @@ final readonly class LetSymbol implements SpecialFormAnalyzerInterface
             : $bodyEnv->withEnvContext($env);
 
         foreach ($bindings as $binding) {
-            $bodyEnv = $bodyEnv->withShadowedLocal($binding->getSymbol(), $binding->getShadow());
+            $bodyEnv = $bodyEnv->withLocalAndShadow($binding->getSymbol(), $binding->getShadow());
         }
 
         /** @var PersistentListInterface<mixed> $rest1 */
@@ -149,7 +149,7 @@ final readonly class LetSymbol implements SpecialFormAnalyzerInterface
                 $sym->getStartLocation(),
             );
 
-            $initEnv = $initEnv->withMergedLocals([$sym])->withShadowedLocal($sym, $shadowSym);
+            $initEnv = $initEnv->withLocalAndShadow($sym, $shadowSym);
         }
 
         return $nodes;

@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace PhelTest\Unit\Compiler\Analyzer\Environment;
 
 use Phel\Compiler\Domain\Analyzer\Environment\NodeEnvironment;
+use Phel\Compiler\Domain\Analyzer\Environment\NodeEnvironmentInterface;
 use Phel\Lang\Symbol;
 use PHPUnit\Framework\TestCase;
 
@@ -177,5 +178,74 @@ final class NodeEnvironmentTest extends TestCase
         self::assertNotSame($env, $next);
         self::assertTrue($next->isReturnInferenceDeferred());
         self::assertFalse($env->isReturnInferenceDeferred());
+    }
+
+    public function test_with_local_and_shadow_matches_rebuild_for_distinct_bindings(): void
+    {
+        $pairs = [
+            [Symbol::create('a'), Symbol::create('a_1')],
+            [Symbol::create('b'), Symbol::create('b_1')],
+            [Symbol::create('c'), Symbol::create('c_1')],
+        ];
+
+        self::assertEquals($this->buildByRebuild($pairs), $this->buildByIncremental($pairs));
+    }
+
+    public function test_with_local_and_shadow_matches_rebuild_when_rebinding_same_name(): void
+    {
+        $pairs = [
+            [Symbol::create('x'), Symbol::create('x_1')],
+            [Symbol::create('x'), Symbol::create('x_2')],
+        ];
+
+        $incremental = $this->buildByIncremental($pairs);
+
+        self::assertEquals($this->buildByRebuild($pairs), $incremental);
+        // Last shadow wins for the forward map; only its reverse resolves.
+        self::assertSame('x', $incremental->findLocalByShadowedName('x_2')?->getName());
+        self::assertNull($incremental->findLocalByShadowedName('x_1'));
+    }
+
+    public function test_with_local_and_shadow_matches_rebuild_on_top_of_parent_scope(): void
+    {
+        $parent = NodeEnvironment::empty()
+            ->withMergedLocals([Symbol::create('outer')])
+            ->withShadowedLocal(Symbol::create('outer'), Symbol::create('outer_1'));
+
+        $pairs = [
+            [Symbol::create('a'), Symbol::create('a_9')],
+            [Symbol::create('outer'), Symbol::create('outer_2')],
+        ];
+
+        self::assertEquals(
+            $this->buildByRebuild($pairs, $parent),
+            $this->buildByIncremental($pairs, $parent),
+        );
+    }
+
+    /**
+     * @param list<array{Symbol, Symbol}> $pairs
+     */
+    private function buildByRebuild(array $pairs, ?NodeEnvironmentInterface $base = null): NodeEnvironmentInterface
+    {
+        $env = $base ?? NodeEnvironment::empty();
+        foreach ($pairs as [$local, $shadow]) {
+            $env = $env->withMergedLocals([$local])->withShadowedLocal($local, $shadow);
+        }
+
+        return $env;
+    }
+
+    /**
+     * @param list<array{Symbol, Symbol}> $pairs
+     */
+    private function buildByIncremental(array $pairs, ?NodeEnvironmentInterface $base = null): NodeEnvironmentInterface
+    {
+        $env = $base ?? NodeEnvironment::empty();
+        foreach ($pairs as [$local, $shadow]) {
+            $env = $env->withLocalAndShadow($local, $shadow);
+        }
+
+        return $env;
     }
 }

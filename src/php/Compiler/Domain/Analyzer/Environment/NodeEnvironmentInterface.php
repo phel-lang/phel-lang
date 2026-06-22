@@ -46,6 +46,15 @@ interface NodeEnvironmentInterface extends ContextualEnvironmentInterface
     public function withShadowedLocal(Symbol $local, Symbol $shadow): self;
 
     /**
+     * Appends one local and its shadow in a single O(1) step, updating the
+     * derived `localsByName` / `shadowedReverse` indexes incrementally.
+     * Equivalent to `withMergedLocals([$local])->withShadowedLocal($local, $shadow)`
+     * but without rebuilding either index from scratch per binding (which is
+     * O(N) and makes a wide `let`/`loop` O(N^2)).
+     */
+    public function withLocalAndShadow(Symbol $local, Symbol $shadow): self;
+
+    /**
      * @param array<int, Symbol> $locals
      */
     public function withoutShadowedLocals(array $locals): self;
