@@ -6,7 +6,6 @@ namespace Phel\Lang\Collections\LazySeq;
 
 use Countable;
 use Generator;
-use Iterator;
 use IteratorAggregate;
 use Phel\Lang\AbstractType;
 use Phel\Lang\Collections\Map\PersistentMapInterface;
@@ -17,8 +16,6 @@ use Traversable;
 
 use function array_slice;
 use function count;
-use function is_array;
-use function is_object;
 
 /**
  * A chunked lazy sequence that realizes elements in batches for better performance.
@@ -303,108 +300,11 @@ final class ChunkedSeq extends AbstractType implements LazySeqInterface, Countab
             return true;
         }
 
-        $otherIter = $this->lazyIteratorFor($other);
+        $otherIter = LazySeqEquality::iteratorFor($other);
         if (!$otherIter instanceof Generator) {
             return false;
         }
 
-        return $this->walkPairwise($this->getIterator(), $otherIter, $this->equalizer);
-    }
-
-    /**
-     * Converts an arbitrary value into a lazy iterator, or returns `null`
-     * when the value is not sequence-like. Used by `equals` to compare
-     * element-by-element without realizing infinite lazy sequences.
-     */
-    private function lazyIteratorFor(mixed $value): ?Generator
-    {
-        if ($value instanceof Traversable) {
-            return (static function () use ($value): Generator {
-                foreach ($value as $v) {
-                    yield $v;
-                }
-            })();
-        }
-
-        if (is_array($value)) {
-            return (static function () use ($value): Generator {
-                foreach ($value as $v) {
-                    yield $v;
-                }
-            })();
-        }
-
-        if (is_object($value) && method_exists($value, 'toArray')) {
-            $array = $value->toArray();
-            return (static function () use ($array): Generator {
-                foreach ($array as $v) {
-                    yield $v;
-                }
-            })();
-        }
-
-        return null;
-    }
-
-    /**
-     * Walks two iterators in lockstep, comparing element-by-element via
-     * the equalizer. Returns `false` on the first divergence (either a
-     * length mismatch or an unequal element) and `true` only if both
-     * iterators exhaust at the same point.
-     *
-     * Running this against two infinite sequences loops forever, matching
-     * Clojure's behavior — it is the caller's responsibility to avoid
-     * comparing two infinite sequences for equality.
-     *
-     * @param Traversable<mixed> $left
-     * @param Traversable<mixed> $right
-     */
-    private function walkPairwise(Traversable $left, Traversable $right, EqualizerInterface $equalizer): bool
-    {
-        $leftIter = $this->asIterator($left);
-        $rightIter = $this->asIterator($right);
-
-        $leftIter->rewind();
-        $rightIter->rewind();
-
-        while (true) {
-            $leftValid = $leftIter->valid();
-            $rightValid = $rightIter->valid();
-            if ($leftValid !== $rightValid) {
-                return false;
-            }
-
-            if (!$leftValid) {
-                return true;
-            }
-
-            if (!$equalizer->equals($leftIter->current(), $rightIter->current())) {
-                return false;
-            }
-
-            $leftIter->next();
-            $rightIter->next();
-        }
-    }
-
-    /**
-     * Normalizes a `Traversable` into an `\Iterator`. Generators are
-     * already iterators, but an `IteratorAggregate` returns a nested
-     * Traversable that must be unwrapped before `valid`/`current`/`next`
-     * can be called directly.
-     */
-    /**
-     * @param Traversable<mixed> $traversable
-     *
-     * @return Iterator<mixed, mixed>
-     */
-    private function asIterator(Traversable $traversable): Iterator
-    {
-        while ($traversable instanceof IteratorAggregate) {
-            $traversable = $traversable->getIterator();
-        }
-
-        /** @var Iterator $traversable */
-        return $traversable;
+        return LazySeqEquality::walkPairwise($this->getIterator(), $otherIter, $this->equalizer);
     }
 }
