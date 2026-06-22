@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace Phel\Compiler\Domain\Emitter\OutputEmitter;
 
+use Phel\Compiler\Domain\Analyzer\Ast\AbstractNode;
+use Phel\Compiler\Domain\Analyzer\Ast\LocalVarNode;
 use Phel\Lang\Collections\Map\PersistentMapInterface;
 
 use function ltrim;
@@ -31,5 +33,20 @@ final readonly class TagNormalizer
     public static function isPersistentMap(?string $tag): bool
     {
         return self::normalise($tag) === PersistentMapInterface::class;
+    }
+
+    /**
+     * The normalised inferred type tag of a node when it is a
+     * `LocalVarNode`, or `null` when the node is absent, not a local var,
+     * or carries no tag. Collapses the "is this argument a tagged local?"
+     * guard repeated across the call-site specialisations into one place.
+     */
+    public static function ofLocalVar(?AbstractNode $node): ?string
+    {
+        if (!$node instanceof LocalVarNode) {
+            return null;
+        }
+
+        return self::normalise($node->getInferredType());
     }
 }

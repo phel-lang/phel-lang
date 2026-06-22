@@ -52,12 +52,7 @@ final readonly class TypedValueSpecialization
             return null;
         }
 
-        $target = $args[0];
-        if (!$target instanceof LocalVarNode) {
-            return null;
-        }
-
-        $tag = TagNormalizer::normalise($target->getInferredType());
+        $tag = TagNormalizer::ofLocalVar($args[0]);
         if ($tag === null) {
             return null;
         }
@@ -103,17 +98,7 @@ final readonly class TypedValueSpecialization
             return null;
         }
 
-        $target = $args[0];
-        if (!$target instanceof LocalVarNode) {
-            return null;
-        }
-
-        $tag = TagNormalizer::normalise($target->getInferredType());
-        if ($tag === null) {
-            return null;
-        }
-
-        return match ($tag) {
+        return match (TagNormalizer::ofLocalVar($args[0])) {
             'array' => '(%s === [])',
             'string' => "(%s === '')",
             'int' => '(%s === 0)',
@@ -148,12 +133,7 @@ final readonly class TypedValueSpecialization
             return null;
         }
 
-        $target = $args[0];
-        if (!$target instanceof LocalVarNode) {
-            return null;
-        }
-
-        $tag = TagNormalizer::normalise($target->getInferredType());
+        $tag = TagNormalizer::ofLocalVar($args[0]);
         if ($tag !== Keyword::class && $tag !== Symbol::class) {
             return null;
         }

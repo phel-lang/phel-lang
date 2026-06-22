@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace Phel\Compiler\Domain\Emitter\OutputEmitter;
 
 use Phel\Compiler\Domain\Analyzer\Ast\CallNode;
-use Phel\Compiler\Domain\Analyzer\Ast\LocalVarNode;
 
 use function count;
 use function in_array;
@@ -86,12 +85,7 @@ final readonly class TypePredicateSpecialization
             return null;
         }
 
-        $target = $args[0];
-        if (!$target instanceof LocalVarNode) {
-            return null;
-        }
-
-        $tag = TagNormalizer::normalise($target->getInferredType());
+        $tag = TagNormalizer::ofLocalVar($args[0]);
         if ($tag !== 'int' && $tag !== 'float') {
             return null;
         }

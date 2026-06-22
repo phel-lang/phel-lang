@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace Phel\Compiler\Domain\Emitter\OutputEmitter;
 
 use Phel\Compiler\Domain\Analyzer\Ast\CallNode;
-use Phel\Compiler\Domain\Analyzer\Ast\LocalVarNode;
 use Phel\Lang\Collections\LinkedList\PersistentListInterface;
 use Phel\Lang\Collections\Vector\PersistentVectorInterface;
 use Phel\Lang\SeqInterface;
@@ -54,12 +53,7 @@ final readonly class TypedCollectionMethodSpecialization
         }
 
         $args = $node->getArguments();
-        $target = $args[0] ?? null;
-        if (!$target instanceof LocalVarNode) {
-            return null;
-        }
-
-        if (TagNormalizer::normalise($target->getInferredType()) !== PersistentVectorInterface::class) {
+        if (TagNormalizer::ofLocalVar($args[0] ?? null) !== PersistentVectorInterface::class) {
             return null;
         }
 
@@ -104,12 +98,7 @@ final readonly class TypedCollectionMethodSpecialization
             return false;
         }
 
-        $target = $args[0];
-        if (!$target instanceof LocalVarNode) {
-            return false;
-        }
-
-        return TagNormalizer::normalise($target->getInferredType()) === PersistentVectorInterface::class;
+        return TagNormalizer::ofLocalVar($args[0]) === PersistentVectorInterface::class;
     }
 
     /**
@@ -136,12 +125,7 @@ final readonly class TypedCollectionMethodSpecialization
             return null;
         }
 
-        $target = $args[0];
-        if (!$target instanceof LocalVarNode) {
-            return null;
-        }
-
-        $tag = TagNormalizer::normalise($target->getInferredType());
+        $tag = TagNormalizer::ofLocalVar($args[0]);
         if ($tag === null || !isset(self::SEQ_TAGS[$tag])) {
             return null;
         }
