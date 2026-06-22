@@ -5,12 +5,10 @@ declare(strict_types=1);
 namespace Phel\Compiler\Domain\Emitter\OutputEmitter;
 
 use Phel\Compiler\Domain\Analyzer\Ast\CallNode;
-use Phel\Compiler\Domain\Analyzer\Ast\GlobalVarNode;
 use Phel\Compiler\Domain\Analyzer\Ast\LocalVarNode;
 use Phel\Lang\Collections\LinkedList\PersistentListInterface;
 use Phel\Lang\Collections\Vector\PersistentVectorInterface;
 use Phel\Lang\SeqInterface;
-use Phel\Shared\CompilerConstants;
 
 use function count;
 
@@ -50,12 +48,8 @@ final readonly class TypedCollectionMethodSpecialization
      */
     public static function typedVectorMethodCall(CallNode $node): ?array
     {
-        $fn = $node->getFn();
-        if (!$fn instanceof GlobalVarNode) {
-            return null;
-        }
-
-        if ($fn->getNamespace() !== CompilerConstants::PHEL_CORE_NAMESPACE) {
+        $name = PhelCoreCall::nameOf($node);
+        if ($name === null) {
             return null;
         }
 
@@ -68,8 +62,6 @@ final readonly class TypedCollectionMethodSpecialization
         if (TagNormalizer::normalise($target->getInferredType()) !== PersistentVectorInterface::class) {
             return null;
         }
-
-        $name = $fn->getName()->getName();
 
         if ($name === 'count' && count($args) === 1) {
             return ['method' => 'count', 'args' => []];
@@ -103,16 +95,7 @@ final readonly class TypedCollectionMethodSpecialization
      */
     public static function isTypedVectorSecond(CallNode $node): bool
     {
-        $fn = $node->getFn();
-        if (!$fn instanceof GlobalVarNode) {
-            return false;
-        }
-
-        if ($fn->getNamespace() !== CompilerConstants::PHEL_CORE_NAMESPACE) {
-            return false;
-        }
-
-        if ($fn->getName()->getName() !== 'second') {
+        if (!PhelCoreCall::is($node, 'second')) {
             return false;
         }
 
@@ -139,16 +122,11 @@ final readonly class TypedCollectionMethodSpecialization
      */
     public static function typedSeqMethodName(CallNode $node): ?string
     {
-        $fn = $node->getFn();
-        if (!$fn instanceof GlobalVarNode) {
+        $name = PhelCoreCall::nameOf($node);
+        if ($name === null) {
             return null;
         }
 
-        if ($fn->getNamespace() !== CompilerConstants::PHEL_CORE_NAMESPACE) {
-            return null;
-        }
-
-        $name = $fn->getName()->getName();
         if (!isset(self::SEQ_METHODS[$name])) {
             return null;
         }

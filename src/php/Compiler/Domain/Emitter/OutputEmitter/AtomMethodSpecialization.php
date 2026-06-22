@@ -5,8 +5,6 @@ declare(strict_types=1);
 namespace Phel\Compiler\Domain\Emitter\OutputEmitter;
 
 use Phel\Compiler\Domain\Analyzer\Ast\CallNode;
-use Phel\Compiler\Domain\Analyzer\Ast\GlobalVarNode;
-use Phel\Shared\CompilerConstants;
 
 use function count;
 
@@ -30,14 +28,11 @@ final readonly class AtomMethodSpecialization
      */
     public static function atomMethodCall(CallNode $node): ?array
     {
-        $fn = $node->getFn();
-        if (!$fn instanceof GlobalVarNode
-            || $fn->getNamespace() !== CompilerConstants::PHEL_CORE_NAMESPACE
-        ) {
+        $name = PhelCoreCall::nameOf($node);
+        if ($name === null) {
             return null;
         }
 
-        $name = $fn->getName()->getName();
         $argc = count($node->getArguments());
 
         if ($name === 'deref' && $argc === 1) {

@@ -6,11 +6,9 @@ namespace Phel\Compiler\Domain\Emitter\OutputEmitter;
 
 use Phel\Compiler\Domain\Analyzer\Ast\AbstractNode;
 use Phel\Compiler\Domain\Analyzer\Ast\CallNode;
-use Phel\Compiler\Domain\Analyzer\Ast\GlobalVarNode;
 use Phel\Compiler\Domain\Analyzer\Ast\LocalVarNode;
 use Phel\Lang\Collections\Map\PersistentMapInterface;
 use Phel\Lang\Collections\Vector\PersistentVectorInterface;
-use Phel\Shared\CompilerConstants;
 
 use function array_slice;
 use function array_unshift;
@@ -44,12 +42,8 @@ final readonly class AssocConjSpecialization
      */
     public static function typedAssocConjDissocMethod(CallNode $node): ?string
     {
-        $fn = $node->getFn();
-        if (!$fn instanceof GlobalVarNode) {
-            return null;
-        }
-
-        if ($fn->getNamespace() !== CompilerConstants::PHEL_CORE_NAMESPACE) {
+        $name = PhelCoreCall::nameOf($node);
+        if ($name === null) {
             return null;
         }
 
@@ -64,7 +58,6 @@ final readonly class AssocConjSpecialization
             return null;
         }
 
-        $name = $fn->getName()->getName();
         $argCount = count($args);
 
         if ($name === 'assoc' && $argCount === 3) {
@@ -111,14 +104,7 @@ final readonly class AssocConjSpecialization
      */
     public static function typedDissocKeys(CallNode $node): ?array
     {
-        $fn = $node->getFn();
-        if (!$fn instanceof GlobalVarNode) {
-            return null;
-        }
-
-        if ($fn->getNamespace() !== CompilerConstants::PHEL_CORE_NAMESPACE
-            || $fn->getName()->getName() !== 'dissoc'
-        ) {
+        if (!PhelCoreCall::is($node, 'dissoc')) {
             return null;
         }
 
@@ -176,14 +162,7 @@ final readonly class AssocConjSpecialization
         $groups = [];
         $current = $node;
         while (true) {
-            $cFn = $current->getFn();
-            if (!$cFn instanceof GlobalVarNode) {
-                return null;
-            }
-
-            if ($cFn->getNamespace() !== CompilerConstants::PHEL_CORE_NAMESPACE
-                || $cFn->getName()->getName() !== $opName
-            ) {
+            if (!PhelCoreCall::is($current, $opName)) {
                 return null;
             }
 
@@ -230,14 +209,7 @@ final readonly class AssocConjSpecialization
      */
     private static function classifyChainHead(CallNode $node): ?array
     {
-        $fn = $node->getFn();
-        if (!$fn instanceof GlobalVarNode
-            || $fn->getNamespace() !== CompilerConstants::PHEL_CORE_NAMESPACE
-        ) {
-            return null;
-        }
-
-        return match ($fn->getName()->getName()) {
+        return match (PhelCoreCall::nameOf($node)) {
             'assoc' => ['assoc', 3, 'put', PersistentMapInterface::class],
             'conj' => ['conj', 2, 'append', PersistentVectorInterface::class],
             default => null,

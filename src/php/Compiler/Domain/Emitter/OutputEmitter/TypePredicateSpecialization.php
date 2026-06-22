@@ -5,9 +5,7 @@ declare(strict_types=1);
 namespace Phel\Compiler\Domain\Emitter\OutputEmitter;
 
 use Phel\Compiler\Domain\Analyzer\Ast\CallNode;
-use Phel\Compiler\Domain\Analyzer\Ast\GlobalVarNode;
 use Phel\Compiler\Domain\Analyzer\Ast\LocalVarNode;
-use Phel\Shared\CompilerConstants;
 
 use function count;
 use function in_array;
@@ -36,19 +34,12 @@ final readonly class TypePredicateSpecialization
      */
     public static function typePredicateFragment(CallNode $node): ?string
     {
-        $fn = $node->getFn();
-        if (!$fn instanceof GlobalVarNode
-            || $fn->getNamespace() !== CompilerConstants::PHEL_CORE_NAMESPACE
-        ) {
-            return null;
-        }
-
         $args = $node->getArguments();
         if (count($args) !== 1) {
             return null;
         }
 
-        return match ($fn->getName()->getName()) {
+        return match (PhelCoreCall::nameOf($node)) {
             'int?' => 'is_int(%s)',
             'float?', 'double?' => 'is_float(%s)',
             'string?' => 'is_string(%s)',
@@ -81,14 +72,11 @@ final readonly class TypePredicateSpecialization
      */
     public static function isNumericPredicate(CallNode $node): ?string
     {
-        $fn = $node->getFn();
-        if (!$fn instanceof GlobalVarNode
-            || $fn->getNamespace() !== CompilerConstants::PHEL_CORE_NAMESPACE
-        ) {
+        $name = PhelCoreCall::nameOf($node);
+        if ($name === null) {
             return null;
         }
 
-        $name = $fn->getName()->getName();
         if (!in_array($name, ['zero?', 'pos?', 'neg?'], true)) {
             return null;
         }

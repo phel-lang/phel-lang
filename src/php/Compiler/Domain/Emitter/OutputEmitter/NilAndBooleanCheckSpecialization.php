@@ -5,8 +5,6 @@ declare(strict_types=1);
 namespace Phel\Compiler\Domain\Emitter\OutputEmitter;
 
 use Phel\Compiler\Domain\Analyzer\Ast\CallNode;
-use Phel\Compiler\Domain\Analyzer\Ast\GlobalVarNode;
-use Phel\Shared\CompilerConstants;
 
 use function count;
 
@@ -69,14 +67,7 @@ final readonly class NilAndBooleanCheckSpecialization
 
     private static function isUnaryCoreCall(CallNode $node, string $name): bool
     {
-        $fn = $node->getFn();
-        if (!$fn instanceof GlobalVarNode) {
-            return false;
-        }
-
-        if ($fn->getNamespace() !== CompilerConstants::PHEL_CORE_NAMESPACE
-            || $fn->getName()->getName() !== $name
-        ) {
+        if (!PhelCoreCall::is($node, $name)) {
             return false;
         }
 

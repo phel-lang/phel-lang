@@ -6,12 +6,10 @@ namespace Phel\Compiler\Domain\Emitter\OutputEmitter;
 
 use Phel\Compiler\Domain\Analyzer\Ast\AbstractNode;
 use Phel\Compiler\Domain\Analyzer\Ast\CallNode;
-use Phel\Compiler\Domain\Analyzer\Ast\GlobalVarNode;
 use Phel\Compiler\Domain\Analyzer\Ast\LiteralNode;
 use Phel\Compiler\Domain\Analyzer\Ast\LocalVarNode;
 use Phel\Compiler\Domain\Analyzer\Ast\PhpVarNode;
 use Phel\Lang\Keyword;
-use Phel\Shared\CompilerConstants;
 
 use function array_all;
 use function array_any;
@@ -82,14 +80,7 @@ final readonly class NumericOperationSpecialization
      */
     public static function notEqPeepholeInner(CallNode $node): ?CallNode
     {
-        $fn = $node->getFn();
-        if (!$fn instanceof GlobalVarNode) {
-            return null;
-        }
-
-        if ($fn->getNamespace() !== CompilerConstants::PHEL_CORE_NAMESPACE
-            || $fn->getName()->getName() !== 'not'
-        ) {
+        if (!PhelCoreCall::is($node, 'not')) {
             return null;
         }
 
@@ -123,12 +114,8 @@ final readonly class NumericOperationSpecialization
      */
     public static function typedBinaryOpName(CallNode $node): ?string
     {
-        $fn = $node->getFn();
-        if (!$fn instanceof GlobalVarNode) {
-            return null;
-        }
-
-        if ($fn->getNamespace() !== CompilerConstants::PHEL_CORE_NAMESPACE) {
+        $name = PhelCoreCall::nameOf($node);
+        if ($name === null) {
             return null;
         }
 
@@ -136,8 +123,6 @@ final readonly class NumericOperationSpecialization
         if (count($args) !== 2) {
             return null;
         }
-
-        $name = $fn->getName()->getName();
 
         if (isset(self::NUMERIC_BINARY_OPS[$name])) {
             if (self::isOverflowProneLiteralArithmetic($name, $args)) {
@@ -184,12 +169,8 @@ final readonly class NumericOperationSpecialization
      */
     public static function typedVariadicChain(CallNode $node): ?array
     {
-        $fn = $node->getFn();
-        if (!$fn instanceof GlobalVarNode) {
-            return null;
-        }
-
-        if ($fn->getNamespace() !== CompilerConstants::PHEL_CORE_NAMESPACE) {
+        $name = PhelCoreCall::nameOf($node);
+        if ($name === null) {
             return null;
         }
 
@@ -201,8 +182,6 @@ final readonly class NumericOperationSpecialization
         if (!self::allArgsAreTaggedNumericLocals($args)) {
             return null;
         }
-
-        $name = $fn->getName()->getName();
 
         if (in_array($name, ['+', '*'], true)) {
             return ['op' => self::NUMERIC_BINARY_OPS[$name], 'kind' => 'arith'];
@@ -375,14 +354,11 @@ final readonly class NumericOperationSpecialization
      */
     private static function numericTypeOfTypedBinaryCall(CallNode $node): ?string
     {
-        $fn = $node->getFn();
-        if (!$fn instanceof GlobalVarNode
-            || $fn->getNamespace() !== CompilerConstants::PHEL_CORE_NAMESPACE
-        ) {
+        $name = PhelCoreCall::nameOf($node);
+        if ($name === null) {
             return null;
         }
 
-        $name = $fn->getName()->getName();
         if (!in_array($name, self::ARITHMETIC_OPS, true)) {
             return null;
         }

@@ -6,12 +6,10 @@ namespace Phel\Compiler\Domain\Emitter\OutputEmitter;
 
 use Phel\Compiler\Domain\Analyzer\Ast\AbstractNode;
 use Phel\Compiler\Domain\Analyzer\Ast\CallNode;
-use Phel\Compiler\Domain\Analyzer\Ast\GlobalVarNode;
 use Phel\Compiler\Domain\Analyzer\Ast\LocalVarNode;
 use Phel\Compiler\Domain\Analyzer\Ast\VectorNode;
 use Phel\Lang\Collections\Map\PersistentMapInterface;
 use Phel\Lang\Collections\Vector\PersistentVectorInterface;
-use Phel\Shared\CompilerConstants;
 
 use function count;
 
@@ -56,14 +54,7 @@ final readonly class GetInSpecialization
      */
     public static function literalPathKeys(CallNode $node): ?array
     {
-        $fn = $node->getFn();
-        if (!$fn instanceof GlobalVarNode) {
-            return null;
-        }
-
-        if ($fn->getNamespace() !== CompilerConstants::PHEL_CORE_NAMESPACE
-            || $fn->getName()->getName() !== 'get-in'
-        ) {
+        if (!PhelCoreCall::is($node, 'get-in')) {
             return null;
         }
 
