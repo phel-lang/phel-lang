@@ -121,9 +121,7 @@ final class PersistentSortedSet extends AbstractType implements PersistentHashSe
     public function hash(): int
     {
         if ($this->hashCache === 0) {
-            foreach ($this->map as $value) {
-                $this->hashCache += $this->hasher->hash($value);
-            }
+            $this->hashCache = $this->hasher->unorderedHash($this->map);
         }
 
         return $this->hashCache;

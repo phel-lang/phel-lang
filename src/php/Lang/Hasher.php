@@ -20,6 +20,8 @@ use function is_string;
 #[Singleton]
 final class Hasher implements HasherInterface
 {
+    use HashCombinerTrait;
+
     private const int NULL_HASH_VALUE = 0;
 
     private const int TRUE_HASH_VALUE = 1231;

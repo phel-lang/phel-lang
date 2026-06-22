@@ -134,12 +134,7 @@ final class PersistentHashSet extends AbstractType implements PersistentHashSetI
             return $this->hashCache;
         }
 
-        $hash = 0;
-        foreach ($this->map as $value) {
-            $hash += $this->hasher->hash($value);
-        }
-
-        return $this->hashCache = $hash;
+        return $this->hashCache = $this->hasher->unorderedHash($this->map);
     }
 
     /**

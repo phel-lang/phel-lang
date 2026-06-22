@@ -85,12 +85,7 @@ abstract class AbstractPersistentVector extends AbstractType implements Persiste
             return $this->hashCache;
         }
 
-        $hash = 1;
-        foreach ($this as $obj) {
-            $hash = 31 * $hash + $this->hasher->hash($obj);
-        }
-
-        return $this->hashCache = $hash;
+        return $this->hashCache = $this->hasher->orderedHash($this);
     }
 
     public function equals(mixed $other): bool

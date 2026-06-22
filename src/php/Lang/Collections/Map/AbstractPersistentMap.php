@@ -57,12 +57,7 @@ abstract class AbstractPersistentMap extends AbstractType implements PersistentM
             return $this->hashCache;
         }
 
-        $hash = 1;
-        foreach ($this as $key => $value) {
-            $hash += $this->hasher->hash($key) ^ $this->hasher->hash($value);
-        }
-
-        return $this->hashCache = $hash;
+        return $this->hashCache = $this->hasher->unorderedKeyedHash($this);
     }
 
     public function equals(mixed $other): bool

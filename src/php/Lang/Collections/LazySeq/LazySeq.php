@@ -405,12 +405,7 @@ final class LazySeq extends AbstractType implements LazySeqInterface, Countable,
     public function hash(): int
     {
         // Realize and hash the sequence (similar to PersistentList)
-        $hash = 1;
-        foreach ($this as $value) {
-            $hash = 31 * $hash + $this->hasher->hash($value);
-        }
-
-        return $hash;
+        return $this->hasher->orderedHash($this);
     }
 
     public function equals(mixed $other): bool

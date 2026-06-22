@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace PhelTest\Unit\Lang\Collections\Map;
 
 use Phel\Lang\Collections\Map\PersistentHashMap;
+use Phel\Lang\Equalizer;
+use Phel\Lang\Hasher;
 use PhelTest\Unit\Lang\Collections\ModuloHasher;
 use PhelTest\Unit\Lang\Collections\SimpleEqualizer;
 use PHPUnit\Framework\TestCase;
@@ -367,5 +369,23 @@ final class PersistentHashMapTest extends TestCase
             ->put(1, 10);
 
         $this->assertSame(1 + (1 ^ 10), $h->hash());
+    }
+
+    /**
+     * Regression for the int->float overflow in the running hash sum: a
+     * large map must still return a stable int hash instead of throwing a
+     * TypeError on the `?int $hashCache` assignment.
+     */
+    public function test_hash_large_map_returns_stable_int(): void
+    {
+        $map = PersistentHashMap::empty(new Hasher(), new Equalizer());
+        for ($i = 0; $i < 1000; ++$i) {
+            $map = $map->put($i, $i * 7);
+        }
+
+        $hash = $map->hash();
+
+        $this->assertIsInt($hash);
+        $this->assertSame($hash, $map->hash());
     }
 }

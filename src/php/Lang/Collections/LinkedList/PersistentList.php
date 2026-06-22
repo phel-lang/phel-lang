@@ -187,12 +187,7 @@ final class PersistentList extends AbstractType implements PersistentListInterfa
             return $this->hashCache;
         }
 
-        $hash = 1;
-        foreach ($this as $value) {
-            $hash = 31 * $hash + $this->hasher->hash($value);
-        }
-
-        return $this->hashCache = $hash;
+        return $this->hashCache = $this->hasher->orderedHash($this);
     }
 
     /**

@@ -132,4 +132,19 @@ final class PersistentQueueTest extends TestCase
         self::assertSame($meta, $tagged->getMeta());
         self::assertTrue($q->equals($tagged));
     }
+
+    /**
+     * Regression for the int->float overflow in the `31 * $hash + ...`
+     * accumulator: a long queue must still return a stable int hash instead
+     * of throwing a TypeError on the `?int $hashCache` assignment.
+     */
+    public function test_hash_large_queue_returns_stable_int(): void
+    {
+        $q = PersistentQueue::fromArray($this->hasher, $this->equalizer, range(0, 999));
+
+        $hash = $q->hash();
+
+        self::assertIsInt($hash);
+        self::assertSame($hash, $q->hash());
+    }
 }
