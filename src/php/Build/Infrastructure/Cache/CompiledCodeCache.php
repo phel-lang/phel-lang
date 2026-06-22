@@ -29,6 +29,8 @@ use const TOKEN_PARSE;
  */
 final class CompiledCodeCache implements CompiledCodeCacheInterface
 {
+    use DeferredFlushTrait;
+
     /** @var array<string, CacheEntry> */
     private array $entries = [];
 
@@ -53,16 +55,6 @@ final class CompiledCodeCache implements CompiledCodeCacheInterface
     private array $touchedThisProcess = [];
 
     private bool $loaded = false;
-
-    /**
-     * Set when `put`/`invalidate` mutate the in-memory index. The index is
-     * written to disk exactly once per process at shutdown (see
-     * {@see registerShutdown()}), turning a cold build's index I/O from
-     * O(N²) bytes written (one full rewrite per `put`) into O(N).
-     */
-    private bool $indexDirty = false;
-
-    private bool $shutdownRegistered = false;
 
     private readonly CacheDirectory $directory;
 
@@ -165,7 +157,7 @@ final class CompiledCodeCache implements CompiledCodeCacheInterface
         unset($this->tombstones[$sourcePath]);
 
         $this->evictLRU();
-        $this->markDirty();
+        $this->markFlushPending();
 
         if (function_exists('opcache_compile_file')) {
             @opcache_compile_file($compiledPath);
@@ -227,7 +219,7 @@ final class CompiledCodeCache implements CompiledCodeCacheInterface
 
         unset($this->entries[$sourcePath], $this->touchedThisProcess[$sourcePath]);
         $this->tombstones[$sourcePath] = true;
-        $this->markDirty();
+        $this->markFlushPending();
     }
 
     /**
@@ -249,7 +241,7 @@ final class CompiledCodeCache implements CompiledCodeCacheInterface
         $this->tombstones = [];
         $this->touchedThisProcess = [];
         $this->saveEntries();
-        $this->indexDirty = false;
+        $this->clearFlushPending();
         $this->environmentStore->clearMemo();
     }
 
@@ -265,12 +257,12 @@ final class CompiledCodeCache implements CompiledCodeCacheInterface
      */
     public function save(): void
     {
-        if (!$this->indexDirty) {
+        if (!$this->isFlushPending()) {
             return;
         }
 
         $this->saveEntries();
-        $this->indexDirty = false;
+        $this->clearFlushPending();
     }
 
     private function loadEntries(): void
@@ -286,22 +278,6 @@ final class CompiledCodeCache implements CompiledCodeCacheInterface
     private function saveEntries(): void
     {
         $this->entries = $this->indexFile->save($this->entries, $this->tombstones);
-    }
-
-    private function markDirty(): void
-    {
-        $this->indexDirty = true;
-        $this->registerShutdown();
-    }
-
-    private function registerShutdown(): void
-    {
-        if ($this->shutdownRegistered) {
-            return;
-        }
-
-        register_shutdown_function([$this, 'save']);
-        $this->shutdownRegistered = true;
     }
 
     private function isValidPhp(string $phpCode): bool

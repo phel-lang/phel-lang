@@ -23,11 +23,9 @@ use function is_string;
  */
 final class PhpScanIndexCache implements ScanIndexCacheInterface
 {
+    use DeferredFlushTrait;
+
     private const string VERSION = '1.0';
-
-    private bool $dirty = false;
-
-    private bool $shutdownRegistered = false;
 
     /** @var array<string, ScanIndexEntry> */
     private array $entries;
@@ -59,13 +57,12 @@ final class PhpScanIndexCache implements ScanIndexCacheInterface
         }
 
         $this->entries[$dirSetKey] = new ScanIndexEntry($perDir, $files, $infos);
-        $this->dirty = true;
-        $this->registerShutdown();
+        $this->markFlushPending();
     }
 
     public function save(): void
     {
-        if (!$this->dirty) {
+        if (!$this->isFlushPending()) {
             return;
         }
 
@@ -99,7 +96,7 @@ final class PhpScanIndexCache implements ScanIndexCacheInterface
             rewind($handle);
             $content = '<?php return ' . var_export($this->toArray(), true) . ';';
             fwrite($handle, $content);
-            $this->dirty = false;
+            $this->clearFlushPending();
         } finally {
             flock($handle, LOCK_UN);
             fclose($handle);
@@ -113,7 +110,7 @@ final class PhpScanIndexCache implements ScanIndexCacheInterface
     public function clear(): void
     {
         $this->entries = [];
-        $this->dirty = false;
+        $this->clearFlushPending();
 
         if (file_exists($this->cacheFile)) {
             @unlink($this->cacheFile);
@@ -172,15 +169,5 @@ final class PhpScanIndexCache implements ScanIndexCacheInterface
             'version' => self::VERSION,
             'entries' => $entries,
         ];
-    }
-
-    private function registerShutdown(): void
-    {
-        if ($this->shutdownRegistered) {
-            return;
-        }
-
-        register_shutdown_function([$this, 'save']);
-        $this->shutdownRegistered = true;
     }
 }
