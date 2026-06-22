@@ -230,6 +230,26 @@ final readonly class CallInliner
             return $this->countUsesInAll($name, $node->getKeyValues());
         }
 
+        if ($node instanceof LetNode) {
+            // A `let` shadow is a gensym, never a parameter name, so summing
+            // the inits and the body counts only genuine parameter uses.
+            $count = $this->countUses($name, $node->getBodyExpr());
+            foreach ($node->getBindings() as $binding) {
+                $count += $this->countUses($name, $binding->getInitExpr());
+            }
+
+            return $count;
+        }
+
+        if ($node instanceof DoNode) {
+            $count = $this->countUses($name, $node->getRet());
+            foreach ($node->getStmts() as $stmt) {
+                $count += $this->countUses($name, $stmt);
+            }
+
+            return $count;
+        }
+
         return 0;
     }
 
@@ -303,7 +323,91 @@ final readonly class CallInliner
             return $keyValues === null ? null : new MapNode($ctx->targetEnv(), $keyValues, $ctx->loc);
         }
 
+        if ($node instanceof LetNode) {
+            return $this->rebaseLet($node, $ctx);
+        }
+
+        if ($node instanceof DoNode) {
+            return $this->rebaseDo($node, $ctx);
+        }
+
         return null;
+    }
+
+    /**
+     * Rebases a `do` body wrapper. `let`/`if`/`fn` bodies are stored as a
+     * `DoNode`, so a let-bodied callee always reaches the rebaser through
+     * one. Only the statement-free form is spliceable — mirroring the
+     * `tryInline` fn-body gate — so a `do` carrying leading statements
+     * (which would need their own per-statement context handling) aborts
+     * the inline. The wrapper is preserved so downstream passes that
+     * expect a `DoNode` body keep working.
+     */
+    private function rebaseDo(DoNode $node, RebaseContext $ctx): ?AbstractNode
+    {
+        if ($node->getStmts() !== []) {
+            return null;
+        }
+
+        $ret = $this->rebase($node->getRet(), $ctx);
+
+        return $ret instanceof AbstractNode
+            ? new DoNode($ctx->targetEnv(), [], $ret, $ctx->loc)
+            : null;
+    }
+
+    /**
+     * Rebases a (non-loop) `let` from the callee body onto the call site.
+     *
+     * Each binding gets a FRESH gensym shadow, so the inlined scope can
+     * never collide with a caller local or with another copy of the same
+     * `defn` spliced into the same PHP scope. References to the old
+     * shadow — in later binding inits and in the body — are remapped
+     * through the same substitution map used for parameters, so the walk
+     * stays in `inBody` mode and rewrites every reference exactly once.
+     *
+     * Bindings are processed in order: each init sees the parameters plus
+     * the freshly-remapped shadows of the preceding bindings, preserving
+     * sequential `let` semantics. A `loop` is never rebased — it owns its
+     * `recur` targets, which the inliner must not disturb.
+     */
+    private function rebaseLet(LetNode $node, RebaseContext $ctx): ?AbstractNode
+    {
+        if ($node->isLoop()) {
+            return null;
+        }
+
+        // A `let` in expression context emits as an IIFE whose body must
+        // `return`; in any other context the body shares the let's own
+        // context. This mirrors the binding-wrapper let built in `tryInline`.
+        $bodyContext = $ctx->context === NodeEnvironment::CONTEXT_EXPRESSION
+            ? NodeEnvironment::CONTEXT_RETURN
+            : $ctx->context;
+
+        $paramMap = $ctx->paramMap;
+        $bindings = [];
+        foreach ($node->getBindings() as $binding) {
+            // Inits emit as expressions (`$shadow = <init>;`) and may
+            // reference params or earlier bindings, so rebase them in
+            // expression context with the substitutions accumulated so far.
+            $initCtx = new RebaseContext($ctx->env, NodeEnvironment::CONTEXT_EXPRESSION, $ctx->loc, $paramMap, true);
+            $init = $this->rebase($binding->getInitExpr(), $initCtx);
+            if (!$init instanceof AbstractNode) {
+                return null;
+            }
+
+            $shadow = Symbol::gen($binding->getShadow()->getName() . '_')->copyLocationFrom($binding->getShadow());
+            $bindings[] = new BindingNode($ctx->targetEnv(), $binding->getSymbol(), $shadow, $init, $ctx->loc);
+            $paramMap[$binding->getShadow()->getName()] = new LocalVarNode($ctx->env, $shadow, $ctx->loc);
+        }
+
+        $bodyCtx = new RebaseContext($ctx->env, $bodyContext, $ctx->loc, $paramMap, true);
+        $body = $this->rebase($node->getBodyExpr(), $bodyCtx);
+        if (!$body instanceof AbstractNode) {
+            return null;
+        }
+
+        return new LetNode($ctx->targetEnv(), $bindings, $body, false, $ctx->loc);
     }
 
     /**

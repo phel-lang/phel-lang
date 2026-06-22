@@ -6,6 +6,7 @@ All notable changes to this project will be documented in this file.
 
 ### Performance
 
+- The call inliner (opt level >= 2) now inlines `let`-bodied pure `defn`s: a single intermediate binding (the common small-helper shape) no longer blocks inlining, and a `let`/`do` body is also recognized as structurally pure so unannotated helpers inline without a `^:pure` tag (#2586)
 - The parser reuses its sub-parsers instead of allocating a fresh one per parsed node: the dependency-free ones (string/char/regex) are memoized on the factory and the `Parser`-dependent ones are built once in the `Parser` constructor (#2548)
 - PHP interop (`php/->`, `php/::`, `php/new`, `php/oset`) now compiles to direct expressions or statements instead of wrapping every call in a closure (#2524, #2525, #2526, #2532, #2536)
 - Type-tagged core calls now compile straight to native operations: `push`/`dissoc` to persistent-collection methods (#2527), `second`/`get-in` to direct vector/map access (#2530, #2529), and `count`/`first` on strings to `mb_strlen`/`mb_substr` (#2528)
