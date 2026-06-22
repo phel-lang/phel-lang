@@ -9,7 +9,6 @@ use Phel\Compiler\Domain\Emitter\OutputEmitter\AssocConjSpecialization;
 use Phel\Compiler\Domain\Emitter\OutputEmitterInterface;
 
 use function array_slice;
-use function count;
 
 /**
  * Specialisations gated by {@see AssocConjSpecialization}: a transient-backed
@@ -92,14 +91,7 @@ final readonly class AssocConjCallEmitter implements SpecializedCallEmitterInter
 
         foreach ($chain['groups'] as $group) {
             $this->outputEmitter->emitStr('->' . $chain['method'] . '(', $loc);
-            foreach ($group as $i => $arg) {
-                if ($i > 0) {
-                    $this->outputEmitter->emitStr(', ', $loc);
-                }
-
-                $this->outputEmitter->emitNode($arg);
-            }
-
+            $this->outputEmitter->emitArgList($group, $loc);
             $this->outputEmitter->emitStr(')', $loc);
         }
 
@@ -124,16 +116,7 @@ final readonly class AssocConjCallEmitter implements SpecializedCallEmitterInter
         $this->outputEmitter->emitStr('(', $loc);
         $this->outputEmitter->emitNode($args[0]);
         $this->outputEmitter->emitStr('->' . $method . '(', $loc);
-
-        $rest = array_slice($args, 1);
-        $count = count($rest);
-        foreach ($rest as $i => $arg) {
-            $this->outputEmitter->emitNode($arg);
-            if ($i < $count - 1) {
-                $this->outputEmitter->emitStr(', ', $loc);
-            }
-        }
-
+        $this->outputEmitter->emitArgList(array_slice($args, 1), $loc);
         $this->outputEmitter->emitStr('))', $loc);
         return true;
     }

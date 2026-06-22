@@ -22,83 +22,16 @@ final readonly class NilBooleanCallEmitter implements SpecializedCallEmitterInte
 
     public function tryEmit(CallNode $node): bool
     {
-        if ($this->tryEmitNilCheck($node)) {
-            return true;
-        }
-
-        if ($this->tryEmitSomeCheck($node)) {
-            return true;
-        }
-
-        if ($this->tryEmitTrueCheck($node)) {
-            return true;
-        }
-
-        if ($this->tryEmitFalseCheck($node)) {
+        $suffix = NilAndBooleanCheckSpecialization::identityCheckSuffix($node);
+        if ($suffix !== null) {
+            $loc = $node->getStartSourceLocation();
+            $this->outputEmitter->emitStr('(', $loc);
+            $this->outputEmitter->emitNode($node->getArguments()[0]);
+            $this->outputEmitter->emitStr($suffix, $loc);
             return true;
         }
 
         return $this->tryEmitTruthyCheck($node);
-    }
-
-    /**
-     * `(nil? x)` — emit `($x === null)` directly, bypassing the
-     * registry lookup and `id` adapter.
-     */
-    private function tryEmitNilCheck(CallNode $node): bool
-    {
-        if (!NilAndBooleanCheckSpecialization::isNilCheck($node)) {
-            return false;
-        }
-
-        $loc = $node->getStartSourceLocation();
-        $this->outputEmitter->emitStr('(', $loc);
-        $this->outputEmitter->emitNode($node->getArguments()[0]);
-        $this->outputEmitter->emitStr(' === null)', $loc);
-        return true;
-    }
-
-    /**
-     * `(some? x)` 1-arg — emit `($x !== null)` directly. The 2-arg
-     * overload `(some? pred coll)` keeps the runtime dispatch.
-     */
-    private function tryEmitSomeCheck(CallNode $node): bool
-    {
-        if (!NilAndBooleanCheckSpecialization::isSomeCheck($node)) {
-            return false;
-        }
-
-        $loc = $node->getStartSourceLocation();
-        $this->outputEmitter->emitStr('(', $loc);
-        $this->outputEmitter->emitNode($node->getArguments()[0]);
-        $this->outputEmitter->emitStr(' !== null)', $loc);
-        return true;
-    }
-
-    private function tryEmitTrueCheck(CallNode $node): bool
-    {
-        if (!NilAndBooleanCheckSpecialization::isTrueCheck($node)) {
-            return false;
-        }
-
-        $loc = $node->getStartSourceLocation();
-        $this->outputEmitter->emitStr('(', $loc);
-        $this->outputEmitter->emitNode($node->getArguments()[0]);
-        $this->outputEmitter->emitStr(' === true)', $loc);
-        return true;
-    }
-
-    private function tryEmitFalseCheck(CallNode $node): bool
-    {
-        if (!NilAndBooleanCheckSpecialization::isFalseCheck($node)) {
-            return false;
-        }
-
-        $loc = $node->getStartSourceLocation();
-        $this->outputEmitter->emitStr('(', $loc);
-        $this->outputEmitter->emitNode($node->getArguments()[0]);
-        $this->outputEmitter->emitStr(' === false)', $loc);
-        return true;
     }
 
     /**

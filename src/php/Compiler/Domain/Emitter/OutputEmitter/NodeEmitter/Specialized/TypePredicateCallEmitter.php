@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Phel\Compiler\Domain\Emitter\OutputEmitter\NodeEmitter\Specialized;
 
+use InvalidArgumentException;
 use Phel\Compiler\Domain\Analyzer\Ast\CallNode;
 use Phel\Compiler\Domain\Emitter\OutputEmitter\TypePredicateSpecialization;
 use Phel\Compiler\Domain\Emitter\OutputEmitterInterface;
@@ -50,7 +51,8 @@ final readonly class TypePredicateCallEmitter implements SpecializedCallEmitterI
             'zero?' => ' === 0',
             'pos?' => ' > 0',
             'neg?' => ' < 0',
-            default => ' === 0',
+            // isNumericPredicate only ever returns these three names.
+            default => throw new InvalidArgumentException(sprintf('Unhandled numeric predicate: %s', $name)),
         };
 
         $this->outputEmitter->emitStr($op . ')', $loc);

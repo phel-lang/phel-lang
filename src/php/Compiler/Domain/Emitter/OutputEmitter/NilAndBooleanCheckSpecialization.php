@@ -65,6 +65,24 @@ final readonly class NilAndBooleanCheckSpecialization
         return self::isUnaryCoreCall($node, 'truthy?');
     }
 
+    /**
+     * The native comparison suffix for the four single-arg identity checks
+     * (`nil?`/`some?`/`true?`/`false?`), spliced right after the emitted
+     * argument as `($arg<suffix>`. Returns `null` for any other call. The
+     * Phel-truthy probe (`truthy?`) is emitted separately — its shape is not
+     * a single trailing comparison.
+     */
+    public static function identityCheckSuffix(CallNode $node): ?string
+    {
+        return match (true) {
+            self::isNilCheck($node) => ' === null)',
+            self::isSomeCheck($node) => ' !== null)',
+            self::isTrueCheck($node) => ' === true)',
+            self::isFalseCheck($node) => ' === false)',
+            default => null,
+        };
+    }
+
     private static function isUnaryCoreCall(CallNode $node, string $name): bool
     {
         if (!PhelCoreCall::is($node, $name)) {

@@ -4,11 +4,12 @@ declare(strict_types=1);
 
 namespace Phel\Compiler\Domain\Emitter\OutputEmitter\NodeEmitter\Specialized;
 
+use Phel\Compiler\Domain\Analyzer\Ast\AbstractNode;
 use Phel\Compiler\Domain\Analyzer\Ast\CallNode;
 use Phel\Compiler\Domain\Emitter\OutputEmitter\TypedCollectionMethodSpecialization;
 use Phel\Compiler\Domain\Emitter\OutputEmitterInterface;
 
-use function count;
+use function array_map;
 
 /**
  * Specialisations gated by {@see TypedCollectionMethodSpecialization}:
@@ -81,14 +82,8 @@ final readonly class TypedCollectionCallEmitter implements SpecializedCallEmitte
         $this->outputEmitter->emitNode($args[0]);
         $this->outputEmitter->emitStr('->' . $spec['method'] . '(', $loc);
 
-        $argCount = count($spec['args']);
-        foreach ($spec['args'] as $i => $argIndex) {
-            $this->outputEmitter->emitNode($args[$argIndex]);
-            if ($i < $argCount - 1) {
-                $this->outputEmitter->emitStr(', ', $loc);
-            }
-        }
-
+        $methodArgs = array_map(static fn(int $argIndex): AbstractNode => $args[$argIndex], $spec['args']);
+        $this->outputEmitter->emitArgList($methodArgs, $loc);
         $this->outputEmitter->emitStr('))', $loc);
         return true;
     }
