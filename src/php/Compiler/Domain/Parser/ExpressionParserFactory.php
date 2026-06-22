@@ -17,6 +17,21 @@ use Phel\Compiler\Domain\Parser\ExpressionParser\StringParser;
 
 final class ExpressionParserFactory implements ExpressionParserFactoryInterface
 {
+    /**
+     * The dependency-free sub-parsers are stateless — every input reaches
+     * them as a `parse()` argument, nothing is stored per call — so one
+     * instance is reused for the lifetime of the factory instead of
+     * allocating a fresh object per parsed node. The `Parser`-dependent
+     * sub-parsers are not memoised here because they close over a
+     * specific `Parser`; the `Parser` builds those once in its own
+     * constructor.
+     */
+    private ?StringParser $stringParser = null;
+
+    private ?CharParser $charParser = null;
+
+    private ?RegexParser $regexParser = null;
+
     public function createAtomParser(GlobalEnvironmentInterface $globalEnvironment): AtomParser
     {
         return new AtomParser($globalEnvironment);
@@ -24,17 +39,17 @@ final class ExpressionParserFactory implements ExpressionParserFactoryInterface
 
     public function createStringParser(): StringParser
     {
-        return new StringParser();
+        return $this->stringParser ??= new StringParser();
     }
 
     public function createCharParser(): CharParser
     {
-        return new CharParser();
+        return $this->charParser ??= new CharParser();
     }
 
     public function createRegexParser(): RegexParser
     {
-        return new RegexParser();
+        return $this->regexParser ??= new RegexParser();
     }
 
     public function createListParser(Parser $parser): ListParser
