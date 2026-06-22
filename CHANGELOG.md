@@ -9,6 +9,7 @@ All notable changes to this project will be documented in this file.
 - PHP interop (`php/->`, `php/::`, `php/new`, `php/oset`) now compiles to direct expressions or statements instead of wrapping every call in a closure (#2524, #2525, #2526, #2532, #2536)
 - Type-tagged core calls now compile straight to native operations: `push`/`dissoc` to persistent-collection methods (#2527), `second`/`get-in` to direct vector/map access (#2530, #2529), and `count`/`first` on strings to `mb_strlen`/`mb_substr` (#2528)
 - `(inc x)`/`(dec x)` on an `^int`/`^float`-tagged local now compile to native `($x + 1)`/`($x - 1)` instead of dispatching through `NumericOperations`, matching the existing `(php/+ ^int x 1)` lowering (#2562)
+- `(last v)` on a tagged persistent vector now compiles to a count-guarded O(1) tail access (`($v->count() === 0 ? null : $v->get($v->count() - 1))`) instead of dispatching through `phel.core/last` and `peek` (#2563)
 - `=` and `not=` over string literals now fold to a boolean at compile time (#2531)
 - `dissoc`/`remove` on a large persistent map no longer does an O(n) deep node comparison on the no-op path (#2544)
 - The analyzer reuses stateless sub-analyzers (literal/constant-folder/let-simplifier) instead of allocating them per node (#2553)

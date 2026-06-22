@@ -1,0 +1,6 @@
+--PHEL--
+(fn [^"\Phel\Lang\Collections\Vector\PersistentVectorInterface" v] (last v))
+--PHP--
+(function(\Phel\Lang\Collections\Vector\PersistentVectorInterface $v) {
+  return ($v->count() === 0 ? null : $v->get($v->count() - 1));
+});
