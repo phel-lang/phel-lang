@@ -220,36 +220,95 @@ final class CallInlineRuntimeTest extends TestCase
         self::assertSame(42, $this->compilerFacade->eval('(to-int "42")', $options));
     }
 
-    public function test_call_to_pure_annotated_fn_inside_a_body_is_inlined(): void
+    public function test_let_bodied_pure_annotated_fn_is_inlined(): void
     {
         $options = new CompileOptions()->setOptimizationLevel(2);
-        // `psquare` has a `let` body the rebaser cannot splice, so it is
-        // never inlined as a callee — its call survives inside a body. The
-        // `^:pure` tag still makes that surviving call a pure operator, so
-        // `uses-pure` becomes inlinable; only its own frame disappears.
+        // A `let`-bodied `^:pure` callee is now spliced wherever it is
+        // called: `psquare` inlines into `uses-pure`'s body, then
+        // `uses-pure` itself inlines into the call site — both frames gone.
         $this->compilerFacade->eval('(defn ^:pure psquare [x] (let [y x] (* y y)))', $options);
         $this->compilerFacade->eval('(defn uses-pure [n] (+ (psquare n) 1))', $options);
 
         $php = $this->compilerFacade->compile('(uses-pure 5)', $options)->getPhpCode();
 
         self::assertStringNotContainsString('uses-pure', $php);
-        self::assertStringContainsString('psquare', $php);
+        self::assertStringNotContainsString('psquare', $php);
         self::assertSame(26, $this->compilerFacade->eval('(uses-pure 5)', $options));
     }
 
-    public function test_unannotated_user_fn_in_body_keeps_dispatch(): void
+    public function test_let_bodied_structurally_pure_fn_is_inlined_without_annotation(): void
     {
         $options = new CompileOptions()->setOptimizationLevel(2);
-        // Same non-inlinable `let`-body shape but without `^:pure`: the call
-        // is impure to the detector, so `uses-plain`'s body is not provable
-        // pure and `uses-plain` keeps dispatching.
+        // No `^:pure` tag: the detector proves the `let` body pure
+        // structurally (locals + `*` are side-effect-free), so the
+        // let-bodied callee inlines on its own.
         $this->compilerFacade->eval('(defn psquare-plain [x] (let [y x] (* y y)))', $options);
-        $this->compilerFacade->eval('(defn uses-plain [n] (+ (psquare-plain n) 1))', $options);
 
-        $php = $this->compilerFacade->compile('(uses-plain 5)', $options)->getPhpCode();
+        $php = $this->compilerFacade->compile('(psquare-plain 6)', $options)->getPhpCode();
 
-        self::assertStringContainsString('uses-plain', $php);
-        self::assertSame(26, $this->compilerFacade->eval('(uses-plain 5)', $options));
+        self::assertStringNotContainsString('psquare-plain', $php);
+        self::assertSame(36, $this->compilerFacade->eval('(psquare-plain 6)', $options));
+    }
+
+    public function test_let_bodied_impure_unannotated_fn_keeps_dispatch(): void
+    {
+        $options = new CompileOptions()->setOptimizationLevel(2);
+        // A `let` body that is not provably pure (here `str`, not in the
+        // purity allowlist) and carries no `^:pure` tag keeps dispatching.
+        $this->compilerFacade->eval('(defn shout-plain [x] (let [y x] (str y "!")))', $options);
+
+        $php = $this->compilerFacade->compile('(shout-plain "hi")', $options)->getPhpCode();
+
+        self::assertStringContainsString('shout-plain', $php);
+        self::assertSame('hi!', $this->compilerFacade->eval('(shout-plain "hi")', $options));
+    }
+
+    public function test_let_bodied_callee_with_nested_let_if_or_is_inlined(): void
+    {
+        $options = new CompileOptions()->setOptimizationLevel(2);
+        // The issue's motivating example: a hot per-iteration helper whose
+        // body binds one intermediate and branches on it. `^:pure` plus the
+        // new `let` rebasing means the frame disappears at every call site.
+        $this->compilerFacade->eval(
+            '(defn ^:pure cell [grid x y] (let [row (get grid y)] (if (nil? row) :wall (or (get row x) :wall))))',
+            $options,
+        );
+
+        $php = $this->compilerFacade->compile('(let [g {0 {0 :a}}] (cell g 0 0))', $options)->getPhpCode();
+        self::assertStringNotContainsString('cell', $php);
+
+        // Every branch preserves the runtime semantics.
+        self::assertTrue($this->compilerFacade->eval('(= :a (let [g {0 {0 :a}}] (cell g 0 0)))', $options));
+        self::assertTrue($this->compilerFacade->eval('(= :wall (cell {} 5 5))', $options));
+        self::assertTrue($this->compilerFacade->eval('(= :wall (cell {0 {}} 9 0))', $options));
+    }
+
+    public function test_let_bodied_inline_preserves_sequential_binding_semantics(): void
+    {
+        $options = new CompileOptions()->setOptimizationLevel(2);
+        // Sequential bindings where a later init reads an earlier shadow and
+        // the param is reused: the fresh-shadow remap must keep them wired.
+        $this->compilerFacade->eval('(defn ^:pure step [n] (let [a (+ n 1) b (* a 2)] (+ a b)))', $options);
+
+        $php = $this->compilerFacade->compile('(step 3)', $options)->getPhpCode();
+
+        self::assertStringNotContainsString('step', $php);
+        // a = 4, b = 8 => 12
+        self::assertSame(12, $this->compilerFacade->eval('(step 3)', $options));
+    }
+
+    public function test_let_bodied_inline_evaluates_impure_arg_once(): void
+    {
+        $options = new CompileOptions()->setOptimizationLevel(2);
+        $this->compilerFacade->eval('(def let-calls (atom 0))', $options);
+        $this->compilerFacade->eval('(defn let-bump [] (swap! let-calls inc))', $options);
+        // Param used twice inside the let body; an impure arg must bind once.
+        $this->compilerFacade->eval('(defn ^:pure let-twice [x] (let [y x] (+ y x)))', $options);
+
+        $result = $this->compilerFacade->eval('(let-twice (let-bump))', $options);
+
+        self::assertSame(2, $result);
+        self::assertSame(1, $this->compilerFacade->eval('(deref let-calls)', $options));
     }
 
     public function test_multi_arity_defn_inlines_the_matching_arity(): void

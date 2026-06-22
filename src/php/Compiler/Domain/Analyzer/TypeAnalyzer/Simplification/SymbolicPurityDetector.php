@@ -5,9 +5,12 @@ declare(strict_types=1);
 namespace Phel\Compiler\Domain\Analyzer\TypeAnalyzer\Simplification;
 
 use Phel\Compiler\Domain\Analyzer\Ast\AbstractNode;
+use Phel\Compiler\Domain\Analyzer\Ast\BindingNode;
 use Phel\Compiler\Domain\Analyzer\Ast\CallNode;
+use Phel\Compiler\Domain\Analyzer\Ast\DoNode;
 use Phel\Compiler\Domain\Analyzer\Ast\GlobalVarNode;
 use Phel\Compiler\Domain\Analyzer\Ast\IfNode;
+use Phel\Compiler\Domain\Analyzer\Ast\LetNode;
 use Phel\Compiler\Domain\Analyzer\Ast\LiteralNode;
 use Phel\Compiler\Domain\Analyzer\Ast\LocalVarNode;
 use Phel\Compiler\Domain\Analyzer\Ast\MapNode;
@@ -146,6 +149,24 @@ final readonly class SymbolicPurityDetector
             return !$node->getLiteralMeta() instanceof MapNode && $this->allPure($node->getKeyValues());
         }
 
+        // A non-loop `let` is pure when every binding init and its body are
+        // pure: introducing locals and reading them back has no observable
+        // effect. A `loop` is excluded — `recur` is control flow the
+        // inliner never rebases. This keeps the oracle in lockstep with
+        // what {@see CallInliner} can splice, so a let-bodied pure `defn`
+        // both passes the purity gate and rebases.
+        if ($node instanceof LetNode) {
+            return !$node->isLoop()
+                && $this->allPureBindings($node)
+                && $this->isPure($node->getBodyExpr());
+        }
+
+        // `let`/`if`/`fn` bodies are wrapped in a `DoNode`; it is pure when
+        // every leading statement and the return expression are pure.
+        if ($node instanceof DoNode) {
+            return $this->allPure($node->getStmts()) && $this->isPure($node->getRet());
+        }
+
         return false;
     }
 
@@ -155,6 +176,14 @@ final readonly class SymbolicPurityDetector
     public function isPureAnnotated(PersistentMapInterface $meta): bool
     {
         return (bool) $meta[Keyword::create('pure')];
+    }
+
+    private function allPureBindings(LetNode $node): bool
+    {
+        return array_all(
+            $node->getBindings(),
+            fn(BindingNode $binding): bool => $this->isPure($binding->getInitExpr()),
+        );
     }
 
     /**

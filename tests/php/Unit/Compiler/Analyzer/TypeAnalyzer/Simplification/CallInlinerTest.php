@@ -7,6 +7,7 @@ namespace PhelTest\Unit\Compiler\Analyzer\TypeAnalyzer\Simplification;
 use Phel;
 use Phel\Compiler\Application\Analyzer;
 use Phel\Compiler\Domain\Analyzer\Ast\AbstractNode;
+use Phel\Compiler\Domain\Analyzer\Ast\BindingNode;
 use Phel\Compiler\Domain\Analyzer\Ast\CallNode;
 use Phel\Compiler\Domain\Analyzer\Ast\DoNode;
 use Phel\Compiler\Domain\Analyzer\Ast\FnNode;
@@ -173,6 +174,27 @@ final class CallInlinerTest extends TestCase
         self::assertSame('z', $args[1]->getName()->getName());
     }
 
+    public function test_inlines_let_bodied_defn_rebasing_the_let(): void
+    {
+        // (defn f [x] (let [y x] (+ y 1))) called with caller local z:
+        // the let is rebased (no dispatch), the param substitutes into the
+        // binding init, and the body references a FRESH shadow.
+        $this->seedDefn('f', ['x'], $this->letBody('x'));
+
+        $result = $this->inline('f', [new LocalVarNode($this->env, Symbol::create('z'))]);
+
+        self::assertInstanceOf(LetNode::class, $result);
+        self::assertCount(1, $result->getBindings());
+
+        $binding = $result->getBindings()[0];
+        $init = $binding->getInitExpr();
+        self::assertInstanceOf(LocalVarNode::class, $init);
+        self::assertSame('z', $init->getName()->getName());
+
+        // The shadow is regenerated so repeated inlines never collide.
+        self::assertNotSame('y_shadow', $binding->getShadow()->getName());
+    }
+
     public function test_declines_impure_body(): void
     {
         // (defn log-it [x] (println x)) -> body is side-effecting
@@ -321,6 +343,29 @@ final class CallInlinerTest extends TestCase
         );
 
         return new DoNode($this->env, [], $ret);
+    }
+
+    private function letBody(string $param): DoNode
+    {
+        // (let [y <param>] (+ y 1)) wrapped in a DoNode, as the analyzer
+        // stores a single-expression fn body.
+        $shadow = Symbol::create('y_shadow');
+        $binding = new BindingNode(
+            $this->env,
+            Symbol::create('y'),
+            $shadow,
+            new LocalVarNode($this->env, Symbol::create($param)),
+        );
+
+        $letInner = new DoNode($this->env, [], new CallNode(
+            $this->env,
+            new GlobalVarNode($this->env, CompilerConstants::PHEL_CORE_NAMESPACE, Symbol::create('+'), Phel::map()),
+            [new LocalVarNode($this->env, $shadow), new LiteralNode($this->env, 1)],
+        ));
+
+        $let = new LetNode($this->env, [$binding], $letInner, false);
+
+        return new DoNode($this->env, [], $let);
     }
 
     private function squareBody(string $param): DoNode
