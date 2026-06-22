@@ -33,7 +33,35 @@ final readonly class NumericOperationCallEmitter implements SpecializedCallEmitt
             return true;
         }
 
+        if ($this->tryEmitTypedIncDec($node)) {
+            return true;
+        }
+
         return $this->tryEmitTypedBinaryOp($node);
+    }
+
+    /**
+     * Single-arg `(inc x)` / `(dec x)` over a tagged primitive operand:
+     * emits `($x + 1)` / `($x - 1)` directly, skipping the
+     * `phel.core/inc` / `phel.core/dec` registry dispatch and the
+     * `NumericOperations::add`/`subtract` call. The literal `1` matches
+     * the right operand the runtime defns add/subtract.
+     *
+     * Eligibility lives on {@see NumericOperationSpecialization::typedIncDecOp()}.
+     */
+    private function tryEmitTypedIncDec(CallNode $node): bool
+    {
+        $op = NumericOperationSpecialization::typedIncDecOp($node);
+        if ($op === null) {
+            return false;
+        }
+
+        $args = $node->getArguments();
+        $loc = $node->getStartSourceLocation();
+        $this->outputEmitter->emitStr('(', $loc);
+        $this->outputEmitter->emitNode($args[0]);
+        $this->outputEmitter->emitStr(' ' . $op . ' 1)', $loc);
+        return true;
     }
 
     /**

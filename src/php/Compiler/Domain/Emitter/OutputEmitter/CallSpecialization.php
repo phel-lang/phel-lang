@@ -78,6 +78,7 @@ final readonly class CallSpecialization
             || AssocConjSpecialization::isAssocConjChain($node)
             || NumericOperationSpecialization::isNotEqPeephole($node)
             || NumericOperationSpecialization::isTypedVariadicChain($node)
+            || NumericOperationSpecialization::isTypedIncDec($node)
         ) {
             return true;
         }

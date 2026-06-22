@@ -54,6 +54,19 @@ final readonly class NumericOperationSpecialization
     ];
 
     /**
+     * Single-arg `phel.core` increment / decrement wrappers whose dispatch
+     * reduces to a native `($x + 1)` / `($x - 1)` when the operand is
+     * statically proven `int` / `float`. Maps the Phel name to the PHP
+     * operator the emitter splices before the literal `1`.
+     *
+     * @var array<string, string>
+     */
+    private const array INC_DEC_OPS = [
+        'inc' => '+',
+        'dec' => '-',
+    ];
+
+    /**
      * Arithmetic ops whose int result can overflow `PHP_INT_MAX` and promote
      * to `BigInt` at runtime. Comparison ops are excluded — they never overflow.
      *
@@ -150,6 +163,55 @@ final readonly class NumericOperationSpecialization
     public static function isTypedBinaryOp(CallNode $node): bool
     {
         return self::typedBinaryOpName($node) !== null;
+    }
+
+    /**
+     * Single-arg `(inc x)` / `(dec x)` where `x` is a statically proven
+     * primitive `int` / `float` operand. Returns the PHP operator to
+     * splice before a literal `1` (`($x + 1)` / `($x - 1)`), or `null`
+     * when the call is not specialisable.
+     *
+     * This is the 1-arg twin of the already-shipped `(+ ^int x 1)`
+     * lowering: `inc`/`dec` are defined in `phel.core` as a
+     * `NumericOperations::add`/`subtract` dispatch over a literal `1`, so
+     * a tagged operand collapses to the same native op `(php/+ ^int x 1)`
+     * already emits. The only divergence from the runtime — native `+`
+     * promoting an overflowing `int` to `float` instead of `BigInt` — is
+     * identical to that accepted policy.
+     *
+     * A **literal** operand is deliberately excluded: an int literal at
+     * `PHP_INT_MAX` would overflow under native `+ 1` and diverge from the
+     * runtime's `BigInt` promotion, exactly as a pure-literal `(+ ...)`
+     * chain bails via {@see self::isOverflowProneLiteralArithmetic()}. A
+     * nullable tag (`?int`) also fails the primitive-tag check, so the
+     * moot `assert-non-nil` guard in the runtime defns can never matter.
+     */
+    public static function typedIncDecOp(CallNode $node): ?string
+    {
+        $name = PhelCoreCall::nameOf($node);
+        if ($name === null || !isset(self::INC_DEC_OPS[$name])) {
+            return null;
+        }
+
+        $args = $node->getArguments();
+        if (count($args) !== 1) {
+            return null;
+        }
+
+        $operand = $args[0];
+        if ($operand instanceof LiteralNode) {
+            return null;
+        }
+
+        $tag = TagNormalizer::normalise(self::inferredTypeOfNode($operand));
+        return $tag !== null && in_array($tag, self::NUMERIC_PRIMITIVE_TAGS, true)
+            ? self::INC_DEC_OPS[$name]
+            : null;
+    }
+
+    public static function isTypedIncDec(CallNode $node): bool
+    {
+        return self::typedIncDecOp($node) !== null;
     }
 
     /**
