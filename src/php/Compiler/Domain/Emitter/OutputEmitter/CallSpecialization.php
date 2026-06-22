@@ -6,14 +6,12 @@ namespace Phel\Compiler\Domain\Emitter\OutputEmitter;
 
 use Phel\Compiler\Domain\Analyzer\Ast\AbstractNode;
 use Phel\Compiler\Domain\Analyzer\Ast\CallNode;
-use Phel\Compiler\Domain\Analyzer\Ast\GlobalVarNode;
 use Phel\Compiler\Domain\Analyzer\Ast\LiteralNode;
 use Phel\Compiler\Domain\Analyzer\Ast\LocalVarNode;
 use Phel\Lang\AbstractFn;
 use Phel\Lang\Collections\Map\PersistentMapInterface;
 use Phel\Lang\Collections\Vector\PersistentVectorInterface;
 use Phel\Lang\FnInterface;
-use Phel\Shared\CompilerConstants;
 
 use function count;
 use function is_string;
@@ -181,14 +179,7 @@ final readonly class CallSpecialization
      */
     public static function typedGetAccessMethod(CallNode $node): ?string
     {
-        $fn = $node->getFn();
-        if (!$fn instanceof GlobalVarNode) {
-            return null;
-        }
-
-        if ($fn->getNamespace() !== CompilerConstants::PHEL_CORE_NAMESPACE
-            || $fn->getName()->getName() !== 'get'
-        ) {
+        if (!PhelCoreCall::is($node, 'get')) {
             return null;
         }
 
@@ -249,14 +240,7 @@ final readonly class CallSpecialization
      */
     public static function isTypedPhpArrayGet(CallNode $node): bool
     {
-        $fn = $node->getFn();
-        if (!$fn instanceof GlobalVarNode) {
-            return false;
-        }
-
-        if ($fn->getNamespace() !== CompilerConstants::PHEL_CORE_NAMESPACE
-            || $fn->getName()->getName() !== 'get'
-        ) {
+        if (!PhelCoreCall::is($node, 'get')) {
             return false;
         }
 
@@ -283,14 +267,7 @@ final readonly class CallSpecialization
      */
     public static function isTypedPhpArrayCount(CallNode $node): bool
     {
-        $fn = $node->getFn();
-        if (!$fn instanceof GlobalVarNode) {
-            return false;
-        }
-
-        if ($fn->getNamespace() !== CompilerConstants::PHEL_CORE_NAMESPACE
-            || $fn->getName()->getName() !== 'count'
-        ) {
+        if (!PhelCoreCall::is($node, 'count')) {
             return false;
         }
 
@@ -342,14 +319,7 @@ final readonly class CallSpecialization
      */
     public static function isStrConcat(CallNode $node): bool
     {
-        $fn = $node->getFn();
-        if (!$fn instanceof GlobalVarNode) {
-            return false;
-        }
-
-        if ($fn->getNamespace() !== CompilerConstants::PHEL_CORE_NAMESPACE
-            || $fn->getName()->getName() !== 'str'
-        ) {
+        if (!PhelCoreCall::is($node, 'str')) {
             return false;
         }
 
@@ -367,14 +337,7 @@ final readonly class CallSpecialization
      */
     private static function isTypedStringCall(CallNode $node, string $fnName): bool
     {
-        $fn = $node->getFn();
-        if (!$fn instanceof GlobalVarNode) {
-            return false;
-        }
-
-        if ($fn->getNamespace() !== CompilerConstants::PHEL_CORE_NAMESPACE
-            || $fn->getName()->getName() !== $fnName
-        ) {
+        if (!PhelCoreCall::is($node, $fnName)) {
             return false;
         }
 

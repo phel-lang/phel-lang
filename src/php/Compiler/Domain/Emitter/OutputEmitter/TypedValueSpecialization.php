@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace Phel\Compiler\Domain\Emitter\OutputEmitter;
 
 use Phel\Compiler\Domain\Analyzer\Ast\CallNode;
-use Phel\Compiler\Domain\Analyzer\Ast\GlobalVarNode;
 use Phel\Compiler\Domain\Analyzer\Ast\LiteralNode;
 use Phel\Compiler\Domain\Analyzer\Ast\LocalVarNode;
 use Phel\Lang\Collections\HashSet\PersistentHashSetInterface;
@@ -14,7 +13,6 @@ use Phel\Lang\Collections\Vector\PersistentVectorInterface;
 use Phel\Lang\ContainsInterface;
 use Phel\Lang\Keyword;
 use Phel\Lang\Symbol;
-use Phel\Shared\CompilerConstants;
 
 use function count;
 use function in_array;
@@ -45,11 +43,7 @@ final readonly class TypedValueSpecialization
      */
     public static function containsCheckKind(CallNode $node): ?string
     {
-        $fn = $node->getFn();
-        if (!$fn instanceof GlobalVarNode
-            || $fn->getNamespace() !== CompilerConstants::PHEL_CORE_NAMESPACE
-            || $fn->getName()->getName() !== 'contains?'
-        ) {
+        if (!PhelCoreCall::is($node, 'contains?')) {
             return null;
         }
 
@@ -100,11 +94,7 @@ final readonly class TypedValueSpecialization
      */
     public static function emptyCheckFragment(CallNode $node): ?string
     {
-        $fn = $node->getFn();
-        if (!$fn instanceof GlobalVarNode
-            || $fn->getNamespace() !== CompilerConstants::PHEL_CORE_NAMESPACE
-            || $fn->getName()->getName() !== 'empty?'
-        ) {
+        if (!PhelCoreCall::is($node, 'empty?')) {
             return null;
         }
 
@@ -148,10 +138,8 @@ final readonly class TypedValueSpecialization
      */
     public static function namedAccessorMethod(CallNode $node): ?string
     {
-        $fn = $node->getFn();
-        if (!$fn instanceof GlobalVarNode
-            || $fn->getNamespace() !== CompilerConstants::PHEL_CORE_NAMESPACE
-        ) {
+        $name = PhelCoreCall::nameOf($node);
+        if ($name === null) {
             return null;
         }
 
@@ -170,7 +158,7 @@ final readonly class TypedValueSpecialization
             return null;
         }
 
-        return match ($fn->getName()->getName()) {
+        return match ($name) {
             'name' => 'getName',
             'namespace' => 'getNamespace',
             default => null,
