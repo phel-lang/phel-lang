@@ -5,9 +5,11 @@ declare(strict_types=1);
 namespace PhelTest\Integration\Compiler\Parser;
 
 use Phel;
+use Phel\Compiler\Application\Parser;
 use Phel\Compiler\CompilerFacade;
 use Phel\Compiler\Domain\Parser\Exceptions\AbstractParserException;
 use Phel\Compiler\Domain\Parser\Exceptions\UnexpectedParserException;
+use Phel\Compiler\Domain\Parser\ExpressionParserFactory;
 use Phel\Compiler\Infrastructure\GlobalEnvironmentSingleton;
 use Phel\Lang\Keyword;
 use Phel\Lang\SourceLocation;
@@ -830,6 +832,27 @@ final class ParserTest extends TestCase
         /** @var TaggedLiteralNode $node */
         $node = $this->parse('#?(:phel (#cpp 1) :default 0)');
         self::assertInstanceOf(ListNode::class, $node);
+    }
+
+    public function test_repeated_parse_through_same_parser_is_identical(): void
+    {
+        // The sub-parsers are now reused across nodes (memoised on the
+        // factory / built once in the Parser constructor). They must carry
+        // no per-call state: parsing the same source twice through ONE
+        // Parser instance must yield byte-identical trees, exercising every
+        // memoised sub-parser (atom, string, char, regex, list, quote,
+        // meta, reader-conditional).
+        $source = <<<'PHEL'
+            (a :b 1) [\x "s" #"re"] {:k 'v} #{1} `(~x ~@xs) ^:m s #?(:phel 1) [#?@(:phel [2])]
+            PHEL;
+
+        $parser = new Parser(new ExpressionParserFactory(), GlobalEnvironmentSingleton::getInstance());
+
+        $first = $parser->parseAll($this->compilerFacade->lexString($source));
+        $second = $parser->parseAll($this->compilerFacade->lexString($source));
+
+        self::assertEquals($first, $second);
+        self::assertNotSame([], $first->getChildren());
     }
 
     private function parse(string $string): NodeInterface

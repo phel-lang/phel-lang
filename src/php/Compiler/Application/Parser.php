@@ -10,6 +10,11 @@ use Phel\Compiler\Domain\Parser\Exceptions\KeywordParserException;
 use Phel\Compiler\Domain\Parser\Exceptions\StringParserException;
 use Phel\Compiler\Domain\Parser\Exceptions\UnexpectedParserException;
 use Phel\Compiler\Domain\Parser\Exceptions\UnfinishedParserException;
+use Phel\Compiler\Domain\Parser\ExpressionParser\AtomParser;
+use Phel\Compiler\Domain\Parser\ExpressionParser\ListParser;
+use Phel\Compiler\Domain\Parser\ExpressionParser\MetaParser;
+use Phel\Compiler\Domain\Parser\ExpressionParser\QuoteParser;
+use Phel\Compiler\Domain\Parser\ExpressionParser\ReaderConditionalParser;
 use Phel\Compiler\Domain\Parser\ExpressionParserFactoryInterface;
 use Phel\Compiler\Domain\Parser\ParserInterface;
 use Phel\Shared\Parser\Node\AbstractAtomNode;
@@ -53,11 +58,33 @@ final readonly class Parser implements ParserInterface
     /** @var SplStack<bool> */
     private SplStack $quasiquoteStack;
 
+    /**
+     * The `Parser`-dependent sub-parsers each close over this `Parser`
+     * (or its fixed `$globalEnvironment`), both constant for the parser's
+     * lifetime, so they are built once here instead of being allocated
+     * afresh on every parsed node. The dependency-free sub-parsers
+     * (string / char / regex) are memoised on the factory instead.
+     */
+    private AtomParser $atomParser;
+
+    private ListParser $listParser;
+
+    private QuoteParser $quoteParser;
+
+    private MetaParser $metaParser;
+
+    private ReaderConditionalParser $readerConditionalParser;
+
     public function __construct(
         private ExpressionParserFactoryInterface $parserFactory,
-        private GlobalEnvironmentInterface $globalEnvironment,
+        GlobalEnvironmentInterface $globalEnvironment,
     ) {
         $this->quasiquoteStack = new SplStack();
+        $this->atomParser = $parserFactory->createAtomParser($globalEnvironment);
+        $this->listParser = $parserFactory->createListParser($this);
+        $this->quoteParser = $parserFactory->createQuoteParser($this);
+        $this->metaParser = $parserFactory->createMetaParser($this);
+        $this->readerConditionalParser = $parserFactory->createReaderConditionalParser($this);
     }
 
     /**
@@ -198,9 +225,7 @@ final readonly class Parser implements ParserInterface
     private function parseAtomNode(Token $token, TokenStream $tokenStream): AbstractAtomNode
     {
         try {
-            return $this->parserFactory
-                ->createAtomParser($this->globalEnvironment)
-                ->parse($token);
+            return $this->atomParser->parse($token);
         } catch (KeywordParserException $keywordParserException) {
             throw $this->createUnexceptedParserException($tokenStream, $token, $keywordParserException->getMessage());
         }
@@ -303,8 +328,7 @@ final readonly class Parser implements ParserInterface
      */
     private function parseFnListNode(Token $token, TokenStream $tokenStream): ListNode
     {
-        return $this->parserFactory
-            ->createListParser($this)
+        return $this->listParser
             ->parse($tokenStream, Token::T_CLOSE_PARENTHESIS, $token->getType());
     }
 
@@ -313,43 +337,37 @@ final readonly class Parser implements ParserInterface
      */
     private function parseArrayListNode(Token $token, TokenStream $tokenStream): ListNode
     {
-        return $this->parserFactory
-            ->createListParser($this)
+        return $this->listParser
             ->parse($tokenStream, Token::T_CLOSE_BRACKET, $token->getType());
     }
 
     private function parseMapListNode(Token $token, TokenStream $tokenStream): ListNode
     {
-        return $this->parserFactory
-            ->createListParser($this)
+        return $this->listParser
             ->parse($tokenStream, Token::T_CLOSE_BRACE, $token->getType());
     }
 
     private function parseSetListNode(Token $token, TokenStream $tokenStream): ListNode
     {
-        return $this->parserFactory
-            ->createListParser($this)
+        return $this->listParser
             ->parse($tokenStream, Token::T_CLOSE_BRACE, $token->getType());
     }
 
     private function parseQuoteNode(Token $token, TokenStream $tokenStream): QuoteNode
     {
-        return $this->parserFactory
-            ->createQuoteParser($this)
+        return $this->quoteParser
             ->parse($tokenStream, $token->getType());
     }
 
     private function parseReaderCondNode(TokenStream $tokenStream, Token $openToken): NodeInterface
     {
-        return $this->parserFactory
-            ->createReaderConditionalParser($this)
+        return $this->readerConditionalParser
             ->parseCond($tokenStream, $openToken);
     }
 
     private function parseReaderCondSplicingNode(TokenStream $tokenStream, Token $openToken): NodeInterface
     {
-        return $this->parserFactory
-            ->createReaderConditionalParser($this)
+        return $this->readerConditionalParser
             ->parseCondSplicing($tokenStream, $openToken);
     }
 
@@ -363,8 +381,7 @@ final readonly class Parser implements ParserInterface
 
     private function parseMetaNode(TokenStream $tokenStream): MetaNode
     {
-        return $this->parserFactory
-            ->createMetaParser($this)
+        return $this->metaParser
             ->parse($tokenStream);
     }
 
