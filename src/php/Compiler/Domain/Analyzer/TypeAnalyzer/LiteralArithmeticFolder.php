@@ -30,6 +30,8 @@ use function min;
  */
 final readonly class LiteralArithmeticFolder
 {
+    use PairwiseLiteralFoldingTrait;
+
     /**
      * `2^63`, the smallest float strictly above `PHP_INT_MAX` (2^63 - 1).
      * Used as the exclusive upper bound for the int range because
@@ -86,12 +88,12 @@ final readonly class LiteralArithmeticFolder
             // Phel `=` is type-strict: `(= 1 1.0)` is `false`. Numeric
             // promotion is reserved for `<` / `<=` / `>` / `>=` which
             // compare values, not identities.
-            '=' => $this->compareAll($literals, static fn($a, $b): bool => $a === $b),
-            'not=' => $this->negate($this->compareAll($literals, static fn($a, $b): bool => $a === $b)),
-            '<' => $this->compareAll($literals, static fn($a, $b): bool => $a < $b),
-            '<=' => $this->compareAll($literals, static fn($a, $b): bool => $a <= $b),
-            '>' => $this->compareAll($literals, static fn($a, $b): bool => $a > $b),
-            '>=' => $this->compareAll($literals, static fn($a, $b): bool => $a >= $b),
+            '=' => $this->foldPairwise($literals, static fn($a, $b): bool => $a === $b),
+            'not=' => $this->negate($this->foldPairwise($literals, static fn($a, $b): bool => $a === $b)),
+            '<' => $this->foldPairwise($literals, static fn($a, $b): bool => $a < $b),
+            '<=' => $this->foldPairwise($literals, static fn($a, $b): bool => $a <= $b),
+            '>' => $this->foldPairwise($literals, static fn($a, $b): bool => $a > $b),
+            '>=' => $this->foldPairwise($literals, static fn($a, $b): bool => $a >= $b),
             'min' => $this->extremum($literals, true),
             'max' => $this->extremum($literals, false),
             'mod' => $this->modFloor($literals),
@@ -124,35 +126,6 @@ final readonly class LiteralArithmeticFolder
         }
 
         return $literals;
-    }
-
-    /**
-     * N-ary pairwise comparison. Phel mirrors Clojure: `(=)` is an arity
-     * error (skip), `(= x)` is `true`, otherwise consecutive pairs must
-     * all satisfy `cmp`.
-     *
-     * @param list<float|int>                      $literals
-     * @param callable(float|int, float|int): bool $cmp
-     */
-    private function compareAll(array $literals, callable $cmp): ?bool
-    {
-        $count = count($literals);
-        if ($count === 0) {
-            return null;
-        }
-
-        for ($i = 0; $i < $count - 1; ++$i) {
-            if (!$cmp($literals[$i], $literals[$i + 1])) {
-                return false;
-            }
-        }
-
-        return true;
-    }
-
-    private function negate(?bool $value): ?bool
-    {
-        return $value === null ? null : !$value;
     }
 
     /**

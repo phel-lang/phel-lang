@@ -7,7 +7,6 @@ namespace Phel\Compiler\Domain\Analyzer\TypeAnalyzer;
 use Phel\Compiler\Domain\Analyzer\Ast\AbstractNode;
 use Phel\Compiler\Domain\Analyzer\Ast\LiteralNode;
 
-use function count;
 use function is_string;
 
 /**
@@ -26,6 +25,8 @@ use function is_string;
  */
 final readonly class LiteralStringFolder
 {
+    use PairwiseLiteralFoldingTrait;
+
     /** @var array<string, true> */
     private const array SUPPORTED = ['=' => true, 'not=' => true];
 
@@ -49,8 +50,8 @@ final readonly class LiteralStringFolder
         }
 
         return match ($fnName) {
-            '=' => $this->allEqual($strings),
-            'not=' => $this->negate($this->allEqual($strings)),
+            '=' => $this->foldPairwise($strings, static fn($a, $b): bool => $a === $b),
+            'not=' => $this->negate($this->foldPairwise($strings, static fn($a, $b): bool => $a === $b)),
             default => null,
         };
     }
@@ -77,33 +78,5 @@ final readonly class LiteralStringFolder
         }
 
         return $strings;
-    }
-
-    /**
-     * N-ary pairwise equality. Phel mirrors Clojure: `(=)` is an arity error
-     * (skip), `(= x)` is `true`, otherwise consecutive pairs must all be
-     * value-equal.
-     *
-     * @param list<string> $strings
-     */
-    private function allEqual(array $strings): ?bool
-    {
-        $count = count($strings);
-        if ($count === 0) {
-            return null;
-        }
-
-        for ($i = 0; $i < $count - 1; ++$i) {
-            if ($strings[$i] !== $strings[$i + 1]) {
-                return false;
-            }
-        }
-
-        return true;
-    }
-
-    private function negate(?bool $value): ?bool
-    {
-        return $value === null ? null : !$value;
     }
 }

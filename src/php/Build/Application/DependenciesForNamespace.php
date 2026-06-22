@@ -16,6 +16,18 @@ use function is_string;
 final class DependenciesForNamespace
 {
     /**
+     * Separates the individual items within one part of a memo key. A control
+     * byte no directory path or namespace can contain.
+     */
+    private const string MEMO_ITEM_SEPARATOR = "\0";
+
+    /**
+     * Separates the directories part of a memo key from the seed-namespaces
+     * part, so the two sets cannot collide across the boundary.
+     */
+    private const string MEMO_PART_SEPARATOR = "\x01";
+
+    /**
      * Intra-process memo keyed by `(dirs, seeds)` so the three root callers
      * (`FileRunner`, `DataReadersLoader`, `NamespaceLoader`) don't each re-derive
      * the same transitive dependency closure within one process.
@@ -107,6 +119,8 @@ final class DependenciesForNamespace
         $seeds = $ns;
         sort($seeds);
 
-        return implode("\0", $dirs) . "\x01" . implode("\0", $seeds);
+        return implode(self::MEMO_ITEM_SEPARATOR, $dirs)
+            . self::MEMO_PART_SEPARATOR
+            . implode(self::MEMO_ITEM_SEPARATOR, $seeds);
     }
 }
