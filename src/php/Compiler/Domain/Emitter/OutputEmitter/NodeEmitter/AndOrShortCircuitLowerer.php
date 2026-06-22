@@ -6,14 +6,10 @@ namespace Phel\Compiler\Domain\Emitter\OutputEmitter\NodeEmitter;
 
 use Phel\Compiler\Domain\Analyzer\Ast\AbstractNode;
 use Phel\Compiler\Domain\Analyzer\Ast\BindingNode;
-use Phel\Compiler\Domain\Analyzer\Ast\CallNode;
 use Phel\Compiler\Domain\Analyzer\Ast\DoNode;
-use Phel\Compiler\Domain\Analyzer\Ast\GlobalVarNode;
 use Phel\Compiler\Domain\Analyzer\Ast\IfNode;
 use Phel\Compiler\Domain\Analyzer\Ast\LetNode;
-use Phel\Compiler\Domain\Analyzer\Ast\LiteralNode;
 use Phel\Compiler\Domain\Analyzer\Ast\LocalVarNode;
-use Phel\Compiler\Domain\Analyzer\Ast\PhpVarNode;
 
 use function count;
 
@@ -71,7 +67,7 @@ final class AndOrShortCircuitLowerer
         }
 
         foreach ($args as $arg) {
-            if (!self::isSimpleArg($arg)) {
+            if (!SimpleExpressionNode::is($arg, false)) {
                 return null;
             }
         }
@@ -138,31 +134,5 @@ final class AndOrShortCircuitLowerer
         }
 
         return $name === $binding->getSymbol()->getName();
-    }
-
-    /**
-     * Chain leaves are emitted directly into the surrounding `if (…)`
-     * test position, so each one must produce a PHP expression — not a
-     * sequence of statements wrapped in an IIFE. Accept the shapes the
-     * existing emitters render as a single expression irrespective of
-     * env context, plus `CallNode`s whose own arguments are also
-     * simple (the call itself is `($f)->__invoke($args)`, which is
-     * fine).
-     */
-    private static function isSimpleArg(AbstractNode $node): bool
-    {
-        if ($node instanceof LocalVarNode
-            || $node instanceof LiteralNode
-            || $node instanceof GlobalVarNode
-            || $node instanceof PhpVarNode
-        ) {
-            return true;
-        }
-
-        if ($node instanceof CallNode) {
-            return array_all([$node->getFn(), ...$node->getArguments()], static fn(AbstractNode $child): bool => self::isSimpleArg($child));
-        }
-
-        return false;
     }
 }

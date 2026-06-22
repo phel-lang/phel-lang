@@ -65,7 +65,7 @@ final readonly class CallEmitter implements NodeEmitterInterface
         $isYield = $fnNode instanceof PhpVarNode && $fnNode->getName() === 'yield';
 
         if (!$isYield) {
-            $this->emitContextPrefix($node);
+            $this->outputEmitter->emitContextPrefix($node->getEnv(), $node->getStartSourceLocation());
         }
 
         if ($fnNode instanceof PhpVarNode && $fnNode->isInfix()) {
@@ -78,23 +78,7 @@ final readonly class CallEmitter implements NodeEmitterInterface
             $this->emitPhpVarNode($node, $fnNode);
         }
 
-        $this->emitContextSuffix($node);
-    }
-
-    private function emitContextPrefix(CallNode $node): void
-    {
-        $this->outputEmitter->emitContextPrefix(
-            $node->getEnv(),
-            $node->getStartSourceLocation(),
-        );
-    }
-
-    private function emitContextSuffix(CallNode $node): void
-    {
-        $this->outputEmitter->emitContextSuffix(
-            $node->getEnv(),
-            $node->getStartSourceLocation(),
-        );
+        $this->outputEmitter->emitContextSuffix($node->getEnv(), $node->getStartSourceLocation());
     }
 
     private function emitPhpVarNodeInfix(CallNode $node, PhpVarNode $fnNode): void

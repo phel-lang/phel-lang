@@ -67,7 +67,7 @@ final readonly class IfChainMatchLowerer
         $current = $root;
 
         while ($current instanceof IfNode) {
-            $info = self::testInfo($current->getTestExpr());
+            $info = self::parseEqualityCall($current->getTestExpr());
             if ($info === null) {
                 return null;
             }
@@ -181,9 +181,13 @@ final readonly class IfChainMatchLowerer
     }
 
     /**
+     * Parse a `(= local lit)` / `(= lit local)` equality test into its
+     * (local-var, folded-literal) pair, or `null` when the call is not an
+     * eligible equality of a local against a primitive literal.
+     *
      * @return array{0: LocalVarNode, 1: mixed}|null
      */
-    private static function testInfo(AbstractNode $test): ?array
+    private static function parseEqualityCall(AbstractNode $test): ?array
     {
         if (!$test instanceof CallNode) {
             return null;
@@ -203,20 +207,12 @@ final readonly class IfChainMatchLowerer
 
         if ($lhs instanceof LocalVarNode) {
             $value = self::literalValue($rhs);
-            if ($value === self::NOT_FOLDABLE) {
-                return null;
-            }
-
-            return [$lhs, $value];
+            return $value === self::NOT_FOLDABLE ? null : [$lhs, $value];
         }
 
         if ($rhs instanceof LocalVarNode) {
             $value = self::literalValue($lhs);
-            if ($value === self::NOT_FOLDABLE) {
-                return null;
-            }
-
-            return [$rhs, $value];
+            return $value === self::NOT_FOLDABLE ? null : [$rhs, $value];
         }
 
         return null;
@@ -239,31 +235,14 @@ final readonly class IfChainMatchLowerer
 
     private static function matchEqualityTest(AbstractNode $test, string $activeShadow): mixed
     {
-        if (!$test instanceof CallNode) {
+        $parsed = self::parseEqualityCall($test);
+        if ($parsed === null) {
             return self::NOT_FOLDABLE;
         }
 
-        $name = PhelCoreCall::nameOf($test);
-        if ($name === null || !in_array($name, self::EQUALITY_FNS, true)) {
-            return self::NOT_FOLDABLE;
-        }
+        [$local, $value] = $parsed;
 
-        $args = $test->getArguments();
-        if (count($args) !== 2) {
-            return self::NOT_FOLDABLE;
-        }
-
-        [$lhs, $rhs] = $args;
-
-        if ($lhs instanceof LocalVarNode && $lhs->getName()->getName() === $activeShadow) {
-            return self::literalValue($rhs);
-        }
-
-        if ($rhs instanceof LocalVarNode && $rhs->getName()->getName() === $activeShadow) {
-            return self::literalValue($lhs);
-        }
-
-        return self::NOT_FOLDABLE;
+        return $local->getName()->getName() === $activeShadow ? $value : self::NOT_FOLDABLE;
     }
 
     private static function isPrimitive(mixed $value): bool

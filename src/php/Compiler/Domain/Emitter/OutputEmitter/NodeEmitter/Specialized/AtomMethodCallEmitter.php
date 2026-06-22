@@ -19,18 +19,13 @@ final readonly class AtomMethodCallEmitter implements SpecializedCallEmitterInte
         private OutputEmitterInterface $outputEmitter,
     ) {}
 
-    public function tryEmit(CallNode $node): bool
-    {
-        return $this->tryEmitAtomMethodCall($node);
-    }
-
     /**
      * `(deref x)` / `(reset! v val)` — emit the direct method call on
      * the target, skipping the registry lookup. No tag required: the
      * runtime body itself is a single `php/-> target (method ...)`, so
      * the failure mode (method not found) is identical to today.
      */
-    private function tryEmitAtomMethodCall(CallNode $node): bool
+    public function tryEmit(CallNode $node): bool
     {
         $shape = AtomMethodSpecialization::atomMethodCall($node);
         if ($shape === null) {

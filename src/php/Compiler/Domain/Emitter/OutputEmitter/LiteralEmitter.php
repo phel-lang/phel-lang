@@ -14,6 +14,7 @@ use Phel\Lang\Collections\Map\PersistentMapInterface;
 use Phel\Lang\Collections\Vector\PersistentVector;
 use Phel\Lang\Keyword;
 use Phel\Lang\Ratio;
+use Phel\Lang\SourceLocation;
 use Phel\Lang\Symbol;
 use Phel\Lang\UUID;
 use Phel\Shared\Printer\PrinterInterface;
@@ -92,6 +93,7 @@ final readonly class LiteralEmitter
     {
         $this->outputEmitter->emitStr(
             '\Phel\Lang\BigInt::fromString("' . $x->__toString() . '")',
+            $x->getStartLocation(),
         );
     }
 
@@ -241,28 +243,7 @@ final readonly class LiteralEmitter
      */
     private function emitList(PersistentListInterface $x): void
     {
-        $count = count($x);
-        $this->outputEmitter->emitStr('\Phel::list([', $x->getStartLocation());
-
-        if ($count > 0) {
-            $this->outputEmitter->increaseIndentLevel();
-            $this->outputEmitter->emitLine();
-        }
-
-        foreach ($x as $i => $value) {
-            $this->outputEmitter->emitLiteral($value);
-            if ($i < $count - 1) {
-                $this->outputEmitter->emitStr(',', $x->getStartLocation());
-            }
-
-            $this->outputEmitter->emitLine();
-        }
-
-        if ($count > 0) {
-            $this->outputEmitter->decreaseIndentLevel();
-        }
-
-        $this->outputEmitter->emitStr('])', $x->getStartLocation());
+        $this->emitCollectionLiteral('\Phel::list([', $x, count($x), $x->getStartLocation());
     }
 
     /**
@@ -270,8 +251,30 @@ final readonly class LiteralEmitter
      */
     private function emitSet(PersistentHashSetInterface $x): void
     {
-        $count = count($x);
-        $this->outputEmitter->emitStr('\\Phel::set([', $x->getStartLocation());
+        $this->emitCollectionLiteral('\Phel::set([', $x, count($x), $x->getStartLocation());
+    }
+
+    /**
+     * @param PersistentVector<mixed> $x
+     */
+    private function emitVector(PersistentVector $x): void
+    {
+        $this->emitCollectionLiteral('\Phel::vector([', $x, count($x), $x->getStartLocation());
+    }
+
+    /**
+     * Emit a `\Phel::<ctor>([ … ])` collection literal: the opening token,
+     * one indented `emitLiteral` line per element (comma-separated), then the
+     * closing `])`. Shared by list / vector / set, which differ only in the
+     * constructor token. A manual element counter is used so a set — whose
+     * iteration does not yield integer keys — renders identically to the
+     * sequential collections.
+     *
+     * @param iterable<mixed> $values
+     */
+    private function emitCollectionLiteral(string $open, iterable $values, int $count, ?SourceLocation $loc): void
+    {
+        $this->outputEmitter->emitStr($open, $loc);
 
         if ($count > 0) {
             $this->outputEmitter->increaseIndentLevel();
@@ -279,10 +282,10 @@ final readonly class LiteralEmitter
         }
 
         $i = 0;
-        foreach ($x as $value) {
+        foreach ($values as $value) {
             $this->outputEmitter->emitLiteral($value);
             if ($i < $count - 1) {
-                $this->outputEmitter->emitStr(',', $x->getStartLocation());
+                $this->outputEmitter->emitStr(',', $loc);
             }
 
             $this->outputEmitter->emitLine();
@@ -293,36 +296,7 @@ final readonly class LiteralEmitter
             $this->outputEmitter->decreaseIndentLevel();
         }
 
-        $this->outputEmitter->emitStr('])', $x->getStartLocation());
-    }
-
-    /**
-     * @param PersistentVector<mixed> $x
-     */
-    private function emitVector(PersistentVector $x): void
-    {
-        $countVector = count($x);
-        $this->outputEmitter->emitStr('\Phel::vector([', $x->getStartLocation());
-
-        if ($countVector > 0) {
-            $this->outputEmitter->increaseIndentLevel();
-            $this->outputEmitter->emitLine();
-        }
-
-        foreach ($x as $i => $value) {
-            $this->outputEmitter->emitLiteral($value);
-            if ($i < $countVector - 1) {
-                $this->outputEmitter->emitStr(',', $x->getStartLocation());
-            }
-
-            $this->outputEmitter->emitLine();
-        }
-
-        if ($countVector > 0) {
-            $this->outputEmitter->decreaseIndentLevel();
-        }
-
-        $this->outputEmitter->emitStr('])', $x->getStartLocation());
+        $this->outputEmitter->emitStr('])', $loc);
     }
 
     /**

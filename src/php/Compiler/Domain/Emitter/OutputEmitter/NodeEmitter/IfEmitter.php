@@ -5,13 +5,8 @@ declare(strict_types=1);
 namespace Phel\Compiler\Domain\Emitter\OutputEmitter\NodeEmitter;
 
 use Phel\Compiler\Domain\Analyzer\Ast\AbstractNode;
-use Phel\Compiler\Domain\Analyzer\Ast\CallNode;
-use Phel\Compiler\Domain\Analyzer\Ast\DoNode;
-use Phel\Compiler\Domain\Analyzer\Ast\GlobalVarNode;
 use Phel\Compiler\Domain\Analyzer\Ast\IfNode;
 use Phel\Compiler\Domain\Analyzer\Ast\LiteralNode;
-use Phel\Compiler\Domain\Analyzer\Ast\LocalVarNode;
-use Phel\Compiler\Domain\Analyzer\Ast\PhpVarNode;
 use Phel\Compiler\Domain\Analyzer\Environment\NodeEnvironment;
 use Phel\Compiler\Domain\Emitter\OutputEmitter\Cache\BooleanExprDetector;
 use Phel\Compiler\Domain\Emitter\OutputEmitter\NodeEmitterInterface;
@@ -61,7 +56,7 @@ final class IfEmitter implements NodeEmitterInterface
 
         $then = $node->getThenExpr();
         $else = $node->getElseExpr();
-        if (!self::isSimpleExpressionNode($then) || !self::isSimpleExpressionNode($else)) {
+        if (!SimpleExpressionNode::is($then, true) || !SimpleExpressionNode::is($else, true)) {
             return false;
         }
 
@@ -104,34 +99,6 @@ final class IfEmitter implements NodeEmitterInterface
         $this->outputEmitter->emitLine('}', $loc);
 
         return true;
-    }
-
-    /**
-     * Chain leaves and ternary branches are emitted directly into a
-     * surrounding expression context, so each one must render as a
-     * single PHP expression — `LetNode` / `IfNode` in `RETURN`
-     * context expand to multi-statement bodies that the strip helper
-     * cannot safely flatten.
-     */
-    private static function isSimpleExpressionNode(AbstractNode $node): bool
-    {
-        if ($node instanceof DoNode) {
-            return $node->getStmts() === [] && self::isSimpleExpressionNode($node->getRet());
-        }
-
-        if ($node instanceof LocalVarNode
-            || $node instanceof LiteralNode
-            || $node instanceof GlobalVarNode
-            || $node instanceof PhpVarNode
-        ) {
-            return true;
-        }
-
-        if ($node instanceof CallNode) {
-            return array_all([$node->getFn(), ...$node->getArguments()], static fn(AbstractNode $child): bool => self::isSimpleExpressionNode($child));
-        }
-
-        return false;
     }
 
     /**
