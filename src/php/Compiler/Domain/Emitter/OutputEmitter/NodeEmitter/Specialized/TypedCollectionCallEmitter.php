@@ -30,11 +30,43 @@ final readonly class TypedCollectionCallEmitter implements SpecializedCallEmitte
             return true;
         }
 
+        if ($this->tryEmitTypedVectorLast($node)) {
+            return true;
+        }
+
         if ($this->tryEmitTypedVectorAccessor($node)) {
             return true;
         }
 
         return $this->tryEmitTypedSeqAccessor($node);
+    }
+
+    /**
+     * Specialise `(last v)` on a tagged `PersistentVectorInterface`
+     * target to an O(1) tail access. A vector is never `seq?`, so the
+     * runtime `last` always falls to `peek`'s vector branch
+     * (`count` + indexed `aget`), which returns nil on empty — never
+     * throws. The lowering keeps that contract behind a guard:
+     * `($v->count() === 0 ? null : $v->get($v->count() - 1))`. The target
+     * is a `LocalVarNode` (a bare variable), so emitting it three times
+     * is side-effect-free.
+     */
+    private function tryEmitTypedVectorLast(CallNode $node): bool
+    {
+        if (!TypedCollectionMethodSpecialization::isTypedVectorLast($node)) {
+            return false;
+        }
+
+        $target = $node->getArguments()[0];
+        $loc = $node->getStartSourceLocation();
+        $this->outputEmitter->emitStr('(', $loc);
+        $this->outputEmitter->emitNode($target);
+        $this->outputEmitter->emitStr('->count() === 0 ? null : ', $loc);
+        $this->outputEmitter->emitNode($target);
+        $this->outputEmitter->emitStr('->get(', $loc);
+        $this->outputEmitter->emitNode($target);
+        $this->outputEmitter->emitStr('->count() - 1))', $loc);
+        return true;
     }
 
     /**

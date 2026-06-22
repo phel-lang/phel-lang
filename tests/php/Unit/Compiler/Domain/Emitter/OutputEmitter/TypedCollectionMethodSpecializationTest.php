@@ -96,6 +96,38 @@ final class TypedCollectionMethodSpecializationTest extends TestCase
         self::assertNull(TypedCollectionMethodSpecialization::typedSeqMethodName($node));
     }
 
+    public function test_last_on_typed_vector_is_specialised(): void
+    {
+        $node = $this->coreCall('last', [$this->vectorLocal('v')]);
+
+        self::assertTrue(TypedCollectionMethodSpecialization::isTypedVectorLast($node));
+        self::assertTrue(TypedCollectionMethodSpecialization::isTypedVectorAccessor($node));
+    }
+
+    public function test_last_on_untyped_local_falls_back(): void
+    {
+        $env = $this->env();
+        $node = $this->coreCall('last', [new LocalVarNode($env, Symbol::create('v'))]);
+
+        self::assertFalse(TypedCollectionMethodSpecialization::isTypedVectorLast($node));
+    }
+
+    public function test_last_on_typed_seq_is_not_a_vector_last(): void
+    {
+        // A seq tag is not a vector, so `last` cannot collapse to the
+        // O(1) tail access — it could be an O(n) lazy seq.
+        $node = $this->coreCall('last', [$this->localWithTag('s', SeqInterface::class)]);
+
+        self::assertFalse(TypedCollectionMethodSpecialization::isTypedVectorLast($node));
+    }
+
+    public function test_last_with_wrong_arity_skips(): void
+    {
+        $node = $this->coreCall('last', [$this->vectorLocal('v'), new LiteralNode($this->env(), 0)]);
+
+        self::assertFalse(TypedCollectionMethodSpecialization::isTypedVectorLast($node));
+    }
+
     /**
      * @param list<AbstractNode> $args
      */

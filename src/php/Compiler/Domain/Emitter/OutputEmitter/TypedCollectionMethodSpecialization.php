@@ -74,7 +74,11 @@ final readonly class TypedCollectionMethodSpecialization
             return true;
         }
 
-        return self::isTypedVectorSecond($node);
+        if (self::isTypedVectorSecond($node)) {
+            return true;
+        }
+
+        return self::isTypedVectorLast($node);
     }
 
     /**
@@ -90,6 +94,33 @@ final readonly class TypedCollectionMethodSpecialization
     public static function isTypedVectorSecond(CallNode $node): bool
     {
         if (!PhelCoreCall::is($node, 'second')) {
+            return false;
+        }
+
+        $args = $node->getArguments();
+        if (count($args) !== 1) {
+            return false;
+        }
+
+        return TagNormalizer::ofLocalVar($args[0]) === PersistentVectorInterface::class;
+    }
+
+    /**
+     * `(last v)` where the analyser has tagged the target as
+     * `PersistentVectorInterface`. A vector is never `seq?`
+     * (`seq?` covers only `LazySeqInterface` / `Cons` /
+     * `PersistentListInterface`), so the runtime `phel.core/last` always
+     * falls to `(peek v)`, whose vector branch is
+     * `(let [n (count v)] (if (php/=== 0 n) nil (php/aget v (php/- n 1))))`
+     * — an O(1) tail access, never the O(n) seq loop.
+     * {@see NodeEmitter\Specialized\TypedCollectionCallEmitter} emits
+     * `($v->count() === 0 ? null : $v->get($v->count() - 1))`, preserving
+     * the empty → nil contract while skipping the `last` (and nested
+     * `peek`) registry dispatch.
+     */
+    public static function isTypedVectorLast(CallNode $node): bool
+    {
+        if (!PhelCoreCall::is($node, 'last')) {
             return false;
         }
 

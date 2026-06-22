@@ -1,0 +1,7 @@
+--PHEL--
+(fn [v] (last v))
+--PHP--
+(function($v) {
+  static $__phel_call_0;
+  return ($__phel_call_0 ??= \Phel::getDefinition("phel.core", "last"))->__invoke($v);
+});
