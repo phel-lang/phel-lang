@@ -21,7 +21,7 @@ use Traversable;
  */
 final class PersistentSortedSet extends AbstractType implements PersistentHashSetInterface
 {
-    private int $hashCache = 0;
+    private ?int $hashCache = null;
 
     /**
      * @param PersistentMapInterface<mixed, mixed>|null $meta
@@ -101,6 +101,10 @@ final class PersistentSortedSet extends AbstractType implements PersistentHashSe
 
     public function equals(mixed $other): bool
     {
+        if ($this === $other) {
+            return true;
+        }
+
         if (!$other instanceof PersistentHashSetInterface) {
             return false;
         }
@@ -120,7 +124,7 @@ final class PersistentSortedSet extends AbstractType implements PersistentHashSe
 
     public function hash(): int
     {
-        if ($this->hashCache === 0) {
+        if ($this->hashCache === null) {
             $this->hashCache = $this->hasher->unorderedHash($this->map);
         }
 

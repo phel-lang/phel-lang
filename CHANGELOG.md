@@ -30,6 +30,9 @@ All notable changes to this project will be documented in this file.
 ### Fixed
 
 - Hashing a persistent collection (vector, list, queue, lazy seq, hash/sorted set, or map) no longer throws a `TypeError` once it grows past ~13 elements: the rolling hash accumulator now wraps within a 32-bit range instead of silently overflowing to a float (#2567)
+- A chunked lazy seq (`ChunkedSeq`) now wraps its hash accumulator to 32-bit too — it was the one collection that escaped the #2567 fix and still overflowed past ~13 elements
+- A persistent map or hash/sorted set containing a `NaN` key/element is now equal to itself again: `equals` short-circuits on object identity before the element walk (a `NaN` never compares `=` to itself, which previously made such a collection unequal to itself)
+- A `Cons` cell or sorted set whose hash legitimately computes to `0` now caches it instead of recomputing on every `hash()` call (the cache sentinel was `0`, indistinguishable from a real zero hash)
 - The "not defined" error hint now also shows when the compiler appends a `Did you mean ...?` suggestion (a trailing period previously suppressed it)
 - `php/oset` in return context now elides the redundant closure wrapper, matching `php/->`'s return-context behavior (#2536)
 

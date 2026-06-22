@@ -290,13 +290,10 @@ final class ChunkedSeq extends AbstractType implements LazySeqInterface, Countab
 
     public function hash(): int
     {
-        // Realize and hash the sequence (similar to PersistentList)
-        $hash = 1;
-        foreach ($this as $value) {
-            $hash = 31 * $hash + $this->hasher->hash($value);
-        }
-
-        return $hash;
+        // Realize and hash the sequence (similar to LazySeq). Delegating to
+        // orderedHash keeps the 32-bit accumulator wrap that prevents the int
+        // overflow fixed in #2585 — the bare `31 * $hash` loop here did not.
+        return $this->hasher->orderedHash($this);
     }
 
     public function equals(mixed $other): bool

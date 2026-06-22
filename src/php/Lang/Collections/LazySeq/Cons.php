@@ -28,7 +28,7 @@ use Traversable;
  */
 final class Cons extends AbstractType implements SeqInterface, IteratorAggregate
 {
-    private int $hashCache = 0;
+    private ?int $hashCache = null;
 
     /**
      * @param T                                         $first
@@ -198,7 +198,7 @@ final class Cons extends AbstractType implements SeqInterface, IteratorAggregate
 
     public function hash(): int
     {
-        if ($this->hashCache === 0) {
+        if ($this->hashCache === null) {
             $this->hashCache = $this->hasher->orderedHash($this);
         }
 
