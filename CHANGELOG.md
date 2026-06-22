@@ -6,6 +6,7 @@ All notable changes to this project will be documented in this file.
 
 ### Performance
 
+- Analyzing a `let`/`loop` binding vector now updates the derived locals/shadow indexes incrementally (one O(1) `withLocalAndShadow` per binding) instead of rebuilding both from scratch per binding, cutting wide-scope analysis from O(N²) to O(N) (#2554)
 - The call inliner (opt level >= 2) now inlines `let`-bodied pure `defn`s: a single intermediate binding (the common small-helper shape) no longer blocks inlining, and a `let`/`do` body is also recognized as structurally pure so unannotated helpers inline without a `^:pure` tag (#2586)
 - The parser reuses its sub-parsers instead of allocating a fresh one per parsed node: the dependency-free ones (string/char/regex) are memoized on the factory and the `Parser`-dependent ones are built once in the `Parser` constructor (#2548)
 - PHP interop (`php/->`, `php/::`, `php/new`, `php/oset`) now compiles to direct expressions or statements instead of wrapping every call in a closure (#2524, #2525, #2526, #2532, #2536)
