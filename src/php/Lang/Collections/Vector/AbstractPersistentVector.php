@@ -5,17 +5,14 @@ declare(strict_types=1);
 namespace Phel\Lang\Collections\Vector;
 
 use InvalidArgumentException;
-use Iterator;
-use IteratorAggregate;
 use Phel\Lang\AbstractType;
 use Phel\Lang\Collections\Exceptions\MethodNotSupportedException;
 use Phel\Lang\Collections\LazySeq\LazySeqInterface;
 use Phel\Lang\Collections\Map\MapEntry;
 use Phel\Lang\Collections\Map\PersistentMapInterface;
 use Phel\Lang\EqualizerInterface;
-
 use Phel\Lang\HasherInterface;
-use Traversable;
+use Phel\Lang\IteratorUnwrapper;
 
 use function count;
 use function is_object;
@@ -104,8 +101,8 @@ abstract class AbstractPersistentVector extends AbstractType implements Persiste
             // `hash()` uses) instead of repeated O(log32 n) `get()`
             // trie descents. The count check above guarantees both
             // iterators stay valid over the same index range.
-            $thisIterator = $this->toIterator($this->getIterator());
-            $otherIterator = $this->toIterator($other->getIterator());
+            $thisIterator = IteratorUnwrapper::unwrap($this->getIterator());
+            $otherIterator = IteratorUnwrapper::unwrap($other->getIterator());
             while ($thisIterator->valid()) {
                 if (!$this->equalizer->equals($thisIterator->current(), $otherIterator->current())) {
                     return false;
@@ -247,24 +244,4 @@ abstract class AbstractPersistentVector extends AbstractType implements Persiste
      * @return PersistentVectorInterface<T>
      */
     abstract protected function sliceNormalized(int $start, int $end): PersistentVectorInterface;
-
-    /**
-     * Unwraps a vector's `getIterator()` result so `valid` / `current` /
-     * `next` can be driven directly in the lockstep `equals` walk.
-     * `PersistentVector` yields a `RangeIterator`; `SubVector` yields a
-     * Generator — both are already `Iterator`s and pass straight through.
-     *
-     * @param Traversable<mixed, mixed> $traversable
-     *
-     * @return Iterator<mixed, mixed>
-     */
-    private function toIterator(Traversable $traversable): Iterator
-    {
-        while ($traversable instanceof IteratorAggregate) {
-            $traversable = $traversable->getIterator();
-        }
-
-        /** @var Iterator<mixed, mixed> $traversable */
-        return $traversable;
-    }
 }

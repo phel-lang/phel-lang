@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace Phel\Lang\Collections\LazySeq;
 
-use Iterator;
 use IteratorAggregate;
 use Phel\Lang\AbstractType;
 use Phel\Lang\Collections\Map\PersistentMapInterface;
@@ -167,33 +166,7 @@ final class Cons extends AbstractType implements SeqInterface, IteratorAggregate
             return false;
         }
 
-        $leftIter = $this->getIterator();
-        $rightIter = $other instanceof IteratorAggregate ? $other->getIterator() : $other;
-
-        $left = $this->normalizeIterator($leftIter);
-        $right = $this->normalizeIterator($rightIter);
-
-        $left->rewind();
-        $right->rewind();
-
-        while (true) {
-            $lv = $left->valid();
-            $rv = $right->valid();
-            if ($lv !== $rv) {
-                return false;
-            }
-
-            if (!$lv) {
-                return true;
-            }
-
-            if (!$this->equalizer->equals($left->current(), $right->current())) {
-                return false;
-            }
-
-            $left->next();
-            $right->next();
-        }
+        return LazySeqEquality::walkPairwise($this->getIterator(), $other, $this->equalizer);
     }
 
     public function hash(): int
@@ -231,23 +204,5 @@ final class Cons extends AbstractType implements SeqInterface, IteratorAggregate
 
             $current = $next;
         }
-    }
-
-    /**
-     * Unwraps nested `IteratorAggregate` so `current` / `next` / `valid` can
-     * be driven directly. Generators are already iterators and pass through.
-     *
-     * @param Traversable<mixed, mixed> $traversable
-     *
-     * @return Iterator<mixed, mixed>
-     */
-    private function normalizeIterator(Traversable $traversable): Iterator
-    {
-        while ($traversable instanceof IteratorAggregate) {
-            $traversable = $traversable->getIterator();
-        }
-
-        /** @var Iterator $traversable */
-        return $traversable;
     }
 }
