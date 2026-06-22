@@ -4,10 +4,13 @@ declare(strict_types=1);
 
 namespace PhelTest\Unit\Lang\Collections;
 
+use Phel\Lang\HashCombinerTrait;
 use Phel\Lang\HasherInterface;
 
 final readonly class ModuloHasher implements HasherInterface
 {
+    use HashCombinerTrait;
+
     public function __construct(
         private int $modulo = 10000,
     ) {}

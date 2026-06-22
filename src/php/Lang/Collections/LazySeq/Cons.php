@@ -28,14 +28,6 @@ use Traversable;
  */
 final class Cons extends AbstractType implements SeqInterface, IteratorAggregate
 {
-    /**
-     * Keeps the rolling hash accumulator inside a 32-bit unsigned range so
-     * `31 * $hashCache` never exceeds PHP_INT_MAX and silently promotes to
-     * float (which would corrupt the `int $hashCache` for long sequences).
-     * Kept in lockstep with vector, list, queue and map hashing.
-     */
-    private const int HASH_MASK = 0xFFFFFFFF;
-
     private int $hashCache = 0;
 
     /**
@@ -207,10 +199,7 @@ final class Cons extends AbstractType implements SeqInterface, IteratorAggregate
     public function hash(): int
     {
         if ($this->hashCache === 0) {
-            $this->hashCache = 1;
-            foreach ($this as $value) {
-                $this->hashCache = (31 * $this->hashCache + $this->hasher->hash($value)) & self::HASH_MASK;
-            }
+            $this->hashCache = $this->hasher->orderedHash($this);
         }
 
         return $this->hashCache;

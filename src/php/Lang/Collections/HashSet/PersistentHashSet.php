@@ -21,14 +21,6 @@ use function is_nan;
  */
 final class PersistentHashSet extends AbstractType implements PersistentHashSetInterface
 {
-    /**
-     * Keeps the rolling hash accumulator inside a 32-bit unsigned range so
-     * the running sum can never silently promote to float (which would throw
-     * a TypeError when assigned to `?int $hashCache` under strict_types for
-     * large sets). Kept in lockstep with vector, list, queue and map hashing.
-     */
-    private const int HASH_MASK = 0xFFFFFFFF;
-
     private ?int $hashCache = null;
 
     /**
@@ -142,12 +134,7 @@ final class PersistentHashSet extends AbstractType implements PersistentHashSetI
             return $this->hashCache;
         }
 
-        $hash = 0;
-        foreach ($this->map as $value) {
-            $hash = ($hash + $this->hasher->hash($value)) & self::HASH_MASK;
-        }
-
-        return $this->hashCache = $hash;
+        return $this->hashCache = $this->hasher->unorderedHash($this->map);
     }
 
     /**

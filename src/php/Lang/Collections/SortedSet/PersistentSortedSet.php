@@ -21,14 +21,6 @@ use Traversable;
  */
 final class PersistentSortedSet extends AbstractType implements PersistentHashSetInterface
 {
-    /**
-     * Keeps the rolling hash accumulator inside a 32-bit unsigned range so
-     * the running sum can never silently promote to float (which would
-     * corrupt the `int $hashCache` for large sets). Kept in lockstep with
-     * vector, list, queue and map hashing.
-     */
-    private const int HASH_MASK = 0xFFFFFFFF;
-
     private int $hashCache = 0;
 
     /**
@@ -129,9 +121,7 @@ final class PersistentSortedSet extends AbstractType implements PersistentHashSe
     public function hash(): int
     {
         if ($this->hashCache === 0) {
-            foreach ($this->map as $value) {
-                $this->hashCache = ($this->hashCache + $this->hasher->hash($value)) & self::HASH_MASK;
-            }
+            $this->hashCache = $this->hasher->unorderedHash($this->map);
         }
 
         return $this->hashCache;

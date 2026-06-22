@@ -29,16 +29,6 @@ use function is_object;
  */
 abstract class AbstractPersistentVector extends AbstractType implements PersistentVectorInterface
 {
-    /**
-     * Keeps the rolling hash accumulator inside a 32-bit unsigned range.
-     * `31 * $hash` then never exceeds PHP_INT_MAX, so the accumulator can
-     * never silently promote to float (which would throw a TypeError when
-     * assigned to the `?int $hashCache` under strict_types — the bug seen
-     * with vectors of 13+ elements). 32 bits matches Clojure's hash width
-     * and the values produced by `Hasher` (crc32, float bit patterns).
-     */
-    private const int HASH_MASK = 0xFFFFFFFF;
-
     private ?int $hashCache = null;
 
     /**
@@ -95,12 +85,7 @@ abstract class AbstractPersistentVector extends AbstractType implements Persiste
             return $this->hashCache;
         }
 
-        $hash = 1;
-        foreach ($this as $obj) {
-            $hash = (31 * $hash + $this->hasher->hash($obj)) & self::HASH_MASK;
-        }
-
-        return $this->hashCache = $hash;
+        return $this->hashCache = $this->hasher->orderedHash($this);
     }
 
     public function equals(mixed $other): bool
