@@ -48,12 +48,7 @@ final readonly class AssocConjSpecialization
         }
 
         $args = $node->getArguments();
-        $target = $args[0] ?? null;
-        if (!$target instanceof LocalVarNode) {
-            return null;
-        }
-
-        $tag = TagNormalizer::normalise($target->getInferredType());
+        $tag = TagNormalizer::ofLocalVar($args[0] ?? null);
         if ($tag === null) {
             return null;
         }
@@ -113,12 +108,7 @@ final readonly class AssocConjSpecialization
             return null;
         }
 
-        $target = $args[0];
-        if (!$target instanceof LocalVarNode) {
-            return null;
-        }
-
-        if (TagNormalizer::normalise($target->getInferredType()) !== PersistentMapInterface::class) {
+        if (TagNormalizer::ofLocalVar($args[0]) !== PersistentMapInterface::class) {
             return null;
         }
 

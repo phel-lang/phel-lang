@@ -52,107 +52,33 @@ final readonly class CallSpecialization
 
     public static function isSpecialized(CallNode $node): bool
     {
-        if (self::isStrConcat($node)) {
-            return true;
-        }
-
-        if (TypedValueSpecialization::isKeywordFind($node)) {
-            return true;
-        }
-
-        if (self::isTypedGetAccess($node)) {
-            return true;
-        }
-
-        if (GetInSpecialization::isLiteralPathGetIn($node)) {
-            return true;
-        }
-
-        if (self::isTypedPhpArrayGet($node)) {
-            return true;
-        }
-
-        if (self::isTypedPhpArrayCount($node)) {
-            return true;
-        }
-
-        if (self::isTypedStringCount($node)) {
-            return true;
-        }
-
-        if (self::isTypedStringFirst($node)) {
-            return true;
-        }
-
-        if (NilAndBooleanCheckSpecialization::isNilCheck($node)) {
-            return true;
-        }
-
-        if (NilAndBooleanCheckSpecialization::isSomeCheck($node)) {
-            return true;
-        }
-
-        if (NilAndBooleanCheckSpecialization::isTrueCheck($node)) {
-            return true;
-        }
-
-        if (NilAndBooleanCheckSpecialization::isFalseCheck($node)) {
-            return true;
-        }
-
-        if (NilAndBooleanCheckSpecialization::isTruthyCheck($node)) {
-            return true;
-        }
-
-        if (TypePredicateSpecialization::isNumericPredicate($node) !== null) {
-            return true;
-        }
-
-        if (TypePredicateSpecialization::isTypePredicate($node)) {
-            return true;
-        }
-
-        if (TypedValueSpecialization::isNamedAccessor($node)) {
-            return true;
-        }
-
-        if (TypedValueSpecialization::isEmptyCheck($node)) {
-            return true;
-        }
-
-        if (TypedValueSpecialization::isContainsCheck($node)) {
-            return true;
-        }
-
-        if (AtomMethodSpecialization::isAtomMethodCall($node)) {
-            return true;
-        }
-
-        if (TypedCollectionMethodSpecialization::isTypedVectorAccessor($node)) {
-            return true;
-        }
-
-        if (TypedCollectionMethodSpecialization::isTypedSeqAccessor($node)) {
-            return true;
-        }
-
-        if (AssocConjSpecialization::isTypedDissocKeys($node)) {
-            return true;
-        }
-
-        if (AssocConjSpecialization::isTypedAssocConjDissoc($node)) {
-            return true;
-        }
-
-        if (AssocConjSpecialization::isAssocConjChain($node)) {
-            return true;
-        }
-
-        if (NumericOperationSpecialization::isNotEqPeephole($node)) {
-            return true;
-        }
-
-        if (NumericOperationSpecialization::isTypedVariadicChain($node)) {
+        if (self::isStrConcat($node)
+            || TypedValueSpecialization::isKeywordFind($node)
+            || self::isTypedGetAccess($node)
+            || GetInSpecialization::isLiteralPathGetIn($node)
+            || self::isTypedPhpArrayGet($node)
+            || self::isTypedPhpArrayCount($node)
+            || self::isTypedStringCount($node)
+            || self::isTypedStringFirst($node)
+            || NilAndBooleanCheckSpecialization::isNilCheck($node)
+            || NilAndBooleanCheckSpecialization::isSomeCheck($node)
+            || NilAndBooleanCheckSpecialization::isTrueCheck($node)
+            || NilAndBooleanCheckSpecialization::isFalseCheck($node)
+            || NilAndBooleanCheckSpecialization::isTruthyCheck($node)
+            || TypePredicateSpecialization::isNumericPredicate($node) !== null
+            || TypePredicateSpecialization::isTypePredicate($node)
+            || TypedValueSpecialization::isNamedAccessor($node)
+            || TypedValueSpecialization::isEmptyCheck($node)
+            || TypedValueSpecialization::isContainsCheck($node)
+            || AtomMethodSpecialization::isAtomMethodCall($node)
+            || TypedCollectionMethodSpecialization::isTypedVectorAccessor($node)
+            || TypedCollectionMethodSpecialization::isTypedSeqAccessor($node)
+            || AssocConjSpecialization::isTypedDissocKeys($node)
+            || AssocConjSpecialization::isTypedAssocConjDissoc($node)
+            || AssocConjSpecialization::isAssocConjChain($node)
+            || NumericOperationSpecialization::isNotEqPeephole($node)
+            || NumericOperationSpecialization::isTypedVariadicChain($node)
+        ) {
             return true;
         }
 
@@ -188,13 +114,7 @@ final readonly class CallSpecialization
             return null;
         }
 
-        $target = $args[0];
-        if (!$target instanceof LocalVarNode) {
-            return null;
-        }
-
-        $tag = TagNormalizer::normalise($target->getInferredType());
-        return match ($tag) {
+        return match (TagNormalizer::ofLocalVar($args[0])) {
             PersistentVectorInterface::class => 'get',
             PersistentMapInterface::class => 'find',
             default => null,
@@ -250,12 +170,7 @@ final readonly class CallSpecialization
             return false;
         }
 
-        $target = $args[0];
-        if (!$target instanceof LocalVarNode) {
-            return false;
-        }
-
-        return TagNormalizer::normalise($target->getInferredType()) === 'array';
+        return TagNormalizer::ofLocalVar($args[0]) === 'array';
     }
 
     /**
@@ -276,12 +191,7 @@ final readonly class CallSpecialization
             return false;
         }
 
-        $target = $args[0];
-        if (!$target instanceof LocalVarNode) {
-            return false;
-        }
-
-        return TagNormalizer::normalise($target->getInferredType()) === 'array';
+        return TagNormalizer::ofLocalVar($args[0]) === 'array';
     }
 
     /**
@@ -346,12 +256,7 @@ final readonly class CallSpecialization
             return false;
         }
 
-        $target = $args[0];
-        if (!$target instanceof LocalVarNode) {
-            return false;
-        }
-
-        return TagNormalizer::normalise($target->getInferredType()) === 'string';
+        return TagNormalizer::ofLocalVar($args[0]) === 'string';
     }
 
     private static function isStringConcatable(AbstractNode $arg): bool
@@ -360,8 +265,7 @@ final readonly class CallSpecialization
             return true;
         }
 
-        $tag = TagNormalizer::normalise(NumericOperationSpecialization::inferredTypeOfNode($arg));
-        return $tag !== null && $tag === 'string';
+        return TagNormalizer::normalise(NumericOperationSpecialization::inferredTypeOfNode($arg)) === 'string';
     }
 
 }

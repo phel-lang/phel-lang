@@ -7,14 +7,13 @@ namespace Phel\Compiler\Domain\Emitter\OutputEmitter\NodeEmitter;
 use Phel\Compiler\Domain\Analyzer\Ast\AbstractNode;
 use Phel\Compiler\Domain\Analyzer\Ast\CallNode;
 use Phel\Compiler\Domain\Analyzer\Ast\DoNode;
-use Phel\Compiler\Domain\Analyzer\Ast\GlobalVarNode;
 use Phel\Compiler\Domain\Analyzer\Ast\IfNode;
 use Phel\Compiler\Domain\Analyzer\Ast\LetNode;
 use Phel\Compiler\Domain\Analyzer\Ast\LiteralNode;
 use Phel\Compiler\Domain\Analyzer\Ast\LocalVarNode;
 use Phel\Compiler\Domain\Analyzer\Ast\QuoteNode;
+use Phel\Compiler\Domain\Emitter\OutputEmitter\PhelCoreCall;
 use Phel\Lang\Keyword;
-use Phel\Shared\CompilerConstants;
 
 use function count;
 use function in_array;
@@ -190,14 +189,8 @@ final readonly class IfChainMatchLowerer
             return null;
         }
 
-        $fn = $test->getFn();
-        if (!$fn instanceof GlobalVarNode) {
-            return null;
-        }
-
-        if ($fn->getNamespace() !== CompilerConstants::PHEL_CORE_NAMESPACE
-            || !in_array($fn->getName()->getName(), self::EQUALITY_FNS, true)
-        ) {
+        $name = PhelCoreCall::nameOf($test);
+        if ($name === null || !in_array($name, self::EQUALITY_FNS, true)) {
             return null;
         }
 
@@ -250,14 +243,8 @@ final readonly class IfChainMatchLowerer
             return self::NOT_FOLDABLE;
         }
 
-        $fn = $test->getFn();
-        if (!$fn instanceof GlobalVarNode) {
-            return self::NOT_FOLDABLE;
-        }
-
-        if ($fn->getNamespace() !== CompilerConstants::PHEL_CORE_NAMESPACE
-            || !in_array($fn->getName()->getName(), self::EQUALITY_FNS, true)
-        ) {
+        $name = PhelCoreCall::nameOf($test);
+        if ($name === null || !in_array($name, self::EQUALITY_FNS, true)) {
             return self::NOT_FOLDABLE;
         }
 
