@@ -1,0 +1,6 @@
+--PHEL--
+(fn [^float x] (inc x))
+--PHP--
+(function(float $x) {
+  return ($x + 1);
+});

@@ -180,6 +180,64 @@ final class NumericOperationSpecializationTest extends TestCase
         self::assertSame('<', NumericOperationSpecialization::typedBinaryOpName($node));
     }
 
+    public function test_inc_on_int_local_lowers_to_plus(): void
+    {
+        $node = $this->coreCall('inc', [$this->localWithTag('x', 'int')]);
+
+        self::assertSame('+', NumericOperationSpecialization::typedIncDecOp($node));
+    }
+
+    public function test_dec_on_int_local_lowers_to_minus(): void
+    {
+        $node = $this->coreCall('dec', [$this->localWithTag('x', 'int')]);
+
+        self::assertSame('-', NumericOperationSpecialization::typedIncDecOp($node));
+    }
+
+    public function test_inc_on_float_local_lowers_to_plus(): void
+    {
+        $node = $this->coreCall('inc', [$this->localWithTag('x', 'float')]);
+
+        self::assertSame('+', NumericOperationSpecialization::typedIncDecOp($node));
+    }
+
+    public function test_inc_dec_skips_untagged_local(): void
+    {
+        $env = $this->env();
+        $node = $this->coreCall('inc', [new LocalVarNode($env, Symbol::create('x'))]);
+
+        self::assertNull(NumericOperationSpecialization::typedIncDecOp($node));
+    }
+
+    public function test_inc_dec_skips_literal_operand(): void
+    {
+        // An int literal at PHP_INT_MAX would overflow under native `+ 1` and
+        // diverge from the runtime BigInt promotion — keep it on dispatch.
+        $env = $this->env();
+        $node = $this->coreCall('inc', [new LiteralNode($env, 4611686018427387904)]);
+
+        self::assertNull(NumericOperationSpecialization::typedIncDecOp($node));
+    }
+
+    public function test_inc_dec_skips_nullable_tag(): void
+    {
+        // A nullable tag re-admits the `assert-non-nil` guard the runtime
+        // defns carry, so the specialisation must not fire.
+        $node = $this->coreCall('inc', [$this->localWithTag('x', '?int')]);
+
+        self::assertNull(NumericOperationSpecialization::typedIncDecOp($node));
+    }
+
+    public function test_inc_dec_skips_two_arg_form(): void
+    {
+        $node = $this->coreCall('inc', [
+            $this->localWithTag('a', 'int'),
+            $this->localWithTag('b', 'int'),
+        ]);
+
+        self::assertNull(NumericOperationSpecialization::typedIncDecOp($node));
+    }
+
     private function env(): NodeEnvironment
     {
         return NodeEnvironment::empty()->withExpressionContext();
