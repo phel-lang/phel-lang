@@ -18,6 +18,8 @@ use PhpBench\Benchmark\Metadata\Annotations\BeforeMethods;
 use PhpBench\Benchmark\Metadata\Annotations\Iterations;
 use PhpBench\Benchmark\Metadata\Annotations\Revs;
 
+use function sprintf;
+
 /**
  * Wide-`let` analysis micro-benchmark.
  *
@@ -99,7 +101,7 @@ final class WideLetAnalysisBench
         $bindings = ['b0 n'];
         for ($i = 1; $i < self::BINDING_COUNT; ++$i) {
             $prev = $i - 1;
-            $bindings[] = "b{$i} (+ b{$prev} {$i})";
+            $bindings[] = sprintf('b%d (+ b%d %d)', $i, $prev, $i);
         }
 
         $last = self::BINDING_COUNT - 1;
