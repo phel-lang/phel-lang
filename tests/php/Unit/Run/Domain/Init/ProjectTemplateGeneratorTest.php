@@ -21,6 +21,7 @@ final class ProjectTemplateGeneratorTest extends TestCase
     {
         $config = $this->generator->generateConfig('myapp\\main', ProjectLayout::Flat);
 
+        self::assertStringContainsString('declare(strict_types=1);', $config);
         self::assertStringContainsString('use Phel\\Config\\PhelConfig;', $config);
         self::assertStringContainsString('use Phel\\Config\\ProjectLayout;', $config);
         self::assertStringContainsString('PhelConfig::forProject(ProjectLayout::Flat)', $config);

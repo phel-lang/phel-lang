@@ -12,6 +12,7 @@ All notable changes to this project will be documented in this file.
 ### Changed
 
 - A broken `phel-config.php` (syntax error, evaluation error, or a non-`PhelConfig` return) now fails with a clear message that names the file and shows the expected shape, instead of a cryptic underlying error (#2604)
+- `phel init` now scaffolds `phel-config.php` with `declare(strict_types=1);`, matching the project's PHP conventions (#2605)
 
 ### Performance
 
