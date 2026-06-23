@@ -6,7 +6,7 @@ All notable changes to this project will be documented in this file.
 
 ### Added
 
-- `phel config` now validates the effective configuration and reports problems (such as source directories that must be relative) in a dedicated "Validation" section
+- `phel config` now validates the effective configuration and reports problems (such as source directories that must be relative) in a dedicated "Validation" section (#2600)
 
 ### Performance
 
