@@ -6,33 +6,23 @@ All notable changes to this project will be documented in this file.
 
 ### Performance
 
-- PHP interop (`php/->`, `php/::`, `php/new`, `php/oset`) now compiles to direct expressions/statements instead of wrapping every call in a closure (#2524, #2525, #2526, #2532, #2536)
-- Type-tagged core calls compile straight to native operations instead of runtime dispatch: `push`/`dissoc` (#2527), `second`/`get-in` (#2530, #2529), `count`/`first` on strings (#2528), `inc`/`dec` on `^int`/`^float` locals (#2562), and `last` on vectors (#2563)
-- `(= x :keyword)` compiles to a native identity check, and `=`/`not=` over string literals fold to a compile-time boolean (#2561, #2531)
-- The call inliner (opt level ≥ 2) now inlines `let`-bodied pure `defn`s, including unannotated ones it can prove pure (#2586)
-- The compiler reuses parser sub-parsers and analyzer sub-analyzers and skips no-op environment clones, cutting per-node allocations (#2548, #2553, #2552)
-- Analyzing a `let`/`loop` binding vector updates its locals/shadow indexes incrementally instead of rebuilding them per binding (O(N²) → O(N)) (#2554)
-- A typed `defn` walks its body twice instead of three times, running return-type inference once after param tags are grafted (#2555)
-- The lexer skips per-token deprecation checks for common tokens and tracks columns with `strlen` on ASCII-only source (#2546, #2547)
-- `Symbol` equality short-circuits on identity, and global symbol reads skip the dynamic-scope/Fiber check when no dynamic bindings are active (#2551, #2545)
-- Repeated keyword/scalar literals in a function body share one cached `static` slot instead of one per occurrence (#2564)
-- The emitter splices captured nodes into expression positions with a plain prefix check instead of compiling a regex per call (#2565)
-- Persistent vector equality short-circuits on identical instances and walks both vectors with chunk-aware iterators, making element-wise comparison O(n) (#2549)
-- `dissoc`/`remove` on a large persistent map skips the O(n) deep node comparison on the no-op path (#2544)
-- Iterating a large persistent hash map drops a redundant per-node array copy (#2550)
-- The compiled-code cache index is written once at shutdown instead of after every compiled file (O(N²) → O(N) index writes), keeping the concurrent-merge guarantees for parallel `phel test` workers (#2557)
-- The directory-scan namespace index persists across runs, so warm invocations skip re-walking the source tree when nothing changed (#2560)
-- The REPL loads only `phel.core` (plus the startup namespace's requires) at boot and lazy-loads other `phel.*` modules on first use, cutting time-to-prompt by ~34% (#2559)
-- CLI commands are lazy-loaded, so each invocation constructs only the dispatched command (#2558)
-- `phel doctor` ships a ready-to-use `phel.ini` and guides enabling a persistent CLI OPcache file cache so warm runs reuse compiled opcode across processes (#2556)
+- Compile interop to native PHP: `php/->`, `php/::`, `php/new`, and `php/oset` emit direct expressions/statements instead of closure wrappers (#2524, #2525, #2526, #2532, #2536)
+- Compile type-tagged core calls to native operations instead of runtime dispatch: `push`/`dissoc` (#2527), `second`/`get-in` (#2530, #2529), `count`/`first` on strings (#2528), `inc`/`dec` on `^int`/`^float` locals (#2562), and `last` on vectors (#2563)
+- Fold comparisons at compile time: `(= x :keyword)` becomes an identity check, and `=`/`not=` over string literals fold to a boolean (#2561, #2531)
+- Inline `let`-bodied pure `defn`s at opt level ≥ 2, including unannotated ones the compiler can prove pure (#2586)
+- Allocate less per node in the compiler pipeline: reuse parser/analyzer sub-components and skip no-op environment clones (#2548, #2553, #2552), build `let`/`loop` locals/shadow indexes incrementally (O(N²) to O(N)) (#2554), and walk a typed `defn` body one fewer time (#2555)
+- Speed up the lexer with fewer per-token deprecation checks and ASCII-only column tracking (#2546, #2547)
+- Short-circuit `Symbol` equality on identity, and skip the dynamic-scope check on global reads when no dynamic bindings are active (#2551, #2545)
+- Share one `static` slot for repeated literals (#2564), and splice captured nodes in the emitter with a prefix check instead of a per-call regex (#2565)
+- Speed up persistent data structures on hot paths: vector equality short-circuits on identity and walks chunk-aware (O(n)) (#2549), `dissoc`/`remove` skip the deep comparison on no-op (#2544), and hash-map iteration drops a redundant per-node copy (#2550)
+- Cut CLI startup: persist the compiled-code cache index and namespace index, writing once instead of per file (#2557, #2560), boot the REPL with only `phel.core` and lazy-load the rest (~34% faster to prompt) (#2559), lazy-load CLI commands per invocation (#2558), and ship a `phel.ini` from `phel doctor` to enable a persistent OPcache file cache (#2556)
 
 ### Fixed
 
-- Hashing a persistent collection — vector, list, queue, lazy seq (including chunked), hash/sorted set, or map — no longer throws a `TypeError` past ~13 elements: the rolling hash now wraps within a 32-bit range instead of overflowing to a float (#2567)
+- Hashing a large persistent collection (vector, list, queue, lazy seq including chunked, hash/sorted set, or map) no longer throws a `TypeError` past ~13 elements: the rolling hash now wraps within a 32-bit range instead of overflowing to a float (#2567)
 - A persistent map or hash/sorted set containing a `NaN` key/element is equal to itself again: `equals` now short-circuits on object identity before the element walk
 - A `Cons` cell or sorted set whose hash legitimately computes to `0` now caches it instead of recomputing on every `hash()` call
 - The "not defined" error hint now also shows when the compiler appends a `Did you mean ...?` suggestion (a trailing period previously suppressed it)
-- `php/oset` in return context now elides the redundant closure wrapper, matching `php/->` (#2536)
 
 ## [0.45.1](https://github.com/phel-lang/phel-lang/compare/v0.45.0...v0.45.1) - 2026-06-20
 
