@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace Phel\Run\Infrastructure\Command;
 
+use Phel\Run\Domain\Config\ConfigDiagnostics;
+use Phel\Run\Domain\Config\ConfigIssue;
 use Phel\Run\Domain\Config\EffectiveConfigReader;
 use Phel\Run\Domain\Config\EffectiveConfigResult;
 use Phel\Shared\Console\DeprecatedOptionWarner;
@@ -32,6 +34,7 @@ final class ConfigCommand extends Command
 
     public function __construct(
         private readonly EffectiveConfigReader $reader = new EffectiveConfigReader(),
+        private readonly ConfigDiagnostics $diagnostics = new ConfigDiagnostics(),
     ) {
         parent::__construct();
     }
@@ -84,8 +87,35 @@ HELP)
         $output->writeln('');
         $output->writeln('<comment>Effective config:</comment>');
         $output->writeln($this->toJson($effective->values));
+        $this->writeValidation($output, $this->diagnostics->analyze($effective->values));
 
         return Command::SUCCESS;
+    }
+
+    /**
+     * @param list<ConfigIssue> $issues
+     */
+    private function writeValidation(OutputInterface $output, array $issues): void
+    {
+        $output->writeln('');
+        $output->writeln('<comment>Validation:</comment>');
+
+        if ($issues === []) {
+            $output->writeln(' - <info>no issues found</info>');
+
+            return;
+        }
+
+        foreach ($issues as $issue) {
+            $tag = $issue->isError() ? 'error' : 'comment';
+            $output->writeln(sprintf(
+                ' - <%s>%s</%s> %s',
+                $tag,
+                $issue->level->label(),
+                $tag,
+                $issue->message,
+            ));
+        }
     }
 
     private function writeSources(OutputInterface $output, EffectiveConfigResult $effective): void
