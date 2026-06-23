@@ -6,8 +6,7 @@ All notable changes to this project will be documented in this file.
 
 ### Added
 
-- `phel config` now validates the effective configuration and reports problems in a dedicated "Validation" section: directories that must be relative, source/test directories that do not exist, no source directories configured, unknown optimization levels, and config values with the wrong type (#2600, #2601, #2602)
-- `phel doctor` now checks the project configuration: it fails on config errors and surfaces warnings as tips (#2603)
+- Project configuration validation: `phel config` reports problems in a dedicated "Validation" section (directories that must be relative, missing source/test directories, no source directories, unknown optimization levels, wrong-type values), and `phel doctor` checks the config too, failing on errors and surfacing warnings as tips (#2600, #2601, #2602, #2603)
 
 ### Changed
 
@@ -30,9 +29,7 @@ All notable changes to this project will be documented in this file.
 
 ### Fixed
 
-- Hashing a large persistent collection (vector, list, queue, lazy seq including chunked, hash/sorted set, or map) no longer throws a `TypeError` past ~13 elements: the rolling hash now wraps within a 32-bit range instead of overflowing to a float (#2567, #2585)
-- A persistent map or hash/sorted set containing a `NaN` key/element is equal to itself again: `equals` now short-circuits on object identity before the element walk (#2589)
-- A `Cons` cell or sorted set whose hash legitimately computes to `0` now caches it instead of recomputing on every `hash()` call (#2589)
+- Collection hash/equals correctness: hashing a large persistent collection (vector, list, queue, lazy seq including chunked, hash/sorted set, or map) no longer throws a `TypeError` past ~13 elements (the rolling hash wraps within a 32-bit range instead of overflowing to a float), a map or hash/sorted set containing a `NaN` key/element is equal to itself again (`equals` short-circuits on object identity), and a `Cons` cell or sorted set whose hash legitimately computes to `0` now caches it (#2567, #2585, #2589)
 - The "not defined" error hint now also shows when the compiler appends a `Did you mean ...?` suggestion (a trailing period previously suppressed it) (#2523)
 
 ## [0.45.1](https://github.com/phel-lang/phel-lang/compare/v0.45.0...v0.45.1) - 2026-06-20
