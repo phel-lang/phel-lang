@@ -6,41 +6,33 @@ All notable changes to this project will be documented in this file.
 
 ### Performance
 
-- `phel doctor` now ships a ready-to-use `phel.ini` and gives precise guidance for enabling a persistent CLI OPcache file cache (which lets warm runs reuse compiled opcode across processes), including the caveat that `opcache.file_cache` must be an existing absolute directory kept outside `phel clear-cache` (#2556)
-- Analyzing a `let`/`loop` binding vector now updates the derived locals/shadow indexes incrementally (one O(1) `withLocalAndShadow` per binding) instead of rebuilding both from scratch per binding, cutting wide-scope analysis from O(N²) to O(N) (#2554)
-- The call inliner (opt level >= 2) now inlines `let`-bodied pure `defn`s: a single intermediate binding (the common small-helper shape) no longer blocks inlining, and a `let`/`do` body is also recognized as structurally pure so unannotated helpers inline without a `^:pure` tag (#2586)
-- The parser reuses its sub-parsers instead of allocating a fresh one per parsed node: the dependency-free ones (string/char/regex) are memoized on the factory and the `Parser`-dependent ones are built once in the `Parser` constructor (#2548)
-- PHP interop (`php/->`, `php/::`, `php/new`, `php/oset`) now compiles to direct expressions or statements instead of wrapping every call in a closure (#2524, #2525, #2526, #2532, #2536)
-- Type-tagged core calls now compile straight to native operations: `push`/`dissoc` to persistent-collection methods (#2527), `second`/`get-in` to direct vector/map access (#2530, #2529), and `count`/`first` on strings to `mb_strlen`/`mb_substr` (#2528)
-- `(inc x)`/`(dec x)` on an `^int`/`^float`-tagged local now compile to native `($x + 1)`/`($x - 1)` instead of dispatching through `NumericOperations`, matching the existing `(php/+ ^int x 1)` lowering (#2562)
-- `(last v)` on a tagged persistent vector now compiles to a count-guarded O(1) tail access (`($v->count() === 0 ? null : $v->get($v->count() - 1))`) instead of dispatching through `phel.core/last` and `peek` (#2563)
-- `=` and `not=` over string literals now fold to a boolean at compile time (#2531)
-- `dissoc`/`remove` on a large persistent map no longer does an O(n) deep node comparison on the no-op path (#2544)
-- The analyzer reuses stateless sub-analyzers (literal/constant-folder/let-simplifier) instead of allocating them per node (#2553)
-- The lexer skips per-token deprecation checks for the common token types via a single lookup (#2546)
-- Global symbol reads skip the per-call dynamic-scope/Fiber check when no dynamic bindings are active (#2545)
-- The analyzer no longer clones the node environment when a context/binding setter is a no-op, cutting allocations on call-heavy code (#2552)
-- `(= x :keyword)` now compiles to a native identity check instead of dispatching through the runtime equality fn (#2561)
-- CLI commands are now lazy-loaded via Symfony's command loader, so each invocation constructs only the dispatched command instead of every command (#2558)
-- A typed `defn` now walks its body twice instead of three times: return-type inference runs once after param tags are grafted instead of also running inline in `FnSymbol` (#2555)
-- The REPL now loads only `phel.core` (plus the startup namespace's requires) at boot; other bundled `phel.*` modules load lazily on first reference, cutting time-to-prompt by ~34% (#2559)
-- `Symbol` equality short-circuits on identity and compares its backing fields directly instead of through getters, speeding up the symbol comparisons that dominate compiler environment lookups (#2551)
-- The directory-scan namespace index is now persisted across runs, so warm invocations skip re-walking the source tree (and its per-file `filemtime` sweep) when nothing changed; per-file mtimes plus a directory mtime + file-count check keep it from ever serving stale namespace info (#2560)
-- Repeating the same keyword (or scalar) literal in a function body now shares one cached `static` slot instead of one per occurrence, shrinking generated PHP and the closure capture list (#2564)
-- Persistent vector equality (`=`) now short-circuits on identical instances and walks both vectors with their chunk-aware iterators instead of repeated O(log32 n) `get` lookups, making element-wise comparison O(n) (#2549)
-- The emitter no longer compiles a regex per call when splicing a captured node into an expression position (`if` ternary, `and`/`or` short-circuit, type predicates); it uses a plain prefix check instead, with byte-identical output (#2565)
-- The compiled-code cache index is now written once at shutdown instead of after every compiled file, so a cold build of N namespaces no longer rewrites the whole index N times (O(N²) → O(N) index bytes written); the atomic-write + `flock` + disk-merge still keeps concurrent `phel test` workers from clobbering each other's entries (#2557)
-- Iterating a large persistent hash map no longer copies an `ArrayNode`'s child-node array twice: the redundant outer `array_values` is dropped so `ArrayNodeIterator` performs the single remaining copy (#2550)
-- The lexer advances column positions with `strlen` instead of `mb_strlen` when the whole source is ASCII (decided once per parse via a single high-bit scan); multibyte sources keep the code-point `mb_strlen` path so reported columns are unchanged (#2547)
+- PHP interop (`php/->`, `php/::`, `php/new`, `php/oset`) now compiles to direct expressions/statements instead of wrapping every call in a closure (#2524, #2525, #2526, #2532, #2536)
+- Type-tagged core calls compile straight to native operations instead of runtime dispatch: `push`/`dissoc` (#2527), `second`/`get-in` (#2530, #2529), `count`/`first` on strings (#2528), `inc`/`dec` on `^int`/`^float` locals (#2562), and `last` on vectors (#2563)
+- `(= x :keyword)` compiles to a native identity check, and `=`/`not=` over string literals fold to a compile-time boolean (#2561, #2531)
+- The call inliner (opt level ≥ 2) now inlines `let`-bodied pure `defn`s, including unannotated ones it can prove pure (#2586)
+- The compiler reuses parser sub-parsers and analyzer sub-analyzers and skips no-op environment clones, cutting per-node allocations (#2548, #2553, #2552)
+- Analyzing a `let`/`loop` binding vector updates its locals/shadow indexes incrementally instead of rebuilding them per binding (O(N²) → O(N)) (#2554)
+- A typed `defn` walks its body twice instead of three times, running return-type inference once after param tags are grafted (#2555)
+- The lexer skips per-token deprecation checks for common tokens and tracks columns with `strlen` on ASCII-only source (#2546, #2547)
+- `Symbol` equality short-circuits on identity, and global symbol reads skip the dynamic-scope/Fiber check when no dynamic bindings are active (#2551, #2545)
+- Repeated keyword/scalar literals in a function body share one cached `static` slot instead of one per occurrence (#2564)
+- The emitter splices captured nodes into expression positions with a plain prefix check instead of compiling a regex per call (#2565)
+- Persistent vector equality short-circuits on identical instances and walks both vectors with chunk-aware iterators, making element-wise comparison O(n) (#2549)
+- `dissoc`/`remove` on a large persistent map skips the O(n) deep node comparison on the no-op path (#2544)
+- Iterating a large persistent hash map drops a redundant per-node array copy (#2550)
+- The compiled-code cache index is written once at shutdown instead of after every compiled file (O(N²) → O(N) index writes), keeping the concurrent-merge guarantees for parallel `phel test` workers (#2557)
+- The directory-scan namespace index persists across runs, so warm invocations skip re-walking the source tree when nothing changed (#2560)
+- The REPL loads only `phel.core` (plus the startup namespace's requires) at boot and lazy-loads other `phel.*` modules on first use, cutting time-to-prompt by ~34% (#2559)
+- CLI commands are lazy-loaded, so each invocation constructs only the dispatched command (#2558)
+- `phel doctor` ships a ready-to-use `phel.ini` and guides enabling a persistent CLI OPcache file cache so warm runs reuse compiled opcode across processes (#2556)
 
 ### Fixed
 
-- Hashing a persistent collection (vector, list, queue, lazy seq, hash/sorted set, or map) no longer throws a `TypeError` once it grows past ~13 elements: the rolling hash accumulator now wraps within a 32-bit range instead of silently overflowing to a float (#2567)
-- A chunked lazy seq (`ChunkedSeq`) now wraps its hash accumulator to 32-bit too — it was the one collection that escaped the #2567 fix and still overflowed past ~13 elements
-- A persistent map or hash/sorted set containing a `NaN` key/element is now equal to itself again: `equals` short-circuits on object identity before the element walk (a `NaN` never compares `=` to itself, which previously made such a collection unequal to itself)
-- A `Cons` cell or sorted set whose hash legitimately computes to `0` now caches it instead of recomputing on every `hash()` call (the cache sentinel was `0`, indistinguishable from a real zero hash)
+- Hashing a persistent collection — vector, list, queue, lazy seq (including chunked), hash/sorted set, or map — no longer throws a `TypeError` past ~13 elements: the rolling hash now wraps within a 32-bit range instead of overflowing to a float (#2567)
+- A persistent map or hash/sorted set containing a `NaN` key/element is equal to itself again: `equals` now short-circuits on object identity before the element walk
+- A `Cons` cell or sorted set whose hash legitimately computes to `0` now caches it instead of recomputing on every `hash()` call
 - The "not defined" error hint now also shows when the compiler appends a `Did you mean ...?` suggestion (a trailing period previously suppressed it)
-- `php/oset` in return context now elides the redundant closure wrapper, matching `php/->`'s return-context behavior (#2536)
+- `php/oset` in return context now elides the redundant closure wrapper, matching `php/->` (#2536)
 
 ## [0.45.1](https://github.com/phel-lang/phel-lang/compare/v0.45.0...v0.45.1) - 2026-06-20
 
