@@ -9,6 +9,7 @@ use Gacela\Framework\Bootstrap\GacelaConfig;
 use Gacela\Framework\Config\Config;
 use Gacela\Framework\Gacela;
 use Phar;
+use Phel\Config\ConfigLoadException;
 use Phel\Config\PhelConfig;
 use Phel\Config\ProjectLayout;
 use Phel\Filesystem\FilesystemFacade;
@@ -16,6 +17,7 @@ use Phel\Run\RunFacade;
 use Phel\Shared\PhelProjectDirectory;
 use Phel\Shared\ScalarCoercion;
 use RuntimeException;
+use Throwable;
 
 use function dirname;
 use function getcwd;
@@ -99,10 +101,16 @@ class Phel
             self::$autoDetectedConfig = self::detectProjectStructure($projectRootDir);
         }
 
-        Gacela::bootstrap($projectRootDir, self::configFn());
+        try {
+            Gacela::bootstrap($projectRootDir, self::configFn());
 
-        self::mergedConfigCacheInvalidator()->refreshIfStale();
-        self::mirrorPhelDirToEnv();
+            self::mergedConfigCacheInvalidator()->refreshIfStale();
+            // Forces the merged app config to materialize, so a broken
+            // phel-config.php fails here (inside the guard) rather than later.
+            self::mirrorPhelDirToEnv();
+        } catch (Throwable $throwable) {
+            throw ConfigLoadException::wrapIfConfigError($throwable, $configPath);
+        }
     }
 
     /**
