@@ -177,6 +177,16 @@ final class PharExecutionTest extends TestCase
         self::assertStringContainsString('6', $result['stdout']);
     }
 
+    public function test_phar_doctor_does_not_point_to_an_unusable_phar_ini(): void
+    {
+        // Regression: `phel doctor`'s OPcache tip must not suggest
+        // `php -c phar://…/phel.ini`, which PHP cannot load from inside a
+        // PHAR. The generic tips still show; only the broken pointer is gone.
+        $result = $this->runPhar(['doctor']);
+
+        self::assertStringNotContainsString('phar://', $result['stdout']);
+    }
+
     /**
      * @param list<string> $args
      *

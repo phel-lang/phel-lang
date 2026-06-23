@@ -8,6 +8,7 @@ use Gacela\Framework\Health\HealthChecker;
 use Gacela\Framework\Health\HealthStatus;
 use Gacela\Framework\ServiceResolver\ServiceMap;
 use Gacela\Framework\ServiceResolverAwareTrait;
+use Phar;
 use Phel\Run\RunFacade;
 use Phel\Shared\Performance\OpcacheAdvisor;
 use Symfony\Component\Console\Command\Command;
@@ -124,10 +125,17 @@ HELP);
 
     /**
      * Absolute path to the `phel.ini` template bundled at the package root,
-     * or null when it cannot be found (e.g. a trimmed distribution).
+     * or null when it cannot be usefully referenced — a trimmed distribution
+     * (file absent) or a PHAR run, where the file resolves to a `phar://…`
+     * path that PHP cannot load via `php -c`. PHAR users still get the
+     * generic OPcache tips, just without a broken config pointer.
      */
     private function bundledIniTemplatePath(): ?string
     {
+        if (Phar::running(false) !== '') {
+            return null;
+        }
+
         $path = dirname(__DIR__, 5) . '/phel.ini';
 
         return is_file($path) ? $path : null;
