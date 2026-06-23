@@ -49,7 +49,27 @@ final class ConfigCommandTest extends TestCase
         self::assertStringContainsString('src/phel', $display);
         // This fixture dir has no phel-config.php, so it is auto-detected.
         self::assertStringContainsString('not found', $display);
-        // The (relative) fixture config is valid, so validation reports clean.
+        // The fixture's src/phel does not exist on disk, so validation warns.
+        self::assertStringContainsString('Validation:', $display);
+        self::assertStringContainsString('WARNING', $display);
+        self::assertStringContainsString("Source directory 'src/phel' does not exist", $display);
+    }
+
+    public function test_valid_config_reports_no_validation_issues(): void
+    {
+        $this->resetContainer();
+        // Point src/test dirs at the project root, which always exists, so the
+        // config validates clean.
+        Gacela::bootstrap(__DIR__, static function (GacelaConfig $config): void {
+            $config->addAppConfigKeyValue(PhelConfig::SRC_DIRS, ['.']);
+            $config->addAppConfigKeyValue(PhelConfig::TEST_DIRS, ['.']);
+        });
+
+        $tester = new CommandTester(new ConfigCommand());
+        $exitCode = $tester->execute([]);
+
+        $display = $tester->getDisplay();
+        self::assertSame(0, $exitCode);
         self::assertStringContainsString('Validation:', $display);
         self::assertStringContainsString('no issues found', $display);
     }
