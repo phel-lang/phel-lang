@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace Phel\Config;
 
-use Error;
 use RuntimeException;
 use Throwable;
 
@@ -63,8 +62,10 @@ final class ConfigLoadException extends RuntimeException
             return true;
         }
 
-        // A PHP error (parse/type/...) raised while evaluating the config file.
-        return $error instanceof Error && self::originatesFrom($error, $configPath);
+        // Any error or exception raised while evaluating the config file: a
+        // parse/type error, or one the file throws itself (e.g. a guard that
+        // throws RuntimeException when a required env var is missing).
+        return self::originatesFrom($error, $configPath);
     }
 
     private static function originatesFrom(Throwable $error, string $configPath): bool

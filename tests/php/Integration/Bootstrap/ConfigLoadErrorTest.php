@@ -68,6 +68,22 @@ final class ConfigLoadErrorTest extends TestCase
         self::assertSame(['custom-src'], Config::getInstance()->get(PhelConfig::SRC_DIRS));
     }
 
+    public function test_bootstrap_wraps_an_exception_thrown_from_the_config_file(): void
+    {
+        // A config file that throws (not a PHP Error, a deliberate exception)
+        // is an evaluation error and must become a friendly ConfigLoadException
+        // rather than an uncaught fatal with a stack trace.
+        file_put_contents(
+            $this->dir . '/phel-config.php',
+            "<?php\n\nthrow new \\RuntimeException('APP_KEY missing');\n",
+        );
+
+        $this->expectException(ConfigLoadException::class);
+        $this->expectExceptionMessage('phel-config.php');
+
+        Phel::bootstrap($this->dir);
+    }
+
     private function removeDir(string $dir): void
     {
         if (!is_dir($dir)) {
