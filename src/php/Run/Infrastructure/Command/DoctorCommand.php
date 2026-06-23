@@ -14,6 +14,7 @@ use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 
+use function dirname;
 use function extension_loaded;
 use function ini_get;
 use function sprintf;
@@ -107,6 +108,7 @@ HELP);
             opcacheLoaded: extension_loaded('Zend OPcache'),
             enableCli: (bool) ini_get('opcache.enable_cli'),
             fileCacheConfigured: (string) ini_get('opcache.file_cache') !== '',
+            iniTemplatePath: $this->bundledIniTemplatePath(),
         );
 
         if ($advice->optimal) {
@@ -118,6 +120,17 @@ HELP);
         foreach ($advice->messages as $message) {
             $output->writeln(sprintf(' - OPcache CLI caching: <comment>TIP</comment> %s', $message));
         }
+    }
+
+    /**
+     * Absolute path to the `phel.ini` template bundled at the package root,
+     * or null when it cannot be found (e.g. a trimmed distribution).
+     */
+    private function bundledIniTemplatePath(): ?string
+    {
+        $path = dirname(__DIR__, 5) . '/phel.ini';
+
+        return is_file($path) ? $path : null;
     }
 
     private function formatLevel(HealthStatus $status): string
