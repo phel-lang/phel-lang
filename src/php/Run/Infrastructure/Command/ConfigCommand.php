@@ -87,7 +87,10 @@ HELP)
         $output->writeln('');
         $output->writeln('<comment>Effective config:</comment>');
         $output->writeln($this->toJson($effective->values));
-        $this->writeValidation($output, $this->diagnostics->analyze($effective->values));
+        $this->writeValidation(
+            $output,
+            $this->diagnostics->analyze($effective->values, $effective->projectRoot),
+        );
 
         return Command::SUCCESS;
     }
