@@ -9,6 +9,8 @@ use Gacela\Framework\Health\HealthStatus;
 use Gacela\Framework\ServiceResolver\ServiceMap;
 use Gacela\Framework\ServiceResolverAwareTrait;
 use Phar;
+use Phel\Run\Domain\Config\ConfigDiagnostics;
+use Phel\Run\Domain\Config\EffectiveConfigReader;
 use Phel\Run\RunFacade;
 use Phel\Shared\Performance\OpcacheAdvisor;
 use Symfony\Component\Console\Command\Command;
@@ -33,8 +35,9 @@ final class DoctorCommand extends Command
         $this->setName('doctor')
             ->setDescription('Check system requirements for running the Phel CLI')
             ->setHelp(<<<'HELP'
-Checks PHP version/extensions, module health, and cold-start performance
-(OPcache CLI caching), printing actionable fixes for anything missing.
+Checks PHP version/extensions, module health, project configuration, and
+cold-start performance (OPcache CLI caching), printing actionable fixes for
+anything missing.
 
 <info>Example:</info>
   <comment>phel doctor</comment>
@@ -45,9 +48,10 @@ HELP);
     {
         $systemOk = $this->checkSystemRequirements($output);
         $modulesOk = $this->checkModuleHealth($output);
+        $configOk = $this->checkConfiguration($output);
         $this->checkPerformance($output);
 
-        if ($systemOk && $modulesOk) {
+        if ($systemOk && $modulesOk && $configOk) {
             $output->writeln('<info>Your system meets all requirements.</info>');
 
             return Command::SUCCESS;
@@ -98,6 +102,37 @@ HELP);
         }
 
         return !$report->hasUnhealthyModules();
+    }
+
+    /**
+     * Reports problems with the effective project configuration. Errors fail
+     * the check (and so the command); warnings are surfaced as tips.
+     */
+    private function checkConfiguration(OutputInterface $output): bool
+    {
+        $output->writeln('');
+        $output->writeln('Checking configuration:');
+
+        $effective = new EffectiveConfigReader()->read();
+        $issues = new ConfigDiagnostics()->analyze($effective->values, $effective->projectRoot);
+
+        if ($issues === []) {
+            $output->writeln(' - <info>OK</info> no configuration problems found');
+
+            return true;
+        }
+
+        $ok = true;
+        foreach ($issues as $issue) {
+            if ($issue->isError()) {
+                $ok = false;
+                $output->writeln(sprintf(' - <error>FAIL</error> %s', $issue->message));
+            } else {
+                $output->writeln(sprintf(' - <comment>TIP</comment> %s', $issue->message));
+            }
+        }
+
+        return $ok;
     }
 
     private function checkPerformance(OutputInterface $output): void
