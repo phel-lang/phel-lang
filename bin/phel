@@ -8,6 +8,7 @@ if (function_exists('ini_set')) {
     @ini_set('memory_limit', '-1');
 }
 
+use Phel\Config\ConfigLoadException;
 use Phel\Console\ConsoleFacade;
 
 // NOTE: When packaged as a PHAR, the stub requires the PHAR's vendor/autoload.php first.
@@ -64,7 +65,15 @@ use Phel\Console\ConsoleFacade;
 
     // Phel classes are available either via the PHAR autoloader (in PHAR mode)
     // or the host Composer autoloader (source mode).
-    Phel::bootstrap($appRootDir);
+    try {
+        Phel::bootstrap($appRootDir);
+    } catch (ConfigLoadException $e) {
+        // A broken phel-config.php is a user error, not a Phel bug: print the
+        // actionable message on its own and exit cleanly, without the noise of
+        // an uncaught-exception stack trace.
+        fwrite(STDERR, $e->getMessage().PHP_EOL);
+        exit(1);
+    }
 
     // In PHAR mode, load the host project's Composer autoloader after Phel bootstrap.
     // This allows using PHP classes from the project's vendor dependencies.

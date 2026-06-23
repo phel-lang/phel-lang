@@ -187,6 +187,26 @@ final class PharExecutionTest extends TestCase
         self::assertStringNotContainsString('phar://', $result['stdout']);
     }
 
+    public function test_phar_reports_a_broken_config_file_cleanly(): void
+    {
+        // A phel-config.php that does not return a PhelConfig must produce the
+        // actionable message and a clean exit 1 — not an uncaught-fatal dump.
+        file_put_contents(
+            $this->tempProjectDir . '/phel-config.php',
+            "<?php\n\nreturn 'not a config';\n",
+        );
+
+        $result = $this->runPhar(['config']);
+        $combined = $result['stdout'] . $result['stderr'];
+
+        self::assertSame(1, $result['exit'], 'a broken config must exit 1, not 255');
+        self::assertStringContainsString('phel-config.php', $combined);
+        self::assertStringContainsString('must `return` a PhelConfig', $combined);
+        // No raw PHP fatal / stack-trace noise.
+        self::assertStringNotContainsString('Uncaught', $combined);
+        self::assertStringNotContainsString('Stack trace', $combined);
+    }
+
     /**
      * @param list<string> $args
      *
