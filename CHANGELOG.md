@@ -11,7 +11,7 @@ All notable changes to this project will be documented in this file.
 
 ### Changed
 
-- **Breaking**: removed the deprecated `PhelConfig` `setX()` setters and the `useLayout()`/`useNestedLayout()`/`useFlatLayout()` shortcuts (deprecated since 0.37), plus the `setX()` shims on `PhelBuildConfig`/`PhelExportConfig`. Use the immutable `with*()` methods instead (e.g. `withSrcDirs`, `withLayout(ProjectLayout::Nested)`); update any `phel-config.php` that still calls the old names
+- **Breaking**: removed the deprecated `PhelConfig` `setX()` setters and the `useLayout()`/`useNestedLayout()`/`useFlatLayout()` shortcuts (deprecated since 0.37), plus the `setX()` shims on `PhelBuildConfig`/`PhelExportConfig`. Use the immutable `with*()` methods instead (e.g. `withSrcDirs`, `withLayout(ProjectLayout::Nested)`); update any `phel-config.php` that still calls the old names (#2609)
 - A broken `phel-config.php` (syntax error, evaluation error, or a return that is neither a `PhelConfig` nor a config array) now fails with a clear message that names the file and shows the expected shape, printed on its own and exiting 1, instead of a cryptic uncaught-exception stack trace (#2604, #2606, #2607)
 - `phel init` now scaffolds `phel-config.php` with `declare(strict_types=1);`, matching the project's PHP conventions (#2605)
 
