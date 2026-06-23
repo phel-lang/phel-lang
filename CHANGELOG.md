@@ -11,7 +11,7 @@ All notable changes to this project will be documented in this file.
 
 ### Changed
 
-- A broken `phel-config.php` (syntax error, evaluation error, or a return that is neither a `PhelConfig` instance nor a config array) now fails with a clear message that names the file and shows the expected shape, printed on its own and exiting 1, instead of a cryptic uncaught-exception stack trace (#2604, #2606, #2607)
+- A broken `phel-config.php` (syntax error, evaluation error, or a return that is neither a `PhelConfig` nor a config array) now fails with a clear message that names the file and shows the expected shape, printed on its own and exiting 1, instead of a cryptic uncaught-exception stack trace (#2604, #2606, #2607)
 - `phel init` now scaffolds `phel-config.php` with `declare(strict_types=1);`, matching the project's PHP conventions (#2605)
 
 ### Performance
@@ -25,7 +25,7 @@ All notable changes to this project will be documented in this file.
 - Short-circuit `Symbol` equality on identity, and skip the dynamic-scope check on global reads when no dynamic bindings are active (#2551, #2545)
 - Share one `static` slot for repeated literals (#2564), and splice captured nodes in the emitter with a prefix check instead of a per-call regex (#2565)
 - Speed up persistent data structures on hot paths: vector equality short-circuits on identity and walks chunk-aware (O(n)) (#2549), `dissoc`/`remove` skip the deep comparison on no-op (#2544), and hash-map iteration drops a redundant per-node copy (#2550)
-- Cut CLI startup: persist the compiled-code cache index and namespace index, writing once instead of per file (#2557, #2560), boot the REPL with only `phel.core` and lazy-load the rest (~34% faster to prompt) (#2559), lazy-load CLI commands per invocation (#2558), and ship a `phel.ini` from `phel doctor` to enable a persistent OPcache file cache, suppressed in PHAR runs where `php -c phar://…` cannot load it (#2556, #2599)
+- Cut CLI startup: persist the compiled-code cache index and namespace index, writing once instead of per file (#2557, #2560), boot the REPL with only `phel.core` and lazy-load the rest (~34% faster to prompt) (#2559), lazy-load CLI commands per invocation (#2558), and ship a `phel.ini` from `phel doctor` to enable a persistent OPcache file cache (#2556, #2599)
 
 ### Fixed
 
