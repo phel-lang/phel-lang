@@ -103,4 +103,30 @@ final class ConfigDiagnosticsTest extends TestCase
         self::assertSame(ConfigIssueLevel::Warning, $issues[0]->level);
         self::assertStringContainsString('optimization level 5', $issues[0]->message);
     }
+
+    public function test_non_array_src_dirs_warns_about_the_type_only(): void
+    {
+        $issues = $this->diagnostics->analyze([
+            PhelConfig::SRC_DIRS => 'src',
+        ], $this->root);
+
+        // Exactly one issue: the type mismatch, not a misleading
+        // "no source directories" warning from the coerced-to-empty value.
+        self::assertCount(1, $issues);
+        self::assertSame(ConfigIssueLevel::Warning, $issues[0]->level);
+        self::assertStringContainsString("Config key 'src-dirs' should be a list of strings", $issues[0]->message);
+        self::assertStringContainsString('got string', $issues[0]->message);
+    }
+
+    public function test_non_numeric_optimization_level_warns_about_the_type(): void
+    {
+        $issues = $this->diagnostics->analyze([
+            PhelConfig::OPTIMIZATION_LEVEL => 'fast',
+        ], $this->root);
+
+        self::assertCount(1, $issues);
+        self::assertSame(ConfigIssueLevel::Warning, $issues[0]->level);
+        self::assertStringContainsString("Config key 'optimization-level' should be an integer", $issues[0]->message);
+        self::assertStringContainsString('got string', $issues[0]->message);
+    }
 }

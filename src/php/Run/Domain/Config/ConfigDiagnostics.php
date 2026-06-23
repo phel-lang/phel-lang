@@ -10,6 +10,7 @@ use Phel\Shared\ScalarCoercion;
 use function array_key_exists;
 use function array_map;
 use function in_array;
+use function is_array;
 use function is_dir;
 use function rtrim;
 use function sprintf;
@@ -42,6 +43,7 @@ final class ConfigDiagnostics
     {
         return [
             ...$this->relativePathErrors($values),
+            ...$this->typeMismatchWarnings($values),
             ...$this->emptySourceWarnings($values),
             ...$this->missingDirectoryWarnings($values, $projectRoot),
             ...$this->optimizationLevelWarnings($values),
@@ -80,7 +82,10 @@ final class ConfigDiagnostics
             return [];
         }
 
-        if (ScalarCoercion::toStringList($values[PhelConfig::SRC_DIRS]) !== []) {
+        // A non-array value is a type mismatch, reported separately; do not
+        // also claim "no source directories" for it.
+        $raw = $values[PhelConfig::SRC_DIRS];
+        if (!is_array($raw) || $raw !== []) {
             return [];
         }
 
@@ -148,5 +153,49 @@ final class ConfigDiagnostics
             'Unknown optimization level %d; supported levels are 0, 1, 2',
             $level,
         ))];
+    }
+
+    /**
+     * Flags config values whose type does not match the expected shape. Such
+     * values are otherwise silently coerced to a default (e.g. a `src-dirs`
+     * string becomes an empty list), discarding the user's intent without a
+     * trace.
+     *
+     * @param array<string, mixed> $values
+     *
+     * @return list<ConfigIssue>
+     */
+    private function typeMismatchWarnings(array $values): array
+    {
+        $listKeys = [
+            PhelConfig::SRC_DIRS,
+            PhelConfig::TEST_DIRS,
+            PhelConfig::FORMAT_DIRS,
+            PhelConfig::IGNORE_WHEN_BUILDING,
+            PhelConfig::NO_CACHE_WHEN_BUILDING,
+        ];
+
+        $issues = [];
+        foreach ($listKeys as $key) {
+            if (array_key_exists($key, $values) && !is_array($values[$key])) {
+                $issues[] = ConfigIssue::warning(sprintf(
+                    "Config key '%s' should be a list of strings, got %s; the value will be ignored",
+                    $key,
+                    get_debug_type($values[$key]),
+                ));
+            }
+        }
+
+        if (array_key_exists(PhelConfig::OPTIMIZATION_LEVEL, $values)
+            && !is_numeric($values[PhelConfig::OPTIMIZATION_LEVEL])
+        ) {
+            $issues[] = ConfigIssue::warning(sprintf(
+                "Config key '%s' should be an integer, got %s; the value will be ignored",
+                PhelConfig::OPTIMIZATION_LEVEL,
+                get_debug_type($values[PhelConfig::OPTIMIZATION_LEVEL]),
+            ));
+        }
+
+        return $issues;
     }
 }

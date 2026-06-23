@@ -6,7 +6,7 @@ All notable changes to this project will be documented in this file.
 
 ### Added
 
-- `phel config` now validates the effective configuration and reports problems in a dedicated "Validation" section: directories that must be relative, source/test directories that do not exist, no source directories configured, and unknown optimization levels (#2600, #2601)
+- `phel config` now validates the effective configuration and reports problems in a dedicated "Validation" section: directories that must be relative, source/test directories that do not exist, no source directories configured, unknown optimization levels, and config values with the wrong type (#2600, #2601, #2602)
 
 ### Performance
 
