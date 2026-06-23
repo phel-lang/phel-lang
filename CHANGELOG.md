@@ -9,6 +9,10 @@ All notable changes to this project will be documented in this file.
 - `phel config` now validates the effective configuration and reports problems in a dedicated "Validation" section: directories that must be relative, source/test directories that do not exist, no source directories configured, unknown optimization levels, and config values with the wrong type (#2600, #2601, #2602)
 - `phel doctor` now checks the project configuration: it fails on config errors and surfaces warnings as tips (#2603)
 
+### Changed
+
+- A broken `phel-config.php` (syntax error, evaluation error, or a non-`PhelConfig` return) now fails with a clear message that names the file and shows the expected shape, instead of a cryptic underlying error (#2604)
+
 ### Performance
 
 - Compile interop to native PHP: `php/->`, `php/::`, `php/new`, and `php/oset` emit direct expressions/statements instead of closure wrappers (#2524, #2525, #2526, #2532, #2536)
