@@ -68,6 +68,34 @@ final class ConfigLoadExceptionTest extends TestCase
         }
     }
 
+    public function test_wraps_an_exception_thrown_from_the_config_file(): void
+    {
+        // A config file may deliberately `throw` (e.g. a guard for a required
+        // env var). A thrown exception is an evaluation error too, so it must
+        // be wrapped, not surface as an uncaught fatal.
+        $broken = sys_get_temp_dir() . '/phel-throws-' . bin2hex(random_bytes(6)) . '.php';
+        file_put_contents($broken, "<?php\n\nthrow new \\RuntimeException('APP_KEY missing');\n");
+
+        $caught = null;
+        try {
+            include $broken;
+        } catch (RuntimeException $runtimeException) {
+            $caught = $runtimeException;
+        }
+
+        try {
+            self::assertInstanceOf(RuntimeException::class, $caught);
+            $wrapped = ConfigLoadException::wrapIfConfigError($caught, $broken);
+
+            self::assertInstanceOf(ConfigLoadException::class, $wrapped);
+            self::assertSame($caught, $wrapped->getPrevious());
+            self::assertStringContainsString($broken, $wrapped->getMessage());
+            self::assertStringContainsString('APP_KEY missing', $wrapped->getMessage());
+        } finally {
+            @unlink($broken);
+        }
+    }
+
     public function test_returns_unrelated_errors_unchanged(): void
     {
         $original = new RuntimeException('something unrelated blew up');
