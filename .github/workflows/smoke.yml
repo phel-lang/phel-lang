@@ -62,6 +62,12 @@ jobs:
           echo "PHAR size: $size bytes"
           test "$size" -lt 2097152  # 2 MiB budget
 
+      - name: Run the end-to-end PHAR test suite against the freshly built phar
+        # PharExecutionTest skips itself unless build/out/phel.phar exists, so it
+        # never runs in tests.yml. Run it here, where the phar was just built, to
+        # actually guard PHAR-only behaviour (e.g. the broken-config clean exit).
+        run: vendor/bin/phpunit --testsuite=integration --filter PharExecutionTest
+
       - name: Boot PHAR from a clean directory
         working-directory: /tmp
         run: |
