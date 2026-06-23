@@ -14,7 +14,7 @@ use const LOCK_EX;
  * Owns the per-project `.phel/` directory: creates it on demand, seeds a
  * `.gitignore` so consumers never see the directory in `git status`, and
  * resolves the effective location (overridable via `PHEL_DIR` env var or
- * `PhelConfig::setPhelDir()`). Pattern borrowed from pytest / mypy / ruff.
+ * `PhelConfig::withPhelDir()`). Pattern borrowed from pytest / mypy / ruff.
  *
  * Best-effort: never throws. On read-only filesystems or sandboxed runners
  * the helper silently no-ops and returns the path it would have created;
@@ -69,7 +69,7 @@ final class PhelProjectDirectory
      * Resolve a config-supplied path string against the project root,
      * rewriting `.phel/...` prefixes through the active state directory.
      * Used by `BuildConfig::getCacheDir` and `CommandConfig::getErrorLogFile`
-     * so `PHEL_DIR` / `setPhelDir()` relocates derived paths automatically.
+     * so `PHEL_DIR` / `withPhelDir()` relocates derived paths automatically.
      */
     public static function resolve(string $projectRoot, string $configPath, string $configuredDir = ''): string
     {

@@ -17,16 +17,12 @@ use JsonSerializable;
  *         ->withMainPhelNamespace('my-app\main');
  *
  * Every option is also readable via a `get*()`/`is*()`/`should*()` accessor.
- * The `set*()` and `use*Layout()` methods are deprecated since 0.37 and exist
- * only as backward-compatibility shims for the matching `with*()` methods.
  *
  * See https://phel-lang.org/documentation/configuration/ for the full option reference, and run
  * `phel config` to inspect the effective merged configuration.
  */
 final readonly class PhelConfig implements JsonSerializable
 {
-    use PhelConfigDeprecations;
-
     public const string SRC_DIRS = 'src-dirs';
 
     public const string TEST_DIRS = 'test-dirs';
