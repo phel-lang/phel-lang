@@ -4,6 +4,10 @@ All notable changes to this project will be documented in this file.
 
 ## Unreleased
 
+### Added
+
+- `phel config` now validates the effective configuration and reports problems (such as source directories that must be relative) in a dedicated "Validation" section
+
 ### Performance
 
 - Compile interop to native PHP: `php/->`, `php/::`, `php/new`, and `php/oset` emit direct expressions/statements instead of closure wrappers (#2524, #2525, #2526, #2532, #2536)

@@ -49,6 +49,27 @@ final class ConfigCommandTest extends TestCase
         self::assertStringContainsString('src/phel', $display);
         // This fixture dir has no phel-config.php, so it is auto-detected.
         self::assertStringContainsString('not found', $display);
+        // The (relative) fixture config is valid, so validation reports clean.
+        self::assertStringContainsString('Validation:', $display);
+        self::assertStringContainsString('no issues found', $display);
+    }
+
+    public function test_absolute_src_dir_is_reported_in_the_validation_section(): void
+    {
+        $this->resetContainer();
+        Gacela::bootstrap(__DIR__, static function (GacelaConfig $config): void {
+            $config->addAppConfigKeyValue(PhelConfig::SRC_DIRS, ['/absolute/src']);
+        });
+
+        $tester = new CommandTester(new ConfigCommand());
+        $exitCode = $tester->execute([]);
+
+        $display = $tester->getDisplay();
+        // Surfacing is non-fatal: `phel config` stays informational (exit 0).
+        self::assertSame(0, $exitCode);
+        self::assertStringContainsString('Validation:', $display);
+        self::assertStringContainsString('ERROR', $display);
+        self::assertStringContainsString('/absolute/src', $display);
     }
 
     public function test_format_json_emits_only_valid_json(): void
