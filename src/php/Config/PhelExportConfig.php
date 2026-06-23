@@ -4,14 +4,12 @@ declare(strict_types=1);
 
 namespace Phel\Config;
 
-use Deprecated;
 use JsonSerializable;
 
 /**
  * Immutable export configuration nested under {@see PhelConfig} (`export` key).
  *
- * Canonical API: the `with*()` setters. The `set*()` methods are deprecated
- * since 0.37 and only shim to their `with*()` counterparts.
+ * Canonical API: the `with*()` setters.
  */
 final readonly class PhelExportConfig implements JsonSerializable
 {
@@ -38,35 +36,14 @@ final readonly class PhelExportConfig implements JsonSerializable
         return new self($list, $this->namespacePrefix, $this->targetDirectory);
     }
 
-    /**
-     * @param list<string> $list
-     */
-    #[Deprecated(message: 'since 0.37, use withFromDirectories()')]
-    public function setFromDirectories(array $list): self
-    {
-        return $this->withFromDirectories($list);
-    }
-
     public function withNamespacePrefix(string $prefix): self
     {
         return new self($this->fromDirectories, $prefix, $this->targetDirectory);
     }
 
-    #[Deprecated(message: 'since 0.37, use withNamespacePrefix()')]
-    public function setNamespacePrefix(string $prefix): self
-    {
-        return $this->withNamespacePrefix($prefix);
-    }
-
     public function withTargetDirectory(string $dir): self
     {
         return new self($this->fromDirectories, $this->namespacePrefix, $dir);
-    }
-
-    #[Deprecated(message: 'since 0.37, use withTargetDirectory()')]
-    public function setTargetDirectory(string $dir): self
-    {
-        return $this->withTargetDirectory($dir);
     }
 
     /**

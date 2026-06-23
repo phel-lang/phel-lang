@@ -224,7 +224,7 @@ class Phel
     }
 
     /**
-     * Mirror `PhelConfig::PHEL_DIR` (configured via `setPhelDir()` in
+     * Mirror `PhelConfig::PHEL_DIR` (configured via `withPhelDir()` in
      * `phel-config.php`) into the `PHEL_DIR` env var so every consumer
      * — including CLI commands that don't read Gacela config directly —
      * sees one source of truth. Any pre-existing env value wins.

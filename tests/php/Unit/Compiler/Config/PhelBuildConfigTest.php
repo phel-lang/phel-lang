@@ -5,8 +5,6 @@ declare(strict_types=1);
 namespace PhelTest\Unit\Compiler\Config;
 
 use Phel\Config\PhelBuildConfig;
-use PHPUnit\Framework\Attributes\Group;
-use PHPUnit\Framework\Attributes\IgnoreDeprecations;
 use PHPUnit\Framework\TestCase;
 
 final class PhelBuildConfigTest extends TestCase
@@ -157,23 +155,5 @@ final class PhelBuildConfigTest extends TestCase
         self::assertNotSame($original, $updated);
         self::assertSame('', $original->getMainPhelNamespace());
         self::assertSame('app\\core', $updated->getMainPhelNamespace());
-    }
-
-    #[Group('deprecated')]
-    #[IgnoreDeprecations]
-    public function test_deprecated_setters_still_work(): void
-    {
-        /** @psalm-suppress DeprecatedMethod */
-        $legacy = new PhelBuildConfig()
-            ->setMainPhelNamespace('app\\boot')
-            ->setMainPhpPath('dist/main.php')
-            ->setDestDir('dist');
-
-        $modern = new PhelBuildConfig()
-            ->withMainPhelNamespace('app\\boot')
-            ->withMainPhpPath('dist/main.php')
-            ->withDestDir('dist');
-
-        self::assertSame($modern->jsonSerialize(), $legacy->jsonSerialize());
     }
 }

@@ -8,11 +8,11 @@ Pure data/model layer defining configuration structure for Phel projects. No Gac
 
 Immutable `final readonly class` (~620 LOC). Every mutation returns a new instance via `with*()` methods (directory, layout, build, export, cache, flag setters); `withOptimizationLevel(int)` (key `optimization-level`, clamped >= 0) sets the compiler optimization level consumed by Build/Run (REPL/nREPL ignore it); `forProject(ProjectLayout = Flat, string $mainNamespace = '')` convenience constructor; `validate(): list<string>` (empty if valid); `jsonSerialize()`.
 
-**Deprecated (since 0.37)**: `setX()` and `useLayout()`/`useNestedLayout()`/`useFlatLayout()` shim to `with*()` counterparts (marked `#[Deprecated]`), kept in the `PhelConfigDeprecations` trait so they do not clutter the canonical API. Permanent backward-compatibility aliases, not scheduled for removal in a minor release; removal would require a major version bump.
+**Removed (breaking)**: the `setX()` setters and `useLayout()`/`useNestedLayout()`/`useFlatLayout()` aliases (deprecated since 0.37) were removed; use the `with*()` methods. The `PhelConfigDeprecations` trait is gone.
 
 ### PhelBuildConfig / PhelExportConfig
 
-Immutable value objects (`withMainPhelNamespace`/`withMainPhpPath`/`withDestDir`; `withFromDirectories`/`withNamespacePrefix`/`withTargetDirectory`). Deprecated `setX()` shims retained.
+Immutable value objects (`withMainPhelNamespace`/`withMainPhpPath`/`withDestDir`; `withFromDirectories`/`withNamespacePrefix`/`withTargetDirectory`).
 
 ### ProjectLayout (enum)
 

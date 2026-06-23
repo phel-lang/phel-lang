@@ -8,8 +8,6 @@ use Phel\Config\PhelBuildConfig;
 use Phel\Config\PhelConfig;
 use Phel\Config\PhelExportConfig;
 use Phel\Config\ProjectLayout;
-use PHPUnit\Framework\Attributes\Group;
-use PHPUnit\Framework\Attributes\IgnoreDeprecations;
 use PHPUnit\Framework\TestCase;
 
 final class PhelConfigTest extends TestCase
@@ -434,56 +432,5 @@ final class PhelConfigTest extends TestCase
 
         self::assertSame('custom/cache', $viaConstructor->getCacheDir());
         self::assertSame('custom/cache', $viaWither->getCacheDir());
-    }
-
-    #[Group('deprecated')]
-    #[IgnoreDeprecations]
-    public function test_deprecated_setters_still_produce_equivalent_output(): void
-    {
-        /** @psalm-suppress DeprecatedMethod */
-        $legacy = new PhelConfig()
-            ->setSrcDirs(['lib'])
-            ->setVendorDir('vendor-x')
-            ->setBuildConfig(new PhelBuildConfig()
-                ->setMainPhelNamespace('app\\boot')
-                ->setMainPhpPath('dist/app.php'))
-            ->setExportConfig(new PhelExportConfig()
-                ->setFromDirectories(['lib'])
-                ->setNamespacePrefix('Gen')
-                ->setTargetDirectory('gen'))
-            ->setIgnoreWhenBuilding(['skip.phel'])
-            ->setEnableAsserts(false);
-
-        $modern = new PhelConfig()
-            ->withSrcDirs(['lib'])
-            ->withVendorDir('vendor-x')
-            ->withMainPhelNamespace('app\\boot')
-            ->withMainPhpPath('dist/app.php')
-            ->withExportFromDirectories(['lib'])
-            ->withExportNamespacePrefix('Gen')
-            ->withExportTargetDirectory('gen')
-            ->withIgnoreWhenBuilding(['skip.phel'])
-            ->withEnableAsserts(false);
-
-        self::assertSame($modern->jsonSerialize(), $legacy->jsonSerialize());
-    }
-
-    #[Group('deprecated')]
-    #[IgnoreDeprecations]
-    public function test_deprecated_layout_shortcuts_match_with_layout(): void
-    {
-        /** @psalm-suppress DeprecatedMethod */
-        $legacyFlat = new PhelConfig()->useFlatLayout();
-        /** @psalm-suppress DeprecatedMethod */
-        $legacyNested = new PhelConfig()->useNestedLayout();
-
-        self::assertSame(
-            new PhelConfig()->withLayout(ProjectLayout::Flat)->jsonSerialize(),
-            $legacyFlat->jsonSerialize(),
-        );
-        self::assertSame(
-            new PhelConfig()->withLayout(ProjectLayout::Nested)->jsonSerialize(),
-            $legacyNested->jsonSerialize(),
-        );
     }
 }

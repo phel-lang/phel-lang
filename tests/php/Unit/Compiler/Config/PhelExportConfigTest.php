@@ -5,8 +5,6 @@ declare(strict_types=1);
 namespace PhelTest\Unit\Compiler\Config;
 
 use Phel\Config\PhelExportConfig;
-use PHPUnit\Framework\Attributes\Group;
-use PHPUnit\Framework\Attributes\IgnoreDeprecations;
 use PHPUnit\Framework\TestCase;
 
 final class PhelExportConfigTest extends TestCase
@@ -61,23 +59,5 @@ final class PhelExportConfigTest extends TestCase
         ];
 
         self::assertSame($expected, $config->jsonSerialize());
-    }
-
-    #[Group('deprecated')]
-    #[IgnoreDeprecations]
-    public function test_deprecated_setters_still_work(): void
-    {
-        /** @psalm-suppress DeprecatedMethod */
-        $legacy = new PhelExportConfig()
-            ->setFromDirectories(['lib'])
-            ->setNamespacePrefix('Gen')
-            ->setTargetDirectory('out');
-
-        $modern = new PhelExportConfig()
-            ->withFromDirectories(['lib'])
-            ->withNamespacePrefix('Gen')
-            ->withTargetDirectory('out');
-
-        self::assertSame($modern->jsonSerialize(), $legacy->jsonSerialize());
     }
 }
