@@ -38,11 +38,13 @@ final class ConfigLoadException extends RuntimeException
         return new self(
             sprintf(
                 "Failed to load %s: %s\n\n"
-                . "A phel-config.php must `return` a PhelConfig instance, for example:\n\n"
+                . "A phel-config.php must `return` a PhelConfig instance (recommended) or a config array, for example:\n\n"
                 . "    <?php\n"
                 . "    declare(strict_types=1);\n"
                 . "    use Phel\\Config\\PhelConfig;\n"
-                . "    return new PhelConfig()->withSrcDirs(['src']);",
+                . "    return new PhelConfig()->withSrcDirs(['src']);\n\n"
+                . "    // or, equivalently, a plain array:\n"
+                . "    // return ['src-dirs' => ['src']];",
                 $configPath,
                 $error->getMessage(),
             ),

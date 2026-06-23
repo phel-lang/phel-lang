@@ -41,6 +41,8 @@ final class ConfigLoadExceptionTest extends TestCase
         self::assertSame($original, $wrapped->getPrevious());
         self::assertStringContainsString($this->configPath, $wrapped->getMessage());
         self::assertStringContainsString('must `return` a PhelConfig', $wrapped->getMessage());
+        // The raw-array form is equally valid, so the guidance must mention it.
+        self::assertStringContainsString('config array', $wrapped->getMessage());
     }
 
     public function test_wraps_a_parse_error_originating_from_the_config_file(): void

@@ -4,8 +4,10 @@ declare(strict_types=1);
 
 namespace PhelTest\Integration\Bootstrap;
 
+use Gacela\Framework\Config\Config;
 use Gacela\Framework\Testing\ContainerFixture;
 use Phel\Config\ConfigLoadException;
+use Phel\Config\PhelConfig;
 use Phel\Phel;
 use PHPUnit\Framework\TestCase;
 
@@ -53,6 +55,17 @@ final class ConfigLoadErrorTest extends TestCase
         $this->expectExceptionMessage('phel-config.php');
 
         Phel::bootstrap($this->dir);
+    }
+
+    public function test_bootstrap_accepts_a_raw_array_config(): void
+    {
+        // A plain array is a valid config too (PhelConfig is recommended, not
+        // required): it must load and be readable, not raise a load error.
+        file_put_contents($this->dir . '/phel-config.php', "<?php\n\nreturn ['src-dirs' => ['custom-src']];\n");
+
+        Phel::bootstrap($this->dir);
+
+        self::assertSame(['custom-src'], Config::getInstance()->get(PhelConfig::SRC_DIRS));
     }
 
     private function removeDir(string $dir): void
