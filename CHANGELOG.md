@@ -28,7 +28,7 @@ All notable changes to this project will be documented in this file.
 - Share one `static` slot for repeated literals, and splice captured emitter nodes with a prefix check instead of a per-call regex (#2564, #2565)
 - Speed up persistent data structures: chunk-aware vector equality with an identity short-circuit, no-op `dissoc`/`remove` skip the deep compare, hash-map iteration drops a redundant per-node copy (#2544, #2549, #2550)
 - Cut CLI startup: persist the compiled-code and namespace indexes (one write, not per file), boot the REPL with only `phel.core` and lazy-load the rest (~34% faster), lazy-load CLI commands, ship a `phel.ini` from `phel doctor` for a persistent OPcache file cache (#2556, #2557, #2558, #2559, #2560, #2599)
-- Opt-in intermediate compile cache (`withEnableIntermediateCache()`, off by default): persists each file's gzip-compressed read result and replays it on warm rebuilds, skipping the front half of the pipeline; keyed by source + optimization level + Phel version, output byte-identical (#2611)
+- Opt-in intermediate compile cache (`withEnableIntermediateCache()`, off by default): persists each file's gzip-compressed read result and replays it on warm rebuilds, skipping the front half of the pipeline; keyed by source + optimization level + Phel version (#2611)
 
 ### Fixed
 
@@ -37,6 +37,8 @@ All notable changes to this project will be documented in this file.
 - `phel build` no longer reuses stale output when a required namespace changed but the dependent's source did not: the incremental cache cascades recompiles to dependents (#2612)
 - `phel lsp` stays alive when the editor is idle — the reader distinguishes a read-timeout from end-of-stream instead of exiting after ~200ms of silence
 - `phel lsp` `textDocument/documentSymbol` lists a file's definitions, extracted from the open buffer so they reflect unsaved edits
+- Keyword equality is now value-based (matching `Symbol`): a keyword rebuilt outside the intern pool — e.g. via `unserialize` — compares equal to its interned twin, so keyword-keyed map lookups against deserialized collections no longer miss
+- `phel build` exits non-zero when compilation aborts, instead of printing the error and exiting 0 with a partial/empty output tree
 
 ## [0.45.1](https://github.com/phel-lang/phel-lang/compare/v0.45.0...v0.45.1) - 2026-06-20
 

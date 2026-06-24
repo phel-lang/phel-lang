@@ -114,11 +114,15 @@ final readonly class CodeCompiler implements CodeCompilerInterface
 
     /**
      * Warm path: replay cached reader results through analysis + emission,
-     * skipping lex/parse/read. Reading is runtime-independent, so analysing and
-     * evaluating the cached forms in order yields byte-identical PHP to a cold
-     * compile — provided the gensym counter follows the same trajectory, which
-     * is why each form's recorded read-phase gensym delta is replayed before it
-     * is analysed (the skipped read would otherwise have advanced the counter).
+     * skipping lex/parse/read. The cached forms are analysed and evaluated in
+     * order, reproducing a cold compile's output; each form's recorded
+     * read-phase gensym delta is replayed first so the shared gensym counter
+     * follows the trajectory the skipped read would have (auto-gensym `x#` and
+     * the short-fn reader consume gensyms at read time).
+     *
+     * Replayed forms are deserialized Phel values, so anything used as a map
+     * key must compare by value, not instance identity (see Keyword::equals) —
+     * otherwise a cached keyword-keyed lookup silently misses on a warm replay.
      *
      * @param list<CachedReaderResult> $entries
      *

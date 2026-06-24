@@ -182,4 +182,31 @@ final class KeywordTest extends TestCase
         $this->assertNull($keyword(null));
         $this->assertSame('fallback', $keyword(null, 'fallback'));
     }
+
+    public function test_equals_survives_deserialization_outside_intern_pool(): void
+    {
+        // `unserialize` rebuilds a Keyword bypassing the intern pool (the
+        // read-result cache serializes live keyword-keyed maps). The twin is a
+        // distinct instance, so equality must be value-based or cached lookups
+        // silently miss; `identical?` stays reference identity.
+        $interned = Keyword::create('macro', 'foo');
+        $twin = unserialize(serialize($interned));
+        $this->assertInstanceOf(Keyword::class, $twin);
+
+        $this->assertNotSame($interned, $twin);
+        $this->assertTrue($interned->equals($twin));
+        $this->assertTrue($twin->equals($interned));
+        $this->assertSame($interned->hash(), $twin->hash());
+        $this->assertFalse($interned->identical($twin));
+    }
+
+    public function test_deserialized_keyword_keyed_map_still_resolves_lookup(): void
+    {
+        // Regression for the intermediate-cache hard-fail: a map keyed by a
+        // live keyword, serialized then restored, must still answer a lookup
+        // by a freshly-interned keyword of the same name.
+        $restored = unserialize(serialize(Phel::map(Keyword::create('macro'), true)));
+
+        $this->assertTrue(Keyword::create('macro')($restored));
+    }
 }

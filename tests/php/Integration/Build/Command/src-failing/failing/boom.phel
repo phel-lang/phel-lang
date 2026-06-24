@@ -1,0 +1,5 @@
+(ns failing.boom)
+
+;; Unresolved symbol — the analyzer raises a CompilerException so the build
+;; aborts mid-compile. Used to assert `phel build` exits non-zero.
+(def broken (totally-undefined-symbol-xyz 1))

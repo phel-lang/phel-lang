@@ -14,6 +14,7 @@ use PHPUnit\Framework\Attributes\Depends;
 use PHPUnit\Framework\Attributes\PreserveGlobalState;
 use PHPUnit\Framework\Attributes\RunInSeparateProcess;
 use PHPUnit\Framework\TestCase;
+use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\ArrayInput;
 use Symfony\Component\Console\Output\BufferedOutput;
 use Symfony\Component\Console\Output\OutputInterface;
@@ -28,6 +29,7 @@ final class BuildCommandTest extends TestCase
     public static function tearDownAfterClass(): void
     {
         DirectoryUtil::removeDir(__DIR__ . '/out');
+        DirectoryUtil::removeDir(__DIR__ . '/out-failing');
     }
 
     protected function setUp(): void
@@ -157,6 +159,30 @@ TXT;
         ob_end_clean();
 
         $this->assertFileDoesNotExist(__DIR__ . '/out/main.php');
+    }
+
+    #[PreserveGlobalState(false)]
+    #[RunInSeparateProcess]
+    public function test_build_exits_nonzero_when_compilation_fails(): void
+    {
+        DirectoryUtil::removeDir(__DIR__ . '/out-failing');
+        Gacela::bootstrap(__DIR__, static function (GacelaConfig $config): void {
+            $config->addAppConfig('phel-config-failing.php');
+        });
+
+        ob_start();
+        $exitCode = $this->command->run(
+            new ArrayInput([
+                '--no-source-map' => true,
+                '--no-cache' => true,
+            ]),
+            $this->createStub(OutputInterface::class),
+        );
+        ob_end_clean();
+
+        // A build that aborts on a compiler error must not exit 0: it leaves a
+        // partial/empty output tree, and CI relies on the non-zero exit.
+        self::assertSame(Command::FAILURE, $exitCode);
     }
 
     #[PreserveGlobalState(false)]
