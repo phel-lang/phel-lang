@@ -8,6 +8,8 @@ use Phel\Compiler\Domain\Analyzer\AnalyzerInterface;
 use Phel\Compiler\Domain\Analyzer\Ast\AbstractNode;
 use Phel\Compiler\Domain\Analyzer\Environment\NodeEnvironment;
 use Phel\Compiler\Domain\Analyzer\Exceptions\AnalyzerException;
+use Phel\Compiler\Domain\Cache\CachedReaderResult;
+use Phel\Compiler\Domain\Cache\ReaderResultCacheInterface;
 use Phel\Compiler\Domain\Compiler\CodeCompilerInterface;
 use Phel\Compiler\Domain\Emitter\EmitterResult;
 use Phel\Compiler\Domain\Emitter\FileEmitterInterface;
@@ -23,6 +25,7 @@ use Phel\Compiler\Domain\Reader\Exceptions\ReaderException;
 use Phel\Compiler\Domain\Reader\ReaderInterface;
 use Phel\Lang\ProfilerHookInterface;
 use Phel\Lang\Registry;
+use Phel\Lang\Symbol;
 use Phel\Lang\TypeInterface;
 use Phel\Shared\CompileOptions;
 use Phel\Shared\Exceptions\CompiledCodeIsMalformedException;
@@ -43,6 +46,7 @@ final readonly class CodeCompiler implements CodeCompilerInterface
         private StatementEmitterInterface $statementEmitter,
         private FileEmitterInterface $fileEmitter,
         private EvaluatorInterface $evaluator,
+        private ReaderResultCacheInterface $readerResultCache,
     ) {}
 
     /**
@@ -55,7 +59,13 @@ final readonly class CodeCompiler implements CodeCompilerInterface
     {
         $hook = Registry::$profilerHook;
         $source = $compileOptions->getSource();
-        $this->analyzer->setOptimizationLevel($compileOptions->getOptimizationLevel());
+        $optimizationLevel = $compileOptions->getOptimizationLevel();
+        $this->analyzer->setOptimizationLevel($optimizationLevel);
+
+        $cachedReaderResults = $this->readerResultCache->load($phelCode, $optimizationLevel);
+        if ($cachedReaderResults !== null) {
+            return $this->compileReaderResults($cachedReaderResults, $compileOptions, $hook, $source);
+        }
 
         $tokenStream = $this->timed($hook, 'lex', $source, fn(): TokenStream => $this->lexer->lexString(
             $phelCode,
@@ -63,6 +73,7 @@ final readonly class CodeCompiler implements CodeCompilerInterface
             $compileOptions->getStartingLine(),
         ));
 
+        $entries = [];
         $this->fileEmitter->startFile($source);
         while (true) {
             try {
@@ -76,7 +87,9 @@ final readonly class CodeCompiler implements CodeCompilerInterface
                     continue;
                 }
 
+                $genBefore = Symbol::genCounter();
                 $readerResult = $this->timed($hook, 'read', $source, fn(): ReaderResult => $this->reader->read($parseTree));
+                $entries[] = new CachedReaderResult($readerResult, Symbol::genCounter() - $genBefore);
                 $node = $this->timed($hook, 'analyze', $source, fn(): AbstractNode => $this->analyze($readerResult));
                 // We need to evaluate every statement because we may need it for macros.
                 $this->timed($hook, 'emit', $source, fn() => $this->emitNode($node, $compileOptions));
@@ -84,6 +97,8 @@ final readonly class CodeCompiler implements CodeCompilerInterface
                 throw new CompilerException($e, $e->getCodeSnippet());
             }
         }
+
+        $this->readerResultCache->save($phelCode, $optimizationLevel, $entries);
 
         return $this->fileEmitter->endFile($compileOptions->isSourceMapsEnabled());
     }
@@ -96,6 +111,36 @@ final readonly class CodeCompiler implements CodeCompilerInterface
         $this->fileEmitter->startFile($compileOptions->getSource());
         $node = $this->analyzer->analyze($form, NodeEnvironment::empty());
         $this->emitNode($node, $compileOptions);
+        return $this->fileEmitter->endFile($compileOptions->isSourceMapsEnabled());
+    }
+
+    /**
+     * Warm path: replay cached reader results through analysis + emission,
+     * skipping lex/parse/read. Reading is runtime-independent, so analysing and
+     * evaluating the cached forms in order yields byte-identical PHP to a cold
+     * compile — provided the gensym counter follows the same trajectory, which
+     * is why each form's recorded read-phase gensym delta is replayed before it
+     * is analysed (the skipped read would otherwise have advanced the counter).
+     *
+     * @param list<CachedReaderResult> $entries
+     *
+     * @throws CompilerException
+     * @throws CompiledCodeIsMalformedException
+     * @throws FileException
+     */
+    private function compileReaderResults(
+        array $entries,
+        CompileOptions $compileOptions,
+        ?ProfilerHookInterface $hook,
+        string $source,
+    ): EmitterResult {
+        $this->fileEmitter->startFile($source);
+        foreach ($entries as $entry) {
+            Symbol::advanceGenCounter($entry->gensymDelta);
+            $node = $this->timed($hook, 'analyze', $source, fn(): AbstractNode => $this->analyze($entry->readerResult));
+            $this->timed($hook, 'emit', $source, fn() => $this->emitNode($node, $compileOptions));
+        }
+
         return $this->fileEmitter->endFile($compileOptions->isSourceMapsEnabled());
     }
 

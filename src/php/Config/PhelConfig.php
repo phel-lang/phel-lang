@@ -53,6 +53,8 @@ final readonly class PhelConfig implements JsonSerializable
 
     public const string ENABLE_COMPILED_CODE_CACHE = 'enable-compiled-code-cache';
 
+    public const string ENABLE_INTERMEDIATE_CACHE = 'enable-intermediate-cache';
+
     public const string CACHE_DIR = 'cache-dir';
 
     public const string PHEL_DIR = 'phel-dir';
@@ -94,6 +96,7 @@ final readonly class PhelConfig implements JsonSerializable
         public bool $warnDeprecations = false,
         public bool $enableNamespaceCache = true,
         public bool $enableCompiledCodeCache = true,
+        public bool $enableIntermediateCache = false,
         public string $phelDir = '',
         public int $optimizationLevel = 0,
     ) {
@@ -223,6 +226,11 @@ final readonly class PhelConfig implements JsonSerializable
     public function isCompiledCodeCacheEnabled(): bool
     {
         return $this->enableCompiledCodeCache;
+    }
+
+    public function isIntermediateCacheEnabled(): bool
+    {
+        return $this->enableIntermediateCache;
     }
 
     public function getPhelDir(): string
@@ -516,6 +524,16 @@ final readonly class PhelConfig implements JsonSerializable
     }
 
     /**
+     * Cache the front-half compiler output (lex -> parse -> read) per source
+     * string in `<cacheDir>/read-result/`, so a warm rebuild skips straight to
+     * analysis + emission. Opt-in and experimental. Default: `false`.
+     */
+    public function withEnableIntermediateCache(bool $flag = true): self
+    {
+        return $this->with(['enableIntermediateCache' => $flag]);
+    }
+
+    /**
      * Redirect the entire per-project state directory (`.phel/` by default)
      * to a different location. Useful when the project lives behind a web
      * server: e.g. a WordPress plugin can move state out of the document
@@ -577,6 +595,7 @@ final readonly class PhelConfig implements JsonSerializable
             self::WARN_DEPRECATIONS => $this->warnDeprecations,
             self::ENABLE_NAMESPACE_CACHE => $this->enableNamespaceCache,
             self::ENABLE_COMPILED_CODE_CACHE => $this->enableCompiledCodeCache,
+            self::ENABLE_INTERMEDIATE_CACHE => $this->enableIntermediateCache,
             self::CACHE_DIR => $this->cacheDir,
             self::PHEL_DIR => $this->phelDir,
             self::OPTIMIZATION_LEVEL => $this->optimizationLevel,
@@ -609,6 +628,7 @@ final readonly class PhelConfig implements JsonSerializable
             'warnDeprecations' => $this->warnDeprecations,
             'enableNamespaceCache' => $this->enableNamespaceCache,
             'enableCompiledCodeCache' => $this->enableCompiledCodeCache,
+            'enableIntermediateCache' => $this->enableIntermediateCache,
             'phelDir' => $this->phelDir,
             'optimizationLevel' => $this->optimizationLevel,
         ];

@@ -19,6 +19,7 @@ use Phel\Compiler\Application\Reader;
 use Phel\Compiler\Domain\Analyzer\AnalyzerInterface;
 use Phel\Compiler\Domain\Analyzer\Environment\BackslashSeparatorDeprecator;
 use Phel\Compiler\Domain\Analyzer\Environment\GlobalEnvironmentInterface;
+use Phel\Compiler\Domain\Cache\ReaderResultCacheInterface;
 use Phel\Compiler\Domain\Compiler\CodeCompilerInterface;
 use Phel\Compiler\Domain\Compiler\EvalCompilerInterface;
 use Phel\Compiler\Domain\Emitter\FileEmitter;
@@ -41,6 +42,8 @@ use Phel\Compiler\Domain\Parser\ParserInterface;
 use Phel\Compiler\Domain\Reader\ExpressionReaderFactory;
 use Phel\Compiler\Domain\Reader\QuasiquoteTransformer;
 use Phel\Compiler\Domain\Reader\ReaderInterface;
+use Phel\Compiler\Infrastructure\Cache\FileSystemReaderResultCache;
+use Phel\Compiler\Infrastructure\Cache\NullReaderResultCache;
 use Phel\Filesystem\FilesystemFacadeInterface;
 use Phel\Lang\TagHandlers\BuiltinTagHandlers;
 use Phel\Lang\TagRegistry;
@@ -48,6 +51,7 @@ use Phel\Shared\CompileOptions;
 use Phel\Shared\Munge;
 use Phel\Shared\MungeInterface;
 use Phel\Shared\Printer\Printer;
+use Phel\Shared\VersionFinder;
 
 /**
  * @extends AbstractFactory<CompilerConfig>
@@ -76,6 +80,7 @@ final class CompilerFactory extends AbstractFactory
             $this->createStatementEmitter($compileOptions->isSourceMapsEnabled()),
             $this->createFileEmitter($compileOptions->isSourceMapsEnabled()),
             $this->createEvaluator(),
+            new NullReaderResultCache(),
         );
     }
 
@@ -89,6 +94,7 @@ final class CompilerFactory extends AbstractFactory
             $this->createStatementEmitter($compileOptions->isSourceMapsEnabled()),
             $this->createFileEmitterForCache($compileOptions->isSourceMapsEnabled()),
             $this->createEvaluator(),
+            $this->createReaderResultCache(),
         );
     }
 
@@ -187,6 +193,18 @@ final class CompilerFactory extends AbstractFactory
     public function createDebugLineTapController(): DebugLineTapController
     {
         return new DebugLineTapController();
+    }
+
+    private function createReaderResultCache(): ReaderResultCacheInterface
+    {
+        if (!$this->getConfig()->isIntermediateCacheEnabled()) {
+            return new NullReaderResultCache();
+        }
+
+        return new FileSystemReaderResultCache(
+            $this->getConfig()->getCacheDir(),
+            VersionFinder::LATEST_VERSION,
+        );
     }
 
     private function createFileEmitterForCache(bool $enableSourceMaps = false): FileEmitterInterface

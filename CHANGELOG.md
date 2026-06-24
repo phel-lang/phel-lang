@@ -26,6 +26,7 @@ All notable changes to this project will be documented in this file.
 - Share one `static` slot for repeated literals (#2564), and splice captured nodes in the emitter with a prefix check instead of a per-call regex (#2565)
 - Speed up persistent data structures on hot paths: vector equality short-circuits on identity and walks chunk-aware (O(n)) (#2549), `dissoc`/`remove` skip the deep comparison on no-op (#2544), and hash-map iteration drops a redundant per-node copy (#2550)
 - Cut CLI startup: persist the compiled-code cache index and namespace index, writing once instead of per file (#2557, #2560), boot the REPL with only `phel.core` and lazy-load the rest (~34% faster to prompt) (#2559), lazy-load CLI commands per invocation (#2558), and ship a `phel.ini` from `phel doctor` to enable a persistent OPcache file cache (#2556, #2599)
+- Opt-in intermediate compile cache (`withEnableIntermediateCache()`, off by default): persists each file's read result (the lex → parse → read output, gzip-compressed) under `<cacheDir>/read-result/` and replays it on a warm rebuild, skipping the front half of the pipeline (~1.6× faster read phase on `phel.core`). The cache key folds in the optimization level and Phel version so an upgrade or `-O` change busts it, and emitted PHP stays byte-identical to a cold compile (#2611)
 
 ### Fixed
 

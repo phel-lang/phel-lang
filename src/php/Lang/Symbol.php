@@ -202,6 +202,30 @@ final class Symbol extends AbstractType implements IdenticalInterface, FnInterfa
         self::$symGenCounter = 1;
     }
 
+    /**
+     * Current value of the global gensym counter.
+     *
+     * Exposed so the reader-result cache can record how many gensyms a form's
+     * read phase consumed and replay that exact advance on a warm rebuild,
+     * keeping later analyzer/emitter gensym names byte-identical to a cold
+     * compile.
+     */
+    public static function genCounter(): int
+    {
+        return self::$symGenCounter;
+    }
+
+    /**
+     * Advance the global gensym counter without producing symbols, standing in
+     * for a read phase that was served from the reader-result cache.
+     */
+    public static function advanceGenCounter(int $by): void
+    {
+        if ($by > 0) {
+            self::$symGenCounter += $by;
+        }
+    }
+
     public function hash(): int
     {
         return $this->hash;
