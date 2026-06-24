@@ -186,6 +186,31 @@ TXT;
         self::assertStringContainsString('test-ns.hello', $text);
     }
 
+    #[PreserveGlobalState(false)]
+    #[RunInSeparateProcess]
+    public function test_timing_prints_per_phase_compile_breakdown(): void
+    {
+        DirectoryUtil::removeDir(__DIR__ . '/out');
+        $this->bootstrapGacela();
+
+        $output = new BufferedOutput();
+        $this->command->run(
+            new ArrayInput([
+                '--no-source-map' => true,
+                '--no-cache' => true,
+                '--timing' => true,
+            ]),
+            $output,
+        );
+        $text = $output->fetch();
+
+        self::assertStringContainsString('Compile-phase timing', $text);
+        self::assertMatchesRegularExpression('/lex\s+[\d.]+ ms\s+[\d.]+%/', $text);
+        self::assertMatchesRegularExpression('/analyze\s+[\d.]+ ms\s+[\d.]+%/', $text);
+        self::assertMatchesRegularExpression('/total\s+[\d.]+ ms/', $text);
+        self::assertMatchesRegularExpression('/\(\d+ namespaces? compiled\)/', $text);
+    }
+
     private function bootstrapGacela(): void
     {
         Phel::bootstrap(__DIR__);

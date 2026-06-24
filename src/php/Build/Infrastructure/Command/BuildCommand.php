@@ -10,6 +10,9 @@ use Phel\Build\BuildFacade;
 use Phel\Build\Domain\Compile\BuildOptions;
 use Phel\Build\Domain\Compile\BuildReport;
 use Phel\Build\Domain\Compile\CompiledFile;
+use Phel\Build\Domain\Compile\PhaseTimingReport;
+use Phel\Build\Infrastructure\Timing\PhaseTimingProfilerHook;
+use Phel\Lang\Registry;
 use Phel\Shared\Exceptions\CompilerException;
 use Phel\Shared\ResourceUsageFormatter;
 use Phel\Shared\ScalarCoercion;
@@ -37,6 +40,8 @@ final class BuildCommand extends Command
 
     private const string OPTION_REPORT = 'report';
 
+    private const string OPTION_TIMING = 'timing';
+
     protected function configure(): void
     {
         $this->setName('build')
@@ -62,6 +67,12 @@ HELP)
                 null,
                 InputOption::VALUE_NONE,
                 'Print a build report: namespace count, per-namespace compiled size, total size, and build time',
+            )
+            ->addOption(
+                self::OPTION_TIMING,
+                null,
+                InputOption::VALUE_NONE,
+                'Print per-phase compile timing (lex/parse/read/analyze/emit) aggregated across compiled namespaces; pair with --no-cache for a full, comparable measurement',
             );
     }
 
@@ -69,6 +80,13 @@ HELP)
     {
         $buildOptions = $this->getBuildOptions($input);
         $report = (bool) $input->getOption(self::OPTION_REPORT);
+
+        $timingHook = (bool) $input->getOption(self::OPTION_TIMING)
+            ? new PhaseTimingProfilerHook()
+            : null;
+        if ($timingHook instanceof PhaseTimingProfilerHook) {
+            Registry::$profilerHook = $timingHook;
+        }
 
         try {
             $startedAt = hrtime(true);
@@ -80,15 +98,44 @@ HELP)
             } else {
                 $this->printOutput($output, $compiledProject);
             }
+
+            if ($timingHook instanceof PhaseTimingProfilerHook) {
+                $this->printPhaseTiming($output, $timingHook->report());
+            }
         } catch (CompilerException $e) {
             $this->getFacade()->writeLocatedException($output, $e);
         } catch (Throwable $e) {
             $this->getFacade()->writeStackTrace($output, $e);
+        } finally {
+            Registry::$profilerHook = null;
         }
 
         $output->writeln(new ResourceUsageFormatter()->resourceUsageSinceStartOfRequest());
 
         return self::SUCCESS;
+    }
+
+    private function printPhaseTiming(OutputInterface $output, PhaseTimingReport $timing): void
+    {
+        $output->writeln('');
+        $output->writeln('Compile-phase timing');
+        $output->writeln('====================');
+
+        if ($timing->isEmpty()) {
+            $output->writeln('  No phases recorded — every namespace was served from cache. Re-run with --no-cache.');
+            return;
+        }
+
+        foreach ($timing->phases() as $row) {
+            $output->writeln(sprintf('  %-9s %10.2f ms  %5.1f%%', $row['phase'], $row['ms'], $row['share']));
+        }
+
+        $output->writeln(sprintf('  %-9s %10.2f ms', 'total', $timing->totalMs()));
+        $output->writeln(sprintf(
+            '  (%d namespace%s compiled)',
+            $timing->sourceCount(),
+            $timing->sourceCount() === 1 ? '' : 's',
+        ));
     }
 
     private function printReport(OutputInterface $output, BuildReport $report): void
