@@ -10,6 +10,7 @@ use Phel\Compiler\Domain\Cache\CachedReaderResult;
 use Phel\Compiler\Infrastructure\Cache\FileSystemReaderResultCache;
 use Phel\Compiler\Infrastructure\GlobalEnvironmentSingleton;
 use Phel\Lang\Symbol;
+use Phel\Shared\Parser\Node\NodeInterface;
 use Phel\Shared\Parser\Node\TriviaNodeInterface;
 use PhpBench\Benchmark\Metadata\Annotations\BeforeMethods;
 use PhpBench\Benchmark\Metadata\Annotations\Iterations;
@@ -88,7 +89,7 @@ final class ReaderResultCacheBench
         $entries = [];
         while (true) {
             $parseTree = $this->facade->parseNext($tokenStream);
-            if ($parseTree === null) {
+            if (!$parseTree instanceof NodeInterface) {
                 break;
             }
 
