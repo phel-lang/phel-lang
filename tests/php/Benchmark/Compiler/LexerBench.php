@@ -48,6 +48,8 @@ final class LexerBench
 
     private string $coreSource = '';
 
+    private string $multilineCommentSource = '';
+
     public function setUp(): void
     {
         Phel::bootstrap(__DIR__ . '/../../../../');
@@ -56,6 +58,7 @@ final class LexerBench
         $this->asciiSource = $this->buildSource(asciiOnly: true);
         $this->utf8Source = $this->buildSource(asciiOnly: false);
         $this->coreSource = $this->readCoreSource();
+        $this->multilineCommentSource = $this->buildMultilineCommentSource();
     }
 
     /**
@@ -86,6 +89,19 @@ final class LexerBench
     public function bench_lex_core(): void
     {
         $this->lexToExhaustion($this->coreSource);
+    }
+
+    /**
+     * Isolates the nested `#| ... |#` multiline-comment scanner, which jumps
+     * delimiter-to-delimiter via `strpos` instead of stepping per byte.
+     *
+     * @Revs(200)
+     *
+     * @Iterations(5)
+     */
+    public function bench_lex_multiline_comments(): void
+    {
+        $this->lexToExhaustion($this->multilineCommentSource);
     }
 
     private function lexToExhaustion(string $source): void
@@ -124,6 +140,28 @@ final class LexerBench
                   (let [sum (+ x y)
                         items [1 2 3 :{$label} "{$doc}"]]
                     {:result (* sum {$i}) :items items}))
+                PHEL;
+        }
+
+        return implode("\n\n", $forms) . "\n";
+    }
+
+    /**
+     * Builds a comment-heavy source: each form is preceded by a large nested
+     * `#| ... #| ... |# ... |#` block, so the per-rev cost is dominated by the
+     * multiline-comment scanner rather than ordinary tokenisation.
+     */
+    private function buildMultilineCommentSource(): string
+    {
+        $filler = str_repeat('lorem ipsum dolor sit amet ', 40);
+
+        $forms = [];
+        for ($i = 0; $i < self::FIXTURE_FORMS; ++$i) {
+            $forms[] = <<<PHEL
+                #| {$filler}
+                   #| nested {$filler} |#
+                   {$filler} |#
+                (def fixture-{$i} {$i})
                 PHEL;
         }
 

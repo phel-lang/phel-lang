@@ -22,6 +22,7 @@ All notable changes to this project will be documented in this file.
 - Inline `let`-bodied pure `defn`s at opt level ≥ 2, including unannotated ones the compiler can prove pure (#2586)
 - Allocate less per node in the compiler pipeline: reuse parser/analyzer sub-components and skip no-op environment clones (#2548, #2553, #2552), build `let`/`loop` locals/shadow indexes incrementally (O(N²) to O(N)) (#2554), and walk a typed `defn` body one fewer time (#2555)
 - Speed up the lexer with fewer per-token deprecation checks and ASCII-only column tracking (#2546, #2547)
+- Scan multiline comments (`#| ... |#`) by jumping delimiter-to-delimiter with `strpos` instead of stepping one byte at a time; nesting semantics are preserved and large/nested comment blocks lex dramatically faster (#2613)
 - Short-circuit `Symbol` equality on identity, and skip the dynamic-scope check on global reads when no dynamic bindings are active (#2551, #2545)
 - Share one `static` slot for repeated literals (#2564), and splice captured nodes in the emitter with a prefix check instead of a per-call regex (#2565)
 - Speed up persistent data structures on hot paths: vector equality short-circuits on identity and walks chunk-aware (O(n)) (#2549), `dissoc`/`remove` skip the deep comparison on no-op (#2544), and hash-map iteration drops a redundant per-node copy (#2550)

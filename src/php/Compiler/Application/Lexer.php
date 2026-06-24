@@ -226,26 +226,31 @@ final class Lexer implements LexerInterface
         $depth = 0;
         $end = strlen($code);
 
+        // Jump delimiter-to-delimiter instead of stepping one byte at a time:
+        // advance to whichever of the next `#|`/`|#` comes first and adjust the
+        // nesting depth. Equivalent to the per-byte scan but lets `strpos` skip
+        // the comment body at C speed.
         while ($pos < $end) {
-            if (substr($code, $pos, 2) === self::MULTILINE_COMMENT_BEGIN) {
+            $close = strpos($code, self::MULTILINE_COMMENT_END, $pos);
+            if ($close === false) {
+                // No terminator left: fall through to the unterminated throw.
+                break;
+            }
+
+            $open = strpos($code, self::MULTILINE_COMMENT_BEGIN, $pos);
+            if ($open !== false && $open < $close) {
                 ++$depth;
-                $pos += 2;
+                $pos = $open + 2;
 
                 continue;
             }
 
-            if (substr($code, $pos, 2) === self::MULTILINE_COMMENT_END) {
-                --$depth;
-                $pos += 2;
+            --$depth;
+            $pos = $close + 2;
 
-                if ($depth === 0) {
-                    return substr($code, $this->cursor, $pos - $this->cursor);
-                }
-
-                continue;
+            if ($depth === 0) {
+                return substr($code, $this->cursor, $pos - $this->cursor);
             }
-
-            ++$pos;
         }
 
         throw LexerValueException::unexpectedLexerState($source, $this->line, $this->column);
