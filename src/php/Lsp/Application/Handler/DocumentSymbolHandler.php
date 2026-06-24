@@ -14,8 +14,6 @@ use Phel\Lsp\Application\Rpc\ParamsExtractor;
 use Phel\Lsp\Application\Session\Session;
 use Phel\Lsp\Domain\HandlerInterface;
 
-use function array_values;
-
 /**
  * Lists all top-level definitions in the open document. Uses the project
  * index when available; otherwise runs a single-file indexing pass so the
@@ -85,8 +83,10 @@ final readonly class DocumentSymbolHandler implements HandlerInterface
             return $defs;
         }
 
-        $index = $this->apiFacade->indexProject([$path]);
-
-        return array_values($index->definitions);
+        // No project index (or it has nothing for this file yet): extract from
+        // the open buffer. This reflects unsaved edits and avoids re-walking the
+        // filesystem — the project indexer only scans directories, so passing a
+        // single file path here would yield nothing.
+        return $this->apiFacade->extractDefinitions($document->text, $path);
     }
 }

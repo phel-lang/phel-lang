@@ -52,6 +52,16 @@ final readonly class SymbolExtractor
     ) {}
 
     /**
+     * Top-level definitions in a single source buffer (document symbols).
+     *
+     * @return list<Definition>
+     */
+    public function definitionsOf(string $source, string $uri): array
+    {
+        return $this->extract($source, $uri)['definitions'];
+    }
+
+    /**
      * @return array{
      *     namespace: string,
      *     definitions: list<Definition>,

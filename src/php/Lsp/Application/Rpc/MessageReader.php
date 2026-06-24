@@ -35,6 +35,9 @@ final class MessageReader
 
     private const int READ_TIMEOUT_MICRO = 200_000;
 
+    /** Sentinel: the read window elapsed before a header block arrived. */
+    private const int TIMED_OUT = -1;
+
     /**
      * @param resource $stream
      *
@@ -52,6 +55,14 @@ final class MessageReader
         $contentLength = $this->readHeaders($stream);
         if ($contentLength === null) {
             return null;
+        }
+
+        // No complete header block arrived within the read window. The client
+        // is simply idle (editors stay connected but quiet between requests),
+        // not gone, so return a heartbeat and let the caller poll again rather
+        // than mistaking the timeout for end-of-stream.
+        if ($contentLength === self::TIMED_OUT) {
+            return [];
         }
 
         if ($contentLength === 0) {
@@ -74,17 +85,36 @@ final class MessageReader
 
     /**
      * @param resource $stream
+     *
+     * @return int|null content length (>=0), {@see self::TIMED_OUT} when the
+     *                  read window elapsed before any data arrived, or null at
+     *                  end-of-stream
      */
     private function readHeaders($stream): ?int
     {
         $contentLength = null;
         $lines = 0;
+        $started = false;
 
         while ($lines < self::MAX_HEADER_LINES) {
             $line = fgets($stream);
             if ($line === false) {
-                return null;
+                // Distinguish a real EOF (client gone) from a read timeout
+                // (idle but still connected). A timeout before any byte of the
+                // block is a heartbeat; once a block has started we keep waiting
+                // for the rest so we never drop a partially read header.
+                if (feof($stream)) {
+                    return null;
+                }
+
+                if (!$started) {
+                    return self::TIMED_OUT;
+                }
+
+                continue;
             }
+
+            $started = true;
 
             $trimmed = trim($line);
             if ($trimmed === '') {
