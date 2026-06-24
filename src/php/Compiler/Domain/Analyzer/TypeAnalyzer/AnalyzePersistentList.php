@@ -60,6 +60,7 @@ use Phel\Shared\Exceptions\AbstractLocatedException;
 use Phel\Shared\Munge;
 use Phel\Shared\MungeInterface;
 
+use function array_keys;
 use function count;
 use function in_array;
 use function str_ends_with;
@@ -70,6 +71,9 @@ final class AnalyzePersistentList
 {
     /** @var array<string, SpecialFormAnalyzerInterface> */
     private array $symbolAnalyzerCache = [];
+
+    /** @var array<string, callable(): SpecialFormAnalyzerInterface>|null */
+    private ?array $specialFormFactories = null;
 
     public function __construct(
         private readonly AnalyzerInterface $analyzer,
@@ -99,6 +103,19 @@ final class AnalyzePersistentList
         return $this
             ->createSymbolAnalyzerByName($symbolName)
             ->analyze($list, $env);
+    }
+
+    /**
+     * The list heads that dispatch to a dedicated special-form analyzer
+     * (everything else falls through to {@see InvokeSymbol}). This is the single
+     * enumerable source of truth for "which special forms exist" — useful for
+     * docs, REPL completion and tooling.
+     *
+     * @return list<string>
+     */
+    public function specialFormNames(): array
+    {
+        return array_keys($this->specialFormFactories());
     }
 
     /**
@@ -307,60 +324,71 @@ final class AnalyzePersistentList
             return $this->symbolAnalyzerCache[$symbolName];
         }
 
-        $analyzer = match ($symbolName) {
-            Symbol::NAME_DEF => new DefSymbol($this->analyzer),
-            Symbol::NAME_DEF_ONCE => new DefSymbol($this->analyzer, defonce: true),
-            Symbol::NAME_NS => new NsSymbol($this->analyzer),
-            Symbol::NAME_IN_NS => new InNsSymbol($this->analyzer),
-            Symbol::NAME_USE => new UseSymbol($this->analyzer),
-            Symbol::NAME_LOAD => new LoadSymbol($this->analyzer),
-            Symbol::NAME_FN => new FnSymbol(
-                $this->analyzer,
-                $this->assertsEnabled,
-            ),
-            Symbol::NAME_QUOTE => new QuoteSymbol(),
-            Symbol::NAME_VAR => new VarSymbol($this->analyzer),
-            Symbol::NAME_DO => new DoSymbol($this->analyzer),
-            Symbol::NAME_IF => new IfSymbol($this->analyzer),
-            Symbol::NAME_APPLY => new ApplySymbol($this->analyzer),
-            Symbol::NAME_LET => new LetSymbol($this->analyzer, new Deconstructor(new BindingValidator())),
-            Symbol::NAME_PHP_NEW, Symbol::NAME_NEW => new PhpNewSymbol($this->analyzer),
-            Symbol::NAME_PHP_OBJECT_CALL => new PhpObjectCallSymbol($this->analyzer, isStatic: false),
-            Symbol::NAME_PHP_OBJECT_STATIC_CALL => new PhpObjectCallSymbol($this->analyzer, isStatic: true),
-            Symbol::NAME_PHP_CALLABLE => new PhpCallableSymbol($this->analyzer),
-            Symbol::NAME_PHP_REF => new PhpRefSymbol($this->analyzer),
-            Symbol::NAME_PHP_ARRAY_GET => new PhpAGetSymbol($this->analyzer),
-            Symbol::NAME_PHP_ARRAY_GET_IN => new PhpAGetInSymbol($this->analyzer),
-            Symbol::NAME_PHP_ARRAY_SET => new PhpASetSymbol($this->analyzer),
-            Symbol::NAME_PHP_ARRAY_SET_IN => new PhpASetInSymbol($this->analyzer),
-            Symbol::NAME_PHP_ARRAY_PUSH => new PhpAPushSymbol($this->analyzer),
-            Symbol::NAME_PHP_ARRAY_PUSH_IN => new PhpAPushInSymbol($this->analyzer),
-            Symbol::NAME_PHP_ARRAY_UNSET => new PhpAUnsetSymbol($this->analyzer),
-            Symbol::NAME_PHP_ARRAY_UNSET_IN => new PhpAUnsetInSymbol($this->analyzer),
-            Symbol::NAME_RECUR => new RecurSymbol($this->analyzer),
-            Symbol::NAME_TRY => new TrySymbol($this->analyzer),
-            Symbol::NAME_THROW => new ThrowSymbol($this->analyzer),
-            Symbol::NAME_LOOP => new LoopSymbol($this->analyzer, new BindingValidator()),
-            Symbol::NAME_FOREACH => new ForeachSymbol($this->analyzer),
-            Symbol::NAME_DEF_STRUCT => new DefStructSymbol(
-                $this->analyzer,
-                $this->createImplementationsAnalyzer(),
-            ),
-            Symbol::NAME_DEF_EXCEPTION => new DefExceptionSymbol($this->analyzer),
-            Symbol::NAME_DEF_ENUM => new DefEnumSymbol(
-                $this->analyzer,
-                $this->createImplementationsAnalyzer(),
-            ),
-            Symbol::NAME_PHP_OBJECT_SET => new PhpOSetSymbol($this->analyzer),
-            Symbol::NAME_SET_VAR => new SetVarSymbol($this->analyzer),
-            Symbol::NAME_DEF_INTERFACE => new DefInterfaceSymbol($this->analyzer),
-            Symbol::NAME_REIFY => new ReifySymbol(new MethodBodyAnalyzer($this->analyzer)),
-            default => new InvokeSymbol($this->analyzer),
-        };
+        $factory = $this->specialFormFactories()[$symbolName] ?? null;
+        $analyzer = $factory !== null
+            ? $factory()
+            : new InvokeSymbol($this->analyzer);
 
-        $this->symbolAnalyzerCache[$symbolName] = $analyzer;
+        return $this->symbolAnalyzerCache[$symbolName] = $analyzer;
+    }
 
-        return $analyzer;
+    /**
+     * Lazy `name => factory` dispatch registry, built once. The factories defer
+     * construction so each analyzer is still only instantiated on first use
+     * (and then memoized in `$symbolAnalyzerCache`), matching the old `match`.
+     *
+     * @return array<string, callable(): SpecialFormAnalyzerInterface>
+     */
+    private function specialFormFactories(): array
+    {
+        if ($this->specialFormFactories !== null) {
+            return $this->specialFormFactories;
+        }
+
+        // `php/new` and `new` dispatch identically; share one factory.
+        $phpNew = fn(): SpecialFormAnalyzerInterface => new PhpNewSymbol($this->analyzer);
+
+        return $this->specialFormFactories = [
+            Symbol::NAME_DEF => fn(): SpecialFormAnalyzerInterface => new DefSymbol($this->analyzer),
+            Symbol::NAME_DEF_ONCE => fn(): SpecialFormAnalyzerInterface => new DefSymbol($this->analyzer, defonce: true),
+            Symbol::NAME_NS => fn(): SpecialFormAnalyzerInterface => new NsSymbol($this->analyzer),
+            Symbol::NAME_IN_NS => fn(): SpecialFormAnalyzerInterface => new InNsSymbol($this->analyzer),
+            Symbol::NAME_USE => fn(): SpecialFormAnalyzerInterface => new UseSymbol($this->analyzer),
+            Symbol::NAME_LOAD => fn(): SpecialFormAnalyzerInterface => new LoadSymbol($this->analyzer),
+            Symbol::NAME_FN => fn(): SpecialFormAnalyzerInterface => new FnSymbol($this->analyzer, $this->assertsEnabled),
+            Symbol::NAME_QUOTE => static fn(): SpecialFormAnalyzerInterface => new QuoteSymbol(),
+            Symbol::NAME_VAR => fn(): SpecialFormAnalyzerInterface => new VarSymbol($this->analyzer),
+            Symbol::NAME_DO => fn(): SpecialFormAnalyzerInterface => new DoSymbol($this->analyzer),
+            Symbol::NAME_IF => fn(): SpecialFormAnalyzerInterface => new IfSymbol($this->analyzer),
+            Symbol::NAME_APPLY => fn(): SpecialFormAnalyzerInterface => new ApplySymbol($this->analyzer),
+            Symbol::NAME_LET => fn(): SpecialFormAnalyzerInterface => new LetSymbol($this->analyzer, new Deconstructor(new BindingValidator())),
+            Symbol::NAME_PHP_NEW => $phpNew,
+            Symbol::NAME_NEW => $phpNew,
+            Symbol::NAME_PHP_OBJECT_CALL => fn(): SpecialFormAnalyzerInterface => new PhpObjectCallSymbol($this->analyzer, isStatic: false),
+            Symbol::NAME_PHP_OBJECT_STATIC_CALL => fn(): SpecialFormAnalyzerInterface => new PhpObjectCallSymbol($this->analyzer, isStatic: true),
+            Symbol::NAME_PHP_CALLABLE => fn(): SpecialFormAnalyzerInterface => new PhpCallableSymbol($this->analyzer),
+            Symbol::NAME_PHP_REF => fn(): SpecialFormAnalyzerInterface => new PhpRefSymbol($this->analyzer),
+            Symbol::NAME_PHP_ARRAY_GET => fn(): SpecialFormAnalyzerInterface => new PhpAGetSymbol($this->analyzer),
+            Symbol::NAME_PHP_ARRAY_GET_IN => fn(): SpecialFormAnalyzerInterface => new PhpAGetInSymbol($this->analyzer),
+            Symbol::NAME_PHP_ARRAY_SET => fn(): SpecialFormAnalyzerInterface => new PhpASetSymbol($this->analyzer),
+            Symbol::NAME_PHP_ARRAY_SET_IN => fn(): SpecialFormAnalyzerInterface => new PhpASetInSymbol($this->analyzer),
+            Symbol::NAME_PHP_ARRAY_PUSH => fn(): SpecialFormAnalyzerInterface => new PhpAPushSymbol($this->analyzer),
+            Symbol::NAME_PHP_ARRAY_PUSH_IN => fn(): SpecialFormAnalyzerInterface => new PhpAPushInSymbol($this->analyzer),
+            Symbol::NAME_PHP_ARRAY_UNSET => fn(): SpecialFormAnalyzerInterface => new PhpAUnsetSymbol($this->analyzer),
+            Symbol::NAME_PHP_ARRAY_UNSET_IN => fn(): SpecialFormAnalyzerInterface => new PhpAUnsetInSymbol($this->analyzer),
+            Symbol::NAME_RECUR => fn(): SpecialFormAnalyzerInterface => new RecurSymbol($this->analyzer),
+            Symbol::NAME_TRY => fn(): SpecialFormAnalyzerInterface => new TrySymbol($this->analyzer),
+            Symbol::NAME_THROW => fn(): SpecialFormAnalyzerInterface => new ThrowSymbol($this->analyzer),
+            Symbol::NAME_LOOP => fn(): SpecialFormAnalyzerInterface => new LoopSymbol($this->analyzer, new BindingValidator()),
+            Symbol::NAME_FOREACH => fn(): SpecialFormAnalyzerInterface => new ForeachSymbol($this->analyzer),
+            Symbol::NAME_DEF_STRUCT => fn(): SpecialFormAnalyzerInterface => new DefStructSymbol($this->analyzer, $this->createImplementationsAnalyzer()),
+            Symbol::NAME_DEF_EXCEPTION => fn(): SpecialFormAnalyzerInterface => new DefExceptionSymbol($this->analyzer),
+            Symbol::NAME_DEF_ENUM => fn(): SpecialFormAnalyzerInterface => new DefEnumSymbol($this->analyzer, $this->createImplementationsAnalyzer()),
+            Symbol::NAME_PHP_OBJECT_SET => fn(): SpecialFormAnalyzerInterface => new PhpOSetSymbol($this->analyzer),
+            Symbol::NAME_SET_VAR => fn(): SpecialFormAnalyzerInterface => new SetVarSymbol($this->analyzer),
+            Symbol::NAME_DEF_INTERFACE => fn(): SpecialFormAnalyzerInterface => new DefInterfaceSymbol($this->analyzer),
+            Symbol::NAME_REIFY => fn(): SpecialFormAnalyzerInterface => new ReifySymbol(new MethodBodyAnalyzer($this->analyzer)),
+        ];
     }
 
     private function createImplementationsAnalyzer(): InterfaceImplementationsAnalyzer

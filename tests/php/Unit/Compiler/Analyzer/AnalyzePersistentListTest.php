@@ -379,4 +379,26 @@ final class AnalyzePersistentListTest extends TestCase
         ]);
         self::assertInstanceOf(DefExceptionNode::class, $this->listAnalyzer->analyze($list, NodeEnvironment::empty()));
     }
+
+    public function test_special_form_names_enumerates_known_forms_only(): void
+    {
+        $names = $this->listAnalyzer->specialFormNames();
+
+        // A representative sample of special forms is enumerable, including
+        // both heads (`php/new` and `new`) that share one analyzer.
+        self::assertContains(Symbol::NAME_DEF, $names);
+        self::assertContains(Symbol::NAME_IF, $names);
+        self::assertContains(Symbol::NAME_FN, $names);
+        self::assertContains(Symbol::NAME_LET, $names);
+        self::assertContains(Symbol::NAME_REIFY, $names);
+        self::assertContains(Symbol::NAME_PHP_NEW, $names);
+        self::assertContains(Symbol::NAME_NEW, $names);
+
+        // Ordinary call heads fall through to InvokeSymbol and are not listed.
+        self::assertNotContains('map', $names);
+        self::assertNotContains('', $names);
+
+        // No duplicate registrations.
+        self::assertSame(array_values(array_unique($names)), $names);
+    }
 }
