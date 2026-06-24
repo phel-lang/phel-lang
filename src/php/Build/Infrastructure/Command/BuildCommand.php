@@ -107,7 +107,9 @@ HELP)
         } catch (Throwable $e) {
             $this->getFacade()->writeStackTrace($output, $e);
         } finally {
-            Registry::$profilerHook = null;
+            if ($timingHook instanceof PhaseTimingProfilerHook) {
+                Registry::$profilerHook = null;
+            }
         }
 
         $output->writeln(new ResourceUsageFormatter()->resourceUsageSinceStartOfRequest());
