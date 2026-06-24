@@ -84,6 +84,10 @@ final readonly class ProjectCompiler
         $namespaceInformation = $this->namespaceExtractor->getNamespacesFromDirectories($srcDirectories);
         /** @var list<CompiledFile> $result */
         $result = [];
+        // Dependency-ordered, so checking direct requires against this set
+        // cascades transitively in one pass (see dependsOnRecompiled).
+        /** @var array<string, true> $recompiledNamespaces */
+        $recompiledNamespaces = [];
         foreach ($namespaceInformation as $info) {
             if ($this->shouldIgnoreNs($info)) {
                 continue;
@@ -104,7 +108,10 @@ final readonly class ProjectCompiler
                 throw new RuntimeException(sprintf('Directory "%s" was not created', $targetDir));
             }
 
-            if (!$optimizationLevelChanged && $this->canUseCache($buildOptions, $targetFile, $info)) {
+            if (!$optimizationLevelChanged
+                && !$this->dependsOnRecompiled($info, $recompiledNamespaces)
+                && $this->canUseCache($buildOptions, $targetFile, $info)
+            ) {
                 // Load cached file to register definitions and execute top-level expressions
                 BuildFacade::enableBuildMode();
                 ob_start();
@@ -134,6 +141,7 @@ final readonly class ProjectCompiler
             );
 
             touch($targetFile, $this->getFileMtime($info->getFile()));
+            $recompiledNamespaces[$info->getNamespace()] = true;
         }
 
         $this->storeOptimizationLevel($dest, $optimizationLevel);
@@ -172,6 +180,21 @@ final readonly class ProjectCompiler
     private function shouldIgnoreNs(NamespaceInformation $info): bool
     {
         return array_any($this->config->getPathsToIgnore(), static fn(string $path): bool => str_contains($info->getFile(), $path));
+    }
+
+    /**
+     * Cache hits on mtime alone, so a dependent with an unchanged source but a
+     * recompiled requirement must still recompile — else it keeps a stale macro
+     * expansion baked in.
+     *
+     * @param array<string, true> $recompiledNamespaces
+     */
+    private function dependsOnRecompiled(NamespaceInformation $info, array $recompiledNamespaces): bool
+    {
+        return array_any(
+            $info->getDependencies(),
+            static fn(string $dependency): bool => isset($recompiledNamespaces[$dependency]),
+        );
     }
 
     private function canUseCache(

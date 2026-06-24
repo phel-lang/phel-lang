@@ -1,0 +1,3 @@
+(ns cascade.base)
+
+(defmacro greeting [] "VERSION_ONE")

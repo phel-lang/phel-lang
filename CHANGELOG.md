@@ -31,6 +31,7 @@ All notable changes to this project will be documented in this file.
 
 - Collection hash/equals correctness: hashing a large persistent collection (vector, list, queue, lazy seq including chunked, hash/sorted set, or map) no longer throws a `TypeError` past ~13 elements (the rolling hash wraps within a 32-bit range instead of overflowing to a float), a map or hash/sorted set containing a `NaN` key/element is equal to itself again (`equals` short-circuits on object identity), and a `Cons` cell or sorted set whose hash legitimately computes to `0` now caches it (#2567, #2585, #2589)
 - The "not defined" error hint now also shows when the compiler appends a `Did you mean ...?` suggestion (a trailing period previously suppressed it) (#2523)
+- `phel build` no longer reuses stale compiled output for a namespace whose source is unchanged but whose required namespace changed: the incremental cache now cascades a recompile to dependents, so an updated macro can no longer leave an outdated expansion baked into a dependent's compiled file (#2612)
 
 ## [0.45.1](https://github.com/phel-lang/phel-lang/compare/v0.45.0...v0.45.1) - 2026-06-20
 

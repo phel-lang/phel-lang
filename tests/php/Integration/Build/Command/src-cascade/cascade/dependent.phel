@@ -1,0 +1,4 @@
+(ns cascade.dependent
+  (:require cascade.base :refer [greeting]))
+
+(def message (greeting))
