@@ -80,6 +80,7 @@ HELP)
     {
         $buildOptions = $this->getBuildOptions($input);
         $report = (bool) $input->getOption(self::OPTION_REPORT);
+        $failed = false;
 
         $timingHook = (bool) $input->getOption(self::OPTION_TIMING)
             ? new PhaseTimingProfilerHook()
@@ -104,8 +105,10 @@ HELP)
             }
         } catch (CompilerException $e) {
             $this->getFacade()->writeLocatedException($output, $e);
+            $failed = true;
         } catch (Throwable $e) {
             $this->getFacade()->writeStackTrace($output, $e);
+            $failed = true;
         } finally {
             if ($timingHook instanceof PhaseTimingProfilerHook) {
                 Registry::$profilerHook = null;
@@ -114,7 +117,9 @@ HELP)
 
         $output->writeln(new ResourceUsageFormatter()->resourceUsageSinceStartOfRequest());
 
-        return self::SUCCESS;
+        // A build that aborted mid-compile emits a partial/empty output tree;
+        // exiting 0 makes CI and deploy scripts treat a broken build as green.
+        return $failed ? self::FAILURE : self::SUCCESS;
     }
 
     private function printPhaseTiming(OutputInterface $output, PhaseTimingReport $timing): void

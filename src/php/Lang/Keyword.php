@@ -93,7 +93,16 @@ final class Keyword extends AbstractType implements IdenticalInterface, FnInterf
 
     public function equals(mixed $other): bool
     {
-        return $this->identical($other);
+        // Value-based, not identity: keywords are interned so value-equal
+        // keywords are normally the same instance, but `unserialize` rebuilds a
+        // Keyword outside the intern pool (the read-result cache serializes live
+        // keyword-keyed maps). A deserialized `:macro` key must still compare
+        // equal to a freshly-created `Keyword::create("macro")`, or map lookups
+        // against cached forms silently miss. Mirrors `Symbol::equals`.
+        return $this === $other
+            || ($other instanceof self
+                && $this->name === $other->name
+                && $this->namespace === $other->namespace);
     }
 
     public function identical(mixed $other): bool
