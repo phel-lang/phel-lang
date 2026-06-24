@@ -8,9 +8,14 @@ use Phel\Lsp\Application\Rpc\MessageReader;
 use PHPUnit\Framework\TestCase;
 use RuntimeException;
 
+use function fclose;
 use function fopen;
 use function fwrite;
 use function rewind;
+use function stream_socket_pair;
+
+use const STREAM_PF_UNIX;
+use const STREAM_SOCK_STREAM;
 
 final class MessageReaderTest extends TestCase
 {
@@ -106,6 +111,71 @@ final class MessageReaderTest extends TestCase
 
         self::assertSame('one', $first['method'] ?? null);
         self::assertSame('two', $second['method'] ?? null);
+    }
+
+    public function test_it_returns_heartbeat_not_eof_when_an_idle_connection_times_out(): void
+    {
+        // A connected-but-idle client (the common editor case) must not be
+        // mistaken for a closed stream: read() returns [] (heartbeat), and a
+        // subsequent message on the same stream still parses.
+        [$server, $client] = $this->socketPair();
+
+        $reader = new MessageReader();
+
+        $idle = $reader->read($server);
+        self::assertSame([], $idle, 'idle timeout should be a heartbeat, not EOF');
+
+        fwrite($client, "Content-Length: 17\r\n\r\n{\"method\":\"ping\"}");
+        $message = $this->readUntilMessage($reader, $server);
+        self::assertSame(['method' => 'ping'], $message);
+
+        fclose($client);
+        fclose($server);
+    }
+
+    public function test_it_returns_null_when_the_client_closes_the_connection(): void
+    {
+        // A genuinely closed peer must still be reported as end-of-stream.
+        [$server, $client] = $this->socketPair();
+        fclose($client);
+
+        $reader = new MessageReader();
+        self::assertNull($reader->read($server));
+
+        fclose($server);
+    }
+
+    /**
+     * Poll past heartbeats until a framed message arrives.
+     *
+     * @param resource $stream
+     *
+     * @return array<string, mixed>|null
+     */
+    private function readUntilMessage(MessageReader $reader, $stream): ?array
+    {
+        for ($i = 0; $i < 50; ++$i) {
+            $message = $reader->read($stream);
+            if ($message === null || $message !== []) {
+                return $message;
+            }
+        }
+
+        return null;
+    }
+
+    /**
+     * A blocking-but-idle stream pair: reading from one end times out (without
+     * EOF) until the other end writes, which `php://memory` cannot emulate.
+     *
+     * @return array{0: resource, 1: resource}
+     */
+    private function socketPair(): array
+    {
+        $pair = stream_socket_pair(STREAM_PF_UNIX, STREAM_SOCK_STREAM, 0);
+        self::assertNotFalse($pair);
+
+        return [$pair[0], $pair[1]];
     }
 
     /**

@@ -79,6 +79,20 @@ final class ApiFacade extends AbstractFacade implements ApiFacadeInterface
     }
 
     /**
+     * Extract the top-level definitions from a single source buffer. Used for
+     * document symbols, where the in-memory (possibly unsaved) buffer is
+     * authoritative and the filesystem index may be stale or unavailable.
+     *
+     * @return list<Definition>
+     */
+    public function extractDefinitions(string $source, string $uri): array
+    {
+        return $this->getFactory()
+            ->createSymbolExtractor()
+            ->definitionsOf($source, $uri);
+    }
+
+    /**
      * Resolve a symbol to its defining site ("jump to definition").
      */
     public function resolveSymbol(ProjectIndex $index, string $namespace, string $symbol): ?Definition
