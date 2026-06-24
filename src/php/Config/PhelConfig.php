@@ -526,7 +526,8 @@ final readonly class PhelConfig implements JsonSerializable
     /**
      * Cache the front-half compiler output (lex -> parse -> read) per source
      * string in `<cacheDir>/read-result/`, so a warm rebuild skips straight to
-     * analysis + emission. Opt-in and experimental. Default: `false`.
+     * analysis + emission. Assumes deterministic reads (no side-effecting reader
+     * tag handlers). Opt-in and experimental. Default: `false`.
      */
     public function withEnableIntermediateCache(bool $flag = true): self
     {

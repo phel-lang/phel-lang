@@ -50,6 +50,12 @@ final readonly class FileSystemReaderResultCache implements ReaderResultCacheInt
         }
 
         try {
+            // No allowed_classes allowlist: the payload is a deep graph of
+            // arbitrary Phel\Lang value types, so restricting classes would
+            // deserialize them as __PHP_Incomplete_Class. The cache dir is
+            // project-local and already trusted to the same degree as the
+            // eval'd compiled-PHP cache that lives beside it, so an attacker
+            // who can write here already has strictly more leverage there.
             $value = unserialize($decoded);
         } catch (Throwable) {
             return null;
@@ -61,7 +67,10 @@ final readonly class FileSystemReaderResultCache implements ReaderResultCacheInt
 
         $entries = [];
         foreach ($value as $item) {
-            if (!$item instanceof CachedReaderResult) {
+            // A negative delta cannot come from a correct save (you cannot
+            // un-consume a gensym); treat it as corruption rather than letting
+            // it desync the gensym counter on replay.
+            if (!$item instanceof CachedReaderResult || $item->gensymDelta < 0) {
                 return null;
             }
 

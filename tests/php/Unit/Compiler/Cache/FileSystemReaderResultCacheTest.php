@@ -96,6 +96,33 @@ final class FileSystemReaderResultCacheTest extends TestCase
         self::assertNull($cache->load('(x)', 0));
     }
 
+    public function test_array_with_a_non_entry_element_loads_as_a_miss(): void
+    {
+        $cache = new FileSystemReaderResultCache($this->cacheDir, 'v1');
+        $cache->save('(x)', 0, [$this->entry('x')]);
+
+        $this->overwriteCacheFile([$this->entry('x'), 'not-an-entry']);
+
+        self::assertNull($cache->load('(x)', 0));
+    }
+
+    public function test_negative_gensym_delta_loads_as_a_miss(): void
+    {
+        $cache = new FileSystemReaderResultCache($this->cacheDir, 'v1');
+        $cache->save('(x)', 0, [$this->entry('x')]);
+
+        $this->overwriteCacheFile([$this->entry('x', -1)]);
+
+        self::assertNull($cache->load('(x)', 0));
+    }
+
+    private function overwriteCacheFile(array $payload): void
+    {
+        foreach (glob($this->cacheDir . '/read-result/*.cache') ?: [] as $file) {
+            file_put_contents($file, gzcompress(serialize($payload), 6));
+        }
+    }
+
     private function entry(string $ast, int $gensymDelta = 0): CachedReaderResult
     {
         return new CachedReaderResult(

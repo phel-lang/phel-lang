@@ -90,9 +90,7 @@ final readonly class CodeCompiler implements CodeCompilerInterface
                 $genBefore = Symbol::genCounter();
                 $readerResult = $this->timed($hook, 'read', $source, fn(): ReaderResult => $this->reader->read($parseTree));
                 $entries[] = new CachedReaderResult($readerResult, Symbol::genCounter() - $genBefore);
-                $node = $this->timed($hook, 'analyze', $source, fn(): AbstractNode => $this->analyze($readerResult));
-                // We need to evaluate every statement because we may need it for macros.
-                $this->timed($hook, 'emit', $source, fn() => $this->emitNode($node, $compileOptions));
+                $this->analyzeAndEmit($readerResult, $compileOptions, $hook, $source);
             } catch (AbstractParserException|ReaderException $e) {
                 throw new CompilerException($e, $e->getCodeSnippet());
             }
@@ -137,11 +135,26 @@ final readonly class CodeCompiler implements CodeCompilerInterface
         $this->fileEmitter->startFile($source);
         foreach ($entries as $entry) {
             Symbol::advanceGenCounter($entry->gensymDelta);
-            $node = $this->timed($hook, 'analyze', $source, fn(): AbstractNode => $this->analyze($entry->readerResult));
-            $this->timed($hook, 'emit', $source, fn() => $this->emitNode($node, $compileOptions));
+            $this->analyzeAndEmit($entry->readerResult, $compileOptions, $hook, $source);
         }
 
         return $this->fileEmitter->endFile($compileOptions->isSourceMapsEnabled());
+    }
+
+    /**
+     * @throws CompilerException
+     * @throws CompiledCodeIsMalformedException
+     * @throws FileException
+     */
+    private function analyzeAndEmit(
+        ReaderResult $readerResult,
+        CompileOptions $compileOptions,
+        ?ProfilerHookInterface $hook,
+        string $source,
+    ): void {
+        $node = $this->timed($hook, 'analyze', $source, fn(): AbstractNode => $this->analyze($readerResult));
+        // We need to evaluate every statement because we may need it for macros.
+        $this->timed($hook, 'emit', $source, fn() => $this->emitNode($node, $compileOptions));
     }
 
     /**
