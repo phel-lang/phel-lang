@@ -6,37 +6,37 @@ All notable changes to this project will be documented in this file.
 
 ### Added
 
-- Project configuration validation: `phel config` reports problems in a dedicated "Validation" section (directories that must be relative, missing source/test directories, no source directories, unknown optimization levels, wrong-type values), and `phel doctor` checks the config too, failing on errors and surfacing warnings as tips (#2600, #2601, #2602, #2603)
-- `phel build --timing` prints per-phase compile wall-clock (lex/parse/read/analyze/emit) aggregated across all compiled namespaces, with each phase's share and a total — the repeatable, compile-only number to quote before/after a compiler-phase optimization. Pair with `--no-cache` for a full measurement; composes with `--report` (#2615)
+- Config validation in `phel config` and `phel doctor` (relative-path requirements, missing/empty source-test dirs, bad optimization levels, wrong types); `doctor` fails on errors and shows warnings as tips (#2600, #2601, #2602, #2603)
+- `phel build --timing`: per-phase compile time (lex/parse/read/analyze/emit) aggregated across compiled namespaces, with shares and a total. Compile-only; pair with `--no-cache`, composes with `--report` (#2615)
 
 ### Changed
 
-- **Breaking**: removed the deprecated `PhelConfig` `setX()` setters and the `useLayout()`/`useNestedLayout()`/`useFlatLayout()` shortcuts (deprecated since 0.37), plus the `setX()` shims on `PhelBuildConfig`/`PhelExportConfig`. Use the immutable `with*()` methods instead (e.g. `withSrcDirs`, `withLayout(ProjectLayout::Nested)`); update any `phel-config.php` that still calls the old names (#2609)
-- A broken `phel-config.php` (syntax error, evaluation error, or a return that is neither a `PhelConfig` nor a config array) now fails with a clear message that names the file and shows the expected shape, printed on its own and exiting 1, instead of a cryptic uncaught-exception stack trace (#2604, #2606, #2607)
-- `phel init` now scaffolds `phel-config.php` with `declare(strict_types=1);`, matching the project's PHP conventions (#2605)
+- **Breaking**: removed the deprecated `PhelConfig` `setX()` setters and `useLayout()`/`useNestedLayout()`/`useFlatLayout()` shortcuts (since 0.37), plus the `setX()` shims on `PhelBuildConfig`/`PhelExportConfig` — use the `with*()` methods (#2609)
+- A broken `phel-config.php` now fails with a clear message naming the file and the expected shape (exit 1), instead of an uncaught-exception stack trace (#2604, #2606, #2607)
+- `phel init` scaffolds `phel-config.php` with `declare(strict_types=1);` (#2605)
 
 ### Performance
 
-- Compile interop to native PHP: `php/->`, `php/::`, `php/new`, and `php/oset` emit direct expressions/statements instead of closure wrappers (#2524, #2525, #2526, #2532, #2536)
-- Compile type-tagged core calls to native operations instead of runtime dispatch: `push`/`dissoc` (#2527), `second`/`get-in` (#2530, #2529), `count`/`first` on strings (#2528), `inc`/`dec` on `^int`/`^float` locals (#2562), and `last` on vectors (#2563)
-- Fold comparisons at compile time: `(= x :keyword)` becomes an identity check, and `=`/`not=` over string literals fold to a boolean (#2561, #2531)
-- Inline `let`-bodied pure `defn`s at opt level ≥ 2, including unannotated ones the compiler can prove pure (#2586)
-- Allocate less per node in the compiler pipeline: reuse parser/analyzer sub-components and skip no-op environment clones (#2548, #2553, #2552), build `let`/`loop` locals/shadow indexes incrementally (O(N²) to O(N)) (#2554), and walk a typed `defn` body one fewer time (#2555)
-- Speed up the lexer with fewer per-token deprecation checks and ASCII-only column tracking (#2546, #2547)
-- Scan multiline comments (`#| ... |#`) by jumping delimiter-to-delimiter with `strpos` instead of stepping one byte at a time; nesting semantics are preserved and large/nested comment blocks lex dramatically faster (#2613)
-- Short-circuit `Symbol` equality on identity, and skip the dynamic-scope check on global reads when no dynamic bindings are active (#2551, #2545)
-- Share one `static` slot for repeated literals (#2564), and splice captured nodes in the emitter with a prefix check instead of a per-call regex (#2565)
-- Speed up persistent data structures on hot paths: vector equality short-circuits on identity and walks chunk-aware (O(n)) (#2549), `dissoc`/`remove` skip the deep comparison on no-op (#2544), and hash-map iteration drops a redundant per-node copy (#2550)
-- Cut CLI startup: persist the compiled-code cache index and namespace index, writing once instead of per file (#2557, #2560), boot the REPL with only `phel.core` and lazy-load the rest (~34% faster to prompt) (#2559), lazy-load CLI commands per invocation (#2558), and ship a `phel.ini` from `phel doctor` to enable a persistent OPcache file cache (#2556, #2599)
-- Opt-in intermediate compile cache (`withEnableIntermediateCache()`, off by default): persists each file's read result (the lex → parse → read output, gzip-compressed) under `<cacheDir>/read-result/` and replays it on a warm rebuild, skipping the front half of the pipeline (~1.6× faster read phase on `phel.core`). The cache key folds in the optimization level and Phel version so an upgrade or `-O` change busts it, and emitted PHP stays byte-identical to a cold compile (#2611)
+- Compile interop to native PHP: `php/->`, `php/::`, `php/new`, `php/oset` emit direct expressions instead of closure wrappers (#2524, #2525, #2526, #2532, #2536)
+- Compile type-tagged core calls natively instead of via runtime dispatch: `push`/`dissoc`, `second`/`get-in`, `count`/`first` on strings, `inc`/`dec` on `^int`/`^float` locals, `last` on vectors (#2527, #2528, #2529, #2530, #2562, #2563)
+- Fold comparisons at compile time: `(= x :keyword)` to an identity check, `=`/`not=` over string literals to a boolean (#2531, #2561)
+- Inline `let`-bodied pure `defn`s at opt level ≥ 2, including provably-pure unannotated ones (#2586)
+- Allocate less in the compiler pipeline: reuse parser/analyzer sub-components, skip no-op env clones, build `let`/`loop` indexes in O(N), walk typed `defn` bodies once less (#2548, #2552, #2553, #2554, #2555)
+- Speed up the lexer: fewer per-token deprecation checks, ASCII-only column tracking (#2546, #2547)
+- Scan multiline comments (`#| ... |#`) delimiter-to-delimiter with `strpos` instead of per byte, preserving nesting (#2613)
+- Short-circuit `Symbol` equality on identity, and skip the dynamic-scope check on global reads when no dynamic bindings are active (#2545, #2551)
+- Share one `static` slot for repeated literals, and splice captured emitter nodes with a prefix check instead of a per-call regex (#2564, #2565)
+- Speed up persistent data structures: chunk-aware vector equality with an identity short-circuit, no-op `dissoc`/`remove` skip the deep compare, hash-map iteration drops a redundant per-node copy (#2544, #2549, #2550)
+- Cut CLI startup: persist the compiled-code and namespace indexes (one write, not per file), boot the REPL with only `phel.core` and lazy-load the rest (~34% faster), lazy-load CLI commands, ship a `phel.ini` from `phel doctor` for a persistent OPcache file cache (#2556, #2557, #2558, #2559, #2560, #2599)
+- Opt-in intermediate compile cache (`withEnableIntermediateCache()`, off by default): persists each file's gzip-compressed read result and replays it on warm rebuilds, skipping the front half of the pipeline; keyed by source + optimization level + Phel version, output byte-identical (#2611)
 
 ### Fixed
 
-- Collection hash/equals correctness: hashing a large persistent collection (vector, list, queue, lazy seq including chunked, hash/sorted set, or map) no longer throws a `TypeError` past ~13 elements (the rolling hash wraps within a 32-bit range instead of overflowing to a float), a map or hash/sorted set containing a `NaN` key/element is equal to itself again (`equals` short-circuits on object identity), and a `Cons` cell or sorted set whose hash legitimately computes to `0` now caches it (#2567, #2585, #2589)
-- The "not defined" error hint now also shows when the compiler appends a `Did you mean ...?` suggestion (a trailing period previously suppressed it) (#2523)
-- `phel build` no longer reuses stale compiled output for a namespace whose source is unchanged but whose required namespace changed: the incremental cache now cascades a recompile to dependents, so an updated macro can no longer leave an outdated expansion baked into a dependent's compiled file (#2612)
-- `phel lsp` no longer shuts down when an editor sits idle: the message reader now distinguishes a read-timeout (a connected but quiet client) from end-of-stream, so the server stays up between requests instead of exiting after ~200ms of silence and forcing the editor to respawn it
-- `phel lsp` `textDocument/documentSymbol` now lists a file's definitions (it returned an empty list because the fallback indexed a single file path, but the project indexer only scans directories); symbols are extracted from the open buffer, so they also reflect unsaved edits
+- Collection hash/equals correctness: hashing large persistent collections no longer throws past ~13 elements (the rolling hash wraps in a 32-bit range), collections with a `NaN` key/element equal themselves again, and a `Cons`/sorted set whose hash is `0` is cached (#2567, #2585, #2589)
+- The "not defined" error hint now shows even when a `Did you mean ...?` suggestion is appended (#2523)
+- `phel build` no longer reuses stale output when a required namespace changed but the dependent's source did not: the incremental cache cascades recompiles to dependents (#2612)
+- `phel lsp` stays alive when the editor is idle — the reader distinguishes a read-timeout from end-of-stream instead of exiting after ~200ms of silence
+- `phel lsp` `textDocument/documentSymbol` lists a file's definitions, extracted from the open buffer so they reflect unsaved edits
 
 ## [0.45.1](https://github.com/phel-lang/phel-lang/compare/v0.45.0...v0.45.1) - 2026-06-20
 
