@@ -5,18 +5,13 @@ declare(strict_types=1);
 namespace PhelTest\Unit\Api\Infrastructure;
 
 use Phel\Api\Infrastructure\NativeSymbolCatalog;
+use Phel\Compiler\Domain\Analyzer\AnalyzerInterface;
+use Phel\Compiler\Domain\Analyzer\TypeAnalyzer\AnalyzePersistentList;
 use Phel\Lang\Symbol;
 use PHPUnit\Framework\TestCase;
-use ReflectionClass;
 
-use function array_unique;
-use function dirname;
-use function file_get_contents;
 use function in_array;
-use function preg_match_all;
 use function sprintf;
-use function strpos;
-use function substr;
 
 final class NativeSymbolCatalogTest extends TestCase
 {
@@ -83,35 +78,19 @@ final class NativeSymbolCatalogTest extends TestCase
     }
 
     /**
-     * Reads the special-form symbol names from the analyzer's central
-     * `match ($symbolName)` registration, resolving each `Symbol::NAME_*`
-     * constant to its string value.
+     * The special-form symbol names registered in the analyzer, read from its
+     * enumerable dispatch registry (the single source of truth, replacing the
+     * old `match ($symbolName)` block this test used to scrape from source).
      *
      * @return list<string>
      */
     private function registeredSpecialFormNames(): array
     {
-        $source = (string) file_get_contents(
-            dirname(__DIR__, 5)
-            . '/src/php/Compiler/Domain/Analyzer/TypeAnalyzer/AnalyzePersistentList.php',
+        $listAnalyzer = new AnalyzePersistentList(
+            $this->createStub(AnalyzerInterface::class),
+            assertsEnabled: true,
         );
 
-        $start = strpos($source, 'match ($symbolName)');
-        $end = strpos($source, 'default =>', $start === false ? 0 : $start);
-        self::assertIsInt($start, 'Could not locate the special-form match block');
-        self::assertIsInt($end, 'Could not locate the end of the special-form match block');
-
-        $block = substr($source, $start, $end - $start);
-        preg_match_all('/Symbol::(NAME_[A-Z_]+)/', $block, $matches);
-
-        $reflection = new ReflectionClass(Symbol::class);
-        $names = [];
-        foreach (array_unique($matches[1]) as $constant) {
-            /** @var string $value */
-            $value = $reflection->getConstant($constant);
-            $names[] = $value;
-        }
-
-        return $names;
+        return $listAnalyzer->specialFormNames();
     }
 }
