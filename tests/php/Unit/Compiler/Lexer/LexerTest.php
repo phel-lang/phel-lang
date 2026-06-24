@@ -177,6 +177,43 @@ final class LexerTest extends TestCase
         );
     }
 
+    public function test_read_empty_multiline_comment(): void
+    {
+        self::assertEquals(
+            [
+                new Token(Token::T_COMMENT, '#||#', new SourceLocation('string', 1, 0), new SourceLocation('string', 1, 4)),
+                new Token(Token::T_EOF, '', new SourceLocation('string', 1, 4), new SourceLocation('string', 1, 4)),
+            ],
+            $this->lex('#||#'),
+        );
+    }
+
+    public function test_read_deeply_nested_multiline_comment(): void
+    {
+        $code = '#|a #|b #|c|# d|# e|#';
+        $tokens = $this->lex($code);
+
+        self::assertSame(Token::T_COMMENT, $tokens[0]->getType());
+        self::assertSame($code, $tokens[0]->getCode());
+        self::assertSame(Token::T_EOF, $tokens[1]->getType());
+    }
+
+    public function test_unterminated_multiline_comment_throws(): void
+    {
+        $this->expectException(LexerValueException::class);
+
+        $this->lex('#| never closed');
+    }
+
+    public function test_unterminated_nested_multiline_comment_throws(): void
+    {
+        // The inner comment closes but the outer never does, so depth never
+        // returns to 0 and the scan must reach EOF and throw.
+        $this->expectException(LexerValueException::class);
+
+        $this->lex('#|a #|b|#');
+    }
+
     public function test_read_single_syntax_char(): void
     {
         self::assertEquals(
