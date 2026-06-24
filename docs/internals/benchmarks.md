@@ -40,6 +40,28 @@ composer bench-jit-tracing    # opcache on, tracing JIT
 
 See the [PHPBench docs](https://phpbench.readthedocs.io/) for advanced reporting.
 
+## Measuring compiler phases
+
+To quantify a compiler-phase change (lexer, parser, analyzer, emitter), build the project with `--timing`. It sums each phase's wall-clock across every compiled namespace. Pair it with `--no-cache` so the whole project recompiles and the numbers are comparable run to run:
+
+```bash
+./vendor/bin/phel build --no-cache --timing
+```
+
+```
+Compile-phase timing
+====================
+  lex             0.32 ms    0.0%
+  parse          86.68 ms    8.9%
+  read           27.07 ms    2.8%
+  analyze       395.82 ms   40.6%
+  emit          464.81 ms   47.7%
+  total         974.71 ms
+  (33 namespaces compiled)
+```
+
+Run it before and after a change and quote the before/after totals (and the affected phase's share) in the PR. This is compile-only — it never executes the built program, so the analyzer/emitter cost is isolated from runtime. `--timing` composes with `--report` (per-namespace sizes + build time). Without `--no-cache` only freshly compiled namespaces contribute; if everything is served from cache the report says so and tells you to re-run with `--no-cache`.
+
 ## Speeding up CLI runs with OPcache
 
 Phel compiles each `.phel` file to PHP and caches the result under the Phel cache dir (`.phel/cache/compiled/` by default). A warm `phel run` then just `require`s the cached PHP instead of recompiling. The remaining gap versus native PHP comes from PHP re-parsing those cached files on every process, because **OPcache is disabled on the CLI by default** (`opcache.enable_cli=0`).

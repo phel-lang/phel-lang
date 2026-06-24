@@ -7,6 +7,7 @@ All notable changes to this project will be documented in this file.
 ### Added
 
 - Project configuration validation: `phel config` reports problems in a dedicated "Validation" section (directories that must be relative, missing source/test directories, no source directories, unknown optimization levels, wrong-type values), and `phel doctor` checks the config too, failing on errors and surfacing warnings as tips (#2600, #2601, #2602, #2603)
+- `phel build --timing` prints per-phase compile wall-clock (lex/parse/read/analyze/emit) aggregated across all compiled namespaces, with each phase's share and a total — the repeatable, compile-only number to quote before/after a compiler-phase optimization. Pair with `--no-cache` for a full measurement; composes with `--report` (#2615)
 
 ### Changed
 

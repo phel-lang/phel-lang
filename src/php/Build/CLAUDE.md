@@ -8,6 +8,7 @@ Compiles Phel projects to PHP: dependency resolution, caching, namespace extract
 - `getDependenciesForNamespace(array $dirs, array $ns)`: topologically sorted dependencies
 - `compileFile(src, dest)` / `evalFile(src)` / `compileProject(BuildOptions)`: compile to PHP (evalFile skips writing output)
 - `phel build --report` builds a `BuildReport` (`Domain/Compile/BuildReport` + `BuildReportEntry`) from the returned `CompiledFile[]` + build duration: namespace count, per-namespace compiled byte size (read from each target file), total size, fresh/cached counts. Pure VO with `toArray()`; the command renders it
+- `phel build --timing` installs `Infrastructure/Timing/PhaseTimingProfilerHook` as `Registry::$profilerHook` around `compileProject` (reset in `finally`) to sum the compiler's per-phase wall-clock (lex/parse/read/analyze/emit) across compiled namespaces, rendered as `Domain/Compile/PhaseTimingReport`. The hook's `wrapFn()` is a deliberate no-op — a build evaluates `def`/`defmacro` while compiling, so wrapping those fns in profiling proxies (what the runtime profiler does) would bake instrumentation into the emitted output. Pair with `--no-cache` for a full, comparable measurement
 - `clearCache(): string[]`: paths cleared from temp/cache dirs
 - `getHealthCheck()`: cache, output, source dir checks
 - `writeLocatedException` / `writeStackTrace` / `getOutputDirectory`: delegate to Command facade
