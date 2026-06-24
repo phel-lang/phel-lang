@@ -17,7 +17,7 @@ Core compilation pipeline: Phel source to tokens to AST to analyzed nodes to PHP
 
 ## Dependencies
 
-Filesystem (file I/O); Config (`PhelConfig` data model, wrapped by `CompilerConfig`); Shared (`Munge`, `Printer`, exceptions). `CompilerConfig` exposes `assertsEnabled()`, `warnDeprecationsEnabled()`.
+Filesystem (file I/O); Config (`PhelConfig` data model, wrapped by `CompilerConfig`); Shared (`Munge`, `Printer`, exceptions). `CompilerConfig` exposes `assertsEnabled()`, `warnDeprecationsEnabled()`, `isIntermediateCacheEnabled()`, `getCacheDir()`.
 
 ## Phase Pipeline
 
@@ -26,6 +26,8 @@ Lexer (source → `TokenStream`) → Parser (→ `FileNode` parse tree) → Read
 **Simplification pass** (runs after `ConstantFolder`): drops pure non-tail expressions from `(do ...)` via `PureExpressionDetector`; inlines calls at opt level >= 2 via `CallInliner` (delegates purity to `ConstantFolder` for known calls, `SymbolicPurityDetector` for structural checks). `^:pure` metadata opts a `defn` into inlining trust (author responsibility for correctness).
 
 Note: lexer `Token` and parse-tree nodes live in `Phel\Shared\Parser\Node`; `ExpressionParserFactory` produces them (sub-parsers in `Domain/Parser/ExpressionParser/`).
+
+**Reader-result cache** (opt-in, off by default — `CompilerConfig::isIntermediateCacheEnabled()`): `CodeCompiler` persists each source's read results via `Domain/Cache/ReaderResultCacheInterface`. `Infrastructure/Cache/FileSystemReaderResultCache` (gzip'd `serialize` under `<cacheDir>/read-result/`, key = `md5(version|optLevel|source)`) is used when enabled; otherwise `NullReaderResultCache`. A warm hit skips lex/parse/read and replays each form's recorded read-phase gensym delta (`Domain/Cache/CachedReaderResult` = `ReaderResult` + delta) before analysis, so the shared `Symbol::gen()` counter follows the cold-compile trajectory and emitted PHP stays byte-identical. Wired only into `createCodeCompilerForCache` (the build path), never the REPL path.
 
 ## Key Constraints
 
