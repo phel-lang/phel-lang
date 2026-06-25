@@ -195,6 +195,29 @@ final class CallInlinerTest extends TestCase
         self::assertNotSame('y_shadow', $binding->getShadow()->getName());
     }
 
+    public function test_rebased_nested_let_env_captures_introduced_shadows(): void
+    {
+        // (defn f [x] (let [y x] (let [w y] (+ w x)))) called with caller
+        // local z. `x` is used twice, so it binds to a fresh shadow. The
+        // inner let emits an IIFE in expression context, so its env must
+        // carry the rebased `x` shadow as a local — otherwise the closure's
+        // `use(...)` clause omits it and it reads as undefined (#2622).
+        $this->seedDefn('f', ['x'], $this->doubleNestedLetBody('x'));
+
+        $result = $this->inline('f', [new LocalVarNode($this->env, Symbol::create('z'))]);
+
+        self::assertInstanceOf(LetNode::class, $result);
+        $paramShadow = $result->getBindings()[0]->getShadow()->getName();
+
+        $deepest = $this->deepestLetNode($result);
+        $localNames = array_map(
+            static fn(Symbol $local): string => $local->getName(),
+            $deepest->getEnv()->getLocals(),
+        );
+
+        self::assertContains($paramShadow, $localNames);
+    }
+
     public function test_declines_impure_body(): void
     {
         // (defn log-it [x] (println x)) -> body is side-effecting
@@ -366,6 +389,59 @@ final class CallInlinerTest extends TestCase
         $let = new LetNode($this->env, [$binding], $letInner, false);
 
         return new DoNode($this->env, [], $let);
+    }
+
+    private function doubleNestedLetBody(string $param): DoNode
+    {
+        // (let [y <param>] (let [w y] (+ w <param>))) — <param> is used
+        // twice (the inner binding init and the sum), so it binds to a
+        // shadow, and the inner let nests inside the outer one.
+        $outerShadow = Symbol::create('y_shadow');
+        $innerShadow = Symbol::create('w_shadow');
+
+        $innerBinding = new BindingNode(
+            $this->env,
+            Symbol::create('w'),
+            $innerShadow,
+            new LocalVarNode($this->env, $outerShadow),
+        );
+
+        $innerBody = new DoNode($this->env, [], new CallNode(
+            $this->env,
+            new GlobalVarNode($this->env, CompilerConstants::PHEL_CORE_NAMESPACE, Symbol::create('+'), Phel::map()),
+            [
+                new LocalVarNode($this->env, $innerShadow),
+                new LocalVarNode($this->env, Symbol::create($param)),
+            ],
+        ));
+
+        $innerLet = new LetNode($this->env, [$innerBinding], $innerBody, false);
+
+        $outerBinding = new BindingNode(
+            $this->env,
+            Symbol::create('y'),
+            $outerShadow,
+            new LocalVarNode($this->env, Symbol::create($param)),
+        );
+
+        $outerLet = new LetNode(
+            $this->env,
+            [$outerBinding],
+            new DoNode($this->env, [], $innerLet),
+            false,
+        );
+
+        return new DoNode($this->env, [], $outerLet);
+    }
+
+    private function deepestLetNode(LetNode $node): LetNode
+    {
+        $body = $node->getBodyExpr();
+        if ($body instanceof DoNode) {
+            $body = $body->getRet();
+        }
+
+        return $body instanceof LetNode ? $this->deepestLetNode($body) : $node;
     }
 
     private function squareBody(string $param): DoNode
