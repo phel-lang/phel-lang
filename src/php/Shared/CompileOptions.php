@@ -21,6 +21,8 @@ final class CompileOptions
 
     public const bool DEFAULT_EMIT_ONLY = false;
 
+    public const bool DEFAULT_EMIT_AS_EXPRESSION = false;
+
     /**
      * Roadmap of optimisation levels gated behind this option:
      *
@@ -44,6 +46,8 @@ final class CompileOptions
     private bool $isEnableSourceMaps = self::DEFAULT_ENABLE_SOURCE_MAPS;
 
     private bool $emitOnly = self::DEFAULT_EMIT_ONLY;
+
+    private bool $emitAsExpression = self::DEFAULT_EMIT_AS_EXPRESSION;
 
     private int $optimizationLevel = self::DEFAULT_OPTIMIZATION_LEVEL;
 
@@ -91,6 +95,25 @@ final class CompileOptions
     public function setEmitOnly(bool $emitOnly): self
     {
         $this->emitOnly = $emitOnly;
+
+        return $this;
+    }
+
+    /**
+     * Top-level forms compile in statement context by default, where a folded
+     * pure value (`(+ 1 2)` → `3`) emits no PHP. Enabling this analyses them in
+     * expression context instead, so the discarded value surfaces as a PHP
+     * expression — used by `phel compile` to report what an otherwise-empty
+     * snippet reduces to.
+     */
+    public function isEmitAsExpression(): bool
+    {
+        return $this->emitAsExpression;
+    }
+
+    public function setEmitAsExpression(bool $emitAsExpression): self
+    {
+        $this->emitAsExpression = $emitAsExpression;
 
         return $this;
     }

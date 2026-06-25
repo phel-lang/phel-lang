@@ -52,6 +52,10 @@ final class CompileCommand extends Command
             ->setHelp(<<<'HELP'
 Prints the PHP a snippet/file/stdin compiles to, without running it.
 
+A pure top-level value (e.g. <comment>(+ 1 2)</comment> folds to <comment>3</comment>) is discarded in
+statement context and emits no PHP; in that case a note on stderr
+reports the value the snippet reduces to, and stdout stays empty.
+
 <info>Examples:</info>
   <comment>phel compile '(+ 1 2)'</comment>      Compile an inline expression
   <comment>echo '(println "hi")' | phel compile -</comment>   Compile from stdin

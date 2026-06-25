@@ -44,12 +44,15 @@ final class CompileCommandTest extends AbstractTestCommand
     public function test_compile_folds_pure_arithmetic_to_literal(): void
     {
         $tester = new CommandTester(new CompileCommand());
-        $tester->execute(['source' => '(+ 1 2)']);
+        $tester->execute(['source' => '(+ 1 2)'], ['capture_stderr_separately' => true]);
 
-        // Folded literal is elided in statement context by `LiteralEmitter`,
-        // so no PHP statement reaches the output — the runtime call is gone.
+        // Folded literal is elided in statement context by `LiteralEmitter`, so
+        // no PHP statement reaches stdout; the discarded value is reported on
+        // stderr instead via an expression-context re-compile.
         $tester->assertCommandIsSuccessful();
         self::assertSame('', $tester->getDisplay());
+        self::assertStringContainsString('no PHP emitted', $tester->getErrorOutput());
+        self::assertStringContainsString('`3`', $tester->getErrorOutput());
     }
 
     public function test_compile_unbalanced_parentheses_fails(): void
