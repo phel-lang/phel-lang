@@ -146,7 +146,7 @@ final readonly class CallInliner
         // shadow as an undefined variable (issue #2622).
         $bindings = [];
         $paramMap = [];
-        $rebaseEnv = $env;
+        $scopeEnv = $env;
         foreach ($params as $i => $param) {
             $arg = $args[$i];
             $name = $param->getName();
@@ -155,7 +155,7 @@ final readonly class CallInliner
                 $shadow = Symbol::gen($name . '_')->copyLocationFrom($param);
                 $bindings[] = new BindingNode($env, $param, $shadow, $arg, $callLocation);
                 $paramMap[$name] = new LocalVarNode($env, $shadow, $callLocation);
-                $rebaseEnv = $rebaseEnv->withMergedLocals([$shadow]);
+                $scopeEnv = $scopeEnv->withMergedLocals([$shadow]);
 
                 continue;
             }
@@ -173,7 +173,7 @@ final readonly class CallInliner
 
         // `rebase` can still abort (returning `null`) if the body holds a
         // node type outside the whitelist or a non-parameter local.
-        $inlined = $this->rebase($ret, new RebaseContext($rebaseEnv, $bodyContext, $callLocation, $paramMap, true));
+        $inlined = $this->rebase($ret, new RebaseContext($scopeEnv, $bodyContext, $callLocation, $paramMap, true));
         if (!$inlined instanceof AbstractNode) {
             return null;
         }
@@ -401,13 +401,13 @@ final readonly class CallInliner
         // init only sees the shadows of the bindings preceding it, matching
         // sequential `let` scoping.
         $paramMap = $ctx->paramMap;
-        $env = $ctx->env;
+        $scopeEnv = $ctx->env;
         $bindings = [];
         foreach ($node->getBindings() as $binding) {
             // Inits emit as expressions (`$shadow = <init>;`) and may
             // reference params or earlier bindings, so rebase them in
             // expression context with the substitutions accumulated so far.
-            $initCtx = new RebaseContext($env, NodeEnvironment::CONTEXT_EXPRESSION, $ctx->loc, $paramMap, true);
+            $initCtx = new RebaseContext($scopeEnv, NodeEnvironment::CONTEXT_EXPRESSION, $ctx->loc, $paramMap, true);
             $init = $this->rebase($binding->getInitExpr(), $initCtx);
             if (!$init instanceof AbstractNode) {
                 return null;
@@ -416,10 +416,10 @@ final readonly class CallInliner
             $shadow = Symbol::gen($binding->getShadow()->getName() . '_')->copyLocationFrom($binding->getShadow());
             $bindings[] = new BindingNode($ctx->targetEnv(), $binding->getSymbol(), $shadow, $init, $ctx->loc);
             $paramMap[$binding->getShadow()->getName()] = new LocalVarNode($ctx->env, $shadow, $ctx->loc);
-            $env = $env->withMergedLocals([$shadow]);
+            $scopeEnv = $scopeEnv->withMergedLocals([$shadow]);
         }
 
-        $bodyCtx = new RebaseContext($env, $bodyContext, $ctx->loc, $paramMap, true);
+        $bodyCtx = new RebaseContext($scopeEnv, $bodyContext, $ctx->loc, $paramMap, true);
         $body = $this->rebase($node->getBodyExpr(), $bodyCtx);
         if (!$body instanceof AbstractNode) {
             return null;
