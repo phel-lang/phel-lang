@@ -1,6 +1,6 @@
 # Compiler Module
 
-Core compilation pipeline: Phel source to tokens to AST to analyzed nodes to PHP code.
+Core compilation pipeline: Phel source → tokens → AST → analyzed nodes → PHP code.
 
 ## Public API (Facade)
 
@@ -17,52 +17,105 @@ Core compilation pipeline: Phel source to tokens to AST to analyzed nodes to PHP
 
 ## Dependencies
 
-Filesystem (file I/O); Config (`PhelConfig` data model, wrapped by `CompilerConfig`); Shared (`Munge`, `Printer`, exceptions). `CompilerConfig` exposes `assertsEnabled()`, `warnDeprecationsEnabled()`, `isIntermediateCacheEnabled()`, `getCacheDir()`.
+- **Filesystem** — file I/O.
+- **Config** — `PhelConfig` data model, wrapped by `CompilerConfig` (`assertsEnabled()`, `warnDeprecationsEnabled()`, `isIntermediateCacheEnabled()`, `getCacheDir()`).
+- **Shared** — `Munge`, `Printer`, exceptions.
 
 ## Phase Pipeline
 
 Lexer (source → `TokenStream`) → Parser (→ `FileNode` parse tree) → Reader (→ `ReaderResult` Phel data) → Analyzer (→ `AbstractNode` AST with `NodeEnvironment`) → Simplifier (→ optimized AST) → Emitter (→ `EmitterResult` PHP code).
 
-**Simplification pass** (runs after `ConstantFolder`): drops pure non-tail expressions from `(do ...)` via `PureExpressionDetector`; inlines calls at opt level >= 2 via `CallInliner` (delegates purity to `ConstantFolder` for known calls, `SymbolicPurityDetector` for structural checks). `^:pure` metadata opts a `defn` into inlining trust (author responsibility for correctness).
+- Lexer `Token` and parse-tree nodes live in `Phel\Shared\Parser\Node`; `ExpressionParserFactory` produces them (sub-parsers in `Domain/Parser/ExpressionParser/`).
 
-Note: lexer `Token` and parse-tree nodes live in `Phel\Shared\Parser\Node`; `ExpressionParserFactory` produces them (sub-parsers in `Domain/Parser/ExpressionParser/`).
+### Simplification pass
 
-**Reader-result cache** (opt-in, off by default — `CompilerConfig::isIntermediateCacheEnabled()`): `CodeCompiler` persists each source's read results via `Domain/Cache/ReaderResultCacheInterface`. `Infrastructure/Cache/FileSystemReaderResultCache` (gzip'd `serialize` under `<cacheDir>/read-result/`, key = `md5(version|optLevel|source)`) is used when enabled; otherwise `NullReaderResultCache`. A warm hit skips lex/parse/read and replays each form's recorded read-phase gensym delta (`Domain/Cache/CachedReaderResult` = `ReaderResult` + delta) before analysis, so the shared `Symbol::gen()` counter follows the cold-compile trajectory. Replayed forms are deserialized Phel values, so anything used as a map key must compare by value, not identity (`Keyword::equals`/`Symbol::equals`) — else a cached keyword-keyed lookup silently misses on replay. Emitted PHP is stable for a given counter trajectory, but gensym names are process-global, so a build mixing fresh compiles with compiled-code-cache hits can renumber them (pre-existing, independent of this cache). Wired only into `createCodeCompilerForCache` (the build path), never the REPL path.
+Runs after `ConstantFolder` (in `Domain/Analyzer/TypeAnalyzer/Simplification/`):
+
+- Drops pure non-tail expressions from `(do ...)` via `PureExpressionDetector`.
+- Inlines calls at opt level >= 2 via `CallInliner` (purity from `ConstantFolder` for known calls, `SymbolicPurityDetector` for structural checks).
+- `^:pure` metadata opts a `defn` into inlining trust (author owns correctness).
+
+### Reader-result cache
+
+Opt-in, off by default (`CompilerConfig::isIntermediateCacheEnabled()`). Wired only into `createCodeCompilerForCache` (build path), never the REPL path.
+
+- `CodeCompiler` persists each source's read results via `Domain/Cache/ReaderResultCacheInterface`.
+- Enabled → `Infrastructure/Cache/FileSystemReaderResultCache` (gzip'd `serialize` under `<cacheDir>/read-result/`, key = `md5(version|optLevel|source)`); else `NullReaderResultCache`.
+- Warm hit skips lex/parse/read and replays each form's recorded read-phase gensym delta (`Domain/Cache/CachedReaderResult` = `ReaderResult` + delta) before analysis, so the shared `Symbol::gen()` counter follows the cold-compile trajectory.
+- GOTCHA: replayed forms are deserialized Phel values, so anything used as a map key must compare by value, not identity (`Keyword::equals`/`Symbol::equals`) — else a cached keyword-keyed lookup silently misses on replay.
+- Emitted PHP is stable for a given counter trajectory, but gensym names are process-global; a build mixing fresh compiles with compiled-code-cache hits can renumber them (pre-existing, independent of this cache).
 
 ## Key Constraints
 
-- Never bypass a phase; each consumes only output of the previous
-- Analyzer nodes must carry `NodeEnvironment` with correct context
-- Emitter must handle every node type; missing cases throw, not silently skip
-- Special forms registered centrally; no ad-hoc handling in analyzer loop
-- Source locations must propagate through all phases for error reporting
-- `GlobalEnvironmentSingleton` FQN is baked into cached `.phel` files; do not rename
-- `LoadEmitter` bakes `Phel\Lang\LoadClasspath::class` (the `(load ...)` classpath store) into generated PHP; the class lives in `Lang` because its state is the `*load-classpath*` slot in `Lang\Registry`. Do not rename.
+- Never bypass a phase; each consumes only output of the previous.
+- Analyzer nodes must carry `NodeEnvironment` with correct context.
+- Emitter must handle every node type; missing cases throw, not silently skip.
+- Special forms registered centrally; no ad-hoc handling in analyzer loop.
+- Source locations must propagate through all phases for error reporting.
+- Do NOT rename `GlobalEnvironmentSingleton` — its FQN is baked into cached `.phel` files.
+- Do NOT rename `LoadEmitter`'s `Phel\Lang\LoadClasspath::class` (the `(load ...)` classpath store) — `LoadEmitter` bakes its FQN into generated PHP. It lives in `Lang` because its state is the `*load-classpath*` slot in `Lang\Registry`.
 
 ## Type-Specialized Emission
 
-Analyzer tracks param and return types via `ParamTypeInferrer`, `ReturnTypeInferrer`, grafting `:tag` meta onto binding symbols. Call-site *eligibility* lives on `*Specialization` classes (`NumericOperationSpecialization`, `TypePredicateSpecialization`, `TypedValueSpecialization`, `TypedCollectionMethodSpecialization`, `AssocConjSpecialization`, `GetInSpecialization`, `AtomMethodSpecialization`, `NilAndBooleanCheckSpecialization`); `CallSpecialization` aggregates them. The matching PHP *emission* lives on per-family collaborators under `NodeEmitter/Specialized/` (one `*CallEmitter implements SpecializedCallEmitterInterface` per eligibility class); `CallEmitter` builds them once and dispatches by looping `tryEmit()` over them before the generic call path. Family predicates are disjoint, so chain order between families is not significant. Add a new specialization family as a `*Specialization` eligibility class, register it in `CallSpecialization::isSpecialized()`, and add the matching `Specialized/*CallEmitter` to `CallEmitter`'s ordered list. Contract: propagate only analyzer-published types, never fabricate.
+Analyzer tracks param/return types via `ParamTypeInferrer` and `ReturnTypeInferrer`, grafting `:tag` meta onto binding symbols. Contract: propagate only analyzer-published types, never fabricate.
+
+Two halves, by family:
+
+- **Eligibility** — `*Specialization` classes in `Domain/Emitter/OutputEmitter/`: `NumericOperationSpecialization`, `TypePredicateSpecialization`, `TypedValueSpecialization`, `TypedCollectionMethodSpecialization`, `AssocConjSpecialization`, `GetInSpecialization`, `AtomMethodSpecialization`, `NilAndBooleanCheckSpecialization`. `CallSpecialization` aggregates them.
+- **Emission** — one `Specialized/*CallEmitter implements SpecializedCallEmitterInterface` per family under `NodeEmitter/Specialized/`. `CallEmitter` builds them once and dispatches by looping `tryEmit()` before the generic call path.
+
+Family predicates are disjoint, so chain order between families is not significant.
+
+To add a family: write a `*Specialization` eligibility class, register it in `CallSpecialization::isSpecialized()`, and add the matching `Specialized/*CallEmitter` to `CallEmitter`'s ordered list.
 
 ## Generated-Class Attributes & Typed Signatures
 
-`DefStructEmitter` and `DefInterfaceEmitter` read per-symbol metadata to enrich the PHP they generate, sharing `PhpAttributeEmitterTrait` (tag + `:php/attr` reading) and the pure `Phel\Shared\PhpAttributeRenderer`. A `:tag` value can be a bare symbol/string (verbatim, so `?int`/`self`/`\DateTime` pass through), a list (union → `a|b`), or a vector (intersection → `a&b`):
+`DefStructEmitter`, `DefInterfaceEmitter`, and `DefEnumEmitter` read per-symbol metadata to enrich generated PHP. They share `PhpAttributeEmitterTrait` (tag + `:php/attr` reading) and the pure `Phel\Shared\PhpAttributeRenderer`. All opt-in; untagged forms are byte-identical to before.
 
-- `defstruct`: a field's `^{:tag <type>}` emits a typed property (`protected int $id;`); `^{:php/attr [...]}` on the struct name (class-level) or a field (property-level) emits PHP 8 attributes. `^{:php/json true}` on the struct name implements `\JsonSerializable` (emitting a `jsonSerialize()` that returns the field map) and `^{:php/stringable true}` declares `\Stringable`. `^:php/readonly` on the struct name emits `readonly` typed properties (untagged fields default to `readonly mixed`) and a constructor-rebuilding `put()` override so persistent updates keep working; the class stays a plain `final class` (it cannot be a PHP `readonly class` because `AbstractPersistentStruct` is not readonly). A `:php` marker opens a block of bare PHP magic methods (`__invoke`/`__toString`/`__get`) emitted on the class with no interface (`PhpBlockAnalyzer`, carried as a `DefStructInterface` with empty name that `DefStructEmitter` drops from `implements`); a custom `__invoke` must be 1-arg or variadic (`PhpBlockAnalyzer` rejects bad arity).
-- `definterface`: a method's arg `^{:tag <type>}` emits a typed param and the method name's `:tag` the return type; `^{:php/attr [...]}` on the interface name, a method, or a method **parameter** emits interface-/method-/parameter-level attributes (the parameter form is emitted inline: `show(#[\Autowire] string $repo)`). A trailing `:php/const` block declares typed class constants: `:php/const (^{:tag int} MAX 100)` → `const int MAX = 100;` (value must be an int/float/string/bool/nil literal; `DefInterfaceSymbol`/`PhpClassConst`/`DefInterfaceEmitter`). The `definterface` macro only wraps method forms in Phel fns; the const block passes through to `definterface*` only.
-- `defenum` (`defenum*`, `DefEnumSymbol`/`DefEnumNode`/`DefEnumEmitter`): emits a native PHP `enum`; cases are keyword-named with an optional `int`/`string` value (all-or-none → backed vs pure enum), and `^{:php/attr [...]}` on the enum name emits class-level attributes. After the cases, an optional implementations tail (interface symbols + their methods, and a `:php` block of plain/magic methods) is parsed via the shared `InterfaceImplementationsAnalyzer` (also used by `defstruct`) and emitted as `implements` + methods via `MethodEmitter`. Guarded by `enum_exists`.
+`:tag` value forms: bare symbol/string = verbatim (`?int`/`self`/`\DateTime` pass through); list = union (`a|b`); vector = intersection (`a&b`).
 
-The interface + `:php`-block parsing shared by `defstruct` and `defenum` lives in `InterfaceImplementationsAnalyzer` (interface symbols are reflection-validated; `:php` blocks become a `DefStructInterface` with an empty name). `PhpBlockAnalyzer::analyze` takes an `enforceInvokeArity` flag (true only for structs, whose map `__invoke` constrains arity).
+### defstruct (`DefStructEmitter`)
 
-`^{:php/doc <str|[str...]>}` on any of those names/fields/methods emits a PHPDoc block (one-line string or multi-line list/vector) above the construct, so phpstan/psalm see generated classes as typed.
+- Field `^{:tag <type>}` → typed property (`protected int $id;`).
+- `^{:php/attr [...]}` on struct name (class-level) or field (property-level) → PHP 8 attributes.
+- `^{:php/json true}` on struct name → implements `\JsonSerializable` (`jsonSerialize()` returns the field map).
+- `^{:php/stringable true}` on struct name → declares `\Stringable`.
+- `^:php/readonly` on struct name → `readonly` typed properties (untagged fields default `readonly mixed`) + a constructor-rebuilding `put()` override so persistent updates work. Stays a plain `final class` (cannot be a PHP `readonly class` because `AbstractPersistentStruct` is not readonly).
+- `:php` marker opens a block of bare PHP magic methods (`__invoke`/`__toString`/`__get`) emitted on the class with no interface (`PhpBlockAnalyzer`, carried as a `DefStructInterface` with empty name that `DefStructEmitter` drops from `implements`). Custom `__invoke` must be 1-arg or variadic (`PhpBlockAnalyzer` rejects bad arity).
 
-`^:php/override` on a method (defstruct/defenum interface impls, definterface methods) is sugar for `#[\Override]` (PHP 8.3); `PhpAttributeEmitterTrait::phpAttributeLines` renders it ahead of any explicit `:php/attr` lines. Struct/enum inline method impls emit method-level `:php/attr`/`:php/doc`/`^:php/override` too.
+### definterface (`DefInterfaceEmitter`)
 
-All opt-in; untagged forms are byte-identical to before. Export wrappers carry the same `:php/attr` via `Interop`'s `CompiledPhpMethodBuilder` (see `src/php/Interop/CLAUDE.md`).
+- Method arg `^{:tag <type>}` → typed param; method name `:tag` → return type.
+- `^{:php/attr [...]}` on interface name, method, or method **parameter** → interface-/method-/parameter-level attributes (parameter form inlined: `show(#[\Autowire] string $repo)`).
+- Trailing `:php/const` block → typed class constants: `:php/const (^{:tag int} MAX 100)` → `const int MAX = 100;` (value must be int/float/string/bool/nil literal; `DefInterfaceSymbol`/`PhpClassConst`/`DefInterfaceEmitter`).
+- The `definterface` macro only wraps method forms in Phel fns; the const block passes through to `definterface*` only.
+
+### defenum (`defenum*`, `DefEnumSymbol`/`DefEnumNode`/`DefEnumEmitter`)
+
+- Emits a native PHP `enum`; cases are keyword-named with an optional `int`/`string` value (all-or-none → backed vs pure enum). Guarded by `enum_exists`.
+- `^{:php/attr [...]}` on enum name → class-level attributes.
+- Optional implementations tail after cases (interface symbols + methods, plus a `:php` block) parsed via shared `InterfaceImplementationsAnalyzer`, emitted as `implements` + methods via `MethodEmitter`.
+
+### Shared across constructs
+
+- `InterfaceImplementationsAnalyzer` (used by `defstruct` and `defenum`) parses interface symbols (reflection-validated) and `:php` blocks (become a `DefStructInterface` with empty name).
+- `PhpBlockAnalyzer::analyze` takes an `enforceInvokeArity` flag (true only for structs, whose map `__invoke` constrains arity).
+- `^{:php/doc <str|[str...]>}` on any name/field/method → PHPDoc block (one-line string or multi-line list/vector) above the construct, so phpstan/psalm see generated classes as typed.
+- `^:php/override` on a method (defstruct/defenum interface impls, definterface methods) → `#[\Override]` (PHP 8.3); `PhpAttributeEmitterTrait::phpAttributeLines` renders it ahead of explicit `:php/attr` lines. Struct/enum inline method impls emit method-level `:php/attr`/`:php/doc`/`^:php/override` too.
+- Export wrappers carry the same `:php/attr` via `Interop`'s `CompiledPhpMethodBuilder` (see `src/php/Interop/CLAUDE.md`).
 
 ## Global Environment
 
-Process-wide singleton in `Domain/Analyzer/Environment/GlobalEnvironmentRegistry`. `GlobalEnvironmentManager` (Application) and `GlobalEnvironmentSingleton` (Infrastructure) both read/write the same slot. `GlobalEnvironmentSingleton` is retained as ABI shim; emitter writes literal calls to `\Phel\Compiler\Infrastructure\GlobalEnvironmentSingleton::getInstance()` into generated PHP (baked into cached `.phel` files).
+Process-wide singleton in `Domain/Analyzer/Environment/GlobalEnvironmentRegistry`.
+
+- `GlobalEnvironmentManager` (Application) and `GlobalEnvironmentSingleton` (Infrastructure) both read/write the same slot.
+- `GlobalEnvironmentSingleton` is retained as ABI shim; emitter writes literal `\Phel\Compiler\Infrastructure\GlobalEnvironmentSingleton::getInstance()` calls into generated PHP (baked into cached `.phel` files — see rename constraint above).
 
 ## Namespace Encoding
 
-Owned by `Phel\Shared\Munge` (see `src/php/Shared/CLAUDE.md`). Two encoders at different boundaries: `encodePhpNs` (backslash form, PHP `namespace` declarations and class FQNs) and `encodeRegistryKey` (dot form, Phel registry lookups). Analyzer uses dot-separated namespace internally; emission routes through `encodePhpNs` for PHP output.
+Owned by `Phel\Shared\Munge` (see `src/php/Shared/CLAUDE.md`). Two encoders at different boundaries:
+
+- `encodePhpNs` — backslash form, for PHP `namespace` declarations and class FQNs.
+- `encodeRegistryKey` — dot form, for Phel registry lookups.
+
+Analyzer uses dot-separated namespace internally; emission routes through `encodePhpNs` for PHP output.

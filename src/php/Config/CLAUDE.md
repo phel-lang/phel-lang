@@ -1,30 +1,43 @@
 # Config Module
 
-Pure data/model layer defining configuration structure for Phel projects. No Gacela pattern: leaf module; config classes are used directly by other modules' `*Config` classes via Gacela's `AbstractConfig`.
+Pure data/model layer defining configuration structure for Phel projects. Leaf module, **no Gacela pattern**: these classes are consumed directly by other modules' `*Config` classes via Gacela's `AbstractConfig`.
 
-## Key Classes
+## Structure
 
-### PhelConfig
+| File | Role |
+|------|------|
+| `PhelConfig.php` | Immutable `final readonly` config model (~640 LOC); `with*()` builder API |
+| `PhelBuildConfig.php` | Value object for build settings (key `out`) |
+| `PhelExportConfig.php` | Value object for export settings (key `export`) |
+| `ProjectLayout.php` | Backed enum: `Flat` / `Nested` / `Root` |
+| `PhelConfigValidator.php` | Validates src/test/vendor dirs; backs `PhelConfig::validate()` |
+| `ConfigLoadException.php` | `wrapIfConfigError()` rethrows errors originating from `phel-config.php` |
 
-Immutable `final readonly class` (~620 LOC). Every mutation returns a new instance via `with*()` methods (directory, layout, build, export, cache, flag setters); `withOptimizationLevel(int)` (key `optimization-level`, clamped >= 0) sets the compiler optimization level consumed by Build/Run (REPL/nREPL ignore it); `forProject(ProjectLayout = Flat, string $mainNamespace = '')` convenience constructor; `validate(): list<string>` (empty if valid); `jsonSerialize()`.
+## PhelConfig API
 
-**Removed (breaking)**: the `setX()` setters and `useLayout()`/`useNestedLayout()`/`useFlatLayout()` aliases (deprecated since 0.37) were removed; use the `with*()` methods. The `PhelConfigDeprecations` trait is gone.
+- `forProject(ProjectLayout = Flat, string $mainNamespace = '')` — convenience constructor; sets layout, optionally main phel namespace.
+- `with*()` setters — directory, layout, build, export, cache, flag mutations. Each returns a NEW instance.
+- `withOptimizationLevel(int)` — key `optimization-level`, clamped `>= 0`; consumed by Build/Run (REPL/nREPL ignore it).
+- `withPhelDir(string)` — state directory (`.phel/` default); honors `PHEL_DIR` env var as override.
+- `validate(): list<string>` — empty list if valid.
+- `jsonSerialize(): array`.
 
-### PhelBuildConfig / PhelExportConfig
+PhelBuildConfig: `withMainPhelNamespace` / `withMainPhpPath` / `withDestDir`.
+PhelExportConfig: `withFromDirectories` / `withNamespacePrefix` / `withTargetDirectory`.
 
-Immutable value objects (`withMainPhelNamespace`/`withMainPhpPath`/`withDestDir`; `withFromDirectories`/`withNamespacePrefix`/`withTargetDirectory`).
+## ProjectLayout
 
-### ProjectLayout (enum)
-
-- `Flat`: `src`, `tests` (default)
-- `Nested`: `src/phel`, `tests/phel` (PHP under `src/php/`)
-- `Root`: `.`, `.` (single-file or scratch)
+| Case | src / test dirs |
+|------|-----------------|
+| `Flat` (default) | `src`, `tests` |
+| `Nested` | `src/phel`, `tests/phel` (PHP lives under `src/php/`) |
+| `Root` | `.`, `.` (single-file / scratch) |
 
 `withLayout(ProjectLayout)` resets src/test/format/export-from dirs per layout.
 
 ## Key Constraints
 
-- Config constants (e.g. `PhelConfig::SRC_DIRS`) are keys in Gacela's config system; never rename
-- `jsonSerialize()` wire format (all three classes) is Gacela's `AbstractConfig::get()` contract; never change keys/casing
-- `with*()` methods return new instances; callers must capture: `$config = $config->withX(...)`
-- `withPhelDir()` honors `PHEL_DIR` env var as override for state directory (`.phel/` default)
+- Config constants (e.g. `PhelConfig::SRC_DIRS = 'src-dirs'`) are Gacela config keys — never rename.
+- `jsonSerialize()` wire keys/casing (all three classes) are Gacela's `AbstractConfig::get()` contract — never change.
+- `with*()` returns a new instance; callers MUST capture: `$config = $config->withX(...)`.
+- **Removed (breaking, deprecated since 0.37):** `setX()` setters, `useLayout()`/`useNestedLayout()`/`useFlatLayout()` aliases, and the `PhelConfigDeprecations` trait. Use `with*()` instead.

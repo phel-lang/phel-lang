@@ -1,31 +1,90 @@
 # Build Module
 
-Compiles Phel projects to PHP: dependency resolution, caching, namespace extraction.
+Compiles Phel projects to PHP: namespace extraction, dependency ordering, and caching.
 
 ## Public API (Facade)
 
-- `getNamespaceFromFile(string)` / `getNamespaceFromDirectories(array)`: extract `NamespaceInformation` (the VO lives in `Phel\Shared`, not here; Build produces it)
-- `getDependenciesForNamespace(array $dirs, array $ns)`: topologically sorted dependencies
-- `compileFile(src, dest)` / `evalFile(src)` / `compileProject(BuildOptions)`: compile to PHP (evalFile skips writing output)
-- `phel build --report` builds a `BuildReport` (`Domain/Compile/BuildReport` + `BuildReportEntry`) from the returned `CompiledFile[]` + build duration: namespace count, per-namespace compiled byte size (read from each target file), total size, fresh/cached counts. Pure VO with `toArray()`; the command renders it
-- `phel build --timing` installs `Infrastructure/Timing/PhaseTimingProfilerHook` as `Registry::$profilerHook` around `compileProject` (reset in `finally`) to sum the compiler's per-phase wall-clock (lex/parse/read/analyze/emit) across compiled namespaces, rendered as `Domain/Compile/PhaseTimingReport`. The hook's `wrapFn()` is a deliberate no-op — a build evaluates `def`/`defmacro` while compiling, so wrapping those fns in profiling proxies (what the runtime profiler does) would bake instrumentation into the emitted output. Pair with `--no-cache` for a full, comparable measurement
-- `clearCache(): string[]`: paths cleared from temp/cache dirs
-- `getHealthCheck()`: cache, output, source dir checks
-- `writeLocatedException` / `writeStackTrace` / `getOutputDirectory`: delegate to Command facade
+| Method | Notes |
+|--------|-------|
+| `getNamespaceFromFile(string)` / `getNamespaceFromDirectories(array)` | Extract `NamespaceInformation` (VO lives in `Phel\Shared`; Build produces it) |
+| `getDependenciesForNamespace(array $dirs, array $ns)` | Topologically sorted dependencies |
+| `compileFile(src, dest)` | Compile to PHP, write output |
+| `evalFile(src)` | Same as `compileFile` but skips writing output |
+| `compileProject(BuildOptions)` | Returns `CompiledFile[]` |
+| `clearCache()` | Returns `string[]` paths cleared from temp/cache dirs |
+| `getHealthCheck()` | Cache, output, source dir checks |
+| `enableBuildMode()` / `disableBuildMode()` / `isBuildMode()` | Static; toggles `*build-mode*` via direct `Registry` write (avoids `Phel::__callStatic` on the hot `(load ...)` path) |
+| `writeLocatedException` / `writeStackTrace` / `getOutputDirectory` | Delegate to Command facade |
 
 ## Dependencies
 
-Compiler (Phel-to-PHP compilation), Command (output/source dirs, error formatting).
+| Facade | Used for |
+|--------|----------|
+| `FACADE_COMPILER` | Phel-to-PHP compilation |
+| `FACADE_COMMAND` | Output/source dirs, error formatting |
+
+## Structure
+
+| Path | Role |
+|------|------|
+| `Application/ProjectCompiler` | Orchestrates project build, cache invalidation cascade |
+| `Application/FileEvaluator` | Singleton; eval single file, precompiled-sibling fast path |
+| `Application/FileCompiler` | Compile single file to PHP |
+| `Application/DependenciesForNamespace` | Per-process memoized dependency resolution |
+| `Application/CachedNamespaceExtractor` | Skips dir walk via scan index |
+| `Application/CacheClearer` | Clears `<cacheDir>` |
+| `Domain/Extractor/TopologicalNamespaceSorter` | Dependency-order compilation |
+| `Domain/Compile/BuildReport` + `BuildReportEntry` | `--report` VO (`toArray()`); command renders it |
+| `Domain/Compile/PhaseTimingReport` | `--timing` per-phase wall-clock report |
+| `Domain/Compile/SecondaryFileHarvester` | Harvests cached `.php` siblings into the build output tree |
+| `Infrastructure/Cache/CompiledCodeCache` | Compiled-code cache policy orchestrator |
+| `Infrastructure/Cache/PhpScanIndexCache` / `NullScanIndexCache` | Persisted dir-scan index |
+| `Infrastructure/Cache/PhpNamespaceCache` / `NullNamespaceCache` | Namespace-extraction cache |
+| `Infrastructure/Timing/PhaseTimingProfilerHook` | `--timing` profiler hook |
+| `Infrastructure/Command/BuildCommand` / `CacheClearCommand` | CLI |
 
 ## Key Constraints
 
-- Two-level caching: namespace extraction (optional) + compiled code (optional)
-- Persisted directory-scan index: `Infrastructure/Cache/PhpScanIndexCache` (`<cacheDir>/scan-index.php`, implements `Domain/Cache/ScanIndexCacheInterface`; `NullScanIndexCache` when disabled) lets `CachedNamespaceExtractor` skip the `RecursiveDirectoryIterator` walk across processes. Keyed by the resolved dir-set; validated by per-directory `mtime` + phel-file count (catches same-second add/remove) AND the authoritative per-file `mtime` in each `ScanIndexEntry` (catches in-place edits), so ns/dependency info is never served stale. Mirrors `PhpNamespaceCache` (var_export + flock + disk-merge + `register_shutdown_function`). Injected via `BuildFactory::createScanIndexCache()`; path from `BuildConfig::getScanIndexCacheFile()`; cleared with the rest of `<cacheDir>` by `CacheClearer`. `DependenciesForNamespace` additionally memoizes per `(dirs, seeds)` within a process so the three root callers (`FileRunner`, `DataReadersLoader`, `NamespaceLoader`) don't each re-derive
-- `FileEvaluator` compiles with source maps enabled and caches `getCodeWithSourceMap()`, so runtime errors from cache-loaded namespaces still map back to `.phel` locations via the inline `// `/`// ;;` header comments
-- `Infrastructure/Cache/CompiledCodeCache` is the policy orchestrator; delegates to `CacheDirectory` (layout), `CacheIndexFile` (index load/save/merge), `NamespaceEnvironmentStore` (env data), `CachePathResolver`, `AtomicFileWriter`. `put`/`invalidate` only mutate the in-memory index and mark it dirty; the index is flushed to disk **exactly once per process at shutdown** via `register_shutdown_function` (mirrors `PhpNamespaceCache`), so a cold build's index I/O is O(N) not O(N²). The flush goes through `CacheIndexFile::save()` which keeps the atomic-write + `flock` + read-merge-from-disk step, so concurrent `phel test` workers still merge without lost entries. Compiled `.php` files are still written eagerly by `AtomicFileWriter`, so a crash before shutdown costs at most a recompile (lost index entry), never corruption. `clear()` writes the (empty) index eagerly and resets the dirty flag. Tests that need cross-instance disk persistence in the same process must call `save()` explicitly (what a real process does at shutdown)
-- `TopologicalNamespaceSorter` orders compilation to resolve dependencies. `ProjectCompiler` relies on this dependency order for cache invalidation: it tracks namespaces recompiled during a run and forces a recompile of any dependent whose `getDependencies()` includes one of them (`dependsOnRecompiled`), even when the dependent's own source mtime is unchanged. This cascades transitively in a single pass and prevents a changed macro from leaving a stale expansion baked into a dependent's compiled file
-- `FileEvaluator` is singleton; repeated `(load ...)` calls reuse instance to preserve compiled-code index
-- Auto-detect main namespace: scans source dirs for `core.phel` or `main.phel`
-- Output directory pruned from extraction to prevent namespace shadowing
-- Optimization level: `BuildConfig::getOptimizationLevel()` (key `PhelConfig::OPTIMIZATION_LEVEL`) is injected into `FileCompiler` (constructor default; per-call override wins, used by `phel build -O`) and `FileEvaluator` (also mixed into the compiled-code cache hash when > 0). `ProjectCompiler` records the level in `<out>/.phel-optimization-level` and forces a recompile when it changes, because the incremental cache is mtime-only; level 0 leaves no marker
-- Precompiled-sibling fast path: before the compiled-code cache, `FileEvaluator::evalFile` checks for a `phel build`-style `<name>.php` next to the `<name>.phel`/`.cljc` source (detected via the `BuiltFilePreamble` marker). If present it `require`s it directly and returns, skipping the whole pipeline and the cache. This is how the PHAR ships `phel.core` precompiled (siblings added by `build/build-phar.php::addPrecompiledStdlibSiblings`): running the compiled file populates the runtime registry (defs + macro meta), which is all the analyzer needs to resolve those symbols when later compiling user code. Inert when no sibling exists (plain source / composer checkouts). A namespace may only be bundled together with its full transitive `(:require ...)` closure, since FILE-mode output `require_once`s its dependency siblings directly — `phel.core` qualifies because it is self-contained. The fast path (and the emitted `(load ...)` `.php` preference) is disabled while `*build-mode*` is on, so `phel build` recompiles + harvests the stdlib into its output tree instead of short-circuiting to the bundle; `PhelSourceLoader::load` preserves an outer build mode so it stays on across every `(load ...)` of a build
+### Caching (two levels: namespace extraction + compiled code, each optional)
+
+- **Compiled-code cache** (`CompiledCodeCache`) is the policy orchestrator; delegates to `CacheDirectory` (layout), `CacheIndexFile` (index load/save/merge), `NamespaceEnvironmentStore` (env data), `CachePathResolver`, `AtomicFileWriter`.
+- `put`/`invalidate` only mutate the in-memory index + mark it dirty; the index flushes to disk **exactly once per process at shutdown** via `register_shutdown_function` (`DeferredFlushTrait`), so cold-build index I/O is O(N) not O(N²). Flush goes through `CacheIndexFile::save()` (atomic-write + `flock` + read-merge-from-disk), so concurrent `phel test` workers merge without lost entries.
+- Compiled `.php` files are still written eagerly by `AtomicFileWriter`, so a crash before shutdown costs at most a recompile (lost index entry), never corruption. `clear()` writes the empty index eagerly + resets the dirty flag.
+- **Test gotcha:** tests needing cross-instance disk persistence in the same process must call `save()` explicitly (what a real process does at shutdown).
+- **Scan-index cache** (`PhpScanIndexCache`, `<cacheDir>/scan-index.php`, impl `ScanIndexCacheInterface`; `NullScanIndexCache` when disabled) lets `CachedNamespaceExtractor` skip the `RecursiveDirectoryIterator` walk across processes. Keyed by resolved dir-set; validated by per-directory `mtime` + phel-file count (catches same-second add/remove) AND per-file `mtime` in each `ScanIndexEntry` (catches in-place edits) — never serves stale ns/dependency info. Mirrors `PhpNamespaceCache` (var_export + flock + disk-merge + shutdown flush). Injected via `BuildFactory::createScanIndexCache()`; path from `BuildConfig::getScanIndexCacheFile()`; cleared by `CacheClearer`.
+- `DependenciesForNamespace` memoizes per `(dirs, seeds)` within a process so the three root callers (`FileRunner`, `DataReadersLoader`, `NamespaceLoader`) don't each re-derive.
+
+### Compilation order & invalidation
+
+- `TopologicalNamespaceSorter` orders compilation to resolve dependencies. `ProjectCompiler` relies on this order: it tracks namespaces recompiled during a run and force-recompiles any dependent whose `getDependencies()` includes one of them (`dependsOnRecompiled`), even when the dependent's own source mtime is unchanged. Cascades transitively in one pass — prevents a changed macro leaving a stale expansion baked into a dependent's compiled file.
+- Auto-detect main namespace: scans source dirs for `core.phel` or `main.phel`.
+- Output directory is pruned from extraction to prevent namespace shadowing.
+
+### Optimization level
+
+- `BuildConfig::getOptimizationLevel()` (key `PhelConfig::OPTIMIZATION_LEVEL`) injected into `FileCompiler` (constructor default; per-call override wins, used by `phel build -O`) and `FileEvaluator` (also mixed into the compiled-code cache hash when > 0).
+- `ProjectCompiler` records the level in `<out>/.phel-optimization-level` (`OPTIMIZATION_LEVEL_FILE`) and force-recompiles when it changes, because the incremental cache is mtime-only; level 0 leaves no marker.
+
+### Source maps
+
+- `FileEvaluator` compiles with source maps enabled and caches `getCodeWithSourceMap()`, so runtime errors from cache-loaded namespaces still map back to `.phel` locations via the inline `// `/`// ;;` header comments.
+
+### Precompiled-sibling fast path
+
+- Before the compiled-code cache, `FileEvaluator::evalFile` checks for a `phel build`-style `<name>.php` next to the `<name>.phel`/`.cljc` source (detected via the `BuiltFilePreamble` marker). If present it `require`s it directly and returns — skipping the whole pipeline and the cache.
+- This is how the PHAR ships `phel.core` precompiled (siblings added by `build/build-phar.php::addPrecompiledStdlibSiblings`): running the compiled file populates the runtime registry (defs + macro meta), which is all the analyzer needs to resolve those symbols when later compiling user code. Inert when no sibling exists (plain source / composer checkouts).
+- A namespace may only be bundled together with its full transitive `(:require ...)` closure, since FILE-mode output `require_once`s its dependency siblings directly — `phel.core` qualifies because it is self-contained.
+- The fast path (and the emitted `(load ...)` `.php` preference) is disabled while `*build-mode*` is on, so `phel build` recompiles + harvests the stdlib into its output tree instead of short-circuiting to the bundle. `PhelSourceLoader::load` preserves an outer build mode so it stays on across every `(load ...)` of a build.
+
+### `--timing` profiler hook
+
+- `phel build --timing` installs `PhaseTimingProfilerHook` as `Registry::$profilerHook` around `compileProject` (reset in `finally`) to sum the compiler's per-phase wall-clock (lex/parse/read/analyze/emit) across compiled namespaces, rendered as `PhaseTimingReport`.
+- The hook's `wrapFn()` is a deliberate no-op — a build evaluates `def`/`defmacro` while compiling, so wrapping those fns in profiling proxies (what the runtime profiler does) would bake instrumentation into the emitted output. Pair with `--no-cache` for a full, comparable measurement.
+
+### `--report`
+
+- `phel build --report` builds a `BuildReport` (`BuildReport::fromCompiledFiles`) from the returned `CompiledFile[]` + build duration: namespace count, per-namespace compiled byte size (read from each target file), total size, fresh/cached counts. Pure VO with `toArray()`; `BuildCommand` renders it.
+
+### Lifecycle
+
+- `FileEvaluator` is a singleton; repeated `(load ...)` calls reuse the instance to preserve the compiled-code index.

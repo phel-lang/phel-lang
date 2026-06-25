@@ -6,15 +6,20 @@ Each directory under `src/php/` is a module. The conventions here apply to all o
 
 Unless a module says "No Gacela Pattern", it follows this wiring:
 
-- `XFacade implements XFacadeInterface`; core interfaces (Compiler, Build, Run, Command, Console, Formatter, Interop, Api) live in `Phel\Shared\Facade` (dependency inversion); Fiber/Filesystem keep theirs in the module root; newer modules (Lint, Lsp, Nrepl, Profile, Watch) extend `AbstractFacade` without an interface.
-- `XFactory extends AbstractFactory<XConfig>`; `XConfig` reads module settings.
-- `XProvider` exposes cross-module facades via `FACADE_*` constants; modules list these under "Dependencies".
-- Layered layout: `Application/` (use cases), `Domain/` (interfaces, value objects, logic), `Infrastructure/` (I/O, CLI commands, adapters), `Transfer/` (DTOs), Gacela files at module root.
+- `XFacade implements XFacadeInterface` — `XFactory extends AbstractFactory<XConfig>`; `XConfig` reads module settings.
+- `XProvider` exposes cross-module facades via `FACADE_*` string constants (e.g. `RunProvider::FACADE_COMPILER`); the consuming Factory pulls them with `getProvidedDependency(...)`. Modules list these under "Dependencies".
+- Layered layout: `Application/` (use cases), `Domain/` (interfaces, value objects, logic), `Infrastructure/` (I/O, CLI commands, adapters), `Transfer/` (DTOs); Gacela files (`Facade`, `Factory`, `Config`, `Provider`) at module root.
+
+### Where the FacadeInterface lives
+
+- **`Shared/Facade/`** (dependency inversion): Api, Build, Command, Compiler, Console, Formatter, Interop, Run.
+- **Module root**: Fiber, Filesystem (`FiberFacadeInterface`, `FilesystemFacadeInterface`).
+- **No interface — extend `AbstractFacade`**: Lint, Lsp, Nrepl, Profile, Watch.
 
 Rules:
 
 - Cross-module access goes through facades only; inject `*FacadeInterface`, never a concrete facade.
-- A Factory may only `new` classes from its own module; cross-module instances come via the injected Facade.
+- A Factory may only `new` classes from its own module or `Phel\Shared`; cross-module instances come via the injected Facade.
 - New modules add their `FacadeInterface` to `Shared/Facade/`.
 
 ## Module Map

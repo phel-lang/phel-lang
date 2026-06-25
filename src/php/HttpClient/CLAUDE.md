@@ -1,15 +1,36 @@
 # HttpClient Module
 
-Outbound HTTP support for `phel.http-client`. No Gacela pattern: stateless utility classes consumed directly by Phel core via PHP interop.
-
-**Public-surface decision (#2261):** kept as-is. No PHP module consumes these classes; the only caller is user-facing Phel interop (`src/phel/http-client.phel` calls `\Phel\HttpClient\StreamTransport` by FQCN), so a Facade would have zero internal callers and renaming for `Shared` would break the public interop class name. `Shared` is also reserved for I/O-free utilities, and `StreamTransport` performs network I/O, so it cannot move there.
+Outbound HTTP for `phel.http-client` via PHP's built-in stream context (no cURL/Guzzle). No Gacela: stateless static utilities called directly from Phel interop by FQCN.
 
 ## Public API
 
-- `StreamTransport::send(method, url, headers, ?body, options): array`: HTTP request via PHP stream context. Returns `{status, headers, body, version, reason}`. Honors `:timeout` option; throws `RuntimeException` on failure.
-- `ResponseParser::parse(array $rawHeaders): array`: parses PHP `$http_response_header` into `{status, version, reason, headers}`. Lowercases header names; keeps last value for duplicates.
+| Class::method | Behavior |
+|---|---|
+| `StreamTransport::send(method, url, headers, ?body, options): array` | HTTP request via stream context. Returns `{status, headers, body, version, reason}`. Throws `RuntimeException` on transport failure. |
+| `ResponseParser::parse(rawHeaders): array` | Parses PHP `$http_response_header` into `{status, version, reason, headers}`. Internal helper of `StreamTransport`; not called from Phel. |
+
+### `send` options (all keys optional)
+
+| Key | Default | Notes |
+|---|---|---|
+| `timeout` | `30.0` | Coerced via `ScalarCoercion::toFloat` (numeric strings accepted) |
+| `follow_redirects` | `true` | Sets `follow_location` |
+| `verify_ssl` | `true` | Sets `verify_peer` + `verify_peer_name` |
+
+## Dependencies
+
+- `Phel\Shared\ScalarCoercion` (pure utility) — option coercion in `StreamTransport`. No module facades.
+
+## Structure
+
+- `StreamTransport.php` — public interop entry; builds stream context, calls `file_get_contents`.
+- `ResponseParser.php` — header parsing.
 
 ## Key Constraints
 
-- Both classes `final`; stable public APIs (addressable from user Phel via interop)
-- `ResponseParser` must handle redirect chains (status line resets on new response)
+- **Do not rename either class** — `\Phel\HttpClient\StreamTransport` is referenced by FQCN in `src/phel/http-client.phel`. Renaming breaks the public interop surface.
+- **Cannot move to `Shared`** — `Shared` is reserved for I/O-free utilities; `StreamTransport` does network I/O. (Public-surface decision #2261: no Facade, kept as-is — zero internal PHP callers.)
+- Both classes `final` with stable static public APIs (addressable from user Phel).
+- `send` sets `ignore_errors => true` so non-2xx responses return a body (and parse) instead of throwing; only true transport failures throw.
+- `ResponseParser` lowercases header names and keeps the **last** value for duplicates (e.g. `Set-Cookie`) — flat `string => string` map; callers needing all values must read raw lines.
+- `ResponseParser` resets status/version/reason on each new `HTTP/...` status line to handle redirect chains.

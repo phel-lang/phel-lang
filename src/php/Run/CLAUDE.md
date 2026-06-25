@@ -1,36 +1,51 @@
 # Run Module
 
-Runtime execution: runs Phel namespaces/files, REPL, evaluation, testing, and most CLI commands.
+Runtime execution: runs Phel namespaces/files, REPL, evaluation, test runner, and most CLI commands.
 
 ## Public API (Facade)
 
-- Execution: `runNamespace(string)`, `runFile(string)`, `evalFile(NamespaceInformation)`, `eval(string, CompileOptions)`, `structuredEval(string, CompileOptions): EvalResult` (success/incomplete/failure), `loadPhelNamespaces(?string)` (core + startup)
-- Namespaces: `getNamespaceFromFile`, `getDependenciesForNamespace` (topologically sorted), `getDependenciesFromPaths`
-- Query: `getAllPhelDirectories`, `getLoadedNamespaces`, `getAllNamespaces` (distinct sorted ns names across source/test/vendor dirs, via `ProjectNamespaceLister`; powers `phel run`/`phel test` shell completion), `getVersion`, `autoDetectEntryPoint` (prefers `main.phel`, falls back to `core.phel`)
-- Debugging: `enableDebugLineTap(?string $phelFileFilter, string $logPath)`, `disableDebugLineTap`
-- Parallel testing: `createParallelTestOrchestrator()` (process pool spawning `phel _test-worker` subprocesses, one ns per length-prefixed JSON work frame, per-ns output buffered and flushed in input order), `createCpuCountDetector()` (honours `PHEL_TEST_WORKERS`, falls back to `nproc`/`sysctl`/`/proc/cpuinfo`, caps at 8)
-- Watch testing: `runTestWatchLoop(callable $runTests, OutputInterface)` (`phel test --watch`: polls project src/test dirs for `.phel`/`phel-config.php` mtime changes every 500ms, re-invokes `$runTests` subprocess per change)
-- Error handling: `writeLocatedException`, `writeStackTrace`
-- Coverage: `detectCoverageDriver()` (pcov/xdebug, null if neither), `buildCoverageReport(rawCoverage, driverName)` → `CoverageReport`. `phel test --coverage[=text|clover]` wraps the serial test eval with the driver, maps raw PHP line coverage to `.phel` via `CommandFacade::getCompiledFileLineMap`, filters to project source dirs (`Application/Test/Coverage/`: `CoverageDriver`, `CoverageAggregator`, `CoverageReport`, `CoverageFile`). Coverage forces serial execution (parallel workers can't merge)
+| Group | Methods |
+|-------|---------|
+| Execution | `runNamespace(string)`, `runFile(string)`, `evalFile(NamespaceInformation)`, `eval(string, CompileOptions): mixed`, `structuredEval(string, CompileOptions): EvalResult` (never throws), `loadPhelNamespaces(?string)` (core + startup file) |
+| Namespaces | `getNamespaceFromFile`, `getDependenciesForNamespace` (topologically sorted), `getDependenciesFromPaths` |
+| Query | `getAllPhelDirectories`, `getLoadedNamespaces`, `getAllNamespaces` (distinct sorted ns across source/test/vendor; via `ProjectNamespaceLister`; powers `phel run`/`phel test` shell completion), `getVersion`, `autoDetectEntryPoint` (prefers `main.phel`, falls back to `core.phel`) |
+| Debugging | `enableDebugLineTap(?string $phelFileFilter, string $logPath)`, `disableDebugLineTap` |
+| Parallel test | `createParallelTestOrchestrator()`, `createCpuCountDetector()` |
+| Watch test | `runTestWatchLoop(callable $runTests, OutputInterface): int` |
+| Coverage | `detectCoverageDriver(): ?CoverageDriver`, `buildCoverageReport(array, string): CoverageReport` |
+| Errors | `writeLocatedException`, `writeStackTrace` |
+| Doctor | `getModuleHealthChecks()` (surfaced by `phel doctor`) |
 
 ## Dependencies
 
-Most connected module, 5 Provider facades: Build (namespace extraction, dependency resolution, file evaluation), Compiler (compilation, evaluation, environment), Command (directories, error formatting), Api (REPL autocompletion), Filesystem (module health check, surfaced by `phel doctor`). Version comes from `Shared\VersionResolver` directly, so Run does not depend on Console.
+Most-connected module. 5 Provider facades:
 
-## Structure Notes
+| Facade | Used for |
+|--------|----------|
+| Build | namespace extraction, dependency resolution, file evaluation |
+| Compiler | compilation, evaluation, environment |
+| Command | directories, error formatting, exception hints |
+| Api | REPL autocompletion |
+| Filesystem | module health check (`phel doctor`) |
 
-- `Infrastructure/Command/`: 10 Symfony commands (incl. `config` — dumps effective merged config), one hidden `_test-worker`
-- `Runtime/PhelSourceLoader`: cached-PHP boot entry
+Version comes from `Shared\VersionResolver` directly — Run does **not** depend on Console.
+
+## Structure
+
+- `Infrastructure/Command/`: 10 user-facing Symfony commands (incl. `config` — dumps effective merged config) + 1 hidden `_test-worker` (`TestWorkerCommand`).
+- `Application/Test/Coverage/`: `CoverageDriver`, `CoverageAggregator`, `CoverageReport`, `CoverageFile`.
+- `Runtime/PhelSourceLoader`: cached-PHP boot entry.
 
 ## Key Constraints
 
-- `RunConfig::getOptimizationLevel()` (key `PhelConfig::OPTIMIZATION_LEVEL`) is injected into `EvalExecutor` (`phel eval`) and `CompileExecutor` (`phel compile`); `phel run`/`phel test` pick the level up via Build's `FileEvaluator`. The REPL and nREPL always compile at level 0 by design
-- `StructuredEvaluator` (Application) produces the pure `Phel\Shared\Eval\EvalResult` VO via `success()`/`incomplete()`/`failure()`; it never throws and owns the snapshot/restore orchestration (the VOs carry no logic and live in `Phel\Shared`)
-- REPL supports environment snapshot/restore on eval failure
-- `ReplCommandSystemIo` requires PHP `readline` extension; falls back to `ReplCommandFallbackIo`
-- `ReplHistoryPathResolver` returns `.phel/repl-history`; transparently migrates legacy `.phel-repl-history`
-- `ReplHistory` registers `*1`/`*2`/`*3`/`*e` in `phel.core` after REPL boot
-- `ReplErrorFormatter` renders eval-time `Throwable`s with short headline, hints, and filtered trace; hints come from the shared `ExceptionHintResolver` via `CommandFacade::getExceptionHintResolver()` (same hints used for non-REPL command errors)
-- Error hints live in `Phel\Shared\Exceptions\Hint\` (pure utilities). Add a new hint there and register it in `CommandFactory::createExceptionHints()`; both the REPL and CLI command error paths pick it up
-- `BundledNamespaces` lists every `phel.*` module. `NamespaceLoader` (REPL/eval/lint/lsp/nrepl/watch startup) seeds only the startup namespace + `phel.core` eagerly; the other bundles load lazily. It registers a `LazyBundledNamespaceResolver` (implements Compiler's `BundledNamespaceResolverInterface`) on the global environment, which `SymbolResolver` invokes when a fully qualified `phel.*` reference (`phel.json/encode`) hits an unloaded bundle — loading its closure on demand, then retrying resolution (no "not defined"). `(require ...)` already loads via dependency resolution. `NamespaceFileTracker` (process-wide static) dedupes evaluated files across eager startup and lazy loads; `NamespaceLoader::reset()` clears it. Tab-completion is unaffected: the Api completer builds its catalog from `ApiConfig::allNamespaces()`, not from what the REPL loaded
-- `FileRunner` uses `BundledNamespaceDetector` to seed only bundles referenced via fully qualified form (`phel.json/encode`) or matching Clojure-compatible requires (`clojure.test` -> `phel.test`) in the script, avoiding cold-start penalty for scripts that don't reach into bundled modules
+- **Optimization level**: `RunConfig::getOptimizationLevel()` (key `PhelConfig::OPTIMIZATION_LEVEL`) injects into `EvalExecutor` (`phel eval`) and `CompileExecutor` (`phel compile`); `phel run`/`phel test` pick it up via Build's `FileEvaluator`. REPL and nREPL always compile at level 0 by design.
+- **`structuredEval`**: `StructuredEvaluator` (Application) builds the pure `Phel\Shared\Eval\EvalResult` VO via `success()`/`incomplete()`/`failure()`; never throws; owns snapshot/restore orchestration. The VOs carry no logic and live in `Phel\Shared`.
+- **REPL**: supports environment snapshot/restore on eval failure. `ReplCommandSystemIo` requires the PHP `readline` extension; falls back to `ReplCommandFallbackIo`. `ReplHistoryPathResolver` returns `.phel/repl-history`, transparently migrating legacy `.phel-repl-history`. `ReplHistory` registers `*1`/`*2`/`*3`/`*e` in `phel.core` after REPL boot.
+- **Error hints**: live in `Phel\Shared\Exceptions\Hint\` (pure utilities). Add a hint there AND register it in `CommandFactory::createExceptionHints()`; both REPL (`ReplErrorFormatter` via `CommandFacade::getExceptionHintResolver()`) and CLI error paths pick it up.
+- **Bundled namespace lazy loading**: `BundledNamespaces` lists every `phel.*` module. `NamespaceLoader` (REPL/eval/lint/lsp/nrepl/watch startup) eagerly seeds only the startup ns + `phel.core`; others load lazily. It registers `LazyBundledNamespaceResolver` (implements Compiler's `BundledNamespaceResolverInterface`) on the global env; `SymbolResolver` invokes it when a fully qualified `phel.*` ref (`phel.json/encode`) hits an unloaded bundle — loads on demand, then retries (no "not defined"). `(require ...)` already loads via dependency resolution.
+- **File dedup**: `NamespaceFileTracker` (process-wide static) dedupes evaluated files across eager startup and lazy loads. `NamespaceLoader::reset()` clears it.
+- **Script bundles**: `FileRunner` uses `BundledNamespaceDetector` to seed only bundles referenced via fully qualified form (`phel.json/encode`) or Clojure-compatible requires (`clojure.test` → `phel.test`), avoiding cold-start cost for scripts that don't reach bundled modules.
+- **Coverage**: `phel test --coverage[=text|clover]` wraps the serial test eval with the driver, maps raw PHP line coverage to `.phel` via `CommandFacade::getCompiledFileLineMap`, filters to project source dirs. Coverage **forces serial execution** (parallel workers can't merge).
+- **Parallel testing**: `ParallelTestOrchestrator` spawns a `phel _test-worker` subprocess pool, one ns per length-prefixed JSON work frame; per-ns output is buffered and flushed in input order. `CpuCountDetector` honours `PHEL_TEST_WORKERS`, falls back to `nproc`/`sysctl`/`/proc/cpuinfo`, caps at 8.
+- **Watch testing**: `runTestWatchLoop` (`phel test --watch`) polls project src/test dirs for `.phel`/`phel-config.php` mtime changes every 500ms, re-invoking `$runTests` as a subprocess per change.
+- **Completion unaffected by lazy load**: the Api completer builds its catalog from `ApiConfig::allNamespaces()`, not from what the REPL loaded.

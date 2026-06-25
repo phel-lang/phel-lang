@@ -1,25 +1,41 @@
 # Console Module
 
-CLI application entry point: bootstraps Symfony Console, registers commands, detects version.
+CLI entry point: bootstraps Symfony Console, lazily registers every module's commands, resolves version.
 
 ## Public API (Facade)
 
-- `getVersion(): string`: full version (`v0.30.0`) or beta with hash (`v0.30.0-beta#abc1234`)
-- `runConsole(): void`: execute the CLI application
-
-## CLI Commands
-
-Lazy-loaded via `LazyCommandLoader` (`Infrastructure/Command/`), a Symfony `CommandLoaderInterface` that the factory wires onto the application with `setCommandLoader()`. Each per-module `ConsoleCommandProviderInterface` impl in `Infrastructure/Command/*Commands.php` (one provider per module: Run, Api, Build, Formatter, Interop, Lint, Lsp, Nrepl, Profile, Watch, plus Framework debug commands) exposes its commands as `LazyCommand` wrappers carrying name/aliases/description/hidden metadata up front, so only the dispatched command is constructed per invocation while `list`/`help` and alias resolution stay accurate. `ConsoleProvider::LAZY_COMMANDS` aggregates them. Sibling Command classes are wired via these providers, not via Facade injection.
-
-The metadata declared in the providers is drift-guarded by `LazyCommandMetadataTest`, which builds each command and asserts the wrapper matches `configure()`.
+| Method | Returns | Notes |
+|--------|---------|-------|
+| `getVersion()` | `string` | Full (`v0.30.0`) or beta with hash (`v0.30.0-beta#abc1234`); via `Phel\Shared\VersionResolver` |
+| `runConsole()` | `void` | Build + run the CLI app; does not return (see ConsoleBootstrap) |
 
 ## Dependencies
 
-Filesystem (cleanup after execution). Version detection via `Phel\Shared\VersionResolver`.
+| Provider constant | Facade | Used for |
+|-------------------|--------|----------|
+| `FACADE_FILESYSTEM` | Filesystem | `clearAll()` cleanup after each run |
+
+## Structure
+
+| Path | Role |
+|------|------|
+| `Infrastructure/ConsoleBootstrap.php` | Extends Symfony `Application`; owns the run lifecycle |
+| `Infrastructure/Command/LazyCommandLoader.php` | Symfony `CommandLoaderInterface`; wired via `setCommandLoader()` |
+| `Infrastructure/Command/*Commands.php` | One `ConsoleCommandProviderInterface` impl per module |
+| `Domain/ConsoleCommandProviderInterface.php` | `lazyCommands(): list<LazyCommand>` |
+| `Application/ArgvInputSanitizer.php` | Normalizes argv; splits script options from command args via `--` |
+| `Application/WarnDeprecationsFlag.php` | `applyAndStrip()` consumes deprecation flags from argv |
+
+## CLI Commands (lazy)
+
+- Sibling Command classes (in other modules) are NOT injected via Facade; each per-module `*Commands.php` provider wraps them as Symfony `LazyCommand`s.
+- Command providers: Run, Interop, Formatter, Api, Build, Framework (debug), Nrepl, Lint, Profile, Lsp, Watch — order set by `ConsoleProvider::commandProviders()`; command order follows that list.
+- `LazyCommand` wrappers carry name/aliases/description/hidden up front, so `list`/`help`/alias resolution work without constructing every command — only the dispatched one is built per invocation.
+- `ConsoleProvider::LAZY_COMMANDS` aggregates all providers' commands; `ConsoleFactory::createCommandLoader()` feeds them to `LazyCommandLoader`.
 
 ## Key Constraints
 
-- Default command is `repl` (when no command specified)
-- `ConsoleBootstrap` (extends Symfony Application): `run()` calls `FilesystemFacade.clearAll()` then exits manually
-- `ArgvInputSanitizer` normalizes arguments, separating script options from command arguments via `--`
-- `WarnDeprecationsFlag.applyAndStrip()` processes deprecation notices from argv
+- Default command is `repl` (`setDefaultCommand('repl')` when no command given).
+- `ConsoleBootstrap::run()` does NOT return: runs with auto-exit disabled, then `FilesystemFacade::clearAll()`, then `exit($exitCode)`. Code after the call site is unreachable.
+- Bare top-level `--help`/`-h` (no command) is rewritten to the `list` command so it shows all commands, not repl help.
+- Lazy metadata is drift-guarded by `tests/php/Integration/Console/LazyCommandMetadataTest.php`: builds each command and asserts the wrapper matches `configure()`. Keep wrapper metadata in `*Commands.php` in sync with each command's `configure()`.
