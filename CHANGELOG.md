@@ -4,6 +4,8 @@ All notable changes to this project will be documented in this file.
 
 ## Unreleased
 
+## [0.46.0](https://github.com/phel-lang/phel-lang/compare/v0.45.1...v0.46.0) - 2026-06-25
+
 ### Fixed
 
 - Opt-level-≥2 call inlining (#2586) emitted undefined-variable PHP when inlining a `^:pure` let-bodied `defn` whose body contains a nested call that lowers to an IIFE (`or`/`and`/`cond`): the renamed parameter/let shadow was not captured by the nested closure's `use(...)` clause, crashing at runtime. The inliner now threads introduced shadows onto the rebase environment so nested closures capture them (#2622)
