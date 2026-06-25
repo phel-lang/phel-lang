@@ -48,7 +48,7 @@ Stateless strategy-pattern printer (see `Printer/CLAUDE.md`); consumers instanti
 | `PhelProjectDirectory` | manages `.phel/` dir; static `ensure()`/`path()`/`resolve()`. Effective location: `PHEL_DIR` env → `withPhelDir()` override → `<projectRoot>/.phel` |
 | `VersionFinder` | pure version-string builder from explicit git inputs (no I/O); `getVersion()`. `LATEST_VERSION` const is bumped by `tools/release.sh` |
 | `VersionResolver` | gathers ambient version inputs (git working copy, Composer `InstalledVersions`, build-time `.phel-release.php`/`OFFICIAL_RELEASE`) and calls `VersionFinder`; `resolve()`. Console and Run consume directly, so neither owns version-detection wiring |
-| `CompileOptions` | source maps, emit-only mode, optimization levels |
+| `CompileOptions` | source maps, emit-only mode, optimization levels, `emitAsExpression` (analyse top-level forms in expression context so a folded pure value surfaces instead of being dropped — used by `phel compile`) |
 | `PhpAttributeRenderer` | renders `^{:php/attr …}` specs into PHP 8 attribute lines (`#[\ORM\Column(length: 255)]`). Accepts bare keyword (`:ORM/Entity`), single spec vector (`[:ORM/Column {:length 255}]`), or vector of specs. Consumed by `DefStructEmitter`/`DefInterfaceEmitter` + Interop export generator |
 | `Console/DeprecatedOptionWarner` | static `warn()` — one-line renamed-option deprecation notice to stderr (never corrupts machine-readable stdout like `phel config --json`) |
 | `Performance/OpcacheAdvisor` | pure `advise(...)` (caller passes ini flags) → `OpcacheAdvice` (`optimal`, `messages`); flags when OPcache won't persist the compiled-code cache across CLI runs |

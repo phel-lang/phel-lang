@@ -35,6 +35,43 @@ final class CompileExecutorTest extends TestCase
         self::assertSame(2, $this->capturedOptions->getOptimizationLevel());
     }
 
+    public function test_empty_output_reports_the_discarded_value_on_stderr(): void
+    {
+        $executor = new CompileExecutor($this->createValueFoldingCompilerFacade());
+
+        $out = '';
+        $err = '';
+        $ok = $executor->execute(
+            '(+ 1 2)',
+            static function (string $chunk) use (&$out): void {
+                $out .= $chunk;
+            },
+            static function (string $chunk) use (&$err): void {
+                $err .= $chunk;
+            },
+        );
+
+        self::assertTrue($ok);
+        self::assertSame('', $out, 'stdout stays clean when nothing compiles');
+        self::assertStringContainsString('no PHP emitted', $err);
+        self::assertStringContainsString('`3`', $err);
+    }
+
+    private function createValueFoldingCompilerFacade(): CompilerFacadeInterface
+    {
+        $compilerFacade = $this->createMock(CompilerFacadeInterface::class);
+        $compilerFacade->method('hasBalancedParentheses')->willReturn(true);
+        $compilerFacade->method('compile')
+            ->willReturnCallback(static function (string $code, CompileOptions $options): EmitterResult {
+                // Statement context drops the folded literal; expression context surfaces it.
+                $php = $options->isEmitAsExpression() ? '3' : '';
+
+                return new EmitterResult(false, $php, '', '');
+            });
+
+        return $compilerFacade;
+    }
+
     private function createCapturingCompilerFacade(): CompilerFacadeInterface
     {
         $compilerFacade = $this->createMock(CompilerFacadeInterface::class);

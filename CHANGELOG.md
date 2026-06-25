@@ -4,6 +4,10 @@ All notable changes to this project will be documented in this file.
 
 ## Unreleased
 
+### Changed
+
+- `phel compile` no longer prints nothing when a snippet folds to a discarded pure value (e.g. `(+ 1 2)` → `3`): stdout stays empty, but a note on stderr now reports the value the snippet reduces to and why no PHP was emitted
+
 ## [0.46.0](https://github.com/phel-lang/phel-lang/compare/v0.45.1...v0.46.0) - 2026-06-25
 
 ### Fixed

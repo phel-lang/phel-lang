@@ -156,7 +156,7 @@ final readonly class CodeCompiler implements CodeCompilerInterface
         ?ProfilerHookInterface $hook,
         string $source,
     ): void {
-        $node = $this->timed($hook, 'analyze', $source, fn(): AbstractNode => $this->analyze($readerResult));
+        $node = $this->timed($hook, 'analyze', $source, fn(): AbstractNode => $this->analyze($readerResult, $compileOptions));
         // We need to evaluate every statement because we may need it for macros.
         $this->timed($hook, 'emit', $source, fn() => $this->emitNode($node, $compileOptions));
     }
@@ -184,13 +184,15 @@ final readonly class CodeCompiler implements CodeCompilerInterface
     /**
      * @throws CompilerException
      */
-    private function analyze(ReaderResult $readerResult): AbstractNode
+    private function analyze(ReaderResult $readerResult, CompileOptions $compileOptions): AbstractNode
     {
+        $env = NodeEnvironment::empty();
+        if ($compileOptions->isEmitAsExpression()) {
+            $env = $env->withExpressionContext();
+        }
+
         try {
-            return $this->analyzer->analyze(
-                $readerResult->getAst(),
-                NodeEnvironment::empty(),
-            );
+            return $this->analyzer->analyze($readerResult->getAst(), $env);
         } catch (AnalyzerException $analyzerException) {
             throw new CompilerException($analyzerException, $readerResult->getCodeSnippet());
         }
