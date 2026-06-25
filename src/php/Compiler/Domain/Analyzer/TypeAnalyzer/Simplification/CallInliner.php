@@ -136,8 +136,17 @@ final readonly class CallInliner
         // Pure args substitute straight into the body (folding-friendly);
         // impure or pure-but-multi-use args bind to a fresh gensym `let`
         // so they evaluate exactly once, left to right.
+        //
+        // Each binding's shadow is also registered as a local on the env
+        // threaded into the body rebase: those shadows are assigned ahead
+        // of the body, so any nested node that emits a closure (a `let`
+        // in expression context, an `or`/`and`/`cond` IIFE) must capture
+        // them in its `use(...)` clause. Leaving them off the env would
+        // make the closure capture the call-site locals only and read the
+        // shadow as an undefined variable (issue #2622).
         $bindings = [];
         $paramMap = [];
+        $scopeEnv = $env;
         foreach ($params as $i => $param) {
             $arg = $args[$i];
             $name = $param->getName();
@@ -146,6 +155,7 @@ final readonly class CallInliner
                 $shadow = Symbol::gen($name . '_')->copyLocationFrom($param);
                 $bindings[] = new BindingNode($env, $param, $shadow, $arg, $callLocation);
                 $paramMap[$name] = new LocalVarNode($env, $shadow, $callLocation);
+                $scopeEnv = $scopeEnv->withMergedLocals([$shadow]);
 
                 continue;
             }
@@ -163,7 +173,7 @@ final readonly class CallInliner
 
         // `rebase` can still abort (returning `null`) if the body holds a
         // node type outside the whitelist or a non-parameter local.
-        $inlined = $this->rebase($ret, new RebaseContext($env, $bodyContext, $callLocation, $paramMap, true));
+        $inlined = $this->rebase($ret, new RebaseContext($scopeEnv, $bodyContext, $callLocation, $paramMap, true));
         if (!$inlined instanceof AbstractNode) {
             return null;
         }
@@ -384,13 +394,20 @@ final readonly class CallInliner
             ? NodeEnvironment::CONTEXT_RETURN
             : $ctx->context;
 
+        // Like the parameter shadows in `tryInline`, each fresh let shadow
+        // is added to the env threaded into later inits and the body, so a
+        // nested closure (`let`/`or`/`and`/`cond` IIFE) captures it in its
+        // `use(...)` clause instead of reading it as undefined (#2622). An
+        // init only sees the shadows of the bindings preceding it, matching
+        // sequential `let` scoping.
         $paramMap = $ctx->paramMap;
+        $scopeEnv = $ctx->env;
         $bindings = [];
         foreach ($node->getBindings() as $binding) {
             // Inits emit as expressions (`$shadow = <init>;`) and may
             // reference params or earlier bindings, so rebase them in
             // expression context with the substitutions accumulated so far.
-            $initCtx = new RebaseContext($ctx->env, NodeEnvironment::CONTEXT_EXPRESSION, $ctx->loc, $paramMap, true);
+            $initCtx = new RebaseContext($scopeEnv, NodeEnvironment::CONTEXT_EXPRESSION, $ctx->loc, $paramMap, true);
             $init = $this->rebase($binding->getInitExpr(), $initCtx);
             if (!$init instanceof AbstractNode) {
                 return null;
@@ -399,9 +416,10 @@ final readonly class CallInliner
             $shadow = Symbol::gen($binding->getShadow()->getName() . '_')->copyLocationFrom($binding->getShadow());
             $bindings[] = new BindingNode($ctx->targetEnv(), $binding->getSymbol(), $shadow, $init, $ctx->loc);
             $paramMap[$binding->getShadow()->getName()] = new LocalVarNode($ctx->env, $shadow, $ctx->loc);
+            $scopeEnv = $scopeEnv->withMergedLocals([$shadow]);
         }
 
-        $bodyCtx = new RebaseContext($ctx->env, $bodyContext, $ctx->loc, $paramMap, true);
+        $bodyCtx = new RebaseContext($scopeEnv, $bodyContext, $ctx->loc, $paramMap, true);
         $body = $this->rebase($node->getBodyExpr(), $bodyCtx);
         if (!$body instanceof AbstractNode) {
             return null;

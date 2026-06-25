@@ -4,6 +4,10 @@ All notable changes to this project will be documented in this file.
 
 ## Unreleased
 
+### Fixed
+
+- Opt-level-≥2 call inlining (#2586) emitted undefined-variable PHP when inlining a `^:pure` let-bodied `defn` whose body contains a nested call that lowers to an IIFE (`or`/`and`/`cond`): the renamed parameter/let shadow was not captured by the nested closure's `use(...)` clause, crashing at runtime. The inliner now threads introduced shadows onto the rebase environment so nested closures capture them (#2622)
+
 ### Added
 
 - Config validation in `phel config` and `phel doctor` (relative-path requirements, missing/empty source-test dirs, bad optimization levels, wrong types); `doctor` fails on errors and shows warnings as tips (#2600, #2601, #2602, #2603)
