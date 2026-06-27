@@ -59,11 +59,13 @@ final readonly class KnownPhpFunctionReturnTypes
         'fdiv' => 'float',
         'hypot' => 'float',
         'lcg_value' => 'float',
+        // PHP `floor`/`ceil`/`round` return float, not int (`gettype(floor(3.7)) === "double"`).
+        'floor' => 'float',
+        'ceil' => 'float',
+        'round' => 'float',
 
         // int-returning
         'intval' => 'int',
-        'floor' => 'int',
-        'ceil' => 'int',
         'intdiv' => 'int',
         'count' => 'int',
         'strlen' => 'int',
