@@ -481,16 +481,6 @@ Metadata attached to `test-name` is forwarded to the defined function so selecto
 ;; Collection diff (= failures)
 ;; --------------------------
 
-(def- diff-min-count
-  ;; Render a collection diff only when at least one side has more than this
-  ;; many entries, so small literals keep the original single-line summary.
-  3)
-
-(def- diff-min-readable-length
-  ;; Or when either side prints longer than this many characters; small
-  ;; collections of long values still benefit from a stacked diff.
-  80)
-
 (defn- sequential?
   "Returns true when `v` is a vector or a list: the two ordered shapes the diff renderer aligns by index."
   [v]
@@ -502,14 +492,6 @@ Metadata attached to `test-name` is forwarded to the defined function so selecto
   (or (and (map? a) (map? b))
       (and (set? a) (set? b))
       (and (sequential? a) (sequential? b))))
-
-(defn- diff-worth-rendering?
-  "Decides whether `expected` and `actual` are large enough to justify a block-style diff. Below the thresholds the existing summary line is more readable than the diff."
-  [expected actual]
-  (or (> (count expected) diff-min-count)
-      (> (count actual) diff-min-count)
-      (> (php/strlen (readable-str expected)) diff-min-readable-length)
-      (> (php/strlen (readable-str actual)) diff-min-readable-length)))
 
 (defn- print-diff-line [marker text]
   (println (str "    " marker " " text)))
@@ -587,10 +569,10 @@ Metadata attached to `test-name` is forwarded to the defined function so selecto
     (print-sequential-diff expected actual)))
 
 (defn- collection-diff-applicable?
-  "Returns true when a `=`/`not=` failure carries two same-shape collections big enough to benefit from a stacked diff."
+  "Returns true when a `=`/`not=` failure carries two same-shape collections that actually differ. Same-shape rules out scalar pairs (a `1`/`2` diff is noise); the `not=` check rules out a `not=` failure's equal pair, which would render an empty diff."
   [expected actual]
   (and (same-shape? expected actual)
-       (diff-worth-rendering? expected actual)))
+       (not= expected actual)))
 
 ;; --------------------------
 ;; String diff (= failures)
