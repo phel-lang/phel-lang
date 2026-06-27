@@ -53,6 +53,9 @@ final class TestWorkerCommand extends Command
 
     public const string COMMAND_NAME = '_test-worker';
 
+    /** @var array<string, true> Dependency files already evaluated by this long-lived worker. */
+    private array $preloadedFiles = [];
+
     protected function configure(): void
     {
         $this->setName(self::COMMAND_NAME)
@@ -124,7 +127,18 @@ final class TestWorkerCommand extends Command
         }
 
         foreach ($this->getFacade()->getDependenciesFromPaths([$file]) as $info) {
+            // The worker lives for the whole run, so a dependency stays
+            // registered across frames; re-evaluating it (mostly the phel.*
+            // stdlib shared by every namespace) just re-executes it and
+            // dominated each frame. Eval each file once per worker, as the
+            // serial runner already does.
+            $depFile = $info->getFile();
+            if (isset($this->preloadedFiles[$depFile])) {
+                continue;
+            }
+
             $this->getFacade()->evalFile($info);
+            $this->preloadedFiles[$depFile] = true;
         }
     }
 
