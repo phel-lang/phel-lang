@@ -196,40 +196,11 @@ HELP)
             $nsPatterns = (array) $input->getOption(TestCommandOptionParser::OPT_NS);
             $namespacesInformation = new TestNamespacePruner()->prune($namespacesInformation, $nsPatterns);
 
-            // Suppress output during file loading phase and filter out integration test fixtures
-            $feedback->startLoading(count($namespacesInformation));
-            ob_start();
-            $filteredNamespaces = [];
-            /** @var list<array{0: NamespaceInformation, 1: Throwable}> $compileErrors */
-            $compileErrors = [];
-            foreach ($namespacesInformation as $info) {
-                $feedback->advance($info->getNamespace());
-
-                // Skip integration test fixture files - they are for PHPUnit tests only
-                if (str_contains($info->getFile(), 'tests/php/Integration/')) {
-                    continue;
-                }
-
-                if (str_contains($info->getFile(), 'tests/php/Benchmark/')) {
-                    continue;
-                }
-
-                try {
-                    $this->getFacade()->evalFile($info);
-                    $filteredNamespaces[] = $info;
-                } catch (Throwable $e) {
-                    if ($failFast) {
-                        ob_end_clean();
-                        $feedback->finishLoading();
-                        throw $e;
-                    }
-
-                    $compileErrors[] = [$info, $e];
-                }
-            }
-
-            ob_end_clean();
-            $feedback->finishLoading();
+            [$filteredNamespaces, $compileErrors] = $this->loadTestNamespaces(
+                $namespacesInformation,
+                $failFast,
+                $feedback,
+            );
 
             $this->reportCompileErrors($output, $compileErrors);
 
@@ -396,6 +367,56 @@ HELP)
         }
 
         $output->writeln($content);
+    }
+
+    /**
+     * Evaluates each discovered namespace, suppressing load-phase output and
+     * skipping PHPUnit-only fixtures. Returns the namespaces that compiled
+     * cleanly alongside the errors collected from the rest. With $failFast the
+     * first failure rethrows after restoring the output buffer and feedback.
+     *
+     * @param list<NamespaceInformation> $namespacesInformation
+     *
+     * @return array{0: list<NamespaceInformation>, 1: list<array{0: NamespaceInformation, 1: Throwable}>}
+     */
+    private function loadTestNamespaces(
+        array $namespacesInformation,
+        bool $failFast,
+        TestLoadingFeedback $feedback,
+    ): array {
+        $feedback->startLoading(count($namespacesInformation));
+        ob_start();
+        $filteredNamespaces = [];
+        $compileErrors = [];
+        foreach ($namespacesInformation as $info) {
+            $feedback->advance($info->getNamespace());
+            // These fixtures are PHPUnit-only; evaluating them as Phel namespaces is wrong.
+            if (str_contains($info->getFile(), 'tests/php/Integration/')) {
+                continue;
+            }
+
+            if (str_contains($info->getFile(), 'tests/php/Benchmark/')) {
+                continue;
+            }
+
+            try {
+                $this->getFacade()->evalFile($info);
+                $filteredNamespaces[] = $info;
+            } catch (Throwable $e) {
+                if ($failFast) {
+                    ob_end_clean();
+                    $feedback->finishLoading();
+                    throw $e;
+                }
+
+                $compileErrors[] = [$info, $e];
+            }
+        }
+
+        ob_end_clean();
+        $feedback->finishLoading();
+
+        return [$filteredNamespaces, $compileErrors];
     }
 
     /**

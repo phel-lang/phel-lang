@@ -4,9 +4,18 @@ All notable changes to this project will be documented in this file.
 
 ## Unreleased
 
+### Fixed
+
+- Temp-file cleanup (`RealFilesystem::clearAll()`) no longer emits `unlink(...): No such file or directory` warnings when a tracked path was already removed by an earlier run (the file list is process-global static); it now skips missing paths. Surfaced as noise on every `phel test` / build run
+
 ### Changed
 
+- `phel test` now renders the `+`/`-`/`~` structural diff for **any** same-shape collection that differs, not just collections with more than 3 entries: the common small-collection failure (`(= {:a 1 :b 2} {:a 1 :b 3})`, `[1 2 3]` vs `[1 2 4]`) now shows exactly what differs instead of two near-identical lines. Scalar pairs and mixed shapes keep the single-line summary
 - `phel compile` no longer prints nothing when a snippet folds to a discarded pure value (e.g. `(+ 1 2)` → `3`): stdout stays empty, but a note on stderr now reports the value the snippet reduces to and why no PHP was emitted
+
+### Performance
+
+- `phel test --parallel` workers no longer re-evaluate their full dependency closure (mostly the shared `phel.*` stdlib) on every namespace frame: each dependency is evaluated once per long-lived worker, as the serial runner already does. Removes the per-frame re-execution that made `--parallel=2` slower than serial and capped scaling; the speedup grows with the number of namespaces in a project
 
 ## [0.46.0](https://github.com/phel-lang/phel-lang/compare/v0.45.1...v0.46.0) - 2026-06-25
 

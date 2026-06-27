@@ -2,9 +2,10 @@
   (:require phel.test :as t :refer [deftest is]))
 
 ;; Coverage for the unified-diff block emitted by the default reporter
-;; when an `=` failure compares two large collections of the same
-;; shape. The diff supplements the existing "Form / evaluated to / but
-;; is not" summary; small primitives keep the legacy single-line view.
+;; when an `=` failure compares two same-shape collections. The diff
+;; supplements the existing "Form / evaluated to / but is not" summary
+;; for any differing collection, regardless of size; scalar pairs and
+;; mixed shapes keep the single-line view.
 
 (defn- failure-event
   "Builds the synthetic `:failed` event a `=` assertion would produce
@@ -31,7 +32,7 @@
             :failures [(failure-event expected actual)]}))))
 
 ;; ---------------------------------------------------------------------------
-;; Threshold: small primitive failures keep the legacy single-line summary
+;; Scalar failures keep the single-line summary; collections always diff
 ;; ---------------------------------------------------------------------------
 
 (deftest test-small-primitive-failure-skips-diff-block
@@ -41,10 +42,12 @@
     (is (= 0 (php/preg_match "/Diff:/" out))
         "no Diff block for non-collection values")))
 
-(deftest test-tiny-vector-failure-skips-diff-block
+(deftest test-tiny-vector-failure-renders-diff-block
   (let [out (run-default-reporter [1 2] [3 4])]
-    (is (= 0 (php/preg_match "/Diff:/" out))
-        "vectors with 2 entries fall under the diff threshold")))
+    (is (php/preg_match "/Diff:/" out)
+        "even a 2-entry vector renders a diff when it differs")
+    (is (php/preg_match "/- \\[0\\] 1/" out) "differing index marked with -")
+    (is (php/preg_match "/\\+ \\[0\\] 3/" out) "differing index marked with +")))
 
 ;; ---------------------------------------------------------------------------
 ;; Map diff: + added, - removed, ~ changed (sorted by key)
@@ -131,15 +134,13 @@
         "no diff block for not= failures: the values are equal")))
 
 ;; ---------------------------------------------------------------------------
-;; Long-printed-but-small collections still trigger the diff
+;; Single-element collections still trigger the diff
 ;; ---------------------------------------------------------------------------
 
-(deftest test-long-printed-vector-triggers-diff-even-with-few-entries
-  (let [long-a "this is a fairly long string that pushes the readable length over the threshold"
-        long-b "another fairly long string that also pushes the readable length over the threshold"
-        out    (run-default-reporter [long-a] [long-b])]
+(deftest test-single-element-vector-triggers-diff
+  (let [out (run-default-reporter ["only-a"] ["only-b"])]
     (is (php/preg_match "/Diff:/" out)
-        "vector with one long element still renders as a diff block")))
+        "vector with one differing element renders a diff block")))
 
 ;; ---------------------------------------------------------------------------
 ;; Mixed-type keys do not break the diff sort

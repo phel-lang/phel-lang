@@ -37,6 +37,36 @@ final class ParallelTestRunnerTest extends TestCase
     }
 
     /**
+     * Each worker is long-lived and handles many namespaces across frames,
+     * reusing a dependency it evaluated for an earlier frame instead of
+     * re-evaluating it. Feed 2 workers several namespaces so a worker
+     * processes multiple frames, and assert every test still resolves and
+     * passes (Error: 0) — a regression guard for the per-worker dependency
+     * dedup: dropping a still-needed def would surface as a resolve error
+     * in a later frame.
+     */
+    public function test_worker_reuses_dependencies_across_frames_without_dropping_defs(): void
+    {
+        $project = $this->projectRoot();
+
+        [$status, $stdout] = $this->runPhel(
+            [
+                'test', '--parallel=2',
+                'tests/phel/walk.phel',
+                'tests/phel/test-framework.phel',
+                'tests/phel/reporter-diff.phel',
+                'tests/phel/reporters.phel',
+            ],
+            $project,
+        );
+
+        self::assertSame(0, $status, 'expected success exit, stdout was: ' . $stdout);
+        self::assertMatchesRegularExpression('/Failed:\s*0/', $stdout);
+        self::assertMatchesRegularExpression('/Error:\s*0/', $stdout);
+        self::assertMatchesRegularExpression('/Ran \d+ namespace\(s\) across 2 worker\(s\)/', $stdout);
+    }
+
+    /**
      * `--parallel=auto` resolves through CpuCountDetector and otherwise
      * follows the same pipeline; smoke-test that the resolved flow is
      * the same as an explicit worker count.
