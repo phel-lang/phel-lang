@@ -43,6 +43,7 @@ use Phel\Shared\Facade\ApiFacadeInterface;
 use Phel\Shared\Facade\BuildFacadeInterface;
 use Phel\Shared\Facade\CommandFacadeInterface;
 use Phel\Shared\Facade\CompilerFacadeInterface;
+use Phel\Shared\Performance\OpcacheWorkerFlags;
 use Phel\Shared\Printer\Printer;
 use Phel\Shared\Printer\PrinterInterface;
 use Phel\Shared\ScalarCoercion;
@@ -50,6 +51,8 @@ use Phel\Shared\VersionResolver;
 
 use function extension_loaded;
 use function is_array;
+use function is_dir;
+use function mkdir;
 
 /**
  * @extends AbstractFactory<RunConfig>
@@ -289,6 +292,7 @@ class RunFactory extends AbstractFactory
         return new ParallelTestOrchestrator(
             PHP_BINARY,
             $this->resolvePhelBinaryPath(),
+            $this->resolveOpcacheWorkerFlags(),
         );
     }
 
@@ -303,6 +307,31 @@ class RunFactory extends AbstractFactory
             $this->getCommandFacade(),
             new TestWatchLoop(new WatchFileScanner()),
         );
+    }
+
+    /**
+     * `-d` flags that point the whole worker pool at one on-disk OPcache file
+     * cache, so worker N reuses the compiled `.php` worker 1 already parsed.
+     * No-op when OPcache is unavailable or the cache dir cannot be prepared.
+     *
+     * @return list<string>
+     */
+    private function resolveOpcacheWorkerFlags(): array
+    {
+        if (!extension_loaded('Zend OPcache')) {
+            return [];
+        }
+
+        // opcache.file_cache must be an absolute, existing directory or PHP
+        // aborts at startup, so create it before any worker is spawned. It
+        // lives under the temp dir (not the compiled-code cache) so it survives
+        // `phel clear-cache` and keeps paying off across runs.
+        $cacheDir = $this->getFilesystemFacade()->getTempDir() . '/opcache-workers';
+        if (!is_dir($cacheDir) && !@mkdir($cacheDir, 0777, true) && !is_dir($cacheDir)) {
+            return [];
+        }
+
+        return OpcacheWorkerFlags::forFileCache(true, $cacheDir);
     }
 
     private function resolvePhelBinaryPath(): string

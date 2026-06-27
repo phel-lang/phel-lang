@@ -82,14 +82,16 @@ work first (per-test temp-dir isolation; `RealFilesystem::$files` being a
 process-global static is the root of much of the coupling), so it is left as a
 dedicated follow-up.
 
-### 2. Drop CLI-opcache cost in `--parallel` workers
+### 2. Drop CLI-opcache cost in `--parallel` workers — adopted (#2628)
 
 With per-frame re-eval removed (see "Where the time goes"), the next parallel
-ceiling is that CLI opcache is off, so each worker re-parses every compiled
-`.php` it requires. A shared on-disk opcache file-cache across the worker pool
-(spawn workers with `-d opcache.enable_cli=1 -d opcache.file_cache=…`) would let
-worker N reuse what worker 1 compiled. Needs opcache-availability detection and
-cache lifecycle handling — its own change.
+ceiling was that CLI opcache is off, so each worker re-parsed every compiled
+`.php` it requires. Workers are now spawned with a shared on-disk opcache
+file-cache (`-d opcache.enable_cli=1 -d opcache.file_cache=<temp-dir>/opcache-workers`)
+so worker N reuses what worker 1 compiled. `RunFactory` enables it only when the
+Zend OPcache extension is loaded (a graceful no-op otherwise) and pre-creates the
+cache dir, which PHP requires to exist at startup. The serial path stays
+opcache-off by design.
 
 ### 3. Convert passive mocks to stubs (the 98 `unit` notices)
 

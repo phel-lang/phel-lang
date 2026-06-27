@@ -4,14 +4,23 @@ declare(strict_types=1);
 
 namespace PhelTest\Integration\Run\Command\Test\TestCommandParallel;
 
+use FilesystemIterator;
 use PHPUnit\Framework\TestCase;
+use RecursiveDirectoryIterator;
+use RecursiveIteratorIterator;
+use SplFileInfo;
 
 use function dirname;
+use function extension_loaded;
 use function fclose;
+use function is_dir;
 use function is_resource;
 use function proc_close;
 use function proc_open;
+use function str_contains;
 use function stream_get_contents;
+use function sys_get_temp_dir;
+use function unlink;
 
 final class ParallelTestRunnerTest extends TestCase
 {
@@ -197,6 +206,83 @@ final class ParallelTestRunnerTest extends TestCase
         self::assertMatchesRegularExpression('/Passed:\s+\d+/', $stdout);
         self::assertMatchesRegularExpression('/Failed:\s+0/', $stdout);
         self::assertMatchesRegularExpression('/Total:\s+\d+/', $stdout);
+    }
+
+    /**
+     * With OPcache available, workers are spawned with a shared on-disk file
+     * cache so worker N reuses what worker 1 compiled. Prove the wired path
+     * actually persists opcode: after a parallel run the `opcache-workers`
+     * cache holds compiled `.bin` files. (OPcache writes each file once, so we
+     * assert the cache is populated rather than that it grew on every run.)
+     * Skips when OPcache is absent (the flags are a graceful no-op there).
+     */
+    public function test_parallel_run_populates_shared_opcache_file_cache(): void
+    {
+        if (!extension_loaded('Zend OPcache')) {
+            self::markTestSkipped('Zend OPcache is not loaded; worker file cache is intentionally skipped.');
+        }
+
+        // Start cold so a populated cache afterwards proves *this* run wrote it,
+        // not a leftover from an earlier run.
+        $this->clearWorkerOpcodeCache();
+
+        [$status, $stdout] = $this->runPhel(
+            ['test', '--parallel=2', 'tests/phel/walk.phel'],
+            $this->projectRoot(),
+        );
+
+        self::assertSame(0, $status, 'expected success exit, stdout was: ' . $stdout);
+        self::assertGreaterThan(
+            0,
+            $this->cachedOpcodeFileCount(),
+            'expected the parallel workers to persist compiled opcode under opcache-workers/',
+        );
+    }
+
+    private function cachedOpcodeFileCount(): int
+    {
+        $count = 0;
+        foreach ($this->workerOpcodeCacheFiles() as $file) {
+            ++$count;
+        }
+
+        return $count;
+    }
+
+    private function clearWorkerOpcodeCache(): void
+    {
+        foreach ($this->workerOpcodeCacheFiles() as $file) {
+            @unlink($file->getPathname());
+        }
+    }
+
+    /**
+     * Phel's default temp dir is <sys-temp>/phel/tmp and the worker cache hangs
+     * off it at .../opcache-workers; scan only Phel's own temp namespace
+     * (readable, narrow) for the persisted opcode files (.bin).
+     *
+     * @return iterable<SplFileInfo>
+     */
+    private function workerOpcodeCacheFiles(): iterable
+    {
+        $phelTempRoot = sys_get_temp_dir() . '/phel';
+        if (!is_dir($phelTempRoot)) {
+            return;
+        }
+
+        $iterator = new RecursiveIteratorIterator(
+            new RecursiveDirectoryIterator($phelTempRoot, FilesystemIterator::SKIP_DOTS),
+            RecursiveIteratorIterator::LEAVES_ONLY,
+        );
+
+        foreach ($iterator as $file) {
+            if ($file instanceof SplFileInfo
+                && $file->getExtension() === 'bin'
+                && str_contains($file->getPathname(), '/opcache-workers/')
+            ) {
+                yield $file;
+            }
+        }
     }
 
     /**
