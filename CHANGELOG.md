@@ -10,6 +10,7 @@ All notable changes to this project will be documented in this file.
 
 ### Fixed
 
+- `phel run` no longer discards the source location and stack trace when a runtime error is thrown from inside the runtime lib (e.g. `(+ x "boom")` → `Expected a number, got string`, `(/ 1 0)` → `Division by zero`): such errors used to print only the bare message because the throw site lives under `phel-lang/src`. They now surface the same filtered `.phel` stack trace as the REPL, mapping every Phel call site back to its source location. The fix is shared by `phel run`/`test`/`build`/`profile`/`export` (#2635)
 - Temp-file cleanup (`RealFilesystem::clearAll()`) no longer emits `unlink(...): No such file or directory` warnings when a tracked path was already removed by an earlier run (the file list is process-global static); it now skips missing paths. Surfaced as noise on every `phel test` / build run
 
 ### Changed

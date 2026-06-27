@@ -151,6 +151,20 @@ final class RunCommandTest extends AbstractTestCommand
         self::assertMatchesRegularExpression('~\.\.\. \d+ internal frames?~', $output);
     }
 
+    public function test_runtime_lib_error_reports_phel_location_and_trace(): void
+    {
+        $output = $this->captureRunOutput(
+            __DIR__ . '/Fixtures/runtime-lib-error-script.phel',
+        );
+
+        // The error originates inside the runtime lib (core `+`), yet the user
+        // still needs the type, the Phel call site, and the filtered trace.
+        self::assertStringContainsString('Expected a number, got string', $output);
+        self::assertMatchesRegularExpression('~#\d+ .*\.phel:\d+ : \(test\\\\runtime-lib-error-script\\\\add-boom~', $output);
+        self::assertMatchesRegularExpression('~#\d+ .*\.phel:\d+ : \(test\\\\runtime-lib-error-script\\\\caller~', $output);
+        self::assertMatchesRegularExpression('~\.\.\. \d+ internal frames?~', $output);
+    }
+
     public function test_runtime_error_maps_phel_frames_on_repeated_run(): void
     {
         $scriptPath = __DIR__ . '/Fixtures/error-trace-script.phel';

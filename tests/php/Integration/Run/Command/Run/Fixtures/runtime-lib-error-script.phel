@@ -1,0 +1,9 @@
+(ns test\runtime-lib-error-script)
+
+(defn add-boom [x]
+  (+ x "boom"))
+
+(defn caller [x]
+  (add-boom x))
+
+(caller 1)
