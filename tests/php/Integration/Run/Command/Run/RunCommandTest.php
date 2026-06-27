@@ -158,7 +158,7 @@ final class RunCommandTest extends AbstractTestCommand
         );
 
         // The error originates inside the runtime lib (core `+`), yet the user
-        // still needs the type, the Phel call site, and the filtered trace.
+        // still needs the message plus the Phel call sites from the filtered trace.
         self::assertStringContainsString('Expected a number, got string', $output);
         self::assertMatchesRegularExpression('~#\d+ .*\.phel:\d+ : \(test\\\\runtime-lib-error-script\\\\add-boom~', $output);
         self::assertMatchesRegularExpression('~#\d+ .*\.phel:\d+ : \(test\\\\runtime-lib-error-script\\\\caller~', $output);
