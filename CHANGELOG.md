@@ -4,6 +4,10 @@ All notable changes to this project will be documented in this file.
 
 ## Unreleased
 
+### Fixed
+
+- Temp-file cleanup (`RealFilesystem::clearAll()`) no longer emits `unlink(...): No such file or directory` warnings when a tracked path was already removed by an earlier run (the file list is process-global static); it now skips missing paths. Surfaced as noise on every `phel test` / build run
+
 ### Changed
 
 - `phel compile` no longer prints nothing when a snippet folds to a discarded pure value (e.g. `(+ 1 2)` → `3`): stdout stays empty, but a note on stderr now reports the value the snippet reduces to and why no PHP was emitted

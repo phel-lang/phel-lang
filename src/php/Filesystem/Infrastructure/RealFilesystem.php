@@ -35,7 +35,11 @@ final class RealFilesystem implements FilesystemInterface
     public function clearAll(): void
     {
         foreach (self::$files as $file) {
-            unlink($file);
+            // $files is process-global static, so a path may already be gone
+            // (cleared by another run or never written) — skip rather than warn.
+            if (file_exists($file)) {
+                unlink($file);
+            }
         }
 
         self::reset();
