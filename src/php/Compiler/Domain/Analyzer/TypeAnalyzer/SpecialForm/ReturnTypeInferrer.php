@@ -20,6 +20,7 @@ use Phel\Lang\Collections\Map\PersistentMapInterface;
 use Phel\Lang\Keyword;
 use Phel\Lang\Symbol;
 
+use function array_map;
 use function count;
 use function in_array;
 use function is_bool;
@@ -59,52 +60,6 @@ final class ReturnTypeInferrer
     private const array NUMERIC_OPS = [
         '+' => true, '-' => true, '*' => true, '/' => true, '%' => true,
         '**' => true, '<<' => true, '>>' => true, '|' => true, '&' => true, '^' => true,
-    ];
-
-    /**
-     * Pure PHP built-ins whose return type is fixed regardless of argument
-     * type. Limited to side-effect-free functions with a stable signature
-     * across supported PHP versions; anything whose return type depends on
-     * argument types or runtime mode stays out so the inferrer never
-     * stamps the wrong tag.
-     *
-     * @var array<string, string>
-     */
-    private const array PURE_PHP_FN_RETURN = [
-        'strlen' => 'int',
-        'intval' => 'int',
-        'mb_strlen' => 'int',
-        'count' => 'int',
-        'random_int' => 'int',
-        'intdiv' => 'int',
-        'floatval' => 'float',
-        'doubleval' => 'float',
-        'floor' => 'float',
-        'ceil' => 'float',
-        'round' => 'float',
-        'boolval' => 'bool',
-        'is_int' => 'bool',
-        'is_integer' => 'bool',
-        'is_long' => 'bool',
-        'is_float' => 'bool',
-        'is_double' => 'bool',
-        'is_string' => 'bool',
-        'is_bool' => 'bool',
-        'is_null' => 'bool',
-        'is_array' => 'bool',
-        'is_object' => 'bool',
-        'is_callable' => 'bool',
-        'is_numeric' => 'bool',
-        'strval' => 'string',
-        'strtolower' => 'string',
-        'strtoupper' => 'string',
-        'mb_strtolower' => 'string',
-        'mb_strtoupper' => 'string',
-        'trim' => 'string',
-        'ltrim' => 'string',
-        'rtrim' => 'string',
-        'sprintf' => 'string',
-        'gettype' => 'string',
     ];
 
     /**
@@ -349,8 +304,9 @@ final class ReturnTypeInferrer
             return $this->inferNumeric($node, $locals);
         }
 
-        if (isset(self::PURE_PHP_FN_RETURN[$op])) {
-            return $this->publish(self::PURE_PHP_FN_RETURN[$op]);
+        $pureReturnType = PurePhpFunctionReturnTypes::returnTypeOf($op);
+        if ($pureReturnType !== null) {
+            return $this->publish($pureReturnType);
         }
 
         return null;
@@ -389,24 +345,11 @@ final class ReturnTypeInferrer
      */
     private function inferNumeric(CallNode $node, array $locals): ?string
     {
-        $hasFloat = false;
-        foreach ($node->getArguments() as $arg) {
-            $type = $this->inferNode($arg, $locals);
-            if ($type === null || $type === self::BOTTOM) {
-                return null;
-            }
-
-            if ($type === 'float') {
-                $hasFloat = true;
-                continue;
-            }
-
-            if ($type !== 'int') {
-                return null;
-            }
-        }
-
-        return $hasFloat ? 'float' : 'int';
+        // A `BOTTOM` operand maps to neither int nor float, so the shared rule
+        // treats it as non-numeric and yields null — same as the explicit guard.
+        return ArithmeticResultType::fromOperands(
+            array_map(fn(AbstractNode $arg): ?string => $this->inferNode($arg, $locals), $node->getArguments()),
+        );
     }
 
     private function inferLiteral(LiteralNode $node): ?string

@@ -17,6 +17,7 @@ use Phel\Compiler\Domain\Analyzer\Environment\NodeEnvironment;
 use Phel\Compiler\Domain\Analyzer\Exceptions\AnalyzerException;
 use Phel\Compiler\Domain\Analyzer\TypeAnalyzer\SpecialForm\Binding\BindingValidator;
 use Phel\Compiler\Domain\Analyzer\TypeAnalyzer\SpecialForm\LoopSymbol;
+use Phel\Lang\Keyword;
 use Phel\Lang\Symbol;
 use PHPUnit\Framework\TestCase;
 
@@ -121,8 +122,8 @@ final class LoopSymbolTest extends TestCase
                 [
                     new BindingNode(
                         $env->withDisallowRecurFrame(),
-                        Symbol::create('a'),
-                        Symbol::create('a_1'),
+                        $this->intTagged('a'),
+                        $this->intTagged('a_1'),
                         new LiteralNode(
                             $env->withExpressionContext()->withDisallowRecurFrame()->withDisallowRecurFrame()->withBoundTo('.a'),
                             1,
@@ -130,14 +131,14 @@ final class LoopSymbolTest extends TestCase
                     ),
                 ],
                 new DoNode(
-                    $env->withAddedRecurFrame(new RecurFrame([Symbol::create('a')], [Symbol::create('a_1')]))
-                        ->withLocals([Symbol::create('a')])
-                        ->withShadowedLocal(Symbol::create('a'), Symbol::create('a_1')),
+                    $env->withAddedRecurFrame(new RecurFrame([$this->intTagged('a')], [$this->intTagged('a_1')]))
+                        ->withLocals([$this->intTagged('a')])
+                        ->withShadowedLocal($this->intTagged('a'), $this->intTagged('a_1')),
                     [],
                     new LiteralNode(
-                        $env->withAddedRecurFrame(new RecurFrame([Symbol::create('a')], [Symbol::create('a_1')]))
-                            ->withLocals([Symbol::create('a')])
-                            ->withShadowedLocal(Symbol::create('a'), Symbol::create('a_1')),
+                        $env->withAddedRecurFrame(new RecurFrame([$this->intTagged('a')], [$this->intTagged('a_1')]))
+                            ->withLocals([$this->intTagged('a')])
+                            ->withShadowedLocal($this->intTagged('a'), $this->intTagged('a_1')),
                         null,
                     ),
                 ),
@@ -174,5 +175,16 @@ final class LoopSymbolTest extends TestCase
         $letNode = $bodyNode->getRet();
         $this->assertInstanceOf(LetNode::class, $letNode);
         $this->assertFalse($letNode->isLoop());
+    }
+
+    /**
+     * A loop binding whose init types to a primitive (and that no `recur`
+     * disagrees with) carries the inferred `:tag` — `BindingTypeInferrer`
+     * grafts it onto the binding symbol, exactly as a hand-written `^int`.
+     */
+    private function intTagged(string $name): Symbol
+    {
+        return Symbol::create($name)
+            ->withMeta(Phel::map(Keyword::create('tag'), Symbol::create('int')));
     }
 }

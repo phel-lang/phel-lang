@@ -3,6 +3,7 @@
       f (fn [a b] (php/+ a b))]
   (f 1 1))
 --PHP--
+/** @var int $b_1 */
 $b_1 = 10;
 $f_2 = (function($a, $b) {
   return ($a + $b);

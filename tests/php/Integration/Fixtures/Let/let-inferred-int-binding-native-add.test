@@ -1,0 +1,8 @@
+--PHEL--
+(fn [^int n] (let [a 0] (+ a n)))
+--PHP--
+(function(int $n) {
+  /** @var int $a_1 */
+  $a_1 = 0;
+  return ($a_1 + $n);
+});

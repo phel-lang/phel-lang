@@ -1,8 +1,8 @@
 --PHEL--
-(fn [^int n] (let [a 0] (+ a n)))
+(fn [^int n x] (let [a (php/aget x 0)] (+ a n)))
 --PHP--
-(function(int $n) {
+(function(int $n, $x) {
   static $__phel_call_0;
-  $a_1 = 0;
+  $a_1 = (($x)[(0)] ?? null);
   return ($__phel_call_0 ??= \Phel::getDefinition("phel.core", "+"))->__invoke($a_1, $n);
 });

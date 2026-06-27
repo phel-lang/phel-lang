@@ -30,6 +30,7 @@ final readonly class LoopSymbol implements SpecialFormAnalyzerInterface
     public function __construct(
         private AnalyzerInterface $analyzer,
         private BindingValidator $bindingValidator,
+        private BindingTypeInferrer $bindingTypeInferrer = new BindingTypeInferrer(),
     ) {}
 
     /**
@@ -148,6 +149,12 @@ final readonly class LoopSymbol implements SpecialFormAnalyzerInterface
             ]),
             $bodyEnv,
         );
+
+        // Infer a primitive `:tag` per binding now that the body (and its
+        // `recur`s) is analyzed: a counter keeps its tag only when the init and
+        // every recur arm agree, so `(loop [i 0] ... (recur (php/+ i 1)))`
+        // lowers `(< i n)` / `(+ i 1)` to native ops.
+        $this->bindingTypeInferrer->graftLoopBindings($bindings, $bodyExpr);
 
         return new LetNode(
             $env,

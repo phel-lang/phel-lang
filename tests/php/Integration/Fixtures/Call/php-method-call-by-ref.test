@@ -1,6 +1,7 @@
 --PHEL--
 (let [x 1 o (php/new \ArrayObject)] (php/-> o (offsetSet 0 (php/ref x))))
 --PHP--
+/** @var int $x_1 */
 $x_1 = 1;
 $o_2 = (new \ArrayObject());
 ($o_2->offsetSet(0, $x_1));

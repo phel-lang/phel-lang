@@ -6,6 +6,7 @@
 --PHP--
 (function() {
   static $__phel_const_0, $__phel_call_0;
+  /** @var int $b_1 */
   $b_1 = 10;
   return (function() use($b_1,&$__phel_const_0,&$__phel_call_0) {
     foreach (($__phel_const_0 ??= \Phel::vector([1, 2, 3])) as $b) {

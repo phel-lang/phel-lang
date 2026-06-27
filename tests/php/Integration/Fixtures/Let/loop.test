@@ -3,7 +3,9 @@
        sum 0]
   (if (php/<= n 0) sum (recur (php/- n 1) (php/+ sum n))))
 --PHP--
+/** @var int $n_1 */
 $n_1 = 10;
+/** @var int $sum_2 */
 $sum_2 = 0;
 while (true) {
   if ((($n_1 <= 0))) {

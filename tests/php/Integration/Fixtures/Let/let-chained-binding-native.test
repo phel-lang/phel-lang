@@ -1,0 +1,10 @@
+--PHEL--
+(fn [v] (let [a (php/count v) b (+ a 1)] (< b 10)))
+--PHP--
+(function($v): bool {
+  /** @var int $a_1 */
+  $a_1 = count($v);
+  /** @var int $b_2 */
+  $b_2 = ($a_1 + 1);
+  return ($b_2 < 10);
+});

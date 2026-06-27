@@ -5,8 +5,12 @@
       d (reduce + 100 [])]
   [a b c d])
 --PHP--
+/** @var int $a_1 */
 $a_1 = 10;
+/** @var int $b_2 */
 $b_2 = 24;
+/** @var int $c_3 */
 $c_3 = 9;
+/** @var int $d_4 */
 $d_4 = 100;
 \Phel::vector([$a_1, $b_2, $c_3, $d_4]);

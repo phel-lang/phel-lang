@@ -5,8 +5,12 @@
       d (= "x" "x" "x")]
   [a b c d])
 --PHP--
+/** @var bool $a_1 */
 $a_1 = true;
+/** @var bool $b_2 */
 $b_2 = false;
+/** @var bool $c_3 */
 $c_3 = true;
+/** @var bool $d_4 */
 $d_4 = true;
 \Phel::vector([$a_1, $b_2, $c_3, $d_4]);
