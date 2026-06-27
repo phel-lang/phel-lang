@@ -1,0 +1,8 @@
+--PHEL--
+(fn [v] (let [n (php/count v)] (+ n 1)))
+--PHP--
+(function($v) {
+  /** @var int $n_1 */
+  $n_1 = count($v);
+  return ($n_1 + 1);
+});

@@ -6,9 +6,14 @@
       e (str false)]
   [a b c d e])
 --PHP--
+/** @var string $a_1 */
 $a_1 = "";
+/** @var string $b_2 */
 $b_2 = "hello";
+/** @var string $c_3 */
 $c_3 = "a-1-true";
+/** @var string $d_4 */
 $d_4 = "";
+/** @var string $e_5 */
 $e_5 = "false";
 \Phel::vector([$a_1, $b_2, $c_3, $d_4, $e_5]);

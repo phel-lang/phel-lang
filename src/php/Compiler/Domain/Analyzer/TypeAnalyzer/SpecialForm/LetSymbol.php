@@ -116,7 +116,19 @@ final readonly class LetSymbol implements SpecialFormAnalyzerInterface
             $list->getStartLocation(),
         );
 
-        return $this->letSimplifier->simplify($node);
+        $simplified = $this->letSimplifier->simplify($node);
+
+        // Infer a primitive `:tag` from each binding's init so ops over the
+        // binding lower to native PHP operators (a `let` cannot `recur`, so
+        // the init type holds for the whole scope). Run after simplification:
+        // dropped / inlined bindings are gone, and a surviving binding's
+        // symbol is the same instance the body references, so the in-place
+        // graft is visible to its `LocalVarNode`s at emit time.
+        if ($simplified instanceof LetNode) {
+            new BindingTypeInferrer()->graftLetBindings($simplified->getBindings());
+        }
+
+        return $simplified;
     }
 
     /**

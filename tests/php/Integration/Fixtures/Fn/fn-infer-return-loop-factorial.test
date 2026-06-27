@@ -6,7 +6,9 @@
       (recur (php/- i 1) (php/* acc i)))))
 --PHP--
 (function(int $n): int {
+  /** @var int $i_1 */
   $i_1 = $n;
+  /** @var int $acc_2 */
   $acc_2 = 1;
   while (true) {
     if ((($i_1 <= 1))) {

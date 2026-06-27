@@ -1,0 +1,17 @@
+--PHEL--
+(fn [^int n] (loop [i 0] (if (< i n) (recur (+ i 1.5)) i)))
+--PHP--
+(function(int $n) {
+  static $__phel_call_0, $__phel_call_1;
+  $i_1 = 0;
+  while (true) {
+    if (($__truthy = ($__phel_call_0 ??= \Phel::getDefinition("phel.core", "<"))->__invoke($i_1, $n)) !== null && $__truthy !== false) {
+      $i_1 = ($__phel_call_1 ??= \Phel::getDefinition("phel.core", "+"))->__invoke($i_1, 1.5);
+      continue;
+
+    } else {
+      return $i_1;
+    }
+    break;
+  }
+});

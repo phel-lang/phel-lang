@@ -1,6 +1,7 @@
 --PHEL--
 (let [cls "\\DateTimeImmutable"] (php/new cls) :done)
 --PHP--
+/** @var string $cls_1 */
 $cls_1 = "\\DateTimeImmutable";
 $target_2 = $cls_1;
 if (!is_string($target_2) && !is_object($target_2)) {

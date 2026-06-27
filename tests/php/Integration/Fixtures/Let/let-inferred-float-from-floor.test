@@ -1,0 +1,8 @@
+--PHEL--
+(fn [^float x] (let [y (php/floor x)] (+ y 1.0)))
+--PHP--
+(function(float $x) {
+  /** @var float $y_1 */
+  $y_1 = floor($x);
+  return ($y_1 + 1.0);
+});

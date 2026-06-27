@@ -7,10 +7,16 @@
       f (abs -42)]
   [a b c d e f])
 --PHP--
+/** @var int $a_1 */
 $a_1 = 1;
+/** @var int $b_2 */
 $b_2 = 3;
+/** @var int $c_3 */
 $c_3 = 2;
+/** @var int $d_4 */
 $d_4 = 2;
+/** @var int $e_5 */
 $e_5 = 1;
+/** @var int $f_6 */
 $f_6 = 42;
 \Phel::vector([$a_1, $b_2, $c_3, $d_4, $e_5, $f_6]);

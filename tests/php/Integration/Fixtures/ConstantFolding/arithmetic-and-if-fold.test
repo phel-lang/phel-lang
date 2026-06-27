@@ -3,6 +3,8 @@
       y (if true (* 4 5) 99)]
   (- y x))
 --PHP--
+/** @var int $x_1 */
 $x_1 = 3;
+/** @var int $y_2 */
 $y_2 = 20;
-(\Phel::getDefinition("phel.core", "-"))->__invoke($y_2, $x_1);
+($y_2 - $x_1);

@@ -2,7 +2,9 @@
 (fn [x] (do (let [x 1 y 2] (php/+ x y)) x))
 --PHP--
 (function($x) {
+  /** @var int $x_1 */
   $x_1 = 1;
+  /** @var int $y_2 */
   $y_2 = 2;
   ($x_1 + $y_2);
   return $x;

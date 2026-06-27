@@ -2,7 +2,7 @@
 (fn [^int n] (let [a 0] (+ a n)))
 --PHP--
 (function(int $n) {
-  static $__phel_call_0;
+  /** @var int $a_1 */
   $a_1 = 0;
-  return ($__phel_call_0 ??= \Phel::getDefinition("phel.core", "+"))->__invoke($a_1, $n);
+  return ($a_1 + $n);
 });
