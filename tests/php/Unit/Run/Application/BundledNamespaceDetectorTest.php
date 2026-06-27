@@ -143,7 +143,7 @@ final class BundledNamespaceDetectorTest extends TestCase
      */
     private function createDetector(array $bundledNamespaces): BundledNamespaceDetector
     {
-        $buildFacade = $this->createMock(BuildFacadeInterface::class);
+        $buildFacade = $this->createStub(BuildFacadeInterface::class);
         $buildFacade->method('getNamespaceFromDirectories')->willReturn(
             array_map(
                 static fn(string $ns): NamespaceInformation => new NamespaceInformation('/' . $ns . '.phel', $ns, [], true),
@@ -151,7 +151,7 @@ final class BundledNamespaceDetectorTest extends TestCase
             ),
         );
 
-        $commandFacade = $this->createMock(CommandFacadeInterface::class);
+        $commandFacade = $this->createStub(CommandFacadeInterface::class);
         $commandFacade->method('getSourceDirectories')->willReturn([$this->tmpDir]);
         $commandFacade->method('getVendorSourceDirectories')->willReturn([]);
 

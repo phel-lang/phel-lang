@@ -53,7 +53,7 @@ final class CachedNamespaceExtractorTest extends TestCase
         file_put_contents($primaryPath, '(ns split\\ns)');
         file_put_contents($secondaryPath, '(in-ns split\\ns)');
 
-        $inner = $this->createMock(NamespaceExtractorInterface::class);
+        $inner = $this->createStub(NamespaceExtractorInterface::class);
         $inner->method('getNamespaceFromFile')->willReturnCallback(
             static fn(string $path): NamespaceInformation => str_ends_with($path, 'main.phel') ? $primaryInfo : $secondaryInfo,
         );
@@ -128,7 +128,7 @@ final class CachedNamespaceExtractorTest extends TestCase
         );
 
         $seenPaths = [];
-        $inner = $this->createMock(NamespaceExtractorInterface::class);
+        $inner = $this->createStub(NamespaceExtractorInterface::class);
         $inner->method('getNamespaceFromFile')->willReturnCallback(
             static function (string $path) use (&$seenPaths, $visibleInfo): NamespaceInformation {
                 $seenPaths[] = $path;
@@ -161,7 +161,7 @@ final class CachedNamespaceExtractorTest extends TestCase
 
         $goodInfo = new NamespaceInformation($goodPath, 'good\\ns', [], isPrimaryDefinition: true);
 
-        $inner = $this->createMock(NamespaceExtractorInterface::class);
+        $inner = $this->createStub(NamespaceExtractorInterface::class);
         $inner->method('getNamespaceFromFile')->willReturnCallback(
             static function (string $path) use ($goodInfo): NamespaceInformation {
                 if (str_ends_with($path, 'good.phel')) {

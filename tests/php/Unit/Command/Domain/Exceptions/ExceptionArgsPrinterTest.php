@@ -82,7 +82,7 @@ final class ExceptionArgsPrinterTest extends TestCase
 
     private function stubPrinter(): PrinterInterface
     {
-        $printer = $this->createMock(PrinterInterface::class);
+        $printer = $this->createStub(PrinterInterface::class);
         $printer->method('print')->willReturnCallback(static fn($arg): string => $arg);
 
         return $printer;

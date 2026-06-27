@@ -16,7 +16,7 @@ final class PhelFnNormalizerTest extends TestCase
 {
     public function test_no_functions_found(): void
     {
-        $phelFnLoader = $this->createMock(PhelFnLoaderInterface::class);
+        $phelFnLoader = $this->createStub(PhelFnLoaderInterface::class);
         $phelFnLoader->method('getNormalizedPhelFunctions')->willReturn([]);
 
         $normalizer = new PhelFnNormalizer($phelFnLoader, new PhelFnGroupKeyGenerator());
@@ -27,7 +27,7 @@ final class PhelFnNormalizerTest extends TestCase
 
     public function test_group_key_one_function(): void
     {
-        $phelFnLoader = $this->createMock(PhelFnLoaderInterface::class);
+        $phelFnLoader = $this->createStub(PhelFnLoaderInterface::class);
         $phelFnLoader->method('getNormalizedPhelFunctions')->willReturn([
             'fn-name' => Phel::map(),
         ]);
@@ -51,7 +51,7 @@ final class PhelFnNormalizerTest extends TestCase
 
     public function test_group_key_functions_in_different_groups(): void
     {
-        $phelFnLoader = $this->createMock(PhelFnLoaderInterface::class);
+        $phelFnLoader = $this->createStub(PhelFnLoaderInterface::class);
         $phelFnLoader->method('getNormalizedPhelFunctions')->willReturn([
             'fn-name-1' => Phel::map(),
             'fn-name-2' => Phel::map(),
@@ -84,7 +84,7 @@ final class PhelFnNormalizerTest extends TestCase
 
     public function test_group_key_functions_in_same_group_with_question_mark(): void
     {
-        $phelFnLoader = $this->createMock(PhelFnLoaderInterface::class);
+        $phelFnLoader = $this->createStub(PhelFnLoaderInterface::class);
         $phelFnLoader->method('getNormalizedPhelFunctions')->willReturn([
             'fn-name' => Phel::map(),
             'fn-name?' => Phel::map(),
@@ -117,7 +117,7 @@ final class PhelFnNormalizerTest extends TestCase
 
     public function test_group_key_functions_in_same_group_with_minus(): void
     {
-        $phelFnLoader = $this->createMock(PhelFnLoaderInterface::class);
+        $phelFnLoader = $this->createStub(PhelFnLoaderInterface::class);
         $phelFnLoader->method('getNormalizedPhelFunctions')->willReturn([
             'fn-name?' => Phel::map(),
             'fn-name-' => Phel::map(),
@@ -150,7 +150,7 @@ final class PhelFnNormalizerTest extends TestCase
 
     public function test_group_key_functions_in_same_group_with_upper_case(): void
     {
-        $phelFnLoader = $this->createMock(PhelFnLoaderInterface::class);
+        $phelFnLoader = $this->createStub(PhelFnLoaderInterface::class);
         $phelFnLoader->method('getNormalizedPhelFunctions')->willReturn([
             'fn-name-' => Phel::map(),
             'FN-NAME' => Phel::map(),
@@ -188,7 +188,7 @@ final class PhelFnNormalizerTest extends TestCase
             true,
         );
 
-        $phelFnLoader = $this->createMock(PhelFnLoaderInterface::class);
+        $phelFnLoader = $this->createStub(PhelFnLoaderInterface::class);
         $phelFnLoader->method('getNormalizedPhelFunctions')->willReturn([
             'privateSymbol' => $privateSymbol,
         ]);
@@ -202,7 +202,7 @@ final class PhelFnNormalizerTest extends TestCase
     {
         $symbol = Phel::map();
 
-        $phelFnLoader = $this->createMock(PhelFnLoaderInterface::class);
+        $phelFnLoader = $this->createStub(PhelFnLoaderInterface::class);
         $phelFnLoader->method('getNormalizedPhelFunctions')->willReturn([
             '*build-mode*' => $symbol,
         ]);
@@ -231,7 +231,7 @@ final class PhelFnNormalizerTest extends TestCase
             'Constant for Not a Number (NAN) values.',
         );
 
-        $phelFnLoader = $this->createMock(PhelFnLoaderInterface::class);
+        $phelFnLoader = $this->createStub(PhelFnLoaderInterface::class);
         $phelFnLoader->method('getNormalizedPhelFunctions')->willReturn([
             'NAN' => $symbol,
         ]);
@@ -263,7 +263,7 @@ final class PhelFnNormalizerTest extends TestCase
             "```phel\n(array & xs)\n```\nCreates a new Array.",
         );
 
-        $phelFnLoader = $this->createMock(PhelFnLoaderInterface::class);
+        $phelFnLoader = $this->createStub(PhelFnLoaderInterface::class);
         $phelFnLoader->method('getNormalizedPhelFunctions')->willReturn([
             'array' => $symbol,
         ]);
@@ -295,7 +295,7 @@ final class PhelFnNormalizerTest extends TestCase
             "```phel\n(array & xs)\n```\nReturns a formatted string. See PHP's [sprintf](https://example.com) for more information.",
         );
 
-        $phelFnLoader = $this->createMock(PhelFnLoaderInterface::class);
+        $phelFnLoader = $this->createStub(PhelFnLoaderInterface::class);
         $phelFnLoader->method('getNormalizedPhelFunctions')->willReturn([
             'format' => $symbol,
         ]);
@@ -327,7 +327,7 @@ final class PhelFnNormalizerTest extends TestCase
             'Use new-fn',
         );
 
-        $phelFnLoader = $this->createMock(PhelFnLoaderInterface::class);
+        $phelFnLoader = $this->createStub(PhelFnLoaderInterface::class);
         $phelFnLoader->method('getNormalizedPhelFunctions')->willReturn([
             'old-fn' => $meta,
         ]);
@@ -364,7 +364,7 @@ final class PhelFnNormalizerTest extends TestCase
             ),
         );
 
-        $phelFnLoader = $this->createMock(PhelFnLoaderInterface::class);
+        $phelFnLoader = $this->createStub(PhelFnLoaderInterface::class);
         $phelFnLoader->method('getNormalizedPhelFunctions')->willReturn([
             'fn-name' => $meta,
         ]);
@@ -409,7 +409,7 @@ final class PhelFnNormalizerTest extends TestCase
             ),
         );
 
-        $phelFnLoader = $this->createMock(PhelFnLoaderInterface::class);
+        $phelFnLoader = $this->createStub(PhelFnLoaderInterface::class);
         $phelFnLoader->method('getNormalizedPhelFunctions')->willReturn([
             'fn-name' => $meta,
         ]);
@@ -431,7 +431,7 @@ final class PhelFnNormalizerTest extends TestCase
 
     public function test_normalize_native_symbol_doc_url(): void
     {
-        $phelFnLoader = $this->createMock(PhelFnLoaderInterface::class);
+        $phelFnLoader = $this->createStub(PhelFnLoaderInterface::class);
         $phelFnLoader->method('getNormalizedPhelFunctions')->willReturn([
             'apply' => Phel::map(),
         ]);
@@ -466,7 +466,7 @@ final class PhelFnNormalizerTest extends TestCase
             "```phel\n(conj coll x)\n(conj coll x & xs)\n```\nReturns a new collection with elements added.",
         );
 
-        $phelFnLoader = $this->createMock(PhelFnLoaderInterface::class);
+        $phelFnLoader = $this->createStub(PhelFnLoaderInterface::class);
         $phelFnLoader->method('getNormalizedPhelFunctions')->willReturn([
             'conj' => $symbol,
         ]);

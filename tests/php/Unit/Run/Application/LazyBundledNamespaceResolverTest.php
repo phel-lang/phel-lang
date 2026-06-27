@@ -29,7 +29,7 @@ final class LazyBundledNamespaceResolverTest extends TestCase
         $jsonInfo = new NamespaceInformation('/phel/json.phel', 'phel.json', ['phel.core'], true);
 
         $evalled = [];
-        $buildFacade = $this->createMock(BuildFacadeInterface::class);
+        $buildFacade = $this->createStub(BuildFacadeInterface::class);
         $buildFacade->method('getDependenciesForNamespace')->willReturn([$coreInfo, $jsonInfo]);
         $buildFacade->method('evalFile')->willReturnCallback(
             static function (string $file) use (&$evalled): CompiledFile {
@@ -54,7 +54,7 @@ final class LazyBundledNamespaceResolverTest extends TestCase
         $jsonInfo = new NamespaceInformation('/phel/json.phel', 'phel.json', [], true);
 
         $observedSeeds = [];
-        $buildFacade = $this->createMock(BuildFacadeInterface::class);
+        $buildFacade = $this->createStub(BuildFacadeInterface::class);
         $buildFacade->method('getDependenciesForNamespace')->willReturnCallback(
             static function (array $dirs, array $seeds) use (&$observedSeeds, $jsonInfo): array {
                 $observedSeeds[] = $seeds;
@@ -95,7 +95,7 @@ final class LazyBundledNamespaceResolverTest extends TestCase
         $jsonInfo = new NamespaceInformation('/phel/json.phel', 'phel.json', [], true);
 
         $evalled = [];
-        $buildFacade = $this->createMock(BuildFacadeInterface::class);
+        $buildFacade = $this->createStub(BuildFacadeInterface::class);
         $buildFacade->method('getDependenciesForNamespace')->willReturn([$jsonInfo]);
         $buildFacade->method('evalFile')->willReturnCallback(
             static function (string $file) use (&$evalled): CompiledFile {

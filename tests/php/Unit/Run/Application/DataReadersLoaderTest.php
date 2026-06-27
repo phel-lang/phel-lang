@@ -69,7 +69,7 @@ final class DataReadersLoaderTest extends TestCase
 
         $calls = [];
 
-        $buildFacade = $this->createMock(BuildFacadeInterface::class);
+        $buildFacade = $this->createStub(BuildFacadeInterface::class);
         $buildFacade->method('getDependenciesForNamespace')
             ->willReturnCallback(static function (array $dirs, array $ns) use (&$calls, $readerInfo): array {
                 $calls[] = ['deps', $ns];
