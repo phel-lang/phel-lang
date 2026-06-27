@@ -62,52 +62,6 @@ final class ReturnTypeInferrer
     ];
 
     /**
-     * Pure PHP built-ins whose return type is fixed regardless of argument
-     * type. Limited to side-effect-free functions with a stable signature
-     * across supported PHP versions; anything whose return type depends on
-     * argument types or runtime mode stays out so the inferrer never
-     * stamps the wrong tag.
-     *
-     * @var array<string, string>
-     */
-    private const array PURE_PHP_FN_RETURN = [
-        'strlen' => 'int',
-        'intval' => 'int',
-        'mb_strlen' => 'int',
-        'count' => 'int',
-        'random_int' => 'int',
-        'intdiv' => 'int',
-        'floatval' => 'float',
-        'doubleval' => 'float',
-        'floor' => 'float',
-        'ceil' => 'float',
-        'round' => 'float',
-        'boolval' => 'bool',
-        'is_int' => 'bool',
-        'is_integer' => 'bool',
-        'is_long' => 'bool',
-        'is_float' => 'bool',
-        'is_double' => 'bool',
-        'is_string' => 'bool',
-        'is_bool' => 'bool',
-        'is_null' => 'bool',
-        'is_array' => 'bool',
-        'is_object' => 'bool',
-        'is_callable' => 'bool',
-        'is_numeric' => 'bool',
-        'strval' => 'string',
-        'strtolower' => 'string',
-        'strtoupper' => 'string',
-        'mb_strtolower' => 'string',
-        'mb_strtoupper' => 'string',
-        'trim' => 'string',
-        'ltrim' => 'string',
-        'rtrim' => 'string',
-        'sprintf' => 'string',
-        'gettype' => 'string',
-    ];
-
-    /**
      * Set during a walk when a primitive PHP operator is encountered.
      * Only then does the function publish an inferred return type;
      * pure literal / pass-through bodies stay untyped so the emitter
@@ -349,8 +303,9 @@ final class ReturnTypeInferrer
             return $this->inferNumeric($node, $locals);
         }
 
-        if (isset(self::PURE_PHP_FN_RETURN[$op])) {
-            return $this->publish(self::PURE_PHP_FN_RETURN[$op]);
+        $pureReturnType = PurePhpFunctionReturnTypes::returnTypeOf($op);
+        if ($pureReturnType !== null) {
+            return $this->publish($pureReturnType);
         }
 
         return null;

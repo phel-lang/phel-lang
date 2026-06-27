@@ -85,39 +85,6 @@ final class BindingTypeInferrer
     ];
 
     /**
-     * Pure PHP built-ins with a fixed primitive return type, independent of
-     * argument types. A curated subset of the same contract
-     * {@see ReturnTypeInferrer::PURE_PHP_FN_RETURN} encodes (`floor`/`ceil`/
-     * `round` return float, matching PHP); anything whose return type depends
-     * on its arguments stays out so a binding never gets the wrong tag.
-     *
-     * @var array<string, string>
-     */
-    private const array PURE_PHP_FN_RETURN = [
-        'strlen' => 'int',
-        'mb_strlen' => 'int',
-        'intval' => 'int',
-        'intdiv' => 'int',
-        'count' => 'int',
-        'random_int' => 'int',
-        'ord' => 'int',
-        'floatval' => 'float',
-        'doubleval' => 'float',
-        'floor' => 'float',
-        'ceil' => 'float',
-        'round' => 'float',
-        'boolval' => 'bool',
-        'is_int' => 'bool',
-        'is_float' => 'bool',
-        'is_string' => 'bool',
-        'is_bool' => 'bool',
-        'is_null' => 'bool',
-        'is_array' => 'bool',
-        'strval' => 'string',
-        'gettype' => 'string',
-    ];
-
-    /**
      * Graft inferred tags onto a `let`'s bindings. Processed in order so a
      * later binding's init can read an earlier sibling's freshly grafted tag.
      *
@@ -281,7 +248,7 @@ final class BindingTypeInferrer
             return $this->numericResultType($node, $locals);
         }
 
-        return self::PURE_PHP_FN_RETURN[$op] ?? null;
+        return PurePhpFunctionReturnTypes::returnTypeOf($op);
     }
 
     /**
