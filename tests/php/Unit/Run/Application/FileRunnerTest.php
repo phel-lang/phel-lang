@@ -64,7 +64,7 @@ final class FileRunnerTest extends TestCase
         $coreInfo = new NamespaceInformation('/phel/core.phel', 'phel.core', [], true);
         $observedDirsArgs = [];
 
-        $buildFacade = $this->createMock(BuildFacadeInterface::class);
+        $buildFacade = $this->createStub(BuildFacadeInterface::class);
         $buildFacade->method('getNamespaceFromFile')->willReturn($scriptInfo);
         $buildFacade->method('getDependenciesForNamespace')->willReturnCallback(
             static function (array $dirs, array $ns) use (&$observedDirsArgs, $scriptInfo, $coreInfo): array {
@@ -76,7 +76,7 @@ final class FileRunnerTest extends TestCase
             new CompiledFile('', '', '', false),
         );
 
-        $commandFacade = $this->createMock(CommandFacadeInterface::class);
+        $commandFacade = $this->createStub(CommandFacadeInterface::class);
         $commandFacade->method('getSourceDirectories')->willReturn([$this->primarySrc]);
         $commandFacade->method('getVendorSourceDirectories')->willReturn([]);
 
@@ -105,7 +105,7 @@ final class FileRunnerTest extends TestCase
         $observedDirsArgs = [];
         $namespaceFromFileCalls = [];
 
-        $buildFacade = $this->createMock(BuildFacadeInterface::class);
+        $buildFacade = $this->createStub(BuildFacadeInterface::class);
         $buildFacade->method('getNamespaceFromFile')->willReturnCallback(
             static function (string $path) use (&$namespaceFromFileCalls, $script, $helper, $scriptInfo, $helperInfo): NamespaceInformation {
                 $namespaceFromFileCalls[] = $path;
@@ -135,7 +135,7 @@ final class FileRunnerTest extends TestCase
             },
         );
 
-        $commandFacade = $this->createMock(CommandFacadeInterface::class);
+        $commandFacade = $this->createStub(CommandFacadeInterface::class);
         $commandFacade->method('getSourceDirectories')->willReturn([$this->primarySrc]);
         $commandFacade->method('getVendorSourceDirectories')->willReturn([]);
 
@@ -168,7 +168,7 @@ final class FileRunnerTest extends TestCase
 
         $observedSeeds = [];
 
-        $buildFacade = $this->createMock(BuildFacadeInterface::class);
+        $buildFacade = $this->createStub(BuildFacadeInterface::class);
         $buildFacade->method('getNamespaceFromFile')->willReturn($scriptInfo);
         $buildFacade->method('getNamespaceFromDirectories')->willReturn([$asyncInfo]);
         $buildFacade->method('getDependenciesForNamespace')->willReturnCallback(
@@ -186,7 +186,7 @@ final class FileRunnerTest extends TestCase
             },
         );
 
-        $commandFacade = $this->createMock(CommandFacadeInterface::class);
+        $commandFacade = $this->createStub(CommandFacadeInterface::class);
         $commandFacade->method('getSourceDirectories')->willReturn([$this->primarySrc]);
         $commandFacade->method('getVendorSourceDirectories')->willReturn([]);
 
@@ -212,7 +212,7 @@ final class FileRunnerTest extends TestCase
 
         $observedSeeds = [];
 
-        $buildFacade = $this->createMock(BuildFacadeInterface::class);
+        $buildFacade = $this->createStub(BuildFacadeInterface::class);
         $buildFacade->method('getNamespaceFromFile')->willReturn($scriptInfo);
         $buildFacade->method('getNamespaceFromDirectories')->willReturn([$testInfo]);
         $buildFacade->method('getDependenciesForNamespace')->willReturnCallback(
@@ -225,7 +225,7 @@ final class FileRunnerTest extends TestCase
             new CompiledFile('', '', '', false),
         );
 
-        $commandFacade = $this->createMock(CommandFacadeInterface::class);
+        $commandFacade = $this->createStub(CommandFacadeInterface::class);
         $commandFacade->method('getSourceDirectories')->willReturn([$this->primarySrc]);
         $commandFacade->method('getVendorSourceDirectories')->willReturn([]);
 
@@ -247,7 +247,7 @@ final class FileRunnerTest extends TestCase
         $observedSeeds = [];
         $bundledDiscoveryCalls = 0;
 
-        $buildFacade = $this->createMock(BuildFacadeInterface::class);
+        $buildFacade = $this->createStub(BuildFacadeInterface::class);
         $buildFacade->method('getNamespaceFromFile')->willReturn($scriptInfo);
         $buildFacade->method('getNamespaceFromDirectories')->willReturnCallback(
             static function () use (&$bundledDiscoveryCalls): array {
@@ -265,7 +265,7 @@ final class FileRunnerTest extends TestCase
             new CompiledFile('', '', '', false),
         );
 
-        $commandFacade = $this->createMock(CommandFacadeInterface::class);
+        $commandFacade = $this->createStub(CommandFacadeInterface::class);
         $commandFacade->method('getSourceDirectories')->willReturn([$this->primarySrc]);
         $commandFacade->method('getVendorSourceDirectories')->willReturn([]);
 
@@ -291,7 +291,7 @@ final class FileRunnerTest extends TestCase
         $subHelperInfo = new NamespaceInformation($subHelper, 'sub-helper', [], true);
         $coreInfo = new NamespaceInformation('/phel/core.phel', 'phel.core', [], true);
 
-        $buildFacade = $this->createMock(BuildFacadeInterface::class);
+        $buildFacade = $this->createStub(BuildFacadeInterface::class);
         $buildFacade->method('getNamespaceFromFile')->willReturnCallback(
             static fn(string $path): NamespaceInformation => match ($path) {
                 $script => $scriptInfo,
@@ -310,7 +310,7 @@ final class FileRunnerTest extends TestCase
             },
         );
 
-        $commandFacade = $this->createMock(CommandFacadeInterface::class);
+        $commandFacade = $this->createStub(CommandFacadeInterface::class);
         $commandFacade->method('getSourceDirectories')->willReturn([$this->primarySrc]);
         $commandFacade->method('getVendorSourceDirectories')->willReturn([]);
 

@@ -346,7 +346,7 @@ final class StructuredEvaluatorTest extends TestCase
      */
     private function compilerFacadeMock(): CompilerFacadeInterface
     {
-        $facade = $this->createMock(CompilerFacadeInterface::class);
+        $facade = $this->createStub(CompilerFacadeInterface::class);
         $facade->method('isGlobalEnvironmentInitialized')
             ->willReturnCallback(static fn(): bool => GlobalEnvironmentSingleton::isInitialized());
         $facade->method('getGlobalEnvironment')

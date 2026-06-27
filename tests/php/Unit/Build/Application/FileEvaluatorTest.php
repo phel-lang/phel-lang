@@ -53,7 +53,7 @@ final class FileEvaluatorTest extends TestCase
         $compilerFacade->expects($this->never())->method('compileForCache');
         $compilerFacade->expects($this->never())->method('eval');
 
-        $namespaceExtractor = $this->createMock(NamespaceExtractorInterface::class);
+        $namespaceExtractor = $this->createStub(NamespaceExtractorInterface::class);
         $namespaceExtractor->method('getNamespaceFromFile')->willReturn(
             new NamespaceInformation($sourceFile, $namespace, ['phel.core']),
         );
@@ -86,7 +86,7 @@ final class FileEvaluatorTest extends TestCase
         $compilerFacade->expects($this->never())->method('compileForCache');
         $compilerFacade->expects($this->never())->method('eval');
 
-        $namespaceExtractor = $this->createMock(NamespaceExtractorInterface::class);
+        $namespaceExtractor = $this->createStub(NamespaceExtractorInterface::class);
         $namespaceExtractor->method('getNamespaceFromFile')->willReturn(
             new NamespaceInformation($sourceFile, $namespace, ['phel.core']),
         );
@@ -121,7 +121,7 @@ final class FileEvaluatorTest extends TestCase
             ->method('compileForCache')
             ->willReturn(new EmitterResult(false, '$compiled = true;', '', ''));
 
-        $namespaceExtractor = $this->createMock(NamespaceExtractorInterface::class);
+        $namespaceExtractor = $this->createStub(NamespaceExtractorInterface::class);
         $namespaceExtractor->method('getNamespaceFromFile')->willReturn(
             new NamespaceInformation($sourceFile, $namespace, ['phel.core']),
         );
@@ -153,7 +153,7 @@ final class FileEvaluatorTest extends TestCase
         $compilerFacade = $this->createMock(CompilerFacadeInterface::class);
         $compilerFacade->expects($this->once())->method('eval');
 
-        $namespaceExtractor = $this->createMock(NamespaceExtractorInterface::class);
+        $namespaceExtractor = $this->createStub(NamespaceExtractorInterface::class);
         $namespaceExtractor->method('getNamespaceFromFile')->willReturn(
             new NamespaceInformation($sourceFile, $namespace, ['phel.core']),
         );
@@ -180,7 +180,7 @@ final class FileEvaluatorTest extends TestCase
             ->method('compileForCache')
             ->willReturn(new EmitterResult(false, '$compiled = true;', '', ''));
 
-        $namespaceExtractor = $this->createMock(NamespaceExtractorInterface::class);
+        $namespaceExtractor = $this->createStub(NamespaceExtractorInterface::class);
         $namespaceExtractor->method('getNamespaceFromFile')->willReturn(
             new NamespaceInformation($sourceFile, $namespace, ['phel.core']),
         );
@@ -204,11 +204,11 @@ final class FileEvaluatorTest extends TestCase
 
         $cache = new CompiledCodeCache($cacheDir);
 
-        $compilerFacade = $this->createMock(CompilerFacadeInterface::class);
+        $compilerFacade = $this->createStub(CompilerFacadeInterface::class);
         $compilerFacade->method('compileForCache')
             ->willReturn(new EmitterResult(false, $compiledCode, '', ''));
 
-        $namespaceExtractor = $this->createMock(NamespaceExtractorInterface::class);
+        $namespaceExtractor = $this->createStub(NamespaceExtractorInterface::class);
         $namespaceExtractor->method('getNamespaceFromFile')->willReturn(
             new NamespaceInformation($sourceFile, $namespace, ['phel.core']),
         );
@@ -241,7 +241,7 @@ final class FileEvaluatorTest extends TestCase
             ))
             ->willReturn(new EmitterResult(true, '$result = 123;', 'AAAA', $sourceFile));
 
-        $namespaceExtractor = $this->createMock(NamespaceExtractorInterface::class);
+        $namespaceExtractor = $this->createStub(NamespaceExtractorInterface::class);
         $namespaceExtractor->method('getNamespaceFromFile')->willReturn(
             new NamespaceInformation($sourceFile, $namespace, ['phel.core']),
         );
@@ -267,7 +267,7 @@ final class FileEvaluatorTest extends TestCase
         $compilerFacade->expects($this->once())->method('eval');
         $compilerFacade->expects($this->never())->method('compileForCache');
 
-        $namespaceExtractor = $this->createMock(NamespaceExtractorInterface::class);
+        $namespaceExtractor = $this->createStub(NamespaceExtractorInterface::class);
         $namespaceExtractor->method('getNamespaceFromFile')->willReturn(
             new NamespaceInformation($sourceFile, $namespace, ['phel.core']),
         );
@@ -303,7 +303,7 @@ final class FileEvaluatorTest extends TestCase
             ->method('compileForCache')
             ->willReturn(new EmitterResult(false, '$new = true;', '', ''));
 
-        $namespaceExtractor = $this->createMock(NamespaceExtractorInterface::class);
+        $namespaceExtractor = $this->createStub(NamespaceExtractorInterface::class);
         $namespaceExtractor->method('getNamespaceFromFile')->willReturn(
             new NamespaceInformation($sourceFile, $namespace, ['phel.core']),
         );
@@ -326,11 +326,11 @@ final class FileEvaluatorTest extends TestCase
         $cache = new CompiledCodeCache($cacheDir);
         $cache->put($sourceFile, $namespace, md5($sourceCode), 'this is not valid php syntax {{{');
 
-        $compilerFacade = $this->createMock(CompilerFacadeInterface::class);
+        $compilerFacade = $this->createStub(CompilerFacadeInterface::class);
         $compilerFacade->method('compileForCache')
             ->willReturn(new EmitterResult(false, '$result = 42;', '', ''));
 
-        $namespaceExtractor = $this->createMock(NamespaceExtractorInterface::class);
+        $namespaceExtractor = $this->createStub(NamespaceExtractorInterface::class);
         $namespaceExtractor->method('getNamespaceFromFile')->willReturn(
             new NamespaceInformation($sourceFile, $namespace, ['phel.core']),
         );
@@ -354,7 +354,7 @@ final class FileEvaluatorTest extends TestCase
         $cache->put($sourceFile, $namespace, md5($sourceCode), 'throw new \\RuntimeException("User code error");');
 
         $compilerFacade = $this->createStub(CompilerFacadeInterface::class);
-        $namespaceExtractor = $this->createMock(NamespaceExtractorInterface::class);
+        $namespaceExtractor = $this->createStub(NamespaceExtractorInterface::class);
         $namespaceExtractor->method('getNamespaceFromFile')->willReturn(
             new NamespaceInformation($sourceFile, $namespace, ['phel.core']),
         );
@@ -393,7 +393,7 @@ final class FileEvaluatorTest extends TestCase
         // analyzeNsForm path should NOT be used when env data is present
         $compilerFacade->expects($this->never())->method('lexString');
 
-        $namespaceExtractor = $this->createMock(NamespaceExtractorInterface::class);
+        $namespaceExtractor = $this->createStub(NamespaceExtractorInterface::class);
         $namespaceExtractor->method('getNamespaceFromFile')->willReturn(
             new NamespaceInformation($sourceFile, $namespace, ['phel.core']),
         );
@@ -423,7 +423,7 @@ final class FileEvaluatorTest extends TestCase
         // lexString should be called as fallback (analyzeNsForm path)
         $compilerFacade->expects($this->once())->method('lexString');
 
-        $namespaceExtractor = $this->createMock(NamespaceExtractorInterface::class);
+        $namespaceExtractor = $this->createStub(NamespaceExtractorInterface::class);
         $namespaceExtractor->method('getNamespaceFromFile')->willReturn(
             new NamespaceInformation($sourceFile, $namespace, ['phel.core']),
         );
@@ -458,7 +458,7 @@ final class FileEvaluatorTest extends TestCase
             ->with($namespace)
             ->willReturn($envData);
 
-        $namespaceExtractor = $this->createMock(NamespaceExtractorInterface::class);
+        $namespaceExtractor = $this->createStub(NamespaceExtractorInterface::class);
         $namespaceExtractor->method('getNamespaceFromFile')->willReturn(
             new NamespaceInformation($sourceFile, $namespace, ['phel.core']),
         );
@@ -489,7 +489,7 @@ final class FileEvaluatorTest extends TestCase
             ->with($sourceCode, $sourceFile)
             ->willThrowException(new RuntimeException('lex failure'));
 
-        $namespaceExtractor = $this->createMock(NamespaceExtractorInterface::class);
+        $namespaceExtractor = $this->createStub(NamespaceExtractorInterface::class);
         $namespaceExtractor->method('getNamespaceFromFile')->willReturn(
             new NamespaceInformation($sourceFile, $namespace, ['phel.core']),
         );
@@ -511,11 +511,11 @@ final class FileEvaluatorTest extends TestCase
         $cache = new CompiledCodeCache($cacheDir);
         $cache->put($sourceFile, $namespace, md5($sourceCode), '$result = 1;');
 
-        $compilerFacade = $this->createMock(CompilerFacadeInterface::class);
+        $compilerFacade = $this->createStub(CompilerFacadeInterface::class);
         $compilerFacade->method('lexString')
             ->willThrowException(new RuntimeException('analysis failure'));
 
-        $namespaceExtractor = $this->createMock(NamespaceExtractorInterface::class);
+        $namespaceExtractor = $this->createStub(NamespaceExtractorInterface::class);
         $namespaceExtractor->method('getNamespaceFromFile')->willReturn(
             new NamespaceInformation($sourceFile, $namespace, ['phel.core']),
         );
@@ -543,7 +543,7 @@ final class FileEvaluatorTest extends TestCase
         $tracker->expects($this->never())->method('registerDependencies');
 
         $compilerFacade = $this->createStub(CompilerFacadeInterface::class);
-        $namespaceExtractor = $this->createMock(NamespaceExtractorInterface::class);
+        $namespaceExtractor = $this->createStub(NamespaceExtractorInterface::class);
         $namespaceExtractor->method('getNamespaceFromFile')->willReturn(
             new NamespaceInformation($sourceFile, $namespace, ['phel.core']),
         );
@@ -579,7 +579,7 @@ final class FileEvaluatorTest extends TestCase
         $compilerFacade->expects($this->exactly(2))->method('initializeGlobalEnvironment');
         $compilerFacade->expects($this->once())->method('restoreNamespaceEnvironmentData');
 
-        $namespaceExtractor = $this->createMock(NamespaceExtractorInterface::class);
+        $namespaceExtractor = $this->createStub(NamespaceExtractorInterface::class);
         $namespaceExtractor->method('getNamespaceFromFile')->willReturn(
             new NamespaceInformation($sourceFile, $namespace, ['phel.core']),
         );
@@ -604,11 +604,11 @@ final class FileEvaluatorTest extends TestCase
             ->method('registerDependencies')
             ->with($sourceFile, $namespace, ['phel.core']);
 
-        $compilerFacade = $this->createMock(CompilerFacadeInterface::class);
+        $compilerFacade = $this->createStub(CompilerFacadeInterface::class);
         $compilerFacade->method('compileForCache')
             ->willReturn(new EmitterResult(false, '$compiled = true;', '', ''));
 
-        $namespaceExtractor = $this->createMock(NamespaceExtractorInterface::class);
+        $namespaceExtractor = $this->createStub(NamespaceExtractorInterface::class);
         $namespaceExtractor->method('getNamespaceFromFile')->willReturn(
             new NamespaceInformation($sourceFile, $namespace, ['phel.core']),
         );
@@ -631,7 +631,7 @@ final class FileEvaluatorTest extends TestCase
         $namespace = 'test\\namespace';
 
         $capturedOptions = null;
-        $compilerFacade = $this->createMock(CompilerFacadeInterface::class);
+        $compilerFacade = $this->createStub(CompilerFacadeInterface::class);
         $compilerFacade->method('eval')
             ->willReturnCallback(static function (string $code, CompileOptions $options) use (&$capturedOptions): mixed {
                 $capturedOptions = $options;
@@ -639,7 +639,7 @@ final class FileEvaluatorTest extends TestCase
                 return null;
             });
 
-        $namespaceExtractor = $this->createMock(NamespaceExtractorInterface::class);
+        $namespaceExtractor = $this->createStub(NamespaceExtractorInterface::class);
         $namespaceExtractor->method('getNamespaceFromFile')->willReturn(
             new NamespaceInformation($sourceFile, $namespace, ['phel.core']),
         );
@@ -677,7 +677,7 @@ final class FileEvaluatorTest extends TestCase
                 return new EmitterResult(false, '$level2 = true;', '', '');
             });
 
-        $namespaceExtractor = $this->createMock(NamespaceExtractorInterface::class);
+        $namespaceExtractor = $this->createStub(NamespaceExtractorInterface::class);
         $namespaceExtractor->method('getNamespaceFromFile')->willReturn(
             new NamespaceInformation($sourceFile, $namespace, ['phel.core']),
         );
@@ -726,7 +726,7 @@ final class FileEvaluatorTest extends TestCase
         $compilerFacade->expects($this->never())->method('compileForCache');
         $compilerFacade->expects($this->never())->method('eval');
 
-        $namespaceExtractor = $this->createMock(NamespaceExtractorInterface::class);
+        $namespaceExtractor = $this->createStub(NamespaceExtractorInterface::class);
         $namespaceExtractor->method('getNamespaceFromFile')->willReturn(
             new NamespaceInformation($sourceFile, $namespace, ['phel.core']),
         );

@@ -49,7 +49,7 @@ final class NamespaceCollectorTest extends TestCase
 
     public function test_appends_namespace_info_for_path_dropped_by_dependency_walk(): void
     {
-        $buildFacade = $this->createMock(BuildFacadeInterface::class);
+        $buildFacade = $this->createStub(BuildFacadeInterface::class);
         $commandFacade = $this->createStub(CommandFacadeInterface::class);
 
         $commandFacade->method('getSourceDirectories')->willReturn(['/src']);
@@ -72,7 +72,7 @@ final class NamespaceCollectorTest extends TestCase
 
     public function test_does_not_duplicate_namespace_info_resolved_by_dependency_walk(): void
     {
-        $buildFacade = $this->createMock(BuildFacadeInterface::class);
+        $buildFacade = $this->createStub(BuildFacadeInterface::class);
         $commandFacade = $this->createStub(CommandFacadeInterface::class);
 
         $commandFacade->method('getSourceDirectories')->willReturn(['/src']);

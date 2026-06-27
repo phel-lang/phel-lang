@@ -16,7 +16,7 @@ final class NamespaceRunnerTest extends TestCase
     {
         $capturedNamespaces = [];
 
-        $buildFacade = $this->createMock(BuildFacadeInterface::class);
+        $buildFacade = $this->createStub(BuildFacadeInterface::class);
         $buildFacade->method('getDependenciesForNamespace')
             ->willReturnCallback(static function (array $dirs, array $ns) use (&$capturedNamespaces): array {
                 $capturedNamespaces = $ns;
@@ -25,7 +25,7 @@ final class NamespaceRunnerTest extends TestCase
         $buildFacade->method('evalFile')
             ->willReturn(new CompiledFile('', '', '', false));
 
-        $commandFacade = $this->createMock(CommandFacadeInterface::class);
+        $commandFacade = $this->createStub(CommandFacadeInterface::class);
         $commandFacade->method('getSourceDirectories')->willReturn([]);
         $commandFacade->method('getVendorSourceDirectories')->willReturn([]);
 
@@ -48,7 +48,7 @@ final class NamespaceRunnerTest extends TestCase
     {
         $capturedNamespaces = [];
 
-        $buildFacade = $this->createMock(BuildFacadeInterface::class);
+        $buildFacade = $this->createStub(BuildFacadeInterface::class);
         $buildFacade->method('getDependenciesForNamespace')
             ->willReturnCallback(static function (array $dirs, array $ns) use (&$capturedNamespaces): array {
                 $capturedNamespaces = $ns;
@@ -57,7 +57,7 @@ final class NamespaceRunnerTest extends TestCase
         $buildFacade->method('evalFile')
             ->willReturn(new CompiledFile('', '', '', false));
 
-        $commandFacade = $this->createMock(CommandFacadeInterface::class);
+        $commandFacade = $this->createStub(CommandFacadeInterface::class);
         $commandFacade->method('getSourceDirectories')->willReturn([]);
         $commandFacade->method('getVendorSourceDirectories')->willReturn([]);
 

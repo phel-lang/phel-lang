@@ -36,7 +36,7 @@ final class EvalExecutorTest extends TestCase
 
     private function createExecutor(int $optimizationLevel = 0): EvalExecutor
     {
-        $compilerFacade = $this->createMock(CompilerFacadeInterface::class);
+        $compilerFacade = $this->createStub(CompilerFacadeInterface::class);
         $compilerFacade->method('hasBalancedParentheses')->willReturn(true);
         $compilerFacade->method('eval')
             ->willReturnCallback(function (string $code, CompileOptions $options): mixed {

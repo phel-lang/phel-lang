@@ -59,7 +59,7 @@ final class CompileExecutorTest extends TestCase
 
     private function createValueFoldingCompilerFacade(): CompilerFacadeInterface
     {
-        $compilerFacade = $this->createMock(CompilerFacadeInterface::class);
+        $compilerFacade = $this->createStub(CompilerFacadeInterface::class);
         $compilerFacade->method('hasBalancedParentheses')->willReturn(true);
         $compilerFacade->method('compile')
             ->willReturnCallback(static function (string $code, CompileOptions $options): EmitterResult {
@@ -74,7 +74,7 @@ final class CompileExecutorTest extends TestCase
 
     private function createCapturingCompilerFacade(): CompilerFacadeInterface
     {
-        $compilerFacade = $this->createMock(CompilerFacadeInterface::class);
+        $compilerFacade = $this->createStub(CompilerFacadeInterface::class);
         $compilerFacade->method('hasBalancedParentheses')->willReturn(true);
         $compilerFacade->method('compile')
             ->willReturnCallback(function (string $code, CompileOptions $options): EmitterResult {

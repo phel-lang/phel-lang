@@ -63,7 +63,7 @@ final class FileCompilerTest extends TestCase
 
     private function createCapturingCompilerFacade(): CompilerFacadeInterface
     {
-        $compilerFacade = $this->createMock(CompilerFacadeInterface::class);
+        $compilerFacade = $this->createStub(CompilerFacadeInterface::class);
         $compilerFacade->method('compile')
             ->willReturnCallback(function (string $code, CompileOptions $options): EmitterResult {
                 $this->capturedOptions = $options;
