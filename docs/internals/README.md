@@ -8,8 +8,9 @@
 4. [Macros](macros.md): `macroexpand`, quasiquote, auto-gensym.
 5. [Runtime](runtime.md): `Lang/`, persistent collections, `Registry`, `\Phel` facade.
 6. [Benchmarks](benchmarks.md): PHPBench setup.
-7. [FAQ](faq.md): grouped by reader.
-8. [CLI flag conventions](cli-flag-conventions.md): standard option names + short aliases.
+7. [Testing performance](testing-performance.md): suite timings, fast local workflows, parallelization.
+8. [FAQ](faq.md): grouped by reader.
+9. [CLI flag conventions](cli-flag-conventions.md): standard option names + short aliases.
 
 ## What to read for what
 
@@ -21,6 +22,7 @@
 | Build an editor / linter / tool | architecture, faq (tool builder) |
 | Compilation bug | compiler, faq (bug hunting) |
 | Profile | benchmarks |
+| Speed up the test loop | testing-performance |
 
 ## Adjacent
 
