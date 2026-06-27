@@ -30,29 +30,33 @@ final class LocalVarNode extends AbstractNode
     /**
      * Inferred type for this reference, derived from the binding's `:tag`
      * meta (set by `defn` param tags, `let` / `loop` `^Type` annotations,
-     * and the `ParamTypeInferrer` pass). Returns `null` when the binding
-     * has no known type - the call site falls back to runtime dispatch.
+     * the `ParamTypeInferrer`, and the `BindingTypeInferrer`). Returns
+     * `null` when the binding has no known type — the call site falls back
+     * to runtime dispatch.
      *
-     * `AnalyzeSymbol` builds the `LocalVarNode`'s own `Symbol` from the
-     * call-site syntax. For `fn` params the symbol matches the binding
-     * name verbatim; for `let` / `loop` bindings the symbol carries the
-     * **shadowed** name (e.g. `a_3` for `(let [a 0] ...)`). We therefore
-     * try a direct name match first, then fall back to the env's reverse
-     * shadow lookup so a shadowed reference still resolves to the typed
-     * binding meta.
+     * `AnalyzeSymbol` builds this node's `Symbol` from `env->getShadowed(...)`,
+     * so for a `let` / `loop` reference it is the binding's **unique shadow**
+     * symbol (e.g. `a_3` for `(let [a 0] ...)`), and for an fn param — which
+     * is not shadowed — the reference symbol itself. The binding's `:tag` is
+     * mirrored onto that shadow, so reading the reference symbol's own meta
+     * resolves the tag **exactly**, even when the name is reused in a nested
+     * scope. A by-name env lookup would instead resolve a shadowed inner
+     * reference to the wrong (outer) binding of the same name. A param's
+     * reference symbol carries no meta, so its tag is matched by name against
+     * the declared local in scope.
      */
     public function getInferredType(): ?string
     {
+        $ownTag = $this->tagOf($this->name->getMeta());
+        if ($ownTag !== null) {
+            return $ownTag;
+        }
+
         $name = $this->name->getName();
         foreach ($this->getEnv()->getLocals() as $local) {
             if ($local->getName() === $name) {
                 return $this->tagOf($local->getMeta());
             }
-        }
-
-        $shadowedSource = $this->getEnv()->findLocalByShadowedName($name);
-        if ($shadowedSource instanceof Symbol) {
-            return $this->tagOf($shadowedSource->getMeta());
         }
 
         return null;

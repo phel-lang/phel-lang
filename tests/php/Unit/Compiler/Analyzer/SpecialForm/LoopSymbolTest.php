@@ -123,7 +123,7 @@ final class LoopSymbolTest extends TestCase
                     new BindingNode(
                         $env->withDisallowRecurFrame(),
                         $this->intTagged('a'),
-                        Symbol::create('a_1'),
+                        $this->intTagged('a_1'),
                         new LiteralNode(
                             $env->withExpressionContext()->withDisallowRecurFrame()->withDisallowRecurFrame()->withBoundTo('.a'),
                             1,
@@ -131,14 +131,14 @@ final class LoopSymbolTest extends TestCase
                     ),
                 ],
                 new DoNode(
-                    $env->withAddedRecurFrame(new RecurFrame([$this->intTagged('a')], [Symbol::create('a_1')]))
+                    $env->withAddedRecurFrame(new RecurFrame([$this->intTagged('a')], [$this->intTagged('a_1')]))
                         ->withLocals([$this->intTagged('a')])
-                        ->withShadowedLocal($this->intTagged('a'), Symbol::create('a_1')),
+                        ->withShadowedLocal($this->intTagged('a'), $this->intTagged('a_1')),
                     [],
                     new LiteralNode(
-                        $env->withAddedRecurFrame(new RecurFrame([$this->intTagged('a')], [Symbol::create('a_1')]))
+                        $env->withAddedRecurFrame(new RecurFrame([$this->intTagged('a')], [$this->intTagged('a_1')]))
                             ->withLocals([$this->intTagged('a')])
-                            ->withShadowedLocal($this->intTagged('a'), Symbol::create('a_1')),
+                            ->withShadowedLocal($this->intTagged('a'), $this->intTagged('a_1')),
                         null,
                     ),
                 ),

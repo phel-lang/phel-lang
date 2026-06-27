@@ -32,6 +32,7 @@ final readonly class LetSymbol implements SpecialFormAnalyzerInterface
         private AnalyzerInterface $analyzer,
         private DeconstructorInterface $deconstructor,
         private LetSimplifier $letSimplifier = new LetSimplifier(),
+        private BindingTypeInferrer $bindingTypeInferrer = new BindingTypeInferrer(),
     ) {}
 
     /**
@@ -125,7 +126,7 @@ final readonly class LetSymbol implements SpecialFormAnalyzerInterface
         // symbol is the same instance the body references, so the in-place
         // graft is visible to its `LocalVarNode`s at emit time.
         if ($simplified instanceof LetNode) {
-            new BindingTypeInferrer()->graftLetBindings($simplified->getBindings());
+            $this->bindingTypeInferrer->graftLetBindings($simplified->getBindings());
         }
 
         return $simplified;

@@ -1,0 +1,10 @@
+--PHEL--
+(fn [v m] (let [n (php/count v)] (let [n (php/aget m 0)] (+ n 1))))
+--PHP--
+(function($v, $m) {
+  static $__phel_call_0;
+  /** @var int $n_1 */
+  $n_1 = count($v);
+  $n_2 = (($m)[(0)] ?? null);
+  return ($__phel_call_0 ??= \Phel::getDefinition("phel.core", "+"))->__invoke($n_2, 1);
+});

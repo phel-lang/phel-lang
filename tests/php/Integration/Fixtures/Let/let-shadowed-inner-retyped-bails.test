@@ -1,0 +1,11 @@
+--PHEL--
+(fn [v] (let [n (php/count v)] (let [n (php/strtolower "x")] (+ n 1))))
+--PHP--
+(function($v) {
+  static $__phel_call_0;
+  /** @var int $n_1 */
+  $n_1 = count($v);
+  /** @var string $n_2 */
+  $n_2 = strtolower("x");
+  return ($__phel_call_0 ??= \Phel::getDefinition("phel.core", "+"))->__invoke($n_2, 1);
+});

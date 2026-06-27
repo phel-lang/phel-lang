@@ -20,6 +20,7 @@ use Phel\Lang\Collections\Map\PersistentMapInterface;
 use Phel\Lang\Keyword;
 use Phel\Lang\Symbol;
 
+use function array_map;
 use function count;
 use function in_array;
 use function is_bool;
@@ -344,24 +345,11 @@ final class ReturnTypeInferrer
      */
     private function inferNumeric(CallNode $node, array $locals): ?string
     {
-        $hasFloat = false;
-        foreach ($node->getArguments() as $arg) {
-            $type = $this->inferNode($arg, $locals);
-            if ($type === null || $type === self::BOTTOM) {
-                return null;
-            }
-
-            if ($type === 'float') {
-                $hasFloat = true;
-                continue;
-            }
-
-            if ($type !== 'int') {
-                return null;
-            }
-        }
-
-        return $hasFloat ? 'float' : 'int';
+        // A `BOTTOM` operand maps to neither int nor float, so the shared rule
+        // treats it as non-numeric and yields null — same as the explicit guard.
+        return ArithmeticResultType::fromOperands(
+            array_map(fn(AbstractNode $arg): ?string => $this->inferNode($arg, $locals), $node->getArguments()),
+        );
     }
 
     private function inferLiteral(LiteralNode $node): ?string

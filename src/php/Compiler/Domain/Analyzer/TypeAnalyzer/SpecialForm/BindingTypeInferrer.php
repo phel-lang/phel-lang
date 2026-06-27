@@ -21,6 +21,7 @@ use Phel\Lang\Keyword;
 use Phel\Lang\Symbol;
 use Phel\Shared\CompilerConstants;
 
+use function array_map;
 use function count;
 use function in_array;
 use function is_bool;
@@ -75,9 +76,6 @@ final class BindingTypeInferrer
      */
     private const array CORE_INC_DEC_OPS = ['inc', 'dec'];
 
-    /** @var list<string> */
-    private const array NUMERIC_TAGS = ['int', 'float'];
-
     /** @var array<string, string> */
     private const array COMPARISON_OPS = [
         '<' => 'bool', '>' => 'bool', '<=' => 'bool', '>=' => 'bool',
@@ -93,10 +91,7 @@ final class BindingTypeInferrer
     public function graftLetBindings(array $bindings): void
     {
         foreach ($bindings as $binding) {
-            $type = $this->typeOf($binding->getInitExpr());
-            if ($type !== null) {
-                $this->graft($binding->getSymbol(), $type);
-            }
+            $this->graftBinding($binding, $this->typeOf($binding->getInitExpr()));
         }
     }
 
@@ -115,13 +110,13 @@ final class BindingTypeInferrer
      */
     public function graftLoopBindings(array $bindings, AbstractNode $body): void
     {
-        // Seed every binding's init type first, so a recur arg that reads a
-        // sibling counter (or the binding itself, e.g. `(recur (+ i 1))`)
-        // types against the loop's own bindings — the fixpoint order the
-        // return-type inferrer also relies on.
+        // Seed each binding's type (a user-written tag, else the inferred init
+        // type) first, so a recur arg that reads a sibling counter (or the
+        // binding itself, e.g. `(recur (+ i 1))`) types against the loop's own
+        // bindings — the fixpoint order the return-type inferrer also relies on.
         $seeded = [];
         foreach ($bindings as $binding) {
-            $type = $this->typeOf($binding->getInitExpr());
+            $type = $this->declaredTag($binding->getSymbol()) ?? $this->typeOf($binding->getInitExpr());
             if ($type !== null) {
                 $seeded[$binding->getShadow()->getName()] = $type;
             }
@@ -140,11 +135,17 @@ final class BindingTypeInferrer
                 continue;
             }
 
-            if (!$this->recurArgsAgree($recurArgTypes[$i] ?? null, $seeded[$name])) {
+            // A user-written tag wins unconditionally (the author owns the
+            // type); an inferred one survives only when the init and every
+            // recur arm agree, else the binding stays untyped so the body
+            // never sees an over-narrow tag.
+            if ($this->declaredTag($binding->getSymbol()) === null
+                && !$this->recurArgsAgree($recurArgTypes[$i] ?? null, $seeded[$name])
+            ) {
                 continue;
             }
 
-            $this->graft($binding->getSymbol(), $seeded[$name]);
+            $this->graftBinding($binding, $seeded[$name]);
         }
     }
 
@@ -152,6 +153,11 @@ final class BindingTypeInferrer
      * `null` means no `recur` rebinds this slot (it keeps its init value every
      * iteration, so the init type is exact). Otherwise every recorded arm must
      * be the init type; an unknown arm (`null` element) counts as disagreement.
+     *
+     * Multiple arms that all agree are fine — unlike `ReturnTypeInferrer`'s
+     * stricter return-type rule, which drops a slot rebound from more than one
+     * `recur` site outright. Two arms agreeing on the same primitive cannot make
+     * the binding any other type, so keeping the tag is sound here.
      *
      * @param list<?string>|null $alts
      */
@@ -279,7 +285,7 @@ final class BindingTypeInferrer
             }
 
             $type = $this->typeOf($args[0], $locals);
-            return in_array($type, self::NUMERIC_TAGS, true) ? $type : null;
+            return ArithmeticResultType::isFloatOrInt($type) ? $type : null;
         }
 
         return null;
@@ -293,20 +299,9 @@ final class BindingTypeInferrer
      */
     private function numericResultType(CallNode $node, array $locals): ?string
     {
-        $hasFloat = false;
-        foreach ($node->getArguments() as $arg) {
-            $type = $this->typeOf($arg, $locals);
-            if ($type === 'float') {
-                $hasFloat = true;
-                continue;
-            }
-
-            if ($type !== 'int') {
-                return null;
-            }
-        }
-
-        return $hasFloat ? 'float' : 'int';
+        return ArithmeticResultType::fromOperands(
+            array_map(fn(AbstractNode $arg): ?string => $this->typeOf($arg, $locals), $node->getArguments()),
+        );
     }
 
     private function primitiveInferredType(LocalVarNode $node): ?string
@@ -326,17 +321,50 @@ final class BindingTypeInferrer
         };
     }
 
-    private function graft(Symbol $symbol, string $type): void
+    /**
+     * Apply a binding's effective tag. `$inferredType` is the type derived from
+     * the init (or `recur`-agreed type for a loop); a user-written `:tag` on the
+     * binding symbol takes precedence over it.
+     */
+    private function graftBinding(BindingNode $binding, ?string $inferredType): void
     {
-        // User-written tags win: never overwrite an explicit annotation.
-        $existing = $symbol->getMeta();
-        if ($existing instanceof PersistentMapInterface
-            && $existing->find(Keyword::create('tag')) !== null
-        ) {
+        $declared = $this->declaredTag($binding->getSymbol());
+        $tag = $declared ?? $inferredType;
+        if ($tag === null) {
             return;
         }
 
-        $merged = ($existing ?? Phel::map())->put(Keyword::create('tag'), Symbol::create($type));
+        // Stamp an inferred tag on the binding symbol for the emitter's
+        // `/** @var T */` doctag; a user-written tag is already there.
+        if ($declared === null) {
+            $this->putTag($binding->getSymbol(), $tag);
+        }
+
+        // Mirror onto the shadow — the unique instance a reference resolves to
+        // (LetEmitter names the variable after it). Binding the tag there lets
+        // `LocalVarNode::getInferredType` read it exactly, so a name reused in a
+        // nested scope no longer inherits the outer binding's tag.
+        $this->putTag($binding->getShadow(), $tag);
+    }
+
+    private function declaredTag(Symbol $symbol): ?string
+    {
+        $meta = $symbol->getMeta();
+        if (!$meta instanceof PersistentMapInterface) {
+            return null;
+        }
+
+        $tag = $meta->find(Keyword::create('tag'));
+        if ($tag instanceof Symbol) {
+            $tag = $tag->getName();
+        }
+
+        return is_string($tag) && $tag !== '' ? $tag : null;
+    }
+
+    private function putTag(Symbol $symbol, string $type): void
+    {
+        $merged = ($symbol->getMeta() ?? Phel::map())->put(Keyword::create('tag'), Symbol::create($type));
         $symbol->withMeta($merged);
     }
 }
