@@ -4,6 +4,10 @@ All notable changes to this project will be documented in this file.
 
 ## Unreleased
 
+### Performance
+
+- `phel run`/`eval`/`repl` now auto-apply a persistent on-disk OPcache file cache so warm CLI invocations reuse compiled opcode instead of re-parsing every required `.php` (~30% faster warm startup). The CLI re-execs itself once via `pcntl_exec` (same PID, TTY, stdin, signals, and exit code) with `-d opcache.enable_cli=1 -d opcache.file_cache=<PHEL_DIR>/opcache`. No-op when OPcache or `pcntl` is unavailable, when `opcache.file_cache` is already set, or when `PHEL_NO_OPCACHE_REEXEC=1` opts out. The cache lives outside `phel clear-cache`'s blast radius
+
 ### Fixed
 
 - Temp-file cleanup (`RealFilesystem::clearAll()`) no longer emits `unlink(...): No such file or directory` warnings when a tracked path was already removed by an earlier run (the file list is process-global static); it now skips missing paths. Surfaced as noise on every `phel test` / build run

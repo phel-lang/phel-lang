@@ -10,6 +10,47 @@ if (function_exists('ini_set')) {
 
 use Phel\Config\ConfigLoadException;
 use Phel\Console\ConsoleFacade;
+use Phel\Shared\PhelProjectDirectory;
+use Phel\Shared\Performance\OpcacheReexec;
+
+/**
+ * Replace the current process with one that has an on-disk OPcache file cache,
+ * when it is safe and beneficial. The file_cache dir lives at `<PHEL_DIR>/opcache`,
+ * a sibling of the compiled-code cache so `phel clear-cache` never wipes it (PHP
+ * aborts at startup if the path is missing). The "already configured" guard in
+ * the decision is what stops the re-exec'd child from looping.
+ */
+function maybeReexecWithOpcacheFileCache(string $appRootDir): void
+{
+    $fileCacheDir = PhelProjectDirectory::path($appRootDir, 'opcache');
+    if (!is_dir($fileCacheDir) && !@mkdir($fileCacheDir, 0o755, true) && !is_dir($fileCacheDir)) {
+        return;
+    }
+
+    $decision = OpcacheReexec::decide(
+        opcacheLoaded: extension_loaded('Zend OPcache'),
+        fileCacheConfigured: (string) ini_get('opcache.file_cache') !== '',
+        optedOut: getenv('PHEL_NO_OPCACHE_REEXEC') !== false,
+        pcntlAvailable: function_exists('pcntl_exec'),
+        fileCacheDir: $fileCacheDir,
+    );
+
+    if (!$decision->shouldReexec) {
+        return;
+    }
+
+    $argv = $_SERVER['argv'] ?? [];
+    if (!is_array($argv) || $argv === []) {
+        return;
+    }
+
+    // argv[0] is the bin/phel script path; preserve the rest as user args. cwd
+    // is unchanged across the exec, so a relative script path still resolves.
+    $args = array_merge($decision->flags, array_values(array_map('strval', $argv)));
+
+    // If pcntl_exec returns at all it failed; fall through and run in-process.
+    @pcntl_exec(PHP_BINARY, $args);
+}
 
 // NOTE: When packaged as a PHAR, the stub requires the PHAR's vendor/autoload.php first.
 // The host project's autoloader is loaded after, allowing access to project dependencies.
@@ -62,6 +103,14 @@ use Phel\Console\ConsoleFacade;
         );
         exit(1);
     }
+
+    // Re-exec once with a persistent OPcache file cache so warm run/eval/repl
+    // reuse compiled opcode instead of re-parsing every required .php. These
+    // ini settings are startup-only, so the only way to apply them within this
+    // invocation is to replace the process image; pcntl_exec keeps the same PID,
+    // stdin/stdout/stderr + TTY, and signals, so the interactive REPL and exit
+    // codes survive transparently. Best-effort — any miss just runs in-process.
+    maybeReexecWithOpcacheFileCache($appRootDir);
 
     // Phel classes are available either via the PHAR autoloader (in PHAR mode)
     // or the host Composer autoloader (source mode).
