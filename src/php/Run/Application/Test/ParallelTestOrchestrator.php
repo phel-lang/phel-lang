@@ -42,9 +42,15 @@ final readonly class ParallelTestOrchestrator
      */
     private const int SELECT_TIMEOUT_MICROS = 100_000;
 
+    /**
+     * @param list<string> $opcacheFlags `-d` flags so every worker shares one
+     *                                   OPcache file cache; empty when OPcache
+     *                                   is unavailable
+     */
     public function __construct(
         private string $phpBinary,
         private string $phelBinary,
+        private array $opcacheFlags = [],
     ) {}
 
     /**
@@ -130,7 +136,7 @@ final readonly class ParallelTestOrchestrator
     {
         $workers = [];
         for ($i = 0; $i < $count; ++$i) {
-            $workers[] = TestWorkerHandle::spawn($this->phpBinary, $this->phelBinary);
+            $workers[] = TestWorkerHandle::spawn($this->phpBinary, $this->phelBinary, $this->opcacheFlags);
         }
 
         return $workers;

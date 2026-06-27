@@ -54,9 +54,13 @@ final class TestWorkerHandle
         stream_set_blocking($this->stderr, false);
     }
 
-    public static function spawn(string $phpBinary, string $phelBinary): self
+    /**
+     * @param list<string> $opcacheFlags `-d` flags spliced before the script so
+     *                                   the pool shares one OPcache file cache
+     */
+    public static function spawn(string $phpBinary, string $phelBinary, array $opcacheFlags = []): self
     {
-        $cmd = [$phpBinary, $phelBinary, '_test-worker'];
+        $cmd = self::buildCommand($phpBinary, $phelBinary, $opcacheFlags);
 
         $pipes = [];
         $process = @proc_open(
@@ -74,6 +78,16 @@ final class TestWorkerHandle
         }
 
         return new self($process, $pipes);
+    }
+
+    /**
+     * @param list<string> $opcacheFlags
+     *
+     * @return list<string>
+     */
+    public static function buildCommand(string $phpBinary, string $phelBinary, array $opcacheFlags): array
+    {
+        return [$phpBinary, ...$opcacheFlags, $phelBinary, '_test-worker'];
     }
 
     /**

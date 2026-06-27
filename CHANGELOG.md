@@ -16,6 +16,7 @@ All notable changes to this project will be documented in this file.
 ### Performance
 
 - `phel test --parallel` workers no longer re-evaluate their full dependency closure (mostly the shared `phel.*` stdlib) on every namespace frame: each dependency is evaluated once per long-lived worker, as the serial runner already does. Removes the per-frame re-execution that made `--parallel=2` slower than serial and capped scaling; the speedup grows with the number of namespaces in a project
+- `phel test --parallel` workers now share an on-disk OPcache file cache, so each worker reuses the compiled `.php` opcode the first worker already parsed instead of re-parsing the whole stdlib closure itself. Enabled automatically when the Zend OPcache extension is available; a graceful no-op otherwise (#2628)
 
 ## [0.46.0](https://github.com/phel-lang/phel-lang/compare/v0.45.1...v0.46.0) - 2026-06-25
 
