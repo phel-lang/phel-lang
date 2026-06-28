@@ -8,6 +8,7 @@ All notable changes to this project will be documented in this file.
 
 - `phel test` renders the `+`/`-`/`~` structural diff for any same-shape collection that differs (not only those with more than 3 entries), so a small failure like `(= {:a 1 :b 2} {:a 1 :b 3})` or `[1 2 3]` vs `[1 2 4]` shows what differs instead of two near-identical lines; scalars and mixed shapes keep the single-line summary
 - `phel compile` now reports on stderr the value a snippet folds to when it emits no PHP (e.g. `(+ 1 2)` → `3`), instead of printing nothing (#2624)
+- `phel init` now scaffolds `phel-config.php` with `->withOptimizationLevel(2)` as an active call (with an inline comment on how to drop back to `0`), so new projects get inlined core arithmetic/bit ops and elided nil-guards out of the box instead of the uninlined `-O0` default; the runtime default stays `0` for existing projects (#2631)
 
 ### Fixed
 
