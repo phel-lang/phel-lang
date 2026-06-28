@@ -9,6 +9,7 @@ use Phel\Build\BuildFacade;
 use Phel\Build\Domain\Cache\CompiledCodeCacheInterface;
 use Phel\Build\Domain\Cache\DependencyTrackerInterface;
 use Phel\Build\Domain\Compile\CompiledFile;
+use Phel\Build\Domain\Compile\CompiledSecondaryStore;
 use Phel\Build\Domain\Extractor\FirstFormExtractor;
 use Phel\Build\Domain\Extractor\NamespaceExtractorInterface;
 use Phel\Compiler\Domain\Analyzer\Environment\NodeEnvironment;
@@ -44,6 +45,7 @@ final class FileEvaluator
         private readonly FirstFormExtractor $firstFormExtractor = new FirstFormExtractor(),
         private readonly ?DependencyTrackerInterface $dependencyTracker = null,
         private readonly int $optimizationLevel = CompileOptions::DEFAULT_OPTIMIZATION_LEVEL,
+        private readonly ?CompiledSecondaryStore $compiledSecondaryStore = null,
     ) {}
 
     /**
@@ -149,6 +151,22 @@ final class FileEvaluator
             ->setSource($src)
             ->setIsEnabledSourceMaps(true)
             ->setOptimizationLevel($this->optimizationLevel);
+
+        // With no persistent cache there is nowhere for the harvester to pick up
+        // a built `(load ...)` secondary. During a build, capture the compiled
+        // PHP here — the one point the registry is warm in the right order — so
+        // the harvester can still emit `out/<ns>/*.php`. `compileForCache()`
+        // evaluates each form as it emits (so later forms still resolve) and
+        // produces the same cache-mode output (forward-decl guards + inline
+        // source map) the harvester would otherwise copy from the cache. The
+        // "<?php\n" prefix mirrors CompiledCodeCache::put, so the harvested file
+        // is byte-identical whether it came from the cache or from here.
+        if ($this->compiledSecondaryStore instanceof CompiledSecondaryStore && BuildFacade::isBuildMode()) {
+            $result = $this->compilerFacade->compileForCache($code, $options);
+            $this->compiledSecondaryStore->put($src, "<?php\n" . $result->getCodeWithSourceMap());
+
+            return new CompiledFile($src, '', $namespace);
+        }
 
         $this->compilerFacade->eval($code, $options);
 

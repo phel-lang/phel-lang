@@ -18,21 +18,30 @@ use function mkdir;
 use function sprintf;
 
 /**
- * Copies a compiled `(in-ns ...)` secondary from the compile cache into
- * the build output directory.
+ * Writes a compiled `(in-ns ...)` secondary into the build output directory.
  *
- * Primary files compile directly through `FileCompiler`. Secondaries
- * are pulled in by the primary's `(load ...)` at build-time evaluation,
- * which leaves a cached `.php` in `CompiledCodeCache`. This class
- * relocates that cached output into the public build tree so a deployed
- * artifact ships a sibling `.php` for every `(in-ns ...)` file.
+ * Primary files compile directly through `FileCompiler`. Secondaries are pulled
+ * in by the primary's `(load ...)` at build-time evaluation; that run compiles
+ * each one against a warm registry. This class lands the resulting `.php` next
+ * to the primary so a deployed artifact (e.g. a self-contained PHAR) ships a
+ * sibling for every `(in-ns ...)` file and can `(load ...)` it without the
+ * `.phel` sources or a runtime compiler.
+ *
+ * It never recompiles a secondary standalone — that re-runs macro expansion
+ * against a partially-ready registry and fails. It takes the build-time output
+ * from the compiled-code cache when enabled, else from the in-memory
+ * {@see CompiledSecondaryStore} the evaluator fills during the same build. With
+ * the cache off and no store a build emitted the primary `out/phel/core.php`
+ * but none of its `out/phel/core/*.php` secondaries, so the bundle fataled with
+ * "Cannot locate core/… for (load ...)" on first load.
  */
 final readonly class SecondaryFileHarvester
 {
     public function __construct(
-        private CompiledCodeCacheInterface $compiledCodeCache,
         private CompiledTargetPathResolver $targetPathResolver,
         private FileIoInterface $fileIo,
+        private CompiledSecondaryStore $compiledSecondaryStore,
+        private ?CompiledCodeCacheInterface $compiledCodeCache = null,
     ) {}
 
     /**
@@ -42,22 +51,34 @@ final readonly class SecondaryFileHarvester
     {
         $sourceFile = $secondary->getFile();
         $sourceCode = $this->fileIo->getContents($sourceFile);
-        $cachedPath = $this->compiledCodeCache->get($sourceFile, md5($sourceCode));
 
-        if ($cachedPath === null) {
-            // The primary didn't (load ...) this secondary during the build.
-            // Compile cache may have been disabled or the secondary is
-            // orphaned — nothing to copy, the build still succeeds.
+        $phpCode = $this->compiledPhp($sourceFile, $sourceCode);
+        if ($phpCode === null) {
+            // The primary never (load ...)ed this secondary during the build
+            // (e.g. an orphaned file) — nothing to emit, the build still
+            // succeeds.
             return;
         }
 
         $targetPath = $destDir . '/' . $this->targetPathResolver->resolve($secondary, $sourceDirectories);
         $this->ensureDir(dirname($targetPath));
-        $this->fileIo->putContents($targetPath, $this->fileIo->getContents($cachedPath));
+        $this->fileIo->putContents($targetPath, $phpCode);
         $this->fileIo->putContents(
             SourceMapSiblings::sourceFile($targetPath),
             $sourceCode,
         );
+    }
+
+    private function compiledPhp(string $sourceFile, string $sourceCode): ?string
+    {
+        if ($this->compiledCodeCache instanceof CompiledCodeCacheInterface) {
+            $cachedPath = $this->compiledCodeCache->get($sourceFile, md5($sourceCode));
+            if ($cachedPath !== null) {
+                return $this->fileIo->getContents($cachedPath);
+            }
+        }
+
+        return $this->compiledSecondaryStore->get($sourceFile);
     }
 
     private function ensureDir(string $dir): void

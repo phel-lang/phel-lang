@@ -41,7 +41,7 @@ final readonly class ProjectCompiler
         private CommandFacadeInterface $commandFacade,
         private EntryPointPhpFileInterface $entryPointPhpFile,
         private BuildConfigInterface $config,
-        private ?SecondaryFileHarvester $secondaryFileHarvester = null,
+        private SecondaryFileHarvester $secondaryFileHarvester,
     ) {
         $this->targetPathResolver = new CompiledTargetPathResolver($compilerFacade);
     }
@@ -160,10 +160,6 @@ final readonly class ProjectCompiler
      */
     private function harvestSecondaries(array $namespaceInformation, string $dest, array $srcDirectories): void
     {
-        if (!$this->secondaryFileHarvester instanceof SecondaryFileHarvester) {
-            return;
-        }
-
         foreach ($namespaceInformation as $info) {
             if ($info->isPrimaryDefinition()) {
                 continue;

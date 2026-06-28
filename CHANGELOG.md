@@ -15,6 +15,7 @@ All notable changes to this project will be documented in this file.
 - `phel run`/`test`/`build`/`profile`/`export` now surface the `.phel` source location and filtered stack trace for runtime errors thrown from the stdlib (e.g. `(/ 1 0)`), matching the REPL, instead of only the bare message (#2635)
 - No more spurious `unlink(...): No such file or directory` warnings on `phel test`/build when cleaning up a temp file an earlier run already removed
 - The CLI OPcache re-exec (#2632) now runs the warm child with `opcache.file_cache_only`, avoiding an intermittent multi-minute hang on some CI filesystems where allocating OPcache's shared-memory segment blocked on a startup lock; a re-exec-once breadcrumb also guarantees the re-exec can never loop
+- `phel build` with the compiled-code cache disabled now still emits the `(load ...)` secondaries (`out/phel/core/*.php`) next to their primary, so a self-contained PHAR no longer fatals with `Cannot locate core/… for (load ...)` on first load; the harvester falls back to the build-time compiled output when there is no cache to copy from (#2648)
 
 ### Performance
 

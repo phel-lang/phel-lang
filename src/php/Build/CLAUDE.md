@@ -36,7 +36,8 @@ Compiles Phel projects to PHP: namespace extraction, dependency ordering, and ca
 | `Domain/Extractor/TopologicalNamespaceSorter` | Dependency-order compilation |
 | `Domain/Compile/BuildReport` + `BuildReportEntry` | `--report` VO (`toArray()`); command renders it |
 | `Domain/Compile/PhaseTimingReport` | `--timing` per-phase wall-clock report |
-| `Domain/Compile/SecondaryFileHarvester` | Harvests cached `.php` siblings into the build output tree |
+| `Domain/Compile/SecondaryFileHarvester` | Writes `(in-ns ...)` secondary `.php` siblings into the build output tree; takes them from the compiled-code cache, else from `CompiledSecondaryStore` (so a cache-off build still emits them) |
+| `Domain/Compile/CompiledSecondaryStore` | In-memory hand-off of build-time-compiled secondaries from `FileEvaluator` to `SecondaryFileHarvester` when the compiled-code cache is off |
 | `Infrastructure/Cache/CompiledCodeCache` | Compiled-code cache policy orchestrator |
 | `Infrastructure/Cache/PhpScanIndexCache` / `NullScanIndexCache` | Persisted dir-scan index |
 | `Infrastructure/Cache/PhpNamespaceCache` / `NullNamespaceCache` | Namespace-extraction cache |
