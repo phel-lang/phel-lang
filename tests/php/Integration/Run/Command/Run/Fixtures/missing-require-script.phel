@@ -1,0 +1,4 @@
+(ns missing-require-script
+  (:require some.nonexistent.ns))
+
+(println "must not reach here")

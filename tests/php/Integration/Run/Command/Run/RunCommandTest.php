@@ -32,6 +32,29 @@ final class RunCommandTest extends AbstractTestCommand
         );
     }
 
+    public function test_requiring_a_missing_namespace_fails_instead_of_silently_exiting_zero(): void
+    {
+        $output = $this->captureRunOutput(
+            __DIR__ . '/Fixtures/missing-require-script.phel',
+        );
+
+        self::assertStringContainsString("Cannot find namespace 'some.nonexistent.ns'", $output);
+        self::assertStringContainsString("required by 'missing-require-script'", $output);
+        self::assertStringNotContainsString('must not reach here', $output);
+    }
+
+    public function test_requiring_a_missing_namespace_returns_failure_exit_code(): void
+    {
+        ob_start();
+        $exitCode = $this->createRunCommand()->run(
+            $this->stubInput(__DIR__ . '/Fixtures/missing-require-script.phel'),
+            $this->stubOutput(),
+        );
+        ob_end_clean();
+
+        self::assertSame(1, $exitCode);
+    }
+
     public function test_run_by_namespace_accepts_dot_form(): void
     {
         $this->expectOutputRegex('~hello world~');
