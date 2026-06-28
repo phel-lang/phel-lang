@@ -24,6 +24,8 @@ final readonly class FileRunner
 {
     private const string PHEL_PREFIX = 'phel.';
 
+    private const string CLOJURE_PREFIX = 'clojure.';
+
     public function __construct(
         private BuildFacadeInterface $buildFacade,
         private CommandFacadeInterface $commandFacade,
@@ -187,19 +189,19 @@ final readonly class FileRunner
     }
 
     /**
-     * Whether a non-sibling dependency still resolves: a bundled `phel.*`
-     * module (directly or via a `clojure.*` remap), or a namespace already in
-     * the runtime registry.
+     * Whether a non-sibling dependency still resolves: a framework-provided
+     * `phel.*`/`clojure.*` namespace (bundled stdlib loaded lazily, or a
+     * clojure-compat shim), or a namespace already in the runtime registry.
+     * Mirrors the tolerance in {@see \Phel\Build\Application\DependenciesForNamespace}
+     * so both resolution paths agree on what counts as a broken require.
      */
     private function isResolvableWithoutSibling(string $namespace): bool
     {
         $canonical = str_replace('\\', '.', $namespace);
 
-        if (str_starts_with($canonical, self::PHEL_PREFIX)) {
-            return true;
-        }
-
-        if ($this->bundledNamespaceDetector->remapClojureDependencies([$canonical]) !== []) {
+        if (str_starts_with($canonical, self::PHEL_PREFIX)
+            || str_starts_with($canonical, self::CLOJURE_PREFIX)
+        ) {
             return true;
         }
 

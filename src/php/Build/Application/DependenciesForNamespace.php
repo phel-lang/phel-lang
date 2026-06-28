@@ -120,9 +120,9 @@ final class DependenciesForNamespace
 
     /**
      * Resolves a declared dependency of `$requiringNs` to the namespace the walk
-     * should enqueue, throwing when it points at nothing loadable. Such a
-     * dependency was previously enqueued and then silently dropped from the
-     * result, so a typo'd or absent `(:require ...)` exited 0 with no feedback.
+     * should enqueue, throwing when a *user* namespace points at nothing
+     * loadable. Such a dependency was previously enqueued and then silently
+     * dropped, so a typo'd or absent `(:require ...)` exited 0 with no feedback.
      *
      * @param array<string, NamespaceInformation> $index
      */
@@ -147,7 +147,24 @@ final class DependenciesForNamespace
             return $depNs;
         }
 
+        // Framework-provided `phel.*`/`clojure.*` requires resolve at runtime
+        // (precompiled+lazy-loaded bundled stdlib, or a clojure-compat shim
+        // whose referred symbols live in phel.core); downstream/vendored builds
+        // don't carry them in the source scan index, so tolerate them here
+        // rather than throw. Only genuinely-missing user namespaces error.
+        if ($this->isFrameworkNamespace($depNs)) {
+            return $depNs;
+        }
+
         throw ExtractorException::cannotResolveRequiredNamespace($depNs, $requiringNs);
+    }
+
+    private function isFrameworkNamespace(string $namespace): bool
+    {
+        $canonical = str_replace('\\', '.', $namespace);
+
+        return str_starts_with($canonical, self::PHEL_PREFIX)
+            || str_starts_with($canonical, self::CLOJURE_PREFIX);
     }
 
     /**

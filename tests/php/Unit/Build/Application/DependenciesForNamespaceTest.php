@@ -94,6 +94,50 @@ final class DependenciesForNamespaceTest extends TestCase
         $deps->getDependenciesForNamespace(['/src'], ['app\\main']);
     }
 
+    public function test_does_not_throw_for_clojure_compat_require_with_no_bundled_target(): void
+    {
+        // Regression for the clojure-test-suite: a downstream `.cljc` requires
+        // `clojure.set`, which Phel ships no `phel.set` for (the referred symbols
+        // live in phel.core). It is absent from the source scan index in a
+        // vendored build, yet resolves at runtime, so it must not error.
+        $extractor = $this->createStub(NamespaceExtractorInterface::class);
+        $extractor->method('getNamespacesFromDirectories')
+            ->willReturn([
+                new NamespaceInformation('core.phel', 'phel.core', []),
+                new NamespaceInformation('nnext.cljc', 'clojure.core-test.nnext', ['phel.core', 'clojure.set']),
+            ]);
+
+        $deps = new DependenciesForNamespace($extractor);
+
+        $result = $deps->getDependenciesForNamespace(['/src'], ['clojure.core-test.nnext']);
+
+        self::assertSame(
+            ['phel.core', 'clojure.core-test.nnext'],
+            array_map(static fn(NamespaceInformation $i): string => $i->getNamespace(), $result),
+        );
+    }
+
+    public function test_does_not_throw_for_bundled_phel_require_absent_from_scan_index(): void
+    {
+        // Bundled `phel.*` modules are precompiled + lazy-loaded downstream, so
+        // they are not in the `.phel` source scan; requiring one must not error.
+        $extractor = $this->createStub(NamespaceExtractorInterface::class);
+        $extractor->method('getNamespacesFromDirectories')
+            ->willReturn([
+                new NamespaceInformation('core.phel', 'phel.core', []),
+                new NamespaceInformation('app.phel', 'app\\main', ['phel.core', 'phel.json']),
+            ]);
+
+        $deps = new DependenciesForNamespace($extractor);
+
+        $result = $deps->getDependenciesForNamespace(['/src'], ['app\\main']);
+
+        self::assertSame(
+            ['phel.core', 'app\\main'],
+            array_map(static fn(NamespaceInformation $i): string => $i->getNamespace(), $result),
+        );
+    }
+
     public function test_does_not_throw_for_unresolved_seed_with_no_requiring_namespace(): void
     {
         // A seed that resolves to nothing is the caller's concern (the REPL

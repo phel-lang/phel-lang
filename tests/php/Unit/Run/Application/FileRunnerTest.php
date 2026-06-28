@@ -349,6 +349,39 @@ final class FileRunnerTest extends TestCase
         $this->createFileRunner($buildFacade, $commandFacade)->run($script);
     }
 
+    public function test_does_not_throw_when_ad_hoc_script_requires_a_clojure_compat_namespace(): void
+    {
+        // A `clojure.*` compat require (e.g. clojure.set) has no on-disk sibling
+        // and may map to no bundled phel.* module, but it is framework-provided
+        // and resolves at runtime, so the ad-hoc path must tolerate it — matching
+        // DependenciesForNamespace. Regression guard for the clojure-test-suite.
+        $script = $this->tmpDir . '/demo.phel';
+        file_put_contents($script, "(ns demo (:require clojure.set))\n");
+
+        $scriptInfo = new NamespaceInformation($script, 'demo', ['clojure.set'], true);
+        $coreInfo = new NamespaceInformation('/phel/core.phel', 'phel.core', [], true);
+
+        $buildFacade = $this->createStub(BuildFacadeInterface::class);
+        $buildFacade->method('getNamespaceFromFile')->willReturn($scriptInfo);
+        $buildFacade->method('getDependenciesForNamespace')->willReturn([$coreInfo]);
+
+        $evalled = [];
+        $buildFacade->method('evalFile')->willReturnCallback(
+            static function (string $file) use (&$evalled): CompiledFile {
+                $evalled[] = $file;
+                return new CompiledFile($file, '', '', false);
+            },
+        );
+
+        $commandFacade = $this->createStub(CommandFacadeInterface::class);
+        $commandFacade->method('getSourceDirectories')->willReturn([$this->primarySrc]);
+        $commandFacade->method('getVendorSourceDirectories')->willReturn([]);
+
+        $this->createFileRunner($buildFacade, $commandFacade)->run($script);
+
+        self::assertContains($script, $evalled);
+    }
+
     public function test_does_not_throw_when_ad_hoc_script_requires_a_namespace_resolved_from_configured_dirs(): void
     {
         // The script lives outside the configured dirs (ad-hoc path), but its
