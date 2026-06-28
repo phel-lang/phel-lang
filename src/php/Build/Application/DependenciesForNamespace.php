@@ -4,7 +4,9 @@ declare(strict_types=1);
 
 namespace Phel\Build\Application;
 
+use Phel\Build\Domain\Extractor\ExtractorException;
 use Phel\Build\Domain\Extractor\NamespaceExtractorInterface;
+use Phel\Lang\Registry;
 use Phel\Shared\NamespaceInformation;
 
 use SplQueue;
@@ -12,6 +14,10 @@ use SplQueue;
 use function array_key_exists;
 use function in_array;
 use function is_string;
+use function str_replace;
+use function str_starts_with;
+use function strlen;
+use function substr;
 
 final class DependenciesForNamespace
 {
@@ -26,6 +32,10 @@ final class DependenciesForNamespace
      * part, so the two sets cannot collide across the boundary.
      */
     private const string MEMO_PART_SEPARATOR = "\x01";
+
+    private const string CLOJURE_PREFIX = 'clojure.';
+
+    private const string PHEL_PREFIX = 'phel.';
 
     /**
      * Intra-process memo keyed by `(dirs, seeds)` so the three root callers
@@ -84,7 +94,7 @@ final class DependenciesForNamespace
                 && array_key_exists($currentNs, $index)
             ) {
                 foreach ($index[$currentNs]->getDependencies() as $depNs) {
-                    $queue->enqueue($depNs);
+                    $queue->enqueue($this->resolveDependency($depNs, $currentNs, $index));
                 }
             }
 
@@ -106,6 +116,40 @@ final class DependenciesForNamespace
         }
 
         return $this->memo[$memoKey] = $result;
+    }
+
+    /**
+     * Resolves a declared dependency of `$requiringNs` to a namespace that the
+     * walk can enqueue, throwing when it points at nothing loadable. A missing
+     * `(:require ...)` was previously enqueued and then silently dropped from
+     * the result, so a typo'd or absent dependency exited 0 with no feedback.
+     *
+     * A dependency resolves when it has a source file (`$index`), when a
+     * `clojure.*` name maps to a bundled `phel.*` source (the same remap the
+     * analyzer and {@see \Phel\Run\Application\FileRunner} apply), or when it is
+     * already in the runtime registry (e.g. a lazily loaded bundled module with
+     * no file in this scan).
+     *
+     * @param array<string, NamespaceInformation> $index
+     */
+    private function resolveDependency(string $depNs, string $requiringNs, array $index): string
+    {
+        if (array_key_exists($depNs, $index)) {
+            return $depNs;
+        }
+
+        if (str_starts_with($depNs, self::CLOJURE_PREFIX)) {
+            $phelNs = self::PHEL_PREFIX . substr($depNs, strlen(self::CLOJURE_PREFIX));
+            if (array_key_exists($phelNs, $index)) {
+                return $phelNs;
+            }
+        }
+
+        if (Registry::getInstance()->hasNamespace(str_replace('-', '_', $depNs))) {
+            return $depNs;
+        }
+
+        throw ExtractorException::cannotResolveRequiredNamespace($depNs, $requiringNs);
     }
 
     /**

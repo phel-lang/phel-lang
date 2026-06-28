@@ -7,7 +7,7 @@ Compiles Phel projects to PHP: namespace extraction, dependency ordering, and ca
 | Method | Notes |
 |--------|-------|
 | `getNamespaceFromFile(string)` / `getNamespaceFromDirectories(array)` | Extract `NamespaceInformation` (VO lives in `Phel\Shared`; Build produces it) |
-| `getDependenciesForNamespace(array $dirs, array $ns)` | Topologically sorted dependencies |
+| `getDependenciesForNamespace(array $dirs, array $ns)` | Topologically sorted dependencies. Throws `ExtractorException` when a resolved namespace's `(:require ...)` names a namespace with no source file (and no `clojure.*`→bundled-`phel.*` remap, and not already in the registry) — a missing require is a fast error, not a silent drop. Unresolved *seeds* stay tolerated (callers like the REPL check the empty result themselves) |
 | `compileFile(src, dest)` | Compile to PHP, write output |
 | `evalFile(src)` | Same as `compileFile` but skips writing output |
 | `compileProject(BuildOptions)` | Returns `CompiledFile[]` |

@@ -4,7 +4,9 @@ declare(strict_types=1);
 
 namespace Phel\Run\Application;
 
+use Phel\Build\Domain\Extractor\ExtractorException;
 use Phel\Lang\LoadClasspath;
+use Phel\Lang\Registry;
 use Phel\Shared\CompilerConstants;
 use Phel\Shared\Facade\BuildFacadeInterface;
 use Phel\Shared\Facade\CommandFacadeInterface;
@@ -16,9 +18,12 @@ use function array_values;
 use function dirname;
 use function is_file;
 use function str_replace;
+use function str_starts_with;
 
 final readonly class FileRunner
 {
+    private const string PHEL_PREFIX = 'phel.';
+
     public function __construct(
         private BuildFacadeInterface $buildFacade,
         private CommandFacadeInterface $commandFacade,
@@ -132,7 +137,7 @@ final readonly class FileRunner
         $seen = $alreadyResolved + [$scriptInfo->getNamespace() => true];
 
         foreach ($scriptInfo->getDependencies() as $dep) {
-            $this->collectAdHocDep($dep, $fallbackDir, $seen, $found);
+            $this->collectAdHocDep($dep, $scriptInfo->getNamespace(), $fallbackDir, $seen, $found);
         }
 
         return $found;
@@ -144,6 +149,7 @@ final readonly class FileRunner
      */
     private function collectAdHocDep(
         string $namespace,
+        string $scriptNamespace,
         string $fallbackDir,
         array &$seen,
         array &$found,
@@ -156,6 +162,14 @@ final readonly class FileRunner
 
         $path = $this->namespaceToFile($fallbackDir, $namespace);
         if ($path === null) {
+            // Not a sibling of the script. Tolerate it only when it resolves
+            // some other way (bundled `phel.*`, a `clojure.*` remap, or an
+            // already-loaded namespace); a require that resolves nowhere is
+            // broken and previously exited 0 with no feedback.
+            if (!$this->isResolvableWithoutSibling($namespace)) {
+                throw ExtractorException::cannotResolveRequiredNamespace($namespace, $scriptNamespace);
+            }
+
             return;
         }
 
@@ -166,10 +180,30 @@ final readonly class FileRunner
         }
 
         foreach ($info->getDependencies() as $dep) {
-            $this->collectAdHocDep($dep, $fallbackDir, $seen, $found);
+            $this->collectAdHocDep($dep, $info->getNamespace(), $fallbackDir, $seen, $found);
         }
 
         $found[] = $info;
+    }
+
+    /**
+     * Whether a non-sibling dependency still resolves: a bundled `phel.*`
+     * module (directly or via a `clojure.*` remap), or a namespace already in
+     * the runtime registry.
+     */
+    private function isResolvableWithoutSibling(string $namespace): bool
+    {
+        $canonical = str_replace('\\', '.', $namespace);
+
+        if (str_starts_with($canonical, self::PHEL_PREFIX)) {
+            return true;
+        }
+
+        if ($this->bundledNamespaceDetector->remapClojureDependencies([$canonical]) !== []) {
+            return true;
+        }
+
+        return Registry::getInstance()->hasNamespace(str_replace('-', '_', $canonical));
     }
 
     /**

@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace PhelTest\Unit\Run\Application;
 
 use Phel\Build\Domain\Compile\CompiledFile;
+use Phel\Build\Domain\Extractor\ExtractorException;
 use Phel\Run\Application\BundledNamespaceDetector;
 use Phel\Run\Application\BundledNamespaces;
 use Phel\Run\Application\FileRunner;
@@ -321,6 +322,64 @@ final class FileRunnerTest extends TestCase
             $evalled,
             'DFS post-order: sub-helper must eval before helper, helper before script',
         );
+    }
+
+    public function test_throws_when_ad_hoc_script_requires_a_missing_namespace(): void
+    {
+        $script = $this->tmpDir . '/demo.phel';
+        file_put_contents($script, "(ns demo (:require some.missing.ns))\n");
+
+        $scriptInfo = new NamespaceInformation($script, 'demo', ['some.missing.ns'], true);
+        $coreInfo = new NamespaceInformation('/phel/core.phel', 'phel.core', [], true);
+
+        $buildFacade = $this->createStub(BuildFacadeInterface::class);
+        $buildFacade->method('getNamespaceFromFile')->willReturn($scriptInfo);
+        // The script is not under the configured dirs, so it is absent from the
+        // resolved set and the run takes the ad-hoc fallback path.
+        $buildFacade->method('getDependenciesForNamespace')->willReturn([$coreInfo]);
+        $buildFacade->method('evalFile')->willReturn(new CompiledFile('', '', '', false));
+
+        $commandFacade = $this->createStub(CommandFacadeInterface::class);
+        $commandFacade->method('getSourceDirectories')->willReturn([$this->primarySrc]);
+        $commandFacade->method('getVendorSourceDirectories')->willReturn([]);
+
+        $this->expectException(ExtractorException::class);
+        $this->expectExceptionMessage("Cannot find namespace 'some.missing.ns' required by 'demo'");
+
+        $this->createFileRunner($buildFacade, $commandFacade)->run($script);
+    }
+
+    public function test_does_not_throw_when_ad_hoc_script_requires_a_namespace_resolved_from_configured_dirs(): void
+    {
+        // The script lives outside the configured dirs (ad-hoc path), but its
+        // dependency does live under them, so dependency resolution already
+        // pulled it in — requiring it must not error.
+        $script = $this->tmpDir . '/demo.phel';
+        file_put_contents($script, "(ns demo (:require lib.util))\n");
+
+        $scriptInfo = new NamespaceInformation($script, 'demo', ['lib.util'], true);
+        $coreInfo = new NamespaceInformation('/phel/core.phel', 'phel.core', [], true);
+        $libInfo = new NamespaceInformation($this->primarySrc . '/lib/util.phel', 'lib.util', [], true);
+
+        $buildFacade = $this->createStub(BuildFacadeInterface::class);
+        $buildFacade->method('getNamespaceFromFile')->willReturn($scriptInfo);
+        $buildFacade->method('getDependenciesForNamespace')->willReturn([$coreInfo, $libInfo]);
+
+        $evalled = [];
+        $buildFacade->method('evalFile')->willReturnCallback(
+            static function (string $file) use (&$evalled): CompiledFile {
+                $evalled[] = $file;
+                return new CompiledFile($file, '', '', false);
+            },
+        );
+
+        $commandFacade = $this->createStub(CommandFacadeInterface::class);
+        $commandFacade->method('getSourceDirectories')->willReturn([$this->primarySrc]);
+        $commandFacade->method('getVendorSourceDirectories')->willReturn([]);
+
+        $this->createFileRunner($buildFacade, $commandFacade)->run($script);
+
+        self::assertContains($script, $evalled);
     }
 
     private function createFileRunner(
