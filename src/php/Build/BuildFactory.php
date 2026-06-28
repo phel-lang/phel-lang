@@ -16,6 +16,7 @@ use Phel\Build\Application\NamespaceExtractor;
 use Phel\Build\Application\ProjectCompiler;
 use Phel\Build\Domain\Cache\NamespaceCacheInterface;
 use Phel\Build\Domain\Cache\ScanIndexCacheInterface;
+use Phel\Build\Domain\Compile\CompiledSecondaryStore;
 use Phel\Build\Domain\Compile\CompiledTargetPathResolver;
 use Phel\Build\Domain\Compile\FileCompilerInterface;
 use Phel\Build\Domain\Compile\Output\EntryPointPhpFile;
@@ -88,6 +89,7 @@ final class BuildFactory extends AbstractFactory
                 $this->createFirstFormExtractor(),
                 $this->createDependencyTracker(),
                 $this->getConfig()->getOptimizationLevel(),
+                $this->createCompiledSecondaryStore(),
             ),
         );
         return $evaluator;
@@ -155,18 +157,28 @@ final class BuildFactory extends AbstractFactory
         return $facade;
     }
 
-    private function createSecondaryFileHarvester(): ?SecondaryFileHarvester
+    private function createSecondaryFileHarvester(): SecondaryFileHarvester
     {
-        $compiledCodeCache = $this->createCompiledCodeCache();
-        if (!$compiledCodeCache instanceof CompiledCodeCache) {
-            return null;
-        }
-
+        // Always present: with the compiled-code cache off it falls back to the
+        // in-memory store the evaluator fills, so secondaries are still emitted.
         return new SecondaryFileHarvester(
-            $compiledCodeCache,
             new CompiledTargetPathResolver($this->getCompilerFacade()),
             $this->createFileIo(),
+            $this->createCompiledSecondaryStore(),
+            $this->createCompiledCodeCache(),
         );
+    }
+
+    private function createCompiledSecondaryStore(): CompiledSecondaryStore
+    {
+        // Shared singleton: the FileEvaluator writes built secondaries into it
+        // and the harvester drains it within the same build process.
+        /** @var CompiledSecondaryStore $store */
+        $store = $this->singleton(
+            CompiledSecondaryStore::class,
+            static fn(): CompiledSecondaryStore => new CompiledSecondaryStore(),
+        );
+        return $store;
     }
 
     private function createCompiledCodeCache(): ?CompiledCodeCache
