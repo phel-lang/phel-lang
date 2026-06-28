@@ -43,4 +43,16 @@ final class NotCallableHintTest extends TestCase
 
         self::assertStringContainsString("'App\\Custom\\Thing'", $hint->hint($e));
     }
+
+    public function test_applies_to_scalar_value_not_callable_message(): void
+    {
+        // PHP phrases a non-callable scalar as "Value of type int is not
+        // callable" (e.g. `(def x 5)` then `(x 1)`); the hint must fire here too.
+        $hint = new NotCallableHint();
+        $e = new Error('Value of type int is not callable');
+
+        self::assertTrue($hint->appliesTo($e));
+        self::assertStringContainsString("'int'", $hint->hint($e));
+        self::assertStringContainsString('first', $hint->hint($e));
+    }
 }

@@ -103,6 +103,15 @@ final readonly class CommandExceptionWriter implements CommandExceptionWriterInt
         $output->writeln($cause->getMessage());
 
         if ($position->filename() !== $file) {
+            // An ephemeral eval temp file (`__phel_<hash>.php`) is an internal
+            // artifact with no meaning to a Phel user, so only show the resolved
+            // source. A persistent build artifact (`out/phel/…`) still names its
+            // compiled file, which is useful when diagnosing a stale build.
+            if ($this->isEphemeralCompiledFile($file)) {
+                $output->writeln(sprintf('  at %s:%d', $position->filename(), $position->line()));
+                return;
+            }
+
             $output->writeln(sprintf(
                 '  at %s:%d (compiled: %s:%d)',
                 $position->filename(),
@@ -117,5 +126,15 @@ final readonly class CommandExceptionWriter implements CommandExceptionWriterInt
         if (str_ends_with($file, '.php')) {
             $output->writeln('  hint: ' . $this->staleOutputHint);
         }
+    }
+
+    /**
+     * Whether the compiled file is an ephemeral eval temp file (named
+     * `__phel_<hash>.php` by the evaluator), as opposed to a persistent build
+     * artifact under `out/`.
+     */
+    private function isEphemeralCompiledFile(string $file): bool
+    {
+        return str_starts_with(basename($file), '__phel');
     }
 }

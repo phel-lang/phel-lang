@@ -43,7 +43,10 @@ final class NotCallableHint implements ExceptionHintInterface
 
     private function extractType(string $message): ?string
     {
-        if (preg_match('/Object of type ([\\w\\\\]+) is not callable/', $message, $m) === 1) {
+        // PHP phrases invoking a non-callable as "Object of type X ..." when X is
+        // an object and "Value of type X ..." when X is a scalar (int, string, …),
+        // so match both so e.g. `((def x 5) ...) (x 1)` still surfaces a hint.
+        if (preg_match('/(?:Object|Value) of type ([\\w\\\\]+) is not callable/', $message, $m) === 1) {
             return $m[1];
         }
 

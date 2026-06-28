@@ -11,6 +11,7 @@ All notable changes to this project will be documented in this file.
 
 ### Fixed
 
+- Invoking a non-function value (e.g. `(def x 5)` then `(x 1 2)`) now shows only the `.phel` source location and an actionable `hint:` instead of leaking the internal compiled temp path (`__phel_<hash>.php`): the not-callable hint also fires for PHP's scalar wording (`Value of type int is not callable`, not only `Object of type …`), and the ephemeral eval temp file is no longer printed as a `(compiled: …)` clause (persistent `out/` build artifacts still are, to help diagnose stale builds) (#2638)
 - "Did you mean" suggestions now rank by relevance instead of raw edit distance: a typed symbol that is an in-order subsequence of a candidate is preferred (so `prn` suggests `print`/`printf`/`println` rather than `or`/`pop`/`put`), distance ties break on shared prefix, and a good longer match is no longer cut off by the fixed distance ceiling (#2637)
 - Requiring a non-existent user namespace now fails fast with `Cannot find namespace '…' required by '…'` instead of silently exiting 0 and surfacing later as a generic `Cannot resolve symbol`; framework `phel.*`/`clojure.*`, already-loaded, and PHP-interop `(:use …)` requires stay tolerated (#2636)
 - `phel run`/`test`/`build`/`profile`/`export` now surface the `.phel` source location and filtered stack trace for runtime errors thrown from the stdlib (e.g. `(/ 1 0)`), matching the REPL, instead of only the bare message (#2635)
