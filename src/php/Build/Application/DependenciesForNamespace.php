@@ -119,16 +119,10 @@ final class DependenciesForNamespace
     }
 
     /**
-     * Resolves a declared dependency of `$requiringNs` to a namespace that the
-     * walk can enqueue, throwing when it points at nothing loadable. A missing
-     * `(:require ...)` was previously enqueued and then silently dropped from
-     * the result, so a typo'd or absent dependency exited 0 with no feedback.
-     *
-     * A dependency resolves when it has a source file (`$index`), when a
-     * `clojure.*` name maps to a bundled `phel.*` source (the same remap the
-     * analyzer and {@see \Phel\Run\Application\FileRunner} apply), or when it is
-     * already in the runtime registry (e.g. a lazily loaded bundled module with
-     * no file in this scan).
+     * Resolves a declared dependency of `$requiringNs` to the namespace the walk
+     * should enqueue, throwing when it points at nothing loadable. Such a
+     * dependency was previously enqueued and then silently dropped from the
+     * result, so a typo'd or absent `(:require ...)` exited 0 with no feedback.
      *
      * @param array<string, NamespaceInformation> $index
      */
@@ -138,6 +132,8 @@ final class DependenciesForNamespace
             return $depNs;
         }
 
+        // `clojure.X` resolves to a bundled `phel.X` source (same remap the
+        // analyzer and FileRunner apply); enqueue the phel.* target.
         if (str_starts_with($depNs, self::CLOJURE_PREFIX)) {
             $phelNs = self::PHEL_PREFIX . substr($depNs, strlen(self::CLOJURE_PREFIX));
             if (array_key_exists($phelNs, $index)) {
@@ -145,6 +141,8 @@ final class DependenciesForNamespace
             }
         }
 
+        // Already in the runtime registry: a lazily loaded bundled module that
+        // has no source file in this scan but is still resolvable.
         if (Registry::getInstance()->hasNamespace(str_replace('-', '_', $depNs))) {
             return $depNs;
         }
