@@ -22,17 +22,26 @@ namespace Phel\Shared\Performance;
  */
 final class OpcacheReexec
 {
+    /**
+     * Set in the environment right before `pcntl_exec` so the re-exec'd child
+     * proves it is the second invocation without reading back an ini value.
+     * Its presence is an unconditional "never re-exec again", so a misread
+     * `opcache.file_cache` on any PHP/opcache build can never spin an exec loop.
+     */
+    public const string REEXEC_DONE_ENV = 'PHEL_OPCACHE_REEXEC_DONE';
+
     public static function decide(
         bool $opcacheLoaded,
         bool $fileCacheConfigured,
         bool $optedOut,
         bool $pcntlAvailable,
         string $fileCacheDir,
+        bool $reexecAlreadyDone = false,
     ): OpcacheReexecDecision {
-        // Already configured is also the loop guard: the re-exec'd child
-        // inherits the file_cache flag, so it falls through here and never
-        // re-execs again.
-        if ($optedOut || !$pcntlAvailable || $fileCacheConfigured) {
+        // file_cache already set is one loop guard (the child inherits the
+        // flag); the breadcrumb is the belt-and-suspenders one that holds even
+        // if a build fails to read that flag back.
+        if ($optedOut || !$pcntlAvailable || $fileCacheConfigured || $reexecAlreadyDone) {
             return new OpcacheReexecDecision(false, []);
         }
 
@@ -40,6 +49,16 @@ final class OpcacheReexec
         if ($flags === []) {
             return new OpcacheReexecDecision(false, []);
         }
+
+        // file_cache_only skips OPcache's shared-memory segment (and its
+        // /tmp/.ZendSem.* semaphore) while keeping the on-disk opcode cache that
+        // gives the warm-start win. A short-lived CLI process never reuses SHM
+        // across invocations, and allocating it can block on a semaphore lock
+        // during startup on some CI filesystems — dropping it removes that hang
+        // with no loss of cache benefit. Scoped to the CLI re-exec; parallel
+        // test workers keep SHM.
+        $flags[] = '-d';
+        $flags[] = 'opcache.file_cache_only=1';
 
         return new OpcacheReexecDecision(true, $flags);
     }

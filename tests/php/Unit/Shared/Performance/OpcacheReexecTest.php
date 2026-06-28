@@ -20,10 +20,34 @@ final class OpcacheReexecTest extends TestCase
         );
 
         self::assertTrue($decision->shouldReexec);
+        // file_cache_only is appended for the CLI re-exec to skip the OPcache
+        // SHM segment (a startup-lock hang risk) while keeping the disk cache.
         self::assertSame(
-            ['-d', 'opcache.enable_cli=1', '-d', 'opcache.file_cache=/var/phel/opcache'],
+            [
+                '-d', 'opcache.enable_cli=1',
+                '-d', 'opcache.file_cache=/var/phel/opcache',
+                '-d', 'opcache.file_cache_only=1',
+            ],
             $decision->flags,
         );
+    }
+
+    public function test_does_not_reexec_when_breadcrumb_marks_it_already_done(): void
+    {
+        // The re-exec'd child inherits PHEL_OPCACHE_REEXEC_DONE; this guard holds
+        // even if it misreads opcache.file_cache back as empty, so the exec can
+        // never loop regardless of the PHP/opcache build.
+        $decision = OpcacheReexec::decide(
+            opcacheLoaded: true,
+            fileCacheConfigured: false,
+            optedOut: false,
+            pcntlAvailable: true,
+            fileCacheDir: '/var/phel/opcache',
+            reexecAlreadyDone: true,
+        );
+
+        self::assertFalse($decision->shouldReexec);
+        self::assertSame([], $decision->flags);
     }
 
     public function test_does_not_reexec_when_opcache_extension_is_absent(): void

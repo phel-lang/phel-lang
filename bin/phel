@@ -17,8 +17,8 @@ use Phel\Shared\Performance\OpcacheReexec;
  * Replace the current process with one that has an on-disk OPcache file cache,
  * when it is safe and beneficial. The file_cache dir lives at `<PHEL_DIR>/opcache`,
  * a sibling of the compiled-code cache so `phel clear-cache` never wipes it (PHP
- * aborts at startup if the path is missing). The "already configured" guard in
- * the decision is what stops the re-exec'd child from looping.
+ * aborts at startup if the path is missing). A re-exec-done breadcrumb in the
+ * environment stops the re-exec'd child from looping.
  */
 function maybeReexecWithOpcacheFileCache(string $appRootDir): void
 {
@@ -33,6 +33,7 @@ function maybeReexecWithOpcacheFileCache(string $appRootDir): void
         optedOut: getenv('PHEL_NO_OPCACHE_REEXEC') !== false,
         pcntlAvailable: function_exists('pcntl_exec'),
         fileCacheDir: $fileCacheDir,
+        reexecAlreadyDone: getenv(OpcacheReexec::REEXEC_DONE_ENV) !== false,
     );
 
     if (!$decision->shouldReexec) {
@@ -47,6 +48,10 @@ function maybeReexecWithOpcacheFileCache(string $appRootDir): void
     // argv[0] is the bin/phel script path; preserve the rest as user args. cwd
     // is unchanged across the exec, so a relative script path still resolves.
     $args = array_merge($decision->flags, array_values(array_map('strval', $argv)));
+
+    // Breadcrumb the child inherits so it can never re-exec again, even if it
+    // misreads opcache.file_cache back as empty on some build.
+    putenv(OpcacheReexec::REEXEC_DONE_ENV . '=1');
 
     // If pcntl_exec returns at all it failed; fall through and run in-process.
     @pcntl_exec(PHP_BINARY, $args);
