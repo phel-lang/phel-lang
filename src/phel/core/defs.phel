@@ -30,11 +30,9 @@
 (def defn-builder
   {:macro true, :private true}
   (fn [name meta & fdecl]
-    ;; Validate the name up front: it must be a symbol. Without this a
-    ;; non-symbol (e.g. `(defn 123 [x] x)`) reaches `(getMeta)` below and
-    ;; crashes with an internal PHP `Error` that escapes the macro-expansion
-    ;; `catch (Exception)`, leaking core internals and a compiled-cache path.
-    ;; Throwing an `Exception` here surfaces as a clean `[PHEL]` macro error.
+    ;; Without this guard a non-symbol name reaches `(getMeta)` below and crashes
+    ;; with an internal PHP `Error` that escapes the macro-expander's
+    ;; `catch (Exception)`, leaking core internals; throwing surfaces as `[PHEL005]`.
     (if (php/instanceof name Symbol)
       nil
       (throw (php/new \InvalidArgumentException
