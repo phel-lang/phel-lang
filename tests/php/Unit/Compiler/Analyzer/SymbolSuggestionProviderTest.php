@@ -103,4 +103,39 @@ final class SymbolSuggestionProviderTest extends TestCase
 
         self::assertSame([], $suggestions);
     }
+
+    public function test_find_similar_prefers_print_family_over_unrelated_short_words(): void
+    {
+        // Regression for #2637: `prn` used to surface `or`/`pop`/`put` (all
+        // levenshtein distance 2) while `print`/`println` were absent.
+        $availableSymbols = ['or', 'pop', 'put', 'print', 'println', 'printf', 'map'];
+
+        $suggestions = $this->provider->findSimilar('prn', $availableSymbols);
+
+        self::assertSame('print', $suggestions[0]);
+        self::assertContains('println', $suggestions);
+        self::assertNotContains('or', $suggestions);
+        self::assertNotContains('pop', $suggestions);
+        self::assertNotContains('put', $suggestions);
+    }
+
+    public function test_find_similar_includes_longer_subsequence_beyond_fixed_distance(): void
+    {
+        // `prn` -> `println` is levenshtein distance 4 (> MAX_EDIT_DISTANCE),
+        // but `prn` is an in-order subsequence of `println`, so a length-scaled
+        // bound keeps the good long match instead of dropping it.
+        $suggestions = $this->provider->findSimilar('prn', ['println']);
+
+        self::assertSame(['println'], $suggestions);
+    }
+
+    public function test_find_similar_breaks_distance_ties_by_shared_prefix(): void
+    {
+        // `ab` is a subsequence of both `yab` and `abx` at the same distance (1);
+        // `abx` shares the leading prefix `ab` while `yab` shares none, so `abx`
+        // ranks first regardless of input order.
+        $suggestions = $this->provider->findSimilar('ab', ['yab', 'abx']);
+
+        self::assertSame('abx', $suggestions[0]);
+    }
 }
