@@ -24,10 +24,12 @@ use Phel\\Config\\ProjectLayout;
 // for every option, caching flags, and precedence. Run `phel config` to print
 // the effective configuration. A few common tweaks:
 //     ->withWarnDeprecations(true)
-//     ->withOptimizationLevel(2)
 //     ->withIgnoreWhenBuilding(['src/scratch.phel'])
+// withOptimizationLevel(2) inlines core arithmetic/bit fns and elides their
+// nil-guards; drop to 0 if you prefer those runtime checks during development.
 return PhelConfig::forProject(ProjectLayout::{$layoutCase})
-    ->withMainPhelNamespace('{$namespace}');
+    ->withMainPhelNamespace('{$namespace}')
+    ->withOptimizationLevel(2);
 
 PHP;
     }

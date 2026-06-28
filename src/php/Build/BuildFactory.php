@@ -166,6 +166,7 @@ final class BuildFactory extends AbstractFactory
             $this->createFileIo(),
             $this->createCompiledSecondaryStore(),
             $this->createCompiledCodeCache(),
+            $this->getConfig()->getOptimizationLevel(),
         );
     }
 

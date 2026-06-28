@@ -200,6 +200,8 @@ final class InitCommandTest extends TestCase
         self::assertStringContainsString('use Phel\\Config\\ProjectLayout;', $configContent);
         self::assertStringContainsString('PhelConfig::forProject(ProjectLayout::Flat)', $configContent);
         self::assertStringContainsString("->withMainPhelNamespace('myapp\\main')", $configContent);
+        // New projects ship -O2 as an active chained call, not the commented hint (#2631).
+        self::assertStringContainsString("->withMainPhelNamespace('myapp\\main')\n    ->withOptimizationLevel(2);", $configContent);
     }
 
     public function test_generated_config_uses_nested_layout(): void

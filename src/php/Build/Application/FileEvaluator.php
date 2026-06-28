@@ -14,6 +14,7 @@ use Phel\Build\Domain\Extractor\FirstFormExtractor;
 use Phel\Build\Domain\Extractor\NamespaceExtractorInterface;
 use Phel\Compiler\Domain\Analyzer\Environment\NodeEnvironment;
 use Phel\Lang\TypeInterface;
+use Phel\Shared\CompiledSourceHash;
 use Phel\Shared\CompileOptions;
 use Phel\Shared\Facade\CompilerFacadeInterface;
 use Phel\Shared\Parser\Node\NodeInterface;
@@ -173,16 +174,9 @@ final class FileEvaluator
         return new CompiledFile($src, '', $namespace);
     }
 
-    /**
-     * Cache key for the compiled-code cache. The optimization level is mixed
-     * in so changing it invalidates entries compiled at another level; level 0
-     * keeps the historical plain `md5` so existing caches stay warm.
-     */
     private function sourceHash(string $code): string
     {
-        return $this->optimizationLevel > 0
-            ? md5($code . '|O' . $this->optimizationLevel)
-            : md5($code);
+        return CompiledSourceHash::of($code, $this->optimizationLevel);
     }
 
     /**

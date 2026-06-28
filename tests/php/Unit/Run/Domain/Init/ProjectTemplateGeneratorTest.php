@@ -28,6 +28,16 @@ final class ProjectTemplateGeneratorTest extends TestCase
         self::assertStringContainsString("->withMainPhelNamespace('myapp\\main')", $config);
     }
 
+    public function test_generate_config_enables_optimization_by_default(): void
+    {
+        // New projects ship -O2 so compute-heavy code gets inlined arithmetic
+        // and elided nil-guards out of the box (#2631); the runtime default is 0.
+        $config = $this->generator->generateConfig('myapp\\main', ProjectLayout::Flat);
+
+        // Must be an active chained call (trailing `;`), not the commented example.
+        self::assertStringContainsString("->withMainPhelNamespace('myapp\\main')\n    ->withOptimizationLevel(2);", $config);
+    }
+
     public function test_generate_config_nested_layout(): void
     {
         $config = $this->generator->generateConfig('myapp\\main', ProjectLayout::Nested);

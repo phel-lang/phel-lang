@@ -6,6 +6,7 @@ namespace Phel\Build\Domain\Compile;
 
 use Phel\Build\Domain\Cache\CompiledCodeCacheInterface;
 use Phel\Build\Domain\IO\FileIoInterface;
+use Phel\Shared\CompiledSourceHash;
 use Phel\Shared\NamespaceInformation;
 use Phel\Shared\SourceMap\SourceMapSiblings;
 use RuntimeException;
@@ -13,7 +14,6 @@ use RuntimeException;
 use function dirname;
 use function file_exists;
 use function is_dir;
-use function md5;
 use function mkdir;
 use function sprintf;
 
@@ -42,6 +42,7 @@ final readonly class SecondaryFileHarvester
         private FileIoInterface $fileIo,
         private CompiledSecondaryStore $compiledSecondaryStore,
         private ?CompiledCodeCacheInterface $compiledCodeCache = null,
+        private int $optimizationLevel = 0,
     ) {}
 
     /**
@@ -72,7 +73,12 @@ final readonly class SecondaryFileHarvester
     private function compiledPhp(string $sourceFile, string $sourceCode): ?string
     {
         if ($this->compiledCodeCache instanceof CompiledCodeCacheInterface) {
-            $cachedPath = $this->compiledCodeCache->get($sourceFile, md5($sourceCode));
+            // Must key identically to FileEvaluator's writer, or an -O>0 build
+            // misses every secondary and ships a broken artifact (the #2449 mode).
+            $cachedPath = $this->compiledCodeCache->get(
+                $sourceFile,
+                CompiledSourceHash::of($sourceCode, $this->optimizationLevel),
+            );
             if ($cachedPath !== null) {
                 return $this->fileIo->getContents($cachedPath);
             }
