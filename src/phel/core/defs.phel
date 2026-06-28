@@ -30,6 +30,15 @@
 (def defn-builder
   {:macro true, :private true}
   (fn [name meta & fdecl]
+    ;; Validate the name up front: it must be a symbol. Without this a
+    ;; non-symbol (e.g. `(defn 123 [x] x)`) reaches `(getMeta)` below and
+    ;; crashes with an internal PHP `Error` that escapes the macro-expansion
+    ;; `catch (Exception)`, leaking core internals and a compiled-cache path.
+    ;; Throwing an `Exception` here surfaces as a clean `[PHEL]` macro error.
+    (if (php/instanceof name Symbol)
+      nil
+      (throw (php/new \InvalidArgumentException
+                      (php/. "First argument must be a symbol, but got: " (php/get_debug_type name)))))
     (let [sym-meta        (php/-> name (getMeta))
           meta            (if sym-meta (php/-> sym-meta (merge meta)) meta)
           meta            (if (php/is_string (first fdecl))
