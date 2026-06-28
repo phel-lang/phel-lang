@@ -51,6 +51,35 @@ final class CommandExceptionWriterTest extends TestCase
         self::assertStringNotContainsString('KeepGeneratedTempFiles', $text);
     }
 
+    public function test_suppresses_compiled_temp_path_for_ephemeral_eval_file(): void
+    {
+        // An eval temp file (`__phel_<hash>.php`) is an internal artifact; only
+        // the resolved Phel source should be shown, never the temp path (#2638).
+        $compiledPath = '/private/var/folders/T/phel/tmp/__phel_abc123.php';
+        $compiledLine = 4;
+
+        $extractor = $this->createStub(FilePositionExtractorInterface::class);
+        $extractor->method('getOriginal')->willReturn(new FilePosition('/proj/03-not-fn.phel', 3));
+
+        $writer = new CommandExceptionWriter(
+            $this->createStub(ExceptionPrinterInterface::class),
+            $this->createStub(ErrorLogInterface::class),
+            $extractor,
+            'stale hint',
+            new ExceptionHintResolver([]),
+        );
+
+        $output = new BufferedOutput();
+        $writer->writeStackTrace($output, $this->errorAt('Value of type int is not callable', $compiledPath, $compiledLine));
+
+        $text = $output->fetch();
+
+        self::assertStringContainsString('Value of type int is not callable', $text);
+        self::assertStringContainsString('at /proj/03-not-fn.phel:3', $text);
+        self::assertStringNotContainsString('compiled:', $text);
+        self::assertStringNotContainsString('__phel_abc123.php', $text);
+    }
+
     public function test_emits_stale_output_hint_when_source_map_missing(): void
     {
         $compiledPath = '/proj/out/phel/http.php';
