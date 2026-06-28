@@ -37,6 +37,8 @@ jobs:
   core-tests:
     name: Core tests on PHP ${{ matrix.php }}
     runs-on: ubuntu-latest
+    # Fail fast instead of hanging ~6h if a worker stalls on OPcache startup lock.
+    timeout-minutes: 8
     strategy:
       fail-fast: false
       matrix:
