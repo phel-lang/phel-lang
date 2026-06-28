@@ -418,6 +418,7 @@ HELP)
         $output->writeln('Next steps:');
 
         $step = 1;
+        $output->writeln(sprintf('  %d. Install dependencies: <comment>composer install</comment>', $step++));
         $output->writeln(sprintf('  %d. Run your code:  <comment>./vendor/bin/phel run %s</comment>', $step++, $mainFilename));
         if (!$noTests) {
             $output->writeln(sprintf('  %d. Run the tests: <comment>./vendor/bin/phel test</comment>', $step++));
