@@ -4,25 +4,21 @@ All notable changes to this project will be documented in this file.
 
 ## Unreleased
 
-### Performance
+### Changed
 
-- `phel run`/`eval`/`repl` now auto-apply a persistent on-disk OPcache file cache so warm CLI invocations reuse compiled opcode instead of re-parsing every required `.php` (~30% faster warm startup). The CLI re-execs itself once via `pcntl_exec` (same PID, TTY, stdin, signals, and exit code) with `-d opcache.enable_cli=1 -d opcache.file_cache=<PHEL_DIR>/opcache`. No-op when OPcache or `pcntl` is unavailable, when `opcache.file_cache` is already set, or when `PHEL_NO_OPCACHE_REEXEC=1` opts out. The cache lives outside `phel clear-cache`'s blast radius
+- `phel test` renders the `+`/`-`/`~` structural diff for any same-shape collection that differs (not only those with more than 3 entries), so a small failure like `(= {:a 1 :b 2} {:a 1 :b 3})` or `[1 2 3]` vs `[1 2 4]` shows what differs instead of two near-identical lines; scalars and mixed shapes keep the single-line summary
+- `phel compile` now reports on stderr the value a snippet folds to when it emits no PHP (e.g. `(+ 1 2)` → `3`), instead of printing nothing (#2624)
 
 ### Fixed
 
-- Requiring a non-existent **user** namespace is no longer a silent no-op that exits 0: `(ns app (:require some.missing.ns))` (or any transitive `(:require ...)` of a resolved namespace) now fails fast with `Cannot find namespace 'some.missing.ns' required by 'app'` instead of letting the typo surface much later as a generic `Cannot resolve symbol`. Framework-provided `phel.*`/`clojure.*` requires (bundled stdlib loaded lazily, or clojure-compat shims whose symbols live in `phel.core`), already-loaded namespaces, and PHP-interop `(:use ...)` stay tolerated (#2636)
-- `phel run` no longer discards the source location and stack trace when a runtime error is thrown from inside the runtime lib (e.g. `(+ x "boom")` → `Expected a number, got string`, `(/ 1 0)` → `Division by zero`): such errors used to print only the bare message because the throw site lives under `phel-lang/src`. They now surface the same filtered `.phel` stack trace as the REPL, mapping every Phel call site back to its source location. The fix is shared by `phel run`/`test`/`build`/`profile`/`export` (#2635)
-- Temp-file cleanup (`RealFilesystem::clearAll()`) no longer emits `unlink(...): No such file or directory` warnings when a tracked path was already removed by an earlier run (the file list is process-global static); it now skips missing paths. Surfaced as noise on every `phel test` / build run
-
-### Changed
-
-- `phel test` now renders the `+`/`-`/`~` structural diff for **any** same-shape collection that differs, not just collections with more than 3 entries: the common small-collection failure (`(= {:a 1 :b 2} {:a 1 :b 3})`, `[1 2 3]` vs `[1 2 4]`) now shows exactly what differs instead of two near-identical lines. Scalar pairs and mixed shapes keep the single-line summary
-- `phel compile` no longer prints nothing when a snippet folds to a discarded pure value (e.g. `(+ 1 2)` → `3`): stdout stays empty, but a note on stderr now reports the value the snippet reduces to and why no PHP was emitted
+- Requiring a non-existent user namespace now fails fast with `Cannot find namespace '…' required by '…'` instead of silently exiting 0 and surfacing later as a generic `Cannot resolve symbol`; framework `phel.*`/`clojure.*`, already-loaded, and PHP-interop `(:use …)` requires stay tolerated (#2636)
+- `phel run`/`test`/`build`/`profile`/`export` now surface the `.phel` source location and filtered stack trace for runtime errors thrown from the stdlib (e.g. `(/ 1 0)`), matching the REPL, instead of only the bare message (#2635)
+- No more spurious `unlink(...): No such file or directory` warnings on `phel test`/build when cleaning up a temp file an earlier run already removed
 
 ### Performance
 
-- `phel test --parallel` workers no longer re-evaluate their full dependency closure (mostly the shared `phel.*` stdlib) on every namespace frame: each dependency is evaluated once per long-lived worker, as the serial runner already does. Removes the per-frame re-execution that made `--parallel=2` slower than serial and capped scaling; the speedup grows with the number of namespaces in a project
-- `phel test --parallel` workers now share an on-disk OPcache file cache, so each worker reuses the compiled `.php` opcode the first worker already parsed instead of re-parsing the whole stdlib closure itself. Enabled automatically when the Zend OPcache extension is available; a graceful no-op otherwise (#2628)
+- `phel run`/`eval`/`repl` auto-apply a persistent on-disk OPcache file cache for ~30% faster warm startup, re-exec'ing once via `pcntl_exec` (same PID, TTY, stdin, signals, exit code); no-op without OPcache/`pcntl`, with `opcache.file_cache` already set, or with `PHEL_NO_OPCACHE_REEXEC=1` (#2632)
+- `phel test --parallel` workers share an OPcache file cache and evaluate each dependency once per worker instead of re-running the whole stdlib closure per namespace — fixing the regression that made `--parallel` slower than serial (#2628)
 
 ## [0.46.0](https://github.com/phel-lang/phel-lang/compare/v0.45.1...v0.46.0) - 2026-06-25
 
