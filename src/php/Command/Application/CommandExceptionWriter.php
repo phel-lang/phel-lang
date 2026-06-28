@@ -36,15 +36,18 @@ final readonly class CommandExceptionWriter implements CommandExceptionWriterInt
     {
         $cause = $e->getPrevious() ?? $e;
 
+        // When the throw site is the runtime lib (e.g. core `+`, `/`), its file
+        // is internal and maps to no user source, so the located `at` header is
+        // omitted; the Phel call sites still surface via the filtered trace.
         if (str_contains($cause->getFile(), 'phel-lang/src')) {
             $output->writeln($cause->getMessage());
         } else {
             $this->writeUserError($output, $cause);
+        }
 
-            $trace = $this->exceptionPrinter->getUserFacingTraceString($cause);
-            if ($trace !== '') {
-                $output->writeln(rtrim($trace));
-            }
+        $trace = $this->exceptionPrinter->getUserFacingTraceString($cause);
+        if ($trace !== '') {
+            $output->writeln(rtrim($trace));
         }
 
         $this->writeHint($output, $e);

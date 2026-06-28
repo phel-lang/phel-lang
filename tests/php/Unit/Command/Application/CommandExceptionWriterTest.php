@@ -78,13 +78,20 @@ final class CommandExceptionWriterTest extends TestCase
         self::assertStringContainsString('rm -rf out /var/state/cache', $text);
     }
 
-    public function test_internal_phel_lang_source_does_not_invoke_extractor(): void
+    public function test_runtime_lib_error_skips_located_header_but_keeps_phel_trace(): void
     {
+        // A throw from inside the runtime lib has no user source for the `at`
+        // header, so the extractor is not consulted for it — yet the Phel call
+        // sites must still be surfaced via the filtered trace.
         $extractor = $this->createMock(FilePositionExtractorInterface::class);
         $extractor->expects(self::never())->method('getOriginal');
 
+        $printer = $this->createStub(ExceptionPrinterInterface::class);
+        $printer->method('getUserFacingTraceString')
+            ->willReturn("#3 /proj/src/main.phel:3 : (phel\\core\\+ 1 \"boom\")\n   ... 2 internal frames\n");
+
         $writer = new CommandExceptionWriter(
-            $this->createStub(ExceptionPrinterInterface::class),
+            $printer,
             $this->createStub(ErrorLogInterface::class),
             $extractor,
             'stale compiled output? try `rm -rf out /var/state/cache` and rebuild.',
@@ -94,10 +101,17 @@ final class CommandExceptionWriterTest extends TestCase
         $output = new BufferedOutput();
         $writer->writeStackTrace(
             $output,
-            $this->errorAt('internal', '/home/dev/phel-lang/src/php/Run/Foo.php', 99),
+            $this->errorAt('Expected a number, got string', '/home/dev/phel-lang/src/php/Lang/NumericCoercion.php', 40),
         );
 
-        self::assertSame("internal\n", $output->fetch());
+        $text = $output->fetch();
+
+        self::assertStringContainsString('Expected a number, got string', $text);
+        self::assertStringContainsString('#3 /proj/src/main.phel:3 : (phel\\core\\+ 1 "boom")', $text);
+        self::assertStringContainsString('... 2 internal frames', $text);
+        // No misleading `at <internal .php>` header pointing into the runtime lib.
+        self::assertStringNotContainsString('at /home/dev/phel-lang/src', $text);
+        self::assertStringNotContainsString('rm -rf out', $text);
     }
 
     public function test_writes_user_facing_trace_after_error_location(): void
