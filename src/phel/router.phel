@@ -60,6 +60,14 @@
   [raw-routes path-prefix common-data]
   (walk-one raw-routes path-prefix common-data))
 
+(defn- normalize-routes
+  "Parses router `options` (`:path` prefix, `:data` shared-data) and flattens
+   `raw-routes` into a vector of `[path data]` tuples. Shared by `router` and
+   the runtime side of `compiled-router`."
+  [raw-routes options]
+  (let [{:path path, :data data, :or {path "", data {}}} (or options {})]
+    (vec (flatten-routes raw-routes path data))))
+
 (defn- identity-middleware [handler request]
   (handler request))
 
@@ -220,10 +228,9 @@
   {:example "(router [[\"/ping\" {:get {:handler pong}}]])"
    :see-also ["compiled-router" "handler" "match-by-path"]}
   [raw-routes & [options]]
-  (let [{:path path, :data data, :or {path "", data {}}} (or options {})
-        normalized                                       (vec (flatten-routes raw-routes path data))
-        coll                                             (build-route-collection normalized)
-        ctx                                              (php/new RequestContext)]
+  (let [normalized (normalize-routes raw-routes options)
+        coll       (build-route-collection normalized)
+        ctx        (php/new RequestContext)]
     (SymfonyRouter normalized coll
                    (php/new UrlMatcher coll ctx)
                    (php/new UrlGenerator coll ctx))))
@@ -238,6 +245,24 @@
   (generate [this route-name parameters]
             (generate-with generator route-name parameters)))
 
+(defn build-compiled-router
+  "Runtime constructor for `compiled-router` expansions. Builds the normalized
+   and indexed route tables (which may carry `:handler` functions) from
+   `raw-routes` at runtime, pairing them with the Symfony matcher/generator
+   tables precompiled at macro-expansion time. Internal — call `compiled-router`."
+  [raw-routes options compiled-matcher-routes compiled-generator-routes]
+  (let [normalized (normalize-routes raw-routes options)
+        indexed    (persistent
+                    (for [route :in normalized
+                          :reduce [acc (transient {})]]
+                      (assoc! acc (route-name-of route) route)))
+        ctx        (php/new RequestContext)]
+    (CompiledSymfonyRouter
+     normalized
+     (php/new CompiledUrlMatcher compiled-matcher-routes ctx)
+     (php/new CompiledUrlGenerator compiled-generator-routes ctx)
+     indexed)))
+
 (defmacro compiled-router
   "Like `router` but performs Symfony's route compilation at macro-expansion time. The resulting router uses Symfony's `CompiledUrlMatcher`/`Generator` which are ~3x faster than their dynamic counterparts for large route tables.
 
@@ -245,22 +270,15 @@ Because compilation runs during macro expansion, `raw-routes` must be a literal 
   {:example "(compiled-router [[\"/ping\" {:get {:handler pong}}]])"
    :see-also ["router" "handler"]}
   [raw-routes & [options]]
-  (let [{:path path, :data data, :or {path "", data {}}} (or (eval options) {})
-        flattened-routes                                 (vec (flatten-routes (eval raw-routes) path data))
-        indexed-routes                                   (persistent
-                                                          (for [route :in flattened-routes
-                                                                :reduce [acc (transient {})]]
-                                                            (assoc! acc (route-name-of route) route)))
-        route-collection                                 (build-route-collection flattened-routes)
-        compiled-matcher-routes                          (php/-> (php/new CompiledUrlMatcherDumper route-collection) (getCompiledRoutes))
-        compiled-generator-routes                        (php/-> (php/new CompiledUrlGeneratorDumper route-collection) (getCompiledRoutes))
-        ctx                                              (gensym)]
-    `(let [,ctx (php/new \Symfony\Component\Routing\RequestContext)]
-       (CompiledSymfonyRouter
-        ,flattened-routes
-        (php/new \Symfony\Component\Routing\Matcher\CompiledUrlMatcher ,compiled-matcher-routes ,ctx)
-        (php/new \Symfony\Component\Routing\Generator\CompiledUrlGenerator ,compiled-generator-routes ,ctx)
-        ,indexed-routes))))
+  ;; Compile only the Symfony matcher/generator tables (plain arrays) at
+  ;; expand time. The flattened/indexed route tables — which may carry
+  ;; `:handler` function values that the emitter cannot splice as literals —
+  ;; are rebuilt at runtime from the `raw-routes`/`options` forms.
+  (let [flattened-routes          (normalize-routes (eval raw-routes) (eval options))
+        route-collection          (build-route-collection flattened-routes)
+        compiled-matcher-routes   (php/-> (php/new CompiledUrlMatcherDumper route-collection) (getCompiledRoutes))
+        compiled-generator-routes (php/-> (php/new CompiledUrlGeneratorDumper route-collection) (getCompiledRoutes))]
+    `(build-compiled-router ,raw-routes ,options ,compiled-matcher-routes ,compiled-generator-routes)))
 
 (defn handler
   "Builds a `request -> response` function from a router.
