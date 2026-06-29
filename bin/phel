@@ -11,6 +11,7 @@ if (function_exists('ini_set')) {
 use Phel\Config\ConfigLoadException;
 use Phel\Console\ConsoleFacade;
 use Phel\Shared\PhelProjectDirectory;
+use Phel\Shared\ProjectRootResolver;
 use Phel\Shared\Performance\OpcacheReexec;
 
 /**
@@ -62,19 +63,24 @@ function maybeReexecWithOpcacheFileCache(string $appRootDir): void
 (static function (): void {
     $runningInPhar = \Phar::running() !== '';
 
+    // getcwd() only returns false in pathological cases (e.g. the working dir was
+    // deleted under us); __DIR__ is a last-resort anchor so we never pass false on.
+    $cwd = getcwd() ?: __DIR__;
+
     if ($runningInPhar) {
         // We're inside phel.phar. Autoload is already in place (from the stub).
-        // For app root, prefer the current working directory (the user's project).
-        $appRootDir = getcwd() ?: __DIR__;
+        $autoloadFound = true;
     } else {
-        // Source checkout: find and load the host Composer autoloader.
-        $appRootDir = (static function (): ?string {
-            $dir = getcwd();
+        // Source checkout / Composer install: find and load the host autoloader.
+        // Its location is NOT the project root — a global install loads classes
+        // from ~/.composer/vendor while the user's project is elsewhere (#2640).
+        $autoloadFound = (static function () use ($cwd): bool {
+            $dir = $cwd;
             while (is_dir($dir)) {
                 $autoload = $dir.'/vendor/autoload.php';
                 if (is_file($autoload)) {
                     require_once $autoload;
-                    return $dir;
+                    return true;
                 }
                 $parent = dirname($dir);
                 if ($parent === $dir) {
@@ -84,22 +90,21 @@ function maybeReexecWithOpcacheFileCache(string $appRootDir): void
             }
 
             foreach ([
-                         [__DIR__, '/../vendor/autoload.php'],
-                         [__DIR__, '/../../vendor/autoload.php'],
-                         [__DIR__, '/../../../autoload.php'],
-                     ] as $files) {
-                $file = sprintf('%s%s', ...$files);
+                         __DIR__.'/../vendor/autoload.php',
+                         __DIR__.'/../../vendor/autoload.php',
+                         __DIR__.'/../../../autoload.php',
+                     ] as $file) {
                 if (is_file($file)) {
                     require_once $file;
-                    return $files[0];
+                    return true;
                 }
             }
 
-            return null;
+            return false;
         })();
     }
 
-    if ($appRootDir === null) {
+    if (!$autoloadFound) {
         fwrite(
             STDERR,
             'You must set up the project dependencies, run the following commands:'.PHP_EOL.
@@ -108,6 +113,11 @@ function maybeReexecWithOpcacheFileCache(string $appRootDir): void
         );
         exit(1);
     }
+
+    // Anchor the project root to the working directory (walk up to the nearest
+    // phel-config.php), independent of where the binary/autoloader live, so a
+    // global or PHAR install reads the user's project — not the binary dir.
+    $appRootDir = ProjectRootResolver::resolveFromCwd($cwd);
 
     // Re-exec once with a persistent OPcache file cache so warm run/eval/repl
     // reuse compiled opcode instead of re-parsing every required .php. These

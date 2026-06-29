@@ -12,6 +12,7 @@ All notable changes to this project will be documented in this file.
 
 ### Fixed
 
+- A global or PHAR `phel` install now resolves the project root from the working directory (walking up to the nearest `phel-config.php`) instead of the binary's location, so `phel config`/`doctor` read the local config and see the project's source/test dirs from any project directory (#2640)
 - `phel.router/compiled-router` now compiles routes that carry a `:handler` function (every real route, and the macro's own docstring `:example`), instead of failing with `literal not supported: …AbstractFn` (#2663)
 - `phel build` at an optimization level above 0 now ships the full `(load ...)` secondaries (e.g. `phel.core`'s `core/meta.php`) instead of a broken artifact that fataled with `Cannot locate core/… for (load ...)` on first load (#2631)
 - `defn`/`defmacro` (and their `-` variants) with a non-symbol name (e.g. `(defn 123 [x] x)`) now fail with a clean `[PHEL005]` error naming the offending type, instead of crashing with an internal PHP error that leaked core internals (#2639)
