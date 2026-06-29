@@ -120,6 +120,33 @@
     (is (= {:status 200 :body [:api :users :post :ok]} (app (req "/api/users" "POST"))) "method handler with middleware")
     (is (= {:status 200 :body [:api :users :ok]} (app (req "/api/users" "PUT"))) "fallback handler")))
 
+(deftest handler-test-compiled-router
+  (let [test-router (r/compiled-router
+                     ["/api" {:middleware [(mv :api)]}
+                      ["/all" {:handler handler}]
+                      ["/get" {:get {:handler handler}}]
+                      ["/users" {:middleware [(mv :users)]
+                                 :get {:handler handler}
+                                 :post {:middleware [(mv :post)]
+                                        :handler handler}
+                                 :handler handler}]])
+        app         (r/handler test-router {:default-handler (constantly nil)})]
+    (is (= nil (app (req "/favicon.ico"))) "not found")
+    (is (= {:status 200 :body [:api :ok]} (app (req "/api/all" "GET"))) "catch all handler")
+    (is (= {:status 200 :body [:api :ok]} (app (req "/api/get" "GET"))) "get handler")
+    (is (= nil (app (req "/api/get" :post))) "get handler with post")
+    (is (= {:status 200 :body [:api :users :ok]} (app (req "/api/users" "GET"))) "expanded method handler")
+    (is (= {:status 200 :body [:api :users :post :ok]} (app (req "/api/users" "POST"))) "method handler with middleware")
+    (is (= {:status 200 :body [:api :users :ok]} (app (req "/api/users" "PUT"))) "fallback handler")))
+
+(deftest handler-test-compiled-router-shared-data
+  ;; A :handler supplied via the `:data` option (shared across every route) is
+  ;; spliced through the same runtime path as per-route handlers.
+  (let [test-router (r/compiled-router [["/a"] ["/b"]] {:data {:handler handler}})
+        app         (r/handler test-router {:default-handler (constantly nil)})]
+    (is (= {:status 200 :body [:ok]} (app (req "/a" "GET"))) "shared :data handler on /a")
+    (is (= {:status 200 :body [:ok]} (app (req "/b" "GET"))) "shared :data handler on /b")))
+
 (deftest with-top-level-middleware
   (let [test-router (r/router
                      ["/api" {:middleware [(mv :api)]}
@@ -174,6 +201,35 @@
         app         (r/handler test-router)]
     (app (req "/hello/world" "GET"))
     (let [attrs (get @captured :attributes)
+          match (:match attrs)
+          rd    (:route-data attrs)]
+      (is (= "phel-test.router/hello" (:route-name match))
+          "match exposes the route's :route-name")
+      (is (= "/hello/{who}" (:template match))
+          "match exposes the route template")
+      (is (= {:who "world"} (:path-params match))
+          "match exposes captured path params")
+      (is (= ::hello (:name rd))
+          ":route-data is the method-merged data map")
+      (is (contains? rd :handler)
+          ":route-data carries the resolved :handler entry"))))
+
+;; `compiled-router` eval's its routes at macro-expansion time, so a `:handler`
+;; must resolve as a top-level def — a local `let` binding wouldn't be visible.
+(def- captured-request (atom nil))
+
+(defn- capture [request]
+  (reset! captured-request request)
+  {:status 200 :body "ok"})
+
+(deftest request-enrichment-compiled-router
+  ;; A named route with path params + :handler exercises the compiled router's
+  ;; runtime-built index, whose key (full-name of :name) must line up with the
+  ;; route name the Symfony CompiledUrlMatcher reports.
+  (let [test-router (r/compiled-router [["/hello/{who}" {:name ::hello :get {:handler capture}}]])
+        app         (r/handler test-router)]
+    (app (req "/hello/world" "GET"))
+    (let [attrs (get @captured-request :attributes)
           match (:match attrs)
           rd    (:route-data attrs)]
       (is (= "phel-test.router/hello" (:route-name match))
