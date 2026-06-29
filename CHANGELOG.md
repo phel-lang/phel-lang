@@ -6,28 +6,28 @@ All notable changes to this project will be documented in this file.
 
 ### Changed
 
-- `phel test` renders the `+`/`-`/`~` structural diff for any same-shape collection that differs (not only those with more than 3 entries), so a small failure like `(= {:a 1 :b 2} {:a 1 :b 3})` or `[1 2 3]` vs `[1 2 4]` shows what differs instead of two near-identical lines; scalars and mixed shapes keep the single-line summary
-- `phel compile` now reports on stderr the value a snippet folds to when it emits no PHP (e.g. `(+ 1 2)` → `3`), instead of printing nothing (#2624)
-- `phel init` now scaffolds `phel-config.php` with `->withOptimizationLevel(2)` as an active call (with an inline comment on how to drop back to `0`), so new projects get inlined core arithmetic/bit ops and elided nil-guards out of the box instead of the uninlined `-O0` default; the runtime default stays `0` for existing projects (#2631)
+- `phel test` now shows a `+`/`-`/`~` structural diff for any same-shape collection that differs (previously only for collections with more than 3 entries); scalars and mixed shapes keep the single-line summary
+- `phel compile` now prints to stderr the value a snippet folds to when it emits no PHP (e.g. `(+ 1 2)` → `3`) (#2624)
+- `phel init` now scaffolds `phel-config.php` at `->withOptimizationLevel(2)`, so new projects get inlined arithmetic/bit ops and elided nil-guards by default; the runtime default stays `0` for existing projects (#2631)
 
 ### Fixed
 
-- `phel.router/compiled-router` now compiles route tables that carry a `:handler` function (every real application route, and the macro's own docstring `:example`), instead of failing with `literal not supported: Phel\Lang\AbstractFn@anonymous`: only the Symfony matcher/generator tables (plain arrays) are precompiled at macro-expansion time, while the normalized/indexed route tables — which hold the handler functions — are now rebuilt at runtime from the `raw-routes`/`options` forms rather than spliced as literals (#2663)
-- `phel build` at an optimization level above 0 now harvests the full `(load ...)` secondary closure (e.g. `phel.core`'s `core/meta.php`) into the output tree, instead of dropping every secondary and shipping a broken deployable artifact that fataled with `Cannot locate core/… for (load ...)` on first load: the secondary-file harvester keyed the compiled-code cache with the plain source hash while the evaluator stored `-O>0` entries under an optimization-level-suffixed key, so the lookup always missed; both sides now key through a shared `CompiledSourceHash` helper (#2631)
-- A `defn`/`defmacro` (and their `-` variants) with a non-symbol name (e.g. `(defn 123 [x] x)`) now fails with a clean `[PHEL005]` macro-expansion error naming the offending type, instead of crashing with an internal PHP error (`Call to a member function getMeta() on int`) that leaked core internals and a compiled-cache path: `defn-builder` validates the name up front, throwing an `Exception` the macro-expander wraps into a located error (#2639)
-- Invoking a non-function value (e.g. `(def x 5)` then `(x 1 2)`) now shows only the `.phel` source location and an actionable `hint:` instead of leaking the internal compiled temp path (`__phel_<hash>.php`): the not-callable hint also fires for PHP's scalar wording (`Value of type int is not callable`, not only `Object of type …`), and the ephemeral eval temp file is no longer printed as a `(compiled: …)` clause (persistent `out/` build artifacts still are, to help diagnose stale builds) (#2638)
-- "Did you mean" suggestions now rank by relevance instead of raw edit distance: a typed symbol that is an in-order subsequence of a candidate is preferred (so `prn` suggests `print`/`printf`/`println` rather than `or`/`pop`/`put`), distance ties break on shared prefix, and a good longer match is no longer cut off by the fixed distance ceiling (#2637)
-- Requiring a non-existent user namespace now fails fast with `Cannot find namespace '…' required by '…'` instead of silently exiting 0 and surfacing later as a generic `Cannot resolve symbol`; framework `phel.*`/`clojure.*`, already-loaded, and PHP-interop `(:use …)` requires stay tolerated (#2636)
-- `phel run`/`test`/`build`/`profile`/`export` now surface the `.phel` source location and filtered stack trace for runtime errors thrown from the stdlib (e.g. `(/ 1 0)`), matching the REPL, instead of only the bare message (#2635)
-- No more spurious `unlink(...): No such file or directory` warnings on `phel test`/build when cleaning up a temp file an earlier run already removed
-- The CLI OPcache re-exec (#2632) now runs the warm child with `opcache.file_cache_only`, avoiding an intermittent multi-minute hang on some CI filesystems where allocating OPcache's shared-memory segment blocked on a startup lock; a re-exec-once breadcrumb also guarantees the re-exec can never loop
-- `phel build` with the compiled-code cache disabled now still emits the `(load ...)` secondaries (`out/phel/core/*.php`) next to their primary, so a self-contained PHAR no longer fatals with `Cannot locate core/… for (load ...)` on first load; the harvester falls back to the build-time compiled output when there is no cache to copy from (#2648)
+- `phel.router/compiled-router` now compiles routes that carry a `:handler` function (every real route, and the macro's own docstring `:example`), instead of failing with `literal not supported: …AbstractFn` (#2663)
+- `phel build` at an optimization level above 0 now ships the full `(load ...)` secondaries (e.g. `phel.core`'s `core/meta.php`) instead of a broken artifact that fataled with `Cannot locate core/… for (load ...)` on first load (#2631)
+- `defn`/`defmacro` (and their `-` variants) with a non-symbol name (e.g. `(defn 123 [x] x)`) now fail with a clean `[PHEL005]` error naming the offending type, instead of crashing with an internal PHP error that leaked core internals (#2639)
+- Invoking a non-function value (e.g. `(def x 5)` then `(x 1 2)`) now shows the `.phel` source location and an actionable `hint:` instead of leaking the internal compiled temp path; the hint also fires for PHP's scalar wording (`Value of type int is not callable`) (#2638)
+- "Did you mean" suggestions now rank by relevance instead of raw edit distance, so `prn` suggests `print`/`printf`/`println` rather than `or`/`pop`/`put` (#2637)
+- Requiring a non-existent user namespace now fails fast with `Cannot find namespace '…' required by '…'` instead of exiting 0 and surfacing later as a generic `Cannot resolve symbol` (#2636)
+- `phel run`/`test`/`build`/`profile`/`export` now surface the `.phel` source location and stack trace for runtime errors thrown from the stdlib (e.g. `(/ 1 0)`), matching the REPL (#2635)
+- No more spurious `unlink(...): No such file or directory` warnings on `phel test`/build when a temp file was already removed
+- The CLI OPcache re-exec (#2632) now runs the warm child with `opcache.file_cache_only`, fixing an intermittent multi-minute hang on some CI filesystems
+- `phel build` with the compiled-code cache disabled now still emits the `(load ...)` secondaries (`out/phel/core/*.php`), so a self-contained PHAR no longer fatals on first load (#2648)
 
 ### Performance
 
-- The emitter now skips per-`emitStr` generated-column bookkeeping when source maps are disabled (the common REPL / `phel compile` path), tracking line-start with a lightweight flag instead — shaving ~6% off the emit phase (felt on every recompile-on-save during dev); output is byte-identical (#2634)
-- `phel run`/`eval`/`repl` auto-apply a persistent on-disk OPcache file cache for ~30% faster warm startup, re-exec'ing once via `pcntl_exec` (same PID, TTY, stdin, signals, exit code); no-op without OPcache/`pcntl`, with `opcache.file_cache` already set, or with `PHEL_NO_OPCACHE_REEXEC=1` (#2632)
-- `phel test --parallel` workers share an OPcache file cache and evaluate each dependency once per worker instead of re-running the whole stdlib closure per namespace — fixing the regression that made `--parallel` slower than serial (#2628)
+- The emitter skips generated-column bookkeeping when source maps are disabled (the common REPL / `phel compile` path), shaving ~6% off the emit phase; output is byte-identical (#2634)
+- `phel run`/`eval`/`repl` auto-apply a persistent on-disk OPcache file cache for ~30% faster warm startup, re-exec'ing once via `pcntl_exec`; no-op without OPcache/`pcntl` or with `PHEL_NO_OPCACHE_REEXEC=1` (#2632)
+- `phel test --parallel` workers now share an OPcache file cache and evaluate each dependency once per worker, fixing the regression that made `--parallel` slower than serial (#2628)
 
 ## [0.46.0](https://github.com/phel-lang/phel-lang/compare/v0.45.1...v0.46.0) - 2026-06-25
 
