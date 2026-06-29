@@ -15,6 +15,7 @@ use Phel\Config\ProjectLayout;
 use Phel\Filesystem\FilesystemFacade;
 use Phel\Run\RunFacade;
 use Phel\Shared\PhelProjectDirectory;
+use Phel\Shared\ProjectRootResolver;
 use Phel\Shared\ScalarCoercion;
 use RuntimeException;
 use Throwable;
@@ -261,9 +262,10 @@ class Phel
             throw new RuntimeException('Unable to determine current working directory.');
         }
 
-        // Check CWD first
-        if (file_exists($cwd . '/' . self::PHEL_CONFIG_FILE_NAME)) {
-            return $cwd;
+        // Prefer the user's project: walk up from CWD to the nearest phel-config.php.
+        $root = ProjectRootResolver::resolveFromCwd($cwd);
+        if (file_exists($root . '/' . self::PHEL_CONFIG_FILE_NAME)) {
+            return $root;
         }
 
         // Check PHAR's directory
