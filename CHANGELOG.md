@@ -24,6 +24,7 @@ All notable changes to this project will be documented in this file.
 
 ### Performance
 
+- The emitter now skips per-`emitStr` generated-column bookkeeping when source maps are disabled (the common REPL / `phel compile` path), tracking line-start with a lightweight flag instead — shaving ~6% off the emit phase (felt on every recompile-on-save during dev); output is byte-identical (#2634)
 - `phel run`/`eval`/`repl` auto-apply a persistent on-disk OPcache file cache for ~30% faster warm startup, re-exec'ing once via `pcntl_exec` (same PID, TTY, stdin, signals, exit code); no-op without OPcache/`pcntl`, with `opcache.file_cache` already set, or with `PHEL_NO_OPCACHE_REEXEC=1` (#2632)
 - `phel test --parallel` workers share an OPcache file cache and evaluate each dependency once per worker instead of re-running the whole stdlib closure per namespace — fixing the regression that made `--parallel` slower than serial (#2628)
 

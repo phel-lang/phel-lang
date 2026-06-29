@@ -33,6 +33,11 @@ final class OutputEmitter implements OutputEmitterInterface
 
     private int $classScopeDepth = 0;
 
+    // Tracks line-start for indentation independently of SourceMapState, so the
+    // per-`emitStr` generated-column bookkeeping can be skipped when source maps
+    // are off (the common REPL / `compile --emit-only` path).
+    private bool $atLineStart = true;
+
     /** @var array<int, string> */
     private array $indentCache = [];
 
@@ -109,6 +114,7 @@ final class OutputEmitter implements OutputEmitterInterface
     public function resetIndentLevel(): void
     {
         $this->indentLevel = 0;
+        $this->atLineStart = true;
     }
 
     public function resetSourceMapState(): void
@@ -162,21 +168,33 @@ final class OutputEmitter implements OutputEmitterInterface
             $this->emitStr($str, $sl);
         }
 
-        $this->sourceMapState->incGeneratedLines();
-        $this->sourceMapState->setGeneratedColumns(0);
+        if ($this->enableSourceMaps) {
+            $this->sourceMapState->incGeneratedLines();
+            $this->sourceMapState->setGeneratedColumns(0);
+        }
 
+        $this->atLineStart = true;
         echo PHP_EOL;
     }
 
     public function emitStr(string $str, ?SourceLocation $sl = null): void
     {
-        if ($this->sourceMapState->getGeneratedColumns() === 0) {
+        if ($this->atLineStart) {
             $indent = $this->indentLevel * 2;
-            $this->sourceMapState->incGeneratedColumns($indent);
+            if ($this->enableSourceMaps) {
+                $this->sourceMapState->incGeneratedColumns($indent);
+            }
+
             echo $this->indentCache[$this->indentLevel] ??= str_repeat(' ', $indent);
+            $this->atLineStart = false;
         }
 
-        if ($this->enableSourceMaps && $sl instanceof SourceLocation) {
+        if (!$this->enableSourceMaps) {
+            echo $str;
+            return;
+        }
+
+        if ($sl instanceof SourceLocation) {
             $this->sourceMapState->addMapping([
                 'source' => $sl->getFile(),
                 'original' => [
