@@ -177,6 +177,44 @@ final class PharExecutionTest extends TestCase
         self::assertStringContainsString('6', $result['stdout']);
     }
 
+    public function test_phar_config_reports_the_cwd_project_root_not_the_phar_dir(): void
+    {
+        // Regression #2640: a PHAR must root at the user's project (the CWD),
+        // not the directory the phar/binary lives in.
+        file_put_contents(
+            $this->tempProjectDir . '/phel-config.php',
+            "<?php\n\nreturn (new \\Phel\\Config\\PhelConfig())->withSrcDirs(['src']);\n",
+        );
+
+        $result = $this->runPhar(['config']);
+
+        self::assertSame(0, $result['exit'], $result['stderr']);
+        self::assertStringContainsString(
+            ' - project root: ' . realpath($this->tempProjectDir),
+            $result['stdout'],
+            'PHAR must root at the CWD project, not the phar/binary location',
+        );
+    }
+
+    public function test_phar_config_walks_up_to_the_project_root_from_a_subdirectory(): void
+    {
+        file_put_contents(
+            $this->tempProjectDir . '/phel-config.php',
+            "<?php\n\nreturn (new \\Phel\\Config\\PhelConfig())->withSrcDirs(['src']);\n",
+        );
+        $subdir = $this->tempProjectDir . '/src';
+        mkdir($subdir, 0755, true);
+
+        $result = $this->runPharInDir($subdir, ['config']);
+
+        self::assertSame(0, $result['exit'], $result['stderr']);
+        self::assertStringContainsString(
+            ' - project root: ' . realpath($this->tempProjectDir),
+            $result['stdout'],
+            'running a PHAR from a subdirectory must resolve up to the nearest phel-config.php',
+        );
+    }
+
     public function test_phar_doctor_does_not_point_to_an_unusable_phar_ini(): void
     {
         // Regression: `phel doctor`'s OPcache tip must not suggest
