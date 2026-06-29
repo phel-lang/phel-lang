@@ -26,6 +26,8 @@ final class ProjectRootResolverTest extends TestCase
     {
         @unlink($this->root . '/phel-config.php');
         @unlink($this->root . '/a/phel-config.php');
+        @unlink($this->root . '/a/vendor/autoload.php');
+        @rmdir($this->root . '/a/vendor');
         @rmdir($this->root . '/a/b');
         @rmdir($this->root . '/a');
         @rmdir($this->root);
@@ -63,6 +65,21 @@ final class ProjectRootResolverTest extends TestCase
         mkdir($deep, 0755, true);
 
         self::assertSame($nearer, ProjectRootResolver::resolveFromCwd($deep));
+    }
+
+    public function test_stops_at_an_installed_vendor_dir_without_escaping_to_a_parent_config(): void
+    {
+        // The ancestor is a configured project; the nested dir is a zero-config
+        // project with its own installed vendor/ (e.g. an example inside this
+        // repo). The walk must stop at the nested dir, not climb to the parent.
+        $this->writeConfig($this->root);
+        $nested = $this->root . '/a';
+        mkdir($nested . '/vendor', 0755, true);
+        file_put_contents($nested . '/vendor/autoload.php', "<?php\n");
+        $deep = $nested . '/b';
+        mkdir($deep, 0755, true);
+
+        self::assertSame($nested, ProjectRootResolver::resolveFromCwd($deep));
     }
 
     public function test_walk_terminates_at_the_filesystem_root(): void

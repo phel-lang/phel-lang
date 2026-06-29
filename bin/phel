@@ -115,7 +115,7 @@ function maybeReexecWithOpcacheFileCache(string $appRootDir): void
     }
 
     // Anchor the project root to the working directory (walk up to the nearest
-    // phel-config.php), independent of where the binary/autoloader live, so a
+    // project root), independent of where the binary/autoloader live, so a
     // global or PHAR install reads the user's project — not the binary dir.
     $appRootDir = ProjectRootResolver::resolveFromCwd($cwd);
 
