@@ -18,6 +18,7 @@ REPL autocompletion, function introspection/docs, and user-code semantic analysi
 | `completeAtPoint(source, line, col, ProjectIndex)` | Completion at cursor; returns PHP-interop completions in a `php/`-interop position, else Phel completions |
 | `phpInteropHoverAt(source, line, col): ?string` | Reflected hover markdown for PHP interop |
 | `phpInteropSignatureAt(source, line, col): ?array` | LSP signature help for PHP interop |
+| `phelSignatureAt(source, line, col, currentNs = 'user'): ?array` | LSP signature help for a plain Phel function call (`PhelSignatureResolver`) |
 | `createApiDaemon(): ApiDaemon` | Long-running JSON-RPC daemon |
 
 Project-level transfers: `ProjectIndex`, `Definition`, `Location`, `Completion`, `Diagnostic`, `PhelFunction`.

@@ -218,6 +218,43 @@ final class PhpInteropLspTest extends TestCase
 
     #[PreserveGlobalState(false)]
     #[RunInSeparateProcess]
+    public function test_signature_help_for_a_phel_core_function(): void
+    {
+        $uri = 'file:///x.phel';
+        $source = '(map )';
+        $session = $this->sessionWith($uri, $source);
+
+        // Cursor inside the argument list of the plain Phel call (no interop).
+        $result = $this->signatureHelp()->handle(
+            $this->params($uri, line: 0, character: 5),
+            $session,
+        );
+
+        self::assertIsArray($result);
+        $signature = $result['signatures'][$result['activeSignature']];
+        self::assertStringContainsString('map', (string) $signature['label']);
+        self::assertNotEmpty($signature['parameters']);
+        self::assertSame(0, $result['activeParameter']);
+    }
+
+    #[PreserveGlobalState(false)]
+    #[RunInSeparateProcess]
+    public function test_signature_help_returns_null_outside_a_call(): void
+    {
+        $uri = 'file:///x.phel';
+        $source = 'map';
+        $session = $this->sessionWith($uri, $source);
+
+        $result = $this->signatureHelp()->handle(
+            $this->params($uri, line: 0, character: 3),
+            $session,
+        );
+
+        self::assertNull($result);
+    }
+
+    #[PreserveGlobalState(false)]
+    #[RunInSeparateProcess]
     public function test_completion_falls_back_to_phel_for_plain_code(): void
     {
         $uri = 'file:///x.phel';

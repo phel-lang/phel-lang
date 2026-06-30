@@ -12,6 +12,7 @@ use Phel\Api\Application\CompletionDocFormatter;
 use Phel\Api\Application\CompletionDocResolver;
 use Phel\Api\Application\PhelFnGroupKeyGenerator;
 use Phel\Api\Application\PhelFnNormalizer;
+use Phel\Api\Application\PhelSignatureResolver;
 use Phel\Api\Application\PhpInteropCompleter;
 use Phel\Api\Application\PhpInteropDocResolver;
 use Phel\Api\Application\PointCompleter;
@@ -113,6 +114,11 @@ final class ApiFactory extends AbstractFactory
     public function createPhpInteropDocResolver(): PhpInteropDocResolver
     {
         return new PhpInteropDocResolver();
+    }
+
+    public function createPhelSignatureResolver(): PhelSignatureResolver
+    {
+        return new PhelSignatureResolver($this->createSymbolMetadataFinder());
     }
 
     public function createApiDaemon(ApiFacade $facade): ApiDaemon
