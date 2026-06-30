@@ -43,5 +43,5 @@ nREPL protocol server: bencode-over-TCP for editor tooling (Cursive, Calva, CIDE
 - Client loop uses PHP Fibers (one per connection via `ClientFiberPool`, cooperative suspend).
 - Eval always via RunFacade — no inline compilation.
 - `LookupOp` resolves namespace: explicit param, else session, else `"user"`.
-- `Session` tracks id, namespace, last value (`*1/*2/*3` history is future work; only single last value kept).
+- `Session` tracks id, namespace, and a 3-deep value ring (`value(1..3)`; `lastValue()` is `value(1)`). `EvalResultResponder` surfaces it as `*1`/`*2`/`*3` in each successful eval response (session-scoped; absent for session-less evals). `*e` stays REPL-only.
 - `NreplSocketServer::run(int $maxIterations = 0)` bounds test runs; `0` = unbounded.
