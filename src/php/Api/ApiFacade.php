@@ -168,4 +168,17 @@ final class ApiFacade extends AbstractFacade implements ApiFacadeInterface
             ->createPhpInteropDocResolver()
             ->signatureAt($source, $line, $col);
     }
+
+    /**
+     * LSP SignatureHelp payload for the plain Phel function call enclosing the
+     * cursor, or null when not applicable.
+     *
+     * @return array{signatures: list<array{label: string, parameters: list<array{label: string}>, documentation?: string}>, activeSignature: int, activeParameter: int}|null
+     */
+    public function phelSignatureAt(string $source, int $line, int $col, string $currentNs = 'user'): ?array
+    {
+        return $this->getFactory()
+            ->createPhelSignatureResolver()
+            ->signatureAt($source, $line, $col, $currentNs);
+    }
 }

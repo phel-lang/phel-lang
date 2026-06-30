@@ -46,4 +46,4 @@ Language Server Protocol v3.17 over stdio (JSON-RPC 2.0, `Content-Length` framin
 - `DocumentStore` is authoritative for open-file content.
 - Diagnostics are cooperatively debounced: callers check `DiagnosticPublisher::shouldPublish()` before `publish()`; `publishNow()` skips debounce (used on didSave).
 - Converters in `Application/Convert/` must stay pure (no Facade state) so they remain unit-testable.
-- PHP interop (completion/hover/signatureHelp) resolves through the Api facade (`phpInteropHoverAt`, `phpInteropSignatureAt`, `completeAtPoint`). `CompletionHandler`/`HoverHandler` try interop first, then fall back to Phel symbols; `SignatureHelpHandler` is interop-only.
+- PHP interop (completion/hover/signatureHelp) resolves through the Api facade (`phpInteropHoverAt`, `phpInteropSignatureAt`, `completeAtPoint`). `CompletionHandler`/`HoverHandler`/`SignatureHelpHandler` try interop first, then fall back to Phel symbols — signature help reads the symbol's documented arities via `phelSignatureAt`.

@@ -4,6 +4,10 @@ All notable changes to this project will be documented in this file.
 
 ## Unreleased
 
+### Added
+
+- LSP signature help (`textDocument/signatureHelp`) now covers plain Phel function calls like `(map f xs)` — showing each arity, its parameter names, and the docstring — instead of only `php/...` interop calls (#2643)
+
 ### Changed
 
 - `phel test` now shows a `+`/`-`/`~` structural diff for any same-shape collection that differs (previously only for collections with more than 3 entries); scalars and mixed shapes keep the single-line summary

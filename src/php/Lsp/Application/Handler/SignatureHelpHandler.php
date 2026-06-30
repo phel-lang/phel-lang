@@ -11,10 +11,10 @@ use Phel\Lsp\Application\Session\Session;
 use Phel\Lsp\Domain\HandlerInterface;
 
 /**
- * Handles `textDocument/signatureHelp` for PHP-interop calls: shows the
- * signature of the constructor / method being called inside `(php/new ...)`,
- * `(php/-> recv (method ...))`, or `(php/:: Class (method ...))`. Returns null
- * for any other position.
+ * Handles `textDocument/signatureHelp`. PHP-interop calls resolve first —
+ * `(php/new ...)`, `(php/-> recv (method ...))`, `(php/:: Class (method ...))` —
+ * then plain Phel function calls like `(map f xs)` fall back to the symbol's
+ * documented arities. Returns null when the cursor is over neither.
  */
 final readonly class SignatureHelpHandler implements HandlerInterface
 {
@@ -51,6 +51,7 @@ final readonly class SignatureHelpHandler implements HandlerInterface
 
         [$line, $col] = $document->oneBasedLineCol($position);
 
-        return $this->apiFacade->phpInteropSignatureAt($document->text, $line, $col);
+        return $this->apiFacade->phpInteropSignatureAt($document->text, $line, $col)
+            ?? $this->apiFacade->phelSignatureAt($document->text, $line, $col);
     }
 }
