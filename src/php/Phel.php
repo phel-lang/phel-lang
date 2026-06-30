@@ -12,6 +12,7 @@ use Phar;
 use Phel\Config\ConfigLoadException;
 use Phel\Config\PhelConfig;
 use Phel\Config\ProjectLayout;
+use Phel\Config\StrictPhpConfigReader;
 use Phel\Filesystem\FilesystemFacade;
 use Phel\Run\RunFacade;
 use Phel\Shared\PhelProjectDirectory;
@@ -185,8 +186,14 @@ class Phel
                 // Register the auto-detected config as inline config
                 $config->addAppConfigKeyValues($autoConfig->jsonSerialize());
             } else {
-                // Normal config file loading
-                $config->addAppConfig(self::PHEL_CONFIG_FILE_NAME, self::PHEL_CONFIG_LOCAL_FILE_NAME);
+                // Normal config file loading. The strict reader rejects a
+                // null-returning phel-config.php instead of letting Gacela
+                // silently treat it as an empty config (#2642).
+                $config->addAppConfig(
+                    self::PHEL_CONFIG_FILE_NAME,
+                    self::PHEL_CONFIG_LOCAL_FILE_NAME,
+                    new StrictPhpConfigReader(),
+                );
             }
         };
     }

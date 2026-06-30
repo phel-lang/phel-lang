@@ -57,6 +57,20 @@ final class ConfigLoadErrorTest extends TestCase
         Phel::bootstrap($this->dir);
     }
 
+    public function test_bootstrap_wraps_a_null_return_value(): void
+    {
+        // Gacela's reader would coerce `return null;` to an empty config and
+        // boot silently; the strict reader turns it into a friendly
+        // ConfigLoadException so a forgotten/typo'd return is not invisibly
+        // ignored.
+        file_put_contents($this->dir . '/phel-config.php', "<?php\n\nreturn null;\n");
+
+        $this->expectException(ConfigLoadException::class);
+        $this->expectExceptionMessage('phel-config.php');
+
+        Phel::bootstrap($this->dir);
+    }
+
     public function test_bootstrap_accepts_a_raw_array_config(): void
     {
         // A plain array is a valid config too (PhelConfig is recommended, not
