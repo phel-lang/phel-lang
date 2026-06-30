@@ -13,6 +13,9 @@ use function strpos;
  * keeping nested `(...)` forms whole and skipping string literals and `;`
  * comments. Commas count as whitespace (Clojure-aligned). Shared by the interop
  * resolvers, which need to walk a `php/->` chain or a `let` binding lexically.
+ *
+ * Pass `$balanceCollectionLiterals` to also keep `[...]`/`{...}` whole, so a
+ * vector/map argument counts as one token (used by Phel-call signature help).
  */
 final class PhpFormTokenizer
 {
@@ -21,8 +24,10 @@ final class PhpFormTokenizer
      *                                         ends mid-token (the caret is still inside the last token rather than
      *                                         past it)
      */
-    public function topLevel(string $content): array
+    public function topLevel(string $content, bool $balanceCollectionLiterals = false): array
     {
+        $opening = $balanceCollectionLiterals ? ['(', '[', '{'] : ['('];
+        $closing = $balanceCollectionLiterals ? [')', ']', '}'] : [')'];
         $length = strlen($content);
         $tokens = [];
         $current = '';
@@ -81,9 +86,9 @@ final class PhpFormTokenizer
                 continue;
             }
 
-            if ($char === '(') {
+            if (in_array($char, $opening, true)) {
                 ++$depth;
-            } elseif ($char === ')' && $depth > 0) {
+            } elseif ($depth > 0 && in_array($char, $closing, true)) {
                 --$depth;
             }
 

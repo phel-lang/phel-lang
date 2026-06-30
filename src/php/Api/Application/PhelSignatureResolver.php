@@ -9,12 +9,9 @@ use Phel\Api\Transfer\PhelFunction;
 
 use function array_slice;
 use function count;
-use function in_array;
 use function max;
 use function min;
 use function str_starts_with;
-use function strlen;
-use function strpos;
 use function substr;
 
 /**
@@ -28,6 +25,7 @@ final readonly class PhelSignatureResolver
 {
     public function __construct(
         private SymbolMetadataFinderInterface $finder,
+        private PhpFormTokenizer $tokenizer = new PhpFormTokenizer(),
     ) {}
 
     /**
@@ -41,7 +39,10 @@ final readonly class PhelSignatureResolver
             return null;
         }
 
-        [$tokens, $endsOpen] = $this->tokenize(substr($before, $open[count($open) - 1] + 1));
+        [$tokens, $endsOpen] = $this->tokenizer->topLevel(
+            substr($before, $open[count($open) - 1] + 1),
+            balanceCollectionLiterals: true,
+        );
         if ($tokens === []) {
             return null;
         }
@@ -148,7 +149,7 @@ final readonly class PhelSignatureResolver
             $inner = substr($inner, 0, -1);
         }
 
-        [$tokens] = $this->tokenize($inner);
+        [$tokens] = $this->tokenizer->topLevel($inner, balanceCollectionLiterals: true);
 
         // tokens = [name, param0, ...]: drop the function name, then the marker.
         $params = [];
@@ -174,91 +175,5 @@ final readonly class PhelSignatureResolver
         }
 
         return $information;
-    }
-
-    /**
-     * Like {@see PhpFormTokenizer::topLevel()} but also balances `[]`/`{}` so a
-     * collection-literal argument stays one token; the shared tokenizer tracks
-     * only `()` because the interop chains it serves never nest Phel literals.
-     *
-     * @return array{0: list<string>, 1: bool} the tokens, and whether the slice
-     *                                         ends mid-token (the caret is still inside the last token)
-     */
-    private function tokenize(string $content): array
-    {
-        $length = strlen($content);
-        $tokens = [];
-        $current = '';
-        $depth = 0;
-        $inString = false;
-        $i = 0;
-
-        while ($i < $length) {
-            $char = $content[$i];
-
-            if ($inString) {
-                $current .= $char;
-                if ($char === '\\' && $i + 1 < $length) {
-                    $current .= $content[$i + 1];
-                    $i += 2;
-                    continue;
-                }
-
-                if ($char === '"') {
-                    $inString = false;
-                }
-
-                ++$i;
-                continue;
-            }
-
-            if ($char === '"') {
-                $inString = true;
-                $current .= $char;
-                ++$i;
-                continue;
-            }
-
-            if ($char === ';' && $depth === 0) {
-                if ($current !== '') {
-                    $tokens[] = $current;
-                    $current = '';
-                }
-
-                $newline = strpos($content, "\n", $i);
-                if ($newline === false) {
-                    return [$tokens, false];
-                }
-
-                $i = $newline + 1;
-                continue;
-            }
-
-            if ($depth === 0 && in_array($char, [' ', "\t", "\n", "\r", ','], true)) {
-                if ($current !== '') {
-                    $tokens[] = $current;
-                    $current = '';
-                }
-
-                ++$i;
-                continue;
-            }
-
-            if (in_array($char, ['(', '[', '{'], true)) {
-                ++$depth;
-            } elseif ((in_array($char, [')', ']', '}'], true)) && $depth > 0) {
-                --$depth;
-            }
-
-            $current .= $char;
-            ++$i;
-        }
-
-        $endsOpen = $current !== '';
-        if ($endsOpen) {
-            $tokens[] = $current;
-        }
-
-        return [$tokens, $endsOpen];
     }
 }
