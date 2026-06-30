@@ -30,6 +30,7 @@
     },
     "require-dev": {
         "ext-readline": "*",
+        "brianium/paratest": "^7",
         "ergebnis/composer-normalize": "^2.50",
         "friendsofphp/php-cs-fixer": "^3.94",
         "phpbench/phpbench": "^1.6",
@@ -107,7 +108,8 @@
         "test-compiler": "./vendor/bin/phpunit --testsuite=unit,integration --log-junit=data/log-junit.xml",
         "test-compiler:coverage": "XDEBUG_MODE=coverage ./vendor/bin/phpunit --testsuite=unit,integration --coverage-html=data/coverage-html --coverage-xml=data/coverage-xml --log-junit=data/coverage-xml/junit.xml",
         "test-unit": "./vendor/bin/phpunit --testsuite=unit",
-        "test-integration": "./vendor/bin/phpunit --testsuite=integration",
+        "test-integration": "./vendor/bin/paratest --testsuite=integration --runner=WrapperRunner",
+        "test-integration:serial": "./vendor/bin/phpunit --testsuite=integration",
         "test-agents": "./tools/validate-agents.sh",
         "test-tools": "./tools/bashunit tools/*-test.sh --simple",
         "test-core": "php -d memory_limit=256M ./bin/phel test",
