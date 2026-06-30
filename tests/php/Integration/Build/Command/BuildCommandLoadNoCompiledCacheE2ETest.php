@@ -38,22 +38,20 @@ use function var_export;
  */
 final class BuildCommandLoadNoCompiledCacheE2ETest extends TestCase
 {
-    private const string DEST_DIR = __DIR__ . '/out-load-e2e-no-cache';
-
-    private const string SRC_DIR = __DIR__ . '/src-load-e2e';
-
-    public static function tearDownAfterClass(): void
-    {
-        DirectoryUtil::removeDir(self::DEST_DIR);
-        self::restoreSrcDir();
-        DirectoryUtil::removeDir(sys_get_temp_dir() . '/phel');
-    }
+    private BuildCommandWorkspace $workspace;
 
     protected function setUp(): void
     {
-        DirectoryUtil::removeDir(self::DEST_DIR);
-        self::restoreSrcDir();
+        $this->workspace = new BuildCommandWorkspace('load-e2e-no-cache');
+        $this->workspace
+            ->import('phel-config-load-e2e-no-compiled-cache.php')
+            ->import('src-load-e2e');
         DirectoryUtil::removeDir(sys_get_temp_dir() . '/phel');
+    }
+
+    protected function tearDown(): void
+    {
+        $this->workspace->remove();
     }
 
     #[PreserveGlobalState(false)]
@@ -62,9 +60,9 @@ final class BuildCommandLoadNoCompiledCacheE2ETest extends TestCase
     {
         $this->runBuild();
 
-        self::assertFileExists(self::DEST_DIR . '/loade2e/core.php');
-        self::assertFileExists(self::DEST_DIR . '/loade2e/core/util.php');
-        self::assertFileExists(self::DEST_DIR . '/loade2e/core/greet.php');
+        self::assertFileExists($this->destDir() . '/loade2e/core.php');
+        self::assertFileExists($this->destDir() . '/loade2e/core/util.php');
+        self::assertFileExists($this->destDir() . '/loade2e/core/greet.php');
     }
 
     #[PreserveGlobalState(false)]
@@ -82,9 +80,9 @@ final class BuildCommandLoadNoCompiledCacheE2ETest extends TestCase
 
     private function writeRunner(): string
     {
-        $runner = self::DEST_DIR . '/run.php';
+        $runner = $this->destDir() . '/run.php';
         $autoload = dirname(__DIR__, 5) . '/vendor/autoload.php';
-        $compiled = self::DEST_DIR . '/loade2e/core.php';
+        $compiled = $this->destDir() . '/loade2e/core.php';
 
         $code = sprintf(
             "<?php declare(strict_types=1);\nrequire_once %s;\nrequire_once %s;\n",
@@ -98,7 +96,7 @@ final class BuildCommandLoadNoCompiledCacheE2ETest extends TestCase
 
     private function runBuild(): void
     {
-        Gacela::bootstrap(__DIR__, static function (GacelaConfig $config): void {
+        Gacela::bootstrap($this->workspace->root(), static function (GacelaConfig $config): void {
             $config->addAppConfig('phel-config-load-e2e-no-compiled-cache.php');
         });
 
@@ -115,15 +113,18 @@ final class BuildCommandLoadNoCompiledCacheE2ETest extends TestCase
 
     private function hideSrcDir(): void
     {
-        if (is_dir(self::SRC_DIR)) {
-            rename(self::SRC_DIR, self::SRC_DIR . '.bak');
+        if (is_dir($this->srcDir())) {
+            rename($this->srcDir(), $this->srcDir() . '.bak');
         }
     }
 
-    private static function restoreSrcDir(): void
+    private function destDir(): string
     {
-        if (is_dir(self::SRC_DIR . '.bak')) {
-            rename(self::SRC_DIR . '.bak', self::SRC_DIR);
-        }
+        return $this->workspace->path('out-load-e2e-no-cache');
+    }
+
+    private function srcDir(): string
+    {
+        return $this->workspace->path('src-load-e2e');
     }
 }

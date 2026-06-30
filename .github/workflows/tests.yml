@@ -32,7 +32,7 @@ jobs:
         run: vendor/bin/phpunit --testsuite unit
 
       - name: Run integration tests to the compiler itself
-        run: vendor/bin/phpunit --testsuite integration
+        run: composer run-script test-integration
 
   core-tests:
     name: Core tests on PHP ${{ matrix.php }}

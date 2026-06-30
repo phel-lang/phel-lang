@@ -9,7 +9,7 @@ are indicative, not a benchmark — re-measure before acting on them.
 | Suite | Command | Count | Wall-clock | Parallel today |
 |-------|---------|-------|-----------|----------------|
 | PHPUnit `unit` | `composer test-unit` | 3850 tests | ~4 s | no (not needed) |
-| PHPUnit `integration` | `composer test-integration` | 984 tests | ~91 s | no |
+| PHPUnit `integration` | `composer test-integration` | 984 tests | ~37 s | yes (paratest) |
 | Phel core | `composer test-core` | ~6100 tests | ~6 s warm serial | opt-in (`--parallel`) |
 
 The full gate is `composer test` → `test-all`: `test-quality` (cs-fixer, psalm,
@@ -24,10 +24,12 @@ first for a cold run.
 ## Where the time goes
 
 - **`unit` is already fast** (~1 ms/test). Leave it alone.
-- **`integration` is the bottleneck.** 421 `.test` fixtures (plus the other
-  integration cases) expand to 984 PHPUnit invocations via data providers, each
-  driving the full lexer → parser → analyzer → emitter pipeline, single-process
-  (~92 ms per invocation).
+- **`integration` was the bottleneck, now parallelized.** 421 `.test` fixtures
+  (plus the other integration cases) expand to 984 PHPUnit invocations via data
+  providers, each driving the full lexer → parser → analyzer → emitter pipeline
+  (~92 ms per invocation). `composer test-integration` now runs them across
+  paratest workers (see #1 below); `composer test-integration:serial` keeps the
+  single-process path for debugging.
 - **`test-core --parallel` now reuses per-worker state.** Workers are
   long-lived and used to re-evaluate their whole dependency closure (mostly the
   shared `phel.*` stdlib) on every namespace frame — re-executing already-loaded
@@ -60,27 +62,33 @@ multiple reporters, and `--coverage` — see `phel test --help`.
 
 ## Remaining improvements (not yet adopted)
 
-### 1. Parallelize `integration` with paratest — ~4× win, but gated on isolation
+### 1. Parallelize `integration` with paratest — adopted (#2630)
 
-A spike with `brianium/paratest -p8` ran the suite in **~22 s vs ~91 s (4.1×)**.
-The bulk parallelizes cleanly, but 8 command-level E2E classes share
-filesystem / process / global-compiler state:
+`composer test-integration` now runs `brianium/paratest` with the
+`WrapperRunner` (`-p auto`): ~37 s vs ~91 s serial on a 10-core machine, and it
+scales with cores. `composer test-integration:serial` is the single-process
+fallback for debugging.
 
-- `Api/AnalyzeCommandTest`
-- `Build/Command/BuildCommandTest`, `Build/Command/BuildCommandLoadE2ETest`
-- `Lint/LintCommandTest`
-- `Run/Command/Compile/CompileCommandTest`
-- `Run/Command/Eval/EvalCommandTest`
-- `Run/Command/Repl/ReplLazyBundledNamespaceTest`
-- `Run/Command/Test/TestCommandParallel/ParallelTestRunnerTest`
+The win was gated on cross-worker isolation, since paratest workers are
+separate processes that share the filesystem. Three couplings had to be removed:
 
-These can't simply be split into a serial group: tagging them `@group serial`
-and running just that group in one process **still fails** —
-`BuildCommandLoadE2ETest` has a latent inter-class isolation bug that the full
-random-order suite currently masks. Adopting paratest needs that real isolation
-work first (per-test temp-dir isolation; `RealFilesystem::$files` being a
-process-global static is the root of much of the coupling), so it is left as a
-dedicated follow-up.
+- **Per-worker temp.** `tests/bootstrap.php` points each worker at its own
+  `sys_get_temp_dir()` keyed by `TEST_TOKEN`, so every `sys_get_temp_dir()`-derived
+  path (compiled-code cache, Gacela merged-config cache, parallel-runner opcache
+  dir) — in-process and in spawned `bin/phel` subprocesses — is worker-private.
+  It reads `getenv('TMPDIR')` rather than `sys_get_temp_dir()`, which PHP caches
+  on first call.
+- **Build tests off the repo tree.** The `Build/Command` tests used to compile
+  into fixed in-repo `out*/` dirs and mutate in-repo fixtures (`src-load-e2e`
+  rename, `src-cascade` rewrite). `NamespaceLoader` scans `getcwd()` (the repo
+  root), so a sibling worker mid-build surfaced this test's `out/phel/core.phel`
+  as a duplicate of the real core and loaded the wrong file. `BuildCommandWorkspace`
+  now gives each test an isolated project root under the worker-private temp.
+- **`phel doc` temp file.** `PhelFunctionRuntimeLoader` wrote its generated
+  `doc.phel` to a fixed path inside the package (`Api/Infrastructure/phel/`);
+  concurrent `phel doc`/completion runs clobbered it. It now uses a unique
+  per-call temp dir (the PHAR path already did), which also unblocks read-only
+  installs.
 
 ### 2. Drop CLI-opcache cost in `--parallel` workers — adopted (#2628)
 

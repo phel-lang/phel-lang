@@ -19,6 +19,7 @@ use function is_dir;
 use function mkdir;
 use function rmdir;
 use function sprintf;
+use function sys_get_temp_dir;
 use function uniqid;
 use function unlink;
 
@@ -130,31 +131,34 @@ final readonly class PhelFunctionRuntimeLoader
         $phelFile = $this->createDocumentPath();
         file_put_contents($phelFile, $this->documentSource($namespaces));
 
-        return [$phelFile, Phar::running() !== '' ? dirname($phelFile) : null];
+        return [$phelFile, dirname($phelFile)];
     }
 
     private function createDocumentPath(): string
     {
-        if (Phar::running() !== '') {
-            $cwd = getcwd();
-            if ($cwd === false) {
-                throw new RuntimeException('Unable to determine current working directory.');
-            }
+        // A unique per-call dir keeps concurrent processes (paratest workers,
+        // parallel `phel doc` invocations) from clobbering a shared doc.phel,
+        // and keeps the generated file out of the (possibly read-only) package
+        // tree. Inside a PHAR sys_get_temp_dir() is fine too, but the cwd keeps
+        // the generated namespace resolvable against the project's own sources.
+        $baseDir = Phar::running() !== '' ? $this->currentWorkingDir() : sys_get_temp_dir();
 
-            $tempDir = $cwd . '/.phel_temp_' . uniqid('', true);
-            if (!mkdir($tempDir, 0755, true) && !is_dir($tempDir)) {
-                throw new RuntimeException(sprintf('Unable to create temporary directory at "%s".', $tempDir));
-            }
-
-            return $tempDir . '/doc.phel';
+        $tempDir = $baseDir . '/.phel_temp_' . uniqid('', true);
+        if (!mkdir($tempDir, 0755, true) && !is_dir($tempDir)) {
+            throw new RuntimeException(sprintf('Unable to create temporary directory at "%s".', $tempDir));
         }
 
-        $phelDir = __DIR__ . '/phel';
-        if (!is_dir($phelDir) && !mkdir($phelDir, 0755, true) && !is_dir($phelDir)) {
-            throw new RuntimeException(sprintf('Unable to create directory at "%s".', $phelDir));
+        return $tempDir . '/doc.phel';
+    }
+
+    private function currentWorkingDir(): string
+    {
+        $cwd = getcwd();
+        if ($cwd === false) {
+            throw new RuntimeException('Unable to determine current working directory.');
         }
 
-        return $phelDir . '/doc.phel';
+        return $cwd;
     }
 
     /**

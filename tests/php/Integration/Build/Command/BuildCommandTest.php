@@ -8,9 +8,7 @@ use Gacela\Framework\Bootstrap\GacelaConfig;
 use Gacela\Framework\Gacela;
 use Phel\Build\Infrastructure\Command\BuildCommand;
 use Phel\Phel;
-use PhelTest\Integration\Util\DirectoryUtil;
 use PhelTest\Support\PerTestGacelaCache;
-use PHPUnit\Framework\Attributes\Depends;
 use PHPUnit\Framework\Attributes\PreserveGlobalState;
 use PHPUnit\Framework\Attributes\RunInSeparateProcess;
 use PHPUnit\Framework\TestCase;
@@ -24,13 +22,9 @@ use function ob_start;
 
 final class BuildCommandTest extends TestCase
 {
-    private BuildCommand $command;
+    private BuildCommandWorkspace $workspace;
 
-    public static function tearDownAfterClass(): void
-    {
-        DirectoryUtil::removeDir(__DIR__ . '/out');
-        DirectoryUtil::removeDir(__DIR__ . '/out-failing');
-    }
+    private BuildCommand $command;
 
     protected function setUp(): void
     {
@@ -39,13 +33,23 @@ final class BuildCommandTest extends TestCase
         // shared on-disk cache cannot leak between sibling process-isolated tests.
         new PerTestGacelaCache()->isolate();
         $this->command = new BuildCommand();
+        $this->workspace = new BuildCommandWorkspace('main');
+        $this->workspace
+            ->import('phel-config.php')
+            ->import('phel-config-failing.php')
+            ->import('src')
+            ->import('src-failing');
+    }
+
+    protected function tearDown(): void
+    {
+        $this->workspace->remove();
     }
 
     #[PreserveGlobalState(false)]
     #[RunInSeparateProcess]
     public function test_build_project(): void
     {
-        DirectoryUtil::removeDir(__DIR__ . '/out');
         $this->bootstrapGacela();
 
         ob_start();
@@ -62,27 +66,28 @@ final class BuildCommandTest extends TestCase
         self::assertDoesNotMatchRegularExpression('/This is printed from no-cache.phel/', $string);
         self::assertDoesNotMatchRegularExpression('/This is printed from hello.phel/', $string);
 
-        self::assertFileExists(__DIR__ . '/out/phel/core.phel');
-        self::assertFileExists(__DIR__ . '/out/phel/core.php');
-        self::assertFileExists(__DIR__ . '/out/test_ns/hello.phel');
-        self::assertFileExists(__DIR__ . '/out/test_ns/hello.php');
+        self::assertFileExists($this->workspace->path('out/phel/core.phel'));
+        self::assertFileExists($this->workspace->path('out/phel/core.php'));
+        self::assertFileExists($this->workspace->path('out/test_ns/hello.phel'));
+        self::assertFileExists($this->workspace->path('out/test_ns/hello.php'));
     }
 
-    #[Depends('test_build_project')]
     #[PreserveGlobalState(false)]
     #[RunInSeparateProcess]
     public function test_build_project_cached(): void
     {
-        $targetFile = __DIR__ . '/out/test_ns/hello.php';
-
-        // Skip if dependency didn't set up the expected state (can happen with process isolation)
-        if (!file_exists($targetFile)) {
-            self::markTestSkipped('Required file from test_build_project not found');
-        }
-
         $this->bootstrapGacela();
 
-        // Mark file cache invalid by setting the modification time to 0
+        // First build populates the incremental cache.
+        ob_start();
+        $this->command->run(
+            new ArrayInput(['--no-source-map' => true, '--no-cache' => true]),
+            $this->createStub(OutputInterface::class),
+        );
+        ob_get_clean();
+
+        $targetFile = $this->workspace->path('out/test_ns/hello.php');
+        // Mark file cache invalid by setting the modification time to 0.
         touch($targetFile, 1);
 
         ob_start();
@@ -98,10 +103,10 @@ final class BuildCommandTest extends TestCase
         self::assertDoesNotMatchRegularExpression('/This is printed from no-cache.phel/', $string);
         self::assertDoesNotMatchRegularExpression('/This is printed from hello.phel/', $string);
 
-        self::assertFileExists(__DIR__ . '/out/phel/core.phel');
-        self::assertFileExists(__DIR__ . '/out/phel/core.php');
-        self::assertFileExists(__DIR__ . '/out/test_ns/hello.phel');
-        self::assertFileExists(__DIR__ . '/out/test_ns/hello.php');
+        self::assertFileExists($this->workspace->path('out/phel/core.phel'));
+        self::assertFileExists($this->workspace->path('out/phel/core.php'));
+        self::assertFileExists($this->workspace->path('out/test_ns/hello.phel'));
+        self::assertFileExists($targetFile);
     }
 
     #[PreserveGlobalState(false)]
@@ -120,7 +125,7 @@ final class BuildCommandTest extends TestCase
         );
         ob_end_clean();
 
-        $actual = file_get_contents(__DIR__ . '/out/main.php');
+        $actual = file_get_contents($this->workspace->path('out/main.php'));
         $expected = <<<'TXT'
 <?php declare(strict_types=1);
 
@@ -140,12 +145,26 @@ TXT;
     #[RunInSeparateProcess]
     public function test_no_entrypoint_when_namespace_is_not_set(): void
     {
-        Gacela::bootstrap(__DIR__, static function (GacelaConfig $config): void {
-            $config->addAppConfig('config/phel-config-no-namespace.php');
+        $this->workspace->writeFile('phel-config-no-namespace.php', <<<'PHP'
+            <?php
+
+            declare(strict_types=1);
+
+            use Phel\Config\PhelConfig;
+
+            return new PhelConfig()
+                ->withSrcDirs([__DIR__ . '/src'])
+                ->withVendorDir('')
+                ->withBuildDestDir('out')
+                ->withIgnoreWhenBuilding(['local.phel', 'failing.phel']);
+            PHP);
+
+        Gacela::bootstrap($this->workspace->root(), static function (GacelaConfig $config): void {
+            $config->addAppConfig('phel-config-no-namespace.php');
         });
 
-        if (file_exists(__DIR__ . '/out/main.php')) {
-            unlink(__DIR__ . '/out/main.php');
+        if (file_exists($this->workspace->path('out/main.php'))) {
+            unlink($this->workspace->path('out/main.php'));
         }
 
         ob_start();
@@ -158,15 +177,14 @@ TXT;
         );
         ob_end_clean();
 
-        $this->assertFileDoesNotExist(__DIR__ . '/out/main.php');
+        $this->assertFileDoesNotExist($this->workspace->path('out/main.php'));
     }
 
     #[PreserveGlobalState(false)]
     #[RunInSeparateProcess]
     public function test_build_exits_nonzero_when_compilation_fails(): void
     {
-        DirectoryUtil::removeDir(__DIR__ . '/out-failing');
-        Gacela::bootstrap(__DIR__, static function (GacelaConfig $config): void {
+        Gacela::bootstrap($this->workspace->root(), static function (GacelaConfig $config): void {
             $config->addAppConfig('phel-config-failing.php');
         });
 
@@ -189,7 +207,6 @@ TXT;
     #[RunInSeparateProcess]
     public function test_build_report_prints_namespaces_sizes_and_timing(): void
     {
-        DirectoryUtil::removeDir(__DIR__ . '/out');
         $this->bootstrapGacela();
 
         $output = new BufferedOutput();
@@ -216,7 +233,6 @@ TXT;
     #[RunInSeparateProcess]
     public function test_timing_prints_per_phase_compile_breakdown(): void
     {
-        DirectoryUtil::removeDir(__DIR__ . '/out');
         $this->bootstrapGacela();
 
         $output = new BufferedOutput();
@@ -239,6 +255,6 @@ TXT;
 
     private function bootstrapGacela(): void
     {
-        Phel::bootstrap(__DIR__);
+        Phel::bootstrap($this->workspace->root());
     }
 }

@@ -23,9 +23,11 @@ All notable changes to this project will be documented in this file.
 - No more spurious `unlink(...): No such file or directory` warnings on `phel test`/build when a temp file was already removed
 - The CLI OPcache re-exec (#2632) now runs the warm child with `opcache.file_cache_only`, fixing an intermittent multi-minute hang on some CI filesystems
 - `phel build` with the compiled-code cache disabled now still emits the `(load ...)` secondaries (`out/phel/core/*.php`), so a self-contained PHAR no longer fatals on first load (#2648)
+- `phel doc` (and REPL/LSP completion) now writes its generated `doc.phel` to a unique temp dir instead of a fixed path inside the package, fixing intermittent `Unable to read … doc.phel` failures when several processes run it concurrently and unblocking read-only installs (#2630)
 
 ### Performance
 
+- `composer test-integration` now runs the PHPUnit integration suite across `paratest` workers (~37 s vs ~91 s serial on a 10-core machine, scaling with cores); `composer test-integration:serial` keeps the single-process fallback (#2630)
 - The emitter skips generated-column bookkeeping when source maps are disabled (the common REPL / `phel compile` path), shaving ~6% off the emit phase; output is byte-identical (#2634)
 - `phel run`/`eval`/`repl` auto-apply a persistent on-disk OPcache file cache for ~30% faster warm startup, re-exec'ing once via `pcntl_exec`; no-op without OPcache/`pcntl` or with `PHEL_NO_OPCACHE_REEXEC=1` (#2632)
 - `phel test --parallel` workers now share an OPcache file cache and evaluate each dependency once per worker, fixing the regression that made `--parallel` slower than serial (#2628)

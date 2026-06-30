@@ -7,7 +7,6 @@ namespace PhelTest\Integration\Build\Command;
 use Gacela\Framework\Bootstrap\GacelaConfig;
 use Gacela\Framework\Gacela;
 use Phel\Build\Infrastructure\Command\BuildCommand;
-use PhelTest\Integration\Util\DirectoryUtil;
 use PhelTest\Support\PerTestGacelaCache;
 use PHPUnit\Framework\Attributes\PreserveGlobalState;
 use PHPUnit\Framework\Attributes\RunInSeparateProcess;
@@ -20,18 +19,23 @@ use function ob_start;
 
 final class BuildCommandOptimizationLevelTest extends TestCase
 {
-    private BuildCommand $command;
+    private BuildCommandWorkspace $workspace;
 
-    public static function tearDownAfterClass(): void
-    {
-        DirectoryUtil::removeDir(__DIR__ . '/out-optimization');
-    }
+    private BuildCommand $command;
 
     protected function setUp(): void
     {
         new PerTestGacelaCache()->isolate();
         $this->command = new BuildCommand();
-        DirectoryUtil::removeDir(__DIR__ . '/out-optimization');
+        $this->workspace = new BuildCommandWorkspace('optimization');
+        $this->workspace
+            ->import('phel-config-optimization.php')
+            ->import('src-optimization');
+    }
+
+    protected function tearDown(): void
+    {
+        $this->workspace->remove();
     }
 
     #[PreserveGlobalState(false)]
@@ -49,8 +53,9 @@ final class BuildCommandOptimizationLevelTest extends TestCase
         self::assertMatchesRegularExpression('/"result",\s+3,/', $php);
         self::assertStringNotContainsString('"add2"))->__invoke(1, 2)', $php);
 
-        self::assertFileExists(__DIR__ . '/out-optimization/.phel-optimization-level');
-        self::assertSame('2', file_get_contents(__DIR__ . '/out-optimization/.phel-optimization-level'));
+        $marker = $this->workspace->path('out-optimization/.phel-optimization-level');
+        self::assertFileExists($marker);
+        self::assertSame('2', file_get_contents($marker));
     }
 
     #[PreserveGlobalState(false)]
@@ -70,7 +75,7 @@ final class BuildCommandOptimizationLevelTest extends TestCase
         self::assertStringContainsString('"add2"))->__invoke(1, 2)', $php);
 
         // Level 0 leaves no marker behind.
-        self::assertFileDoesNotExist(__DIR__ . '/out-optimization/.phel-optimization-level');
+        self::assertFileDoesNotExist($this->workspace->path('out-optimization/.phel-optimization-level'));
     }
 
     #[PreserveGlobalState(false)]
@@ -108,7 +113,7 @@ final class BuildCommandOptimizationLevelTest extends TestCase
 
     private function compiledOutput(): string
     {
-        $file = __DIR__ . '/out-optimization/opt_ns/opt.php';
+        $file = $this->workspace->path('out-optimization/opt_ns/opt.php');
         self::assertFileExists($file);
 
         return (string) file_get_contents($file);
@@ -116,7 +121,7 @@ final class BuildCommandOptimizationLevelTest extends TestCase
 
     private function bootstrapGacela(): void
     {
-        Gacela::bootstrap(__DIR__, static function (GacelaConfig $config): void {
+        Gacela::bootstrap($this->workspace->root(), static function (GacelaConfig $config): void {
             $config->addAppConfig('phel-config-optimization.php');
         });
     }
