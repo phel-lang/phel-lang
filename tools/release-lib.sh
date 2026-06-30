@@ -542,15 +542,73 @@ qa_smoke_test_phar() {
         rm -f "$step_out" "$step_err"
     }
 
+    _qa_expect_err() {
+        local label="$1"; local pattern="$2"; shift 2
+        step_out=$(mktemp); step_err=$(mktemp)
+        ( cd "$tmp_dir" && "$@" ) >"$step_out" 2>"$step_err"
+        step_rc=$?
+        if [[ $step_rc -eq 0 ]]; then
+            log_err "QA [$label] expected a non-zero exit but the command succeeded"
+            failures=$((failures + 1))
+        elif grep -qE 'PHP (Warning|Fatal|Parse) ' "$step_err"; then
+            log_err "QA [$label] leaked a raw PHP diagnostic instead of a clean Phel error:"
+            grep -E 'PHP (Warning|Fatal|Parse) ' "$step_err" | head -3 >&2
+            failures=$((failures + 1))
+        elif ! grep -qiE "$pattern" "$step_err" "$step_out"; then
+            log_err "QA [$label] error output did not match /$pattern/"
+            sed -n '1,20p' "$step_err" >&2
+            failures=$((failures + 1))
+        else
+            log_ok "QA [$label]"
+        fi
+        rm -f "$step_out" "$step_err"
+    }
+
+    # Core CLI surface: every batch command must run clean against the built PHAR.
     _qa_expect "version" "v${expected_version}" php phel.phar --version
-    _qa_run    "init"        php phel.phar init --force
-    _qa_expect "run"         "Hello, Phel!" php phel.phar run src/main.phel
-    _qa_expect "test"        "Passed: 2"   php phel.phar test
-    _qa_run    "format"      php phel.phar format --dry-run src/
-    _qa_run    "build"       php phel.phar build
-    _qa_run    "doctor"      php phel.phar doctor
-    _qa_run    "lint"        php phel.phar lint src
-    _qa_run    "doc"         php phel.phar doc map
+    _qa_run    "init" php phel.phar init --force
+    _qa_run    "init-opt-level-2" grep -q "withOptimizationLevel(2)" phel-config.php
+    _qa_expect "run" "Hello, Phel!" php phel.phar run src/main.phel
+    _qa_expect "eval" "3" php phel.phar eval "(+ 1 2)"
+    _qa_run    "compile" php phel.phar compile "(+ 1 2)"
+    _qa_expect "test" "Passed: 2" php phel.phar test
+    _qa_run    "test-parallel" php phel.phar test --parallel 2
+    _qa_run    "format" php phel.phar format --dry-run src/
+    _qa_run    "build" php phel.phar build
+    _qa_run    "lint" php phel.phar lint src
+    _qa_run    "analyze" php phel.phar analyze src/main.phel
+    _qa_run    "index" php phel.phar index src
+    _qa_run    "export" php phel.phar export
+    _qa_run    "ns" php phel.phar ns
+    _qa_run    "config" php phel.phar config
+    _qa_run    "doctor" php phel.phar doctor
+    _qa_run    "cache-clear" php phel.phar cache:clear
+    _qa_run    "doc" php phel.phar doc map
+
+    # Editor / long-running commands: confirm each loads via --help without booting a server.
+    _qa_run    "repl-help" php phel.phar repl --help
+    _qa_run    "nrepl-help" php phel.phar nrepl --help
+    _qa_run    "lsp-help" php phel.phar lsp --help
+    _qa_run    "watch-help" php phel.phar watch --help
+    _qa_run    "api-daemon-help" php phel.phar api-daemon --help
+    _qa_run    "profile-help" php phel.phar profile --help
+    _qa_run    "agent-install-help" php phel.phar agent-install --help
+
+    # Project root resolves from CWD, so config works from a nested subdirectory.
+    mkdir -p "$tmp_dir/sub/dir"
+    _qa_run    "config-from-subdir" bash -c "cd '$tmp_dir/sub/dir' && php '$tmp_dir/phel.phar' config"
+
+    # Error paths must surface a clean Phel diagnostic, never a raw PHP crash.
+    _qa_expect_err "err-divide-by-zero" "ivision" php phel.phar eval "(/ 1 0)"
+    _qa_expect_err "err-non-symbol-defn" "symbol|PHEL" php phel.phar eval "(defn 123 [x] x)"
+    _qa_expect_err "err-not-callable" "callable|hint" php phel.phar eval "(let [x 5] (x 1 2))"
+    _qa_expect_err "err-unknown-symbol" "resolve|did you mean" php phel.phar eval "(prnn 1)"
+
+    # A phel-config.php returning null must be rejected, not silently treated as empty.
+    cp "$tmp_dir/phel-config.php" "$tmp_dir/phel-config.php.bak"
+    printf '<?php\n\ndeclare(strict_types=1);\n\nreturn null;\n' > "$tmp_dir/phel-config.php"
+    _qa_expect_err "reject-null-config" "array|JsonSerializable" php phel.phar config
+    mv "$tmp_dir/phel-config.php.bak" "$tmp_dir/phel-config.php"
 
     rm -rf "$tmp_dir"
 
