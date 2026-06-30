@@ -12,6 +12,7 @@ Pure data/model layer defining configuration structure for Phel projects. Leaf m
 | `ProjectLayout.php` | Backed enum: `Flat` / `Nested` / `Root` |
 | `PhelConfigValidator.php` | Validates src/test/vendor dirs; backs `PhelConfig::validate()` |
 | `ConfigLoadException.php` | `wrapIfConfigError()` rethrows errors originating from `phel-config.php` |
+| `StrictPhpConfigReader.php` | Gacela `ConfigReaderInterface` that rejects a `null`-returning `phel-config.php` instead of silently coercing to `[]`; wired in `Phel::configFn()` |
 
 ## PhelConfig API
 
