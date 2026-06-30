@@ -64,4 +64,28 @@ final class SessionRegistryTest extends TestCase
         self::assertSame('phel.core', $session->namespace());
         self::assertSame(42, $session->lastValue());
     }
+
+    public function test_session_keeps_a_ring_of_the_last_three_values(): void
+    {
+        $session = new SessionRegistry()->create();
+
+        self::assertNull($session->value(1));
+
+        $session->recordValue('a');
+        self::assertSame('a', $session->value(1));
+        self::assertNull($session->value(2));
+
+        $session->recordValue('b');
+        self::assertSame('b', $session->value(1));
+        self::assertSame('a', $session->value(2));
+
+        $session->recordValue('c');
+        self::assertSame(['c', 'b', 'a'], [$session->value(1), $session->value(2), $session->value(3)]);
+
+        // A fourth value rotates the oldest ('a') out of the ring.
+        $session->recordValue('d');
+        self::assertSame(['d', 'c', 'b'], [$session->value(1), $session->value(2), $session->value(3)]);
+        self::assertNull($session->value(4));
+        self::assertSame('d', $session->lastValue());
+    }
 }

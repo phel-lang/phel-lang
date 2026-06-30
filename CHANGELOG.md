@@ -7,6 +7,7 @@ All notable changes to this project will be documented in this file.
 ### Added
 
 - LSP signature help (`textDocument/signatureHelp`) now covers plain Phel function calls like `(map f xs)` — showing each arity, its parameter names, and the docstring — instead of only `php/...` interop calls (#2643)
+- nREPL eval responses now carry `*1`/`*2`/`*3` value history (the last three results) per session, so clients like Calva and Conjure can show recent values instead of only the last one (#2644)
 
 ### Changed
 

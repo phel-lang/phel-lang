@@ -37,6 +37,7 @@ final class EvalOpTest extends TestCase
         self::assertCount(2, $responses);
         self::assertSame('3', $responses[0]->payload['value']);
         self::assertSame('user', $responses[0]->payload['ns']);
+        self::assertSame('3', $responses[0]->payload['*1']);
         self::assertContains('done', $responses[1]->payload['status']);
         self::assertSame(3, $session->lastValue());
     }

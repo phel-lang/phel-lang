@@ -52,11 +52,7 @@ final readonly class EvalResultResponder
             $session = $this->sessionFor($request);
             $session?->recordValue($result->value);
 
-            $responses[] = OpResponse::forRequest($request, [
-                'ns' => $session instanceof Session ? $session->namespace() : 'user',
-                'value' => $this->printer->print($result->value),
-            ]);
-
+            $responses[] = OpResponse::forRequest($request, $this->successPayload($session, $result->value));
             $responses[] = OpResponse::done($request);
 
             return $responses;
@@ -83,6 +79,26 @@ final readonly class EvalResultResponder
         return $request->session !== null
             ? $this->sessions->get($request->session)
             : null;
+    }
+
+    /**
+     * @return array<string, string>
+     */
+    private function successPayload(?Session $session, mixed $value): array
+    {
+        $payload = [
+            'ns' => $session instanceof Session ? $session->namespace() : 'user',
+            'value' => $this->printer->print($value),
+        ];
+
+        // *1/*2/*3 exist only within a session; a session-less eval has no history.
+        if ($session instanceof Session) {
+            $payload['*1'] = $this->printer->print($session->value(1));
+            $payload['*2'] = $this->printer->print($session->value(2));
+            $payload['*3'] = $this->printer->print($session->value(3));
+        }
+
+        return $payload;
     }
 
     private function errorFrame(

@@ -52,6 +52,42 @@ final class EvalResultResponderTest extends TestCase
         self::assertSame('user', $responses[0]->payload['ns']);
     }
 
+    public function test_success_surfaces_value_history_in_metadata(): void
+    {
+        $printer = $this->createStub(PrinterInterface::class);
+        $printer->method('print')->willReturnCallback(static fn(mixed $v): string => (string) $v);
+
+        $registry = new SessionRegistry();
+        $session = $registry->create();
+        $responder = new EvalResultResponder($printer, $registry);
+
+        $responder->respond(new OpRequest('eval', 'r1', $session->id, []), EvalResult::success(1), 'fallback');
+        $responder->respond(new OpRequest('eval', 'r2', $session->id, []), EvalResult::success(2), 'fallback');
+
+        $responses = $responder->respond(new OpRequest('eval', 'r3', $session->id, []), EvalResult::success(3), 'fallback');
+
+        $payload = $responses[0]->payload;
+        self::assertSame('3', $payload['*1']);
+        self::assertSame('2', $payload['*2']);
+        self::assertSame('1', $payload['*3']);
+    }
+
+    public function test_no_history_keys_without_a_session(): void
+    {
+        $printer = $this->createStub(PrinterInterface::class);
+        $printer->method('print')->willReturn('nil');
+
+        $responder = new EvalResultResponder($printer, new SessionRegistry());
+
+        $responses = $responder->respond(
+            new OpRequest('eval', null, null, []),
+            EvalResult::success(null),
+            'fallback',
+        );
+
+        self::assertArrayNotHasKey('*1', $responses[0]->payload);
+    }
+
     public function test_success_prepends_out_frame_when_output_present(): void
     {
         $printer = $this->createStub(PrinterInterface::class);
