@@ -6,38 +6,33 @@ All notable changes to this project will be documented in this file.
 
 ### Added
 
-- LSP signature help (`textDocument/signatureHelp`) now covers plain Phel function calls like `(map f xs)` — showing each arity, its parameter names, and the docstring — instead of only `php/...` interop calls (#2643)
-- nREPL eval responses now carry `*1`/`*2`/`*3` value history (the last three results) per session, so clients like Calva and Conjure can show recent values instead of only the last one (#2644)
+- LSP signature help now covers plain Phel calls like `(map f xs)` — arity, parameter names, docstring — not just `php/...` interop (#2643)
+- nREPL eval responses carry per-session `*1`/`*2`/`*3` value history, so Calva/Conjure show the last three results (#2644)
 
 ### Changed
 
-- The REPL `(doc sym)` now prints the function's `:example` under an `Example:` heading, alongside its signature and description (#2645)
-- `phel test` now shows a `+`/`-`/`~` structural diff for any same-shape collection that differs (previously only for collections with more than 3 entries); scalars and mixed shapes keep the single-line summary
-- `phel compile` now prints to stderr the value a snippet folds to when it emits no PHP (e.g. `(+ 1 2)` → `3`) (#2624)
-- `phel init` now scaffolds `phel-config.php` at `->withOptimizationLevel(2)`, so new projects get inlined arithmetic/bit ops and elided nil-guards by default; the runtime default stays `0` for existing projects (#2631)
+- REPL `(doc sym)` now prints the function's `:example` under an `Example:` heading (#2645)
+- `phel test` shows a `+`/`-`/`~` structural diff for any same-shape collection that differs (previously only >3 entries); scalars/mixed shapes keep the summary line
+- `phel compile` prints the folded value to stderr when a snippet emits no PHP (e.g. `(+ 1 2)` → `3`) (#2624)
+- `phel init` scaffolds `phel-config.php` at `->withOptimizationLevel(2)`; the runtime default stays `0` (#2631)
 
 ### Fixed
 
-- A global or PHAR `phel` install now resolves the project root from the working directory (walking up to the nearest project root — a `phel-config.php` or installed `vendor/`) instead of the binary's location, so `phel config`/`doctor` read the local config and see the project's source/test dirs from any project directory (#2640)
-- A `phel-config.php` that evaluates to `null` (a forgotten or typo'd `return`) is now rejected with an actionable error naming the file and the expected shape, instead of being silently treated as an empty config and falling back to defaults (#2642)
-- `phel.router/compiled-router` now compiles routes that carry a `:handler` function (every real route, and the macro's own docstring `:example`), instead of failing with `literal not supported: …AbstractFn` (#2663)
-- `phel build` at an optimization level above 0 now ships the full `(load ...)` secondaries (e.g. `phel.core`'s `core/meta.php`) instead of a broken artifact that fataled with `Cannot locate core/… for (load ...)` on first load (#2631)
-- `defn`/`defmacro` (and their `-` variants) with a non-symbol name (e.g. `(defn 123 [x] x)`) now fail with a clean `[PHEL005]` error naming the offending type, instead of crashing with an internal PHP error that leaked core internals (#2639)
-- Invoking a non-function value (e.g. `(def x 5)` then `(x 1 2)`) now shows the `.phel` source location and an actionable `hint:` instead of leaking the internal compiled temp path; the hint also fires for PHP's scalar wording (`Value of type int is not callable`) (#2638)
-- "Did you mean" suggestions now rank by relevance instead of raw edit distance, so `prn` suggests `print`/`printf`/`println` rather than `or`/`pop`/`put` (#2637)
-- Requiring a non-existent user namespace now fails fast with `Cannot find namespace '…' required by '…'` instead of exiting 0 and surfacing later as a generic `Cannot resolve symbol` (#2636)
-- `phel run`/`test`/`build`/`profile`/`export` now surface the `.phel` source location and stack trace for runtime errors thrown from the stdlib (e.g. `(/ 1 0)`), matching the REPL (#2635)
-- No more spurious `unlink(...): No such file or directory` warnings on `phel test`/build when a temp file was already removed
-- The CLI OPcache re-exec (#2632) now runs the warm child with `opcache.file_cache_only`, fixing an intermittent multi-minute hang on some CI filesystems
-- `phel build` with the compiled-code cache disabled now still emits the `(load ...)` secondaries (`out/phel/core/*.php`), so a self-contained PHAR no longer fatals on first load (#2648)
-- `phel doc` (and REPL/LSP completion) now writes its generated `doc.phel` to a unique temp dir instead of a fixed path inside the package, fixing intermittent `Unable to read … doc.phel` failures when several processes run it concurrently and unblocking read-only installs (#2630)
+- Global/PHAR `phel` resolves the project root from the working directory (nearest `phel-config.php` or `vendor/`), not the binary location, so `phel config`/`doctor` read the local config from anywhere (#2640)
+- `phel-config.php` returning `null` is now rejected with a clear error, not silently treated as empty config (#2642)
+- `phel.router/compiled-router` now compiles routes carrying a `:handler` function (#2663)
+- `phel build` always ships the `(load ...)` secondaries; a >0 optimization level or disabled compiled-code cache no longer fatals on first load (#2631, #2648)
+- `defn`/`defmacro` with a non-symbol name (e.g. `(defn 123 …)`) now fail with a clean compile error, not a leaked-internals crash (#2639)
+- Invoking a non-function value (e.g. `(x 1 2)` after `(def x 5)`) shows the `.phel` location and a `hint:`, not the compiled temp path (#2638)
+- "Did you mean" suggestions rank by relevance, so `prn` suggests `print`/`printf`/`println`, not `or`/`pop`/`put` (#2637)
+- Requiring a missing namespace fails fast at require time, not as a later generic resolve error (#2636)
+- `phel run`/`test`/`build`/`profile`/`export` show the `.phel` location and stack trace for stdlib runtime errors (e.g. `(/ 1 0)`), matching the REPL (#2635)
+- `phel doc` (and REPL/LSP completion) writes `doc.phel` to a unique temp dir, not a fixed package path — fixing intermittent failures under concurrency and on read-only installs (#2630)
 
 ### Performance
 
-- `composer test-integration` now runs the PHPUnit integration suite across `paratest` workers (~37 s vs ~91 s serial on a 10-core machine, scaling with cores); `composer test-integration:serial` keeps the single-process fallback (#2630)
-- The emitter skips generated-column bookkeeping when source maps are disabled (the common REPL / `phel compile` path), shaving ~6% off the emit phase; output is byte-identical (#2634)
-- `phel run`/`eval`/`repl` auto-apply a persistent on-disk OPcache file cache for ~30% faster warm startup, re-exec'ing once via `pcntl_exec`; no-op without OPcache/`pcntl` or with `PHEL_NO_OPCACHE_REEXEC=1` (#2632)
-- `phel test --parallel` workers now share an OPcache file cache and evaluate each dependency once per worker, fixing the regression that made `--parallel` slower than serial (#2628)
+- Emitter skips generated-column bookkeeping when source maps are disabled, ~6% off the emit phase; output byte-identical (#2634)
+- `phel run`/`eval`/`repl` re-exec once into a warm child with a persistent OPcache file cache (~30% faster startup; opt out with `PHEL_NO_OPCACHE_REEXEC=1`); `phel test --parallel` workers share the cache, evaluating each dependency once per worker, fixing `--parallel` being slower than serial (#2628, #2632)
 
 ## [0.46.0](https://github.com/phel-lang/phel-lang/compare/v0.45.1...v0.46.0) - 2026-06-25
 
