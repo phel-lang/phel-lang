@@ -11,6 +11,7 @@ All notable changes to this project will be documented in this file.
 
 ### Changed
 
+- The REPL `(doc sym)` now prints the function's `:example` under an `Example:` heading, alongside its signature and description (#2645)
 - `phel test` now shows a `+`/`-`/`~` structural diff for any same-shape collection that differs (previously only for collections with more than 3 entries); scalars and mixed shapes keep the single-line summary
 - `phel compile` now prints to stderr the value a snippet folds to when it emits no PHP (e.g. `(+ 1 2)` → `3`) (#2624)
 - `phel init` now scaffolds `phel-config.php` at `->withOptimizationLevel(2)`, so new projects get inlined arithmetic/bit ops and elided nil-guards by default; the runtime default stays `0` for existing projects (#2631)
