@@ -76,9 +76,13 @@
     (when meta
       (let [doc        (or (get meta :doc) "")
             deprecated (get meta :deprecated)
-            message    (if deprecated
+            example    (get meta :example)
+            with-dep   (if deprecated
                          (str doc (if (= doc "") "" "\n") "DEPRECATED: " deprecated)
-                         doc)]
+                         doc)
+            message    (if example
+                         (str with-dep "\n\nExample:\n" example)
+                         with-dep)]
         (clean-doc message)))))
 
 (defmacro doc
