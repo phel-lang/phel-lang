@@ -36,6 +36,14 @@ enable tab-completion (see the [README](../README.md#enable-shell-completion-opt
 | `test` `t` | Run the test suite (all tests, or the files/namespaces you pass) |
 | `watch` | Watch Phel files and reload changed namespaces on change |
 
+## Editor setup
+
+`phel lsp` (Language Server, stdio) and `phel nrepl` (default `127.0.0.1:7888`) plug
+Phel into your editor. Per-editor setup lives on the website:
+
+- **LSP** — VS Code, Emacs (eglot / lsp-mode), Vim / Neovim (coc.nvim / vim-lsp): [Editor support](https://phel-lang.org/documentation/tooling/editor-support/)
+- **nREPL** — Calva, Conjure: [REPL / nREPL](https://phel-lang.org/documentation/tooling/repl/)
+
 ## compile vs eval vs run vs build
 
 These four overlap; pick by what you want back:
