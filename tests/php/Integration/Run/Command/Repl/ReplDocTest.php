@@ -6,19 +6,7 @@ namespace PhelTest\Integration\Run\Command\Repl;
 
 use Gacela\Framework\Gacela;
 use Override;
-use Phel\Command\Application\TextExceptionPrinter;
-use Phel\Command\Domain\ErrorLogInterface;
-use Phel\Command\Domain\Exceptions\ExceptionArgsPrinter;
-use Phel\Command\Domain\Exceptions\Extractor\FilePositionExtractor;
-use Phel\Command\Infrastructure\SourceMapExtractor;
-use Phel\Run\Domain\Repl\ReplCommandIoInterface;
 use Phel\Run\Infrastructure\Command\ReplCommand;
-use Phel\Run\RunFactory;
-use Phel\Shared\ColorStyle;
-use Phel\Shared\ColorStyleInterface;
-use Phel\Shared\Munge;
-use Phel\Shared\Printer\Printer;
-use Phel\Shared\Printer\PrinterInterface;
 use PhelTest\Integration\Run\Command\AbstractTestCommand;
 use PHPUnit\Framework\Attributes\PreserveGlobalState;
 use PHPUnit\Framework\Attributes\RunInSeparateProcess;
@@ -26,6 +14,8 @@ use Symfony\Component\Console\Input\InputInterface;
 
 final class ReplDocTest extends AbstractTestCommand
 {
+    use ReplCommandTestTrait;
+
     private string $previousCwd = '';
 
     private string $tempDir = '';
@@ -70,43 +60,5 @@ final class ReplDocTest extends AbstractTestCommand
         self::assertStringContainsString('Adds 2 to x.', $output);
         // The :example metadata is now rendered under its own heading (#2645).
         self::assertStringContainsString("Example:\n(add-two 5)", $output);
-    }
-
-    private function createReplTestIo(): ReplTestIo
-    {
-        $exceptionPrinter = new TextExceptionPrinter(
-            new ExceptionArgsPrinter(Printer::readable()),
-            ColorStyle::noStyles(),
-            new Munge(),
-            new FilePositionExtractor(new SourceMapExtractor()),
-            $this->createStub(ErrorLogInterface::class),
-        );
-
-        return new ReplTestIo($exceptionPrinter);
-    }
-
-    private function prepareRunFactory(ReplCommandIoInterface $io): void
-    {
-        Gacela::overrideExistingResolvedClass(
-            RunFactory::class,
-            new class($io) extends RunFactory {
-                public function __construct(private readonly ReplCommandIoInterface $io) {}
-
-                public function createColorStyle(): ColorStyleInterface
-                {
-                    return ColorStyle::noStyles();
-                }
-
-                public function createPrinter(): PrinterInterface
-                {
-                    return Printer::nonReadable();
-                }
-
-                public function createReplCommandIo(): ReplCommandIoInterface
-                {
-                    return $this->io;
-                }
-            },
-        );
     }
 }
