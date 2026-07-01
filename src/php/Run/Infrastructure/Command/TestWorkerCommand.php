@@ -135,10 +135,7 @@ final class TestWorkerCommand extends Command
                 continue;
             }
 
-            // Skip namespaces already loaded at bootstrap (loadPhelNamespaces brings in
-            // the whole bundled phel.* stdlib). Re-evaluating a precompiled sibling (PHAR)
-            // re-runs its primary, which re-nulls forward-declared defs (map/seq/nil?)
-            // that its require_once secondaries then won't restore — a null callable. (#2672)
+            // Skip already-loaded bundled ns: re-evaluating one re-nulls its forward-declared defs under a PHAR (#2672).
             if (Registry::getInstance()->hasNamespace(str_replace('-', '_', $info->getNamespace()))) {
                 $this->preloadedFiles[$depFile] = true;
                 continue;

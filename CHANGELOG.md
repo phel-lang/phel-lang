@@ -18,7 +18,7 @@ All notable changes to this project will be documented in this file.
 
 ### Fixed
 
-- `phel test --parallel` now works from the distributed PHAR: the long-lived worker no longer re-evaluates bundled namespaces it already loaded, which under a PHAR re-nulled core fns (`map`/`seq`/`nil?`) and failed every worker with "__invoke() on null" (0 tests run); serial runs were unaffected (#2672)
+- `phel test --parallel` now works from the distributed PHAR; the long-lived worker no longer re-evaluates already-loaded bundled namespaces (serial runs were unaffected) (#2672)
 - Global/PHAR `phel` resolves the project root from the working directory (nearest `phel-config.php` or `vendor/`), not the binary location, so `phel config`/`doctor` read the local config from anywhere (#2640)
 - `phel-config.php` returning `null` is now rejected with a clear error, not silently treated as empty config (#2642)
 - `phel.router/compiled-router` now compiles routes carrying a `:handler` function (#2663)
