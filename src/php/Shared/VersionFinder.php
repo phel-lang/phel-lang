@@ -6,7 +6,7 @@ namespace Phel\Shared;
 
 final class VersionFinder
 {
-    public const string LATEST_VERSION = 'v0.46.0';
+    public const string LATEST_VERSION = 'v0.47.0';
 
     private ?string $cachedVersion = null;
 

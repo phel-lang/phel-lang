@@ -4,6 +4,8 @@ All notable changes to this project will be documented in this file.
 
 ## Unreleased
 
+## [0.47.0](https://github.com/phel-lang/phel-lang/compare/v0.46.0...v0.47.0) - 2026-07-01
+
 ### Added
 
 - LSP signature help now covers plain Phel calls like `(map f xs)` — arity, parameter names, docstring — not just `php/...` interop (#2643)
