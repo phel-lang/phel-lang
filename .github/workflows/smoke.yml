@@ -60,7 +60,7 @@ jobs:
           test -x build/out/phel.phar
           size=$(stat -c%s build/out/phel.phar)
           echo "PHAR size: $size bytes"
-          test "$size" -lt 2097152  # 2 MiB budget
+          test "$size" -lt 2359296  # 2.25 MiB budget (headroom over the ~2.0 MiB compressed phar; still catches vendor/pollution-scale bloat)
 
       - name: Run the end-to-end PHAR test suite against the freshly built phar
         # PharExecutionTest skips itself unless build/out/phel.phar exists, so it

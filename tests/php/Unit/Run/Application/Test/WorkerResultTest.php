@@ -28,6 +28,7 @@ final class WorkerResultTest extends TestCase
         self::assertSame(5, $result->counts->pass);
         self::assertSame(1, $result->counts->failed);
         self::assertSame(6, $result->counts->total);
+        self::assertNull($result->error, 'a normal result carries no thrown-error marker');
     }
 
     public function test_supplies_safe_defaults_for_missing_fields(): void
@@ -63,5 +64,33 @@ final class WorkerResultTest extends TestCase
         self::assertSame(1, $result->counts->total);
         self::assertStringContainsString('Worker died while running phel.broken', $result->output);
         self::assertStringContainsString('segfault', $result->output);
+        self::assertNotNull($result->error, 'a crashed worker is a retryable transient error');
+    }
+
+    public function test_extracts_thrown_error_marker_so_it_can_be_retried(): void
+    {
+        $result = WorkerResult::fromFrame([
+            'ok' => false,
+            'error' => 'Call to a member function __invoke() on null',
+            'failed-tests' => [],
+        ]);
+
+        self::assertFalse($result->ok);
+        self::assertSame('Call to a member function __invoke() on null', $result->error);
+    }
+
+    public function test_error_is_null_when_a_failing_test_run_reports_no_thrown_error(): void
+    {
+        // A genuine test failure (ok=false, populated failed-tests, error=null)
+        // must NOT look like a retryable transient error.
+        $result = WorkerResult::fromFrame([
+            'ok' => false,
+            'error' => null,
+            'failed-tests' => ['phel.a/some-test'],
+        ]);
+
+        self::assertFalse($result->ok);
+        self::assertNull($result->error);
+        self::assertSame(['phel.a/some-test'], $result->failedTests);
     }
 }
