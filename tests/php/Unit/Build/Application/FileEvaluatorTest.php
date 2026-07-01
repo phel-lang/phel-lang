@@ -148,6 +148,8 @@ final class FileEvaluatorTest extends TestCase
         $def = Registry::getInstance()->getDefinition($namespace, $defName);
         self::assertNotNull($def, 'Re-evaluating a precompiled sibling must not null a forward-declared def');
         self::assertSame('real', $def());
+
+        Registry::getInstance()->removeNamespace($namespace);
     }
 
     public function test_eval_file_ignores_precompiled_sibling_during_build(): void

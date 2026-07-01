@@ -76,11 +76,9 @@ final class FileEvaluator
         $precompiledSibling = $this->precompiledSiblingPath($src);
         if ($precompiledSibling !== null) {
             $this->compilerFacade->initializeGlobalEnvironment();
-            // #2673: `require_once`, not `require` — a bundled primary
-            // forward-declares defs (`map`/`seq`/`nil?`) as null and restores
-            // them via `require_once` secondaries. A second plain `require`
-            // re-nulls the forward decls while the secondaries no-op, leaving
-            // them null. Loading the primary once per process keeps them.
+            // #2673: `require_once`, not `require` — the primary forward-declares
+            // defs (`map`/`seq`/`nil?`) as null and refills them via `require_once`
+            // secondaries; a second plain `require` re-nulls them while the secondaries no-op.
             /** @psalm-suppress UnresolvableInclude */
             require_once $precompiledSibling;
 
