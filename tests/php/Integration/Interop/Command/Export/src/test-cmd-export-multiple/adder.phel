@@ -15,3 +15,13 @@
    :php/attr [[:My.Routing/Route "/add"]]}
   [a b]
   (php/+ a b))
+
+(defn ^int typed-adder
+  {:export true}
+  [^int a ^int b]
+  (php/+ a b))
+
+(defn ^int multi-adder
+  {:export true}
+  ([^int a] a)
+  ([^int a ^int b] (php/+ a b)))

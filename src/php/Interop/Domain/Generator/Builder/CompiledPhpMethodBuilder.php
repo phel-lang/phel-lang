@@ -10,9 +10,11 @@ use Phel\Shared\ScalarCoercion;
 use ReflectionClass;
 use ReflectionMethod;
 use ReflectionParameter;
+use ReflectionType;
 
 use function array_map;
 use function implode;
+use function sprintf;
 
 final readonly class CompiledPhpMethodBuilder
 {
@@ -25,10 +27,11 @@ final readonly class CompiledPhpMethodBuilder
      *
      * The compiled Phel function is a class whose `BOUND_TO` constant holds its
      * fully qualified Phel name; reflection on its `__invoke` method provides the
-     * parameter list and return type. These are rendered into the method template,
-     * replacing the `$ATTRIBUTES$`, `$METHOD_NAME$`, `$ARGS$`, `$RETURN_TYPE$`,
-     * `$PHEL_NAMESPACE$` and `$PHEL_FUNCTION_NAME$` tokens, so the generated method
-     * delegates to `self::callPhel(...)` at runtime.
+     * parameter list and return type (the `:tag` metadata is compiled into that
+     * signature). These are rendered into the method template, replacing the
+     * `$DOC_BLOCK$`, `$ATTRIBUTES$`, `$METHOD_NAME$`, `$SIGNATURE_ARGS$`, `$ARGS$`,
+     * `$RETURN_TYPE$`, `$PHEL_NAMESPACE$` and `$PHEL_FUNCTION_NAME$` tokens, so the
+     * generated method delegates to `self::callPhel(...)` at runtime.
      */
     public function build(string $phelNs, FunctionToExport $functionToExport): string
     {
@@ -39,19 +42,23 @@ final readonly class CompiledPhpMethodBuilder
         $refInvoke = $ref->getMethod('__invoke');
 
         return str_replace([
+            '$DOC_BLOCK$',
             '$ATTRIBUTES$',
             '$METHOD_NAME$',
-            '$ARGS$',
+            '$SIGNATURE_ARGS$',
             '$RETURN_TYPE$',
             '$PHEL_NAMESPACE$',
             '$PHEL_FUNCTION_NAME$',
+            '$ARGS$',
         ], [
+            $this->buildDocBlock($refInvoke, $functionToExport->returnTag()),
             $this->buildAttributes($functionToExport),
             $this->buildMethodName($boundTo),
-            $this->buildArgs($refInvoke),
+            $this->buildSignatureArgs($refInvoke),
             $this->buildReturnType($refInvoke),
             str_replace(['_', '\\'], ['-', '\\\\'], $phelNs),
             $this->buildPhelFunctionName($boundTo),
+            $this->buildArgs($refInvoke),
         ], $this->methodTemplate());
     }
 
@@ -100,6 +107,73 @@ final readonly class CompiledPhpMethodBuilder
         return implode(', ', $args);
     }
 
+    private function buildSignatureArgs(ReflectionMethod $refInvoke): string
+    {
+        $args = array_map(
+            static function (ReflectionParameter $p): string {
+                $type = $p->getType();
+                $typePrefix = $type instanceof ReflectionType ? $type->__toString() . ' ' : '';
+                $variadic = $p->isVariadic() ? '...' : '';
+
+                return $typePrefix . $variadic . '$' . $p->getName();
+            },
+            $refInvoke->getParameters(),
+        );
+
+        return implode(', ', $args);
+    }
+
+    /**
+     * Renders an indented `@param`/`@return` docblock for the wrapper method, or ''
+     * when no type information exists (so untyped fns keep their previous output).
+     */
+    private function buildDocBlock(ReflectionMethod $refInvoke, ?string $returnTag): string
+    {
+        $docLines = [];
+        $knowsAnyType = false;
+
+        foreach ($refInvoke->getParameters() as $param) {
+            $paramType = $this->typeToString($param->getType());
+            $knowsAnyType = $knowsAnyType || $paramType !== 'mixed';
+            $variadicPrefix = $param->isVariadic() ? '...' : '';
+            $docLines[] = sprintf('@param %s %s$%s', $paramType, $variadicPrefix, $param->getName());
+        }
+
+        $returnDocType = $this->returnDocType($refInvoke, $returnTag);
+        $knowsAnyType = $knowsAnyType || $returnDocType !== 'mixed';
+
+        if (!$knowsAnyType) {
+            return '';
+        }
+
+        $docLines[] = '@return ' . $returnDocType;
+
+        return "    /**\n"
+            . implode('', array_map(
+                static fn(string $line): string => '     * ' . $line . "\n",
+                $docLines,
+            ))
+            . "     */\n";
+    }
+
+    private function returnDocType(ReflectionMethod $refInvoke, ?string $returnTag): string
+    {
+        $reflected = $this->typeToString($refInvoke->getReturnType());
+
+        // Multi-arity fns compile to an untyped `__invoke(...$args)`; their return
+        // `:tag` survives only in the definition metadata.
+        if ($reflected === 'mixed' && $returnTag !== null) {
+            return $returnTag;
+        }
+
+        return $reflected;
+    }
+
+    private function typeToString(?ReflectionType $type): string
+    {
+        return $type instanceof ReflectionType ? (string) $type : 'mixed';
+    }
+
     private function buildPhelFunctionName(string $boundTo): string
     {
         $suffix = strrchr($boundTo, '\\');
@@ -141,7 +215,7 @@ final readonly class CompiledPhpMethodBuilder
     {
         return <<<'TXT'
 
-$ATTRIBUTES$    public static function $METHOD_NAME$($ARGS$)$RETURN_TYPE$
+$DOC_BLOCK$$ATTRIBUTES$    public static function $METHOD_NAME$($SIGNATURE_ARGS$)$RETURN_TYPE$
     {
         return self::callPhel('$PHEL_NAMESPACE$', '$PHEL_FUNCTION_NAME$', $ARGS$);
     }
