@@ -145,6 +145,51 @@ final class PharExecutionTest extends TestCase
         );
     }
 
+    public function test_phar_test_parallel_runs_without_re_nulling_bundled_core(): void
+    {
+        // Regression #2672: from the PHAR the long-lived parallel worker
+        // re-evaluated bundled phel.core, re-nulling its forward-declared defs
+        // (map/seq/nil?) — every worker died "__invoke() on null", 0 tests.
+        $projectDir = $this->tempProjectDir . '/fresh-parallel';
+        mkdir($projectDir, 0755, true);
+
+        $init = $this->runPharInDir($projectDir, ['init', '--no-interaction']);
+        self::assertSame(
+            0,
+            $init['exit'],
+            sprintf("phel init failed.\nstdout:\n%s\nstderr:\n%s", $init['stdout'], $init['stderr']),
+        );
+
+        $test = $this->runPharInDir($projectDir, ['test', '--parallel=2']);
+        $combined = $test['stdout'] . $test['stderr'];
+
+        self::assertSame(
+            0,
+            $test['exit'],
+            sprintf(
+                "phel test --parallel from PHAR must pass.\nstdout:\n%s\nstderr:\n%s",
+                $test['stdout'],
+                $test['stderr'],
+            ),
+        );
+        self::assertStringNotContainsString(
+            '__invoke() on null',
+            $combined,
+            'a worker re-evaluating bundled phel.core would re-null map/seq/nil? (#2672)',
+        );
+        self::assertMatchesRegularExpression(
+            '/across 2 parallel worker\(s\)/',
+            $test['stdout'],
+            'must fan out to workers, not silently fall back to serial',
+        );
+        self::assertMatchesRegularExpression(
+            '/Passed:\s+[1-9]/',
+            $test['stdout'],
+            'workers must actually run tests, not report 0 (the #2672 symptom)',
+        );
+        self::assertMatchesRegularExpression('/Error:\s+0/', $test['stdout']);
+    }
+
     public function test_phar_ships_shell_completion_scripts(): void
     {
         // Regression: the PHAR build must not exclude Symfony's

@@ -550,9 +550,9 @@ qa_smoke_test_phar() {
         if [[ $step_rc -eq 0 ]]; then
             log_err "QA [$label] expected a non-zero exit but the command succeeded"
             failures=$((failures + 1))
-        elif grep -qE 'PHP (Warning|Fatal|Parse) ' "$step_err"; then
+        elif grep -qE 'PHP (Warning|Fatal|Parse|Deprecated) ' "$step_err"; then
             log_err "QA [$label] leaked a raw PHP diagnostic instead of a clean Phel error:"
-            grep -E 'PHP (Warning|Fatal|Parse) ' "$step_err" | head -3 >&2
+            grep -E 'PHP (Warning|Fatal|Parse|Deprecated) ' "$step_err" | head -3 >&2
             failures=$((failures + 1))
         elif ! grep -qiE "$pattern" "$step_err" "$step_out"; then
             log_err "QA [$label] error output did not match /$pattern/"
@@ -572,7 +572,7 @@ qa_smoke_test_phar() {
     _qa_expect "eval" "3" php phel.phar eval "(+ 1 2)"
     _qa_run    "compile" php phel.phar compile "(+ 1 2)"
     _qa_expect "test" "Passed: 2" php phel.phar test
-    _qa_run    "test-parallel" php phel.phar test --parallel 2
+    _qa_expect "test-parallel" "Passed: +[1-9]" php phel.phar test --parallel 2
     _qa_run    "format" php phel.phar format --dry-run src/
     _qa_run    "build" php phel.phar build
     _qa_run    "lint" php phel.phar lint src
