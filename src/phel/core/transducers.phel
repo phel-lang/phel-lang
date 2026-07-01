@@ -70,6 +70,21 @@
         (php/-> acc (deref)))
     (throw (php/new InvalidArgumentException "expected 2 or 3 arguments in reduce"))))
 
+(defn reduce-kv
+  "Reduces an associative collection by applying `f` to the accumulator, key and value of each entry, starting with `init`. Vectors use the index as key. Respects early termination via `(reduced val)`."
+  {:example "(reduce-kv (fn [m k v] (assoc m v k)) {} {:a 1 :b 2}) ; => {1 :a, 2 :b}"
+   :see-also ["reduce" "update-keys" "update-vals" "reduced"]}
+  [f init coll]
+  (let [acc  (php/new Volatile init)
+        done (php/new Volatile false)]
+    (dofor [[k v] :pairs coll :while (not (php/-> done (deref)))]
+      (let [result (f (php/-> acc (deref)) k v)]
+        (if (reduced? result)
+          (do (php/-> acc (reset (php/-> result (deref))))
+              (php/-> done (reset true)))
+          (php/-> acc (reset result)))))
+    (php/-> acc (deref))))
+
 (defn completing
   "Takes a reducing function `f` of 2 args and returns a fn suitable for transduce by adding a 1-arity (completion) that calls `cf` (default: identity)."
   {:see-also ["transduce"]}
