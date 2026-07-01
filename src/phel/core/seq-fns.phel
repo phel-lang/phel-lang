@@ -974,6 +974,25 @@ With one argument returns an infinite lazy sequence of calls to f."
   [f x]
   (lazy-seq-from-generator (php/:: Seq (iterate f x))))
 
+(defn reductions
+  "Returns a lazy sequence of the intermediate values of the reduction (as per reduce) of coll by f, starting with init when supplied."
+  {:example "(reductions + [1 2 3 4]) ; => @[1 3 6 10]\n(reductions + 0 [1 2 3 4]) ; => @[0 1 3 6 10]"
+   :see-also ["reduce" "iterate"]}
+  ([f coll]
+   (lazy-seq
+     (let [s (seq coll)]
+       (if s
+         (reductions f (first s) (rest s))
+         [(f)]))))
+  ([f init coll]
+   (if (reduced? init)
+     [(unreduced init)]
+     (cons init
+           (lazy-seq
+             (let [s (seq coll)]
+               (when s
+                 (reductions f (f init (first s)) (rest s)))))))))
+
 (defn iterator-seq
   "Returns a lazy sequence over a PHP `Traversable` (Iterator, Generator, IteratorAggregate, ...), pulling one element at a time. Unlike the eager coercion that materialises a `Traversable` via `iterator_to_array`, this streams a large or infinite source (DB cursor, stream reader, paginated API), so `take`/`map`/`filter` only pull what they consume."
   {:example "(take 3 (iterator-seq (php/new \\ArrayIterator (php/array 1 2 3 4 5)))) ; => @[1 2 3]"
