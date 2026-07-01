@@ -54,6 +54,29 @@ final class ExportCommandTest extends TestCase
         $adder = (string) file_get_contents(__DIR__ . '/PhelGenerated/TestCmdExportMultiple/Adder.php');
         self::assertStringContainsString("#[\\My\\Routing\\Route('/add')]", $adder);
         self::assertSame(5, Adder::adder3(2, 3));
+
+        // `:tag` metadata becomes native parameter/return types plus a docblock
+        $expectedTypedAdder = <<<'TXT'
+    /**
+     * @param int $a
+     * @param int $b
+     * @return int
+     */
+    public static function typedAdder(int $a, int $b): int
+TXT;
+        self::assertStringContainsString($expectedTypedAdder, $adder);
+        self::assertSame(5, Adder::typedAdder(2, 3));
+
+        // multi-arity fns stay natively untyped but keep the return :tag in the docblock
+        $expectedMultiAdder = <<<'TXT'
+    /**
+     * @param mixed ...$args
+     * @return int
+     */
+    public static function multiAdder(...$args): mixed
+TXT;
+        self::assertStringContainsString($expectedMultiAdder, $adder);
+        self::assertSame(7, Adder::multiAdder(3, 4));
     }
 
     private function stubOutput(): OutputInterface

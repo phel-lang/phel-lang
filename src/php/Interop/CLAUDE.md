@@ -35,6 +35,6 @@ Generates PHP wrapper classes for Phel functions marked `^{:export true}`, so PH
 - Only `^{:export true}` fns are exported.
 - Export target directory is wiped and regenerated each run.
 - Phel ns → PHP: hyphens become CamelCase (`my-lib` → `MyLib`); generated method names camelCase the fn name (`my-fn` → `myFn`).
-- `CompiledPhpMethodBuilder` reflects the compiled fn class's `BOUND_TO` constant + `__invoke` signature; do not bypass — params/return type/ns come from there.
+- `CompiledPhpMethodBuilder` reflects the compiled fn class's `BOUND_TO` constant + `__invoke` signature; do not bypass — params/return type/ns come from there. Native param/return types (compiled from `:tag`) are mirrored into the wrapper signature plus an `@param`/`@return` docblock; multi-arity fns reflect an untyped `__invoke(...$args)`, so their `@return` comes from the return `:tag` that `FunctionToExport` carries from the definition metadata. Fns without any type info keep a docblock-free `mixed` wrapper.
 - `^{:php/attr [...]}` on an exported `defn` is threaded through `FunctionToExport` and rendered via `Phel\Shared\PhpAttributeRenderer` as PHP 8 attributes above the wrapper method (e.g. `#[\…\Route('/p')]`).
 - `PhelCallerTrait` caches resolved definitions in a process-wide static keyed by `namespace::definitionName`, never invalidated. Safe for CLI / per-request FPM; a wrapper keeps calling the originally resolved definition if the runtime redefines it mid-process.

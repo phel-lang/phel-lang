@@ -13,6 +13,7 @@ All notable changes to this project will be documented in this file.
 - `subvec`: persistent vector slice with start/end bounds checking (#2683)
 - `arity` and `variadic?`: function reflection helpers for required parameter count and variadic detection (#2685)
 - `inspect`: pretty-prints a value (colored on TTY) and returns it unchanged for pipeline debugging (#2688)
+- `phel export` stubs now carry native parameter/return types and `@param`/`@return` docblocks derived from `:tag` metadata (#2695)
 
 ### Fixed
 
