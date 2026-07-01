@@ -1,6 +1,6 @@
 (ns phel-test.pprint
   (:require phel.test :refer [deftest is])
-  (:require phel.pprint :refer [pprint-str]))
+  (:require phel.pprint :refer [pprint-str inspect]))
 
 ;; ---------------------------
 ;; Scalar values (no wrapping)
@@ -68,3 +68,34 @@
   (is (= "[]" (pprint-str [])) "empty vector")
   (is (= "{}" (pprint-str {})) "empty map")
   (is (= "()" (pprint-str '())) "empty list"))
+
+;; --------------------------------
+;; Inspect
+;; --------------------------------
+
+(deftest test-inspect-returns-argument
+  (let [returned (atom :unset)
+        _        (with-output-buffer (reset! returned (inspect {:a [1 2 3]})))]
+    (is (= {:a [1 2 3]} (deref returned)) "inspect returns a map unchanged"))
+  (let [returned (atom :unset)
+        _        (with-output-buffer (reset! returned (inspect [1 2 3])))]
+    (is (= [1 2 3] (deref returned)) "inspect returns a vector unchanged"))
+  (let [returned (atom :unset)
+        _        (with-output-buffer (reset! returned (inspect nil)))]
+    (is (nil? (deref returned)) "inspect returns nil unchanged")))
+
+(deftest test-inspect-output-plain-when-captured
+  (let [output (with-output-buffer (inspect {:a 1}))]
+    (is (= "{:a 1}\n" output) "captured output is the plain pretty print")
+    (is (not (str-contains? output (php/chr 27))) "no ANSI escape codes when not on a TTY")))
+
+(deftest test-inspect-output-wraps-wide-values
+  (let [output (with-output-buffer (inspect [:alpha :beta :gamma] 10))]
+    (is (str-contains? output "\n :beta") "wide value wraps like pprint")
+    (is (= "[:alpha\n :beta\n :gamma]\n" output) "wrapped layout matches pprint-str plus newline")))
+
+(deftest test-inspect-threading-pipeline
+  (let [returned (atom :unset)
+        _        (with-output-buffer
+                   (reset! returned (-> {:a 1} inspect (get :a) inspect inc)))]
+    (is (= 2 (deref returned)) "inspect composes in threading pipelines")))
