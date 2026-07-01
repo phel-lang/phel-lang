@@ -8,6 +8,7 @@ All notable changes to this project will be documented in this file.
 
 - `reduce-kv`: reduce an associative collection with `(f acc key value)`, vector indices as keys, `reduced` short-circuit supported (#2680)
 - `gcd` and `lcm`: greatest common divisor and least common multiple for integers (#2686)
+- `dbg`: debug macro printing `[file:line] form => value` to stderr and returning the value (#2687)
 
 ### Fixed
 

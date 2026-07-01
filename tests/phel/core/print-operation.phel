@@ -1,5 +1,6 @@
 (ns phel-test.core.print-operation
-  (:require phel.test :refer [deftest is]))
+  (:require phel.test :refer [deftest is])
+  (:require phel.string :as s))
 
 (deftest test-str
   (is (= "" (str)) "str with no arg")
@@ -68,3 +69,33 @@
 
 (deftest test-printf
   (is (output? "hello\nworld" (printf "%s\n%s" "hello" "world")) "printf hello\\nworld"))
+
+(deftest test-dbg-returns-value
+  (with-redefs [dbg-write (fn [_] nil)]
+    (is (= 3 (dbg (+ 1 2))) "dbg returns the evaluated value")
+    (is (nil? (dbg nil)) "dbg passes nil through")
+    (is (nil? (dbg)) "zero-arg dbg returns nil")))
+
+(deftest test-dbg-evaluates-expr-once
+  (with-redefs [dbg-write (fn [_] nil)]
+    (let [eval-count (atom 0)]
+      (is (= 1 (dbg (swap! eval-count inc))) "returns the side-effecting expr value")
+      (is (= 1 (deref eval-count)) "expr is evaluated exactly once"))))
+
+(deftest test-dbg-output-format
+  (let [captured (atom nil)]
+    (with-redefs [dbg-write (fn [message] (reset! captured message) nil)]
+      (dbg (+ 1 2)))
+    (let [message (deref captured)]
+      (is (= true (s/starts-with? message "[")) "dbg output starts with the location prefix")
+      (is (= true (s/contains? message "print-operation.phel:")) "dbg output contains the source file")
+      (is (= true (s/contains? message "(+ 1 2) => 3")) "dbg output contains form and value")
+      (is (= true (s/ends-with? message "\n")) "dbg output ends with a newline"))))
+
+(deftest test-dbg-zero-arg-prints-location-marker
+  (let [captured (atom nil)]
+    (with-redefs [dbg-write (fn [message] (reset! captured message) nil)]
+      (dbg))
+    (let [message (deref captured)]
+      (is (= true (s/contains? message "print-operation.phel:")) "marker contains the source file")
+      (is (= true (s/ends-with? message "]\n")) "marker is just the bracketed location"))))

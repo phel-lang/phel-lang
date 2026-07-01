@@ -3,10 +3,12 @@
 (use InvalidArgumentException)
 (use Phel)
 (use Phel.Lang.Seq)
+(use Phel.Lang.SourceLocationInterface)
 (use Phel.Shared.Printer.Printer)
 
 ;; I/O: stdout/formatting (`print`, `println`, `pr`, `prn`, `print-str`,
-;; `format`, `printf`, `with-output-buffer`); file helpers (`slurp`, `spit`,
+;; `format`, `printf`, `with-output-buffer`); stderr debugging (`dbg`,
+;; `dbg-write`); file helpers (`slurp`, `spit`,
 ;; `line-seq`, `file-seq`, `read-file-lazy`, `csv-seq`); and regex helpers
 ;; (`re-pattern`, `re-seq`, `re-find`, `re-matches`). Everything here touches
 ;; the outside world — pure code belongs elsewhere.
@@ -63,6 +65,38 @@
   [fmt & xs]
   (apply php/printf fmt xs)
   nil)
+
+(defn dbg-write
+  "Writes `message` to the standard error stream. Output primitive behind the `dbg` macro; redefine it with `with-redefs` to capture debug output in tests."
+  {:example "(dbg-write \"debug line\\n\")"
+   :see-also ["dbg"]}
+  [message]
+  ;; fopen instead of the STDERR constant: STDERR only exists in the CLI SAPI.
+  (let [stderr-handle (php/fopen "php://stderr" "w")]
+    (php/fwrite stderr-handle message)
+    (php/fclose stderr-handle))
+  nil)
+
+(defn- dbg-location-str [form]
+  (if (php/instanceof form SourceLocationInterface)
+    (let [start-loc (php/-> form (getStartLocation))]
+      (if start-loc
+        (str (php/-> start-loc (getFile)) ":" (php/-> start-loc (getLine)))
+        "unknown"))
+    "unknown"))
+
+(defmacro dbg
+  "Prints `[file:line] form => value` to the standard error stream and returns the value unchanged, so it can wrap any subexpression without restructuring code. With no argument prints just `[file:line]` as a reached-here marker and returns nil."
+  {:example "(defn area [w h] (* (dbg w) h))\n(area 3 4) ; stderr: [src/main.phel:12] w => 3"
+   :see-also ["tap>" "println" "dbg-write"]}
+  ([]
+   `(dbg-write ~(str "[" (dbg-location-str &form) "]\n")))
+  ([expr]
+   `(let [value# ~expr]
+      (dbg-write (str ~(str "[" (dbg-location-str &form) "] " (print-str expr) " => ")
+                      (print-str value#)
+                      "\n"))
+      value#)))
 
 ;; ---------------
 ;; File operations
