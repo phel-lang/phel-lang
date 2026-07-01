@@ -8,6 +8,9 @@ All notable changes to this project will be documented in this file.
 
 - `reduce-kv`: reduce an associative collection with `(f acc key value)`, vector indices as keys, `reduced` short-circuit supported (#2680)
 - `gcd` and `lcm`: greatest common divisor and least common multiple for integers (#2686)
+- `trampoline`: stack-safe mutual recursion by bouncing returned thunks (#2682)
+- `reductions`: sequence of intermediate reduce values, with and without init (#2681)
+- `subvec`: persistent vector slice with start/end bounds checking (#2683)
 - `phel test --coverage=html`: self-contained HTML coverage report with line-colored .phel sources (#2692)
 
 ### Fixed
