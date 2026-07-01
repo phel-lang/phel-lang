@@ -259,6 +259,24 @@
   (is (= [3 4] (slice [1 2 3 4] 2)) "slice on vector")
   (is (= [3] (slice [1 2 3 4] 2 1)) "slice with length on vector"))
 
+(deftest test-subvec
+  (is (= [2 3] (subvec [1 2 3 4 5] 1 3)) "subvec with start and end")
+  (is (= [3 4 5] (subvec [1 2 3 4 5] 2)) "subvec with default end")
+  (is (= [] (subvec [1 2 3] 1 1)) "empty slice when start equals end")
+  (is (= [] (subvec [1 2 3] 3)) "empty slice when start equals count")
+  (is (= [1 2 3] (subvec [1 2 3] 0 3)) "full slice")
+  (is (= [] (subvec [] 0 0)) "full slice of empty vector")
+  (is (vector? (subvec [1 2 3] 0 2)) "subvec returns a vector")
+  (is (thrown? \OutOfBoundsException (subvec [1 2 3] -1)) "negative start throws")
+  (is (thrown? \OutOfBoundsException (subvec [1 2 3] 0 4)) "end beyond count throws")
+  (is (thrown? \OutOfBoundsException (subvec [1 2 3] 4)) "start beyond count throws")
+  (is (thrown? \OutOfBoundsException (subvec [1 2 3] 2 1)) "start greater than end throws")
+  (is (thrown? \InvalidArgumentException (subvec '(1 2 3) 0)) "subvec on a list throws")
+  (let [v   [1 2 3 4 5]
+        sub (subvec v 1 3)]
+    (is (= [2 3] sub) "subvec slices the vector")
+    (is (= [1 2 3 4 5] v) "original vector is unchanged")))
+
 (deftest test-get
   (is (= "b" (get (php/array "a" "b" "c") 1)) "get on php array")
   (is (= "b" (get ["a" "b" "c"] 1)) "get on vector")

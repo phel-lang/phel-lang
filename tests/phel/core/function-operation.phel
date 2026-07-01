@@ -12,6 +12,37 @@
 (deftest test-complement
   (is (false? ((complement and) true true)) "complement of and"))
 
+(deftest test-arity-fixed
+  (is (= 1 (arity inc)) "arity of one-parameter core fn")
+  (is (= 0 (arity (fn [] 1))) "arity of zero-parameter fn")
+  (is (= 3 (arity (fn [a b c] a))) "arity of anonymous three-parameter fn")
+  (is (= 2 (arity |(+ $1 $2))) "arity of short fn literal"))
+
+(deftest test-arity-variadic
+  (is (= 3 (arity assoc)) "variadic fn reports required parameters before &")
+  (is (= 0 (arity +)) "fully variadic fn reports zero required parameters")
+  (is (= 1 (arity (fn [x & xs] x))) "anonymous variadic fn reports required parameters"))
+
+(deftest test-arity-multi-arity
+  ;; Multi-arity fns compile to a single variadic `__invoke` dispatch,
+  ;; so they report the dispatch signature: arity 0 and variadic? true.
+  (let [f (fn multi ([x] x) ([x y] y))]
+    (is (= 0 (arity f)) "multi-arity fn reports the variadic dispatch arity")
+    (is (true? (variadic? f)) "multi-arity fn reports the variadic dispatch")))
+
+(deftest test-variadic?
+  (is (true? (variadic? +)) "+ accepts variadic args")
+  (is (true? (variadic? assoc)) "assoc accepts variadic args")
+  (is (false? (variadic? inc)) "inc is not variadic")
+  (is (false? (variadic? (fn [a b] a))) "fixed-arity anonymous fn is not variadic")
+  (is (false? (variadic? |(+ $1 $2))) "short fn literal is not variadic")
+  (is (true? (variadic? (fn [x & xs] x))) "anonymous variadic fn is variadic"))
+
+(deftest test-arity-php-callable
+  (let [upper (php/callable \strtoupper)]
+    (is (= 1 (arity upper)) "php/callable closure reports the PHP signature")
+    (is (false? (variadic? upper)) "php/callable closure is not variadic")))
+
 (deftest test-some-fn-single-pred
   (is (true? ((some-fn even?) 2)) "some-fn with one pred, single truthy arg")
   (is (false? ((some-fn even?) 1)) "some-fn with one pred, single falsy arg")
@@ -141,6 +172,35 @@
     (is (= 3 (f 1 2)) "cached multi-arg call")
     (is (= 7 (f 3 4)) "different multi-arg call")
     (is (= 2 (deref counter)) "two executions")))
+
+(deftest test-trampoline-direct-value
+  (is (= 3 (trampoline + 1 2)) "non-function return comes back unchanged")
+  (is (nil? (trampoline (fn [] nil))) "nil return is not bounced"))
+
+(deftest test-trampoline-one-bounce
+  (is (= 42 (trampoline (fn [x] (fn [] (inc x))) 41))
+      "returned thunk is called once and its value returned"))
+
+(deftest test-trampoline-args-passed-through
+  (is (= [1 2 3] (trampoline (fn [& xs] xs) 1 2 3))
+      "all initial args reach f"))
+
+(deftest test-trampoline-mutual-recursion
+  (letfn [(my-even? [n] (if (zero? n) true (fn [] (my-odd? (dec n)))))
+          (my-odd? [n] (if (zero? n) false (fn [] (my-even? (dec n)))))]
+    ;; 10000 bounces would overflow the PHP call stack without trampoline
+    (is (true? (trampoline my-even? 10000)) "my-even? 10000 bounces to true")
+    (is (false? (trampoline my-odd? 10000)) "my-odd? 10000 bounces to false")))
+
+(deftest test-trampoline-callables-not-reinvoked
+  (is (= :done (trampoline (fn [] :done))) "keyword return is not treated as a thunk")
+  (is (= {:a 1} (trampoline (fn [] {:a 1}))) "map return is not treated as a thunk")
+  (is (= [1 2] (trampoline (fn [] [1 2]))) "vector return is not treated as a thunk"))
+
+(deftest test-trampoline-function-as-final-value
+  (let [wrapped (trampoline (fn [] [inc]))]
+    (is (fn? (first wrapped)) "wrapping in a collection returns the function itself")
+    (is (= 2 ((first wrapped) 1)) "unwrapped function still works")))
 
 (def memoize-meta-counter (atom 0))
 
