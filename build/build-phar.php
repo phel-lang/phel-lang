@@ -544,6 +544,15 @@ final class PharBuilder
 
             $absolute = $fileInfo->getPathname();
             $relative = ltrim(str_replace('\\', '/', substr($absolute, \strlen($this->root))), '/');
+
+            // Ship template SOURCES only. Running an example locally leaves
+            // gitignored build junk behind (`.phel/` opcache+compiled cache,
+            // an installed `vendor/`); bundling it verbatim ballooned the
+            // release from ~2 MB to ~14 MB (#2678).
+            if ($this->isExampleBuildArtifact($relative)) {
+                continue;
+            }
+
             $phar->addFile($absolute, $relative);
             ++$this->stats['files_added'];
 
@@ -552,6 +561,22 @@ final class PharBuilder
                 $this->stats['total_size'] += $size;
             }
         }
+    }
+
+    /**
+     * A path inside an example template that is a local build artifact rather
+     * than a shipped source: the `.phel/` cache/opcache dir or an installed
+     * `vendor/`. Users regenerate both with `composer install` + first run.
+     */
+    private function isExampleBuildArtifact(string $relative): bool
+    {
+        foreach (explode('/', $relative) as $segment) {
+            if ($segment === '.phel' || $segment === 'vendor') {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     /**
