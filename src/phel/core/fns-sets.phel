@@ -5,9 +5,9 @@
 ;;   1. Set algebra: `union`, `intersection`, `difference`,
 ;;      `symmetric-difference`, `subset?`, `superset?`.
 ;;   2. Function combinators and collection helpers: `constantly`,
-;;      `complement`, `some-fn`, `juxt`, `partial`, `fnil`, `memoize`,
-;;      `memoize-lru`, `tree-seq`, `flatten`, `merge-with`, `update-keys`,
-;;      `update-vals`, etc.
+;;      `complement`, `arity`, `variadic?`, `some-fn`, `juxt`, `partial`,
+;;      `fnil`, `memoize`, `memoize-lru`, `tree-seq`, `flatten`,
+;;      `merge-with`, `update-keys`, `update-vals`, etc.
 
 ;; -------------
 ;; Set operation
@@ -98,6 +98,26 @@
   "Returns a function that takes the same arguments as `f` and returns the opposite truth value."
   [f]
   #(not (apply f %&)))
+
+;; Phel fns compile to invokable objects or plain PHP closures; the
+;; `__invoke` signature is the single reflection point covering both.
+(defn- fn-reflection
+  [f]
+  (php/new \ReflectionMethod f "__invoke"))
+
+(defn arity
+  "Returns the number of required parameters of the function `f`. For a variadic function this is the number of parameters before `&`. A multi-arity function compiles to a single variadic dispatch, so it reports `0`."
+  {:example "(arity inc) ; => 1\n(arity assoc) ; => 3"
+   :see-also ["variadic?" "apply" "partial"]}
+  [f]
+  (php/-> (fn-reflection f) (getNumberOfRequiredParameters)))
+
+(defn variadic?
+  "Returns true if the function `f` accepts a variable number of arguments. A multi-arity function compiles to a single variadic dispatch, so it always reports `true`."
+  {:example "(variadic? +) ; => true\n(variadic? inc) ; => false"
+   :see-also ["arity" "apply"]}
+  [f]
+  (php/-> (fn-reflection f) (isVariadic)))
 
 (defn some-fn
   "Takes a variadic set of predicates and returns a function `f` that, when called with any number of arguments, returns the first logical true value produced by applying any of the composing predicates to any of its arguments, and `false` when none match. The returned function short-circuits on the first truthy result: arguments after it are not inspected, and predicates after it are not tried. Predicates are consulted in the order supplied; for a given predicate, arguments are consulted left-to-right."
