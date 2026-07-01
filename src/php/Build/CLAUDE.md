@@ -72,7 +72,7 @@ Compiles Phel projects to PHP: namespace extraction, dependency ordering, and ca
 
 ### Precompiled-sibling fast path
 
-- Before the compiled-code cache, `FileEvaluator::evalFile` checks for a `phel build`-style `<name>.php` next to the `<name>.phel`/`.cljc` source (detected via the `BuiltFilePreamble` marker). If present it `require`s it directly and returns — skipping the whole pipeline and the cache.
+- Before the compiled-code cache, `FileEvaluator::evalFile` checks for a `phel build`-style `<name>.php` next to the `<name>.phel`/`.cljc` source (detected via the `BuiltFilePreamble` marker). If present it `require_once`s it directly and returns — skipping the whole pipeline and the cache. `require_once` (not `require`) keeps a re-`evalFile` idempotent: a second load must not re-run the primary and re-null its forward-declared defs (#2673).
 - This is how the PHAR ships `phel.core` precompiled (siblings added by `build/build-phar.php::addPrecompiledStdlibSiblings`): running the compiled file populates the runtime registry (defs + macro meta), which is all the analyzer needs to resolve those symbols when later compiling user code. Inert when no sibling exists (plain source / composer checkouts).
 - A namespace may only be bundled together with its full transitive `(:require ...)` closure, since FILE-mode output `require_once`s its dependency siblings directly — `phel.core` qualifies because it is self-contained.
 - The fast path (and the emitted `(load ...)` `.php` preference) is disabled while `*build-mode*` is on, so `phel build` recompiles + harvests the stdlib into its output tree instead of short-circuiting to the bundle. `PhelSourceLoader::load` preserves an outer build mode so it stays on across every `(load ...)` of a build.

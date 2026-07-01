@@ -19,6 +19,7 @@ All notable changes to this project will be documented in this file.
 ### Fixed
 
 - `phel test --parallel` no longer intermittently fails from the distributed PHAR: a namespace whose worker hits a transient load error is re-run on a fresh worker (up to twice) before the error surfaces, so a rare race can't red the whole run; genuine test failures are never retried, and serial runs were always unaffected (#2672)
+- Re-evaluating an already-loaded bundled namespace (a precompiled `.php` sibling shipped in the PHAR) no longer nulls its forward-declared defs (`map`/`seq`/`nil?`): the primary is loaded with `require_once`, so a second load can't reset them to null and crash a later call with `__invoke() on null` (#2673)
 - Global/PHAR `phel` resolves the project root from the working directory (nearest `phel-config.php` or `vendor/`), not the binary location, so `phel config`/`doctor` read the local config from anywhere (#2640)
 - `phel-config.php` returning `null` is now rejected with a clear error, not silently treated as empty config (#2642)
 - `phel.router/compiled-router` now compiles routes carrying a `:handler` function (#2663)
