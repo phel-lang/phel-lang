@@ -138,7 +138,7 @@ final class TestCommandOptionsWiringTest extends TestCase
     {
         $tester = new CommandCompletionTester(new TestCommand());
 
-        self::assertSame(['text', 'clover'], $tester->complete(['--coverage', '']));
+        self::assertSame(['text', 'clover', 'html'], $tester->complete(['--coverage', '']));
     }
 
     public function test_reporter_option_completes_builtins(): void

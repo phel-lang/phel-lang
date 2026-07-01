@@ -13,6 +13,7 @@ use function escapeshellarg;
 use function exec;
 use function file_get_contents;
 use function file_put_contents;
+use function glob;
 use function implode;
 use function mkdir;
 use function random_bytes;
@@ -89,6 +90,34 @@ final class TestCommandCoverageTest extends TestCase
         $xml = simplexml_load_string((string) file_get_contents($cloverPath));
         self::assertNotFalse($xml, 'clover output is well-formed XML');
         self::assertStringContainsString('calc.phel', (string) file_get_contents($cloverPath));
+    }
+
+    public function test_html_coverage_writes_report_to_default_directory(): void
+    {
+        [, $output] = $this->runPhelTest(['--coverage=html']);
+        $this->skipIfNoDriver($output);
+
+        $indexPath = $this->projectDir . '/var/coverage/index.html';
+        self::assertStringContainsString('HTML coverage report written to var/coverage/index.html', $output);
+        self::assertFileExists($indexPath);
+
+        $index = (string) file_get_contents($indexPath);
+        self::assertStringContainsString('calc.phel', $index);
+        self::assertMatchesRegularExpression('/\d+\.\d%/', $index);
+        self::assertStringNotContainsString('http://', $index);
+        self::assertStringNotContainsString('https://', $index);
+    }
+
+    public function test_html_coverage_supports_custom_directory_suffix(): void
+    {
+        [, $output] = $this->runPhelTest(['--coverage=html:report/cov']);
+        $this->skipIfNoDriver($output);
+
+        self::assertFileExists($this->projectDir . '/report/cov/index.html');
+        $filePages = glob($this->projectDir . '/report/cov/calc.phel.*.html');
+        self::assertNotFalse($filePages);
+        self::assertCount(1, $filePages);
+        self::assertStringContainsString('class="covered"', (string) file_get_contents($filePages[0]));
     }
 
     private function skipIfNoDriver(string $output): void
