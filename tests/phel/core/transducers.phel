@@ -28,6 +28,27 @@
   (is (= 10 (reduce + [1 2 3 4])) "reduce without init")
   (is (= 10 (reduce + 0 [1 2 3 4])) "reduce with init"))
 
+(deftest test-reduce-kv-map
+  (is (= {1 :a 2 :b} (reduce-kv (fn [m k v] (assoc m v k)) {} {:a 1 :b 2}))
+      "reduce-kv inverts a map")
+  (is (= 6 (reduce-kv (fn [acc _ v] (+ acc v)) 0 {:a 1 :b 2 :c 3}))
+      "reduce-kv sums map values"))
+
+(deftest test-reduce-kv-vector
+  (is (= [[0 :a] [1 :b] [2 :c]]
+         (reduce-kv (fn [acc i v] (conj acc [i v])) [] [:a :b :c]))
+      "reduce-kv passes vector indices as keys"))
+
+(deftest test-reduce-kv-empty
+  (is (= :init (reduce-kv (fn [acc k v] (assoc acc k v)) :init {}))
+      "reduce-kv returns init on empty map")
+  (is (= 0 (reduce-kv (fn [acc _ v] (+ acc v)) 0 []))
+      "reduce-kv returns init on empty vector"))
+
+(deftest test-reduce-kv-reduced
+  (is (= [:a] (reduce-kv (fn [acc k _] (reduced [k])) :init {:a 1 :b 2}))
+      "reduce-kv stops early on reduced and unwraps it"))
+
 (deftest test-completing
   (let [f (completing +)]
     (is (= 0 (f)) "0-arity calls f")
