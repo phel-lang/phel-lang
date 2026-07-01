@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace PhelTest\Unit\Build\Application;
 
+use Phel;
 use Phel\Build\Application\FileEvaluator;
 use Phel\Build\BuildFacade;
 use Phel\Build\Domain\Cache\DependencyTrackerInterface;
@@ -11,6 +12,7 @@ use Phel\Build\Domain\Extractor\FirstFormExtractor;
 use Phel\Build\Domain\Extractor\NamespaceExtractorInterface;
 use Phel\Build\Infrastructure\Cache\CompiledCodeCache;
 use Phel\Compiler\Domain\Emitter\EmitterResult;
+use Phel\Lang\Registry;
 use Phel\Shared\CompileOptions;
 use Phel\Shared\Facade\CompilerFacadeInterface;
 use Phel\Shared\NamespaceInformation;
@@ -18,6 +20,8 @@ use PHPUnit\Framework\TestCase;
 use RecursiveDirectoryIterator;
 use RecursiveIteratorIterator;
 use RuntimeException;
+
+use function sprintf;
 
 final class FileEvaluatorTest extends TestCase
 {
@@ -100,6 +104,50 @@ final class FileEvaluatorTest extends TestCase
         self::assertTrue($GLOBALS['phel_precompiled_sibling_ran'] ?? false);
 
         unset($GLOBALS['phel_precompiled_sibling_ran']);
+    }
+
+    public function test_re_eval_of_precompiled_sibling_keeps_forward_declared_def(): void
+    {
+        // #2673: a bundled primary forward-declares a def as null, then a
+        // `require_once` secondary registers the real value. A second evalFile
+        // must not re-run the primary and re-null the def (`map`/`seq`/`nil?`
+        // in phel.core). This is the exact shape only the PHAR ships.
+        $namespace = 'test\\precompiled_idempotent_2673';
+        $defName = 'the-fn';
+
+        $sourceFile = $this->tempDir . '/core.phel';
+        file_put_contents($sourceFile, '(ns test\\precompiled_idempotent_2673)');
+
+        // The secondary is pulled in with `require_once`, so it runs once per
+        // process — mirroring a compiled `(load ...)` secondary.
+        $this->writePrecompiledDef(
+            $this->tempDir . '/core-secondary.php',
+            $namespace,
+            $defName,
+            "static fn () => 'real'",
+        );
+
+        $this->writePrecompiledDef(
+            $this->tempDir . '/core.php',
+            $namespace,
+            $defName,
+            'null',
+            "require_once __DIR__ . '/core-secondary.php';\n",
+        );
+
+        $compilerFacade = $this->createStub(CompilerFacadeInterface::class);
+        $namespaceExtractor = $this->createStub(NamespaceExtractorInterface::class);
+        $namespaceExtractor->method('getNamespaceFromFile')->willReturn(
+            new NamespaceInformation($sourceFile, $namespace, ['phel.core']),
+        );
+
+        $evaluator = new FileEvaluator($compilerFacade, $namespaceExtractor);
+        $evaluator->evalFile($sourceFile);
+        $evaluator->evalFile($sourceFile);
+
+        $def = Registry::getInstance()->getDefinition($namespace, $defName);
+        self::assertNotNull($def, 'Re-evaluating a precompiled sibling must not null a forward-declared def');
+        self::assertSame('real', $def());
     }
 
     public function test_eval_file_ignores_precompiled_sibling_during_build(): void
@@ -738,6 +786,31 @@ final class FileEvaluatorTest extends TestCase
             optimizationLevel: 0,
         );
         $evaluator->evalFile($sourceFile);
+    }
+
+    /**
+     * Writes a precompiled `.php` sibling that registers one def via
+     * `\Phel::addDefinition`, mirroring the shape the PHAR bundles.
+     */
+    private function writePrecompiledDef(
+        string $path,
+        string $namespace,
+        string $defName,
+        string $valueExpr,
+        string $trailer = '',
+    ): void {
+        file_put_contents(
+            $path,
+            "<?php declare(strict_types=1);\n"
+            . sprintf(
+                "%s::addDefinition(%s, %s, %s);\n",
+                '\\' . Phel::class,
+                var_export($namespace, true),
+                var_export($defName, true),
+                $valueExpr,
+            )
+            . $trailer,
+        );
     }
 
     private function removeDir(string $dir): void

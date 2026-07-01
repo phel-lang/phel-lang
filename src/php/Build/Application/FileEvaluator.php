@@ -76,8 +76,13 @@ final class FileEvaluator
         $precompiledSibling = $this->precompiledSiblingPath($src);
         if ($precompiledSibling !== null) {
             $this->compilerFacade->initializeGlobalEnvironment();
+            // #2673: `require_once`, not `require` — a bundled primary
+            // forward-declares defs (`map`/`seq`/`nil?`) as null and restores
+            // them via `require_once` secondaries. A second plain `require`
+            // re-nulls the forward decls while the secondaries no-op, leaving
+            // them null. Loading the primary once per process keeps them.
             /** @psalm-suppress UnresolvableInclude */
-            require $precompiledSibling;
+            require_once $precompiledSibling;
 
             return new CompiledFile($src, $precompiledSibling, $namespace);
         }
@@ -184,7 +189,7 @@ final class FileEvaluator
      * `.phel`/`.cljc` source (the stdlib bundled in the PHAR), or null when
      * none applies.
      *
-     * When present, the sibling is `require`d directly, skipping the
+     * When present, the sibling is `require_once`d directly, skipping the
      * lex/parse/analyze/emit pipeline and the compiled-code cache entirely:
      * running the compiled file registers every definition (with macro meta)
      * in the runtime registry, which is all the analyzer needs to resolve
