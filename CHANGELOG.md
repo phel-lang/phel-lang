@@ -11,6 +11,7 @@ All notable changes to this project will be documented in this file.
 - `trampoline`: stack-safe mutual recursion by bouncing returned thunks (#2682)
 - `reductions`: sequence of intermediate reduce values, with and without init (#2681)
 - `subvec`: persistent vector slice with start/end bounds checking (#2683)
+- `with-open`: scoped resource cleanup macro; closes bound resources in reverse order even on exception (#2684)
 
 ### Fixed
 

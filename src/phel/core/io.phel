@@ -7,7 +7,7 @@
 
 ;; I/O: stdout/formatting (`print`, `println`, `pr`, `prn`, `print-str`,
 ;; `format`, `printf`, `with-output-buffer`); file helpers (`slurp`, `spit`,
-;; `line-seq`, `file-seq`, `read-file-lazy`, `csv-seq`); and regex helpers
+;; `line-seq`, `file-seq`, `read-file-lazy`, `csv-seq`, `with-open`); and regex helpers
 ;; (`re-pattern`, `re-seq`, `re-find`, `re-matches`). Everything here touches
 ;; the outside world — pure code belongs elsewhere.
 
@@ -172,6 +172,42 @@ See PHP's [file_put_contents](https://www.php.net/manual/en/function.file-put-co
      (if (php/=== nil result)
        '()
        result))))
+
+(defn- close-resource
+  "Close dispatch used by `with-open`: objects with a `close` method are
+  closed via that method, stream resources via `php/fclose`. Nil and values
+  without a known close strategy are skipped."
+  [resource]
+  (cond
+    (nil? resource) nil
+    (and (php/is_object resource) (php/method_exists resource "close"))
+    (php/-> resource (close))
+    (and (php/is_resource resource) (= "stream" (php/get_resource_type resource)))
+    (php/fclose resource)
+    nil))
+
+(defmacro with-open
+  "Evaluates body with the names bound as in `let`, then closes every bound
+  resource in a `finally` clause — in reverse binding order — even when the
+  body throws. Objects exposing a `close` method are closed by calling it,
+  stream resources with `php/fclose`; `nil` bindings are skipped."
+  {:example "(with-open [f (php/fopen \"data.txt\" \"r\")] (php/fgets f))"
+   :see-also ["slurp" "spit" "line-seq"]}
+  [bindings & body]
+  (let [err #(throw (php/new \InvalidArgumentException %))]
+    (when-not (vector? bindings)
+      (err (str "with-open requires a vector for its bindings, "
+                (type bindings) " given")))
+    (when-not (even? (count bindings))
+      (err (str "with-open requires an even number of forms in the bindings vector, "
+                (count bindings) " given"))))
+  (if (php/=== 0 (count bindings))
+    `(do ~@body)
+    `(let [~(bindings 0) ~(bindings 1)]
+       (try
+         (with-open ~(vec (drop 2 bindings)) ~@body)
+         (finally
+           (close-resource ~(bindings 0)))))))
 
 ;; ----------------
 ;; Threading macros
