@@ -58,7 +58,7 @@ Runs the test suite (all tests by default, or the files/namespaces you pass).
 
 <info>Examples:</info>
   <comment>phel test</comment>                     Run every test
-  <comment>phel test --filter=greet --parallel</comment>   Filter by name, run in parallel
+  <comment>phel test --filter=greet --parallel=auto</comment>   Filter by name, run in parallel
 HELP)
             ->addArgument(
                 TestCommandOptionParser::ARG_PATHS,
