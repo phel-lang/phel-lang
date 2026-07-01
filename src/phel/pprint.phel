@@ -8,92 +8,124 @@
   [x]
   (php/-> (php/:: Printer (readable)) (print x)))
 
+(defn- render-value
+  "Prints `x` with the given printer (plain or colored)."
+  [printer x]
+  (php/-> printer (print x)))
+
 (defn- pp-str
-  "Pretty-prints `form` to a string with the given indent level and max width."
-  [form indent width]
+  "Pretty-prints `form` to a string with the given indent level and max width.
+  Width is always measured on the plain readable output; `printer` only affects
+  how leaves are rendered (ANSI codes would inflate the measured length)."
+  [form indent width printer]
   (let [t         (type form)
         available (- width indent)
         flat      (print-value form)]
     (cond
       (= t :vector)
       (if (<= (count flat) available)
-        flat
+        (render-value printer form)
         (let [prefix       "["
               suffix       "]"
               inner-indent (+ indent 1)
               pad          (php/str_repeat " " inner-indent)
-              parts        (for [x :in form] (pp-str x inner-indent width))]
+              parts        (for [x :in form] (pp-str x inner-indent width printer))]
           (str prefix
                (php/implode (str "\n" pad) (apply php-indexed-array parts))
                suffix)))
 
       (= t :list)
       (if (<= (count flat) available)
-        flat
+        (render-value printer form)
         (let [prefix       "("
               suffix       ")"
               inner-indent (+ indent 1)
               pad          (php/str_repeat " " inner-indent)
-              parts        (for [x :in form] (pp-str x inner-indent width))]
+              parts        (for [x :in form] (pp-str x inner-indent width printer))]
           (str prefix
                (php/implode (str "\n" pad) (apply php-indexed-array parts))
                suffix)))
 
       (= t :hash-map)
       (if (<= (count flat) available)
-        flat
+        (render-value printer form)
         (let [prefix       "{"
               suffix       "}"
               inner-indent (+ indent 1)
               pad          (php/str_repeat " " inner-indent)
               pairs        (for [[k v] :pairs form]
                              (let [kstr (print-value k)]
-                               (str kstr " " (pp-str v (+ inner-indent (count kstr) 1) width))))
+                               (str (render-value printer k) " "
+                                    (pp-str v (+ inner-indent (count kstr) 1) width printer))))
               joined       (php/implode (str "\n" pad) (apply php-indexed-array pairs))]
           (str prefix joined suffix)))
 
       (= t :set)
       (if (<= (count flat) available)
-        flat
+        (render-value printer form)
         (let [prefix       "#{"
               suffix       "}"
               inner-indent (+ indent 2)
               pad          (php/str_repeat " " inner-indent)
-              parts        (for [x :in form] (pp-str x inner-indent width))]
+              parts        (for [x :in form] (pp-str x inner-indent width printer))]
           (str prefix
                (php/implode (str "\n" pad) (apply php-indexed-array parts))
                suffix)))
 
       (= t :struct)
       (if (<= (count flat) available)
-        flat
+        (render-value printer form)
         (let [prefix       "{"
               suffix       "}"
               inner-indent (+ indent 1)
               pad          (php/str_repeat " " inner-indent)
               pairs        (for [[k v] :pairs form]
                              (let [kstr (print-value k)]
-                               (str kstr " " (pp-str v (+ inner-indent (count kstr) 1) width))))
+                               (str (render-value printer k) " "
+                                    (pp-str v (+ inner-indent (count kstr) 1) width printer))))
               joined       (php/implode (str "\n" pad) (apply php-indexed-array pairs))]
           (str prefix joined suffix)))
 
-      flat)))
+      (render-value printer form))))
 
 (defn pprint-str
   "Pretty-prints `form` to a string with optional `width` (default 72)."
   {:doc "Pretty-print a data structure to a string with line breaks and indentation."
-   :see-also ["pprint"]
+   :see-also ["pprint" "inspect"]
    :example "(pprint-str {:a [1 2 3] :b {:c 4 :d 5}})"}
   [form & [width]]
   (let [w (or width *default-width*)]
-    (pp-str form 0 w)))
+    (pp-str form 0 w (php/:: Printer (readable)))))
 
 (defn pprint
   "Pretty-prints `form` to stdout with optional `width` (default 72)."
   {:doc "Pretty-print a data structure to stdout with line breaks and indentation."
-   :see-also ["pprint-str"]
+   :see-also ["pprint-str" "inspect"]
    :example "(pprint {:a [1 2 3] :b {:c 4 :d 5}})"}
   [form & [width]]
   (php/print (pprint-str form width))
   (php/print "\n")
   nil)
+
+(defn- color-output?
+  "True when stdout is an interactive terminal.
+  Output buffering means the text is being captured, not shown on a terminal."
+  []
+  (and (zero? (php/ob_get_level))
+       (php/defined "STDOUT")
+       (php/function_exists "stream_isatty")
+       (php/stream_isatty php/STDOUT)))
+
+(defn inspect
+  "Pretty-prints `x` to stdout (colored on a TTY) and returns `x` unchanged."
+  {:doc "Pretty-print a value for humans (colored when stdout is a terminal) and return it unchanged, so it can be dropped into threading pipelines."
+   :see-also ["pprint" "pprint-str" "tap>"]
+   :example "(-> {:a [1 2 3]} inspect (get :a))"}
+  [x & [width]]
+  (let [w       (or width *default-width*)
+        printer (if (color-output?)
+                  (php/:: Printer (readableWithColor))
+                  (php/:: Printer (readable)))]
+    (php/print (pp-str x 0 w printer))
+    (php/print "\n")
+    x))
