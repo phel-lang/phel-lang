@@ -360,6 +360,29 @@ returns 1. If `xs` has one value, returns the reciprocal of x.
     (throw (php/new InvalidArgumentException
                     (str "abs expects a number, got " (type x))))))
 
+(defn gcd
+  "Returns the greatest common divisor of `a` and `b`, computed with the
+  Euclidean algorithm. The result is always non-negative; `(gcd 0 0)` is `0`."
+  {:example "(gcd 12 18) ; => 6\n(gcd -12 18) ; => 6"
+   :see-also ["lcm" "mod" "abs"]}
+  [a b]
+  (loop [x (abs a)
+         y (abs b)]
+    (if (zero? y)
+      x
+      (recur y (mod x y)))))
+
+(defn lcm
+  "Returns the least common multiple of `a` and `b`. The result is always
+  non-negative; when either argument is zero the result is `0`."
+  {:example "(lcm 4 6) ; => 12\n(lcm -4 6) ; => 12"
+   :see-also ["gcd" "abs"]}
+  [a b]
+  (if (or (zero? a) (zero? b))
+    0
+    ;; divide before multiplying to reduce overflow
+    (abs (* (quot a (gcd a b)) b))))
+
 (defn int
   "Coerces `x` to an integer. `Ratio` and `BigDecimal` values truncate
    toward zero (`(int 1/10)` is `0`, `(int -1.1M)` is `-1`); `BigInt`
