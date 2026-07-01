@@ -17,6 +17,8 @@ use Phel\Shared\Facade\BuildFacadeInterface;
 use Phel\Shared\Facade\CommandFacadeInterface;
 use Phel\Shared\NamespaceInformation;
 
+use function is_string;
+
 final readonly class FunctionsToExportFinder implements FunctionsToExportFinderInterface
 {
     /**
@@ -95,6 +97,7 @@ final readonly class FunctionsToExportFinder implements FunctionsToExportFinderI
                     $functionsToExport[$ns][] = new FunctionToExport(
                         $fn,
                         $meta->find(Keyword::create('attr', 'php')),
+                        $this->returnTag($meta),
                     );
                 }
             }
@@ -121,5 +124,18 @@ final readonly class FunctionsToExportFinder implements FunctionsToExportFinderI
     private function isExport(PersistentMapInterface $meta): bool
     {
         return (bool) ($meta[Keyword::create('export')] ?? false);
+    }
+
+    /**
+     * The compiler stores the fn's return-type `:tag` (declared or inferred) as a
+     * plain string in the definition metadata.
+     *
+     * @param PersistentMapInterface<mixed, mixed> $meta
+     */
+    private function returnTag(PersistentMapInterface $meta): ?string
+    {
+        $tag = $meta->find(Keyword::create('tag'));
+
+        return is_string($tag) && $tag !== '' ? $tag : null;
     }
 }
