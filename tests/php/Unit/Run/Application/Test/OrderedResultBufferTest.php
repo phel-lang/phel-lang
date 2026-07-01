@@ -123,28 +123,17 @@ final class OrderedResultBufferTest extends TestCase
         self::assertTrue($buffer->isComplete());
     }
 
-    public function test_record_crash_synthesises_a_failed_result(): void
+    public function test_record_of_a_crash_result_synthesises_a_failed_result(): void
     {
         $output = new BufferedOutput();
         $buffer = new OrderedResultBuffer(1, $output);
 
-        $buffer->recordCrash(0, 'phel.bad', "boom\n");
+        $buffer->record(WorkerResult::fromCrash(0, 'phel.bad', "boom\n"));
         $buffer->finishProgress();
 
         self::assertTrue($buffer->isComplete());
         self::assertFalse($buffer->overallOk());
         self::assertSame(1, $buffer->totals()->error);
         self::assertStringContainsString('Worker died while running phel.bad', $output->fetch());
-    }
-
-    public function test_record_crash_with_null_index_is_a_no_op(): void
-    {
-        $buffer = new OrderedResultBuffer(1, new BufferedOutput());
-
-        $buffer->recordCrash(null, 'phel.unknown', '');
-
-        self::assertFalse($buffer->isComplete());
-        self::assertTrue($buffer->overallOk());
-        self::assertSame(0, $buffer->totals()->total);
     }
 }

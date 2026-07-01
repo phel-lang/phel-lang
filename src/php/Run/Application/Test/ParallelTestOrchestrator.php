@@ -43,6 +43,14 @@ final readonly class ParallelTestOrchestrator
     private const int SELECT_TIMEOUT_MICROS = 100_000;
 
     /**
+     * A worker occasionally fails a namespace with a transient runtime error
+     * (a rare load race) rather than a genuine test failure. Re-run such a
+     * namespace on a fresh worker up to this many times before surfacing the
+     * error, so a flaky race can't red a whole parallel run. (#2672)
+     */
+    private const int MAX_RETRIES_PER_NAMESPACE = 2;
+
+    /**
      * @param list<string> $opcacheFlags `-d` flags so every worker shares one
      *                                   OPcache file cache; empty when OPcache
      *                                   is unavailable
@@ -77,8 +85,9 @@ final readonly class ParallelTestOrchestrator
         $buffer = new OrderedResultBuffer($total, $output);
 
         $startedAt = microtime(true);
+        $retried = 0;
         try {
-            $this->runDispatchLoop($workers, $namespaces, $optionsPhel, $buffer);
+            $retried = $this->runDispatchLoop($workers, $namespaces, $optionsPhel, $buffer);
         } finally {
             foreach ($workers as $worker) {
                 $worker->terminate();
@@ -87,7 +96,7 @@ final readonly class ParallelTestOrchestrator
 
         $buffer->finishProgress();
         $this->persistLastFailed($options, $buffer->allFailedTests());
-        $this->printSummary($output, $buffer->totals(), $total, $effectiveWorkerCount, microtime(true) - $startedAt);
+        $this->printSummary($output, $buffer->totals(), $total, $effectiveWorkerCount, microtime(true) - $startedAt, $retried);
 
         return $buffer->overallOk();
     }
@@ -98,6 +107,7 @@ final readonly class ParallelTestOrchestrator
         int $namespacesRun,
         int $workerCount,
         float $wallSeconds,
+        int $retried,
     ): void {
         $output->writeln('');
         $output->writeln(sprintf('Passed:  %d', $totals->pass));
@@ -108,6 +118,10 @@ final readonly class ParallelTestOrchestrator
         }
 
         $output->writeln(sprintf('Total:   %d', $totals->total));
+        if ($retried > 0) {
+            $output->writeln(sprintf('Retried: %d namespace(s) after a transient worker error', $retried));
+        }
+
         $output->writeln('');
         $output->writeln(sprintf(
             'Ran %d namespace(s) across %d worker(s) in %.2fs.',
@@ -143,17 +157,19 @@ final readonly class ParallelTestOrchestrator
     }
 
     /**
-     * @param list<TestWorkerHandle>     $workers
-     * @param list<NamespaceInformation> $namespaces
+     * @param array<int, TestWorkerHandle> $workers
+     * @param list<NamespaceInformation>   $namespaces
      */
     private function runDispatchLoop(
-        array $workers,
+        array &$workers,
         array $namespaces,
         string $optionsPhel,
         OrderedResultBuffer $buffer,
-    ): void {
+    ): int {
         $total = count($namespaces);
         $nextToDispatch = 0;
+        $retriedIndexes = [];
+        $retriesLeft = array_fill(0, $total, self::MAX_RETRIES_PER_NAMESPACE);
 
         foreach ($workers as $worker) {
             if ($nextToDispatch >= $total) {
@@ -167,13 +183,27 @@ final readonly class ParallelTestOrchestrator
         while (!$buffer->isComplete()) {
             $busyByStream = $this->mapBusyWorkersByStream($workers);
             if ($busyByStream === []) {
-                return;
+                return count($retriedIndexes);
             }
 
             foreach ($this->waitForReadyWorkers($busyByStream) as $worker) {
-                if (!$this->consumeWorker($worker, $buffer)) {
+                $result = $this->consumeWorker($worker);
+                if (!$result instanceof WorkerResult) {
                     continue;
                 }
+
+                // A thrown worker error (not a genuine test failure) is most
+                // likely a transient race; re-run the namespace on a FRESH
+                // worker, since this one's process may be left in a bad state.
+                if ($result->error !== null && ($retriesLeft[$result->index] ?? 0) > 0) {
+                    --$retriesLeft[$result->index];
+                    $retriedIndexes[$result->index] = true;
+                    $worker = $this->replaceWithFreshWorker($workers, $worker);
+                    $this->dispatch($worker, $namespaces[$result->index], $result->index, $optionsPhel);
+                    continue;
+                }
+
+                $buffer->record($result);
 
                 if ($nextToDispatch < $total) {
                     $this->dispatch($worker, $namespaces[$nextToDispatch], $nextToDispatch, $optionsPhel);
@@ -181,6 +211,8 @@ final readonly class ParallelTestOrchestrator
                 }
             }
         }
+
+        return count($retriedIndexes);
     }
 
     /**
@@ -188,7 +220,7 @@ final readonly class ParallelTestOrchestrator
      * straight to the worker that produced data instead of iterating the
      * whole pool.
      *
-     * @param list<TestWorkerHandle> $workers
+     * @param array<int, TestWorkerHandle> $workers
      *
      * @return array<int, TestWorkerHandle>
      */
@@ -244,29 +276,54 @@ final readonly class ParallelTestOrchestrator
     }
 
     /**
-     * Drain a worker that became readable. Returns true when a result was
-     * recorded (worker is now free to take the next assignment).
+     * Drain a worker that became readable. Returns the decoded result — which
+     * the caller records or retries — or null when no full frame is ready yet.
      */
-    private function consumeWorker(TestWorkerHandle $worker, OrderedResultBuffer $buffer): bool
+    private function consumeWorker(TestWorkerHandle $worker): ?WorkerResult
     {
         $frame = $worker->tryReadFrame();
         if ($frame !== null) {
-            $buffer->record(WorkerResult::fromFrame($frame));
             $worker->clearAssignment();
-            return true;
+            return WorkerResult::fromFrame($frame);
         }
 
         if (!$worker->isAlive() && $worker->tryReadFrame() === null) {
-            $buffer->recordCrash(
-                $worker->assignedIndex(),
-                $worker->assignedNamespace() ?? '<unknown>',
-                $worker->readStderrNonBlocking(),
-            );
+            $index = $worker->assignedIndex();
+            $result = $index === null
+                ? null
+                : WorkerResult::fromCrash(
+                    $index,
+                    $worker->assignedNamespace() ?? '<unknown>',
+                    $worker->readStderrNonBlocking(),
+                );
             $worker->clearAssignment();
-            return true;
+            return $result;
         }
 
-        return false;
+        return null;
+    }
+
+    /**
+     * Terminate a (possibly wedged) worker and swap a fresh one into its pool
+     * slot, so a retried namespace runs in a clean process.
+     *
+     * @param array<int, TestWorkerHandle> $workers
+     */
+    private function replaceWithFreshWorker(array &$workers, TestWorkerHandle $old): TestWorkerHandle
+    {
+        $old->terminate();
+        $fresh = TestWorkerHandle::spawn($this->phpBinary, $this->phelBinary, $this->opcacheFlags);
+
+        // Never drop the fresh handle: a worker missing from the pool is never
+        // polled or terminated, which would hang the dispatch loop and leak it.
+        $key = array_search($old, $workers, true);
+        if ($key === false) {
+            $workers[] = $fresh;
+        } else {
+            $workers[$key] = $fresh;
+        }
+
+        return $fresh;
     }
 
     private function dispatch(TestWorkerHandle $worker, NamespaceInformation $info, int $index, string $optionsPhel): void

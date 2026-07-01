@@ -73,15 +73,6 @@ final class OrderedResultBuffer
         $this->flushReady();
     }
 
-    public function recordCrash(?int $index, string $ns, string $stderr): void
-    {
-        if ($index === null) {
-            return;
-        }
-
-        $this->record(WorkerResult::fromCrash($index, $ns, $stderr));
-    }
-
     public function isComplete(): bool
     {
         return $this->completed >= $this->total;

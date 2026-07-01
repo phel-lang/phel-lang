@@ -19,6 +19,10 @@ final readonly class WorkerResult
 {
     /**
      * @param list<string> $failedTests
+     * @param ?string      $error       non-null only when the worker threw while
+     *                                  loading/running the namespace (a transient,
+     *                                  retryable failure) — distinct from a genuine
+     *                                  test failure, which leaves this null
      */
     public function __construct(
         public int $index,
@@ -27,6 +31,7 @@ final readonly class WorkerResult
         public string $output,
         public array $failedTests,
         public Counts $counts,
+        public ?string $error = null,
     ) {}
 
     /**
@@ -39,6 +44,8 @@ final readonly class WorkerResult
             $rawCounts = [];
         }
 
+        $error = $frame[FrameKey::ERROR] ?? null;
+
         /** @var array<string, mixed> $rawCounts */
         return new self(
             ScalarCoercion::toInt($frame[FrameKey::INDEX] ?? null, -1),
@@ -47,6 +54,7 @@ final readonly class WorkerResult
             ScalarCoercion::toString($frame[FrameKey::OUTPUT] ?? null),
             self::extractStringList($frame[FrameKey::FAILED_TESTS] ?? null),
             Counts::fromArray($rawCounts),
+            is_string($error) ? $error : null,
         );
     }
 
@@ -63,6 +71,7 @@ final readonly class WorkerResult
             sprintf("Worker died while running %s.\n%s", $ns, $stderr),
             [],
             new Counts(error: 1, total: 1),
+            sprintf('Worker died while running %s.', $ns),
         );
     }
 
