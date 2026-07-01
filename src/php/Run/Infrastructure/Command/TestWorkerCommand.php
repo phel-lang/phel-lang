@@ -6,6 +6,7 @@ namespace Phel\Run\Infrastructure\Command;
 
 use Gacela\Framework\ServiceResolver\ServiceMap;
 use Gacela\Framework\ServiceResolverAwareTrait;
+use Phel\Lang\Registry;
 use Phel\Run\Application\Test\FrameKey;
 use Phel\Run\Application\Test\WorkerFrame;
 use Phel\Run\Application\Test\WorkRequest;
@@ -26,6 +27,7 @@ use function is_string;
 use function ob_get_clean;
 use function ob_start;
 use function sprintf;
+use function str_replace;
 
 /**
  * Hidden subcommand: parallel-test worker. One process per pool slot,
@@ -127,13 +129,18 @@ final class TestWorkerCommand extends Command
         }
 
         foreach ($this->getFacade()->getDependenciesFromPaths([$file]) as $info) {
-            // The worker lives for the whole run, so a dependency stays
-            // registered across frames; re-evaluating it (mostly the phel.*
-            // stdlib shared by every namespace) just re-executes it and
-            // dominated each frame. Eval each file once per worker, as the
-            // serial runner already does.
+            // The worker is long-lived: eval each dependency file once across all frames.
             $depFile = $info->getFile();
             if (isset($this->preloadedFiles[$depFile])) {
+                continue;
+            }
+
+            // Skip namespaces already loaded at bootstrap (loadPhelNamespaces brings in
+            // the whole bundled phel.* stdlib). Re-evaluating a precompiled sibling (PHAR)
+            // re-runs its primary, which re-nulls forward-declared defs (map/seq/nil?)
+            // that its require_once secondaries then won't restore — a null callable. (#2672)
+            if (Registry::getInstance()->hasNamespace(str_replace('-', '_', $info->getNamespace()))) {
+                $this->preloadedFiles[$depFile] = true;
                 continue;
             }
 
