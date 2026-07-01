@@ -9,6 +9,7 @@ use Gacela\Framework\ServiceResolver\ServiceMap;
 use Gacela\Framework\ServiceResolverAwareTrait;
 use Phel\Run\Application\Test\Coverage\CoverageDriver;
 use Phel\Run\Application\Test\Coverage\CoverageReport;
+use Phel\Run\Application\Test\Coverage\HtmlCoverageRenderer;
 use Phel\Run\Domain\Test\TestCommandOptions;
 use Phel\Run\Domain\Test\TestNamespacePruner;
 use Phel\Run\RunFacade;
@@ -27,9 +28,13 @@ use Throwable;
 use function count;
 use function file_put_contents;
 use function is_array;
+use function is_dir;
 use function is_string;
+use function mkdir;
 use function sprintf;
+use function strpos;
 use function strtolower;
+use function substr;
 use function time;
 
 /**
@@ -45,6 +50,8 @@ final class TestCommand extends Command
     private const string OPT_COVERAGE = 'coverage';
 
     private const string OPT_COVERAGE_OUTPUT = 'coverage-output';
+
+    private const string DEFAULT_HTML_COVERAGE_DIR = 'var/coverage';
 
     protected function configure(): void
     {
@@ -166,14 +173,14 @@ HELP)
                 self::OPT_COVERAGE,
                 null,
                 InputOption::VALUE_OPTIONAL,
-                'Collect line coverage (via pcov or xdebug) mapped back to .phel sources. Value is the format: "text" (default) or "clover".',
+                'Collect line coverage (via pcov or xdebug) mapped back to .phel sources. Value is the format: "text" (default), "clover", or "html". "html" writes a static report to var/coverage/ (override with "html:<dir>").',
                 false,
-                ['text', 'clover'],
+                ['text', 'clover', 'html'],
             )->addOption(
                 self::OPT_COVERAGE_OUTPUT,
                 null,
                 InputOption::VALUE_REQUIRED,
-                'Write the coverage report to a file instead of stdout (use with --coverage=clover for CI).',
+                'Write the coverage report to a file instead of stdout (use with --coverage=clover for CI). With --coverage=html the value is the report directory.',
             );
     }
 
@@ -355,7 +362,20 @@ HELP)
         string $format,
         mixed $outputPath,
     ): void {
-        $format = $format === '' ? 'text' : strtolower($format);
+        // "html:<dir>" carries the report directory in the format value itself.
+        $colonPos = strpos($format, ':');
+        $formatSuffix = $colonPos === false ? '' : substr($format, $colonPos + 1);
+        $format = strtolower($colonPos === false ? $format : substr($format, 0, $colonPos));
+        $format = $format === '' ? 'text' : $format;
+
+        if ($format === 'html') {
+            $directory = $formatSuffix !== ''
+                ? $formatSuffix
+                : ((is_string($outputPath) && $outputPath !== '') ? $outputPath : self::DEFAULT_HTML_COVERAGE_DIR);
+            $this->writeHtmlCoverage($output, $report, $directory);
+            return;
+        }
+
         $content = $format === 'clover'
             ? $report->toClover(time())
             : $report->toText();
@@ -367,6 +387,20 @@ HELP)
         }
 
         $output->writeln($content);
+    }
+
+    private function writeHtmlCoverage(OutputInterface $output, CoverageReport $report, string $directory): void
+    {
+        if (!is_dir($directory) && !mkdir($directory, 0o755, true) && !is_dir($directory)) {
+            $output->writeln(sprintf('<error>Cannot create coverage report directory %s</error>', $directory));
+            return;
+        }
+
+        foreach (new HtmlCoverageRenderer()->render($report) as $pageName => $html) {
+            file_put_contents($directory . '/' . $pageName, $html);
+        }
+
+        $output->writeln(sprintf('HTML coverage report written to %s', $directory . '/index.html'));
     }
 
     /**

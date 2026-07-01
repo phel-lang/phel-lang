@@ -67,6 +67,11 @@ final readonly class CoverageReport
         return $this->files;
     }
 
+    public function driverName(): string
+    {
+        return $this->driver;
+    }
+
     public function toText(): string
     {
         if ($this->files === []) {

@@ -8,6 +8,7 @@ All notable changes to this project will be documented in this file.
 
 - `reduce-kv`: reduce an associative collection with `(f acc key value)`, vector indices as keys, `reduced` short-circuit supported (#2680)
 - `gcd` and `lcm`: greatest common divisor and least common multiple for integers (#2686)
+- `phel test --coverage=html`: self-contained HTML coverage report with line-colored .phel sources (#2692)
 
 ### Fixed
 
