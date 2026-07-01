@@ -59,6 +59,16 @@
   (is (= 6 (reduce + (for [x :in (hash-set 1 2 3)] x))) "reduce without init on set vector")
   (is (= 0 (reduce + [])) "reduce without init on empty vector with +"))
 
+(deftest test-reductions
+  (is (= [1 3 6 10] (reductions + [1 2 3 4])) "reductions without init")
+  (is (= [0 1 3 6 10] (reductions + 0 [1 2 3 4])) "reductions with init")
+  (is (= [0] (reductions + [])) "reductions without init on empty coll yields [(f)]")
+  (is (= [5] (reductions + 5 [])) "reductions with init on empty coll yields [init]")
+  (is (= [7] (reductions + [7])) "reductions without init on single-element coll")
+  (is (= ["" "a" "ab" "abc"] (reductions str "" ["a" "b" "c"])) "reductions accumulates strings")
+  (is (= [1 3 6 6] (reductions (fn [acc x] (if (>= acc 6) (reduced acc) (+ acc x))) [1 2 3 4 5]))
+      "reductions stops at a reduced value"))
+
 ;; =============================================================================
 ;; Path Navigation (assoc-in, update-in, dissoc-in)
 ;; =============================================================================

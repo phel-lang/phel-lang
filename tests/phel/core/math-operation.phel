@@ -86,6 +86,28 @@
   (let [huge (php/:: \Phel\Lang\BigInt (fromString "100000000000000000000"))]
     (is (bigint? (quot huge 3)) "quot stays BigInt when result overflows int")))
 
+(deftest test-gcd
+  (is (= 6 (gcd 12 18)) "(gcd 12 18)")
+  (is (= 1 (gcd 7 13)) "(gcd 7 13) of coprimes is 1")
+  (is (= 0 (gcd 0 0)) "(gcd 0 0)")
+  (is (= 5 (gcd 0 5)) "(gcd 0 5) is the other operand")
+  (is (= 5 (gcd 5 0)) "(gcd 5 0) is the other operand")
+  (is (= 6 (gcd -12 18)) "(gcd -12 18) is non-negative")
+  (is (= 6 (gcd 12 -18)) "(gcd 12 -18) is non-negative")
+  (is (= 6 (gcd -12 -18)) "(gcd -12 -18) is non-negative")
+  (is (true? (int? (gcd 12 18))) "gcd result stays an int"))
+
+(deftest test-lcm
+  (is (= 12 (lcm 4 6)) "(lcm 4 6)")
+  (is (= 21 (lcm 3 7)) "(lcm 3 7) of coprimes")
+  (is (= 0 (lcm 4 0)) "(lcm 4 0)")
+  (is (= 0 (lcm 0 4)) "(lcm 0 4)")
+  (is (= 0 (lcm 0 0)) "(lcm 0 0)")
+  (is (= 12 (lcm -4 6)) "(lcm -4 6) is non-negative")
+  (is (= 12 (lcm 4 -6)) "(lcm 4 -6) is non-negative")
+  (is (= 12 (lcm -4 -6)) "(lcm -4 -6) is non-negative")
+  (is (true? (int? (lcm 4 6))) "lcm result stays an int"))
+
 (deftest test-**
   (is (= 8 (** 2 3)) "2 ** 3"))
 

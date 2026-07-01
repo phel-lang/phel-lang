@@ -173,6 +173,35 @@
     (is (= 7 (f 3 4)) "different multi-arg call")
     (is (= 2 (deref counter)) "two executions")))
 
+(deftest test-trampoline-direct-value
+  (is (= 3 (trampoline + 1 2)) "non-function return comes back unchanged")
+  (is (nil? (trampoline (fn [] nil))) "nil return is not bounced"))
+
+(deftest test-trampoline-one-bounce
+  (is (= 42 (trampoline (fn [x] (fn [] (inc x))) 41))
+      "returned thunk is called once and its value returned"))
+
+(deftest test-trampoline-args-passed-through
+  (is (= [1 2 3] (trampoline (fn [& xs] xs) 1 2 3))
+      "all initial args reach f"))
+
+(deftest test-trampoline-mutual-recursion
+  (letfn [(my-even? [n] (if (zero? n) true (fn [] (my-odd? (dec n)))))
+          (my-odd? [n] (if (zero? n) false (fn [] (my-even? (dec n)))))]
+    ;; 10000 bounces would overflow the PHP call stack without trampoline
+    (is (true? (trampoline my-even? 10000)) "my-even? 10000 bounces to true")
+    (is (false? (trampoline my-odd? 10000)) "my-odd? 10000 bounces to false")))
+
+(deftest test-trampoline-callables-not-reinvoked
+  (is (= :done (trampoline (fn [] :done))) "keyword return is not treated as a thunk")
+  (is (= {:a 1} (trampoline (fn [] {:a 1}))) "map return is not treated as a thunk")
+  (is (= [1 2] (trampoline (fn [] [1 2]))) "vector return is not treated as a thunk"))
+
+(deftest test-trampoline-function-as-final-value
+  (let [wrapped (trampoline (fn [] [inc]))]
+    (is (fn? (first wrapped)) "wrapping in a collection returns the function itself")
+    (is (= 2 ((first wrapped) 1)) "unwrapped function still works")))
+
 (def memoize-meta-counter (atom 0))
 
 (defn ^:memoize memoize-meta-add [a b]

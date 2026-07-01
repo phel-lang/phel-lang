@@ -164,6 +164,19 @@
                                  arg)))))]
         (apply f patched)))))
 
+(defn trampoline
+  "Calls `f` with any supplied `args`. While the return value is a function, calls it with no arguments and repeats; returns the first non-function value. Use it for stack-safe mutual recursion: have the functions return a zero-argument function wrapping the next call instead of calling it directly. Only Phel functions bounce — keywords and collections, although callable, are returned as-is. To return a function as the final value, wrap it in a collection and unwrap it after `trampoline` returns."
+  {:example (str
+             "(defn my-even? [n] (if (zero? n) true (fn [] (my-odd? (dec n)))))" php/PHP_EOL
+             "(defn my-odd? [n] (if (zero? n) false (fn [] (my-even? (dec n)))))" php/PHP_EOL
+             "(trampoline my-even? 10000) ; => true")
+   :see-also ["loop" "recur" "fn?"]}
+  [f & args]
+  (loop [ret (apply f args)]
+    (if (fn? ret)
+      (recur (ret))
+      ret)))
+
 (defn memoize
   "Returns a memoized version of the function `f`. The memoized function caches the return value for each set of arguments."
   {:example (str
