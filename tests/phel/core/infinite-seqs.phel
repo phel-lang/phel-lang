@@ -72,6 +72,12 @@
   (is (= [1 2 4 8] (take 4 (iterate (fn [x] (* 2 x)) 1)))
       "(take 4 (iterate (fn [x] (* 2 x)) 1))"))
 
+(deftest test-reductions-infinite
+  (is (= [1 3 6 10 15] (take 5 (reductions + (iterate inc 1))))
+      "(take 5 (reductions + (iterate inc 1)))")
+  (is (false? (realized? (reductions + (iterate inc 1))))
+      "reductions over an infinite source is unrealized until accessed"))
+
 (deftest test-doall-with-lazy-sequence-from-iterate
   (is (= [1 2 3 4 5] (doall (take 5 (iterate inc 1))))
       "doall should realize lazy sequence and return vector"))
