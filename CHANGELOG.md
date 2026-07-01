@@ -4,6 +4,10 @@ All notable changes to this project will be documented in this file.
 
 ## Unreleased
 
+### Added
+
+- `subvec`: persistent vector slice with start/end bounds checking (#2683)
+
 ### Fixed
 
 - The distributed PHAR no longer bundles example templates' local build artifacts. `phel init --template` sources were shipped with any `.phel/` cache and installed `vendor/` a maintainer left behind from running an example locally, which inflated a release PHAR from ~2 MB to ~14 MB; only the template sources ship now (#2678)
