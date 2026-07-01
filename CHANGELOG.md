@@ -14,6 +14,7 @@ All notable changes to this project will be documented in this file.
 - `arity` and `variadic?`: function reflection helpers for required parameter count and variadic detection (#2685)
 - `inspect`: pretty-prints a value (colored on TTY) and returns it unchanged for pipeline debugging (#2688)
 - `with-open`: scoped resource cleanup macro; closes bound resources in reverse order even on exception (#2684)
+- `phel test --coverage=html`: self-contained HTML coverage report with line-colored .phel sources (#2692)
 
 ### Fixed
 
