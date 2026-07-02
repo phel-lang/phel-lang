@@ -15,6 +15,7 @@ All notable changes to this project will be documented in this file.
 - `inspect`: pretty-prints a value (colored on TTY) and returns it unchanged for pipeline debugging (#2688)
 - `with-open`: scoped resource cleanup macro; closes bound resources in reverse order even on exception (#2684)
 - `phel test --coverage=html`: self-contained HTML coverage report with line-colored .phel sources (#2692)
+- `phel export` stubs now carry native parameter/return types and `@param`/`@return` docblocks derived from `:tag` metadata (#2695)
 
 ### Fixed
 

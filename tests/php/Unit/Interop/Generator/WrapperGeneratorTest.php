@@ -47,7 +47,12 @@ final class FileNameExample
 {
     use PhelCallerTrait;
 
-    public static function phelFunctionExample($a, ...$b): int|float
+    /**
+     * @param int $a
+     * @param int ...$b
+     * @return int|float
+     */
+    public static function phelFunctionExample(int $a, int ...$b): int|float
     {
         return self::callPhel('custom-namespace\\file-name-example', 'phel-function-example', $a, ...$b);
     }
