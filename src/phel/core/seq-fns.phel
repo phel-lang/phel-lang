@@ -19,7 +19,10 @@
 (use Phel.Lang.Equalizer)
 (use Phel.Lang.Hasher)
 (use Phel.Lang.NumericOperations)
+(use Phel.Lang.BigDecimal)
+(use Phel.Lang.BigInt)
 (use Phel.Lang.PushInterface)
+(use Phel.Lang.Ratio)
 (use Phel.Lang.Seq)
 (use Phel.Lang.SliceInterface)
 
@@ -250,15 +253,34 @@ When `from` is associative, it is treated as a sequence of key-value pairs. Supp
     (php/instanceof coll SliceInterface) (php/-> coll (slice offset length))
     (throw (php/new InvalidArgumentException "Cannot slice"))))
 
+;; Clojure's subvec runs indices through RT.intCast: numbers truncate toward
+;; zero, NaN counts as 0, ±Inf collapses to int min/max (then fails bounds),
+;; and non-numbers throw. Core `int` is not defined yet at this load point,
+;; so coerce with PHP primitives.
+(defn- subvec-index [x]
+  (cond
+    (php/is_int x)   x
+    (php/is_float x) (cond
+                       (php/is_nan x)      0
+                       (php/is_infinite x) (if (php/< x 0) php/PHP_INT_MIN php/PHP_INT_MAX)
+                       true                (php/intval x))
+    (or (php/instanceof x Ratio)
+        (php/instanceof x BigInt)
+        (php/instanceof x BigDecimal)) (php/-> x (toInt))
+    true (throw (php/new InvalidArgumentException
+                         (str "subvec index must be a number, got " (type x))))))
+
 (defn subvec
-  "Returns a persistent vector of the items in `v` from `start` (inclusive) to `end` (exclusive). `end` defaults to `(count v)`. The result shares structure with `v`. Throws an OutOfBoundsException when `start` or `end` is out of range or `start` is greater than `end`."
+  "Returns a persistent vector of the items in `v` from `start` (inclusive) to `end` (exclusive). `end` defaults to `(count v)`. Non-integer indices truncate toward zero and `NaN` counts as `0`, matching Clojure. The result shares structure with `v`. Throws an OutOfBoundsException when `start` or `end` is out of range or `start` is greater than `end`."
   {:example "(subvec [1 2 3 4 5] 1 3) ; => [2 3]\n(subvec [1 2 3 4 5] 2) ; => [3 4 5]"
    :see-also ["slice" "take" "drop"]}
   ([v start] (subvec v start (count v)))
   ([v start end]
    (when-not (php/instanceof v PersistentVectorInterface)
      (throw (php/new InvalidArgumentException (str "Cannot subvec on type " (type v)))))
-   (let [cnt (count v)]
+   (let [cnt   (count v)
+         start (subvec-index start)
+         end   (subvec-index end)]
      (when (or (< start 0) (> end cnt) (> start end))
        (throw (php/new OutOfBoundsException
                        (str "subvec bounds [" start ", " end ") out of range for vector of count " cnt))))
