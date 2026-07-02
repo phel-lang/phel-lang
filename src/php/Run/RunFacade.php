@@ -6,6 +6,7 @@ namespace Phel\Run;
 
 use Gacela\Framework\AbstractFacade;
 use Gacela\Framework\Health\ModuleHealthCheckInterface;
+use Phel\Lang\Collections\Map\PersistentMapInterface;
 use Phel\Run\Application\Test\Coverage\CoverageDriver;
 use Phel\Run\Application\Test\Coverage\CoverageReport;
 use Phel\Run\Application\Test\CpuCountDetector;
@@ -70,6 +71,19 @@ final class RunFacade extends AbstractFacade implements RunFacadeInterface
         return $this->getFactory()
             ->getCompilerFacade()
             ->eval($phelCode, $compileOptions);
+    }
+
+    /**
+     * Enter the interactive breakpoint sub-REPL. Called by code compiled from
+     * the `(break)` special form; blocks until the user resumes execution.
+     *
+     * @param PersistentMapInterface<mixed, mixed> $locals
+     */
+    public function breakpoint(PersistentMapInterface $locals): void
+    {
+        $this->getFactory()
+            ->createBreakpointDebugger()
+            ->enter($locals);
     }
 
     public function enableDebugLineTap(?string $phelFileFilter = null, string $logPath = './phel-debug.log'): void

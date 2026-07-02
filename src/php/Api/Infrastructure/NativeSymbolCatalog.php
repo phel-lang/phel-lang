@@ -60,6 +60,15 @@ Calls the function with the given arguments. The last argument must be a list of
             'desc' => 'Calls the function with the given arguments. The last argument must be a list of values, which are passed as separate arguments, rather than a single list. Apply returns the result of the calling function.',
             'example' => '(apply + [1 2 3]) ; => 6',
         ],
+        Symbol::NAME_BREAK => [
+            'doc' => '```phel
+(break)
+```
+Pauses execution and opens an interactive debugger sub-REPL with access to the lexical locals in scope. Type `(continue)` to resume execution.',
+            'signatures' => ['(break)'],
+            'desc' => 'Pauses execution and opens an interactive debugger sub-REPL with access to the lexical locals in scope. Type (continue) to resume.',
+            'example' => '(let [x 41] (break)) ; opens the debugger with x in scope',
+        ],
         Symbol::NAME_CATCH => [
             'doc' => '```phel
 (catch exception-type exception-name expr*)

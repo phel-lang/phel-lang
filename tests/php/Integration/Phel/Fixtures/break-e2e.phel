@@ -1,0 +1,8 @@
+(ns break\e2e)
+
+(defn calc [a b]
+  (let [total (+ a b)]
+    (break)
+    total))
+
+(println "result:" (calc 40 2))

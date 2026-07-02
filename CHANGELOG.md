@@ -17,6 +17,7 @@ All notable changes to this project will be documented in this file.
 - `phel test --coverage=html`: self-contained HTML coverage report with line-colored .phel sources (#2692)
 - `phel export` stubs now carry native parameter/return types and `@param`/`@return` docblocks derived from `:tag` metadata (#2695)
 - `dbg`: debug macro printing `[file:line] form => value` to stderr and returning the value (#2687)
+- `(break)`: interactive stepping-debugger foundation; pauses execution at the call site and opens a sub-REPL over the captured lexical locals (evaluate expressions against live values, `(continue)` to resume; resumes on stdin EOF so non-interactive runs never hang) (#2690)
 
 ### Fixed
 

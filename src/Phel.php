@@ -15,6 +15,7 @@ use Phel\Lang\Registry;
 use Phel\Lang\Symbol;
 use Phel\Lang\TypeFactory;
 use Phel\Phel as InternalPhel;
+use Phel\Run\RunFacade;
 
 /**
  * Public API for Phel.
@@ -241,6 +242,20 @@ final class Phel extends InternalPhel
     }
 
     /**
+     * Runtime target for the `(break)` special form: enters the interactive
+     * breakpoint sub-REPL with the captured locals in scope, blocking until
+     * the user resumes execution.
+     *
+     * @param PersistentMapInterface<mixed, mixed> $locals
+     */
+    public static function breakpoint(PersistentMapInterface $locals): mixed
+    {
+        new RunFacade()->breakpoint($locals);
+
+        return null;
+    }
+
+    /**
      * Create a persistent vector from an array of values.
      *
      * @param list<mixed>|null $values
@@ -292,7 +307,7 @@ final class Phel extends InternalPhel
             $firstArgument = $kvs[0] ?? null;
 
             if (\is_array($firstArgument)) {
-                return $typeFactory->persistentMapFromArray(\array_values($firstArgument));
+                return $typeFactory->persistentMapFromArray(array_values($firstArgument));
             }
 
             if ($firstArgument === null) {
@@ -300,7 +315,7 @@ final class Phel extends InternalPhel
             }
         }
 
-        return $typeFactory->persistentMapFromArray(\array_values($kvs));
+        return $typeFactory->persistentMapFromArray(array_values($kvs));
     }
 
     /**
@@ -354,10 +369,10 @@ final class Phel extends InternalPhel
     {
         $typeFactory = TypeFactory::getInstance();
         if (\count($kvs) === 1 && \is_array($kvs[0])) {
-            return $typeFactory->persistentSortedMapFromArray(\array_values($kvs[0]));
+            return $typeFactory->persistentSortedMapFromArray(array_values($kvs[0]));
         }
 
-        return $typeFactory->persistentSortedMapFromArray(\array_values($kvs));
+        return $typeFactory->persistentSortedMapFromArray(array_values($kvs));
     }
 
     /**
@@ -369,10 +384,10 @@ final class Phel extends InternalPhel
     {
         $typeFactory = TypeFactory::getInstance();
         if (\count($kvs) === 1 && \is_array($kvs[0])) {
-            return $typeFactory->persistentSortedMapFromArray(\array_values($kvs[0]), $comparator);
+            return $typeFactory->persistentSortedMapFromArray(array_values($kvs[0]), $comparator);
         }
 
-        return $typeFactory->persistentSortedMapFromArray(\array_values($kvs), $comparator);
+        return $typeFactory->persistentSortedMapFromArray(array_values($kvs), $comparator);
     }
 
     /**
