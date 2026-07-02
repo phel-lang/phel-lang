@@ -59,6 +59,10 @@ Rule of thumb: `eval` to check a value, `run` to execute a script, `compile`
 to inspect generated PHP for one form, `build` to produce deployable PHP for
 the entire project.
 
+`eval` is a developer tool with full host access, not a sandbox. For using it
+as a playground eval primitive (and why that needs isolation), see
+[playground.md](playground.md).
+
 ## Common workflows
 
 ### Start a project
