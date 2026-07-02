@@ -13,6 +13,7 @@ All notable changes to this project will be documented in this file.
 - `subvec`: persistent vector slice with start/end bounds checking; non-integer indices truncate toward zero and `NaN` counts as `0`, matching Clojure (#2683)
 - `arity` and `variadic?`: function reflection helpers for required parameter count and variadic detection (#2685)
 - `inspect`: pretty-prints a value (colored on TTY) and returns it unchanged for pipeline debugging (#2688)
+- `with-open`: scoped resource cleanup macro; closes bound resources in reverse order even on exception (#2684)
 
 ### Fixed
 

@@ -53,7 +53,7 @@ final class FormatterFactory extends AbstractFactory
         'when-not' => 1, 'when-let' => 1, 'when-some' => 1, 'if-let' => 1,
         'if-some' => 1, 'binding' => 1, 'when-first' => 1, 'doseq' => 1,
         'dotimes' => 1, 'letfn' => 1, 'with-redefs' => 1, 'with-bindings' => 1,
-        'extend-type' => 1, 'extend-protocol' => 1,
+        'with-open' => 1, 'extend-type' => 1, 'extend-protocol' => 1,
         'catch' => 2, 'condp' => 2,
     ];
 

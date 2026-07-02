@@ -451,3 +451,68 @@
 
 (deftest test-__DIR__
   (is (true? (and (false? (php/strpos __DIR__ "tests/phel/core/file-operation.phel")) (>= (php/strpos __DIR__ "tests/phel/core") 0))) "__DIR__"))
+
+;; --- with-open ---
+
+(defprotocol Closable
+  (close [this]))
+
+(deftest test-with-open-returns-body-value-and-closes-stream
+  (let [target-file (str (php/sys_get_temp_dir) php/DIRECTORY_SEPARATOR "test-with-open.txt")]
+    (spit target-file "line1\nline2")
+    (let [handle (php/fopen target-file "r")]
+      (is (= "line1\n" (with-open [f handle] (php/fgets f)))
+          "with-open returns the body value")
+      (is (false? (php/is_resource handle)) "stream is closed after with-open"))
+    (php/unlink target-file)))
+
+(deftest test-with-open-closes-stream-on-exception
+  (let [target-file (str (php/sys_get_temp_dir) php/DIRECTORY_SEPARATOR "test-with-open-throw.txt")]
+    (spit target-file "content")
+    (let [handle (php/fopen target-file "r")]
+      (is (thrown? \RuntimeException
+                   (with-open [f handle]
+                     (throw (php/new \RuntimeException "boom"))))
+          "exception propagates out of with-open")
+      (is (false? (php/is_resource handle)) "stream is closed even when the body throws"))
+    (php/unlink target-file)))
+
+(deftest test-with-open-calls-close-method-on-exception
+  (let [closed? (atom false)
+        r       (reify Closable (close [this] (reset! closed? true)))]
+    (is (thrown? \RuntimeException
+                 (with-open [x r]
+                   (throw (php/new \RuntimeException "boom"))))
+        "exception propagates out of with-open")
+    (is (true? (deref closed?)) "object close method is called when the body throws")))
+
+(deftest test-with-open-closes-in-reverse-order
+  (let [close-order (atom [])
+        closable    (fn [tag] (reify Closable (close [this] (swap! close-order conj tag))))]
+    (with-open [a (closable :a)
+                b (closable :b)
+                c (closable :c)]
+      nil)
+    (is (= [:c :b :a] (deref close-order)) "resources close in reverse binding order")))
+
+(deftest test-with-open-skips-nil-binding
+  (is (= :ok (with-open [absent nil] :ok)) "nil binding is skipped without error"))
+
+(deftest test-with-open-later-binding-uses-earlier
+  (let [target-file (str (php/sys_get_temp_dir) php/DIRECTORY_SEPARATOR "test-with-open-seq.txt")
+        seen        (atom nil)]
+    (spit target-file "abc")
+    (with-open [f (php/fopen target-file "r")
+                r (reify Closable (close [this] (reset! seen (php/is_resource f))))]
+      nil)
+    (is (true? (deref seen)) "earlier binding is still open while later bindings close")
+    (php/unlink target-file)))
+
+(deftest test-with-open-nested-body-forms
+  (let [target-file (str (php/sys_get_temp_dir) php/DIRECTORY_SEPARATOR "test-with-open-nested.txt")]
+    (spit target-file "abc")
+    (is (= "ABC" (with-open [f (php/fopen target-file "r")]
+                   (let [content (php/fgets f)]
+                     (php/strtoupper content))))
+        "nested body forms evaluate inside with-open")
+    (php/unlink target-file)))
