@@ -16,30 +16,29 @@ use function sprintf;
 use function stream_get_contents;
 
 /**
- * Runs a script containing `(break)` end-to-end: the compiled program must
- * pause in the debugger sub-REPL, evaluate expressions against the captured
- * lexical locals, and resume on `(continue)` or stdin EOF without hanging.
+ * Runs a script containing `(break)` end-to-end. With no interactive terminal
+ * attached (the case for CI, pipes, and this subprocess), the compiled program
+ * must skip the debugger and resume instead of blocking on or consuming stdin.
+ * The interactive read/eval loop itself is covered by the unit tests, which
+ * drive injected streams; here we only guard against a hang or a stolen stdin.
  */
 final class BreakDebuggerTest extends TestCase
 {
-    public function test_break_pauses_evals_locals_and_resumes_on_continue(): void
+    public function test_break_resumes_without_hanging_when_input_is_piped(): void
     {
-        [$exitCode, $stdout, $stderr] = $this->runScript("total\n(* total 10)\n(continue)\n");
+        [$exitCode, $stdout, $stderr] = $this->runScript("(continue)\n");
 
         self::assertSame(0, $exitCode, $this->failureMessage($stdout, $stderr));
-        self::assertStringContainsString('--- breakpoint ---', $stderr);
-        self::assertStringContainsString('total = 42', $stderr);
-        self::assertStringContainsString('=> 42', $stderr);
-        self::assertStringContainsString('=> 420', $stderr);
+        self::assertStringContainsString('breakpoint skipped', $stderr);
         self::assertStringContainsString('result: 42', $stdout);
     }
 
-    public function test_break_resumes_on_stdin_eof_without_hanging(): void
+    public function test_break_resumes_when_stdin_is_closed(): void
     {
         [$exitCode, $stdout, $stderr] = $this->runScript('');
 
         self::assertSame(0, $exitCode, $this->failureMessage($stdout, $stderr));
-        self::assertStringContainsString('--- breakpoint ---', $stderr);
+        self::assertStringContainsString('breakpoint skipped', $stderr);
         self::assertStringContainsString('result: 42', $stdout);
     }
 
