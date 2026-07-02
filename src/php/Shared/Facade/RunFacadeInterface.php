@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Phel\Shared\Facade;
 
 use Gacela\Framework\Health\ModuleHealthCheckInterface;
+use Phel\Lang\Collections\Map\PersistentMapInterface;
 use Phel\Shared\CompileOptions;
 use Phel\Shared\Eval\EvalResult;
 use Phel\Shared\Exceptions\CompilerException;
@@ -63,6 +64,14 @@ interface RunFacadeInterface
     public function getDependenciesFromPaths(array $paths): array;
 
     public function getNamespaceFromFile(string $fileOrPath): NamespaceInformation;
+
+    /**
+     * Enter the interactive breakpoint sub-REPL. Called by code compiled from
+     * the `(break)` special form; blocks until the user resumes execution.
+     *
+     * @param PersistentMapInterface<mixed, mixed> $locals
+     */
+    public function breakpoint(PersistentMapInterface $locals): void;
 
     public function writeLocatedException(OutputInterface $output, CompilerException $e): void;
 

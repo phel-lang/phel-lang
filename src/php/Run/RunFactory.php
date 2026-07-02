@@ -7,6 +7,7 @@ namespace Phel\Run;
 use Gacela\Framework\AbstractFactory;
 use Gacela\Framework\Health\ModuleHealthCheckInterface;
 use Phel\Filesystem\FilesystemFacadeInterface;
+use Phel\Run\Application\BreakpointDebugger;
 use Phel\Run\Application\BundledNamespaceDetector;
 use Phel\Run\Application\BundledNamespaces;
 use Phel\Run\Application\CompileExecutor;
@@ -271,6 +272,13 @@ class RunFactory extends AbstractFactory
     public function createStructuredEvaluator(): StructuredEvaluator
     {
         return new StructuredEvaluator(
+            $this->getCompilerFacade(),
+        );
+    }
+
+    public function createBreakpointDebugger(): BreakpointDebugger
+    {
+        return new BreakpointDebugger(
             $this->getCompilerFacade(),
         );
     }

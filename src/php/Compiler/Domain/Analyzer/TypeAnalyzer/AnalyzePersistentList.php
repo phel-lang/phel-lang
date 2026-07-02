@@ -14,6 +14,7 @@ use Phel\Compiler\Domain\Analyzer\Exceptions\AnalyzerException;
 use Phel\Compiler\Domain\Analyzer\TypeAnalyzer\SpecialForm\ApplySymbol;
 use Phel\Compiler\Domain\Analyzer\TypeAnalyzer\SpecialForm\Binding\BindingValidator;
 use Phel\Compiler\Domain\Analyzer\TypeAnalyzer\SpecialForm\Binding\Deconstructor;
+use Phel\Compiler\Domain\Analyzer\TypeAnalyzer\SpecialForm\BreakSymbol;
 use Phel\Compiler\Domain\Analyzer\TypeAnalyzer\SpecialForm\DefEnumSymbol;
 use Phel\Compiler\Domain\Analyzer\TypeAnalyzer\SpecialForm\DefExceptionSymbol;
 use Phel\Compiler\Domain\Analyzer\TypeAnalyzer\SpecialForm\DefInterfaceSymbol;
@@ -359,6 +360,7 @@ final class AnalyzePersistentList
             Symbol::NAME_QUOTE => static fn(): SpecialFormAnalyzerInterface => new QuoteSymbol(),
             Symbol::NAME_VAR => fn(): SpecialFormAnalyzerInterface => new VarSymbol($this->analyzer),
             Symbol::NAME_DO => fn(): SpecialFormAnalyzerInterface => new DoSymbol($this->analyzer),
+            Symbol::NAME_BREAK => fn(): SpecialFormAnalyzerInterface => new BreakSymbol($this->analyzer),
             Symbol::NAME_IF => fn(): SpecialFormAnalyzerInterface => new IfSymbol($this->analyzer),
             Symbol::NAME_APPLY => fn(): SpecialFormAnalyzerInterface => new ApplySymbol($this->analyzer),
             Symbol::NAME_LET => fn(): SpecialFormAnalyzerInterface => new LetSymbol($this->analyzer, new Deconstructor(new BindingValidator())),
