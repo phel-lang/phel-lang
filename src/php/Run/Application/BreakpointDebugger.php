@@ -12,13 +12,18 @@ use Phel\Shared\Printer\PrinterInterface;
 use Phel\Shared\ScalarCoercion;
 use Throwable;
 
+use function feof;
 use function fgets;
 use function fwrite;
 use function implode;
 use function in_array;
 use function is_callable;
+use function microtime;
 use function sprintf;
+use function stream_isatty;
+use function stream_set_blocking;
 use function trim;
+use function usleep;
 
 /**
  * Interactive blocking sub-REPL entered by code compiled from the `(break)`
@@ -27,6 +32,13 @@ use function trim;
  */
 final class BreakpointDebugger
 {
+    /**
+     * How long to poll a non-interactive input for a line before treating the
+     * silence as "resume". Bounds the wait so a `(break)` reached under CI, a
+     * cron job, or any pipe with no writer can never hang the process.
+     */
+    private const float NON_INTERACTIVE_READ_TIMEOUT_SECONDS = 2.0;
+
     /** @var resource */
     private $input;
 
@@ -66,9 +78,9 @@ final class BreakpointDebugger
         while (true) {
             $this->write('break> ');
 
-            $line = fgets($this->input);
+            $line = $this->readLine();
             if ($line === false) {
-                // EOF (CI/pipe): resume rather than hang.
+                // EOF, or an idle non-interactive input: resume rather than hang.
                 return;
             }
 
@@ -130,6 +142,37 @@ final class BreakpointDebugger
             $this->writeln(sprintf('=> %s', $printer->print($result)));
         } catch (Throwable $throwable) {
             $this->writeln(sprintf('error: %s', $throwable->getMessage()));
+        }
+    }
+
+    /**
+     * Reads one line. On an interactive terminal it blocks, waiting for the
+     * user. On any non-interactive input (CI, pipe, cron, /dev/null) it polls
+     * without blocking and gives up after a short timeout, so a `(break)` reached
+     * with no human attached resumes instead of hanging the process forever.
+     *
+     * @return false|string the line, or false on EOF / idle non-interactive input
+     */
+    private function readLine(): string|false
+    {
+        if (stream_isatty($this->input)) {
+            return fgets($this->input);
+        }
+
+        stream_set_blocking($this->input, false);
+        $deadline = microtime(true) + self::NON_INTERACTIVE_READ_TIMEOUT_SECONDS;
+
+        while (true) {
+            $line = fgets($this->input);
+            if ($line !== false) {
+                return $line;
+            }
+
+            if (feof($this->input) || microtime(true) >= $deadline) {
+                return false;
+            }
+
+            usleep(20_000);
         }
     }
 
