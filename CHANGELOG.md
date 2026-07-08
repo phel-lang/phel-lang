@@ -26,7 +26,7 @@ All notable changes to this project will be documented in this file.
 
 ### Performance
 
-- `def`/`defn` location metadata now emits a single `\Phel::locationMeta(...)` call instead of an expanded keyword-keyed map literal; any further metadata (`:doc`, `:private`, `:tag`, …) folds in as trailing arguments, so docstring-heavy namespaces shrink too. Byte-value-identical runtime map (#2722)
+- `def`/`defn` location metadata now emits a single `\Phel::locationMeta(...)` call instead of an expanded keyword-keyed map literal; any further metadata (`:doc`, `:private`, `:tag`, …) folds in as trailing arguments, so docstring-heavy namespaces shrink too. The runtime metadata map stays value-equal — same keys/values (`=`, hash); only its iteration order changes, which Phel maps do not guarantee (#2722, #2725)
 - Equal collection literals (`[1 2 3]`, `{:a 1}`, sets) repeated in a function body now share a single cached constant slot instead of allocating one per occurrence, shrinking emitted PHP (#2720)
 
 ## [0.47.0](https://github.com/phel-lang/phel-lang/compare/v0.46.0...v0.47.0) - 2026-07-01

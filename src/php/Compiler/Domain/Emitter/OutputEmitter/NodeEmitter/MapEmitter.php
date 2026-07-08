@@ -126,11 +126,12 @@ final class MapEmitter implements NodeEmitterInterface
      * Detect a `def`/`defn` metadata map that carries both location-shaped
      * `:start-location` and `:end-location` entries, and collapse it to one
      * `\Phel::locationMeta(...)` call so def-heavy namespaces emit far less
-     * PHP for the identical runtime map. Any further metadata (`:doc`,
+     * PHP for a value-equal runtime map. Any further metadata (`:doc`,
      * `:private`, `:tag`, …) rides along as trailing key/value arguments;
-     * map value is key-order independent, so the runtime map is unchanged.
-     * Maps missing either location entry fall through to the generic
-     * `\Phel::map(...)` path.
+     * map value and hash are key-order independent, so the runtime map stays
+     * value-equal (only its iteration order shifts, which is immaterial —
+     * Phel maps are unordered and metadata is read by key). Maps missing
+     * either location entry fall through to the generic `\Phel::map(...)` path.
      *
      * @return array{start: array{file: string, line: int, column: int}, end: array{file: string, line: int, column: int}, extras: list<array{AbstractNode, AbstractNode}>}|null
      */
