@@ -238,13 +238,13 @@ final class ConstantScope
     {
         $digest = '';
         for ($i = 0, $length = count($keyValues); $i < $length; $i += 2) {
-            $keyKey = $this->valueKey($keyValues[$i]);
-            $valueKey = $this->valueKey($keyValues[$i + 1]);
-            if ($keyKey === null || $valueKey === null) {
+            $keyChildKey = $this->valueKey($keyValues[$i]);
+            $valueChildKey = $this->valueKey($keyValues[$i + 1]);
+            if ($keyChildKey === null || $valueChildKey === null) {
                 return null;
             }
 
-            $digest .= $this->lengthPrefixedKey($keyKey) . '=>' . $this->lengthPrefixedKey($valueKey);
+            $digest .= $this->lengthPrefixedKey($keyChildKey) . '=>' . $this->lengthPrefixedKey($valueChildKey);
         }
 
         return 'map:[' . $digest . ']';
