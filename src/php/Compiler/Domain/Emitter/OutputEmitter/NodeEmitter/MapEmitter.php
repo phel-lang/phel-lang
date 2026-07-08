@@ -139,7 +139,7 @@ final class MapEmitter implements NodeEmitterInterface
             return null;
         }
 
-        $byKeyword = [];
+        $locationsByKeyword = [];
         for ($i = 0; $i < 4; $i += 2) {
             $key = $entries[$i];
             $value = $entries[$i + 1];
@@ -158,11 +158,11 @@ final class MapEmitter implements NodeEmitterInterface
                 return null;
             }
 
-            $byKeyword[$keyword->getName()] = $location;
+            $locationsByKeyword[$keyword->getName()] = $location;
         }
 
-        $start = $byKeyword['start-location'] ?? null;
-        $end = $byKeyword['end-location'] ?? null;
+        $start = $locationsByKeyword['start-location'] ?? null;
+        $end = $locationsByKeyword['end-location'] ?? null;
         if ($start === null || $end === null) {
             return null;
         }
