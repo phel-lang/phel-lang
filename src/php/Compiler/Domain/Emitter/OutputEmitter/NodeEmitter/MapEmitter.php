@@ -31,8 +31,11 @@ final class MapEmitter implements NodeEmitterInterface
         $cached = $this->outputEmitter->emitConstantSlotPrefix($node, $loc);
 
         $locationLiteral = $this->locationLiteral($node);
+        $defLocationMeta = $locationLiteral === null ? $this->defLocationMeta($node) : null;
         if ($locationLiteral !== null) {
             $this->emitLocationHelper($locationLiteral, $loc);
+        } elseif ($defLocationMeta !== null) {
+            $this->emitDefLocationMetaHelper($defLocationMeta, $loc);
         } else {
             $this->outputEmitter->emitStr('\Phel::map(', $loc);
             $this->emitEntries($node);
@@ -117,6 +120,66 @@ final class MapEmitter implements NodeEmitterInterface
             . ')',
             $loc,
         );
+    }
+
+    /**
+     * Detect the exact two-entry `{:start-location {loc} :end-location {loc}}`
+     * map that a trivial `def`/`defn` (no docstring, tags or other meta)
+     * synthesises. Collapses it to one `\Phel::locationMeta(...)` call, so
+     * def-heavy namespaces emit far less PHP for the identical runtime map.
+     * A def carrying extra meta has more entries and falls through to the
+     * generic `\Phel::map(...)` path unchanged.
+     *
+     * @return array{start: array{file: string, line: int, column: int}, end: array{file: string, line: int, column: int}}|null
+     */
+    private function defLocationMeta(MapNode $node): ?array
+    {
+        $entries = $node->getKeyValues();
+        if (count($entries) !== 4) {
+            return null;
+        }
+
+        $byKeyword = [];
+        for ($i = 0; $i < 4; $i += 2) {
+            $key = $entries[$i];
+            $value = $entries[$i + 1];
+
+            if (!$key instanceof LiteralNode || !$value instanceof MapNode) {
+                return null;
+            }
+
+            $keyword = $key->getValue();
+            if (!$keyword instanceof Keyword) {
+                return null;
+            }
+
+            $location = $this->locationLiteral($value);
+            if ($location === null) {
+                return null;
+            }
+
+            $byKeyword[$keyword->getName()] = $location;
+        }
+
+        $start = $byKeyword['start-location'] ?? null;
+        $end = $byKeyword['end-location'] ?? null;
+        if ($start === null || $end === null) {
+            return null;
+        }
+
+        return ['start' => $start, 'end' => $end];
+    }
+
+    /**
+     * @param array{start: array{file: string, line: int, column: int}, end: array{file: string, line: int, column: int}} $meta
+     */
+    private function emitDefLocationMetaHelper(array $meta, ?SourceLocation $loc): void
+    {
+        $this->outputEmitter->emitStr('\Phel::locationMeta(', $loc);
+        $this->emitLocationHelper($meta['start'], $loc);
+        $this->outputEmitter->emitStr(', ', $loc);
+        $this->emitLocationHelper($meta['end'], $loc);
+        $this->outputEmitter->emitStr(')', $loc);
     }
 
     private function emitEntries(MapNode $node): void

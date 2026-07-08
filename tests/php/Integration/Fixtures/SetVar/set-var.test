@@ -6,10 +6,7 @@
   "user",
   "x",
   1,
-  \Phel::map(
-    \Phel\Lang\Keyword::create("start-location"), \Phel::location("SetVar/set-var.test", 1, 0),
-    \Phel\Lang\Keyword::create("end-location"), \Phel::location("SetVar/set-var.test", 1, 9)
-  )
+  \Phel::locationMeta(\Phel::location("SetVar/set-var.test", 1, 0), \Phel::location("SetVar/set-var.test", 1, 9))
 );
 \Phel::setVar(
   "user",

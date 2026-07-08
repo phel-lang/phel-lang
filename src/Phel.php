@@ -339,6 +339,30 @@ final class Phel extends InternalPhel
     }
 
     /**
+     * Wrap the `:start-location`/`:end-location` pair a trivial `def` / `defn`
+     * synthesises into its metadata map. Lets the compiler emit one helper call
+     * instead of the expanded `Phel::map(Keyword::create("start-location"), ...)`
+     * per definition — same map at runtime, far less generated PHP across
+     * def-heavy namespaces. The keyword keys intern once per process via the
+     * `static` slots, as in {@see self::location()}.
+     *
+     * @param PersistentMapInterface<mixed, mixed> $startLocation
+     * @param PersistentMapInterface<mixed, mixed> $endLocation
+     *
+     * @return PersistentMapInterface<mixed, mixed>
+     */
+    public static function locationMeta(
+        PersistentMapInterface $startLocation,
+        PersistentMapInterface $endLocation,
+    ): PersistentMapInterface {
+        static $kwStart, $kwEnd;
+        $kwStart ??= self::keyword('start-location');
+        $kwEnd ??= self::keyword('end-location');
+
+        return self::map($kwStart, $startLocation, $kwEnd, $endLocation);
+    }
+
+    /**
      * Create a persistent hash set from an array of values.
      *
      * @param list<mixed>|null $values

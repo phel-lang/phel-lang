@@ -11,8 +11,5 @@
     $y_2 = 2;
     return ($x_1 + $y_2);
   })(),
-  \Phel::map(
-    \Phel\Lang\Keyword::create("start-location"), \Phel::location("Let/let-expr.test", 1, 0),
-    \Phel\Lang\Keyword::create("end-location"), \Phel::location("Let/let-expr.test", 1, 35)
-  )
+  \Phel::locationMeta(\Phel::location("Let/let-expr.test", 1, 0), \Phel::location("Let/let-expr.test", 1, 35))
 );

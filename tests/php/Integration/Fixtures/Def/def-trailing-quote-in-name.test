@@ -5,8 +5,5 @@
   "user",
   "a'",
   42,
-  \Phel::map(
-    \Phel\Lang\Keyword::create("start-location"), \Phel::location("Def/def-trailing-quote-in-name.test", 1, 0),
-    \Phel\Lang\Keyword::create("end-location"), \Phel::location("Def/def-trailing-quote-in-name.test", 1, 11)
-  )
+  \Phel::locationMeta(\Phel::location("Def/def-trailing-quote-in-name.test", 1, 0), \Phel::location("Def/def-trailing-quote-in-name.test", 1, 11))
 );

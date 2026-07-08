@@ -5,8 +5,5 @@
   "user",
   "x",
   (-9223372036854775807 - 1),
-  \Phel::map(
-    \Phel\Lang\Keyword::create("start-location"), \Phel::location("Def/negative-hex-int-min.test", 1, 0),
-    \Phel\Lang\Keyword::create("end-location"), \Phel::location("Def/negative-hex-int-min.test", 1, 27)
-  )
+  \Phel::locationMeta(\Phel::location("Def/negative-hex-int-min.test", 1, 0), \Phel::location("Def/negative-hex-int-min.test", 1, 27))
 );

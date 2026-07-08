@@ -16,8 +16,5 @@
       (3 + 3);
     }
   })(),
-  \Phel::map(
-    \Phel\Lang\Keyword::create("start-location"), \Phel::location("Try/try-catch-finally-expr-throw.test", 1, 0),
-    \Phel\Lang\Keyword::create("end-location"), \Phel::location("Try/try-catch-finally-expr-throw.test", 4, 27)
-  )
+  \Phel::locationMeta(\Phel::location("Try/try-catch-finally-expr-throw.test", 1, 0), \Phel::location("Try/try-catch-finally-expr-throw.test", 4, 27))
 );

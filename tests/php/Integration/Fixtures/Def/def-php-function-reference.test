@@ -5,8 +5,5 @@
   "user",
   "uc",
   (function(...$args) { return \strtoupper(...$args);}),
-  \Phel::map(
-    \Phel\Lang\Keyword::create("start-location"), \Phel::location("Def/def-php-function-reference.test", 1, 0),
-    \Phel\Lang\Keyword::create("end-location"), \Phel::location("Def/def-php-function-reference.test", 1, 24)
-  )
+  \Phel::locationMeta(\Phel::location("Def/def-php-function-reference.test", 1, 0), \Phel::location("Def/def-php-function-reference.test", 1, 24))
 );
