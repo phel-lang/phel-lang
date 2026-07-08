@@ -10,7 +10,6 @@ use Phel\Compiler\Domain\Analyzer\Ast\LiteralNode;
 use Phel\Compiler\Domain\Analyzer\Ast\LocalVarNode;
 use Phel\Lang\AbstractFn;
 use Phel\Lang\Collections\Map\PersistentMapInterface;
-use Phel\Lang\Collections\Vector\PersistentVectorInterface;
 use Phel\Lang\FnInterface;
 
 use function count;
@@ -87,12 +86,11 @@ final readonly class CallSpecialization
     }
 
     /**
-     * `(get coll k)` with two args, where the analyser has tagged the
-     * target as either `PersistentVectorInterface` or
-     * `PersistentMapInterface`. The runtime `phel.core/get` body walks
-     * a `cond` chain covering nil, set, seq, and the generic
-     * `php/aget` fallback; for a typed indexed access every branch
-     * collapses to a single method call on the target collection.
+     * `(get map k)` with two args, where the analyser has tagged the
+     * target as `PersistentMapInterface`. The runtime `phel.core/get`
+     * body walks a `cond` chain covering nil, set, seq, and the generic
+     * `php/aget` fallback; for a typed map lookup every branch collapses
+     * to the nil-safe `find` method call.
      */
     public static function isTypedGetAccess(CallNode $node): bool
     {
@@ -103,6 +101,15 @@ final readonly class CallSpecialization
      * Returns the PHP method name to call on the target collection for
      * a `(get coll k)` call the emitter can specialise, or `null` when
      * the call is not a typed get-access.
+     *
+     * A tagged VECTOR `get` is deliberately NOT specialised here: unlike
+     * the map's nil-safe `find`, `PersistentVector::get(int)` throws when
+     * the index is out of range and TypeErrors on a non-int key, whereas
+     * runtime `phel.core/get` returns nil for both (it guards non-int keys
+     * and out-of-range access). Delegating vector `get` to the runtime
+     * keeps those semantics; `nth` remains the specialised O(1) accessor.
+     * A correct fast vector `get` (int-check + bounds guard with single
+     * evaluation of the key) is left as follow-up.
      */
     public static function typedGetAccessMethod(CallNode $node): ?string
     {
@@ -116,7 +123,6 @@ final readonly class CallSpecialization
         }
 
         return match (TagNormalizer::ofLocalVar($args[0])) {
-            PersistentVectorInterface::class => 'get',
             PersistentMapInterface::class => 'find',
             default => null,
         };

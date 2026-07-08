@@ -2,5 +2,6 @@
 (fn [^"\\Phel\\Lang\\Collections\\Vector\\PersistentVectorInterface" v ^int i] (get v i))
 --PHP--
 (function(\Phel\Lang\Collections\Vector\PersistentVectorInterface $v, int $i) {
-  return ($v->get($i));
+  static $__phel_call_0;
+  return ($__phel_call_0 ??= \Phel::getDefinition("phel.core", "get"))->__invoke($v, $i);
 });

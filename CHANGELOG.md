@@ -23,6 +23,7 @@ All notable changes to this project will be documented in this file.
 
 - Distributed PHAR no longer bundles example templates' build artifacts — `phel init --template` shipped any leftover `.phel/` cache and `vendor/`, bloating a release PHAR from ~2 MB to ~14 MB; only template sources ship now (#2678)
 - `phel test --help` now shows `--parallel=auto` in its example; the bare `--parallel` it printed before errors, since the option needs a value (an integer, `auto`, or `max`) (#2679)
+- `get` on a `:tag`-typed vector with an out-of-range or non-integer key now returns `nil` (or the supplied default), matching runtime `get`, instead of throwing — the compiler no longer lowers it to an unguarded `$v->get()` (#2712)
 
 ### Performance
 
