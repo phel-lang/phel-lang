@@ -6,28 +6,28 @@ All notable changes to this project will be documented in this file.
 
 ### Added
 
-- `reduce-kv`: reduce an associative collection with `(f acc key value)`, vector indices as keys, `reduced` short-circuit supported (#2680)
-- `gcd` and `lcm`: greatest common divisor and least common multiple for integers (#2686)
+- `reduce-kv`: reduce an associative collection with `(f acc key value)`; vector indices act as keys, `reduced` short-circuits (#2680)
+- `gcd` and `lcm`: greatest common divisor and least common multiple of integers (#2686)
 - `trampoline`: stack-safe mutual recursion by bouncing returned thunks (#2682)
-- `reductions`: sequence of intermediate reduce values, with and without init (#2681)
-- `subvec`: persistent vector slice with start/end bounds checking; non-integer indices truncate toward zero and `NaN` counts as `0`, matching Clojure (#2683)
-- `arity` and `variadic?`: function reflection helpers for required parameter count and variadic detection (#2685)
-- `inspect`: pretty-prints a value (colored on TTY) and returns it unchanged for pipeline debugging (#2688)
-- `with-open`: scoped resource cleanup macro; closes bound resources in reverse order even on exception (#2684)
-- `phel test --coverage=html`: self-contained HTML coverage report with line-colored .phel sources (#2692)
-- `phel export` stubs now carry native parameter/return types and `@param`/`@return` docblocks derived from `:tag` metadata (#2695)
-- `dbg`: debug macro printing `[file:line] form => value` to stderr and returning the value (#2687)
-- `(break)`: interactive stepping-debugger foundation; pauses execution at the call site and opens a sub-REPL over the captured lexical locals (evaluate expressions against live values, `(continue)` to resume; resumes on stdin EOF so non-interactive runs never hang) (#2690)
+- `reductions`: lazy sequence of a reduce's intermediate values, with or without init (#2681)
+- `subvec`: bounds-checked persistent vector slice; non-integer bounds truncate toward zero and `NaN` counts as `0`, matching Clojure (#2683)
+- `arity` and `variadic?`: reflect a function's required parameter count and variadic flag (#2685)
+- `inspect`: pretty-prints a value (colored on TTY) and returns it unchanged, for pipeline debugging (#2688)
+- `with-open`: scoped-cleanup macro; closes bound resources in reverse order, even on exception (#2684)
+- `phel test --coverage=html`: self-contained HTML coverage report with line-colored `.phel` sources (#2692)
+- `phel export` stubs now carry native parameter/return types and `@param`/`@return` docblocks from `:tag` metadata (#2695)
+- `dbg`: debug macro printing `[file:line] form => value` to stderr, returning the value (#2687)
+- `(break)`: stepping-debugger foundation — pauses at the call site and opens a sub-REPL over the captured locals; `(continue)` or stdin EOF resumes, so non-interactive runs never hang (#2690)
 
 ### Fixed
 
-- The distributed PHAR no longer bundles example templates' local build artifacts. `phel init --template` sources were shipped with any `.phel/` cache and installed `vendor/` a maintainer left behind from running an example locally, which inflated a release PHAR from ~2 MB to ~14 MB; only the template sources ship now (#2678)
-- `phel test --help` now shows `--parallel=auto` in its example; the bare `--parallel` it printed before errors, because the option requires a value (an integer, `auto`, or `max`) (#2679)
+- Distributed PHAR no longer bundles example templates' build artifacts — `phel init --template` shipped any leftover `.phel/` cache and `vendor/`, bloating a release PHAR from ~2 MB to ~14 MB; only template sources ship now (#2678)
+- `phel test --help` now shows `--parallel=auto` in its example; the bare `--parallel` it printed before errors, since the option needs a value (an integer, `auto`, or `max`) (#2679)
 
 ### Performance
 
-- `def`/`defn` location metadata now emits a single `\Phel::locationMeta(...)` call instead of an expanded keyword-keyed map literal; any further metadata (`:doc`, `:private`, `:tag`, …) folds in as trailing arguments, so docstring-heavy namespaces shrink too. The runtime metadata map stays value-equal — same keys/values (`=`, hash); only its iteration order changes, which Phel maps do not guarantee (#2722, #2725)
-- Equal collection literals (`[1 2 3]`, `{:a 1}`, sets) repeated in a function body now share a single cached constant slot instead of allocating one per occurrence, shrinking emitted PHP (#2720)
+- `def`/`defn` location metadata emits a single `\Phel::locationMeta(...)` call instead of an expanded keyword-keyed map; extra metadata (`:doc`, `:private`, `:tag`, …) folds in as trailing args, so docstring-heavy namespaces shrink too. Runtime map stays value-equal (#2722, #2725)
+- Equal collection literals (`[1 2 3]`, `{:a 1}`, sets) repeated in a function body share one cached constant slot instead of one per occurrence, shrinking emitted PHP (#2720)
 
 ## [0.47.0](https://github.com/phel-lang/phel-lang/compare/v0.46.0...v0.47.0) - 2026-07-01
 
