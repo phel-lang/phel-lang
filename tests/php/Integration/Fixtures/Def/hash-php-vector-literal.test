@@ -5,8 +5,5 @@
   "user",
   "arr",
   (\Phel::getDefinition("phel.core", "php-indexed-array"))->__invoke(1, 2, 3),
-  \Phel::map(
-    \Phel\Lang\Keyword::create("start-location"), \Phel::location("Def/hash-php-vector-literal.test", 1, 0),
-    \Phel\Lang\Keyword::create("end-location"), \Phel::location("Def/hash-php-vector-literal.test", 1, 22)
-  )
+  \Phel::locationMeta(\Phel::location("Def/hash-php-vector-literal.test", 1, 0), \Phel::location("Def/hash-php-vector-literal.test", 1, 22))
 );

@@ -5,8 +5,5 @@
   "user",
   "x",
   -123,
-  \Phel::map(
-    \Phel\Lang\Keyword::create("start-location"), \Phel::location("Def/bigint-literal-negative.test", 1, 0),
-    \Phel\Lang\Keyword::create("end-location"), \Phel::location("Def/bigint-literal-negative.test", 1, 13)
-  )
+  \Phel::locationMeta(\Phel::location("Def/bigint-literal-negative.test", 1, 0), \Phel::location("Def/bigint-literal-negative.test", 1, 13))
 );

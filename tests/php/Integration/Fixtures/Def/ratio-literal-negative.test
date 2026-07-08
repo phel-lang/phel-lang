@@ -5,8 +5,5 @@
   "user",
   "x",
   \Phel\Lang\Ratio::create(\Phel\Lang\BigInt::fromString("-3"), \Phel\Lang\BigInt::fromString("4")),
-  \Phel::map(
-    \Phel\Lang\Keyword::create("start-location"), \Phel::location("Def/ratio-literal-negative.test", 1, 0),
-    \Phel\Lang\Keyword::create("end-location"), \Phel::location("Def/ratio-literal-negative.test", 1, 12)
-  )
+  \Phel::locationMeta(\Phel::location("Def/ratio-literal-negative.test", 1, 0), \Phel::location("Def/ratio-literal-negative.test", 1, 12))
 );

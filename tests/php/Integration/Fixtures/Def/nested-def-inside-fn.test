@@ -13,10 +13,7 @@
         "user",
         "x",
         1,
-        ($__phel_const_0 ??= \Phel::map(
-          \Phel\Lang\Keyword::create("start-location"), \Phel::location("Def/nested-def-inside-fn.test", 1, 14),
-          \Phel\Lang\Keyword::create("end-location"), \Phel::location("Def/nested-def-inside-fn.test", 1, 23)
-        ))
+        ($__phel_const_0 ??= \Phel::locationMeta(\Phel::location("Def/nested-def-inside-fn.test", 1, 14), \Phel::location("Def/nested-def-inside-fn.test", 1, 23)))
       );
 
       return \Phel::getDefinition("user", "x");

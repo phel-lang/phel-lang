@@ -5,8 +5,5 @@
   "user",
   "x",
   " ",
-  \Phel::map(
-    \Phel\Lang\Keyword::create("start-location"), \Phel::location("Def/char-literal-named-space.test", 1, 0),
-    \Phel\Lang\Keyword::create("end-location"), \Phel::location("Def/char-literal-named-space.test", 1, 14)
-  )
+  \Phel::locationMeta(\Phel::location("Def/char-literal-named-space.test", 1, 0), \Phel::location("Def/char-literal-named-space.test", 1, 14))
 );

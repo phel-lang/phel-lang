@@ -6,9 +6,6 @@
   "user",
   "a",
   (new \stdClass()),
-  \Phel::map(
-    \Phel\Lang\Keyword::create("start-location"), \Phel::location("PhpObjectSet/set-class-property.test", 1, 0),
-    \Phel\Lang\Keyword::create("end-location"), \Phel::location("PhpObjectSet/set-class-property.test", 1, 27)
-  )
+  \Phel::locationMeta(\Phel::location("PhpObjectSet/set-class-property.test", 1, 0), \Phel::location("PhpObjectSet/set-class-property.test", 1, 27))
 );
 \Phel::getDefinition("user", "a")->name = "test";

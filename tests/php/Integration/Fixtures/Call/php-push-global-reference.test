@@ -6,9 +6,6 @@
   "user",
   "arr",
   array(1, 2, 3),
-  \Phel::map(
-    \Phel\Lang\Keyword::create("start-location"), \Phel::location("Call/php-push-global-reference.test", 1, 0),
-    \Phel\Lang\Keyword::create("end-location"), \Phel::location("Call/php-push-global-reference.test", 1, 27)
-  )
+  \Phel::locationMeta(\Phel::location("Call/php-push-global-reference.test", 1, 0), \Phel::location("Call/php-push-global-reference.test", 1, 27))
 );
 (\Phel::getDefinitionReference("user", "arr"))[] = 4;

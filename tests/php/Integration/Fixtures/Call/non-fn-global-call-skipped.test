@@ -6,10 +6,7 @@
   "user",
   "k",
   \Phel\Lang\Keyword::create("a"),
-  \Phel::map(
-    \Phel\Lang\Keyword::create("start-location"), \Phel::location("Call/non-fn-global-call-skipped.test", 1, 0),
-    \Phel\Lang\Keyword::create("end-location"), \Phel::location("Call/non-fn-global-call-skipped.test", 1, 10)
-  )
+  \Phel::locationMeta(\Phel::location("Call/non-fn-global-call-skipped.test", 1, 0), \Phel::location("Call/non-fn-global-call-skipped.test", 1, 10))
 );
 (\Phel::getDefinition("user", "k"))(\Phel::map(
   \Phel\Lang\Keyword::create("a"), 1

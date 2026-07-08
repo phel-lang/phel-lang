@@ -6,9 +6,6 @@
   "user",
   "x",
   1,
-  \Phel::map(
-    \Phel\Lang\Keyword::create("start-location"), \Phel::location("VarQuote/var-special-form.test", 1, 0),
-    \Phel\Lang\Keyword::create("end-location"), \Phel::location("VarQuote/var-special-form.test", 1, 9)
-  )
+  \Phel::locationMeta(\Phel::location("VarQuote/var-special-form.test", 1, 0), \Phel::location("VarQuote/var-special-form.test", 1, 9))
 );
 \Phel\Lang\Registry::getInstance()->getVar("user", "x");

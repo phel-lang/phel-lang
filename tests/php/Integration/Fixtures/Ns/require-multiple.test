@@ -26,17 +26,11 @@ require_once __DIR__ . '/xyz/core2.php';
   "test",
   "kw",
   \Phel\Lang\Keyword::create("f1", "xyz.core"),
-  \Phel::map(
-    \Phel\Lang\Keyword::create("start-location"), \Phel::location("Ns/require-multiple.test", 6, 0),
-    \Phel\Lang\Keyword::create("end-location"), \Phel::location("Ns/require-multiple.test", 6, 15)
-  )
+  \Phel::locationMeta(\Phel::location("Ns/require-multiple.test", 6, 0), \Phel::location("Ns/require-multiple.test", 6, 15))
 );
 \Phel::addDefinition(
   "test",
   "kw2",
   \Phel\Lang\Keyword::create("f3", "xyz.core2"),
-  \Phel::map(
-    \Phel\Lang\Keyword::create("start-location"), \Phel::location("Ns/require-multiple.test", 7, 0),
-    \Phel\Lang\Keyword::create("end-location"), \Phel::location("Ns/require-multiple.test", 7, 17)
-  )
+  \Phel::locationMeta(\Phel::location("Ns/require-multiple.test", 7, 0), \Phel::location("Ns/require-multiple.test", 7, 17))
 );

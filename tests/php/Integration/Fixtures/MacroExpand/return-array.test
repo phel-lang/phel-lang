@@ -26,8 +26,5 @@
   "user",
   "y",
   [0 => 1, 1 => 2, 2 => [0 => 3, 1 => 4]],
-  \Phel::map(
-    \Phel\Lang\Keyword::create("start-location"), \Phel::location("MacroExpand/return-array.test", 3, 0),
-    \Phel\Lang\Keyword::create("end-location"), \Phel::location("MacroExpand/return-array.test", 3, 13)
-  )
+  \Phel::locationMeta(\Phel::location("MacroExpand/return-array.test", 3, 0), \Phel::location("MacroExpand/return-array.test", 3, 13))
 );

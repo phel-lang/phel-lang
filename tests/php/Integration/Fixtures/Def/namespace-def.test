@@ -19,8 +19,5 @@ require_once __DIR__ . '/../phel/core.php';
   "my.ns",
   "x",
   1,
-  \Phel::map(
-    \Phel\Lang\Keyword::create("start-location"), \Phel::location("Def/namespace-def.test", 3, 0),
-    \Phel\Lang\Keyword::create("end-location"), \Phel::location("Def/namespace-def.test", 3, 9)
-  )
+  \Phel::locationMeta(\Phel::location("Def/namespace-def.test", 3, 0), \Phel::location("Def/namespace-def.test", 3, 9))
 );
