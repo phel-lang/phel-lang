@@ -12,13 +12,5 @@
       return (\Phel::getDefinition("phel.core", "list"))(...\Phel\Lang\Seq::toApplyArguments(($__phel_call_0 ??= \Phel::getDefinition("phel.core", "concat"))->__invoke(($__phel_call_1 ??= \Phel::getDefinition("phel.core", "list"))->__invoke((\Phel\Lang\Symbol::create("php/+"))), ($__phel_call_2 ??= \Phel::getDefinition("phel.core", "list"))->__invoke($x), ($__phel_call_3 ??= \Phel::getDefinition("phel.core", "list"))->__invoke(1))));
     }
   },
-  \Phel::map(
-    \Phel\Lang\Keyword::create("macro"), true,
-    \Phel\Lang\Keyword::create("doc"), "```phel\n(plus1 x)\n```\n",
-    \Phel\Lang\Keyword::create("start-location"), \Phel::location("Def/defmacro-skips-type-inference.test", 1, 0),
-    \Phel\Lang\Keyword::create("end-location"), \Phel::location("Def/defmacro-skips-type-inference.test", 1, 34),
-    "min-arity", 1,
-    "is-variadic", false,
-    "arglists", "[x]"
-  )
+  \Phel::locationMeta(\Phel::location("Def/defmacro-skips-type-inference.test", 1, 0), \Phel::location("Def/defmacro-skips-type-inference.test", 1, 34), \Phel\Lang\Keyword::create("macro"), true, \Phel\Lang\Keyword::create("doc"), "```phel\n(plus1 x)\n```\n", "min-arity", 1, "is-variadic", false, "arglists", "[x]")
 );

@@ -123,42 +123,44 @@ final class MapEmitter implements NodeEmitterInterface
     }
 
     /**
-     * Detect the exact two-entry `{:start-location {loc} :end-location {loc}}`
-     * map that a trivial `def`/`defn` (no docstring, tags or other meta)
-     * synthesises. Collapses it to one `\Phel::locationMeta(...)` call, so
-     * def-heavy namespaces emit far less PHP for the identical runtime map.
-     * A def carrying extra meta has more entries and falls through to the
-     * generic `\Phel::map(...)` path unchanged.
+     * Detect a `def`/`defn` metadata map that carries both location-shaped
+     * `:start-location` and `:end-location` entries, and collapse it to one
+     * `\Phel::locationMeta(...)` call so def-heavy namespaces emit far less
+     * PHP for the identical runtime map. Any further metadata (`:doc`,
+     * `:private`, `:tag`, …) rides along as trailing key/value arguments;
+     * map value is key-order independent, so the runtime map is unchanged.
+     * Maps missing either location entry fall through to the generic
+     * `\Phel::map(...)` path.
      *
-     * @return array{start: array{file: string, line: int, column: int}, end: array{file: string, line: int, column: int}}|null
+     * @return array{start: array{file: string, line: int, column: int}, end: array{file: string, line: int, column: int}, extras: list<array{AbstractNode, AbstractNode}>}|null
      */
     private function defLocationMeta(MapNode $node): ?array
     {
         $entries = $node->getKeyValues();
-        if (count($entries) !== 4) {
+        $entryCount = count($entries);
+        if ($entryCount < 4 || $entryCount % 2 !== 0) {
             return null;
         }
 
         $locationsByKeyword = [];
-        for ($i = 0; $i < 4; $i += 2) {
+        $extras = [];
+        for ($i = 0; $i < $entryCount; $i += 2) {
             $key = $entries[$i];
             $value = $entries[$i + 1];
 
-            if (!$key instanceof LiteralNode || !$value instanceof MapNode) {
-                return null;
+            $keyword = $key instanceof LiteralNode ? $key->getValue() : null;
+            $name = $keyword instanceof Keyword ? $keyword->getName() : null;
+            $location = $value instanceof MapNode ? $this->locationLiteral($value) : null;
+
+            if ($location !== null
+                && ($name === 'start-location' || $name === 'end-location')
+                && !isset($locationsByKeyword[$name])
+            ) {
+                $locationsByKeyword[$name] = $location;
+                continue;
             }
 
-            $keyword = $key->getValue();
-            if (!$keyword instanceof Keyword) {
-                return null;
-            }
-
-            $location = $this->locationLiteral($value);
-            if ($location === null) {
-                return null;
-            }
-
-            $locationsByKeyword[$keyword->getName()] = $location;
+            $extras[] = [$key, $value];
         }
 
         $start = $locationsByKeyword['start-location'] ?? null;
@@ -167,11 +169,11 @@ final class MapEmitter implements NodeEmitterInterface
             return null;
         }
 
-        return ['start' => $start, 'end' => $end];
+        return ['start' => $start, 'end' => $end, 'extras' => $extras];
     }
 
     /**
-     * @param array{start: array{file: string, line: int, column: int}, end: array{file: string, line: int, column: int}} $meta
+     * @param array{start: array{file: string, line: int, column: int}, end: array{file: string, line: int, column: int}, extras: list<array{AbstractNode, AbstractNode}>} $meta
      */
     private function emitDefLocationMetaHelper(array $meta, ?SourceLocation $loc): void
     {
@@ -179,6 +181,14 @@ final class MapEmitter implements NodeEmitterInterface
         $this->emitLocationHelper($meta['start'], $loc);
         $this->outputEmitter->emitStr(', ', $loc);
         $this->emitLocationHelper($meta['end'], $loc);
+
+        foreach ($meta['extras'] as [$key, $value]) {
+            $this->outputEmitter->emitStr(', ', $loc);
+            $this->outputEmitter->emitNode($key);
+            $this->outputEmitter->emitStr(', ', $loc);
+            $this->outputEmitter->emitNode($value);
+        }
+
         $this->outputEmitter->emitStr(')', $loc);
     }
 

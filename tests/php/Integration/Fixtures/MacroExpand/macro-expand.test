@@ -17,13 +17,6 @@
       ]);
     }
   },
-  \Phel::map(
-    \Phel\Lang\Keyword::create("macro"), true,
-    \Phel\Lang\Keyword::create("start-location"), \Phel::location("MacroExpand/macro-expand.test", 1, 0),
-    \Phel\Lang\Keyword::create("end-location"), \Phel::location("MacroExpand/macro-expand.test", 1, 38),
-    "min-arity", 1,
-    "is-variadic", false,
-    "arglists", "[n]"
-  )
+  \Phel::locationMeta(\Phel::location("MacroExpand/macro-expand.test", 1, 0), \Phel::location("MacroExpand/macro-expand.test", 1, 38), \Phel\Lang\Keyword::create("macro"), true, "min-arity", 1, "is-variadic", false, "arglists", "[n]")
 );
 (1 + 1);

@@ -12,15 +12,7 @@
       return is_int($x);
     }
   },
-  \Phel::map(
-    \Phel\Lang\Keyword::create("doc"), "```phel\n(check x)\n```\n",
-    \Phel\Lang\Keyword::create("start-location"), \Phel::location("Fn/fn-infer-call-global-inferred-callee.test", 1, 0),
-    \Phel\Lang\Keyword::create("end-location"), \Phel::location("Fn/fn-infer-call-global-inferred-callee.test", 1, 31),
-    "min-arity", 1,
-    "is-variadic", false,
-    "arglists", "[x]",
-    \Phel\Lang\Keyword::create("tag"), "bool"
-  )
+  \Phel::locationMeta(\Phel::location("Fn/fn-infer-call-global-inferred-callee.test", 1, 0), \Phel::location("Fn/fn-infer-call-global-inferred-callee.test", 1, 31), \Phel\Lang\Keyword::create("doc"), "```phel\n(check x)\n```\n", "min-arity", 1, "is-variadic", false, "arglists", "[x]", \Phel\Lang\Keyword::create("tag"), "bool")
 );
 (function($x): bool {
   static $__phel_call_0;

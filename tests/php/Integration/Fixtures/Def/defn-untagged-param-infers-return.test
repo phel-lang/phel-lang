@@ -11,13 +11,5 @@
       return (1 + 1);
     }
   },
-  \Phel::map(
-    \Phel\Lang\Keyword::create("doc"), "```phel\n(const-two x)\n```\n",
-    \Phel\Lang\Keyword::create("start-location"), \Phel::location("Def/defn-untagged-param-infers-return.test", 1, 0),
-    \Phel\Lang\Keyword::create("end-location"), \Phel::location("Def/defn-untagged-param-infers-return.test", 1, 32),
-    "min-arity", 1,
-    "is-variadic", false,
-    "arglists", "[x]",
-    \Phel\Lang\Keyword::create("tag"), "int"
-  )
+  \Phel::locationMeta(\Phel::location("Def/defn-untagged-param-infers-return.test", 1, 0), \Phel::location("Def/defn-untagged-param-infers-return.test", 1, 32), \Phel\Lang\Keyword::create("doc"), "```phel\n(const-two x)\n```\n", "min-arity", 1, "is-variadic", false, "arglists", "[x]", \Phel\Lang\Keyword::create("tag"), "int")
 );

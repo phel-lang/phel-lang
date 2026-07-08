@@ -13,12 +13,5 @@
 
     }
   },
-  \Phel::map(
-    \Phel\Lang\Keyword::create("doc"), "```phel\n(nil-check x)\n```\n",
-    \Phel\Lang\Keyword::create("start-location"), \Phel::location("Fn/defn-infer-phel-core-eq-nil-stays-untagged.test", 1, 0),
-    \Phel\Lang\Keyword::create("end-location"), \Phel::location("Fn/defn-infer-phel-core-eq-nil-stays-untagged.test", 1, 39),
-    "min-arity", 1,
-    "is-variadic", false,
-    "arglists", "[x]"
-  )
+  \Phel::locationMeta(\Phel::location("Fn/defn-infer-phel-core-eq-nil-stays-untagged.test", 1, 0), \Phel::location("Fn/defn-infer-phel-core-eq-nil-stays-untagged.test", 1, 39), \Phel\Lang\Keyword::create("doc"), "```phel\n(nil-check x)\n```\n", "min-arity", 1, "is-variadic", false, "arglists", "[x]")
 );

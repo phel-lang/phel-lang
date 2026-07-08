@@ -26,13 +26,5 @@
       };
     }
   },
-  \Phel::map(
-    \Phel\Lang\Keyword::create("doc"), "```phel\n(poly a)\n(poly a b)\n```\n",
-    \Phel\Lang\Keyword::create("start-location"), \Phel::location("Def/defn-multi-arity-infers-return.test", 1, 0),
-    \Phel\Lang\Keyword::create("end-location"), \Phel::location("Def/defn-multi-arity-infers-return.test", 1, 49),
-    "min-arity", 1,
-    "is-variadic", false,
-    "max-arity", 2,
-    "arglists", "([a] [a b])"
-  )
+  \Phel::locationMeta(\Phel::location("Def/defn-multi-arity-infers-return.test", 1, 0), \Phel::location("Def/defn-multi-arity-infers-return.test", 1, 49), \Phel\Lang\Keyword::create("doc"), "```phel\n(poly a)\n(poly a b)\n```\n", "min-arity", 1, "is-variadic", false, "max-arity", 2, "arglists", "([a] [a b])")
 );

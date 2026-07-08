@@ -12,12 +12,5 @@
       return ($__phel_call_0 ??= \Phel::getDefinition("phel.core", "+"))->__invoke($a, 1);
     }
   },
-  \Phel::map(
-    \Phel\Lang\Keyword::create("doc"), "```phel\n(inc-by-one a)\n```\n",
-    \Phel\Lang\Keyword::create("start-location"), \Phel::location("Fn/fn-infer-phel-core-plus.test", 1, 0),
-    \Phel\Lang\Keyword::create("end-location"), \Phel::location("Fn/fn-infer-phel-core-plus.test", 1, 29),
-    "min-arity", 1,
-    "is-variadic", false,
-    "arglists", "[a]"
-  )
+  \Phel::locationMeta(\Phel::location("Fn/fn-infer-phel-core-plus.test", 1, 0), \Phel::location("Fn/fn-infer-phel-core-plus.test", 1, 29), \Phel\Lang\Keyword::create("doc"), "```phel\n(inc-by-one a)\n```\n", "min-arity", 1, "is-variadic", false, "arglists", "[a]")
 );

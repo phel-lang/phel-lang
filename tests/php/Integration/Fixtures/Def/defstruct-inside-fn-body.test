@@ -29,11 +29,5 @@
 
     }
   },
-  \Phel::map(
-    \Phel\Lang\Keyword::create("start-location"), \Phel::location("Def/defstruct-inside-fn-body.test", 1, 0),
-    \Phel\Lang\Keyword::create("end-location"), \Phel::location("Def/defstruct-inside-fn-body.test", 3, 33),
-    "min-arity", 0,
-    "is-variadic", false,
-    "arglists", "[]"
-  )
+  \Phel::locationMeta(\Phel::location("Def/defstruct-inside-fn-body.test", 1, 0), \Phel::location("Def/defstruct-inside-fn-body.test", 3, 33), "min-arity", 0, "is-variadic", false, "arglists", "[]")
 );

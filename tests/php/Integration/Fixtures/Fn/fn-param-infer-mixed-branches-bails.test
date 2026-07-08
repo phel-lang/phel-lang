@@ -13,13 +13,6 @@
 
     }
   },
-  \Phel::map(
-    \Phel\Lang\Keyword::create("doc"), "```phel\n(mixed x flag)\n```\n",
-    \Phel\Lang\Keyword::create("start-location"), \Phel::location("Fn/fn-param-infer-mixed-branches-bails.test", 1, 0),
-    \Phel\Lang\Keyword::create("end-location"), \Phel::location("Fn/fn-param-infer-mixed-branches-bails.test", 1, 57),
-    "min-arity", 2,
-    "is-variadic", false,
-    "arglists", "[x flag]"
-  )
+  \Phel::locationMeta(\Phel::location("Fn/fn-param-infer-mixed-branches-bails.test", 1, 0), \Phel::location("Fn/fn-param-infer-mixed-branches-bails.test", 1, 57), \Phel\Lang\Keyword::create("doc"), "```phel\n(mixed x flag)\n```\n", "min-arity", 2, "is-variadic", false, "arglists", "[x flag]")
 );
 (\Phel::getDefinition("user", "mixed"))->__invoke("x", false);

@@ -11,13 +11,5 @@
       return ($x >= 0.5);
     }
   },
-  \Phel::map(
-    \Phel\Lang\Keyword::create("doc"), "```phel\n(at-least-half? x)\n```\n",
-    \Phel\Lang\Keyword::create("start-location"), \Phel::location("Fn/defn-infer-phel-core-gte.test", 1, 0),
-    \Phel\Lang\Keyword::create("end-location"), \Phel::location("Fn/defn-infer-phel-core-gte.test", 1, 36),
-    "min-arity", 1,
-    "is-variadic", false,
-    "arglists", "[x]",
-    \Phel\Lang\Keyword::create("tag"), "bool"
-  )
+  \Phel::locationMeta(\Phel::location("Fn/defn-infer-phel-core-gte.test", 1, 0), \Phel::location("Fn/defn-infer-phel-core-gte.test", 1, 36), \Phel\Lang\Keyword::create("doc"), "```phel\n(at-least-half? x)\n```\n", "min-arity", 1, "is-variadic", false, "arglists", "[x]", \Phel\Lang\Keyword::create("tag"), "bool")
 );

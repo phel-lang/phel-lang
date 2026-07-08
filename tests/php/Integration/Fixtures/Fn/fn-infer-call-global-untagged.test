@@ -12,15 +12,7 @@
       return ($a + $b);
     }
   },
-  \Phel::map(
-    \Phel\Lang\Keyword::create("doc"), "```phel\n(add a b)\n```\n",
-    \Phel\Lang\Keyword::create("start-location"), \Phel::location("Fn/fn-infer-call-global-untagged.test", 1, 0),
-    \Phel\Lang\Keyword::create("end-location"), \Phel::location("Fn/fn-infer-call-global-untagged.test", 1, 38),
-    "min-arity", 2,
-    "is-variadic", false,
-    "arglists", "[a b]",
-    \Phel\Lang\Keyword::create("tag"), "int"
-  )
+  \Phel::locationMeta(\Phel::location("Fn/fn-infer-call-global-untagged.test", 1, 0), \Phel::location("Fn/fn-infer-call-global-untagged.test", 1, 38), \Phel\Lang\Keyword::create("doc"), "```phel\n(add a b)\n```\n", "min-arity", 2, "is-variadic", false, "arglists", "[a b]", \Phel\Lang\Keyword::create("tag"), "int")
 );
 (function(int $x): int {
   static $__phel_call_0;

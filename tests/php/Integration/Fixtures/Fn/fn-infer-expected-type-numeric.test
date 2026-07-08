@@ -11,13 +11,5 @@
       return random_int(0, ($hi - $lo));
     }
   },
-  \Phel::map(
-    \Phel\Lang\Keyword::create("doc"), "```phel\n(rrange lo hi)\n```\n",
-    \Phel\Lang\Keyword::create("start-location"), \Phel::location("Fn/fn-infer-expected-type-numeric.test", 1, 0),
-    \Phel\Lang\Keyword::create("end-location"), \Phel::location("Fn/fn-infer-expected-type-numeric.test", 1, 54),
-    "min-arity", 2,
-    "is-variadic", false,
-    "arglists", "[lo hi]",
-    \Phel\Lang\Keyword::create("tag"), "int"
-  )
+  \Phel::locationMeta(\Phel::location("Fn/fn-infer-expected-type-numeric.test", 1, 0), \Phel::location("Fn/fn-infer-expected-type-numeric.test", 1, 54), \Phel\Lang\Keyword::create("doc"), "```phel\n(rrange lo hi)\n```\n", "min-arity", 2, "is-variadic", false, "arglists", "[lo hi]", \Phel\Lang\Keyword::create("tag"), "int")
 );

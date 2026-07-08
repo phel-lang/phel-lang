@@ -17,12 +17,5 @@
       })();
     }
   },
-  \Phel::map(
-    \Phel\Lang\Keyword::create("doc"), "```phel\n(process arr)\n```\n",
-    \Phel\Lang\Keyword::create("start-location"), \Phel::location("Foreach/foreach-tagged-array-param-skips-adapter.test", 1, 0),
-    \Phel\Lang\Keyword::create("end-location"), \Phel::location("Foreach/foreach-tagged-array-param-skips-adapter.test", 1, 59),
-    "min-arity", 1,
-    "is-variadic", false,
-    "arglists", "[arr]"
-  )
+  \Phel::locationMeta(\Phel::location("Foreach/foreach-tagged-array-param-skips-adapter.test", 1, 0), \Phel::location("Foreach/foreach-tagged-array-param-skips-adapter.test", 1, 59), \Phel\Lang\Keyword::create("doc"), "```phel\n(process arr)\n```\n", "min-arity", 1, "is-variadic", false, "arglists", "[arr]")
 );

@@ -339,12 +339,17 @@ final class Phel extends InternalPhel
     }
 
     /**
-     * Wrap the `:start-location`/`:end-location` pair a trivial `def` / `defn`
+     * Wrap the `:start-location`/`:end-location` pair a `def` / `defn`
      * synthesises into its metadata map. Lets the compiler emit one helper call
      * instead of the expanded `Phel::map(Keyword::create("start-location"), ...)`
      * per definition — same map at runtime, far less generated PHP across
      * def-heavy namespaces. The keyword keys intern once per process via the
      * `static` slots, as in {@see self::location()}.
+     *
+     * `$extraKeyValues` carries any remaining metadata a definition declares
+     * (`:doc`, `:private`, `:tag`, …) as flat key/value pairs. Map value is
+     * key-order independent, so folding the location keys ahead of the extras
+     * yields the identical runtime map the expanded literal produced.
      *
      * @param PersistentMapInterface<mixed, mixed> $startLocation
      * @param PersistentMapInterface<mixed, mixed> $endLocation
@@ -354,12 +359,13 @@ final class Phel extends InternalPhel
     public static function locationMeta(
         PersistentMapInterface $startLocation,
         PersistentMapInterface $endLocation,
+        mixed ...$extraKeyValues,
     ): PersistentMapInterface {
         static $kwStart, $kwEnd;
         $kwStart ??= self::keyword('start-location');
         $kwEnd ??= self::keyword('end-location');
 
-        return self::map($kwStart, $startLocation, $kwEnd, $endLocation);
+        return self::map($kwStart, $startLocation, $kwEnd, $endLocation, ...$extraKeyValues);
     }
 
     /**

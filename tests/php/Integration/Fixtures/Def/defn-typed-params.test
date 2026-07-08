@@ -11,13 +11,5 @@
       return ($x + $y);
     }
   },
-  \Phel::map(
-    \Phel\Lang\Keyword::create("doc"), "```phel\n(add x y)\n```\n",
-    \Phel\Lang\Keyword::create("start-location"), \Phel::location("Def/defn-typed-params.test", 1, 0),
-    \Phel\Lang\Keyword::create("end-location"), \Phel::location("Def/defn-typed-params.test", 1, 56),
-    "min-arity", 2,
-    "is-variadic", false,
-    "arglists", "[x y]",
-    \Phel\Lang\Keyword::create("tag"), "int"
-  )
+  \Phel::locationMeta(\Phel::location("Def/defn-typed-params.test", 1, 0), \Phel::location("Def/defn-typed-params.test", 1, 56), \Phel\Lang\Keyword::create("doc"), "```phel\n(add x y)\n```\n", "min-arity", 2, "is-variadic", false, "arglists", "[x y]", \Phel\Lang\Keyword::create("tag"), "int")
 );

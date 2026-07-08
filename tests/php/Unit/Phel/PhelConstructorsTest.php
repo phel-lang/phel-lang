@@ -87,4 +87,40 @@ final class PhelConstructorsTest extends TestCase
         self::assertTrue($start->equals($actual[Keyword::create('start-location')]));
         self::assertTrue($end->equals($actual[Keyword::create('end-location')]));
     }
+
+    /**
+     * A definition carrying extra metadata (`:doc`, `:private`, …) folds those
+     * pairs in as trailing arguments; the map is key-order independent, so it
+     * must still equal the expanded literal the compiler used to emit.
+     */
+    public function test_location_meta_with_extra_metadata_equals_expanded(): void
+    {
+        $start = Phel::location('example.phel', 1, 0);
+        $end = Phel::location('example.phel', 2, 5);
+
+        $expected = Phel::map(
+            Keyword::create('doc'),
+            'greets someone',
+            Keyword::create('private'),
+            true,
+            Keyword::create('start-location'),
+            $start,
+            Keyword::create('end-location'),
+            $end,
+        );
+
+        $actual = Phel::locationMeta(
+            $start,
+            $end,
+            Keyword::create('doc'),
+            'greets someone',
+            Keyword::create('private'),
+            true,
+        );
+
+        self::assertTrue($actual->equals($expected));
+        self::assertSame('greets someone', $actual[Keyword::create('doc')]);
+        self::assertTrue($actual[Keyword::create('private')]);
+        self::assertTrue($start->equals($actual[Keyword::create('start-location')]));
+    }
 }

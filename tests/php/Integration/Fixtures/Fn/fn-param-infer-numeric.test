@@ -12,14 +12,6 @@
       return ($x + 1);
     }
   },
-  \Phel::map(
-    \Phel\Lang\Keyword::create("doc"), "```phel\n(add1 x)\n```\n",
-    \Phel\Lang\Keyword::create("start-location"), \Phel::location("Fn/fn-param-infer-numeric.test", 1, 0),
-    \Phel\Lang\Keyword::create("end-location"), \Phel::location("Fn/fn-param-infer-numeric.test", 1, 27),
-    "min-arity", 1,
-    "is-variadic", false,
-    "arglists", "[x]",
-    \Phel\Lang\Keyword::create("tag"), "int"
-  )
+  \Phel::locationMeta(\Phel::location("Fn/fn-param-infer-numeric.test", 1, 0), \Phel::location("Fn/fn-param-infer-numeric.test", 1, 27), \Phel\Lang\Keyword::create("doc"), "```phel\n(add1 x)\n```\n", "min-arity", 1, "is-variadic", false, "arglists", "[x]", \Phel\Lang\Keyword::create("tag"), "int")
 );
 (\Phel::getDefinition("user", "add1"))->__invoke(42);

@@ -41,14 +41,7 @@ interface IPlayer {
 
     }
   },
-  \Phel::map(
-    \Phel\Lang\Keyword::create("doc"), "```phel\n(choose p)\n```\nChoose docs",
-    \Phel\Lang\Keyword::create("start-location"), \Phel::location("Def/definterface-instance-of.test", 3, 0),
-    \Phel\Lang\Keyword::create("end-location"), \Phel::location("Def/definterface-instance-of.test", 5, 31),
-    "min-arity", 1,
-    "is-variadic", false,
-    "arglists", "[p]"
-  )
+  \Phel::locationMeta(\Phel::location("Def/definterface-instance-of.test", 3, 0), \Phel::location("Def/definterface-instance-of.test", 5, 31), \Phel\Lang\Keyword::create("doc"), "```phel\n(choose p)\n```\nChoose docs", "min-arity", 1, "is-variadic", false, "arglists", "[p]")
 );
 
 \Phel::addDefinition(
@@ -69,13 +62,6 @@ interface IPlayer {
 
     }
   },
-  \Phel::map(
-    \Phel\Lang\Keyword::create("doc"), "```phel\n(update-strategy p me you)\n```\n",
-    \Phel\Lang\Keyword::create("start-location"), \Phel::location("Def/definterface-instance-of.test", 3, 0),
-    \Phel\Lang\Keyword::create("end-location"), \Phel::location("Def/definterface-instance-of.test", 5, 31),
-    "min-arity", 3,
-    "is-variadic", false,
-    "arglists", "[p me you]"
-  )
+  \Phel::locationMeta(\Phel::location("Def/definterface-instance-of.test", 3, 0), \Phel::location("Def/definterface-instance-of.test", 5, 31), \Phel\Lang\Keyword::create("doc"), "```phel\n(update-strategy p me you)\n```\n", "min-arity", 3, "is-variadic", false, "arglists", "[p me you]")
 );
 ("foo" instanceof \interface_instance\IPlayer);
