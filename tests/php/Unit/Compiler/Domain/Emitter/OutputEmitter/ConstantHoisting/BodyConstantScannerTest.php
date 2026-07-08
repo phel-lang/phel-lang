@@ -88,8 +88,10 @@ final class BodyConstantScannerTest extends TestCase
 
     public function test_descends_into_if_branches(): void
     {
+        // Distinct literals so the assertion isolates descent-into-both-arms
+        // from the value-interning that collapses equal literals to one slot.
         $thenVec = $this->pureVector();
-        $elseVec = $this->pureVector();
+        $elseVec = $this->pureVector(4);
         $if = new IfNode(
             NodeEnvironment::empty(),
             new LiteralNode(NodeEnvironment::empty(), true),
@@ -106,8 +108,10 @@ final class BodyConstantScannerTest extends TestCase
 
     public function test_descends_into_let_bindings_and_body(): void
     {
+        // Distinct literals so the assertion isolates descent-into-both from
+        // the value-interning that collapses equal literals to one slot.
         $initVec = $this->pureVector();
-        $bodyVec = $this->pureVector();
+        $bodyVec = $this->pureVector(4);
         $let = new LetNode(
             NodeEnvironment::empty(),
             [
@@ -163,12 +167,12 @@ final class BodyConstantScannerTest extends TestCase
         self::assertSame(1, $scope->count());
     }
 
-    private function pureVector(): VectorNode
+    private function pureVector(int $start = 1): VectorNode
     {
         return new VectorNode(NodeEnvironment::empty(), [
-            new LiteralNode(NodeEnvironment::empty(), 1),
-            new LiteralNode(NodeEnvironment::empty(), 2),
-            new LiteralNode(NodeEnvironment::empty(), 3),
+            new LiteralNode(NodeEnvironment::empty(), $start),
+            new LiteralNode(NodeEnvironment::empty(), $start + 1),
+            new LiteralNode(NodeEnvironment::empty(), $start + 2),
         ]);
     }
 }
