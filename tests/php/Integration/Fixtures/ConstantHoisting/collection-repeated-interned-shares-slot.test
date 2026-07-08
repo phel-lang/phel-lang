@@ -2,11 +2,11 @@
 (fn [b] (if b [1 2] [1 2]))
 --PHP--
 (function($b) {
-  static $__phel_const_0, $__phel_const_1;
+  static $__phel_const_0;
   if (($__truthy = $b) !== null && $__truthy !== false) {
     return ($__phel_const_0 ??= \Phel::vector([1, 2]));
   } else {
-    return ($__phel_const_1 ??= \Phel::vector([1, 2]));
+    return ($__phel_const_0 ??= \Phel::vector([1, 2]));
   }
 
 });
