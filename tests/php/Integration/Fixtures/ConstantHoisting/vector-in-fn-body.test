@@ -12,5 +12,11 @@
       return ($__phel_const_0 ??= \Phel::vector([1, 2, 3]));
     }
   },
-  \Phel::locationMeta(\Phel::location("ConstantHoisting/vector-in-fn-body.test", 1, 0), \Phel::location("ConstantHoisting/vector-in-fn-body.test", 1, 23), "min-arity", 0, "is-variadic", false, "arglists", "[]")
+  \Phel::locationMeta(
+    \Phel::location("ConstantHoisting/vector-in-fn-body.test", 1, 0),
+    \Phel::location("ConstantHoisting/vector-in-fn-body.test", 1, 23),
+    "min-arity", 0,
+    "is-variadic", false,
+    "arglists", "[]"
+  )
 );

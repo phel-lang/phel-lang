@@ -13,6 +13,13 @@
       return ($__phel_call_0 ??= \Phel::getDefinition("phel.core", "+"))->__invoke($a, $b, $c);
     }
   },
-  \Phel::locationMeta(\Phel::location("Call/apply-fixed-arity-direct.test", 1, 0), \Phel::location("Call/apply-fixed-arity-direct.test", 1, 29), \Phel\Lang\Keyword::create("doc"), "```phel\n(add3 a b c)\n```\n", "min-arity", 3, "is-variadic", false, "arglists", "[a b c]")
+  \Phel::locationMeta(
+    \Phel::location("Call/apply-fixed-arity-direct.test", 1, 0),
+    \Phel::location("Call/apply-fixed-arity-direct.test", 1, 29),
+    \Phel\Lang\Keyword::create("doc"), "```phel\n(add3 a b c)\n```\n",
+    "min-arity", 3,
+    "is-variadic", false,
+    "arglists", "[a b c]"
+  )
 );
 (\Phel::getDefinition("user", "add3"))->__invoke(1, 2, 3);

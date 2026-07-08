@@ -179,17 +179,42 @@ final class MapEmitter implements NodeEmitterInterface
     private function emitDefLocationMetaHelper(array $meta, ?SourceLocation $loc): void
     {
         $this->outputEmitter->emitStr('\Phel::locationMeta(', $loc);
-        $this->emitLocationHelper($meta['start'], $loc);
-        $this->outputEmitter->emitStr(', ', $loc);
-        $this->emitLocationHelper($meta['end'], $loc);
 
-        foreach ($meta['extras'] as [$key, $value]) {
+        // A location-only meta map is short enough to stay on one line;
+        // extra metadata (docstrings, arglists, …) wraps one arg per line so
+        // the generated PHP and its integration fixtures stay diff-readable.
+        if ($meta['extras'] === []) {
+            $this->emitLocationHelper($meta['start'], $loc);
             $this->outputEmitter->emitStr(', ', $loc);
+            $this->emitLocationHelper($meta['end'], $loc);
+            $this->outputEmitter->emitStr(')', $loc);
+
+            return;
+        }
+
+        $this->outputEmitter->increaseIndentLevel();
+        $this->outputEmitter->emitLine();
+
+        $this->emitLocationHelper($meta['start'], $loc);
+        $this->outputEmitter->emitStr(',', $loc);
+        $this->outputEmitter->emitLine();
+        $this->emitLocationHelper($meta['end'], $loc);
+        $this->outputEmitter->emitStr(',', $loc);
+        $this->outputEmitter->emitLine();
+
+        $lastIndex = count($meta['extras']) - 1;
+        foreach ($meta['extras'] as $index => [$key, $value]) {
             $this->outputEmitter->emitNode($key);
             $this->outputEmitter->emitStr(', ', $loc);
             $this->outputEmitter->emitNode($value);
+            if ($index < $lastIndex) {
+                $this->outputEmitter->emitStr(',', $loc);
+            }
+
+            $this->outputEmitter->emitLine();
         }
 
+        $this->outputEmitter->decreaseIndentLevel();
         $this->outputEmitter->emitStr(')', $loc);
     }
 

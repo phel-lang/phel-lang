@@ -5,5 +5,9 @@
   "user",
   "x",
   1,
-  \Phel::locationMeta(\Phel::location("Def/doc-def.test", 1, 0), \Phel::location("Def/doc-def.test", 1, 21), \Phel\Lang\Keyword::create("doc"), "my number")
+  \Phel::locationMeta(
+    \Phel::location("Def/doc-def.test", 1, 0),
+    \Phel::location("Def/doc-def.test", 1, 21),
+    \Phel\Lang\Keyword::create("doc"), "my number"
+  )
 );

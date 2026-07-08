@@ -11,5 +11,12 @@
       return ($a + 1.1);
     }
   },
-  \Phel::locationMeta(\Phel::location("Fn/defn-infer-phel-core-plus-float.test", 1, 0), \Phel::location("Fn/defn-infer-phel-core-plus-float.test", 1, 37), \Phel\Lang\Keyword::create("doc"), "```phel\n(inc-by-one-tenth a)\n```\n", "min-arity", 1, "is-variadic", false, "arglists", "[a]")
+  \Phel::locationMeta(
+    \Phel::location("Fn/defn-infer-phel-core-plus-float.test", 1, 0),
+    \Phel::location("Fn/defn-infer-phel-core-plus-float.test", 1, 37),
+    \Phel\Lang\Keyword::create("doc"), "```phel\n(inc-by-one-tenth a)\n```\n",
+    "min-arity", 1,
+    "is-variadic", false,
+    "arglists", "[a]"
+  )
 );

@@ -14,5 +14,12 @@
       yield 2;
     }
   },
-  \Phel::locationMeta(\Phel::location("Yield/yield-return-context.test", 1, 0), \Phel::location("Yield/yield-return-context.test", 3, 18), \Phel\Lang\Keyword::create("doc"), "```phel\n(yield_no_return)\n```\n", "min-arity", 0, "is-variadic", false, "arglists", "[]")
+  \Phel::locationMeta(
+    \Phel::location("Yield/yield-return-context.test", 1, 0),
+    \Phel::location("Yield/yield-return-context.test", 3, 18),
+    \Phel\Lang\Keyword::create("doc"), "```phel\n(yield_no_return)\n```\n",
+    "min-arity", 0,
+    "is-variadic", false,
+    "arglists", "[]"
+  )
 );

@@ -18,5 +18,11 @@
 
     }
   },
-  \Phel::locationMeta(\Phel::location("ConstantHoisting/multiple-pure-literals.test", 1, 0), \Phel::location("ConstantHoisting/multiple-pure-literals.test", 2, 22), "min-arity", 1, "is-variadic", false, "arglists", "[b]")
+  \Phel::locationMeta(
+    \Phel::location("ConstantHoisting/multiple-pure-literals.test", 1, 0),
+    \Phel::location("ConstantHoisting/multiple-pure-literals.test", 2, 22),
+    "min-arity", 1,
+    "is-variadic", false,
+    "arglists", "[b]"
+  )
 );

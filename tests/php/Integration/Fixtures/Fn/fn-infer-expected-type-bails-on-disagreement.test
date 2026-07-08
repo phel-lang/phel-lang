@@ -11,5 +11,13 @@
       return ($a . random_int(0, $a));
     }
   },
-  \Phel::locationMeta(\Phel::location("Fn/fn-infer-expected-type-bails-on-disagreement.test", 1, 0), \Phel::location("Fn/fn-infer-expected-type-bails-on-disagreement.test", 1, 47), \Phel\Lang\Keyword::create("doc"), "```phel\n(weird a)\n```\n", "min-arity", 1, "is-variadic", false, "arglists", "[a]", \Phel\Lang\Keyword::create("tag"), "string")
+  \Phel::locationMeta(
+    \Phel::location("Fn/fn-infer-expected-type-bails-on-disagreement.test", 1, 0),
+    \Phel::location("Fn/fn-infer-expected-type-bails-on-disagreement.test", 1, 47),
+    \Phel\Lang\Keyword::create("doc"), "```phel\n(weird a)\n```\n",
+    "min-arity", 1,
+    "is-variadic", false,
+    "arglists", "[a]",
+    \Phel\Lang\Keyword::create("tag"), "string"
+  )
 );

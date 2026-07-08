@@ -5,5 +5,9 @@
   "user",
   "x",
   1,
-  \Phel::locationMeta(\Phel::location("Def/private-def.test", 1, 0), \Phel::location("Def/private-def.test", 1, 18), \Phel\Lang\Keyword::create("private"), true)
+  \Phel::locationMeta(
+    \Phel::location("Def/private-def.test", 1, 0),
+    \Phel::location("Def/private-def.test", 1, 18),
+    \Phel\Lang\Keyword::create("private"), true
+  )
 );

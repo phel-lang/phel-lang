@@ -12,7 +12,14 @@
       return $s;
     }
   },
-  \Phel::locationMeta(\Phel::location("Fn/fn-infer-callee-param-tag-skips-fqn.test", 1, 0), \Phel::location("Fn/fn-infer-callee-param-tag-skips-fqn.test", 1, 42), \Phel\Lang\Keyword::create("doc"), "```phel\n(typed s)\n```\n", "min-arity", 1, "is-variadic", false, "arglists", "[s]")
+  \Phel::locationMeta(
+    \Phel::location("Fn/fn-infer-callee-param-tag-skips-fqn.test", 1, 0),
+    \Phel::location("Fn/fn-infer-callee-param-tag-skips-fqn.test", 1, 42),
+    \Phel\Lang\Keyword::create("doc"), "```phel\n(typed s)\n```\n",
+    "min-arity", 1,
+    "is-variadic", false,
+    "arglists", "[s]"
+  )
 );
 \Phel::addDefinition(
   "user",
@@ -25,5 +32,12 @@
       return ($__phel_call_0 ??= \Phel::getDefinition("user", "typed"))->__invoke($x);
     }
   },
-  \Phel::locationMeta(\Phel::location("Fn/fn-infer-callee-param-tag-skips-fqn.test", 2, 0), \Phel::location("Fn/fn-infer-callee-param-tag-skips-fqn.test", 2, 27), \Phel\Lang\Keyword::create("doc"), "```phel\n(caller x)\n```\n", "min-arity", 1, "is-variadic", false, "arglists", "[x]")
+  \Phel::locationMeta(
+    \Phel::location("Fn/fn-infer-callee-param-tag-skips-fqn.test", 2, 0),
+    \Phel::location("Fn/fn-infer-callee-param-tag-skips-fqn.test", 2, 27),
+    \Phel\Lang\Keyword::create("doc"), "```phel\n(caller x)\n```\n",
+    "min-arity", 1,
+    "is-variadic", false,
+    "arglists", "[x]"
+  )
 );

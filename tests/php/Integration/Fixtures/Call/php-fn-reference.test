@@ -13,6 +13,12 @@
       return ($f)(...\Phel\Lang\Seq::toApplyArguments($xs));
     }
   },
-  \Phel::locationMeta(\Phel::location("Call/php-fn-reference.test", 1, 0), \Phel::location("Call/php-fn-reference.test", 1, 44), "min-arity", 2, "is-variadic", false, "arglists", "[f xs]")
+  \Phel::locationMeta(
+    \Phel::location("Call/php-fn-reference.test", 1, 0),
+    \Phel::location("Call/php-fn-reference.test", 1, 44),
+    "min-arity", 2,
+    "is-variadic", false,
+    "arglists", "[f xs]"
+  )
 );
 (\Phel::getDefinition("user", "custom-reduce"))->__invoke((function(...$args) { return array(...$args);}), \Phel::vector([1, 2, 3]));
