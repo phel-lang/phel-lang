@@ -13,9 +13,9 @@
       return ($f)(...\Phel\Lang\Seq::toApplyArguments($xs));
     }
   },
-  \Phel::map(
-    \Phel\Lang\Keyword::create("start-location"), \Phel::location("Call/php-fn-reference.test", 1, 0),
-    \Phel\Lang\Keyword::create("end-location"), \Phel::location("Call/php-fn-reference.test", 1, 44),
+  \Phel::locationMeta(
+    \Phel::location("Call/php-fn-reference.test", 1, 0),
+    \Phel::location("Call/php-fn-reference.test", 1, 44),
     "min-arity", 2,
     "is-variadic", false,
     "arglists", "[f xs]"

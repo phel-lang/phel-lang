@@ -19,10 +19,10 @@
       })();
     }
   },
-  \Phel::map(
+  \Phel::locationMeta(
+    \Phel::location("Yield/yield-doseq-str.test", 1, 0),
+    \Phel::location("Yield/yield-doseq-str.test", 3, 23),
     \Phel\Lang\Keyword::create("doc"), "```phel\n(yield_generator_str)\n```\n",
-    \Phel\Lang\Keyword::create("start-location"), \Phel::location("Yield/yield-doseq-str.test", 1, 0),
-    \Phel\Lang\Keyword::create("end-location"), \Phel::location("Yield/yield-doseq-str.test", 3, 23),
     "min-arity", 0,
     "is-variadic", false,
     "arglists", "[]"

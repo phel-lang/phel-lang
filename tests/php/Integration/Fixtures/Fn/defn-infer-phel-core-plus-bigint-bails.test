@@ -12,10 +12,10 @@
       return ($__phel_call_0 ??= \Phel::getDefinition("phel.core", "+"))->__invoke($a, \Phel\Lang\BigInt::fromString("99999999999999999999"));
     }
   },
-  \Phel::map(
+  \Phel::locationMeta(
+    \Phel::location("Fn/defn-infer-phel-core-plus-bigint-bails.test", 1, 0),
+    \Phel::location("Fn/defn-infer-phel-core-plus-bigint-bails.test", 1, 47),
     \Phel\Lang\Keyword::create("doc"), "```phel\n(plus-big a)\n```\n",
-    \Phel\Lang\Keyword::create("start-location"), \Phel::location("Fn/defn-infer-phel-core-plus-bigint-bails.test", 1, 0),
-    \Phel\Lang\Keyword::create("end-location"), \Phel::location("Fn/defn-infer-phel-core-plus-bigint-bails.test", 1, 47),
     "min-arity", 1,
     "is-variadic", false,
     "arglists", "[a]"

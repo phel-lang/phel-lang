@@ -12,10 +12,10 @@
 
     }
   },
-  \Phel::map(
+  \Phel::locationMeta(
+    \Phel::location("Fn/fn-infer-bail-on-self-recursion.test", 1, 0),
+    \Phel::location("Fn/fn-infer-bail-on-self-recursion.test", 1, 82),
     \Phel\Lang\Keyword::create("doc"), "```phel\n(fib n)\n```\n",
-    \Phel\Lang\Keyword::create("start-location"), \Phel::location("Fn/fn-infer-bail-on-self-recursion.test", 1, 0),
-    \Phel\Lang\Keyword::create("end-location"), \Phel::location("Fn/fn-infer-bail-on-self-recursion.test", 1, 82),
     "min-arity", 1,
     "is-variadic", false,
     "arglists", "[n]"

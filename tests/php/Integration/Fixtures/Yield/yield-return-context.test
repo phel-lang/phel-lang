@@ -14,10 +14,10 @@
       yield 2;
     }
   },
-  \Phel::map(
+  \Phel::locationMeta(
+    \Phel::location("Yield/yield-return-context.test", 1, 0),
+    \Phel::location("Yield/yield-return-context.test", 3, 18),
     \Phel\Lang\Keyword::create("doc"), "```phel\n(yield_no_return)\n```\n",
-    \Phel\Lang\Keyword::create("start-location"), \Phel::location("Yield/yield-return-context.test", 1, 0),
-    \Phel\Lang\Keyword::create("end-location"), \Phel::location("Yield/yield-return-context.test", 3, 18),
     "min-arity", 0,
     "is-variadic", false,
     "arglists", "[]"

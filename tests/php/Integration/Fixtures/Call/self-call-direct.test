@@ -11,10 +11,10 @@
       return $this($n);
     }
   },
-  \Phel::map(
+  \Phel::locationMeta(
+    \Phel::location("Call/self-call-direct.test", 1, 0),
+    \Phel::location("Call/self-call-direct.test", 1, 22),
     \Phel\Lang\Keyword::create("doc"), "```phel\n(rec n)\n```\n",
-    \Phel\Lang\Keyword::create("start-location"), \Phel::location("Call/self-call-direct.test", 1, 0),
-    \Phel\Lang\Keyword::create("end-location"), \Phel::location("Call/self-call-direct.test", 1, 22),
     "min-arity", 1,
     "is-variadic", false,
     "arglists", "[n]"

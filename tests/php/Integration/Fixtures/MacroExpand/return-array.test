@@ -13,10 +13,10 @@
       return array(1, 2, array(3, 4));
     }
   },
-  \Phel::map(
+  \Phel::locationMeta(
+    \Phel::location("MacroExpand/return-array.test", 1, 0),
+    \Phel::location("MacroExpand/return-array.test", 1, 55),
     \Phel\Lang\Keyword::create("macro"), true,
-    \Phel\Lang\Keyword::create("start-location"), \Phel::location("MacroExpand/return-array.test", 1, 0),
-    \Phel\Lang\Keyword::create("end-location"), \Phel::location("MacroExpand/return-array.test", 1, 55),
     "min-arity", 1,
     "is-variadic", false,
     "arglists", "[x]"

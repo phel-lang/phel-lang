@@ -12,10 +12,10 @@
       return random_int(0, ($__phel_call_0 ??= \Phel::getDefinition("phel.core", "+"))->__invoke($x, \Phel\Lang\BigInt::fromString("99999999999999999999")));
     }
   },
-  \Phel::map(
+  \Phel::locationMeta(
+    \Phel::location("Fn/fn-infer-core-plus-bails-on-bigint-literal.test", 1, 0),
+    \Phel::location("Fn/fn-infer-core-plus-bails-on-bigint-literal.test", 1, 64),
     \Phel\Lang\Keyword::create("doc"), "```phel\n(caller x)\n```\n",
-    \Phel\Lang\Keyword::create("start-location"), \Phel::location("Fn/fn-infer-core-plus-bails-on-bigint-literal.test", 1, 0),
-    \Phel\Lang\Keyword::create("end-location"), \Phel::location("Fn/fn-infer-core-plus-bails-on-bigint-literal.test", 1, 64),
     "min-arity", 1,
     "is-variadic", false,
     "arglists", "[x]",

@@ -11,10 +11,10 @@
       return random_int(0, $hi);
     }
   },
-  \Phel::map(
+  \Phel::locationMeta(
+    \Phel::location("Fn/fn-infer-php-random-int-arg.test", 1, 0),
+    \Phel::location("Fn/fn-infer-php-random-int-arg.test", 1, 40),
     \Phel\Lang\Keyword::create("doc"), "```phel\n(rrange hi)\n```\n",
-    \Phel\Lang\Keyword::create("start-location"), \Phel::location("Fn/fn-infer-php-random-int-arg.test", 1, 0),
-    \Phel\Lang\Keyword::create("end-location"), \Phel::location("Fn/fn-infer-php-random-int-arg.test", 1, 40),
     "min-arity", 1,
     "is-variadic", false,
     "arglists", "[hi]",

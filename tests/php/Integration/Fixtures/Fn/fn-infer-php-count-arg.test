@@ -11,10 +11,10 @@
       return count($xs);
     }
   },
-  \Phel::map(
+  \Phel::locationMeta(
+    \Phel::location("Fn/fn-infer-php-count-arg.test", 1, 0),
+    \Phel::location("Fn/fn-infer-php-count-arg.test", 1, 31),
     \Phel\Lang\Keyword::create("doc"), "```phel\n(size xs)\n```\n",
-    \Phel\Lang\Keyword::create("start-location"), \Phel::location("Fn/fn-infer-php-count-arg.test", 1, 0),
-    \Phel\Lang\Keyword::create("end-location"), \Phel::location("Fn/fn-infer-php-count-arg.test", 1, 31),
     "min-arity", 1,
     "is-variadic", false,
     "arglists", "[xs]",

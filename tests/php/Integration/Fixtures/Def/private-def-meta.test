@@ -5,10 +5,10 @@
   "user",
   "x",
   1,
-  \Phel::map(
+  \Phel::locationMeta(
+    \Phel::location("Def/private-def-meta.test", 1, 0),
+    \Phel::location("Def/private-def-meta.test", 1, 38),
     \Phel\Lang\Keyword::create("private"), true,
-    \Phel\Lang\Keyword::create("export"), true,
-    \Phel\Lang\Keyword::create("start-location"), \Phel::location("Def/private-def-meta.test", 1, 0),
-    \Phel\Lang\Keyword::create("end-location"), \Phel::location("Def/private-def-meta.test", 1, 38)
+    \Phel\Lang\Keyword::create("export"), true
   )
 );

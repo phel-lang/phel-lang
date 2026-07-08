@@ -12,10 +12,10 @@
       return ("hi " . $x);
     }
   },
-  \Phel::map(
+  \Phel::locationMeta(
+    \Phel::location("Fn/fn-param-infer-string.test", 1, 0),
+    \Phel::location("Fn/fn-param-infer-string.test", 1, 32),
     \Phel\Lang\Keyword::create("doc"), "```phel\n(greet x)\n```\n",
-    \Phel\Lang\Keyword::create("start-location"), \Phel::location("Fn/fn-param-infer-string.test", 1, 0),
-    \Phel\Lang\Keyword::create("end-location"), \Phel::location("Fn/fn-param-infer-string.test", 1, 32),
     "min-arity", 1,
     "is-variadic", false,
     "arglists", "[x]",

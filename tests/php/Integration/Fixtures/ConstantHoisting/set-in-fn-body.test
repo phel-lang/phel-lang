@@ -12,9 +12,9 @@
       return ($__phel_const_0 ??= \Phel::set([1, 2, 3]));
     }
   },
-  \Phel::map(
-    \Phel\Lang\Keyword::create("start-location"), \Phel::location("ConstantHoisting/set-in-fn-body.test", 1, 0),
-    \Phel\Lang\Keyword::create("end-location"), \Phel::location("ConstantHoisting/set-in-fn-body.test", 1, 24),
+  \Phel::locationMeta(
+    \Phel::location("ConstantHoisting/set-in-fn-body.test", 1, 0),
+    \Phel::location("ConstantHoisting/set-in-fn-body.test", 1, 24),
     "min-arity", 0,
     "is-variadic", false,
     "arglists", "[]"

@@ -11,10 +11,10 @@
       return random_int(0, $this(($n - 1)));
     }
   },
-  \Phel::map(
+  \Phel::locationMeta(
+    \Phel::location("Fn/fn-infer-expected-type-recursion-cycle.test", 1, 0),
+    \Phel::location("Fn/fn-infer-expected-type-recursion-cycle.test", 1, 51),
     \Phel\Lang\Keyword::create("doc"), "```phel\n(rec n)\n```\n",
-    \Phel\Lang\Keyword::create("start-location"), \Phel::location("Fn/fn-infer-expected-type-recursion-cycle.test", 1, 0),
-    \Phel\Lang\Keyword::create("end-location"), \Phel::location("Fn/fn-infer-expected-type-recursion-cycle.test", 1, 51),
     "min-arity", 1,
     "is-variadic", false,
     "arglists", "[n]",

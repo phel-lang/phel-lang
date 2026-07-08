@@ -24,10 +24,10 @@ require_once __DIR__ . '/my_namespace/core.php';
   "hello_world",
   "x",
   10,
-  \Phel::map(
-    \Phel\Lang\Keyword::create("private"), true,
-    \Phel\Lang\Keyword::create("start-location"), \Phel::location("Ns/munge-ns.test", 5, 0),
-    \Phel\Lang\Keyword::create("end-location"), \Phel::location("Ns/munge-ns.test", 5, 19)
+  \Phel::locationMeta(
+    \Phel::location("Ns/munge-ns.test", 5, 0),
+    \Phel::location("Ns/munge-ns.test", 5, 19),
+    \Phel\Lang\Keyword::create("private"), true
   )
 );
 if (!class_exists('hello_world\abc')) {
@@ -55,10 +55,10 @@ final class abc extends \Phel\Lang\Collections\Struct\AbstractPersistentStruct {
       return (new \hello_world\abc($a));
     }
   },
-  \Phel::map(
+  \Phel::locationMeta(
+    \Phel::location("Ns/munge-ns.test", 7, 0),
+    \Phel::location("Ns/munge-ns.test", 7, 19),
     \Phel\Lang\Keyword::create("doc"), "```phel\n(abc a)\n```\nCreates a new abc struct.",
-    \Phel\Lang\Keyword::create("start-location"), \Phel::location("Ns/munge-ns.test", 7, 0),
-    \Phel\Lang\Keyword::create("end-location"), \Phel::location("Ns/munge-ns.test", 7, 19),
     "min-arity", 1,
     "is-variadic", false,
     "arglists", "[a]"
@@ -76,10 +76,10 @@ final class abc extends \Phel\Lang\Collections\Struct\AbstractPersistentStruct {
       return is_a($x, "hello_world\\abc");
     }
   },
-  \Phel::map(
+  \Phel::locationMeta(
+    \Phel::location("Ns/munge-ns.test", 7, 0),
+    \Phel::location("Ns/munge-ns.test", 7, 19),
     \Phel\Lang\Keyword::create("doc"), "```phel\n(abc? x)\n```\nChecks if `x` is an instance of the abc struct.",
-    \Phel\Lang\Keyword::create("start-location"), \Phel::location("Ns/munge-ns.test", 7, 0),
-    \Phel\Lang\Keyword::create("end-location"), \Phel::location("Ns/munge-ns.test", 7, 19),
     "min-arity", 1,
     "is-variadic", false,
     "arglists", "[x]"

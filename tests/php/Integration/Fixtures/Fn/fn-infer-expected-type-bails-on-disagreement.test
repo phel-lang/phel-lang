@@ -11,10 +11,10 @@
       return ($a . random_int(0, $a));
     }
   },
-  \Phel::map(
+  \Phel::locationMeta(
+    \Phel::location("Fn/fn-infer-expected-type-bails-on-disagreement.test", 1, 0),
+    \Phel::location("Fn/fn-infer-expected-type-bails-on-disagreement.test", 1, 47),
     \Phel\Lang\Keyword::create("doc"), "```phel\n(weird a)\n```\n",
-    \Phel\Lang\Keyword::create("start-location"), \Phel::location("Fn/fn-infer-expected-type-bails-on-disagreement.test", 1, 0),
-    \Phel\Lang\Keyword::create("end-location"), \Phel::location("Fn/fn-infer-expected-type-bails-on-disagreement.test", 1, 47),
     "min-arity", 1,
     "is-variadic", false,
     "arglists", "[a]",
