@@ -1,0 +1,47 @@
+--PHEL--
+(defn make-greeting [^string name] (php/. "hi " name))
+(defn greet-twice [^string name] (let [g (make-greeting name)] (str g g)))
+--PHP--
+\Phel::addDefinition(
+  "user",
+  "make-greeting",
+  new class() extends \Phel\Lang\AbstractFn {
+    public const BOUND_TO = "user\\make_greeting";
+
+    public function __invoke(string $name): string {
+      return ("hi " . $name);
+    }
+  },
+  \Phel::locationMeta(
+    \Phel::location("Let/let-user-fn-string-return-concat.test", 1, 0),
+    \Phel::location("Let/let-user-fn-string-return-concat.test", 1, 54),
+    \Phel\Lang\Keyword::create("doc"), "```phel\n(make-greeting name)\n```\n",
+    "min-arity", 1,
+    "is-variadic", false,
+    "arglists", "[name]",
+    \Phel\Lang\Keyword::create("tag"), "string"
+  )
+);
+\Phel::addDefinition(
+  "user",
+  "greet-twice",
+  new class() extends \Phel\Lang\AbstractFn {
+    public const BOUND_TO = "user\\greet_twice";
+
+    public function __invoke(string $name): string {
+      static $__phel_call_0;
+      /** @var string $g_1 */
+      $g_1 = ($__phel_call_0 ??= \Phel::getDefinition("user", "make-greeting"))->__invoke($name);
+      return ($g_1 . $g_1);
+    }
+  },
+  \Phel::locationMeta(
+    \Phel::location("Let/let-user-fn-string-return-concat.test", 2, 0),
+    \Phel::location("Let/let-user-fn-string-return-concat.test", 2, 74),
+    \Phel\Lang\Keyword::create("doc"), "```phel\n(greet-twice name)\n```\n",
+    "min-arity", 1,
+    "is-variadic", false,
+    "arglists", "[name]",
+    \Phel\Lang\Keyword::create("tag"), "string"
+  )
+);

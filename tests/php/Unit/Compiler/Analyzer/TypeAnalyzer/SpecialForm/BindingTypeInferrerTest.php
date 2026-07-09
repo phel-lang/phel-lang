@@ -130,6 +130,50 @@ final class BindingTypeInferrerTest extends TestCase
         self::assertSame('float', $this->tagOf($product->getSymbol()));
     }
 
+    public function test_user_global_primitive_return_tag_types_binding(): void
+    {
+        // (let [s (app/greet x)] ...) where app/greet is `:tag string`.
+        $binding = $this->letBinding('s', $this->taggedGlobalCall('app', 'greet', 'string'));
+
+        new BindingTypeInferrer()->graftLetBindings([$binding]);
+
+        self::assertSame('string', $this->tagOf($binding->getSymbol()));
+        self::assertSame('string', $this->tagOf($binding->getShadow()));
+    }
+
+    public function test_non_primitive_return_tag_is_not_grafted(): void
+    {
+        // A `?int` / union / class return never feeds a native scalar op.
+        $binding = $this->letBinding('x', $this->taggedGlobalCall('app', 'find', '?int'));
+
+        new BindingTypeInferrer()->graftLetBindings([$binding]);
+
+        self::assertNull($this->tagOf($binding->getSymbol()));
+        self::assertNull($this->tagOf($binding->getShadow()));
+    }
+
+    public function test_recursive_self_call_return_tag_is_skipped(): void
+    {
+        // Inside `(defn app\\counter ...)`, a binding calling `counter` must not
+        // read its own registry tag — it may be stale from a prior compile.
+        $binding = $this->letBinding('y', $this->taggedGlobalCall('app', 'counter', 'int'));
+
+        new BindingTypeInferrer()->graftLetBindings([$binding], 'app\\counter');
+
+        self::assertNull($this->tagOf($binding->getSymbol()));
+    }
+
+    public function test_other_global_return_tag_is_read_despite_bound_to(): void
+    {
+        // The self-skip is name-scoped: a call to a *different* global still
+        // contributes its tag even while analyzing `app\\counter`'s body.
+        $binding = $this->letBinding('s', $this->taggedGlobalCall('app', 'greet', 'string'));
+
+        new BindingTypeInferrer()->graftLetBindings([$binding], 'app\\counter');
+
+        self::assertSame('string', $this->tagOf($binding->getSymbol()));
+    }
+
     private function letBinding(string $name, AbstractNode $init): BindingNode
     {
         return new BindingNode($this->env, Symbol::create($name), Symbol::gen($name . '_'), $init);
@@ -141,6 +185,18 @@ final class BindingTypeInferrerTest extends TestCase
     private function phpCall(string $fn, array $args): CallNode
     {
         return new CallNode($this->env, new PhpVarNode($this->env, $fn), $args);
+    }
+
+    private function taggedGlobalCall(string $ns, string $name, string $tag): CallNode
+    {
+        $globalVar = new GlobalVarNode(
+            $this->env,
+            $ns,
+            Symbol::create($name),
+            Phel::map(Keyword::create('tag'), Symbol::create($tag)),
+        );
+
+        return new CallNode($this->env, $globalVar, []);
     }
 
     /**
