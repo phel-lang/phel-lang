@@ -6,10 +6,10 @@
 --PHP--
 (function(string $a) {
   return "";
-});(function(string $a) {
+});(function(string $a): string {
   return ($a);
-});(function(string $a, string $b) {
+});(function(string $a, string $b): string {
   return ($a . $b);
-});(function(string $a, string $b, string $c) {
+});(function(string $a, string $b, string $c): string {
   return ($a . $b . $c);
 });

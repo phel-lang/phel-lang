@@ -24,7 +24,7 @@ final class counter extends \Phel\Lang\Collections\Struct\AbstractPersistentStru
     return ($__phel_call_0 ??= \Phel::getDefinition("phel.core", "+"))->__invoke($x, $n);
   }
 
-  public function __toString() {
+  public function __toString(): string {
     $n = $this->n;
     static $__phel_call_0;
     $this_2 = $this;
