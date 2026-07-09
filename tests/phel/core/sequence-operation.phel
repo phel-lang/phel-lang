@@ -489,6 +489,21 @@
   (is (= '() (concat nil nil)) "concat two nil")
   (is (= [1 2 3 4 5 6] (concat [1 2 3] nil [4 5 6])) "concat vectors and nil"))
 
+(deftest test-lazy-seq-force-once
+  ;; A side-effecting step fn in a lazy pipeline must realize exactly once per
+  ;; cell, even when the same seq is walked multiple times (Clojure force-once).
+  (let [calls (atom 0)
+        s     (map (fn [x] (swap! calls inc) (* x 10)) [1 2 3 4 5])]
+    (is (= 150 (reduce + 0 s)) "first full walk sums mapped values")
+    (is (= 150 (reduce + 0 s)) "second full walk returns the cached values")
+    (is (= 5 @calls) "step fn fires once per element across both walks, not per walk"))
+  (let [fires (atom 0)
+        one   (lazy-seq (swap! fires inc) (cons 42 nil))]
+    (first one)
+    (first one)
+    (first one)
+    (is (= 1 @fires) "single-cell lazy-seq realizes its thunk exactly once")))
+
 (deftest test-compact
   (is (= [1 2 3] (compact [1 nil 2 nil 3])) "compact removes nil by default")
   (is (= [1 2 3] (compact [1 0 2 false 3] 0 false)) "compact removes specified values")
