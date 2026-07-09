@@ -8,7 +8,7 @@
   new class() extends \Phel\Lang\AbstractFn {
     public const BOUND_TO = "user\\maybe";
 
-    public function __invoke(?int $a) {
+    public function __invoke(?int $a): ?int {
       return $a;
     }
   },
@@ -18,7 +18,8 @@
     \Phel\Lang\Keyword::create("doc"), "```phel\n(maybe a)\n```\n",
     "min-arity", 1,
     "is-variadic", false,
-    "arglists", "[a]"
+    "arglists", "[a]",
+    \Phel\Lang\Keyword::create("tag"), "?int"
   )
 );
 \Phel::addDefinition(
@@ -27,7 +28,7 @@
   new class() extends \Phel\Lang\AbstractFn {
     public const BOUND_TO = "user\\caller";
 
-    public function __invoke($x) {
+    public function __invoke($x): ?int {
       static $__phel_call_0;
       return ($__phel_call_0 ??= \Phel::getDefinition("user", "maybe"))->__invoke($x);
     }
@@ -38,6 +39,7 @@
     \Phel\Lang\Keyword::create("doc"), "```phel\n(caller x)\n```\n",
     "min-arity", 1,
     "is-variadic", false,
-    "arglists", "[x]"
+    "arglists", "[x]",
+    \Phel\Lang\Keyword::create("tag"), "?int"
   )
 );

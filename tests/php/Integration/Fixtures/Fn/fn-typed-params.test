@@ -1,6 +1,6 @@
 --PHEL--
 (fn [^{:tag "int"} x ^{:tag "string"} y] x)
 --PHP--
-(function(int $x, string $y) {
+(function(int $x, string $y): int {
   return $x;
 });

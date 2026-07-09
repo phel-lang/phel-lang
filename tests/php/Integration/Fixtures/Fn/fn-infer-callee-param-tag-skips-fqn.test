@@ -8,7 +8,7 @@
   new class() extends \Phel\Lang\AbstractFn {
     public const BOUND_TO = "user\\typed";
 
-    public function __invoke(\Phel\Lang\Symbol $s) {
+    public function __invoke(\Phel\Lang\Symbol $s): \Phel\Lang\Symbol {
       return $s;
     }
   },
@@ -18,7 +18,8 @@
     \Phel\Lang\Keyword::create("doc"), "```phel\n(typed s)\n```\n",
     "min-arity", 1,
     "is-variadic", false,
-    "arglists", "[s]"
+    "arglists", "[s]",
+    \Phel\Lang\Keyword::create("tag"), "\\Phel\\Lang\\Symbol"
   )
 );
 \Phel::addDefinition(
@@ -27,7 +28,7 @@
   new class() extends \Phel\Lang\AbstractFn {
     public const BOUND_TO = "user\\caller";
 
-    public function __invoke($x) {
+    public function __invoke($x): \Phel\Lang\Symbol {
       static $__phel_call_0;
       return ($__phel_call_0 ??= \Phel::getDefinition("user", "typed"))->__invoke($x);
     }
@@ -38,6 +39,7 @@
     \Phel\Lang\Keyword::create("doc"), "```phel\n(caller x)\n```\n",
     "min-arity", 1,
     "is-variadic", false,
-    "arglists", "[x]"
+    "arglists", "[x]",
+    \Phel\Lang\Keyword::create("tag"), "\\Phel\\Lang\\Symbol"
   )
 );

@@ -1,0 +1,8 @@
+--PHEL--
+(fn [^int x] (let [y x] y))
+--PHP--
+(function(int $x): int {
+  /** @var int $y_1 */
+  $y_1 = $x;
+  return $y_1;
+});
