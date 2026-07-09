@@ -1,0 +1,8 @@
+--PHEL--
+(fn [^int x] (let [p (php/pow x 2)] (+ p 1)))
+--PHP--
+(function(int $x) {
+  static $__phel_call_0;
+  $p_1 = pow($x, 2);
+  return ($__phel_call_0 ??= \Phel::getDefinition("phel.core", "+"))->__invoke($p_1, 1);
+});

@@ -27,6 +27,7 @@ All notable changes to this project will be documented in this file.
 
 ### Performance
 
+- `let`/`loop` bindings whose init calls a pure PHP built-in with a fixed primitive return type (`php/cos`, `php/sqrt`, `php/ord`, `php/implode`, and ~35 more trig/math/string/`ctype_*` functions) now infer that type, so arithmetic, comparison, and string ops on the binding emit native PHP operators instead of runtime dispatch — matching what already happened when the call was written inline as an operand. Argument-typed functions (`pow`, `str_replace`, `json_encode`) stay excluded so no wrong tag is stamped (#2712)
 - `def`/`defn` location metadata emits a single `\Phel::locationMeta(...)` call instead of an expanded keyword-keyed map; extra metadata (`:doc`, `:private`, `:tag`, …) folds in as trailing args, so docstring-heavy namespaces shrink too. Runtime map stays value-equal (#2722, #2725)
 - Equal collection literals (`[1 2 3]`, `{:a 1}`, sets) repeated in a function body share one cached constant slot instead of one per occurrence, shrinking emitted PHP (#2720)
 

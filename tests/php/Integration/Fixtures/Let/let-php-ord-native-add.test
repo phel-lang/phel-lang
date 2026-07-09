@@ -1,0 +1,8 @@
+--PHEL--
+(fn [s] (let [o (php/ord s)] (+ o 1)))
+--PHP--
+(function($s) {
+  /** @var int $o_1 */
+  $o_1 = ord($s);
+  return ($o_1 + 1);
+});

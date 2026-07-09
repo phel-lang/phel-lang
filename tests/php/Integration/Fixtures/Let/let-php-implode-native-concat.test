@@ -1,0 +1,8 @@
+--PHEL--
+(fn [xs] (let [s (php/implode "," xs)] (php/. s "!")))
+--PHP--
+(function($xs): string {
+  /** @var string $s_1 */
+  $s_1 = implode(",", $xs);
+  return ($s_1 . "!");
+});
