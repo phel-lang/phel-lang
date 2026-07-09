@@ -1,6 +1,6 @@
 --PHEL--
 (fn [^"\\Phel\\Lang\\Symbol" s] s)
 --PHP--
-(function(\Phel\Lang\Symbol $s) {
+(function(\Phel\Lang\Symbol $s): \Phel\Lang\Symbol {
   return $s;
 });

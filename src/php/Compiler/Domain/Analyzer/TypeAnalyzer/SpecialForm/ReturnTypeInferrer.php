@@ -31,8 +31,9 @@ use function is_string;
 /**
  * Conservative tail-position type inference for `fn` bodies. Walks the
  * body's tail expression looking for a primitive PHP operator on
- * already-typed locals or scalar literals, and surfaces the implied
- * PHP type so the emitter can stamp it on the compiled signature.
+ * already-typed locals or scalar literals, or a bare pass-through of an
+ * already-typed local, and surfaces the implied PHP type so the emitter
+ * can stamp it on the compiled signature.
  *
  * Inference is intentionally narrow: any non-recognized node, an
  * untyped local, or a branch disagreement returns `null`, leaving the
@@ -63,10 +64,12 @@ final class ReturnTypeInferrer
     ];
 
     /**
-     * Set during a walk when a primitive PHP operator is encountered.
-     * Only then does the function publish an inferred return type;
-     * pure literal / pass-through bodies stay untyped so the emitter
-     * does not synthesize an annotation the user never asked for.
+     * Set when a walk finds evidence the return type is knowable: a
+     * primitive PHP operator, or a tail that passes an already-typed
+     * local straight through ({@see inferLocalVar}). Only then does the
+     * function publish an inferred type. A bare literal tail leaves it
+     * unset so the emitter does not synthesize an annotation from a value
+     * the user never tied to a declared type.
      */
     private bool $sawOperator = false;
 
@@ -143,7 +146,7 @@ final class ReturnTypeInferrer
             $node instanceof LetNode => $this->inferLet($node, $locals),
             $node instanceof CallNode => $this->inferCall($node, $locals),
             $node instanceof LiteralNode => $this->inferLiteral($node),
-            $node instanceof LocalVarNode => $locals[$node->getName()->getName()] ?? null,
+            $node instanceof LocalVarNode => $this->inferLocalVar($node, $locals),
             $node instanceof RecurNode => $this->inferRecur($node, $locals),
             $node instanceof ThrowNode => self::BOTTOM,
             default => null,
@@ -350,6 +353,22 @@ final class ReturnTypeInferrer
         return ArithmeticResultType::fromOperands(
             array_map(fn(AbstractNode $arg): ?string => $this->inferNode($arg, $locals), $node->getArguments()),
         );
+    }
+
+    /**
+     * A tail that passes an already-typed local straight through — a bare
+     * param reference (`(fn [^int x] x)`) or a let/loop binding whose type
+     * was inferred earlier — returns exactly that local's type. Publishing
+     * it lets the emitter stamp the signature even without an arithmetic
+     * operator in the body. Untyped locals stay `null`; bare literals still
+     * do not publish, so `(fn [] 5)` remains unannotated.
+     *
+     * @param array<string, string> $locals
+     */
+    private function inferLocalVar(LocalVarNode $node, array $locals): ?string
+    {
+        $type = $locals[$node->getName()->getName()] ?? null;
+        return $type === null ? null : $this->publish($type);
     }
 
     private function inferLiteral(LiteralNode $node): ?string

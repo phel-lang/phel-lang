@@ -1,6 +1,6 @@
 --PHEL--
 (fn [^"?int" x ^"string|null" y] x)
 --PHP--
-(function(?int $x, string|null $y) {
+(function(?int $x, string|null $y): ?int {
   return $x;
 });
