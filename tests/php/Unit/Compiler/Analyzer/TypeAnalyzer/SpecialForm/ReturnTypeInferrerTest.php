@@ -54,11 +54,13 @@ final class ReturnTypeInferrerTest extends TestCase
             ),
         );
 
+        // A class-name tag passes through verbatim; the `\`-prefixed FQN form
+        // the emitter stamps is covered end-to-end by the fn-typed-fqn fixture.
         self::assertSame(
-            '\Phel\Lang\Symbol',
+            Symbol::class,
             new ReturnTypeInferrer()->infer(
                 new LocalVarNode($this->env, Symbol::create('s')),
-                [$this->typedParam('s', '\Phel\Lang\Symbol')],
+                [$this->typedParam('s', Symbol::class)],
             ),
         );
     }
