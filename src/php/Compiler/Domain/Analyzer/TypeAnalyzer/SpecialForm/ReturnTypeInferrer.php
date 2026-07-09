@@ -222,18 +222,30 @@ final class ReturnTypeInferrer
             // Loop bindings are rebindable via recur; drop any whose recur
             // argument types disagree with (or are unknown relative to) the
             // initial type, so the body never sees an over-narrow tag.
-            $recurTypes = [];
-            $this->collectRecurArgTypes($node->getBodyExpr(), $locals, $recurTypes);
-            foreach ($names as $i => $name) {
-                if (!isset($locals[$name])) {
-                    continue;
-                }
+            //
+            // Iterate to a fixpoint: a recur argument is typed against the
+            // current locals, so dropping one binding can invalidate another
+            // that recurs from it. In `(loop [a 0 b 1] ... (recur b (+' a b)))`
+            // `b` is dropped because `+'` is untyped, which then makes `a`
+            // (whose recur arg is `b`) untyped too — but only on a re-walk
+            // with `b` already removed. A single pass would keep `a` on `b`'s
+            // stale type and let the body pass it through as a wrong tag.
+            do {
+                $changed = false;
+                $recurTypes = [];
+                $this->collectRecurArgTypes($node->getBodyExpr(), $locals, $recurTypes);
+                foreach ($names as $i => $name) {
+                    if (!isset($locals[$name])) {
+                        continue;
+                    }
 
-                $alts = $recurTypes[$i] ?? null;
-                if ($alts === null || !in_array($locals[$name], $alts, true) || count($alts) > 1) {
-                    unset($locals[$name]);
+                    $alts = $recurTypes[$i] ?? null;
+                    if ($alts === null || !in_array($locals[$name], $alts, true) || count($alts) > 1) {
+                        unset($locals[$name]);
+                        $changed = true;
+                    }
                 }
-            }
+            } while ($changed);
         }
 
         return $this->inferNode($node->getBodyExpr(), $locals);

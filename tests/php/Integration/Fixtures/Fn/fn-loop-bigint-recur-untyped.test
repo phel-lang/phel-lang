@@ -1,0 +1,26 @@
+--PHEL--
+(fn [^int n] (loop [a 0 b 1 c n] (if (zero? c) a (recur b (+' a b) (dec c)))))
+--PHP--
+(function(int $n) {
+  static $__phel_call_0;
+  /** @var int $a_1 */
+  $a_1 = 0;
+  $b_2 = 1;
+  /** @var int $c_3 */
+  $c_3 = $n;
+  while (true) {
+    if ((($c_3 === 0))) {
+      return $a_1;
+    } else {
+      $__phel_4 = $b_2;
+      $__phel_5 = ($__phel_call_0 ??= \Phel::getDefinition("phel.core", "+'"))->__invoke($a_1, $b_2);
+      $__phel_6 = ($c_3 - 1);
+      $a_1 = $__phel_4;
+      $b_2 = $__phel_5;
+      $c_3 = $__phel_6;
+      continue;
+
+    }
+    break;
+  }
+});
