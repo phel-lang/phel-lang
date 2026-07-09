@@ -126,7 +126,7 @@ final readonly class LetSymbol implements SpecialFormAnalyzerInterface
         // symbol is the same instance the body references, so the in-place
         // graft is visible to its `LocalVarNode`s at emit time.
         if ($simplified instanceof LetNode) {
-            $this->bindingTypeInferrer->graftLetBindings($simplified->getBindings());
+            $this->bindingTypeInferrer->graftLetBindings($simplified->getBindings(), $env->getBoundTo());
         }
 
         return $simplified;

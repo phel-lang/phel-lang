@@ -1,0 +1,46 @@
+--PHEL--
+(defn tally [^int n] (php/+ n 1))
+(defn use-tally [^int n] (let [t (tally n)] (+ t 5)))
+--PHP--
+\Phel::addDefinition(
+  "user",
+  "tally",
+  new class() extends \Phel\Lang\AbstractFn {
+    public const BOUND_TO = "user\\tally";
+
+    public function __invoke(int $n): int {
+      return ($n + 1);
+    }
+  },
+  \Phel::locationMeta(
+    \Phel::location("Let/let-user-fn-int-return-native-add.test", 1, 0),
+    \Phel::location("Let/let-user-fn-int-return-native-add.test", 1, 33),
+    \Phel\Lang\Keyword::create("doc"), "```phel\n(tally n)\n```\n",
+    "min-arity", 1,
+    "is-variadic", false,
+    "arglists", "[n]",
+    \Phel\Lang\Keyword::create("tag"), "int"
+  )
+);
+\Phel::addDefinition(
+  "user",
+  "use-tally",
+  new class() extends \Phel\Lang\AbstractFn {
+    public const BOUND_TO = "user\\use_tally";
+
+    public function __invoke(int $n) {
+      static $__phel_call_0;
+      /** @var int $t_1 */
+      $t_1 = ($__phel_call_0 ??= \Phel::getDefinition("user", "tally"))->__invoke($n);
+      return ($t_1 + 5);
+    }
+  },
+  \Phel::locationMeta(
+    \Phel::location("Let/let-user-fn-int-return-native-add.test", 2, 0),
+    \Phel::location("Let/let-user-fn-int-return-native-add.test", 2, 53),
+    \Phel\Lang\Keyword::create("doc"), "```phel\n(use-tally n)\n```\n",
+    "min-arity", 1,
+    "is-variadic", false,
+    "arglists", "[n]"
+  )
+);

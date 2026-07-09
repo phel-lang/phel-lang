@@ -154,7 +154,7 @@ final readonly class LoopSymbol implements SpecialFormAnalyzerInterface
         // `recur`s) is analyzed: a counter keeps its tag only when the init and
         // every recur arm agree, so `(loop [i 0] ... (recur (php/+ i 1)))`
         // lowers `(< i n)` / `(+ i 1)` to native ops.
-        $this->bindingTypeInferrer->graftLoopBindings($bindings, $bodyExpr);
+        $this->bindingTypeInferrer->graftLoopBindings($bindings, $bodyExpr, $env->getBoundTo());
 
         return new LetNode(
             $env,

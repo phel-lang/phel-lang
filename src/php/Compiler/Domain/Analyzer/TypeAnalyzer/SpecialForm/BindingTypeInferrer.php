@@ -28,6 +28,9 @@ use function is_bool;
 use function is_float;
 use function is_int;
 use function is_string;
+use function str_replace;
+use function strrpos;
+use function substr;
 
 /**
  * Infers a primitive `:tag` (`int` / `float` / `bool` / `string`) for
@@ -43,6 +46,13 @@ use function is_string;
  * `(let [n (php/count v)] (+ n 1))` leaves `n` untyped and every op over
  * it stays on runtime dispatch — which is why hot code reaches for raw
  * `php/` interop operators.
+ *
+ * The init type is read from literals, sibling/param locals, `php/` interop
+ * ops, `phel.core` arithmetic — and from the primitive return `:tag` of any
+ * global call (a `phel.core` helper or user `defn`), so a call to a typed fn
+ * feeds the binding the same way a hand-written annotation would. Those return
+ * tags are themselves author-declared or filled by {@see ReturnTypeInferrer},
+ * so trusting them here cannot disagree with what the callee returns.
  *
  * Inference is intentionally conservative: any binding not provably one of
  * the primitive tags is left untouched. A missing tag only ever costs a
@@ -83,13 +93,28 @@ final class BindingTypeInferrer
     ];
 
     /**
+     * Dot-namespace + bare name of the `def` whose body is being analyzed,
+     * or `null` when anonymous. A binding whose init calls this same global
+     * must not read its return `:tag`: the registry entry is from a previous
+     * compile of the name, so a redefinition would inherit a stale signal —
+     * the guard {@see ReturnTypeInferrer::inferGlobalCall} applies for the
+     * symmetric fn-return case.
+     */
+    private ?string $selfNamespace = null;
+
+    private ?string $selfName = null;
+
+    /**
      * Graft inferred tags onto a `let`'s bindings. Processed in order so a
      * later binding's init can read an earlier sibling's freshly grafted tag.
+     * `$boundTo` is the enclosing def's `"ns\name"` (empty when anonymous),
+     * used to skip a binding's own recursive self-call return tag.
      *
      * @param list<BindingNode> $bindings
      */
-    public function graftLetBindings(array $bindings): void
+    public function graftLetBindings(array $bindings, string $boundTo = ''): void
     {
+        [$this->selfNamespace, $this->selfName] = $this->splitBoundTo($boundTo);
         foreach ($bindings as $binding) {
             $this->graftBinding($binding, $this->typeOf($binding->getInitExpr()));
         }
@@ -108,8 +133,10 @@ final class BindingTypeInferrer
      *
      * @param list<BindingNode> $bindings
      */
-    public function graftLoopBindings(array $bindings, AbstractNode $body): void
+    public function graftLoopBindings(array $bindings, AbstractNode $body, string $boundTo = ''): void
     {
+        [$this->selfNamespace, $this->selfName] = $this->splitBoundTo($boundTo);
+
         // Seed each binding's type (a user-written tag, else the inferred init
         // type) first, so a recur arg that reads a sibling counter (or the
         // binding itself, e.g. `(recur (+ i 1))`) types against the loop's own
@@ -236,7 +263,7 @@ final class BindingTypeInferrer
         $fn = $node->getFn();
         return match (true) {
             $fn instanceof PhpVarNode => $this->phpCallType($fn->getName(), $node, $locals),
-            $fn instanceof GlobalVarNode => $this->coreCallType($fn, $node, $locals),
+            $fn instanceof GlobalVarNode => $this->globalCallType($fn, $node, $locals),
             default => null,
         };
     }
@@ -258,37 +285,63 @@ final class BindingTypeInferrer
     }
 
     /**
-     * `phel.core` arithmetic over already-typed operands — so a binding like
-     * `(let [d (+ a b)] ...)` or a `(recur (+ i 1))` counter types from its
-     * operands the same way the `php/` interop ops do. Restricted to the
-     * operand-type-preserving ops (`+ - *`, `inc`/`dec`); polymorphic helpers
-     * (`/`, `quot`, `min`, …) are left untyped.
+     * The type a call to a Phel global contributes to a binding.
+     *
+     * `phel.core` `+ - *` and `inc`/`dec` are computed from their operands —
+     * these preserve the operand's numeric type, which is more precise than a
+     * fixed return tag (they carry none: an int op can promote past
+     * `PHP_INT_MAX`), so `(let [d (+ a b)] …)` and a `(recur (+ i 1))` counter
+     * type from their arguments.
+     *
+     * Any other global — a `phel.core` helper or a user `defn` — contributes
+     * its declared or inferred primitive return `:tag`, so
+     * `(let [s (make-greeting x)] (str s "!"))` types `s` from `make-greeting`'s
+     * `:string` return. Non-primitive tags and untagged fns stay on dispatch.
      *
      * @param array<string, string> $locals
      */
-    private function coreCallType(GlobalVarNode $fn, CallNode $node, array $locals): ?string
+    private function globalCallType(GlobalVarNode $fn, CallNode $node, array $locals): ?string
     {
-        if ($fn->getNamespace() !== CompilerConstants::PHEL_CORE_NAMESPACE) {
+        if ($fn->getNamespace() === CompilerConstants::PHEL_CORE_NAMESPACE) {
+            $name = $fn->getName()->getName();
+
+            if (in_array($name, self::NUMERIC_BINARY_OPS, true)) {
+                return $this->numericResultType($node, $locals);
+            }
+
+            if (in_array($name, self::CORE_INC_DEC_OPS, true)) {
+                $args = $node->getArguments();
+                if (count($args) !== 1) {
+                    return null;
+                }
+
+                $type = $this->typeOf($args[0], $locals);
+                return ArithmeticResultType::isFloatOrInt($type) ? $type : null;
+            }
+        }
+
+        return $this->globalReturnTag($fn);
+    }
+
+    /**
+     * The callee's declared or inferred return `:tag`, kept only when it is one
+     * of {@see self::PRIMITIVE_TAGS} — a nullable/union/class return never feeds
+     * a native scalar op, and `int` inherits the same overflow policy as every
+     * other inferred int (see the class docblock). A recursive self-call is
+     * skipped so a redefinition never reads its own stale registry tag.
+     */
+    private function globalReturnTag(GlobalVarNode $fn): ?string
+    {
+        if ($this->selfNamespace !== null
+            && $this->selfName !== null
+            && $fn->getNamespace() === $this->selfNamespace
+            && $fn->getName()->getName() === $this->selfName
+        ) {
             return null;
         }
 
-        $name = $fn->getName()->getName();
-
-        if (in_array($name, self::NUMERIC_BINARY_OPS, true)) {
-            return $this->numericResultType($node, $locals);
-        }
-
-        if (in_array($name, self::CORE_INC_DEC_OPS, true)) {
-            $args = $node->getArguments();
-            if (count($args) !== 1) {
-                return null;
-            }
-
-            $type = $this->typeOf($args[0], $locals);
-            return ArithmeticResultType::isFloatOrInt($type) ? $type : null;
-        }
-
-        return null;
+        $tag = $this->tagFromMeta($fn->getMeta());
+        return in_array($tag, self::PRIMITIVE_TAGS, true) ? $tag : null;
     }
 
     /**
@@ -349,7 +402,14 @@ final class BindingTypeInferrer
 
     private function declaredTag(Symbol $symbol): ?string
     {
-        $meta = $symbol->getMeta();
+        return $this->tagFromMeta($symbol->getMeta());
+    }
+
+    /**
+     * @param ?PersistentMapInterface<mixed, mixed> $meta
+     */
+    private function tagFromMeta(?PersistentMapInterface $meta): ?string
+    {
         if (!$meta instanceof PersistentMapInterface) {
             return null;
         }
@@ -360,6 +420,30 @@ final class BindingTypeInferrer
         }
 
         return is_string($tag) && $tag !== '' ? $tag : null;
+    }
+
+    /**
+     * Splits a `"namespace\\name"` bound-to string (the enclosing def, set by
+     * {@see DefSymbol}) into the analyzer's dot-separated namespace and bare
+     * name, matching {@see GlobalVarNode::getNamespace()}. Returns `[null, null]`
+     * for an anonymous fn so the self-call guard never fires spuriously.
+     *
+     * @return array{0: ?string, 1: ?string}
+     */
+    private function splitBoundTo(string $boundTo): array
+    {
+        $pos = strrpos($boundTo, '\\');
+        if ($pos === false) {
+            return [null, null];
+        }
+
+        $ns = str_replace('\\', '.', substr($boundTo, 0, $pos));
+        $name = substr($boundTo, $pos + 1);
+        if ($ns === '' || $name === '') {
+            return [null, null];
+        }
+
+        return [$ns, $name];
     }
 
     private function putTag(Symbol $symbol, string $type): void
