@@ -13,8 +13,11 @@ use Phel\Compiler\Domain\Analyzer\Ast\DefNode;
 use Phel\Compiler\Domain\Analyzer\Ast\DoNode;
 use Phel\Compiler\Domain\Analyzer\Ast\FnNode;
 use Phel\Compiler\Domain\Analyzer\Ast\ForeachNode;
+use Phel\Compiler\Domain\Analyzer\Ast\GlobalVarNode;
 use Phel\Compiler\Domain\Analyzer\Ast\IfNode;
 use Phel\Compiler\Domain\Analyzer\Ast\LetNode;
+use Phel\Compiler\Domain\Analyzer\Ast\LiteralNode;
+use Phel\Compiler\Domain\Analyzer\Ast\LocalVarNode;
 use Phel\Compiler\Domain\Analyzer\Ast\MapNode;
 use Phel\Compiler\Domain\Analyzer\Ast\MethodCallNode;
 use Phel\Compiler\Domain\Analyzer\Ast\MultiFnNode;
@@ -26,7 +29,7 @@ use Phel\Compiler\Domain\Analyzer\Ast\PhpNamedArgNode;
 use Phel\Compiler\Domain\Analyzer\Ast\PhpNewNode;
 use Phel\Compiler\Domain\Analyzer\Ast\PhpObjectCallNode;
 use Phel\Compiler\Domain\Analyzer\Ast\PhpObjectSetNode;
-use Phel\Compiler\Domain\Analyzer\Ast\PhpRefNode;
+use Phel\Compiler\Domain\Analyzer\Ast\PhpVarNode;
 use Phel\Compiler\Domain\Analyzer\Ast\RecurNode;
 use Phel\Compiler\Domain\Analyzer\Ast\ReifyNode;
 use Phel\Compiler\Domain\Analyzer\Ast\SetNode;
@@ -35,58 +38,64 @@ use Phel\Compiler\Domain\Analyzer\Ast\ThrowNode;
 use Phel\Compiler\Domain\Analyzer\Ast\TryNode;
 use Phel\Compiler\Domain\Analyzer\Ast\VectorNode;
 
-use function array_values;
+use function array_any;
 
 /**
- * Collects the shadow names of locals marked `(php/ref x)` inside a node
- * subtree, so an emitter that wraps the subtree in an IIFE can capture those
- * locals with `use(&$x)` rather than by value (otherwise a by-reference PHP
- * parameter writes into the closure copy and the result is lost).
+ * Reports whether a node subtree contains a `(php/yield …)` in the current
+ * function frame. PHP promotes any function containing `yield` to a generator,
+ * so an emitter can only drop the IIFE around a construct (e.g. a return-context
+ * `foreach`) once it knows the wrapper is not acting as that generator boundary:
+ * eliding it would move the `yield` up to the enclosing fn, making *it* the
+ * generator and deferring its pre-loop side-effects to first iteration.
  *
  * Traversal stops at closure boundaries (`FnNode`, `MultiFnNode`, `ReifyNode`):
- * a `php/ref` inside a user closure binds against that closure's own capture,
- * not the wrapping IIFE, so forcing the outer capture by reference would not
- * help. Unknown node types are treated as leaves; under-collecting only leaves
- * the pre-existing by-value behaviour untouched, never a wrong reference.
+ * a `yield` inside a nested closure makes that closure the generator, not the
+ * frame we are in, so it does not force the wrapper here.
+ *
+ * Unlike {@see ByRefLocalCollector} (which shares the container arms but can
+ * safely fall back to by-value on an unknown node) this detector fails *closed*:
+ * a node whose shape we do not recognise is assumed to possibly yield, so the
+ * wrapper is kept. Under-recognising only costs an unnecessary IIFE; it can
+ * never silently misplace a generator boundary.
  */
-final class ByRefLocalCollector
+final class YieldDetector
 {
-    /**
-     * @return list<string> de-duplicated shadow names of by-reference locals
-     */
-    public function collect(AbstractNode $node): array
+    public function containsYield(AbstractNode $node): bool
     {
-        $names = [];
-        $this->walk($node, $names);
-
-        return array_values(array_unique($names));
-    }
-
-    /**
-     * @param list<string> $names
-     */
-    private function walk(AbstractNode $node, array &$names): void
-    {
-        if ($node instanceof PhpRefNode) {
-            $names[] = $node->getName()->getName();
-            return;
+        if ($node instanceof CallNode) {
+            $fnNode = $node->getFn();
+            if ($fnNode instanceof PhpVarNode && $fnNode->getName() === 'yield') {
+                return true;
+            }
         }
 
         if ($node instanceof FnNode || $node instanceof MultiFnNode || $node instanceof ReifyNode) {
-            return;
+            return false;
         }
 
-        foreach ($this->children($node) as $child) {
-            $this->walk($child, $names);
+        $children = $this->children($node);
+        if ($children === null) {
+            return true;
         }
+
+        return array_any($children, fn(AbstractNode $child): bool => $this->containsYield($child));
     }
 
     /**
-     * @return array<int, AbstractNode>
+     * Child expression nodes to search: `[]` for a known leaf (no yield can
+     * hide there), the child list for a known container, or `null` for a node
+     * whose shape is unrecognised — the caller then fails closed. The container
+     * arms mirror {@see ByRefLocalCollector::children()}; keep the two in sync.
+     *
+     * @return array<int, AbstractNode>|null
      */
-    private function children(AbstractNode $node): array
+    private function children(AbstractNode $node): ?array
     {
         return match (true) {
+            $node instanceof LiteralNode,
+            $node instanceof LocalVarNode,
+            $node instanceof GlobalVarNode,
+            $node instanceof PhpVarNode => [],
             $node instanceof DoNode => [...$node->getStmts(), $node->getRet()],
             $node instanceof LetNode => [...$node->getBindings(), $node->getBodyExpr()],
             $node instanceof BindingNode => [$node->getInitExpr()],
@@ -112,7 +121,7 @@ final class ByRefLocalCollector
             $node instanceof PhpArrayUnsetNode => [$node->getArrayExpr(), ...$node->getAccessExprs()],
             $node instanceof PhpArrayGetNode => [$node->getArrayExpr(), ...$node->getAccessExprs()],
             $node instanceof DefNode => [$node->getInit()],
-            default => [],
+            default => null,
         };
     }
 

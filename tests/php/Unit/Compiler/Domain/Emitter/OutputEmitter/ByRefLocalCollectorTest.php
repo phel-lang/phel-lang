@@ -13,6 +13,7 @@ use Phel\Compiler\Domain\Analyzer\Ast\LocalVarNode;
 use Phel\Compiler\Domain\Analyzer\Ast\PhpNamedArgNode;
 use Phel\Compiler\Domain\Analyzer\Ast\PhpRefNode;
 use Phel\Compiler\Domain\Analyzer\Ast\PhpVarNode;
+use Phel\Compiler\Domain\Analyzer\Ast\SetNode;
 use Phel\Compiler\Domain\Analyzer\Environment\NodeEnvironment;
 use Phel\Compiler\Domain\Emitter\OutputEmitter\ByRefLocalCollector;
 use Phel\Lang\Symbol;
@@ -52,6 +53,13 @@ final class ByRefLocalCollectorTest extends TestCase
         $call = new CallNode($this->env(), $this->phpVar('f'), [$this->ref('m'), $this->ref('m')]);
 
         self::assertSame(['m'], $this->collect($call));
+    }
+
+    public function test_collects_php_ref_from_a_set_literal(): void
+    {
+        $set = new SetNode($this->env(), [$this->ref('m')]);
+
+        self::assertSame(['m'], $this->collect($set));
     }
 
     public function test_stops_at_a_closure_boundary(): void

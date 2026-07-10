@@ -1,0 +1,14 @@
+--PHEL--
+(fn [coll]
+  (dofor [x :in coll]
+    ((fn [y] (php/yield y)) x)))
+--PHP--
+(function($coll) {
+  foreach (\Phel\Lang\Seq::toIterable($coll) as $__phel_1) {
+    $x_2 = $__phel_1;
+    ((function($y) use($coll, $__phel_1, $x_2) {
+      yield $y;
+    }))($x_2);
+  }
+  return null;
+});

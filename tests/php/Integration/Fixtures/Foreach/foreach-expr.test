@@ -11,12 +11,10 @@
 
     public function __invoke() {
       static $__phel_const_0;
-      return (function() use(&$__phel_const_0) {
-        foreach (($__phel_const_0 ??= \Phel::vector([1, 2, 3])) as $v) {
-          ($v + $v);
-        }
-        return null;
-      })();
+      foreach (($__phel_const_0 ??= \Phel::vector([1, 2, 3])) as $v) {
+        ($v + $v);
+      }
+      return null;
     }
   },
   \Phel::locationMeta(
