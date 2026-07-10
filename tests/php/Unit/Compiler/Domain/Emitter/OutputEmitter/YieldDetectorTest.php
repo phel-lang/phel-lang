@@ -46,8 +46,10 @@ final class YieldDetectorTest extends TestCase
         self::assertFalse($this->containsYield($call));
     }
 
-    public function test_an_unknown_leaf_node_has_no_yield(): void
+    public function test_a_known_leaf_node_has_no_yield(): void
     {
+        // A recognised leaf (LocalVarNode) returns false — it is NOT treated as
+        // fail-closed; that is what distinguishes it from an unrecognised node.
         self::assertFalse($this->containsYield($this->local('x')));
     }
 

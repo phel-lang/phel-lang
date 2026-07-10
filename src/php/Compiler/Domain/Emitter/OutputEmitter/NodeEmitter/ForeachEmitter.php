@@ -30,7 +30,7 @@ final class ForeachEmitter implements NodeEmitterInterface
         // loop as plain statements and returns nil after — unless the body yields:
         // there the IIFE is the generator boundary, and eliding it would promote
         // the enclosing fn to a generator, deferring its pre-loop side effects.
-        // Statement context discards the value and never wrapped.
+        // Statement context discards the value and is never wrapped.
         $isReturn = $env->isContext(NodeEnvironment::CONTEXT_RETURN);
         $needsWrap = $env->isContext(NodeEnvironment::CONTEXT_EXPRESSION)
             || ($isReturn && new YieldDetector()->containsYield($node));
@@ -72,14 +72,15 @@ final class ForeachEmitter implements NodeEmitterInterface
         $this->outputEmitter->emitLine();
         $this->outputEmitter->emitStr('}', $node->getStartSourceLocation());
 
-        if ($needsWrap) {
+        // The foreach's value is always nil; emit it wherever a value is wanted.
+        if ($needsWrap || $isReturn) {
             $this->outputEmitter->emitLine();
             $this->outputEmitter->emitStr('return null;', $node->getStartSourceLocation());
+        }
+
+        if ($needsWrap) {
             $this->outputEmitter->emitFnWrapSuffix($node->getStartSourceLocation());
             $this->outputEmitter->emitContextSuffix($env, $node->getStartSourceLocation());
-        } elseif ($isReturn) {
-            $this->outputEmitter->emitLine();
-            $this->outputEmitter->emitStr('return null;', $node->getStartSourceLocation());
         }
     }
 }
