@@ -10,6 +10,7 @@ use Phel\Compiler\Domain\Analyzer\Environment\NodeEnvironment;
 use Phel\Compiler\Domain\Emitter\OutputEmitter\ByRefLocalCollector;
 use Phel\Compiler\Domain\Emitter\OutputEmitter\IterableTarget;
 use Phel\Compiler\Domain\Emitter\OutputEmitter\NodeEmitterInterface;
+use Phel\Compiler\Domain\Emitter\OutputEmitter\YieldDetector;
 use Phel\Lang\Seq;
 use Phel\Lang\Symbol;
 
@@ -23,10 +24,21 @@ final class ForeachEmitter implements NodeEmitterInterface
     {
         assert($node instanceof ForeachNode);
 
-        if (!$node->getEnv()->isContext(NodeEnvironment::CONTEXT_STATEMENT)) {
-            $this->outputEmitter->emitContextPrefix($node->getEnv(), $node->getStartSourceLocation());
+        $env = $node->getEnv();
+        // A foreach lowers to PHP statements, so expression context still needs
+        // the IIFE to host its (always-nil) value inline. Return context runs the
+        // loop as plain statements and returns nil after — unless the body yields:
+        // there the IIFE is the generator boundary, and eliding it would promote
+        // the enclosing fn to a generator, deferring its pre-loop side effects.
+        // Statement context discards the value and is never wrapped.
+        $isReturn = $env->isContext(NodeEnvironment::CONTEXT_RETURN);
+        $needsWrap = $env->isContext(NodeEnvironment::CONTEXT_EXPRESSION)
+            || ($isReturn && new YieldDetector()->containsYield($node));
+
+        if ($needsWrap) {
+            $this->outputEmitter->emitContextPrefix($env, $node->getStartSourceLocation());
             $this->outputEmitter->emitFnWrapPrefix(
-                $node->getEnv(),
+                $env,
                 $node->getStartSourceLocation(),
                 new ByRefLocalCollector()->collect($node),
             );
@@ -60,11 +72,15 @@ final class ForeachEmitter implements NodeEmitterInterface
         $this->outputEmitter->emitLine();
         $this->outputEmitter->emitStr('}', $node->getStartSourceLocation());
 
-        if (!$node->getEnv()->isContext(NodeEnvironment::CONTEXT_STATEMENT)) {
+        // The foreach's value is always nil; emit it wherever a value is wanted.
+        if ($needsWrap || $isReturn) {
             $this->outputEmitter->emitLine();
             $this->outputEmitter->emitStr('return null;', $node->getStartSourceLocation());
+        }
+
+        if ($needsWrap) {
             $this->outputEmitter->emitFnWrapSuffix($node->getStartSourceLocation());
-            $this->outputEmitter->emitContextSuffix($node->getEnv(), $node->getStartSourceLocation());
+            $this->outputEmitter->emitContextSuffix($env, $node->getStartSourceLocation());
         }
     }
 }

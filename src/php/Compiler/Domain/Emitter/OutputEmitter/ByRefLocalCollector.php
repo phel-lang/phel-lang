@@ -5,35 +5,12 @@ declare(strict_types=1);
 namespace Phel\Compiler\Domain\Emitter\OutputEmitter;
 
 use Phel\Compiler\Domain\Analyzer\Ast\AbstractNode;
-use Phel\Compiler\Domain\Analyzer\Ast\ApplyNode;
-use Phel\Compiler\Domain\Analyzer\Ast\BindingNode;
-use Phel\Compiler\Domain\Analyzer\Ast\CallNode;
-use Phel\Compiler\Domain\Analyzer\Ast\CatchNode;
-use Phel\Compiler\Domain\Analyzer\Ast\DefNode;
-use Phel\Compiler\Domain\Analyzer\Ast\DoNode;
 use Phel\Compiler\Domain\Analyzer\Ast\FnNode;
-use Phel\Compiler\Domain\Analyzer\Ast\ForeachNode;
-use Phel\Compiler\Domain\Analyzer\Ast\IfNode;
-use Phel\Compiler\Domain\Analyzer\Ast\LetNode;
-use Phel\Compiler\Domain\Analyzer\Ast\MapNode;
-use Phel\Compiler\Domain\Analyzer\Ast\MethodCallNode;
 use Phel\Compiler\Domain\Analyzer\Ast\MultiFnNode;
-use Phel\Compiler\Domain\Analyzer\Ast\PhpArrayGetNode;
-use Phel\Compiler\Domain\Analyzer\Ast\PhpArrayPushNode;
-use Phel\Compiler\Domain\Analyzer\Ast\PhpArraySetNode;
-use Phel\Compiler\Domain\Analyzer\Ast\PhpArrayUnsetNode;
-use Phel\Compiler\Domain\Analyzer\Ast\PhpNamedArgNode;
-use Phel\Compiler\Domain\Analyzer\Ast\PhpNewNode;
-use Phel\Compiler\Domain\Analyzer\Ast\PhpObjectCallNode;
-use Phel\Compiler\Domain\Analyzer\Ast\PhpObjectSetNode;
 use Phel\Compiler\Domain\Analyzer\Ast\PhpRefNode;
-use Phel\Compiler\Domain\Analyzer\Ast\RecurNode;
 use Phel\Compiler\Domain\Analyzer\Ast\ReifyNode;
-use Phel\Compiler\Domain\Analyzer\Ast\SetVarNode;
-use Phel\Compiler\Domain\Analyzer\Ast\ThrowNode;
-use Phel\Compiler\Domain\Analyzer\Ast\TryNode;
-use Phel\Compiler\Domain\Analyzer\Ast\VectorNode;
 
+use function array_unique;
 use function array_values;
 
 /**
@@ -45,8 +22,11 @@ use function array_values;
  * Traversal stops at closure boundaries (`FnNode`, `MultiFnNode`, `ReifyNode`):
  * a `php/ref` inside a user closure binds against that closure's own capture,
  * not the wrapping IIFE, so forcing the outer capture by reference would not
- * help. Unknown node types are treated as leaves; under-collecting only leaves
- * the pre-existing by-value behaviour untouched, never a wrong reference.
+ * help. Children come from the shared {@see NodeChildren} map; an unrecognised
+ * node yields `[]` here (by-value fallback). That fallback is safe for a genuine
+ * leaf, but a missed *container* silently drops a `php/ref` write — which is why
+ * the child map is shared with {@see YieldDetector} rather than hand-copied
+ * (the copy had already lost `SetNode`).
  */
 final class ByRefLocalCollector
 {
@@ -75,50 +55,8 @@ final class ByRefLocalCollector
             return;
         }
 
-        foreach ($this->children($node) as $child) {
+        foreach (NodeChildren::of($node) ?? [] as $child) {
             $this->walk($child, $names);
         }
-    }
-
-    /**
-     * @return array<int, AbstractNode>
-     */
-    private function children(AbstractNode $node): array
-    {
-        return match (true) {
-            $node instanceof DoNode => [...$node->getStmts(), $node->getRet()],
-            $node instanceof LetNode => [...$node->getBindings(), $node->getBodyExpr()],
-            $node instanceof BindingNode => [$node->getInitExpr()],
-            $node instanceof IfNode => [$node->getTestExpr(), $node->getThenExpr(), $node->getElseExpr()],
-            $node instanceof CallNode => [$node->getFn(), ...$node->getArguments()],
-            $node instanceof ApplyNode => [$node->getFn(), ...$node->getArguments()],
-            $node instanceof VectorNode => $node->getArgs(),
-            $node instanceof MapNode => $node->getKeyValues(),
-            $node instanceof ThrowNode => [$node->getExceptionExpr()],
-            $node instanceof TryNode => [$node->getBody(), ...$node->getCatches(), ...$this->maybe($node->getFinally())],
-            $node instanceof CatchNode => [$node->getBody()],
-            $node instanceof ForeachNode => [$node->getListExpr(), $node->getBodyExpr()],
-            $node instanceof PhpObjectCallNode => [$node->getTargetExpr(), $node->getCallExpr()],
-            $node instanceof PhpObjectSetNode => [$node->getLeftExpr(), $node->getRightExpr()],
-            $node instanceof MethodCallNode => $node->getArgs(),
-            $node instanceof PhpNewNode => [$node->getClassExpr(), ...$node->getArgs()],
-            $node instanceof PhpNamedArgNode => [$node->getValueExpr()],
-            $node instanceof RecurNode => $node->getExpressions(),
-            $node instanceof SetVarNode => [$node->getSymbol(), $node->getValueExpr()],
-            $node instanceof PhpArraySetNode => [$node->getArrayExpr(), ...$node->getAccessExprs(), $node->getValueExpr()],
-            $node instanceof PhpArrayPushNode => [$node->getArrayExpr(), ...$node->getAccessExprs(), $node->getValueExpr()],
-            $node instanceof PhpArrayUnsetNode => [$node->getArrayExpr(), ...$node->getAccessExprs()],
-            $node instanceof PhpArrayGetNode => [$node->getArrayExpr(), ...$node->getAccessExprs()],
-            $node instanceof DefNode => [$node->getInit()],
-            default => [],
-        };
-    }
-
-    /**
-     * @return list<AbstractNode>
-     */
-    private function maybe(?AbstractNode $node): array
-    {
-        return $node instanceof AbstractNode ? [$node] : [];
     }
 }
