@@ -148,6 +148,23 @@ final readonly class NumericOperationCallEmitter implements SpecializedCallEmitt
      *
      * Eligibility lives on {@see NumericOperationSpecialization::typedBinaryOpName()}.
      */
+    private function tryEmitTypedBinaryOp(CallNode $node): bool
+    {
+        $op = NumericOperationSpecialization::typedBinaryOpName($node);
+        if ($op === null) {
+            return false;
+        }
+
+        $args = $node->getArguments();
+        $loc = $node->getStartSourceLocation();
+        $this->outputEmitter->emitStr('(', $loc);
+        $this->outputEmitter->emitNode($args[0]);
+        $this->outputEmitter->emitStr(' ' . $op . ' ', $loc);
+        $this->outputEmitter->emitNode($args[1]);
+        $this->outputEmitter->emitStr(')', $loc);
+        return true;
+    }
+
     /**
      * Strength-reduce `(** x 2)` on a tagged `int`/`float` local to a native
      * `($x * $x)`, sparing the `NumericOperations::power` call. Eligibility
@@ -166,23 +183,6 @@ final readonly class NumericOperationCallEmitter implements SpecializedCallEmitt
         $this->outputEmitter->emitNode($base);
         $this->outputEmitter->emitStr(' * ', $loc);
         $this->outputEmitter->emitNode($base);
-        $this->outputEmitter->emitStr(')', $loc);
-        return true;
-    }
-
-    private function tryEmitTypedBinaryOp(CallNode $node): bool
-    {
-        $op = NumericOperationSpecialization::typedBinaryOpName($node);
-        if ($op === null) {
-            return false;
-        }
-
-        $args = $node->getArguments();
-        $loc = $node->getStartSourceLocation();
-        $this->outputEmitter->emitStr('(', $loc);
-        $this->outputEmitter->emitNode($args[0]);
-        $this->outputEmitter->emitStr(' ' . $op . ' ', $loc);
-        $this->outputEmitter->emitNode($args[1]);
         $this->outputEmitter->emitStr(')', $loc);
         return true;
     }
