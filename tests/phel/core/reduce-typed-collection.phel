@@ -1,0 +1,66 @@
+(ns phel-test.core.reduce-typed-collection
+  (:require phel.test :refer [deftest is]))
+
+(defn- sum-vec [^"\Phel\Lang\Collections\Vector\PersistentVectorInterface" v]
+  (reduce + 0 v))
+
+(defn- reduce-with [f init ^"\Phel\Lang\Collections\Vector\PersistentVectorInterface" v]
+  (reduce f init v))
+
+(defn- take-until-negative [^"\Phel\Lang\Collections\Vector\PersistentVectorInterface" v]
+  (reduce (fn [acc x] (if (neg? x) (reduced acc) (+ acc x))) 0 v))
+
+(defn- untyped-reduce [f init v]
+  (reduce f init v))
+
+(def- fn-evals (atom 0))
+(def- init-evals (atom 0))
+
+(defn- step-fn [] (swap! fn-evals inc) +)
+(defn- seed [] (swap! init-evals inc) 0)
+
+;; The step-fn and seed calls sit inside the specialised `reduce` call, so
+;; the emitter hoists them out of the loop; each must run once, not per element.
+(defn- reduce-hoisted [^"\Phel\Lang\Collections\Vector\PersistentVectorInterface" v]
+  (reduce (step-fn) (seed) v))
+
+(deftest test-reduce-on-typed-vector
+  (is (= 10 (sum-vec [1 2 3 4])) "specialised reduce sums a typed vector")
+  (is (= 0 (sum-vec [])) "specialised reduce on empty vector returns the init")
+  (is (= 7 (sum-vec [7])) "specialised reduce on a single element returns init+elem"))
+
+(deftest test-reduce-matches-runtime
+  (is (= (untyped-reduce + 0 [1 2 3 4]) (sum-vec [1 2 3 4]))
+      "specialised reduce matches runtime reduce")
+  (is (= (untyped-reduce + 0 []) (sum-vec []))
+      "specialised reduce matches runtime reduce on empty input"))
+
+(deftest test-reduce-is-left-associative
+  (is (= [[[[] 1] 2] 3] (reduce-with (fn [acc x] [acc x]) [] [1 2 3]))
+      "specialised reduce feeds the accumulator in on the left, in order"))
+
+(deftest test-reduce-respects-reduced
+  (is (= 6 (take-until-negative [1 2 3 -1 100]))
+      "specialised reduce stops at (reduced ...) and unwraps the value")
+  (is (= 0 (take-until-negative [-1 2 3]))
+      "specialised reduce can terminate on the first element")
+  (is (= 6 (take-until-negative [1 2 3]))
+      "specialised reduce runs to completion when never reduced")
+  (is (= (untyped-reduce (fn [acc x] (if (neg? x) (reduced acc) (+ acc x))) 0 [1 2 -1 9])
+         (take-until-negative [1 2 -1 9]))
+      "specialised reduced early-exit matches runtime reduce"))
+
+(deftest test-reduce-evaluates-fn-and-init-once
+  (reset! fn-evals 0)
+  (reset! init-evals 0)
+  (is (= 6 (reduce-hoisted [1 2 3]))
+      "hoisted step fn and seed still produce the runtime result")
+  (is (= 1 @fn-evals) "the step fn expression is evaluated once, not once per element")
+  (is (= 1 @init-evals) "the init expression is evaluated once")
+
+  (reset! fn-evals 0)
+  (reset! init-evals 0)
+  (is (= 0 (reduce-hoisted []))
+      "an empty vector still returns the seed")
+  (is (= 1 @fn-evals) "the step fn is evaluated even when the vector is empty")
+  (is (= 1 @init-evals) "the init is evaluated even when the vector is empty"))

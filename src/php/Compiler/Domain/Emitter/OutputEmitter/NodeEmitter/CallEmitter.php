@@ -19,6 +19,7 @@ use Phel\Compiler\Domain\Emitter\OutputEmitter\NodeEmitter\Specialized\CoreFnCal
 use Phel\Compiler\Domain\Emitter\OutputEmitter\NodeEmitter\Specialized\GetInCallEmitter;
 use Phel\Compiler\Domain\Emitter\OutputEmitter\NodeEmitter\Specialized\NilBooleanCallEmitter;
 use Phel\Compiler\Domain\Emitter\OutputEmitter\NodeEmitter\Specialized\NumericOperationCallEmitter;
+use Phel\Compiler\Domain\Emitter\OutputEmitter\NodeEmitter\Specialized\ReduceCallEmitter;
 use Phel\Compiler\Domain\Emitter\OutputEmitter\NodeEmitter\Specialized\SpecializedCallEmitterInterface;
 use Phel\Compiler\Domain\Emitter\OutputEmitter\NodeEmitter\Specialized\TypedCollectionCallEmitter;
 use Phel\Compiler\Domain\Emitter\OutputEmitter\NodeEmitter\Specialized\TypedValueCallEmitter;
@@ -54,6 +55,7 @@ final readonly class CallEmitter implements NodeEmitterInterface
             new TypedCollectionCallEmitter($outputEmitter),
             new AssocConjCallEmitter($outputEmitter),
             new NumericOperationCallEmitter($outputEmitter),
+            new ReduceCallEmitter($outputEmitter),
         ];
     }
 

@@ -78,6 +78,7 @@ final readonly class CallSpecialization
             || NumericOperationSpecialization::isNotEqPeephole($node)
             || NumericOperationSpecialization::isTypedVariadicChain($node)
             || NumericOperationSpecialization::isTypedIncDec($node)
+            || ReduceSpecialization::isTypedVectorReduce($node)
         ) {
             return true;
         }

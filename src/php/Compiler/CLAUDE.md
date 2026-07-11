@@ -61,12 +61,14 @@ Analyzer tracks param/return types via `ParamTypeInferrer` and `ReturnTypeInferr
 
 Two halves, by family:
 
-- **Eligibility** — `*Specialization` classes in `Domain/Emitter/OutputEmitter/`: `NumericOperationSpecialization`, `TypePredicateSpecialization`, `TypedValueSpecialization`, `TypedCollectionMethodSpecialization`, `AssocConjSpecialization`, `GetInSpecialization`, `AtomMethodSpecialization`, `NilAndBooleanCheckSpecialization`. `CallSpecialization` aggregates them.
+- **Eligibility** — `*Specialization` classes in `Domain/Emitter/OutputEmitter/`: `NumericOperationSpecialization`, `TypePredicateSpecialization`, `TypedValueSpecialization`, `TypedCollectionMethodSpecialization`, `AssocConjSpecialization`, `GetInSpecialization`, `AtomMethodSpecialization`, `NilAndBooleanCheckSpecialization`, `ReduceSpecialization`. `CallSpecialization` aggregates them.
 - **Emission** — one `Specialized/*CallEmitter implements SpecializedCallEmitterInterface` per family under `NodeEmitter/Specialized/`. `CallEmitter` builds them once and dispatches by looping `tryEmit()` before the generic call path.
 
 Family predicates are disjoint, so chain order between families is not significant.
 
 To add a family: write a `*Specialization` eligibility class, register it in `CallSpecialization::isSpecialized()`, and add the matching `Specialized/*CallEmitter` to `CallEmitter`'s ordered list.
+
+GOTCHA: only eager core fns can be lowered to a native loop. `reduce` (3-arity) qualifies. `map`/`filter` do NOT — they return a `LazySeq` over a `Seq::map`/`Seq::filter` generator and `copy-meta` the source; an eager `foreach` lowering would change the return type, break infinite/expensive seqs, and shift side-effect timing. They also gain little: `f` is handed to the generator once, so there is no per-element registry dispatch to remove.
 
 ## Generated-Class Attributes & Typed Signatures
 
