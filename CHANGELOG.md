@@ -24,7 +24,7 @@ All notable changes to this project will be documented in this file.
 - Distributed PHAR no longer bundles example templates' build artifacts — `phel init --template` shipped any leftover `.phel/` cache and `vendor/`, bloating a release PHAR from ~2 MB to ~14 MB; only template sources ship now (#2678)
 - `phel test --help` now shows `--parallel=auto` in its example; the bare `--parallel` it printed before errors, since the option needs a value (an integer, `auto`, or `max`) (#2679)
 - `get` on a `:tag`-typed vector with an out-of-range or non-integer key now returns `nil` (or the supplied default), matching runtime `get`, instead of throwing — the compiler no longer lowers it to an unguarded `$v->get()` (#2712)
-- The compiled-code cache no longer serves stale PHP after a compiler-only change: its per-source key hashes just the `.phel` source, so an emitter/analyzer change that alters output for unchanged source (e.g. the cross-fn return-type `:tag` inference) could keep serving a pre-change compiled file within the same version. The cache index format version is bumped, invalidating stale entries once and forcing a cold recompile
+- The compiled-code cache no longer serves stale PHP after a compiler-only change: its per-source key hashes just the `.phel` source, so an emitter/analyzer change that alters output for unchanged source (e.g. the cross-fn return-type `:tag` inference) could keep serving a pre-change compiled file within the same version. The cache index format version is bumped, invalidating stale entries once and forcing a cold recompile (#2732)
 
 ### Performance
 
