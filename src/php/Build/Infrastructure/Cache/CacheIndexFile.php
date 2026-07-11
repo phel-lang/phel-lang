@@ -23,9 +23,13 @@ use function is_string;
  */
 final readonly class CacheIndexFile
 {
-    // Bump when entry structure changes (namespace/source_hash/compiled_path/last_accessed keys).
+    // Bump when the entry structure changes (namespace/source_hash/compiled_path/last_accessed keys)
+    // OR when the emitted PHP format changes within a release: the per-source `source_hash` only
+    // tracks the .phel source, so a compiler change that alters output for unchanged source (e.g. the
+    // #2729 cross-fn `:tag` inference) leaves stale compiled files that a same-version cache would
+    // keep serving. Bumping here rejects the whole index once, forcing a cold recompile.
     // Decoupled from the Phel version for cache stability across minor releases.
-    private const string INDEX_FORMAT_VERSION = '1.2';
+    private const string INDEX_FORMAT_VERSION = '1.3';
 
     public function __construct(
         private CacheDirectory $directory,

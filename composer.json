@@ -105,7 +105,10 @@
             "@static-clear-cache",
             "@test-all"
         ],
-        "test-compiler": "./vendor/bin/phpunit --testsuite=unit,integration --log-junit=data/log-junit.xml",
+        "test-compiler": [
+            "./vendor/bin/phpunit --testsuite=unit --log-junit=data/log-junit.xml",
+            "./vendor/bin/paratest --testsuite=integration --runner=WrapperRunner"
+        ],
         "test-compiler:coverage": "XDEBUG_MODE=coverage ./vendor/bin/phpunit --testsuite=unit,integration --coverage-html=data/coverage-html --coverage-xml=data/coverage-xml --log-junit=data/coverage-xml/junit.xml",
         "test-unit": "./vendor/bin/phpunit --testsuite=unit",
         "test-integration": "./vendor/bin/paratest --testsuite=integration --runner=WrapperRunner",
