@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Phel\Compiler\Domain\Emitter\OutputEmitter\NodeEmitter\Specialized;
 
 use Phel\Compiler\Domain\Analyzer\Ast\CallNode;
+use Phel\Compiler\Domain\Emitter\OutputEmitter\ByRefLocalCollector;
 use Phel\Compiler\Domain\Emitter\OutputEmitter\ReduceSpecialization;
 use Phel\Compiler\Domain\Emitter\OutputEmitterInterface;
 use Phel\Lang\Reduced;
@@ -48,7 +49,13 @@ final readonly class ReduceCallEmitter implements SpecializedCallEmitterInterfac
         // `CallEmitter` has already emitted the context prefix, so the
         // lowering has to produce an expression: the loop lives in an IIFE.
         // That is one closure per `reduce` call, against a per-element saving.
-        $emitter->emitFnWrapPrefix($node->getEnv(), $loc);
+        // Locals reached by `(php/ref x)` in an operand must be captured by
+        // reference, or the by-ref write lands in the closure's copy.
+        $emitter->emitFnWrapPrefix(
+            $node->getEnv(),
+            $loc,
+            new ByRefLocalCollector()->collect($node),
+        );
 
         // Hoist the step fn and the seed. Both are evaluated exactly once,
         // in argument order, before the collection is walked.

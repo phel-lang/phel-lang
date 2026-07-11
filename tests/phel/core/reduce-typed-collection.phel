@@ -50,6 +50,18 @@
          (take-until-negative [1 2 -1 9]))
       "specialised reduced early-exit matches runtime reduce"))
 
+;; The specialised reduce hosts its loop in an IIFE, so a `php/ref` inside one
+;; of its operands must be captured by reference through that wrap — otherwise
+;; the by-ref write lands in the closure's copy and is lost.
+(defn- reduce-with-by-ref-init [^"\Phel\Lang\Collections\Vector\PersistentVectorInterface" v]
+  (let [m nil]
+    (reduce + (do (php/preg_match "/(\\d+)/" "abc123" (php/ref m)) 0) v)
+    (php/aget m 1)))
+
+(deftest test-reduce-preserves-by-ref-operand-writes
+  (is (= "123" (reduce-with-by-ref-init [1 2 3]))
+      "a php/ref write in a reduce operand survives the specialised IIFE wrap"))
+
 (deftest test-reduce-evaluates-fn-and-init-once
   (reset! fn-evals 0)
   (reset! init-evals 0)
