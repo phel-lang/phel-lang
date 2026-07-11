@@ -79,6 +79,7 @@ final readonly class CallSpecialization
             || NumericOperationSpecialization::isTypedVariadicChain($node)
             || NumericOperationSpecialization::isTypedIncDec($node)
             || ReduceSpecialization::isTypedVectorReduce($node)
+            || NumericOperationSpecialization::squaredBase($node) instanceof AbstractNode
         ) {
             return true;
         }

@@ -1,0 +1,54 @@
+(ns phel-test.core.pow-strength-reduction
+  (:require phel.test :refer [deftest is]))
+
+;; Specialised: base carries an int/float tag, so `(** x 2)` lowers to `($x * $x)`.
+(defn- square-int [^int x] (** x 2))
+(defn- square-float [^float x] (** x 2))
+
+;; Not specialised: no tag, so these keep routing through NumericOperations::power.
+(defn- square-untyped [x] (** x 2))
+(defn- power [b e] (** b e))
+
+(deftest test-square-of-typed-int
+  (is (= 9 (square-int 3)) "specialised square of a positive int")
+  (is (= 9 (square-int -3)) "specialised square of a negative int")
+  (is (= 0 (square-int 0)) "specialised square of zero")
+  (is (= 1 (square-int 1)) "specialised square of one"))
+
+(deftest test-square-of-typed-float
+  (is (= 6.25 (square-float 2.5)) "specialised square of a float")
+  (is (= 6.25 (square-float -2.5)) "specialised square of a negative float")
+  (is (= 0.0 (square-float 0.0)) "specialised square of zero float"))
+
+(deftest test-square-matches-runtime-power
+  (for [n :in [0 1 2 3 7 -1 -4 123]]
+    (is (= (square-untyped n) (square-int n))
+        (str "specialised square matches runtime ** for " n)))
+  (for [f :in [0.5 -1.5 2.25 10.0]]
+    (is (= (square-untyped f) (square-float f))
+        (str "specialised square matches runtime ** for " f))))
+
+(deftest test-non-square-exponents-unaffected
+  (is (= 8 (power 2 3)) "cube still routes through the runtime **")
+  (is (= 1 (power 5 0)) "zero exponent still routes through the runtime **")
+  (is (= 2 (power 2 1)) "unit exponent still routes through the runtime **")
+  (is (= 16.0 (power 4 2.0)) "a float exponent still routes through the runtime **"))
+
+;; The reduction emits the same native `*` that a tagged `(* x y)` already
+;; emits, so it inherits that family's overflow behaviour: a tagged int square
+;; overflows to float rather than promoting to BigInt. Untagged `**` still
+;; promotes. This is the documented `:tag` trade-off (the emitter trusts tags),
+;; not a divergence introduced here — pinned so a change to it is deliberate.
+(defn- square-tagged [^int x] (** x 2))
+(defn- multiply-tagged [^int a ^int b] (* a b))
+(defn- square-untagged [x] (** x 2))
+
+(def- overflowing 4000000000)
+
+(deftest test-tagged-square-overflow-matches-tagged-multiply
+  (is (= (multiply-tagged overflowing overflowing) (square-tagged overflowing))
+      "tagged square overflows exactly like the tagged multiply it lowers to")
+  (is (float? (square-tagged overflowing))
+      "tagged square overflows to float, per the native-arithmetic tag contract")
+  (is (not (float? (square-untagged overflowing)))
+      "untagged ** still promotes the overflow instead of falling to float"))

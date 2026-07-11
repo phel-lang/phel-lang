@@ -120,6 +120,60 @@ final readonly class NumericOperationSpecialization
     }
 
     /**
+     * `(** x 2)` where `x` is a `LocalVarNode` statically tagged `int` or
+     * `float`. Returns the base node so the emitter can splice it either side
+     * of a native `*`, or `null` when the call is not reducible.
+     *
+     * `phel.core/**` routes through `NumericOperations::power`, a real function
+     * call; squaring is the overwhelmingly common exponent, and `$x * $x`
+     * measures ~2.3x faster than `pow($x, 2)` on PHP 8.5.
+     *
+     * The guards are what keep the two operations interchangeable:
+     *
+     * - The base must carry an `int`/`float` tag. An untagged base could be a
+     *   `Ratio` or `BigDecimal` at runtime, and `power` and `multiply` do not
+     *   agree on those (`power` funnels non-float through `BigInt`, while
+     *   `multiply` has a dedicated `BigDecimal` branch).
+     * - The exponent must be the *integer* literal `2`. A float `2.0` sends
+     *   `power` down its float branch even for an int base, so it is a
+     *   different operation.
+     * - The base must be a `LocalVarNode`: the lowering emits it twice, so it
+     *   has to be a side-effect-free variable reference.
+     *
+     * Int overflow is not a divergence: the native `*` this lowers to is the
+     * same operator {@see self::typedBinaryOpName()} already emits for a tagged
+     * `(* x y)`, so the reduction inherits that family's existing trade-off
+     * rather than introducing a new one.
+     */
+    public static function squaredBase(CallNode $node): ?AbstractNode
+    {
+        if (!PhelCoreCall::is($node, '**')) {
+            return null;
+        }
+
+        $args = $node->getArguments();
+        if (count($args) !== 2) {
+            return null;
+        }
+
+        $exponent = $args[1];
+        if (!$exponent instanceof LiteralNode || $exponent->getValue() !== 2) {
+            return null;
+        }
+
+        $base = $args[0];
+        if (!$base instanceof LocalVarNode) {
+            return null;
+        }
+
+        return in_array(
+            TagNormalizer::normalise($base->getInferredType()),
+            self::NUMERIC_PRIMITIVE_TAGS,
+            true,
+        ) ? $base : null;
+    }
+
+    /**
      * `(<op> a b)` against `phel.core` arithmetic / comparison ops
      * where both args are statically proven primitive. Returns the PHP
      * operator to emit between the args, or `null` when the call is
