@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Phel\Compiler\Domain\Emitter\OutputEmitter\NodeEmitter\Specialized;
 
+use Phel\Compiler\Domain\Analyzer\Ast\AbstractNode;
 use Phel\Compiler\Domain\Analyzer\Ast\CallNode;
 use Phel\Compiler\Domain\Emitter\OutputEmitter\NumericOperationSpecialization;
 use Phel\Compiler\Domain\Emitter\OutputEmitterInterface;
@@ -34,6 +35,10 @@ final readonly class NumericOperationCallEmitter implements SpecializedCallEmitt
         }
 
         if ($this->tryEmitTypedIncDec($node)) {
+            return true;
+        }
+
+        if ($this->tryEmitSquare($node)) {
             return true;
         }
 
@@ -156,6 +161,28 @@ final readonly class NumericOperationCallEmitter implements SpecializedCallEmitt
         $this->outputEmitter->emitNode($args[0]);
         $this->outputEmitter->emitStr(' ' . $op . ' ', $loc);
         $this->outputEmitter->emitNode($args[1]);
+        $this->outputEmitter->emitStr(')', $loc);
+        return true;
+    }
+
+    /**
+     * Strength-reduce `(** x 2)` on a tagged `int`/`float` local to a native
+     * `($x * $x)`, sparing the `NumericOperations::power` call. Eligibility
+     * (and why the two are interchangeable) lives in
+     * {@see NumericOperationSpecialization::squaredBase()}.
+     */
+    private function tryEmitSquare(CallNode $node): bool
+    {
+        $base = NumericOperationSpecialization::squaredBase($node);
+        if (!$base instanceof AbstractNode) {
+            return false;
+        }
+
+        $loc = $node->getStartSourceLocation();
+        $this->outputEmitter->emitStr('(', $loc);
+        $this->outputEmitter->emitNode($base);
+        $this->outputEmitter->emitStr(' * ', $loc);
+        $this->outputEmitter->emitNode($base);
         $this->outputEmitter->emitStr(')', $loc);
         return true;
     }
