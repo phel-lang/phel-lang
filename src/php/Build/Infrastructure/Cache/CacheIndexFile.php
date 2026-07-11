@@ -29,7 +29,7 @@ final readonly class CacheIndexFile
     // #2729 cross-fn `:tag` inference) leaves stale compiled files that a same-version cache would
     // keep serving. Bumping here rejects the whole index once, forcing a cold recompile.
     // Decoupled from the Phel version for cache stability across minor releases.
-    private const string INDEX_FORMAT_VERSION = '1.3';
+    private const string INDEX_FORMAT_VERSION = '1.4';
 
     public function __construct(
         private CacheDirectory $directory,
