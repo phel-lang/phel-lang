@@ -30,8 +30,8 @@ final class SymbolResolver
     public function split(string $word, ProjectIndex $index): array
     {
         if (str_contains($word, '/')) {
-            $parts = explode('/', $word, 2);
-            return [$parts[0], $parts[1] ?? ''];
+            $parts = array_pad(explode('/', $word, 2), 2, '');
+            return [$parts[0], $parts[1]];
         }
 
         foreach ($index->definitions as $def) {

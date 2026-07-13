@@ -528,7 +528,7 @@ final class PhpInteropReflector
         }
 
         if ($type instanceof ReflectionType) {
-            return (string) $type;
+            return $type->__toString();
         }
 
         return '';

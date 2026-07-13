@@ -171,7 +171,7 @@ final readonly class CompiledPhpMethodBuilder
 
     private function typeToString(?ReflectionType $type): string
     {
-        return $type instanceof ReflectionType ? (string) $type : 'mixed';
+        return $type instanceof ReflectionType ? $type->__toString() : 'mixed';
     }
 
     private function buildPhelFunctionName(string $boundTo): string
