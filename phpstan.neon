@@ -69,11 +69,15 @@ parameters:
         -
             identifier: return.type
             path: src/php/Shared/Printer/Printer.php
-        # ReflectionType::__toString() is the correct way to handle union/intersection types;
-        # calling __toString() explicitly is the proper replacement for deprecated (string) casts.
+        # ReflectionType::__toString() is the correct replacement for deprecated
+        # (string) casts, but PHP 8.5's phpstan flags the explicit call too while
+        # 8.4 does not. reportUnmatched keeps both runtimes green during the
+        # transition (mirrors while.alwaysTrue above).
         -
             identifier: class.toStringDeprecated
             path: src/php/Api/Application/PhpInteropReflector.php
+            reportUnmatched: false
         -
             identifier: class.toStringDeprecated
             path: src/php/Interop/Domain/Generator/Builder/CompiledPhpMethodBuilder.php
+            reportUnmatched: false
