@@ -69,3 +69,11 @@ parameters:
         -
             identifier: return.type
             path: src/php/Shared/Printer/Printer.php
+        # ReflectionType::__toString() is the correct way to handle union/intersection types;
+        # calling __toString() explicitly is the proper replacement for deprecated (string) casts.
+        -
+            identifier: class.toStringDeprecated
+            path: src/php/Api/Application/PhpInteropReflector.php
+        -
+            identifier: class.toStringDeprecated
+            path: src/php/Interop/Domain/Generator/Builder/CompiledPhpMethodBuilder.php
