@@ -141,14 +141,20 @@ final readonly class PhelFunctionRuntimeLoader
         // and keeps the generated file out of the (possibly read-only) package
         // tree. Inside a PHAR sys_get_temp_dir() is fine too, but the cwd keeps
         // the generated namespace resolvable against the project's own sources.
-        $baseDir = Phar::running() !== '' ? $this->currentWorkingDir() : sys_get_temp_dir();
+        // An unwritable cwd (read-only sandbox) falls back to sys temp.
+        $baseDirs = Phar::running() !== ''
+            ? [$this->currentWorkingDir(), sys_get_temp_dir()]
+            : [sys_get_temp_dir()];
 
-        $tempDir = $baseDir . '/.phel_temp_' . uniqid('', true);
-        if (!mkdir($tempDir, 0755, true) && !is_dir($tempDir)) {
-            throw new RuntimeException(sprintf('Unable to create temporary directory at "%s".', $tempDir));
+        $suffix = '/.phel_temp_' . uniqid('', true);
+        foreach ($baseDirs as $baseDir) {
+            $tempDir = $baseDir . $suffix;
+            if (@mkdir($tempDir, 0755, true) || is_dir($tempDir)) {
+                return $tempDir . '/doc.phel';
+            }
         }
 
-        return $tempDir . '/doc.phel';
+        throw new RuntimeException(sprintf('Unable to create temporary directory at "%s%s".', end($baseDirs), $suffix));
     }
 
     private function currentWorkingDir(): string

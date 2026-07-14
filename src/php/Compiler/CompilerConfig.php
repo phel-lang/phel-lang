@@ -8,6 +8,7 @@ use Gacela\Framework\AbstractConfig;
 use Phel\Config\PhelConfig;
 use Phel\Shared\PhelProjectDirectory;
 use Phel\Shared\ScalarCoercion;
+use Phel\Shared\WritableCacheDir;
 
 use function is_string;
 
@@ -25,7 +26,8 @@ final class CompilerConfig extends AbstractConfig
 
     public function isIntermediateCacheEnabled(): bool
     {
-        return (bool) $this->get(PhelConfig::ENABLE_INTERMEDIATE_CACHE, false);
+        return (bool) $this->get(PhelConfig::ENABLE_INTERMEDIATE_CACHE, false)
+            && WritableCacheDir::isUsable($this->getCacheDir());
     }
 
     /**
