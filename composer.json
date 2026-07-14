@@ -26,6 +26,7 @@
         "amphp/amp": "^3.1",
         "gacela-project/gacela": "^1.15",
         "symfony/console": "^6.0|^7.0|^8.0",
+        "symfony/polyfill-mbstring": "^1.30",
         "symfony/routing": "^7.3|^8.0"
     },
     "require-dev": {

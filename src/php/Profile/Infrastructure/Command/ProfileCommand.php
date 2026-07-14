@@ -178,7 +178,12 @@ HELP)
 
         $json = $this->getFacade()->renderJson($report);
         if ($writeToFile) {
-            file_put_contents($outputFile, $json);
+            if (@file_put_contents($outputFile, $json) === false) {
+                $output->writeln(sprintf('<error>Cannot write JSON report to %s</error>', $outputFile));
+
+                return;
+            }
+
             $output->writeln(sprintf('<info>JSON report written to %s</info>', $outputFile));
 
             return;

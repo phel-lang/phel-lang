@@ -54,9 +54,12 @@ final class PhelPathFilter implements PathFilterInterface
      */
     private function createRecursiveIterator(string $path): RecursiveIteratorIterator
     {
+        // CATCH_GET_CHILD skips unreadable subdirectories instead of aborting
+        // the whole format run with an uncaught UnexpectedValueException.
         return new RecursiveIteratorIterator(
             new RecursiveDirectoryIterator($path, RecursiveDirectoryIterator::SKIP_DOTS | FilesystemIterator::SKIP_DOTS),
             RecursiveIteratorIterator::LEAVES_ONLY,
+            RecursiveIteratorIterator::CATCH_GET_CHILD,
         );
     }
 

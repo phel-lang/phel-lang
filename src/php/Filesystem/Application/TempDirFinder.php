@@ -74,7 +74,9 @@ final class TempDirFinder
         }
 
         $oldUmask = umask(0);
-        if (!mkdir($tempDir, 0777, true) && !is_dir($tempDir)) {
+        // Suppressed: the thrown FileException is the user-facing signal; the
+        // raw PHP warning would just duplicate it as noise above the error.
+        if (!@mkdir($tempDir, 0777, true) && !is_dir($tempDir)) {
             throw FileException::canNotCreateDirectory($tempDir);
         }
 
