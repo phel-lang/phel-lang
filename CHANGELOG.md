@@ -21,6 +21,9 @@ All notable changes to this project will be documented in this file.
 
 ### Fixed
 
+- `phel format` no longer aborts with an uncaught exception when the scanned tree contains an unreadable directory (skips it), and reports an error instead of silently succeeding when a reformatted file cannot be written back
+- `phel test --coverage` and `phel profile --output` now report an error instead of printing success when the report file cannot be written; `phel run --debug` warns once and keeps running when the debug log location is unwritable (it looped silent failed writes before)
+- Read-only friendliness: the temp-dir and error-log writers no longer emit raw PHP warnings on failure (the clear error/stderr message remains), and `symfony/polyfill-mbstring` is now an explicit dependency so minimal PHP builds without `ext-mbstring` keep working
 - `phel` no longer fatals in read-only environments (e.g. the NixOS build sandbox): Gacela's file cache, the build caches (compiled-code, namespace, dependency-graph, scan-index), and the intermediate cache now degrade to in-memory/disabled variants when the cache dir cannot be created, and `phel doc` inside a PHAR falls back to the system temp dir when the working directory is unwritable — `phel --help`, `doc`, `eval`, and the REPL all work from an unwritable project root (nixpkgs 0.47.0 `versionCheckHook` failure)
 - Distributed PHAR no longer bundles example templates' build artifacts — `phel init --template` shipped any leftover `.phel/` cache and `vendor/`, bloating a release PHAR from ~2 MB to ~14 MB; only template sources ship now (#2678)
 - `phel test --help` now shows `--parallel=auto` in its example; the bare `--parallel` it printed before errors, since the option needs a value (an integer, `auto`, or `max`) (#2679)

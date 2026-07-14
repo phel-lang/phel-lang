@@ -33,14 +33,18 @@ final class DebugLineTap
     /** @var array<string, string|null> */
     private array $phelSourceCache = [];
 
+    private bool $logWritable = true;
+
     private function __construct(
         private readonly string $logPath,
         private readonly ?string $phelFileFilter = null,
     ) {
         $this->lastFlushTime = microtime(true);
         $this->writeHeader();
-        register_tick_function($this->onTick(...));
-        register_shutdown_function($this->flush(...));
+        if ($this->logWritable) {
+            register_tick_function($this->onTick(...));
+            register_shutdown_function($this->flush(...));
+        }
     }
 
     public static function enable(?string $phelFileFilter = null, string $logPath = './phel-debug.log'): void
@@ -70,6 +74,10 @@ final class DebugLineTap
 
     private function onTick(): void
     {
+        if (!$this->logWritable) {
+            return;
+        }
+
         $trace = debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS, 1);
         if ($trace === []) {
             return;
@@ -114,7 +122,10 @@ final class DebugLineTap
             return;
         }
 
-        file_put_contents($this->logPath, implode('', $this->buffer), FILE_APPEND | LOCK_EX);
+        if (@file_put_contents($this->logPath, implode('', $this->buffer), FILE_APPEND | LOCK_EX) === false) {
+            $this->disableLogging('flush');
+        }
+
         $this->buffer = [];
         $this->lastFlushTime = microtime(true);
     }
@@ -147,7 +158,25 @@ final class DebugLineTap
         }
 
         $header .= "=======================================================\n\n";
-        file_put_contents($this->logPath, $header);
+        if (@file_put_contents($this->logPath, $header) === false) {
+            $this->disableLogging('open');
+        }
+    }
+
+    /**
+     * The tap runs from a tick function, so a persistently unwritable log
+     * (e.g. read-only cwd) must warn once and stop tracing instead of
+     * retrying the failed write on every tick until shutdown.
+     */
+    private function disableLogging(string $stage): void
+    {
+        $this->logWritable = false;
+        $this->buffer = [];
+        @fwrite(STDERR, sprintf(
+            "phel: debug trace disabled, cannot %s log file %s\n",
+            $stage,
+            $this->logPath,
+        ));
     }
 
     private function getSource(string $file, int $line): string

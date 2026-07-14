@@ -381,7 +381,11 @@ HELP)
             : $report->toText();
 
         if (is_string($outputPath) && $outputPath !== '') {
-            file_put_contents($outputPath, $content);
+            if (@file_put_contents($outputPath, $content) === false) {
+                $output->writeln(sprintf('<error>Cannot write coverage report to %s</error>', $outputPath));
+                return;
+            }
+
             $output->writeln(sprintf('Coverage report written to %s', $outputPath));
             return;
         }
@@ -397,7 +401,10 @@ HELP)
         }
 
         foreach (new HtmlCoverageRenderer()->render($report) as $pageName => $html) {
-            file_put_contents($directory . '/' . $pageName, $html);
+            if (@file_put_contents($directory . '/' . $pageName, $html) === false) {
+                $output->writeln(sprintf('<error>Cannot write coverage page %s</error>', $directory . '/' . $pageName));
+                return;
+            }
         }
 
         $output->writeln(sprintf('HTML coverage report written to %s', $directory . '/index.html'));

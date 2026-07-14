@@ -19,7 +19,9 @@ final readonly class ErrorLog implements ErrorLogInterface
     {
         $this->ensureParentDirectory();
 
-        file_put_contents(
+        // Best-effort: the error already reaches stderr; a read-only log
+        // location must not turn error reporting itself into a warning.
+        @file_put_contents(
             $this->filepath,
             $text . PHP_EOL,
             FILE_APPEND | LOCK_EX,

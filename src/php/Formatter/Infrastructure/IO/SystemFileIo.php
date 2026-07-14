@@ -39,6 +39,8 @@ final class SystemFileIo implements FileIoInterface
 
     public function putContents(string $filename, string $data): void
     {
-        file_put_contents($filename, $data);
+        if (@file_put_contents($filename, $data) === false) {
+            throw new RuntimeException(sprintf('Unable to write file "%s".', $filename));
+        }
     }
 }
