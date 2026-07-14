@@ -18,6 +18,7 @@ use Phel\Run\RunFacade;
 use Phel\Shared\PhelProjectDirectory;
 use Phel\Shared\ProjectRootResolver;
 use Phel\Shared\ScalarCoercion;
+use Phel\Shared\WritableCacheDir;
 use RuntimeException;
 use Throwable;
 
@@ -104,9 +105,12 @@ class Phel
         }
 
         try {
-            Gacela::bootstrap($projectRootDir, self::configFn());
+            Gacela::bootstrap($projectRootDir, self::configFn($projectRootDir));
 
-            self::mergedConfigCacheInvalidator()->refreshIfStale();
+            if (self::isFileCacheUsable($projectRootDir)) {
+                self::mergedConfigCacheInvalidator()->refreshIfStale();
+            }
+
             // Forces the merged app config to materialize, so a broken
             // phel-config.php fails here (inside the guard) rather than later.
             self::mirrorPhelDirToEnv();
@@ -176,10 +180,18 @@ class Phel
     /**
      * @return Closure(GacelaConfig):void
      */
-    public static function configFn(): callable
+    public static function configFn(?string $projectRootDir = null): callable
     {
-        return static function (GacelaConfig $config): void {
-            $config->enableFileCache(self::FILE_CACHE_DIR);
+        $rootDir = $projectRootDir ?? (getcwd() ?: '');
+
+        return static function (GacelaConfig $config) use ($rootDir): void {
+            // In read-only environments (e.g. the NixOS build sandbox, where
+            // cwd is `/` and there is no writable HOME) Gacela's file cache
+            // would fatal on `mkdir`. Fall back to its in-memory cache instead.
+            if (self::isFileCacheUsable($rootDir)) {
+                $config->enableFileCache(self::FILE_CACHE_DIR);
+            }
+
             // If we have auto-detected config (no phel-config.php exists), use it
             $autoConfig = self::getAutoDetectedConfig();
             if ($autoConfig instanceof PhelConfig) {
@@ -204,6 +216,24 @@ class Phel
     public static function resetAutoDetectedConfig(): void
     {
         self::$autoDetectedConfig = null;
+    }
+
+    /**
+     * Whether Gacela's file cache can actually write to disk. Gacela throws an
+     * uncaught RuntimeException when the cache dir cannot be created, which
+     * turned `phel --help` into a fatal in sandboxed/read-only environments
+     * (e.g. the NixOS build sandbox, where the resolved root is `/`).
+     *
+     * A `GACELA_CACHE_DIR` env override is trusted as-is: the user explicitly
+     * chose that dir, so a failure there should stay loud.
+     */
+    private static function isFileCacheUsable(string $projectRootDir): bool
+    {
+        if (getenv('GACELA_CACHE_DIR') !== false) {
+            return true;
+        }
+
+        return WritableCacheDir::isUsable($projectRootDir . '/' . self::FILE_CACHE_DIR);
     }
 
     /**
