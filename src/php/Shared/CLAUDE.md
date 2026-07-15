@@ -46,7 +46,6 @@ Stateless strategy-pattern printer (see `Printer/CLAUDE.md`); consumers instanti
 | `ScalarCoercion` | coerce config `mixed`→scalar with default: static `toString()`, `toInt()`, `toFloat()`, `toStringList()` |
 | `ResourceUsageFormatter` | `resourceUsageSinceStartOfRequest()` → "Time: HH:MM:SS.mmm, Memory: X.XX MB" |
 | `PhelProjectDirectory` | manages `.phel/` dir; static `ensure()`/`path()`/`resolve()`. Effective location: `PHEL_DIR` env → `withPhelDir()` override → `<projectRoot>/.phel` |
-| `WritableCacheDir` | static `isUsable(dir)` (memoized; `reset()` for tests) — can the cache dir be written to (creates it when missing)? Gates every disk cache (Gacela file cache in `Phel::bootstrap`, Build's compiled-code/namespace caches, Compiler's intermediate cache) so read-only sandboxes (NixOS build) degrade to in-memory instead of fataling |
 | `VersionFinder` | pure version-string builder from explicit git inputs (no I/O); `getVersion()`. `LATEST_VERSION` const is bumped by `tools/release.sh` |
 | `VersionResolver` | gathers ambient version inputs (git working copy, Composer `InstalledVersions`, build-time `.phel-release.php`/`OFFICIAL_RELEASE`) and calls `VersionFinder`; `resolve()`. Console and Run consume directly, so neither owns version-detection wiring |
 | `CompiledSourceHash` | static `of(code, optLevel)` → compiled-code cache key (mixes `\|O{level}` when level>0, plain `md5` at 0). Shared so Build's `FileEvaluator` writer and `SecondaryFileHarvester` reader key identically |

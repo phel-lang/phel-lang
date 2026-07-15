@@ -10,7 +10,6 @@ use Phel\Config\PhelConfig;
 use Phel\Shared\CompileOptions;
 use Phel\Shared\PhelProjectDirectory;
 use Phel\Shared\ScalarCoercion;
-use Phel\Shared\WritableCacheDir;
 
 use function is_string;
 
@@ -61,14 +60,12 @@ final class BuildConfig extends AbstractConfig implements BuildConfigInterface
 
     public function isNamespaceCacheEnabled(): bool
     {
-        return (bool) $this->get(PhelConfig::ENABLE_NAMESPACE_CACHE, true)
-            && WritableCacheDir::isUsable($this->getCacheDir());
+        return (bool) $this->get(PhelConfig::ENABLE_NAMESPACE_CACHE, true);
     }
 
     public function isCompiledCodeCacheEnabled(): bool
     {
-        return (bool) $this->get(PhelConfig::ENABLE_COMPILED_CODE_CACHE, true)
-            && WritableCacheDir::isUsable($this->getCacheDir());
+        return (bool) $this->get(PhelConfig::ENABLE_COMPILED_CODE_CACHE, true);
     }
 
     public function getTempDir(): string

@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "e77857af50c438a6eed1befdf28d0cdf",
+    "content-hash": "867f5a99189cbb68608d9cd62ff7ff96",
     "packages": [
         {
             "name": "amphp/amp",
@@ -157,16 +157,16 @@
         },
         {
             "name": "gacela-project/gacela",
-            "version": "1.15.0",
+            "version": "1.16.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/gacela-project/gacela.git",
-                "reference": "378c69c45446f60c821ea1c3bb4638ca052c7d94"
+                "reference": "96dfcf6d9a6fceffc9452aff2f0658e472a136fd"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/gacela-project/gacela/zipball/378c69c45446f60c821ea1c3bb4638ca052c7d94",
-                "reference": "378c69c45446f60c821ea1c3bb4638ca052c7d94",
+                "url": "https://api.github.com/repos/gacela-project/gacela/zipball/96dfcf6d9a6fceffc9452aff2f0658e472a136fd",
+                "reference": "96dfcf6d9a6fceffc9452aff2f0658e472a136fd",
                 "shasum": ""
             },
             "require": {
@@ -230,7 +230,7 @@
             ],
             "support": {
                 "issues": "https://github.com/gacela-project/gacela/issues",
-                "source": "https://github.com/gacela-project/gacela/tree/1.15.0"
+                "source": "https://github.com/gacela-project/gacela/tree/1.16.0"
             },
             "funding": [
                 {
@@ -238,7 +238,7 @@
                     "type": "custom"
                 }
             ],
-            "time": "2026-06-05T12:00:26+00:00"
+            "time": "2026-07-15T05:36:26+00:00"
         },
         {
             "name": "psr/container",
