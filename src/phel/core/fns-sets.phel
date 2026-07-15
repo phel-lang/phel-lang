@@ -5,8 +5,8 @@
 ;;   1. Set algebra: `union`, `intersection`, `difference`,
 ;;      `symmetric-difference`, `subset?`, `superset?`.
 ;;   2. Function combinators and collection helpers: `constantly`,
-;;      `complement`, `arity`, `variadic?`, `some-fn`, `juxt`, `partial`,
-;;      `fnil`, `memoize`, `memoize-lru`, `tree-seq`, `flatten`,
+;;      `complement`, `arity`, `variadic?`, `some-fn`, `every-pred`, `juxt`,
+;;      `partial`, `fnil`, `memoize`, `memoize-lru`, `tree-seq`, `flatten`,
 ;;      `merge-with`, `update-keys`, `update-vals`, etc.
 
 ;; -------------
@@ -129,6 +129,17 @@
    (let [preds (cons p ps)]
      (fn [& args]
        (or (some (fn [pred] (some pred args)) preds) false)))))
+
+(defn every-pred
+  "Takes a variadic set of predicates and returns a function `f` that, when called with any number of arguments, returns `true` if every composing predicate returns a logical true value against every argument, and `false` otherwise. The returned function short-circuits on the first logical false result: arguments after it are not inspected, and predicates after it are not tried. Predicates are consulted in the order supplied; for a given predicate, arguments are consulted left-to-right. With no arguments the returned function returns `true`."
+  {:example "((every-pred even? pos?) 2 4 6) ; => true\n((every-pred even? pos?) 2 -4) ; => false"
+   :see-also ["some-fn" "complement" "every?" "not-every?"]}
+  ([]
+   (throw (php/new \InvalidArgumentException "every-pred expects at least one predicate")))
+  ([p & ps]
+   (let [preds (cons p ps)]
+     (fn [& args]
+       (every? (fn [pred] (every? pred args)) preds)))))
 
 (defn juxt
   "Takes a list of functions and returns a new function that is the juxtaposition of those functions."
