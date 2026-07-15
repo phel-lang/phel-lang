@@ -266,6 +266,27 @@
   [x]
   (or (simple-symbol? x) (simple-keyword? x)))
 
+(defn qualified-symbol?
+  "Returns true if `x` is a symbol with a namespace."
+  {:example "(qualified-symbol? 'foo/bar) ; => true\n(qualified-symbol? 'a) ; => false"
+   :see-also ["symbol?" "simple-symbol?" "qualified-ident?"]}
+  [x]
+  (and (symbol? x) (some? (php/-> x (getNamespace)))))
+
+(defn qualified-keyword?
+  "Returns true if `x` is a keyword with a namespace."
+  {:example "(qualified-keyword? :foo/bar) ; => true\n(qualified-keyword? :a) ; => false"
+   :see-also ["keyword?" "simple-keyword?" "qualified-ident?"]}
+  [x]
+  (and (keyword? x) (some? (php/-> x (getNamespace)))))
+
+(defn qualified-ident?
+  "Returns true if `x` is a symbol or keyword with a namespace."
+  {:example "(qualified-ident? 'foo/bar) ; => true\n(qualified-ident? :a) ; => false"
+   :see-also ["qualified-symbol?" "qualified-keyword?" "ident?"]}
+  [x]
+  (or (qualified-symbol? x) (qualified-keyword? x)))
+
 (def ^:private special-symbols
   "The set of symbols that name Phel special forms, including the
   syntactic markers `&`, `catch`, and `finally` recognised by `fn`,

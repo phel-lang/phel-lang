@@ -263,6 +263,28 @@
   (is (false? (simple-ident? "test")) "simple-ident? on string")
   (is (false? (simple-ident? nil)) "simple-ident? on nil"))
 
+(deftest test-qualified-symbol?
+  (is (true? (qualified-symbol? 'foo/bar)) "qualified-symbol? on namespaced symbol")
+  (is (false? (qualified-symbol? 'x)) "qualified-symbol? on simple symbol")
+  (is (false? (qualified-symbol? :foo/bar)) "qualified-symbol? on namespaced keyword")
+  (is (false? (qualified-symbol? 42)) "qualified-symbol? on integer")
+  (is (false? (qualified-symbol? nil)) "qualified-symbol? on nil"))
+
+(deftest test-qualified-keyword?
+  (is (true? (qualified-keyword? :foo/bar)) "qualified-keyword? on namespaced keyword")
+  (is (false? (qualified-keyword? :test)) "qualified-keyword? on simple keyword")
+  (is (false? (qualified-keyword? 'foo/bar)) "qualified-keyword? on namespaced symbol")
+  (is (false? (qualified-keyword? "test")) "qualified-keyword? on string")
+  (is (false? (qualified-keyword? nil)) "qualified-keyword? on nil"))
+
+(deftest test-qualified-ident?
+  (is (true? (qualified-ident? 'foo/bar)) "qualified-ident? on namespaced symbol")
+  (is (true? (qualified-ident? :foo/bar)) "qualified-ident? on namespaced keyword")
+  (is (false? (qualified-ident? 'x)) "qualified-ident? on simple symbol")
+  (is (false? (qualified-ident? :test)) "qualified-ident? on simple keyword")
+  (is (false? (qualified-ident? 42)) "qualified-ident? on integer")
+  (is (false? (qualified-ident? nil)) "qualified-ident? on nil"))
+
 (deftest test-special-symbol?
   (is (true? (special-symbol? 'def)) "special-symbol? on def")
   (is (true? (special-symbol? 'fn)) "special-symbol? on fn")
