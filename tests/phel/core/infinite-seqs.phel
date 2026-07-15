@@ -805,6 +805,30 @@
     (is (true? (seq? result))
         "partition should return a lazy sequence")))
 
+(deftest test-partition-with-step
+  (is (= [[1 2] [2 3] [3 4]] (doall (partition 2 1 [1 2 3 4])))
+      "partition with a step smaller than n yields overlapping chunks")
+  (is (= [[1 2] [5 6] [9 10]] (doall (partition 2 4 [1 2 3 4 5 6 7 8 9 10])))
+      "partition with a step larger than n skips elements")
+  (is (= [[1 2 3] [3 4 5] [5 6 7]] (doall (partition 3 2 [1 2 3 4 5 6 7])))
+      "partition overlaps by n-step elements")
+  (is (= [[1 2]] (doall (partition 2 2 [1 2 3])))
+      "partition drops an incomplete final chunk when there is no pad"))
+
+(deftest test-partition-with-pad
+  (is (= [[1 2 3] [4 :x]] (doall (partition 3 3 [:x] [1 2 3 4])))
+      "partition fills the final incomplete chunk from pad")
+  (is (= [[1 2 3] [4 :x :y]] (doall (partition 3 3 [:x :y :z] [1 2 3 4])))
+      "partition only pads up to n, ignoring extra pad")
+  (is (= [[1 2 3] [4]] (doall (partition 3 3 [] [1 2 3 4])))
+      "partition keeps a short final chunk when pad is empty")
+  (is (= [[1 2 3]] (doall (partition 3 3 [:x] [1 2 3])))
+      "partition with a complete collection needs no padding"))
+
+(deftest test-partition-step-is-lazy
+  (is (= [[0 1] [1 2] [2 3]] (doall (take 3 (partition 2 1 (iterate inc 0)))))
+      "partition with a step is lazy over an infinite sequence"))
+
 ;; Tests for partition-all
 (deftest test-partition-all-basic
   (is (= [[1 2 3] [4 5 6]] (doall (partition-all 3 [1 2 3 4 5 6])))
