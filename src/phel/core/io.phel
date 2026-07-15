@@ -55,6 +55,13 @@
   (php/print "\n")
   nil)
 
+(defn println-str
+  "Same as `println`, but instead of writing to an output stream the resulting string is returned, with a trailing newline."
+  {:example "(println-str \"a\" \"b\") ; => \"a b\\n\""
+   :see-also ["print-str" "println"]}
+  [& xs]
+  (str (apply print-str xs) "\n"))
+
 (defn format
   "Returns a formatted string. See PHP's [sprintf](https://www.php.net/manual/en/function.sprintf.php) for more information."
   [fmt & xs]

@@ -46,6 +46,12 @@
   (is (= "false" (print-str false)) "print-str on false")
   (is (= "nil" (print-str nil)) "print-str on nil"))
 
+(deftest test-println-str
+  (is (= "\n" (println-str)) "println-str with no args is just a newline")
+  (is (= "a b\n" (println-str "a" "b")) "println-str joins args and appends a newline")
+  (is (= "[a b]\n" (println-str ["a" "b"])) "println-str on a collection")
+  (is (= "nil\n" (println-str nil)) "println-str on nil"))
+
 (deftest test-print
   (is (output? "hello\nworld" (print "hello\nworld")) "print hello\\nworld"))
 
