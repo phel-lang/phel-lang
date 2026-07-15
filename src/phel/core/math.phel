@@ -88,6 +88,18 @@
   (assert-non-nil x n)
   (php/>> x n))
 
+(defn unsigned-bit-shift-right
+  "Bitwise shift right without sign extension: the vacated high bits are filled with zeros rather than copies of the sign bit. Unlike `bit-shift-right`, `(unsigned-bit-shift-right -1 10)` is a large positive number, not `-1`."
+  {:example "(unsigned-bit-shift-right -1 10) ; => 18014398509481983"
+   :see-also ["bit-shift-right" "bit-shift-left"]}
+  [x n]
+  (assert-non-nil x n)
+  ;; A right shift by 0 would make the mask `PHP_INT_MAX >> -1`, which PHP
+  ;; rejects as a negative shift; the value is already unchanged in that case.
+  (if (php/=== 0 n)
+    x
+    (php/& (php/>> x n) (php/>> php/PHP_INT_MAX (php/- n 1)))))
+
 (defn bit-set
   "Returns the integer `x` with the bit at index `n` (0-based, least significant first) set to 1."
   {:example "(bit-set 0 2) ; => 4"
