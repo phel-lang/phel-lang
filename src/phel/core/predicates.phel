@@ -204,6 +204,13 @@
   [x]
   (float? x))
 
+(defn rational?
+  "Returns true if `x` is a rational number: an integer (`int` or `BigInt`), a `Ratio`, or a `BigDecimal`. Floating-point numbers (including `##Inf`, `##-Inf`, and `##NaN`) are not rational."
+  {:example "(rational? 1/2) ; => true\n(rational? 1.0) ; => false"
+   :see-also ["ratio?" "number?" "integer?"]}
+  [x]
+  (and (number? x) (not (float? x))))
+
 (defn string?
   "Returns true if `x` is a string, false otherwise."
   {:example "(string? \"a\") ; => true\n(string? :a) ; => false"

@@ -351,6 +351,34 @@
        nil
        "1/2"))
 
+(deftest test-rational?
+  (are [x] (true? (rational? x))
+       0
+       1
+       -1
+       (bigint "0")
+       (bigint "100000000000000000000000")
+       0.0M
+       1.0M
+       -1.0M
+       1/2
+       -1/2)
+  (are [x] (false? (rational? x))
+       0.0
+       1.0
+       -1.0
+       ##Inf
+       ##-Inf
+       ##NaN
+       nil
+       true
+       false
+       "1"
+       :a
+       'a
+       [1]
+       {:a 1}))
+
 (deftest test-bigint?
   (is (true? (bigint? (php/:: \Phel\Lang\BigInt (fromString "100000000000000000000000"))))
       "bigint? on a BigInt value")
