@@ -565,6 +565,20 @@ Creates intermediate maps if they don't exist."
         (copy-meta coll result))
     (throw (php/new InvalidArgumentException "filter expects 1 or 2 arguments"))))
 
+(defn mapv
+  "Returns a vector consisting of the result of applying `f` to the set of first items of each coll, followed by applying `f` to the set of second items in each coll, until any one of the colls is exhausted. Like `map`, but eager and returns a vector rather than a lazy sequence."
+  {:example "(mapv inc [1 2 3]) ; => [2 3 4]"
+   :see-also ["map" "filterv" "vec"]}
+  [f coll & colls]
+  (vec (apply map f coll colls)))
+
+(defn filterv
+  "Returns a vector of the items in `coll` for which `(pred item)` returns a logical true value. Like `filter`, but eager and returns a vector rather than a lazy sequence."
+  {:example "(filterv even? [1 2 3 4 5 6]) ; => [2 4 6]"
+   :see-also ["filter" "mapv" "remove" "vec"]}
+  [pred coll]
+  (vec (filter pred coll)))
+
 (defn remove
   "Returns a lazy sequence of elements where predicate returns false. Opposite of filter. When called with pred only, returns a transducer."
   {:example "(remove even? [1 2 3 4 5 6]) ; => @[1 3 5]"
