@@ -21,14 +21,17 @@ All notable changes to this project will be documented in this file.
 
 ### Fixed
 
-- `phel format` no longer aborts with an uncaught exception when the scanned tree contains an unreadable directory (skips it), and reports an error instead of silently succeeding when a reformatted file cannot be written back
-- `phel test --coverage` and `phel profile --output` now report an error instead of printing success when the report file cannot be written; `phel run --debug` warns once and keeps running when the debug log location is unwritable (it looped silent failed writes before)
-- Read-only friendliness: the temp-dir and error-log writers no longer emit raw PHP warnings on failure (the clear error/stderr message remains), and `symfony/polyfill-mbstring` is now an explicit dependency so minimal PHP builds without `ext-mbstring` keep working
-- `phel` no longer fatals in read-only environments (e.g. the NixOS build sandbox): the Gacela caches (via Gacela 1.16) and the build/intermediate caches now degrade quietly when the cache dir is not writable — a pre-warmed cache is still read, only writes are skipped — and `phel doc` inside a PHAR falls back to the system temp dir when the working directory is unwritable. The OPcache re-exec also skips a read-only file-cache dir instead of letting PHP abort at startup. `phel --help`, `doc`, `eval`, `run`, `compile`, and the REPL all work from an unwritable project root (nixpkgs 0.47.0 `versionCheckHook` failure)
+- `phel` no longer fatals in read-only / unwritable environments (e.g. the NixOS build sandbox); `--help`, `doc`, `eval`, `run`, `compile`, and the REPL all work from an unwritable project root (nixpkgs 0.47.0 `versionCheckHook` failure):
+  - caches degrade quietly instead of aborting — Gacela caches (via Gacela 1.16), build/intermediate caches, and the temp-dir/error-log writers skip writes without raw PHP warnings; a pre-warmed cache is still read
+  - the OPcache re-exec skips a read-only file-cache dir instead of letting PHP abort at startup
+  - `phel doc` inside a PHAR falls back to the system temp dir when the working directory is unwritable
+  - CLI commands fail loudly, not silently: `phel format` skips an unreadable directory instead of aborting; `phel format`, `phel test --coverage`, and `phel profile --output` report a clear error when a target file can't be written; `phel run --debug` warns once and keeps running on an unwritable log (it looped silent failed writes before)
+- `symfony/polyfill-mbstring` is now an explicit dependency, so minimal PHP builds without `ext-mbstring` keep working
 - Distributed PHAR no longer bundles example templates' build artifacts — `phel init --template` shipped any leftover `.phel/` cache and `vendor/`, bloating a release PHAR from ~2 MB to ~14 MB; only template sources ship now (#2678)
 - `phel test --help` now shows `--parallel=auto` in its example; the bare `--parallel` it printed before errors, since the option needs a value (an integer, `auto`, or `max`) (#2679)
 - `get` on a `:tag`-typed vector with an out-of-range or non-integer key now returns `nil` (or the supplied default), matching runtime `get`, instead of throwing — the compiler no longer lowers it to an unguarded `$v->get()` (#2712)
 - The compiled-code cache no longer serves stale PHP after a compiler-only change: its per-source key hashes just the `.phel` source, so an emitter/analyzer change that alters output for unchanged source (e.g. the cross-fn return-type `:tag` inference) could keep serving a pre-change compiled file within the same version. The cache index format version is bumped, invalidating stale entries once and forcing a cold recompile (#2732)
+- Phel no longer triggers PHP 8.3+ deprecation warnings — `ReflectionType` string casts now call `__toString()` (removed in PHP 9.0), keeping `phel export`, LSP, and PHP-interop reflection warning-free on PHP 8.3–8.5
 
 ### Performance
 
