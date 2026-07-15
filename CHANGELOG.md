@@ -4,6 +4,8 @@ All notable changes to this project will be documented in this file.
 
 ## Unreleased
 
+## [0.48.0](https://github.com/phel-lang/phel-lang/compare/v0.47.0...v0.48.0) - 2026-07-15
+
 ### Added
 
 - `reduce-kv`: reduce an associative collection with `(f acc key value)`; vector indices act as keys, `reduced` short-circuits (#2680)
