@@ -1302,6 +1302,13 @@ If map has duplicated values, some keys will be ignored."
   [n coll]
   [(take n coll) (drop n coll)])
 
+(defn splitv-at
+  "Returns a vector `[(vec (take n coll)) (vec (drop n coll))]`. Like `split-at`, but eagerly returns vectors rather than lazy sequences."
+  {:example "(splitv-at 2 [1 2 3 4 5]) ; => [[1 2] [3 4 5]]"
+   :see-also ["split-at" "mapv" "filterv"]}
+  [n coll]
+  [(vec (take n coll)) (vec (drop n coll))])
+
 (defn split-with
   "Returns a vector of `[(take-while pred coll) (drop-while pred coll)]`."
   {:example "(split-with #(< % 4) [1 2 3 4 5 6]) ; => [@[1 2 3] @[4 5 6]]"

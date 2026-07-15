@@ -587,6 +587,14 @@
   (is (= [[1 2] [3 4 5]] (split-at 2 [1 2 3 4 5])) "split-at")
   (is (= [[1 2] []] (split-at 3 [1 2])) "split-at empty"))
 
+(deftest test-splitv-at
+  (is (= [[1 2] [3 4 5]] (splitv-at 2 [1 2 3 4 5])) "splitv-at splits at n")
+  (is (vector? (first (splitv-at 2 [1 2 3 4 5]))) "splitv-at returns a vector for the first half")
+  (is (vector? (get (splitv-at 2 [1 2 3 4 5]) 1)) "splitv-at returns a vector for the second half")
+  (is (= [[] [1 2 3]] (splitv-at 0 [1 2 3])) "splitv-at 0 puts everything in the second half")
+  (is (= [[1 2] []] (splitv-at 9 [1 2])) "splitv-at past the end leaves an empty second half")
+  (is (= [[] []] (splitv-at 2 [])) "splitv-at on an empty collection"))
+
 (deftest test-split-with
   (is (= [[1 2 3] [4 5]] (split-with (partial >= 3) [1 2 3 4 5])) "split-with"))
 
