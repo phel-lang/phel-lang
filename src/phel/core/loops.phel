@@ -21,3 +21,13 @@
     `(let [~n-sym ~n]
        (doseq [~binding :range [0 ~n-sym]]
          ~@body))))
+
+(defmacro while
+  "Repeatedly evaluates `body` (for side effects) as long as `test` is logical true. Returns nil."
+  {:example "(while (pos? @counter) (swap! counter dec))"
+   :see-also ["dotimes" "loop" "doseq"]}
+  [test & body]
+  `(loop []
+     (when ~test
+       ~@body
+       (recur))))

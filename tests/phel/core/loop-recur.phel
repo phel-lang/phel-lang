@@ -44,3 +44,17 @@
          (loop [a 1 b 2 n 0]
            (if (>= n 3) [a b] (recur b a (inc n)))))
       "swapping recur args reads the pre-recur values"))
+
+(deftest test-while-runs-until-test-is-false
+  (let [n   (atom 3)
+        log (atom [])]
+    (while (pos? @n)
+           (swap! log conj @n)
+           (swap! n dec))
+    (is (= [3 2 1] @log) "while runs the body until the test becomes false")
+    (is (= 0 @n) "while stops as soon as the test is false")))
+
+(deftest test-while-skips-body-when-test-is-false
+  (let [ran (atom false)]
+    (is (nil? (while false (reset! ran true))) "while returns nil")
+    (is (false? @ran) "while never runs the body when the test starts false")))

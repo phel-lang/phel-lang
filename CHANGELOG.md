@@ -11,6 +11,7 @@ All notable changes to this project will be documented in this file.
 - `unsigned-bit-shift-right`: logical right shift that zero-fills the vacated high bits instead of sign-extending, completing the bit-shift family (#2742)
 - `bit-and-not`: bitwise `and` with the complement of each subsequent argument (`x & ~y`) (#2744)
 - `rational?`: predicate for rational numbers (integers, `Ratio`, and `BigDecimal`; floats are not rational) (#2745)
+- `while`: macro that repeatedly evaluates its body for side effects while a test stays logical true
 
 ## [0.48.0](https://github.com/phel-lang/phel-lang/compare/v0.47.0...v0.48.0) - 2026-07-15
 
