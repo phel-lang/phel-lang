@@ -16,7 +16,7 @@ All notable changes to this project will be documented in this file.
 - `println-str`: like `println` but returns the string (with trailing newline) instead of writing to output (#2748)
 - `distinct?`: predicate returning true when no two of its arguments are `=` (#2749)
 - `bounded-count`: count a collection, walking at most `n` elements of a non-`counted?` sequence (#2750)
-- `splitv-at`: eager vector-returning variant of `split-at`
+- `splitv-at`: eager vector-returning variant of `split-at` (#2751)
 
 ## [0.48.0](https://github.com/phel-lang/phel-lang/compare/v0.47.0...v0.48.0) - 2026-07-15
 
