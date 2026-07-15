@@ -690,6 +690,19 @@ Creates intermediate maps if they don't exist."
   (let [all (cons x more)]
     (= (count all) (count (distinct all)))))
 
+(defn bounded-count
+  "Returns the number of items in `coll`, but counts at most `n` when `coll` is not `counted?`. If `coll` is `counted?` (its size is known in O(1)) the full `count` is returned, which may exceed `n`; otherwise the sequence is walked at most `n` steps."
+  {:example "(bounded-count 3 [1 2 3 4 5]) ; => 5\n(bounded-count 3 (map inc (range 100))) ; => 3"
+   :see-also ["count" "counted?" "take"]}
+  [n coll]
+  (if (counted? coll)
+    (count coll)
+    (loop [i 0
+           s (seq coll)]
+      (if (and s (php/< i n))
+        (recur (php/+ i 1) (next s))
+        i))))
+
 (defn reverse
   "Reverses the order of the elements in the given sequence."
   {:example "(reverse [1 2 3 4]) ; => [4 3 2 1]"
