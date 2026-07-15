@@ -28,6 +28,13 @@ function maybeReexecWithOpcacheFileCache(string $appRootDir): void
         return;
     }
 
+    // A pre-existing but read-only dir (e.g. warmed at build, deployed
+    // read-only) would make PHP abort at startup with "opcache.file_cache
+    // must be a full path of an accessible directory" once passed via -d.
+    if (!is_writable($fileCacheDir)) {
+        return;
+    }
+
     $decision = OpcacheReexec::decide(
         opcacheLoaded: extension_loaded('Zend OPcache'),
         fileCacheConfigured: (string) ini_get('opcache.file_cache') !== '',
