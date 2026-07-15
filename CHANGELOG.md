@@ -13,6 +13,7 @@ All notable changes to this project will be documented in this file.
 - `rational?`: predicate for rational numbers (integers, `Ratio`, and `BigDecimal`; floats are not rational) (#2745)
 - `while`: macro that repeatedly evaluates its body for side effects while a test stays logical true (#2746)
 - `compare-and-set!`, `swap-vals!`, and `reset-vals!`: complete the atom API — conditional identity-based swap, and swap/reset variants returning `[old new]` (#2747)
+- `println-str`: like `println` but returns the string (with trailing newline) instead of writing to output
 
 ## [0.48.0](https://github.com/phel-lang/phel-lang/compare/v0.47.0...v0.48.0) - 2026-07-15
 
