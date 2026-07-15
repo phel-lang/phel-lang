@@ -87,6 +87,50 @@
     (is (= [[:p1 :a] [:p1 :match] [:p2 :a] [:p2 :match]] (deref log))
         "some-fn tries each pred on all args before advancing")))
 
+(deftest test-every-pred-single-pred
+  (is (true? ((every-pred even?) 2)) "every-pred with one pred, single truthy arg")
+  (is (false? ((every-pred even?) 1)) "every-pred with one pred, single falsy arg")
+  (is (true? ((every-pred even?) 2 4 6)) "every-pred with one pred, all args truthy")
+  (is (false? ((every-pred even?) 2 3)) "every-pred with one pred, one arg falsy")
+  (is (true? ((every-pred even?))) "every-pred with one pred, zero args returns true"))
+
+(deftest test-every-pred-multiple-preds
+  (is (true? ((every-pred pos? even?) 2)) "every-pred true when all preds match")
+  (is (false? ((every-pred pos? even?) 1)) "every-pred false when second pred fails")
+  (is (false? ((every-pred pos? even?) -2)) "every-pred false when first pred fails")
+  (is (true? ((every-pred pos? even?) 2 4 6)) "every-pred true when all preds match all args")
+  (is (false? ((every-pred pos? even?) 2 3)) "every-pred false when a pred fails one arg"))
+
+(deftest test-every-pred-zero-arity-throws-at-runtime
+  (is (thrown? \InvalidArgumentException (every-pred))
+      "every-pred with no predicates compiles and throws at runtime"))
+
+(deftest test-every-pred-returns-boolean
+  (is (true? ((every-pred (fn [_] 5)) 1)) "every-pred coerces truthy value to true")
+  (is (false? ((every-pred (fn [_] nil)) 1)) "every-pred coerces falsy value to false"))
+
+(deftest test-every-pred-short-circuits-preds
+  (let [calls (atom 0)
+        p1    (fn [x] (swap! calls inc) (even? x))
+        p2    (fn [_] (throw (php/new \Exception "should not be called")))]
+    (is (false? ((every-pred p1 p2) 3)) "every-pred short-circuits on first false pred")
+    (is (= 1 (deref calls)) "second pred was not invoked")))
+
+(deftest test-every-pred-short-circuits-args
+  (let [calls (atom 0)
+        p     (fn [x] (swap! calls inc) (even? x))]
+    (is (false? ((every-pred p) 2 4 5 6)) "every-pred short-circuits on first falsy arg")
+    (is (= 3 (deref calls)) "pred only called until first falsy result")))
+
+(deftest test-every-pred-pred-order
+  ;; All preds are tried on all args before moving to next pred
+  (let [log (atom [])
+        p1  (fn [x] (swap! log push [:p1 x]) true)
+        p2  (fn [x] (swap! log push [:p2 x]) true)]
+    ((every-pred p1 p2) :a :b)
+    (is (= [[:p1 :a] [:p1 :b] [:p2 :a] [:p2 :b]] (deref log))
+        "every-pred tries each pred on all args before advancing")))
+
 (deftest test-juxt
   (is (= [2 1] ((juxt second first) [1 2])) "juxt"))
 
