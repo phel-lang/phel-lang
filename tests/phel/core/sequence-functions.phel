@@ -24,6 +24,20 @@
 (deftest test-map-empty-element
   (is (= [] (map #(throw (php/new \Exception)) [])) "`pred` is not executed when searching for empty vectors."))
 
+(deftest test-mapv
+  (is (= [2 3 4] (mapv inc [1 2 3])) "mapv applies f eagerly")
+  (is (vector? (mapv inc [1 2 3])) "mapv returns a vector")
+  (is (= [11 22 33] (mapv + [1 2 3] [10 20 30])) "mapv with multiple collections")
+  (is (= [11 22] (mapv + [1 2 10] [10 20])) "mapv stops at the shortest collection")
+  (is (= [[:a 1]] (mapv identity {:a 1})) "mapv over a map yields entries")
+  (is (= [] (mapv inc [])) "mapv on empty collection returns empty vector"))
+
+(deftest test-filterv
+  (is (= [2 4 6] (filterv even? [1 2 3 4 5 6])) "filterv keeps matching items")
+  (is (vector? (filterv even? [1 2 3 4])) "filterv returns a vector")
+  (is (= [] (filterv pos? [])) "filterv on empty collection returns empty vector")
+  (is (= [] (filterv pos? [-1 -2])) "filterv with no matches returns empty vector"))
+
 (deftest test-mapcat
   (is (= [1 2 3 4 5 6] (mapcat reverse [[3 2 1] [6 5 4]])) "mapcat")
   (is (= [] (mapcat identity [])) "mapcat on empty vector"))
