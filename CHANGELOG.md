@@ -7,7 +7,7 @@ All notable changes to this project will be documented in this file.
 ### Added
 
 - `every-pred`: complement of `some-fn`; returns a predicate that is true only when every composing predicate is logical true for every argument, short-circuiting on the first false and returning a strict boolean (#2738)
-- `mapv` and `filterv`: eager vector-returning variants of the lazy `map` and `filter`
+- `mapv` and `filterv`: eager vector-returning variants of the lazy `map` and `filter` (#2739)
 
 ## [0.48.0](https://github.com/phel-lang/phel-lang/compare/v0.47.0...v0.48.0) - 2026-07-15
 
