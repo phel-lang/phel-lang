@@ -10,6 +10,7 @@ All notable changes to this project will be documented in this file.
 - `mapv` and `filterv`: eager vector-returning variants of the lazy `map` and `filter` (#2739)
 - `unsigned-bit-shift-right`: logical right shift that zero-fills the vacated high bits instead of sign-extending, completing the bit-shift family (#2742)
 - `bit-and-not`: bitwise `and` with the complement of each subsequent argument (`x & ~y`) (#2744)
+- `rational?`: predicate for rational numbers (integers, `Ratio`, and `BigDecimal`; floats are not rational) (#2745)
 
 ## [0.48.0](https://github.com/phel-lang/phel-lang/compare/v0.47.0...v0.48.0) - 2026-07-15
 
