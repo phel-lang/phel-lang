@@ -98,6 +98,38 @@ Returns the new value after the swap."
                   (apply f current args))]
     (reset! variable next)))
 
+(defn compare-and-set!
+  "Atomically sets the value of the atom `variable` to `new-value` if and only if its current value is identical (via `identical?`) to `old-value`. Returns true when the swap happened, false otherwise."
+  {:example "(def a (atom 1))\n(compare-and-set! a 1 2) ; => true\n(compare-and-set! a 1 3) ; => false"
+   :see-also ["atom" "reset!" "swap!"]}
+  [variable old-value new-value]
+  (if (identical? (deref variable) old-value)
+    (do (reset! variable new-value) true)
+    false))
+
+(defn reset-vals!
+  "Sets the value of the atom `variable` to `new-value`. Returns a vector `[old-value new-value]` of the values before and after the reset."
+  {:example "(def a (atom 1))\n(reset-vals! a 2) ; => [1 2]"
+   :see-also ["reset!" "swap-vals!"]}
+  [variable new-value]
+  (let [old (deref variable)]
+    (reset! variable new-value)
+    [old new-value]))
+
+(defn swap-vals!
+  "Atomically swaps the value of the atom `variable` to `(apply f current-value args)`. Returns a vector `[old-value new-value]` of the values before and after the swap."
+  {:example "(def a (atom 1))\n(swap-vals! a inc) ; => [1 2]"
+   :see-also ["swap!" "reset-vals!"]}
+  [variable f & args]
+  (let [old  (deref variable)
+        next (case (count args)
+               0 (f old)
+               1 (f old (first args))
+               2 (f old (first args) (second args))
+               (apply f old args))]
+    (reset! variable next)
+    [old next]))
+
 (defn add-watch
   "Adds a watch function to a variable. The watch fn is called when the variable changes with four arguments: key, ref, old-value, new-value."
   {:example "(add-watch my-var :logger (fn [key ref old new] (println old \"->\" new)))"
