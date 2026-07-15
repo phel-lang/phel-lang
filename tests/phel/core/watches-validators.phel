@@ -16,6 +16,26 @@
     (is (= 17 (swap! a + 3 4)) "swap! with extra args returns new value")
     (is (= 17 @a) "swap! with extra args stores the new value")))
 
+(deftest test-compare-and-set!
+  (let [a (atom 1)]
+    (is (true? (compare-and-set! a 1 2)) "compare-and-set! succeeds when the current value matches")
+    (is (= 2 @a) "compare-and-set! stores the new value on success")
+    (is (false? (compare-and-set! a 1 3)) "compare-and-set! fails when the current value does not match")
+    (is (= 2 @a) "compare-and-set! leaves the value unchanged on failure")))
+
+(deftest test-reset-vals!
+  (let [a (atom 1)]
+    (is (= [1 2] (reset-vals! a 2)) "reset-vals! returns [old new]")
+    (is (= 2 @a) "reset-vals! stores the new value")))
+
+(deftest test-swap-vals!
+  (let [a (atom 1)]
+    (is (= [1 2] (swap-vals! a inc)) "swap-vals! returns [old new]")
+    (is (= 2 @a) "swap-vals! stores the new value"))
+  (let [a (atom 10)]
+    (is (= [10 17] (swap-vals! a + 3 4)) "swap-vals! with extra args returns [old new]")
+    (is (= 17 @a) "swap-vals! with extra args stores the new value")))
+
 ;; --- Watches ---
 
 (deftest test-add-watch-fires-on-swap
