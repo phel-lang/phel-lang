@@ -16,6 +16,13 @@
 (deftest test-bit-not
   (is (= -8 (bit-not 0b0111)) "bit-not"))
 
+(deftest test-bit-and-not
+  (is (= 0b0100 (bit-and-not 0b1100 0b1001)) "bit-and-not clears bits set in the second operand")
+  (is (= 8 (bit-and-not 12 4)) "bit-and-not 12 4")
+  (is (= 240 (bit-and-not 0xFF 0x0F)) "bit-and-not masks off the low nibble")
+  (is (= 0 (bit-and-not 0xFF 0xFF)) "bit-and-not of a value with itself is zero")
+  (is (= 0b1000 (bit-and-not 0b1110 0b0100 0b0010)) "bit-and-not folds extra args left to right"))
+
 (deftest test-bit-shift-left
   (is (= 0b1101 (bit-shift-left 0b1101 0)) "bit-shift-left 0")
   (is (= 0b11010 (bit-shift-left 0b1101 1)) "bit-shift-left 1")
@@ -62,6 +69,8 @@
   (is (thrown? \InvalidArgumentException (bit-shift-right nil 1)) "(bit-shift-right nil 1)")
   (is (thrown? \InvalidArgumentException (unsigned-bit-shift-right nil 1)) "(unsigned-bit-shift-right nil 1)")
   (is (thrown? \InvalidArgumentException (unsigned-bit-shift-right 1 nil)) "(unsigned-bit-shift-right 1 nil)")
+  (is (thrown? \InvalidArgumentException (bit-and-not nil 1)) "(bit-and-not nil 1)")
+  (is (thrown? \InvalidArgumentException (bit-and-not 1 nil)) "(bit-and-not 1 nil)")
   (is (thrown? \InvalidArgumentException (bit-set nil 1)) "(bit-set nil 1)")
   (is (thrown? \InvalidArgumentException (bit-clear nil 1)) "(bit-clear nil 1)")
   (is (thrown? \InvalidArgumentException (bit-flip nil 1)) "(bit-flip nil 1)")

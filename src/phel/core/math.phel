@@ -100,6 +100,15 @@
     x
     (php/& (php/>> x n) (php/>> php/PHP_INT_MAX (php/- n 1)))))
 
+(defn bit-and-not
+  "Bitwise `and` with the complement of each subsequent argument: `(bit-and-not x y)` is `x & ~y`. Additional arguments are folded in left to right, clearing every bit that is set in any of them."
+  {:example "(bit-and-not 0xFF 0x0F) ; => 240"
+   :see-also ["bit-and" "bit-not" "bit-or"]}
+  [x y & args]
+  (let [all (concat [x y] args)]
+    (assert-non-nil-coll all)
+    (reduce (fn [acc v] (php/& acc (php/~ v))) x (rest all))))
+
 (defn bit-set
   "Returns the integer `x` with the bit at index `n` (0-based, least significant first) set to 1."
   {:example "(bit-set 0 2) ; => 4"
