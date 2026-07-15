@@ -30,6 +30,15 @@
   (is (= 0b0001 (bit-shift-right 0b1101 3)) "bit-shift-right 3")
   (is (= 0b0000 (bit-shift-right 0b1101 4)) "bit-shift-right 4"))
 
+(deftest test-unsigned-bit-shift-right
+  (is (= 0b1101 (unsigned-bit-shift-right 0b1101 0)) "unsigned-bit-shift-right 0 is a no-op")
+  (is (= 0b0110 (unsigned-bit-shift-right 0b1101 1)) "unsigned-bit-shift-right on a positive value matches bit-shift-right")
+  (is (= 0b0001 (unsigned-bit-shift-right 0b1101 3)) "unsigned-bit-shift-right 3")
+  (is (= 18014398509481983 (unsigned-bit-shift-right -1 10))
+      "unsigned-bit-shift-right zero-fills the sign bits instead of extending them")
+  (is (= -1 (bit-shift-right -1 10))
+      "bit-shift-right sign-extends, unlike unsigned-bit-shift-right"))
+
 (deftest test-bit-set
   (is (= 0b1111 (bit-set 0b1011 2)) "bit-set at pos 2")
   (is (= 0b1011 (bit-set 0b1011 0)) "bit-set at pos 0"))
@@ -51,6 +60,8 @@
   (is (thrown? \InvalidArgumentException (bit-not nil)) "(bit-not nil)")
   (is (thrown? \InvalidArgumentException (bit-shift-left nil 1)) "(bit-shift-left nil 1)")
   (is (thrown? \InvalidArgumentException (bit-shift-right nil 1)) "(bit-shift-right nil 1)")
+  (is (thrown? \InvalidArgumentException (unsigned-bit-shift-right nil 1)) "(unsigned-bit-shift-right nil 1)")
+  (is (thrown? \InvalidArgumentException (unsigned-bit-shift-right 1 nil)) "(unsigned-bit-shift-right 1 nil)")
   (is (thrown? \InvalidArgumentException (bit-set nil 1)) "(bit-set nil 1)")
   (is (thrown? \InvalidArgumentException (bit-clear nil 1)) "(bit-clear nil 1)")
   (is (thrown? \InvalidArgumentException (bit-flip nil 1)) "(bit-flip nil 1)")
