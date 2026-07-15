@@ -682,6 +682,14 @@ Creates intermediate maps if they don't exist."
             (copy-meta coll result))))
     (throw (php/new InvalidArgumentException "distinct expects 0 or 1 arguments"))))
 
+(defn distinct?
+  "Returns true if no two of the arguments are `=`. Requires at least one argument."
+  {:example "(distinct? 1 2 3) ; => true\n(distinct? 1 2 1) ; => false"
+   :see-also ["distinct" "=" "set"]}
+  [x & more]
+  (let [all (cons x more)]
+    (= (count all) (count (distinct all)))))
+
 (defn reverse
   "Reverses the order of the elements in the given sequence."
   {:example "(reverse [1 2 3 4]) ; => [4 3 2 1]"

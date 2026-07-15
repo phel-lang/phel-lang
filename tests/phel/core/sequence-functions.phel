@@ -275,6 +275,14 @@
   (is (= [1 2 3] (distinct [1 1 2 3 2 2 3 1])) "distinct: array")
   (is (= [1 2 3] (distinct (php/array 1 1 2 3 2 2 3 1))) "distinct: php array"))
 
+(deftest test-distinct?
+  (is (true? (distinct? 1)) "distinct? of a single argument")
+  (is (true? (distinct? 1 2 3)) "distinct? when all arguments differ")
+  (is (false? (distinct? 1 2 1)) "distinct? when two arguments are equal")
+  (is (false? (distinct? :a :a)) "distinct? on repeated keywords")
+  (is (false? (distinct? [1 2] [1 2])) "distinct? compares by value, not identity")
+  (is (true? (distinct? [1 2] [1 3])) "distinct? on value-distinct collections"))
+
 (deftest test-dedupe
   (is (= [1 2 3 2 1] (dedupe [1 1 2 3 3 2 1 1])) "dedupe removes consecutive duplicates")
   (is (= [] (dedupe [])) "dedupe empty"))
