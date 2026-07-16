@@ -27,6 +27,8 @@ use Phel\Compiler\Domain\Emitter\OutputEmitter\NodeEmitter\Specialized\TypePredi
 use Phel\Compiler\Domain\Emitter\OutputEmitter\NodeEmitterInterface;
 use Phel\Compiler\Domain\Emitter\OutputEmitter\PhpStringEscape;
 use Phel\Compiler\Domain\Emitter\OutputEmitterInterface;
+use Phel\Lang\AbstractFn;
+use Phel\Lang\Keyword;
 use Phel\Lang\Symbol;
 
 use function assert;
@@ -182,6 +184,11 @@ final readonly class CallEmitter implements NodeEmitterInterface
         $useCallMethod = !$this->isSelfCall($node)
             && (GlobalCallTarget::isGlobalFnCall($node) || CallSpecialization::isTypedAFnLocal($node));
 
+        if ($useCallMethod && $this->isMultiArityArityShortcut($node)) {
+            $this->emitArityShortcut($node);
+            return;
+        }
+
         $this->emitDynamicFunctionName($node);
 
         if ($useCallMethod) {
@@ -189,6 +196,72 @@ final readonly class CallEmitter implements NodeEmitterInterface
         } else {
             $this->emitFunctionArguments($node);
         }
+    }
+
+    /**
+     * A call is eligible for the fixed-arity shortcut when the callee is a
+     * multi-arity global fn (its def stamped a `max-arity`) and the argument
+     * count has a dedicated `invokeArityN` slot. Only multi-arity targets are
+     * shortcut: their `__invoke` packs `...$args` and re-indexes `$args[N]`,
+     * which the per-arity methods skip. Single-arity fns already emit a lean
+     * positional `__invoke`, so shortcutting them would only add overhead.
+     */
+    private function isMultiArityArityShortcut(CallNode $node): bool
+    {
+        $fn = $node->getFn();
+        if (!$fn instanceof GlobalVarNode) {
+            return false;
+        }
+
+        $argCount = count($node->getArguments());
+        if ($argCount < 1 || $argCount > AbstractFn::MAX_ARITY_SLOT) {
+            return false;
+        }
+
+        // Only shortcut when the call site has a build-mode cache slot. The
+        // slot's `??=` makes re-emitting the callee across the ternary arms a
+        // single registry lookup; without it (the REPL path) re-emission would
+        // run the lookup twice, so we keep the plain `__invoke` there.
+        if ($this->outputEmitter->callSlotFor($node) === null) {
+            return false;
+        }
+
+        $meta = $fn->getMeta();
+        if ($meta->find('max-arity') !== null) {
+            return true;
+        }
+
+        return $meta->find(Keyword::create('max-arity')) !== null;
+    }
+
+    /**
+     * Emits `(<callee> instanceof AbstractFn ? <callee>->invokeArityN(args) :
+     * <callee>->__invoke(args))`. The ternary only evaluates the taken branch,
+     * so repeating the arguments across both arms never double-evaluates a
+     * side-effecting argument. The callee is re-emitted per arm, which is
+     * idempotent here: a global call is a `($__phel_call_N ??= …)` slot (the
+     * `??=` runs the lookup once) and a typed local is a plain variable read.
+     * The `instanceof` guard keeps the current `__invoke` behaviour when a
+     * global was redefined to a plain closure, which has no `invokeArityN`.
+     */
+    private function emitArityShortcut(CallNode $node): void
+    {
+        $loc = $node->getStartSourceLocation();
+        $arity = count($node->getArguments());
+
+        $this->outputEmitter->emitStr('(', $loc);
+        $this->emitDynamicFunctionName($node);
+        $this->outputEmitter->emitStr(' instanceof \\Phel\\Lang\\AbstractFn ? ', $loc);
+
+        $this->emitDynamicFunctionName($node);
+        $this->outputEmitter->emitStr('->invokeArity' . $arity . '(', $loc);
+        $this->outputEmitter->emitArgList($node->getArguments(), $loc);
+        $this->outputEmitter->emitStr(') : ', $loc);
+
+        $this->emitDynamicFunctionName($node);
+        $this->outputEmitter->emitStr('->__invoke(', $loc);
+        $this->outputEmitter->emitArgList($node->getArguments(), $loc);
+        $this->outputEmitter->emitStr('))', $loc);
     }
 
     private function emitPhpFunctionName(PhpVarNode $fnNode): void

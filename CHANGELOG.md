@@ -17,7 +17,6 @@ All notable changes to this project will be documented in this file.
 - `distinct?`: predicate returning true when no two of its arguments are `=` (#2749)
 - `bounded-count`: count a collection, walking at most `n` elements of a non-`counted?` sequence (#2750)
 - `splitv-at`: eager vector-returning variant of `split-at` (#2751)
-
 - `map-invert`: returns a map with keys and values swapped (#2753)
 - `infinite?`: alias for `inf?`, matching Clojure's naming (#2754)
 - `select`, `project`, and `rename`: `clojure.set`-style relational helpers over sets (filter to a set; keep only some keys; rename keys) (#2755)
@@ -29,6 +28,10 @@ All notable changes to this project will be documented in this file.
 
 - `partition-all` now accepts Clojure's `[n step coll]` arity for overlapping or gapped chunks that keep the incomplete tail (#2758)
 - `partition` now accepts Clojure's `[n step coll]` and `[n step pad coll]` arities: a custom step produces overlapping or gapped chunks, and a pad collection fills (or is dropped from) the final incomplete chunk. The existing `[n coll]` behavior is unchanged (#2752)
+
+### Performance
+
+- Multi-arity function calls skip the variadic `__invoke` dispatch. Multi-arity fn classes now emit fixed-arity `invokeArityN` methods, and build-mode call sites with a statically known arity route through them via a guarded shortcut, avoiding the per-call `...$args` packing, `$args[N]` re-indexing, and closure indirection. Roughly 1.5-2x faster per multi-arity call in microbenchmarks (larger under JIT); single-arity calls are unchanged (#2715)
 
 ## [0.48.0](https://github.com/phel-lang/phel-lang/compare/v0.47.0...v0.48.0) - 2026-07-15
 

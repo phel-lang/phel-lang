@@ -25,6 +25,14 @@
         default => throw new \InvalidArgumentException("No matching function arity"),
       };
     }
+
+    public function invokeArity1(mixed $a1): mixed {
+      return ($this->fn0)($a1);
+    }
+
+    public function invokeArity2(mixed $a1, mixed $a2): mixed {
+      return ($this->fn1)($a1, $a2);
+    }
   },
   \Phel::locationMeta(
     \Phel::location("Def/defn-multi-arity-infers-return.test", 1, 0),

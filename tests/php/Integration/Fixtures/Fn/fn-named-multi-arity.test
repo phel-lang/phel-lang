@@ -24,4 +24,12 @@ new class() extends \Phel\Lang\AbstractFn {
       default => throw new \InvalidArgumentException("No matching function arity"),
     };
   }
+
+  public function invokeArity1(mixed $a1): mixed {
+    return ($this->fn0)($a1);
+  }
+
+  public function invokeArity2(mixed $a1, mixed $a2): mixed {
+    return ($this->fn1)($a1, $a2);
+  }
 };

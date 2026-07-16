@@ -9,6 +9,7 @@ use Phel\Compiler\Domain\Analyzer\Ast\FnNode;
 use Phel\Compiler\Domain\Analyzer\Ast\MultiFnNode;
 use Phel\Compiler\Domain\Emitter\OutputEmitter\NodeEmitterInterface;
 use Phel\Compiler\Domain\Emitter\OutputEmitterInterface;
+use Phel\Lang\AbstractFn;
 use Phel\Lang\Symbol;
 
 use function assert;
@@ -32,6 +33,7 @@ final readonly class MultiFnAsClassEmitter implements NodeEmitterInterface
         $this->emitProperties($node, $uses, count($fnNodes));
         $this->emitConstructor($node, $uses, $fnNodes);
         $this->emitInvoke($node, $fnNodes);
+        $this->emitArityMethods($node, $fnNodes);
         $this->emitClassEnd($node);
     }
 
@@ -181,6 +183,55 @@ final readonly class MultiFnAsClassEmitter implements NodeEmitterInterface
         $this->outputEmitter->emitLine('};', $loc);
         $this->outputEmitter->decreaseIndentLevel();
         $this->outputEmitter->emitLine('}', $loc);
+    }
+
+    /**
+     * Fixed-arity dispatch slots overriding `AbstractFn::invokeArityN`. Each
+     * concrete (non-variadic) arity up to `AbstractFn::MAX_ARITY_SLOT` gets a
+     * method with real positional parameters that calls its closure directly,
+     * so a call site that has proven the arity can skip `__invoke`'s variadic
+     * packing and `$args[N]` re-indexing (#2715). Arities the multi-fn does
+     * not define as fixed (e.g. the variadic arm) keep the inherited default,
+     * which routes back through `__invoke`.
+     *
+     * @param list<FnNode> $fnNodes
+     */
+    private function emitArityMethods(MultiFnNode $node, array $fnNodes): void
+    {
+        $loc = $node->getStartSourceLocation();
+
+        foreach ($fnNodes as $i => $fnNode) {
+            if ($fnNode->isVariadic()) {
+                continue;
+            }
+
+            $arity = count($fnNode->getParams());
+            if ($arity > AbstractFn::MAX_ARITY_SLOT) {
+                continue;
+            }
+
+            $params = [];
+            $typedParams = [];
+            for ($p = 1; $p <= $arity; ++$p) {
+                $params[] = '$a' . $p;
+                // Signature must stay compatible with the `mixed ...): mixed`
+                // parent slot on AbstractFn, so declare params/return as mixed.
+                $typedParams[] = 'mixed $a' . $p;
+            }
+
+            $this->outputEmitter->emitLine();
+            $this->outputEmitter->emitLine(
+                'public function invokeArity' . $arity . '(' . implode(', ', $typedParams) . '): mixed {',
+                $loc,
+            );
+            $this->outputEmitter->increaseIndentLevel();
+            $this->outputEmitter->emitLine(
+                'return ($this->fn' . $i . ')(' . implode(', ', $params) . ');',
+                $loc,
+            );
+            $this->outputEmitter->decreaseIndentLevel();
+            $this->outputEmitter->emitLine('}', $loc);
+        }
     }
 
     private function emitClassEnd(MultiFnNode $node): void
