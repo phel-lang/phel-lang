@@ -3,7 +3,8 @@
 ;; Two loosely-related groups, kept together because both build higher-level
 ;; abstractions over the seq/set primitives in core.phel:
 ;;   1. Set algebra: `union`, `intersection`, `difference`,
-;;      `symmetric-difference`, `subset?`, `superset?`.
+;;      `symmetric-difference`, `subset?`, `superset?`, and the relational
+;;      helpers `select`, `project`, `rename`.
 ;;   2. Function combinators and collection helpers: `constantly`,
 ;;      `complement`, `arity`, `variadic?`, `some-fn`, `every-pred`, `juxt`,
 ;;      `partial`, `fnil`, `memoize`, `memoize-lru`, `tree-seq`, `flatten`,
@@ -74,6 +75,27 @@
   {:example "(superset? (hash-set 1 2 3) (hash-set 1 2)) ; => true"}
   [s1 s2]
   (subset? s2 s1))
+
+(defn select
+  "Returns a set of the elements of `xset` for which `(pred element)` is logical true."
+  {:example "(select even? (hash-set 1 2 3 4)) ; => (hash-set 2 4)"
+   :see-also ["filter" "project"]}
+  [pred xset]
+  (set (filter pred xset)))
+
+(defn project
+  "Returns a set of maps, keeping only the keys in `ks` from each map in the relation `xrel`."
+  {:example "(project (hash-set {:a 1 :b 2}) [:a]) ; => (hash-set {:a 1})"
+   :see-also ["select-keys" "rename" "select"]}
+  [xrel ks]
+  (set (map (fn [m] (select-keys m ks)) xrel)))
+
+(defn rename
+  "Returns a set of maps like the relation `xrel`, with the keys of each map renamed according to `kmap` (a map of old-key to new-key)."
+  {:example "(rename (hash-set {:a 1 :b 2}) {:a :x}) ; => (hash-set {:x 1 :b 2})"
+   :see-also ["rename-keys" "project"]}
+  [xrel kmap]
+  (set (map (fn [m] (rename-keys m kmap)) xrel)))
 
 ;; ------------------
 ;; Function operation
