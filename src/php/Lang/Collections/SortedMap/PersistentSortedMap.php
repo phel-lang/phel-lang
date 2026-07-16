@@ -196,4 +196,15 @@ final class PersistentSortedMap extends AbstractPersistentMap
     {
         return $this->userComparator;
     }
+
+    /**
+     * Returns the comparator actually used for ordering: the user comparator
+     * adapted to always return an int, or the natural-order default.
+     *
+     * @return Closure(mixed, mixed): int
+     */
+    public function getEffectiveComparator(): Closure
+    {
+        return $this->effectiveComparator;
+    }
 }
