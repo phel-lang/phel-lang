@@ -4,7 +4,7 @@
 ;; abstractions over the seq/set primitives in core.phel:
 ;;   1. Set algebra: `union`, `intersection`, `difference`,
 ;;      `symmetric-difference`, `subset?`, `superset?`, and the relational
-;;      helpers `select`, `project`, `rename`.
+;;      helpers `select`, `project`, `rename`, `index`.
 ;;   2. Function combinators and collection helpers: `constantly`,
 ;;      `complement`, `arity`, `variadic?`, `some-fn`, `every-pred`, `juxt`,
 ;;      `partial`, `fnil`, `memoize`, `memoize-lru`, `tree-seq`, `flatten`,
@@ -96,6 +96,18 @@
    :see-also ["rename-keys" "project"]}
   [xrel kmap]
   (set (map (fn [m] (rename-keys m kmap)) xrel)))
+
+(defn index
+  "Returns a map that groups the maps in the relation `xrel` by their values for the keys in `ks`. Each key is `(select-keys map ks)` and each value is the set of maps sharing those key-values."
+  {:example "(index (hash-set {:name \"a\" :dept 1} {:name \"b\" :dept 1}) [:dept]) ; => {{:dept 1} (hash-set {:name \"a\" :dept 1} {:name \"b\" :dept 1})}"
+   :see-also ["project" "select" "group-by"]}
+  [xrel ks]
+  (reduce
+   (fn [m x]
+     (let [ik (select-keys x ks)]
+       (assoc m ik (conj (get m ik (hash-set)) x))))
+   {}
+   xrel))
 
 ;; ------------------
 ;; Function operation
