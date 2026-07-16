@@ -863,6 +863,18 @@
     (is (true? (seq? result))
         "partition-all should return a lazy sequence")))
 
+(deftest test-partition-all-with-step
+  (is (= [[0 1 2] [2 3 4] [4]] (doall (partition-all 3 2 [0 1 2 3 4])))
+      "partition-all with a step keeps overlapping and trailing chunks")
+  (is (= [[0 1] [3 4] [6]] (doall (partition-all 2 3 [0 1 2 3 4 5 6])))
+      "partition-all with a step larger than n skips elements but keeps the tail")
+  (is (= (doall (partition-all 2 [1 2 3])) (doall (partition-all 2 2 [1 2 3])))
+      "partition-all with step n matches the two-argument arity")
+  (is (= [] (doall (partition-all 2 1 [])))
+      "partition-all with a step on an empty collection")
+  (is (= [[0 1] [1 2] [2 3]] (doall (take 3 (partition-all 2 1 (iterate inc 0)))))
+      "partition-all with a step is lazy over an infinite sequence"))
+
 ;; Helper functions for lazy-seq tests
 (defn my-range [n]
   (when (> n 0)
