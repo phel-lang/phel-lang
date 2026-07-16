@@ -36,6 +36,20 @@
   (is (= false (superset? (hash-set 1 2) (hash-set 1 2 3))) "subset is not superset")
   (is (= false (superset? (hash-set 1 2 3) (hash-set 4))) "disjoint is not superset"))
 
+(deftest test-select
+  (is (= (hash-set 2 4) (select even? (hash-set 1 2 3 4))) "select keeps matching elements as a set")
+  (is (= (hash-set) (select even? (hash-set 1 3 5))) "select with no matches is empty")
+  (is (= (hash-set) (select even? (hash-set))) "select on an empty set"))
+
+(deftest test-project
+  (is (= (hash-set {:a 1}) (project (hash-set {:a 1 :b 2}) [:a])) "project keeps only the requested keys")
+  (is (= (hash-set {:a 1} {:a 4}) (project (hash-set {:a 1 :b 2} {:a 4 :b 5}) [:a])) "project over a relation")
+  (is (= (hash-set {}) (project (hash-set {:a 1}) [])) "project with no keys yields empty maps"))
+
+(deftest test-rename
+  (is (= (hash-set {:x 1 :b 2}) (rename (hash-set {:a 1 :b 2}) {:a :x})) "rename renames matching keys")
+  (is (= (hash-set {:a 1}) (rename (hash-set {:a 1}) {:z :y})) "rename ignores keys that are absent"))
+
 (deftest test-disj
   (is (= (hash-set 1 2 3) (disj (hash-set 1 2 3))) "disj with no keys is a no-op")
   (is (= (hash-set 1 3) (disj (hash-set 1 2 3) 2)) "disj removes a single key")
