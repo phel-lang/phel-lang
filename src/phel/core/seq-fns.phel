@@ -789,6 +789,53 @@ Works with vectors, lists, sets, and strings."
     (php/-> entry (value))
     (second entry)))
 
+(defn- assert-sorted-coll
+  [caller sc]
+  (when-not (sorted? sc)
+    (throw (php/new InvalidArgumentException
+                    (str caller " expects a sorted collection (sorted-map or sorted-set), got " (type sc))))))
+
+(defn- sorted-bound-fn
+  "Boundary predicate for subseq/rsubseq: true when the element's key (for a
+  sorted map) or the element itself (for a sorted set) satisfies
+  `(test (cmp k bound-key) 0)` under the collection's own comparator."
+  [sc test bound-key]
+  (let [cmp       (php/-> sc (getEffectiveComparator))
+        entry-key (if (map? sc) key identity)]
+    (fn [x] (test (cmp (entry-key x) bound-key) 0))))
+
+(defn subseq
+  "Returns a lazy sequence of the entries of the sorted collection `sc` (map entries for a sorted map, elements for a sorted set) whose keys satisfy the boundary test, in ascending order. With one boundary, use `>` / `>=` to start after or at `bound-key` and `<` / `<=` to stop before or at it. With two boundaries, returns the entries between them, e.g. `(subseq sm >= 2 < 5)`. Boundaries respect the collection's own comparator (`sorted-map-by` / `sorted-set-by`)."
+  {:example "(subseq (sorted-map 1 :a 2 :b 3 :c) >= 2) ; => ([2 :b] [3 :c])"
+   :see-also ["rsubseq" "sorted-map" "sorted-set" "take-while" "drop-while"]}
+  ([sc test bound-key]
+   (assert-sorted-coll "subseq" sc)
+   (let [include? (sorted-bound-fn sc test bound-key)]
+     (if (or (identical? test >) (identical? test >=))
+       (drop-while (fn [x] (not (include? x))) (seq sc))
+       (take-while include? (seq sc)))))
+  ([sc start-test start-key end-test end-key]
+   (assert-sorted-coll "subseq" sc)
+   (let [start? (sorted-bound-fn sc start-test start-key)
+         end?   (sorted-bound-fn sc end-test end-key)]
+     (take-while end? (drop-while (fn [x] (not (start? x))) (seq sc))))))
+
+(defn rsubseq
+  "Like `subseq`, but returns the matching entries in descending order. With one boundary, use `<` / `<=` to start from the top end and `>` / `>=` to stop; with two boundaries, returns the entries between them in reverse, e.g. `(rsubseq sm >= 2 < 5)`."
+  {:example "(rsubseq (sorted-map 1 :a 2 :b 3 :c) <= 2) ; => ([2 :b] [1 :a])"
+   :see-also ["subseq" "rseq" "sorted-map" "sorted-set"]}
+  ([sc test bound-key]
+   (assert-sorted-coll "rsubseq" sc)
+   (let [include? (sorted-bound-fn sc test bound-key)]
+     (if (or (identical? test <) (identical? test <=))
+       (drop-while (fn [x] (not (include? x))) (rseq sc))
+       (take-while include? (rseq sc)))))
+  ([sc start-test start-key end-test end-key]
+   (assert-sorted-coll "rsubseq" sc)
+   (let [start? (sorted-bound-fn sc start-test start-key)
+         end?   (sorted-bound-fn sc end-test end-key)]
+     (take-while start? (drop-while (fn [x] (not (end? x))) (rseq sc))))))
+
 (defn values
   "Returns a sequence of all values in a map."
   {:deprecated "0.32.0"

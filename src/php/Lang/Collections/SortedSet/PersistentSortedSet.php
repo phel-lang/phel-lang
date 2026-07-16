@@ -4,11 +4,13 @@ declare(strict_types=1);
 
 namespace Phel\Lang\Collections\SortedSet;
 
+use Closure;
 use Phel\Lang\AbstractType;
 use Phel\Lang\Collections\HashSet\PersistentHashSetInterface;
 use Phel\Lang\Collections\Map\PersistentMapInterface;
 use Phel\Lang\Collections\Map\TransientMapInterface;
 use Phel\Lang\Collections\SortedMap\PersistentSortedMap;
+use Phel\Lang\Collections\SortedMap\SortedArrayHelper;
 use Phel\Lang\HasherInterface;
 use Traversable;
 
@@ -164,5 +166,20 @@ final class PersistentSortedSet extends AbstractType implements PersistentHashSe
         }
 
         return $map->persistent();
+    }
+
+    /**
+     * Returns the comparator of the underlying sorted map: the user comparator
+     * adapted to always return an int, or the natural-order default.
+     *
+     * @return Closure(mixed, mixed): int
+     */
+    public function getEffectiveComparator(): Closure
+    {
+        if ($this->map instanceof PersistentSortedMap) {
+            return $this->map->getEffectiveComparator();
+        }
+
+        return SortedArrayHelper::adaptForBinarySearch(SortedArrayHelper::resolveComparator(null));
     }
 }

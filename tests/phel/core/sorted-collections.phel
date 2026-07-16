@@ -1,5 +1,5 @@
 (ns phel-test.core.sorted-collections
-  (:require phel.test :refer [deftest is]))
+  (:require phel.test :refer [deftest is thrown?]))
 
 ;; ---- sorted-map ----
 
@@ -128,3 +128,43 @@
   (is (not (sorted? '(1 2))) "list is not sorted")
   (is (not (sorted? nil)) "nil is not sorted")
   (is (not (sorted? 42)) "number is not sorted"))
+
+;; ---- subseq / rsubseq ----
+
+(deftest test-subseq-single-bound
+  (let [sm (sorted-map 1 :a 2 :b 3 :c 4 :d)]
+    (is (= [[2 :b] [3 :c] [4 :d]] (subseq sm >= 2)) "subseq >= seeks to the boundary inclusively")
+    (is (= [[3 :c] [4 :d]] (subseq sm > 2)) "subseq > seeks past the boundary")
+    (is (= [[1 :a] [2 :b]] (subseq sm < 3)) "subseq < takes from the start exclusively")
+    (is (= [[1 :a] [2 :b] [3 :c]] (subseq sm <= 3)) "subseq <= takes from the start inclusively")))
+
+(deftest test-subseq-range
+  (let [sm (sorted-map 1 :a 2 :b 3 :c 4 :d)]
+    (is (= [[2 :b] [3 :c]] (subseq sm >= 2 < 4)) "subseq with two boundaries returns the range")
+    (is (= [[2 :b] [3 :c] [4 :d]] (subseq sm > 1 <= 4)) "subseq range with exclusive start and inclusive end")))
+
+(deftest test-subseq-sorted-set
+  (is (= [3 4 5] (subseq (sorted-set 1 2 3 4 5) > 2)) "subseq on a sorted set compares raw elements")
+  (is (= [2 3] (subseq (sorted-set 1 2 3 4 5) >= 2 < 4)) "subseq range on a sorted set"))
+
+(deftest test-subseq-custom-comparator
+  (let [desc (sorted-map-by (fn [a b] (compare b a)) 1 :a 2 :b 3 :c)]
+    (is (= [[1 :a]] (subseq desc > 2))
+        "subseq boundaries follow the collection's comparator, not natural order"))
+  (let [pred (sorted-map-by > 1 :a 2 :b 3 :c)]
+    (is (= [[1 :a]] (subseq pred > 2))
+        "subseq works with a predicate-style comparator")))
+
+(deftest test-subseq-edges
+  (is (= [] (subseq (sorted-map) >= 1)) "subseq on an empty sorted map")
+  (is (= [] (subseq (sorted-map 1 :a) > 99)) "subseq with a boundary past the end")
+  (is (= [6 7] (take 2 (subseq (apply sorted-set (range 100)) > 5))) "subseq is lazy")
+  (is (thrown? \InvalidArgumentException (subseq {:a 1} > 1)) "subseq rejects unsorted collections")
+  (is (thrown? \InvalidArgumentException (rsubseq #{1 2} > 1)) "rsubseq rejects unsorted collections"))
+
+(deftest test-rsubseq
+  (let [sm (sorted-map 1 :a 2 :b 3 :c 4 :d)]
+    (is (= [[3 :c] [2 :b] [1 :a]] (rsubseq sm <= 3)) "rsubseq <= descends from the boundary")
+    (is (= [[4 :d] [3 :c] [2 :b]] (rsubseq sm > 1)) "rsubseq > descends to the boundary exclusively")
+    (is (= [[3 :c] [2 :b]] (rsubseq sm >= 2 < 4)) "rsubseq with two boundaries returns the range in reverse"))
+  (is (= [2 1] (rsubseq (sorted-set 1 2 3 4 5) < 3)) "rsubseq on a sorted set"))
