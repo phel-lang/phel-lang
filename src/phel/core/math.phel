@@ -366,9 +366,16 @@ returns 1. If `xs` has one value, returns the reciprocal of x.
 (defn inf?
   "Checks if `x` is infinite."
   {:example "(inf? php/INF) ; => true"
-   :see-also ["nan?"]}
+   :see-also ["nan?" "infinite?"]}
   [x]
   (php/is_infinite x))
+
+(defn infinite?
+  "Checks if `x` is positive or negative infinity. Alias for `inf?`, matching Clojure's `infinite?` naming."
+  {:example "(infinite? php/INF) ; => true\n(infinite? 1.0) ; => false"
+   :see-also ["inf?" "nan?"]}
+  [x]
+  (inf? x))
 
 (defn abs
   "Returns the absolute value of `x`.

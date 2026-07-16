@@ -19,6 +19,7 @@ All notable changes to this project will be documented in this file.
 - `splitv-at`: eager vector-returning variant of `split-at` (#2751)
 
 - `map-invert`: returns a map with keys and values swapped (#2753)
+- `infinite?`: alias for `inf?`, matching Clojure's naming (#2754)
 
 ### Changed
 
