@@ -18,6 +18,8 @@ All notable changes to this project will be documented in this file.
 - `bounded-count`: count a collection, walking at most `n` elements of a non-`counted?` sequence (#2750)
 - `splitv-at`: eager vector-returning variant of `split-at` (#2751)
 
+- `map-invert`: returns a map with keys and values swapped
+
 ### Changed
 
 - `partition` now accepts Clojure's `[n step coll]` and `[n step pad coll]` arities: a custom step produces overlapping or gapped chunks, and a pad collection fills (or is dropped from) the final incomplete chunk. The existing `[n coll]` behavior is unchanged (#2752)

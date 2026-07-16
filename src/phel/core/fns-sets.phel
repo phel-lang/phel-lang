@@ -336,3 +336,13 @@ Without arguments, uses a default cache size of 128 entries."
    (for [[k v] :pairs m
          :reduce [acc (transient {})]]
      (assoc! acc k (f v)))))
+
+(defn map-invert
+  "Returns a map with the keys and values of `m` swapped. When several keys share a value, the one visited last in iteration order wins."
+  {:example "(map-invert {:a 1 :b 2}) ; => {1 :a, 2 :b}"
+   :see-also ["update-keys" "update-vals" "select-keys"]}
+  [m]
+  (persistent
+   (for [[k v] :pairs m
+         :reduce [acc (transient {})]]
+     (assoc! acc v k))))

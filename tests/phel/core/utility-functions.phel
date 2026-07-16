@@ -38,6 +38,12 @@
   (is (= {:a "1" :b "2"} (update-vals {:a 1 :b 2} str)) "update-vals with str")
   (is (= {} (update-vals {} identity)) "update-vals on empty map"))
 
+(deftest test-map-invert
+  (is (= {1 :a 2 :b} (map-invert {:a 1 :b 2})) "map-invert swaps keys and values")
+  (is (= {:a 1 :b 2} (map-invert (map-invert {:a 1 :b 2}))) "map-invert round-trips a 1:1 map")
+  (is (= {} (map-invert {})) "map-invert on an empty map")
+  (is (= {10 "x"} (map-invert {"x" 10})) "map-invert with string keys"))
+
 ;; --- Safe parsing ---
 
 (deftest test-parse-long
