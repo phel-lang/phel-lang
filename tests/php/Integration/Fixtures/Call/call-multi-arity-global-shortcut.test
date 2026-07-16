@@ -1,0 +1,67 @@
+--PHEL--
+(defn my-add ([a] a) ([a b] (php/+ a b)))
+(defn caller [x] (my-add x x))
+--PHP--
+\Phel::addDefinition(
+  "user",
+  "my-add",
+  new class() extends \Phel\Lang\AbstractFn {
+    public const BOUND_TO = "user\\my_add";
+    private $fn0;
+    private $fn1;
+
+    public function __construct() {
+      $this->fn0 = (function($a) {
+        return $a;
+      });
+      $this->fn1 = (function($a, $b) {
+        return ($a + $b);
+      });
+    }
+
+    public function __invoke(...$args) {
+      return match (\count($args)) {
+        1 => ($this->fn0)($args[0]),
+        2 => ($this->fn1)($args[0], $args[1]),
+        default => throw new \InvalidArgumentException("No matching function arity"),
+      };
+    }
+
+    public function invokeArity1(mixed $a1): mixed {
+      return ($this->fn0)($a1);
+    }
+
+    public function invokeArity2(mixed $a1, mixed $a2): mixed {
+      return ($this->fn1)($a1, $a2);
+    }
+  },
+  \Phel::locationMeta(
+    \Phel::location("Call/call-multi-arity-global-shortcut.test", 1, 0),
+    \Phel::location("Call/call-multi-arity-global-shortcut.test", 1, 41),
+    \Phel\Lang\Keyword::create("doc"), "```phel\n(my-add a)\n(my-add a b)\n```\n",
+    "min-arity", 1,
+    "is-variadic", false,
+    "max-arity", 2,
+    "arglists", "([a] [a b])"
+  )
+);
+\Phel::addDefinition(
+  "user",
+  "caller",
+  new class() extends \Phel\Lang\AbstractFn {
+    public const BOUND_TO = "user\\caller";
+
+    public function __invoke($x) {
+      static $__phel_call_0;
+      return (($__phel_call_0 ??= \Phel::getDefinition("user", "my-add")) instanceof \Phel\Lang\AbstractFn ? ($__phel_call_0 ??= \Phel::getDefinition("user", "my-add"))->invokeArity2($x, $x) : ($__phel_call_0 ??= \Phel::getDefinition("user", "my-add"))->__invoke($x, $x));
+    }
+  },
+  \Phel::locationMeta(
+    \Phel::location("Call/call-multi-arity-global-shortcut.test", 2, 0),
+    \Phel::location("Call/call-multi-arity-global-shortcut.test", 2, 30),
+    \Phel\Lang\Keyword::create("doc"), "```phel\n(caller x)\n```\n",
+    "min-arity", 1,
+    "is-variadic", false,
+    "arglists", "[x]"
+  )
+);

@@ -21,6 +21,13 @@ abstract class AbstractFn implements FnInterface, MetaInterface, Stringable
 {
     use MetaTrait;
 
+    /**
+     * Highest arity with a dedicated `invokeArityN` dispatch slot. Emitted
+     * call sites only shortcut arities up to this bound; beyond it they use
+     * the generic `__invoke` path.
+     */
+    public const int MAX_ARITY_SLOT = 8;
+
     public function __toString(): string
     {
         $reflection = new ReflectionClass($this);
@@ -52,4 +59,83 @@ abstract class AbstractFn implements FnInterface, MetaInterface, Stringable
         return $this->__invoke(...$args);
     }
 
+    // Fixed-arity dispatch slots for emitted call sites. Multi-arity fn
+    // classes override the arities they define with bodies that call the
+    // matching closure directly, skipping `__invoke`'s variadic packing and
+    // `$args[N]` re-indexing (#2715). These defaults keep every call site
+    // correct when the callee was re-defined to a fn of another shape: the
+    // delegation lands in `__invoke`, which throws the usual arity error
+    // for arities the fn does not support.
+
+    /**
+     * @psalm-suppress UndefinedMethod
+     */
+    public function invokeArity0(): mixed
+    {
+        return $this->__invoke();
+    }
+
+    /**
+     * @psalm-suppress UndefinedMethod
+     */
+    public function invokeArity1(mixed $a1): mixed
+    {
+        return $this->__invoke($a1);
+    }
+
+    /**
+     * @psalm-suppress UndefinedMethod
+     */
+    public function invokeArity2(mixed $a1, mixed $a2): mixed
+    {
+        return $this->__invoke($a1, $a2);
+    }
+
+    /**
+     * @psalm-suppress UndefinedMethod
+     */
+    public function invokeArity3(mixed $a1, mixed $a2, mixed $a3): mixed
+    {
+        return $this->__invoke($a1, $a2, $a3);
+    }
+
+    /**
+     * @psalm-suppress UndefinedMethod
+     */
+    public function invokeArity4(mixed $a1, mixed $a2, mixed $a3, mixed $a4): mixed
+    {
+        return $this->__invoke($a1, $a2, $a3, $a4);
+    }
+
+    /**
+     * @psalm-suppress UndefinedMethod
+     */
+    public function invokeArity5(mixed $a1, mixed $a2, mixed $a3, mixed $a4, mixed $a5): mixed
+    {
+        return $this->__invoke($a1, $a2, $a3, $a4, $a5);
+    }
+
+    /**
+     * @psalm-suppress UndefinedMethod
+     */
+    public function invokeArity6(mixed $a1, mixed $a2, mixed $a3, mixed $a4, mixed $a5, mixed $a6): mixed
+    {
+        return $this->__invoke($a1, $a2, $a3, $a4, $a5, $a6);
+    }
+
+    /**
+     * @psalm-suppress UndefinedMethod
+     */
+    public function invokeArity7(mixed $a1, mixed $a2, mixed $a3, mixed $a4, mixed $a5, mixed $a6, mixed $a7): mixed
+    {
+        return $this->__invoke($a1, $a2, $a3, $a4, $a5, $a6, $a7);
+    }
+
+    /**
+     * @psalm-suppress UndefinedMethod
+     */
+    public function invokeArity8(mixed $a1, mixed $a2, mixed $a3, mixed $a4, mixed $a5, mixed $a6, mixed $a7, mixed $a8): mixed
+    {
+        return $this->__invoke($a1, $a2, $a3, $a4, $a5, $a6, $a7, $a8);
+    }
 }
