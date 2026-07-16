@@ -21,7 +21,7 @@ All notable changes to this project will be documented in this file.
 - `map-invert`: returns a map with keys and values swapped (#2753)
 - `infinite?`: alias for `inf?`, matching Clojure's naming (#2754)
 - `select`, `project`, and `rename`: `clojure.set`-style relational helpers over sets (filter to a set; keep only some keys; rename keys) (#2755)
-- `index`: `clojure.set`-style grouping of a relation into a map keyed by selected columns
+- `index`: `clojure.set`-style grouping of a relation into a map keyed by selected columns (#2756)
 
 ### Changed
 
