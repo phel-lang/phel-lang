@@ -23,6 +23,7 @@ All notable changes to this project will be documented in this file.
 - `select`, `project`, and `rename`: `clojure.set`-style relational helpers over sets (filter to a set; keep only some keys; rename keys) (#2755)
 - `index`: `clojure.set`-style grouping of a relation into a map keyed by selected columns (#2756)
 - `subseq` and `rsubseq`: lazy range queries over sorted maps and sorted sets — boundary tests (`>`, `>=`, `<`, `<=`) respect the collection's own comparator, ascending (`subseq`) or descending (`rsubseq`) (#2757)
+- `random-sample`: keeps each item of a collection independently with probability `prob`; lazy, with a transducer arity
 
 ### Changed
 

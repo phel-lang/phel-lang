@@ -226,6 +226,29 @@
 (deftest test-rand-with-zero-limit
   (is (zero? (rand 0)) "(rand 0) returns 0"))
 
+(deftest test-random-sample
+  (let [coll (vec (range 100))]
+    (is (= [] (random-sample 0 coll)) "probability 0 keeps nothing")
+    (is (= coll (random-sample 1 coll)) "probability 1 keeps everything")
+    (is (= [] (random-sample -1 coll)) "probability below 0 keeps nothing")
+    (is (= coll (random-sample 10 coll)) "probability above 1 keeps everything")
+    (is (= [] (random-sample 1 [])) "empty collection stays empty")
+    (is (= [] (random-sample 1 nil)) "nil collection yields empty")
+    (let [n (count (random-sample 0.5 coll))]
+      (is (and (>= n 0) (<= n 100)) "probability 0.5 keeps a subset"))
+    (is (every? (set coll) (random-sample 0.5 coll)) "sampled items come from the collection")))
+
+(deftest test-random-sample-transducer
+  (let [coll (vec (range 100))]
+    (is (= [] (transduce (random-sample 0) conj [] coll)) "transducer with probability 0")
+    (is (= coll (transduce (random-sample 1) conj [] coll)) "transducer with probability 1")
+    (let [n (count (transduce (random-sample 0.5) conj [] coll))]
+      (is (and (>= n 0) (<= n 100)) "transducer with probability 0.5 keeps a subset"))))
+
+(deftest test-random-sample-rejects-bad-input
+  (is (thrown? \Throwable (doall (random-sample nil [1 2 3]))) "nil probability throws")
+  (is (thrown? \Throwable (doall (random-sample 0.5 42))) "non-seqable collection throws"))
+
 (deftest test-min-key
   (is (= {:a 1} (min-key :a {:a 1} {:a 3} {:a 2}))
       "min-key with keyword key")
