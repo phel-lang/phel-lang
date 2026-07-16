@@ -542,6 +542,15 @@ returns 1. If `xs` has one value, returns the reciprocal of x.
   (when-not (nil? xs)
     (get xs (rand-int (dec (count xs))))))
 
+(defn random-sample
+  "Returns the items of `coll` for which `(rand)` is less than `prob`, so each item is kept independently with probability `prob` (0 keeps nothing, 1 keeps everything). Lazy. Without a collection, returns a transducer."
+  {:example "(random-sample 0.5 (range 10)) ; => @[1 4 5 9]"
+   :see-also ["rand" "filter" "shuffle" "rand-nth"]}
+  ([prob]
+   (filter (fn [_] (< (rand) prob))))
+  ([prob coll]
+   (filter (fn [_] (< (rand) prob)) coll)))
+
 (defn extreme
   "Returns the most extreme value in `args` based on the binary `order` function."
   {:example "(extreme > [1 5 2]) ; => 5"
