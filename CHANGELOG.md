@@ -26,6 +26,7 @@ All notable changes to this project will be documented in this file.
 
 ### Changed
 
+- `partition-all` now accepts Clojure's `[n step coll]` arity for overlapping or gapped chunks that keep the incomplete tail
 - `partition` now accepts Clojure's `[n step coll]` and `[n step pad coll]` arities: a custom step produces overlapping or gapped chunks, and a pad collection fills (or is dropped from) the final incomplete chunk. The existing `[n coll]` behavior is unchanged (#2752)
 
 ## [0.48.0](https://github.com/phel-lang/phel-lang/compare/v0.47.0...v0.48.0) - 2026-07-15

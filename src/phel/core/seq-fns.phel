@@ -1457,15 +1457,21 @@ If map has duplicated values, some keys will be ignored."
              (list (vec (take n (concat p pad)))))))))))
 
 (defn partition-all
-  "Partitions collection into chunks of size n, including incomplete final partition."
-  {:example "(partition-all 3 [1 2 3 4 5 6 7]) ; => @[[1 2 3] [4 5 6] [7]]"}
-  [n coll]
-  (let [result (lazy-seq-from-generator
-                (php/call_user_func_array
-                 (php/array "\\Phel\\Lang\\Seq" "partitionAll")
-                 (php/array n coll)))]
-    (if (php/=== nil result)
-      '()
-      (copy-meta coll result))))
+  "Partitions collection into chunks of size `n`, including any incomplete trailing chunks. `step` (default `n`) is how far to advance between chunks, so a `step` smaller than `n` yields overlapping chunks. Each chunk is a vector."
+  {:example "(partition-all 3 [1 2 3 4 5 6 7]) ; => @[[1 2 3] [4 5 6] [7]]\n(partition-all 3 2 [0 1 2 3 4]) ; => @[[0 1 2] [2 3 4] [4]]"
+   :see-also ["partition" "partition-by"]}
+  ([n coll]
+   (let [result (lazy-seq-from-generator
+                 (php/call_user_func_array
+                  (php/array "\\Phel\\Lang\\Seq" "partitionAll")
+                  (php/array n coll)))]
+     (if (php/=== nil result)
+       '()
+       (copy-meta coll result))))
+  ([n step coll]
+   (lazy-seq
+     (let [s (seq coll)]
+       (when s
+         (cons (vec (take n s)) (partition-all n step (nthrest s step))))))))
 
 ;; Functional core
