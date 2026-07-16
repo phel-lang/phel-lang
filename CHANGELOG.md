@@ -31,7 +31,7 @@ All notable changes to this project will be documented in this file.
 
 ### Performance
 
-- Multi-arity function calls skip the variadic `__invoke` dispatch. Multi-arity fn classes now emit fixed-arity `invokeArityN` methods, and build-mode call sites with a statically known arity route through them via a guarded shortcut, avoiding the per-call `...$args` packing, `$args[N]` re-indexing, and closure indirection. Roughly 1.5-2x faster per multi-arity call in microbenchmarks (larger under JIT); single-arity calls are unchanged (#2715)
+- Multi-arity function calls skip the variadic `__invoke` dispatch. Multi-arity fn classes now emit fixed-arity `invokeArityN` methods, and build-mode call sites with a statically known arity route through them via a guarded shortcut, avoiding the per-call `...$args` packing, `$args[N]` re-indexing, and closure indirection. Roughly 1.5-2x faster per multi-arity call in microbenchmarks (larger under JIT); single-arity calls are unchanged (#2760)
 
 ## [0.48.0](https://github.com/phel-lang/phel-lang/compare/v0.47.0...v0.48.0) - 2026-07-15
 
