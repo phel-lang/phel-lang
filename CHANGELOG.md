@@ -18,7 +18,7 @@ All notable changes to this project will be documented in this file.
 - `bounded-count`: count a collection, walking at most `n` elements of a non-`counted?` sequence (#2750)
 - `splitv-at`: eager vector-returning variant of `split-at` (#2751)
 
-- `map-invert`: returns a map with keys and values swapped
+- `map-invert`: returns a map with keys and values swapped (#2753)
 
 ### Changed
 
