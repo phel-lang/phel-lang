@@ -191,6 +191,12 @@
   (is (= ##Inf php/INF) "##Inf equals php/INF")
   (is (true? (neg? ##-Inf)) "##-Inf is negative"))
 
+(deftest test-infinite?
+  (is (true? (infinite? ##Inf)) "infinite? on positive infinity")
+  (is (true? (infinite? ##-Inf)) "infinite? on negative infinity")
+  (is (false? (infinite? 1.0)) "infinite? on a finite float")
+  (is (false? (infinite? 42)) "infinite? on an integer"))
+
 (deftest test-min
   (is (= 1 (min 1 2 3)) "(min 1 2 3)")
   (is (= "x" (min "x")) "min with a single non-numeric argument returns it unchanged")
