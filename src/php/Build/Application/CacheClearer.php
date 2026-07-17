@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Phel\Build\Application;
 
+use Gacela\Framework\Cache\FileCache;
 use RecursiveDirectoryIterator;
 use RecursiveIteratorIterator;
 use SplFileInfo;
@@ -54,7 +55,7 @@ final readonly class CacheClearer
             if ($file->isDir()) {
                 @rmdir($file->getPathname());
             } else {
-                @unlink($file->getPathname());
+                FileCache::delete($file->getPathname());
             }
         }
 

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Phel\Build\Infrastructure\Cache;
 
+use Gacela\Framework\Cache\FileCache;
 use Phel\Build\Domain\Cache\ScanIndexCacheInterface;
 use Phel\Build\Domain\Cache\ScanIndexEntry;
 
@@ -84,9 +85,7 @@ final class PhpScanIndexCache implements ScanIndexCacheInterface
         $this->entries = [];
         $this->clearFlushPending();
 
-        if (file_exists($this->cacheFile)) {
-            @unlink($this->cacheFile);
-        }
+        FileCache::delete($this->cacheFile);
     }
 
     /**

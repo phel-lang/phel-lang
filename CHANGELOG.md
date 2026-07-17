@@ -42,6 +42,7 @@ All notable changes to this project will be documented in this file.
 
 ### Fixed
 
+- Build cache writes and deletes route through Gacela's `FileCache` primitives (`writeContentsAtomically`, `delete`), which lock, treat a short-byte write as failure, and invalidate opcache for the final path; a plain `file_put_contents(...) === false` missed truncated disk-full writes and a stale opcode entry could serve old content after a rewrite
 - `phel run` on an ad-hoc script fails immediately with the extractor's error when a required sibling `.phel` file cannot be read or parsed, instead of silently skipping it; namespaces that resolve elsewhere remain tolerated
 - `#inst` literals inside macro-expanded forms no longer crash compilation in the location-enrichment walk (#2778)
 - Multi-arity `fn` returned from another fn no longer emits invalid PHP; per-arity closures are analyzed in expression context (#2776)
