@@ -7,7 +7,8 @@
 (use Phel.Shared.Printer.Printer)
 
 ;; I/O: stdout/formatting (`print`, `println`, `pr`, `prn`, `print-str`,
-;; `format`, `printf`, `with-output-buffer`); stderr debugging (`dbg`,
+;; `println-str`, `pr-str`, `prn-str`, `format`, `printf`,
+;; `with-output-buffer`); stderr debugging (`dbg`,
 ;; `dbg-write`); file helpers (`slurp`, `spit`,
 ;; `line-seq`, `file-seq`, `read-file-lazy`, `csv-seq`, `with-open`); and regex helpers
 ;; (`re-pattern`, `re-seq`, `re-find`, `re-matches`). Everything here touches
@@ -28,11 +29,10 @@
          (php/ob_end_clean)
          ~res))))
 
-(defn print-str
-  "Same as print. But instead of writing it to an output stream, the resulting string is returned."
-  [& xs]
-  (let [printer (php/:: Printer (nonReadable))
-        pp      #(php/-> printer (print %))]
+(defn- print-joined
+  "Space-joins `xs`, stringifying each element with `printer`."
+  [printer xs]
+  (let [pp #(php/-> printer (print %))]
     (case (count xs)
       0 ""
       1 (pp (first xs))
@@ -41,6 +41,18 @@
         (if seq
           (recur (str res " " (pp (first seq))) (next seq))
           res)))))
+
+(defn print-str
+  "Same as print. But instead of writing it to an output stream, the resulting string is returned."
+  [& xs]
+  (print-joined (php/:: Printer (nonReadable)) xs))
+
+(defn pr-str
+  "Same as `print-str`, but prints each value readably: strings are quoted and escaped so the output can be read back. Phel has no dedicated char type, so character literals such as `\\A` are single-character strings and print as `\"A\"` (ClojureScript-aligned; Clojure/JVM would print `\\A`)."
+  {:example "(pr-str \"a\" 1) ; => \"\\\"a\\\" 1\""
+   :see-also ["print-str" "prn-str" "prn"]}
+  [& xs]
+  (print-joined (php/:: Printer (readable)) xs))
 
 (defn print
   "Prints the given values to the default output stream. Returns nil."
@@ -61,6 +73,30 @@
    :see-also ["print-str" "println"]}
   [& xs]
   (str (apply print-str xs) "\n"))
+
+(defn pr
+  "Same as `print`, but prints each value readably (strings quoted). Returns nil."
+  {:example "(pr \"a\" 1) ; prints \"a\" 1"
+   :see-also ["print" "prn" "pr-str"]}
+  [& xs]
+  (php/print (apply pr-str xs))
+  nil)
+
+(defn prn
+  "Same as `pr` followed by a newline. Returns nil."
+  {:example "(prn \"a\" 1) ; prints \"a\" 1 and a newline"
+   :see-also ["println" "pr" "prn-str"]}
+  [& xs]
+  (apply pr xs)
+  (php/print "\n")
+  nil)
+
+(defn prn-str
+  "Same as `prn`, but instead of writing to an output stream the resulting string is returned, with a trailing newline."
+  {:example "(prn-str \"a\" 1) ; => \"\\\"a\\\" 1\\n\""
+   :see-also ["pr-str" "println-str" "prn"]}
+  [& xs]
+  (str (apply pr-str xs) "\n"))
 
 (defn format
   "Returns a formatted string. See PHP's [sprintf](https://www.php.net/manual/en/function.sprintf.php) for more information."

@@ -52,8 +52,37 @@
   (is (= "[a b]\n" (println-str ["a" "b"])) "println-str on a collection")
   (is (= "nil\n" (println-str nil)) "println-str on nil"))
 
+(deftest test-pr-str
+  (is (= "" (pr-str)) "pr-str with no arg")
+  (is (= "\"a\"" (pr-str "a")) "pr-str quotes strings")
+  (is (= "\"a\\nb\"" (pr-str "a\nb")) "pr-str escapes newlines inside strings")
+  (is (= "\"a\" 1" (pr-str "a" 1)) "pr-str space-joins args, quoting only strings")
+  (is (= "[\"a\" \"b\"]" (pr-str ["a" "b"])) "pr-str on vector quotes elements")
+  (is (= "{\"a\" \"b\"}" (pr-str {"a" "b"})) "pr-str on hash map quotes elements")
+  (is (= "#{\"a\"}" (pr-str (hash-set "a"))) "pr-str on set quotes elements")
+  (is (= "x" (pr-str 'x)) "pr-str on symbol")
+  (is (= ":test" (pr-str :test)) "pr-str on keyword")
+  (is (= "1" (pr-str 1)) "pr-str on number")
+  (is (= "true" (pr-str true)) "pr-str on true")
+  (is (= "nil" (pr-str nil)) "pr-str on nil")
+  ;; Phel has no char type: \A is the string "A" and prints quoted (ClojureScript-aligned).
+  (is (= "\"A\"" (pr-str \A)) "pr-str on a character literal renders it as a quoted string")
+  (is (= "\" \"" (pr-str \space)) "pr-str on \\space renders a quoted space"))
+
+(deftest test-prn-str
+  (is (= "\n" (prn-str)) "prn-str with no args is just a newline")
+  (is (= "\"a\"\n" (prn-str "a")) "prn-str quotes and appends a newline")
+  (is (= "\"a\" 1\n" (prn-str "a" 1)) "prn-str joins args and appends a newline"))
+
 (deftest test-print
   (is (output? "hello\nworld" (print "hello\nworld")) "print hello\\nworld"))
+
+(deftest test-pr
+  (is (output? "\"hello\"" (pr "hello")) "pr writes readably")
+  (is (output? "\"a\" 1" (pr "a" 1)) "pr space-joins readable args"))
+
+(deftest test-prn
+  (is (output? "\"hello\"\n" (prn "hello")) "prn writes readably with a trailing newline"))
 
 (deftest test-println
   (is (output? "hello\nworld\n" (println "hello\nworld")) "println hello\\nworld"))

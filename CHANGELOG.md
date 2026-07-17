@@ -23,6 +23,7 @@ All notable changes to this project will be documented in this file.
 - `index`: `clojure.set`-style grouping of a relation into a map keyed by selected columns (#2756)
 - `subseq` and `rsubseq`: lazy range queries over sorted maps and sorted sets — boundary tests (`>`, `>=`, `<`, `<=`) respect the collection's own comparator, ascending (`subseq`) or descending (`rsubseq`) (#2757)
 - `random-sample`: keeps each item of a collection independently with probability `prob`; lazy, with a transducer arity (#2759)
+- `pr`, `prn`, `pr-str`, and `prn-str`: readable-print family — like `print`/`println`/`print-str`/`println-str` but each value is printed readably (strings quoted and escaped). Phel has no char type, so character literals such as `\A` are single-character strings and print as `"A"` (ClojureScript-aligned) (#2743)
 
 ### Changed
 
