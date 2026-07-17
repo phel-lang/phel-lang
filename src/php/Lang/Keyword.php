@@ -15,7 +15,13 @@ final class Keyword extends AbstractType implements IdenticalInterface, FnInterf
 {
     use MetaTrait;
 
-    /** @var array<string, self> */
+    /**
+     * Two-level pool keyed by namespace then name, so (ns nil, name "a/b")
+     * and (ns "a", name "b") never share a slot. The `"\0"` sentinel keeps a
+     * nil namespace distinct from a legitimate empty-string namespace.
+     *
+     * @var array<string, array<string, self>>
+     */
     private static array $internPool = [];
 
     private readonly int $hash;
@@ -58,13 +64,33 @@ final class Keyword extends AbstractType implements IdenticalInterface, FnInterf
         return ':' . $this->getFullName();
     }
 
+    /**
+     * When no namespace is given, the name is split on the first `/` exactly
+     * like {@see Symbol::create}, so `(keyword "a/b/c")` yields namespace `a`
+     * and name `b/c` (Clojure-aligned). An explicit namespace keeps the name
+     * verbatim.
+     */
     public static function create(string $name, ?string $namespace = null): self
     {
-        $key = $namespace !== null
-            ? $namespace . '/' . $name
-            : $name;
+        if ($namespace === null) {
+            $pos = strpos($name, '/');
 
-        return self::$internPool[$key] ??= new self($namespace, $name);
+            if ($pos !== false && $name !== '/') {
+                return self::intern(substr($name, 0, $pos), substr($name, $pos + 1));
+            }
+        }
+
+        return self::intern($namespace, $name);
+    }
+
+    /**
+     * Verbatim constructor mirroring {@see Symbol::createForNamespace}: the
+     * name is never split, so `createForNamespace(null, 'a/b')` is an
+     * unqualified keyword named `a/b`.
+     */
+    public static function createForNamespace(?string $namespace, string $name): self
+    {
+        return self::intern($namespace, $name);
     }
 
     public function getName(): string
@@ -124,5 +150,10 @@ final class Keyword extends AbstractType implements IdenticalInterface, FnInterf
     public function setEndLocation(?SourceLocation $endLocation): static
     {
         return $this;
+    }
+
+    private static function intern(?string $namespace, string $name): self
+    {
+        return self::$internPool[$namespace ?? "\0"][$name] ??= new self($namespace, $name);
     }
 }
