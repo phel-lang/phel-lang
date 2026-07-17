@@ -61,6 +61,66 @@ final class KeywordTest extends TestCase
         $this->assertSame($keyword1, $keyword2);
     }
 
+    public function test_create_splits_namespace_on_first_slash(): void
+    {
+        $keyword = Keyword::create('foo/bar');
+        $this->assertSame('foo', $keyword->getNamespace());
+        $this->assertSame('bar', $keyword->getName());
+
+        $keyword = Keyword::create('a/b/c');
+        $this->assertSame('a', $keyword->getNamespace());
+        $this->assertSame('b/c', $keyword->getName());
+    }
+
+    public function test_create_with_bare_slash_keeps_slash_as_name(): void
+    {
+        $keyword = Keyword::create('/');
+        $this->assertNull($keyword->getNamespace());
+        $this->assertSame('/', $keyword->getName());
+    }
+
+    public function test_create_with_trailing_slash_yields_empty_name(): void
+    {
+        $keyword = Keyword::create('a/');
+        $this->assertSame('a', $keyword->getNamespace());
+        $this->assertSame('', $keyword->getName());
+    }
+
+    public function test_create_with_explicit_namespace_keeps_name_verbatim(): void
+    {
+        $keyword = Keyword::create('b/c', 'a');
+        $this->assertSame('a', $keyword->getNamespace());
+        $this->assertSame('b/c', $keyword->getName());
+    }
+
+    public function test_create_for_namespace_does_not_split(): void
+    {
+        $keyword = Keyword::createForNamespace(null, 'a/b');
+        $this->assertNull($keyword->getNamespace());
+        $this->assertSame('a/b', $keyword->getName());
+
+        $keyword = Keyword::createForNamespace('a', 'b/c');
+        $this->assertSame('a', $keyword->getNamespace());
+        $this->assertSame('b/c', $keyword->getName());
+    }
+
+    public function test_intern_pool_distinguishes_nil_namespace_from_split_forms(): void
+    {
+        // (ns nil, name "a/b") and (ns "a", name "b") used to collide under
+        // the flat "$namespace/$name" intern key.
+        $unqualified = Keyword::createForNamespace(null, 'a/b');
+        $qualified = Keyword::create('b', 'a');
+
+        $this->assertNotSame($unqualified, $qualified);
+        $this->assertFalse($unqualified->equals($qualified));
+    }
+
+    public function test_create_from_string_interns_same_instance_as_literal_form(): void
+    {
+        // (keyword "foo/bar") must be the same interned keyword as :foo/bar.
+        $this->assertSame(Keyword::create('bar', 'foo'), Keyword::create('foo/bar'));
+    }
+
     public function test_equals(): void
     {
         $keyword1 = Keyword::create('test');

@@ -53,6 +53,7 @@ All notable changes to this project will be documented in this file.
 
 ### Fixed
 
+- `(keyword s)` now splits its string argument on the first `/` into namespace and name, matching `symbol` and Clojure: `(namespace (keyword "a/b/c"))` is `"a"` and `(name (keyword "a/b/c"))` is `"b/c"`; `(keyword "foo/bar")` is now the same interned keyword as the `:foo/bar` literal. The two-arg form takes both parts verbatim, so `(keyword nil "a/b")` stays unqualified. Also fixed a keyword intern-pool collision where `(ns nil, name "a/b")` and `(ns "a", name "b")` shared a slot (#2741)
 - `phel` no longer fatals in read-only / unwritable environments (e.g. the NixOS build sandbox); `--help`, `doc`, `eval`, `run`, `compile`, and the REPL all work from an unwritable project root (nixpkgs 0.47.0 `versionCheckHook` failure):
   - caches degrade quietly instead of aborting — Gacela caches (via Gacela 1.16), build/intermediate caches, and the temp-dir/error-log writers skip writes without raw PHP warnings; a pre-warmed cache is still read
   - the OPcache re-exec skips a read-only file-cache dir instead of letting PHP abort at startup

@@ -61,23 +61,24 @@
   "Creates a new Keyword.
 
   Arity-1 accepts a string, keyword, or symbol. Returns `nil` when `x` is `nil`.
-  If `x` is already a keyword, it is returned unchanged.
+  If `x` is already a keyword, it is returned unchanged. A string is split on
+  the first `/` into namespace and name parts, like `symbol`.
 
-  Arity-2 builds a namespaced keyword from the namespace and name parts; returns
-  `nil` when `name` is `nil`."
-  {:example "(keyword \"name\") ; => :name\n(keyword :abc) ; => :abc\n(keyword \"ns\" \"name\") ; => :ns/name"}
+  Arity-2 builds a namespaced keyword from the namespace and name parts (taken
+  verbatim, without splitting); returns `nil` when `name` is `nil`."
+  {:example "(keyword \"name\") ; => :name\n(keyword :abc) ; => :abc\n(keyword \"ns/name\") ; => :ns/name\n(keyword \"ns\" \"name\") ; => :ns/name"}
   ([x]
    (cond
      (php/=== nil x)            nil
      (php/instanceof x Keyword) x
-     (php/instanceof x Symbol)  (php/:: Keyword (create (php/-> x (getName))
-                                                        (php/-> x (getNamespace))))
+     (php/instanceof x Symbol)  (php/:: Keyword (createForNamespace (php/-> x (getNamespace))
+                                                                    (php/-> x (getName))))
      (php/is_string x)          (php/:: Keyword (create x))
      :else                      nil))
   ([ns nm]
    (when-not (php/=== nil nm)
-     (php/:: Keyword (create (php/strval nm)
-                             (when-not (php/=== nil ns) (php/strval ns)))))))
+     (php/:: Keyword (createForNamespace (when-not (php/=== nil ns) (php/strval ns))
+                                         (php/strval nm))))))
 
 (defn- id2 [a b]
   (if (php/instanceof a IdenticalInterface)

@@ -190,6 +190,13 @@ final readonly class LiteralEmitter
                 '\Phel\Lang\Keyword::create("' . PhpStringEscape::doubleQuoted($x->getName()) . '", "' . PhpStringEscape::doubleQuoted($x->getNamespace()) . '")',
                 $x->getStartLocation(),
             );
+        } elseif (str_contains($x->getName(), '/') && $x->getName() !== '/') {
+            // `create` splits a slashed name into ns/name; an unqualified
+            // keyword whose name contains `/` must round-trip verbatim.
+            $this->outputEmitter->emitStr(
+                '\Phel\Lang\Keyword::createForNamespace(null, "' . PhpStringEscape::doubleQuoted($x->getName()) . '")',
+                $x->getStartLocation(),
+            );
         } else {
             $this->outputEmitter->emitStr(
                 '\Phel\Lang\Keyword::create("' . PhpStringEscape::doubleQuoted($x->getName()) . '")',
