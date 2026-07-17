@@ -11,7 +11,7 @@ No Gacela pattern: foundational leaf module; all types used directly by other mo
 | Type | Notes |
 |------|-------|
 | `Symbol` | Names with optional namespace; special constants for language forms (`def`, `fn`, `if`, ...) |
-| `Keyword` | Interned pool (identical keywords share instance); callable via `FnInterface` to access map values |
+| `Keyword` | Interned pool keyed by (ns, name) so identical keywords share an instance; `create(string)` splits the name on the first `/` like `Symbol::create`, `createForNamespace` is verbatim; callable via `FnInterface` to access map values |
 | `Atom` | Mutable box with watches, validators, `deref` (Clojure-aligned; formerly `Variable`). Compares by identity (`===`), never by dereferenced value |
 | `BigInt` | Arbitrary-precision signed integer (base-10^9 + sign). Owns sign/metadata/signed semantics; delegates sign-agnostic digit-array kernels to `BigIntMagnitude` (stateless pure fns on `list<int>`) |
 | `Ratio` | Exact rational `n/d`, always normalized (denom > 0, gcd=1). `create($num, $den)` auto-collapses to `int`/`BigInt` if integral |
