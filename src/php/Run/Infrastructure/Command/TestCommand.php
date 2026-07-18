@@ -221,7 +221,8 @@ HELP)
                 $coverageDriver = $this->getFacade()->detectCoverageDriver();
                 if (!$coverageDriver instanceof CoverageDriver) {
                     $output->writeln(
-                        '<error>--coverage requires the pcov or xdebug extension; neither is loaded.</error>',
+                        '<error>--coverage requires the pcov or xdebug extension; '
+                        . CoverageDriver::unavailabilityReason() . '</error>',
                     );
                     return self::FAILURE;
                 }

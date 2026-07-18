@@ -8,13 +8,18 @@ use function constant;
 use function defined;
 use function extension_loaded;
 use function function_exists;
+use function in_array;
+use function is_array;
 
 /**
  * Thin adapter over the loaded line-coverage extension (pcov preferred, else
  * xdebug). Extension functions are resolved through string-named variables so
  * the source needs neither the pcov nor xdebug stubs to analyze, and never
- * references a symbol that may be absent. `detect()` returns null when neither
- * extension is available, letting the caller emit an actionable error.
+ * references a symbol that may be absent. `detect()` returns null when no
+ * usable extension is available — xdebug counts only when `coverage` is among
+ * its active modes, since `xdebug_start_code_coverage()` collects nothing
+ * otherwise — letting the caller emit an actionable error via
+ * `unavailabilityReason()`.
  */
 final readonly class CoverageDriver
 {
@@ -32,11 +37,27 @@ final readonly class CoverageDriver
             return new self(self::PCOV);
         }
 
-        if (extension_loaded(self::XDEBUG) && function_exists('xdebug_start_code_coverage')) {
+        if (extension_loaded(self::XDEBUG)
+            && function_exists('xdebug_start_code_coverage')
+            && self::xdebugCoverageModeActive()
+        ) {
             return new self(self::XDEBUG);
         }
 
         return null;
+    }
+
+    /**
+     * Why `detect()` returned null, phrased as a hint the user can act on.
+     */
+    public static function unavailabilityReason(): string
+    {
+        if (extension_loaded(self::XDEBUG) && !self::xdebugCoverageModeActive()) {
+            return "xdebug is loaded but 'coverage' is not an active mode; "
+                . 're-run with XDEBUG_MODE=coverage or set xdebug.mode=coverage in php.ini.';
+        }
+
+        return 'neither pcov nor xdebug is loaded.';
     }
 
     public function name(): string
@@ -86,5 +107,22 @@ final readonly class CoverageDriver
         $stop();
 
         return $data;
+    }
+
+    /**
+     * Whether xdebug currently runs with the `coverage` mode enabled (via
+     * `xdebug.mode` or the `XDEBUG_MODE` env override). Xdebug builds too old
+     * to expose `xdebug_info()` cannot be queried; assume usable.
+     */
+    private static function xdebugCoverageModeActive(): bool
+    {
+        if (!function_exists('xdebug_info')) {
+            return true;
+        }
+
+        $info = 'xdebug_info';
+        $modes = $info('mode');
+
+        return is_array($modes) && in_array('coverage', $modes, true);
     }
 }
