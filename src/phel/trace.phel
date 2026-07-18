@@ -1,0 +1,76 @@
+(ns phel.trace
+  (:require phel.string :as s))
+
+;; -------------------------------------------------------------------------
+;; Function-call tracing in the spirit of clojure.tools.trace.
+;;
+;; All output goes through phel.core/dbg-write (standard error), so traces
+;; never mix with program output and can be captured in tests by redefining
+;; dbg-write with with-redefs.
+;; -------------------------------------------------------------------------
+
+(def- trace-depth (atom 0))
+(def- trace-id-counter (atom 0))
+
+(defn- next-trace-id []
+  (swap! trace-id-counter inc))
+
+(defn- tracer [id line]
+  (dbg-write (str "TRACE t" id ": " (s/repeat "| " (deref trace-depth)) line "\n")))
+
+(defn reset-trace-state!
+  "Resets the trace depth and the trace id counter to their initial values. Useful to make trace output deterministic in tests."
+  {:example "(reset-trace-state!)"
+   :see-also ["trace-fn"]}
+  []
+  (reset! trace-depth 0)
+  (reset! trace-id-counter 0)
+  nil)
+
+(defn trace
+  "Prints `value` to the standard error stream and returns it unchanged. With a `tag`, prints `TRACE tag: value`; without, prints `TRACE: value`. Like `dbg` but without source-location capture, so it also works when composed point-free."
+  {:example "(trace :sum (+ 1 2)) ; stderr: TRACE :sum: 3\n; => 3"
+   :see-also ["trace-fn" "deftrace" "dbg"]}
+  ([value] (trace nil value))
+  ([tag value]
+   (dbg-write (str "TRACE" (if tag (str " " (print-str tag)) "") ": " (print-str value) "\n"))
+   value))
+
+(defn trace-fn
+  "Returns a function that behaves like `f` but prints every call with its arguments and its result to the standard error stream. Nested calls of traced functions are indented by depth and numbered, so recursion and call chains stay readable. `fn-name` is the label used in the output."
+  {:example "(def fib-t (trace-fn \"fib\" fib))\n(fib-t 2)\n; TRACE t1: (fib 2)\n; TRACE t2: | (fib 1)\n; TRACE t2: | => 1\n; TRACE t1: => 1"
+   :see-also ["deftrace" "dotrace" "trace"]}
+  [fn-name f]
+  (fn [& args]
+    (let [id       (next-trace-id)
+          call-str (str "(" fn-name
+                        (if (empty? args) "" (str " " (s/join " " (map print-str args))))
+                        ")")]
+      (tracer id call-str)
+      (swap! trace-depth inc)
+      (let [res (try
+                  (apply f args)
+                  (finally
+                    (swap! trace-depth dec)))]
+        (tracer id (str "=> " (print-str res)))
+        res))))
+
+(defmacro deftrace
+  "Like `defn`, but every call to the defined function prints its arguments and result via `trace-fn`. Recursive calls are traced too. Supports an optional docstring and metadata map like `defn`."
+  {:example "(deftrace fact [n] (if (<= n 1) 1 (* n (fact (dec n)))))\n(fact 2)\n; TRACE t1: (fact 2)\n; TRACE t2: | (fact 1)\n; TRACE t2: | => 1\n; TRACE t1: => 2"
+   :see-also ["trace-fn" "dotrace"]}
+  [fn-name-sym & fdecl]
+  (let [doc-val    (if (string? (first fdecl)) (first fdecl) nil)
+        rest-decl  (if doc-val (rest fdecl) fdecl)
+        meta-val   (if (map? (first rest-decl)) (first rest-decl) nil)
+        body-decl  (if meta-val (rest rest-decl) rest-decl)
+        meta-final (merge (or meta-val {}) (if doc-val {:doc doc-val} {}))]
+    `(def ~fn-name-sym ~meta-final (trace-fn ~(str fn-name-sym) (fn ~@body-decl)))))
+
+(defmacro dotrace
+  "Temporarily traces the given global functions while `body` runs, then restores them. `fn-syms` is a vector of symbols naming global functions. Process-global like `with-redefs`, so intended for debugging and tests, not concurrent production code."
+  {:example "(defn add [a b] (+ a b))\n(dotrace [add] (add 1 2))\n; TRACE t1: (add 1 2)\n; TRACE t1: => 3"
+   :see-also ["trace-fn" "deftrace"]}
+  [fn-syms & body]
+  `(with-redefs [~@(mapcat (fn [sym-arg] [sym-arg `(trace-fn ~(str sym-arg) ~sym-arg)]) fn-syms)]
+     ~@body))
