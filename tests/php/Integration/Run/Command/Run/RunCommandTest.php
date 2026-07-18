@@ -86,17 +86,21 @@ final class RunCommandTest extends AbstractTestCommand
 
     public function test_run_by_filename_outside_config(): void
     {
-        $tmpFile = __DIR__ . '/outside-script.phel';
+        // Must live outside the configured src/test dirs: parallel workers scan
+        // those for namespaces and would race with this file's deletion.
+        $tmpFile = sys_get_temp_dir() . '/phel-outside-script-' . bin2hex(random_bytes(4)) . '.phel';
         file_put_contents($tmpFile, "(ns outside\script)\n(php/print \"hello world\\n\")");
 
-        $this->expectOutputRegex('~hello world~');
+        try {
+            $this->expectOutputRegex('~hello world~');
 
-        $this->createRunCommand()->run(
-            $this->stubInput($tmpFile),
-            $this->stubOutput(),
-        );
-
-        unlink($tmpFile);
+            $this->createRunCommand()->run(
+                $this->stubInput($tmpFile),
+                $this->stubOutput(),
+            );
+        } finally {
+            unlink($tmpFile);
+        }
     }
 
     public function test_run_by_filename_resolves_bundled_namespace_fqn_without_require(): void
