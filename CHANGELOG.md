@@ -24,6 +24,8 @@ All notable changes to this project will be documented in this file.
 - `subseq` and `rsubseq`: lazy range queries over sorted maps and sorted sets — boundary tests (`>`, `>=`, `<`, `<=`) respect the collection's own comparator, ascending (`subseq`) or descending (`rsubseq`) (#2757)
 - `random-sample`: keeps each item of a collection independently with probability `prob`; lazy, with a transducer arity (#2759)
 - `pr`, `prn`, `pr-str`, and `prn-str`: readable-print family — like `print`/`println`/`print-str`/`println-str` but each value is printed readably (strings quoted and escaped). Phel has no char type, so character literals such as `\A` are single-character strings and print as `"A"` (ClojureScript-aligned) (#2743)
+- `phel\trace` namespace in the spirit of `clojure.tools.trace`: `trace` (print a tagged value and return it), `trace-fn` (wrap a function so every call prints its arguments and result, nested by depth), `deftrace` (`defn` variant that traces every call, including recursion), `dotrace` (temporarily trace named globals while a body runs), and `reset-trace-state!`. Output goes to stderr via `dbg-write`, so it is capturable with `with-redefs` in tests
+- The REPL registers `phel.repl/print-tap` as a default tap on startup, so `(tap> x)` prints `tap> x` out of the box; detach it with `(remove-tap print-tap)`
 
 ### Changed
 
@@ -37,6 +39,7 @@ All notable changes to this project will be documented in this file.
 ### Fixed
 
 - `phel test --coverage`: xdebug is only used as the coverage driver when `coverage` is among its active modes; otherwise the command fails fast with a hint to re-run with `XDEBUG_MODE=coverage` instead of emitting PHP warnings and an empty report (#2764)
+- Self-recursion inside a def whose init wraps the fn (e.g. `(def f (wrap (fn [n] ... (f ...))))`) no longer emits the `$this` self-call shortcut — the fn compiles to a plain closure there, so the shortcut invoked an unrelated object ("Object of type ... is not callable"); recursion now routes through the registry. Direct `(def f (fn ...))` inits keep the fast path
 
 ## [0.48.0](https://github.com/phel-lang/phel-lang/compare/v0.47.0...v0.48.0) - 2026-07-15
 
