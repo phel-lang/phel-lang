@@ -37,6 +37,7 @@ final class ApiConfig extends AbstractConfig
             'phel.test.rose',
             'phel.test.selector',
             'phel.test.shrink',
+            'phel.trace',
             'phel.transit',
             'phel.walk',
             'phel.watch',

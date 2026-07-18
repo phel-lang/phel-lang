@@ -313,14 +313,30 @@ final readonly class DefSymbol implements SpecialFormAnalyzerInterface
             // inferring their return type inline.
             ->withReturnInferenceDeferred(true);
 
-        // The self-call shortcut keys off boundTo. For memoised defs the
-        // wrapper, not the inner fn, must receive recursive calls, so leave
-        // boundTo unset to keep recursion routed through the registry.
-        if (!$this->isMemoised($meta)) {
+        // The self-call shortcut keys off boundTo. It is only sound when the
+        // init form IS the fn: the fn then compiles to an invokable class
+        // whose `$this` is the def value (closures nested inside its body
+        // inherit that `$this`). For memoised defs and any wrapped init like
+        // `(def f (wrap (fn ...)))` the def value is the wrapper, not the fn
+        // — and the fn compiles to a plain closure whose `$this` is not the
+        // def value — so leave boundTo unset to keep recursion routed
+        // through the registry.
+        if (!$this->isMemoised($meta) && $this->isDirectFnForm($init)) {
             $initEnv = $initEnv->withBoundTo($namespace . '\\' . $nameSymbol->__toString());
         }
 
         return $this->analyzer->analyze($init, $initEnv);
+    }
+
+    private function isDirectFnForm(mixed $init): bool
+    {
+        if (!$init instanceof PersistentListInterface) {
+            return false;
+        }
+
+        $head = $init->get(0);
+
+        return $head instanceof Symbol && $head->getName() === Symbol::NAME_FN;
     }
 
     /**

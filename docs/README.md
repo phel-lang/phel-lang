@@ -33,6 +33,7 @@ links instead:
 | Editor support (LSP) | https://phel-lang.org/documentation/tooling/editor-support/ |
 | REPL / nREPL | https://phel-lang.org/documentation/tooling/repl/ |
 | Testing / mocking / parallel tests | https://phel-lang.org/documentation/testing/ |
+| Debugging (dbg, tap>, traces, Xdebug) | https://phel-lang.org/documentation/debugging/ |
 | Pattern matching (`match`) | https://phel-lang.org/documentation/language/functions-and-recursion/ |
 | Reader shortcuts | https://phel-lang.org/documentation/language/reader-shortcuts/ |
 | Reader conditionals | https://phel-lang.org/documentation/language/reader-conditionals/ |

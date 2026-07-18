@@ -119,6 +119,7 @@ HELP);
 
             $this->getFacade()->loadPhelNamespaces($this->replStartupFile);
             Phel::addDefinition(CompilerConstants::PHEL_CORE_NAMESPACE, ReplConstants::REPL_MODE, true);
+            $this->registerDefaultTap();
 
             $history = $this->getFactory()->createReplHistory();
             $this->history = $history;
@@ -138,6 +139,21 @@ HELP);
     private function getReplStartupFile(): string
     {
         return $this->replStartupFile ?? $this->getConfig()->getReplStartupFile();
+    }
+
+    /**
+     * Registers `phel.repl/print-tap` so `(tap> x)` output is visible in the
+     * REPL out of the box. Skipped when the startup file did not define it
+     * (a custom startup ns can register its own tap instead). Detachable at
+     * the prompt via `(remove-tap print-tap)`.
+     */
+    private function registerDefaultTap(): void
+    {
+        if (Phel::getDefinition('phel.repl', 'print-tap') === null) {
+            return;
+        }
+
+        $this->getFacade()->eval('(add-tap phel.repl/print-tap)', new CompileOptions());
     }
 
     private function loopReadLineAndAnalyze(): void

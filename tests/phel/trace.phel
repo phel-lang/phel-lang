@@ -1,0 +1,114 @@
+(ns phel-test.trace
+  (:require phel.test :refer [deftest is])
+  (:require phel.trace :as t :refer [deftrace dotrace]))
+
+(defn- capture-trace
+  "Runs `f` with dbg-write capturing into a vector; returns [result lines]."
+  [f]
+  (t/reset-trace-state!)
+  (let [lines  (atom [])
+        result (with-redefs [dbg-write (fn [msg] (swap! lines conj msg) nil)]
+                 (f))]
+    [result (deref lines)]))
+
+;; -----
+;; trace
+;; -----
+
+(deftest test-trace-returns-value
+  (let [[result lines] (capture-trace (fn [] (t/trace (+ 1 2))))]
+    (is (= 3 result) "trace returns the value unchanged")
+    (is (= ["TRACE: 3\n"] lines) "trace prints the value")))
+
+(deftest test-trace-with-tag
+  (let [[result lines] (capture-trace (fn [] (t/trace :sum (+ 1 2))))]
+    (is (= 3 result))
+    (is (= ["TRACE :sum: 3\n"] lines) "tag is printed before the value")))
+
+;; --------
+;; trace-fn
+;; --------
+
+(deftest test-trace-fn-wraps-and-returns
+  (let [add-t          (t/trace-fn "add" (fn [a b] (+ a b)))
+        [result lines] (capture-trace (fn [] (add-t 2 3)))]
+    (is (= 5 result) "wrapped fn returns the original result")
+    (is (= ["TRACE t1: (add 2 3)\n"
+            "TRACE t1: => 5\n"] lines)
+        "call and result are printed with matching ids")))
+
+(deftest test-trace-fn-no-args
+  (let [f              (t/trace-fn "f" (fn [] :ok))
+        [result lines] (capture-trace (fn [] (f)))]
+    (is (= :ok result))
+    (is (= ["TRACE t1: (f)\n"
+            "TRACE t1: => :ok\n"] lines))))
+
+(deftest test-trace-fn-nested-calls-indent
+  (let [inner          (t/trace-fn "inner" (fn [x] (inc x)))
+        outer          (t/trace-fn "outer" (fn [x] (inner (inc x))))
+        [result lines] (capture-trace (fn [] (outer 1)))]
+    (is (= 3 result))
+    (is (= ["TRACE t1: (outer 1)\n"
+            "TRACE t2: | (inner 2)\n"
+            "TRACE t2: | => 3\n"
+            "TRACE t1: => 3\n"] lines)
+        "nested calls are indented and returns align with their call")))
+
+(deftest test-trace-fn-depth-restored-after-throw
+  (let [boom           (t/trace-fn "boom" (fn [] (throw (php/new \Exception "no"))))
+        [result lines] (capture-trace
+                        (fn []
+                          (try (boom) (catch \Exception _ :caught))))]
+    (is (= :caught result))
+    (is (= ["TRACE t1: (boom)\n"] lines) "no result line when the fn throws")
+    (let [f               (t/trace-fn "after" (fn [] 1))
+          [_ lines-after] (capture-trace (fn [] (f)))]
+      (is (= ["TRACE t1: (after)\n"
+              "TRACE t1: => 1\n"] lines-after)
+          "depth is restored after an exception"))))
+
+;; --------
+;; deftrace
+;; --------
+
+(deftrace traced-fact [n]
+          (if (<= n 1) 1 (* n (traced-fact (- n 1)))))
+
+(deftrace traced-doc
+          "Docstring is supported."
+          [x]
+          x)
+
+(deftest test-deftrace-recursion
+  (let [[result lines] (capture-trace (fn [] (traced-fact 3)))]
+    (is (= 6 result) "traced fn computes the correct result")
+    (is (= ["TRACE t1: (traced-fact 3)\n"
+            "TRACE t2: | (traced-fact 2)\n"
+            "TRACE t3: | | (traced-fact 1)\n"
+            "TRACE t3: | | => 1\n"
+            "TRACE t2: | => 2\n"
+            "TRACE t1: => 6\n"] lines)
+        "recursive calls are traced with increasing depth")))
+
+(deftest test-deftrace-with-docstring
+  (let [[result lines] (capture-trace (fn [] (traced-doc 7)))]
+    (is (= 7 result))
+    (is (= ["TRACE t1: (traced-doc 7)\n"
+            "TRACE t1: => 7\n"] lines))))
+
+;; -------
+;; dotrace
+;; -------
+
+(defn- plain-add [a b] (+ a b))
+
+(deftest test-dotrace-traces-within-body-only
+  (let [[result lines] (capture-trace (fn [] (dotrace [plain-add] (plain-add 1 2))))]
+    (is (= 3 result))
+    (is (= ["TRACE t1: (plain-add 1 2)\n"
+            "TRACE t1: => 3\n"] lines)
+        "global is traced inside the body"))
+  (let [[result lines] (capture-trace (fn [] (plain-add 1 2)))]
+    (is (= 3 result))
+    (is (= [] lines) "global is restored after the body")))
