@@ -121,8 +121,7 @@ final class DefSymbolTest extends TestCase
                     $env
                         ->withExpressionContext()
                         ->withDisallowRecurFrame()
-                        ->withReturnInferenceDeferred(true)
-                        ->withBoundTo('user\name'),
+                        ->withReturnInferenceDeferred(true),
                     'any value',
                 ),
             ),
@@ -163,8 +162,7 @@ final class DefSymbolTest extends TestCase
                     $env
                         ->withExpressionContext()
                         ->withDisallowRecurFrame()
-                        ->withReturnInferenceDeferred(true)
-                        ->withBoundTo('user\name'),
+                        ->withReturnInferenceDeferred(true),
                     'any value',
                 ),
             ),
@@ -205,8 +203,7 @@ final class DefSymbolTest extends TestCase
                     $env
                         ->withExpressionContext()
                         ->withDisallowRecurFrame()
-                        ->withReturnInferenceDeferred(true)
-                        ->withBoundTo('user\name'),
+                        ->withReturnInferenceDeferred(true),
                     'any value',
                 ),
             ),
@@ -286,8 +283,7 @@ final class DefSymbolTest extends TestCase
                     $env
                         ->withExpressionContext()
                         ->withDisallowRecurFrame()
-                        ->withReturnInferenceDeferred(true)
-                        ->withBoundTo('user\name'),
+                        ->withReturnInferenceDeferred(true),
                     'any value',
                 ),
             ),

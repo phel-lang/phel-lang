@@ -59,8 +59,8 @@ final class ReplDefaultTapTest extends AbstractTestCommand
             $stdout = ob_get_clean();
         }
 
-        self::assertStringContainsString('tap> ', $stdout, 'default tap must print a "tap> " line');
-        self::assertStringContainsString(':hello', $stdout, 'default tap must print the tapped value');
+        self::assertStringContainsString('tap> ', (string) $stdout, 'default tap must print a "tap> " line');
+        self::assertStringContainsString(':hello', (string) $stdout, 'default tap must print the tapped value');
     }
 
     #[RunInSeparateProcess]
@@ -85,7 +85,7 @@ final class ReplDefaultTapTest extends AbstractTestCommand
             $stdout = ob_get_clean();
         }
 
-        self::assertStringNotContainsString('tap> ', $stdout, 'removed tap must not print');
-        self::assertStringNotContainsString(':silent', $stdout, 'removed tap must not print the tapped value');
+        self::assertStringNotContainsString('tap> ', (string) $stdout, 'removed tap must not print');
+        self::assertStringNotContainsString(':silent', (string) $stdout, 'removed tap must not print the tapped value');
     }
 }

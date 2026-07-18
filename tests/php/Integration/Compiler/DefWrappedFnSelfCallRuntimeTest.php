@@ -73,6 +73,6 @@ final class DefWrappedFnSelfCallRuntimeTest extends TestCase
         )->getPhpCode();
 
         self::assertStringNotContainsString('$this(', $compiled);
-        self::assertStringContainsString('\Phel::getDefinition("user", "wrapped-loop")', $compiled);
+        self::assertStringContainsString(Phel::class . '::getDefinition("user", "wrapped-loop")', $compiled);
     }
 }
