@@ -202,6 +202,14 @@
   (php/print "\n")
   nil)
 
+(defn print-tap
+  "Default REPL tap handler: prints a tapped value as `tap> value` with colored output. Registered automatically when the REPL starts, so `(tap> x)` is visible out of the box; detach it with `(remove-tap print-tap)`."
+  {:example "(tap> {:a 1}) ; prints: tap> {:a 1}"
+   :see-also ["println-colorful"]}
+  [value]
+  (php/print "tap> ")
+  (println-colorful value))
+
 (defn compile-str
   "Compiles a Phel expression string to PHP code."
   {:example "(compile-str \"(+ 1 2)\") ; => \"(1 + 2)\""}
