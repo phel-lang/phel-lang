@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 use Rector\CodingStyle\Rector\String_\UseClassKeywordForClassNameResolutionRector;
 use Rector\Config\RectorConfig;
+use Rector\DeadCode\Rector\Cast\RecastingRemovalRector;
+use Rector\DeadCode\Rector\ClassMethod\RemoveUselessUnionReturnDocblockRector;
 use Rector\Php84\Rector\Foreach_\ForeachToArrayAllRector;
 use Rector\PHPUnit\CodeQuality\Rector\Class_\PreferPHPUnitThisCallRector;
 use Rector\PHPUnit\Set\PHPUnitSetList;
@@ -32,6 +34,12 @@ return RectorConfig::configure()
         ForeachToArrayAllRector::class => [
             __DIR__ . '/src/php/Compiler/Domain/Analyzer/Ast/Reference/LocalVarReferences.php',
         ],
+        // `ob_get_clean()` returns `string|false`; Rector 2.5 narrows it to
+        // `string` inside these catch blocks and strips the cast, which Psalm
+        // then rejects as PossiblyFalseArgument.
+        RecastingRemovalRector::class => [
+            __DIR__ . '/src/php/Run/Application/StructuredEvaluator.php',
+        ],
         ReturnTypeFromReturnNewRector::class => [
             __DIR__ . '/tests/php/Unit/Interop/Generator/CompiledPhpMethodBuilderTest.php',
         ],
@@ -57,6 +65,10 @@ return RectorConfig::configure()
             __DIR__ . '/tests/php/Unit/Lang/Collections/Struct/FakeStruct.php',
         ],
         PreferPHPUnitThisCallRector::class,
+        // Rector 2.5 rule that treats `@return self<T>|null` as redundant with a
+        // native `?self` return type, dropping the generics PHPStan needs
+        // (missingType.generics) across the Lang collections.
+        RemoveUselessUnionReturnDocblockRector::class,
     ])
     ->withSets([
         SetList::CODE_QUALITY,

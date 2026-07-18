@@ -336,7 +336,6 @@ final class NreplServerTest extends TestCase
 
     /**
      * @param resource $client
-     * @param mixed    $server
      *
      * @return list<array<string, mixed>>
      */

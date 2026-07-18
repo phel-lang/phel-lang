@@ -194,7 +194,7 @@ final class BindingTypeInferrer
             return true;
         }
 
-        return array_all($alts, static fn($alt): bool => $alt === $initType);
+        return array_all($alts, static fn(?string $alt): bool => $alt === $initType);
     }
 
     /**

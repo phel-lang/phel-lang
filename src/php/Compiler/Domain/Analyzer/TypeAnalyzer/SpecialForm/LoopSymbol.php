@@ -38,7 +38,7 @@ final readonly class LoopSymbol implements SpecialFormAnalyzerInterface
      */
     public function analyze(PersistentListInterface $list, NodeEnvironmentInterface $env): LetNode
     {
-        if (!($list->get(0) instanceof Symbol && $list->get(0)->getName() === Symbol::NAME_LOOP)) {
+        if (!$list->get(0) instanceof Symbol || $list->get(0)->getName() !== Symbol::NAME_LOOP) {
             throw AnalyzerException::withLocation("This is not a 'loop.", $list);
         }
 

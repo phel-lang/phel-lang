@@ -31,7 +31,7 @@ final class DoSymbol implements SpecialFormAnalyzerInterface
     public function analyze(PersistentListInterface $list, NodeEnvironmentInterface $env): DoNode
     {
         $sym = $list->first();
-        if (!($sym instanceof Symbol && $sym->getName() === Symbol::NAME_DO)) {
+        if (!$sym instanceof Symbol || $sym->getName() !== Symbol::NAME_DO) {
             throw AnalyzerException::withLocation("This is not a 'do.", $list);
         }
 

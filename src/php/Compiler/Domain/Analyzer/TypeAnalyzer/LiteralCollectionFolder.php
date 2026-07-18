@@ -283,6 +283,6 @@ final readonly class LiteralCollectionFolder
      */
     private function allLiteralNodes(array $nodes): bool
     {
-        return array_all($nodes, static fn($n): bool => $n instanceof LiteralNode);
+        return array_all($nodes, static fn(AbstractNode $n): bool => $n instanceof LiteralNode);
     }
 }

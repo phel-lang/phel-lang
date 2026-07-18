@@ -148,7 +148,7 @@ final class CombineGenerator
      */
     private static function allIteratorsValid(array $iterators): bool
     {
-        return array_all($iterators, static fn($iterator) => $iterator->valid());
+        return array_all($iterators, static fn(Iterator $iterator): bool => $iterator->valid());
     }
 
     /**

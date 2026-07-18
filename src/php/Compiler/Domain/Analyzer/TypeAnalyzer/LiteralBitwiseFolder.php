@@ -114,6 +114,6 @@ final readonly class LiteralBitwiseFolder
      */
     private function anyNegative(array $values): bool
     {
-        return array_any($values, static fn($v): bool => $v < 0);
+        return array_any($values, static fn(int $v): bool => $v < 0);
     }
 }

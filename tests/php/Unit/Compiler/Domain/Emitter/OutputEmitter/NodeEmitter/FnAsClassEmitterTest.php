@@ -178,7 +178,6 @@ final class FnAsClassEmitterTest extends TestCase
             uses: [],
             isVariadic: false,
             recurs: false,
-            sourceLocation: null,
             name: Symbol::create('my-fn'),
         )->markAsDefinition();
 
@@ -203,7 +202,6 @@ final class FnAsClassEmitterTest extends TestCase
             uses: [],
             isVariadic: false,
             recurs: false,
-            sourceLocation: null,
             name: Symbol::create('foo'),
         );
 
@@ -246,7 +244,6 @@ final class FnAsClassEmitterTest extends TestCase
             uses: [Symbol::create('use1'), Symbol::create('use2')],
             isVariadic: false,
             recurs: false,
-            sourceLocation: null,
             name: Symbol::create('foo'),
         );
 
@@ -269,7 +266,6 @@ final class FnAsClassEmitterTest extends TestCase
             uses: [],
             isVariadic: false,
             recurs: false,
-            sourceLocation: null,
             name: Symbol::create('foo'),
         )->markAsMultiArityChild();
 

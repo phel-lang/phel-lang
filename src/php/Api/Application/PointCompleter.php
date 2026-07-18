@@ -285,7 +285,11 @@ final readonly class PointCompleter implements PointCompleterInterface
             return false;
         }
 
-        return !($line === $end->getLine() && $col > $end->getColumn());
+        if ($line !== $end->getLine()) {
+            return true;
+        }
+
+        return $col <= $end->getColumn();
     }
 
     /**
