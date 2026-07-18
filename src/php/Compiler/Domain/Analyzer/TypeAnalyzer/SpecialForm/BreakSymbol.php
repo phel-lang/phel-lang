@@ -34,7 +34,7 @@ final class BreakSymbol implements SpecialFormAnalyzerInterface
     public function analyze(PersistentListInterface $list, NodeEnvironmentInterface $env): AbstractNode
     {
         $sym = $list->first();
-        if (!($sym instanceof Symbol && $sym->getName() === Symbol::NAME_BREAK)) {
+        if (!$sym instanceof Symbol || $sym->getName() !== Symbol::NAME_BREAK) {
             throw AnalyzerException::withLocation("This is not a 'break.", $list);
         }
 

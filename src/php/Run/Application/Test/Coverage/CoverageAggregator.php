@@ -75,7 +75,7 @@ final readonly class CoverageAggregator
     {
         $real = realpath($phelFile);
         $candidate = $real === false ? $phelFile : $real;
-        return array_any($normalizedDirs, static fn($dir): bool => str_starts_with($candidate, (string) $dir));
+        return array_any($normalizedDirs, static fn(string $dir): bool => str_starts_with($candidate, $dir));
     }
 
     /**

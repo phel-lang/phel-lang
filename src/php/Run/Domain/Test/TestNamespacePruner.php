@@ -81,7 +81,7 @@ final readonly class TestNamespacePruner
     private function matchesAny(string $namespace, array $regexes): bool
     {
         $normalised = str_replace('\\', '.', $namespace);
-        return array_any($regexes, static fn($regex): bool => preg_match($regex, $normalised) === 1);
+        return array_any($regexes, static fn(string $regex): bool => preg_match($regex, $normalised) === 1);
     }
 
     /**

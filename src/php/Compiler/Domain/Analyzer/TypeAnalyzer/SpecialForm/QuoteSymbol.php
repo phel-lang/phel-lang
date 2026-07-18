@@ -21,7 +21,7 @@ final class QuoteSymbol implements SpecialFormAnalyzerInterface
 {
     public function analyze(PersistentListInterface $list, NodeEnvironmentInterface $env): QuoteNode
     {
-        if (!($list->get(0) instanceof Symbol && $list->get(0)->getName() === Symbol::NAME_QUOTE)) {
+        if (!$list->get(0) instanceof Symbol || $list->get(0)->getName() !== Symbol::NAME_QUOTE) {
             throw AnalyzerException::withLocation("This is not a 'quote.", $list);
         }
 
