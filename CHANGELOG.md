@@ -41,6 +41,7 @@ All notable changes to this project will be documented in this file.
 
 ### Fixed
 
+- `defn` (or any macro-expanded form) containing a `#inst` literal no longer crashes compilation with a `TypeError` in the location-enrichment walk: `#inst` yields a raw `DateTimeImmutable`, which now passes through untouched like every other non-Phel literal (#2778)
 - Multi-arity `fn` returned from another fn no longer emits invalid PHP (`ParseError: unexpected token "return"`): the per-arity closures are analyzed in expression context, so the generated constructor assignments splice plain closure expressions. `(fn [x] (fn ([a] ...) ([a b] ...)))` now works, with or without captured locals (#2776)
 - String concatenation no longer specializes over `php/json_encode`, `php/hex2bin`, or `php/str_replace`: their `string|false` / `string|array` returns could splice `false` into a native `.` concat and emit `""` where the dynamic `str` path renders `"false"`. The two compiler return-type tables are consolidated into one `PhpFunctionReturnTypes` with an explicit strict band (persistable tags) and a documented operand-only widening (`pow`) (#2768)
 - `phel test --coverage`: xdebug is only used as the coverage driver when `coverage` is among its active modes; otherwise the command fails fast with a hint to re-run with `XDEBUG_MODE=coverage` instead of emitting PHP warnings and an empty report (#2764)

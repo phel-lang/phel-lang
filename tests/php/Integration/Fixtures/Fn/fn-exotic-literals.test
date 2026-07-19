@@ -1,0 +1,18 @@
+--PHEL--
+(fn [] 2/3)
+(fn [] 1.5M)
+(fn [] #uuid "123e4567-e89b-12d3-a456-426614174000")
+(fn [] #inst "2024-01-15T10:30:00Z")
+(fn [] 123456789012345678901234567890N)
+--PHP--
+(function() {
+  return \Phel\Lang\Ratio::create(\Phel\Lang\BigInt::fromString("2"), \Phel\Lang\BigInt::fromString("3"));
+});(function() {
+  return \Phel\Lang\BigDecimal::fromString("1.5");
+});(function() {
+  return \Phel\Lang\UUID::fromString("123e4567-e89b-12d3-a456-426614174000");
+});(function() {
+  return (new \DateTimeImmutable("2024-01-15T10:30:00.000000+00:00"));
+});(function() {
+  return \Phel\Lang\BigInt::fromString("123456789012345678901234567890");
+});
