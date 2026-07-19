@@ -45,6 +45,7 @@ final class PhelConfigTest extends TestCase
             PhelConfig::CACHE_DIR => '.phel/cache',
             PhelConfig::PHEL_DIR => '',
             PhelConfig::OPTIMIZATION_LEVEL => 0,
+            PhelConfig::STRIP_SYMBOL_META => false,
         ];
 
         self::assertSame($expected, $config->jsonSerialize());
@@ -255,6 +256,7 @@ final class PhelConfigTest extends TestCase
             PhelConfig::CACHE_DIR => '.cache',
             PhelConfig::PHEL_DIR => '',
             PhelConfig::OPTIMIZATION_LEVEL => 2,
+            PhelConfig::STRIP_SYMBOL_META => false,
         ];
 
         self::assertSame($expected, $config->jsonSerialize());

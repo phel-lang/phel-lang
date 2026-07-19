@@ -1,0 +1,10 @@
+(ns stripns.core)
+
+(load "core/extra")
+
+(defn shout
+  "Upper-cases `s` (example: (shout \"hi\") ; => \"HI\")."
+  [s]
+  (php/strtoupper s))
+
+(println ">>" (shout "stripped") (extra-tag))

@@ -37,6 +37,7 @@ Compiles Phel projects to PHP: namespace extraction, dependency ordering, and ca
 | `Domain/Compile/BuildReport` + `BuildReportEntry` | `--report` VO (`toArray()`); command renders it |
 | `Domain/Compile/PhaseTimingReport` | `--timing` per-phase wall-clock report |
 | `Domain/Compile/SecondaryFileHarvester` | Writes `(in-ns ...)` secondary `.php` siblings into the build output tree; takes them from the compiled-code cache, else from `CompiledSecondaryStore` (so a cache-off build still emits them) |
+| `Domain/Compile/SymbolMetaStripper` | Token-based removal of `\Phel::locationMeta(...)` args from build output when `strip-symbol-meta` is on (write-path only; evaluation keeps full meta) |
 | `Domain/Compile/CompiledSecondaryStore` | In-memory hand-off of build-time-compiled secondaries from `FileEvaluator` to `SecondaryFileHarvester` when the compiled-code cache is off |
 | `Infrastructure/Cache/CompiledCodeCache` | Compiled-code cache policy orchestrator |
 | `Infrastructure/Cache/PhpScanIndexCache` / `NullScanIndexCache` | Persisted dir-scan index |
@@ -65,6 +66,11 @@ Compiles Phel projects to PHP: namespace extraction, dependency ordering, and ca
 
 - `BuildConfig::getOptimizationLevel()` (key `PhelConfig::OPTIMIZATION_LEVEL`) injected into `FileCompiler` (constructor default; per-call override wins, used by `phel build -O`) and `FileEvaluator` (also mixed into the compiled-code cache hash when > 0).
 - `ProjectCompiler` records the level in `<out>/.phel-optimization-level` (`OPTIMIZATION_LEVEL_FILE`) and force-recompiles when it changes, because the incremental cache is mtime-only; level 0 leaves no marker.
+
+### strip-symbol-meta
+
+- `PhelConfig::withStripSymbolMeta()` (key `strip-symbol-meta`, default off) makes `FileCompiler` and `SecondaryFileHarvester` strip def metadata from written artifacts (−28% size, −40% cold require on this repo's own build). Strip happens on the WRITE path only — build-time evaluation feeds the registry full meta, so downstream namespace compilation keeps inference/arity data.
+- Stripped builds also drop source maps (line numbers shift) and leave `<out>/.phel-strip-symbol-meta`; flipping the flag force-recompiles, mirroring the optimization-level marker, because a stripped target must never be reused as compile cache (its `require_once` would register meta-less defs).
 
 ### Source maps
 

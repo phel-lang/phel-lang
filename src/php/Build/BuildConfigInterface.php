@@ -19,4 +19,6 @@ interface BuildConfigInterface
     public function shouldCreateEntryPointPhpFile(): bool;
 
     public function getOptimizationLevel(): int;
+
+    public function shouldStripSymbolMeta(): bool;
 }
