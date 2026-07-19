@@ -99,7 +99,7 @@ Throws `InvalidArgumentException` for any other input (including functions, numb
 
 (defn str
   "Creates a string by concatenating values together. If no arguments are provided an empty string is returned. Nil is represented as an empty string. Booleans are represented as \"true\" or \"false\" (matching Clojure semantics). Otherwise, it tries to call `__toString`."
-  [& args]
+  ^string [& args]
   (let [cnt (php/count args)]
     (if (php/=== cnt 0)
       ""

@@ -2,7 +2,7 @@
 (fn [^\Phel\Lang\Keyword k] (name k))
 (fn [^\Phel\Lang\Symbol s] (namespace s))
 --PHP--
-(function(\Phel\Lang\Keyword $k) {
+(function(\Phel\Lang\Keyword $k): string {
   return ($k->getName());
 });(function(\Phel\Lang\Symbol $s) {
   return ($s->getNamespace());

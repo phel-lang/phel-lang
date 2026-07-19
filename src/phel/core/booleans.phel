@@ -433,7 +433,7 @@
   `BigDecimal`). Throws `InvalidArgumentException` when `x` and `y` come from
   mutually incomparable categories (e.g. `(compare 1 [])`)."
   {:see-also ["<=>" "sort" "sort-by"]}
-  [x y]
+  ^int [x y]
   (cond
     (php/=== x nil) (if (php/=== y nil) 0 -1)
     (php/=== y nil) 1

@@ -953,7 +953,7 @@ bindings is a vector of function specs: (letfn [(f [params] body) (g [params] bo
 
 (defn name
   "Returns the name string of a string, keyword or symbol."
-  [x]
+  ^string [x]
   (if (string? x) x (php/-> x (getName))))
 
 (defn namespace

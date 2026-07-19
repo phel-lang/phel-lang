@@ -124,7 +124,7 @@
 Works with lists, vectors, hash-maps, sets, strings, and PHP arrays. Returns 0 for nil."
   {:example "(count [1 2 3]) ; => 3"
    :see-also ["empty?" "seq"]}
-  [coll]
+  ^int [coll]
   (if (php/instanceof coll Countable)
     (php/-> coll (count))
     (if (php/is_array coll)
