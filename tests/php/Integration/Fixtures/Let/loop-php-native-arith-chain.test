@@ -7,7 +7,7 @@
   /** @var float $sum_2 */
   $sum_2 = 0.0;
   while (true) {
-    if (($__truthy = ($i_1 < 10)) !== null && $__truthy !== false) {
+    if ((($i_1 < 10))) {
       $i_1 = ($i_1 + 1);
       $sum_2 = ($sum_2 + ($d * cos($angle)));
       continue;

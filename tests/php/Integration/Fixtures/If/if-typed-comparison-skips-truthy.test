@@ -1,0 +1,18 @@
+--PHEL--
+(fn [^int a] (if (> a 10) :big :small))
+(fn [^int a ^int b] (if (= a b) :eq :ne))
+(fn [^int a ^int b] (if (and (> a 1) (< b 2)) :in :out))
+--PHP--
+(function(int $a) {
+  static $__phel_const_0, $__phel_const_1;
+  return ((($a > 10)) ? ($__phel_const_0 ??= \Phel\Lang\Keyword::create("big")) : ($__phel_const_1 ??= \Phel\Lang\Keyword::create("small")));
+
+});(function(int $a, int $b) {
+  static $__phel_const_0, $__phel_const_1;
+  return ((($a === $b)) ? ($__phel_const_0 ??= \Phel\Lang\Keyword::create("eq")) : ($__phel_const_1 ??= \Phel\Lang\Keyword::create("ne")));
+
+});(function(int $a, int $b) {
+  static $__phel_const_0, $__phel_const_1;
+  return ((($a > 1)) && (($b < 2)) ? ($__phel_const_0 ??= \Phel\Lang\Keyword::create("in")) : ($__phel_const_1 ??= \Phel\Lang\Keyword::create("out")));
+
+});

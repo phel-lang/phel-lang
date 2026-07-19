@@ -5,7 +5,7 @@
   /** @var int $i_1 */
   $i_1 = 0;
   while (true) {
-    if (($__truthy = ($i_1 < $n)) !== null && $__truthy !== false) {
+    if ((($i_1 < $n))) {
       $i_1 = ($i_1 + 1);
       continue;
 

@@ -34,6 +34,7 @@ All notable changes to this project will be documented in this file.
 
 ### Performance
 
+- `if` tests that lower to a native PHP comparison (typed `<`, `<=`, `>`, `>=`, `=`, and the `(not (= ...))` peephole) are spliced directly into the condition slot, dropping the redundant `($__truthy = ...) !== null && $__truthy !== false` adapter; `and`/`or` chains of such comparisons drop the per-arm adapters too (#2766)
 - Multi-arity function calls skip the variadic `__invoke` dispatch. Multi-arity fn classes now emit fixed-arity `invokeArityN` methods, and build-mode call sites with a statically known arity route through them via a guarded shortcut, avoiding the per-call `...$args` packing, `$args[N]` re-indexing, and closure indirection. Roughly 1.5-2x faster per multi-arity call in microbenchmarks (larger under JIT); single-arity calls are unchanged (#2760)
 
 ### Fixed

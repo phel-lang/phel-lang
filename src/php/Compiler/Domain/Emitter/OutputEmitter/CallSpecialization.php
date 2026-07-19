@@ -13,6 +13,7 @@ use Phel\Lang\Collections\Map\PersistentMapInterface;
 use Phel\Lang\FnInterface;
 
 use function count;
+use function in_array;
 use function is_string;
 
 /**
@@ -24,6 +25,15 @@ use function is_string;
  */
 final readonly class CallSpecialization
 {
+    /**
+     * {@see NumericOperationSpecialization::typedBinaryOpName()} results
+     * that are native PHP comparisons and therefore hard bools. The
+     * arithmetic results (`+`, `-`, `*`) are int/float expressions.
+     *
+     * @var list<string>
+     */
+    private const array BOOL_BINARY_OPS = ['<', '<=', '>', '>=', '==='];
+
     private function __construct() {}
 
     /**
@@ -42,11 +52,23 @@ final readonly class CallSpecialization
             || TypePredicateSpecialization::isTypePredicate($node)
             || TypedValueSpecialization::isEmptyCheck($node)
             || TypedValueSpecialization::isContainsCheck($node)
+            || NumericOperationSpecialization::isNotEqPeephole($node)
         ) {
             return true;
         }
 
-        return TypePredicateSpecialization::isNumericPredicate($node) !== null;
+        if (TypePredicateSpecialization::isNumericPredicate($node) !== null) {
+            return true;
+        }
+
+        // Typed comparisons lower to a native PHP comparison, which is a
+        // hard bool; the arithmetic ops (`+`, `-`, `*`) are excluded — they
+        // lower to int/float expressions.
+        return in_array(
+            NumericOperationSpecialization::typedBinaryOpName($node),
+            self::BOOL_BINARY_OPS,
+            true,
+        );
     }
 
     public static function isSpecialized(CallNode $node): bool
