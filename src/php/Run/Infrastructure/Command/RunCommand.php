@@ -115,7 +115,6 @@ HELP)
             $rawArgv = $input->getArgument('argv');
             $userArgv = is_array($rawArgv) ? $rawArgv : [];
 
-            // Set up normalized runtime args before executing the script
             Phel::setupRuntimeArgs($path, $userArgv);
 
             if (file_exists($path)) {

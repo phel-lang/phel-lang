@@ -114,7 +114,6 @@ HELP);
         $this->io->writeln('Type "exit" or press Ctrl-D to exit.');
 
         try {
-            // Set up normalized runtime args for REPL mode
             Phel::setupRuntimeArgs('repl', []);
 
             $this->getFacade()->loadPhelNamespaces($this->replStartupFile);

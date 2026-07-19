@@ -442,7 +442,6 @@ final class LazySeq extends AbstractType implements LazySeqInterface, Countable,
         // Iteratively realize nested LazySeqs to avoid recursion
         // This handles cases where a LazySeq's thunk returns another unrealized LazySeq
         while ($result instanceof self && !$result->isRealized()) {
-            // Get the nested LazySeq's function and call it directly
             if ($result->fn !== null) {
                 $nestedFn = $result->fn;
                 $result->fn = null;
