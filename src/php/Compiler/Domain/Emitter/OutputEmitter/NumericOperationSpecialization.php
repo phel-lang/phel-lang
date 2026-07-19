@@ -74,6 +74,14 @@ final readonly class NumericOperationSpecialization
      */
     private const array ARITHMETIC_OPS = ['+', '-', '*'];
 
+    /**
+     * {@see self::typedBinaryOpName()} results that are native PHP
+     * comparisons and therefore hard bools.
+     *
+     * @var list<string>
+     */
+    private const array BOOL_BINARY_OPS = ['<', '<=', '>', '>=', '==='];
+
     /** @var list<string> */
     private const array NUMERIC_PRIMITIVE_TAGS = ['int', 'float'];
 
@@ -217,6 +225,17 @@ final readonly class NumericOperationSpecialization
     public static function isTypedBinaryOp(CallNode $node): bool
     {
         return self::typedBinaryOpName($node) !== null;
+    }
+
+    /**
+     * `(<op> a b)` that lowers to a native PHP comparison (`<`, `<=`, `>`,
+     * `>=`, `===`) — a hard-bool expression the `IfEmitter` can splice into
+     * a condition slot without the Phel-truthy adapter. The arithmetic
+     * lowerings (`+`, `-`, `*`) are excluded: they produce int/float.
+     */
+    public static function isTypedComparison(CallNode $node): bool
+    {
+        return in_array(self::typedBinaryOpName($node), self::BOOL_BINARY_OPS, true);
     }
 
     /**
