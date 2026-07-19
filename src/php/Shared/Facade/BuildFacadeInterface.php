@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Phel\Shared\Facade;
 
 use Gacela\Framework\Health\ModuleHealthCheckInterface;
-use Phel\Build\Domain\Compile\CompiledFile;
+use Phel\Shared\CompiledFile;
 use Phel\Shared\NamespaceInformation;
 
 interface BuildFacadeInterface

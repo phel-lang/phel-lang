@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace PhelTest\Unit\Run\Application;
 
-use Phel\Build\Domain\Compile\CompiledFile;
 use Phel\Run\Application\LazyBundledNamespaceResolver;
 use Phel\Run\Application\NamespaceFileTracker;
+use Phel\Shared\CompiledFile;
 use Phel\Shared\Facade\BuildFacadeInterface;
 use Phel\Shared\NamespaceInformation;
 use PHPUnit\Framework\TestCase;
