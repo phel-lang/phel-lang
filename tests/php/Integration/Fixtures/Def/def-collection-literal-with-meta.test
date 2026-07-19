@@ -1,0 +1,20 @@
+--PHEL--
+(def s ^{:a 1} #{1 2})
+(def v ^{:b 2} [3 4])
+--PHP--
+\Phel::addDefinition(
+  "user",
+  "s",
+  \Phel::set([1, 2])->withMeta(\Phel::map(
+    \Phel\Lang\Keyword::create("a"), 1
+  )),
+  \Phel::locationMeta(\Phel::location("Def/def-collection-literal-with-meta.test", 1, 0), \Phel::location("Def/def-collection-literal-with-meta.test", 1, 22))
+);
+\Phel::addDefinition(
+  "user",
+  "v",
+  \Phel::vector([3, 4])->withMeta(\Phel::map(
+    \Phel\Lang\Keyword::create("b"), 2
+  )),
+  \Phel::locationMeta(\Phel::location("Def/def-collection-literal-with-meta.test", 2, 0), \Phel::location("Def/def-collection-literal-with-meta.test", 2, 21))
+);

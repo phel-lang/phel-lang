@@ -1,0 +1,19 @@
+--PHEL--
+(fn [^\Phel\Lang\Collections\Map\PersistentMapInterface m] (get-in m [:a :b]))
+(fn [^\Phel\Lang\Collections\Map\PersistentMapInterface m] (get-in m [:a] :dflt))
+(fn [^\Phel\Lang\Collections\Map\PersistentMapInterface m p] (get-in m p))
+(fn [m] (get-in m [:a]))
+--PHP--
+(function(\Phel\Lang\Collections\Map\PersistentMapInterface $m) {
+  static $__phel_const_0, $__phel_const_1;
+  return (($m[(($__phel_const_0 ??= \Phel\Lang\Keyword::create("a")))] ?? null)[(($__phel_const_1 ??= \Phel\Lang\Keyword::create("b")))] ?? null);
+});(function(\Phel\Lang\Collections\Map\PersistentMapInterface $m) {
+  static $__phel_const_0, $__phel_const_1, $__phel_call_0;
+  return ($__phel_call_0 ??= \Phel::getDefinition("phel.core", "get-in"))->__invoke($m, ($__phel_const_0 ??= \Phel::vector([\Phel\Lang\Keyword::create("a")])), ($__phel_const_1 ??= \Phel\Lang\Keyword::create("dflt")));
+});(function(\Phel\Lang\Collections\Map\PersistentMapInterface $m, $p) {
+  static $__phel_call_0;
+  return ($__phel_call_0 ??= \Phel::getDefinition("phel.core", "get-in"))->__invoke($m, $p);
+});(function($m) {
+  static $__phel_const_0, $__phel_call_0;
+  return ($__phel_call_0 ??= \Phel::getDefinition("phel.core", "get-in"))->__invoke($m, ($__phel_const_0 ??= \Phel::vector([\Phel\Lang\Keyword::create("a")])));
+});
