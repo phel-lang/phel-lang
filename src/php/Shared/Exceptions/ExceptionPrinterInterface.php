@@ -2,9 +2,8 @@
 
 declare(strict_types=1);
 
-namespace Phel\Command\Domain\Exceptions;
+namespace Phel\Shared\Exceptions;
 
-use Phel\Shared\Exceptions\AbstractLocatedException;
 use Phel\Shared\Parser\ReadModel\CodeSnippet;
 use Throwable;
 

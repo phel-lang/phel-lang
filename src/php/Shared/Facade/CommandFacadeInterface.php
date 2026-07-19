@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace Phel\Shared\Facade;
 
-use Phel\Command\Domain\Exceptions\ExceptionPrinterInterface;
 use Phel\Shared\Exceptions\AbstractLocatedException;
+use Phel\Shared\Exceptions\ExceptionPrinterInterface;
 use Phel\Shared\Exceptions\Hint\ExceptionHintResolver;
 use Phel\Shared\Parser\ReadModel\CodeSnippet;
 use Symfony\Component\Console\Output\OutputInterface;
