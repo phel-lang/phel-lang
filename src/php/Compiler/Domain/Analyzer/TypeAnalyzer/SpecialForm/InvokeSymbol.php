@@ -236,14 +236,16 @@ final readonly class InvokeSymbol implements SpecialFormAnalyzerInterface
     }
 
     /**
-     * @param PersistentListInterface<mixed> $list
+     * `mixed` return: an inline expansion may produce literals outside the
+     * Phel type system; see {@see self::callMacroFn()} / #2778. The result
+     * feeds `analyzeMacro(mixed ...)`.
      *
-     * @return array<mixed>|bool|float|int|string|TypeInterface|null
+     * @param PersistentListInterface<mixed> $list
      */
     private function inlineExpand(
         PersistentListInterface $list,
         GlobalVarNode $node,
-    ): float|bool|int|string|TypeInterface|array|null {
+    ): mixed {
         $meta = $node->getMeta();
         $fn = $meta[Keyword::create('inline')];
 
@@ -259,15 +261,17 @@ final readonly class InvokeSymbol implements SpecialFormAnalyzerInterface
     }
 
     /**
-     * @param PersistentListInterface<mixed> $list
+     * `mixed` return: a macro expansion may produce literals outside the
+     * Phel type system; see {@see self::callMacroFn()} / #2778. The result
+     * feeds `analyzeMacro(mixed ...)`.
      *
-     * @return array<mixed>|bool|float|int|string|TypeInterface|null
+     * @param PersistentListInterface<mixed> $list
      */
     private function macroExpand(
         PersistentListInterface $list,
         GlobalVarNode $macroNode,
         NodeEnvironmentInterface $env,
-    ): float|bool|int|string|TypeInterface|array|null {
+    ): mixed {
         /** @psalm-suppress PossiblyNullArgument */
         $nodeName = $macroNode->getName()->getName();
 
@@ -286,15 +290,16 @@ final readonly class InvokeSymbol implements SpecialFormAnalyzerInterface
     }
 
     /**
-     * @param PersistentListInterface<mixed> $list
+     * `mixed` return: a macro may expand to literals outside the Phel type
+     * system (e.g. `#inst` → `DateTimeImmutable`); see enrichLocation/#2778.
      *
-     * @return array<mixed>|bool|float|int|string|TypeInterface|null
+     * @param PersistentListInterface<mixed> $list
      */
     private function callMacroFn(
         callable $fn,
         PersistentListInterface $list,
         NodeEnvironmentInterface $env,
-    ): float|bool|int|string|TypeInterface|array|null {
+    ): mixed {
         $envMap = $this->buildEnvMap($env);
         /** @var PersistentListInterface<mixed> $rest */
         $rest = $list->rest();
@@ -305,14 +310,14 @@ final readonly class InvokeSymbol implements SpecialFormAnalyzerInterface
     }
 
     /**
-     * @param PersistentListInterface<mixed> $list
+     * `mixed` return for the same reason as {@see self::callMacroFn()}.
      *
-     * @return array<mixed>|bool|float|int|string|TypeInterface|null
+     * @param PersistentListInterface<mixed> $list
      */
     private function callInlineFn(
         callable $fn,
         PersistentListInterface $list,
-    ): float|bool|int|string|TypeInterface|array|null {
+    ): mixed {
         /** @var PersistentListInterface<mixed> $rest */
         $rest = $list->rest();
         $arguments = $rest->toArray();
@@ -342,14 +347,15 @@ final readonly class InvokeSymbol implements SpecialFormAnalyzerInterface
     }
 
     /**
-     * @param array<mixed>|bool|float|int|string|TypeInterface|null $x
-     *
-     * @return array<mixed>|bool|float|int|string|TypeInterface|null
+     * `mixed` deliberately: a macro expansion may contain literals outside
+     * the Phel type system (e.g. `#inst` yields a raw `DateTimeImmutable`);
+     * anything that is neither a list nor a `TypeInterface` passes through
+     * untouched — see #2778.
      */
     private function enrichLocation(
-        float|bool|int|string|TypeInterface|array|null $x,
+        mixed $x,
         TypeInterface $parent,
-    ): float|bool|int|string|TypeInterface|array|null {
+    ): mixed {
         if ($x instanceof PersistentListInterface) {
             return $this->enrichLocationForList($x, $parent);
         }
@@ -368,7 +374,6 @@ final readonly class InvokeSymbol implements SpecialFormAnalyzerInterface
     {
         $result = [];
         foreach ($list->getIterator() as $item) {
-            /** @var array<mixed>|bool|float|int|string|TypeInterface|null $item */
             $result[] = $this->enrichLocation($item, $parent);
         }
 

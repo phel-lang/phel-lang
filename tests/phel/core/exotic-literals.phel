@@ -1,0 +1,15 @@
+(ns phel-test.core.exotic-literals
+  (:require phel\test :refer [deftest is]))
+
+(defn- make-inst [] #inst "2024-01-15T10:30:00Z")
+
+(deftest defn-body-exotic-literals
+  ;; #2778: a raw DateTimeImmutable literal inside a defn body crashed
+  ;; the macroexpansion location walk at compile time.
+  (is (= "2024-01-15" (php/-> (make-inst) (format "Y-m-d")))
+      "defn body with #inst literal compiles and evaluates")
+  (is (= 2/3 ((fn [] 2/3))) "ratio literal in fn body")
+  (is (= 1.5M ((fn [] 1.5M))) "big decimal literal in fn body")
+  (is (= #uuid "123e4567-e89b-12d3-a456-426614174000"
+         ((fn [] #uuid "123e4567-e89b-12d3-a456-426614174000")))
+      "uuid literal in fn body"))
