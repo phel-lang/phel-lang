@@ -61,3 +61,15 @@
     ;; we use a higher-order self-reference passed out to verify scope.
     (is (= 3 ((fn f [x] (if (= x 0) 0 (+ 1 (f (dec x))))) 3))
         "inner f does not collide with outer f name from sibling fn")))
+
+(deftest multi-arity-fn-returned-from-fn
+  (let [make (fn [x]
+               (fn
+                 ([a] (+ a x))
+                 ([a b] (+ a b x))))
+        add10 (make 10)]
+    (is (= 15 (add10 5)) "returned multi-arity fn: one-arg overload with captured local")
+    (is (= 16 (add10 5 1)) "returned multi-arity fn: two-arg overload with captured local"))
+  (let [mk (fn [] (fn ([a] a) ([a b] b)))]
+    (is (= 7 ((mk) 7)) "returned multi-arity fn without captures: one-arg")
+    (is (= 9 ((mk) 7 9)) "returned multi-arity fn without captures: two-arg")))

@@ -1,0 +1,42 @@
+--PHEL--
+(fn [x]
+  (fn
+    ([a] (+ a x))
+    ([a b] (+ a b x))))
+--PHP--
+(function($x) {
+  return new class($x) extends \Phel\Lang\AbstractFn {
+    public const BOUND_TO = "";
+    private $x;
+    private $fn0;
+    private $fn1;
+
+    public function __construct($x) {
+      $this->x = $x;
+      $this->fn0 = (function($a) use($x) {
+        static $__phel_call_0;
+        return ($__phel_call_0 ??= \Phel::getDefinition("phel.core", "+"))->__invoke($a, $x);
+      });
+      $this->fn1 = (function($a, $b) use($x) {
+        static $__phel_call_0;
+        return ($__phel_call_0 ??= \Phel::getDefinition("phel.core", "+"))->__invoke($a, $b, $x);
+      });
+    }
+
+    public function __invoke(...$args) {
+      return match (\count($args)) {
+        1 => ($this->fn0)($args[0]),
+        2 => ($this->fn1)($args[0], $args[1]),
+        default => throw new \InvalidArgumentException("No matching function arity"),
+      };
+    }
+
+    public function invokeArity1(mixed $a1): mixed {
+      return ($this->fn0)($a1);
+    }
+
+    public function invokeArity2(mixed $a1, mixed $a2): mixed {
+      return ($this->fn1)($a1, $a2);
+    }
+  };
+});
