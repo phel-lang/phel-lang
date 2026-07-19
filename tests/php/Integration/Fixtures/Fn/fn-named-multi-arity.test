@@ -10,11 +10,11 @@ new class() extends \Phel\Lang\AbstractFn {
     $this->fn0 = (function($x) {
       $foo = $this;
       return $x;
-    });;
+    });
     $this->fn1 = (function($x, $y) {
       $foo = $this;
       return $y;
-    });;
+    });
   }
 
   public function __invoke(...$args) {
