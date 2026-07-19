@@ -1,7 +1,6 @@
 ---
 description: Fetch a GitHub issue, create a branch, implement with TDD, and open a PR
 argument-hint: "[issue-number]"
-disable-model-invocation: true
 ---
 
 # GitHub Issue Workflow
