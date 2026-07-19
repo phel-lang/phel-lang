@@ -349,6 +349,39 @@ final class FileRunnerTest extends TestCase
         $this->createFileRunner($buildFacade, $commandFacade)->run($script);
     }
 
+    public function test_throws_when_ad_hoc_sibling_dependency_cannot_be_parsed(): void
+    {
+        // A sibling file matching the require exists but is malformed. Silently
+        // skipping it would defer the failure to a confusing "not defined"
+        // later; the parse error must surface immediately.
+        $script = $this->tmpDir . '/demo.phel';
+        $helper = $this->tmpDir . '/helper.phel';
+        file_put_contents($script, "(ns demo (:require helper))\n");
+        file_put_contents($helper, "(ns helper\n"); // unbalanced form
+
+        $scriptInfo = new NamespaceInformation($script, 'demo', ['helper'], true);
+        $coreInfo = new NamespaceInformation('/phel/core.phel', 'phel.core', [], true);
+
+        $buildFacade = $this->createStub(BuildFacadeInterface::class);
+        $buildFacade->method('getNamespaceFromFile')->willReturnCallback(
+            static fn(string $path): NamespaceInformation => match ($path) {
+                $script => $scriptInfo,
+                default => throw ExtractorException::cannotParseFile($path),
+            },
+        );
+        $buildFacade->method('getDependenciesForNamespace')->willReturn([$coreInfo]);
+        $buildFacade->method('evalFile')->willReturn(new CompiledFile('', '', '', false));
+
+        $commandFacade = $this->createStub(CommandFacadeInterface::class);
+        $commandFacade->method('getSourceDirectories')->willReturn([$this->primarySrc]);
+        $commandFacade->method('getVendorSourceDirectories')->willReturn([]);
+
+        $this->expectException(ExtractorException::class);
+        $this->expectExceptionMessage('Cannot parse file: ' . $helper);
+
+        $this->createFileRunner($buildFacade, $commandFacade)->run($script);
+    }
+
     public function test_does_not_throw_when_ad_hoc_script_requires_a_clojure_compat_namespace(): void
     {
         // A `clojure.*` compat require (e.g. clojure.set) has no on-disk sibling
