@@ -229,22 +229,8 @@ final readonly class ProjectCompiler
 
     private function storeOptimizationLevel(string $dest, int $level): void
     {
-        $file = $dest . '/' . self::OPTIMIZATION_LEVEL_FILE;
-
-        if ($level === 0) {
-            // Level 0 leaves no marker, keeping default builds byte-identical.
-            if (is_file($file)) {
-                @unlink($file);
-            }
-
-            return;
-        }
-
-        if (!is_dir($dest) && !mkdir($dest, 0777, true) && !is_dir($dest)) {
-            throw new RuntimeException(sprintf('Directory "%s" was not created', $dest));
-        }
-
-        file_put_contents($file, (string) $level);
+        // Level 0 leaves no marker, keeping default builds byte-identical.
+        $this->storeMarker($dest, self::OPTIMIZATION_LEVEL_FILE, $level === 0 ? null : (string) $level);
     }
 
     private function storedStripSymbolMeta(string $dest): bool
@@ -254,10 +240,19 @@ final readonly class ProjectCompiler
 
     private function storeStripSymbolMeta(string $dest, bool $strip): void
     {
-        $file = $dest . '/' . self::STRIP_SYMBOL_META_FILE;
+        // No marker for default builds, mirroring the optimization-level file.
+        $this->storeMarker($dest, self::STRIP_SYMBOL_META_FILE, $strip ? '1' : null);
+    }
 
-        if (!$strip) {
-            // No marker for default builds, mirroring the optimization-level file.
+    /**
+     * Write a build-settings marker file, or delete it when `$content` is
+     * null (the setting is at its default and must leave no trace).
+     */
+    private function storeMarker(string $dest, string $name, ?string $content): void
+    {
+        $file = $dest . '/' . $name;
+
+        if ($content === null) {
             if (is_file($file)) {
                 @unlink($file);
             }
@@ -269,7 +264,7 @@ final readonly class ProjectCompiler
             throw new RuntimeException(sprintf('Directory "%s" was not created', $dest));
         }
 
-        file_put_contents($file, '1');
+        file_put_contents($file, $content);
     }
 
     private function getFileMtime(string $file): int
