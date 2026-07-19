@@ -44,14 +44,14 @@
 
 (defn print-str
   "Same as print. But instead of writing it to an output stream, the resulting string is returned."
-  [& xs]
+  ^string [& xs]
   (print-joined (php/:: Printer (nonReadable)) xs))
 
 (defn pr-str
   "Same as `print-str`, but prints each value readably: strings are quoted and escaped so the output can be read back. Phel has no dedicated char type, so character literals such as `\\A` are single-character strings and print as `\"A\"` (ClojureScript-aligned; Clojure/JVM would print `\\A`)."
   {:example "(pr-str \"a\" 1) ; => \"\\\"a\\\" 1\""
    :see-also ["print-str" "prn-str" "prn"]}
-  [& xs]
+  ^string [& xs]
   (print-joined (php/:: Printer (readable)) xs))
 
 (defn print
@@ -71,7 +71,7 @@
   "Same as `println`, but instead of writing to an output stream the resulting string is returned, with a trailing newline."
   {:example "(println-str \"a\" \"b\") ; => \"a b\\n\""
    :see-also ["print-str" "println"]}
-  [& xs]
+  ^string [& xs]
   (str (apply print-str xs) "\n"))
 
 (defn pr
@@ -95,7 +95,7 @@
   "Same as `prn`, but instead of writing to an output stream the resulting string is returned, with a trailing newline."
   {:example "(prn-str \"a\" 1) ; => \"\\\"a\\\" 1\\n\""
    :see-also ["pr-str" "println-str" "prn"]}
-  [& xs]
+  ^string [& xs]
   (str (apply pr-str xs) "\n"))
 
 (defn format

@@ -1,0 +1,17 @@
+--PHEL--
+(fn [xs] (let [n (count xs)] (if (> n 10) :big :small)))
+(fn [a b] (let [c (compare a b)] (if (< c 0) :lt :gte)))
+--PHP--
+(function($xs) {
+  static $__phel_const_0, $__phel_const_1, $__phel_call_0;
+  /** @var int $n_1 */
+  $n_1 = ($__phel_call_0 ??= \Phel::getDefinition("phel.core", "count"))->__invoke($xs);
+  return ((($n_1 > 10)) ? ($__phel_const_0 ??= \Phel\Lang\Keyword::create("big")) : ($__phel_const_1 ??= \Phel\Lang\Keyword::create("small")));
+
+});(function($a, $b) {
+  static $__phel_const_0, $__phel_const_1, $__phel_call_0;
+  /** @var int $c_2 */
+  $c_2 = ($__phel_call_0 ??= \Phel::getDefinition("phel.core", "compare"))->__invoke($a, $b);
+  return ((($c_2 < 0)) ? ($__phel_const_0 ??= \Phel\Lang\Keyword::create("lt")) : ($__phel_const_1 ??= \Phel\Lang\Keyword::create("gte")));
+
+});

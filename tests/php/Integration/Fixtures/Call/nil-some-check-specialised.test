@@ -7,6 +7,6 @@
   return ($x === null);
 });(function($x) {
   return ($x !== null);
-});(function(array $a) {
+});(function(array $a): int {
   return count($a);
 });
