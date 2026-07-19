@@ -27,7 +27,7 @@ Generates PHP wrapper classes for Phel functions marked `^{:export true}`, so PH
 | `Domain/Generator/Builder/CompiledPhpMethodBuilder` | Renders one wrapper method via reflection + token template |
 | `Domain/Generator/Builder/CompiledPhpClassBuilder` | Wraps methods into a namespaced class |
 | `Domain/DirectoryRemover/DirectoryRemover` | Wipes target dir before regen |
-| `Domain/ReadModel/{FunctionToExport,Wrapper}` | Value objects |
+| `Domain/ReadModel/FunctionToExport` | Value object (`Wrapper` lives in `Phel\Shared\Interop`) |
 | `PhelCallerTrait` | Mixed into every wrapper; `callPhel(ns, def, ...args)` |
 
 ## Key Constraints

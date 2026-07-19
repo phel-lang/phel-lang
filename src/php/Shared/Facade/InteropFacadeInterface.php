@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Phel\Shared\Facade;
 
-use Phel\Interop\Domain\ReadModel\Wrapper;
+use Phel\Shared\Interop\Wrapper;
 
 interface InteropFacadeInterface
 {
