@@ -9,7 +9,6 @@ Converts Phel/PHP values into string representations. Stateless strategy pattern
 | `Printer::readable()` | reader round-trippable output |
 | `Printer::readableWithColor()` | readable + ANSI color |
 | `Printer::nonReadable()` | human-facing output (e.g. `str`) |
-| `Printer::installAsTypeStringifier()` | installs `readable()` as global `Lang\TypeStringifier` at startup |
 | `print(mixed $form): string` | instance method; dispatches by type |
 
 ## Structure
@@ -20,7 +19,7 @@ Converts Phel/PHP values into string representations. Stateless strategy pattern
 
 ## Dependencies
 
-- `Phel\Lang` types only (`Keyword`, `Symbol`, `PhelVar`, `BigDecimal`, `UUID`, `Ratio`, persistent collections, `TypeStringifier`, …).
+- `Phel\Lang` types only (`Keyword`, `Symbol`, `PhelVar`, `BigDecimal`, `UUID`, `Ratio`, persistent collections, …).
 
 ## Non-obvious renderings
 

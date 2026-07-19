@@ -22,11 +22,15 @@ Cross-module facade contracts: Compiler, Build, Run, Command, Console, Formatter
 - `AbstractLocatedException` — base for located errors; carries `SourceLocation` + `ErrorCode` (enum, PHEL001-PHEL310: analyzer, parser, reader, lexer)
 - `FileException` (file/dir ops); `CompiledCodeIsMalformedException` (wraps PHP `eval()` parse errors)
 - `Exceptions/Hint/` — pure error→hint mappers (`ExceptionHintInterface` + `UndefinedSymbolHint`, `ArgumentCountHint`, `NotCallableHint`) and `ExceptionHintResolver` (first applicable hint, unwrapping one `getPrevious()` level). Shared so both the REPL formatter (Run) and the CLI error writer (Command) surface identical guidance.
+- `ExceptionPrinterInterface` — contract for exception/stack-trace rendering; implemented by `Command\Application\TextExceptionPrinter`, consumed by Run's REPL error formatter. Lives here so `CommandFacadeInterface` doesn't back-reference `Command\Domain`.
 
 ## Value Objects
 
 - `NamespaceInformation` — `final readonly` DTO (`file`, `namespace`, `dependencies`, `isPrimaryDefinition`); produced by Build, consumed across Build/Run/Interop. Lives here so Shared facade contracts don't back-reference a foreign module's `Domain`.
 - `Eval/` — `final readonly` VOs for eval outcomes: `EvalResult` (`success()`/`incomplete()`/`failure()` named ctors), `EvalError`, `StackFrame`. Returned by `RunFacadeInterface::structuredEval()`, consumed by Nrepl/Watch. Producing orchestration lives in `Run\Application\StructuredEvaluator`, so these stay logic-free.
+- `CompiledFile` — `final readonly` DTO (`sourceFile`, `targetFile`, `namespace`, `cached`); produced by Build's compilers, returned by `BuildFacadeInterface`.
+- `Interop/Wrapper` — `final readonly` DTO (relative path + compiled PHP) for generated export wrappers; returned by `InteropFacadeInterface::generateExportCode()`.
+- `Api/` — `PhelFunction`, `CompletionResultTransfer`: `final readonly` DTOs for function metadata and typed REPL completions; returned by `ApiFacadeInterface`, consumed by Api/Lsp/Nrepl/Run.
 
 ## Parser Model
 

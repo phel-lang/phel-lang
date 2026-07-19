@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Phel\Interop\Domain\Generator;
 
 use Phel\Interop\Domain\ReadModel\FunctionToExport;
-use Phel\Interop\Domain\ReadModel\Wrapper;
+use Phel\Shared\Interop\Wrapper;
 
 interface WrapperGeneratorInterface
 {

@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace PhelTest\Unit\Nrepl\Domain\Op;
 
-use Phel\Api\Transfer\CompletionResultTransfer;
 use Phel\Nrepl\Application\Op\CompletionsOp;
 use Phel\Nrepl\Domain\Op\OpRequest;
+use Phel\Shared\Api\CompletionResultTransfer;
 use Phel\Shared\Facade\ApiFacadeInterface;
 use PHPUnit\Framework\TestCase;
 

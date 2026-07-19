@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace PhelTest\Unit\Api\Application;
 
 use Phel\Api\Application\CompletionDocFormatter;
-use Phel\Api\Transfer\PhelFunction;
+use Phel\Shared\Api\PhelFunction;
 use PHPUnit\Framework\TestCase;
 
 use function str_repeat;

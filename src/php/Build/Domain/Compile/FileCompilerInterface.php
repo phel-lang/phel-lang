@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace Phel\Build\Domain\Compile;
 
+use Phel\Shared\CompiledFile;
+
 interface FileCompilerInterface
 {
     /**

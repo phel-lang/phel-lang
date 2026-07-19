@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Phel\Interop\Domain\ReadModel;
+namespace Phel\Shared\Interop;
 
 final readonly class Wrapper
 {

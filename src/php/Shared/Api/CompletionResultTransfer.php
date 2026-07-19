@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Phel\Api\Transfer;
+namespace Phel\Shared\Api;
 
 final readonly class CompletionResultTransfer
 {

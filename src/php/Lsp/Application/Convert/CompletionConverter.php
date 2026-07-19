@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Phel\Lsp\Application\Convert;
 
 use Phel\Api\Transfer\Completion;
-use Phel\Api\Transfer\PhelFunction;
+use Phel\Shared\Api\PhelFunction;
 
 /**
  * Convert Api Completion / PhelFunction into LSP CompletionItem.

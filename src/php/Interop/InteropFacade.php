@@ -5,9 +5,9 @@ declare(strict_types=1);
 namespace Phel\Interop;
 
 use Gacela\Framework\AbstractFacade;
-use Phel\Interop\Domain\ReadModel\Wrapper;
 use Phel\Shared\Exceptions\CompilerException;
 use Phel\Shared\Facade\InteropFacadeInterface;
+use Phel\Shared\Interop\Wrapper;
 use Symfony\Component\Console\Output\OutputInterface;
 use Throwable;
 

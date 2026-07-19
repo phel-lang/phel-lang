@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Phel\Api\Domain;
 
-use Phel\Api\Transfer\CompletionResultTransfer;
+use Phel\Shared\Api\CompletionResultTransfer;
 
 interface ReplCompleterInterface
 {

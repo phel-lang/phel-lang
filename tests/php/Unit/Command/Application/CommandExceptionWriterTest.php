@@ -6,11 +6,11 @@ namespace PhelTest\Unit\Command\Application;
 
 use Phel\Command\Application\CommandExceptionWriter;
 use Phel\Command\Domain\ErrorLogInterface;
-use Phel\Command\Domain\Exceptions\ExceptionPrinterInterface;
 use Phel\Command\Domain\Exceptions\Extractor\FilePositionExtractorInterface;
 use Phel\Command\Domain\Exceptions\Extractor\ReadModel\FilePosition;
 use Phel\Lang\SourceLocation;
 use Phel\Shared\Exceptions\AbstractLocatedException;
+use Phel\Shared\Exceptions\ExceptionPrinterInterface;
 use Phel\Shared\Exceptions\Hint\ExceptionHintResolver;
 use Phel\Shared\Exceptions\Hint\NotCallableHint;
 use Phel\Shared\Exceptions\Hint\UndefinedSymbolHint;

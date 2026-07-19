@@ -21,7 +21,7 @@ REPL autocompletion, function introspection/docs, and user-code semantic analysi
 | `phelSignatureAt(source, line, col, currentNs = 'user'): ?array` | LSP signature help for a plain Phel function call (`PhelSignatureResolver`) |
 | `createApiDaemon(): ApiDaemon` | Long-running JSON-RPC daemon |
 
-Project-level transfers: `ProjectIndex`, `Definition`, `Location`, `Completion`, `Diagnostic`, `PhelFunction`.
+Project-level transfers: `ProjectIndex`, `Definition`, `Location`, `Completion`, `Diagnostic`. `PhelFunction` and `CompletionResultTransfer` live in `Phel\Shared\Api` (referenced by `ApiFacadeInterface`).
 
 ## Dependencies
 
