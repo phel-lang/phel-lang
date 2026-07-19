@@ -1,0 +1,9 @@
+--PHEL--
+(def u (use \DateTimeImmutable))
+--PHP--
+\Phel::addDefinition(
+  "user",
+  "u",
+  null,
+  \Phel::locationMeta(\Phel::location("Ns/use-in-expression.test", 1, 0), \Phel::location("Ns/use-in-expression.test", 1, 32))
+);
