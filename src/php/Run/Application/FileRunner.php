@@ -11,7 +11,6 @@ use Phel\Shared\CompilerConstants;
 use Phel\Shared\Facade\BuildFacadeInterface;
 use Phel\Shared\Facade\CommandFacadeInterface;
 use Phel\Shared\NamespaceInformation;
-use Throwable;
 
 use function array_unique;
 use function array_values;
@@ -177,7 +176,15 @@ final readonly class FileRunner
 
         try {
             $info = $this->buildFacade->getNamespaceFromFile($path);
-        } catch (Throwable) {
+        } catch (ExtractorException $extractorException) {
+            // A sibling file exists but cannot be read/parsed. Tolerate it
+            // only when the namespace resolves some other way; otherwise the
+            // script is broken and silently skipping the dependency would
+            // just defer the failure to a confusing "not defined" later.
+            if (!$this->isResolvableWithoutSibling($namespace)) {
+                throw $extractorException;
+            }
+
             return;
         }
 
