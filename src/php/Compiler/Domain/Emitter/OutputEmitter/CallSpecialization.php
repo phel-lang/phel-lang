@@ -42,11 +42,16 @@ final readonly class CallSpecialization
             || TypePredicateSpecialization::isTypePredicate($node)
             || TypedValueSpecialization::isEmptyCheck($node)
             || TypedValueSpecialization::isContainsCheck($node)
+            || NumericOperationSpecialization::isNotEqPeephole($node)
         ) {
             return true;
         }
 
-        return TypePredicateSpecialization::isNumericPredicate($node) !== null;
+        if (TypePredicateSpecialization::isNumericPredicate($node) !== null) {
+            return true;
+        }
+
+        return NumericOperationSpecialization::isTypedComparison($node);
     }
 
     public static function isSpecialized(CallNode $node): bool
