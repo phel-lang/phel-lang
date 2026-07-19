@@ -32,7 +32,7 @@ final class CompileCommandTest extends AbstractTestCommand
         // Pre-fold path: a non-foldable arg keeps the runtime call shape so
         // the compile output still demonstrates the registry-cached form.
         // `php/getenv` is intentionally NOT in
-        // `KnownPhpFunctionReturnTypes`, so the analyser cannot prove
+        // `PhpFunctionReturnTypes`, so the analyser cannot prove
         // `int|float` and the typed-arith specialiser bails to dispatch.
         $tester = new CommandTester(new CompileCommand());
         $tester->execute(['source' => '(+ (php/getenv "HOME") 2)']);

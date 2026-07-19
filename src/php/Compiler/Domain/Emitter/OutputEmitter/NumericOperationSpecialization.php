@@ -9,6 +9,7 @@ use Phel\Compiler\Domain\Analyzer\Ast\CallNode;
 use Phel\Compiler\Domain\Analyzer\Ast\LiteralNode;
 use Phel\Compiler\Domain\Analyzer\Ast\LocalVarNode;
 use Phel\Compiler\Domain\Analyzer\Ast\PhpVarNode;
+use Phel\Compiler\Domain\Analyzer\TypeAnalyzer\PhpFunctionReturnTypes;
 use Phel\Lang\Keyword;
 
 use function array_all;
@@ -342,7 +343,7 @@ final readonly class NumericOperationSpecialization
      *    / a class FQN). The numeric / equality specialiser was built
      *    around this case in PR #2148.
      *  - `CallNode` whose `fn` is a `PhpVarNode` listed in
-     *    {@see KnownPhpFunctionReturnTypes}. The fn name resolves to a
+     *    {@see PhpFunctionReturnTypes::operandReturnTypeOf()}. The fn name resolves to a
      *    PHP scalar function whose return shape is fixed (`php/cos` →
      *    `float`, `php/count` → `int`, etc.), so the call site can be
      *    spliced into a native binary op the same way a tagged local
@@ -365,7 +366,7 @@ final readonly class NumericOperationSpecialization
 
         $fn = $arg->getFn();
         if ($fn instanceof PhpVarNode) {
-            return KnownPhpFunctionReturnTypes::returnTypeOf($fn->getName());
+            return PhpFunctionReturnTypes::operandReturnTypeOf($fn->getName());
         }
 
         // Nested typed-arith / typed-equality calls keep their numeric tag so

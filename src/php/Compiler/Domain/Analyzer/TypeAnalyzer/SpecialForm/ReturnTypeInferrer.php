@@ -16,6 +16,7 @@ use Phel\Compiler\Domain\Analyzer\Ast\LocalVarNode;
 use Phel\Compiler\Domain\Analyzer\Ast\PhpVarNode;
 use Phel\Compiler\Domain\Analyzer\Ast\RecurNode;
 use Phel\Compiler\Domain\Analyzer\Ast\ThrowNode;
+use Phel\Compiler\Domain\Analyzer\TypeAnalyzer\PhpFunctionReturnTypes;
 use Phel\Lang\Collections\Map\PersistentMapInterface;
 use Phel\Lang\Keyword;
 use Phel\Lang\Symbol;
@@ -319,7 +320,7 @@ final class ReturnTypeInferrer
             return $this->inferNumeric($node, $locals);
         }
 
-        $pureReturnType = PurePhpFunctionReturnTypes::returnTypeOf($op);
+        $pureReturnType = PhpFunctionReturnTypes::strictReturnTypeOf($op);
         if ($pureReturnType !== null) {
             return $this->publish($pureReturnType);
         }
