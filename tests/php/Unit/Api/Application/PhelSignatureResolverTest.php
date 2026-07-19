@@ -6,7 +6,7 @@ namespace PhelTest\Unit\Api\Application;
 
 use Phel\Api\Application\PhelSignatureResolver;
 use Phel\Api\Domain\SymbolMetadataFinderInterface;
-use Phel\Api\Transfer\PhelFunction;
+use Phel\Shared\Api\PhelFunction;
 use PHPUnit\Framework\TestCase;
 
 use function strlen;

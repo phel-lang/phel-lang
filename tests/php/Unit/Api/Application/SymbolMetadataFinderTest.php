@@ -6,10 +6,10 @@ namespace PhelTest\Unit\Api\Application;
 
 use Phel\Api\Application\SymbolMetadataFinder;
 use Phel\Api\Domain\PhelFnNormalizerInterface;
-use Phel\Api\Transfer\PhelFunction;
 use Phel\Lang\Keyword;
 use Phel\Lang\Registry;
 use Phel\Lang\TypeFactory;
+use Phel\Shared\Api\PhelFunction;
 use Phel\Shared\Munge;
 use PHPUnit\Framework\TestCase;
 

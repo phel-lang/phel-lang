@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Phel\Api\Application;
 
 use Phel\Api\Domain\SymbolMetadataFinderInterface;
-use Phel\Api\Transfer\PhelFunction;
+use Phel\Shared\Api\PhelFunction;
 
 use function array_slice;
 use function count;

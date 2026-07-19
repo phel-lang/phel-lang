@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Phel\Api\Application;
 
-use Phel\Api\Transfer\PhelFunction;
+use Phel\Shared\Api\PhelFunction;
 
 use function preg_replace;
 use function rtrim;

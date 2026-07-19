@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace Phel\Shared\Facade;
 
-use Phel\Api\Transfer\CompletionResultTransfer;
-use Phel\Api\Transfer\PhelFunction;
+use Phel\Shared\Api\CompletionResultTransfer;
+use Phel\Shared\Api\PhelFunction;
 
 interface ApiFacadeInterface
 {
