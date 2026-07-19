@@ -58,6 +58,11 @@ final class BuildConfig extends AbstractConfig implements BuildConfigInterface
         return max(0, ScalarCoercion::toInt($this->get(PhelConfig::OPTIMIZATION_LEVEL, CompileOptions::DEFAULT_OPTIMIZATION_LEVEL)));
     }
 
+    public function shouldStripSymbolMeta(): bool
+    {
+        return (bool) $this->get(PhelConfig::STRIP_SYMBOL_META, false);
+    }
+
     public function isNamespaceCacheEnabled(): bool
     {
         return (bool) $this->get(PhelConfig::ENABLE_NAMESPACE_CACHE, true);

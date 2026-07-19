@@ -70,6 +70,7 @@ final class BuildFactory extends AbstractFactory
             $this->createNamespaceExtractor(),
             $this->createFileIo(),
             $this->getConfig()->getOptimizationLevel(),
+            $this->getConfig()->shouldStripSymbolMeta(),
         );
     }
 
@@ -167,6 +168,7 @@ final class BuildFactory extends AbstractFactory
             $this->createCompiledSecondaryStore(),
             $this->createCompiledCodeCache(),
             $this->getConfig()->getOptimizationLevel(),
+            $this->getConfig()->shouldStripSymbolMeta(),
         );
     }
 

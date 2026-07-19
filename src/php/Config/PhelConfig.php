@@ -61,6 +61,8 @@ final readonly class PhelConfig implements JsonSerializable
 
     public const string OPTIMIZATION_LEVEL = 'optimization-level';
 
+    public const string STRIP_SYMBOL_META = 'strip-symbol-meta';
+
     /** @var list<string> */
     public const array DEFAULT_SRC_DIRS = ['src'];
 
@@ -99,6 +101,7 @@ final readonly class PhelConfig implements JsonSerializable
         public bool $enableIntermediateCache = false,
         public string $phelDir = '',
         public int $optimizationLevel = 0,
+        public bool $stripSymbolMeta = false,
     ) {
         $this->tempDir = $tempDir === null
             ? sys_get_temp_dir() . self::PHEL_TEMP_SUBDIR . '/tmp'
@@ -557,6 +560,20 @@ final readonly class PhelConfig implements JsonSerializable
         return $this->with(['optimizationLevel' => max(0, $level)]);
     }
 
+    /**
+     * When enabled, `phel build` removes symbol metadata (source locations,
+     * docstrings, arglists, arity info) from the compiled output. Meta is
+     * only consumed at compile time, so a deployed artifact loads faster
+     * and smaller without it — but runtime introspection (`phel doc`,
+     * `(meta ...)`) over the built defs returns nil, and every build with
+     * the flag flipped forces a full recompile. Intended for production
+     * builds only.
+     */
+    public function withStripSymbolMeta(bool $strip = true): self
+    {
+        return $this->with(['stripSymbolMeta' => $strip]);
+    }
+
     // ========================================
     // Validation
     // ========================================
@@ -600,6 +617,7 @@ final readonly class PhelConfig implements JsonSerializable
             self::CACHE_DIR => $this->cacheDir,
             self::PHEL_DIR => $this->phelDir,
             self::OPTIMIZATION_LEVEL => $this->optimizationLevel,
+            self::STRIP_SYMBOL_META => $this->stripSymbolMeta,
         ];
     }
 
@@ -632,6 +650,7 @@ final readonly class PhelConfig implements JsonSerializable
             'enableIntermediateCache' => $this->enableIntermediateCache,
             'phelDir' => $this->phelDir,
             'optimizationLevel' => $this->optimizationLevel,
+            'stripSymbolMeta' => $this->stripSymbolMeta,
         ];
 
         return new self(...[...$base, ...$overrides]);

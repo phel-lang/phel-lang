@@ -43,6 +43,7 @@ final readonly class SecondaryFileHarvester
         private CompiledSecondaryStore $compiledSecondaryStore,
         private ?CompiledCodeCacheInterface $compiledCodeCache = null,
         private int $optimizationLevel = 0,
+        private bool $stripSymbolMeta = false,
     ) {}
 
     /**
@@ -63,6 +64,12 @@ final readonly class SecondaryFileHarvester
 
         $targetPath = $destDir . '/' . $this->targetPathResolver->resolve($secondary, $sourceDirectories);
         $this->ensureDir(dirname($targetPath));
+        if ($this->stripSymbolMeta) {
+            // Same artifact-only strip as FileCompiler: the cached/stored
+            // code was evaluated with full meta during the build.
+            $phpCode = SymbolMetaStripper::strip($phpCode);
+        }
+
         $this->fileIo->putContents($targetPath, $phpCode);
         $this->fileIo->putContents(
             SourceMapSiblings::sourceFile($targetPath),

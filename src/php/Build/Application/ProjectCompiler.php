@@ -32,6 +32,15 @@ final readonly class ProjectCompiler
      */
     private const string OPTIMIZATION_LEVEL_FILE = '.phel-optimization-level';
 
+    /**
+     * Marker file recording that the last build stripped symbol meta. A
+     * stripped target file must never be reused as cache by a non-strip
+     * build (its `require_once` would register defs without meta, degrading
+     * downstream inference), and vice versa — flipping the flag forces a
+     * full recompile, same pattern as the optimization-level marker.
+     */
+    private const string STRIP_SYMBOL_META_FILE = '.phel-strip-symbol-meta';
+
     private CompiledTargetPathResolver $targetPathResolver;
 
     public function __construct(
@@ -79,7 +88,9 @@ final readonly class ProjectCompiler
         LoadClasspath::publish($srcDirectories);
 
         $optimizationLevel = $buildOptions->getOptimizationLevel() ?? $this->config->getOptimizationLevel();
-        $optimizationLevelChanged = $this->storedOptimizationLevel($dest) !== $optimizationLevel;
+        $stripSymbolMeta = $this->config->shouldStripSymbolMeta();
+        $optimizationLevelChanged = $this->storedOptimizationLevel($dest) !== $optimizationLevel
+            || $this->storedStripSymbolMeta($dest) !== $stripSymbolMeta;
 
         $namespaceInformation = $this->namespaceExtractor->getNamespacesFromDirectories($srcDirectories);
         /** @var list<CompiledFile> $result */
@@ -145,6 +156,7 @@ final readonly class ProjectCompiler
         }
 
         $this->storeOptimizationLevel($dest, $optimizationLevel);
+        $this->storeStripSymbolMeta($dest, $stripSymbolMeta);
         $this->harvestSecondaries($namespaceInformation, $dest, $srcDirectories);
 
         if ($this->config->shouldCreateEntryPointPhpFile()) {
@@ -217,10 +229,30 @@ final readonly class ProjectCompiler
 
     private function storeOptimizationLevel(string $dest, int $level): void
     {
-        $file = $dest . '/' . self::OPTIMIZATION_LEVEL_FILE;
+        // Level 0 leaves no marker, keeping default builds byte-identical.
+        $this->storeMarker($dest, self::OPTIMIZATION_LEVEL_FILE, $level === 0 ? null : (string) $level);
+    }
 
-        if ($level === 0) {
-            // Level 0 leaves no marker, keeping default builds byte-identical.
+    private function storedStripSymbolMeta(string $dest): bool
+    {
+        return is_file($dest . '/' . self::STRIP_SYMBOL_META_FILE);
+    }
+
+    private function storeStripSymbolMeta(string $dest, bool $strip): void
+    {
+        // No marker for default builds, mirroring the optimization-level file.
+        $this->storeMarker($dest, self::STRIP_SYMBOL_META_FILE, $strip ? '1' : null);
+    }
+
+    /**
+     * Write a build-settings marker file, or delete it when `$content` is
+     * null (the setting is at its default and must leave no trace).
+     */
+    private function storeMarker(string $dest, string $name, ?string $content): void
+    {
+        $file = $dest . '/' . $name;
+
+        if ($content === null) {
             if (is_file($file)) {
                 @unlink($file);
             }
@@ -232,7 +264,7 @@ final readonly class ProjectCompiler
             throw new RuntimeException(sprintf('Directory "%s" was not created', $dest));
         }
 
-        file_put_contents($file, (string) $level);
+        file_put_contents($file, $content);
     }
 
     private function getFileMtime(string $file): int

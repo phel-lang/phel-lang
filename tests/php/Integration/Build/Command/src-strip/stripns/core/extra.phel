@@ -1,0 +1,6 @@
+(in-ns stripns\core)
+
+(defn extra-tag
+  "Returns a marker string (see (extra-tag))."
+  []
+  "extra-ok")

@@ -7,6 +7,7 @@ namespace Phel\Build\Application;
 use Phel\Build\BuildFacade;
 use Phel\Build\Domain\Compile\CompiledFile;
 use Phel\Build\Domain\Compile\FileCompilerInterface;
+use Phel\Build\Domain\Compile\SymbolMetaStripper;
 use Phel\Build\Domain\Extractor\NamespaceExtractorInterface;
 use Phel\Build\Domain\IO\FileIoInterface;
 use Phel\Shared\CompileOptions;
@@ -23,6 +24,7 @@ final readonly class FileCompiler implements FileCompilerInterface
         private NamespaceExtractorInterface $namespaceExtractor,
         private FileIoInterface $fileIo,
         private int $defaultOptimizationLevel = CompileOptions::DEFAULT_OPTIMIZATION_LEVEL,
+        private bool $stripSymbolMeta = false,
     ) {}
 
     public function compileFile(string $src, string $dest, bool $enableSourceMaps, ?int $optimizationLevel = null): CompiledFile
@@ -43,11 +45,21 @@ final readonly class FileCompiler implements FileCompilerInterface
             BuildFacade::disableBuildMode();
         }
 
-        $phpCode = BuiltFilePreamble::prepend($result->getPhpCode());
+        $phpCode = $result->getPhpCode();
+        if ($this->stripSymbolMeta) {
+            // Strip only what gets written: the definitions were already
+            // evaluated (with full meta) into the registry during compile,
+            // so downstream namespaces in this build still see the meta.
+            $phpCode = SymbolMetaStripper::strip($phpCode);
+        }
+
+        $phpCode = BuiltFilePreamble::prepend($phpCode);
 
         $this->fileIo->putContents($dest, $phpCode);
         $this->writeSourceReference($dest, $phelCode);
-        $this->writeSourceMap($dest, $result->getSourceMap(), $enableSourceMaps);
+        // Stripping shifts line numbers, so a source map computed from the
+        // unstripped emission would mislead; drop it alongside the meta.
+        $this->writeSourceMap($dest, $result->getSourceMap(), $enableSourceMaps && !$this->stripSymbolMeta);
         $this->compileWithOpcache($dest);
 
         $namespaceInfo = $this->namespaceExtractor->getNamespaceFromFile($src);
