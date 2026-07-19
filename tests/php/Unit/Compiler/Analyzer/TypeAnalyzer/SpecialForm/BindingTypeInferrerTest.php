@@ -81,7 +81,7 @@ final class BindingTypeInferrerTest extends TestCase
     public function test_php_count_infers_int_and_floor_infers_float(): void
     {
         $count = $this->letBinding('c', $this->phpCall('count', [new LiteralNode($this->env, null)]));
-        // `php/floor` returns float, not int — guards the KnownPhpFunctionReturnTypes fix.
+        // `php/floor` returns float, not int — guards the PhpFunctionReturnTypes float entries.
         $floor = $this->letBinding('f', $this->phpCall('floor', [new LiteralNode($this->env, 1.5)]));
 
         new BindingTypeInferrer()->graftLetBindings([$count, $floor]);
