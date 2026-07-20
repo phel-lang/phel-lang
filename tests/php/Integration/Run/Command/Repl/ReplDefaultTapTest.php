@@ -12,6 +12,10 @@ use PHPUnit\Framework\Attributes\PreserveGlobalState;
 use PHPUnit\Framework\Attributes\RunInSeparateProcess;
 use Symfony\Component\Console\Input\InputInterface;
 
+use function array_filter;
+use function array_values;
+use function str_starts_with;
+
 final class ReplDefaultTapTest extends AbstractTestCommand
 {
     use ReplCommandTestTrait;
@@ -47,20 +51,19 @@ final class ReplDefaultTapTest extends AbstractTestCommand
         );
         $this->prepareRunFactory($io);
 
-        // print-tap writes via php/print, which goes to real stdout rather
-        // than the captured ReplTestIo — buffer it.
-        ob_start();
-        try {
-            new ReplCommand()->run(
-                $this->createStub(InputInterface::class),
-                $this->stubOutput(),
-            );
-        } finally {
-            $stdout = ob_get_clean();
-        }
+        new ReplCommand()->run(
+            $this->createStub(InputInterface::class),
+            $this->stubOutput(),
+        );
 
-        self::assertStringContainsString('tap> ', (string) $stdout, 'default tap must print a "tap> " line');
-        self::assertStringContainsString(':hello', (string) $stdout, 'default tap must print the tapped value');
+        // print-tap writes `tap> <value>` via php/print; ReplTestIo drains that
+        // stdout into its transcript. The tap line starts with `tap> `, unlike
+        // the echoed input prompt `user:1> (tap> :hello)`, so filter on that
+        // prefix (a bare `tap> `/`:hello` substring would also hit the echo).
+        // println-colorful wraps the value in ANSI codes, so match a substring.
+        $tapLines = array_values($this->tapLines($io));
+        self::assertCount(1, $tapLines, 'default tap must print exactly one "tap> " line');
+        self::assertStringContainsString(':hello', $tapLines[0], 'the tap line must carry the tapped value');
     }
 
     #[RunInSeparateProcess]
@@ -75,17 +78,28 @@ final class ReplDefaultTapTest extends AbstractTestCommand
         );
         $this->prepareRunFactory($io);
 
-        ob_start();
-        try {
-            new ReplCommand()->run(
-                $this->createStub(InputInterface::class),
-                $this->stubOutput(),
-            );
-        } finally {
-            $stdout = ob_get_clean();
-        }
+        new ReplCommand()->run(
+            $this->createStub(InputInterface::class),
+            $this->stubOutput(),
+        );
 
-        self::assertStringNotContainsString('tap> ', (string) $stdout, 'removed tap must not print');
-        self::assertStringNotContainsString(':silent', (string) $stdout, 'removed tap must not print the tapped value');
+        // No `tap> ...` line after removal. The echoed input prompt
+        // `user:2> (tap> :silent)` starts with `user:`, not `tap> `, so the
+        // prefix filter distinguishes them.
+        self::assertSame([], array_values($this->tapLines($io)), 'removed tap must not print a "tap> " line');
+    }
+
+    /**
+     * Output lines the default tap handler produced: those starting with
+     * `tap> `. Excludes echoed input prompts like `user:2> (tap> :x)`.
+     *
+     * @return list<string>
+     */
+    private function tapLines(ReplTestIo $io): array
+    {
+        return array_values(array_filter(
+            $io->getOutputLines(),
+            static fn(string $line): bool => str_starts_with($line, 'tap> '),
+        ));
     }
 }

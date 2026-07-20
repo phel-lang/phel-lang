@@ -26,12 +26,10 @@ final class ReplCommandTest extends AbstractTestCommand
 
     private string $previousCwd = '';
 
-    #[Override]
     protected function setUp(): void
     {
         parent::setUp();
         $this->previousCwd = getcwd() ?: '';
-
         // Namespace resolution keys off Gacela's app root, so it has to equal
         // the working directory: `require-current-dir.test` requires
         // `util.phel` from where the REPL runs, while the core-lib fixtures

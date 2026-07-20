@@ -3,7 +3,7 @@ user:1> (defn str-contains?
 ....:3>   {:deprecated "Use phel\\string\\contains?"}
 ....:4>   [str s]
 ....:5>   (php/str_contains str s))
-1
+#'user/str-contains?
 user:6> (doc str-contains?)
 (str-contains? str s)
 

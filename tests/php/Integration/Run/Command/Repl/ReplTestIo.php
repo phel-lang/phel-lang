@@ -18,6 +18,11 @@ use Throwable;
 
 use function array_slice;
 use function count;
+use function ob_clean;
+use function ob_end_clean;
+use function ob_get_contents;
+use function ob_get_level;
+use function ob_start;
 
 final class ReplTestIo implements ReplCommandIoInterface
 {
@@ -28,6 +33,18 @@ final class ReplTestIo implements ReplCommandIoInterface
     private array $inputs = [];
 
     private int $currentIndex = 0;
+
+    /**
+     * Output-buffer nesting level this IO owns, or 0 when not capturing.
+     *
+     * The real REPL writes results and `println`/`doc` output to one stdout
+     * stream, so they interleave. This double buffers results in {@see $outputs}
+     * instead, so `println` (hard-coded `php/print`) would otherwise land on a
+     * separate real stdout and be lost or reordered. Owning a dedicated `ob_*`
+     * level and draining it into {@see $outputs} on every write restores the
+     * real interleaving while keeping the array-based accessors intact.
+     */
+    private int $captureLevel = 0;
 
     private readonly ReplErrorFormatter $errorFormatter;
 
@@ -52,6 +69,10 @@ final class ReplTestIo implements ReplCommandIoInterface
 
     public function readline(?string $prompt = null): ?string
     {
+        // Begin capturing before the first eval so any `println`/`doc` output
+        // it produces is interleaved with the results, not sent to real stdout.
+        $this->startCapture();
+
         if ($this->currentIndex < count($this->inputs)) {
             $inputLine = $this->inputs[$this->currentIndex];
             $this->writeln($inputLine->__toString());
@@ -84,6 +105,7 @@ final class ReplTestIo implements ReplCommandIoInterface
 
     public function write(string $string = ''): void
     {
+        $this->drainCapture();
         $this->outputs[] = $string;
     }
 
@@ -94,6 +116,7 @@ final class ReplTestIo implements ReplCommandIoInterface
      */
     public function writeln(string $string = ''): void
     {
+        $this->drainCapture();
         $this->outputs[] = $string . PHP_EOL;
     }
 
@@ -108,6 +131,8 @@ final class ReplTestIo implements ReplCommandIoInterface
      */
     public function getOutputs(): array
     {
+        $this->finishCapture();
+
         return array_slice($this->outputs, 2, -1);
     }
 
@@ -121,6 +146,8 @@ final class ReplTestIo implements ReplCommandIoInterface
      */
     public function getRawOutputs(): array
     {
+        $this->finishCapture();
+
         return $this->outputs;
     }
 
@@ -134,6 +161,8 @@ final class ReplTestIo implements ReplCommandIoInterface
      */
     public function getOutputLines(): array
     {
+        $this->finishCapture();
+
         return array_map(
             static fn(string $output): string => rtrim($output, PHP_EOL),
             $this->outputs,
@@ -143,5 +172,57 @@ final class ReplTestIo implements ReplCommandIoInterface
     public function isBracketedPasteSupported(): bool
     {
         return false;
+    }
+
+    /**
+     * Open a dedicated output buffer the first time the REPL produces output.
+     * Its level is recorded so {@see drainCapture()}/{@see finishCapture()}
+     * only ever touch our own buffer, never PHPUnit's or a surrounding test's.
+     */
+    private function startCapture(): void
+    {
+        if ($this->captureLevel === 0) {
+            ob_start();
+            $this->captureLevel = ob_get_level();
+        }
+    }
+
+    /**
+     * Move whatever `println`/`doc` wrote to real stdout since the last write
+     * into {@see $outputs}, in place, so it interleaves with the results.
+     */
+    private function drainCapture(): void
+    {
+        if ($this->captureLevel === 0 || ob_get_level() !== $this->captureLevel) {
+            return;
+        }
+
+        $pending = ob_get_contents();
+        if ($pending !== false && $pending !== '') {
+            ob_clean();
+            $this->outputs[] = $pending;
+        }
+    }
+
+    /**
+     * Drain any trailing stdout and close our buffer. Idempotent, and safe to
+     * call from every accessor so reads always see the complete transcript.
+     */
+    private function finishCapture(): void
+    {
+        if ($this->captureLevel === 0) {
+            return;
+        }
+
+        if (ob_get_level() === $this->captureLevel) {
+            $pending = ob_get_contents();
+            if ($pending !== false && $pending !== '') {
+                $this->outputs[] = $pending;
+            }
+
+            ob_end_clean();
+        }
+
+        $this->captureLevel = 0;
     }
 }

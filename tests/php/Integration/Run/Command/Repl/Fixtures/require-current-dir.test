@@ -1,5 +1,5 @@
 user:1> (ns main (:require util :refer [greeter]))
-1
+nil
 user:2> (println (greeter "Johny"))
 hi, Johny
 nil
