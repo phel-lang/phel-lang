@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace PhelTest\Integration;
 
 use Gacela\Framework\Gacela;
+use Gacela\Framework\Testing\GacelaTestCase;
 use Phel\Api\ApiFacade;
 use Phel\Build\BuildFacade;
 use Phel\Command\CommandFacade;
@@ -14,15 +15,14 @@ use Phel\Filesystem\FilesystemFacade;
 use Phel\Formatter\FormatterFacade;
 use Phel\Interop\InteropFacade;
 use Phel\Run\RunFacade;
-use PHPUnit\Framework\TestCase;
 
 use function sprintf;
 
-final class ProvidesAttributeTest extends TestCase
+final class ProvidesAttributeTest extends GacelaTestCase
 {
     protected function setUp(): void
     {
-        Gacela::bootstrap(__DIR__);
+        $this->bootstrapGacela(__DIR__);
     }
 
     public function test_all_facades_resolve_from_container(): void
@@ -45,6 +45,9 @@ final class ProvidesAttributeTest extends TestCase
                 '%s should be resolvable from the Gacela container',
                 $facadeClass,
             ));
+            // Event-backed cross-check: the container (not a stale locator
+            // cache from a previous test) actually resolved the service.
+            $this->assertServiceResolved($facadeClass);
         }
     }
 

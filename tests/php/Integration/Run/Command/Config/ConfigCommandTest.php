@@ -4,35 +4,24 @@ declare(strict_types=1);
 
 namespace PhelTest\Integration\Run\Command\Config;
 
-use Gacela\Framework\Bootstrap\GacelaConfig;
-use Gacela\Framework\Gacela;
-use Gacela\Framework\Testing\ContainerFixture;
+use Gacela\Framework\Testing\GacelaTestCase;
 use Phel\Config\PhelConfig;
 use Phel\Run\Infrastructure\Command\ConfigCommand;
-use PHPUnit\Framework\TestCase;
 use Symfony\Component\Console\Tester\CommandTester;
 
 use function json_decode;
 
 use const JSON_THROW_ON_ERROR;
 
-final class ConfigCommandTest extends TestCase
+final class ConfigCommandTest extends GacelaTestCase
 {
-    use ContainerFixture;
-
     protected function setUp(): void
     {
-        $this->resetContainer();
-        Gacela::bootstrap(__DIR__, static function (GacelaConfig $config): void {
-            $config->addAppConfigKeyValue(PhelConfig::SRC_DIRS, ['src/phel']);
-            $config->addAppConfigKeyValue(PhelConfig::VENDOR_DIR, 'vendor');
-            $config->addAppConfigKeyValue(PhelConfig::CACHE_DIR, '.phel/cache');
-        });
-    }
-
-    protected function tearDown(): void
-    {
-        $this->cleanupContainerTempDirs();
+        $this->bootstrapGacelaWithConfig(__DIR__, [
+            PhelConfig::SRC_DIRS => ['src/phel'],
+            PhelConfig::VENDOR_DIR => 'vendor',
+            PhelConfig::CACHE_DIR => '.phel/cache',
+        ]);
     }
 
     public function test_default_output_lists_sources_and_effective_config(): void
@@ -57,13 +46,12 @@ final class ConfigCommandTest extends TestCase
 
     public function test_valid_config_reports_no_validation_issues(): void
     {
-        $this->resetContainer();
         // Point src/test dirs at the project root, which always exists, so the
         // config validates clean.
-        Gacela::bootstrap(__DIR__, static function (GacelaConfig $config): void {
-            $config->addAppConfigKeyValue(PhelConfig::SRC_DIRS, ['.']);
-            $config->addAppConfigKeyValue(PhelConfig::TEST_DIRS, ['.']);
-        });
+        $this->bootstrapGacelaWithConfig(__DIR__, [
+            PhelConfig::SRC_DIRS => ['.'],
+            PhelConfig::TEST_DIRS => ['.'],
+        ]);
 
         $tester = new CommandTester(new ConfigCommand());
         $exitCode = $tester->execute([]);
@@ -76,10 +64,9 @@ final class ConfigCommandTest extends TestCase
 
     public function test_absolute_src_dir_is_reported_in_the_validation_section(): void
     {
-        $this->resetContainer();
-        Gacela::bootstrap(__DIR__, static function (GacelaConfig $config): void {
-            $config->addAppConfigKeyValue(PhelConfig::SRC_DIRS, ['/absolute/src']);
-        });
+        $this->bootstrapGacelaWithConfig(__DIR__, [
+            PhelConfig::SRC_DIRS => ['/absolute/src'],
+        ]);
 
         $tester = new CommandTester(new ConfigCommand());
         $exitCode = $tester->execute([]);

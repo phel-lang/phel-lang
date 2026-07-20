@@ -4,31 +4,25 @@ declare(strict_types=1);
 
 namespace PhelTest\Integration\Run\Command\Doctor;
 
-use Gacela\Framework\Bootstrap\GacelaConfig;
-use Gacela\Framework\Gacela;
-use Gacela\Framework\Testing\ContainerFixture;
+use Gacela\Framework\Testing\GacelaTestCase;
 use Phel\Config\PhelConfig;
 use Phel\Run\Infrastructure\Command\DoctorCommand;
-use PHPUnit\Framework\TestCase;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\BufferedOutput;
 
-final class DoctorCommandTest extends TestCase
+final class DoctorCommandTest extends GacelaTestCase
 {
-    use ContainerFixture;
-
     protected function setUp(): void
     {
-        $this->resetContainer();
-        $tempDir = $this->containerTempDir();
-        Gacela::bootstrap(__DIR__, static function (GacelaConfig $config) use ($tempDir): void {
-            $config->addAppConfigKeyValue(PhelConfig::TEMP_DIR, $tempDir);
-        });
+        $this->bootstrapGacelaWithConfig(__DIR__, [
+            PhelConfig::TEMP_DIR => $this->containerTempDir(),
+        ]);
     }
 
     protected function tearDown(): void
     {
         $this->cleanupContainerTempDirs();
+        parent::tearDown();
     }
 
     public function test_doctor_command_outputs_success(): void
@@ -71,12 +65,10 @@ final class DoctorCommandTest extends TestCase
 
     public function test_doctor_fails_when_configuration_has_an_error(): void
     {
-        $this->resetContainer();
-        $tempDir = $this->containerTempDir();
-        Gacela::bootstrap(__DIR__, static function (GacelaConfig $config) use ($tempDir): void {
-            $config->addAppConfigKeyValue(PhelConfig::TEMP_DIR, $tempDir);
-            $config->addAppConfigKeyValue(PhelConfig::SRC_DIRS, ['/absolute/src']);
-        });
+        $this->bootstrapGacelaWithConfig(__DIR__, [
+            PhelConfig::TEMP_DIR => $this->containerTempDir(),
+            PhelConfig::SRC_DIRS => ['/absolute/src'],
+        ]);
 
         $output = new BufferedOutput();
         $exitCode = new DoctorCommand()->run(
@@ -93,12 +85,11 @@ final class DoctorCommandTest extends TestCase
 
     public function test_doctor_succeeds_when_temp_dir_does_not_exist_yet(): void
     {
-        $this->resetContainer();
         $nonExistentTempDir = sys_get_temp_dir() . '/phel-doctor-fresh-' . uniqid('', true);
 
-        Gacela::bootstrap(__DIR__, static function (GacelaConfig $config) use ($nonExistentTempDir): void {
-            $config->addAppConfigKeyValue(PhelConfig::TEMP_DIR, $nonExistentTempDir);
-        });
+        $this->bootstrapGacelaWithConfig(__DIR__, [
+            PhelConfig::TEMP_DIR => $nonExistentTempDir,
+        ]);
 
         self::assertDirectoryDoesNotExist($nonExistentTempDir);
 
