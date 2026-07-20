@@ -7,7 +7,6 @@ namespace Phel\Compiler\Domain\Emitter\OutputEmitter\NodeEmitter;
 use Phel\Compiler\Domain\Analyzer\Ast\AbstractNode;
 use Phel\Compiler\Domain\Analyzer\Ast\NsNode;
 use Phel\Compiler\Domain\Emitter\OutputEmitter\NodeEmitterInterface;
-use Phel\Shared\Munge;
 
 use function addslashes;
 use function assert;
@@ -15,6 +14,7 @@ use function count;
 
 final class NsEmitter implements NodeEmitterInterface
 {
+    use NsStateDefinitionsEmitterTrait;
     use WithOutputEmitterTrait;
 
     public function emit(AbstractNode $node): void
@@ -122,32 +122,9 @@ final class NsEmitter implements NodeEmitterInterface
             );
         }
 
-        $this->outputEmitter->emitLine('\\Phel::addDefinition(');
-        $this->outputEmitter->increaseIndentLevel();
-        $this->outputEmitter->emitStr('"');
-        $this->outputEmitter->emitStr(addslashes($this->outputEmitter->mungeEncodeRegistryKey('phel.core')));
-        $this->outputEmitter->emitLine('",');
-        $this->outputEmitter->emitStr('"');
-        $this->outputEmitter->emitStr(addslashes('*file*'));
-        $this->outputEmitter->emitLine('",');
-
-        $file = $node->getStartSourceLocation()?->getFile() ?? '';
-        $this->outputEmitter->emitLiteral($file);
-        $this->outputEmitter->emitLine();
-        $this->outputEmitter->decreaseIndentLevel();
-        $this->outputEmitter->emitLine(');');
-
-        $this->outputEmitter->emitLine('\\Phel::addDefinition(');
-        $this->outputEmitter->increaseIndentLevel();
-        $this->outputEmitter->emitStr('"');
-        $this->outputEmitter->emitStr(addslashes($this->outputEmitter->mungeEncodeRegistryKey('phel.core')));
-        $this->outputEmitter->emitLine('",');
-        $this->outputEmitter->emitStr('"');
-        $this->outputEmitter->emitStr(addslashes('*ns*'));
-        $this->outputEmitter->emitLine('",');
-        $this->outputEmitter->emitLiteral(Munge::displayNs($node->getNamespace()));
-        $this->outputEmitter->emitLine();
-        $this->outputEmitter->decreaseIndentLevel();
-        $this->outputEmitter->emitLine(');');
+        $this->emitFileAndNsDefinitions(
+            $node->getNamespace(),
+            $node->getStartSourceLocation()?->getFile() ?? '',
+        );
     }
 }

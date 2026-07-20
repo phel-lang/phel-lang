@@ -6,7 +6,6 @@ namespace Phel\Compiler\Domain\Analyzer\TypeAnalyzer\SpecialForm;
 
 use Phel;
 use Phel\Compiler\Domain\Analyzer\AnalyzerInterface;
-use Phel\Compiler\Domain\Analyzer\Ast\BindingNode;
 use Phel\Compiler\Domain\Analyzer\Ast\LetNode;
 use Phel\Compiler\Domain\Analyzer\Ast\RecurFrame;
 use Phel\Compiler\Domain\Analyzer\Environment\NodeEnvironment;
@@ -18,7 +17,6 @@ use Phel\Lang\Collections\Vector\PersistentVectorInterface;
 use Phel\Lang\Symbol;
 
 use function count;
-use function gettype;
 
 /**
  * (loop [bindings] body).
@@ -27,6 +25,8 @@ use function gettype;
  */
 final readonly class LoopSymbol implements SpecialFormAnalyzerInterface
 {
+    use AnalyzeBindingsTrait;
+
     public function __construct(
         private AnalyzerInterface $analyzer,
         private BindingValidator $bindingValidator,
@@ -163,41 +163,5 @@ final readonly class LoopSymbol implements SpecialFormAnalyzerInterface
             $recurFrame->isActive(),
             $list->getStartLocation(),
         );
-    }
-
-    /**
-     * @param PersistentVectorInterface<mixed> $vector
-     *
-     * @return list<BindingNode>
-     */
-    private function analyzeBindings(PersistentVectorInterface $vector, NodeEnvironmentInterface $env): array
-    {
-        $vectorCount = count($vector);
-        $initEnv = $env->withExpressionContext()->withDisallowRecurFrame();
-        $nodes = [];
-        for ($i = 0; $i < $vectorCount; $i += 2) {
-            $sym = $vector->get($i);
-            if (!($sym instanceof Symbol)) {
-                throw AnalyzerException::withLocation('Binding name must be a symbol, got: ' . gettype($sym), $vector);
-            }
-
-            $shadowSym = Symbol::gen($sym->getName() . '_')->copyLocationFrom($sym);
-            $init = $vector->get($i + 1);
-
-            $nextBoundTo = $initEnv->getBoundTo() . '.' . $sym->getName();
-            $expr = $this->analyzer->analyze($init, $initEnv->withBoundTo($nextBoundTo));
-
-            $nodes[] = new BindingNode(
-                $env,
-                $sym,
-                $shadowSym,
-                $expr,
-                $sym->getStartLocation(),
-            );
-
-            $initEnv = $initEnv->withLocalAndShadow($sym, $shadowSym);
-        }
-
-        return $nodes;
     }
 }

@@ -21,6 +21,7 @@ use function ltrim;
 
 final class LetEmitter implements NodeEmitterInterface
 {
+    use LoweredMatchEmitterTrait;
     use WithOutputEmitterTrait;
 
     /** @var list<string> Tags that map straight to a PHP primitive type */
@@ -102,23 +103,7 @@ final class LetEmitter implements NodeEmitterInterface
             return false;
         }
 
-        $loc = $node->getStartSourceLocation();
-        $this->outputEmitter->emitContextPrefix($env, $loc);
-        $this->outputEmitter->emitStr('match (', $loc);
-        $this->outputEmitter->emitNode($shape['init']);
-        $this->outputEmitter->emitStr(') { ', $loc);
-
-        foreach ($shape['arms'] as $arm) {
-            $this->outputEmitter->emitLiteral($arm['key']);
-            $this->outputEmitter->emitStr(' => ', $loc);
-            $this->outputEmitter->emitLiteral($arm['expr']);
-            $this->outputEmitter->emitStr(', ', $loc);
-        }
-
-        $this->outputEmitter->emitStr('default => ', $loc);
-        $this->outputEmitter->emitLiteral($shape['fallback']);
-        $this->outputEmitter->emitStr(' }', $loc);
-        $this->outputEmitter->emitContextSuffix($env, $loc);
+        $this->emitLoweredMatch($shape, $env, $node->getStartSourceLocation());
 
         return true;
     }
