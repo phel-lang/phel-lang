@@ -13,6 +13,13 @@ use PHPUnit\Framework\TestCase;
 
 final class LexerTest extends TestCase
 {
+    /**
+     * A deprecation notice must not name a concrete version as its removal
+     * target: the release it promises inevitably ships and the message goes
+     * stale (see #2783, which sat on "v0.33" until v0.48).
+     */
+    private const string VERSION_REFERENCE = '/v?\d+\.\d+(\.\d+)?/';
+
     private CompilerFactory $compilerFactory;
 
     protected function setUp(): void
@@ -363,8 +370,9 @@ final class LexerTest extends TestCase
         }
 
         self::assertNotNull($warning);
-        self::assertStringContainsString('v0.33', $warning);
+        self::assertStringContainsString('a future release', $warning);
         self::assertStringContainsString('";"', $warning);
+        self::assertDoesNotMatchRegularExpression(self::VERSION_REFERENCE, $warning);
     }
 
     public function test_semicolon_comment_does_not_emit_deprecation(): void
@@ -399,8 +407,9 @@ final class LexerTest extends TestCase
         }
 
         self::assertNotNull($warning);
-        self::assertStringContainsString('v0.33', $warning);
+        self::assertStringContainsString('a future release', $warning);
         self::assertStringContainsString(';;', $warning);
+        self::assertDoesNotMatchRegularExpression(self::VERSION_REFERENCE, $warning);
     }
 
     public function test_pipe_fn_emits_deprecation(): void
@@ -811,7 +820,7 @@ final class LexerTest extends TestCase
         self::assertSame(Token::T_COMMENT, $tokens[0]->getType());
         self::assertSame('#| multiline |#', $tokens[0]->getCode());
         self::assertNotNull($warning);
-        self::assertStringContainsString('v0.33', $warning);
+        self::assertDoesNotMatchRegularExpression(self::VERSION_REFERENCE, $warning);
     }
 
     public function test_bare_hash_line_comment_still_deprecated_but_works(): void
@@ -830,7 +839,7 @@ final class LexerTest extends TestCase
 
         self::assertSame(Token::T_COMMENT, $tokens[0]->getType());
         self::assertNotNull($warning);
-        self::assertStringContainsString('v0.33', $warning);
+        self::assertDoesNotMatchRegularExpression(self::VERSION_REFERENCE, $warning);
     }
 
     public function test_var_quote_prefix_lexes_as_single_token(): void
