@@ -111,16 +111,16 @@ final class ReplPromptNamespaceTest extends AbstractTestCommand
             $this->stubOutput(),
         );
 
-        $outputs = $io->getRawOutputs();
-        self::assertSame('user:1> *ns*' . PHP_EOL, $outputs[2]);
+        $outputs = $io->getOutputLines();
+        self::assertSame('user:1> *ns*', $outputs[2]);
         self::assertSame('user', $outputs[3]);
-        self::assertSame('user:2> (ns mordor.core)' . PHP_EOL, $outputs[4]);
+        self::assertSame('user:2> (ns mordor.core)', $outputs[4]);
         self::assertSame('nil', $outputs[5]);
-        self::assertSame('mordor.core:3> *ns*' . PHP_EOL, $outputs[6]);
+        self::assertSame('mordor.core:3> *ns*', $outputs[6]);
         self::assertSame('mordor.core', $outputs[7]);
-        self::assertSame('mordor.core:4> (require [phel.test :as t])' . PHP_EOL, $outputs[8]);
+        self::assertSame('mordor.core:4> (require [phel.test :as t])', $outputs[8]);
         self::assertSame('phel.test', $outputs[9]);
-        self::assertSame('mordor.core:5> *ns*' . PHP_EOL, $outputs[10]);
+        self::assertSame('mordor.core:5> *ns*', $outputs[10]);
         self::assertSame('mordor.core', $outputs[11]);
     }
 

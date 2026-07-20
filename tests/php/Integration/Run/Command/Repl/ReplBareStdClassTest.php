@@ -45,7 +45,7 @@ final class ReplBareStdClassTest extends AbstractTestCommand
         self::assertSame(0, $exitCode);
         self::assertCount(
             2,
-            array_keys($io->getRawOutputs(), 'Printer cannot print this type: stdClass', strict: true),
+            array_keys($io->getOutputLines(), 'Printer cannot print this type: stdClass', strict: true),
         );
     }
 
