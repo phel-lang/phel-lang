@@ -1,0 +1,4 @@
+user:1> (use DateTimeZone :as TZ)
+nil
+user:2> (php/-> (php/new TZ "UTC") (getName))
+"UTC"
