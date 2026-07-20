@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Phel;
 
 use Closure;
+use Gacela\Framework\Config\AppEnv;
 use Gacela\Framework\Config\MergedConfigCache;
 
 use function basename;
@@ -12,7 +13,6 @@ use function dirname;
 use function implode;
 use function is_dir;
 use function is_file;
-use function is_string;
 use function md5;
 use function md5_file;
 use function preg_replace;
@@ -36,12 +36,15 @@ final readonly class MergedConfigCacheInvalidator
 {
     /**
      * @param string         $cacheDir          The dir where Gacela persists the merged-config cache
+     * @param string         $appRootDir        The app root Gacela scopes the cache filename to (1.18+);
+     *                                          must match the dir passed to `Gacela::bootstrap()`
      * @param list<string>   $fingerprintInputs Absolute paths whose contents determine the merged
      *                                          config (project config files + config data-model classes)
      * @param Closure():void $reloadConfig      Reloads Gacela's config from source after a cache clear
      */
     public function __construct(
         private string $cacheDir,
+        private string $appRootDir,
         private array $fingerprintInputs,
         private Closure $reloadConfig,
     ) {}
@@ -84,14 +87,12 @@ final readonly class MergedConfigCacheInvalidator
 
     /**
      * Rebuild Gacela's merged-config cache handle from public API only, mirroring
-     * how Gacela constructs it: the resolved cache dir plus the optional
-     * `APP_ENV` suffix.
+     * how Gacela constructs it: the resolved cache dir, the optional `APP_ENV`
+     * suffix, and the app root the filename is scoped to since Gacela 1.18.
      */
     private function mergedConfigCache(): MergedConfigCache
     {
-        $env = getenv('APP_ENV');
-
-        return new MergedConfigCache($this->cacheDir, is_string($env) ? $env : '');
+        return new MergedConfigCache($this->cacheDir, AppEnv::current(), $this->appRootDir);
     }
 
     /**

@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace PhelTest\Unit;
 
 use Closure;
+use Gacela\Framework\Config\MergedConfigCache;
 use Phel\MergedConfigCacheInvalidator;
 use PHPUnit\Framework\TestCase;
 
@@ -67,7 +68,7 @@ final class MergedConfigCacheInvalidatorTest extends TestCase
     {
         $input = $this->dir . '/phel-config.php';
         file_put_contents($input, '<?php return 1;');
-        $cacheFile = $this->dir . '/gacela-merged-config.php';
+        $cacheFile = $this->cacheFilename();
         file_put_contents($cacheFile, '<?php return [];');
 
         $reloads = 0;
@@ -77,18 +78,18 @@ final class MergedConfigCacheInvalidatorTest extends TestCase
 
         self::assertSame(1, $reloads);
         self::assertFileDoesNotExist($cacheFile);
-        self::assertFileExists($this->dir . '/gacela-merged-config.fingerprint');
+        self::assertFileExists($this->fingerprintFilename());
     }
 
     public function test_refresh_skips_when_fingerprint_matches(): void
     {
         $input = $this->dir . '/phel-config.php';
         file_put_contents($input, '<?php return 1;');
-        $cacheFile = $this->dir . '/gacela-merged-config.php';
+        $cacheFile = $this->cacheFilename();
         file_put_contents($cacheFile, '<?php return [];');
 
         $fresh = $this->invalidator([$input]);
-        file_put_contents($this->dir . '/gacela-merged-config.fingerprint', $fresh->fingerprint());
+        file_put_contents($this->fingerprintFilename(), $fresh->fingerprint());
 
         $reloads = 0;
         $this->invalidator([$input], static function () use (&$reloads): void {
@@ -99,12 +100,35 @@ final class MergedConfigCacheInvalidatorTest extends TestCase
         self::assertFileExists($cacheFile);
     }
 
+    public function test_refresh_targets_the_app_scoped_cache_file(): void
+    {
+        // The app-scoped filename (Gacela 1.18+) embeds a hash of the app root,
+        // so it must differ from the legacy unscoped one the invalidator used
+        // to address before it learned about the app root.
+        self::assertNotSame($this->dir . '/gacela-merged-config.php', $this->cacheFilename());
+        self::assertStringStartsWith($this->dir . '/gacela-merged-config-', $this->cacheFilename());
+    }
+
+    /**
+     * The exact cache filename Gacela computes for this cache dir and app root.
+     */
+    private function cacheFilename(): string
+    {
+        return new MergedConfigCache($this->dir, '', $this->dir)->filename();
+    }
+
+    private function fingerprintFilename(): string
+    {
+        return (string) preg_replace('/\.php$/', '.fingerprint', $this->cacheFilename());
+    }
+
     /**
      * @param list<string> $inputs
      */
     private function invalidator(array $inputs, ?Closure $reload = null): MergedConfigCacheInvalidator
     {
         return new MergedConfigCacheInvalidator(
+            $this->dir,
             $this->dir,
             $inputs,
             $reload ?? static function (): void {},

@@ -29,6 +29,7 @@ All notable changes to this project will be documented in this file.
 
 ### Changed
 
+- Gacela updated to 1.18: the persisted merged-config cache is now scoped per app root, so projects sharing the default system temp dir no longer read each other's merged config; Phel's freshness invalidator targets the scoped cache file
 - `partition-all` accepts Clojure's `[n step coll]` arity (#2758)
 - `partition` accepts Clojure's `[n step coll]` and `[n step pad coll]` arities; `[n coll]` unchanged (#2752)
 

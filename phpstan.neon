@@ -42,13 +42,6 @@ parameters:
                 - src/php/Config/PhelExportConfig.php
                 - src/php/Lang/Collections/LazySeq/LazySeqConfig.php
                 - src/php/Lang/TypeFactory.php
-        # CompilerFacade::encodeNs() delegates through Gacela's cached() helper,
-        # which is typed `mixed`. The gacela.facadeOnlyDelegates rule forbids
-        # narrowing the result inline (a facade method must be a single
-        # delegation), so the mixed return cannot be cast away here.
-        -
-            identifier: return.type
-            path: src/php/Compiler/CompilerFacade.php
         # PhelConfig::with() rebuilds the immutable config by spreading a merged
         # array<string, mixed> into the constructor as named arguments. PHPStan
         # cannot map the dynamic spread back to each typed parameter; the public
@@ -56,12 +49,6 @@ parameters:
         -
             identifier: argument.type
             path: src/php/Config/PhelConfig.php
-        # CommandFacade's directory getters delegate through Gacela's cached()
-        # helper (mixed return) and the gacela.facadeOnlyDelegates rule forbids
-        # inline narrowing, mirroring CompilerFacade::encodeNs above.
-        -
-            identifier: return.type
-            path: src/php/Command/CommandFacade.php
         # Printer's dispatchers select a TypePrinterInterface<Concrete> per
         # runtime-matched type, which is sound by construction but an
         # existential type: generic invariance cannot relate it to the

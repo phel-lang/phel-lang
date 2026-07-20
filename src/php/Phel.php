@@ -224,6 +224,7 @@ class Phel
 
         return new MergedConfigCacheInvalidator(
             $config->getCacheDir(),
+            $appRootDir,
             [
                 $appRootDir . '/' . self::PHEL_CONFIG_FILE_NAME,
                 $appRootDir . '/' . self::PHEL_CONFIG_LOCAL_FILE_NAME,
