@@ -23,6 +23,8 @@ interface HandlerInterface
      * (ignored for notifications).
      *
      * @param array<string, mixed> $params
+     *
+     * @return array<array-key, mixed>|null
      */
-    public function handle(array $params, Session $session): mixed;
+    public function handle(array $params, Session $session): ?array;
 }

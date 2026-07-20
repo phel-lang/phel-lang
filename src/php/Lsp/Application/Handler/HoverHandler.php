@@ -39,8 +39,10 @@ final readonly class HoverHandler implements HandlerInterface
 
     /**
      * @param array<string, mixed> $params
+     *
+     * @return array<string, mixed>|null
      */
-    public function handle(array $params, Session $session): mixed
+    public function handle(array $params, Session $session): ?array
     {
         $context = CursorContext::resolve($params, $session, $this->params, requireIndex: false);
         if (!$context instanceof CursorContext) {

@@ -35,8 +35,10 @@ final readonly class FormattingHandler implements HandlerInterface
 
     /**
      * @param array<string, mixed> $params
+     *
+     * @return list<array<string, mixed>>
      */
-    public function handle(array $params, Session $session): mixed
+    public function handle(array $params, Session $session): array
     {
         $uri = $this->params->uri($params);
         if ($uri === '') {

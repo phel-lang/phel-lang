@@ -106,7 +106,7 @@ final class Lexer implements LexerInterface
     /**
      * @throws LexerValueException
      *
-     * @return Generator<Token>
+     * @return Generator<int, Token>
      */
     private function lexStringGenerator(string $code, string $source, int $startingLine): Generator
     {

@@ -61,9 +61,9 @@ final class RequestDispatcherTest extends TestCase
     public function test_dispatches_params_default_to_empty_array_when_missing(): void
     {
         $captured = [];
-        $handler = $this->newHandler('probe', isNotification: false, onHandle: static function (array $params) use (&$captured): string {
+        $handler = $this->newHandler('probe', isNotification: false, onHandle: static function (array $params) use (&$captured): array {
             $captured = $params;
-            return 'ok';
+            return ['status' => 'ok'];
         });
 
         $dispatcher = new RequestDispatcher(new ResponseBuilder());
@@ -72,15 +72,15 @@ final class RequestDispatcherTest extends TestCase
         $response = $dispatcher->dispatch(['id' => 2, 'method' => 'probe'], $this->newSession());
 
         self::assertSame([], $captured);
-        self::assertSame('ok', $response['result'] ?? null);
+        self::assertSame(['status' => 'ok'], $response['result'] ?? null);
     }
 
     public function test_params_of_wrong_type_default_to_empty_array(): void
     {
         $captured = [];
-        $handler = $this->newHandler('probe', isNotification: false, onHandle: static function (array $params) use (&$captured): string {
+        $handler = $this->newHandler('probe', isNotification: false, onHandle: static function (array $params) use (&$captured): array {
             $captured = $params;
-            return 'ok';
+            return ['status' => 'ok'];
         });
 
         $dispatcher = new RequestDispatcher(new ResponseBuilder());
@@ -93,7 +93,7 @@ final class RequestDispatcherTest extends TestCase
         ], $this->newSession());
 
         self::assertSame([], $captured);
-        self::assertSame('ok', $response['result'] ?? null);
+        self::assertSame(['status' => 'ok'], $response['result'] ?? null);
     }
 
     public function test_handler_exception_becomes_internal_error_for_request(): void
@@ -127,7 +127,7 @@ final class RequestDispatcherTest extends TestCase
 
     public function test_notification_result_not_wrapped_in_response(): void
     {
-        $handler = $this->newHandler('note', isNotification: true, onHandle: static fn(): string => 'ignored');
+        $handler = $this->newHandler('note', isNotification: true, onHandle: static fn(): array => ['ignored' => true]);
 
         $dispatcher = new RequestDispatcher(new ResponseBuilder());
         $dispatcher->register($handler);
@@ -175,9 +175,12 @@ final class RequestDispatcherTest extends TestCase
                 return $this->notification;
             }
 
-            public function handle(array $params, Session $session): mixed
+            public function handle(array $params, Session $session): ?array
             {
-                return ($this->onHandle)($params, $session);
+                /** @var array<array-key, mixed>|null $result */
+                $result = ($this->onHandle)($params, $session);
+
+                return $result;
             }
         };
     }

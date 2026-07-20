@@ -40,11 +40,11 @@ final class OpDispatcher
     }
 
     /**
-     * @param mixed $message decoded bencode value (expected to be an assoc array)
+     * @param array<string, mixed>|int|list<mixed>|string $message decoded bencode value (expected to be an assoc array)
      *
      * @return list<OpResponse>
      */
-    public function dispatch(mixed $message): array
+    public function dispatch(int|string|array $message): array
     {
         if (!is_array($message)) {
             return [new OpResponse([

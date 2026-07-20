@@ -36,8 +36,10 @@ final readonly class InitializeHandler implements HandlerInterface
 
     /**
      * @param array<string, mixed> $params
+     *
+     * @return array<string, mixed>
      */
-    public function handle(array $params, Session $session): mixed
+    public function handle(array $params, Session $session): array
     {
         $session->setClientCapabilities($this->clientCapabilities($params));
         $roots = $this->extractWorkspaceRoots($params);

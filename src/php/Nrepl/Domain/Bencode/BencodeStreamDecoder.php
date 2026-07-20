@@ -33,7 +33,7 @@ final class BencodeStreamDecoder
     /**
      * Pop all complete messages currently in the buffer.
      *
-     * @return list<mixed>
+     * @return list<array<string, mixed>|int|list<mixed>|string>
      */
     public function drain(): array
     {
