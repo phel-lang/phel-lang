@@ -45,6 +45,8 @@ final readonly class PhelConfig implements JsonSerializable
 
     public const string FORMAT_DIRS = 'format-dirs';
 
+    public const string APP_MODULE_PATHS = 'app-module-paths';
+
     public const string ASSERTS_ENABLED = 'asserts-enabled';
 
     public const string WARN_DEPRECATIONS = 'warn-deprecations';
@@ -80,6 +82,7 @@ final readonly class PhelConfig implements JsonSerializable
      * @param list<string> $ignoreWhenBuilding
      * @param list<string> $noCacheWhenBuilding
      * @param list<string> $formatDirs
+     * @param list<string> $appModulePaths
      */
     public function __construct(
         public array $srcDirs = self::DEFAULT_SRC_DIRS,
@@ -94,6 +97,7 @@ final readonly class PhelConfig implements JsonSerializable
         ?string $tempDir = null,
         string $cacheDir = self::DEFAULT_CACHE_DIR,
         public array $formatDirs = ['src', 'tests'],
+        public array $appModulePaths = [],
         public bool $enableAsserts = true,
         public bool $warnDeprecations = false,
         public bool $enableNamespaceCache = true,
@@ -209,6 +213,14 @@ final readonly class PhelConfig implements JsonSerializable
     public function getFormatDirs(): array
     {
         return $this->formatDirs;
+    }
+
+    /**
+     * @return list<string>
+     */
+    public function getAppModulePaths(): array
+    {
+        return $this->appModulePaths;
     }
 
     public function isAssertsEnabled(): bool
@@ -488,6 +500,26 @@ final readonly class PhelConfig implements JsonSerializable
     }
 
     /**
+     * Directories Gacela scans for app modules (facades, factories, providers).
+     *
+     * Default `[]` keeps Gacela's own default: walk the whole project root.
+     * That walk `class_exists()`-loads every PHP file it finds outside
+     * `vendor/`, so a single file that cannot be loaded standalone (a test
+     * helper extending a `final` constructor, say) turns `phel list:modules`
+     * and `phel cache:warm` into a fatal. Naming the source roots here keeps
+     * discovery away from `tests/` (#2787).
+     *
+     * Only relevant to projects that actually define Gacela modules; leave it
+     * unset otherwise.
+     *
+     * @param list<string> $paths
+     */
+    public function withAppModulePaths(array $paths): self
+    {
+        return $this->with(['appModulePaths' => $paths]);
+    }
+
+    /**
      * Compile and run `(assert ...)` forms. When disabled, assertion code is
      * stripped from the compiled output. Default: `true`.
      */
@@ -609,6 +641,7 @@ final readonly class PhelConfig implements JsonSerializable
             self::KEEP_GENERATED_TEMP_FILES => $this->keepGeneratedTempFiles,
             self::TEMP_DIR => $this->tempDir,
             self::FORMAT_DIRS => $this->formatDirs,
+            self::APP_MODULE_PATHS => $this->appModulePaths,
             self::ASSERTS_ENABLED => $this->enableAsserts,
             self::WARN_DEPRECATIONS => $this->warnDeprecations,
             self::ENABLE_NAMESPACE_CACHE => $this->enableNamespaceCache,
@@ -643,6 +676,7 @@ final readonly class PhelConfig implements JsonSerializable
             'tempDir' => $this->tempDir,
             'cacheDir' => $this->cacheDir,
             'formatDirs' => $this->formatDirs,
+            'appModulePaths' => $this->appModulePaths,
             'enableAsserts' => $this->enableAsserts,
             'warnDeprecations' => $this->warnDeprecations,
             'enableNamespaceCache' => $this->enableNamespaceCache,
