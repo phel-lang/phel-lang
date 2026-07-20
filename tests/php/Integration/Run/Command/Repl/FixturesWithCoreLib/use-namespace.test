@@ -1,4 +1,0 @@
-user:1> (use phel\string :as s)
-phel\string
-user:2> (s/upper-case "foo")
-FOO

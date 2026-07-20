@@ -23,7 +23,6 @@ use PhelTest\Integration\Run\Command\AbstractTestCommand;
 use PHPUnit\Framework\Attributes\PreserveGlobalState;
 use PHPUnit\Framework\Attributes\RunInSeparateProcess;
 use Symfony\Component\Console\Input\InputInterface;
-use Throwable;
 
 final class ReplPromptNamespaceTest extends AbstractTestCommand
 {
@@ -138,20 +137,14 @@ final class ReplPromptNamespaceTest extends AbstractTestCommand
         $this->prepareRunFactory($io);
 
         $replStartupFile = __DIR__ . '/../../../../../../resources/repl/startup.phel';
-        ob_start();
-        try {
-            new ReplCommand()->setReplStartupFile($replStartupFile)->run(
-                $this->createStub(InputInterface::class),
-                $this->stubOutput(),
-            );
-            $stdout = ob_get_clean();
-        } catch (Throwable $throwable) {
-            ob_end_clean();
+        new ReplCommand()->setReplStartupFile($replStartupFile)->run(
+            $this->createStub(InputInterface::class),
+            $this->stubOutput(),
+        );
 
-            throw $throwable;
-        }
-
-        $output = $io->getOutputString() . $stdout;
+        // The test runner prints via php/print; ReplTestIo drains that into its
+        // transcript, so the reported form shows up in getOutputString().
+        $output = $io->getOutputString();
         self::assertStringContainsString('Form: ""', $output);
         self::assertStringNotContainsString('Form: ' . PHP_EOL, $output);
     }

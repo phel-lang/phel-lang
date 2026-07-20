@@ -1,2 +1,2 @@
 user:1> (require phel\html :as html) html/html
-<function>
+<function:html>
