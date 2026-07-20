@@ -56,7 +56,13 @@ trait ReplCommandTestTrait
 
                 public function createPrinter(): PrinterInterface
                 {
-                    return Printer::nonReadable();
+                    // Match production: RunFactory prints with
+                    // Printer::readableWithColor() (strings quoted) since #315fae6e7.
+                    // Color is stubbed off above, so the readable, no-color variant
+                    // is what the user actually sees. The older nonReadable() here
+                    // asserted bare strings the REPL has not emitted for a year, so
+                    // `__FILE__` printed nothing instead of `""`.
+                    return Printer::readable();
                 }
 
                 public function createReplCommandIo(): ReplCommandIoInterface
