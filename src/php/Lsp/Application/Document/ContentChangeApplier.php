@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Phel\Lsp\Application\Document;
 
+use Phel\Lsp\Application\Convert\PositionConverter;
 use Phel\Lsp\Application\Rpc\ParamsExtractor;
 
 use function is_array;
@@ -18,6 +19,8 @@ use function is_string;
  * Isolating this from `DidChangeHandler` lets the handler stay focused on
  * transport and debounced diagnostic publishing, and keeps the mutation rules
  * independently testable.
+ *
+ * @phpstan-import-type Range from PositionConverter
  */
 final readonly class ContentChangeApplier
 {
@@ -43,7 +46,7 @@ final readonly class ContentChangeApplier
             $range = $change['range'] ?? null;
 
             if (is_array($range) && $this->params->isValidRange($range)) {
-                /** @var array{start: array{line: int, character: int}, end: array{line: int, character: int}} $range */
+                /** @var Range $range */
                 $document->applyRange($range, $text);
             } else {
                 $document->update($text, $version);

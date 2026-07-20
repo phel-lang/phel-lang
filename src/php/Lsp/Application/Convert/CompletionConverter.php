@@ -11,6 +11,8 @@ use Phel\Api\Transfer\Completion;
  *
  * LSP CompletionItemKind values: 1 = Text, 2 = Method, 3 = Function,
  * 6 = Variable, 14 = Keyword, ...
+ *
+ * @phpstan-type CompletionItem array{label: string, kind: int, detail: string, documentation: string}
  */
 final class CompletionConverter
 {
@@ -27,7 +29,7 @@ final class CompletionConverter
     public const int KIND_KEYWORD = 14;
 
     /**
-     * @return array{label: string, kind: int, detail: string, documentation: string}
+     * @return CompletionItem
      */
     public function fromCompletion(Completion $completion): array
     {

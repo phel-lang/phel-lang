@@ -4,13 +4,17 @@ declare(strict_types=1);
 
 namespace Phel\Compiler\Domain\Analyzer\TypeAnalyzer\SpecialForm\Binding\Deconstructor;
 
+use Phel\Compiler\Domain\Analyzer\TypeAnalyzer\SpecialForm\Binding\DeconstructorInterface;
 use Phel\Lang\Symbol;
 use Phel\Lang\TypeInterface;
 
+/**
+ * @phpstan-import-type BindingTuple from DeconstructorInterface
+ */
 final class SymbolBindingDeconstructor implements BindingDeconstructorInterface
 {
     /**
-     * @param list<array{0: Symbol, 1: mixed}>         $bindings
+     * @param list<BindingTuple>                       $bindings
      * @param Symbol                                   $binding  The binding form
      * @param bool|float|int|string|TypeInterface|null $value    The value form
      */

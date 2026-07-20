@@ -18,6 +18,8 @@ use function is_string;
  * Mirrors {@see PhpNamespaceCache}: a `var_export`ed PHP file, written through
  * an exclusive `flock` with a disk-merge so concurrent processes don't clobber
  * each other, flushed via `register_shutdown_function`.
+ *
+ * @phpstan-import-type SerializedScanIndexEntry from ScanIndexEntry
  */
 final class PhpScanIndexCache implements ScanIndexCacheInterface
 {
@@ -122,11 +124,7 @@ final class PhpScanIndexCache implements ScanIndexCacheInterface
     }
 
     /**
-     * @return array{version: string, entries: array<string, array{
-     *     perDir: array<string, array{mtime: int, fileCount: int}>,
-     *     files: list<array{file: string, mtime: int}>,
-     *     infos: list<array{file: string, namespace: string, dependencies: list<string>, isPrimaryDefinition: bool}>
-     * }>}
+     * @return array{version: string, entries: array<string, SerializedScanIndexEntry>}
      */
     private function toArray(): array
     {

@@ -17,6 +17,9 @@ use Phel\Lang\TypeInterface;
 
 use function count;
 
+/**
+ * @phpstan-import-type BindingTuple from DeconstructorInterface
+ */
 final readonly class Deconstructor implements DeconstructorInterface
 {
     public function __construct(
@@ -37,9 +40,9 @@ final readonly class Deconstructor implements DeconstructorInterface
     /**
      * Destructure a $binding $value pair and add the result to $bindings.
      *
-     * @param list<array{0: Symbol, 1: mixed}> $bindings A reference to already defined bindings
-     * @param mixed                            $binding  The binding form
-     * @param mixed                            $value    The value form
+     * @param list<BindingTuple> $bindings A reference to already defined bindings
+     * @param mixed              $binding  The binding form
+     * @param mixed              $value    The value form
      *
      * @throws AnalyzerException
      */
