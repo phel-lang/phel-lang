@@ -11,9 +11,6 @@ use PhelTest\Unit\Lang\Collections\ModuloHasher;
 use PhelTest\Unit\Lang\Collections\SimpleEqualizer;
 use PHPUnit\Framework\TestCase;
 
-use function is_float;
-use function is_nan;
-
 final class PersistentSortedSetTest extends TestCase
 {
     public function test_empty(): void
@@ -119,22 +116,21 @@ final class PersistentSortedSetTest extends TestCase
      */
     public function test_equals_is_reflexive_with_nan_element(): void
     {
-        $s = $this->emptySet($this->nanAwareComparator())->add(NAN)->add(1);
+        $s = $this->emptySet()->add(NAN)->add(1);
 
         $this->assertTrue($s->equals($s));
     }
 
     /**
      * A NaN element is never `=` to itself, so a set carrying one is unequal to
-     * any *distinct* set, matching PersistentHashSet. The comparator here
+     * any *distinct* set, matching PersistentHashSet. The default comparator
      * matches NaN, so `contains(NAN)` succeeds; without the guard in `equals()`
      * the element walk would then wrongly report the two sets equal.
      */
     public function test_equals_is_false_for_distinct_sets_carrying_nan(): void
     {
-        $comparator = $this->nanAwareComparator();
-        $s1 = $this->emptySet($comparator)->add(NAN)->add(1);
-        $s2 = $this->emptySet($comparator)->add(NAN)->add(1);
+        $s1 = $this->emptySet()->add(NAN)->add(1);
+        $s2 = $this->emptySet()->add(NAN)->add(1);
 
         $this->assertTrue($s1->contains(NAN));
         $this->assertFalse($s1->equals($s2));
@@ -230,33 +226,6 @@ final class PersistentSortedSetTest extends TestCase
 
         self::assertCount(1, $s1);
         self::assertCount(2, $s2);
-    }
-
-    /**
-     * Java `Double.compare` / Clojure `compare` semantics: NaN sorts equal to
-     * itself and after every other number. Users may legitimately supply such a
-     * comparator, and under it membership lookup matches NaN.
-     */
-    private function nanAwareComparator(): callable
-    {
-        return static function (mixed $a, mixed $b): int {
-            $aIsNan = is_float($a) && is_nan($a);
-            $bIsNan = is_float($b) && is_nan($b);
-
-            if ($aIsNan && $bIsNan) {
-                return 0;
-            }
-
-            if ($aIsNan) {
-                return 1;
-            }
-
-            if ($bIsNan) {
-                return -1;
-            }
-
-            return $a <=> $b;
-        };
     }
 
     private function emptySet(?callable $comparator = null): PersistentSortedSet
