@@ -25,7 +25,7 @@ use const TOKEN_PARSE;
  * {@see CachePathResolver} computes paths, {@see AtomicFileWriter} writes
  * files, and {@see CacheDirectory} owns the directory layout.
  *
- * @phpstan-type CacheEntry array{namespace: string, source_hash: string, compiled_path: string, last_accessed: int}
+ * @phpstan-import-type CacheEntry from CacheIndexFile
  */
 final class CompiledCodeCache implements CompiledCodeCacheInterface
 {

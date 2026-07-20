@@ -8,6 +8,9 @@ use Phel\Shared\SourceMap\VLQ;
 
 use function count;
 
+/**
+ * @phpstan-import-type Mapping from SourceMapState
+ */
 final readonly class SourceMapGenerator
 {
     private VLQ $vlq;
@@ -18,7 +21,7 @@ final readonly class SourceMapGenerator
     }
 
     /**
-     * @param list<array{generated: array{line: int, column: int}, original: array{line: int, column: int}, source?: string, name?: string}> $mappings
+     * @param list<Mapping> $mappings
      */
     public function encode(array $mappings): string
     {
@@ -61,8 +64,8 @@ final readonly class SourceMapGenerator
     }
 
     /**
-     * @param array{generated: array{line: int, column: int}, original: array{line: int, column: int}, source?: string, name?: string} $mappingA
-     * @param array{generated: array{line: int, column: int}, original: array{line: int, column: int}, source?: string, name?: string} $mappingB
+     * @param Mapping $mappingA
+     * @param Mapping $mappingB
      */
     private function compareByGeneratedPositionsInflated(array $mappingA, array $mappingB): int
     {

@@ -4,13 +4,16 @@ declare(strict_types=1);
 
 namespace Phel\Compiler\Domain\Emitter\OutputEmitter\SourceMap;
 
+/**
+ * @phpstan-type Mapping array{generated: array{line: int, column: int}, original: array{line: int, column: int}, source?: string, name?: string}
+ */
 final class SourceMapState
 {
     private int $generatedLines = 0;
 
     private int $generatedColumns = 0;
 
-    /** @var list<array{generated: array{line: int, column: int}, original: array{line: int, column: int}, source?: string, name?: string}> */
+    /** @var list<Mapping> */
     private array $mappings = [];
 
     public function reset(): self
@@ -51,7 +54,7 @@ final class SourceMapState
     }
 
     /**
-     * @return list<array{generated: array{line: int, column: int}, original: array{line: int, column: int}, source?: string, name?: string}>
+     * @return list<Mapping>
      */
     public function getMappings(): array
     {
@@ -59,7 +62,7 @@ final class SourceMapState
     }
 
     /**
-     * @param array{generated: array{line: int, column: int}, original: array{line: int, column: int}, source?: string, name?: string} $mapping
+     * @param Mapping $mapping
      */
     public function addMapping(array $mapping): self
     {

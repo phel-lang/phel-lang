@@ -27,13 +27,21 @@ use function is_string;
  * 2. Per-file `mtime` (authoritative). Each scanned file's mtime is stored and
  *    re-checked, which is what guards each namespace's name + dependency list
  *    against in-place edits.
+ *
+ * @phpstan-type DirFingerprint array{mtime: int, fileCount: int}
+ * @phpstan-type FileStamp array{file: string, mtime: int}
+ * @phpstan-type SerializedScanIndexEntry array{
+ *     perDir: array<string, DirFingerprint>,
+ *     files: list<FileStamp>,
+ *     infos: list<array{file: string, namespace: string, dependencies: list<string>, isPrimaryDefinition: bool}>
+ * }
  */
 final readonly class ScanIndexEntry
 {
     /**
-     * @param array<string, array{mtime: int, fileCount: int}> $perDir resolved dir => fingerprint
-     * @param list<array{file: string, mtime: int}>            $files  scanned file => mtime, ordered
-     * @param list<NamespaceInformation>                       $infos  grouped + sorted result
+     * @param array<string, DirFingerprint> $perDir resolved dir => fingerprint
+     * @param list<FileStamp>               $files  scanned file => mtime, ordered
+     * @param list<NamespaceInformation>    $infos  grouped + sorted result
      */
     public function __construct(
         public array $perDir,
@@ -76,11 +84,7 @@ final readonly class ScanIndexEntry
     }
 
     /**
-     * @return array{
-     *     perDir: array<string, array{mtime: int, fileCount: int}>,
-     *     files: list<array{file: string, mtime: int}>,
-     *     infos: list<array{file: string, namespace: string, dependencies: list<string>, isPrimaryDefinition: bool}>
-     * }
+     * @return SerializedScanIndexEntry
      */
     public function toArray(): array
     {

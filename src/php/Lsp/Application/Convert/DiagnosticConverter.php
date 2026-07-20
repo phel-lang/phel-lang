@@ -9,6 +9,16 @@ use Phel\Api\Transfer\Diagnostic;
 /**
  * Convert a {@see Diagnostic} from the Api module into the shape expected by
  * LSP's `textDocument/publishDiagnostics` notification.
+ *
+ * @phpstan-import-type Range from PositionConverter
+ *
+ * @phpstan-type LspDiagnostic array{
+ *     range: Range,
+ *     severity: int,
+ *     code: string,
+ *     source: string,
+ *     message: string,
+ * }
  */
 final readonly class DiagnosticConverter
 {
@@ -26,13 +36,7 @@ final readonly class DiagnosticConverter
     ) {}
 
     /**
-     * @return array{
-     *     range: array{start: array{line: int, character: int}, end: array{line: int, character: int}},
-     *     severity: int,
-     *     code: string,
-     *     source: string,
-     *     message: string,
-     * }
+     * @return LspDiagnostic
      */
     public function toLspDiagnostic(Diagnostic $diagnostic): array
     {
@@ -53,16 +57,7 @@ final readonly class DiagnosticConverter
     /**
      * @param list<Diagnostic> $diagnostics
      *
-     * @return array{
-     *     uri: string,
-     *     diagnostics: list<array{
-     *         range: array{start: array{line: int, character: int}, end: array{line: int, character: int}},
-     *         severity: int,
-     *         code: string,
-     *         source: string,
-     *         message: string,
-     *     }>,
-     * }
+     * @return array{uri: string, diagnostics: list<LspDiagnostic>}
      */
     public function toPublishParams(string $uri, array $diagnostics): array
     {

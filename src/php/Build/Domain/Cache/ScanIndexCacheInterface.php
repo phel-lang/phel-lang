@@ -17,14 +17,16 @@ use Phel\Shared\NamespaceInformation;
  * {@see ScanIndexEntry::isValid()} (per-directory mtime + phel-file count, plus
  * an authoritative per-file mtime check), so stale namespace information is
  * never served.
+ *
+ * @phpstan-import-type DirFingerprint from ScanIndexEntry
  */
 interface ScanIndexCacheInterface
 {
     public function get(string $dirSetKey): ?ScanIndexEntry;
 
     /**
-     * @param array<string, array{mtime: int, fileCount: int}> $perDir
-     * @param list<NamespaceInformation>                       $infos
+     * @param array<string, DirFingerprint> $perDir
+     * @param list<NamespaceInformation>    $infos
      */
     public function put(string $dirSetKey, array $perDir, array $infos): void;
 

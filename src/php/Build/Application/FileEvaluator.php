@@ -27,6 +27,9 @@ use function is_file;
 use function preg_replace;
 use function sprintf;
 
+/**
+ * @phpstan-import-type SerializedNamespaceEnvironment from CompilerFacadeInterface
+ */
 final class FileEvaluator
 {
     /**
@@ -96,7 +99,7 @@ final class FileEvaluator
                         $envData = $this->compiledCodeCache->getEnvironment($namespace);
 
                         if ($envData !== null) {
-                            /** @var array{refers: array<string, array{ns: ?string, name: string}>, require_aliases: array<string, array{ns: ?string, name: string}>, use_aliases: array<string, array{ns: ?string, name: string}>} $envData */
+                            /** @var SerializedNamespaceEnvironment $envData */
                             $this->compilerFacade->restoreNamespaceEnvironmentData($namespace, $envData);
                         } else {
                             $this->analyzeNsForm($code, $src);

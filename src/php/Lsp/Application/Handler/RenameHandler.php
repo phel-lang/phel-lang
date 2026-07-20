@@ -19,6 +19,8 @@ use function strlen;
 /**
  * Rename a symbol across the workspace. Uses findReferences for all
  * call-sites plus the definition site itself.
+ *
+ * @phpstan-import-type TextEdit from PositionConverter
  */
 final readonly class RenameHandler implements HandlerInterface
 {
@@ -65,7 +67,7 @@ final readonly class RenameHandler implements HandlerInterface
     /**
      * @param list<Location> $references
      *
-     * @return array{changes: array<string, list<array{range: array{start: array{line: int, character: int}, end: array{line: int, character: int}}, newText: string}>>}
+     * @return array{changes: array<string, list<TextEdit>>}
      */
     private function buildWorkspaceEdit(
         array $references,
@@ -74,7 +76,7 @@ final readonly class RenameHandler implements HandlerInterface
         string $newName,
     ): array {
         $nameLen = strlen($oldName);
-        /** @var array<string, list<array{range: array{start: array{line: int, character: int}, end: array{line: int, character: int}}, newText: string}>> $changes */
+        /** @var array<string, list<TextEdit>> $changes */
         $changes = [];
 
         if ($definition instanceof Definition) {
