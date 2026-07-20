@@ -75,7 +75,6 @@ final class ChunkedSeq extends AbstractType implements LazySeqInterface, Countab
 
         $chunk = new Chunk($values);
 
-        // Create memoized thunk for the rest
         $thunk = new MemoizedThunk(
             static fn(): ?ChunkedSeq => self::fromGenerator($hasher, $equalizer, $generator, $chunkSize),
         );

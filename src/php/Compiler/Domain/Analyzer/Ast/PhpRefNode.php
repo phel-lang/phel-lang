@@ -23,11 +23,6 @@ final class PhpRefNode extends AbstractNode
         parent::__construct($env, $sourceLocation);
     }
 
-    public function getLocal(): LocalVarNode
-    {
-        return $this->local;
-    }
-
     public function getName(): Symbol
     {
         return $this->local->getName();

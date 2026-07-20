@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace PhelTest\Unit\Build\Domain\Compile;
 
 use Phel\Build\Domain\Compile\BuildReport;
-use Phel\Build\Domain\Compile\CompiledFile;
+use Phel\Shared\CompiledFile;
 use PHPUnit\Framework\TestCase;
 
 use function file_put_contents;

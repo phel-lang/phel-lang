@@ -4,13 +4,13 @@ declare(strict_types=1);
 
 namespace Phel\Nrepl\Application\Op;
 
-use Phel\Api\Transfer\PhelFunction;
 use Phel\Nrepl\Domain\Op\OpHandlerInterface;
 use Phel\Nrepl\Domain\Op\OpRequest;
 use Phel\Nrepl\Domain\Op\OpResponse;
 use Phel\Nrepl\Domain\Op\OpStatus;
 use Phel\Nrepl\Domain\Session\Session;
 use Phel\Nrepl\Domain\Session\SessionRegistry;
+use Phel\Shared\Api\PhelFunction;
 use Phel\Shared\Facade\ApiFacadeInterface;
 
 use function implode;

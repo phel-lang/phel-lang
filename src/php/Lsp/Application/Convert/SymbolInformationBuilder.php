@@ -13,6 +13,8 @@ use function strlen;
  * Builds the LSP `SymbolInformation` object shared between
  * `textDocument/documentSymbol` and `workspace/symbol`. Centralising the
  * construction keeps both responses in sync when the spec's fields drift.
+ *
+ * @phpstan-import-type Range from PositionConverter
  */
 final readonly class SymbolInformationBuilder
 {
@@ -26,10 +28,7 @@ final readonly class SymbolInformationBuilder
      * @return array{
      *     name: string,
      *     kind: int,
-     *     location: array{
-     *         uri: string,
-     *         range: array{start: array{line: int, character: int}, end: array{line: int, character: int}}
-     *     }
+     *     location: array{uri: string, range: Range}
      * }
      */
     public function fromDefinition(Definition $def): array
@@ -54,10 +53,7 @@ final readonly class SymbolInformationBuilder
      *     name: string,
      *     kind: int,
      *     containerName: string,
-     *     location: array{
-     *         uri: string,
-     *         range: array{start: array{line: int, character: int}, end: array{line: int, character: int}}
-     *     }
+     *     location: array{uri: string, range: Range}
      * }
      */
     public function fromDefinitionWithContainer(Definition $def): array

@@ -7,9 +7,9 @@ namespace Phel\Api\Application;
 use Phel;
 use Phel\Api\Domain\PhelFnNormalizerInterface;
 use Phel\Api\Domain\SymbolMetadataFinderInterface;
-use Phel\Api\Transfer\PhelFunction;
 use Phel\Lang\Collections\Map\PersistentMapInterface;
 use Phel\Lang\Keyword;
+use Phel\Shared\Api\PhelFunction;
 use Phel\Shared\MungeInterface;
 use Phel\Shared\ScalarCoercion;
 

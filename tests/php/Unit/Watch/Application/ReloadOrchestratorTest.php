@@ -6,8 +6,8 @@ namespace PhelTest\Unit\Watch\Application;
 
 use Gacela\Framework\Health\ModuleHealthCheckInterface;
 use Phel\Build\Domain\Compile\BuildOptions;
-use Phel\Build\Domain\Compile\CompiledFile;
 use Phel\Lang\Collections\Map\PersistentMapInterface;
+use Phel\Shared\CompiledFile;
 use Phel\Shared\CompileOptions;
 use Phel\Shared\Eval\EvalResult;
 use Phel\Shared\Exceptions\CompilerException;

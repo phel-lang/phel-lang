@@ -6,8 +6,8 @@ namespace Phel\Command;
 
 use Gacela\Framework\AbstractFacade;
 use Gacela\Framework\Attribute\Cacheable;
-use Phel\Command\Domain\Exceptions\ExceptionPrinterInterface;
 use Phel\Shared\Exceptions\AbstractLocatedException;
+use Phel\Shared\Exceptions\ExceptionPrinterInterface;
 use Phel\Shared\Exceptions\Hint\ExceptionHintResolver;
 use Phel\Shared\Facade\CommandFacadeInterface;
 use Phel\Shared\Parser\ReadModel\CodeSnippet;

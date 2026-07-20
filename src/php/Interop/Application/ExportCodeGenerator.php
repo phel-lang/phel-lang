@@ -8,8 +8,8 @@ use Phel\Interop\Domain\DirectoryRemover\DirectoryRemoverInterface;
 use Phel\Interop\Domain\ExportFinder\FunctionsToExportFinderInterface;
 use Phel\Interop\Domain\FileCreator\FileCreatorInterface;
 use Phel\Interop\Domain\Generator\WrapperGeneratorInterface;
-use Phel\Interop\Domain\ReadModel\Wrapper;
 use Phel\Shared\Exceptions\CompilerException;
+use Phel\Shared\Interop\Wrapper;
 use RuntimeException;
 
 final readonly class ExportCodeGenerator

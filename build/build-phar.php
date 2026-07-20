@@ -126,7 +126,6 @@ final class PharBuilder
             throw new RuntimeException("Root directory is not readable: {$this->root}");
         }
 
-        // Check for required files
         $requiredFiles = [
             'vendor/autoload.php',
             'bin/phel',

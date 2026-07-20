@@ -10,7 +10,6 @@ use function is_array;
 use function json_decode;
 use function json_encode;
 use function rtrim;
-use function strlen;
 
 /**
  * Newline-delimited JSON framing for the Api daemon.
@@ -56,10 +55,5 @@ final class JsonRpcFraming
         $json = json_encode($message, JSON_THROW_ON_ERROR);
         fwrite($stream, $json . "\n");
         fflush($stream);
-    }
-
-    public function frameLength(string $json): int
-    {
-        return strlen($json) + 1;
     }
 }

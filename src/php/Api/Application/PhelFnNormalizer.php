@@ -7,9 +7,9 @@ namespace Phel\Api\Application;
 use Phel\Api\Domain\PhelFnGroupKeyGeneratorInterface;
 use Phel\Api\Domain\PhelFnLoaderInterface;
 use Phel\Api\Domain\PhelFnNormalizerInterface;
-use Phel\Api\Transfer\PhelFunction;
 use Phel\Lang\Collections\Map\PersistentMapInterface;
 use Phel\Lang\Keyword;
+use Phel\Shared\Api\PhelFunction;
 use Phel\Shared\ScalarCoercion;
 
 final readonly class PhelFnNormalizer implements PhelFnNormalizerInterface
@@ -162,7 +162,7 @@ final readonly class PhelFnNormalizer implements PhelFnNormalizerInterface
     {
         $result = [];
         foreach ($this->phelFnLoader->getNormalizedNativeSymbols() as $name => $custom) {
-            // todo: custom file and line not implemented yet
+            // NativeSymbolCatalog entries don't populate file/line; defaults apply.
             $file = $this->toRelativeFile($custom['file'] ?? '');
             $line = $custom['line'] ?? 0;
 

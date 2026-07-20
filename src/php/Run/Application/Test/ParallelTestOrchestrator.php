@@ -85,7 +85,6 @@ final readonly class ParallelTestOrchestrator
         $buffer = new OrderedResultBuffer($total, $output);
 
         $startedAt = microtime(true);
-        $retried = 0;
         try {
             $retried = $this->runDispatchLoop($workers, $namespaces, $optionsPhel, $buffer);
         } finally {

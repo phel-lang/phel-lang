@@ -37,7 +37,7 @@ final readonly class DidSaveHandler implements HandlerInterface
     /**
      * @param array<string, mixed> $params
      */
-    public function handle(array $params, Session $session): mixed
+    public function handle(array $params, Session $session): null
     {
         $uri = $this->params->uri($params);
         if ($uri === '') {

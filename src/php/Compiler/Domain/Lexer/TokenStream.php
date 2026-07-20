@@ -14,7 +14,7 @@ use function count;
 use function in_array;
 
 /**
- * @template-implements Iterator<mixed, Token>
+ * @template-implements Iterator<int, Token>
  */
 final class TokenStream implements Iterator
 {
@@ -22,7 +22,7 @@ final class TokenStream implements Iterator
     private array $readTokens = [];
 
     /**
-     * @param Generator<?Token> $tokenGenerator
+     * @param Generator<int, ?Token> $tokenGenerator
      */
     public function __construct(
         private readonly Generator $tokenGenerator,
@@ -43,7 +43,7 @@ final class TokenStream implements Iterator
         }
     }
 
-    public function key(): mixed
+    public function key(): int
     {
         return $this->tokenGenerator->key();
     }

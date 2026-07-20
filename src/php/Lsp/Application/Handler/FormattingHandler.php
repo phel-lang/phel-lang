@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Phel\Lsp\Application\Handler;
 
 use Phel\Formatter\FormatterFacade;
+use Phel\Lsp\Application\Convert\PositionConverter;
 use Phel\Lsp\Application\Document\Document;
 use Phel\Lsp\Application\Rpc\ParamsExtractor;
 use Phel\Lsp\Application\Session\Session;
@@ -16,6 +17,9 @@ use function explode;
 use function str_replace;
 use function strlen;
 
+/**
+ * @phpstan-import-type TextEdit from PositionConverter
+ */
 final readonly class FormattingHandler implements HandlerInterface
 {
     public function __construct(
@@ -35,8 +39,10 @@ final readonly class FormattingHandler implements HandlerInterface
 
     /**
      * @param array<string, mixed> $params
+     *
+     * @return list<array<string, mixed>>
      */
-    public function handle(array $params, Session $session): mixed
+    public function handle(array $params, Session $session): array
     {
         $uri = $this->params->uri($params);
         if ($uri === '') {
@@ -62,10 +68,7 @@ final readonly class FormattingHandler implements HandlerInterface
     }
 
     /**
-     * @return array{
-     *     range: array{start: array{line: int, character: int}, end: array{line: int, character: int}},
-     *     newText: string,
-     * }
+     * @return TextEdit
      */
     private function fullDocumentEdit(Document $document, string $newText): array
     {

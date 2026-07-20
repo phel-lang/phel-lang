@@ -7,11 +7,11 @@ namespace Phel\Api\Application;
 use Phel;
 use Phel\Api\Domain\PhelFnLoaderInterface;
 use Phel\Api\Domain\ReplCompleterInterface;
-use Phel\Api\Transfer\CompletionResultTransfer;
 use Phel\Compiler\Domain\Analyzer\Environment\GlobalEnvironmentInterface;
 use Phel\Lang\Collections\Map\PersistentMapInterface;
 use Phel\Lang\FnInterface;
 use Phel\Lang\Keyword;
+use Phel\Shared\Api\CompletionResultTransfer;
 
 use function str_starts_with;
 use function trim;

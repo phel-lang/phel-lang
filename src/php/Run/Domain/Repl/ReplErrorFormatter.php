@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace Phel\Run\Domain\Repl;
 
-use Phel\Command\Domain\Exceptions\ExceptionPrinterInterface;
 use Phel\Compiler\Domain\Evaluator\Exceptions\EvaluatedCodeException;
 use Phel\Shared\ColorStyleInterface;
+use Phel\Shared\Exceptions\ExceptionPrinterInterface;
 use Phel\Shared\Exceptions\Hint\ExceptionHintResolver;
 use Throwable;
 

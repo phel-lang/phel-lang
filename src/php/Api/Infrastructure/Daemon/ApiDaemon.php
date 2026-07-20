@@ -45,11 +45,6 @@ final class ApiDaemon
         $this->output = $out;
     }
 
-    public function getDispatcher(): JsonRpcDispatcher
-    {
-        return $this->dispatcher;
-    }
-
     public function run(int $maxIterations = 0): void
     {
         $iterations = 0;
@@ -83,13 +78,5 @@ final class ApiDaemon
 
             ++$iterations;
         }
-    }
-
-    public function closeStreams(): void
-    {
-        /** @psalm-suppress InvalidPropertyAssignmentValue */
-        @fclose($this->input);
-        /** @psalm-suppress InvalidPropertyAssignmentValue */
-        @fclose($this->output);
     }
 }

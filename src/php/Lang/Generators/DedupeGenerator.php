@@ -40,7 +40,6 @@ final class DedupeGenerator
         foreach (SequenceGenerator::toIterable($iterable) as $value) {
             $hash = $hasher->hash($value);
 
-            // Check if we've seen an equal value with this hash
             $found = false;
             if (isset($seen[$hash])) {
                 foreach ($seen[$hash] as $seenValue) {

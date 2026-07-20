@@ -16,8 +16,6 @@ use Phel\Nrepl\Application\Op\LoadFileOp;
 use Phel\Nrepl\Application\Op\LookupOp;
 use Phel\Nrepl\Application\Op\ReloadOp;
 use Phel\Nrepl\Application\Op\RunTestsOp;
-use Phel\Nrepl\Domain\Bencode\BencodeDecoder;
-use Phel\Nrepl\Domain\Bencode\BencodeEncoder;
 use Phel\Nrepl\Domain\Op\OpDispatcher;
 use Phel\Nrepl\Domain\Session\SessionRegistry;
 use Phel\Nrepl\Infrastructure\NreplSocketServer;
@@ -73,16 +71,6 @@ final class NreplFactory extends AbstractFactory
     public function createSessionRegistry(): SessionRegistry
     {
         return new SessionRegistry();
-    }
-
-    public function createBencodeEncoder(): BencodeEncoder
-    {
-        return new BencodeEncoder();
-    }
-
-    public function createBencodeDecoder(): BencodeDecoder
-    {
-        return new BencodeDecoder();
     }
 
     public function createPrinter(): PrinterInterface

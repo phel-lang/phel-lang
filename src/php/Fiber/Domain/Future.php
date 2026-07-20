@@ -20,9 +20,6 @@ final class Future implements Awaitable
 {
     private readonly Promise $promise;
 
-    /** @var Fiber<mixed, mixed, mixed, mixed> */
-    private readonly Fiber $fiber;
-
     private bool $cancelled = false;
 
     private bool $failed = false;
@@ -37,7 +34,7 @@ final class Future implements Awaitable
         callable $body,
     ) {
         $this->promise = new Promise($scheduler);
-        $this->fiber = new Fiber(function () use ($body): void {
+        $fiber = new Fiber(function () use ($body): void {
             // Run the body and capture its outcome: a normal return is
             // delivered as the promise value; a throw is recorded in
             // $failed/$error and rethrown later on deref().
@@ -51,7 +48,7 @@ final class Future implements Awaitable
             }
         });
 
-        $scheduler->enqueue($this->fiber);
+        $scheduler->enqueue($fiber);
     }
 
     public function isRealized(): bool

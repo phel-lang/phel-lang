@@ -5,11 +5,11 @@ declare(strict_types=1);
 namespace PhelTest\Unit\Run\Domain\Repl;
 
 use Error;
-use Phel\Command\Domain\Exceptions\ExceptionPrinterInterface;
 use Phel\Compiler\Domain\Evaluator\Exceptions\EvaluatedCodeException;
 use Phel\Run\Domain\Repl\ReplErrorFormatter;
 use Phel\Shared\ColorStyle;
 use Phel\Shared\Exceptions\AbstractLocatedException;
+use Phel\Shared\Exceptions\ExceptionPrinterInterface;
 use Phel\Shared\Exceptions\Hint\ExceptionHintResolver;
 use Phel\Shared\Exceptions\Hint\NotCallableHint;
 use Phel\Shared\Parser\ReadModel\CodeSnippet;

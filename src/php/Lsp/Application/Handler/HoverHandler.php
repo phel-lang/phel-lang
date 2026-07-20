@@ -6,11 +6,11 @@ namespace Phel\Lsp\Application\Handler;
 
 use Phel\Api\ApiFacade;
 use Phel\Api\Transfer\Definition;
-use Phel\Api\Transfer\PhelFunction;
 use Phel\Api\Transfer\ProjectIndex;
 use Phel\Lsp\Application\Rpc\ParamsExtractor;
 use Phel\Lsp\Application\Session\Session;
 use Phel\Lsp\Domain\HandlerInterface;
+use Phel\Shared\Api\PhelFunction;
 
 use function implode;
 use function sprintf;
@@ -39,8 +39,10 @@ final readonly class HoverHandler implements HandlerInterface
 
     /**
      * @param array<string, mixed> $params
+     *
+     * @return array<string, mixed>|null
      */
-    public function handle(array $params, Session $session): mixed
+    public function handle(array $params, Session $session): ?array
     {
         $context = CursorContext::resolve($params, $session, $this->params, requireIndex: false);
         if (!$context instanceof CursorContext) {

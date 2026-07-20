@@ -7,12 +7,12 @@ namespace Phel\Api;
 use Gacela\Framework\AbstractFacade;
 use Phel\Api\Infrastructure\Daemon\ApiDaemon;
 use Phel\Api\Transfer\Completion;
-use Phel\Api\Transfer\CompletionResultTransfer;
 use Phel\Api\Transfer\Definition;
 use Phel\Api\Transfer\Diagnostic;
 use Phel\Api\Transfer\Location;
-use Phel\Api\Transfer\PhelFunction;
 use Phel\Api\Transfer\ProjectIndex;
+use Phel\Shared\Api\CompletionResultTransfer;
+use Phel\Shared\Api\PhelFunction;
 use Phel\Shared\Facade\ApiFacadeInterface;
 
 /**

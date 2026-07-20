@@ -31,8 +31,10 @@ final readonly class WorkspaceSymbolHandler implements HandlerInterface
 
     /**
      * @param array<string, mixed> $params
+     *
+     * @return list<array<string, mixed>>
      */
-    public function handle(array $params, Session $session): mixed
+    public function handle(array $params, Session $session): array
     {
         $index = $session->projectIndex();
         if (!$index instanceof ProjectIndex) {

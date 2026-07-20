@@ -25,6 +25,9 @@ use UnexpectedValueException;
 
 use function is_array;
 
+/**
+ * @phpstan-import-type DirFingerprint from ScanIndexEntry
+ */
 final class CachedNamespaceExtractor implements NamespaceExtractorInterface
 {
     private readonly NamespaceFileGrouper $grouper;
@@ -119,7 +122,7 @@ final class CachedNamespaceExtractor implements NamespaceExtractorInterface
      *
      * @param list<string> $directories
      *
-     * @return array<string, array{mtime: int, fileCount: int}>
+     * @return array<string, DirFingerprint>
      */
     private function perDirFingerprint(array $directories): array
     {

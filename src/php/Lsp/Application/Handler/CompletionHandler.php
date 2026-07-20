@@ -32,8 +32,10 @@ final readonly class CompletionHandler implements HandlerInterface
 
     /**
      * @param array<string, mixed> $params
+     *
+     * @return array{isIncomplete: bool, items: list<array{label: string, kind: int, detail: string, documentation: string}>}
      */
-    public function handle(array $params, Session $session): mixed
+    public function handle(array $params, Session $session): array
     {
         $uri = $this->params->uri($params);
         $position = $this->params->position($params);

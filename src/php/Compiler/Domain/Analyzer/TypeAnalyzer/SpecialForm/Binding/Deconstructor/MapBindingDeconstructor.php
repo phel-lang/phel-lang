@@ -7,6 +7,7 @@ namespace Phel\Compiler\Domain\Analyzer\TypeAnalyzer\SpecialForm\Binding\Deconst
 use Phel;
 use Phel\Compiler\Domain\Analyzer\Exceptions\AnalyzerException;
 use Phel\Compiler\Domain\Analyzer\TypeAnalyzer\SpecialForm\Binding\Deconstructor;
+use Phel\Compiler\Domain\Analyzer\TypeAnalyzer\SpecialForm\Binding\DeconstructorInterface;
 use Phel\Lang\Collections\LinkedList\PersistentListInterface;
 use Phel\Lang\Collections\Map\PersistentMapInterface;
 use Phel\Lang\Collections\Vector\PersistentVectorInterface;
@@ -18,6 +19,9 @@ use Phel\Shared\Printer\Printer;
 use function array_key_exists;
 use function sprintf;
 
+/**
+ * @phpstan-import-type BindingTuple from DeconstructorInterface
+ */
 final class MapBindingDeconstructor implements BindingDeconstructorInterface
 {
     /** @psalm-suppress PropertyNotSetInConstructor */
@@ -31,7 +35,7 @@ final class MapBindingDeconstructor implements BindingDeconstructorInterface
     ) {}
 
     /**
-     * @param list<array{0: Symbol, 1: mixed}>         $bindings
+     * @param list<BindingTuple>                       $bindings
      * @param PersistentMapInterface<mixed, mixed>     $binding  The binding form
      * @param bool|float|int|string|TypeInterface|null $value    The value form
      */
@@ -130,7 +134,7 @@ final class MapBindingDeconstructor implements BindingDeconstructorInterface
     }
 
     /**
-     * @param list<array{0: Symbol, 1: mixed}>     $bindings
+     * @param list<BindingTuple>                   $bindings
      * @param PersistentMapInterface<mixed, mixed> $binding
      */
     private function bindingIteration(

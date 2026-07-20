@@ -7,6 +7,7 @@ namespace Phel\Compiler\Domain\Analyzer\TypeAnalyzer\SpecialForm\Binding\Deconst
 use Phel;
 use Phel\Compiler\Domain\Analyzer\Exceptions\AnalyzerException;
 use Phel\Compiler\Domain\Analyzer\TypeAnalyzer\SpecialForm\Binding\Deconstructor;
+use Phel\Compiler\Domain\Analyzer\TypeAnalyzer\SpecialForm\Binding\DeconstructorInterface;
 use Phel\Lang\Collections\LinkedList\PersistentListInterface;
 use Phel\Lang\Collections\Vector\PersistentVectorInterface;
 use Phel\Lang\Symbol;
@@ -14,6 +15,9 @@ use Phel\Shared\Exceptions\AbstractLocatedException;
 
 use function sprintf;
 
+/**
+ * @phpstan-import-type BindingTuple from DeconstructorInterface
+ */
 final class VectorBindingDeconstructor implements BindingDeconstructorInterface
 {
     public const string FIRST_SYMBOL_NAME = 'first';
@@ -38,9 +42,9 @@ final class VectorBindingDeconstructor implements BindingDeconstructorInterface
     ) {}
 
     /**
-     * @param list<array{0: Symbol, 1: mixed}> $bindings
-     * @param mixed                            $binding
-     * @param mixed                            $value
+     * @param list<BindingTuple> $bindings
+     * @param mixed              $binding
+     * @param mixed              $value
      *
      * @throws AbstractLocatedException
      */
@@ -66,7 +70,7 @@ final class VectorBindingDeconstructor implements BindingDeconstructorInterface
     }
 
     /**
-     * @param list<array{0: Symbol, 1: mixed}> $bindings
+     * @param list<BindingTuple> $bindings
      */
     private function stateStart(array &$bindings, mixed $current): void
     {
@@ -88,7 +92,7 @@ final class VectorBindingDeconstructor implements BindingDeconstructorInterface
     }
 
     /**
-     * @param list<array{0: Symbol, 1: mixed}> $bindings
+     * @param list<BindingTuple> $bindings
      */
     private function stateRest(array &$bindings, mixed $current): void
     {

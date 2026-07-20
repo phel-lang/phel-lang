@@ -7,8 +7,6 @@ namespace Phel\Build\Infrastructure\Cache;
 use Phel\Build\Domain\Cache\ScanIndexCacheInterface;
 use Phel\Build\Domain\Cache\ScanIndexEntry;
 
-use function dirname;
-use function function_exists;
 use function is_array;
 use function is_string;
 
@@ -20,6 +18,8 @@ use function is_string;
  * Mirrors {@see PhpNamespaceCache}: a `var_export`ed PHP file, written through
  * an exclusive `flock` with a disk-merge so concurrent processes don't clobber
  * each other, flushed via `register_shutdown_function`.
+ *
+ * @phpstan-import-type SerializedScanIndexEntry from ScanIndexEntry
  */
 final class PhpScanIndexCache implements ScanIndexCacheInterface
 {
@@ -66,44 +66,16 @@ final class PhpScanIndexCache implements ScanIndexCacheInterface
             return;
         }
 
-        $dir = dirname($this->cacheFile);
-        if (!is_dir($dir)) {
-            $oldUmask = umask(0);
-            @mkdir($dir, 0755, true);
-            umask($oldUmask);
-        }
-
-        if (!is_dir($dir) || !is_writable($dir)) {
-            return;
-        }
-
-        $handle = @fopen($this->cacheFile, 'c');
-        if ($handle === false) {
-            return;
-        }
-
-        if (!flock($handle, LOCK_EX)) {
-            fclose($handle);
-            return;
-        }
-
-        try {
+        $written = LockedPhpCacheWriter::write($this->cacheFile, function (): array {
             // Merge disk entries with our in-memory changes (ours take precedence)
             $diskEntries = $this->loadEntriesFromFile();
             $this->entries = array_merge($diskEntries, $this->entries);
 
-            ftruncate($handle, 0);
-            rewind($handle);
-            $content = '<?php return ' . var_export($this->toArray(), true) . ';';
-            fwrite($handle, $content);
-            $this->clearFlushPending();
-        } finally {
-            flock($handle, LOCK_UN);
-            fclose($handle);
-        }
+            return $this->toArray();
+        });
 
-        if (function_exists('opcache_invalidate')) {
-            @opcache_invalidate($this->cacheFile, true);
+        if ($written) {
+            $this->clearFlushPending();
         }
     }
 
@@ -152,11 +124,7 @@ final class PhpScanIndexCache implements ScanIndexCacheInterface
     }
 
     /**
-     * @return array{version: string, entries: array<string, array{
-     *     perDir: array<string, array{mtime: int, fileCount: int}>,
-     *     files: list<array{file: string, mtime: int}>,
-     *     infos: list<array{file: string, namespace: string, dependencies: list<string>, isPrimaryDefinition: bool}>
-     * }>}
+     * @return array{version: string, entries: array<string, SerializedScanIndexEntry>}
      */
     private function toArray(): array
     {

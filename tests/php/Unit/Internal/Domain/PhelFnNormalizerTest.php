@@ -8,8 +8,8 @@ use Phel;
 use Phel\Api\Application\PhelFnGroupKeyGenerator;
 use Phel\Api\Application\PhelFnNormalizer;
 use Phel\Api\Domain\PhelFnLoaderInterface;
-use Phel\Api\Transfer\PhelFunction;
 use Phel\Lang\Keyword;
+use Phel\Shared\Api\PhelFunction;
 use PHPUnit\Framework\TestCase;
 
 final class PhelFnNormalizerTest extends TestCase

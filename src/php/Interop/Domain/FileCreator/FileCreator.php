@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Phel\Interop\Domain\FileCreator;
 
-use Phel\Interop\Domain\ReadModel\Wrapper;
+use Phel\Shared\Interop\Wrapper;
 
 use function dirname;
 

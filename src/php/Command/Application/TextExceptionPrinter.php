@@ -6,7 +6,6 @@ namespace Phel\Command\Application;
 
 use Phel\Command\Domain\ErrorLogInterface;
 use Phel\Command\Domain\Exceptions\ExceptionArgsPrinterInterface;
-use Phel\Command\Domain\Exceptions\ExceptionPrinterInterface;
 use Phel\Command\Domain\Exceptions\Extractor\FilePositionExtractorInterface;
 use Phel\Compiler\Domain\Evaluator\Exceptions\EvaluatedCodeException;
 use Phel\Lang\FnInterface;
@@ -14,6 +13,7 @@ use Phel\Lang\SourceLocation;
 use Phel\Shared\ColorStyleInterface;
 use Phel\Shared\Exceptions\AbstractLocatedException;
 use Phel\Shared\Exceptions\ErrorCode;
+use Phel\Shared\Exceptions\ExceptionPrinterInterface;
 use Phel\Shared\MungeInterface;
 use Phel\Shared\Parser\ReadModel\CodeSnippet;
 use ReflectionClass;

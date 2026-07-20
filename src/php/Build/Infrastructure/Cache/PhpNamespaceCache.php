@@ -8,8 +8,6 @@ use Phel\Build\Domain\Cache\NamespaceCacheEntry;
 use Phel\Build\Domain\Cache\NamespaceCacheInterface;
 use Phel\Build\Domain\Extractor\ExcludedScanPaths;
 
-use function dirname;
-use function function_exists;
 use function is_array;
 use function is_int;
 use function is_string;
@@ -73,44 +71,16 @@ final class PhpNamespaceCache implements NamespaceCacheInterface
             return;
         }
 
-        $dir = dirname($this->cacheFile);
-        if (!is_dir($dir)) {
-            $oldUmask = umask(0);
-            @mkdir($dir, 0755, true);
-            umask($oldUmask);
-        }
-
-        if (!is_dir($dir) || !is_writable($dir)) {
-            return;
-        }
-
-        $handle = @fopen($this->cacheFile, 'c');
-        if ($handle === false) {
-            return;
-        }
-
-        if (!flock($handle, LOCK_EX)) {
-            fclose($handle);
-            return;
-        }
-
-        try {
+        $written = LockedPhpCacheWriter::write($this->cacheFile, function (): array {
             // Merge disk entries with our in-memory changes (ours take precedence)
             $diskEntries = $this->loadEntriesFromFile();
             $this->entries = array_merge($diskEntries, $this->entries);
 
-            ftruncate($handle, 0);
-            rewind($handle);
-            $content = '<?php return ' . var_export($this->toArray(), true) . ';';
-            fwrite($handle, $content);
-            $this->dirty = false;
-        } finally {
-            flock($handle, LOCK_UN);
-            fclose($handle);
-        }
+            return $this->toArray();
+        });
 
-        if (function_exists('opcache_invalidate')) {
-            @opcache_invalidate($this->cacheFile, true);
+        if ($written) {
+            $this->dirty = false;
         }
     }
 

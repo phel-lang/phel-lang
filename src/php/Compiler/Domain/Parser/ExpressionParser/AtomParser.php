@@ -96,7 +96,7 @@ final readonly class AtomParser
         // requires the first character to be a digit, sign, or dot — the
         // number regexes are all `^`-anchored on `[+-]?\d`/`0`/`.`. So any
         // other leading char can only be a symbol; skip the whole regex
-        // gauntlet. Behaviour is identical, just without the dead probes.
+        // gauntlet.
         $first = $word[0] ?? '';
         if (!$this->couldStartNumber($first)) {
             return new SymbolNode($word, $token->getStartLocation(), $token->getEndLocation(), Symbol::create($word));

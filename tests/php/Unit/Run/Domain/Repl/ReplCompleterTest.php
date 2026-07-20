@@ -7,11 +7,11 @@ namespace PhelTest\Unit\Run\Domain\Repl;
 use Phel;
 use Phel\Api\Application\ReplCompleter;
 use Phel\Api\Domain\PhelFnLoaderInterface;
-use Phel\Api\Transfer\CompletionResultTransfer;
 use Phel\Compiler\Domain\Analyzer\Environment\GlobalEnvironment;
 use Phel\Lang\FnInterface;
 use Phel\Lang\Keyword;
 use Phel\Lang\Symbol;
+use Phel\Shared\Api\CompletionResultTransfer;
 use PHPUnit\Framework\TestCase;
 
 final class ReplCompleterTest extends TestCase

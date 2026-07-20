@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 namespace PhelTest\Unit\Nrepl\Domain\Op;
 
-use Phel\Api\Transfer\PhelFunction;
 use Phel\Nrepl\Application\Op\LookupOp;
 use Phel\Nrepl\Domain\Op\OpRequest;
 use Phel\Nrepl\Domain\Session\SessionRegistry;
+use Phel\Shared\Api\PhelFunction;
 use Phel\Shared\Facade\ApiFacadeInterface;
 use PHPUnit\Framework\TestCase;
 

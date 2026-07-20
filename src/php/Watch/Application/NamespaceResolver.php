@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace Phel\Watch\Application;
 
 use Phel\Watch\Domain\NamespaceResolverInterface;
-use Throwable;
 
 use function file_exists;
 use function file_get_contents;
@@ -49,13 +48,7 @@ final class NamespaceResolver implements NamespaceResolverInterface
             return null;
         }
 
-        try {
-            $ok = preg_match(self::NS_FORM_REGEX, $code, $matches);
-        } catch (Throwable) {
-            return null;
-        }
-
-        if ($ok !== 1) {
+        if (preg_match(self::NS_FORM_REGEX, $code, $matches) !== 1) {
             return null;
         }
 

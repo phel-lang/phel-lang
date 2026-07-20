@@ -7,7 +7,7 @@ namespace PhelTest\Unit\Api\Application;
 use Phel\Api\Application\CompletionDocFormatter;
 use Phel\Api\Application\CompletionDocResolver;
 use Phel\Api\Domain\SymbolMetadataFinderInterface;
-use Phel\Api\Transfer\PhelFunction;
+use Phel\Shared\Api\PhelFunction;
 use PHPUnit\Framework\TestCase;
 
 final class CompletionDocResolverTest extends TestCase

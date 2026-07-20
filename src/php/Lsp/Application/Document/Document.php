@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace Phel\Lsp\Application\Document;
 
+use Phel\Lsp\Application\Convert\PositionConverter;
+
 use function count;
 use function explode;
 use function max;
@@ -15,6 +17,9 @@ use function strlen;
 /**
  * In-memory view of a text document opened by the editor. Version is
  * incremented on every `didChange`.
+ *
+ * @phpstan-import-type Position from PositionConverter
+ * @phpstan-import-type Range from PositionConverter
  */
 final class Document
 {
@@ -46,7 +51,7 @@ final class Document
      * purposes we treat them as UTF-8 byte offsets, which is sufficient for
      * the ASCII-dominant Phel source that real clients send.
      *
-     * @param array{start: array{line: int, character: int}, end: array{line: int, character: int}} $range
+     * @param Range $range
      */
     public function applyRange(array $range, string $newText): void
     {
@@ -66,7 +71,7 @@ final class Document
     /**
      * Convert an (LSP) 0-based {line, character} to a 0-based byte offset.
      *
-     * @param array{line: int, character: int} $position
+     * @param Position $position
      */
     public function positionToOffset(array $position): int
     {
@@ -97,7 +102,7 @@ final class Document
      * nothing is under the cursor. The matcher is permissive: it accepts
      * Lisp identifier characters.
      *
-     * @param array{line: int, character: int} $position
+     * @param Position $position
      */
     public function wordAt(array $position): string
     {
@@ -133,7 +138,7 @@ final class Document
      * 1-based {line, column} for cursor under the given (0-based) LSP position.
      * Returned as a tuple ready for ApiFacade::completeAtPoint.
      *
-     * @param array{line: int, character: int} $position
+     * @param Position $position
      *
      * @return array{int, int}
      */

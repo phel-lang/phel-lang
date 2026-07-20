@@ -18,8 +18,10 @@ final class BencodeDecoder
      * list<mixed>; dictionaries become associative array<string, mixed>.
      *
      * The whole input must be a single valid bencode value.
+     *
+     * @return array<string, mixed>|int|list<mixed>|string
      */
-    public function decode(string $input): mixed
+    public function decode(string $input): int|string|array
     {
         $position = 0;
         $value = $this->decodeAt($input, $position);
@@ -35,7 +37,7 @@ final class BencodeDecoder
      * Decode a bencode value starting at offset 0 and return the value plus
      * the number of bytes consumed. Useful for streaming/framed parsing.
      *
-     * @return array{0: mixed, 1: int}
+     * @return array{0: array<string, mixed>|int|list<mixed>|string, 1: int}
      */
     public function decodeWithLength(string $input): array
     {
@@ -50,8 +52,10 @@ final class BencodeDecoder
      *
      * @param int &$position IN/OUT: the offset to start at; on return it is
      *                       advanced to the first byte after the decoded value
+     *
+     * @return array<string, mixed>|int|list<mixed>|string
      */
-    private function decodeAt(string $input, int &$position): mixed
+    private function decodeAt(string $input, int &$position): int|string|array
     {
         if ($position >= strlen($input)) {
             throw BencodeException::unexpectedEndOfInput($position);

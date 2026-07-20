@@ -6,10 +6,13 @@ namespace Phel\Compiler\Application;
 
 use Phel\Compiler\Domain\Analyzer\Environment\GlobalEnvironmentInterface;
 use Phel\Lang\Symbol;
+use Phel\Shared\Facade\CompilerFacadeInterface;
 
 /**
  * Serializes and restores GlobalEnvironment state (refers, aliases)
  * for a given namespace to/from plain arrays suitable for caching.
+ *
+ * @phpstan-import-type SerializedNamespaceEnvironment from CompilerFacadeInterface
  */
 final readonly class NamespaceEnvironmentSerializer
 {
@@ -21,11 +24,7 @@ final readonly class NamespaceEnvironmentSerializer
      * Captures the current GlobalEnvironment state for a namespace
      * as a serializable plain-array structure.
      *
-     * @return array{
-     *     refers: array<string, array{ns: ?string, name: string}>,
-     *     require_aliases: array<string, array{ns: ?string, name: string}>,
-     *     use_aliases: array<string, array{ns: ?string, name: string}>,
-     * }
+     * @return SerializedNamespaceEnvironment
      */
     public function capture(string $namespace): array
     {
@@ -48,11 +47,7 @@ final readonly class NamespaceEnvironmentSerializer
      * Restores GlobalEnvironment state for a namespace from
      * previously serialized environment data.
      *
-     * @param array{
-     *     refers: array<string, array{ns: ?string, name: string}>,
-     *     require_aliases: array<string, array{ns: ?string, name: string}>,
-     *     use_aliases: array<string, array{ns: ?string, name: string}>,
-     * } $envData
+     * @param SerializedNamespaceEnvironment $envData
      */
     public function restore(string $namespace, array $envData): void
     {

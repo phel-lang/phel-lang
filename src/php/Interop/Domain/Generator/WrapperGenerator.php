@@ -7,7 +7,7 @@ namespace Phel\Interop\Domain\Generator;
 use Phel\Interop\Domain\Generator\Builder\CompiledPhpClassBuilder;
 use Phel\Interop\Domain\Generator\Builder\WrapperRelativeFilenamePathBuilder;
 use Phel\Interop\Domain\ReadModel\FunctionToExport;
-use Phel\Interop\Domain\ReadModel\Wrapper;
+use Phel\Shared\Interop\Wrapper;
 
 final readonly class WrapperGenerator implements WrapperGeneratorInterface
 {

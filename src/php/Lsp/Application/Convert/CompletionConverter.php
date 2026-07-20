@@ -5,13 +5,14 @@ declare(strict_types=1);
 namespace Phel\Lsp\Application\Convert;
 
 use Phel\Api\Transfer\Completion;
-use Phel\Api\Transfer\PhelFunction;
 
 /**
- * Convert Api Completion / PhelFunction into LSP CompletionItem.
+ * Convert Api Completion into LSP CompletionItem.
  *
  * LSP CompletionItemKind values: 1 = Text, 2 = Method, 3 = Function,
  * 6 = Variable, 14 = Keyword, ...
+ *
+ * @phpstan-type CompletionItem array{label: string, kind: int, detail: string, documentation: string}
  */
 final class CompletionConverter
 {
@@ -28,7 +29,7 @@ final class CompletionConverter
     public const int KIND_KEYWORD = 14;
 
     /**
-     * @return array{label: string, kind: int, detail: string, documentation: string}
+     * @return CompletionItem
      */
     public function fromCompletion(Completion $completion): array
     {
@@ -37,21 +38,6 @@ final class CompletionConverter
             'kind' => $this->kindForCompletion($completion->kind),
             'detail' => $completion->detail,
             'documentation' => $completion->documentation,
-        ];
-    }
-
-    /**
-     * @return array{label: string, kind: int, detail: string, documentation: string}
-     */
-    public function fromPhelFunction(PhelFunction $fn): array
-    {
-        $detail = $fn->signatures === [] ? $fn->namespace : $fn->signatures[0];
-
-        return [
-            'label' => $fn->name,
-            'kind' => self::KIND_FUNCTION,
-            'detail' => $detail,
-            'documentation' => $fn->doc,
         ];
     }
 

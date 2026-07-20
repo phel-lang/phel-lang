@@ -24,6 +24,14 @@ use Phel\Shared\Exceptions\FileException;
 use Phel\Shared\Parser\Node\FileNode;
 use Phel\Shared\Parser\Node\NodeInterface;
 
+/**
+ * @phpstan-type SerializedSymbol array{ns: ?string, name: string}
+ * @phpstan-type SerializedNamespaceEnvironment array{
+ *     refers: array<string, SerializedSymbol>,
+ *     require_aliases: array<string, SerializedSymbol>,
+ *     use_aliases: array<string, SerializedSymbol>,
+ * }
+ */
 interface CompilerFacadeInterface
 {
     /**
@@ -172,11 +180,7 @@ interface CompilerFacadeInterface
      * Extracts the current GlobalEnvironment state for a namespace
      * in a serializable plain-array format.
      *
-     * @return array{
-     *     refers: array<string, array{ns: ?string, name: string}>,
-     *     require_aliases: array<string, array{ns: ?string, name: string}>,
-     *     use_aliases: array<string, array{ns: ?string, name: string}>,
-     * }
+     * @return SerializedNamespaceEnvironment
      */
     public function getNamespaceEnvironmentData(string $namespace): array;
 
@@ -184,11 +188,7 @@ interface CompilerFacadeInterface
      * Restores GlobalEnvironment state for a namespace from
      * previously serialized environment data.
      *
-     * @param array{
-     *     refers: array<string, array{ns: ?string, name: string}>,
-     *     require_aliases: array<string, array{ns: ?string, name: string}>,
-     *     use_aliases: array<string, array{ns: ?string, name: string}>,
-     * } $envData
+     * @param SerializedNamespaceEnvironment $envData
      */
     public function restoreNamespaceEnvironmentData(string $namespace, array $envData): void;
 }

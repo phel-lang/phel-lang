@@ -137,7 +137,6 @@ class Phel
         $hasSrcPhel = $hasSrc && is_dir($projectRootDir . '/src/phel');
         $hasTestsPhel = $hasTests && is_dir($projectRootDir . '/tests/phel');
 
-        // Determine layout based on detected structure
         if ($hasSrcPhel || $hasTestsPhel) {
             $config = $config->withLayout(ProjectLayout::Nested);
         } elseif ($hasSrc || $hasTests) {
@@ -166,7 +165,6 @@ class Phel
      */
     public static function run(string $projectRootDir, string $namespace, ?array $argv = null): void
     {
-        // Set up normalized runtime args (program + user-only argv)
         self::setupRuntimeArgs($namespace, $argv ?? []);
 
         self::bootstrap($projectRootDir);
