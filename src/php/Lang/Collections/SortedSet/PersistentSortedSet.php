@@ -14,6 +14,9 @@ use Phel\Lang\Collections\SortedMap\SortedArrayHelper;
 use Phel\Lang\HasherInterface;
 use Traversable;
 
+use function is_float;
+use function is_nan;
+
 /**
  * @template V
  *
@@ -116,6 +119,14 @@ final class PersistentSortedSet extends AbstractType implements PersistentHashSe
         }
 
         foreach ($this as $value) {
+            // A NaN element is never `=` to itself, so a set carrying one is
+            // unequal to any distinct set (identical sets short-circuit via
+            // `===` before reaching here). Membership lookup still matches NaN
+            // whenever the comparator orders it equal to itself.
+            if (is_float($value) && is_nan($value)) {
+                return false;
+            }
+
             if (!$other->contains($value)) {
                 return false;
             }
