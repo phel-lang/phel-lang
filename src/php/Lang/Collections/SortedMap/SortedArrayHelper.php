@@ -8,7 +8,9 @@ use Closure;
 use Phel\Lang\NamedInterface;
 
 use function count;
+use function is_float;
 use function is_int;
+use function is_nan;
 
 /**
  * Shared binary search and comparator logic for sorted collections.
@@ -25,6 +27,17 @@ final class SortedArrayHelper
     {
         if ($a instanceof NamedInterface && $b instanceof NamedInterface) {
             return $a->getFullName() <=> $b->getFullName();
+        }
+
+        // PHP's `NAN <=> x` is 1 for every operand (even NaN itself), which is
+        // not a total order, so the binary search can never relocate an
+        // existing NaN and sorted collections end up storing duplicates. Match
+        // Java `Double.compare` / Clojure `compare`: NaN equals itself and
+        // orders after every other value, restoring a total order.
+        $aIsNan = is_float($a) && is_nan($a);
+        $bIsNan = is_float($b) && is_nan($b);
+        if ($aIsNan || $bIsNan) {
+            return $aIsNan <=> $bIsNan;
         }
 
         return $a <=> $b;

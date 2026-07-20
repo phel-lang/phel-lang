@@ -141,6 +141,25 @@ final class PersistentSortedSetTest extends TestCase
         $this->assertFalse($s2->equals($s1));
     }
 
+    /**
+     * The default comparator matches Java `Double.compare` / Clojure `compare`:
+     * NaN equals itself and sorts after every number, so a sorted set collapses
+     * duplicate NaN elements instead of appending each one (see #2789).
+     */
+    public function test_default_comparator_collapses_duplicate_nan(): void
+    {
+        $s = $this->emptySet()->add(NAN)->add(NAN)->add(NAN)->add(1);
+
+        self::assertCount(2, $s);
+    }
+
+    public function test_default_comparator_membership_matches_nan(): void
+    {
+        $s = $this->emptySet()->add(NAN)->add(1);
+
+        self::assertTrue($s->contains(NAN));
+    }
+
     public function test_hash(): void
     {
         $s1 = $this->emptySet()->add(1)->add(2);

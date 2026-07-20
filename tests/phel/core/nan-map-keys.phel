@@ -27,3 +27,12 @@
 (deftest test-sorted-set-with-nan-stays-reflexive
   (let [s (sorted-set nan)]
     (is (= s s) "a sorted set carrying NaN is still = to itself")))
+
+(deftest test-sorted-set-collapses-duplicate-nan
+  (is (= 2 (count (sorted-set nan nan nan 1))) "duplicate NaN elements collapse into one in a sorted set")
+  (is (contains? (sorted-set nan) nan) "contains? finds a NaN element in a sorted set"))
+
+(deftest test-nan-as-sorted-map-key
+  (is (= 2 (count (sorted-map nan 1 nan 2 1 3))) "re-assoc with the same NaN key updates in place in a sorted map")
+  (is (= 2 (get (sorted-map nan 1 nan 2) nan)) "re-assoc with the same NaN key overwrites the value")
+  (is (contains? (sorted-map nan 1) nan) "contains? finds a NaN key in a sorted map"))

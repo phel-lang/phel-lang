@@ -390,6 +390,23 @@ final class PersistentSortedMapTest extends TestCase
         self::assertNull($h->getComparator());
     }
 
+    /**
+     * The default comparator treats NaN as equal to itself and ordered after
+     * every number, so a NaN key stays retrievable and re-assoc updates it in
+     * place instead of storing a duplicate (see #2789).
+     */
+    public function test_default_comparator_collapses_duplicate_nan_key(): void
+    {
+        $h = PersistentSortedMap::empty(new ModuloHasher(), new SimpleEqualizer())
+            ->put(NAN, 'a')
+            ->put(NAN, 'b')
+            ->put(1, 'x');
+
+        self::assertCount(2, $h);
+        self::assertTrue($h->contains(NAN));
+        self::assertSame('b', $h->find(NAN));
+    }
+
     public function test_string_keys_sorted(): void
     {
         $h = PersistentSortedMap::empty(new ModuloHasher(), new SimpleEqualizer())

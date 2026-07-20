@@ -52,6 +52,7 @@ All notable changes to this project will be documented in this file.
 - Sorted sets carry the same NaN guard as hash sets, so a distinct sorted set holding `NAN` is never `=` to another set; previously this held only by accident of the default comparator and broke under a user comparator that orders `NAN` equal to itself (#2782)
 - `phel list:modules` and `phel cache:warm` no longer fatal in projects whose test suite holds a class that cannot be loaded standalone; the new `app-module-paths` config key (`PhelConfig::withAppModulePaths()`) scopes Gacela's module discovery, defaulting to today's whole-root walk (#2787)
 - The REPL reports a mistyped closing bracket instead of hanging: typing `(php/+ 1` and then `]` left it buffering for input that could never arrive, with no feedback and no way out but Ctrl-D. A closer with no matching opener is now handed to the parser, which raises the located error it always had ready
+- Sorted sets and sorted maps no longer store duplicate `NAN` under the default comparator: PHP's `NAN <=> NAN` is `1`, so the binary search never relocated an existing `NAN` and every insert appended a fresh one. The default comparator now matches Java `Double.compare` / Clojure `compare` (NaN equals itself, orders after every number), so `(count (sorted-set NAN NAN))` is `1` and `(contains? (sorted-set NAN) NAN)` is `true` (#2789)
 
 ## [0.48.0](https://github.com/phel-lang/phel-lang/compare/v0.47.0...v0.48.0) - 2026-07-15
 
