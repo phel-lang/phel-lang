@@ -69,15 +69,8 @@ final class NsEmitter implements NodeEmitterInterface
             // Dependencies are loaded in order by the test framework.
         } else {
             $this->outputEmitter->emitLine('$__phelBuildFacade = new \\Phel\\Build\\BuildFacade();');
-            $this->outputEmitter->emitLine('$__phelSrcDirs = \\Phel::getDefinition(');
-            $this->outputEmitter->increaseIndentLevel();
-            $this->outputEmitter->emitStr('"');
-            $this->outputEmitter->emitStr(addslashes($this->outputEmitter->mungeEncodeRegistryKey('phel.repl')));
-            $this->outputEmitter->emitLine('",');
-            $this->outputEmitter->emitStr('"src-dirs"');
-            $this->outputEmitter->emitLine(') ?? [];');
-            $this->outputEmitter->decreaseIndentLevel();
-            $this->outputEmitter->emitLine('if ($__phelSrcDirs === [] && \\Phel::getDefinition(');
+            $this->outputEmitter->emitLine('$__phelSrcDirs = [];');
+            $this->outputEmitter->emitLine('if (\\Phel::getDefinition(');
             $this->outputEmitter->increaseIndentLevel();
             $this->outputEmitter->emitStr('"');
             $this->outputEmitter->emitStr(addslashes($this->outputEmitter->mungeEncodeRegistryKey('phel.core')));

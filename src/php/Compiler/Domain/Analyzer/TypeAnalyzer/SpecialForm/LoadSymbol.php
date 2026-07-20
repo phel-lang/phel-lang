@@ -21,7 +21,7 @@ use function is_string;
  * Loads a Phel source file into the caller namespace at runtime.
  * Path resolution follows the spirit of Clojure's `clojure.core/load`:
  * a path beginning with a slash is classpath-absolute (searched
- * against `phel\repl/src-dirs`); otherwise it is resolved relative to
+ * against the `phel.core/*load-classpath*` roots); otherwise it is resolved relative to
  * the caller file's compile-time location, so mutations to runtime
  * `*file*` cannot break resolution.
  */

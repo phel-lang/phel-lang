@@ -7,6 +7,7 @@ namespace PhelTest\Integration\Repl;
 use Phel;
 use Phel\Build\BuildFacade;
 use Phel\Compiler\CompilerFacade;
+use Phel\Lang\LoadClasspath;
 use Phel\Shared\CompileOptions;
 use PHPUnit\Framework\Attributes\PreserveGlobalState;
 use PHPUnit\Framework\Attributes\RunInSeparateProcess;
@@ -21,7 +22,7 @@ final class LoadFileTest extends TestCase
         parent::setUp();
 
         Phel::bootstrap(__DIR__);
-        Phel::addDefinition('phel.repl', 'src-dirs', [__DIR__ . '/../../../../src']);
+        LoadClasspath::publish([__DIR__ . '/../../../../src']);
 
         $srcDir = __DIR__ . '/../../../../src';
         $build = new BuildFacade();
