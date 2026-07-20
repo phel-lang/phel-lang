@@ -72,7 +72,7 @@ final class ReplLazyBundledNamespaceTest extends AbstractTestCommand
             $this->stubOutput(),
         );
 
-        $outputs = $io->getRawOutputs();
+        $outputs = $io->getOutputLines();
         self::assertContains('3', $outputs, '(+ 1 2) must work at boot without any bundle other than core');
         self::assertContains('false', $outputs, 'phel.html must not be loaded eagerly at REPL boot');
         self::assertNotContains('true', $outputs);
@@ -96,7 +96,7 @@ final class ReplLazyBundledNamespaceTest extends AbstractTestCommand
         );
 
         self::assertStringContainsString('&lt;div&gt;', $io->getOutputString(), 'A fully qualified bundle reference must resolve on demand');
-        self::assertContains('true', $io->getRawOutputs(), 'phel.html must be loaded after a fully qualified reference');
+        self::assertContains('true', $io->getOutputLines(), 'phel.html must be loaded after a fully qualified reference');
     }
 
     #[RunInSeparateProcess]

@@ -54,7 +54,7 @@ final class ReplTestIo implements ReplCommandIoInterface
     {
         if ($this->currentIndex < count($this->inputs)) {
             $inputLine = $this->inputs[$this->currentIndex];
-            $this->writeln($inputLine->__toString() . PHP_EOL);
+            $this->writeln($inputLine->__toString());
             ++$this->currentIndex;
 
             if ($inputLine->isCtrlD()) {
@@ -87,9 +87,14 @@ final class ReplTestIo implements ReplCommandIoInterface
         $this->outputs[] = $string;
     }
 
+    /**
+     * Terminates the line, like the real IO does. Without this the captured
+     * transcript runs an evaluated result straight into the next prompt
+     * (`3user:2> *1`), which is why the `.test` fixtures could never match.
+     */
     public function writeln(string $string = ''): void
     {
-        $this->outputs[] = $string;
+        $this->outputs[] = $string . PHP_EOL;
     }
 
     public function setInputs(InputLine ...$inputs): void
@@ -117,6 +122,22 @@ final class ReplTestIo implements ReplCommandIoInterface
     public function getRawOutputs(): array
     {
         return $this->outputs;
+    }
+
+    /**
+     * Raw outputs with the line terminator stripped, for assertions that care
+     * about the logical line and not its framing. Prefer this over
+     * {@see self::getRawOutputs()} when matching a whole entry, so the
+     * assertion does not have to spell out `. PHP_EOL`.
+     *
+     * @return list<string>
+     */
+    public function getOutputLines(): array
+    {
+        return array_map(
+            static fn(string $output): string => rtrim($output, PHP_EOL),
+            $this->outputs,
+        );
     }
 
     public function isBracketedPasteSupported(): bool
