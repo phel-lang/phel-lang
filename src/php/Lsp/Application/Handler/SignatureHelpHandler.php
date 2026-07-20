@@ -35,8 +35,10 @@ final readonly class SignatureHelpHandler implements HandlerInterface
 
     /**
      * @param array<string, mixed> $params
+     *
+     * @return array<string, mixed>|null
      */
-    public function handle(array $params, Session $session): mixed
+    public function handle(array $params, Session $session): ?array
     {
         $uri = $this->params->uri($params);
         $position = $this->params->position($params);

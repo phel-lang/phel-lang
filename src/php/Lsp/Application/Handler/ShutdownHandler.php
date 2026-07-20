@@ -28,7 +28,7 @@ final class ShutdownHandler implements HandlerInterface
     /**
      * @param array<string, mixed> $params
      */
-    public function handle(array $params, Session $session): mixed
+    public function handle(array $params, Session $session): null
     {
         $session->requestShutdown();
         return null;

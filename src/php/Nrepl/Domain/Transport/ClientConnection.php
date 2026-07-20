@@ -49,7 +49,7 @@ final class ClientConnection
     /**
      * Read whatever is available and return any completed bencode messages.
      *
-     * @return list<mixed>
+     * @return list<array<string, mixed>|int|list<mixed>|string>
      */
     public function readMessages(): array
     {

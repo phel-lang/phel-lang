@@ -31,8 +31,10 @@ final readonly class ReferencesHandler implements HandlerInterface
 
     /**
      * @param array<string, mixed> $params
+     *
+     * @return list<array<string, mixed>>
      */
-    public function handle(array $params, Session $session): mixed
+    public function handle(array $params, Session $session): array
     {
         $context = CursorContext::resolve($params, $session, $this->params);
         if (!$context instanceof CursorContext) {
