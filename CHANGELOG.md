@@ -6,47 +6,47 @@ All notable changes to this project will be documented in this file.
 
 ### Added
 
-- `every-pred`: complement of `some-fn`; returns a predicate that is true only when every composing predicate is logical true for every argument, short-circuiting on the first false and returning a strict boolean (#2738)
-- `mapv` and `filterv`: eager vector-returning variants of the lazy `map` and `filter` (#2739)
-- `unsigned-bit-shift-right`: logical right shift that zero-fills the vacated high bits instead of sign-extending, completing the bit-shift family (#2742)
-- `bit-and-not`: bitwise `and` with the complement of each subsequent argument (`x & ~y`) (#2744)
-- `rational?`: predicate for rational numbers (integers, `Ratio`, and `BigDecimal`; floats are not rational) (#2745)
-- `while`: macro that repeatedly evaluates its body for side effects while a test stays logical true (#2746)
-- `compare-and-set!`, `swap-vals!`, and `reset-vals!`: complete the atom API — conditional identity-based swap, and swap/reset variants returning `[old new]` (#2747)
-- `println-str`: like `println` but returns the string (with trailing newline) instead of writing to output (#2748)
-- `distinct?`: predicate returning true when no two of its arguments are `=` (#2749)
-- `bounded-count`: count a collection, walking at most `n` elements of a non-`counted?` sequence (#2750)
-- `splitv-at`: eager vector-returning variant of `split-at` (#2751)
-- `map-invert`: returns a map with keys and values swapped (#2753)
-- `infinite?`: alias for `inf?`, matching Clojure's naming (#2754)
-- `select`, `project`, and `rename`: `clojure.set`-style relational helpers over sets (filter to a set; keep only some keys; rename keys) (#2755)
-- `index`: `clojure.set`-style grouping of a relation into a map keyed by selected columns (#2756)
-- `subseq` and `rsubseq`: lazy range queries over sorted maps and sorted sets — boundary tests (`>`, `>=`, `<`, `<=`) respect the collection's own comparator, ascending (`subseq`) or descending (`rsubseq`) (#2757)
-- `random-sample`: keeps each item of a collection independently with probability `prob`; lazy, with a transducer arity (#2759)
-- `pr`, `prn`, `pr-str`, and `prn-str`: readable-print family — like `print`/`println`/`print-str`/`println-str` but each value is printed readably (strings quoted and escaped). Phel has no char type, so character literals such as `\A` are single-character strings and print as `"A"` (ClojureScript-aligned) (#2743)
-- `phel\trace` namespace in the spirit of `clojure.tools.trace`: `trace` (print a tagged value and return it), `trace-fn` (wrap a function so every call prints its arguments and result, nested by depth), `deftrace` (`defn` variant that traces every call, including recursion), `dotrace` (temporarily trace named globals while a body runs), and `reset-trace-state!`. Output goes to stderr via `dbg-write`, so it is capturable with `with-redefs` in tests
-- The REPL registers `phel.repl/print-tap` as a default tap on startup, so `(tap> x)` prints `tap> x` out of the box; detach it with `(remove-tap print-tap)`
+- `every-pred`: complement of `some-fn`; true only when every predicate passes for every argument (#2738)
+- `mapv` and `filterv`: eager vector variants of `map` and `filter` (#2739)
+- `unsigned-bit-shift-right`: logical right shift that zero-fills the high bits (#2742)
+- `bit-and-not`: bitwise `and` with the complement of each subsequent argument (#2744)
+- `rational?`: predicate for rational numbers (integers, `Ratio`, `BigDecimal`; not floats) (#2745)
+- `while`: evaluates its body for side effects while a test is logical true (#2746)
+- `compare-and-set!`, `swap-vals!`, `reset-vals!`: complete the atom API; the `-vals!` variants return `[old new]` (#2747)
+- `println-str`: like `println` but returns the string (#2748)
+- `distinct?`: true when no two arguments are `=` (#2749)
+- `bounded-count`: counts a collection, walking at most `n` elements of a non-`counted?` sequence (#2750)
+- `splitv-at`: eager vector variant of `split-at` (#2751)
+- `map-invert`: returns the map with keys and values swapped (#2753)
+- `infinite?`: alias for `inf?` (#2754)
+- `select`, `project`, `rename`: `clojure.set`-style relational helpers over sets (#2755)
+- `index`: `clojure.set`-style grouping of a relation keyed by selected columns (#2756)
+- `subseq` and `rsubseq`: lazy ascending/descending range queries over sorted maps and sets, honoring their comparator (#2757)
+- `random-sample`: keeps each item with probability `prob`; lazy, with a transducer arity (#2759)
+- `pr`, `prn`, `pr-str`, `prn-str`: readable-print family (strings quoted and escaped); char literals like `\A` are one-char strings and print as `"A"` (#2743)
+- `phel\trace` namespace in the spirit of `clojure.tools.trace`: `trace`, `trace-fn`, `deftrace`, `dotrace`, `reset-trace-state!`; prints to stderr
+- The REPL registers `phel.repl/print-tap` on startup, so `(tap> x)` prints out of the box; detach with `(remove-tap print-tap)`
 
 ### Changed
 
-- `partition-all` now accepts Clojure's `[n step coll]` arity for overlapping or gapped chunks that keep the incomplete tail (#2758)
-- `partition` now accepts Clojure's `[n step coll]` and `[n step pad coll]` arities: a custom step produces overlapping or gapped chunks, and a pad collection fills (or is dropped from) the final incomplete chunk. The existing `[n coll]` behavior is unchanged (#2752)
+- `partition-all` accepts Clojure's `[n step coll]` arity (#2758)
+- `partition` accepts Clojure's `[n step coll]` and `[n step pad coll]` arities; `[n coll]` unchanged (#2752)
 
 ### Performance
 
-- New opt-in `strip-symbol-meta` build option (`PhelConfig::withStripSymbolMeta()`): `phel build` removes symbol metadata (source locations, docstrings, arglists, arity info) from compiled artifacts. Measured on this repo's own build output: −28% artifact size, −40% cold require time, −2MB peak memory. Meta is compile-time-only, so runtime behavior is unchanged — but `phel doc` / `(meta ...)` over the built defs return nil, source maps are dropped, and flipping the flag forces a full recompile (#2769)
-- Core fns with contract-guaranteed primitive returns now carry explicit return tags (`count`, `compare` → `int`; `str`, `name`, `print-str`, `pr-str`, `println-str`, `prn-str` → `string`), so `let`/`loop` bindings initialized from them are type-inferred and downstream comparisons/concats hit the native-op emitter paths without user annotations. Their compiled `__invoke` signatures gain the matching native PHP return type (#2767)
-- `if` tests that lower to a native PHP comparison (typed `<`, `<=`, `>`, `>=`, `=`, and the `(not (= ...))` peephole) are spliced directly into the condition slot, dropping the redundant `($__truthy = ...) !== null && $__truthy !== false` adapter; `and`/`or` chains of such comparisons drop the per-arm adapters too (#2766)
-- Multi-arity function calls skip the variadic `__invoke` dispatch. Multi-arity fn classes now emit fixed-arity `invokeArityN` methods, and build-mode call sites with a statically known arity route through them via a guarded shortcut, avoiding the per-call `...$args` packing, `$args[N]` re-indexing, and closure indirection. Roughly 1.5-2x faster per multi-arity call in microbenchmarks (larger under JIT); single-arity calls are unchanged (#2760)
+- Opt-in `strip-symbol-meta` build option (`PhelConfig::withStripSymbolMeta()`) removes symbol metadata from compiled artifacts: −28% size, −40% cold require, −2MB peak on this repo. `phel doc`/`(meta ...)` over built defs return nil, and toggling forces a full recompile (#2769)
+- Core fns with guaranteed primitive returns (`count`, `compare`, `str`, `name`, the print-str family) carry return tags, so bindings from them type-infer and hit the native-op emitter paths (#2767)
+- `if`/`and`/`or` tests that lower to native PHP comparisons splice directly into the condition, dropping the truthiness adapter (#2766)
+- Multi-arity fns emit fixed-arity `invokeArityN` methods; build-mode call sites with a known arity skip the variadic `__invoke` dispatch (roughly 1.5-2x faster per call) (#2760)
 
 ### Fixed
 
-- `phel run` on an ad-hoc script: when a `(:require ...)` resolves to a sibling `.phel` file that cannot be read or parsed, the run now fails immediately with the extractor's clear error (e.g. `Cannot parse file: ...`) instead of silently skipping the dependency and surfacing later as a confusing "not defined" failure. Namespaces that still resolve elsewhere (bundled `phel.*`, `clojure.*` remaps, already-loaded namespaces) remain tolerated
-- `defn` (or any macro-expanded form) containing a `#inst` literal no longer crashes compilation with a `TypeError` in the location-enrichment walk: `#inst` yields a raw `DateTimeImmutable`, which now passes through untouched like every other non-Phel literal (#2778)
-- Multi-arity `fn` returned from another fn no longer emits invalid PHP (`ParseError: unexpected token "return"`): the per-arity closures are analyzed in expression context, so the generated constructor assignments splice plain closure expressions. `(fn [x] (fn ([a] ...) ([a b] ...)))` now works, with or without captured locals (#2776)
-- String concatenation no longer specializes over `php/json_encode`, `php/hex2bin`, or `php/str_replace`: their `string|false` / `string|array` returns could splice `false` into a native `.` concat and emit `""` where the dynamic `str` path renders `"false"`. The two compiler return-type tables are consolidated into one `PhpFunctionReturnTypes` with an explicit strict band (persistable tags) and a documented operand-only widening (`pow`) (#2768)
-- `phel test --coverage`: xdebug is only used as the coverage driver when `coverage` is among its active modes; otherwise the command fails fast with a hint to re-run with `XDEBUG_MODE=coverage` instead of emitting PHP warnings and an empty report (#2764)
-- Self-recursion inside a def whose init wraps the fn (e.g. `(def f (wrap (fn [n] ... (f ...))))`) no longer emits the `$this` self-call shortcut — the fn compiles to a plain closure there, so the shortcut invoked an unrelated object ("Object of type ... is not callable"); recursion now routes through the registry. Direct `(def f (fn ...))` inits keep the fast path
+- `phel run` on an ad-hoc script fails immediately with the extractor's error when a required sibling `.phel` file cannot be read or parsed, instead of silently skipping it; namespaces that resolve elsewhere remain tolerated
+- `#inst` literals inside macro-expanded forms no longer crash compilation in the location-enrichment walk (#2778)
+- Multi-arity `fn` returned from another fn no longer emits invalid PHP; per-arity closures are analyzed in expression context (#2776)
+- String concatenation no longer specializes over `php/json_encode`, `php/hex2bin`, or `php/str_replace`, whose `string|false`/`string|array` returns could emit `""` where `str` renders `"false"`; return-type tables consolidated into `PhpFunctionReturnTypes` (#2768)
+- `phel test --coverage` fails fast with a hint when xdebug's `coverage` mode is inactive, instead of PHP warnings and an empty report (#2764)
+- Self-recursion inside a wrapped def init (e.g. `(def f (wrap (fn ...)))`) routes through the registry instead of the invalid `$this` shortcut; direct `(def f (fn ...))` inits keep the fast path
 
 ## [0.48.0](https://github.com/phel-lang/phel-lang/compare/v0.47.0...v0.48.0) - 2026-07-15
 
