@@ -20,8 +20,6 @@
   ;; Munge is a final readonly class; reuse one instance to avoid per-call allocation.
   (php/new Munge))
 
-(def- src-dirs (php/array)) ; Set by ReplCommand; lazily resolved via get-src-dirs
-
 (defn- get-global-env []
   (php/:: GlobalEnvironmentSingleton (getInstance)))
 
@@ -47,15 +45,13 @@
   (php/-> build-facade (evalFile file)))
 
 (defn- get-src-dirs
-  "Returns source directories for namespace resolution. Falls back to CommandFacade when src-dirs has not been initialized (e.g. outside vanilla REPL)."
+  "Returns source directories for namespace resolution: the configured Phel directories plus the current working directory."
   []
-  (if (not (php/empty src-dirs))
-    src-dirs
-    (let [dirs (php/-> (php/new CommandFacade) (getAllPhelDirectories))
-          cwd  (php/getcwd)]
-      (when cwd
-        (php/array_push dirs cwd))
-      dirs)))
+  (let [dirs (php/-> (php/new CommandFacade) (getAllPhelDirectories))
+        cwd  (php/getcwd)]
+    (when cwd
+      (php/array_push dirs cwd))
+    dirs))
 
 (defn- eval-namespace [namespace]
   (let [canonical    (canonical-ns namespace)

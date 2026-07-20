@@ -6,6 +6,7 @@ namespace PhelTest\Integration\Run\LoadInNs;
 
 use Phel;
 use Phel\Build\BuildFacade;
+use Phel\Lang\LoadClasspath;
 use PHPUnit\Framework\Attributes\PreserveGlobalState;
 use PHPUnit\Framework\Attributes\RunInSeparateProcess;
 use PHPUnit\Framework\TestCase;
@@ -19,7 +20,7 @@ final class LoadInNsTest extends TestCase
         $fixtures = __DIR__ . '/Fixtures';
         Phel::bootstrap(__DIR__);
 
-        Phel::addDefinition('phel.repl', 'src-dirs', [$fixtures]);
+        LoadClasspath::publish([$fixtures]);
 
         new BuildFacade()->evalFile($fixtures . '/loadinns/main.phel');
 

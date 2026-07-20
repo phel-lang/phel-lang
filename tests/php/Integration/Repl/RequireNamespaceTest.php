@@ -7,6 +7,7 @@ namespace PhelTest\Integration\Repl;
 use Phel;
 use Phel\Build\BuildFacade;
 use Phel\Compiler\CompilerFacade;
+use Phel\Lang\LoadClasspath;
 use Phel\Lang\Symbol;
 use Phel\Shared\CompileOptions;
 use PHPUnit\Framework\Attributes\PreserveGlobalState;
@@ -21,7 +22,7 @@ final class RequireNamespaceTest extends TestCase
     public function test_require_loads_namespace(): void
     {
         Phel::bootstrap(__DIR__);
-        Phel::addDefinition('phel.repl', 'src-dirs', [__DIR__ . '/../../../../src']);
+        LoadClasspath::publish([__DIR__ . '/../../../../src']);
 
         $srcDir = __DIR__ . '/../../../../src';
         $build = new BuildFacade();
@@ -42,7 +43,7 @@ final class RequireNamespaceTest extends TestCase
     public function test_require_nonexistent_namespace_throws(): void
     {
         Phel::bootstrap(__DIR__);
-        Phel::addDefinition('phel.repl', 'src-dirs', [__DIR__ . '/../../../../src']);
+        LoadClasspath::publish([__DIR__ . '/../../../../src']);
 
         $srcDir = __DIR__ . '/../../../../src';
         $build = new BuildFacade();
@@ -63,7 +64,7 @@ final class RequireNamespaceTest extends TestCase
     public function test_require_with_dot_separator(): void
     {
         Phel::bootstrap(__DIR__);
-        Phel::addDefinition('phel.repl', 'src-dirs', [__DIR__ . '/../../../../src']);
+        LoadClasspath::publish([__DIR__ . '/../../../../src']);
 
         $srcDir = __DIR__ . '/../../../../src';
         $build = new BuildFacade();
@@ -84,7 +85,7 @@ final class RequireNamespaceTest extends TestCase
     public function test_require_with_clojure_alias(): void
     {
         Phel::bootstrap(__DIR__);
-        Phel::addDefinition('phel.repl', 'src-dirs', [__DIR__ . '/../../../../src']);
+        LoadClasspath::publish([__DIR__ . '/../../../../src']);
 
         $srcDir = __DIR__ . '/../../../../src';
         $build = new BuildFacade();
@@ -105,7 +106,7 @@ final class RequireNamespaceTest extends TestCase
     public function test_require_vector_form(): void
     {
         Phel::bootstrap(__DIR__);
-        Phel::addDefinition('phel.repl', 'src-dirs', [__DIR__ . '/../../../../src']);
+        LoadClasspath::publish([__DIR__ . '/../../../../src']);
 
         $srcDir = __DIR__ . '/../../../../src';
         $build = new BuildFacade();

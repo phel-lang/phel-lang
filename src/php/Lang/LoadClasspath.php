@@ -12,9 +12,7 @@ use function is_array;
  * sibling is not found next to the caller.
  *
  * Stored in the Phel registry under a dedicated key so it does not
- * collide with other namespace-level definitions (notably the REPL's
- * private `phel\repl/src-dirs` local, which previously double-used
- * the same slot).
+ * collide with other namespace-level definitions.
  *
  * The key lives under `phel\core` because `(load ...)` is a core
  * special form; the name follows Phel's earmuff convention for
@@ -25,15 +23,6 @@ final class LoadClasspath
     public const string NAMESPACE = 'phel.core';
 
     public const string NAME = '*load-classpath*';
-
-    /**
-     * Legacy location some callers still populate directly. Kept as a
-     * read-only fallback so existing programs and tests that only set
-     * the old slot continue to work.
-     */
-    private const string LEGACY_NAMESPACE = 'phel.repl';
-
-    private const string LEGACY_NAME = 'src-dirs';
 
     /**
      * Process-local memo of the last resolved classpath. The registry is the
@@ -64,17 +53,10 @@ final class LoadClasspath
             return self::$cached;
         }
 
-        $registry = Registry::getInstance();
-        $value = $registry->getDefinition(self::NAMESPACE, self::NAME);
-        if (is_array($value) && $value !== []) {
-            /** @var list<string> $value */
-            return self::$cached = $value;
-        }
-
-        $legacy = $registry->getDefinition(self::LEGACY_NAMESPACE, self::LEGACY_NAME);
+        $value = Registry::getInstance()->getDefinition(self::NAMESPACE, self::NAME);
 
         /** @var list<string> $result */
-        $result = is_array($legacy) ? $legacy : [];
+        $result = is_array($value) ? $value : [];
 
         return self::$cached = $result;
     }
