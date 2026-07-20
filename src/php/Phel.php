@@ -104,7 +104,7 @@ class Phel
         }
 
         try {
-            Gacela::bootstrap($projectRootDir, self::configFn());
+            Gacela::bootstrap($projectRootDir, self::configFn(self::readAppModulePaths($configPath)));
 
             // Gacela >= 1.16 degrades its caches to in-memory in read-only
             // environments, so this never fatals; a pre-warmed cache in a
@@ -176,11 +176,19 @@ class Phel
     }
 
     /**
+     * @param list<string> $appModulePaths
+     *
      * @return Closure(GacelaConfig):void
      */
-    public static function configFn(): callable
+    public static function configFn(array $appModulePaths = []): callable
     {
-        return static function (GacelaConfig $config): void {
+        return static function (GacelaConfig $config) use ($appModulePaths): void {
+            // Left unset when empty so Gacela keeps its own default rather than
+            // us pinning an equivalent-but-explicit value (#2787).
+            if ($appModulePaths !== []) {
+                $config->setAppModulePaths($appModulePaths);
+            }
+
             // Gacela >= 1.16 keeps this cache in-memory when the dir is not
             // writable (read-only sandboxes) instead of fataling on `mkdir`,
             // and still serves reads from a pre-warmed cache dir.
@@ -210,6 +218,38 @@ class Phel
     public static function resetAutoDetectedConfig(): void
     {
         self::$autoDetectedConfig = null;
+    }
+
+    /**
+     * Gacela needs the app-module paths while bootstrapping, before it reads
+     * `phel-config.php`, so the value is fetched up front rather than through
+     * the merged config.
+     *
+     * Any failure yields `[]`, which is Gacela's own default (walk the whole
+     * project root). A malformed config file still surfaces its real error from
+     * `Gacela::bootstrap()` below, so nothing is swallowed here that would not
+     * be reported a moment later.
+     *
+     * @return list<string>
+     */
+    private static function readAppModulePaths(string $configPath): array
+    {
+        if (self::$autoDetectedConfig instanceof PhelConfig) {
+            return self::$autoDetectedConfig->getAppModulePaths();
+        }
+
+        if (!file_exists($configPath)) {
+            return [];
+        }
+
+        try {
+            /** @psalm-suppress UnresolvableInclude */
+            $config = require $configPath;
+        } catch (Throwable) {
+            return [];
+        }
+
+        return $config instanceof PhelConfig ? $config->getAppModulePaths() : [];
     }
 
     /**
