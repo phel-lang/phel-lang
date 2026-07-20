@@ -39,7 +39,7 @@ final readonly class LintRunner
     {
         $files = $this->fileCollector->collect($paths);
         if ($files === []) {
-            return new LintResult([], []);
+            return new LintResult([]);
         }
 
         $projectIndex = $this->buildProjectIndex($paths);
@@ -82,7 +82,7 @@ final readonly class LintRunner
 
         $this->cache?->flush();
 
-        return new LintResult($allDiagnostics, $files);
+        return new LintResult($allDiagnostics);
     }
 
     /**

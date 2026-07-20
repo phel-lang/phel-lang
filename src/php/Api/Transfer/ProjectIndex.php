@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace Phel\Api\Transfer;
 
 use function array_filter;
-use function array_keys;
 use function array_unique;
 use function array_values;
 use function count;
@@ -39,14 +38,6 @@ final readonly class ProjectIndex
         }
 
         return array_values(array_unique($namespaces));
-    }
-
-    /**
-     * @return list<string>
-     */
-    public function definitionKeys(): array
-    {
-        return array_keys($this->definitions);
     }
 
     /**

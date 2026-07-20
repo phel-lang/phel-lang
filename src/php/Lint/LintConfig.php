@@ -13,8 +13,6 @@ final class LintConfig extends AbstractConfig
 {
     public const string DEFAULT_CONFIG_FILENAME = 'phel-lint.phel';
 
-    public const string CACHE_DIR = '.phel/lint-cache';
-
     public const string CACHE_SUBPATH = 'lint-cache';
 
     /**
@@ -42,11 +40,6 @@ final class LintConfig extends AbstractConfig
     public static function defaultConfigFilename(): string
     {
         return self::DEFAULT_CONFIG_FILENAME;
-    }
-
-    public static function defaultCacheDir(): string
-    {
-        return self::CACHE_DIR;
     }
 
     public function defaultSettings(): RuleSettings
