@@ -6,6 +6,32 @@ Leaf contract layer: facade interfaces, constants, cross-module value objects, a
 
 Cross-module facade contracts: Compiler, Build, Run, Command, Console, Formatter, Interop, Api. Modules inject these (`*FacadeInterface`), never concrete facades — enables dependency inversion. Add a new interface here when another module starts consuming it; keep its imports minimal.
 
+## Compiler Back-Edge (accepted cycle)
+
+`Facade/CompilerFacadeInterface` imports 11 symbols from `Phel\Compiler\Domain`, which keeps `{Compiler, Config, Filesystem, Lang, Shared}` in one SCC. **This is deliberate** (decided in #2785). It is the only Shared → Compiler edge, and `tests/php/Unit/Architecture/SharedCompilerBoundaryTest.php` fails the build if a second one appears or the symbol set changes.
+
+| Kind | Symbols |
+|------|---------|
+| Method signatures (6) | `AbstractNode`, `NodeEnvironmentInterface`, `GlobalEnvironmentInterface`, `TokenStream`, `EmitterResult`, `ReaderResult` |
+| `@throws` tags only (5) | `AnalyzerException`, `LexerValueException`, `UnexpectedParserException`, `UnfinishedParserException`, `ReaderException` |
+
+### Why it is not broken
+
+An SCC decomposes only when *every* back-edge goes, so partial moves are churn with no structural payoff: relocating just the five exceptions leaves the cycle exactly as it was.
+
+Removing all 11 means moving the analyzer AST into Shared. `AbstractNode` has ~554 references outside Shared and `NodeEnvironmentInterface` ~291. Shared would become the compiler, inverting the leaf-layer rule it exists to enforce.
+
+The two alternatives weighed in #2785 both cost more than the cycle does:
+
+- Primitives/serialized handles at the boundary: `analyze()` would return an untyped array, discarding the type safety PHPStan L9 / Psalm L1 enforce across those references.
+- Narrow Shared interfaces for AST/env: analyzer consumers match on concrete node types, so the interface either restates the node hierarchy in Shared or is too generic to type anything. Contrast `Shared\Parser\Node\NodeInterface`, which works precisely because the *parse tree* has a genuinely narrow contract.
+
+### Why it is benign
+
+The cycle is a static-analysis artifact over `use` statements, not a runtime one. No initialization order, autoloading, or build-order problem follows from it, and PHP has no module-level compilation unit.
+
+It also does not weaken the Gacela rule it appears to touch. Shared only *names* compiler types in a signature; it never instantiates one, and no factory gains a cross-module `new`. The dependency inversion this interface exists for (consumers injecting `CompilerFacadeInterface` rather than the concrete `CompilerFacade`) holds regardless of who owns the types in its signature.
+
 ## Constants
 
 | Const | Value / note |
@@ -74,3 +100,4 @@ Stateless strategy-pattern printer (see `Printer/CLAUDE.md`); consumers instanti
 - Leaf dependency: contracts + utilities only, never business logic.
 - Exceptions are cross-module: thrown and caught everywhere.
 - Utilities stay stateless: safe to instantiate without module context.
+- The one permitted outward edge is `CompilerFacadeInterface → Compiler\Domain` (see "Compiler Back-Edge" above). Adding a second Shared → Compiler import, or a new compiler type to that contract, breaks `SharedCompilerBoundaryTest`; widen it only deliberately, and update the rationale when you do.
