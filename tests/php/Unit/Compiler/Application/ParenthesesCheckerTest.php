@@ -33,6 +33,28 @@ final class ParenthesesCheckerTest extends TestCase
         self::assertFalse($this->isBalanced($code), $code);
     }
 
+    /**
+     * A closer with no matching opener cannot be repaired by typing more, so it
+     * counts as ready and the parser gets to raise a real error. The REPL
+     * buffers until this returns true, so reporting these as "keep waiting"
+     * left a mistyped bracket hanging with no feedback at all.
+     */
+    #[DataProvider('malformedCases')]
+    public function test_unrepairable_input_is_handed_to_the_parser(string $code): void
+    {
+        self::assertTrue($this->isBalanced($code), $code);
+    }
+
+    public static function malformedCases(): iterable
+    {
+        yield 'wrong closer while a list is open' => ["(php/+ 1\n2\n]"];
+        yield 'wrong closer while a vector is open' => ['[1 2)'];
+        yield 'wrong closer while a map is open' => ['{:a 1]'];
+        yield 'wrong closer while a set is open' => ['#{1 2)'];
+        yield 'stray closer on its own' => [']'];
+        yield 'closer before its opener' => [')('];
+    }
+
     public static function balancedCases(): iterable
     {
         yield 'empty' => [''];

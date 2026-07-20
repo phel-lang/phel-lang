@@ -43,6 +43,16 @@ final readonly class ParenthesesChecker
             }
         }
 
+        // A closer with no matching opener can never be repaired by appending
+        // more input, so the input is malformed rather than incomplete. Report
+        // it as ready and let the parser raise a located error. Otherwise the
+        // REPL, which buffers until this returns true, waits forever on a
+        // mistyped bracket: `(php/+ 1` then `]` leaves parens at 1 and brackets
+        // at -1, so the user gets no feedback at all and has to Ctrl-D out.
+        if ($parens < 0 || $brackets < 0 || $braces < 0) {
+            return true;
+        }
+
         return $parens <= 0 && $brackets <= 0 && $braces <= 0;
     }
 }
