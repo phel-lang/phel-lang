@@ -127,7 +127,7 @@ final class Lexer implements LexerInterface
                 $endLocation = $this->createSourceLocation($source);
 
                 @trigger_error(
-                    sprintf('"#| ... |#" multiline comments are deprecated and will be removed in Phel v0.33. Use ";;" for line comments or "#_" to skip a single form (at %s:%d:%d)', $source, $startLocation->getLine(), $startLocation->getColumn()),
+                    sprintf('"#| ... |#" multiline comments are deprecated and will be removed in a future release. Use ";;" for line comments or "#_" to skip a single form (at %s:%d:%d)', $source, $startLocation->getLine(), $startLocation->getColumn()),
                     E_USER_DEPRECATED,
                 );
 
@@ -145,7 +145,7 @@ final class Lexer implements LexerInterface
                 if (isset(self::DEPRECATABLE_TYPES[$tokenType])) {
                     if ($tokenType === Token::T_COMMENT && str_starts_with($matches[0], '#')) {
                         @trigger_error(
-                            sprintf('Bare "#" line comments are deprecated and will be removed in Phel v0.33. Use ";" or ";;" instead (at %s:%d:%d)', $source, $startLocation->getLine(), $startLocation->getColumn()),
+                            sprintf('Bare "#" line comments are deprecated and will be removed in a future release. Use ";" or ";;" instead (at %s:%d:%d)', $source, $startLocation->getLine(), $startLocation->getColumn()),
                             E_USER_DEPRECATED,
                         );
                     }
