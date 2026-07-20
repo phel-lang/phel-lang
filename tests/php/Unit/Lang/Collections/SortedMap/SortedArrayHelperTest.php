@@ -57,6 +57,20 @@ final class SortedArrayHelperTest extends TestCase
         self::assertGreaterThan(0, SortedArrayHelper::defaultCompare($b, $a));
     }
 
+    public function test_default_compare_nan_equals_itself(): void
+    {
+        // PHP's `NAN <=> NAN` is 1; the default comparator instead treats NaN
+        // as equal to itself (Java `Double.compare` / Clojure `compare`).
+        self::assertSame(0, SortedArrayHelper::defaultCompare(NAN, NAN));
+    }
+
+    public function test_default_compare_nan_orders_after_every_number(): void
+    {
+        self::assertSame(1, SortedArrayHelper::defaultCompare(NAN, 1));
+        self::assertSame(1, SortedArrayHelper::defaultCompare(NAN, PHP_INT_MAX));
+        self::assertSame(-1, SortedArrayHelper::defaultCompare(1, NAN));
+    }
+
     // ---- resolveComparator ----
 
     public function test_resolve_null_returns_default_comparator(): void
@@ -169,5 +183,14 @@ final class SortedArrayHelperTest extends TestCase
         self::assertSame(0, SortedArrayHelper::binarySearch($array, $a, $comp));
         self::assertSame(2, SortedArrayHelper::binarySearch($array, $b, $comp));
         self::assertSame(4, SortedArrayHelper::binarySearch($array, $c, $comp));
+    }
+
+    public function test_search_finds_nan_key_with_default_comparator(): void
+    {
+        $comp = SortedArrayHelper::resolveComparator(null);
+        // NaN sorts after every number, so it lives at the end of the array.
+        $array = [1, 'a', 2, 'b', NAN, 'n'];
+
+        self::assertSame(4, SortedArrayHelper::binarySearch($array, NAN, $comp));
     }
 }
