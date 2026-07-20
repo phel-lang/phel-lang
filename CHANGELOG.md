@@ -48,6 +48,7 @@ All notable changes to this project will be documented in this file.
 - String concatenation no longer specializes over `php/json_encode`, `php/hex2bin`, or `php/str_replace`, whose `string|false`/`string|array` returns could emit `""` where `str` renders `"false"`; return-type tables consolidated into `PhpFunctionReturnTypes` (#2768)
 - `phel test --coverage` fails fast with a hint when xdebug's `coverage` mode is inactive, instead of PHP warnings and an empty report (#2764)
 - Self-recursion inside a wrapped def init (e.g. `(def f (wrap (fn ...)))`) routes through the registry instead of the invalid `$this` shortcut; direct `(def f (fn ...))` inits keep the fast path
+- `phel list:modules` and `phel cache:warm` no longer fatal in projects whose test suite holds a class that cannot be loaded standalone; the new `app-module-paths` config key (`PhelConfig::withAppModulePaths()`) scopes Gacela's module discovery, defaulting to today's whole-root walk (#2787)
 
 ## [0.48.0](https://github.com/phel-lang/phel-lang/compare/v0.47.0...v0.48.0) - 2026-07-15
 

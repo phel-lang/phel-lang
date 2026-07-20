@@ -20,6 +20,7 @@ Pure data/model layer defining configuration structure for Phel projects. Leaf m
 - `with*()` setters — directory, layout, build, export, cache, flag mutations. Each returns a NEW instance.
 - `withOptimizationLevel(int)` — key `optimization-level`, clamped `>= 0`; consumed by Build/Run (REPL/nREPL ignore it).
 - `withPhelDir(string)` — state directory (`.phel/` default); honors `PHEL_DIR` env var as override.
+- `withAppModulePaths(list<string>)` — key `app-module-paths`; scopes Gacela's module discovery, which otherwise `class_exists()`-walks the whole project root and fatals on any file that cannot load standalone (e.g. under `tests/`). Default `[]` keeps Gacela's whole-root walk. Read by `Phel::bootstrap()` *before* the merged config exists, so it is parsed straight from `phel-config.php`, not via `AbstractConfig::get()`.
 - `validate(): list<string>` — empty list if valid.
 - `jsonSerialize(): array`.
 
