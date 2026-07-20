@@ -4,34 +4,48 @@ declare(strict_types=1);
 
 namespace PhelTest\Integration\Run\Command\Repl;
 
+use Gacela\Framework\Bootstrap\GacelaConfig;
+use Gacela\Framework\Gacela;
 use Generator;
 use Override;
+use Phel\Config\PhelConfig;
 use Phel\Run\Infrastructure\Command\ReplCommand;
 use PhelTest\Integration\Run\Command\AbstractTestCommand;
 use PHPUnit\Framework\Attributes\DataProvider;
+use PHPUnit\Framework\Attributes\PreserveGlobalState;
+use PHPUnit\Framework\Attributes\RunInSeparateProcess;
 use RecursiveDirectoryIterator;
 use RecursiveIteratorIterator;
 use SplFileInfo;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 
-final class ReplTestCommand extends AbstractTestCommand
+final class ReplCommandTest extends AbstractTestCommand
 {
     use ReplCommandTestTrait;
 
     private string $previousCwd = '';
 
-    public function __construct()
-    {
-        parent::__construct(self::class);
-    }
-
+    #[Override]
     protected function setUp(): void
     {
         parent::setUp();
-        // This now handles the bootstrap
         $this->previousCwd = getcwd() ?: '';
+
+        // Namespace resolution keys off Gacela's app root, so it has to equal
+        // the working directory: `require-current-dir.test` requires
+        // `util.phel` from where the REPL runs, while the core-lib fixtures
+        // need `src/phel` on the source path. Configured inline rather than via
+        // a `phel-config.php` here, because AbstractTestCommand bootstraps every
+        // REPL test from this directory and a config file would silently
+        // reconfigure all of them.
         chdir(__DIR__);
+        Gacela::bootstrap(__DIR__, static function (GacelaConfig $config): void {
+            $config->addAppConfigKeyValues([
+                PhelConfig::SRC_DIRS => ['../../../../../../src/phel', '.'],
+                PhelConfig::VENDOR_DIR => '',
+            ]);
+        });
     }
 
     #[Override]
@@ -41,6 +55,8 @@ final class ReplTestCommand extends AbstractTestCommand
     }
 
     #[DataProvider('providerIntegration')]
+    #[RunInSeparateProcess]
+    #[PreserveGlobalState(false)]
     public function test_integration(string $expectedOutput, InputLine ...$inputs): void
     {
         $io = $this->createReplTestIo();
@@ -63,6 +79,8 @@ final class ReplTestCommand extends AbstractTestCommand
      * We split it because it takes some time to load the core lib before every test.
      */
     #[DataProvider('providerIntegrationWithCoreLib')]
+    #[RunInSeparateProcess]
+    #[PreserveGlobalState(false)]
     public function test_integration_with_core_lib(string $expectedOutput, InputLine ...$inputs): void
     {
         $io = $this->createReplTestIo();
