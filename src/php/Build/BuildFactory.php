@@ -80,8 +80,7 @@ final class BuildFactory extends AbstractFactory
         // evaluator — otherwise each fresh `new BuildFacade()` would
         // rebuild its dependency tree and the on-disk compiled-code
         // index would be re-included per load.
-        /** @var FileEvaluator $evaluator */
-        $evaluator = $this->singleton(
+        return $this->singleton(
             FileEvaluator::class,
             fn(): FileEvaluator => new FileEvaluator(
                 $this->getCompilerFacade(),
@@ -93,13 +92,11 @@ final class BuildFactory extends AbstractFactory
                 $this->createCompiledSecondaryStore(),
             ),
         );
-        return $evaluator;
     }
 
     public function createNamespaceExtractor(): NamespaceExtractorInterface
     {
-        /** @var NamespaceExtractorInterface $extractor */
-        $extractor = $this->singleton(
+        return $this->singleton(
             NamespaceExtractorInterface::class,
             function (): NamespaceExtractorInterface {
                 $excludedPaths = $this->createExcludedScanPaths();
@@ -124,7 +121,6 @@ final class BuildFactory extends AbstractFactory
                 );
             },
         );
-        return $extractor;
     }
 
     public function createCacheClearer(): CacheClearer
@@ -176,22 +172,18 @@ final class BuildFactory extends AbstractFactory
     {
         // Shared singleton: the FileEvaluator writes built secondaries into it
         // and the harvester drains it within the same build process.
-        /** @var CompiledSecondaryStore $store */
-        $store = $this->singleton(
+        return $this->singleton(
             CompiledSecondaryStore::class,
             static fn(): CompiledSecondaryStore => new CompiledSecondaryStore(),
         );
-        return $store;
     }
 
     private function createCompiledCodeCache(): ?CompiledCodeCache
     {
-        /** @var CompiledCodeCache|null $cache */
-        $cache = $this->singleton(
+        return $this->singleton(
             CompiledCodeCache::class,
             fn(): ?CompiledCodeCache => $this->buildCompiledCodeCache(),
         );
-        return $cache;
     }
 
     private function buildCompiledCodeCache(): ?CompiledCodeCache
@@ -208,14 +200,12 @@ final class BuildFactory extends AbstractFactory
 
     private function createDependencyTracker(): ?DependencyTracker
     {
-        /** @var DependencyTracker|null $tracker */
-        $tracker = $this->singleton(
+        return $this->singleton(
             DependencyTracker::class,
             fn(): ?DependencyTracker => $this->getConfig()->isCompiledCodeCacheEnabled()
                 ? new DependencyTracker($this->getConfig()->getCacheDir())
                 : null,
         );
-        return $tracker;
     }
 
     private function createNamespaceCache(): NamespaceCacheInterface
