@@ -4,12 +4,7 @@ declare(strict_types=1);
 
 namespace Phel\Run\Domain\Repl;
 
-use Phel\Shared\Exceptions\AbstractLocatedException;
 use Phel\Shared\Facade\CommandFacadeInterface;
-use Phel\Shared\Parser\ReadModel\CodeSnippet;
-use Throwable;
-
-use const PHP_EOL;
 
 /**
  * Fallback REPL I/O when the readline extension is not available.
@@ -17,6 +12,8 @@ use const PHP_EOL;
  */
 final readonly class ReplCommandFallbackIo implements ReplCommandIoInterface
 {
+    use ReplOutputTrait;
+
     public function __construct(
         private CommandFacadeInterface $commandFacade,
         private ReplErrorFormatter $errorFormatter,
@@ -39,49 +36,6 @@ final readonly class ReplCommandFallbackIo implements ReplCommandIoInterface
         }
 
         return rtrim($line, "\n\r");
-    }
-
-    public function writeStackTrace(Throwable $e): void
-    {
-        $this->writeln($this->commandFacade->getStackTraceString($e));
-    }
-
-    public function writeReplError(Throwable $e): void
-    {
-        $this->writeln($this->errorFormatter->render($e));
-    }
-
-    public function writeLocatedException(AbstractLocatedException $e, CodeSnippet $codeSnippet): void
-    {
-        $this->writeln($this->commandFacade->getExceptionString($e, $codeSnippet));
-    }
-
-    /**
-     * @psalm-taint-escape html
-     * @psalm-taint-escape has_quotes
-     *
-     * @psalm-suppress TaintedHtml
-     * @psalm-suppress TaintedTextWithQuotes
-     */
-    public function write(string $string = ''): void
-    {
-        /** @psalm-suppress TaintedHtml */
-        /** @psalm-suppress TaintedTextWithQuotes */
-        echo $string; // phpcs:ignore
-    }
-
-    /**
-     * @psalm-taint-escape html
-     * @psalm-taint-escape has_quotes
-     *
-     * @psalm-suppress TaintedHtml
-     * @psalm-suppress TaintedTextWithQuotes
-     */
-    public function writeln(string $string = ''): void
-    {
-        /** @psalm-suppress TaintedHtml */
-        /** @psalm-suppress TaintedTextWithQuotes */
-        echo $string . PHP_EOL; // phpcs:ignore
     }
 
     public function isBracketedPasteSupported(): bool

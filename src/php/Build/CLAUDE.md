@@ -42,6 +42,7 @@ Compiles Phel projects to PHP: namespace extraction, dependency ordering, and ca
 | `Infrastructure/Cache/CompiledCodeCache` | Compiled-code cache policy orchestrator |
 | `Infrastructure/Cache/PhpScanIndexCache` / `NullScanIndexCache` | Persisted dir-scan index |
 | `Infrastructure/Cache/PhpNamespaceCache` / `NullNamespaceCache` | Namespace-extraction cache |
+| `Infrastructure/Cache/LockedPhpCacheWriter` | Shared flock'd `var_export` cache-file write (used by `PhpNamespaceCache` + `PhpScanIndexCache`) |
 | `Infrastructure/Timing/PhaseTimingProfilerHook` | `--timing` profiler hook |
 | `Infrastructure/Command/BuildCommand` / `CacheClearCommand` | CLI |
 
