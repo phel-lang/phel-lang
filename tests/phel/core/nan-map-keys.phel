@@ -21,4 +21,9 @@
   ;; not (matches Clojure; see clojure-test-suite eq.cljc "collections unequal").
   (is (not (= {nan 1} {nan 1})) "distinct maps with a NaN key are not =")
   (is (not (= (set [nan]) (set [nan]))) "distinct sets with a NaN element are not =")
+  (is (not (= (sorted-set nan) (sorted-set nan))) "distinct sorted sets with a NaN element are not =")
   (is (not (= [nan] [nan])) "distinct vectors with a NaN element are not ="))
+
+(deftest test-sorted-set-with-nan-stays-reflexive
+  (let [s (sorted-set nan)]
+    (is (= s s) "a sorted set carrying NaN is still = to itself")))
