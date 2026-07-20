@@ -17,11 +17,6 @@ final readonly class CodeDirectories
         private string $outputDir,
     ) {}
 
-    public function getPhelInternalSrcDir(): string
-    {
-        return $this->phelInternalSrcDir;
-    }
-
     /**
      * @return list<string>
      */

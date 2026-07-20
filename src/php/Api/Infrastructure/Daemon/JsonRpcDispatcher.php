@@ -67,11 +67,6 @@ final class JsonRpcDispatcher
         }
     }
 
-    public function setIndex(ProjectIndex $index): void
-    {
-        $this->cachedIndex = $index;
-    }
-
     /**
      * @param array<string, mixed> $params
      */

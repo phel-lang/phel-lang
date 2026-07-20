@@ -20,8 +20,6 @@ use Phel\Lang\Keyword;
 use Phel\Lang\PhelVar;
 use Phel\Lang\Ratio;
 use Phel\Lang\Symbol;
-use Phel\Lang\TypeInterface;
-use Phel\Lang\TypeStringifier;
 use Phel\Lang\UUID;
 use Phel\Shared\Printer\TypePrinter\AnonymousClassPrinter;
 use Phel\Shared\Printer\TypePrinter\ArrayPrinter;
@@ -63,13 +61,6 @@ final readonly class Printer implements PrinterInterface
         private bool $readable,
         private bool $withColor = false,
     ) {}
-
-    public static function installAsTypeStringifier(): void
-    {
-        TypeStringifier::install(
-            static fn(TypeInterface $value): string => self::readable()->print($value),
-        );
-    }
 
     public static function readable(): self
     {

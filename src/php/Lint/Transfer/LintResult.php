@@ -17,12 +17,9 @@ final readonly class LintResult
 {
     /**
      * @param list<Diagnostic> $diagnostics
-     * @param list<string>     $scannedFiles absolute paths of the files analysed,
-     *                                       used to report coverage; empty when nothing was scanned
      */
     public function __construct(
         public array $diagnostics,
-        public array $scannedFiles = [],
     ) {}
 
     public function errorCount(): int

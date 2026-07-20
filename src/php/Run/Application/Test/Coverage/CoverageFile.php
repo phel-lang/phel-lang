@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace Phel\Run\Application\Test\Coverage;
 
-use function array_keys;
 use function count;
 use function ksort;
 use function sort;
@@ -64,17 +63,6 @@ final readonly class CoverageFile
             }
         }
 
-        sort($lines);
-
-        return $lines;
-    }
-
-    /**
-     * @return list<int>
-     */
-    public function coverableLines(): array
-    {
-        $lines = array_keys($this->coverable);
         sort($lines);
 
         return $lines;
