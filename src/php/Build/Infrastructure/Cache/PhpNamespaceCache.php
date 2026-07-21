@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Phel\Build\Infrastructure\Cache;
 
+use Gacela\Framework\Cache\FileCache;
 use Phel\Build\Domain\Cache\NamespaceCacheEntry;
 use Phel\Build\Domain\Cache\NamespaceCacheInterface;
 use Phel\Build\Domain\Extractor\ExcludedScanPaths;
@@ -89,9 +90,7 @@ final class PhpNamespaceCache implements NamespaceCacheInterface
         $this->entries = [];
         $this->dirty = false;
 
-        if (file_exists($this->cacheFile)) {
-            @unlink($this->cacheFile);
-        }
+        FileCache::delete($this->cacheFile);
     }
 
     /**

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Phel\Build\Infrastructure\Cache;
 
+use Gacela\Framework\Cache\FileCache;
 use Gacela\Framework\Cache\WritableDirectory;
 
 use function dirname;
@@ -20,21 +21,16 @@ final class AtomicFileWriter
             return false;
         }
 
-        $tempPath = $path . '.tmp.' . uniqid('', true);
-        if (file_put_contents($tempPath, $content) === false) {
+        // Gacela's primitive writes with LOCK_EX, treats a short byte count as
+        // failure (a plain `=== false` misses a truncated disk-full write), and
+        // invalidates opcache for the final path — needed because these files
+        // are `require`d back (compiled code, env refers/aliases), so a stale
+        // opcode entry would otherwise serve old content after a rewrite.
+        if (!FileCache::writeContentsAtomically($path, $content)) {
             trigger_error(
-                sprintf('Phel cache: failed to write temp file "%s"', $tempPath),
+                sprintf('Phel cache: failed to write "%s"', $path),
                 E_USER_WARNING,
             );
-            return false;
-        }
-
-        if (!rename($tempPath, $path)) {
-            trigger_error(
-                sprintf('Phel cache: failed to rename "%s" to "%s"', $tempPath, $path),
-                E_USER_WARNING,
-            );
-            @unlink($tempPath);
             return false;
         }
 

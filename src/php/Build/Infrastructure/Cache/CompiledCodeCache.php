@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Phel\Build\Infrastructure\Cache;
 
+use Gacela\Framework\Cache\FileCache;
 use ParseError;
 use Phel\Build\Domain\Cache\CompiledCodeCacheInterface;
 
@@ -213,9 +214,7 @@ final class CompiledCodeCache implements CompiledCodeCacheInterface
         }
 
         $compiledPath = $this->getCompiledPath($sourcePath, $entry['namespace']);
-        if (file_exists($compiledPath)) {
-            @unlink($compiledPath);
-        }
+        FileCache::delete($compiledPath);
 
         unset($this->entries[$sourcePath], $this->touchedThisProcess[$sourcePath]);
         $this->tombstones[$sourcePath] = true;
@@ -232,7 +231,7 @@ final class CompiledCodeCache implements CompiledCodeCacheInterface
             $files = glob($compiledDir . '/*.php');
             if ($files !== false) {
                 foreach ($files as $file) {
-                    @unlink($file);
+                    FileCache::delete($file);
                 }
             }
         }
@@ -324,9 +323,7 @@ final class CompiledCodeCache implements CompiledCodeCacheInterface
 
             $entry = $this->entries[$sourcePath];
             $compiledPath = $this->getCompiledPath($sourcePath, $entry['namespace']);
-            if (file_exists($compiledPath)) {
-                @unlink($compiledPath);
-            }
+            FileCache::delete($compiledPath);
 
             unset($this->entries[$sourcePath]);
             ++$evicted;
