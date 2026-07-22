@@ -143,7 +143,7 @@ final readonly class MacroFormRewriter
      *
      * @return PersistentVectorInterface<mixed>
      */
-    private function withReturnTypeTag(PersistentVectorInterface $params, mixed $tag): PersistentVectorInterface
+    private function withReturnTypeTag(PersistentVectorInterface $params, Symbol|string $tag): PersistentVectorInterface
     {
         $existing = $params->getMeta();
         if ($existing instanceof PersistentMapInterface

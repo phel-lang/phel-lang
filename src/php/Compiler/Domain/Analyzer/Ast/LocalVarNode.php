@@ -62,7 +62,10 @@ final class LocalVarNode extends AbstractNode
         return null;
     }
 
-    private function tagOf(mixed $meta): ?string
+    /**
+     * @param PersistentMapInterface<mixed, mixed>|null $meta
+     */
+    private function tagOf(?PersistentMapInterface $meta): ?string
     {
         if (!$meta instanceof PersistentMapInterface) {
             return null;
