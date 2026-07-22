@@ -4,6 +4,8 @@ All notable changes to this project will be documented in this file.
 
 ## Unreleased
 
+## [0.49.0](https://github.com/phel-lang/phel-lang/compare/v0.48.0...v0.49.0) - 2026-07-22
+
 ### Added
 
 - `every-pred`: complement of `some-fn`; true only when every predicate passes for every argument (#2738)
