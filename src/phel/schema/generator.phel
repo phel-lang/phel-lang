@@ -14,12 +14,6 @@
 
 (declare schema->gen)
 
-(defn- simple-string-gen [_args]
-  g/string-alphanumeric)
-
-(defn- simple-keyword-gen [_args]
-  g/keyword)
-
 (defn- inst-gen []
   (g/fmap (fn [secs] (php/:: \DateTimeImmutable (createFromFormat "U" (str secs))))
           (g/choose 0 2147483647)))
