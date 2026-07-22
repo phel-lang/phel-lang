@@ -21,6 +21,8 @@ use function is_file;
 /**
  * Filesystem scanner that walks directories recursively and returns a
  * snapshot of `.phel` files keyed by realpath with mtime + size.
+ *
+ * @phpstan-import-type FileStat from FileSystemScannerInterface
  */
 final class MtimeFileSystemScanner implements FileSystemScannerInterface
 {
@@ -29,7 +31,7 @@ final class MtimeFileSystemScanner implements FileSystemScannerInterface
     /**
      * @param list<string> $paths
      *
-     * @return array<string, array{mtime:int, size:int}>
+     * @return array<string, FileStat>
      */
     public function snapshot(array $paths): array
     {
@@ -51,7 +53,7 @@ final class MtimeFileSystemScanner implements FileSystemScannerInterface
     }
 
     /**
-     * @param array<string, array{mtime:int, size:int}> $snapshot
+     * @param array<string, FileStat> $snapshot
      */
     private function walkDirInto(array &$snapshot, string $dir): void
     {
@@ -77,7 +79,7 @@ final class MtimeFileSystemScanner implements FileSystemScannerInterface
     }
 
     /**
-     * @param array<string, array{mtime:int, size:int}> $snapshot
+     * @param array<string, FileStat> $snapshot
      */
     private function statInto(array &$snapshot, string $file): void
     {

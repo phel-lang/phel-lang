@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace Phel\Lsp\Application\Rpc;
 
+use Phel\Lsp\Application\Convert\PositionConverter;
+
 use function is_array;
 use function is_int;
 use function is_string;
@@ -16,6 +18,8 @@ use function is_string;
  * the field is missing or has the wrong type. Handlers then translate that
  * default into the LSP response that best fits their method (empty array,
  * `null`, etc.).
+ *
+ * @phpstan-import-type Position from PositionConverter
  */
 final class ParamsExtractor
 {
@@ -35,7 +39,7 @@ final class ParamsExtractor
     /**
      * @param array<string, mixed> $params
      *
-     * @return array{line: int, character: int}|null
+     * @return Position|null
      */
     public function position(array $params): ?array
     {

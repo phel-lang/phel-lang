@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Phel\Lsp\Application\Handler;
 
 use Phel\Api\Transfer\ProjectIndex;
+use Phel\Lsp\Application\Convert\PositionConverter;
 use Phel\Lsp\Application\Document\Document;
 use Phel\Lsp\Application\Rpc\ParamsExtractor;
 use Phel\Lsp\Application\Session\Session;
@@ -20,11 +21,13 @@ use Phel\Lsp\Application\Session\Session;
  * and the caller returns the method's empty response. This removes the
  * repeated four-step prelude from `Hover`, `Definition`, `References`, and
  * `Rename`.
+ *
+ * @phpstan-import-type Position from PositionConverter
  */
 final readonly class CursorContext
 {
     /**
-     * @param array{line: int, character: int} $position
+     * @param Position $position
      */
     private function __construct(
         public ProjectIndex $index,
