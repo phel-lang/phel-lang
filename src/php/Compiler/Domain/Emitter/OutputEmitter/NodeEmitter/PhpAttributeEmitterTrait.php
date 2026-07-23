@@ -10,6 +10,7 @@ use Phel\Lang\Collections\Vector\PersistentVectorInterface;
 use Phel\Lang\Keyword;
 use Phel\Lang\Symbol;
 use Phel\Shared\PhpAttributeRenderer;
+use Phel\Shared\TagResolver;
 
 use function array_unshift;
 use function implode;
@@ -53,11 +54,7 @@ trait PhpAttributeEmitterTrait
             return $this->joinTagParts($tag, '&');
         }
 
-        if ($tag instanceof Symbol) {
-            $tag = $tag->getName();
-        }
-
-        return is_string($tag) && $tag !== '' ? $tag : null;
+        return TagResolver::normalizeScalar($tag);
     }
 
     /**

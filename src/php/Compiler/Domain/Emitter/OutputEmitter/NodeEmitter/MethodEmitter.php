@@ -14,10 +14,10 @@ use Phel\Lang\Registry;
 use Phel\Lang\Symbol;
 use Phel\Shared\BuildConstants;
 use Phel\Shared\CompilerConstants;
+use Phel\Shared\TagResolver;
 
 use function count;
 use function implode;
-use function is_string;
 
 final readonly class MethodEmitter
 {
@@ -156,16 +156,7 @@ final readonly class MethodEmitter
      */
     private function extractTypeTag(?PersistentMapInterface $meta): ?string
     {
-        if (!$meta instanceof PersistentMapInterface) {
-            return null;
-        }
-
-        $tag = $meta->find(Keyword::create('tag'));
-        if ($tag instanceof Symbol) {
-            $tag = $tag->getName();
-        }
-
-        return is_string($tag) && $tag !== '' ? $tag : null;
+        return TagResolver::fromMeta($meta);
     }
 
     /**

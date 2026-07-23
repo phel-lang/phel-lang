@@ -12,9 +12,9 @@ use Phel\Compiler\Domain\Analyzer\Ast\LiteralNode;
 use Phel\Compiler\Domain\Analyzer\Ast\MapNode;
 use Phel\Compiler\Domain\Analyzer\Ast\SetNode;
 use Phel\Compiler\Domain\Analyzer\Ast\VectorNode;
-use Phel\Lang\Collections\Map\PersistentMapInterface;
 use Phel\Lang\Keyword;
 use Phel\Lang\Symbol;
+use Phel\Shared\TagResolver;
 
 use function array_map;
 use function explode;
@@ -43,17 +43,7 @@ final class TagCompatibility
      */
     public static function extractParamTag(Symbol $param): ?string
     {
-        $meta = $param->getMeta();
-        if (!$meta instanceof PersistentMapInterface) {
-            return null;
-        }
-
-        $tag = $meta->find(Keyword::create('tag'));
-        if ($tag instanceof Symbol) {
-            return $tag->getName();
-        }
-
-        return is_string($tag) && $tag !== '' ? $tag : null;
+        return TagResolver::fromMeta($param->getMeta());
     }
 
     public static function literalTypeOf(AbstractNode $node): ?string

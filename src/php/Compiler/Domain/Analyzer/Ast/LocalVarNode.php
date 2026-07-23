@@ -6,11 +6,9 @@ namespace Phel\Compiler\Domain\Analyzer\Ast;
 
 use Phel\Compiler\Domain\Analyzer\Environment\NodeEnvironmentInterface;
 use Phel\Lang\Collections\Map\PersistentMapInterface;
-use Phel\Lang\Keyword;
 use Phel\Lang\SourceLocation;
 use Phel\Lang\Symbol;
-
-use function is_string;
+use Phel\Shared\TagResolver;
 
 final class LocalVarNode extends AbstractNode
 {
@@ -67,15 +65,6 @@ final class LocalVarNode extends AbstractNode
      */
     private function tagOf(?PersistentMapInterface $meta): ?string
     {
-        if (!$meta instanceof PersistentMapInterface) {
-            return null;
-        }
-
-        $tag = $meta->find(Keyword::create('tag'));
-        if ($tag instanceof Symbol) {
-            $tag = $tag->getName();
-        }
-
-        return is_string($tag) && $tag !== '' ? $tag : null;
+        return TagResolver::fromMeta($meta);
     }
 }
