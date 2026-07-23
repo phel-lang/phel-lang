@@ -15,13 +15,11 @@ use Phel\Compiler\Domain\Analyzer\Exceptions\AnalyzerException;
 use Phel\Compiler\Domain\Analyzer\TypeAnalyzer\Simplification\TailCallRewriter;
 use Phel\Compiler\Domain\Analyzer\TypeAnalyzer\SpecialForm\ReadModel\FnSymbolTuple;
 use Phel\Lang\Collections\LinkedList\PersistentListInterface;
-use Phel\Lang\Collections\Map\PersistentMapInterface;
 use Phel\Lang\Collections\Vector\PersistentVectorInterface;
-use Phel\Lang\Keyword;
 use Phel\Lang\Symbol;
+use Phel\Shared\TagResolver;
 
 use function count;
-use function is_string;
 use function sprintf;
 
 /**
@@ -260,17 +258,7 @@ final readonly class FnSymbol implements SpecialFormAnalyzerInterface
             return null;
         }
 
-        $meta = $paramVector->getMeta();
-        if (!$meta instanceof PersistentMapInterface) {
-            return null;
-        }
-
-        $tag = $meta->find(Keyword::create('tag'));
-        if ($tag instanceof Symbol) {
-            $tag = $tag->getName();
-        }
-
-        return is_string($tag) && $tag !== '' ? $tag : null;
+        return TagResolver::fromMeta($paramVector->getMeta());
     }
 
     /**

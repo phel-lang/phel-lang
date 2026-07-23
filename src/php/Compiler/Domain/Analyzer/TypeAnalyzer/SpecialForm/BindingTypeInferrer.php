@@ -21,6 +21,7 @@ use Phel\Lang\Collections\Map\PersistentMapInterface;
 use Phel\Lang\Keyword;
 use Phel\Lang\Symbol;
 use Phel\Shared\CompilerConstants;
+use Phel\Shared\TagResolver;
 
 use function array_map;
 use function count;
@@ -411,16 +412,7 @@ final class BindingTypeInferrer
      */
     private function tagFromMeta(?PersistentMapInterface $meta): ?string
     {
-        if (!$meta instanceof PersistentMapInterface) {
-            return null;
-        }
-
-        $tag = $meta->find(Keyword::create('tag'));
-        if ($tag instanceof Symbol) {
-            $tag = $tag->getName();
-        }
-
-        return is_string($tag) && $tag !== '' ? $tag : null;
+        return TagResolver::fromMeta($meta);
     }
 
     /**

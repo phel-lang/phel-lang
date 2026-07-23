@@ -18,8 +18,8 @@ use Phel\Compiler\Domain\Analyzer\Ast\RecurNode;
 use Phel\Compiler\Domain\Analyzer\Ast\ThrowNode;
 use Phel\Compiler\Domain\Analyzer\TypeAnalyzer\PhpFunctionReturnTypes;
 use Phel\Lang\Collections\Map\PersistentMapInterface;
-use Phel\Lang\Keyword;
 use Phel\Lang\Symbol;
+use Phel\Shared\TagResolver;
 
 use function array_map;
 use function count;
@@ -407,12 +407,7 @@ final class ReturnTypeInferrer
      */
     private function tagFromMeta(PersistentMapInterface $meta): ?string
     {
-        $tag = $meta->find(Keyword::create('tag'));
-        if ($tag instanceof Symbol) {
-            return $tag->getName();
-        }
-
-        return is_string($tag) && $tag !== '' ? $tag : null;
+        return TagResolver::fromMeta($meta);
     }
 
     private function bindingName(BindingNode $binding): string
