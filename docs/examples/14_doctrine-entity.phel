@@ -50,7 +50,7 @@
   "Pure: a new product with the price reduced by `pct` (0.0 .. 1.0).
   Structs are immutable, so this returns a fresh value instead of mutating."
   [p pct]
-  (put p :price (* (get p :price) (- 1 pct))))
+  (assoc p :price (* (get p :price) (- 1 pct))))
 
 ;; --- Prove the Doctrine mapping reached the generated PHP class --------------
 
