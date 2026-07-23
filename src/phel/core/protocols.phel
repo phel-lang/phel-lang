@@ -999,10 +999,3 @@ bindings is a vector of function specs: (letfn [(f [params] body) (g [params] bo
   [sym]
   (-> (get-global-env)
       (php/-> (resolveAsSymbol sym (php/:: NodeEnvironment (empty))))))
-
-(defn- inline-call? [meta arity]
-  (and (:inline meta)
-       (let [af (:inline-arity meta)]
-         (if af
-           (af arity)
-           true))))

@@ -8,12 +8,14 @@ namespace Phel\Profile\Domain;
  * Immutable snapshot of a profiling run: per-fn call stats (keyed by
  * `BOUND_TO` name, times in nanoseconds), per-source compile-phase times
  * (in milliseconds), and the total wall-clock time in milliseconds.
+ *
+ * @phpstan-type FnStat array{calls:int, totalNs:int, selfNs:int, maxNs:int}
  */
 final readonly class ProfileReport
 {
     /**
-     * @param array<string, array{calls:int, totalNs:int, selfNs:int, maxNs:int}> $fnStats
-     * @param array<string, array<string, float>>                                 $phaseMs
+     * @param array<string, FnStat>               $fnStats
+     * @param array<string, array<string, float>> $phaseMs
      */
     public function __construct(
         private array $fnStats,
@@ -24,7 +26,7 @@ final readonly class ProfileReport
     /**
      * Per-fn stats keyed by fn name; all `*Ns` values are nanoseconds.
      *
-     * @return array<string, array{calls:int, totalNs:int, selfNs:int, maxNs:int}>
+     * @return array<string, FnStat>
      */
     public function fnStats(): array
     {

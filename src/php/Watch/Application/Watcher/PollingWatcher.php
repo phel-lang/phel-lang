@@ -14,6 +14,8 @@ use Phel\Watch\Transfer\WatchEvent;
  * and diffs the mtime + size snapshot with the previous one. Events emitted
  * in the same `$debounceMs` window are coalesced into a single callback
  * invocation (which stops editor-save-induced double triggers).
+ *
+ * @phpstan-import-type FileStat from FileSystemScannerInterface
  */
 final class PollingWatcher implements FileWatcherInterface
 {
@@ -21,7 +23,7 @@ final class PollingWatcher implements FileWatcherInterface
 
     private bool $running = false;
 
-    /** @var array<string, array{mtime:int, size:int}> */
+    /** @var array<string, FileStat> */
     private array $lastSnapshot = [];
 
     public function __construct(
@@ -73,8 +75,8 @@ final class PollingWatcher implements FileWatcherInterface
     }
 
     /**
-     * @param array<string, array{mtime:int, size:int}> $previous
-     * @param array<string, array{mtime:int, size:int}> $current
+     * @param array<string, FileStat> $previous
+     * @param array<string, FileStat> $current
      *
      * @return list<WatchEvent>
      */

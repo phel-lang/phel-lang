@@ -1,7 +1,5 @@
 (ns phel.test.rose)
 
-;; Rose trees used to carry a value alongside lazy shrink candidates.
-;;
 ;; A rose tree is a hash-map `{:root v :children seq}` where `seq` is a
 ;; lazy sequence of rose trees representing smaller variants of `v`.
 ;; The shrinker walks the tree depth-first and keeps the smallest

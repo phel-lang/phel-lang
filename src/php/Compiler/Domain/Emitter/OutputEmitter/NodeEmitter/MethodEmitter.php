@@ -151,7 +151,10 @@ final readonly class MethodEmitter
         );
     }
 
-    private function extractTypeTag(mixed $meta): ?string
+    /**
+     * @param PersistentMapInterface<mixed, mixed>|null $meta
+     */
+    private function extractTypeTag(?PersistentMapInterface $meta): ?string
     {
         if (!$meta instanceof PersistentMapInterface) {
             return null;
@@ -171,8 +174,10 @@ final readonly class MethodEmitter
      * `php/aset`, `php/array_push`, etc. propagate back to the caller's
      * binding. Surfaces the `(php/array)` mutation pattern at the Phel
      * level without forcing buffer-return-rebind dances.
+     *
+     * @param PersistentMapInterface<mixed, mixed>|null $meta
      */
-    private function isByRef(mixed $meta): bool
+    private function isByRef(?PersistentMapInterface $meta): bool
     {
         if (!$meta instanceof PersistentMapInterface) {
             return false;

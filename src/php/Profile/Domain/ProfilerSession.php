@@ -10,6 +10,9 @@ use Phel\Lang\ProfilerHookInterface;
 use function array_pop;
 use function hrtime;
 
+/**
+ * @phpstan-import-type FnStat from ProfileReport
+ */
 final class ProfilerSession implements ProfilerHookInterface
 {
     /**
@@ -21,7 +24,7 @@ final class ProfilerSession implements ProfilerHookInterface
      */
     private array $stack = [];
 
-    /** @var array<string, array{calls:int, totalNs:int, selfNs:int, maxNs:int}> */
+    /** @var array<string, FnStat> */
     private array $fnStats = [];
 
     /** @var array<string, array<string, float>> */

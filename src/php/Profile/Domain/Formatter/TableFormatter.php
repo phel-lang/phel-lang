@@ -23,6 +23,9 @@ use function strrpos;
 use function substr;
 use function uasort;
 
+/**
+ * @phpstan-import-type FnStat from ProfileReport
+ */
 final class TableFormatter
 {
     /**
@@ -142,7 +145,7 @@ final class TableFormatter
     }
 
     /**
-     * @param array{calls:int, totalNs:int, selfNs:int, maxNs:int} $r
+     * @param FnStat $r
      */
     private function renderFnRow(string $name, array $r, int $nameWidth): string
     {
@@ -160,7 +163,7 @@ final class TableFormatter
     }
 
     /**
-     * @return callable(array{calls:int, totalNs:int, selfNs:int, maxNs:int}, array{calls:int, totalNs:int, selfNs:int, maxNs:int}): int
+     * @return callable(FnStat, FnStat): int
      */
     private function sortComparator(SortOrder $sort): callable
     {
