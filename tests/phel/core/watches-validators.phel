@@ -43,7 +43,7 @@
         v   (atom 0)]
     (add-watch v :logger
                (fn [key ref old-val new-val]
-                 (swap! log (fn [xs] (push xs [old-val new-val])))))
+                 (swap! log (fn [xs] (conj xs [old-val new-val])))))
     (swap! v inc)
     (swap! v inc)
     (is (= [[0 1] [1 2]] (deref log)) "watch fires on each swap")))
@@ -53,7 +53,7 @@
         v   (atom :a)]
     (add-watch v :log
                (fn [key ref old-val new-val]
-                 (swap! log (fn [xs] (push xs new-val)))))
+                 (swap! log (fn [xs] (conj xs new-val)))))
     (reset! v :b)
     (reset! v :c)
     (is (= [:b :c] (deref log)) "watch fires on set!")))
@@ -88,8 +88,8 @@
   (let [log-a (atom [])
         log-b (atom [])
         v     (atom 0)]
-    (add-watch v :a (fn [k r o n] (swap! log-a (fn [xs] (push xs n)))))
-    (add-watch v :b (fn [k r o n] (swap! log-b (fn [xs] (push xs n)))))
+    (add-watch v :a (fn [k r o n] (swap! log-a (fn [xs] (conj xs n)))))
+    (add-watch v :b (fn [k r o n] (swap! log-b (fn [xs] (conj xs n)))))
     (swap! v inc)
     (is (= [1] (deref log-a)) "watch :a fires")
     (is (= [1] (deref log-b)) "watch :b fires")))
@@ -135,7 +135,7 @@
   (let [log (atom [])
         v   (atom 1)]
     (set-validator! v pos?)
-    (add-watch v :log (fn [k r o n] (swap! log (fn [xs] (push xs n)))))
+    (add-watch v :log (fn [k r o n] (swap! log (fn [xs] (conj xs n)))))
     (swap! v inc)
     (is (= [2] (deref log)) "watch fires when validator passes")))
 

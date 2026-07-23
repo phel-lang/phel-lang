@@ -287,9 +287,6 @@
   (is (false? (special-symbol? 42)) "special-symbol? on integer")
   (is (false? (special-symbol? nil)) "special-symbol? on nil"))
 
-(deftest test-function?
-  (is (true? (function? concat)) "function? on concat"))
-
 (deftest test-ifn?
   (is (true? (ifn? inc)) "ifn? on function")
   (is (true? (ifn? :a)) "ifn? on keyword")
@@ -306,9 +303,6 @@
   (is (= 1 ('a {'a 1})) "symbol looks itself up in a map")
   (is (= "default" ('a {} "default")) "symbol returns default when key missing")
   (is (nil? ('a nil)) "symbol on nil returns nil"))
-
-(deftest test-hash-map?
-  (is (true? (hash-map? {})) "hash-map?"))
 
 (deftest test-vector?
   (is (true? (vector? [])) "vector?")

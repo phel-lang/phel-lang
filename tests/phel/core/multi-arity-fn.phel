@@ -41,7 +41,7 @@
                (fact 5)))
       "named fn bound to a different local still self-recurses")
   (is (= [1 2 3 4 5] ((fn collect [n]
-                        (if (zero? n) [] (push (collect (dec n)) n))) 5))
+                        (if (zero? n) [] (conj (collect (dec n)) n))) 5))
       "named fn with non-trivial recursive body"))
 
 (deftest named-fn-multi-arity-self-call
@@ -63,7 +63,7 @@
         "inner f does not collide with outer f name from sibling fn")))
 
 (deftest multi-arity-fn-returned-from-fn
-  (let [make (fn [x]
+  (let [make  (fn [x]
                (fn
                  ([a] (+ a x))
                  ([a b] (+ a b x))))

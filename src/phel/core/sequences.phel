@@ -47,13 +47,6 @@
         nil
         (php/aget coll (php/- n 1))))))
 
-(defn push
-  "Inserts `x` at the end of the sequence `coll`."
-  {:deprecated "0.25.0"
-   :superseded-by "conj"}
-  [coll x]
-  (conj coll x))
-
 (defn- pop*
   "Removes the last element of `coll`. Returns nil for nil or empty PHP arrays."
   [^:by-ref coll]
@@ -290,13 +283,6 @@
       (recur (assoc-pair acc (first remaining) (second remaining))
              (rest (rest remaining))))))
 
-(defn put
-  "Puts `value` mapped to `key` on the datastructure `ds`. Returns `ds`."
-  {:deprecated "0.25.0"
-   :superseded-by "assoc"}
-  [ds key value]
-  (assoc ds key value))
-
 (defn- dissoc-one
   [ds key]
   (cond
@@ -324,10 +310,3 @@
     (if (empty? remaining)
       acc
       (recur (dissoc-one acc (first remaining)) (next remaining)))))
-
-(defn unset
-  "Returns `ds` without `key`."
-  {:deprecated "0.25.0"
-   :superseded-by "dissoc"}
-  [ds key]
-  (dissoc ds key))

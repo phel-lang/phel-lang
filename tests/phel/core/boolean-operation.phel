@@ -23,18 +23,6 @@
   (is (false? (and false 10)) "(and false 10)")
   (is (= 10 (and 10)) "(and 10)"))
 
-(deftest test-id
-  (is (true? (id false)) "(id false)")
-  (is (true? (id false false)) "(id false false)")
-  (is (true? (id false false false)) "(id false false false)")
-  (is (false? (id false true false)) "(id false true false)")
-  (is (true? (id 10 10)) "(id 10 10)")
-  (is (false? (id 10 10.0)) "(id 10 10.0)")
-  (is (true? (id :test :test)) "keywords are always identical")
-  (is (true? (id 'test 'test)) "symbol are always identical")
-  (is (false? (id [] [])) "two empty vectors are not identical")
-  (is (false? (id {} {})) "two empty maps are not identical"))
-
 (deftest test-=
   (is (true? (= false)) "(= false)")
   (is (true? (false? false)) "(false? false)")
@@ -249,10 +237,6 @@
   (is (true? (false? false)) "(false? false)")
   (is (false? (false? nil)) "(false? nil)")
   (is (false? (false? true)) "(false? true)"))
-
-(deftest test-str-contains?
-  (is (true? (str-contains? "abc" "a")))
-  (is (false? (str-contains? "abc" "d"))))
 
 (deftest test-contains?-map
   (let [full-name {:first-name "Marco" :last-name "Polo" :street nil}]

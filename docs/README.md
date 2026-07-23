@@ -11,6 +11,7 @@ modules, deployment) live on **[phel-lang.org](https://phel-lang.org/documentati
 - [Internals](internals/README.md): architecture, compiler phases, AST, emitter,
   macros, runtime, FAQ, benchmarks
 - [Migration: backslash to dot](migration/backslash-to-dot.md)
+- [Migration: removed deprecated core functions](migration/removed-deprecated-core-fns.md)
 - [Examples](examples/README.md): runnable single-file samples
 - [AI agents](../resources/agents/README.md): Claude Code, Cursor, Codex, Gemini, Copilot, Aider
 - [agent-docs](agent-docs.md) · [agent-metrics](agent-metrics.md)

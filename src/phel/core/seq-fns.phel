@@ -350,13 +350,6 @@ Creates intermediate maps if they don't exist."
     (assoc ds k (assoc-in (get ds k {}) ks v))
     (assoc ds k v)))
 
-(defn put-in
-  "Puts a value into a nested data structure."
-  {:deprecated "0.25.0"
-   :superseded-by "assoc-in"}
-  [ds ks v]
-  (assoc-in ds ks v))
-
 (defn update
   "Updates a value in a datastructure by applying `f` to the current value."
   {:example "(update {:count 5} :count inc) ; => {:count 6}"
@@ -385,13 +378,6 @@ Creates intermediate maps if they don't exist."
         ds
         (assoc ds k (dissoc-in sub ks))))
     (dissoc ds k)))
-
-(defn unset-in
-  "Removes a value from a nested data structure."
-  {:deprecated "0.25.0"
-   :superseded-by "dissoc-in"}
-  [ds ks]
-  (dissoc-in ds ks))
 
 (defn drop
   "Drops the first `n` elements of `coll`. Returns a lazy sequence. When called with n only, returns a transducer."
@@ -835,14 +821,6 @@ Works with vectors, lists, sets, and strings."
    (let [start? (sorted-bound-fn sc start-test start-key)
          end?   (sorted-bound-fn sc end-test end-key)]
      (take-while start? (drop-while (fn [x] (not (end? x))) (rseq sc))))))
-
-(defn values
-  "Returns a sequence of all values in a map."
-  {:deprecated "0.32.0"
-   :superseded-by "vals"
-   :example "(values {:a 1 :b 2}) ; => [1 2]"}
-  [coll]
-  (vals coll))
 
 (defn pairs
   "Gets the pairs of an associative data structure."

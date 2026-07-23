@@ -95,13 +95,6 @@
       (recur (first more) (next more))
       false)))
 
-(defn id
-  "Checks if all values are identical. Same as `a === b` in PHP."
-  {:deprecated "0.32.0"
-   :superseded-by "identical?"}
-  [a & more]
-  (apply identical? a more))
-
 (defn =
   "Checks if all values are equal (value equality, not identity)."
   {:example "(= [1 2 3] [1 2 3]) ; => true"}
@@ -328,12 +321,6 @@
   {:example "(nil? (get {:a 1} :b)) ; => true"}
   [x]
   (identical? x nil))
-
-(defn str-contains?
-  "Returns true if str contains s."
-  {:deprecated "Use phel\\string\\contains?"}
-  [str s]
-  (php/str_contains str s))
 
 (defn contains?
   "Returns true if key is present in collection (checks keys/indices, not values)."

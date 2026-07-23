@@ -57,7 +57,7 @@
     (is (= m (meta (frequencies data))) "frequencies preserves metadata")))
 
 (deftest test-vary-meta
-  (is (= {:a 1 :b 2} (meta (vary-meta (set-meta! [] {:a 1}) put :b 2)))
+  (is (= {:a 1 :b 2} (meta (vary-meta (set-meta! [] {:a 1}) assoc :b 2)))
       "vary-meta adds key to existing metadata")
   (is (= {:count 1} (meta (vary-meta (set-meta! [] {:count 0}) update-in [:count] inc)))
       "vary-meta with update-in")
@@ -68,7 +68,7 @@
   (let [m    {:foo "bar"}
         data (set-meta! {:a 1 :b 2} m)]
     (is (= m (meta (keys data))) "keys preserves metadata")
-    (is (= m (meta (values data))) "values preserves metadata")
+    (is (= m (meta (vals data))) "vals preserves metadata")
     (is (= m (meta (pairs data))) "pairs preserves metadata")
     (is (= m (meta (kvs data))) "kvs preserves metadata")
     (is (= m (meta (select-keys data [:a]))) "select-keys preserves metadata")))

@@ -81,8 +81,8 @@
 (deftest test-some-fn-pred-order
   ;; All preds are tried on all args before moving to next pred
   (let [log (atom [])
-        p1  (fn [x] (swap! log push [:p1 x]) nil)
-        p2  (fn [x] (swap! log push [:p2 x]) (= x :match))]
+        p1  (fn [x] (swap! log conj [:p1 x]) nil)
+        p2  (fn [x] (swap! log conj [:p2 x]) (= x :match))]
     ((some-fn p1 p2) :a :match)
     (is (= [[:p1 :a] [:p1 :match] [:p2 :a] [:p2 :match]] (deref log))
         "some-fn tries each pred on all args before advancing")))
@@ -125,8 +125,8 @@
 (deftest test-every-pred-pred-order
   ;; All preds are tried on all args before moving to next pred
   (let [log (atom [])
-        p1  (fn [x] (swap! log push [:p1 x]) true)
-        p2  (fn [x] (swap! log push [:p2 x]) true)]
+        p1  (fn [x] (swap! log conj [:p1 x]) true)
+        p2  (fn [x] (swap! log conj [:p2 x]) true)]
     ((every-pred p1 p2) :a :b)
     (is (= [[:p1 :a] [:p1 :b] [:p2 :a] [:p2 :b]] (deref log))
         "every-pred tries each pred on all args before advancing")))

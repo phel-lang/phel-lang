@@ -74,13 +74,13 @@
 
 (deftest test-ns-publics-returns-map
   (let [publics (ns-publics "phel\\core")]
-    (is (hash-map? publics) "ns-publics returns a hash-map")
+    (is (map? publics) "ns-publics returns a hash-map")
     (is (> (count publics) 0) "ns-publics has entries for phel\\core")
     (is (not (nil? (get publics "map"))) "ns-publics contains 'map'")))
 
 (deftest test-ns-aliases-and-refers
-  (is (hash-map? (ns-aliases "phel\\core")) "ns-aliases returns a hash-map")
-  (is (hash-map? (ns-refers "phel\\core")) "ns-refers returns a hash-map"))
+  (is (map? (ns-aliases "phel\\core")) "ns-aliases returns a hash-map")
+  (is (map? (ns-refers "phel\\core")) "ns-refers returns a hash-map"))
 
 ;; ----------------------------------------------------------------------------
 ;; Dot-separator parity (#1795)

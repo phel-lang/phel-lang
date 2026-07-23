@@ -218,7 +218,7 @@
 
 (deftest test-eval-form
   (is (= 2 (eval '(+ 1 1))) "eval simple expression")
-  (is (function? (eval (fn [x] x))) "eval returns a closure passed in unchanged")
+  (is (fn? (eval (fn [x] x))) "eval returns a closure passed in unchanged")
   (let [identity-fn (fn [x] x)]
     (is (= identity-fn (eval identity-fn)) "eval of a closure returns the same closure"))
   (is (= 42 ((eval (fn [x] x)) 42)) "closure returned by eval is callable"))

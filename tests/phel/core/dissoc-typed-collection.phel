@@ -1,16 +1,9 @@
-(ns phel-test.core.push-dissoc-typed-collection
+(ns phel-test.core.dissoc-typed-collection
   (:require phel.test :refer [deftest is]))
 
-;; Tagged targets take the specialised emitter path
-;; (direct PersistentVector::append / PersistentMap::remove chain);
-;; the untagged counterparts go through the runtime dispatch. Both
-;; must agree.
-
-(defn- push-tagged [^"\Phel\Lang\Collections\Vector\PersistentVectorInterface" v x]
-  (push v x))
-
-(defn- push-untagged [v x]
-  (push v x))
+;; Tagged `dissoc` takes the specialised emitter path (a direct
+;; PersistentMap::remove chain); the untagged counterpart goes through
+;; runtime dispatch. Both must agree.
 
 (defn- dissoc-tagged [^"\Phel\Lang\Collections\Map\PersistentMapInterface" m & ks]
   (apply dissoc m ks))
@@ -23,12 +16,6 @@
 
 (defn- dissoc-tagged-1 [^"\Phel\Lang\Collections\Map\PersistentMapInterface" m a]
   (dissoc m a))
-
-(deftest test-push-typed-vector-matches-runtime
-  (is (= [1 2 3] (push-tagged [1 2] 3)) "specialised push appends to a vector")
-  (is (= (push-untagged [1 2] 3) (push-tagged [1 2] 3))
-      "tagged push agrees with untagged push")
-  (is (= [99] (push-tagged [] 99)) "specialised push onto empty vector"))
 
 (deftest test-dissoc-variadic-typed-map-matches-runtime
   (is (= {:b 2} (dissoc-tagged-1 {:a 1 :b 2} :a))
