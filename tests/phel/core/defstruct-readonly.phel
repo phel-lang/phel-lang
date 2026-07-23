@@ -18,7 +18,7 @@
   (let [ro (readonly-prop? "phel_test\\core\\defstruct_readonly\\point" "x")]
     (is (true? ro) "x property is declared readonly")))
 
-(deftest readonly-struct-put-returns-new-instance
+(deftest readonly-struct-assoc-returns-new-instance
   (let [p (point 1 2)
         q (assoc p :x 9)]
     (is (= 9 (q :x)) "put updates the field on the new instance")

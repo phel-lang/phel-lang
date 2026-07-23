@@ -1,4 +1,4 @@
-(ns phel-test.core.push-dissoc-typed-collection
+(ns phel-test.core.dissoc-typed-collection
   (:require phel.test :refer [deftest is]))
 
 ;; Tagged `dissoc` takes the specialised emitter path (a direct
