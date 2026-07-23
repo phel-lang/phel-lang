@@ -17,7 +17,7 @@
 
 (deftest typed-struct-still-persistent
   (let [a (boxed 1)
-        b (put a :value "two")]
+        b (assoc a :value "two")]
     (is (= 1 (a :value)) "original is unchanged")
     (is (= "two" (b :value)) "put returns an updated copy")))
 

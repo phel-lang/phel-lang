@@ -20,14 +20,14 @@
 
 (deftest readonly-struct-put-returns-new-instance
   (let [p (point 1 2)
-        q (put p :x 9)]
+        q (assoc p :x 9)]
     (is (= 9 (q :x)) "put updates the field on the new instance")
     (is (= 2 (q :y)) "other fields are preserved")
     (is (= 1 (p :x)) "original struct is unchanged")))
 
 (deftest readonly-untyped-struct-still-works
   (let [u (untyped-point 1 2)
-        v (put u :a 5)]
+        v (assoc u :a 5)]
     (is (= 5 (v :a)) "untyped readonly field updates via put")
     (is (= 1 (u :a)) "original is unchanged")))
 

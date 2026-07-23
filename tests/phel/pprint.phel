@@ -1,6 +1,7 @@
 (ns phel-test.pprint
   (:require phel.test :refer [deftest is])
-  (:require phel.pprint :refer [pprint-str inspect]))
+  (:require phel.pprint :refer [pprint-str inspect])
+  (:require phel.string :as s))
 
 ;; ---------------------------
 ;; Scalar values (no wrapping)
@@ -32,11 +33,11 @@
 
 (deftest test-pprint-wide-vector
   (let [result (pprint-str [1 2 3 4 5] 10)]
-    (is (str-contains? result "\n") "wide vector wraps to multiple lines")))
+    (is (s/contains? result "\n") "wide vector wraps to multiple lines")))
 
 (deftest test-pprint-wide-map
   (let [result (pprint-str {:alpha "one" :beta "two" :gamma "three"} 20)]
-    (is (str-contains? result "\n") "wide map wraps to multiple lines")))
+    (is (s/contains? result "\n") "wide map wraps to multiple lines")))
 
 ;; --------------------------------
 ;; Nested structures
@@ -44,12 +45,12 @@
 
 (deftest test-pprint-nested
   (let [result (pprint-str {:a [1 2 3] :b {:c 4 :d 5}} 20)]
-    (is (str-contains? result "\n") "nested structure wraps")))
+    (is (s/contains? result "\n") "nested structure wraps")))
 
 (deftest test-pprint-deeply-nested
   (let [data   {:a {:b {:c [1 2 3]}}}
         result (pprint-str data 15)]
-    (is (str-contains? result "\n") "deeply nested structure wraps")))
+    (is (s/contains? result "\n") "deeply nested structure wraps")))
 
 ;; --------------------------------
 ;; Custom width
@@ -58,7 +59,7 @@
 (deftest test-pprint-custom-width
   (is (= "[1 2 3]" (pprint-str [1 2 3] 80)) "wide enough stays on one line")
   (let [result (pprint-str [1 2 3] 5)]
-    (is (str-contains? result "\n") "narrow width forces wrapping")))
+    (is (s/contains? result "\n") "narrow width forces wrapping")))
 
 ;; --------------------------------
 ;; Empty collections
@@ -87,11 +88,11 @@
 (deftest test-inspect-output-plain-when-captured
   (let [output (with-output-buffer (inspect {:a 1}))]
     (is (= "{:a 1}\n" output) "captured output is the plain pretty print")
-    (is (not (str-contains? output (php/chr 27))) "no ANSI escape codes when not on a TTY")))
+    (is (not (s/contains? output (php/chr 27))) "no ANSI escape codes when not on a TTY")))
 
 (deftest test-inspect-output-wraps-wide-values
   (let [output (with-output-buffer (inspect [:alpha :beta :gamma] 10))]
-    (is (str-contains? output "\n :beta") "wide value wraps like pprint")
+    (is (s/contains? output "\n :beta") "wide value wraps like pprint")
     (is (= "[:alpha\n :beta\n :gamma]\n" output) "wrapped layout matches pprint-str plus newline")))
 
 (deftest test-inspect-threading-pipeline

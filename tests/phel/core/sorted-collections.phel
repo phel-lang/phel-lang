@@ -23,14 +23,14 @@
 
 (deftest test-sorted-map-put-maintains-order
   (let [m (sorted-map :b 2 :a 1)]
-    (is (= [:a :b :c] (keys (put m :c 3))) "put maintains order")))
+    (is (= [:a :b :c] (keys (assoc m :c 3))) "put maintains order")))
 
 (deftest test-sorted-map-remove-maintains-order
   (let [m (sorted-map :c 3 :b 2 :a 1)]
-    (is (= [:a :c] (keys (unset m :b))) "unset maintains order")))
+    (is (= [:a :c] (keys (dissoc m :b))) "unset maintains order")))
 
 (deftest test-sorted-map-is-map
-  (is (hash-map? (sorted-map :a 1)) "hash-map? returns true for sorted map"))
+  (is (map? (sorted-map :a 1)) "hash-map? returns true for sorted map"))
 
 (deftest test-sorted-map-merge
   (let [m1     (sorted-map 1 "a" 3 "c")
@@ -40,7 +40,7 @@
 
 (deftest test-sorted-map-persistent
   (let [m1 (sorted-map :a 1)
-        m2 (put m1 :b 2)]
+        m2 (assoc m1 :b 2)]
     (is (= 1 (count m1)) "original unchanged")
     (is (= 2 (count m2)) "new map has both entries")))
 
@@ -53,7 +53,7 @@
 (deftest test-sorted-map-by-operations
   (let [m (sorted-map-by (fn [a b] (compare b a)) 1 "a" 2 "b")]
     (is (= "a" (get m 1)) "get works with custom comparator")
-    (is (= [3 2 1] (keys (put m 3 "c"))) "put maintains custom order")))
+    (is (= [3 2 1] (keys (assoc m 3 "c"))) "put maintains custom order")))
 
 (deftest test-sorted-map-by-with-predicate-comparator
   (is (= [13 14 15] (keys (sorted-map-by < 13 :a 14 :b 15 :c)))

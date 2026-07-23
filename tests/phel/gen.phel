@@ -115,7 +115,7 @@
 (deftest test-map-of
   (let [vs (g/sample (g/map-of g/keyword g/nat) 10
                      {:size 3 :seed fixed-seed})]
-    (is (every? hash-map? vs))))
+    (is (every? map? vs))))
 
 (deftest test-set-of
   (let [vs (g/sample (g/set-of g/nat) 10 {:size 4 :seed fixed-seed})]

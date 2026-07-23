@@ -313,7 +313,7 @@
                  {:text "b" :embedding [0.9 0.1 0.4]}
                  {:text "c" :embedding [0 0 0]}]
         results (ai/nearest query index 3)
-        by-text (reduce (fn [acc r] (put acc (get r :text) r)) {} results)]
+        by-text (reduce (fn [acc r] (assoc acc (get r :text) r)) {} results)]
     (foreach [item index]
       (let [r (get by-text (get item :text))]
         (is (= (ai/cosine-similarity query (get item :embedding))
@@ -348,28 +348,28 @@
 
 (deftest test-public-functions-exist
   ;; Chat API
-  (is (function? ai/configure) "configure is defined")
-  (is (function? ai/chat) "chat is defined")
+  (is (fn? ai/configure) "configure is defined")
+  (is (fn? ai/chat) "chat is defined")
   ;; with-config is a macro, can't use function? directly
-  (is (function? ai/complete) "complete is defined")
-  (is (function? ai/chat-with-history) "chat-with-history is defined")
+  (is (fn? ai/complete) "complete is defined")
+  (is (fn? ai/chat-with-history) "chat-with-history is defined")
   ;; Structured extraction & tools
-  (is (function? ai/extract) "extract is defined")
-  (is (function? ai/extract-many) "extract-many is defined")
-  (is (function? ai/tool) "tool is defined")
-  (is (function? ai/chat-with-tools) "chat-with-tools is defined")
-  (is (function? ai/tool-calls) "tool-calls is defined")
-  (is (function? ai/tool-result) "tool-result is defined")
-  (is (function? ai/run-tools) "run-tools is defined")
+  (is (fn? ai/extract) "extract is defined")
+  (is (fn? ai/extract-many) "extract-many is defined")
+  (is (fn? ai/tool) "tool is defined")
+  (is (fn? ai/chat-with-tools) "chat-with-tools is defined")
+  (is (fn? ai/tool-calls) "tool-calls is defined")
+  (is (fn? ai/tool-result) "tool-result is defined")
+  (is (fn? ai/run-tools) "run-tools is defined")
   ;; Embeddings & search
-  (is (function? ai/dot-product) "dot-product is defined")
-  (is (function? ai/magnitude) "magnitude is defined")
-  (is (function? ai/cosine-similarity) "cosine-similarity is defined")
-  (is (function? ai/embed) "embed is defined")
-  (is (function? ai/embed-one) "embed-one is defined")
-  (is (function? ai/nearest) "nearest is defined")
-  (is (function? ai/build-index) "build-index is defined")
-  (is (function? ai/search) "search is defined"))
+  (is (fn? ai/dot-product) "dot-product is defined")
+  (is (fn? ai/magnitude) "magnitude is defined")
+  (is (fn? ai/cosine-similarity) "cosine-similarity is defined")
+  (is (fn? ai/embed) "embed is defined")
+  (is (fn? ai/embed-one) "embed-one is defined")
+  (is (fn? ai/nearest) "nearest is defined")
+  (is (fn? ai/build-index) "build-index is defined")
+  (is (fn? ai/search) "search is defined"))
 
 ;; =====================================================================
 ;; Mock-HTTP coverage — exercises chat/complete/extract/chat-with-tools

@@ -148,7 +148,7 @@
   (let [entries [(r/rose-pure [:a 1])
                  (r/rose-pure [:b 2])]
         t       (r/rose-map entries)]
-    (is (hash-map? (r/rose-root t)) "root is a hash-map")
+    (is (map? (r/rose-root t)) "root is a hash-map")
     (is (= 1 (get (r/rose-root t) :a)) "value preserved under key :a")
     (is (= 2 (get (r/rose-root t) :b)) "value preserved under key :b")))
 

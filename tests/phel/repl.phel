@@ -63,7 +63,7 @@
 
 (deftest test-get-symbol-info-returns-map-for-known-symbol
   (let [info (get-symbol-info "phel\\core" "map")]
-    (is (hash-map? info) "get-symbol-info returns a map for a known symbol")
+    (is (map? info) "get-symbol-info returns a map for a known symbol")
     (is (string? (get info :doc)) "info contains :doc as a string")
     (is (= "phel.core" (get info :ns)) "info contains :ns in display form")
     (is (= "map" (get info :name)) "info contains :name")))
@@ -110,7 +110,7 @@
 
 (deftest test-ns-publics-returns-map
   (let [publics (ns-publics "phel\\core")]
-    (is (hash-map? publics) "ns-publics returns a hash-map")
+    (is (map? publics) "ns-publics returns a hash-map")
     (is (> (count publics) 0) "ns-publics has entries for phel\\core")))
 
 (deftest test-ns-publics-contains-known-functions
@@ -130,7 +130,7 @@
 
 (deftest test-ns-aliases-returns-map
   (let [aliases (ns-aliases "phel-test.repl")]
-    (is (hash-map? aliases) "ns-aliases returns a hash-map")))
+    (is (map? aliases) "ns-aliases returns a hash-map")))
 
 (deftest test-ns-aliases-contains-expected-alias
   (let [aliases (ns-aliases "phel-test.repl")]
@@ -142,7 +142,7 @@
 
 (deftest test-ns-refers-returns-map
   (let [refers (ns-refers "phel-test.repl")]
-    (is (hash-map? refers) "ns-refers returns a hash-map")))
+    (is (map? refers) "ns-refers returns a hash-map")))
 
 (deftest test-ns-refers-contains-expected-refers
   (let [refers (ns-refers "phel-test.repl")]
@@ -189,7 +189,7 @@
   (let [result (let [r (atom nil)]
                  (with-output-buffer (reset! r (test-ns "phel-test.test-framework")))
                  (deref r))]
-    (is (hash-map? result) "test-ns returns a hash-map")
+    (is (map? result) "test-ns returns a hash-map")
     (is (not (nil? (get result :pass))) "result contains :pass key")
     (is (not (nil? (get result :fail))) "result contains :fail key")
     (is (not (nil? (get result :error))) "result contains :error key")
@@ -514,12 +514,12 @@
     (reset! ai/config original)))
 
 (deftest test-ai-repl-public-functions-exist
-  (is (function? explain) "explain is defined")
-  (is (function? suggest) "suggest is defined")
-  (is (function? fix) "fix is defined")
-  (is (function? review) "review is defined")
-  (is (function? embed-ns) "embed-ns is defined")
-  (is (function? search-ns) "search-ns is defined"))
+  (is (fn? explain) "explain is defined")
+  (is (fn? suggest) "suggest is defined")
+  (is (fn? fix) "fix is defined")
+  (is (fn? review) "review is defined")
+  (is (fn? embed-ns) "embed-ns is defined")
+  (is (fn? search-ns) "search-ns is defined"))
 
 ;; ------------------
 ;; find-ns / create-ns / remove-ns / intern / ns-interns

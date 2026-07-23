@@ -9,7 +9,7 @@
 (deftest test-add-watch-fires-on-alter-var-root
   (let [log (atom [])]
     (add-watch #'watched-counter :log
-               (fn [k r o n] (swap! log (fn [xs] (push xs [o n])))))
+               (fn [k r o n] (swap! log (fn [xs] (conj xs [o n])))))
     (alter-var-root #'watched-counter inc)
     (alter-var-root #'watched-counter inc)
     (is (= [[0 1] [1 2]] (deref log))

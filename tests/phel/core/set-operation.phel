@@ -74,10 +74,10 @@
 
 (deftest test-set-push
   (let [s1 (hash-set 1 2)
-        s2 (push s1 3)]
+        s2 (conj s1 3)]
     (is (= (hash-set 1 2 3) s2) "set push"))
   (let [s1 (hash-set 1 2)
-        s2 (push s1 2)]
+        s2 (conj s1 2)]
     (is (= (hash-set 1 2) s2) "set push existing value")))
 
 (deftest test-set-concat

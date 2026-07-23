@@ -93,10 +93,10 @@
 
 (defn- mv [name]
   (fn [handler request]
-    (handler (update-in request [:attributes :mv] (fnil push []) name))))
+    (handler (update-in request [:attributes :mv] (fnil conj []) name))))
 
 (defn- handler [request]
-  {:status 200 :body (push (get-in request [:attributes :mv] []) :ok)})
+  {:status 200 :body (conj (get-in request [:attributes :mv] []) :ok)})
 
 (defn- req [uri & [method]]
   (h/request-from-map (cond-> {:uri uri} method (assoc :method method))))

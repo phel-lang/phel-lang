@@ -63,7 +63,7 @@ final readonly class AssocConjSpecialization
             };
         }
 
-        if (($name === 'conj' || $name === 'push') && $argCount === 2) {
+        if ($name === 'conj' && $argCount === 2) {
             return match ($tag) {
                 PersistentVectorInterface::class => 'append',
                 default => null,

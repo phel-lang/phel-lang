@@ -4,6 +4,10 @@ All notable changes to this project will be documented in this file.
 
 ## Unreleased
 
+### Removed
+
+- **BREAKING**: removed long-deprecated core functions, each a thin alias for its canonical form (#2784): `push` (use `conj`), `put` (use `assoc`), `unset` (use `dissoc`), `put-in` (use `assoc-in`), `unset-in` (use `dissoc-in`), `values` (use `vals`), `function?` (use `fn?`), `hash-map?` (use `map?`), `id` (use `identical?`), and `str-contains?` (use `phel\string\contains?`). The `push` branch of the assoc/conj emitter specialization is removed with them. See [the migration guide](docs/migration/removed-deprecated-core-fns.md). `set-meta!` stays deprecated-but-shipped, out of scope here.
+
 ## [0.49.0](https://github.com/phel-lang/phel-lang/compare/v0.48.0...v0.49.0) - 2026-07-22
 
 ### Added

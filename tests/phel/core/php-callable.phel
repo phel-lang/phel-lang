@@ -12,7 +12,7 @@
 
 (deftest free-function-callable-runs
   (is (= "HI" (upper "hi")) "the free-function callable invokes the PHP function")
-  (is (true? (function? upper)) "it is a real callable value"))
+  (is (true? (fn? upper)) "it is a real callable value"))
 
 (deftest static-method-callable-runs
   (is (= :foo (make-kw "foo")) "the static-method callable invokes Keyword::create"))

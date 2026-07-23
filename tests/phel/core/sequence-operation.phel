@@ -64,29 +64,10 @@
     (php/apush-in arr [0] 3)
     (is (= (php/array (php/array 1 2 3)) arr) "nested php array push")))
 
-(deftest test-push
+(deftest test-native-apush
   (let [x (php/array)]
     (php/apush x 1)
-    (is (= (php/array 1) x) "native push on PHP array"))
-
-  (let [x (php/array)]
-    (is (= (php/array 1) (push x 1)) "push on PHP array"))
-
-  (let [x (php/array)]
-    (push x 1)
-    (is (= (php/array) x) "push on PHP array, keeps initial state because it's immutable"))
-
-  (let [x []]
-    (push x 1)
-    (is (= [] x) "push on existing vector, keeps initial state because it's immutable"))
-
-  (is (= [1] (push [] 1)) "push on vector")
-
-  (let [x (hash-set)]
-    (push x 1)
-    (is (= (hash-set) x) "push on existing set, keeps initial state because it's immutable"))
-
-  (is (= #{1} (push #{} 1)) "push on set"))
+    (is (= (php/array 1) x) "native push on PHP array")))
 
 (deftest test-conj
   (is (= [] (conj)) "conj without arguments returns an empty vector")
@@ -302,7 +283,7 @@
   (is (= "x" (get nil 1 "x")) "get on nil with optional value")
   (is (= "x" (get {:a "a" :b "b"} :c "x")) "get on undefined key with optional value on map")
   (is (= "x" (get #{} 4 "x")) "get on undefined key with optional value on set")
-  (is (id 0 (get {:a 0} :a)) "gets zero from a map"))
+  (is (identical? 0 (get {:a 0} :a)) "gets zero from a map"))
 
 (deftest test-get-keyword
   (is (= 1 (:a {:a 1 :b 2})))
@@ -388,11 +369,6 @@
   (is (nil? (nthnext [1 2] 5)) "nthnext past end returns nil")
   (is (nil? (nthnext nil 3)) "nthnext on nil returns nil"))
 
-(deftest test-put
-  (is (= {:a nil :b 2} (put {:a 1 :b 2} :a nil)) "put: nil on map")
-  (is (= {:a 3 :b 2} (put {:a 1 :b 2} :a 3)) "put: replace entry on map")
-  (is (= {:a 1 :b 2 :c 3} (put {:a 1 :b 2} :c 3)) "put: append entry on map"))
-
 (deftest test-assoc
   (is (= {:a nil :b 2} (assoc {:a 1 :b 2} :a nil)) "assoc: nil on map")
   (is (= {:a 3 :b 2} (assoc {:a 1 :b 2} :a 3)) "assoc: replace entry on map")
@@ -417,9 +393,6 @@
   ;; TypeError (or, on older builds, a raw int-coercion warning).
   (is (thrown? \InvalidArgumentException (assoc [1 2 3] :k 9)) "assoc: rejects keyword key on vector")
   (is (thrown? \InvalidArgumentException (assoc [1 2 3] "0" 9)) "assoc: rejects string key on vector"))
-
-(deftest test-unset
-  (is (= {:b 2} (unset {:a 1 :b 2} :a)) "unset: remove key from map"))
 
 (deftest test-dissoc
   (is (= {:b 2} (dissoc {:a 1 :b 2} :a)) "dissoc: remove key from map")

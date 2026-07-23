@@ -307,13 +307,6 @@
   (or (php/instanceof x FnInterface)
       (php/is_callable x)))
 
-(defn function?
-  "Returns true if `x` is a function, false otherwise."
-  {:deprecated "0.32.0"
-   :superseded-by "fn?"}
-  [x]
-  (fn? x))
-
 (defn struct?
   "Returns true if `x` is a struct, false otherwise."
   [x]
@@ -326,13 +319,6 @@
   [x]
   (and (php/instanceof x PersistentMapInterface)
        (not (php/instanceof x AbstractPersistentStruct))))
-
-(defn hash-map?
-  "Returns true if `x` is a hash map, false otherwise."
-  {:deprecated "0.32.0"
-   :superseded-by "map?"}
-  [x]
-  (map? x))
 
 (defn vector?
   "Returns true if `x` is a vector. Map entries returned by iterating a hash map (`(first {:a 1})`) are vector-shaped two-element values, so this predicate also accepts the typed `MapEntry`."

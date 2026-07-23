@@ -382,7 +382,7 @@
     (is (= :struct (type x)) "struct: common type")
     (is (true? (struct? x)) "struct: common type test")
     (is (= 1 (get x :a)) "struct: get value from struct")
-    (is (= (my-struct 12 2 3) (put x :a 12)) "struct: put value on struct")
+    (is (= (my-struct 12 2 3) (assoc x :a 12)) "struct: put value on struct")
     (is (true? (my-struct? x)) "struct: correct type")
     (is (false? (my-struct? :a)) "struct: incorrect type")))
 
@@ -425,6 +425,6 @@
                 "JF1260"        1
                 "JF1261"        1
                 "jiKUic"        1}
-        result (put m "PU4NVO" 1)]
+        result (assoc m "PU4NVO" 1)]
     (is (= 18 (count result)))
     (is (= 1 (result "PU4NVO")))))

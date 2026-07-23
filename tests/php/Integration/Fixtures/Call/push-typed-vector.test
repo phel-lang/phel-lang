@@ -1,7 +1,0 @@
---PHEL--
-(fn [^\Phel\Lang\Collections\Vector\PersistentVectorInterface v]
-  (push v 99))
---PHP--
-(function(\Phel\Lang\Collections\Vector\PersistentVectorInterface $v) {
-  return ($v->append(99));
-});

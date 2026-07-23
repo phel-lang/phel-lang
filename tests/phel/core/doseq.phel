@@ -13,38 +13,38 @@
     (doseq [x :in [1 2 3 4]
             :when (even? x)
             :let [y (* x 2)]]
-      (swap! captured (fn [xs] (push xs y))))
+      (swap! captured (fn [xs] (conj xs y))))
     (is (= [4 8] (deref captured)) "doseq honors modifiers from for")))
 
 (deftest test-doseq-clojure-style-bindings
   (let [captured (atom [])]
     (doseq [x [1 2 3]]
-      (swap! captured (fn [xs] (push xs x))))
+      (swap! captured (fn [xs] (conj xs x))))
     (is (= [1 2 3] (deref captured)) "doseq accepts Clojure-style binding pairs")))
 
 (deftest test-doseq-clojure-style-nested
   (let [captured (atom [])]
     (doseq [x [1 2]
             y [3 4]]
-      (swap! captured (fn [xs] (push xs [x y]))))
+      (swap! captured (fn [xs] (conj xs [x y]))))
     (is (= [[1 3] [1 4] [2 3] [2 4]] (deref captured)) "doseq nested Clojure-style")))
 
 (deftest test-doseq-clojure-style-with-when
   (let [captured (atom [])]
     (doseq [x [1 2 3 4 5]
             :when (odd? x)]
-      (swap! captured (fn [xs] (push xs x))))
+      (swap! captured (fn [xs] (conj xs x))))
     (is (= [1 3 5] (deref captured)) "doseq Clojure-style with :when modifier")))
 
 (deftest test-doseq-map-destructuring
   (let [captured (atom {})]
     (doseq [[k v] {:a 0 :b 1}]
-      (swap! captured put k v))
+      (swap! captured assoc k v))
     (is (= {:a 0 :b 1} (deref captured))
         "doseq binds [k v] from map entries, Clojure-aligned"))
   (let [captured (atom [])]
     (doseq [entry {:a 0 :b 1}]
-      (swap! captured (fn [xs] (push xs entry))))
+      (swap! captured (fn [xs] (conj xs entry))))
     (is (= [[:a 0] [:b 1]] (deref captured))
         "doseq yields [k v] pair vectors when iterating a map"))
   (let [acc (atom {})]
@@ -56,7 +56,7 @@
 (deftest test-doseq-vector-of-vectors-destructuring
   (let [captured (atom [])]
     (doseq [[a b] [[1 2] [3 4]]]
-      (swap! captured (fn [xs] (push xs (+ a b)))))
+      (swap! captured (fn [xs] (conj xs (+ a b)))))
     (is (= [3 7] (deref captured))
         "doseq destructuring over vector of vectors still iterates elements")))
 
@@ -70,7 +70,7 @@
   (let [captured (atom {})]
     (doseq [[k v] {:a 1 :b 2 :c 3}
             :when (odd? v)]
-      (swap! captured put k v))
+      (swap! captured assoc k v))
     (is (= {:a 1 :c 3} (deref captured))
         "doseq over map honors :when modifier after destructuring")))
 
@@ -78,7 +78,7 @@
   (let [captured (atom {})]
     (doseq [[k v] {:a 1 :b 2}
             :let [v2 (* v 10)]]
-      (swap! captured put k v2))
+      (swap! captured assoc k v2))
     (is (= {:a 10 :b 20} (deref captured))
         "doseq over map supports :let over destructured bindings")))
 
@@ -93,7 +93,7 @@
   (let [captured (atom [])]
     (doseq [[k v] {:a 1 :b 2}
             i [10 20]]
-      (swap! captured (fn [xs] (push xs [k (+ v i)]))))
+      (swap! captured (fn [xs] (conj xs [k (+ v i)]))))
     (is (= [[:a 11] [:a 21] [:b 12] [:b 22]] (deref captured))
         "doseq supports Clojure-style map destructuring nested with a vector iteration")))
 
