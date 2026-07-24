@@ -81,32 +81,12 @@ final class BackslashSeparatorDeprecator
 
     public function maybeWarn(Symbol $symbol): void
     {
-        if (!$this->enabled) {
-            return;
-        }
-
         $location = $symbol->getStartLocation();
         if (!$location instanceof SourceLocation) {
             return;
         }
 
-        $file = $location->getFile();
-        if ($file === '' || $this->isPhelStdlibSource($file)) {
-            return;
-        }
-
-        $original = $symbol->getFullName();
-        if (!$this->containsBackslashSeparator($original)) {
-            return;
-        }
-
-        $key = $file . '|' . $original;
-        if (isset($this->seen[$key])) {
-            return;
-        }
-
-        $this->seen[$key] = true;
-        ($this->emitter)($this->buildMessage($original, $file, $location->getLine()));
+        $this->maybeWarnString($symbol->getFullName(), $location);
     }
 
     public function maybeWarnString(string $namespace, SourceLocation $location): void

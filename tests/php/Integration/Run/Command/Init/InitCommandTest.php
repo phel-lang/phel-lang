@@ -6,6 +6,7 @@ namespace PhelTest\Integration\Run\Command\Init;
 
 use Iterator;
 use Phel\Run\Infrastructure\Command\InitCommand;
+use PhelTest\Support\RemoveDirTrait;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\Console\Command\Command;
@@ -14,6 +15,8 @@ use Symfony\Component\Console\Output\BufferedOutput;
 
 final class InitCommandTest extends TestCase
 {
+    use RemoveDirTrait;
+
     private string $testDir;
 
     protected function setUp(): void
@@ -24,7 +27,7 @@ final class InitCommandTest extends TestCase
 
     protected function tearDown(): void
     {
-        $this->removeDirectory($this->testDir);
+        $this->removeDir($this->testDir);
     }
 
     public function test_creates_flat_layout_structure_by_default(): void
@@ -554,30 +557,4 @@ final class InitCommandTest extends TestCase
         self::assertStringContainsString('phel-examples/my-api', (string) file_get_contents($this->testDir . '/composer.json'));
     }
 
-    private function removeDirectory(string $dir): void
-    {
-        if (!is_dir($dir)) {
-            return;
-        }
-
-        $items = scandir($dir);
-        foreach ($items as $item) {
-            if ($item === '.') {
-                continue;
-            }
-
-            if ($item === '..') {
-                continue;
-            }
-
-            $path = $dir . '/' . $item;
-            if (is_dir($path)) {
-                $this->removeDirectory($path);
-            } else {
-                unlink($path);
-            }
-        }
-
-        rmdir($dir);
-    }
 }

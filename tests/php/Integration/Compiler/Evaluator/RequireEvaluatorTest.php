@@ -10,10 +10,13 @@ use Phel\Compiler\Domain\Evaluator\RequireEvaluator;
 use Phel\Config\PhelConfig;
 use Phel\Filesystem\FilesystemFacade;
 use Phel\Filesystem\Infrastructure\RealFilesystem;
+use PhelTest\Support\RemoveDirTrait;
 use PHPUnit\Framework\TestCase;
 
 final class RequireEvaluatorTest extends TestCase
 {
+    use RemoveDirTrait;
+
     private RequireEvaluator $evaluator;
 
     private FilesystemFacade $filesystem;
@@ -33,7 +36,7 @@ final class RequireEvaluatorTest extends TestCase
         $this->filesystem->clearAll();
 
         if ($this->tempDir !== '' && is_dir($this->tempDir)) {
-            $this->deleteDirRecursive($this->tempDir);
+            $this->removeDir($this->tempDir);
         }
     }
 
@@ -54,30 +57,4 @@ final class RequireEvaluatorTest extends TestCase
         self::assertDirectoryExists($this->tempDir);
     }
 
-    private function deleteDirRecursive(string $dir): void
-    {
-        $items = scandir($dir);
-        if ($items === false) {
-            return;
-        }
-
-        foreach ($items as $item) {
-            if ($item === '.') {
-                continue;
-            }
-
-            if ($item === '..') {
-                continue;
-            }
-
-            $path = $dir . DIRECTORY_SEPARATOR . $item;
-            if (is_dir($path)) {
-                $this->deleteDirRecursive($path);
-            } else {
-                unlink($path);
-            }
-        }
-
-        rmdir($dir);
-    }
 }

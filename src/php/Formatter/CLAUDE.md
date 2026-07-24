@@ -44,7 +44,7 @@ Symbol lists live as `FormatterFactory` constants; `createIndentRule()` instanti
 | `Application/PathsFormatter.php` | Discovers files, formats each, reports changes |
 | `Application/PhelPathFilter.php` | Recursively finds `.phel` files (impl of `PathFilterInterface`) |
 | `Domain/Rules/` | Rule classes + `IndentRule` |
-| `Domain/Rules/Indenter/` | `BlockIndenter`, `InnerIndenter`, `LineIndenter`, `ListIndenter` |
+| `Domain/Rules/Indenter/` | `BlockIndenter`, `InnerIndenter`, `LineIndenter`, `ListIndenter`; `FormSymbolMatcherTrait` reads a location's head symbol and matches it against the indenter's symbol |
 | `Domain/Rules/Pair/PairAligner.php` | Backing logic for `AlignPairsRule` |
 | `Domain/Rules/Zipper/` | `ParseTreeZipper` (AST traversal/transform), `AbstractZipper` |
 | `Infrastructure/IO/SystemFileIo.php` | `FileIoInterface` impl |

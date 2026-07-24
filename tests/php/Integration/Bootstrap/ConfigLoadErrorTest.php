@@ -9,17 +9,14 @@ use Gacela\Framework\Testing\ContainerFixture;
 use Phel\Config\ConfigLoadException;
 use Phel\Config\PhelConfig;
 use Phel\Phel;
+use PhelTest\Support\RemoveDirTrait;
 use PHPUnit\Framework\TestCase;
 
 use function bin2hex;
 use function file_put_contents;
-use function is_dir;
 use function mkdir;
 use function random_bytes;
-use function rmdir;
-use function scandir;
 use function sys_get_temp_dir;
-use function unlink;
 
 /**
  * End-to-end check that {@see Phel::bootstrap()} turns a broken
@@ -28,6 +25,8 @@ use function unlink;
  */
 final class ConfigLoadErrorTest extends TestCase
 {
+    use RemoveDirTrait;
+
     use ContainerFixture;
 
     private string $dir;
@@ -98,29 +97,4 @@ final class ConfigLoadErrorTest extends TestCase
         Phel::bootstrap($this->dir);
     }
 
-    private function removeDir(string $dir): void
-    {
-        if (!is_dir($dir)) {
-            return;
-        }
-
-        foreach (scandir($dir) ?: [] as $entry) {
-            if ($entry === '.') {
-                continue;
-            }
-
-            if ($entry === '..') {
-                continue;
-            }
-
-            $path = $dir . '/' . $entry;
-            if (is_dir($path)) {
-                $this->removeDir($path);
-            } else {
-                @unlink($path);
-            }
-        }
-
-        @rmdir($dir);
-    }
 }

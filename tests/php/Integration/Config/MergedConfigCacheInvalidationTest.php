@@ -8,6 +8,7 @@ use Gacela\Framework\Config\Config;
 use Gacela\Framework\Testing\ContainerFixture;
 use Phel\Config\PhelConfig;
 use Phel\Phel;
+use PhelTest\Support\RemoveDirTrait;
 use PHPUnit\Framework\TestCase;
 
 use function sys_get_temp_dir;
@@ -15,6 +16,8 @@ use function uniqid;
 
 final class MergedConfigCacheInvalidationTest extends TestCase
 {
+    use RemoveDirTrait;
+
     use ContainerFixture;
 
     private string $projectDir = '';
@@ -81,26 +84,4 @@ final class MergedConfigCacheInvalidationTest extends TestCase
         );
     }
 
-    private function removeDir(string $dir): void
-    {
-        if (!is_dir($dir)) {
-            return;
-        }
-
-        $items = scandir($dir) ?: [];
-        foreach ($items as $item) {
-            if ($item === '.') {
-                continue;
-            }
-
-            if ($item === '..') {
-                continue;
-            }
-
-            $path = $dir . '/' . $item;
-            is_dir($path) ? $this->removeDir($path) : unlink($path);
-        }
-
-        rmdir($dir);
-    }
 }

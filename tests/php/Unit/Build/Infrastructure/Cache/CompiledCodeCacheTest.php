@@ -5,14 +5,15 @@ declare(strict_types=1);
 namespace PhelTest\Unit\Build\Infrastructure\Cache;
 
 use Phel\Build\Infrastructure\Cache\CompiledCodeCache;
+use PhelTest\Support\RemoveDirTrait;
 use PHPUnit\Framework\TestCase;
-use RecursiveDirectoryIterator;
-use RecursiveIteratorIterator;
 
 use function sprintf;
 
 final class CompiledCodeCacheTest extends TestCase
 {
+    use RemoveDirTrait;
+
     private string $cacheDir;
 
     private string $sourceFile;
@@ -478,25 +479,4 @@ final class CompiledCodeCacheTest extends TestCase
         self::assertSame($envData, $cache->getEnvironment('test\\namespace'));
     }
 
-    private function removeDir(string $dir): void
-    {
-        if (!is_dir($dir)) {
-            return;
-        }
-
-        $files = new RecursiveIteratorIterator(
-            new RecursiveDirectoryIterator($dir, RecursiveDirectoryIterator::SKIP_DOTS),
-            RecursiveIteratorIterator::CHILD_FIRST,
-        );
-
-        foreach ($files as $file) {
-            if ($file->isDir()) {
-                rmdir($file->getRealPath());
-            } else {
-                unlink($file->getRealPath());
-            }
-        }
-
-        rmdir($dir);
-    }
 }

@@ -27,6 +27,8 @@ use function substr;
  */
 final readonly class BigInt implements TypeInterface, Stringable
 {
+    use CopyLocationFromTrait;
+
     /**
      * @param int                                       $sign      -1, 0, or 1; must be 0 iff magnitude is empty
      * @param list<int>                                 $magnitude base-10^9 digits, least-significant first; no trailing zeros
@@ -85,17 +87,6 @@ final readonly class BigInt implements TypeInterface, Stringable
     public function getEndLocation(): ?SourceLocation
     {
         return $this->endLocation;
-    }
-
-    public function copyLocationFrom(mixed $other): static
-    {
-        if ($other instanceof SourceLocationInterface) {
-            return $this
-                ->setStartLocation($other->getStartLocation())
-                ->setEndLocation($other->getEndLocation());
-        }
-
-        return $this;
     }
 
     public static function zero(): self

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace PhelTest\Integration\Run\Command\Run;
 
+use PhelTest\Support\RemoveDirTrait;
 use PHPUnit\Framework\TestCase;
 
 use function bin2hex;
@@ -12,7 +13,6 @@ use function escapeshellarg;
 use function exec;
 use function file_put_contents;
 use function implode;
-use function is_dir;
 use function mkdir;
 use function random_bytes;
 use function sprintf;
@@ -26,6 +26,8 @@ use function sys_get_temp_dir;
  */
 final class OpcacheReexecTest extends TestCase
 {
+    use RemoveDirTrait;
+
     private string $repoRoot;
 
     private string $projectDir;
@@ -89,12 +91,4 @@ final class OpcacheReexecTest extends TestCase
         return [$exitCode, implode("\n", $output)];
     }
 
-    private function removeDir(string $dir): void
-    {
-        if (!is_dir($dir)) {
-            return;
-        }
-
-        exec('rm -rf ' . escapeshellarg($dir));
-    }
 }

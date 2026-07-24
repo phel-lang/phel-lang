@@ -5,8 +5,6 @@ declare(strict_types=1);
 namespace Phel\Formatter\Domain\Rules\Indenter;
 
 use Phel\Formatter\Domain\Rules\Zipper\ParseTreeZipper;
-use Phel\Lang\Symbol;
-use Phel\Shared\Parser\Node\SymbolNode;
 
 /**
  * Indents a form's body by one extra level relative to its head line.
@@ -17,6 +15,8 @@ use Phel\Shared\Parser\Node\SymbolNode;
  */
 final readonly class InnerIndenter implements IndenterInterface
 {
+    use FormSymbolMatcherTrait;
+
     private LineIndenter $lineIndenter;
 
     /**
@@ -43,22 +43,6 @@ final readonly class InnerIndenter implements IndenterInterface
             $up = $loc->upSkipWhitespace();
 
             return $this->lineIndenter->getMargin($up, $indentWidth) + $indentWidth;
-        }
-
-        return null;
-    }
-
-    private function indentMatches(string $key, ?Symbol $formSymbol): bool
-    {
-        return $formSymbol instanceof Symbol && $key === $formSymbol->getName();
-    }
-
-    private function formSymbol(ParseTreeZipper $loc): ?Symbol
-    {
-        $leftMostNode = $loc->leftMost()->getNode();
-
-        if ($leftMostNode instanceof SymbolNode) {
-            return $leftMostNode->getValue();
         }
 
         return null;

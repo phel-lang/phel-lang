@@ -5,17 +5,18 @@ declare(strict_types=1);
 namespace PhelTest\Integration\Build\Cache;
 
 use Phel\Build\Infrastructure\Cache\CompiledCodeCache;
+use PhelTest\Support\RemoveDirTrait;
 use PHPUnit\Framework\Attributes\PreserveGlobalState;
 use PHPUnit\Framework\Attributes\RunInSeparateProcess;
 use PHPUnit\Framework\TestCase;
-use RecursiveDirectoryIterator;
-use RecursiveIteratorIterator;
 
 /**
  * Integration tests for CompiledCodeCache verifying end-to-end cache behavior.
  */
 final class CompiledCodeCacheIntegrationTest extends TestCase
 {
+    use RemoveDirTrait;
+
     private string $cacheDir;
 
     private string $sourceFile;
@@ -201,25 +202,4 @@ final class CompiledCodeCacheIntegrationTest extends TestCase
         self::assertNotNull($fresh->get($nestedFile, 'hash_nested'));
     }
 
-    private function removeDir(string $dir): void
-    {
-        if (!is_dir($dir)) {
-            return;
-        }
-
-        $files = new RecursiveIteratorIterator(
-            new RecursiveDirectoryIterator($dir, RecursiveDirectoryIterator::SKIP_DOTS),
-            RecursiveIteratorIterator::CHILD_FIRST,
-        );
-
-        foreach ($files as $file) {
-            if ($file->isDir()) {
-                rmdir($file->getRealPath());
-            } else {
-                unlink($file->getRealPath());
-            }
-        }
-
-        rmdir($dir);
-    }
 }

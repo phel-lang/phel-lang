@@ -13,6 +13,7 @@ use Phel\Lint\Domain\Exception\LintConfigException;
 use Phel\Lint\LintConfig;
 use Phel\Lint\LintFacade;
 use Phel\Lint\LintFactory;
+use Phel\Shared\ExistingPaths;
 use Phel\Shared\PhelProjectDirectory;
 use Phel\Shared\ScalarCoercion;
 use Symfony\Component\Console\Command\Command;
@@ -24,8 +25,6 @@ use Throwable;
 
 use function getcwd;
 use function implode;
-use function is_dir;
-use function is_file;
 use function is_string;
 use function rtrim;
 use function sprintf;
@@ -106,7 +105,7 @@ HELP)
             $paths = $this->defaultPaths();
         }
 
-        $paths = $this->filterExistingPaths($paths);
+        $paths = ExistingPaths::filter($paths);
         if ($paths === []) {
             $output->writeln('<error>No readable .phel files or directories found to lint.</error>');
 
@@ -162,23 +161,6 @@ HELP)
         $cmd = $this->getFactory()->getCommandFacade();
 
         return $cmd->getProjectSourceDirectories();
-    }
-
-    /**
-     * @param list<string> $paths
-     *
-     * @return list<string>
-     */
-    private function filterExistingPaths(array $paths): array
-    {
-        $filtered = [];
-        foreach ($paths as $path) {
-            if (is_file($path) || is_dir($path)) {
-                $filtered[] = $path;
-            }
-        }
-
-        return $filtered;
     }
 
     private function loadSettings(InputInterface $input): RuleSettings

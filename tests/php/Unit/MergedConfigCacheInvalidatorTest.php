@@ -7,10 +7,13 @@ namespace PhelTest\Unit;
 use Closure;
 use Gacela\Framework\Config\MergedConfigCache;
 use Phel\MergedConfigCacheInvalidator;
+use PhelTest\Support\RemoveDirTrait;
 use PHPUnit\Framework\TestCase;
 
 final class MergedConfigCacheInvalidatorTest extends TestCase
 {
+    use RemoveDirTrait;
+
     private string $dir = '';
 
     private ?string $previousAppEnv = null;
@@ -135,25 +138,4 @@ final class MergedConfigCacheInvalidatorTest extends TestCase
         );
     }
 
-    private function removeDir(string $dir): void
-    {
-        if (!is_dir($dir)) {
-            return;
-        }
-
-        foreach (scandir($dir) ?: [] as $item) {
-            if ($item === '.') {
-                continue;
-            }
-
-            if ($item === '..') {
-                continue;
-            }
-
-            $path = $dir . '/' . $item;
-            is_dir($path) ? $this->removeDir($path) : unlink($path);
-        }
-
-        rmdir($dir);
-    }
 }
