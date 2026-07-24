@@ -26,15 +26,12 @@ final readonly class AssocConjSpecialization
     private function __construct() {}
 
     /**
-     * `(assoc coll k v)` 3-arg / `(conj coll x)` 2-arg / `(push coll x)`
-     * 2-arg / `(dissoc coll k)` 2-arg specialise to a direct method call
-     * when the target carries an inferred persistent-collection tag:
+     * `(assoc coll k v)` 3-arg / `(conj coll x)` 2-arg / `(dissoc coll k)` 2-arg
+     * specialise to a direct method call when the target carries an inferred
+     * persistent-collection tag:
      *
      *  - `PersistentMapInterface`  → `put` / `remove`
      *  - `PersistentVectorInterface` → `update` / `append`
-     *
-     * `push` is the deprecated alias for the 2-arg `conj` (its body is
-     * `(conj coll x)`), so on a vector it appends exactly like `conj`.
      *
      * Variadic `dissoc` is handled by {@see self::typedDissocKeys()};
      * variadic `assoc` / `conj` need a runtime loop and are not specialised
