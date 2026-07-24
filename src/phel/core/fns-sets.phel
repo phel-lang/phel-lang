@@ -16,6 +16,8 @@
 
 (defn union
   "Union multiple sets into a new one."
+  {:example "(union (hash-set 1 2) (hash-set 2 3)) ; => (hash-set 1 2 3)"
+   :see-also ["intersection" "difference"]}
   [& sets]
   (let [target (transient (hash-set))]
     (foreach [s sets]
@@ -35,6 +37,8 @@
 
 (defn intersection
   "Intersect multiple sets into a new one."
+  {:example "(intersection (hash-set 1 2 3) (hash-set 2 3 4)) ; => (hash-set 2 3)"
+   :see-also ["union" "difference"]}
   [set & sets]
   (reduce intersection-pair set sets))
 
@@ -54,11 +58,15 @@
 
 (defn difference
   "Difference between multiple sets into a new one."
+  {:example "(difference (hash-set 1 2 3) (hash-set 2)) ; => (hash-set 1 3)"
+   :see-also ["union" "intersection"]}
   [set & sets]
   (reduce difference-pair set sets))
 
 (defn symmetric-difference
   "Symmetric difference between multiple sets into a new one."
+  {:example "(symmetric-difference (hash-set 1 2) (hash-set 2 3)) ; => (hash-set 1 3)"
+   :see-also ["difference" "union"]}
   [set & sets]
   (reduce #(union (difference %1 %2) (difference %2 %1)) set sets))
 
@@ -125,11 +133,15 @@
 
 (defn constantly
   "Returns a function that always returns `x` and ignores any passed arguments."
+  {:example "((constantly 42) 1 2 3) ; => 42"
+   :see-also ["identity" "fnil"]}
   [x]
   (fn [& _] x))
 
 (defn complement
   "Returns a function that takes the same arguments as `f` and returns the opposite truth value."
+  {:example "((complement even?) 3) ; => true"
+   :see-also ["not" "some-fn"]}
   [f]
   #(not (apply f %&)))
 
@@ -177,7 +189,8 @@
 
 (defn juxt
   "Takes a list of functions and returns a new function that is the juxtaposition of those functions."
-  {:example "((juxt inc dec #(* % 2)) 10) => [11 9 20]"}
+  {:example "((juxt inc dec #(* % 2)) 10) ; => [11 9 20]"
+   :see-also ["comp" "partial"]}
   [& fs]
   (fn [& args]
     (reduce
@@ -292,6 +305,8 @@ Without arguments, uses a default cache size of 128 entries."
 
 (defn tree-seq
   "Returns a vector of the nodes in the tree, via a depth-first walk. branch? is a function with one argument that returns true if the given node has children. children must be a function with one argument that returns the children of the node. root the root node of the tree."
+  {:example "(tree-seq indexed? identity [1 [2 3]]) ; => [[1 [2 3]] 1 [2 3] 2 3]"
+   :see-also ["flatten"]}
   [branch? children root]
   (let [ret (transient [])]
     (loop [stack (php/array root)]
@@ -322,6 +337,8 @@ Without arguments, uses a default cache size of 128 entries."
 
 (defn merge-with
   "Merges multiple maps into one new map. If a key appears in more than one collection, the result of `(f current-val next-val)` is used."
+  {:example "(merge-with + {:a 1 :b 2} {:a 10}) ; => {:a 11, :b 2}"
+   :see-also ["merge" "deep-merge"]}
   [f & hash-maps]
   (case (count hash-maps)
     0 {}
@@ -342,6 +359,8 @@ Without arguments, uses a default cache size of 128 entries."
 
 (defn deep-merge
   "Recursively merges data structures."
+  {:example "(deep-merge {:a {:x 1}} {:a {:y 2}}) ; => {:a {:x 1, :y 2}}"
+   :see-also ["merge" "merge-with"]}
   [& args]
   (case (count args)
     0 {}

@@ -7,6 +7,7 @@ All notable changes to this project will be documented in this file.
 ### Changed
 
 - Documented 12 previously-undocumented core functions with `:example`/`:see-also` metadata (`str`, `gensym`, `print-str`, `name`, `identical?`, `not=`, `<=`, `>=`, `<=>`, `>=<`, `truthy?`, `compare`)
+- Documented 9 more core functions (`union`, `intersection`, `difference`, `symmetric-difference`, `constantly`, `complement`, `tree-seq`, `merge-with`, `deep-merge`) and fixed the malformed `juxt` example
 
 ### Removed
 
