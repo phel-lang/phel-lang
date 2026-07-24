@@ -4,6 +4,10 @@ All notable changes to this project will be documented in this file.
 
 ## Unreleased
 
+### Added
+
+- New `phel lint` rule `phel/comment-style` (warning, on by default): flags a whole-line comment written with a single `;`, which the convention reserves for comments trailing code on the same line
+
 ### Fixed
 
 - Sorted collection comparators are now typed `bool|int` rather than `int`. Phel's `<` returns a boolean, so `(sorted-map-by < ...)` never matched its own declared contract

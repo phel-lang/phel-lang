@@ -1,0 +1,5 @@
+(ns fixtures\comment-style)
+
+; standalone comment written with the inline marker
+(defn greet [name]
+  (str "Hello, " name)) ; inline comment, correct usage

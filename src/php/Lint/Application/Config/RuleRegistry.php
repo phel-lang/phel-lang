@@ -30,6 +30,8 @@ final class RuleRegistry
 
     public const string DISCOURAGED_VAR = 'phel/discouraged-var';
 
+    public const string COMMENT_STYLE = 'phel/comment-style';
+
     /**
      * @return list<string>
      */
@@ -46,6 +48,7 @@ final class RuleRegistry
             self::DUPLICATE_KEY,
             self::INVALID_DESTRUCTURING,
             self::DISCOURAGED_VAR,
+            self::COMMENT_STYLE,
         ];
     }
 }
