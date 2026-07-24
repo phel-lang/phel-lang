@@ -12,6 +12,11 @@ globs: src/php/**,tests/php/**
 - Prefer `final` classes unless inheritance is explicitly needed
 - Use `readonly` properties where possible
 
+## Type naming
+
+- `@template` generic parameters are `T`-prefixed: `TKey`, `TValue`, not bare `K`/`V`. The prefix exists to keep a generic parameter distinguishable from a real class name at its use site.
+- `@phpstan-type` aliases are **not** `T`-prefixed. They are file-scoped docblock macros, never ambiguous with a class, and several deliberately mirror external spec object names (the LSP handlers) where a prefix would break the correspondence.
+
 ## Module Pattern (Gacela)
 
 - Each module exposes a `Facade` as its public API
