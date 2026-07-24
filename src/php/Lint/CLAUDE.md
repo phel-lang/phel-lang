@@ -46,6 +46,7 @@ Add a rule: implement `LintRuleInterface` in `Application/Rule/`, add a code con
 
 - Severities: `:error`, `:warning`, `:info`, `:hint`, `:off`
 - Exclude patterns match file path (when they contain `/` or `.phel`) or namespace name, via `fnmatch`
+- A missing config file means defaults. A file that exists but is unreadable, unparseable, or not a map raises `Domain\Exception\LintConfigException` and `phel lint` exits 2 — never silently falls back to defaults
 
 ## Output Formats
 
