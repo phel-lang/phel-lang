@@ -225,8 +225,6 @@ final class ReplErrorFormatterTest extends TestCase
             {
                 return '';
             }
-
-            public function printError(string $error): void {}
         };
     }
 }
