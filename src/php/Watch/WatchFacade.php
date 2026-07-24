@@ -5,11 +5,8 @@ declare(strict_types=1);
 namespace Phel\Watch;
 
 use Gacela\Framework\AbstractFacade;
-use Phel\Watch\Application\Watcher\FileWatcherBuilder;
 use Phel\Watch\Domain\FileWatcherInterface;
-use Phel\Watch\Domain\NamespaceResolverInterface;
 use Phel\Watch\Domain\ReloadEventPublisherInterface;
-use Phel\Watch\Domain\ReloadOrchestratorInterface;
 
 /**
  * @extends AbstractFacade<WatchFactory>
@@ -41,20 +38,5 @@ final class WatchFacade extends AbstractFacade
     public function createFileWatcher(?string $preferred = null, ?int $pollIntervalMs = null, ?int $debounceMs = null): FileWatcherInterface
     {
         return $this->getFactory()->createFileWatcher($preferred, $pollIntervalMs, $debounceMs);
-    }
-
-    public function createFileWatcherBuilder(?int $pollIntervalMs = null, ?int $debounceMs = null): FileWatcherBuilder
-    {
-        return $this->getFactory()->createFileWatcherBuilder($pollIntervalMs, $debounceMs);
-    }
-
-    public function createReloadOrchestrator(?ReloadEventPublisherInterface $publisher = null): ReloadOrchestratorInterface
-    {
-        return $this->getFactory()->createReloadOrchestrator($publisher);
-    }
-
-    public function createNamespaceResolver(): NamespaceResolverInterface
-    {
-        return $this->getFactory()->createNamespaceResolver();
     }
 }
