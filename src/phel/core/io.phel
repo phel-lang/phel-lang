@@ -44,6 +44,8 @@
 
 (defn print-str
   "Same as print. But instead of writing it to an output stream, the resulting string is returned."
+  {:example "(print-str \"a\" 1) ; => \"a 1\""
+   :see-also ["pr-str" "println-str" "str"]}
   ^string [& xs]
   (print-joined (php/:: Printer (nonReadable)) xs))
 

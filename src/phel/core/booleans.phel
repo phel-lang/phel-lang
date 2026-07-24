@@ -87,6 +87,8 @@
 
 (defn identical?
   "Checks if all values are identical. Same as `a === b` in PHP."
+  {:example "(identical? :a :a) ; => true"
+   :see-also ["=" "true?"]}
   [a & more]
   (case (count more)
     0 true
@@ -145,6 +147,8 @@
 
 (defn not=
   "Checks if all values are unequal. Same as `a != b` in PHP."
+  {:example "(not= 1 2) ; => true"
+   :see-also ["=" "=="]}
   [a & more]
   (case (count more)
     0 false
@@ -200,6 +204,8 @@
 
 (defn <=
   "Checks if each argument is less than or equal to the following argument. Returns a boolean."
+  {:example "(<= 1 1 2) ; => true"
+   :see-also ["<" ">="]}
   [a & more]
   (case (count more)
     0 true
@@ -221,6 +227,8 @@
 
 (defn >=
   "Checks if each argument is greater than or equal to the following argument. Returns a boolean."
+  {:example "(>= 3 3 2) ; => true"
+   :see-also [">" "<="]}
   [a & more]
   (case (count more)
     0 true
@@ -231,6 +239,8 @@
 
 (defn <=>
   "Alias for the spaceship PHP operator in ascending order. Returns an int. Dispatches on `Ratio` and `BigInt` so numeric ordering stays correct for those types."
+  {:example "(<=> 1 2) ; => -1\n(<=> 2 2) ; => 0"
+   :see-also ["compare" ">=<"]}
   [a b]
   (if (or (numeric-object? a) (numeric-object? b))
     (php/:: NumericOperations (compare a b))
@@ -238,6 +248,8 @@
 
 (defn >=<
   "Alias for the spaceship PHP operator in descending order. Returns an int."
+  {:example "(>=< 1 2) ; => 1"
+   :see-also ["compare" "<=>"]}
   [a b]
   (if (or (numeric-object? a) (numeric-object? b))
     (php/:: NumericOperations (compare b a))
@@ -307,6 +319,8 @@
 
 (defn truthy?
   "Checks if `x` is truthy. Same as `x == true` in PHP."
+  {:example "(truthy? 0) ; => true\n(truthy? nil) ; => false"
+   :see-also ["true?" "false?" "nil?"]}
   [x]
   (php/:: Truthy (isTruthy x)))
 
@@ -419,7 +433,8 @@
   compared across the numeric tower (int, float, `Ratio`, `BigInt`,
   `BigDecimal`). Throws `InvalidArgumentException` when `x` and `y` come from
   mutually incomparable categories (e.g. `(compare 1 [])`)."
-  {:see-also ["<=>" "sort" "sort-by"]}
+  {:example "(compare 1 2) ; => -1\n(compare :a :a) ; => 0"
+   :see-also ["<=>" "sort" "sort-by"]}
   ^int [x y]
   (cond
     (php/=== x nil) (if (php/=== y nil) 0 -1)
