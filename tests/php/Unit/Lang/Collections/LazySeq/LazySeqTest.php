@@ -8,6 +8,7 @@ use ArrayIterator;
 use Generator;
 use Iterator;
 use IteratorAggregate;
+use Phel\Lang\Collections\Exceptions\NotASeqException;
 use Phel\Lang\Collections\LazySeq\Cons;
 use Phel\Lang\Collections\LazySeq\LazySeq;
 use Phel\Lang\Collections\LazySeq\LazySeqInterface;
@@ -15,6 +16,8 @@ use Phel\Lang\Collections\Map\PersistentMapInterface;
 use PhelTest\Unit\Lang\Collections\ModuloHasher;
 use PhelTest\Unit\Lang\Collections\SimpleEqualizer;
 use PHPUnit\Framework\TestCase;
+
+use function sprintf;
 
 final class LazySeqTest extends TestCase
 {
@@ -433,5 +436,43 @@ final class LazySeqTest extends TestCase
 
         $this->assertIsInt($hash);
         $this->assertSame($hash, $lazySeq->hash());
+    }
+
+    /**
+     * `(lazy-seq 5)` splices the body verbatim, so the thunk can return a
+     * scalar. That used to hit the `: ?SeqInterface` return type of the
+     * private realization step and leak a PHP TypeError naming an internal
+     * method.
+     */
+    public function test_realizing_a_non_seq_value_reports_a_domain_error(): void
+    {
+        $lazySeq = new LazySeq($this->hasher, $this->equalizer, static fn(): int => 5);
+
+        $this->expectException(NotASeqException::class);
+        $this->expectExceptionMessage("Don't know how to create a seq from: int");
+
+        $lazySeq->first();
+    }
+
+    public function test_realizing_a_non_seq_value_fails_the_same_way_on_every_access(): void
+    {
+        $lazySeq = new LazySeq($this->hasher, $this->equalizer, static fn(): int => 5);
+
+        foreach (['first', 'second'] as $attempt) {
+            try {
+                $lazySeq->toArray();
+                self::fail(sprintf('Expected a NotASeqException on the %s access', $attempt));
+            } catch (NotASeqException $e) {
+                self::assertSame("Don't know how to create a seq from: int", $e->getMessage());
+            }
+        }
+    }
+
+    public function test_realizing_a_nil_body_still_yields_an_empty_seq(): void
+    {
+        $lazySeq = new LazySeq($this->hasher, $this->equalizer, static fn(): null => null);
+
+        self::assertSame([], $lazySeq->toArray());
+        self::assertNull($lazySeq->first());
     }
 }

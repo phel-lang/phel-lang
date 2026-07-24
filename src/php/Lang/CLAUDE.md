@@ -31,6 +31,7 @@ No Gacela pattern: foundational leaf module; all types used directly by other mo
 | Type | Notes |
 |------|-------|
 | `Delay` | Single-value lazy computation; `deref()` runs thunk once and caches (distinct from `LazySeq`) |
+| `Collections/LazySeq/LazySeq` | Caches the raw thunk result (`$realized` is `mixed`, as wide as the spliced `lazy-seq` body); the private `realizeSeq()` is the single narrowing point and throws `Collections\Exceptions\NotASeqException` for a non-seq body such as `(lazy-seq 5)`. A `nil` body still means the empty seq |
 | `Volatile` | Lightweight mutable container for transducer state (no watches/validators) |
 | `Reduced` | Signals early termination from reduce/transduce |
 | `Future` | Amphp adapter exposing Phel deref/realized? protocol |

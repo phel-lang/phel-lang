@@ -8,6 +8,7 @@ use Countable;
 use Generator;
 use IteratorAggregate;
 use Phel\Lang\AbstractType;
+use Phel\Lang\Collections\Exceptions\NotASeqException;
 use Phel\Lang\Collections\Map\PersistentMapInterface;
 use Phel\Lang\EqualizerInterface;
 use Phel\Lang\HasherInterface;
@@ -31,11 +32,15 @@ use function is_array;
  */
 final class LazySeq extends AbstractType implements LazySeqInterface, Countable, IteratorAggregate
 {
-    /** @var callable|null The thunk that produces the sequence (null once realized) */
+    /** @var (callable(): mixed)|null The thunk that produces the sequence (null once realized) */
     private $fn;
 
-    /** @var SeqInterface<mixed, SeqInterface<mixed, LazySeqInterface<mixed>>>|null The realized sequence (null until computed) */
-    private $realized;
+    /**
+     * Whatever the thunk returned (null until computed). Deliberately as wide
+     * as the thunk itself: `(lazy-seq 5)` stores a raw `int` here, and
+     * {@see self::realizeSeq()} is the single place that narrows it to a seq.
+     */
+    private mixed $realized = null;
 
     /**
      * @param callable                                  $fn   A thunk (nullary function) that returns a sequence or null
@@ -216,7 +221,7 @@ final class LazySeq extends AbstractType implements LazySeqInterface, Countable,
      */
     public function first()
     {
-        $seq = $this->realize();
+        $seq = $this->realizeSeq();
 
         if (!$seq instanceof SeqInterface) {
             return null;
@@ -234,7 +239,7 @@ final class LazySeq extends AbstractType implements LazySeqInterface, Countable,
      */
     public function cdr(): LazySeqInterface|self|null
     {
-        $seq = $this->realize();
+        $seq = $this->realizeSeq();
 
         if (!$seq instanceof SeqInterface) {
             return null;
@@ -320,7 +325,7 @@ final class LazySeq extends AbstractType implements LazySeqInterface, Countable,
             // `first() === null` is ambiguous because the user may have
             // stored `nil` as a legitimate value. Empty `Countable`
             // collections (e.g. `(lazy-seq [])`) also count as empty.
-            $realized = $seq->realize();
+            $realized = $seq->realizeSeq();
             if (!$realized instanceof SeqInterface) {
                 break;
             }
@@ -361,7 +366,7 @@ final class LazySeq extends AbstractType implements LazySeqInterface, Countable,
 
         while ($seq instanceof self) {
             // See `toArray()`: realize is the only nil-safe empty check.
-            $realized = $seq->realize();
+            $realized = $seq->realizeSeq();
             if (!$realized instanceof SeqInterface) {
                 return;
             }
@@ -422,13 +427,37 @@ final class LazySeq extends AbstractType implements LazySeqInterface, Countable,
     }
 
     /**
-     * Realizes this lazy sequence if not already realized.
-     * Uses iterative approach to avoid stack overflow.
-     */
-    /**
+     * Realizes this lazy sequence and narrows the result to a seq.
+     *
+     * A thunk may hand back anything at all, since `(lazy-seq <body>)` splices
+     * the user's body verbatim, so the narrowing lives here rather than in the
+     * property type.
+     *
+     * @throws NotASeqException when the body produced a non-seq value
+     *
      * @return SeqInterface<mixed, SeqInterface<mixed, LazySeqInterface<mixed>>>|null
      */
-    private function realize(): ?SeqInterface
+    private function realizeSeq(): ?SeqInterface
+    {
+        $realized = $this->realize();
+
+        if ($realized === null || $realized instanceof SeqInterface) {
+            /** @var SeqInterface<mixed, SeqInterface<mixed, LazySeqInterface<mixed>>>|null $realized */
+            return $realized;
+        }
+
+        throw NotASeqException::forValue($realized);
+    }
+
+    /**
+     * Realizes this lazy sequence if not already realized, caching whatever the
+     * thunk produced. Uses an iterative approach to avoid stack overflow.
+     *
+     * The raw value is cached even when it is not a seq, so that repeated
+     * access keeps reporting the same failure instead of turning into an empty
+     * sequence after the first call.
+     */
+    private function realize(): mixed
     {
         if ($this->fn === null) {
             return $this->realized;

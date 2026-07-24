@@ -1,5 +1,5 @@
 (ns phel-test.core.infinite-seqs
-  (:require phel.test :refer [deftest is]))
+  (:require phel.test :refer [deftest is thrown-with-msg?]))
 
 (deftest test-repeat-infinite
   (is (= [:a :a :a] (take 3 (repeat :a)))
@@ -1025,6 +1025,24 @@
       "lazy-cat should work with finite lazy sequences")
   (is (= [1 2 3 4 5 6] (lazy-cat [1 2 3] [4 5 6]))
       "lazy-cat should work with vectors"))
+
+;; `lazy-seq` splices its body verbatim, so nothing stops the body from
+;; producing a scalar. Realizing it used to leak a PHP TypeError naming the
+;; private `LazySeq::realize()` return type; it now reports a Phel-level error,
+;; the way Clojure rejects `(lazy-seq 5)`.
+(deftest test-lazy-seq-with-non-seq-body-reports-a-clear-error
+  (is (thrown-with-msg? \Phel\Lang\Collections\Exceptions\NotASeqException
+                        "Don't know how to create a seq from: int"
+                        (first (lazy-seq 5)))
+      "(lazy-seq <scalar>) reports a domain error instead of a PHP TypeError")
+  (is (thrown-with-msg? \Phel\Lang\Collections\Exceptions\NotASeqException
+                        "Don't know how to create a seq from: int"
+                        (doall (lazy-seq 5)))
+      "realizing (lazy-seq <scalar>) reports the same error from every entry point"))
+
+(deftest test-lazy-seq-with-nil-body-is-empty
+  (is (= [] (doall (lazy-seq nil)))
+      "(lazy-seq nil) is still the empty sequence"))
 
 (deftest test-equals-infinite-range-to-self
   (let [r (range)]
