@@ -47,7 +47,6 @@ final class TempDirFinder
         if (!$this->fileIo->isWritable($tempDir)) {
             @chmod($tempDir, 0777);
 
-            // @phpstan-ignore-next-line if.alwaysFalse
             if ($this->fileIo->isWritable($tempDir)) {
                 return $this->cachedTempDir = $tempDir;
             }

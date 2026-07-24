@@ -17,9 +17,6 @@ final readonly class LazySeqPrinter implements TypePrinterInterface
 
     /**
      * @param LazySeqInterface<mixed> $form
-     *
-     * @psalm-suppress MoreSpecificImplementedParamType
-     * @psalm-suppress RawObjectIteration
      */
     public function print(mixed $form): string
     {
@@ -28,7 +25,6 @@ final readonly class LazySeqPrinter implements TypePrinterInterface
         $count = 0;
         $limit = LazySeqConfig::REPL_DISPLAY_LIMIT;
 
-        /** @phpstan-ignore foreach.nonIterable */
         foreach ($form as $value) {
             if ($count >= $limit) {
                 $values[] = '...';
