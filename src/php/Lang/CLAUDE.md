@@ -80,6 +80,7 @@ Shared behaviour traits: `MetaTrait` (`getMeta`/`withMeta`), `HashCombinerTrait`
 
 - `MapEntry`: equal by value to a 2-element vector (both directions); `first()` = key, `cdr()` = 1-vector with value.
 - Transients: `TransientVector`, `TransientMapWrapper`, `TransientSortedMap`/`TransientSortedSet`. All share `TransientStateTrait`: `persistent()` invalidates; mutators call `ensureTransientActive()` to guard reuse after `persistent!`.
+- Every transient stays callable like its persistent counterpart (`__invoke` on the concrete class, not on the transient interface): vector by index, map by key, both set flavours by membership.
 
 ## Key Constraints
 

@@ -12,6 +12,7 @@ All notable changes to this project will be documented in this file.
 - `phel format` now surfaces I/O failures instead of printing a stack trace and silently skipping the file
 - `phel format` now exits non-zero when a file cannot be lexed or parsed, so a `phel format --dry-run` CI gate no longer passes over broken sources
 - `(lazy-seq <non-seq>)` (e.g. `(lazy-seq 5)`) now reports `Don't know how to create a seq from: int` instead of leaking a PHP `TypeError` about an internal method's return type
+- A transient sorted set is now callable for membership lookup, `((transient (sorted-set :a)) :a)`, matching the transient hash set instead of raising "object is not callable"
 
 ### Changed
 
