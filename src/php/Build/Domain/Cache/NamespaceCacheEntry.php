@@ -6,6 +6,14 @@ namespace Phel\Build\Domain\Cache;
 
 use Phel\Shared\NamespaceInformation;
 
+/**
+ * `SerializedNamespaceCacheEntry` is what this entry writes; the read side
+ * accepts `PartialNamespaceCacheEntry` because cache files written before
+ * `isPrimaryDefinition` existed omit that key (it defaults to true).
+ *
+ * @phpstan-type SerializedNamespaceCacheEntry array{mtime: int, namespace: string, dependencies: list<string>, isPrimaryDefinition: bool}
+ * @phpstan-type PartialNamespaceCacheEntry array{mtime: int, namespace: string, dependencies: list<string>, isPrimaryDefinition?: bool}
+ */
 final readonly class NamespaceCacheEntry
 {
     /**
@@ -41,7 +49,7 @@ final readonly class NamespaceCacheEntry
     }
 
     /**
-     * @return array{mtime: int, namespace: string, dependencies: list<string>, isPrimaryDefinition: bool}
+     * @return SerializedNamespaceCacheEntry
      */
     public function toArray(): array
     {
@@ -54,7 +62,7 @@ final readonly class NamespaceCacheEntry
     }
 
     /**
-     * @param array{mtime: int, namespace: string, dependencies: list<string>, isPrimaryDefinition?: bool} $data
+     * @param PartialNamespaceCacheEntry $data
      */
     public static function fromArray(string $file, array $data): self
     {

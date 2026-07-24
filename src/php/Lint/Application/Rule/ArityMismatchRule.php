@@ -28,6 +28,8 @@ use function sprintf;
  *
  * Cross-namespace arity (via `ProjectIndex`) is deferred to v2 — the
  * v1 index stores formatted signatures, not parsed parameter lists.
+ *
+ * @phpstan-type ArityRange array{min:int, max:int}
  */
 final readonly class ArityMismatchRule implements LintRuleInterface
 {
@@ -59,7 +61,7 @@ final readonly class ArityMismatchRule implements LintRuleInterface
     /**
      * @param list<mixed> $forms
      *
-     * @return array<string, array{min:int, max:int}>
+     * @return array<string, ArityRange>
      */
     private function collectLocalFunctions(array $forms): array
     {
@@ -102,7 +104,7 @@ final readonly class ArityMismatchRule implements LintRuleInterface
     /**
      * @param PersistentListInterface<mixed> $form
      *
-     * @return ?array{min:int, max:int}
+     * @return ?ArityRange
      */
     private function collectArities(PersistentListInterface $form): ?array
     {
@@ -156,8 +158,8 @@ final readonly class ArityMismatchRule implements LintRuleInterface
     }
 
     /**
-     * @param array<string, array{min:int, max:int}> $localFns
-     * @param list<Diagnostic>                       $result
+     * @param array<string, ArityRange> $localFns
+     * @param list<Diagnostic>          $result
      */
     private function inspectCalls(mixed $form, array $localFns, string $uri, array &$result): void
     {

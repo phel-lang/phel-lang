@@ -20,6 +20,8 @@ use function sprintf;
 /**
  * Flags `(:require foo)` or `(:require foo :refer [bar])` entries whose
  * alias and referred symbols are never mentioned anywhere else in the file.
+ *
+ * @phpstan-type RequireEntry array{alias:string, refers:list<string>, display:string, anchor: bool|float|int|string|TypeInterface|null}
  */
 final readonly class UnusedRequireRule implements LintRuleInterface
 {
@@ -82,7 +84,7 @@ final readonly class UnusedRequireRule implements LintRuleInterface
     /**
      * @param PersistentListInterface<mixed> $nsForm
      *
-     * @return list<array{alias:string, refers:list<string>, display:string, anchor: bool|float|int|string|TypeInterface|null}>
+     * @return list<RequireEntry>
      */
     private function collectRequires(PersistentListInterface $nsForm): array
     {
@@ -99,7 +101,7 @@ final readonly class UnusedRequireRule implements LintRuleInterface
     /**
      * @param PersistentListInterface<mixed> $clause
      *
-     * @return list<array{alias:string, refers:list<string>, display:string, anchor: bool|float|int|string|TypeInterface|null}>
+     * @return list<RequireEntry>
      */
     private function parseRequireClauseEntries(PersistentListInterface $clause): array
     {
@@ -128,7 +130,7 @@ final readonly class UnusedRequireRule implements LintRuleInterface
     /**
      * @param PersistentVectorInterface<mixed> $vector
      *
-     * @return array{alias:string, refers:list<string>, display:string, anchor: bool|float|int|string|TypeInterface|null}
+     * @return RequireEntry
      */
     private function parseVectorEntry(PersistentVectorInterface $vector): array
     {
@@ -176,7 +178,7 @@ final readonly class UnusedRequireRule implements LintRuleInterface
     /**
      * @param PersistentListInterface<mixed> $clause
      *
-     * @return array{0: array{alias:string, refers:list<string>, display:string, anchor: bool|float|int|string|TypeInterface|null}, 1: int}
+     * @return array{0: RequireEntry, 1: int}
      */
     private function parseFlatEntry(PersistentListInterface $clause, int $startIndex): array
     {

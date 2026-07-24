@@ -12,6 +12,9 @@ use Phel\Lsp\Application\Rpc\ParamsExtractor;
 use Phel\Lsp\Application\Session\Session;
 use Phel\Lsp\Domain\HandlerInterface;
 
+/**
+ * @phpstan-import-type CompletionItem from CompletionConverter
+ */
 final readonly class CompletionHandler implements HandlerInterface
 {
     public function __construct(
@@ -33,7 +36,7 @@ final readonly class CompletionHandler implements HandlerInterface
     /**
      * @param array<string, mixed> $params
      *
-     * @return array{isIncomplete: bool, items: list<array{label: string, kind: int, detail: string, documentation: string}>}
+     * @return array{isIncomplete: bool, items: list<CompletionItem>}
      */
     public function handle(array $params, Session $session): array
     {

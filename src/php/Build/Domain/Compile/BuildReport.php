@@ -15,6 +15,8 @@ use function is_file;
  * Summary of a `phel build` run: namespace count, per-namespace compiled size,
  * total size, fresh/cached breakdown, and wall-clock duration. Surfaced by
  * `phel build --report` to spot bloat and verify CI builds.
+ *
+ * @phpstan-import-type SerializedBuildReportEntry from BuildReportEntry
  */
 final readonly class BuildReport
 {
@@ -96,7 +98,7 @@ final readonly class BuildReport
      *     cached: int,
      *     total_bytes: int,
      *     duration_ms: float,
-     *     entries: list<array{namespace: string, bytes: int, cached: bool}>
+     *     entries: list<SerializedBuildReportEntry>
      * }
      */
     public function toArray(): array

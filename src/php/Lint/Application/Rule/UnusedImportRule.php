@@ -19,6 +19,8 @@ use function sprintf;
 /**
  * Flags `(:use Foo\Bar)` or `(:use Foo\Bar :as B)` entries whose imported
  * class alias is never referenced in the file body.
+ *
+ * @phpstan-type ImportEntry array{alias:string, display:string, anchor: bool|float|int|string|TypeInterface|null}
  */
 final readonly class UnusedImportRule implements LintRuleInterface
 {
@@ -59,7 +61,7 @@ final readonly class UnusedImportRule implements LintRuleInterface
     /**
      * @param PersistentListInterface<mixed> $nsForm
      *
-     * @return list<array{alias:string, display:string, anchor: bool|float|int|string|TypeInterface|null}>
+     * @return list<ImportEntry>
      */
     private function collectImports(PersistentListInterface $nsForm): array
     {
@@ -76,7 +78,7 @@ final readonly class UnusedImportRule implements LintRuleInterface
     /**
      * @param PersistentListInterface<mixed> $clause
      *
-     * @return list<array{alias:string, display:string, anchor: bool|float|int|string|TypeInterface|null}>
+     * @return list<ImportEntry>
      */
     private function importsInClause(PersistentListInterface $clause): array
     {

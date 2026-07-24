@@ -18,6 +18,10 @@ use function count;
 use function is_int;
 use function is_string;
 
+/**
+ * @phpstan-type LocationLiteral array{file: string, line: int, column: int}
+ * @phpstan-type DefLocationMeta array{start: LocationLiteral, end: LocationLiteral, extras: list<array{AbstractNode, AbstractNode}>}
+ */
 final class MapEmitter implements NodeEmitterInterface
 {
     use WithOutputEmitterTrait;
@@ -64,7 +68,7 @@ final class MapEmitter implements NodeEmitterInterface
      * `\Phel::location("file", line, col)` helper invocation — same map
      * at runtime, far less generated PHP per definition.
      *
-     * @return array{file: string, line: int, column: int}|null
+     * @return LocationLiteral|null
      */
     private function locationLiteral(MapNode $node): ?array
     {
@@ -108,7 +112,7 @@ final class MapEmitter implements NodeEmitterInterface
     }
 
     /**
-     * @param array{file: string, line: int, column: int} $location
+     * @param LocationLiteral $location
      */
     private function emitLocationHelper(array $location, ?SourceLocation $loc): void
     {
@@ -133,7 +137,7 @@ final class MapEmitter implements NodeEmitterInterface
      * Phel maps are unordered and metadata is read by key). Maps missing
      * either location entry fall through to the generic `\Phel::map(...)` path.
      *
-     * @return array{start: array{file: string, line: int, column: int}, end: array{file: string, line: int, column: int}, extras: list<array{AbstractNode, AbstractNode}>}|null
+     * @return DefLocationMeta|null
      */
     private function defLocationMeta(MapNode $node): ?array
     {
@@ -174,7 +178,7 @@ final class MapEmitter implements NodeEmitterInterface
     }
 
     /**
-     * @param array{start: array{file: string, line: int, column: int}, end: array{file: string, line: int, column: int}, extras: list<array{AbstractNode, AbstractNode}>} $meta
+     * @param DefLocationMeta $meta
      */
     private function emitDefLocationMetaHelper(array $meta, ?SourceLocation $loc): void
     {
