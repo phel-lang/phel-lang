@@ -313,9 +313,9 @@ final class LazySeq extends AbstractType implements LazySeqInterface, Countable,
         $result = [];
         $seq = $this;
 
-        /** @psalm-suppress RedundantCondition */
-        /** @phpstan-ignore instanceof.alwaysTrue */
-        while ($seq instanceof self) {
+        // `$seq` only ever advances to another `self` (every other tail shape
+        // breaks below), so the walk is bounded by the breaks, not by a guard.
+        while (true) {
             // `realize() === null` is the only reliable "empty" signal;
             // `first() === null` is ambiguous because the user may have
             // stored `nil` as a legitimate value. Empty `Countable`

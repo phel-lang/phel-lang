@@ -186,9 +186,10 @@ final class Cons extends AbstractType implements SeqInterface, IteratorAggregate
      */
     private function walkTail(): iterable
     {
+        // `$this->rest` is a non-nullable `LazySeqInterface` and `$current` only
+        // ever advances to another one, so the walk ends on the returns below.
         $current = $this->rest;
-        /** @phpstan-ignore instanceof.alwaysTrue */
-        while ($current instanceof LazySeqInterface) {
+        while (true) {
             $head = $current->first();
             if ($head === null) {
                 return;
