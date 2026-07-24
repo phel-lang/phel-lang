@@ -11,8 +11,6 @@ use Phel\Shared\CompileOptions;
 use Phel\Shared\PhelProjectDirectory;
 use Phel\Shared\ScalarCoercion;
 
-use function is_string;
-
 final class BuildConfig extends AbstractConfig implements BuildConfigInterface
 {
     /**
@@ -80,15 +78,11 @@ final class BuildConfig extends AbstractConfig implements BuildConfigInterface
 
     public function getCacheDir(): string
     {
-        $envOverride = getenv('PHEL_CACHE_DIR');
-        if (is_string($envOverride) && $envOverride !== '') {
-            return $envOverride;
-        }
-
-        $cacheDir = ScalarCoercion::toString($this->get(PhelConfig::CACHE_DIR, '.phel/cache'));
-        $phelDir = ScalarCoercion::toString($this->get(PhelConfig::PHEL_DIR, ''));
-
-        return PhelProjectDirectory::resolve($this->getAppRootDir(), $cacheDir, $phelDir);
+        return PhelProjectDirectory::resolveCacheDir(
+            $this->getAppRootDir(),
+            ScalarCoercion::toString($this->get(PhelConfig::CACHE_DIR, '.phel/cache')),
+            ScalarCoercion::toString($this->get(PhelConfig::PHEL_DIR, '')),
+        );
     }
 
     public function getNamespaceCacheFile(): string
