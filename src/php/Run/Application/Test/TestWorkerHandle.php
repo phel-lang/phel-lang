@@ -42,6 +42,7 @@ final class TestWorkerHandle
     private ?string $assignedNamespace = null;
 
     /**
+     * @param closed-resource|resource $process
      * @param array<int, resource> $pipes
      */
     public function __construct(private readonly mixed $process, array $pipes)

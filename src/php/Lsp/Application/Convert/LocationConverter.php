@@ -12,7 +12,7 @@ use function strlen;
 /**
  * Convert Api Location/Definition value objects into LSP Location shapes.
  *
- * @phpstan-import-type Range from PositionConverter
+ * @phpstan-import-type LspLocation from PositionConverter
  */
 final readonly class LocationConverter
 {
@@ -22,7 +22,7 @@ final readonly class LocationConverter
     ) {}
 
     /**
-     * @return array{uri: string, range: Range}
+     * @return LspLocation
      */
     public function fromLocation(Location $location): array
     {
@@ -38,7 +38,7 @@ final readonly class LocationConverter
     }
 
     /**
-     * @return array{uri: string, range: Range}
+     * @return LspLocation
      */
     public function fromDefinition(Definition $definition): array
     {

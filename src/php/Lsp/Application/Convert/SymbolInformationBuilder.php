@@ -14,7 +14,7 @@ use function strlen;
  * `textDocument/documentSymbol` and `workspace/symbol`. Centralising the
  * construction keeps both responses in sync when the spec's fields drift.
  *
- * @phpstan-import-type Range from PositionConverter
+ * @phpstan-import-type LspLocation from PositionConverter
  */
 final readonly class SymbolInformationBuilder
 {
@@ -28,7 +28,7 @@ final readonly class SymbolInformationBuilder
      * @return array{
      *     name: string,
      *     kind: int,
-     *     location: array{uri: string, range: Range}
+     *     location: LspLocation
      * }
      */
     public function fromDefinition(Definition $def): array
@@ -53,7 +53,7 @@ final readonly class SymbolInformationBuilder
      *     name: string,
      *     kind: int,
      *     containerName: string,
-     *     location: array{uri: string, range: Range}
+     *     location: LspLocation
      * }
      */
     public function fromDefinitionWithContainer(Definition $def): array
