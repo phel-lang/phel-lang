@@ -19,19 +19,22 @@
 
 (defn ex-data
   "Returns the data map from an ex-info exception, or nil if not an ExceptionInfo."
-  {:see-also ["ex-info" "ex-message" "ex-cause"]}
+  {:example "(ex-data (ex-info \"boom\" {:a 1})) ; => {:a 1}"
+   :see-also ["ex-info" "ex-message" "ex-cause"]}
   [ex]
   (when (php/instanceof ex ExceptionInfo)
     (php/-> ex (getData))))
 
 (defn ex-message
   "Returns the message of an exception."
-  {:see-also ["ex-info" "ex-data" "ex-cause"]}
+  {:example "(ex-message (ex-info \"boom\" {})) ; => \"boom\""
+   :see-also ["ex-info" "ex-data" "ex-cause"]}
   [ex]
   (php/-> ex (getMessage)))
 
 (defn ex-cause
   "Returns the cause of an exception, or nil."
-  {:see-also ["ex-info" "ex-data" "ex-message"]}
+  {:example "(ex-cause (ex-info \"boom\" {})) ; => nil"
+   :see-also ["ex-info" "ex-data" "ex-message"]}
   [ex]
   (php/-> ex (getPrevious)))

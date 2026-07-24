@@ -76,6 +76,8 @@
 
 (defn ffirst
   "Same as `(first (first coll))`."
+  {:example "(ffirst [[1 2] [3 4]]) ; => 1"
+   :see-also ["first" "second" "fnext"]}
   [coll]
   (first (first coll)))
 
@@ -103,6 +105,8 @@
 
 (defn nfirst
   "Same as `(next (first coll))`."
+  {:example "(nfirst [[1 2 3] [4 5]]) ; => [2 3]"
+   :see-also ["ffirst" "next" "nnext"]}
   [coll]
   (next (first coll)))
 
@@ -115,6 +119,8 @@
 
 (defn nnext
   "Same as `(next (next coll))`."
+  {:example "(nnext [1 2 3 4]) ; => [3 4]"
+   :see-also ["next" "nfirst" "fnext"]}
   [coll]
   (next (next coll)))
 

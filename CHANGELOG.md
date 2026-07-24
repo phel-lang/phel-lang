@@ -9,6 +9,7 @@ All notable changes to this project will be documented in this file.
 - Documented 12 previously-undocumented core functions with `:example`/`:see-also` metadata (`str`, `gensym`, `print-str`, `name`, `identical?`, `not=`, `<=`, `>=`, `<=>`, `>=<`, `truthy?`, `compare`)
 - Documented 9 more core functions (`union`, `intersection`, `difference`, `symmetric-difference`, `constantly`, `complement`, `tree-seq`, `merge-with`, `deep-merge`) and fixed the malformed `juxt` example
 - Documented the reduced/volatile transducer primitives (`reduced`, `reduced?`, `unreduced`, `completing`, `volatile!`, `vreset!`, `vswap!`, `volatile?`)
+- Documented the remaining exception accessors (`ex-data`, `ex-message`, `ex-cause`) and nested-seq accessors (`ffirst`, `nfirst`, `nnext`)
 
 ### Removed
 
