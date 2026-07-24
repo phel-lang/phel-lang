@@ -26,15 +26,31 @@ final class PathsFormatterTest extends TestCase
         $formatter = $this->formatterThrowing('a.phel', new LexerValueException('bad token'));
 
         $output = new BufferedOutput();
-        $changed = new PathsFormatter(
+        $result = new PathsFormatter(
             $this->commandFacade(),
             $formatter,
             $this->pathFilter(['a.phel', 'b.phel']),
             $io,
         )->format(['ignored'], $output);
 
-        self::assertSame(['b.phel'], $changed);
+        self::assertSame(['b.phel'], $result->changedPaths());
         self::assertStringContainsString('bad token', $output->fetch());
+    }
+
+    public function test_unformattable_file_is_reported_as_failed(): void
+    {
+        $io = $this->fileIo(['a.phel' => '(a', 'b.phel' => '(b)']);
+        $formatter = $this->formatterThrowing('a.phel', new LexerValueException('bad token'));
+
+        $result = new PathsFormatter(
+            $this->commandFacade(),
+            $formatter,
+            $this->pathFilter(['a.phel', 'b.phel']),
+            $io,
+        )->format(['ignored'], new BufferedOutput());
+
+        self::assertTrue($result->hasFailures());
+        self::assertSame(['a.phel'], $result->failedPaths());
     }
 
     public function test_write_failure_propagates_instead_of_being_swallowed(): void

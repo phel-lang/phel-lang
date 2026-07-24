@@ -14,6 +14,9 @@ All notable changes to this project will be documented in this file.
 - `phel lint` now exits 2 with a clear message when `phel-lint.phel` exists but is unreadable, unparseable, or not a map, instead of silently falling back to the built-in default rules. A missing or empty config file still means defaults
 - Parse and lex failures during namespace extraction now report the underlying reason and chain the original exception, replacing a bare `Cannot parse file: <path>` with no line or cause
 - `phel format` now surfaces I/O failures instead of printing a stack trace and silently skipping the file
+- `phel format` now exits non-zero when a file cannot be lexed or parsed, so a `phel format --dry-run` CI gate no longer passes over broken sources
+- `(lazy-seq <non-seq>)` (e.g. `(lazy-seq 5)`) now reports `Don't know how to create a seq from: int` instead of leaking a PHP `TypeError` about an internal method's return type
+- A transient sorted set is now callable for membership lookup, `((transient (sorted-set :a)) :a)`, matching the transient hash set instead of raising "object is not callable"
 - A `data-readers.phel` whose `phel.reader` bootstrap fails now reports the failing file and the underlying cause, instead of leaving every `(register-tag ...)` in it silently unregistered
 
 ### Changed

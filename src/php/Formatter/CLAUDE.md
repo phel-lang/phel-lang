@@ -6,8 +6,20 @@ Code formatter for `phel format`: lex/parse Phel source to a parse tree, apply o
 
 | Method | Notes |
 |--------|-------|
-| `format(array $paths, OutputInterface $output, bool $dryRun = false): array` | Returns paths whose contents changed (or would under `$dryRun`). Discovers `.phel` files under `$paths`. |
+| `format(array $paths, OutputInterface $output, bool $dryRun = false): FormatResult` | Discovers `.phel` files under `$paths` and formats each one. |
 | `formatString(string $source, string $uri = FormatterInterface::DEFAULT_SOURCE): string` | Formats in memory; no filesystem access. |
+
+### `FormatResult` contract
+
+`Phel\Shared\Formatter\FormatResult` (`final readonly`, lives in Shared so the facade interface stays leaf-safe):
+
+| Accessor | Meaning |
+|----------|---------|
+| `changedPaths(): list<string>` | Contents changed, or would change under `$dryRun` |
+| `failedPaths(): list<string>` | Could not be formatted: unreadable path, or source that fails to lex/parse |
+| `hasChanges()` / `hasFailures()` | Emptiness predicates for the two lists |
+
+Each path lands in at most one bucket; an already-formatted file appears in neither. A failed path is reported on `$output` (located exception or stack trace) and skipped, so one broken file never aborts the batch, but it **must** still make the caller exit non-zero. `FormatCommand` returns `FAILURE` when `hasFailures()`, and additionally under `--dry-run` when `hasChanges()`.
 
 ## Dependencies
 

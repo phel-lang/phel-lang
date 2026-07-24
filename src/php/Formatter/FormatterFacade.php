@@ -7,6 +7,7 @@ namespace Phel\Formatter;
 use Gacela\Framework\AbstractFacade;
 use Phel\Formatter\Domain\FormatterInterface;
 use Phel\Shared\Facade\FormatterFacadeInterface;
+use Phel\Shared\Formatter\FormatResult;
 use Symfony\Component\Console\Output\OutputInterface;
 
 /**
@@ -16,10 +17,8 @@ final class FormatterFacade extends AbstractFacade implements FormatterFacadeInt
 {
     /**
      * @param list<string> $paths
-     *
-     * @return list<string> paths whose contents changed (or would change under $dryRun)
      */
-    public function format(array $paths, OutputInterface $output, bool $dryRun = false): array
+    public function format(array $paths, OutputInterface $output, bool $dryRun = false): FormatResult
     {
         return $this->getFactory()
             ->createPathsFormatter()
