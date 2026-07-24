@@ -6,12 +6,7 @@ All notable changes to this project will be documented in this file.
 
 ### Changed
 
-- Documented 12 previously-undocumented core functions with `:example`/`:see-also` metadata (`str`, `gensym`, `print-str`, `name`, `identical?`, `not=`, `<=`, `>=`, `<=>`, `>=<`, `truthy?`, `compare`)
-- Documented 9 more core functions (`union`, `intersection`, `difference`, `symmetric-difference`, `constantly`, `complement`, `tree-seq`, `merge-with`, `deep-merge`) and fixed the malformed `juxt` example
-- Documented the reduced/volatile transducer primitives (`reduced`, `reduced?`, `unreduced`, `completing`, `volatile!`, `vreset!`, `vswap!`, `volatile?`)
-- Documented the remaining exception accessors (`ex-data`, `ex-message`, `ex-cause`) and nested-seq accessors (`ffirst`, `nfirst`, `nnext`)
-- Documented the binding macros (`if-let`, `when-let`, `if-some`, `when-some`, `when-first`) and compile-bridge fns (`namespace`, `full-name`, `read-string`, `eval`, `protocol-type-key`)
-- Documented threading macros (`some->`, `some->>`, `as->`, `doto`), `comp`/`take`/`cat`/`pop`, `format`, `macroexpand-1`, and predicates/accessors (`atom?`, `var?`, `delay?`, `get-validator`, `identity`, `make-hierarchy`)
+- Documented 60+ previously-undocumented public core functions with runnable `:example`/`:see-also` metadata — threading macros, set/sequence helpers, transducer & volatile primitives, binding & protocol macros, exception/sequence accessors, and assorted predicates — and fixed a malformed `juxt` example
 
 ### Removed
 
