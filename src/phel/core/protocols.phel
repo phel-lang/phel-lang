@@ -412,7 +412,8 @@ Maintained in parallel with `derive`'s class -> proto-class-string entry so hier
 
   Optimized to avoid the full `type` cond chain: checks scalars first
   (most common in tight loops), then objects."
-  {:see-also ["defprotocol" "extend-type" "satisfies?"]}
+  {:example "(protocol-type-key \"hi\") ; => :string\n(protocol-type-key 42) ; => :int"
+   :see-also ["defprotocol" "extend-type" "satisfies?"]}
   [x]
   (cond
     (php/is_null x)    :nil
@@ -819,6 +820,8 @@ Equivalent to multiple `extend-type` calls."
 
 (defmacro if-let
   "If test is true, evaluates then with binding-form bound to the value of test, if not, yields else"
+  {:example "(if-let [x (get {:a 1} :a)] x :none) ; => 1"
+   :see-also ["when-let" "if-some"]}
   [bindings then & [else]]
   (let [err #(throw (php/new \InvalidArgumentException %))]
     (when-not
@@ -839,6 +842,8 @@ Equivalent to multiple `extend-type` calls."
 
 (defmacro when-let
   "When test is true, evaluates body with binding-form bound to the value of test"
+  {:example "(when-let [x (get {:a 1} :a)] (* x 10)) ; => 10"
+   :see-also ["if-let" "when-some"]}
   [bindings & body]
   (let [err #(throw (php/new \InvalidArgumentException %))]
     (when-not
@@ -858,7 +863,8 @@ Equivalent to multiple `extend-type` calls."
 
 (defmacro if-some
   "Binds name to the value of test. If test is not nil, evaluates then with binding-form bound to the value of test, if not, yields else. Unlike if-let, false and 0 are not treated as falsy — only nil triggers the else branch."
-  {:see-also ["if-let" "when-some"]}
+  {:example "(if-some [x false] :yes :no) ; => :yes"
+   :see-also ["if-let" "when-some"]}
   [bindings then & [else]]
   (let [err #(throw (php/new \InvalidArgumentException %))]
     (when-not
@@ -879,14 +885,16 @@ Equivalent to multiple `extend-type` calls."
 
 (defmacro when-some
   "Binds name to the value of test. When test is not nil, evaluates body with binding-form bound to the value of test. Unlike when-let, false and 0 are not treated as falsy — only nil causes the body to be skipped."
-  {:see-also ["when-let" "if-some"]}
+  {:example "(when-some [x 0] (inc x)) ; => 1"
+   :see-also ["when-let" "if-some"]}
   [bindings & body]
   `(if-some ~bindings (do ~@body) nil))
 
 (defmacro when-first
   "Binds name to the first element of coll. When the collection is non-empty
   (first returns non-nil), evaluates body with the binding."
-  {:see-also ["when-some" "first"]}
+  {:example "(when-first [x [1 2 3]] x) ; => 1"
+   :see-also ["when-some" "first"]}
   [bindings & body]
   (let [err #(throw (php/new \InvalidArgumentException %))]
     (when-not
@@ -960,16 +968,22 @@ bindings is a vector of function specs: (letfn [(f [params] body) (g [params] bo
 
 (defn namespace
   "Return the namespace string of a symbol or keyword. Nil if not present."
+  {:example "(namespace :foo/bar) ; => \"foo\"\n(namespace :foo) ; => nil"
+   :see-also ["name" "full-name"]}
   [x]
   (php/-> x (getNamespace)))
 
 (defn full-name
   "Return the namespace and name string of a string, keyword or symbol."
+  {:example "(full-name :foo/bar) ; => \"foo/bar\""
+   :see-also ["name" "namespace"]}
   [x]
   (if (string? x) x (php/-> x (getFullName))))
 
 (defn read-string
   "Reads the first phel expression from the string s."
+  {:example "(read-string \"(+ 1 2)\") ; => (+ 1 2)"
+   :see-also ["eval" "compile"]}
   [s]
   (let [cf           (php/new CompilerFacade)
         token-stream (php/-> cf (lexString s))
@@ -979,6 +993,8 @@ bindings is a vector of function specs: (letfn [(f [params] body) (g [params] bo
 
 (defn eval
   "Evaluates a form and return the evaluated results."
+  {:example "(eval '(+ 1 2)) ; => 3"
+   :see-also ["read-string" "compile"]}
   [form]
   (let [cf (php/new CompilerFacade)]
     (php/-> cf (evalForm form))))
