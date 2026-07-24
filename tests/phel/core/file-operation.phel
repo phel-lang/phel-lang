@@ -28,14 +28,6 @@
       (php/chdir old-cwd))
     (php/unlink target-file)))
 
-;; Note: URL tests are commented out to avoid network dependencies in CI
-;; These can be tested manually or in integration test suites
-;;
-;; (deftest test-slurp-with-url
-;;   (let [result (slurp "https://httpbin.org/robots.txt")]
-;;     (is (string? result) "slurp should successfully read from URL")
-;;     (is (> (php/strlen result) 0) "slurp should return non-empty content from URL")))
-
 (deftest test-spit
   (let [target-directory (str (php/sys_get_temp_dir))
         target-file      (str target-directory php/DIRECTORY_SEPARATOR "test-spit.txt")]
