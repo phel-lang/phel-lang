@@ -39,7 +39,7 @@ final class PathsFormatterTest extends TestCase
 
     public function test_write_failure_propagates_instead_of_being_swallowed(): void
     {
-        $io = new class implements FileIoInterface {
+        $io = new class() implements FileIoInterface {
             public function checkIfValid(string $filename): void {}
 
             public function getContents(string $filename): string
@@ -92,10 +92,10 @@ final class PathsFormatterTest extends TestCase
      */
     private function formatterThrowing(?string $failingPath, ?LexerValueException $exception): FormatterInterface
     {
-        return new class($failingPath, $exception) implements FormatterInterface {
+        return new readonly class($failingPath, $exception) implements FormatterInterface {
             public function __construct(
-                private readonly ?string $failingPath,
-                private readonly ?LexerValueException $exception,
+                private ?string $failingPath,
+                private ?LexerValueException $exception,
             ) {}
 
             public function format(string $string, string $source = self::DEFAULT_SOURCE): string
@@ -114,11 +114,11 @@ final class PathsFormatterTest extends TestCase
      */
     private function pathFilter(array $paths): PathFilterInterface
     {
-        return new class($paths) implements PathFilterInterface {
+        return new readonly class($paths) implements PathFilterInterface {
             /**
              * @param list<string> $paths
              */
-            public function __construct(private readonly array $paths) {}
+            public function __construct(private array $paths) {}
 
             public function filterPaths(array $paths): array
             {
