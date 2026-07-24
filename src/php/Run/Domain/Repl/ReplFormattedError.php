@@ -10,6 +10,5 @@ final readonly class ReplFormattedError
         public string $headline,
         public ?string $hint,
         public string $trace,
-        public string $fullTrace,
     ) {}
 }
