@@ -6,8 +6,6 @@ namespace Phel\Formatter\Domain\Rules\Indenter;
 
 use Phel\Formatter\Domain\Rules\Zipper\ParseTreeZipper;
 use Phel\Formatter\Domain\Rules\Zipper\ZipperException;
-use Phel\Lang\Symbol;
-use Phel\Shared\Parser\Node\SymbolNode;
 
 use function is_null;
 
@@ -20,6 +18,8 @@ use function is_null;
  */
 final readonly class BlockIndenter implements IndenterInterface
 {
+    use FormSymbolMatcherTrait;
+
     private ListIndenter $listIndenter;
 
     /**
@@ -79,21 +79,5 @@ final readonly class BlockIndenter implements IndenterInterface
         }
 
         return $left->isComment();
-    }
-
-    private function indentMatches(string $key, ?Symbol $formSymbol): bool
-    {
-        return $formSymbol instanceof Symbol && $key === $formSymbol->getName();
-    }
-
-    private function formSymbol(ParseTreeZipper $loc): ?Symbol
-    {
-        $leftMostNode = $loc->leftMost()->getNode();
-
-        if ($leftMostNode instanceof SymbolNode) {
-            return $leftMostNode->getValue();
-        }
-
-        return null;
     }
 }
