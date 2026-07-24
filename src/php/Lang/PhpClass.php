@@ -30,6 +30,8 @@ use function sprintf;
  */
 final readonly class PhpClass implements TypeInterface, Stringable
 {
+    use CopyLocationFromTrait;
+
     /**
      * @param PersistentMapInterface<mixed, mixed>|null $meta
      */
@@ -137,14 +139,4 @@ final readonly class PhpClass implements TypeInterface, Stringable
         return $this->endLocation;
     }
 
-    public function copyLocationFrom(mixed $other): static
-    {
-        if ($other instanceof SourceLocationInterface) {
-            return $this
-                ->setStartLocation($other->getStartLocation())
-                ->setEndLocation($other->getEndLocation());
-        }
-
-        return $this;
-    }
 }

@@ -44,6 +44,8 @@ No Gacela pattern: foundational leaf module; all types used directly by other mo
 
 Other utilities: `DynamicScope` (dynamic bindings), `Truthy`, `TypeStringifier`, `Hasher`/`Equalizer` (collection hashing/equality).
 
+Shared behaviour traits: `MetaTrait` (`getMeta`/`withMeta`), `HashCombinerTrait`, `CopyLocationFromTrait` (the `SourceLocationInterface::copyLocationFrom()` default; declares `setStartLocation`/`setEndLocation` abstract, so each type keeps its own copy-vs-mutate strategy).
+
 ## Runtime Infrastructure
 
 | Class | Notes |

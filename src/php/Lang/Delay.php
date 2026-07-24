@@ -11,9 +11,12 @@ final class Delay
 {
     private mixed $value = null;
 
-    /** @var callable|null */
+    /** @var (callable(): mixed)|null */
     private $fn;
 
+    /**
+     * @param callable(): mixed $fn nullary thunk, invoked at most once
+     */
     public function __construct(callable $fn)
     {
         $this->fn = $fn;

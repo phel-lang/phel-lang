@@ -103,30 +103,7 @@ final readonly class ShadowedBindingRule implements LintRuleInterface
         $size = count($bindings);
         $newScope = $scope;
         for ($i = 0; $i < $size; $i += 2) {
-            $sym = $bindings->get($i);
-            if (!$sym instanceof Symbol) {
-                continue;
-            }
-
-            $name = $sym->getName();
-            if ($name === '&') {
-                continue;
-            }
-
-            if ($name === '_') {
-                continue;
-            }
-
-            if (in_array($name, $newScope, true)) {
-                $result[] = DiagnosticBuilder::fromForm(
-                    $this->code(),
-                    sprintf("Shadowed binding: '%s' shadows a local with the same name.", $name),
-                    $uri,
-                    $sym,
-                );
-            }
-
-            $newScope[] = $name;
+            $newScope = $this->noteBinding($bindings->get($i), $newScope, $uri, $result);
         }
 
         return $newScope;
@@ -173,32 +150,44 @@ final readonly class ShadowedBindingRule implements LintRuleInterface
         $newScope = $scope;
         $count = count($params);
         for ($i = 0; $i < $count; ++$i) {
-            $sym = $params->get($i);
-            if (!$sym instanceof Symbol) {
-                continue;
-            }
-
-            $name = $sym->getName();
-            if ($name === '&') {
-                continue;
-            }
-
-            if ($name === '_') {
-                continue;
-            }
-
-            if (in_array($name, $newScope, true)) {
-                $result[] = DiagnosticBuilder::fromForm(
-                    $this->code(),
-                    sprintf("Shadowed binding: '%s' shadows a local with the same name.", $name),
-                    $uri,
-                    $sym,
-                );
-            }
-
-            $newScope[] = $name;
+            $newScope = $this->noteBinding($params->get($i), $newScope, $uri, $result);
         }
 
         return $newScope;
+    }
+
+    /**
+     * Adds one bound name to `$scope`, reporting it first when the same name is
+     * already in scope. `&` and `_` are ignored: the former is the variadic
+     * marker, the latter the conventional "unused" placeholder.
+     *
+     * @param list<string>     $scope
+     * @param list<Diagnostic> $result
+     *
+     * @return list<string>
+     */
+    private function noteBinding(mixed $sym, array $scope, string $uri, array &$result): array
+    {
+        if (!$sym instanceof Symbol) {
+            return $scope;
+        }
+
+        $name = $sym->getName();
+        if ($name === '&' || $name === '_') {
+            return $scope;
+        }
+
+        if (in_array($name, $scope, true)) {
+            $result[] = DiagnosticBuilder::fromForm(
+                $this->code(),
+                sprintf("Shadowed binding: '%s' shadows a local with the same name.", $name),
+                $uri,
+                $sym,
+            );
+        }
+
+        $scope[] = $name;
+
+        return $scope;
     }
 }

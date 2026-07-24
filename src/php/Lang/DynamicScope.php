@@ -310,6 +310,7 @@ final class DynamicScope
      * Push a frame, execute the closure, always pop on return or throw.
      *
      * @param array<string, mixed> $frame
+     * @param Closure(): mixed     $fn
      */
     public function withFrame(array $frame, Closure $fn): mixed
     {

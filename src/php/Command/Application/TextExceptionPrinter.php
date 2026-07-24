@@ -224,7 +224,11 @@ final readonly class TextExceptionPrinter implements ExceptionPrinterInterface
 
             $class = $frame['class'] ?? '';
             $type = $frame['type'] ?? '';
-            $fn = $frame['function'] ?? ''; // @phpstan-ignore-line
+            // PHP always sets `function` on a trace frame, but Psalm's stub
+            // marks it optional while PHPStan's marks it required, so neither
+            // a plain read nor a `??` default satisfies both.
+            // @phpstan-ignore nullCoalesce.offset
+            $fn = $frame['function'] ?? '';
             $argString = $this->exceptionArgsPrinter->buildPhpArgsString($frame['args'] ?? []);
             $str .= sprintf('#%d %s(%d): %s%s%s(%s)', $i, $file, $line, $class, $type, $fn, $argString) . PHP_EOL;
         }

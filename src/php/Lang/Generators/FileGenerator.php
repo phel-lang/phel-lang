@@ -25,24 +25,7 @@ final class FileGenerator
      */
     public static function fileLines(string $filename): Generator
     {
-        if (!is_file($filename)) {
-            throw new InvalidArgumentException(
-                'Argument filename should be a valid path to a file: ' . $filename,
-            );
-        }
-
-        if (!is_readable($filename)) {
-            throw new InvalidArgumentException(
-                'File is not readable: ' . $filename,
-            );
-        }
-
-        $handle = fopen($filename, 'r');
-        if ($handle === false) {
-            throw new RuntimeException(
-                'Failed to open file: ' . $filename,
-            );
-        }
+        $handle = self::openForReading($filename, 'r');
 
         try {
             while (($line = fgets($handle)) !== false) {
@@ -129,24 +112,7 @@ final class FileGenerator
             );
         }
 
-        if (!is_file($filename)) {
-            throw new InvalidArgumentException(
-                'Argument filename should be a valid path to a file: ' . $filename,
-            );
-        }
-
-        if (!is_readable($filename)) {
-            throw new InvalidArgumentException(
-                'File is not readable: ' . $filename,
-            );
-        }
-
-        $handle = fopen($filename, 'rb');
-        if ($handle === false) {
-            throw new RuntimeException(
-                'Failed to open file: ' . $filename,
-            );
-        }
+        $handle = self::openForReading($filename, 'rb');
 
         try {
             while (!feof($handle)) {
@@ -175,6 +141,28 @@ final class FileGenerator
         string $enclosure = '"',
         string $escape = '\\',
     ): Generator {
+        $handle = self::openForReading($filename, 'r');
+
+        try {
+            $typeFactory = TypeFactory::getInstance();
+            while (($row = fgetcsv($handle, 0, $separator, $enclosure, $escape)) !== false) {
+                /** @psalm-var list<string|null> $row */
+                $cleanRow = array_map(static fn(?string $val): string => $val ?? '', $row);
+                yield $typeFactory->persistentVectorFromArray($cleanRow);
+            }
+        } finally {
+            fclose($handle);
+        }
+    }
+
+    /**
+     * Validates that `$filename` names a readable file and opens it, so every
+     * reader in this class rejects bad input with the same messages.
+     *
+     * @return resource
+     */
+    private static function openForReading(string $filename, string $mode)
+    {
         if (!is_file($filename)) {
             throw new InvalidArgumentException(
                 'Argument filename should be a valid path to a file: ' . $filename,
@@ -187,22 +175,13 @@ final class FileGenerator
             );
         }
 
-        $handle = fopen($filename, 'r');
+        $handle = fopen($filename, $mode);
         if ($handle === false) {
             throw new RuntimeException(
                 'Failed to open file: ' . $filename,
             );
         }
 
-        try {
-            $typeFactory = TypeFactory::getInstance();
-            while (($row = fgetcsv($handle, 0, $separator, $enclosure, $escape)) !== false) {
-                /** @psalm-var list<string|null> $row */
-                $cleanRow = array_map(static fn(?string $val): string => $val ?? '', $row);
-                yield $typeFactory->persistentVectorFromArray($cleanRow);
-            }
-        } finally {
-            fclose($handle);
-        }
+        return $handle;
     }
 }

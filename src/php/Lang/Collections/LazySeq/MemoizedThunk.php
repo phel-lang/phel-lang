@@ -15,7 +15,7 @@ use function assert;
  */
 final class MemoizedThunk
 {
-    /** @var callable|null The thunk to invoke (null after first invocation) */
+    /** @var (callable(): mixed)|null The thunk to invoke (null after first invocation) */
     private $fn;
 
     /** @var bool Whether the thunk has been invoked */
@@ -25,7 +25,7 @@ final class MemoizedThunk
     private mixed $result = null;
 
     /**
-     * @param callable $fn The thunk to memoize
+     * @param callable(): mixed $fn The thunk to memoize
      */
     public function __construct(callable $fn)
     {

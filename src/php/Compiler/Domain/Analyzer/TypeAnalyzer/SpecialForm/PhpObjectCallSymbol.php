@@ -97,7 +97,6 @@ final readonly class PhpObjectCallSymbol implements SpecialFormAnalyzerInterface
             $segment,
         );
 
-        /** @psalm-suppress PossiblyNullArgument */
         /** @var Symbol $callSymbol */
         $callSymbol = $segment->get(0);
         return new MethodCallNode($env, $callSymbol, $args, $segment->getStartLocation());
@@ -105,7 +104,6 @@ final readonly class PhpObjectCallSymbol implements SpecialFormAnalyzerInterface
 
     private function callExprForPropertyCall(NodeEnvironmentInterface $env, Symbol $segment): PropertyOrConstantAccessNode
     {
-        /** @psalm-suppress PossiblyNullArgument */
         return new PropertyOrConstantAccessNode($env, $segment, $segment->getStartLocation());
     }
 }

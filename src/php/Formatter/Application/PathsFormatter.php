@@ -13,7 +13,6 @@ use Phel\Formatter\Domain\PathFilterInterface;
 use Phel\Formatter\Domain\Rules\Zipper\ZipperException;
 use Phel\Shared\Facade\CommandFacadeInterface;
 use Symfony\Component\Console\Output\OutputInterface;
-use Throwable;
 
 final readonly class PathsFormatter
 {
@@ -33,6 +32,12 @@ final readonly class PathsFormatter
     ) {}
 
     /**
+     * Only the failures {@see self::formatFile()} documents as coming from the
+     * file itself (bad source, missing path) are reported and skipped, so one
+     * unformattable file does not abort the batch. Anything else — an I/O
+     * failure, a bug in a rule — propagates: swallowing it would report a
+     * successful run that silently skipped files.
+     *
      * @param list<string> $paths
      *
      * @return list<string> paths whose contents changed (or would change under $dryRun)
@@ -49,7 +54,7 @@ final readonly class PathsFormatter
                 }
             } catch (AbstractParserException $e) {
                 $this->commandFacade->writeLocatedException($output, $e, $e->getCodeSnippet());
-            } catch (Throwable $e) {
+            } catch (FilePathException|LexerValueException|ZipperException $e) {
                 $this->commandFacade->writeStackTrace($output, $e);
             }
         }

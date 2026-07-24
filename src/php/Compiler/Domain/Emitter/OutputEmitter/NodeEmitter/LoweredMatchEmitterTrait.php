@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace Phel\Compiler\Domain\Emitter\OutputEmitter\NodeEmitter;
 
-use Phel\Compiler\Domain\Analyzer\Ast\AbstractNode;
 use Phel\Compiler\Domain\Analyzer\Environment\NodeEnvironmentInterface;
 use Phel\Lang\SourceLocation;
 
@@ -12,11 +11,13 @@ use Phel\Lang\SourceLocation;
  * Emits the PHP `match` expression for a lowered `cond` / `case` chain
  * shape produced by {@see IfChainMatchLowerer}. Composing emitters must
  * also use {@see WithOutputEmitterTrait}.
+ *
+ * @phpstan-import-type LoweredMatch from IfChainMatchLowerer
  */
 trait LoweredMatchEmitterTrait
 {
     /**
-     * @param array{init: AbstractNode, arms: list<array{key: mixed, expr: mixed}>, fallback: mixed} $shape
+     * @param LoweredMatch $shape
      */
     private function emitLoweredMatch(array $shape, NodeEnvironmentInterface $env, ?SourceLocation $loc): void
     {

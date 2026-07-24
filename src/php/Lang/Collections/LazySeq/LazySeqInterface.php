@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Phel\Lang\Collections\LazySeq;
 
+use IteratorAggregate;
 use Phel\Lang\ConsInterface;
 use Phel\Lang\SeqInterface;
 use Phel\Lang\TypeInterface;
@@ -12,12 +13,17 @@ use Phel\Lang\TypeInterface;
  * Interface for lazy sequences.
  * Lazy sequences defer computation until values are actually needed.
  *
+ * Iterability is part of the contract: consumers such as the printer walk a
+ * lazy seq element by element instead of forcing `toArray()`, which would
+ * never terminate for an infinite sequence.
+ *
  * @template T
  *
  * @extends SeqInterface<T, LazySeqInterface<T>>
  * @extends ConsInterface<LazySeqInterface<T>>
+ * @extends IteratorAggregate<int, T>
  */
-interface LazySeqInterface extends TypeInterface, SeqInterface, ConsInterface
+interface LazySeqInterface extends TypeInterface, SeqInterface, ConsInterface, IteratorAggregate
 {
     /**
      * Checks if this lazy sequence has been realized (computed).

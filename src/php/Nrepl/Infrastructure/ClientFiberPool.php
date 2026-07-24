@@ -24,8 +24,12 @@ final class ClientFiberPool
     /** @var list<Fiber<mixed, mixed, mixed, mixed>> */
     private array $fibers = [];
 
+    /** @var (Closure(string): void)|null */
     private readonly ?Closure $errorLogger;
 
+    /**
+     * @param (callable(string): void)|null $errorLogger receives one already-formatted log line
+     */
     public function __construct(?callable $errorLogger = null)
     {
         $this->errorLogger = $errorLogger === null ? null : Closure::fromCallable($errorLogger);

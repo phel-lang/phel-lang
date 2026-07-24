@@ -4,6 +4,9 @@ declare(strict_types=1);
 
 namespace Phel\Api\Transfer;
 
+/**
+ * @phpstan-type SerializedLocation array{uri: string, line: int, col: int, endLine: int, endCol: int}
+ */
 final readonly class Location
 {
     public function __construct(
@@ -15,7 +18,7 @@ final readonly class Location
     ) {}
 
     /**
-     * @return array{uri: string, line: int, col: int, endLine: int, endCol: int}
+     * @return SerializedLocation
      */
     public function toArray(): array
     {

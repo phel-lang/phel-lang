@@ -9,8 +9,6 @@ use PHPUnit\Framework\TestCase;
 
 final class CombineGeneratorTest extends TestCase
 {
-    // ==================== concat tests ====================
-
     public function test_concat_skips_null_arguments(): void
     {
         $result = CombineGenerator::concat([1, 2], null, [3, 4]);
@@ -24,8 +22,6 @@ final class CombineGeneratorTest extends TestCase
 
         self::assertSame([1, null, 2, 3], iterator_to_array($result, false));
     }
-
-    // ==================== interpose tests ====================
 
     public function test_interpose_basic(): void
     {
@@ -54,8 +50,6 @@ final class CombineGeneratorTest extends TestCase
 
         self::assertSame(['a', '-', 'b', '-', 'c'], iterator_to_array($result, false));
     }
-
-    // ==================== interleave tests ====================
 
     public function test_interleave_basic(): void
     {
@@ -91,8 +85,6 @@ final class CombineGeneratorTest extends TestCase
 
         self::assertSame([1, 'a', 'x', 2, 'b', 'y'], iterator_to_array($result, false));
     }
-
-    // ==================== mapMulti tests ====================
 
     public function test_map_multi_basic(): void
     {

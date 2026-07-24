@@ -122,4 +122,40 @@ final class PhelProjectDirectoryTest extends TestCase
             PhelProjectDirectory::resolve('/project', 'phar:///app/phel.phar/state'),
         );
     }
+
+    public function test_resolve_cache_dir_falls_back_to_resolve(): void
+    {
+        self::assertSame(
+            PhelProjectDirectory::resolve('/project', '.phel/cache', 'custom'),
+            PhelProjectDirectory::resolveCacheDir('/project', '.phel/cache', 'custom'),
+        );
+    }
+
+    public function test_resolve_cache_dir_env_var_wins_over_everything(): void
+    {
+        putenv(PhelProjectDirectory::CACHE_DIR_ENV . '=/env/override/cache');
+
+        try {
+            self::assertSame(
+                '/env/override/cache',
+                PhelProjectDirectory::resolveCacheDir('/project', '.phel/cache', 'custom'),
+            );
+        } finally {
+            putenv(PhelProjectDirectory::CACHE_DIR_ENV);
+        }
+    }
+
+    public function test_resolve_cache_dir_ignores_an_empty_env_var(): void
+    {
+        putenv(PhelProjectDirectory::CACHE_DIR_ENV . '=');
+
+        try {
+            self::assertSame(
+                '/project' . self::SEP . '.phel' . self::SEP . 'cache',
+                PhelProjectDirectory::resolveCacheDir('/project', '.phel/cache'),
+            );
+        } finally {
+            putenv(PhelProjectDirectory::CACHE_DIR_ENV);
+        }
+    }
 }

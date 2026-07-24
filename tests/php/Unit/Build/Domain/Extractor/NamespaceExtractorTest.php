@@ -10,6 +10,7 @@ use Phel\Build\Domain\Extractor\ExtractorException;
 use Phel\Build\Domain\Extractor\TopologicalNamespaceSorter;
 use Phel\Build\Infrastructure\IO\SystemFileIo;
 use Phel\Compiler\CompilerFacade;
+use Phel\Compiler\Domain\Lexer\Exceptions\LexerValueException;
 use Phel\Phel;
 use Phel\Shared\NamespaceInformation;
 use PHPUnit\Framework\TestCase;
@@ -74,6 +75,23 @@ final class NamespaceExtractorTest extends TestCase
         $this->expectException(ExtractorException::class);
         $fileContent = '## markdown-style comments are not valid phel';
         $this->extractNamespace($fileContent);
+    }
+
+    public function test_parse_failure_keeps_the_underlying_reason(): void
+    {
+        try {
+            $this->extractNamespace('## markdown-style comments are not valid phel');
+            self::fail('Expected an ExtractorException.');
+        } catch (ExtractorException $extractorException) {
+            $previous = $extractorException->getPrevious();
+
+            self::assertInstanceOf(LexerValueException::class, $previous);
+            self::assertStringContainsString(
+                $previous->getMessage(),
+                $extractorException->getMessage(),
+                'The lexer/parser reason must survive into the ExtractorException message.',
+            );
+        }
     }
 
     public function test_scan_skips_unparseable_files(): void

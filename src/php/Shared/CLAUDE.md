@@ -62,6 +62,7 @@ It also does not weaken the Gacela rule it appears to touch. Shared only *names*
 
 - `Parser/ReadModel/CodeSnippet` — `SourceLocation` (start/end) + source string; pure data.
 - `Parser/Node/*` — parse-tree VOs (`FileNode`, `ListNode`, `SymbolNode`, `MetaNode`, trivia nodes, …) plus the lexer `Token`. De-facto AST contract consumed by Formatter, Lint, Api; Compiler produces them. Living here removes `CompilerFacadeInterface → Compiler\Domain` references.
+- Two shape-only base classes keep the leaf VOs one-liners: `AbstractAtomNode` (scalar atoms: `Boolean`, `Keyword`, `Nil`, `Number`, `String`, `Symbol`) and `AbstractTriviaNode` (`Whitespace`, `Newline`, `Comma`, `Comment`). Its constructor is `final`, so a trivia subclass carries no state of its own; `createWithToken()` returns `static`.
 
 ## Printer (`Printer/`)
 
@@ -74,8 +75,9 @@ Stateless strategy-pattern printer (see `Printer/CLAUDE.md`); consumers instanti
 | `Munge` | namespace/symbol encoding: `encode()`, `encodePhpNs()`, `encodeRegistryKey()`, `decodeNs()`; static `canonicalNs()`, `displayNs()` |
 | `ColorStyle` | ANSI colors; static factories `withStyles()`, `noStyles()`; `green/yellow/blue/red/color()` |
 | `ScalarCoercion` | coerce config `mixed`→scalar with default: static `toString()`, `toInt()`, `toFloat()`, `toStringList()` |
+| `ExistingPaths` | static `filter(list<string>)` → drops paths that are neither a file nor a dir. Shared by the `lint` / `watch` commands and `WatchRunner` so a user-supplied path list narrows identically everywhere |
 | `ResourceUsageFormatter` | `resourceUsageSinceStartOfRequest()` → "Time: HH:MM:SS.mmm, Memory: X.XX MB" |
-| `PhelProjectDirectory` | manages `.phel/` dir; static `ensure()`/`path()`/`resolve()`. Effective location: `PHEL_DIR` env → `withPhelDir()` override → `<projectRoot>/.phel` |
+| `PhelProjectDirectory` | manages `.phel/` dir; static `ensure()`/`path()`/`resolve()`/`resolveCacheDir()`. Effective location: `PHEL_DIR` env → `withPhelDir()` override → `<projectRoot>/.phel`. `resolveCacheDir()` (`PHEL_CACHE_DIR` env → `resolve()`) is the single source for `BuildConfig::getCacheDir()` and `CompilerConfig::getCacheDir()`, so the build cache and the intermediate-artifact cache cannot drift apart — and so Compiler needs no reference to Build |
 | `VersionFinder` | pure version-string builder from explicit git inputs (no I/O); `getVersion()`. `LATEST_VERSION` const is bumped by `tools/release.sh` |
 | `VersionResolver` | gathers ambient version inputs (git working copy, Composer `InstalledVersions`, build-time `.phel-release.php`/`OFFICIAL_RELEASE`) and calls `VersionFinder`; `resolve()`. Console and Run consume directly, so neither owns version-detection wiring |
 | `CompiledSourceHash` | static `of(code, optLevel)` → compiled-code cache key (mixes `\|O{level}` when level>0, plain `md5` at 0). Shared so Build's `FileEvaluator` writer and `SecondaryFileHarvester` reader key identically |

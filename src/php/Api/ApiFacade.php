@@ -16,6 +16,13 @@ use Phel\Shared\Api\PhelFunction;
 use Phel\Shared\Facade\ApiFacadeInterface;
 
 /**
+ * The LSP SignatureHelp wire shape this module produces. Declared here (the
+ * module's public API) so both resolvers behind it describe one payload.
+ *
+ * @phpstan-type SignatureParameter array{label: string}
+ * @phpstan-type SignatureInformation array{label: string, parameters: list<SignatureParameter>, documentation?: string}
+ * @phpstan-type SignatureHelp array{signatures: list<SignatureInformation>, activeSignature: int, activeParameter: int}
+ *
  * @extends AbstractFacade<ApiFactory>
  */
 final class ApiFacade extends AbstractFacade implements ApiFacadeInterface
@@ -173,7 +180,7 @@ final class ApiFacade extends AbstractFacade implements ApiFacadeInterface
      * LSP SignatureHelp payload for the plain Phel function call enclosing the
      * cursor, or null when not applicable.
      *
-     * @return array{signatures: list<array{label: string, parameters: list<array{label: string}>, documentation?: string}>, activeSignature: int, activeParameter: int}|null
+     * @return SignatureHelp|null
      */
     public function phelSignatureAt(string $source, int $line, int $col, string $currentNs = 'user'): ?array
     {

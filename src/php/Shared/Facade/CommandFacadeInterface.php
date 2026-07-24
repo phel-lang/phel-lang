@@ -11,6 +11,9 @@ use Phel\Shared\Parser\ReadModel\CodeSnippet;
 use Symfony\Component\Console\Output\OutputInterface;
 use Throwable;
 
+/**
+ * @phpstan-type CompiledFileLineMap array{filename: string, lines: array<int, int>}
+ */
 interface CommandFacadeInterface
 {
     public function writeLocatedException(
@@ -74,7 +77,7 @@ interface CommandFacadeInterface
      * Maps every mapped generated line of a compiled PHP file back to its Phel
      * source, for coverage reporting. Empty filename when no source map.
      *
-     * @return array{filename: string, lines: array<int, int>}
+     * @return CompiledFileLineMap
      */
     public function getCompiledFileLineMap(string $compiledFile): array;
 }

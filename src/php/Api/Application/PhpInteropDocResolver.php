@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Phel\Api\Application;
 
+use Phel\Api\ApiFacade;
 use Phel\Api\Transfer\PhpInteropCall;
 use Phel\Api\Transfer\PhpInteropClass;
 use Phel\Api\Transfer\PhpInteropContext;
@@ -21,6 +22,9 @@ use function strlen;
  * reflector and context resolver as completion. Both entry points return null
  * when the cursor is not over a resolvable PHP symbol, so callers fall through
  * to the Phel behaviour.
+ *
+ * @phpstan-import-type SignatureHelp from ApiFacade
+ * @phpstan-import-type SignatureParameter from ApiFacade
  */
 final readonly class PhpInteropDocResolver
 {
@@ -57,7 +61,7 @@ final readonly class PhpInteropDocResolver
      * chained calls report the innermost method, and `activeParameter` tracks
      * the argument the cursor sits on.
      *
-     * @return array{signatures: list<array{label: string, parameters: list<array{label: string}>, documentation?: string}>, activeSignature: int, activeParameter: int}|null
+     * @return SignatureHelp|null
      */
     public function signatureAt(string $source, int $line, int $col): ?array
     {
@@ -71,7 +75,7 @@ final readonly class PhpInteropDocResolver
     }
 
     /**
-     * @return array{signatures: list<array{label: string, parameters: list<array{label: string}>, documentation?: string}>, activeSignature: int, activeParameter: int}|null
+     * @return SignatureHelp|null
      */
     private function constructorSignature(PhpInteropCall $call): ?array
     {
@@ -98,7 +102,7 @@ final readonly class PhpInteropDocResolver
     }
 
     /**
-     * @return array{signatures: list<array{label: string, parameters: list<array{label: string}>, documentation?: string}>, activeSignature: int, activeParameter: int}|null
+     * @return SignatureHelp|null
      */
     private function methodCallSignature(PhpInteropCall $call): ?array
     {
@@ -181,7 +185,7 @@ final readonly class PhpInteropDocResolver
     }
 
     /**
-     * @return array{signatures: list<array{label: string, parameters: list<array{label: string}>, documentation?: string}>, activeSignature: int, activeParameter: int}
+     * @return SignatureHelp
      */
     private function signatureResponse(PhpInteropSignature $signature, int $activeParameter): array
     {
@@ -205,7 +209,7 @@ final readonly class PhpInteropDocResolver
     /**
      * @param list<string> $parameters
      *
-     * @return list<array{label: string}>
+     * @return list<SignatureParameter>
      */
     private function parameterInformation(array $parameters): array
     {

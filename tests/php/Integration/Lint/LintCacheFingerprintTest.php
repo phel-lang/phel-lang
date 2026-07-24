@@ -8,6 +8,7 @@ use Phel;
 use Phel\Compiler\Infrastructure\GlobalEnvironmentSingleton;
 use Phel\Lang\Symbol;
 use Phel\Lint\Infrastructure\Command\LintCommand;
+use PhelTest\Support\RemoveDirTrait;
 use PHPUnit\Framework\Attributes\PreserveGlobalState;
 use PHPUnit\Framework\Attributes\RunInSeparateProcess;
 use PHPUnit\Framework\TestCase;
@@ -17,13 +18,10 @@ use function array_map;
 use function chdir;
 use function file_put_contents;
 use function getcwd;
-use function is_dir;
 use function json_decode;
 use function mkdir;
-use function scandir;
 use function sys_get_temp_dir;
 use function uniqid;
-use function unlink;
 
 /**
  * Verifies that changing phel-lint.phel config (severities or exclude
@@ -32,6 +30,8 @@ use function unlink;
  */
 final class LintCacheFingerprintTest extends TestCase
 {
+    use RemoveDirTrait;
+
     private string $projectRoot;
 
     private string $configPath;
@@ -155,30 +155,4 @@ final class LintCacheFingerprintTest extends TestCase
         GlobalEnvironmentSingleton::initializeNew();
     }
 
-    private function removeDir(string $dir): void
-    {
-        if (!is_dir($dir)) {
-            return;
-        }
-
-        $entries = scandir($dir) ?: [];
-        foreach ($entries as $entry) {
-            if ($entry === '.') {
-                continue;
-            }
-
-            if ($entry === '..') {
-                continue;
-            }
-
-            $path = $dir . '/' . $entry;
-            if (is_dir($path)) {
-                $this->removeDir($path);
-            } else {
-                @unlink($path);
-            }
-        }
-
-        @rmdir($dir);
-    }
 }

@@ -14,15 +14,15 @@ use Phel\Lsp\Application\Rpc\RequestDispatcher;
 final class LspFacade extends AbstractFacade
 {
     /**
-     * Build an LSP server around the given streams. The caller owns the loop
-     * via {@see LspServer::serve()}.
+     * Build an LSP server bound to the given output stream (used for
+     * server-initiated notifications). The caller owns the loop and supplies
+     * both streams to {@see LspServer::serve()}.
      *
-     * @param resource $input
      * @param resource $output
      */
-    public function createServer($input, $output): LspServer
+    public function createServer($output): LspServer
     {
-        return $this->getFactory()->createServer($input, $output);
+        return $this->getFactory()->createServer($output);
     }
 
     /**

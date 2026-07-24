@@ -12,8 +12,6 @@ use PHPUnit\Framework\TestCase;
 
 final class SortedArrayHelperTest extends TestCase
 {
-    // ---- defaultCompare ----
-
     public function test_default_compare_integers(): void
     {
         self::assertSame(-1, SortedArrayHelper::defaultCompare(1, 2));
@@ -71,8 +69,6 @@ final class SortedArrayHelperTest extends TestCase
         self::assertSame(-1, SortedArrayHelper::defaultCompare(1, NAN));
     }
 
-    // ---- resolveComparator ----
-
     public function test_resolve_null_returns_default_comparator(): void
     {
         $comp = SortedArrayHelper::resolveComparator(null);
@@ -103,8 +99,6 @@ final class SortedArrayHelperTest extends TestCase
 
         self::assertInstanceOf(Closure::class, $result);
     }
-
-    // ---- binarySearch ----
 
     public function test_search_empty_array(): void
     {

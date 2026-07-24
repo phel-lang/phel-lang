@@ -13,6 +13,9 @@ use Phel\Nrepl\Infrastructure\NreplSocketServer;
  */
 final class NreplFacade extends AbstractFacade
 {
+    /**
+     * @param (callable(string): void)|null $logger receives one already-formatted log line
+     */
     public function createSocketServer(
         int $port,
         string $host,

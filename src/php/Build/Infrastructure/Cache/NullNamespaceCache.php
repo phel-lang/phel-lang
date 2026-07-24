@@ -19,11 +19,6 @@ final class NullNamespaceCache implements NamespaceCacheInterface
         // No-op
     }
 
-    public function remove(string $file): void
-    {
-        // No-op
-    }
-
     /**
      * @return list<string>
      */
@@ -33,11 +28,6 @@ final class NullNamespaceCache implements NamespaceCacheInterface
     }
 
     public function save(): void
-    {
-        // No-op
-    }
-
-    public function clear(): void
     {
         // No-op
     }

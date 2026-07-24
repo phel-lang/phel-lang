@@ -47,13 +47,11 @@ final readonly class ReplErrorFormatter
     public function format(Throwable $e): ReplFormattedError
     {
         $cause = $this->unwrap($e);
-        $fullTrace = $this->exceptionPrinter->getStackTraceString($e);
 
         return new ReplFormattedError(
             $this->buildHeadline($cause),
             $this->hintResolver->hintFor($cause),
-            $this->filterTrace($fullTrace),
-            $fullTrace,
+            $this->filterTrace($this->exceptionPrinter->getStackTraceString($e)),
         );
     }
 

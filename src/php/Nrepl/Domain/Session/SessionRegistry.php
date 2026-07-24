@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace Phel\Nrepl\Domain\Session;
 
-use function array_keys;
 use function bin2hex;
 use function random_bytes;
 
@@ -36,14 +35,6 @@ final class SessionRegistry
         unset($this->sessions[$id]);
 
         return true;
-    }
-
-    /**
-     * @return list<string>
-     */
-    public function ids(): array
-    {
-        return array_keys($this->sessions);
     }
 
     private function generateId(): string

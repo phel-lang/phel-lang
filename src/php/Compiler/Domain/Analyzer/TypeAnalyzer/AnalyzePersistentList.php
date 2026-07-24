@@ -335,8 +335,8 @@ final class AnalyzePersistentList
 
     /**
      * Lazy `name => factory` dispatch registry, built once. The factories defer
-     * construction so each analyzer is still only instantiated on first use
-     * (and then memoized in `$symbolAnalyzerCache`), matching the old `match`.
+     * construction so each analyzer is only instantiated on first use (and then
+     * memoized in `$symbolAnalyzerCache`).
      *
      * @return array<string, callable(): SpecialFormAnalyzerInterface>
      */

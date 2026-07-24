@@ -138,6 +138,8 @@ final readonly class PhelVar implements EqualsInterface, FnInterface, HashableIn
      * argument.
      */
     /**
+     * @param callable(PersistentMapInterface<mixed, mixed>|null, mixed...): (PersistentMapInterface<mixed, mixed>|null) $f
+     *
      * @return PersistentMapInterface<mixed, mixed>|null
      */
     public function alterMeta(callable $f, mixed ...$args): ?PersistentMapInterface
@@ -194,6 +196,8 @@ final readonly class PhelVar implements EqualsInterface, FnInterface, HashableIn
      * Registers a watch function under `$key`. The function is called with
      * `($keyword, $var, $oldValue, $newValue)` after a successful
      * `alterRoot()`. Re-adding the same key replaces the previous fn.
+     *
+     * @param callable(Keyword, self, mixed, mixed): void $fn
      */
     public function addWatch(string $key, callable $fn): void
     {

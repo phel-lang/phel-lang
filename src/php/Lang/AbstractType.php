@@ -11,6 +11,8 @@ use Stringable;
  */
 abstract class AbstractType implements TypeInterface, Stringable
 {
+    use CopyLocationFromTrait;
+
     private ?SourceLocation $startLocation = null;
 
     private ?SourceLocation $endLocation = null;
@@ -42,19 +44,4 @@ abstract class AbstractType implements TypeInterface, Stringable
         return $this->endLocation;
     }
 
-    /**
-     * Copies the start and end location from $other.
-     *
-     * @param mixed $other The object to copy from
-     */
-    public function copyLocationFrom(mixed $other): static
-    {
-        if ($other instanceof SourceLocationInterface) {
-            return $this
-                ->setStartLocation($other->getStartLocation())
-                ->setEndLocation($other->getEndLocation());
-        }
-
-        return $this;
-    }
 }

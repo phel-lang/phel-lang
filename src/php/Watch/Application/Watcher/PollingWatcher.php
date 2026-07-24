@@ -39,6 +39,10 @@ final class PollingWatcher implements FileWatcherInterface
         return self::NAME;
     }
 
+    /**
+     * @param list<string>                    $paths
+     * @param callable(list<WatchEvent>):void $onChange
+     */
     public function watch(array $paths, callable $onChange): void
     {
         $this->running = true;

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Phel\Api\Application;
 
+use Phel\Api\ApiFacade;
 use Phel\Api\Domain\SymbolMetadataFinderInterface;
 use Phel\Shared\Api\PhelFunction;
 
@@ -20,6 +21,10 @@ use function substr;
  * {@see PhpInteropDocResolver::signatureAt()}, which only covers `php/...`
  * interop calls. Returns null when the cursor is not inside a resolvable Phel
  * call, so the handler can fall through.
+ *
+ * @phpstan-import-type SignatureHelp from ApiFacade
+ * @phpstan-import-type SignatureInformation from ApiFacade
+ * @phpstan-import-type SignatureParameter from ApiFacade
  */
 final readonly class PhelSignatureResolver
 {
@@ -29,7 +34,7 @@ final readonly class PhelSignatureResolver
     ) {}
 
     /**
-     * @return array{signatures: list<array{label: string, parameters: list<array{label: string}>, documentation?: string}>, activeSignature: int, activeParameter: int}|null
+     * @return SignatureHelp|null
      */
     public function signatureAt(string $source, int $line, int $col, string $currentNs = 'user'): ?array
     {
@@ -74,7 +79,7 @@ final readonly class PhelSignatureResolver
     /**
      * @param non-empty-list<string> $arities
      *
-     * @return array{signatures: list<array{label: string, parameters: list<array{label: string}>, documentation?: string}>, activeSignature: int, activeParameter: int}
+     * @return SignatureHelp
      */
     private function response(array $arities, string $doc, int $activeParameter): array
     {
@@ -106,7 +111,7 @@ final readonly class PhelSignatureResolver
      * smallest signature with more parameters than the active index, falling
      * back to the largest (variadic) arity when the caret is past them all.
      *
-     * @param non-empty-list<array{label: string, parameters: list<array{label: string}>, documentation?: string}> $signatures
+     * @param non-empty-list<SignatureInformation> $signatures
      */
     private function bestArity(array $signatures, int $activeParameter): int
     {
@@ -165,7 +170,7 @@ final readonly class PhelSignatureResolver
     /**
      * @param list<string> $parameters
      *
-     * @return list<array{label: string}>
+     * @return list<SignatureParameter>
      */
     private function parameterInformation(array $parameters): array
     {

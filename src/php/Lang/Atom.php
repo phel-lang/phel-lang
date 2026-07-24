@@ -16,10 +16,10 @@ final class Atom extends AbstractType
 {
     use MetaTrait;
 
-    /** @var array<string, callable> */
+    /** @var array<string, callable(Keyword, self<T>, T, T): void> */
     private array $watches = [];
 
-    /** @var callable|null */
+    /** @var (callable(T): mixed)|null */
     private $validator;
 
     /**
@@ -62,6 +62,11 @@ final class Atom extends AbstractType
         return $this->value;
     }
 
+    /**
+     * @param callable(Keyword, self<T>, T, T): void $fn called after every successful
+     *                                                   {@see self::set()} with the watch key,
+     *                                                   this atom, the old and the new value
+     */
     public function addWatch(string $key, callable $fn): void
     {
         $this->watches[$key] = $fn;
@@ -72,6 +77,10 @@ final class Atom extends AbstractType
         unset($this->watches[$key]);
     }
 
+    /**
+     * @param (callable(T): mixed)|null $fn the return value is checked for Phel truthiness,
+     *                                      so any value is accepted
+     */
     public function setValidator(?callable $fn): void
     {
         if ($fn !== null) {
@@ -81,6 +90,9 @@ final class Atom extends AbstractType
         $this->validator = $fn;
     }
 
+    /**
+     * @return (callable(T): mixed)|null
+     */
     public function getValidator(): ?callable
     {
         return $this->validator;
@@ -101,6 +113,10 @@ final class Atom extends AbstractType
         return crc32(spl_object_hash($this));
     }
 
+    /**
+     * @param T                         $value
+     * @param (callable(T): mixed)|null $validator
+     */
     private function validate(mixed $value, ?callable $validator = null): void
     {
         $fn = $validator ?? $this->validator;
@@ -109,6 +125,10 @@ final class Atom extends AbstractType
         }
     }
 
+    /**
+     * @param T $oldValue
+     * @param T $newValue
+     */
     private function notifyWatches(mixed $oldValue, mixed $newValue): void
     {
         foreach ($this->watches as $key => $callback) {

@@ -6,12 +6,13 @@ namespace PhelTest\Unit\Build\Infrastructure\Cache;
 
 use Phel\Build\Infrastructure\Cache\CompiledCodeCache;
 use Phel\Build\Infrastructure\Cache\DependencyTracker;
+use PhelTest\Support\RemoveDirTrait;
 use PHPUnit\Framework\TestCase;
-use RecursiveDirectoryIterator;
-use RecursiveIteratorIterator;
 
 final class DependencyTrackerTest extends TestCase
 {
+    use RemoveDirTrait;
+
     private string $cacheDir;
 
     protected function setUp(): void
@@ -22,7 +23,7 @@ final class DependencyTrackerTest extends TestCase
 
     protected function tearDown(): void
     {
-        $this->removeDirectory($this->cacheDir);
+        $this->removeDir($this->cacheDir);
     }
 
     public function test_invalidate_dependents_cascades_to_direct_dependents(): void
@@ -122,25 +123,4 @@ final class DependencyTrackerTest extends TestCase
         self::assertSame([], $invalidated);
     }
 
-    private function removeDirectory(string $dir): void
-    {
-        if (!is_dir($dir)) {
-            return;
-        }
-
-        $iterator = new RecursiveIteratorIterator(
-            new RecursiveDirectoryIterator($dir, RecursiveDirectoryIterator::SKIP_DOTS),
-            RecursiveIteratorIterator::CHILD_FIRST,
-        );
-
-        foreach ($iterator as $file) {
-            if ($file->isDir()) {
-                @rmdir($file->getPathname());
-            } else {
-                @unlink($file->getPathname());
-            }
-        }
-
-        @rmdir($dir);
-    }
 }

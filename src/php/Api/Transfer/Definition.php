@@ -4,6 +4,19 @@ declare(strict_types=1);
 
 namespace Phel\Api\Transfer;
 
+/**
+ * @phpstan-type SerializedDefinition array{
+ *     namespace: string,
+ *     name: string,
+ *     uri: string,
+ *     line: int,
+ *     col: int,
+ *     kind: string,
+ *     signature: list<string>,
+ *     docstring: string,
+ *     private: bool,
+ * }
+ */
 final readonly class Definition
 {
     public const string KIND_DEFN = 'defn';
@@ -43,17 +56,7 @@ final readonly class Definition
     }
 
     /**
-     * @return array{
-     *     namespace: string,
-     *     name: string,
-     *     uri: string,
-     *     line: int,
-     *     col: int,
-     *     kind: string,
-     *     signature: list<string>,
-     *     docstring: string,
-     *     private: bool,
-     * }
+     * @return SerializedDefinition
      */
     public function toArray(): array
     {

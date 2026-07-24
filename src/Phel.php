@@ -199,6 +199,8 @@ final class Phel extends InternalPhel
      * Close the pending binding recording, push its dynamic values as
      * a fiber-local frame, run `$body`, then always pop the frame and
      * undo any with-redefs mutations (even on exception).
+     *
+     * @param Closure(): mixed $body
      */
     public static function commitAndRunBindingFrame(Closure $body): mixed
     {
@@ -235,6 +237,7 @@ final class Phel extends InternalPhel
      * fiber entry point of conveyed futures.
      *
      * @param array<string, mixed> $frame
+     * @param Closure(): mixed     $body
      */
     public static function withDynamicBindings(array $frame, Closure $body): mixed
     {
@@ -411,6 +414,8 @@ final class Phel extends InternalPhel
     /**
      * Create a persistent sorted map with a custom comparator.
      *
+     * @param callable(mixed, mixed): (bool|int) $comparator spaceship- or predicate-style
+     *
      * @return PersistentMapInterface<mixed, mixed>
      */
     public static function sortedMapBy(callable $comparator, mixed ...$kvs): PersistentMapInterface
@@ -438,7 +443,8 @@ final class Phel extends InternalPhel
     /**
      * Create a persistent sorted set with a custom comparator.
      *
-     * @param list<mixed>|null $values
+     * @param callable(mixed, mixed): (bool|int) $comparator spaceship- or predicate-style
+     * @param list<mixed>|null                   $values
      *
      * @return PersistentHashSetInterface<mixed>
      */

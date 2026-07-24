@@ -57,6 +57,56 @@ final class LintConfigFileTest extends TestCase
         }
     }
 
+    #[PreserveGlobalState(false)]
+    #[RunInSeparateProcess]
+    public function test_malformed_config_file_fails_the_run(): void
+    {
+        $this->bootstrap();
+
+        $configPath = tempnam(sys_get_temp_dir(), 'lint-cfg-');
+        self::assertIsString($configPath);
+        file_put_contents($configPath, "{:rules {:phel/unused-binding :off}\n");
+
+        try {
+            $tester = new CommandTester(new LintCommand());
+            $exitCode = $tester->execute([
+                'paths' => [__DIR__ . '/Fixtures/unused_binding.phel'],
+                '--config' => $configPath,
+                '--no-cache' => true,
+            ]);
+
+            self::assertSame(LintCommand::EXIT_INVOCATION_ERROR, $exitCode);
+            self::assertStringContainsString('Cannot parse lint config file', $tester->getDisplay());
+        } finally {
+            @unlink($configPath);
+        }
+    }
+
+    #[PreserveGlobalState(false)]
+    #[RunInSeparateProcess]
+    public function test_config_file_that_is_not_a_map_fails_the_run(): void
+    {
+        $this->bootstrap();
+
+        $configPath = tempnam(sys_get_temp_dir(), 'lint-cfg-');
+        self::assertIsString($configPath);
+        file_put_contents($configPath, "[:rules]\n");
+
+        try {
+            $tester = new CommandTester(new LintCommand());
+            $exitCode = $tester->execute([
+                'paths' => [__DIR__ . '/Fixtures/unused_binding.phel'],
+                '--config' => $configPath,
+                '--no-cache' => true,
+            ]);
+
+            self::assertSame(LintCommand::EXIT_INVOCATION_ERROR, $exitCode);
+            self::assertStringContainsString('must contain a single map', $tester->getDisplay());
+        } finally {
+            @unlink($configPath);
+        }
+    }
+
     private function bootstrap(): void
     {
         Phel::bootstrap(__DIR__);

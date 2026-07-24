@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace PhelTest\Integration\Phar;
 
+use PhelTest\Support\RemoveDirTrait;
 use PHPUnit\Framework\TestCase;
 
 use function dirname;
@@ -23,6 +24,8 @@ use function sprintf;
  */
 final class PharExecutionTest extends TestCase
 {
+    use RemoveDirTrait;
+
     private const string PHAR_RELATIVE_PATH = '/build/out/phel.phar';
 
     private string $pharPath;
@@ -364,26 +367,4 @@ final class PharExecutionTest extends TestCase
         return ['exit' => $exit, 'stdout' => $stdout, 'stderr' => $stderr];
     }
 
-    private function removeDir(string $dir): void
-    {
-        $entries = scandir($dir) ?: [];
-        foreach ($entries as $entry) {
-            if ($entry === '.') {
-                continue;
-            }
-
-            if ($entry === '..') {
-                continue;
-            }
-
-            $path = $dir . '/' . $entry;
-            if (is_dir($path) && !is_link($path)) {
-                $this->removeDir($path);
-            } else {
-                @unlink($path);
-            }
-        }
-
-        @rmdir($dir);
-    }
 }

@@ -5,7 +5,11 @@ declare(strict_types=1);
 namespace Phel\Command\Domain\Exceptions\Extractor;
 
 use Phel\Command\Domain\Exceptions\Extractor\ReadModel\FilePosition;
+use Phel\Shared\Facade\CommandFacadeInterface;
 
+/**
+ * @phpstan-import-type CompiledFileLineMap from CommandFacadeInterface
+ */
 interface FilePositionExtractorInterface
 {
     public function getOriginal(string $filename, int $line): FilePosition;
@@ -16,7 +20,7 @@ interface FilePositionExtractorInterface
      * `[phpLine => phelLine]` map; empty filename when the file carries no
      * source map.
      *
-     * @return array{filename: string, lines: array<int, int>}
+     * @return CompiledFileLineMap
      */
     public function getFileLineMap(string $filename): array;
 }

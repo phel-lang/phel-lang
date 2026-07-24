@@ -32,6 +32,8 @@ use function substr;
  */
 final readonly class BigDecimal implements TypeInterface, Stringable
 {
+    use CopyLocationFromTrait;
+
     private const int MAX_DIVIDE_SCALE = 100;
 
     /**
@@ -302,17 +304,6 @@ final readonly class BigDecimal implements TypeInterface, Stringable
     public function getEndLocation(): ?SourceLocation
     {
         return $this->endLocation;
-    }
-
-    public function copyLocationFrom(mixed $other): static
-    {
-        if ($other instanceof SourceLocationInterface) {
-            return $this
-                ->setStartLocation($other->getStartLocation())
-                ->setEndLocation($other->getEndLocation());
-        }
-
-        return $this;
     }
 
     private function toCanonicalString(): string

@@ -8,6 +8,7 @@ use Gacela\Framework\AbstractFacade;
 use Phel\Lint\Application\Cache\LintCache;
 use Phel\Lint\Application\Config\RuleSettings;
 use Phel\Lint\Application\Formatter\FormatterRegistry;
+use Phel\Lint\Domain\Exception\LintConfigException;
 use Phel\Lint\Transfer\LintResult;
 
 /**
@@ -25,6 +26,9 @@ final class LintFacade extends AbstractFacade
             ->run($paths, $settings);
     }
 
+    /**
+     * @throws LintConfigException when $configPath exists but is unreadable or malformed
+     */
     public function loadSettings(string $configPath, RuleSettings $defaults): RuleSettings
     {
         return $this->getFactory()

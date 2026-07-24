@@ -77,7 +77,6 @@ final readonly class LetSymbol implements SpecialFormAnalyzerInterface
      */
     private function analyzeLetOrLoop(PersistentListInterface $list, NodeEnvironmentInterface $env): AbstractNode
     {
-        /** @psalm-suppress PossiblyNullArgument */
         /** @var PersistentVectorInterface<mixed> $bindingVector */
         $bindingVector = $list->get(1);
         $bindings = $this->analyzeBindings($bindingVector, $env->withDisallowRecurFrame());

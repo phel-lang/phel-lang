@@ -9,9 +9,11 @@ use Gacela\Framework\ServiceResolverAwareTrait;
 use Phel\Lint\Application\Cache\LintCache;
 use Phel\Lint\Application\Config\RuleSettings;
 use Phel\Lint\Application\Formatter\HumanFormatter;
+use Phel\Lint\Domain\Exception\LintConfigException;
 use Phel\Lint\LintConfig;
 use Phel\Lint\LintFacade;
 use Phel\Lint\LintFactory;
+use Phel\Shared\ExistingPaths;
 use Phel\Shared\PhelProjectDirectory;
 use Phel\Shared\ScalarCoercion;
 use Symfony\Component\Console\Command\Command;
@@ -23,8 +25,6 @@ use Throwable;
 
 use function getcwd;
 use function implode;
-use function is_dir;
-use function is_file;
 use function is_string;
 use function rtrim;
 use function sprintf;
@@ -33,7 +33,7 @@ use function sprintf;
  * `./bin/phel lint <paths>` — read-only semantic linter. Exits with:
  *   0 — no errors
  *   1 — one or more errors (warnings/infos do not fail)
- *   2 — invocation error (bad flags, no readable files).
+ *   2 — invocation error (bad flags, no readable files, unusable config file).
  */
 #[ServiceMap(method: 'getFacade', className: LintFacade::class)]
 #[ServiceMap(method: 'getFactory', className: LintFactory::class)]
@@ -105,7 +105,7 @@ HELP)
             $paths = $this->defaultPaths();
         }
 
-        $paths = $this->filterExistingPaths($paths);
+        $paths = ExistingPaths::filter($paths);
         if ($paths === []) {
             $output->writeln('<error>No readable .phel files or directories found to lint.</error>');
 
@@ -124,7 +124,14 @@ HELP)
             return self::EXIT_INVOCATION_ERROR;
         }
 
-        $settings = $this->loadSettings($input);
+        try {
+            $settings = $this->loadSettings($input);
+        } catch (LintConfigException $lintConfigException) {
+            $output->writeln(sprintf('<error>%s</error>', $lintConfigException->getMessage()));
+
+            return self::EXIT_INVOCATION_ERROR;
+        }
+
         $cache = $this->maybeCache($input, $settings);
 
         // Load phel core so analyzeSource() resolves core symbols like
@@ -154,23 +161,6 @@ HELP)
         $cmd = $this->getFactory()->getCommandFacade();
 
         return $cmd->getProjectSourceDirectories();
-    }
-
-    /**
-     * @param list<string> $paths
-     *
-     * @return list<string>
-     */
-    private function filterExistingPaths(array $paths): array
-    {
-        $filtered = [];
-        foreach ($paths as $path) {
-            if (is_file($path) || is_dir($path)) {
-                $filtered[] = $path;
-            }
-        }
-
-        return $filtered;
     }
 
     private function loadSettings(InputInterface $input): RuleSettings
