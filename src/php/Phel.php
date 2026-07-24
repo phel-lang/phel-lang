@@ -226,9 +226,26 @@ class Phel
      * the merged config.
      *
      * Any failure yields `[]`, which is Gacela's own default (walk the whole
-     * project root). A malformed config file still surfaces its real error from
-     * `Gacela::bootstrap()` below, so nothing is swallowed here that would not
-     * be reported a moment later.
+     * project root). That is not a swallowed error: the same file is evaluated
+     * again inside {@see bootstrap()}'s try block, and the second evaluation
+     * raises the same failure. Three properties make that hold, each pinned by
+     * a test so a future change cannot quietly turn this into a real swallow:
+     *
+     * 1. {@see StrictPhpConfigReader::read()} uses plain `include`, not
+     *    `include_once`. PHP marks a file as included before executing it, so
+     *    only the `_once` forms would make the second evaluation a no-op. The
+     *    plain form re-parses and re-runs the file, so the same ParseError, the
+     *    same exception thrown by the file, or the same non-config return value
+     *    is raised again.
+     * 2. Gacela materializes its merged config lazily, so {@see bootstrap()}
+     *    calls {@see mirrorPhelDirToEnv()} inside the guard to force it. Without
+     *    that read the reader could never run at all.
+     * 3. A warm merged-config cache does not hide it either: the edited
+     *    `phel-config.php` is newer than the cache, so
+     *    {@see mergedConfigCacheInvalidator()} re-inits and the reader runs.
+     *
+     * {@see ConfigLoadException::wrapIfConfigError()} then names the file and
+     * `bin/phel` prints it and exits 1.
      *
      * @return list<string>
      */
@@ -245,6 +262,9 @@ class Phel
         try {
             $config = require $configPath;
         } catch (Throwable) {
+            // Deliberately not reported here: bootstrap() re-evaluates the file
+            // and reports the same failure with the file name attached. See the
+            // doc block above for why the second evaluation always happens.
             return [];
         }
 

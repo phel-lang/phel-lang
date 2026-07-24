@@ -34,6 +34,7 @@ final class LintConfig extends AbstractConfig
             RuleRegistry::SHADOWED_BINDING => Diagnostic::SEVERITY_WARNING,
             RuleRegistry::REDUNDANT_DO => Diagnostic::SEVERITY_WARNING,
             RuleRegistry::DISCOURAGED_VAR => Diagnostic::SEVERITY_WARNING,
+            RuleRegistry::COMMENT_STYLE => Diagnostic::SEVERITY_WARNING,
         ];
     }
 

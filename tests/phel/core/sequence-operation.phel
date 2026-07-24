@@ -325,10 +325,10 @@
   (is (thrown? OutOfBoundsException (nth (transient [1 2 3]) 5)) "nth throws on transient vector out of bounds")
   (is (thrown? OutOfBoundsException (nth "abc" 5)) "nth throws on string out of bounds"))
 
-; Regression tests for https://github.com/phel-lang/phel-lang/issues/2211.
-; `get` / `nth` on a vector with a non-int key used to leak a raw PHP
-; "could not be converted to int" warning from
-; AbstractPersistentVector::offsetExists / get.
+;; Regression tests for https://github.com/phel-lang/phel-lang/issues/2211.
+;; `get` / `nth` on a vector with a non-int key used to leak a raw PHP
+;; "could not be converted to int" warning from
+;; AbstractPersistentVector::offsetExists / get.
 (deftest test-get-vector-non-int-key-returns-default
   (is (nil? (get [1 2 3] :a)) "get on vector with keyword key returns nil")
   (is (nil? (get [1 2 3] "x")) "get on vector with string key returns nil")

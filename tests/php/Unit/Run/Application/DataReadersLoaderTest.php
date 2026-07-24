@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace PhelTest\Unit\Run\Application;
 
 use Phel\Run\Application\DataReadersLoader;
+use Phel\Run\Domain\Runner\DataReadersLoadException;
 use Phel\Shared\CompiledFile;
 use Phel\Shared\Facade\BuildFacadeInterface;
 use Phel\Shared\NamespaceInformation;
@@ -92,8 +93,11 @@ final class DataReadersLoaderTest extends TestCase
         self::assertSame(realpath($file), realpath((string) $calls[2][1]));
     }
 
-    public function test_it_silently_skips_when_reader_dependency_resolution_fails(): void
+    public function test_it_reports_the_data_reader_files_when_reader_bootstrap_fails(): void
     {
+        // The file exists, so the user opted into these readers. A failure to
+        // bootstrap `phel.reader` must name the file instead of leaving the
+        // tags unregistered and failing later as an unreadable literal.
         $dir = $this->makeTempDir();
         $file = $dir . '/data-readers.phel';
         $this->writeFile($file, ";; placeholder\n");
@@ -103,6 +107,9 @@ final class DataReadersLoaderTest extends TestCase
             ->willThrowException(new RuntimeException('cannot resolve'));
 
         $buildFacade->expects(self::never())->method('evalFile');
+
+        $this->expectException(DataReadersLoadException::class);
+        $this->expectExceptionMessageMatches('/data-readers\.phel.*cannot resolve/');
 
         new DataReadersLoader($buildFacade)->load([$dir]);
     }

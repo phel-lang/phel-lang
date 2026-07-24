@@ -444,10 +444,10 @@
   (is (= {1 ["a"] 2 ["as" "aa"] 3 ["asd"] 4 ["asdf" "qwer"]}
          (group-by php/strlen ["a" "as" "asd" "aa" "asdf" "qwer"])) "group-by"))
 
-; Regression test for https://github.com/phel-lang/phel-lang/issues/2189.
-; `group-by` must preserve element metadata. The root cause was reader-attached
-; meta `^{:k v} […]` being dropped during emit; group-by itself only proxies
-; the elements through. Both reader meta and `set-meta!` paths must round-trip.
+;; Regression test for https://github.com/phel-lang/phel-lang/issues/2189.
+;; `group-by` must preserve element metadata. The root cause was reader-attached
+;; meta `^{:k v} […]` being dropped during emit; group-by itself only proxies
+;; the elements through. Both reader meta and `set-meta!` paths must round-trip.
 (deftest test-group-by-retains-element-metadata-via-reader-meta
   (let [g (group-by first [^{:foo true} [[1] [2]] ^{:bar true} [[1] [3]]])]
     (is (= {:foo true} (meta (first (get g [1]))))
@@ -464,7 +464,7 @@
     (is (= {:bar true} (meta (second (get g [1]))))
         "group-by preserves set-meta! meta on the second bucket element")))
 
-; Direct coverage of the underlying reader-meta-on-literal plumbing fix.
+;; Direct coverage of the underlying reader-meta-on-literal plumbing fix.
 (deftest test-reader-meta-on-vector-literal
   (is (= {:foo true} (meta ^{:foo true} [1 2]))
       "reader meta map on a vector literal survives compile/emit"))

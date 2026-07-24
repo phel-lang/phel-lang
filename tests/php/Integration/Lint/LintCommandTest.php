@@ -110,6 +110,32 @@ final class LintCommandTest extends TestCase
 
     #[PreserveGlobalState(false)]
     #[RunInSeparateProcess]
+    public function test_it_reports_comment_style_only_for_the_standalone_comment(): void
+    {
+        $this->bootstrap();
+
+        $tester = new CommandTester(new LintCommand());
+        $exit = $tester->execute([
+            'paths' => [__DIR__ . '/Fixtures/comment_style.phel'],
+            '--format' => 'json',
+            '--no-cache' => true,
+        ]);
+
+        $payload = json_decode(trim($tester->getDisplay()), true);
+        self::assertIsArray($payload);
+
+        $commentStyle = array_values(array_filter(
+            $payload,
+            static fn(array $d): bool => $d['code'] === 'phel/comment-style',
+        ));
+
+        self::assertCount(1, $commentStyle, 'Only the whole-line `;` comment must be flagged');
+        self::assertSame(3, $commentStyle[0]['startLine']);
+        self::assertSame(0, $exit, 'Comment style is a warning, so the command still succeeds');
+    }
+
+    #[PreserveGlobalState(false)]
+    #[RunInSeparateProcess]
     public function test_github_format_emits_annotation_commands(): void
     {
         $this->bootstrap();
