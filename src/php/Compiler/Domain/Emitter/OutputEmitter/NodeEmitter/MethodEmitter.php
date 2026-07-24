@@ -160,11 +160,14 @@ final readonly class MethodEmitter
     }
 
     /**
-     * `^:by-ref` (and the historical `^:reference` alias used inside
-     * `phel.core`) compiles the param to PHP `&$param` so mutations via
+     * `^:by-ref` compiles the param to PHP `&$param` so mutations via
      * `php/aset`, `php/array_push`, etc. propagate back to the caller's
      * binding. Surfaces the `(php/array)` mutation pattern at the Phel
      * level without forcing buffer-return-rebind dances.
+     *
+     * `^:reference` is the historical alias, kept for source compatibility;
+     * nothing in `src/phel/` uses it any more (only the
+     * `Fn/fn-param-by-ref-legacy-reference-alias` fixture pins it).
      *
      * @param PersistentMapInterface<mixed, mixed>|null $meta
      */
