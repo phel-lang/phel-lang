@@ -9,10 +9,13 @@ use Phel\Compiler\Domain\Parser\ReadModel\ReaderResult;
 use Phel\Compiler\Infrastructure\Cache\FileSystemReaderResultCache;
 use Phel\Lang\SourceLocation;
 use Phel\Shared\Parser\ReadModel\CodeSnippet;
+use PhelTest\Support\RemoveDirTrait;
 use PHPUnit\Framework\TestCase;
 
 final class FileSystemReaderResultCacheTest extends TestCase
 {
+    use RemoveDirTrait;
+
     private string $cacheDir;
 
     protected function setUp(): void
@@ -138,17 +141,4 @@ final class FileSystemReaderResultCacheTest extends TestCase
         );
     }
 
-    private function removeDir(string $dir): void
-    {
-        if (!is_dir($dir)) {
-            return;
-        }
-
-        $files = glob($dir . '/*') ?: [];
-        foreach ($files as $file) {
-            is_dir($file) ? $this->removeDir($file) : @unlink($file);
-        }
-
-        @rmdir($dir);
-    }
 }

@@ -10,12 +10,13 @@ use Phel\Build\Domain\Extractor\NamespaceExtractorInterface;
 use Phel\Build\Domain\Extractor\TopologicalNamespaceSorter;
 use Phel\Build\Infrastructure\Cache\NullNamespaceCache;
 use Phel\Shared\NamespaceInformation;
+use PhelTest\Support\RemoveDirTrait;
 use PHPUnit\Framework\TestCase;
-use RecursiveDirectoryIterator;
-use RecursiveIteratorIterator;
 
 final class CachedNamespaceExtractorTest extends TestCase
 {
+    use RemoveDirTrait;
+
     private string $dir;
 
     protected function setUp(): void
@@ -184,25 +185,4 @@ final class CachedNamespaceExtractorTest extends TestCase
         self::assertSame('good\\ns', $infos[0]->getNamespace());
     }
 
-    private function removeDir(string $dir): void
-    {
-        if (!is_dir($dir)) {
-            return;
-        }
-
-        $files = new RecursiveIteratorIterator(
-            new RecursiveDirectoryIterator($dir, RecursiveDirectoryIterator::SKIP_DOTS),
-            RecursiveIteratorIterator::CHILD_FIRST,
-        );
-
-        foreach ($files as $file) {
-            if ($file->isDir()) {
-                rmdir($file->getRealPath());
-            } else {
-                unlink($file->getRealPath());
-            }
-        }
-
-        rmdir($dir);
-    }
 }

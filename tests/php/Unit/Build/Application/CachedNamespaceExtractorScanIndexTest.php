@@ -10,12 +10,13 @@ use Phel\Build\Domain\Extractor\TopologicalNamespaceSorter;
 use Phel\Build\Infrastructure\Cache\NullNamespaceCache;
 use Phel\Build\Infrastructure\Cache\PhpScanIndexCache;
 use Phel\Shared\NamespaceInformation;
+use PhelTest\Support\RemoveDirTrait;
 use PHPUnit\Framework\TestCase;
-use RecursiveDirectoryIterator;
-use RecursiveIteratorIterator;
 
 final class CachedNamespaceExtractorScanIndexTest extends TestCase
 {
+    use RemoveDirTrait;
+
     private string $dir;
 
     private string $cacheFile;
@@ -202,25 +203,4 @@ final class CachedNamespaceExtractorScanIndexTest extends TestCase
         );
     }
 
-    private function removeDir(string $dir): void
-    {
-        if (!is_dir($dir)) {
-            return;
-        }
-
-        $files = new RecursiveIteratorIterator(
-            new RecursiveDirectoryIterator($dir, RecursiveDirectoryIterator::SKIP_DOTS),
-            RecursiveIteratorIterator::CHILD_FIRST,
-        );
-
-        foreach ($files as $file) {
-            if ($file->isDir()) {
-                rmdir($file->getRealPath());
-            } else {
-                unlink($file->getRealPath());
-            }
-        }
-
-        rmdir($dir);
-    }
 }

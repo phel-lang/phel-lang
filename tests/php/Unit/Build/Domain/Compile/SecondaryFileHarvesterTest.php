@@ -12,20 +12,19 @@ use Phel\Build\Infrastructure\IO\SystemFileIo;
 use Phel\Shared\CompiledSourceHash;
 use Phel\Shared\Facade\CompilerFacadeInterface;
 use Phel\Shared\NamespaceInformation;
+use PhelTest\Support\RemoveDirTrait;
 use PHPUnit\Framework\TestCase;
 
-use function array_diff;
 use function file_get_contents;
-use function is_dir;
 use function md5;
 use function mkdir;
-use function rmdir;
 use function sys_get_temp_dir;
 use function uniqid;
-use function unlink;
 
 final class SecondaryFileHarvesterTest extends TestCase
 {
+    use RemoveDirTrait;
+
     private string $tempDir;
 
     protected function setUp(): void
@@ -96,17 +95,4 @@ final class SecondaryFileHarvesterTest extends TestCase
         return $destDir . '/phel/core/meta.php';
     }
 
-    private function removeDir(string $dir): void
-    {
-        if (!is_dir($dir)) {
-            return;
-        }
-
-        foreach (array_diff(scandir($dir) ?: [], ['.', '..']) as $entry) {
-            $path = $dir . '/' . $entry;
-            is_dir($path) ? $this->removeDir($path) : unlink($path);
-        }
-
-        rmdir($dir);
-    }
 }

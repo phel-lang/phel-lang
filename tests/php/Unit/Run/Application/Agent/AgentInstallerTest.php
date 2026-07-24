@@ -6,6 +6,7 @@ namespace PhelTest\Unit\Run\Application\Agent;
 
 use Phel\Run\Application\Agent\AgentInstaller;
 use Phel\Run\Domain\Agent\AgentPlatform;
+use PhelTest\Support\RemoveDirTrait;
 use PHPUnit\Framework\TestCase;
 use RuntimeException;
 
@@ -13,6 +14,8 @@ use function dirname;
 
 final class AgentInstallerTest extends TestCase
 {
+    use RemoveDirTrait;
+
     private AgentInstaller $installer;
 
     private string $sourceRoot;
@@ -181,34 +184,4 @@ final class AgentInstallerTest extends TestCase
         file_put_contents($path, $contents);
     }
 
-    private function removeDir(string $dir): void
-    {
-        if (!is_dir($dir)) {
-            return;
-        }
-
-        $items = scandir($dir);
-        if ($items === false) {
-            return;
-        }
-
-        foreach ($items as $item) {
-            if ($item === '.') {
-                continue;
-            }
-
-            if ($item === '..') {
-                continue;
-            }
-
-            $path = $dir . '/' . $item;
-            if (is_dir($path) && !is_link($path)) {
-                $this->removeDir($path);
-            } else {
-                unlink($path);
-            }
-        }
-
-        rmdir($dir);
-    }
 }

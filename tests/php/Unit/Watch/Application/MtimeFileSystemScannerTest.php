@@ -5,18 +5,19 @@ declare(strict_types=1);
 namespace PhelTest\Unit\Watch\Application;
 
 use Phel\Watch\Application\MtimeFileSystemScanner;
+use PhelTest\Support\RemoveDirTrait;
 use PHPUnit\Framework\TestCase;
 
 use function file_put_contents;
 use function mkdir;
-use function rmdir;
 use function sys_get_temp_dir;
 use function touch;
 use function uniqid;
-use function unlink;
 
 final class MtimeFileSystemScannerTest extends TestCase
 {
+    use RemoveDirTrait;
+
     private string $root;
 
     protected function setUp(): void
@@ -100,30 +101,4 @@ final class MtimeFileSystemScannerTest extends TestCase
         self::assertSame(1_700_000_000, $snapshot[$path]['mtime']);
     }
 
-    private function removeDir(string $dir): void
-    {
-        if (!is_dir($dir)) {
-            return;
-        }
-
-        foreach (scandir($dir) ?: [] as $entry) {
-            if ($entry === '.') {
-                continue;
-            }
-
-            if ($entry === '..') {
-                continue;
-            }
-
-            $path = $dir . '/' . $entry;
-            if (is_dir($path)) {
-                $this->removeDir($path);
-                continue;
-            }
-
-            @unlink($path);
-        }
-
-        @rmdir($dir);
-    }
 }
