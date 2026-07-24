@@ -9,6 +9,7 @@ use Gacela\Framework\ServiceResolverAwareTrait;
 use Phel\Lint\Application\Cache\LintCache;
 use Phel\Lint\Application\Config\RuleSettings;
 use Phel\Lint\Application\Formatter\HumanFormatter;
+use Phel\Lint\Domain\Exception\LintConfigException;
 use Phel\Lint\LintConfig;
 use Phel\Lint\LintFacade;
 use Phel\Lint\LintFactory;
@@ -33,7 +34,7 @@ use function sprintf;
  * `./bin/phel lint <paths>` — read-only semantic linter. Exits with:
  *   0 — no errors
  *   1 — one or more errors (warnings/infos do not fail)
- *   2 — invocation error (bad flags, no readable files).
+ *   2 — invocation error (bad flags, no readable files, unusable config file).
  */
 #[ServiceMap(method: 'getFacade', className: LintFacade::class)]
 #[ServiceMap(method: 'getFactory', className: LintFactory::class)]
@@ -124,7 +125,14 @@ HELP)
             return self::EXIT_INVOCATION_ERROR;
         }
 
-        $settings = $this->loadSettings($input);
+        try {
+            $settings = $this->loadSettings($input);
+        } catch (LintConfigException $lintConfigException) {
+            $output->writeln(sprintf('<error>%s</error>', $lintConfigException->getMessage()));
+
+            return self::EXIT_INVOCATION_ERROR;
+        }
+
         $cache = $this->maybeCache($input, $settings);
 
         // Load phel core so analyzeSource() resolves core symbols like

@@ -95,8 +95,8 @@ final readonly class NamespaceExtractor implements NamespaceExtractorInterface
             }
 
             throw ExtractorException::cannotExtractNamespaceFromPath($path);
-        } catch (AbstractParserException|ReaderException|LexerValueException) {
-            throw ExtractorException::cannotParseFile($path);
+        } catch (AbstractParserException|ReaderException|LexerValueException $e) {
+            throw ExtractorException::cannotParseFile($path, $e);
         }
     }
 
