@@ -9,21 +9,21 @@ use Iterator;
 use function count;
 
 /**
- * @template K
- * @template V
+ * @template TKey
+ * @template TValue
  *
- * @implements Iterator<K, V>
+ * @implements Iterator<TKey, TValue>
  */
 final class IndexedNodeIterator implements Iterator
 {
-    /** @var array<int, array{0: K|null, 1: HashMapNodeInterface<K, V>|V}> */
+    /** @var array<int, array{0: TKey|null, 1: HashMapNodeInterface<TKey, TValue>|TValue}> */
     private readonly array $entries;
 
     private readonly int $count;
 
     private int $index = 0;
 
-    /** @var Iterator<K, V>|null */
+    /** @var Iterator<TKey, TValue>|null */
     private ?Iterator $nestedIterator = null;
 
     /**
@@ -36,7 +36,7 @@ final class IndexedNodeIterator implements Iterator
     }
 
     /**
-     * @return V
+     * @return TValue
      */
     public function current(): mixed
     {
@@ -44,7 +44,7 @@ final class IndexedNodeIterator implements Iterator
             return $this->nestedIterator->current();
         }
 
-        /** @var V $result */
+        /** @var TValue $result */
         $result = $this->entries[$this->index][1];
         return $result;
     }
@@ -86,7 +86,7 @@ final class IndexedNodeIterator implements Iterator
     }
 
     /**
-     * @return K
+     * @return TKey
      */
     public function key(): mixed
     {
@@ -115,7 +115,7 @@ final class IndexedNodeIterator implements Iterator
             return;
         }
 
-        /** @var Iterator<K, V> $nestedIterator */
+        /** @var Iterator<TKey, TValue> $nestedIterator */
         $nestedIterator = $child->getIterator();
         $nestedIterator->rewind();
         $this->nestedIterator = $nestedIterator;

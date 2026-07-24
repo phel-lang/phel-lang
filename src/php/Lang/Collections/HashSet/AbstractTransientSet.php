@@ -14,14 +14,14 @@ use Stringable;
  * how they print and which persistent set they freeze into; the ordering lives
  * entirely in the backing map.
  *
- * @template V
+ * @template TValue
  *
- * @implements TransientHashSetInterface<V>
+ * @implements TransientHashSetInterface<TValue>
  */
 abstract readonly class AbstractTransientSet implements TransientHashSetInterface, Stringable
 {
     /**
-     * @param TransientMapInterface<V, V> $transientMap
+     * @param TransientMapInterface<TValue, TValue> $transientMap
      */
     public function __construct(
         protected HasherInterface $hasher,
@@ -34,9 +34,9 @@ abstract readonly class AbstractTransientSet implements TransientHashSetInterfac
      * Membership lookup so transient sets remain callable like their persistent
      * counterparts: `((transient #{:a}) :a) ; => :a`, else `nil`.
      *
-     * @param V $key
+     * @param TValue $key
      *
-     * @return V|null
+     * @return TValue|null
      */
     public function __invoke(mixed $key): mixed
     {
@@ -57,9 +57,9 @@ abstract readonly class AbstractTransientSet implements TransientHashSetInterfac
     }
 
     /**
-     * @param V $value
+     * @param TValue $value
      *
-     * @return TransientHashSetInterface<V>
+     * @return TransientHashSetInterface<TValue>
      */
     public function add($value): TransientHashSetInterface
     {
@@ -69,9 +69,9 @@ abstract readonly class AbstractTransientSet implements TransientHashSetInterfac
     }
 
     /**
-     * @param V $value
+     * @param TValue $value
      *
-     * @return TransientHashSetInterface<V>
+     * @return TransientHashSetInterface<TValue>
      */
     public function remove($value): TransientHashSetInterface
     {
@@ -81,7 +81,7 @@ abstract readonly class AbstractTransientSet implements TransientHashSetInterfac
     }
 
     /**
-     * @return PersistentHashSetInterface<V>
+     * @return PersistentHashSetInterface<TValue>
      */
     abstract public function persistent(): PersistentHashSetInterface;
 }

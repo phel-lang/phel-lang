@@ -9,16 +9,12 @@ use Phel\Api\Domain\PointCompleterInterface;
 use Phel\Api\Transfer\Completion;
 use Phel\Api\Transfer\Definition;
 use Phel\Api\Transfer\ProjectIndex;
-use Phel\Compiler\Domain\Parser\Exceptions\AbstractParserException;
-use Phel\Compiler\Domain\Reader\Exceptions\ReaderException;
 use Phel\Lang\Collections\LinkedList\PersistentListInterface;
 use Phel\Lang\Collections\Map\PersistentMapInterface;
 use Phel\Lang\Collections\Vector\PersistentVectorInterface;
 use Phel\Lang\SourceLocation;
 use Phel\Lang\Symbol;
 use Phel\Shared\Facade\CompilerFacadeInterface;
-use Phel\Shared\Parser\Node\NodeInterface;
-use Phel\Shared\Parser\Node\TriviaNodeInterface;
 
 use Throwable;
 
@@ -110,29 +106,8 @@ final readonly class PointCompleter implements PointCompleterInterface
         $locals = [];
 
         try {
-            $tokenStream = $this->compilerFacade->lexString($source, 'point');
-            while (true) {
-                try {
-                    $parseTree = $this->compilerFacade->parseNext($tokenStream);
-                } catch (AbstractParserException) {
-                    break;
-                }
-
-                if (!$parseTree instanceof NodeInterface) {
-                    break;
-                }
-
-                if ($parseTree instanceof TriviaNodeInterface) {
-                    continue;
-                }
-
-                try {
-                    $readerResult = $this->compilerFacade->read($parseTree);
-                } catch (ReaderException) {
-                    continue;
-                }
-
-                $this->walk($readerResult->getAst(), $line, $col, [], $locals);
+            foreach ($this->compilerFacade->readFormsBestEffort($source, 'point') as $form) {
+                $this->walk($form, $line, $col, [], $locals);
             }
         } catch (Throwable) {
             // Best-effort only

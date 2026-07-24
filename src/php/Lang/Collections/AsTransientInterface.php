@@ -5,12 +5,12 @@ declare(strict_types=1);
 namespace Phel\Lang\Collections;
 
 /**
- * @template TransientType
+ * @template TTransient
  */
 interface AsTransientInterface
 {
     /**
-     * @return TransientType
+     * @return TTransient
      */
     public function asTransient();
 }

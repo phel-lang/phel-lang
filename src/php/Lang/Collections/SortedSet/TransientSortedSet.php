@@ -8,9 +8,9 @@ use Phel\Lang\Collections\HashSet\AbstractTransientSet;
 use Phel\Lang\Collections\HashSet\PersistentHashSetInterface;
 
 /**
- * @template V
+ * @template TValue
  *
- * @extends AbstractTransientSet<V>
+ * @extends AbstractTransientSet<TValue>
  */
 final readonly class TransientSortedSet extends AbstractTransientSet
 {
@@ -20,7 +20,7 @@ final readonly class TransientSortedSet extends AbstractTransientSet
     }
 
     /**
-     * @return PersistentHashSetInterface<V>
+     * @return PersistentHashSetInterface<TValue>
      */
     public function persistent(): PersistentHashSetInterface
     {

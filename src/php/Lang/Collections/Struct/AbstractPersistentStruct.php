@@ -22,9 +22,9 @@ use function is_string;
 use function sprintf;
 
 /**
- * @template V
+ * @template TValue
  *
- * @extends AbstractPersistentMap<Keyword, V>
+ * @extends AbstractPersistentMap<Keyword, TValue>
  */
 abstract class AbstractPersistentStruct extends AbstractPersistentMap
 {
@@ -72,7 +72,7 @@ abstract class AbstractPersistentStruct extends AbstractPersistentMap
             return $this;
         }
 
-        /** @var PersistentMapInterface<Keyword, V> $result */
+        /** @var PersistentMapInterface<Keyword, TValue> $result */
         $result = $this->toPersistentMapWithout($key);
         return $result;
     }

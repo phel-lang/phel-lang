@@ -17,7 +17,7 @@ Read-only semantic linter: emits diagnostics on Phel sources, never rewrites the
 | Facade | Used for |
 |--------|----------|
 | Api | `analyzeSource` (semantic diagnostics), `indexProject` |
-| Compiler | `lexString`, `parseNext`, `read` |
+| Compiler | `readFormsBestEffort` (`SourceReader`); `lexString`, `parseNext`, `read` (`ConfigLoader`, `DuplicateKeyRule` — both need the failures reported, not swallowed) |
 | Command | default source directories |
 | Run | `loadPhelNamespaces()` to ensure symbols resolve |
 

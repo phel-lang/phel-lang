@@ -13,11 +13,11 @@ use function is_float;
 use function is_nan;
 
 /**
- * @template V
+ * @template TValue
  *
- * @implements PersistentHashSetInterface<V>
+ * @implements PersistentHashSetInterface<TValue>
  *
- * @extends AbstractType<PersistentHashSet<V>>
+ * @extends AbstractType<PersistentHashSet<TValue>>
  */
 final class PersistentHashSet extends AbstractType implements PersistentHashSetInterface
 {
@@ -25,7 +25,7 @@ final class PersistentHashSet extends AbstractType implements PersistentHashSetI
 
     /**
      * @param PersistentMapInterface<mixed, mixed>|null $meta
-     * @param PersistentMapInterface<V, V>              $map
+     * @param PersistentMapInterface<TValue, TValue>    $map
      */
     public function __construct(
         private readonly HasherInterface $hasher,
@@ -34,9 +34,9 @@ final class PersistentHashSet extends AbstractType implements PersistentHashSetI
     ) {}
 
     /**
-     * @param V $key
+     * @param TValue $key
      *
-     * @return ?V
+     * @return ?TValue
      */
     public function __invoke(mixed $key)
     {
@@ -60,7 +60,7 @@ final class PersistentHashSet extends AbstractType implements PersistentHashSetI
     }
 
     /**
-     * @param V $key
+     * @param TValue $key
      */
     public function contains($key): bool
     {
@@ -68,9 +68,9 @@ final class PersistentHashSet extends AbstractType implements PersistentHashSetI
     }
 
     /**
-     * @param V $value
+     * @param TValue $value
      *
-     * @return PersistentHashSetInterface<V>
+     * @return PersistentHashSetInterface<TValue>
      */
     public function add($value): PersistentHashSetInterface
     {
@@ -83,9 +83,9 @@ final class PersistentHashSet extends AbstractType implements PersistentHashSetI
     }
 
     /**
-     * @param V $value
+     * @param TValue $value
      *
-     * @return PersistentHashSetInterface<V>
+     * @return PersistentHashSetInterface<TValue>
      */
     public function remove($value): PersistentHashSetInterface
     {
@@ -142,7 +142,7 @@ final class PersistentHashSet extends AbstractType implements PersistentHashSetI
     }
 
     /**
-     * @return Traversable<int, V>
+     * @return Traversable<int, TValue>
      */
     public function getIterator(): Traversable
     {
@@ -152,7 +152,7 @@ final class PersistentHashSet extends AbstractType implements PersistentHashSetI
     }
 
     /**
-     * @return TransientHashSet<V>
+     * @return TransientHashSet<TValue>
      */
     public function asTransient(): TransientHashSet
     {
@@ -160,7 +160,7 @@ final class PersistentHashSet extends AbstractType implements PersistentHashSetI
     }
 
     /**
-     * @return array<int, V>
+     * @return array<int, TValue>
      */
     public function toPhpArray(): array
     {
@@ -172,7 +172,7 @@ final class PersistentHashSet extends AbstractType implements PersistentHashSetI
      *
      * @param iterable<mixed> $xs The value to concatenate
      *
-     * @return PersistentHashSetInterface<V>
+     * @return PersistentHashSetInterface<TValue>
      */
     public function concat($xs): PersistentHashSetInterface
     {

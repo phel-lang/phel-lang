@@ -17,10 +17,10 @@ use function count;
  * This implementation is only appropriate for very small maps, since the array is copied
  * every time the map changes.
  *
- * @template K
- * @template V
+ * @template TKey
+ * @template TValue
  *
- * @extends AbstractPersistentMap<K, V>
+ * @extends AbstractPersistentMap<TKey, TValue>
  */
 final class PersistentArrayMap extends AbstractPersistentMap
 {
@@ -40,11 +40,11 @@ final class PersistentArrayMap extends AbstractPersistentMap
     }
 
     /**
-     * @return self<K, V>
+     * @return self<TKey, TValue>
      */
     public static function empty(HasherInterface $hasher, EqualizerInterface $equalizer): self
     {
-        /** @var self<K, V> $result */
+        /** @var self<TKey, TValue> $result */
         $result = new self($hasher, $equalizer, null, []);
 
         return $result;
@@ -53,7 +53,7 @@ final class PersistentArrayMap extends AbstractPersistentMap
     /**
      * @param array<int, mixed> $kvs
      *
-     * @return PersistentMapInterface<K, V>
+     * @return PersistentMapInterface<TKey, TValue>
      */
     public static function fromArray(HasherInterface $hasher, EqualizerInterface $equalizer, array $kvs): PersistentMapInterface
     {
@@ -94,7 +94,7 @@ final class PersistentArrayMap extends AbstractPersistentMap
         }
 
         if ($index === false && $this->count() >= self::MAX_SIZE) {
-            /** @var PersistentMapInterface<K, V> $promoted */
+            /** @var PersistentMapInterface<TKey, TValue> $promoted */
             $promoted = PersistentHashMap::fromArray($this->hasher, $this->equalizer, $this->array)->put($key, $value);
 
             return $promoted;
@@ -108,7 +108,7 @@ final class PersistentArrayMap extends AbstractPersistentMap
             $newArray[$index + 1] = $value;
         }
 
-        /** @var self<K, V> $result */
+        /** @var self<TKey, TValue> $result */
         $result = new self($this->hasher, $this->equalizer, $this->meta, $newArray);
 
         return $result;
@@ -117,7 +117,7 @@ final class PersistentArrayMap extends AbstractPersistentMap
     /**
      * @param mixed $key
      *
-     * @return self<K, V>
+     * @return self<TKey, TValue>
      */
     public function remove($key): self
     {
@@ -130,7 +130,7 @@ final class PersistentArrayMap extends AbstractPersistentMap
         $newArray = $this->array;
         array_splice($newArray, $index, 2);
 
-        /** @var self<K, V> $result */
+        /** @var self<TKey, TValue> $result */
         $result = new self($this->hasher, $this->equalizer, $this->meta, $newArray);
 
         return $result;
@@ -152,7 +152,7 @@ final class PersistentArrayMap extends AbstractPersistentMap
     }
 
     /**
-     * @return Traversable<K, V>
+     * @return Traversable<TKey, TValue>
      */
     public function getIterator(): Traversable
     {
@@ -162,11 +162,11 @@ final class PersistentArrayMap extends AbstractPersistentMap
     }
 
     /**
-     * @return TransientMapWrapper<K, V>
+     * @return TransientMapWrapper<TKey, TValue>
      */
     public function asTransient(): TransientMapWrapper
     {
-        /** @var TransientMapWrapper<K, V> $result */
+        /** @var TransientMapWrapper<TKey, TValue> $result */
         $result = new TransientMapWrapper(
             new TransientArrayMap(
                 $this->hasher,
@@ -179,7 +179,7 @@ final class PersistentArrayMap extends AbstractPersistentMap
     }
 
     /**
-     * @param K $key
+     * @param TKey $key
      */
     private function findIndex(mixed $key): int|false
     {

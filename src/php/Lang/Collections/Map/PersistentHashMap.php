@@ -14,10 +14,10 @@ use Traversable;
 use function count;
 
 /**
- * @template K
- * @template V
+ * @template TKey
+ * @template TValue
  *
- * @extends AbstractPersistentMap<K, V>
+ * @extends AbstractPersistentMap<TKey, TValue>
  */
 final class PersistentHashMap extends AbstractPersistentMap
 {
@@ -25,7 +25,7 @@ final class PersistentHashMap extends AbstractPersistentMap
 
     /**
      * @param PersistentMapInterface<mixed, mixed>|null $meta
-     * @param HashMapNodeInterface<K, V>|null           $root
+     * @param HashMapNodeInterface<TKey, TValue>|null   $root
      * @param mixed                                     $nullValue
      */
     public function __construct(
@@ -41,11 +41,11 @@ final class PersistentHashMap extends AbstractPersistentMap
     }
 
     /**
-     * @return self<K, V>
+     * @return self<TKey, TValue>
      */
     public static function empty(HasherInterface $hasher, EqualizerInterface $equalizer): self
     {
-        /** @var self<K, V> $result */
+        /** @var self<TKey, TValue> $result */
         $result = new self($hasher, $equalizer, null, 0, null, false, null);
 
         return $result;
@@ -54,7 +54,7 @@ final class PersistentHashMap extends AbstractPersistentMap
     /**
      * @param array<int, mixed> $kvs
      *
-     * @return PersistentMapInterface<K, V>
+     * @return PersistentMapInterface<TKey, TValue>
      */
     public static function fromArray(HasherInterface $hasher, EqualizerInterface $equalizer, array $kvs): PersistentMapInterface
     {
@@ -108,7 +108,7 @@ final class PersistentHashMap extends AbstractPersistentMap
      * @param mixed $key
      * @param mixed $value
      *
-     * @return self<K, V>
+     * @return self<TKey, TValue>
      */
     public function put($key, $value): self
     {
@@ -134,7 +134,7 @@ final class PersistentHashMap extends AbstractPersistentMap
     /**
      * @param mixed $key
      *
-     * @return self<K, V>
+     * @return self<TKey, TValue>
      */
     public function remove($key): self
     {
@@ -178,7 +178,7 @@ final class PersistentHashMap extends AbstractPersistentMap
     }
 
     /**
-     * @return Traversable<K, V>
+     * @return Traversable<TKey, TValue>
      */
     public function getIterator(): Traversable
     {
@@ -190,7 +190,7 @@ final class PersistentHashMap extends AbstractPersistentMap
     }
 
     /**
-     * @return TransientMapWrapper<K, V>
+     * @return TransientMapWrapper<TKey, TValue>
      */
     public function asTransient(): TransientMapWrapper
     {

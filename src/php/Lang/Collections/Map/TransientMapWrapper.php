@@ -8,17 +8,17 @@ use Phel\Lang\Collections\TransientStateTrait;
 use Stringable;
 
 /**
- * @template K
- * @template V
+ * @template TKey
+ * @template TValue
  *
- * @implements TransientMapInterface<K, V>
+ * @implements TransientMapInterface<TKey, TValue>
  */
 final class TransientMapWrapper implements TransientMapInterface, Stringable
 {
     use TransientStateTrait;
 
     /**
-     * @param TransientMapInterface<K, V> $internal
+     * @param TransientMapInterface<TKey, TValue> $internal
      */
     public function __construct(private TransientMapInterface $internal) {}
 
@@ -31,10 +31,10 @@ final class TransientMapWrapper implements TransientMapInterface, Stringable
      * Lookup by key so transient maps stay callable like their persistent
      * counterparts: `((transient {:a 1}) :a) ; => 1`.
      *
-     * @param K      $key
-     * @param V|null $default
+     * @param TKey        $key
+     * @param TValue|null $default
      *
-     * @return V|null
+     * @return TValue|null
      */
     public function __invoke(mixed $key, mixed $default = null): mixed
     {
@@ -50,7 +50,7 @@ final class TransientMapWrapper implements TransientMapInterface, Stringable
      * @param mixed $key
      * @param mixed $value
      *
-     * @return self<K, V>
+     * @return self<TKey, TValue>
      */
     public function put($key, $value): self
     {
@@ -63,7 +63,7 @@ final class TransientMapWrapper implements TransientMapInterface, Stringable
     /**
      * @param mixed $key
      *
-     * @return self<K, V>
+     * @return self<TKey, TValue>
      */
     public function remove($key): self
     {
@@ -84,7 +84,7 @@ final class TransientMapWrapper implements TransientMapInterface, Stringable
     }
 
     /**
-     * @return PersistentMapInterface<K, V>
+     * @return PersistentMapInterface<TKey, TValue>
      */
     public function persistent(): PersistentMapInterface
     {
@@ -94,9 +94,9 @@ final class TransientMapWrapper implements TransientMapInterface, Stringable
     }
 
     /**
-     * @param K $offset
+     * @param TKey $offset
      *
-     * @return V|null
+     * @return TValue|null
      */
     public function offsetGet(mixed $offset): mixed
     {
@@ -104,7 +104,7 @@ final class TransientMapWrapper implements TransientMapInterface, Stringable
     }
 
     /**
-     * @param K $offset
+     * @param TKey $offset
      */
     public function offsetExists(mixed $offset): bool
     {

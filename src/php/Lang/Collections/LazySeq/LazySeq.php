@@ -58,12 +58,12 @@ final class LazySeq extends AbstractType implements LazySeqInterface, Countable,
     /**
      * Creates a LazySeq from a Generator.
      *
-     * @template U
+     * @template TValue
      *
-     * @param Generator<int, U>                         $generator
+     * @param Generator<int, TValue>                    $generator
      * @param PersistentMapInterface<mixed, mixed>|null $meta
      *
-     * @return self<U>
+     * @return self<TValue>
      */
     public static function fromGenerator(
         HasherInterface $hasher,
@@ -71,7 +71,7 @@ final class LazySeq extends AbstractType implements LazySeqInterface, Countable,
         Generator $generator,
         ?PersistentMapInterface $meta = null,
     ): self {
-        /** @var self<U> $result */
+        /** @var self<TValue> $result */
         $result = new self(
             $hasher,
             $equalizer,
@@ -103,12 +103,12 @@ final class LazySeq extends AbstractType implements LazySeqInterface, Countable,
      * NOT materialised eagerly, so a large or infinite cursor (DB result,
      * stream reader, paginated API) streams lazily.
      *
-     * @template U
+     * @template TValue
      *
-     * @param Traversable<mixed, U>                     $traversable
+     * @param Traversable<mixed, TValue>                $traversable
      * @param PersistentMapInterface<mixed, mixed>|null $meta
      *
-     * @return self<U>
+     * @return self<TValue>
      */
     public static function fromTraversable(
         HasherInterface $hasher,
@@ -128,12 +128,12 @@ final class LazySeq extends AbstractType implements LazySeqInterface, Countable,
     /**
      * Creates a LazySeq from any iterable.
      *
-     * @template U
+     * @template TValue
      *
-     * @param iterable<U>                               $iterable
+     * @param iterable<TValue>                          $iterable
      * @param PersistentMapInterface<mixed, mixed>|null $meta
      *
-     * @return self<U>|null
+     * @return self<TValue>|null
      */
     public static function fromIterable(
         HasherInterface $hasher,
@@ -142,14 +142,14 @@ final class LazySeq extends AbstractType implements LazySeqInterface, Countable,
         ?PersistentMapInterface $meta = null,
     ): ?self {
         if (is_array($iterable)) {
-            /** @var self<U>|null $result */
+            /** @var self<TValue>|null $result */
             $result = self::fromArray($hasher, $equalizer, $iterable, $meta);
 
             return $result;
         }
 
         if ($iterable instanceof Generator) {
-            /** @var self<U> $result */
+            /** @var self<TValue> $result */
             $result = self::fromGenerator($hasher, $equalizer, $iterable, $meta);
 
             return $result;
@@ -161,7 +161,7 @@ final class LazySeq extends AbstractType implements LazySeqInterface, Countable,
             $array[] = $item;
         }
 
-        /** @var self<U>|null $result */
+        /** @var self<TValue>|null $result */
         $result = self::fromArray($hasher, $equalizer, $array, $meta);
 
         return $result;
@@ -170,12 +170,12 @@ final class LazySeq extends AbstractType implements LazySeqInterface, Countable,
     /**
      * Creates a LazySeq from an array.
      *
-     * @template U
+     * @template TValue
      *
-     * @param array<int, U>                             $array
+     * @param array<int, TValue>                        $array
      * @param PersistentMapInterface<mixed, mixed>|null $meta
      *
-     * @return self<U>|null
+     * @return self<TValue>|null
      */
     public static function fromArray(
         HasherInterface $hasher,
@@ -189,7 +189,7 @@ final class LazySeq extends AbstractType implements LazySeqInterface, Countable,
 
         $first = array_shift($array);
 
-        /** @var self<U> $result */
+        /** @var self<TValue> $result */
         $result = new self(
             $hasher,
             $equalizer,

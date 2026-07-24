@@ -11,10 +11,10 @@ use Phel\Lang\HasherInterface;
 use function count;
 
 /**
- * @template K
- * @template V
+ * @template TKey
+ * @template TValue
  *
- * @implements TransientMapInterface<K, V>
+ * @implements TransientMapInterface<TKey, TValue>
  */
 final class TransientArrayMap implements TransientMapInterface
 {
@@ -28,11 +28,11 @@ final class TransientArrayMap implements TransientMapInterface
     ) {}
 
     /**
-     * @return self<K, V>
+     * @return self<TKey, TValue>
      */
     public static function empty(HasherInterface $hasher, EqualizerInterface $equalizer): self
     {
-        /** @var self<K, V> $result */
+        /** @var self<TKey, TValue> $result */
         $result = new self($hasher, $equalizer, []);
 
         return $result;
@@ -47,7 +47,7 @@ final class TransientArrayMap implements TransientMapInterface
      * @param mixed $key
      * @param mixed $value
      *
-     * @return TransientMapInterface<K, V>
+     * @return TransientMapInterface<TKey, TValue>
      */
     public function put($key, $value): TransientMapInterface
     {
@@ -58,7 +58,7 @@ final class TransientArrayMap implements TransientMapInterface
         }
 
         if ($index === false && $this->count() >= PersistentArrayMap::MAX_SIZE) {
-            /** @var TransientHashMap<K, V> $m */
+            /** @var TransientHashMap<TKey, TValue> $m */
             $m = new TransientHashMap($this->hasher, $this->equalizer, 0, null, false, null);
             for ($i = 0, $cnt = count($this->array); $i < $cnt; $i += 2) {
                 $m->put($this->array[$i], $this->array[$i + 1]);
@@ -82,7 +82,7 @@ final class TransientArrayMap implements TransientMapInterface
     /**
      * @param mixed $key
      *
-     * @return self<K, V>
+     * @return self<TKey, TValue>
      */
     public function remove($key): self
     {
@@ -115,9 +115,9 @@ final class TransientArrayMap implements TransientMapInterface
     }
 
     /**
-     * @param K $offset
+     * @param TKey $offset
      *
-     * @return V|null
+     * @return TValue|null
      */
     public function offsetGet(mixed $offset): mixed
     {
@@ -125,7 +125,7 @@ final class TransientArrayMap implements TransientMapInterface
     }
 
     /**
-     * @param K $offset
+     * @param TKey $offset
      */
     public function offsetExists(mixed $offset): bool
     {
@@ -143,18 +143,18 @@ final class TransientArrayMap implements TransientMapInterface
     }
 
     /**
-     * @return PersistentMapInterface<K, V>
+     * @return PersistentMapInterface<TKey, TValue>
      */
     public function persistent(): PersistentMapInterface
     {
-        /** @var PersistentArrayMap<K, V> $result */
+        /** @var PersistentArrayMap<TKey, TValue> $result */
         $result = new PersistentArrayMap($this->hasher, $this->equalizer, null, $this->array);
 
         return $result;
     }
 
     /**
-     * @param K $key
+     * @param TKey $key
      */
     private function findIndex(mixed $key): int|false
     {

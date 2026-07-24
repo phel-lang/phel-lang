@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Phel\Shared\Facade;
 
+use Generator;
 use Phel\Compiler\Domain\Analyzer\Ast\AbstractNode;
 use Phel\Compiler\Domain\Analyzer\Environment\GlobalEnvironmentInterface;
 use Phel\Compiler\Domain\Analyzer\Environment\NodeEnvironmentInterface;
@@ -105,6 +106,20 @@ interface CompilerFacadeInterface
      * @throws ReaderException
      */
     public function read(NodeInterface $parseTree): ReaderResult;
+
+    /**
+     * Streams the top-level forms of a source buffer through lex -> parse ->
+     * read, never throwing: a parse failure ends the stream, a read failure
+     * skips that form, and everything already yielded stays valid.
+     *
+     * For tooling that inspects source it does not control (linting, indexing,
+     * completion) and must keep working while the buffer is mid-edit. Callers
+     * that need the failures reported must drive {@see self::lexString()},
+     * {@see self::parseNext()} and {@see self::read()} themselves.
+     *
+     * @return Generator<int, bool|float|int|string|TypeInterface|null>
+     */
+    public function readFormsBestEffort(string $code, string $source = CompilerConstants::DEFAULT_SOURCE): Generator;
 
     /**
      * @throws UnexpectedParserException

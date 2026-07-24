@@ -15,10 +15,10 @@ use Phel\Lang\HasherInterface;
 use function count;
 
 /**
- * @template K
- * @template V
+ * @template TKey
+ * @template TValue
  *
- * @implements TransientMapInterface<K, V>
+ * @implements TransientMapInterface<TKey, TValue>
  */
 final class TransientSortedMap implements TransientMapInterface
 {
@@ -53,7 +53,7 @@ final class TransientSortedMap implements TransientMapInterface
      * @param mixed $key
      * @param mixed $value
      *
-     * @return self<K, V>
+     * @return self<TKey, TValue>
      */
     public function put($key, $value): self
     {
@@ -79,7 +79,7 @@ final class TransientSortedMap implements TransientMapInterface
     /**
      * @param mixed $key
      *
-     * @return self<K, V>
+     * @return self<TKey, TValue>
      */
     public function remove($key): self
     {
@@ -111,9 +111,9 @@ final class TransientSortedMap implements TransientMapInterface
     }
 
     /**
-     * @param K $offset
+     * @param TKey $offset
      *
-     * @return V|null
+     * @return TValue|null
      */
     public function offsetGet(mixed $offset): mixed
     {
@@ -121,7 +121,7 @@ final class TransientSortedMap implements TransientMapInterface
     }
 
     /**
-     * @param K $offset
+     * @param TKey $offset
      */
     public function offsetExists(mixed $offset): bool
     {
@@ -142,7 +142,7 @@ final class TransientSortedMap implements TransientMapInterface
     {
         $this->invalidateTransient();
 
-        /** @var PersistentSortedMap<K, V> $result */
+        /** @var PersistentSortedMap<TKey, TValue> $result */
         $result = new PersistentSortedMap($this->hasher, $this->equalizer, null, $this->array, $this->userComparator);
 
         return $result;

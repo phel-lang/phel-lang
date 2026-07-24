@@ -9,10 +9,10 @@ use Iterator;
 use function count;
 
 /**
- * @template K
- * @template V
+ * @template TKey
+ * @template TValue
  *
- * @implements Iterator<K, V>
+ * @implements Iterator<TKey, TValue>
  */
 final class HashCollisionNodeIterator implements Iterator
 {
@@ -21,7 +21,7 @@ final class HashCollisionNodeIterator implements Iterator
     private readonly int $entriesCount;
 
     /**
-     * @param array{K,V,K,V} $entries
+     * @param array{TKey,TValue,TKey,TValue} $entries
      */
     public function __construct(
         private readonly array $entries,
@@ -30,11 +30,11 @@ final class HashCollisionNodeIterator implements Iterator
     }
 
     /**
-     * @return V
+     * @return TValue
      */
     public function current(): mixed
     {
-        /** @var V $result */
+        /** @var TValue $result */
         $result = $this->entries[$this->index + 1];
         return $result;
     }
@@ -55,11 +55,11 @@ final class HashCollisionNodeIterator implements Iterator
     }
 
     /**
-     * @return K
+     * @return TKey
      */
     public function key(): mixed
     {
-        /** @var K $result */
+        /** @var TKey $result */
         $result = $this->entries[$this->index];
         return $result;
     }

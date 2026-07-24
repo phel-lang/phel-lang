@@ -5,12 +5,12 @@ declare(strict_types=1);
 namespace Phel\Lang;
 
 /**
- * @template K
+ * @template TKey
  */
 interface ContainsInterface
 {
     /**
-     * @param K $key
+     * @param TKey $key
      */
     public function contains(mixed $key): bool;
 }

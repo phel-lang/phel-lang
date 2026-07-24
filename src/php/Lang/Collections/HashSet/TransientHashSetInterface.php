@@ -8,16 +8,16 @@ use Countable;
 use Phel\Lang\ContainsInterface;
 
 /**
- * @template V
+ * @template TValue
  *
- * @extends ContainsInterface<V>
+ * @extends ContainsInterface<TValue>
  */
 interface TransientHashSetInterface extends Countable, ContainsInterface
 {
     /**
-     * @param V $value
+     * @param TValue $value
      *
-     * @return self<V>
+     * @return self<TValue>
      */
     public function add(mixed $value): self;
 
@@ -31,14 +31,14 @@ interface TransientHashSetInterface extends Countable, ContainsInterface
      * which `phel.core/disj` reaches the same way. Pinned by
      * `tests/php/Unit/Lang/Collections/HashSet/TransientHashSetRemoveTest.php`.
      *
-     * @param V $value
+     * @param TValue $value
      *
-     * @return self<V>
+     * @return self<TValue>
      */
     public function remove(mixed $value): self;
 
     /**
-     * @return PersistentHashSetInterface<V>
+     * @return PersistentHashSetInterface<TValue>
      */
     public function persistent(): PersistentHashSetInterface;
 }

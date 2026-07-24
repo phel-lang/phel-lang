@@ -19,10 +19,10 @@ use function count;
  * Sorted map implementation based on a flat array maintained in sorted key order.
  * Uses binary search for O(log n) lookups and O(n) inserts/removes.
  *
- * @template K
- * @template V
+ * @template TKey
+ * @template TValue
  *
- * @extends AbstractPersistentMap<K, V>
+ * @extends AbstractPersistentMap<TKey, TValue>
  */
 final class PersistentSortedMap extends AbstractPersistentMap
 {
@@ -51,13 +51,13 @@ final class PersistentSortedMap extends AbstractPersistentMap
     /**
      * @param ?callable(mixed, mixed): (bool|int) $comparator spaceship- or predicate-style
      *
-     * @return self<K, V>
+     * @return self<TKey, TValue>
      */
     public static function empty(HasherInterface $hasher, EqualizerInterface $equalizer, ?callable $comparator = null): self
     {
         $closure = $comparator !== null ? SortedArrayHelper::resolveComparator($comparator) : null;
 
-        /** @var self<K, V> $result */
+        /** @var self<TKey, TValue> $result */
         $result = new self($hasher, $equalizer, null, [], $closure);
 
         return $result;
@@ -67,7 +67,7 @@ final class PersistentSortedMap extends AbstractPersistentMap
      * @param array<int, mixed>                   $kvs
      * @param ?callable(mixed, mixed): (bool|int) $comparator spaceship- or predicate-style
      *
-     * @return self<K, V>
+     * @return self<TKey, TValue>
      */
     public static function fromArray(HasherInterface $hasher, EqualizerInterface $equalizer, array $kvs, ?callable $comparator = null): self
     {
@@ -80,7 +80,7 @@ final class PersistentSortedMap extends AbstractPersistentMap
             $result->put($kvs[$i], $kvs[$i + 1]);
         }
 
-        /** @var self<K, V> */
+        /** @var self<TKey, TValue> */
         return $result->persistent();
     }
 
@@ -112,7 +112,7 @@ final class PersistentSortedMap extends AbstractPersistentMap
             $newArray = $this->array;
             $newArray[$idx + 1] = $value;
 
-            /** @var self<K, V> $updated */
+            /** @var self<TKey, TValue> $updated */
             $updated = new self($this->hasher, $this->equalizer, $this->meta, $newArray, $this->userComparator);
 
             return $updated;
@@ -122,7 +122,7 @@ final class PersistentSortedMap extends AbstractPersistentMap
         $newArray = $this->array;
         array_splice($newArray, $insertAt, 0, [$key, $value]);
 
-        /** @var self<K, V> $result */
+        /** @var self<TKey, TValue> $result */
         $result = new self($this->hasher, $this->equalizer, $this->meta, $newArray, $this->userComparator);
 
         return $result;
@@ -131,7 +131,7 @@ final class PersistentSortedMap extends AbstractPersistentMap
     /**
      * @param mixed $key
      *
-     * @return self<K, V>
+     * @return self<TKey, TValue>
      */
     public function remove($key): self
     {
@@ -144,7 +144,7 @@ final class PersistentSortedMap extends AbstractPersistentMap
         $newArray = $this->array;
         array_splice($newArray, $idx, 2);
 
-        /** @var self<K, V> $result */
+        /** @var self<TKey, TValue> $result */
         $result = new self($this->hasher, $this->equalizer, $this->meta, $newArray, $this->userComparator);
 
         return $result;
@@ -173,11 +173,11 @@ final class PersistentSortedMap extends AbstractPersistentMap
     }
 
     /**
-     * @return TransientMapWrapper<K, V>
+     * @return TransientMapWrapper<TKey, TValue>
      */
     public function asTransient(): TransientMapWrapper
     {
-        /** @var TransientMapWrapper<K, V> $result */
+        /** @var TransientMapWrapper<TKey, TValue> $result */
         $result = new TransientMapWrapper(
             new TransientSortedMap(
                 $this->hasher,

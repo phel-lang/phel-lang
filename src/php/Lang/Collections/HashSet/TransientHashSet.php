@@ -5,9 +5,9 @@ declare(strict_types=1);
 namespace Phel\Lang\Collections\HashSet;
 
 /**
- * @template V
+ * @template TValue
  *
- * @extends AbstractTransientSet<V>
+ * @extends AbstractTransientSet<TValue>
  */
 final readonly class TransientHashSet extends AbstractTransientSet
 {
@@ -17,7 +17,7 @@ final readonly class TransientHashSet extends AbstractTransientSet
     }
 
     /**
-     * @return PersistentHashSetInterface<V>
+     * @return PersistentHashSetInterface<TValue>
      */
     public function persistent(): PersistentHashSetInterface
     {

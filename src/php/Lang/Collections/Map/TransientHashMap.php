@@ -10,18 +10,18 @@ use Phel\Lang\HasherInterface;
 use stdClass;
 
 /**
- * @template K
- * @template V
+ * @template TKey
+ * @template TValue
  *
- * @implements TransientMapInterface<K, V>
+ * @implements TransientMapInterface<TKey, TValue>
  */
 final class TransientHashMap implements TransientMapInterface
 {
     private static ?stdClass $NOT_FOUND = null;
 
     /**
-     * @param HashMapNodeInterface<K, V>|null $root
-     * @param mixed                           $nullValue
+     * @param HashMapNodeInterface<TKey, TValue>|null $root
+     * @param mixed                                   $nullValue
      */
     public function __construct(
         private readonly HasherInterface $hasher,
@@ -33,11 +33,11 @@ final class TransientHashMap implements TransientMapInterface
     ) {}
 
     /**
-     * @return self<K, V>
+     * @return self<TKey, TValue>
      */
     public static function empty(HasherInterface $hasher, EqualizerInterface $equalizer): self
     {
-        /** @var self<K, V> $result */
+        /** @var self<TKey, TValue> $result */
         $result = new self($hasher, $equalizer, 0, null, false, null);
 
         return $result;
@@ -69,7 +69,7 @@ final class TransientHashMap implements TransientMapInterface
      * @param mixed $key
      * @param mixed $value
      *
-     * @return self<K, V>
+     * @return self<TKey, TValue>
      */
     public function put($key, $value): self
     {
@@ -104,7 +104,7 @@ final class TransientHashMap implements TransientMapInterface
     /**
      * @param mixed $key
      *
-     * @return self<K, V>
+     * @return self<TKey, TValue>
      */
     public function remove($key): self
     {
@@ -157,7 +157,7 @@ final class TransientHashMap implements TransientMapInterface
     }
 
     /**
-     * @return PersistentMapInterface<K, V>
+     * @return PersistentMapInterface<TKey, TValue>
      */
     public function persistent(): PersistentMapInterface
     {
@@ -165,9 +165,9 @@ final class TransientHashMap implements TransientMapInterface
     }
 
     /**
-     * @param K $offset
+     * @param TKey $offset
      *
-     * @return V|null
+     * @return TValue|null
      */
     public function offsetGet(mixed $offset): mixed
     {
@@ -175,7 +175,7 @@ final class TransientHashMap implements TransientMapInterface
     }
 
     /**
-     * @param K $offset
+     * @param TKey $offset
      */
     public function offsetExists(mixed $offset): bool
     {

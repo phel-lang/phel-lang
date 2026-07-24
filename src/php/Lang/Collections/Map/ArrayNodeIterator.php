@@ -12,25 +12,25 @@ use function array_values;
 use function count;
 
 /**
- * @template K
- * @template V
+ * @template TKey
+ * @template TValue
  *
- * @implements Iterator<K, V>
+ * @implements Iterator<TKey, TValue>
  */
 final class ArrayNodeIterator implements Iterator
 {
-    /** @var list<HashMapNodeInterface<K, V>> A list of nodes */
+    /** @var list<HashMapNodeInterface<TKey, TValue>> A list of nodes */
     private readonly array $childNodes;
 
     private readonly int $count;
 
     private int $index = 0;
 
-    /** @var Iterator<K, V>|null */
+    /** @var Iterator<TKey, TValue>|null */
     private ?Iterator $nestedIterator = null;
 
     /**
-     * @param array<int, ?HashMapNodeInterface<K, V>> $childNodes
+     * @param array<int, ?HashMapNodeInterface<TKey, TValue>> $childNodes
      */
     public function __construct(array $childNodes)
     {
@@ -41,7 +41,7 @@ final class ArrayNodeIterator implements Iterator
     }
 
     /**
-     * @return V
+     * @return TValue
      */
     public function current(): mixed
     {
@@ -83,7 +83,7 @@ final class ArrayNodeIterator implements Iterator
     }
 
     /**
-     * @return K
+     * @return TKey
      */
     public function key(): mixed
     {
