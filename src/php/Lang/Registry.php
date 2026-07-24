@@ -10,6 +10,9 @@ use RuntimeException;
 use function array_key_exists;
 use function sprintf;
 
+/**
+ * @phpstan-type RegistrySnapshot array{definitions: array<string, array<string, mixed>>, definitionsMetaData: array<string, array<string, mixed>>}
+ */
 final class Registry
 {
     /**
@@ -49,7 +52,7 @@ final class Registry
     }
 
     /**
-     * @return array{definitions: array<string, array<string, mixed>>, definitionsMetaData: array<string, array<string, mixed>>}
+     * @return RegistrySnapshot
      */
     public function snapshot(): array
     {
@@ -60,7 +63,7 @@ final class Registry
     }
 
     /**
-     * @param array{definitions: array<string, array<string, mixed>>, definitionsMetaData: array<string, array<string, mixed>>} $snapshot
+     * @param RegistrySnapshot $snapshot
      */
     public function restore(array $snapshot): void
     {

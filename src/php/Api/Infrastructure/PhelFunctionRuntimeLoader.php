@@ -23,6 +23,9 @@ use function sys_get_temp_dir;
 use function uniqid;
 use function unlink;
 
+/**
+ * @phpstan-import-type RegistrySnapshot from Registry
+ */
 final readonly class PhelFunctionRuntimeLoader
 {
     public function __construct(
@@ -88,7 +91,7 @@ final readonly class PhelFunctionRuntimeLoader
      * the loaded state so that callers (REPL, nREPL) keep their session
      * intact while still seeing the freshly loaded documentation namespaces.
      *
-     * @param array{definitions: array<string, array<string, mixed>>, definitionsMetaData: array<string, array<string, mixed>>} $previousRegistry
+     * @param RegistrySnapshot $previousRegistry
      */
     private function mergePreviousState(
         GlobalEnvironmentInterface $previousEnv,
