@@ -4,26 +4,18 @@ declare(strict_types=1);
 
 namespace Phel\Shared\Printer\TypePrinter;
 
-use function sprintf;
-
 /**
  * @template-implements TypePrinterInterface<null>
  */
 final class NullPrinter implements TypePrinterInterface
 {
+    use ColorizeTrait;
     use WithColorTrait;
+
+    private const string COLOR = '0;96';
 
     public function print(mixed $form): string
     {
-        return $this->color('nil');
-    }
-
-    private function color(string $str): string
-    {
-        if ($this->withColor) {
-            return sprintf("\033[0;96m%s\033[0m", $str);
-        }
-
-        return $str;
+        return $this->colorize('nil', self::COLOR);
     }
 }

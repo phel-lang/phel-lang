@@ -13,22 +13,16 @@ use function sprintf;
  */
 final class UUIDPrinter implements TypePrinterInterface
 {
+    use ColorizeTrait;
     use WithColorTrait;
+
+    private const string COLOR = '0;92';
 
     /**
      * @param UUID $form
      */
     public function print(mixed $form): string
     {
-        return $this->color(sprintf('#uuid "%s"', $form));
-    }
-
-    private function color(string $str): string
-    {
-        if ($this->withColor) {
-            return sprintf("\033[0;92m%s\033[0m", $str);
-        }
-
-        return $str;
+        return $this->colorize(sprintf('#uuid "%s"', $form), self::COLOR);
     }
 }

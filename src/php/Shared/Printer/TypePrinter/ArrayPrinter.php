@@ -14,6 +14,10 @@ use function sprintf;
  */
 final readonly class ArrayPrinter implements TypePrinterInterface
 {
+    use ColorizeTrait;
+
+    private const string COLOR = '0;37';
+
     public function __construct(
         private PrinterInterface $printer,
         private bool $withColor = false,
@@ -28,7 +32,7 @@ final readonly class ArrayPrinter implements TypePrinterInterface
             ? $this->formatValuesFromList($form)
             : $this->formatKeyValuesFromDict($form);
 
-        return sprintf('<PHP-Array [%s]>', $this->color(implode(', ', $arr)));
+        return sprintf('<PHP-Array [%s]>', $this->colorize(implode(', ', $arr), self::COLOR));
     }
 
     /**
@@ -67,14 +71,5 @@ final readonly class ArrayPrinter implements TypePrinterInterface
         }
 
         return $result;
-    }
-
-    private function color(string $str): string
-    {
-        if ($this->withColor) {
-            return sprintf("\033[0;37m%s\033[0m", $str);
-        }
-
-        return $str;
     }
 }

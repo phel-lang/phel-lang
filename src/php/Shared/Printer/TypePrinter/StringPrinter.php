@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace Phel\Shared\Printer\TypePrinter;
 
 use function ord;
-use function sprintf;
 use function strlen;
 
 /**
@@ -13,6 +12,8 @@ use function strlen;
  */
 final readonly class StringPrinter implements TypePrinterInterface
 {
+    use ColorizeTrait;
+
     private const array SPECIAL_CHARACTERS = [
         9 => '\t',
         10 => '\n',
@@ -24,6 +25,8 @@ final readonly class StringPrinter implements TypePrinterInterface
         36 => '\$',
         92 => '\\\\',
     ];
+
+    private const string COLOR = '0;95';
 
     public function __construct(
         private bool $readable,
@@ -44,7 +47,7 @@ final readonly class StringPrinter implements TypePrinterInterface
     {
         $str = $this->parseString($form);
 
-        return $this->color($str);
+        return $this->colorize($str, self::COLOR);
     }
 
     private function parseString(string $str): string
@@ -131,14 +134,5 @@ final readonly class StringPrinter implements TypePrinterInterface
     private function isMask11110XXX(int $asciiChar): bool
     {
         return ($asciiChar & 0xF8) === 0xF0;
-    }
-
-    private function color(string $str): string
-    {
-        if ($this->withColor) {
-            return sprintf("\033[0;95m%s\033[0m", $str);
-        }
-
-        return $str;
     }
 }

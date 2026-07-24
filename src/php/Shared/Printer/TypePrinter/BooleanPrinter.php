@@ -4,14 +4,15 @@ declare(strict_types=1);
 
 namespace Phel\Shared\Printer\TypePrinter;
 
-use function sprintf;
-
 /**
  * @implements TypePrinterInterface<bool>
  */
 final class BooleanPrinter implements TypePrinterInterface
 {
+    use ColorizeTrait;
     use WithColorTrait;
+
+    private const string COLOR = '0;94';
 
     /**
      * @param bool $form
@@ -20,15 +21,6 @@ final class BooleanPrinter implements TypePrinterInterface
     {
         $str = $form ? 'true' : 'false';
 
-        return $this->color($str);
-    }
-
-    private function color(string $str): string
-    {
-        if ($this->withColor) {
-            return sprintf("\033[0;94m%s\033[0m", $str);
-        }
-
-        return $str;
+        return $this->colorize($str, self::COLOR);
     }
 }

@@ -10,6 +10,7 @@ use Phel\Api\Domain\SymbolMetadataFinderInterface;
 use Phel\Lang\Collections\Map\PersistentMapInterface;
 use Phel\Lang\Keyword;
 use Phel\Shared\Api\PhelFunction;
+use Phel\Shared\CompilerConstants;
 use Phel\Shared\MungeInterface;
 use Phel\Shared\ScalarCoercion;
 
@@ -28,8 +29,6 @@ use function trim;
  */
 final class SymbolMetadataFinder implements SymbolMetadataFinderInterface
 {
-    private const string CORE_NAMESPACE = 'phel.core';
-
     /** @var list<PhelFunction>|null */
     private ?array $catalogCache = null;
 
@@ -113,11 +112,11 @@ final class SymbolMetadataFinder implements SymbolMetadataFinderInterface
     private function candidateNamespacesFor(string $currentNs): array
     {
         $canonical = $this->canonicalNs($currentNs);
-        if ($canonical === self::CORE_NAMESPACE) {
-            return [self::CORE_NAMESPACE];
+        if ($canonical === CompilerConstants::PHEL_CORE_NAMESPACE) {
+            return [CompilerConstants::PHEL_CORE_NAMESPACE];
         }
 
-        return [$canonical, self::CORE_NAMESPACE];
+        return [$canonical, CompilerConstants::PHEL_CORE_NAMESPACE];
     }
 
     private function lookupQualified(string $ns, string $name): ?PhelFunction

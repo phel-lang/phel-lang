@@ -8,14 +8,16 @@ use function is_float;
 use function is_infinite;
 use function is_nan;
 use function preg_match;
-use function sprintf;
 
 /**
  * @implements TypePrinterInterface<float|int>
  */
 final class NumberPrinter implements TypePrinterInterface
 {
+    use ColorizeTrait;
     use WithColorTrait;
+
+    private const string COLOR = '0;92';
 
     /**
      * @param float|int $form
@@ -23,10 +25,10 @@ final class NumberPrinter implements TypePrinterInterface
     public function print(mixed $form): string
     {
         if (is_float($form)) {
-            return $this->color($this->printFloat($form));
+            return $this->colorize($this->printFloat($form), self::COLOR);
         }
 
-        return $this->color((string) $form);
+        return $this->colorize((string) $form, self::COLOR);
     }
 
     /**
@@ -50,14 +52,5 @@ final class NumberPrinter implements TypePrinterInterface
         // which would make a float indistinguishable from an int. Restore
         // it unless the cast already carries a decimal point or exponent.
         return preg_match('/[.eE]/', $str) === 1 ? $str : $str . '.0';
-    }
-
-    private function color(string $str): string
-    {
-        if ($this->withColor) {
-            return sprintf("\033[0;92m%s\033[0m", $str);
-        }
-
-        return $str;
     }
 }
