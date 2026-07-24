@@ -91,18 +91,34 @@ final class DependencyTrackerTest extends TestCase
     public function test_register_dependencies_handles_circular_deps_gracefully(): void
     {
         $tracker = new DependencyTracker($this->cacheDir);
+        $compiledCache = new CompiledCodeCache($this->cacheDir, 'test');
 
         $fileA = $this->cacheDir . '/a.phel';
         $fileB = $this->cacheDir . '/b.phel';
         file_put_contents($fileA, '(ns app\\a)');
         file_put_contents($fileB, '(ns app\\b)');
 
-        // Register A -> B and B -> A (circular)
+        $compiledCache->put($fileA, 'app\\a', md5('(ns app\\a)'), '$x = 1;');
+        $compiledCache->put($fileB, 'app\\b', md5('(ns app\\b)'), '$y = 2;');
+
+        // Register A -> B and B -> A (circular at the namespace level)
         $tracker->registerDependencies($fileA, 'app\\a', ['app\\b']);
         $tracker->registerDependencies($fileB, 'app\\b', ['app\\a']);
 
-        // Should not throw — cycles are silently ignored
-        self::assertTrue(true);
+        // Files point at namespaces and namespaces have no outgoing edges, so a
+        // mutual require is not a cycle in the tracked graph: resolution still
+        // terminates and reaches both files from either end of the cycle.
+        self::assertSame(
+            [$fileA, $fileB],
+            $this->sorted($tracker->invalidateDependentsOf('app\\a', $compiledCache)),
+        );
+        self::assertSame(
+            [$fileA, $fileB],
+            $this->sorted($tracker->invalidateDependentsOf('app\\b', $compiledCache)),
+        );
+
+        self::assertNull($compiledCache->get($fileA, md5('(ns app\\a)')));
+        self::assertNull($compiledCache->get($fileB, md5('(ns app\\b)')));
     }
 
     public function test_clear_removes_all_tracked_dependencies(): void
@@ -123,4 +139,15 @@ final class DependencyTrackerTest extends TestCase
         self::assertSame([], $invalidated);
     }
 
+    /**
+     * @param list<string> $paths
+     *
+     * @return list<string>
+     */
+    private function sorted(array $paths): array
+    {
+        sort($paths);
+
+        return $paths;
+    }
 }

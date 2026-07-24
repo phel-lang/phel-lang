@@ -56,8 +56,10 @@ final class BindingValidatorTest extends TestCase
     #[DataProvider('providerValidTypes')]
     public function test_valid_types(mixed $type): void
     {
+        // `assertSupportedBinding()` returns void: passing means it did not throw.
+        $this->expectNotToPerformAssertions();
+
         $this->validator->assertSupportedBinding($type);
-        self::assertTrue(true); // this assertion ensures that no exception was thrown
     }
 
     public static function providerValidTypes(): Generator

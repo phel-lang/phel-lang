@@ -89,9 +89,7 @@ final class FnSymbolTest extends TestCase
     {
         if ($error) {
             $this->expectException(AbstractLocatedException::class);
-            $this->expectExceptionMessageMatches('/(Variable names must start with a letter or underscore)*/i');
-        } else {
-            self::assertTrue(true); // In order to have an assertion without an error
+            $this->expectExceptionMessage('Variable names must start with a letter or underscore: ' . $paramName);
         }
 
         // This is the same as: (fn [paramName])
@@ -102,7 +100,15 @@ final class FnSymbolTest extends TestCase
             ]),
         ]);
 
-        $this->analyze($list);
+        $node = $this->analyze($list);
+
+        // Accepted names survive analysis verbatim, so the param list proves the
+        // name was kept rather than merely that nothing blew up.
+        self::assertInstanceOf(FnNode::class, $node);
+        self::assertSame(
+            [$paramName],
+            array_map(static fn(Symbol $param): string => $param->getName(), $node->getParams()),
+        );
     }
 
     public static function providerVarNamesMustStartWithLetterOrUnderscore(): Generator
