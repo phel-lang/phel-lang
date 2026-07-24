@@ -28,8 +28,8 @@
 
 (deftest php-ref-survives-an-enclosing-closure-wrap
   (let [m nil]
-    ; the `do` sits in expression position, so the emitter wraps it in an IIFE;
-    ; the by-ref local must still be captured by reference through that wrap.
+    ;; the `do` sits in expression position, so the emitter wraps it in an IIFE;
+    ;; the by-ref local must still be captured by reference through that wrap.
     (php/intval (do (php/preg_match "/(\\d+)/" "abc123" (php/ref m)) 0))
     (is (= "123" (php/aget m 1)) "by-ref survives an enclosing IIFE wrap")))
 

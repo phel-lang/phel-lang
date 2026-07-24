@@ -17,6 +17,7 @@ use Phel\Lint\Application\Formatter\HumanFormatter;
 use Phel\Lint\Application\Formatter\JsonFormatter;
 use Phel\Lint\Application\LintRunner;
 use Phel\Lint\Application\Rule\ArityMismatchRule;
+use Phel\Lint\Application\Rule\CommentStyleRule;
 use Phel\Lint\Application\Rule\DiscouragedVarRule;
 use Phel\Lint\Application\Rule\DuplicateKeyRule;
 use Phel\Lint\Application\Rule\InvalidDestructuringRule;
@@ -74,6 +75,7 @@ final class LintFactory extends AbstractFactory
             new DuplicateKeyRule($this->getCompilerFacade()),
             new InvalidDestructuringRule(),
             new DiscouragedVarRule(),
+            new CommentStyleRule($this->getCompilerFacade()),
         ];
     }
 

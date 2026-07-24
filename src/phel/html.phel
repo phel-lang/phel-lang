@@ -22,9 +22,9 @@
                  "source" "track" "wbr"))
 
 (defn- container-tag? [tag]
-  ; Void elements (br, img, input, ...) are always self-closing per the HTML
-  ; spec: they never render a closing tag or children, even if children were
-  ; mistakenly supplied.
+  ;; Void elements (br, img, input, ...) are always self-closing per the HTML
+  ;; spec: they never render a closing tag or children, even if children were
+  ;; mistakenly supplied.
   (not (contains? void-tags tag)))
 
 (defn- normalize-element [[tag & content]]

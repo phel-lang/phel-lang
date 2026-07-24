@@ -9,9 +9,9 @@
   (is (= [:x :x :x] (take 3 (repeatedly (fn [] :x))))
       "(take 3 (repeatedly (fn [] :x)))"))
 
-; Regression test for https://github.com/phel-lang/phel-lang/issues/2186.
-; (repeatedly f) must not invoke f at construction; constructing with an
-; arity-incompatible fn (identity) must succeed because the seq is unrealized.
+;; Regression test for https://github.com/phel-lang/phel-lang/issues/2186.
+;; (repeatedly f) must not invoke f at construction; constructing with an
+;; arity-incompatible fn (identity) must succeed because the seq is unrealized.
 (deftest test-repeatedly-defers-fn-call
   (let [call (repeatedly identity)]
     (is (false? (realized? call))
@@ -24,9 +24,9 @@
     (is (= [:z :z :z :z] (take 4 call))
         "values from a deferred (repeatedly f) are realized on demand")))
 
-; Regression test for https://github.com/phel-lang/phel-lang/issues/2210.
-; (repeatedly n f) must defer invoking f until the seq is realized so
-; constructing with an arity-incompatible fn (identity) succeeds.
+;; Regression test for https://github.com/phel-lang/phel-lang/issues/2210.
+;; (repeatedly n f) must defer invoking f until the seq is realized so
+;; constructing with an arity-incompatible fn (identity) succeeds.
 (deftest test-repeatedly-arity-two-defers-fn-call
   (let [call (repeatedly 1000 identity)]
     (is (true? (lazy-seq? call))
@@ -50,9 +50,9 @@
   (is (some? (and (range)))
       "range with no args should return truthy value"))
 
-; Regression tests for https://github.com/phel-lang/phel-lang/issues/1286.
-; Comparisons that can short-circuit must not realize an infinite lazy
-; sequence — previously these blew up with an integer-overflow allocation.
+;; Regression tests for https://github.com/phel-lang/phel-lang/issues/1286.
+;; Comparisons that can short-circuit must not realize an infinite lazy
+;; sequence — previously these blew up with an integer-overflow allocation.
 (deftest test-infinite-range-equality-short-circuits
   (let [r (range)]
     (is (= r r)
@@ -171,9 +171,9 @@
   (is (= [0 2 4 6 8] (take 5 (filter even? (iterate inc 0))))
       "filter on infinite sequence should work without hanging"))
 
-; Regression test for https://github.com/phel-lang/phel-lang/issues/2187.
-; A sparse-predicate filter over an infinite source used to hang because the
-; chunked seq tried to pre-realize 32 elements that would never arrive.
+;; Regression test for https://github.com/phel-lang/phel-lang/issues/2187.
+;; A sparse-predicate filter over an infinite source used to hang because the
+;; chunked seq tried to pre-realize 32 elements that would never arrive.
 (deftest test-remove-on-infinite-seq-with-bounded-result
   (is (= '(0 1 2) (take 3 (remove (partial < 5) (range))))
       "(take 3 (remove (partial < 5) (range))) must not hang"))
@@ -182,9 +182,9 @@
   (is (= '(0 1 2) (take 3 (filter (partial >= 5) (range))))
       "(take 3 (filter (partial >= 5) (range))) must not hang"))
 
-; Regression tests for https://github.com/phel-lang/phel-lang/issues/2191.
-; `concat` must return an unrealized lazy seq across all non-zero arities;
-; previously the result was eagerly chunked and `realized?` reported `true`.
+;; Regression tests for https://github.com/phel-lang/phel-lang/issues/2191.
+;; `concat` must return an unrealized lazy seq across all non-zero arities;
+;; previously the result was eagerly chunked and `realized?` reported `true`.
 (deftest test-concat-arity-one-defers-realization
   (is (false? (realized? (concat [1 2 3 4 5])))
       "(concat coll) should be unrealized until accessed"))
@@ -205,10 +205,10 @@
   (is (= [0 1 2 3 4] (take 5 (concat (range) (range))))
       "(take n (concat (range) …)) must not hang"))
 
-; Regression tests for https://github.com/phel-lang/phel-lang/issues/2188.
-; `map` must (a) defer realization across all non-transducer arities,
-; (b) produce a lazy seq even for nil/empty input, and (c) iterate maps
-; as `[k v]` pair vectors (not values-only).
+;; Regression tests for https://github.com/phel-lang/phel-lang/issues/2188.
+;; `map` must (a) defer realization across all non-transducer arities,
+;; (b) produce a lazy seq even for nil/empty input, and (c) iterate maps
+;; as `[k v]` pair vectors (not values-only).
 (deftest test-map-defers-realization-arity-2
   (is (false? (realized? (map inc (range 5))))
       "(map f coll) must be unrealized until accessed"))
@@ -242,9 +242,9 @@
   (is (= [0 1 2 3 4] (take 5 (map identity (range))))
       "(take n (map f (range))) must not hang"))
 
-; Regression test for https://github.com/phel-lang/phel-lang/issues/2190.
-; `distinct` must produce an unrealized lazy seq; previously the result
-; was pre-chunked and `realized?` was true at construction.
+;; Regression test for https://github.com/phel-lang/phel-lang/issues/2190.
+;; `distinct` must produce an unrealized lazy seq; previously the result
+;; was pre-chunked and `realized?` was true at construction.
 (deftest test-distinct-defers-realization
   (let [s (distinct [1 1 1 2 1 2 1 2 3 1 2 3 1 2 3 4 1 2 3 4 5])]
     (is (false? (realized? s))
