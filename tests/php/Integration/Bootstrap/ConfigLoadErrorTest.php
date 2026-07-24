@@ -97,4 +97,20 @@ final class ConfigLoadErrorTest extends TestCase
         Phel::bootstrap($this->dir);
     }
 
+    public function test_bootstrap_wraps_a_syntax_error_in_the_config_file(): void
+    {
+        // `Phel::readAppModulePaths()` evaluates the config file before Gacela
+        // does and drops the ParseError on purpose, so this is the case where a
+        // swallow would be invisible. Gacela's read of the same path re-parses
+        // it and raises again, which is what makes that drop safe.
+        file_put_contents(
+            $this->dir . '/phel-config.php',
+            "<?php\n\nreturn new \\Phel\\Config\\PhelConfig()->withSrcDirs(['src'])\n",
+        );
+
+        $this->expectException(ConfigLoadException::class);
+        $this->expectExceptionMessage('phel-config.php');
+
+        Phel::bootstrap($this->dir);
+    }
 }

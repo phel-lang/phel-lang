@@ -343,6 +343,10 @@
   {:example "(list? '(1 2)) ; => true\n(list? [1 2]) ; => false"
    :see-also ["vector?" "seq?" "sequential?"]}
   [x]
+  ;; Two checks on purpose, both against the interface: `instanceof` gives the
+  ;; shape, `isList` separates a real list from the seq view `seq` builds over a
+  ;; vector or a map (both are `PersistentListInterface` values). Dropping
+  ;; either half makes `(list? (seq [1 2]))` return true.
   (and (php/instanceof x PersistentListInterface)
        (php/-> x (isList))))
 

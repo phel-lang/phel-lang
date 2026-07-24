@@ -71,4 +71,29 @@ final class StrictPhpConfigReaderTest extends TestCase
     {
         self::assertSame([], new StrictPhpConfigReader()->read('/no/such/phel-config.php'));
     }
+
+    public function test_a_repeated_read_of_a_throwing_config_raises_again(): void
+    {
+        // Load-bearing for `Phel::readAppModulePaths()`, which evaluates
+        // `phel-config.php` up front and drops the failure on purpose: the
+        // reader must re-evaluate the very same path and raise again, otherwise
+        // that drop becomes a silent swallow. Only `include_once` would make
+        // the second evaluation a no-op, so the reader must keep plain
+        // `include`.
+        file_put_contents($this->path, "<?php\nthrow new \\RuntimeException('boom');\n");
+
+        $reader = new StrictPhpConfigReader();
+
+        try {
+            $reader->read($this->path);
+            self::fail('The first read was expected to raise.');
+        } catch (RuntimeException $runtimeException) {
+            self::assertSame('boom', $runtimeException->getMessage());
+        }
+
+        $this->expectException(RuntimeException::class);
+        $this->expectExceptionMessage('boom');
+
+        $reader->read($this->path);
+    }
 }

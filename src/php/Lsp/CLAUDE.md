@@ -7,7 +7,8 @@ Language Server Protocol v3.17 over stdio (JSON-RPC 2.0, `Content-Length` framin
 | Method | Returns | Purpose |
 |--------|---------|---------|
 | `createServer($output)` | `LspServer` | Bind the notification stream; caller owns the loop via `LspServer::serve($input, $output)` |
-| `createDispatcher()` | `RequestDispatcher` | Dispatcher with every handler registered (test support) |
+
+The facade is production surface only. `LspFactory::createDispatcher()` stays internal wiring for `createServer()`; tests build a `RequestDispatcher` directly (see `tests/php/Unit/Lsp/Application/Rpc/RequestDispatcherTest.php`) rather than going through the facade.
 
 ## Dependencies
 

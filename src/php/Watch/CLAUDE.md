@@ -8,9 +8,8 @@ Hot-reload file watcher: detects `.phel` changes and re-evaluates affected names
 |--------|---------|
 | `watch(array $paths, array $options = []): void` | Blocking watch loop. Options: `backend` (auto\|inotify\|fswatch\|polling), `poll` (ms), `debounce` (ms), `publisher` (`?ReloadEventPublisherInterface`) |
 | `createFileWatcher(?string $preferred, ?int $pollMs, ?int $debounceMs)` | Build a single watcher for the preferred backend |
-| `createFileWatcherBuilder(?int $pollMs, ?int $debounceMs)` | Builder that picks a backend |
-| `createReloadOrchestrator(?ReloadEventPublisherInterface)` | Reload pipeline (resolve → reload → hooks → reindex → publish) |
-| `createNamespaceResolver()` | File-path → namespace resolver |
+
+The facade is production surface only. `WatchFactory::createFileWatcherBuilder()`, `createReloadOrchestrator()` and `createNamespaceResolver()` stay internal wiring; tests build those collaborators directly (`FileWatcherBuilderTest`, `ReloadOrchestratorTest`, `NamespaceResolverTest`) rather than going through the facade.
 
 CLI: `./bin/phel watch [paths]... [-b backend] [--poll=500] [--debounce=100]` (`Infrastructure/Command/WatchCommand`).
 

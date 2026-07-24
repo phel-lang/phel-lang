@@ -227,7 +227,7 @@
   (is (= "0foo0" (s/pad-both "foo" 5 "0"))))
 
 (deftest test-pad-empty-pad-string-falls-back-to-space
-  ; An empty pad string used to throw an uncatchable PHP str_pad error.
+  ;; An empty pad string used to throw an uncatchable PHP str_pad error.
   (is (= "  foo" (s/pad-left "foo" 5 "")))
   (is (= "foo  " (s/pad-right "foo" 5 "")))
   (is (= " foo " (s/pad-both "foo" 5 ""))))

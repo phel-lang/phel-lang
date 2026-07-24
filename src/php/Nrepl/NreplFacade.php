@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace Phel\Nrepl;
 
 use Gacela\Framework\AbstractFacade;
-use Phel\Nrepl\Domain\Op\OpDispatcher;
 use Phel\Nrepl\Infrastructure\NreplSocketServer;
 
 /**
@@ -22,11 +21,6 @@ final class NreplFacade extends AbstractFacade
         ?callable $logger = null,
     ): NreplSocketServer {
         return $this->getFactory()->createSocketServer($port, $host, $logger);
-    }
-
-    public function createOpDispatcher(): OpDispatcher
-    {
-        return $this->getFactory()->createOpDispatcher();
     }
 
     public function loadPhelNamespaces(): void

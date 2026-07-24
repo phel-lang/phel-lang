@@ -163,10 +163,10 @@
 ;; ---------------------------------------------------------------------------
 
 (deftest test-application-uses-addcommand-when-available
-  ; Symfony 7.4 deprecated add() in favour of addCommand().
-  ; Capture any deprecation triggered while building the application and
-  ; assert that none mention Application::add().
-  ; Use an atom so the error-handler closure captures a reference-stable cell.
+  ;; Symfony 7.4 deprecated add() in favour of addCommand().
+  ;; Capture any deprecation triggered while building the application and
+  ;; assert that none mention Application::add().
+  ;; Use an atom so the error-handler closure captures a reference-stable cell.
   (let [deprecations (atom [])
         _            (php/set_error_handler
                       (fn [_ msg _ _]
@@ -181,9 +181,9 @@
     (is (= [] found) "no deprecation for Application::add() — addCommand() used instead")))
 
 (defn- handler-closure [cmd]
-  ; Extract the Closure registered via Command::setCode across all supported
-  ; Symfony versions. Symfony 6 stores the raw Closure on `Command::$code`;
-  ; 7+ wraps it in an InvokableCommand whose own `$code` holds the Closure.
+  ;; Extract the Closure registered via Command::setCode across all supported
+  ;; Symfony versions. Symfony 6 stores the raw Closure on `Command::$code`;
+  ;; 7+ wraps it in an InvokableCommand whose own `$code` holds the Closure.
   (let [rc  (php/new \ReflectionClass cmd)
         cp  (php/-> rc (getProperty "code"))
         raw (php/-> cp (getValue cmd))]
@@ -194,10 +194,10 @@
         (php/-> icp (getValue raw))))))
 
 (deftest test-handler-closure-has-typed-symfony-params
-  ; Symfony 8 enforces named types on Command::setCode closure params.
-  ; Phel `(fn [input output] ...)` would lower to an untyped __invoke;
-  ; reflect on the registered Closure and assert each param carries the
-  ; Symfony interface as a named type. Works on Symfony 6, 7, and 8.
+  ;; Symfony 8 enforces named types on Command::setCode closure params.
+  ;; Phel `(fn [input output] ...)` would lower to an untyped __invoke;
+  ;; reflect on the registered Closure and assert each param carries the
+  ;; Symfony interface as a named type. Works on Symfony 6, 7, and 8.
   (let [cmd     (cli/command {:name "x" :run (fn [_] 0)})
         closure (handler-closure cmd)
         rf      (php/new \ReflectionFunction closure)

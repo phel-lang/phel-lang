@@ -6,7 +6,6 @@ namespace Phel\Lsp;
 
 use Gacela\Framework\AbstractFacade;
 use Phel\Lsp\Application\Rpc\LspServer;
-use Phel\Lsp\Application\Rpc\RequestDispatcher;
 
 /**
  * @extends AbstractFacade<LspFactory>
@@ -23,14 +22,5 @@ final class LspFacade extends AbstractFacade
     public function createServer($output): LspServer
     {
         return $this->getFactory()->createServer($output);
-    }
-
-    /**
-     * Build a request dispatcher with every handler registered. Exposed so
-     * unit tests can drive handlers without a real transport.
-     */
-    public function createDispatcher(): RequestDispatcher
-    {
-        return $this->getFactory()->createDispatcher();
     }
 }
