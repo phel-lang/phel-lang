@@ -27,7 +27,8 @@
 
 (defn delay?
   "Returns true if x is a Delay."
-  {:see-also ["delay" "force"]}
+  {:example "(delay? (delay 1)) ; => true"
+   :see-also ["delay" "force"]}
   [x]
   (php/instanceof x Delay))
 

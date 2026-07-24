@@ -11,6 +11,8 @@
 
 (defn macroexpand-1
   "Expands the given form once if it is a macro call."
+  {:example "(macroexpand-1 '(when true 1)) ; => (if true (do 1))"
+   :see-also ["macroexpand"]}
   [form]
   (if (and (list? form) (not (empty? form)))
     (let [op (first form)]

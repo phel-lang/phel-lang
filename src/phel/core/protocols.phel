@@ -55,7 +55,8 @@
   "Creates a fresh, empty hierarchy.
 
 Returns a map with `:parents`, `:descendants`, and `:ancestors` keys, each holding an empty map. Matches Clojure's hierarchy shape so consumers can destructure any of the three relationship views."
-  {:see-also ["derive" "isa?" "parents" "ancestors" "descendants"]}
+  {:example "(make-hierarchy) ; => {:parents {}, :descendants {}, :ancestors {}}"
+   :see-also ["derive" "isa?" "parents" "ancestors" "descendants"]}
   []
   {:parents {}, :descendants {}, :ancestors {}})
 

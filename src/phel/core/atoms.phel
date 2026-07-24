@@ -37,12 +37,15 @@ Optional `:meta` and `:validator` keyword arguments may follow the value in any 
 
 (defn atom?
   "Returns true if the given value is an atom."
+  {:example "(atom? (atom 1)) ; => true"
+   :see-also ["atom" "var?"]}
   [x]
   (php/instanceof x Atom))
 
 (defn var?
   "Returns true if the given value is a `Var`, the first-class handle to a global definition produced by `(var sym)` and `#'sym`."
-  {:see-also ["var-get" "find-var" "alter-var-root"]}
+  {:example "(var? #'map) ; => true"
+   :see-also ["var-get" "find-var" "alter-var-root"]}
   [x]
   (php/instanceof x PhelVar))
 
@@ -221,7 +224,8 @@ Returns the new value after the swap."
 
 (defn get-validator
   "Returns the validator function of a variable, or nil."
-  {:see-also ["set-validator!"]}
+  {:example "(get-validator (atom 1)) ; => nil"
+   :see-also ["set-validator!"]}
   [variable]
   (php/-> variable (getValidator)))
 
@@ -400,6 +404,8 @@ Returns the new value after the swap."
 
 (defn identity
   "Returns its argument."
+  {:example "(identity 42) ; => 42"
+   :see-also ["constantly" "comp"]}
   [x]
   x)
 

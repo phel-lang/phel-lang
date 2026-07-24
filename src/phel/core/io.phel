@@ -102,6 +102,8 @@
 
 (defn format
   "Returns a formatted string. See PHP's [sprintf](https://www.php.net/manual/en/function.sprintf.php) for more information."
+  {:example "(format \"%d-%s\" 1 \"a\") ; => \"1-a\""
+   :see-also ["str" "printf"]}
   [fmt & xs]
   (apply php/sprintf fmt xs))
 
@@ -320,6 +322,8 @@ See PHP's [file_put_contents](https://www.php.net/manual/en/function.file-put-co
 
 (defmacro some->
   "Threads `x` through the forms like `->` but stops when a form returns `nil`."
+  {:example "(some-> {:a 1} :a inc) ; => 2"
+   :see-also ["some->>" "->" "as->"]}
   [x & forms]
   (loop [x     x
          forms (if (empty? forms) nil forms)]
@@ -344,6 +348,8 @@ See PHP's [file_put_contents](https://www.php.net/manual/en/function.file-put-co
 
 (defmacro some->>
   "Threads `x` through the forms like `->>` but stops when a form returns `nil`."
+  {:example "(some->> 5 (+ 3) (* 2)) ; => 16"
+   :see-also ["some->" "->>" "as->"]}
   [x & forms]
   (loop [x     x
          forms (if (empty? forms) nil forms)]
@@ -368,6 +374,8 @@ See PHP's [file_put_contents](https://www.php.net/manual/en/function.file-put-co
 
 (defmacro as->
   "Binds `name` to `expr`, evaluates the first form in the lexical context of that binding, then binds name to that result, repeating for each successive form, returning the result of the last form."
+  {:example "(as-> 1 x (+ x 2) (* x 3)) ; => 9"
+   :see-also ["->" "->>" "some->"]}
   [expr name & forms]
   `(let [~name ~expr
          ~@(interleave (repeat (count forms) name) forms)]
@@ -375,6 +383,8 @@ See PHP's [file_put_contents](https://www.php.net/manual/en/function.file-put-co
 
 (defmacro doto
   "Evaluates x then calls all of the methods and functions with the value of x supplied at the front of the given arguments. The forms are evaluated in order. Returns x."
+  {:example "(deref (doto (atom 0) (reset! 5))) ; => 5"
+   :see-also ["->" "atom"]}
   [x & forms]
   (let [gx (gensym)]
     `(let [~gx ~x]
