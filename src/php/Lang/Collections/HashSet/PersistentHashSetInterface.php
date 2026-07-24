@@ -13,31 +13,31 @@ use Phel\Lang\FnInterface;
 use Phel\Lang\TypeInterface;
 
 /**
- * @template V
+ * @template TValue
  *
- * @extends AsTransientInterface<TransientHashSetInterface<V>>
- * @extends IteratorAggregate<int, V>
- * @extends ContainsInterface<V>
- * @extends ConcatInterface<PersistentHashSetInterface<V>>
+ * @extends AsTransientInterface<TransientHashSetInterface<TValue>>
+ * @extends IteratorAggregate<int, TValue>
+ * @extends ContainsInterface<TValue>
+ * @extends ConcatInterface<PersistentHashSetInterface<TValue>>
  */
 interface PersistentHashSetInterface extends TypeInterface, Countable, IteratorAggregate, AsTransientInterface, FnInterface, ConcatInterface, ContainsInterface
 {
     /**
-     * @param V $value
+     * @param TValue $value
      *
-     * @return self<V>
+     * @return self<TValue>
      */
     public function add(mixed $value): self;
 
     /**
-     * @param V $value
+     * @param TValue $value
      *
-     * @return self<V>
+     * @return self<TValue>
      */
     public function remove(mixed $value): self;
 
     /**
-     * @return array<int, V>
+     * @return array<int, TValue>
      */
     public function toPhpArray(): array;
 }

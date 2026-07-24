@@ -10,15 +10,15 @@ use Phel\Lang\HasherInterface;
 use Traversable;
 
 /**
- * @template K
- * @template V
+ * @template TKey
+ * @template TValue
  *
- * @implements HashMapNodeInterface<K, V>
+ * @implements HashMapNodeInterface<TKey, TValue>
  */
 final class ArrayNode implements HashMapNodeInterface, Countable
 {
     /**
-     * @param array<int, ?HashMapNodeInterface<K, V>> $childNodes A fixed size array of nodes
+     * @param array<int, ?HashMapNodeInterface<TKey, TValue>> $childNodes A fixed size array of nodes
      */
     public function __construct(
         private readonly HasherInterface $hasher,
@@ -28,11 +28,11 @@ final class ArrayNode implements HashMapNodeInterface, Countable
     ) {}
 
     /**
-     * @return self<K, V>
+     * @return self<TKey, TValue>
      */
     public static function empty(HasherInterface $hasher, EqualizerInterface $equalizer): self
     {
-        /** @var self<K, V> $result */
+        /** @var self<TKey, TValue> $result */
         $result = new self($hasher, $equalizer, 0, []);
         return $result;
     }
@@ -46,16 +46,16 @@ final class ArrayNode implements HashMapNodeInterface, Countable
      * @param mixed $key
      * @param mixed $value
      *
-     * @return HashMapNodeInterface<K, V>
+     * @return HashMapNodeInterface<TKey, TValue>
      */
     public function put(int $shift, int $hash, $key, $value, Box $addedLeaf): HashMapNodeInterface
     {
         $index = $this->mask($hash, $shift);
 
         if (isset($this->childNodes[$index])) {
-            /** @var HashMapNodeInterface<K, V> $node */
+            /** @var HashMapNodeInterface<TKey, TValue> $node */
             $node = $this->childNodes[$index];
-            /** @var HashMapNodeInterface<K, V> $n */
+            /** @var HashMapNodeInterface<TKey, TValue> $n */
             $n = $node->put($shift + 5, $hash, $key, $value, $addedLeaf);
             if ($n === $node) {
                 return $this;
@@ -69,7 +69,7 @@ final class ArrayNode implements HashMapNodeInterface, Countable
             );
         }
 
-        /** @var HashMapNodeInterface<K, V> $newNode */
+        /** @var HashMapNodeInterface<TKey, TValue> $newNode */
         $newNode = IndexedNode::empty($this->hasher, $this->equalizer)->put($shift + 5, $hash, $key, $value, $addedLeaf);
 
         return new self(
@@ -83,7 +83,7 @@ final class ArrayNode implements HashMapNodeInterface, Countable
     /**
      * @param mixed $key
      *
-     * @return HashMapNodeInterface<K, V>
+     * @return HashMapNodeInterface<TKey, TValue>
      */
     public function remove(int $shift, int $hash, $key): HashMapNodeInterface
     {
@@ -130,19 +130,19 @@ final class ArrayNode implements HashMapNodeInterface, Countable
     }
 
     /**
-     * @return Traversable<K, V>
+     * @return Traversable<TKey, TValue>
      */
     public function getIterator(): Traversable
     {
-        /** @var ArrayNodeIterator<K, V> $iterator */
+        /** @var ArrayNodeIterator<TKey, TValue> $iterator */
         $iterator = new ArrayNodeIterator($this->childNodes);
         return $iterator;
     }
 
     /**
-     * @param HashMapNodeInterface<K, V>|null $node
+     * @param HashMapNodeInterface<TKey, TValue>|null $node
      *
-     * @return array<int, ?HashMapNodeInterface<K, V>>
+     * @return array<int, ?HashMapNodeInterface<TKey, TValue>>
      */
     private function cloneAndSet(int $index, ?HashMapNodeInterface $node): array
     {
@@ -153,11 +153,11 @@ final class ArrayNode implements HashMapNodeInterface, Countable
     }
 
     /**
-     * @return HashMapNodeInterface<K, V>
+     * @return HashMapNodeInterface<TKey, TValue>
      */
     private function pack(int $index): HashMapNodeInterface
     {
-        /** @var array<int, array{0: K|null, 1: HashMapNodeInterface<K, V>|V}> $objects */
+        /** @var array<int, array{0: TKey|null, 1: HashMapNodeInterface<TKey, TValue>|TValue}> $objects */
         $objects = [];
         foreach ($this->childNodes as $i => $node) {
             if ($i === $index) {
@@ -172,11 +172,11 @@ final class ArrayNode implements HashMapNodeInterface, Countable
         }
 
         /**
-         * @var IndexedNode<K, V> $result
+         * @var IndexedNode<TKey, TValue> $result
          *
          * @psalm-suppress InvalidArgument $objects holds [key, value] and
          * [null, childNode] pairs by trie construction; psalm cannot reconcile
-         * the HashMapNodeInterface<K, V>|V element union with IndexedNode's
+         * the HashMapNodeInterface<TKey, TValue>|TValue element union with IndexedNode's
          * own template parameters (a generic-variance limitation PHPStan accepts).
          */
         $result = new IndexedNode($this->hasher, $this->equalizer, $objects);

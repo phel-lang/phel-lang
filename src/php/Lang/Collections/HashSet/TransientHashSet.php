@@ -9,14 +9,14 @@ use Phel\Lang\HasherInterface;
 use Stringable;
 
 /**
- * @template V
+ * @template TValue
  *
- * @implements TransientHashSetInterface<V>
+ * @implements TransientHashSetInterface<TValue>
  */
 final readonly class TransientHashSet implements TransientHashSetInterface, Stringable
 {
     /**
-     * @param TransientMapInterface<V, V> $transientMap
+     * @param TransientMapInterface<TValue, TValue> $transientMap
      */
     public function __construct(
         private HasherInterface $hasher,
@@ -32,9 +32,9 @@ final readonly class TransientHashSet implements TransientHashSetInterface, Stri
      * Membership lookup so transient sets remain callable like their persistent
      * counterparts: `((transient #{:a}) :a) ; => :a`, else `nil`.
      *
-     * @param V $key
+     * @param TValue $key
      *
-     * @return V|null
+     * @return TValue|null
      */
     public function __invoke(mixed $key): mixed
     {
@@ -55,9 +55,9 @@ final readonly class TransientHashSet implements TransientHashSetInterface, Stri
     }
 
     /**
-     * @param V $value
+     * @param TValue $value
      *
-     * @return TransientHashSetInterface<V>
+     * @return TransientHashSetInterface<TValue>
      */
     public function add($value): TransientHashSetInterface
     {
@@ -67,9 +67,9 @@ final readonly class TransientHashSet implements TransientHashSetInterface, Stri
     }
 
     /**
-     * @param V $value
+     * @param TValue $value
      *
-     * @return TransientHashSetInterface<V>
+     * @return TransientHashSetInterface<TValue>
      */
     public function remove($value): TransientHashSetInterface
     {
@@ -79,7 +79,7 @@ final readonly class TransientHashSet implements TransientHashSetInterface, Stri
     }
 
     /**
-     * @return PersistentHashSetInterface<V>
+     * @return PersistentHashSetInterface<TValue>
      */
     public function persistent(): PersistentHashSetInterface
     {

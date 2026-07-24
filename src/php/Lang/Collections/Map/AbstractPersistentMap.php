@@ -13,12 +13,12 @@ use function is_float;
 use function is_nan;
 
 /**
- * @template K
- * @template V
+ * @template TKey
+ * @template TValue
  *
- * @implements PersistentMapInterface<K, V>
+ * @implements PersistentMapInterface<TKey, TValue>
  *
- * @extends AbstractType<AbstractPersistentMap<K, V>>
+ * @extends AbstractType<AbstractPersistentMap<TKey, TValue>>
  */
 abstract class AbstractPersistentMap extends AbstractType implements PersistentMapInterface
 {
@@ -34,9 +34,9 @@ abstract class AbstractPersistentMap extends AbstractType implements PersistentM
     ) {}
 
     /**
-     * @param K $key
+     * @param TKey $key
      *
-     * @return ?V
+     * @return ?TValue
      */
     public function __invoke(mixed $key)
     {
@@ -95,9 +95,9 @@ abstract class AbstractPersistentMap extends AbstractType implements PersistentM
     }
 
     /**
-     * @param PersistentMapInterface<K, V> $other
+     * @param PersistentMapInterface<TKey, TValue> $other
      *
-     * @return PersistentMapInterface<K, V>
+     * @return PersistentMapInterface<TKey, TValue>
      */
     public function merge(PersistentMapInterface $other): PersistentMapInterface
     {
@@ -107,7 +107,7 @@ abstract class AbstractPersistentMap extends AbstractType implements PersistentM
                 $tm->put($k, $v);
             }
 
-            /** @var PersistentMapInterface<K, V> $result */
+            /** @var PersistentMapInterface<TKey, TValue> $result */
             $result = $tm->persistent();
 
             return $result;
@@ -122,9 +122,9 @@ abstract class AbstractPersistentMap extends AbstractType implements PersistentM
     }
 
     /**
-     * @param K $offset
+     * @param TKey $offset
      *
-     * @return V|null
+     * @return TValue|null
      */
     public function offsetGet(mixed $offset): mixed
     {
@@ -132,7 +132,7 @@ abstract class AbstractPersistentMap extends AbstractType implements PersistentM
     }
 
     /**
-     * @param K $offset
+     * @param TKey $offset
      */
     public function offsetExists(mixed $offset): bool
     {

@@ -80,15 +80,15 @@ final class TransientVector implements TransientVectorInterface, Stringable
     }
 
     /**
-     * @template U
+     * @template TValue
      *
-     * @param array<int, U> $array
+     * @param array<int, TValue> $array
      *
-     * @return self<U>
+     * @return self<TValue>
      */
     public static function fromArray(HasherInterface $hasher, EqualizerInterface $equalizer, array $array): self
     {
-        /** @var self<U> $v */
+        /** @var self<TValue> $v */
         $v = self::empty($hasher, $equalizer);
         foreach ($array as $a) {
             $v->append($a);

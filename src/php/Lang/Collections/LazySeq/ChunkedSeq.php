@@ -47,12 +47,12 @@ final class ChunkedSeq extends AbstractType implements LazySeqInterface, Countab
     /**
      * Creates a ChunkedSeq from a Generator, realizing elements in chunks.
      *
-     * @template U
+     * @template TValue
      *
-     * @param Generator<int, U>                         $generator
+     * @param Generator<int, TValue>                    $generator
      * @param PersistentMapInterface<mixed, mixed>|null $meta
      *
-     * @return ChunkedSeq<U>|null
+     * @return ChunkedSeq<TValue>|null
      */
     public static function fromGenerator(
         HasherInterface $hasher,
@@ -85,12 +85,12 @@ final class ChunkedSeq extends AbstractType implements LazySeqInterface, Countab
     /**
      * Creates a ChunkedSeq from an array, chunking it for lazy evaluation.
      *
-     * @template U
+     * @template TValue
      *
-     * @param array<int, U>                             $array
+     * @param array<int, TValue>                        $array
      * @param PersistentMapInterface<mixed, mixed>|null $meta
      *
-     * @return ChunkedSeq<U>|null
+     * @return ChunkedSeq<TValue>|null
      */
     public static function fromArray(
         HasherInterface $hasher,

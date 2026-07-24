@@ -18,11 +18,11 @@ use function is_float;
 use function is_nan;
 
 /**
- * @template V
+ * @template TValue
  *
- * @implements PersistentHashSetInterface<V>
+ * @implements PersistentHashSetInterface<TValue>
  *
- * @extends AbstractType<PersistentSortedSet<V>>
+ * @extends AbstractType<PersistentSortedSet<TValue>>
  */
 final class PersistentSortedSet extends AbstractType implements PersistentHashSetInterface
 {
@@ -30,7 +30,7 @@ final class PersistentSortedSet extends AbstractType implements PersistentHashSe
 
     /**
      * @param PersistentMapInterface<mixed, mixed>|null $meta
-     * @param PersistentMapInterface<V, V>              $map
+     * @param PersistentMapInterface<TValue, TValue>    $map
      */
     public function __construct(
         private readonly HasherInterface $hasher,
@@ -39,9 +39,9 @@ final class PersistentSortedSet extends AbstractType implements PersistentHashSe
     ) {}
 
     /**
-     * @param V $key
+     * @param TValue $key
      *
-     * @return ?V
+     * @return ?TValue
      */
     public function __invoke(mixed $key)
     {
@@ -65,7 +65,7 @@ final class PersistentSortedSet extends AbstractType implements PersistentHashSe
     }
 
     /**
-     * @param V $key
+     * @param TValue $key
      */
     public function contains($key): bool
     {
@@ -73,7 +73,7 @@ final class PersistentSortedSet extends AbstractType implements PersistentHashSe
     }
 
     /**
-     * @param V $value
+     * @param TValue $value
      */
     public function add($value): PersistentHashSetInterface
     {
@@ -82,12 +82,12 @@ final class PersistentSortedSet extends AbstractType implements PersistentHashSe
             return $this;
         }
 
-        /** @var PersistentSortedMap<V, V> $newMap */
+        /** @var PersistentSortedMap<TValue, TValue> $newMap */
         return new self($this->hasher, $this->meta, $newMap);
     }
 
     /**
-     * @param V $value
+     * @param TValue $value
      */
     public function remove($value): PersistentHashSetInterface
     {
@@ -152,11 +152,11 @@ final class PersistentSortedSet extends AbstractType implements PersistentHashSe
     }
 
     /**
-     * @return TransientSortedSet<V>
+     * @return TransientSortedSet<TValue>
      */
     public function asTransient(): TransientSortedSet
     {
-        /** @var TransientMapInterface<V, V> $transient */
+        /** @var TransientMapInterface<TValue, TValue> $transient */
         $transient = $this->map->asTransient();
         return new TransientSortedSet($this->hasher, $transient);
     }

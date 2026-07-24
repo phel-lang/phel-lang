@@ -13,42 +13,42 @@ use Phel\Lang\FnInterface;
 use Phel\Lang\TypeInterface;
 
 /**
- * @template K
- * @template V
+ * @template TKey
+ * @template TValue
  *
- * @extends IteratorAggregate<K, V>
- * @extends ArrayAccess<K,V>
- * @extends AsTransientInterface<TransientMapInterface<K, V>>
- * @extends ContainsInterface<K>
+ * @extends IteratorAggregate<TKey, TValue>
+ * @extends ArrayAccess<TKey,TValue>
+ * @extends AsTransientInterface<TransientMapInterface<TKey, TValue>>
+ * @extends ContainsInterface<TKey>
  */
 interface PersistentMapInterface extends TypeInterface, Countable, IteratorAggregate, ArrayAccess, AsTransientInterface, FnInterface, ContainsInterface
 {
     /**
-     * @param K $key
-     * @param V $value
+     * @param TKey   $key
+     * @param TValue $value
      *
-     * @return self<K, V>
+     * @return self<TKey, TValue>
      */
     public function put(mixed $key, mixed $value): self;
 
     /**
-     * @param K $key
+     * @param TKey $key
      *
-     * @return self<K, V>
+     * @return self<TKey, TValue>
      */
     public function remove(mixed $key): self;
 
     /**
-     * @param K $key
+     * @param TKey $key
      *
-     * @return V|null Value for $key, or null when the key is absent
+     * @return TValue|null Value for $key, or null when the key is absent
      */
     public function find(mixed $key);
 
     /**
-     * @param self<K, V> $other
+     * @param self<TKey, TValue> $other
      *
-     * @return self<K, V>
+     * @return self<TKey, TValue>
      */
     public function merge(self $other): self;
 }

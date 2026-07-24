@@ -11,14 +11,14 @@ use Phel\Lang\HasherInterface;
 use Stringable;
 
 /**
- * @template V
+ * @template TValue
  *
- * @implements TransientHashSetInterface<V>
+ * @implements TransientHashSetInterface<TValue>
  */
 final readonly class TransientSortedSet implements TransientHashSetInterface, Stringable
 {
     /**
-     * @param TransientMapInterface<V, V> $transientMap
+     * @param TransientMapInterface<TValue, TValue> $transientMap
      */
     public function __construct(
         private HasherInterface $hasher,
@@ -41,7 +41,7 @@ final readonly class TransientSortedSet implements TransientHashSetInterface, St
     }
 
     /**
-     * @param V $value
+     * @param TValue $value
      */
     public function add($value): TransientHashSetInterface
     {
@@ -51,7 +51,7 @@ final readonly class TransientSortedSet implements TransientHashSetInterface, St
     }
 
     /**
-     * @param V $value
+     * @param TValue $value
      */
     public function remove($value): TransientHashSetInterface
     {

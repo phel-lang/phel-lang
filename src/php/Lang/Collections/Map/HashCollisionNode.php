@@ -12,15 +12,15 @@ use function array_slice;
 use function array_values;
 
 /**
- * @template K
- * @template V
+ * @template TKey
+ * @template TValue
  *
- * @implements HashMapNodeInterface<K, V>
+ * @implements HashMapNodeInterface<TKey, TValue>
  */
 final class HashCollisionNode implements HashMapNodeInterface
 {
     /**
-     * @param list<K|V> $objects
+     * @param list<TKey|TValue> $objects
      */
     public function __construct(
         private readonly HasherInterface $hasher,
@@ -31,10 +31,10 @@ final class HashCollisionNode implements HashMapNodeInterface
     ) {}
 
     /**
-     * @param K $key
-     * @param V $value
+     * @param TKey   $key
+     * @param TValue $value
      *
-     * @return HashMapNodeInterface<K, V>
+     * @return HashMapNodeInterface<TKey, TValue>
      */
     public function put(int $shift, int $hash, $key, $value, Box $addedLeaf): HashMapNodeInterface
     {
@@ -46,25 +46,25 @@ final class HashCollisionNode implements HashMapNodeInterface
                     return $this;
                 }
 
-                /** @var self<K, V> $updated */
+                /** @var self<TKey, TValue> $updated */
                 $updated = new self($this->hasher, $this->equalizer, $this->hash, $this->count, $this->cloneAndSet($index + 1, $value));
                 return $updated;
             }
 
             $addedLeaf->setValue(true);
-            /** @var self<K, V> $added */
+            /** @var self<TKey, TValue> $added */
             $added = new self($this->hasher, $this->equalizer, $this->hash, $this->count + 1, $this->cloneAndAdd($key, $value));
             return $added;
         }
 
-        /** @var array<int, array{0: K|null, 1: HashMapNodeInterface<K, V>|V}> $childObjects */
+        /** @var array<int, array{0: TKey|null, 1: HashMapNodeInterface<TKey, TValue>|TValue}> $childObjects */
         $childObjects = [$this->mask($this->hash, $shift) => [null, $this]];
         /**
-         * @var IndexedNode<K, V> $node
+         * @var IndexedNode<TKey, TValue> $node
          *
          * @psalm-suppress InvalidArgument $childObjects holds a [null, childNode]
          * pair by trie construction; psalm cannot reconcile the
-         * HashMapNodeInterface<K, V>|V element union with IndexedNode's own
+         * HashMapNodeInterface<TKey, TValue>|TValue element union with IndexedNode's own
          * template parameters (a generic-variance limitation PHPStan accepts).
          */
         $node = new IndexedNode($this->hasher, $this->equalizer, $childObjects);
@@ -74,7 +74,7 @@ final class HashCollisionNode implements HashMapNodeInterface
     /**
      * @param mixed $key
      *
-     * @return HashMapNodeInterface<K, V>|null
+     * @return HashMapNodeInterface<TKey, TValue>|null
      */
     public function remove(int $shift, int $hash, $key): ?HashMapNodeInterface
     {
@@ -87,7 +87,7 @@ final class HashCollisionNode implements HashMapNodeInterface
             return null;
         }
 
-        /** @var self<K, V> $result */
+        /** @var self<TKey, TValue> $result */
         $result = new self($this->hasher, $this->equalizer, $this->hash, $this->count - 1, $this->removePair($index));
         return $result;
     }
@@ -106,26 +106,26 @@ final class HashCollisionNode implements HashMapNodeInterface
         }
 
         $pair = array_slice($this->objects, $index, 2);
-        /** @var V $value */
+        /** @var TValue $value */
         $value = $pair[1] ?? $notFound;
 
         return $value;
     }
 
     /**
-     * @return Traversable<K, V>
+     * @return Traversable<TKey, TValue>
      */
     public function getIterator(): Traversable
     {
-        /** @var array{K, V, K, V} $entries */
+        /** @var array{TKey, TValue, TKey, TValue} $entries */
         $entries = $this->objects;
-        /** @var HashCollisionNodeIterator<K, V> $iterator */
+        /** @var HashCollisionNodeIterator<TKey, TValue> $iterator */
         $iterator = new HashCollisionNodeIterator($entries);
         return $iterator;
     }
 
     /**
-     * @param K $key
+     * @param TKey $key
      */
     private function findIndex(mixed $key): int
     {
@@ -139,9 +139,9 @@ final class HashCollisionNode implements HashMapNodeInterface
     }
 
     /**
-     * @param V $value
+     * @param TValue $value
      *
-     * @return list<K|V>
+     * @return list<TKey|TValue>
      */
     private function cloneAndSet(int $index, mixed $value): array
     {
@@ -152,10 +152,10 @@ final class HashCollisionNode implements HashMapNodeInterface
     }
 
     /**
-     * @param K $key
-     * @param V $value
+     * @param TKey   $key
+     * @param TValue $value
      *
-     * @return list<K|V>
+     * @return list<TKey|TValue>
      */
     private function cloneAndAdd(mixed $key, mixed $value): array
     {
@@ -167,7 +167,7 @@ final class HashCollisionNode implements HashMapNodeInterface
     }
 
     /**
-     * @return list<K|V>
+     * @return list<TKey|TValue>
      */
     private function removePair(int $index): array
     {

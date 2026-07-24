@@ -8,28 +8,28 @@ use Countable;
 use Phel\Lang\ContainsInterface;
 
 /**
- * @template V
+ * @template TValue
  *
- * @extends ContainsInterface<V>
+ * @extends ContainsInterface<TValue>
  */
 interface TransientHashSetInterface extends Countable, ContainsInterface
 {
     /**
-     * @param V $value
+     * @param TValue $value
      *
-     * @return self<V>
+     * @return self<TValue>
      */
     public function add(mixed $value): self;
 
     /**
-     * @param V $value
+     * @param TValue $value
      *
-     * @return self<V>
+     * @return self<TValue>
      */
     public function remove(mixed $value): self;
 
     /**
-     * @return PersistentHashSetInterface<V>
+     * @return PersistentHashSetInterface<TValue>
      */
     public function persistent(): PersistentHashSetInterface;
 }

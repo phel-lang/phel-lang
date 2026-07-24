@@ -65,11 +65,11 @@ final class PersistentVector extends AbstractPersistentVector
     }
 
     /**
-     * @template U
+     * @template TValue
      *
-     * @param array<int, U> $values
+     * @param array<int, TValue> $values
      *
-     * @return PersistentVectorInterface<U>
+     * @return PersistentVectorInterface<TValue>
      */
     public static function fromArray(
         HasherInterface $hasher,
@@ -77,12 +77,12 @@ final class PersistentVector extends AbstractPersistentVector
         array $values,
     ): PersistentVectorInterface {
         if ($values === []) {
-            /** @var self<U> $empty */
+            /** @var self<TValue> $empty */
             $empty = self::empty($hasher, $equalizer);
             return $empty;
         }
 
-        /** @var TransientVector<U> $tv */
+        /** @var TransientVector<TValue> $tv */
         $tv = TransientVector::empty($hasher, $equalizer);
         foreach ($values as $value) {
             $tv->append($value);
