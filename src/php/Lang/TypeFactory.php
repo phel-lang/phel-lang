@@ -120,8 +120,8 @@ final class TypeFactory
     }
 
     /**
-     * @param array<int, mixed>            $kvs
-     * @param ?callable(mixed, mixed): int $comparator
+     * @param array<int, mixed>                   $kvs
+     * @param ?callable(mixed, mixed): (bool|int) $comparator spaceship- or predicate-style
      *
      * @return PersistentMapInterface<mixed, mixed>
      */
@@ -131,8 +131,8 @@ final class TypeFactory
     }
 
     /**
-     * @param array<int, mixed>            $values
-     * @param ?callable(mixed, mixed): int $comparator
+     * @param array<int, mixed>                   $values
+     * @param ?callable(mixed, mixed): (bool|int) $comparator spaceship- or predicate-style
      *
      * @return PersistentHashSetInterface<mixed>
      */

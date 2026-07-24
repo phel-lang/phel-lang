@@ -24,11 +24,14 @@ final class TransientSortedMap implements TransientMapInterface
 {
     use TransientStateTrait;
 
+    /** @var Closure(mixed, mixed): int */
     private readonly Closure $effectiveComparator;
 
     /**
-     * @param array<int, mixed>           $array          Flat [k, v, k, v, ...] in sorted key order
-     * @param ?Closure(mixed, mixed): int $userComparator Original user comparator (null = natural order)
+     * @param array<int, mixed>                  $array          Flat [k, v, k, v, ...] in sorted key order
+     * @param ?Closure(mixed, mixed): (bool|int) $userComparator Original user comparator (null = natural
+     *                                                           order). `(sorted-map-by < ...)` passes a
+     *                                                           predicate, hence the `bool` arm.
      */
     public function __construct(
         private readonly HasherInterface $hasher,
