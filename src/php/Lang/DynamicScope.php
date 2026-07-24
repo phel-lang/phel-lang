@@ -21,6 +21,8 @@ use function count;
  * stack of frames, and the main (non-fiber) context has its own stack.
  * This is the backing store for both the `binding` macro and "binding
  * conveyance" into `future`/`async` bodies.
+ *
+ * @phpstan-type ScopeFrame array{mode: string, dynamic: array<string, mixed>, redefs: list<array{0: string, 1: string, 2: mixed}>}
  */
 final class DynamicScope
 {
@@ -63,11 +65,11 @@ final class DynamicScope
      * 'dynamic' => array<string,mixed>,
      * 'redefs' => list<array{string,string,mixed}>]`.
      *
-     * @var list<array{mode: string, dynamic: array<string, mixed>, redefs: list<array{0: string, 1: string, 2: mixed}>}>
+     * @var list<ScopeFrame>
      */
     private array $mainRecordings = [];
 
-    /** @var WeakMap<Fiber<mixed, mixed, mixed, mixed>, list<array{mode: string, dynamic: array<string, mixed>, redefs: list<array{0: string, 1: string, 2: mixed}>}>> */
+    /** @var WeakMap<Fiber<mixed, mixed, mixed, mixed>, list<ScopeFrame>> */
     private WeakMap $fiberRecordings;
 
     private function __construct()
@@ -75,7 +77,7 @@ final class DynamicScope
         /** @var WeakMap<Fiber<mixed, mixed, mixed, mixed>, list<array<string, mixed>>> $map */
         $map = new WeakMap();
         $this->fiberStacks = $map;
-        /** @var WeakMap<Fiber<mixed, mixed, mixed, mixed>, list<array{mode: string, dynamic: array<string, mixed>, redefs: list<array{0: string, 1: string, 2: mixed}>}>> $recMap */
+        /** @var WeakMap<Fiber<mixed, mixed, mixed, mixed>, list<ScopeFrame>> $recMap */
         $recMap = new WeakMap();
         $this->fiberRecordings = $recMap;
     }
@@ -93,7 +95,7 @@ final class DynamicScope
         /** @var WeakMap<Fiber<mixed, mixed, mixed, mixed>, list<array<string, mixed>>> $map */
         $map = new WeakMap();
         $this->fiberStacks = $map;
-        /** @var WeakMap<Fiber<mixed, mixed, mixed, mixed>, list<array{mode: string, dynamic: array<string, mixed>, redefs: list<array{0: string, 1: string, 2: mixed}>}>> $recMap */
+        /** @var WeakMap<Fiber<mixed, mixed, mixed, mixed>, list<ScopeFrame>> $recMap */
         $recMap = new WeakMap();
         $this->fiberRecordings = $recMap;
     }
@@ -152,7 +154,7 @@ final class DynamicScope
     }
 
     /**
-     * @return array{mode: string, dynamic: array<string, mixed>, redefs: list<array{0: string, 1: string, 2: mixed}>}
+     * @return ScopeFrame
      */
     public function popRecording(): array
     {
@@ -320,7 +322,7 @@ final class DynamicScope
     }
 
     /**
-     * @param array{mode: string, dynamic: array<string, mixed>, redefs: list<array{0: string, 1: string, 2: mixed}>} $entry
+     * @param ScopeFrame $entry
      */
     private function pushRecording(array $entry): void
     {
@@ -333,14 +335,14 @@ final class DynamicScope
             return;
         }
 
-        /** @var list<array{mode: string, dynamic: array<string, mixed>, redefs: list<array{0: string, 1: string, 2: mixed}>}> $stack */
+        /** @var list<ScopeFrame> $stack */
         $stack = $this->fiberRecordings[$fiber] ?? [];
         $stack[] = $entry;
         $this->fiberRecordings[$fiber] = $stack;
     }
 
     /**
-     * @return array{mode: string, dynamic: array<string, mixed>, redefs: list<array{0: string, 1: string, 2: mixed}>}|null
+     * @return ScopeFrame|null
      */
     private function popTopRecording(): ?array
     {
@@ -354,7 +356,7 @@ final class DynamicScope
             return null;
         }
 
-        /** @var list<array{mode: string, dynamic: array<string, mixed>, redefs: list<array{0: string, 1: string, 2: mixed}>}> $stack */
+        /** @var list<ScopeFrame> $stack */
         $stack = $this->fiberRecordings[$fiber];
         $entry = array_pop($stack);
         if ($stack === []) {
@@ -367,7 +369,7 @@ final class DynamicScope
     }
 
     /**
-     * @return list<array{mode: string, dynamic: array<string, mixed>, redefs: list<array{0: string, 1: string, 2: mixed}>}>
+     * @return list<ScopeFrame>
      */
     private function currentRecordings(): array
     {
@@ -376,7 +378,7 @@ final class DynamicScope
             return $this->mainRecordings;
         }
 
-        /** @var list<array{mode: string, dynamic: array<string, mixed>, redefs: list<array{0: string, 1: string, 2: mixed}>}> $stack */
+        /** @var list<ScopeFrame> $stack */
         $stack = $this->fiberRecordings[$fiber] ?? [];
         return $stack;
     }
