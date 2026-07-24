@@ -42,6 +42,10 @@ use function is_string;
  * directly — bypassing the context-prefix machinery that would
  * inject `return …;` inside a match arm and break PHP syntax.
  */
+/**
+ * @phpstan-type MatchArm array{key: mixed, expr: mixed}
+ * @phpstan-type LoweredMatch array{init: AbstractNode, arms: list<MatchArm>, fallback: mixed}
+ */
 final readonly class IfChainMatchLowerer
 {
     /** @var list<string> */
@@ -58,7 +62,7 @@ final readonly class IfChainMatchLowerer
      * with no outer `let`. Every test must reference the **same**
      * `LocalVarNode` shadow.
      *
-     * @return array{init: LocalVarNode, arms: list<array{key: mixed, expr: mixed}>, fallback: mixed}|null
+     * @return array{init: LocalVarNode, arms: list<MatchArm>, fallback: mixed}|null
      */
     public static function analyseIfChain(IfNode $root): ?array
     {
@@ -104,7 +108,7 @@ final readonly class IfChainMatchLowerer
     }
 
     /**
-     * @return array{init: AbstractNode, arms: list<array{key: mixed, expr: mixed}>, fallback: mixed}|null
+     * @return LoweredMatch|null
      */
     public static function analyse(LetNode $root): ?array
     {

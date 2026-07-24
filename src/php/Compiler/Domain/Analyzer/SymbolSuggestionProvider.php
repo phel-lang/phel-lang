@@ -14,6 +14,9 @@ use function strcmp;
 use function strlen;
 use function usort;
 
+/**
+ * @phpstan-type ScoredCandidate array{symbol: string, subsequence: int, prefix: int, distance: int}
+ */
 final class SymbolSuggestionProvider
 {
     private const int MAX_EDIT_DISTANCE = 3;
@@ -50,7 +53,7 @@ final class SymbolSuggestionProvider
      * Scores a candidate against the typed symbol, or returns `null` when the
      * candidate is too dissimilar to suggest.
      *
-     * @return array{symbol: string, subsequence: int, prefix: int, distance: int}|null
+     * @return ScoredCandidate|null
      */
     private function score(string $undefinedSymbol, string $candidate): ?array
     {
@@ -87,8 +90,8 @@ final class SymbolSuggestionProvider
      * prefix, then smaller edit distance, then alphabetically for a stable,
      * deterministic result.
      *
-     * @param array{symbol: string, subsequence: int, prefix: int, distance: int} $a
-     * @param array{symbol: string, subsequence: int, prefix: int, distance: int} $b
+     * @param ScoredCandidate $a
+     * @param ScoredCandidate $b
      */
     private function byRelevance(array $a, array $b): int
     {
