@@ -73,6 +73,8 @@ Throws `InvalidArgumentException` for any other input (including functions, numb
 
 (defn gensym
   "Generates a new unique symbol."
+  {:example "(gensym) ; => __phel_1"
+   :see-also ["symbol"]}
   []
   (php/:: Symbol (gen)))
 
@@ -99,6 +101,8 @@ Throws `InvalidArgumentException` for any other input (including functions, numb
 
 (defn str
   "Creates a string by concatenating values together. If no arguments are provided an empty string is returned. Nil is represented as an empty string. Booleans are represented as \"true\" or \"false\" (matching Clojure semantics). Otherwise, it tries to call `__toString`."
+  {:example "(str \"a\" \"b\" \"c\") ; => \"abc\"\n(str 1 2 3) ; => \"123\"\n(str 1 nil true) ; => \"1true\"\n(str) ; => \"\""
+   :see-also ["print-str" "pr-str" "format"]}
   ^string [& args]
   (let [cnt (php/count args)]
     (if (php/=== cnt 0)
