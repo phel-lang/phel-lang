@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Phel\Build\Domain\Extractor;
 
 use RuntimeException;
+use Throwable;
 
 use function sprintf;
 
@@ -20,9 +21,21 @@ final class ExtractorException extends RuntimeException
         return new self('Cannot extract namespace from file: ' . $path);
     }
 
-    public static function cannotParseFile(string $path): self
+    /**
+     * @param ?Throwable $previous the lexer/parser/reader failure that caused this;
+     *                             its message is appended so the caller sees why
+     */
+    public static function cannotParseFile(string $path, ?Throwable $previous = null): self
     {
-        return new self('Cannot parse file: ' . $path);
+        if (!$previous instanceof Throwable) {
+            return new self('Cannot parse file: ' . $path);
+        }
+
+        return new self(
+            sprintf('Cannot parse file: %s: %s', $path, $previous->getMessage()),
+            0,
+            $previous,
+        );
     }
 
     public static function cannotResolveRequiredNamespace(string $requiredNs, string $requiringNs): self
