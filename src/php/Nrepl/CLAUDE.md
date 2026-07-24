@@ -7,8 +7,9 @@ nREPL protocol server: bencode-over-TCP for editor tooling (Cursive, Calva, CIDE
 | Method | Purpose |
 |--------|---------|
 | `createSocketServer(int $port, string $host, ?callable $logger): NreplSocketServer` | Build the TCP server |
-| `createOpDispatcher(): OpDispatcher` | Dispatcher for test/non-socket transport reuse |
 | `loadPhelNamespaces(): void` | Delegates to RunFacade |
+
+The facade is production surface only. `NreplFactory::createOpDispatcher()` stays internal wiring for `createSocketServer()`; tests build an `OpDispatcher` directly (see `tests/php/Unit/Nrepl/Domain/Op/OpDispatcherTest.php`) rather than going through the facade.
 
 ## Supported Ops
 

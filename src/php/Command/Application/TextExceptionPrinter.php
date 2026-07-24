@@ -41,12 +41,6 @@ final readonly class TextExceptionPrinter implements ExceptionPrinterInterface
         private ErrorLogInterface $errorLog,
     ) {}
 
-    public function printError(string $error): void
-    {
-        echo $error . PHP_EOL;
-        $this->errorLog->writeln($error);
-    }
-
     public function printException(AbstractLocatedException $e, CodeSnippet $codeSnippet): void
     {
         $this->errorLog->writeln($this->getExceptionString($e, $codeSnippet));
