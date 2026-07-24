@@ -7,6 +7,8 @@ namespace Phel\Build\Domain\Compile;
 /**
  * One namespace line in a {@see BuildReport}: its compiled byte size and
  * whether it was reused from the build cache.
+ *
+ * @phpstan-type SerializedBuildReportEntry array{namespace: string, bytes: int, cached: bool}
  */
 final readonly class BuildReportEntry
 {
@@ -17,7 +19,7 @@ final readonly class BuildReportEntry
     ) {}
 
     /**
-     * @return array{namespace: string, bytes: int, cached: bool}
+     * @return SerializedBuildReportEntry
      */
     public function toArray(): array
     {

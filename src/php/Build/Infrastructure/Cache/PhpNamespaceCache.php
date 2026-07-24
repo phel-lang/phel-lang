@@ -13,6 +13,10 @@ use function is_array;
 use function is_int;
 use function is_string;
 
+/**
+ * @phpstan-import-type PartialNamespaceCacheEntry from NamespaceCacheEntry
+ * @phpstan-import-type SerializedNamespaceCacheEntry from NamespaceCacheEntry
+ */
 final class PhpNamespaceCache implements NamespaceCacheInterface
 {
     private const string VERSION = '1.0';
@@ -134,7 +138,7 @@ final class PhpNamespaceCache implements NamespaceCacheInterface
                 && is_string($entryData['namespace'])
                 && is_array($entryData['dependencies'])
             ) {
-                /** @var array{mtime: int, namespace: string, dependencies: list<string>, isPrimaryDefinition?: bool} $entryData */
+                /** @var PartialNamespaceCacheEntry $entryData */
                 $entries[$file] = NamespaceCacheEntry::fromArray($file, $entryData);
             }
         }
@@ -143,7 +147,7 @@ final class PhpNamespaceCache implements NamespaceCacheInterface
     }
 
     /**
-     * @return array{version: string, entries: array<string, array{mtime: int, namespace: string, dependencies: list<string>, isPrimaryDefinition: bool}>}
+     * @return array{version: string, entries: array<string, SerializedNamespaceCacheEntry>}
      */
     private function toArray(): array
     {
