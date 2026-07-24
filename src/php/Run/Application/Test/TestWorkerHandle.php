@@ -43,7 +43,7 @@ final class TestWorkerHandle
 
     /**
      * @param closed-resource|resource $process
-     * @param array<int, resource> $pipes
+     * @param array<int, resource>     $pipes
      */
     public function __construct(private readonly mixed $process, array $pipes)
     {
