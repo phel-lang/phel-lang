@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Phel\Watch\Application;
 
+use Phel\Shared\ExistingPaths;
 use Phel\Shared\Facade\CommandFacadeInterface;
 use Phel\Watch\Application\Watcher\FileWatcherBuilder;
 use Phel\Watch\Domain\ReloadOrchestratorInterface;
@@ -12,7 +13,6 @@ use Phel\Watch\Transfer\WatchEvent;
 use function array_unique;
 use function array_values;
 use function is_dir;
-use function is_file;
 
 /**
  * Orchestrates one full watch session: picks a backend, resolves source
@@ -34,7 +34,7 @@ final readonly class WatchRunner
      */
     public function run(array $paths, array $options = []): void
     {
-        $paths = $this->filterExistingPaths($paths);
+        $paths = ExistingPaths::filter($paths);
         if ($paths === []) {
             return;
         }
@@ -47,23 +47,6 @@ final readonly class WatchRunner
             /** @var list<WatchEvent> $events */
             $orchestrator->handleChanges($events, $srcDirs);
         });
-    }
-
-    /**
-     * @param list<string> $paths
-     *
-     * @return list<string>
-     */
-    private function filterExistingPaths(array $paths): array
-    {
-        $filtered = [];
-        foreach ($paths as $path) {
-            if (is_file($path) || is_dir($path)) {
-                $filtered[] = $path;
-            }
-        }
-
-        return $filtered;
     }
 
     /**

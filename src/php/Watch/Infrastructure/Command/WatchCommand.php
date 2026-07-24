@@ -7,6 +7,7 @@ namespace Phel\Watch\Infrastructure\Command;
 use Gacela\Framework\ServiceResolver\ServiceMap;
 use Gacela\Framework\ServiceResolverAwareTrait;
 use Phel;
+use Phel\Shared\ExistingPaths;
 use Phel\Shared\ScalarCoercion;
 use Phel\Watch\WatchConfig;
 use Phel\Watch\WatchFacade;
@@ -19,8 +20,6 @@ use Symfony\Component\Console\Output\OutputInterface;
 use Throwable;
 
 use function implode;
-use function is_dir;
-use function is_file;
 use function sprintf;
 
 /**
@@ -96,7 +95,7 @@ HELP)
             $paths = $this->defaultPaths();
         }
 
-        $paths = $this->filterExistingPaths($paths);
+        $paths = ExistingPaths::filter($paths);
         if ($paths === []) {
             $output->writeln('<error>No readable paths to watch.</error>');
             return self::FAILURE;
@@ -142,22 +141,5 @@ HELP)
         $cmd = $this->getFactory()->getCommandFacade();
 
         return $cmd->getSourceDirectories();
-    }
-
-    /**
-     * @param list<string> $paths
-     *
-     * @return list<string>
-     */
-    private function filterExistingPaths(array $paths): array
-    {
-        $filtered = [];
-        foreach ($paths as $path) {
-            if (is_file($path) || is_dir($path)) {
-                $filtered[] = $path;
-            }
-        }
-
-        return $filtered;
     }
 }
