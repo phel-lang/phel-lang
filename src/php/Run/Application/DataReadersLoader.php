@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Phel\Run\Application;
 
+use Phel\Run\Domain\Runner\DataReadersLoadException;
 use Phel\Shared\Facade\BuildFacadeInterface;
 use Throwable;
 
@@ -43,15 +44,18 @@ final readonly class DataReadersLoader
         }
 
         // `data-readers.phel` typically `(:require phel\reader)` so we
-        // bootstrap the reader namespace first; missing reader is treated
-        // as a no-op to keep the loader opt-in.
+        // bootstrap the reader namespace first. Seeds that resolve to nothing
+        // are tolerated by dependency resolution and come back as an empty
+        // list, so reaching the catch means the source scan itself is broken.
+        // The user asked for these readers by shipping the file, so report it
+        // instead of leaving their tags unregistered.
         try {
             $readerInfos = $this->buildFacade->getDependenciesForNamespace(
                 $srcDirectories,
                 ['phel.reader', 'phel.core'],
             );
-        } catch (Throwable) {
-            return;
+        } catch (Throwable $throwable) {
+            throw DataReadersLoadException::cannotBootstrapReader($files, $throwable);
         }
 
         foreach ($readerInfos as $info) {

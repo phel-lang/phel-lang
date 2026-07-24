@@ -10,6 +10,7 @@ All notable changes to this project will be documented in this file.
 - `phel lint` now exits 2 with a clear message when `phel-lint.phel` exists but is unreadable, unparseable, or not a map, instead of silently falling back to the built-in default rules. A missing or empty config file still means defaults
 - Parse and lex failures during namespace extraction now report the underlying reason and chain the original exception, replacing a bare `Cannot parse file: <path>` with no line or cause
 - `phel format` now surfaces I/O failures instead of printing a stack trace and silently skipping the file
+- A `data-readers.phel` whose `phel.reader` bootstrap fails now reports the failing file and the underlying cause, instead of leaving every `(register-tag ...)` in it silently unregistered
 
 ### Changed
 
