@@ -91,6 +91,8 @@
 
 (defn comp
   "Takes a list of functions and returns a function that is the composition of those functions."
+  {:example "((comp inc (fn [x] (* x 2))) 3) ; => 7"
+   :see-also ["partial" "juxt" "identity"]}
   [& fs]
   (case (count fs)
     0 identity
@@ -453,6 +455,8 @@ Creates intermediate maps if they don't exist."
 
 (defn take
   "Takes the first `n` elements of `coll`. When called with n only, returns a transducer."
+  {:example "(take 2 [1 2 3 4]) ; => @[1 2]"
+   :see-also ["drop" "take-while"]}
   [n & args]
   (case (count args)
     0 (fn [rf]
@@ -1108,7 +1112,8 @@ With one argument returns an infinite lazy sequence of calls to f."
 
 (defn cat
   "A transducer that concatenates the contents of each input into the reduction."
-  {:see-also ["mapcat" "transduce"]}
+  {:example "(transduce cat conj [] [[1 2] [3 4]]) ; => [1 2 3 4]"
+   :see-also ["mapcat" "transduce"]}
   [rf]
   (let [rrf (preserving-reduced rf)]
     (xf-step rf (fn [result input] (reduce rrf result input)))))

@@ -11,6 +11,7 @@ All notable changes to this project will be documented in this file.
 - Documented the reduced/volatile transducer primitives (`reduced`, `reduced?`, `unreduced`, `completing`, `volatile!`, `vreset!`, `vswap!`, `volatile?`)
 - Documented the remaining exception accessors (`ex-data`, `ex-message`, `ex-cause`) and nested-seq accessors (`ffirst`, `nfirst`, `nnext`)
 - Documented the binding macros (`if-let`, `when-let`, `if-some`, `when-some`, `when-first`) and compile-bridge fns (`namespace`, `full-name`, `read-string`, `eval`, `protocol-type-key`)
+- Documented threading macros (`some->`, `some->>`, `as->`, `doto`), `comp`/`take`/`cat`/`pop`, `format`, `macroexpand-1`, and predicates/accessors (`atom?`, `var?`, `delay?`, `get-validator`, `identity`, `make-hierarchy`)
 
 ### Removed
 

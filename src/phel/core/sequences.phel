@@ -58,6 +58,8 @@
 
 (defmacro pop
   "Removes the last element of a collection. Returns nil for nil."
+  {:example "(pop [1 2 3]) ; => [1 2]"
+   :see-also ["conj" "rest"]}
   [coll]
   (if (symbol? coll)
     `(pop* ~coll)
