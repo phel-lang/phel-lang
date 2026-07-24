@@ -164,11 +164,9 @@
   (let [is-url? (php/preg_match "/^(https?|ftp):\/\//i" path)]
     ;; Validate for non-URLs
     (when-not is-url?
-      ;; Check if path is a directory
       (when (php/is_dir path)
         (throw (php/new \InvalidArgumentException
                         (str "Cannot read directory: " path))))
-      ;; Check if file exists
       (when-not (php/is_file path)
         (throw (php/new \InvalidArgumentException
                         (str "File not found: " path)))))
@@ -179,7 +177,6 @@
           offset           (or (:offset opts) 0)
           length           (or (:length opts) nil)
           content          (file-get-contents-silenced path use-include-path context offset length)]
-      ;; Check if file_get_contents failed
       (when (= content false)
         (throw (php/new \InvalidArgumentException
                         (str "Failed to read from: " path))))
