@@ -10,13 +10,6 @@ namespace Phel\Lang\Collections\LazySeq;
 final class LazySeqConfig
 {
     /**
-     * Collections with fewer elements than this threshold will be realized eagerly.
-     * This optimizes performance for small collections where lazy evaluation overhead
-     * would be greater than the benefit.
-     */
-    public const int EAGER_THRESHOLD = 32;
-
-    /**
      * Size of chunks when using chunked sequences.
      * Chunked sequences realize elements in batches for better performance.
      */
