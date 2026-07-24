@@ -28,6 +28,8 @@ use function substr;
  */
 final readonly class UUID implements TypeInterface, Stringable
 {
+    use CopyLocationFromTrait;
+
     private const string CANONICAL_REGEX = '/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i';
 
     /**
@@ -162,14 +164,4 @@ final readonly class UUID implements TypeInterface, Stringable
         return $this->endLocation;
     }
 
-    public function copyLocationFrom(mixed $other): static
-    {
-        if ($other instanceof SourceLocationInterface) {
-            return $this
-                ->setStartLocation($other->getStartLocation())
-                ->setEndLocation($other->getEndLocation());
-        }
-
-        return $this;
-    }
 }

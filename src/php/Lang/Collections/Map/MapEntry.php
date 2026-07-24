@@ -8,10 +8,10 @@ use Countable;
 use IteratorAggregate;
 use Phel\Lang\CdrInterface;
 use Phel\Lang\Collections\Vector\PersistentVectorInterface;
+use Phel\Lang\CopyLocationFromTrait;
 use Phel\Lang\EqualsInterface;
 use Phel\Lang\FirstInterface;
 use Phel\Lang\SourceLocation;
-use Phel\Lang\SourceLocationInterface;
 use Phel\Lang\TypeFactory;
 use Phel\Lang\TypeInterface;
 use Stringable;
@@ -37,6 +37,8 @@ use function sprintf;
  */
 final readonly class MapEntry implements TypeInterface, Stringable, Countable, IteratorAggregate, FirstInterface, CdrInterface
 {
+    use CopyLocationFromTrait;
+
     /**
      * @param PersistentMapInterface<mixed, mixed>|null $meta
      */
@@ -156,17 +158,6 @@ final readonly class MapEntry implements TypeInterface, Stringable, Countable, I
     public function getEndLocation(): ?SourceLocation
     {
         return $this->endLocation;
-    }
-
-    public function copyLocationFrom(mixed $other): static
-    {
-        if ($other instanceof SourceLocationInterface) {
-            return $this
-                ->setStartLocation($other->getStartLocation())
-                ->setEndLocation($other->getEndLocation());
-        }
-
-        return $this;
     }
 
     private function scalarEquals(mixed $a, mixed $b): bool

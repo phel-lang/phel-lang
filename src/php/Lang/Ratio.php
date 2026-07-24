@@ -22,6 +22,8 @@ use function sprintf;
  */
 final readonly class Ratio implements Stringable, TypeInterface
 {
+    use CopyLocationFromTrait;
+
     /**
      * @param PersistentMapInterface<mixed, mixed>|null $meta
      */
@@ -238,17 +240,6 @@ final readonly class Ratio implements Stringable, TypeInterface
     public function getEndLocation(): ?SourceLocation
     {
         return $this->endLocation;
-    }
-
-    public function copyLocationFrom(mixed $other): static
-    {
-        if ($other instanceof SourceLocationInterface) {
-            return $this
-                ->setStartLocation($other->getStartLocation())
-                ->setEndLocation($other->getEndLocation());
-        }
-
-        return $this;
     }
 
     /**
