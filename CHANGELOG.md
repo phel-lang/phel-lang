@@ -4,6 +4,13 @@ All notable changes to this project will be documented in this file.
 
 ## Unreleased
 
+### Fixed
+
+- Sorted collection comparators are now typed `bool|int` rather than `int`. Phel's `<` returns a boolean, so `(sorted-map-by < ...)` never matched its own declared contract
+- `phel lint` now exits 2 with a clear message when `phel-lint.phel` exists but is unreadable, unparseable, or not a map, instead of silently falling back to the built-in default rules. A missing or empty config file still means defaults
+- Parse and lex failures during namespace extraction now report the underlying reason and chain the original exception, replacing a bare `Cannot parse file: <path>` with no line or cause
+- `phel format` now surfaces I/O failures instead of printing a stack trace and silently skipping the file
+
 ### Changed
 
 - Documented 60+ previously-undocumented public core functions with runnable `:example`/`:see-also` metadata — threading macros, set/sequence helpers, transducer & volatile primitives, binding & protocol macros, exception/sequence accessors, and assorted predicates — and fixed a malformed `juxt` example
@@ -11,6 +18,7 @@ All notable changes to this project will be documented in this file.
 ### Removed
 
 - **BREAKING**: removed long-deprecated core functions, each a thin alias for its canonical form (#2784): `push` (use `conj`), `put` (use `assoc`), `unset` (use `dissoc`), `put-in` (use `assoc-in`), `unset-in` (use `dissoc-in`), `values` (use `vals`), `function?` (use `fn?`), `hash-map?` (use `map?`), `id` (use `identical?`), and `str-contains?` (use `phel\string\contains?`). The `push` branch of the assoc/conj emitter specialization is removed with them. See [the migration guide](docs/migration/removed-deprecated-core-fns.md). `set-meta!` stays deprecated-but-shipped, out of scope here.
+- Removed unused internals with no callers anywhere: `Phel\Lang\Collections\LazySeq\LazySeqConfig::EAGER_THRESHOLD` (a public constant whose docblock described an eager-realization optimization that was never implemented), `Phel\Build\Domain\Cache\NamespaceCacheInterface::remove()` and `::clear()`, `Phel\Nrepl\Domain\Session\SessionRegistry::ids()`, and the empty `Phel\Fiber\FiberProvider`
 
 ## [0.49.0](https://github.com/phel-lang/phel-lang/compare/v0.48.0...v0.49.0) - 2026-07-22
 
