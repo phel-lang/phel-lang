@@ -64,7 +64,8 @@ composer test-agents     # same as: ./tools/validate-agents.sh
 
 ## Not here
 
-- PHAR build (`phar.sh`, `build-phar.php`, `preload.php`) — produces an
-  artifact, so it lives in [`build/`](../build/).
+- PHAR build (`phar.sh`, `build-phar.php`) — produces an artifact, so it lives
+  in [`build/`](../build/), alongside the standalone `preload.php` opcache
+  script.
 - Generated output (`build/out/`, `build/.phar-cache/`,
   `tools/.upgrade-logs/`) is gitignored.
