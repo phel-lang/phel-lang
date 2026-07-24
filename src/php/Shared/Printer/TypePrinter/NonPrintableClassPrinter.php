@@ -4,29 +4,21 @@ declare(strict_types=1);
 
 namespace Phel\Shared\Printer\TypePrinter;
 
-use function sprintf;
-
 /**
  * @implements TypePrinterInterface<object>
  */
 final class NonPrintableClassPrinter implements TypePrinterInterface
 {
+    use ColorizeTrait;
     use WithColorTrait;
+
+    private const string COLOR = '1;35';
 
     /**
      * @param object $form
      */
     public function print(mixed $form): string
     {
-        return 'Printer cannot print this type: ' . $this->color($form::class);
-    }
-
-    private function color(string $str): string
-    {
-        if ($this->withColor) {
-            return sprintf("\033[1;35m%s\033[0m", $str);
-        }
-
-        return $str;
+        return 'Printer cannot print this type: ' . $this->colorize($form::class, self::COLOR);
     }
 }

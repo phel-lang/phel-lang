@@ -20,7 +20,10 @@ use function sprintf;
  */
 final class DateTimePrinter implements TypePrinterInterface
 {
+    use ColorizeTrait;
     use WithColorTrait;
+
+    private const string COLOR = '0;92';
 
     /**
      * @param DateTimeInterface $form
@@ -31,15 +34,6 @@ final class DateTimePrinter implements TypePrinterInterface
             ? 'Y-m-d\TH:i:sP'
             : 'Y-m-d\TH:i:s.uP';
 
-        return $this->color(sprintf('#inst "%s"', $form->format($format)));
-    }
-
-    private function color(string $str): string
-    {
-        if ($this->withColor) {
-            return sprintf("\033[0;92m%s\033[0m", $str);
-        }
-
-        return $str;
+        return $this->colorize(sprintf('#inst "%s"', $form->format($format)), self::COLOR);
     }
 }

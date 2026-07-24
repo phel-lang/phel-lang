@@ -19,6 +19,7 @@ use function var_export;
 
 final readonly class DefInterfaceEmitter implements NodeEmitterInterface
 {
+    use EvalGuardedEmitterTrait;
     use PhpAttributeEmitterTrait;
 
     public function __construct(
@@ -35,15 +36,6 @@ final readonly class DefInterfaceEmitter implements NodeEmitterInterface
         } else {
             $this->emitInline($node);
         }
-    }
-
-    private function shouldEmitViaEval(): bool
-    {
-        if ($this->outputEmitter->getOptions()->isStatementEmitMode()) {
-            return true;
-        }
-
-        return $this->outputEmitter->isInsideClassScope();
     }
 
     /**
