@@ -26,6 +26,8 @@ final class PhelProjectDirectory
 
     public const string DIR_ENV = 'PHEL_DIR';
 
+    public const string CACHE_DIR_ENV = 'PHEL_CACHE_DIR';
+
     private const string GITIGNORE_FILENAME = '.gitignore';
 
     private const string GITIGNORE_CONTENT = "# Created automatically by Phel.\n*\n";
@@ -92,6 +94,25 @@ final class PhelProjectDirectory
         }
 
         return rtrim($projectRoot, '/\\') . DIRECTORY_SEPARATOR . $configPath;
+    }
+
+    /**
+     * Effective build-cache directory: `PHEL_CACHE_DIR` env var wins outright,
+     * otherwise the configured `cache-dir` is resolved through the active
+     * state directory.
+     *
+     * Single source for every config that exposes a cache directory, so the
+     * intermediate-artifact cache and the build cache cannot drift apart (and
+     * are cleared together).
+     */
+    public static function resolveCacheDir(string $projectRoot, string $configuredCacheDir, string $configuredDir = ''): string
+    {
+        $envOverride = getenv(self::CACHE_DIR_ENV);
+        if (is_string($envOverride) && $envOverride !== '') {
+            return $envOverride;
+        }
+
+        return self::resolve($projectRoot, $configuredCacheDir, $configuredDir);
     }
 
     private static function resolveBase(string $projectRoot, string $configuredDir): string

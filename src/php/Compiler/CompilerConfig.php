@@ -9,8 +9,6 @@ use Phel\Config\PhelConfig;
 use Phel\Shared\PhelProjectDirectory;
 use Phel\Shared\ScalarCoercion;
 
-use function is_string;
-
 final class CompilerConfig extends AbstractConfig
 {
     public function assertsEnabled(): bool
@@ -29,20 +27,16 @@ final class CompilerConfig extends AbstractConfig
     }
 
     /**
-     * Mirrors {@see \Phel\Build\BuildConfig::getCacheDir()} so the
-     * intermediate-artifact cache lands in the same `<cacheDir>` the rest of
-     * the build cache uses and is cleared along with it.
+     * Shares `PhelProjectDirectory::resolveCacheDir()` with the build config,
+     * so the intermediate-artifact cache lands in the same `<cacheDir>` the
+     * rest of the build cache uses and is cleared along with it.
      */
     public function getCacheDir(): string
     {
-        $envOverride = getenv('PHEL_CACHE_DIR');
-        if (is_string($envOverride) && $envOverride !== '') {
-            return $envOverride;
-        }
-
-        $cacheDir = ScalarCoercion::toString($this->get(PhelConfig::CACHE_DIR, '.phel/cache'));
-        $phelDir = ScalarCoercion::toString($this->get(PhelConfig::PHEL_DIR, ''));
-
-        return PhelProjectDirectory::resolve($this->getAppRootDir(), $cacheDir, $phelDir);
+        return PhelProjectDirectory::resolveCacheDir(
+            $this->getAppRootDir(),
+            ScalarCoercion::toString($this->get(PhelConfig::CACHE_DIR, '.phel/cache')),
+            ScalarCoercion::toString($this->get(PhelConfig::PHEL_DIR, '')),
+        );
     }
 }
