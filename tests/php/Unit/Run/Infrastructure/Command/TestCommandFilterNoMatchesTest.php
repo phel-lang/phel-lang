@@ -12,8 +12,6 @@ use Symfony\Component\Console\Command\Command;
 
 final class TestCommandFilterNoMatchesTest extends TestCase
 {
-    // --- isNoMatchWithSelectors ---
-
     public function test_no_selector_zero_total_is_not_a_no_match(): void
     {
         self::assertFalse($this->isNoMatch(0, []));
@@ -88,14 +86,10 @@ final class TestCommandFilterNoMatchesTest extends TestCase
         ]));
     }
 
-    // --- exit-code constants are self::FAILURE on no-match ---
-
     public function test_failure_constant_is_non_zero(): void
     {
         self::assertSame(Command::FAILURE, 1);
     }
-
-    // --- helpers ---
 
     /**
      * @param array<string, mixed> $options

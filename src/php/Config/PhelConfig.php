@@ -136,10 +136,6 @@ final readonly class PhelConfig implements JsonSerializable
         return $config;
     }
 
-    // ========================================
-    // Getters
-    // ========================================
-
     /**
      * @return list<string>
      */
@@ -263,10 +259,6 @@ final readonly class PhelConfig implements JsonSerializable
         return $this->optimizationLevel;
     }
 
-    // ========================================
-    // Layout
-    // ========================================
-
     /**
      * Apply a project layout (nested or flat). Returns a new instance with src,
      * test, format, and export-from directories fully reset to the layout's
@@ -284,10 +276,6 @@ final readonly class PhelConfig implements JsonSerializable
             'exportConfig' => $this->exportConfig->withFromDirectories($layout->getExportFromDirs()),
         ]);
     }
-
-    // ========================================
-    // Immutable with*() API
-    // ========================================
 
     /**
      * Directories scanned for Phel source namespaces (relative to the project
@@ -606,10 +594,6 @@ final readonly class PhelConfig implements JsonSerializable
         return $this->with(['stripSymbolMeta' => $strip]);
     }
 
-    // ========================================
-    // Validation
-    // ========================================
-
     /**
      * Validate the configuration and return any errors found.
      *
@@ -619,10 +603,6 @@ final readonly class PhelConfig implements JsonSerializable
     {
         return new PhelConfigValidator()->validate($this);
     }
-
-    // ========================================
-    // Serialization
-    // ========================================
 
     /**
      * @return array<string, mixed>
