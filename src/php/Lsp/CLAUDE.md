@@ -6,7 +6,7 @@ Language Server Protocol v3.17 over stdio (JSON-RPC 2.0, `Content-Length` framin
 
 | Method | Returns | Purpose |
 |--------|---------|---------|
-| `createServer($input, $output)` | `LspServer` | Wire streams; caller owns the loop via `LspServer::serve()` |
+| `createServer($output)` | `LspServer` | Bind the notification stream; caller owns the loop via `LspServer::serve($input, $output)` |
 | `createDispatcher()` | `RequestDispatcher` | Dispatcher with every handler registered (test support) |
 
 ## Dependencies

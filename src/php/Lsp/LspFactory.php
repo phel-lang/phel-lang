@@ -52,10 +52,9 @@ use Phel\Shared\Facade\RunFacadeInterface;
 final class LspFactory extends AbstractFactory
 {
     /**
-     * @param resource $input
      * @param resource $output
      */
-    public function createServer($input, $output): LspServer
+    public function createServer($output): LspServer
     {
         $responses = $this->createResponseBuilder();
         $writer = $this->createMessageWriter();

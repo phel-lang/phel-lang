@@ -65,7 +65,7 @@ HELP);
         }
 
         try {
-            return $this->getFacade()->createServer($stdin, $stdout)->serve($stdin, $stdout);
+            return $this->getFacade()->createServer($stdout)->serve($stdin, $stdout);
         } catch (Throwable $throwable) {
             $output->writeln(sprintf('<error>LSP server crashed: %s</error>', $throwable->getMessage()));
             return self::FAILURE;
