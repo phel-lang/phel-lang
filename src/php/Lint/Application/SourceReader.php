@@ -4,14 +4,10 @@ declare(strict_types=1);
 
 namespace Phel\Lint\Application;
 
-use Phel\Compiler\Domain\Parser\Exceptions\AbstractParserException;
-use Phel\Compiler\Domain\Reader\Exceptions\ReaderException;
 use Phel\Lang\Collections\LinkedList\PersistentListInterface;
 use Phel\Lang\Symbol;
 use Phel\Lang\TypeInterface;
 use Phel\Shared\Facade\CompilerFacadeInterface;
-use Phel\Shared\Parser\Node\NodeInterface;
-use Phel\Shared\Parser\Node\TriviaNodeInterface;
 
 use Throwable;
 
@@ -41,31 +37,7 @@ final readonly class SourceReader
         $namespace = '';
 
         try {
-            $tokenStream = $this->compilerFacade->lexString($source, $uri);
-            while (true) {
-                try {
-                    $parseTree = $this->compilerFacade->parseNext($tokenStream);
-                } catch (AbstractParserException) {
-                    break;
-                }
-
-                if (!$parseTree instanceof NodeInterface) {
-                    break;
-                }
-
-                if ($parseTree instanceof TriviaNodeInterface) {
-                    continue;
-                }
-
-                try {
-                    $readerResult = $this->compilerFacade->read($parseTree);
-                } catch (ReaderException) {
-                    continue;
-                }
-
-                /** @var bool|float|int|string|TypeInterface|null $form */
-                $form = $readerResult->getAst();
-
+            foreach ($this->compilerFacade->readFormsBestEffort($source, $uri) as $form) {
                 if ($namespace === '') {
                     $found = $this->maybeNamespace($form);
                     if ($found !== '') {

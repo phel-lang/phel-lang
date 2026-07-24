@@ -6,8 +6,6 @@ namespace Phel\Api\Application;
 
 use Phel\Api\Transfer\Definition;
 use Phel\Api\Transfer\Location;
-use Phel\Compiler\Domain\Parser\Exceptions\AbstractParserException;
-use Phel\Compiler\Domain\Reader\Exceptions\ReaderException;
 use Phel\Lang\Collections\LinkedList\PersistentListInterface;
 use Phel\Lang\Collections\Map\PersistentMapInterface;
 use Phel\Lang\Collections\Vector\PersistentVectorInterface;
@@ -16,8 +14,6 @@ use Phel\Lang\SourceLocation;
 use Phel\Lang\Symbol;
 use Phel\Lang\TypeInterface;
 use Phel\Shared\Facade\CompilerFacadeInterface;
-use Phel\Shared\Parser\Node\NodeInterface;
-use Phel\Shared\Parser\Node\TriviaNodeInterface;
 
 use Throwable;
 
@@ -76,30 +72,7 @@ final readonly class SymbolExtractor
         $references = [];
 
         try {
-            $tokenStream = $this->compilerFacade->lexString($source, $uri);
-            while (true) {
-                try {
-                    $parseTree = $this->compilerFacade->parseNext($tokenStream);
-                } catch (AbstractParserException) {
-                    break;
-                }
-
-                if (!$parseTree instanceof NodeInterface) {
-                    break;
-                }
-
-                if ($parseTree instanceof TriviaNodeInterface) {
-                    continue;
-                }
-
-                try {
-                    $readerResult = $this->compilerFacade->read($parseTree);
-                } catch (ReaderException) {
-                    continue;
-                }
-
-                $form = $readerResult->getAst();
-
+            foreach ($this->compilerFacade->readFormsBestEffort($source, $uri) as $form) {
                 if ($namespace === '') {
                     $maybeNs = $this->tryExtractNamespace($form);
                     if ($maybeNs !== '') {

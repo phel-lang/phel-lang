@@ -6,6 +6,7 @@ namespace Phel\Compiler;
 
 use Gacela\Framework\AbstractFacade;
 use Gacela\Framework\Attribute\Cacheable;
+use Generator;
 use Phel\Compiler\Application\Lexer;
 use Phel\Compiler\Domain\Analyzer\Ast\AbstractNode;
 use Phel\Compiler\Domain\Analyzer\Environment\GlobalEnvironmentInterface;
@@ -153,6 +154,15 @@ final class CompilerFacade extends AbstractFacade implements CompilerFacadeInter
         return $this->getFactory()
             ->createReader()
             ->read($parseTree);
+    }
+
+    public function readFormsBestEffort(
+        string $code,
+        string $source = Lexer::DEFAULT_SOURCE,
+    ): Generator {
+        return $this->getFactory()
+            ->createBestEffortFormReader()
+            ->readForms($code, $source);
     }
 
     #[Cacheable]

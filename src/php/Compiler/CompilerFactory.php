@@ -6,6 +6,7 @@ namespace Phel\Compiler;
 
 use Gacela\Framework\AbstractFactory;
 use Phel\Compiler\Application\Analyzer;
+use Phel\Compiler\Application\BestEffortFormReader;
 use Phel\Compiler\Application\CodeCompiler;
 use Phel\Compiler\Application\DebugLineTapController;
 use Phel\Compiler\Application\EvalCompiler;
@@ -110,6 +111,15 @@ final class CompilerFactory extends AbstractFactory
         return new Reader(
             new ExpressionReaderFactory(),
             new QuasiquoteTransformer($this->getGlobalEnvironment()),
+        );
+    }
+
+    public function createBestEffortFormReader(): BestEffortFormReader
+    {
+        return new BestEffortFormReader(
+            $this->createLexer(),
+            $this->createParser(),
+            $this->createReader(),
         );
     }
 
