@@ -17,19 +17,22 @@
 
 (defn reduced
   "Wraps `x` in a Reduced, signaling early termination from reduce/transduce."
-  {:see-also ["reduced?" "unreduced"]}
+  {:example "(reduce (fn [acc x] (if (= x 3) (reduced acc) (+ acc x))) 0 [1 2 3 4]) ; => 3"
+   :see-also ["reduced?" "unreduced"]}
   [x]
   (php/new Reduced x))
 
 (defn reduced?
   "Returns true if `x` is a Reduced value."
-  {:see-also ["reduced" "unreduced"]}
+  {:example "(reduced? (reduced 1)) ; => true"
+   :see-also ["reduced" "unreduced"]}
   [x]
   (php/instanceof x Reduced))
 
 (defn unreduced
   "If `x` is Reduced, returns the unwrapped value; otherwise returns `x`."
-  {:see-also ["reduced" "reduced?"]}
+  {:example "(unreduced (reduced 1)) ; => 1\n(unreduced 1) ; => 1"
+   :see-also ["reduced" "reduced?"]}
   [x]
   (if (reduced? x)
     (php/-> x (deref))
@@ -87,7 +90,8 @@
 
 (defn completing
   "Takes a reducing function `f` of 2 args and returns a fn suitable for transduce by adding a 1-arity (completion) that calls `cf` (default: identity)."
-  {:see-also ["transduce"]}
+  {:example "(transduce (filter even?) (completing conj) [] [1 2 3 4]) ; => [2 4]"
+   :see-also ["transduce"]}
   [f & args]
   (let [cf (if (empty? args) identity (first args))]
     (fn [& cargs]
@@ -115,24 +119,28 @@
 
 (defn volatile!
   "Creates a volatile mutable reference with initial value `val`. Use for transducer state that needs fast mutation without watches."
-  {:see-also ["vreset!" "vswap!" "var"]}
+  {:example "(let [v (volatile! 0)] (vreset! v 5) @v) ; => 5"
+   :see-also ["vreset!" "vswap!" "var"]}
   [val]
   (php/new Volatile val))
 
 (defn vreset!
   "Sets the value of volatile `vol` to `val`. Returns `val`."
-  {:see-also ["volatile!" "vswap!"]}
+  {:example "(let [v (volatile! 0)] (vreset! v 9)) ; => 9"
+   :see-also ["volatile!" "vswap!"]}
   [vol val]
   (php/-> vol (reset val)))
 
 (defn vswap!
   "Applies `f` to the current value of volatile `vol` plus `args`, and sets the new value. Returns the new value."
-  {:see-also ["volatile!" "vreset!"]}
+  {:example "(let [v (volatile! 10)] (vswap! v + 5)) ; => 15"
+   :see-also ["volatile!" "vreset!"]}
   [vol f & args]
   (vreset! vol (apply f @vol args)))
 
 (defn volatile?
   "Returns true if `x` is a Volatile."
-  {:see-also ["volatile!" "vreset!" "vswap!"]}
+  {:example "(volatile? (volatile! 0)) ; => true"
+   :see-also ["volatile!" "vreset!" "vswap!"]}
   [x]
   (php/instanceof x Volatile))
