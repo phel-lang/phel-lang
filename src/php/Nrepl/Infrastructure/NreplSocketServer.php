@@ -39,8 +39,12 @@ final class NreplSocketServer
 
     private readonly ClientFiberPool $fiberPool;
 
+    /** @var (Closure(string): void)|null */
     private readonly ?Closure $logger;
 
+    /**
+     * @param (callable(string): void)|null $logger receives one already-formatted log line
+     */
     public function __construct(
         private readonly OpDispatcher $dispatcher,
         private readonly int $port,

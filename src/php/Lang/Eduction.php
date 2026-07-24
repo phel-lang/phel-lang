@@ -21,11 +21,14 @@ use function count;
  */
 final class Eduction implements IteratorAggregate
 {
-    /** @var callable */
+    /** @var callable(callable(mixed...): mixed): (callable(mixed...): mixed) */
     private $xform;
 
     /**
-     * @param iterable<mixed> $coll
+     * @param callable(callable(mixed...): mixed): (callable(mixed...): mixed) $xform transducer:
+     *                                                                                takes the step fn and returns the wrapped step fn, which is then called with
+     *                                                                                0, 1 or 2 arguments (init / completion / accumulation arities)
+     * @param iterable<mixed>                                                  $coll
      */
     public function __construct(
         callable $xform,
@@ -73,13 +76,10 @@ final class Eduction implements IteratorAggregate
 
     /**
      * @param list<mixed> $buffer
-     *
-     * @psalm-suppress TypeDoesNotContainType,NoValue
      */
     private function drain(array &$buffer): Generator
     {
         while ($buffer !== []) {
-            /** @psalm-suppress NoValue */
             yield array_shift($buffer);
         }
     }

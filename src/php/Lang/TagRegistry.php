@@ -24,7 +24,7 @@ use function sort;
  */
 final class TagRegistry
 {
-    /** @var array<string, callable> */
+    /** @var array<string, callable(mixed): mixed> */
     private array $handlers = [];
 
     private static ?self $instance = null;
@@ -40,6 +40,9 @@ final class TagRegistry
         return self::$instance;
     }
 
+    /**
+     * @param callable(mixed): mixed $handler receives the read form, returns its replacement
+     */
     public function register(string $tag, callable $handler): void
     {
         $this->handlers[$tag] = $handler;
@@ -55,6 +58,9 @@ final class TagRegistry
         return array_key_exists($tag, $this->handlers);
     }
 
+    /**
+     * @return (callable(mixed): mixed)|null
+     */
     public function get(string $tag): ?callable
     {
         $handler = $this->handlers[$tag] ?? null;
