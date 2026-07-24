@@ -10,8 +10,6 @@ use PHPUnit\Framework\TestCase;
 
 final class SliceGeneratorTest extends TestCase
 {
-    // ==================== take tests ====================
-
     public function test_take_basic(): void
     {
         $result = SliceGenerator::take(3, [1, 2, 3, 4, 5]);
@@ -49,8 +47,6 @@ final class SliceGeneratorTest extends TestCase
         self::assertLessThanOrEqual(3, $callCount);
     }
 
-    // ==================== takeWhile tests ====================
-
     public function test_take_while_basic(): void
     {
         $result = SliceGenerator::takeWhile(
@@ -80,8 +76,6 @@ final class SliceGeneratorTest extends TestCase
 
         self::assertSame([1, 2, 3], iterator_to_array($result, false));
     }
-
-    // ==================== takeNth tests ====================
 
     public function test_take_nth_basic(): void
     {
@@ -118,8 +112,6 @@ final class SliceGeneratorTest extends TestCase
         self::assertSame(['🎉', '🎊'], iterator_to_array($result, false));
     }
 
-    // ==================== drop tests ====================
-
     public function test_drop_basic(): void
     {
         $result = SliceGenerator::drop(2, [1, 2, 3, 4, 5]);
@@ -140,8 +132,6 @@ final class SliceGeneratorTest extends TestCase
 
         self::assertSame([1, 2, 3], iterator_to_array($result, false));
     }
-
-    // ==================== dropWhile tests ====================
 
     public function test_drop_while_basic(): void
     {

@@ -13,8 +13,6 @@ use Traversable;
 
 final class SequenceGeneratorTest extends TestCase
 {
-    // ==================== toIterable tests ====================
-
     public function test_to_iterable_with_array(): void
     {
         $result = SequenceGenerator::toIterable([1, 2, 3]);
@@ -56,8 +54,6 @@ final class SequenceGeneratorTest extends TestCase
         self::assertSame([1, 2, 3], iterator_to_array($result, false));
     }
 
-    // ==================== toIterator tests ====================
-
     public function test_to_iterator_reuses_iterator_instances(): void
     {
         $iterator = new ArrayIterator([1, 2, 3]);
@@ -98,8 +94,6 @@ final class SequenceGeneratorTest extends TestCase
         self::assertSame(['🎉', '🎊'], iterator_to_array($result, false));
     }
 
-    // ==================== indexed tests ====================
-
     public function test_indexed_pairs_values_with_zero_based_indexes(): void
     {
         $result = SequenceGenerator::indexed(['a', 'b', 'c']);
@@ -120,8 +114,6 @@ final class SequenceGeneratorTest extends TestCase
 
         self::assertSame([], iterator_to_array($result, false));
     }
-
-    // ==================== range tests ====================
 
     public function test_range_basic(): void
     {

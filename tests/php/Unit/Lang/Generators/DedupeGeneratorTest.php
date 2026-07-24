@@ -9,8 +9,6 @@ use PHPUnit\Framework\TestCase;
 
 final class DedupeGeneratorTest extends TestCase
 {
-    // ==================== compact tests ====================
-
     public function test_compact_removes_null_by_default(): void
     {
         $result = DedupeGenerator::compact([1, null, 2, null, 3]);
@@ -184,8 +182,6 @@ final class DedupeGeneratorTest extends TestCase
         self::assertSame([false, 0, '', null, 1], $resultArray);
     }
 
-    // ==================== distinct tests ====================
-
     public function test_distinct_basic(): void
     {
         $result = DedupeGenerator::distinct([1, 2, 1, 3, 2, 4]);
@@ -227,8 +223,6 @@ final class DedupeGeneratorTest extends TestCase
         self::assertContains($obj1, $resultArray);
         self::assertContains($obj2, $resultArray);
     }
-
-    // ==================== dedupe tests ====================
 
     public function test_dedupe_basic(): void
     {

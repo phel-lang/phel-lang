@@ -51,8 +51,6 @@ final class TransformGeneratorTest extends TestCase
         self::assertSame([], iterator_to_array($result, false));
     }
 
-    // ==================== map tests ====================
-
     public function test_map_basic(): void
     {
         $result = TransformGenerator::map(
@@ -100,8 +98,6 @@ final class TransformGeneratorTest extends TestCase
         self::assertSame(1, $callCount);
     }
 
-    // ==================== mapIndexed tests ====================
-
     public function test_map_indexed_basic(): void
     {
         $result = TransformGenerator::mapIndexed(
@@ -131,8 +127,6 @@ final class TransformGeneratorTest extends TestCase
 
         self::assertSame(['0:🎉', '1:🎊'], iterator_to_array($result, false));
     }
-
-    // ==================== filter tests ====================
 
     public function test_filter_basic(): void
     {
@@ -174,8 +168,6 @@ final class TransformGeneratorTest extends TestCase
         self::assertSame(['a', 'c'], iterator_to_array($result, false));
     }
 
-    // ==================== keep tests ====================
-
     public function test_keep_basic(): void
     {
         $result = TransformGenerator::keep(
@@ -205,8 +197,6 @@ final class TransformGeneratorTest extends TestCase
 
         self::assertSame([0, 0], iterator_to_array($result, false));
     }
-
-    // ==================== keepIndexed tests ====================
 
     public function test_keep_indexed_basic(): void
     {

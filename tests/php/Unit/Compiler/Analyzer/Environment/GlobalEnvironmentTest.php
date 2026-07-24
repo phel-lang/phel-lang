@@ -260,8 +260,6 @@ final class GlobalEnvironmentTest extends TestCase
         );
     }
 
-    // ========================================
-
     public function test_resolve_absolute_definition_name(): void
     {
         $env = new GlobalEnvironment();
