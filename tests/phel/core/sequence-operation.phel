@@ -105,6 +105,8 @@
       "transient map missing key returns default")
   (is (= :a ((transient #{:a :b}) :a)) "transient set returns member on lookup")
   (is (nil? ((transient #{:a}) :missing)) "transient set missing element returns nil")
+  (is (= :a ((transient (sorted-set :a :b)) :a)) "transient sorted set returns member on lookup")
+  (is (nil? ((transient (sorted-set :a)) :missing)) "transient sorted set missing element returns nil")
   (is (= 1 (:a (transient {:a 1}))) "keyword-as-fn works on transient map"))
 
 (deftest test-conj-empty-collections

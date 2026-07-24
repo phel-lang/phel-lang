@@ -10,7 +10,11 @@ use Phel\Config\PhelConfig;
 use Phel\Formatter\Infrastructure\Command\FormatCommand;
 use Phel\Phel;
 use PHPUnit\Framework\TestCase;
+use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Tester\CommandTester;
+
+use function sys_get_temp_dir;
+use function uniqid;
 
 final class FormatCommandTest extends TestCase
 {
@@ -77,6 +81,51 @@ TXT;
         } finally {
             file_put_contents($path, $oldContent);
         }
+    }
+
+    public function test_unparsable_file_exits_non_zero(): void
+    {
+        Phel::bootstrap(__DIR__);
+
+        $path = $this->writeTemporaryPhelFile("(ns phel-test\\formatter\\broken)\n\n(defn broken [\n");
+
+        try {
+            $tester = $this->createCommandTester();
+            $exitCode = $tester->execute(['paths' => [$path]]);
+
+            self::assertSame(Command::FAILURE, $exitCode, $tester->getDisplay());
+            self::assertStringContainsString('could not be formatted', $tester->getDisplay());
+        } finally {
+            unlink($path);
+        }
+    }
+
+    public function test_unparsable_file_exits_non_zero_on_dry_run(): void
+    {
+        Phel::bootstrap(__DIR__);
+
+        $path = $this->writeTemporaryPhelFile("(ns phel-test\\formatter\\broken)\n\n(defn broken [\n");
+
+        try {
+            $tester = $this->createCommandTester();
+            $exitCode = $tester->execute(['paths' => [$path], '--dry-run' => true]);
+
+            self::assertSame(Command::FAILURE, $exitCode, $tester->getDisplay());
+        } finally {
+            unlink($path);
+        }
+    }
+
+    /**
+     * The fixture is unparsable on purpose, so it must not live inside the
+     * repository: `phel format` walks `tests/` and would trip over it.
+     */
+    private function writeTemporaryPhelFile(string $contents): string
+    {
+        $path = sys_get_temp_dir() . '/phel-format-' . uniqid() . '.phel';
+        file_put_contents($path, $contents);
+
+        return $path;
     }
 
     private function createCommandTester(): CommandTester

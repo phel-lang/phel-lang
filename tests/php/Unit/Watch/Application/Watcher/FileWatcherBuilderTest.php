@@ -10,10 +10,36 @@ use Phel\Watch\Application\Watcher\FswatchWatcher;
 use Phel\Watch\Application\Watcher\InotifyWatcher;
 use Phel\Watch\Application\Watcher\PollingWatcher;
 use Phel\Watch\Domain\FileSystemScannerInterface;
+use PhelTest\Support\RemoveDirTrait;
 use PHPUnit\Framework\TestCase;
+
+use function count;
+use function extension_loaded;
 
 final class FileWatcherBuilderTest extends TestCase
 {
+    use RemoveDirTrait;
+
+    private string $cleanDir;
+
+    /** @var list<string> */
+    private array $binDirs = [];
+
+    private string|false $originalPath;
+
+    protected function setUp(): void
+    {
+        $this->cleanDir = sys_get_temp_dir() . '/phel-watcher-builder-test-' . uniqid();
+        mkdir($this->cleanDir, 0777, true);
+        $this->originalPath = getenv('PATH');
+    }
+
+    protected function tearDown(): void
+    {
+        putenv($this->originalPath === false ? 'PATH' : 'PATH=' . $this->originalPath);
+        $this->removeDir($this->cleanDir);
+    }
+
     public function test_polling_is_always_available(): void
     {
         $builder = $this->builder();
@@ -53,9 +79,7 @@ final class FileWatcherBuilderTest extends TestCase
 
     public function test_create_inotify_when_requested_and_available(): void
     {
-        if (!InotifyWatcher::isAvailable()) {
-            self::markTestSkipped('inotifywait not available on host');
-        }
+        $this->usePathWith('inotifywait');
 
         $watcher = $this->builder()->create(InotifyWatcher::NAME);
 
@@ -64,9 +88,7 @@ final class FileWatcherBuilderTest extends TestCase
 
     public function test_create_fswatch_when_requested_and_available(): void
     {
-        if (!FswatchWatcher::isAvailable()) {
-            self::markTestSkipped('fswatch not available on host');
-        }
+        $this->usePathWith('fswatch');
 
         $watcher = $this->builder()->create(FswatchWatcher::NAME);
 
@@ -85,23 +107,38 @@ final class FileWatcherBuilderTest extends TestCase
 
     public function test_fallback_to_polling_when_preferred_backend_is_unavailable(): void
     {
-        // We request fswatch/inotify explicitly: when the binary is missing,
-        // the builder should silently fall back to polling rather than throw.
+        if (extension_loaded('inotify')) {
+            self::markTestSkipped('ext-inotify keeps the inotify backend available regardless of PATH');
+        }
+
+        // No backend binary is reachable, so every request has to degrade to
+        // polling rather than throw, on any OS family.
+        $this->usePathWith();
         $builder = $this->builder();
 
-        if (!FswatchWatcher::isAvailable()) {
-            $watcher = $builder->create(FswatchWatcher::NAME);
-            self::assertInstanceOf(PollingWatcher::class, $watcher);
+        self::assertInstanceOf(PollingWatcher::class, $builder->create(FswatchWatcher::NAME));
+        self::assertInstanceOf(PollingWatcher::class, $builder->create(InotifyWatcher::NAME));
+        self::assertInstanceOf(PollingWatcher::class, $builder->create());
+    }
+
+    /**
+     * Replaces PATH with a throwaway directory holding only the named stub
+     * binaries, so backend probing (`command -v <binary>`) sees exactly the
+     * environment the test describes instead of whatever the host has installed.
+     */
+    private function usePathWith(string ...$binaries): void
+    {
+        $binDir = $this->cleanDir . '/bin-' . count($this->binDirs);
+        mkdir($binDir, 0777, true);
+        $this->binDirs[] = $binDir;
+
+        foreach ($binaries as $binary) {
+            $path = $binDir . '/' . $binary;
+            file_put_contents($path, "#!/bin/sh\nexit 0\n");
+            chmod($path, 0755);
         }
 
-        if (!InotifyWatcher::isAvailable()) {
-            $watcher = $builder->create(InotifyWatcher::NAME);
-            self::assertInstanceOf(PollingWatcher::class, $watcher);
-        }
-
-        // Either branch runs depending on the host; both assertions simply
-        // confirm the contract that an unavailable backend never throws.
-        self::assertTrue(true);
+        putenv('PATH=' . $binDir);
     }
 
     private function builder(): FileWatcherBuilder

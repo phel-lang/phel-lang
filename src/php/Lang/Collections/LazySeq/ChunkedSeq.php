@@ -235,10 +235,9 @@ final class ChunkedSeq extends AbstractType implements LazySeqInterface, Countab
     {
         $current = $this;
 
-        // Iteratively process chunks to avoid deep recursion
-        /** @psalm-suppress RedundantCondition */
-        /** @phpstan-ignore instanceof.alwaysTrue */
-        while ($current instanceof self) {
+        // Iteratively process chunks to avoid deep recursion. `$current` only
+        // ever advances to another `self`; every other tail shape breaks below.
+        while (true) {
             // Yield elements from current chunk
             foreach ($current->chunk->toArray() as $value) {
                 yield $value;

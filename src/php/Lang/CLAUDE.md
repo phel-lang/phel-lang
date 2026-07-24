@@ -31,6 +31,7 @@ No Gacela pattern: foundational leaf module; all types used directly by other mo
 | Type | Notes |
 |------|-------|
 | `Delay` | Single-value lazy computation; `deref()` runs thunk once and caches (distinct from `LazySeq`) |
+| `Collections/LazySeq/LazySeq` | Caches the raw thunk result (`$realized` is `mixed`, as wide as the spliced `lazy-seq` body); the private `realizeSeq()` is the single narrowing point and throws `Collections\Exceptions\NotASeqException` for a non-seq body such as `(lazy-seq 5)`. A `nil` body still means the empty seq |
 | `Volatile` | Lightweight mutable container for transducer state (no watches/validators) |
 | `Reduced` | Signals early termination from reduce/transduce |
 | `Future` | Amphp adapter exposing Phel deref/realized? protocol |
@@ -79,6 +80,8 @@ Shared behaviour traits: `MetaTrait` (`getMeta`/`withMeta`), `HashCombinerTrait`
 
 - `MapEntry`: equal by value to a 2-element vector (both directions); `first()` = key, `cdr()` = 1-vector with value.
 - Transients: `TransientVector`, `TransientMapWrapper`, `TransientSortedMap`/`TransientSortedSet`. All share `TransientStateTrait`: `persistent()` invalidates; mutators call `ensureTransientActive()` to guard reuse after `persistent!`.
+- Every transient stays callable like its persistent counterpart (`__invoke` on the concrete class, not on the transient interface): vector by index, map by key, both set flavours by membership.
+- `TransientHashSet` and `TransientSortedSet` share `HashSet\AbstractTransientSet` (both are a facade over a transient map keyed by the member itself; ordering lives in the backing map). Subclasses supply only `__toString()` and `persistent()`, mirroring how `SortedMap\PersistentSortedMap` extends `Map\AbstractPersistentMap`.
 
 ## Key Constraints
 

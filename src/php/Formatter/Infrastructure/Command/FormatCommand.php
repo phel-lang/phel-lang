@@ -55,22 +55,31 @@ HELP)
         $paths = $input->getArgument('paths');
         $dryRun = (bool) $input->getOption('dry-run');
 
-        $changedFilePaths = $this->getFacade()->format($paths, $output, $dryRun);
+        $result = $this->getFacade()->format($paths, $output, $dryRun);
+        $changedFilePaths = $result->changedPaths();
 
         if ($changedFilePaths === []) {
             $output->writeln($dryRun ? 'No files would be reformatted.' : 'No files were formatted.');
+        } else {
+            $output->writeln($dryRun ? 'Would reformat:' : 'Formatted files:');
 
-            return self::SUCCESS;
+            foreach ($changedFilePaths as $k => $filePath) {
+                $output->writeln(sprintf('  %d) %s', $k + 1, $filePath));
+            }
         }
 
-        $output->writeln($dryRun ? 'Would reformat:' : 'Formatted files:');
+        // A file the formatter could not even read or parse is a hard failure:
+        // reporting it and still exiting 0 would let a `--dry-run` CI gate pass
+        // over broken sources.
+        if ($result->hasFailures()) {
+            $output->writeln(sprintf('%d file(s) could not be formatted.', count($result->failedPaths())));
 
-        foreach ($changedFilePaths as $k => $filePath) {
-            $output->writeln(sprintf('  %d) %s', $k + 1, $filePath));
+            return self::FAILURE;
         }
 
-        if ($dryRun) {
+        if ($dryRun && $changedFilePaths !== []) {
             $output->writeln(sprintf('%d file(s) need reformatting.', count($changedFilePaths)));
+
             return self::FAILURE;
         }
 
