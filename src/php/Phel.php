@@ -243,7 +243,6 @@ class Phel
         }
 
         try {
-            /** @psalm-suppress UnresolvableInclude */
             $config = require $configPath;
         } catch (Throwable) {
             return [];

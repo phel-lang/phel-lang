@@ -206,9 +206,6 @@ abstract class AbstractZipper
      * @return mixed
      *
      * @psalm-return T
-     *
-     * @psalm-suppress InvalidReturnType
-     * @psalm-suppress InvalidReturnStatement
      */
     public function root()
     {

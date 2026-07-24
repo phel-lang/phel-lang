@@ -17,8 +17,6 @@ final readonly class ConsPrinter implements TypePrinterInterface
 
     /**
      * @param Cons<mixed> $form
-     *
-     * @psalm-suppress MoreSpecificImplementedParamType
      */
     public function print(mixed $form): string
     {

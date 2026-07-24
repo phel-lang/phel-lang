@@ -272,7 +272,6 @@ final readonly class InvokeSymbol implements SpecialFormAnalyzerInterface
         GlobalVarNode $macroNode,
         NodeEnvironmentInterface $env,
     ): mixed {
-        /** @psalm-suppress PossiblyNullArgument */
         $nodeName = $macroNode->getName()->getName();
 
         $ns = str_replace('-', '_', $macroNode->getNamespace());

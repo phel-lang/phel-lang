@@ -231,7 +231,6 @@ final readonly class ParallelTestOrchestrator
                 continue;
             }
 
-            /** @psalm-suppress InvalidArgument resource → int cast for use as array key */
             $map[(int) $worker->stdoutHandle()] = $worker;
         }
 
@@ -264,7 +263,6 @@ final readonly class ParallelTestOrchestrator
 
         $out = [];
         foreach ($reads as $stream) {
-            /** @psalm-suppress InvalidArgument resource → int cast for use as array key */
             $key = (int) $stream;
             if (isset($busyByStream[$key])) {
                 $out[] = $busyByStream[$key];

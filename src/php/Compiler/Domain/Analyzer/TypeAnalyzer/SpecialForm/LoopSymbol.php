@@ -113,7 +113,6 @@ final readonly class LoopSymbol implements SpecialFormAnalyzerInterface
         $rest2 = $rest1->rest();
         $exprs = $rest2->toArray();
 
-        /** @psalm-suppress PossiblyNullArgument */
         /** @var PersistentVectorInterface<mixed> $bindingVector */
         $bindingVector = $list->get(1);
         $bindings = $this->analyzeBindings($bindingVector, $env->withDisallowRecurFrame());
