@@ -15,6 +15,9 @@ use function count;
  * Caching hook: a future implementation can key this by file-hash via
  * `ProjectIndexer` so that incremental reindexing avoids redoing parses
  * for unchanged files. For v1 the index is built from scratch each time.
+ *
+ * @phpstan-import-type SerializedDefinition from Definition
+ * @phpstan-import-type SerializedLocation from Location
  */
 final readonly class ProjectIndex
 {
@@ -67,18 +70,8 @@ final readonly class ProjectIndex
      * @return array{
      *     namespaces: int,
      *     definitions: int,
-     *     symbols: array<string, array{
-     *         namespace: string,
-     *         name: string,
-     *         uri: string,
-     *         line: int,
-     *         col: int,
-     *         kind: string,
-     *         signature: list<string>,
-     *         docstring: string,
-     *         private: bool,
-     *     }>,
-     *     references: array<string, list<array{uri: string, line: int, col: int, endLine: int, endCol: int}>>,
+     *     symbols: array<string, SerializedDefinition>,
+     *     references: array<string, list<SerializedLocation>>,
      * }
      */
     public function toArray(): array
