@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace Phel\Build\Infrastructure\Cache;
 
-use Gacela\Framework\Cache\FileCache;
 use Phel\Build\Domain\Cache\NamespaceCacheEntry;
 use Phel\Build\Domain\Cache\NamespaceCacheInterface;
 use Phel\Build\Domain\Extractor\ExcludedScanPaths;
@@ -30,7 +29,7 @@ final class PhpNamespaceCache implements NamespaceCacheInterface
         $this->entries = $this->loadEntriesFromFile();
 
         // `loadEntriesFromFile` may evict entries under always-excluded
-        // segments; persist that cleanup at shutdown even if no put/remove
+        // segments; persist that cleanup at shutdown even if no put
         // happens during the run.
         if ($this->dirty) {
             $this->registerShutdown();
@@ -47,15 +46,6 @@ final class PhpNamespaceCache implements NamespaceCacheInterface
         $this->entries[$file] = $entry;
         $this->dirty = true;
         $this->registerShutdown();
-    }
-
-    public function remove(string $file): void
-    {
-        if (isset($this->entries[$file])) {
-            unset($this->entries[$file]);
-            $this->dirty = true;
-            $this->registerShutdown();
-        }
     }
 
     /**
@@ -83,14 +73,6 @@ final class PhpNamespaceCache implements NamespaceCacheInterface
         if ($written) {
             $this->dirty = false;
         }
-    }
-
-    public function clear(): void
-    {
-        $this->entries = [];
-        $this->dirty = false;
-
-        FileCache::delete($this->cacheFile);
     }
 
     /**

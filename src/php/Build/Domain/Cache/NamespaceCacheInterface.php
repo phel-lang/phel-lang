@@ -10,14 +10,10 @@ interface NamespaceCacheInterface
 
     public function put(string $file, NamespaceCacheEntry $entry): void;
 
-    public function remove(string $file): void;
-
     /**
      * @return list<string>
      */
     public function getAllFiles(): array;
 
     public function save(): void;
-
-    public function clear(): void;
 }
