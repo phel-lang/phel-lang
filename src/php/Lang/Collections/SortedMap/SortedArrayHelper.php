@@ -17,6 +17,7 @@ use function is_nan;
  */
 final class SortedArrayHelper
 {
+    /** @var (Closure(mixed, mixed): int)|null */
     private static ?Closure $defaultComparator = null;
 
     /**
@@ -46,6 +47,15 @@ final class SortedArrayHelper
     /**
      * Resolves a user-provided comparator into a non-null Closure.
      * Returns the default comparator when null is given.
+     *
+     * A user comparator may be spaceship-style (`int`) or predicate-style
+     * (`bool`, e.g. Phel's `<`); {@see self::adaptForBinarySearch()} is what
+     * collapses both shapes down to `int`.
+     *
+     * The parameter stays an unparameterised `?callable`: Psalm cannot relate a
+     * signatured callable type to the `instanceof Closure` narrowing below.
+     *
+     * @return Closure(mixed, mixed): (bool|int)
      */
     public static function resolveComparator(?callable $comparator): Closure
     {
@@ -61,6 +71,10 @@ final class SortedArrayHelper
      * of whether the user passed a spaceship-style comparator (returning
      * negative/zero/positive) or a predicate-style comparator returning
      * a boolean (such as `<` or `>`).
+     *
+     * @param Closure(mixed, mixed): (bool|int) $comparator
+     *
+     * @return Closure(mixed, mixed): int
      */
     public static function adaptForBinarySearch(Closure $comparator): Closure
     {
@@ -81,9 +95,11 @@ final class SortedArrayHelper
     /**
      * Binary search for a key in a sorted flat [k, v, k, v, ...] array.
      *
-     * @param array<int, mixed> $array      The flat sorted array
-     * @param mixed             $key        The key to search for
-     * @param Closure           $comparator Non-null comparator function
+     * @param array<int, mixed>          $array      The flat sorted array
+     * @param mixed                      $key        The key to search for
+     * @param Closure(mixed, mixed): int $comparator Non-null comparator function,
+     *                                               already normalised by
+     *                                               {@see self::adaptForBinarySearch()}
      *
      * @return int The array index (even) if found, or -(insertionPoint) - 1 if not found
      */

@@ -191,7 +191,6 @@ HELP);
 
         ++$this->lineNumber;
 
-        /** @psalm-suppress RedundantCondition */
         if ($input === null && $isInitialInput) {
             // Ctrl+D will exit the repl
             $this->inputBuffer[] = self::EXIT_REPL;

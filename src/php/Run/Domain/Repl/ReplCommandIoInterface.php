@@ -25,18 +25,12 @@ interface ReplCommandIoInterface
     /**
      * @psalm-taint-escape html
      * @psalm-taint-escape has_quotes
-     *
-     * @psalm-suppress TaintedHtml
-     * @psalm-suppress TaintedTextWithQuotes
      */
     public function write(string $string = ''): void;
 
     /**
      * @psalm-taint-escape html
      * @psalm-taint-escape has_quotes
-     *
-     * @psalm-suppress TaintedHtml
-     * @psalm-suppress TaintedTextWithQuotes
      */
     public function writeln(string $string = ''): void;
 

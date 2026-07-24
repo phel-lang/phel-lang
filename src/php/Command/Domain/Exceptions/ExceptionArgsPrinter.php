@@ -96,9 +96,6 @@ final readonly class ExceptionArgsPrinter implements ExceptionArgsPrinterInterfa
         }
 
         if (is_resource($arg)) {
-            /**
-             * @psalm-suppress UndefinedFunction
-             */
             return 'Resource id #' . get_resource_id($arg);
         }
 

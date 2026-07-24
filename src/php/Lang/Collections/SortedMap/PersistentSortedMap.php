@@ -26,11 +26,14 @@ use function count;
  */
 final class PersistentSortedMap extends AbstractPersistentMap
 {
+    /** @var Closure(mixed, mixed): int */
     private readonly Closure $effectiveComparator;
 
     /**
-     * @param array<int, mixed>           $array          Flat [k, v, k, v, ...] in sorted key order
-     * @param ?Closure(mixed, mixed): int $userComparator Original user comparator (null = natural order)
+     * @param array<int, mixed>                  $array          Flat [k, v, k, v, ...] in sorted key order
+     * @param ?Closure(mixed, mixed): (bool|int) $userComparator Original user comparator (null = natural
+     *                                                           order). `(sorted-map-by < ...)` passes a
+     *                                                           predicate, hence the `bool` arm.
      */
     public function __construct(
         HasherInterface $hasher,
@@ -46,7 +49,7 @@ final class PersistentSortedMap extends AbstractPersistentMap
     }
 
     /**
-     * @param ?callable(mixed, mixed): int $comparator
+     * @param ?callable(mixed, mixed): (bool|int) $comparator spaceship- or predicate-style
      *
      * @return self<K, V>
      */
@@ -61,8 +64,8 @@ final class PersistentSortedMap extends AbstractPersistentMap
     }
 
     /**
-     * @param array<int, mixed>            $kvs
-     * @param ?callable(mixed, mixed): int $comparator
+     * @param array<int, mixed>                   $kvs
+     * @param ?callable(mixed, mixed): (bool|int) $comparator spaceship- or predicate-style
      *
      * @return self<K, V>
      */
@@ -190,7 +193,7 @@ final class PersistentSortedMap extends AbstractPersistentMap
     /**
      * Returns the user-provided comparator, or null for natural order.
      *
-     * @return ?Closure(mixed, mixed): int
+     * @return ?Closure(mixed, mixed): (bool|int)
      */
     public function getComparator(): ?Closure
     {

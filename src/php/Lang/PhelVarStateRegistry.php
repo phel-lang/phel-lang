@@ -28,7 +28,7 @@ final class PhelVarStateRegistry
     /** @var array<string, ?PersistentMapInterface<mixed, mixed>> */
     private array $metaOverrides = [];
 
-    /** @var array<string, array<string, callable>> */
+    /** @var array<string, array<string, callable(Keyword, PhelVar, mixed, mixed): void>> */
     private array $watches = [];
 
     /** @var array<string, bool> */
@@ -72,6 +72,9 @@ final class PhelVarStateRegistry
         $this->invalidateDynamicCache($ns, $name);
     }
 
+    /**
+     * @param callable(Keyword, PhelVar, mixed, mixed): void $fn
+     */
     public function addWatch(string $ns, string $name, string $watchKey, callable $fn): void
     {
         $this->watches[$this->key($ns, $name)][$watchKey] = $fn;
@@ -87,7 +90,7 @@ final class PhelVarStateRegistry
     }
 
     /**
-     * @return array<string, callable>
+     * @return array<string, callable(Keyword, PhelVar, mixed, mixed): void>
      */
     public function getWatches(string $ns, string $name): array
     {
