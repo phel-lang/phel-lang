@@ -12,6 +12,7 @@ use Phel\Formatter\Domain\IO\FileIoInterface;
 use Phel\Formatter\Domain\PathFilterInterface;
 use Phel\Formatter\Domain\Rules\Zipper\ZipperException;
 use Phel\Shared\Facade\CommandFacadeInterface;
+use Phel\Shared\Formatter\FormatResult;
 use Symfony\Component\Console\Output\OutputInterface;
 
 final readonly class PathsFormatter
@@ -34,17 +35,21 @@ final readonly class PathsFormatter
     /**
      * Only the failures {@see self::formatFile()} documents as coming from the
      * file itself (bad source, missing path) are reported and skipped, so one
-     * unformattable file does not abort the batch. Anything else — an I/O
-     * failure, a bug in a rule — propagates: swallowing it would report a
+     * unformattable file does not abort the batch. Anything else, an I/O
+     * failure or a bug in a rule, propagates: swallowing it would report a
      * successful run that silently skipped files.
      *
-     * @param list<string> $paths
+     * The skipped paths are still collected in
+     * {@see FormatResult::failedPaths()} so callers can exit non-zero; a batch
+     * that only printed the errors and returned success made `phel format
+     * --dry-run` usable as a green CI gate over unparsable sources.
      *
-     * @return list<string> paths whose contents changed (or would change under $dryRun)
+     * @param list<string> $paths
      */
-    public function format(array $paths, OutputInterface $output, bool $dryRun = false): array
+    public function format(array $paths, OutputInterface $output, bool $dryRun = false): FormatResult
     {
         $formattedFilePaths = [];
+        $failedFilePaths = [];
 
         foreach ($this->pathFilter->filterPaths($paths) as $path) {
             try {
@@ -54,12 +59,14 @@ final readonly class PathsFormatter
                 }
             } catch (AbstractParserException $e) {
                 $this->commandFacade->writeLocatedException($output, $e, $e->getCodeSnippet());
+                $failedFilePaths[] = $path;
             } catch (FilePathException|LexerValueException|ZipperException $e) {
                 $this->commandFacade->writeStackTrace($output, $e);
+                $failedFilePaths[] = $path;
             }
         }
 
-        return $formattedFilePaths;
+        return new FormatResult($formattedFilePaths, $failedFilePaths);
     }
 
     /**

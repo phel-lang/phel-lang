@@ -57,6 +57,7 @@ It also does not weaken the Gacela rule it appears to touch. Shared only *names*
 - `CompiledFile` — `final readonly` DTO (`sourceFile`, `targetFile`, `namespace`, `cached`); produced by Build's compilers, returned by `BuildFacadeInterface`.
 - `Interop/Wrapper` — `final readonly` DTO (relative path + compiled PHP) for generated export wrappers; returned by `InteropFacadeInterface::generateExportCode()`.
 - `Api/` — `PhelFunction`, `CompletionResultTransfer`: `final readonly` DTOs for function metadata and typed REPL completions; returned by `ApiFacadeInterface`, consumed by Api/Lsp/Nrepl/Run.
+- `Formatter/FormatResult` — `final readonly` DTO (`changedPaths`, `failedPaths` + emptiness predicates); returned by `FormatterFacadeInterface::format()`. Separating the two lists is what lets `phel format` exit non-zero on an unparsable file.
 
 ## Parser Model
 
