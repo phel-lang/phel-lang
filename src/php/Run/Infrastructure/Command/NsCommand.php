@@ -21,6 +21,9 @@ use function implode;
 use function is_string;
 use function sprintf;
 
+/**
+ * @method RunFacade getFacade()
+ */
 #[ServiceMap(method: 'getFacade', className: RunFacade::class)]
 class NsCommand extends Command
 {

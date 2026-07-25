@@ -10,12 +10,16 @@ use Phel;
 use Phel\Command\CommandFacade;
 use Phel\Command\Domain\Finder\VendorDirectoriesFinderInterface;
 use Phel\Config\PhelConfig;
+use Phel\Shared\ScalarCoercion;
 use RuntimeException;
 
 use function dirname;
 use function glob;
 use function sprintf;
 
+/**
+ * @method CommandFacade getFacade()
+ */
 #[ServiceMap(method: 'getFacade', className: CommandFacade::class)]
 final class ComposerVendorDirectoriesFinder implements VendorDirectoriesFinderInterface
 {
@@ -45,7 +49,7 @@ final class ComposerVendorDirectoriesFinder implements VendorDirectoriesFinderIn
                 continue;
             }
 
-            $sourceDirectories = $config[PhelConfig::SRC_DIRS] ?? [];
+            $sourceDirectories = ScalarCoercion::toStringList($config[PhelConfig::SRC_DIRS] ?? null);
 
             foreach ($sourceDirectories as $sourceDirectory) {
                 $result[] = dirname($phelConfigPath) . '/' . $sourceDirectory;

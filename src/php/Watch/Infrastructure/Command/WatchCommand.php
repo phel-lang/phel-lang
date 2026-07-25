@@ -25,6 +25,10 @@ use function sprintf;
 /**
  * `./bin/phel watch [paths]...` — watch `.phel` files and reload them on
  * change. Uses inotify on Linux, fswatch on macOS, polling on Windows.
+ *
+ * @method WatchFacade  getFacade()
+ * @method WatchFactory getFactory()
+ * @method WatchConfig  getConfig()
  */
 #[ServiceMap(method: 'getFacade', className: WatchFacade::class)]
 #[ServiceMap(method: 'getFactory', className: WatchFactory::class)]

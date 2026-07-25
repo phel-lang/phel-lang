@@ -40,7 +40,8 @@ final readonly class LetSymbol implements SpecialFormAnalyzerInterface
      */
     public function analyze(PersistentListInterface $list, NodeEnvironmentInterface $env): AbstractNode
     {
-        if (!$list->get(0) instanceof Symbol || $list->get(0)->getName() !== Symbol::NAME_LET) {
+        $head = $list->get(0);
+        if (!$head instanceof Symbol || $head->getName() !== Symbol::NAME_LET) {
             throw AnalyzerException::withLocation("This is not a 'let.", $list);
         }
 

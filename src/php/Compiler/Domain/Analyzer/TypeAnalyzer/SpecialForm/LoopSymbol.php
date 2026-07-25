@@ -38,7 +38,8 @@ final readonly class LoopSymbol implements SpecialFormAnalyzerInterface
      */
     public function analyze(PersistentListInterface $list, NodeEnvironmentInterface $env): LetNode
     {
-        if (!$list->get(0) instanceof Symbol || $list->get(0)->getName() !== Symbol::NAME_LOOP) {
+        $head = $list->get(0);
+        if (!$head instanceof Symbol || $head->getName() !== Symbol::NAME_LOOP) {
             throw AnalyzerException::withLocation("This is not a 'loop.", $list);
         }
 
@@ -47,16 +48,15 @@ final readonly class LoopSymbol implements SpecialFormAnalyzerInterface
             throw AnalyzerException::withLocation("At least two arguments are required for 'loop.", $list);
         }
 
-        if (!($list->get(1) instanceof PersistentVectorInterface)) {
+        $loopBindings = $list->get(1);
+        if (!($loopBindings instanceof PersistentVectorInterface)) {
             throw AnalyzerException::withLocation('Binding parameter must be a vector.', $list);
         }
 
-        if (!(count($list->get(1)) % 2 === 0)) {
+        $loopBindingsCount = count($loopBindings);
+        if ($loopBindingsCount % 2 !== 0) {
             throw AnalyzerException::withLocation('Bindings must be a even number of parameters', $list);
         }
-
-        $loopBindings = $list->get(1);
-        $loopBindingsCount = count($loopBindings);
 
         $preInits = [];
         $lets = [];

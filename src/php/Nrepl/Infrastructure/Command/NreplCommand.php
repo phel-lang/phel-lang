@@ -19,6 +19,11 @@ use Throwable;
 
 use function sprintf;
 
+/**
+ * @method NreplFacade  getFacade()
+ * @method NreplFactory getFactory()
+ * @method NreplConfig  getConfig()
+ */
 #[ServiceMap(method: 'getFacade', className: NreplFacade::class)]
 #[ServiceMap(method: 'getFactory', className: NreplFactory::class)]
 #[ServiceMap(method: 'getConfig', className: NreplConfig::class)]

@@ -72,6 +72,23 @@ final class Seq
     }
 
     /**
+     * True when the iterable yields nothing. Pulls at most one element, so it
+     * answers `empty?` for a source that has no size of its own (an
+     * `eduction` pipeline, a generator) without draining it the way `count`
+     * would have to.
+     *
+     * @param iterable<mixed> $coll
+     */
+    public static function isEmpty(iterable $coll): bool
+    {
+        foreach ($coll as $ignored) {
+            return false;
+        }
+
+        return true;
+    }
+
+    /**
      * @template T
      *
      * @param T $value

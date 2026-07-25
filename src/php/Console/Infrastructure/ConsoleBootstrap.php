@@ -9,6 +9,7 @@ use Gacela\Framework\ServiceResolverAwareTrait;
 use Override;
 use Phel\Console\Application\WarnDeprecationsFlag;
 use Phel\Console\ConsoleFactory;
+use Phel\Shared\ScalarCoercion;
 use Symfony\Component\Console\Application;
 use Symfony\Component\Console\Input\ArgvInput;
 use Symfony\Component\Console\Input\InputInterface;
@@ -19,6 +20,9 @@ use function array_values;
 use function in_array;
 use function str_starts_with;
 
+/**
+ * @method ConsoleFactory getFactory()
+ */
 #[ServiceMap(method: 'getFactory', className: ConsoleFactory::class)]
 final class ConsoleBootstrap extends Application
 {
@@ -39,7 +43,7 @@ final class ConsoleBootstrap extends Application
 
         $sanitizedArgs = $this->getFactory()
             ->createArgvInputSanitizer()
-            ->sanitize($_SERVER['argv'] ?? []);
+            ->sanitize(ScalarCoercion::toStringList($_SERVER['argv'] ?? null));
 
         $sanitizedArgs = WarnDeprecationsFlag::applyAndStrip($sanitizedArgs);
 

@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace Phel\Run\Application\Test\Coverage;
 
+use Phel\Shared\ScalarCoercion;
+
 use function constant;
 use function defined;
 use function extension_loaded;
@@ -73,8 +75,8 @@ final readonly class CoverageDriver
             return;
         }
 
-        $unused = defined('XDEBUG_CC_UNUSED') ? constant('XDEBUG_CC_UNUSED') : 1;
-        $dead = defined('XDEBUG_CC_DEAD_CODE') ? constant('XDEBUG_CC_DEAD_CODE') : 2;
+        $unused = defined('XDEBUG_CC_UNUSED') ? ScalarCoercion::toInt(constant('XDEBUG_CC_UNUSED'), 1) : 1;
+        $dead = defined('XDEBUG_CC_DEAD_CODE') ? ScalarCoercion::toInt(constant('XDEBUG_CC_DEAD_CODE'), 2) : 2;
         $start = 'xdebug_start_code_coverage';
         $start($unused | $dead);
     }

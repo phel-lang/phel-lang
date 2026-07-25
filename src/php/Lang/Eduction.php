@@ -57,9 +57,10 @@ final class Eduction implements IteratorAggregate
         $acc = null;
         foreach ($this->coll as $x) {
             $acc = $step($acc, $x);
-            $stop = $acc instanceof Reduced;
-            if ($stop) {
+            $stop = false;
+            if ($acc instanceof Reduced) {
                 $acc = $acc->deref();
+                $stop = true;
             }
 
             yield from $this->drain($buffer);
