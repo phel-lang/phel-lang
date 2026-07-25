@@ -3,6 +3,12 @@
 
 ;; A transient is invalidated by `persistent!`: any further mutation, or a
 ;; second `persistent!`, throws instead of silently mutating shared structure.
+;;
+;; The guard lives on the object Phel code actually holds, which for maps and
+;; sets is a `TransientMapWrapper` rather than the inner `TransientArrayMap` /
+;; `TransientHashMap`. The cases below therefore cover every backing store a
+;; transient map can pick: small maps (array-backed), maps past the array-map
+;; size limit (hash-backed), and sorted maps and sets.
 
 (deftest test-conj-bang-after-persistent-throws
   (let [t (transient [1 2])]
@@ -37,6 +43,37 @@
   (let [t (transient {})]
     (persistent! t)
     (is (thrown? \RuntimeException (persistent! t)))))
+
+(defn- big-map
+  "A map with more entries than `PersistentArrayMap::MAX_SIZE`, so `transient`
+  picks the hash-backed store instead of the array-backed one."
+  []
+  (apply hash-map (flatten (for [i :range [0 40]] [(keyword (str "k" i)) i]))))
+
+(deftest test-hash-backed-transient-map-after-persistent-throws
+  (let [t (transient (big-map))]
+    (persistent! t)
+    (is (thrown-with-msg? \RuntimeException "Transient used after persistent! call"
+                          (assoc! t :extra 1))
+        "a map past the array-map size limit guards reuse too")
+    (is (thrown? \RuntimeException (persistent! t))
+        "a second persistent! on a hash-backed transient throws")))
+
+(deftest test-array-backed-transient-map-that-outgrows-its-store-still-guards
+  (let [t (transient {:a 1})]
+    (dofor [i :range [0 40]]
+      (assoc! t (keyword (str "k" i)) i))
+    (persistent! t)
+    (is (thrown? \RuntimeException (assoc! t :extra 1))
+        "handing the contents to a hash-backed store mid-flight keeps the guard")))
+
+(deftest test-sorted-transient-collections-after-persistent-throw
+  (let [tm (transient (sorted-map :a 1))
+        ts (transient (sorted-set 1 2 3))]
+    (persistent! tm)
+    (persistent! ts)
+    (is (thrown? \RuntimeException (assoc! tm :b 2)) "sorted map guards reuse")
+    (is (thrown? \RuntimeException (conj! ts 4)) "sorted set guards reuse")))
 
 ;; Persistent ops on a transient stay lenient by design (the fast `into`/
 ;; `group-by` paths reduce `conj`/`assoc` over a transient accumulator).

@@ -17,19 +17,18 @@ run's output, restores the outer suite's reporters and stats, and returns
 `{:events [...] :stats {...}}` for the inner run alone."
   [test-ns options]
   (let [saved-reporters (t/get-reporters)
-        saved-stats     (t/get-stats)
         events          (atom [])
         capture         (fn [e] (swap! events conj e))
         run-options     (assoc options :reporters
-                               (conj (vec (:reporters options)) capture))]
-    (t/reset-stats)
-    (with-output-buffer
-      (t/run-tests run-options test-ns))
-    (let [snapshot (t/get-stats)]
-      (t/set-reporters! saved-reporters)
-      (t/restore-stats saved-stats)
-      {:events (deref events)
-       :stats  snapshot})))
+                               (conj (vec (:reporters options)) capture))
+        snapshot        (t/with-isolated-stats
+                         (with-output-buffer
+                           (t/run-tests run-options test-ns)))]
+    ;; `run-tests` installs its own reporters from `run-options`, so there is
+    ;; nothing to hand to `with-isolated-reporters`; only the restore is ours.
+    (t/set-reporters! saved-reporters)
+    {:events (deref events)
+     :stats  snapshot}))
 
 (defn events-of
   "Returns the events in `events` whose `:type` is `type`."

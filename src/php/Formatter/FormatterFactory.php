@@ -48,6 +48,7 @@ final class FormatterFactory extends AbstractFactory
     private const array BLOCK_INDENT_SYMBOLS = [
         'do' => 0, 'cond' => 0, 'try' => 0, 'finally' => 0,
         'with-output-buffer' => 0, 'delay' => 0, 'lazy-seq' => 0,
+        'with-isolated-stats' => 0, 'with-isolated-reporters' => 1,
         'if' => 1, 'if-not' => 1, 'foreach' => 1, 'for' => 1, 'dofor' => 1,
         'let' => 1, 'ns' => 1, 'loop' => 1, 'case' => 1, 'when' => 1,
         'when-not' => 1, 'when-let' => 1, 'when-some' => 1, 'if-let' => 1,
