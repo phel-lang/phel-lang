@@ -56,7 +56,7 @@
   `HTTP_X_FORWARDED_PROTO`, `REQUEST_SCHEME`, or `HTTPS`; the path from
   `REQUEST_URI`; and the host/port via the `$_SERVER` host fields. Returns a
   uri struct."
-  {:example "(uri-from-globals) ; => (uri \"https\" nil \"example.com\" 443 \"/path\" \"foo=bar\" nil)"
+  {:example "(uri-from-globals) ; => (phel.http.uri \"https\" nil \"example.com\" 443 \"/path\" \"foo=bar\" nil)"
    :see-also ["uri-from-string" "request-from-globals"]}
   [& [server]]
   (let [server (or server php/$_SERVER)
@@ -81,7 +81,7 @@
 
 (defn uri-from-string
   "Parses a URI string into a uri struct. Handles UTF-8 URLs and IPv6 addresses in brackets. Throws `InvalidArgumentException` on a malformed string."
-  {:example "(uri-from-string \"https://example.com/path?foo=bar\") ; => (uri \"https\" nil \"example.com\" nil \"/path\" \"foo=bar\" nil)"
+  {:example "(uri-from-string \"https://example.com/path?foo=bar\") ; => (phel.http.uri \"https\" nil \"example.com\" nil \"/path\" \"foo=bar\" nil)"
    :see-also ["uri-from-globals" "request-from-map"]}
   [url]
   (let [matches      (php/array)
@@ -238,7 +238,7 @@
   "Extracts a request from args. The optional `raw-body` (the raw request body
   string) is decoded into `:parsed-body` when the `Content-Type` is
   `application/json`; form bodies still come from `post-parameter`."
-  {:example "(request-from-globals-args php/$_SERVER php/$_GET php/$_POST php/$_COOKIE php/$_FILES (php/file_get_contents \"php://input\")) ; => (request \"GET\" (uri ...) {...} nil {...} {...} {...} {...} \"1.1\" {})"
+  {:example "(request-from-globals-args php/$_SERVER php/$_GET php/$_POST php/$_COOKIE php/$_FILES (php/file_get_contents \"php://input\")) ; => (phel.http.request \"GET\" (phel.http.uri ...) {...} nil {...} {...} {...} {...} \"1.1\" {})"
    :see-also ["request-from-globals" "request-from-map"]}
   [server get-parameter post-parameter cookies files & [raw-body]]
   (let [method          (get-method-from-globals server)
@@ -271,7 +271,7 @@
 
 (defn request-from-globals
   "Extracts a request from `$_SERVER`, `$_GET`, `$_POST`, `$_COOKIE`, `$_FILES` and, for JSON requests, the raw request body (`php://input`). Requires a web request context (PHP-FPM, mod_php, or `php -S`); it cannot be used from the REPL or a CLI script - use `request-from-map` for testing."
-  {:example "(request-from-globals) ; => (request \"GET\" (uri ...) {...} nil {...} {...} {...} {...} \"1.1\" {})"
+  {:example "(request-from-globals) ; => (phel.http.request \"GET\" (phel.http.uri ...) {...} nil {...} {...} {...} {...} \"1.1\" {})"
    :see-also ["request-from-globals-args" "request-from-map"]}
   []
   (request-from-globals-args php/$_SERVER php/$_GET php/$_POST php/$_COOKIE php/$_FILES
@@ -283,7 +283,7 @@
   `:headers`, `:parsed-body`, `:query-params`, `:cookie-params`,
   `:server-params`, `:uploaded-files`, `:version`, and `:attributes`. Missing
   keys default to nil, `{}`, `[]`, or `\"1.1\"` as appropriate."
-  {:example "(request-from-map {:method \"POST\" :uri \"https://api.example.com/users\"}) ; => (request \"POST\" (uri ...) {} nil {} {} {} [] \"1.1\" {})"
+  {:example "(request-from-map {:method \"POST\" :uri \"https://api.example.com/users\"}) ; => (phel.http.request \"POST\" (phel.http.uri \"https\" nil \"api.example.com\" nil \"/users\" nil nil) {} nil {} {} {} [] \"1.1\" {})"
    :see-also ["request-from-globals" "response-from-map"]}
   [{:method method
     :uri uri
@@ -384,7 +384,7 @@
   "Creates a response struct from a map. Optional keys: `:status` (defaults
   200), `:headers` (`{}`), `:body` (`\"\"`), `:version` (`\"1.1\"`), and
   `:reason` (auto-filled from the HTTP status code when omitted)."
-  {:example "(response-from-map {:status 200 :body \"Hello World\"}) ; => (response 200 {} \"Hello World\" \"1.1\" \"OK\")"
+  {:example "(response-from-map {:status 200 :body \"Hello World\"}) ; => (phel.http.response 200 {} \"Hello World\" \"1.1\" \"OK\")"
    :see-also ["response-from-string" "json-response" "html-response"]}
   [{:status status, :headers headers, :body body, :version version, :reason reason}]
   (let [status  (or status 200)
@@ -397,7 +397,7 @@
 (defn response-from-string
   "Creates a 200 OK response with the given body string. Shorthand for
   `(response-from-map {:body s})`."
-  {:example "(response-from-string \"Hello World\") ; => (response 200 {} \"Hello World\" \"1.1\" \"OK\")"
+  {:example "(response-from-string \"Hello World\") ; => (phel.http.response 200 {} \"Hello World\" \"1.1\" \"OK\")"
    :see-also ["response-from-map" "json-response"]}
   [s]
   (response-from-map {:body s}))
@@ -405,7 +405,7 @@
 (defn json-response
   "Creates a response with `status` and a JSON-encoded `data` body and a
   `Content-Type: application/json` header."
-  {:example "(json-response 200 {:message \"pong\"}) ; => (response 200 {:content-type \"application/json\"} \"{\\\"message\\\":\\\"pong\\\"}\" \"1.1\" \"OK\")"
+  {:example "(json-response 200 {:message \"pong\"}) ; => (phel.http.response 200 {:content-type \"application/json\"} \"{\\\"message\\\":\\\"pong\\\"}\" \"1.1\" \"OK\")"
    :see-also ["response-from-map" "html-response"]}
   [status data]
   (response-from-map
@@ -416,7 +416,7 @@
 (defn html-response
   "Creates a response with `status` and an HTML `body` and a
   `Content-Type: text/html; charset=utf-8` header."
-  {:example "(html-response 200 \"<h1>Hi</h1>\") ; => (response 200 {:content-type \"text/html; charset=utf-8\"} \"<h1>Hi</h1>\" \"1.1\" \"OK\")"
+  {:example "(html-response 200 \"<h1>Hi</h1>\") ; => (phel.http.response 200 {:content-type \"text/html; charset=utf-8\"} \"<h1>Hi</h1>\" \"1.1\" \"OK\")"
    :see-also ["response-from-map" "json-response"]}
   [status body]
   (response-from-map

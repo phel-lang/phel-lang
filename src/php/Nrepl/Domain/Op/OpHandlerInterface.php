@@ -9,8 +9,6 @@ interface OpHandlerInterface
     public function name(): string;
 
     /**
-     * Handle a single op request.
-     *
      * @return list<OpResponse>
      */
     public function handle(OpRequest $request): array;

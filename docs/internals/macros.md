@@ -4,7 +4,7 @@ Compile-time function. Takes Phel forms, returns Phel forms. Analyzer replaces t
 
 ## Mechanism
 
-`(defmacro when [test & body] ...)` is a `def` whose `Atom` carries `:macro true`. At runtime it is a function. At compile time, the analyzer:
+`(defmacro when [test & body] ...)` is a `def` whose metadata carries `:macro true` (read by `DefSymbol`, stored in `Registry`). At runtime it is a function. At compile time, the analyzer:
 
 1. Sees `(when x y)`.
 2. Resolves head to `GlobalVarNode`.
@@ -51,10 +51,12 @@ Matches user-facing `&form` / `&env`.
 |-------|--------|
 | `` `x `` | `(quote x)` |
 | `` `~x `` | `x` |
-| `` `(a b) `` | `(list (quote a) (quote b))` |
-| `` `(a ~x) `` | `(list (quote a) x)` |
-| `` `(a ~@xs b) `` | `(concat (list (quote a)) xs (list (quote b)))` |
-| `` `[a ~x] `` | `(vec (concat (list (quote a)) (list x)))` |
+| `` `(a b) `` | `(apply list (concat (list (quote a)) (list (quote b))))` |
+| `` `(a ~x) `` | `(apply list (concat (list (quote a)) (list x)))` |
+| `` `(a ~@xs b) `` | `(apply list (concat (list (quote a)) xs (list (quote b))))` |
+| `` `[a ~x] `` | `(apply vector (concat (list (quote a)) (list x)))` |
+
+Every collection form goes through `concat` and is rebuilt by `apply`, so a splice can contribute any number of elements. `~` and `,` are the same reader token. Check any case with `(read-string "`(a ~x)")`.
 
 Symbols inside quasiquote get namespace-qualified to the *defining* namespace. Easy half of hygiene: `` `(map f xs) `` resolves to `phel.core/map` regardless of caller shadowing.
 

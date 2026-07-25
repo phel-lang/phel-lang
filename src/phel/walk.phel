@@ -26,7 +26,7 @@
   "Performs a depth-first, post-order traversal of `form`. Calls `f` on each sub-form, uses `f`'s return value in place of the original. Walks into vectors, lists, hash-maps, and hash-sets."
   {:doc "Bottom-up tree walk — applies f after recursing into children."
    :see-also ["prewalk" "walk" "postwalk-replace"]
-   :example "(postwalk inc [1 [2 3]]) ; => [2 [3 4]]"}
+   :example "(postwalk #(if (int? %) (inc %) %) [1 [2 3]]) ; => [2 [3 4]]"}
   [f form]
   (walk #(postwalk f %) f form))
 

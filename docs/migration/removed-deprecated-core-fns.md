@@ -20,15 +20,15 @@ The core functions below were deprecated for many releases and are now **removed
 The replacement keeps the same signature:
 
 ```phel
-(push coll x)      # -> (conj coll x)
-(put m :k v)       # -> (assoc m :k v)
-(unset m :k)       # -> (dissoc m :k)
-(put-in m ks v)    # -> (assoc-in m ks v)
-(unset-in m ks)    # -> (dissoc-in m ks)
-(values m)         # -> (vals m)
-(function? x)      # -> (fn? x)
-(hash-map? x)      # -> (map? x)
-(id a b)           # -> (identical? a b)
+(push coll x)      ; -> (conj coll x)
+(put m :k v)       ; -> (assoc m :k v)
+(unset m :k)       ; -> (dissoc m :k)
+(put-in m ks v)    ; -> (assoc-in m ks v)
+(unset-in m ks)    ; -> (dissoc-in m ks)
+(values m)         ; -> (vals m)
+(function? x)      ; -> (fn? x)
+(hash-map? x)      ; -> (map? x)
+(id a b)           ; -> (identical? a b)
 ```
 
 `str-contains?` now lives in the `phel\string` namespace:
@@ -36,7 +36,7 @@ The replacement keeps the same signature:
 ```phel
 (ns my-app (:require phel\string :as s))
 
-(str-contains? haystack needle)   # -> (s/contains? haystack needle)
+(str-contains? haystack needle)   ; -> (s/contains? haystack needle)
 ```
 
 ## Still deprecated (not removed)

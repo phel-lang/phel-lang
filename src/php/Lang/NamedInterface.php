@@ -6,14 +6,8 @@ namespace Phel\Lang;
 
 interface NamedInterface
 {
-    /**
-     * Return the name of the object.
-     */
     public function getName(): string;
 
-    /**
-     * Return the namespace of the object.
-     */
     public function getNamespace(): ?string;
 
     /**

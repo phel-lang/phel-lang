@@ -601,7 +601,7 @@ Similar to `extract`, but returns a vector of maps when the text contains multip
 
 (defn magnitude
   "Computes the magnitude (L2 norm) of a numeric vector."
-  {:example "(magnitude [3 4]) ; => 5"
+  {:example "(magnitude [3 4]) ; => 5.0"
    :see-also ["dot-product" "cosine-similarity"]}
   [v]
   (php/sqrt (apply + (map #(* % %) v))))
@@ -615,7 +615,7 @@ Similar to `extract`, but returns a vector of maps when the text contains multip
 
 (defn cosine-similarity
   "Computes the cosine similarity between two numeric vectors. Returns a float between -1.0 and 1.0, where 1.0 means identical direction."
-  {:example "(cosine-similarity [1 0] [0 1]) ; => 0"
+  {:example "(cosine-similarity [1 0] [0 1]) ; => 0.0"
    :see-also ["dot-product" "magnitude" "nearest"]}
   [a b]
   (similarity-with-mags a (magnitude a) b (magnitude b)))

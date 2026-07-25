@@ -144,8 +144,7 @@ final class AnalyzePersistentList
      * character is a PHP identifier character or namespace separator, so
      * operator-style symbols like `php/.`, `..`, `:.`, … are left alone.
      * Source locations are preserved.
-     */
-    /**
+     *
      * @param PersistentListInterface<mixed> $list
      *
      * @return PersistentListInterface<mixed>

@@ -126,9 +126,6 @@ abstract class AbstractShellWatcher implements FileWatcherInterface
         $this->close();
     }
 
-    /**
-     * Detect whether the external binary is on PATH.
-     */
     final protected static function binaryIsOnPath(string $binary): bool
     {
         $handle = @popen('command -v ' . escapeshellarg($binary) . ' 2>/dev/null', 'r');

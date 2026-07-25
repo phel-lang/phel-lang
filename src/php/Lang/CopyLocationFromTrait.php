@@ -15,11 +15,6 @@ trait CopyLocationFromTrait
 
     abstract public function setEndLocation(?SourceLocation $endLocation): static;
 
-    /**
-     * Copies the start and end location from $other.
-     *
-     * @param mixed $other The object to copy from
-     */
     public function copyLocationFrom(mixed $other): static
     {
         if ($other instanceof SourceLocationInterface) {

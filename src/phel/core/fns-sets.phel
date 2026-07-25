@@ -16,7 +16,7 @@
 
 (defn union
   "Union multiple sets into a new one."
-  {:example "(union (hash-set 1 2) (hash-set 2 3)) ; => (hash-set 1 2 3)"
+  {:example "(union (hash-set 1 2) (hash-set 2 3)) ; => #{1 2 3}"
    :see-also ["intersection" "difference"]}
   [& sets]
   (let [target (transient (hash-set))]
@@ -37,7 +37,7 @@
 
 (defn intersection
   "Intersect multiple sets into a new one."
-  {:example "(intersection (hash-set 1 2 3) (hash-set 2 3 4)) ; => (hash-set 2 3)"
+  {:example "(intersection (hash-set 1 2 3) (hash-set 2 3 4)) ; => #{2 3}"
    :see-also ["union" "difference"]}
   [set & sets]
   (reduce intersection-pair set sets))
@@ -58,14 +58,14 @@
 
 (defn difference
   "Difference between multiple sets into a new one."
-  {:example "(difference (hash-set 1 2 3) (hash-set 2)) ; => (hash-set 1 3)"
+  {:example "(difference (hash-set 1 2 3) (hash-set 2)) ; => #{1 3}"
    :see-also ["union" "intersection"]}
   [set & sets]
   (reduce difference-pair set sets))
 
 (defn symmetric-difference
   "Symmetric difference between multiple sets into a new one."
-  {:example "(symmetric-difference (hash-set 1 2) (hash-set 2 3)) ; => (hash-set 1 3)"
+  {:example "(symmetric-difference (hash-set 1 2) (hash-set 2 3)) ; => #{1 3}"
    :see-also ["difference" "union"]}
   [set & sets]
   (reduce #(union (difference %1 %2) (difference %2 %1)) set sets))
@@ -86,28 +86,28 @@
 
 (defn select
   "Returns a set of the elements of `xset` for which `(pred element)` is logical true."
-  {:example "(select even? (hash-set 1 2 3 4)) ; => (hash-set 2 4)"
+  {:example "(select even? (hash-set 1 2 3 4)) ; => #{2 4}"
    :see-also ["filter" "project"]}
   [pred xset]
   (set (filter pred xset)))
 
 (defn project
   "Returns a set of maps, keeping only the keys in `ks` from each map in the relation `xrel`."
-  {:example "(project (hash-set {:a 1 :b 2}) [:a]) ; => (hash-set {:a 1})"
+  {:example "(project (hash-set {:a 1 :b 2}) [:a]) ; => #{{:a 1}}"
    :see-also ["select-keys" "rename" "select"]}
   [xrel ks]
   (set (map (fn [m] (select-keys m ks)) xrel)))
 
 (defn rename
   "Returns a set of maps like the relation `xrel`, with the keys of each map renamed according to `kmap` (a map of old-key to new-key)."
-  {:example "(rename (hash-set {:a 1 :b 2}) {:a :x}) ; => (hash-set {:x 1 :b 2})"
+  {:example "(rename (hash-set {:a 1 :b 2}) {:a :x}) ; => #{{:x 1, :b 2}}"
    :see-also ["rename-keys" "project"]}
   [xrel kmap]
   (set (map (fn [m] (rename-keys m kmap)) xrel)))
 
 (defn index
   "Returns a map that groups the maps in the relation `xrel` by their values for the keys in `ks`. Each key is `(select-keys map ks)` and each value is the set of maps sharing those key-values."
-  {:example "(index (hash-set {:name \"a\" :dept 1} {:name \"b\" :dept 1}) [:dept]) ; => {{:dept 1} (hash-set {:name \"a\" :dept 1} {:name \"b\" :dept 1})}"
+  {:example "(index (hash-set {:name \"a\" :dept 1} {:name \"b\" :dept 1}) [:dept]) ; => {{:dept 1} #{{:name \"a\", :dept 1} {:name \"b\", :dept 1}}}"
    :see-also ["project" "select" "group-by"]}
   [xrel ks]
   (reduce

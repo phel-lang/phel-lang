@@ -18,6 +18,8 @@ All notable changes to this project will be documented in this file.
 - `(lazy-seq <non-seq>)` (e.g. `(lazy-seq 5)`) now reports `Don't know how to create a seq from: int` instead of leaking a PHP `TypeError` about an internal method's return type
 - A transient sorted set is now callable for membership lookup, `((transient (sorted-set :a)) :a)`, matching the transient hash set instead of raising "object is not callable"
 - A `data-readers.phel` whose `phel.reader` bootstrap fails now reports the failing file and the underlying cause, instead of leaving every `(register-tag ...)` in it silently unregistered
+- Corrected 34 `:example` blocks whose documented output did not match what Phel actually prints, verified by evaluating every example and diffing against `pr-str`. Sets print `#{…}` not `(hash-set …)` (`union`, `intersection`, `difference`, `symmetric-difference`, `select`, `project`, `rename`, `index`, `test/gen/set-of`); float-returning fns print `2.0` not `2` (`ceil`, `floor`, `round`, `sqrt`, `mean`, `double`, `float`, `double-array`, `float-array`, `ai/magnitude`, `ai/cosine-similarity`); `subseq`/`rsubseq`/`repeatedly` return PHP arrays `@[…]`; quasiquote namespace-qualifies (`` `(+ 1 ,(+ 2 3)) `` yields `(phel.core/+ 1 5)`); `phel\http` structs print fully qualified (`(phel.http.response …)`); `phel\html/doctype` returns a `raw-string` struct; `parse-double "Infinity"` prints `Infinity`; `queue` prints `<-(1 2 3)-<`; maps print `,` between pairs; and `test/get-stats` now shows its `:skipped` bucket
+- `phel\walk/postwalk`'s example no longer throws: `(postwalk inc [1 [2 3]])` passes the inner vectors to `inc`, so it is now `(postwalk #(if (int? %) (inc %) %) [1 [2 3]])`
 
 ### Changed
 

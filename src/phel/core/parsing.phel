@@ -19,7 +19,7 @@
 
 (defn parse-double
   "Parses a string as a float. Returns `nil` for non-numeric input or for inputs that are not strings. Accepts `Infinity`, `-Infinity`, and `NaN` alongside regular decimal and scientific notation."
-  {:example "(parse-double \"3.14\") ; => 3.14\n(parse-double \"Infinity\") ; => INF"
+  {:example "(parse-double \"3.14\") ; => 3.14\n(parse-double \"Infinity\") ; => Infinity"
    :see-also ["parse-long"]}
   [s]
   (when (string? s)

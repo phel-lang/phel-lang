@@ -53,13 +53,10 @@ interface PersistentListInterface extends TypeInterface, SeqInterface, IteratorA
      * `list` constructor; false when it was synthesised by `seq` over a
      * non-list collection (see `TypeFactory::persistentSeqListFromArray()`).
      *
-     * Not dead code: `phel.core/list?` calls this through PHP interop
-     * (`(php/-> x (isList))` in `src/phel/core/predicates.phel`), so it never
-     * appears in a PHP-symbol grep. It is the only way to tell a real list from
-     * a seq view, since both are `PersistentListInterface` instances, and it is
-     * deliberately on the interface so third-party implementations answer
-     * `list?` correctly. Pinned by
-     * `tests/php/Unit/Lang/Collections/LinkedList/PersistentListIsListTest.php`.
+     * Called from Phel through PHP interop by `phel.core/list?`
+     * (`(php/-> x (isList))` in `src/phel/core/predicates.phel`), so it has no
+     * PHP-side call site to grep for. Do not remove as unused: it is the only
+     * way to tell a real list from a seq view, since both are instances here.
      */
     public function isList(): bool;
 }

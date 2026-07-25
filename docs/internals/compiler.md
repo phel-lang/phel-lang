@@ -19,7 +19,8 @@ Paths are relative to `src/php/Compiler/`, except `Shared/Munge.php` (under `src
 - `compile()` / `compileForCache()`: full pipeline to `EmitterResult`
 - `compileForm()`: start from already-read Phel data
 - `eval()` / `evalForm()`: compile + execute
-- `lexString()` / `parseAll()` / `read()` / `analyze()`: single-stage hooks for LSP, nREPL, linter
+- `lexString()` / `parseAll()` / `parseNext()` / `read()` / `analyze()`: single-stage hooks for LSP, nREPL, linter
+- `readFormsBestEffort()`: lex → parse → read as a `Generator`, never throwing, for tooling over a buffer mid-edit
 
 ## Tracing `(print "hi")`
 

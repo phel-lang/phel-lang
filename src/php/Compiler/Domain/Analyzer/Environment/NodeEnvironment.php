@@ -80,11 +80,6 @@ final class NodeEnvironment implements NodeEnvironmentInterface
         return isset($this->localsByName[$x->getName()]);
     }
 
-    /**
-     * Gets the shadowed name of a local variable.
-     *
-     * @param Symbol $local The local variable
-     */
     public function getShadowed(Symbol $local): ?Symbol
     {
         if ($this->isShadowed($local)) {

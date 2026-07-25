@@ -16,11 +16,6 @@ interface NodeEnvironmentInterface extends ContextualEnvironmentInterface
 
     public function hasLocal(Symbol $x): bool;
 
-    /**
-     * Gets the shadowed name of a local variable.
-     *
-     * @param Symbol $local The local variable
-     */
     public function getShadowed(Symbol $local): ?Symbol;
 
     public function isShadowed(Symbol $local): bool;

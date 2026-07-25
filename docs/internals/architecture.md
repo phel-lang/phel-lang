@@ -16,7 +16,7 @@ Compiler is PHP. Stdlib is Phel: `src/phel/core.phel` bootstraps the core namesp
 
 ## Modules
 
-Every directory under `src/php/` is a [Gacela](https://gacela-project.com/) module. `Facade` for public API, `Provider` for cross-module deps, `Factory` for internal wiring.
+Every directory under `src/php/` is a module. Most follow the [Gacela](https://gacela-project.com/) pattern: `Facade` for public API, `Provider` for cross-module deps, `Factory` for internal wiring. `Lang/`, `Shared/`, `Config/` and `HttpClient/` are leaves with no Gacela wiring; their `CLAUDE.md` says "No Gacela Pattern".
 
 | Module | Purpose |
 |--------|---------|
@@ -86,7 +86,7 @@ Each module ships `CLAUDE.md` with API + constraints. Read it before editing.
 ```
 
 - Everything depends on `Compiler/` and `Lang/`.
-- `Lang/` is a leaf; `Shared/Printer/` depends on `Lang/` (not the other way).
+- `Lang/` and `Shared/` are leaves for every other module, but they reference each other: `Shared/Printer/` prints `Lang/` values, and `Lang/TypeStringifier` calls `Printer::readable()`. This is one of the four deliberate cycles listed in `src/php/CLAUDE.md` and pinned by `tests/php/Unit/Architecture/ModuleDependencyCycleTest.php`.
 - `Lsp/`, `Nrepl/`, `Watch/` reuse the compiler facade; not on the compile path.
 
 ## Compile-time vs runtime

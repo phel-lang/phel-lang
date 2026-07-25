@@ -56,8 +56,6 @@ final class LazySeq extends AbstractType implements LazySeqInterface, Countable,
     }
 
     /**
-     * Creates a LazySeq from a Generator.
-     *
      * @template TValue
      *
      * @param Generator<int, TValue>                    $generator
@@ -126,8 +124,6 @@ final class LazySeq extends AbstractType implements LazySeqInterface, Countable,
     }
 
     /**
-     * Creates a LazySeq from any iterable.
-     *
      * @template TValue
      *
      * @param iterable<TValue>                          $iterable
@@ -168,8 +164,6 @@ final class LazySeq extends AbstractType implements LazySeqInterface, Countable,
     }
 
     /**
-     * Creates a LazySeq from an array.
-     *
      * @template TValue
      *
      * @param array<int, TValue>                        $array

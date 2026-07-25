@@ -284,7 +284,7 @@
 
 (defn map-of
   "Generator of hash-maps with keys from `kg` and values from `vg`. Number of entries is in `[0, size]`."
-  {:example "((map-of keyword int) 2) ; => {:a 1 :b -3}"}
+  {:example "((map-of keyword int) 2) ; => {:a 1, :b -3}"}
   [kg vg]
   (fn [size]
     (loop [i 0 n (rand-int* 0 (non-negative size)) m {}]
@@ -294,7 +294,7 @@
 
 (defn set-of
   "Generator of hash-sets with elements from `g`. Cardinality in `[0, size]`."
-  {:example "((set-of nat) 3) ; => (set 1 2 3)"}
+  {:example "((set-of nat) 3) ; => #{1 2 3}"}
   [g]
   (fn [size]
     (loop [i 0 n (rand-int* 0 (non-negative size)) s (hash-set)]

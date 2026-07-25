@@ -508,7 +508,7 @@ Returns nil. Prints one name per line, sorted alphabetically."
 
   Useful for nREPL and other tooling that needs to separate printed output from
   return values."
-  {:example "(eval-capturing \"(do (println \\\"hello\\\") 42)\") ; => {:value 42 :out \"hello\\n\" :success true :error nil}"
+  {:example "(eval-capturing \"(do (println \\\"hello\\\") 42)\") ; => {:value 42, :out \"hello\\n\", :success true, :error nil}"
    :see-also ["compile-str" "load-file"]}
   [code-str]
   (php/ob_start)

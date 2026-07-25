@@ -14,8 +14,5 @@ interface ClockInterface
      */
     public function nowMs(): int;
 
-    /**
-     * Sleep for the given number of milliseconds.
-     */
     public function sleepMs(int $ms): void;
 }
