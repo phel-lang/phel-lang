@@ -1,0 +1,8 @@
+(ns fixtures.local-interface)
+
+(definterface Greeter
+  (greet [this]))
+
+(defstruct english [name]
+  Greeter
+  (greet [this] (str "Hello, " (get this :name))))

@@ -469,6 +469,65 @@ final class GlobalEnvironmentTest extends TestCase
         $env->addDefinition('foo', $sym);
     }
 
+    public function test_analysis_mode_allows_redefining_an_already_bound_symbol(): void
+    {
+        $env = new GlobalEnvironment();
+        $sym = Symbol::create('x');
+
+        $env->addDefinition('foo', $sym);
+        Phel::addDefinition('foo', 'x', 1);
+
+        $env->enterAnalysisMode();
+        $env->addDefinition('foo', $sym);
+        $env->leaveAnalysisMode();
+
+        $this->assertTrue($env->hasDefinition('foo', $sym));
+    }
+
+    public function test_leaving_analysis_mode_restores_the_duplicate_definition_guard(): void
+    {
+        $env = new GlobalEnvironment();
+        $sym = Symbol::create('x');
+
+        $env->addDefinition('foo', $sym);
+        Phel::addDefinition('foo', 'x', 1);
+
+        $env->enterAnalysisMode();
+        $env->leaveAnalysisMode();
+
+        $this->expectException(RuntimeException::class);
+        $this->expectExceptionMessage('Symbol x is already bound in namespace foo');
+
+        $env->addDefinition('foo', $sym);
+    }
+
+    public function test_analysis_mode_is_reentrant(): void
+    {
+        $env = new GlobalEnvironment();
+
+        $env->enterAnalysisMode();
+        $env->enterAnalysisMode();
+        $env->leaveAnalysisMode();
+
+        $this->assertTrue($env->isAnalysisMode());
+
+        $env->leaveAnalysisMode();
+
+        $this->assertFalse($env->isAnalysisMode());
+    }
+
+    public function test_interface_methods_round_trip(): void
+    {
+        $env = new GlobalEnvironment();
+        $name = Symbol::create('IFoo');
+
+        $this->assertNull($env->getInterfaceMethods('test-ns', $name));
+
+        $env->setInterfaceMethods('test-ns', $name, ['do-it', 'undo-it']);
+
+        $this->assertSame(['do-it', 'undo-it'], $env->getInterfaceMethods('test-ns', $name));
+    }
+
     public function test_snapshot_captures_current_state(): void
     {
         $env = new GlobalEnvironment();

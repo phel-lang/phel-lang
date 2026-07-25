@@ -26,6 +26,8 @@ final class RuleRegistry
 
     public const string DUPLICATE_KEY = 'phel/duplicate-key';
 
+    public const string DUPLICATE_DEF = 'phel/duplicate-def';
+
     public const string INVALID_DESTRUCTURING = 'phel/invalid-destructuring';
 
     public const string DISCOURAGED_VAR = 'phel/discouraged-var';
@@ -46,6 +48,7 @@ final class RuleRegistry
             self::SHADOWED_BINDING,
             self::REDUNDANT_DO,
             self::DUPLICATE_KEY,
+            self::DUPLICATE_DEF,
             self::INVALID_DESTRUCTURING,
             self::DISCOURAGED_VAR,
             self::COMMENT_STYLE,

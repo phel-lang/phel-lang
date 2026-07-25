@@ -13,9 +13,10 @@ use Phel\Compiler\Domain\Analyzer\Exceptions\AnalyzerException;
 use Phel\Lang\Collections\LinkedList\PersistentListInterface;
 use Phel\Lang\Symbol;
 use Phel\Shared\MungeInterface;
-use ReflectionMethod;
 
+use function class_exists;
 use function count;
+use function interface_exists;
 use function sprintf;
 
 /**
@@ -73,20 +74,11 @@ final readonly class InterfaceImplementationsAnalyzer
                 throw AnalyzerException::withLocation('Can not resolve interface ' . $first->getFullName(), $list);
             }
 
-            $reflectionClass = $classNode->getReflectionClass();
-            if (!$reflectionClass->isInterface()) {
-                throw AnalyzerException::withLocation('Given interface ' . $first->getFullName() . ' is not an interface', $list);
-            }
-
             $absoluteInterfaceName = $classNode->getAbsolutePhpName();
-            $expectedMethods = $reflectionClass->getMethods();
-            $expectedMethodIndex = [];
-            foreach ($expectedMethods as $method) {
-                $expectedMethodIndex[$method->getName()] = $method;
-            }
+            $expectedMethodIndex = $this->expectedMethodIndex($classNode, $first, $list);
 
             $methods = [];
-            $countExpectedMethods = count($expectedMethods);
+            $countExpectedMethods = count($expectedMethodIndex);
             for ($i = 0; $i < $countExpectedMethods; ++$i) {
                 $forms = $forms->cdr();
                 if (!$forms instanceof PersistentListInterface) {
@@ -101,7 +93,7 @@ final readonly class InterfaceImplementationsAnalyzer
                 $methods[] = $this->analyzeInterfaceMethod($method, $env, $expectedMethodIndex);
             }
 
-            if (count($methods) !== count($expectedMethods)) {
+            if (count($methods) !== $countExpectedMethods) {
                 throw AnalyzerException::withLocation('Missing method for interface ' . $absoluteInterfaceName . ' in ' . $context, $list);
             }
 
@@ -115,8 +107,64 @@ final readonly class InterfaceImplementationsAnalyzer
     }
 
     /**
-     * @param PersistentListInterface<mixed>  $list
-     * @param array<string, ReflectionMethod> $expectedMethodIndex
+     * The munged method names the interface expects, as a set.
+     *
+     * Reflection is the source of truth, but it only works once the PHP
+     * interface exists — which for a `definterface` in the very same file
+     * means the form must already have been emitted AND evaluated. Static
+     * analysis never evaluates, so fall back to what `definterface`
+     * recorded in the global environment during this pass.
+     *
+     * @param PersistentListInterface<mixed> $list
+     *
+     * @return array<string, true>
+     */
+    private function expectedMethodIndex(
+        PhpClassNameNode $classNode,
+        Symbol $interfaceSymbol,
+        PersistentListInterface $list,
+    ): array {
+        $resolved = $classNode->getName();
+        $namespace = $resolved->getNamespace();
+
+        if (!class_exists($classNode->getAbsolutePhpName())
+            && !interface_exists($classNode->getAbsolutePhpName())
+        ) {
+            $declared = $namespace === null
+                ? null
+                : $this->analyzer->getInterfaceMethods($namespace, $resolved);
+
+            if ($declared === null) {
+                throw AnalyzerException::withLocation(
+                    'Can not resolve interface ' . $interfaceSymbol->getFullName(),
+                    $list,
+                );
+            }
+
+            $index = [];
+            foreach ($declared as $methodName) {
+                $index[$this->munge->encode($methodName)] = true;
+            }
+
+            return $index;
+        }
+
+        $reflectionClass = $classNode->getReflectionClass();
+        if (!$reflectionClass->isInterface()) {
+            throw AnalyzerException::withLocation('Given interface ' . $interfaceSymbol->getFullName() . ' is not an interface', $list);
+        }
+
+        $index = [];
+        foreach ($reflectionClass->getMethods() as $method) {
+            $index[$method->getName()] = true;
+        }
+
+        return $index;
+    }
+
+    /**
+     * @param PersistentListInterface<mixed> $list
+     * @param array<string, true>            $expectedMethodIndex
      */
     private function analyzeInterfaceMethod(
         PersistentListInterface $list,

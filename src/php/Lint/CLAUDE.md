@@ -29,12 +29,24 @@ Exit codes: `0` clean/warnings only, `1` errors, `2` invocation error.
 
 ## Rule Set (v1)
 
-- Errors: `phel/unresolved-symbol`, `phel/arity-mismatch`, `phel/invalid-destructuring`, `phel/duplicate-key`
+- Errors: `phel/unresolved-symbol`, `phel/arity-mismatch`, `phel/invalid-destructuring`, `phel/duplicate-key`, `phel/duplicate-def`
 - Warnings: `phel/unused-binding`, `phel/unused-require`, `phel/unused-import`, `phel/shadowed-binding`, `phel/redundant-do`, `phel/discouraged-var`, `phel/comment-style`
 
 Every shipped rule is on by default (it has an entry in `LintConfig::defaultSeverities()`); a rule with no entry there is off until a config opts it in.
 
 Add a rule: implement `LintRuleInterface` in `Application/Rule/`, add a code constant to `RuleRegistry`, register it in `LintFactory::createRules()`, and give it a default severity in `LintConfig::defaultSeverities()`. Do not edit existing rules.
+
+### `phel/duplicate-def`
+
+Flags a top-level symbol defined twice in the same file. Works off the file's
+own read forms, never the runtime registry, so the verdict does not depend on
+what the linting process happens to have loaded. A forward `(declare foo)`
+followed by the real definition stays clean; `defonce` and `defmethod` are
+excluded by design.
+
+The analyzer's own `DuplicateDefinitionException` cannot cover this: it only
+fires once the namespace has actually been evaluated, which a compile-only
+lint pass never does.
 
 ### `phel/comment-style`
 
