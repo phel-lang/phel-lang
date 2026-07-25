@@ -27,6 +27,9 @@ use function count;
 use function hrtime;
 use function sprintf;
 
+/**
+ * @method BuildFacade getFacade()
+ */
 #[ServiceMap(method: 'getFacade', className: BuildFacade::class)]
 final class BuildCommand extends Command
 {

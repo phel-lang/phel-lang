@@ -26,6 +26,19 @@ use function is_string;
  * - the primary namespace (if any),
  * - a list of top-level Definitions,
  * - reference Locations (every symbol usage inside bodies).
+ *
+ * PARTIAL BY DESIGN. Every result is a lower bound, never a guarantee:
+ *
+ * - the source is read best-effort (`readFormsBestEffort`), so a buffer that
+ *   does not parse yields the forms read up to the failure and nothing after;
+ * - any `Throwable` mid-extraction is swallowed and whatever was collected so
+ *   far is returned;
+ * - only literal top-level `def*` forms are seen, so definitions produced by a
+ *   macro expansion are invisible.
+ *
+ * Callers must treat "absent" as "not found by this pass", not as "does not
+ * exist": this feeds editor tooling (completion, jump-to-def, lint), where a
+ * missing entry degrades a feature and a thrown exception would kill the run.
  */
 final readonly class SymbolExtractor
 {
@@ -50,7 +63,7 @@ final readonly class SymbolExtractor
     /**
      * Top-level definitions in a single source buffer (document symbols).
      *
-     * @return list<Definition>
+     * @return list<Definition> possibly incomplete; see the class docblock
      */
     public function definitionsOf(string $source, string $uri): array
     {
@@ -58,11 +71,14 @@ final readonly class SymbolExtractor
     }
 
     /**
+     * Never throws and never signals partial success: an unparseable buffer is
+     * indistinguishable from a buffer with nothing in it.
+     *
      * @return array{
      *     namespace: string,
      *     definitions: list<Definition>,
      *     references: array<string, list<Location>>,
-     * }
+     * } possibly incomplete; see the class docblock
      */
     public function extract(string $source, string $uri): array
     {
@@ -172,7 +188,61 @@ final readonly class SymbolExtractor
             signature: $this->extractSignature($form, $formName),
             docstring: $this->extractDocstring($form, $formName),
             private: $this->isPrivate($form, $formName),
+            deprecated: $this->extractDeprecation($form, $name),
         );
+    }
+
+    /**
+     * Reads the `:deprecated` entry of the definition's metadata, either
+     * attached to the name (`^:deprecated foo`) or in the metadata map. A
+     * string value is the reason, `true` degrades to the literal
+     * `'deprecated'`. Everything else (including the keyword merely being
+     * *mentioned* in a docstring) means "not deprecated".
+     *
+     * @param PersistentListInterface<mixed> $form
+     */
+    private function extractDeprecation(PersistentListInterface $form, Symbol $name): string
+    {
+        $fromName = $this->deprecationValue($name->getMeta());
+        if ($fromName !== '') {
+            return $fromName;
+        }
+
+        $size = count($form);
+        for ($i = 2; $i < $size; ++$i) {
+            $child = $form->get($i);
+            if ($child instanceof PersistentVectorInterface) {
+                break;
+            }
+
+            if (!$child instanceof PersistentMapInterface) {
+                continue;
+            }
+
+            $fromMap = $this->deprecationValue($child);
+            if ($fromMap !== '') {
+                return $fromMap;
+            }
+        }
+
+        return '';
+    }
+
+    /**
+     * @param PersistentMapInterface<mixed, mixed>|null $meta
+     */
+    private function deprecationValue(?PersistentMapInterface $meta): string
+    {
+        if (!$meta instanceof PersistentMapInterface) {
+            return '';
+        }
+
+        $value = $meta->find(Keyword::create('deprecated'));
+        if (is_string($value) && $value !== '') {
+            return $value;
+        }
+
+        return $value === true ? 'deprecated' : '';
     }
 
     /**

@@ -18,14 +18,14 @@ use function sprintf;
 use function str_starts_with;
 
 /**
- * Flags symbols bound in `(let [x ...])` / `(loop [x ...])` whose body
- * never mentions them. Ignores names starting with `_` (idiomatic
+ * Flags symbols bound in `(let [x ...])` / `(loop [x ...])` / `(for [x :in ...])`
+ * whose body never mentions them. Ignores names starting with `_` (idiomatic
  * placeholder) and `&` (variadic marker). Destructuring binding forms
  * are best-effort: only the top-level names are tracked.
  */
 final readonly class UnusedBindingRule implements LintRuleInterface
 {
-    private const array BINDING_FORMS = ['let', 'loop', 'for', 'when-let', 'if-let'];
+    private const array BINDING_FORMS = ['let', 'loop', 'when-let', 'if-let'];
 
     public function code(): string
     {
@@ -43,7 +43,17 @@ final readonly class UnusedBindingRule implements LintRuleInterface
                 }
 
                 $head = $node->get(0);
-                if (!$head instanceof Symbol || !in_array($head->getName(), self::BINDING_FORMS, true)) {
+                if (!$head instanceof Symbol) {
+                    return;
+                }
+
+                if (ForHead::isForForm($head->getName())) {
+                    $this->inspectFor($node, $analysis->uri, $result);
+
+                    return;
+                }
+
+                if (!in_array($head->getName(), self::BINDING_FORMS, true)) {
                     return;
                 }
 
@@ -52,6 +62,97 @@ final readonly class UnusedBindingRule implements LintRuleInterface
         }
 
         return $result;
+    }
+
+    /**
+     * `for` / `dofor` heads mix binding triples, modifiers and options, so the
+     * bound names and the forms that may legitimately reference them both come
+     * from `ForHead` instead of a pairwise scan.
+     *
+     * @param PersistentListInterface<mixed> $form
+     * @param list<Diagnostic>               $result
+     */
+    private function inspectFor(PersistentListInterface $form, string $uri, array &$result): void
+    {
+        if (count($form) < 2) {
+            return;
+        }
+
+        $head = $form->get(1);
+        if (!$head instanceof PersistentVectorInterface) {
+            return;
+        }
+
+        $entries = ForHead::entries($head);
+        if ($entries === []) {
+            return;
+        }
+
+        $bodyUsageCounts = $this->countSymbolUses($this->bodyForms($form));
+
+        foreach ($entries as $entry) {
+            $sym = $entry['binding'];
+            if (!$sym instanceof Symbol) {
+                continue;
+            }
+
+            if (!$this->trackable($sym->getName())) {
+                continue;
+            }
+
+            $name = $sym->getName();
+            if (isset($bodyUsageCounts[$name])) {
+                continue;
+            }
+
+            $headUsageCounts = $this->countSymbolUses($entry['usageForms']);
+            if (isset($headUsageCounts[$name])) {
+                continue;
+            }
+
+            $result[] = DiagnosticBuilder::fromForm(
+                $this->code(),
+                sprintf("Unused binding: '%s'.", $name),
+                $uri,
+                $sym,
+            );
+        }
+    }
+
+    /**
+     * @param PersistentListInterface<mixed> $form
+     *
+     * @return list<mixed>
+     */
+    private function bodyForms(PersistentListInterface $form): array
+    {
+        $body = [];
+        $size = count($form);
+        for ($i = 2; $i < $size; ++$i) {
+            $body[] = $form->get($i);
+        }
+
+        return $body;
+    }
+
+    /**
+     * @param list<mixed> $forms
+     *
+     * @return array<string, int>
+     */
+    private function countSymbolUses(array $forms): array
+    {
+        $counts = [];
+        foreach ($forms as $form) {
+            FormWalker::walk($form, static function (mixed $val) use (&$counts): void {
+                if ($val instanceof Symbol && $val->getNamespace() === null) {
+                    $name = $val->getName();
+                    $counts[$name] = ($counts[$name] ?? 0) + 1;
+                }
+            });
+        }
+
+        return $counts;
     }
 
     /**
@@ -83,17 +184,7 @@ final readonly class UnusedBindingRule implements LintRuleInterface
             return;
         }
 
-        $bodyUsageCounts = [];
-        $formSize = count($form);
-        for ($i = 2; $i < $formSize; ++$i) {
-            $body = $form->get($i);
-            FormWalker::walk($body, static function (mixed $val) use (&$bodyUsageCounts): void {
-                if ($val instanceof Symbol && $val->getNamespace() === null) {
-                    $name = $val->getName();
-                    $bodyUsageCounts[$name] = ($bodyUsageCounts[$name] ?? 0) + 1;
-                }
-            });
-        }
+        $bodyUsageCounts = $this->countSymbolUses($this->bodyForms($form));
 
         foreach ($bindingPairs as $pair) {
             $name = $pair['sym']->getName();

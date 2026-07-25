@@ -1,5 +1,6 @@
 (ns phel-test.selectors-runtime
   (:require phel.test :as t :refer [deftest is testing])
+  (:require phel-test.fixtures.run-harness :as h :refer [events-of passing-count])
   (:require phel-test.fixtures.tagged-tests))
 
 ;; End-to-end coverage for selectors in `run-tests`.
@@ -8,35 +9,16 @@
 ;; three tests with distinct metadata shapes. Each scenario runs that
 ;; namespace with a scripted option map, captures every emitted event
 ;; (via a temporary reporter), then restores the outer suite's stats
-;; and reporter set.
+;; and reporter set. `phel-test.fixtures.run-harness` owns that
+;; snapshot-and-restore dance.
 
 (def- fixture-ns 'phel-test.fixtures.tagged-tests)
 
 (defn- snapshot-run [options]
-  (let [saved-reporters (t/get-reporters)
-        saved-stats     (t/get-stats)
-        events          (atom [])
-        capture         (fn [e] (swap! events conj e))
-        run-options     (assoc options :reporters
-                               (conj (vec (:reporters options)) capture))]
-    (t/reset-stats)
-    (with-output-buffer
-      (t/run-tests run-options fixture-ns))
-    (let [snapshot (t/get-stats)]
-      (t/set-reporters! saved-reporters)
-      (t/restore-stats saved-stats)
-      {:events (deref events)
-       :stats  snapshot})))
-
-(defn- events-of [events type]
-  (vec (for [e :in events :when (= type (:type e))] e)))
+  (h/snapshot-run fixture-ns options))
 
 (defn- skipped-names [events]
   (vec (for [e :in (events-of events :skipped)] (:test-name e))))
-
-(defn- passing-count [events]
-  (count (for [e :in events :when (and (= :pass (:state e))
-                                       (not= :skipped (:type e)))])))
 
 (defn- names-skipped-set [events]
   (let [skipped (skipped-names events)]

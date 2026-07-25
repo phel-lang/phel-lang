@@ -6,23 +6,18 @@ namespace PhelTest\Unit\Lang\Collections\Map;
 
 use Phel\Lang\Collections\Map\PersistentArrayMap;
 use Phel\Lang\Collections\Map\PersistentHashMap;
+use Phel\Lang\Collections\Map\PersistentMapInterface;
 use PhelTest\Unit\Lang\Collections\ModuloHasher;
 use PhelTest\Unit\Lang\Collections\SimpleEqualizer;
-use PHPUnit\Framework\TestCase;
 use RuntimeException;
 
-final class PersistentArrayMapTest extends TestCase
+/**
+ * The shared map behaviour lives in the contract case; this class covers what
+ * is specific to the flat-array storage: insertion-order iteration and the
+ * promotion to a hash map once `MAX_SIZE` is exceeded.
+ */
+final class PersistentArrayMapTest extends AbstractPersistentMapContractTestCase
 {
-    public function test_empty(): void
-    {
-        $h = PersistentArrayMap::empty(new ModuloHasher(), new SimpleEqualizer());
-
-        self::assertCount(0, $h);
-        self::assertFalse($h->contains('test'));
-        self::assertFalse($h->contains(null));
-        self::assertNull($h->find('test'));
-    }
-
     public function test_can_not_create_from_array_with_uneven_values(): void
     {
         $this->expectException(RuntimeException::class);
@@ -32,75 +27,36 @@ final class PersistentArrayMapTest extends TestCase
         PersistentArrayMap::fromArray(new ModuloHasher(), new SimpleEqualizer(), ['test']);
     }
 
-    public function test_add_null_key(): void
-    {
-        $h = PersistentArrayMap::empty(new ModuloHasher(), new SimpleEqualizer());
-        $h2 = $h->put(null, 'test');
-
-        self::assertNull($h->find(null));
-        self::assertCount(0, $h);
-        self::assertFalse($h->contains(null));
-        self::assertSame('test', $h2->find(null));
-        self::assertCount(1, $h2);
-        self::assertTrue($h2->contains(null));
-    }
-
-    public function test_put_key_value(): void
+    public function test_iteration_follows_insertion_order(): void
     {
         $h = PersistentArrayMap::empty(new ModuloHasher(), new SimpleEqualizer())
-            ->put(1, 'test');
-
-        self::assertCount(1, $h);
-        self::assertTrue($h->contains(1));
-        self::assertSame('test', $h->find(1));
-    }
-
-    public function test_put_same_key_value_twice(): void
-    {
-        $h = PersistentArrayMap::empty(new ModuloHasher(), new SimpleEqualizer())
-            ->put(1, 'test')
-            ->put(1, 'test');
-
-        self::assertCount(1, $h);
-        self::assertTrue($h->contains(1));
-        self::assertSame('test', $h->find(1));
-    }
-
-    public function test_put_same_key_different_value(): void
-    {
-        $h = PersistentArrayMap::empty(new ModuloHasher(), new SimpleEqualizer())
-            ->put(1, 'test')
-            ->put(1, 'foo');
-
-        self::assertCount(1, $h);
-        self::assertTrue($h->contains(1));
-        self::assertSame('foo', $h->find(1));
-    }
-
-    public function test_put_null_twice(): void
-    {
-        $h = PersistentArrayMap::empty(new ModuloHasher(), new SimpleEqualizer())
-            ->put(null, 'test')
-            ->put(null, 'test');
-
-        self::assertCount(1, $h);
-        self::assertTrue($h->contains(null));
-        self::assertSame('test', $h->find(null));
-    }
-
-    public function test_merge(): void
-    {
-        $h1 = PersistentArrayMap::empty(new ModuloHasher(), new SimpleEqualizer())
-            ->put(1, 'test');
-
-        $h2 = PersistentArrayMap::empty(new ModuloHasher(), new SimpleEqualizer())
+            ->put(3, 'foobar')
+            ->put(1, 'foo')
             ->put(2, 'bar');
 
-        $expected = PersistentArrayMap::empty(new ModuloHasher(), new SimpleEqualizer())
-            ->put(1, 'test')
-            ->put(2, 'bar');
+        $result = [];
+        foreach ($h as $k => $v) {
+            $result[] = $k;
+        }
 
-        $this->assertEquals($expected, $h1->merge($h2));
+        $this->assertSame([3, 1, 2], $result);
+    }
+
+    /**
+     * Regression: a map carrying a NaN key was not equal to *itself*, because
+     * the element walk compares NaN against NaN (never `=`). The `$this ===
+     * $other` identity short-circuit — which the equals() comment already
+     * promised — makes a map reflexively equal again. Stays here rather than
+     * in the contract case because a NaN key is only storable without hashing
+     * it, which the flat-array storage is alone in doing.
+     */
+    public function test_equals_is_reflexive_with_nan_key(): void
+    {
+        $h = PersistentArrayMap::empty(new ModuloHasher(), new SimpleEqualizer())
+            ->put(NAN, 'foo')
+            ->put(1, 'bar');
+
+        $this->assertTrue($h->equals($h));
     }
 
     public function test_convert_to_persistent_hash_map(): void
@@ -113,190 +69,8 @@ final class PersistentArrayMapTest extends TestCase
         $this->assertInstanceOf(PersistentHashMap::class, $h);
     }
 
-    public function test_remove_existing_null_key(): void
+    protected function emptyMap(): PersistentMapInterface
     {
-        $h = PersistentArrayMap::empty(new ModuloHasher(), new SimpleEqualizer())
-            ->put(null, 'test')
-            ->remove(null);
-
-        self::assertCount(0, $h);
-        self::assertFalse($h->contains(null));
-        self::assertNull($h->find(null));
-    }
-
-    public function test_remove_non_existing_null_key(): void
-    {
-        $h = PersistentArrayMap::empty(new ModuloHasher(), new SimpleEqualizer())
-            ->remove(null);
-
-        self::assertCount(0, $h);
-        self::assertFalse($h->contains(null));
-        self::assertNull($h->find(null));
-    }
-
-    public function test_remove_non_existing_key(): void
-    {
-        $h = PersistentArrayMap::empty(new ModuloHasher(), new SimpleEqualizer())
-            ->remove(1);
-
-        self::assertCount(0, $h);
-        self::assertFalse($h->contains(1));
-        self::assertNull($h->find(1));
-    }
-
-    public function test_remove_non_existing_key_in_child(): void
-    {
-        $h = PersistentArrayMap::empty(new ModuloHasher(), new SimpleEqualizer())
-            ->put(2, 'test')
-            ->remove(1);
-
-        self::assertCount(1, $h);
-        self::assertTrue($h->contains(2));
-        self::assertSame('test', $h->find(2));
-        self::assertFalse($h->contains(1));
-        self::assertNull($h->find(1));
-    }
-
-    public function test_remove_existing_key(): void
-    {
-        $h = PersistentArrayMap::empty(new ModuloHasher(), new SimpleEqualizer())
-            ->put(1, 'test')
-            ->remove(1);
-
-        self::assertCount(0, $h);
-        self::assertFalse($h->contains(1));
-        self::assertNull($h->find(1));
-    }
-
-    public function test_equals(): void
-    {
-        $h1 = PersistentArrayMap::empty(new ModuloHasher(), new SimpleEqualizer())
-            ->put(1, 'foo')
-            ->put(2, 'bar');
-
-        $h2 = PersistentArrayMap::empty(new ModuloHasher(), new SimpleEqualizer())
-            ->put(2, 'bar')
-            ->put(1, 'foo');
-
-        $this->assertTrue($h1->equals($h2));
-        $this->assertTrue($h2->equals($h1));
-    }
-
-    /**
-     * Regression: a map carrying a NaN key was not equal to *itself*, because
-     * the element walk compares NaN against NaN (never `=`). The `$this ===
-     * $other` identity short-circuit — which the equals() comment already
-     * promised — makes a map reflexively equal again.
-     */
-    public function test_equals_is_reflexive_with_nan_key(): void
-    {
-        $h = PersistentArrayMap::empty(new ModuloHasher(), new SimpleEqualizer())
-            ->put(NAN, 'foo')
-            ->put(1, 'bar');
-
-        $this->assertTrue($h->equals($h));
-    }
-
-    public function test_equals_different_keys(): void
-    {
-        $h1 = PersistentArrayMap::empty(new ModuloHasher(), new SimpleEqualizer())
-            ->put(1, 'foo')
-            ->put(2, 'bar');
-
-        $h2 = PersistentArrayMap::empty(new ModuloHasher(), new SimpleEqualizer())
-            ->put(3, 'bar')
-            ->put(4, 'foo');
-
-        $this->assertFalse($h1->equals($h2));
-        $this->assertFalse($h2->equals($h1));
-    }
-
-    public function test_equals_different_length(): void
-    {
-        $h1 = PersistentArrayMap::empty(new ModuloHasher(), new SimpleEqualizer())
-            ->put(1, 'foo')
-            ->put(2, 'bar')
-            ->put(3, 'foobar');
-
-        $h2 = PersistentArrayMap::empty(new ModuloHasher(), new SimpleEqualizer())
-            ->put(2, 'bar')
-            ->put(1, 'foo');
-
-        $this->assertFalse($h1->equals($h2));
-        $this->assertFalse($h2->equals($h1));
-    }
-
-    public function test_equals_different_values(): void
-    {
-        $h1 = PersistentArrayMap::empty(new ModuloHasher(), new SimpleEqualizer())
-            ->put(1, 'foo')
-            ->put(2, 'bar');
-
-        $h2 = PersistentArrayMap::empty(new ModuloHasher(), new SimpleEqualizer())
-            ->put(1, 'bar')
-            ->put(2, 'foo');
-
-        $this->assertFalse($h1->equals($h2));
-        $this->assertFalse($h2->equals($h1));
-    }
-
-    public function test_equals_different_type(): void
-    {
-        $h1 = PersistentArrayMap::empty(new ModuloHasher(), new SimpleEqualizer())
-            ->put(1, 'foo')
-            ->put(2, 'bar');
-
-        $this->assertFalse($h1->equals([1 => 'foo', 2 => 'bar']));
-    }
-
-    public function test_iteratable(): void
-    {
-        $h = PersistentArrayMap::empty(new ModuloHasher(), new SimpleEqualizer())
-            ->put(1, 'foo')
-            ->put(2, 'bar')
-            ->put(3, 'foobar');
-
-        $result = [];
-        foreach ($h as $k => $v) {
-            $result[$k] = $v;
-        }
-
-        $this->assertSame([1 => 'foo', 2 => 'bar', 3 => 'foobar'], $result);
-    }
-
-    public function test_iteratable_on_empty(): void
-    {
-        $h = PersistentArrayMap::empty(new ModuloHasher(), new SimpleEqualizer());
-
-        $result = [];
-        foreach ($h as $k => $v) {
-            $result[$k] = $v;
-        }
-
-        $this->assertSame([], $result);
-    }
-
-    public function test_hash_on_empty_map(): void
-    {
-        $h = PersistentArrayMap::empty(new ModuloHasher(), new SimpleEqualizer());
-
-        $this->assertSame(1, $h->hash());
-    }
-
-    public function test_hash_on_single_entryy_map(): void
-    {
-        $h = PersistentArrayMap::empty(new ModuloHasher(), new SimpleEqualizer())
-            ->put(1, 10);
-
-        $this->assertSame(1 + (1 ^ 10), $h->hash());
-    }
-
-    public function test_add_meta_data(): void
-    {
-        $meta = PersistentArrayMap::empty(new ModuloHasher(), new SimpleEqualizer());
-        $h = PersistentArrayMap::empty(new ModuloHasher(), new SimpleEqualizer())
-            ->withMeta($meta);
-
-        $this->assertEquals($meta, $h->getMeta());
+        return PersistentArrayMap::empty(new ModuloHasher(), new SimpleEqualizer());
     }
 }

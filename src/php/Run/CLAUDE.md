@@ -30,6 +30,15 @@ Most-connected module. 5 Provider facades:
 
 Version comes from `Shared\VersionResolver` directly — Run does **not** depend on Console.
 
+Two non-facade edges complete the picture:
+
+| Edge | Where | Why |
+|------|-------|-----|
+| **Config** | `PhelConfig` / `PhelBuildConfig` read by `RunConfig` and the REPL/test commands | plain data model, no facade exists |
+| **Phel** | `Infrastructure/Command/RunCommand.php` calls `Phel::setupRuntimeArgs()` | publishes the entry point's `$argv` before handing over control |
+
+The `Phel` import closes the `Phel <-> Run` cycle: the composition root wires `RunFacade`, and `RunCommand` calls back into the root. It is accepted because the root is where process-wide argv belongs, and it is deliberately one file wide on each side — `ModuleDependencyCycleTest` fails if a second Run file imports the root, and `CompositionRootBoundaryTest` fails if `RunCommand` starts calling more of it than `setupRuntimeArgs()`.
+
 ## Structure
 
 - `Infrastructure/Command/`: 10 user-facing Symfony commands (incl. `config` — dumps effective merged config) + 1 hidden `_test-worker` (`TestWorkerCommand`).

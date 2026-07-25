@@ -148,7 +148,7 @@ final readonly class TestCommandOptionParser
 
         $value = (int) $raw;
         if ($value < 1) {
-            throw new InvalidArgumentException('--parallel must be >= 1.');
+            throw new InvalidArgumentException(sprintf('--parallel must be >= 1, got %d.', $value));
         }
 
         return $value === 1 ? null : $value;

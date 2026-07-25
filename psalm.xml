@@ -20,7 +20,12 @@
         <pluginClass class="Psalm\PhpUnitPlugin\Plugin"/>
     </plugins>
 
-    <xi:include href="vendor/gacela-project/gacela/psalm-gacela.xml"/>
+    <!-- psalm-gacela.xml is deliberately NOT included. All it does is suppress
+         UndefinedMagicMethod for `getFacade()`/`getFactory()`/`getConfig()`,
+         which leaves their return type as `mixed`. Every class using
+         `ServiceResolverAwareTrait` declares them with `@method` instead, so
+         the suppression would never match and a class that forgets the
+         annotation should fail rather than silently degrade to `mixed`. -->
 
     <issueHandlers>
         <!-- Suppress overly strict checks -->
@@ -52,36 +57,44 @@
 
              A Phel value is an open set (interop admits arbitrary PHP objects,
              arrays and resources), so `mixed` is the honest type across Lang's
-             collections, the printers and the analyzer's special forms. On top
-             of that, psalm-gacela only suppresses UndefinedMagicMethod for
-             `getFacade()`/`getFactory()`/`getConfig()`; it does not resolve
-             their return types the way phpstan-gacela does, so every facade
-             call in a `*Command`/`*Daemon` reads as `mixed` and cascades.
+             collections, the printers and the analyzer's special forms.
+
+             The other former source of noise was psalm-gacela: it only
+             suppresses UndefinedMagicMethod for `getFacade()`/`getFactory()`/
+             `getConfig()` and never resolves their return types, so a facade
+             call read as `mixed` and cascaded through the whole command. That
+             is fixed at the source rather than here: every class using
+             `ServiceResolverAwareTrait` now declares those methods with
+             `@method`, next to the `#[ServiceMap]` attribute that already
+             names the class. Do not drop those annotations.
 
              Measured with all twelve handlers enabled (psalm 6.16, no cache):
-             650 errors over 187 of 1050 files spanning 16 of the 19 modules
-             (plus `src/Phel.php`), of which 95 are the direct psalm-gacela gap
-             and 176 sit in `Infrastructure/Command`/`Infrastructure/Daemon`
-             alone. No directory isolates them, so the high-volume handlers stay
-             global; phpstan level 9 covers explicit `mixed` misuse instead.
+             646 errors before the annotations, 478 after. The remainder is the
+             interop boundary itself, so the high-volume handlers stay global;
+             phpstan level 9 covers explicit `mixed` misuse instead.
 
-             MixedFunctionCall and MixedArrayAssignment had zero occurrences at
-             all, and MixedArrayAccess/MixedArrayOffset only a handful, so those
-             four stay ENABLED and new leaks are caught. Each file listed below
-             is an irreducible position, not a to-do. -->
+             ENABLED, so new leaks are caught: MixedFunctionCall and
+             MixedArrayAssignment (never had an occurrence), MixedOperand (went
+             to zero), plus MixedArrayAccess, MixedArrayOffset and
+             MixedMethodCall with the file exceptions listed below. Each file
+             listed is an irreducible position, not a to-do. -->
         <MixedArgument errorLevel="suppress" />
         <MixedArgumentTypeCoercion errorLevel="suppress" />
         <MixedAssignment errorLevel="suppress" />
-        <MixedMethodCall errorLevel="suppress" />
-        <MixedOperand errorLevel="suppress" />
         <MixedPropertyTypeCoercion errorLevel="suppress" />
         <MixedReturnStatement errorLevel="suppress" />
         <MixedReturnTypeCoercion errorLevel="suppress" />
 
+        <MixedMethodCall>
+            <errorLevel type="suppress">
+                <!-- `$tokens[count($tokens) - 1]`: psalm cannot prove the
+                     computed offset is populated, so the element reads as
+                     `mixed` rather than `Token`. -->
+                <file name="src/php/Compiler/Domain/Lexer/TokenStream.php" />
+            </errorLevel>
+        </MixedMethodCall>
         <MixedArrayAccess>
             <errorLevel type="suppress">
-                <!-- `$config` comes back from the Command facade (psalm-gacela gap). -->
-                <file name="src/php/Command/Infrastructure/ComposerVendorDirectoriesFinder.php" />
                 <!-- Structural `toArray()` duck-typing: the value set is open by design. -->
                 <file name="src/php/Lang/Collections/Vector/AbstractPersistentVector.php" />
             </errorLevel>

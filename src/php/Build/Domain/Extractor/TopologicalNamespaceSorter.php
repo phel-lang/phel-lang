@@ -6,6 +6,8 @@ namespace Phel\Build\Domain\Extractor;
 
 use RuntimeException;
 
+use function array_slice;
+
 final class TopologicalNamespaceSorter implements NamespaceSorterInterface
 {
     /**
@@ -45,7 +47,7 @@ final class TopologicalNamespaceSorter implements NamespaceSorterInterface
         }
 
         if (isset($visiting[$item])) {
-            throw new RuntimeException('Circular dependency detected: ' . $item);
+            throw new RuntimeException('Circular dependency detected: ' . $this->renderCycle($item, $visiting));
         }
 
         $visiting[$item] = true;
@@ -57,5 +59,25 @@ final class TopologicalNamespaceSorter implements NamespaceSorterInterface
         unset($visiting[$item]);
         $visited[$item] = true;
         $order[] = $item;
+    }
+
+    /**
+     * Renders the whole cycle (`a -> b -> a`), not just the namespace the
+     * walk happened to re-enter. Naming one node leaves the user to rebuild
+     * the require chain by hand across every file in the project.
+     *
+     * `$visiting` is the current DFS stack in insertion order, so the cycle
+     * is its tail starting at `$item`.
+     *
+     * @param array<string, bool> $visiting
+     */
+    private function renderCycle(string $item, array $visiting): string
+    {
+        $stack = array_keys($visiting);
+        $start = array_search($item, $stack, true);
+        $cycle = $start === false ? [$item] : array_slice($stack, $start);
+        $cycle[] = $item;
+
+        return implode(' -> ', $cycle);
     }
 }

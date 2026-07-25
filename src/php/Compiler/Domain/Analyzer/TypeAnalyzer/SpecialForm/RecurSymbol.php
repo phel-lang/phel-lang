@@ -120,7 +120,9 @@ final class RecurSymbol implements SpecialFormAnalyzerInterface
      */
     private function isValidRecurTuple(PersistentListInterface $list): bool
     {
-        return $list->get(0) instanceof Symbol
-            && $list->get(0)->getName() === Symbol::NAME_RECUR;
+        $head = $list->get(0);
+
+        return $head instanceof Symbol
+            && $head->getName() === Symbol::NAME_RECUR;
     }
 }

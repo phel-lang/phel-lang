@@ -2,6 +2,7 @@
 
 (use Countable)
 (use InvalidArgumentException)
+(use Traversable)
 (use Phel)
 (use Phel.Lang.Collections.HashSet.PersistentHashSetInterface)
 (use Phel.Lang.Collections.Map.PersistentMapInterface)
@@ -127,7 +128,9 @@
 (defn count
   "Counts the number of elements in a sequence. Can be used on everything that implements the PHP Countable interface.
 
-Works with lists, vectors, hash-maps, sets, strings, and PHP arrays. Returns 0 for nil."
+Works with lists, vectors, hash-maps, sets, strings, and PHP arrays. Returns 0 for nil.
+
+Throws for a lazily consumed source that has no size of its own — a transducer pipeline built by `eduction`, a PHP generator, an iterator. Counting one means draining it, which re-runs the whole pipeline (including its side effects) and still leaves nothing counted behind, so `count` refuses instead of doing it silently. Realize it first: `(count (into [] coll))`."
   {:example "(count [1 2 3]) ; => 3"
    :see-also ["empty?" "seq"]}
   ^int [coll]
@@ -139,4 +142,10 @@ Works with lists, vectors, hash-maps, sets, strings, and PHP arrays. Returns 0 f
         (php/mb_strlen coll)
         (if (php/=== coll nil)
           0
-          (throw (php/new InvalidArgumentException (str "object is not countable: " coll))))))))
+          (if (php/instanceof coll Traversable)
+            (throw (php/new InvalidArgumentException
+                            (str "count is not supported on a lazily consumed source: "
+                                 (php/get_debug_type coll)
+                                 ". Draining it re-runs the pipeline, so realize it first: (count (into [] coll)).")))
+            (throw (php/new InvalidArgumentException
+                            (str "count is not supported on this type: " (php/get_debug_type coll))))))))))

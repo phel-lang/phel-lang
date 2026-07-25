@@ -34,6 +34,11 @@ use function count;
 use function explode;
 use function sprintf;
 
+/**
+ * @method RunFacade  getFacade()
+ * @method RunFactory getFactory()
+ * @method RunConfig  getConfig()
+ */
 #[ServiceMap(method: 'getFacade', className: RunFacade::class)]
 #[ServiceMap(method: 'getFactory', className: RunFactory::class)]
 #[ServiceMap(method: 'getConfig', className: RunConfig::class)]

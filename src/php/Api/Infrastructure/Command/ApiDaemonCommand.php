@@ -14,6 +14,9 @@ use Throwable;
 
 use function sprintf;
 
+/**
+ * @method ApiFacade getFacade()
+ */
 #[ServiceMap(method: 'getFacade', className: ApiFacade::class)]
 final class ApiDaemonCommand extends Command
 {

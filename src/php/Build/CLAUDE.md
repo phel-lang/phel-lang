@@ -23,6 +23,10 @@ Compiles Phel projects to PHP: namespace extraction, dependency ordering, and ca
 | `FACADE_COMPILER` | Phel-to-PHP compilation |
 | `FACADE_COMMAND` | Output/source dirs, error formatting |
 
+Both are injected as their Shared `*FacadeInterface`. One non-facade edge: **Config** — `BuildConfig` reads `PhelConfig`/`PhelBuildConfig`, and `Domain/Compile/Output/EntryPointPhpFile` reads `PhelBuildConfig`.
+
+`EntryPointPhpFile` also *emits* the string `\Phel\Phel::setupRuntimeArgs(...)` into generated entry points. That is generated-code text, not an import: it creates no compile-time edge to the composition root, but it does make the root's signature part of the build ABI, so changing `setupRuntimeArgs()` breaks previously built artifacts.
+
 ## Structure
 
 | Path | Role |

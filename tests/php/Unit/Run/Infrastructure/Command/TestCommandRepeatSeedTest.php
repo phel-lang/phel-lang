@@ -5,11 +5,13 @@ declare(strict_types=1);
 namespace PhelTest\Unit\Run\Infrastructure\Command;
 
 use InvalidArgumentException;
+use Phel\Run\Application\Test\CpuCountDetector;
 use Phel\Run\Domain\Test\TestCommandOptions;
 use Phel\Run\Infrastructure\Command\TestCommand;
 use Phel\Run\Infrastructure\Command\TestCommandOptionParser;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\Console\Input\ArrayInput;
+use Symfony\Component\Console\Output\NullOutput;
 
 final class TestCommandRepeatSeedTest extends TestCase
 {
@@ -97,6 +99,46 @@ final class TestCommandRepeatSeedTest extends TestCase
         self::assertStringContainsString(':repeat 3', $printed);
         self::assertStringContainsString(':seed 42', $printed);
         self::assertStringContainsString(':random-order true', $printed);
+    }
+
+    /**
+     * The sibling `--parallel` messages all echo the rejected input; this one
+     * used to say only "must be >= 1", leaving the user to guess what was read.
+     */
+    public function test_parallel_below_one_names_the_offending_value(): void
+    {
+        $this->expectException(InvalidArgumentException::class);
+        $this->expectExceptionMessage('--parallel must be >= 1, got 0.');
+
+        $this->decideParallelism('0');
+    }
+
+    public function test_parallel_negative_names_the_offending_value(): void
+    {
+        $this->expectException(InvalidArgumentException::class);
+        $this->expectExceptionMessage('--parallel must be >= 1, got -3.');
+
+        $this->decideParallelism('-3');
+    }
+
+    public function test_parallel_non_numeric_names_the_offending_value(): void
+    {
+        $this->expectException(InvalidArgumentException::class);
+        $this->expectExceptionMessage('--parallel must be an integer >= 1, "auto", or "max", got nope.');
+
+        $this->decideParallelism('nope');
+    }
+
+    private function decideParallelism(string $raw): ?int
+    {
+        $command = new TestCommand();
+        $input = new ArrayInput(['--parallel' => $raw], $command->getDefinition());
+
+        return new TestCommandOptionParser()->decideParallelism(
+            $input,
+            new NullOutput(),
+            new CpuCountDetector(),
+        );
     }
 
     /**

@@ -15,6 +15,7 @@ namespace Phel\Api\Transfer;
  *     signature: list<string>,
  *     docstring: string,
  *     private: bool,
+ *     deprecated: string,
  * }
  */
 final readonly class Definition
@@ -37,6 +38,9 @@ final readonly class Definition
 
     /**
      * @param list<string> $signature
+     * @param string       $deprecated reason recorded in the `:deprecated` metadata,
+     *                                 or `''` when the definition is not deprecated;
+     *                                 a bare `^:deprecated` yields `'deprecated'`
      */
     public function __construct(
         public string $namespace,
@@ -48,7 +52,13 @@ final readonly class Definition
         public array $signature,
         public string $docstring,
         public bool $private,
+        public string $deprecated = '',
     ) {}
+
+    public function isDeprecated(): bool
+    {
+        return $this->deprecated !== '';
+    }
 
     public function fullName(): string
     {
@@ -70,6 +80,7 @@ final readonly class Definition
             'signature' => $this->signature,
             'docstring' => $this->docstring,
             'private' => $this->private,
+            'deprecated' => $this->deprecated,
         ];
     }
 }

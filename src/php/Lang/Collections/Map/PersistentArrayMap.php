@@ -25,6 +25,9 @@ use function sprintf;
  */
 final class PersistentArrayMap extends AbstractPersistentMap
 {
+    /** @use TransientMergeStrategyTrait<TKey, TValue> */
+    use TransientMergeStrategyTrait;
+
     public const int MAX_SIZE = 16;
 
     /**
@@ -119,7 +122,7 @@ final class PersistentArrayMap extends AbstractPersistentMap
     }
 
     /**
-     * @param mixed $key
+     * @param TKey $key
      *
      * @return self<TKey, TValue>
      */

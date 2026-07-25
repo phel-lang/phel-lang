@@ -133,7 +133,7 @@ final class PersistentSortedMap extends AbstractPersistentMap
     }
 
     /**
-     * @param mixed $key
+     * @param TKey $key
      *
      * @return self<TKey, TValue>
      */

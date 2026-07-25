@@ -17,6 +17,10 @@ use Symfony\Component\Console\Output\OutputInterface;
 use function count;
 use function sprintf;
 
+/**
+ * @method FormatterFacade getFacade()
+ * @method FormatterConfig getConfig()
+ */
 #[ServiceMap(method: 'getFacade', className: FormatterFacade::class)]
 #[ServiceMap(method: 'getConfig', className: FormatterConfig::class)]
 final class FormatCommand extends Command
@@ -56,16 +60,15 @@ HELP)
         $dryRun = (bool) $input->getOption('dry-run');
 
         $result = $this->getFacade()->format($paths, $output, $dryRun);
-        $changedFilePaths = $result->changedPaths();
 
-        if ($changedFilePaths === []) {
-            $output->writeln($dryRun ? 'No files would be reformatted.' : 'No files were formatted.');
-        } else {
+        if ($result->hasChanges()) {
             $output->writeln($dryRun ? 'Would reformat:' : 'Formatted files:');
 
-            foreach ($changedFilePaths as $k => $filePath) {
+            foreach ($result->changedPaths() as $k => $filePath) {
                 $output->writeln(sprintf('  %d) %s', $k + 1, $filePath));
             }
+        } else {
+            $output->writeln($dryRun ? 'No files would be reformatted.' : 'No files were formatted.');
         }
 
         // A file the formatter could not even read or parse is a hard failure:
@@ -77,8 +80,8 @@ HELP)
             return self::FAILURE;
         }
 
-        if ($dryRun && $changedFilePaths !== []) {
-            $output->writeln(sprintf('%d file(s) need reformatting.', count($changedFilePaths)));
+        if ($dryRun && $result->hasChanges()) {
+            $output->writeln(sprintf('%d file(s) need reformatting.', count($result->changedPaths())));
 
             return self::FAILURE;
         }

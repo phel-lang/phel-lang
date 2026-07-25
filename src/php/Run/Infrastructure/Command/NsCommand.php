@@ -21,6 +21,9 @@ use function implode;
 use function is_string;
 use function sprintf;
 
+/**
+ * @method RunFacade getFacade()
+ */
 #[ServiceMap(method: 'getFacade', className: RunFacade::class)]
 class NsCommand extends Command
 {
@@ -80,6 +83,19 @@ HELP)
     {
         $nsInfoList = $this->getNamespaceInfoList($ns);
 
+        // The resolver seeds `phel.core` alongside the requested namespace, so
+        // a name that resolves to nothing still comes back with one entry. A
+        // typo'd namespace must not print a plausible-looking listing and exit
+        // 0, the way `phel run <unknown>` already refuses to.
+        if (!$this->containsNamespace($nsInfoList, $ns)) {
+            $output->writeln(sprintf(
+                '<error>Namespace "%s" not found in any source directory.</error>',
+                Munge::displayNs($ns),
+            ));
+
+            return self::FAILURE;
+        }
+
         if ($simple) {
             foreach ($nsInfoList as $info) {
                 $output->writeln(Munge::displayNs($info->getNamespace()));
@@ -95,6 +111,17 @@ HELP)
         }
 
         return self::SUCCESS;
+    }
+
+    /**
+     * `$ns` is already canonical; the resolver still yields the legacy
+     * backslash form for some sources, so both sides are canonicalized.
+     *
+     * @param list<NamespaceInformation> $nsInfoList
+     */
+    private function containsNamespace(array $nsInfoList, string $ns): bool
+    {
+        return array_any($nsInfoList, static fn(NamespaceInformation $info): bool => Munge::canonicalNs($info->getNamespace()) === $ns);
     }
 
     /**

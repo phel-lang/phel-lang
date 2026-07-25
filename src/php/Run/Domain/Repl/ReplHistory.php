@@ -33,8 +33,6 @@ final class ReplHistory
 
     private mixed $result3 = null;
 
-    private ?Throwable $lastException = null;
-
     public function __construct(
         private readonly GlobalEnvironmentInterface $globalEnvironment,
     ) {}
@@ -66,17 +64,6 @@ final class ReplHistory
 
     public function recordException(Throwable $exception): void
     {
-        $this->lastException = $exception;
         Phel::addDefinition(CompilerConstants::PHEL_CORE_NAMESPACE, self::LAST_EXCEPTION, $exception);
-    }
-
-    public function lastResult(): mixed
-    {
-        return $this->result1;
-    }
-
-    public function lastException(): ?Throwable
-    {
-        return $this->lastException;
     }
 }

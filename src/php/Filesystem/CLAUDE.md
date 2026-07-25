@@ -13,7 +13,7 @@ Temp dir management and compiled-artifact cleanup tracking.
 
 ## Dependencies
 
-None (no Provider). `FilesystemConfig` reads `PhelConfig::KEEP_GENERATED_TEMP_FILES` (bool, default false) and `PhelConfig::TEMP_DIR` (string, default `sys_get_temp_dir()`).
+No facades (no Provider). The one module import is **Config**: `FilesystemConfig` reads `PhelConfig::KEEP_GENERATED_TEMP_FILES` (bool, default false) and `PhelConfig::TEMP_DIR` (string, default `sys_get_temp_dir()`).
 
 ## Structure
 

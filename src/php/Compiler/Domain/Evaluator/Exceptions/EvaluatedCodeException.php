@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace Phel\Compiler\Domain\Evaluator\Exceptions;
 
-use Phel\Compiler\Domain\Emitter\OutputEmitter\SourceMap\SourceMapConsumer;
 use Phel\Shared\SourceMap\InlineSourceMapComments;
+use Phel\Shared\SourceMap\SourceMapConsumer;
 use RuntimeException;
 use Throwable;
 

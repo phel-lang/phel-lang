@@ -45,4 +45,57 @@ PHEL;
 
         self::assertSame([], $rule->apply($analysis));
     }
+
+    #[PreserveGlobalState(false)]
+    #[RunInSeparateProcess]
+    public function test_it_does_not_flag_a_used_dot_separated_import(): void
+    {
+        $rule = new UnusedImportRule();
+        // `(:use Phel.Lang.Keyword)` binds the alias `Keyword`, exactly as the
+        // backslash spelling does.
+        $source = <<<PHEL
+(ns user
+  (:use Phel.Lang.Keyword))
+
+(php/:: Keyword (create "a"))
+PHEL;
+        $analysis = $this->buildAnalysis($source);
+
+        self::assertSame([], $rule->apply($analysis));
+    }
+
+    #[PreserveGlobalState(false)]
+    #[RunInSeparateProcess]
+    public function test_it_flags_an_unused_dot_separated_import(): void
+    {
+        $rule = new UnusedImportRule();
+        $source = <<<PHEL
+(ns user
+  (:use Phel.Lang.Keyword))
+
+42
+PHEL;
+        $analysis = $this->buildAnalysis($source);
+
+        $diagnostics = $rule->apply($analysis);
+
+        self::assertCount(1, $diagnostics);
+        self::assertStringContainsString('Phel.Lang.Keyword', $diagnostics[0]->message);
+    }
+
+    #[PreserveGlobalState(false)]
+    #[RunInSeparateProcess]
+    public function test_it_does_not_flag_a_used_backslash_separated_import(): void
+    {
+        $rule = new UnusedImportRule();
+        $source = <<<PHEL
+(ns user
+  (:use Phel\\Lang\\Keyword))
+
+(php/:: Keyword (create "a"))
+PHEL;
+        $analysis = $this->buildAnalysis($source);
+
+        self::assertSame([], $rule->apply($analysis));
+    }
 }

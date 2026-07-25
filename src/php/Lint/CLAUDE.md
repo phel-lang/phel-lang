@@ -6,7 +6,7 @@ Read-only semantic linter: emits diagnostics on Phel sources, never rewrites the
 
 | Method | Returns |
 |--------|---------|
-| `lint(list<string> $paths, RuleSettings $settings, ?LintCache $cache)` | `LintResult`; throws `LintSourceException` on an unreadable file |
+| `lint(list<string> $paths, RuleSettings $settings, ?LintCache $cache)` | `LintResult`; throws `LintSourceException` on an unreadable file or directory |
 | `loadSettings(string $configPath, RuleSettings $defaults)` | `RuleSettings` |
 | `defaultSettings()` | `RuleSettings` |
 | `formatters()` | `FormatterRegistry` |
@@ -14,12 +14,14 @@ Read-only semantic linter: emits diagnostics on Phel sources, never rewrites the
 
 ## Dependencies
 
-| Facade | Used for |
-|--------|----------|
-| Api | `analyzeSource` (semantic diagnostics), `indexProject` |
-| Compiler | `readFormsBestEffort` (`SourceReader`); `lexString`, `parseNext`, `read` (`ConfigLoader`, `DuplicateKeyRule` — both need the failures reported, not swallowed) |
-| Command | default source directories |
-| Run | `loadPhelNamespaces()` to ensure symbols resolve |
+| Facade | Injected as | Used for |
+|--------|-------------|----------|
+| Api | concrete `ApiFacade` | `analyzeSource` (semantic diagnostics), `indexProject` |
+| Compiler | `CompilerFacadeInterface` | `readFormsBestEffort` (`SourceReader`); `lexString`, `parseNext`, `read` (`ConfigLoader`, `DuplicateKeyRule` — both need the failures reported, not swallowed) |
+| Command | `CommandFacadeInterface` | default source directories |
+| Run | `RunFacadeInterface` | `loadPhelNamespaces()` to ensure symbols resolve |
+
+`ApiFacade` is bound concretely because `analyzeSource` and `indexProject` are not on `ApiFacadeInterface`; see `src/php/Api/CLAUDE.md`. `SatelliteFactoryFacadeInjectionTest` pins all four return types.
 
 ## CLI
 
@@ -35,6 +37,13 @@ Exit codes: `0` clean/warnings only, `1` errors, `2` invocation error.
 Every shipped rule is on by default (it has an entry in `LintConfig::defaultSeverities()`); a rule with no entry there is off until a config opts it in.
 
 Add a rule: implement `LintRuleInterface` in `Application/Rule/`, add a code constant to `RuleRegistry`, register it in `LintFactory::createRules()`, and give it a default severity in `LintConfig::defaultSeverities()`. Do not edit existing rules.
+
+### Shared rule helpers (`Application/Rule/`)
+
+`FormWalker`, `FnParamVectors`, `NamespaceForm`, `NsClauseIterator`, plus:
+
+- `ForHead`: parses a `for`/`dofor` head. That head is a sequence of `binding :verb coll-expr` triples with `:while`/`:when`/`:let` modifiers and a `:reduce [acc init]` option; it is NOT a `let`-style pair list. Any rule that reads it two-at-a-time mistakes the collection expression for a bound name. Returns each bound form paired with the head forms in which a reference to it counts as a use.
+- `SymbolAlias`: the implicit alias of a `(:use ...)` / `(:require ...)` entry with no `:as`. Splits on both `.` and `\`, because Phel accepts both separators and the analyzer treats them alike.
 
 ### `phel/duplicate-def`
 
@@ -56,6 +65,18 @@ Enforces the positional comment convention (`.claude/rules/phel.md`, shared with
 - Scans the **token stream**, not the source text: only the lexer knows which `;` opens a comment, so a `;` in a string literal, a regex literal, or a `#| ... |#` block can never be flagged.
 - Bare `#` line comments are out of scope; the lexer already emits a deprecation for them.
 
+### `phel/discouraged-var`
+
+Flags uses of definitions carrying `:deprecated` metadata, read from
+`ProjectIndex` (`Definition::isDeprecated()`, populated by `SymbolExtractor`)
+for the rest of the project and from the file's own forms for the file being
+linted, since the index does not cover it.
+
+Docstring prose is never a marker: a docstring that documents a `:deprecated`
+map key, or warns about a deprecated PHP builtin, says nothing about the
+definition it documents. The defining form's own name symbol is skipped, so
+deprecating something does not flag its declaration.
+
 ## Config File
 
 `phel-lint.phel` (override via `--config`). Phel map parsed by the reader:
@@ -69,7 +90,7 @@ Enforces the positional comment convention (`.claude/rules/phel.md`, shared with
 - Severities: `:error`, `:warning`, `:info`, `:hint`, `:off`
 - Exclude patterns match file path (when they contain `/` or `.phel`) or namespace name, via `fnmatch`
 - A missing config file means defaults. A file that exists but is unreadable, unparseable, or not a map raises `Domain\Exception\LintConfigException` and `phel lint` exits 2 — never silently falls back to defaults
-- A collected `.phel` file that cannot be read raises `Domain\Exception\LintSourceException` — never skipped, which would report it as clean and exit 0
+- A collected `.phel` file that cannot be read raises `Domain\Exception\LintSourceException` — never skipped, which would report it as clean and exit 0. A listed **directory** that cannot be walked raises the same exception (`cannotWalkDirectory`, chaining the iterator's `UnexpectedValueException`): yielding zero files there is the identical silent pass
 
 ## Output Formats
 

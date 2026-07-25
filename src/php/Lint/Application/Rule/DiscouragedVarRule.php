@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Phel\Lint\Application\Rule;
 
+use Phel\Api\Transfer\Diagnostic;
 use Phel\Lang\Collections\LinkedList\PersistentListInterface;
 use Phel\Lang\Collections\Map\PersistentMapInterface;
 use Phel\Lang\Collections\Vector\PersistentVectorInterface;
@@ -16,25 +17,23 @@ use Phel\Lint\Domain\LintRuleInterface;
 use function count;
 use function in_array;
 use function is_string;
-use function preg_match;
 use function sprintf;
-use function str_starts_with;
 
 /**
- * Flags references to definitions marked `^:deprecated` or
- * `^:no-doc` in the project index. The index is built by the upstream
- * `ApiFacade::indexProject` call; we just consume its definitions.
+ * Flags references to definitions marked `:deprecated`, either in the project
+ * index or in this very file.
  *
- * In v1 the compiler does not yet record arbitrary user metadata on
- * definitions, so this rule acts on definitions whose *docstring or
- * name* match a small, stable deprecated-marker vocabulary:
- *   - name starts with `!deprecated-`
- *   - docstring mentions `Deprecated:` or `DEPRECATED`
- * Future passes can extend this without editing the rule signature.
+ * The marker is the real `:deprecated` metadata the compiler already honours
+ * (`DeprecatedDefinitionWarner`), never prose: a docstring that merely
+ * *mentions* the word (`"... :deprecated, :min-arity ..."`, or a note about a
+ * deprecated PHP builtin) says nothing about the definition it documents.
+ *
+ * The definition's own name is not a "use" of it, so the defining form is
+ * skipped; otherwise deprecating something would flag its own declaration.
  */
 final readonly class DiscouragedVarRule implements LintRuleInterface
 {
-    private const array DEFINING_FORMS = ['def', 'defn', 'defn-', 'defmacro', 'defmacro-'];
+    private const array DEFINING_FORMS = ['def', 'def-', 'defn', 'defn-', 'defmacro', 'defmacro-'];
 
     public function code(): string
     {
@@ -48,28 +47,90 @@ final readonly class DiscouragedVarRule implements LintRuleInterface
             return [];
         }
 
+        /** @var list<Diagnostic> $result */
         $result = [];
         foreach ($analysis->forms as $form) {
-            FormWalker::walk($form, function (mixed $node) use ($discouraged, $analysis, &$result): void {
-                if (!$node instanceof Symbol) {
-                    return;
-                }
-
-                $name = $node->getName();
-                if (!isset($discouraged[$name])) {
-                    return;
-                }
-
-                $result[] = DiagnosticBuilder::fromForm(
-                    $this->code(),
-                    sprintf("Use of discouraged var '%s' (%s).", $name, $discouraged[$name]),
-                    $analysis->uri,
-                    $node,
-                );
-            });
+            $this->inspect($form, $discouraged, $analysis->uri, $result);
         }
 
         return $result;
+    }
+
+    /**
+     * @param array<string, string> $discouraged
+     * @param list<Diagnostic>      $result
+     */
+    private function inspect(mixed $form, array $discouraged, string $uri, array &$result): void
+    {
+        if ($form instanceof Symbol) {
+            $this->reportSymbol($form, $discouraged, $uri, $result);
+
+            return;
+        }
+
+        if ($form instanceof PersistentListInterface) {
+            $skipIndex = $this->definitionNameIndex($form);
+            $size = count($form);
+            for ($i = 0; $i < $size; ++$i) {
+                if ($i !== $skipIndex) {
+                    $this->inspect($form->get($i), $discouraged, $uri, $result);
+                }
+            }
+
+            return;
+        }
+
+        if ($form instanceof PersistentVectorInterface) {
+            foreach ($form as $child) {
+                $this->inspect($child, $discouraged, $uri, $result);
+            }
+
+            return;
+        }
+
+        if ($form instanceof PersistentMapInterface) {
+            foreach ($form as $key => $value) {
+                $this->inspect($key, $discouraged, $uri, $result);
+                $this->inspect($value, $discouraged, $uri, $result);
+            }
+        }
+    }
+
+    /**
+     * @param array<string, string> $discouraged
+     * @param list<Diagnostic>      $result
+     */
+    private function reportSymbol(Symbol $node, array $discouraged, string $uri, array &$result): void
+    {
+        $name = $node->getName();
+        if (!isset($discouraged[$name])) {
+            return;
+        }
+
+        $result[] = DiagnosticBuilder::fromForm(
+            $this->code(),
+            sprintf("Use of discouraged var '%s' (%s).", $name, $discouraged[$name]),
+            $uri,
+            $node,
+        );
+    }
+
+    /**
+     * Index of the symbol a defining form declares, so it is not counted as a
+     * use of itself. `null` when the form declares nothing.
+     */
+    private function definitionNameIndex(mixed $form): ?int
+    {
+        if (!$form instanceof PersistentListInterface || count($form) < 2) {
+            return null;
+        }
+
+        $head = $form->get(0);
+        if (!$head instanceof Symbol || !in_array($head->getName(), self::DEFINING_FORMS, true)) {
+            return null;
+        }
+
+        return $form->get(1) instanceof Symbol ? 1 : null;
     }
 
     /**
@@ -79,21 +140,12 @@ final readonly class DiscouragedVarRule implements LintRuleInterface
     {
         $map = [];
         foreach ($analysis->projectIndex->definitions as $def) {
-            $name = $def->name;
-            $docstring = $def->docstring;
-
-            if (str_starts_with($name, '!deprecated-')) {
-                $map[$name] = 'deprecated by name';
-
-                continue;
-            }
-
-            if (preg_match('/\bdeprecated\b/i', $docstring) === 1) {
-                $map[$name] = 'marked deprecated in docstring';
+            if ($def->isDeprecated()) {
+                $map[$def->name] = sprintf('deprecated: %s', $def->deprecated);
             }
         }
 
-        // Also scan local forms for `^{:deprecated true}` metadata.
+        // The project index does not cover the file currently being linted.
         foreach ($analysis->forms as $form) {
             $this->collectLocalDeprecations($form, $map);
         }
@@ -106,35 +158,48 @@ final readonly class DiscouragedVarRule implements LintRuleInterface
      */
     private function collectLocalDeprecations(mixed $form, array &$map): void
     {
-        if (!$form instanceof PersistentListInterface || count($form) < 3) {
+        if ($this->definitionNameIndex($form) === null) {
             return;
         }
 
-        $head = $form->get(0);
-        if (!$head instanceof Symbol) {
-            return;
-        }
-
-        if (!in_array($head->getName(), self::DEFINING_FORMS, true)) {
-            return;
-        }
-
+        /** @var PersistentListInterface<mixed> $form */
         $ident = $form->get(1);
         if (!$ident instanceof Symbol) {
             return;
         }
 
+        $reason = $this->deprecationReason($ident->getMeta());
         $size = count($form);
-        for ($i = 2; $i < $size; ++$i) {
+        for ($i = 2; $i < $size && $reason === ''; ++$i) {
             $meta = $form->get($i);
-            if ($meta instanceof PersistentMapInterface) {
-                $value = $meta->find(Keyword::create('deprecated'));
-                if ($value === true || (is_string($value) && $value !== '')) {
-                    $map[$ident->getName()] = 'marked deprecated';
-                }
-            } elseif ($meta instanceof PersistentVectorInterface) {
+            if ($meta instanceof PersistentVectorInterface) {
                 break;
             }
+
+            if ($meta instanceof PersistentMapInterface) {
+                $reason = $this->deprecationReason($meta);
+            }
         }
+
+        if ($reason !== '') {
+            $map[$ident->getName()] = sprintf('deprecated: %s', $reason);
+        }
+    }
+
+    /**
+     * @param PersistentMapInterface<mixed, mixed>|null $meta
+     */
+    private function deprecationReason(?PersistentMapInterface $meta): string
+    {
+        if (!$meta instanceof PersistentMapInterface) {
+            return '';
+        }
+
+        $value = $meta->find(Keyword::create('deprecated'));
+        if (is_string($value) && $value !== '') {
+            return $value;
+        }
+
+        return $value === true ? 'deprecated' : '';
     }
 }

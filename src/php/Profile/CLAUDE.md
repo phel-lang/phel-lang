@@ -19,6 +19,9 @@ Instrumentation profiler for `phel profile`. Reports per-fn call counts, self/to
 | `ProfileProvider::FACADE_RUN` → `RunFacade` | `runFile`, `runNamespace`, `autoDetectEntryPoint`, `writeLocatedException`, `writeStackTrace` |
 | `Phel\Shared\Munge` (direct) | `canonicalNs` for namespace targets |
 | `Phel\Lang` (types) | `AbstractFn`, `ProfilerHookInterface`, `Registry` |
+| `Phel\Phel` (composition root, direct) | `ProfileCommand` calls `setupRuntimeArgs()` before running the profiled entry point, exactly as `RunCommand` does |
+
+`Phel\Phel` is the only import that reaches *out* of the module graph into the composition root. It is not a cycle (the root never imports Profile), so `ModuleDependencyCycleTest` cannot see it; `CompositionRootBoundaryTest` pins it instead, along with the fact that `setupRuntimeArgs()` is the single root method used.
 
 ## How the hook works
 

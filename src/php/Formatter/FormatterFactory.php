@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace Phel\Formatter;
 
 use Gacela\Framework\AbstractFactory;
-use Phel\Compiler\CompilerFacade;
 use Phel\Formatter\Application\Formatter;
 use Phel\Formatter\Application\PathsFormatter;
 use Phel\Formatter\Application\PhelPathFilter;
@@ -22,6 +21,7 @@ use Phel\Formatter\Domain\Rules\RemoveTrailingWhitespaceRule;
 use Phel\Formatter\Domain\Rules\UnindentRule;
 use Phel\Formatter\Infrastructure\IO\SystemFileIo;
 use Phel\Shared\Facade\CommandFacadeInterface;
+use Phel\Shared\Facade\CompilerFacadeInterface;
 
 /**
  * @extends AbstractFactory<FormatterConfig>
@@ -70,7 +70,7 @@ final class FormatterFactory extends AbstractFactory
     public function createFormatter(): FormatterInterface
     {
         return new Formatter(
-            $this->getFacadeCompiler(),
+            $this->getCompilerFacade(),
             [
                 $this->createRemoveSurroundingWhitespaceRule(),
                 $this->createUnindentRule(),
@@ -127,9 +127,9 @@ final class FormatterFactory extends AbstractFactory
         return new PhelPathFilter();
     }
 
-    private function getFacadeCompiler(): CompilerFacade
+    private function getCompilerFacade(): CompilerFacadeInterface
     {
-        /** @var CompilerFacade $facade */
+        /** @var CompilerFacadeInterface $facade */
         $facade = $this->getProvidedDependency(FormatterProvider::FACADE_COMPILER);
 
         return $facade;

@@ -35,7 +35,7 @@ No Gacela pattern: foundational leaf module; all types used directly by other mo
 | `Volatile` | Lightweight mutable container for transducer state (no watches/validators) |
 | `Reduced` | Signals early termination from reduce/transduce |
 | `Future` | Amphp adapter exposing Phel deref/realized? protocol |
-| `Eduction` | Transducer composition helper |
+| `Eduction` | Transducer composition helper. Re-runs the chain on every consumption, so it has no size of its own: `empty?` answers it via `Seq::isEmpty` (pulls one element), `count` refuses it with an actionable message rather than draining it |
 
 ## Numeric Utilities
 
@@ -82,6 +82,7 @@ Shared behaviour traits: `MetaTrait` (`getMeta`/`withMeta`), `HashCombinerTrait`
 - Transients: `TransientVector`, `TransientMapWrapper`, `TransientSortedMap`/`TransientSortedSet`. All share `TransientStateTrait`: `persistent()` invalidates; mutators call `ensureTransientActive()` to guard reuse after `persistent!`.
 - Every transient stays callable like its persistent counterpart (`__invoke` on the concrete class, not on the transient interface): vector by index, map by key, both set flavours by membership.
 - `TransientHashSet` and `TransientSortedSet` share `HashSet\AbstractTransientSet` (both are a facade over a transient map keyed by the member itself; ordering lives in the backing map). Subclasses supply only `__toString()` and `persistent()`, mirroring how `SortedMap\PersistentSortedMap` extends `Map\AbstractPersistentMap`.
+- `merge()` has two strategies, chosen by which trait a class uses, never by an `instanceof` in the base: `AbstractPersistentMap::merge()` folds with `put()` (works everywhere, keeps the receiver's meta) and is what `PersistentSortedMap` and `AbstractPersistentStruct` get; `PersistentHashMap`/`PersistentArrayMap` opt into `Map\TransientMergeStrategyTrait`, which bulk-builds through a transient (fewer allocations, but drops the receiver's meta because every transient rebuilds with a null meta). `PersistentMapMergeTest` pins both.
 - `PersistentHashSet` and `PersistentSortedSet` likewise share `HashSet\AbstractPersistentSet`, which owns the map-delegating half (`__invoke`, `getMeta`, `contains`, `count`, `equals`, `hash`, `getIterator`, `toPhpArray`, `concat`). Subclasses own only what has to name their own type: `withMeta`, `add`, `remove`, `asTransient` (plus `getEffectiveComparator` on the sorted flavour).
 
 ## Key Constraints
