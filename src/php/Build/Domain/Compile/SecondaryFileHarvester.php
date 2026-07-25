@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Phel\Build\Domain\Compile;
 
 use Phel\Build\Domain\Cache\CompiledCodeCacheInterface;
-use Phel\Build\Domain\IO\FileIoInterface;
+use Phel\Build\Domain\IO\FileContentsIoInterface;
 use Phel\Shared\CompiledSourceHash;
 use Phel\Shared\NamespaceInformation;
 use Phel\Shared\SourceMap\SourceMapSiblings;
@@ -39,7 +39,7 @@ final readonly class SecondaryFileHarvester
 {
     public function __construct(
         private CompiledTargetPathResolver $targetPathResolver,
-        private FileIoInterface $fileIo,
+        private FileContentsIoInterface $fileIo,
         private CompiledSecondaryStore $compiledSecondaryStore,
         private ?CompiledCodeCacheInterface $compiledCodeCache = null,
         private int $optimizationLevel = 0,

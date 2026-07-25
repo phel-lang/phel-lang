@@ -6,7 +6,7 @@ namespace Phel\Formatter\Domain\IO;
 
 use Phel\Formatter\Domain\Exception\FilePathException;
 
-interface FileIoInterface
+interface ValidatedFileIoInterface
 {
     /**
      * @throws FilePathException

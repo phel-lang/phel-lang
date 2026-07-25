@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Phel\Filesystem\Application;
 
-use Phel\Filesystem\Domain\FileIoInterface;
+use Phel\Filesystem\Domain\DirectoryWritabilityCheckerInterface;
 use Phel\Shared\Exceptions\FileException;
 
 /**
@@ -22,7 +22,7 @@ final class TempDirFinder
     private string $cachedTempDir = '';
 
     public function __construct(
-        private readonly FileIoInterface $fileIo,
+        private readonly DirectoryWritabilityCheckerInterface $fileIo,
         private readonly string $configTempDir,
     ) {}
 

@@ -4,12 +4,12 @@ declare(strict_types=1);
 
 namespace Phel\Interop\Infrastructure\IO;
 
-use Phel\Interop\Domain\FileCreator\FileIoInterface;
+use Phel\Interop\Domain\FileCreator\FileWriterInterface;
 use RuntimeException;
 
 use function sprintf;
 
-final readonly class FileSystemIo implements FileIoInterface
+final readonly class FileSystemIo implements FileWriterInterface
 {
     public function createDirectory(string $directory): void
     {

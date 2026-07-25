@@ -59,7 +59,7 @@ Symbol lists live as `FormatterFactory` constants; `createIndentRule()` instanti
 | `Domain/Rules/Indenter/` | `BlockIndenter`, `InnerIndenter`, `LineIndenter`, `ListIndenter`; `FormSymbolMatcherTrait` reads a location's head symbol and matches it against the indenter's symbol |
 | `Domain/Rules/Pair/PairAligner.php` | Backing logic for `AlignPairsRule` |
 | `Domain/Rules/Zipper/` | `ParseTreeZipper` (AST traversal/transform), `AbstractZipper` |
-| `Infrastructure/IO/SystemFileIo.php` | `FileIoInterface` impl |
+| `Infrastructure/IO/SystemFileIo.php` | `ValidatedFileIoInterface` impl |
 | `Infrastructure/Command/FormatCommand.php` | `phel format` CLI command |
 
 ## Key Constraints

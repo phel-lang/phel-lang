@@ -8,7 +8,7 @@ use Phel\Compiler\Domain\Lexer\Exceptions\LexerValueException;
 use Phel\Compiler\Domain\Parser\Exceptions\AbstractParserException;
 use Phel\Formatter\Domain\Exception\FilePathException;
 use Phel\Formatter\Domain\FormatterInterface;
-use Phel\Formatter\Domain\IO\FileIoInterface;
+use Phel\Formatter\Domain\IO\ValidatedFileIoInterface;
 use Phel\Formatter\Domain\PathFilterInterface;
 use Phel\Formatter\Domain\Rules\Zipper\ZipperException;
 use Phel\Shared\Facade\CommandFacadeInterface;
@@ -18,18 +18,18 @@ use Symfony\Component\Console\Output\OutputInterface;
 final readonly class PathsFormatter
 {
     /**
-     * @param CommandFacadeInterface $commandFacade Writes located exceptions and
-     *                                              stack traces to the CLI output
-     * @param FormatterInterface     $formatter     Formats a single file's source
-     * @param PathFilterInterface    $pathFilter    Expands the input paths into the
-     *                                              concrete `.phel` files to format
-     * @param FileIoInterface        $fileIo        Reads and writes file contents
+     * @param CommandFacadeInterface   $commandFacade Writes located exceptions and
+     *                                                stack traces to the CLI output
+     * @param FormatterInterface       $formatter     Formats a single file's source
+     * @param PathFilterInterface      $pathFilter    Expands the input paths into the
+     *                                                concrete `.phel` files to format
+     * @param ValidatedFileIoInterface $fileIo        Reads and writes file contents
      */
     public function __construct(
         private CommandFacadeInterface $commandFacade,
         private FormatterInterface $formatter,
         private PathFilterInterface $pathFilter,
-        private FileIoInterface $fileIo,
+        private ValidatedFileIoInterface $fileIo,
     ) {}
 
     /**

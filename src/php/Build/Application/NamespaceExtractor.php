@@ -9,7 +9,7 @@ use Phel\Build\Domain\Extractor\ExtractorException;
 use Phel\Build\Domain\Extractor\NamespaceExtractorInterface;
 use Phel\Build\Domain\Extractor\NamespaceFileGrouper;
 use Phel\Build\Domain\Extractor\NamespaceSorterInterface;
-use Phel\Build\Domain\IO\FileIoInterface;
+use Phel\Build\Domain\IO\FileContentsIoInterface;
 use Phel\Compiler\Domain\Analyzer\Ast\InNsNode;
 use Phel\Compiler\Domain\Analyzer\Ast\NsNode;
 use Phel\Compiler\Domain\Analyzer\Environment\NodeEnvironment;
@@ -39,7 +39,7 @@ final readonly class NamespaceExtractor implements NamespaceExtractorInterface
     public function __construct(
         private CompilerFacadeInterface $compilerFacade,
         NamespaceSorterInterface $namespaceSorter,
-        private FileIoInterface $fileIo,
+        private FileContentsIoInterface $fileIo,
         ?ExcludedScanPaths $excludedPaths = null,
     ) {
         $this->grouper = new NamespaceFileGrouper($namespaceSorter);

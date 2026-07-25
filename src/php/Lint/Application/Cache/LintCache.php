@@ -30,12 +30,14 @@ use const JSON_THROW_ON_ERROR;
  * The cache is opt-in: callers pass an absolute base directory (usually
  * the project root + `.phel/lint-cache/`). When the directory cannot be
  * created we degrade silently — lint still works, just without caching.
+ *
+ * @phpstan-type IndexEntry array{hash: string, fingerprint: string, diagnostics: list<array<string, mixed>>}
  */
 final class LintCache
 {
     private const string INDEX_FILE = 'index.json';
 
-    /** @var array<string, array{hash: string, fingerprint: string, diagnostics: list<array<string, mixed>>}>|null */
+    /** @var array<string, IndexEntry>|null */
     private ?array $index = null;
 
     public function __construct(
@@ -147,7 +149,7 @@ final class LintCache
             return;
         }
 
-        /** @var array<string, array{hash: string, fingerprint: string, diagnostics: list<array<string, mixed>>}> $decoded */
+        /** @var array<string, IndexEntry> $decoded */
         $this->index = $decoded;
     }
 

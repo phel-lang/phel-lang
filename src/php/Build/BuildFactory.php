@@ -28,7 +28,7 @@ use Phel\Build\Domain\Extractor\FirstFormExtractor;
 use Phel\Build\Domain\Extractor\NamespaceExtractorInterface;
 use Phel\Build\Domain\Extractor\NamespaceSorterInterface;
 use Phel\Build\Domain\Extractor\TopologicalNamespaceSorter;
-use Phel\Build\Domain\IO\FileIoInterface;
+use Phel\Build\Domain\IO\FileContentsIoInterface;
 use Phel\Build\Infrastructure\Cache\CompiledCodeCache;
 use Phel\Build\Infrastructure\Cache\DependencyTracker;
 use Phel\Build\Infrastructure\Cache\PhpNamespaceCache;
@@ -247,7 +247,7 @@ final class BuildFactory extends AbstractFactory
         );
     }
 
-    private function createFileIo(): FileIoInterface
+    private function createFileIo(): FileContentsIoInterface
     {
         return new SystemFileIo();
     }

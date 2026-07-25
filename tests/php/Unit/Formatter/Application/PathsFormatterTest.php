@@ -7,7 +7,7 @@ namespace PhelTest\Unit\Formatter\Application;
 use Phel\Compiler\Domain\Lexer\Exceptions\LexerValueException;
 use Phel\Formatter\Application\PathsFormatter;
 use Phel\Formatter\Domain\FormatterInterface;
-use Phel\Formatter\Domain\IO\FileIoInterface;
+use Phel\Formatter\Domain\IO\ValidatedFileIoInterface;
 use Phel\Formatter\Domain\PathFilterInterface;
 use Phel\Shared\Facade\CommandFacadeInterface;
 use PHPUnit\Framework\TestCase;
@@ -55,7 +55,7 @@ final class PathsFormatterTest extends TestCase
 
     public function test_write_failure_propagates_instead_of_being_swallowed(): void
     {
-        $io = new class() implements FileIoInterface {
+        $io = new class() implements ValidatedFileIoInterface {
             public function checkIfValid(string $filename): void {}
 
             public function getContents(string $filename): string
@@ -83,9 +83,9 @@ final class PathsFormatterTest extends TestCase
     /**
      * @param array<string, string> $contents
      */
-    private function fileIo(array $contents): FileIoInterface
+    private function fileIo(array $contents): ValidatedFileIoInterface
     {
-        return new class($contents) implements FileIoInterface {
+        return new class($contents) implements ValidatedFileIoInterface {
             /**
              * @param array<string, string> $contents
              */

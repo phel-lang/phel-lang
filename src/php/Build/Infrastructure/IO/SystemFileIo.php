@@ -4,12 +4,12 @@ declare(strict_types=1);
 
 namespace Phel\Build\Infrastructure\IO;
 
-use Phel\Build\Domain\IO\FileIoInterface;
+use Phel\Build\Domain\IO\FileContentsIoInterface;
 use RuntimeException;
 
 use function sprintf;
 
-final class SystemFileIo implements FileIoInterface
+final class SystemFileIo implements FileContentsIoInterface
 {
     public function getContents(string $filename): string
     {

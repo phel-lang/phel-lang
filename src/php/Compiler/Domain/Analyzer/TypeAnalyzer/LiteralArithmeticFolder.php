@@ -27,6 +27,8 @@ use function min;
  * The set of fns evaluated here is the vetted, effect-free list that
  * {@see Simplification\SymbolicPurityDetector}'s `PURE_CORE_FNS` mirrors.
  * Keep the two in sync when adding a pure-but-not-foldable core fn.
+ *
+ * @phpstan-type ReducerSpec array{identity: int, op: 'add'|'mul'}
  */
 final readonly class LiteralArithmeticFolder
 {
@@ -44,7 +46,7 @@ final readonly class LiteralArithmeticFolder
      * `(+)` and `(*)` are also foldable. `-` and `/` use one-arg semantics
      * that differ from a reducer and live in their own helpers.
      *
-     * @var array<string, array{identity: int, op: 'add'|'mul'}>
+     * @var array<string, ReducerSpec>
      */
     private const array NUMERIC_REDUCERS = [
         '+' => ['identity' => 0, 'op' => 'add'],
@@ -261,8 +263,8 @@ final readonly class LiteralArithmeticFolder
     }
 
     /**
-     * @param array{identity: int, op: 'add'|'mul'} $spec
-     * @param list<float|int>                       $literals
+     * @param ReducerSpec     $spec
+     * @param list<float|int> $literals
      */
     private function reduce(array $spec, array $literals): int|float|null
     {
