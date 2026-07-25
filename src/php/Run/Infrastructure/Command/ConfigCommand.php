@@ -96,6 +96,20 @@ HELP)
     }
 
     /**
+     * Prints the diagnostics, then — when any of them is an error — a summary
+     * line saying so.
+     *
+     * `phel config` stays exit 0 on purpose. It is a dump command that
+     * succeeded at dumping; `phel doctor` owns the pass/fail verdict over the
+     * same {@see ConfigDiagnostics}, and every error-level issue today comes
+     * from the advisory "directories should be relative" rule, so failing here
+     * would reject configurations that demonstrably work — and would break
+     * `phel config --format=json | jq` pipelines that gate on the exit code.
+     *
+     * The price of that choice is that the exit code carries no signal, so the
+     * output has to. A count line makes an error impossible to mistake for one
+     * more line of dumped content, and names the command that does fail.
+     *
      * @param list<ConfigIssue> $issues
      */
     private function writeValidation(OutputInterface $output, array $issues): void
@@ -109,8 +123,10 @@ HELP)
             return;
         }
 
+        $errorCount = 0;
         foreach ($issues as $issue) {
             $tag = $issue->isError() ? 'error' : 'comment';
+            $errorCount += $issue->isError() ? 1 : 0;
             $output->writeln(sprintf(
                 ' - <%s>%s</%s> %s',
                 $tag,
@@ -119,6 +135,20 @@ HELP)
                 $issue->message,
             ));
         }
+
+        if ($errorCount === 0) {
+            return;
+        }
+
+        $output->writeln('');
+        $output->writeln(sprintf(
+            '<error>%d configuration error(s) found.</error>',
+            $errorCount,
+        ));
+        $output->writeln(
+            'This command only dumps the configuration, so it still exits 0. '
+            . 'Run <comment>phel doctor</comment> for a pass/fail verdict.',
+        );
     }
 
     private function writeSources(OutputInterface $output, EffectiveConfigResult $effective): void

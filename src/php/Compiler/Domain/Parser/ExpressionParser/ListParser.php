@@ -59,9 +59,13 @@ final readonly class ListParser
             $closingBracket,
         );
 
-        throw UnfinishedParserException::forSnippet(
+        // The loop only ends here once the stream is exhausted, so there is no
+        // `current()` token left: asking for one throws "Token generator
+        // exhausted unexpectedly" and destroys the message above, which is the
+        // one the user needs. Anchor on the opening bracket instead.
+        throw UnfinishedParserException::forExhaustedStream(
             $tokenStream->getCodeSnippet(),
-            $tokenStream->current(),
+            $startLocation,
             $message,
             ErrorCode::UNTERMINATED_LIST,
         );

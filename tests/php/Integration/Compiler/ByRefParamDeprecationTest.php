@@ -14,7 +14,9 @@ use Phel\Lang\Symbol;
 use Phel\Shared\CompileOptions;
 use PHPUnit\Framework\TestCase;
 
+use function ini_get;
 use function restore_error_handler;
+
 use function set_error_handler;
 
 use const E_USER_DEPRECATED;
@@ -98,6 +100,42 @@ final class ByRefParamDeprecationTest extends TestCase
 
         self::assertNotNull($warning);
         self::assertStringContainsString('&$parts', (string) $compiled);
+    }
+
+    /**
+     * The `^:reference` detector is the only one that runs during *emission*,
+     * and the emitter builds its output inside `ob_start()`. Under PHP CLI's
+     * default `display_errors=1` (STDOUT) the notice text was written straight
+     * into that buffer and spliced into the generated PHP, so
+     * `--warn-deprecations` turned a working `^:reference` param into
+     * `syntax error, unexpected token ":"` (#2827).
+     *
+     * The other tests here install a `set_error_handler` and so never exercise
+     * PHP's own display; this one deliberately does not.
+     */
+    public function test_the_deprecation_notice_never_lands_in_the_emitted_php(): void
+    {
+        $previousDisplay = (string) ini_get('display_errors');
+        $previousLog = (string) ini_get('log_errors');
+        $previousReporting = error_reporting(E_ALL);
+        ini_set('display_errors', 'STDOUT');
+        ini_set('log_errors', '0');
+        set_error_handler(null);
+
+        try {
+            $compiled = $this->compilerFacade
+                ->compile('(fn [^:reference parts] (php/array_push parts "x"))', new CompileOptions()->setEmitOnly(true))
+                ->getPhpCode();
+        } finally {
+            restore_error_handler();
+            ini_set('log_errors', $previousLog);
+            ini_set('display_errors', $previousDisplay);
+            error_reporting($previousReporting);
+        }
+
+        self::assertStringContainsString('&$parts', $compiled);
+        self::assertStringNotContainsString('Deprecated', $compiled);
+        self::assertStringNotContainsString('^:reference', $compiled);
     }
 
     private function compileCapturingDeprecation(string $phelCode, ?string &$compiled = null): ?string

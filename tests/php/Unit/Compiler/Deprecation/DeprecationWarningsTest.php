@@ -9,7 +9,9 @@ use Phel\Lang\SourceLocation;
 use PHPUnit\Framework\TestCase;
 
 use function dirname;
+use function ini_get;
 use function restore_error_handler;
+
 use function set_error_handler;
 
 use function sprintf;
@@ -280,6 +282,100 @@ final class DeprecationWarningsTest extends TestCase
                 new SourceLocation('/app/user.phel', 4, 1, new SourceLocation($stdlibFile, 9, 2)),
             );
         }));
+    }
+
+    /**
+     * A notice raised while an output buffer is open must not land in that
+     * buffer. The emitter builds generated PHP inside `ob_start()`, and one
+     * detector (`^:reference` params) runs there, so under PHP CLI's default
+     * `display_errors=1` (STDOUT) the notice text used to be spliced into the
+     * emitted code and break the compile (#2827).
+     */
+    public function test_notice_display_never_reaches_a_captured_stdout_buffer(): void
+    {
+        DeprecationWarnings::enable();
+
+        self::assertSame('', $this->captureStdoutWithPhpDefaultHandler(static function (): void {
+            DeprecationWarnings::warn('buffered deprecation');
+        }));
+    }
+
+    public function test_notice_display_stays_silent_when_the_user_turned_display_errors_off(): void
+    {
+        DeprecationWarnings::enable();
+
+        // Redirecting to stderr must not *enable* a display the user disabled,
+        // so nothing reaches either channel here.
+        self::assertSame('', $this->captureStdoutWithPhpDefaultHandler(
+            static function (): void {
+                DeprecationWarnings::warn('silenced deprecation');
+            },
+            displayErrors: '0',
+        ));
+    }
+
+    public function test_the_stderr_redirect_is_scoped_to_the_notice(): void
+    {
+        DeprecationWarnings::enable();
+
+        $previous = (string) ini_get('display_errors');
+        ini_set('display_errors', 'STDOUT');
+
+        $during = null;
+        try {
+            // A userland handler observes the ini while the notice is being
+            // raised and suppresses the display, so this test adds no output.
+            set_error_handler(static function () use (&$during): bool {
+                $during = ini_get('display_errors');
+
+                return true;
+            }, E_USER_DEPRECATED);
+
+            try {
+                DeprecationWarnings::warn('scoped redirect');
+            } finally {
+                restore_error_handler();
+            }
+
+            self::assertSame('stderr', $during);
+            self::assertSame('STDOUT', ini_get('display_errors'));
+        } finally {
+            ini_set('display_errors', $previous);
+        }
+    }
+
+    /**
+     * Runs `$fn` the way a real CLI invocation would: PHPUnit's error handler
+     * set aside so PHP's own display runs, `display_errors` pointed at stdout,
+     * and an output buffer open the way the emitter keeps one. Returns whatever
+     * reached that buffer.
+     *
+     * `error_reporting` has to be widened too — PHPUnit masks
+     * `E_USER_DEPRECATED` out, and with it masked PHP prints nothing at all, so
+     * the assertion would hold for the wrong reason. `log_errors` is off so the
+     * run does not also write the notice to the suite's stderr.
+     */
+    private function captureStdoutWithPhpDefaultHandler(callable $fn, string $displayErrors = 'STDOUT'): string
+    {
+        $previousDisplay = (string) ini_get('display_errors');
+        $previousLog = (string) ini_get('log_errors');
+        $previousReporting = error_reporting(E_ALL);
+        ini_set('display_errors', $displayErrors);
+        ini_set('log_errors', '0');
+        set_error_handler(null);
+        ob_start();
+
+        try {
+            $fn();
+        } finally {
+            $captured = (string) ob_get_clean();
+            restore_error_handler();
+            ini_set('log_errors', $previousLog);
+            ini_set('display_errors', $previousDisplay);
+            error_reporting($previousReporting);
+        }
+
+        return $captured;
     }
 
     /**
