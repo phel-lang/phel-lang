@@ -44,8 +44,8 @@ final class TransientArrayMap implements TransientMapInterface
     }
 
     /**
-     * @param mixed $key
-     * @param mixed $value
+     * @param TKey   $key
+     * @param TValue $value
      *
      * @return TransientMapInterface<TKey, TValue>
      */
@@ -80,7 +80,7 @@ final class TransientArrayMap implements TransientMapInterface
     }
 
     /**
-     * @param mixed $key
+     * @param TKey $key
      *
      * @return self<TKey, TValue>
      */

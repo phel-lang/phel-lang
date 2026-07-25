@@ -72,7 +72,7 @@ final class HashCollisionNode implements HashMapNodeInterface
     }
 
     /**
-     * @param mixed $key
+     * @param TKey $key
      *
      * @return HashMapNodeInterface<TKey, TValue>|null
      */
@@ -93,7 +93,7 @@ final class HashCollisionNode implements HashMapNodeInterface
     }
 
     /**
-     * @param mixed $key
+     * @param TKey  $key
      * @param mixed $notFound
      *
      * @return ?mixed

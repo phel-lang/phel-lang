@@ -78,7 +78,7 @@ final readonly class IndexedNode implements HashMapNodeInterface
     }
 
     /**
-     * @param mixed $key
+     * @param TKey $key
      *
      * @return HashMapNodeInterface<TKey, TValue>|null
      */
@@ -135,7 +135,7 @@ final readonly class IndexedNode implements HashMapNodeInterface
     }
 
     /**
-     * @param mixed $key
+     * @param TKey  $key
      * @param mixed $notFound
      *
      * @return ?mixed
