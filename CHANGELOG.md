@@ -7,9 +7,11 @@ All notable changes to this project will be documented in this file.
 ### Added
 
 - New `phel lint` rule `phel/comment-style` (warning, on by default): flags a whole-line comment written with a single `;`, which the convention reserves for comments trailing code on the same line
+- New `phel lint` rule `phel/duplicate-def` (error, on by default): flags a top-level symbol defined twice in the same file, while a forward `(declare foo)` followed by its definition stays clean
 
 ### Fixed
 
+- `phel lint` no longer aborts with `Lint failed: Symbol ... is already bound` on any project whose files `:require` one another (or on phel's own stdlib): re-reading a source during analysis is no longer mistaken for a redefinition, a real duplicate definition is now reported by the new `phel/duplicate-def` rule, a `defstruct` implementing a `definterface` from the same file no longer crashes the run, and `php/->`/threading segments plus `for`/`dofor` heads and a bare `[&]` are no longer flagged
 - Syntax deprecation notices (bare `#` comments, `#| ... |#` blocks, `|()` short fns, `,`/`,@` unquote, `$` auto-gensym) are no longer suppressed with `@`, which hid them from every real run: `--warn-deprecations` printed nothing at all. They are now gated on the same switch as the backslash-separator warning, off by default and reported when asked for, and suppressed for phel's own bundled `src/phel` sources so only code the user can edit is flagged
 - `phel lint` no longer skips a `.phel` file it cannot read, which reported the file as clean and let the run exit 0; it now raises `LintSourceException` naming the path
 - Parser, reader and analyzer errors now chain the sub-parser, tag-handler or path-resolver exception that produced them as `getPrevious()`, so the error log keeps the original throw site. The located message shown to the user is unchanged
