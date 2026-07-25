@@ -239,6 +239,26 @@
 (deftest test-filter-empty-element
   (is (= [] (filter #(throw (php/new \Exception)) [])) "`pred` is not executed when searching for empty vectors."))
 
+;; A Phel predicate returns an arbitrary value, and only nil/false are logically
+;; false. The lazy `filter` used to apply PHP truthiness, so 0, "" and friends
+;; were dropped even though the transducer arity kept them.
+(deftest test-filter-uses-phel-truthiness
+  (is (= [0 1 2] (filter identity [0 1 2])) "filter keeps 0")
+  (is (= ["" "a"] (filter identity ["" "a"])) "filter keeps the empty string")
+  (is (= [0 [] "0"] (filter identity [nil 0 false [] "0"])) "filter drops only nil and false")
+  (is (= (into [] (filter identity) [0 1 2]) (filter identity [0 1 2]))
+      "lazy filter agrees with the filter transducer"))
+
+(deftest test-take-while-uses-phel-truthiness
+  (is (= [1 0 ""] (take-while identity [1 0 "" nil 3])) "take-while stops only at nil/false")
+  (is (= (into [] (take-while identity) [1 0 2]) (take-while identity [1 0 2]))
+      "lazy take-while agrees with the take-while transducer"))
+
+(deftest test-drop-while-uses-phel-truthiness
+  (is (= [false 2] (drop-while identity [1 0 "" false 2])) "drop-while ends only at nil/false")
+  (is (= (into [] (drop-while identity) [0 1 2]) (drop-while identity [0 1 2]))
+      "lazy drop-while agrees with the drop-while transducer"))
+
 (deftest test-keep
   (is (= [true false false true true false false] (keep neg? [-1 2 3 -2 -3 4 5])) "keep: neg?")
   (is (= [-1 -2 -3] (keep (fn [x] (if (neg? x) x nil)) [-1 2 3 -2 -3 4 5])) "keep: filter nil"))

@@ -168,6 +168,30 @@ final class TransformGeneratorTest extends TestCase
         self::assertSame(['a', 'c'], iterator_to_array($result, false));
     }
 
+    /**
+     * Phel predicates return arbitrary values, not `bool`, and only `nil` and
+     * `false` are logically false. PHP truthiness would drop every value here.
+     */
+    public function test_filter_keeps_php_falsy_but_phel_truthy_results(): void
+    {
+        $result = TransformGenerator::filter(
+            static fn(mixed $x): mixed => $x,
+            [0, 0.0, '', '0', [], 1],
+        );
+
+        self::assertSame([0, 0.0, '', '0', [], 1], iterator_to_array($result, false));
+    }
+
+    public function test_filter_drops_only_nil_and_false(): void
+    {
+        $result = TransformGenerator::filter(
+            static fn(mixed $x): mixed => $x,
+            [null, false, 0, 'a'],
+        );
+
+        self::assertSame([0, 'a'], iterator_to_array($result, false));
+    }
+
     public function test_keep_basic(): void
     {
         $result = TransformGenerator::keep(

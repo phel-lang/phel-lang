@@ -6,6 +6,7 @@ namespace Phel\Lang\Generators;
 
 use Generator;
 use Phel\Lang\Collections\Map\PersistentMapInterface;
+use Phel\Lang\Truthy;
 use Phel\Lang\TypeFactory;
 
 /**
@@ -49,20 +50,27 @@ final class TransformGenerator
     }
 
     /**
-     * Returns elements for which the predicate returns true.
+     * Returns elements for which the predicate returns a logical true value.
      *
      * Examples:
      *   filter(fn($x) => $x > 2, [1, 2, 3, 4, 5])  // => [3, 4, 5]
      *   filter(fn($c) => $c !== 'b', 'abc')        // => ['a', 'c']
      *
-     * @param callable(mixed):bool $predicate
+     * The predicate returns an arbitrary Phel value, not a `bool`: `(filter
+     * identity ...)` and any predicate ending in a lookup or an `or` hands
+     * back whatever it found. Only `nil` and `false` are logically false in
+     * Phel, so the keep/drop decision goes through {@see Truthy::isTruthy()}
+     * and never through PHP truthiness, which would also drop `0`, `0.0`,
+     * `''`, `'0'` and `[]`.
+     *
+     * @param callable(mixed):mixed $predicate
      *
      * @return Generator<int, mixed>
      */
     public static function filter(callable $predicate, mixed $iterable): Generator
     {
         foreach (SequenceGenerator::toIterable($iterable) as $value) {
-            if ($predicate($value)) {
+            if (Truthy::isTruthy($predicate($value))) {
                 yield $value;
             }
         }
