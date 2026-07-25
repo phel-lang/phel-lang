@@ -6,7 +6,7 @@ namespace PhelTest\Unit\Build\Application;
 
 use Phel\Build\Application\FileCompiler;
 use Phel\Build\Domain\Extractor\NamespaceExtractorInterface;
-use Phel\Build\Domain\IO\FileIoInterface;
+use Phel\Build\Domain\IO\FileContentsIoInterface;
 use Phel\Compiler\Domain\Emitter\EmitterResult;
 use Phel\Shared\CompileOptions;
 use Phel\Shared\Facade\CompilerFacadeInterface;
@@ -22,7 +22,7 @@ final class FileCompilerTest extends TestCase
         $compiler = new FileCompiler(
             $this->createCapturingCompilerFacade(),
             $this->createNamespaceExtractor(),
-            $this->createStub(FileIoInterface::class),
+            $this->createStub(FileContentsIoInterface::class),
         );
 
         $compiler->compileFile('/src/test.phel', '/out/test.php', false);
@@ -36,7 +36,7 @@ final class FileCompilerTest extends TestCase
         $compiler = new FileCompiler(
             $this->createCapturingCompilerFacade(),
             $this->createNamespaceExtractor(),
-            $this->createStub(FileIoInterface::class),
+            $this->createStub(FileContentsIoInterface::class),
             defaultOptimizationLevel: 2,
         );
 
@@ -51,7 +51,7 @@ final class FileCompilerTest extends TestCase
         $compiler = new FileCompiler(
             $this->createCapturingCompilerFacade(),
             $this->createNamespaceExtractor(),
-            $this->createStub(FileIoInterface::class),
+            $this->createStub(FileContentsIoInterface::class),
             defaultOptimizationLevel: 2,
         );
 

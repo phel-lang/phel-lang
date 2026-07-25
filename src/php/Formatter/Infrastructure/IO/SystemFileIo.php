@@ -5,12 +5,12 @@ declare(strict_types=1);
 namespace Phel\Formatter\Infrastructure\IO;
 
 use Phel\Formatter\Domain\Exception\FilePathException;
-use Phel\Formatter\Domain\IO\FileIoInterface;
+use Phel\Formatter\Domain\IO\ValidatedFileIoInterface;
 use RuntimeException;
 
 use function sprintf;
 
-final class SystemFileIo implements FileIoInterface
+final class SystemFileIo implements ValidatedFileIoInterface
 {
     /**
      * @throws FilePathException

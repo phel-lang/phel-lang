@@ -6,7 +6,7 @@ namespace Phel\Interop\Domain\FileCreator;
 
 use RuntimeException;
 
-interface FileIoInterface
+interface FileWriterInterface
 {
     /**
      * Creates the directory (including missing parents); a no-op if it already exists.

@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace PhelTest\Unit\Filesystem\Application;
 
 use Phel\Filesystem\Application\TempDirFinder;
-use Phel\Filesystem\Domain\FileIoInterface;
+use Phel\Filesystem\Domain\DirectoryWritabilityCheckerInterface;
 use Phel\Shared\Exceptions\FileException;
 use PHPUnit\Framework\Attributes\RunInSeparateProcess;
 use PHPUnit\Framework\TestCase;
@@ -18,7 +18,7 @@ final class TempDirFinderTest extends TestCase
         $dir = sys_get_temp_dir() . '/phel-unwritable-' . uniqid('', true);
         mkdir($dir);
 
-        $fileIo = self::createStub(FileIoInterface::class);
+        $fileIo = self::createStub(DirectoryWritabilityCheckerInterface::class);
         $fileIo->method('isWritable')->willReturn(false);
 
         $finder = new TempDirFinder($fileIo, $dir);
@@ -40,7 +40,7 @@ final class TempDirFinderTest extends TestCase
         mkdir($dir);
         chmod($dir, 0555);
 
-        $fileIo = $this->createMock(FileIoInterface::class);
+        $fileIo = $this->createMock(DirectoryWritabilityCheckerInterface::class);
         $fileIo->expects(self::exactly(2))
             ->method('isWritable')
             ->with($dir)

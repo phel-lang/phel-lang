@@ -12,7 +12,7 @@ use Phel\Interop\Domain\ExportFinder\FunctionsToExportFinder;
 use Phel\Interop\Domain\ExportFinder\FunctionsToExportFinderInterface;
 use Phel\Interop\Domain\FileCreator\FileCreator;
 use Phel\Interop\Domain\FileCreator\FileCreatorInterface;
-use Phel\Interop\Domain\FileCreator\FileIoInterface;
+use Phel\Interop\Domain\FileCreator\FileWriterInterface;
 use Phel\Interop\Domain\Generator\Builder\CompiledPhpClassBuilder;
 use Phel\Interop\Domain\Generator\Builder\CompiledPhpMethodBuilder;
 use Phel\Interop\Domain\Generator\Builder\WrapperRelativeFilenamePathBuilder;
@@ -102,7 +102,7 @@ final class InteropFactory extends AbstractFactory
         return $facade;
     }
 
-    private function createFileSystemIo(): FileIoInterface
+    private function createFileSystemIo(): FileWriterInterface
     {
         return new FileSystemIo();
     }

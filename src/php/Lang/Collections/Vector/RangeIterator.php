@@ -9,7 +9,9 @@ use Iterator;
 use function assert;
 
 /**
- * @implements Iterator<int, mixed>
+ * @template T
+ *
+ * @implements Iterator<int, T>
  */
 final class RangeIterator implements Iterator
 {
@@ -17,11 +19,11 @@ final class RangeIterator implements Iterator
 
     private readonly int $vectorCount;
 
-    /** @var array<int, mixed>|null */
+    /** @var array<int, T>|null */
     private ?array $currentArray = null;
 
     /**
-     * @param PersistentVector<mixed> $vector
+     * @param PersistentVector<T> $vector
      */
     public function __construct(
         private readonly PersistentVector $vector,
@@ -36,6 +38,9 @@ final class RangeIterator implements Iterator
         }
     }
 
+    /**
+     * @return T
+     */
     public function current(): mixed
     {
         assert($this->currentArray !== null);

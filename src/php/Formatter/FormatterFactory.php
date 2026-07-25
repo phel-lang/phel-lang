@@ -10,7 +10,7 @@ use Phel\Formatter\Application\Formatter;
 use Phel\Formatter\Application\PathsFormatter;
 use Phel\Formatter\Application\PhelPathFilter;
 use Phel\Formatter\Domain\FormatterInterface;
-use Phel\Formatter\Domain\IO\FileIoInterface;
+use Phel\Formatter\Domain\IO\ValidatedFileIoInterface;
 use Phel\Formatter\Domain\PathFilterInterface;
 use Phel\Formatter\Domain\Rules\AlignPairsRule;
 use Phel\Formatter\Domain\Rules\Indenter\BlockIndenter;
@@ -143,7 +143,7 @@ final class FormatterFactory extends AbstractFactory
         return $facade;
     }
 
-    private function createFileIo(): FileIoInterface
+    private function createFileIo(): ValidatedFileIoInterface
     {
         return new SystemFileIo();
     }

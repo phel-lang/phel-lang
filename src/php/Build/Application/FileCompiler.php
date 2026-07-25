@@ -8,7 +8,7 @@ use Phel\Build\BuildFacade;
 use Phel\Build\Domain\Compile\FileCompilerInterface;
 use Phel\Build\Domain\Compile\SymbolMetaStripper;
 use Phel\Build\Domain\Extractor\NamespaceExtractorInterface;
-use Phel\Build\Domain\IO\FileIoInterface;
+use Phel\Build\Domain\IO\FileContentsIoInterface;
 use Phel\Shared\CompiledFile;
 use Phel\Shared\CompileOptions;
 use Phel\Shared\Facade\CompilerFacadeInterface;
@@ -22,7 +22,7 @@ final readonly class FileCompiler implements FileCompilerInterface
     public function __construct(
         private CompilerFacadeInterface $compilerFacade,
         private NamespaceExtractorInterface $namespaceExtractor,
-        private FileIoInterface $fileIo,
+        private FileContentsIoInterface $fileIo,
         private int $defaultOptimizationLevel = CompileOptions::DEFAULT_OPTIMIZATION_LEVEL,
         private bool $stripSymbolMeta = false,
     ) {}

@@ -167,7 +167,7 @@ final class ApiFacade extends AbstractFacade implements ApiFacadeInterface
      * LSP SignatureHelp payload for the PHP-interop call enclosing the cursor,
      * or null when not applicable.
      *
-     * @return array{signatures: list<array{label: string}>, activeSignature: int, activeParameter: int}|null
+     * @return SignatureHelp|null
      */
     public function phpInteropSignatureAt(string $source, int $line, int $col): ?array
     {

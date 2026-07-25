@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Phel\Filesystem\Domain;
 
-interface FileIoInterface
+interface DirectoryWritabilityCheckerInterface
 {
     /**
      * Returns true if the directory is writable by the current process.

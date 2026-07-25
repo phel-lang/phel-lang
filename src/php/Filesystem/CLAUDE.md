@@ -24,7 +24,7 @@ None (no Provider). `FilesystemConfig` reads `PhelConfig::KEEP_GENERATED_TEMP_FI
 | `Domain/NullFilesystem` | No-op strategy when files are kept |
 | `Application/TempDirFinder` | Resolve/create/validate temp dir |
 | `Application/TempDirHealthCheck` | Health probe (separate from finder) |
-| `Application/FileIo` + `Domain/FileIoInterface` | `is_writable` wrapper for testability |
+| `Application/FileIo` + `Domain/DirectoryWritabilityCheckerInterface` | `is_writable` wrapper for testability |
 
 ## Key Constraints
 
