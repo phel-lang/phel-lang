@@ -81,6 +81,7 @@ final class IntraModuleLayeringTest extends TestCase
             if ($module === null) {
                 continue;
             }
+
             if (!isset(self::LAYER_RANK[(string) $layer])) {
                 continue;
             }
