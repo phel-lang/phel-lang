@@ -98,8 +98,9 @@ abstract class AbstractPersistentMap extends AbstractType implements PersistentM
      * Folds the other map in one `put()` at a time. This works for every
      * implementation, including those with no transient at all (a struct's
      * `asTransient()` throws), and it threads the receiver's metadata through
-     * each copy. Implementations backed by a real transient trade both
-     * properties for fewer allocations via `TransientMergeStrategyTrait`.
+     * each copy. Implementations backed by a real transient trade the
+     * short-circuit on an empty `$other` for fewer allocations via
+     * `TransientMergeStrategyTrait`; they keep the metadata just the same.
      *
      * @param PersistentMapInterface<TKey, TValue> $other
      *

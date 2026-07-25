@@ -9,9 +9,9 @@ namespace Phel\Lang\Collections\Map;
  * so a merge allocates one persistent map rather than one per entry.
  *
  * Only maps whose `asTransient()` is a real transient may use this: a struct
- * throws from `asTransient()`, and a sorted map would lose the receiver's
- * metadata (every transient rebuilds with a null meta). Those keep the
- * `put()`-folding default in `AbstractPersistentMap::merge()`.
+ * throws from `asTransient()`, so it keeps the `put()`-folding default in
+ * `AbstractPersistentMap::merge()`. The receiver's metadata survives either
+ * way, because a transient carries the meta of the map it was opened from.
  *
  * @template TKey
  * @template TValue

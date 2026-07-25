@@ -12,6 +12,7 @@ use Phel\Shared\Api\PhelFunction;
 use Phel\Shared\ScalarCoercion;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Completion\CompletionInput;
+use Symfony\Component\Console\Formatter\OutputFormatter;
 use Symfony\Component\Console\Helper\Table;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
@@ -96,9 +97,37 @@ HELP)
             return self::SUCCESS;
         }
 
+        if ($normalized === []) {
+            $this->printNoMatches($output, $search);
+            return self::SUCCESS;
+        }
+
         $this->printFunctionsAsTable($output, $normalized);
 
         return self::SUCCESS;
+    }
+
+    /**
+     * A search that matches nothing is not a failure: `phel doc` is a
+     * similarity search over the documented functions, and "nothing is close
+     * enough" is a legitimate answer, so the exit code stays `SUCCESS` and only
+     * the message changes. Printing the bare header-only table told the user
+     * nothing about which of the two happened.
+     *
+     * The `json` format keeps emitting `[]`, which is already an unambiguous
+     * machine-readable "no matches".
+     */
+    private function printNoMatches(OutputInterface $output, string $search): void
+    {
+        if ($search === '') {
+            $output->writeln('<comment>No documented functions found.</comment>');
+            $output->writeln('Check the namespaces passed to --ns, or drop the option to search all of them.');
+
+            return;
+        }
+
+        $output->writeln(sprintf('<comment>No function matches "%s".</comment>', OutputFormatter::escape($search)));
+        $output->writeln('Try a shorter search term, or run `phel doc` with no argument to list every documented function.');
     }
 
     /**

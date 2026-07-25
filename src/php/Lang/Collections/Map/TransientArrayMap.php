@@ -25,12 +25,15 @@ use function count;
 final class TransientArrayMap implements TransientMapInterface
 {
     /**
-     * @param array<int, mixed> $array
+     * @param array<int, mixed>                         $array
+     * @param PersistentMapInterface<mixed, mixed>|null $meta  Metadata of the map this transient
+     *                                                         was opened from, handed back on `persistent()`
      */
     public function __construct(
         private readonly HasherInterface $hasher,
         private readonly EqualizerInterface $equalizer,
         private array $array,
+        private readonly ?PersistentMapInterface $meta = null,
     ) {}
 
     /**
@@ -65,7 +68,7 @@ final class TransientArrayMap implements TransientMapInterface
 
         if ($index === false && $this->count() >= PersistentArrayMap::MAX_SIZE) {
             /** @var TransientHashMap<TKey, TValue> $m */
-            $m = new TransientHashMap($this->hasher, $this->equalizer, 0, null, false, null);
+            $m = new TransientHashMap($this->hasher, $this->equalizer, 0, null, false, null, $this->meta);
             for ($i = 0, $cnt = count($this->array); $i < $cnt; $i += 2) {
                 $m->put($this->array[$i], $this->array[$i + 1]);
             }
@@ -154,7 +157,7 @@ final class TransientArrayMap implements TransientMapInterface
     public function persistent(): PersistentMapInterface
     {
         /** @var PersistentArrayMap<TKey, TValue> $result */
-        $result = new PersistentArrayMap($this->hasher, $this->equalizer, null, $this->array);
+        $result = new PersistentArrayMap($this->hasher, $this->equalizer, $this->meta, $this->array);
 
         return $result;
     }

@@ -7,6 +7,7 @@ namespace Phel\Lang\Collections\Vector;
 use InvalidArgumentException;
 use Phel\Lang\Collections\Exceptions\IndexOutOfBoundsException;
 use Phel\Lang\Collections\Exceptions\MethodNotSupportedException;
+use Phel\Lang\Collections\Map\PersistentMapInterface;
 use Phel\Lang\Collections\TransientStateTrait;
 use Phel\Lang\EqualizerInterface;
 use Phel\Lang\HasherInterface;
@@ -28,10 +29,12 @@ final class TransientVector implements TransientVectorInterface, Stringable
     private int $tailSize;
 
     /**
-     * @param int               $count The number of elements inside this vector
-     * @param int               $shift The shift value
-     * @param array<int, mixed> $root  The root node (holds child nodes or, at the leaf level, values)
-     * @param T[]               $tail  The tail of the vector. This is an optimization
+     * @param int                                       $count The number of elements inside this vector
+     * @param int                                       $shift The shift value
+     * @param array<int, mixed>                         $root  The root node (holds child nodes or, at the leaf level, values)
+     * @param T[]                                       $tail  The tail of the vector. This is an optimization
+     * @param PersistentMapInterface<mixed, mixed>|null $meta  Metadata of the vector this transient was
+     *                                                         opened from, handed back on `persistent()`
      */
     public function __construct(
         private readonly HasherInterface $hasher,
@@ -40,6 +43,7 @@ final class TransientVector implements TransientVectorInterface, Stringable
         private int $shift,
         private array $root,
         private array $tail,
+        private readonly ?PersistentMapInterface $meta = null,
     ) {
         $this->tailSize = count($tail);
     }
@@ -109,7 +113,7 @@ final class TransientVector implements TransientVectorInterface, Stringable
     {
         $this->invalidateTransient();
 
-        return new PersistentVector($this->hasher, $this->equalizer, null, $this->count, $this->shift, $this->root, $this->tail);
+        return new PersistentVector($this->hasher, $this->equalizer, $this->meta, $this->count, $this->shift, $this->root, $this->tail);
     }
 
     /**

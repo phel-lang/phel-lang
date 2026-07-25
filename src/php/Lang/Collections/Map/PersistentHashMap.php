@@ -209,6 +209,7 @@ final class PersistentHashMap extends AbstractPersistentMap
                 $this->root,
                 $this->hasNull,
                 $this->nullValue,
+                $this->meta,
             ),
         );
     }

@@ -56,6 +56,6 @@ final class PersistentHashSet extends AbstractPersistentSet
      */
     public function asTransient(): TransientHashSet
     {
-        return new TransientHashSet($this->hasher, $this->map->asTransient());
+        return new TransientHashSet($this->hasher, $this->map->asTransient(), $this->meta);
     }
 }

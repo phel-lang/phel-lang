@@ -53,6 +53,7 @@ All collaborators degrade to empty/null on unknown types or reflection failure.
 - `ReadAndAnalyzeStage` wraps its pass in `GlobalEnvironment::enterAnalysisMode()`/`leaveAnalysisMode()`. `PreloadDependenciesStage` really evaluates the bundled `phel.*` modules and the file's dependencies, so the namespace under analysis is usually already bound; without that guard every top-level `def` raises `DuplicateDefinitionException` and kills the run. Any new stage that re-analyzes loaded sources needs the same guard.
 - Analysis routes through `CompilerFacade` phases only — never bypass.
 - `Infrastructure/NativeSymbolCatalog`: static doc table for special forms / built-ins with no `.phel` source. Special forms (`load`, `in-ns`, `use`) need an entry here to appear in `phel doc`. `PhelFnLoader` merges it with runtime metadata.
+- `DocCommand` filters by `similar_text` percentage (>= 45), so `phel doc <x>` is a similarity search, not an exact lookup. No match is not an error: the `table` format prints a "No function matches" line, `json` answers `[]`, and both exit `SUCCESS`. `DocCommandTest` pins the exit code.
 - `ProjectIndexer` re-indexes from scratch; caching hook is at the `SymbolExtractor` call-site.
 - `ReplCompleter` lazy-loads Phel functions, caches the PHP builtin catalog.
 - `PhelFnNormalizer` normalizes Phel function metadata with group keys + GitHub ref.

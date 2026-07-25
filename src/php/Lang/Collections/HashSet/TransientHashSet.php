@@ -21,6 +21,6 @@ final readonly class TransientHashSet extends AbstractTransientSet
      */
     public function persistent(): PersistentHashSetInterface
     {
-        return new PersistentHashSet($this->hasher, null, $this->transientMap->persistent());
+        return new PersistentHashSet($this->hasher, $this->meta, $this->transientMap->persistent());
     }
 }

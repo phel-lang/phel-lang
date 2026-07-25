@@ -364,6 +364,7 @@ final class PersistentVector extends AbstractPersistentVector
             $this->shift,
             $this->root,
             $this->tail,
+            $this->meta,
         );
     }
 

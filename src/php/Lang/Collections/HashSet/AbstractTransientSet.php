@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Phel\Lang\Collections\HashSet;
 
+use Phel\Lang\Collections\Map\PersistentMapInterface;
 use Phel\Lang\Collections\Map\TransientMapInterface;
 use Phel\Lang\HasherInterface;
 use Stringable;
@@ -21,11 +22,16 @@ use Stringable;
 abstract readonly class AbstractTransientSet implements TransientHashSetInterface, Stringable
 {
     /**
-     * @param TransientMapInterface<TValue, TValue> $transientMap
+     * @param TransientMapInterface<TValue, TValue>     $transientMap
+     * @param PersistentMapInterface<mixed, mixed>|null $meta         Metadata of the set this transient was
+     *                                                                opened from, handed back on `persistent()`.
+     *                                                                A set stores its own meta, not the backing
+     *                                                                map's, so it has to travel separately.
      */
     public function __construct(
         protected HasherInterface $hasher,
         protected TransientMapInterface $transientMap,
+        protected ?PersistentMapInterface $meta = null,
     ) {}
 
     abstract public function __toString(): string;

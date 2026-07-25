@@ -64,6 +64,26 @@
   (is (= {:a 1} (meta (vary-meta (set-meta! [] {:a 1 :b 2}) dissoc :b)))
       "vary-meta with dissoc"))
 
+(deftest transient-round-trip-preserves-meta
+  (let [m {:foo "bar"}]
+    (is (= m (meta (persistent! (transient (with-meta {:a 1} m))))) "map transient round trip preserves metadata")
+    (is (= m (meta (persistent! (transient (with-meta [1 2] m))))) "vector transient round trip preserves metadata")
+    (is (= m (meta (persistent! (transient (with-meta #{1 2} m))))) "set transient round trip preserves metadata")))
+
+;; The compiler lowers a chain of `assoc`/`conj` calls on a type-tagged target
+;; to one transient chain. That fast path must answer `meta` exactly like the
+;; untagged runtime path, which threads the metadata through every `put`.
+(defn- assoc-chain [^\Phel\Lang\Collections\Map\PersistentMapInterface m]
+  (assoc (assoc m :b 2) :c 3))
+
+(defn- conj-chain [^\Phel\Lang\Collections\Vector\PersistentVectorInterface v]
+  (conj (conj v 2) 3))
+
+(deftest typed-assoc-conj-chain-preserves-meta
+  (let [m {:foo "bar"}]
+    (is (= m (meta (assoc-chain (with-meta {:a 1} m)))) "typed assoc chain preserves metadata")
+    (is (= m (meta (conj-chain (with-meta [1] m)))) "typed conj chain preserves metadata")))
+
 (deftest associative-functions-preserve-meta
   (let [m    {:foo "bar"}
         data (set-meta! {:a 1 :b 2} m)]
