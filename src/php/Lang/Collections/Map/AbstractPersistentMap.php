@@ -95,30 +95,24 @@ abstract class AbstractPersistentMap extends AbstractType implements PersistentM
     }
 
     /**
+     * Folds the other map in one `put()` at a time. This works for every
+     * implementation, including those with no transient at all (a struct's
+     * `asTransient()` throws), and it threads the receiver's metadata through
+     * each copy. Implementations backed by a real transient trade both
+     * properties for fewer allocations via `TransientMergeStrategyTrait`.
+     *
      * @param PersistentMapInterface<TKey, TValue> $other
      *
      * @return PersistentMapInterface<TKey, TValue>
      */
     public function merge(PersistentMapInterface $other): PersistentMapInterface
     {
-        if ($this instanceof PersistentHashMap || $this instanceof PersistentArrayMap) {
-            $tm = $this->asTransient();
-            foreach ($other as $k => $v) {
-                $tm->put($k, $v);
-            }
-
-            /** @var PersistentMapInterface<TKey, TValue> $result */
-            $result = $tm->persistent();
-
-            return $result;
+        $result = $this;
+        foreach ($other as $key => $value) {
+            $result = $result->put($key, $value);
         }
 
-        $m = $this;
-        foreach ($other as $k => $v) {
-            $m = $m->put($k, $v);
-        }
-
-        return $m;
+        return $result;
     }
 
     /**

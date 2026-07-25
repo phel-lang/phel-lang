@@ -1,0 +1,43 @@
+(ns phel-test.fixtures.run-harness
+  (:require phel.test :as t))
+
+;; Shared harness for the test namespaces that drive `phel.test/run-tests`
+;; from *inside* a running suite (`selectors-runtime`, `repeat-seed`).
+;;
+;; Such a nested run would otherwise clobber the outer suite: `run-tests`
+;; resets the global stats and installs its own reporters. Every helper here
+;; snapshots that framework state, runs the inner suite with its output
+;; buffered, then restores what the outer suite had.
+
+(defn snapshot-run
+  "Runs `test-ns` under `options` with the framework state snapshotted.
+
+Appends a capturing reporter to `(:reporters options)`, buffers the inner
+run's output, restores the outer suite's reporters and stats, and returns
+`{:events [...] :stats {...}}` for the inner run alone."
+  [test-ns options]
+  (let [saved-reporters (t/get-reporters)
+        saved-stats     (t/get-stats)
+        events          (atom [])
+        capture         (fn [e] (swap! events conj e))
+        run-options     (assoc options :reporters
+                               (conj (vec (:reporters options)) capture))]
+    (t/reset-stats)
+    (with-output-buffer
+      (t/run-tests run-options test-ns))
+    (let [snapshot (t/get-stats)]
+      (t/set-reporters! saved-reporters)
+      (t/restore-stats saved-stats)
+      {:events (deref events)
+       :stats  snapshot})))
+
+(defn events-of
+  "Returns the events in `events` whose `:type` is `type`."
+  [events type]
+  (vec (for [e :in events :when (= type (:type e))] e)))
+
+(defn passing-count
+  "Counts the passing assertions in `events`, ignoring skip events."
+  [events]
+  (count (for [e :in events :when (and (= :pass (:state e))
+                                       (not= :skipped (:type e)))])))
