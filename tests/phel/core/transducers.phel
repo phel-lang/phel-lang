@@ -247,6 +247,27 @@
   (is (= 8 (reduce + 0 (eduction (map inc) (filter odd?) [1 2 3 4])))
       "reduce works on eduction"))
 
+(deftest test-eduction-reduce-without-init
+  (is (= 8 (reduce + (eduction (map inc) (filter odd?) [1 2 3 4])))
+      "reduce seeds from the eduction itself when no init is given"))
+
+(deftest test-eduction-reduce-without-init-single-element
+  (is (= 4 (reduce + (eduction (filter even?) [1 3 4 5])))
+      "reduce over a one-element eduction returns that element"))
+
+(deftest test-eduction-reduce-without-init-empty
+  (is (= 0 (reduce + (eduction (filter even?) [1 3 5])))
+      "reduce over an empty eduction calls the reducing fn with no arguments"))
+
+(deftest test-eduction-reduce-respects-reduced
+  (is (= 3 (reduce (fn [acc x] (if (= x 3) (reduced acc) (+ acc x)))
+                   (eduction (map inc) [0 1 2 3])))
+      "reduce over an eduction still short-circuits on reduced"))
+
+(deftest test-eduction-seq-is-nil-when-empty
+  (is (nil? (seq (eduction (filter even?) [1 3 5])))
+      "seq of an empty eduction is nil, not an empty list"))
+
 (deftest test-eduction-doseq
   (let [seen (atom [])]
     (doseq [x (eduction (map inc) [10 20 30])]

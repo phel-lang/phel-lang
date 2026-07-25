@@ -10,6 +10,7 @@ All notable changes to this project will be documented in this file.
 
 ### Fixed
 
+- `(reduce f coll)` without an init value now accepts any plain iterable, so the documented `(reduce + (eduction ...))` example works instead of raising "object is not countable"; relatedly, `seq` now returns `nil` for an empty non-countable iterable as its docstring promises
 - Sorted collection comparators are now typed `bool|int` rather than `int`. Phel's `<` returns a boolean, so `(sorted-map-by < ...)` never matched its own declared contract
 - `phel lint` now exits 2 with a clear message when `phel-lint.phel` exists but is unreadable, unparseable, or not a map, instead of silently falling back to the built-in default rules. A missing or empty config file still means defaults
 - Parse and lex failures during namespace extraction now report the underlying reason and chain the original exception, replacing a bare `Cannot parse file: <path>` with no line or cause
