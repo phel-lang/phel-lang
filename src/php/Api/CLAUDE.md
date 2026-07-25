@@ -29,6 +29,10 @@ Project-level transfers: `ProjectIndex`, `Definition`, `Location`, `Completion`,
 - Compiler (lex, parse, read, analyze phases) — `FACADE_COMPILER`.
 - `ApiConfig::allNamespaces()` lists the 25 documented Phel namespaces; `ApiConfig::githubRef()` returns `VersionFinder::LATEST_VERSION`.
 
+`Api <-> Run` is the codebase's only mutual Gacela provider pair, and the cycle is a wiring detail rather than a structural one: both sides consume each other through `Phel\Shared\Facade\*Interface`, and the concrete facades appear only in `ApiProvider` / `RunProvider`, because Gacela's locator has to name a class. `ModuleDependencyCycleTest` pins exactly those two files.
+
+Note that `ApiFacadeInterface` declares only 5 of the facade's methods, so Lint, Lsp and Watch still inject the **concrete** `ApiFacade` for `analyzeSource` / `indexProject` / symbol resolution. That is the one sanctioned exception to "inject the interface" in `src/php/CLAUDE.md`; it is pinned by `SatelliteFactoryFacadeInjectionTest`. Widening the contract is what would let those three bind the interface instead.
+
 ## PHP Interop Tooling (`Application/Php*`)
 
 All collaborators degrade to empty/null on unknown types or reflection failure.

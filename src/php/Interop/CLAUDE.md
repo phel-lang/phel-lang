@@ -17,6 +17,8 @@ Generates PHP wrapper classes for Phel functions marked `^{:export true}`, so PH
 | `FACADE_COMMAND` | error / exception output |
 | `FACADE_BUILD` | namespace extraction, compilation, evaluation |
 
+One non-facade edge: **Config** — `InteropConfig` imports `PhelConfig` and `PhelExportConfig`.
+
 `InteropConfig` reads the `export` config: `getExportDirectories()`, `prefixNamespace()` (default `PhelGenerated`), `getExportTargetDirectory()` (default `src/PhelGenerated`).
 
 ## Structure

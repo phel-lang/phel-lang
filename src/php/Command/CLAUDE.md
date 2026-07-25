@@ -23,8 +23,9 @@ Directory getters are `#[Cacheable]`.
 ## Dependencies
 
 - No facade dependencies. Provider exposes `PHP_CONFIG_READER` (Gacela `PhpConfigReader`).
-- Shared: `AbstractLocatedException`, `CodeSnippet`, `Printer`, `ColorStyle`, `Munge`, `Exceptions\Hint\*`.
+- Shared: `AbstractLocatedException`, `CodeSnippet`, `Printer`, `ColorStyle`, `Munge`, `Exceptions\Hint\*`, plus `SourceMap\SourceMapConsumer` to map a generated PHP line back to its Phel line.
 - Config: `PhelConfig`, `PhelBuildConfig`.
+- Compiler: one import, `Domain\Evaluator\Exceptions\EvaluatedCodeException`, tested with `instanceof` in `TextExceptionPrinter` so eval'd frames print with their Phel source. Type-only; Command never calls into the compiler and injects no compiler facade.
 
 ## Structure
 

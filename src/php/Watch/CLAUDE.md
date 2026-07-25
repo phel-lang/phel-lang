@@ -15,12 +15,14 @@ CLI: `./bin/phel watch [paths]... [-b backend] [--poll=500] [--debounce=100]` (`
 
 ## Dependencies (Provider FACADE_* constants)
 
-| Facade | Used for |
-|--------|----------|
-| Run | `evalFile`, `structuredEval` (reload hooks) |
-| Build | `getDependenciesForNamespace` (dep-order reload) |
-| Api | `indexProject` — incremental re-index for tooling |
-| Command | source-directory defaults |
+| Facade | Injected as | Used for |
+|--------|-------------|----------|
+| Run | `RunFacadeInterface` | `evalFile`, `structuredEval` (reload hooks) |
+| Build | `BuildFacadeInterface` | `getDependenciesForNamespace` (dep-order reload) |
+| Api | concrete `ApiFacade` | `indexProject` — incremental re-index for tooling |
+| Command | `CommandFacadeInterface` | source-directory defaults |
+
+`ApiFacade` is bound concretely because `indexProject` is not on `ApiFacadeInterface`; see `src/php/Api/CLAUDE.md`. `SatelliteFactoryFacadeInjectionTest` pins all four return types.
 
 ## Structure
 

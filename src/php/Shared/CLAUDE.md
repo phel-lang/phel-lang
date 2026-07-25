@@ -94,7 +94,8 @@ Stateless strategy-pattern printer (see `Printer/CLAUDE.md`); consumers instanti
 
 | Class | Purpose / producer → consumer |
 |-------|-------------------------------|
-| `VLQ` | pure Base64-VLQ codec (`decode`, `encodeIntegers`, `encodeInteger`); used by Compiler's `SourceMapGenerator`/`SourceMapConsumer` |
+| `VLQ` | pure Base64-VLQ codec (`decode`, `encodeIntegers`, `encodeInteger`); used by Compiler's `SourceMapGenerator` and by `SourceMapConsumer` below |
+| `SourceMapConsumer` | read side of the codec: decodes a `mappings` string into `getOriginalLine()` / `getMappedLines()`. Lives here, not in the emitter, because both Compiler (`EvaluatedCodeException`) and Command (`FilePositionExtractor`) decode maps while only the emitter writes them. The writer (`SourceMapGenerator`, `SourceMapState`) stays in Compiler |
 | `SourceMapSiblings` | naming convention for `<file>.php.map` + `<file>.phel` artifacts. Written by Build (`FileCompiler`, `SecondaryFileHarvester`), read by Command (`SourceMapExtractor`) |
 | `BuiltFilePreamble` | fixed `<?php declare(strict_types=1);` line before generated code; `prepend()` (writer: `FileCompiler`), `codeStartLine()` (reader: `SourceMapExtractor`) |
 | `InlineSourceMapComments` | `// ` / `// ;;` metadata comment prefixes for inline maps in eval'd code. Written by Compiler's `EmitterResult`, parsed by `SourceMapExtractor` + `EvaluatedCodeException` |
