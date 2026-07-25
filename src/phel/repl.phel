@@ -207,13 +207,20 @@
   (println-colorful value))
 
 (defn compile-str
-  "Compiles a Phel expression string to PHP code."
-  {:example "(compile-str \"(+ 1 2)\") ; => \"(1 + 2)\""}
+  "Compiles a Phel expression string to PHP code and returns it, without evaluating it.
+
+Compilation happens in expression context, so a bare top-level expression yields the PHP it reduces to rather than the empty string a statement-context compile would produce for a value nobody binds. Constant folding still applies, so `(+ 1 2)` compiles to `3`. Use `eval-str` to run the code instead of reading it."
+  {:example "(compile-str \"(+ 1 2)\") ; => \"3\"\n(compile-str \"[1 2 3]\") ; => \"\\\\Phel::vector([1, 2, 3])\""
+   :see-also ["eval-str" "load-file"]}
   [s]
   (let [cf   (php/new CompilerFacade)
-        opts (php/new CompileOptions)
-        res  (php/-> cf (compile s opts))]
-    (php/-> res (getCode))))
+        opts (php/new CompileOptions)]
+    ;; `setEmitOnly` keeps this a pure read of the generated PHP: without it the
+    ;; compiler evaluates what it emits, so asking to see `(def x 1)` would define
+    ;; `x`. It is also required by `setEmitAsExpression`, whose output has no
+    ;; trailing `;` and therefore cannot be evaluated as a statement.
+    (php/-> opts (setEmitOnly true) (setEmitAsExpression true))
+    (php/trim (php/-> cf (compile s opts) (getPhpCode)))))
 
 (defn eval-str
   "Evaluates a string of Phel code and returns the result. If the string contains multiple expressions, returns the result of the last one."

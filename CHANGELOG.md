@@ -10,6 +10,7 @@ All notable changes to this project will be documented in this file.
 
 ### Fixed
 
+- `phel\repl/compile-str` no longer throws on every call (it asked `EmitterResult` for a `getCode()` it never had), and now compiles in expression context without evaluating, so `(compile-str "(+ 1 2)")` returns `"3"` instead of the empty string a statement-context compile produced
 - `(reduce f coll)` without an init value now accepts any plain iterable, so the documented `(reduce + (eduction ...))` example works instead of raising "object is not countable"; relatedly, `seq` now returns `nil` for an empty non-countable iterable as its docstring promises
 - Sorted collection comparators are now typed `bool|int` rather than `int`. Phel's `<` returns a boolean, so `(sorted-map-by < ...)` never matched its own declared contract
 - `phel lint` now exits 2 with a clear message when `phel-lint.phel` exists but is unreadable, unparseable, or not a map, instead of silently falling back to the built-in default rules. A missing or empty config file still means defaults
