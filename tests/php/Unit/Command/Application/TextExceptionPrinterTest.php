@@ -50,7 +50,7 @@ final class TextExceptionPrinterTest extends TestCase
         self::assertStringContainsString('in my-file.phel:1', $output);
     }
 
-    public function test_print_exception(): void
+    public function test_exception_string_renders_snippet_with_caret(): void
     {
         $file = 'example-file.phel';
 
@@ -74,22 +74,16 @@ in example-file.phel:1
             ^^^^^^^^^^^^^^
 
 MSG;
-        $errorLog = $this->createMock(ErrorLogInterface::class);
-        $errorLog->expects(self::once())
-            ->method('writeln')
-            ->with($expectedOutput);
 
         $exceptionPrinter = new TextExceptionPrinter(
             $this->createStub(ExceptionArgsPrinterInterface::class),
             $this->stubColorStyle(),
             $this->createStub(MungeInterface::class),
             $this->createStub(FilePositionExtractorInterface::class),
-            $errorLog,
+            $this->createStub(ErrorLogInterface::class),
         );
 
-        $this->expectOutputString('');
-
-        $exceptionPrinter->printException($exception, $codeSnippet);
+        self::assertSame($expectedOutput, $exceptionPrinter->getExceptionString($exception, $codeSnippet));
     }
 
     public function test_user_facing_trace_maps_phel_frames_and_collapses_internal_ones(): void

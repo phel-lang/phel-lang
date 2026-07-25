@@ -219,8 +219,6 @@ final class ReplErrorFormatterTest extends TestCase
                 return '';
             }
 
-            public function printException(AbstractLocatedException $e, CodeSnippet $codeSnippet): void {}
-
             public function getExceptionString(AbstractLocatedException $e, CodeSnippet $codeSnippet): string
             {
                 return '';

@@ -41,11 +41,6 @@ final readonly class TextExceptionPrinter implements ExceptionPrinterInterface
         private ErrorLogInterface $errorLog,
     ) {}
 
-    public function printException(AbstractLocatedException $e, CodeSnippet $codeSnippet): void
-    {
-        $this->errorLog->writeln($this->getExceptionString($e, $codeSnippet));
-    }
-
     /**
      * Builds the full error string: a styled message header, the source location,
      * and each line of the code snippet prefixed with its absolute line number.
