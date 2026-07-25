@@ -35,6 +35,15 @@ final class RuleRegistry
     public const string COMMENT_STYLE = 'phel/comment-style';
 
     /**
+     * Not a rule: the code `RulePipeline` reports under when a rule itself
+     * throws. Deliberately absent from {@see self::allCodes()}: it has no
+     * configurable severity (a crash is always an error), nothing to
+     * contribute to the cache fingerprint, and keeping it out means it can
+     * never be switched off from `phel-lint.phel`.
+     */
+    public const string INTERNAL_ERROR = 'phel/internal-error';
+
+    /**
      * @return list<string>
      */
     public static function allCodes(): array

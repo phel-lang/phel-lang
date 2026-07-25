@@ -35,6 +35,7 @@ All notable changes to this project will be documented in this file.
 - `phel/unused-import` and `phel/unused-require` now resolve the implicit alias of a dot-separated entry, so `(:require phel.json)` is no longer always "unused"
 - `phel/discouraged-var` keys off real `:deprecated` metadata instead of guessing from the docstring
 - An unreadable `phel-lint.phel`, source file or directory now fails loudly instead of silently linting with defaults or reporting the file as clean
+- A `phel lint` rule that crashes is now reported as a `phel/internal-error` diagnostic naming the rule, and the run exits 1. It used to be skipped in silence, so the report came back clean and exited 0 with that rule's findings missing. The other rules still report on the same file
 - Editor completion no longer offers a `for` head's collection expression as a binding, and now sees `foreach` bindings
 
 - `phel format` exits non-zero when a file cannot be parsed, so a `--dry-run` CI gate no longer passes over broken sources, and surfaces I/O failures instead of printing a trace and skipping

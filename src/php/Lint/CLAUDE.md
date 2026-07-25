@@ -27,7 +27,7 @@ All four getters return the Shared contract, never a concrete facade, and `Satel
 
 `./bin/phel lint [paths]... [--format=human|json|github] [--config=path] [--no-cache]`
 
-Exit codes: `0` clean/warnings only, `1` errors, `2` invocation error.
+Exit codes: `0` clean/warnings only, `1` errors (including `phel/internal-error`), `2` invocation error.
 
 ## Rule Set (v1)
 
@@ -37,6 +37,29 @@ Exit codes: `0` clean/warnings only, `1` errors, `2` invocation error.
 Every shipped rule is on by default (it has an entry in `LintConfig::defaultSeverities()`); a rule with no entry there is off until a config opts it in.
 
 Add a rule: implement `LintRuleInterface` in `Application/Rule/`, add a code constant to `RuleRegistry`, register it in `LintFactory::createRules()`, and give it a default severity in `LintConfig::defaultSeverities()`. Do not edit existing rules.
+
+### `phel/internal-error` (not a rule)
+
+The code `RulePipeline` reports under when a rule's `apply()` throws. It is the
+one diagnostic the linter emits about itself, so it plays by different rules
+from the twelve above:
+
+- **Always `error` severity**, never `RuleSettings::severityFor()`. A configured
+  severity grades a finding about the linted code; a crash is a finding about
+  the linter. Honouring a `:warning` there would exit 0 with the rule's real
+  findings missing, which is exactly the silent pass it exists to prevent.
+- **Not in `RuleRegistry::allCodes()` and not in `defaultSeverities()`**, so it
+  has nothing to configure, contributes nothing to the cache fingerprint, and
+  cannot be switched off from `phel-lint.phel`.
+- **Anchored at line 1, col 1** of the file being analysed: a crash has no
+  source location. `Domain\Exception\LintRuleException::ruleCrashed()` owns the
+  wording, names the rule code, and chains the original throwable.
+- **Never cached** (`LintRunner`): fixing a rule changes neither the file hash
+  nor the rule fingerprint, so a cached internal error would outlive the bug.
+
+The rest of the pipeline still runs, so the other rules' findings for that file
+are reported alongside it. The escape hatch is the explicit one: set the
+crashing rule to `:off`, which skips it before `apply()` is ever reached.
 
 ### Shared rule helpers (`Application/Rule/`)
 
@@ -102,6 +125,8 @@ deprecating something does not flag its declaration.
 - Read-only: never rewrites source; Formatter module owns whitespace/indent
 - Semantic diagnostics (`unresolved-symbol`, `arity-mismatch`) come from `ApiFacadeInterface::analyzeSource` and are shared via `FileAnalysis::$semanticDiagnostics`, so the analyzer runs once per file
 - Open/closed: `LintFactory::createRules()` and `FormatterRegistry` are the ONLY edit points for new rules/formatters
-- `RulePipeline` isolates failing rules — one bad rule does not kill the run
+- `RulePipeline` isolates a failing rule without silencing it: the run continues, but a `phel/internal-error` diagnostic makes it exit 1 rather than report the file as clean (see above)
 - `DuplicateKeyRule` scans the parse tree, not read forms, because the reader silently deduplicates map literals
-- Cache (default on, `.phel/lint-cache/index.json`): keyed by MD5(file hash) + rule fingerprint (all rule codes + severities + exclude patterns); adding/removing rules or editing `phel-lint.phel` invalidates it
+- Cache (default on, `.phel/lint-cache/index.json`): keyed by MD5(file hash) + rule fingerprint (all rule codes + severities + exclude patterns); adding/removing rules or editing `phel-lint.phel` invalidates it. A file whose run produced a `phel/internal-error` is not cached at all
+- The rule-level `catch (Throwable)` in `CommentStyleRule` and `DuplicateKeyRule` exists for a source that does not lex or parse, not as a licence to swallow rule bugs. Because it catches `Throwable` around the whole `apply()` body, a genuine bug in either rule still bypasses `RulePipeline`'s guard; narrowing both to the documented lexer/parser exceptions is open work
+- Known gap: a `.phel` file that does not parse still lints clean and exits 0. `readFormsBestEffort` is best-effort by contract and nothing in Lint drives lex/parse to report the failure, so this is not the `RulePipeline` swallow and needs its own diagnostic code

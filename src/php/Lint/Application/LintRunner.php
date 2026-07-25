@@ -5,13 +5,16 @@ declare(strict_types=1);
 namespace Phel\Lint\Application;
 
 use Phel\Lint\Application\Cache\LintCache;
+use Phel\Lint\Application\Config\RuleRegistry;
 use Phel\Lint\Application\Config\RuleSettings;
 use Phel\Lint\Domain\Exception\LintSourceException;
 use Phel\Lint\Domain\FileAnalysis;
 use Phel\Lint\Transfer\LintResult;
+use Phel\Shared\Api\Diagnostic;
 use Phel\Shared\Api\ProjectIndex;
 use Phel\Shared\Facade\ApiFacadeInterface;
 
+use function array_any;
 use function file_get_contents;
 use function is_dir;
 
@@ -79,7 +82,14 @@ final readonly class LintRunner
             );
 
             $fileDiagnostics = $this->pipeline->run($analysis, $settings);
-            $this->cache?->put($file, $fileDiagnostics);
+
+            // A rule crash is a fact about the linter, not about the file, and
+            // fixing it changes neither the file hash nor the rule fingerprint.
+            // Caching it would replay a stale internal error until the source
+            // happens to change, so this file is simply re-linted next run.
+            if (!$this->hasInternalError($fileDiagnostics)) {
+                $this->cache?->put($file, $fileDiagnostics);
+            }
 
             foreach ($fileDiagnostics as $diagnostic) {
                 $allDiagnostics[] = $diagnostic;
@@ -89,6 +99,17 @@ final readonly class LintRunner
         $this->cache?->flush();
 
         return new LintResult($allDiagnostics);
+    }
+
+    /**
+     * @param list<Diagnostic> $diagnostics
+     */
+    private function hasInternalError(array $diagnostics): bool
+    {
+        return array_any(
+            $diagnostics,
+            static fn(Diagnostic $diagnostic): bool => $diagnostic->code === RuleRegistry::INTERNAL_ERROR,
+        );
     }
 
     /**
