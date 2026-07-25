@@ -30,10 +30,18 @@ interface HashMapNodeInterface extends IteratorAggregate
     public function remove(int $shift, int $hash, mixed $key): ?self;
 
     /**
+     * Looks the key up, returning $notFound when it is absent.
+     *
+     * $notFound is a caller-chosen sentinel, so it must stay a distinct
+     * template parameter: `null` (the map's own default) and the
+     * `PersistentHashMap::getNotFound()` stdClass (used by `contains()` to
+     * tell "absent" from "present but null") have to survive as separate
+     * types in the return union.
+     *
      * @template TDefault
      *
-     * @param TKey      $key
-     * @param ?TDefault $notFound
+     * @param TKey     $key
+     * @param TDefault $notFound
      *
      * @return TDefault|TValue
      */
