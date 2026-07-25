@@ -6,6 +6,7 @@ namespace Phel\Compiler\Domain\Lexer;
 
 use Generator;
 use Iterator;
+use Phel\Lang\SourceLocation;
 use Phel\Shared\Parser\Node\Token;
 use Phel\Shared\Parser\ReadModel\CodeSnippet;
 use RuntimeException;
@@ -85,15 +86,40 @@ final class TokenStream implements Iterator
         }
     }
 
+    /**
+     * The code read since the last {@see self::clearReadTokens()}, for an error
+     * message pointing at the offending form.
+     *
+     * This runs while another error is already being reported, so it must not
+     * add a second failure of its own. Two inputs leave it with no significant
+     * token to anchor on: a stream whose read tokens are all trivia (a
+     * whitespace-, comment- or `#_`-only source, which
+     * {@see self::removeLeadingWhitespace()} strips to nothing) and a stream
+     * that has been advanced past its end (`clearReadTokens()` then finds no
+     * current token). Both used to index `$tokens[0]` on an empty array and
+     * die with "Call to a member function getStartLocation() on null" instead
+     * of reporting the original error. They now degrade: first to the trivia
+     * itself, which still carries real locations, then to an empty snippet at
+     * an unknown location.
+     */
     public function getCodeSnippet(): CodeSnippet
     {
         $tokens = $this->removeLeadingWhitespace($this->readTokens);
-        $code = $this->getCode($tokens);
+        if ($tokens === []) {
+            $tokens = $this->readTokens;
+        }
+
+        $first = $tokens[0] ?? null;
+        $last = $tokens[count($tokens) - 1] ?? null;
+
+        if (!$first instanceof Token || !$last instanceof Token) {
+            return new CodeSnippet(SourceLocation::unknown(), SourceLocation::unknown(), '');
+        }
 
         return new CodeSnippet(
-            $tokens[0]->getStartLocation(),
-            $tokens[count($tokens) - 1]->getEndLocation(),
-            $code,
+            $first->getStartLocation(),
+            $last->getEndLocation(),
+            $this->getCode($tokens),
         );
     }
 

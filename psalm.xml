@@ -73,10 +73,10 @@
              interop boundary itself, so the high-volume handlers stay global;
              phpstan level 9 covers explicit `mixed` misuse instead.
 
-             ENABLED, so new leaks are caught: MixedFunctionCall and
-             MixedArrayAssignment (never had an occurrence), MixedOperand (went
-             to zero), plus MixedArrayAccess, MixedArrayOffset and
-             MixedMethodCall with the file exceptions listed below. Each file
+             ENABLED, so new leaks are caught: MixedFunctionCall,
+             MixedArrayAssignment (never had an occurrence), MixedOperand and
+             MixedMethodCall (both went to zero), plus MixedArrayAccess and
+             MixedArrayOffset with the file exceptions listed below. Each file
              listed is an irreducible position, not a to-do. -->
         <MixedArgument errorLevel="suppress" />
         <MixedArgumentTypeCoercion errorLevel="suppress" />
@@ -85,14 +85,6 @@
         <MixedReturnStatement errorLevel="suppress" />
         <MixedReturnTypeCoercion errorLevel="suppress" />
 
-        <MixedMethodCall>
-            <errorLevel type="suppress">
-                <!-- `$tokens[count($tokens) - 1]`: psalm cannot prove the
-                     computed offset is populated, so the element reads as
-                     `mixed` rather than `Token`. -->
-                <file name="src/php/Compiler/Domain/Lexer/TokenStream.php" />
-            </errorLevel>
-        </MixedMethodCall>
         <MixedArrayAccess>
             <errorLevel type="suppress">
                 <!-- Structural `toArray()` duck-typing: the value set is open by design. -->
