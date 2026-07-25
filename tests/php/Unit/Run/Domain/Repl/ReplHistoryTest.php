@@ -74,12 +74,11 @@ final class ReplHistoryTest extends TestCase
         $history->recordResult(42);
         $history->recordResult(null);
 
-        self::assertNull($history->lastResult());
         self::assertNull(Registry::getInstance()->getDefinition(self::CORE_NS, ReplHistory::LAST_RESULT_1));
         self::assertSame(42, Registry::getInstance()->getDefinition(self::CORE_NS, ReplHistory::LAST_RESULT_2));
     }
 
-    public function test_record_exception_stores_in_registry_and_accessor(): void
+    public function test_record_exception_stores_in_registry(): void
     {
         $history = new ReplHistory(new GlobalEnvironment());
         $history->register();
@@ -88,7 +87,6 @@ final class ReplHistoryTest extends TestCase
 
         $history->recordException($exception);
 
-        self::assertSame($exception, $history->lastException());
         self::assertSame(
             $exception,
             Registry::getInstance()->getDefinition(self::CORE_NS, ReplHistory::LAST_EXCEPTION),
