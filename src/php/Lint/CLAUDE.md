@@ -6,7 +6,7 @@ Read-only semantic linter: emits diagnostics on Phel sources, never rewrites the
 
 | Method | Returns |
 |--------|---------|
-| `lint(list<string> $paths, RuleSettings $settings, ?LintCache $cache)` | `LintResult` |
+| `lint(list<string> $paths, RuleSettings $settings, ?LintCache $cache)` | `LintResult`; throws `LintSourceException` on an unreadable file |
 | `loadSettings(string $configPath, RuleSettings $defaults)` | `RuleSettings` |
 | `defaultSettings()` | `RuleSettings` |
 | `formatters()` | `FormatterRegistry` |
@@ -57,6 +57,7 @@ Enforces the positional comment convention (`.claude/rules/phel.md`, shared with
 - Severities: `:error`, `:warning`, `:info`, `:hint`, `:off`
 - Exclude patterns match file path (when they contain `/` or `.phel`) or namespace name, via `fnmatch`
 - A missing config file means defaults. A file that exists but is unreadable, unparseable, or not a map raises `Domain\Exception\LintConfigException` and `phel lint` exits 2 — never silently falls back to defaults
+- A collected `.phel` file that cannot be read raises `Domain\Exception\LintSourceException` — never skipped, which would report it as clean and exit 0
 
 ## Output Formats
 

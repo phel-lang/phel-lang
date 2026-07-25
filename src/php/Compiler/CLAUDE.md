@@ -107,6 +107,14 @@ GOTCHA: only eager core fns can be lowered to a native loop. `reduce` (3-arity) 
 - `^:php/override` on a method (defstruct/defenum interface impls, definterface methods) → `#[\Override]` (PHP 8.3); `PhpAttributeEmitterTrait::phpAttributeLines` renders it ahead of explicit `:php/attr` lines. Struct/enum inline method impls emit method-level `:php/attr`/`:php/doc`/`^:php/override` too.
 - Export wrappers carry the same `:php/attr` via `Interop`'s `CompiledPhpMethodBuilder` (see `src/php/Interop/CLAUDE.md`).
 
+## Syntax Deprecations
+
+`Domain/Deprecation/DeprecationWarnings` is the single process-wide switch for every `E_USER_DEPRECATED` notice the compiler raises about deprecated Phel syntax. Off by default; turned on by `--warn-deprecations` (`Console\Application\WarnDeprecationsFlag`), `PHEL_WARN_DEPRECATIONS`, or the `warn-deprecations` config key (`CompilerFactory::createAnalyzer()`).
+
+- Emitters: `Application/Lexer` (bare `#` comments, `#| ... |#` blocks, `|()` short fns, `,`/`,@` unquote), `Domain/Reader/QuasiquoteTransformer` (`$` auto-gensym), `Domain/Analyzer/Environment/BackslashSeparatorDeprecator` (`\` namespace separator).
+- Never suppress one with `@`: that hides it unconditionally, so a `--warn-deprecations` run prints nothing. Call `warn()`/`warnForSource()` instead.
+- `isEnabledForSource()`/`isBundledStdlibSource()` drop notices whose source is phel's own `src/phel` or has no file, so only code the user can edit is flagged. The Lexer resolves it once per source, not per token.
+
 ## Global Environment
 
 Process-wide singleton in `Domain/Analyzer/Environment/GlobalEnvironmentRegistry`.
