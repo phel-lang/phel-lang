@@ -4,11 +4,11 @@ declare(strict_types=1);
 
 namespace Phel\Lsp\Application\Handler;
 
-use Phel\Api\Transfer\ProjectIndex;
 use Phel\Lsp\Application\Convert\PositionConverter;
 use Phel\Lsp\Application\Document\Document;
 use Phel\Lsp\Application\Rpc\ParamsExtractor;
 use Phel\Lsp\Application\Session\Session;
+use Phel\Shared\Api\ProjectIndex;
 
 /**
  * Bundles the four things every "cursor-on-a-word" LSP handler needs:

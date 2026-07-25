@@ -4,12 +4,12 @@ declare(strict_types=1);
 
 namespace Phel\Lsp\Application\Diagnostics;
 
-use Phel\Api\ApiFacade;
-use Phel\Api\Transfer\Diagnostic;
 use Phel\Lint\LintFacade;
 use Phel\Lsp\Application\Convert\DiagnosticConverter;
 use Phel\Lsp\Application\Document\Document;
 use Phel\Lsp\Domain\NotificationSink;
+use Phel\Shared\Api\Diagnostic;
+use Phel\Shared\Facade\ApiFacadeInterface;
 use Throwable;
 
 use function microtime;
@@ -27,7 +27,7 @@ final class DiagnosticPublisher
     private array $lastRunAt = [];
 
     public function __construct(
-        private readonly ApiFacade $apiFacade,
+        private readonly ApiFacadeInterface $apiFacade,
         private readonly LintFacade $lintFacade,
         private readonly DiagnosticConverter $converter,
         private readonly int $debounceMs,

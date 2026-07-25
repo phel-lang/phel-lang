@@ -2,11 +2,11 @@
 
 declare(strict_types=1);
 
-namespace PhelTest\Unit\Api\Transfer;
+namespace PhelTest\Unit\Shared\Api;
 
-use Phel\Api\Transfer\Definition;
-use Phel\Api\Transfer\Location;
-use Phel\Api\Transfer\ProjectIndex;
+use Phel\Shared\Api\Definition;
+use Phel\Shared\Api\Location;
+use Phel\Shared\Api\ProjectIndex;
 use PHPUnit\Framework\TestCase;
 
 final class ProjectIndexTest extends TestCase

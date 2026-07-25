@@ -19,10 +19,10 @@ CLI: `./bin/phel watch [paths]... [-b backend] [--poll=500] [--debounce=100]` (`
 |--------|-------------|----------|
 | Run | `RunFacadeInterface` | `evalFile`, `structuredEval` (reload hooks) |
 | Build | `BuildFacadeInterface` | `getDependenciesForNamespace` (dep-order reload) |
-| Api | concrete `ApiFacade` | `indexProject` — incremental re-index for tooling |
+| Api | `ApiFacadeInterface` | `indexProject` — incremental re-index for tooling |
 | Command | `CommandFacadeInterface` | source-directory defaults |
 
-`ApiFacade` is bound concretely because `indexProject` is not on `ApiFacadeInterface`; see `src/php/Api/CLAUDE.md`. `SatelliteFactoryFacadeInjectionTest` pins all four return types.
+All four getters return the Shared contract, never a concrete facade, and `SatelliteFactoryFacadeInjectionTest` pins the return types.
 
 ## Structure
 

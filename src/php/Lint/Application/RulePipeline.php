@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 namespace Phel\Lint\Application;
 
-use Phel\Api\Transfer\Diagnostic;
 use Phel\Lint\Application\Config\RuleSettings;
 use Phel\Lint\Domain\FileAnalysis;
 use Phel\Lint\Domain\LintRuleInterface;
+use Phel\Shared\Api\Diagnostic;
 
 use Throwable;
 

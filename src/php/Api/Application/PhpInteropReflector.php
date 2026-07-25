@@ -5,9 +5,9 @@ declare(strict_types=1);
 namespace Phel\Api\Application;
 
 use BackedEnum;
-use Phel\Api\Transfer\Completion;
 use Phel\Api\Transfer\PhpInteropClass;
 use Phel\Api\Transfer\PhpInteropSignature;
+use Phel\Shared\Api\Completion;
 use ReflectionClass;
 use ReflectionClassConstant;
 use ReflectionException;

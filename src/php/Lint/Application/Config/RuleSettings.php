@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Phel\Lint\Application\Config;
 
-use Phel\Api\Transfer\Diagnostic;
+use Phel\Shared\Api\Diagnostic;
 
 use function array_key_exists;
 use function fnmatch;

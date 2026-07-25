@@ -4,13 +4,13 @@ declare(strict_types=1);
 
 namespace Phel\Lint\Application;
 
-use Phel\Api\ApiFacade;
-use Phel\Api\Transfer\ProjectIndex;
 use Phel\Lint\Application\Cache\LintCache;
 use Phel\Lint\Application\Config\RuleSettings;
 use Phel\Lint\Domain\Exception\LintSourceException;
 use Phel\Lint\Domain\FileAnalysis;
 use Phel\Lint\Transfer\LintResult;
+use Phel\Shared\Api\ProjectIndex;
+use Phel\Shared\Facade\ApiFacadeInterface;
 
 use function file_get_contents;
 use function is_dir;
@@ -26,7 +26,7 @@ use function is_dir;
 final readonly class LintRunner
 {
     public function __construct(
-        private ApiFacade $apiFacade,
+        private ApiFacadeInterface $apiFacade,
         private FileCollector $fileCollector,
         private SourceReader $sourceReader,
         private RulePipeline $pipeline,

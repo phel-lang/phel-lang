@@ -4,11 +4,11 @@ declare(strict_types=1);
 
 namespace Phel\Lsp\Application\Handler;
 
-use Phel\Api\ApiFacade;
 use Phel\Lsp\Application\Document\Document;
 use Phel\Lsp\Application\HandlerInterface;
 use Phel\Lsp\Application\Rpc\ParamsExtractor;
 use Phel\Lsp\Application\Session\Session;
+use Phel\Shared\Facade\ApiFacadeInterface;
 
 /**
  * Handles `textDocument/signatureHelp`. PHP-interop calls resolve first —
@@ -19,7 +19,7 @@ use Phel\Lsp\Application\Session\Session;
 final readonly class SignatureHelpHandler implements HandlerInterface
 {
     public function __construct(
-        private ApiFacade $apiFacade,
+        private ApiFacadeInterface $apiFacade,
         private ParamsExtractor $params,
     ) {}
 

@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace Phel\Lint;
 
 use Gacela\Framework\AbstractFactory;
-use Phel\Api\ApiFacade;
 use Phel\Lint\Application\Cache\LintCache;
 use Phel\Lint\Application\Config\ConfigLoader;
 use Phel\Lint\Application\Config\RuleRegistry;
@@ -31,6 +30,7 @@ use Phel\Lint\Application\Rule\UnusedRequireRule;
 use Phel\Lint\Application\RulePipeline;
 use Phel\Lint\Application\SourceReader;
 use Phel\Lint\Domain\LintRuleInterface;
+use Phel\Shared\Facade\ApiFacadeInterface;
 use Phel\Shared\Facade\CommandFacadeInterface;
 use Phel\Shared\Facade\CompilerFacadeInterface;
 use Phel\Shared\Facade\RunFacadeInterface;
@@ -116,9 +116,9 @@ final class LintFactory extends AbstractFactory
         return new LintCache($cacheDir, $this->ruleFingerprint($settings));
     }
 
-    public function getApiFacade(): ApiFacade
+    public function getApiFacade(): ApiFacadeInterface
     {
-        /** @var ApiFacade $facade */
+        /** @var ApiFacadeInterface $facade */
         $facade = $this->getProvidedDependency(LintProvider::FACADE_API);
 
         return $facade;

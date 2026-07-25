@@ -6,7 +6,7 @@ namespace PhelTest\Unit\Api\Application;
 
 use Phel\Api\Application\SourceAnalyzer;
 use Phel\Api\Domain\AnalysisStageInterface;
-use Phel\Api\Transfer\Diagnostic;
+use Phel\Shared\Api\Diagnostic;
 use PHPUnit\Framework\TestCase;
 
 final class SourceAnalyzerTest extends TestCase

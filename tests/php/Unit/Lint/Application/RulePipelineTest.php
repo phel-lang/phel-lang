@@ -4,12 +4,12 @@ declare(strict_types=1);
 
 namespace PhelTest\Unit\Lint\Application;
 
-use Phel\Api\Transfer\Diagnostic;
-use Phel\Api\Transfer\ProjectIndex;
 use Phel\Lint\Application\Config\RuleSettings;
 use Phel\Lint\Application\RulePipeline;
 use Phel\Lint\Domain\FileAnalysis;
 use Phel\Lint\Domain\LintRuleInterface;
+use Phel\Shared\Api\Diagnostic;
+use Phel\Shared\Api\ProjectIndex;
 use PHPUnit\Framework\TestCase;
 use RuntimeException;
 

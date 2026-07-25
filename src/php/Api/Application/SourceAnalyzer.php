@@ -6,7 +6,7 @@ namespace Phel\Api\Application;
 
 use Phel\Api\Domain\AnalysisStageInterface;
 use Phel\Api\Domain\SourceAnalyzerInterface;
-use Phel\Api\Transfer\Diagnostic;
+use Phel\Shared\Api\Diagnostic;
 
 /**
  * Pipeline runner that executes each analysis stage in sequence,

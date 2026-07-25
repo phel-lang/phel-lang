@@ -16,12 +16,12 @@ Read-only semantic linter: emits diagnostics on Phel sources, never rewrites the
 
 | Facade | Injected as | Used for |
 |--------|-------------|----------|
-| Api | concrete `ApiFacade` | `analyzeSource` (semantic diagnostics), `indexProject` |
+| Api | `ApiFacadeInterface` | `analyzeSource` (semantic diagnostics), `indexProject` |
 | Compiler | `CompilerFacadeInterface` | `readFormsBestEffort` (`SourceReader`); `lexString`, `parseNext`, `read` (`ConfigLoader`, `DuplicateKeyRule` — both need the failures reported, not swallowed) |
 | Command | `CommandFacadeInterface` | default source directories |
 | Run | `RunFacadeInterface` | `loadPhelNamespaces()` to ensure symbols resolve |
 
-`ApiFacade` is bound concretely because `analyzeSource` and `indexProject` are not on `ApiFacadeInterface`; see `src/php/Api/CLAUDE.md`. `SatelliteFactoryFacadeInjectionTest` pins all four return types.
+All four getters return the Shared contract, never a concrete facade, and `SatelliteFactoryFacadeInjectionTest` pins the return types. The diagnostics Lint consumes (`Phel\Shared\Api\Diagnostic`, `ProjectIndex`, `Definition`, `Location`) are Shared value objects, so Lint's own rules never name a `Phel\Api` class.
 
 ## CLI
 
@@ -100,7 +100,7 @@ deprecating something does not flag its declaration.
 ## Key Constraints
 
 - Read-only: never rewrites source; Formatter module owns whitespace/indent
-- Semantic diagnostics (`unresolved-symbol`, `arity-mismatch`) come from `ApiFacade::analyzeSource` and are shared via `FileAnalysis::$semanticDiagnostics`, so the analyzer runs once per file
+- Semantic diagnostics (`unresolved-symbol`, `arity-mismatch`) come from `ApiFacadeInterface::analyzeSource` and are shared via `FileAnalysis::$semanticDiagnostics`, so the analyzer runs once per file
 - Open/closed: `LintFactory::createRules()` and `FormatterRegistry` are the ONLY edit points for new rules/formatters
 - `RulePipeline` isolates failing rules — one bad rule does not kill the run
 - `DuplicateKeyRule` scans the parse tree, not read forms, because the reader silently deduplicates map literals

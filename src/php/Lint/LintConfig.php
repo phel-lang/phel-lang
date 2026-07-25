@@ -5,9 +5,9 @@ declare(strict_types=1);
 namespace Phel\Lint;
 
 use Gacela\Framework\AbstractConfig;
-use Phel\Api\Transfer\Diagnostic;
 use Phel\Lint\Application\Config\RuleRegistry;
 use Phel\Lint\Application\Config\RuleSettings;
+use Phel\Shared\Api\Diagnostic;
 
 final class LintConfig extends AbstractConfig
 {
