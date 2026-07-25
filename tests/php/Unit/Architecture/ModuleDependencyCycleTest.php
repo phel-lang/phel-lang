@@ -5,11 +5,7 @@ declare(strict_types=1);
 namespace PhelTest\Unit\Architecture;
 
 use PHPUnit\Framework\TestCase;
-use RecursiveDirectoryIterator;
-use RecursiveIteratorIterator;
-use SplFileInfo;
 
-use function dirname;
 use function sprintf;
 
 /**
@@ -29,6 +25,8 @@ use function sprintf;
  */
 final class ModuleDependencyCycleTest extends TestCase
 {
+    use ScansPhpSourcesTrait;
+
     /**
      * Every module pair that points at each other, smaller name first.
      *
@@ -222,27 +220,6 @@ final class ModuleDependencyCycleTest extends TestCase
      */
     private function sourceFiles(): array
     {
-        $sourceDir = dirname(__DIR__, 4) . '/src/php';
-        self::assertDirectoryExists($sourceDir);
-
-        $files = [];
-
-        /** @var SplFileInfo $file */
-        foreach (new RecursiveIteratorIterator(new RecursiveDirectoryIterator($sourceDir)) as $file) {
-            if (!$file->isFile()) {
-                continue;
-            }
-
-            if ($file->getExtension() !== 'php') {
-                continue;
-            }
-
-            $relative = str_replace($sourceDir . '/', '', $file->getPathname());
-            $files[$relative] = (string) file_get_contents($file->getPathname());
-        }
-
-        ksort($files);
-
-        return $files;
+        return $this->phpFilesIn('src/php');
     }
 }

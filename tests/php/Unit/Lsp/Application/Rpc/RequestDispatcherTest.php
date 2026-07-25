@@ -5,10 +5,10 @@ declare(strict_types=1);
 namespace PhelTest\Unit\Lsp\Application\Rpc;
 
 use Phel\Lsp\Application\Document\DocumentStore;
+use Phel\Lsp\Application\HandlerInterface;
 use Phel\Lsp\Application\Rpc\RequestDispatcher;
 use Phel\Lsp\Application\Rpc\ResponseBuilder;
 use Phel\Lsp\Application\Session\Session;
-use Phel\Lsp\Domain\HandlerInterface;
 use Phel\Lsp\Domain\NotificationSink;
 use PHPUnit\Framework\TestCase;
 use RuntimeException;

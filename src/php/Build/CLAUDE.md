@@ -40,7 +40,8 @@ Compiles Phel projects to PHP: namespace extraction, dependency ordering, and ca
 | `Domain/Compile/SymbolMetaStripper` | Token-based removal of `\Phel::locationMeta(...)` args from build output when `strip-symbol-meta` is on (write-path only; evaluation keeps full meta) |
 | `Domain/Compile/CompiledSecondaryStore` | In-memory hand-off of build-time-compiled secondaries from `FileEvaluator` to `SecondaryFileHarvester` when the compiled-code cache is off |
 | `Infrastructure/Cache/CompiledCodeCache` | Compiled-code cache policy orchestrator |
-| `Infrastructure/Cache/PhpScanIndexCache` / `NullScanIndexCache` | Persisted dir-scan index |
+| `Infrastructure/Cache/PhpScanIndexCache` | Persisted dir-scan index |
+| `Domain/Cache/NullScanIndexCache` | No-op scan index (Null Object; in `Domain` so `Application` never imports outward) |
 | `Infrastructure/Cache/PhpNamespaceCache` / `NullNamespaceCache` | Namespace-extraction cache |
 | `Infrastructure/Cache/LockedPhpCacheWriter` | Shared flock'd `var_export` cache-file write (used by `PhpNamespaceCache` + `PhpScanIndexCache`) |
 | `Infrastructure/Timing/PhaseTimingProfilerHook` | `--timing` profiler hook |

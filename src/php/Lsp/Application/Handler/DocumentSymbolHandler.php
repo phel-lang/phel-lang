@@ -10,9 +10,9 @@ use Phel\Api\Transfer\ProjectIndex;
 use Phel\Lsp\Application\Convert\SymbolInformationBuilder;
 use Phel\Lsp\Application\Convert\UriConverter;
 use Phel\Lsp\Application\Document\Document;
+use Phel\Lsp\Application\HandlerInterface;
 use Phel\Lsp\Application\Rpc\ParamsExtractor;
 use Phel\Lsp\Application\Session\Session;
-use Phel\Lsp\Domain\HandlerInterface;
 
 /**
  * Lists all top-level definitions in the open document. Uses the project

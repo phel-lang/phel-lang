@@ -6,8 +6,8 @@ namespace Phel\Lsp\Application\Handler;
 
 use Phel\Api\ApiFacade;
 use Phel\Lsp\Application\Convert\UriConverter;
+use Phel\Lsp\Application\HandlerInterface;
 use Phel\Lsp\Application\Session\Session;
-use Phel\Lsp\Domain\HandlerInterface;
 use Phel\Lsp\LspConfig;
 
 use function is_array;

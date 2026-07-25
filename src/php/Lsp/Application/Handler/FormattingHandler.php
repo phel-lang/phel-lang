@@ -7,9 +7,9 @@ namespace Phel\Lsp\Application\Handler;
 use Phel\Formatter\FormatterFacade;
 use Phel\Lsp\Application\Convert\PositionConverter;
 use Phel\Lsp\Application\Document\Document;
+use Phel\Lsp\Application\HandlerInterface;
 use Phel\Lsp\Application\Rpc\ParamsExtractor;
 use Phel\Lsp\Application\Session\Session;
-use Phel\Lsp\Domain\HandlerInterface;
 use Throwable;
 
 use function count;

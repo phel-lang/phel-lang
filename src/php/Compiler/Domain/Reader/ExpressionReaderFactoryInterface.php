@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace Phel\Compiler\Domain\Reader;
 
-use Phel\Compiler\Application\Reader;
 use Phel\Compiler\Domain\Reader\ExpressionReader\AtomReader;
 use Phel\Compiler\Domain\Reader\ExpressionReader\ListFnReader;
 use Phel\Compiler\Domain\Reader\ExpressionReader\ListReader;
@@ -23,24 +22,24 @@ interface ExpressionReaderFactoryInterface
 
     public function createAtomReader(): AtomReader;
 
-    public function createListReader(Reader $reader): ListReader;
+    public function createListReader(ReaderInterface $reader): ListReader;
 
-    public function createVectorReader(Reader $reader): VectorReader;
+    public function createVectorReader(ReaderInterface $reader): VectorReader;
 
-    public function createSetReader(Reader $reader): SetReader;
+    public function createSetReader(ReaderInterface $reader): SetReader;
 
-    public function createMapReader(Reader $reader): MapReader;
+    public function createMapReader(ReaderInterface $reader): MapReader;
 
-    public function createListFnReader(Reader $reader): ListFnReader;
+    public function createListFnReader(ReaderInterface $reader): ListFnReader;
 
-    public function createWrapReader(Reader $reader): WrapReader;
+    public function createWrapReader(ReaderInterface $reader): WrapReader;
 
     public function createQuoasiquoteReader(
-        Reader $reader,
+        ReaderInterface $reader,
         QuasiquoteTransformerInterface $quasiquoteTransformer,
     ): QuoasiquoteReader;
 
-    public function createMetaReader(Reader $reader): MetaReader;
+    public function createMetaReader(ReaderInterface $reader): MetaReader;
 
-    public function createTaggedLiteralReader(Reader $reader): TaggedLiteralReader;
+    public function createTaggedLiteralReader(ReaderInterface $reader): TaggedLiteralReader;
 }

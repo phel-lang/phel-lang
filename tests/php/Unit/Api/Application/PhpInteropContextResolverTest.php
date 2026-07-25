@@ -6,7 +6,7 @@ namespace PhelTest\Unit\Api\Application;
 
 use Phel\Api\Application\PhpInteropContextResolver;
 use Phel\Api\Transfer\PhpInteropContext;
-use PhelTest\Unit\Api\Application\Fixtures\ChainFixture;
+use PhelTest\Support\Fixtures\PhpInterop\ChainFixture;
 use PHPUnit\Framework\TestCase;
 
 use function strlen;

@@ -8,9 +8,9 @@ use Phel\Api\ApiFacade;
 use Phel\Lsp\Application\Convert\UriConverter;
 use Phel\Lsp\Application\Diagnostics\DiagnosticPublisher;
 use Phel\Lsp\Application\Document\Document;
+use Phel\Lsp\Application\HandlerInterface;
 use Phel\Lsp\Application\Rpc\ParamsExtractor;
 use Phel\Lsp\Application\Session\Session;
-use Phel\Lsp\Domain\HandlerInterface;
 
 use function str_ends_with;
 use function strtolower;

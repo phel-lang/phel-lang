@@ -9,9 +9,9 @@ use Phel\Api\Transfer\Definition;
 use Phel\Api\Transfer\Location;
 use Phel\Lsp\Application\Convert\PositionConverter;
 use Phel\Lsp\Application\Convert\UriConverter;
+use Phel\Lsp\Application\HandlerInterface;
 use Phel\Lsp\Application\Rpc\ParamsExtractor;
 use Phel\Lsp\Application\Session\Session;
-use Phel\Lsp\Domain\HandlerInterface;
 
 use function is_string;
 use function strlen;

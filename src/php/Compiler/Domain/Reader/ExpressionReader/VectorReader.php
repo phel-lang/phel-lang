@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Phel\Compiler\Domain\Reader\ExpressionReader;
 
 use Phel;
-use Phel\Compiler\Application\Reader;
+use Phel\Compiler\Domain\Reader\ReaderInterface;
 use Phel\Lang\Collections\Vector\PersistentVectorInterface;
 use Phel\Shared\Parser\Node\ListNode;
 use Phel\Shared\Parser\Node\NodeInterface;
@@ -13,7 +13,7 @@ use Phel\Shared\Parser\Node\TriviaNodeInterface;
 
 final readonly class VectorReader
 {
-    public function __construct(private Reader $reader) {}
+    public function __construct(private ReaderInterface $reader) {}
 
     /**
      * @return PersistentVectorInterface<mixed>

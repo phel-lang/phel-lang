@@ -5,8 +5,8 @@ declare(strict_types=1);
 namespace Phel\Compiler\Domain\Reader\ExpressionReader;
 
 use Phel;
-use Phel\Compiler\Application\Reader;
 use Phel\Compiler\Domain\Reader\Exceptions\ReaderException;
+use Phel\Compiler\Domain\Reader\ReaderInterface;
 use Phel\Lang\Collections\LinkedList\PersistentListInterface;
 use Phel\Lang\Symbol;
 use Phel\Lang\TagHandlerException;
@@ -33,7 +33,7 @@ use function sprintf;
  */
 final readonly class TaggedLiteralReader
 {
-    public function __construct(private Reader $reader) {}
+    public function __construct(private ReaderInterface $reader) {}
 
     /**
      * @throws ReaderException

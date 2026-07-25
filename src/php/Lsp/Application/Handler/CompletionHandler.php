@@ -8,9 +8,9 @@ use Phel\Api\ApiFacade;
 use Phel\Api\Transfer\ProjectIndex;
 use Phel\Lsp\Application\Convert\CompletionConverter;
 use Phel\Lsp\Application\Document\Document;
+use Phel\Lsp\Application\HandlerInterface;
 use Phel\Lsp\Application\Rpc\ParamsExtractor;
 use Phel\Lsp\Application\Session\Session;
-use Phel\Lsp\Domain\HandlerInterface;
 
 /**
  * @phpstan-import-type CompletionItem from CompletionConverter

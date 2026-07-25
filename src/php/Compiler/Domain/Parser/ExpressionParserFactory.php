@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace Phel\Compiler\Domain\Parser;
 
-use Phel\Compiler\Application\Parser;
 use Phel\Compiler\Domain\Analyzer\Environment\GlobalEnvironmentInterface;
 use Phel\Compiler\Domain\Parser\ExpressionParser\AtomParser;
 use Phel\Compiler\Domain\Parser\ExpressionParser\CharParser;
@@ -52,22 +51,22 @@ final class ExpressionParserFactory implements ExpressionParserFactoryInterface
         return $this->regexParser ??= new RegexParser();
     }
 
-    public function createListParser(Parser $parser): ListParser
+    public function createListParser(ParserInterface $parser): ListParser
     {
         return new ListParser($parser);
     }
 
-    public function createQuoteParser(Parser $parser): QuoteParser
+    public function createQuoteParser(ParserInterface $parser): QuoteParser
     {
         return new QuoteParser($parser);
     }
 
-    public function createMetaParser(Parser $parser): MetaParser
+    public function createMetaParser(ParserInterface $parser): MetaParser
     {
         return new MetaParser($parser);
     }
 
-    public function createReaderConditionalParser(Parser $parser): ReaderConditionalParser
+    public function createReaderConditionalParser(ParserInterface $parser): ReaderConditionalParser
     {
         return new ReaderConditionalParser($parser);
     }

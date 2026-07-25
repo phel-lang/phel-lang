@@ -6,12 +6,12 @@ namespace PhelTest\Unit\Api\Application;
 
 use Phel\Api\Application\PhpInteropReflector;
 use Phel\Api\Transfer\Completion;
-use PhelTest\Unit\Api\Application\Fixtures\ChainFixture;
-use PhelTest\Unit\Api\Application\Fixtures\HoverContract;
-use PhelTest\Unit\Api\Application\Fixtures\HoverEnum;
-use PhelTest\Unit\Api\Application\Fixtures\HoverFixture;
-use PhelTest\Unit\Api\Application\Fixtures\IntersectionReturnFixture;
-use PhelTest\Unit\Api\Application\Fixtures\SignatureFixture;
+use PhelTest\Support\Fixtures\PhpInterop\ChainFixture;
+use PhelTest\Support\Fixtures\PhpInterop\HoverContract;
+use PhelTest\Support\Fixtures\PhpInterop\HoverEnum;
+use PhelTest\Support\Fixtures\PhpInterop\HoverFixture;
+use PhelTest\Support\Fixtures\PhpInterop\IntersectionReturnFixture;
+use PhelTest\Support\Fixtures\PhpInterop\SignatureFixture;
 use PHPUnit\Framework\TestCase;
 
 use function array_map;

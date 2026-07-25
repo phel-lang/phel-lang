@@ -36,7 +36,8 @@ The facade is production surface only. `LspFactory::createDispatcher()` stays in
 | `Application/Document/` | `DocumentStore`, `Document`, `ContentChangeApplier` |
 | `Application/Diagnostics/` | `DiagnosticPublisher` (debounce + publish) |
 | `Application/Session/` | `Session` (shutdown state, notification sink, doc store) |
-| `Domain/` | `HandlerInterface`, `NotificationSink` |
+| `Application/HandlerInterface` | Contract every handler implements; sits in `Application` because `handle()` takes `Application\Session\Session` |
+| `Domain/` | `NotificationSink` |
 | `Infrastructure/Command/` | `LspCommand` (`phel lsp`) |
 
 ## Key Constraints
