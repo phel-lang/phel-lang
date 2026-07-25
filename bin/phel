@@ -13,6 +13,8 @@ use Phel\Console\ConsoleFacade;
 use Phel\Shared\PhelProjectDirectory;
 use Phel\Shared\ProjectRootResolver;
 use Phel\Shared\Performance\OpcacheReexec;
+use Phel\Shared\Performance\ProcessCommandLine;
+use Phel\Shared\Performance\UserIniFlags;
 
 /**
  * Replace the current process with one that has an on-disk OPcache file cache,
@@ -53,9 +55,21 @@ function maybeReexecWithOpcacheFileCache(string $appRootDir): void
         return;
     }
 
+    $scriptArgv = array_values(array_map('strval', $argv));
+
+    // PHP hides the interpreter's own flags from $_SERVER['argv'], so ask the OS
+    // for the real command line and carry the user's `-d`/`-n`/`-c` across the
+    // exec. Without this, `php -d display_errors=stderr bin/phel …` runs the
+    // child under the default ini and the setting looks like it does nothing.
+    // Only paid on the invocation that actually re-execs (the child carries the
+    // breadcrumb and never reaches this point).
+    $decision = $decision->withUserIniFlags(
+        UserIniFlags::extract(ProcessCommandLine::current(), $scriptArgv),
+    );
+
     // argv[0] is the bin/phel script path; preserve the rest as user args. cwd
     // is unchanged across the exec, so a relative script path still resolves.
-    $args = array_merge($decision->flags, array_values(array_map('strval', $argv)));
+    $args = array_merge($decision->flags, $scriptArgv);
 
     // Breadcrumb the child inherits so it can never re-exec again, even if it
     // misreads opcache.file_cache back as empty on some build.

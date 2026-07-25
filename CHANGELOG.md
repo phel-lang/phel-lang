@@ -42,6 +42,7 @@ All notable changes to this project will be documented in this file.
 - `phel ns <unknown>` exits 1 instead of printing a plausible `phel.core`-only listing and exiting 0
 - `phel doc <no-match>` says `No function matches "<search>"` instead of an empty table. Exit stays 0, and `--format=json` still answers `[]`
 - `phel config` ends with a `N configuration error(s) found.` summary and points at `phel doctor`. Exit stays 0, since it is a dump that succeeded
+- `php -d <ini>=<value> bin/phel …` no longer loses the setting. The OPcache re-exec rebuilt the child's argv from its own flags plus `$_SERVER['argv']`, which never contains interpreter flags, so every user `-d`/`-n`/`-c` was dropped and ini-based workarounds looked like they did nothing (`PHEL_NO_OPCACHE_REEXEC=1` was the only way to make them apply). The original flags are now read from the OS and passed through ahead of Phel's, which still win on `opcache.enable_cli`, `opcache.file_cache` and `opcache.file_cache_only`
 - `phel watch` no longer picks the `inotify` backend when `ext-inotify` is loaded but `inotifywait` is missing from PATH
 - A `data-readers.phel` whose reader bootstrap fails now names the file and the cause, instead of leaving every `(register-tag ...)` unregistered
 - Atom validator rejections name the value, bounded so a lazy seq shows as `#object[<type>]` and is never realized

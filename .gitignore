@@ -17,9 +17,7 @@ build/out/
 build/workdir/
 tools/.upgrade-logs/
 
-# Test cache directories
-tests/**/cache/
-!tests/php/Unit/Lint/Application/Cache/
+# Generated test output (caches live under .phel/, already ignored above)
 tests/**/out/
 
 !PhelGenerated/.gitkeep
