@@ -79,6 +79,40 @@ final class ConfigCommandTest extends GacelaTestCase
         self::assertStringContainsString('/absolute/src', $display);
     }
 
+    /**
+     * The exit code is deliberately 0 (see `ConfigCommand::writeValidation`),
+     * so the output is the only channel left to say the config has errors. It
+     * has to be unmistakable rather than one more line of dumped content, and
+     * it has to name the command that does fail on them.
+     */
+    public function test_config_errors_are_summarised_and_point_at_doctor(): void
+    {
+        $this->bootstrapGacelaWithConfig(__DIR__, [
+            PhelConfig::SRC_DIRS => ['/absolute/src'],
+            PhelConfig::VENDOR_DIR => '/absolute/vendor',
+        ]);
+
+        $tester = new CommandTester(new ConfigCommand());
+        $exitCode = $tester->execute([]);
+
+        $display = $tester->getDisplay();
+        self::assertSame(0, $exitCode);
+        self::assertStringContainsString('2 configuration error(s) found.', $display);
+        self::assertStringContainsString('still exits 0', $display);
+        self::assertStringContainsString('phel doctor', $display);
+    }
+
+    public function test_warnings_alone_do_not_produce_an_error_summary(): void
+    {
+        // The fixture's src/phel does not exist, which warns but never errors.
+        $tester = new CommandTester(new ConfigCommand());
+        $tester->execute([]);
+
+        $display = $tester->getDisplay();
+        self::assertStringContainsString('WARNING', $display);
+        self::assertStringNotContainsString('configuration error(s) found', $display);
+    }
+
     public function test_format_json_emits_only_valid_json(): void
     {
         $tester = new CommandTester(new ConfigCommand());

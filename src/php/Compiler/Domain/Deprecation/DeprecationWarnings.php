@@ -8,7 +8,9 @@ use Phel\Lang\SourceLocation;
 
 use function dirname;
 use function in_array;
+use function ini_get;
 use function sprintf;
+
 use function trigger_error;
 
 use const E_USER_DEPRECATED;
@@ -113,7 +115,7 @@ final class DeprecationWarnings
             return;
         }
 
-        trigger_error($message, E_USER_DEPRECATED);
+        self::raise($message);
     }
 
     /**
@@ -126,7 +128,7 @@ final class DeprecationWarnings
             return;
         }
 
-        trigger_error($message, E_USER_DEPRECATED);
+        self::raise($message);
     }
 
     /**
@@ -151,7 +153,7 @@ final class DeprecationWarnings
         }
 
         self::$seen[$key] = true;
-        trigger_error($message, E_USER_DEPRECATED);
+        self::raise($message);
     }
 
     /**
@@ -243,6 +245,57 @@ final class DeprecationWarnings
             $reportAt instanceof SourceLocation ? $reportAt->getFile() : '',
             self::syntaxMessage($construct, $purpose, $replacement, $reportAt) . self::expansionSuffix($location),
         );
+    }
+
+    /**
+     * The single `trigger_error()` call, with the notice's *display* pinned to
+     * stderr for its duration.
+     *
+     * A diagnostic must never be able to corrupt program output, and one of
+     * these detectors runs during emission — inside the `ob_start()` the
+     * emitter builds PHP source with ({@see \Phel\Compiler\Domain\Emitter\StatementEmitter}).
+     * Under PHP CLI's default `display_errors=1` (STDOUT) the notice text is
+     * written into that buffer and spliced into the generated code, so
+     * `--warn-deprecations` turned a `^:reference` param into
+     * `syntax error, unexpected token ":"` and failed the compile (#2827).
+     *
+     * Redirecting the destination is the fix rather than moving the one
+     * offending detector: it closes the whole class at the single point the
+     * mechanism already centralises, so a future emission-time notice cannot
+     * reopen it. The notice is still a real `E_USER_DEPRECATED`, so a userland
+     * `set_error_handler` (PHPUnit's, Symfony's) sees it exactly as before —
+     * only PHP's own display destination moves, and only while it is raised.
+     *
+     * The redirect is skipped when display is already off (setting `stderr`
+     * would *enable* a notice the user silenced) or already on stderr.
+     */
+    private static function raise(string $message): void
+    {
+        $previous = ini_get('display_errors');
+
+        if ($previous === false || self::displayIsAlreadySafe($previous)) {
+            trigger_error($message, E_USER_DEPRECATED);
+
+            return;
+        }
+
+        ini_set('display_errors', 'stderr');
+
+        try {
+            trigger_error($message, E_USER_DEPRECATED);
+        } finally {
+            ini_set('display_errors', $previous);
+        }
+    }
+
+    /**
+     * Whether PHP's own error display already cannot reach a captured stdout
+     * buffer: either it is disabled, or it is pointed at stderr. The "off"
+     * spellings are PHP's own ini boolean vocabulary.
+     */
+    private static function displayIsAlreadySafe(string $displayErrors): bool
+    {
+        return in_array(strtolower($displayErrors), ['', '0', 'off', 'no', 'false', 'stderr'], true);
     }
 
     /**
