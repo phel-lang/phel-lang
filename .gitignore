@@ -19,6 +19,7 @@ tools/.upgrade-logs/
 
 # Test cache directories
 tests/**/cache/
+!tests/php/Unit/Lint/Application/Cache/
 tests/**/out/
 
 !PhelGenerated/.gitkeep
