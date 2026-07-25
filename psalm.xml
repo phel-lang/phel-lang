@@ -48,18 +48,52 @@
         <MoreSpecificImplementedParamType errorLevel="suppress" />
         <RedundantCastGivenDocblockType errorLevel="suppress" />
 
-        <!-- Type safety suppressions for dynamic code -->
+        <!-- Mixed* handlers: what stays global and why.
+
+             A Phel value is an open set (interop admits arbitrary PHP objects,
+             arrays and resources), so `mixed` is the honest type across Lang's
+             collections, the printers and the analyzer's special forms. On top
+             of that, psalm-gacela only suppresses UndefinedMagicMethod for
+             `getFacade()`/`getFactory()`/`getConfig()`; it does not resolve
+             their return types the way phpstan-gacela does, so every facade
+             call in a `*Command`/`*Daemon` reads as `mixed` and cascades.
+
+             Measured with all twelve handlers enabled (psalm 6.16, no cache):
+             650 errors over 187 of 1050 files spanning 16 of the 19 modules
+             (plus `src/Phel.php`), of which 95 are the direct psalm-gacela gap
+             and 176 sit in `Infrastructure/Command`/`Infrastructure/Daemon`
+             alone. No directory isolates them, so the high-volume handlers stay
+             global; phpstan level 9 covers explicit `mixed` misuse instead.
+
+             MixedFunctionCall and MixedArrayAssignment had zero occurrences at
+             all, and MixedArrayAccess/MixedArrayOffset only a handful, so those
+             four stay ENABLED and new leaks are caught. Each file listed below
+             is an irreducible position, not a to-do. -->
         <MixedArgument errorLevel="suppress" />
         <MixedArgumentTypeCoercion errorLevel="suppress" />
-        <MixedArrayAccess errorLevel="suppress" />
-        <MixedArrayAssignment errorLevel="suppress" />
-        <MixedArrayOffset errorLevel="suppress" />
         <MixedAssignment errorLevel="suppress" />
-        <MixedFunctionCall errorLevel="suppress" />
         <MixedMethodCall errorLevel="suppress" />
         <MixedOperand errorLevel="suppress" />
         <MixedPropertyTypeCoercion errorLevel="suppress" />
         <MixedReturnStatement errorLevel="suppress" />
         <MixedReturnTypeCoercion errorLevel="suppress" />
+
+        <MixedArrayAccess>
+            <errorLevel type="suppress">
+                <!-- `$config` comes back from the Command facade (psalm-gacela gap). -->
+                <file name="src/php/Command/Infrastructure/ComposerVendorDirectoriesFinder.php" />
+                <!-- Structural `toArray()` duck-typing: the value set is open by design. -->
+                <file name="src/php/Lang/Collections/Vector/AbstractPersistentVector.php" />
+            </errorLevel>
+        </MixedArrayAccess>
+        <MixedArrayOffset>
+            <errorLevel type="suppress">
+                <!-- Property keys are `string` by declaration; psalm loses them
+                     across the `walk()` call that fills the property. -->
+                <file name="src/php/Compiler/Domain/Analyzer/TypeAnalyzer/SpecialForm/ParamTypeInferrer.php" />
+                <!-- Symfony's `Command::getAliases(): array` carries no value type. -->
+                <file name="src/php/Console/Infrastructure/Command/LazyCommandLoader.php" />
+            </errorLevel>
+        </MixedArrayOffset>
     </issueHandlers>
 </psalm>

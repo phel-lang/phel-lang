@@ -42,13 +42,6 @@ parameters:
                 - src/php/Config/PhelExportConfig.php
                 - src/php/Lang/Collections/LazySeq/LazySeqConfig.php
                 - src/php/Lang/TypeFactory.php
-        # PhelConfig::with() rebuilds the immutable config by spreading a merged
-        # array<string, mixed> into the constructor as named arguments. PHPStan
-        # cannot map the dynamic spread back to each typed parameter; the public
-        # with*() callers supply correctly-typed values.
-        -
-            identifier: argument.type
-            path: src/php/Config/PhelConfig.php
         # Printer's dispatchers select a TypePrinterInterface<Concrete> per
         # runtime-matched type, which is sound by construction but an
         # existential type: generic invariance cannot relate it to the

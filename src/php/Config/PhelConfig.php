@@ -639,35 +639,61 @@ final readonly class PhelConfig implements JsonSerializable
      * overridden. Each public `with*()` method delegates to this, allowing
      * single-line immutable updates.
      *
-     * @param array<string, mixed> $overrides
+     * The parameter is a partial shape keyed by constructor parameter name, and
+     * every field is forwarded as an explicit named argument. That keeps each
+     * value typed end to end (a dynamic `...[...$base, ...$overrides]` spread
+     * collapses to `mixed` for both phpstan and psalm). Keep the keys and types
+     * in sync with the constructor.
+     *
+     * @param array{
+     *     srcDirs?: list<string>,
+     *     testDirs?: list<string>,
+     *     vendorDir?: string,
+     *     errorLogFile?: string,
+     *     exportConfig?: PhelExportConfig,
+     *     buildConfig?: PhelBuildConfig,
+     *     ignoreWhenBuilding?: list<string>,
+     *     noCacheWhenBuilding?: list<string>,
+     *     keepGeneratedTempFiles?: bool,
+     *     tempDir?: string,
+     *     cacheDir?: string,
+     *     formatDirs?: list<string>,
+     *     appModulePaths?: list<string>,
+     *     enableAsserts?: bool,
+     *     warnDeprecations?: bool,
+     *     enableNamespaceCache?: bool,
+     *     enableCompiledCodeCache?: bool,
+     *     enableIntermediateCache?: bool,
+     *     phelDir?: string,
+     *     optimizationLevel?: int,
+     *     stripSymbolMeta?: bool,
+     * } $overrides
      */
     private function with(array $overrides): self
     {
-        $base = [
-            'srcDirs' => $this->srcDirs,
-            'testDirs' => $this->testDirs,
-            'vendorDir' => $this->vendorDir,
-            'errorLogFile' => $this->errorLogFile,
-            'exportConfig' => $this->exportConfig,
-            'buildConfig' => $this->buildConfig,
-            'ignoreWhenBuilding' => $this->ignoreWhenBuilding,
-            'noCacheWhenBuilding' => $this->noCacheWhenBuilding,
-            'keepGeneratedTempFiles' => $this->keepGeneratedTempFiles,
-            'tempDir' => $this->tempDir,
-            'cacheDir' => $this->cacheDir,
-            'formatDirs' => $this->formatDirs,
-            'appModulePaths' => $this->appModulePaths,
-            'enableAsserts' => $this->enableAsserts,
-            'warnDeprecations' => $this->warnDeprecations,
-            'enableNamespaceCache' => $this->enableNamespaceCache,
-            'enableCompiledCodeCache' => $this->enableCompiledCodeCache,
-            'enableIntermediateCache' => $this->enableIntermediateCache,
-            'phelDir' => $this->phelDir,
-            'optimizationLevel' => $this->optimizationLevel,
-            'stripSymbolMeta' => $this->stripSymbolMeta,
-        ];
-
-        return new self(...[...$base, ...$overrides]);
+        return new self(
+            srcDirs: $overrides['srcDirs'] ?? $this->srcDirs,
+            testDirs: $overrides['testDirs'] ?? $this->testDirs,
+            vendorDir: $overrides['vendorDir'] ?? $this->vendorDir,
+            errorLogFile: $overrides['errorLogFile'] ?? $this->errorLogFile,
+            exportConfig: $overrides['exportConfig'] ?? $this->exportConfig,
+            buildConfig: $overrides['buildConfig'] ?? $this->buildConfig,
+            ignoreWhenBuilding: $overrides['ignoreWhenBuilding'] ?? $this->ignoreWhenBuilding,
+            noCacheWhenBuilding: $overrides['noCacheWhenBuilding'] ?? $this->noCacheWhenBuilding,
+            keepGeneratedTempFiles: $overrides['keepGeneratedTempFiles'] ?? $this->keepGeneratedTempFiles,
+            tempDir: $overrides['tempDir'] ?? $this->tempDir,
+            cacheDir: $overrides['cacheDir'] ?? $this->cacheDir,
+            formatDirs: $overrides['formatDirs'] ?? $this->formatDirs,
+            appModulePaths: $overrides['appModulePaths'] ?? $this->appModulePaths,
+            enableAsserts: $overrides['enableAsserts'] ?? $this->enableAsserts,
+            warnDeprecations: $overrides['warnDeprecations'] ?? $this->warnDeprecations,
+            enableNamespaceCache: $overrides['enableNamespaceCache'] ?? $this->enableNamespaceCache,
+            enableCompiledCodeCache: $overrides['enableCompiledCodeCache'] ?? $this->enableCompiledCodeCache,
+            enableIntermediateCache: $overrides['enableIntermediateCache'] ?? $this->enableIntermediateCache,
+            phelDir: $overrides['phelDir'] ?? $this->phelDir,
+            optimizationLevel: $overrides['optimizationLevel'] ?? $this->optimizationLevel,
+            stripSymbolMeta: $overrides['stripSymbolMeta'] ?? $this->stripSymbolMeta,
+        );
     }
 
 }

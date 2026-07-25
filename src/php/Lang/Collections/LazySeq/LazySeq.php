@@ -43,7 +43,7 @@ final class LazySeq extends AbstractType implements LazySeqInterface, Countable,
     private mixed $realized = null;
 
     /**
-     * @param callable                                  $fn   A thunk (nullary function) that returns a sequence or null
+     * @param callable(): mixed                         $fn   A thunk (nullary function) that returns a sequence or null
      * @param PersistentMapInterface<mixed, mixed>|null $meta Metadata for this sequence
      */
     public function __construct(
