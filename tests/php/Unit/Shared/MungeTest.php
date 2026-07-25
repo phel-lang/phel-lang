@@ -49,6 +49,11 @@ final class MungeTest extends TestCase
         self::assertSame('phel\\core', $this->munge->encodePhpNs('phel.core'));
     }
 
+    public function test_encode_php_ns_is_idempotent_on_backslash_form(): void
+    {
+        self::assertSame('phel\\core', $this->munge->encodePhpNs('phel\\core'));
+    }
+
     public function test_encode_php_ns_replaces_dash_with_underscore(): void
     {
         self::assertSame('my_app\\sub_ns', $this->munge->encodePhpNs('my-app.sub-ns'));
@@ -65,6 +70,12 @@ final class MungeTest extends TestCase
     public function test_encode_registry_key_replaces_dash(): void
     {
         self::assertSame('my_app', $this->munge->encodeRegistryKey('my-app'));
+    }
+
+    public function test_encode_registry_key_munges_dashes_in_every_segment(): void
+    {
+        self::assertSame('my_app.my_module', $this->munge->encodeRegistryKey('my-app.my-module'));
+        self::assertSame('my_app.my_module', $this->munge->encodeRegistryKey('my-app\\my-module'));
     }
 
     public function test_decode_ns_is_inverse_of_namespace_encoding(): void
@@ -86,7 +97,25 @@ final class MungeTest extends TestCase
     public function test_display_ns_equals_canonical_ns(): void
     {
         self::assertSame('phel.core', Munge::displayNs('phel\\core'));
+        self::assertSame('a.b.c', Munge::displayNs('a\\b\\c'));
         self::assertSame(Munge::canonicalNs('a\\b'), Munge::displayNs('a\\b'));
+    }
+
+    public function test_display_ns_leaves_dot_form_untouched(): void
+    {
+        self::assertSame('phel.core', Munge::displayNs('phel.core'));
+    }
+
+    public function test_canonical_and_display_ns_handle_the_empty_string(): void
+    {
+        self::assertSame('', Munge::canonicalNs(''));
+        self::assertSame('', Munge::displayNs(''));
+    }
+
+    public function test_canonical_and_display_ns_round_trip(): void
+    {
+        self::assertSame('phel.core', Munge::displayNs(Munge::canonicalNs('phel.core')));
+        self::assertSame('phel.core', Munge::canonicalNs(Munge::displayNs('phel\\core')));
     }
 
     public function test_custom_mapping_injection(): void

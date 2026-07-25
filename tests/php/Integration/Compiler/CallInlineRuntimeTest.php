@@ -4,14 +4,7 @@ declare(strict_types=1);
 
 namespace PhelTest\Integration\Compiler;
 
-use Phel;
-use Phel\Build\BuildFacade;
-use Phel\Compiler\CompilerFacade;
-use Phel\Compiler\Domain\Analyzer\Environment\GlobalEnvironmentInterface;
-use Phel\Compiler\Infrastructure\GlobalEnvironmentSingleton;
-use Phel\Lang\Symbol;
 use Phel\Shared\CompileOptions;
-use PHPUnit\Framework\TestCase;
 
 /**
  * End-to-end coverage for the call inliner gated behind
@@ -19,29 +12,11 @@ use PHPUnit\Framework\TestCase;
  * single-expression pure `defn` is spliced at the call site instead of
  * dispatching through the resolved `AbstractFn`.
  */
-final class CallInlineRuntimeTest extends TestCase
+final class CallInlineRuntimeTest extends AbstractCompilerRuntimeTestCase
 {
-    private static GlobalEnvironmentInterface $globalEnv;
-
-    private CompilerFacade $compilerFacade;
-
-    public static function setUpBeforeClass(): void
-    {
-        Phel::bootstrap(__DIR__);
-        Symbol::resetGen();
-        $globalEnv = GlobalEnvironmentSingleton::initializeNew();
-        new BuildFacade()->compileFile(
-            __DIR__ . '/../../../../src/phel/core.phel',
-            tempnam(sys_get_temp_dir(), 'phel-core'),
-        );
-        self::$globalEnv = $globalEnv;
-    }
-
     protected function setUp(): void
     {
-        $this->compilerFacade = new CompilerFacade();
-        self::$globalEnv->setNs('user');
-        Symbol::resetGen();
+        parent::setUp();
 
         // Phel compiles/evals by executing forms, so side-effecting callees
         // (e.g. `php/printf`) emit to stdout during these cases. Capture it so

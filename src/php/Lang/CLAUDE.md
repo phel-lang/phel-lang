@@ -82,6 +82,7 @@ Shared behaviour traits: `MetaTrait` (`getMeta`/`withMeta`), `HashCombinerTrait`
 - Transients: `TransientVector`, `TransientMapWrapper`, `TransientSortedMap`/`TransientSortedSet`. All share `TransientStateTrait`: `persistent()` invalidates; mutators call `ensureTransientActive()` to guard reuse after `persistent!`.
 - Every transient stays callable like its persistent counterpart (`__invoke` on the concrete class, not on the transient interface): vector by index, map by key, both set flavours by membership.
 - `TransientHashSet` and `TransientSortedSet` share `HashSet\AbstractTransientSet` (both are a facade over a transient map keyed by the member itself; ordering lives in the backing map). Subclasses supply only `__toString()` and `persistent()`, mirroring how `SortedMap\PersistentSortedMap` extends `Map\AbstractPersistentMap`.
+- `PersistentHashSet` and `PersistentSortedSet` likewise share `HashSet\AbstractPersistentSet`, which owns the map-delegating half (`__invoke`, `getMeta`, `contains`, `count`, `equals`, `hash`, `getIterator`, `toPhpArray`, `concat`). Subclasses own only what has to name their own type: `withMeta`, `add`, `remove`, `asTransient` (plus `getEffectiveComparator` on the sorted flavour).
 
 ## Key Constraints
 

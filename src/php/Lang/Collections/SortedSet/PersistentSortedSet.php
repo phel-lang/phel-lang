@@ -5,71 +5,26 @@ declare(strict_types=1);
 namespace Phel\Lang\Collections\SortedSet;
 
 use Closure;
-use Phel\Lang\AbstractType;
+use Phel\Lang\Collections\HashSet\AbstractPersistentSet;
 use Phel\Lang\Collections\HashSet\PersistentHashSetInterface;
 use Phel\Lang\Collections\Map\PersistentMapInterface;
 use Phel\Lang\Collections\Map\TransientMapInterface;
 use Phel\Lang\Collections\SortedMap\PersistentSortedMap;
 use Phel\Lang\Collections\SortedMap\SortedArrayHelper;
-use Phel\Lang\HasherInterface;
-use Traversable;
-
-use function is_float;
-use function is_nan;
 
 /**
  * @template TValue
  *
- * @implements PersistentHashSetInterface<TValue>
- *
- * @extends AbstractType<PersistentSortedSet<TValue>>
+ * @extends AbstractPersistentSet<TValue>
  */
-final class PersistentSortedSet extends AbstractType implements PersistentHashSetInterface
+final class PersistentSortedSet extends AbstractPersistentSet
 {
-    private ?int $hashCache = null;
-
-    /**
-     * @param PersistentMapInterface<mixed, mixed>|null $meta
-     * @param PersistentMapInterface<TValue, TValue>    $map
-     */
-    public function __construct(
-        private readonly HasherInterface $hasher,
-        private readonly ?PersistentMapInterface $meta,
-        private readonly PersistentMapInterface $map,
-    ) {}
-
-    /**
-     * @param TValue $key
-     *
-     * @return ?TValue
-     */
-    public function __invoke(mixed $key)
-    {
-        return $this->map->find($key);
-    }
-
-    /**
-     * @return PersistentMapInterface<mixed, mixed>|null
-     */
-    public function getMeta(): ?PersistentMapInterface
-    {
-        return $this->meta;
-    }
-
     /**
      * @param PersistentMapInterface<mixed, mixed>|null $meta
      */
     public function withMeta(?PersistentMapInterface $meta): static
     {
         return new self($this->hasher, $meta, $this->map);
-    }
-
-    /**
-     * @param TValue $key
-     */
-    public function contains($key): bool
-    {
-        return $this->map->contains($key);
     }
 
     /**
@@ -99,58 +54,6 @@ final class PersistentSortedSet extends AbstractType implements PersistentHashSe
         return new self($this->hasher, $this->meta, $newMap);
     }
 
-    public function count(): int
-    {
-        return $this->map->count();
-    }
-
-    public function equals(mixed $other): bool
-    {
-        if ($this === $other) {
-            return true;
-        }
-
-        if (!$other instanceof PersistentHashSetInterface) {
-            return false;
-        }
-
-        if ($this->count() !== $other->count()) {
-            return false;
-        }
-
-        foreach ($this as $value) {
-            // A NaN element is never `=` to itself, so a set carrying one is
-            // unequal to any distinct set (identical sets short-circuit via
-            // `===` before reaching here). Membership lookup still matches NaN
-            // whenever the comparator orders it equal to itself.
-            if (is_float($value) && is_nan($value)) {
-                return false;
-            }
-
-            if (!$other->contains($value)) {
-                return false;
-            }
-        }
-
-        return true;
-    }
-
-    public function hash(): int
-    {
-        if ($this->hashCache === null) {
-            $this->hashCache = $this->hasher->unorderedHash($this->map);
-        }
-
-        return $this->hashCache;
-    }
-
-    public function getIterator(): Traversable
-    {
-        foreach ($this->map as $value) {
-            yield $value;
-        }
-    }
-
     /**
      * @return TransientSortedSet<TValue>
      */
@@ -159,24 +62,6 @@ final class PersistentSortedSet extends AbstractType implements PersistentHashSe
         /** @var TransientMapInterface<TValue, TValue> $transient */
         $transient = $this->map->asTransient();
         return new TransientSortedSet($this->hasher, $transient);
-    }
-
-    public function toPhpArray(): array
-    {
-        return iterator_to_array($this);
-    }
-
-    /**
-     * @param array<int, mixed> $xs
-     */
-    public function concat($xs): PersistentHashSetInterface
-    {
-        $map = $this->asTransient();
-        foreach ($xs as $x) {
-            $map->add($x);
-        }
-
-        return $map->persistent();
     }
 
     /**

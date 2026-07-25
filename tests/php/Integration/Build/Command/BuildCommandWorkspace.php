@@ -4,12 +4,21 @@ declare(strict_types=1);
 
 namespace PhelTest\Integration\Build\Command;
 
+use FilesystemIterator;
+use Gacela\Framework\Bootstrap\GacelaConfig;
+use Gacela\Framework\Gacela;
 use PhelTest\Integration\Util\DirectoryUtil;
+use RecursiveDirectoryIterator;
+use RecursiveIteratorIterator;
+use SplFileInfo;
 
 use function dirname;
+use function file_put_contents;
 use function getmypid;
+use function sprintf;
 use function sys_get_temp_dir;
 use function uniqid;
+use function var_export;
 
 /**
  * Isolated, per-process project root for `bin/phel build` tests.
@@ -67,6 +76,59 @@ final readonly class BuildCommandWorkspace
         file_put_contents($target, $contents);
 
         return $this;
+    }
+
+    /**
+     * Bootstrap Gacela against this workspace with one of its imported fixture
+     * configs as the app config.
+     */
+    public function bootstrapGacela(string $appConfig): void
+    {
+        Gacela::bootstrap($this->root, static function (GacelaConfig $config) use ($appConfig): void {
+            $config->addAppConfig($appConfig);
+        });
+    }
+
+    /**
+     * Write a standalone `run.php` next to the build output that requires the
+     * repo autoloader plus one compiled artifact, and return its path. Running
+     * it proves the artifact needs no source tree.
+     *
+     * @param string $destRelative     build output dir, relative to the workspace root
+     * @param string $compiledRelative compiled entry point, relative to $destRelative
+     */
+    public function writeRunner(string $destRelative, string $compiledRelative): string
+    {
+        $destDir = $this->path($destRelative);
+        $runner = $destDir . '/run.php';
+
+        $code = sprintf(
+            "<?php declare(strict_types=1);\nrequire_once %s;\nrequire_once %s;\n",
+            var_export(dirname(self::COMMAND_DIR, 5) . '/vendor/autoload.php', true),
+            var_export($destDir . '/' . $compiledRelative, true),
+        );
+        file_put_contents($runner, $code);
+
+        return $runner;
+    }
+
+    /**
+     * Every compiled `.php` artifact under a build output dir.
+     *
+     * @return iterable<string>
+     */
+    public function compiledPhpFiles(string $destRelative): iterable
+    {
+        $iterator = new RecursiveIteratorIterator(
+            new RecursiveDirectoryIterator($this->path($destRelative), FilesystemIterator::SKIP_DOTS),
+        );
+
+        /** @var SplFileInfo $file */
+        foreach ($iterator as $file) {
+            if ($file->isFile() && $file->getExtension() === 'php') {
+                yield $file->getPathname();
+            }
+        }
     }
 
     public function remove(): void

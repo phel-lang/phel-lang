@@ -4,14 +4,7 @@ declare(strict_types=1);
 
 namespace PhelTest\Integration\Compiler;
 
-use Phel;
-use Phel\Build\BuildFacade;
-use Phel\Compiler\CompilerFacade;
-use Phel\Compiler\Domain\Analyzer\Environment\GlobalEnvironmentInterface;
-use Phel\Compiler\Infrastructure\GlobalEnvironmentSingleton;
-use Phel\Lang\Symbol;
 use Phel\Shared\CompileOptions;
-use PHPUnit\Framework\TestCase;
 use Throwable;
 
 /**
@@ -20,31 +13,8 @@ use Throwable;
  * that the compile-time value matches what Phel's runtime `reduce`
  * would produce.
  */
-final class ReduceFoldRuntimeTest extends TestCase
+final class ReduceFoldRuntimeTest extends AbstractCompilerRuntimeTestCase
 {
-    private static GlobalEnvironmentInterface $globalEnv;
-
-    private CompilerFacade $compilerFacade;
-
-    public static function setUpBeforeClass(): void
-    {
-        Phel::bootstrap(__DIR__);
-        Symbol::resetGen();
-        $globalEnv = GlobalEnvironmentSingleton::initializeNew();
-        new BuildFacade()->compileFile(
-            __DIR__ . '/../../../../src/phel/core.phel',
-            tempnam(sys_get_temp_dir(), 'phel-core'),
-        );
-        self::$globalEnv = $globalEnv;
-    }
-
-    protected function setUp(): void
-    {
-        $this->compilerFacade = new CompilerFacade();
-        self::$globalEnv->setNs('user');
-        Symbol::resetGen();
-    }
-
     public function test_reduce_plus_matches_runtime(): void
     {
         $result = $this->compilerFacade->eval('(reduce + 0 [1 2 3 4 5])', new CompileOptions());

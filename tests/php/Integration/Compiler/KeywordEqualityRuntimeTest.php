@@ -4,15 +4,8 @@ declare(strict_types=1);
 
 namespace PhelTest\Integration\Compiler;
 
-use Phel;
-use Phel\Build\BuildFacade;
-use Phel\Compiler\CompilerFacade;
-use Phel\Compiler\Domain\Analyzer\Environment\GlobalEnvironmentInterface;
-use Phel\Compiler\Infrastructure\GlobalEnvironmentSingleton;
 use Phel\Lang\Keyword;
-use Phel\Lang\Symbol;
 use Phel\Shared\CompileOptions;
-use PHPUnit\Framework\TestCase;
 
 /**
  * End-to-end check that `(= x :kw)` lowered to native `===` (and the
@@ -21,31 +14,8 @@ use PHPUnit\Framework\TestCase;
  * operand: equal/unequal keyword, int, string, nil, and a different
  * keyword. Keywords are interned singletons so identity is exact equality.
  */
-final class KeywordEqualityRuntimeTest extends TestCase
+final class KeywordEqualityRuntimeTest extends AbstractCompilerRuntimeTestCase
 {
-    private static GlobalEnvironmentInterface $globalEnv;
-
-    private CompilerFacade $compilerFacade;
-
-    public static function setUpBeforeClass(): void
-    {
-        Phel::bootstrap(__DIR__);
-        Symbol::resetGen();
-        $globalEnv = GlobalEnvironmentSingleton::initializeNew();
-        new BuildFacade()->compileFile(
-            __DIR__ . '/../../../../src/phel/core.phel',
-            tempnam(sys_get_temp_dir(), 'phel-core'),
-        );
-        self::$globalEnv = $globalEnv;
-    }
-
-    protected function setUp(): void
-    {
-        $this->compilerFacade = new CompilerFacade();
-        self::$globalEnv->setNs('user');
-        Symbol::resetGen();
-    }
-
     public function test_keyword_equality_keyword_matches(): void
     {
         /** @var callable $fn */

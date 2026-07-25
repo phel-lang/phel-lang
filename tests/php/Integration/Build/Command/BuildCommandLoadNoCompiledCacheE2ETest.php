@@ -4,8 +4,6 @@ declare(strict_types=1);
 
 namespace PhelTest\Integration\Build\Command;
 
-use Gacela\Framework\Bootstrap\GacelaConfig;
-use Gacela\Framework\Gacela;
 use Phel\Build\Infrastructure\Command\BuildCommand;
 use PhelTest\Integration\Util\DirectoryUtil;
 use PHPUnit\Framework\Attributes\PreserveGlobalState;
@@ -15,16 +13,13 @@ use RuntimeException;
 use Symfony\Component\Console\Input\ArrayInput;
 use Symfony\Component\Console\Output\StreamOutput;
 
-use function dirname;
 use function escapeshellarg;
 use function fopen;
 use function is_dir;
 use function rename;
 use function shell_exec;
-use function sprintf;
 use function stream_get_contents;
 use function trim;
-use function var_export;
 
 /**
  * Regression for #2648: with the compiled-code cache off, a `phel build` must
@@ -38,6 +33,8 @@ use function var_export;
  */
 final class BuildCommandLoadNoCompiledCacheE2ETest extends TestCase
 {
+    private const string DEST_DIR = 'out-load-e2e-no-cache';
+
     private BuildCommandWorkspace $workspace;
 
     protected function setUp(): void
@@ -80,25 +77,12 @@ final class BuildCommandLoadNoCompiledCacheE2ETest extends TestCase
 
     private function writeRunner(): string
     {
-        $runner = $this->destDir() . '/run.php';
-        $autoload = dirname(__DIR__, 5) . '/vendor/autoload.php';
-        $compiled = $this->destDir() . '/loade2e/core.php';
-
-        $code = sprintf(
-            "<?php declare(strict_types=1);\nrequire_once %s;\nrequire_once %s;\n",
-            var_export($autoload, true),
-            var_export($compiled, true),
-        );
-        file_put_contents($runner, $code);
-
-        return $runner;
+        return $this->workspace->writeRunner(self::DEST_DIR, 'loade2e/core.php');
     }
 
     private function runBuild(): void
     {
-        Gacela::bootstrap($this->workspace->root(), static function (GacelaConfig $config): void {
-            $config->addAppConfig('phel-config-load-e2e-no-compiled-cache.php');
-        });
+        $this->workspace->bootstrapGacela('phel-config-load-e2e-no-compiled-cache.php');
 
         ob_start();
         $output = new StreamOutput(fopen('php://memory', 'w+') ?: throw new RuntimeException('Cannot open memory stream'));
@@ -120,7 +104,7 @@ final class BuildCommandLoadNoCompiledCacheE2ETest extends TestCase
 
     private function destDir(): string
     {
-        return $this->workspace->path('out-load-e2e-no-cache');
+        return $this->workspace->path(self::DEST_DIR);
     }
 
     private function srcDir(): string
