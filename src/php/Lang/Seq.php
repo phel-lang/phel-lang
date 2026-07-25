@@ -162,6 +162,8 @@ final class Seq
     }
 
     /**
+     * @param callable(int, mixed):mixed $f
+     *
      * @return Generator<int, mixed>
      */
     public static function mapIndexed(callable $f, mixed $iterable): Generator
@@ -178,6 +180,8 @@ final class Seq
     }
 
     /**
+     * @param callable(mixed...):mixed $f
+     *
      * @return Generator<int, mixed>
      */
     public static function mapMulti(callable $f, mixed ...$iterables): Generator
@@ -202,6 +206,8 @@ final class Seq
     }
 
     /**
+     * @param callable(mixed):mixed $f
+     *
      * @return Generator<int, mixed>
      */
     public static function map(callable $f, mixed $iterable): Generator
@@ -210,6 +216,11 @@ final class Seq
     }
 
     /**
+     * A Phel predicate returns an arbitrary value, not a `bool`: only `nil`
+     * and `false` are logically false, so the return type is `mixed`.
+     *
+     * @param callable(mixed):mixed $predicate
+     *
      * @return Generator<int, mixed>
      */
     public static function filter(callable $predicate, mixed $iterable): Generator
@@ -218,6 +229,8 @@ final class Seq
     }
 
     /**
+     * @param callable(mixed):mixed $f
+     *
      * @return Generator<int, mixed>
      */
     public static function keep(callable $f, mixed $iterable): Generator
@@ -226,6 +239,8 @@ final class Seq
     }
 
     /**
+     * @param callable(int, mixed):mixed $f
+     *
      * @return Generator<int, mixed>
      */
     public static function keepIndexed(callable $f, mixed $iterable): Generator
@@ -242,6 +257,8 @@ final class Seq
     }
 
     /**
+     * @param callable(mixed):mixed $predicate
+     *
      * @return Generator<int, mixed>
      */
     public static function takeWhile(callable $predicate, mixed $iterable): Generator
@@ -266,6 +283,8 @@ final class Seq
     }
 
     /**
+     * @param callable(mixed):mixed $predicate
+     *
      * @return Generator<int, mixed>
      */
     public static function dropWhile(callable $predicate, mixed $iterable): Generator
