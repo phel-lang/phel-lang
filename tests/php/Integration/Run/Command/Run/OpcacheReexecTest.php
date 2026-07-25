@@ -48,6 +48,13 @@ final class OpcacheReexecTest extends TestCase
             $this->projectDir . '/main.phel',
             "(ns local\\main)\n(println (+ 1 2 3))\n",
         );
+
+        file_put_contents(
+            $this->projectDir . '/ini.phel',
+            "(ns local\\ini)\n"
+            . "(println \"precision:\" (php/ini_get \"precision\"))\n"
+            . "(println \"reexeced:\" (php/getenv \"PHEL_OPCACHE_REEXEC_DONE\"))\n",
+        );
     }
 
     protected function tearDown(): void
@@ -70,21 +77,64 @@ final class OpcacheReexecTest extends TestCase
         self::assertStringContainsString('6', $warmOut);
     }
 
+    public function test_reexec_carries_the_user_ini_flags_into_the_child_process(): void
+    {
+        // `-d` never reaches $_SERVER['argv'], so the re-exec used to hand the
+        // child a bare argv and every user ini override vanished — which is what
+        // made ini-based workarounds look like they did nothing.
+        [$exitCode, $output] = $this->runPhel([], ['-d', 'precision=9'], 'ini.phel');
+
+        self::assertSame(0, $exitCode);
+
+        if (!str_contains($output, 'reexeced: 1')) {
+            self::markTestSkipped('OPcache re-exec did not fire on this host; nothing to carry over.');
+        }
+
+        self::assertStringContainsString('precision: 9', $output);
+    }
+
+    public function test_reexec_keeps_its_own_opcache_flags_authoritative(): void
+    {
+        // Phel forces opcache.enable_cli / file_cache / file_cache_only because a
+        // re-exec without them costs a process start and buys nothing, so a user
+        // flag on those directives must lose. Everything else on the same command
+        // line still has to survive.
+        [$exitCode, $output] = $this->runPhel(
+            [],
+            ['-d', 'opcache.enable_cli=0', '-d', 'precision=9'],
+            'ini.phel',
+        );
+
+        self::assertSame(0, $exitCode);
+
+        if (!str_contains($output, 'reexeced: 1')) {
+            self::markTestSkipped('OPcache re-exec did not fire on this host; nothing to carry over.');
+        }
+
+        self::assertStringContainsString('precision: 9', $output);
+    }
+
     /**
      * @param array<string, string> $env
+     * @param list<string>          $iniFlags
      *
      * @return array{0: int, 1: string} exit code and combined output
      */
-    private function runPhel(array $env): array
+    private function runPhel(array $env, array $iniFlags = [], string $script = 'main.phel'): array
     {
         $prefix = '';
         foreach ($env as $name => $value) {
             $prefix .= $name . '=' . escapeshellarg($value) . ' ';
         }
 
+        $flags = '';
+        foreach ($iniFlags as $flag) {
+            $flags .= escapeshellarg($flag) . ' ';
+        }
+
         $cmd = 'cd ' . escapeshellarg($this->projectDir)
-            . ' && ' . $prefix . 'php ' . escapeshellarg($this->repoRoot . '/bin/phel')
-            . ' run main.phel 2>&1';
+            . ' && ' . $prefix . 'php ' . $flags . escapeshellarg($this->repoRoot . '/bin/phel')
+            . ' run ' . escapeshellarg($script) . ' 2>&1';
 
         exec($cmd, $output, $exitCode);
 

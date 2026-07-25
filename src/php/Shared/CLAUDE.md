@@ -89,7 +89,9 @@ Stateless strategy-pattern printer (see `Printer/CLAUDE.md`); consumers instanti
 | `Console/DeprecatedOptionWarner` | static `warn()` — one-line renamed-option deprecation notice to stderr (never corrupts machine-readable stdout like `phel config --json`) |
 | `Performance/OpcacheAdvisor` | pure `advise(...)` (caller passes ini flags) → `OpcacheAdvice` (`optimal`, `messages`); flags when OPcache won't persist the compiled-code cache across CLI runs |
 | `Performance/OpcacheWorkerFlags` | pure `forFileCache(loaded, dir)` → `-d opcache.enable_cli=1 -d opcache.file_cache=<dir>` flag pairs (or `[]`); shared by parallel test workers (`RunFactory`) and the CLI re-exec |
-| `Performance/OpcacheReexec` | pure `decide(...)` → `OpcacheReexecDecision` (`shouldReexec`, `flags`); whether `bin/phel` should `pcntl_exec` itself with a persistent file cache. Reuses `OpcacheWorkerFlags`; the actual exec is the thin edge in `bin/phel` |
+| `Performance/OpcacheReexec` | pure `decide(...)` → `OpcacheReexecDecision` (`shouldReexec`, `flags`); whether `bin/phel` should `pcntl_exec` itself with a persistent file cache. Reuses `OpcacheWorkerFlags`; the actual exec is the thin edge in `bin/phel`. `OpcacheReexecDecision::withUserIniFlags()` splices the user's flags **before** Phel's so PHP's last-wins `-d` order keeps `opcache.enable_cli` / `file_cache` / `file_cache_only` authoritative |
+| `Performance/ProcessCommandLine` | `current()` → the OS-reported argv of the running process (`/proc/self/cmdline`, else `ps -ww -o args=`), or `[]` when unknown. Exists because PHP strips interpreter flags from `$_SERVER['argv']` |
+| `Performance/UserIniFlags` | pure `extract(processArgs, scriptArgv)` → the user's `-d`/`-n`/`-c` flags, or `[]` when the two argv views do not reconstruct unambiguously. Lets the CLI re-exec carry ini overrides into the child instead of dropping them |
 
 ## SourceMap (`SourceMap/`)
 
