@@ -22,6 +22,9 @@ use function sprintf;
  */
 final class PersistentHashMap extends AbstractPersistentMap
 {
+    /** @use TransientMergeStrategyTrait<TKey, TValue> */
+    use TransientMergeStrategyTrait;
+
     private static ?stdClass $NOT_FOUND = null;
 
     /**
