@@ -28,6 +28,14 @@ final class NodeEnvironmentTest extends TestCase
         self::assertFalse($env->hasLocal(Symbol::create('c')));
     }
 
+    public function test_qualified_symbol_never_matches_a_local(): void
+    {
+        $env = NodeEnvironment::empty()->withLocals([Symbol::create('inc')]);
+
+        self::assertTrue($env->hasLocal(Symbol::create('inc')));
+        self::assertFalse($env->hasLocal(Symbol::createForNamespace('phel\core', 'inc')));
+    }
+
     public function test_with_locals_is_immutable(): void
     {
         $base = NodeEnvironment::empty()->withLocals([Symbol::create('a')]);

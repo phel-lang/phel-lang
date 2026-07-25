@@ -99,6 +99,36 @@ final class AnalyzeSymbolTest extends TestCase
         );
     }
 
+    public function test_qualified_symbol_is_not_shadowed_by_a_local_of_the_same_short_name(): void
+    {
+        $globalEnv = new GlobalEnvironment();
+        $globalEnv->setNs('test');
+        $globalEnv->addDefinition('other', Symbol::create('a'));
+
+        $symbolAnalyzer = new AnalyzeSymbol(new Analyzer($globalEnv));
+
+        $env = NodeEnvironment::empty()->withLocals([Symbol::create('a')]);
+        self::assertEquals(
+            new GlobalVarNode($env, 'other', Symbol::create('a'), Phel::map()),
+            $symbolAnalyzer->analyze(Symbol::createForNamespace('other', 'a'), $env),
+        );
+    }
+
+    public function test_qualified_symbol_of_the_current_ns_is_not_shadowed_by_a_local(): void
+    {
+        $globalEnv = new GlobalEnvironment();
+        $globalEnv->setNs('test');
+        $globalEnv->addDefinition('test', Symbol::create('a'));
+
+        $symbolAnalyzer = new AnalyzeSymbol(new Analyzer($globalEnv));
+
+        $env = NodeEnvironment::empty()->withLocals([Symbol::create('a')]);
+        self::assertEquals(
+            new GlobalVarNode($env, 'test', Symbol::create('a'), Phel::map()),
+            $symbolAnalyzer->analyze(Symbol::createForNamespace('test', 'a'), $env),
+        );
+    }
+
     public function test_undefined_symbol_with_did_you_mean_suggestion(): void
     {
         $globalEnv = new GlobalEnvironment();

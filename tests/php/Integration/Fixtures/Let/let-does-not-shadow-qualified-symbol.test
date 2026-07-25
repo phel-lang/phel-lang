@@ -1,0 +1,6 @@
+--PHEL--
+(let [inc 1] (phel.core/inc inc))
+--PHP--
+/** @var int $inc_1 */
+$inc_1 = 1;
+($inc_1 + 1);

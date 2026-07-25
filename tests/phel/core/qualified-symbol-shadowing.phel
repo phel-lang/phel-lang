@@ -1,0 +1,70 @@
+(ns phel-test.core.qualified-symbol-shadowing
+  (:require phel.string :as s)
+  (:require phel.test :refer [deftest is]))
+
+;; A namespace-qualified symbol names a global definition, so no local
+;; binding can shadow it. Only bare names participate in lexical scoping.
+;; This is what lets a macro defend itself by fully qualifying the globals
+;; it expands to, which is the guidance in `.claude/rules/macro-hygiene.md`.
+
+(def ^:private base 1)
+
+(defn own-fn [x] (+ x 100))
+
+(defn- defn-param-shadow [inc] (phel.core/inc 1))
+
+;; --- a local never captures a qualified reference ---
+
+(deftest test-let-does-not-shadow-qualified-core-fn
+  (is (= 2 (let [inc (fn [_] :hijacked)] (phel.core/inc 1)))))
+
+(deftest test-loop-does-not-shadow-qualified-core-fn
+  (is (= 2 (loop [inc (fn [_] :hijacked)] (phel.core/inc 1)))))
+
+(deftest test-fn-param-does-not-shadow-qualified-core-fn
+  (is (= 2 ((fn [inc] (phel.core/inc 1)) (fn [_] :hijacked)))))
+
+(deftest test-defn-param-does-not-shadow-qualified-core-fn
+  (is (= 2 (defn-param-shadow (fn [_] :hijacked)))))
+
+(deftest test-deprecated-backslash-separator-also-resolves-globally
+  (is (= 2 (let [inc (fn [_] :hijacked)] (phel\core/inc 1)))))
+
+(deftest test-require-alias-does-not-shadow
+  (is (= "AB" (let [upper-case (fn [_] :hijacked)] (s/upper-case "ab")))))
+
+(deftest test-own-namespace-qualified-name-does-not-shadow
+  (is (= 101 (let [own-fn (fn [_] :hijacked)] (phel-test.core.qualified-symbol-shadowing/own-fn 1)))))
+
+(deftest test-qualified-def-is-not-shadowed-by-a-local
+  (is (= 1 (let [base :hijacked] phel-test.core.qualified-symbol-shadowing/base))))
+
+;; --- bare names still shadow, exactly as every Lisp does ---
+
+(deftest test-unqualified-local-still-shadows-a-core-fn
+  (is (= :hijacked (let [inc (fn [_] :hijacked)] (inc 1)))))
+
+(deftest test-unqualified-local-still-shadows-a-definition-of-the-same-ns
+  (is (= :hijacked (let [own-fn (fn [_] :hijacked)] (own-fn 1)))))
+
+;; --- the real-world case: a macro whose expansion the caller has shadowed ---
+;; Quasiquote qualifies every symbol that resolves to a global, so this macro
+;; expands to `(phel.core/inc (phel.core/inc x))`. A caller that happens to
+;; bind `inc` locally must not change what the macro computes.
+
+(defmacro inc-twice [x]
+  `(inc (inc ~x)))
+
+(deftest test-macro-expansion-survives-a-shadowed-caller-scope
+  (is (= 7 (inc-twice 5)))
+  (let [inc (fn [_] :hijacked)]
+    (is (= 7 (inc-twice 5)))
+    (is (= :hijacked (inc 5)))))
+
+(defmacro sum-of [& xs]
+  `(apply + [~@xs]))
+
+(deftest test-macro-with-multiple-qualified-globals-survives-shadowing
+  (let [apply (fn [& _] :hijacked)
+        +     (fn [& _] :hijacked)]
+    (is (= 6 (sum-of 1 2 3)))))

@@ -50,6 +50,13 @@ final class BindingValidatorTest extends TestCase
         $this->validator->assertSupportedBinding(Keyword::create('any'));
     }
 
+    public function test_qualified_symbol_binding_is_rejected(): void
+    {
+        $this->expectExceptionMessage("Can't bind qualified name: phel.core/count");
+
+        $this->validator->assertSupportedBinding(Symbol::createForNamespace('phel.core', 'count'));
+    }
+
     /**
      * @param AbstractType $type
      */

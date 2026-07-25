@@ -108,6 +108,16 @@ final class FnSymbolTuple
     private function checkAllVariablesStartWithALetterOrUnderscore(): void
     {
         foreach ($this->params as $param) {
+            // A qualified param would bind a local that no reference can read
+            // back: a namespaced symbol resolves to the global definition.
+            if ($param->getNamespace() !== null) {
+                throw AnalyzerException::withLocation(
+                    "Can't bind qualified name: " . $param->getFullName()
+                    . '. Use a bare name, or `' . $param->getName() . '#` for an auto-gensym inside a quasiquote.',
+                    $this->parentList,
+                );
+            }
+
             $matchesPattern = preg_match("/^(?:&[a-zA-Z_]|[a-zA-Z_\x80-\xff]).*$/", $param->getName());
 
             if ($matchesPattern === 0 || $matchesPattern === false) {
