@@ -206,7 +206,15 @@ final class RunCommandTest extends AbstractTestCommand
 
     public function test_macro_expansion_error_includes_definition_location(): void
     {
-        $tmpFile = __DIR__ . '/macro-error-script.phel';
+        // Written to its own temp directory rather than next to this file: a
+        // transient `.phel` inside the test tree is visible to any *other*
+        // test process running a namespace scan, which then fails with
+        // "Unable to read file" the moment this test deletes it again. Under
+        // paratest that is a real, intermittent cross-process failure.
+        $tmpDir = sys_get_temp_dir() . '/phel-macro-error-' . bin2hex(random_bytes(8));
+        mkdir($tmpDir, 0o777, true);
+        $tmpFile = $tmpDir . '/macro-error-script.phel';
+
         file_put_contents($tmpFile, <<<'PHEL'
 (ns test\macro-error-script)
 
@@ -220,6 +228,7 @@ PHEL);
             $output = $this->captureRunOutput($tmpFile);
         } finally {
             unlink($tmpFile);
+            rmdir($tmpDir);
         }
 
         self::assertStringContainsString('Error in expanding macro', $output);
