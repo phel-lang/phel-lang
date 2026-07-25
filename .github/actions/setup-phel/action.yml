@@ -1,5 +1,5 @@
 name: Setup Phel
-description: Checkout repo, install PHP, restore Composer cache, install dependencies.
+description: Install PHP, restore the Composer cache, install dependencies. Callers check out the repo first.
 
 inputs:
   php-version:
