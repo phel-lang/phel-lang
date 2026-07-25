@@ -39,6 +39,9 @@ final class DeprecationWarnings
     /** @var array<string, true> */
     private static array $seen = [];
 
+    /** @var array<string, string> */
+    private static array $normalizedPaths = [];
+
     public static function isEnabled(): bool
     {
         return self::$enabled ??= self::readEnvFlag();
@@ -63,6 +66,7 @@ final class DeprecationWarnings
     {
         self::$enabled = null;
         self::$seen = [];
+        self::$normalizedPaths = [];
     }
 
     /**
@@ -85,11 +89,15 @@ final class DeprecationWarnings
      * Source-path suppression for phel's bundled stdlib. The path is
      * anchored to this package's own `src/phel`, so nested-layout user
      * projects with their own `src/phel` still receive warnings.
+     *
+     * The incoming path is resolved first: a stdlib file reached through a
+     * relative prefix (`.../tests/../../src/phel/core/lazy.phel`) is the same
+     * file, and a plain string prefix test would let it through.
      */
     public static function isBundledStdlibSource(string $file): bool
     {
-        $normalized = str_replace('\\', '/', $file);
-        $stdlibRoot = str_replace('\\', '/', dirname(__DIR__, 4) . '/phel');
+        $normalized = self::normalizePath($file);
+        $stdlibRoot = self::normalizePath(dirname(__DIR__, 4) . '/phel');
 
         return $normalized === $stdlibRoot
             || str_starts_with($normalized, $stdlibRoot . '/');
@@ -195,6 +203,24 @@ final class DeprecationWarnings
             $location instanceof SourceLocation ? $location->getFile() : '',
             self::syntaxMessage($construct, $purpose, $replacement, $location),
         );
+    }
+
+    /**
+     * Canonical form of a source path for prefix comparison. Only paid for
+     * once the warnings switch is on, and memoized because the same handful of
+     * files come back over and over within a run. Falls back to the raw
+     * (slash-normalized) string when the path names nothing on disk, which is
+     * the case for in-memory sources such as the REPL's `string`.
+     */
+    private static function normalizePath(string $path): string
+    {
+        if (isset(self::$normalizedPaths[$path])) {
+            return self::$normalizedPaths[$path];
+        }
+
+        $real = realpath($path);
+
+        return self::$normalizedPaths[$path] = str_replace('\\', '/', $real === false ? $path : $real);
     }
 
     private static function readEnvFlag(): bool

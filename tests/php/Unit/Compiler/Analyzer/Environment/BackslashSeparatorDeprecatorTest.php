@@ -6,6 +6,7 @@ namespace PhelTest\Unit\Compiler\Analyzer\Environment;
 
 use Phel\Compiler\Domain\Analyzer\Environment\BackslashSeparatorDeprecator;
 use Phel\Compiler\Domain\Deprecation\DeprecationWarnings;
+use Phel\Lang\Delay;
 use Phel\Lang\SourceLocation;
 use Phel\Lang\Symbol;
 use PhelTest\Support\CapturesDeprecationsTrait;
@@ -147,6 +148,57 @@ final class BackslashSeparatorDeprecatorTest extends TestCase
         self::assertSame([], $this->capturedDeprecations());
     }
 
+    public function test_suppresses_expansion_of_a_bundled_stdlib_macro(): void
+    {
+        // `(delay ...)` expands to `(php/new \Phel\Lang\Delay ...)`. The symbol
+        // is stamped with the user's call site, but the `\` was written in
+        // phel's own stdlib, so the user must not be told to fix their file.
+        $this->deprecator()->maybeWarn($this->expandedSymbol(
+            '\\' . Delay::class,
+            '/app/user.phel',
+            dirname(__DIR__, 6) . '/src/phel/core/lazy.phel',
+        ));
+
+        self::assertSame([], $this->capturedDeprecations());
+    }
+
+    public function test_attributes_expansion_of_a_user_macro_to_the_macro_file(): void
+    {
+        $this->deprecator()->maybeWarn($this->expandedSymbol(
+            '\\App\\Thing',
+            '/app/user.phel',
+            '/app/macros.phel',
+        ));
+
+        $captured = $this->capturedDeprecations();
+        self::assertCount(1, $captured);
+        self::assertStringContainsString('/app/macros.phel:7', $captured[0]);
+        self::assertStringContainsString('reached by expanding a macro at /app/user.phel:3', $captured[0]);
+    }
+
+    public function test_suppresses_expansion_whose_origin_is_unknown(): void
+    {
+        // No `:start-location` on the macro definition: the call site is still
+        // the wrong place to report, so stay silent rather than misattribute.
+        $symbol = Symbol::createForNamespace(null, '\\App\\Thing');
+        $symbol->setStartLocation(
+            new SourceLocation('/app/user.phel', 3, 1, SourceLocation::unknown()),
+        );
+
+        $this->deprecator()->maybeWarn($symbol);
+
+        self::assertSame([], $this->capturedDeprecations());
+    }
+
+    public function test_still_warns_for_a_backslash_the_user_wrote_inside_a_macro_call(): void
+    {
+        // `(delay (php/new \App\Thing))`: the argument keeps its own reader
+        // location, so it is never marked as expansion output.
+        $this->deprecator()->maybeWarn($this->locatedSymbol(null, '\\App\\Thing', '/app/user.phel'));
+
+        self::assertCount(1, $this->capturedDeprecations());
+    }
+
     private function deprecator(): BackslashSeparatorDeprecator
     {
         return BackslashSeparatorDeprecator::getInstance();
@@ -169,6 +221,23 @@ final class BackslashSeparatorDeprecatorTest extends TestCase
     {
         $symbol = Symbol::createForNamespace(null, $rawName);
         $symbol->setStartLocation(new SourceLocation($file, 1, 1));
+
+        return $symbol;
+    }
+
+    /**
+     * A symbol as macro expansion leaves it: located at the call site, but
+     * carrying the definition it was really written in.
+     */
+    private function expandedSymbol(string $rawName, string $callSiteFile, string $originFile): Symbol
+    {
+        $symbol = Symbol::createForNamespace(null, $rawName);
+        $symbol->setStartLocation(new SourceLocation(
+            $callSiteFile,
+            3,
+            1,
+            new SourceLocation($originFile, 7, 2),
+        ));
 
         return $symbol;
     }

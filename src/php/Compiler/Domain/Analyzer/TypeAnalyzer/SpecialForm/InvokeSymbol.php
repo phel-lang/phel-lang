@@ -254,10 +254,35 @@ final readonly class InvokeSymbol implements SpecialFormAnalyzerInterface
         }
 
         try {
-            return $this->callInlineFn($fn, $list);
+            return $this->callInlineFn($fn, $list, $this->definitionLocation($node));
         } catch (Exception $exception) {
             throw AnalyzerException::whenExpandingInlineFn($list, $node, $exception);
         }
+    }
+
+    /**
+     * Where the macro / inline definition itself was written, read from the
+     * `:start-location` its `def` records. Falls back to
+     * {@see SourceLocation::unknown()} so an expansion is always
+     * distinguishable from code the user typed at the call site, even when
+     * the definition carries no location.
+     */
+    private function definitionLocation(GlobalVarNode $node): SourceLocation
+    {
+        $location = $node->getMeta()->find(Keyword::create('start-location'));
+        if (!$location instanceof PersistentMapInterface) {
+            return SourceLocation::unknown();
+        }
+
+        $file = $location->find(Keyword::create('file'));
+        $line = $location->find(Keyword::create('line'));
+        $column = $location->find(Keyword::create('column'));
+
+        if (!is_string($file) || !is_int($line) || !is_int($column)) {
+            return SourceLocation::unknown();
+        }
+
+        return new SourceLocation($file, $line, $column);
     }
 
     /**
@@ -282,7 +307,7 @@ final readonly class InvokeSymbol implements SpecialFormAnalyzerInterface
         }
 
         try {
-            return $this->callMacroFn($fn, $list, $env);
+            return $this->callMacroFn($fn, $list, $env, $this->definitionLocation($macroNode));
         } catch (Exception $exception) {
             throw AnalyzerException::whenExpandingMacro($list, $macroNode, $exception);
         }
@@ -298,6 +323,7 @@ final readonly class InvokeSymbol implements SpecialFormAnalyzerInterface
         callable $fn,
         PersistentListInterface $list,
         NodeEnvironmentInterface $env,
+        SourceLocation $origin,
     ): mixed {
         $envMap = $this->buildEnvMap($env);
         /** @var PersistentListInterface<mixed> $rest */
@@ -305,7 +331,7 @@ final readonly class InvokeSymbol implements SpecialFormAnalyzerInterface
         $arguments = $rest->toArray();
 
         $result = $fn($list, $envMap, ...$arguments);
-        return $this->enrichLocation($result, $list);
+        return $this->enrichLocation($result, $list, $origin);
     }
 
     /**
@@ -316,13 +342,14 @@ final readonly class InvokeSymbol implements SpecialFormAnalyzerInterface
     private function callInlineFn(
         callable $fn,
         PersistentListInterface $list,
+        SourceLocation $origin,
     ): mixed {
         /** @var PersistentListInterface<mixed> $rest */
         $rest = $list->rest();
         $arguments = $rest->toArray();
 
         $result = $fn(...$arguments);
-        return $this->enrichLocation($result, $list);
+        return $this->enrichLocation($result, $list, $origin);
     }
 
     /**
@@ -354,13 +381,14 @@ final readonly class InvokeSymbol implements SpecialFormAnalyzerInterface
     private function enrichLocation(
         mixed $x,
         TypeInterface $parent,
+        SourceLocation $origin,
     ): mixed {
         if ($x instanceof PersistentListInterface) {
-            return $this->enrichLocationForList($x, $parent);
+            return $this->enrichLocationForList($x, $parent, $origin);
         }
 
         if ($x instanceof TypeInterface) {
-            return $this->enrichLocationForAbstractType($x, $parent);
+            return $this->enrichLocationForAbstractType($x, $parent, $origin);
         }
 
         return $x;
@@ -369,27 +397,46 @@ final readonly class InvokeSymbol implements SpecialFormAnalyzerInterface
     /**
      * @param PersistentListInterface<mixed> $list
      */
-    private function enrichLocationForList(PersistentListInterface $list, TypeInterface $parent): TypeInterface
-    {
+    private function enrichLocationForList(
+        PersistentListInterface $list,
+        TypeInterface $parent,
+        SourceLocation $origin,
+    ): TypeInterface {
         $result = [];
         foreach ($list->getIterator() as $item) {
-            $result[] = $this->enrichLocation($item, $parent);
+            $result[] = $this->enrichLocation($item, $parent, $origin);
         }
 
         return $this->enrichLocationForAbstractType(
             Phel::list($result)->withMeta($list->getMeta()),
             $parent,
+            $origin,
         );
     }
 
-    private function enrichLocationForAbstractType(TypeInterface $type, TypeInterface $parent): TypeInterface
-    {
+    /**
+     * Stamps the call site onto forms the expansion produced, so errors keep
+     * pointing at the code the user wrote. Only forms that carry no location
+     * of their own are stamped, and those are exactly the ones the expansion
+     * synthesised — macro arguments arrive with the reader's own positions and
+     * are left alone. The stamped location records `$origin` so consumers can
+     * still tell where the form was really authored (#2827).
+     */
+    private function enrichLocationForAbstractType(
+        TypeInterface $type,
+        TypeInterface $parent,
+        SourceLocation $origin,
+    ): TypeInterface {
         if (!$type->getStartLocation() instanceof SourceLocation) {
-            $type = $type->setStartLocation($parent->getStartLocation());
+            $type = $type->setStartLocation(
+                $parent->getStartLocation()?->withExpansionOrigin($origin),
+            );
         }
 
         if (!$type->getEndLocation() instanceof SourceLocation) {
-            return $type->setEndLocation($parent->getEndLocation());
+            return $type->setEndLocation(
+                $parent->getEndLocation()?->withExpansionOrigin($origin),
+            );
         }
 
         return $type;
