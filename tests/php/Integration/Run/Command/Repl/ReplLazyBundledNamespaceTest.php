@@ -6,19 +6,7 @@ namespace PhelTest\Integration\Run\Command\Repl;
 
 use Gacela\Framework\Gacela;
 use Override;
-use Phel\Command\Application\TextExceptionPrinter;
-use Phel\Command\Domain\ErrorLogInterface;
-use Phel\Command\Domain\Exceptions\ExceptionArgsPrinter;
-use Phel\Command\Domain\Exceptions\Extractor\FilePositionExtractor;
-use Phel\Command\Infrastructure\SourceMapExtractor;
-use Phel\Run\Domain\Repl\ReplCommandIoInterface;
 use Phel\Run\Infrastructure\Command\ReplCommand;
-use Phel\Run\RunFactory;
-use Phel\Shared\ColorStyle;
-use Phel\Shared\ColorStyleInterface;
-use Phel\Shared\Munge;
-use Phel\Shared\Printer\Printer;
-use Phel\Shared\Printer\PrinterInterface;
 use PhelTest\Integration\Run\Command\AbstractTestCommand;
 use PHPUnit\Framework\Attributes\PreserveGlobalState;
 use PHPUnit\Framework\Attributes\RunInSeparateProcess;
@@ -33,6 +21,8 @@ use Symfony\Component\Console\Input\InputInterface;
  */
 final class ReplLazyBundledNamespaceTest extends AbstractTestCommand
 {
+    use ReplCommandTestTrait;
+
     private const string STARTUP_FILE = __DIR__ . '/../../../../../../resources/repl/startup.phel';
 
     private string $previousCwd = '';
@@ -143,41 +133,4 @@ final class ReplLazyBundledNamespaceTest extends AbstractTestCommand
         self::assertStringContainsString('&lt;b&gt;', $io->getOutputString(), 'A lazily loaded bundle must stay available after an eval-failure restore');
     }
 
-    private function createReplTestIo(): ReplTestIo
-    {
-        $exceptionPrinter = new TextExceptionPrinter(
-            new ExceptionArgsPrinter(Printer::readable()),
-            ColorStyle::noStyles(),
-            new Munge(),
-            new FilePositionExtractor(new SourceMapExtractor()),
-            $this->createStub(ErrorLogInterface::class),
-        );
-
-        return new ReplTestIo($exceptionPrinter);
-    }
-
-    private function prepareRunFactory(ReplCommandIoInterface $io): void
-    {
-        Gacela::overrideExistingResolvedClass(
-            RunFactory::class,
-            new class($io) extends RunFactory {
-                public function __construct(private readonly ReplCommandIoInterface $io) {}
-
-                public function createColorStyle(): ColorStyleInterface
-                {
-                    return ColorStyle::noStyles();
-                }
-
-                public function createPrinter(): PrinterInterface
-                {
-                    return Printer::nonReadable();
-                }
-
-                public function createReplCommandIo(): ReplCommandIoInterface
-                {
-                    return $this->io;
-                }
-            },
-        );
-    }
 }

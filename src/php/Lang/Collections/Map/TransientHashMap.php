@@ -10,6 +10,10 @@ use Phel\Lang\HasherInterface;
 use stdClass;
 
 /**
+ * Inner transient behind {@see TransientMapWrapper}; never handed to Phel code
+ * directly, which is why it does not use `TransientStateTrait`. The wrapper owns
+ * the use-after-`persistent!` guard for the whole map family.
+ *
  * @template TKey
  * @template TValue
  *

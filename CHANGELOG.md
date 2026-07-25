@@ -11,6 +11,7 @@ All notable changes to this project will be documented in this file.
 - Any `def`/`defn` carrying `:deprecated` metadata now warns at every call site when deprecation warnings are enabled (`--warn-deprecations`, `PHEL_WARN_DEPRECATIONS=1`, or `withWarnDeprecations(true)`). Works for project code too: `^{:deprecated "1.4.0" :superseded-by "new-fn"}` puts your own consumers on a migration path. Notices are deduplicated per `(file, symbol)` pair and suppressed inside phel's bundled stdlib
 - `^:reference` (the historical spelling of the `^:by-ref` fn-param hint) now emits a deprecation notice pointing at `^:by-ref`. It was the one deprecated construct with no user-visible signal at all
 - New [migration guide for the currently deprecated surface](docs/migration/deprecated-surface.md): every live deprecation, its replacement, a mechanical before/after, and how it announces itself
+- Two new `phel\test` macros for testing test helpers: `with-isolated-stats` runs its body against a freshly reset statistics accumulator, returns the stats that body produced, and restores the caller's stats afterwards; `with-isolated-reporters` installs a reporter set for the duration of its body and restores the previous one. Both roll back even when the body throws, which the hand-rolled `get-stats`/`reset-stats`/`restore-stats` idiom they replace did not
 
 ### Fixed
 

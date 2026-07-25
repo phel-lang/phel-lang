@@ -1,12 +1,12 @@
 (ns phel-test.test-framework
-  (:require phel.test :refer [deftest is testing get-stats reset-stats restore-stats do-report]))
+  (:require phel.test :refer [deftest is testing with-isolated-stats do-report]))
 
 ;; Behavior coverage for the `is` macro and its built-in dispatch arms.
 ;;
 ;; These tests exercise the public surface of `phel.test/is` end-to-end:
 ;; pass paths run as ordinary `is` assertions, while fail/error paths use
-;; the `get-stats`/`reset-stats`/`restore-stats` snapshot pattern so the
-;; failure is observed in isolation without polluting the outer suite.
+;; `with-isolated-stats` so the failure is observed against a fresh stats
+;; accumulator without polluting the outer suite.
 ;; Output from the inner `is` is silenced via `with-output-buffer`.
 ;;
 ;; Each dispatch arm of the multimethod (`'not`, `'thrown?`,
@@ -25,11 +25,8 @@
   (is (not (empty? [1 2 3])) "not empty? passes for non-empty"))
 
 (deftest test-is-not-predicate-fails-when-predicate-is-true
-  (let [saved  (get-stats)
-        _      (reset-stats)
-        _      (with-output-buffer (is (not (nil? nil))))
-        counts (get (get-stats) :counts)]
-    (restore-stats saved)
+  (let [counts (:counts (with-isolated-stats
+                         (with-output-buffer (is (not (nil? nil))))))]
     (is (= 1 (:failed counts)) "not nil? on nil records a failure")
     (is (= 0 (:pass counts)) "no pass recorded")))
 
@@ -44,11 +41,8 @@
   (is (not (> 1 10)) "not > passes when left is not greater than right"))
 
 (deftest test-is-not-binary-fails-when-predicate-is-true
-  (let [saved  (get-stats)
-        _      (reset-stats)
-        _      (with-output-buffer (is (not (= 1 1))))
-        counts (get (get-stats) :counts)]
-    (restore-stats saved)
+  (let [counts (:counts (with-isolated-stats
+                         (with-output-buffer (is (not (= 1 1))))))]
     (is (= 1 (:failed counts)) "not (= 1 1) records a failure")))
 
 ;; ---------------------------------------------------------------------------
@@ -64,12 +58,9 @@
       "thrown? passes for subclass of expected exception"))
 
 (deftest test-is-thrown-fails-when-no-exception-thrown
-  (let [saved  (get-stats)
-        _      (reset-stats)
-        _      (with-output-buffer
-                 (is (thrown? \InvalidArgumentException (+ 1 1))))
-        counts (get (get-stats) :counts)]
-    (restore-stats saved)
+  (let [counts (:counts (with-isolated-stats
+                         (with-output-buffer
+                           (is (thrown? \InvalidArgumentException (+ 1 1))))))]
     (is (= 1 (:failed counts)) "thrown? without throw records a failure")))
 
 ;; ---------------------------------------------------------------------------
@@ -88,12 +79,9 @@
       "single-arg thrown? catches an \\Error subclass"))
 
 (deftest test-is-thrown-single-arg-fails-when-body-does-not-throw
-  (let [saved  (get-stats)
-        _      (reset-stats)
-        _      (with-output-buffer
-                 (is (thrown? (+ 1 2))))
-        counts (get (get-stats) :counts)]
-    (restore-stats saved)
+  (let [counts (:counts (with-isolated-stats
+                         (with-output-buffer
+                           (is (thrown? (+ 1 2))))))]
     (is (= 1 (:failed counts))
         "single-arg thrown? without throw records a failure")
     (is (= 0 (:pass counts)) "no pass recorded")))
@@ -114,22 +102,16 @@
       "thrown-with-msg? passes when message matches exactly"))
 
 (deftest test-is-thrown-with-msg-fails-when-no-exception
-  (let [saved  (get-stats)
-        _      (reset-stats)
-        _      (with-output-buffer
-                 (is (thrown-with-msg? \InvalidArgumentException "boom" (+ 1 1))))
-        counts (get (get-stats) :counts)]
-    (restore-stats saved)
+  (let [counts (:counts (with-isolated-stats
+                         (with-output-buffer
+                           (is (thrown-with-msg? \InvalidArgumentException "boom" (+ 1 1))))))]
     (is (= 1 (:failed counts)) "thrown-with-msg? without throw records a failure")))
 
 (deftest test-is-thrown-with-msg-fails-when-message-differs
-  (let [saved  (get-stats)
-        _      (reset-stats)
-        _      (with-output-buffer
-                 (is (thrown-with-msg? \InvalidArgumentException "expected"
-                                       (throw (php/new \InvalidArgumentException "different")))))
-        counts (get (get-stats) :counts)]
-    (restore-stats saved)
+  (let [counts (:counts (with-isolated-stats
+                         (with-output-buffer
+                           (is (thrown-with-msg? \InvalidArgumentException "expected"
+                                                 (throw (php/new \InvalidArgumentException "different")))))))]
     (is (= 1 (:failed counts)) "thrown-with-msg? with wrong message records a failure")))
 
 ;; ---------------------------------------------------------------------------
@@ -140,12 +122,9 @@
   (is (output? "hello" (print "hello")) "output? passes when print emits expected text"))
 
 (deftest test-is-output-fails-when-output-differs
-  (let [saved  (get-stats)
-        _      (reset-stats)
-        _      (with-output-buffer
-                 (is (output? "expected" (print "actual"))))
-        counts (get (get-stats) :counts)]
-    (restore-stats saved)
+  (let [counts (:counts (with-isolated-stats
+                         (with-output-buffer
+                           (is (output? "expected" (print "actual"))))))]
     (is (= 1 (:failed counts)) "output? mismatch records a failure")))
 
 ;; ---------------------------------------------------------------------------
@@ -176,11 +155,8 @@
   (is (> 10 5) "> passes for reverse-ordered values"))
 
 (deftest test-is-binary-default-fails
-  (let [saved  (get-stats)
-        _      (reset-stats)
-        _      (with-output-buffer (is (= 1 2)))
-        counts (get (get-stats) :counts)]
-    (restore-stats saved)
+  (let [counts (:counts (with-isolated-stats
+                         (with-output-buffer (is (= 1 2)))))]
     (is (= 1 (:failed counts)) "= on unequal values records a failure")))
 
 ;; ---------------------------------------------------------------------------
@@ -193,11 +169,8 @@
   (is (zero? 0) "zero? passes for zero"))
 
 (deftest test-is-predicate-default-fails
-  (let [saved  (get-stats)
-        _      (reset-stats)
-        _      (with-output-buffer (is (nil? 1)))
-        counts (get (get-stats) :counts)]
-    (restore-stats saved)
+  (let [counts (:counts (with-isolated-stats
+                         (with-output-buffer (is (nil? 1)))))]
     (is (= 1 (:failed counts)) "nil? on non-nil records a failure")))
 
 ;; ---------------------------------------------------------------------------
@@ -209,12 +182,9 @@
   (is (or false nil 42 :unused) "or returns first truthy value"))
 
 (deftest test-is-any-fails-when-list-result-is-falsy
-  (let [saved  (get-stats)
-        _      (reset-stats)
-        _      (with-output-buffer (is (and true false 1 2)))
-        _      (with-output-buffer (is (or false nil false nil)))
-        counts (get (get-stats) :counts)]
-    (restore-stats saved)
+  (let [counts (:counts (with-isolated-stats
+                         (with-output-buffer (is (and true false 1 2)))
+                         (with-output-buffer (is (or false nil false nil)))))]
     (is (= 2 (:failed counts)) "falsy and/or expressions both record failures")))
 
 (deftest test-is-accepts-scalar-literal-arguments
@@ -223,12 +193,9 @@
   (is "non-empty" "non-empty string literal passes"))
 
 (deftest test-is-scalar-literal-failures-record-failure
-  (let [saved  (get-stats)
-        _      (reset-stats)
-        _      (with-output-buffer (is false "false literal"))
-        _      (with-output-buffer (is nil "nil literal"))
-        counts (get (get-stats) :counts)]
-    (restore-stats saved)
+  (let [counts (:counts (with-isolated-stats
+                         (with-output-buffer (is false "false literal"))
+                         (with-output-buffer (is nil "nil literal"))))]
     (is (= 2 (:failed counts)) "scalar false/nil record failures without error")
     (is (= 0 (:error counts)) "scalar literals do not raise an internal error")))
 
@@ -238,12 +205,9 @@
 ;; ---------------------------------------------------------------------------
 
 (deftest test-is-records-error-when-body-throws
-  (let [saved  (get-stats)
-        _      (reset-stats)
-        _      (with-output-buffer
-                 (is (= 1 (throw (php/new \RuntimeException "boom inside is")))))
-        counts (get (get-stats) :counts)]
-    (restore-stats saved)
+  (let [counts (:counts (with-isolated-stats
+                         (with-output-buffer
+                           (is (= 1 (throw (php/new \RuntimeException "boom inside is")))))))]
     (is (= 1 (:error counts)) "uncaught exception in assertion is reported as :error")
     (is (= 0 (:failed counts)) "not counted as a failure")))
 
@@ -252,11 +216,8 @@
 ;; ---------------------------------------------------------------------------
 
 (deftest test-passing-assertion-increments-pass-and-total-only
-  (let [saved  (get-stats)
-        _      (reset-stats)
-        _      (with-output-buffer (is (= 1 1)))
-        counts (get (get-stats) :counts)]
-    (restore-stats saved)
+  (let [counts (:counts (with-isolated-stats
+                         (with-output-buffer (is (= 1 1)))))]
     (is (= 1 (:pass counts)) "pass count incremented")
     (is (= 0 (:failed counts)) "failed count untouched")
     (is (= 0 (:error counts)) "error count untouched")
@@ -267,11 +228,8 @@
 ;; ---------------------------------------------------------------------------
 
 (deftest test-failing-assertion-records-failure-data
-  (let [saved    (get-stats)
-        _        (reset-stats)
-        _        (with-output-buffer (is (= 1 2) "intentional failure"))
-        snapshot (get-stats)]
-    (restore-stats saved)
+  (let [snapshot (with-isolated-stats
+                  (with-output-buffer (is (= 1 2) "intentional failure")))]
     (is (= 1 (count (get snapshot :failed))) "one failure recorded in :failed list")
     (let [failure (first (get snapshot :failed))]
       (is (= "intentional failure" (get failure :message))
@@ -291,13 +249,10 @@
                     (is (= 1 1) "nested testing blocks execute"))))
 
 (deftest test-testing-context-in-failure-message
-  (let [saved    (get-stats)
-        _        (reset-stats)
-        _        (with-output-buffer
-                   (testing "math basics"
-                            (is (= 1 2) "addition")))
-        snapshot (get-stats)]
-    (restore-stats saved)
+  (let [snapshot (with-isolated-stats
+                  (with-output-buffer
+                    (testing "math basics"
+                             (is (= 1 2) "addition"))))]
     (let [failure (first (get snapshot :failed))]
       (is (= "math basics - addition" (get failure :message))
           "testing context is prepended to failure message"))))
@@ -307,40 +262,28 @@
 ;; ---------------------------------------------------------------------------
 
 (deftest test-do-report-pass-increments-pass-count
-  (let [saved  (get-stats)
-        _      (reset-stats)
-        _      (with-output-buffer (do-report {:state :pass :type :any :message "ok"}))
-        counts (get (get-stats) :counts)]
-    (restore-stats saved)
+  (let [counts (:counts (with-isolated-stats
+                         (with-output-buffer (do-report {:state :pass :type :any :message "ok"}))))]
     (is (= 1 (:pass counts)) "do-report with :pass increments pass count")
     (is (= 1 (:total counts)) "do-report with :pass increments total")
     (is (= 0 (:failed counts)) "do-report with :pass does not increment failed")))
 
 (deftest test-do-report-failure-records-failure
-  (let [saved    (get-stats)
-        _        (reset-stats)
-        _        (with-output-buffer (do-report {:state :failed :type :any :message "nope"}))
-        snapshot (get-stats)]
-    (restore-stats saved)
+  (let [snapshot (with-isolated-stats
+                  (with-output-buffer (do-report {:state :failed :type :any :message "nope"})))]
     (is (= 1 (:failed (get snapshot :counts))) "do-report with :failed increments failed count")
     (is (= 1 (count (get snapshot :failed))) "do-report with :failed records failure data")
     (let [failure (first (get snapshot :failed))]
       (is (= "nope" (get failure :message)) "do-report preserves message"))))
 
 (deftest test-do-report-preserves-location
-  (let [saved    (get-stats)
-        loc      {:file "test.phel" :line 42 :column 1}
-        _        (reset-stats)
-        _        (with-output-buffer (do-report {:state :failed :type :any :location loc}))
-        snapshot (get-stats)]
-    (restore-stats saved)
+  (let [loc      {:file "test.phel" :line 42 :column 1}
+        snapshot (with-isolated-stats
+                  (with-output-buffer (do-report {:state :failed :type :any :location loc})))]
     (let [failure (first (get snapshot :failed))]
       (is (= loc (get failure :location)) "do-report preserves :location in result"))))
 
 (deftest test-do-report-works-without-location
-  (let [saved  (get-stats)
-        _      (reset-stats)
-        _      (with-output-buffer (do-report {:state :pass :type :any}))
-        counts (get (get-stats) :counts)]
-    (restore-stats saved)
+  (let [counts (:counts (with-isolated-stats
+                         (with-output-buffer (do-report {:state :pass :type :any}))))]
     (is (= 1 (:pass counts)) "do-report works without :location key")))

@@ -38,13 +38,12 @@
                           (when (and (= :pass (:state e))
                                      (not= :skipped (:type e)))
                             (swap! counter inc)))
-        saved-reporters (t/get-reporters)
-        saved-stats     (t/get-stats)]
-    (t/reset-stats)
-    (with-output-buffer
-      (t/run-tests {:reporters [bump-reporter] :repeat 4} fixture-ns))
+        saved-reporters (t/get-reporters)]
+    (t/with-isolated-stats
+     (with-output-buffer
+       (t/run-tests {:reporters [bump-reporter] :repeat 4} fixture-ns)))
+    ;; `run-tests` installs its own reporters, so only the restore is ours.
     (t/set-reporters! saved-reporters)
-    (t/restore-stats saved-stats)
     ;; 3 fixtures × 4 iterations = 12 pass events.
     (is (= 12 (deref counter))
         "the per-iteration counter sees every assertion in every iteration")))
@@ -58,16 +57,15 @@
         capture         (fn [e]
                           (when (= :pass (:state e))
                             (swap! order conj (:test-name e))))
-        saved-reporters (t/get-reporters)
-        saved-stats     (t/get-stats)]
-    (t/reset-stats)
-    (with-output-buffer
-      (t/run-tests {:reporters [capture]
-                    :random-order true
-                    :seed seed}
-                   fixture-ns))
+        saved-reporters (t/get-reporters)]
+    (t/with-isolated-stats
+     (with-output-buffer
+       (t/run-tests {:reporters [capture]
+                     :random-order true
+                     :seed seed}
+                    fixture-ns)))
+    ;; `run-tests` installs its own reporters, so only the restore is ours.
     (t/set-reporters! saved-reporters)
-    (t/restore-stats saved-stats)
     (deref order)))
 
 (deftest test-fixed-seed-yields-deterministic-order
