@@ -44,27 +44,9 @@ final class StringParser
 
     private function parseEscapedString(string $str): string
     {
-        $callback = function (array $matches): string {
-            $str = $matches[1];
-
-            if (isset(self::STRING_REPLACEMENTS[$str])) {
-                return self::STRING_REPLACEMENTS[$str];
-            }
-
-            if ($str[0] === 'x' || $str[0] === 'X') {
-                return chr((int) hexdec(substr((string) $str, 1)));
-            }
-
-            if ($str[0] === 'u') {
-                return $this->parseUnicodeEscape($matches);
-            }
-
-            return chr((int) octdec((string) $str));
-        };
-
         $result = preg_replace_callback(
             self::ESCAPE_SEQUENCE_PATTERN,
-            $callback,
+            $this->replaceEscapeSequence(...),
             str_replace('\\"', '"', $str),
         );
 
@@ -73,6 +55,30 @@ final class StringParser
         }
 
         return $result;
+    }
+
+    /**
+     * @param array<int, string> $matches
+     *
+     * @throws StringParserException
+     */
+    private function replaceEscapeSequence(array $matches): string
+    {
+        $sequence = $matches[1];
+
+        if (isset(self::STRING_REPLACEMENTS[$sequence])) {
+            return self::STRING_REPLACEMENTS[$sequence];
+        }
+
+        if ($sequence[0] === 'x' || $sequence[0] === 'X') {
+            return chr((int) hexdec(substr($sequence, 1)));
+        }
+
+        if ($sequence[0] === 'u') {
+            return $this->parseUnicodeEscape($matches);
+        }
+
+        return chr((int) octdec($sequence));
     }
 
     /**

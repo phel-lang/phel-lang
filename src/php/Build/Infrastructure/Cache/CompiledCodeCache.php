@@ -307,7 +307,14 @@ final class CompiledCodeCache implements CompiledCodeCacheInterface
             return;
         }
 
-        uasort($this->entries, static fn($a, $b): int => $a['last_accessed'] <=> $b['last_accessed']);
+        uasort(
+            $this->entries,
+            /**
+             * @param CacheEntry $a
+             * @param CacheEntry $b
+             */
+            static fn(array $a, array $b): int => $a['last_accessed'] <=> $b['last_accessed'],
+        );
 
         $evictCount = max(1, (int) floor($this->maxEntries / 10));
 

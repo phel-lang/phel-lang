@@ -52,8 +52,12 @@ final class RequestDispatcher
     public function dispatch(array $message, Session $session): ?array
     {
         $id = $message['id'] ?? null;
-        $method = is_string($message['method'] ?? null) ? $message['method'] : '';
-        $params = is_array($message['params'] ?? null) ? $message['params'] : [];
+        // Bind before testing: re-reading the offset inside the ternary loses the
+        // `is_string`/`is_array` narrowing, leaving `$method`/`$params` as mixed.
+        $rawMethod = $message['method'] ?? null;
+        $rawParams = $message['params'] ?? null;
+        $method = is_string($rawMethod) ? $rawMethod : '';
+        $params = is_array($rawParams) ? $rawParams : [];
         /** @var array<string, mixed> $params */
 
         if ($method === '') {
@@ -64,7 +68,6 @@ final class RequestDispatcher
             return $this->responses->error($id, ResponseBuilder::INVALID_REQUEST, 'Missing method.');
         }
 
-        /** @psalm-suppress MixedArrayTypeCoercion */
         $handler = $this->handlers[$method] ?? null;
         if (!$handler instanceof HandlerInterface) {
             if ($id === null) {

@@ -122,8 +122,8 @@ final class CombineGenerator
      *   mapMulti(fn($a, $b) => $a . $b, ['a', 'b'], ['1', '2'])   // => ['a1', 'b2']
      *   mapMulti(fn($a, $b) => $a + $b, [1, 2, 3], [10, 20])      // => [11, 22] (stops at shortest)
      *
-     * @param callable $f            The mapping function
-     * @param mixed    ...$iterables The sequences to map over
+     * @param callable(mixed...): mixed $f            The mapping function, one argument per iterable
+     * @param mixed                     ...$iterables The sequences to map over
      *
      * @return Generator<int, mixed>
      */
