@@ -11,6 +11,7 @@ use Phel\Compiler\Domain\Analyzer\Ast\LiteralNode;
 use Phel\Compiler\Domain\Analyzer\Ast\PhpClassNameNode;
 use Phel\Compiler\Domain\Analyzer\Environment\BackslashSeparatorDeprecator;
 use Phel\Compiler\Domain\Analyzer\Environment\BundledNamespaceResolverInterface;
+use Phel\Compiler\Domain\Analyzer\Environment\DeprecatedDefinitionWarner;
 use Phel\Compiler\Domain\Analyzer\Environment\GlobalEnvironment;
 use Phel\Compiler\Domain\Analyzer\Environment\MagicConstantResolver;
 use Phel\Compiler\Domain\Analyzer\Environment\NodeEnvironment;
@@ -21,10 +22,13 @@ use Phel\Lang\Ratio;
 use Phel\Lang\Registry;
 use Phel\Lang\SourceLocation;
 use Phel\Lang\Symbol;
+use PhelTest\Support\CapturesDeprecationsTrait;
 use PHPUnit\Framework\TestCase;
 
 final class SymbolResolverTest extends TestCase
 {
+    use CapturesDeprecationsTrait;
+
     private GlobalEnvironment $globalEnv;
 
     private SymbolResolver $resolver;
@@ -34,6 +38,11 @@ final class SymbolResolverTest extends TestCase
         Phel::clear();
         $this->globalEnv = new GlobalEnvironment();
         $this->resolver = new SymbolResolver($this->globalEnv, new MagicConstantResolver());
+    }
+
+    protected function tearDown(): void
+    {
+        $this->stopCapturingDeprecations();
     }
 
     public function test_resolve_magic_dir_constant(): void
@@ -432,22 +441,68 @@ final class SymbolResolverTest extends TestCase
 
     public function test_resolve_fires_backslash_deprecation_when_wired(): void
     {
-        $captured = [];
-        $deprecator = new BackslashSeparatorDeprecator(
-            enabled: true,
-            emitter: static function (string $msg) use (&$captured): void {
-                $captured[] = $msg;
-            },
+        $this->startCapturingDeprecations();
+        $resolver = new SymbolResolver(
+            $this->globalEnv,
+            new MagicConstantResolver(),
+            BackslashSeparatorDeprecator::getInstance(),
         );
-        $resolver = new SymbolResolver($this->globalEnv, new MagicConstantResolver(), $deprecator);
 
         $sym = Symbol::createForNamespace(null, 'phel\\core/map');
         $sym->setStartLocation(new SourceLocation('/app/user.phel', 1, 1));
 
         $resolver->resolve($sym, NodeEnvironment::empty());
 
+        $captured = $this->capturedDeprecations();
         self::assertCount(1, $captured);
         self::assertStringContainsString("'phel\\core/map'", $captured[0]);
+    }
+
+    public function test_resolve_fires_deprecated_definition_warning_when_wired(): void
+    {
+        $this->startCapturingDeprecations();
+        $resolver = new SymbolResolver(
+            $this->globalEnv,
+            new MagicConstantResolver(),
+            null,
+            DeprecatedDefinitionWarner::getInstance(),
+        );
+
+        $this->globalEnv->addDefinition('bar', Symbol::create('old-fn'));
+        Phel::addDefinition('bar', 'old-fn', null, Phel::map(
+            Keyword::create('deprecated'),
+            '0.32.0',
+            Keyword::create('superseded-by'),
+            'new-fn',
+        ));
+
+        $sym = Symbol::createForNamespace('bar', 'old-fn');
+        $sym->setStartLocation(new SourceLocation('/app/user.phel', 3, 5));
+
+        self::assertInstanceOf(GlobalVarNode::class, $resolver->resolve($sym, NodeEnvironment::empty()));
+        $captured = $this->capturedDeprecations();
+        self::assertCount(1, $captured);
+        self::assertStringContainsString("'bar/old-fn'", $captured[0]);
+        self::assertStringContainsString("Use 'new-fn' instead.", $captured[0]);
+    }
+
+    public function test_resolve_stays_silent_for_a_definition_without_deprecated_metadata(): void
+    {
+        $this->startCapturingDeprecations();
+        $resolver = new SymbolResolver(
+            $this->globalEnv,
+            new MagicConstantResolver(),
+            null,
+            DeprecatedDefinitionWarner::getInstance(),
+        );
+
+        $this->globalEnv->addDefinition('bar', Symbol::create('fresh-fn'));
+
+        $sym = Symbol::createForNamespace('bar', 'fresh-fn');
+        $sym->setStartLocation(new SourceLocation('/app/user.phel', 3, 5));
+
+        self::assertInstanceOf(GlobalVarNode::class, $resolver->resolve($sym, NodeEnvironment::empty()));
+        self::assertSame([], $this->capturedDeprecations());
     }
 
     public function test_resolve_clojure_fqn_uses_munged_registry_lookup(): void

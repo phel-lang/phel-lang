@@ -26,6 +26,7 @@ final class PersistentSortedMapTest extends TestCase
     public function test_can_not_create_from_array_with_uneven_values(): void
     {
         $this->expectException(RuntimeException::class);
+        $this->expectExceptionMessage('An even number of elements must be provided to build a sorted map, got 1');
         PersistentSortedMap::fromArray(new ModuloHasher(), new SimpleEqualizer(), ['test']);
     }
 

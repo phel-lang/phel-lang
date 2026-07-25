@@ -8,6 +8,7 @@ use Phel\Lang\SourceLocation;
 use Phel\Shared\Exceptions\AbstractLocatedException;
 use Phel\Shared\Parser\Node\NodeInterface;
 use Phel\Shared\Parser\ReadModel\CodeSnippet;
+use Throwable;
 
 final class ReaderException extends AbstractLocatedException
 {
@@ -16,12 +17,22 @@ final class ReaderException extends AbstractLocatedException
         SourceLocation $startLocation,
         SourceLocation $endLocation,
         private readonly CodeSnippet $codeSnippet,
+        ?Throwable $nestedException = null,
     ) {
-        parent::__construct($message, $startLocation, $endLocation);
+        parent::__construct($message, $startLocation, $endLocation, $nestedException);
     }
 
-    public static function forNode(NodeInterface $node, NodeInterface $root, string $message): self
-    {
+    /**
+     * `$nestedException` keeps the original throw site (a failing tag handler,
+     * for example) reachable via `getPrevious()`; the located message shown to
+     * the user is unaffected.
+     */
+    public static function forNode(
+        NodeInterface $node,
+        NodeInterface $root,
+        string $message,
+        ?Throwable $nestedException = null,
+    ): self {
         $codeSnippet = new CodeSnippet(
             $root->getStartLocation(),
             $root->getEndLocation(),
@@ -33,6 +44,7 @@ final class ReaderException extends AbstractLocatedException
             $node->getStartLocation(),
             $node->getEndLocation(),
             $codeSnippet,
+            $nestedException,
         );
     }
 

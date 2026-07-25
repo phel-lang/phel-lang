@@ -8,13 +8,13 @@ use Phel;
 use Phel\Compiler\Domain\Analyzer\Ast\GlobalVarNode;
 use Phel\Compiler\Domain\Analyzer\Environment\GlobalEnvironmentInterface;
 use Phel\Compiler\Domain\Analyzer\Environment\NodeEnvironment;
+use Phel\Compiler\Domain\Deprecation\DeprecationWarnings;
 use Phel\Compiler\Domain\Reader\Exceptions\SpliceNotInListException;
 use Phel\Lang\Collections\LinkedList\PersistentList;
 use Phel\Lang\Collections\LinkedList\PersistentListInterface;
 use Phel\Lang\Collections\Map\PersistentMapInterface;
 use Phel\Lang\Collections\Vector\PersistentVector;
 use Phel\Lang\Keyword;
-use Phel\Lang\SourceLocation;
 use Phel\Lang\Symbol;
 use Phel\Lang\TypeInterface;
 
@@ -26,9 +26,6 @@ use function is_string;
 use function sprintf;
 use function str_ends_with;
 use function substr;
-use function trigger_error;
-
-use const E_USER_DEPRECATED;
 
 final readonly class QuasiquoteTransformer implements QuasiquoteTransformerInterface
 {
@@ -243,15 +240,13 @@ final readonly class QuasiquoteTransformer implements QuasiquoteTransformerInter
             return;
         }
 
-        $location = $form->getStartLocation();
         $suggested = substr($name, 0, -1) . Symbol::NAME_HASH;
-        $where = $location instanceof SourceLocation
-            ? sprintf(' (at %s:%d:%d)', $location->getFile(), $location->getLine(), $location->getColumn())
-            : '';
 
-        @trigger_error(
-            sprintf('Using "%s" auto-gensym suffix is deprecated, use "%s" instead%s', $name, $suggested, $where),
-            E_USER_DEPRECATED,
+        DeprecationWarnings::warnSyntax(
+            sprintf('"%s"', $name),
+            'auto-gensym',
+            sprintf('"%s"', $suggested),
+            $form->getStartLocation(),
         );
     }
 }

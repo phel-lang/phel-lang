@@ -4,23 +4,22 @@ declare(strict_types=1);
 
 namespace Phel\Compiler\Domain\Analyzer\Environment;
 
+use Phel\Compiler\Domain\Deprecation\DeprecationWarnings;
 use Phel\Lang\SourceLocation;
 use Phel\Lang\Symbol;
 
-use function dirname;
-use function in_array;
 use function sprintf;
 use function str_replace;
 use function str_starts_with;
-use function trigger_error;
-
-use const E_USER_DEPRECATED;
 
 /**
- * Emits `E_USER_DEPRECATED` warnings when user code uses `\` as the
- * namespace separator (e.g. `phel\core/map`, `\Phel\Lang\Foo`) so the
- * codebase can migrate to Clojure-compatible dot syntax ahead of the
- * backslash form being removed.
+ * Detects `\` used as the namespace separator (e.g. `phel\core/map`,
+ * `\Phel\Lang\Foo`) so the codebase can migrate to Clojure-compatible dot
+ * syntax ahead of the backslash form being removed.
+ *
+ * Detection only: the enabled gate, the bundled-stdlib suppression, and the
+ * per-`(file, symbol)` dedup all belong to {@see DeprecationWarnings}, which
+ * is why this class is stateless.
  *
  * Scope of detection is intentionally narrow: only symbols that pass
  * through `SymbolResolver::resolve()` — call sites and qualified refs.
@@ -31,52 +30,13 @@ final class BackslashSeparatorDeprecator
 {
     private static ?self $instance = null;
 
-    /** @var array<string, true> */
-    private array $seen = [];
-
-    /** @var callable(string): void */
-    private $emitter;
-
-    public function __construct(
-        private readonly bool $enabled,
-        ?callable $emitter = null,
-    ) {
-        $this->emitter = $emitter ?? static function (string $msg): void {
-            trigger_error($msg, E_USER_DEPRECATED);
-        };
-    }
-
     /**
-     * Returns the process-wide deprecator, creating it lazily from the
-     * `PHEL_WARN_DEPRECATIONS` env var so every detection site shares
-     * the same dedup state across a compile run.
+     * Shared instance. Stateless, so it exists only to spare the analyzer a
+     * per-resolution allocation; there is nothing to reset between runs.
      */
     public static function getInstance(): self
     {
-        return self::$instance ??= new self(self::readEnvFlag());
-    }
-
-    /**
-     * Replace the singleton with a preconfigured instance — used by tests
-     * that need to assert on captured messages or flip the enabled flag.
-     */
-    public static function useInstance(self $instance): void
-    {
-        self::$instance = $instance;
-    }
-
-    public static function enable(): void
-    {
-        self::$instance = new self(true);
-    }
-
-    /**
-     * Drop the cached singleton so the next `getInstance()` call re-reads
-     * the environment. Intended for test `tearDown()` hooks.
-     */
-    public static function resetInstance(): void
-    {
-        self::$instance = null;
+        return self::$instance ??= new self();
     }
 
     public function maybeWarn(Symbol $symbol): void
@@ -91,12 +51,7 @@ final class BackslashSeparatorDeprecator
 
     public function maybeWarnString(string $namespace, SourceLocation $location): void
     {
-        if (!$this->enabled) {
-            return;
-        }
-
-        $file = $location->getFile();
-        if ($file === '' || $this->isPhelStdlibSource($file)) {
+        if (!DeprecationWarnings::isEnabled()) {
             return;
         }
 
@@ -104,34 +59,12 @@ final class BackslashSeparatorDeprecator
             return;
         }
 
-        $key = $file . '|' . $namespace;
-        if (isset($this->seen[$key])) {
-            return;
-        }
-
-        $this->seen[$key] = true;
-        ($this->emitter)($this->buildMessage($namespace, $file, $location->getLine()));
-    }
-
-    private static function readEnvFlag(): bool
-    {
-        $flag = getenv('PHEL_WARN_DEPRECATIONS');
-
-        return !in_array($flag, [false, '', '0'], true);
-    }
-
-    /**
-     * Source-path suppression for phel's bundled stdlib. The path is
-     * anchored to this package's own `src/phel`, so nested-layout user
-     * projects with their own `src/phel` still receive warnings.
-     */
-    private function isPhelStdlibSource(string $file): bool
-    {
-        $normalized = str_replace('\\', '/', $file);
-        $stdlibRoot = str_replace('\\', '/', dirname(__DIR__, 5) . '/phel');
-
-        return $normalized === $stdlibRoot
-            || str_starts_with($normalized, $stdlibRoot . '/');
+        $file = $location->getFile();
+        DeprecationWarnings::warnOnceForSource(
+            $file,
+            $namespace,
+            $this->buildMessage($namespace, $file, $location->getLine()),
+        );
     }
 
     /**

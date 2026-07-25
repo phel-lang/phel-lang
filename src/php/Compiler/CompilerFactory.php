@@ -18,11 +18,11 @@ use Phel\Compiler\Application\ParenthesesChecker;
 use Phel\Compiler\Application\Parser;
 use Phel\Compiler\Application\Reader;
 use Phel\Compiler\Domain\Analyzer\AnalyzerInterface;
-use Phel\Compiler\Domain\Analyzer\Environment\BackslashSeparatorDeprecator;
 use Phel\Compiler\Domain\Analyzer\Environment\GlobalEnvironmentInterface;
 use Phel\Compiler\Domain\Cache\ReaderResultCacheInterface;
 use Phel\Compiler\Domain\Compiler\CodeCompilerInterface;
 use Phel\Compiler\Domain\Compiler\EvalCompilerInterface;
+use Phel\Compiler\Domain\Deprecation\DeprecationWarnings;
 use Phel\Compiler\Domain\Emitter\FileEmitter;
 use Phel\Compiler\Domain\Emitter\FileEmitterInterface;
 use Phel\Compiler\Domain\Emitter\OutputEmitter;
@@ -133,9 +133,7 @@ final class CompilerFactory extends AbstractFactory
 
     public function createAnalyzer(): AnalyzerInterface
     {
-        if ($this->getConfig()->warnDeprecationsEnabled()) {
-            BackslashSeparatorDeprecator::enable();
-        }
+        $this->enableConfiguredDeprecationWarnings();
 
         return new Analyzer(
             $this->getGlobalEnvironment(),
@@ -248,5 +246,22 @@ final class CompilerFactory extends AbstractFactory
     private function getGlobalEnvironment(): GlobalEnvironmentInterface
     {
         return $this->createGlobalEnvironmentManager()->initialize();
+    }
+
+    /**
+     * Applies the `warn-deprecations` config key to the process-wide
+     * deprecation switch, which the lexer, reader and analyzer all read.
+     * Hooked here rather than on `createLexer()` because every compile
+     * pipeline builds its analyzer up front, before a single token is
+     * lexed, and the lexer-only consumers (linting, best-effort form
+     * reading) are tooling paths that must stay quiet.
+     */
+    private function enableConfiguredDeprecationWarnings(): void
+    {
+        if (!$this->getConfig()->warnDeprecationsEnabled()) {
+            return;
+        }
+
+        DeprecationWarnings::enable();
     }
 }

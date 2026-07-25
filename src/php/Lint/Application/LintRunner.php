@@ -8,6 +8,7 @@ use Phel\Api\ApiFacade;
 use Phel\Api\Transfer\ProjectIndex;
 use Phel\Lint\Application\Cache\LintCache;
 use Phel\Lint\Application\Config\RuleSettings;
+use Phel\Lint\Domain\Exception\LintSourceException;
 use Phel\Lint\Domain\FileAnalysis;
 use Phel\Lint\Transfer\LintResult;
 
@@ -34,6 +35,8 @@ final readonly class LintRunner
 
     /**
      * @param list<string> $paths
+     *
+     * @throws LintSourceException when a collected file cannot be read
      */
     public function run(array $paths, RuleSettings $settings): LintResult
     {
@@ -55,9 +58,11 @@ final readonly class LintRunner
                 continue;
             }
 
+            // Suppress the warning and raise instead: an unreadable file must
+            // not be skipped, or the run reports it as clean and exits 0.
             $source = @file_get_contents($file);
             if ($source === false) {
-                continue;
+                throw LintSourceException::cannotRead($file);
             }
 
             $read = $this->sourceReader->read($source, $file);

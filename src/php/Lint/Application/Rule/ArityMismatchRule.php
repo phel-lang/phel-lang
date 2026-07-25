@@ -15,6 +15,7 @@ use Phel\Lint\Domain\LintRuleInterface;
 use Phel\Shared\Exceptions\ErrorCode;
 
 use function count;
+use function in_array;
 use function sprintf;
 
 /**
@@ -165,6 +166,12 @@ final readonly class ArityMismatchRule implements LintRuleInterface
     {
         if ($form instanceof PersistentListInterface && count($form) > 0) {
             $head = $form->get(0);
+            if ($head instanceof Symbol && $this->hasImplicitArgumentSegments($head)) {
+                $this->inspectSegmentedForm($form, $localFns, $uri, $result);
+
+                return;
+            }
+
             if ($head instanceof Symbol && $head->getNamespace() === null) {
                 $name = $head->getName();
                 if (isset($localFns[$name])) {
@@ -209,6 +216,70 @@ final readonly class ArityMismatchRule implements LintRuleInterface
             foreach ($form as $k => $v) {
                 $this->inspectCalls($k, $localFns, $uri, $result);
                 $this->inspectCalls($v, $localFns, $uri, $result);
+            }
+        }
+    }
+
+    /**
+     * Forms whose nested `(name args...)` segments are NOT complete calls:
+     *
+     * - `(php/-> obj (method a))` / `(php/:: Cls (method a))` name a PHP
+     *   method, never a Phel fn;
+     * - threading macros splice an extra argument into each segment, so the
+     *   literal argument count is always one short of the real one.
+     *
+     * Counting those segments as plain calls produces pure noise, so their
+     * heads are skipped and only their arguments are inspected.
+     */
+    private function hasImplicitArgumentSegments(Symbol $head): bool
+    {
+        return in_array(
+            $head->getFullName(),
+            [
+                Symbol::NAME_PHP_OBJECT_CALL,
+                Symbol::NAME_PHP_OBJECT_STATIC_CALL,
+                '->',
+                '->>',
+                'some->',
+                'some->>',
+                'cond->',
+                'cond->>',
+                'as->',
+                'doto',
+            ],
+            true,
+        );
+    }
+
+    /**
+     * Descends into the first operand and into each segment's *arguments*,
+     * skipping the head of every segment.
+     *
+     * @param PersistentListInterface<mixed> $form
+     * @param array<string, ArityRange>      $localFns
+     * @param list<Diagnostic>               $result
+     */
+    private function inspectSegmentedForm(
+        PersistentListInterface $form,
+        array $localFns,
+        string $uri,
+        array &$result,
+    ): void {
+        $count = count($form);
+        for ($i = 1; $i < $count; ++$i) {
+            $segment = $form->get($i);
+
+            // Index 1 is the receiver / threaded value: an ordinary
+            // expression. Every later segment is either a `(head args...)`
+            // list or a bare symbol.
+            if ($i === 1 || !$segment instanceof PersistentListInterface) {
+                $this->inspectCalls($segment, $localFns, $uri, $result);
+                continue;
+            }
+
+            $segmentCount = count($segment);
+            for ($j = 1; $j < $segmentCount; ++$j) {
+                $this->inspectCalls($segment->get($j), $localFns, $uri, $result);
             }
         }
     }

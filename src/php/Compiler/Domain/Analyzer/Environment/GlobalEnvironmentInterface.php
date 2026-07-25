@@ -22,6 +22,18 @@ interface GlobalEnvironmentInterface
     public function addDefinition(string $namespace, Symbol $name, bool $allowRedefinition = false): void;
 
     /**
+     * Open a static-analysis section: `def` stops raising on a symbol that
+     * is already bound, because analysis re-reads sources whose namespace
+     * may already be loaded in this process. Re-entrant; always pair with
+     * {@see self::leaveAnalysisMode()} in a `finally`.
+     */
+    public function enterAnalysisMode(): void;
+
+    public function leaveAnalysisMode(): void;
+
+    public function isAnalysisMode(): bool;
+
+    /**
      * @param PersistentMapInterface<mixed, mixed> $meta
      */
     public function setCompileTimeMeta(string $namespace, Symbol $name, PersistentMapInterface $meta): void;
@@ -69,6 +81,20 @@ interface GlobalEnvironmentInterface
     public function resolveAsSymbol(Symbol $name, NodeEnvironment $env): ?Symbol;
 
     public function addInterface(string $namespace, Symbol $name): void;
+
+    /**
+     * Record the method names a `definterface` declares (Phel spelling), so
+     * `defstruct`/`defenum` can validate their inline implementations even
+     * when the generated PHP interface has not been evaluated yet.
+     *
+     * @param list<string> $methodNames
+     */
+    public function setInterfaceMethods(string $namespace, Symbol $name, array $methodNames): void;
+
+    /**
+     * @return list<string>|null null when the interface was never analyzed here
+     */
+    public function getInterfaceMethods(string $namespace, Symbol $name): ?array;
 
     public function addLevelToAllowPrivateAccess(): void;
 

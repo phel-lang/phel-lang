@@ -30,6 +30,8 @@ return PhelConfig::forProject()
 
 When enabled, the compiler emits one `E_USER_DEPRECATED` per unique `(file, symbol)` pair, so large projects do not drown in duplicates. `--warn-deprecations` is consumed by the `phel` bootstrap before Symfony's per-command parsers run, so it works with every subcommand.
 
+The same switch turns on every other opt-in deprecation detector, notably the call-site warnings for definitions carrying `:deprecated` metadata. See [deprecated-surface.md](deprecated-surface.md) for the full list.
+
 ## What is detected today
 
 Symbols flowing through the analyzer's `SymbolResolver` or the `ns`-form analyzer emit warnings:

@@ -26,6 +26,9 @@ final class PersistentArrayMapTest extends TestCase
     public function test_can_not_create_from_array_with_uneven_values(): void
     {
         $this->expectException(RuntimeException::class);
+        // The message names the offending count: "odd number of elements" is
+        // the whole diagnosis, so a bare "invalid argument" would not do.
+        $this->expectExceptionMessage('An even number of elements must be provided to build a map, got 1');
         PersistentArrayMap::fromArray(new ModuloHasher(), new SimpleEqualizer(), ['test']);
     }
 

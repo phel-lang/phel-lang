@@ -30,8 +30,28 @@ final readonly class ReadAndAnalyzeStage implements AnalysisStageInterface
 
     public function run(string $source, string $uri, array &$context): array
     {
+        // The namespace under analysis is very likely already loaded in this
+        // process: `PreloadDependenciesStage` evaluates the bundled `phel.*`
+        // modules and the file's own dependencies, and a directory-wide run
+        // analyses files that required one another. Re-reading a source is
+        // not a redefinition, so suppress the `def` duplicate guard for the
+        // whole pass instead of letting it abort the file at its first `def`.
+        $globalEnv = $this->compilerFacade->getGlobalEnvironment();
+        $globalEnv->enterAnalysisMode();
+
+        try {
+            return $this->analyzeParseTrees($context['parseTrees'] ?? [], $uri);
+        } finally {
+            $globalEnv->leaveAnalysisMode();
+        }
+    }
+
+    /**
+     * @return list<Diagnostic>
+     */
+    private function analyzeParseTrees(mixed $parseTrees, string $uri): array
+    {
         $diagnostics = [];
-        $parseTrees = $context['parseTrees'] ?? [];
         if (!is_array($parseTrees)) {
             $parseTrees = [];
         }

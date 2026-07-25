@@ -5,11 +5,14 @@ declare(strict_types=1);
 namespace PhelTest\Unit\Compiler\Lexer;
 
 use Phel\Compiler\CompilerFactory;
+use Phel\Compiler\Domain\Deprecation\DeprecationWarnings;
 use Phel\Compiler\Domain\Lexer\Exceptions\LexerValueException;
 use Phel\Lang\SourceLocation;
 use Phel\Lang\Symbol;
 use Phel\Shared\Parser\Node\Token;
 use PHPUnit\Framework\TestCase;
+
+use function dirname;
 
 final class LexerTest extends TestCase
 {
@@ -25,6 +28,11 @@ final class LexerTest extends TestCase
     protected function setUp(): void
     {
         $this->compilerFactory = new CompilerFactory();
+    }
+
+    protected function tearDown(): void
+    {
+        DeprecationWarnings::reset();
     }
 
     public function test_whitespace_with_newline(): void
@@ -357,6 +365,9 @@ final class LexerTest extends TestCase
 
     public function test_hash_comment_emits_deprecation(): void
     {
+        // Syntax deprecations are opt-in (`--warn-deprecations`).
+        DeprecationWarnings::enable();
+
         $warning = null;
         set_error_handler(static function (int $errno, string $errstr) use (&$warning): bool {
             $warning = $errstr;
@@ -377,6 +388,9 @@ final class LexerTest extends TestCase
 
     public function test_semicolon_comment_does_not_emit_deprecation(): void
     {
+        // Syntax deprecations are opt-in (`--warn-deprecations`).
+        DeprecationWarnings::enable();
+
         $warning = null;
         set_error_handler(static function (int $errno, string $errstr) use (&$warning): bool {
             $warning = $errstr;
@@ -394,6 +408,9 @@ final class LexerTest extends TestCase
 
     public function test_multiline_comment_emits_deprecation(): void
     {
+        // Syntax deprecations are opt-in (`--warn-deprecations`).
+        DeprecationWarnings::enable();
+
         $warning = null;
         set_error_handler(static function (int $errno, string $errstr) use (&$warning): bool {
             $warning = $errstr;
@@ -414,6 +431,9 @@ final class LexerTest extends TestCase
 
     public function test_pipe_fn_emits_deprecation(): void
     {
+        // Syntax deprecations are opt-in (`--warn-deprecations`).
+        DeprecationWarnings::enable();
+
         $warning = null;
         set_error_handler(static function (int $errno, string $errstr) use (&$warning): bool {
             $warning = $errstr;
@@ -432,6 +452,9 @@ final class LexerTest extends TestCase
 
     public function test_hash_fn_does_not_emit_deprecation(): void
     {
+        // Syntax deprecations are opt-in (`--warn-deprecations`).
+        DeprecationWarnings::enable();
+
         $warning = null;
         set_error_handler(static function (int $errno, string $errstr) use (&$warning): bool {
             $warning = $errstr;
@@ -449,6 +472,9 @@ final class LexerTest extends TestCase
 
     public function test_comma_unquote_emits_deprecation(): void
     {
+        // Syntax deprecations are opt-in (`--warn-deprecations`).
+        DeprecationWarnings::enable();
+
         $warning = null;
         set_error_handler(static function (int $errno, string $errstr) use (&$warning): bool {
             $warning = $errstr;
@@ -467,6 +493,9 @@ final class LexerTest extends TestCase
 
     public function test_comma_splicing_emits_deprecation(): void
     {
+        // Syntax deprecations are opt-in (`--warn-deprecations`).
+        DeprecationWarnings::enable();
+
         $warning = null;
         set_error_handler(static function (int $errno, string $errstr) use (&$warning): bool {
             $warning = $errstr;
@@ -483,8 +512,51 @@ final class LexerTest extends TestCase
         self::assertStringContainsString('"~@"', $warning);
     }
 
+    public function test_deprecated_syntax_is_silent_unless_warnings_are_enabled(): void
+    {
+        DeprecationWarnings::disable();
+
+        $warning = null;
+        set_error_handler(static function (int $errno, string $errstr) use (&$warning): bool {
+            $warning = $errstr;
+            return true;
+        }, E_USER_DEPRECATED);
+
+        try {
+            $this->lex('#|test|# # comment');
+        } finally {
+            restore_error_handler();
+        }
+
+        self::assertNull($warning);
+    }
+
+    public function test_deprecated_syntax_in_bundled_stdlib_sources_is_never_reported(): void
+    {
+        // Syntax deprecations are opt-in (`--warn-deprecations`).
+        DeprecationWarnings::enable();
+
+        $warning = null;
+        set_error_handler(static function (int $errno, string $errstr) use (&$warning): bool {
+            $warning = $errstr;
+            return true;
+        }, E_USER_DEPRECATED);
+
+        try {
+            $lexer = $this->compilerFactory->createLexer();
+            iterator_to_array($lexer->lexString('#|test|#', dirname(__DIR__, 5) . '/src/phel/walk.phel'));
+        } finally {
+            restore_error_handler();
+        }
+
+        self::assertNull($warning);
+    }
+
     public function test_tilde_unquote_does_not_emit_deprecation(): void
     {
+        // Syntax deprecations are opt-in (`--warn-deprecations`).
+        DeprecationWarnings::enable();
+
         $warning = null;
         set_error_handler(static function (int $errno, string $errstr) use (&$warning): bool {
             $warning = $errstr;
@@ -502,6 +574,9 @@ final class LexerTest extends TestCase
 
     public function test_tilde_splicing_does_not_emit_deprecation(): void
     {
+        // Syntax deprecations are opt-in (`--warn-deprecations`).
+        DeprecationWarnings::enable();
+
         $warning = null;
         set_error_handler(static function (int $errno, string $errstr) use (&$warning): bool {
             $warning = $errstr;
@@ -519,6 +594,9 @@ final class LexerTest extends TestCase
 
     public function test_non_deprecatable_token_stream_emits_no_deprecation(): void
     {
+        // Syntax deprecations are opt-in (`--warn-deprecations`).
+        DeprecationWarnings::enable();
+
         $warning = null;
         set_error_handler(static function (int $errno, string $errstr) use (&$warning): bool {
             $warning = $errstr;
@@ -805,6 +883,9 @@ final class LexerTest extends TestCase
 
     public function test_hash_pipe_multiline_comment_still_deprecated_but_works(): void
     {
+        // Syntax deprecations are opt-in (`--warn-deprecations`).
+        DeprecationWarnings::enable();
+
         $warning = null;
         set_error_handler(static function (int $errno, string $errstr) use (&$warning): bool {
             $warning = $errstr;
@@ -825,6 +906,9 @@ final class LexerTest extends TestCase
 
     public function test_bare_hash_line_comment_still_deprecated_but_works(): void
     {
+        // Syntax deprecations are opt-in (`--warn-deprecations`).
+        DeprecationWarnings::enable();
+
         $warning = null;
         set_error_handler(static function (int $errno, string $errstr) use (&$warning): bool {
             $warning = $errstr;

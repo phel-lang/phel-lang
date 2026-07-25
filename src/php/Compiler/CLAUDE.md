@@ -107,6 +107,26 @@ GOTCHA: only eager core fns can be lowered to a native loop. `reduce` (3-arity) 
 - `^:php/override` on a method (defstruct/defenum interface impls, definterface methods) → `#[\Override]` (PHP 8.3); `PhpAttributeEmitterTrait::phpAttributeLines` renders it ahead of explicit `:php/attr` lines. Struct/enum inline method impls emit method-level `:php/attr`/`:php/doc`/`^:php/override` too.
 - Export wrappers carry the same `:php/attr` via `Interop`'s `CompiledPhpMethodBuilder` (see `src/php/Interop/CLAUDE.md`).
 
+## Deprecation Warnings
+
+`Domain/Deprecation/DeprecationWarnings` is the single process-wide switch for every `E_USER_DEPRECATED` notice the compiler raises, syntax and definition alike. Off by default; turned on by `--warn-deprecations` (`Console\Application\WarnDeprecationsFlag`), `PHEL_WARN_DEPRECATIONS`, or the `warn-deprecations` config key (`CompilerFactory::createAnalyzer()`). It owns four things so no detector re-implements them: the enabled flag, the bundled-stdlib suppression, the `(file, subject)` dedup, and the syntax message shape.
+
+Detectors detect and nothing else — they hold no flag, no dedup table, and no emitter, so there is exactly one gate and one place to enable:
+
+| Detector | Catches |
+|---|---|
+| `Application/Lexer` | bare `#` comments, `#\| ... \|#` blocks, `\|()` short fns, `,`/`,@` unquote |
+| `Domain/Reader/QuasiquoteTransformer` | `$` auto-gensym |
+| `Domain/Emitter/.../NodeEmitter/MethodEmitter` | `^:reference` fn params |
+| `Domain/Analyzer/Environment/BackslashSeparatorDeprecator` | `\` namespace separator |
+| `Domain/Analyzer/Environment/DeprecatedDefinitionWarner` | any resolved definition whose meta carries `:deprecated` (`:superseded-by` names the replacement); works for project code too |
+
+- Never suppress a notice with `@`: that hides it unconditionally, so a `--warn-deprecations` run prints nothing. Call `warn()` / `warnForSource()` / `warnOnceForSource()` / `warnSyntax()` instead.
+- `syntaxMessage()` is the only way to phrase a syntax notice. It has nowhere to put a concrete removal version, which is the point: a named release ships and the message goes stale (#2783). `LexerTest::VERSION_REFERENCE` still guards it.
+- `warnOnceForSource()` dedups per `(file, subject)` — used where one subject recurs across a file (a deprecated definition, a `\`-separated symbol). Syntax notices deliberately do not dedup: each occurrence is a separate edit.
+- `isEnabledForSource()` / `isBundledStdlibSource()` drop notices whose source is phel's own `src/phel` or has no file, so only code the user can edit is flagged. The Lexer resolves it once per source, not per token.
+- `SymbolResolver::globalVarNode()` is the single `GlobalVarNode` construction point, so every resolved definition passes the `:deprecated` check exactly once. `GlobalEnvironment` injects both analyzer detectors into it.
+
 ## Global Environment
 
 Process-wide singleton in `Domain/Analyzer/Environment/GlobalEnvironmentRegistry`.

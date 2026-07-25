@@ -43,6 +43,19 @@ jobs:
       - name: Run rector/rector
         run: ./vendor/bin/rector process --dry-run --config=rector.php
 
+  phel-lint:
+    name: Lint the Phel standard library
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - uses: ./.github/actions/setup-phel
+
+      # Phel's own stdlib must pass Phel's own linter. Exits non-zero only on
+      # `error`-severity rules, so today's remaining warnings do not gate the
+      # build while a regression to an error does.
+      - name: Run phel lint on src/phel
+        run: ./bin/phel lint --no-cache src/phel
+
   type-checker:
     name: Type Checker
     runs-on: ubuntu-latest

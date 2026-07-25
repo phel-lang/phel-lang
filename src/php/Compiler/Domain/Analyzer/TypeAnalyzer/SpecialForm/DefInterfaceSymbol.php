@@ -15,6 +15,7 @@ use Phel\Lang\Collections\Vector\PersistentVectorInterface;
 use Phel\Lang\Keyword;
 use Phel\Lang\Symbol;
 
+use function array_map;
 use function count;
 use function is_bool;
 use function is_float;
@@ -48,6 +49,12 @@ final class DefInterfaceSymbol implements SpecialFormAnalyzerInterface
         $bodyList = $rest->cdr();
 
         [$methods, $consts] = $this->methodsAndConsts($bodyList);
+
+        $this->analyzer->setInterfaceMethods(
+            $this->analyzer->getNamespace(),
+            $interfaceSymbol,
+            array_map(static fn(DefInterfaceMethod $method): string => $method->getName()->getName(), $methods),
+        );
 
         return new DefInterfaceNode(
             $env,

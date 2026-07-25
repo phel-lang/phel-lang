@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace Phel\Shared\Exceptions;
 
-use Exception;
 use Phel\Lang\SourceLocation;
 use RuntimeException;
+use Throwable;
 
 abstract class AbstractLocatedException extends RuntimeException
 {
@@ -16,7 +16,7 @@ abstract class AbstractLocatedException extends RuntimeException
         string $message,
         private readonly ?SourceLocation $startLocation = null,
         private readonly ?SourceLocation $endLocation = null,
-        ?Exception $nestedException = null,
+        ?Throwable $nestedException = null,
     ) {
         parent::__construct($message, 0, $nestedException);
     }
