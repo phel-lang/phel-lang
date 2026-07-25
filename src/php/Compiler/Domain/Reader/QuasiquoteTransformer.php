@@ -15,7 +15,6 @@ use Phel\Lang\Collections\LinkedList\PersistentListInterface;
 use Phel\Lang\Collections\Map\PersistentMapInterface;
 use Phel\Lang\Collections\Vector\PersistentVector;
 use Phel\Lang\Keyword;
-use Phel\Lang\SourceLocation;
 use Phel\Lang\Symbol;
 use Phel\Lang\TypeInterface;
 
@@ -241,15 +240,13 @@ final readonly class QuasiquoteTransformer implements QuasiquoteTransformerInter
             return;
         }
 
-        $location = $form->getStartLocation();
         $suggested = substr($name, 0, -1) . Symbol::NAME_HASH;
-        $where = $location instanceof SourceLocation
-            ? sprintf(' (at %s:%d:%d)', $location->getFile(), $location->getLine(), $location->getColumn())
-            : '';
 
-        DeprecationWarnings::warnForSource(
-            $location instanceof SourceLocation ? $location->getFile() : '',
-            sprintf('Using "%s" auto-gensym suffix is deprecated, use "%s" instead%s', $name, $suggested, $where),
+        DeprecationWarnings::warnSyntax(
+            sprintf('"%s"', $name),
+            'auto-gensym',
+            sprintf('"%s"', $suggested),
+            $form->getStartLocation(),
         );
     }
 }

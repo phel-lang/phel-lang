@@ -7,6 +7,9 @@ All notable changes to this project will be documented in this file.
 ### Added
 
 - New `phel lint` rule `phel/comment-style` (warning, on by default): flags a whole-line comment written with a single `;`, which the convention reserves for comments trailing code on the same line
+- Any `def`/`defn` carrying `:deprecated` metadata now warns at every call site when deprecation warnings are enabled (`--warn-deprecations`, `PHEL_WARN_DEPRECATIONS=1`, or `withWarnDeprecations(true)`). Works for project code too: `^{:deprecated "1.4.0" :superseded-by "new-fn"}` puts your own consumers on a migration path. Notices are deduplicated per `(file, symbol)` pair and suppressed inside phel's bundled stdlib
+- `^:reference` (the historical spelling of the `^:by-ref` fn-param hint) now emits a deprecation notice pointing at `^:by-ref`. It was the one deprecated construct with no user-visible signal at all
+- New [migration guide for the currently deprecated surface](docs/migration/deprecated-surface.md): every live deprecation, its replacement, a mechanical before/after, and how it announces itself
 
 ### Fixed
 
@@ -28,6 +31,8 @@ All notable changes to this project will be documented in this file.
 ### Changed
 
 - **BREAKING** (PHP API): the four unrelated module interfaces all named `FileIoInterface` are renamed after what each one actually does, so an import no longer needs its namespace read to be understood: `Phel\Filesystem\Domain\FileIoInterface` → `DirectoryWritabilityCheckerInterface`, `Phel\Build\Domain\IO\FileIoInterface` → `FileContentsIoInterface`, `Phel\Formatter\Domain\IO\FileIoInterface` → `ValidatedFileIoInterface`, `Phel\Interop\Domain\FileCreator\FileIoInterface` → `FileWriterInterface`. Method signatures are unchanged; the interfaces stay four separate contracts and were not merged
+- `phel\test/print-summary` is now marked deprecated: `run-tests` already emits the `:summary` event at the end of a run, so calling it yourself double-reports. The test runner no longer routes through it internally. React to the `:summary` event in a custom reporter instead
+- Every deprecation notice the compiler raises now goes through one switch, one message factory, and one dedup table (`Phel\Compiler\Domain\Deprecation\DeprecationWarnings`). Syntax notices share a single message shape, so they read identically and cannot drift back into naming a concrete removal version, and `BackslashSeparatorDeprecator` no longer carries a second enabled flag or a second bundled-stdlib check
 - Documented 60+ previously-undocumented public core functions with runnable `:example`/`:see-also` metadata — threading macros, set/sequence helpers, transducer & volatile primitives, binding & protocol macros, exception/sequence accessors, and assorted predicates — and fixed a malformed `juxt` example
 - (PHP API) The sub-parsers and sub-readers under `Phel\Compiler\Domain\{Parser,Reader}\Expression*` now depend on `ParserInterface`/`ReaderInterface` instead of the concrete `Phel\Compiler\Application\{Parser,Reader}`, so the compiler's `Domain` layer no longer reaches out into `Application`. Both interfaces gain the `readExpression()` method the recursion goes through; the shipped implementations already had it
 - (PHP API) `Phel\Build\Infrastructure\Cache\NullScanIndexCache` moved to `Phel\Build\Domain\Cache\NullScanIndexCache`, and `Phel\Lsp\Domain\HandlerInterface` moved to `Phel\Lsp\Application\HandlerInterface`. Both now sit in the layer that matches what they depend on; behaviour is unchanged

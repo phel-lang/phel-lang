@@ -9,19 +9,21 @@ use Phel\Compiler\Domain\Deprecation\DeprecationWarnings;
 use Phel\Console\Application\WarnDeprecationsFlag;
 use Phel\Lang\SourceLocation;
 use Phel\Lang\Symbol;
+use PhelTest\Support\CapturesDeprecationsTrait;
 use PHPUnit\Framework\TestCase;
 
 final class WarnDeprecationsFlagTest extends TestCase
 {
+    use CapturesDeprecationsTrait;
+
     protected function tearDown(): void
     {
-        BackslashSeparatorDeprecator::resetInstance();
-        // The flag is process-wide: leaving it on would make unrelated tests
-        // in this run start emitting syntax deprecations.
-        DeprecationWarnings::reset();
+        // The switch is process-wide: leaving it on would make unrelated tests
+        // in this run start emitting deprecations.
+        $this->stopCapturingDeprecations();
     }
 
-    public function test_strips_plain_flag_and_enables_syntax_deprecations(): void
+    public function test_strips_plain_flag_and_enables_deprecation_warnings(): void
     {
         DeprecationWarnings::disable();
 
@@ -30,7 +32,7 @@ final class WarnDeprecationsFlagTest extends TestCase
         self::assertTrue(DeprecationWarnings::isEnabled());
     }
 
-    public function test_leaves_syntax_deprecations_untouched_when_flag_absent(): void
+    public function test_leaves_deprecation_warnings_untouched_when_flag_absent(): void
     {
         DeprecationWarnings::disable();
 
@@ -46,35 +48,27 @@ final class WarnDeprecationsFlagTest extends TestCase
         self::assertSame($argv, WarnDeprecationsFlag::applyAndStrip($argv));
     }
 
-    public function test_strips_plain_flag_and_enables_deprecator(): void
+    /**
+     * The flag flips one switch, and every detector reads that switch, so
+     * turning it on is enough to make the analyzer's backslash detector fire
+     * without the flag knowing the detector exists.
+     */
+    public function test_the_one_switch_reaches_the_analyzer_detectors(): void
     {
-        $captured = [];
-        // Preconfigure the singleton so applyAndStrip's new instance replaces it.
-        // We'll assert via the installed deprecator after.
+        DeprecationWarnings::disable();
+        $this->captureDeprecationsWithoutEnabling();
+
         $result = WarnDeprecationsFlag::applyAndStrip(
             ['phel', 'test', '--warn-deprecations', '--filter=foo'],
         );
 
         self::assertSame(['phel', 'test', '--filter=foo'], $result);
 
-        // Swap the now-enabled deprecator for a capturing one, then reach
-        // through a fake symbol to prove it actually fires.
-        $instance = BackslashSeparatorDeprecator::getInstance();
-        $viaFlag = new BackslashSeparatorDeprecator(
-            enabled: true,
-            emitter: static function (string $msg) use (&$captured): void {
-                $captured[] = $msg;
-            },
+        BackslashSeparatorDeprecator::getInstance()->maybeWarn(
+            $this->locatedRawNameSymbol('phel\\core/map', '/app/user.phel'),
         );
-        BackslashSeparatorDeprecator::useInstance($viaFlag);
 
-        $sym = Symbol::createForNamespace(null, 'phel\\core/map');
-        $sym->setStartLocation(new SourceLocation('/app/user.phel', 1, 1));
-
-        $viaFlag->maybeWarn($sym);
-
-        self::assertInstanceOf(BackslashSeparatorDeprecator::class, $instance);
-        self::assertCount(1, $captured);
+        self::assertCount(1, $this->capturedDeprecations());
     }
 
     public function test_strips_flag_with_value_form(): void
@@ -86,33 +80,38 @@ final class WarnDeprecationsFlagTest extends TestCase
         self::assertSame(['phel', 'run', 'src/main.phel'], $result);
     }
 
-    public function test_preserves_disabled_default_when_flag_absent(): void
+    public function test_detectors_stay_silent_when_the_flag_is_absent(): void
     {
-        // Verify that without the flag the singleton stays in its default
-        // (env-var-driven) state. We force-reset first so the test does not
-        // depend on any prior configuration.
-        BackslashSeparatorDeprecator::resetInstance();
+        DeprecationWarnings::disable();
+        $this->captureDeprecationsWithoutEnabling();
 
         $result = WarnDeprecationsFlag::applyAndStrip(['phel', 'test']);
 
         self::assertSame(['phel', 'test'], $result);
 
-        $captured = [];
-        $instance = BackslashSeparatorDeprecator::getInstance();
-        // Force a capturing disabled instance to confirm the flag-absent
-        // path does not flip the enabled bit.
-        BackslashSeparatorDeprecator::useInstance(new BackslashSeparatorDeprecator(
-            enabled: false,
-            emitter: static function (string $msg) use (&$captured): void {
-                $captured[] = $msg;
-            },
-        ));
+        BackslashSeparatorDeprecator::getInstance()->maybeWarn(
+            $this->locatedRawNameSymbol('phel\\core/map', '/app/user.phel'),
+        );
 
-        $sym = Symbol::createForNamespace('phel.core', 'map');
-        $sym->setStartLocation(new SourceLocation('/app/user.phel', 1, 1));
-        BackslashSeparatorDeprecator::getInstance()->maybeWarn($sym);
+        self::assertSame([], $this->capturedDeprecations());
+    }
 
-        self::assertInstanceOf(BackslashSeparatorDeprecator::class, $instance);
-        self::assertSame([], $captured);
+    /**
+     * Installs the capture handler but leaves the switch exactly as the test
+     * set it, so `applyAndStrip` is the only thing that can turn it on.
+     */
+    private function captureDeprecationsWithoutEnabling(): void
+    {
+        $enabled = DeprecationWarnings::isEnabled();
+        $this->startCapturingDeprecations();
+        $enabled ? DeprecationWarnings::enable() : DeprecationWarnings::disable();
+    }
+
+    private function locatedRawNameSymbol(string $rawName, string $file): Symbol
+    {
+        $symbol = Symbol::createForNamespace(null, $rawName);
+        $symbol->setStartLocation(new SourceLocation($file, 1, 1));
+
+        return $symbol;
     }
 }

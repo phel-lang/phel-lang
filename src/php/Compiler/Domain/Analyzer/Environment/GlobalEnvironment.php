@@ -71,6 +71,7 @@ final class GlobalEnvironment implements GlobalEnvironmentInterface
             $this,
             new MagicConstantResolver(),
             BackslashSeparatorDeprecator::getInstance(),
+            DeprecatedDefinitionWarner::getInstance(),
         );
         $this->addInternalBuildModeDefinition();
     }

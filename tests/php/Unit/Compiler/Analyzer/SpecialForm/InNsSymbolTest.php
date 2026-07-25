@@ -8,7 +8,6 @@ use Generator;
 use Phel;
 use Phel\Compiler\Application\Analyzer;
 use Phel\Compiler\Domain\Analyzer\Ast\InNsNode;
-use Phel\Compiler\Domain\Analyzer\Environment\BackslashSeparatorDeprecator;
 use Phel\Compiler\Domain\Analyzer\Environment\GlobalEnvironment;
 use Phel\Compiler\Domain\Analyzer\Environment\NodeEnvironment;
 use Phel\Compiler\Domain\Analyzer\Exceptions\AnalyzerException;
@@ -19,12 +18,15 @@ use Phel\Lang\SourceLocation;
 use Phel\Lang\Symbol;
 use Phel\Shared\CompilerConstants;
 use Phel\Shared\ReplConstants;
+use PhelTest\Support\CapturesDeprecationsTrait;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 use ReflectionProperty;
 
 final class InNsSymbolTest extends TestCase
 {
+    use CapturesDeprecationsTrait;
+
     private Analyzer $analyzer;
 
     protected function setUp(): void
@@ -32,6 +34,11 @@ final class InNsSymbolTest extends TestCase
         Registry::getInstance()->clear();
         $globalEnv = new GlobalEnvironment();
         $this->analyzer = new Analyzer($globalEnv);
+    }
+
+    protected function tearDown(): void
+    {
+        $this->stopCapturingDeprecations();
     }
 
     public function test_requires_at_least_one_argument(): void
@@ -257,8 +264,7 @@ final class InNsSymbolTest extends TestCase
 
     public function test_backslash_in_ns_form_emits_deprecation(): void
     {
-        $captured = [];
-        $this->installCapturingDeprecator($captured);
+        $this->startCapturingDeprecations();
 
         $list = Phel::list([
             Symbol::create(Symbol::NAME_IN_NS),
@@ -266,17 +272,14 @@ final class InNsSymbolTest extends TestCase
         ]);
         new InNsSymbol($this->analyzer)->analyze($list, NodeEnvironment::empty());
 
-        self::assertCount(1, $captured);
-        self::assertStringContainsString("'my\\project'", $captured[0]);
-        self::assertStringContainsString("'my.project'", $captured[0]);
-
-        BackslashSeparatorDeprecator::resetInstance();
+        self::assertCount(1, $this->capturedDeprecations());
+        self::assertStringContainsString("'my\\project'", $this->capturedDeprecations()[0]);
+        self::assertStringContainsString("'my.project'", $this->capturedDeprecations()[0]);
     }
 
     public function test_dot_in_ns_form_emits_no_deprecation(): void
     {
-        $captured = [];
-        $this->installCapturingDeprecator($captured);
+        $this->startCapturingDeprecations();
 
         $list = Phel::list([
             Symbol::create(Symbol::NAME_IN_NS),
@@ -284,15 +287,12 @@ final class InNsSymbolTest extends TestCase
         ]);
         new InNsSymbol($this->analyzer)->analyze($list, NodeEnvironment::empty());
 
-        self::assertSame([], $captured);
-
-        BackslashSeparatorDeprecator::resetInstance();
+        self::assertSame([], $this->capturedDeprecations());
     }
 
     public function test_backslash_string_in_ns_form_emits_deprecation(): void
     {
-        $captured = [];
-        $this->installCapturingDeprecator($captured);
+        $this->startCapturingDeprecations();
 
         $list = Phel::list([
             Symbol::create(Symbol::NAME_IN_NS),
@@ -301,24 +301,9 @@ final class InNsSymbolTest extends TestCase
         $list->setStartLocation(new SourceLocation('/app/user.phel', 1, 1));
         new InNsSymbol($this->analyzer)->analyze($list, NodeEnvironment::empty());
 
-        self::assertCount(1, $captured);
-        self::assertStringContainsString("'my\\project'", $captured[0]);
-        self::assertStringContainsString("'my.project'", $captured[0]);
-
-        BackslashSeparatorDeprecator::resetInstance();
-    }
-
-    /**
-     * @param list<string> $captured
-     */
-    private function installCapturingDeprecator(array &$captured): void
-    {
-        BackslashSeparatorDeprecator::useInstance(new BackslashSeparatorDeprecator(
-            enabled: true,
-            emitter: static function (string $msg) use (&$captured): void {
-                $captured[] = $msg;
-            },
-        ));
+        self::assertCount(1, $this->capturedDeprecations());
+        self::assertStringContainsString("'my\\project'", $this->capturedDeprecations()[0]);
+        self::assertStringContainsString("'my.project'", $this->capturedDeprecations()[0]);
     }
 
     private function locatedSymbol(string $name, string $file): Symbol

@@ -42,3 +42,5 @@ The replacement keeps the same signature:
 ## Still deprecated (not removed)
 
 `set-meta!` (use `with-meta`) remains available but deprecated; it is intentionally out of scope for this removal. The `warn-deprecations` infrastructure also stays, since it still serves live deprecations such as the `\` namespace separator (see [backslash-to-dot.md](backslash-to-dot.md)).
+
+[deprecated-surface.md](deprecated-surface.md) maps the whole set of deprecations that are still shipped, with a before/after for each.
