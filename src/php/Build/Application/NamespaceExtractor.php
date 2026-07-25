@@ -25,6 +25,7 @@ use Phel\Shared\Parser\Node\TriviaNodeInterface;
 use RecursiveDirectoryIterator;
 use RecursiveIteratorIterator;
 use RegexIterator;
+use RuntimeException;
 use UnexpectedValueException;
 
 use function array_values;
@@ -51,7 +52,17 @@ final readonly class NamespaceExtractor implements NamespaceExtractorInterface
      */
     public function getNamespaceFromFile(string $path): NamespaceInformation
     {
-        $content = $this->fileIo->getContents($path);
+        try {
+            $content = $this->fileIo->getContents($path);
+        } catch (RuntimeException $runtimeException) {
+            // A file listed by a directory scan can be gone by the time it is
+            // read - another process writing a temp `.phel` and removing it
+            // again is enough. Raise the module's own exception so the scan in
+            // findAllNs() skips it, exactly as it already skips a file it
+            // cannot parse. A caller asking for one specific file still gets a
+            // thrown exception; only the scan swallows it.
+            throw ExtractorException::cannotReadFile($path, $runtimeException);
+        }
 
         try {
             $tokenStream = $this->compilerFacade->lexString($content);
