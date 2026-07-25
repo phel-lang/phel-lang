@@ -14,7 +14,6 @@ use Phel\Shared\Parser\Node\Token;
 
 use function count;
 use function mb_strlen;
-use function sprintf;
 use function strlen;
 
 final class Lexer implements LexerInterface
@@ -131,7 +130,12 @@ final class Lexer implements LexerInterface
                 $endLocation = $this->createSourceLocation($source);
 
                 if ($warnDeprecations) {
-                    DeprecationWarnings::warn(sprintf('"#| ... |#" multiline comments are deprecated and will be removed in a future release. Use ";;" for line comments or "#_" to skip a single form (at %s:%d:%d)', $source, $startLocation->getLine(), $startLocation->getColumn()));
+                    DeprecationWarnings::warn(DeprecationWarnings::syntaxMessage(
+                        '"#| ... |#"',
+                        'multiline comments',
+                        '";;" or "#_"',
+                        $startLocation,
+                    ));
                 }
 
                 yield new Token(Token::T_COMMENT, $comment, $startLocation, $endLocation);
@@ -146,21 +150,7 @@ final class Lexer implements LexerInterface
                 $tokenType = count($matches);
 
                 if ($warnDeprecations && isset(self::DEPRECATABLE_TYPES[$tokenType])) {
-                    if ($tokenType === Token::T_COMMENT && str_starts_with($matches[0], '#')) {
-                        DeprecationWarnings::warn(sprintf('Bare "#" line comments are deprecated and will be removed in a future release. Use ";" or ";;" instead (at %s:%d:%d)', $source, $startLocation->getLine(), $startLocation->getColumn()));
-                    }
-
-                    if ($tokenType === Token::T_FN) {
-                        DeprecationWarnings::warn(sprintf('Using "|()" for short functions is deprecated, use "#()" instead (at %s:%d:%d)', $source, $startLocation->getLine(), $startLocation->getColumn()));
-                    }
-
-                    if ($tokenType === Token::T_UNQUOTE_SPLICING && $matches[0] === ',@') {
-                        DeprecationWarnings::warn(sprintf('Using "," for unquote-splicing is deprecated, use "~@" instead (at %s:%d:%d)', $source, $startLocation->getLine(), $startLocation->getColumn()));
-                    }
-
-                    if ($tokenType === Token::T_UNQUOTE && $matches[0] === ',') {
-                        DeprecationWarnings::warn(sprintf('Using "," for unquote is deprecated, use "~" instead (at %s:%d:%d)', $source, $startLocation->getLine(), $startLocation->getColumn()));
-                    }
+                    $this->warnDeprecatedToken($tokenType, $matches[0], $startLocation);
                 }
 
                 yield new Token($tokenType, $matches[0], $startLocation, $endLocation);
@@ -172,6 +162,44 @@ final class Lexer implements LexerInterface
         }
 
         yield new Token(Token::T_EOF, '', $startLocation, $startLocation);
+    }
+
+    /**
+     * Only reached when the source-level gate already passed and the token is
+     * one of the four {@see self::DEPRECATABLE_TYPES}; every other token skips
+     * this call entirely.
+     */
+    private function warnDeprecatedToken(int $tokenType, string $lexeme, SourceLocation $location): void
+    {
+        if ($tokenType === Token::T_COMMENT && str_starts_with($lexeme, '#')) {
+            DeprecationWarnings::warn(
+                DeprecationWarnings::syntaxMessage('"#"', 'line comments', '";" or ";;"', $location),
+            );
+
+            return;
+        }
+
+        if ($tokenType === Token::T_FN) {
+            DeprecationWarnings::warn(
+                DeprecationWarnings::syntaxMessage('"|()"', 'short functions', '"#()"', $location),
+            );
+
+            return;
+        }
+
+        if ($tokenType === Token::T_UNQUOTE_SPLICING && $lexeme === ',@') {
+            DeprecationWarnings::warn(
+                DeprecationWarnings::syntaxMessage('","', 'unquote-splicing', '"~@"', $location),
+            );
+
+            return;
+        }
+
+        if ($tokenType === Token::T_UNQUOTE && $lexeme === ',') {
+            DeprecationWarnings::warn(
+                DeprecationWarnings::syntaxMessage('","', 'unquote', '"~"', $location),
+            );
+        }
     }
 
     private function moveCursor(string $str): void
