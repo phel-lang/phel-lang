@@ -23,6 +23,7 @@ final class FileEmitter implements FileEmitterInterface
     {
         $this->outputEmitter->resetIndentLevel();
         $this->outputEmitter->resetSourceMapState();
+        $this->outputEmitter->resetPhpNamespaceDeclaration();
 
         $this->source = $source;
         $this->phpCode = '';

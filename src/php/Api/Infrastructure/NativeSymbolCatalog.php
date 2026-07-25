@@ -202,10 +202,10 @@ The test evaluates to false if its value is false or equal to nil. Every other v
             'doc' => '```phel
 (in-ns namespace)
 ```
-Switches to an existing namespace without creating it. Intended for REPL use, e.g. navigating into a namespace to inspect or test private functions interactively. Avoid in source files: the build system assumes one namespace per file, and `in-ns` causes collisions in the dependency resolver.',
+Switches to an existing namespace without creating it. Two uses: at the REPL, to navigate into a namespace and inspect or test private functions; and as the first form of a file pulled in with `(load ...)`, which must join its caller\'s namespace this way. Do not use it to switch namespace part-way through a file - the build system assumes one namespace per file.',
             'docUrl' => '/documentation/namespaces/',
             'signatures' => ['(in-ns namespace)'],
-            'desc' => 'Switches to an existing namespace without creating it (REPL-oriented).',
+            'desc' => 'Switches to an existing namespace without creating it (REPL, and `load`-ed files).',
             'example' => '(in-ns my-app\\core)',
         ],
         Symbol::NAME_LET => [

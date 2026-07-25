@@ -142,20 +142,10 @@ final class ReplTestIo implements ReplCommandIoInterface
     }
 
     /**
-     * @return list<string>
-     */
-    public function getRawOutputs(): array
-    {
-        $this->finishCapture();
-
-        return $this->outputs;
-    }
-
-    /**
-     * Raw outputs with the line terminator stripped, for assertions that care
-     * about the logical line and not its framing. Prefer this over
-     * {@see self::getRawOutputs()} when matching a whole entry, so the
-     * assertion does not have to spell out `. PHP_EOL`.
+     * Every captured output with the line terminator stripped, for assertions
+     * that care about the logical line and not its framing, so they do not have
+     * to spell out `. PHP_EOL`. Unlike {@see self::getOutputs()} this keeps the
+     * banner and the trailing prompt.
      *
      * @return list<string>
      */

@@ -182,7 +182,9 @@ final class EmptyList extends AbstractType implements PersistentListInterface
     /**
      * @param int $offset
      *
-     * @return mixed|null
+     * @throws IndexOutOfBoundsException always: the empty list holds no offset
+     *
+     * @return never
      */
     public function offsetGet($offset): mixed
     {

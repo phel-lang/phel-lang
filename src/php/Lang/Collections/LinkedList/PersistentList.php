@@ -270,7 +270,9 @@ final class PersistentList extends AbstractType implements PersistentListInterfa
     /**
      * @param int $offset
      *
-     * @return mixed|null
+     * @throws IndexOutOfBoundsException when $offset is outside [0, count)
+     *
+     * @return T never null for an absent offset: out of range throws
      */
     public function offsetGet($offset): mixed
     {

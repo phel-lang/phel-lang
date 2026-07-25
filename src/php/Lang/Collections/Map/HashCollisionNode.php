@@ -93,10 +93,12 @@ final class HashCollisionNode implements HashMapNodeInterface
     }
 
     /**
-     * @param TKey  $key
-     * @param mixed $notFound
+     * @template TDefault
      *
-     * @return ?mixed
+     * @param TKey     $key
+     * @param TDefault $notFound
+     *
+     * @return TDefault|TValue
      */
     public function find(int $shift, int $hash, $key, $notFound)
     {
@@ -105,6 +107,9 @@ final class HashCollisionNode implements HashMapNodeInterface
             return $notFound;
         }
 
+        // findIndex only ever lands on a key slot of the flat [k, v, k, v, …]
+        // list, so $pair[1] is always the matching value; the coalesce is a
+        // defensive fallback that a well-formed node never reaches.
         $pair = array_slice($this->objects, $index, 2);
         /** @var TValue $value */
         $value = $pair[1] ?? $notFound;
