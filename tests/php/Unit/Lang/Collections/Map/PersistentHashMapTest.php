@@ -5,14 +5,20 @@ declare(strict_types=1);
 namespace PhelTest\Unit\Lang\Collections\Map;
 
 use Phel\Lang\Collections\Map\PersistentHashMap;
+use Phel\Lang\Collections\Map\PersistentMapInterface;
 use Phel\Lang\Equalizer;
 use Phel\Lang\Hasher;
 use PhelTest\Unit\Lang\Collections\ModuloHasher;
 use PhelTest\Unit\Lang\Collections\SimpleEqualizer;
-use PHPUnit\Framework\TestCase;
 use RuntimeException;
 
-final class PersistentHashMapTest extends TestCase
+/**
+ * The shared map behaviour lives in the contract case; this class covers what
+ * is specific to the hash-array-mapped-trie storage: insertion-order
+ * iteration, the node promotion that only a large map reaches, and the hash
+ * accumulator's overflow guard.
+ */
+final class PersistentHashMapTest extends AbstractPersistentMapContractTestCase
 {
     public function test_can_not_create_from_array_with_uneven_values(): void
     {
@@ -21,129 +27,19 @@ final class PersistentHashMapTest extends TestCase
         PersistentHashMap::fromArray(new ModuloHasher(), new SimpleEqualizer(), ['a', 1, 'b']);
     }
 
-    public function test_empty(): void
-    {
-        $h = PersistentHashMap::empty(new ModuloHasher(), new SimpleEqualizer());
-
-        self::assertCount(0, $h);
-        self::assertFalse($h->contains('test'));
-        self::assertFalse($h->contains(null));
-        self::assertNull($h->find('test'));
-    }
-
-    public function test_add_null_key(): void
-    {
-        $h = PersistentHashMap::empty(new ModuloHasher(), new SimpleEqualizer());
-        $h2 = $h->put(null, 'test');
-
-        self::assertNull($h->find(null));
-        self::assertCount(0, $h);
-        self::assertFalse($h->contains(null));
-        self::assertSame('test', $h2->find(null));
-        self::assertCount(1, $h2);
-        self::assertTrue($h2->contains(null));
-    }
-
-    public function test_put_key_value(): void
+    public function test_iteration_follows_insertion_order(): void
     {
         $h = PersistentHashMap::empty(new ModuloHasher(), new SimpleEqualizer())
-            ->put(1, 'test');
-
-        self::assertCount(1, $h);
-        self::assertTrue($h->contains(1));
-        self::assertSame('test', $h->find(1));
-    }
-
-    public function test_put_same_key_value_twice(): void
-    {
-        $h = PersistentHashMap::empty(new ModuloHasher(), new SimpleEqualizer())
-            ->put(1, 'test')
-            ->put(1, 'test');
-
-        self::assertCount(1, $h);
-        self::assertTrue($h->contains(1));
-        self::assertSame('test', $h->find(1));
-    }
-
-    public function test_put_null_twice(): void
-    {
-        $h = PersistentHashMap::empty(new ModuloHasher(), new SimpleEqualizer())
-            ->put(null, 'test')
-            ->put(null, 'test');
-
-        self::assertCount(1, $h);
-        self::assertTrue($h->contains(null));
-        self::assertSame('test', $h->find(null));
-    }
-
-    public function test_merge(): void
-    {
-        $h1 = PersistentHashMap::empty(new ModuloHasher(), new SimpleEqualizer())
-            ->put(1, 'test');
-
-        $h2 = PersistentHashMap::empty(new ModuloHasher(), new SimpleEqualizer())
+            ->put(3, 'foobar')
+            ->put(1, 'foo')
             ->put(2, 'bar');
 
-        $expected = PersistentHashMap::empty(new ModuloHasher(), new SimpleEqualizer())
-            ->put(1, 'test')
-            ->put(2, 'bar');
+        $result = [];
+        foreach ($h as $k => $v) {
+            $result[] = $k;
+        }
 
-        $this->assertEquals($expected, $h1->merge($h2));
-    }
-
-    public function test_remove_existing_null_key(): void
-    {
-        $h = PersistentHashMap::empty(new ModuloHasher(), new SimpleEqualizer())
-            ->put(null, 'test')
-            ->remove(null);
-
-        self::assertCount(0, $h);
-        self::assertFalse($h->contains(null));
-        self::assertNull($h->find(null));
-    }
-
-    public function test_remove_non_existing_null_key(): void
-    {
-        $h = PersistentHashMap::empty(new ModuloHasher(), new SimpleEqualizer())
-            ->remove(null);
-
-        self::assertCount(0, $h);
-        self::assertFalse($h->contains(null));
-        self::assertNull($h->find(null));
-    }
-
-    public function test_remove_non_existing_key(): void
-    {
-        $h = PersistentHashMap::empty(new ModuloHasher(), new SimpleEqualizer())
-            ->remove(1);
-
-        self::assertCount(0, $h);
-        self::assertFalse($h->contains(1));
-        self::assertNull($h->find(1));
-    }
-
-    public function test_remove_non_existing_key_in_child(): void
-    {
-        $h = PersistentHashMap::empty(new ModuloHasher(), new SimpleEqualizer())
-            ->put(2, 'test')
-            ->remove(1);
-
-        self::assertCount(1, $h);
-        self::assertTrue($h->contains(2));
-        self::assertSame('test', $h->find(2));
-        self::assertFalse($h->contains(1));
-        self::assertNull($h->find(1));
-    }
-
-    public function test_remove_existing_key(): void
-    {
-        $h = PersistentHashMap::empty(new ModuloHasher(), new SimpleEqualizer())
-            ->put(1, 'test')
-            ->remove(1);
-
-        self::assertCount(0, $h);
-        self::assertFalse($h->contains(1));
-        self::assertNull($h->find(1));
+        $this->assertSame([3, 1, 2], $result);
     }
 
     public function test_remove_absent_key_on_large_map_returns_same_instance(): void
@@ -180,99 +76,6 @@ final class PersistentHashMapTest extends TestCase
         self::assertCount($size, $h);
         self::assertTrue($h->contains(42));
         self::assertSame(42, $h->find(42));
-    }
-
-    public function test_equals(): void
-    {
-        $h1 = PersistentHashMap::empty(new ModuloHasher(), new SimpleEqualizer())
-            ->put(1, 'foo')
-            ->put(2, 'bar');
-
-        $h2 = PersistentHashMap::empty(new ModuloHasher(), new SimpleEqualizer())
-            ->put(2, 'bar')
-            ->put(1, 'foo');
-
-        $this->assertTrue($h1->equals($h2));
-        $this->assertTrue($h2->equals($h1));
-    }
-
-    public function test_equals_different_keys(): void
-    {
-        $h1 = PersistentHashMap::empty(new ModuloHasher(), new SimpleEqualizer())
-            ->put(1, 'foo')
-            ->put(2, 'bar');
-
-        $h2 = PersistentHashMap::empty(new ModuloHasher(), new SimpleEqualizer())
-            ->put(3, 'bar')
-            ->put(4, 'foo');
-
-        $this->assertFalse($h1->equals($h2));
-        $this->assertFalse($h2->equals($h1));
-    }
-
-    public function test_equals_different_length(): void
-    {
-        $h1 = PersistentHashMap::empty(new ModuloHasher(), new SimpleEqualizer())
-            ->put(1, 'foo')
-            ->put(2, 'bar')
-            ->put(3, 'foobar');
-
-        $h2 = PersistentHashMap::empty(new ModuloHasher(), new SimpleEqualizer())
-            ->put(2, 'bar')
-            ->put(1, 'foo');
-
-        $this->assertFalse($h1->equals($h2));
-        $this->assertFalse($h2->equals($h1));
-    }
-
-    public function test_equals_different_values(): void
-    {
-        $h1 = PersistentHashMap::empty(new ModuloHasher(), new SimpleEqualizer())
-            ->put(1, 'foo')
-            ->put(2, 'bar');
-
-        $h2 = PersistentHashMap::empty(new ModuloHasher(), new SimpleEqualizer())
-            ->put(1, 'bar')
-            ->put(2, 'foo');
-
-        $this->assertFalse($h1->equals($h2));
-        $this->assertFalse($h2->equals($h1));
-    }
-
-    public function test_equals_different_type(): void
-    {
-        $h1 = PersistentHashMap::empty(new ModuloHasher(), new SimpleEqualizer())
-            ->put(1, 'foo')
-            ->put(2, 'bar');
-
-        $this->assertFalse($h1->equals([1 => 'foo', 2 => 'bar']));
-    }
-
-    public function test_iteratable(): void
-    {
-        $h = PersistentHashMap::empty(new ModuloHasher(), new SimpleEqualizer())
-            ->put(1, 'foo')
-            ->put(2, 'bar')
-            ->put(3, 'foobar');
-
-        $result = [];
-        foreach ($h as $k => $v) {
-            $result[$k] = $v;
-        }
-
-        $this->assertSame([1 => 'foo', 2 => 'bar', 3 => 'foobar'], $result);
-    }
-
-    public function test_iteratable_on_empty(): void
-    {
-        $h = PersistentHashMap::empty(new ModuloHasher(), new SimpleEqualizer());
-
-        $result = [];
-        foreach ($h as $k => $v) {
-            $result[$k] = $v;
-        }
-
-        $this->assertSame([], $result);
     }
 
     public function test_iteratable_on_large_map_yields_every_entry(): void
@@ -364,21 +167,6 @@ final class PersistentHashMapTest extends TestCase
         }
     }
 
-    public function test_hash_on_empty_map(): void
-    {
-        $h = PersistentHashMap::empty(new ModuloHasher(), new SimpleEqualizer());
-
-        $this->assertSame(1, $h->hash());
-    }
-
-    public function test_hash_on_single_entryy_map(): void
-    {
-        $h = PersistentHashMap::empty(new ModuloHasher(), new SimpleEqualizer())
-            ->put(1, 10);
-
-        $this->assertSame(1 + (1 ^ 10), $h->hash());
-    }
-
     /**
      * Regression for the int->float overflow in the running hash sum: a
      * large map must still return a stable int hash instead of throwing a
@@ -395,5 +183,10 @@ final class PersistentHashMapTest extends TestCase
 
         $this->assertIsInt($hash);
         $this->assertSame($hash, $map->hash());
+    }
+
+    protected function emptyMap(): PersistentMapInterface
+    {
+        return PersistentHashMap::empty(new ModuloHasher(), new SimpleEqualizer());
     }
 }
