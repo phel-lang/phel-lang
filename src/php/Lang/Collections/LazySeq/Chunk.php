@@ -69,8 +69,6 @@ final readonly class Chunk
     }
 
     /**
-     * Returns the first element in this chunk.
-     *
      * @return T|null
      */
     public function first(): mixed
@@ -83,8 +81,6 @@ final readonly class Chunk
     }
 
     /**
-     * Converts this chunk to a PHP array.
-     *
      * @return array<int, T>
      */
     public function toArray(): array

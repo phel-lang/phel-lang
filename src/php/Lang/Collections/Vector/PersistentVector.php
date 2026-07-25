@@ -99,9 +99,6 @@ final class PersistentVector extends AbstractPersistentVector
         return new self($this->hasher, $this->equalizer, $meta, $this->count, $this->shift, $this->root, $this->tail);
     }
 
-    /**
-     * Return the number of elements in this vector.
-     */
     public function count(): int
     {
         return max(0, $this->count);

@@ -14,7 +14,7 @@ muscle memory transfers between commands. New commands MUST follow these.
 | Config file path | `--config` | — | Path to a command-specific config. |
 | Preview without writing | `--dry-run` | — | Boolean; print intended actions only. |
 | Overwrite existing files | `--force` | — | Boolean. |
-| Optimization level | `--optimization-level` | `-O` | `build`/`compile`. |
+| Optimization level | `--optimization-level` | `-O` | `build` only; `compile` reads the configured level and has no override flag. |
 
 Global flags (`--help/-h`, `--quiet/-q`, `--verbose/-v`, `--version/-V`,
 `--no-interaction/-n`, `--ansi/--no-ansi`) come from Symfony Console; never
@@ -23,7 +23,8 @@ re-declare them or reuse their short letters.
 ## Reserved short letters
 
 `-h -q -v -V -n` are Symfony globals. Within Phel commands: `-f` = format
-(or filter on `test`), `-o` = output, `-s` = sort, `-O` = optimization level,
+(or filter on `test`), `-o` = output, `-s` = sort (`--simple` on `ns`, pre-existing),
+`-O` = optimization level,
 `-t` is command-local (`compile --target`, `init --template`, `run --with-time`),
 `-p` = port (`nrepl`), `-m` = minimal (`init`), `-b` = backend (`watch`).
 

@@ -18,7 +18,9 @@ Grouped by reader.
 
 ## Coming from Clojure
 
-**Missing features.** No agents, no STM/refs (use `Atom` + `swap!`), no `core.async` (Phel has fibers + futures via `Fiber/`, see [async](https://phel-lang.org/documentation/language/async/)), no protocols (use `definterface`), no records (use `defstruct`).
+**Missing features.** No agents, no STM/refs (use `Atom` + `swap!`), no `core.async` (Phel has fibers + futures via `Fiber/`, see [async](https://phel-lang.org/documentation/language/async/)).
+
+**Present.** `defprotocol` / `extend-type` / `extend-protocol` / `satisfies?` and `defrecord` live in `src/phel/core/protocols.phel`. `definterface` is the lower-level PHP-interface form; `defstruct` the lower-level fixed-key map.
 
 **Real persistent collections?** Yes. `PersistentVector` (32-way trie), `PersistentHashMap` (HAMT), `LazySeq` (per-element realisation). Under `Lang/Collections/`.
 

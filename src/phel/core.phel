@@ -40,19 +40,19 @@
 
 (def queue
   {:doc "Creates a persistent FIFO queue. With no arguments returns an empty queue; with arguments returns a queue with the values pushed in order so that the first argument is at the front."
-   :example "(queue 1 2 3) ; => first 1, then 2, then 3"}
+   :example "(queue 1 2 3) ; => <-(1 2 3)-<"}
   (fn [& xs]
     (php/:: Phel (queue (apply php/array xs)))))
 
 (def hash-map
   {:doc "Creates a new hash map. If no argument is provided, an empty hash map is created. The number of parameters must be even. Shortcut: {}"
-   :example "(hash-map :a 1 :b 2) ; => {:a 1 :b 2}"}
+   :example "(hash-map :a 1 :b 2) ; => {:a 1, :b 2}"}
   (fn [& xs]
     (php/:: Phel (map (apply php/array xs)))))
 
 (def array-map
   {:doc "Constructs a map from the given key/value pairs. If any keys are equal, later values replace earlier ones, as if by repeated `assoc`. Phel has no distinct array-map type, so the result is the same persistent map as `hash-map` — `array-map` exists for `.cljc` interop with Clojure sources."
-   :example "(array-map :a 1 :b 2) ; => {:a 1 :b 2}"
+   :example "(array-map :a 1 :b 2) ; => {:a 1, :b 2}"
    :see-also ["hash-map"]}
   (fn [& xs]
     (php/:: Phel (map (apply php/array xs)))))

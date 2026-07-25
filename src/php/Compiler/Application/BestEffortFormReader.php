@@ -16,17 +16,8 @@ use Phel\Shared\Parser\Node\TriviaNodeInterface;
 use Throwable;
 
 /**
- * Streams the top-level forms of a source buffer through the front half of the
- * pipeline (lex -> parse -> read), never throwing.
- *
- * Tooling that inspects source it does not control (linter, indexer,
- * completion) has to keep working on a buffer the user is still typing. A
- * broken form must not lose the forms before it, so parse failures stop the
- * stream, read failures skip the offending form, and anything else ends it
- * quietly.
- *
- * Callers that need the failures reported instead of swallowed must drive
- * `lexString`/`parseNext`/`read` themselves.
+ * Backs {@see \Phel\Shared\Facade\CompilerFacadeInterface::readFormsBestEffort()},
+ * which documents the contract and when to prefer the throwing single-stage hooks.
  */
 final readonly class BestEffortFormReader
 {

@@ -796,7 +796,7 @@ Works with vectors, lists, sets, and strings."
 
 (defn subseq
   "Returns a lazy sequence of the entries of the sorted collection `sc` (map entries for a sorted map, elements for a sorted set) whose keys satisfy the boundary test, in ascending order. With one boundary, use `>` / `>=` to start after or at `bound-key` and `<` / `<=` to stop before or at it. With two boundaries, returns the entries between them, e.g. `(subseq sm >= 2 < 5)`. Boundaries respect the collection's own comparator (`sorted-map-by` / `sorted-set-by`)."
-  {:example "(subseq (sorted-map 1 :a 2 :b 3 :c) >= 2) ; => ([2 :b] [3 :c])"
+  {:example "(subseq (sorted-map 1 :a 2 :b 3 :c) >= 2) ; => @[[2 :b] [3 :c]]"
    :see-also ["rsubseq" "sorted-map" "sorted-set" "take-while" "drop-while"]}
   ([sc test bound-key]
    (assert-sorted-coll "subseq" sc)
@@ -812,7 +812,7 @@ Works with vectors, lists, sets, and strings."
 
 (defn rsubseq
   "Like `subseq`, but returns the matching entries in descending order. With one boundary, use `<` / `<=` to start from the top end and `>` / `>=` to stop; with two boundaries, returns the entries between them in reverse, e.g. `(rsubseq sm >= 2 < 5)`."
-  {:example "(rsubseq (sorted-map 1 :a 2 :b 3 :c) <= 2) ; => ([2 :b] [1 :a])"
+  {:example "(rsubseq (sorted-map 1 :a 2 :b 3 :c) <= 2) ; => @[[2 :b] [1 :a]]"
    :see-also ["subseq" "rseq" "sorted-map" "sorted-set"]}
   ([sc test bound-key]
    (assert-sorted-coll "rsubseq" sc)
@@ -1022,7 +1022,7 @@ With one argument returns an infinite lazy sequence of x."
   "Returns a vector of length n with values produced by repeatedly calling f.
 
 With one argument returns an infinite lazy sequence of calls to f."
-  {:example "(repeatedly 3 rand) ; => [0.234 0.892 0.456] (random values)"
+  {:example "(repeatedly 3 rand) ; => @[0.234 0.892 0.456] (random values)"
    :see-also ["repeat" "iterate"]}
   [a & rest]
   (case (count rest)

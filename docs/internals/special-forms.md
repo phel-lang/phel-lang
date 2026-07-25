@@ -4,19 +4,19 @@ A list with a recognised head symbol routes to a dedicated analyzer. Anything el
 
 ## Dispatch
 
-`Compiler/Domain/Analyzer/TypeAnalyzer/AnalyzePersistentList.php` matches the head against `Symbol::NAME_*` constants in `src/php/Lang/Symbol.php`. On match it dispatches to a `SpecialFormAnalyzerInterface` impl in `Compiler/Domain/Analyzer/TypeAnalyzer/SpecialForm/`; on miss it falls through to `InvokeSymbol`.
+`Compiler/Domain/Analyzer/TypeAnalyzer/AnalyzePersistentList.php` looks the head up in `specialFormFactories()`, keyed by the `Symbol::NAME_*` constants in `src/php/Lang/Symbol.php`. Each value is a closure, so an analyzer is built on first use and memoized in `$symbolAnalyzerCache`. A miss falls through to `InvokeSymbol`.
 
 ```php
-match ($symbolName) {
-    Symbol::NAME_DEF   => new DefSymbol($this->analyzer),
-    Symbol::NAME_FN    => new FnSymbol($this->analyzer, $this->assertsEnabled),
-    Symbol::NAME_IF    => new IfSymbol($this->analyzer),
-    Symbol::NAME_LET   => new LetSymbol($this->analyzer, ...),
-    Symbol::NAME_LOOP  => new LoopSymbol($this->analyzer, ...),
-    Symbol::NAME_RECUR => new RecurSymbol($this->analyzer),
+return $this->specialFormFactories = [
+    Symbol::NAME_DEF   => fn(): SpecialFormAnalyzerInterface => new DefSymbol($this->analyzer),
+    Symbol::NAME_FN    => fn(): SpecialFormAnalyzerInterface => new FnSymbol($this->analyzer, $this->assertsEnabled),
+    Symbol::NAME_IF    => fn(): SpecialFormAnalyzerInterface => new IfSymbol($this->analyzer),
+    Symbol::NAME_RECUR => fn(): SpecialFormAnalyzerInterface => new RecurSymbol($this->analyzer),
     // ...
-};
+];
 ```
+
+`specialFormNames()` returns the keys, so tooling never has to hardcode the list.
 
 Each handler returns one `AbstractNode`. Every node maps 1:1 to an `*Emitter.php` under `Compiler/Domain/Emitter/OutputEmitter/NodeEmitter/`.
 
@@ -89,7 +89,7 @@ Run `(macroexpand-1 'form)` to see the truth.
 1. `public const string NAME_FOO = 'foo';` in `src/php/Lang/Symbol.php`
 2. `FooNode extends AbstractNode` in `Compiler/Domain/Analyzer/Ast/`
 3. `FooSymbol implements SpecialFormAnalyzerInterface` in `Compiler/Domain/Analyzer/TypeAnalyzer/SpecialForm/`: validate, recurse via `$this->analyzer->analyze(...)`, return `FooNode`
-4. Branch in the `AnalyzePersistentList` `match`
+4. Entry in `AnalyzePersistentList::specialFormFactories()`
 5. `FooEmitter` in `Compiler/Domain/Emitter/OutputEmitter/NodeEmitter/`, registered in `NodeEmitterFactory`; honor `NodeEnvironment` context
 
 Add a fixture `tests/php/Integration/Fixtures/Foo/foo-basic.test` plus an analyzer PHPUnit test.

@@ -7,8 +7,6 @@ namespace Phel\Shared\Parser\Node;
 interface InnerNodeInterface extends NodeInterface
 {
     /**
-     * Returns all children of this node.
-     *
      * @return list<NodeInterface>
      */
     public function getChildren(): array;

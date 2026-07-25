@@ -256,7 +256,7 @@ Creates a new hash map. If no argument is provided, an empty hash map is created
             'docUrl' => '/documentation/data-structures/#maps',
             'signatures' => ['(hash-map & xs)'],
             'desc' => 'Creates a new hash map. If no argument is provided, an empty hash map is created. The number of parameters must be even.',
-            'example' => '(hash-map :name "Alice" :age 30) ; => {:name "Alice" :age 30}',
+            'example' => '(hash-map :name "Alice" :age 30) ; => {:name "Alice", :age 30}',
         ],
         Symbol::NAME_NS => [
             'doc' => '```phel
@@ -472,7 +472,7 @@ Values that should be evaluated in a macro are marked with the unquote function.
             'docUrl' => '/documentation/macros/#quasiquote',
             'signatures' => ['(unquote expr)'],
             'desc' => 'Values that should be evaluated in a macro are marked with the unquote function. Shortcut: ,',
-            'example' => '`(+ 1 ,(+ 2 3)) ; => (+ 1 5)',
+            'example' => '`(+ 1 ,(+ 2 3)) ; => (phel.core/+ 1 5)',
         ],
         Symbol::NAME_UNQUOTE_SPLICING => [
             'doc' => '```phel
@@ -483,7 +483,7 @@ Values that should be evaluated in a macro are marked with the unquote function.
             'docUrl' => '/documentation/macros/#quasiquote',
             'signatures' => ['(unquote-splicing expr)'],
             'desc' => 'Values that should be evaluated in a macro are marked with the unquote function. Shortcut: ,@',
-            'example' => '`(+ ,@[1 2 3]) ; => (+ 1 2 3)',
+            'example' => '`(+ ,@[1 2 3]) ; => (phel.core/+ 1 2 3)',
         ],
         Symbol::NAME_USE => [
             'doc' => '```phel

@@ -10,8 +10,6 @@ namespace Phel\Lang;
 interface FirstInterface
 {
     /**
-     * Returns the first value.
-     *
      * @return T|null
      */
     public function first();

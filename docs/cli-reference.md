@@ -17,6 +17,8 @@ enable tab-completion (see the [README](../README.md#enable-shell-completion-opt
 | `api-daemon` | Long-running JSON-RPC daemon exposing the Api semantic-analysis facade over stdio (for tooling) |
 | `build` `b` | Build the current project: compile every namespace to PHP in the output dir |
 | `cache:clear` | Clear the temp and cache directories |
+| `cache:warm` | Pre-resolve all module classes and warm the cache for production |
+| `completion` | Dump the shell completion script for bash, zsh, or fish |
 | `compile` | Compile a Phel snippet/file/stdin and print the emitted PHP — does not evaluate |
 | `config` | Show the effective Phel configuration and where it comes from |
 | `doc` | Display the docs for any/all Phel functions |
