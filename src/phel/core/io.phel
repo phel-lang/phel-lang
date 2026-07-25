@@ -441,9 +441,9 @@ See PHP's [file_put_contents](https://www.php.net/manual/en/function.file-put-co
   {:example "(re-seq #\"\\d+\" \"a1b2c3\") ; => [\"1\" \"2\" \"3\"]"
    :see-also ["re-find" "re-matches"]}
   [re s]
-  (let [matches      (php/array)
-        match-result (php/preg_match_all re s matches)
-        matches      (php->phel matches)]
+  (let [matches (php/array)
+        _       (php/preg_match_all re s matches) ; fills `matches` by reference
+        matches (php->phel matches)]
     (if (= (count matches) 1)
       (first matches)
       (doall (apply map vector matches)))))

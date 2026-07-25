@@ -1,6 +1,4 @@
 (ns phel.transit
-  (:use Phel.Lang.Keyword)
-  (:use Phel.Lang.Symbol)
   (:use Phel.Lang.UUID)
   (:use \JSON_UNESCAPED_SLASHES)
   (:use \JSON_UNESCAPED_UNICODE)
