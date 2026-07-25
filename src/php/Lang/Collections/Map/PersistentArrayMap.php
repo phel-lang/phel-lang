@@ -179,6 +179,7 @@ final class PersistentArrayMap extends AbstractPersistentMap
                 $this->hasher,
                 $this->equalizer,
                 $this->array,
+                $this->meta,
             ),
         );
 

@@ -24,6 +24,6 @@ final readonly class TransientSortedSet extends AbstractTransientSet
      */
     public function persistent(): PersistentHashSetInterface
     {
-        return new PersistentSortedSet($this->hasher, null, $this->transientMap->persistent());
+        return new PersistentSortedSet($this->hasher, $this->meta, $this->transientMap->persistent());
     }
 }

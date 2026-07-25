@@ -20,8 +20,10 @@ final class TransientHashMap implements TransientMapInterface
     private static ?stdClass $NOT_FOUND = null;
 
     /**
-     * @param HashMapNodeInterface<TKey, TValue>|null $root
-     * @param mixed                                   $nullValue
+     * @param HashMapNodeInterface<TKey, TValue>|null   $root
+     * @param mixed                                     $nullValue
+     * @param PersistentMapInterface<mixed, mixed>|null $meta      Metadata of the map this transient
+     *                                                             was opened from, handed back on `persistent()`
      */
     public function __construct(
         private readonly HasherInterface $hasher,
@@ -30,6 +32,7 @@ final class TransientHashMap implements TransientMapInterface
         private ?HashMapNodeInterface $root,
         private bool $hasNull,
         private $nullValue,
+        private readonly ?PersistentMapInterface $meta = null,
     ) {}
 
     /**
@@ -161,7 +164,7 @@ final class TransientHashMap implements TransientMapInterface
      */
     public function persistent(): PersistentMapInterface
     {
-        return new PersistentHashMap($this->hasher, $this->equalizer, null, $this->count, $this->root, $this->hasNull, $this->nullValue);
+        return new PersistentHashMap($this->hasher, $this->equalizer, $this->meta, $this->count, $this->root, $this->hasNull, $this->nullValue);
     }
 
     /**

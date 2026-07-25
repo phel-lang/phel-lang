@@ -14,6 +14,7 @@ All notable changes to this project will be documented in this file.
 
 ### Fixed
 
+- Freezing a transient back with `persistent!` now returns the metadata the collection carried, instead of dropping it: `(meta (persistent! (transient (with-meta {:a 1} {:tag :x}))))` returned `nil` for maps, vectors and sets alike. Everything built through a transient inherits the fix, most visibly the compiler's `assoc`/`conj` chain specialisation, where `(assoc (assoc m :b 2) :c 3)` silently lost `m`'s metadata as soon as `m` carried a type tag, while the untagged form kept it
 - `phel lint`'s `phel/shadowed-binding` and `phel/unused-binding` now understand `for`/`dofor` heads. Those heads are `binding :verb coll-expr` triples plus `:let`/`:when`/`:while`/`:reduce` clauses, not `let`-style pairs, so every collection expression was being read as a bound name: `(for [[k v] :pairs form] ...)` reported `form` as both shadowed and unused
 - `phel lint`'s `phel/shadowed-binding` no longer flags a multi-arity `defn` for reusing a parameter name across arities (`([coll] ...) ([n coll] ...)`), nor a `:inline`/metadata `fn` for reusing the enclosing `defn`'s parameter names. Each arity, and the metadata map, now gets the scope it actually has
 - `phel lint`'s `phel/unused-import` and `phel/unused-require` now resolve the implicit alias of a dot-separated entry. `(:use Phel.Lang.Keyword)` binds `Keyword` and `(:require phel.json)` binds `json`, but both rules split only on `\`, so every dot-separated entry with no explicit `:as` was reported as unused

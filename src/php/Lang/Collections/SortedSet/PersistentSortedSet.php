@@ -61,7 +61,7 @@ final class PersistentSortedSet extends AbstractPersistentSet
     {
         /** @var TransientMapInterface<TValue, TValue> $transient */
         $transient = $this->map->asTransient();
-        return new TransientSortedSet($this->hasher, $transient);
+        return new TransientSortedSet($this->hasher, $transient, $this->meta);
     }
 
     /**

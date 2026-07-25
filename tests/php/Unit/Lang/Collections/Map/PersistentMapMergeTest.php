@@ -24,9 +24,9 @@ use function iterator_to_array;
  * `PersistentHashMap` and `PersistentArrayMap` bulk-build via a transient,
  * while `PersistentSortedMap` and `AbstractPersistentStruct` fold with
  * repeated `put()` (a struct cannot go transient at all — its `asTransient()`
- * throws). The strategies agree on entries and on last-write-wins, but they
- * differ on metadata and on identity for a no-op merge; both divergences are
- * pinned below so any attempt to unify the two paths has to face them.
+ * throws). The strategies agree on entries, on last-write-wins and on keeping
+ * the receiver's metadata; they still differ on identity for a no-op merge,
+ * which is pinned below so any attempt to unify the two paths has to face it.
  */
 final class PersistentMapMergeTest extends TestCase
 {
@@ -112,20 +112,39 @@ final class PersistentMapMergeTest extends TestCase
     }
 
     /**
-     * The transient-backed implementations drop the receiver's metadata,
-     * because every transient rebuilds its persistent counterpart with a null
-     * meta. This is a divergence from the `put()`-folding implementations
-     * below, not a deliberate contract.
+     * The transient-backed implementations keep the receiver's metadata, the
+     * same as the `put()`-folding ones: `asTransient()` carries the meta into
+     * the transient and `persistent()` puts it back. Clojure's `conj`-based
+     * merge preserves the first map's metadata too.
      */
-    public function test_merge_drops_meta_on_the_transient_backed_maps(): void
+    public function test_merge_keeps_meta_on_the_transient_backed_maps(): void
     {
         $meta = self::emptyArrayMap()->put(Keyword::create('tag'), 'x');
 
         $hash = self::emptyHashMap()->put(1, 'a')->withMeta($meta);
         $array = self::emptyArrayMap()->put(1, 'a')->withMeta($meta);
 
-        self::assertNull($hash->merge(self::emptyHashMap()->put(2, 'b'))->getMeta());
-        self::assertNull($array->merge(self::emptyArrayMap()->put(2, 'b'))->getMeta());
+        self::assertSame($meta, $hash->merge(self::emptyHashMap()->put(2, 'b'))->getMeta());
+        self::assertSame($meta, $array->merge(self::emptyArrayMap()->put(2, 'b'))->getMeta());
+    }
+
+    /**
+     * An array map that overflows into a hash map mid-merge keeps the metadata
+     * across the promotion as well.
+     */
+    public function test_merge_keeps_meta_when_the_array_map_overflows(): void
+    {
+        $meta = self::emptyArrayMap()->put(Keyword::create('tag'), 'x');
+
+        $left = self::emptyArrayMap();
+        for ($i = 0; $i < PersistentArrayMap::MAX_SIZE; ++$i) {
+            $left = $left->put($i, $i);
+        }
+
+        $merged = $left->withMeta($meta)->merge(self::emptyArrayMap()->put(PersistentArrayMap::MAX_SIZE, 'x'));
+
+        self::assertInstanceOf(PersistentHashMap::class, $merged);
+        self::assertSame($meta, $merged->getMeta());
     }
 
     /**

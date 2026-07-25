@@ -28,16 +28,19 @@ final class TransientSortedMap implements TransientMapInterface
     private readonly Closure $effectiveComparator;
 
     /**
-     * @param array<int, mixed>                  $array          Flat [k, v, k, v, ...] in sorted key order
-     * @param ?Closure(mixed, mixed): (bool|int) $userComparator Original user comparator (null = natural
-     *                                                           order). `(sorted-map-by < ...)` passes a
-     *                                                           predicate, hence the `bool` arm.
+     * @param array<int, mixed>                         $array          Flat [k, v, k, v, ...] in sorted key order
+     * @param ?Closure(mixed, mixed): (bool|int)        $userComparator Original user comparator (null = natural
+     *                                                                  order). `(sorted-map-by < ...)` passes a
+     *                                                                  predicate, hence the `bool` arm.
+     * @param PersistentMapInterface<mixed, mixed>|null $meta           Metadata of the map this transient was
+     *                                                                  opened from, handed back on `persistent()`
      */
     public function __construct(
         private readonly HasherInterface $hasher,
         private readonly EqualizerInterface $equalizer,
         private array $array,
         private readonly ?Closure $userComparator = null,
+        private readonly ?PersistentMapInterface $meta = null,
     ) {
         $this->effectiveComparator = SortedArrayHelper::adaptForBinarySearch(
             SortedArrayHelper::resolveComparator($userComparator),
@@ -143,7 +146,7 @@ final class TransientSortedMap implements TransientMapInterface
         $this->invalidateTransient();
 
         /** @var PersistentSortedMap<TKey, TValue> $result */
-        $result = new PersistentSortedMap($this->hasher, $this->equalizer, null, $this->array, $this->userComparator);
+        $result = new PersistentSortedMap($this->hasher, $this->equalizer, $this->meta, $this->array, $this->userComparator);
 
         return $result;
     }

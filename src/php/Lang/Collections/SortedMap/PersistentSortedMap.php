@@ -188,6 +188,7 @@ final class PersistentSortedMap extends AbstractPersistentMap
                 $this->equalizer,
                 $this->array,
                 $this->userComparator,
+                $this->meta,
             ),
         );
 
