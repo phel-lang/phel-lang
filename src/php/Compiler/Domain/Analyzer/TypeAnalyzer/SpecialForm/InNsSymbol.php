@@ -19,11 +19,14 @@ use function str_replace;
 /**
  * (in-ns namespace)
  *
- * Switches to an existing namespace without creating it. Intended for
- * REPL use — e.g. navigating into a namespace to inspect or test private
- * functions interactively. Avoid using in source files: the build system
- * assumes one namespace per file, and in-ns causes namespace collisions
- * in the dependency resolver.
+ * Switches to an existing namespace without creating it. Two uses: at the
+ * REPL, navigating into a namespace to inspect or test private functions;
+ * and as the first form of a file pulled in with (load ...), which must
+ * join its caller's namespace this way - LoadEmitter enforces it at runtime.
+ *
+ * Do not use it to switch namespace part-way through a file: the build
+ * system assumes one namespace per file, and only the first declaration
+ * reaches the emitted PHP.
  */
 final class InNsSymbol implements SpecialFormAnalyzerInterface
 {

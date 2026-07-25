@@ -29,14 +29,12 @@ final class NsEmitter implements NodeEmitterInterface
 
     private function emitNamespace(NsNode $node): void
     {
-        // Both FILE and CACHE modes need PHP namespace declaration for struct classes
-        if ($this->outputEmitter->getOptions()->isFileEmitMode()
-            || $this->outputEmitter->getOptions()->isCacheEmitMode()
-        ) {
-            $this->outputEmitter->emitStr('namespace ', $node->getStartSourceLocation());
-            $this->outputEmitter->emitStr($this->outputEmitter->mungeEncodePhpNs($node->getNamespace()), $node->getStartSourceLocation());
-            $this->outputEmitter->emitLine(';', $node->getStartSourceLocation());
-        }
+        // Both FILE and CACHE modes need the PHP namespace declaration for
+        // struct classes, which are emitted inline into the enclosing namespace.
+        $this->outputEmitter->declarePhpNamespaceOnce(
+            $node->getNamespace(),
+            $node->getStartSourceLocation(),
+        );
     }
 
     private function emitRequireFiles(NsNode $node): void
