@@ -21,6 +21,8 @@ final class InNsEmitter implements NodeEmitterInterface
     {
         assert($node instanceof InNsNode);
 
+        $this->emitNamespace($node);
+
         $this->outputEmitter->emitLine(
             '\\' . GlobalEnvironmentSingleton::class . '::getInstance()->setNs("' . addslashes($node->getNamespace()) . '");',
             $node->getStartSourceLocation(),
@@ -30,6 +32,30 @@ final class InNsEmitter implements NodeEmitterInterface
         $this->emitFileAndNsDefinitions(
             $node->getNamespace(),
             $node->getStartSourceLocation()?->getFile() ?? '',
+        );
+    }
+
+    /**
+     * A file entered with `in-ns` needs the PHP namespace declaration for the
+     * same reason an `ns` file does: `DefStructEmitter` and its def-interface,
+     * def-enum and def-exception siblings emit their class inline in FILE and
+     * CACHE mode, relying on the file already being namespaced. Without it the
+     * class is declared globally while every call site references the qualified
+     * name, so it is "not found" on any run that reads the cache.
+     *
+     * `declarePhpNamespaceOnce` keeps a file that opens with `ns` and later
+     * switches with `in-ns` emitting exactly one declaration: PHP requires it to
+     * be the very first statement, so the `ns` form wins and this one is a no-op.
+     *
+     * Safe to emit first here because `LoadEmitter` never inlines a loaded file
+     * into its caller - it requires the compiled sibling or loads the source -
+     * so a file whose first form is `in-ns` always owns its output file.
+     */
+    private function emitNamespace(InNsNode $node): void
+    {
+        $this->outputEmitter->declarePhpNamespaceOnce(
+            $node->getNamespace(),
+            $node->getStartSourceLocation(),
         );
     }
 }

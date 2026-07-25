@@ -38,6 +38,13 @@ final class OutputEmitter implements OutputEmitterInterface
     // are off (the common REPL / `compile --emit-only` path).
     private bool $atLineStart = true;
 
+    /**
+     * Whether this file already carries a PHP `namespace` declaration. PHP
+     * allows only one, and only as the first statement, so `ns` and `in-ns`
+     * share this flag rather than each emitting their own.
+     */
+    private bool $phpNamespaceDeclared = false;
+
     /** @var array<int, string> */
     private array $indentCache = [];
 
@@ -115,6 +122,40 @@ final class OutputEmitter implements OutputEmitterInterface
     {
         $this->indentLevel = 0;
         $this->atLineStart = true;
+    }
+
+    public function resetPhpNamespaceDeclaration(): void
+    {
+        $this->phpNamespaceDeclared = false;
+    }
+
+    /**
+     * Emits the file's PHP `namespace` declaration, at most once.
+     *
+     * Both `ns` and `in-ns` need it: FILE and CACHE mode emit struct, interface,
+     * enum and exception classes inline, relying on the file being namespaced.
+     * Without it a class is declared globally while call sites reference the
+     * qualified name.
+     *
+     * Only the first caller wins. A file may open with `ns` and later switch the
+     * analyzer namespace with `in-ns`; a second `namespace` statement there would
+     * be a PHP fatal, since it must be the very first statement in the file.
+     */
+    public function declarePhpNamespaceOnce(string $namespace, ?SourceLocation $sl = null): void
+    {
+        if ($this->phpNamespaceDeclared) {
+            return;
+        }
+
+        if (!$this->options->isFileEmitMode() && !$this->options->isCacheEmitMode()) {
+            return;
+        }
+
+        $this->phpNamespaceDeclared = true;
+
+        $this->emitStr('namespace ', $sl);
+        $this->emitStr($this->mungeEncodePhpNs($namespace), $sl);
+        $this->emitLine(';', $sl);
     }
 
     public function resetSourceMapState(): void

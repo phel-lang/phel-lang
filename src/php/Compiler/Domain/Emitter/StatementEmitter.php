@@ -20,6 +20,7 @@ final readonly class StatementEmitter implements StatementEmitterInterface
     {
         $this->outputEmitter->resetIndentLevel();
         $this->outputEmitter->resetSourceMapState();
+        $this->outputEmitter->resetPhpNamespaceDeclaration();
 
         return new EmitterResult(
             $enableSourceMaps,

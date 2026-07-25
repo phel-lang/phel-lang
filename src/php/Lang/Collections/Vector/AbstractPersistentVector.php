@@ -6,6 +6,7 @@ namespace Phel\Lang\Collections\Vector;
 
 use InvalidArgumentException;
 use Phel\Lang\AbstractType;
+use Phel\Lang\Collections\Exceptions\IndexOutOfBoundsException;
 use Phel\Lang\Collections\Exceptions\MethodNotSupportedException;
 use Phel\Lang\Collections\LazySeq\LazySeqInterface;
 use Phel\Lang\Collections\Map\MapEntry;
@@ -143,7 +144,9 @@ abstract class AbstractPersistentVector extends AbstractType implements Persiste
     /**
      * @param int $offset
      *
-     * @return mixed|null
+     * @throws IndexOutOfBoundsException when $offset is outside [0, count)
+     *
+     * @return T never null for an absent offset: out of range throws
      */
     public function offsetGet($offset): mixed
     {
