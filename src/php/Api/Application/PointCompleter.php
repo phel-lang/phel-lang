@@ -11,9 +11,13 @@ use Phel\Lang\Collections\Map\PersistentMapInterface;
 use Phel\Lang\Collections\Vector\PersistentVectorInterface;
 use Phel\Lang\SourceLocation;
 use Phel\Lang\Symbol;
+<<<<<<< HEAD
 use Phel\Shared\Api\Completion;
 use Phel\Shared\Api\Definition;
 use Phel\Shared\Api\ProjectIndex;
+=======
+use Phel\Shared\Binding\IterationHead;
+>>>>>>> origin/main
 use Phel\Shared\Facade\CompilerFacadeInterface;
 
 use Throwable;
@@ -32,8 +36,8 @@ use function str_starts_with;
  *
  * - locals come from a best-effort read of a buffer that is mid-edit, so an
  *   unparseable source contributes no locals at all;
- * - scope tracking is lexical and approximate: `let`-style heads are read
- *   pairwise, so `for` triples and destructuring corners are partial;
+ * - scope tracking is lexical and approximate: destructuring corners are
+ *   partial;
  * - the phel-core catalogue is skipped entirely when core is not loaded.
  *
  * Each of those paths swallows its `Throwable` on purpose: a completion popup
@@ -42,7 +46,7 @@ use function str_starts_with;
  */
 final readonly class PointCompleter implements PointCompleterInterface
 {
-    private const array BINDING_FORMS = ['let', 'loop', 'for', 'binding', 'if-let', 'when-let'];
+    private const array LET_FORMS = ['let', 'loop', 'binding', 'if-let', 'when-let'];
 
     private const array FN_FORMS = ['fn', 'defn', 'defn-', 'defmacro', 'defmacro-'];
 
@@ -145,8 +149,10 @@ final readonly class PointCompleter implements PointCompleterInterface
 
             $newScope = $scope;
             $head = count($form) > 0 ? $form->get(0) : null;
-            if ($head instanceof Symbol && in_array($head->getName(), self::BINDING_FORMS, true)) {
+            if ($head instanceof Symbol && in_array($head->getName(), self::LET_FORMS, true)) {
                 $newScope = $this->extractBindings($form, $scope);
+            } elseif ($head instanceof Symbol && IterationHead::isIterationForm($head->getName())) {
+                $newScope = $this->extractIterationBindings($head->getName(), $form, $scope);
             } elseif ($head instanceof Symbol && in_array($head->getName(), self::FN_FORMS, true)) {
                 $newScope = $this->extractFnParams($form, $scope);
             }
@@ -196,25 +202,68 @@ final readonly class PointCompleter implements PointCompleterInterface
         $result = $scope;
         $size = count($bindingVec);
         for ($i = 0; $i < $size; $i += 2) {
-            $binding = $bindingVec->get($i);
-            if ($binding instanceof Symbol) {
-                $result[] = $binding->getName();
-            } elseif ($binding instanceof PersistentVectorInterface) {
-                foreach ($binding as $sym) {
-                    if ($sym instanceof Symbol) {
-                        $result[] = $sym->getName();
-                    }
+            $result = [...$result, ...$this->bindingNames($bindingVec->get($i))];
+        }
+
+        return array_values(array_unique($result));
+    }
+
+    /**
+     * `for` / `dofor` / `foreach` heads are not name/value pairs, so reading one
+     * pairwise offers the collection expression as a local that does not exist.
+     *
+     * @param PersistentListInterface<mixed> $form
+     * @param list<string>                   $scope
+     *
+     * @return list<string>
+     */
+    private function extractIterationBindings(string $formName, PersistentListInterface $form, array $scope): array
+    {
+        if (count($form) < 2) {
+            return $scope;
+        }
+
+        $head = $form->get(1);
+        if (!$head instanceof PersistentVectorInterface) {
+            return $scope;
+        }
+
+        $result = $scope;
+        foreach (IterationHead::entries($formName, $head) as $entry) {
+            $result = [...$result, ...$this->bindingNames($entry['binding'])];
+        }
+
+        return array_values(array_unique($result));
+    }
+
+    /**
+     * Top-level names one binding form introduces: a plain symbol, or the
+     * symbols of a vector/map destructuring pattern.
+     *
+     * @return list<string>
+     */
+    private function bindingNames(mixed $binding): array
+    {
+        if ($binding instanceof Symbol) {
+            return [$binding->getName()];
+        }
+
+        $names = [];
+        if ($binding instanceof PersistentVectorInterface) {
+            foreach ($binding as $sym) {
+                if ($sym instanceof Symbol) {
+                    $names[] = $sym->getName();
                 }
-            } elseif ($binding instanceof PersistentMapInterface) {
-                foreach ($binding as $v) {
-                    if ($v instanceof Symbol) {
-                        $result[] = $v->getName();
-                    }
+            }
+        } elseif ($binding instanceof PersistentMapInterface) {
+            foreach ($binding as $v) {
+                if ($v instanceof Symbol) {
+                    $names[] = $v->getName();
                 }
             }
         }
 
-        return array_values(array_unique($result));
+        return $names;
     }
 
     /**

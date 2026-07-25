@@ -11,6 +11,7 @@ use Phel\Lint\Application\Config\RuleRegistry;
 use Phel\Lint\Domain\FileAnalysis;
 use Phel\Lint\Domain\LintRuleInterface;
 use Phel\Shared\Api\Diagnostic;
+use Phel\Shared\Binding\IterationHead;
 
 use function count;
 use function in_array;
@@ -18,10 +19,11 @@ use function sprintf;
 use function str_starts_with;
 
 /**
- * Flags symbols bound in `(let [x ...])` / `(loop [x ...])` / `(for [x :in ...])`
- * whose body never mentions them. Ignores names starting with `_` (idiomatic
- * placeholder) and `&` (variadic marker). Destructuring binding forms
- * are best-effort: only the top-level names are tracked.
+ * Flags symbols bound in `(let [x ...])` / `(loop [x ...])` /
+ * `(for [x :in ...])` / `(foreach [x ...])` whose body never mentions them.
+ * Ignores names starting with `_` (idiomatic placeholder) and `&` (variadic
+ * marker). Destructuring binding forms are best-effort: only the top-level
+ * names are tracked.
  */
 final readonly class UnusedBindingRule implements LintRuleInterface
 {
@@ -47,8 +49,8 @@ final readonly class UnusedBindingRule implements LintRuleInterface
                     return;
                 }
 
-                if (ForHead::isForForm($head->getName())) {
-                    $this->inspectFor($node, $analysis->uri, $result);
+                if (IterationHead::isIterationForm($head->getName())) {
+                    $this->inspectIterationHead($head->getName(), $node, $analysis->uri, $result);
 
                     return;
                 }
@@ -65,14 +67,15 @@ final readonly class UnusedBindingRule implements LintRuleInterface
     }
 
     /**
-     * `for` / `dofor` heads mix binding triples, modifiers and options, so the
-     * bound names and the forms that may legitimately reference them both come
-     * from `ForHead` instead of a pairwise scan.
+     * `for` / `dofor` heads mix binding triples, modifiers and options, and a
+     * `foreach` head ends in the collection, so the bound names and the forms
+     * that may legitimately reference them both come from `IterationHead`
+     * instead of a pairwise scan.
      *
      * @param PersistentListInterface<mixed> $form
      * @param list<Diagnostic>               $result
      */
-    private function inspectFor(PersistentListInterface $form, string $uri, array &$result): void
+    private function inspectIterationHead(string $formName, PersistentListInterface $form, string $uri, array &$result): void
     {
         if (count($form) < 2) {
             return;
@@ -83,7 +86,7 @@ final readonly class UnusedBindingRule implements LintRuleInterface
             return;
         }
 
-        $entries = ForHead::entries($head);
+        $entries = IterationHead::entries($formName, $head);
         if ($entries === []) {
             return;
         }

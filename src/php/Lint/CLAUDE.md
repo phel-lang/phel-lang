@@ -42,8 +42,9 @@ Add a rule: implement `LintRuleInterface` in `Application/Rule/`, add a code con
 
 `FormWalker`, `FnParamVectors`, `NamespaceForm`, `NsClauseIterator`, plus:
 
-- `ForHead`: parses a `for`/`dofor` head. That head is a sequence of `binding :verb coll-expr` triples with `:while`/`:when`/`:let` modifiers and a `:reduce [acc init]` option; it is NOT a `let`-style pair list. Any rule that reads it two-at-a-time mistakes the collection expression for a bound name. Returns each bound form paired with the head forms in which a reference to it counts as a use.
 - `SymbolAlias`: the implicit alias of a `(:use ...)` / `(:require ...)` entry with no `:as`. Splits on both `.` and `\`, because Phel accepts both separators and the analyzer treats them alike.
+
+`Phel\Shared\Binding\IterationHead` parses the `for`/`dofor`/`foreach` heads for the binding rules. It lives in Shared because Api's `PointCompleter` reads the same heads; see `src/php/Shared/CLAUDE.md`.
 
 ### `phel/duplicate-def`
 

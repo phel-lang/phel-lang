@@ -12,14 +12,16 @@ use Phel\Lint\Application\Config\RuleRegistry;
 use Phel\Lint\Domain\FileAnalysis;
 use Phel\Lint\Domain\LintRuleInterface;
 use Phel\Shared\Api\Diagnostic;
+use Phel\Shared\Binding\IterationHead;
 
 use function count;
 use function in_array;
 use function sprintf;
 
 /**
- * Flags new `let`/`fn`/`defn`/`for` bindings that shadow a previously-bound
- * local with the same name (outer scope still reachable, easy foot-gun).
+ * Flags new `let`/`fn`/`defn`/`for`/`foreach` bindings that shadow a
+ * previously-bound local with the same name (outer scope still reachable, easy
+ * foot-gun).
  */
 final readonly class ShadowedBindingRule implements LintRuleInterface
 {
@@ -54,8 +56,8 @@ final readonly class ShadowedBindingRule implements LintRuleInterface
                 $name = $head->getName();
                 if (in_array($name, self::LET_FORMS, true)) {
                     $scope = $this->handleLet($form, $scope, $uri, $result);
-                } elseif (ForHead::isForForm($name)) {
-                    $scope = $this->handleFor($form, $scope, $uri, $result);
+                } elseif (IterationHead::isIterationForm($name)) {
+                    $scope = $this->handleIterationHead($name, $form, $scope, $uri, $result);
                 } elseif (in_array($name, self::FN_FORMS, true)) {
                     $this->walkFnForm($form, $scope, $uri, $result);
 
@@ -114,8 +116,9 @@ final readonly class ShadowedBindingRule implements LintRuleInterface
     }
 
     /**
-     * `for` / `dofor` heads are triples and modifiers, not name/value pairs,
-     * so only `ForHead` knows which elements are actually bound names.
+     * `for` / `dofor` / `foreach` heads are triples, tuples and modifiers, not
+     * name/value pairs, so only `IterationHead` knows which elements are
+     * actually bound names.
      *
      * @param PersistentListInterface<mixed> $form
      * @param list<string>                   $scope
@@ -123,7 +126,7 @@ final readonly class ShadowedBindingRule implements LintRuleInterface
      *
      * @return list<string>
      */
-    private function handleFor(PersistentListInterface $form, array $scope, string $uri, array &$result): array
+    private function handleIterationHead(string $formName, PersistentListInterface $form, array $scope, string $uri, array &$result): array
     {
         if (count($form) < 2) {
             return $scope;
@@ -135,7 +138,7 @@ final readonly class ShadowedBindingRule implements LintRuleInterface
         }
 
         $newScope = $scope;
-        foreach (ForHead::entries($head) as $entry) {
+        foreach (IterationHead::entries($formName, $head) as $entry) {
             $newScope = $this->noteBinding($entry['binding'], $newScope, $uri, $result);
         }
 

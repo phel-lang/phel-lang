@@ -172,4 +172,41 @@ final class UnusedBindingRuleTest extends RuleTestCase
         self::assertCount(1, $diagnostics);
         self::assertStringContainsString("'x'", $diagnostics[0]->message);
     }
+
+    #[PreserveGlobalState(false)]
+    #[RunInSeparateProcess]
+    public function test_it_does_not_treat_a_foreach_collection_expression_as_a_binding(): void
+    {
+        $rule = new UnusedBindingRule();
+        // Read pairwise, the trailing `coll` looks like a bound-and-unused name.
+        $analysis = $this->buildAnalysis("(foreach [x coll] (println x))\n");
+
+        self::assertSame([], $rule->apply($analysis));
+    }
+
+    #[PreserveGlobalState(false)]
+    #[RunInSeparateProcess]
+    public function test_it_flags_an_unused_foreach_binding(): void
+    {
+        $rule = new UnusedBindingRule();
+        $analysis = $this->buildAnalysis("(foreach [x [1 2]] (println \"hi\"))\n");
+
+        $diagnostics = $rule->apply($analysis);
+
+        self::assertCount(1, $diagnostics);
+        self::assertStringContainsString("'x'", $diagnostics[0]->message);
+    }
+
+    #[PreserveGlobalState(false)]
+    #[RunInSeparateProcess]
+    public function test_it_flags_only_the_unused_half_of_a_three_element_foreach_head(): void
+    {
+        $rule = new UnusedBindingRule();
+        $analysis = $this->buildAnalysis("(foreach [k v {:a 1}] (println v))\n");
+
+        $diagnostics = $rule->apply($analysis);
+
+        self::assertCount(1, $diagnostics);
+        self::assertStringContainsString("'k'", $diagnostics[0]->message);
+    }
 }

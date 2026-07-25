@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Phel\Lint\Application\Rule;
+namespace Phel\Shared\Binding;
 
 use Phel\Lang\Collections\Vector\PersistentVectorInterface;
 use Phel\Lang\Keyword;
@@ -11,28 +11,32 @@ use function count;
 use function in_array;
 
 /**
- * Parses the head vector of a `(for [...] body)` / `(dofor [...] body)` form.
+ * Parses the head vector of an iteration form. None of them is a `let`-style
+ * list of name/value pairs, so reading one two-at-a-time mistakes a collection
+ * expression for a bound name — at once a false "shadowed binding", a false
+ * "unused binding", and a phantom completion candidate.
  *
- * The head is NOT a `let`-style list of name/value pairs. It is a sequence of:
+ * Two grammars:
  *
- * - binding triples `binding :verb coll-expr` (`:in`, `:range`, `:keys`, `:pairs`),
- * - modifiers `:while expr`, `:when expr`, `:let [name expr ...]`,
- * - options `:reduce [acc init]`.
- *
- * Reading it two-at-a-time (as `let` rules do) mistakes `coll-expr` for a bound
- * name, which is both a false "shadowed binding" and a false "unused binding".
+ * - `for` / `dofor`: binding triples `binding :verb coll-expr` (`:in`,
+ *   `:range`, `:keys`, `:pairs`), modifiers `:while expr`, `:when expr`,
+ *   `:let [name expr ...]`, and the `:reduce [acc init]` option;
+ * - `foreach`: `[value coll]` or `[key value coll]`, so the trailing element is
+ *   the collection and everything before it is bound.
  */
-final class ForHead
+final class IterationHead
 {
-    private const array FORM_NAMES = ['for', 'dofor'];
+    private const array FOR_FORMS = ['for', 'dofor'];
+
+    private const string FOREACH_FORM = 'foreach';
 
     private const string REDUCE = 'reduce';
 
     private const string LET = 'let';
 
-    public static function isForForm(string $name): bool
+    public static function isIterationForm(string $name): bool
     {
-        return in_array($name, self::FORM_NAMES, true);
+        return $name === self::FOREACH_FORM || in_array($name, self::FOR_FORMS, true);
     }
 
     /**
@@ -46,7 +50,21 @@ final class ForHead
      *
      * @return list<array{binding: mixed, usageForms: list<mixed>}>
      */
-    public static function entries(PersistentVectorInterface $head): array
+    public static function entries(string $formName, PersistentVectorInterface $head): array
+    {
+        if ($formName === self::FOREACH_FORM) {
+            return self::foreachEntries($head);
+        }
+
+        return self::forEntries($head);
+    }
+
+    /**
+     * @param PersistentVectorInterface<mixed> $head
+     *
+     * @return list<array{binding: mixed, usageForms: list<mixed>}>
+     */
+    private static function forEntries(PersistentVectorInterface $head): array
     {
         $entries = [];
         $size = count($head);
@@ -81,6 +99,29 @@ final class ForHead
 
             // `:while` / `:when` / unknown modifiers bind nothing.
             $i += 2;
+        }
+
+        return $entries;
+    }
+
+    /**
+     * Nothing else in a `foreach` head can reference what it binds, so every
+     * entry's `usageForms` is empty.
+     *
+     * @param PersistentVectorInterface<mixed> $head
+     *
+     * @return list<array{binding: mixed, usageForms: list<mixed>}>
+     */
+    private static function foreachEntries(PersistentVectorInterface $head): array
+    {
+        $entries = [];
+        $bound = count($head) - 1;
+
+        for ($i = 0; $i < $bound; ++$i) {
+            $entries[] = [
+                'binding' => $head->get($i),
+                'usageForms' => [],
+            ];
         }
 
         return $entries;
