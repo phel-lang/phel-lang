@@ -12,6 +12,8 @@ use function dirname;
 use function restore_error_handler;
 use function set_error_handler;
 
+use function sprintf;
+
 use const E_USER_DEPRECATED;
 
 final class DeprecationWarningsTest extends TestCase
@@ -167,6 +169,116 @@ final class DeprecationWarningsTest extends TestCase
         DeprecationWarnings::enable();
         self::assertCount(1, $this->capture(static function () use ($location): void {
             DeprecationWarnings::warnSyntax('"x"', 'things', '"y"', $location);
+        }));
+    }
+
+    public function test_warn_once_at_origin_reports_the_location_itself_when_nothing_expanded_it(): void
+    {
+        DeprecationWarnings::enable();
+
+        self::assertSame(['at /app/user.phel:4'], $this->capture(static function (): void {
+            DeprecationWarnings::warnOnceAtOrigin(
+                new SourceLocation('/app/user.phel', 4, 1),
+                'subject',
+                static fn(string $file, int $line): string => sprintf('at %s:%d', $file, $line),
+            );
+        }));
+    }
+
+    public function test_warn_once_at_origin_reports_the_expansion_origin_and_names_the_call_site(): void
+    {
+        DeprecationWarnings::enable();
+
+        $captured = $this->capture(static function (): void {
+            DeprecationWarnings::warnOnceAtOrigin(
+                new SourceLocation('/app/user.phel', 4, 1, new SourceLocation('/app/macros.phel', 9, 2)),
+                'subject',
+                static fn(string $file, int $line): string => sprintf('at %s:%d', $file, $line),
+            );
+        });
+
+        self::assertSame(
+            ['at /app/macros.phel:9 (reached by expanding a macro at /app/user.phel:4)'],
+            $captured,
+        );
+    }
+
+    public function test_warn_once_at_origin_dedups_against_the_origin_file(): void
+    {
+        DeprecationWarnings::enable();
+
+        // Two different call sites reaching the same macro are one edit, so
+        // they must not produce two notices.
+        self::assertCount(1, $this->capture(static function (): void {
+            foreach ([4, 11] as $line) {
+                DeprecationWarnings::warnOnceAtOrigin(
+                    new SourceLocation('/app/user.phel', $line, 1, new SourceLocation('/app/macros.phel', 9, 2)),
+                    'subject',
+                    static fn(string $file, int $callLine): string => sprintf('at %s:%d', $file, $callLine),
+                );
+            }
+        }));
+    }
+
+    public function test_warn_once_at_origin_suppresses_a_bundled_stdlib_origin(): void
+    {
+        DeprecationWarnings::enable();
+
+        $stdlibFile = dirname(__DIR__, 5) . '/src/phel/core/lazy.phel';
+
+        self::assertSame([], $this->capture(static function () use ($stdlibFile): void {
+            DeprecationWarnings::warnOnceAtOrigin(
+                new SourceLocation('/app/user.phel', 4, 1, new SourceLocation($stdlibFile, 9, 2)),
+                'subject',
+                static fn(string $file, int $line): string => sprintf('at %s:%d', $file, $line),
+            );
+        }));
+    }
+
+    public function test_warn_once_at_origin_stays_silent_for_an_unknown_origin(): void
+    {
+        DeprecationWarnings::enable();
+
+        self::assertSame([], $this->capture(static function (): void {
+            DeprecationWarnings::warnOnceAtOrigin(
+                new SourceLocation('/app/user.phel', 4, 1, SourceLocation::unknown()),
+                'subject',
+                static fn(string $file, int $line): string => sprintf('at %s:%d', $file, $line),
+            );
+        }));
+    }
+
+    public function test_warn_syntax_reports_an_expansion_against_the_macro_file(): void
+    {
+        DeprecationWarnings::enable();
+
+        $captured = $this->capture(static function (): void {
+            DeprecationWarnings::warnSyntax(
+                '"^:reference"',
+                'by-reference fn parameters',
+                '"^:by-ref"',
+                new SourceLocation('/app/user.phel', 4, 1, new SourceLocation('/app/macros.phel', 9, 2)),
+            );
+        });
+
+        self::assertCount(1, $captured);
+        self::assertStringContainsString('(at /app/macros.phel:9:2)', $captured[0]);
+        self::assertStringContainsString('reached by expanding a macro at /app/user.phel:4', $captured[0]);
+    }
+
+    public function test_warn_syntax_suppresses_an_expansion_of_a_bundled_stdlib_macro(): void
+    {
+        DeprecationWarnings::enable();
+
+        $stdlibFile = dirname(__DIR__, 5) . '/src/phel/core/lazy.phel';
+
+        self::assertSame([], $this->capture(static function () use ($stdlibFile): void {
+            DeprecationWarnings::warnSyntax(
+                '"^:reference"',
+                'by-reference fn parameters',
+                '"^:by-ref"',
+                new SourceLocation('/app/user.phel', 4, 1, new SourceLocation($stdlibFile, 9, 2)),
+            );
         }));
     }
 
