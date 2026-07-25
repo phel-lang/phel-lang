@@ -470,7 +470,7 @@ Unlike `seq?`, this predicate is true only for lazy sequences, not for realized 
 
 (defn- seq-list
   [values]
-  (php/:: Phel (seqList values)))
+  (if (php/empty values) nil (php/:: Phel (seqList values))))
 
 (defn seq
   "Returns a seq on the collection. Strings are converted to a vector of characters. Other non-empty collections (vectors, sets, sorted-maps, sorted-sets, PHP arrays) are converted to a non-list seq. Returns nil if `coll` is empty or nil.

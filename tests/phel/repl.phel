@@ -1,5 +1,5 @@
 (ns phel-test.repl
-  (:require phel.repl :refer [apropos dir search-doc get-symbol-info get-source-code ns-publics ns-aliases ns-refers ns-interns find-fn test-ns run-tests run-test reload! reload-all! eval-capturing eval-str macroexpand-1-form macroexpand-form macroexpand-1 macroexpand ns-list loaded-namespaces explain suggest fix review embed-ns search-ns find-ns create-ns remove-ns intern])
+  (:require phel.repl :refer [apropos dir search-doc get-symbol-info get-source-code ns-publics ns-aliases ns-refers ns-interns find-fn test-ns run-tests run-test reload! reload-all! eval-capturing compile-str eval-str macroexpand-1-form macroexpand-form macroexpand-1 macroexpand ns-list loaded-namespaces explain suggest fix review embed-ns search-ns find-ns create-ns remove-ns intern])
   (:require phel.ai :as ai)
   (:require phel.string :as s)
   (:require phel-test.fixtures.tagged-tests)
@@ -238,6 +238,27 @@
     (is (= nil (get result :value)) "eval-capturing has nil value on error")
     (is (string? (get result :error)) "eval-capturing has error message string")
     (is (s/contains? (get result :error) "boom") "eval-capturing error contains message")))
+
+;; -----------
+;; compile-str
+;; -----------
+
+(deftest test-compile-str-folds-top-level-expression
+  (is (= "3" (compile-str "(+ 1 2)"))
+      "a bare top-level expression compiles to the value it reduces to, not the empty string"))
+
+(deftest test-compile-str-emits-collection-constructor
+  (is (= "\\Phel::vector([1, 2, 3])" (compile-str "[1 2 3]"))
+      "compile-str returns the emitted PHP for a collection literal"))
+
+(deftest test-compile-str-emits-statement-form
+  (is (s/contains? (compile-str "(def compile-str-demo 1)") "\\Phel::addDefinition")
+      "a top-level def still compiles to its definition call"))
+
+(deftest test-compile-str-does-not-evaluate
+  (is (s/contains? (compile-str "(throw (php/new \\Exception \"compile-str must not run this\"))")
+                   "compile-str must not run this")
+      "compile-str returns the emitted PHP without executing it"))
 
 ;; --------
 ;; eval-str
