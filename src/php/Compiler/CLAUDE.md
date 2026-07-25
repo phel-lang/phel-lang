@@ -18,9 +18,12 @@ Core compilation pipeline: Phel source → tokens → AST → analyzed nodes →
 
 ## Dependencies
 
-- **Filesystem** — file I/O.
+- **Filesystem** — file I/O (`FACADE_FILESYSTEM`, the module's only Provider entry).
 - **Config** — `PhelConfig` data model, wrapped by `CompilerConfig` (`assertsEnabled()`, `warnDeprecationsEnabled()`, `isIntermediateCacheEnabled()`, `getCacheDir()`).
-- **Shared** — `Munge`, `Printer`, exceptions.
+- **Lang** — the compiler's widest edge by far (~200 files): every phase after the lexer reads and produces `Phel\Lang` values, and the emitter writes their FQNs into generated PHP.
+- **Shared** — `Munge`, `Printer`, exceptions, `SourceMap\VLQ`. Shared points back through `Facade/CompilerFacadeInterface`; see the "Compiler Back-Edge" section of `Shared/CLAUDE.md`.
+
+The source map is split across the boundary on purpose: the writer (`Domain/Emitter/OutputEmitter/SourceMap/SourceMapGenerator`, `SourceMapState`) is emitter state and stays here, while the reader (`Shared\SourceMap\SourceMapConsumer`) lives in Shared because Command decodes maps too and must not `new` a compiler-internal class.
 
 ## Phase Pipeline
 

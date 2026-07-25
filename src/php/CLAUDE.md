@@ -8,6 +8,16 @@ Unless a module says "No Gacela Pattern", it follows this wiring:
 
 - `XFacade implements XFacadeInterface` — `XFactory extends AbstractFactory<XConfig>`; `XConfig` reads module settings.
 - `XProvider` exposes cross-module facades via `FACADE_*` string constants (e.g. `RunProvider::FACADE_COMPILER`); the consuming Factory pulls them with `getProvidedDependency(...)`. Modules list these under "Dependencies".
+
+#### What a "Dependencies" section must list
+
+`Lang` and `Shared` are dependency-free leaves that nearly every module imports for types and pure utilities. They are **not** relisted per module; assume they are available. A module's "Dependencies" section covers everything else, whether or not it arrives through a facade:
+
+- every `FACADE_*` the Provider supplies,
+- any non-facade module import (e.g. `Config`, or a neighbour's exception type caught for formatting),
+- any edge that closes a documented cycle.
+
+Keeping non-facade edges out of the docs is how the graph erodes quietly, so they belong here even when there is no Provider entry to hang them on.
 - Layered layout: `Application/` (use cases), `Domain/` (interfaces, value objects, logic), `Infrastructure/` (I/O, CLI commands, adapters), `Transfer/` (DTOs); Gacela files (`Facade`, `Factory`, `Config`, `Provider`) at module root.
 
 ### Where the FacadeInterface lives

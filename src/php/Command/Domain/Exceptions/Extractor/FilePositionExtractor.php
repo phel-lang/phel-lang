@@ -6,7 +6,7 @@ namespace Phel\Command\Domain\Exceptions\Extractor;
 
 use Phel\Command\Domain\Exceptions\Extractor\ReadModel\FilePosition;
 use Phel\Command\Domain\Exceptions\Extractor\ReadModel\SourceMapInformation;
-use Phel\Compiler\Domain\Emitter\OutputEmitter\SourceMap\SourceMapConsumer;
+use Phel\Shared\SourceMap\SourceMapConsumer;
 
 final readonly class FilePositionExtractor implements FilePositionExtractorInterface
 {

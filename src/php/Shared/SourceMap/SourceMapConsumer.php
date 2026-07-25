@@ -2,10 +2,18 @@
 
 declare(strict_types=1);
 
-namespace Phel\Compiler\Domain\Emitter\OutputEmitter\SourceMap;
+namespace Phel\Shared\SourceMap;
 
-use Phel\Shared\SourceMap\VLQ;
-
+/**
+ * Read side of the source-map codec: decodes a VLQ `mappings` string into
+ * generated-line => original-Phel-line lookups.
+ *
+ * It lives beside {@see VLQ} rather than in the emitter because both the
+ * compiler (`EvaluatedCodeException`) and Command (`FilePositionExtractor`)
+ * decode maps, while only the emitter writes them. Keeping the writer
+ * (`SourceMapGenerator`, `SourceMapState`) in Compiler and the reader here
+ * spares Command a `new` on a compiler-internal class.
+ */
 final class SourceMapConsumer
 {
     /** @var array<int, list<int>> */

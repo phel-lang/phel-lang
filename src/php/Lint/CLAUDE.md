@@ -14,12 +14,14 @@ Read-only semantic linter: emits diagnostics on Phel sources, never rewrites the
 
 ## Dependencies
 
-| Facade | Used for |
-|--------|----------|
-| Api | `analyzeSource` (semantic diagnostics), `indexProject` |
-| Compiler | `readFormsBestEffort` (`SourceReader`); `lexString`, `parseNext`, `read` (`ConfigLoader`, `DuplicateKeyRule` — both need the failures reported, not swallowed) |
-| Command | default source directories |
-| Run | `loadPhelNamespaces()` to ensure symbols resolve |
+| Facade | Injected as | Used for |
+|--------|-------------|----------|
+| Api | concrete `ApiFacade` | `analyzeSource` (semantic diagnostics), `indexProject` |
+| Compiler | `CompilerFacadeInterface` | `readFormsBestEffort` (`SourceReader`); `lexString`, `parseNext`, `read` (`ConfigLoader`, `DuplicateKeyRule` — both need the failures reported, not swallowed) |
+| Command | `CommandFacadeInterface` | default source directories |
+| Run | `RunFacadeInterface` | `loadPhelNamespaces()` to ensure symbols resolve |
+
+`ApiFacade` is bound concretely because `analyzeSource` and `indexProject` are not on `ApiFacadeInterface`; see `src/php/Api/CLAUDE.md`. `SatelliteFactoryFacadeInjectionTest` pins all four return types.
 
 ## CLI
 

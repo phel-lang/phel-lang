@@ -12,12 +12,14 @@ The facade is production surface only. `LspFactory::createDispatcher()` stays in
 
 ## Dependencies
 
-| Facade | Used for |
-|--------|----------|
-| Api | Semantic analysis, symbol resolve/references, completion, PHP interop |
-| Lint | Rule-based diagnostics |
-| Formatter | String formatting |
-| Run | Phel namespace loading |
+| Facade | Injected as | Used for |
+|--------|-------------|----------|
+| Api | concrete `ApiFacade` | Semantic analysis, symbol resolve/references, completion, PHP interop |
+| Lint | concrete `LintFacade` | Rule-based diagnostics |
+| Formatter | concrete `FormatterFacade` | String formatting (`formatString`) |
+| Run | `RunFacadeInterface` | Phel namespace loading |
+
+Lsp is the only module that binds three concrete facades, so it is worth being explicit about why: `ApiFacadeInterface` and `FormatterFacadeInterface` exist but declare a narrower surface than Lsp needs (`formatString` is not on the formatter contract), and Lint has no interface at all — `src/php/CLAUDE.md` lists it under "No interface — extend `AbstractFacade`". All three are pinned by `SatelliteFactoryFacadeInjectionTest`, which fails if a *fourth* appears. Narrowing them to interfaces means widening the contracts first.
 
 ## Supported LSP Methods
 

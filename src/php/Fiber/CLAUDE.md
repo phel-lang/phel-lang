@@ -13,7 +13,7 @@ Cooperative async primitives (promises, futures, single-threaded scheduler) back
 
 ## Dependencies
 
-- None. The module has no Provider; no cross-module facades.
+- None beyond the `Lang` leaf (`FnInterface`, in `Domain/Promise.php`). The module has no Provider and no cross-module facades.
 - `FiberConfig::defaultSleepMicroseconds()` = 500µs (top-level busy-poll sleep when awaiting outside a Fiber).
 
 ## Structure
