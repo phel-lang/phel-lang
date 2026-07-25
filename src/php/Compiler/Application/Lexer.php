@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Phel\Compiler\Application;
 
 use Generator;
+use Phel\Compiler\Domain\Deprecation\DeprecationWarnings;
 use Phel\Compiler\Domain\Lexer\Exceptions\LexerValueException;
 use Phel\Compiler\Domain\Lexer\LexerInterface;
 use Phel\Compiler\Domain\Lexer\TokenStream;
@@ -117,6 +118,9 @@ final class Lexer implements LexerInterface
         // strlen() === mb_strlen(), so moveCursor can take the cheaper path.
         $this->isAscii = preg_match('/[\x80-\xFF]/', $code) === 0;
         $end = strlen($code);
+        // Resolved once per source, not per token: the flag is process-wide
+        // and the stdlib-suppression check is a path comparison.
+        $warnDeprecations = DeprecationWarnings::isEnabledForSource($source);
 
         $startLocation = $this->createSourceLocation($source);
 
@@ -126,10 +130,9 @@ final class Lexer implements LexerInterface
                 $this->moveCursor($comment);
                 $endLocation = $this->createSourceLocation($source);
 
-                @trigger_error(
-                    sprintf('"#| ... |#" multiline comments are deprecated and will be removed in a future release. Use ";;" for line comments or "#_" to skip a single form (at %s:%d:%d)', $source, $startLocation->getLine(), $startLocation->getColumn()),
-                    E_USER_DEPRECATED,
-                );
+                if ($warnDeprecations) {
+                    DeprecationWarnings::warn(sprintf('"#| ... |#" multiline comments are deprecated and will be removed in a future release. Use ";;" for line comments or "#_" to skip a single form (at %s:%d:%d)', $source, $startLocation->getLine(), $startLocation->getColumn()));
+                }
 
                 yield new Token(Token::T_COMMENT, $comment, $startLocation, $endLocation);
 
@@ -142,33 +145,21 @@ final class Lexer implements LexerInterface
                 $endLocation = $this->createSourceLocation($source);
                 $tokenType = count($matches);
 
-                if (isset(self::DEPRECATABLE_TYPES[$tokenType])) {
+                if ($warnDeprecations && isset(self::DEPRECATABLE_TYPES[$tokenType])) {
                     if ($tokenType === Token::T_COMMENT && str_starts_with($matches[0], '#')) {
-                        @trigger_error(
-                            sprintf('Bare "#" line comments are deprecated and will be removed in a future release. Use ";" or ";;" instead (at %s:%d:%d)', $source, $startLocation->getLine(), $startLocation->getColumn()),
-                            E_USER_DEPRECATED,
-                        );
+                        DeprecationWarnings::warn(sprintf('Bare "#" line comments are deprecated and will be removed in a future release. Use ";" or ";;" instead (at %s:%d:%d)', $source, $startLocation->getLine(), $startLocation->getColumn()));
                     }
 
                     if ($tokenType === Token::T_FN) {
-                        @trigger_error(
-                            sprintf('Using "|()" for short functions is deprecated, use "#()" instead (at %s:%d:%d)', $source, $startLocation->getLine(), $startLocation->getColumn()),
-                            E_USER_DEPRECATED,
-                        );
+                        DeprecationWarnings::warn(sprintf('Using "|()" for short functions is deprecated, use "#()" instead (at %s:%d:%d)', $source, $startLocation->getLine(), $startLocation->getColumn()));
                     }
 
                     if ($tokenType === Token::T_UNQUOTE_SPLICING && $matches[0] === ',@') {
-                        @trigger_error(
-                            sprintf('Using "," for unquote-splicing is deprecated, use "~@" instead (at %s:%d:%d)', $source, $startLocation->getLine(), $startLocation->getColumn()),
-                            E_USER_DEPRECATED,
-                        );
+                        DeprecationWarnings::warn(sprintf('Using "," for unquote-splicing is deprecated, use "~@" instead (at %s:%d:%d)', $source, $startLocation->getLine(), $startLocation->getColumn()));
                     }
 
                     if ($tokenType === Token::T_UNQUOTE && $matches[0] === ',') {
-                        @trigger_error(
-                            sprintf('Using "," for unquote is deprecated, use "~" instead (at %s:%d:%d)', $source, $startLocation->getLine(), $startLocation->getColumn()),
-                            E_USER_DEPRECATED,
-                        );
+                        DeprecationWarnings::warn(sprintf('Using "," for unquote is deprecated, use "~" instead (at %s:%d:%d)', $source, $startLocation->getLine(), $startLocation->getColumn()));
                     }
                 }
 

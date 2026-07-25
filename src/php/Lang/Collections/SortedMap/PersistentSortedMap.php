@@ -14,6 +14,7 @@ use RuntimeException;
 use Traversable;
 
 use function count;
+use function sprintf;
 
 /**
  * Sorted map implementation based on a flat array maintained in sorted key order.
@@ -72,7 +73,10 @@ final class PersistentSortedMap extends AbstractPersistentMap
     public static function fromArray(HasherInterface $hasher, EqualizerInterface $equalizer, array $kvs, ?callable $comparator = null): self
     {
         if (count($kvs) % 2 !== 0) {
-            throw new RuntimeException('A even number of elements must be provided');
+            throw new RuntimeException(sprintf(
+                'An even number of elements must be provided to build a sorted map, got %d',
+                count($kvs),
+            ));
         }
 
         $result = self::empty($hasher, $equalizer, $comparator)->asTransient();

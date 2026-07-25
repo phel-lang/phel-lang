@@ -36,6 +36,7 @@ use Phel\Shared\Parser\Node\TriviaNodeInterface;
 use Phel\Shared\Parser\Node\WhitespaceNode;
 
 use SplStack;
+use Throwable;
 
 final readonly class Parser implements ParserInterface
 {
@@ -227,7 +228,12 @@ final readonly class Parser implements ParserInterface
         try {
             return $this->atomParser->parse($token);
         } catch (KeywordParserException $keywordParserException) {
-            throw $this->createUnexceptedParserException($tokenStream, $token, $keywordParserException->getMessage());
+            throw $this->createUnexceptedParserException(
+                $tokenStream,
+                $token,
+                $keywordParserException->getMessage(),
+                $keywordParserException,
+            );
         }
     }
 
@@ -295,7 +301,12 @@ final readonly class Parser implements ParserInterface
                 ->createStringParser()
                 ->parse($token);
         } catch (StringParserException $stringParserException) {
-            throw $this->createUnexceptedParserException($tokenStream, $token, $stringParserException->getMessage());
+            throw $this->createUnexceptedParserException(
+                $tokenStream,
+                $token,
+                $stringParserException->getMessage(),
+                $stringParserException,
+            );
         }
     }
 
@@ -313,9 +324,19 @@ final readonly class Parser implements ParserInterface
             ->parse($token);
     }
 
-    private function createUnexceptedParserException(TokenStream $tokenStream, Token $currentToken, string $message): UnexpectedParserException
-    {
-        return UnexpectedParserException::forSnippet($tokenStream->getCodeSnippet(), $currentToken, $message);
+    private function createUnexceptedParserException(
+        TokenStream $tokenStream,
+        Token $currentToken,
+        string $message,
+        ?Throwable $nestedException = null,
+    ): UnexpectedParserException {
+        return UnexpectedParserException::forSnippet(
+            $tokenStream->getCodeSnippet(),
+            $currentToken,
+            $message,
+            null,
+            $nestedException,
+        );
     }
 
     private function createUnfinishedParserException(TokenStream $tokenStream, Token $currentToken, string $message): UnfinishedParserException

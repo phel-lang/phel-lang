@@ -8,6 +8,7 @@ use DateTimeImmutable;
 use Phel;
 use Phel\Compiler\Application\Lexer;
 use Phel\Compiler\CompilerFacade;
+use Phel\Compiler\Domain\Deprecation\DeprecationWarnings;
 use Phel\Compiler\Domain\Parser\Exceptions\ZeroDenominatorRatioParserException;
 use Phel\Compiler\Domain\Reader\Exceptions\ReaderException;
 use Phel\Compiler\Infrastructure\GlobalEnvironmentSingleton;
@@ -17,6 +18,7 @@ use Phel\Lang\Keyword;
 use Phel\Lang\Ratio;
 use Phel\Lang\SourceLocation;
 use Phel\Lang\Symbol;
+use Phel\Lang\TagHandlerException;
 use Phel\Lang\TagHandlers\BuiltinTagHandlers;
 use Phel\Lang\TagRegistry;
 use Phel\Lang\TypeInterface;
@@ -52,6 +54,11 @@ final class ReaderTest extends TestCase
         Phel::bootstrap(__DIR__);
         Symbol::resetGen();
         $this->compilerFacade = new CompilerFacade();
+    }
+
+    protected function tearDown(): void
+    {
+        DeprecationWarnings::reset();
     }
 
     public function test_read_number(): void
@@ -448,6 +455,9 @@ final class ReaderTest extends TestCase
 
     public function test_quasiquote_dollar_auto_gensym_emits_deprecation(): void
     {
+        // Syntax deprecations are opt-in (`--warn-deprecations`).
+        DeprecationWarnings::enable();
+
         $warning = null;
         set_error_handler(static function (int $errno, string $errstr) use (&$warning): bool {
             $warning = $errstr;
@@ -467,6 +477,9 @@ final class ReaderTest extends TestCase
 
     public function test_quasiquote_hash_auto_gensym_does_not_emit_deprecation(): void
     {
+        // Syntax deprecations are opt-in (`--warn-deprecations`).
+        DeprecationWarnings::enable();
+
         $warning = null;
         set_error_handler(static function (int $errno, string $errstr) use (&$warning): bool {
             $warning = $errstr;
@@ -1355,6 +1368,18 @@ final class ReaderTest extends TestCase
         $this->expectException(ReaderException::class);
         $this->expectExceptionMessage('is not a canonical UUID string');
         $this->read('#uuid "not-a-uuid"');
+    }
+
+    public function test_tag_handler_failure_stays_reachable_as_previous(): void
+    {
+        try {
+            $this->read('#uuid "not-a-uuid"');
+            self::fail('Expected a ReaderException');
+        } catch (ReaderException $readerException) {
+            // The located reader error carries the snippet the user sees; the
+            // handler's own exception stays reachable for the error log.
+            self::assertInstanceOf(TagHandlerException::class, $readerException->getPrevious());
+        }
     }
 
     public function test_uuid_tagged_literal_requires_string_form(): void

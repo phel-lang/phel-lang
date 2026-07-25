@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace PhelTest\Unit\Compiler\Analyzer\SpecialForm;
 
 use Generator;
+use InvalidArgumentException;
 use Phel;
 use Phel\Compiler\Application\Analyzer;
 use Phel\Compiler\Domain\Analyzer\Ast\LoadNode;
@@ -124,6 +125,24 @@ final class LoadSymbolTest extends TestCase
         yield 'explicit extension'    => ['util.phel',  'must not include'];
         yield 'dot-slash prefix'      => ['./util',     "must not start with './'"];
         yield 'parent-slash prefix'   => ['../util',    "must not start with './'"];
+    }
+
+    public function test_rejected_path_keeps_the_resolver_failure_as_previous(): void
+    {
+        $this->analyzer->setNamespace('test\\ns');
+
+        try {
+            $this->analyze($this->makeList(['./util']));
+            self::fail('Expected an AnalyzerException');
+        } catch (AnalyzerException $analyzerException) {
+            // The located error is what the user sees; the resolver's own
+            // exception stays reachable so the error log keeps the throw site.
+            self::assertInstanceOf(InvalidArgumentException::class, $analyzerException->getPrevious());
+            self::assertSame(
+                $analyzerException->getPrevious()->getMessage(),
+                $analyzerException->getMessage(),
+            );
+        }
     }
 
     /**
