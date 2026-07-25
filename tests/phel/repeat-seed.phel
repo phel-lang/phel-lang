@@ -1,41 +1,22 @@
 (ns phel-test.repeat-seed
   (:require phel.test :as t :refer [deftest is])
+  (:require phel-test.fixtures.run-harness :as h :refer [events-of passing-count])
   (:require phel-test.fixtures.tagged-tests))
 
 ;; Behavior coverage for `phel.test/run-tests` `:repeat`, `:seed`, and
 ;; `:random-order` options.
 ;;
-;; Each scenario uses the snapshot-and-restore pattern: the outer
-;; suite's stats and reporter set are saved, the inner run executes
-;; against a tiny fixture namespace, then everything is restored. The
-;; inner run's output is captured with `with-output-buffer` so it does
-;; not pollute the outer suite's reporter output.
+;; Each scenario uses the snapshot-and-restore pattern from
+;; `phel-test.fixtures.run-harness`: the outer suite's stats and reporter
+;; set are saved, the inner run executes against a tiny fixture namespace,
+;; then everything is restored. The inner run's output is captured with
+;; `with-output-buffer` so it does not pollute the outer suite's reporter
+;; output.
 
 (def- fixture-ns 'phel-test.fixtures.tagged-tests)
 
 (defn- snapshot-run [options]
-  (let [saved-reporters (t/get-reporters)
-        saved-stats     (t/get-stats)
-        events          (atom [])
-        capture         (fn [e] (swap! events conj e))
-        run-options     (assoc options :reporters
-                               (conj (vec (:reporters options)) capture))]
-    (t/reset-stats)
-    (with-output-buffer
-      (t/run-tests run-options fixture-ns))
-    (let [snapshot (t/get-stats)]
-      (t/set-reporters! saved-reporters)
-      (t/restore-stats saved-stats)
-      {:events (deref events)
-       :stats  snapshot})))
-
-(defn- pass-count [events]
-  (count (for [e :in events
-               :when (and (= :pass (:state e))
-                          (not= :skipped (:type e)))])))
-
-(defn- begin-test-run-events [events]
-  (vec (for [e :in events :when (= :begin-test-run (:type e))])))
+  (h/snapshot-run fixture-ns options))
 
 ;; ---------------------------------------------------------------------------
 ;; :repeat — selected tests run N times, stats accumulate
@@ -44,11 +25,11 @@
 (deftest test-repeat-default-runs-each-test-once
   (let [{:events events} (snapshot-run {:reporters []})]
     ;; The fixture namespace exposes 3 deftests; each emits 1 assertion.
-    (is (= 3 (pass-count events)) "with default repeat each fixture runs once")))
+    (is (= 3 (passing-count events)) "with default repeat each fixture runs once")))
 
 (deftest test-repeat-greater-than-one-multiplies-assertion-count
   (let [{:events events} (snapshot-run {:reporters [] :repeat 3})]
-    (is (= 9 (pass-count events))
+    (is (= 9 (passing-count events))
         "repeat=3 yields 3x the assertions across the fixture namespace")))
 
 (deftest test-repeat-counter-increments-once-per-iteration
@@ -109,5 +90,5 @@
 
 (deftest test-repeat-emits-single-begin-test-run
   (let [{:events events} (snapshot-run {:reporters [] :repeat 5})]
-    (is (= 1 (count (begin-test-run-events events)))
+    (is (= 1 (count (events-of events :begin-test-run)))
         ":begin-test-run is still fired exactly once per run-tests call")))
