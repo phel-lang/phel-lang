@@ -35,7 +35,7 @@ No Gacela pattern: foundational leaf module; all types used directly by other mo
 | `Volatile` | Lightweight mutable container for transducer state (no watches/validators) |
 | `Reduced` | Signals early termination from reduce/transduce |
 | `Future` | Amphp adapter exposing Phel deref/realized? protocol |
-| `Eduction` | Transducer composition helper. Re-runs the chain on every consumption, so it has no size of its own: `empty?` answers it via `Seq::isEmpty` (pulls one element), `count` refuses it with an actionable message rather than draining it |
+| `Eduction` | Transducer composition helper. Re-runs the chain on every consumption, so it has no size of its own. The split follows how many elements the question needs: `empty?` and `first` answer it by pulling one element (`Seq::isEmpty`, `Seq::first`), `count` refuses it with an actionable message rather than draining it |
 
 ## Numeric Utilities
 
@@ -53,7 +53,7 @@ Shared behaviour traits: `MetaTrait` (`getMeta`/`withMeta`), `HashCombinerTrait`
 |-------|-------|
 | `Registry` | Singleton managing definitions by namespace (values + metadata) |
 | `TypeFactory` | Singleton creating persistent collections; provides `Hasher`/`Equalizer` singletons |
-| `Seq` | Static utility for sequence ops |
+| `Seq` | Static utility for sequence ops. Mostly thin delegates to `Generators/`, plus the two single-pull probes `isEmpty()` / `first()` that answer `empty?` / `first` for a source with no size or indexed access of its own |
 | `TagRegistry` | Reader literal tag-handler dispatch (`TagHandlers/`: `#inst`, `#uuid`, regex) |
 | `LoadClasspath` | Static accessor for the `(load ...)` classpath, stored in `Registry` under `phel.core/*load-classpath*`. Lives here (not Compiler) because its state is a `Registry` slot; FQN baked into generated PHP by `LoadEmitter`. Do NOT rename |
 | `\Phel` (`src/Phel.php`, NOT a Lang class) | Thin root facade proxying static calls to the `Registry` singleton via `__callStatic`. Api/Interop use it for ns/definition lookups (`getNamespaces`, `getDefinition`, `getDefinitionMetaData`). Lang's own code must NOT call it (leaf → root cycle); use `Registry`/`TypeFactory` directly |

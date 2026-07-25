@@ -89,6 +89,26 @@ final class Seq
     }
 
     /**
+     * The first element the iterable yields, or `null` when it yields nothing.
+     *
+     * Pulls exactly one element, so it answers `first` for a source with no
+     * indexed access of its own on the same terms as {@see self::isEmpty()}:
+     * one element is all the question needs, whereas `count` would have to
+     * drain the whole pipeline and still cache nothing, which is why `count`
+     * refuses such a source instead.
+     *
+     * @param iterable<mixed> $coll
+     */
+    public static function first(iterable $coll): mixed
+    {
+        foreach ($coll as $value) {
+            return $value;
+        }
+
+        return null;
+    }
+
+    /**
      * @template T
      *
      * @param T $value
