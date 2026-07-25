@@ -4,8 +4,6 @@ declare(strict_types=1);
 
 namespace PhelTest\Unit\Lsp\Application\Handler;
 
-use Phel\Api\Transfer\Definition;
-use Phel\Api\Transfer\ProjectIndex;
 use Phel\Lsp\Application\Convert\PositionConverter;
 use Phel\Lsp\Application\Convert\SymbolInformationBuilder;
 use Phel\Lsp\Application\Convert\SymbolKindMapper;
@@ -14,6 +12,8 @@ use Phel\Lsp\Application\Document\DocumentStore;
 use Phel\Lsp\Application\Handler\WorkspaceSymbolHandler;
 use Phel\Lsp\Application\Session\Session;
 use Phel\Lsp\Domain\NotificationSink;
+use Phel\Shared\Api\Definition;
+use Phel\Shared\Api\ProjectIndex;
 use PHPUnit\Framework\TestCase;
 
 final class WorkspaceSymbolHandlerTest extends TestCase

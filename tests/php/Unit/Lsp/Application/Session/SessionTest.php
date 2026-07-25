@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 namespace PhelTest\Unit\Lsp\Application\Session;
 
-use Phel\Api\Transfer\ProjectIndex;
 use Phel\Lsp\Application\Document\DocumentStore;
 use Phel\Lsp\Application\Session\Session;
 use Phel\Lsp\Domain\NotificationSink;
+use Phel\Shared\Api\ProjectIndex;
 use PHPUnit\Framework\TestCase;
 
 final class SessionTest extends TestCase

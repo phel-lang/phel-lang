@@ -4,11 +4,11 @@ declare(strict_types=1);
 
 namespace PhelTest\Unit\Lint\Application\Rule;
 
-use Phel\Api\Transfer\Definition;
-use Phel\Api\Transfer\ProjectIndex;
 use Phel\Lint\Application\Config\RuleRegistry;
 use Phel\Lint\Application\Rule\DiscouragedVarRule;
 use Phel\Lint\Domain\FileAnalysis;
+use Phel\Shared\Api\Definition;
+use Phel\Shared\Api\ProjectIndex;
 use PHPUnit\Framework\Attributes\PreserveGlobalState;
 use PHPUnit\Framework\Attributes\RunInSeparateProcess;
 

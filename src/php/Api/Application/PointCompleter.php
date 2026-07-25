@@ -6,14 +6,14 @@ namespace Phel\Api\Application;
 
 use Phel\Api\Domain\PhelFnNormalizerInterface;
 use Phel\Api\Domain\PointCompleterInterface;
-use Phel\Api\Transfer\Completion;
-use Phel\Api\Transfer\Definition;
-use Phel\Api\Transfer\ProjectIndex;
 use Phel\Lang\Collections\LinkedList\PersistentListInterface;
 use Phel\Lang\Collections\Map\PersistentMapInterface;
 use Phel\Lang\Collections\Vector\PersistentVectorInterface;
 use Phel\Lang\SourceLocation;
 use Phel\Lang\Symbol;
+use Phel\Shared\Api\Completion;
+use Phel\Shared\Api\Definition;
+use Phel\Shared\Api\ProjectIndex;
 use Phel\Shared\Facade\CompilerFacadeInterface;
 
 use Throwable;

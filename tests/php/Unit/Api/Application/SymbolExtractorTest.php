@@ -5,11 +5,11 @@ declare(strict_types=1);
 namespace PhelTest\Unit\Api\Application;
 
 use Phel\Api\Application\SymbolExtractor;
-use Phel\Api\Transfer\Definition;
 use Phel\Lang\Keyword;
 use Phel\Lang\SourceLocation;
 use Phel\Lang\Symbol;
 use Phel\Lang\TypeFactory;
+use Phel\Shared\Api\Definition;
 use Phel\Shared\Facade\CompilerFacadeInterface;
 use PHPUnit\Framework\TestCase;
 

@@ -4,13 +4,13 @@ declare(strict_types=1);
 
 namespace Phel\Lsp\Application\Handler;
 
-use Phel\Api\ApiFacade;
-use Phel\Api\Transfer\Definition;
-use Phel\Api\Transfer\ProjectIndex;
 use Phel\Lsp\Application\HandlerInterface;
 use Phel\Lsp\Application\Rpc\ParamsExtractor;
 use Phel\Lsp\Application\Session\Session;
+use Phel\Shared\Api\Definition;
 use Phel\Shared\Api\PhelFunction;
+use Phel\Shared\Api\ProjectIndex;
+use Phel\Shared\Facade\ApiFacadeInterface;
 
 use function implode;
 use function sprintf;
@@ -22,7 +22,7 @@ use function sprintf;
 final readonly class HoverHandler implements HandlerInterface
 {
     public function __construct(
-        private ApiFacade $apiFacade,
+        private ApiFacadeInterface $apiFacade,
         private ParamsExtractor $params,
         private SymbolResolver $symbols,
     ) {}

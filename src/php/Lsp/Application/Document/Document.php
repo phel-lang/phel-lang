@@ -136,7 +136,7 @@ final class Document
 
     /**
      * 1-based {line, column} for cursor under the given (0-based) LSP position.
-     * Returned as a tuple ready for ApiFacade::completeAtPoint.
+     * Returned as a tuple ready for ApiFacadeInterface::completeAtPoint.
      *
      * @param Position $position
      *

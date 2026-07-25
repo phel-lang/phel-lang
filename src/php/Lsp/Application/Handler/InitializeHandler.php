@@ -4,11 +4,11 @@ declare(strict_types=1);
 
 namespace Phel\Lsp\Application\Handler;
 
-use Phel\Api\ApiFacade;
 use Phel\Lsp\Application\Convert\UriConverter;
 use Phel\Lsp\Application\HandlerInterface;
 use Phel\Lsp\Application\Session\Session;
 use Phel\Lsp\LspConfig;
+use Phel\Shared\Facade\ApiFacadeInterface;
 
 use function is_array;
 use function is_string;
@@ -20,7 +20,7 @@ use function is_string;
 final readonly class InitializeHandler implements HandlerInterface
 {
     public function __construct(
-        private ApiFacade $apiFacade,
+        private ApiFacadeInterface $apiFacade,
         private UriConverter $uris,
     ) {}
 

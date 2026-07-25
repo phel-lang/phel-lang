@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace PhelTest\Unit\Lint\Application\Formatter;
 
-use Phel\Api\Transfer\Diagnostic;
 use Phel\Lint\Application\Formatter\GithubFormatter;
 use Phel\Lint\Transfer\LintResult;
+use Phel\Shared\Api\Diagnostic;
 use PHPUnit\Framework\TestCase;
 
 final class GithubFormatterTest extends TestCase

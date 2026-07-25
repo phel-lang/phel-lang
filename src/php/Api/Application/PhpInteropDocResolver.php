@@ -4,11 +4,11 @@ declare(strict_types=1);
 
 namespace Phel\Api\Application;
 
-use Phel\Api\ApiFacade;
 use Phel\Api\Transfer\PhpInteropCall;
 use Phel\Api\Transfer\PhpInteropClass;
 use Phel\Api\Transfer\PhpInteropContext;
 use Phel\Api\Transfer\PhpInteropSignature;
+use Phel\Shared\Facade\ApiFacadeInterface;
 
 use function count;
 use function implode;
@@ -23,8 +23,8 @@ use function strlen;
  * when the cursor is not over a resolvable PHP symbol, so callers fall through
  * to the Phel behaviour.
  *
- * @phpstan-import-type SignatureHelp from ApiFacade
- * @phpstan-import-type SignatureParameter from ApiFacade
+ * @phpstan-import-type SignatureHelp from ApiFacadeInterface
+ * @phpstan-import-type SignatureParameter from ApiFacadeInterface
  */
 final readonly class PhpInteropDocResolver
 {

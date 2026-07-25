@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Phel\Watch;
 
 use Gacela\Framework\AbstractFactory;
-use Phel\Api\ApiFacade;
+use Phel\Shared\Facade\ApiFacadeInterface;
 use Phel\Shared\Facade\BuildFacadeInterface;
 use Phel\Shared\Facade\CommandFacadeInterface;
 use Phel\Shared\Facade\RunFacadeInterface;
@@ -110,9 +110,9 @@ final class WatchFactory extends AbstractFactory
         return $facade;
     }
 
-    public function getApiFacade(): ApiFacade
+    public function getApiFacade(): ApiFacadeInterface
     {
-        /** @var ApiFacade $facade */
+        /** @var ApiFacadeInterface $facade */
         $facade = $this->getProvidedDependency(WatchProvider::FACADE_API);
 
         return $facade;

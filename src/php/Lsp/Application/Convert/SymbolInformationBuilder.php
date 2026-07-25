@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Phel\Lsp\Application\Convert;
 
-use Phel\Api\Transfer\Definition;
+use Phel\Shared\Api\Definition;
 
 use function max;
 use function strlen;

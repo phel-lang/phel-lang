@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace PhelTest\Unit\Api\Transfer;
+namespace PhelTest\Unit\Shared\Api;
 
-use Phel\Api\Transfer\Definition;
+use Phel\Shared\Api\Definition;
 use PHPUnit\Framework\TestCase;
 
 final class DefinitionTest extends TestCase

@@ -7,7 +7,7 @@ namespace Phel\Api\Infrastructure\Command;
 use Gacela\Framework\ServiceResolver\ServiceMap;
 use Gacela\Framework\ServiceResolverAwareTrait;
 use Phel\Api\ApiFacade;
-use Phel\Api\Transfer\Diagnostic;
+use Phel\Shared\Api\Diagnostic;
 use Phel\Shared\ScalarCoercion;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputArgument;

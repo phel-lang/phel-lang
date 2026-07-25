@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace PhelTest\Unit\Lsp\Application\Convert;
 
-use Phel\Api\Transfer\Definition;
 use Phel\Lsp\Application\Convert\SymbolKindMapper;
+use Phel\Shared\Api\Definition;
 use PHPUnit\Framework\TestCase;
 
 final class SymbolKindMapperTest extends TestCase

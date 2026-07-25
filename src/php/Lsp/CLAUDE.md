@@ -14,12 +14,12 @@ The facade is production surface only. `LspFactory::createDispatcher()` stays in
 
 | Facade | Injected as | Used for |
 |--------|-------------|----------|
-| Api | concrete `ApiFacade` | Semantic analysis, symbol resolve/references, completion, PHP interop |
+| Api | `ApiFacadeInterface` | Semantic analysis, symbol resolve/references, completion, PHP interop |
 | Lint | concrete `LintFacade` | Rule-based diagnostics |
-| Formatter | concrete `FormatterFacade` | String formatting (`formatString`) |
+| Formatter | `FormatterFacadeInterface` | String formatting (`formatString`) |
 | Run | `RunFacadeInterface` | Phel namespace loading |
 
-Lsp is the only module that binds three concrete facades, so it is worth being explicit about why: `ApiFacadeInterface` and `FormatterFacadeInterface` exist but declare a narrower surface than Lsp needs (`formatString` is not on the formatter contract), and Lint has no interface at all — `src/php/CLAUDE.md` lists it under "No interface — extend `AbstractFacade`". All three are pinned by `SatelliteFactoryFacadeInjectionTest`, which fails if a *fourth* appears. Narrowing them to interfaces means widening the contracts first.
+`LintFacade` is the last concrete binding left in the codebase. Lint has no Shared contract — `src/php/CLAUDE.md` lists it under "No interface — extend `AbstractFacade`" — and giving it one is not a signature change: its methods trade in `RuleSettings`, `LintCache` and `LintResult`, so the contract only becomes leaf-safe once those move too. `SatelliteFactoryFacadeInjectionTest` pins it and fails if a *second* concrete binding appears.
 
 ## Supported LSP Methods
 

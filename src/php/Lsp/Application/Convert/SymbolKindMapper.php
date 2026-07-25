@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Phel\Lsp\Application\Convert;
 
-use Phel\Api\Transfer\Definition;
+use Phel\Shared\Api\Definition;
 
 /**
  * Maps a Phel definition kind (`defn`, `defmacro`, `defstruct`, ...) to the

@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Phel\Lsp\Application\Convert;
 
-use Phel\Api\Transfer\Diagnostic;
+use Phel\Shared\Api\Diagnostic;
 
 /**
  * Convert a {@see Diagnostic} from the Api module into the shape expected by

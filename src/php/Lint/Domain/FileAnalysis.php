@@ -4,15 +4,15 @@ declare(strict_types=1);
 
 namespace Phel\Lint\Domain;
 
-use Phel\Api\Transfer\Diagnostic;
-use Phel\Api\Transfer\ProjectIndex;
 use Phel\Lang\TypeInterface;
+use Phel\Shared\Api\Diagnostic;
+use Phel\Shared\Api\ProjectIndex;
 
 /**
  * Immutable data handed to every rule for a single file. Rules must not
  * mutate this — it is shared across the rule pipeline.
  *
- * `semanticDiagnostics` is the cached output of `ApiFacade::analyzeSource`
+ * `semanticDiagnostics` is the cached output of `ApiFacadeInterface::analyzeSource`
  * for this file: rules that consume analyzer diagnostics reuse it so the
  * pipeline only pays for one analyze pass per file.
  */

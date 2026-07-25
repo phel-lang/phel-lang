@@ -4,15 +4,15 @@ declare(strict_types=1);
 
 namespace Phel\Lsp\Application\Handler;
 
-use Phel\Api\ApiFacade;
-use Phel\Api\Transfer\Definition;
-use Phel\Api\Transfer\ProjectIndex;
 use Phel\Lsp\Application\Convert\SymbolInformationBuilder;
 use Phel\Lsp\Application\Convert\UriConverter;
 use Phel\Lsp\Application\Document\Document;
 use Phel\Lsp\Application\HandlerInterface;
 use Phel\Lsp\Application\Rpc\ParamsExtractor;
 use Phel\Lsp\Application\Session\Session;
+use Phel\Shared\Api\Definition;
+use Phel\Shared\Api\ProjectIndex;
+use Phel\Shared\Facade\ApiFacadeInterface;
 
 /**
  * Lists all top-level definitions in the open document. Uses the project
@@ -22,7 +22,7 @@ use Phel\Lsp\Application\Session\Session;
 final readonly class DocumentSymbolHandler implements HandlerInterface
 {
     public function __construct(
-        private ApiFacade $apiFacade,
+        private ApiFacadeInterface $apiFacade,
         private UriConverter $uris,
         private SymbolInformationBuilder $symbolBuilder,
         private ParamsExtractor $params,

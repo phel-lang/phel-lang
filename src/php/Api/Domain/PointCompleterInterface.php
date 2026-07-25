@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace Phel\Api\Domain;
 
-use Phel\Api\Transfer\Completion;
-use Phel\Api\Transfer\ProjectIndex;
+use Phel\Shared\Api\Completion;
+use Phel\Shared\Api\ProjectIndex;
 
 /**
  * Ranks completion candidates for a cursor position.

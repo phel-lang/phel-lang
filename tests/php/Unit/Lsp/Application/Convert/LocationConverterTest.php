@@ -4,11 +4,11 @@ declare(strict_types=1);
 
 namespace PhelTest\Unit\Lsp\Application\Convert;
 
-use Phel\Api\Transfer\Definition;
-use Phel\Api\Transfer\Location;
 use Phel\Lsp\Application\Convert\LocationConverter;
 use Phel\Lsp\Application\Convert\PositionConverter;
 use Phel\Lsp\Application\Convert\UriConverter;
+use Phel\Shared\Api\Definition;
+use Phel\Shared\Api\Location;
 use PHPUnit\Framework\TestCase;
 
 final class LocationConverterTest extends TestCase

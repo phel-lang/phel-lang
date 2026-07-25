@@ -5,10 +5,10 @@ declare(strict_types=1);
 namespace Phel\Api\Infrastructure\Daemon;
 
 use Phel\Api\ApiFacade;
-use Phel\Api\Transfer\Completion;
-use Phel\Api\Transfer\Diagnostic;
-use Phel\Api\Transfer\Location;
-use Phel\Api\Transfer\ProjectIndex;
+use Phel\Shared\Api\Completion;
+use Phel\Shared\Api\Diagnostic;
+use Phel\Shared\Api\Location;
+use Phel\Shared\Api\ProjectIndex;
 use Phel\Shared\ScalarCoercion;
 use Throwable;
 

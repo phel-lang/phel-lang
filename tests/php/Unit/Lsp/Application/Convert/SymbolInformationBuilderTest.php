@@ -4,11 +4,11 @@ declare(strict_types=1);
 
 namespace PhelTest\Unit\Lsp\Application\Convert;
 
-use Phel\Api\Transfer\Definition;
 use Phel\Lsp\Application\Convert\PositionConverter;
 use Phel\Lsp\Application\Convert\SymbolInformationBuilder;
 use Phel\Lsp\Application\Convert\SymbolKindMapper;
 use Phel\Lsp\Application\Convert\UriConverter;
+use Phel\Shared\Api\Definition;
 use PHPUnit\Framework\TestCase;
 
 final class SymbolInformationBuilderTest extends TestCase

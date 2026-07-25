@@ -5,8 +5,6 @@ declare(strict_types=1);
 namespace Phel\Lsp;
 
 use Gacela\Framework\AbstractFactory;
-use Phel\Api\ApiFacade;
-use Phel\Formatter\FormatterFacade;
 use Phel\Lint\LintFacade;
 use Phel\Lsp\Application\Convert\CompletionConverter;
 use Phel\Lsp\Application\Convert\DiagnosticConverter;
@@ -44,6 +42,8 @@ use Phel\Lsp\Application\Rpc\RequestDispatcher;
 use Phel\Lsp\Application\Rpc\ResponseBuilder;
 use Phel\Lsp\Application\Rpc\StreamNotificationSink;
 use Phel\Lsp\Application\Session\Session;
+use Phel\Shared\Facade\ApiFacadeInterface;
+use Phel\Shared\Facade\FormatterFacadeInterface;
 use Phel\Shared\Facade\RunFacadeInterface;
 
 /**
@@ -197,9 +197,9 @@ final class LspFactory extends AbstractFactory
         );
     }
 
-    public function getApiFacade(): ApiFacade
+    public function getApiFacade(): ApiFacadeInterface
     {
-        /** @var ApiFacade $facade */
+        /** @var ApiFacadeInterface $facade */
         $facade = $this->getProvidedDependency(LspProvider::FACADE_API);
 
         return $facade;
@@ -213,9 +213,9 @@ final class LspFactory extends AbstractFactory
         return $facade;
     }
 
-    public function getFormatterFacade(): FormatterFacade
+    public function getFormatterFacade(): FormatterFacadeInterface
     {
-        /** @var FormatterFacade $facade */
+        /** @var FormatterFacadeInterface $facade */
         $facade = $this->getProvidedDependency(LspProvider::FACADE_FORMATTER);
 
         return $facade;

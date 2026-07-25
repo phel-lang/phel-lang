@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace PhelTest\Unit\Api\Application;
 
 use Phel\Api\Application\PhpInteropReflector;
-use Phel\Api\Transfer\Completion;
+use Phel\Shared\Api\Completion;
 use PhelTest\Support\Fixtures\PhpInterop\ChainFixture;
 use PhelTest\Support\Fixtures\PhpInterop\HoverContract;
 use PhelTest\Support\Fixtures\PhpInterop\HoverEnum;

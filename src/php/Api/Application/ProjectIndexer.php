@@ -5,9 +5,9 @@ declare(strict_types=1);
 namespace Phel\Api\Application;
 
 use Phel\Api\Domain\ProjectIndexerInterface;
-use Phel\Api\Transfer\Definition;
-use Phel\Api\Transfer\Location;
-use Phel\Api\Transfer\ProjectIndex;
+use Phel\Shared\Api\Definition;
+use Phel\Shared\Api\Location;
+use Phel\Shared\Api\ProjectIndex;
 
 use function file_get_contents;
 use function is_dir;

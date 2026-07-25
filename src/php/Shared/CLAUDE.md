@@ -56,7 +56,7 @@ It also does not weaken the Gacela rule it appears to touch. Shared only *names*
 - `Eval/` — `final readonly` VOs for eval outcomes: `EvalResult` (`success()`/`incomplete()`/`failure()` named ctors), `EvalError`, `StackFrame`. Returned by `RunFacadeInterface::structuredEval()`, consumed by Nrepl/Watch. Producing orchestration lives in `Run\Application\StructuredEvaluator`, so these stay logic-free.
 - `CompiledFile` — `final readonly` DTO (`sourceFile`, `targetFile`, `namespace`, `cached`); produced by Build's compilers, returned by `BuildFacadeInterface`.
 - `Interop/Wrapper` — `final readonly` DTO (relative path + compiled PHP) for generated export wrappers; returned by `InteropFacadeInterface::generateExportCode()`.
-- `Api/` — `PhelFunction`, `CompletionResultTransfer`: `final readonly` DTOs for function metadata and typed REPL completions; returned by `ApiFacadeInterface`, consumed by Api/Lsp/Nrepl/Run.
+- `Api/` — `final readonly` DTOs named by `ApiFacadeInterface`, consumed by Api/Lint/Lsp/Nrepl/Run/Watch: `PhelFunction` and `CompletionResultTransfer` (function metadata, typed REPL completions) plus the semantic-analysis payloads `Diagnostic`, `Definition`, `Location`, `Completion` and `ProjectIndex`. They live here for the usual reason: the contract cannot name a `Phel\Api` class without turning `Api <-> Shared` into a cycle. All are logic-free apart from `toArray()` projections and `ProjectIndex`'s pure queries.
 - `Formatter/FormatResult` — `final readonly` DTO (`changedPaths`, `failedPaths` + emptiness predicates); returned by `FormatterFacadeInterface::format()`. Separating the two lists is what lets `phel format` exit non-zero on an unparsable file.
 
 ## Parser Model

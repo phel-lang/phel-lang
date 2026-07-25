@@ -5,9 +5,9 @@ declare(strict_types=1);
 namespace Phel\Api\Application\Analysis;
 
 use Phel\Api\Domain\AnalysisStageInterface;
-use Phel\Api\Transfer\Diagnostic;
 use Phel\Compiler\Domain\Lexer\Exceptions\LexerValueException;
 use Phel\Compiler\Domain\Parser\Exceptions\AbstractParserException;
+use Phel\Shared\Api\Diagnostic;
 use Phel\Shared\Exceptions\ErrorCode;
 use Phel\Shared\Facade\CompilerFacadeInterface;
 use Phel\Shared\Parser\Node\NodeInterface;

@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace Phel\Lint\Application\Formatter;
 
-use Phel\Api\Transfer\Diagnostic;
 use Phel\Lint\Domain\DiagnosticFormatterInterface;
 use Phel\Lint\Transfer\LintResult;
+use Phel\Shared\Api\Diagnostic;
 
 use function implode;
 use function sprintf;

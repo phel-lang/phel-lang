@@ -6,12 +6,12 @@ namespace PhelTest\Integration\Api;
 
 use Phel;
 use Phel\Api\ApiFacade;
-use Phel\Api\Transfer\Completion;
-use Phel\Api\Transfer\Definition;
-use Phel\Api\Transfer\Diagnostic;
-use Phel\Api\Transfer\ProjectIndex;
 use Phel\Compiler\Infrastructure\GlobalEnvironmentSingleton;
 use Phel\Lang\Symbol;
+use Phel\Shared\Api\Completion;
+use Phel\Shared\Api\Definition;
+use Phel\Shared\Api\Diagnostic;
+use Phel\Shared\Api\ProjectIndex;
 use PHPUnit\Framework\Attributes\PreserveGlobalState;
 use PHPUnit\Framework\Attributes\RunInSeparateProcess;
 use PHPUnit\Framework\TestCase;

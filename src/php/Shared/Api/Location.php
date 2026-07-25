@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Phel\Api\Transfer;
+namespace Phel\Shared\Api;
 
 /**
  * @phpstan-type SerializedLocation array{uri: string, line: int, col: int, endLine: int, endCol: int}

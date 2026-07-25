@@ -5,8 +5,6 @@ declare(strict_types=1);
 namespace PhelTest\Unit\Architecture;
 
 use Generator;
-use Phel\Api\ApiFacade;
-use Phel\Formatter\FormatterFacade;
 use Phel\Formatter\FormatterFactory;
 use Phel\Lint\LintFacade;
 use Phel\Lint\LintFactory;
@@ -17,6 +15,7 @@ use Phel\Shared\Facade\ApiFacadeInterface;
 use Phel\Shared\Facade\BuildFacadeInterface;
 use Phel\Shared\Facade\CommandFacadeInterface;
 use Phel\Shared\Facade\CompilerFacadeInterface;
+use Phel\Shared\Facade\FormatterFacadeInterface;
 use Phel\Shared\Facade\RunFacadeInterface;
 use Phel\Watch\WatchFactory;
 use PHPUnit\Framework\Attributes\DataProvider;
@@ -48,14 +47,18 @@ final class SatelliteFactoryFacadeInjectionTest extends TestCase
     public static function factoryGetterProvider(): Generator
     {
         yield 'Lsp run' => [LspFactory::class, 'getRunFacade', RunFacadeInterface::class];
+        yield 'Lsp api' => [LspFactory::class, 'getApiFacade', ApiFacadeInterface::class];
+        yield 'Lsp formatter' => [LspFactory::class, 'getFormatterFacade', FormatterFacadeInterface::class];
 
         yield 'Lint run' => [LintFactory::class, 'getRunFacade', RunFacadeInterface::class];
         yield 'Lint compiler' => [LintFactory::class, 'getCompilerFacade', CompilerFacadeInterface::class];
         yield 'Lint command' => [LintFactory::class, 'getCommandFacade', CommandFacadeInterface::class];
+        yield 'Lint api' => [LintFactory::class, 'getApiFacade', ApiFacadeInterface::class];
 
         yield 'Watch run' => [WatchFactory::class, 'getRunFacade', RunFacadeInterface::class];
         yield 'Watch command' => [WatchFactory::class, 'getCommandFacade', CommandFacadeInterface::class];
         yield 'Watch build' => [WatchFactory::class, 'getBuildFacade', BuildFacadeInterface::class];
+        yield 'Watch api' => [WatchFactory::class, 'getApiFacade', ApiFacadeInterface::class];
 
         yield 'Nrepl run' => [NreplFactory::class, 'getRunFacade', RunFacadeInterface::class];
         yield 'Nrepl api' => [NreplFactory::class, 'getApiFacade', ApiFacadeInterface::class];
@@ -71,21 +74,18 @@ final class SatelliteFactoryFacadeInjectionTest extends TestCase
      * it cannot notice a *new* factory binding a concrete facade. This walks
      * every factory instead and fails on the difference.
      *
-     * Three getters legitimately return a concrete facade: `Lint`, `Lsp` and
-     * `Watch` consume Api methods (`analyzeSource`, `indexProject`, symbol
-     * resolution) that `ApiFacadeInterface` does not declare, and `Lsp` consumes
+     * Exactly one getter still returns a concrete facade: `Lsp` consumes
      * `LintFacade`, for which `src/php/CLAUDE.md` records that no interface
-     * exists. Narrowing those means widening the contracts first, so they are
-     * listed rather than silently allowed.
+     * exists. Unlike the Api and Formatter contracts, widening that one is not
+     * a signature change: `LintFacade` trades in `RuleSettings`, `LintCache`
+     * and `LintResult`, so a Shared contract means relocating Lint's own
+     * configuration and cache types first. It is listed rather than silently
+     * allowed.
      */
     public function test_no_unlisted_factory_binds_a_concrete_facade(): void
     {
         $expected = [
-            'Lint/LintFactory.php::getApiFacade' => ApiFacade::class,
-            'Lsp/LspFactory.php::getApiFacade' => ApiFacade::class,
-            'Lsp/LspFactory.php::getFormatterFacade' => FormatterFacade::class,
             'Lsp/LspFactory.php::getLintFacade' => LintFacade::class,
-            'Watch/WatchFactory.php::getApiFacade' => ApiFacade::class,
         ];
 
         self::assertSame(
