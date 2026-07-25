@@ -17,9 +17,9 @@ use function str_starts_with;
  * `\Phel\Lang\Foo`) so the codebase can migrate to Clojure-compatible dot
  * syntax ahead of the backslash form being removed.
  *
- * Detection only: the enabled gate, the bundled-stdlib suppression, and the
- * per-`(file, symbol)` dedup all belong to {@see DeprecationWarnings}, which
- * is why this class is stateless.
+ * Detection only: the enabled gate, the bundled-stdlib suppression, the
+ * per-`(file, symbol)` dedup, and the macro-expansion attribution all belong
+ * to {@see DeprecationWarnings}, which is why this class is stateless.
  *
  * Scope of detection is intentionally narrow: only symbols that pass
  * through `SymbolResolver::resolve()` — call sites and qualified refs.
@@ -59,39 +59,10 @@ final class BackslashSeparatorDeprecator
             return;
         }
 
-        $origin = $location->getExpansionOrigin();
-        if ($origin instanceof SourceLocation) {
-            $this->warnForExpansion($namespace, $origin, $location);
-            return;
-        }
-
-        $file = $location->getFile();
-        DeprecationWarnings::warnOnceForSource(
-            $file,
+        DeprecationWarnings::warnOnceAtOrigin(
+            $location,
             $namespace,
-            $this->buildMessage($namespace, $file, $location->getLine()),
-        );
-    }
-
-    /**
-     * The symbol was produced by a macro or inline expansion, so the `\` lives
-     * in the definition, not at `$callSite`. Attributing it to the call site
-     * would report a deprecation the author of that file never wrote and
-     * cannot remove; attributing it to the definition points at the one place
-     * an edit fixes it, and lets the bundled-stdlib suppression silence
-     * `phel.core`'s own macros instead of flooding every project that calls
-     * one (#2827).
-     */
-    private function warnForExpansion(
-        string $namespace,
-        SourceLocation $origin,
-        SourceLocation $callSite,
-    ): void {
-        DeprecationWarnings::warnOnceForSource(
-            $origin->getFile(),
-            $namespace,
-            $this->buildMessage($namespace, $origin->getFile(), $origin->getLine())
-            . sprintf(' (reached by expanding a macro at %s:%d)', $callSite->getFile(), $callSite->getLine()),
+            fn(string $file, int $line): string => $this->buildMessage($namespace, $file, $line),
         );
     }
 

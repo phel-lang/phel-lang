@@ -118,6 +118,43 @@ final class ShadowedBindingRuleTest extends RuleTestCase
 
     #[PreserveGlobalState(false)]
     #[RunInSeparateProcess]
+    public function test_it_does_not_treat_a_foreach_collection_expression_as_a_binding(): void
+    {
+        $rule = new ShadowedBindingRule();
+        // The trailing `coll` is what is iterated, not a name the head binds.
+        $analysis = $this->buildAnalysis("(let [coll [1 2]] (foreach [x coll] (println x)))\n");
+
+        self::assertSame([], $rule->apply($analysis));
+    }
+
+    #[PreserveGlobalState(false)]
+    #[RunInSeparateProcess]
+    public function test_it_flags_a_foreach_binding_that_shadows_an_outer_local(): void
+    {
+        $rule = new ShadowedBindingRule();
+        $analysis = $this->buildAnalysis("(let [x 1] (foreach [x [1 2]] (println x)))\n");
+
+        $diagnostics = $rule->apply($analysis);
+
+        self::assertCount(1, $diagnostics);
+        self::assertStringContainsString("'x'", $diagnostics[0]->message);
+    }
+
+    #[PreserveGlobalState(false)]
+    #[RunInSeparateProcess]
+    public function test_it_flags_a_shadowing_key_binding_of_a_three_element_foreach_head(): void
+    {
+        $rule = new ShadowedBindingRule();
+        $analysis = $this->buildAnalysis("(let [k 1] (foreach [k v {:a 1}] (println k v)))\n");
+
+        $diagnostics = $rule->apply($analysis);
+
+        self::assertCount(1, $diagnostics);
+        self::assertStringContainsString("'k'", $diagnostics[0]->message);
+    }
+
+    #[PreserveGlobalState(false)]
+    #[RunInSeparateProcess]
     public function test_it_does_not_flag_repeated_param_names_across_arities(): void
     {
         $rule = new ShadowedBindingRule();

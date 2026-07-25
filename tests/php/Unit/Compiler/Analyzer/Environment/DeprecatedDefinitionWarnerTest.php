@@ -151,6 +151,61 @@ final class DeprecatedDefinitionWarnerTest extends TestCase
         self::assertSame([], $this->capturedDeprecations());
     }
 
+    public function test_suppresses_expansion_of_a_bundled_stdlib_macro(): void
+    {
+        // A phel.core macro whose expansion calls a deprecated definition: the
+        // call is stamped with the user's call site, but it was written in
+        // phel's own stdlib, so the user must not be told to fix their file.
+        $this->warner()->maybeWarn(
+            'phel.core',
+            $this->expandedSymbol('set-meta!', '/app/user.phel', dirname(__DIR__, 6) . '/src/phel/core/meta.phel'),
+            $this->meta(['deprecated' => '0.32.0']),
+        );
+
+        self::assertSame([], $this->capturedDeprecations());
+    }
+
+    public function test_attributes_expansion_of_a_user_macro_to_the_macro_file(): void
+    {
+        $this->warner()->maybeWarn(
+            'my.app',
+            $this->expandedSymbol('old-fn', '/app/user.phel', '/app/macros.phel'),
+            $this->meta(['deprecated' => true]),
+        );
+
+        $captured = $this->capturedDeprecations();
+        self::assertCount(1, $captured);
+        self::assertStringContainsString("'my.app/old-fn' used at /app/macros.phel:7", $captured[0]);
+        self::assertStringContainsString('reached by expanding a macro at /app/user.phel:3', $captured[0]);
+    }
+
+    public function test_suppresses_expansion_whose_origin_is_unknown(): void
+    {
+        // No `:start-location` on the macro definition: the call site is still
+        // the wrong place to report, so stay silent rather than misattribute.
+        $symbol = Symbol::create('old-fn');
+        $symbol->setStartLocation(new SourceLocation('/app/user.phel', 3, 1, SourceLocation::unknown()));
+
+        $this->warner()->maybeWarn('my.app', $symbol, $this->meta(['deprecated' => true]));
+
+        self::assertSame([], $this->capturedDeprecations());
+    }
+
+    public function test_still_warns_for_a_deprecated_call_the_user_wrote_inside_a_macro_call(): void
+    {
+        // A macro argument keeps its own reader location, so it is never
+        // marked as expansion output.
+        $this->warner()->maybeWarn(
+            'my.app',
+            $this->locatedSymbol('old-fn', '/app/user.phel'),
+            $this->meta(['deprecated' => true]),
+        );
+
+        $captured = $this->capturedDeprecations();
+        self::assertCount(1, $captured);
+        self::assertStringContainsString("'my.app/old-fn' used at /app/user.phel:1", $captured[0]);
+    }
+
     private function warner(): DeprecatedDefinitionWarner
     {
         return DeprecatedDefinitionWarner::getInstance();
@@ -160,6 +215,23 @@ final class DeprecatedDefinitionWarnerTest extends TestCase
     {
         $symbol = Symbol::create($name);
         $symbol->setStartLocation(new SourceLocation($file, 1, 1));
+
+        return $symbol;
+    }
+
+    /**
+     * A symbol as macro expansion leaves it: located at the call site, but
+     * carrying the definition it was really written in.
+     */
+    private function expandedSymbol(string $name, string $callSiteFile, string $originFile): Symbol
+    {
+        $symbol = Symbol::create($name);
+        $symbol->setStartLocation(new SourceLocation(
+            $callSiteFile,
+            3,
+            1,
+            new SourceLocation($originFile, 7, 2),
+        ));
 
         return $symbol;
     }

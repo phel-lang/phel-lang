@@ -124,6 +124,42 @@ PHEL;
         self::assertContains('k', $labels);
     }
 
+    #[PreserveGlobalState(false)]
+    #[RunInSeparateProcess]
+    public function test_it_completes_iteration_bindings_without_their_collection_expressions(): void
+    {
+        $this->bootstrap();
+        $facade = new ApiFacade();
+
+        $source = <<<PHEL
+(ns user)
+(defn my-fn []
+  (for [item :in coll]
+    (foreach [k v other]
+      item)))
+PHEL;
+
+        $empty = new ProjectIndex([], []);
+        // Column 7 is the start of `item`, so the empty prefix leaves every
+        // in-scope local in the result.
+        $completions = $facade->completeAtPoint($source, 5, 7, $empty);
+
+        $labels = array_map(
+            static fn(Completion $c): string => $c->label,
+            array_values(array_filter(
+                $completions,
+                static fn(Completion $c): bool => $c->kind === 'local',
+            )),
+        );
+
+        self::assertContains('item', $labels);
+        self::assertContains('k', $labels);
+        self::assertContains('v', $labels);
+        // The trailing element of either head is the collection, not a local.
+        self::assertNotContains('coll', $labels);
+        self::assertNotContains('other', $labels);
+    }
+
     private function bootstrap(): void
     {
         Phel::bootstrap(__DIR__);
