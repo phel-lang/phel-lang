@@ -1,4 +1,4 @@
-command: .claude/hooks/compact-context.sh
+command: 'sh -c ''r=$(git rev-parse --path-format=absolute --git-common-dir 2>/dev/null) || exit 0; s="$(dirname "$r")/.claude/hooks/compact-context.sh"; [ -x "$s" ] || exit 0; exec "$s"'''
 event: SessionStart
 matcher: compact
 name: sessionstart-compact-b52e8c85
