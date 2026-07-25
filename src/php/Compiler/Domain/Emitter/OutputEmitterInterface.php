@@ -28,6 +28,13 @@ interface OutputEmitterInterface
 
     public function resetIndentLevel(): void;
 
+    public function resetPhpNamespaceDeclaration(): void;
+
+    /**
+     * Emits the file's PHP `namespace` declaration, at most once per file.
+     */
+    public function declarePhpNamespaceOnce(string $namespace, ?SourceLocation $sl = null): void;
+
     public function resetSourceMapState(): void;
 
     public function getSourceMapState(): SourceMapState;
