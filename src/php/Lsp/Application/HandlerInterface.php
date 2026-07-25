@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Phel\Lsp\Domain;
+namespace Phel\Lsp\Application;
 
 use Phel\Lsp\Application\Session\Session;
 

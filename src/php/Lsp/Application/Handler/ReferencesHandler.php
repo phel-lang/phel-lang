@@ -6,9 +6,9 @@ namespace Phel\Lsp\Application\Handler;
 
 use Phel\Api\ApiFacade;
 use Phel\Lsp\Application\Convert\LocationConverter;
+use Phel\Lsp\Application\HandlerInterface;
 use Phel\Lsp\Application\Rpc\ParamsExtractor;
 use Phel\Lsp\Application\Session\Session;
-use Phel\Lsp\Domain\HandlerInterface;
 
 final readonly class ReferencesHandler implements HandlerInterface
 {

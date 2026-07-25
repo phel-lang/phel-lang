@@ -5,8 +5,8 @@ declare(strict_types=1);
 namespace PhelTest\Unit\Api\Application;
 
 use Phel\Api\Application\PhpInteropDocResolver;
-use PhelTest\Unit\Api\Application\Fixtures\HoverEnum;
-use PhelTest\Unit\Api\Application\Fixtures\HoverFixture;
+use PhelTest\Support\Fixtures\PhpInterop\HoverEnum;
+use PhelTest\Support\Fixtures\PhpInterop\HoverFixture;
 use PHPUnit\Framework\TestCase;
 
 use function strlen;

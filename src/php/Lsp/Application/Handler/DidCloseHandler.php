@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace Phel\Lsp\Application\Handler;
 
+use Phel\Lsp\Application\HandlerInterface;
 use Phel\Lsp\Application\Rpc\ParamsExtractor;
 use Phel\Lsp\Application\Session\Session;
-use Phel\Lsp\Domain\HandlerInterface;
 
 final readonly class DidCloseHandler implements HandlerInterface
 {

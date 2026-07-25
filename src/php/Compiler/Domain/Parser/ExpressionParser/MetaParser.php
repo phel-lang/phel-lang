@@ -4,14 +4,14 @@ declare(strict_types=1);
 
 namespace Phel\Compiler\Domain\Parser\ExpressionParser;
 
-use Phel\Compiler\Application\Parser;
 use Phel\Compiler\Domain\Lexer\TokenStream;
+use Phel\Compiler\Domain\Parser\ParserInterface;
 use Phel\Shared\Parser\Node\MetaNode;
 use Phel\Shared\Parser\Node\TriviaNodeInterface;
 
 final readonly class MetaParser
 {
-    public function __construct(private Parser $parser) {}
+    public function __construct(private ParserInterface $parser) {}
 
     public function parse(TokenStream $tokenStream): MetaNode
     {

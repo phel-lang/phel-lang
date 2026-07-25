@@ -23,6 +23,8 @@ All notable changes to this project will be documented in this file.
 
 - **BREAKING** (PHP API): the four unrelated module interfaces all named `FileIoInterface` are renamed after what each one actually does, so an import no longer needs its namespace read to be understood: `Phel\Filesystem\Domain\FileIoInterface` → `DirectoryWritabilityCheckerInterface`, `Phel\Build\Domain\IO\FileIoInterface` → `FileContentsIoInterface`, `Phel\Formatter\Domain\IO\FileIoInterface` → `ValidatedFileIoInterface`, `Phel\Interop\Domain\FileCreator\FileIoInterface` → `FileWriterInterface`. Method signatures are unchanged; the interfaces stay four separate contracts and were not merged
 - Documented 60+ previously-undocumented public core functions with runnable `:example`/`:see-also` metadata — threading macros, set/sequence helpers, transducer & volatile primitives, binding & protocol macros, exception/sequence accessors, and assorted predicates — and fixed a malformed `juxt` example
+- (PHP API) The sub-parsers and sub-readers under `Phel\Compiler\Domain\{Parser,Reader}\Expression*` now depend on `ParserInterface`/`ReaderInterface` instead of the concrete `Phel\Compiler\Application\{Parser,Reader}`, so the compiler's `Domain` layer no longer reaches out into `Application`. Both interfaces gain the `readExpression()` method the recursion goes through; the shipped implementations already had it
+- (PHP API) `Phel\Build\Infrastructure\Cache\NullScanIndexCache` moved to `Phel\Build\Domain\Cache\NullScanIndexCache`, and `Phel\Lsp\Domain\HandlerInterface` moved to `Phel\Lsp\Application\HandlerInterface`. Both now sit in the layer that matches what they depend on; behaviour is unchanged
 
 ### Removed
 

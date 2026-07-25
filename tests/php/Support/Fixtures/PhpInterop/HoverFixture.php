@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace PhelTest\Unit\Api\Application\Fixtures;
+namespace PhelTest\Support\Fixtures\PhpInterop;
 
 /**
  * A counter used to exercise reflection-backed hover for properties,

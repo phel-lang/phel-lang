@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 namespace Phel\Compiler\Domain\Parser\ExpressionParser;
 
-use Phel\Compiler\Application\Parser;
 use Phel\Compiler\Domain\Lexer\TokenStream;
 use Phel\Compiler\Domain\Parser\Exceptions\UnexpectedParserException;
 use Phel\Compiler\Domain\Parser\Exceptions\UnfinishedParserException;
+use Phel\Compiler\Domain\Parser\ParserInterface;
 use Phel\Shared\Parser\Node\CommentNode;
 use Phel\Shared\Parser\Node\KeywordNode;
 use Phel\Shared\Parser\Node\ListNode;
@@ -27,7 +27,7 @@ use Phel\Shared\Parser\Node\TriviaNodeInterface;
  */
 final readonly class ReaderConditionalParser
 {
-    public function __construct(private Parser $parser) {}
+    public function __construct(private ParserInterface $parser) {}
 
     /**
      * @throws UnexpectedParserException

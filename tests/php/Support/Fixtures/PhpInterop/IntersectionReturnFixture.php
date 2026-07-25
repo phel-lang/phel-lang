@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace PhelTest\Unit\Api\Application\Fixtures;
+namespace PhelTest\Support\Fixtures\PhpInterop;
 
 use Stringable;
 

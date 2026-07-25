@@ -7,9 +7,9 @@ namespace Phel\Lsp\Application\Handler;
 use Phel\Api\ApiFacade;
 use Phel\Api\Transfer\Definition;
 use Phel\Api\Transfer\ProjectIndex;
+use Phel\Lsp\Application\HandlerInterface;
 use Phel\Lsp\Application\Rpc\ParamsExtractor;
 use Phel\Lsp\Application\Session\Session;
-use Phel\Lsp\Domain\HandlerInterface;
 use Phel\Shared\Api\PhelFunction;
 
 use function implode;

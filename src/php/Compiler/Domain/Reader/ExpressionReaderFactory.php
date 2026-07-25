@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace Phel\Compiler\Domain\Reader;
 
-use Phel\Compiler\Application\Reader;
 use Phel\Compiler\Domain\Reader\ExpressionReader\AtomReader;
 use Phel\Compiler\Domain\Reader\ExpressionReader\ListFnReader;
 use Phel\Compiler\Domain\Reader\ExpressionReader\ListReader;
@@ -29,49 +28,49 @@ final class ExpressionReaderFactory implements ExpressionReaderFactoryInterface
         return new AtomReader();
     }
 
-    public function createListReader(Reader $reader): ListReader
+    public function createListReader(ReaderInterface $reader): ListReader
     {
         return new ListReader($reader);
     }
 
-    public function createVectorReader(Reader $reader): VectorReader
+    public function createVectorReader(ReaderInterface $reader): VectorReader
     {
         return new VectorReader($reader);
     }
 
-    public function createSetReader(Reader $reader): SetReader
+    public function createSetReader(ReaderInterface $reader): SetReader
     {
         return new SetReader($reader);
     }
 
-    public function createListFnReader(Reader $reader): ListFnReader
+    public function createListFnReader(ReaderInterface $reader): ListFnReader
     {
         return new ListFnReader($reader);
     }
 
-    public function createWrapReader(Reader $reader): WrapReader
+    public function createWrapReader(ReaderInterface $reader): WrapReader
     {
         return new WrapReader($reader);
     }
 
     public function createQuoasiquoteReader(
-        Reader $reader,
+        ReaderInterface $reader,
         QuasiquoteTransformerInterface $quasiquoteTransformer,
     ): QuoasiquoteReader {
         return new QuoasiquoteReader($reader, $quasiquoteTransformer);
     }
 
-    public function createMetaReader(Reader $reader): MetaReader
+    public function createMetaReader(ReaderInterface $reader): MetaReader
     {
         return new MetaReader($reader);
     }
 
-    public function createMapReader(Reader $reader): MapReader
+    public function createMapReader(ReaderInterface $reader): MapReader
     {
         return new MapReader($reader);
     }
 
-    public function createTaggedLiteralReader(Reader $reader): TaggedLiteralReader
+    public function createTaggedLiteralReader(ReaderInterface $reader): TaggedLiteralReader
     {
         return new TaggedLiteralReader($reader);
     }

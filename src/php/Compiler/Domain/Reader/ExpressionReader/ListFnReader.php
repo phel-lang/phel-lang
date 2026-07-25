@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Phel\Compiler\Domain\Reader\ExpressionReader;
 
 use Phel;
-use Phel\Compiler\Application\Reader;
+use Phel\Compiler\Domain\Reader\ReaderInterface;
 use Phel\Lang\Collections\LinkedList\PersistentListInterface;
 use Phel\Lang\Symbol;
 use Phel\Shared\Parser\Node\ListNode;
@@ -13,7 +13,7 @@ use Phel\Shared\Parser\Node\NodeInterface;
 
 final readonly class ListFnReader
 {
-    public function __construct(private Reader $reader) {}
+    public function __construct(private ReaderInterface $reader) {}
 
     /**
      * @param array<int, Symbol>|null $fnArgs

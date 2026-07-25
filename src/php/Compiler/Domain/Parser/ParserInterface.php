@@ -23,4 +23,16 @@ interface ParserInterface
      * @throws UnfinishedParserException
      */
     public function parseAll(TokenStream $tokenStream): FileNode;
+
+    /**
+     * Parses exactly one expression off the stream.
+     *
+     * The sub-parsers in `ExpressionParser/` recurse through this method, which
+     * is why it belongs on the contract: it lets them depend on this Domain
+     * interface instead of the concrete `Application\Parser` that owns them.
+     *
+     * @throws UnexpectedParserException
+     * @throws UnfinishedParserException
+     */
+    public function readExpression(TokenStream $tokenStream): NodeInterface;
 }

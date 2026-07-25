@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace Phel\Lsp\Application\Handler;
 
+use Phel\Lsp\Application\HandlerInterface;
 use Phel\Lsp\Application\Session\Session;
-use Phel\Lsp\Domain\HandlerInterface;
 
 /**
  * Notification sent by the client after it has processed the initialize
