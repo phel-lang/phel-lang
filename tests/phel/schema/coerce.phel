@@ -106,6 +106,18 @@
   (is (= 7 (s/coerce [:ref :price] "7")))
   (s/unregister! :price))
 
+;; Deliberate divergence from `validate` and `generate`, which both throw on an
+;; unregistered `:ref`. `coerce` is documented as never throwing: it is a
+;; best-effort pre-pass whose job is to hand the real failure to validation, so
+;; an unresolvable ref returns the value untouched. The failure is not lost:
+;; anything that then validates, `conform` included, still raises.
+(deftest test-coerce-unregistered-ref-passes-through-instead-of-throwing
+  (is (= "7" (s/coerce [:ref :no-such-registered-schema] "7")))
+  (is (thrown-with-msg? \InvalidArgumentException
+                        "schema ref not registered: :no-such-registered-schema"
+                        (s/conform [:ref :no-such-registered-schema] "7"))
+      "conform composes coerce with validation, so the failure still surfaces"))
+
 (deftest test-coerce-map-preserves-non-schema-entries
   (let [result (s/coerce [:map [:id :int]]
                          {:id "1" :extra "unchanged"})]

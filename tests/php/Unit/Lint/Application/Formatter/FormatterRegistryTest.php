@@ -31,6 +31,21 @@ final class FormatterRegistryTest extends TestCase
         $registry->get('nope');
     }
 
+    /**
+     * The message is what a user typing `--format=nope` sees, so it has to
+     * name both the bad input and the accepted values.
+     */
+    public function test_the_unknown_formatter_message_names_the_input_and_the_alternatives(): void
+    {
+        $registry = new FormatterRegistry();
+        $registry->register(new HumanFormatter());
+        $registry->register(new JsonFormatter());
+
+        $this->expectException(InvalidArgumentException::class);
+        $this->expectExceptionMessage('Unknown lint formatter: nope. Known: human, json.');
+        $registry->get('nope');
+    }
+
     public function test_it_reports_registered_names(): void
     {
         $registry = new FormatterRegistry();

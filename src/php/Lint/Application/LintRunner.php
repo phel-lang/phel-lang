@@ -36,7 +36,8 @@ final readonly class LintRunner
     /**
      * @param list<string> $paths
      *
-     * @throws LintSourceException when a collected file cannot be read
+     * @throws LintSourceException when a collected file cannot be read, or a
+     *                             listed directory cannot be walked
      */
     public function run(array $paths, RuleSettings $settings): LintResult
     {
