@@ -11,13 +11,10 @@ use Phel\Lang\Collections\Map\PersistentMapInterface;
 use Phel\Lang\Collections\Vector\PersistentVectorInterface;
 use Phel\Lang\SourceLocation;
 use Phel\Lang\Symbol;
-<<<<<<< HEAD
 use Phel\Shared\Api\Completion;
 use Phel\Shared\Api\Definition;
 use Phel\Shared\Api\ProjectIndex;
-=======
 use Phel\Shared\Binding\IterationHead;
->>>>>>> origin/main
 use Phel\Shared\Facade\CompilerFacadeInterface;
 
 use Throwable;
