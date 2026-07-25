@@ -1095,11 +1095,19 @@ Metadata attached to `test-name` is forwarded to the defined function so selecto
      :skipped (or skipped 0)
      :total total}))
 
-(defn print-summary
-  "Emits the `:summary` event to the active reporter set. Kept for backwards compatibility; prefer letting `run-tests` emit the event at the end of the run."
-  {:example "(print-summary)"}
+(defn- emit-summary!
+  "Emits the `:summary` event for the current stats to the active reporter set."
   []
   (fan-out! (summary-event (deref stats))))
+
+(defn print-summary
+  "Emits the `:summary` event to the active reporter set. Deprecated: `run-tests` already emits the event at the end of a run, so calling this yourself double-reports."
+  {:deprecated "run-tests already emits the :summary event at the end of a run"
+   :superseded-by "run-tests"
+   :see-also ["run-tests"]
+   :example "(print-summary)"}
+  []
+  (emit-summary!))
 
 ;; --------
 ;; Fixtures
@@ -1416,7 +1424,7 @@ Metadata attached to `test-name` is forwarded to the defined function so selecto
   (dofor [namespace :in namespaces
           :when (not (should-stop?))]
     (run-one-ns! options namespace))
-  (print-summary)
+  (emit-summary!)
   (print-slowest! options)
   (when-let [path (:last-failed-file options)]
     (write-last-failed! path)))

@@ -18,7 +18,6 @@ use Phel\Compiler\Application\ParenthesesChecker;
 use Phel\Compiler\Application\Parser;
 use Phel\Compiler\Application\Reader;
 use Phel\Compiler\Domain\Analyzer\AnalyzerInterface;
-use Phel\Compiler\Domain\Analyzer\Environment\BackslashSeparatorDeprecator;
 use Phel\Compiler\Domain\Analyzer\Environment\GlobalEnvironmentInterface;
 use Phel\Compiler\Domain\Cache\ReaderResultCacheInterface;
 use Phel\Compiler\Domain\Compiler\CodeCompilerInterface;
@@ -251,11 +250,11 @@ final class CompilerFactory extends AbstractFactory
 
     /**
      * Applies the `warn-deprecations` config key to the process-wide
-     * deprecation switches, which the lexer and reader also read. Hooked
-     * here rather than on `createLexer()` because every compile pipeline
-     * builds its analyzer up front, before a single token is lexed, and
-     * the lexer-only consumers (linting, best-effort form reading) are
-     * tooling paths that must stay quiet.
+     * deprecation switch, which the lexer, reader and analyzer all read.
+     * Hooked here rather than on `createLexer()` because every compile
+     * pipeline builds its analyzer up front, before a single token is
+     * lexed, and the lexer-only consumers (linting, best-effort form
+     * reading) are tooling paths that must stay quiet.
      */
     private function enableConfiguredDeprecationWarnings(): void
     {
@@ -264,6 +263,5 @@ final class CompilerFactory extends AbstractFactory
         }
 
         DeprecationWarnings::enable();
-        BackslashSeparatorDeprecator::enable();
     }
 }

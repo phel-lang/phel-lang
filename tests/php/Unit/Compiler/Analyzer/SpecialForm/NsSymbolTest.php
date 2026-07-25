@@ -10,7 +10,6 @@ use Phel\Compiler\Domain\Analyzer\AnalyzerInterface;
 use Phel\Compiler\Domain\Analyzer\Ast\GlobalVarNode;
 use Phel\Compiler\Domain\Analyzer\Ast\NsNode;
 use Phel\Compiler\Domain\Analyzer\Ast\PhpClassNameNode;
-use Phel\Compiler\Domain\Analyzer\Environment\BackslashSeparatorDeprecator;
 use Phel\Compiler\Domain\Analyzer\Environment\GlobalEnvironment;
 use Phel\Compiler\Domain\Analyzer\Environment\NodeEnvironment;
 use Phel\Compiler\Domain\Analyzer\Exceptions\AnalyzerException;
@@ -20,11 +19,14 @@ use Phel\Lang\Keyword;
 use Phel\Lang\Registry;
 use Phel\Lang\SourceLocation;
 use Phel\Lang\Symbol;
+use PhelTest\Support\CapturesDeprecationsTrait;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 
 final class NsSymbolTest extends TestCase
 {
+    use CapturesDeprecationsTrait;
+
     private AnalyzerInterface $analyzer;
 
     private GlobalEnvironment $globalEnv;
@@ -41,7 +43,7 @@ final class NsSymbolTest extends TestCase
 
     protected function tearDown(): void
     {
-        BackslashSeparatorDeprecator::resetInstance();
+        $this->stopCapturingDeprecations();
     }
 
     public function test_first_argument_must_be_symbol(): void
@@ -1183,8 +1185,7 @@ final class NsSymbolTest extends TestCase
 
     public function test_backslash_ns_form_emits_deprecation(): void
     {
-        $captured = [];
-        $this->installCapturingDeprecator($captured);
+        $this->startCapturingDeprecations();
 
         $list = Phel::list([
             Symbol::create(Symbol::NAME_NS),
@@ -1192,17 +1193,15 @@ final class NsSymbolTest extends TestCase
         ]);
         new NsSymbol($this->analyzer)->analyze($list, NodeEnvironment::empty());
 
-        self::assertCount(1, $captured);
-        self::assertStringContainsString("'my\\project'", $captured[0]);
-        self::assertStringContainsString("'my.project'", $captured[0]);
+        self::assertCount(1, $this->capturedDeprecations());
+        self::assertStringContainsString("'my\\project'", $this->capturedDeprecations()[0]);
+        self::assertStringContainsString("'my.project'", $this->capturedDeprecations()[0]);
 
-        BackslashSeparatorDeprecator::resetInstance();
     }
 
     public function test_backslash_require_emits_deprecation(): void
     {
-        $captured = [];
-        $this->installCapturingDeprecator($captured);
+        $this->startCapturingDeprecations();
 
         $list = Phel::list([
             Symbol::create(Symbol::NAME_NS),
@@ -1215,20 +1214,18 @@ final class NsSymbolTest extends TestCase
         new NsSymbol($this->analyzer)->analyze($list, NodeEnvironment::empty());
 
         $requireWarnings = array_values(array_filter(
-            $captured,
+            $this->capturedDeprecations(),
             static fn(string $m): bool => str_contains($m, "'phel\\walk'"),
         ));
 
         self::assertCount(1, $requireWarnings, 'exactly one warning for the backslash require symbol');
         self::assertStringContainsString("'phel.walk'", $requireWarnings[0]);
 
-        BackslashSeparatorDeprecator::resetInstance();
     }
 
     public function test_backslash_use_emits_deprecation(): void
     {
-        $captured = [];
-        $this->installCapturingDeprecator($captured);
+        $this->startCapturingDeprecations();
 
         $list = Phel::list([
             Symbol::create(Symbol::NAME_NS),
@@ -1241,20 +1238,18 @@ final class NsSymbolTest extends TestCase
         new NsSymbol($this->analyzer)->analyze($list, NodeEnvironment::empty());
 
         $useWarnings = array_values(array_filter(
-            $captured,
+            $this->capturedDeprecations(),
             static fn(string $m): bool => str_contains($m, "'\\Phel\\Lang\\Keyword'"),
         ));
 
         self::assertCount(1, $useWarnings, 'exactly one warning for the backslash use symbol');
         self::assertStringContainsString("'Phel.Lang.Keyword'", $useWarnings[0]);
 
-        BackslashSeparatorDeprecator::resetInstance();
     }
 
     public function test_dot_use_emits_no_deprecation(): void
     {
-        $captured = [];
-        $this->installCapturingDeprecator($captured);
+        $this->startCapturingDeprecations();
 
         $list = Phel::list([
             Symbol::create(Symbol::NAME_NS),
@@ -1266,15 +1261,13 @@ final class NsSymbolTest extends TestCase
         ]);
         new NsSymbol($this->analyzer)->analyze($list, NodeEnvironment::empty());
 
-        self::assertSame([], $captured);
+        self::assertSame([], $this->capturedDeprecations());
 
-        BackslashSeparatorDeprecator::resetInstance();
     }
 
     public function test_dot_ns_form_emits_no_deprecation(): void
     {
-        $captured = [];
-        $this->installCapturingDeprecator($captured);
+        $this->startCapturingDeprecations();
 
         $list = Phel::list([
             Symbol::create(Symbol::NAME_NS),
@@ -1286,22 +1279,8 @@ final class NsSymbolTest extends TestCase
         ]);
         new NsSymbol($this->analyzer)->analyze($list, NodeEnvironment::empty());
 
-        self::assertSame([], $captured);
+        self::assertSame([], $this->capturedDeprecations());
 
-        BackslashSeparatorDeprecator::resetInstance();
-    }
-
-    /**
-     * @param list<string> $captured
-     */
-    private function installCapturingDeprecator(array &$captured): void
-    {
-        BackslashSeparatorDeprecator::useInstance(new BackslashSeparatorDeprecator(
-            enabled: true,
-            emitter: static function (string $msg) use (&$captured): void {
-                $captured[] = $msg;
-            },
-        ));
     }
 
     private function locatedSymbol(string $name, string $file): Symbol

@@ -42,6 +42,7 @@ final readonly class SymbolResolver
         private GlobalEnvironment $globalEnv,
         private MagicConstantResolver $magicConstantResolver,
         private ?BackslashSeparatorDeprecator $backslashDeprecator = null,
+        private ?DeprecatedDefinitionWarner $deprecatedDefinitionWarner = null,
     ) {}
 
     public function resolve(Symbol $name, NodeEnvironmentInterface $env): ?AbstractNode
@@ -145,7 +146,11 @@ final readonly class SymbolResolver
             throw new RuntimeException('resolveWithAlias called with a Symbol without namespace');
         }
 
+        // The namespace part is dropped, but the call-site location must ride
+        // along: it feeds the source map and the deprecation notices raised
+        // when the resolved definition turns out to be deprecated.
         $finalName = Symbol::create($name->getName());
+        $finalName->copyLocationFrom($name);
 
         // A leading backslash marks a PHP class FQN (e.g. `\DateTimeImmutable/foo`).
         // Don't translate those — let the alias pass through verbatim so static
@@ -296,7 +301,7 @@ final readonly class SymbolResolver
 
         $def = $this->globalEnv->getDefinition($ns, $name);
         if ($def instanceof PersistentMapInterface) {
-            return new GlobalVarNode($env, $ns, $name, $def, $name->getStartLocation());
+            return $this->globalVarNode($env, $ns, $name, $def);
         }
 
         return null;
@@ -323,6 +328,23 @@ final readonly class SymbolResolver
         if (!$this->isPrivateDefinitionAllowed($def)) {
             return null;
         }
+
+        return $this->globalVarNode($env, $ns, $name, $def);
+    }
+
+    /**
+     * Single construction point for {@see GlobalVarNode}, so every resolved
+     * definition passes the `:deprecated`-metadata check exactly once.
+     *
+     * @param PersistentMapInterface<mixed, mixed> $def
+     */
+    private function globalVarNode(
+        NodeEnvironmentInterface $env,
+        string $ns,
+        Symbol $name,
+        PersistentMapInterface $def,
+    ): GlobalVarNode {
+        $this->deprecatedDefinitionWarner?->maybeWarn($ns, $name, $def);
 
         return new GlobalVarNode($env, $ns, $name, $def, $name->getStartLocation());
     }
