@@ -11,9 +11,22 @@ use function sprintf;
 
 final class ExtractorException extends RuntimeException
 {
-    public static function cannotReadFile(string $path): self
+    /**
+     * @param ?Throwable $previous the IO failure that caused this, when the file
+     *                             could not be read at all; its message is
+     *                             appended so the caller sees why
+     */
+    public static function cannotReadFile(string $path, ?Throwable $previous = null): self
     {
-        return new self('Cannot read file: ' . $path);
+        if (!$previous instanceof Throwable) {
+            return new self('Cannot read file: ' . $path);
+        }
+
+        return new self(
+            sprintf('Cannot read file: %s: %s', $path, $previous->getMessage()),
+            0,
+            $previous,
+        );
     }
 
     public static function cannotExtractNamespaceFromPath(string $path): self

@@ -8,12 +8,17 @@ use Phel\Build\Application\NamespaceExtractor;
 use Phel\Build\Domain\Extractor\ExcludedScanPaths;
 use Phel\Build\Domain\Extractor\ExtractorException;
 use Phel\Build\Domain\Extractor\TopologicalNamespaceSorter;
+use Phel\Build\Domain\IO\FileContentsIoInterface;
 use Phel\Build\Infrastructure\IO\SystemFileIo;
 use Phel\Compiler\CompilerFacade;
 use Phel\Compiler\Domain\Lexer\Exceptions\LexerValueException;
 use Phel\Phel;
 use Phel\Shared\NamespaceInformation;
 use PHPUnit\Framework\TestCase;
+use RuntimeException;
+
+use function basename;
+use function sprintf;
 
 final class NamespaceExtractorTest extends TestCase
 {
@@ -219,6 +224,85 @@ final class NamespaceExtractorTest extends TestCase
         unlink($excludedPath);
         rmdir($dir . '/vendor-build');
         rmdir($dir);
+    }
+
+    public function test_unreadable_file_raises_an_extractor_exception(): void
+    {
+        // Asking for one specific file must still fail loudly - only the
+        // directory scan is allowed to skip.
+        $this->expectException(ExtractorException::class);
+        $this->expectExceptionMessageMatches('~Cannot read file: .*does-not-exist\.phel~');
+
+        $this->newExtractor()->getNamespaceFromFile(
+            sys_get_temp_dir() . '/phel-does-not-exist.phel',
+        );
+    }
+
+    public function test_directory_scan_skips_a_file_that_vanished_mid_scan(): void
+    {
+        // A file listed by the scan can be deleted before it is read - another
+        // process writing a temp `.phel` and removing it is enough. The scan
+        // must skip it and still return the namespaces it could read.
+        $dir = sys_get_temp_dir() . '/phel-vanishing-' . bin2hex(random_bytes(8));
+        mkdir($dir, 0o777, true);
+        file_put_contents($dir . '/kept.phel', '(ns vanishing\\kept)');
+
+        $vanishing = $dir . '/vanishing.phel';
+        file_put_contents($vanishing, '(ns vanishing\\gone)');
+
+        $extractor = new NamespaceExtractor(
+            new CompilerFacade(),
+            new TopologicalNamespaceSorter(),
+            // Matched on basename: the scan realpaths the directory first, and
+            // on macOS sys_get_temp_dir() resolves /var -> /private/var, so the
+            // path the scan hands us is not the string we wrote.
+            new readonly class(basename($vanishing)) implements FileContentsIoInterface {
+                public function __construct(private string $vanishingName) {}
+
+                public function getContents(string $filename): string
+                {
+                    if (basename($filename) === $this->vanishingName) {
+                        throw new RuntimeException(sprintf('Unable to read file "%s".', $filename));
+                    }
+
+                    return new SystemFileIo()->getContents($filename);
+                }
+
+                public function putContents(string $filename, string $content): void
+                {
+                    new SystemFileIo()->putContents($filename, $content);
+                }
+
+                public function removeFile(string $filename): void
+                {
+                    new SystemFileIo()->removeFile($filename);
+                }
+            },
+        );
+
+        try {
+            $infos = $extractor->getNamespacesFromDirectories([$dir]);
+        } finally {
+            @unlink($dir . '/kept.phel');
+            @unlink($vanishing);
+            @rmdir($dir);
+        }
+
+        $namespaces = array_map(
+            static fn(NamespaceInformation $i): string => $i->getNamespace(),
+            $infos,
+        );
+
+        self::assertSame(['vanishing.kept'], $namespaces);
+    }
+
+    private function newExtractor(): NamespaceExtractor
+    {
+        return new NamespaceExtractor(
+            new CompilerFacade(),
+            new TopologicalNamespaceSorter(),
+            new SystemFileIo(),
+        );
     }
 
     private function extractNamespace(string $code): NamespaceInformation
