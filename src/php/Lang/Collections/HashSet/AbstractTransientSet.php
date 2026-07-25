@@ -49,7 +49,7 @@ abstract readonly class AbstractTransientSet implements TransientHashSetInterfac
     }
 
     /**
-     * @param mixed $key
+     * @param TValue $key
      */
     public function contains($key): bool
     {

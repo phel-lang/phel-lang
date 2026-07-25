@@ -43,8 +43,8 @@ final class ArrayNode implements HashMapNodeInterface, Countable
     }
 
     /**
-     * @param mixed $key
-     * @param mixed $value
+     * @param TKey   $key
+     * @param TValue $value
      *
      * @return HashMapNodeInterface<TKey, TValue>
      */
@@ -81,7 +81,7 @@ final class ArrayNode implements HashMapNodeInterface, Countable
     }
 
     /**
-     * @param mixed $key
+     * @param TKey $key
      *
      * @return HashMapNodeInterface<TKey, TValue>
      */
@@ -112,7 +112,7 @@ final class ArrayNode implements HashMapNodeInterface, Countable
     }
 
     /**
-     * @param mixed $key
+     * @param TKey  $key
      * @param mixed $notFound
      *
      * @return ?mixed

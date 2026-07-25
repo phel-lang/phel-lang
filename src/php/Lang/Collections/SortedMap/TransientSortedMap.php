@@ -50,8 +50,8 @@ final class TransientSortedMap implements TransientMapInterface
     }
 
     /**
-     * @param mixed $key
-     * @param mixed $value
+     * @param TKey   $key
+     * @param TValue $value
      *
      * @return self<TKey, TValue>
      */
@@ -77,7 +77,7 @@ final class TransientSortedMap implements TransientMapInterface
     }
 
     /**
-     * @param mixed $key
+     * @param TKey $key
      *
      * @return self<TKey, TValue>
      */

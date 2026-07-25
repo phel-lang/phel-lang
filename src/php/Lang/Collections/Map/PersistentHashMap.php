@@ -112,8 +112,8 @@ final class PersistentHashMap extends AbstractPersistentMap
     }
 
     /**
-     * @param mixed $key
-     * @param mixed $value
+     * @param TKey   $key
+     * @param TValue $value
      *
      * @return self<TKey, TValue>
      */
@@ -139,7 +139,7 @@ final class PersistentHashMap extends AbstractPersistentMap
     }
 
     /**
-     * @param mixed $key
+     * @param TKey $key
      *
      * @return self<TKey, TValue>
      */

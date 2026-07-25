@@ -122,7 +122,7 @@ final class PersistentArrayMap extends AbstractPersistentMap
     }
 
     /**
-     * @param mixed $key
+     * @param TKey $key
      *
      * @return self<TKey, TValue>
      */
