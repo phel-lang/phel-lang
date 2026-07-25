@@ -155,6 +155,38 @@ final class DeprecationWarnings
     }
 
     /**
+     * Like {@see warnOnceForSource()}, but attributes the notice to where the
+     * construct was actually *written* rather than to where it was found.
+     *
+     * A form a macro or inline expansion produced carries the call site as its
+     * location and the definition it came from as
+     * {@see SourceLocation::getExpansionOrigin()}. Reporting the call site
+     * blames an author who never wrote the construct and cannot remove it;
+     * reporting the origin points at the one edit that fixes it, and lets the
+     * bundled-stdlib rule silence phel's own macros instead of flooding every
+     * project that calls one (#2827). An origin naming no file is unknown, and
+     * silence beats misattribution.
+     *
+     * This is the single place that policy lives, so a detector only has to
+     * hand over the location it found and say how to phrase the notice.
+     *
+     * @param callable(string, int): string $buildMessage receives the file and line to report against
+     */
+    public static function warnOnceAtOrigin(
+        SourceLocation $location,
+        string $subject,
+        callable $buildMessage,
+    ): void {
+        $reportAt = $location->getExpansionOrigin() ?? $location;
+
+        self::warnOnceForSource(
+            $reportAt->getFile(),
+            $subject,
+            $buildMessage($reportAt->getFile(), $reportAt->getLine()) . self::expansionSuffix($location),
+        );
+    }
+
+    /**
      * The one message shape for a deprecated *syntax* construct:
      *
      *     Using <construct> for <purpose> is deprecated and will be removed
@@ -192,6 +224,12 @@ final class DeprecationWarnings
      * gated on the source. For callers that lex a whole file, resolve
      * {@see isEnabledForSource()} once and use {@see warn()} instead so the
      * gate is not re-evaluated per token.
+     *
+     * Attribution follows the same rule as {@see warnOnceAtOrigin()}: a
+     * construct a macro expansion produced belongs to the macro, not to the
+     * file that called it. Only the emitter's `^:reference` check runs late
+     * enough to see a stamped location; the lexer and the reader work on forms
+     * the user typed, so this is a no-op for them.
      */
     public static function warnSyntax(
         string $construct,
@@ -199,10 +237,30 @@ final class DeprecationWarnings
         string $replacement,
         ?SourceLocation $location,
     ): void {
+        $reportAt = $location?->getExpansionOrigin() ?? $location;
+
         self::warnForSource(
-            $location instanceof SourceLocation ? $location->getFile() : '',
-            self::syntaxMessage($construct, $purpose, $replacement, $location),
+            $reportAt instanceof SourceLocation ? $reportAt->getFile() : '',
+            self::syntaxMessage($construct, $purpose, $replacement, $reportAt) . self::expansionSuffix($location),
         );
+    }
+
+    /**
+     * Names the call site an expansion was pasted at, so a notice attributed to
+     * a macro still says which of the caller's lines pulled it in. Empty when
+     * the form was written where it was found.
+     */
+    private static function expansionSuffix(?SourceLocation $location): string
+    {
+        if (!$location instanceof SourceLocation) {
+            return '';
+        }
+
+        if (!$location->getExpansionOrigin() instanceof SourceLocation) {
+            return '';
+        }
+
+        return sprintf(' (reached by expanding a macro at %s:%d)', $location->getFile(), $location->getLine());
     }
 
     /**

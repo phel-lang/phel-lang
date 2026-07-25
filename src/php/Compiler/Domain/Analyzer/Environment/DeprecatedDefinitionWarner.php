@@ -30,8 +30,9 @@ use function sprintf;
  *   `true` marks it deprecated with no further detail.
  * - `:superseded-by` — optional replacement name, rendered as "use X instead".
  *
- * Detection only: the enabled gate, the bundled-stdlib suppression, and the
- * per-`(file, symbol)` dedup belong to {@see DeprecationWarnings}.
+ * Detection only: the enabled gate, the bundled-stdlib suppression, the
+ * per-`(file, symbol)` dedup, and the macro-expansion attribution belong to
+ * {@see DeprecationWarnings}.
  */
 final class DeprecatedDefinitionWarner
 {
@@ -68,10 +69,16 @@ final class DeprecatedDefinitionWarner
         }
 
         $fullName = $ns . '/' . $name->getName();
-        DeprecationWarnings::warnOnceForSource(
-            $location->getFile(),
+        DeprecationWarnings::warnOnceAtOrigin(
+            $location,
             $fullName,
-            $this->buildMessage($fullName, $location, $deprecated, $definitionMeta),
+            fn(string $file, int $line): string => $this->buildMessage(
+                $fullName,
+                $file,
+                $line,
+                $deprecated,
+                $definitionMeta,
+            ),
         );
     }
 
@@ -80,15 +87,16 @@ final class DeprecatedDefinitionWarner
      */
     private function buildMessage(
         string $fullName,
-        SourceLocation $location,
+        string $file,
+        int $line,
         mixed $deprecated,
         PersistentMapInterface $definitionMeta,
     ): string {
         return sprintf(
             "Definition '%s' used at %s:%d is deprecated%s.%s It will be removed in a future release.",
             $fullName,
-            $location->getFile(),
-            $location->getLine(),
+            $file,
+            $line,
             $this->detail($deprecated),
             $this->replacement($definitionMeta),
         );
