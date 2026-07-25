@@ -4,8 +4,6 @@ declare(strict_types=1);
 
 namespace PhelTest\Integration\Build\Command;
 
-use Gacela\Framework\Bootstrap\GacelaConfig;
-use Gacela\Framework\Gacela;
 use Phel\Build\Infrastructure\Command\BuildCommand;
 use PhelTest\Support\PerTestGacelaCache;
 use PHPUnit\Framework\Attributes\PreserveGlobalState;
@@ -121,8 +119,6 @@ final class BuildCommandOptimizationLevelTest extends TestCase
 
     private function bootstrapGacela(): void
     {
-        Gacela::bootstrap($this->workspace->root(), static function (GacelaConfig $config): void {
-            $config->addAppConfig('phel-config-optimization.php');
-        });
+        $this->workspace->bootstrapGacela('phel-config-optimization.php');
     }
 }

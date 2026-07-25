@@ -4,19 +4,14 @@ declare(strict_types=1);
 
 namespace PhelTest\Integration\Compiler;
 
-use Phel;
-use Phel\Build\BuildFacade;
 use Phel\Compiler\Application\CodeCompiler;
 use Phel\Compiler\CompilerFactory;
-use Phel\Compiler\Domain\Analyzer\Environment\GlobalEnvironmentInterface;
 use Phel\Compiler\Domain\Cache\CachedReaderResult;
 use Phel\Compiler\Domain\Cache\ReaderResultCacheInterface;
 use Phel\Compiler\Domain\Compiler\CodeCompilerInterface;
 use Phel\Compiler\Infrastructure\Cache\FileSystemReaderResultCache;
-use Phel\Compiler\Infrastructure\GlobalEnvironmentSingleton;
 use Phel\Lang\Symbol;
 use Phel\Shared\CompileOptions;
-use PHPUnit\Framework\TestCase;
 
 /**
  * The reader-result cache must be transparent: replaying cached forms through
@@ -28,7 +23,7 @@ use PHPUnit\Framework\TestCase;
  * would shift the analyzer/emitter gensym numbering and diverge; the recorded
  * per-form read-gensym delta is what keeps the two outputs identical.
  */
-final class ReaderResultCacheByteIdenticalTest extends TestCase
+final class ReaderResultCacheByteIdenticalTest extends AbstractCompilerRuntimeTestCase
 {
     // Deliberately def-free so recompiling in the same process is idempotent
     // (a real warm rebuild is a fresh process). Still exercises reader gensym
@@ -40,25 +35,12 @@ final class ReaderResultCacheByteIdenticalTest extends TestCase
         (map |(+ % 1) [1 2 3])
         PHEL;
 
-    private static GlobalEnvironmentInterface $globalEnv;
-
     private string $diskCacheDir = '';
-
-    public static function setUpBeforeClass(): void
-    {
-        Phel::bootstrap(__DIR__);
-        Symbol::resetGen();
-        $globalEnv = GlobalEnvironmentSingleton::initializeNew();
-        new BuildFacade()->compileFile(
-            __DIR__ . '/../../../../src/phel/core.phel',
-            tempnam(sys_get_temp_dir(), 'phel-core'),
-        );
-        self::$globalEnv = $globalEnv;
-    }
 
     protected function setUp(): void
     {
-        self::$globalEnv->setNs('user');
+        parent::setUp();
+
         $this->diskCacheDir = sys_get_temp_dir() . '/phel-rr-cache-itest-' . uniqid('', true);
         ob_start();
     }

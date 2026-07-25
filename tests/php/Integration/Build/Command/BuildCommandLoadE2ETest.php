@@ -4,24 +4,16 @@ declare(strict_types=1);
 
 namespace PhelTest\Integration\Build\Command;
 
-use FilesystemIterator;
-use Gacela\Framework\Bootstrap\GacelaConfig;
-use Gacela\Framework\Gacela;
 use Phel\Build\Infrastructure\Command\BuildCommand;
 use PhelTest\Integration\Util\DirectoryUtil;
 use PHPUnit\Framework\Attributes\PreserveGlobalState;
 use PHPUnit\Framework\Attributes\RunInSeparateProcess;
 use PHPUnit\Framework\TestCase;
 
-use RecursiveDirectoryIterator;
-use RecursiveIteratorIterator;
-
 use RuntimeException;
-use SplFileInfo;
 use Symfony\Component\Console\Input\ArrayInput;
 use Symfony\Component\Console\Output\StreamOutput;
 
-use function dirname;
 use function escapeshellarg;
 use function file_get_contents;
 use function fopen;
@@ -45,6 +37,8 @@ use function trim;
  */
 final class BuildCommandLoadE2ETest extends TestCase
 {
+    private const string DEST_DIR = 'out-load-e2e';
+
     private BuildCommandWorkspace $workspace;
 
     protected function setUp(): void
@@ -96,7 +90,7 @@ final class BuildCommandLoadE2ETest extends TestCase
             'require_once "' . $srcDir,
         ];
 
-        foreach ($this->compiledArtifacts() as $file) {
+        foreach ($this->workspace->compiledPhpFiles(self::DEST_DIR) as $file) {
             $content = (string) file_get_contents($file);
             foreach ($forbidden as $pattern) {
                 self::assertStringNotContainsString(
@@ -135,44 +129,14 @@ final class BuildCommandLoadE2ETest extends TestCase
         self::assertFileExists($this->destDir() . '/loade2e/core/greet.php');
     }
 
-    /**
-     * @return iterable<string>
-     */
-    private function compiledArtifacts(): iterable
-    {
-        $iterator = new RecursiveIteratorIterator(
-            new RecursiveDirectoryIterator($this->destDir(), FilesystemIterator::SKIP_DOTS),
-        );
-
-        /** @var SplFileInfo $file */
-        foreach ($iterator as $file) {
-            if ($file->isFile() && $file->getExtension() === 'php') {
-                yield $file->getPathname();
-            }
-        }
-    }
-
     private function writeRunner(): string
     {
-        $runner = $this->destDir() . '/run.php';
-        $autoload = dirname(__DIR__, 5) . '/vendor/autoload.php';
-        $compiled = $this->destDir() . '/loade2e/core.php';
-
-        $code = sprintf(
-            "<?php declare(strict_types=1);\nrequire_once %s;\nrequire_once %s;\n",
-            var_export($autoload, true),
-            var_export($compiled, true),
-        );
-        file_put_contents($runner, $code);
-
-        return $runner;
+        return $this->workspace->writeRunner(self::DEST_DIR, 'loade2e/core.php');
     }
 
     private function runBuild(bool $noCache = true): void
     {
-        Gacela::bootstrap($this->workspace->root(), static function (GacelaConfig $config): void {
-            $config->addAppConfig('phel-config-load-e2e.php');
-        });
+        $this->workspace->bootstrapGacela('phel-config-load-e2e.php');
 
         $args = ['--no-source-map' => true];
         if ($noCache) {
@@ -199,7 +163,7 @@ final class BuildCommandLoadE2ETest extends TestCase
 
     private function destDir(): string
     {
-        return $this->workspace->path('out-load-e2e');
+        return $this->workspace->path(self::DEST_DIR);
     }
 
     private function srcDir(): string
