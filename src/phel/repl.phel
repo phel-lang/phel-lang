@@ -8,7 +8,6 @@
   (:use Phel.Compiler.CompilerFacade)
   (:use Phel.Shared.CompileOptions)
   (:use Phel.Compiler.Infrastructure.GlobalEnvironmentSingleton)
-  (:use Phel.Compiler.Domain.Analyzer.Environment.NodeEnvironment)
   (:use Phel.Lang.FnInterface)
   (:use Phel.Shared.Printer.Printer)
   (:require phel.ai :as ai)
@@ -171,8 +170,7 @@
 (defn- print-colorful-str
   "Same as print-str from core, but with color."
   [& xs]
-  (let [len     (count xs)
-        printer (php/:: Printer (readableWithColor))
+  (let [printer (php/:: Printer (readableWithColor))
         pp      #(php/-> printer (print %))]
     (case (count xs)
       0 ""

@@ -102,6 +102,61 @@ final class SymbolExtractorTest extends TestCase
         self::assertSame(3, $definition->col);
     }
 
+    public function test_it_records_the_deprecation_reason_from_the_metadata_map(): void
+    {
+        $extractor = $this->extractor();
+        $meta = TypeFactory::getInstance()->persistentMapFromKVs(
+            Keyword::create('deprecated'),
+            'use with-meta',
+        );
+        $form = $this->list([
+            Symbol::create('defn'),
+            Symbol::create('set-meta!'),
+            $meta,
+            $this->vector([Symbol::create('x')]),
+        ]);
+
+        $definition = $extractor->definitionFromForm($form, 'user', 'x.phel');
+
+        self::assertInstanceOf(Definition::class, $definition);
+        self::assertTrue($definition->isDeprecated());
+        self::assertSame('use with-meta', $definition->deprecated);
+    }
+
+    public function test_it_reads_a_bare_deprecated_flag_from_the_name_metadata(): void
+    {
+        $extractor = $this->extractor();
+        $name = Symbol::create('old')->withMeta(
+            TypeFactory::getInstance()->persistentMapFromKVs(Keyword::create('deprecated'), true),
+        );
+        $form = $this->list([
+            Symbol::create('defn'),
+            $name,
+            $this->vector([]),
+        ]);
+
+        $definition = $extractor->definitionFromForm($form, 'user', 'x.phel');
+
+        self::assertInstanceOf(Definition::class, $definition);
+        self::assertSame('deprecated', $definition->deprecated);
+    }
+
+    public function test_a_docstring_mentioning_deprecated_does_not_deprecate_the_definition(): void
+    {
+        $extractor = $this->extractor();
+        $form = $this->list([
+            Symbol::create('defn'),
+            Symbol::create('symbol-info'),
+            'Returns keys :doc and :deprecated for a symbol.',
+            $this->vector([]),
+        ]);
+
+        $definition = $extractor->definitionFromForm($form, 'user', 'x.phel');
+
+        self::assertInstanceOf(Definition::class, $definition);
+        self::assertFalse($definition->isDeprecated());
+    }
+
     public function test_it_returns_null_for_non_definition_form(): void
     {
         $extractor = $this->extractor();

@@ -14,7 +14,6 @@ use Phel\Lint\Domain\FileAnalysis;
 use Phel\Lint\Domain\LintRuleInterface;
 
 use function count;
-use function explode;
 use function sprintf;
 
 /**
@@ -230,16 +229,19 @@ final readonly class UnusedRequireRule implements LintRuleInterface
         ], $i];
     }
 
+    /**
+     * `(:require phel.json)` binds the alias `json`, exactly as
+     * `(:require phel\json)` does. Splitting only on `\` produced the alias
+     * `phel.json`, which no call site ever writes, so every dot-separated
+     * require with no explicit `:as` was reported as unused.
+     */
     private function defaultAlias(mixed $target): string
     {
         if (!$target instanceof Symbol) {
             return '';
         }
 
-        $name = $target->getName();
-        $parts = explode('\\', $name);
-
-        return $parts[count($parts) - 1];
+        return SymbolAlias::lastSegment($target->getName());
     }
 
     /**

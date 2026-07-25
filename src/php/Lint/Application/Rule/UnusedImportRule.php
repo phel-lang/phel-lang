@@ -13,7 +13,6 @@ use Phel\Lint\Domain\FileAnalysis;
 use Phel\Lint\Domain\LintRuleInterface;
 
 use function count;
-use function explode;
 use function sprintf;
 
 /**
@@ -117,12 +116,13 @@ final readonly class UnusedImportRule implements LintRuleInterface
         return $result;
     }
 
+    /**
+     * `(:use Foo.Bar.Baz)` and `(:use Foo\Bar\Baz)` both bind the alias `Baz`
+     * (`NsSymbol::createAliasFromSymbol`), so both separators have to be split
+     * on. Splitting only on `\` reported every dot-separated import as unused.
+     */
     private function lastSegmentAlias(Symbol $symbol): string
     {
-        $name = $symbol->getName();
-        $parts = explode('\\', $name);
-
-        return $parts[count($parts) - 1];
+        return SymbolAlias::lastSegment($symbol->getName());
     }
-
 }

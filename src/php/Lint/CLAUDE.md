@@ -38,6 +38,13 @@ Every shipped rule is on by default (it has an entry in `LintConfig::defaultSeve
 
 Add a rule: implement `LintRuleInterface` in `Application/Rule/`, add a code constant to `RuleRegistry`, register it in `LintFactory::createRules()`, and give it a default severity in `LintConfig::defaultSeverities()`. Do not edit existing rules.
 
+### Shared rule helpers (`Application/Rule/`)
+
+`FormWalker`, `FnParamVectors`, `NamespaceForm`, `NsClauseIterator`, plus:
+
+- `ForHead`: parses a `for`/`dofor` head. That head is a sequence of `binding :verb coll-expr` triples with `:while`/`:when`/`:let` modifiers and a `:reduce [acc init]` option; it is NOT a `let`-style pair list. Any rule that reads it two-at-a-time mistakes the collection expression for a bound name. Returns each bound form paired with the head forms in which a reference to it counts as a use.
+- `SymbolAlias`: the implicit alias of a `(:use ...)` / `(:require ...)` entry with no `:as`. Splits on both `.` and `\`, because Phel accepts both separators and the analyzer treats them alike.
+
 ### `phel/duplicate-def`
 
 Flags a top-level symbol defined twice in the same file. Works off the file's
@@ -57,6 +64,18 @@ Enforces the positional comment convention (`.claude/rules/phel.md`, shared with
 - `;;;`+ is clean — the rule asks that a whole-line comment is not written with the inline marker, and Clojure-style `;;;` section headers stay legal.
 - Scans the **token stream**, not the source text: only the lexer knows which `;` opens a comment, so a `;` in a string literal, a regex literal, or a `#| ... |#` block can never be flagged.
 - Bare `#` line comments are out of scope; the lexer already emits a deprecation for them.
+
+### `phel/discouraged-var`
+
+Flags uses of definitions carrying `:deprecated` metadata, read from
+`ProjectIndex` (`Definition::isDeprecated()`, populated by `SymbolExtractor`)
+for the rest of the project and from the file's own forms for the file being
+linted, since the index does not cover it.
+
+Docstring prose is never a marker: a docstring that documents a `:deprecated`
+map key, or warns about a deprecated PHP builtin, says nothing about the
+definition it documents. The defining form's own name symbol is skipped, so
+deprecating something does not flag its declaration.
 
 ## Config File
 

@@ -79,4 +79,97 @@ final class UnusedBindingRuleTest extends RuleTestCase
         self::assertCount(1, $diagnostics);
         self::assertStringContainsString("'tail'", $diagnostics[0]->message);
     }
+
+    #[PreserveGlobalState(false)]
+    #[RunInSeparateProcess]
+    public function test_it_does_not_treat_a_for_collection_expression_as_a_binding(): void
+    {
+        $rule = new UnusedBindingRule();
+        // Read pairwise, `coll` looks like a bound-and-unused name.
+        $analysis = $this->buildAnalysis("(for [[k v] :pairs coll] [k v])\n");
+
+        self::assertSame([], $rule->apply($analysis));
+    }
+
+    #[PreserveGlobalState(false)]
+    #[RunInSeparateProcess]
+    public function test_it_flags_an_unused_for_binding(): void
+    {
+        $rule = new UnusedBindingRule();
+        $analysis = $this->buildAnalysis("(for [x :in [1 2]] 42)\n");
+
+        $diagnostics = $rule->apply($analysis);
+
+        self::assertCount(1, $diagnostics);
+        self::assertStringContainsString("'x'", $diagnostics[0]->message);
+    }
+
+    #[PreserveGlobalState(false)]
+    #[RunInSeparateProcess]
+    public function test_it_does_not_flag_a_for_binding_used_only_by_a_modifier(): void
+    {
+        $rule = new UnusedBindingRule();
+        $analysis = $this->buildAnalysis("(for [x :in [1 2] :when (even? x)] 42)\n");
+
+        self::assertSame([], $rule->apply($analysis));
+    }
+
+    #[PreserveGlobalState(false)]
+    #[RunInSeparateProcess]
+    public function test_it_does_not_flag_a_for_let_binding_used_by_a_later_value(): void
+    {
+        $rule = new UnusedBindingRule();
+        $analysis = $this->buildAnalysis("(for [x :in [1 2] :let [a x b (inc a)]] b)\n");
+
+        self::assertSame([], $rule->apply($analysis));
+    }
+
+    #[PreserveGlobalState(false)]
+    #[RunInSeparateProcess]
+    public function test_it_flags_an_unused_for_let_binding(): void
+    {
+        $rule = new UnusedBindingRule();
+        $analysis = $this->buildAnalysis("(for [x :in [1 2] :let [a 1]] x)\n");
+
+        $diagnostics = $rule->apply($analysis);
+
+        self::assertCount(1, $diagnostics);
+        self::assertStringContainsString("'a'", $diagnostics[0]->message);
+    }
+
+    #[PreserveGlobalState(false)]
+    #[RunInSeparateProcess]
+    public function test_it_does_not_flag_a_reduce_accumulator_used_in_the_body(): void
+    {
+        $rule = new UnusedBindingRule();
+        $analysis = $this->buildAnalysis("(for [x :in [1 2] :reduce [acc 0]] (+ acc x))\n");
+
+        self::assertSame([], $rule->apply($analysis));
+    }
+
+    #[PreserveGlobalState(false)]
+    #[RunInSeparateProcess]
+    public function test_it_flags_an_unused_reduce_accumulator(): void
+    {
+        $rule = new UnusedBindingRule();
+        $analysis = $this->buildAnalysis("(for [x :in [1 2] :reduce [acc 0]] x)\n");
+
+        $diagnostics = $rule->apply($analysis);
+
+        self::assertCount(1, $diagnostics);
+        self::assertStringContainsString("'acc'", $diagnostics[0]->message);
+    }
+
+    #[PreserveGlobalState(false)]
+    #[RunInSeparateProcess]
+    public function test_it_flags_an_unused_dofor_binding(): void
+    {
+        $rule = new UnusedBindingRule();
+        $analysis = $this->buildAnalysis("(dofor [x :in [1 2]] (println \"hi\"))\n");
+
+        $diagnostics = $rule->apply($analysis);
+
+        self::assertCount(1, $diagnostics);
+        self::assertStringContainsString("'x'", $diagnostics[0]->message);
+    }
 }

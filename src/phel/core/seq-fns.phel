@@ -1015,7 +1015,7 @@ With one argument returns an infinite lazy sequence of x."
   [a & rest]
   (case (count rest)
     0 (lazy-seq-from-generator (php/:: Seq (repeat a)))
-    1 (for [i :range [a]] (get rest 0))
+    1 (for [_ :range [a]] (get rest 0))
     (throw (php/new InvalidArgumentException "repeat expects one or two arguments"))))
 
 (defn repeatedly
@@ -1035,7 +1035,7 @@ With one argument returns an infinite lazy sequence of calls to f."
         (php/new \Phel\Lang\Collections\LazySeq\LazySeq
                  (php/new Hasher)
                  (php/new Equalizer)
-                 (fn [] (for [i :range [n]] (f)))))
+                 (fn [] (for [_ :range [n]] (f)))))
     (throw (php/new InvalidArgumentException "repeatedly expects one or two arguments"))))
 
 (defmacro lazy-seq

@@ -40,7 +40,32 @@ final class DefinitionTest extends TestCase
             'signature' => ['[x y]'],
             'docstring' => 'adds',
             'private' => false,
+            'deprecated' => '',
         ], $definition->toArray());
+    }
+
+    public function test_it_serializes_the_deprecation_reason(): void
+    {
+        $definition = new Definition(
+            namespace: 'phel\\core',
+            name: 'set-meta!',
+            uri: 'core.phel',
+            line: 1,
+            col: 1,
+            kind: Definition::KIND_DEF,
+            signature: [],
+            docstring: '',
+            private: false,
+            deprecated: '0.32.0',
+        );
+
+        self::assertTrue($definition->isDeprecated());
+        self::assertSame('0.32.0', $definition->toArray()['deprecated']);
+    }
+
+    public function test_a_definition_without_the_metadata_is_not_deprecated(): void
+    {
+        self::assertFalse($this->makeDefinition('user', 'bar')->isDeprecated());
     }
 
     private function makeDefinition(string $namespace, string $name): Definition
