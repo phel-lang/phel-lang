@@ -135,10 +135,12 @@ final readonly class IndexedNode implements HashMapNodeInterface
     }
 
     /**
-     * @param TKey  $key
-     * @param mixed $notFound
+     * @template TDefault
      *
-     * @return ?mixed
+     * @param TKey     $key
+     * @param TDefault $notFound
+     *
+     * @return TDefault|TValue
      */
     public function find(int $shift, int $hash, $key, $notFound)
     {
@@ -157,7 +159,12 @@ final readonly class IndexedNode implements HashMapNodeInterface
         }
 
         if ($this->equalizer->equalsKey($key, $currentKey)) {
-            return $currentValue;
+            // Mirror of the $currentKey === null branch above: a non-null key
+            // means the slot holds a leaf value, never a child node.
+            /** @var TValue $value */
+            $value = $currentValue;
+
+            return $value;
         }
 
         return $notFound;

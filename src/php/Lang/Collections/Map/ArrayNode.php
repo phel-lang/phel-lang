@@ -112,10 +112,12 @@ final class ArrayNode implements HashMapNodeInterface, Countable
     }
 
     /**
-     * @param TKey  $key
-     * @param mixed $notFound
+     * @template TDefault
      *
-     * @return ?mixed
+     * @param TKey     $key
+     * @param TDefault $notFound
+     *
+     * @return TDefault|TValue
      */
     public function find(int $shift, int $hash, $key, $notFound)
     {
