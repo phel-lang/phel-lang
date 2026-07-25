@@ -172,7 +172,61 @@ final readonly class SymbolExtractor
             signature: $this->extractSignature($form, $formName),
             docstring: $this->extractDocstring($form, $formName),
             private: $this->isPrivate($form, $formName),
+            deprecated: $this->extractDeprecation($form, $name),
         );
+    }
+
+    /**
+     * Reads the `:deprecated` entry of the definition's metadata, either
+     * attached to the name (`^:deprecated foo`) or in the metadata map. A
+     * string value is the reason, `true` degrades to the literal
+     * `'deprecated'`. Everything else (including the keyword merely being
+     * *mentioned* in a docstring) means "not deprecated".
+     *
+     * @param PersistentListInterface<mixed> $form
+     */
+    private function extractDeprecation(PersistentListInterface $form, Symbol $name): string
+    {
+        $fromName = $this->deprecationValue($name->getMeta());
+        if ($fromName !== '') {
+            return $fromName;
+        }
+
+        $size = count($form);
+        for ($i = 2; $i < $size; ++$i) {
+            $child = $form->get($i);
+            if ($child instanceof PersistentVectorInterface) {
+                break;
+            }
+
+            if (!$child instanceof PersistentMapInterface) {
+                continue;
+            }
+
+            $fromMap = $this->deprecationValue($child);
+            if ($fromMap !== '') {
+                return $fromMap;
+            }
+        }
+
+        return '';
+    }
+
+    /**
+     * @param PersistentMapInterface<mixed, mixed>|null $meta
+     */
+    private function deprecationValue(?PersistentMapInterface $meta): string
+    {
+        if (!$meta instanceof PersistentMapInterface) {
+            return '';
+        }
+
+        $value = $meta->find(Keyword::create('deprecated'));
+        if (is_string($value) && $value !== '') {
+            return $value;
+        }
+
+        return $value === true ? 'deprecated' : '';
     }
 
     /**
