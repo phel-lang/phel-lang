@@ -1,0 +1,4 @@
+(ns fixtures.crossrequire.lib)
+
+(defn helper [x]
+  (inc x))

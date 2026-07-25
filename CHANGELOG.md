@@ -7,12 +7,14 @@ All notable changes to this project will be documented in this file.
 ### Added
 
 - New `phel lint` rule `phel/comment-style` (warning, on by default): flags a whole-line comment written with a single `;`, which the convention reserves for comments trailing code on the same line
+- New `phel lint` rule `phel/duplicate-def` (error, on by default): flags a top-level symbol defined twice in the same file, while a forward `(declare foo)` followed by its definition stays clean
 - Any `def`/`defn` carrying `:deprecated` metadata now warns at every call site when deprecation warnings are enabled (`--warn-deprecations`, `PHEL_WARN_DEPRECATIONS=1`, or `withWarnDeprecations(true)`). Works for project code too: `^{:deprecated "1.4.0" :superseded-by "new-fn"}` puts your own consumers on a migration path. Notices are deduplicated per `(file, symbol)` pair and suppressed inside phel's bundled stdlib
 - `^:reference` (the historical spelling of the `^:by-ref` fn-param hint) now emits a deprecation notice pointing at `^:by-ref`. It was the one deprecated construct with no user-visible signal at all
 - New [migration guide for the currently deprecated surface](docs/migration/deprecated-surface.md): every live deprecation, its replacement, a mechanical before/after, and how it announces itself
 
 ### Fixed
 
+- `phel lint` no longer aborts with `Lint failed: Symbol ... is already bound` on any project whose files `:require` one another (or on phel's own stdlib): re-reading a source during analysis is no longer mistaken for a redefinition, a real duplicate definition is now reported by the new `phel/duplicate-def` rule, a `defstruct` implementing a `definterface` from the same file no longer crashes the run, and `php/->`/threading segments plus `for`/`dofor` heads and a bare `[&]` are no longer flagged
 - Syntax deprecation notices (bare `#` comments, `#| ... |#` blocks, `|()` short fns, `,`/`,@` unquote, `$` auto-gensym) are no longer suppressed with `@`, which hid them from every real run: `--warn-deprecations` printed nothing at all. They are now gated on the same switch as the backslash-separator warning, off by default and reported when asked for, and suppressed for phel's own bundled `src/phel` sources so only code the user can edit is flagged
 - `phel lint` no longer skips a `.phel` file it cannot read, which reported the file as clean and let the run exit 0; it now raises `LintSourceException` naming the path
 - Parser, reader and analyzer errors now chain the sub-parser, tag-handler or path-resolver exception that produced them as `getPrevious()`, so the error log keeps the original throw site. The located message shown to the user is unchanged

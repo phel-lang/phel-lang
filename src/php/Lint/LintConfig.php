@@ -28,6 +28,7 @@ final class LintConfig extends AbstractConfig
             RuleRegistry::ARITY_MISMATCH => Diagnostic::SEVERITY_ERROR,
             RuleRegistry::INVALID_DESTRUCTURING => Diagnostic::SEVERITY_ERROR,
             RuleRegistry::DUPLICATE_KEY => Diagnostic::SEVERITY_ERROR,
+            RuleRegistry::DUPLICATE_DEF => Diagnostic::SEVERITY_ERROR,
             RuleRegistry::UNUSED_BINDING => Diagnostic::SEVERITY_WARNING,
             RuleRegistry::UNUSED_REQUIRE => Diagnostic::SEVERITY_WARNING,
             RuleRegistry::UNUSED_IMPORT => Diagnostic::SEVERITY_WARNING,

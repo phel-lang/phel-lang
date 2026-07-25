@@ -53,6 +53,20 @@ interface AnalyzerInterface
     public function addInterface(string $ns, Symbol $name): void;
 
     /**
+     * Record the method names declared by a `definterface`, so an inline
+     * implementation can be validated without the generated PHP interface
+     * having been evaluated (compile-only flows never evaluate).
+     *
+     * @param list<string> $methodNames
+     */
+    public function setInterfaceMethods(string $ns, Symbol $name, array $methodNames): void;
+
+    /**
+     * @return list<string>|null null when the interface was never analyzed here
+     */
+    public function getInterfaceMethods(string $ns, Symbol $name): ?array;
+
+    /**
      * Returns all available symbol names that can be resolved in the current namespace.
      *
      * @return array<string> List of available symbol names

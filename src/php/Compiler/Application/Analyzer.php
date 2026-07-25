@@ -134,6 +134,22 @@ final class Analyzer implements AnalyzerInterface
         $this->globalEnvironment->addInterface($ns, $name);
     }
 
+    /**
+     * @param list<string> $methodNames
+     */
+    public function setInterfaceMethods(string $ns, Symbol $name, array $methodNames): void
+    {
+        $this->globalEnvironment->setInterfaceMethods($ns, $name, $methodNames);
+    }
+
+    /**
+     * @return list<string>|null
+     */
+    public function getInterfaceMethods(string $ns, Symbol $name): ?array
+    {
+        return $this->globalEnvironment->getInterfaceMethods($ns, $name);
+    }
+
     public function getAvailableSymbols(): array
     {
         return $this->globalEnvironment->getAllDefinitions();

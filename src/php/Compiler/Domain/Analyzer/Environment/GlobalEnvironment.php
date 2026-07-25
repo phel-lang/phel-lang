@@ -59,7 +59,30 @@ final class GlobalEnvironment implements GlobalEnvironmentInterface
     /** @var array<string, array<string, Symbol>> */
     private array $interfaces = [];
 
+    /**
+     * Method names declared by each `definterface`, in Phel spelling.
+     * `defstruct`/`defenum` normally read the expected method set off the
+     * generated PHP interface via reflection, but that class only exists
+     * once the `definterface` form has been emitted AND evaluated. A
+     * compile-only pass (linter, `phel analyze`, LSP) never evaluates, so
+     * this stash is the reflection-free fallback.
+     *
+     * @var array<string, array<string, list<string>>>
+     */
+    private array $interfaceMethods = [];
+
     private int $allowPrivateAccessCounter = 0;
+
+    /**
+     * Re-entrant counter guarding "static analysis" sections. While it is
+     * positive, `def` never raises {@see DuplicateDefinitionException}:
+     * analysis re-reads sources whose namespace may already be loaded in
+     * this very process (linter, `phel analyze`, LSP all pre-load
+     * dependencies before analysing), and re-reading a file is not a
+     * redefinition. Same escape hatch as `*build-mode*`/`*repl-mode*`,
+     * scoped to the environment instead of the runtime registry.
+     */
+    private int $analysisModeCounter = 0;
 
     private ?BundledNamespaceResolverInterface $bundledNamespaceResolver = null;
 
@@ -281,6 +304,23 @@ final class GlobalEnvironment implements GlobalEnvironmentInterface
         return $this->allowPrivateAccessCounter > 0;
     }
 
+    public function enterAnalysisMode(): void
+    {
+        ++$this->analysisModeCounter;
+    }
+
+    public function leaveAnalysisMode(): void
+    {
+        if ($this->analysisModeCounter > 0) {
+            --$this->analysisModeCounter;
+        }
+    }
+
+    public function isAnalysisMode(): bool
+    {
+        return $this->analysisModeCounter > 0;
+    }
+
     public function addInterface(string $namespace, Symbol $name): void
     {
         if (!array_key_exists($namespace, $this->interfaces)) {
@@ -288,6 +328,22 @@ final class GlobalEnvironment implements GlobalEnvironmentInterface
         }
 
         $this->interfaces[$namespace][$name->getName()] = $name;
+    }
+
+    /**
+     * @param list<string> $methodNames
+     */
+    public function setInterfaceMethods(string $namespace, Symbol $name, array $methodNames): void
+    {
+        $this->interfaceMethods[$namespace][$name->getName()] = $methodNames;
+    }
+
+    /**
+     * @return list<string>|null
+     */
+    public function getInterfaceMethods(string $namespace, Symbol $name): ?array
+    {
+        return $this->interfaceMethods[$namespace][$name->getName()] ?? null;
     }
 
     public function snapshot(): array
@@ -369,7 +425,8 @@ final class GlobalEnvironment implements GlobalEnvironmentInterface
 
     private function shouldThrowOnDuplicateDefinition(string $namespace, Symbol $name): bool
     {
-        if (Phel::getDefinition(CompilerConstants::PHEL_CORE_NAMESPACE, BuildConstants::BUILD_MODE)
+        if ($this->isAnalysisMode()
+            || Phel::getDefinition(CompilerConstants::PHEL_CORE_NAMESPACE, BuildConstants::BUILD_MODE)
             || Phel::getDefinition(CompilerConstants::PHEL_CORE_NAMESPACE, ReplConstants::REPL_MODE)
             || $namespace === CompilerConstants::PHEL_CORE_NAMESPACE
         ) {

@@ -1,0 +1,5 @@
+(ns fixtures.crossrequire.app
+  (:require fixtures.crossrequire.lib :as lib))
+
+(defn run [x]
+  (lib/helper x))

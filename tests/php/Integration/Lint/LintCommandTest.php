@@ -215,6 +215,62 @@ final class LintCommandTest extends TestCase
         }
     }
 
+    /**
+     * A project file that another linted file `:require`s is evaluated for
+     * real while the requiring file is analyzed. Analyzing the required file
+     * afterwards used to abort the whole run with
+     * `Lint failed: Symbol ... is already bound`, because a re-read looked
+     * like a redefinition. Re-reading a source is not a redefinition.
+     */
+    #[PreserveGlobalState(false)]
+    #[RunInSeparateProcess]
+    public function test_it_lints_a_directory_whose_files_require_each_other(): void
+    {
+        $this->bootstrap();
+
+        $tester = new CommandTester(new LintCommand());
+        $exit = $tester->execute([
+            'paths' => [__DIR__ . '/Fixtures/CrossRequire'],
+            '--format' => 'json',
+            '--no-cache' => true,
+        ]);
+
+        $display = $tester->getDisplay();
+
+        self::assertStringNotContainsString('already bound', $display);
+        self::assertStringNotContainsString('Lint failed', $display);
+        self::assertNotSame(LintCommand::EXIT_INVOCATION_ERROR, $exit, 'Output: ' . $display);
+
+        $payload = json_decode(trim($display), true);
+        self::assertIsArray($payload);
+        self::assertSame([], $payload);
+    }
+
+    /**
+     * `definterface` implemented by a `defstruct` in the same file: the
+     * generated PHP interface only exists once the form has been emitted AND
+     * evaluated, which a lint pass never does.
+     */
+    #[PreserveGlobalState(false)]
+    #[RunInSeparateProcess]
+    public function test_it_lints_a_defstruct_implementing_an_interface_from_the_same_file(): void
+    {
+        $this->bootstrap();
+
+        $tester = new CommandTester(new LintCommand());
+        $exit = $tester->execute([
+            'paths' => [__DIR__ . '/Fixtures/local_interface.phel'],
+            '--format' => 'json',
+            '--no-cache' => true,
+        ]);
+
+        $display = $tester->getDisplay();
+
+        self::assertStringNotContainsString('Lint failed', $display);
+        self::assertStringNotContainsString('does not exist', $display);
+        self::assertSame(0, $exit, 'Output: ' . $display);
+    }
+
     private function bootstrap(): void
     {
         Phel::bootstrap(__DIR__);
