@@ -92,7 +92,11 @@ final class NsEmitter implements NodeEmitterInterface
                 );
                 $this->outputEmitter->emitLine('foreach ($__phelNsInfos as $__phelNsInfo) {');
                 $this->outputEmitter->increaseIndentLevel();
-                $this->outputEmitter->emitLine('if (!in_array($__phelNsInfo->getNamespace(), \\Phel::getNamespaces(), true)) {');
+                // `getNamespace()` is the canonical Phel form (`my-app.lib`);
+                // registry keys are munged (`my_app.lib`). Comparing them
+                // directly made every kebab-case namespace look unloaded, so
+                // each require re-evaluated its file and re-ran its top level.
+                $this->outputEmitter->emitLine('if (!\\Phel::isNamespaceLoaded($__phelNsInfo->getNamespace())) {');
                 $this->outputEmitter->increaseIndentLevel();
                 $this->outputEmitter->emitLine('\\Phel\\Build\\BuildFacade::enableBuildMode();');
                 $this->outputEmitter->emitLine('$__phelBuildFacade->evalFile($__phelNsInfo->getFile());');

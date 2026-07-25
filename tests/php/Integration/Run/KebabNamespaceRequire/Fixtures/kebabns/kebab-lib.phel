@@ -1,0 +1,6 @@
+(ns kebabns.kebab-lib)
+
+(php/:: \PhelTest\Integration\Run\KebabNamespaceRequire\LoadCounter
+        (record "kebabns.kebab-lib"))
+
+(defn greet [] "hello")
