@@ -115,4 +115,53 @@ final class ShadowedBindingRuleTest extends RuleTestCase
         self::assertSame([], $rule->apply($clean));
         self::assertCount(1, $rule->apply($shadowed));
     }
+
+    #[PreserveGlobalState(false)]
+    #[RunInSeparateProcess]
+    public function test_it_does_not_flag_repeated_param_names_across_arities(): void
+    {
+        $rule = new ShadowedBindingRule();
+        // Each arity has its own scope: the second `coll` shadows nothing.
+        $analysis = $this->buildAnalysis("(defn f ([coll] coll) ([n coll] [n coll]))\n");
+
+        self::assertSame([], $rule->apply($analysis));
+    }
+
+    #[PreserveGlobalState(false)]
+    #[RunInSeparateProcess]
+    public function test_it_still_flags_shadowing_inside_a_later_arity_body(): void
+    {
+        $rule = new ShadowedBindingRule();
+        $analysis = $this->buildAnalysis("(defn f ([coll] coll) ([n coll] (let [coll 1] [n coll])))\n");
+
+        $diagnostics = $rule->apply($analysis);
+
+        self::assertCount(1, $diagnostics);
+        self::assertStringContainsString("'coll'", $diagnostics[0]->message);
+    }
+
+    #[PreserveGlobalState(false)]
+    #[RunInSeparateProcess]
+    public function test_it_does_not_flag_a_metadata_fn_reusing_the_defn_param_names(): void
+    {
+        $rule = new ShadowedBindingRule();
+        // The `:inline` fn is evaluated outside the defn body, so its params
+        // cannot shadow the defn's own.
+        $analysis = $this->buildAnalysis("(defn bit-and {:inline (fn [x y] x)} [x y] (php/& x y))\n");
+
+        self::assertSame([], $rule->apply($analysis));
+    }
+
+    #[PreserveGlobalState(false)]
+    #[RunInSeparateProcess]
+    public function test_it_still_flags_shadowing_inside_the_defn_body(): void
+    {
+        $rule = new ShadowedBindingRule();
+        $analysis = $this->buildAnalysis("(defn f {:inline (fn [x] x)} [x] (let [x 2] x))\n");
+
+        $diagnostics = $rule->apply($analysis);
+
+        self::assertCount(1, $diagnostics);
+        self::assertStringContainsString("'x'", $diagnostics[0]->message);
+    }
 }

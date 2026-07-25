@@ -57,7 +57,9 @@ final readonly class ShadowedBindingRule implements LintRuleInterface
                 } elseif (ForHead::isForForm($name)) {
                     $scope = $this->handleFor($form, $scope, $uri, $result);
                 } elseif (in_array($name, self::FN_FORMS, true)) {
-                    $scope = $this->handleFn($form, $scope, $uri, $result);
+                    $this->walkFnForm($form, $scope, $uri, $result);
+
+                    return;
                 }
             }
 
@@ -141,32 +143,96 @@ final readonly class ShadowedBindingRule implements LintRuleInterface
     }
 
     /**
+     * Walks an `fn` / `defn` / `defmacro` form, giving each part the scope it
+     * really has:
+     *
+     * - the header (name, docstring, metadata map) is evaluated *outside* the
+     *   function, so an `:inline (fn [x] ...)` does not shadow the `defn`'s
+     *   own `x`;
+     * - every arity of a multi-arity form starts from the enclosing scope, so
+     *   `([coll] ...) ([n coll] ...)` is not read as `coll` shadowing `coll`.
+     *
      * @param PersistentListInterface<mixed> $form
      * @param list<string>                   $scope
      * @param list<Diagnostic>               $result
-     *
-     * @return list<string>
      */
-    private function handleFn(PersistentListInterface $form, array $scope, string $uri, array &$result): array
+    private function walkFnForm(PersistentListInterface $form, array $scope, string $uri, array &$result): void
     {
-        $newScope = $scope;
-        $first = true;
-        foreach (FnParamVectors::of($form) as $paramVector) {
-            if ($first) {
-                $newScope = $this->walkParams($paramVector, $newScope, $uri, $result);
-                $first = false;
-                continue;
-            }
+        $size = count($form);
+        $arityStart = $this->firstArityIndex($form, $size);
 
-            // Each arity introduces its own independent scope at analyze-time,
-            // but shadowing is reported relative to the shared outer scope, so
-            // every additional arity is walked against the same $newScope and
-            // its result is intentionally discarded (only the first arity's
-            // scope is propagated to the caller).
-            $this->walkParams($paramVector, $newScope, $uri, $result);
+        for ($i = 1; $i < $arityStart; ++$i) {
+            $this->walk($form->get($i), $scope, $uri, $result);
         }
 
-        return $newScope;
+        if ($arityStart >= $size) {
+            return;
+        }
+
+        $params = $form->get($arityStart);
+        if ($params instanceof PersistentVectorInterface) {
+            $bodyScope = $this->walkParams($params, $scope, $uri, $result);
+            for ($i = $arityStart + 1; $i < $size; ++$i) {
+                $this->walk($form->get($i), $bodyScope, $uri, $result);
+            }
+
+            return;
+        }
+
+        for ($i = $arityStart; $i < $size; ++$i) {
+            $this->walkArity($form->get($i), $scope, $uri, $result);
+        }
+    }
+
+    /**
+     * @param list<string>     $scope
+     * @param list<Diagnostic> $result
+     */
+    private function walkArity(mixed $arity, array $scope, string $uri, array &$result): void
+    {
+        if (!$arity instanceof PersistentListInterface || count($arity) === 0) {
+            $this->walk($arity, $scope, $uri, $result);
+
+            return;
+        }
+
+        $params = $arity->get(0);
+        if (!$params instanceof PersistentVectorInterface) {
+            $this->walk($arity, $scope, $uri, $result);
+
+            return;
+        }
+
+        $bodyScope = $this->walkParams($params, $scope, $uri, $result);
+        $size = count($arity);
+        for ($i = 1; $i < $size; ++$i) {
+            $this->walk($arity->get($i), $bodyScope, $uri, $result);
+        }
+    }
+
+    /**
+     * Index of the first child that starts the callable part: a params vector
+     * (single arity) or the first `([params] body)` list (multi arity).
+     *
+     * @param PersistentListInterface<mixed> $form
+     */
+    private function firstArityIndex(PersistentListInterface $form, int $size): int
+    {
+        for ($i = 1; $i < $size; ++$i) {
+            $child = $form->get($i);
+            if ($child instanceof PersistentVectorInterface) {
+                return $i;
+            }
+
+            if ($child instanceof PersistentListInterface
+                && count($child) > 0
+                && $child->get(0) instanceof PersistentVectorInterface
+            ) {
+                return $i;
+            }
+        }
+
+        return $size;
     }
 
     /**
