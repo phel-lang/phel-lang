@@ -77,6 +77,30 @@ final class SliceGeneratorTest extends TestCase
         self::assertSame([1, 2, 3], iterator_to_array($result, false));
     }
 
+    /**
+     * Phel predicates return arbitrary values, not `bool`. Only `nil` and
+     * `false` end the run; PHP truthiness would stop at the `0`.
+     */
+    public function test_take_while_does_not_stop_on_php_falsy_results(): void
+    {
+        $result = SliceGenerator::takeWhile(
+            static fn(mixed $x): mixed => $x,
+            [1, 0, '', 2, null, 3],
+        );
+
+        self::assertSame([1, 0, '', 2], iterator_to_array($result, false));
+    }
+
+    public function test_drop_while_does_not_stop_on_php_falsy_results(): void
+    {
+        $result = SliceGenerator::dropWhile(
+            static fn(mixed $x): mixed => $x,
+            [1, 0, '', false, 2],
+        );
+
+        self::assertSame([false, 2], iterator_to_array($result, false));
+    }
+
     public function test_take_nth_basic(): void
     {
         $result = SliceGenerator::takeNth(2, [1, 2, 3, 4, 5, 6]);

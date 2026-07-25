@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Phel\Lang\Generators;
 
 use Generator;
+use Phel\Lang\Truthy;
 
 /**
  * Positional slicing generators: take and drop and their variants.
@@ -42,19 +43,27 @@ final class SliceGenerator
     }
 
     /**
-     * Returns elements while the predicate returns true; stops at first false.
+     * Returns elements while the predicate returns a logical true value; stops
+     * at the first logically false one.
      *
      * Examples:
      *   takeWhile(fn($x) => $x < 4, [1, 2, 3, 4, 5])  // => [1, 2, 3]
      *   takeWhile(fn($x) => $x < 0, [1, 2, 3])        // => []
      *   takeWhile(fn($x) => $x > 0, [1, 2, 3])        // => [1, 2, 3]
      *
+     * The predicate returns an arbitrary Phel value, not a `bool`, so the
+     * boundary is decided by {@see Truthy::isTruthy()}: only `nil`
+     * and `false` stop the sequence. PHP truthiness would also stop it on
+     * `0`, `0.0`, `''`, `'0'` and `[]`.
+     *
+     * @param callable(mixed):mixed $predicate
+     *
      * @return Generator<int, mixed>
      */
     public static function takeWhile(callable $predicate, mixed $iterable): Generator
     {
         foreach (SequenceGenerator::toIterable($iterable) as $value) {
-            if (!$predicate($value)) {
+            if (!Truthy::isTruthy($predicate($value))) {
                 break;
             }
 
@@ -104,12 +113,20 @@ final class SliceGenerator
     }
 
     /**
-     * Skips elements while the predicate returns true; returns the rest.
+     * Skips elements while the predicate returns a logical true value; returns
+     * the rest.
      *
      * Examples:
      *   dropWhile(fn($x) => $x < 3, [1, 2, 3, 4, 5])  // => [3, 4, 5]
      *   dropWhile(fn($x) => $x < 0, [1, 2, 3])        // => [1, 2, 3]
      *   dropWhile(fn($x) => $x > 0, [1, 2, 3])        // => []
+     *
+     * The predicate returns an arbitrary Phel value, not a `bool`, so the
+     * boundary is decided by {@see Truthy::isTruthy()}: only `nil`
+     * and `false` end the dropped prefix. PHP truthiness would also end it on
+     * `0`, `0.0`, `''`, `'0'` and `[]`.
+     *
+     * @param callable(mixed):mixed $predicate
      *
      * @return Generator<int, mixed>
      */
@@ -117,7 +134,7 @@ final class SliceGenerator
     {
         $dropping = true;
         foreach (SequenceGenerator::toIterable($iterable) as $value) {
-            if ($dropping && $predicate($value)) {
+            if ($dropping && Truthy::isTruthy($predicate($value))) {
                 continue;
             }
 
