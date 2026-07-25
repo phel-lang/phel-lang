@@ -19,6 +19,11 @@ use function defined;
 use function fopen;
 use function sprintf;
 
+/**
+ * @method LspFacade  getFacade()
+ * @method LspFactory getFactory()
+ * @method LspConfig  getConfig()
+ */
 #[ServiceMap(method: 'getFacade', className: LspFacade::class)]
 #[ServiceMap(method: 'getFactory', className: LspFactory::class)]
 #[ServiceMap(method: 'getConfig', className: LspConfig::class)]

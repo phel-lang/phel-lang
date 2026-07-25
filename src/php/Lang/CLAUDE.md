@@ -35,7 +35,7 @@ No Gacela pattern: foundational leaf module; all types used directly by other mo
 | `Volatile` | Lightweight mutable container for transducer state (no watches/validators) |
 | `Reduced` | Signals early termination from reduce/transduce |
 | `Future` | Amphp adapter exposing Phel deref/realized? protocol |
-| `Eduction` | Transducer composition helper |
+| `Eduction` | Transducer composition helper. Re-runs the chain on every consumption, so it has no size of its own: `empty?` answers it via `Seq::isEmpty` (pulls one element), `count` refuses it with an actionable message rather than draining it |
 
 ## Numeric Utilities
 

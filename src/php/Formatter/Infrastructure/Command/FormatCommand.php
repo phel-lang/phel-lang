@@ -17,6 +17,10 @@ use Symfony\Component\Console\Output\OutputInterface;
 use function count;
 use function sprintf;
 
+/**
+ * @method FormatterFacade getFacade()
+ * @method FormatterConfig getConfig()
+ */
 #[ServiceMap(method: 'getFacade', className: FormatterFacade::class)]
 #[ServiceMap(method: 'getConfig', className: FormatterConfig::class)]
 final class FormatCommand extends Command

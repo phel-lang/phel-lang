@@ -1,6 +1,7 @@
 (in-ns phel.core)
 
 (use Countable)
+(use Traversable)
 (use Phel)
 (use Phel.Lang.Collections.HashSet.PersistentHashSetInterface)
 (use Phel.Lang.Collections.LazySeq.Cons)
@@ -23,6 +24,7 @@
 (use Phel.Lang.MetaInterface)
 (use Phel.Lang.PhelVar)
 (use Phel.Lang.Ratio)
+(use Phel.Lang.Seq)
 (use Phel.Lang.Symbol)
 (use Phel.Lang.Atom)
 
@@ -426,7 +428,9 @@ Unlike `seq?`, this predicate is true only for lazy sequences, not for realized 
   (php/instanceof x LazySeqInterface))
 
 (defn empty?
-  "Returns true if x would be 0, \"\" or empty collection, false otherwise. Safe on infinite/lazy sequences: checks the first element instead of counting."
+  "Returns true if x would be 0, \"\" or empty collection, false otherwise. Safe on infinite/lazy sequences: checks the first element instead of counting.
+
+A non-countable iterable (an `eduction` pipeline, a PHP generator) is answered by pulling a single element, never by counting it."
   {:example "(empty? []) ; => true\n(empty? [1]) ; => false"
    :see-also ["not-empty" "empty" "count"]}
   [x]
@@ -435,6 +439,8 @@ Unlike `seq?`, this predicate is true only for lazy sequences, not for realized 
     (php/is_string x)                   (true? (php/empty x))
     (php/instanceof x LazySeqInterface) (nil? (first x))
     (php/instanceof x Cons)             false
+    (php/instanceof x Countable)        (= 0 (count x))
+    (php/instanceof x Traversable)      (php/:: Seq (isEmpty x))
     :else                               (= 0 (count x))))
 
 (defn not-empty

@@ -118,6 +118,9 @@ final class CommandFacade extends AbstractFacade implements CommandFacadeInterfa
             ->getOutputDirectory());
     }
 
+    /**
+     * @return array<string, mixed>
+     */
     public function readPhelConfig(string $absolutePath): array
     {
         return $this->getFactory()

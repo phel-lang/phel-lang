@@ -23,6 +23,9 @@ use function sprintf;
 use const JSON_PRETTY_PRINT;
 use const JSON_THROW_ON_ERROR;
 
+/**
+ * @method ApiFacade getFacade()
+ */
 #[ServiceMap(method: 'getFacade', className: ApiFacade::class)]
 final class IndexCommand extends Command
 {

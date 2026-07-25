@@ -11,7 +11,12 @@ parameters:
         processTimeout: 3000.0
     paths:
         - %currentWorkingDirectory%/src/
-    ignoreErrors:
+    # `!` discards the ignoreErrors merged in from phpstan-gacela.neon, which
+    # silences "Call to an undefined method ::getFacade/getFactory/getConfig".
+    # Every class using ServiceResolverAwareTrait declares those methods with
+    # `@method`, so the pattern never matches here and a new class that forgets
+    # the annotation should fail rather than resolve to `mixed`.
+    ignoreErrors!:
         - identifier: trait.unused
         -
             identifier: while.alwaysTrue

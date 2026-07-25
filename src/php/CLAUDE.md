@@ -19,6 +19,7 @@ Unless a module says "No Gacela Pattern", it follows this wiring:
 
 Keeping non-facade edges out of the docs is how the graph erodes quietly, so they belong here even when there is no Provider entry to hang them on.
 - Layered layout: `Application/` (use cases), `Domain/` (interfaces, value objects, logic), `Infrastructure/` (I/O, CLI commands, adapters), `Transfer/` (DTOs); Gacela files (`Facade`, `Factory`, `Config`, `Provider`) at module root.
+- A class using `ServiceResolverAwareTrait` declares BOTH the `#[ServiceMap(method: …, className: …)]` attribute (runtime resolution) and a matching `@method X getFacade()` / `getFactory()` / `getConfig()` docblock (static analysis). The attribute alone leaves the call `mixed` for psalm and phpstan, and that `mixed` cascades through the whole command. Neither `psalm-gacela.xml` nor `phpstan-gacela.neon`'s undefined-method ignore is enabled here, so a missing annotation fails the build.
 
 ### Where the FacadeInterface lives
 

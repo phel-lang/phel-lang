@@ -34,6 +34,10 @@ use function sprintf;
  *   0 — no errors
  *   1 — one or more errors (warnings/infos do not fail)
  *   2 — invocation error (bad flags, no readable files, unusable config file).
+ *
+ * @method LintFacade  getFacade()
+ * @method LintFactory getFactory()
+ * @method LintConfig  getConfig()
  */
 #[ServiceMap(method: 'getFacade', className: LintFacade::class)]
 #[ServiceMap(method: 'getFactory', className: LintFactory::class)]

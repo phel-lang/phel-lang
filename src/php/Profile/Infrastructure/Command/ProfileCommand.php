@@ -34,6 +34,10 @@ use function is_array;
 use function is_string;
 use function sprintf;
 
+/**
+ * @method ProfileFacade  getFacade()
+ * @method ProfileFactory getFactory()
+ */
 #[ServiceMap(method: 'getFacade', className: ProfileFacade::class)]
 #[ServiceMap(method: 'getFactory', className: ProfileFactory::class)]
 final class ProfileCommand extends Command

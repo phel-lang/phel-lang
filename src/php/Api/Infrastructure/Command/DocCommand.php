@@ -22,6 +22,9 @@ use Symfony\Component\Console\Terminal;
 use function in_array;
 use function sprintf;
 
+/**
+ * @method ApiFacade getFacade()
+ */
 #[ServiceMap(method: 'getFacade', className: ApiFacade::class)]
 final class DocCommand extends Command
 {
