@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace Phel\Api\Application;
 
-use Phel\Api\ApiFacade;
 use Phel\Api\Domain\SymbolMetadataFinderInterface;
 use Phel\Shared\Api\PhelFunction;
+use Phel\Shared\Facade\ApiFacadeInterface;
 
 use function array_slice;
 use function count;
@@ -22,9 +22,9 @@ use function substr;
  * interop calls. Returns null when the cursor is not inside a resolvable Phel
  * call, so the handler can fall through.
  *
- * @phpstan-import-type SignatureHelp from ApiFacade
- * @phpstan-import-type SignatureInformation from ApiFacade
- * @phpstan-import-type SignatureParameter from ApiFacade
+ * @phpstan-import-type SignatureHelp from ApiFacadeInterface
+ * @phpstan-import-type SignatureInformation from ApiFacadeInterface
+ * @phpstan-import-type SignatureParameter from ApiFacadeInterface
  */
 final readonly class PhelSignatureResolver
 {

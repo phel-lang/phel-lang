@@ -4,16 +4,16 @@ declare(strict_types=1);
 
 namespace Phel\Lsp\Application\Handler;
 
-use Phel\Api\ApiFacade;
 use Phel\Lsp\Application\Convert\LocationConverter;
 use Phel\Lsp\Application\HandlerInterface;
 use Phel\Lsp\Application\Rpc\ParamsExtractor;
 use Phel\Lsp\Application\Session\Session;
+use Phel\Shared\Facade\ApiFacadeInterface;
 
 final readonly class ReferencesHandler implements HandlerInterface
 {
     public function __construct(
-        private ApiFacade $apiFacade,
+        private ApiFacadeInterface $apiFacade,
         private LocationConverter $locations,
         private ParamsExtractor $params,
         private SymbolResolver $symbols,

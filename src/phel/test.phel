@@ -1478,3 +1478,37 @@ Metadata attached to `test-name` is forwarded to the defined function so selecto
   {:example "(get-failed-tests) ; => [\"my-app/foo-test\"]"}
   []
   (deref failed-tests))
+
+;; ---------------
+;; Run isolation
+;; ---------------
+
+;; Both macros below are `unwind-protect` shapes over the two pieces of
+;; global run state (`stats` and `*reporters*`). They are deliberately
+;; separate and composable rather than one macro with a mode flag: a test
+;; that only inspects counts should not have to name a reporter set, and a
+;; test that only scripts reporters should not have to reset the counts.
+
+(defmacro with-isolated-stats
+  "Runs `body` against a freshly reset statistics accumulator and returns the stats map that `body` produced, then restores the statistics the caller had before. Use it when asserting on the outcome of assertions under test, so their pass/fail counts never leak into the surrounding run. Wrap `body` in `with-output-buffer` to swallow the reporter output those assertions emit. The caller's statistics are restored even when `body` throws."
+  {:example "(:counts (with-isolated-stats (with-output-buffer (is (= 1 2))))) ; => {:failed 1, :error 0, :pass 0, :skipped 0, :total 1}"
+   :see-also ["get-stats" "reset-stats" "restore-stats" "with-isolated-reporters"]}
+  [& body]
+  `(let [outer-stats# (get-stats)]
+     (reset-stats)
+     (try
+       (do ~@body (get-stats))
+       (finally
+         (restore-stats outer-stats#)))))
+
+(defmacro with-isolated-reporters
+  "Installs `reporters` as the only active reporter set while `body` runs, then restores the previously registered reporters. Returns the value of the last form in `body`. Use it to capture the events a piece of code emits without permanently replacing the reporters the surrounding run relies on. The previous reporter set is restored even when `body` throws."
+  {:example "(let [events (atom [])]\n  (with-isolated-reporters [(fn [event] (swap! events conj (:type event)))]\n    (report {:type :pass :state :pass}))\n  (deref events)) ; => [:pass]"
+   :see-also ["set-reporters!" "get-reporters" "clear-reporters!" "with-isolated-stats"]}
+  [reporters & body]
+  `(let [outer-reporters# (get-reporters)]
+     (set-reporters! ~reporters)
+     (try
+       (do ~@body)
+       (finally
+         (set-reporters! outer-reporters#)))))

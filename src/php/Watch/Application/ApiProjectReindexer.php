@@ -4,14 +4,14 @@ declare(strict_types=1);
 
 namespace Phel\Watch\Application;
 
-use Phel\Api\ApiFacade;
+use Phel\Shared\Facade\ApiFacadeInterface;
 use Phel\Watch\Domain\ProjectReindexerInterface;
 use Throwable;
 
 final readonly class ApiProjectReindexer implements ProjectReindexerInterface
 {
     public function __construct(
-        private ApiFacade $apiFacade,
+        private ApiFacadeInterface $apiFacade,
     ) {}
 
     public function reindex(array $srcDirs): void

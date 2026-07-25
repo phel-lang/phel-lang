@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace Phel\Lint\Application\Rule;
 
-use Phel\Api\Transfer\Diagnostic;
 use Phel\Lint\Domain\FileAnalysis;
+use Phel\Shared\Api\Diagnostic;
 
 /**
  * Re-tags an analyzer-level diagnostic (`PHEL001`, `PHEL002`, ...) as a

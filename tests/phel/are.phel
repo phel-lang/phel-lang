@@ -1,5 +1,5 @@
 (ns phel-test.are
-  (:require phel.test :refer [deftest is are testing get-stats reset-stats restore-stats]))
+  (:require phel.test :refer [deftest is are testing with-isolated-stats]))
 
 ;; ---------------------------------------------------------------------------
 ;; Basic 2-variable usage — the canonical use case
@@ -59,16 +59,13 @@
 ;; ---------------------------------------------------------------------------
 
 (deftest test-are-records-individual-failures
-  (let [saved  (get-stats)
-        _      (reset-stats)
-        _      (with-output-buffer
-                 (are [x y] (= x y)
-                      1 1
-                      2 3
-                      4 4
-                      5 6))
-        counts (get (get-stats) :counts)]
-    (restore-stats saved)
+  (let [counts (:counts (with-isolated-stats
+                         (with-output-buffer
+                           (are [x y] (= x y)
+                                1 1
+                                2 3
+                                4 4
+                                5 6))))]
     (is (= 2 (:pass counts)) "two groups pass")
     (is (= 2 (:failed counts)) "two groups fail")))
 
@@ -77,15 +74,12 @@
 ;; ---------------------------------------------------------------------------
 
 (deftest test-are-drops-incomplete-trailing-group
-  (let [saved  (get-stats)
-        _      (reset-stats)
-        _      (with-output-buffer
-                 (are [x y] (= x y)
-                      1 1
-                      2 2
-                      3))
-        counts (get (get-stats) :counts)]
-    (restore-stats saved)
+  (let [counts (:counts (with-isolated-stats
+                         (with-output-buffer
+                           (are [x y] (= x y)
+                                1 1
+                                2 2
+                                3))))]
     (is (= 2 (:pass counts)) "only complete groups are asserted")
     (is (= 0 (:failed counts)) "no failures from dropped group")))
 
@@ -113,12 +107,9 @@
 ;; ---------------------------------------------------------------------------
 
 (deftest test-are-zero-args
-  (let [saved  (get-stats)
-        _      (reset-stats)
-        _      (with-output-buffer
-                 (are [x y] (= x y)))
-        counts (get (get-stats) :counts)]
-    (restore-stats saved)
+  (let [counts (:counts (with-isolated-stats
+                         (with-output-buffer
+                           (are [x y] (= x y)))))]
     (is (= 0 (:total counts)) "no assertions generated")))
 
 ;; ---------------------------------------------------------------------------

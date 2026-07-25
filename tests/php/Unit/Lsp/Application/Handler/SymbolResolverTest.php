@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace PhelTest\Unit\Lsp\Application\Handler;
 
-use Phel\Api\Transfer\Definition;
-use Phel\Api\Transfer\ProjectIndex;
 use Phel\Lsp\Application\Handler\SymbolResolver;
+use Phel\Shared\Api\Definition;
+use Phel\Shared\Api\ProjectIndex;
 use PHPUnit\Framework\TestCase;
 
 final class SymbolResolverTest extends TestCase

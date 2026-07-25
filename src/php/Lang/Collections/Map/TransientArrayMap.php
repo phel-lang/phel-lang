@@ -11,6 +11,12 @@ use Phel\Lang\HasherInterface;
 use function count;
 
 /**
+ * Inner transient behind {@see TransientMapWrapper}; never handed to Phel code
+ * directly, which is why it does not use `TransientStateTrait`. The wrapper owns
+ * the use-after-`persistent!` guard for the whole map family, and this class must
+ * stay reusable so `put()` can hand its contents to a fresh {@see TransientHashMap}
+ * once the array-map size limit is reached.
+ *
  * @template TKey
  * @template TValue
  *

@@ -5,11 +5,11 @@ declare(strict_types=1);
 namespace Phel\Api\Application\Analysis;
 
 use Phel\Api\Domain\AnalysisStageInterface;
-use Phel\Api\Transfer\Diagnostic;
 use Phel\Compiler\Domain\Analyzer\Environment\NodeEnvironment;
 use Phel\Compiler\Domain\Analyzer\Exceptions\AnalyzerException;
 use Phel\Compiler\Domain\Reader\Exceptions\ReaderException;
 use Phel\Lang\TypeInterface;
+use Phel\Shared\Api\Diagnostic;
 use Phel\Shared\Exceptions\ErrorCode;
 use Phel\Shared\Facade\CompilerFacadeInterface;
 use Phel\Shared\Parser\Node\NodeInterface;

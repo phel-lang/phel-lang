@@ -6,22 +6,17 @@ namespace Phel\Api;
 
 use Gacela\Framework\AbstractFacade;
 use Phel\Api\Infrastructure\Daemon\ApiDaemon;
-use Phel\Api\Transfer\Completion;
-use Phel\Api\Transfer\Definition;
-use Phel\Api\Transfer\Diagnostic;
-use Phel\Api\Transfer\Location;
-use Phel\Api\Transfer\ProjectIndex;
+use Phel\Shared\Api\Completion;
 use Phel\Shared\Api\CompletionResultTransfer;
+use Phel\Shared\Api\Definition;
+use Phel\Shared\Api\Diagnostic;
+use Phel\Shared\Api\Location;
 use Phel\Shared\Api\PhelFunction;
+use Phel\Shared\Api\ProjectIndex;
 use Phel\Shared\Facade\ApiFacadeInterface;
 
 /**
- * The LSP SignatureHelp wire shape this module produces. Declared here (the
- * module's public API) so both resolvers behind it describe one payload.
- *
- * @phpstan-type SignatureParameter array{label: string}
- * @phpstan-type SignatureInformation array{label: string, parameters: list<SignatureParameter>, documentation?: string}
- * @phpstan-type SignatureHelp array{signatures: list<SignatureInformation>, activeSignature: int, activeParameter: int}
+ * @phpstan-import-type SignatureHelp from ApiFacadeInterface
  *
  * @extends AbstractFacade<ApiFactory>
  */

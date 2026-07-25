@@ -639,10 +639,9 @@
 (defn- quiet-run [thunk]
   "Runs a REPL test helper while suppressing its reporter output and restoring
   the outer test stats afterwards. Returns the thunk's value."
-  (let [saved  (t/get-stats)
-        result (atom nil)]
-    (with-output-buffer (reset! result (thunk)))
-    (t/restore-stats saved)
+  (let [result (atom nil)]
+    (t/with-isolated-stats
+     (with-output-buffer (reset! result (thunk))))
     (deref result)))
 
 (deftest test-run-tests-returns-summary-map

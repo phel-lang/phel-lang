@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace Phel\Api\Application;
 
-use Phel\Api\Transfer\Completion;
 use Phel\Api\Transfer\PhpInteropContext;
+use Phel\Shared\Api\Completion;
 
 /**
  * Produces PHP-interop completions at a cursor position by combining the

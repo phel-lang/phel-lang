@@ -5,8 +5,8 @@ declare(strict_types=1);
 namespace PhelTest\Unit\Api\Application;
 
 use Phel\Api\Application\ReferenceFinder;
-use Phel\Api\Transfer\Location;
-use Phel\Api\Transfer\ProjectIndex;
+use Phel\Shared\Api\Location;
+use Phel\Shared\Api\ProjectIndex;
 use PHPUnit\Framework\TestCase;
 
 final class ReferenceFinderTest extends TestCase

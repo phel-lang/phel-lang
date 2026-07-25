@@ -4,8 +4,6 @@ declare(strict_types=1);
 
 namespace Phel\Api\Application;
 
-use Phel\Api\Transfer\Definition;
-use Phel\Api\Transfer\Location;
 use Phel\Lang\Collections\LinkedList\PersistentListInterface;
 use Phel\Lang\Collections\Map\PersistentMapInterface;
 use Phel\Lang\Collections\Vector\PersistentVectorInterface;
@@ -13,6 +11,8 @@ use Phel\Lang\Keyword;
 use Phel\Lang\SourceLocation;
 use Phel\Lang\Symbol;
 use Phel\Lang\TypeInterface;
+use Phel\Shared\Api\Definition;
+use Phel\Shared\Api\Location;
 use Phel\Shared\Facade\CompilerFacadeInterface;
 
 use Throwable;

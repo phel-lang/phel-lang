@@ -4,12 +4,12 @@ declare(strict_types=1);
 
 namespace Phel\Lsp\Application\Handler;
 
-use Phel\Formatter\FormatterFacade;
 use Phel\Lsp\Application\Convert\PositionConverter;
 use Phel\Lsp\Application\Document\Document;
 use Phel\Lsp\Application\HandlerInterface;
 use Phel\Lsp\Application\Rpc\ParamsExtractor;
 use Phel\Lsp\Application\Session\Session;
+use Phel\Shared\Facade\FormatterFacadeInterface;
 use Throwable;
 
 use function count;
@@ -23,7 +23,7 @@ use function strlen;
 final readonly class FormattingHandler implements HandlerInterface
 {
     public function __construct(
-        private FormatterFacade $formatter,
+        private FormatterFacadeInterface $formatter,
         private ParamsExtractor $params,
     ) {}
 

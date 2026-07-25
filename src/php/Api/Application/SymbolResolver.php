@@ -5,8 +5,8 @@ declare(strict_types=1);
 namespace Phel\Api\Application;
 
 use Phel\Api\Domain\SymbolResolverInterface;
-use Phel\Api\Transfer\Definition;
-use Phel\Api\Transfer\ProjectIndex;
+use Phel\Shared\Api\Definition;
+use Phel\Shared\Api\ProjectIndex;
 
 final readonly class SymbolResolver implements SymbolResolverInterface
 {

@@ -4,13 +4,13 @@ declare(strict_types=1);
 
 namespace Phel\Lsp\Application\Handler;
 
-use Phel\Api\ApiFacade;
 use Phel\Lsp\Application\Convert\UriConverter;
 use Phel\Lsp\Application\Diagnostics\DiagnosticPublisher;
 use Phel\Lsp\Application\Document\Document;
 use Phel\Lsp\Application\HandlerInterface;
 use Phel\Lsp\Application\Rpc\ParamsExtractor;
 use Phel\Lsp\Application\Session\Session;
+use Phel\Shared\Facade\ApiFacadeInterface;
 
 use function str_ends_with;
 use function strtolower;
@@ -19,7 +19,7 @@ final readonly class DidSaveHandler implements HandlerInterface
 {
     public function __construct(
         private DiagnosticPublisher $publisher,
-        private ApiFacade $apiFacade,
+        private ApiFacadeInterface $apiFacade,
         private UriConverter $uris,
         private ParamsExtractor $params,
     ) {}

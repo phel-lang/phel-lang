@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace Phel\Api\Domain;
 
-use Phel\Api\Transfer\Definition;
-use Phel\Api\Transfer\ProjectIndex;
+use Phel\Shared\Api\Definition;
+use Phel\Shared\Api\ProjectIndex;
 
 interface SymbolResolverInterface
 {

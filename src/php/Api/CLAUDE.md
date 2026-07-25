@@ -21,7 +21,9 @@ REPL autocompletion, function introspection/docs, and user-code semantic analysi
 | `phelSignatureAt(source, line, col, currentNs = 'user'): ?array` | LSP signature help for a plain Phel function call (`PhelSignatureResolver`) |
 | `createApiDaemon(): ApiDaemon` | Long-running JSON-RPC daemon |
 
-Project-level transfers: `ProjectIndex`, `Definition`, `Location`, `Completion`, `Diagnostic`. `PhelFunction` and `CompletionResultTransfer` live in `Phel\Shared\Api` (referenced by `ApiFacadeInterface`).
+Every method above except `createApiDaemon` is declared on `Phel\Shared\Facade\ApiFacadeInterface`, so `Lint`, `Lsp`, `Nrepl`, `Run` and `Watch` all inject the contract. `createApiDaemon` stays off it: `ApiDaemon` is this module's own stdio adapter, consumed only by `ApiDaemonCommand`, so exporting it would put an `Infrastructure` class in a leaf contract for no consumer.
+
+Every transfer the contract names lives in `Phel\Shared\Api`: `ProjectIndex`, `Definition`, `Location`, `Completion`, `Diagnostic`, `PhelFunction`, `CompletionResultTransfer`. `Transfer/` keeps only the PHP-interop reflection types (`PhpInteropCall`, `PhpInteropClass`, `PhpInteropContext`, `PhpInteropSignature`), which never cross the facade.
 
 ## Dependencies
 
@@ -31,7 +33,7 @@ Project-level transfers: `ProjectIndex`, `Definition`, `Location`, `Completion`,
 
 `Api <-> Run` is the codebase's only mutual Gacela provider pair, and the cycle is a wiring detail rather than a structural one: both sides consume each other through `Phel\Shared\Facade\*Interface`, and the concrete facades appear only in `ApiProvider` / `RunProvider`, because Gacela's locator has to name a class. `ModuleDependencyCycleTest` pins exactly those two files.
 
-Note that `ApiFacadeInterface` declares only 5 of the facade's methods, so Lint, Lsp and Watch still inject the **concrete** `ApiFacade` for `analyzeSource` / `indexProject` / symbol resolution. That is the one sanctioned exception to "inject the interface" in `src/php/CLAUDE.md`; it is pinned by `SatelliteFactoryFacadeInjectionTest`. Widening the contract is what would let those three bind the interface instead.
+`ApiProvider` / `RunProvider` and the peer providers in `Lint`, `Lsp`, `Nrepl` and `Watch` still name the concrete `ApiFacade`, because Gacela's locator resolves by class. That is wiring, not coupling: every factory getter and every collaborator behind it types `ApiFacadeInterface`.
 
 ## PHP Interop Tooling (`Application/Php*`)
 

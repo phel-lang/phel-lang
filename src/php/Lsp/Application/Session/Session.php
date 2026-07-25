@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace Phel\Lsp\Application\Session;
 
-use Phel\Api\Transfer\ProjectIndex;
 use Phel\Lsp\Application\Document\DocumentStore;
 use Phel\Lsp\Domain\NotificationSink;
+use Phel\Shared\Api\ProjectIndex;
 
 /**
  * State carried across every LSP request for a single client.

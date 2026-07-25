@@ -1,0 +1,130 @@
+(ns phel-test.test-isolation
+  (:require phel.test :as t :refer [deftest is testing]))
+
+;; Coverage for `phel.test/with-isolated-stats` and
+;; `phel.test/with-isolated-reporters`, the two `unwind-protect` macros that
+;; let a test observe the framework's own global state without leaking into
+;; the surrounding run.
+;;
+;; They are deliberately two macros rather than one with a mode flag: stats
+;; and reporters are independent pieces of state, and each macro composes
+;; with the other when a test needs both.
+;;
+;; Assertions about what happened inside an isolated block are made *after*
+;; it returns. An `is` placed inside the block would report into the very
+;; state under test, so these tests capture plain values in the body and
+;; assert on them outside.
+
+;; ---------------------------------------------------------------------------
+;; with-isolated-stats — returns the body's stats, restores the caller's
+;; ---------------------------------------------------------------------------
+
+(deftest test-with-isolated-stats-returns-the-body-stats
+  (let [counts (:counts (t/with-isolated-stats
+                         (with-output-buffer
+                           (is (= 1 1))
+                           (is (= 1 2)))))]
+    (is (= 1 (:pass counts)) "the passing inner assertion is counted")
+    (is (= 1 (:failed counts)) "the failing inner assertion is counted")
+    (is (= 2 (:total counts)) "both inner assertions reach the total")))
+
+(deftest test-with-isolated-stats-restores-the-caller-stats
+  (let [before (t/get-stats)
+        _      (t/with-isolated-stats
+                (with-output-buffer (is (= 1 2))))
+        after  (t/get-stats)]
+    (is (= (:counts before) (:counts after))
+        "the failure inside the body never reaches the outer counts")
+    (is (= (count (:failed before)) (count (:failed after)))
+        "the failure data inside the body never reaches the outer :failed list")))
+
+(deftest test-with-isolated-stats-restores-when-the-body-throws
+  (let [before (t/get-stats)
+        caught (try
+                 (t/with-isolated-stats
+                  (with-output-buffer (is (= 1 2)))
+                  (throw (php/new \RuntimeException "boom")))
+                 (catch \RuntimeException e (php/-> e (getMessage))))
+        after  (t/get-stats)]
+    (is (= "boom" caught) "the body's exception propagates to the caller")
+    (is (= (:counts before) (:counts after))
+        "the caller's stats are restored on the exceptional path too")))
+
+(deftest test-with-isolated-stats-nests
+  (let [inner  (atom nil)
+        outer  (t/with-isolated-stats
+                (with-output-buffer (is (= 1 1)))
+                (reset! inner (t/with-isolated-stats
+                               (with-output-buffer (is (= 1 2))))))
+        icount (:counts (deref inner))
+        ocount (:counts outer)]
+    (is (= 1 (:failed icount)) "the inner block sees only its own failure")
+    (is (= 0 (:pass icount)) "the outer block's pass does not leak inwards")
+    (is (= 1 (:pass ocount)) "the outer block keeps its own passing assertion")
+    (is (= 0 (:failed ocount)) "the inner block's failure does not leak outwards")))
+
+;; ---------------------------------------------------------------------------
+;; with-isolated-reporters — installs a set, returns the body value, restores
+;; ---------------------------------------------------------------------------
+
+(deftest test-with-isolated-reporters-installs-and-restores
+  (let [before (t/get-reporters)
+        events (atom [])
+        active (atom nil)]
+    (t/with-isolated-reporters [(fn [event] (swap! events conj (:type event)))]
+                               (reset! active (t/get-reporters))
+                               (t/with-isolated-stats
+                                (t/report {:type :pass :state :pass})))
+    (is (= 1 (count (deref active))) "only the given reporter is active in the body")
+    (is (= [:pass] (deref events)) "the installed reporter received the event")
+    (is (= before (t/get-reporters)) "the previous reporter set is restored")))
+
+(deftest test-with-isolated-reporters-returns-the-body-value
+  (is (= :body-value
+         (t/with-isolated-reporters []
+                                    :ignored
+                                    :body-value))
+      "the value of the last body form is returned"))
+
+(deftest test-with-isolated-reporters-restores-when-the-body-throws
+  (let [before (t/get-reporters)
+        caught (try
+                 (t/with-isolated-reporters [(fn [_] nil)]
+                                            (throw (php/new \RuntimeException "boom")))
+                 (catch \RuntimeException e (php/-> e (getMessage))))]
+    (is (= "boom" caught) "the body's exception propagates to the caller")
+    (is (= before (t/get-reporters))
+        "the previous reporter set is restored on the exceptional path too")))
+
+(deftest test-with-isolated-reporters-evaluates-its-argument-before-installing
+  (let [before (t/get-reporters)
+        active (atom nil)]
+    (t/with-isolated-reporters (vec (cons (fn [_] nil) before))
+                               (reset! active (t/get-reporters)))
+    (is (= (inc (count before)) (count (deref active)))
+        "the reporter expression is evaluated against the outer set")
+    (is (= before (t/get-reporters)) "the previous reporter set is restored")))
+
+;; ---------------------------------------------------------------------------
+;; Macro hygiene — Phel macros are non-hygienic, so the expansion must not
+;; capture caller bindings that happen to share a name with anything it
+;; introduces or references.
+;; ---------------------------------------------------------------------------
+
+(deftest test-macros-do-not-capture-caller-locals
+  (testing "with-isolated-stats"
+           (let [outer-stats :caller-value
+                 saved       :also-mine
+                 counts      (:counts (t/with-isolated-stats
+                                       (with-output-buffer (is (= 1 2)))))]
+             (is (= :caller-value outer-stats) "a caller local named outer-stats survives")
+             (is (= :also-mine saved) "a caller local named saved survives")
+             (is (= 1 (:failed counts)) "the macro still reports the inner failure")))
+  (testing "with-isolated-reporters"
+           (let [outer-reporters :caller-value
+                 prev            :also-mine
+                 seen            (atom nil)]
+             (t/with-isolated-reporters []
+                                        (reset! seen [outer-reporters prev]))
+             (is (= [:caller-value :also-mine] (deref seen))
+                 "caller locals named outer-reporters and prev survive the expansion"))))

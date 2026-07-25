@@ -6,19 +6,7 @@ namespace PhelTest\Integration\Run\Command\Repl;
 
 use Gacela\Framework\Gacela;
 use Override;
-use Phel\Command\Application\TextExceptionPrinter;
-use Phel\Command\Domain\ErrorLogInterface;
-use Phel\Command\Domain\Exceptions\ExceptionArgsPrinter;
-use Phel\Command\Domain\Exceptions\Extractor\FilePositionExtractor;
-use Phel\Command\Infrastructure\SourceMapExtractor;
-use Phel\Run\Domain\Repl\ReplCommandIoInterface;
 use Phel\Run\Infrastructure\Command\ReplCommand;
-use Phel\Run\RunFactory;
-use Phel\Shared\ColorStyle;
-use Phel\Shared\ColorStyleInterface;
-use Phel\Shared\Munge;
-use Phel\Shared\Printer\Printer;
-use Phel\Shared\Printer\PrinterInterface;
 use PhelTest\Integration\Run\Command\AbstractTestCommand;
 use PHPUnit\Framework\Attributes\PreserveGlobalState;
 use PHPUnit\Framework\Attributes\RunInSeparateProcess;
@@ -26,6 +14,8 @@ use Symfony\Component\Console\Input\InputInterface;
 
 final class ReplPromptNamespaceTest extends AbstractTestCommand
 {
+    use ReplCommandTestTrait;
+
     private string $previousCwd = '';
 
     private string $tempDir = '';
@@ -110,17 +100,20 @@ final class ReplPromptNamespaceTest extends AbstractTestCommand
             $this->stubOutput(),
         );
 
+        // `*ns*` is a string, and the REPL prints values readably, so the echoed
+        // namespace is quoted — exactly what a user sees at a real prompt.
         $outputs = $io->getOutputLines();
         self::assertSame('user:1> *ns*', $outputs[2]);
-        self::assertSame('user', $outputs[3]);
+        self::assertSame('"user"', $outputs[3]);
         self::assertSame('user:2> (ns mordor.core)', $outputs[4]);
         self::assertSame('nil', $outputs[5]);
         self::assertSame('mordor.core:3> *ns*', $outputs[6]);
-        self::assertSame('mordor.core', $outputs[7]);
+        self::assertSame('"mordor.core"', $outputs[7]);
         self::assertSame('mordor.core:4> (require [phel.test :as t])', $outputs[8]);
+        // `require` answers with a symbol, which prints unquoted either way.
         self::assertSame('phel.test', $outputs[9]);
         self::assertSame('mordor.core:5> *ns*', $outputs[10]);
-        self::assertSame('mordor.core', $outputs[11]);
+        self::assertSame('"mordor.core"', $outputs[11]);
     }
 
     #[RunInSeparateProcess]
@@ -149,41 +142,4 @@ final class ReplPromptNamespaceTest extends AbstractTestCommand
         self::assertStringNotContainsString('Form: ' . PHP_EOL, $output);
     }
 
-    private function createReplTestIo(): ReplTestIo
-    {
-        $exceptionPrinter = new TextExceptionPrinter(
-            new ExceptionArgsPrinter(Printer::readable()),
-            ColorStyle::noStyles(),
-            new Munge(),
-            new FilePositionExtractor(new SourceMapExtractor()),
-            $this->createStub(ErrorLogInterface::class),
-        );
-
-        return new ReplTestIo($exceptionPrinter);
-    }
-
-    private function prepareRunFactory(ReplCommandIoInterface $io): void
-    {
-        Gacela::overrideExistingResolvedClass(
-            RunFactory::class,
-            new class($io) extends RunFactory {
-                public function __construct(private readonly ReplCommandIoInterface $io) {}
-
-                public function createColorStyle(): ColorStyleInterface
-                {
-                    return ColorStyle::noStyles();
-                }
-
-                public function createPrinter(): PrinterInterface
-                {
-                    return Printer::nonReadable();
-                }
-
-                public function createReplCommandIo(): ReplCommandIoInterface
-                {
-                    return $this->io;
-                }
-            },
-        );
-    }
 }

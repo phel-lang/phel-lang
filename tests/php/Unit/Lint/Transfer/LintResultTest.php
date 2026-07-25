@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace PhelTest\Unit\Lint\Transfer;
 
-use Phel\Api\Transfer\Diagnostic;
 use Phel\Lint\Transfer\LintResult;
+use Phel\Shared\Api\Diagnostic;
 use PHPUnit\Framework\TestCase;
 
 final class LintResultTest extends TestCase

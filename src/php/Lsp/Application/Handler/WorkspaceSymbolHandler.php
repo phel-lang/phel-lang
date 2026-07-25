@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 namespace Phel\Lsp\Application\Handler;
 
-use Phel\Api\Transfer\ProjectIndex;
 use Phel\Lsp\Application\Convert\SymbolInformationBuilder;
 use Phel\Lsp\Application\HandlerInterface;
 use Phel\Lsp\Application\Session\Session;
+use Phel\Shared\Api\ProjectIndex;
 
 use function is_string;
 use function str_contains;

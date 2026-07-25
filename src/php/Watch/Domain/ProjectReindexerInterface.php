@@ -6,8 +6,8 @@ namespace Phel\Watch\Domain;
 
 /**
  * Re-indexes the project for editor/linter tooling after a reload cycle.
- * Abstracted here so `ReloadOrchestrator` can be unit-tested without the
- * concrete `ApiFacade`.
+ * Abstracted here so `ReloadOrchestrator` can be unit-tested without an
+ * `ApiFacadeInterface`.
  */
 interface ProjectReindexerInterface
 {

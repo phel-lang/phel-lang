@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace Phel\Lint\Application\Rule;
 
-use Phel\Api\Transfer\Diagnostic;
 use Phel\Lang\SourceLocation;
 use Phel\Lang\TypeInterface;
+use Phel\Shared\Api\Diagnostic;
 
 /**
  * Small helper so each rule can produce a Diagnostic without repeating

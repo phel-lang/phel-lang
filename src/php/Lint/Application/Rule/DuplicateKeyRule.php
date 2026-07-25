@@ -4,11 +4,11 @@ declare(strict_types=1);
 
 namespace Phel\Lint\Application\Rule;
 
-use Phel\Api\Transfer\Diagnostic;
 use Phel\Compiler\Domain\Parser\Exceptions\AbstractParserException;
 use Phel\Lint\Application\Config\RuleRegistry;
 use Phel\Lint\Domain\FileAnalysis;
 use Phel\Lint\Domain\LintRuleInterface;
+use Phel\Shared\Api\Diagnostic;
 use Phel\Shared\Facade\CompilerFacadeInterface;
 use Phel\Shared\Parser\Node\InnerNodeInterface;
 use Phel\Shared\Parser\Node\KeywordNode;

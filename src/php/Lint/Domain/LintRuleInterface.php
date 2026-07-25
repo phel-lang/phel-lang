@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Phel\Lint\Domain;
 
-use Phel\Api\Transfer\Diagnostic;
+use Phel\Shared\Api\Diagnostic;
 
 interface LintRuleInterface
 {

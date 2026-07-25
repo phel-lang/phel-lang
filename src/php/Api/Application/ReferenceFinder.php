@@ -5,8 +5,8 @@ declare(strict_types=1);
 namespace Phel\Api\Application;
 
 use Phel\Api\Domain\ReferenceFinderInterface;
-use Phel\Api\Transfer\Location;
-use Phel\Api\Transfer\ProjectIndex;
+use Phel\Shared\Api\Location;
+use Phel\Shared\Api\ProjectIndex;
 
 use function str_contains;
 use function strrpos;

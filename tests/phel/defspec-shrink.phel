@@ -12,17 +12,13 @@
   "Runs `spec-thunk` with a temporary reporter that records the first
   `:defspec-failed` event, rolls back framework state afterwards."
   [spec-thunk]
-  (let [prev   (t/get-reporters)
-        saved  (t/get-stats)
-        events (atom [])
+  (let [events (atom [])
         rep    (fn [ev]
                  (when (= :defspec-failed (:type ev))
                    (swap! events conj ev)))]
-    (t/set-reporters! [rep])
-    (t/reset-stats)
-    (with-output-buffer (spec-thunk))
-    (t/set-reporters! prev)
-    (t/restore-stats saved)
+    (t/with-isolated-reporters [rep]
+                               (t/with-isolated-stats
+                                (with-output-buffer (spec-thunk))))
     (first (deref events))))
 
 (defn- emit-failure-event! [outcome name-str]

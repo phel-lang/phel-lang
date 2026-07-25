@@ -5,13 +5,13 @@ declare(strict_types=1);
 namespace PhelTest\Unit\Lint\Application\Rule;
 
 use Phel;
-use Phel\Api\Transfer\ProjectIndex;
 use Phel\Compiler\CompilerFacade;
 use Phel\Compiler\Infrastructure\GlobalEnvironmentSingleton;
 use Phel\Lang\Collections\LinkedList\PersistentListInterface;
 use Phel\Lang\Symbol;
 use Phel\Lang\TypeInterface;
 use Phel\Lint\Domain\FileAnalysis;
+use Phel\Shared\Api\ProjectIndex;
 use Phel\Shared\Parser\Node\NodeInterface;
 use Phel\Shared\Parser\Node\TriviaNodeInterface;
 use PHPUnit\Framework\TestCase;

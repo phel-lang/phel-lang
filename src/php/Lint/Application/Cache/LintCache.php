@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Phel\Lint\Application\Cache;
 
-use Phel\Api\Transfer\Diagnostic;
+use Phel\Shared\Api\Diagnostic;
 use Phel\Shared\ScalarCoercion;
 
 use Throwable;

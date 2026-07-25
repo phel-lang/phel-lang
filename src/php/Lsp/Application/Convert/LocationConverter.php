@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace Phel\Lsp\Application\Convert;
 
-use Phel\Api\Transfer\Definition;
-use Phel\Api\Transfer\Location;
+use Phel\Shared\Api\Definition;
+use Phel\Shared\Api\Location;
 
 use function strlen;
 

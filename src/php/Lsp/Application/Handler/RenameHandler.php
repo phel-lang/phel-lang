@@ -4,14 +4,14 @@ declare(strict_types=1);
 
 namespace Phel\Lsp\Application\Handler;
 
-use Phel\Api\ApiFacade;
-use Phel\Api\Transfer\Definition;
-use Phel\Api\Transfer\Location;
 use Phel\Lsp\Application\Convert\PositionConverter;
 use Phel\Lsp\Application\Convert\UriConverter;
 use Phel\Lsp\Application\HandlerInterface;
 use Phel\Lsp\Application\Rpc\ParamsExtractor;
 use Phel\Lsp\Application\Session\Session;
+use Phel\Shared\Api\Definition;
+use Phel\Shared\Api\Location;
+use Phel\Shared\Facade\ApiFacadeInterface;
 
 use function is_string;
 use function strlen;
@@ -25,7 +25,7 @@ use function strlen;
 final readonly class RenameHandler implements HandlerInterface
 {
     public function __construct(
-        private ApiFacade $apiFacade,
+        private ApiFacadeInterface $apiFacade,
         private PositionConverter $positions,
         private UriConverter $uris,
         private ParamsExtractor $params,

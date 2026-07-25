@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace PhelTest\Unit\Api\Transfer;
+namespace PhelTest\Unit\Shared\Api;
 
-use Phel\Api\Transfer\Diagnostic;
+use Phel\Shared\Api\Diagnostic;
 use PHPUnit\Framework\TestCase;
 
 final class DiagnosticTest extends TestCase

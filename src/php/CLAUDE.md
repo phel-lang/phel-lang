@@ -29,7 +29,7 @@ Keeping non-facade edges out of the docs is how the graph erodes quietly, so the
 
 Rules:
 
-- Cross-module access goes through facades only; inject `*FacadeInterface`, never a concrete facade.
+- Cross-module access goes through facades only; inject `*FacadeInterface`, never a concrete facade. Exactly one exception survives (`LspFactory::getLintFacade()`), because Lint has no contract yet; `SatelliteFactoryFacadeInjectionTest` fails on a second. `*Provider` classes still name concrete facades: Gacela's locator resolves by class, and the provider is the only place that may.
 - A Factory may only `new` classes from its own module or `Phel\Shared`; cross-module instances come via the injected Facade.
 - New modules add their `FacadeInterface` to `Shared/Facade/`.
 - The module graph has exactly four cyclic pairs (`Api <-> Run`, `Compiler <-> Shared`, `Lang <-> Shared`, `Phel <-> Run`), each documented in the owning module's CLAUDE.md and pinned by `tests/php/Unit/Architecture/ModuleDependencyCycleTest.php`. `Api <-> Run` is the only mutual Gacela provider pair. Adding a fifth needs a written rationale, not just a green build.
