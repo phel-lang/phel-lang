@@ -12,6 +12,7 @@ use stdClass;
 use Traversable;
 
 use function count;
+use function sprintf;
 
 /**
  * @template TKey
@@ -63,7 +64,10 @@ final class PersistentHashMap extends AbstractPersistentMap
         }
 
         if (count($kvs) % 2 !== 0) {
-            throw new RuntimeException('A even number of elements must be provided');
+            throw new RuntimeException(sprintf(
+                'An even number of elements must be provided to build a map, got %d',
+                count($kvs),
+            ));
         }
 
         $result = self::empty($hasher, $equalizer)->asTransient();

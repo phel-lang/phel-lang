@@ -10,9 +10,17 @@ use Phel\Lang\Hasher;
 use PhelTest\Unit\Lang\Collections\ModuloHasher;
 use PhelTest\Unit\Lang\Collections\SimpleEqualizer;
 use PHPUnit\Framework\TestCase;
+use RuntimeException;
 
 final class PersistentHashMapTest extends TestCase
 {
+    public function test_can_not_create_from_array_with_uneven_values(): void
+    {
+        $this->expectException(RuntimeException::class);
+        $this->expectExceptionMessage('An even number of elements must be provided to build a map, got 3');
+        PersistentHashMap::fromArray(new ModuloHasher(), new SimpleEqualizer(), ['a', 1, 'b']);
+    }
+
     public function test_empty(): void
     {
         $h = PersistentHashMap::empty(new ModuloHasher(), new SimpleEqualizer());

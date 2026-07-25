@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace PhelTest\Unit\Console\Application;
 
 use Phel\Compiler\Domain\Analyzer\Environment\BackslashSeparatorDeprecator;
+use Phel\Compiler\Domain\Deprecation\DeprecationWarnings;
 use Phel\Console\Application\WarnDeprecationsFlag;
 use Phel\Lang\SourceLocation;
 use Phel\Lang\Symbol;
@@ -15,6 +16,27 @@ final class WarnDeprecationsFlagTest extends TestCase
     protected function tearDown(): void
     {
         BackslashSeparatorDeprecator::resetInstance();
+        // The flag is process-wide: leaving it on would make unrelated tests
+        // in this run start emitting syntax deprecations.
+        DeprecationWarnings::reset();
+    }
+
+    public function test_strips_plain_flag_and_enables_syntax_deprecations(): void
+    {
+        DeprecationWarnings::disable();
+
+        WarnDeprecationsFlag::applyAndStrip(['phel', 'run', '--warn-deprecations', 'src/main.phel']);
+
+        self::assertTrue(DeprecationWarnings::isEnabled());
+    }
+
+    public function test_leaves_syntax_deprecations_untouched_when_flag_absent(): void
+    {
+        DeprecationWarnings::disable();
+
+        WarnDeprecationsFlag::applyAndStrip(['phel', 'run', 'src/main.phel']);
+
+        self::assertFalse(DeprecationWarnings::isEnabled());
     }
 
     public function test_returns_argv_unchanged_when_flag_absent(): void

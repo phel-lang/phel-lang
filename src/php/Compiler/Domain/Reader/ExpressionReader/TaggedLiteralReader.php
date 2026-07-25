@@ -58,13 +58,13 @@ final readonly class TaggedLiteralReader
         try {
             return $handler($formValue);
         } catch (TagHandlerException $e) {
-            throw ReaderException::forNode($node, $root, $e->getMessage());
+            throw ReaderException::forNode($node, $root, $e->getMessage(), $e);
         } catch (Throwable $e) {
             throw ReaderException::forNode($node, $root, sprintf(
                 "Tagged-literal handler for '#%s' threw an error: %s",
                 $tag,
                 $e->getMessage(),
-            ));
+            ), $e);
         }
     }
 

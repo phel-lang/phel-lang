@@ -9,6 +9,7 @@ use Phel\Lint\Application\Cache\LintCache;
 use Phel\Lint\Application\Config\RuleSettings;
 use Phel\Lint\Application\Formatter\FormatterRegistry;
 use Phel\Lint\Domain\Exception\LintConfigException;
+use Phel\Lint\Domain\Exception\LintSourceException;
 use Phel\Lint\Transfer\LintResult;
 
 /**
@@ -18,6 +19,8 @@ final class LintFacade extends AbstractFacade
 {
     /**
      * @param list<string> $paths
+     *
+     * @throws LintSourceException when a collected `.phel` file cannot be read
      */
     public function lint(array $paths, RuleSettings $settings, ?LintCache $cache = null): LintResult
     {

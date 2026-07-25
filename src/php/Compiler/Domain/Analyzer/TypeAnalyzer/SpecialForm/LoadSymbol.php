@@ -40,7 +40,11 @@ final readonly class LoadSymbol implements SpecialFormAnalyzerInterface
         try {
             $resolution = $this->pathResolver->resolve($callerNamespace, $pathArg);
         } catch (InvalidArgumentException $invalidArgumentException) {
-            throw AnalyzerException::withLocation($invalidArgumentException->getMessage(), $list);
+            throw AnalyzerException::withLocation(
+                $invalidArgumentException->getMessage(),
+                $list,
+                $invalidArgumentException,
+            );
         }
 
         return new LoadNode(

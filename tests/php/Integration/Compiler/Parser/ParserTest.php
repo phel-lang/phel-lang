@@ -8,6 +8,8 @@ use Phel;
 use Phel\Compiler\Application\Parser;
 use Phel\Compiler\CompilerFacade;
 use Phel\Compiler\Domain\Parser\Exceptions\AbstractParserException;
+use Phel\Compiler\Domain\Parser\Exceptions\KeywordParserException;
+use Phel\Compiler\Domain\Parser\Exceptions\StringParserException;
 use Phel\Compiler\Domain\Parser\Exceptions\UnexpectedParserException;
 use Phel\Compiler\Domain\Parser\ExpressionParserFactory;
 use Phel\Compiler\Infrastructure\GlobalEnvironmentSingleton;
@@ -767,6 +769,36 @@ final class ParserTest extends TestCase
         $this->expectExceptionMessage('not allowed at the top level');
 
         $this->parse('#?@(:phel [1 2])');
+    }
+
+    public function test_invalid_keyword_keeps_the_sub_parser_failure_as_previous(): void
+    {
+        try {
+            $this->parse(':');
+            self::fail('Expected an UnexpectedParserException');
+        } catch (UnexpectedParserException $unexpectedParserException) {
+            self::assertStringContainsString('not a valid keyword', $unexpectedParserException->getMessage());
+            // The located parser error is what the user sees; the sub-parser
+            // exception that produced the message stays reachable.
+            self::assertInstanceOf(
+                KeywordParserException::class,
+                $unexpectedParserException->getPrevious(),
+            );
+        }
+    }
+
+    public function test_invalid_string_escape_keeps_the_sub_parser_failure_as_previous(): void
+    {
+        try {
+            $this->parse('"\u{FFFFFFF}"');
+            self::fail('Expected an UnexpectedParserException');
+        } catch (UnexpectedParserException $unexpectedParserException) {
+            self::assertStringContainsString('Codepoint too large', $unexpectedParserException->getMessage());
+            self::assertInstanceOf(
+                StringParserException::class,
+                $unexpectedParserException->getPrevious(),
+            );
+        }
     }
 
     public function test_symbolic_number_inf(): void

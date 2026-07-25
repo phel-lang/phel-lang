@@ -10,6 +10,7 @@ use RuntimeException;
 use Traversable;
 
 use function count;
+use function sprintf;
 
 /**
  * Map implementation based on a single array. The array stores the key value pair directly.
@@ -58,7 +59,10 @@ final class PersistentArrayMap extends AbstractPersistentMap
     public static function fromArray(HasherInterface $hasher, EqualizerInterface $equalizer, array $kvs): PersistentMapInterface
     {
         if (count($kvs) % 2 !== 0) {
-            throw new RuntimeException('A even number of elements must be provided');
+            throw new RuntimeException(sprintf(
+                'An even number of elements must be provided to build a map, got %d',
+                count($kvs),
+            ));
         }
 
         $result = self::empty($hasher, $equalizer)->asTransient();

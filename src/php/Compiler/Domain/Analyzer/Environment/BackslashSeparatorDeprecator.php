@@ -4,11 +4,10 @@ declare(strict_types=1);
 
 namespace Phel\Compiler\Domain\Analyzer\Environment;
 
+use Phel\Compiler\Domain\Deprecation\DeprecationWarnings;
 use Phel\Lang\SourceLocation;
 use Phel\Lang\Symbol;
 
-use function dirname;
-use function in_array;
 use function sprintf;
 use function str_replace;
 use function str_starts_with;
@@ -48,12 +47,12 @@ final class BackslashSeparatorDeprecator
 
     /**
      * Returns the process-wide deprecator, creating it lazily from the
-     * `PHEL_WARN_DEPRECATIONS` env var so every detection site shares
-     * the same dedup state across a compile run.
+     * shared {@see DeprecationWarnings} switch so every detection site
+     * shares the same dedup state across a compile run.
      */
     public static function getInstance(): self
     {
-        return self::$instance ??= new self(self::readEnvFlag());
+        return self::$instance ??= new self(DeprecationWarnings::isEnabled());
     }
 
     /**
@@ -96,7 +95,7 @@ final class BackslashSeparatorDeprecator
         }
 
         $file = $location->getFile();
-        if ($file === '' || $this->isPhelStdlibSource($file)) {
+        if ($file === '' || DeprecationWarnings::isBundledStdlibSource($file)) {
             return;
         }
 
@@ -111,27 +110,6 @@ final class BackslashSeparatorDeprecator
 
         $this->seen[$key] = true;
         ($this->emitter)($this->buildMessage($namespace, $file, $location->getLine()));
-    }
-
-    private static function readEnvFlag(): bool
-    {
-        $flag = getenv('PHEL_WARN_DEPRECATIONS');
-
-        return !in_array($flag, [false, '', '0'], true);
-    }
-
-    /**
-     * Source-path suppression for phel's bundled stdlib. The path is
-     * anchored to this package's own `src/phel`, so nested-layout user
-     * projects with their own `src/phel` still receive warnings.
-     */
-    private function isPhelStdlibSource(string $file): bool
-    {
-        $normalized = str_replace('\\', '/', $file);
-        $stdlibRoot = str_replace('\\', '/', dirname(__DIR__, 5) . '/phel');
-
-        return $normalized === $stdlibRoot
-            || str_starts_with($normalized, $stdlibRoot . '/');
     }
 
     /**

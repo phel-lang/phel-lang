@@ -7,6 +7,7 @@ namespace Phel\Compiler\Domain\Parser\Exceptions;
 use Phel\Lang\SourceLocation;
 use Phel\Shared\Exceptions\AbstractLocatedException;
 use Phel\Shared\Parser\ReadModel\CodeSnippet;
+use Throwable;
 
 abstract class AbstractParserException extends AbstractLocatedException
 {
@@ -15,8 +16,9 @@ abstract class AbstractParserException extends AbstractLocatedException
         private readonly CodeSnippet $codeSnippet,
         SourceLocation $startLocation,
         SourceLocation $endLocation,
+        ?Throwable $nestedException = null,
     ) {
-        parent::__construct($message, $startLocation, $endLocation);
+        parent::__construct($message, $startLocation, $endLocation, $nestedException);
     }
 
     public function getCodeSnippet(): CodeSnippet

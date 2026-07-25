@@ -10,6 +10,10 @@ All notable changes to this project will be documented in this file.
 
 ### Fixed
 
+- Syntax deprecation notices (bare `#` comments, `#| ... |#` blocks, `|()` short fns, `,`/`,@` unquote, `$` auto-gensym) are no longer suppressed with `@`, which hid them from every real run: `--warn-deprecations` printed nothing at all. They are now gated on the same switch as the backslash-separator warning, off by default and reported when asked for, and suppressed for phel's own bundled `src/phel` sources so only code the user can edit is flagged
+- `phel lint` no longer skips a `.phel` file it cannot read, which reported the file as clean and let the run exit 0; it now raises `LintSourceException` naming the path
+- Parser, reader and analyzer errors now chain the sub-parser, tag-handler or path-resolver exception that produced them as `getPrevious()`, so the error log keeps the original throw site. The located message shown to the user is unchanged
+- Building a map from an odd number of elements now reports `An even number of elements must be provided to build a map, got 3` instead of the ungrammatical, count-less `A even number of elements must be provided`
 - Sorted collection comparators are now typed `bool|int` rather than `int`. Phel's `<` returns a boolean, so `(sorted-map-by < ...)` never matched its own declared contract
 - `phel lint` now exits 2 with a clear message when `phel-lint.phel` exists but is unreadable, unparseable, or not a map, instead of silently falling back to the built-in default rules. A missing or empty config file still means defaults
 - Parse and lex failures during namespace extraction now report the underlying reason and chain the original exception, replacing a bare `Cannot parse file: <path>` with no line or cause

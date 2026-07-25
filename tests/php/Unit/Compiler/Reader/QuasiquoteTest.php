@@ -6,14 +6,21 @@ namespace PhelTest\Unit\Compiler\Reader;
 
 use Phel;
 use Phel\Compiler\Domain\Analyzer\Environment\GlobalEnvironment;
+use Phel\Compiler\Domain\Deprecation\DeprecationWarnings;
 use Phel\Compiler\Domain\Reader\QuasiquoteTransformer;
 use Phel\Lang\Keyword;
+use Phel\Lang\SourceLocation;
 use Phel\Lang\Symbol;
 use PHPUnit\Framework\TestCase;
 use RuntimeException;
 
 final class QuasiquoteTest extends TestCase
 {
+    protected function tearDown(): void
+    {
+        DeprecationWarnings::reset();
+    }
+
     public function test_transform_unquote(): void
     {
         $q = new QuasiquoteTransformer(new GlobalEnvironment());
@@ -259,6 +266,9 @@ final class QuasiquoteTest extends TestCase
 
     public function test_dollar_auto_gensym_emits_deprecation(): void
     {
+        // Syntax deprecations are opt-in (`--warn-deprecations`).
+        DeprecationWarnings::enable();
+
         $warning = null;
         set_error_handler(static function (int $errno, string $errstr) use (&$warning): bool {
             $warning = $errstr;
@@ -267,7 +277,7 @@ final class QuasiquoteTest extends TestCase
 
         try {
             $q = new QuasiquoteTransformer(new GlobalEnvironment());
-            $q->transform(Symbol::create('foo$'));
+            $q->transform($this->locatedSymbol('foo$'));
         } finally {
             restore_error_handler();
         }
@@ -279,6 +289,9 @@ final class QuasiquoteTest extends TestCase
 
     public function test_hash_auto_gensym_does_not_emit_deprecation(): void
     {
+        // Syntax deprecations are opt-in (`--warn-deprecations`).
+        DeprecationWarnings::enable();
+
         $warning = null;
         set_error_handler(static function (int $errno, string $errstr) use (&$warning): bool {
             $warning = $errstr;
@@ -293,5 +306,35 @@ final class QuasiquoteTest extends TestCase
         }
 
         self::assertNull($warning);
+    }
+
+    public function test_dollar_auto_gensym_without_a_location_stays_silent(): void
+    {
+        // A symbol with no source location cannot be attributed to a line the
+        // user can edit, so it is not worth reporting.
+        DeprecationWarnings::enable();
+
+        $warning = null;
+        set_error_handler(static function (int $errno, string $errstr) use (&$warning): bool {
+            $warning = $errstr;
+            return true;
+        }, E_USER_DEPRECATED);
+
+        try {
+            $q = new QuasiquoteTransformer(new GlobalEnvironment());
+            $q->transform(Symbol::create('foo$'));
+        } finally {
+            restore_error_handler();
+        }
+
+        self::assertNull($warning);
+    }
+
+    private function locatedSymbol(string $name): Symbol
+    {
+        $symbol = Symbol::create($name);
+        $symbol->setStartLocation(new SourceLocation('/app/user.phel', 3, 7));
+
+        return $symbol;
     }
 }
