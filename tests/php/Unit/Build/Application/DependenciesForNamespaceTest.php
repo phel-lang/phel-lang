@@ -89,7 +89,9 @@ final class DependenciesForNamespaceTest extends TestCase
         $deps = new DependenciesForNamespace($extractor);
 
         $this->expectException(ExtractorException::class);
-        $this->expectExceptionMessage("Cannot find namespace 'some.missing.ns' required by 'app\\main'");
+        // The requiring namespace is reported in canonical dot form, whichever
+        // separator its `(ns ...)` used.
+        $this->expectExceptionMessage("Cannot find namespace 'some.missing.ns' required by 'app.main'");
 
         $deps->getDependenciesForNamespace(['/src'], ['app\\main']);
     }
@@ -173,6 +175,67 @@ final class DependenciesForNamespaceTest extends TestCase
 
         self::assertSame(
             ['phel.core', 'phel.string', 'app\\main'],
+            array_map(static fn(NamespaceInformation $i): string => $i->getNamespace(), $result),
+        );
+    }
+
+    public function test_resolves_a_seed_with_kebab_case_segments(): void
+    {
+        $extractor = $this->createStub(NamespaceExtractorInterface::class);
+        $extractor->method('getNamespacesFromDirectories')
+            ->willReturn([
+                new NamespaceInformation('core.phel', 'phel.core', []),
+                new NamespaceInformation('lib.phel', 'fixtures.cross-require.lib', ['phel.core']),
+            ]);
+
+        $deps = new DependenciesForNamespace($extractor);
+
+        $result = $deps->getDependenciesForNamespace(['/src'], ['fixtures.cross-require.lib']);
+
+        self::assertSame(
+            ['phel.core', 'fixtures.cross-require.lib'],
+            array_map(static fn(NamespaceInformation $i): string => $i->getNamespace(), $result),
+        );
+    }
+
+    public function test_resolves_a_seed_given_with_the_legacy_backslash_separator(): void
+    {
+        // `Watch`'s file-change resolver hands over the backslash form; a plain
+        // string match against the canonical dot form returned nothing at all,
+        // with no error, so the reload was a silent no-op.
+        $extractor = $this->createStub(NamespaceExtractorInterface::class);
+        $extractor->method('getNamespacesFromDirectories')
+            ->willReturn([
+                new NamespaceInformation('core.phel', 'phel.core', []),
+                new NamespaceInformation('lib.phel', 'fixtures.cross-require.lib', ['phel.core']),
+            ]);
+
+        $deps = new DependenciesForNamespace($extractor);
+
+        $result = $deps->getDependenciesForNamespace(['/src'], ['fixtures\\cross-require\\lib']);
+
+        self::assertSame(
+            ['phel.core', 'fixtures.cross-require.lib'],
+            array_map(static fn(NamespaceInformation $i): string => $i->getNamespace(), $result),
+        );
+    }
+
+    public function test_resolves_a_dependency_declared_with_the_legacy_backslash_separator(): void
+    {
+        $extractor = $this->createStub(NamespaceExtractorInterface::class);
+        $extractor->method('getNamespacesFromDirectories')
+            ->willReturn([
+                new NamespaceInformation('core.phel', 'phel.core', []),
+                new NamespaceInformation('lib.phel', 'fixtures.cross-require.lib', ['phel.core']),
+                new NamespaceInformation('app.phel', 'app.main', ['phel.core', 'fixtures\\cross-require\\lib']),
+            ]);
+
+        $deps = new DependenciesForNamespace($extractor);
+
+        $result = $deps->getDependenciesForNamespace(['/src'], ['app.main']);
+
+        self::assertSame(
+            ['phel.core', 'fixtures.cross-require.lib', 'app.main'],
             array_map(static fn(NamespaceInformation $i): string => $i->getNamespace(), $result),
         );
     }

@@ -16,6 +16,7 @@ use Phel\Lang\Symbol;
 use Phel\Lang\TypeFactory;
 use Phel\Phel as InternalPhel;
 use Phel\Run\RunFacade;
+use Phel\Shared\Munge;
 
 /**
  * Public API for Phel.
@@ -81,6 +82,24 @@ final class Phel extends InternalPhel
         }
 
         return Registry::getInstance()->getDefinition($ns, $name);
+    }
+
+    /**
+     * Whether `$namespace` has already been evaluated into the registry.
+     *
+     * `$namespace` is the canonical Phel form (`my-app.lib`, or the legacy
+     * `my-app\lib`); registry keys are the munged form (`my_app.lib`), so
+     * comparing the two directly makes every kebab-case namespace look
+     * unloaded and re-evaluates it on each require. Encoding both sides here
+     * keeps that mismatch out of every call site.
+     *
+     * @see Phel\Compiler\Domain\Emitter\OutputEmitter\NodeEmitter\NsEmitter
+     */
+    public static function isNamespaceLoaded(string $namespace): bool
+    {
+        return Registry::getInstance()->hasNamespace(
+            new Munge()->encodeRegistryKey($namespace),
+        );
     }
 
     /**

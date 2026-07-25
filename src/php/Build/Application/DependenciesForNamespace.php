@@ -4,17 +4,18 @@ declare(strict_types=1);
 
 namespace Phel\Build\Application;
 
+use Phel;
 use Phel\Build\Domain\Extractor\ExtractorException;
 use Phel\Build\Domain\Extractor\NamespaceExtractorInterface;
-use Phel\Lang\Registry;
+use Phel\Shared\Munge;
 use Phel\Shared\NamespaceInformation;
 
 use SplQueue;
 
 use function array_key_exists;
+use function array_map;
 use function in_array;
 use function is_string;
-use function str_replace;
 use function str_starts_with;
 use function strlen;
 use function substr;
@@ -58,6 +59,13 @@ final class DependenciesForNamespace
      */
     public function getDependenciesForNamespace(array $directories, array $ns): array
     {
+        // Seeds, index keys and declared dependencies are all matched as
+        // strings, so both namespace separators have to collapse onto one
+        // form first. A caller handing over the legacy backslash form
+        // (`app\main`) otherwise matches nothing and gets an empty result with
+        // no error; `Watch`'s file-change resolver produces exactly that form.
+        $ns = array_map(Munge::canonicalNs(...), $ns);
+
         $memoKey = $this->memoKey($directories, $ns);
         if (isset($this->memo[$memoKey])) {
             return $this->memo[$memoKey];
@@ -75,11 +83,12 @@ final class DependenciesForNamespace
                 continue;
             }
 
-            $index[$info->getNamespace()] = $info;
+            $canonical = Munge::canonicalNs($info->getNamespace());
+            $index[$canonical] = $info;
 
-            if (in_array($info->getNamespace(), $ns) && !isset($seenInQueue[$info->getNamespace()])) {
-                $queue->enqueue($info->getNamespace());
-                $seenInQueue[$info->getNamespace()] = true;
+            if (in_array($canonical, $ns, true) && !isset($seenInQueue[$canonical])) {
+                $queue->enqueue($canonical);
+                $seenInQueue[$canonical] = true;
             }
         }
 
@@ -110,7 +119,7 @@ final class DependenciesForNamespace
                 continue;
             }
 
-            if (isset($requiredNamespaces[$info->getNamespace()])) {
+            if (isset($requiredNamespaces[Munge::canonicalNs($info->getNamespace())])) {
                 $result[] = $info;
             }
         }
@@ -128,6 +137,8 @@ final class DependenciesForNamespace
      */
     private function resolveDependency(string $depNs, string $requiringNs, array $index): string
     {
+        $depNs = Munge::canonicalNs($depNs);
+
         if (array_key_exists($depNs, $index)) {
             return $depNs;
         }
@@ -143,7 +154,7 @@ final class DependenciesForNamespace
 
         // Already in the runtime registry: a lazily loaded bundled module that
         // has no source file in this scan but is still resolvable.
-        if (Registry::getInstance()->hasNamespace(str_replace('-', '_', $depNs))) {
+        if (Phel::isNamespaceLoaded($depNs)) {
             return $depNs;
         }
 
@@ -161,7 +172,7 @@ final class DependenciesForNamespace
 
     private function isFrameworkNamespace(string $namespace): bool
     {
-        $canonical = str_replace('\\', '.', $namespace);
+        $canonical = Munge::canonicalNs($namespace);
 
         return str_starts_with($canonical, self::PHEL_PREFIX)
             || str_starts_with($canonical, self::CLOJURE_PREFIX);
