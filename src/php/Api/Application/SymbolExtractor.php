@@ -26,6 +26,19 @@ use function is_string;
  * - the primary namespace (if any),
  * - a list of top-level Definitions,
  * - reference Locations (every symbol usage inside bodies).
+ *
+ * PARTIAL BY DESIGN. Every result is a lower bound, never a guarantee:
+ *
+ * - the source is read best-effort (`readFormsBestEffort`), so a buffer that
+ *   does not parse yields the forms read up to the failure and nothing after;
+ * - any `Throwable` mid-extraction is swallowed and whatever was collected so
+ *   far is returned;
+ * - only literal top-level `def*` forms are seen, so definitions produced by a
+ *   macro expansion are invisible.
+ *
+ * Callers must treat "absent" as "not found by this pass", not as "does not
+ * exist": this feeds editor tooling (completion, jump-to-def, lint), where a
+ * missing entry degrades a feature and a thrown exception would kill the run.
  */
 final readonly class SymbolExtractor
 {
@@ -50,7 +63,7 @@ final readonly class SymbolExtractor
     /**
      * Top-level definitions in a single source buffer (document symbols).
      *
-     * @return list<Definition>
+     * @return list<Definition> possibly incomplete; see the class docblock
      */
     public function definitionsOf(string $source, string $uri): array
     {
@@ -58,11 +71,14 @@ final readonly class SymbolExtractor
     }
 
     /**
+     * Never throws and never signals partial success: an unparseable buffer is
+     * indistinguishable from a buffer with nothing in it.
+     *
      * @return array{
      *     namespace: string,
      *     definitions: list<Definition>,
      *     references: array<string, list<Location>>,
-     * }
+     * } possibly incomplete; see the class docblock
      */
     public function extract(string $source, string $uri): array
     {

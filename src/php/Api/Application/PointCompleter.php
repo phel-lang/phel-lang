@@ -26,6 +26,19 @@ use function str_starts_with;
  * Context-aware completion: scans the source parse tree for bindings
  * in scope at the given point, then unions that with
  * project-index definitions and the public phel-core API.
+ *
+ * SUGGESTIONS, NOT A SYMBOL TABLE. The returned list is deliberately a
+ * best-effort superset-of-nothing: it can be short, and never signals why:
+ *
+ * - locals come from a best-effort read of a buffer that is mid-edit, so an
+ *   unparseable source contributes no locals at all;
+ * - scope tracking is lexical and approximate: `let`-style heads are read
+ *   pairwise, so `for` triples and destructuring corners are partial;
+ * - the phel-core catalogue is skipped entirely when core is not loaded.
+ *
+ * Each of those paths swallows its `Throwable` on purpose: a completion popup
+ * that is missing an entry is a small annoyance, one that raises is a broken
+ * editor.
  */
 final readonly class PointCompleter implements PointCompleterInterface
 {
@@ -40,7 +53,7 @@ final readonly class PointCompleter implements PointCompleterInterface
     ) {}
 
     /**
-     * @return list<Completion>
+     * @return list<Completion> possibly incomplete; see the class docblock
      */
     public function completeAtPoint(string $source, int $line, int $col, ProjectIndex $index): array
     {

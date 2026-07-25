@@ -12,18 +12,21 @@ use Phel\Watch\Transfer\WatchEvent;
 use function count;
 use function escapeshellarg;
 use function explode;
-use function extension_loaded;
 use function implode;
 use function preg_match;
 use function rtrim;
 use function str_contains;
 
 /**
- * Linux-friendly watcher. Shell-outs to the `inotifywait` binary (part of
- * `inotify-tools`) and lets {@see AbstractShellWatcher} own the process +
- * debounce plumbing. The pure-`ext-inotify` path is not implemented here;
- * the shell-out is portable, works across distros, and matches the
- * behaviour of the macOS `fswatch` backend.
+ * Linux-friendly watcher. Despite the name it does NOT use `ext-inotify`: the
+ * only transport is a shell-out to the `inotifywait` binary (part of
+ * `inotify-tools`), with {@see AbstractShellWatcher} owning the process +
+ * debounce plumbing. The shell-out is portable, works across distros, and
+ * matches the behaviour of the macOS `fswatch` backend.
+ *
+ * The class keeps the `inotify` name because that is the backend name users
+ * select (`phel watch -b inotify`, {@see self::NAME}); `inotifywait` is a thin
+ * CLI over the same kernel API.
  */
 final class InotifyWatcher extends AbstractShellWatcher
 {
@@ -44,16 +47,15 @@ final class InotifyWatcher extends AbstractShellWatcher
     }
 
     /**
-     * True when either the `inotify` PHP extension is loaded or the
-     * `inotifywait` CLI is available on PATH. The latter is the default
-     * transport.
+     * True only when the `inotifywait` CLI is on PATH.
+     *
+     * `ext-inotify` deliberately does not count: this watcher never calls it,
+     * so treating the extension as availability made `FileWatcherBuilder` pick
+     * a backend that then had no binary to spawn, instead of falling back to
+     * polling.
      */
     public static function isAvailable(string $binary = 'inotifywait'): bool
     {
-        if (extension_loaded('inotify')) {
-            return true;
-        }
-
         return self::binaryIsOnPath($binary);
     }
 
