@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Phel\Lint\Application;
 
+use Phel\Lint\Domain\Exception\LintSourceException;
 use Phel\Shared\ScalarCoercion;
 use RecursiveDirectoryIterator;
 use RecursiveIteratorIterator;
@@ -23,6 +24,8 @@ final class FileCollector
 {
     /**
      * @param list<string> $paths
+     *
+     * @throws LintSourceException when a listed directory cannot be walked
      *
      * @return list<string>
      */
@@ -60,16 +63,21 @@ final class FileCollector
     }
 
     /**
+     * @throws LintSourceException when the directory cannot be walked
+     *
      * @return iterable<string>
      */
     private function iteratePhelFiles(string $directory): iterable
     {
+        // An unreadable directory yields no files, and a lint run over zero
+        // files reports "no issues" and exits 0. Raising keeps this symmetric
+        // with an unreadable *file*, which already raises LintSourceException.
         try {
             $dirIterator = new RecursiveDirectoryIterator($directory);
             $iterator = new RecursiveIteratorIterator($dirIterator);
             $regex = new RegexIterator($iterator, '/^.+\.phel$/i', RegexIterator::GET_MATCH);
-        } catch (UnexpectedValueException) {
-            return [];
+        } catch (UnexpectedValueException $unexpectedValueException) {
+            throw LintSourceException::cannotWalkDirectory($directory, $unexpectedValueException);
         }
 
         foreach ($regex as $match) {

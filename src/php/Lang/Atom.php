@@ -121,7 +121,12 @@ final class Atom extends AbstractType
     {
         $fn = $validator ?? $this->validator;
         if ($fn !== null && !Truthy::isTruthy($fn($value))) {
-            throw new InvalidArgumentException('Atom validator rejected the value');
+            // Bounded on purpose: the rejected value can be an arbitrarily
+            // deep or infinite structure, so only inherently small values are
+            // printed and everything else degrades to its type name.
+            throw new InvalidArgumentException(
+                'Atom validator rejected the value: ' . TypeStringifier::describe($value),
+            );
         }
     }
 

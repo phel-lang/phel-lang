@@ -30,6 +30,41 @@ final class TopologicalNamespaceSorterTest extends TestCase
         $this->sorter->sort($data, $dependencies);
     }
 
+    /**
+     * Naming only the re-entered node leaves the user to rebuild the require
+     * chain by hand, so the message spells the whole cycle out.
+     */
+    public function test_circular_exception_names_the_whole_cycle(): void
+    {
+        $this->expectException(RuntimeException::class);
+        $this->expectExceptionMessage('Circular dependency detected: car -> owner -> car');
+
+        $this->sorter->sort(['car', 'owner'], [
+            'car' => ['owner'],
+            'owner' => ['car'],
+        ]);
+    }
+
+    public function test_circular_exception_reports_only_the_cycle_not_the_path_into_it(): void
+    {
+        $this->expectException(RuntimeException::class);
+        $this->expectExceptionMessage('Circular dependency detected: b -> c -> b');
+
+        $this->sorter->sort(['a'], [
+            'a' => ['b'],
+            'b' => ['c'],
+            'c' => ['b'],
+        ]);
+    }
+
+    public function test_self_dependency_is_reported_as_a_one_node_cycle(): void
+    {
+        $this->expectException(RuntimeException::class);
+        $this->expectExceptionMessage('Circular dependency detected: loop -> loop');
+
+        $this->sorter->sort(['loop'], ['loop' => ['loop']]);
+    }
+
     public function test_simple_sort(): void
     {
         $data = ['car', 'owner'];

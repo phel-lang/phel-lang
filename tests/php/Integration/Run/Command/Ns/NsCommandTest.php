@@ -90,4 +90,61 @@ final class NsCommandTest extends AbstractTestCommand
         self::assertMatchesRegularExpression('/Dependencies \(1\): app\.foo/', $output);
         self::assertMatchesRegularExpression('/File: bar\.phel/', $output);
     }
+
+    /**
+     * The resolver seeds `phel.core` next to the requested namespace, so an
+     * unknown name still returns one entry. `phel ns typo` used to print a
+     * plausible listing and exit 0; it now fails like `phel run typo` does.
+     */
+    public function test_unknown_namespace_reports_and_fails(): void
+    {
+        $facade = self::createStub(RunFacadeInterface::class);
+        $facade->method('getAllPhelDirectories')->willReturn(['src']);
+        $facade->method('getDependenciesForNamespace')->willReturn([
+            new NamespaceInformation('core.phel', 'phel.core', []),
+        ]);
+
+        ob_start();
+        $exitCode = $this->runInspect($facade, 'app\\nope');
+        $output = (string) ob_get_clean();
+
+        self::assertSame(NsCommand::FAILURE, $exitCode);
+        self::assertStringContainsString('Namespace "app.nope" not found in any source directory.', $output);
+    }
+
+    public function test_known_namespace_succeeds(): void
+    {
+        $facade = self::createStub(RunFacadeInterface::class);
+        $facade->method('getAllPhelDirectories')->willReturn(['src']);
+        $facade->method('getDependenciesForNamespace')->willReturn([
+            new NamespaceInformation('core.phel', 'phel.core', []),
+            new NamespaceInformation('foo.phel', 'app\\foo', []),
+        ]);
+
+        ob_start();
+        $exitCode = $this->runInspect($facade, 'app\\foo');
+        ob_get_clean();
+
+        self::assertSame(NsCommand::SUCCESS, $exitCode);
+    }
+
+    private function runInspect(RunFacadeInterface $facade, string $ns): int
+    {
+        $command = new class($facade) extends NsCommand {
+            public function __construct(private readonly RunFacadeInterface $facade)
+            {
+                parent::__construct();
+            }
+
+            protected function getFacade(): RunFacadeInterface
+            {
+                return $this->facade;
+            }
+        };
+
+        $input = self::createStub(InputInterface::class);
+        $input->method('getArgument')->willReturn($ns);
+
+        return $command->run($input, $this->stubOutput());
+    }
 }
