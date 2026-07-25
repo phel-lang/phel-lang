@@ -18,12 +18,12 @@ use function in_array;
 use function sprintf;
 
 /**
- * Flags new `let`/`fn`/`defn` bindings that shadow a previously-bound
+ * Flags new `let`/`fn`/`defn`/`for` bindings that shadow a previously-bound
  * local with the same name (outer scope still reachable, easy foot-gun).
  */
 final readonly class ShadowedBindingRule implements LintRuleInterface
 {
-    private const array LET_FORMS = ['let', 'loop', 'for', 'if-let', 'when-let'];
+    private const array LET_FORMS = ['let', 'loop', 'if-let', 'when-let'];
 
     private const array FN_FORMS = ['fn', 'defn', 'defn-', 'defmacro', 'defmacro-'];
 
@@ -54,6 +54,8 @@ final readonly class ShadowedBindingRule implements LintRuleInterface
                 $name = $head->getName();
                 if (in_array($name, self::LET_FORMS, true)) {
                     $scope = $this->handleLet($form, $scope, $uri, $result);
+                } elseif (ForHead::isForForm($name)) {
+                    $scope = $this->handleFor($form, $scope, $uri, $result);
                 } elseif (in_array($name, self::FN_FORMS, true)) {
                     $scope = $this->handleFn($form, $scope, $uri, $result);
                 }
@@ -104,6 +106,35 @@ final readonly class ShadowedBindingRule implements LintRuleInterface
         $newScope = $scope;
         for ($i = 0; $i < $size; $i += 2) {
             $newScope = $this->noteBinding($bindings->get($i), $newScope, $uri, $result);
+        }
+
+        return $newScope;
+    }
+
+    /**
+     * `for` / `dofor` heads are triples and modifiers, not name/value pairs,
+     * so only `ForHead` knows which elements are actually bound names.
+     *
+     * @param PersistentListInterface<mixed> $form
+     * @param list<string>                   $scope
+     * @param list<Diagnostic>               $result
+     *
+     * @return list<string>
+     */
+    private function handleFor(PersistentListInterface $form, array $scope, string $uri, array &$result): array
+    {
+        if (count($form) < 2) {
+            return $scope;
+        }
+
+        $head = $form->get(1);
+        if (!$head instanceof PersistentVectorInterface) {
+            return $scope;
+        }
+
+        $newScope = $scope;
+        foreach (ForHead::entries($head) as $entry) {
+            $newScope = $this->noteBinding($entry['binding'], $newScope, $uri, $result);
         }
 
         return $newScope;
