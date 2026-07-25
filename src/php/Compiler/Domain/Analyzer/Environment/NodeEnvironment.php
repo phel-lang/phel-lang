@@ -77,6 +77,15 @@ final class NodeEnvironment implements NodeEnvironmentInterface
 
     public function hasLocal(Symbol $x): bool
     {
+        // A namespace-qualified symbol never names a local: locals are
+        // introduced by binding forms, which take bare names. Consulting the
+        // locals index by short name alone would let `(let [inc ...])` capture
+        // `phel.core/inc`, defeating the fully-qualified reference that macro
+        // expansions rely on.
+        if ($x->getNamespace() !== null) {
+            return false;
+        }
+
         return isset($this->localsByName[$x->getName()]);
     }
 

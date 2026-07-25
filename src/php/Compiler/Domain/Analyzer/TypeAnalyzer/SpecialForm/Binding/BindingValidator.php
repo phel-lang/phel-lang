@@ -23,6 +23,8 @@ final class BindingValidator implements BindingValidatorInterface
     public function assertSupportedBinding(mixed $form): void
     {
         if ($this->isSupportedBinding($form)) {
+            $this->assertUnqualifiedName($form);
+
             return;
         }
 
@@ -33,6 +35,30 @@ final class BindingValidator implements BindingValidatorInterface
         }
 
         throw new AnalyzerException('Cannot destructure ' . $type);
+    }
+
+    /**
+     * A binding form introduces a local, and locals are always bare names: a
+     * reference carrying a namespace resolves to the global definition, so a
+     * qualified binding name would bind a value nothing can read back. It
+     * mostly reaches the analyzer through a quasiquote, which qualifies any
+     * symbol that resolves globally, so `` `(let [count 0] count) `` arrives
+     * as `(let [phel.core/count 0] phel.core/count)`. Reject it here instead
+     * of letting the body pick up the core function.
+     *
+     * @throws AnalyzerException
+     */
+    private function assertUnqualifiedName(mixed $form): void
+    {
+        if (!$form instanceof Symbol || $form->getNamespace() === null) {
+            return;
+        }
+
+        throw AnalyzerException::withLocation(
+            "Can't bind qualified name: " . $form->getFullName()
+            . '. Use a bare name, or `' . $form->getName() . '#` for an auto-gensym inside a quasiquote.',
+            $form,
+        );
     }
 
     /**
