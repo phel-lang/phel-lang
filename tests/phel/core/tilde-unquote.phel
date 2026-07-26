@@ -1,45 +1,52 @@
 (ns phel-test.core.tilde-unquote
   (:require phel.test :refer [deftest is]))
 
-;; Phel accepts Clojure-style `~` / `~@` as aliases for `,` / `,@` inside
-;; syntax-quote (`). These tests drive the full pipeline — lex, parse,
-;; analyze, emit, execute — to verify both reader macros produce
-;; equivalent runtime behaviour.
+;; `~` / `~@` are unquote and unquote-splicing inside syntax-quote (`).
+;; These tests drive the full pipeline -- lex, parse, analyze, emit,
+;; execute -- to verify the runtime behaviour.
+;;
+;; `,` used to be an alias for `~` and is removed: it is plain optional
+;; whitespace everywhere now, syntax-quote included.
 ;;
 ;; Note: `is` unwraps 2-element predicate calls, so macro invocations are
 ;; wrapped in `(= expected actual)` to keep the assertion intact.
 
-;; --- `~` and `,` expand to the same form ---
+;; --- `~` unquotes ---
 
-(defmacro wrap-comma [x] `(list :wrap ,x))
 (defmacro wrap-tilde [x] `(list :wrap ~x))
 
-(deftest test-tilde-unquote-matches-comma
-  (is (= (wrap-comma 42) (wrap-tilde 42)))
+(deftest test-tilde-unquote
   (is (= '(:wrap 42) (wrap-tilde 42))))
 
-;; --- `~@` and `,@` splice identically ---
+;; --- `~@` splices ---
 
-(defmacro splice-comma [xs] `(list :head ,@xs :tail))
 (defmacro splice-tilde [xs] `(list :head ~@xs :tail))
 
-(deftest test-tilde-splice-matches-comma
-  (is (= (splice-comma [1 2 3]) (splice-tilde [1 2 3])))
+(deftest test-tilde-splice
   (is (= '(:head 1 2 3 :tail) (splice-tilde [1 2 3]))))
+
+;; --- `,` is whitespace, syntax-quote included ---
+;; This is the one place the removal changes what an existing form means
+;; rather than failing to parse it, so it is worth pinning.
+
+(defmacro comma-separated [x] `(list :a ~x, :b))
+
+(deftest test-comma-is-whitespace-inside-a-quasiquote
+  (is (= '(:a 42 :b) (comma-separated 42))))
+
+(deftest test-comma-is-whitespace-in-a-plain-collection
+  (is (= [1 2 3] [1, 2, 3]) "commas separate vector elements")
+  (is (= {:a 1 :b 2} {:a 1, :b 2}) "commas separate map pairs"))
 
 ;; --- #1201 regression: `~'sym` inside a quasiquoted map ---
 ;; Before the fix, `{:actual ~'error}` lexed `~` as an atom named `~`,
 ;; so the map had an odd number of items and raised
 ;; "Maps must have an even number of parameters".
 
-(defmacro report-comma [msg]
-  `{:type :pass :message ',msg :actual ,'error})
-
 (defmacro report-tilde [msg]
   `{:type :pass :message '~msg :actual ~'error})
 
 (deftest test-tilde-in-quasiquoted-map
   (let [error :boom]
-    (is (= (report-comma "oops") (report-tilde "oops")))
     (is (= :boom (get (report-tilde "oops") :actual)))
     (is (= "oops" (get (report-tilde "oops") :message)))))

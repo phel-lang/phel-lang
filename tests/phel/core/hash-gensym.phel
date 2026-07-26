@@ -1,21 +1,19 @@
 (ns phel-test.core.hash-gensym
   (:require phel.test :refer [deftest is]))
 
-;; Phel accepts Clojure-style `name#` as an auto-gensym suffix inside
-;; syntax-quote (alongside the deprecated Phel-specific `name$`). These
-;; tests drive the full pipeline -- lex, parse, analyze, emit, execute --
-;; to verify both reader macros produce equivalent runtime behaviour.
+;; `name#` is the auto-gensym suffix inside syntax-quote. These tests drive
+;; the full pipeline -- lex, parse, analyze, emit, execute -- to verify the
+;; runtime behaviour.
+;;
+;; The Phel-specific `name$` spelling is removed; a trailing `$` no longer
+;; marks a symbol for gensym.
 
-;; --- `name#` and `name$` produce equivalent expansions ---
-
-(defmacro double-dollar [x]
-  `(let [v$ ,x] (+ v$ v$)))
+;; --- `name#` expands to a generated symbol ---
 
 (defmacro double-hash [x]
   `(let [v# ~x] (+ v# v#)))
 
-(deftest test-hash-gensym-matches-dollar
-  (is (= (double-dollar 5) (double-hash 5)))
+(deftest test-hash-gensym
   (is (= 10 (double-hash 5))))
 
 ;; --- macro hygiene: gensym does not capture a same-named local ---
@@ -27,10 +25,6 @@
     ;; so the macro's binding wins and the result is 10 (2 * 5).
     (is (= 10 (double-hash 5)))))
 
-(deftest test-dollar-gensym-prevents-capture
-  (let [v$ 100]
-    (is (= 10 (double-dollar 5)))))
-
 ;; --- repeated `name#` references the same generated symbol ---
 ;; Within a single syntax-quote, `foo#` is cached: every occurrence
 ;; expands to the same gensym. This is what makes auto-gensym usable
@@ -40,13 +34,8 @@
   `(let [tmp# (+ ~x 1)]
      (* tmp# 2)))
 
-(defmacro inc-then-double-dollar [x]
-  `(let [tmp$ (+ ,x 1)]
-     (* tmp$ 2)))
-
 (deftest test-hash-gensym-cached-within-syntax-quote
-  (is (= 12 (inc-then-double-hash 5)))
-  (is (= (inc-then-double-dollar 5) (inc-then-double-hash 5))))
+  (is (= 12 (inc-then-double-hash 5))))
 
 ;; --- nested macro invocations do not collide ---
 ;; Each top-level macro call gets a fresh gensym, so two nested calls

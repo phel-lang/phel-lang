@@ -109,6 +109,7 @@ final class Symbol extends AbstractType implements IdenticalInterface, FnInterfa
 
     public const string NAME_REIFY = 'reify*';
 
+    /** `$` is the return value inside an `fn` `:post` condition. */
     public const string NAME_DOLLAR = '$';
 
     public const string NAME_HASH = '#';

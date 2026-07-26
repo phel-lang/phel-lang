@@ -43,6 +43,7 @@ final readonly class Parser implements ParserInterface
     /** @var array<int, true> */
     private const array TOKENS_THAT_SHOULD_STREAM_NEXT = [
         Token::T_WHITESPACE => true,
+        Token::T_COMMA => true,
         Token::T_NEWLINE => true,
         Token::T_COMMENT_MACRO => true,
         Token::T_COMMENT => true,
@@ -170,6 +171,7 @@ final readonly class Parser implements ParserInterface
 
             return match ($tokenType) {
                 Token::T_WHITESPACE => WhitespaceNode::createWithToken($token),
+                Token::T_COMMA => CommaNode::createWithToken($token),
                 Token::T_NEWLINE => NewlineNode::createWithToken($token),
                 Token::T_COMMENT_MACRO => $this->parseCommentMacroNode($tokenStream, $token),
                 Token::T_COMMENT => CommentNode::createWithToken($token),
@@ -178,7 +180,6 @@ final readonly class Parser implements ParserInterface
                 Token::T_CHAR => $this->parseCharNode($token),
                 Token::T_REGEX => $this->parseRegexNode($token),
                 Token::T_HASH_FN,
-                Token::T_FN,
                 Token::T_OPEN_PARENTHESIS => $this->parseFnListNode($token, $tokenStream),
                 Token::T_OPEN_BRACKET => $this->parseArrayListNode($token, $tokenStream),
                 Token::T_OPEN_BRACE => $this->parseMapListNode($token, $tokenStream),

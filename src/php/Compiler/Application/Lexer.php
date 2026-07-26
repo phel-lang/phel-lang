@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace Phel\Compiler\Application;
 
 use Generator;
-use Phel\Compiler\Domain\Deprecation\DeprecationWarnings;
 use Phel\Compiler\Domain\Lexer\Exceptions\LexerValueException;
 use Phel\Compiler\Domain\Lexer\LexerInterface;
 use Phel\Compiler\Domain\Lexer\TokenStream;
@@ -29,9 +28,9 @@ final class Lexer implements LexerInterface
         "([ \t]+)", // Whitespace (index: 2)
         "(\r?\n)", // Newline (index: 3)
         '(#_)', // Inline comment (index: 4)
-        "(#(?![_{\\|(\x22?#a-zA-Z'])[^\n]*\n?|;[^\n]*\n?)", // Comment (# or ; excludes #_ #{ #( #" #? ## #<letter> #') (index: 5)
+        "(;[^\n]*\n?)", // Comment (index: 5)
         '(#\{)', // open hash brace (index: 6)
-        '(,@|~@)', // unquote-splicing (index: 7), accepts `,@` or Clojure-style `~@`
+        '(~@)', // unquote-splicing (index: 7)
         "(\()", // open parenthesis (index: 8)
         "(\))", // close parenthesis (index: 9)
         "(\[)", // open bracket (index: 10)
@@ -39,10 +38,10 @@ final class Lexer implements LexerInterface
         "(\{)", // open brace (index: 12)
         "(\})", // close brace (index: 13)
         "(')", // quote (index: 14)
-        '(,|~)', // unquote (index: 15), accepts `,` or Clojure-style `~`
+        '(~)', // unquote (index: 15)
         '(`)', // quasiquote (index: 16)
         "(\^)", // caret (index: 17)
-        "(\|\()", // short fn (index: 18)
+        '(,)', // comma (index: 18) - optional whitespace, never unquote
         '(#\()', // hash fn (index: 19)
         '("(?:[^"\\\\]++|\\\\.)*+")', // String (index: 20)
         '(\\\\(?:space|newline|tab|formfeed|backspace|return|u[0-9a-fA-F]{4}|o[0-7]{1,3}|[^\s])(?![A-Za-z0-9_\-\\\\]))', // Character literal (index: 21 = T_CHAR) - Clojure-style \a, \A, \1, \space, \newline, \uNNNN, \oNNN, \(, \), etc. Must precede the atom rule so it wins on unambiguous cases; falls through to atom when followed by identifier continuation or another backslash (preserving FQN parsing for \Phel\Lang\Symbol).
@@ -55,24 +54,6 @@ final class Lexer implements LexerInterface
         '(#[A-Za-z][A-Za-z0-9_\-]*(?:\.[A-Za-z0-9_\-]+)*(?:\/[A-Za-z][A-Za-z0-9_\-]*(?:\.[A-Za-z0-9_\-]+)*)?)', // tagged literal start (index: 28 = T_TAGGED_LITERAL) - e.g. #cpp, #uuid, #inst, #my.app/Person (EDN-style namespaced tags)
         "(#')", // var-quote prefix (index: 29 = T_VAR_QUOTE) - `#'foo` expands to `(var foo)` in the reader, yielding a `PhelVar` handle to the named definition
     ];
-
-    /**
-     * Token types that can trigger a deprecation warning. Common tokens
-     * (parens, atoms, whitespace, ...) are absent, so a single isset() lookup
-     * lets them skip the per-token deprecation checks below entirely.
-     *
-     * @var array<int,true>
-     */
-    private const array DEPRECATABLE_TYPES = [
-        Token::T_COMMENT => true,
-        Token::T_FN => true,
-        Token::T_UNQUOTE_SPLICING => true,
-        Token::T_UNQUOTE => true,
-    ];
-
-    private const string MULTILINE_COMMENT_BEGIN = '#|';
-
-    private const string MULTILINE_COMMENT_END = '|#';
 
     private int $cursor = 0;
 
@@ -117,43 +98,15 @@ final class Lexer implements LexerInterface
         // strlen() === mb_strlen(), so moveCursor can take the cheaper path.
         $this->isAscii = preg_match('/[\x80-\xFF]/', $code) === 0;
         $end = strlen($code);
-        // Resolved once per source, not per token: the flag is process-wide
-        // and the stdlib-suppression check is a path comparison.
-        $warnDeprecations = DeprecationWarnings::isEnabledForSource($source);
 
         $startLocation = $this->createSourceLocation($source);
 
         while ($this->cursor < $end) {
-            if (substr($code, $this->cursor, 2) === self::MULTILINE_COMMENT_BEGIN) {
-                $comment = $this->readMultilineComment($code, $source);
-                $this->moveCursor($comment);
-                $endLocation = $this->createSourceLocation($source);
-
-                if ($warnDeprecations) {
-                    DeprecationWarnings::warn(DeprecationWarnings::syntaxMessage(
-                        '"#| ... |#"',
-                        'multiline comments',
-                        '";;" or "#_"',
-                        $startLocation,
-                    ));
-                }
-
-                yield new Token(Token::T_COMMENT, $comment, $startLocation, $endLocation);
-
-                $startLocation = $endLocation;
-                continue;
-            }
-
             if (preg_match($this->combinedRegex, $code, $matches, 0, $this->cursor)) {
                 $this->moveCursor($matches[0]);
                 $endLocation = $this->createSourceLocation($source);
-                $tokenType = count($matches);
 
-                if ($warnDeprecations && isset(self::DEPRECATABLE_TYPES[$tokenType])) {
-                    $this->warnDeprecatedToken($tokenType, $matches[0], $startLocation);
-                }
-
-                yield new Token($tokenType, $matches[0], $startLocation, $endLocation);
+                yield new Token(count($matches), $matches[0], $startLocation, $endLocation);
 
                 $startLocation = $endLocation;
             } else {
@@ -162,44 +115,6 @@ final class Lexer implements LexerInterface
         }
 
         yield new Token(Token::T_EOF, '', $startLocation, $startLocation);
-    }
-
-    /**
-     * Only reached when the source-level gate already passed and the token is
-     * one of the four {@see self::DEPRECATABLE_TYPES}; every other token skips
-     * this call entirely.
-     */
-    private function warnDeprecatedToken(int $tokenType, string $lexeme, SourceLocation $location): void
-    {
-        if ($tokenType === Token::T_COMMENT && str_starts_with($lexeme, '#')) {
-            DeprecationWarnings::warn(
-                DeprecationWarnings::syntaxMessage('"#"', 'line comments', '";" or ";;"', $location),
-            );
-
-            return;
-        }
-
-        if ($tokenType === Token::T_FN) {
-            DeprecationWarnings::warn(
-                DeprecationWarnings::syntaxMessage('"|()"', 'short functions', '"#()"', $location),
-            );
-
-            return;
-        }
-
-        if ($tokenType === Token::T_UNQUOTE_SPLICING && $lexeme === ',@') {
-            DeprecationWarnings::warn(
-                DeprecationWarnings::syntaxMessage('","', 'unquote-splicing', '"~@"', $location),
-            );
-
-            return;
-        }
-
-        if ($tokenType === Token::T_UNQUOTE && $lexeme === ',') {
-            DeprecationWarnings::warn(
-                DeprecationWarnings::syntaxMessage('","', 'unquote', '"~"', $location),
-            );
-        }
     }
 
     private function moveCursor(string $str): void
@@ -234,44 +149,5 @@ final class Lexer implements LexerInterface
         }
 
         return new SourceLocation('string', 0, 0);
-    }
-
-    /**
-     * @throws LexerValueException
-     */
-    private function readMultilineComment(string $code, string $source): string
-    {
-        $pos = $this->cursor;
-        $depth = 0;
-        $end = strlen($code);
-
-        // Jump delimiter-to-delimiter instead of stepping one byte at a time:
-        // advance to whichever of the next `#|`/`|#` comes first and adjust the
-        // nesting depth. Equivalent to the per-byte scan but lets `strpos` skip
-        // the comment body at C speed.
-        while ($pos < $end) {
-            $close = strpos($code, self::MULTILINE_COMMENT_END, $pos);
-            if ($close === false) {
-                // No terminator left: fall through to the unterminated throw.
-                break;
-            }
-
-            $open = strpos($code, self::MULTILINE_COMMENT_BEGIN, $pos);
-            if ($open !== false && $open < $close) {
-                ++$depth;
-                $pos = $open + 2;
-
-                continue;
-            }
-
-            --$depth;
-            $pos = $close + 2;
-
-            if ($depth === 0) {
-                return substr($code, $this->cursor, $pos - $this->cursor);
-            }
-        }
-
-        throw LexerValueException::unexpectedLexerState($source, $this->line, $this->column);
     }
 }

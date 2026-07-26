@@ -30,7 +30,7 @@ final class QuoteNodeTest extends TestCase
     public function test_get_code_unquote(): void
     {
         self::assertSame(
-            ',a',
+            '~a',
             new QuoteNode(
                 Token::T_UNQUOTE,
                 $this->loc(1, 0),
@@ -43,7 +43,7 @@ final class QuoteNodeTest extends TestCase
     public function test_get_code_unquote_splicing(): void
     {
         self::assertSame(
-            ',@a',
+            '~@a',
             new QuoteNode(
                 Token::T_UNQUOTE_SPLICING,
                 $this->loc(1, 0),

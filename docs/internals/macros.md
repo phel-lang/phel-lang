@@ -56,7 +56,7 @@ Matches user-facing `&form` / `&env`.
 | `` `(a ~@xs b) `` | `(apply list (concat (list (quote a)) xs (list (quote b))))` |
 | `` `[a ~x] `` | `(apply vector (concat (list (quote a)) (list x)))` |
 
-Every collection form goes through `concat` and is rebuilt by `apply`, so a splice can contribute any number of elements. `~` and `,` are the same reader token. Check any case with `(read-string "`(a ~x)")`.
+Every collection form goes through `concat` and is rebuilt by `apply`, so a splice can contribute any number of elements. `~` is the unquote token; `,` is whitespace. Check any case with `(read-string "`(a ~x)")`.
 
 Symbols inside quasiquote get namespace-qualified to the *defining* namespace. Easy half of hygiene: `` `(map f xs) `` resolves to `phel.core/map` regardless of caller shadowing.
 

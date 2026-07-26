@@ -41,38 +41,6 @@ separate edit you have to make.
 Deprecation messages never name a concrete removal version on purpose: the
 release such a message promises inevitably ships and the text goes stale.
 
-## Reader syntax
-
-| Deprecated | Replacement |
-|---|---|
-| `#\| ... \|#` multiline comment | `;;` line comments, or `#_` to skip one form |
-| `#` line comment | `;` (trailing) / `;;` (whole line) |
-| `\|(...)` short fn | `#(...)` |
-| `,` unquote | `~` |
-| `,@` unquote-splicing | `~@` |
-| `foo$` auto-gensym | `foo#` |
-
-```phel
-# old line comment                    ;; new line comment
-
-#|
-  old block comment
-|#
-;; new block comment, one `;;` per line
-;; (or `#_` in front of a single form to skip it)
-
-(map |(+ $ 1) xs)                     (map #(+ % 1) xs)
-
-`(let [x ,init] ,@body)               `(let [x ~init] ~@body)
-
-`(let [acc$ 0] ,@body)                `(let [acc# 0] ~@body)
-```
-
-Note that `|()` uses `$`/`$1` for its arguments while `#()` uses `%`/`%1`, so
-converting a short fn means renaming its parameters too. `,` is optional
-whitespace *outside* a quasiquote, and stays that way: only `,` inside a
-`` ` `` form is the deprecated unquote.
-
 ## Namespace separator
 
 `\` still parses as a namespace separator; `.` is the target form.

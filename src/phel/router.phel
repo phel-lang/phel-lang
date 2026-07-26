@@ -16,7 +16,7 @@
 (declare walk-one)
 
 (defn- walk-many [routes prefix-path prev-data]
-  (mapcat |(walk-one $ prefix-path prev-data) routes))
+  (mapcat #(walk-one % prefix-path prev-data) routes))
 
 (defn- walk-one [routes prefix-path prev-data]
   (when (string? routes)
@@ -239,7 +239,7 @@
   Router
   (routes [this] normalized-routes)
   (match-by-path [this path]
-                 (match-with matcher path |(get indexed-routes $)))
+                 (match-with matcher path #(get indexed-routes %)))
   (match-by-name [this route-name]
                  (indexed-route->match (get indexed-routes (full-name route-name))))
   (generate [this route-name parameters]
@@ -278,7 +278,7 @@ Because compilation runs during macro expansion, `raw-routes` must be a literal 
         route-collection          (build-route-collection flattened-routes)
         compiled-matcher-routes   (php/-> (php/new CompiledUrlMatcherDumper route-collection) (getCompiledRoutes))
         compiled-generator-routes (php/-> (php/new CompiledUrlGeneratorDumper route-collection) (getCompiledRoutes))]
-    `(build-compiled-router ,raw-routes ,options ,compiled-matcher-routes ,compiled-generator-routes)))
+    `(build-compiled-router ~raw-routes ~options ~compiled-matcher-routes ~compiled-generator-routes)))
 
 (defn handler
   "Builds a `request -> response` function from a router.

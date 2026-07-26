@@ -4,35 +4,22 @@ declare(strict_types=1);
 
 namespace PhelTest\Unit\Compiler\Lexer;
 
+use Iterator;
 use Phel\Compiler\CompilerFactory;
-use Phel\Compiler\Domain\Deprecation\DeprecationWarnings;
 use Phel\Compiler\Domain\Lexer\Exceptions\LexerValueException;
 use Phel\Lang\SourceLocation;
 use Phel\Lang\Symbol;
 use Phel\Shared\Parser\Node\Token;
+use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
-
-use function dirname;
 
 final class LexerTest extends TestCase
 {
-    /**
-     * A deprecation notice must not name a concrete version as its removal
-     * target: the release it promises inevitably ships and the message goes
-     * stale (see #2783, which sat on "v0.33" until v0.48).
-     */
-    private const string VERSION_REFERENCE = '/v?\d+\.\d+(\.\d+)?/';
-
     private CompilerFactory $compilerFactory;
 
     protected function setUp(): void
     {
         $this->compilerFactory = new CompilerFactory();
-    }
-
-    protected function tearDown(): void
-    {
-        DeprecationWarnings::reset();
     }
 
     public function test_whitespace_with_newline(): void
@@ -76,40 +63,6 @@ final class LexerTest extends TestCase
                 new Token(Token::T_EOF, '', new SourceLocation('string', 2, 2), new SourceLocation('string', 2, 2)),
             ],
             $this->lex("\"a\né\""),
-        );
-    }
-
-    public function test_read_comment_without_text(): void
-    {
-        self::assertEquals(
-            [
-                new Token(Token::T_COMMENT, '#', new SourceLocation('string', 1, 0), new SourceLocation('string', 1, 1)),
-                new Token(Token::T_EOF, '', new SourceLocation('string', 1, 1), new SourceLocation('string', 1, 1)),
-            ],
-            $this->lex('#'),
-        );
-    }
-
-    public function test_read_comment_without_new_line(): void
-    {
-        self::assertEquals(
-            [
-                new Token(Token::T_COMMENT, '# Mein Kommentar', new SourceLocation('string', 1, 0), new SourceLocation('string', 1, 16)),
-                new Token(Token::T_EOF, '', new SourceLocation('string', 1, 16), new SourceLocation('string', 1, 16)),
-            ],
-            $this->lex('# Mein Kommentar'),
-        );
-    }
-
-    public function test_read_comment_with_new_line(): void
-    {
-        self::assertEquals(
-            [
-                new Token(Token::T_COMMENT, "# Mein Kommentar\n", new SourceLocation('string', 1, 0), new SourceLocation('string', 2, 0)),
-                new Token(Token::T_COMMENT, '# Mein andere Kommentar', new SourceLocation('string', 2, 0), new SourceLocation('string', 2, 23)),
-                new Token(Token::T_EOF, '', new SourceLocation('string', 2, 23), new SourceLocation('string', 2, 23)),
-            ],
-            $this->lex("# Mein Kommentar\n# Mein andere Kommentar"),
         );
     }
 
@@ -157,76 +110,6 @@ final class LexerTest extends TestCase
             ],
             $this->lex('#_a'),
         );
-    }
-
-    public function test_read_multiline_comment(): void
-    {
-        self::assertEquals(
-            [
-                new Token(Token::T_COMMENT, '#|test|#', new SourceLocation('string', 1, 0), new SourceLocation('string', 1, 8)),
-                new Token(Token::T_EOF, '', new SourceLocation('string', 1, 8), new SourceLocation('string', 1, 8)),
-            ],
-            $this->lex('#|test|#'),
-        );
-    }
-
-    public function test_read_nested_multiline_comment(): void
-    {
-        self::assertEquals(
-            [
-                new Token(Token::T_COMMENT, '#|a #|b|# c|#', new SourceLocation('string', 1, 0), new SourceLocation('string', 1, 13)),
-                new Token(Token::T_EOF, '', new SourceLocation('string', 1, 13), new SourceLocation('string', 1, 13)),
-            ],
-            $this->lex('#|a #|b|# c|#'),
-        );
-    }
-
-    public function test_read_multiline_comment_with_newlines(): void
-    {
-        self::assertEquals(
-            [
-                new Token(Token::T_COMMENT, "#|a\nb|#", new SourceLocation('string', 1, 0), new SourceLocation('string', 2, 3)),
-                new Token(Token::T_EOF, '', new SourceLocation('string', 2, 3), new SourceLocation('string', 2, 3)),
-            ],
-            $this->lex("#|a\nb|#"),
-        );
-    }
-
-    public function test_read_empty_multiline_comment(): void
-    {
-        self::assertEquals(
-            [
-                new Token(Token::T_COMMENT, '#||#', new SourceLocation('string', 1, 0), new SourceLocation('string', 1, 4)),
-                new Token(Token::T_EOF, '', new SourceLocation('string', 1, 4), new SourceLocation('string', 1, 4)),
-            ],
-            $this->lex('#||#'),
-        );
-    }
-
-    public function test_read_deeply_nested_multiline_comment(): void
-    {
-        $code = '#|a #|b #|c|# d|# e|#';
-        $tokens = $this->lex($code);
-
-        self::assertSame(Token::T_COMMENT, $tokens[0]->getType());
-        self::assertSame($code, $tokens[0]->getCode());
-        self::assertSame(Token::T_EOF, $tokens[1]->getType());
-    }
-
-    public function test_unterminated_multiline_comment_throws(): void
-    {
-        $this->expectException(LexerValueException::class);
-
-        $this->lex('#| never closed');
-    }
-
-    public function test_unterminated_nested_multiline_comment_throws(): void
-    {
-        // The inner comment closes but the outer never does, so depth never
-        // returns to 0 and the scan must reach EOF and throw.
-        $this->expectException(LexerValueException::class);
-
-        $this->lex('#|a #|b|#');
     }
 
     public function test_read_single_syntax_char(): void
@@ -361,255 +244,6 @@ final class LexerTest extends TestCase
             ],
             $this->lex('#(add %)'),
         );
-    }
-
-    public function test_hash_comment_emits_deprecation(): void
-    {
-        // Syntax deprecations are opt-in (`--warn-deprecations`).
-        DeprecationWarnings::enable();
-
-        $warning = null;
-        set_error_handler(static function (int $errno, string $errstr) use (&$warning): bool {
-            $warning = $errstr;
-            return true;
-        }, E_USER_DEPRECATED);
-
-        try {
-            $this->lex('# test comment');
-        } finally {
-            restore_error_handler();
-        }
-
-        self::assertNotNull($warning);
-        self::assertStringContainsString('a future release', $warning);
-        self::assertStringContainsString('";"', $warning);
-        self::assertDoesNotMatchRegularExpression(self::VERSION_REFERENCE, $warning);
-    }
-
-    public function test_semicolon_comment_does_not_emit_deprecation(): void
-    {
-        // Syntax deprecations are opt-in (`--warn-deprecations`).
-        DeprecationWarnings::enable();
-
-        $warning = null;
-        set_error_handler(static function (int $errno, string $errstr) use (&$warning): bool {
-            $warning = $errstr;
-            return true;
-        }, E_USER_DEPRECATED);
-
-        try {
-            $this->lex('; test comment');
-        } finally {
-            restore_error_handler();
-        }
-
-        self::assertNull($warning);
-    }
-
-    public function test_multiline_comment_emits_deprecation(): void
-    {
-        // Syntax deprecations are opt-in (`--warn-deprecations`).
-        DeprecationWarnings::enable();
-
-        $warning = null;
-        set_error_handler(static function (int $errno, string $errstr) use (&$warning): bool {
-            $warning = $errstr;
-            return true;
-        }, E_USER_DEPRECATED);
-
-        try {
-            $this->lex('#|test|#');
-        } finally {
-            restore_error_handler();
-        }
-
-        self::assertNotNull($warning);
-        self::assertStringContainsString('a future release', $warning);
-        self::assertStringContainsString(';;', $warning);
-        self::assertDoesNotMatchRegularExpression(self::VERSION_REFERENCE, $warning);
-    }
-
-    public function test_pipe_fn_emits_deprecation(): void
-    {
-        // Syntax deprecations are opt-in (`--warn-deprecations`).
-        DeprecationWarnings::enable();
-
-        $warning = null;
-        set_error_handler(static function (int $errno, string $errstr) use (&$warning): bool {
-            $warning = $errstr;
-            return true;
-        }, E_USER_DEPRECATED);
-
-        try {
-            $this->lex('|(add $)');
-        } finally {
-            restore_error_handler();
-        }
-
-        self::assertNotNull($warning);
-        self::assertStringContainsString('#()', $warning);
-    }
-
-    public function test_hash_fn_does_not_emit_deprecation(): void
-    {
-        // Syntax deprecations are opt-in (`--warn-deprecations`).
-        DeprecationWarnings::enable();
-
-        $warning = null;
-        set_error_handler(static function (int $errno, string $errstr) use (&$warning): bool {
-            $warning = $errstr;
-            return true;
-        }, E_USER_DEPRECATED);
-
-        try {
-            $this->lex('#(add %)');
-        } finally {
-            restore_error_handler();
-        }
-
-        self::assertNull($warning);
-    }
-
-    public function test_comma_unquote_emits_deprecation(): void
-    {
-        // Syntax deprecations are opt-in (`--warn-deprecations`).
-        DeprecationWarnings::enable();
-
-        $warning = null;
-        set_error_handler(static function (int $errno, string $errstr) use (&$warning): bool {
-            $warning = $errstr;
-            return true;
-        }, E_USER_DEPRECATED);
-
-        try {
-            $this->lex('`(foo ,bar)');
-        } finally {
-            restore_error_handler();
-        }
-
-        self::assertNotNull($warning);
-        self::assertStringContainsString('"~"', $warning);
-    }
-
-    public function test_comma_splicing_emits_deprecation(): void
-    {
-        // Syntax deprecations are opt-in (`--warn-deprecations`).
-        DeprecationWarnings::enable();
-
-        $warning = null;
-        set_error_handler(static function (int $errno, string $errstr) use (&$warning): bool {
-            $warning = $errstr;
-            return true;
-        }, E_USER_DEPRECATED);
-
-        try {
-            $this->lex('`(foo ,@bar)');
-        } finally {
-            restore_error_handler();
-        }
-
-        self::assertNotNull($warning);
-        self::assertStringContainsString('"~@"', $warning);
-    }
-
-    public function test_deprecated_syntax_is_silent_unless_warnings_are_enabled(): void
-    {
-        DeprecationWarnings::disable();
-
-        $warning = null;
-        set_error_handler(static function (int $errno, string $errstr) use (&$warning): bool {
-            $warning = $errstr;
-            return true;
-        }, E_USER_DEPRECATED);
-
-        try {
-            $this->lex('#|test|# # comment');
-        } finally {
-            restore_error_handler();
-        }
-
-        self::assertNull($warning);
-    }
-
-    public function test_deprecated_syntax_in_bundled_stdlib_sources_is_never_reported(): void
-    {
-        // Syntax deprecations are opt-in (`--warn-deprecations`).
-        DeprecationWarnings::enable();
-
-        $warning = null;
-        set_error_handler(static function (int $errno, string $errstr) use (&$warning): bool {
-            $warning = $errstr;
-            return true;
-        }, E_USER_DEPRECATED);
-
-        try {
-            $lexer = $this->compilerFactory->createLexer();
-            iterator_to_array($lexer->lexString('#|test|#', dirname(__DIR__, 5) . '/src/phel/walk.phel'));
-        } finally {
-            restore_error_handler();
-        }
-
-        self::assertNull($warning);
-    }
-
-    public function test_tilde_unquote_does_not_emit_deprecation(): void
-    {
-        // Syntax deprecations are opt-in (`--warn-deprecations`).
-        DeprecationWarnings::enable();
-
-        $warning = null;
-        set_error_handler(static function (int $errno, string $errstr) use (&$warning): bool {
-            $warning = $errstr;
-            return true;
-        }, E_USER_DEPRECATED);
-
-        try {
-            $this->lex('`(foo ~bar)');
-        } finally {
-            restore_error_handler();
-        }
-
-        self::assertNull($warning);
-    }
-
-    public function test_tilde_splicing_does_not_emit_deprecation(): void
-    {
-        // Syntax deprecations are opt-in (`--warn-deprecations`).
-        DeprecationWarnings::enable();
-
-        $warning = null;
-        set_error_handler(static function (int $errno, string $errstr) use (&$warning): bool {
-            $warning = $errstr;
-            return true;
-        }, E_USER_DEPRECATED);
-
-        try {
-            $this->lex('`(foo ~@bar)');
-        } finally {
-            restore_error_handler();
-        }
-
-        self::assertNull($warning);
-    }
-
-    public function test_non_deprecatable_token_stream_emits_no_deprecation(): void
-    {
-        // Syntax deprecations are opt-in (`--warn-deprecations`).
-        DeprecationWarnings::enable();
-
-        $warning = null;
-        set_error_handler(static function (int $errno, string $errstr) use (&$warning): bool {
-            $warning = $errstr;
-            return true;
-        }, E_USER_DEPRECATED);
-
-        try {
-            $this->lex('(+ 1 2)');
-        } finally {
-            restore_error_handler();
-        }
-
-        self::assertNull($warning);
     }
 
     public function test_regex_literal(): void
@@ -879,51 +513,6 @@ final class LexerTest extends TestCase
     {
         $tokens = $this->lex('#"foo"');
         self::assertSame(Token::T_REGEX, $tokens[0]->getType());
-    }
-
-    public function test_hash_pipe_multiline_comment_still_deprecated_but_works(): void
-    {
-        // Syntax deprecations are opt-in (`--warn-deprecations`).
-        DeprecationWarnings::enable();
-
-        $warning = null;
-        set_error_handler(static function (int $errno, string $errstr) use (&$warning): bool {
-            $warning = $errstr;
-            return true;
-        }, E_USER_DEPRECATED);
-
-        try {
-            $tokens = $this->lex('#| multiline |#');
-        } finally {
-            restore_error_handler();
-        }
-
-        self::assertSame(Token::T_COMMENT, $tokens[0]->getType());
-        self::assertSame('#| multiline |#', $tokens[0]->getCode());
-        self::assertNotNull($warning);
-        self::assertDoesNotMatchRegularExpression(self::VERSION_REFERENCE, $warning);
-    }
-
-    public function test_bare_hash_line_comment_still_deprecated_but_works(): void
-    {
-        // Syntax deprecations are opt-in (`--warn-deprecations`).
-        DeprecationWarnings::enable();
-
-        $warning = null;
-        set_error_handler(static function (int $errno, string $errstr) use (&$warning): bool {
-            $warning = $errstr;
-            return true;
-        }, E_USER_DEPRECATED);
-
-        try {
-            $tokens = $this->lex("# a bare comment\n");
-        } finally {
-            restore_error_handler();
-        }
-
-        self::assertSame(Token::T_COMMENT, $tokens[0]->getType());
-        self::assertNotNull($warning);
-        self::assertDoesNotMatchRegularExpression(self::VERSION_REFERENCE, $warning);
     }
 
     public function test_var_quote_prefix_lexes_as_single_token(): void
@@ -1203,6 +792,70 @@ final class LexerTest extends TestCase
             ],
             $this->lex("foo\nbarbaz"),
         );
+    }
+
+    /**
+     * The reader syntax removed in #2827. Each spelling is now simply not a
+     * token: `#` and `#|` cannot start anything (the atom rule excludes a
+     * leading `#`), so the lexer reports an unexpected state rather than
+     * quietly reading something else.
+     *
+     * @return Iterator<int<0, max>, array{string}>
+     */
+    public static function provideRemovedSyntax(): Iterator
+    {
+        yield 'bare hash comment' => ['# a comment'];
+        yield 'bare hash alone' => ['#'];
+        yield 'multiline comment' => ['#|test|#'];
+        yield 'nested multiline comment' => ['#|a #|b|# c|#'];
+        yield 'empty multiline comment' => ['#||#'];
+    }
+
+    #[DataProvider('provideRemovedSyntax')]
+    public function test_removed_reader_syntax_no_longer_lexes(string $code): void
+    {
+        $this->expectException(LexerValueException::class);
+
+        $this->lex($code);
+    }
+
+    public function test_pipe_fn_is_no_longer_a_token(): void
+    {
+        // `|(` was the short-fn opener. `|` now falls through to the atom rule,
+        // so the reader reports an unresolvable symbol instead of building a fn.
+        self::assertEquals(
+            [
+                new Token(Token::T_ATOM, '|', new SourceLocation('string', 1, 0), new SourceLocation('string', 1, 1)),
+                new Token(Token::T_OPEN_PARENTHESIS, '(', new SourceLocation('string', 1, 1), new SourceLocation('string', 1, 2)),
+                new Token(Token::T_CLOSE_PARENTHESIS, ')', new SourceLocation('string', 1, 2), new SourceLocation('string', 1, 3)),
+                new Token(Token::T_EOF, '', new SourceLocation('string', 1, 3), new SourceLocation('string', 1, 3)),
+            ],
+            $this->lex('|()'),
+        );
+    }
+
+    public function test_comma_is_its_own_token_and_never_unquote(): void
+    {
+        self::assertEquals(
+            [
+                new Token(Token::T_ATOM, 'a', new SourceLocation('string', 1, 0), new SourceLocation('string', 1, 1)),
+                new Token(Token::T_COMMA, ',', new SourceLocation('string', 1, 1), new SourceLocation('string', 1, 2)),
+                new Token(Token::T_ATOM, 'b', new SourceLocation('string', 1, 2), new SourceLocation('string', 1, 3)),
+                new Token(Token::T_EOF, '', new SourceLocation('string', 1, 3), new SourceLocation('string', 1, 3)),
+            ],
+            $this->lex('a,b'),
+        );
+    }
+
+    public function test_comma_splicing_is_a_comma_followed_by_a_deref(): void
+    {
+        // `,@` was unquote-splicing. Both characters keep their own meaning
+        // now, which is what Clojure does with the same input.
+        $tokens = $this->lex(',@xs');
+
+        self::assertSame(Token::T_COMMA, $tokens[0]->getType());
+        self::assertSame(Token::T_DEREF, $tokens[1]->getType());
+        self::assertSame(Token::T_ATOM, $tokens[2]->getType());
     }
 
     private function lex(string $string): array

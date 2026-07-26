@@ -86,26 +86,6 @@ final class CommentStyleRuleTest extends RuleTestCase
 
     #[PreserveGlobalState(false)]
     #[RunInSeparateProcess]
-    public function test_it_does_not_flag_a_semicolon_inside_a_multiline_comment(): void
-    {
-        $rule = new CommentStyleRule($this->compilerFacade());
-        $analysis = $this->buildAnalysis("#|\n; not a line comment\n|#\n(def x 1)\n");
-
-        self::assertSame([], $rule->apply($analysis));
-    }
-
-    #[PreserveGlobalState(false)]
-    #[RunInSeparateProcess]
-    public function test_it_does_not_flag_a_bare_hash_line_comment(): void
-    {
-        $rule = new CommentStyleRule($this->compilerFacade());
-        $analysis = $this->buildAnalysis("# legacy comment\n(def x 1)\n");
-
-        self::assertSame([], $rule->apply($analysis));
-    }
-
-    #[PreserveGlobalState(false)]
-    #[RunInSeparateProcess]
     public function test_it_flags_every_line_of_a_single_semicolon_block(): void
     {
         $rule = new CommentStyleRule($this->compilerFacade());

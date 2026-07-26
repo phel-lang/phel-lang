@@ -181,7 +181,7 @@ final readonly class PhelFunctionRuntimeLoader
         }
 
         return <<<EOF
-# Simply require all namespaces that should be documented
+;; Simply require all namespaces that should be documented
 (ns phel-internal\doc
   {$requireNamespaces}
 )

@@ -8,7 +8,6 @@ use Phel;
 use Phel\Compiler\Domain\Analyzer\Ast\GlobalVarNode;
 use Phel\Compiler\Domain\Analyzer\Environment\GlobalEnvironmentInterface;
 use Phel\Compiler\Domain\Analyzer\Environment\NodeEnvironment;
-use Phel\Compiler\Domain\Deprecation\DeprecationWarnings;
 use Phel\Compiler\Domain\Reader\Exceptions\SpliceNotInListException;
 use Phel\Lang\Collections\LinkedList\PersistentList;
 use Phel\Lang\Collections\LinkedList\PersistentListInterface;
@@ -23,7 +22,6 @@ use function is_bool;
 use function is_float;
 use function is_int;
 use function is_string;
-use function sprintf;
 use function str_ends_with;
 use function substr;
 
@@ -203,7 +201,6 @@ final readonly class QuasiquoteTransformer implements QuasiquoteTransformerInter
         if ($form instanceof Symbol) {
             $name = $form->getFullName();
             if ($this->isAutoGensymSymbol($name)) {
-                $this->warnIfDollarAutoGensym($form, $name);
 
                 $base = substr($name, 0, -1) . '__';
                 $sym = $context->getSymbolOrCreate($base);
@@ -230,23 +227,6 @@ final readonly class QuasiquoteTransformer implements QuasiquoteTransformerInter
 
     private function isAutoGensymSymbol(string $name): bool
     {
-        return str_ends_with($name, Symbol::NAME_DOLLAR)
-            || str_ends_with($name, Symbol::NAME_HASH);
-    }
-
-    private function warnIfDollarAutoGensym(Symbol $form, string $name): void
-    {
-        if (!str_ends_with($name, Symbol::NAME_DOLLAR)) {
-            return;
-        }
-
-        $suggested = substr($name, 0, -1) . Symbol::NAME_HASH;
-
-        DeprecationWarnings::warnSyntax(
-            sprintf('"%s"', $name),
-            'auto-gensym',
-            sprintf('"%s"', $suggested),
-            $form->getStartLocation(),
-        );
+        return str_ends_with($name, Symbol::NAME_HASH);
     }
 }

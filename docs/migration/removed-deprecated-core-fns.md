@@ -99,6 +99,51 @@ Replace any literal `.phel-repl-history` in a `.gitignore` or CI cache key with 
 
 A custom reporter reacts to the `:summary` event instead of triggering it. A test harness that needs a summary for stats it assembled itself builds the event from the public `get-stats` snapshot and hands it to the reporter; `phel.test` keeps its own builder private on purpose, so the event shape stays free to change.
 
+## Removed reader syntax
+
+Six spellings are removed ([#2827](https://github.com/phel-lang/phel-lang/issues/2827)).
+
+| Removed | Replacement |
+|---|---|
+| `#\| ... \|#` multiline comment | `;;` line comments, or `#_` to skip one form |
+| `#` line comment | `;` (trailing) / `;;` (whole line) |
+| `\|(...)` short fn, with `$`/`$1` params | `#(...)`, with `%`/`%1` params |
+| `,` unquote | `~` |
+| `,@` unquote-splicing | `~@` |
+| `foo$` auto-gensym | `foo#` |
+
+```phel
+# old line comment                    ;; new line comment
+
+#|
+  old block comment
+|#                                    ;; new block comment, one line at a time
+
+(map |(inc $) xs)                     (map #(inc %) xs)
+(map |(+ $1 $2) xs ys)                (map #(+ %1 %2) xs ys)
+
+`(list ,x ,@xs)                       `(list ~x ~@xs)
+`(let [v$ ,x] (+ v$ v$))              `(let [v# ~x] (+ v# v#))
+```
+
+### Most of these now fail loudly
+
+`#`, `#|` and `|(` are simply not tokens any more, so a file still using them fails to lex or reports an unresolvable symbol `|`. You will know immediately.
+
+**`,` is the exception, and it is the one to grep for.** A comma is now plain whitespace *everywhere*, syntax-quote included. `` `(foo ,x) `` still parses; it just quotes the symbol `x` instead of unquoting it, so a macro keeps compiling and starts producing the wrong expansion. Phel's own stdlib had three of these (`aset`, `aset-in` and `router/compiled-router`), which is a fair warning about how easy they are to miss.
+
+Grep for a comma directly followed by the start of a form:
+
+```bash
+grep -rnE ",[A-Za-z0-9_(\[{'\`~@:*+-]" --include='*.phel' src/ tests/
+```
+
+A comma between map pairs (`{:a 1, :b 2}`) is followed by a space and is unaffected. `phel format` keeps preserving commas and still never inserts them.
+
+### `$` is still a symbol
+
+Only the *auto-gensym* meaning of a trailing `$` is gone. `$` remains the return value inside an `fn` `:post` condition, and a `$` anywhere in a name is an ordinary character.
+
 ## Still deprecated (not removed)
 
 The `warn-deprecations` infrastructure stays, since it still serves live deprecations such as the deprecated reader syntax and the `\` namespace separator (see [backslash-to-dot.md](backslash-to-dot.md)). `DeprecatedDefinitionWarner` stays too: it is a general facility that project code uses for its own `:deprecated` definitions.

@@ -8,6 +8,7 @@ use Phel;
 use Phel\Compiler\Domain\Analyzer\Environment\GlobalEnvironment;
 use Phel\Compiler\Domain\Deprecation\DeprecationWarnings;
 use Phel\Compiler\Domain\Reader\QuasiquoteTransformer;
+use Phel\Lang\Collections\LinkedList\PersistentListInterface;
 use Phel\Lang\Keyword;
 use Phel\Lang\SourceLocation;
 use Phel\Lang\Symbol;
@@ -264,27 +265,19 @@ final class QuasiquoteTest extends TestCase
         );
     }
 
-    public function test_dollar_auto_gensym_emits_deprecation(): void
+    public function test_trailing_dollar_is_no_longer_an_auto_gensym(): void
     {
-        // Syntax deprecations are opt-in (`--warn-deprecations`).
-        DeprecationWarnings::enable();
+        // `foo$` was the Phel-specific auto-gensym spelling. A trailing `$` is
+        // now an ordinary character, so the symbol is namespace-qualified like
+        // any other rather than being replaced by a generated one.
+        $q = new QuasiquoteTransformer(new GlobalEnvironment());
 
-        $warning = null;
-        set_error_handler(static function (int $errno, string $errstr) use (&$warning): bool {
-            $warning = $errstr;
-            return true;
-        }, E_USER_DEPRECATED);
+        $result = $q->transform($this->locatedSymbol('foo$'));
 
-        try {
-            $q = new QuasiquoteTransformer(new GlobalEnvironment());
-            $q->transform($this->locatedSymbol('foo$'));
-        } finally {
-            restore_error_handler();
-        }
-
-        self::assertNotNull($warning);
-        self::assertStringContainsString('"foo$"', $warning);
-        self::assertStringContainsString('"foo#"', $warning);
+        self::assertInstanceOf(PersistentListInterface::class, $result);
+        $quoted = $result->get(1);
+        self::assertInstanceOf(Symbol::class, $quoted);
+        self::assertSame('foo$', $quoted->getName(), 'the name survives verbatim, no gensym suffix');
     }
 
     public function test_hash_auto_gensym_does_not_emit_deprecation(): void

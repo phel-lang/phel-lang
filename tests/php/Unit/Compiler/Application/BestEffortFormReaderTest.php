@@ -42,7 +42,7 @@ final class BestEffortFormReaderTest extends TestCase
 
     public function test_it_skips_comments_and_whitespace(): void
     {
-        $forms = $this->read("# a comment\n\n(def a 1)\n\n# another\n");
+        $forms = $this->read(";; a comment\n\n(def a 1)\n\n;; another\n");
 
         self::assertCount(1, $forms);
     }

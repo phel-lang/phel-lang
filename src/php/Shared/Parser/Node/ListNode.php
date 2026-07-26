@@ -51,7 +51,6 @@ final class ListNode implements InnerNodeInterface
     {
         return match ($this->tokenType) {
             Token::T_OPEN_PARENTHESIS => '(',
-            Token::T_FN => '|(',
             Token::T_HASH_FN => '#(',
             Token::T_OPEN_BRACKET => '[',
             Token::T_OPEN_BRACE => '{',
@@ -63,7 +62,7 @@ final class ListNode implements InnerNodeInterface
     public function getCodePostfix(): string
     {
         return match ($this->tokenType) {
-            Token::T_OPEN_PARENTHESIS, Token::T_FN, Token::T_HASH_FN => ')',
+            Token::T_OPEN_PARENTHESIS, Token::T_HASH_FN => ')',
             Token::T_OPEN_BRACKET => ']',
             Token::T_OPEN_BRACE, Token::T_HASH_OPEN_BRACE => '}',
             default => throw new RuntimeException('Cannot find code postfix for token type: ' . $this->tokenType),
