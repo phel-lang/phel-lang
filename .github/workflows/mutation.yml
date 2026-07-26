@@ -1,0 +1,114 @@
+# https://help.github.com/en/categories/automating-your-workflow-with-github-actions
+
+# Mutation testing over the two places where a wrong test is worse than a missing
+# one: the runtime data structures every Phel program depends on, and the analyzer
+# that decides what those programs mean.
+#
+# Line coverage says a line ran. It does not say anything would have failed had
+# that line been wrong. `Cons::walkTail()` passes the entire unit suite with its
+# body disabled, and only `test-core` notices; a surviving mutant is how that
+# becomes visible.
+#
+# Weekly rather than per-pull-request. A full run is minutes, and the finding it
+# produces ("this test asserts nothing") is not the kind that needs to block a
+# merge the hour it appears.
+
+name: Mutation
+
+on:
+  schedule:
+    - cron: '0 4 * * 1'
+  pull_request:
+    paths:
+      - 'infection.json5'
+      - '.github/workflows/mutation.yml'
+  workflow_dispatch:
+    inputs:
+      min-msi:
+        description: 'Override the MSI floor for this run'
+        required: false
+        default: ''
+
+permissions:
+  contents: read
+
+concurrency:
+  group: mutation-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.ref != 'refs/heads/main' }}
+
+jobs:
+  infection:
+    name: Mutation testing (Lang + Analyzer)
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    env:
+      # Ratchets, like the coverage floor. Raise them when a run clears them
+      # comfortably; never lower one to turn a red build green. MIN_COVERED_MSI
+      # is the stricter of the two: it ignores code no test touches at all, so it
+      # measures the quality of the tests that do exist.
+      # Measured at 83% (mutation code coverage 100%, 6380 mutants killed) on the
+      # run that first completed. 80 leaves room for the timing noise a 20-minute
+      # run carries without letting the score quietly slide.
+      MIN_MSI: '80'
+      MIN_COVERED_MSI: '80'
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          # Infection reads the diff to report which mutants a change introduced.
+          fetch-depth: 0
+
+      - uses: ./.github/actions/setup-phel
+        with:
+          # Infection needs a coverage driver; pcov is several times faster than
+          # Xdebug and nothing here needs a step debugger.
+          coverage: pcov
+
+      # Coverage is produced here rather than by Infection's own "initial tests"
+      # run. That run reported `Project tests must be in a passing state` while
+      # the very same suite, under the very same generated config, passes
+      # locally: the difference is that it drives PHPUnit through a wrapper whose
+      # failure mode it then cannot report usefully.
+      #
+      # Generating the report directly makes the step that can fail the plain
+      # PHPUnit invocation everybody already understands, and `--skip-initial-tests`
+      # hands Infection the result. Infection wants `index.xml` plus `junit.xml`
+      # in one directory, which is exactly the pair `--coverage-xml` and
+      # `--log-junit` write.
+      - name: Generate the coverage Infection needs
+        run: |
+          php -d memory_limit=2G vendor/bin/phpunit \
+            --testsuite=unit \
+            --coverage-xml=data/coverage-xml \
+            --log-junit=data/coverage-xml/junit.xml \
+            --do-not-cache-result
+
+      - name: Run Infection
+        run: |
+          php -d memory_limit=2G vendor/bin/infection \
+            --threads=max \
+            --no-progress \
+            --no-interaction \
+            --skip-initial-tests \
+            --coverage=data/coverage-xml \
+            --min-msi="${{ github.event.inputs.min-msi || env.MIN_MSI }}" \
+            --min-covered-msi="$MIN_COVERED_MSI"
+
+      - name: Publish the mutation summary
+        if: always()
+        run: |
+          {
+            echo '### Mutation testing'
+            echo
+            echo '```'
+            cat data/infection-summary.log 2>/dev/null || echo 'No summary produced.'
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Upload the full mutation log
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: infection-log
+          path: data/infection.log
+          if-no-files-found: warn
+          retention-days: 14

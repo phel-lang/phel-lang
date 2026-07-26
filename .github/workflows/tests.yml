@@ -15,13 +15,21 @@ concurrency:
   cancel-in-progress: ${{ github.ref != 'refs/heads/main' }}
 
 jobs:
+  # Linux and macOS are the "Supported" tier in docs/stability.md: a failure here
+  # blocks a release. Every PHP minor runs on Linux; macOS runs the minimum only,
+  # because what it is guarding is the platform (paths, tempdirs, ext availability)
+  # rather than the language version.
   compiler-tests:
-    name: Compiler tests on PHP ${{ matrix.php }}
-    runs-on: ubuntu-latest
+    name: Compiler tests on PHP ${{ matrix.php }} (${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
       matrix:
+        os: [ ubuntu-latest ]
         php: [ '8.4', '8.5' ]
+        include:
+          - os: macos-latest
+            php: '8.4'
     steps:
       - uses: actions/checkout@v6
       - uses: ./.github/actions/setup-phel
@@ -35,14 +43,25 @@ jobs:
         run: composer run-script test-integration
 
   core-tests:
-    name: Core tests on PHP ${{ matrix.php }}
-    runs-on: ubuntu-latest
+    name: Core tests on PHP ${{ matrix.php }} (${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
     # Fail fast instead of hanging ~6h if a worker stalls on OPcache startup lock.
-    timeout-minutes: 8
+    timeout-minutes: 12
     strategy:
       fail-fast: false
       matrix:
+        os: [ ubuntu-latest ]
         php: [ '8.4', '8.5' ]
+        include:
+          - os: macos-latest
+            php: '8.4'
+            # Three core tests assert concurrency by wall clock. On the macOS
+            # runner a slow scheduler tick is indistinguishable from work that
+            # did not run concurrently, so they fail intermittently there and
+            # would make a supported platform permanently red for a reason that
+            # is not a Phel bug. Linux still runs them, so a genuine loss of
+            # concurrency is still caught.
+            exclude-tags: '--exclude=timing-sensitive'
     steps:
       - uses: actions/checkout@v6
       - uses: ./.github/actions/setup-phel
@@ -50,17 +69,116 @@ jobs:
           php-version: ${{ matrix.php }}
 
       - name: Run tests to the core library
-        run: composer run-script test-core
+        run: php -d memory_limit=256M ./bin/phel test ${{ matrix.exclude-tags }}
 
+  # Windows is the "Best effort" tier in docs/stability.md: bugs are accepted and
+  # fixed, but a Windows-only failure does not block a release, so this job reports
+  # without gating. Promoting it to blocking means deleting `continue-on-error`,
+  # which is a deliberate decision rather than something that happens by accident.
+  #
+  # It runs the compiler unit suite and the core library, the two that exercise the
+  # path handling and temp-directory logic most likely to be platform-sensitive.
+  windows-tests:
+    name: Windows tests (best effort)
+    runs-on: windows-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v6
+
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.4'
+          coverage: none
+          tools: composer
+
+      - name: Install dependencies
+        run: composer install --no-interaction --no-ansi --no-progress
+
+      # `continue-on-error` sits on the steps rather than the job on purpose. On
+      # the job it leaves a red check on every pull request, which trains people
+      # to ignore it; on the steps the job stays green and the outcome is
+      # reported below, so the signal is readable without being a gate.
+      - name: Run unit tests to the compiler itself
+        id: unit
+        continue-on-error: true
+        run: vendor/bin/phpunit --testsuite unit
+
+      - name: Run tests to the core library
+        id: core
+        continue-on-error: true
+        run: php -d memory_limit=256M bin/phel test
+
+      - name: Report the outcome
+        run: |
+          {
+            echo '### Windows (best effort tier)'
+            echo
+            echo '| Suite | Outcome |'
+            echo '|---|---|'
+            echo '| Compiler unit | ${{ steps.unit.outcome }} |'
+            echo '| Core library | ${{ steps.core.outcome }} |'
+            echo
+            echo 'A failure here does not block a release. See docs/stability.md.'
+          } >> "$GITHUB_STEP_SUMMARY"
+        shell: bash
+
+  # A benchmark run that is never compared to anything cannot fail, so a
+  # regression was invisible: this used to run the suite and print a table.
+  # The base branch is now measured first and stored under the `baseline` tag,
+  # and the PR's run asserts against it using the `runner.assert` tolerance in
+  # phpbench.json (currently +/- 17%).
+  #
+  # Both runs happen on the same runner, back to back, because comparing numbers
+  # from two different machines measures the machines.
   bench-tests:
     name: Bench tests
     runs-on: ubuntu-latest
+    timeout-minutes: 20
     steps:
       - uses: actions/checkout@v6
+        with:
+          # Needed to check out the merge base below.
+          fetch-depth: 0
+
       - uses: ./.github/actions/setup-phel
 
-      - name: Run PHPBench
-        run: vendor/bin/phpbench run --iterations=3 --warmup=1 --report=aggregate
+      - name: Measure the base revision and store it as `baseline`
+        run: |
+          head_sha=$(git rev-parse HEAD)
+          base_sha='${{ github.event_name == 'pull_request' && github.event.pull_request.base.sha || format('{0}~1', github.sha) }}'
+          echo "head=$head_sha base=$base_sha"
+          echo "HEAD_SHA=$head_sha" >> "$GITHUB_ENV"
+
+          git checkout --quiet --detach "$base_sha"
+          # The benchmark definitions and the tolerance stay at the PR's version
+          # so both runs measure the same set of cases against the same rules.
+          # Only the code under measurement comes from the base. `vendor/` is
+          # likewise the PR's, so what gets compared is this change, not
+          # dependency drift.
+          git checkout --quiet "$head_sha" -- tests/php/Benchmark phpbench.json
+          vendor/bin/phpbench run --iterations=5 --warmup=2 --tag=baseline --store --progress=none --report=aggregate
+
+      # The tolerance is widened from the 17% in phpbench.json, and the iteration
+      # count raised, because a shared runner is not a benchmarking machine.
+      #
+      # `phpbench.json` asserts on `time.avg` while the aggregate report prints
+      # `mode`, so a table that looks clean says nothing about the assertion: this
+      # job failed with every one of its 106 variants inside +8% on mode, on a
+      # commit that touched only a workflow file and a markdown page. The rstdev
+      # column swinging by several hundred percent is the tell, and averaging over
+      # three iterations cannot survive that.
+      #
+      # 25% still catches the regressions worth blocking a merge for, and a gate
+      # that cries wolf is one people learn to ignore, which is how the benchmarks
+      # ended up never being compared at all.
+      - name: Compare the pull request against the baseline
+        run: |
+          git checkout --quiet --force "$HEAD_SHA"
+          vendor/bin/phpbench run \
+            --iterations=5 --warmup=2 \
+            --ref=baseline \
+            --report=aggregate \
+            --assert='mode(variant.time.avg) <= mode(baseline.time.avg) +/- 25%'
 
   bash-tests:
     name: Bash tests
@@ -87,6 +205,15 @@ jobs:
     steps:
       - uses: actions/checkout@v6
       - uses: ./.github/actions/setup-phel
+
+      # `infection/infection` requires `symfony/console ^6.4 || ^7.4 || ^8.0`,
+      # skipping 7.3 entirely, so it cannot be installed alongside the low end of
+      # the range we advertise. It is a dev-only mutation-testing tool that plays
+      # no part in the compatibility claim under test here, and `require-dev` is
+      # never installed by a consuming project, so it is dropped for this run
+      # rather than narrowing what we promise.
+      - name: Drop dev-only tools that constrain symfony/console
+        run: composer remove --dev infection/infection --no-update --no-interaction --no-ansi
 
       - name: Pin symfony/console to ${{ matrix.console }} for this run
         run: composer update --with "symfony/console:${{ matrix.console }}" --with-all-dependencies --no-interaction --no-ansi --no-progress

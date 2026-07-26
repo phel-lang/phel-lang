@@ -1,0 +1,54 @@
+{
+    // Mutation testing is scoped to the two places where a wrong test is worse
+    // than a missing one: the runtime data structures every program depends on,
+    // and the analyzer that decides what those programs mean.
+    //
+    // `Cons::walkTail()` is the shape of the problem this exists to catch: the
+    // whole unit suite passes with its body disabled, and only `test-core`
+    // notices. Line coverage cannot see that; a surviving mutant can.
+    //
+    // Run it with `composer infection`. It is deliberately not on the pull
+    // request path: a full run is minutes, not seconds, and it gates weekly
+    // rather than per-commit.
+    "$schema": "vendor/infection/infection/resources/schema.json",
+    "source": {
+        "directories": [
+            "src/php/Lang",
+            "src/php/Compiler/Domain/Analyzer"
+        ],
+        "excludes": [
+            // Generated or transcription-only code: a mutant here is not a
+            // missing test, it is a mutant nobody should care about.
+            "Compiler/Domain/Analyzer/Ast"
+        ]
+    },
+    "logs": {
+        "text": "data/infection.log",
+        "summary": "data/infection-summary.log",
+        "github": true
+    },
+    "tmpDir": "data/infection",
+    // Only the unit suite runs against each mutant. That is a deliberate choice
+    // and not only a speed one: a mutant that survives the unit suite but would
+    // die under `test-core` is exactly the gap worth seeing, because the unit
+    // suite is what a contributor runs before pushing.
+    "testFrameworkOptions": "--testsuite=unit",
+    // The thresholds live in .github/workflows/mutation.yml, next to the run that
+    // enforces them, so raising the ratchet is one visible edit.
+    "minMsi": 0,
+    "minCoveredMsi": 0,
+    "mutators": {
+        "@default": true,
+        // Phel's collections are trie-backed, so the bit-twiddling constants in
+        // the HAMT and vector nodes (32-way branching, 5-bit shifts) are load
+        // bearing algorithm parameters rather than arbitrary numbers. Mutating
+        // them produces either an obvious crash or an unkillable equivalent.
+        "IncrementInteger": {
+            "ignoreSourceCodeByRegex": [
+                ".*BITS.*",
+                ".*SHIFT.*",
+                ".*MASK.*"
+            ]
+        }
+    }
+}

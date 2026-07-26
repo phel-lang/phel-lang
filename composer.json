@@ -34,6 +34,7 @@
         "brianium/paratest": "^7",
         "ergebnis/composer-normalize": "^2.50",
         "friendsofphp/php-cs-fixer": "^3.94",
+        "infection/infection": "^0.34",
         "phpbench/phpbench": "^1.6",
         "phpstan/phpstan": "^2.1",
         "phpstan/phpstan-deprecation-rules": "^2.0",
@@ -61,7 +62,8 @@
     ],
     "config": {
         "allow-plugins": {
-            "ergebnis/composer-normalize": true
+            "ergebnis/composer-normalize": true,
+            "infection/extension-installer": true
         },
         "platform": {
             "php": "8.4.6"
@@ -74,6 +76,7 @@
         "bench-jit-baseline": "XDEBUG_MODE=off ./vendor/bin/phpbench run --filter=TypedSignatureBench --report=aggregate --progress=plain --ansi --php-config='{\"opcache.enable_cli\":0,\"xdebug.mode\":\"off\"}'",
         "bench-jit-tracing": "XDEBUG_MODE=off ./vendor/bin/phpbench run --filter=TypedSignatureBench --report=aggregate --progress=plain --ansi --php-config='{\"opcache.enable_cli\":1,\"opcache.jit_buffer_size\":\"64M\",\"opcache.jit\":\"tracing\",\"xdebug.mode\":\"off\"}'",
         "csfix": "./vendor/bin/php-cs-fixer fix",
+        "infection": "XDEBUG_MODE=coverage ./vendor/bin/infection --threads=max --no-progress",
         "csrun": "./vendor/bin/php-cs-fixer fix --dry-run",
         "fix": [
             "@rector:fix",
