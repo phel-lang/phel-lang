@@ -24,6 +24,13 @@
 | Profile | benchmarks |
 | Speed up the test loop | testing-performance |
 
+## Normative, not descriptive
+
+These pages describe the implementation and change with it. What the *language*
+promises lives in [../spec/](../spec/README.md), and what the *PHP API* promises lives
+in [../stability.md](../stability.md). When the two disagree, the spec wins and the
+implementation has a bug.
+
 ## Adjacent
 
 - Each `src/php/<Module>/CLAUDE.md`: public API + constraints. Read before editing.

@@ -6,11 +6,13 @@ modules, deployment) live on **[phel-lang.org](https://phel-lang.org/documentati
 
 ## What lives here
 
+- [Specification](spec/README.md): the normative language surface and the deliberate Clojure divergences
 - [Stability policy](stability.md): what a version number promises, which PHP symbols semver covers, and the 1.x deprecation and PHP support policies
 - [CLI Reference & DX Guide](cli-reference.md): every command, the dev loop, and compile vs eval vs run vs build
 - [Project Layout](project-layout.md): the `.phel/` directory and runtime state
 - [Internals](internals/README.md): architecture, compiler phases, AST, emitter,
   macros, runtime, FAQ, benchmarks
+- [Upgrading 0.49 to 1.0](migration/upgrade-0.49-to-1.0.md): what to change, and how to find out whether you need to change anything
 - [Migration: the currently deprecated surface](migration/deprecated-surface.md): every live deprecation, its replacement, and how it announces itself
 - [Migration: backslash to dot](migration/backslash-to-dot.md)
 - [Migration: removed deprecated core functions](migration/removed-deprecated-core-fns.md)

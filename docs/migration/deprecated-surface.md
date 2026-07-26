@@ -4,8 +4,9 @@ Everything below still works today. Everything below is scheduled for removal in
 a future major release. This page is the single map of that surface: what the
 item is, what replaces it, and the mechanical before/after.
 
-Two related pages cover migrations that already finished:
+Three related pages cover migrations that already finished, or are about to:
 
+- [Upgrading 0.49 to 1.0](upgrade-0.49-to-1.0.md): the step-by-step version of everything removed for the major
 - [Removed deprecated core functions](removed-deprecated-core-fns.md)
 - [Backslash namespace separator to dot](backslash-to-dot.md) (deep dive on the
   one item below with its own tracking issue)
