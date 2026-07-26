@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace Phel\Run\Application\Agent;
 
-use Phel\Run\Domain\Agent\AgentDocsManifest;
 use Phel\Run\Domain\Agent\AgentDocsSyncResult;
 use Phel\Run\Domain\Agent\AgentPlatform;
 use RuntimeException;
@@ -45,7 +44,6 @@ final readonly class AgentInstaller
 
     public function __construct(
         private AgentDocsSynchronizer $synchronizer = new AgentDocsSynchronizer(),
-        private AgentManifestStore $manifestStore = new AgentManifestStore(),
     ) {}
 
     /**
@@ -165,12 +163,7 @@ final readonly class AgentInstaller
      */
     public function installedDocsVersion(string $projectRoot): ?string
     {
-        $manifest = $this->manifestStore->load($projectRoot . '/' . self::AGENTS_DIR);
-        if (!$manifest instanceof AgentDocsManifest || $manifest->version === '') {
-            return null;
-        }
-
-        return $manifest->version;
+        return $this->synchronizer->installedVersion($projectRoot . '/' . self::AGENTS_DIR);
     }
 
     public function bundledDocsVersion(string $sourceRoot): string

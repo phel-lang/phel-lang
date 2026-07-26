@@ -69,7 +69,7 @@ final class AgentManifestStore
         }
     }
 
-    public function path(string $docsDir): string
+    private function path(string $docsDir): string
     {
         return $docsDir . '/' . self::FILENAME;
     }

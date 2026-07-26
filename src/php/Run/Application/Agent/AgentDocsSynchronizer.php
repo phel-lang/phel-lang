@@ -133,6 +133,20 @@ final readonly class AgentDocsSynchronizer
     }
 
     /**
+     * The docs version recorded in $docsDir, or null when nothing there was
+     * installed by a release that writes a manifest.
+     */
+    public function installedVersion(string $docsDir): ?string
+    {
+        $manifest = $this->manifestStore->load($docsDir);
+        if (!$manifest instanceof AgentDocsManifest || $manifest->version === '') {
+            return null;
+        }
+
+        return $manifest->version;
+    }
+
+    /**
      * Relative path => absolute source path, for every file the sync covers.
      *
      * @return iterable<string, string>
@@ -186,12 +200,7 @@ final readonly class AgentDocsSynchronizer
 
     private function pruneEmptyDirectories(string $dir): void
     {
-        $iterator = new RecursiveIteratorIterator(
-            new RecursiveDirectoryIterator($dir, FilesystemIterator::SKIP_DOTS),
-            RecursiveIteratorIterator::CHILD_FIRST,
-        );
-
-        foreach ($iterator as $item) {
+        foreach ($this->deepestFirst($dir) as $item) {
             if ($item instanceof SplFileInfo && $item->isDir() && $this->isEmpty($item->getPathname())) {
                 AgentFileOperations::deleteDirectory($item->getPathname());
             }
@@ -204,12 +213,7 @@ final readonly class AgentDocsSynchronizer
 
     private function removeTree(string $dir): void
     {
-        $iterator = new RecursiveIteratorIterator(
-            new RecursiveDirectoryIterator($dir, FilesystemIterator::SKIP_DOTS),
-            RecursiveIteratorIterator::CHILD_FIRST,
-        );
-
-        foreach ($iterator as $item) {
+        foreach ($this->deepestFirst($dir) as $item) {
             if (!$item instanceof SplFileInfo) {
                 continue;
             }
@@ -222,6 +226,20 @@ final readonly class AgentDocsSynchronizer
         }
 
         AgentFileOperations::deleteDirectory($dir);
+    }
+
+    /**
+     * Children before their parent, so a directory is visited once everything
+     * inside it has already been dealt with.
+     *
+     * @return RecursiveIteratorIterator<RecursiveDirectoryIterator>
+     */
+    private function deepestFirst(string $dir): RecursiveIteratorIterator
+    {
+        return new RecursiveIteratorIterator(
+            new RecursiveDirectoryIterator($dir, FilesystemIterator::SKIP_DOTS),
+            RecursiveIteratorIterator::CHILD_FIRST,
+        );
     }
 
     private function isEmpty(string $dir): bool

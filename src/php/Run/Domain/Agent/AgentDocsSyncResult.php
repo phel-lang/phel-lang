@@ -4,9 +4,6 @@ declare(strict_types=1);
 
 namespace Phel\Run\Domain\Agent;
 
-use function array_merge;
-use function count;
-
 /**
  * What one `.agents/` sync did, by relative path. Also describes a `--dry-run`,
  * where the same plan is computed and nothing is written.
@@ -27,26 +24,4 @@ final readonly class AgentDocsSyncResult
         public array $skipped = [],
         public array $backedUp = [],
     ) {}
-
-    public function wroteNothing(): bool
-    {
-        return $this->created === [] && $this->updated === [] && $this->backedUp === [];
-    }
-
-    public function fileCount(): int
-    {
-        return count($this->created)
-            + count($this->updated)
-            + count($this->unchanged)
-            + count($this->skipped)
-            + count($this->backedUp);
-    }
-
-    /**
-     * @return list<string>
-     */
-    public function writtenPaths(): array
-    {
-        return array_merge($this->created, $this->updated, $this->backedUp);
-    }
 }
