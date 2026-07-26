@@ -39,6 +39,13 @@
 
 Lisp for PHP, macros, persistent data structures, REPL.
 
+## Requirements
+
+PHP **8.4** or newer. Linux and macOS are supported: the full compiler, core and PHAR
+suites run on both in CI, and a failure on either blocks a release. Windows is best
+effort, running a reduced suite. What a version number promises, and for how long, is
+in the [stability policy](docs/stability.md).
+
 ## Get Started
 
 ```sh

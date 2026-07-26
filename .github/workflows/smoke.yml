@@ -43,9 +43,17 @@ jobs:
       - name: Validate .agents/ examples and core reference drift
         run: composer test-agents
 
+  # The PHAR is the artifact people download, and it used to be built and smoke
+  # tested on Linux only, on a project that claims to run wherever PHP runs. Both
+  # platforms in the "Supported" tier of docs/stability.md now build and exercise
+  # their own phar.
   phar-smoke:
-    name: PHAR smoke test
-    runs-on: ubuntu-latest
+    name: PHAR smoke test (${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ ubuntu-latest, macos-latest ]
     steps:
       - uses: actions/checkout@v6
       - uses: ./.github/actions/setup-phel
@@ -56,9 +64,11 @@ jobs:
         run: ./build/phar.sh
 
       - name: Assert PHAR exists and is under size budget
+        # `stat -c` is GNU; BSD stat wants `-f`. `wc -c` is in POSIX and needs no
+        # branch on the runner.
         run: |
           test -x build/out/phel.phar
-          size=$(stat -c%s build/out/phel.phar)
+          size=$(wc -c < build/out/phel.phar | tr -d ' ')
           echo "PHAR size: $size bytes"
           test "$size" -lt 2359296  # 2.25 MiB budget (headroom over the ~2.0 MiB compressed phar; still catches vendor/pollution-scale bloat)
 

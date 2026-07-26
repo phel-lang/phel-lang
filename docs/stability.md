@@ -142,6 +142,18 @@ do not have this problem. Dependency upgrades are the place to look for it.
   leaves the PHP project's own security-support window. Phel keeps testing it; the
   security posture of the runtime is the deploying project's call.
 
+## Platform support
+
+| Tier | Platforms | Meaning |
+|---|---|---|
+| Supported | Linux, macOS | Full compiler, core and PHAR suites run in CI on every push. A failure here blocks a release. |
+| Best effort | Windows | A reduced suite runs in CI. Bugs are accepted and fixed, but a Windows-only failure does not block a release. |
+
+The distinction is about what the project commits to, not about what works. Phel is
+plain PHP and the parts that are platform-sensitive are narrow: path separators,
+`readline` availability in the REPL, and the file-watching backends in
+`phel watch`, which fall back to polling wherever the native backend is missing.
+
 ## Configuration surface
 
 `phel-config.php` returns a `Phel\Config\PhelConfig`. Two things about it are frozen
@@ -170,6 +182,29 @@ None of the following is under semver, and none of it will be before `1.0`:
   version bump invalidates it by design.
 - Anything under `tests/`, `tools/`, `build/` or `resources/`.
 - The nREPL and LSP wire protocols beyond the upstream specifications they implement.
+
+## Quality gates behind the promises
+
+A promise is only as good as what fails when it is broken. Every gate below runs in
+CI.
+
+| Gate | Where | Fails when |
+|---|---|---|
+| Public PHP API snapshot | `PublicApiSurfaceTest` | a public signature changes |
+| `@internal` annotations | `InternalAnnotationTest` | an internal class is unmarked, or a public one is marked |
+| Standard-library snapshot | `CoreApiSurfaceTest` | a definition or an arity disappears |
+| Special-form list | `LanguageSurfaceSpecTest` | the spec and the analyzer disagree |
+| Static analysis | `quality.yml` | PHPStan level 9 or Psalm level 1 reports anything |
+| Coverage floor | `quality.yml` | line coverage drops below the floor |
+| Benchmark regression | `tests.yml` | a benchmark is more than 25% slower than the base revision (`phpbench.json` uses a tighter 17% locally, where the machine is quiet) |
+| Mutation score | `mutation.yml` (weekly) | MSI over `Lang/` and the analyzer drops below the floor |
+| Clojure divergences | `run-clojure-test-suite.yml` (nightly) | behaviour changes without the suite being updated |
+
+The coverage floor and the MSI floors are ratchets. They are raised when a real run
+clears them comfortably and never lowered to make a red build green. As of this
+writing line coverage is **86.9%** (floor 85) and the mutation score is **83%**
+(floor 80) over `Lang/` and the analyzer; both jobs print the current figure to
+their run summary.
 
 ## See also
 
