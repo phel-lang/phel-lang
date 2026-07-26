@@ -46,8 +46,11 @@ jobs:
       # comfortably; never lower one to turn a red build green. MIN_COVERED_MSI
       # is the stricter of the two: it ignores code no test touches at all, so it
       # measures the quality of the tests that do exist.
-      MIN_MSI: '0'
-      MIN_COVERED_MSI: '0'
+      # Measured at 83% (mutation code coverage 100%, 6380 mutants killed) on the
+      # run that first completed. 80 leaves room for the timing noise a 20-minute
+      # run carries without letting the score quietly slide.
+      MIN_MSI: '80'
+      MIN_COVERED_MSI: '80'
     steps:
       - uses: actions/checkout@v6
         with:

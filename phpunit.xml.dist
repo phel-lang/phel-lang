@@ -13,7 +13,14 @@
 >
     <php>
         <ini name="error_reporting" value="-1"/>
-        <ini name="memory_limit" value="1G"/>
+        <!--
+            2G rather than 1G for the coverage job only: pcov holds the whole
+            unit + integration line map at once and exhausted 1G. A plain run
+            peaks around 180M, so this changes nothing for anyone else. It has to
+            live here because PHPUnit applies this block over the command line,
+            so `php -d memory_limit=...` on the CLI is silently overridden.
+        -->
+        <ini name="memory_limit" value="2G"/>
     </php>
     <extensions>
         <bootstrap class="PhelTest\Support\PerTestGacelaCacheExtension"/>
