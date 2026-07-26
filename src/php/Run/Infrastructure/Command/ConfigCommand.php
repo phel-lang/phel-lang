@@ -8,7 +8,6 @@ use Phel\Run\Domain\Config\ConfigDiagnostics;
 use Phel\Run\Domain\Config\ConfigIssue;
 use Phel\Run\Domain\Config\EffectiveConfigReader;
 use Phel\Run\Domain\Config\EffectiveConfigResult;
-use Phel\Shared\Console\DeprecatedOptionWarner;
 use Phel\Shared\ScalarCoercion;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
@@ -24,8 +23,6 @@ use const JSON_UNESCAPED_SLASHES;
 
 final class ConfigCommand extends Command
 {
-    private const string OPT_JSON = 'json';
-
     private const string OPT_FORMAT = 'format';
 
     private const string FORMAT_TEXT = 'text';
@@ -57,12 +54,6 @@ HELP)
                 'Output format: text, json',
                 self::FORMAT_TEXT,
                 [self::FORMAT_TEXT, self::FORMAT_JSON],
-            )
-            ->addOption(
-                self::OPT_JSON,
-                null,
-                InputOption::VALUE_NONE,
-                '[deprecated] use --format=json instead',
             );
     }
 
@@ -70,14 +61,7 @@ HELP)
     {
         $effective = $this->reader->read();
 
-        if ($input->getOption(self::OPT_JSON) === true) {
-            DeprecatedOptionWarner::warn($output, 'json', 'format=json');
-        }
-
-        $asJson = $input->getOption(self::OPT_JSON) === true
-            || ScalarCoercion::toString($input->getOption(self::OPT_FORMAT)) === self::FORMAT_JSON;
-
-        if ($asJson) {
+        if (ScalarCoercion::toString($input->getOption(self::OPT_FORMAT)) === self::FORMAT_JSON) {
             $output->writeln($this->toJson($effective->values));
 
             return Command::SUCCESS;

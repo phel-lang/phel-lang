@@ -128,16 +128,8 @@ final class ConfigCommandTest extends GacelaTestCase
         self::assertArrayNotHasKey('Sources:', $decoded);
     }
 
-    public function test_deprecated_json_flag_still_emits_json_with_a_warning(): void
+    public function test_the_removed_json_flag_is_gone(): void
     {
-        $tester = new CommandTester(new ConfigCommand());
-
-        $exitCode = $tester->execute(['--json' => true], ['capture_stderr_separately' => true]);
-
-        self::assertSame(0, $exitCode);
-        // stdout stays valid JSON; the deprecation notice goes to stderr.
-        $decoded = json_decode($tester->getDisplay(), true, 512, JSON_THROW_ON_ERROR);
-        self::assertSame(['src/phel'], $decoded[PhelConfig::SRC_DIRS]);
-        self::assertStringContainsString('--json is deprecated', $tester->getErrorOutput());
+        self::assertFalse(new ConfigCommand()->getDefinition()->hasOption('json'));
     }
 }

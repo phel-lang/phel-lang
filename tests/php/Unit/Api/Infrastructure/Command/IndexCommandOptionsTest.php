@@ -17,11 +17,10 @@ final class IndexCommandOptionsTest extends TestCase
         self::assertSame('o', $definition->getOption('output')->getShortcut());
     }
 
-    public function test_out_is_kept_as_a_deprecated_alias(): void
+    public function test_the_removed_out_alias_is_gone(): void
     {
         $definition = new IndexCommand()->getDefinition();
 
-        self::assertTrue($definition->hasOption('out'), 'old --out stays for back-compat');
-        self::assertStringContainsString('deprecated', $definition->getOption('out')->getDescription());
+        self::assertFalse($definition->hasOption('out'));
     }
 }

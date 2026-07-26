@@ -39,6 +39,34 @@ The replacement keeps the same signature:
 (str-contains? haystack needle)   ; -> (s/contains? haystack needle)
 ```
 
+## Removed CLI option aliases
+
+Two renamed options kept a deprecated alias; the aliases are now removed ([#2827](https://github.com/phel-lang/phel-lang/issues/2827)).
+
+| Removed | Replacement |
+|---------|-------------|
+| `phel index --out=PATH` | `phel index --output=PATH` (`-o`) |
+| `phel config --json` | `phel config --format=json` (`-f json`) |
+
+```bash
+phel index --out=index.json      # -> phel index --output=index.json
+phel config --json               # -> phel config --format=json
+```
+
+Passing a removed alias now fails with Symfony's own `The "--out" option does not exist.`, so a stale CI invocation surfaces immediately rather than silently. The conventions these were aligned to are in [../internals/cli-flag-conventions.md](../internals/cli-flag-conventions.md).
+
+## Removed REPL history migration
+
+The REPL history file moved from `<project>/.phel-repl-history` to `<project>/.phel/repl-history` in `0.37.0`, and every REPL start since then migrated a legacy file automatically. That migration is now removed, along with the `PHEL_QUIET_MIGRATION` environment variable that silenced its notice.
+
+A project that upgraded through any release from `0.37.0` onwards has already been migrated and needs to do nothing. A project jumping straight from before `0.37.0` keeps its old file untouched and simply starts a fresh history; move it by hand to keep it:
+
+```bash
+mkdir -p .phel && mv .phel-repl-history .phel/repl-history
+```
+
+Replace any literal `.phel-repl-history` in a `.gitignore` or CI cache key with `.phel/`.
+
 ## Still deprecated (not removed)
 
 `set-meta!` (use `with-meta`) remains available but deprecated; it is intentionally out of scope for this removal. The `warn-deprecations` infrastructure also stays, since it still serves live deprecations such as the `\` namespace separator (see [backslash-to-dot.md](backslash-to-dot.md)).
