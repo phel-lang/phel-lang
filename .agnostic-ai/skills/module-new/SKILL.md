@@ -1,5 +1,5 @@
 ---
-description: Scaffold a new Gacela module under src/php/ with Facade, DependencyProvider, and CLAUDE.md
+description: Scaffold a new Gacela module under src/php/ with Facade, Provider, and CLAUDE.md
 argument-hint: "<ModuleName>"
 disable-model-invocation: true
 allowed-tools: "Read, Write, Edit, Glob, Bash(ls *), Bash(composer *)"
@@ -19,14 +19,14 @@ Scaffolds a new module under `src/php/<ModuleName>/` following the project Gacel
 
 2. **Read a reference module** (pick a small one, e.g. `src/php/Filesystem/` or `src/php/Formatter/`) to mirror its layout. Record:
    - Facade method shape
-   - DependencyProvider constant names
+   - Provider constant names
    - CLAUDE.md section order
 
 3. **Create the following files** under `src/php/<ModuleName>/`:
    ```
    <ModuleName>Facade.php          # final class extending \Gacela\Framework\AbstractFacade
    <ModuleName>Factory.php         # final class extending AbstractFactory (only if module needs internal wiring)
-   <ModuleName>DependencyProvider.php  # only if the module depends on another module's Facade
+   <ModuleName>Provider.php           # only if the module depends on another module's Facade
    Domain/                         # pure business logic (no framework deps)
    Infrastructure/                 # adapters, CLI commands, IO
    CLAUDE.md                       # one-line purpose, Gacela pattern, public API, deps, structure, constraints
@@ -50,7 +50,7 @@ Scaffolds a new module under `src/php/<ModuleName>/` following the project Gacel
 
    ## Dependencies
 
-   - <OtherModule>Facade (via DependencyProvider)
+   - <OtherModule>Facade (via Provider)
 
    ## Structure
 

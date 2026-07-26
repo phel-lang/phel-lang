@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "1a3740fcd70db33f52ebd66ebcad1ae3",
+    "content-hash": "9f7b7023734595d54dc56d87713f6ba0",
     "packages": [
         {
             "name": "amphp/amp",
@@ -89,29 +89,31 @@
         },
         {
             "name": "gacela-project/container",
-            "version": "0.10.0",
+            "version": "1.0.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/gacela-project/container.git",
-                "reference": "db13556a11f6892c852ef0f26a9915aee2a3ba4e"
+                "reference": "8bbb5b8ab80035bc4c15dd34e34a588df4bc5edd"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/gacela-project/container/zipball/db13556a11f6892c852ef0f26a9915aee2a3ba4e",
-                "reference": "db13556a11f6892c852ef0f26a9915aee2a3ba4e",
+                "url": "https://api.github.com/repos/gacela-project/container/zipball/8bbb5b8ab80035bc4c15dd34e34a588df4bc5edd",
+                "reference": "8bbb5b8ab80035bc4c15dd34e34a588df4bc5edd",
                 "shasum": ""
             },
             "require": {
-                "php": ">=8.1",
-                "psr/container": ">=1.1"
+                "php": ">=8.3",
+                "psr/container": "^1.1 || ^2.0"
             },
             "require-dev": {
                 "friendsofphp/php-cs-fixer": "^3.75",
-                "phpstan/phpstan": "^1.12",
-                "phpunit/phpunit": "^10.5",
-                "psalm/plugin-phpunit": "^0.18",
-                "symfony/var-dumper": "^5.4",
-                "vimeo/psalm": "^5.26"
+                "infection/infection": "^0.31",
+                "phpbench/phpbench": "^1.4",
+                "phpstan/phpstan": "^2.2",
+                "phpunit/phpunit": "^12.5",
+                "psalm/plugin-phpunit": "^0.19",
+                "symfony/var-dumper": "^6.4 || ^7.0",
+                "vimeo/psalm": "^6.16"
             },
             "type": "library",
             "autoload": {
@@ -145,7 +147,7 @@
             ],
             "support": {
                 "issues": "https://github.com/gacela-project/container/issues",
-                "source": "https://github.com/gacela-project/container/tree/0.10.0"
+                "source": "https://github.com/gacela-project/container/tree/1.0.0"
             },
             "funding": [
                 {
@@ -153,25 +155,25 @@
                     "type": "custom"
                 }
             ],
-            "time": "2026-07-19T22:59:58+00:00"
+            "time": "2026-07-26T15:00:33+00:00"
         },
         {
             "name": "gacela-project/gacela",
-            "version": "1.21.0",
+            "version": "dev-main",
             "source": {
                 "type": "git",
                 "url": "https://github.com/gacela-project/gacela.git",
-                "reference": "32fef1b9651f72e8006c4f0cf7b3bf618bf381be"
+                "reference": "006c6af9446666a184496f5432e670c60f80ee5b"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/gacela-project/gacela/zipball/32fef1b9651f72e8006c4f0cf7b3bf618bf381be",
-                "reference": "32fef1b9651f72e8006c4f0cf7b3bf618bf381be",
+                "url": "https://api.github.com/repos/gacela-project/gacela/zipball/006c6af9446666a184496f5432e670c60f80ee5b",
+                "reference": "006c6af9446666a184496f5432e670c60f80ee5b",
                 "shasum": ""
             },
             "require": {
-                "gacela-project/container": "^0.10.0",
-                "php": ">=8.1"
+                "gacela-project/container": "^1.0",
+                "php": ">=8.3"
             },
             "require-dev": {
                 "ergebnis/composer-normalize": "^2.50",
@@ -185,9 +187,9 @@
                 "phpunit/phpunit": "^10.5",
                 "psalm/plugin-phpunit": "^0.19.5",
                 "rector/rector": "^2.0",
-                "symfony/console": "^6.4",
-                "symfony/dependency-injection": "^6.4",
-                "symfony/var-dumper": "^6.4",
+                "symfony/console": "^7.0 || ^8.0",
+                "symfony/dependency-injection": "^7.0 || ^8.0",
+                "symfony/var-dumper": "^7.0 || ^8.0",
                 "vimeo/psalm": "^6.16"
             },
             "suggest": {
@@ -197,6 +199,7 @@
                 "phpunit/phpunit": "Allows to extend Gacela\\Framework\\Testing\\GacelaTestCase in your tests",
                 "symfony/console": "Allows to use vendor/bin/gacela script"
             },
+            "default-branch": true,
             "bin": [
                 "bin/gacela"
             ],
@@ -232,7 +235,7 @@
             ],
             "support": {
                 "issues": "https://github.com/gacela-project/gacela/issues",
-                "source": "https://github.com/gacela-project/gacela/tree/1.21.0"
+                "source": "https://github.com/gacela-project/gacela/tree/2.0"
             },
             "funding": [
                 {
@@ -240,7 +243,7 @@
                     "type": "custom"
                 }
             ],
-            "time": "2026-07-26T01:29:08+00:00"
+            "time": "2026-07-26T17:36:36+00:00"
         },
         {
             "name": "psr/container",
@@ -9434,9 +9437,11 @@
         }
     ],
     "aliases": [],
-    "minimum-stability": "stable",
-    "stability-flags": {},
-    "prefer-stable": false,
+    "minimum-stability": "dev",
+    "stability-flags": {
+        "gacela-project/gacela": 20
+    },
+    "prefer-stable": true,
     "prefer-lowest": false,
     "platform": {
         "php": ">=8.4"

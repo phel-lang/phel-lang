@@ -20,7 +20,7 @@ globs: src/php/**,tests/php/**
 ## Module Pattern (Gacela)
 
 - Each module exposes a `Facade` as its public API
-- Use `DependencyProvider` for cross-module dependencies
+- Use `Provider` for cross-module dependencies (`<Module>Provider` extending `AbstractProvider`; gacela 2.0 removed `AbstractDependencyProvider` and resolves pillars by *filename* suffix, so the file must be `<Module>Provider.php`)
 - Never instantiate classes from other modules directly — use their Facade
 
 ### Factory boundary rules
@@ -33,7 +33,7 @@ Where each kind of dependency lives:
 |---|---|---|
 | Pure stateless utility (no I/O, no module state) | `Phel\Shared` | `use Phel\Shared\Foo;` then `new Foo()` directly — e.g. `Munge`, `ColorStyle`, `ResourceUsageFormatter` |
 | Cross-module contract interface (signatures only) | `Phel\Shared\…` or `Phel\<Other>\Domain\…Interface` | import as a type hint; obtain instance from Shared or via the owning facade |
-| Stateful behaviour owned by a neighbour module (depends on config, registry, runtime state) | `Phel\<Other>\Facade` | inject the facade via `DependencyProvider` and call its public method, e.g. `$this->getOtherFacade()->doX(...)` |
+| Stateful behaviour owned by a neighbour module (depends on config, registry, runtime state) | `Phel\<Other>\Facade` | inject the facade via `Provider` and call its public method, e.g. `$this->getOtherFacade()->doX(...)` |
 
 If you find yourself wanting to add a `createX()` factory passthrough on a neighbour facade just so another module can `new` something, that's a signal the class is actually a Shared utility — move it there instead.
 

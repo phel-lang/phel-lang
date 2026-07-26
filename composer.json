@@ -24,11 +24,13 @@
     "require": {
         "php": ">=8.4",
         "amphp/amp": "^3.1",
-        "gacela-project/gacela": "^1.21",
+        "gacela-project/gacela": "dev-main",
         "symfony/console": "^7.3|^8.0",
         "symfony/polyfill-mbstring": "^1.30",
         "symfony/routing": "^7.3|^8.0"
     },
+    "minimum-stability": "dev",
+    "prefer-stable": true,
     "require-dev": {
         "ext-readline": "*",
         "brianium/paratest": "^7",

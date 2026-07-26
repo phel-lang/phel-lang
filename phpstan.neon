@@ -42,34 +42,29 @@ parameters:
         # skips the interface makes the count short by one and that one is
         # reported. Re-count deliberately, never just to get back to green.
         #
-        # `reportUnmatched: false` because the rule ships in gacela 1.21 but not
-        # on the 2.0 branch, where these entries would otherwise turn into
-        # non-ignorable `ignore.unmatched` errors on the version bump.
+        # `reportUnmatched` is left at its default: `FacadeInterfaceInSyncRule`
+        # ships in 2.0, so an entry that stops matching means the drift it
+        # covered was fixed, and the pin should go with it rather than linger.
         -
             identifier: gacela.facadeInterfaceDrift
             path: src/php/Api/ApiFacade.php
             count: 1
-            reportUnmatched: false
         -
             identifier: gacela.facadeInterfaceDrift
             path: src/php/Build/BuildFacade.php
             count: 8
-            reportUnmatched: false
         -
             identifier: gacela.facadeInterfaceDrift
             path: src/php/Compiler/CompilerFacade.php
             count: 1
-            reportUnmatched: false
         -
             identifier: gacela.facadeInterfaceDrift
             path: src/php/Interop/InteropFacade.php
             count: 2
-            reportUnmatched: false
         -
             identifier: gacela.facadeInterfaceDrift
             path: src/php/Run/RunFacade.php
             count: 7
-            reportUnmatched: false
         # LazySeq::cdr() checks instanceof SeqInterface for runtime safety
         # even though PHPDoc inference says the type is already narrowed.
         -
