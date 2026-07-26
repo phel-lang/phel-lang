@@ -20,9 +20,9 @@ Every public function should have metadata:
 
 ## Comments
 
-- Use `;` for line comments (not `#`)
+- Use `;` for line comments
 - `;;` for standalone line comments, `;` for inline comments after code
-- `#| |#` for multiline comments, `#_` to comment out a form
+- `#_` to comment out the next form
 
 ## Semantics
 
@@ -45,5 +45,5 @@ Commas are optional whitespace — match Clojure:
 - Use them **between key/value pairs of a single-line map** to group visually: `{:a 1, :b 2}`.
 - Multi-line maps: no commas (the newline separates pairs).
 - Not in vectors, lists, or function calls.
-- `,` is **unquote** inside a `` ` `` quasiquote, so never add commas to quasiquoted maps.
+- `,` is whitespace everywhere, quasiquote included. `~` is unquote and `~@` unquote-splicing.
 - `phel format` preserves commas but never inserts them (like cljfmt) — they are author's choice.

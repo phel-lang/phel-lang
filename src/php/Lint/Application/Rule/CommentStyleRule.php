@@ -22,10 +22,8 @@ use function str_starts_with;
  * `;` trails code on the same line, `;;` (or more) owns the whole line.
  *
  * Works on the token stream rather than the source text because only the
- * lexer knows which `;` actually starts a comment: a `;` inside a string
- * literal, a regex literal or a `#| ... |#` block never yields a comment
- * token, so it can never be flagged. Bare `#` line comments are out of
- * scope; the lexer already deprecates them.
+ * lexer knows which `;` actually starts a comment: a `;` inside a string or a
+ * regex literal never yields a comment token, so it can never be flagged.
  */
 final readonly class CommentStyleRule implements LintRuleInterface
 {
@@ -74,8 +72,7 @@ final readonly class CommentStyleRule implements LintRuleInterface
                     $result[] = $this->diagnostic($token, $analysis->uri);
                 }
 
-                // `;` comments swallow their trailing newline (except at EOF);
-                // a `#| ... |#` block does not, so code may follow it inline.
+                // A `;` comment swallows its trailing newline, except at EOF.
                 $atLineStart = str_ends_with($code, "\n");
             }
         } catch (Throwable) {

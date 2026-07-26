@@ -18,7 +18,6 @@ final readonly class ParenthesesChecker
         foreach ($tokenStream as $token) {
             switch ($token->getType()) {
                 case Token::T_OPEN_PARENTHESIS:
-                case Token::T_FN:
                 case Token::T_HASH_FN:
                 case Token::T_READER_COND:
                 case Token::T_READER_COND_SPLICING:

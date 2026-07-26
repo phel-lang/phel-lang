@@ -16,7 +16,7 @@
   (is (= 1 (arity inc)) "arity of one-parameter core fn")
   (is (= 0 (arity (fn [] 1))) "arity of zero-parameter fn")
   (is (= 3 (arity (fn [a b c] a))) "arity of anonymous three-parameter fn")
-  (is (= 2 (arity |(+ $1 $2))) "arity of short fn literal"))
+  (is (= 2 (arity #(+ %1 %2))) "arity of short fn literal"))
 
 (deftest test-arity-variadic
   (is (= 3 (arity assoc)) "variadic fn reports required parameters before &")
@@ -35,7 +35,7 @@
   (is (true? (variadic? assoc)) "assoc accepts variadic args")
   (is (false? (variadic? inc)) "inc is not variadic")
   (is (false? (variadic? (fn [a b] a))) "fixed-arity anonymous fn is not variadic")
-  (is (false? (variadic? |(+ $1 $2))) "short fn literal is not variadic")
+  (is (false? (variadic? #(+ %1 %2))) "short fn literal is not variadic")
   (is (true? (variadic? (fn [x & xs] x))) "anonymous variadic fn is variadic"))
 
 (deftest test-arity-php-callable

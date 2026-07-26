@@ -11,7 +11,7 @@ Single source for every skill adapter.
 5. Threading: `->` first-arg, `->>` last-arg, `some->` / `some->>` nil-safe, `cond->` conditional.
 6. Only `false` and `nil` are falsy. `0`, `""`, `[]` truthy.
 7. Namespaces need ≥ 2 segments. Prefer `.` separator (`app.main`); `\` still parses but is deprecated. File path matches ns under src dir.
-8. Comments: `;` inline, `;;` standalone, `#_` form, `#| |#` block.
+8. Comments: `;` inline, `;;` standalone, `#_` skips the next form.
 9. PHP assoc array: `#php {"k" "v"}` or `(to-php-array m)`. Not `{:k "v"}`.
 10. Catch PHP: `(catch php\SomeException e ...)`.
 11. Annotate hot-path `defn` with `:tag` on params + return for PHP type emission, JIT-friendly call shape, and compile-time mismatch diagnostics. See `tasks/typed-defn.md`.

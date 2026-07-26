@@ -210,10 +210,10 @@
   (let [n   (php/-> more (count))
         val (php/-> more (get (php/- n 1)))]
     (if (php/=== 1 n)
-      `(do (php/aset ,arr ,idx ,val) ,val)
+      `(do (php/aset ~arr ~idx ~val) ~val)
       (let [extra-keys (loop [i  0
                               ks [idx]]
                          (if (php/< i (php/- n 1))
                            (recur (php/+ i 1) (php/-> ks (push (php/-> more (get i)))))
                            ks))]
-        `(do (php/aset-in ,arr ,extra-keys ,val) ,val)))))
+        `(do (php/aset-in ~arr ~extra-keys ~val) ~val)))))

@@ -5,7 +5,7 @@
   (^{:php/attr [:Route "/x"]} act [this ^{:php/attr [:Autowire]} dep]))
 
 (defn- attr-names [attrs]
-  (map |(php/-> $ (getName)) attrs))
+  (map #(php/-> % (getName)) attrs))
 
 (deftest method-and-param-attributes-are-emitted
   (let [rm    (php/new \ReflectionMethod "phel_test\\core\\interface_param_attributes\\Ctrl" "act")

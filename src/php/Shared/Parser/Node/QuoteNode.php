@@ -48,8 +48,8 @@ final class QuoteNode implements InnerNodeInterface
 
         return match ($this->tokenType) {
             Token::T_QUOTE => "'",
-            Token::T_UNQUOTE => ',',
-            Token::T_UNQUOTE_SPLICING => ',@',
+            Token::T_UNQUOTE => '~',
+            Token::T_UNQUOTE_SPLICING => '~@',
             Token::T_QUASIQUOTE => '`',
             Token::T_DEREF => '@',
             Token::T_VAR_QUOTE => "#'",

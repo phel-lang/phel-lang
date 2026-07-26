@@ -89,7 +89,7 @@ final class ListParserTest extends TestCase
 
         try {
             new ListParser($this->parserConsumingOneToken())
-                ->parse($stream, Token::T_CLOSE_PARENTHESIS, Token::T_FN);
+                ->parse($stream, Token::T_CLOSE_PARENTHESIS, Token::T_HASH_FN);
             self::fail('Expected an UnfinishedParserException.');
         } catch (UnfinishedParserException $unfinishedParserException) {
             self::assertSame(

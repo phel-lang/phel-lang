@@ -4,7 +4,7 @@
 (deftest create-list
   (is (= '(1 2 3) (list '1 '2 '3)) "construct list"))
 
-# Issue #1549: `()` is a self-quoting empty list literal, not an invocation
+;; Issue #1549: `()` is a self-quoting empty list literal, not an invocation
 (deftest empty-list-literal
   (is (= () (list)) "() equals empty list constructor")
   (is (= '() ()) "() equals quoted empty list")

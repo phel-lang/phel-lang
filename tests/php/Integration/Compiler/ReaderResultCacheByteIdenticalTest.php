@@ -32,7 +32,7 @@ final class ReaderResultCacheByteIdenticalTest extends AbstractCompilerRuntimeTe
     private const string SOURCE = <<<'PHEL'
         (let [base (inc 4)] `(pair v# ~base))
         ((fn [x] (let [y (* x x)] (+ y y))) 6)
-        (map |(+ % 1) [1 2 3])
+        (map #(+ % 1) [1 2 3])
         PHEL;
 
     private string $diskCacheDir = '';

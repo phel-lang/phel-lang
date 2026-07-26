@@ -223,10 +223,12 @@ final class ParserTest extends TestCase
         );
     }
 
-    public function test_unquote_splice(): void
+    public function test_comma_is_trivia(): void
     {
+        // `,@` was unquote-splicing; the comma is now plain trivia and the `@`
+        // is a deref, so only the comma is consumed here.
         self::assertEquals(
-            new CommaNode(',@', $this->loc(1, 0), $this->loc(1, 2)),
+            new CommaNode(',', $this->loc(1, 0), $this->loc(1, 1)),
             $this->parse(',@a'),
         );
     }
@@ -480,22 +482,22 @@ final class ParserTest extends TestCase
     public function test_read_short_fn_zero_args(): void
     {
         self::assertEquals(
-            new ListNode(Token::T_FN, $this->loc(1, 0), $this->loc(1, 6), [
+            new ListNode(Token::T_HASH_FN, $this->loc(1, 0), $this->loc(1, 6), [
                 new SymbolNode('add', $this->loc(1, 2), $this->loc(1, 5), Symbol::create('add')),
             ]),
-            $this->parse('|(add)'),
+            $this->parse('#(add)'),
         );
     }
 
     public function test_read_short_fn_one_arg(): void
     {
         self::assertEquals(
-            new ListNode(Token::T_FN, $this->loc(1, 0), $this->loc(1, 8), [
+            new ListNode(Token::T_HASH_FN, $this->loc(1, 0), $this->loc(1, 8), [
                 new SymbolNode('add', $this->loc(1, 2), $this->loc(1, 5), Symbol::create('add')),
                 new WhitespaceNode(' ', $this->loc(1, 5), $this->loc(1, 6)),
-                new SymbolNode('$', $this->loc(1, 6), $this->loc(1, 7), Symbol::create('$')),
+                new SymbolNode('%', $this->loc(1, 6), $this->loc(1, 7), Symbol::create('%')),
             ]),
-            $this->parse('|(add $)'),
+            $this->parse('#(add %)'),
         );
     }
 
@@ -535,14 +537,6 @@ final class ParserTest extends TestCase
         self::assertNull($this->compilerFacade->parseNext($tokenStream));
     }
 
-    public function test_read_comment(): void
-    {
-        self::assertEquals(
-            new CommentNode('# Test', $this->loc(1, 0), $this->loc(1, 6)),
-            $this->parse('# Test'),
-        );
-    }
-
     public function test_read_semicolon_comment(): void
     {
         self::assertEquals(
@@ -559,22 +553,6 @@ final class ParserTest extends TestCase
                 $this->loc(1, 0),
             ),
             $this->parse('#_a'),
-        );
-    }
-
-    public function test_read_multiline_comment(): void
-    {
-        self::assertEquals(
-            new CommentNode('#| Test |#', $this->loc(1, 0), $this->loc(1, 10)),
-            $this->parse('#| Test |#'),
-        );
-    }
-
-    public function test_read_nested_multiline_comment(): void
-    {
-        self::assertEquals(
-            new CommentNode('#|a #|b|# c|#', $this->loc(1, 0), $this->loc(1, 13)),
-            $this->parse('#|a #|b|# c|#'),
         );
     }
 

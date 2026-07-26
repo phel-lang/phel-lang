@@ -142,7 +142,6 @@ final class Reader implements ReaderInterface
         }
 
         $fnPrefix = match ($node->getTokenType()) {
-            Token::T_FN => '$',
             Token::T_HASH_FN => '%',
             default => null,
         };

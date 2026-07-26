@@ -221,28 +221,6 @@ final class ReaderTest extends TestCase
         );
     }
 
-    public function test_read_multiline_comment(): void
-    {
-        self::assertEquals(
-            $this->loc(Phel::list([
-                $this->loc(Symbol::create('a'), 1, 1, 1, 2),
-                $this->loc(Symbol::create('c'), 1, 9, 1, 10),
-            ]), 1, 0, 1, 11),
-            $this->read('(a #|b|# c)'),
-        );
-    }
-
-    public function test_read_nested_multiline_comment(): void
-    {
-        self::assertEquals(
-            $this->loc(Phel::list([
-                $this->loc(Symbol::create('a'), 1, 1, 1, 2),
-                $this->loc(Symbol::create('e'), 1, 17, 1, 18),
-            ]), 1, 0, 1, 19),
-            $this->read('(a #|b #|c|# d|# e)'),
-        );
-    }
-
     public function test_quote(): void
     {
         self::assertEquals(
@@ -298,12 +276,13 @@ final class ReaderTest extends TestCase
         );
     }
 
-    public function test_comma_splice_outside_quasiquote_is_ignored(): void
+    public function test_comma_before_a_deref_is_just_whitespace(): void
     {
-        self::assertEquals(
-            $this->loc(Symbol::create('a'), 1, 2, 1, 3),
-            $this->read(',@a'),
-        );
+        // `,@` used to be unquote-splicing. Both characters keep their own
+        // meaning now, so this reads exactly like `@a`, as it does in Clojure.
+        // Compared by value: the leading comma shifts the source columns by
+        // one, which is the only difference between the two readings.
+        self::assertTrue($this->read('@a')->equals($this->read(',@a')));
     }
 
     public function test_tilde_outside_quasiquote_is_ignored(): void
@@ -347,62 +326,62 @@ final class ReaderTest extends TestCase
     public function test_quasiquote3(): void
     {
         $l1 = $this->read('(apply list (concat (list (quote foo)) (list bar)))', true);
-        $l2 = $this->read('`(foo ,bar)', true);
+        $l2 = $this->read('`(foo ~bar)', true);
         self::assertTrue($l1->equals($l2));
     }
 
     public function test_quasiquote4(): void
     {
         $l1 = $this->read("'a", true);
-        $l2 = $this->read('``,a', true);
+        $l2 = $this->read('``~a', true);
         self::assertTrue($l1->equals($l2));
     }
 
     public function test_quasiquote5(): void
     {
         $l1 = $this->read('(apply list (concat (list (quote foo)) bar))', true);
-        $l2 = $this->read('`(foo ,@bar)', true);
+        $l2 = $this->read('`(foo ~@bar)', true);
         self::assertTrue($l1->equals($l2));
     }
 
     public function test_quasiquote6(): void
     {
         $l1 = $this->read('(apply list (concat (list foo) bar))', true);
-        $l2 = $this->read('`(,foo ,@bar)', true);
+        $l2 = $this->read('`(~foo ~@bar)', true);
         self::assertTrue($l1->equals($l2));
     }
 
     public function test_quasiquote7(): void
     {
         $l1 = $this->read('(apply list (concat foo bar))', true);
-        $l2 = $this->read('`(,@foo ,@bar)', true);
+        $l2 = $this->read('`(~@foo ~@bar)', true);
         self::assertTrue($l1->equals($l2));
     }
 
     public function test_quasiquote8(): void
     {
         $l1 = $this->read('(apply list (concat foo bar (list 1) (list "string") (list :keyword) (list true) (list nil)))', true);
-        $l2 = $this->read('`(,@foo ,@bar 1 "string" :keyword true nil)', true);
+        $l2 = $this->read('`(~@foo ~@bar 1 "string" :keyword true nil)', true);
         self::assertTrue($l1->equals($l2));
     }
 
     public function test_quasiquote_with_tilde_unquote(): void
     {
-        $comma = $this->read('`(foo ,bar)', true);
+        $comma = $this->read('`(foo ~bar)', true);
         $tilde = $this->read('`(foo ~bar)', true);
         self::assertTrue($comma->equals($tilde));
     }
 
     public function test_quasiquote_with_tilde_unquote_splicing(): void
     {
-        $comma = $this->read('`(foo ,@bar)', true);
+        $comma = $this->read('`(foo ~@bar)', true);
         $tilde = $this->read('`(foo ~@bar)', true);
         self::assertTrue($comma->equals($tilde));
     }
 
     public function test_quasiquote_map_with_tilde_quote_unquote(): void
     {
-        $comma = $this->read("`{:actual ,'error}", true);
+        $comma = $this->read("`{:actual ~'error}", true);
         $tilde = $this->read("`{:actual ~'error}", true);
         self::assertTrue($comma->equals($tilde));
     }
@@ -413,29 +392,30 @@ final class ReaderTest extends TestCase
         // a quasiquoted map containing multiple `'~x` entries plus a `~'sym`.
         // The original bug surfaced as "Maps must have an even number of
         // parameters" because the lexer did not recognise `~` as unquote.
-        $commaSrc = "`{:type :pass :message ',msg :expected ',form :actual ,'error}";
         $tildeSrc = "`{:type :pass :message '~msg :expected '~form :actual ~'error}";
-        self::assertTrue($this->read($commaSrc, true)->equals($this->read($tildeSrc, true)));
+
+        // Reading it at all is the assertion: the bug raised on read.
+        self::assertNotNull($this->read($tildeSrc, true));
     }
 
     public function test_quasiquote_auto_gensym(): void
     {
         $l1 = $this->read('(apply list (concat (list (quote foo__1)) (list (quote bar__2))))', true);
-        $l2 = $this->read('`(foo$ bar$)', true);
+        $l2 = $this->read('`(foo# bar#)', true);
         self::assertTrue($l1->equals($l2));
     }
 
     public function test_quasiquote_auto_gensym_cached_value(): void
     {
         $l1 = $this->read('(apply list (concat (list (quote foo__1)) (list (quote foo__1))))', true);
-        $l2 = $this->read('`(foo$ foo$)', true);
+        $l2 = $this->read('`(foo# foo#)', true);
         self::assertTrue($l1->equals($l2));
     }
 
     public function test_quasiquote_auto_gensym_mixed_values(): void
     {
         $l1 = $this->read('(apply list (concat (list (quote foo__1)) (list (quote bar__2)) (list (quote foo__1))))', true);
-        $l2 = $this->read('`(foo$ bar$ foo$)', true);
+        $l2 = $this->read('`(foo# bar# foo#)', true);
         self::assertTrue($l1->equals($l2));
     }
 
@@ -451,28 +431,6 @@ final class ReaderTest extends TestCase
         $l1 = $this->read('(apply list (concat (list (quote foo__1)) (list (quote foo__1))))', true);
         $l2 = $this->read('`(foo# foo#)', true);
         self::assertTrue($l1->equals($l2));
-    }
-
-    public function test_quasiquote_dollar_auto_gensym_emits_deprecation(): void
-    {
-        // Syntax deprecations are opt-in (`--warn-deprecations`).
-        DeprecationWarnings::enable();
-
-        $warning = null;
-        set_error_handler(static function (int $errno, string $errstr) use (&$warning): bool {
-            $warning = $errstr;
-            return true;
-        }, E_USER_DEPRECATED);
-
-        try {
-            $this->read('`(foo$)', true);
-        } finally {
-            restore_error_handler();
-        }
-
-        self::assertNotNull($warning);
-        self::assertStringContainsString('"foo$"', $warning);
-        self::assertStringContainsString('"foo#"', $warning);
     }
 
     public function test_quasiquote_hash_auto_gensym_does_not_emit_deprecation(): void
@@ -750,7 +708,7 @@ final class ReaderTest extends TestCase
                 1,
                 6,
             ),
-            $this->read('|(add)'),
+            $this->read('#(add)'),
         );
     }
 
@@ -779,7 +737,7 @@ final class ReaderTest extends TestCase
                 1,
                 8,
             ),
-            $this->read('|(add $)'),
+            $this->read('#(add %)'),
         );
     }
 
@@ -809,7 +767,7 @@ final class ReaderTest extends TestCase
                 1,
                 10,
             ),
-            $this->read('|(add $ $)'),
+            $this->read('#(add % %)'),
         );
     }
 
@@ -840,7 +798,7 @@ final class ReaderTest extends TestCase
                 1,
                 12,
             ),
-            $this->read('|(add $1 $2)'),
+            $this->read('#(add %1 %2)'),
         );
     }
 
@@ -870,7 +828,7 @@ final class ReaderTest extends TestCase
                 1,
                 12,
             ),
-            $this->read('|(add $1 $1)'),
+            $this->read('#(add %1 %1)'),
         );
     }
 
@@ -902,7 +860,7 @@ final class ReaderTest extends TestCase
                 1,
                 12,
             ),
-            $this->read('|(add $1 $3)'),
+            $this->read('#(add %1 %3)'),
         );
     }
 
@@ -934,7 +892,7 @@ final class ReaderTest extends TestCase
                 1,
                 12,
             ),
-            $this->read('|(add $1 $&)'),
+            $this->read('#(add %1 %&)'),
         );
     }
 
@@ -965,7 +923,7 @@ final class ReaderTest extends TestCase
                 1,
                 15,
             ),
-            $this->read('|(concat $& $&)'),
+            $this->read('#(concat %& %&)'),
         );
     }
 
@@ -1237,33 +1195,6 @@ final class ReaderTest extends TestCase
         );
     }
 
-    public function test_percent_is_regular_symbol_inside_pipe_fn(): void
-    {
-        self::assertEquals(
-            $this->loc(
-                Phel::list([
-                    Symbol::create(Symbol::NAME_FN),
-                    Phel::vector(),
-                    $this->loc(
-                        Phel::list([
-                            $this->loc(Symbol::create('add'), 1, 2, 1, 5),
-                            $this->loc(Symbol::create('%'), 1, 6, 1, 7),
-                        ]),
-                        1,
-                        0,
-                        1,
-                        8,
-                    ),
-                ]),
-                1,
-                0,
-                1,
-                8,
-            ),
-            $this->read('|(add %)'),
-        );
-    }
-
     public function test_percent_is_regular_symbol_outside_short_fn(): void
     {
         self::assertEquals(
@@ -1278,64 +1209,6 @@ final class ReaderTest extends TestCase
                 7,
             ),
             $this->read('(add %)'),
-        );
-    }
-
-    public function test_pipe_fn_then_hash_fn_prefix_isolation(): void
-    {
-        $pipeResult = $this->read('|(add $)');
-        $hashResult = $this->read('#(add %)');
-
-        self::assertEquals(
-            $this->loc(
-                Phel::list([
-                    Symbol::create(Symbol::NAME_FN),
-                    Phel::vector([
-                        Symbol::create('__short_fn_1_1'),
-                    ]),
-                    $this->loc(
-                        Phel::list([
-                            $this->loc(Symbol::create('add'), 1, 2, 1, 5),
-                            $this->loc(Symbol::create('__short_fn_1_1'), 1, 6, 1, 7),
-                        ]),
-                        1,
-                        0,
-                        1,
-                        8,
-                    ),
-                ]),
-                1,
-                0,
-                1,
-                8,
-            ),
-            $pipeResult,
-        );
-
-        self::assertEquals(
-            $this->loc(
-                Phel::list([
-                    Symbol::create(Symbol::NAME_FN),
-                    Phel::vector([
-                        Symbol::create('__short_fn_1_1'),
-                    ]),
-                    $this->loc(
-                        Phel::list([
-                            $this->loc(Symbol::create('add'), 1, 2, 1, 5),
-                            $this->loc(Symbol::create('__short_fn_1_1'), 1, 6, 1, 7),
-                        ]),
-                        1,
-                        0,
-                        1,
-                        8,
-                    ),
-                ]),
-                1,
-                0,
-                1,
-                8,
-            ),
-            $hashResult,
         );
     }
 
