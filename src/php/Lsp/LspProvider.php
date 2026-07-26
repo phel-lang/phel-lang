@@ -20,13 +20,20 @@ use Phel\Shared\Facade\RunFacadeInterface;
  */
 final class LspProvider extends AbstractProvider
 {
+    /**
+     * `Lint` publishes no `*FacadeInterface`, so this cannot be keyed by
+     * `LintFacade::class`: the body resolves that same id and the binding would
+     * re-enter itself. See {@see CommandProvider} for the general rule.
+     */
+    public const string FACADE_LINT = 'FACADE_LINT';
+
     #[Provides(ApiFacadeInterface::class)]
     public function apiFacade(Container $container): ApiFacadeInterface
     {
         return $container->getLocator()->getRequired(ApiFacade::class);
     }
 
-    #[Provides(LintFacade::class)]
+    #[Provides(self::FACADE_LINT)]
     public function lintFacade(Container $container): LintFacade
     {
         return $container->getLocator()->getRequired(LintFacade::class);

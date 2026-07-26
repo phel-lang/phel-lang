@@ -206,7 +206,10 @@ final class LspFactory extends AbstractFactory
 
     public function getLintFacade(): LintFacade
     {
-        return $this->getProvidedDependency(LintFacade::class);
+        /** @var LintFacade $facade */
+        $facade = $this->getProvidedDependency(LspProvider::FACADE_LINT);
+
+        return $facade;
     }
 
     public function getFormatterFacade(): FormatterFacadeInterface
