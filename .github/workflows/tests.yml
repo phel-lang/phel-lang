@@ -15,13 +15,21 @@ concurrency:
   cancel-in-progress: ${{ github.ref != 'refs/heads/main' }}
 
 jobs:
+  # Linux and macOS are the "Supported" tier in docs/stability.md: a failure here
+  # blocks a release. Every PHP minor runs on Linux; macOS runs the minimum only,
+  # because what it is guarding is the platform (paths, tempdirs, ext availability)
+  # rather than the language version.
   compiler-tests:
-    name: Compiler tests on PHP ${{ matrix.php }}
-    runs-on: ubuntu-latest
+    name: Compiler tests on PHP ${{ matrix.php }} (${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
       matrix:
+        os: [ ubuntu-latest ]
         php: [ '8.4', '8.5' ]
+        include:
+          - os: macos-latest
+            php: '8.4'
     steps:
       - uses: actions/checkout@v6
       - uses: ./.github/actions/setup-phel
@@ -35,14 +43,18 @@ jobs:
         run: composer run-script test-integration
 
   core-tests:
-    name: Core tests on PHP ${{ matrix.php }}
-    runs-on: ubuntu-latest
+    name: Core tests on PHP ${{ matrix.php }} (${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
     # Fail fast instead of hanging ~6h if a worker stalls on OPcache startup lock.
-    timeout-minutes: 8
+    timeout-minutes: 12
     strategy:
       fail-fast: false
       matrix:
+        os: [ ubuntu-latest ]
         php: [ '8.4', '8.5' ]
+        include:
+          - os: macos-latest
+            php: '8.4'
     steps:
       - uses: actions/checkout@v6
       - uses: ./.github/actions/setup-phel
@@ -51,6 +63,36 @@ jobs:
 
       - name: Run tests to the core library
         run: composer run-script test-core
+
+  # Windows is the "Best effort" tier in docs/stability.md: bugs are accepted and
+  # fixed, but a Windows-only failure does not block a release, so this job reports
+  # without gating. Promoting it to blocking means deleting `continue-on-error`,
+  # which is a deliberate decision rather than something that happens by accident.
+  #
+  # It runs the compiler unit suite and the core library, the two that exercise the
+  # path handling and temp-directory logic most likely to be platform-sensitive.
+  windows-tests:
+    name: Windows tests (best effort)
+    runs-on: windows-latest
+    continue-on-error: true
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v6
+
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.4'
+          coverage: none
+          tools: composer
+
+      - name: Install dependencies
+        run: composer install --no-interaction --no-ansi --no-progress
+
+      - name: Run unit tests to the compiler itself
+        run: vendor/bin/phpunit --testsuite unit
+
+      - name: Run tests to the core library
+        run: php -d memory_limit=256M bin/phel test
 
   bench-tests:
     name: Bench tests
