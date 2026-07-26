@@ -11,6 +11,9 @@ use Phel\Shared\Parser\Node\ListNode;
 use Phel\Shared\Parser\Node\NodeInterface;
 use Phel\Shared\Parser\Node\TriviaNodeInterface;
 
+/**
+ * @internal
+ */
 final readonly class VectorReader
 {
     public function __construct(private ReaderInterface $reader) {}

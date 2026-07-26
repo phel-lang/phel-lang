@@ -25,6 +25,8 @@ use function count;
  * `??` consults `offsetExists` first, so the chain returns `nil` on an
  * intermediate miss (or an explicit-nil value) exactly like the runtime,
  * without ever throwing on a missing key.
+ *
+ * @internal
  */
 final readonly class GetInSpecialization
 {

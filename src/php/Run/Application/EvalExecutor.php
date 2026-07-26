@@ -18,6 +18,9 @@ use function array_reverse;
 use function explode;
 use function sprintf;
 
+/**
+ * @internal
+ */
 final readonly class EvalExecutor
 {
     public function __construct(

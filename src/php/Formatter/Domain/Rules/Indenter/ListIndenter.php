@@ -7,6 +7,9 @@ namespace Phel\Formatter\Domain\Rules\Indenter;
 use Phel\Formatter\Domain\Rules\Zipper\ParseTreeZipper;
 use Phel\Shared\Parser\Node\TriviaNodeInterface;
 
+/**
+ * @internal
+ */
 final readonly class ListIndenter implements IndenterInterface
 {
     private LineIndenter $lineIndenter;

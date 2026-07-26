@@ -47,6 +47,8 @@ use function str_replace;
  * Worker exits 0 when stdin closes (parent closes the pipe on shutdown).
  *
  * @method RunFacade getFacade()
+ *
+ * @internal
  */
 #[ServiceMap(method: 'getFacade', className: RunFacade::class)]
 final class TestWorkerCommand extends Command

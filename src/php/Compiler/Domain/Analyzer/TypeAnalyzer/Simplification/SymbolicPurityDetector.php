@@ -42,6 +42,8 @@ use function array_all;
  * The fn allowlist mirrors the scalar operations {@see ConstantFolder}
  * already evaluates at compile time: that set is, by construction, a
  * vetted list of effect-free core fns.
+ *
+ * @internal
  */
 final readonly class SymbolicPurityDetector
 {

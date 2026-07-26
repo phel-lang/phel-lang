@@ -13,6 +13,9 @@ use Phel\Lang\Symbol;
 
 use function assert;
 
+/**
+ * @internal
+ */
 final class DefEmitter implements NodeEmitterInterface
 {
     use WithOutputEmitterTrait;

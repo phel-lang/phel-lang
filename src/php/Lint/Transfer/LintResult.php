@@ -12,6 +12,8 @@ use function count;
 /**
  * Aggregate outcome of a lint run: the flat list of diagnostics plus
  * per-severity counters used to drive the process exit code.
+ *
+ * @internal
  */
 final readonly class LintResult
 {

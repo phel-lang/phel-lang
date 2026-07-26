@@ -8,6 +8,9 @@ use Phel\Compiler\Domain\Analyzer\Environment\NodeEnvironment;
 use Phel\Compiler\Domain\Analyzer\Resolver\LoadPathResolution;
 use Phel\Lang\SourceLocation;
 
+/**
+ * @internal
+ */
 final class LoadNode extends AbstractNode
 {
     public function __construct(

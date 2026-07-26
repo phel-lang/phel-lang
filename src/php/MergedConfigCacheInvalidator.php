@@ -31,6 +31,8 @@ use function preg_replace;
  * reload callback, so the whole flow is exercisable without a live bootstrap.
  *
  * @see Phel::bootstrap()
+ *
+ * @internal
  */
 final readonly class MergedConfigCacheInvalidator
 {

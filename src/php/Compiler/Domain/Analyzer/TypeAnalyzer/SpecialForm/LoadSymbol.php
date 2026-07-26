@@ -24,6 +24,8 @@ use function is_string;
  * against the `phel.core/*load-classpath*` roots); otherwise it is resolved relative to
  * the caller file's compile-time location, so mutations to runtime
  * `*file*` cannot break resolution.
+ *
+ * @internal
  */
 final readonly class LoadSymbol implements SpecialFormAnalyzerInterface
 {

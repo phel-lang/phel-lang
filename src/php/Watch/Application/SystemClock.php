@@ -9,6 +9,9 @@ use Phel\Watch\Domain\ClockInterface;
 use function microtime;
 use function usleep;
 
+/**
+ * @internal
+ */
 final class SystemClock implements ClockInterface
 {
     public function nowMs(): int

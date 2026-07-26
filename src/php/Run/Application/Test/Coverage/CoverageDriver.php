@@ -22,6 +22,8 @@ use function is_array;
  * its active modes, since `xdebug_start_code_coverage()` collects nothing
  * otherwise — letting the caller emit an actionable error via
  * `unavailabilityReason()`.
+ *
+ * @internal
  */
 final readonly class CoverageDriver
 {

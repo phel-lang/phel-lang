@@ -15,6 +15,8 @@ use Symfony\Component\Console\Output\OutputInterface;
 
 /**
  * @method BuildFacade getFacade()
+ *
+ * @internal
  */
 #[ServiceMap(method: 'getFacade', className: BuildFacade::class)]
 final class CacheClearCommand extends Command

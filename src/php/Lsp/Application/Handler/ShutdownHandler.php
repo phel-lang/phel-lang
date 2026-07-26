@@ -12,6 +12,8 @@ use Phel\Lsp\Application\Session\Session;
  * server stops processing further requests, but does not terminate the process.
  * Per the LSP lifecycle, the client must follow up with an `exit` notification
  * (see {@see ExitHandler}) to actually end the server.
+ *
+ * @internal
  */
 final class ShutdownHandler implements HandlerInterface
 {

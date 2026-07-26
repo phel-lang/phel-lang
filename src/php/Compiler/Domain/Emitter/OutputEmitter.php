@@ -27,6 +27,9 @@ use function str_starts_with;
 use function strlen;
 use function substr;
 
+/**
+ * @internal
+ */
 final class OutputEmitter implements OutputEmitterInterface
 {
     private int $indentLevel = 0;

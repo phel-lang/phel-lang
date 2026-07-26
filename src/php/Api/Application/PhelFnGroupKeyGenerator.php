@@ -6,6 +6,9 @@ namespace Phel\Api\Application;
 
 use Phel\Api\Domain\PhelFnGroupKeyGeneratorInterface;
 
+/**
+ * @internal
+ */
 final readonly class PhelFnGroupKeyGenerator implements PhelFnGroupKeyGeneratorInterface
 {
     public function generateGroupKey(string $namespace, string $name): string

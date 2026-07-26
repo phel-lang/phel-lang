@@ -24,6 +24,8 @@ use function str_starts_with;
  * Ignores names starting with `_` (idiomatic placeholder) and `&` (variadic
  * marker). Destructuring binding forms are best-effort: only the top-level
  * names are tracked.
+ *
+ * @internal
  */
 final readonly class UnusedBindingRule implements LintRuleInterface
 {

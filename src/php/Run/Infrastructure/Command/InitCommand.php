@@ -20,6 +20,9 @@ use function is_dir;
 use function mkdir;
 use function sprintf;
 
+/**
+ * @internal
+ */
 final class InitCommand extends Command
 {
     private const string ARG_PROJECT_NAME = 'project-name';

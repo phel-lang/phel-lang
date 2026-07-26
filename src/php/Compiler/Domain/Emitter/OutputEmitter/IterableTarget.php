@@ -29,6 +29,8 @@ use function in_array;
  * {@see LocalVarNode::getInferredType()}), so `(defn f [^array xs] …)` or
  * `(let [^"\Iterator" it expr] …)` style annotations unlock the same
  * fast paths as a literal would.
+ *
+ * @internal
  */
 final readonly class IterableTarget
 {

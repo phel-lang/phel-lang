@@ -25,6 +25,9 @@ use function ord;
 use function sprintf;
 use function strlen;
 
+/**
+ * @internal
+ */
 final readonly class AtomParser
 {
     // Anchored end-to-end so the whole token is consumed. The name part

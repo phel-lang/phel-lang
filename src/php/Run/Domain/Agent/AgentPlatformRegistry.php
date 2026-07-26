@@ -6,6 +6,9 @@ namespace Phel\Run\Domain\Agent;
 
 use function array_keys;
 
+/**
+ * @internal
+ */
 final class AgentPlatformRegistry
 {
     /** @var array<string, AgentPlatform> */

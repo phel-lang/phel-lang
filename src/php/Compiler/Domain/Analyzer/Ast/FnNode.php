@@ -10,6 +10,9 @@ use Phel\Lang\Symbol;
 
 use function count;
 
+/**
+ * @internal
+ */
 final class FnNode extends AbstractNode implements FnNodeInterface
 {
     private bool $isDefinition = false;

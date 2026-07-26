@@ -21,6 +21,8 @@ use function is_string;
  * independently testable.
  *
  * @phpstan-import-type Range from PositionConverter
+ *
+ * @internal
  */
 final readonly class ContentChangeApplier
 {

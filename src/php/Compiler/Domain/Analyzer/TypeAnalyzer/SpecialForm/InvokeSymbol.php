@@ -38,6 +38,8 @@ use function sprintf;
  * (f args...).
  *
  * Invokes a function or callable with the given arguments.
+ *
+ * @internal
  */
 final readonly class InvokeSymbol implements SpecialFormAnalyzerInterface
 {

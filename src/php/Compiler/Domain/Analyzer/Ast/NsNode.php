@@ -9,6 +9,9 @@ use Phel\Lang\SourceLocation;
 use Phel\Lang\Symbol;
 use Phel\Shared\CompilerConstants;
 
+/**
+ * @internal
+ */
 final class NsNode extends AbstractNode
 {
     /**

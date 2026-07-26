@@ -6,6 +6,9 @@ namespace Phel\Run\Application;
 
 use Phel\Shared\Facade\CommandFacadeInterface;
 
+/**
+ * @internal
+ */
 final readonly class EntryPointDetector
 {
     private const array CANDIDATES = ['main.phel', 'core.phel'];

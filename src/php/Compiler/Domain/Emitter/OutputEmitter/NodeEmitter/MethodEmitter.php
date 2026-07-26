@@ -19,6 +19,9 @@ use Phel\Shared\TagResolver;
 use function count;
 use function implode;
 
+/**
+ * @internal
+ */
 final readonly class MethodEmitter
 {
     public function __construct(

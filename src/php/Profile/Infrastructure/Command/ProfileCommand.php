@@ -37,6 +37,8 @@ use function sprintf;
 /**
  * @method ProfileFacade  getFacade()
  * @method ProfileFactory getFactory()
+ *
+ * @internal
  */
 #[ServiceMap(method: 'getFacade', className: ProfileFacade::class)]
 #[ServiceMap(method: 'getFactory', className: ProfileFactory::class)]

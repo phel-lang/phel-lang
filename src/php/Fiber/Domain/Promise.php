@@ -18,6 +18,8 @@ use function usleep;
  * `Fiber::suspend()` and resume on the next scheduler tick, checking
  * the delivered flag each time. Top-level callers (no active Fiber)
  * drain the scheduler's ready queue and sleep briefly between polls.
+ *
+ * @internal
  */
 final class Promise implements Awaitable, FnInterface
 {

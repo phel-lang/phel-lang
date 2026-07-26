@@ -21,6 +21,8 @@ use function str_ends_with;
  * Delegates exception rendering to the {@see ExceptionPrinterInterface} and persists the
  * full stack trace via the {@see ErrorLogInterface}, unwrapping compiled PHP locations
  * back to the originating Phel source for user-facing errors.
+ *
+ * @internal
  */
 final readonly class CommandExceptionWriter implements CommandExceptionWriterInterface
 {

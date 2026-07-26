@@ -26,6 +26,8 @@ use function is_string;
  * (definterface Name (method [args])).
  *
  * Defines a PHP interface implementable by structs.
+ *
+ * @internal
  */
 final class DefInterfaceSymbol implements SpecialFormAnalyzerInterface
 {

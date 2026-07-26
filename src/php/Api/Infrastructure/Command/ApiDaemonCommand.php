@@ -16,6 +16,8 @@ use function sprintf;
 
 /**
  * @method ApiFacade getFacade()
+ *
+ * @internal
  */
 #[ServiceMap(method: 'getFacade', className: ApiFacade::class)]
 final class ApiDaemonCommand extends Command

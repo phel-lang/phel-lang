@@ -33,6 +33,8 @@ use const E_USER_DEPRECATED;
  * This class owns the four concerns a detector would otherwise re-implement:
  * the enabled flag, the bundled-stdlib suppression, the per-`(file, subject)`
  * dedup, and the syntax message shape. Detectors only detect.
+ *
+ * @internal
  */
 final class DeprecationWarnings
 {

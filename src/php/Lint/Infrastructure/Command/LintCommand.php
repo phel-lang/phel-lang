@@ -38,6 +38,8 @@ use function sprintf;
  * @method LintFacade  getFacade()
  * @method LintFactory getFactory()
  * @method LintConfig  getConfig()
+ *
+ * @internal
  */
 #[ServiceMap(method: 'getFacade', className: LintFacade::class)]
 #[ServiceMap(method: 'getFactory', className: LintFactory::class)]

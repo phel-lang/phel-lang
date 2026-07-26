@@ -6,6 +6,9 @@ namespace Phel\Watch;
 
 use Gacela\Framework\AbstractConfig;
 
+/**
+ * @internal
+ */
 final class WatchConfig extends AbstractConfig
 {
     private const int DEFAULT_POLL_INTERVAL_MS = 500;

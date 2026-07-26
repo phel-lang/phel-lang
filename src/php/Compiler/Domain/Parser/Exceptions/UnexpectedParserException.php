@@ -9,6 +9,9 @@ use Phel\Shared\Parser\Node\Token;
 use Phel\Shared\Parser\ReadModel\CodeSnippet;
 use Throwable;
 
+/**
+ * @internal
+ */
 final class UnexpectedParserException extends AbstractParserException
 {
     /**

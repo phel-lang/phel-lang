@@ -19,6 +19,8 @@ use function implode;
  * arity's vector in `( ... )`. `$skipFirst` drops leading macro implicit
  * params (`&form`/`&env`) so the published arglist reflects the user-visible
  * signature.
+ *
+ * @internal
  */
 final readonly class DefArglistBuilder
 {

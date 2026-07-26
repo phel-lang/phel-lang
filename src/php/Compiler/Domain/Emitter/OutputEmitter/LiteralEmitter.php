@@ -31,6 +31,9 @@ use function is_nan;
 use function is_string;
 use function preg_match;
 
+/**
+ * @internal
+ */
 final readonly class LiteralEmitter
 {
     public function __construct(

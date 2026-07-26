@@ -8,6 +8,8 @@ use Phel\Lsp\Domain\NotificationSink;
 
 /**
  * NotificationSink backed by a writable PHP stream + LSP MessageWriter.
+ *
+ * @internal
  */
 final class StreamNotificationSink implements NotificationSink
 {

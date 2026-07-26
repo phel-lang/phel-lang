@@ -7,6 +7,9 @@ namespace Phel\Formatter\Domain\Rules;
 use Phel\Formatter\Domain\Rules\Zipper\ZipperException;
 use Phel\Shared\Parser\Node\NodeInterface;
 
+/**
+ * @internal
+ */
 interface RuleInterface
 {
     /**

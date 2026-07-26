@@ -6,6 +6,8 @@ namespace Phel\Watch\Domain;
 
 /**
  * Monotonic clock indirection so unit tests can freeze time.
+ *
+ * @internal
  */
 interface ClockInterface
 {

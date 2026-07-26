@@ -8,6 +8,9 @@ use Phel\Shared\Exceptions\AbstractLocatedException;
 use Phel\Shared\Parser\ReadModel\CodeSnippet;
 use Throwable;
 
+/**
+ * @internal
+ */
 interface ReplCommandIoInterface
 {
     public function readHistory(): void;

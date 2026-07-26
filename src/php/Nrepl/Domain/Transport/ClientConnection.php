@@ -18,6 +18,8 @@ use function substr;
 
 /**
  * Wraps a live socket resource with bencode framing.
+ *
+ * @internal
  */
 final class ClientConnection
 {

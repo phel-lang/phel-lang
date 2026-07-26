@@ -12,6 +12,8 @@ use Phel\Lang\Collections\Vector\PersistentVectorInterface;
  * Shared depth-first traversal for rules that need to visit every nested
  * form, regardless of collection type. Callers pass a visitor callable
  * and may short-circuit by returning false.
+ *
+ * @internal
  */
 final class FormWalker
 {

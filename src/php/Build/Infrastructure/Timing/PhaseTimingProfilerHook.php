@@ -18,6 +18,8 @@ use function count;
  * evaluates `def`/`defmacro` forms while compiling, and wrapping those fns in
  * profiling proxies would bake instrumentation into the build's registry and
  * emitted output. Only {@see recordPhase()} carries signal here.
+ *
+ * @internal
  */
 final class PhaseTimingProfilerHook implements ProfilerHookInterface
 {

@@ -17,6 +17,8 @@ use function sprintf;
 
 /**
  * @method InteropFacade getFacade()
+ *
+ * @internal
  */
 #[ServiceMap(method: 'getFacade', className: InteropFacade::class)]
 final class ExportCommand extends Command

@@ -13,6 +13,8 @@ use function substr;
  * Accumulates arbitrary byte chunks and yields complete messages
  * as they become available. Leaves partial suffixes in the buffer
  * until the next chunk arrives.
+ *
+ * @internal
  */
 final class BencodeStreamDecoder
 {

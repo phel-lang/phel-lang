@@ -23,6 +23,8 @@ use function substr;
  * resolved relative to the caller's namespace directory on the
  * classpath. The resolver never bakes absolute filesystem paths from
  * the compiling machine — that would break distribution.
+ *
+ * @internal
  */
 final readonly class LoadPathResolver
 {

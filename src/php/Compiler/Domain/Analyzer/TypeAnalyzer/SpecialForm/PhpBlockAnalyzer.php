@@ -19,6 +19,8 @@ use Phel\Shared\MungeInterface;
  * This is the way to declare plain helper methods and PHP magic methods
  * (`__invoke`, `__toString`, `__get`, ...) that belong to no PHP interface.
  * The struct-specific `__invoke` arity guard is skipped for non-struct hosts.
+ *
+ * @internal
  */
 final readonly class PhpBlockAnalyzer
 {

@@ -19,6 +19,8 @@ use function sprintf;
  * rendering and alias resolution work without constructing a command; the
  * underlying command is built only when it is actually dispatched. The
  * dispatched command is therefore the only one instantiated per invocation.
+ *
+ * @internal
  */
 final readonly class LazyCommandLoader implements CommandLoaderInterface
 {

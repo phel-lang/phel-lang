@@ -15,6 +15,8 @@ use function in_array;
  * {@see NodeEmitter\CallEmitter}
  * lowers to a native `instanceof` / `is_*` expression instead of a
  * registry dispatch.
+ *
+ * @internal
  */
 final readonly class TypePredicateSpecialization
 {

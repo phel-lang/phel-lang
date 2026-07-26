@@ -13,6 +13,8 @@ use Throwable;
  * of streams. Typically stdin/stdout for editor-side integration.
  *
  * Run via `./bin/phel api-daemon` (see ApiDaemonCommand).
+ *
+ * @internal
  */
 final class ApiDaemon
 {

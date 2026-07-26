@@ -6,6 +6,9 @@ namespace Phel\Formatter\Domain\IO;
 
 use Phel\Formatter\Domain\Exception\FilePathException;
 
+/**
+ * @internal
+ */
 interface ValidatedFileIoInterface
 {
     /**

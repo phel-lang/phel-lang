@@ -17,6 +17,8 @@ use function sprintf;
  * Powers the `phel compile` CLI command (issue #2043). The compiled
  * PHP is written to `$stdout` on success; any error is written to
  * `$stderr` and signalled via the return value.
+ *
+ * @internal
  */
 final readonly class CompileExecutor
 {

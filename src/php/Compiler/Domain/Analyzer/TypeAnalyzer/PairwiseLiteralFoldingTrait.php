@@ -13,6 +13,8 @@ use function count;
  * pair must satisfy the comparator. {@see LiteralStringFolder} and
  * {@see LiteralArithmeticFolder} both reduced over this shape and both
  * negated for `not=`; this keeps that logic in one place.
+ *
+ * @internal
  */
 trait PairwiseLiteralFoldingTrait
 {

@@ -10,6 +10,9 @@ use Gacela\Framework\Container\Container;
 use Phel\Api\ApiFacade;
 use Phel\Run\RunFacade;
 
+/**
+ * @internal
+ */
 final class NreplProvider extends AbstractProvider
 {
     public const string FACADE_RUN = 'FACADE_RUN';

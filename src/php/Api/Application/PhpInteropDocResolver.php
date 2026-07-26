@@ -25,6 +25,8 @@ use function strlen;
  *
  * @phpstan-import-type SignatureHelp from ApiFacadeInterface
  * @phpstan-import-type SignatureParameter from ApiFacadeInterface
+ *
+ * @internal
  */
 final readonly class PhpInteropDocResolver
 {

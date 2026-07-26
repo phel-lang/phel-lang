@@ -14,6 +14,8 @@ use Phel\Shared\Api\ProjectIndex;
  * complete symbol table, and an empty list means "nothing to suggest", never
  * "nothing is in scope". Implementations must not throw on a source buffer
  * that fails to parse.
+ *
+ * @internal
  */
 interface PointCompleterInterface
 {

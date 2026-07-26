@@ -18,6 +18,8 @@ use function count;
  * fibers that finish or throw are dropped from the pool. Errors are
  * surfaced through the optional logger rather than propagated, so one
  * misbehaving client cannot take down the server.
+ *
+ * @internal
  */
 final class ClientFiberPool
 {

@@ -10,6 +10,9 @@ use RecursiveDirectoryIterator;
 use RecursiveIteratorIterator;
 use SplFileInfo;
 
+/**
+ * @internal
+ */
 final class PhelPathFilter implements PathFilterInterface
 {
     private const string PHEL_EXTENSION = 'phel';

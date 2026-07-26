@@ -9,6 +9,9 @@ use Gacela\Framework\Attribute\Provides;
 use Gacela\Framework\Config\ConfigReader\PhpConfigReader;
 use Gacela\Framework\Container\Container;
 
+/**
+ * @internal
+ */
 final class CommandProvider extends AbstractProvider
 {
     public const string PHP_CONFIG_READER = 'PHP_CONFIG_READER';

@@ -21,6 +21,8 @@ use const DIRECTORY_SEPARATOR;
  * The values come from Gacela's merged config, so they already reflect
  * `phel-config.php`, the optional `phel-config-local.php` override, and any
  * auto-detected zero-config defaults.
+ *
+ * @internal
  */
 final class EffectiveConfigReader
 {

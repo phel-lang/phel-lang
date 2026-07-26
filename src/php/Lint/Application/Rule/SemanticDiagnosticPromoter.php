@@ -14,6 +14,8 @@ use Phel\Shared\Api\Diagnostic;
  * Used by rules whose signal already flows through the shared
  * `FileAnalysis::$semanticDiagnostics` cache: they just pick the codes
  * they care about and rewrite the `code` field to the rule identifier.
+ *
+ * @internal
  */
 final class SemanticDiagnosticPromoter
 {

@@ -20,6 +20,9 @@ use function str_starts_with;
 use function strlen;
 use function substr;
 
+/**
+ * @internal
+ */
 final class DependenciesForNamespace
 {
     /**

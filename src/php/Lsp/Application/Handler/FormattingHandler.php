@@ -19,6 +19,8 @@ use function strlen;
 
 /**
  * @phpstan-import-type TextEdit from PositionConverter
+ *
+ * @internal
  */
 final readonly class FormattingHandler implements HandlerInterface
 {

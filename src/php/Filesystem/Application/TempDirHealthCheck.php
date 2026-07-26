@@ -20,6 +20,8 @@ use function sprintf;
  * directory is auto-created on first check (idempotently), mirroring
  * TempDirFinder's creation logic. It is kept separate from TempDirFinder so a
  * health probe can run without caching the resolved path on a finder instance.
+ *
+ * @internal
  */
 final readonly class TempDirHealthCheck implements ModuleHealthCheckInterface
 {

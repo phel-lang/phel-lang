@@ -20,6 +20,8 @@ use Phel\Lang\SourceLocation;
  * is computed lazily here, only on this path. In statement and return context
  * the IIFE is elided: the setup runs as plain statements and the result is
  * bracketed with the usual context prefix/suffix.
+ *
+ * @internal
  */
 final readonly class ContextualWrapEmitter
 {

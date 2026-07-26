@@ -11,6 +11,8 @@ use Phel\Shared\Api\Diagnostic;
 /**
  * Pipeline runner that executes each analysis stage in sequence,
  * accumulating diagnostics. Stages are pluggable via the constructor.
+ *
+ * @internal
  */
 final readonly class SourceAnalyzer implements SourceAnalyzerInterface
 {

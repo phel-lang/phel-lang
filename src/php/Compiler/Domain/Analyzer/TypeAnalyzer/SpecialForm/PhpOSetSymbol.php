@@ -11,6 +11,9 @@ use Phel\Compiler\Domain\Analyzer\Exceptions\AnalyzerException;
 use Phel\Compiler\Domain\Analyzer\TypeAnalyzer\WithAnalyzerTrait;
 use Phel\Lang\Collections\LinkedList\PersistentListInterface;
 
+/**
+ * @internal
+ */
 final class PhpOSetSymbol implements SpecialFormAnalyzerInterface
 {
     use WithAnalyzerTrait;

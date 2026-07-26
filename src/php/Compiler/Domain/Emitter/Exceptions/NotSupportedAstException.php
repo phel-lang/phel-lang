@@ -8,6 +8,9 @@ use RuntimeException;
 
 use function sprintf;
 
+/**
+ * @internal
+ */
 final class NotSupportedAstException extends RuntimeException
 {
     public static function withClassName(string $astNodeClassName): self

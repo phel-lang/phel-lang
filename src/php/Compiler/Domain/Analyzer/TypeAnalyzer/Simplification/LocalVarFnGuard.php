@@ -27,6 +27,8 @@ use function is_array;
  * The walker introspects each `AbstractNode` via `(array) $obj`, which
  * exposes every property value regardless of visibility, so it works
  * without enumerating every node subclass.
+ *
+ * @internal
  */
 final class LocalVarFnGuard
 {

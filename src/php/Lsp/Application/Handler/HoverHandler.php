@@ -18,6 +18,8 @@ use function sprintf;
 /**
  * Resolves a symbol under the cursor and returns its signature + docstring
  * formatted as a Markdown hover tooltip.
+ *
+ * @internal
  */
 final readonly class HoverHandler implements HandlerInterface
 {

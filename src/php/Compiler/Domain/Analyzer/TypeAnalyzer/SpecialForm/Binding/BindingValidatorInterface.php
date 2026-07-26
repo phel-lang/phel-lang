@@ -6,6 +6,9 @@ namespace Phel\Compiler\Domain\Analyzer\TypeAnalyzer\SpecialForm\Binding;
 
 use Phel\Compiler\Domain\Analyzer\Exceptions\AnalyzerException;
 
+/**
+ * @internal
+ */
 interface BindingValidatorInterface
 {
     /**

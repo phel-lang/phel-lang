@@ -21,6 +21,8 @@ use function is_int;
  * Skips when any arg is non-int (Phel core asserts int-only), when a shift
  * amount is negative (runtime error preserved), and when the op is `~` and
  * the arity is not 1.
+ *
+ * @internal
  */
 final readonly class LiteralBitwiseFolder
 {

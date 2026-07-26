@@ -15,6 +15,8 @@ use function is_null;
  * When the form's head matches {@see self::$symbol}, the first
  * {@see self::$index} value-nodes are treated as the form's "arguments" and
  * stay on the head line; everything after them is indented as a block.
+ *
+ * @internal
  */
 final readonly class BlockIndenter implements IndenterInterface
 {

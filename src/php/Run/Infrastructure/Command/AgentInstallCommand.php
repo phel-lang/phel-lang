@@ -20,6 +20,9 @@ use function is_file;
 use function is_string;
 use function sprintf;
 
+/**
+ * @internal
+ */
 final class AgentInstallCommand extends Command
 {
     private const string ARG_PLATFORM = 'platform';

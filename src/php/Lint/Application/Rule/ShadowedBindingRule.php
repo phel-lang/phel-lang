@@ -22,6 +22,8 @@ use function sprintf;
  * Flags new `let`/`fn`/`defn`/`for`/`foreach` bindings that shadow a
  * previously-bound local with the same name (outer scope still reachable, easy
  * foot-gun).
+ *
+ * @internal
  */
 final readonly class ShadowedBindingRule implements LintRuleInterface
 {

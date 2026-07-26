@@ -19,6 +19,9 @@ use function assert;
 use function count;
 use function is_int;
 
+/**
+ * @internal
+ */
 final class ApplyEmitter implements NodeEmitterInterface
 {
     use WithOutputEmitterTrait;

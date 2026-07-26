@@ -24,6 +24,8 @@ use function realpath;
  * A `data-readers.phel` file that depends on `phel\reader` relies on the
  * auto-loader evaluating reader first; callers are responsible for
  * sequencing the dependency bootstrap before calling `load()`.
+ *
+ * @internal
  */
 final readonly class DataReadersLoader
 {

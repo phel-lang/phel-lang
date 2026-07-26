@@ -6,6 +6,9 @@ namespace Phel\Api\Domain;
 
 use Phel\Lang\Collections\Map\PersistentMapInterface;
 
+/**
+ * @internal
+ */
 interface PhelFnLoaderInterface
 {
     /**

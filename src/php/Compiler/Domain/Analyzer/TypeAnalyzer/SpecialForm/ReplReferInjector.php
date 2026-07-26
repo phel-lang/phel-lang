@@ -10,6 +10,9 @@ use Phel\Lang\Symbol;
 use Phel\Shared\CompilerConstants;
 use Phel\Shared\ReplConstants;
 
+/**
+ * @internal
+ */
 final class ReplReferInjector
 {
     public static function injectIfReplMode(AnalyzerInterface $analyzer, string $ns): void

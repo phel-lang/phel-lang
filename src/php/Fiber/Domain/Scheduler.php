@@ -20,6 +20,8 @@ use function usleep;
  *
  * Usable as a process-wide singleton via {@see instance()} or injected as an
  * instance for tests.
+ *
+ * @internal
  */
 final class Scheduler
 {

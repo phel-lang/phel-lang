@@ -16,6 +16,8 @@ use function assert;
  *
  * Generates: new class($captured...) { properties; constructor; methods; }
  * Each method has access to captured locals via $this->property.
+ *
+ * @internal
  */
 final readonly class ReifyEmitter implements NodeEmitterInterface
 {

@@ -39,6 +39,8 @@ use function time;
 
 /**
  * @method RunFacade getFacade()
+ *
+ * @internal
  */
 #[ServiceMap(method: 'getFacade', className: RunFacade::class)]
 final class TestCommand extends Command

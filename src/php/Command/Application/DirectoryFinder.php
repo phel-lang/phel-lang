@@ -8,6 +8,9 @@ use Phel\Command\Domain\CodeDirectories;
 use Phel\Command\Domain\Finder\DirectoryFinderInterface;
 use Phel\Command\Domain\Finder\VendorDirectoriesFinderInterface;
 
+/**
+ * @internal
+ */
 final readonly class DirectoryFinder implements DirectoryFinderInterface
 {
     public function __construct(

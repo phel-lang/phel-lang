@@ -8,6 +8,9 @@ use Phel\Console\Domain\ConsoleCommandProviderInterface;
 use Phel\Nrepl\Infrastructure\Command\NreplCommand;
 use Symfony\Component\Console\Command\LazyCommand;
 
+/**
+ * @internal
+ */
 final class NreplCommands implements ConsoleCommandProviderInterface
 {
     public function lazyCommands(): array

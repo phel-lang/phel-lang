@@ -9,6 +9,8 @@ use Phel\Lang\Symbol;
 
 /**
  * @phpstan-type BindingTuple array{0: Symbol, 1: mixed}
+ *
+ * @internal
  */
 interface DeconstructorInterface
 {

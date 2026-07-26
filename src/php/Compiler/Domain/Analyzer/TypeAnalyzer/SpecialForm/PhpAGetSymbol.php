@@ -13,6 +13,8 @@ use Phel\Lang\Collections\LinkedList\PersistentListInterface;
  * (php/aget arr key).
  *
  * Gets a value from a PHP array by key.
+ *
+ * @internal
  */
 final class PhpAGetSymbol implements SpecialFormAnalyzerInterface
 {

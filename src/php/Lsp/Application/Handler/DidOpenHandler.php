@@ -9,6 +9,9 @@ use Phel\Lsp\Application\HandlerInterface;
 use Phel\Lsp\Application\Rpc\ParamsExtractor;
 use Phel\Lsp\Application\Session\Session;
 
+/**
+ * @internal
+ */
 final readonly class DidOpenHandler implements HandlerInterface
 {
     public function __construct(

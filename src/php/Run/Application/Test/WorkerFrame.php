@@ -32,6 +32,8 @@ use const STR_PAD_LEFT;
  * where the hex digits encode the byte length of the JSON payload. The
  * trailing newline after the header keeps frames human-readable when
  * pipes are tee'd to a log.
+ *
+ * @internal
  */
 final class WorkerFrame
 {

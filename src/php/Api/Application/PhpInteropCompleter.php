@@ -13,6 +13,8 @@ use Phel\Shared\Api\Completion;
  * {@see PhpInteropReflector} (what the resolved type offers). Returns null when
  * the cursor is not in a PHP-interop position, so callers fall back to the
  * normal Phel completion path.
+ *
+ * @internal
  */
 final readonly class PhpInteropCompleter
 {

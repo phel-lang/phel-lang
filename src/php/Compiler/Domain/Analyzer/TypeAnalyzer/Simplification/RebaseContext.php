@@ -15,6 +15,8 @@ use Phel\Lang\SourceLocation;
  * parameter-to-argument substitution map, and whether the walk is
  * currently inside the callee body (`true`) or an argument subtree
  * (`false`).
+ *
+ * @internal
  */
 final readonly class RebaseContext
 {

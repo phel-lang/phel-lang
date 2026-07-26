@@ -35,6 +35,8 @@ use function is_string;
  *     files: list<FileStamp>,
  *     infos: list<array{file: string, namespace: string, dependencies: list<string>, isPrimaryDefinition: bool}>
  * }
+ *
+ * @internal
  */
 final readonly class ScanIndexEntry
 {

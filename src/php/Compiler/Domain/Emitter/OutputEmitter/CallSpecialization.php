@@ -21,6 +21,8 @@ use function is_string;
  * emitter consult the same predicates so a specialised call never gets
  * an orphan `static $__phel_call_N` declaration reserved by the cache
  * scanner.
+ *
+ * @internal
  */
 final readonly class CallSpecialization
 {

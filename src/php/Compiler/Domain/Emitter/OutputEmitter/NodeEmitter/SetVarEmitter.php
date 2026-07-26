@@ -12,6 +12,9 @@ use Phel\Compiler\Domain\Emitter\OutputEmitter\PhpStringEscape;
 
 use function assert;
 
+/**
+ * @internal
+ */
 final class SetVarEmitter implements NodeEmitterInterface
 {
     use WithOutputEmitterTrait;

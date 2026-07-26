@@ -13,6 +13,8 @@ use Phel\Compiler\Domain\Emitter\OutputEmitterInterface;
  * `(nil? x)`, `(some? x)`, `(true? x)`, `(false? x)`, and `(truthy? x)`,
  * each inlined to the native identity check, bypassing the registry lookup
  * and the `id` adapter.
+ *
+ * @internal
  */
 final readonly class NilBooleanCallEmitter implements SpecializedCallEmitterInterface
 {

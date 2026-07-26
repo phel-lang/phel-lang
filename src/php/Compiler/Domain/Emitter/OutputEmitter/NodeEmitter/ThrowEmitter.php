@@ -12,6 +12,9 @@ use Phel\Compiler\Domain\Emitter\OutputEmitter\NodeEmitterInterface;
 
 use function assert;
 
+/**
+ * @internal
+ */
 final class ThrowEmitter implements NodeEmitterInterface
 {
     use WithOutputEmitterTrait;

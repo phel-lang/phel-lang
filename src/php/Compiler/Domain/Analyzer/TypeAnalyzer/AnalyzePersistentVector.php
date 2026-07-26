@@ -9,6 +9,9 @@ use Phel\Compiler\Domain\Analyzer\Environment\NodeEnvironmentInterface;
 use Phel\Lang\Collections\Vector\PersistentVectorInterface;
 use Phel\Lang\TypeInterface;
 
+/**
+ * @internal
+ */
 final class AnalyzePersistentVector
 {
     use WithAnalyzerTrait;

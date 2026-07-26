@@ -31,6 +31,8 @@ use function sprintf;
  *
  * A forward `(declare foo)` followed by the real definition is the normal
  * Lisp idiom and stays clean: `declare` only reserves the name.
+ *
+ * @internal
  */
 final readonly class DuplicateDefRule implements LintRuleInterface
 {

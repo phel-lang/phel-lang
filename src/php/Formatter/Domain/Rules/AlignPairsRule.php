@@ -25,6 +25,8 @@ use function in_array;
  *
  * Note: for / foreach / dofor use 3-tuple (binding :in coll) plus modifier
  * keywords and are intentionally excluded.
+ *
+ * @internal
  */
 final readonly class AlignPairsRule implements RuleInterface
 {

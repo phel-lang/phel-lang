@@ -19,6 +19,8 @@ use function realpath;
 /**
  * Expands a mix of files and directories on the CLI into a deduplicated
  * flat list of `.phel` file paths. Directories are walked recursively.
+ *
+ * @internal
  */
 final class FileCollector
 {

@@ -12,6 +12,9 @@ use Phel\Lang\TypeInterface;
 use Phel\Shared\Parser\Node\NodeInterface;
 use Phel\Shared\Parser\Node\QuoteNode;
 
+/**
+ * @internal
+ */
 final readonly class QuoasiquoteReader
 {
     public function __construct(

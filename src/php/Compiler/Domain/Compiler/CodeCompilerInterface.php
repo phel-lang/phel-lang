@@ -11,6 +11,9 @@ use Phel\Shared\Exceptions\CompiledCodeIsMalformedException;
 use Phel\Shared\Exceptions\CompilerException;
 use Phel\Shared\Exceptions\FileException;
 
+/**
+ * @internal
+ */
 interface CodeCompilerInterface
 {
     /**

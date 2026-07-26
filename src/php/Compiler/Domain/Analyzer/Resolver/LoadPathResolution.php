@@ -21,6 +21,8 @@ namespace Phel\Compiler\Domain\Analyzer\Resolver;
  *   laid out on the classpath. Empty for classpath-absolute loads.
  * - `isClasspathAbsolute`: true when the argument started with `/` and
  *   the lookup must search classpath roots without the caller prefix.
+ *
+ * @internal
  */
 final readonly class LoadPathResolution
 {

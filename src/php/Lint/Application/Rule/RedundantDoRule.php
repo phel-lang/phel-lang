@@ -19,6 +19,8 @@ use function count;
  * - a `do` with zero or one body form (returns nil / a single value)
  * - a `do` that is the sole expression inside another implicit-do
  *   position (`defn` body, `let` body, `fn` body, `when`, `try`, etc.)
+ *
+ * @internal
  */
 final readonly class RedundantDoRule implements LintRuleInterface
 {

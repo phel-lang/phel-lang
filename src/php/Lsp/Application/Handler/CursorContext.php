@@ -23,6 +23,8 @@ use Phel\Shared\Api\ProjectIndex;
  * `Rename`.
  *
  * @phpstan-import-type Position from PositionConverter
+ *
+ * @internal
  */
 final readonly class CursorContext
 {

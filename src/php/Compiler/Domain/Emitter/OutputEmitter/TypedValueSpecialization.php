@@ -23,6 +23,8 @@ use function in_array;
  * and keyword-find (`(:k m)`) — which
  * {@see NodeEmitter\CallEmitter}
  * lowers to a native check / accessor instead of a registry dispatch.
+ *
+ * @internal
  */
 final readonly class TypedValueSpecialization
 {

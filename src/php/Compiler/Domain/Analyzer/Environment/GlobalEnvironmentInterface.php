@@ -9,6 +9,9 @@ use Phel\Compiler\Domain\Analyzer\Ast\FnNodeInterface;
 use Phel\Lang\Collections\Map\PersistentMapInterface;
 use Phel\Lang\Symbol;
 
+/**
+ * @internal
+ */
 interface GlobalEnvironmentInterface
 {
     public function getNs(): string;

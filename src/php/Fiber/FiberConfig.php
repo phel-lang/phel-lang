@@ -14,6 +14,8 @@ use Gacela\Framework\AbstractConfig;
  * burn more CPU while idle-waiting, longer sleeps do the reverse. The default
  * of 500 microseconds balances the two; override it when a workload is
  * latency-sensitive or, conversely, mostly idle.
+ *
+ * @internal
  */
 final class FiberConfig extends AbstractConfig
 {

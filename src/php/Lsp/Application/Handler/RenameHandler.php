@@ -21,6 +21,8 @@ use function strlen;
  * call-sites plus the definition site itself.
  *
  * @phpstan-import-type TextEdit from PositionConverter
+ *
+ * @internal
  */
 final readonly class RenameHandler implements HandlerInterface
 {

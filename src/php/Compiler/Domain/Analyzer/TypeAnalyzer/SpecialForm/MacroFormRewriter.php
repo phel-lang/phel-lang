@@ -27,6 +27,8 @@ use function is_string;
  *
  * Both are idempotent / Clojure-style: a vector that already declares the
  * implicit params or its own `:tag` is left untouched (more local wins).
+ *
+ * @internal
  */
 final readonly class MacroFormRewriter
 {

@@ -9,6 +9,8 @@ namespace Phel\Build\Domain\Compile;
  * whether it was reused from the build cache.
  *
  * @phpstan-type SerializedBuildReportEntry array{namespace: string, bytes: int, cached: bool}
+ *
+ * @internal
  */
 final readonly class BuildReportEntry
 {

@@ -10,6 +10,8 @@ use Phel\Shared\Parser\Node\Token;
 /**
  * Parses regex literal tokens (#"pattern") into StringNode values
  * containing PCRE-compatible delimited patterns ("/pattern/").
+ *
+ * @internal
  */
 final class RegexParser
 {

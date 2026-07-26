@@ -14,6 +14,8 @@ use function in_array;
  * it — {@see ReturnTypeInferrer} (fn return types) and
  * {@see BindingTypeInferrer} (let/loop binding tags) — so the promotion rule
  * cannot drift between them.
+ *
+ * @internal
  */
 final class ArithmeticResultType
 {

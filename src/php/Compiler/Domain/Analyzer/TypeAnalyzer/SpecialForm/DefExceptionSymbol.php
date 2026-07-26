@@ -18,6 +18,8 @@ use function count;
  * (defexception Name).
  *
  * Defines a custom exception type extending RuntimeException.
+ *
+ * @internal
  */
 final class DefExceptionSymbol implements SpecialFormAnalyzerInterface
 {

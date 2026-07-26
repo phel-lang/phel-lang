@@ -12,6 +12,9 @@ use Phel\Compiler\Domain\Emitter\OutputEmitter\SourceMap\SourceMapState;
 use Phel\Lang\SourceLocation;
 use Phel\Lang\Symbol;
 
+/**
+ * @internal
+ */
 interface OutputEmitterInterface
 {
     public function pushConstantScope(ConstantScope $scope): void;

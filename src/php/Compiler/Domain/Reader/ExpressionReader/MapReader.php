@@ -11,6 +11,9 @@ use Phel\Lang\Collections\Map\PersistentMapInterface;
 use Phel\Shared\Parser\Node\ListNode;
 use Phel\Shared\Parser\Node\NodeInterface;
 
+/**
+ * @internal
+ */
 final readonly class MapReader
 {
     public function __construct(private ReaderInterface $reader) {}

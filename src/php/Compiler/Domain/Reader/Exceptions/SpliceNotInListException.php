@@ -6,4 +6,7 @@ namespace Phel\Compiler\Domain\Reader\Exceptions;
 
 use RuntimeException;
 
+/**
+ * @internal
+ */
 final class SpliceNotInListException extends RuntimeException {}

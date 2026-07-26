@@ -8,6 +8,8 @@ namespace Phel\Api\Transfer;
  * The PHP-interop completion context resolved at a cursor position: which kind
  * of interop is being typed, the receiver class (for member access), and the
  * partial token already typed.
+ *
+ * @internal
  */
 final readonly class PhpInteropContext
 {

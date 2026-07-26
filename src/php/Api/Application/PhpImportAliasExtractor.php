@@ -17,6 +17,8 @@ use function trim;
  * Extracts the `short-name => fully-qualified-name` table for PHP classes
  * imported via `(ns ... (:use Foo\Bar :as B))` or top-level `(use ...)`.
  * Detection is lexical so it keeps working on a mid-edit, unparseable buffer.
+ *
+ * @internal
  */
 final class PhpImportAliasExtractor
 {

@@ -19,6 +19,9 @@ use function in_array;
 use function is_string;
 use function ltrim;
 
+/**
+ * @internal
+ */
 final class LetEmitter implements NodeEmitterInterface
 {
     use LoweredMatchEmitterTrait;

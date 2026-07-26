@@ -11,6 +11,9 @@ use SplFileInfo;
 
 use function is_dir;
 
+/**
+ * @internal
+ */
 final readonly class CacheClearer
 {
     public function __construct(

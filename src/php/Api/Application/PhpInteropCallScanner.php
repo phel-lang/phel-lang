@@ -20,6 +20,8 @@ use function substr;
  * `( method ` segment, but balancing reports the innermost open call `c` and
  * its enclosing `php/->`/`php/::` form, together with the argument index the
  * caret sits on for `activeParameter`.
+ *
+ * @internal
  */
 final readonly class PhpInteropCallScanner
 {

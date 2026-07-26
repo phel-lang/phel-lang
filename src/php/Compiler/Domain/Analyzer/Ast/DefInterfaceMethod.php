@@ -9,6 +9,9 @@ use Phel\Lang\Symbol;
 use function array_slice;
 use function count;
 
+/**
+ * @internal
+ */
 final readonly class DefInterfaceMethod
 {
     /**

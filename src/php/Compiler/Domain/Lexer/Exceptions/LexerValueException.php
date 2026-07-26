@@ -8,6 +8,9 @@ use RuntimeException;
 
 use function sprintf;
 
+/**
+ * @internal
+ */
 final class LexerValueException extends RuntimeException
 {
     public static function unexpectedLexerState(string $file, int $line, int $column): self

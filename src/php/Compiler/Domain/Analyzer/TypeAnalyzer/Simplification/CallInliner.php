@@ -64,6 +64,8 @@ use function count;
  * Because the spliced nodes are already analysed (globals resolved,
  * macros expanded), inlining works across namespaces and never
  * re-enters the analyzer, so no re-resolution or re-expansion can occur.
+ *
+ * @internal
  */
 final readonly class CallInliner
 {

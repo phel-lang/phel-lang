@@ -27,6 +27,8 @@ use const TOKEN_PARSE;
  * files, and {@see CacheDirectory} owns the directory layout.
  *
  * @phpstan-import-type CacheEntry from CacheIndexFile
+ *
+ * @internal
  */
 final class CompiledCodeCache implements CompiledCodeCacheInterface
 {

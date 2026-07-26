@@ -14,6 +14,8 @@ use function sprintf;
  * walked for them, cannot be read. Skipping it instead would report the input
  * as clean and let `phel lint` exit 0, so a permission problem or a path
  * removed mid-run would look like a passing lint.
+ *
+ * @internal
  */
 final class LintSourceException extends RuntimeException
 {

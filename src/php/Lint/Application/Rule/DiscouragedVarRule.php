@@ -30,6 +30,8 @@ use function sprintf;
  *
  * The definition's own name is not a "use" of it, so the defining form is
  * skipped; otherwise deprecating something would flag its own declaration.
+ *
+ * @internal
  */
 final readonly class DiscouragedVarRule implements LintRuleInterface
 {

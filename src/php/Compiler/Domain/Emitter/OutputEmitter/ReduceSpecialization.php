@@ -15,6 +15,8 @@ use function count;
  * tagged `v` as a `PersistentVectorInterface`, which
  * {@see NodeEmitter\Specialized\ReduceCallEmitter} lowers to a native
  * `foreach` with the step fn hoisted out of the loop.
+ *
+ * @internal
  */
 final readonly class ReduceSpecialization
 {

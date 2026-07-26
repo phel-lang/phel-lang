@@ -16,6 +16,8 @@ use function get_defined_functions;
  * - Replace the previous static-field caching inside `ReplCompleter`
  *   so each REPL completer can be constructed in isolation and tested
  *   without leaking state across cases.
+ *
+ * @internal
  */
 final class PhpSymbolCatalog
 {

@@ -20,6 +20,8 @@ use function strlen;
  * under a common column (longest key + 1 space). Only touches pairs that span
  * multiple lines and have a simple (no newline/comment) gap between key and
  * value.
+ *
+ * @internal
  */
 final readonly class PairAligner
 {

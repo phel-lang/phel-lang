@@ -7,6 +7,9 @@ namespace Phel\Build\Infrastructure\Cache;
 use Phel\Build\Domain\Cache\NamespaceCacheEntry;
 use Phel\Build\Domain\Cache\NamespaceCacheInterface;
 
+/**
+ * @internal
+ */
 final class NullNamespaceCache implements NamespaceCacheInterface
 {
     public function get(string $file): ?NamespaceCacheEntry

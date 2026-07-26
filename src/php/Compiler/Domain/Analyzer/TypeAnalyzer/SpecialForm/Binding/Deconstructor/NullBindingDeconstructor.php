@@ -8,6 +8,8 @@ use Phel\Compiler\Domain\Analyzer\TypeAnalyzer\SpecialForm\Binding\Deconstructor
 
 /**
  * @phpstan-import-type BindingTuple from DeconstructorInterface
+ *
+ * @internal
  */
 final class NullBindingDeconstructor implements BindingDeconstructorInterface
 {

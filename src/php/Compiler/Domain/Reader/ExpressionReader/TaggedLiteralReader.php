@@ -30,6 +30,8 @@ use function sprintf;
  * via the global `TagRegistry`, which hosts both the built-in handlers
  * (`#uuid`, `#inst`, `#regex`) and any user-registered handlers added at
  * runtime through `(register-tag ...)`.
+ *
+ * @internal
  */
 final readonly class TaggedLiteralReader
 {

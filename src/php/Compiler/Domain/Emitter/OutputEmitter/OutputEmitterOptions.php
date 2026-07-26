@@ -4,6 +4,9 @@ declare(strict_types=1);
 
 namespace Phel\Compiler\Domain\Emitter\OutputEmitter;
 
+/**
+ * @internal
+ */
 final readonly class OutputEmitterOptions
 {
     public function __construct(

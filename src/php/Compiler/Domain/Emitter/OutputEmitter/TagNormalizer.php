@@ -15,6 +15,8 @@ use function ltrim;
  * the call-site specialisations. A tag is the FQN string the analyser
  * grafts onto a binding's `:tag` meta; it may carry a leading backslash,
  * so consumers compare against the normalised form.
+ *
+ * @internal
  */
 final readonly class TagNormalizer
 {

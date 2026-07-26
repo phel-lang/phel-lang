@@ -12,6 +12,9 @@ use Phel\Formatter\FormatterFacade;
 use Phel\Lint\LintFacade;
 use Phel\Run\RunFacade;
 
+/**
+ * @internal
+ */
 final class LspProvider extends AbstractProvider
 {
     public const string FACADE_API = 'FACADE_API';

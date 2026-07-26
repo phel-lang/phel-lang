@@ -15,6 +15,8 @@ use const JSON_UNESCAPED_SLASHES;
 /**
  * Stable JSON array of diagnostic objects.
  * Keys match `Diagnostic::toArray()` for editor/CI consumption.
+ *
+ * @internal
  */
 final class JsonFormatter implements DiagnosticFormatterInterface
 {

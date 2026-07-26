@@ -21,6 +21,8 @@ use function count;
  *
  * The first argument is bound to PHP's $this via a let binding.
  * Shared by DefStructSymbol (for interface methods) and ReifySymbol (for protocol methods).
+ *
+ * @internal
  */
 final readonly class MethodBodyAnalyzer
 {

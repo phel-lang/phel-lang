@@ -6,6 +6,9 @@ namespace Phel\Lsp\Application;
 
 use Phel\Lsp\Application\Session\Session;
 
+/**
+ * @internal
+ */
 interface HandlerInterface
 {
     /**

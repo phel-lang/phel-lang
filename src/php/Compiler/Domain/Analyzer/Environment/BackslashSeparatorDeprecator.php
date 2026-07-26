@@ -25,6 +25,8 @@ use function str_starts_with;
  * through `SymbolResolver::resolve()` — call sites and qualified refs.
  * `ns`, `:require`, `:use`, and related forms are tracked as follow-ups
  * in https://github.com/phel-lang/phel-lang/issues/1567.
+ *
+ * @internal
  */
 final class BackslashSeparatorDeprecator
 {

@@ -28,6 +28,8 @@ use function array_any;
  * It **fails closed**: a node whose shape {@see NodeChildren} does not recognise
  * is assumed to possibly yield, so the wrapper is kept. Under-recognising only
  * costs an unnecessary IIFE; it can never silently misplace a generator boundary.
+ *
+ * @internal
  */
 final class YieldDetector
 {

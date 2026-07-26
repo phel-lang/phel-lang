@@ -8,6 +8,8 @@ namespace Phel\Lsp\Domain;
  * Abstraction for handlers that need to push notifications back to the client
  * (e.g. diagnostics, log messages). The concrete implementation wires this
  * through the transport; unit tests can capture notifications in-memory.
+ *
+ * @internal
  */
 interface NotificationSink
 {

@@ -8,6 +8,9 @@ use Phel\Console\Domain\ConsoleCommandProviderInterface;
 use Phel\Formatter\Infrastructure\Command\FormatCommand;
 use Symfony\Component\Console\Command\LazyCommand;
 
+/**
+ * @internal
+ */
 final class FormatterCommands implements ConsoleCommandProviderInterface
 {
     public function lazyCommands(): array

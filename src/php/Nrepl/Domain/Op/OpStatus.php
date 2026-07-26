@@ -9,6 +9,8 @@ namespace Phel\Nrepl\Domain\Op;
  *
  * Centralising these tokens prevents typos and drift between handlers
  * — every op can reuse the same constants for the final response frames.
+ *
+ * @internal
  */
 final class OpStatus
 {

@@ -10,6 +10,8 @@ namespace Phel\Profile\Domain;
  * (in milliseconds), and the total wall-clock time in milliseconds.
  *
  * @phpstan-type FnStat array{calls:int, totalNs:int, selfNs:int, maxNs:int}
+ *
+ * @internal
  */
 final readonly class ProfileReport
 {

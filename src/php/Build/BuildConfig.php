@@ -11,6 +11,9 @@ use Phel\Shared\CompileOptions;
 use Phel\Shared\PhelProjectDirectory;
 use Phel\Shared\ScalarCoercion;
 
+/**
+ * @internal
+ */
 final class BuildConfig extends AbstractConfig implements BuildConfigInterface
 {
     /**

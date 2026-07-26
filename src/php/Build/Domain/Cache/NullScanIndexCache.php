@@ -10,6 +10,8 @@ namespace Phel\Build\Domain\Cache;
  * `Domain` rather than next to `PhpScanIndexCache` because it has no
  * infrastructure concern at all, and `Application` must not reach outward
  * into `Infrastructure` just to get a no-op.
+ *
+ * @internal
  */
 final class NullScanIndexCache implements ScanIndexCacheInterface
 {

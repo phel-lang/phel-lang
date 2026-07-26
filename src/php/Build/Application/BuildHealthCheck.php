@@ -13,6 +13,9 @@ use function is_dir;
 use function is_writable;
 use function sprintf;
 
+/**
+ * @internal
+ */
 final readonly class BuildHealthCheck implements ModuleHealthCheckInterface
 {
     /**

@@ -10,6 +10,9 @@ use Phel\Lang\Symbol;
 use function array_key_exists;
 use function count;
 
+/**
+ * @internal
+ */
 final class NodeEnvironment implements NodeEnvironmentInterface
 {
     public const string CONTEXT_EXPRESSION = 'expression';

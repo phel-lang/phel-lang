@@ -10,6 +10,9 @@ use Phel\Shared\Facade\CommandFacadeInterface;
 use function sort;
 use function str_starts_with;
 
+/**
+ * @internal
+ */
 final readonly class BundledNamespaces
 {
     /**

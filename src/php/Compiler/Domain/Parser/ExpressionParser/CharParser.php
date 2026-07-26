@@ -22,6 +22,8 @@ use function substr;
  * Assumes the token source matches the lexer's char-literal rule: that is,
  * `\<named>`, `\u<4 hex>`, `\o<1-3 octal>`, or `\<single char>`. The lexer is
  * the single source of validation; this parser only decodes.
+ *
+ * @internal
  */
 final class CharParser
 {

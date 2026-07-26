@@ -10,6 +10,8 @@ use function array_slice;
  * Mutable state for a single nREPL session: the current namespace scope and a
  * small ring of the most recently evaluated values, surfaced to clients as
  * `*1`/`*2`/`*3`.
+ *
+ * @internal
  */
 final class Session
 {

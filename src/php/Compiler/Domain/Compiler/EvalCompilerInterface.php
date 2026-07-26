@@ -8,6 +8,9 @@ use Phel\Compiler\Domain\Parser\Exceptions\UnfinishedParserException;
 use Phel\Shared\CompileOptions;
 use Phel\Shared\Exceptions\CompilerException;
 
+/**
+ * @internal
+ */
 interface EvalCompilerInterface
 {
     /**

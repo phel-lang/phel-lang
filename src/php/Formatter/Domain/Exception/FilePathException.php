@@ -8,6 +8,9 @@ use RuntimeException;
 
 use function sprintf;
 
+/**
+ * @internal
+ */
 final class FilePathException extends RuntimeException
 {
     public static function directoryFound(string $filename): self

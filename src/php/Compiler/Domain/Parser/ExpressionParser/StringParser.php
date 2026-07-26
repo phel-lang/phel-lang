@@ -10,6 +10,9 @@ use Phel\Shared\Parser\Node\Token;
 
 use function chr;
 
+/**
+ * @internal
+ */
 final class StringParser
 {
     private const string ESCAPE_SEQUENCE_PATTERN = '~\\\\([\\\\$nrtfve]|[xX][0-9a-fA-F]{1,2}|[0-7]{1,3}|u\{([0-9a-fA-F]+)\}|u([0-9a-fA-F]{4}))~';

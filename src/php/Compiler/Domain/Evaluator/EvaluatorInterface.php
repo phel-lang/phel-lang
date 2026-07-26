@@ -7,6 +7,9 @@ namespace Phel\Compiler\Domain\Evaluator;
 use Phel\Shared\Exceptions\CompiledCodeIsMalformedException;
 use Phel\Shared\Exceptions\FileException;
 
+/**
+ * @internal
+ */
 interface EvaluatorInterface
 {
     /**

@@ -23,6 +23,9 @@ use function str_contains;
 use function str_replace;
 use function trait_exists;
 
+/**
+ * @internal
+ */
 final readonly class UseAliasRegistrar
 {
     public function __construct(private AnalyzerInterface $analyzer) {}

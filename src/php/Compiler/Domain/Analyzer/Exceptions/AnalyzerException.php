@@ -22,6 +22,9 @@ use function is_int;
 use function is_string;
 use function sprintf;
 
+/**
+ * @internal
+ */
 final class AnalyzerException extends AbstractLocatedException
 {
     public static function withLocation(string $message, TypeInterface $type, ?Exception $nested = null): self

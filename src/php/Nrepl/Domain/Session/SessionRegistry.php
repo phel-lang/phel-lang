@@ -7,6 +7,9 @@ namespace Phel\Nrepl\Domain\Session;
 use function bin2hex;
 use function random_bytes;
 
+/**
+ * @internal
+ */
 final class SessionRegistry
 {
     /** @var array<string, Session> */

@@ -6,6 +6,9 @@ namespace Phel\Nrepl;
 
 use Gacela\Framework\AbstractConfig;
 
+/**
+ * @internal
+ */
 final class NreplConfig extends AbstractConfig
 {
     private const int DEFAULT_PORT = 7888;

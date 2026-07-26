@@ -103,6 +103,8 @@ use Phel\Compiler\Domain\Emitter\OutputEmitterInterface;
  * closure-helper instances across calls, while a different OutputEmitter
  * gets a fresh set. This keeps stateful collaborators bound to the emitter
  * that owns them without leaking instances between unrelated emitters.
+ *
+ * @internal
  */
 final class NodeEmitterFactory
 {

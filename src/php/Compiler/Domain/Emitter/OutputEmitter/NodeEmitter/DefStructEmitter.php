@@ -18,6 +18,9 @@ use function assert;
 use function count;
 use function implode;
 
+/**
+ * @internal
+ */
 final readonly class DefStructEmitter implements NodeEmitterInterface
 {
     use EvalGuardedEmitterTrait;

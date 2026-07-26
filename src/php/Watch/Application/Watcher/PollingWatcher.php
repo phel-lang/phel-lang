@@ -16,6 +16,8 @@ use Phel\Watch\Transfer\WatchEvent;
  * invocation (which stops editor-save-induced double triggers).
  *
  * @phpstan-import-type FileStat from FileSystemScannerInterface
+ *
+ * @internal
  */
 final class PollingWatcher implements FileWatcherInterface
 {

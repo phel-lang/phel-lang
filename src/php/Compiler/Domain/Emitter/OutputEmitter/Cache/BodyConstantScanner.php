@@ -44,6 +44,8 @@ use Phel\Lang\Keyword;
  * global-fn call site when call-site caching is enabled. Stops at nested
  * function boundaries (FnNode / MultiFnNode / ReifyNode method bodies)
  * because each has its own static scope.
+ *
+ * @internal
  */
 final readonly class BodyConstantScanner
 {

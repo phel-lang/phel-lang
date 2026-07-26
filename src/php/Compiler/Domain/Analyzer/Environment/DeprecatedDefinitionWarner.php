@@ -33,6 +33,8 @@ use function sprintf;
  * Detection only: the enabled gate, the bundled-stdlib suppression, the
  * per-`(file, symbol)` dedup, and the macro-expansion attribution belong to
  * {@see DeprecationWarnings}.
+ *
+ * @internal
  */
 final class DeprecatedDefinitionWarner
 {

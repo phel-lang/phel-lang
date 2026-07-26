@@ -15,6 +15,9 @@ use Phel\Shared\Facade\ApiFacadeInterface;
 use function str_ends_with;
 use function strtolower;
 
+/**
+ * @internal
+ */
 final readonly class DidSaveHandler implements HandlerInterface
 {
     public function __construct(

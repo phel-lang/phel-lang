@@ -6,6 +6,9 @@ namespace Phel\Compiler\Domain\Parser\ReadModel;
 
 use Phel\Shared\Parser\ReadModel\CodeSnippet;
 
+/**
+ * @internal
+ */
 final readonly class ReaderResult
 {
     public function __construct(

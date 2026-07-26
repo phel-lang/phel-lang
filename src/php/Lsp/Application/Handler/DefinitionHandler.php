@@ -14,6 +14,9 @@ use Phel\Shared\Facade\ApiFacadeInterface;
 
 use function str_contains;
 
+/**
+ * @internal
+ */
 final readonly class DefinitionHandler implements HandlerInterface
 {
     public function __construct(

@@ -14,6 +14,8 @@ use function assert;
  * Emits a `(... :& :name value)` argument as a PHP 8 named argument
  * `name: <value>`. The parameter name is emitted verbatim, so the keyword
  * must match the PHP parameter name exactly (like interop method names).
+ *
+ * @internal
  */
 final class PhpNamedArgEmitter implements NodeEmitterInterface
 {

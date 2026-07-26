@@ -18,6 +18,8 @@ use function preg_match;
  * (a whole namespace) or `phel\repl/run-test` (a single test when the `var`
  * param is set). Editors bind this to "run namespace tests" / "run test under
  * cursor" shortcuts.
+ *
+ * @internal
  */
 final readonly class RunTestsOp implements OpHandlerInterface
 {

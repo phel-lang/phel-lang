@@ -24,6 +24,8 @@ use function trim;
  * {@see $phelFunctionsLoaded} is set so subsequent calls reuse the registry.
  * PHP builtin symbols are cached eagerly in the {@see PhpSymbolCatalog} created
  * in the constructor.
+ *
+ * @internal
  */
 final class ReplCompleter implements ReplCompleterInterface
 {

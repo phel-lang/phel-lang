@@ -14,6 +14,8 @@ namespace Phel\HttpClient;
  * multi-valued header must read the raw lines themselves. Redirect chains are
  * handled by resetting status/version/reason on each new HTTP status line
  * encountered.
+ *
+ * @internal
  */
 final class ResponseParser
 {

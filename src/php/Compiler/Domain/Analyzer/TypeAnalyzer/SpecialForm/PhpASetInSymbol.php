@@ -16,6 +16,8 @@ use function assert;
  * (php/aset-in arr key1 key2 ... value).
  *
  * Sets a nested value in a PHP array.
+ *
+ * @internal
  */
 final class PhpASetInSymbol implements SpecialFormAnalyzerInterface
 {

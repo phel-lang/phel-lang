@@ -9,6 +9,8 @@ use function array_slice;
 /**
  * Builds the shell command `phel test --watch` re-executes on every change:
  * the original invocation with the `--watch` flag removed, fully escaped.
+ *
+ * @internal
  */
 final readonly class WatchRerunCommandBuilder
 {

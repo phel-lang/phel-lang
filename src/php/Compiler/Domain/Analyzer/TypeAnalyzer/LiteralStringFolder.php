@@ -22,6 +22,8 @@ use function is_string;
  * holding a primitive `string`. Mixed-type calls such as `(= "1" 1)` stay
  * un-folded and route through the runtime equality dispatcher, so this folder
  * never has to reproduce cross-type `=` semantics.
+ *
+ * @internal
  */
 final readonly class LiteralStringFolder
 {

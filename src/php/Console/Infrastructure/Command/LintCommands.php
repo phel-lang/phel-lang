@@ -8,6 +8,9 @@ use Phel\Console\Domain\ConsoleCommandProviderInterface;
 use Phel\Lint\Infrastructure\Command\LintCommand;
 use Symfony\Component\Console\Command\LazyCommand;
 
+/**
+ * @internal
+ */
 final class LintCommands implements ConsoleCommandProviderInterface
 {
     public function lazyCommands(): array

@@ -8,6 +8,9 @@ use Phel\Compiler\Domain\Analyzer\Ast\AbstractNode;
 use Phel\Compiler\Domain\Emitter\OutputEmitter\SourceMap\SourceMapGenerator;
 use RuntimeException;
 
+/**
+ * @internal
+ */
 final class FileEmitter implements FileEmitterInterface
 {
     private string $phpCode = '';

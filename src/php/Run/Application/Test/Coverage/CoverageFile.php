@@ -11,6 +11,8 @@ use function sort;
 /**
  * Per-`.phel`-file coverage: which source lines are coverable (have compiled
  * output) and which of those executed during the test run.
+ *
+ * @internal
  */
 final readonly class CoverageFile
 {

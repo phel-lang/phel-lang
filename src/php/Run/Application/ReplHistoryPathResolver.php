@@ -10,6 +10,8 @@ use const DIRECTORY_SEPARATOR;
 
 /**
  * Resolves the REPL history path under `<projectRoot>/.phel/repl-history`.
+ *
+ * @internal
  */
 final readonly class ReplHistoryPathResolver
 {

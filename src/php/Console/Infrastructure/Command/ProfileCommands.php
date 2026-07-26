@@ -8,6 +8,9 @@ use Phel\Console\Domain\ConsoleCommandProviderInterface;
 use Phel\Profile\Infrastructure\Command\ProfileCommand;
 use Symfony\Component\Console\Command\LazyCommand;
 
+/**
+ * @internal
+ */
 final class ProfileCommands implements ConsoleCommandProviderInterface
 {
     public function lazyCommands(): array

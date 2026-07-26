@@ -13,6 +13,8 @@ use Phel\Shared\NamespaceInformation;
  *
  * @phpstan-type SerializedNamespaceCacheEntry array{mtime: int, namespace: string, dependencies: list<string>, isPrimaryDefinition: bool}
  * @phpstan-type PartialNamespaceCacheEntry array{mtime: int, namespace: string, dependencies: list<string>, isPrimaryDefinition?: bool}
+ *
+ * @internal
  */
 final readonly class NamespaceCacheEntry
 {

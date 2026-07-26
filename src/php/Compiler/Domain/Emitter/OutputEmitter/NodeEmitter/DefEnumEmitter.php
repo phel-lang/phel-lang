@@ -15,6 +15,9 @@ use Phel\Shared\PhpAttributeRenderer;
 use function assert;
 use function var_export;
 
+/**
+ * @internal
+ */
 final readonly class DefEnumEmitter implements NodeEmitterInterface
 {
     use EvalGuardedEmitterTrait;

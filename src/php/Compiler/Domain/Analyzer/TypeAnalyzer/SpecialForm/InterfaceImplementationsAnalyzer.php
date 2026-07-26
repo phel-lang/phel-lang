@@ -24,6 +24,8 @@ use function sprintf;
  * a sequence of interface symbols (each followed by impls for every method the
  * interface declares, validated against reflection) and `:php` blocks of bare
  * methods emitted directly on the generated class.
+ *
+ * @internal
  */
 final readonly class InterfaceImplementationsAnalyzer
 {

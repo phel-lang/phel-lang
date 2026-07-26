@@ -31,6 +31,8 @@ use function sprintf;
  * v1 index stores formatted signatures, not parsed parameter lists.
  *
  * @phpstan-type ArityRange array{min:int, max:int}
+ *
+ * @internal
  */
 final readonly class ArityMismatchRule implements LintRuleInterface
 {

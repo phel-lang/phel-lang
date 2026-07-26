@@ -20,6 +20,8 @@ use function count;
  * (foreach [binding collection] body).
  *
  * Iterates over a collection for side effects.
+ *
+ * @internal
  */
 final class ForeachSymbol implements SpecialFormAnalyzerInterface
 {

@@ -4,6 +4,9 @@ declare(strict_types=1);
 
 namespace Phel\Run\Domain\Runner;
 
+/**
+ * @internal
+ */
 interface NamespaceRunnerInterface
 {
     public function run(string $namespace): void;

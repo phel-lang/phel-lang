@@ -10,6 +10,9 @@ use Gacela\Framework\Container\Container;
 use Phel\Compiler\CompilerFacade;
 use Phel\Run\RunFacade;
 
+/**
+ * @internal
+ */
 final class ApiProvider extends AbstractProvider
 {
     public const string FACADE_RUN = 'FACADE_RUN';

@@ -6,6 +6,9 @@ namespace Phel\Compiler\Domain\Reader;
 
 use Phel\Lang\TypeInterface;
 
+/**
+ * @internal
+ */
 interface QuasiquoteTransformerInterface
 {
     /**

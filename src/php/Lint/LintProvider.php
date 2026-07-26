@@ -12,6 +12,9 @@ use Phel\Command\CommandFacade;
 use Phel\Compiler\CompilerFacade;
 use Phel\Run\RunFacade;
 
+/**
+ * @internal
+ */
 final class LintProvider extends AbstractProvider
 {
     public const string FACADE_API = 'FACADE_API';

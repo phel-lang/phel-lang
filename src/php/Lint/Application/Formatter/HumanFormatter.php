@@ -15,6 +15,8 @@ use function sprintf;
  * Human-readable single-line-per-diagnostic format:
  *
  *     file:line:col severity code message
+ *
+ * @internal
  */
 final class HumanFormatter implements DiagnosticFormatterInterface
 {

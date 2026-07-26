@@ -15,6 +15,9 @@ use function is_string;
 use function sprintf;
 use function strlen;
 
+/**
+ * @internal
+ */
 final readonly class ExceptionArgsPrinter implements ExceptionArgsPrinterInterface
 {
     private const int MAX_ARG_LENGTH = 200;

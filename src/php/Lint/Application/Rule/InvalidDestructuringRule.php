@@ -23,6 +23,8 @@ use function in_array;
  *   (one value missing its name).
  * - Variadic marker `&` appearing in an invalid position (anything but
  *   exactly one-symbol-before-the-end).
+ *
+ * @internal
  */
 final readonly class InvalidDestructuringRule implements LintRuleInterface
 {

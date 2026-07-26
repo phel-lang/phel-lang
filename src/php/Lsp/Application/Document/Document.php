@@ -20,6 +20,8 @@ use function strlen;
  *
  * @phpstan-import-type Position from PositionConverter
  * @phpstan-import-type Range from PositionConverter
+ *
+ * @internal
  */
 final class Document
 {

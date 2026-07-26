@@ -13,6 +13,9 @@ use Phel\Lang\Symbol;
 use function assert;
 use function count;
 
+/**
+ * @internal
+ */
 final readonly class FnAsClassEmitter implements NodeEmitterInterface
 {
     public function __construct(

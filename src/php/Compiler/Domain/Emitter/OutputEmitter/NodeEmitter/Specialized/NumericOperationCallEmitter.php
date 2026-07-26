@@ -17,6 +17,8 @@ use function count;
  * numeric locals, and the two-arg arithmetic / comparison binary ops. Each
  * collapses the `NumericOperations` polymorphic dispatch to native PHP
  * operators when the analyser has proven the operands primitive.
+ *
+ * @internal
  */
 final readonly class NumericOperationCallEmitter implements SpecializedCallEmitterInterface
 {

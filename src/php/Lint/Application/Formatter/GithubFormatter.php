@@ -18,6 +18,8 @@ use function str_replace;
  *
  * One diagnostic per line. Values are sanitised per the GitHub spec:
  * `%`, `\r`, `\n` in messages are percent-encoded.
+ *
+ * @internal
  */
 final class GithubFormatter implements DiagnosticFormatterInterface
 {

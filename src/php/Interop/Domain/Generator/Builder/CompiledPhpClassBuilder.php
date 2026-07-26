@@ -6,6 +6,9 @@ namespace Phel\Interop\Domain\Generator\Builder;
 
 use Phel\Interop\Domain\ReadModel\FunctionToExport;
 
+/**
+ * @internal
+ */
 final readonly class CompiledPhpClassBuilder
 {
     public function __construct(

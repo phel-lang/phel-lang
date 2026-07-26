@@ -9,6 +9,9 @@ use Phel\Shared\Facade\BuildFacadeInterface;
 use Phel\Shared\Facade\CommandFacadeInterface;
 use Phel\Shared\NamespaceInformation;
 
+/**
+ * @internal
+ */
 final readonly class NamespacesLoader implements NamespacesLoaderInterface
 {
     public function __construct(

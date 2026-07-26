@@ -25,6 +25,8 @@ use function substr;
  * Conservative on purpose: only forms with a hard PHP-level bool
  * guarantee are recognised. Anything else routes through the legacy
  * truthy wrap to preserve `nil`/`false`/anything-else semantics.
+ *
+ * @internal
  */
 final class BooleanExprDetector
 {

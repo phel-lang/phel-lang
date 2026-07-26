@@ -4,6 +4,9 @@ declare(strict_types=1);
 
 namespace Phel\Compiler\Domain\Analyzer\Environment;
 
+/**
+ * @internal
+ */
 interface ContextualEnvironmentInterface
 {
     public function getContext(): string;

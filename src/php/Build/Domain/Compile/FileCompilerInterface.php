@@ -6,6 +6,9 @@ namespace Phel\Build\Domain\Compile;
 
 use Phel\Shared\CompiledFile;
 
+/**
+ * @internal
+ */
 interface FileCompilerInterface
 {
     /**

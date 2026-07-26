@@ -8,6 +8,9 @@ use Phel\Lang\SourceLocation;
 
 use function dirname;
 
+/**
+ * @internal
+ */
 final class MagicConstantResolver
 {
     public function resolveFile(?SourceLocation $sl): ?string

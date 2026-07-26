@@ -21,6 +21,8 @@ use function sprintf;
  * alias and referred symbols are never mentioned anywhere else in the file.
  *
  * @phpstan-type RequireEntry array{alias:string, refers:list<string>, display:string, anchor: bool|float|int|string|TypeInterface|null}
+ *
+ * @internal
  */
 final readonly class UnusedRequireRule implements LintRuleInterface
 {

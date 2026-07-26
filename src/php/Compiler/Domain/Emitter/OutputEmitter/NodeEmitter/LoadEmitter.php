@@ -26,6 +26,8 @@ use function dirname;
  * For classpath-absolute `(load "/foo/bar")` the sibling step is
  * skipped — classpath-absolute loads must resolve against the
  * configured roots.
+ *
+ * @internal
  */
 final class LoadEmitter implements NodeEmitterInterface
 {

@@ -9,6 +9,8 @@ use Phel\Watch\Transfer\WatchEvent;
 /**
  * Handles the "on-change" side effects: resolve namespace, reload dependency
  * chain, re-run `:on-reload` tests, publish an event, re-index for tooling.
+ *
+ * @internal
  */
 interface ReloadOrchestratorInterface
 {

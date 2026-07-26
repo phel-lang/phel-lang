@@ -9,6 +9,9 @@ use Phel\Shared\Munge;
 
 use function sprintf;
 
+/**
+ * @internal
+ */
 final readonly class ReplPrompt
 {
     private const string DEFAULT_NAMESPACE = 'user';

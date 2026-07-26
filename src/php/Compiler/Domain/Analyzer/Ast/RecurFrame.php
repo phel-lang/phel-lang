@@ -6,6 +6,9 @@ namespace Phel\Compiler\Domain\Analyzer\Ast;
 
 use Phel\Lang\Symbol;
 
+/**
+ * @internal
+ */
 final class RecurFrame
 {
     private bool $isActive = false;

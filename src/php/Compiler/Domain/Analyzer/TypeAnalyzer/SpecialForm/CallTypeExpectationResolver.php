@@ -26,6 +26,8 @@ use function strlen;
  * "what scalar expectation (if any) does this call shape imply, and does it
  * guard its args?". The walker and its mutable observation state live in the
  * inferrer; everything here is a pure function of the node graph.
+ *
+ * @internal
  */
 final readonly class CallTypeExpectationResolver
 {

@@ -19,6 +19,8 @@ use function trim;
  * file and the shared `.agents/` docs tree. Pure orchestration with no console
  * dependency, so it can be unit-tested directly; the command renders the
  * outcome it returns.
+ *
+ * @internal
  */
 final readonly class AgentInstaller
 {

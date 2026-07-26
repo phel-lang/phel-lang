@@ -8,6 +8,8 @@ namespace Phel\Api\Transfer;
  * A reflected PHP callable signature: the rendered `name(params): return` label,
  * the per-parameter label substrings (so an editor can highlight the active
  * argument), and the cleaned phpdoc, if any.
+ *
+ * @internal
  */
 final readonly class PhpInteropSignature
 {

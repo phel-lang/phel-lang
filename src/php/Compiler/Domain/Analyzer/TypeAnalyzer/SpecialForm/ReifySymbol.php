@@ -17,6 +17,8 @@ use function count;
  *
  * Creates an anonymous object with named methods. Used by the `reify` macro
  * which handles protocol dispatch registration.
+ *
+ * @internal
  */
 final readonly class ReifySymbol implements SpecialFormAnalyzerInterface
 {

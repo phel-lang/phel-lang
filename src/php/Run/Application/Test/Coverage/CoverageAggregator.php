@@ -18,6 +18,8 @@ use function str_starts_with;
  * compiled output), so a loaded-but-unexercised function still counts toward
  * the denominator. Only files under the project source directories are kept;
  * vendor and the bundled core library are excluded.
+ *
+ * @internal
  */
 final readonly class CoverageAggregator
 {

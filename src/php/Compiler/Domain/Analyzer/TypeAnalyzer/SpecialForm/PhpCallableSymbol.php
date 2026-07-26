@@ -23,6 +23,8 @@ use function sprintf;
  *
  * Emits a native PHP 8.1 first-class callable, avoiding the allocation and
  * verbosity of wrapping the target in an `fn` closure.
+ *
+ * @internal
  */
 final readonly class PhpCallableSymbol implements SpecialFormAnalyzerInterface
 {

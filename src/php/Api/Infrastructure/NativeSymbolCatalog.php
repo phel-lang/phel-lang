@@ -17,6 +17,8 @@ use Phel\Lang\Symbol;
  * {@see self::DEFINITIONS} array by hand (there is no generator); if it
  * introduces a new namespace, also register that namespace in
  * {@see \Phel\Api\ApiConfig::allNamespaces()} so it is surfaced by the loader.
+ *
+ * @internal
  */
 final class NativeSymbolCatalog
 {

@@ -16,6 +16,8 @@ use function count;
  *
  * Used by FnAsClassEmitter, ReifyEmitter, MultiFnAsClassEmitter, and MethodEmitter
  * to centralize the use-normalization, property, and constructor-argument patterns.
+ *
+ * @internal
  */
 final readonly class ClosureEmitterHelper
 {

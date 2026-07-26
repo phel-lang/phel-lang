@@ -7,6 +7,9 @@ namespace Phel\Compiler\Domain\Analyzer\Ast;
 use Phel\Compiler\Domain\Analyzer\Environment\NodeEnvironment;
 use Phel\Lang\SourceLocation;
 
+/**
+ * @internal
+ */
 final class InNsNode extends AbstractNode
 {
     public function __construct(

@@ -31,6 +31,8 @@ use function is_string;
  * Also owns {@see self::inferredTypeOfNode()} — the node→type-tag
  * inference used here for operand typing and reused by the string-concat
  * specialiser.
+ *
+ * @internal
  */
 final readonly class NumericOperationSpecialization
 {

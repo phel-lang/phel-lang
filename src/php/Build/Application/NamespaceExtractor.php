@@ -31,6 +31,9 @@ use UnexpectedValueException;
 use function array_values;
 use function is_array;
 
+/**
+ * @internal
+ */
 final readonly class NamespaceExtractor implements NamespaceExtractorInterface
 {
     private NamespaceFileGrouper $grouper;

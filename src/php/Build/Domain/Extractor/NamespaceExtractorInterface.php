@@ -6,6 +6,9 @@ namespace Phel\Build\Domain\Extractor;
 
 use Phel\Shared\NamespaceInformation;
 
+/**
+ * @internal
+ */
 interface NamespaceExtractorInterface
 {
     public function getNamespaceFromFile(string $path): NamespaceInformation;

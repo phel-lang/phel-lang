@@ -32,6 +32,8 @@ use function count;
  * for stack-trace shape: a recursive descent of N frames becomes a
  * single frame with a loop. That trade-off is gated behind
  * `CompileOptions::setOptimizationLevel(2)`.
+ *
+ * @internal
  */
 final readonly class TailCallRewriter
 {

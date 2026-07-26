@@ -68,6 +68,9 @@ use function str_ends_with;
 use function strlen;
 use function substr;
 
+/**
+ * @internal
+ */
 final class AnalyzePersistentList
 {
     /** @var array<string, SpecialFormAnalyzerInterface> */

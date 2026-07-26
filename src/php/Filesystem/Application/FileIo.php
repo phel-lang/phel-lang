@@ -9,6 +9,8 @@ use Phel\Filesystem\Domain\DirectoryWritabilityCheckerInterface;
 /**
  * Thin adapter around PHP's is_writable() so permission checks can be
  * stubbed/mocked in tests instead of touching the real filesystem.
+ *
+ * @internal
  */
 final class FileIo implements DirectoryWritabilityCheckerInterface
 {

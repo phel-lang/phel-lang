@@ -18,6 +18,8 @@ use function count;
  * specific keyword — `:require`, `:use`, `:refer-macros`, etc. This
  * helper extracts that traversal so each rule only has to care about
  * the clause body.
+ *
+ * @internal
  */
 final class NsClauseIterator
 {

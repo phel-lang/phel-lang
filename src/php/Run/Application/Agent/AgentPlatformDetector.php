@@ -8,6 +8,9 @@ use Phel\Run\Domain\Agent\AgentPlatformRegistry;
 
 use function file_exists;
 
+/**
+ * @internal
+ */
 final readonly class AgentPlatformDetector
 {
     public function __construct(private AgentPlatformRegistry $registry) {}

@@ -13,6 +13,8 @@ use Phel\Lang\Collections\LinkedList\PersistentListInterface;
  * (php/aset arr key value).
  *
  * Sets a value in a PHP array by key.
+ *
+ * @internal
  */
 final class PhpASetSymbol implements SpecialFormAnalyzerInterface
 {

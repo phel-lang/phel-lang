@@ -9,6 +9,8 @@ namespace Phel\Filesystem\Domain;
  *
  * Implemented as a strategy: RealFilesystem performs real tracking/deletion,
  * NullFilesystem is a no-op used when generated temp files should be kept.
+ *
+ * @internal
  */
 interface FilesystemInterface
 {

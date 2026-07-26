@@ -48,6 +48,8 @@ use Phel\Shared\Facade\RunFacadeInterface;
 
 /**
  * @extends AbstractFactory<LspConfig>
+ *
+ * @internal
  */
 final class LspFactory extends AbstractFactory
 {

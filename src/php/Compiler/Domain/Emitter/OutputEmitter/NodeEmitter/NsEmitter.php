@@ -12,6 +12,9 @@ use function addslashes;
 use function assert;
 use function count;
 
+/**
+ * @internal
+ */
 final class NsEmitter implements NodeEmitterInterface
 {
     use NsStateDefinitionsEmitterTrait;

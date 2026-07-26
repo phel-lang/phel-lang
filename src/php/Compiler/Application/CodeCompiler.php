@@ -36,6 +36,9 @@ use Phel\Shared\Parser\Node\TriviaNodeInterface;
 
 use function hrtime;
 
+/**
+ * @internal
+ */
 final readonly class CodeCompiler implements CodeCompilerInterface
 {
     public function __construct(
