@@ -11,10 +11,15 @@ All notable changes to this project will be documented in this file.
 - New lint rule `phel/comment-style` (warning): flags a whole-line comment written with a single `;`, which the convention reserves for trailing comments
 - New lint rule `phel/duplicate-def` (error): flags a symbol defined twice in one file. A forward `(declare foo)` plus its definition stays clean
 - [Migration guide for the currently deprecated surface](docs/migration/deprecated-surface.md): every live deprecation, its replacement, and how it announces itself
+- [Stability policy](docs/stability.md): the normative definition of what a Phel version number promises. It names the public PHP surface symbol by symbol, lists which changes to it are breaking, and states the 1.x deprecation and PHP-version support policies
+- A backward-compatibility gate for the PHP embedding API. `composer api-surface:update` renders the whole public surface to a committed snapshot, and a test fails the build when it drifts, so a signature change is reviewed on the pull request that makes it rather than found in a release note
+- A source-compatibility gate for the standard library. `composer core-api:update` records every public `phel.*` definition with its arities, and a test fails when one disappears or loses an arity
+- A documentation gate for the public API. `:doc` is now required on every public `phel.*` definition, and the number without an `:example` is pinned so it can only go down. 60+ undocumented functions and 34 wrong `:example` outputs were found by hand, twice; a recurring discovery is a missing test
 - `phel agent-install --check`: reports which skill files are installed and whether the `.agents/` docs are behind the bundled ones, exiting 1 when they are, so CI can gate on it. `resources/agents/skills/INSTALL.md` has documented this flag for a while without it existing
 
 ### Fixed
 
+- A multimethod's parameter list no longer renders as a gensym. `defmulti` named it with `(gensym)`, so `phel doc assert-expr` showed `(assert-expr & __phel_3167)`, with a different number on every run. It is `(assert-expr & args)` now. The generated `<name>-methods` and `<name>-prefers` tables also carry docstrings, since they are public (`defmethod` resolves them across namespaces) and were showing up undocumented
 - `filter`, `take-while` and `drop-while` now use Phel truthiness for the predicate result. A predicate returning `0`, `0.0`, `""`, `"0"` or `@[]` was silently dropping elements, so `(filter identity [0 1 2])` gave `@[1 2]` while the transducer arity gave all three. Only `nil` and `false` are false
 - `persistent!` now keeps the collection's metadata for maps, vectors and sets. Everything built through a transient inherits the fix, including the compiler's `assoc`/`conj` specialisation, where `(assoc (assoc m :b 2) :c 3)` lost `m`'s metadata as soon as `m` carried a type tag
 - `first`, `empty?` and `reduce` (no init) now work on an eduction or any lazily consumed source. `count` still refuses, because counting drains a pipeline that caches nothing, and now says so and points at `(count (into [] coll))`
