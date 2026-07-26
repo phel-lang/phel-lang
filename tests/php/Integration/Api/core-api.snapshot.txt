@@ -920,7 +920,7 @@ phel.test.shrink/value->rose  (value->rose v)
 phel.test/*testing-contexts*  <value>
 phel.test/add-reporter!  (add-reporter! reporter-fn)
 phel.test/are  (are argv expr & args)
-phel.test/assert-expr  (assert-expr & __phel_3167)
+phel.test/assert-expr  (assert-expr & args)
 phel.test/assert-expr-methods  <value>
 phel.test/assert-expr-prefers  <value>
 phel.test/clear-reporters!  (clear-reporters!)
@@ -931,7 +931,7 @@ phel.test/get-reporters  (get-reporters)
 phel.test/get-stats  (get-stats)
 phel.test/is  (is form & [message])
 phel.test/register-reporter!  (register-reporter! name reporter-fn)
-phel.test/report  (report & __phel_3118)
+phel.test/report  (report & args)
 phel.test/report-methods  <value>
 phel.test/report-prefers  <value>
 phel.test/reset-stats  (reset-stats)

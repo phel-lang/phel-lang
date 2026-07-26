@@ -12,6 +12,7 @@ modules, deployment) live on **[phel-lang.org](https://phel-lang.org/documentati
 - [Project Layout](project-layout.md): the `.phel/` directory and runtime state
 - [Internals](internals/README.md): architecture, compiler phases, AST, emitter,
   macros, runtime, FAQ, benchmarks
+- [Upgrading 0.49 to 1.0](migration/upgrade-0.49-to-1.0.md): what to change, and how to find out whether you need to change anything
 - [Migration: the currently deprecated surface](migration/deprecated-surface.md): every live deprecation, its replacement, and how it announces itself
 - [Migration: backslash to dot](migration/backslash-to-dot.md)
 - [Migration: removed deprecated core functions](migration/removed-deprecated-core-fns.md)

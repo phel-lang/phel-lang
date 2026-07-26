@@ -205,6 +205,7 @@ clears them comfortably and never lowered to make a red build green.
 
 ## See also
 
+- [Upgrading 0.49 to 1.0](migration/upgrade-0.49-to-1.0.md)
 - [The language surface spec](spec/language-surface.md): the frozen half of promise 1
 - [Clojure divergences](spec/clojure-divergences.md): where Phel deliberately differs
 - [The currently deprecated surface](migration/deprecated-surface.md)

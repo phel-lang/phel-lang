@@ -7,6 +7,7 @@ namespace PhelTest\Support;
 use Phel\Api\ApiConfig;
 use Phel\Api\ApiFacade;
 use Phel\Shared\Api\PhelFunction;
+use RuntimeException;
 
 use function dirname;
 use function implode;
@@ -85,6 +86,20 @@ final readonly class CoreApiSurface
         $signatures = $function->signatures === []
             ? '<value>'
             : implode(' | ', $function->signatures);
+
+        // A gensym in a *public* signature is a bug in the macro that produced it,
+        // not something to normalise away here: it renders as `(f & __phel_3167)`
+        // in `phel doc` and changes on every run. Saying so beats a snapshot that
+        // fails with a different number each time.
+        if (preg_match('/__phel_\d+/', $signatures) === 1) {
+            throw new RuntimeException(sprintf(
+                'phel.%s/%s exposes a gensym in its signature: %s. '
+                . 'The macro defining it should use a stable parameter name.',
+                $function->namespace,
+                $this->bareName($function),
+                $signatures,
+            ));
+        }
 
         return sprintf('phel.%s/%s  %s', $function->namespace, $this->bareName($function), $signatures);
     }

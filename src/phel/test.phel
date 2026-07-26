@@ -313,13 +313,14 @@
          (report (assoc ~report-data :state :pass))
          (report (assoc ~report-data :state :failed))))))
 
-;; Public extension point for the `is` macro: an open multimethod
-;; dispatched on the first symbol of the asserted form (or `:default` for
-;; non-list forms or lists not starting with a symbol). Extend with
-;; `(defmethod phel.test/assert-expr 'my-form [message form] ...)`,
-;; returning a quoted form to be evaluated by `is`. Methods must be
-;; loaded before any `is` form using their dispatch value is expanded.
 (defmulti assert-expr
+  "Public extension point for the `is` macro: an open multimethod dispatched on
+  the first symbol of the asserted form (or `:default` for non-list forms and for
+  lists not starting with a symbol).
+
+  Extend it with `(defmethod phel.test/assert-expr 'my-form [message form] ...)`,
+  returning a quoted form for `is` to evaluate. Methods must be loaded before any
+  `is` form using their dispatch value is expanded."
   (fn [_ form]
     (if (and (list? form) (symbol? (first form)))
       (first form)
