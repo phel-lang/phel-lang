@@ -1,5 +1,10 @@
 # Special Forms
 
+> This page is descriptive: it explains how special forms are dispatched, what each
+> one does, and how to add one. The **normative** list, closed for 1.x, is
+> [docs/spec/language-surface.md](../spec/language-surface.md#2-special-forms), and a
+> test keeps the two in step.
+
 A list with a recognised head symbol routes to a dedicated analyzer. Anything else (not a special form, macro, or literal collection) is a function call. Macros expand into special forms; special forms are the bottom layer.
 
 ## Dispatch
