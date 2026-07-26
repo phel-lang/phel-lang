@@ -67,9 +67,11 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 30
     env:
-      # Ratcheted up once the first run published a real figure; see the summary
-      # of any run for the current number.
-      COVERAGE_FLOOR: '60'
+      # Measured at 86.90% (23550/27101 statements) on the first run that
+      # published a figure. 85 leaves room for ordinary movement without letting
+      # the number quietly slide. Every run prints the current value to its
+      # summary; raise this when it clears the floor comfortably.
+      COVERAGE_FLOOR: '85'
     steps:
       - uses: actions/checkout@v6
       - uses: ./.github/actions/setup-phel

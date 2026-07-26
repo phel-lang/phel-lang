@@ -201,7 +201,10 @@ CI.
 | Clojure divergences | `run-clojure-test-suite.yml` (nightly) | behaviour changes without the suite being updated |
 
 The coverage floor and the MSI floors are ratchets. They are raised when a real run
-clears them comfortably and never lowered to make a red build green.
+clears them comfortably and never lowered to make a red build green. As of this
+writing line coverage is **86.9%** (floor 85) and the mutation score is **83%**
+(floor 80) over `Lang/` and the analyzer; both jobs print the current figure to
+their run summary.
 
 ## See also
 
