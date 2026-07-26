@@ -28,6 +28,48 @@ parameters:
         -
             identifier: gacela.facadeOnlyDelegates
             path: src/php/Build/BuildFacade.php
+        # A `Shared\Facade\*FacadeInterface` is the *cross-module* contract, not
+        # a mirror of the facade. `Shared/CLAUDE.md` says to keep its imports
+        # minimal, and every method below is called only from inside its own
+        # module (its own `Infrastructure/Command/`, or emitted PHP for the
+        # BuildMode trio), so no consumer type-hinting the interface is missing
+        # anything. Declaring them would drag `BuildOptions`, `ApiDaemon`,
+        # `CoverageDriver`, `CoverageReport`, `ParallelTestOrchestrator` and
+        # `CpuCountDetector` into the leaf layer and widen the public surface
+        # 1.0 has to freeze, for no caller's benefit.
+        #
+        # The counts are the point: a genuinely new cross-module method that
+        # skips the interface makes the count short by one and that one is
+        # reported. Re-count deliberately, never just to get back to green.
+        #
+        # `reportUnmatched: false` because the rule ships in gacela 1.21 but not
+        # on the 2.0 branch, where these entries would otherwise turn into
+        # non-ignorable `ignore.unmatched` errors on the version bump.
+        -
+            identifier: gacela.facadeInterfaceDrift
+            path: src/php/Api/ApiFacade.php
+            count: 1
+            reportUnmatched: false
+        -
+            identifier: gacela.facadeInterfaceDrift
+            path: src/php/Build/BuildFacade.php
+            count: 8
+            reportUnmatched: false
+        -
+            identifier: gacela.facadeInterfaceDrift
+            path: src/php/Compiler/CompilerFacade.php
+            count: 1
+            reportUnmatched: false
+        -
+            identifier: gacela.facadeInterfaceDrift
+            path: src/php/Interop/InteropFacade.php
+            count: 2
+            reportUnmatched: false
+        -
+            identifier: gacela.facadeInterfaceDrift
+            path: src/php/Run/RunFacade.php
+            count: 7
+            reportUnmatched: false
         # LazySeq::cdr() checks instanceof SeqInterface for runtime safety
         # even though PHPDoc inference says the type is already narrowed.
         -
