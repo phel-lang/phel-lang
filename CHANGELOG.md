@@ -65,6 +65,7 @@ All notable changes to this project will be documented in this file.
 - (PHP API) `Phel\Shared\Api\Definition` gains an optional `deprecated` field plus `isDeprecated()`; existing call sites keep working
 - (PHP API) The `Phel\Compiler\Domain\{Parser,Reader}\Expression*` classes now depend on `ParserInterface`/`ReaderInterface` rather than the concrete `Application` classes, so `Domain` no longer reaches into `Application`. Both interfaces gain `readExpression()`, which the shipped implementations already had
 - (PHP API) `NullScanIndexCache` moved to `Phel\Build\Domain\Cache\`, and `Phel\Lsp\Domain\HandlerInterface` to `Phel\Lsp\Application\`. Behaviour unchanged
+- Requires `gacela-project/gacela` `^1.21` (was `^1.18`), which types the `#[ServiceMap]` pillar accessors instead of suppressing them and adds a facade/interface drift rule. No runtime change; Phel already uses the `AbstractProvider` shape 1.20 deprecates `AbstractDependencyProvider` in favour of
 
 ### Removed
 

@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "c9336acdbc414ef818dacf5b66a8d003",
+    "content-hash": "8532263df9fd00ef1210ea7a2a8a7b2a",
     "packages": [
         {
             "name": "amphp/amp",
@@ -157,16 +157,16 @@
         },
         {
             "name": "gacela-project/gacela",
-            "version": "1.18.0",
+            "version": "1.21.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/gacela-project/gacela.git",
-                "reference": "d4f91871da18de2cdcc651c571d3932489436411"
+                "reference": "32fef1b9651f72e8006c4f0cf7b3bf618bf381be"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/gacela-project/gacela/zipball/d4f91871da18de2cdcc651c571d3932489436411",
-                "reference": "d4f91871da18de2cdcc651c571d3932489436411",
+                "url": "https://api.github.com/repos/gacela-project/gacela/zipball/32fef1b9651f72e8006c4f0cf7b3bf618bf381be",
+                "reference": "32fef1b9651f72e8006c4f0cf7b3bf618bf381be",
                 "shasum": ""
             },
             "require": {
@@ -177,6 +177,7 @@
                 "ergebnis/composer-normalize": "^2.50",
                 "friendsofphp/php-cs-fixer": "^3.95",
                 "infection/infection": "^0.29",
+                "nikic/php-parser": "^5.0",
                 "phpbench/phpbench": "^1.4",
                 "phpmetrics/phpmetrics": "^2.9",
                 "phpstan/phpstan": "^2.0",
@@ -231,7 +232,7 @@
             ],
             "support": {
                 "issues": "https://github.com/gacela-project/gacela/issues",
-                "source": "https://github.com/gacela-project/gacela/tree/1.18.0"
+                "source": "https://github.com/gacela-project/gacela/tree/1.21.0"
             },
             "funding": [
                 {
@@ -239,7 +240,7 @@
                     "type": "custom"
                 }
             ],
-            "time": "2026-07-20T05:33:57+00:00"
+            "time": "2026-07-26T01:29:08+00:00"
         },
         {
             "name": "psr/container",
