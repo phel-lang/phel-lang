@@ -183,6 +183,26 @@ None of the following is under semver, and none of it will be before `1.0`:
 - Anything under `tests/`, `tools/`, `build/` or `resources/`.
 - The nREPL and LSP wire protocols beyond the upstream specifications they implement.
 
+## Quality gates behind the promises
+
+A promise is only as good as what fails when it is broken. Every gate below runs in
+CI.
+
+| Gate | Where | Fails when |
+|---|---|---|
+| Public PHP API snapshot | `PublicApiSurfaceTest` | a public signature changes |
+| `@internal` annotations | `InternalAnnotationTest` | an internal class is unmarked, or a public one is marked |
+| Standard-library snapshot | `CoreApiSurfaceTest` | a definition or an arity disappears |
+| Special-form list | `LanguageSurfaceSpecTest` | the spec and the analyzer disagree |
+| Static analysis | `quality.yml` | PHPStan level 9 or Psalm level 1 reports anything |
+| Coverage floor | `quality.yml` | line coverage drops below the floor |
+| Benchmark regression | `tests.yml` | a benchmark is outside the `phpbench.json` tolerance against the base revision |
+| Mutation score | `mutation.yml` (weekly) | MSI over `Lang/` and the analyzer drops below the floor |
+| Clojure divergences | `run-clojure-test-suite.yml` (nightly) | behaviour changes without the suite being updated |
+
+The coverage floor and the MSI floors are ratchets. They are raised when a real run
+clears them comfortably and never lowered to make a red build green.
+
 ## See also
 
 - [The language surface spec](spec/language-surface.md): the frozen half of promise 1

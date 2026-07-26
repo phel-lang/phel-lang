@@ -94,15 +94,46 @@ jobs:
       - name: Run tests to the core library
         run: php -d memory_limit=256M bin/phel test
 
+  # A benchmark run that is never compared to anything cannot fail, so a
+  # regression was invisible: this used to run the suite and print a table.
+  # The base branch is now measured first and stored under the `baseline` tag,
+  # and the PR's run asserts against it using the `runner.assert` tolerance in
+  # phpbench.json (currently +/- 17%).
+  #
+  # Both runs happen on the same runner, back to back, because comparing numbers
+  # from two different machines measures the machines.
   bench-tests:
     name: Bench tests
     runs-on: ubuntu-latest
+    timeout-minutes: 20
     steps:
       - uses: actions/checkout@v6
+        with:
+          # Needed to check out the merge base below.
+          fetch-depth: 0
+
       - uses: ./.github/actions/setup-phel
 
-      - name: Run PHPBench
-        run: vendor/bin/phpbench run --iterations=3 --warmup=1 --report=aggregate
+      - name: Measure the base revision and store it as `baseline`
+        run: |
+          head_sha=$(git rev-parse HEAD)
+          base_sha='${{ github.event_name == 'pull_request' && github.event.pull_request.base.sha || format('{0}~1', github.sha) }}'
+          echo "head=$head_sha base=$base_sha"
+          echo "HEAD_SHA=$head_sha" >> "$GITHUB_ENV"
+
+          git checkout --quiet --detach "$base_sha"
+          # The benchmark definitions and the tolerance stay at the PR's version
+          # so both runs measure the same set of cases against the same rules.
+          # Only the code under measurement comes from the base. `vendor/` is
+          # likewise the PR's, so what gets compared is this change, not
+          # dependency drift.
+          git checkout --quiet "$head_sha" -- tests/php/Benchmark phpbench.json
+          vendor/bin/phpbench run --iterations=3 --warmup=1 --tag=baseline --store --progress=none --report=aggregate
+
+      - name: Compare the pull request against the baseline
+        run: |
+          git checkout --quiet --force "$HEAD_SHA"
+          vendor/bin/phpbench run --iterations=3 --warmup=1 --ref=baseline --report=aggregate
 
   bash-tests:
     name: Bash tests

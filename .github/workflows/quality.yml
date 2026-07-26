@@ -56,6 +56,36 @@ jobs:
       - name: Run phel lint on src/phel
         run: ./bin/phel lint --no-cache src/phel
 
+  # `composer test-compiler:coverage` has always worked locally, but every CI job
+  # installs PHP with `coverage: none`, so no figure was ever published and nothing
+  # gated on one. This publishes it to the run summary and enforces a floor.
+  #
+  # COVERAGE_FLOOR is a ratchet: raise it when the real figure clears it
+  # comfortably, never lower it to turn a red build green.
+  coverage:
+    name: Coverage
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      COVERAGE_FLOOR: '80'
+    steps:
+      - uses: actions/checkout@v6
+      - uses: ./.github/actions/setup-phel
+        with:
+          # pcov is several times faster than Xdebug for line coverage and is all
+          # this job needs; nothing here steps or inspects.
+          coverage: pcov
+
+      - name: Run the compiler suites with coverage
+        run: |
+          php -d memory_limit=2G vendor/bin/phpunit \
+            --testsuite=unit,integration \
+            --coverage-clover=data/clover.xml \
+            --do-not-cache-result
+
+      - name: Publish the figure and enforce the floor
+        run: php tools/check-coverage.php data/clover.xml "$COVERAGE_FLOOR"
+
   type-checker:
     name: Type Checker
     runs-on: ubuntu-latest
