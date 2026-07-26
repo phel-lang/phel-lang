@@ -129,37 +129,6 @@ the stats atom and fan out its own event rather than calling `print-summary`.
 
 `(doc print-summary)` also prints a `DEPRECATED:` line, with or without the flag.
 
-## CLI options
-
-| Deprecated | Replacement |
-|---|---|
-| `phel index --out=PATH` | `phel index --output=PATH` (`-o`) |
-| `phel config --json` | `phel config --format=json` (`-f json`) |
-
-```bash
-phel index --out=index.json           phel index --output=index.json
-phel config --json                    phel config --format=json
-```
-
-Both old spellings still work and print a one-line notice on stderr, so a
-pipeline consuming stdout is unaffected. The conventions these were aligned to
-are in [../internals/cli-flag-conventions.md](../internals/cli-flag-conventions.md).
-
-## Project layout
-
-The REPL history file moved from `<project>/.phel-repl-history` to
-`<project>/.phel/repl-history`, alongside the rest of the runtime state (see
-[../project-layout.md](../project-layout.md)).
-
-Nothing to do: the first REPL start after upgrading moves the file and prints
-one notice. Set `PHEL_QUIET_MIGRATION=1` to silence it. What does need updating
-is anything that names the old path literally, typically a `.gitignore` entry
-or a CI cache key:
-
-```gitignore
-.phel-repl-history                    .phel/
-```
-
 ## Deprecating your own definitions
 
 The mechanism is not phel-specific. Any `def`/`defn` carrying

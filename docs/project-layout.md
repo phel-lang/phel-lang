@@ -9,7 +9,7 @@ self-seeded `.phel/.gitignore` (`*`).
 | `.phel/cache/`                  | Build / compiler | Namespace + compiled-code cache      |
 | `.phel/lint-cache/index.json`   | Lint             | Per-file diagnostic cache            |
 | `.phel/last-failed.txt`         | Test runner      | Backing file for `phel test --last-failed` |
-| `.phel/repl-history`            | REPL             | Readline history (was `.phel-repl-history`) |
+| `.phel/repl-history`            | REPL             | Readline history |
 | `.phel/error.log`               | Runtime          | Error log (was `/tmp/phel-error.log`) |
 | `out/`                          | Build            | Compiled PHP entry points (build artifacts; lifecycle differs) |
 
@@ -21,15 +21,8 @@ self-seeded `.phel/.gitignore` (`*`).
 - **`PHEL_DIR` env var**: same effect at runtime; wins over `withPhelDir()`.
 - **`PhelConfig::withCacheDir($path)`**: narrower override for just the build cache.
 - **`PHEL_CACHE_DIR` env var**: final cache override; wins over `PHEL_DIR` and `withCacheDir()`. Useful for CI / Nix builds.
-- **`PHEL_QUIET_MIGRATION=1`**: silences the stderr notice when legacy `.phel-repl-history` migrates into `.phel/repl-history`.
 
 For the full list of `phel-config.php` options, caching flags, and precedence, see [Configuration](https://phel-lang.org/documentation/configuration/).
-
-## Migration
-
-Existing projects with a top-level `.phel-repl-history` get it renamed into
-`.phel/repl-history` automatically the next time the REPL boots. No action
-required; the legacy filename will be removed in a future release.
 
 ## Read-only filesystems
 

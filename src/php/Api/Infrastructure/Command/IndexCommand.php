@@ -7,7 +7,6 @@ namespace Phel\Api\Infrastructure\Command;
 use Gacela\Framework\ServiceResolver\ServiceMap;
 use Gacela\Framework\ServiceResolverAwareTrait;
 use Phel\Api\ApiFacade;
-use Phel\Shared\Console\DeprecatedOptionWarner;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
@@ -51,12 +50,6 @@ HELP)
                 'o',
                 InputOption::VALUE_REQUIRED,
                 'Optional path to persist the full index as JSON',
-            )
-            ->addOption(
-                'out',
-                null,
-                InputOption::VALUE_REQUIRED,
-                '[deprecated] use --output instead',
             );
     }
 
@@ -75,16 +68,7 @@ HELP)
 
         $output->writeln(json_encode($summary, JSON_THROW_ON_ERROR | JSON_PRETTY_PRINT));
 
-        $deprecatedOut = $input->getOption('out');
-        if (is_string($deprecatedOut) && $deprecatedOut !== '') {
-            DeprecatedOptionWarner::warn($output, 'out', 'output');
-        }
-
         $out = $input->getOption('output');
-        if (!is_string($out) || $out === '') {
-            $out = $deprecatedOut;
-        }
-
         if (is_string($out) && $out !== '') {
             $written = @file_put_contents(
                 $out,
