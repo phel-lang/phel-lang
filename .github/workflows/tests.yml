@@ -189,6 +189,15 @@ jobs:
       - uses: actions/checkout@v6
       - uses: ./.github/actions/setup-phel
 
+      # `infection/infection` requires `symfony/console ^6.4 || ^7.4 || ^8.0`,
+      # skipping 7.3 entirely, so it cannot be installed alongside the low end of
+      # the range we advertise. It is a dev-only mutation-testing tool that plays
+      # no part in the compatibility claim under test here, and `require-dev` is
+      # never installed by a consuming project, so it is dropped for this run
+      # rather than narrowing what we promise.
+      - name: Drop dev-only tools that constrain symfony/console
+        run: composer remove --dev infection/infection --no-update --no-interaction --no-ansi
+
       - name: Pin symfony/console to ${{ matrix.console }} for this run
         run: composer update --with "symfony/console:${{ matrix.console }}" --with-all-dependencies --no-interaction --no-ansi --no-progress
 

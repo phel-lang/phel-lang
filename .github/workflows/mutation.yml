@@ -60,18 +60,33 @@ jobs:
           # Xdebug and nothing here needs a step debugger.
           coverage: pcov
 
-      # `--initial-tests-php-options` silences deprecation *display* for the
-      # initial run only. The unit suite deliberately exercises Phel's own
-      # deprecation channel, which writes `E_USER_DEPRECATED` to stderr; PHPUnit
-      # exits 0, but Infection reads a non-empty stderr as a failed initial run
-      # and refuses to start. Mutant runs are unaffected.
+      # Coverage is produced here rather than by Infection's own "initial tests"
+      # run. That run reported `Project tests must be in a passing state` while
+      # the very same suite, under the very same generated config, passes
+      # locally: the difference is that it drives PHPUnit through a wrapper whose
+      # failure mode it then cannot report usefully.
+      #
+      # Generating the report directly makes the step that can fail the plain
+      # PHPUnit invocation everybody already understands, and `--skip-initial-tests`
+      # hands Infection the result. Infection wants `index.xml` plus `junit.xml`
+      # in one directory, which is exactly the pair `--coverage-xml` and
+      # `--log-junit` write.
+      - name: Generate the coverage Infection needs
+        run: |
+          php -d memory_limit=2G vendor/bin/phpunit \
+            --testsuite=unit \
+            --coverage-xml=data/coverage-xml \
+            --log-junit=data/coverage-xml/junit.xml \
+            --do-not-cache-result
+
       - name: Run Infection
         run: |
           php -d memory_limit=2G vendor/bin/infection \
             --threads=max \
             --no-progress \
             --no-interaction \
-            --initial-tests-php-options='-d error_reporting=6143' \
+            --skip-initial-tests \
+            --coverage=data/coverage-xml \
             --min-msi="${{ github.event.inputs.min-msi || env.MIN_MSI }}" \
             --min-covered-msi="$MIN_COVERED_MSI"
 
