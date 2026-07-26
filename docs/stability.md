@@ -12,7 +12,8 @@ guarantee, and the gates in CI already enforce the parts that can be enforced to
 
 1. **Language stability.** Phel source that compiles on `1.0.0` compiles on every
    later `1.x`. Reader syntax, special forms and the public `phel.*` core API do not
-   break inside the major.
+   break inside the major. The frozen surface is listed in
+   [the language surface spec](spec/language-surface.md).
 2. **Embedding stability.** The PHP surface listed under
    [Public PHP API](#public-php-api) follows semver, so a project wiring Phel into
    its own tooling can take `1.x` updates without reading a diff.
@@ -168,5 +169,8 @@ None of the following is under semver, and none of it will be before `1.0`:
 
 ## See also
 
+- [Upgrading 0.49 to 1.0](migration/upgrade-0.49-to-1.0.md)
+- [The language surface spec](spec/language-surface.md): the frozen half of promise 1
+- [Clojure divergences](spec/clojure-divergences.md): where Phel deliberately differs
 - [The currently deprecated surface](migration/deprecated-surface.md)
 - [Architecture](internals/architecture.md): why the module boundary sits where it does

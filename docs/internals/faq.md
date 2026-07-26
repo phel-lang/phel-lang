@@ -18,7 +18,9 @@ Grouped by reader.
 
 ## Coming from Clojure
 
-**Missing features.** No agents, no STM/refs (use `Atom` + `swap!`), no `core.async` (Phel has fibers + futures via `Fiber/`, see [async](https://phel-lang.org/documentation/language/async/)).
+**Missing features.** No agents, no STM/refs (use `Atom` + `swap!`), no `core.async` (Phel has fibers + futures via `Fiber/`, see [async](https://phel-lang.org/documentation/language/async/)). These are stated non-goals, not gaps: see [the language surface spec](../spec/language-surface.md#stated-non-goals).
+
+**Something behaves differently from Clojure.** Check [clojure-divergences.md](../spec/clojure-divergences.md) first. Everything listed there is deliberate and pinned by the nightly `clojure-test-suite` run; anything else is worth an issue.
 
 **Present.** `defprotocol` / `extend-type` / `extend-protocol` / `satisfies?` and `defrecord` live in `src/phel/core/protocols.phel`. `definterface` is the lower-level PHP-interface form; `defstruct` the lower-level fixed-key map.
 
