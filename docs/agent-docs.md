@@ -20,11 +20,12 @@ Platforms: `claude`, `cursor`, `codex`, `gemini`, `copilot`, `aider`. `--auto` i
 | (default) | Copies `.agents/` docs (rules, task recipes, quick-syntax) |
 | `--no-docs` | Skip the `.agents/` docs tree |
 | `--with-examples` | Also copy `.agents/examples/` (excluded by default) |
-| `--force` | Skip the `<path>.pre-phel.bak` backup; overwrite existing skill files and `.agents/` tree |
+| `--force` | Skip the skill file's `<path>.pre-phel.bak` backup, and overwrite locally modified docs (each backed up first) |
 | `--dry-run` | Preview without writing |
-| `--uninstall` | Remove skill file(s) (restoring any backup) and the `.agents/` tree |
+| `--check` | Report install state and docs version drift; exit 1 when stale |
+| `--uninstall` | Remove skill file(s) (restoring any backup) and the docs we installed |
 
-Re-run any time to pull the latest docs.
+Re-run any time to pull the latest docs. The `.agents/` tree syncs incrementally: only new and upstream-changed files are written, and a file you edited since the last install is left alone and reported (`--force` overwrites it after a backup). `.agents/.phel-agent-manifest.json` records the docs version and the installed paths, which is also what lets `--uninstall` leave files you added to `.agents/` in place.
 
 ## Destinations
 

@@ -4,18 +4,15 @@ declare(strict_types=1);
 
 namespace Phel\Run\Application\Agent;
 
-use FilesystemIterator;
+use Phel\Run\Domain\Agent\AgentDocsSyncResult;
 use Phel\Run\Domain\Agent\AgentPlatform;
-use RecursiveDirectoryIterator;
-use RecursiveIteratorIterator;
 use RuntimeException;
-use SplFileInfo;
 
 use function dirname;
-use function in_array;
 use function is_dir;
 use function is_file;
 use function sprintf;
+use function trim;
 
 /**
  * Filesystem work behind `agent-install`: copy/remove a per-platform skill
@@ -23,7 +20,7 @@ use function sprintf;
  * dependency, so it can be unit-tested directly; the command renders the
  * outcome it returns.
  */
-final class AgentInstaller
+final readonly class AgentInstaller
 {
     public const string UNINSTALL_RESTORED = 'restored';
 
@@ -35,21 +32,31 @@ final class AgentInstaller
 
     public const string BACKUP_SUFFIX = '.pre-phel.bak';
 
-    private const string EXAMPLES_SUBDIR = 'examples';
+    private const string VERSION_FILE = 'VERSION';
 
     /**
-     * Locate the bundled `resources/agents/` directory. The levels differ by
-     * install layout: 5 = running from a Composer dependency (vendor/),
-     * 4 = running from this repo's own checkout, 6 = nested edge cases.
+     * How far up from this file to look for `resources/agents/`. The distance
+     * differs by install layout (this repo's own checkout, a Composer
+     * dependency under `vendor/`, a nested workspace), so walk instead of
+     * guessing a level.
+     */
+    private const int MAX_SOURCE_ROOT_LEVELS = 8;
+
+    public function __construct(
+        private AgentDocsSynchronizer $synchronizer = new AgentDocsSynchronizer(),
+    ) {}
+
+    /**
+     * Locate the bundled `resources/agents/` directory.
      */
     public function locateSourceRoot(): string
     {
-        foreach ([5, 4, 6] as $levels) {
+        for ($levels = 1; $levels <= self::MAX_SOURCE_ROOT_LEVELS; ++$levels) {
             $candidate = dirname(__DIR__, $levels) . '/resources/agents';
             // The VERSION marker ships only with the full agent docs tree, not
             // with the examples-only subtree bundled inside phel.phar, so this
             // keeps reporting the Composer-install hint when run from the PHAR.
-            if (is_file($candidate . '/VERSION')) {
+            if (is_file($candidate . '/' . self::VERSION_FILE)) {
                 return $candidate;
             }
         }
@@ -75,15 +82,15 @@ final class AgentInstaller
             throw new RuntimeException(sprintf('Source skill file not found: %s', $src));
         }
 
-        $this->ensureDir(dirname($dst));
+        AgentFileOperations::ensureDirectory(dirname($dst));
 
         $backedUp = false;
         if (is_file($dst) && !$force) {
-            copy($dst, $dst . self::BACKUP_SUFFIX);
+            AgentFileOperations::copy($dst, $dst . self::BACKUP_SUFFIX);
             $backedUp = true;
         }
 
-        copy($src, $dst);
+        AgentFileOperations::copy($src, $dst);
 
         return $backedUp;
     }
@@ -99,11 +106,11 @@ final class AgentInstaller
             return self::UNINSTALL_ABSENT;
         }
 
-        unlink($dst);
+        AgentFileOperations::delete($dst);
 
         $backup = $dst . self::BACKUP_SUFFIX;
         if (is_file($backup)) {
-            rename($backup, $dst);
+            AgentFileOperations::rename($backup, $dst);
             return self::UNINSTALL_RESTORED;
         }
 
@@ -111,95 +118,58 @@ final class AgentInstaller
     }
 
     /**
-     * Copy the docs tree. Returns false (skipped) when `.agents/` already
-     * exists and $force is off; true when the tree was written.
+     * Bring `.agents/` in line with the bundled tree, file by file. Writes only
+     * what is new or stale and never overwrites a local edit unless $force, in
+     * which case the edit is backed up first.
+     *
+     * $dryRun computes the same plan and writes nothing.
      */
-    public function copyDocs(string $sourceRoot, string $projectRoot, bool $force, bool $withExamples): bool
-    {
-        $dst = $projectRoot . '/' . self::AGENTS_DIR;
-        if (is_dir($dst) && !$force) {
-            return false;
-        }
-
-        $skipTopLevel = $withExamples ? [] : [self::EXAMPLES_SUBDIR];
-        $this->recursiveCopy($sourceRoot, $dst, $skipTopLevel);
-
-        return true;
+    public function syncDocs(
+        string $sourceRoot,
+        string $projectRoot,
+        bool $force,
+        bool $withExamples,
+        bool $dryRun = false,
+    ): AgentDocsSyncResult {
+        return $this->synchronizer->sync(
+            $sourceRoot,
+            $projectRoot . '/' . self::AGENTS_DIR,
+            $this->bundledDocsVersion($sourceRoot),
+            $force,
+            $withExamples,
+            $dryRun,
+        );
     }
 
+    /**
+     * Remove the docs we installed, leaving anything the user added in place.
+     * Returns false when there was no `.agents/` to begin with.
+     */
     public function removeDocs(string $projectRoot): bool
     {
-        $dst = $projectRoot . '/' . self::AGENTS_DIR;
-        if (!is_dir($dst)) {
+        $docsDir = $projectRoot . '/' . self::AGENTS_DIR;
+        if (!is_dir($docsDir)) {
             return false;
         }
 
-        $this->recursiveRemove($dst);
+        $this->synchronizer->remove($docsDir);
 
         return true;
     }
 
     /**
-     * @param list<string> $skipTopLevel
+     * The docs version recorded in the project, or null when `.agents/` was
+     * never installed by a release that writes a manifest.
      */
-    private function recursiveCopy(string $src, string $dst, array $skipTopLevel): void
+    public function installedDocsVersion(string $projectRoot): ?string
     {
-        $this->ensureDir($dst);
-
-        $iterator = new RecursiveIteratorIterator(
-            new RecursiveDirectoryIterator($src, FilesystemIterator::SKIP_DOTS),
-            RecursiveIteratorIterator::SELF_FIRST,
-        );
-
-        foreach ($iterator as $item) {
-            if (!$item instanceof SplFileInfo) {
-                continue;
-            }
-
-            $sub = $iterator->getSubPathname();
-            if (in_array(explode('/', $sub, 2)[0], $skipTopLevel, true)) {
-                continue;
-            }
-
-            $target = $dst . '/' . $sub;
-            if ($item->isDir()) {
-                $this->ensureDir($target);
-            } else {
-                copy($item->getPathname(), $target);
-            }
-        }
+        return $this->synchronizer->installedVersion($projectRoot . '/' . self::AGENTS_DIR);
     }
 
-    private function recursiveRemove(string $dir): void
+    public function bundledDocsVersion(string $sourceRoot): string
     {
-        $iterator = new RecursiveIteratorIterator(
-            new RecursiveDirectoryIterator($dir, FilesystemIterator::SKIP_DOTS),
-            RecursiveIteratorIterator::CHILD_FIRST,
-        );
+        $raw = @file_get_contents($sourceRoot . '/' . self::VERSION_FILE);
 
-        foreach ($iterator as $item) {
-            if (!$item instanceof SplFileInfo) {
-                continue;
-            }
-
-            if ($item->isDir()) {
-                rmdir($item->getPathname());
-            } else {
-                unlink($item->getPathname());
-            }
-        }
-
-        rmdir($dir);
-    }
-
-    private function ensureDir(string $dir): void
-    {
-        if (is_dir($dir)) {
-            return;
-        }
-
-        if (!mkdir($dir, 0o755, true) && !is_dir($dir)) {
-            throw new RuntimeException(sprintf('Cannot create directory: %s', $dir));
-        }
+        return $raw === false ? '' : trim($raw);
     }
 }

@@ -31,9 +31,8 @@ final class AgentInstallerTest extends TestCase
         $this->projectRoot = $this->makeDir('project');
         $this->platform = new AgentPlatform('test', 'skills/test/SKILL.md', '.test/SKILL.md', ['.test']);
 
+        $this->writeFile($this->sourceRoot . '/VERSION', "9.9.9\n");
         $this->writeFile($this->sourceRoot . '/skills/test/SKILL.md', 'skill v2');
-        $this->writeFile($this->sourceRoot . '/RULES.md', 'rules');
-        $this->writeFile($this->sourceRoot . '/examples/app.md', 'example');
     }
 
     protected function tearDown(): void
@@ -111,53 +110,14 @@ final class AgentInstallerTest extends TestCase
         );
     }
 
-    public function test_copy_docs_writes_tree_and_skips_examples_by_default(): void
+    public function test_bundled_docs_version_reads_the_version_marker(): void
     {
-        $copied = $this->installer->copyDocs($this->sourceRoot, $this->projectRoot, false, false);
-
-        self::assertTrue($copied);
-        self::assertFileExists($this->projectRoot . '/.agents/RULES.md');
-        self::assertDirectoryDoesNotExist($this->projectRoot . '/.agents/examples');
+        self::assertSame('9.9.9', $this->installer->bundledDocsVersion($this->sourceRoot));
     }
 
-    public function test_copy_docs_includes_examples_when_requested(): void
+    public function test_bundled_docs_version_is_empty_when_the_marker_is_missing(): void
     {
-        $this->installer->copyDocs($this->sourceRoot, $this->projectRoot, false, true);
-
-        self::assertFileExists($this->projectRoot . '/.agents/examples/app.md');
-    }
-
-    public function test_copy_docs_skips_when_tree_exists_and_not_forced(): void
-    {
-        mkdir($this->projectRoot . '/.agents', 0o755, true);
-
-        $copied = $this->installer->copyDocs($this->sourceRoot, $this->projectRoot, false, false);
-
-        self::assertFalse($copied);
-        self::assertFileDoesNotExist($this->projectRoot . '/.agents/RULES.md');
-    }
-
-    public function test_copy_docs_overwrites_existing_tree_when_forced(): void
-    {
-        mkdir($this->projectRoot . '/.agents', 0o755, true);
-
-        $copied = $this->installer->copyDocs($this->sourceRoot, $this->projectRoot, true, false);
-
-        self::assertTrue($copied);
-        self::assertFileExists($this->projectRoot . '/.agents/RULES.md');
-    }
-
-    public function test_remove_docs_deletes_tree(): void
-    {
-        $this->installer->copyDocs($this->sourceRoot, $this->projectRoot, false, false);
-
-        self::assertTrue($this->installer->removeDocs($this->projectRoot));
-        self::assertDirectoryDoesNotExist($this->projectRoot . '/.agents');
-    }
-
-    public function test_remove_docs_is_noop_when_absent(): void
-    {
-        self::assertFalse($this->installer->removeDocs($this->projectRoot));
+        self::assertSame('', $this->installer->bundledDocsVersion($this->projectRoot));
     }
 
     public function test_locate_source_root_points_at_bundled_resources(): void
