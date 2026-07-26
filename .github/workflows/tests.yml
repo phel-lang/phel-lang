@@ -156,12 +156,29 @@ jobs:
           # likewise the PR's, so what gets compared is this change, not
           # dependency drift.
           git checkout --quiet "$head_sha" -- tests/php/Benchmark phpbench.json
-          vendor/bin/phpbench run --iterations=3 --warmup=1 --tag=baseline --store --progress=none --report=aggregate
+          vendor/bin/phpbench run --iterations=5 --warmup=2 --tag=baseline --store --progress=none --report=aggregate
 
+      # The tolerance is widened from the 17% in phpbench.json, and the iteration
+      # count raised, because a shared runner is not a benchmarking machine.
+      #
+      # `phpbench.json` asserts on `time.avg` while the aggregate report prints
+      # `mode`, so a table that looks clean says nothing about the assertion: this
+      # job failed with every one of its 106 variants inside +8% on mode, on a
+      # commit that touched only a workflow file and a markdown page. The rstdev
+      # column swinging by several hundred percent is the tell, and averaging over
+      # three iterations cannot survive that.
+      #
+      # 25% still catches the regressions worth blocking a merge for, and a gate
+      # that cries wolf is one people learn to ignore, which is how the benchmarks
+      # ended up never being compared at all.
       - name: Compare the pull request against the baseline
         run: |
           git checkout --quiet --force "$HEAD_SHA"
-          vendor/bin/phpbench run --iterations=3 --warmup=1 --ref=baseline --report=aggregate
+          vendor/bin/phpbench run \
+            --iterations=5 --warmup=2 \
+            --ref=baseline \
+            --report=aggregate \
+            --assert='mode(variant.time.avg) <= mode(baseline.time.avg) +/- 25%'
 
   bash-tests:
     name: Bash tests

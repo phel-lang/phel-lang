@@ -196,7 +196,7 @@ CI.
 | Special-form list | `LanguageSurfaceSpecTest` | the spec and the analyzer disagree |
 | Static analysis | `quality.yml` | PHPStan level 9 or Psalm level 1 reports anything |
 | Coverage floor | `quality.yml` | line coverage drops below the floor |
-| Benchmark regression | `tests.yml` | a benchmark is outside the `phpbench.json` tolerance against the base revision |
+| Benchmark regression | `tests.yml` | a benchmark is more than 25% slower than the base revision (`phpbench.json` uses a tighter 17% locally, where the machine is quiet) |
 | Mutation score | `mutation.yml` (weekly) | MSI over `Lang/` and the analyzer drops below the floor |
 | Clojure divergences | `run-clojure-test-suite.yml` (nightly) | behaviour changes without the suite being updated |
 
