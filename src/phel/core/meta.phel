@@ -4,7 +4,7 @@
 (use Phel.Lang.MetaInterface)
 
 ;; Metadata attached to quoted symbols and to values that implement
-;; `MetaInterface`: `meta` reads it, `with-meta` / `set-meta!` replace it,
+;; `MetaInterface`: `meta` reads it, `with-meta` replaces it,
 ;; `copy-meta` propagates it across a transformation, and `vary-meta`
 ;; updates it by applying a function. Loaded early in core bootstrap
 ;; because most subsequent definitions (fn builders, seq constructors)
@@ -64,13 +64,6 @@
    :see-also ["meta" "vary-meta"]}
   (fn [obj meta]
     (php/-> obj (withMeta meta))))
-
-(def set-meta!
-  {:doc "Sets the metadata to a given object."
-   :deprecated "0.32.0"
-   :superseded-by "with-meta"}
-  (fn [obj meta]
-    (with-meta obj meta)))
 
 (def vary-meta
   {:doc "Returns an object with (apply f (meta obj) args) as its new metadata."

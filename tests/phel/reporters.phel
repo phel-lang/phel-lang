@@ -8,6 +8,24 @@
 ;; sequence by binding `*reporters*` locally via `set-reporters!`, and
 ;; captures the output (or JUnit file) with `with-output-buffer`.
 
+(defn- summary-of-current-stats
+  "The `:summary` event `run-tests` would emit for the stats accumulated so far.
+
+  `run-tests` emits it itself at the end of a run, and `phel.test` keeps the
+  builder private, so a test that needs to drive a reporter through a summary
+  mid-run assembles the event from the public `get-stats` snapshot."
+  []
+  (let [{:failed failures :skipped skips :counts counts} (t/get-stats)
+        {:failed failed :error error :pass pass :skipped skipped} counts]
+    {:type :summary
+     :failures failures
+     :skips skips
+     :pass pass
+     :failed failed
+     :error error
+     :skipped (or skipped 0)
+     :total (+ failed error pass)}))
+
 ;; ---------------------------------------------------------------------------
 ;; Registration + resolution
 ;; ---------------------------------------------------------------------------
@@ -179,7 +197,7 @@
                                          (t/with-isolated-stats
                                           (rep {:type :begin-test-run})
                                           (is (= 0 (apply + "")))
-                                          (t/print-summary))))]
+                                          (rep (summary-of-current-stats)))))]
     (is (php/preg_match "/Test: \\(= 0 \\(apply \\+ \"\"\\)\\)/" out)
         "error output renders empty strings with quotes")))
 

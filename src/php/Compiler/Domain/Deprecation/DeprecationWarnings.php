@@ -20,7 +20,7 @@ use const E_USER_DEPRECATED;
  * raises, covering both kinds of deprecation:
  *
  * - **syntax** — bare `#` comments, `#| ... |#` blocks, `|()` short fns,
- *   `,`/`,@` unquote, `$` auto-gensym, `^:reference` params, and the `\`
+ *   `,`/`,@` unquote, `$` auto-gensym, and the `\`
  *   namespace separator;
  * - **definitions** — any `def`/`defn` whose metadata carries `:deprecated`.
  *
@@ -229,9 +229,9 @@ final class DeprecationWarnings
      *
      * Attribution follows the same rule as {@see warnOnceAtOrigin()}: a
      * construct a macro expansion produced belongs to the macro, not to the
-     * file that called it. Only the emitter's `^:reference` check runs late
-     * enough to see a stamped location; the lexer and the reader work on forms
-     * the user typed, so this is a no-op for them.
+     * file that called it. Only a detector running late enough to see a
+     * stamped location can observe that; the lexer and the reader work on
+     * forms the user typed, so this is a no-op for them.
      */
     public static function warnSyntax(
         string $construct,
@@ -251,20 +251,22 @@ final class DeprecationWarnings
      * The single `trigger_error()` call, with the notice's *display* pinned to
      * stderr for its duration.
      *
-     * A diagnostic must never be able to corrupt program output, and one of
-     * these detectors runs during emission — inside the `ob_start()` the
-     * emitter builds PHP source with ({@see \Phel\Compiler\Domain\Emitter\StatementEmitter}).
-     * Under PHP CLI's default `display_errors=1` (STDOUT) the notice text is
-     * written into that buffer and spliced into the generated code, so
-     * `--warn-deprecations` turned a `^:reference` param into
-     * `syntax error, unexpected token ":"` and failed the compile (#2827).
+     * A diagnostic must never be able to corrupt program output. The emitter
+     * builds PHP source inside an `ob_start()`
+     * ({@see \Phel\Compiler\Domain\Emitter\StatementEmitter}), and under PHP
+     * CLI's default `display_errors=1` (STDOUT) a notice raised in there is
+     * written into that buffer and spliced into the generated code. The
+     * detector that proved it was the emitter's `^:reference` check, which
+     * turned `--warn-deprecations` into `syntax error, unexpected token ":"`
+     * and failed the compile (#2827); that alias is since removed, and no
+     * detector runs during emission today.
      *
-     * Redirecting the destination is the fix rather than moving the one
-     * offending detector: it closes the whole class at the single point the
-     * mechanism already centralises, so a future emission-time notice cannot
-     * reopen it. The notice is still a real `E_USER_DEPRECATED`, so a userland
-     * `set_error_handler` (PHPUnit's, Symfony's) sees it exactly as before —
-     * only PHP's own display destination moves, and only while it is raised.
+     * The redirect stays regardless, because it closes the whole class at the
+     * single point the mechanism already centralises: the next emission-time
+     * notice cannot reopen it. The notice is still a real `E_USER_DEPRECATED`,
+     * so a userland `set_error_handler` (PHPUnit's, Symfony's) sees it exactly
+     * as before — only PHP's own display destination moves, and only while it
+     * is raised.
      *
      * The redirect is skipped when display is already off (setting `stderr`
      * would *enable* a notice the user silenced) or already on stderr.

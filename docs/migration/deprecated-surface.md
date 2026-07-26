@@ -89,46 +89,6 @@ Full detail, including what is and is not detected today, is in
 [backslash-to-dot.md](backslash-to-dot.md). Tracked in
 [#1567](https://github.com/phel-lang/phel-lang/issues/1567).
 
-## Function-parameter metadata
-
-`^:reference` marks a by-reference parameter. `^:by-ref` is the canonical
-spelling and the two are exactly equivalent.
-
-```phel
-(defn fill [^:reference buffer]       (defn fill [^:by-ref buffer]
-  (php/array_push buffer 1))            (php/array_push buffer 1))
-```
-
-## Core library
-
-### `set-meta!`
-
-A thin alias for `with-meta`, deprecated since `0.32.0`. Same arguments, same
-return value.
-
-```phel
-(set-meta! [] {:a 1})                 (with-meta [] {:a 1})
-```
-
-`(doc set-meta!)` and `phel doc set-meta!` also print a `DEPRECATED:` line, with
-or without the flag.
-
-### `phel\test/print-summary`
-
-`run-tests` already emits the `:summary` event at the end of a run, so calling
-`print-summary` yourself double-reports. Custom reporters should react to the
-`:summary` event instead of triggering it.
-
-```phel
-(t/run-tests {} 'my-app.core-test)    (t/run-tests {} 'my-app.core-test)
-(t/print-summary)                     ;; nothing else needed
-```
-
-If a test *harness* needs a summary for stats it assembled itself, keep reading
-the stats atom and fan out its own event rather than calling `print-summary`.
-
-`(doc print-summary)` also prints a `DEPRECATED:` line, with or without the flag.
-
 ## Deprecating your own definitions
 
 The mechanism is not phel-specific. Any `def`/`defn` carrying

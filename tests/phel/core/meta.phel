@@ -28,15 +28,15 @@
       "meta on a fn parameter returns its metadata"))
 
 (deftest meta-on-object-with-meta
-  (is (= {:a 1} (meta (set-meta! [] {:a 1}))) "meta on object implementing MetaInterface"))
+  (is (= {:a 1} (meta (with-meta [] {:a 1}))) "meta on object implementing MetaInterface"))
 
 (deftest meta-on-object-no-meta
   (is (= nil (meta [])) "meta on object without metadata returns nil"))
 
 (deftest sequence-functions-preserve-meta
   (let [m      {:foo "bar"}
-        data   (set-meta! [3 1 2] m)
-        nested (set-meta! [[1] [2]] m)]
+        data   (with-meta [3 1 2] m)
+        nested (with-meta [[1] [2]] m)]
     (is (= m (meta (map identity data))) "map preserves metadata")
     (is (= m (meta (map + data data))) "map with multiple sequences preserves metadata")
     (is (= m (meta (map-indexed (fn [_ x] x) data))) "map-indexed preserves metadata")
@@ -57,11 +57,11 @@
     (is (= m (meta (frequencies data))) "frequencies preserves metadata")))
 
 (deftest test-vary-meta
-  (is (= {:a 1 :b 2} (meta (vary-meta (set-meta! [] {:a 1}) assoc :b 2)))
+  (is (= {:a 1 :b 2} (meta (vary-meta (with-meta [] {:a 1}) assoc :b 2)))
       "vary-meta adds key to existing metadata")
-  (is (= {:count 1} (meta (vary-meta (set-meta! [] {:count 0}) update-in [:count] inc)))
+  (is (= {:count 1} (meta (vary-meta (with-meta [] {:count 0}) update-in [:count] inc)))
       "vary-meta with update-in")
-  (is (= {:a 1} (meta (vary-meta (set-meta! [] {:a 1 :b 2}) dissoc :b)))
+  (is (= {:a 1} (meta (vary-meta (with-meta [] {:a 1 :b 2}) dissoc :b)))
       "vary-meta with dissoc"))
 
 (deftest transient-round-trip-preserves-meta
@@ -86,7 +86,7 @@
 
 (deftest associative-functions-preserve-meta
   (let [m    {:foo "bar"}
-        data (set-meta! {:a 1 :b 2} m)]
+        data (with-meta {:a 1 :b 2} m)]
     (is (= m (meta (keys data))) "keys preserves metadata")
     (is (= m (meta (vals data))) "vals preserves metadata")
     (is (= m (meta (pairs data))) "pairs preserves metadata")

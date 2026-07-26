@@ -66,9 +66,41 @@ mkdir -p .phel && mv .phel-repl-history .phel/repl-history
 ```
 
 Replace any literal `.phel-repl-history` in a `.gitignore` or CI cache key with `.phel/`.
+## Removed function-parameter metadata
+
+`^:reference` marked a by-reference fn parameter. `^:by-ref` was always the canonical spelling and the two were exactly equivalent, so the alias is removed ([#2827](https://github.com/phel-lang/phel-lang/issues/2827)).
+
+```phel
+(defn fill [^:reference buffer]       (defn fill [^:by-ref buffer]
+  (php/array_push buffer 1))            (php/array_push buffer 1))
+```
+
+`^:reference` is now simply not a by-reference marker: the parameter compiles by value, and a function relying on the mutation stops propagating it to the caller. Grep for the literal `:reference` in parameter metadata, since a symbol rename will not find it.
+
+## Removed core definitions
+
+| Removed | Deprecated since | Replacement |
+|---------|------------------|-------------|
+| `set-meta!` | 0.32.0 | `with-meta` |
+| `phel\test/print-summary` | 0.49.0 | react to the `:summary` event |
+
+`set-meta!` was a thin alias with the same arguments and return value:
+
+```phel
+(set-meta! [] {:a 1})   ; -> (with-meta [] {:a 1})
+```
+
+`run-tests` already emits the `:summary` event at the end of a run, so calling `print-summary` yourself double-reported:
+
+```phel
+(t/run-tests {} 'my-app.core-test)    (t/run-tests {} 'my-app.core-test)
+(t/print-summary)                     ;; nothing else needed
+```
+
+A custom reporter reacts to the `:summary` event instead of triggering it. A test harness that needs a summary for stats it assembled itself builds the event from the public `get-stats` snapshot and hands it to the reporter; `phel.test` keeps its own builder private on purpose, so the event shape stays free to change.
 
 ## Still deprecated (not removed)
 
-`set-meta!` (use `with-meta`) remains available but deprecated; it is intentionally out of scope for this removal. The `warn-deprecations` infrastructure also stays, since it still serves live deprecations such as the `\` namespace separator (see [backslash-to-dot.md](backslash-to-dot.md)).
+The `warn-deprecations` infrastructure stays, since it still serves live deprecations such as the deprecated reader syntax and the `\` namespace separator (see [backslash-to-dot.md](backslash-to-dot.md)). `DeprecatedDefinitionWarner` stays too: it is a general facility that project code uses for its own `:deprecated` definitions.
 
 [deprecated-surface.md](deprecated-surface.md) maps the whole set of deprecations that are still shipped, with a before/after for each.
