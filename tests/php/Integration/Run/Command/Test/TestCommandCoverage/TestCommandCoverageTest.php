@@ -125,6 +125,16 @@ final class TestCommandCoverageTest extends TestCase
         if (str_contains($output, 'requires the pcov or xdebug extension')) {
             self::markTestSkipped('No line-coverage extension (pcov/xdebug) available in the subprocess.');
         }
+
+        // A driver that instruments nothing produces an empty report rather than
+        // an error, and every assertion below then fails for a reason that has
+        // nothing to do with what is under test. Say what actually happened.
+        if (str_contains($output, 'No project source files were executed')) {
+            self::markTestSkipped(
+                'The coverage driver instrumented no files. pcov only sees paths under `pcov.directory`; '
+                . 'the fixture project lives in the system temp directory.',
+            );
+        }
     }
 
     /**
@@ -139,8 +149,15 @@ final class TestCommandCoverageTest extends TestCase
             $args .= ' ' . escapeshellarg($argument);
         }
 
+        // pcov only instruments files under `pcov.directory`, which defaults to a
+        // path derived from the parent process. The fixture project lives in the
+        // system temp directory, so without this the subprocess collects nothing
+        // and reports an empty report instead of failing. Harmless under xdebug,
+        // and harmless when pcov is not installed at all.
         $cmd = 'cd ' . escapeshellarg($this->projectDir)
-            . ' && php -d memory_limit=256M ' . escapeshellarg($this->repoRoot . '/bin/phel')
+            . ' && php -d memory_limit=256M'
+            . ' -d pcov.directory=' . escapeshellarg($this->projectDir)
+            . ' ' . escapeshellarg($this->repoRoot . '/bin/phel')
             . ' test' . $args . ' 2>&1';
 
         exec($cmd, $output, $exitCode);
