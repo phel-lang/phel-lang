@@ -72,15 +72,27 @@ jobs:
       - name: Run Bashunit tests
         run: tools/bashunit tools/*-test.sh --simple
 
-  symfony-console-7-compat:
-    name: Compat tests on symfony/console ^7.0
+  # Only the version the lock file happens to resolve is covered by the other
+  # jobs, so each end of the declared symfony/console range gets its own run: a
+  # range we advertise but never install is a compatibility claim with nothing
+  # behind it. `^6.0` and `^7.2` used to be declared and do not work: neither
+  # has the `markdown` output style `phel\cli` renders with.
+  symfony-console-compat:
+    name: Compat tests on symfony/console ${{ matrix.console }}
     runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        console: [ '7.3.*', '^8.0' ]
     steps:
       - uses: actions/checkout@v6
       - uses: ./.github/actions/setup-phel
 
-      - name: Pin symfony/console to ^7.0 for this run
-        run: composer update --with "symfony/console:^7.0" --with-all-dependencies --no-interaction --no-ansi --no-progress
+      - name: Pin symfony/console to ${{ matrix.console }} for this run
+        run: composer update --with "symfony/console:${{ matrix.console }}" --with-all-dependencies --no-interaction --no-ansi --no-progress
+
+      - name: Show the resolved version
+        run: composer show symfony/console | head -3
 
       - name: Run core tests
         run: composer run-script test-core
