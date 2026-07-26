@@ -733,7 +733,12 @@ Equivalent to multiple `extend-type` calls."
           dispatch-name (php/:: Symbol (create (php/. (php/-> name (getName)) "-dispatch")))
           name-str      (php/-> name (getName))
           df-sym        (gensym)
-          args-sym      (gensym)
+          ;; A stable name, not a gensym: this one is the multimethod's own
+          ;; parameter list, so it shows up in `phel doc` and in the API
+          ;; snapshot. A gensym made every rendering read `(name & __phel_3167)`
+          ;; and change on every run. Nothing user-supplied is spliced into the
+          ;; body below, so there is nothing here for it to capture.
+          args-sym      'args
           body          `(let [dispatch-val# (apply ~dispatch-name ~args-sym)
                                methods#      (deref ~methods-name)
                                method#       (get methods# dispatch-val#)]
@@ -748,8 +753,18 @@ Equivalent to multiple `extend-type` calls."
                                      (throw (php/new \InvalidArgumentException
                                                      (str "No method for dispatch value: " dispatch-val#)))))))))]
       `(do
-         (def ~methods-name (atom {}))
-         (def ~prefers-name (atom {}))
+         ;; Both tables stay public: `defmethod` and `prefer-method` resolve them
+         ;; in the multimethod's home namespace, so extending from another
+         ;; namespace needs to reach them. They carry their own docs because they
+         ;; show up in `phel doc` like any other public definition.
+         (def ~methods-name
+           {:doc ~(str "Dispatch table for the `" name-str "` multimethod: a map of dispatch value to implementing function. Registered through `defmethod`; not meant to be written directly.")
+            :see-also ["defmulti" "defmethod"]}
+           (atom {}))
+         (def ~prefers-name
+           {:doc ~(str "Preference table for the `" name-str "` multimethod, resolving ambiguity between two matching dispatch values. Registered through `prefer-method`; not meant to be written directly.")
+            :see-also ["defmulti" "prefer-method" "prefers"]}
+           (atom {}))
          (def ~dispatch-name {:private true}
            (let [~df-sym ~dispatch-fn]
              (when (and (string? ~df-sym) (not (php/is_callable ~df-sym)))
