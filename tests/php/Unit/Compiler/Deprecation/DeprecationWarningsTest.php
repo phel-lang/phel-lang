@@ -256,9 +256,9 @@ final class DeprecationWarningsTest extends TestCase
 
         $captured = $this->capture(static function (): void {
             DeprecationWarnings::warnSyntax(
-                '"^:reference"',
-                'by-reference fn parameters',
-                '"^:by-ref"',
+                '"|()"',
+                'short fn literals',
+                '"#()"',
                 new SourceLocation('/app/user.phel', 4, 1, new SourceLocation('/app/macros.phel', 9, 2)),
             );
         });
@@ -276,9 +276,9 @@ final class DeprecationWarningsTest extends TestCase
 
         self::assertSame([], $this->capture(static function () use ($stdlibFile): void {
             DeprecationWarnings::warnSyntax(
-                '"^:reference"',
-                'by-reference fn parameters',
-                '"^:by-ref"',
+                '"|()"',
+                'short fn literals',
+                '"#()"',
                 new SourceLocation('/app/user.phel', 4, 1, new SourceLocation($stdlibFile, 9, 2)),
             );
         }));
@@ -286,10 +286,11 @@ final class DeprecationWarningsTest extends TestCase
 
     /**
      * A notice raised while an output buffer is open must not land in that
-     * buffer. The emitter builds generated PHP inside `ob_start()`, and one
-     * detector (`^:reference` params) runs there, so under PHP CLI's default
-     * `display_errors=1` (STDOUT) the notice text used to be spliced into the
-     * emitted code and break the compile (#2827).
+     * buffer. The emitter builds generated PHP inside `ob_start()`, so under
+     * PHP CLI's default `display_errors=1` (STDOUT) a notice raised there used
+     * to be spliced into the emitted code and break the compile (#2827). No
+     * detector runs during emission today; this pins the guard so the next one
+     * cannot reintroduce it.
      */
     public function test_notice_display_never_reaches_a_captured_stdout_buffer(): void
     {

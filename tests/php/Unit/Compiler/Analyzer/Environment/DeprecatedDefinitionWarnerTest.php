@@ -50,13 +50,13 @@ final class DeprecatedDefinitionWarnerTest extends TestCase
     {
         $this->warner()->maybeWarn(
             'phel.test',
-            $this->locatedSymbol('print-summary', '/app/user.phel'),
-            $this->meta(['deprecated' => 'run-tests emits it already']),
+            $this->locatedSymbol('old-parse', '/app/user.phel'),
+            $this->meta(['deprecated' => 'parse-config supersedes it']),
         );
 
         $captured = $this->capturedDeprecations();
         self::assertCount(1, $captured);
-        self::assertStringContainsString(': run-tests emits it already', $captured[0]);
+        self::assertStringContainsString(': parse-config supersedes it', $captured[0]);
     }
 
     public function test_warns_for_boolean_true_metadata_without_detail(): void

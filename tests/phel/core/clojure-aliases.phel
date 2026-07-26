@@ -42,13 +42,10 @@
   (is (= [1 2 3] (vals {:a 1 :b 2 :c 3})) "vals of map")
   (is (= [3 2 1] (vals [3 2 1])) "vals of vector"))
 
-;; --- with-meta (public) / set-meta! ---
+;; --- with-meta (public) ---
 
 (deftest test-with-meta-public
   (is (= {:a 1} (meta (with-meta [] {:a 1}))) "with-meta sets metadata"))
-
-(deftest test-set-meta!-still-works
-  (is (= {:a 1} (meta (set-meta! [] {:a 1}))) "deprecated set-meta! still works"))
 
 ;; --- run! ---
 

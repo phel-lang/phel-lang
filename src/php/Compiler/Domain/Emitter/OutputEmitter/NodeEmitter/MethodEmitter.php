@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace Phel\Compiler\Domain\Emitter\OutputEmitter\NodeEmitter;
 
 use Phel\Compiler\Domain\Analyzer\Ast\FnNode;
-use Phel\Compiler\Domain\Deprecation\DeprecationWarnings;
 use Phel\Compiler\Domain\Emitter\OutputEmitter\Cache\BodyConstantScanner;
 use Phel\Compiler\Domain\Emitter\OutputEmitter\Cache\ConstantScope;
 use Phel\Compiler\Domain\Emitter\OutputEmitterInterface;
@@ -71,7 +70,7 @@ final readonly class MethodEmitter
             if ($isVariadicTail) {
                 $this->outputEmitter->emitPhpVariable($symbol, $loc = null, $asReference = false, $isVariadic = true);
             } else {
-                $isReference = $this->isByRef($symbol, $meta);
+                $isReference = $this->isByRef($meta);
                 $this->outputEmitter->emitPhpVariable($symbol, $loc = null, $isReference);
             }
 
@@ -166,36 +165,15 @@ final readonly class MethodEmitter
      * binding. Surfaces the `(php/array)` mutation pattern at the Phel
      * level without forcing buffer-return-rebind dances.
      *
-     * `^:reference` is the historical alias, kept for source compatibility and
-     * scheduled for removal in the next major (see
-     * `docs/migration/deprecated-surface.md`). Nothing in `src/phel/` uses it;
-     * it now announces itself with an `E_USER_DEPRECATED` notice so a project
-     * still on the old spelling learns about it before the removal lands.
-     *
      * @param PersistentMapInterface<mixed, mixed>|null $meta
      */
-    private function isByRef(Symbol $param, ?PersistentMapInterface $meta): bool
+    private function isByRef(?PersistentMapInterface $meta): bool
     {
         if (!$meta instanceof PersistentMapInterface) {
             return false;
         }
 
-        if ($meta->find(Keyword::create('by-ref')) === true) {
-            return true;
-        }
-
-        if ($meta->find(Keyword::create('reference')) !== true) {
-            return false;
-        }
-
-        DeprecationWarnings::warnSyntax(
-            '"^:reference"',
-            'by-reference fn parameters',
-            '"^:by-ref"',
-            $param->getStartLocation(),
-        );
-
-        return true;
+        return $meta->find(Keyword::create('by-ref')) === true;
     }
 
     /**

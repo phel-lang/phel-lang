@@ -1100,15 +1100,6 @@ Metadata attached to `test-name` is forwarded to the defined function so selecto
   []
   (fan-out! (summary-event (deref stats))))
 
-(defn print-summary
-  "Emits the `:summary` event to the active reporter set. Deprecated: `run-tests` already emits the event at the end of a run, so calling this yourself double-reports."
-  {:deprecated "run-tests already emits the :summary event at the end of a run"
-   :superseded-by "run-tests"
-   :see-also ["run-tests"]
-   :example "(print-summary)"}
-  []
-  (emit-summary!))
-
 ;; --------
 ;; Fixtures
 ;; --------
