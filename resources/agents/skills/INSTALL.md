@@ -9,18 +9,19 @@
 ./vendor/bin/phel agent-install --dry-run claude     # preview
 ./vendor/bin/phel agent-install --force claude       # overwrite without backup
 ./vendor/bin/phel agent-install --check              # report install + version drift; exit 1 if stale
-./vendor/bin/phel agent-install --list               # list platforms with sources, targets, and state
 ./vendor/bin/phel agent-install --uninstall claude   # remove (restores .pre-phel.bak if present)
 ./vendor/bin/phel agent-install --uninstall --all    # full removal (skills + .agents/ docs)
 ```
 
-Existing targets back up to `<path>.pre-phel.bak`. `--force` skips backup.
+An existing **skill file** backs up to `<path>.pre-phel.bak`; `--force` skips that backup.
 
 The `.agents/` docs tree is copied by default; pass `--no-docs` for skill files only. Example apps are excluded by default; add `--with-examples` to include `.agents/examples/`.
 
-Each installed file gets a footer `<!-- phel-agents vX.Y.Z -->` stamped from `resources/agents/VERSION`. Re-running `agent-install` after `composer update phel-lang/phel-lang` refreshes the stamp.
+## Re-running is incremental
 
-`phel doctor` also reports installed agent skills and flags stale versions in one place, so no need to remember `--check`.
+The docs tree syncs file by file. A re-run writes only what is new or has changed upstream, and leaves alone anything you edited since the last install, so `agent-install` after `composer update phel-lang/phel-lang` pulls new docs without touching your notes. Locally modified files are listed at the end of the run; `--force` overwrites those too, backing each one up to `<file>.pre-phel.bak` first.
+
+`.agents/.phel-agent-manifest.json` records the docs version and what was installed. It is what makes the incremental sync and `--check` possible, and it is why `--uninstall` removes only the files we wrote, leaving anything you added to `.agents/` in place.
 
 ## Destinations
 

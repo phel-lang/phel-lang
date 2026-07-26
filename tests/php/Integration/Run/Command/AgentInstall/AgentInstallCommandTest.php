@@ -154,7 +154,7 @@ final class AgentInstallCommandTest extends TestCase
         self::assertDirectoryDoesNotExist($this->testDir . '/.agents');
     }
 
-    public function test_install_skips_docs_when_agents_dir_already_exists(): void
+    public function test_install_fills_in_an_existing_agents_dir_without_touching_what_is_there(): void
     {
         mkdir($this->testDir . '/.agents', 0o755, true);
         file_put_contents($this->testDir . '/.agents/marker.txt', 'keep me');
@@ -163,16 +163,60 @@ final class AgentInstallCommandTest extends TestCase
         $this->install(['platform' => 'claude'], $output);
 
         self::assertFileExists($this->testDir . '/.agents/marker.txt');
-        self::assertStringContainsString('.agents/ already exists', $output->fetch());
+        self::assertFileExists($this->testDir . '/.agents/RULES.md');
+        self::assertStringContainsString('new,', $output->fetch());
     }
 
-    public function test_force_overwrites_docs_tree(): void
+    public function test_reinstall_reports_everything_unchanged_and_rewrites_nothing(): void
     {
-        mkdir($this->testDir . '/.agents', 0o755, true);
+        $this->install(['platform' => 'claude']);
+        $before = (int) filemtime($this->testDir . '/.agents/RULES.md');
+
+        $output = new BufferedOutput();
+        $this->install(['platform' => 'claude'], $output);
+
+        self::assertStringContainsString('0 new, 0 updated,', $output->fetch());
+        self::assertSame($before, (int) filemtime($this->testDir . '/.agents/RULES.md'));
+    }
+
+    public function test_reinstall_keeps_a_locally_edited_doc_and_says_so(): void
+    {
+        $this->install(['platform' => 'claude']);
+        file_put_contents($this->testDir . '/.agents/RULES.md', 'my own rules');
+
+        $output = new BufferedOutput();
+        $this->install(['platform' => 'claude'], $output);
+
+        self::assertSame('my own rules', file_get_contents($this->testDir . '/.agents/RULES.md'));
+        self::assertStringContainsString('locally modified', $output->fetch());
+    }
+
+    public function test_force_overwrites_a_locally_edited_doc_after_backing_it_up(): void
+    {
+        $this->install(['platform' => 'claude']);
+        file_put_contents($this->testDir . '/.agents/RULES.md', 'my own rules');
 
         $this->install(['platform' => 'claude', '--force' => true]);
 
-        self::assertFileExists($this->testDir . '/.agents/RULES.md');
+        self::assertSame(
+            'my own rules',
+            file_get_contents($this->testDir . '/.agents/RULES.md.pre-phel.bak'),
+        );
+        self::assertStringNotContainsString(
+            'my own rules',
+            (string) file_get_contents($this->testDir . '/.agents/RULES.md'),
+        );
+    }
+
+    public function test_uninstall_keeps_files_the_user_added_to_the_agents_tree(): void
+    {
+        $this->install(['platform' => 'claude']);
+        file_put_contents($this->testDir . '/.agents/my-notes.md', 'mine');
+
+        $this->install(['platform' => 'claude', '--uninstall' => true]);
+
+        self::assertFileExists($this->testDir . '/.agents/my-notes.md');
+        self::assertFileDoesNotExist($this->testDir . '/.agents/RULES.md');
     }
 
     public function test_claude_skill_references_quick_syntax(): void
@@ -291,6 +335,36 @@ final class AgentInstallCommandTest extends TestCase
         // Nothing actually changed: skill + backup both still present.
         self::assertFileExists($this->testDir . '/CONVENTIONS.md');
         self::assertFileExists($this->testDir . '/CONVENTIONS.md.pre-phel.bak');
+    }
+
+    public function test_check_fails_when_no_docs_are_installed(): void
+    {
+        $output = new BufferedOutput();
+        $result = $this->install(['--check' => true], $output);
+
+        self::assertSame(Command::FAILURE, $result);
+        self::assertStringContainsString('No .agents/ docs installed', $output->fetch());
+    }
+
+    public function test_check_passes_right_after_an_install(): void
+    {
+        $this->install(['platform' => 'claude']);
+
+        $output = new BufferedOutput();
+        $result = $this->install(['--check' => true], $output);
+
+        self::assertSame(Command::SUCCESS, $result);
+        $rendered = $output->fetch();
+        self::assertStringContainsString('Docs are up to date', $rendered);
+        self::assertStringContainsString('claude', $rendered);
+    }
+
+    public function test_check_writes_nothing(): void
+    {
+        $this->install(['--check' => true]);
+
+        self::assertDirectoryDoesNotExist($this->testDir . '/.agents');
+        self::assertFileDoesNotExist($this->testDir . '/AGENTS.md');
     }
 
     public function test_uninstall_on_not_installed_platform_is_noop(): void

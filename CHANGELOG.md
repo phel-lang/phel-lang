@@ -12,6 +12,7 @@ All notable changes to this project will be documented in this file.
 - New lint rule `phel/comment-style` (warning): flags a whole-line comment written with a single `;`, which the convention reserves for trailing comments
 - New lint rule `phel/duplicate-def` (error): flags a symbol defined twice in one file. A forward `(declare foo)` plus its definition stays clean
 - [Migration guide for the currently deprecated surface](docs/migration/deprecated-surface.md): every live deprecation, its replacement, and how it announces itself
+- `phel agent-install --check`: reports which skill files are installed and whether the `.agents/` docs are behind the bundled ones, exiting 1 when they are, so CI can gate on it. `resources/agents/skills/INSTALL.md` has documented this flag for a while without it existing
 
 ### Fixed
 
@@ -57,6 +58,7 @@ All notable changes to this project will be documented in this file.
 
 ### Changed
 
+- `phel agent-install` now syncs the `.agents/` docs tree incrementally (#2809). It used to skip the whole tree when the directory existed and rewrite every file under `--force`, so there was no way to pull new docs without discarding your own edits. A re-run now writes only what is new or changed upstream, leaves a file you edited since the last install alone and names it in the summary, and under `--force` backs that file up to `<file>.pre-phel.bak` before overwriting. `--uninstall` removes only the paths we installed, so anything you added to `.agents/` survives. An install manifest at `.agents/.phel-agent-manifest.json` records the docs version and those paths; a tree from before it existed is treated as user-owned and is left intact
 - `phel\test/print-summary` is deprecated: `run-tests` already emits the `:summary` event, so calling it yourself double-reports. React to the event in a custom reporter instead
 - Every compiler deprecation notice now goes through one switch, one message factory and one dedup table, so notices read identically and cannot name a concrete removal version
 - **BREAKING** (PHP API, implementers only): `Phel\Shared\Facade\ApiFacadeInterface` now declares the whole semantic-analysis surface (adding `analyzeSource`, `indexProject`, `extractDefinitions`, `resolveSymbol`, `findReferences`, `completeAtPoint`, `phpInteropHoverAt`, `phpInteropSignatureAt`, `phelSignatureAt`), and `FormatterFacadeInterface` gains `formatString`. Callers are unaffected; implementers must add the new methods

@@ -14,6 +14,7 @@ use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
 
+use function count;
 use function implode;
 use function is_file;
 use function is_string;
@@ -37,6 +38,8 @@ final class AgentInstallCommand extends Command
 
     private const string OPT_UNINSTALL = 'uninstall';
 
+    private const string OPT_CHECK = 'check';
+
     private readonly AgentPlatformRegistry $registry;
 
     private readonly AgentInstaller $installer;
@@ -59,11 +62,16 @@ Copies a per-platform skill file plus a shared <comment>.agents/</comment> docs 
 (rules, recipes, quick-syntax reference) into the current project. Example
 projects are excluded by default; pass <comment>--with-examples</comment> to include them.
 
+The docs tree syncs incrementally: re-running writes only what is new or has
+changed upstream, and leaves any file you edited since the last install exactly
+as it is. <comment>--force</comment> overwrites those too, backing each one up first.
+
 <info>Common uses:</info>
   <comment>phel agent-install --auto</comment>             Install for agents detected in this project
   <comment>phel agent-install claude</comment>             Install only the Claude skill + docs
   <comment>phel agent-install --all --force</comment>      Reinstall every platform, overwriting
   <comment>phel agent-install claude --uninstall</comment> Remove the Claude skill (restore backup)
+  <comment>phel agent-install --check</comment>            Report docs version drift; exit 1 when stale
 
 Existing skill files are backed up to <comment>.pre-phel.bak</comment> unless <comment>--force</comment> is used.
 HELP)
@@ -72,15 +80,20 @@ HELP)
             ->addOption(self::OPT_AUTO, null, InputOption::VALUE_NONE, 'Install only for agents detected in this project (.claude/, .cursor/, AGENTS.md, ...)')
             ->addOption(self::OPT_NO_DOCS, null, InputOption::VALUE_NONE, 'Skip copying the .agents/ docs tree (copied by default)')
             ->addOption(self::OPT_WITH_EXAMPLES, null, InputOption::VALUE_NONE, 'Include example projects in .agents/examples/ (excluded by default)')
-            ->addOption(self::OPT_FORCE, null, InputOption::VALUE_NONE, 'Overwrite existing files without creating ' . AgentInstaller::BACKUP_SUFFIX . ' backups')
+            ->addOption(self::OPT_FORCE, null, InputOption::VALUE_NONE, 'Overwrite the skill file without a ' . AgentInstaller::BACKUP_SUFFIX . ' backup, and overwrite locally modified docs (backing those up)')
             ->addOption(self::OPT_DRY_RUN, null, InputOption::VALUE_NONE, 'Print what would be written without changing files')
-            ->addOption(self::OPT_UNINSTALL, null, InputOption::VALUE_NONE, 'Remove installed skill file(s); restores ' . AgentInstaller::BACKUP_SUFFIX . ' if present');
+            ->addOption(self::OPT_UNINSTALL, null, InputOption::VALUE_NONE, 'Remove installed skill file(s); restores ' . AgentInstaller::BACKUP_SUFFIX . ' if present')
+            ->addOption(self::OPT_CHECK, null, InputOption::VALUE_NONE, 'Report the installed docs version against the bundled one; exit 1 when they differ');
     }
 
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
         $sourceRoot = $this->installer->locateSourceRoot();
         $projectRoot = (string) getcwd();
+
+        if ((bool) $input->getOption(self::OPT_CHECK)) {
+            return $this->renderCheck($output, $sourceRoot, $projectRoot);
+        }
 
         $platforms = $this->selectPlatforms($input, $output);
         if ($platforms === null) {
@@ -114,7 +127,7 @@ HELP)
         }
 
         if ($copyDocs) {
-            $this->renderCopyDocs($output, $sourceRoot, $projectRoot, $force, $dryRun, $withExamples);
+            $this->renderSyncDocs($output, $sourceRoot, $projectRoot, $force, $dryRun, $withExamples);
         }
 
         if (!$dryRun) {
@@ -168,21 +181,82 @@ HELP)
         };
     }
 
-    private function renderCopyDocs(OutputInterface $output, string $sourceRoot, string $projectRoot, bool $force, bool $dryRun, bool $withExamples): void
+    /**
+     * Report install state and docs version drift without writing anything, so
+     * CI can gate on "your `.agents/` is behind the phel-lang you installed".
+     */
+    private function renderCheck(OutputInterface $output, string $sourceRoot, string $projectRoot): int
+    {
+        $bundled = $this->installer->bundledDocsVersion($sourceRoot);
+        $installed = $this->installer->installedDocsVersion($projectRoot);
+
+        foreach ($this->registry->keys() as $key) {
+            $target = $this->registry->get($key)->target;
+            $output->writeln(sprintf(
+                '  %-8s %s %s',
+                $key,
+                is_file($projectRoot . '/' . $target) ? '<info>installed</info>' : 'absent   ',
+                $target,
+            ));
+        }
+
+        if ($installed === null) {
+            $output->writeln(sprintf('<comment>No .agents/ docs installed (bundled: %s).</comment>', $bundled));
+            $output->writeln('Run <comment>phel agent-install --auto</comment> to install them.');
+            return Command::FAILURE;
+        }
+
+        if ($installed !== $bundled) {
+            $output->writeln(sprintf('<comment>Docs are stale: installed %s, bundled %s.</comment>', $installed, $bundled));
+            $output->writeln('Run <comment>phel agent-install</comment> again to sync the changed files.');
+            return Command::FAILURE;
+        }
+
+        $output->writeln(sprintf('<info>Docs are up to date</info> (%s).', $installed));
+
+        return Command::SUCCESS;
+    }
+
+    private function renderSyncDocs(OutputInterface $output, string $sourceRoot, string $projectRoot, bool $force, bool $dryRun, bool $withExamples): void
     {
         $dst = $projectRoot . '/' . AgentInstaller::AGENTS_DIR;
+        $installedVersion = $this->installer->installedDocsVersion($projectRoot);
+        $bundledVersion = $this->installer->bundledDocsVersion($sourceRoot);
+        $prefix = $dryRun ? '[dry-run] ' : '';
 
-        if ($dryRun) {
-            $output->writeln(sprintf('[dry-run] copy %s -> %s', $sourceRoot, $dst));
-            return;
+        if ($installedVersion !== null && $installedVersion !== $bundledVersion) {
+            $output->writeln(sprintf('Docs %s -> <info>%s</info>', $installedVersion, $bundledVersion));
         }
 
-        if (!$this->installer->copyDocs($sourceRoot, $projectRoot, $force, $withExamples)) {
-            $output->writeln('<comment>.agents/ already exists; skipping (use --force to overwrite)</comment>');
-            return;
+        $result = $this->installer->syncDocs($sourceRoot, $projectRoot, $force, $withExamples, $dryRun);
+
+        $output->writeln(sprintf(
+            '%s<info>Docs tree</info> %s: %d new, %d updated, %d unchanged',
+            $prefix,
+            $dst,
+            count($result->created),
+            count($result->updated) + count($result->backedUp),
+            count($result->unchanged),
+        ));
+
+        foreach ($result->backedUp as $relative) {
+            $output->writeln(sprintf(
+                '%sBacked up your %s -> %s',
+                $prefix,
+                $relative,
+                $relative . AgentInstaller::BACKUP_SUFFIX,
+            ));
         }
 
-        $output->writeln(sprintf('<info>Copied docs tree</info> -> %s', $dst));
+        if ($result->skipped !== []) {
+            $output->writeln(sprintf(
+                '<comment>Kept %d locally modified file(s): %s</comment>',
+                count($result->skipped),
+                implode(', ', $result->skipped),
+            ));
+            $output->writeln('<comment>Pass --force to overwrite them (your version is backed up first).</comment>');
+        }
+
         if (!$withExamples) {
             $output->writeln('<comment>Skipped examples/ (pass --with-examples to include sample apps).</comment>');
         }
