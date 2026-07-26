@@ -11,40 +11,36 @@ use Phel\Api\ApiFacade;
 use Phel\Command\CommandFacade;
 use Phel\Compiler\CompilerFacade;
 use Phel\Run\RunFacade;
+use Phel\Shared\Facade\ApiFacadeInterface;
+use Phel\Shared\Facade\CommandFacadeInterface;
+use Phel\Shared\Facade\CompilerFacadeInterface;
+use Phel\Shared\Facade\RunFacadeInterface;
 
 /**
  * @internal
  */
 final class LintProvider extends AbstractProvider
 {
-    public const string FACADE_API = 'FACADE_API';
-
-    public const string FACADE_COMPILER = 'FACADE_COMPILER';
-
-    public const string FACADE_COMMAND = 'FACADE_COMMAND';
-
-    public const string FACADE_RUN = 'FACADE_RUN';
-
-    #[Provides(self::FACADE_API)]
-    public function apiFacade(Container $container): ApiFacade
+    #[Provides(ApiFacadeInterface::class)]
+    public function apiFacade(Container $container): ApiFacadeInterface
     {
         return $container->getLocator()->getRequired(ApiFacade::class);
     }
 
-    #[Provides(self::FACADE_COMPILER)]
-    public function compilerFacade(Container $container): CompilerFacade
+    #[Provides(CompilerFacadeInterface::class)]
+    public function compilerFacade(Container $container): CompilerFacadeInterface
     {
         return $container->getLocator()->getRequired(CompilerFacade::class);
     }
 
-    #[Provides(self::FACADE_COMMAND)]
-    public function commandFacade(Container $container): CommandFacade
+    #[Provides(CommandFacadeInterface::class)]
+    public function commandFacade(Container $container): CommandFacadeInterface
     {
         return $container->getLocator()->getRequired(CommandFacade::class);
     }
 
-    #[Provides(self::FACADE_RUN)]
-    public function runFacade(Container $container): RunFacade
+    #[Provides(RunFacadeInterface::class)]
+    public function runFacade(Container $container): RunFacadeInterface
     {
         return $container->getLocator()->getRequired(RunFacade::class);
     }

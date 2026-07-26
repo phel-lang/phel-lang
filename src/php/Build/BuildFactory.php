@@ -144,16 +144,12 @@ final class BuildFactory extends AbstractFactory
 
     public function getCompilerFacade(): CompilerFacadeInterface
     {
-        /** @var CompilerFacadeInterface $facade */
-        $facade = $this->getProvidedDependency(BuildProvider::FACADE_COMPILER);
-        return $facade;
+        return $this->getProvidedDependency(CompilerFacadeInterface::class);
     }
 
     public function getCommandFacade(): CommandFacadeInterface
     {
-        /** @var CommandFacadeInterface $facade */
-        $facade = $this->getProvidedDependency(BuildProvider::FACADE_COMMAND);
-        return $facade;
+        return $this->getProvidedDependency(CommandFacadeInterface::class);
     }
 
     private function createSecondaryFileHarvester(): SecondaryFileHarvester

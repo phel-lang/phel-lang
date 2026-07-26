@@ -132,18 +132,12 @@ final class FormatterFactory extends AbstractFactory
 
     private function getCompilerFacade(): CompilerFacadeInterface
     {
-        /** @var CompilerFacadeInterface $facade */
-        $facade = $this->getProvidedDependency(FormatterProvider::FACADE_COMPILER);
-
-        return $facade;
+        return $this->getProvidedDependency(CompilerFacadeInterface::class);
     }
 
     private function getCommandFacade(): CommandFacadeInterface
     {
-        /** @var CommandFacadeInterface $facade */
-        $facade = $this->getProvidedDependency(FormatterProvider::FACADE_COMMAND);
-
-        return $facade;
+        return $this->getProvidedDependency(CommandFacadeInterface::class);
     }
 
     private function createFileIo(): ValidatedFileIoInterface

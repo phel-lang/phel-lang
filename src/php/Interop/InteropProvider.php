@@ -9,24 +9,22 @@ use Gacela\Framework\Attribute\Provides;
 use Gacela\Framework\Container\Container;
 use Phel\Build\BuildFacade;
 use Phel\Command\CommandFacade;
+use Phel\Shared\Facade\BuildFacadeInterface;
+use Phel\Shared\Facade\CommandFacadeInterface;
 
 /**
  * @internal
  */
 final class InteropProvider extends AbstractProvider
 {
-    public const string FACADE_COMMAND = 'FACADE_COMMAND';
-
-    public const string FACADE_BUILD = 'FACADE_BUILD';
-
-    #[Provides(self::FACADE_COMMAND)]
-    public function commandFacade(Container $container): CommandFacade
+    #[Provides(CommandFacadeInterface::class)]
+    public function commandFacade(Container $container): CommandFacadeInterface
     {
         return $container->getLocator()->getRequired(CommandFacade::class);
     }
 
-    #[Provides(self::FACADE_BUILD)]
-    public function buildFacade(Container $container): BuildFacade
+    #[Provides(BuildFacadeInterface::class)]
+    public function buildFacade(Container $container): BuildFacadeInterface
     {
         return $container->getLocator()->getRequired(BuildFacade::class);
     }

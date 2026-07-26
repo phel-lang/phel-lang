@@ -120,34 +120,22 @@ final class LintFactory extends AbstractFactory
 
     public function getApiFacade(): ApiFacadeInterface
     {
-        /** @var ApiFacadeInterface $facade */
-        $facade = $this->getProvidedDependency(LintProvider::FACADE_API);
-
-        return $facade;
+        return $this->getProvidedDependency(ApiFacadeInterface::class);
     }
 
     public function getCompilerFacade(): CompilerFacadeInterface
     {
-        /** @var CompilerFacadeInterface $facade */
-        $facade = $this->getProvidedDependency(LintProvider::FACADE_COMPILER);
-
-        return $facade;
+        return $this->getProvidedDependency(CompilerFacadeInterface::class);
     }
 
     public function getCommandFacade(): CommandFacadeInterface
     {
-        /** @var CommandFacadeInterface $facade */
-        $facade = $this->getProvidedDependency(LintProvider::FACADE_COMMAND);
-
-        return $facade;
+        return $this->getProvidedDependency(CommandFacadeInterface::class);
     }
 
     public function getRunFacade(): RunFacadeInterface
     {
-        /** @var RunFacadeInterface $facade */
-        $facade = $this->getProvidedDependency(LintProvider::FACADE_RUN);
-
-        return $facade;
+        return $this->getProvidedDependency(RunFacadeInterface::class);
     }
 
     /**

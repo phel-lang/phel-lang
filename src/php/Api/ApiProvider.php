@@ -9,24 +9,22 @@ use Gacela\Framework\Attribute\Provides;
 use Gacela\Framework\Container\Container;
 use Phel\Compiler\CompilerFacade;
 use Phel\Run\RunFacade;
+use Phel\Shared\Facade\CompilerFacadeInterface;
+use Phel\Shared\Facade\RunFacadeInterface;
 
 /**
  * @internal
  */
 final class ApiProvider extends AbstractProvider
 {
-    public const string FACADE_RUN = 'FACADE_RUN';
-
-    public const string FACADE_COMPILER = 'FACADE_COMPILER';
-
-    #[Provides(self::FACADE_RUN)]
-    public function runFacade(Container $container): RunFacade
+    #[Provides(RunFacadeInterface::class)]
+    public function runFacade(Container $container): RunFacadeInterface
     {
         return $container->getLocator()->getRequired(RunFacade::class);
     }
 
-    #[Provides(self::FACADE_COMPILER)]
-    public function compilerFacade(Container $container): CompilerFacade
+    #[Provides(CompilerFacadeInterface::class)]
+    public function compilerFacade(Container $container): CompilerFacadeInterface
     {
         return $container->getLocator()->getRequired(CompilerFacade::class);
     }

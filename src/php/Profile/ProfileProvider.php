@@ -8,16 +8,15 @@ use Gacela\Framework\AbstractProvider;
 use Gacela\Framework\Attribute\Provides;
 use Gacela\Framework\Container\Container;
 use Phel\Run\RunFacade;
+use Phel\Shared\Facade\RunFacadeInterface;
 
 /**
  * @internal
  */
 final class ProfileProvider extends AbstractProvider
 {
-    public const string FACADE_RUN = 'FACADE_RUN';
-
-    #[Provides(self::FACADE_RUN)]
-    public function runFacade(Container $container): RunFacade
+    #[Provides(RunFacadeInterface::class)]
+    public function runFacade(Container $container): RunFacadeInterface
     {
         return $container->getLocator()->getRequired(RunFacade::class);
     }

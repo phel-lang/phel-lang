@@ -8,16 +8,15 @@ use Gacela\Framework\AbstractProvider;
 use Gacela\Framework\Attribute\Provides;
 use Gacela\Framework\Container\Container;
 use Phel\Filesystem\FilesystemFacade;
+use Phel\Filesystem\FilesystemFacadeInterface;
 
 /**
  * @internal
  */
 final class CompilerProvider extends AbstractProvider
 {
-    public const string FACADE_FILESYSTEM = 'FACADE_FILESYSTEM';
-
-    #[Provides(self::FACADE_FILESYSTEM)]
-    public function filesystemFacade(Container $container): FilesystemFacade
+    #[Provides(FilesystemFacadeInterface::class)]
+    public function filesystemFacade(Container $container): FilesystemFacadeInterface
     {
         return $container->getLocator()->getRequired(FilesystemFacade::class);
     }

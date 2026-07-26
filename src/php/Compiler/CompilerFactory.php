@@ -239,10 +239,7 @@ final class CompilerFactory extends AbstractFactory
 
     private function getFilesystemFacade(): FilesystemFacadeInterface
     {
-        /** @var FilesystemFacadeInterface $facade */
-        $facade = $this->getProvidedDependency(CompilerProvider::FACADE_FILESYSTEM);
-
-        return $facade;
+        return $this->getProvidedDependency(FilesystemFacadeInterface::class);
     }
 
     private function getGlobalEnvironment(): GlobalEnvironmentInterface

@@ -14,9 +14,7 @@ use Gacela\Framework\Container\Container;
  */
 final class CommandProvider extends AbstractProvider
 {
-    public const string PHP_CONFIG_READER = 'PHP_CONFIG_READER';
-
-    #[Provides(self::PHP_CONFIG_READER)]
+    #[Provides(PhpConfigReader::class)]
     public function phpConfigReader(Container $container): PhpConfigReader
     {
         return $container->getLocator()->getRequired(PhpConfigReader::class);

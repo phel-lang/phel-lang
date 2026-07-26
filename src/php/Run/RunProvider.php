@@ -12,48 +12,43 @@ use Phel\Build\BuildFacade;
 use Phel\Command\CommandFacade;
 use Phel\Compiler\CompilerFacade;
 use Phel\Filesystem\FilesystemFacade;
+use Phel\Filesystem\FilesystemFacadeInterface;
+use Phel\Shared\Facade\ApiFacadeInterface;
+use Phel\Shared\Facade\BuildFacadeInterface;
+use Phel\Shared\Facade\CommandFacadeInterface;
+use Phel\Shared\Facade\CompilerFacadeInterface;
 
 /**
  * @internal
  */
 final class RunProvider extends AbstractProvider
 {
-    public const string FACADE_COMMAND = 'FACADE_COMMAND';
-
-    public const string FACADE_COMPILER = 'FACADE_COMPILER';
-
-    public const string FACADE_BUILD = 'FACADE_BUILD';
-
-    public const string FACADE_API = 'FACADE_API';
-
-    public const string FACADE_FILESYSTEM = 'FACADE_FILESYSTEM';
-
-    #[Provides(self::FACADE_COMMAND)]
-    public function commandFacade(Container $container): CommandFacade
+    #[Provides(CommandFacadeInterface::class)]
+    public function commandFacade(Container $container): CommandFacadeInterface
     {
         return $container->getLocator()->getRequired(CommandFacade::class);
     }
 
-    #[Provides(self::FACADE_COMPILER)]
-    public function compilerFacade(Container $container): CompilerFacade
+    #[Provides(CompilerFacadeInterface::class)]
+    public function compilerFacade(Container $container): CompilerFacadeInterface
     {
         return $container->getLocator()->getRequired(CompilerFacade::class);
     }
 
-    #[Provides(self::FACADE_BUILD)]
-    public function buildFacade(Container $container): BuildFacade
+    #[Provides(BuildFacadeInterface::class)]
+    public function buildFacade(Container $container): BuildFacadeInterface
     {
         return $container->getLocator()->getRequired(BuildFacade::class);
     }
 
-    #[Provides(self::FACADE_API)]
-    public function apiFacade(Container $container): ApiFacade
+    #[Provides(ApiFacadeInterface::class)]
+    public function apiFacade(Container $container): ApiFacadeInterface
     {
         return $container->getLocator()->getRequired(ApiFacade::class);
     }
 
-    #[Provides(self::FACADE_FILESYSTEM)]
-    public function filesystemFacade(Container $container): FilesystemFacade
+    #[Provides(FilesystemFacadeInterface::class)]
+    public function filesystemFacade(Container $container): FilesystemFacadeInterface
     {
         return $container->getLocator()->getRequired(FilesystemFacade::class);
     }
