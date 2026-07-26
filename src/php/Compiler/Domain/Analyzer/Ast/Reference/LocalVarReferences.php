@@ -52,6 +52,8 @@ use Phel\Compiler\Domain\Analyzer\Ast\VectorNode;
  * added to the analyzer in the future will fall into the `default`
  * branch, return `null`, and the recur optimisation will conservatively
  * keep the temps until the new node is explicitly added here.
+ *
+ * @internal
  */
 final class LocalVarReferences
 {

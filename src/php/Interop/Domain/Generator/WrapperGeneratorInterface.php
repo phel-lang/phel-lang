@@ -7,6 +7,9 @@ namespace Phel\Interop\Domain\Generator;
 use Phel\Interop\Domain\ReadModel\FunctionToExport;
 use Phel\Shared\Interop\Wrapper;
 
+/**
+ * @internal
+ */
 interface WrapperGeneratorInterface
 {
     /**

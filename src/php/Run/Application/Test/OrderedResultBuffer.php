@@ -28,6 +28,8 @@ use const PHP_EOL;
  * actually had a failure / error. Passing namespaces just bump the
  * progress bar so the run isn't drowned in "Passed: 0, Total: 0"
  * blocks for transitive deps.
+ *
+ * @internal
  */
 final class OrderedResultBuffer
 {

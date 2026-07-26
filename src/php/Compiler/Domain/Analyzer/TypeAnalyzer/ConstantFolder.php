@@ -37,6 +37,8 @@ use function count;
  * not require the test to be a core call, just a `LiteralNode`, so
  * `(if true ...)` collapses to the `then` branch without going through
  * `InvokeSymbol` at all.
+ *
+ * @internal
  */
 final readonly class ConstantFolder
 {

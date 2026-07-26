@@ -9,6 +9,8 @@ namespace Phel\Watch\Domain;
  * Injected into `PollingWatcher` so tests can fake the filesystem.
  *
  * @phpstan-type FileStat array{mtime:int, size:int}
+ *
+ * @internal
  */
 interface FileSystemScannerInterface
 {

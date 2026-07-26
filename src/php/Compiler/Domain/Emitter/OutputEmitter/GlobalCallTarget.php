@@ -15,6 +15,8 @@ use function str_starts_with;
  * to keep both sides aligned on which `CallNode` instances are eligible
  * for the per-fn `static $__phel_call_N` slot and for emission via the
  * non-magic `AbstractFn::call(...)` dispatch.
+ *
+ * @internal
  */
 final readonly class GlobalCallTarget
 {

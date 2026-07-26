@@ -21,6 +21,8 @@ namespace Phel\Compiler\Domain\Cache;
  * export's value never changes which namespace a symbol resolves to. So the
  * source hash remains a complete key. The one assumption is that user reader
  * tag handlers (`set-tag`) are deterministic.
+ *
+ * @internal
  */
 interface ReaderResultCacheInterface
 {

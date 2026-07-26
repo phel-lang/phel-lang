@@ -20,6 +20,8 @@ use function is_string;
  * `null`, etc.).
  *
  * @phpstan-import-type Position from PositionConverter
+ *
+ * @internal
  */
 final class ParamsExtractor
 {

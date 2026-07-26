@@ -28,6 +28,8 @@ use function trim;
  * duplicated). Every occurrence of the template's namespace base (its directory
  * name, e.g. `http-json-api`) is rewritten to the chosen project name across ns
  * forms, composer.json, entry points, and the README.
+ *
+ * @internal
  */
 final class ProjectTemplateScaffolder
 {

@@ -20,6 +20,8 @@ use function count;
  * {@see NodeEmitter\CallEmitter}
  * lowers to a direct method call (single call) or a batched transient
  * chain (`(-> coll (assoc …) (assoc …) …)`).
+ *
+ * @internal
  */
 final readonly class AssocConjSpecialization
 {

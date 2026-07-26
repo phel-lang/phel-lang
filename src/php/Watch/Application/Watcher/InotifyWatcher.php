@@ -27,6 +27,8 @@ use function str_contains;
  * The class keeps the `inotify` name because that is the backend name users
  * select (`phel watch -b inotify`, {@see self::NAME}); `inotifywait` is a thin
  * CLI over the same kernel API.
+ *
+ * @internal
  */
 final class InotifyWatcher extends AbstractShellWatcher
 {

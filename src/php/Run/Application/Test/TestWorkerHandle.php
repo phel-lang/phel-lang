@@ -23,6 +23,8 @@ use function usleep;
  * stdin/stdout/stderr pipes. The orchestrator drives many of these
  * via {@see stream_select}; this class exposes minimal primitives so
  * the polling logic stays in one place.
+ *
+ * @internal
  */
 final class TestWorkerHandle
 {

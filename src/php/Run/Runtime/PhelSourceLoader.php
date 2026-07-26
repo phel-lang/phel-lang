@@ -6,6 +6,9 @@ namespace Phel\Run\Runtime;
 
 use Phel\Build\BuildFacade;
 
+/**
+ * @internal
+ */
 final class PhelSourceLoader
 {
     public static function load(string $sourcePath): void

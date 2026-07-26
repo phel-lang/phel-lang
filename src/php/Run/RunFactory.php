@@ -57,6 +57,8 @@ use function mkdir;
 
 /**
  * @extends AbstractFactory<RunConfig>
+ *
+ * @internal
  */
 class RunFactory extends AbstractFactory
 {

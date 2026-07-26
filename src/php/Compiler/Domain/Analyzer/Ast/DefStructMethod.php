@@ -6,6 +6,9 @@ namespace Phel\Compiler\Domain\Analyzer\Ast;
 
 use Phel\Lang\Symbol;
 
+/**
+ * @internal
+ */
 final readonly class DefStructMethod
 {
     public function __construct(

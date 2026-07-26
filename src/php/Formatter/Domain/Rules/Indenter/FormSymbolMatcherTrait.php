@@ -11,6 +11,8 @@ use Phel\Shared\Parser\Node\SymbolNode;
 /**
  * Reads the head symbol of the form a zipper location sits in and compares it
  * against an indenter's configured symbol.
+ *
+ * @internal
  */
 trait FormSymbolMatcherTrait
 {

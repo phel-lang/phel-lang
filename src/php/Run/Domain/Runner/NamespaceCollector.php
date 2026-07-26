@@ -14,6 +14,9 @@ use function array_values;
 use function realpath;
 use function str_starts_with;
 
+/**
+ * @internal
+ */
 final readonly class NamespaceCollector
 {
     public function __construct(

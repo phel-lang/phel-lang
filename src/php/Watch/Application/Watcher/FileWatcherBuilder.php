@@ -14,6 +14,8 @@ use function substr;
 
 /**
  * Picks the best-available watcher backend for the host OS.
+ *
+ * @internal
  */
 final readonly class FileWatcherBuilder
 {

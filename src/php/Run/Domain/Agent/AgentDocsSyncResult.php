@@ -7,6 +7,8 @@ namespace Phel\Run\Domain\Agent;
 /**
  * What one `.agents/` sync did, by relative path. Also describes a `--dry-run`,
  * where the same plan is computed and nothing is written.
+ *
+ * @internal
  */
 final readonly class AgentDocsSyncResult
 {

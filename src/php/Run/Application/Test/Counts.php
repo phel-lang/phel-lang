@@ -12,6 +12,8 @@ use function max;
  * across the whole run. Plain value object; no behaviour beyond
  * arithmetic so the orchestrator never reaches into a raw
  * `array<string, int>` dictionary.
+ *
+ * @internal
  */
 final class Counts
 {

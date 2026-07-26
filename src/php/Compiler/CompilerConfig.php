@@ -9,6 +9,9 @@ use Phel\Config\PhelConfig;
 use Phel\Shared\PhelProjectDirectory;
 use Phel\Shared\ScalarCoercion;
 
+/**
+ * @internal
+ */
 final class CompilerConfig extends AbstractConfig
 {
     public function assertsEnabled(): bool

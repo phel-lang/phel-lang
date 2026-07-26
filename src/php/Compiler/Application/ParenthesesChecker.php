@@ -7,6 +7,9 @@ namespace Phel\Compiler\Application;
 use Phel\Compiler\Domain\Lexer\TokenStream;
 use Phel\Shared\Parser\Node\Token;
 
+/**
+ * @internal
+ */
 final readonly class ParenthesesChecker
 {
     public function hasBalancedParentheses(TokenStream $tokenStream): bool

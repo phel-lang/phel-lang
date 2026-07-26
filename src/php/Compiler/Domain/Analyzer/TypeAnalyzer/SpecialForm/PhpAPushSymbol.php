@@ -13,6 +13,8 @@ use Phel\Lang\Collections\LinkedList\PersistentListInterface;
  * (php/apush arr value).
  *
  * Appends a value to a PHP array.
+ *
+ * @internal
  */
 final class PhpAPushSymbol implements SpecialFormAnalyzerInterface
 {

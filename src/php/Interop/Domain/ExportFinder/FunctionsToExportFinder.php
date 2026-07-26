@@ -19,6 +19,9 @@ use Phel\Shared\NamespaceInformation;
 
 use function is_string;
 
+/**
+ * @internal
+ */
 final readonly class FunctionsToExportFinder implements FunctionsToExportFinderInterface
 {
     /**

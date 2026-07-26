@@ -16,6 +16,8 @@ use function assert;
  * (php/apush-in arr key1 key2 ... value).
  *
  * Appends a value to a nested PHP array.
+ *
+ * @internal
  */
 final class PhpAPushInSymbol implements SpecialFormAnalyzerInterface
 {

@@ -29,6 +29,8 @@ use Phel\Shared\Printer\Printer;
 
 /**
  * @extends AbstractFactory<CommandConfig>
+ *
+ * @internal
  */
 final class CommandFactory extends AbstractFactory
 {

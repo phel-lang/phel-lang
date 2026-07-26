@@ -6,6 +6,9 @@ namespace Phel\Lint\Domain;
 
 use Phel\Shared\Api\Diagnostic;
 
+/**
+ * @internal
+ */
 interface LintRuleInterface
 {
     /**

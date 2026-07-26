@@ -17,6 +17,9 @@ use Phel\Shared\SourceMap\SourceMapSiblings;
 
 use function function_exists;
 
+/**
+ * @internal
+ */
 final readonly class FileCompiler implements FileCompilerInterface
 {
     public function __construct(

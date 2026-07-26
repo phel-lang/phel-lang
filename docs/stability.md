@@ -100,6 +100,10 @@ The snapshot is deliberately a gate on the pull request that introduces the chan
 not a comparison against the last release tag: a break is cheapest to discuss while
 the diff that causes it is still open.
 
+`tests/php/Unit/Architecture/InternalAnnotationTest.php` pins the complement. Every
+class the rules reject carries `@internal`, so the split reaches an IDE and a static
+analyser rather than living only in this page.
+
 One gap is worth naming: a public class inheriting from a *vendor* base is rendered
 without that base's members, so a dependency upgrade that changes an inherited
 signature is a real break the snapshot cannot see. Phel ancestors are folded in and

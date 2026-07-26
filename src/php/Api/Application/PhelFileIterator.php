@@ -15,6 +15,8 @@ use function is_array;
 /**
  * Stateless helper that yields every `.phel` file under a directory tree.
  * Returns an empty iterable if the directory cannot be opened.
+ *
+ * @internal
  */
 final class PhelFileIterator
 {

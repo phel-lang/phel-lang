@@ -14,6 +14,8 @@ use function sprintf;
  * Decoded worker-to-parent result frame. Plain value object so the
  * orchestrator's dispatch loop can hand around a typed record instead
  * of raw `array<string, mixed>` dictionaries.
+ *
+ * @internal
  */
 final readonly class WorkerResult
 {

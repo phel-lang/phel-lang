@@ -13,6 +13,9 @@ use function is_string;
 use function str_contains;
 use function strtolower;
 
+/**
+ * @internal
+ */
 final readonly class WorkspaceSymbolHandler implements HandlerInterface
 {
     public function __construct(

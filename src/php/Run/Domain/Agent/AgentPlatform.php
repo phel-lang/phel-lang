@@ -4,6 +4,9 @@ declare(strict_types=1);
 
 namespace Phel\Run\Domain\Agent;
 
+/**
+ * @internal
+ */
 final readonly class AgentPlatform
 {
     /**

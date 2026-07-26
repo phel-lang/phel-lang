@@ -17,6 +17,8 @@ use function ksort;
  * The shipped hash is what makes an incremental sync possible. A file whose
  * current contents still hash to the recorded value is untouched since we wrote
  * it and is safe to refresh; anything else the user has edited.
+ *
+ * @internal
  */
 final readonly class AgentDocsManifest
 {

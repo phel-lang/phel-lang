@@ -11,6 +11,9 @@ use Phel\Shared\ScalarCoercion;
 
 use function is_array;
 
+/**
+ * @internal
+ */
 final class InteropConfig extends AbstractConfig
 {
     private const array DEFAULT_EXPORT_DIRECTORIES = ['src'];

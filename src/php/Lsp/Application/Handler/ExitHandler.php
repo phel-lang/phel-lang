@@ -12,6 +12,8 @@ use Phel\Lsp\Application\Session\Session;
  * Per the LSP lifecycle this is sent after a `shutdown` request (see
  * {@see ShutdownHandler}); unlike `shutdown` it is a notification (no response),
  * hence {@see self::isNotification()} returns true.
+ *
+ * @internal
  */
 final class ExitHandler implements HandlerInterface
 {

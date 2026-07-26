@@ -12,6 +12,8 @@ use Phel\Lang\Symbol;
  * (php/ref local) — marks a local variable as passed by reference in a PHP
  * interop call, so the wrapping closure captures it with `use(&$local)` and a
  * by-ref PHP parameter can write back into the Phel binding.
+ *
+ * @internal
  */
 final class PhpRefNode extends AbstractNode
 {

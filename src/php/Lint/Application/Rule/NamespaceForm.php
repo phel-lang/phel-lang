@@ -16,6 +16,8 @@ use function count;
  * - `collectSymbolUses` accumulates every symbol name (and namespace) used
  *   anywhere in the source *outside* the `(ns ...)` form, so callers can
  *   decide whether a require/import is used at least once.
+ *
+ * @internal
  */
 final class NamespaceForm
 {

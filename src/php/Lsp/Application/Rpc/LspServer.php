@@ -12,6 +12,8 @@ use function feof;
 /**
  * Owns the read/dispatch/write loop. Terminates when the client closes
  * the input stream or when `exit` triggers shutdown.
+ *
+ * @internal
  */
 final readonly class LspServer
 {

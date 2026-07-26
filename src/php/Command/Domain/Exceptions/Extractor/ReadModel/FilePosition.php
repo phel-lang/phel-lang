@@ -4,6 +4,9 @@ declare(strict_types=1);
 
 namespace Phel\Command\Domain\Exceptions\Extractor\ReadModel;
 
+/**
+ * @internal
+ */
 final readonly class FilePosition
 {
     public function __construct(

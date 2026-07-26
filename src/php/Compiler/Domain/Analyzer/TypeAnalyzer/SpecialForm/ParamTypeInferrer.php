@@ -39,6 +39,8 @@ use function count;
  * Call-shape classification (which ops constrain, which guard, which carry
  * cross-fn `:param-tags`) lives in {@see CallTypeExpectationResolver}; this
  * class owns the walk and its mutable observation state.
+ *
+ * @internal
  */
 final class ParamTypeInferrer
 {

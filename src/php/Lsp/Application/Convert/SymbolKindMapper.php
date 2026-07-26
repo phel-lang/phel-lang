@@ -19,6 +19,8 @@ use Phel\Shared\Api\Definition;
  *  - 12 Function   (`defn` — runtime callable, the closest LSP analogue)
  *  - 13 Variable   (default — `def` and any other plain binding)
  *  - 18 Struct     (`defstruct` — record-like data shapes)
+ *
+ * @internal
  */
 final class SymbolKindMapper
 {

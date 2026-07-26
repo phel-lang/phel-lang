@@ -12,6 +12,8 @@ use Phel\Shared\Facade\RunFacadeInterface;
 
 /**
  * @extends AbstractFactory<ProfileConfig>
+ *
+ * @internal
  */
 final class ProfileFactory extends AbstractFactory
 {

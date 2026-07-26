@@ -23,6 +23,8 @@ use function array_slice;
  * replaced by a generated result binding. When the body opens with a `let`
  * (e.g. from parameter destructuring) the conditions are spliced inside the
  * `let` body so destructured names stay in scope.
+ *
+ * @internal
  */
 final readonly class FnPrePostConditionRewriter
 {

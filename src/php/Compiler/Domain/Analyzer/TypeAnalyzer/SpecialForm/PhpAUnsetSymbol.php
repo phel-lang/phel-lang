@@ -15,6 +15,8 @@ use Phel\Lang\Collections\LinkedList\PersistentListInterface;
  * (php/aunset arr key).
  *
  * Removes a key from a PHP array.
+ *
+ * @internal
  */
 final class PhpAUnsetSymbol implements SpecialFormAnalyzerInterface
 {

@@ -6,6 +6,9 @@ namespace Phel\Run\Domain\Repl;
 
 use RuntimeException;
 
+/**
+ * @internal
+ */
 final class ExitException extends RuntimeException
 {
     public static function fromRepl(): self

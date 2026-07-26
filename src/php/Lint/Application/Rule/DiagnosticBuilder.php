@@ -13,6 +13,8 @@ use Phel\Shared\Api\Diagnostic;
  * location-extraction logic. Severity is a placeholder at rule time
  * (`Diagnostic::SEVERITY_WARNING`); the facade rewrites it based on
  * the configured severity for the rule code.
+ *
+ * @internal
  */
 final class DiagnosticBuilder
 {

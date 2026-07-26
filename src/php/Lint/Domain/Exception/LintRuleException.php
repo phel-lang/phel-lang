@@ -17,6 +17,8 @@ use function sprintf;
  * Skipping the rule silently would drop its findings for that file while the
  * run still printed "No lint issues found." and exited 0, and a clean report
  * is read as a guarantee the linter looked.
+ *
+ * @internal
  */
 final class LintRuleException extends RuntimeException
 {

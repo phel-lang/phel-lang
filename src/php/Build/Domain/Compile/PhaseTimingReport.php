@@ -15,6 +15,8 @@ use function in_array;
  * `phel build` run, surfaced by `phel build --timing`. It isolates the cost of
  * each compiler phase (lex/parse/read/analyze/emit) so an optimization PR can
  * quote a repeatable before/after number instead of eyeballing whole-build time.
+ *
+ * @internal
  */
 final readonly class PhaseTimingReport
 {

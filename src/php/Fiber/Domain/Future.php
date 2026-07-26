@@ -15,6 +15,8 @@ use Throwable;
  * Cancellation is cooperative: setting the cancelled flag causes the next
  * cooperative yield point to see the flag. Callers should inspect
  * {@see isCancelled()} from inside their body if they need early exit.
+ *
+ * @internal
  */
 final class Future implements Awaitable
 {

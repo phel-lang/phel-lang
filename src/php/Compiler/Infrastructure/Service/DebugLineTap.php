@@ -12,6 +12,8 @@ use function sprintf;
  * Line-by-line execution tracer using tick functions.
  *
  * Logs execution traces with timestamp, file:line, and source code to a file.
+ *
+ * @internal
  */
 final class DebugLineTap
 {

@@ -9,6 +9,9 @@ use Phel\Lint\Application\Config\RuleRegistry;
 use Phel\Lint\Application\Config\RuleSettings;
 use Phel\Shared\Api\Diagnostic;
 
+/**
+ * @internal
+ */
 final class LintConfig extends AbstractConfig
 {
     public const string DEFAULT_CONFIG_FILENAME = 'phel-lint.phel';

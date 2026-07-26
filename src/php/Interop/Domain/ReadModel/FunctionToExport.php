@@ -6,6 +6,9 @@ namespace Phel\Interop\Domain\ReadModel;
 
 use Phel\Lang\FnInterface;
 
+/**
+ * @internal
+ */
 final readonly class FunctionToExport
 {
     /**

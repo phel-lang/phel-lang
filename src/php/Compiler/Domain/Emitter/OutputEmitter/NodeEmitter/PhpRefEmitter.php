@@ -15,6 +15,8 @@ use function assert;
  * call-time pass-by-reference (`f(&$x)`), so by-ref is realised by capturing
  * the local with `use(&$local)` in the wrapping closure (see
  * `PhpObjectCallEmitter` and `OutputEmitter::emitFnWrapPrefix`).
+ *
+ * @internal
  */
 final class PhpRefEmitter implements NodeEmitterInterface
 {

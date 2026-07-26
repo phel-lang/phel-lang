@@ -30,6 +30,8 @@ use const PHP_EOL;
  * message headers, the offending code snippet, and a red caret pointer under the
  * exact error span. Compiled PHP locations are mapped back to their Phel source
  * via the {@see FilePositionExtractorInterface}.
+ *
+ * @internal
  */
 final readonly class TextExceptionPrinter implements ExceptionPrinterInterface
 {

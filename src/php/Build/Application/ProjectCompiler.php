@@ -23,6 +23,9 @@ use function dirname;
 use function filemtime;
 use function sprintf;
 
+/**
+ * @internal
+ */
 final readonly class ProjectCompiler
 {
     /**

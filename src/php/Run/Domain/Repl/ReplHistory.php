@@ -10,6 +10,9 @@ use Phel\Lang\Symbol;
 use Phel\Shared\CompilerConstants;
 use Throwable;
 
+/**
+ * @internal
+ */
 final class ReplHistory
 {
     public const string LAST_RESULT_1 = '*1';

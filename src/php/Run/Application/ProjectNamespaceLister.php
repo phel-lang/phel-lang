@@ -11,6 +11,9 @@ use Phel\Shared\NamespaceInformation;
 use function array_keys;
 use function sort;
 
+/**
+ * @internal
+ */
 final readonly class ProjectNamespaceLister
 {
     public function __construct(

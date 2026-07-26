@@ -9,6 +9,8 @@ use function array_merge;
 /**
  * A single nREPL response frame. A handler may emit several of these before
  * the final one tagged with ["done"] in status.
+ *
+ * @internal
  */
 final readonly class OpResponse
 {

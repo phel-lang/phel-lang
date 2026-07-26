@@ -12,6 +12,8 @@ use function count;
  * Call-site eligibility for the `phel.core` atom accessors (`deref`,
  * `reset!`) that {@see NodeEmitter\CallEmitter}
  * lowers to a direct `php/->` method call instead of a registry dispatch.
+ *
+ * @internal
  */
 final readonly class AtomMethodSpecialization
 {

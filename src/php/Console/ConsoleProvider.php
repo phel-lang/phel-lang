@@ -22,6 +22,9 @@ use Phel\Console\Infrastructure\Command\WatchCommands;
 use Phel\Filesystem\FilesystemFacade;
 use Symfony\Component\Console\Command\LazyCommand;
 
+/**
+ * @internal
+ */
 final class ConsoleProvider extends AbstractProvider
 {
     public const string LAZY_COMMANDS = 'LAZY_COMMANDS';

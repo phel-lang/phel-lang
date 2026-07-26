@@ -10,6 +10,9 @@ use Phel\Lsp\Application\Rpc\ParamsExtractor;
 use Phel\Lsp\Application\Session\Session;
 use Phel\Shared\Facade\ApiFacadeInterface;
 
+/**
+ * @internal
+ */
 final readonly class ReferencesHandler implements HandlerInterface
 {
     public function __construct(

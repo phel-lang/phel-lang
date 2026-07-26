@@ -11,6 +11,9 @@ use Phel\Api\Infrastructure\Command\IndexCommand;
 use Phel\Console\Domain\ConsoleCommandProviderInterface;
 use Symfony\Component\Console\Command\LazyCommand;
 
+/**
+ * @internal
+ */
 final class ApiCommands implements ConsoleCommandProviderInterface
 {
     public function lazyCommands(): array

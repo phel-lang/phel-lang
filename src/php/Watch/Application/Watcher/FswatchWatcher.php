@@ -17,6 +17,8 @@ use function trim;
  * macOS-friendly watcher. Pipes events out of the `fswatch` binary and lets
  * {@see AbstractShellWatcher} handle the process + debounce plumbing. Falls
  * back to the polling watcher when `fswatch` is not available.
+ *
+ * @internal
  */
 final class FswatchWatcher extends AbstractShellWatcher
 {

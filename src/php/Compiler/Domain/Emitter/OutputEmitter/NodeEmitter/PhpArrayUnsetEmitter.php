@@ -11,6 +11,9 @@ use Phel\Compiler\Domain\Emitter\OutputEmitter\NodeEmitterInterface;
 use function assert;
 use function count;
 
+/**
+ * @internal
+ */
 final class PhpArrayUnsetEmitter implements NodeEmitterInterface
 {
     use WithOutputEmitterTrait;

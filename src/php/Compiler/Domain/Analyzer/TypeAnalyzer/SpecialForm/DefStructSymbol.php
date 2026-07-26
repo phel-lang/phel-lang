@@ -18,6 +18,8 @@ use function count;
  * (defstruct Name [fields...]).
  *
  * Defines a struct type with named fields and a positional constructor.
+ *
+ * @internal
  */
 final readonly class DefStructSymbol implements SpecialFormAnalyzerInterface
 {

@@ -17,6 +17,8 @@ use Phel\Shared\Parser\Node\TriviaNodeInterface;
  * First stage of the analysis pipeline: lex + parse the source.
  *
  * Collects parse-tree nodes into $context['parseTrees'] for later stages.
+ *
+ * @internal
  */
 final readonly class LexAndParseStage implements AnalysisStageInterface
 {

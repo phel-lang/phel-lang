@@ -14,6 +14,8 @@ namespace Phel\Compiler\Domain\Analyzer\Environment;
  * is now a thin forwarder onto the same registry, preserved only for the
  * compiled-PHP ABI (the emitter writes literal references to it into
  * generated code).
+ *
+ * @internal
  */
 interface GlobalEnvironmentManagerInterface
 {

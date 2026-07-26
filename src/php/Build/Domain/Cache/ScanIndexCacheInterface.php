@@ -19,6 +19,8 @@ use Phel\Shared\NamespaceInformation;
  * never served.
  *
  * @phpstan-import-type DirFingerprint from ScanIndexEntry
+ *
+ * @internal
  */
 interface ScanIndexCacheInterface
 {

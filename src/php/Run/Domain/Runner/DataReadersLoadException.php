@@ -18,6 +18,8 @@ use function sprintf;
  * exists. Once one does, the user asked for those `(register-tag ...)` calls,
  * so failing to bootstrap the reader must not leave the tags quietly
  * unregistered and surface much later as an unreadable literal.
+ *
+ * @internal
  */
 final class DataReadersLoadException extends RuntimeException
 {

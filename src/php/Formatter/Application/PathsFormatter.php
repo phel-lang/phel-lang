@@ -15,6 +15,9 @@ use Phel\Shared\Facade\CommandFacadeInterface;
 use Phel\Shared\Formatter\FormatResult;
 use Symfony\Component\Console\Output\OutputInterface;
 
+/**
+ * @internal
+ */
 final readonly class PathsFormatter
 {
     /**

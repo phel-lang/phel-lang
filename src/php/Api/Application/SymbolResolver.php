@@ -8,6 +8,9 @@ use Phel\Api\Domain\SymbolResolverInterface;
 use Phel\Shared\Api\Definition;
 use Phel\Shared\Api\ProjectIndex;
 
+/**
+ * @internal
+ */
 final readonly class SymbolResolver implements SymbolResolverInterface
 {
     public function resolve(ProjectIndex $index, string $namespace, string $symbol): ?Definition

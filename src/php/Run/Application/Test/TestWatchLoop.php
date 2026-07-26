@@ -13,6 +13,8 @@ use Symfony\Component\Console\Output\OutputInterface;
  * time a watched file changes. The suite itself executes as a subprocess (the
  * `$runTests` callable), so each run starts from a clean runtime; this loop
  * only owns change detection and pacing.
+ *
+ * @internal
  */
 final readonly class TestWatchLoop
 {

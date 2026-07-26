@@ -6,6 +6,9 @@ namespace Phel\Run\Domain;
 
 use Phel\Shared\NamespaceInformation;
 
+/**
+ * @internal
+ */
 interface NamespacesLoaderInterface
 {
     /**

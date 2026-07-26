@@ -12,6 +12,8 @@ use function strlen;
 /**
  * Computes the left margin (indentation width) of a location by reconstructing
  * the text of the line that precedes it and measuring that line's length.
+ *
+ * @internal
  */
 final readonly class LineIndenter implements IndenterInterface
 {

@@ -14,6 +14,9 @@ use Gacela\Console\Infrastructure\Command\ValidateConfigCommand;
 use Phel\Console\Domain\ConsoleCommandProviderInterface;
 use Symfony\Component\Console\Command\LazyCommand;
 
+/**
+ * @internal
+ */
 final class FrameworkCommands implements ConsoleCommandProviderInterface
 {
     public function lazyCommands(): array

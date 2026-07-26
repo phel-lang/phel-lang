@@ -23,6 +23,8 @@ use function str_starts_with;
  * the lexical locals in scope. It desugars to a call to the runtime helper
  * `\Phel::breakpoint`, passing a map of local name => local value so the
  * sub-REPL can inspect the surrounding bindings.
+ *
+ * @internal
  */
 final class BreakSymbol implements SpecialFormAnalyzerInterface
 {

@@ -15,6 +15,8 @@ use function var_export;
  * keyed by namespace alone. Reads are memoised by env-file path: a
  * `(load ...)` chain for one namespace would otherwise re-`require` (and,
  * without opcache, re-parse) the same env file once per secondary.
+ *
+ * @internal
  */
 final class NamespaceEnvironmentStore
 {

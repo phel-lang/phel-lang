@@ -33,6 +33,8 @@ use function substr;
  * has direct AST evidence for (`LiteralNode`, `VectorNode`, `MapNode`,
  * `SetNode`); anything else returns `null`, which the caller treats
  * as "skip — no false positive".
+ *
+ * @internal
  */
 final class TagCompatibility
 {

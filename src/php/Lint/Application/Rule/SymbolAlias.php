@@ -15,6 +15,8 @@ use function preg_split;
  * (`NsSymbol::createAliasFromSymbol` splits on `.`, and the reader accepts
  * `\`), so a rule that splits on only one of them computes an alias nobody
  * ever writes and then reports the entry as unused.
+ *
+ * @internal
  */
 final class SymbolAlias
 {

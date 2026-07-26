@@ -6,6 +6,9 @@ namespace Phel\Api\Domain;
 
 use Phel\Shared\Api\PhelFunction;
 
+/**
+ * @internal
+ */
 interface SymbolMetadataFinderInterface
 {
     /**

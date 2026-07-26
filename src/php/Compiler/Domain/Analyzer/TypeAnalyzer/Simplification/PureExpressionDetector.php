@@ -25,6 +25,8 @@ use Phel\Compiler\Domain\Analyzer\TypeAnalyzer\ConstantFolder;
  * automatically excludes calls that *could* throw at runtime
  * (`(abs nil)`, `(quot 1 0)`, `(nth [] 99)`, …) because the folder
  * refuses to lift those exceptions to compile time.
+ *
+ * @internal
  */
 final readonly class PureExpressionDetector
 {

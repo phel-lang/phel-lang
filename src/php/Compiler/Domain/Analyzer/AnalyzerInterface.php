@@ -11,6 +11,9 @@ use Phel\Compiler\Domain\Analyzer\Exceptions\AnalyzerException;
 use Phel\Lang\Collections\Map\PersistentMapInterface;
 use Phel\Lang\Symbol;
 
+/**
+ * @internal
+ */
 interface AnalyzerInterface
 {
     /**

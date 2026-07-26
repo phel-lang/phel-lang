@@ -12,6 +12,8 @@ use Phel\Formatter\Domain\Rules\Zipper\ParseTreeZipper;
  * Matches either the current location's head symbol or the head symbol of the
  * ancestor reached by walking {@see self::$depth} levels up, allowing nested
  * constructs to be matched at a fixed ancestry distance.
+ *
+ * @internal
  */
 final readonly class InnerIndenter implements IndenterInterface
 {

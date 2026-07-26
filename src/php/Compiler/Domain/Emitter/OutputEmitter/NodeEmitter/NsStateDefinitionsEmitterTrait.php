@@ -14,6 +14,8 @@ use function addslashes;
  * `in-ns` forms bake into their compiled output, so subsequent loads resolve
  * relative paths and the current namespace correctly. Composing emitters must
  * also use {@see WithOutputEmitterTrait}.
+ *
+ * @internal
  */
 trait NsStateDefinitionsEmitterTrait
 {

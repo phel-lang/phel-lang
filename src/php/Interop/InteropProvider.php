@@ -10,6 +10,9 @@ use Gacela\Framework\Container\Container;
 use Phel\Build\BuildFacade;
 use Phel\Command\CommandFacade;
 
+/**
+ * @internal
+ */
 final class InteropProvider extends AbstractProvider
 {
     public const string FACADE_COMMAND = 'FACADE_COMMAND';

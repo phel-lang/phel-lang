@@ -12,6 +12,9 @@ use function array_map;
 use function array_values;
 use function is_array;
 
+/**
+ * @internal
+ */
 final class FormatterConfig extends AbstractConfig
 {
     private const array DEFAULT_FORMAT_DIRS = ['src', 'tests'];

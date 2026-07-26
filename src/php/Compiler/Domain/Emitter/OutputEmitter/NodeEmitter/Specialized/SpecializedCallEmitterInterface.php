@@ -18,6 +18,8 @@ use Phel\Compiler\Domain\Analyzer\Ast\CallNode;
  * The eligibility predicates across families are disjoint by construction
  * (distinct fn names, arities, and analyser tags), so the chain order between
  * families does not affect the emitted output.
+ *
+ * @internal
  */
 interface SpecializedCallEmitterInterface
 {

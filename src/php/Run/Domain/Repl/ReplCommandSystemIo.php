@@ -10,6 +10,9 @@ use Phel\Shared\ScalarCoercion;
 
 use function count;
 
+/**
+ * @internal
+ */
 final readonly class ReplCommandSystemIo implements ReplCommandIoInterface
 {
     use ReplOutputTrait;

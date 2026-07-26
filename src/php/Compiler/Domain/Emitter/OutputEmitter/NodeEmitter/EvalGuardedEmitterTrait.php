@@ -17,6 +17,8 @@ use Phel\Compiler\Domain\Emitter\OutputEmitterInterface;
  * emitter already does).
  *
  * @property-read OutputEmitterInterface $outputEmitter
+ *
+ * @internal
  */
 trait EvalGuardedEmitterTrait
 {

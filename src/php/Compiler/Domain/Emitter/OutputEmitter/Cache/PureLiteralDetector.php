@@ -16,6 +16,8 @@ use Phel\Compiler\Domain\Analyzer\Ast\VectorNode;
  * children are all pure. Pure literals produce the same value on every
  * evaluation, so the emitter can safely hoist them to a per-fn static
  * cache and reuse the persistent collection across calls.
+ *
+ * @internal
  */
 final class PureLiteralDetector
 {

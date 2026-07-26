@@ -12,6 +12,9 @@ use Phel\Compiler\Infrastructure\GlobalEnvironmentSingleton;
 use function addslashes;
 use function assert;
 
+/**
+ * @internal
+ */
 final class InNsEmitter implements NodeEmitterInterface
 {
     use NsStateDefinitionsEmitterTrait;

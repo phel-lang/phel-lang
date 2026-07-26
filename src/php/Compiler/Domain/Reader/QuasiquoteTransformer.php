@@ -25,6 +25,9 @@ use function is_string;
 use function str_ends_with;
 use function substr;
 
+/**
+ * @internal
+ */
 final readonly class QuasiquoteTransformer implements QuasiquoteTransformerInterface
 {
     public function __construct(

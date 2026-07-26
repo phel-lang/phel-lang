@@ -13,6 +13,8 @@ use Phel\Shared\Api\ProjectIndex;
  *
  * Handlers read the workspace roots to re-index the project, push
  * notifications back through the sink, and share the document store.
+ *
+ * @internal
  */
 final class Session
 {

@@ -7,6 +7,9 @@ namespace Phel\Compiler\Domain\Analyzer\Environment;
 use Phel\Compiler\Domain\Analyzer\Ast\RecurFrame;
 use Phel\Lang\Symbol;
 
+/**
+ * @internal
+ */
 interface NodeEnvironmentInterface extends ContextualEnvironmentInterface
 {
     /**

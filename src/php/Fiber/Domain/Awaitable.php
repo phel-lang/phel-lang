@@ -9,6 +9,8 @@ namespace Phel\Fiber\Domain;
  *
  * Both Promise and Future implement this so {@see Scheduler::await} can
  * park the caller until the value is ready.
+ *
+ * @internal
  */
 interface Awaitable
 {

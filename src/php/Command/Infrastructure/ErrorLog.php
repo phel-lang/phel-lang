@@ -9,6 +9,9 @@ use Phel\Shared\PhelProjectDirectory;
 
 use function dirname;
 
+/**
+ * @internal
+ */
 final readonly class ErrorLog implements ErrorLogInterface
 {
     public function __construct(

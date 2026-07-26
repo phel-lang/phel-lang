@@ -13,6 +13,9 @@ use Phel\Command\CommandFacade;
 use Phel\Compiler\CompilerFacade;
 use Phel\Filesystem\FilesystemFacade;
 
+/**
+ * @internal
+ */
 final class RunProvider extends AbstractProvider
 {
     public const string FACADE_COMMAND = 'FACADE_COMMAND';

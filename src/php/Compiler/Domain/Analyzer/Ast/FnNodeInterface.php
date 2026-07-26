@@ -9,6 +9,8 @@ namespace Phel\Compiler\Domain\Analyzer\Ast;
  * the inliner side-table: a single-arity {@see FnNode} or a multi-arity
  * {@see MultiFnNode}. Lets the side-table and the call inliner stay
  * single-typed instead of threading a `FnNode|MultiFnNode` union.
+ *
+ * @internal
  */
 interface FnNodeInterface
 {

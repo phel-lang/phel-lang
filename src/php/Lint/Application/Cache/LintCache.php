@@ -32,6 +32,8 @@ use const JSON_THROW_ON_ERROR;
  * created we degrade silently — lint still works, just without caching.
  *
  * @phpstan-type IndexEntry array{hash: string, fingerprint: string, diagnostics: list<array<string, mixed>>}
+ *
+ * @internal
  */
 final class LintCache
 {

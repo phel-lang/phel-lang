@@ -32,6 +32,8 @@ use function is_string;
  * lifted to compile time. `reduce` is driven step-by-step through
  * {@see LiteralArithmeticFolder} so a step the arithmetic folder refuses
  * (e.g. divide-by-zero) blocks the whole reduction.
+ *
+ * @internal
  */
 final readonly class LiteralCollectionFolder
 {

@@ -23,6 +23,8 @@ use function sprintf;
  * @method LspFacade  getFacade()
  * @method LspFactory getFactory()
  * @method LspConfig  getConfig()
+ *
+ * @internal
  */
 #[ServiceMap(method: 'getFacade', className: LspFacade::class)]
 #[ServiceMap(method: 'getFactory', className: LspFactory::class)]

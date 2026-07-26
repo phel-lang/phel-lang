@@ -19,6 +19,8 @@ use Phel\Compiler\Domain\Evaluator\RequireEvaluator;
  * each method here is a thin forwarder.
  *
  * For new code prefer injecting `GlobalEnvironmentManagerInterface`.
+ *
+ * @internal
  */
 final class GlobalEnvironmentSingleton
 {

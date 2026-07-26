@@ -15,6 +15,9 @@ use function count;
 use function mb_strlen;
 use function strlen;
 
+/**
+ * @internal
+ */
 final class Lexer implements LexerInterface
 {
     /**

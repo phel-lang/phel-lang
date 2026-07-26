@@ -18,6 +18,9 @@ use Phel\Run\Infrastructure\Command\TestCommand;
 use Phel\Run\Infrastructure\Command\TestWorkerCommand;
 use Symfony\Component\Console\Command\LazyCommand;
 
+/**
+ * @internal
+ */
 final class RunCommands implements ConsoleCommandProviderInterface
 {
     public function lazyCommands(): array

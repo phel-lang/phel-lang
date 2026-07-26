@@ -9,6 +9,9 @@ use RuntimeException;
 
 use function sprintf;
 
+/**
+ * @internal
+ */
 final readonly class FileSystemIo implements FileWriterInterface
 {
     public function createDirectory(string $directory): void

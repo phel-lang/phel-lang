@@ -21,6 +21,8 @@ use function is_array;
  * it into an AST node. Emits diagnostics for analyzer/reader errors
  * but keeps going across top-level forms so one bad form doesn't
  * hide following ones.
+ *
+ * @internal
  */
 final readonly class ReadAndAnalyzeStage implements AnalysisStageInterface
 {

@@ -13,6 +13,8 @@ use Phel\Compiler\Domain\Analyzer\Ast\DoNode;
  *
  * Side effects in non-tail positions stay; only computations with no
  * observable effect are removed, so behaviour is unchanged.
+ *
+ * @internal
  */
 final readonly class DoSimplifier
 {

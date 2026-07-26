@@ -28,6 +28,8 @@ use function str_replace;
  * file and classifies each one against the install manifest, so a re-run picks
  * up new and updated docs while leaving anything the user edited exactly where
  * it is.
+ *
+ * @internal
  */
 final readonly class AgentDocsSynchronizer
 {

@@ -20,6 +20,8 @@ use function sprintf;
  * Given a batch of file-change events, figures out the affected namespaces,
  * reloads them in dependency order, re-runs the `:on-reload` tests in each,
  * publishes a reload event, and re-indexes the project for tooling.
+ *
+ * @internal
  */
 final readonly class ReloadOrchestrator implements ReloadOrchestratorInterface
 {

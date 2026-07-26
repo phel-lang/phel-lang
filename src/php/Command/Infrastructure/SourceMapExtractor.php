@@ -31,6 +31,8 @@ use function trim;
  * 2. Sibling files (built output): `phel build` writes the mappings next to
  *    the compiled file as `<file>.map` and a copy of the source as
  *    `<file>.phel` (see FileCompiler), with no inline comments.
+ *
+ * @internal
  */
 final class SourceMapExtractor implements SourceMapExtractorInterface
 {

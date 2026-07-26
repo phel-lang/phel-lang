@@ -17,6 +17,8 @@ use function strtolower;
 /**
  * Bi-directional file URI <-> filesystem path conversion, with a tolerant
  * stance on path-style URIs so editors that accept either form keep working.
+ *
+ * @internal
  */
 final class UriConverter
 {

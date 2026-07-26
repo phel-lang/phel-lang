@@ -36,6 +36,8 @@ use Phel\Lang\Volatile;
  * User-supplied `(:use ...)` aliases in the same namespace overwrite
  * defaults: defaults are registered before user uses, so re-registration
  * with the same short name wins last.
+ *
+ * @internal
  */
 final class DefaultLangAliasesRegistrar
 {

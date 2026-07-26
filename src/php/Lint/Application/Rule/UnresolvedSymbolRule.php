@@ -29,6 +29,8 @@ use function preg_match;
  * via `(:require ... :as alias)` in the file's ns form are suppressed:
  * the linter never evaluates other namespaces, so the analyzer cannot
  * see their definitions even though the call is syntactically valid.
+ *
+ * @internal
  */
 final readonly class UnresolvedSymbolRule implements LintRuleInterface
 {

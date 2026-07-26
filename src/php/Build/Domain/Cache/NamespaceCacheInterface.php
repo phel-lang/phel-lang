@@ -4,6 +4,9 @@ declare(strict_types=1);
 
 namespace Phel\Build\Domain\Cache;
 
+/**
+ * @internal
+ */
 interface NamespaceCacheInterface
 {
     public function get(string $file): ?NamespaceCacheEntry;

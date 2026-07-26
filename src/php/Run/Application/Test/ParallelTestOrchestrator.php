@@ -32,6 +32,8 @@ use function stream_select;
  * with a generous timeout ({@see self::SELECT_TIMEOUT_MICROS}). No threads,
  * no pcntl, no shared memory. Parent and workers exchange length-prefixed
  * JSON frames ({@see WorkerFrame}).
+ *
+ * @internal
  */
 final readonly class ParallelTestOrchestrator
 {

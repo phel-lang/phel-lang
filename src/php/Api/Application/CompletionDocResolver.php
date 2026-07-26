@@ -12,6 +12,8 @@ use function str_starts_with;
 /**
  * Resolves the one-line inline doc shown in the REPL on Tab for a completion
  * candidate: looks up its metadata and formats `<signature>: <summary>`.
+ *
+ * @internal
  */
 final readonly class CompletionDocResolver
 {

@@ -22,6 +22,9 @@ use function ltrim;
 use function strlen;
 use function trait_exists;
 
+/**
+ * @internal
+ */
 final readonly class SymbolResolver
 {
     /**

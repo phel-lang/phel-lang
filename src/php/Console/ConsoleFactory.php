@@ -16,6 +16,8 @@ use Symfony\Component\Console\CommandLoader\CommandLoaderInterface;
 
 /**
  * @extends AbstractFactory<AbstractConfig>
+ *
+ * @internal
  */
 final class ConsoleFactory extends AbstractFactory
 {

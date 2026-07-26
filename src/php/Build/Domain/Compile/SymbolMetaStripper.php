@@ -27,6 +27,8 @@ use function is_array;
  * returns nil, and it must not be reused as a compile cache — the build
  * pipeline forces a full recompile when the flag flips (see
  * `ProjectCompiler`).
+ *
+ * @internal
  */
 final readonly class SymbolMetaStripper
 {

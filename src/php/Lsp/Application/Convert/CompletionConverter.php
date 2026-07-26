@@ -13,6 +13,8 @@ use Phel\Shared\Api\Completion;
  * 6 = Variable, 14 = Keyword, ...
  *
  * @phpstan-type CompletionItem array{label: string, kind: int, detail: string, documentation: string}
+ *
+ * @internal
  */
 final class CompletionConverter
 {

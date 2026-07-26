@@ -16,6 +16,9 @@ use function assert;
 use function is_string;
 use function str_starts_with;
 
+/**
+ * @internal
+ */
 final class PhpNewEmitter implements NodeEmitterInterface
 {
     use WithOutputEmitterTrait;

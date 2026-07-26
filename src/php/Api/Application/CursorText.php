@@ -17,6 +17,8 @@ use function substr;
 /**
  * Small text helpers shared by the PHP-interop resolvers for working with a
  * 1-based (line, col) cursor over a source string.
+ *
+ * @internal
  */
 final class CursorText
 {

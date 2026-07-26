@@ -24,6 +24,8 @@ use function str_starts_with;
  * Works on the token stream rather than the source text because only the
  * lexer knows which `;` actually starts a comment: a `;` inside a string or a
  * regex literal never yields a comment token, so it can never be flagged.
+ *
+ * @internal
  */
 final readonly class CommentStyleRule implements LintRuleInterface
 {

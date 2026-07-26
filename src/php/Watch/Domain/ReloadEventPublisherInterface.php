@@ -10,6 +10,8 @@ use Phel\Watch\Transfer\WatchEvent;
  * Fan-out hook for reload events. The default implementation is a no-op; a
  * future nREPL integration publishes a `reload` event to every connected
  * session.
+ *
+ * @internal
  */
 interface ReloadEventPublisherInterface
 {

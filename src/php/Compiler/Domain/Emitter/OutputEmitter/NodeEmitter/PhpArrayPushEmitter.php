@@ -10,6 +10,9 @@ use Phel\Compiler\Domain\Emitter\OutputEmitter\NodeEmitterInterface;
 
 use function assert;
 
+/**
+ * @internal
+ */
 final class PhpArrayPushEmitter implements NodeEmitterInterface
 {
     use WithOutputEmitterTrait;

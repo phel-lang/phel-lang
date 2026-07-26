@@ -10,6 +10,8 @@ use Phel\Lsp\Application\Session\Session;
 /**
  * Notification sent by the client after it has processed the initialize
  * response. Flips the session into ready state.
+ *
+ * @internal
  */
 final class InitializedHandler implements HandlerInterface
 {

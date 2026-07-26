@@ -7,6 +7,9 @@ namespace Phel\Api\Domain;
 use Phel\Shared\Api\Definition;
 use Phel\Shared\Api\ProjectIndex;
 
+/**
+ * @internal
+ */
 interface SymbolResolverInterface
 {
     public function resolve(ProjectIndex $index, string $namespace, string $symbol): ?Definition;

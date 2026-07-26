@@ -41,6 +41,8 @@ use function is_string;
  * fn's return type unset. Explicit `:tag` declarations on the param
  * vector or the def name take precedence; this class only fills the
  * gap when no `:tag` is present.
+ *
+ * @internal
  */
 final class ReturnTypeInferrer
 {

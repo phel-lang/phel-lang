@@ -24,6 +24,8 @@ use const JSON_THROW_ON_ERROR;
 
 /**
  * @method ApiFacade getFacade()
+ *
+ * @internal
  */
 #[ServiceMap(method: 'getFacade', className: ApiFacade::class)]
 final class IndexCommand extends Command

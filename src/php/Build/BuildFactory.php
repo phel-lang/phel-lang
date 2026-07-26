@@ -40,6 +40,8 @@ use Phel\Shared\VersionFinder;
 
 /**
  * @extends AbstractFactory<BuildConfig>
+ *
+ * @internal
  */
 final class BuildFactory extends AbstractFactory
 {

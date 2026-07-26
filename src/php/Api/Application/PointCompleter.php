@@ -40,6 +40,8 @@ use function str_starts_with;
  * Each of those paths swallows its `Throwable` on purpose: a completion popup
  * that is missing an entry is a small annoyance, one that raises is a broken
  * editor.
+ *
+ * @internal
  */
 final readonly class PointCompleter implements PointCompleterInterface
 {

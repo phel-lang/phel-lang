@@ -12,6 +12,9 @@ use Phel\Lang\Keyword;
 use Phel\Shared\Api\PhelFunction;
 use Phel\Shared\ScalarCoercion;
 
+/**
+ * @internal
+ */
 final readonly class PhelFnNormalizer implements PhelFnNormalizerInterface
 {
     private const string GITHUB_BASE_URL = 'https://github.com/phel-lang/phel-lang/blob/';

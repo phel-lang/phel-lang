@@ -6,6 +6,9 @@ namespace Phel\Compiler\Domain\Reader;
 
 use Phel\Lang\Symbol;
 
+/**
+ * @internal
+ */
 final class GensymContext
 {
     /** @var array<string, Symbol> */

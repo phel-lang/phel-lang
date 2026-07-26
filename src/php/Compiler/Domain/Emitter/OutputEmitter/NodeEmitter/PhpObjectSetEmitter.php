@@ -14,6 +14,9 @@ use Phel\Lang\Symbol;
 
 use function assert;
 
+/**
+ * @internal
+ */
 final class PhpObjectSetEmitter implements NodeEmitterInterface
 {
     use WithOutputEmitterTrait;

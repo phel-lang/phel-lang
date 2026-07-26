@@ -17,6 +17,8 @@ use Phel\Fiber\Domain\Scheduler;
  * {@see Scheduler::setInstance()}.
  *
  * @extends AbstractFactory<FiberConfig>
+ *
+ * @internal
  */
 final class FiberFactory extends AbstractFactory
 {

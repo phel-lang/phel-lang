@@ -6,6 +6,9 @@ namespace Phel\Run\Domain\Init;
 
 use Phel\Config\ProjectLayout;
 
+/**
+ * @internal
+ */
 final class ProjectTemplateGenerator
 {
     public function generateConfig(string $namespace, ProjectLayout $layout): string

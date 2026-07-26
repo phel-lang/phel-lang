@@ -16,6 +16,8 @@ use function explode;
  * Specialisations gated by {@see TypedValueSpecialization}: keyword lookups,
  * `(name x)` / `(namespace x)` accessors, `(empty? x)`, and `(contains? c k)`
  * over targets whose analyser tag pins the access to a single native form.
+ *
+ * @internal
  */
 final readonly class TypedValueCallEmitter implements SpecializedCallEmitterInterface
 {

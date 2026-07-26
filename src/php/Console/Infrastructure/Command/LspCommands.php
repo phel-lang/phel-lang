@@ -8,6 +8,9 @@ use Phel\Console\Domain\ConsoleCommandProviderInterface;
 use Phel\Lsp\Infrastructure\Command\LspCommand;
 use Symfony\Component\Console\Command\LazyCommand;
 
+/**
+ * @internal
+ */
 final class LspCommands implements ConsoleCommandProviderInterface
 {
     public function lazyCommands(): array

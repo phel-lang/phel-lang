@@ -12,6 +12,9 @@ use Phel\Shared\PhpAttributeRenderer;
 
 use function assert;
 
+/**
+ * @internal
+ */
 final readonly class DefExceptionEmitter implements NodeEmitterInterface
 {
     use EvalGuardedEmitterTrait;

@@ -6,6 +6,9 @@ namespace Phel\Interop\Domain\FileCreator;
 
 use RuntimeException;
 
+/**
+ * @internal
+ */
 interface FileWriterInterface
 {
     /**

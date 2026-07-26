@@ -16,6 +16,8 @@ namespace Phel\Lsp\Application\Convert;
  * @phpstan-type Range array{start: Position, end: Position}
  * @phpstan-type TextEdit array{range: Range, newText: string}
  * @phpstan-type LspLocation array{uri: string, range: Range}
+ *
+ * @internal
  */
 final class PositionConverter
 {

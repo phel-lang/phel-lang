@@ -20,6 +20,7 @@ policies.
 | The special-form list is closed | `tests/php/Unit/Architecture/LanguageSurfaceSpecTest.php` parses the table and compares it to the analyzer's dispatch registry |
 | The standard library keeps its definitions and arities | `tests/php/Integration/Api/CoreApiSurfaceTest.php` against `core-api.snapshot.txt` |
 | The public PHP API keeps its signatures | `tests/php/Unit/Architecture/PublicApiSurfaceTest.php` against `public-api.snapshot.txt` |
+| Internal classes are marked internal | `tests/php/Unit/Architecture/InternalAnnotationTest.php` |
 | The Clojure divergences are the ones we meant | the `:phel` branches in [clojure-test-suite](https://github.com/phel-lang/clojure-test-suite), run nightly |
 
 A specification nobody can fail is a wish. Each of the above fails a build.

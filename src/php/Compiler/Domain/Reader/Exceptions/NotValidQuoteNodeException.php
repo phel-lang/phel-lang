@@ -7,6 +7,9 @@ namespace Phel\Compiler\Domain\Reader\Exceptions;
 use Phel\Shared\Parser\Node\QuoteNode;
 use RuntimeException;
 
+/**
+ * @internal
+ */
 final class NotValidQuoteNodeException extends RuntimeException
 {
     public static function forNode(QuoteNode $node): self

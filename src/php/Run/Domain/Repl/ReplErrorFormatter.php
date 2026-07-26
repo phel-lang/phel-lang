@@ -20,6 +20,9 @@ use function trim;
 
 use const PHP_EOL;
 
+/**
+ * @internal
+ */
 final readonly class ReplErrorFormatter
 {
     /**

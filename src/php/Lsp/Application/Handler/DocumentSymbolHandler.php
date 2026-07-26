@@ -18,6 +18,8 @@ use Phel\Shared\Facade\ApiFacadeInterface;
  * Lists all top-level definitions in the open document. Uses the project
  * index when available; otherwise runs a single-file indexing pass so the
  * response still matches the current buffer contents.
+ *
+ * @internal
  */
 final readonly class DocumentSymbolHandler implements HandlerInterface
 {

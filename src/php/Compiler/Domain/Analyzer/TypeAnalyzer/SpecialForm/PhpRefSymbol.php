@@ -22,6 +22,8 @@ use function count;
  * (`php/preg_match`, `php/sort`, ...). The inner form must be a local binding;
  * where the call site is wrapped in a closure, the local is captured with
  * `use(&$local)` so a by-reference PHP parameter writes back into the binding.
+ *
+ * @internal
  */
 final class PhpRefSymbol implements SpecialFormAnalyzerInterface
 {

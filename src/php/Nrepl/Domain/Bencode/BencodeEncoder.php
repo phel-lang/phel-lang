@@ -16,6 +16,9 @@ use function ksort;
 use function sprintf;
 use function strlen;
 
+/**
+ * @internal
+ */
 final class BencodeEncoder
 {
     /**

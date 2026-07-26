@@ -17,6 +17,8 @@ use function is_callable;
 /**
  * Expands macro forms without going through the full analyze+emit pipeline.
  * Returns Phel forms (not PHP code), suitable for nREPL macroexpand support.
+ *
+ * @internal
  */
 final readonly class MacroExpander
 {

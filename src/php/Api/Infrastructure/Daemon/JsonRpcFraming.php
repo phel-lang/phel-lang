@@ -17,6 +17,8 @@ use function rtrim;
  * Each request is a single JSON object on a line terminated by \n; responses
  * use the same framing. This is simpler than Content-Length framing and works
  * cleanly over stdio for editors that prefer line-oriented IPC.
+ *
+ * @internal
  */
 final class JsonRpcFraming
 {

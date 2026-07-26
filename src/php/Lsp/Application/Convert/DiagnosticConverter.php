@@ -19,6 +19,8 @@ use Phel\Shared\Api\Diagnostic;
  *     source: string,
  *     message: string,
  * }
+ *
+ * @internal
  */
 final readonly class DiagnosticConverter
 {

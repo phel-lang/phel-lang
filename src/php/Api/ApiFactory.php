@@ -43,6 +43,8 @@ use Phel\Shared\Munge;
 
 /**
  * @extends AbstractFactory<ApiConfig>
+ *
+ * @internal
  */
 final class ApiFactory extends AbstractFactory
 {

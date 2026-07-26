@@ -12,6 +12,9 @@ use Phel\Lang\Symbol;
 use function array_slice;
 use function preg_match;
 
+/**
+ * @internal
+ */
 final class FnSymbolTuple
 {
     private const string STATE_START = 'start';

@@ -10,6 +10,9 @@ use Phel\Nrepl\Domain\Op\OpResponse;
 use Phel\Nrepl\Domain\Op\OpStatus;
 use Phel\Shared\Facade\ApiFacadeInterface;
 
+/**
+ * @internal
+ */
 final readonly class CompletionsOp implements OpHandlerInterface
 {
     public function __construct(private ApiFacadeInterface $apiFacade) {}

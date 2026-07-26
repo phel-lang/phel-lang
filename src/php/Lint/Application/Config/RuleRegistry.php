@@ -7,6 +7,8 @@ namespace Phel\Lint\Application\Config;
 /**
  * Stable list of all lint rule codes shipped in v1. Centralised so every
  * consumer (defaults, config loader, formatters, tests) shares one vocabulary.
+ *
+ * @internal
  */
 final class RuleRegistry
 {

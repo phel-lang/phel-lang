@@ -10,6 +10,9 @@ use RuntimeException;
 
 use function sprintf;
 
+/**
+ * @internal
+ */
 final class DuplicateDefinitionException extends RuntimeException
 {
     public static function forSymbol(string $namespace, Symbol $name): self

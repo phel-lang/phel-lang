@@ -10,6 +10,8 @@ use function count;
 
 /**
  * @phpstan-import-type Mapping from SourceMapState
+ *
+ * @internal
  */
 final readonly class SourceMapGenerator
 {

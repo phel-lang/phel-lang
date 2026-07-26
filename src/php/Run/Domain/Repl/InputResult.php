@@ -11,6 +11,9 @@ use function is_null;
 use function is_string;
 use function sprintf;
 
+/**
+ * @internal
+ */
 final readonly class InputResult
 {
     private const string NO_VALUE = 'no_value';

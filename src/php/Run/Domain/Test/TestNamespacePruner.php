@@ -23,6 +23,8 @@ use function strlen;
  * references in surviving tests still resolve. Without this prune,
  * `bin/phel test --ns 'foo.*'` would still preload every other test
  * namespace before discarding their tests at selection time.
+ *
+ * @internal
  */
 final readonly class TestNamespacePruner
 {

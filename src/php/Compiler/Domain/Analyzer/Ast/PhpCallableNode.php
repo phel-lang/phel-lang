@@ -14,6 +14,8 @@ use Phel\Lang\SourceLocation;
  * - free function: `targetExpr === null`, `name` is the function reference;
  * - static method: `targetExpr` is a `PhpClassNameNode`, `isStatic === true`;
  * - instance method: `targetExpr` is the analyzed object expression.
+ *
+ * @internal
  */
 final class PhpCallableNode extends AbstractNode
 {

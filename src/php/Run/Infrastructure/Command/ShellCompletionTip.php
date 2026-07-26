@@ -20,6 +20,8 @@ use function sprintf;
  * command (tailored to the user's `$SHELL` when recognised) and points to the
  * README for the global-binary prerequisite. It never writes to the user's
  * shell config, which would require OS-specific paths and (for bash) root.
+ *
+ * @internal
  */
 final readonly class ShellCompletionTip
 {

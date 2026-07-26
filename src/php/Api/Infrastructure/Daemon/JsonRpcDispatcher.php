@@ -27,6 +27,8 @@ use function sprintf;
  * or `setIndex` so subsequent resolveSymbol / findReferences / completeAtPoint
  * calls can reference it by a session-stable handle rather than re-sending a
  * serialized index on every request.
+ *
+ * @internal
  */
 final class JsonRpcDispatcher
 {

@@ -24,6 +24,8 @@ use Phel\Shared\Parser\Node\TriviaNodeInterface;
  * `:phel` branch (falling back to `:default`); they differ only in how the
  * matched branch is wrapped. The shared scan + closing-paren handling lives
  * in {@see resolveBranch()}.
+ *
+ * @internal
  */
 final readonly class ReaderConditionalParser
 {

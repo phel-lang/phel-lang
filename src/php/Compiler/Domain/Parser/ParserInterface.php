@@ -10,6 +10,9 @@ use Phel\Compiler\Domain\Parser\Exceptions\UnfinishedParserException;
 use Phel\Shared\Parser\Node\FileNode;
 use Phel\Shared\Parser\Node\NodeInterface;
 
+/**
+ * @internal
+ */
 interface ParserInterface
 {
     /**

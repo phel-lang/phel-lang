@@ -29,6 +29,8 @@ use function sprintf;
  * @method WatchFacade  getFacade()
  * @method WatchFactory getFactory()
  * @method WatchConfig  getConfig()
+ *
+ * @internal
  */
 #[ServiceMap(method: 'getFacade', className: WatchFacade::class)]
 #[ServiceMap(method: 'getFactory', className: WatchFactory::class)]

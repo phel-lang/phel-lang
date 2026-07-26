@@ -19,6 +19,8 @@ use function gettype;
  * is analyzed in an environment that already sees the previous bindings.
  * Composing analyzers must provide the private `$analyzer`
  * ({@see \Phel\Compiler\Domain\Analyzer\AnalyzerInterface}) property.
+ *
+ * @internal
  */
 trait AnalyzeBindingsTrait
 {

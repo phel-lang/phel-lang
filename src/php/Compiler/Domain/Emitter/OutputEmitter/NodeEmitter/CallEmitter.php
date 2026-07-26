@@ -34,6 +34,9 @@ use Phel\Lang\Symbol;
 use function assert;
 use function count;
 
+/**
+ * @internal
+ */
 final readonly class CallEmitter implements NodeEmitterInterface
 {
     /** @var list<SpecializedCallEmitterInterface> */

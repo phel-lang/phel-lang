@@ -16,6 +16,9 @@ use Phel\Compiler\Domain\Reader\ExpressionReader\TaggedLiteralReader;
 use Phel\Compiler\Domain\Reader\ExpressionReader\VectorReader;
 use Phel\Compiler\Domain\Reader\ExpressionReader\WrapReader;
 
+/**
+ * @internal
+ */
 final class ExpressionReaderFactory implements ExpressionReaderFactoryInterface
 {
     public function createSymbolReader(): SymbolReader

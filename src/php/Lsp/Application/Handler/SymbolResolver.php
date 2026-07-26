@@ -17,6 +17,8 @@ use function str_contains;
  *
  * Extracted from the four language-feature handlers (`Definition`,
  * `References`, `Rename`, `Hover`) that used to re-implement this by hand.
+ *
+ * @internal
  */
 final class SymbolResolver
 {

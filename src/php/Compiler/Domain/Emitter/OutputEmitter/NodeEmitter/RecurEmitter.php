@@ -13,6 +13,9 @@ use Phel\Lang\Symbol;
 use function array_search;
 use function assert;
 
+/**
+ * @internal
+ */
 final class RecurEmitter implements NodeEmitterInterface
 {
     use WithOutputEmitterTrait;

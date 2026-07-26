@@ -15,6 +15,8 @@ use Phel;
  * the process lifetime. This is safe for single-request contexts (CLI, per-request
  * FPM) but a wrapper will keep calling the originally resolved definition even if
  * the Phel runtime redefines it mid-process.
+ *
+ * @internal
  */
 trait PhelCallerTrait
 {

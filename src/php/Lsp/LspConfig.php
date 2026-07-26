@@ -6,6 +6,9 @@ namespace Phel\Lsp;
 
 use Gacela\Framework\AbstractConfig;
 
+/**
+ * @internal
+ */
 final class LspConfig extends AbstractConfig
 {
     private const int DEFAULT_DIAGNOSTIC_DEBOUNCE_MS = 200;

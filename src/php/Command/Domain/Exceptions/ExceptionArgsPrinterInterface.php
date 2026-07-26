@@ -4,6 +4,9 @@ declare(strict_types=1);
 
 namespace Phel\Command\Domain\Exceptions;
 
+/**
+ * @internal
+ */
 interface ExceptionArgsPrinterInterface
 {
     /**

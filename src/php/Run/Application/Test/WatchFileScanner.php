@@ -14,6 +14,8 @@ use SplFileInfo;
  * Polling-friendly snapshot of the `.phel` sources (plus `phel-config.php`
  * files) under a set of directories. Two consecutive snapshots compare equal
  * exactly when no watched file was added, removed, or modified in between.
+ *
+ * @internal
  */
 final class WatchFileScanner implements WatchFileScannerInterface
 {

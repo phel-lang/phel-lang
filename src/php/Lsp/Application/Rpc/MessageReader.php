@@ -26,6 +26,8 @@ use function trim;
  *
  * This reader parses a single message at a time from a PHP stream
  * and returns the decoded JSON body as an associative array.
+ *
+ * @internal
  */
 final class MessageReader
 {

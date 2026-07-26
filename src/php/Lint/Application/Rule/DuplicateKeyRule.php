@@ -29,6 +29,8 @@ use function sprintf;
  * the pre-read parse tree because the reader silently de-duplicates
  * literal maps — so by the time the read form reaches rules, duplicates
  * are gone.
+ *
+ * @internal
  */
 final readonly class DuplicateKeyRule implements LintRuleInterface
 {

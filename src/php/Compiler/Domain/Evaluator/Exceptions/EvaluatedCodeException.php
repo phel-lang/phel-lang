@@ -19,6 +19,8 @@ use function trim;
  * Wraps a Throwable raised while running compiled Phel code via eval().
  * Carries the original Phel source location resolved through the embedded source map,
  * so error reporting can point to the user's `.phel` line instead of the eval'd code.
+ *
+ * @internal
  */
 final class EvaluatedCodeException extends RuntimeException
 {

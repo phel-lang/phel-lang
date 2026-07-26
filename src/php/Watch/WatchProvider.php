@@ -12,6 +12,9 @@ use Phel\Build\BuildFacade;
 use Phel\Command\CommandFacade;
 use Phel\Run\RunFacade;
 
+/**
+ * @internal
+ */
 final class WatchProvider extends AbstractProvider
 {
     public const string FACADE_RUN = 'FACADE_RUN';

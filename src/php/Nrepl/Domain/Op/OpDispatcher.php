@@ -10,6 +10,8 @@ use function is_array;
 /**
  * Routes a decoded message to the right OpHandlerInterface based on "op" key.
  * Unknown ops get an `unknown-op` status response.
+ *
+ * @internal
  */
 final class OpDispatcher
 {

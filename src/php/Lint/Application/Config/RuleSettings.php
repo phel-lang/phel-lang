@@ -19,6 +19,8 @@ use const JSON_THROW_ON_ERROR;
  * Per-rule severities plus opt-out patterns. Values are the constants
  * defined on `Diagnostic` (`error`, `warning`, `info`, `hint`) plus
  * `off` which disables the rule entirely.
+ *
+ * @internal
  */
 final readonly class RuleSettings
 {

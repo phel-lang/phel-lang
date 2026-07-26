@@ -10,6 +10,9 @@ use Phel\Lang\Symbol;
 use Phel\Shared\Munge;
 use ReflectionClass;
 
+/**
+ * @internal
+ */
 final class PhpClassNameNode extends AbstractNode
 {
     public function __construct(

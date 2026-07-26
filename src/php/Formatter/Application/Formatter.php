@@ -12,6 +12,9 @@ use Phel\Formatter\Domain\Rules\Zipper\ZipperException;
 use Phel\Shared\Facade\CompilerFacadeInterface;
 use Phel\Shared\Parser\Node\NodeInterface;
 
+/**
+ * @internal
+ */
 final readonly class Formatter implements FormatterInterface
 {
     /**

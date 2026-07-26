@@ -15,6 +15,9 @@ use function dirname;
 use function file_exists;
 use function getcwd;
 
+/**
+ * @internal
+ */
 final class NamespaceLoader
 {
     private static bool $dataReadersLoaded = false;

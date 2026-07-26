@@ -25,6 +25,8 @@ use function ucfirst;
  * Config leaf module.
  *
  * Diagnostics are advisory: the CLI commands decide whether to fail.
+ *
+ * @internal
  */
 final class ConfigDiagnostics
 {

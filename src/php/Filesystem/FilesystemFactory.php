@@ -14,6 +14,8 @@ use Phel\Filesystem\Infrastructure\RealFilesystem;
 
 /**
  * @extends AbstractFactory<FilesystemConfig>
+ *
+ * @internal
  */
 final class FilesystemFactory extends AbstractFactory
 {

@@ -33,6 +33,8 @@ use function count;
  * (`IfEmitter`); native PHP `||` / `&&` collapse to a bool, so the
  * value-semantics of the Phel forms (returning the first truthy / last
  * falsy *value*, not a bool) would be broken in expression position.
+ *
+ * @internal
  */
 final class AndOrShortCircuitLowerer
 {

@@ -7,6 +7,8 @@ namespace Phel\Run\Domain\Config;
 /**
  * A single finding about the effective Phel configuration, surfaced by
  * `phel config` and `phel doctor`.
+ *
+ * @internal
  */
 final readonly class ConfigIssue
 {

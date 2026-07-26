@@ -6,6 +6,9 @@ namespace Phel\Interop\Domain\FileCreator;
 
 use Phel\Shared\Interop\Wrapper;
 
+/**
+ * @internal
+ */
 interface FileCreatorInterface
 {
     public function createFromWrapper(Wrapper $wrapper): void;

@@ -15,6 +15,8 @@ use function trim;
 /**
  * Builds the one-line documentation string shown inline in the REPL when a
  * Tab completion resolves to a single candidate: `<signature>: <summary>`.
+ *
+ * @internal
  */
 final readonly class CompletionDocFormatter
 {

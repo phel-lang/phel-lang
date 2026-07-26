@@ -12,6 +12,9 @@ use Phel\Lang\Registry;
 
 use function assert;
 
+/**
+ * @internal
+ */
 final class VarEmitter implements NodeEmitterInterface
 {
     use WithOutputEmitterTrait;

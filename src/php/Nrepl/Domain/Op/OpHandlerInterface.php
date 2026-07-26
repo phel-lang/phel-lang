@@ -4,6 +4,9 @@ declare(strict_types=1);
 
 namespace Phel\Nrepl\Domain\Op;
 
+/**
+ * @internal
+ */
 interface OpHandlerInterface
 {
     public function name(): string;

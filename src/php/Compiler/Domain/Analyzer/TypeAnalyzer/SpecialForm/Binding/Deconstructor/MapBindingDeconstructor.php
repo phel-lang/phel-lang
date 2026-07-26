@@ -21,6 +21,8 @@ use function sprintf;
 
 /**
  * @phpstan-import-type BindingTuple from DeconstructorInterface
+ *
+ * @internal
  */
 final class MapBindingDeconstructor implements BindingDeconstructorInterface
 {

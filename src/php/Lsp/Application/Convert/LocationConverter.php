@@ -13,6 +13,8 @@ use function strlen;
  * Convert Api Location/Definition value objects into LSP Location shapes.
  *
  * @phpstan-import-type LspLocation from PositionConverter
+ *
+ * @internal
  */
 final readonly class LocationConverter
 {

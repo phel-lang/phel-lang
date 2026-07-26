@@ -14,6 +14,8 @@ use Phel\Shared\Facade\ApiFacadeInterface;
 
 /**
  * @phpstan-import-type CompletionItem from CompletionConverter
+ *
+ * @internal
  */
 final readonly class CompletionHandler implements HandlerInterface
 {

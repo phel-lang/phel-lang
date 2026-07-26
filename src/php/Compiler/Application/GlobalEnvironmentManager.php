@@ -11,6 +11,9 @@ use Phel\Compiler\Domain\Analyzer\Environment\GlobalEnvironmentManagerInterface;
 use Phel\Compiler\Domain\Analyzer\Environment\GlobalEnvironmentRegistry;
 use Phel\Compiler\Domain\Evaluator\RequireEvaluator;
 
+/**
+ * @internal
+ */
 final class GlobalEnvironmentManager implements GlobalEnvironmentManagerInterface
 {
     public function initialize(): GlobalEnvironmentInterface

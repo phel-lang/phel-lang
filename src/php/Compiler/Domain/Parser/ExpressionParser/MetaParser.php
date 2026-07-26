@@ -9,6 +9,9 @@ use Phel\Compiler\Domain\Parser\ParserInterface;
 use Phel\Shared\Parser\Node\MetaNode;
 use Phel\Shared\Parser\Node\TriviaNodeInterface;
 
+/**
+ * @internal
+ */
 final readonly class MetaParser
 {
     public function __construct(private ParserInterface $parser) {}

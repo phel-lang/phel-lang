@@ -26,6 +26,8 @@ use function trim;
  * in the REPL/nREPL) and library functions loaded at runtime resolve, then
  * falls back to the static documented-symbol catalog for native special
  * forms (`def`, `fn`, `if`, ...) which never live in the registry.
+ *
+ * @internal
  */
 final class SymbolMetadataFinder implements SymbolMetadataFinderInterface
 {

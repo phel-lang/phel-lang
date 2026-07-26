@@ -11,6 +11,8 @@ use function substr;
 /**
  * Extracts the text of the first top-level form from Phel source code
  * by matching balanced parentheses, skipping strings and comments.
+ *
+ * @internal
  */
 final readonly class FirstFormExtractor
 {

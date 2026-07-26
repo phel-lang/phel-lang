@@ -50,6 +50,8 @@ use function trim;
  * help. Every lookup degrades gracefully: an unknown class, an unloadable
  * symbol, or any reflection failure yields an empty result rather than an
  * error, so the editor never sees a crash or a bogus diagnostic.
+ *
+ * @internal
  */
 final class PhpInteropReflector
 {

@@ -9,6 +9,9 @@ use Phel\Compiler\Domain\Analyzer\Environment\NodeEnvironmentInterface;
 use Phel\Lang\Collections\HashSet\PersistentHashSetInterface;
 use Phel\Lang\TypeInterface;
 
+/**
+ * @internal
+ */
 final class AnalyzePersistentSet
 {
     use WithAnalyzerTrait;

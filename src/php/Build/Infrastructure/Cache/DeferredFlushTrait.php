@@ -11,6 +11,8 @@ namespace Phel\Build\Infrastructure\Cache;
  * `register_shutdown_function` flush, turning a cold build's index I/O from
  * O(N²) into O(N). This keeps the dirty-flag + lazy-registration pair in one
  * place; each cache still owns its own {@see save()} body.
+ *
+ * @internal
  */
 trait DeferredFlushTrait
 {

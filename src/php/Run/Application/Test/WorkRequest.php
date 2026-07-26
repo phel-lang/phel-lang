@@ -11,6 +11,8 @@ use Phel\Shared\ScalarCoercion;
  * value objects encapsulate the JSON wire format so the orchestrator
  * and the worker subcommand never reach into raw `array<string, mixed>`
  * payloads directly.
+ *
+ * @internal
  */
 final readonly class WorkRequest
 {

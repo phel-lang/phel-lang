@@ -4,6 +4,9 @@ declare(strict_types=1);
 
 namespace Phel\Compiler\Domain\Emitter\OutputEmitter;
 
+/**
+ * @internal
+ */
 enum EmitMode: string
 {
     case File = 'EMIT_MODE_FILE';

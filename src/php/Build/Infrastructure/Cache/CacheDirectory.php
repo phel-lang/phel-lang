@@ -11,6 +11,8 @@ namespace Phel\Build\Infrastructure\Cache;
  *
  * Creating `compiled/` with a recursive `mkdir` also guarantees the root
  * directory exists, so callers only ever need {@see ensure()}.
+ *
+ * @internal
  */
 final readonly class CacheDirectory
 {

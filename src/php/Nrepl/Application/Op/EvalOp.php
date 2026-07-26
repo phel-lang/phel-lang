@@ -11,6 +11,9 @@ use Phel\Nrepl\Domain\Op\OpStatus;
 use Phel\Shared\CompileOptions;
 use Phel\Shared\Facade\RunFacadeInterface;
 
+/**
+ * @internal
+ */
 final readonly class EvalOp implements OpHandlerInterface
 {
     public function __construct(

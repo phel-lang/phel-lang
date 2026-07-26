@@ -16,6 +16,9 @@ use Phel\Lang\Symbol;
 
 use function assert;
 
+/**
+ * @internal
+ */
 final class ForeachEmitter implements NodeEmitterInterface
 {
     use WithOutputEmitterTrait;

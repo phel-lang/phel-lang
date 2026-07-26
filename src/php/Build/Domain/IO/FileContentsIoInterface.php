@@ -4,6 +4,9 @@ declare(strict_types=1);
 
 namespace Phel\Build\Domain\IO;
 
+/**
+ * @internal
+ */
 interface FileContentsIoInterface
 {
     public function getContents(string $filename): string;

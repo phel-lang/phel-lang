@@ -34,6 +34,8 @@ use function sprintf;
  * the cache off and no store a build emitted the primary `out/phel/core.php`
  * but none of its `out/phel/core/*.php` secondaries, so the bundle fataled with
  * "Cannot locate core/… for (load ...)" on first load.
+ *
+ * @internal
  */
 final readonly class SecondaryFileHarvester
 {

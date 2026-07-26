@@ -15,6 +15,8 @@ use function strlen;
  * construction keeps both responses in sync when the spec's fields drift.
  *
  * @phpstan-import-type LspLocation from PositionConverter
+ *
+ * @internal
  */
 final readonly class SymbolInformationBuilder
 {

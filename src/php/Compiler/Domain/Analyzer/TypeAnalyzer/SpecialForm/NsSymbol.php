@@ -29,6 +29,8 @@ use function substr;
  * (ns name (:require ...) (:use ...)).
  *
  * Declares a namespace with optional requires and PHP class imports.
+ *
+ * @internal
  */
 final class NsSymbol implements SpecialFormAnalyzerInterface
 {

@@ -12,6 +12,8 @@ use function hrtime;
 
 /**
  * @phpstan-import-type FnStat from ProfileReport
+ *
+ * @internal
  */
 final class ProfilerSession implements ProfilerHookInterface
 {

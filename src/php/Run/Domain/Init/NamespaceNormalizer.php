@@ -4,6 +4,9 @@ declare(strict_types=1);
 
 namespace Phel\Run\Domain\Init;
 
+/**
+ * @internal
+ */
 final class NamespaceNormalizer
 {
     /**

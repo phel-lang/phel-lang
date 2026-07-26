@@ -7,6 +7,9 @@ namespace Phel\Api;
 use Gacela\Framework\AbstractConfig;
 use Phel\Shared\VersionFinder;
 
+/**
+ * @internal
+ */
 final class ApiConfig extends AbstractConfig
 {
     /**

@@ -9,6 +9,8 @@ use Phel\Lang\TypeInterface;
 
 /**
  * @phpstan-import-type BindingTuple from DeconstructorInterface
+ *
+ * @internal
  */
 interface BindingDeconstructorInterface
 {

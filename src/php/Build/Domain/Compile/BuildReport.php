@@ -17,6 +17,8 @@ use function is_file;
  * `phel build --report` to spot bloat and verify CI builds.
  *
  * @phpstan-import-type SerializedBuildReportEntry from BuildReportEntry
+ *
+ * @internal
  */
 final readonly class BuildReport
 {

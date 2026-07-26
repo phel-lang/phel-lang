@@ -17,6 +17,8 @@ use Phel\Shared\Parser\Node\NodeInterface;
  * consecutive newline is removed, leaving at most one empty line between forms.
  * Runs after {@see UnindentRule}, which strips the indentation whitespace that
  * would otherwise sit between the newlines of an "empty" line.
+ *
+ * @internal
  */
 final readonly class RemoveConsecutiveBlankLinesRule implements RuleInterface
 {

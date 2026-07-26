@@ -8,6 +8,8 @@ use function is_string;
 
 /**
  * Read-only view over a decoded nREPL message.
+ *
+ * @internal
  */
 final readonly class OpRequest
 {

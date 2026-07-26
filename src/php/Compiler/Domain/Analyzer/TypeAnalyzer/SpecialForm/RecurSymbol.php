@@ -20,6 +20,8 @@ use function sprintf;
  * (recur args...).
  *
  * Jumps back to the nearest loop or fn with new argument values.
+ *
+ * @internal
  */
 final class RecurSymbol implements SpecialFormAnalyzerInterface
 {

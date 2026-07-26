@@ -16,6 +16,8 @@ use Phel\Filesystem\Domain\FilesystemInterface;
  * to isolate tests.
  *
  * NullFilesystem is used instead when KEEP_GENERATED_TEMP_FILES is true.
+ *
+ * @internal
  */
 final class RealFilesystem implements FilesystemInterface
 {

@@ -9,6 +9,8 @@ use Phel\Shared\Facade\CommandFacadeInterface;
 
 /**
  * @phpstan-import-type CompiledFileLineMap from CommandFacadeInterface
+ *
+ * @internal
  */
 interface FilePositionExtractorInterface
 {

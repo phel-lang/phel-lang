@@ -24,6 +24,8 @@ use function trim;
  *
  * The regex is forgiving: if the docstring lacks a ```phel code fence,
  * `signatures` is empty and `description` is the entire docstring.
+ *
+ * @internal
  */
 final class DocstringSignatureParser
 {
