@@ -9,6 +9,9 @@ use Phel\Compiler\Domain\Emitter\OutputEmitter\SourceMap\SourceMapGenerator;
 use Phel\Lang\SourceLocation;
 use RuntimeException;
 
+/**
+ * @internal
+ */
 final readonly class StatementEmitter implements StatementEmitterInterface
 {
     public function __construct(

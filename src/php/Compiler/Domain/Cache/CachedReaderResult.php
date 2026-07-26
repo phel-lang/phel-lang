@@ -16,6 +16,8 @@ use Phel\Compiler\Domain\Parser\ReadModel\ReaderResult;
  * reader (`|(...)`). Gensym names are process-global, so a build that mixes
  * cold compiles with compiled-code-cache hits may renumber them; that is a
  * pre-existing limitation, independent of this cache.
+ *
+ * @internal
  */
 final readonly class CachedReaderResult
 {

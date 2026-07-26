@@ -10,6 +10,9 @@ use Phel\Shared\Facade\BuildFacadeInterface;
 use Phel\Shared\Facade\CommandFacadeInterface;
 use Phel\Shared\Munge;
 
+/**
+ * @internal
+ */
 final readonly class NamespaceRunner implements NamespaceRunnerInterface
 {
     public function __construct(

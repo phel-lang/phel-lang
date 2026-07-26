@@ -16,6 +16,8 @@ use function usort;
 
 /**
  * @phpstan-type ScoredCandidate array{symbol: string, subsequence: int, prefix: int, distance: int}
+ *
+ * @internal
  */
 final class SymbolSuggestionProvider
 {

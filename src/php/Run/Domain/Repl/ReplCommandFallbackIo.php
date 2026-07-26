@@ -9,6 +9,8 @@ use Phel\Shared\Facade\CommandFacadeInterface;
 /**
  * Fallback REPL I/O when the readline extension is not available.
  * Uses fgets(STDIN) for input — no tab completion or history persistence.
+ *
+ * @internal
  */
 final readonly class ReplCommandFallbackIo implements ReplCommandIoInterface
 {

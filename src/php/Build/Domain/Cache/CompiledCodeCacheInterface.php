@@ -8,6 +8,8 @@ namespace Phel\Build\Domain\Cache;
  * Contract for the compiled-code cache. Lives in Domain so Application
  * collaborators (FileEvaluator, SecondaryFileHarvester, DependencyTracker)
  * can depend on the abstraction instead of the Infrastructure concrete.
+ *
+ * @internal
  */
 interface CompiledCodeCacheInterface
 {

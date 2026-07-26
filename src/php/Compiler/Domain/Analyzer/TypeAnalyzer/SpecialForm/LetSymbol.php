@@ -23,6 +23,8 @@ use function count;
  * (let [bindings] body).
  *
  * Introduces local bindings. Bindings are pairs of name and value.
+ *
+ * @internal
  */
 final readonly class LetSymbol implements SpecialFormAnalyzerInterface
 {

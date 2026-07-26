@@ -20,6 +20,8 @@ use function sprintf;
  * Shared between `EvalOp` and `LoadFileOp`, which only differ in:
  *   - the source of the code being evaluated;
  *   - the wording of the final error message.
+ *
+ * @internal
  */
 final readonly class EvalResultResponder
 {

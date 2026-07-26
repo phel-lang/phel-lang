@@ -20,6 +20,8 @@ use function sprintf;
  * class alias is never referenced in the file body.
  *
  * @phpstan-type ImportEntry array{alias:string, display:string, anchor: bool|float|int|string|TypeInterface|null}
+ *
+ * @internal
  */
 final readonly class UnusedImportRule implements LintRuleInterface
 {

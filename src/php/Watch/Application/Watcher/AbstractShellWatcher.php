@@ -33,6 +33,8 @@ use function trim;
  *
  * Everything else — proc lifecycle, non-blocking reads, debounced flushing,
  * graceful stop, PATH probing — lives here so bugs stay fixed in one place.
+ *
+ * @internal
  */
 abstract class AbstractShellWatcher implements FileWatcherInterface
 {

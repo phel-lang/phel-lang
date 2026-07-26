@@ -15,6 +15,8 @@ use Phel\Lang\Symbol;
  * (set! var value).
  *
  * Mutates a previously defined global variable.
+ *
+ * @internal
  */
 final class SetVarSymbol implements SpecialFormAnalyzerInterface
 {

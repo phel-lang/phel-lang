@@ -21,6 +21,8 @@ use function is_string;
  * each other, flushed via `register_shutdown_function`.
  *
  * @phpstan-import-type SerializedScanIndexEntry from ScanIndexEntry
+ *
+ * @internal
  */
 final class PhpScanIndexCache implements ScanIndexCacheInterface
 {

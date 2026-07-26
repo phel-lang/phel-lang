@@ -25,6 +25,8 @@ use function sprintf;
  *
  * @method RunFacade   getFacade()
  * @method RunFactory  getFactory()
+ *
+ * @internal
  */
 #[ServiceMap(method: 'getFacade', className: RunFacade::class)]
 #[ServiceMap(method: 'getFactory', className: RunFactory::class)]

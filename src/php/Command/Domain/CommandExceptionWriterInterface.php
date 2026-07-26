@@ -9,6 +9,9 @@ use Phel\Shared\Parser\ReadModel\CodeSnippet;
 use Symfony\Component\Console\Output\OutputInterface;
 use Throwable;
 
+/**
+ * @internal
+ */
 interface CommandExceptionWriterInterface
 {
     public function writeStackTrace(OutputInterface $output, Throwable $e): void;

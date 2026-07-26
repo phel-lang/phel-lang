@@ -16,6 +16,9 @@ use Phel\Lang\Symbol;
 
 use function in_array;
 
+/**
+ * @internal
+ */
 final class AnalyzeSymbol
 {
     use WithAnalyzerTrait;

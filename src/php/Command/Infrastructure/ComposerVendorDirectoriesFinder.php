@@ -19,6 +19,8 @@ use function sprintf;
 
 /**
  * @method CommandFacade getFacade()
+ *
+ * @internal
  */
 #[ServiceMap(method: 'getFacade', className: CommandFacade::class)]
 final class ComposerVendorDirectoriesFinder implements VendorDirectoriesFinderInterface

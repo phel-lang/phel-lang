@@ -15,6 +15,8 @@ use const PHP_EOL;
  * plain stdout writing. Composing classes must provide the private
  * `$commandFacade` ({@see \Phel\Shared\Facade\CommandFacadeInterface}) and
  * `$errorFormatter` ({@see ReplErrorFormatter}) properties.
+ *
+ * @internal
  */
 trait ReplOutputTrait
 {

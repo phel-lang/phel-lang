@@ -16,6 +16,8 @@ use function sprintf;
  * Routes a decoded LSP message to the correct handler and returns the
  * response payload (or null for notifications / requests that shouldn't
  * respond).
+ *
+ * @internal
  */
 final class RequestDispatcher
 {

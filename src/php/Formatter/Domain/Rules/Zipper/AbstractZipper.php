@@ -28,6 +28,8 @@ use function assert;
  * @template T of NodeInterface
  *
  * @psalm-consistent-constructor
+ *
+ * @internal
  */
 abstract class AbstractZipper
 {

@@ -11,6 +11,9 @@ use Phel\Nrepl\Domain\Op\OpResponse;
 use Phel\Nrepl\Domain\Op\OpStatus;
 use Phel\Shared\Facade\RunFacadeInterface;
 
+/**
+ * @internal
+ */
 final readonly class DescribeOp implements OpHandlerInterface
 {
     public const string NREPL_VERSION = '0.1.0';

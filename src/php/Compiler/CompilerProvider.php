@@ -9,6 +9,9 @@ use Gacela\Framework\Attribute\Provides;
 use Gacela\Framework\Container\Container;
 use Phel\Filesystem\FilesystemFacade;
 
+/**
+ * @internal
+ */
 final class CompilerProvider extends AbstractProvider
 {
     public const string FACADE_FILESYSTEM = 'FACADE_FILESYSTEM';

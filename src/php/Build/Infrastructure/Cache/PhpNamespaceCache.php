@@ -15,6 +15,8 @@ use function is_string;
 /**
  * @phpstan-import-type PartialNamespaceCacheEntry from NamespaceCacheEntry
  * @phpstan-import-type SerializedNamespaceCacheEntry from NamespaceCacheEntry
+ *
+ * @internal
  */
 final class PhpNamespaceCache implements NamespaceCacheInterface
 {

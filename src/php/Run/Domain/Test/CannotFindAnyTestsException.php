@@ -6,6 +6,9 @@ namespace Phel\Run\Domain\Test;
 
 use RuntimeException;
 
+/**
+ * @internal
+ */
 final class CannotFindAnyTestsException extends RuntimeException
 {
     /**

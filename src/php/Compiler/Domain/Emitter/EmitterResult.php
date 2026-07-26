@@ -6,6 +6,9 @@ namespace Phel\Compiler\Domain\Emitter;
 
 use Phel\Shared\SourceMap\InlineSourceMapComments;
 
+/**
+ * @internal
+ */
 final readonly class EmitterResult
 {
     public function __construct(

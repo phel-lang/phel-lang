@@ -9,6 +9,8 @@ namespace Phel\Lsp\Application\Rpc;
  *
  * Separating construction from transport makes the dispatcher trivial to
  * unit-test without needing a real stream.
+ *
+ * @internal
  */
 final class ResponseBuilder
 {

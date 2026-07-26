@@ -7,6 +7,8 @@ namespace Phel\Run\Domain\Config;
 /**
  * Severity of a configuration diagnostic. Errors mean the config is wrong and
  * something will break; warnings flag likely mistakes that still let Phel run.
+ *
+ * @internal
  */
 enum ConfigIssueLevel: string
 {

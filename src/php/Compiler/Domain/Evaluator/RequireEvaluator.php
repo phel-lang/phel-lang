@@ -15,6 +15,9 @@ use function md5;
 use function md5_file;
 use function sprintf;
 
+/**
+ * @internal
+ */
 final class RequireEvaluator implements EvaluatorInterface
 {
     private const string TEMP_PREFIX = '__phel';

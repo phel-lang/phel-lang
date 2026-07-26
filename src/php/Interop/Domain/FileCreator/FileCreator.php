@@ -8,6 +8,9 @@ use Phel\Shared\Interop\Wrapper;
 
 use function dirname;
 
+/**
+ * @internal
+ */
 final readonly class FileCreator implements FileCreatorInterface
 {
     public function __construct(

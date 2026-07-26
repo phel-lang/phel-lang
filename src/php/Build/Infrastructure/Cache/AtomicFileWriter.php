@@ -10,6 +10,9 @@ use Gacela\Framework\Cache\WritableDirectory;
 use function dirname;
 use function sprintf;
 
+/**
+ * @internal
+ */
 final class AtomicFileWriter
 {
     public function write(string $path, string $content): bool

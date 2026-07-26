@@ -14,6 +14,8 @@ use function strlen;
  * Writes a JSON-RPC 2.0 message using LSP's Content-Length framing.
  *
  *   Content-Length: <n>\r\n\r\n<body>
+ *
+ * @internal
  */
 final class MessageWriter
 {

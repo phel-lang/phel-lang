@@ -22,6 +22,8 @@ use Throwable;
  * A rule that throws is isolated but never silenced: the pipeline records a
  * `phel/internal-error` diagnostic naming it and carries on with the rest, so
  * one bad rule neither kills the run nor lets it report the file as clean.
+ *
+ * @internal
  */
 final readonly class RulePipeline
 {

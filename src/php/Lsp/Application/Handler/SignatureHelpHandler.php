@@ -15,6 +15,8 @@ use Phel\Shared\Facade\ApiFacadeInterface;
  * `(php/new ...)`, `(php/-> recv (method ...))`, `(php/:: Class (method ...))` —
  * then plain Phel function calls like `(map f xs)` fall back to the symbol's
  * documented arities. Returns null when the cursor is over neither.
+ *
+ * @internal
  */
 final readonly class SignatureHelpHandler implements HandlerInterface
 {

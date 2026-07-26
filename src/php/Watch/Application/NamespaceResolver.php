@@ -22,6 +22,8 @@ use function trim;
  * NamespaceExtractor gives identical results but drags the full parse/read
  * pipeline into a watcher hot path; this lightweight resolver is enough to
  * decide which namespace changed.
+ *
+ * @internal
  */
 final class NamespaceResolver implements NamespaceResolverInterface
 {

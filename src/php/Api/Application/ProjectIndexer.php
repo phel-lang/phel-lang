@@ -19,6 +19,8 @@ use function realpath;
  *
  * Caching hook: results could be keyed on a file-hash -> Definition mapping and
  * stored under `.phel/api-index-cache/`. For v1 we re-index from scratch.
+ *
+ * @internal
  */
 final readonly class ProjectIndexer implements ProjectIndexerInterface
 {

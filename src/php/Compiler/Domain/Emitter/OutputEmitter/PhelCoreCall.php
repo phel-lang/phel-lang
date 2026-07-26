@@ -13,6 +13,8 @@ use Phel\Shared\CompilerConstants;
  * `phel.core` global function. Every emitter specialisation begins by
  * asking "is this a call to phel.core/<name>?"; this collapses the
  * repeated GlobalVarNode + namespace (+ name) guard into one place.
+ *
+ * @internal
  */
 final readonly class PhelCoreCall
 {

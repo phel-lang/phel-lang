@@ -41,6 +41,8 @@ use function sort;
 
 /**
  * @extends AbstractFactory<LintConfig>
+ *
+ * @internal
  */
 final class LintFactory extends AbstractFactory
 {

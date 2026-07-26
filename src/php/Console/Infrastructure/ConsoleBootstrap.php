@@ -22,6 +22,8 @@ use function str_starts_with;
 
 /**
  * @method ConsoleFactory getFactory()
+ *
+ * @internal
  */
 #[ServiceMap(method: 'getFactory', className: ConsoleFactory::class)]
 final class ConsoleBootstrap extends Application

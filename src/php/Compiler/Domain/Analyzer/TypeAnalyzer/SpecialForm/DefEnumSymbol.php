@@ -28,6 +28,8 @@ use function is_string;
  * implementations tail (interface symbols with their methods, and `:php`
  * blocks of bare methods) is parsed like `defstruct`, so an enum can carry
  * methods and implement interfaces.
+ *
+ * @internal
  */
 final readonly class DefEnumSymbol implements SpecialFormAnalyzerInterface
 {

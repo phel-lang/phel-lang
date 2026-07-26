@@ -8,6 +8,9 @@ use Phel\Compiler\Domain\Lexer\TokenStream;
 use Phel\Compiler\Domain\Parser\ParserInterface;
 use Phel\Shared\Parser\Node\QuoteNode;
 
+/**
+ * @internal
+ */
 final readonly class QuoteParser
 {
     public function __construct(private ParserInterface $parser) {}

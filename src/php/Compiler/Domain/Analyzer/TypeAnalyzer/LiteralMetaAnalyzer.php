@@ -17,6 +17,8 @@ use Phel\Lang\MetaInterface;
  *
  * Used by literal analysers (vector / map / set) so emitters can preserve
  * `^{:k v} […]` metadata round-trip through the compile pipeline.
+ *
+ * @internal
  */
 final class LiteralMetaAnalyzer
 {

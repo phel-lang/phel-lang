@@ -39,6 +39,8 @@ use function is_string;
  * Callers must treat "absent" as "not found by this pass", not as "does not
  * exist": this feeds editor tooling (completion, jump-to-def, lint), where a
  * missing entry degrades a feature and a thrown exception would kill the run.
+ *
+ * @internal
  */
 final readonly class SymbolExtractor
 {

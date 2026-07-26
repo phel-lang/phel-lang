@@ -8,6 +8,8 @@ use Phel\Watch\Transfer\WatchEvent;
 
 /**
  * Strategy contract for the OS-specific file-watching backends.
+ *
+ * @internal
  */
 interface FileWatcherInterface
 {

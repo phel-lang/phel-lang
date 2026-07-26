@@ -20,6 +20,8 @@ use function array_all;
  * `and`/`or` short-circuit lowering ({@see AndOrShortCircuitLowerer}) need this
  * test before splicing a node into an expression position; this is their
  * shared definition.
+ *
+ * @internal
  */
 final readonly class SimpleExpressionNode
 {

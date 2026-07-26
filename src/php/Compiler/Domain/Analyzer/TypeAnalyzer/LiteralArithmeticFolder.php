@@ -29,6 +29,8 @@ use function min;
  * Keep the two in sync when adding a pure-but-not-foldable core fn.
  *
  * @phpstan-type ReducerSpec array{identity: int, op: 'add'|'mul'}
+ *
+ * @internal
  */
 final readonly class LiteralArithmeticFolder
 {

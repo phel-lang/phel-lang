@@ -10,6 +10,8 @@ namespace Phel\Compiler\Domain\Analyzer\Environment;
  * namespace that has not been loaded yet (`phel.json/encode`), the
  * {@see SymbolResolver} asks the registered resolver to load it before failing
  * with a "not defined" error.
+ *
+ * @internal
  */
 interface BundledNamespaceResolverInterface
 {

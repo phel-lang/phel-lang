@@ -13,6 +13,8 @@ use function sprintf;
  * Raised when a lint config file exists but cannot be used. A missing config
  * file is not an error (callers get the defaults); a present but broken one is,
  * because silently linting with the defaults hides the user's intent.
+ *
+ * @internal
  */
 final class LintConfigException extends RuntimeException
 {

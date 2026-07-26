@@ -16,6 +16,8 @@ use Phel\Shared\Parser\Node\NodeInterface;
  * Runs as a preprocessor for IndentRule to normalize the tree to a known,
  * unindented state. This is safe because IndentRule then recalculates every
  * line's indentation from scratch.
+ *
+ * @internal
  */
 final class UnindentRule implements RuleInterface
 {

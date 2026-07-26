@@ -18,6 +18,8 @@ use const ENT_XML1;
 /**
  * Project-wide coverage built from per-file {@see CoverageFile} results, with
  * text and Clover-XML renderings.
+ *
+ * @internal
  */
 final readonly class CoverageReport
 {

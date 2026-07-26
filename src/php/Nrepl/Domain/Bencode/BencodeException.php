@@ -8,6 +8,9 @@ use RuntimeException;
 
 use function sprintf;
 
+/**
+ * @internal
+ */
 final class BencodeException extends RuntimeException
 {
     public static function unexpectedEndOfInput(int $position): self

@@ -8,6 +8,9 @@ use Phel\Compiler\Domain\Analyzer\Ast\AbstractNode;
 use Phel\Compiler\Domain\Analyzer\Environment\NodeEnvironmentInterface;
 use Phel\Lang\Symbol;
 
+/**
+ * @internal
+ */
 final readonly class ForeachSymbolTuple
 {
     /**

@@ -31,6 +31,8 @@ use function count;
  * `TryNode`) keep the let intact: those emitters capture every in-scope
  * local via a fixed `use(...)` clause; dropping or inlining a binding
  * would leave the capture pointing at a missing variable.
+ *
+ * @internal
  */
 final readonly class LetSimplifier
 {

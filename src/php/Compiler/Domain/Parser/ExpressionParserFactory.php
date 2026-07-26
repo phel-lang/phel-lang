@@ -14,6 +14,9 @@ use Phel\Compiler\Domain\Parser\ExpressionParser\ReaderConditionalParser;
 use Phel\Compiler\Domain\Parser\ExpressionParser\RegexParser;
 use Phel\Compiler\Domain\Parser\ExpressionParser\StringParser;
 
+/**
+ * @internal
+ */
 final class ExpressionParserFactory implements ExpressionParserFactoryInterface
 {
     /**

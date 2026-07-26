@@ -6,6 +6,9 @@ namespace Phel\Compiler\Application;
 
 use Phel\Compiler\Infrastructure\Service\DebugLineTap;
 
+/**
+ * @internal
+ */
 final class DebugLineTapController
 {
     public function enable(?string $phelFileFilter = null, string $logPath = './phel-debug.log'): void

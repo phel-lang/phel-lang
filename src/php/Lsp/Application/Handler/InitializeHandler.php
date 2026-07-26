@@ -16,6 +16,8 @@ use function is_string;
 /**
  * Handles `initialize`. Advertises the capabilities the server implements
  * and primes the project index from the workspace root(s).
+ *
+ * @internal
  */
 final readonly class InitializeHandler implements HandlerInterface
 {

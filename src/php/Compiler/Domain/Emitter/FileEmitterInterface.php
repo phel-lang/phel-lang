@@ -6,6 +6,9 @@ namespace Phel\Compiler\Domain\Emitter;
 
 use Phel\Compiler\Domain\Analyzer\Ast\AbstractNode;
 
+/**
+ * @internal
+ */
 interface FileEmitterInterface
 {
     public function startFile(string $source): void;

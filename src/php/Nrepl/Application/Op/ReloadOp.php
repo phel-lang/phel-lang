@@ -14,6 +14,8 @@ use Phel\Shared\Facade\RunFacadeInterface;
  * (or all of them when the `all` param is truthy), delegating to the
  * `phel\repl/reload!` / `phel\repl/reload-all!` helpers. Editors bind this to
  * a "reload changed namespaces" shortcut.
+ *
+ * @internal
  */
 final readonly class ReloadOp implements OpHandlerInterface
 {

@@ -10,6 +10,8 @@ use Symfony\Component\Console\Output\OutputInterface;
 /**
  * Resolves which directories `phel test --watch` observes (the project's
  * source and test directories) and hands them to the watch loop.
+ *
+ * @internal
  */
 final readonly class TestWatchRunner
 {

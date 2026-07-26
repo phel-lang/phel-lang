@@ -10,6 +10,8 @@ use Phel\Lang\Symbol;
  * A typed class/interface constant declared via a `:php/const` block, e.g.
  * `(^{:tag int} MAX 100)`. The name symbol carries the optional `:tag` type;
  * the value is a compile-time scalar (int/float/string/bool/nil).
+ *
+ * @internal
  */
 final readonly class PhpClassConst
 {

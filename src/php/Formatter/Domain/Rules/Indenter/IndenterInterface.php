@@ -6,6 +6,9 @@ namespace Phel\Formatter\Domain\Rules\Indenter;
 
 use Phel\Formatter\Domain\Rules\Zipper\ParseTreeZipper;
 
+/**
+ * @internal
+ */
 interface IndenterInterface
 {
     public function getMargin(ParseTreeZipper $loc, int $indentWidth): ?int;

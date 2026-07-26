@@ -26,6 +26,8 @@ use Phel\Lang\Symbol;
  *
  * The `reduced` early-termination contract is preserved: a `Reduced` result
  * unwraps into the accumulator and breaks the loop.
+ *
+ * @internal
  */
 final readonly class ReduceCallEmitter implements SpecializedCallEmitterInterface
 {

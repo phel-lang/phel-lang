@@ -24,6 +24,8 @@ use const ENT_QUOTES;
  * an index page with per-file percentages plus one page per source file with
  * line-colored code. Inline CSS only, so the output works offline and as a
  * CI artifact.
+ *
+ * @internal
  */
 final readonly class HtmlCoverageRenderer
 {

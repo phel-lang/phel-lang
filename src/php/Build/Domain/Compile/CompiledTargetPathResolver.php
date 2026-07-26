@@ -28,6 +28,8 @@ use function substr;
  * files are mapped from the source file path relative to the matching
  * source root, so sub-files ride along under the same directory as their
  * primary (`src/phel/core/util.phel` → `phel/core/util.php`).
+ *
+ * @internal
  */
 final readonly class CompiledTargetPathResolver
 {

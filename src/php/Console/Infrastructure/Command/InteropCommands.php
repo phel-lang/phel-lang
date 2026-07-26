@@ -8,6 +8,9 @@ use Phel\Console\Domain\ConsoleCommandProviderInterface;
 use Phel\Interop\Infrastructure\Command\ExportCommand;
 use Symfony\Component\Console\Command\LazyCommand;
 
+/**
+ * @internal
+ */
 final class InteropCommands implements ConsoleCommandProviderInterface
 {
     public function lazyCommands(): array

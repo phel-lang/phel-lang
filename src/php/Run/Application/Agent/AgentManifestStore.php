@@ -20,6 +20,8 @@ use const JSON_UNESCAPED_SLASHES;
  * Reads and writes the install manifest that lives at the root of the installed
  * `.agents/` tree. Absent manifest means "installed before this existed, or not
  * by us", which callers treat as: touch nothing you cannot account for.
+ *
+ * @internal
  */
 final class AgentManifestStore
 {

@@ -8,6 +8,9 @@ use Phel\Compiler\Domain\Parser\ReadModel\ReaderResult;
 use Phel\Compiler\Domain\Reader\Exceptions\ReaderException;
 use Phel\Shared\Parser\Node\NodeInterface;
 
+/**
+ * @internal
+ */
 interface ReaderInterface
 {
     /**

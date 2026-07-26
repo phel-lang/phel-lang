@@ -10,6 +10,9 @@ use function defined;
 use function fopen;
 use function stream_get_contents;
 
+/**
+ * @internal
+ */
 final class PhpStdinReader implements StdinReaderInterface
 {
     /**

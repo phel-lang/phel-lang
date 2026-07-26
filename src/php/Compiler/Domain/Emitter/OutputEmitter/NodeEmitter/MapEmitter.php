@@ -21,6 +21,8 @@ use function is_string;
 /**
  * @phpstan-type LocationLiteral array{file: string, line: int, column: int}
  * @phpstan-type DefLocationMeta array{start: LocationLiteral, end: LocationLiteral, extras: list<array{AbstractNode, AbstractNode}>}
+ *
+ * @internal
  */
 final class MapEmitter implements NodeEmitterInterface
 {

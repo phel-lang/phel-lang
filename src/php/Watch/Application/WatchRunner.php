@@ -19,6 +19,8 @@ use function is_dir;
  * directories, wires the reload orchestrator, and blocks in the watcher
  * loop. Lives in the Application layer so `WatchFacade::watch()` stays a
  * single-delegation.
+ *
+ * @internal
  */
 final readonly class WatchRunner
 {

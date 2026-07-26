@@ -14,6 +14,8 @@ use Phel\Shared\Parser\Node\WhitespaceNode;
 
 /**
  * @extends AbstractZipper<NodeInterface>
+ *
+ * @internal
  */
 final class ParseTreeZipper extends AbstractZipper
 {

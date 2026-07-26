@@ -6,6 +6,9 @@ namespace Phel\Compiler\Domain\Lexer;
 
 use Phel\Compiler\Domain\Lexer\Exceptions\LexerValueException;
 
+/**
+ * @internal
+ */
 interface LexerInterface
 {
     public const string DEFAULT_SOURCE = 'string';

@@ -23,6 +23,8 @@ use Phel\Shared\Facade\CommandFacadeInterface;
 
 /**
  * @extends AbstractFactory<InteropConfig>
+ *
+ * @internal
  */
 final class InteropFactory extends AbstractFactory
 {

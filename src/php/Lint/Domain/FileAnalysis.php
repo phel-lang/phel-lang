@@ -15,6 +15,8 @@ use Phel\Shared\Api\ProjectIndex;
  * `semanticDiagnostics` is the cached output of `ApiFacadeInterface::analyzeSource`
  * for this file: rules that consume analyzer diagnostics reuse it so the
  * pipeline only pays for one analyze pass per file.
+ *
+ * @internal
  */
 final readonly class FileAnalysis
 {

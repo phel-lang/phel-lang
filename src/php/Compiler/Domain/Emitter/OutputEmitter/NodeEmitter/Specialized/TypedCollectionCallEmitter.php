@@ -17,6 +17,8 @@ use function array_map;
  * `PersistentVectorInterface`, and `(first s)` / `(rest s)` on a tagged
  * seq. Each collapses a runtime cond chain over the collection shapes to
  * one direct method call.
+ *
+ * @internal
  */
 final readonly class TypedCollectionCallEmitter implements SpecializedCallEmitterInterface
 {

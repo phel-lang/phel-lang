@@ -19,6 +19,8 @@ use function count;
 
 /**
  * @phpstan-import-type BindingTuple from DeconstructorInterface
+ *
+ * @internal
  */
 final readonly class Deconstructor implements DeconstructorInterface
 {

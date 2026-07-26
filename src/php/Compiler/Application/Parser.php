@@ -38,6 +38,9 @@ use Phel\Shared\Parser\Node\WhitespaceNode;
 use SplStack;
 use Throwable;
 
+/**
+ * @internal
+ */
 final readonly class Parser implements ParserInterface
 {
     /** @var array<int, true> */

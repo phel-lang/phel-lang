@@ -11,6 +11,8 @@ use function array_keys;
  *
  * Mutation is performed through open() / update() / close() so handlers don't
  * need to know about storage internals.
+ *
+ * @internal
  */
 final class DocumentStore
 {

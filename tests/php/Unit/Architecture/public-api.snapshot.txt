@@ -5,13 +5,20 @@
 # A diff here is a backward-compatibility review, not a formatting change.
 
 final class Phel extends Phel\Phel
+  public const string PHEL_CONFIG_FILE_NAME = 'phel-config.php'
   public static function __callStatic(string $name, array $arguments): mixed
   public static function abortBindingFrameIfOpen(): void
   public static function atom($value, ?Phel\Lang\Collections\Map\PersistentMapInterface $meta = null): Phel\Lang\Atom
+  public static function bootstrap(string $projectRootDir, ?array $argv = null): void
   public static function breakpoint(Phel\Lang\Collections\Map\PersistentMapInterface $locals): mixed
   public static function commitAndRunBindingFrame(Closure $body): mixed
+  public static function configFn(array $appModulePaths = []): callable
+  public static function detectProjectStructure(string $projectRootDir): Phel\Config\PhelConfig
+  public static function getArgv(): array
+  public static function getAutoDetectedConfig(): ?Phel\Config\PhelConfig
   public static function getDefinition(string $ns, string $name): mixed
   public static function getDefinitionReference(string $ns, string $name): mixed
+  public static function getProgram(): string
   public static function isDynamicVar(string $ns, string $name): bool
   public static function isNamespaceLoaded(string $namespace): bool
   public static function keyword(string $name, ?string $namespace = null): Phel\Lang\Keyword
@@ -22,9 +29,12 @@ final class Phel extends Phel\Phel
   public static function openBindingFrame(): void
   public static function openRedefsFrame(): void
   public static function queue(?array $values = []): Phel\Lang\Collections\Queue\PersistentQueue
+  public static function resetAutoDetectedConfig(): void
+  public static function run(string $projectRootDir, string $namespace, ?array $argv = null): void
   public static function seqList(?array $values = []): Phel\Lang\Collections\LinkedList\PersistentListInterface
   public static function set(?array $values = []): Phel\Lang\Collections\HashSet\PersistentHashSetInterface
   public static function setVar(string $ns, string $name, mixed $value): mixed
+  public static function setupRuntimeArgs(string $program, array $argv): void
   public static function snapshotDynamicBindings(): array
   public static function sortedMap(mixed ...$kvs): Phel\Lang\Collections\Map\PersistentMapInterface
   public static function sortedMapBy(callable $comparator, mixed ...$kvs): Phel\Lang\Collections\Map\PersistentMapInterface
@@ -1486,30 +1496,6 @@ final class Phel\Lsp\LspFacade extends Gacela\Framework\AbstractFacade
 final class Phel\Nrepl\NreplFacade extends Gacela\Framework\AbstractFacade
   public function createSocketServer(int $port, string $host, ?callable $logger = null): Phel\Nrepl\Infrastructure\NreplSocketServer
   public function loadPhelNamespaces(): void
-
-class Phel\Phel
-  public const string PHEL_CONFIG_FILE_NAME = 'phel-config.php'
-  public static function bootstrap(string $projectRootDir, ?array $argv = null): void
-  public static function configFn(array $appModulePaths = []): callable
-  public static function detectProjectStructure(string $projectRootDir): Phel\Config\PhelConfig
-  public static function getArgv(): array
-  public static function getAutoDetectedConfig(): ?Phel\Config\PhelConfig
-  public static function getProgram(): string
-  public static function resetAutoDetectedConfig(): void
-  public static function run(string $projectRootDir, string $namespace, ?array $argv = null): void
-  public static function setupRuntimeArgs(string $program, array $argv): void
-
-class Phel\Phel
-  public const string PHEL_CONFIG_FILE_NAME = 'phel-config.php'
-  public static function bootstrap(string $projectRootDir, ?array $argv = null): void
-  public static function configFn(array $appModulePaths = []): callable
-  public static function detectProjectStructure(string $projectRootDir): Phel\Config\PhelConfig
-  public static function getArgv(): array
-  public static function getAutoDetectedConfig(): ?Phel\Config\PhelConfig
-  public static function getProgram(): string
-  public static function resetAutoDetectedConfig(): void
-  public static function run(string $projectRootDir, string $namespace, ?array $argv = null): void
-  public static function setupRuntimeArgs(string $program, array $argv): void
 
 final class Phel\Profile\ProfileFacade extends Gacela\Framework\AbstractFacade
   public function renderJson(Phel\Profile\Domain\ProfileReport $report): string

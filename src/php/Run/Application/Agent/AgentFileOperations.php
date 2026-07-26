@@ -14,6 +14,8 @@ use function sprintf;
  * checked. A failed `copy()` used to be reported to the user as a successful
  * install, which is the worst outcome for a command whose whole job is putting
  * files where someone expects to find them.
+ *
+ * @internal
  */
 final class AgentFileOperations
 {

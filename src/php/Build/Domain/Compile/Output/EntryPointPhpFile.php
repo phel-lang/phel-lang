@@ -9,6 +9,9 @@ use Phel\Config\PhelBuildConfig;
 use function file_put_contents;
 use function sprintf;
 
+/**
+ * @internal
+ */
 final readonly class EntryPointPhpFile implements EntryPointPhpFileInterface
 {
     public function __construct(

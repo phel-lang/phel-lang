@@ -9,6 +9,9 @@ use Phel\Build\Infrastructure\Command\CacheClearCommand;
 use Phel\Console\Domain\ConsoleCommandProviderInterface;
 use Symfony\Component\Console\Command\LazyCommand;
 
+/**
+ * @internal
+ */
 final class BuildCommands implements ConsoleCommandProviderInterface
 {
     public function lazyCommands(): array

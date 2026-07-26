@@ -16,6 +16,8 @@ use function count;
  * (throw exception).
  *
  * Throws a PHP exception.
+ *
+ * @internal
  */
 final class ThrowSymbol implements SpecialFormAnalyzerInterface
 {

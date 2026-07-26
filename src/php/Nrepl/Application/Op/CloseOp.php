@@ -10,6 +10,9 @@ use Phel\Nrepl\Domain\Op\OpResponse;
 use Phel\Nrepl\Domain\Op\OpStatus;
 use Phel\Nrepl\Domain\Session\SessionRegistry;
 
+/**
+ * @internal
+ */
 final readonly class CloseOp implements OpHandlerInterface
 {
     public function __construct(private SessionRegistry $sessions) {}

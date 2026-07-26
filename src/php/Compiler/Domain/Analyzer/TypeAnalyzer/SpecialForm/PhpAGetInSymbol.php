@@ -16,6 +16,8 @@ use function assert;
  * (php/aget-in arr key1 key2 ...).
  *
  * Gets a nested value from a PHP array.
+ *
+ * @internal
  */
 final class PhpAGetInSymbol implements SpecialFormAnalyzerInterface
 {

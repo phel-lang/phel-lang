@@ -20,6 +20,8 @@ use function is_string;
  * Shared reading of PHP-interop metadata off a Phel symbol: the `:tag` type
  * hint and the `:php/attr` attribute specs. Used by the emitters that generate
  * PHP classes/interfaces from Phel forms (`defstruct`, `definterface`).
+ *
+ * @internal
  */
 trait PhpAttributeEmitterTrait
 {

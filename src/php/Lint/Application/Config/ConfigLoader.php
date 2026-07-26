@@ -35,6 +35,8 @@ use function is_string;
  *          :phel/arity-mismatch :error}
  *  :exclude {:phel/unused-binding ["src/phel/local.phel" "phel.experimental.*"]}}
  * ```
+ *
+ * @internal
  */
 final readonly class ConfigLoader
 {

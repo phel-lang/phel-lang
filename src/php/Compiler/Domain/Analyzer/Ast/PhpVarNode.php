@@ -14,6 +14,9 @@ use function ltrim;
 use function str_contains;
 use function str_replace;
 
+/**
+ * @internal
+ */
 final class PhpVarNode extends AbstractNode
 {
     public const array INFIX_OPERATORS = [

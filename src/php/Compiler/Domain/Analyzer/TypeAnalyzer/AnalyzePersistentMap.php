@@ -9,6 +9,9 @@ use Phel\Compiler\Domain\Analyzer\Environment\NodeEnvironmentInterface;
 use Phel\Lang\Collections\Map\PersistentMapInterface;
 use Phel\Lang\TypeInterface;
 
+/**
+ * @internal
+ */
 final class AnalyzePersistentMap
 {
     use WithAnalyzerTrait;

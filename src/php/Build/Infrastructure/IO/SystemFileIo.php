@@ -9,6 +9,9 @@ use RuntimeException;
 
 use function sprintf;
 
+/**
+ * @internal
+ */
 final class SystemFileIo implements FileContentsIoInterface
 {
     public function getContents(string $filename): string

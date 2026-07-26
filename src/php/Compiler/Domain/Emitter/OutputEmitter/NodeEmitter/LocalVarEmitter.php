@@ -10,6 +10,9 @@ use Phel\Compiler\Domain\Emitter\OutputEmitter\NodeEmitterInterface;
 
 use function assert;
 
+/**
+ * @internal
+ */
 final class LocalVarEmitter implements NodeEmitterInterface
 {
     use WithOutputEmitterTrait;

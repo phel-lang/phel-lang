@@ -4,6 +4,9 @@ declare(strict_types=1);
 
 namespace Phel\Build\Domain\Extractor;
 
+/**
+ * @internal
+ */
 interface NamespaceSorterInterface
 {
     /**

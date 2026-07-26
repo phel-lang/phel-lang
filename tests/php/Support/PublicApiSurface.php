@@ -34,12 +34,12 @@ use function str_starts_with;
  * `docs/stability.md`. Everything they match is covered by semver from 1.0 on;
  * everything they reject is internal and free to change in a patch.
  *
- * Only members *declared by* a class are rendered. An inherited member belongs
- * to the parent's entry when the parent is itself public, and is out of scope
- * when it is not, which keeps the snapshot from churning whenever a vendor base
- * class moves.
+ * Inherited members are attributed to whichever entry a consumer can actually
+ * reach them through: a public parent gets its own entry, an internal Phel parent
+ * is folded into its child, and a vendor parent is left alone so the snapshot does
+ * not churn every time a dependency moves a base class.
  */
-final class PublicApiSurface
+final readonly class PublicApiSurface
 {
     /**
      * Whole namespaces whose every symbol is public.
@@ -58,17 +58,17 @@ final class PublicApiSurface
 
     /**
      * Emitted PHP calls straight into the global `Phel` class, so every compiled
-     * `.phel` file ever produced is a consumer of it. `Phel\Phel` is its base and
-     * the composition root an embedding project bootstraps through, so the pair
-     * has to be pinned together: only members a class *declares* are rendered,
-     * and `bootstrap()` is declared on the parent.
+     * `.phel` file ever produced is a consumer of it.
      *
-     * @var list<string>
+     * Its `Phel\Phel` base is *not* public: it is annotated "@internal use \Phel
+     * instead". The members it declares still reach a consumer through the child,
+     * so {@see foldedAncestorsOf()} folds them into this entry rather than giving
+     * the base one of its own.
      */
-    private const array RUNTIME_CLASSES = ['Phel', 'Phel\\Phel'];
+    private const string RUNTIME_CLASS = 'Phel';
 
     public function __construct(
-        private readonly string $repositoryRoot,
+        private string $repositoryRoot,
     ) {}
 
     public static function fromRepositoryRoot(string $repositoryRoot): self
@@ -128,7 +128,7 @@ final class PublicApiSurface
      */
     public function isPublicSymbol(string $className): bool
     {
-        if (in_array($className, self::RUNTIME_CLASSES, true)) {
+        if ($className === self::RUNTIME_CLASS) {
             return true;
         }
 
@@ -174,7 +174,7 @@ final class PublicApiSurface
      */
     private function declaredClassNames(): array
     {
-        $names = self::RUNTIME_CLASSES;
+        $names = [self::RUNTIME_CLASS];
         $baseDir = $this->repositoryRoot . '/src/php';
 
         /** @var SplFileInfo $file */
@@ -191,7 +191,37 @@ final class PublicApiSurface
             $names[] = 'Phel\\' . str_replace('/', '\\', $relative);
         }
 
-        /** @var list<class-string> */
+        return $names;
+    }
+
+    /**
+     * The class itself plus every ancestor whose members reach a consumer only
+     * through it: a Phel ancestor that is not public in its own right.
+     *
+     * The walk stops at the first public ancestor, which has its own entry, and
+     * at the first vendor ancestor, whose contract is that vendor's to keep. The
+     * one case in the repository is `Phel extends Phel\Phel`.
+     *
+     * @return list<string> declaring-class names, in walk order
+     */
+    private function foldedAncestorsOf(ReflectionClass $class): array
+    {
+        $names = [$class->getName()];
+
+        for ($parent = $class->getParentClass(); $parent !== false; $parent = $parent->getParentClass()) {
+            $name = $parent->getName();
+
+            if ($this->isPublicSymbol($name)) {
+                break;
+            }
+
+            if ($name !== self::RUNTIME_CLASS && !str_starts_with($name, 'Phel\\')) {
+                break;
+            }
+
+            $names[] = $name;
+        }
+
         return $names;
     }
 
@@ -339,10 +369,11 @@ final class PublicApiSurface
      */
     private function renderConstants(ReflectionClass $class): array
     {
+        $declaredBy = $this->foldedAncestorsOf($class);
         $lines = [];
 
         foreach ($class->getReflectionConstants() as $constant) {
-            if ($constant->getDeclaringClass()->getName() !== $class->getName()) {
+            if (!in_array($constant->getDeclaringClass()->getName(), $declaredBy, true)) {
                 continue;
             }
 
@@ -377,10 +408,11 @@ final class PublicApiSurface
      */
     private function renderProperties(ReflectionClass $class): array
     {
+        $declaredBy = $this->foldedAncestorsOf($class);
         $lines = [];
 
         foreach ($class->getProperties() as $property) {
-            if ($property->getDeclaringClass()->getName() !== $class->getName()) {
+            if (!in_array($property->getDeclaringClass()->getName(), $declaredBy, true)) {
                 continue;
             }
 
@@ -410,10 +442,11 @@ final class PublicApiSurface
      */
     private function renderMethods(ReflectionClass $class): array
     {
+        $declaredBy = $this->foldedAncestorsOf($class);
         $lines = [];
 
         foreach ($class->getMethods() as $method) {
-            if ($method->getDeclaringClass()->getName() !== $class->getName()) {
+            if (!in_array($method->getDeclaringClass()->getName(), $declaredBy, true)) {
                 continue;
             }
 
@@ -446,7 +479,7 @@ final class PublicApiSurface
         }
 
         $parameters = array_map(
-            fn(ReflectionParameter $parameter): string => $this->renderParameter($parameter),
+            $this->renderParameter(...),
             $method->getParameters(),
         );
 
@@ -523,7 +556,7 @@ final class PublicApiSurface
 
         if ($type instanceof ReflectionUnionType) {
             $names = array_map(
-                fn(ReflectionType $inner): string => $this->renderType($inner),
+                $this->renderType(...),
                 $type->getTypes(),
             );
             sort($names);

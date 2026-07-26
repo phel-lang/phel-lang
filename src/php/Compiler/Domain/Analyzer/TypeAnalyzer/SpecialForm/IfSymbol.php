@@ -18,6 +18,8 @@ use function count;
  * (if test then else?).
  *
  * Conditional branch: evaluates then if test is truthy, else otherwise.
+ *
+ * @internal
  */
 final class IfSymbol implements SpecialFormAnalyzerInterface
 {

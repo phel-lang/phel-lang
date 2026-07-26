@@ -15,6 +15,9 @@ use Phel\Shared\Parser\Node\NodeInterface;
 use Phel\Shared\Parser\Node\Token;
 use Phel\Shared\Parser\Node\WhitespaceNode;
 
+/**
+ * @internal
+ */
 final readonly class IndentRule implements RuleInterface
 {
     private const int INDENT_WIDTH = 2;

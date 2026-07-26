@@ -15,6 +15,9 @@ use function dirname;
 use function is_array;
 use function sprintf;
 
+/**
+ * @internal
+ */
 final class CommandConfig extends AbstractConfig
 {
     private const string DEFAULT_VENDOR_DIR = 'vendor';

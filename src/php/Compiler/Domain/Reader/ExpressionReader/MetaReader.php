@@ -17,6 +17,9 @@ use Phel\Shared\Parser\Node\NodeInterface;
 use function count;
 use function is_string;
 
+/**
+ * @internal
+ */
 final readonly class MetaReader
 {
     public function __construct(private ReaderInterface $reader) {}

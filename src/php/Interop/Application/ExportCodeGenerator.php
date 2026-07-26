@@ -12,6 +12,9 @@ use Phel\Shared\Exceptions\CompilerException;
 use Phel\Shared\Interop\Wrapper;
 use RuntimeException;
 
+/**
+ * @internal
+ */
 final readonly class ExportCodeGenerator
 {
     public function __construct(

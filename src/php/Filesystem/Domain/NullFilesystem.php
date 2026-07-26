@@ -10,6 +10,8 @@ namespace Phel\Filesystem\Domain;
  * Selected by FilesystemFactory when KEEP_GENERATED_TEMP_FILES is true: both
  * addFile() and clearAll() are no-ops so generated temp files are never tracked
  * or deleted. Paired with RealFilesystem as the active-cleanup strategy.
+ *
+ * @internal
  */
 final class NullFilesystem implements FilesystemInterface
 {

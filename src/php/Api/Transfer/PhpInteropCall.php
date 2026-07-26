@@ -10,6 +10,8 @@ namespace Phel\Api\Transfer;
  * literal/alias for a constructor or static call, or a receiver expression for
  * an instance method), the method name, and the zero-based index of the
  * argument the cursor sits on.
+ *
+ * @internal
  */
 final readonly class PhpInteropCall
 {

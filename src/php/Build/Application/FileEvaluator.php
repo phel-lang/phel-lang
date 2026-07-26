@@ -29,6 +29,8 @@ use function sprintf;
 
 /**
  * @phpstan-import-type SerializedNamespaceEnvironment from CompilerFacadeInterface
+ *
+ * @internal
  */
 final class FileEvaluator
 {

@@ -10,6 +10,9 @@ use Phel\Lang\SourceLocation;
 use Phel\Lang\Symbol;
 use Phel\Shared\TagResolver;
 
+/**
+ * @internal
+ */
 final class LocalVarNode extends AbstractNode
 {
     public function __construct(

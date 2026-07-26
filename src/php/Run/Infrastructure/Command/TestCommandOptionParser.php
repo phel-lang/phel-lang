@@ -26,6 +26,8 @@ use function strtolower;
  * `$options` array and the parallelism decision. {@see TestCommand} declares
  * the options (using the constants here) and orchestrates the run; all the
  * input reading, validation, and coercion lives in this stateless collaborator.
+ *
+ * @internal
  */
 final readonly class TestCommandOptionParser
 {

@@ -45,6 +45,8 @@ use function is_string;
 /**
  * @phpstan-type MatchArm array{key: mixed, expr: mixed}
  * @phpstan-type LoweredMatch array{init: AbstractNode, arms: list<MatchArm>, fallback: mixed}
+ *
+ * @internal
  */
 final readonly class IfChainMatchLowerer
 {

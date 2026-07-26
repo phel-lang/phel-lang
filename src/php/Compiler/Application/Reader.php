@@ -25,6 +25,9 @@ use Phel\Shared\Parser\Node\TriviaNodeInterface;
 use Phel\Shared\Parser\ReadModel\CodeSnippet;
 use RuntimeException;
 
+/**
+ * @internal
+ */
 final class Reader implements ReaderInterface
 {
     /** @var array<int,Symbol>|null */

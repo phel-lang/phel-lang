@@ -20,6 +20,8 @@ use function count;
  * (do expr1 expr2 ...).
  *
  * Evaluates expressions sequentially, returns the last.
+ *
+ * @internal
  */
 final class DoSymbol implements SpecialFormAnalyzerInterface
 {

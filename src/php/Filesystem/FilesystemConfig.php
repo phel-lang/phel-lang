@@ -8,6 +8,9 @@ use Gacela\Framework\AbstractConfig;
 use Phel\Config\PhelConfig;
 use Phel\Shared\ScalarCoercion;
 
+/**
+ * @internal
+ */
 final class FilesystemConfig extends AbstractConfig
 {
     /**

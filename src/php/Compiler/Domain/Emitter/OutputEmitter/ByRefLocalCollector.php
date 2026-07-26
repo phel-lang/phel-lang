@@ -27,6 +27,8 @@ use function array_values;
  * leaf, but a missed *container* silently drops a `php/ref` write — which is why
  * the child map is shared with {@see YieldDetector} rather than hand-copied
  * (the copy had already lost `SetNode`).
+ *
+ * @internal
  */
 final class ByRefLocalCollector
 {

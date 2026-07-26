@@ -20,6 +20,8 @@ use function str_starts_with;
  *
  * Accepted forms: `--warn-deprecations` and `--warn-deprecations=1`.
  * Any other shape is passed through unchanged.
+ *
+ * @internal
  */
 final class WarnDeprecationsFlag
 {

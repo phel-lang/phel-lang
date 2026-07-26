@@ -23,6 +23,8 @@ use function sprintf;
 
 /**
  * @method RunFacade getFacade()
+ *
+ * @internal
  */
 #[ServiceMap(method: 'getFacade', className: RunFacade::class)]
 class NsCommand extends Command

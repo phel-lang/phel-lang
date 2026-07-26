@@ -9,6 +9,9 @@ use Phel\Shared\Exceptions\AbstractLocatedException;
 use Phel\Shared\Parser\ReadModel\CodeSnippet;
 use Throwable;
 
+/**
+ * @internal
+ */
 abstract class AbstractParserException extends AbstractLocatedException
 {
     public function __construct(

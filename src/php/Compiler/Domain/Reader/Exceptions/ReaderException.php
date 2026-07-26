@@ -10,6 +10,9 @@ use Phel\Shared\Parser\Node\NodeInterface;
 use Phel\Shared\Parser\ReadModel\CodeSnippet;
 use Throwable;
 
+/**
+ * @internal
+ */
 final class ReaderException extends AbstractLocatedException
 {
     private function __construct(

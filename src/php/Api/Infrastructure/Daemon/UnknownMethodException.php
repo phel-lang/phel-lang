@@ -6,4 +6,7 @@ namespace Phel\Api\Infrastructure\Daemon;
 
 use RuntimeException;
 
+/**
+ * @internal
+ */
 final class UnknownMethodException extends RuntimeException {}

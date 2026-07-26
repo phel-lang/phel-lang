@@ -11,6 +11,9 @@ use Phel\Lang\Symbol;
 use Phel\Shared\Parser\Node\NodeInterface;
 use Phel\Shared\Parser\Node\QuoteNode;
 
+/**
+ * @internal
+ */
 final readonly class WrapReader
 {
     public function __construct(private ReaderInterface $reader) {}

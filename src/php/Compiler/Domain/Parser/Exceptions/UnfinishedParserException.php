@@ -9,6 +9,9 @@ use Phel\Shared\Exceptions\ErrorCode;
 use Phel\Shared\Parser\Node\Token;
 use Phel\Shared\Parser\ReadModel\CodeSnippet;
 
+/**
+ * @internal
+ */
 final class UnfinishedParserException extends AbstractParserException
 {
     public static function forSnippet(CodeSnippet $snippet, Token $token, string $message, ?ErrorCode $errorCode = null): self

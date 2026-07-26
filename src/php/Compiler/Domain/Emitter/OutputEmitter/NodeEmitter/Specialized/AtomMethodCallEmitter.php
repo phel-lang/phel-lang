@@ -12,6 +12,8 @@ use Phel\Compiler\Domain\Emitter\OutputEmitterInterface;
  * Specialisation gated by {@see AtomMethodSpecialization}: `(deref x)` and
  * `(reset! v val)` lowered to the direct method call on the target, skipping
  * the registry lookup.
+ *
+ * @internal
  */
 final readonly class AtomMethodCallEmitter implements SpecializedCallEmitterInterface
 {

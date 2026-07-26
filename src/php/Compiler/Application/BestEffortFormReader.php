@@ -18,6 +18,8 @@ use Throwable;
 /**
  * Backs {@see \Phel\Shared\Facade\CompilerFacadeInterface::readFormsBestEffort()},
  * which documents the contract and when to prefer the throwing single-stage hooks.
+ *
+ * @internal
  */
 final readonly class BestEffortFormReader
 {

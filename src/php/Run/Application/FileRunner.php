@@ -19,6 +19,9 @@ use function is_file;
 use function str_replace;
 use function str_starts_with;
 
+/**
+ * @internal
+ */
 final readonly class FileRunner
 {
     private const string PHEL_PREFIX = 'phel.';

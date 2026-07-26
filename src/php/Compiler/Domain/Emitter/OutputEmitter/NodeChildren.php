@@ -54,6 +54,8 @@ use Phel\Compiler\Domain\Analyzer\Ast\VectorNode;
  * `Analyzer\Ast\Reference\LocalVarReferences`) keep their own maps: theirs
  * genuinely diverge (e.g. `DefNode` also yields its meta, extra node types), so
  * they are not candidates for this shared map.
+ *
+ * @internal
  */
 final class NodeChildren
 {

@@ -6,6 +6,9 @@ namespace Phel\Formatter\Domain\Rules\Zipper;
 
 use RuntimeException;
 
+/**
+ * @internal
+ */
 final class ZipperException extends RuntimeException
 {
     public static function calledChildrenOnLeafNode(): self

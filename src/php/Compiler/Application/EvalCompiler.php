@@ -28,6 +28,9 @@ use Phel\Shared\Parser\Node\TriviaNodeInterface;
 
 use function is_object;
 
+/**
+ * @internal
+ */
 final readonly class EvalCompiler implements EvalCompilerInterface
 {
     public function __construct(

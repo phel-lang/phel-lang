@@ -24,6 +24,8 @@ use function trim;
  * Short class names imported via `(ns ... (:use Foo\Bar :as B))` or top-level
  * `(use ...)` are mapped back to their fully-qualified name (via
  * {@see PhpImportAliasExtractor}) so the reflector can resolve them.
+ *
+ * @internal
  */
 final readonly class PhpInteropContextResolver
 {

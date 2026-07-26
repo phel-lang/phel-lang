@@ -17,6 +17,8 @@ use function count;
  *
  * Shared helper used by arity, shadowed-binding, and destructuring rules
  * so they stop re-implementing the same body walk.
+ *
+ * @internal
  */
 final class FnParamVectors
 {

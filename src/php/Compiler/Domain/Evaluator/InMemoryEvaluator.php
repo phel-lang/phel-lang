@@ -13,6 +13,8 @@ use Throwable;
 /**
  * Evaluates compiled PHP code in-memory using eval().
  * Avoids temp file I/O overhead — ideal for REPL and interactive use.
+ *
+ * @internal
  */
 final class InMemoryEvaluator implements EvaluatorInterface
 {

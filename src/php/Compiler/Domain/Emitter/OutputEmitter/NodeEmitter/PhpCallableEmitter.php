@@ -17,6 +17,8 @@ use function assert;
  * - free function:    `\strlen(...)`
  * - static method:    `\Foo::bar(...)`
  * - instance method:  `($obj)->process(...)`.
+ *
+ * @internal
  */
 final class PhpCallableEmitter implements NodeEmitterInterface
 {

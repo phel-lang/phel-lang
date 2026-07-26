@@ -11,6 +11,9 @@ use Phel\Lang\Symbol;
 use Phel\Shared\Parser\Node\ListNode;
 use Phel\Shared\Parser\Node\NodeInterface;
 
+/**
+ * @internal
+ */
 final readonly class ListFnReader
 {
     public function __construct(private ReaderInterface $reader) {}

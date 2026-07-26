@@ -27,6 +27,8 @@ use function is_array;
 
 /**
  * @phpstan-import-type DirFingerprint from ScanIndexEntry
+ *
+ * @internal
  */
 final class CachedNamespaceExtractor implements NamespaceExtractorInterface
 {

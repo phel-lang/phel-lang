@@ -11,6 +11,8 @@ use Phel\Lang\SourceLocation;
  * A single PHP 8 named argument in a `php/new`/`php/->`/`php/::` call,
  * introduced after the `:&` marker. Emits as `name: <value>` so the value
  * binds to the PHP parameter by name rather than by position.
+ *
+ * @internal
  */
 final class PhpNamedArgNode extends AbstractNode
 {

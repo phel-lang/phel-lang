@@ -9,6 +9,9 @@ use Gacela\Framework\Attribute\Provides;
 use Gacela\Framework\Container\Container;
 use Phel\Run\RunFacade;
 
+/**
+ * @internal
+ */
 final class ProfileProvider extends AbstractProvider
 {
     public const string FACADE_RUN = 'FACADE_RUN';

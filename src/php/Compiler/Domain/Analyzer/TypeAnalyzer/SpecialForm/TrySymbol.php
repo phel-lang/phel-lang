@@ -19,6 +19,8 @@ use Phel\Lang\Symbol;
  * (try body (catch Type e handler) (finally cleanup)).
  *
  * Exception handling with optional catch and finally clauses.
+ *
+ * @internal
  */
 final class TrySymbol implements SpecialFormAnalyzerInterface
 {

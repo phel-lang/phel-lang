@@ -25,6 +25,8 @@ use Phel\Shared\Facade\CompilerFacadeInterface;
 
 /**
  * @extends AbstractFactory<FormatterConfig>
+ *
+ * @internal
  */
 final class FormatterFactory extends AbstractFactory
 {

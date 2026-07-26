@@ -11,6 +11,9 @@ use function is_array;
 use function is_int;
 use function is_string;
 
+/**
+ * @internal
+ */
 final readonly class TestCommandOptions
 {
     public const string FILTER = 'filter';

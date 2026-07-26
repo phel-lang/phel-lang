@@ -8,6 +8,9 @@ use RuntimeException;
 
 use function array_slice;
 
+/**
+ * @internal
+ */
 final class TopologicalNamespaceSorter implements NamespaceSorterInterface
 {
     /**

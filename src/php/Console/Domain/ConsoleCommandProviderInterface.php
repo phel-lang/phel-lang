@@ -12,6 +12,8 @@ use Symfony\Component\Console\Command\LazyCommand;
  * name/aliases/description/hidden metadata up front, so the CLI can render
  * list/help and resolve aliases without constructing every command;
  * ConsoleProvider aggregates every implementation into the command loader.
+ *
+ * @internal
  */
 interface ConsoleCommandProviderInterface
 {

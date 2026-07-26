@@ -20,6 +20,8 @@ use function sprintf;
 /**
  * @method FormatterFacade getFacade()
  * @method FormatterConfig getConfig()
+ *
+ * @internal
  */
 #[ServiceMap(method: 'getFacade', className: FormatterFacade::class)]
 #[ServiceMap(method: 'getConfig', className: FormatterConfig::class)]

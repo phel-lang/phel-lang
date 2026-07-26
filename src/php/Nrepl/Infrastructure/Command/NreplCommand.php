@@ -23,6 +23,8 @@ use function sprintf;
  * @method NreplFacade  getFacade()
  * @method NreplFactory getFactory()
  * @method NreplConfig  getConfig()
+ *
+ * @internal
  */
 #[ServiceMap(method: 'getFacade', className: NreplFacade::class)]
 #[ServiceMap(method: 'getFactory', className: NreplFactory::class)]

@@ -16,6 +16,8 @@ use function substr;
 /**
  * Selects bundled `phel.*` namespaces that file runs must seed before
  * evaluating an ad-hoc script.
+ *
+ * @internal
  */
 final readonly class BundledNamespaceDetector
 {

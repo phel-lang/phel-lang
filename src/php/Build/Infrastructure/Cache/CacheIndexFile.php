@@ -20,6 +20,8 @@ use function is_string;
  * surfacing malformed data.
  *
  * @phpstan-type CacheEntry array{namespace: string, source_hash: string, compiled_path: string, last_accessed: int}
+ *
+ * @internal
  */
 final readonly class CacheIndexFile
 {

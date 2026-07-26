@@ -6,6 +6,8 @@ namespace Phel\Watch\Transfer;
 
 /**
  * A detected change on a watched path.
+ *
+ * @internal
  */
 final readonly class WatchEvent
 {

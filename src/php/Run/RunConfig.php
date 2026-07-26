@@ -9,6 +9,9 @@ use Phel\Config\PhelConfig;
 use Phel\Shared\CompileOptions;
 use Phel\Shared\ScalarCoercion;
 
+/**
+ * @internal
+ */
 final class RunConfig extends AbstractConfig
 {
     public function getReplStartupFile(): string

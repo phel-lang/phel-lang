@@ -27,6 +27,8 @@ use Phel\Watch\Domain\ReloadOrchestratorInterface;
 
 /**
  * @extends AbstractFactory<WatchConfig>
+ *
+ * @internal
  */
 final class WatchFactory extends AbstractFactory
 {

@@ -29,6 +29,8 @@ use function usleep;
  * Uses one Fiber per connected client, coordinated by `ClientFiberPool`.
  * The main accept loop yields between iterations so Fibers run
  * cooperatively without blocking each other.
+ *
+ * @internal
  */
 final class NreplSocketServer
 {

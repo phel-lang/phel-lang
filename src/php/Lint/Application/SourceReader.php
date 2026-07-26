@@ -17,6 +17,8 @@ use function count;
  * Lex, parse and read a Phel source string into a list of top-level forms
  * ready for rule inspection. Never throws: best-effort only, so rules can
  * still operate on partial input when later forms are broken.
+ *
+ * @internal
  */
 final readonly class SourceReader
 {

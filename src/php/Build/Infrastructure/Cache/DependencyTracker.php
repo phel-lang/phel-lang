@@ -23,6 +23,8 @@ use function is_string;
  *
  * A file that requires namespace B is registered as:
  *   dependsOn("file:{sourcePath}", "ns:B")
+ *
+ * @internal
  */
 final readonly class DependencyTracker implements DependencyTrackerInterface
 {

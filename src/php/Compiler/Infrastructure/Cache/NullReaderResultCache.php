@@ -9,6 +9,8 @@ use Phel\Compiler\Domain\Cache\ReaderResultCacheInterface;
 /**
  * No-op cache used whenever the intermediate-artifact cache is disabled
  * (the default). Every load misses, so the full pipeline always runs.
+ *
+ * @internal
  */
 final class NullReaderResultCache implements ReaderResultCacheInterface
 {

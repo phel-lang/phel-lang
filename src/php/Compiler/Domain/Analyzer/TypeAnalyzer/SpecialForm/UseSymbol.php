@@ -18,6 +18,8 @@ use Phel\Lang\Collections\LinkedList\PersistentListInterface;
  * existing namespace via `(in-ns ...)` and only want to declare the
  * imports they actually use. Pure compile-time registration — emits no
  * runtime code.
+ *
+ * @internal
  */
 final class UseSymbol implements SpecialFormAnalyzerInterface
 {

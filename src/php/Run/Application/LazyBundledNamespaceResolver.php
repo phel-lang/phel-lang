@@ -14,6 +14,8 @@ use function str_replace;
  * Loads a bundled `phel.*` namespace and its transitive closure the first time
  * the REPL references it, so REPL boot only pays for `phel.core` while keeping
  * fully qualified references (`phel.json/encode`) resolvable on demand.
+ *
+ * @internal
  */
 final readonly class LazyBundledNamespaceResolver implements BundledNamespaceResolverInterface
 {

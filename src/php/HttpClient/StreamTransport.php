@@ -12,6 +12,8 @@ use function sprintf;
 /**
  * HTTP transport using PHP's built-in stream context.
  * No external dependencies required (no cURL, no Guzzle).
+ *
+ * @internal
  */
 final class StreamTransport
 {

@@ -16,6 +16,8 @@ use Phel\Shared\Exceptions\FileException;
  * Creation is idempotent (a concurrently-created directory is tolerated), and
  * a non-writable directory triggers a chmod 0777 retry before giving up with a
  * FileException.
+ *
+ * @internal
  */
 final class TempDirFinder
 {

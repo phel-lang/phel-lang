@@ -38,6 +38,8 @@ namespace Phel\Compiler\Domain\Analyzer\TypeAnalyzer;
  * `>`, `>=` accept both), and `===` stays consistent because Phel `=` is
  * already strict across int/float (`(= 8 8.0)` is false on the dynamic
  * path too).
+ *
+ * @internal
  */
 final readonly class PhpFunctionReturnTypes
 {

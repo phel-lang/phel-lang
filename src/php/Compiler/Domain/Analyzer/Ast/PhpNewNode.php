@@ -7,6 +7,9 @@ namespace Phel\Compiler\Domain\Analyzer\Ast;
 use Phel\Compiler\Domain\Analyzer\Environment\NodeEnvironmentInterface;
 use Phel\Lang\SourceLocation;
 
+/**
+ * @internal
+ */
 final class PhpNewNode extends AbstractNode
 {
     /**

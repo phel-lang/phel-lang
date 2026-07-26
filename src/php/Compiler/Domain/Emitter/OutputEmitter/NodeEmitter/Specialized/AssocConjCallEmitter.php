@@ -15,6 +15,8 @@ use function array_slice;
  * chain of `(assoc m k v)` / `(conj v x)` calls, the variadic
  * `(dissoc m k1 k2 …)` lowered to a `->remove()` chain, and the single-step
  * `(assoc ...)` / `(conj ...)` / `(push ...)` on a typed persistent target.
+ *
+ * @internal
  */
 final readonly class AssocConjCallEmitter implements SpecializedCallEmitterInterface
 {

@@ -56,6 +56,8 @@ use Phel\Shared\VersionFinder;
 
 /**
  * @extends AbstractFactory<CompilerConfig>
+ *
+ * @internal
  */
 final class CompilerFactory extends AbstractFactory
 {

@@ -12,6 +12,8 @@ namespace Phel\Command\Domain\Exceptions\Extractor\ReadModel;
  * (`<?php`, declare statements, metadata comments). `codeStartLine` is the
  * 1-based line in the compiled file where the generated code begins, so a
  * trace line translates via `traceLine - (codeStartLine - 1)`.
+ *
+ * @internal
  */
 final readonly class SourceMapInformation
 {

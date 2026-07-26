@@ -29,6 +29,8 @@ use function sprintf;
 
 /**
  * @method BuildFacade getFacade()
+ *
+ * @internal
  */
 #[ServiceMap(method: 'getFacade', className: BuildFacade::class)]
 final class BuildCommand extends Command

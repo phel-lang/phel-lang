@@ -35,6 +35,8 @@ use function max;
  * (def name value).
  *
  * Defines a global variable in the current namespace.
+ *
+ * @internal
  */
 final readonly class DefSymbol implements SpecialFormAnalyzerInterface
 {

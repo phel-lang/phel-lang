@@ -10,6 +10,9 @@ use Phel\Lang\Collections\Map\PersistentMapInterface;
 
 use function in_array;
 
+/**
+ * @internal
+ */
 final readonly class PhelFnLoader implements PhelFnLoaderInterface
 {
     public function __construct(

@@ -15,6 +15,8 @@ use function sprintf;
  * Small, open-for-extension lookup: add a new formatter by instantiating
  * it and calling `register()`. Callers ask by name (`human`, `json`,
  * `github`, ...).
+ *
+ * @internal
  */
 final class FormatterRegistry
 {

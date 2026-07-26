@@ -15,6 +15,8 @@ namespace Phel\Build\Domain\Compile;
  * is what the harvester copies. With the cache off there is nowhere to keep the
  * compiled output, so this store holds it for the duration of the build instead
  * — keeping every `out/phel/core/*.php` sibling without a fragile recompile.
+ *
+ * @internal
  */
 final class CompiledSecondaryStore
 {

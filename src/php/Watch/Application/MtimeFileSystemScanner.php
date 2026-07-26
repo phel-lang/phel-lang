@@ -23,6 +23,8 @@ use function is_file;
  * snapshot of `.phel` files keyed by realpath with mtime + size.
  *
  * @phpstan-import-type FileStat from FileSystemScannerInterface
+ *
+ * @internal
  */
 final class MtimeFileSystemScanner implements FileSystemScannerInterface
 {

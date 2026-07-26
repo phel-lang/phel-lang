@@ -18,6 +18,8 @@ use function implode;
 /**
  * Shared implementation for `lookup`, `info`, and `eldoc` ops.
  * They all translate a symbol name to its documentation/signature record.
+ *
+ * @internal
  */
 final readonly class LookupOp implements OpHandlerInterface
 {

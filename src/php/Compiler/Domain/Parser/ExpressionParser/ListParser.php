@@ -14,6 +14,9 @@ use Phel\Shared\Parser\Node\Token;
 
 use function sprintf;
 
+/**
+ * @internal
+ */
 final readonly class ListParser
 {
     private const array CLOSING_BRACKETS = [

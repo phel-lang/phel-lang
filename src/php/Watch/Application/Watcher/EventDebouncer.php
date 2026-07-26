@@ -20,6 +20,8 @@ use function array_values;
  *
  * Extracted from `PollingWatcher`, `FswatchWatcher`, and `InotifyWatcher`,
  * which each re-implemented the same logic with small variations.
+ *
+ * @internal
  */
 final class EventDebouncer
 {

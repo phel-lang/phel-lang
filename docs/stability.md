@@ -29,7 +29,7 @@ release including a patch.
 
 | # | Rule | Examples |
 |---|------|----------|
-| 1 | The `\Phel` runtime class and its `Phel\Phel` base | `Phel::vector()`, `Phel\Phel::bootstrap()` |
+| 1 | The `\Phel` runtime class | `Phel::vector()`, `Phel::bootstrap()` |
 | 2 | `Phel\<Module>\<Module>Facade` | `Phel\Compiler\CompilerFacade` |
 | 3 | `Phel\<Module>\<Module>FacadeInterface` | `Phel\Fiber\FiberFacadeInterface` |
 | 4 | Everything under `Phel\Shared\` | `Phel\Shared\Facade\CompilerFacadeInterface`, `Phel\Shared\CompileOptions` |
@@ -38,8 +38,9 @@ release including a patch.
 
 Rule 1 exists because emitted PHP calls into it: every compiled `.phel` file is a
 consumer, so `\Phel` is load-bearing for build artifacts produced by older versions.
-Its `Phel\Phel` base is covered with it, because that is where `bootstrap()` and
-`run()` live and an embedding project starts there.
+Its `Phel\Phel` base stays internal ("use `\Phel` instead"), but the members it
+declares, `bootstrap()`, `run()` and `configFn()` among them, are reachable through
+the child and are therefore covered as part of `\Phel`.
 
 Rules 4 to 6 are whole namespaces rather than hand-picked lists because they are the
 namespaces a consumer cannot avoid: values that cross the facade boundary (`Lang`),
@@ -98,6 +99,15 @@ shapes listed above.
 The snapshot is deliberately a gate on the pull request that introduces the change,
 not a comparison against the last release tag: a break is cheapest to discuss while
 the diff that causes it is still open.
+
+`tests/php/Unit/Architecture/InternalAnnotationTest.php` pins the complement. Every
+class the rules reject carries `@internal`, so the split reaches an IDE and a static
+analyser rather than living only in this page.
+
+One gap is worth naming: a public class inheriting from a *vendor* base is rendered
+without that base's members, so a dependency upgrade that changes an inherited
+signature is a real break the snapshot cannot see. Phel ancestors are folded in and
+do not have this problem. Dependency upgrades are the place to look for it.
 
 ## Deprecation policy for 1.x
 

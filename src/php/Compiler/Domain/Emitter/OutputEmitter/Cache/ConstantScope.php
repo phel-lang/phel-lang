@@ -42,6 +42,8 @@ use function var_export;
  * only the first evaluation allocates. The per-node map still points every
  * collapsed node at the shared slot, so the emitter resolves slots by node as
  * before and never references an uncaptured slot.
+ *
+ * @internal
  */
 final class ConstantScope
 {

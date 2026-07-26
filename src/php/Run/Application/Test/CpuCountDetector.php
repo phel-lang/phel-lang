@@ -34,6 +34,8 @@ use function trim;
  *
  * An explicit `PHEL_TEST_WORKERS` env var always overrides both paths
  * and ignores the cap.
+ *
+ * @internal
  */
 final class CpuCountDetector
 {

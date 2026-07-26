@@ -22,6 +22,8 @@ use function sprintf;
  * then yields a `VarNode` that emits as a runtime call to
  * `Registry::getInstance()->getVar($ns, $name)`. Throws if `sym` does not
  * resolve to a known global definition.
+ *
+ * @internal
  */
 final readonly class VarSymbol implements SpecialFormAnalyzerInterface
 {

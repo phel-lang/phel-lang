@@ -20,6 +20,8 @@ use function is_array;
  *
  * The key folds the Phel version and optimization level into the source hash so
  * a compiler upgrade or an `-O` change busts every stale entry automatically.
+ *
+ * @internal
  */
 final readonly class FileSystemReaderResultCache implements ReaderResultCacheInterface
 {

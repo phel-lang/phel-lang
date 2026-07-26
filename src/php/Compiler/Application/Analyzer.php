@@ -35,6 +35,9 @@ use function is_int;
 use function is_object;
 use function is_string;
 
+/**
+ * @internal
+ */
 final class Analyzer implements AnalyzerInterface
 {
     private ?AnalyzeLiteral $literalAnalyzer = null;

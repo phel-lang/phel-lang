@@ -10,6 +10,9 @@ use Phel\Lang\Keyword;
 use Phel\Lang\SourceLocation;
 use Phel\Lang\Symbol;
 
+/**
+ * @internal
+ */
 final class GlobalVarNode extends AbstractNode
 {
     /**

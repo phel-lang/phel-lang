@@ -13,6 +13,8 @@ use Phel\Lang\SourceLocation;
  * also use {@see WithOutputEmitterTrait}.
  *
  * @phpstan-import-type LoweredMatch from IfChainMatchLowerer
+ *
+ * @internal
  */
 trait LoweredMatchEmitterTrait
 {

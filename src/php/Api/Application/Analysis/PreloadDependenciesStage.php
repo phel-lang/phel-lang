@@ -19,6 +19,8 @@ use function is_file;
  *
  * Best-effort: any failure leaves the global env partially populated and
  * lets the following stages run, so legitimate diagnostics still surface.
+ *
+ * @internal
  */
 final readonly class PreloadDependenciesStage implements AnalysisStageInterface
 {

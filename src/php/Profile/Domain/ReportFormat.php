@@ -4,6 +4,9 @@ declare(strict_types=1);
 
 namespace Phel\Profile\Domain;
 
+/**
+ * @internal
+ */
 enum ReportFormat: string
 {
     case Table = 'table';

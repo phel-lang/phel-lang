@@ -8,6 +8,9 @@ use Phel\Compiler\Domain\Analyzer\Environment\NodeEnvironmentInterface;
 use Phel\Lang\SourceLocation;
 use Phel\Lang\Symbol;
 
+/**
+ * @internal
+ */
 final class DefNode extends AbstractNode
 {
     public function __construct(

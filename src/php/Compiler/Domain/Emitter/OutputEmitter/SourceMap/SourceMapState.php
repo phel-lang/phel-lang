@@ -6,6 +6,8 @@ namespace Phel\Compiler\Domain\Emitter\OutputEmitter\SourceMap;
 
 /**
  * @phpstan-type Mapping array{generated: array{line: int, column: int}, original: array{line: int, column: int}, source?: string, name?: string}
+ *
+ * @internal
  */
 final class SourceMapState
 {

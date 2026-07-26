@@ -4,6 +4,11 @@ declare(strict_types=1);
 
 namespace PhelTest\Unit\Architecture;
 
+use Phel\Compiler\Application\Analyzer;
+use Phel\Compiler\Application\Lexer;
+use Phel\Compiler\CompilerFactory;
+use Phel\Run\Infrastructure\Command\ReplCommand;
+use Phel\Run\RunProvider;
 use PhelTest\Support\PublicApiSurface;
 use PHPUnit\Framework\TestCase;
 
@@ -72,11 +77,11 @@ final class PublicApiSurfaceTest extends TestCase
         $surface = PublicApiSurface::fromRepositoryRoot(PublicApiSurface::repositoryRoot());
 
         $internal = [
-            'Phel\\Compiler\\Domain\\Analyzer\\Analyzer',
-            'Phel\\Compiler\\Application\\Lexer',
-            'Phel\\Run\\Infrastructure\\Command\\ReplCommand',
-            'Phel\\Compiler\\CompilerFactory',
-            'Phel\\Run\\RunDependencyProvider',
+            Analyzer::class,
+            Lexer::class,
+            ReplCommand::class,
+            CompilerFactory::class,
+            RunProvider::class,
         ];
 
         foreach ($internal as $className) {

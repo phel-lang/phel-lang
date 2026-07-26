@@ -9,6 +9,8 @@ use Phel\Watch\Domain\ReloadEventPublisherInterface;
 /**
  * Default publisher: swallows every event. Replaced when the watcher is
  * hosted inside an nREPL process.
+ *
+ * @internal
  */
 final class NullReloadEventPublisher implements ReloadEventPublisherInterface
 {

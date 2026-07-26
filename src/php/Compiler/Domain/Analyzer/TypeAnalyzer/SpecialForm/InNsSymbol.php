@@ -27,6 +27,8 @@ use function str_replace;
  * Do not use it to switch namespace part-way through a file: the build
  * system assumes one namespace per file, and only the first declaration
  * reaches the emitted PHP.
+ *
+ * @internal
  */
 final class InNsSymbol implements SpecialFormAnalyzerInterface
 {

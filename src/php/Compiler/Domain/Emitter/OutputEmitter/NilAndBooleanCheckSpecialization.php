@@ -13,6 +13,8 @@ use function count;
  * nil / boolean predicates (`nil?`, `some?`, `true?`, `false?`,
  * `truthy?`) that {@see NodeEmitter\CallEmitter}
  * lowers to a native PHP comparison instead of a registry dispatch.
+ *
+ * @internal
  */
 final readonly class NilAndBooleanCheckSpecialization
 {

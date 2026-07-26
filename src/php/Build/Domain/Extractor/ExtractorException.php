@@ -9,6 +9,9 @@ use Throwable;
 
 use function sprintf;
 
+/**
+ * @internal
+ */
 final class ExtractorException extends RuntimeException
 {
     /**

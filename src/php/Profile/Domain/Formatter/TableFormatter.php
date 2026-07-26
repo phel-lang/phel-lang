@@ -25,6 +25,8 @@ use function uasort;
 
 /**
  * @phpstan-import-type FnStat from ProfileReport
+ *
+ * @internal
  */
 final class TableFormatter
 {

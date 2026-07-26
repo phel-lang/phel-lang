@@ -12,6 +12,9 @@ use function str_contains;
 use function strrpos;
 use function substr;
 
+/**
+ * @internal
+ */
 final readonly class ReferenceFinder implements ReferenceFinderInterface
 {
     /**

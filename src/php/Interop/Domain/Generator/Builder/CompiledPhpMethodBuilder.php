@@ -16,6 +16,9 @@ use function array_map;
 use function implode;
 use function sprintf;
 
+/**
+ * @internal
+ */
 final readonly class CompiledPhpMethodBuilder
 {
     public function __construct(

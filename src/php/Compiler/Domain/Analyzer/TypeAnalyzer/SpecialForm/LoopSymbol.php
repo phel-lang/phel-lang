@@ -22,6 +22,8 @@ use function count;
  * (loop [bindings] body).
  *
  * Loop with initial bindings; use recur to iterate.
+ *
+ * @internal
  */
 final readonly class LoopSymbol implements SpecialFormAnalyzerInterface
 {

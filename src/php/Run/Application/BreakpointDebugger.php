@@ -25,6 +25,8 @@ use function trim;
  * Interactive blocking sub-REPL entered by code compiled from the `(break)`
  * special form. Prints the captured locals, then reads and evaluates
  * expressions with those locals in scope until the user resumes.
+ *
+ * @internal
  */
 final class BreakpointDebugger
 {

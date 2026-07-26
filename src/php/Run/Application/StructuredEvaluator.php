@@ -21,6 +21,9 @@ use function explode;
 use function ob_get_clean;
 use function ob_start;
 
+/**
+ * @internal
+ */
 final readonly class StructuredEvaluator
 {
     public function __construct(

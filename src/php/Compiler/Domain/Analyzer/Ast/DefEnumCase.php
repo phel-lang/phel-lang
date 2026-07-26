@@ -7,6 +7,8 @@ namespace Phel\Compiler\Domain\Analyzer\Ast;
 /**
  * A single case of a `defenum*`: the keyword-derived case name and its
  * optional backing scalar value (`int`/`string`, or `null` for a pure enum).
+ *
+ * @internal
  */
 final readonly class DefEnumCase
 {

@@ -16,6 +16,8 @@ use function count;
  * whose inferred tag is a persistent collection type, which
  * {@see NodeEmitter\CallEmitter}
  * lowers to a direct method call instead of the runtime `cond`-chain body.
+ *
+ * @internal
  */
 final readonly class TypedCollectionMethodSpecialization
 {

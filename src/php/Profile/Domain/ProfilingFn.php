@@ -16,6 +16,8 @@ use function is_string;
  * `$this(...)` rather than a registry lookup, so they never reach this
  * proxy and stay untimed; that bypass is a compiler emit detail, not a
  * constraint of this class (see commit bee78ffe).
+ *
+ * @internal
  */
 final class ProfilingFn extends AbstractFn
 {

@@ -16,6 +16,8 @@ use function in_array;
 
 /**
  * @template-implements Iterator<int, Token>
+ *
+ * @internal
  */
 final class TokenStream implements Iterator
 {

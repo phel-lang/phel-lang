@@ -10,6 +10,8 @@ use Phel\Lang\TypeInterface;
 
 /**
  * @phpstan-import-type BindingTuple from DeconstructorInterface
+ *
+ * @internal
  */
 final class SymbolBindingDeconstructor implements BindingDeconstructorInterface
 {

@@ -19,6 +19,9 @@ use RuntimeException;
 
 use function assert;
 
+/**
+ * @internal
+ */
 final class PhpObjectCallEmitter implements NodeEmitterInterface
 {
     use WithOutputEmitterTrait;

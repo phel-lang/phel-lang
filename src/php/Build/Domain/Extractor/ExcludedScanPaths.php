@@ -12,6 +12,8 @@ use function strlen;
  * pre-resolved absolute directories with a basename that prunes
  * `<scan_root>/<basename>/` per walk, so a build output never shadows real
  * sources regardless of which scan root the caller passes in.
+ *
+ * @internal
  */
 final readonly class ExcludedScanPaths
 {

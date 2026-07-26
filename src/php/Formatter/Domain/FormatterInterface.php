@@ -8,6 +8,9 @@ use Phel\Compiler\Domain\Lexer\Exceptions\LexerValueException;
 use Phel\Compiler\Domain\Parser\Exceptions\AbstractParserException;
 use Phel\Formatter\Domain\Rules\Zipper\ZipperException;
 
+/**
+ * @internal
+ */
 interface FormatterInterface
 {
     public const string DEFAULT_SOURCE = 'string';

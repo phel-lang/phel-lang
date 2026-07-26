@@ -20,6 +20,8 @@ use function microtime;
  *
  * Debouncing is cooperative: callers check `shouldPublish` before invoking
  * `publish`. The default window is 200ms.
+ *
+ * @internal
  */
 final class DiagnosticPublisher
 {

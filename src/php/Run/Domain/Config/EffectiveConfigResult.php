@@ -6,6 +6,8 @@ namespace Phel\Run\Domain\Config;
 
 /**
  * The resolved configuration the CLI is running with, plus its provenance.
+ *
+ * @internal
  */
 final readonly class EffectiveConfigResult
 {

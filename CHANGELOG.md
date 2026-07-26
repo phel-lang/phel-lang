@@ -11,6 +11,8 @@ All notable changes to this project will be documented in this file.
 - New lint rule `phel/comment-style` (warning): flags a whole-line comment written with a single `;`, which the convention reserves for trailing comments
 - New lint rule `phel/duplicate-def` (error): flags a symbol defined twice in one file. A forward `(declare foo)` plus its definition stays clean
 - [Migration guide for the currently deprecated surface](docs/migration/deprecated-surface.md): every live deprecation, its replacement, and how it announces itself
+- [Stability policy](docs/stability.md): the normative definition of what a Phel version number promises. It names the public PHP surface symbol by symbol, lists which changes to it are breaking, and states the 1.x deprecation, PHP-version and platform-support policies. Every class outside that surface now carries `@internal`, so the split reaches IDEs and static analysis instead of living only in prose
+- A backward-compatibility gate for the PHP embedding API. `composer api-surface:update` renders the whole public surface to a committed snapshot, and a test fails the build when it drifts, so a signature change is reviewed on the pull request that makes it rather than found in a release note
 - `phel agent-install --check`: reports which skill files are installed and whether the `.agents/` docs are behind the bundled ones, exiting 1 when they are, so CI can gate on it. `resources/agents/skills/INSTALL.md` has documented this flag for a while without it existing
 
 ### Fixed

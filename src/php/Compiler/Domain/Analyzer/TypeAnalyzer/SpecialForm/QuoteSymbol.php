@@ -16,6 +16,8 @@ use function count;
  * (quote form) / 'form.
  *
  * Returns the form unevaluated.
+ *
+ * @internal
  */
 final class QuoteSymbol implements SpecialFormAnalyzerInterface
 {

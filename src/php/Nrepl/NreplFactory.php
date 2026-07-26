@@ -26,6 +26,8 @@ use Phel\Shared\Printer\PrinterInterface;
 
 /**
  * @extends AbstractFactory<NreplConfig>
+ *
+ * @internal
  */
 final class NreplFactory extends AbstractFactory
 {

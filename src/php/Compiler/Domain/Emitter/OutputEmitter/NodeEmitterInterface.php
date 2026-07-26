@@ -6,6 +6,9 @@ namespace Phel\Compiler\Domain\Emitter\OutputEmitter;
 
 use Phel\Compiler\Domain\Analyzer\Ast\AbstractNode;
 
+/**
+ * @internal
+ */
 interface NodeEmitterInterface
 {
     public function emit(AbstractNode $node): void;

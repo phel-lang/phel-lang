@@ -13,6 +13,8 @@ namespace Phel\Run\Application;
  * Backed by process-wide static state because the loader is recreated per
  * `loadPhelNamespaces()` call while the set of already-evaluated files must
  * survive the whole session (matching the historical `static $loadedFiles`).
+ *
+ * @internal
  */
 final class NamespaceFileTracker
 {

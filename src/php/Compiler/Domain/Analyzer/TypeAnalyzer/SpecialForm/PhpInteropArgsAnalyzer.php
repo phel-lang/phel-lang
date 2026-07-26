@@ -25,6 +25,8 @@ use function sprintf;
  *
  * Positional args come first; everything after `:&` must be `:keyword value`
  * pairs, each emitted as a PHP named argument (see {@see PhpNamedArgNode}).
+ *
+ * @internal
  */
 final readonly class PhpInteropArgsAnalyzer
 {

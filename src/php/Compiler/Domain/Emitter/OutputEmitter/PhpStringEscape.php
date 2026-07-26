@@ -9,6 +9,8 @@ use function strtr;
 /**
  * String-escape helpers for emitting Phel symbol/keyword names into
  * generated PHP source.
+ *
+ * @internal
  */
 final class PhpStringEscape
 {

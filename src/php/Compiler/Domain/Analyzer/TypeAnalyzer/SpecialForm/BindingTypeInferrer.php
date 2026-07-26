@@ -64,6 +64,8 @@ use function substr;
  * the accepted policy that a native `+`/`-`/`*` on an int operand yields a
  * PHP float past `PHP_INT_MAX` where the runtime would promote to `BigInt`
  * (identical to an explicit `^int` and to `inc`/`dec`).
+ *
+ * @internal
  */
 final class BindingTypeInferrer
 {

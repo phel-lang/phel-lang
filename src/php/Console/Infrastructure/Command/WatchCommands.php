@@ -8,6 +8,9 @@ use Phel\Console\Domain\ConsoleCommandProviderInterface;
 use Phel\Watch\Infrastructure\Command\WatchCommand;
 use Symfony\Component\Console\Command\LazyCommand;
 
+/**
+ * @internal
+ */
 final class WatchCommands implements ConsoleCommandProviderInterface
 {
     public function lazyCommands(): array

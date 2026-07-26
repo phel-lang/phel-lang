@@ -6,6 +6,9 @@ namespace Phel\Lint\Domain;
 
 use Phel\Lint\Transfer\LintResult;
 
+/**
+ * @internal
+ */
 interface DiagnosticFormatterInterface
 {
     /**

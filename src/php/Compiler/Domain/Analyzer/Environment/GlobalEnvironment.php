@@ -18,6 +18,9 @@ use Phel\Shared\ReplConstants;
 
 use function array_key_exists;
 
+/**
+ * @internal
+ */
 final class GlobalEnvironment implements GlobalEnvironmentInterface
 {
     private string $ns = 'user';

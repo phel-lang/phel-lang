@@ -9,6 +9,9 @@ use RecursiveDirectoryIterator;
 use RecursiveIteratorIterator;
 use Symfony\Component\Finder\SplFileInfo;
 
+/**
+ * @internal
+ */
 final readonly class DirectoryRemover implements DirectoryRemoverInterface
 {
     public function __construct(private string $targetDir) {}

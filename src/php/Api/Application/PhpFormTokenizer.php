@@ -16,6 +16,8 @@ use function strpos;
  *
  * Pass `$balanceCollectionLiterals` to also keep `[...]`/`{...}` whole, so a
  * vector/map argument counts as one token (used by Phel-call signature help).
+ *
+ * @internal
  */
 final class PhpFormTokenizer
 {

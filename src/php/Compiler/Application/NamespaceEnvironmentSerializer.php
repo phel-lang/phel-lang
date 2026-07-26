@@ -13,6 +13,8 @@ use Phel\Shared\Facade\CompilerFacadeInterface;
  * for a given namespace to/from plain arrays suitable for caching.
  *
  * @phpstan-import-type SerializedNamespaceEnvironment from CompilerFacadeInterface
+ *
+ * @internal
  */
 final readonly class NamespaceEnvironmentSerializer
 {

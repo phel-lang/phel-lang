@@ -7,6 +7,9 @@ namespace Phel\Compiler\Domain\Reader\ExpressionReader;
 use Phel\Lang\Symbol;
 use Phel\Shared\Parser\Node\SymbolNode;
 
+/**
+ * @internal
+ */
 final class SymbolReader
 {
     private const array NUMBERED_PATTERNS = [

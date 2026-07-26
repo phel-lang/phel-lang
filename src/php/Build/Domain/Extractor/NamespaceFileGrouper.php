@@ -24,6 +24,8 @@ use const STDERR;
  * Within one namespace the primary `(ns ...)` file comes first, followed
  * by each `(in-ns ...)` secondary — callers can rely on this ordering to
  * evaluate the primary before code that joins the namespace.
+ *
+ * @internal
  */
 final readonly class NamespaceFileGrouper
 {

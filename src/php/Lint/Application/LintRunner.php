@@ -25,6 +25,8 @@ use function is_dir;
  *
  * Caching is optional: when a `LintCache` is injected, files whose hash
  * and rule fingerprint match the cache bypass the pipeline entirely.
+ *
+ * @internal
  */
 final readonly class LintRunner
 {

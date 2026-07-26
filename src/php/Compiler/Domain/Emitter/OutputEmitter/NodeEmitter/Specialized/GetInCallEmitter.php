@@ -12,6 +12,8 @@ use Phel\Compiler\Domain\Emitter\OutputEmitterInterface;
  * Specialisation gated by {@see GetInSpecialization}: `(get-in coll [k1 k2 …])`
  * with a literal path on a tagged persistent collection, unrolled into a
  * null-coalescing subscript chain.
+ *
+ * @internal
  */
 final readonly class GetInCallEmitter implements SpecializedCallEmitterInterface
 {

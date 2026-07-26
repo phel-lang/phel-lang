@@ -8,6 +8,9 @@ use Phel\Shared\Facade\ApiFacadeInterface;
 use Phel\Watch\Domain\ProjectReindexerInterface;
 use Throwable;
 
+/**
+ * @internal
+ */
 final readonly class ApiProjectReindexer implements ProjectReindexerInterface
 {
     public function __construct(

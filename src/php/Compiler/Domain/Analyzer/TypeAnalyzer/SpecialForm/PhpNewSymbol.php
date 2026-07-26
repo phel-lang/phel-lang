@@ -20,6 +20,8 @@ use function preg_match;
  * (php/new ClassName args...).
  *
  * Creates a new PHP object instance.
+ *
+ * @internal
  */
 final class PhpNewSymbol implements SpecialFormAnalyzerInterface
 {

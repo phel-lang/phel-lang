@@ -6,6 +6,7 @@ modules, deployment) live on **[phel-lang.org](https://phel-lang.org/documentati
 
 ## What lives here
 
+- [Stability policy](stability.md): what a version number promises, which PHP symbols semver covers, and the 1.x deprecation, PHP and platform support policies
 - [CLI Reference & DX Guide](cli-reference.md): every command, the dev loop, and compile vs eval vs run vs build
 - [Project Layout](project-layout.md): the `.phel/` directory and runtime state
 - [Internals](internals/README.md): architecture, compiler phases, AST, emitter,

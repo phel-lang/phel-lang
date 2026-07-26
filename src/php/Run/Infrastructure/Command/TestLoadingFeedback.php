@@ -18,6 +18,8 @@ use function sprintf;
  * (`--reporter=tap`, junit-xml) stay parseable. On an interactive terminal the
  * loading counter rewrites one line in place; on a non-decorated stream it
  * collapses to a single static line so CI logs are not flooded.
+ *
+ * @internal
  */
 final class TestLoadingFeedback
 {

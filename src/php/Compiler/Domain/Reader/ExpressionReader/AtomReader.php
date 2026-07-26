@@ -7,6 +7,9 @@ namespace Phel\Compiler\Domain\Reader\ExpressionReader;
 use Phel\Lang\TypeInterface;
 use Phel\Shared\Parser\Node\AbstractAtomNode;
 
+/**
+ * @internal
+ */
 final class AtomReader
 {
     /**

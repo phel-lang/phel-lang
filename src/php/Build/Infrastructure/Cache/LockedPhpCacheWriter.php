@@ -15,6 +15,8 @@ use function function_exists;
  * entries before serializing.
  *
  * Shared by {@see PhpNamespaceCache} and {@see PhpScanIndexCache}.
+ *
+ * @internal
  */
 final class LockedPhpCacheWriter
 {

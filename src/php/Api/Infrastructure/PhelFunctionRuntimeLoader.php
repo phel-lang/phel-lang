@@ -25,6 +25,8 @@ use function unlink;
 
 /**
  * @phpstan-import-type RegistrySnapshot from Registry
+ *
+ * @internal
  */
 final readonly class PhelFunctionRuntimeLoader
 {

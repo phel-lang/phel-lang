@@ -10,6 +10,9 @@ use RuntimeException;
 
 use function sprintf;
 
+/**
+ * @internal
+ */
 final class SystemFileIo implements ValidatedFileIoInterface
 {
     /**

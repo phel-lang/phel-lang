@@ -10,6 +10,9 @@ use Gacela\Framework\Container\Container;
 use Phel\Command\CommandFacade;
 use Phel\Compiler\CompilerFacade;
 
+/**
+ * @internal
+ */
 final class BuildProvider extends AbstractProvider
 {
     public const string FACADE_COMPILER = 'FACADE_COMPILER';

@@ -8,6 +8,8 @@ namespace Phel\Run\Application\Test;
  * Frame-field names shared between the orchestrator (parent) and the
  * worker subcommand. Single source of truth so wire-format drift can
  * only happen here.
+ *
+ * @internal
  */
 final class FrameKey
 {

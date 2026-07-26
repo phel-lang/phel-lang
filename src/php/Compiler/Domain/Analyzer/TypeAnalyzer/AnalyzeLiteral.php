@@ -8,6 +8,9 @@ use Phel\Compiler\Domain\Analyzer\Ast\LiteralNode;
 use Phel\Compiler\Domain\Analyzer\Environment\NodeEnvironmentInterface;
 use Phel\Lang\TypeInterface;
 
+/**
+ * @internal
+ */
 final class AnalyzeLiteral
 {
     public function analyze(mixed $value, NodeEnvironmentInterface $env): LiteralNode

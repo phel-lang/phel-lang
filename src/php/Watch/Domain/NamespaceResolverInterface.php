@@ -6,6 +6,8 @@ namespace Phel\Watch\Domain;
 
 /**
  * Resolves the fully-qualified Phel namespace defined by a given source file.
+ *
+ * @internal
  */
 interface NamespaceResolverInterface
 {

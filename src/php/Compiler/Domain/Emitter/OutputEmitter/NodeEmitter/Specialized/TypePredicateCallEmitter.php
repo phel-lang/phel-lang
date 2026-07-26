@@ -16,6 +16,8 @@ use function sprintf;
  * sign predicates `(zero? x)` / `(pos? x)` / `(neg? x)` and the type
  * predicates (`int?`, `map?`, `vector?`, `seq?`, ...), each inlined to a
  * native comparison or `instanceof` fragment.
+ *
+ * @internal
  */
 final readonly class TypePredicateCallEmitter implements SpecializedCallEmitterInterface
 {

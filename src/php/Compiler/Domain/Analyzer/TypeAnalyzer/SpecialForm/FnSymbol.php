@@ -29,6 +29,8 @@ use function sprintf;
  * supplied (Clojure-style `(fn name ...)`), the name is bound as a local
  * inside the body so the function can refer to itself for recursion
  * (e.g. `(fn fact [n] (if (zero? n) 1 (* n (fact (dec n)))))`).
+ *
+ * @internal
  */
 final readonly class FnSymbol implements SpecialFormAnalyzerInterface
 {

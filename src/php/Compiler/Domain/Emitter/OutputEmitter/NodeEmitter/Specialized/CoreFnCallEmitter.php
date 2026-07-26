@@ -15,6 +15,8 @@ use function count;
  * string-typed args, `(get coll k)` on a tagged persistent collection, and
  * native PHP-array `get` / `count`. Each collapses a `phel.core` cond chain
  * to the single native form the analyser tag has already proven safe.
+ *
+ * @internal
  */
 final readonly class CoreFnCallEmitter implements SpecializedCallEmitterInterface
 {

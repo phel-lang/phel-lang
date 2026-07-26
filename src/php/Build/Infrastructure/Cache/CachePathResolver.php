@@ -6,6 +6,9 @@ namespace Phel\Build\Infrastructure\Cache;
 
 use function md5;
 
+/**
+ * @internal
+ */
 final readonly class CachePathResolver
 {
     public function __construct(

@@ -13,6 +13,9 @@ use function array_reduce;
 use function max;
 use function min;
 
+/**
+ * @internal
+ */
 final class MultiFnNode extends AbstractNode implements FnNodeInterface
 {
     /**

@@ -18,6 +18,8 @@ use function count;
  * (apply f args).
  *
  * Calls f with args spread as individual arguments.
+ *
+ * @internal
  */
 final class ApplySymbol implements SpecialFormAnalyzerInterface
 {
