@@ -478,8 +478,10 @@ final readonly class PublicApiSurface
             $modifiers[] = 'final';
         }
 
+        $declaringClass = $method->getDeclaringClass()->getName();
+
         $parameters = array_map(
-            $this->renderParameter(...),
+            fn(ReflectionParameter $parameter): string => $this->renderParameter($parameter, $declaringClass),
             $method->getParameters(),
         );
 
@@ -490,17 +492,17 @@ final readonly class PublicApiSurface
             implode(' ', $modifiers),
             $method->getName(),
             implode(', ', $parameters),
-            $returnType instanceof ReflectionType ? ': ' . $this->renderType($returnType) : '',
+            $returnType instanceof ReflectionType ? ': ' . $this->renderType($returnType, $declaringClass) : '',
         );
     }
 
-    private function renderParameter(ReflectionParameter $parameter): string
+    private function renderParameter(ReflectionParameter $parameter, ?string $selfClass = null): string
     {
         $type = $parameter->getType();
 
         $rendered = sprintf(
             '%s%s%s$%s',
-            $type instanceof ReflectionType ? $this->renderType($type) . ' ' : '',
+            $type instanceof ReflectionType ? $this->renderType($type, $selfClass) . ' ' : '',
             $parameter->isPassedByReference() ? '&' : '',
             $parameter->isVariadic() ? '...' : '',
             $parameter->getName(),
@@ -544,10 +546,21 @@ final readonly class PublicApiSurface
         return $member->isProtected() ? 'protected' : 'public';
     }
 
-    private function renderType(ReflectionType $type): string
+    /**
+     * @param string|null $selfClass the declaring class, used to normalise `self`
+     */
+    private function renderType(ReflectionType $type, ?string $selfClass = null): string
     {
         if ($type instanceof ReflectionNamedType) {
             $name = $type->getName();
+
+            // PHP 8.4 reports a `self` return type as the literal `self`; 8.5
+            // resolves it to the declaring class. They describe the same
+            // contract, so both are rendered as the resolved name and the
+            // snapshot stops depending on which PHP the suite ran under.
+            if ($name === 'self' && $selfClass !== null) {
+                $name = $selfClass;
+            }
 
             return $type->allowsNull() && $name !== 'mixed' && $name !== 'null'
                 ? '?' . $name
@@ -556,7 +569,7 @@ final readonly class PublicApiSurface
 
         if ($type instanceof ReflectionUnionType) {
             $names = array_map(
-                $this->renderType(...),
+                fn(ReflectionType $inner): string => $this->renderType($inner, $selfClass),
                 $type->getTypes(),
             );
             sort($names);

@@ -47,7 +47,12 @@
   (let [result (await-any [(async 42)])]
     (is (= 42 result) "await-any returns the first resolved value")))
 
-(deftest test-async-concurrent-execution
+;; Tagged `^:timing-sensitive` because the assertion is a wall-clock
+;; measurement on a shared CI runner, where a slow scheduler tick is
+;; indistinguishable from work that did not run concurrently. The tag is
+;; excluded on the macOS job (see .github/workflows/tests.yml); Linux still
+;; runs it, so a genuine loss of concurrency is still caught.
+(deftest ^:timing-sensitive test-async-concurrent-execution
   (let [start   (php/microtime true)
         results (await-all [(async (delay 0.05) :a)
                             (async (delay 0.05) :b)
@@ -89,7 +94,12 @@
   (is (thrown? \InvalidArgumentException (pmap inc))
       "pmap requires at least one collection"))
 
-(deftest test-pmap-is-concurrent
+;; Tagged `^:timing-sensitive` because the assertion is a wall-clock
+;; measurement on a shared CI runner, where a slow scheduler tick is
+;; indistinguishable from work that did not run concurrently. The tag is
+;; excluded on the macOS job (see .github/workflows/tests.yml); Linux still
+;; runs it, so a genuine loss of concurrency is still caught.
+(deftest ^:timing-sensitive test-pmap-is-concurrent
   (let [start   (php/microtime true)
         results (pmap (fn [x] (delay 0.05) x) [:a :b :c :d])
         elapsed (- (php/microtime true) start)]
@@ -132,7 +142,12 @@
                           (catch \RuntimeException _e true))))]
     (is (= true raised?) "deref re-raises the future's exception")))
 
-(deftest test-future-concurrent-execution
+;; Tagged `^:timing-sensitive` because the assertion is a wall-clock
+;; measurement on a shared CI runner, where a slow scheduler tick is
+;; indistinguishable from work that did not run concurrently. The tag is
+;; excluded on the macOS job (see .github/workflows/tests.yml); Linux still
+;; runs it, so a genuine loss of concurrency is still caught.
+(deftest ^:timing-sensitive test-future-concurrent-execution
   (let [result  (await (async
                         (let [start   (php/microtime true)
                               f1      (future (do (delay 0.05) 1))

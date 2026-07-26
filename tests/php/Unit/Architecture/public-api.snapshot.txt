@@ -137,10 +137,10 @@ final readonly class Phel\Config\PhelBuildConfig implements JsonSerializable
   public function getMainPhpPath(): string
   public function jsonSerialize(): array
   public function shouldCreateEntryPointPhpFile(): bool
-  public function withDestDir(string $dir): self
-  public function withMainPhelNamespace(string $namespace): self
-  public function withMainPhpPath(string $path): self
-  public static function fromArray(array $array): self
+  public function withDestDir(string $dir): Phel\Config\PhelBuildConfig
+  public function withMainPhelNamespace(string $namespace): Phel\Config\PhelBuildConfig
+  public function withMainPhpPath(string $path): Phel\Config\PhelBuildConfig
+  public static function fromArray(array $array): Phel\Config\PhelBuildConfig
 
 final readonly class Phel\Config\PhelConfig implements JsonSerializable
   public const array DEFAULT_SRC_DIRS = ['src']
@@ -209,35 +209,35 @@ final readonly class Phel\Config\PhelConfig implements JsonSerializable
   public function jsonSerialize(): array
   public function shouldWarnDeprecations(): bool
   public function validate(): array
-  public function withAppModulePaths(array $paths): self
-  public function withBuildConfig(Phel\Config\PhelBuildConfig|callable $buildConfig): self
-  public function withBuildDestDir(string $dir): self
-  public function withCacheDir(string $dir): self
-  public function withEnableAsserts(bool $flag = true): self
-  public function withEnableCompiledCodeCache(bool $flag = true): self
-  public function withEnableIntermediateCache(bool $flag = true): self
-  public function withEnableNamespaceCache(bool $flag = true): self
-  public function withErrorLogFile(string $filepath): self
-  public function withExportConfig(Phel\Config\PhelExportConfig|callable $exportConfig): self
-  public function withExportFromDirectories(array $dirs): self
-  public function withExportNamespacePrefix(string $prefix): self
-  public function withExportTargetDirectory(string $dir): self
-  public function withFormatDirs(array $list): self
-  public function withIgnoreWhenBuilding(array $list): self
-  public function withKeepGeneratedTempFiles(bool $flag = true): self
-  public function withLayout(Phel\Config\ProjectLayout $layout): self
-  public function withMainPhelNamespace(string $namespace): self
-  public function withMainPhpPath(string $path): self
-  public function withNoCacheWhenBuilding(array $list): self
-  public function withOptimizationLevel(int $level): self
-  public function withPhelDir(string $dir): self
-  public function withSrcDirs(array $list): self
-  public function withStripSymbolMeta(bool $strip = true): self
-  public function withTempDir(string $dir): self
-  public function withTestDirs(array $list): self
-  public function withVendorDir(string $dir): self
-  public function withWarnDeprecations(bool $flag = true): self
-  public static function forProject(Phel\Config\ProjectLayout $layout = Phel\Config\ProjectLayout::Flat, string $mainNamespace = ''): self
+  public function withAppModulePaths(array $paths): Phel\Config\PhelConfig
+  public function withBuildConfig(Phel\Config\PhelBuildConfig|callable $buildConfig): Phel\Config\PhelConfig
+  public function withBuildDestDir(string $dir): Phel\Config\PhelConfig
+  public function withCacheDir(string $dir): Phel\Config\PhelConfig
+  public function withEnableAsserts(bool $flag = true): Phel\Config\PhelConfig
+  public function withEnableCompiledCodeCache(bool $flag = true): Phel\Config\PhelConfig
+  public function withEnableIntermediateCache(bool $flag = true): Phel\Config\PhelConfig
+  public function withEnableNamespaceCache(bool $flag = true): Phel\Config\PhelConfig
+  public function withErrorLogFile(string $filepath): Phel\Config\PhelConfig
+  public function withExportConfig(Phel\Config\PhelExportConfig|callable $exportConfig): Phel\Config\PhelConfig
+  public function withExportFromDirectories(array $dirs): Phel\Config\PhelConfig
+  public function withExportNamespacePrefix(string $prefix): Phel\Config\PhelConfig
+  public function withExportTargetDirectory(string $dir): Phel\Config\PhelConfig
+  public function withFormatDirs(array $list): Phel\Config\PhelConfig
+  public function withIgnoreWhenBuilding(array $list): Phel\Config\PhelConfig
+  public function withKeepGeneratedTempFiles(bool $flag = true): Phel\Config\PhelConfig
+  public function withLayout(Phel\Config\ProjectLayout $layout): Phel\Config\PhelConfig
+  public function withMainPhelNamespace(string $namespace): Phel\Config\PhelConfig
+  public function withMainPhpPath(string $path): Phel\Config\PhelConfig
+  public function withNoCacheWhenBuilding(array $list): Phel\Config\PhelConfig
+  public function withOptimizationLevel(int $level): Phel\Config\PhelConfig
+  public function withPhelDir(string $dir): Phel\Config\PhelConfig
+  public function withSrcDirs(array $list): Phel\Config\PhelConfig
+  public function withStripSymbolMeta(bool $strip = true): Phel\Config\PhelConfig
+  public function withTempDir(string $dir): Phel\Config\PhelConfig
+  public function withTestDirs(array $list): Phel\Config\PhelConfig
+  public function withVendorDir(string $dir): Phel\Config\PhelConfig
+  public function withWarnDeprecations(bool $flag = true): Phel\Config\PhelConfig
+  public static function forProject(Phel\Config\ProjectLayout $layout = Phel\Config\ProjectLayout::Flat, string $mainNamespace = ''): Phel\Config\PhelConfig
 
 final class Phel\Config\PhelConfigValidator
   public function validate(Phel\Config\PhelConfig $config): array
@@ -251,9 +251,9 @@ final readonly class Phel\Config\PhelExportConfig implements JsonSerializable
   public readonly string $targetDirectory
   public function __construct(array $fromDirectories = ['src'], string $namespacePrefix = 'PhelGenerated', string $targetDirectory = 'src/PhelGenerated')
   public function jsonSerialize(): array
-  public function withFromDirectories(array $list): self
-  public function withNamespacePrefix(string $prefix): self
-  public function withTargetDirectory(string $dir): self
+  public function withFromDirectories(array $list): Phel\Config\PhelExportConfig
+  public function withNamespacePrefix(string $prefix): Phel\Config\PhelExportConfig
+  public function withTargetDirectory(string $dir): Phel\Config\PhelExportConfig
 
 enum Phel\Config\ProjectLayout: string
   case Flat = 'flat'
@@ -348,11 +348,11 @@ final class Phel\Lang\Atom extends Phel\Lang\AbstractType
 
 final readonly class Phel\Lang\BigDecimal implements Phel\Lang\TypeInterface, Stringable
   public function __toString(): string
-  public function abs(): self
-  public function add(self $other): self
-  public function compareTo(self $other): int
+  public function abs(): Phel\Lang\BigDecimal
+  public function add(Phel\Lang\BigDecimal $other): Phel\Lang\BigDecimal
+  public function compareTo(Phel\Lang\BigDecimal $other): int
   public function copyLocationFrom(mixed $other): static
-  public function divideExact(self $other): self
+  public function divideExact(Phel\Lang\BigDecimal $other): Phel\Lang\BigDecimal
   public function equals(mixed $other): bool
   public function getEndLocation(): ?Phel\Lang\SourceLocation
   public function getMeta(): ?Phel\Lang\Collections\Map\PersistentMapInterface
@@ -360,53 +360,53 @@ final readonly class Phel\Lang\BigDecimal implements Phel\Lang\TypeInterface, St
   public function hash(): int
   public function isZero(): bool
   public function mantissa(): Phel\Lang\BigInt
-  public function multiply(self $other): self
-  public function negate(): self
+  public function multiply(Phel\Lang\BigDecimal $other): Phel\Lang\BigDecimal
+  public function negate(): Phel\Lang\BigDecimal
   public function scale(): int
   public function setEndLocation(?Phel\Lang\SourceLocation $endLocation): static
   public function setStartLocation(?Phel\Lang\SourceLocation $startLocation): static
   public function signum(): int
-  public function subtract(self $other): self
+  public function subtract(Phel\Lang\BigDecimal $other): Phel\Lang\BigDecimal
   public function toFloat(): float
   public function toInt(): int
   public function toPlainString(): string
   public function withMeta(?Phel\Lang\Collections\Map\PersistentMapInterface $meta): static
-  public static function fromBigInt(Phel\Lang\BigInt $value): self
-  public static function fromFloat(float $value): self
-  public static function fromInt(int $value): self
-  public static function fromString(string $value): self
+  public static function fromBigInt(Phel\Lang\BigInt $value): Phel\Lang\BigDecimal
+  public static function fromFloat(float $value): Phel\Lang\BigDecimal
+  public static function fromInt(int $value): Phel\Lang\BigDecimal
+  public static function fromString(string $value): Phel\Lang\BigDecimal
 
 final readonly class Phel\Lang\BigInt implements Phel\Lang\TypeInterface, Stringable
   public function __toString(): string
-  public function abs(): self
-  public function add(self $other): self
-  public function compareTo(self $other): int
+  public function abs(): Phel\Lang\BigInt
+  public function add(Phel\Lang\BigInt $other): Phel\Lang\BigInt
+  public function compareTo(Phel\Lang\BigInt $other): int
   public function copyLocationFrom(mixed $other): static
-  public function divide(self $other): self
+  public function divide(Phel\Lang\BigInt $other): Phel\Lang\BigInt
   public function equals(mixed $other): bool
   public function fitsInPhpInt(): bool
-  public function gcd(self $other): self
+  public function gcd(Phel\Lang\BigInt $other): Phel\Lang\BigInt
   public function getEndLocation(): ?Phel\Lang\SourceLocation
   public function getMeta(): ?Phel\Lang\Collections\Map\PersistentMapInterface
   public function getStartLocation(): ?Phel\Lang\SourceLocation
   public function hash(): int
   public function isOne(): bool
   public function isZero(): bool
-  public function mod(self $other): self
-  public function multiply(self $other): self
-  public function negate(): self
-  public function pow(int $exp): self
+  public function mod(Phel\Lang\BigInt $other): Phel\Lang\BigInt
+  public function multiply(Phel\Lang\BigInt $other): Phel\Lang\BigInt
+  public function negate(): Phel\Lang\BigInt
+  public function pow(int $exp): Phel\Lang\BigInt
   public function setEndLocation(?Phel\Lang\SourceLocation $endLocation): static
   public function setStartLocation(?Phel\Lang\SourceLocation $startLocation): static
   public function signum(): int
-  public function subtract(self $other): self
+  public function subtract(Phel\Lang\BigInt $other): Phel\Lang\BigInt
   public function toInt(): int
   public function withMeta(?Phel\Lang\Collections\Map\PersistentMapInterface $meta): static
-  public static function fromFloat(float $value): self
-  public static function fromInt(int $value): self
-  public static function fromString(string $value): self
-  public static function one(): self
-  public static function zero(): self
+  public static function fromFloat(float $value): Phel\Lang\BigInt
+  public static function fromInt(int $value): Phel\Lang\BigInt
+  public static function fromString(string $value): Phel\Lang\BigInt
+  public static function one(): Phel\Lang\BigInt
+  public static function zero(): Phel\Lang\BigInt
 
 final class Phel\Lang\BigIntMagnitude
   public const int BASE = 1000000000
@@ -432,7 +432,7 @@ final class Phel\Lang\Collections\Exceptions\IndexOutOfBoundsException extends E
 final class Phel\Lang\Collections\Exceptions\MethodNotSupportedException extends Exception
 
 final class Phel\Lang\Collections\Exceptions\NotASeqException extends Exception
-  public static function forValue(mixed $value): self
+  public static function forValue(mixed $value): Phel\Lang\Collections\Exceptions\NotASeqException
 
 abstract class Phel\Lang\Collections\HashSet\AbstractPersistentSet extends Phel\Lang\AbstractType implements Phel\Lang\Collections\HashSet\PersistentHashSetInterface
   protected readonly ?Phel\Lang\Collections\Map\PersistentMapInterface $meta
@@ -469,8 +469,8 @@ final class Phel\Lang\Collections\HashSet\PersistentHashSet extends Phel\Lang\Co
   public function withMeta(?Phel\Lang\Collections\Map\PersistentMapInterface $meta): static
 
 interface Phel\Lang\Collections\HashSet\PersistentHashSetInterface implements Countable, IteratorAggregate, Phel\Lang\Collections\AsTransientInterface, Phel\Lang\ConcatInterface, Phel\Lang\ContainsInterface, Phel\Lang\FnInterface, Phel\Lang\TypeInterface
-  public function add(mixed $value): self
-  public function remove(mixed $value): self
+  public function add(mixed $value): Phel\Lang\Collections\HashSet\PersistentHashSetInterface
+  public function remove(mixed $value): Phel\Lang\Collections\HashSet\PersistentHashSetInterface
   public function toPhpArray(): array
 
 final readonly class Phel\Lang\Collections\HashSet\TransientHashSet extends Phel\Lang\Collections\HashSet\AbstractTransientSet
@@ -478,22 +478,22 @@ final readonly class Phel\Lang\Collections\HashSet\TransientHashSet extends Phel
   public function persistent(): Phel\Lang\Collections\HashSet\PersistentHashSetInterface
 
 interface Phel\Lang\Collections\HashSet\TransientHashSetInterface implements Countable, Phel\Lang\ContainsInterface
-  public function add(mixed $value): self
+  public function add(mixed $value): Phel\Lang\Collections\HashSet\TransientHashSetInterface
   public function persistent(): Phel\Lang\Collections\HashSet\PersistentHashSetInterface
-  public function remove(mixed $value): self
+  public function remove(mixed $value): Phel\Lang\Collections\HashSet\TransientHashSetInterface
 
 final readonly class Phel\Lang\Collections\LazySeq\Chunk
   public function __construct(array $values, int $offset = 0)
   public function count(): int
-  public function drop(int $n): self
+  public function drop(int $n): Phel\Lang\Collections\LazySeq\Chunk
   public function first(): mixed
   public function get(int $index): mixed
   public function toArray(): array
 
 final class Phel\Lang\Collections\LazySeq\ChunkedSeq extends Phel\Lang\AbstractType implements Countable, Phel\Lang\Collections\LazySeq\LazySeqInterface
   public function __construct(Phel\Lang\HasherInterface $hasher, Phel\Lang\EqualizerInterface $equalizer, Phel\Lang\Collections\LazySeq\Chunk $chunk, ?Phel\Lang\Collections\LazySeq\MemoizedThunk $thunk, ?Phel\Lang\Collections\Map\PersistentMapInterface $meta = null)
-  public function cdr(): Phel\Lang\Collections\LazySeq\LazySeq|Phel\Lang\Collections\LazySeq\LazySeqInterface|null|self
-  public function cons($x): self
+  public function cdr(): Phel\Lang\Collections\LazySeq\ChunkedSeq|Phel\Lang\Collections\LazySeq\LazySeq|Phel\Lang\Collections\LazySeq\LazySeqInterface|null
+  public function cons($x): Phel\Lang\Collections\LazySeq\ChunkedSeq
   public function count(): int
   public function equals(mixed $other): bool
   public function first(): mixed
@@ -505,8 +505,8 @@ final class Phel\Lang\Collections\LazySeq\ChunkedSeq extends Phel\Lang\AbstractT
   public function rest(): Phel\Lang\Collections\LazySeq\LazySeqInterface
   public function toArray(): array
   public function withMeta(?Phel\Lang\Collections\Map\PersistentMapInterface $meta): static
-  public static function fromArray(Phel\Lang\HasherInterface $hasher, Phel\Lang\EqualizerInterface $equalizer, array $array, int $chunkSize = 32, ?Phel\Lang\Collections\Map\PersistentMapInterface $meta = null): ?self
-  public static function fromGenerator(Phel\Lang\HasherInterface $hasher, Phel\Lang\EqualizerInterface $equalizer, Generator $generator, int $chunkSize = 32, ?Phel\Lang\Collections\Map\PersistentMapInterface $meta = null): ?self
+  public static function fromArray(Phel\Lang\HasherInterface $hasher, Phel\Lang\EqualizerInterface $equalizer, array $array, int $chunkSize = 32, ?Phel\Lang\Collections\Map\PersistentMapInterface $meta = null): ?Phel\Lang\Collections\LazySeq\ChunkedSeq
+  public static function fromGenerator(Phel\Lang\HasherInterface $hasher, Phel\Lang\EqualizerInterface $equalizer, Generator $generator, int $chunkSize = 32, ?Phel\Lang\Collections\Map\PersistentMapInterface $meta = null): ?Phel\Lang\Collections\LazySeq\ChunkedSeq
 
 final class Phel\Lang\Collections\LazySeq\Cons extends Phel\Lang\AbstractType implements IteratorAggregate, Phel\Lang\SeqInterface
   public function __construct(Phel\Lang\HasherInterface $hasher, Phel\Lang\EqualizerInterface $equalizer, mixed $first, Phel\Lang\Collections\LazySeq\LazySeqInterface $rest, ?Phel\Lang\Collections\Map\PersistentMapInterface $meta = null)
@@ -516,16 +516,16 @@ final class Phel\Lang\Collections\LazySeq\Cons extends Phel\Lang\AbstractType im
   public function getIterator(): Traversable
   public function getMeta(): ?Phel\Lang\Collections\Map\PersistentMapInterface
   public function hash(): int
-  public function nextSeq(): ?self
+  public function nextSeq(): ?Phel\Lang\Collections\LazySeq\Cons
   public function rest(): Phel\Lang\Collections\LazySeq\LazySeqInterface
   public function toArray(): array
   public function withMeta(?Phel\Lang\Collections\Map\PersistentMapInterface $meta): static
-  public static function fromCdr(Phel\Lang\HasherInterface $hasher, Phel\Lang\EqualizerInterface $equalizer, ?Phel\Lang\Collections\LazySeq\LazySeqInterface $cdr): ?self
+  public static function fromCdr(Phel\Lang\HasherInterface $hasher, Phel\Lang\EqualizerInterface $equalizer, ?Phel\Lang\Collections\LazySeq\LazySeqInterface $cdr): ?Phel\Lang\Collections\LazySeq\Cons
 
 final class Phel\Lang\Collections\LazySeq\LazySeq extends Phel\Lang\AbstractType implements Countable, Phel\Lang\Collections\LazySeq\LazySeqInterface
   public function __construct(Phel\Lang\HasherInterface $hasher, Phel\Lang\EqualizerInterface $equalizer, callable $fn, ?Phel\Lang\Collections\Map\PersistentMapInterface $meta = null)
-  public function cdr(): Phel\Lang\Collections\LazySeq\LazySeqInterface|null|self
-  public function cons($x): self
+  public function cdr(): Phel\Lang\Collections\LazySeq\LazySeq|Phel\Lang\Collections\LazySeq\LazySeqInterface|null
+  public function cons($x): Phel\Lang\Collections\LazySeq\LazySeq
   public function count(): int
   public function equals(mixed $other): bool
   public function first()
@@ -534,14 +534,14 @@ final class Phel\Lang\Collections\LazySeq\LazySeq extends Phel\Lang\AbstractType
   public function hash(): int
   public function isRealized(): bool
   public function nextSeq(): ?Phel\Lang\Collections\LazySeq\Cons
-  public function rest(): Phel\Lang\Collections\LazySeq\LazySeqInterface|self
+  public function rest(): Phel\Lang\Collections\LazySeq\LazySeq|Phel\Lang\Collections\LazySeq\LazySeqInterface
   public function toArray(): array
   public function withMeta(?Phel\Lang\Collections\Map\PersistentMapInterface $meta): static
-  public static function empty(Phel\Lang\HasherInterface $hasher, Phel\Lang\EqualizerInterface $equalizer): self
-  public static function fromArray(Phel\Lang\HasherInterface $hasher, Phel\Lang\EqualizerInterface $equalizer, array $array, ?Phel\Lang\Collections\Map\PersistentMapInterface $meta = null): ?self
-  public static function fromGenerator(Phel\Lang\HasherInterface $hasher, Phel\Lang\EqualizerInterface $equalizer, Generator $generator, ?Phel\Lang\Collections\Map\PersistentMapInterface $meta = null): self
-  public static function fromIterable(Phel\Lang\HasherInterface $hasher, Phel\Lang\EqualizerInterface $equalizer, iterable $iterable, ?Phel\Lang\Collections\Map\PersistentMapInterface $meta = null): ?self
-  public static function fromTraversable(Phel\Lang\HasherInterface $hasher, Phel\Lang\EqualizerInterface $equalizer, Traversable $traversable, ?Phel\Lang\Collections\Map\PersistentMapInterface $meta = null): self
+  public static function empty(Phel\Lang\HasherInterface $hasher, Phel\Lang\EqualizerInterface $equalizer): Phel\Lang\Collections\LazySeq\LazySeq
+  public static function fromArray(Phel\Lang\HasherInterface $hasher, Phel\Lang\EqualizerInterface $equalizer, array $array, ?Phel\Lang\Collections\Map\PersistentMapInterface $meta = null): ?Phel\Lang\Collections\LazySeq\LazySeq
+  public static function fromGenerator(Phel\Lang\HasherInterface $hasher, Phel\Lang\EqualizerInterface $equalizer, Generator $generator, ?Phel\Lang\Collections\Map\PersistentMapInterface $meta = null): Phel\Lang\Collections\LazySeq\LazySeq
+  public static function fromIterable(Phel\Lang\HasherInterface $hasher, Phel\Lang\EqualizerInterface $equalizer, iterable $iterable, ?Phel\Lang\Collections\Map\PersistentMapInterface $meta = null): ?Phel\Lang\Collections\LazySeq\LazySeq
+  public static function fromTraversable(Phel\Lang\HasherInterface $hasher, Phel\Lang\EqualizerInterface $equalizer, Traversable $traversable, ?Phel\Lang\Collections\Map\PersistentMapInterface $meta = null): Phel\Lang\Collections\LazySeq\LazySeq
 
 final class Phel\Lang\Collections\LazySeq\LazySeqConfig
   public const int CHUNK_SIZE = 32
@@ -580,7 +580,7 @@ final class Phel\Lang\Collections\LinkedList\EmptyList extends Phel\Lang\Abstrac
   public function offsetUnset($offset): void
   public function pop(): Phel\Lang\Collections\LinkedList\PersistentListInterface
   public function prepend($value): Phel\Lang\Collections\LinkedList\PersistentListInterface
-  public function rest(): self
+  public function rest(): Phel\Lang\Collections\LinkedList\EmptyList
   public function toArray(): array
   public function withMeta(?Phel\Lang\Collections\Map\PersistentMapInterface $meta): static
 
@@ -614,8 +614,8 @@ final class Phel\Lang\Collections\LinkedList\PersistentList extends Phel\Lang\Ab
 interface Phel\Lang\Collections\LinkedList\PersistentListInterface implements ArrayAccess, Countable, IteratorAggregate, Phel\Lang\ConcatInterface, Phel\Lang\ConsInterface, Phel\Lang\ContainsInterface, Phel\Lang\FnInterface, Phel\Lang\PopInterface, Phel\Lang\SeqInterface, Phel\Lang\TypeInterface
   public function get(int $i)
   public function isList(): bool
-  public function pop(): self
-  public function prepend(mixed $value): self
+  public function pop(): Phel\Lang\Collections\LinkedList\PersistentListInterface
+  public function prepend(mixed $value): Phel\Lang\Collections\LinkedList\PersistentListInterface
 
 abstract class Phel\Lang\Collections\Map\AbstractPersistentMap extends Phel\Lang\AbstractType implements Phel\Lang\Collections\Map\PersistentMapInterface
   protected ?Phel\Lang\Collections\Map\PersistentMapInterface $meta
@@ -639,7 +639,7 @@ final class Phel\Lang\Collections\Map\ArrayNode implements Countable, Phel\Lang\
   public function getIterator(): Traversable
   public function put(int $shift, int $hash, $key, $value, Phel\Lang\Collections\Map\Box $addedLeaf): Phel\Lang\Collections\Map\HashMapNodeInterface
   public function remove(int $shift, int $hash, $key): Phel\Lang\Collections\Map\HashMapNodeInterface
-  public static function empty(Phel\Lang\HasherInterface $hasher, Phel\Lang\EqualizerInterface $equalizer): self
+  public static function empty(Phel\Lang\HasherInterface $hasher, Phel\Lang\EqualizerInterface $equalizer): Phel\Lang\Collections\Map\ArrayNode
 
 final class Phel\Lang\Collections\Map\ArrayNodeIterator implements Iterator
   public function __construct(array $childNodes)
@@ -671,8 +671,8 @@ final class Phel\Lang\Collections\Map\HashCollisionNodeIterator implements Itera
 
 interface Phel\Lang\Collections\Map\HashMapNodeInterface implements IteratorAggregate
   public function find(int $shift, int $hash, mixed $key, $notFound)
-  public function put(int $shift, int $hash, mixed $key, mixed $value, Phel\Lang\Collections\Map\Box $addedLeaf): self
-  public function remove(int $shift, int $hash, mixed $key): ?self
+  public function put(int $shift, int $hash, mixed $key, mixed $value, Phel\Lang\Collections\Map\Box $addedLeaf): Phel\Lang\Collections\Map\HashMapNodeInterface
+  public function remove(int $shift, int $hash, mixed $key): ?Phel\Lang\Collections\Map\HashMapNodeInterface
 
 final readonly class Phel\Lang\Collections\Map\IndexedNode implements Phel\Lang\Collections\Map\HashMapNodeInterface
   public function __construct(Phel\Lang\HasherInterface $hasher, Phel\Lang\EqualizerInterface $equalizer, array $objects)
@@ -680,7 +680,7 @@ final readonly class Phel\Lang\Collections\Map\IndexedNode implements Phel\Lang\
   public function getIterator(): Traversable
   public function put(int $shift, int $hash, mixed $key, mixed $value, Phel\Lang\Collections\Map\Box $addedLeaf): Phel\Lang\Collections\Map\HashMapNodeInterface
   public function remove(int $shift, int $hash, $key): ?Phel\Lang\Collections\Map\HashMapNodeInterface
-  public static function empty(Phel\Lang\HasherInterface $hasher, Phel\Lang\EqualizerInterface $equalizer): self
+  public static function empty(Phel\Lang\HasherInterface $hasher, Phel\Lang\EqualizerInterface $equalizer): Phel\Lang\Collections\Map\IndexedNode
 
 final class Phel\Lang\Collections\Map\IndexedNodeIterator implements Iterator
   public function __construct(array $entries)
@@ -707,7 +707,7 @@ final readonly class Phel\Lang\Collections\Map\MapEntry implements Countable, It
   public function setStartLocation(?Phel\Lang\SourceLocation $startLocation): static
   public function value(): mixed
   public function withMeta(?Phel\Lang\Collections\Map\PersistentMapInterface $meta): static
-  public static function create(mixed $key, mixed $value): self
+  public static function create(mixed $key, mixed $value): Phel\Lang\Collections\Map\MapEntry
 
 final class Phel\Lang\Collections\Map\PersistentArrayMap extends Phel\Lang\Collections\Map\AbstractPersistentMap
   public const int MAX_SIZE = 16
@@ -719,9 +719,9 @@ final class Phel\Lang\Collections\Map\PersistentArrayMap extends Phel\Lang\Colle
   public function getIterator(): Traversable
   public function merge(Phel\Lang\Collections\Map\PersistentMapInterface $other): Phel\Lang\Collections\Map\PersistentMapInterface
   public function put($key, $value): Phel\Lang\Collections\Map\PersistentMapInterface
-  public function remove($key): self
+  public function remove($key): Phel\Lang\Collections\Map\PersistentArrayMap
   public function withMeta(?Phel\Lang\Collections\Map\PersistentMapInterface $meta): static
-  public static function empty(Phel\Lang\HasherInterface $hasher, Phel\Lang\EqualizerInterface $equalizer): self
+  public static function empty(Phel\Lang\HasherInterface $hasher, Phel\Lang\EqualizerInterface $equalizer): Phel\Lang\Collections\Map\PersistentArrayMap
   public static function fromArray(Phel\Lang\HasherInterface $hasher, Phel\Lang\EqualizerInterface $equalizer, array $kvs): Phel\Lang\Collections\Map\PersistentMapInterface
 
 final class Phel\Lang\Collections\Map\PersistentHashMap extends Phel\Lang\Collections\Map\AbstractPersistentMap
@@ -732,18 +732,18 @@ final class Phel\Lang\Collections\Map\PersistentHashMap extends Phel\Lang\Collec
   public function find($key)
   public function getIterator(): Traversable
   public function merge(Phel\Lang\Collections\Map\PersistentMapInterface $other): Phel\Lang\Collections\Map\PersistentMapInterface
-  public function put($key, $value): self
-  public function remove($key): self
+  public function put($key, $value): Phel\Lang\Collections\Map\PersistentHashMap
+  public function remove($key): Phel\Lang\Collections\Map\PersistentHashMap
   public function withMeta(?Phel\Lang\Collections\Map\PersistentMapInterface $meta): static
-  public static function empty(Phel\Lang\HasherInterface $hasher, Phel\Lang\EqualizerInterface $equalizer): self
+  public static function empty(Phel\Lang\HasherInterface $hasher, Phel\Lang\EqualizerInterface $equalizer): Phel\Lang\Collections\Map\PersistentHashMap
   public static function fromArray(Phel\Lang\HasherInterface $hasher, Phel\Lang\EqualizerInterface $equalizer, array $kvs): Phel\Lang\Collections\Map\PersistentMapInterface
   public static function getNotFound(): stdClass
 
 interface Phel\Lang\Collections\Map\PersistentMapInterface implements ArrayAccess, Countable, IteratorAggregate, Phel\Lang\Collections\AsTransientInterface, Phel\Lang\ContainsInterface, Phel\Lang\FnInterface, Phel\Lang\TypeInterface
   public function find(mixed $key)
-  public function merge(self $other): self
-  public function put(mixed $key, mixed $value): self
-  public function remove(mixed $key): self
+  public function merge(Phel\Lang\Collections\Map\PersistentMapInterface $other): Phel\Lang\Collections\Map\PersistentMapInterface
+  public function put(mixed $key, mixed $value): Phel\Lang\Collections\Map\PersistentMapInterface
+  public function remove(mixed $key): Phel\Lang\Collections\Map\PersistentMapInterface
 
 final class Phel\Lang\Collections\Map\TransientArrayMap implements Phel\Lang\Collections\Map\TransientMapInterface
   public function __construct(Phel\Lang\HasherInterface $hasher, Phel\Lang\EqualizerInterface $equalizer, array $array, ?Phel\Lang\Collections\Map\PersistentMapInterface $meta = null)
@@ -756,8 +756,8 @@ final class Phel\Lang\Collections\Map\TransientArrayMap implements Phel\Lang\Col
   public function offsetUnset($offset): void
   public function persistent(): Phel\Lang\Collections\Map\PersistentMapInterface
   public function put($key, $value): Phel\Lang\Collections\Map\TransientMapInterface
-  public function remove($key): self
-  public static function empty(Phel\Lang\HasherInterface $hasher, Phel\Lang\EqualizerInterface $equalizer): self
+  public function remove($key): Phel\Lang\Collections\Map\TransientArrayMap
+  public static function empty(Phel\Lang\HasherInterface $hasher, Phel\Lang\EqualizerInterface $equalizer): Phel\Lang\Collections\Map\TransientArrayMap
 
 final class Phel\Lang\Collections\Map\TransientHashMap implements Phel\Lang\Collections\Map\TransientMapInterface
   public function __construct(Phel\Lang\HasherInterface $hasher, Phel\Lang\EqualizerInterface $equalizer, int $count, ?Phel\Lang\Collections\Map\HashMapNodeInterface $root, bool $hasNull, $nullValue, ?Phel\Lang\Collections\Map\PersistentMapInterface $meta = null)
@@ -769,16 +769,16 @@ final class Phel\Lang\Collections\Map\TransientHashMap implements Phel\Lang\Coll
   public function offsetSet($offset, $value): void
   public function offsetUnset($offset): void
   public function persistent(): Phel\Lang\Collections\Map\PersistentMapInterface
-  public function put($key, $value): self
-  public function remove($key): self
-  public static function empty(Phel\Lang\HasherInterface $hasher, Phel\Lang\EqualizerInterface $equalizer): self
+  public function put($key, $value): Phel\Lang\Collections\Map\TransientHashMap
+  public function remove($key): Phel\Lang\Collections\Map\TransientHashMap
+  public static function empty(Phel\Lang\HasherInterface $hasher, Phel\Lang\EqualizerInterface $equalizer): Phel\Lang\Collections\Map\TransientHashMap
   public static function getNotFound(): stdClass
 
 interface Phel\Lang\Collections\Map\TransientMapInterface implements ArrayAccess, Countable, Phel\Lang\ContainsInterface
   public function find(mixed $key)
   public function persistent(): Phel\Lang\Collections\Map\PersistentMapInterface
-  public function put(mixed $key, mixed $value): self
-  public function remove(mixed $key): self
+  public function put(mixed $key, mixed $value): Phel\Lang\Collections\Map\TransientMapInterface
+  public function remove(mixed $key): Phel\Lang\Collections\Map\TransientMapInterface
 
 final class Phel\Lang\Collections\Map\TransientMapWrapper implements Phel\Lang\Collections\Map\TransientMapInterface, Stringable
   public function __construct(Phel\Lang\Collections\Map\TransientMapInterface $internal)
@@ -792,24 +792,24 @@ final class Phel\Lang\Collections\Map\TransientMapWrapper implements Phel\Lang\C
   public function offsetSet($offset, $value): void
   public function offsetUnset($offset): void
   public function persistent(): Phel\Lang\Collections\Map\PersistentMapInterface
-  public function put($key, $value): self
-  public function remove($key): self
+  public function put($key, $value): Phel\Lang\Collections\Map\TransientMapWrapper
+  public function remove($key): Phel\Lang\Collections\Map\TransientMapWrapper
 
 final class Phel\Lang\Collections\Queue\PersistentQueue extends Phel\Lang\AbstractType implements Countable, IteratorAggregate, Phel\Lang\CdrInterface, Phel\Lang\ConsInterface, Phel\Lang\FirstInterface, Phel\Lang\PopInterface, Phel\Lang\PushInterface
   public function __construct(Phel\Lang\HasherInterface $hasher, Phel\Lang\EqualizerInterface $equalizer, ?Phel\Lang\Collections\Map\PersistentMapInterface $meta, Phel\Lang\Collections\LinkedList\PersistentListInterface $front, Phel\Lang\Collections\LinkedList\PersistentListInterface $rear, int $count)
-  public function cdr(): ?self
-  public function cons(mixed $x): self
+  public function cdr(): ?Phel\Lang\Collections\Queue\PersistentQueue
+  public function cons(mixed $x): Phel\Lang\Collections\Queue\PersistentQueue
   public function count(): int
   public function equals(mixed $other): bool
   public function first(): mixed
   public function getIterator(): Traversable
   public function getMeta(): ?Phel\Lang\Collections\Map\PersistentMapInterface
   public function hash(): int
-  public function pop(): self
-  public function push(mixed $x): self
+  public function pop(): Phel\Lang\Collections\Queue\PersistentQueue
+  public function push(mixed $x): Phel\Lang\Collections\Queue\PersistentQueue
   public function withMeta(?Phel\Lang\Collections\Map\PersistentMapInterface $meta): static
-  public static function empty(Phel\Lang\HasherInterface $hasher, Phel\Lang\EqualizerInterface $equalizer): self
-  public static function fromArray(Phel\Lang\HasherInterface $hasher, Phel\Lang\EqualizerInterface $equalizer, array $values): self
+  public static function empty(Phel\Lang\HasherInterface $hasher, Phel\Lang\EqualizerInterface $equalizer): Phel\Lang\Collections\Queue\PersistentQueue
+  public static function fromArray(Phel\Lang\HasherInterface $hasher, Phel\Lang\EqualizerInterface $equalizer, array $values): Phel\Lang\Collections\Queue\PersistentQueue
 
 final class Phel\Lang\Collections\SortedMap\PersistentSortedMap extends Phel\Lang\Collections\Map\AbstractPersistentMap
   public function __construct(Phel\Lang\HasherInterface $hasher, Phel\Lang\EqualizerInterface $equalizer, ?Phel\Lang\Collections\Map\PersistentMapInterface $meta, array $array, ?Closure $userComparator = null)
@@ -821,10 +821,10 @@ final class Phel\Lang\Collections\SortedMap\PersistentSortedMap extends Phel\Lan
   public function getEffectiveComparator(): Closure
   public function getIterator(): Traversable
   public function put($key, $value): Phel\Lang\Collections\Map\PersistentMapInterface
-  public function remove($key): self
+  public function remove($key): Phel\Lang\Collections\SortedMap\PersistentSortedMap
   public function withMeta(?Phel\Lang\Collections\Map\PersistentMapInterface $meta): static
-  public static function empty(Phel\Lang\HasherInterface $hasher, Phel\Lang\EqualizerInterface $equalizer, ?callable $comparator = null): self
-  public static function fromArray(Phel\Lang\HasherInterface $hasher, Phel\Lang\EqualizerInterface $equalizer, array $kvs, ?callable $comparator = null): self
+  public static function empty(Phel\Lang\HasherInterface $hasher, Phel\Lang\EqualizerInterface $equalizer, ?callable $comparator = null): Phel\Lang\Collections\SortedMap\PersistentSortedMap
+  public static function fromArray(Phel\Lang\HasherInterface $hasher, Phel\Lang\EqualizerInterface $equalizer, array $kvs, ?callable $comparator = null): Phel\Lang\Collections\SortedMap\PersistentSortedMap
 
 final class Phel\Lang\Collections\SortedMap\SortedArrayHelper
   public static function adaptForBinarySearch(Closure $comparator): Closure
@@ -842,8 +842,8 @@ final class Phel\Lang\Collections\SortedMap\TransientSortedMap implements Phel\L
   public function offsetSet($offset, $value): void
   public function offsetUnset($offset): void
   public function persistent(): Phel\Lang\Collections\Map\PersistentMapInterface
-  public function put($key, $value): self
-  public function remove($key): self
+  public function put($key, $value): Phel\Lang\Collections\SortedMap\TransientSortedMap
+  public function remove($key): Phel\Lang\Collections\SortedMap\TransientSortedMap
 
 final class Phel\Lang\Collections\SortedSet\PersistentSortedSet extends Phel\Lang\Collections\HashSet\AbstractPersistentSet
   public function add($value): Phel\Lang\Collections\HashSet\PersistentHashSetInterface
@@ -896,7 +896,7 @@ abstract class Phel\Lang\Collections\Vector\AbstractPersistentVector extends Phe
 
 final class Phel\Lang\Collections\Vector\PersistentVector extends Phel\Lang\Collections\Vector\AbstractPersistentVector
   public function __construct(Phel\Lang\HasherInterface $hasher, Phel\Lang\EqualizerInterface $equalizer, ?Phel\Lang\Collections\Map\PersistentMapInterface $meta, int $count, int $shift, array $root, array $tail)
-  public function append($value): self
+  public function append($value): Phel\Lang\Collections\Vector\PersistentVector
   public function asTransient(): Phel\Lang\Collections\Vector\TransientVector
   public function cdr(): ?Phel\Lang\Collections\Vector\SubVector
   public function cons(mixed $x): Phel\Lang\Collections\Vector\PersistentVectorInterface
@@ -905,21 +905,21 @@ final class Phel\Lang\Collections\Vector\PersistentVector extends Phel\Lang\Coll
   public function getArrayForIndex(int $i): array
   public function getIterator(): Traversable
   public function getRangeIterator(int $start, int $end): Traversable
-  public function pop(): self
+  public function pop(): Phel\Lang\Collections\Vector\PersistentVector
   public function toArray(): array
-  public function update(int $i, $value): self
+  public function update(int $i, $value): Phel\Lang\Collections\Vector\PersistentVector
   public function withMeta(?Phel\Lang\Collections\Map\PersistentMapInterface $meta): static
-  public static function empty(Phel\Lang\HasherInterface $hasher, Phel\Lang\EqualizerInterface $equalizer): self
+  public static function empty(Phel\Lang\HasherInterface $hasher, Phel\Lang\EqualizerInterface $equalizer): Phel\Lang\Collections\Vector\PersistentVector
   public static function fromArray(Phel\Lang\HasherInterface $hasher, Phel\Lang\EqualizerInterface $equalizer, array $values): Phel\Lang\Collections\Vector\PersistentVectorInterface
 
 interface Phel\Lang\Collections\Vector\PersistentVectorInterface implements ArrayAccess, Countable, IteratorAggregate, Phel\Lang\Collections\AsTransientInterface, Phel\Lang\ConcatInterface, Phel\Lang\ConsInterface, Phel\Lang\ContainsInterface, Phel\Lang\FnInterface, Phel\Lang\PopInterface, Phel\Lang\PushInterface, Phel\Lang\SeqInterface, Phel\Lang\SliceInterface, Phel\Lang\TypeInterface
   public const int BRANCH_FACTOR = 32
   public const int INDEX_MASK = 31
   public const int SHIFT = 5
-  public function append(mixed $value): self
+  public function append(mixed $value): Phel\Lang\Collections\Vector\PersistentVectorInterface
   public function get(int $i)
-  public function pop(): self
-  public function update(int $i, mixed $value): self
+  public function pop(): Phel\Lang\Collections\Vector\PersistentVectorInterface
+  public function update(int $i, mixed $value): Phel\Lang\Collections\Vector\PersistentVectorInterface
 
 final class Phel\Lang\Collections\Vector\RangeIterator implements Iterator
   public function __construct(Phel\Lang\Collections\Vector\PersistentVector $vector, int $start, int $end)
@@ -933,7 +933,7 @@ final class Phel\Lang\Collections\Vector\SubVector extends Phel\Lang\Collections
   public function __construct(Phel\Lang\HasherInterface $hasher, Phel\Lang\EqualizerInterface $equalizer, ?Phel\Lang\Collections\Map\PersistentMapInterface $meta, Phel\Lang\Collections\Vector\PersistentVectorInterface $vector, int $start, int $end)
   public function append($value): Phel\Lang\Collections\Vector\PersistentVectorInterface
   public function asTransient(): never
-  public function cdr(): ?self
+  public function cdr(): ?Phel\Lang\Collections\Vector\SubVector
   public function cons(mixed $x): Phel\Lang\Collections\Vector\PersistentVectorInterface
   public function count(): int
   public function get(int $i)
@@ -958,18 +958,18 @@ final class Phel\Lang\Collections\Vector\TransientVector implements Phel\Lang\Co
   public function persistent(): Phel\Lang\Collections\Vector\PersistentVectorInterface
   public function pop(): Phel\Lang\Collections\Vector\TransientVectorInterface
   public function update(int $i, $value): Phel\Lang\Collections\Vector\TransientVectorInterface
-  public static function empty(Phel\Lang\HasherInterface $hasher, Phel\Lang\EqualizerInterface $equalizer): self
-  public static function fromArray(Phel\Lang\HasherInterface $hasher, Phel\Lang\EqualizerInterface $equalizer, array $array): self
+  public static function empty(Phel\Lang\HasherInterface $hasher, Phel\Lang\EqualizerInterface $equalizer): Phel\Lang\Collections\Vector\TransientVector
+  public static function fromArray(Phel\Lang\HasherInterface $hasher, Phel\Lang\EqualizerInterface $equalizer, array $array): Phel\Lang\Collections\Vector\TransientVector
 
 interface Phel\Lang\Collections\Vector\TransientVectorInterface implements ArrayAccess, Countable, Phel\Lang\ContainsInterface
   public const int BRANCH_FACTOR = 32
   public const int INDEX_MASK = 31
   public const int SHIFT = 5
-  public function append(mixed $value): self
+  public function append(mixed $value): Phel\Lang\Collections\Vector\TransientVectorInterface
   public function get(int $i)
   public function persistent(): Phel\Lang\Collections\Vector\PersistentVectorInterface
-  public function pop(): self
-  public function update(int $i, mixed $value): self
+  public function pop(): Phel\Lang\Collections\Vector\TransientVectorInterface
+  public function update(int $i, mixed $value): Phel\Lang\Collections\Vector\TransientVectorInterface
 
 interface Phel\Lang\ConcatInterface
   public function concat($xs)
@@ -1004,7 +1004,7 @@ final class Phel\Lang\DynamicScope
   public function snapshot(): array
   public function startRecording(string $mode = 'binding'): void
   public function withFrame(array $frame, Closure $fn): mixed
-  public static function getInstance(): self
+  public static function getInstance(): Phel\Lang\DynamicScope
 
 final class Phel\Lang\Eduction implements IteratorAggregate
   public function __construct(callable $xform, iterable $coll)
@@ -1128,8 +1128,8 @@ final class Phel\Lang\Keyword extends Phel\Lang\AbstractType implements Phel\Lan
   public function setEndLocation(?Phel\Lang\SourceLocation $endLocation): static
   public function setStartLocation(?Phel\Lang\SourceLocation $startLocation): static
   public function withMeta(?Phel\Lang\Collections\Map\PersistentMapInterface $meta): static
-  public static function create(string $name, ?string $namespace = null): self
-  public static function createForNamespace(?string $namespace, string $name): self
+  public static function create(string $name, ?string $namespace = null): Phel\Lang\Keyword
+  public static function createForNamespace(?string $namespace, string $name): Phel\Lang\Keyword
 
 final class Phel\Lang\LoadClasspath
   public const string NAME = '*load-classpath*'
@@ -1200,7 +1200,7 @@ final class Phel\Lang\PhelVarStateRegistry
   public function isDynamic(string $ns, string $name): bool
   public function removeWatch(string $ns, string $name, string $watchKey): void
   public function setMetaOverride(string $ns, string $name, ?Phel\Lang\Collections\Map\PersistentMapInterface $meta): void
-  public static function getInstance(): self
+  public static function getInstance(): Phel\Lang\PhelVarStateRegistry
 
 final readonly class Phel\Lang\PhpClass implements Phel\Lang\TypeInterface, Stringable
   public function __toString(): string
@@ -1215,8 +1215,8 @@ final readonly class Phel\Lang\PhpClass implements Phel\Lang\TypeInterface, Stri
   public function setEndLocation(?Phel\Lang\SourceLocation $endLocation): static
   public function setStartLocation(?Phel\Lang\SourceLocation $startLocation): static
   public function withMeta(?Phel\Lang\Collections\Map\PersistentMapInterface $meta): static
-  public static function fromName(string $fqn): self
-  public static function ofValue(mixed $value): self
+  public static function fromName(string $fqn): Phel\Lang\PhpClass
+  public static function ofValue(mixed $value): Phel\Lang\PhpClass
 
 interface Phel\Lang\PopInterface
   public function pop()
@@ -1230,27 +1230,27 @@ interface Phel\Lang\PushInterface
 
 final readonly class Phel\Lang\Ratio implements Phel\Lang\TypeInterface, Stringable
   public function __toString(): string
-  public function abs(): self
-  public function add(Phel\Lang\BigInt|int|self $other): Phel\Lang\BigInt|int|self
-  public function compareTo(Phel\Lang\BigInt|int|self $other): int
+  public function abs(): Phel\Lang\Ratio
+  public function add(Phel\Lang\BigInt|Phel\Lang\Ratio|int $other): Phel\Lang\BigInt|Phel\Lang\Ratio|int
+  public function compareTo(Phel\Lang\BigInt|Phel\Lang\Ratio|int $other): int
   public function copyLocationFrom(mixed $other): static
   public function denominator(): Phel\Lang\BigInt
-  public function divide(Phel\Lang\BigInt|int|self $other): Phel\Lang\BigInt|int|self
+  public function divide(Phel\Lang\BigInt|Phel\Lang\Ratio|int $other): Phel\Lang\BigInt|Phel\Lang\Ratio|int
   public function equals(mixed $other): bool
   public function getEndLocation(): ?Phel\Lang\SourceLocation
   public function getMeta(): ?Phel\Lang\Collections\Map\PersistentMapInterface
   public function getStartLocation(): ?Phel\Lang\SourceLocation
   public function hash(): int
-  public function multiply(Phel\Lang\BigInt|int|self $other): Phel\Lang\BigInt|int|self
-  public function negate(): self
+  public function multiply(Phel\Lang\BigInt|Phel\Lang\Ratio|int $other): Phel\Lang\BigInt|Phel\Lang\Ratio|int
+  public function negate(): Phel\Lang\Ratio
   public function numerator(): Phel\Lang\BigInt
   public function setEndLocation(?Phel\Lang\SourceLocation $endLocation): static
   public function setStartLocation(?Phel\Lang\SourceLocation $startLocation): static
-  public function subtract(Phel\Lang\BigInt|int|self $other): Phel\Lang\BigInt|int|self
+  public function subtract(Phel\Lang\BigInt|Phel\Lang\Ratio|int $other): Phel\Lang\BigInt|Phel\Lang\Ratio|int
   public function toFloat(): float
   public function toInt(): int
   public function withMeta(?Phel\Lang\Collections\Map\PersistentMapInterface $meta): static
-  public static function create(Phel\Lang\BigInt|int $numerator, Phel\Lang\BigInt|int $denominator): Phel\Lang\BigInt|int|self
+  public static function create(Phel\Lang\BigInt|int $numerator, Phel\Lang\BigInt|int $denominator): Phel\Lang\BigInt|Phel\Lang\Ratio|int
 
 final readonly class Phel\Lang\Reduced
   public function __construct(mixed $value)
@@ -1273,7 +1273,7 @@ final class Phel\Lang\Registry
   public function removeNamespace(string $ns): void
   public function restore(array $snapshot): void
   public function snapshot(): array
-  public static function getInstance(): self
+  public static function getInstance(): Phel\Lang\Registry
 
 interface Phel\Lang\RestInterface
   public function rest()
@@ -1322,13 +1322,13 @@ interface Phel\Lang\SliceInterface
   public function slice(int $offset = 0, ?int $length = null)
 
 final readonly class Phel\Lang\SourceLocation
-  public function __construct(string $file, int $line, int $column, ?self $expansionOrigin = null)
+  public function __construct(string $file, int $line, int $column, ?Phel\Lang\SourceLocation $expansionOrigin = null)
   public function getColumn(): int
-  public function getExpansionOrigin(): ?self
+  public function getExpansionOrigin(): ?Phel\Lang\SourceLocation
   public function getFile(): string
   public function getLine(): int
-  public function withExpansionOrigin(?self $expansionOrigin): self
-  public static function unknown(): self
+  public function withExpansionOrigin(?Phel\Lang\SourceLocation $expansionOrigin): Phel\Lang\SourceLocation
+  public static function unknown(): Phel\Lang\SourceLocation
 
 interface Phel\Lang\SourceLocationInterface
   public function copyLocationFrom(mixed $other): static
@@ -1402,9 +1402,9 @@ final class Phel\Lang\Symbol extends Phel\Lang\AbstractType implements Phel\Lang
   public function identical(mixed $other): bool
   public function withMeta(?Phel\Lang\Collections\Map\PersistentMapInterface $meta): static
   public static function advanceGenCounter(int $by): void
-  public static function create(string $name): self
-  public static function createForNamespace(?string $namespace, string $name): self
-  public static function gen(string $prefix = '__phel_'): self
+  public static function create(string $name): Phel\Lang\Symbol
+  public static function createForNamespace(?string $namespace, string $name): Phel\Lang\Symbol
+  public static function gen(string $prefix = '__phel_'): Phel\Lang\Symbol
   public static function genCounter(): int
   public static function resetGen(): void
 
@@ -1434,7 +1434,7 @@ final class Phel\Lang\TagRegistry
   public function register(string $tag, callable $handler): void
   public function tags(): array
   public function unregister(string $tag): void
-  public static function getInstance(): self
+  public static function getInstance(): Phel\Lang\TagRegistry
 
 final class Phel\Lang\Truthy
   public static function isTruthy(mixed $value): bool
@@ -1452,7 +1452,7 @@ final class Phel\Lang\TypeFactory
   public function persistentSortedMapFromArray(array $kvs = [], ?callable $comparator = null): Phel\Lang\Collections\Map\PersistentMapInterface
   public function persistentSortedSetFromArray(array $values = [], ?callable $comparator = null): Phel\Lang\Collections\HashSet\PersistentHashSetInterface
   public function persistentVectorFromArray(array $values): Phel\Lang\Collections\Vector\PersistentVectorInterface
-  public static function getInstance(): self
+  public static function getInstance(): Phel\Lang\TypeFactory
 
 interface Phel\Lang\TypeInterface implements Phel\Lang\EqualsInterface, Phel\Lang\HashableInterface, Phel\Lang\MetaInterface, Phel\Lang\SourceLocationInterface
 
@@ -1475,8 +1475,8 @@ final readonly class Phel\Lang\UUID implements Phel\Lang\TypeInterface, Stringab
   public function variant(): string
   public function version(): int
   public function withMeta(?Phel\Lang\Collections\Map\PersistentMapInterface $meta): static
-  public static function fromString(string $value): self
-  public static function randomV4(): self
+  public static function fromString(string $value): Phel\Lang\UUID
+  public static function randomV4(): Phel\Lang\UUID
 
 final class Phel\Lang\Volatile
   public function __construct(mixed $value)
@@ -1610,7 +1610,7 @@ final readonly class Phel\Shared\Api\PhelFunction
   public readonly string $namespace
   public function __construct(string $namespace, string $name, string $doc, array $signatures, string $description, string $groupKey = '', string $githubUrl = '', string $docUrl = '', string $file = '', int $line = 0, array $meta = [])
   public function nameWithNamespace(): string
-  public static function fromArray(array $array): self
+  public static function fromArray(array $array): Phel\Shared\Api\PhelFunction
 
 final readonly class Phel\Shared\Api\ProjectIndex
   public readonly array $definitions
@@ -1635,8 +1635,8 @@ final class Phel\Shared\ColorStyle implements Phel\Shared\ColorStyleInterface
   public function green(string $str): string
   public function red(string $str): string
   public function yellow(string $str): string
-  public static function noStyles(): self
-  public static function withStyles(array $styles = []): self
+  public static function noStyles(): Phel\Shared\ColorStyle
+  public static function withStyles(array $styles = []): Phel\Shared\ColorStyle
 
 interface Phel\Shared\ColorStyleInterface
   public function blue(string $str): string
@@ -1657,12 +1657,12 @@ final class Phel\Shared\CompileOptions
   public function isEmitAsExpression(): bool
   public function isEmitOnly(): bool
   public function isSourceMapsEnabled(): bool
-  public function setEmitAsExpression(bool $emitAsExpression): self
-  public function setEmitOnly(bool $emitOnly): self
-  public function setIsEnabledSourceMaps(bool $isEnableSourceMaps): self
-  public function setOptimizationLevel(int $level): self
-  public function setSource(string $source): self
-  public function setStartingLine(int $startingLine): self
+  public function setEmitAsExpression(bool $emitAsExpression): Phel\Shared\CompileOptions
+  public function setEmitOnly(bool $emitOnly): Phel\Shared\CompileOptions
+  public function setIsEnabledSourceMaps(bool $isEnableSourceMaps): Phel\Shared\CompileOptions
+  public function setOptimizationLevel(int $level): Phel\Shared\CompileOptions
+  public function setSource(string $source): Phel\Shared\CompileOptions
+  public function setStartingLine(int $startingLine): Phel\Shared\CompileOptions
 
 final readonly class Phel\Shared\CompiledFile
   public function __construct(string $sourceFile, string $targetFile, string $namespace, bool $cached = false)
@@ -1699,9 +1699,9 @@ final readonly class Phel\Shared\Eval\EvalResult
   public readonly bool $success
   public readonly mixed $value
   public readonly string $output
-  public static function failure(Phel\Shared\Eval\EvalError $error, string $output = ''): self
-  public static function incomplete(string $output = ''): self
-  public static function success(mixed $value, string $output = ''): self
+  public static function failure(Phel\Shared\Eval\EvalError $error, string $output = ''): Phel\Shared\Eval\EvalResult
+  public static function incomplete(string $output = ''): Phel\Shared\Eval\EvalResult
+  public static function success(mixed $value, string $output = ''): Phel\Shared\Eval\EvalResult
 
 final readonly class Phel\Shared\Eval\StackFrame
   public readonly ?string $class
@@ -1718,7 +1718,7 @@ abstract class Phel\Shared\Exceptions\AbstractLocatedException extends RuntimeEx
   public function getStartLocation(): ?Phel\Lang\SourceLocation
 
 final class Phel\Shared\Exceptions\CompiledCodeIsMalformedException extends RuntimeException
-  public static function fromThrowable(Throwable $e): self
+  public static function fromThrowable(Throwable $e): Phel\Shared\Exceptions\CompiledCodeIsMalformedException
 
 final class Phel\Shared\Exceptions\CompilerException extends RuntimeException
   public function __construct(Phel\Shared\Exceptions\AbstractLocatedException $nestedException, Phel\Shared\Parser\ReadModel\CodeSnippet $codeSnippet)
@@ -1763,9 +1763,9 @@ interface Phel\Shared\Exceptions\ExceptionPrinterInterface
   public function printStackTrace(Throwable $e): void
 
 final class Phel\Shared\Exceptions\FileException extends RuntimeException
-  public static function canNotCreateDirectory(string $directory): self
-  public static function canNotCreateFile(string $filename): self
-  public static function directoryIsNotWritable(string $directory): self
+  public static function canNotCreateDirectory(string $directory): Phel\Shared\Exceptions\FileException
+  public static function canNotCreateFile(string $filename): Phel\Shared\Exceptions\FileException
+  public static function directoryIsNotWritable(string $directory): Phel\Shared\Exceptions\FileException
 
 final class Phel\Shared\Exceptions\Hint\ArgumentCountHint implements Phel\Shared\Exceptions\Hint\ExceptionHintInterface
   public function appliesTo(Throwable $e): bool
@@ -1956,13 +1956,13 @@ final class Phel\Shared\Parser\Node\FileNode implements Phel\Shared\Parser\Node\
   public function getEndLocation(): Phel\Lang\SourceLocation
   public function getStartLocation(): Phel\Lang\SourceLocation
   public function replaceChildren(array $children): Phel\Shared\Parser\Node\InnerNodeInterface
-  public static function createFromChildren(array $children): self
+  public static function createFromChildren(array $children): Phel\Shared\Parser\Node\FileNode
 
 interface Phel\Shared\Parser\Node\InnerNodeInterface implements Phel\Shared\Parser\Node\NodeInterface
   public function getChildren(): array
   public function getCodePostfix(): ?string
   public function getCodePrefix(): string
-  public function replaceChildren(array $children): self
+  public function replaceChildren(array $children): Phel\Shared\Parser\Node\InnerNodeInterface
 
 final class Phel\Shared\Parser\Node\KeywordNode extends Phel\Shared\Parser\Node\AbstractAtomNode
 
@@ -2093,7 +2093,7 @@ final readonly class Phel\Shared\Performance\OpcacheReexecDecision
   public readonly array $flags
   public readonly bool $shouldReexec
   public function __construct(bool $shouldReexec, array $flags)
-  public function withUserIniFlags(array $userIniFlags): self
+  public function withUserIniFlags(array $userIniFlags): Phel\Shared\Performance\OpcacheReexecDecision
 
 final class Phel\Shared\Performance\OpcacheWorkerFlags
   public static function forFileCache(bool $opcacheLoaded, string $fileCacheDir): array
@@ -2119,9 +2119,9 @@ final class Phel\Shared\PhpAttributeRenderer
 final readonly class Phel\Shared\Printer\Printer implements Phel\Shared\Printer\PrinterInterface
   public function __construct(bool $readable, bool $withColor = false)
   public function print(mixed $form): string
-  public static function nonReadable(): self
-  public static function readable(): self
-  public static function readableWithColor(): self
+  public static function nonReadable(): Phel\Shared\Printer\Printer
+  public static function readable(): Phel\Shared\Printer\Printer
+  public static function readableWithColor(): Phel\Shared\Printer\Printer
 
 interface Phel\Shared\Printer\PrinterInterface
   public function print(mixed $form): string
@@ -2209,8 +2209,8 @@ final class Phel\Shared\Printer\TypePrinter\ResourcePrinter implements Phel\Shar
 final readonly class Phel\Shared\Printer\TypePrinter\StringPrinter implements Phel\Shared\Printer\TypePrinter\TypePrinterInterface
   public function __construct(bool $readable, bool $withColor = false)
   public function print(mixed $form): string
-  public static function nonReadable(bool $withColor = false): self
-  public static function readable(bool $withColor = false): self
+  public static function nonReadable(bool $withColor = false): Phel\Shared\Printer\TypePrinter\StringPrinter
+  public static function readable(bool $withColor = false): Phel\Shared\Printer\TypePrinter\StringPrinter
 
 final readonly class Phel\Shared\Printer\TypePrinter\StructPrinter implements Phel\Shared\Printer\TypePrinter\TypePrinterInterface
   public function __construct(Phel\Shared\Printer\PrinterInterface $printer)

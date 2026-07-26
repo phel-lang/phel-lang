@@ -60,12 +60,18 @@ jobs:
           # Xdebug and nothing here needs a step debugger.
           coverage: pcov
 
+      # `--initial-tests-php-options` silences deprecation *display* for the
+      # initial run only. The unit suite deliberately exercises Phel's own
+      # deprecation channel, which writes `E_USER_DEPRECATED` to stderr; PHPUnit
+      # exits 0, but Infection reads a non-empty stderr as a failed initial run
+      # and refuses to start. Mutant runs are unaffected.
       - name: Run Infection
         run: |
           php -d memory_limit=2G vendor/bin/infection \
             --threads=max \
             --no-progress \
             --no-interaction \
+            --initial-tests-php-options='-d error_reporting=6143' \
             --min-msi="${{ github.event.inputs.min-msi || env.MIN_MSI }}" \
             --min-covered-msi="$MIN_COVERED_MSI"
 

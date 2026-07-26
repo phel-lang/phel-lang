@@ -55,6 +55,13 @@ jobs:
         include:
           - os: macos-latest
             php: '8.4'
+            # Three core tests assert concurrency by wall clock. On the macOS
+            # runner a slow scheduler tick is indistinguishable from work that
+            # did not run concurrently, so they fail intermittently there and
+            # would make a supported platform permanently red for a reason that
+            # is not a Phel bug. Linux still runs them, so a genuine loss of
+            # concurrency is still caught.
+            exclude-tags: '--exclude=timing-sensitive'
     steps:
       - uses: actions/checkout@v6
       - uses: ./.github/actions/setup-phel
@@ -62,7 +69,7 @@ jobs:
           php-version: ${{ matrix.php }}
 
       - name: Run tests to the core library
-        run: composer run-script test-core
+        run: php -d memory_limit=256M ./bin/phel test ${{ matrix.exclude-tags }}
 
   # Windows is the "Best effort" tier in docs/stability.md: bugs are accepted and
   # fixed, but a Windows-only failure does not block a release, so this job reports
@@ -74,7 +81,6 @@ jobs:
   windows-tests:
     name: Windows tests (best effort)
     runs-on: windows-latest
-    continue-on-error: true
     timeout-minutes: 20
     steps:
       - uses: actions/checkout@v6
@@ -88,11 +94,33 @@ jobs:
       - name: Install dependencies
         run: composer install --no-interaction --no-ansi --no-progress
 
+      # `continue-on-error` sits on the steps rather than the job on purpose. On
+      # the job it leaves a red check on every pull request, which trains people
+      # to ignore it; on the steps the job stays green and the outcome is
+      # reported below, so the signal is readable without being a gate.
       - name: Run unit tests to the compiler itself
+        id: unit
+        continue-on-error: true
         run: vendor/bin/phpunit --testsuite unit
 
       - name: Run tests to the core library
+        id: core
+        continue-on-error: true
         run: php -d memory_limit=256M bin/phel test
+
+      - name: Report the outcome
+        run: |
+          {
+            echo '### Windows (best effort tier)'
+            echo
+            echo '| Suite | Outcome |'
+            echo '|---|---|'
+            echo '| Compiler unit | ${{ steps.unit.outcome }} |'
+            echo '| Core library | ${{ steps.core.outcome }} |'
+            echo
+            echo 'A failure here does not block a release. See docs/stability.md.'
+          } >> "$GITHUB_STEP_SUMMARY"
+        shell: bash
 
   # A benchmark run that is never compared to anything cannot fail, so a
   # regression was invisible: this used to run the suite and print a table.
