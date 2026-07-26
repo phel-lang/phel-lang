@@ -4,6 +4,26 @@ includes:
     - vendor/phpstan/phpstan-phpunit/rules.neon
     - vendor/phpstan/phpstan-deprecation-rules/rules.neon
 
+services:
+    # Modules may only reach each other through a Facade. `.claude/rules/php.md`
+    # has said so for a long time; until now only hand-rolled architecture tests
+    # enforced parts of it, and they check Factories, not Application classes.
+    #
+    # `Phel\Shared`, `Phel\Lang` and `Phel\Config` are shared kernels: they are
+    # the namespaces every module is *supposed* to reach into (the values that
+    # cross a facade boundary, the contracts facades speak in, and the config
+    # object). See docs/stability.md.
+    -
+        class: Gacela\PHPStan\Rules\CrossModuleViaFacadeRule
+        tags: [phpstan.rules.rule]
+        arguments:
+            rootNamespace: Phel
+            modulePathSegments: 1
+            sharedNamespaces:
+                - Phel\Shared
+                - Phel\Lang
+                - Phel\Config
+
 parameters:
     level: 9
     parallel:
@@ -17,6 +37,71 @@ parameters:
     # `@method`, so the pattern never matches here and a new class that forgets
     # the annotation should fail rather than resolve to `mixed`.
     ignoreErrors!:
+        # --- gacela.crossModuleWithoutFacade -------------------------------
+        # Pinned, not waived. Counts are the point: a new cross-module reach
+        # makes a count short by one and that one is reported.
+        #
+        # 1. The console is the composition root. Registering every module's
+        #    commands is the one job it has, so naming their classes is not a
+        #    boundary violation. 24 of the 35.
+        -
+            identifier: gacela.crossModuleWithoutFacade
+            path: src/php/Console/Infrastructure/Command/*Commands.php
+            count: 24
+        # 2. `FilesystemFacadeInterface` lives in `Phel\Filesystem\` while every
+        #    other cross-module facade contract lives in `Phel\Shared\Facade\`.
+        #    Referencing it *is* going through a facade; the rule cannot tell,
+        #    because the namespace is not a declared shared kernel. Moving it to
+        #    Shared is the real fix and is a BREAKING change to the public
+        #    surface frozen in #2870, so it waits for the next major.
+        -
+            identifier: gacela.crossModuleWithoutFacade
+            path: src/php/Compiler/CompilerFactory.php
+            count: 1
+        -
+            identifier: gacela.crossModuleWithoutFacade
+            path: src/php/Compiler/CompilerProvider.php
+            count: 1
+        -
+            identifier: gacela.crossModuleWithoutFacade
+            path: src/php/Console/ConsoleFactory.php
+            count: 1
+        -
+            identifier: gacela.crossModuleWithoutFacade
+            path: src/php/Console/ConsoleProvider.php
+            count: 1
+        -
+            identifier: gacela.crossModuleWithoutFacade
+            path: src/php/Run/RunFactory.php
+            count: 1
+        -
+            identifier: gacela.crossModuleWithoutFacade
+            path: src/php/Run/RunProvider.php
+            count: 1
+        # 3. Genuine reaches into another module's `Domain`, which the rule is
+        #    exactly right about. Each is one class and each is worth fixing on
+        #    its own; pinned individually so a fix removes its own entry rather
+        #    than shrinking an anonymous total.
+        -
+            identifier: gacela.crossModuleWithoutFacade
+            path: src/php/Api/Application/Analysis/ReadAndAnalyzeStage.php
+            count: 1
+        -
+            identifier: gacela.crossModuleWithoutFacade
+            path: src/php/Build/Application/FileEvaluator.php
+            count: 1
+        -
+            identifier: gacela.crossModuleWithoutFacade
+            path: src/php/Build/Application/NamespaceExtractor.php
+            count: 1
+        -
+            identifier: gacela.crossModuleWithoutFacade
+            path: src/php/Console/Application/WarnDeprecationsFlag.php
+            count: 1
+        -
+            identifier: gacela.crossModuleWithoutFacade
+            path: src/php/Run/Application/FileRunner.php
+            count: 1
         - identifier: trait.unused
         -
             identifier: while.alwaysTrue
