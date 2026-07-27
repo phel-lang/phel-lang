@@ -54,7 +54,13 @@ final class NsEmitterTest extends TestCase
         self::assertStringContainsString('"app.module"', $output);
     }
 
-    public function test_ns_with_requires_emits_repl_gated_fallback(): void
+    /**
+     * Only `phel repl` sets `*repl-mode*`, so gating the source-directory lookup
+     * on it left `phel eval` and the nREPL server searching an empty path, and
+     * every `(:require my.ns)` of a project namespace silently loaded nothing
+     * (#2886).
+     */
+    public function test_ns_with_requires_resolves_source_directories_without_a_repl_gate(): void
     {
         $node = new NsNode('my\\app', [Symbol::create('phel\\string')], []);
 
@@ -62,13 +68,13 @@ final class NsEmitterTest extends TestCase
         $this->nsEmitter->emit($node);
         $output = (string) ob_get_clean();
 
-        self::assertStringContainsString(
+        self::assertStringNotContainsString(
             '*repl-mode*',
             $output,
-            'Fallback should be gated on REPL mode',
+            'The source-directory lookup must not be gated on REPL mode',
         );
         self::assertStringContainsString(
-            'CommandFacade',
+            'getAllPhelDirectories',
             $output,
             'Fallback should use CommandFacade to resolve directories',
         );

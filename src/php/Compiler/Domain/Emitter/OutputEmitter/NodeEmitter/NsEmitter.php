@@ -7,6 +7,7 @@ namespace Phel\Compiler\Domain\Emitter\OutputEmitter\NodeEmitter;
 use Phel\Compiler\Domain\Analyzer\Ast\AbstractNode;
 use Phel\Compiler\Domain\Analyzer\Ast\NsNode;
 use Phel\Compiler\Domain\Emitter\OutputEmitter\NodeEmitterInterface;
+use Phel\Shared\BuildConstants;
 
 use function addslashes;
 use function assert;
@@ -69,15 +70,22 @@ final class NsEmitter implements NodeEmitterInterface
             // In cache mode, don't emit any dependency loading code.
             // Dependencies are loaded in order by the test framework.
         } else {
+            // Resolve the project's source directories whenever this is *not* a
+            // build. The gate used to be `*repl-mode*`, which only `phel repl`
+            // sets, so `phel eval` and the nREPL server searched an empty path
+            // and every `(:require my.ns)` of a project namespace silently
+            // loaded nothing (#2886). Build mode is the right discriminator:
+            // Build resolves dependencies itself before evaluating each file, and
+            // scanning again there picks the same namespace up twice.
             $this->outputEmitter->emitLine('$__phelBuildFacade = new \\Phel\\Build\\BuildFacade();');
             $this->outputEmitter->emitLine('$__phelSrcDirs = [];');
-            $this->outputEmitter->emitLine('if (\\Phel::getDefinition(');
+            $this->outputEmitter->emitLine('if (!\\Phel::getDefinition(');
             $this->outputEmitter->increaseIndentLevel();
             $this->outputEmitter->emitStr('"');
             $this->outputEmitter->emitStr(addslashes($this->outputEmitter->mungeEncodeRegistryKey('phel.core')));
             $this->outputEmitter->emitLine('",');
             $this->outputEmitter->emitStr('"');
-            $this->outputEmitter->emitStr(addslashes('*repl-mode*'));
+            $this->outputEmitter->emitStr(addslashes(BuildConstants::BUILD_MODE));
             $this->outputEmitter->emitLine('")) {');
             $this->outputEmitter->emitLine('$__phelSrcDirs = (new \\Phel\\Command\\CommandFacade())->getAllPhelDirectories();');
             $this->outputEmitter->emitLine('$__phelCwd = getcwd();');
