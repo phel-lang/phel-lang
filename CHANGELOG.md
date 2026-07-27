@@ -4,6 +4,8 @@ All notable changes to this project will be documented in this file.
 
 ## Unreleased
 
+- Add heredoc example to `phel eval -h` help output for reliable multi-line one-shot evaluation
+
 ### Added
 
 - `phel\test/with-isolated-stats` and `with-isolated-reporters`: run a body against a fresh statistics accumulator or reporter set and restore the caller's afterwards, rolling back even when the body throws

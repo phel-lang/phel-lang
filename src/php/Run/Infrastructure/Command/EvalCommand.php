@@ -46,6 +46,12 @@ Evaluates a Phel expression (or stdin) and prints its value.
 <info>Examples:</info>
   <comment>phel eval '(+ 1 2)'</comment>      Evaluate an inline expression
   <comment>echo '(* 6 7)' | phel eval -</comment>   Evaluate from stdin
+
+For reliable multi-line evaluation, use a quoted heredoc:
+<comment>phel eval - <<'PHEL'
+(ns app)
+(println (+ 40 2))
+PHEL</comment>
 HELP)
             ->addArgument(
                 'expression',
