@@ -1,0 +1,71 @@
+# https://help.github.com/en/categories/automating-your-workflow-with-github-actions
+
+# Line coverage for the compiler suites, published to the run summary and gated
+# on a floor.
+#
+# Nightly rather than per-pull-request. The run takes ~22 minutes while every
+# other check on a pull request finishes inside 8, so it alone set the wall clock
+# on every merge. What it produces ("this code is not exercised") is worth
+# knowing daily and is not worth making people wait on: coverage moves slowly,
+# and a drop is a conversation rather than a stop-the-line failure.
+#
+# Runs on a pull request only when the measurement itself changes, so a tweak to
+# the floor or the checker is still validated by the thing it configures.
+
+name: Coverage
+
+on:
+  schedule:
+    - cron: '30 3 * * *'
+  pull_request:
+    paths:
+      - 'tools/check-coverage.php'
+      - 'phpunit.xml.dist'
+      - '.github/workflows/coverage.yml'
+  workflow_dispatch:
+    inputs:
+      coverage-floor:
+        description: 'Override the coverage floor for this run'
+        required: false
+        default: ''
+
+permissions:
+  contents: read
+
+concurrency:
+  group: coverage-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.ref != 'refs/heads/main' }}
+
+jobs:
+  coverage:
+    name: Coverage
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      # A ratchet: raise it when the real figure clears it comfortably, never
+      # lower it to turn a red build green.
+      #
+      # Measured at 86.90% (23550/27101 statements) on the first run that
+      # published a figure. 85 leaves room for ordinary movement without letting
+      # the number quietly slide. Every run prints the current value to its
+      # summary.
+      COVERAGE_FLOOR: '85'
+    steps:
+      - uses: actions/checkout@v6
+      - uses: ./.github/actions/setup-phel
+        with:
+          # pcov is several times faster than Xdebug for line coverage and is all
+          # this job needs; nothing here steps or inspects.
+          coverage: pcov
+
+      - name: Run the compiler suites with coverage
+        run: |
+          php -d memory_limit=2G vendor/bin/phpunit \
+            --testsuite=unit,integration \
+            --coverage-clover=data/clover.xml \
+            --do-not-cache-result
+
+      - name: Publish the figure and enforce the floor
+        run: |
+          php tools/check-coverage.php data/clover.xml \
+            "${{ github.event.inputs.coverage-floor || env.COVERAGE_FLOOR }}"
