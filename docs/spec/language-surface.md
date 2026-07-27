@@ -112,6 +112,13 @@ The Clojure-style interop spellings are analyzer sugar, not special forms: each 
 to one of the `php/*` entries above before analysis, so they are deliberately absent
 from the table.
 
+**The shorthand is the idiomatic spelling.** The `php/*` forms are the compilation
+target and the escape hatch, kept public because they are the only spelling for the
+positions the shorthand cannot express. New code should read `(.format d "Y")`, not
+`(php/-> d (format "Y"))`; chaining, mixed method and property alike, threads with
+plain `->` and needs no `php/->`. The full guide is at
+<https://phel-lang.org/documentation/php-interop/>.
+
 | Written | Expands to | Position |
 |---|---|---|
 | `(.m obj args…)` | `(php/-> obj (m args…))` | call |
