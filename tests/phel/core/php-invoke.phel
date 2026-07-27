@@ -1,7 +1,6 @@
 (ns phel-test.core.php-invoke
   (:require phel.test :refer [deftest is])
-  (:use \DateTimeImmutable)
-  (:use \Phel\Lang\Keyword))
+  (:use \DateTimeImmutable))
 
 (deftest invokes-a-method-named-by-a-value
   (let [d (php/new DateTimeImmutable "2024-03-10")]
