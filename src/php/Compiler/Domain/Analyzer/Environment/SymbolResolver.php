@@ -276,8 +276,17 @@ final readonly class SymbolResolver
     private function resolveWithoutAlias(Symbol $name, NodeEnvironmentInterface $env): ?AbstractNode
     {
         $currentNs = $this->globalEnv->getNs();
-        $refers = $this->globalEnv->getRefers($currentNs);
 
+        // The namespace's own definition beats a `:refer` of the same name, as in
+        // Clojure (#2897). Falling through rather than returning early keeps a
+        // forward reference (not registered yet when the bare name is analysed)
+        // resolving to the refer.
+        $ownNode = $this->resolveInterfaceOrDefinitionForCurrentNs($name, $env, $currentNs);
+        if ($ownNode instanceof AbstractNode) {
+            return $ownNode;
+        }
+
+        $refers = $this->globalEnv->getRefers($currentNs);
         if (isset($refers[$name->getName()])) {
             $referNs = $refers[$name->getName()]->getName();
 
@@ -285,8 +294,7 @@ final readonly class SymbolResolver
                 ?? $this->resolveInterfaceOrDefinition($name, $env, CompilerConstants::PHEL_CORE_NAMESPACE);
         }
 
-        return $this->resolveInterfaceOrDefinitionForCurrentNs($name, $env, $currentNs)
-            ?? $this->resolveInterfaceOrDefinition($name, $env, CompilerConstants::PHEL_CORE_NAMESPACE);
+        return $this->resolveInterfaceOrDefinition($name, $env, CompilerConstants::PHEL_CORE_NAMESPACE);
     }
 
     /**

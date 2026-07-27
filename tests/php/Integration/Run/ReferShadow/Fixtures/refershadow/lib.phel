@@ -1,0 +1,7 @@
+(ns refershadow.lib)
+
+(defn greet [] "hi from lib")
+
+(defn countdown [n] (str "lib-" n))
+
+(defn untouched [] "from lib")
