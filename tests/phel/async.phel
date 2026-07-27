@@ -62,7 +62,7 @@
     (is (< elapsed 0.15) "concurrent execution is faster than sequential")))
 
 (deftest test-async-error-propagation
-  (let [future (async (throw (php/new \RuntimeException "boom")))]
+  (let [future (async (throw (new \RuntimeException "boom")))]
     (is (thrown? \RuntimeException (await future))
         "exceptions in async body propagate through await")))
 
@@ -137,7 +137,7 @@
 (deftest test-future-exception-propagation
   (let [raised? (await (async
                         (try
-                          (deref (future (throw (php/new \RuntimeException "boom"))))
+                          (deref (future (throw (new \RuntimeException "boom"))))
                           false
                           (catch \RuntimeException _e true))))]
     (is (= true raised?) "deref re-raises the future's exception")))

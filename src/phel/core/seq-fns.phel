@@ -76,17 +76,17 @@
             ;; would eagerly materialise the first chunk. `Seq::map`
             ;; yields `[k v]` pairs when `coll` is a `PersistentMap`
             ;; (Clojure-aligned), otherwise it yields the elements.
-            result (php/:: LazySeq (fromGenerator
-                                    (php/new Hasher)
-                                    (php/new Equalizer)
-                                    (php/:: Seq (map f coll))))]
+            result (LazySeq/fromGenerator
+                    (new Hasher)
+                    (new Equalizer)
+                    (Seq/map f coll))]
         (copy-meta coll result))
-    (let [result (php/:: LazySeq (fromGenerator
-                                  (php/new Hasher)
-                                  (php/new Equalizer)
-                                  (php/call_user_func_array
-                                   (php/array "\\Phel\\Lang\\Seq" "mapMulti")
-                                   (php/array_merge (php/array f) (apply php/array colls)))))]
+    (let [result (LazySeq/fromGenerator
+                  (new Hasher)
+                  (new Equalizer)
+                  (php/call_user_func_array
+                   (php/array "\\Phel\\Lang\\Seq" "mapMulti")
+                   (php/array_merge (php/array f) (apply php/array colls))))]
       (copy-meta (first colls) result))))
 
 (defn comp
@@ -114,11 +114,11 @@
 (defn- assoc-into-entry
   [acc entry]
   (if (not (indexed? entry))
-    (throw (php/new InvalidArgumentException
-                    "into expects a collection of [key value] pairs"))
+    (throw (new InvalidArgumentException
+                "into expects a collection of [key value] pairs"))
     (if (php/!= (count entry) 2)
-      (throw (php/new InvalidArgumentException
-                      "into expects a collection of [key value] pairs"))
+      (throw (new InvalidArgumentException
+                  "into expects a collection of [key value] pairs"))
       (let [k (first entry)
             v (second entry)]
         (if (php/is_array acc)
@@ -189,14 +189,14 @@ When `from` is associative, it is treated as a sequence of key-value pairs. Supp
                 (conj acc value))
 
               (php/instanceof to ConcatInterface)
-              (php/-> to (concat (apply php/array entries)))
+              (.concat to (apply php/array entries))
 
               (php/is_array to)
               (concat to entries)
 
-              (throw (php/new InvalidArgumentException
-                              (php/. "Cannot convert into type " (type to))))))))
-    (throw (php/new InvalidArgumentException "into expects 1, 2, or 3 arguments"))))
+              (throw (new InvalidArgumentException
+                          (php/. "Cannot convert into type " (type to))))))))
+    (throw (new InvalidArgumentException "into expects 1, 2, or 3 arguments"))))
 
 (defn- conj-impl
   [coll value]
@@ -205,17 +205,17 @@ When `from` is associative, it is treated as a sequence of key-value pairs. Supp
     (php/instanceof coll PersistentListInterface) (cons value coll)
     (php/instanceof coll LazySeqInterface)        (cons value coll)
     (php/is_array coll)                           (do (php/apush coll value) coll)
-    (vector-target? coll)                         (php/-> coll (append value))
-    (set-target? coll)                            (php/-> coll (add value))
+    (vector-target? coll)                         (.append coll value)
+    (set-target? coll)                            (.add coll value)
     (map-target? coll)                            (conj-map-entry coll value)
     ;; MapEntry degrades to a 3-vector when grown; the result is no longer
     ;; an entry. Matches Clojure's MapEntry under conj.
     (php/instanceof coll MapEntry)
-    (php/-> [(php/-> coll (key)) (php/-> coll (value))] (append value))
-    (php/instanceof coll PushInterface)           (php/-> coll (push value))
+    (.append [(.key coll) (.value coll)] value)
+    (php/instanceof coll PushInterface)           (.push coll value)
     :else
-    (throw (php/new InvalidArgumentException
-                    (str "Cannot conj on type " (type coll))))))
+    (throw (new InvalidArgumentException
+                (str "Cannot conj on type " (type coll))))))
 
 (defn conj
   "Returns a new collection with values added. Appends to vectors/sets, prepends to lists."
@@ -231,10 +231,10 @@ When `from` is associative, it is treated as a sequence of key-value pairs. Supp
   [coll k]
   (cond
     (php/=== coll nil) nil
-    (set? coll)        (php/-> coll (remove k))
+    (set? coll)        (.remove coll k)
     :else
-    (throw (php/new InvalidArgumentException
-                    (str "Cannot disj on type " (type coll))))))
+    (throw (new InvalidArgumentException
+                (str "Cannot disj on type " (type coll))))))
 
 (defn disj
   "Returns a new set that does not contain the given key(s). Works on hash-sets and sorted-sets. Removing a non-existent key is a no-op. Returns `nil` when called on `nil`."
@@ -252,8 +252,8 @@ When `from` is associative, it is treated as a sequence of key-value pairs. Supp
   [coll & [offset & [length]]]
   (cond
     (php-array? coll) (php/array_slice coll offset length)
-    (php/instanceof coll SliceInterface) (php/-> coll (slice offset length))
-    (throw (php/new InvalidArgumentException "Cannot slice"))))
+    (php/instanceof coll SliceInterface) (.slice coll offset length)
+    (throw (new InvalidArgumentException "Cannot slice"))))
 
 ;; Clojure's subvec runs indices through RT.intCast: numbers truncate toward
 ;; zero, NaN counts as 0, ±Inf collapses to int min/max (then fails bounds),
@@ -268,9 +268,9 @@ When `from` is associative, it is treated as a sequence of key-value pairs. Supp
                        true                (php/intval x))
     (or (php/instanceof x Ratio)
         (php/instanceof x BigInt)
-        (php/instanceof x BigDecimal)) (php/-> x (toInt))
-    true (throw (php/new InvalidArgumentException
-                         (str "subvec index must be a number, got " (type x))))))
+        (php/instanceof x BigDecimal)) (.toInt x)
+    true (throw (new InvalidArgumentException
+                     (str "subvec index must be a number, got " (type x))))))
 
 (defn subvec
   "Returns a persistent vector of the items in `v` from `start` (inclusive) to `end` (exclusive). `end` defaults to `(count v)`. Non-integer indices truncate toward zero and `NaN` counts as `0`, matching Clojure. The result shares structure with `v`. Throws an OutOfBoundsException when `start` or `end` is out of range or `start` is greater than `end`."
@@ -279,14 +279,14 @@ When `from` is associative, it is treated as a sequence of key-value pairs. Supp
   ([v start] (subvec v start (count v)))
   ([v start end]
    (when-not (php/instanceof v PersistentVectorInterface)
-     (throw (php/new InvalidArgumentException (str "Cannot subvec on type " (type v)))))
+     (throw (new InvalidArgumentException (str "Cannot subvec on type " (type v)))))
    (let [cnt   (count v)
          start (subvec-index start)
          end   (subvec-index end)]
      (when (or (< start 0) (> end cnt) (> start end))
-       (throw (php/new OutOfBoundsException
-                       (str "subvec bounds [" start ", " end ") out of range for vector of count " cnt))))
-     (php/-> v (slice start (php/- end start))))))
+       (throw (new OutOfBoundsException
+                   (str "subvec bounds [" start ", " end ") out of range for vector of count " cnt))))
+     (.slice v start (php/- end start)))))
 
 (defn set
   "Coerces a collection to a set. Returns a set containing the distinct elements of `coll`. For creating sets from arguments, use `hash-set`."
@@ -399,9 +399,9 @@ Creates intermediate maps if they don't exist."
           (let [n (if (php/< n 0) 0 n)]
             (if (php/=== n 0)
               coll
-              (let [result (lazy-seq-from-generator (php/:: Seq (drop n coll)))]
+              (let [result (lazy-seq-from-generator (Seq/drop n coll))]
                 (copy-meta coll (or result [])))))))
-    (throw (php/new InvalidArgumentException "drop expects 1 or 2 arguments"))))
+    (throw (new InvalidArgumentException "drop expects 1 or 2 arguments"))))
 
 (defn drop-last
   "Drops the last `n` elements of `coll`. `n` defaults to `1` when omitted, matching Clojure's `(drop-last coll)` single-arity form. Returns an empty sequence when `coll` is `nil`. Works with any seqable collection including lazy sequences and ranges."
@@ -449,9 +449,9 @@ Creates intermediate maps if they don't exist."
     1 (let [coll (first args)]
         (if (nil? coll)
           []
-          (let [result (lazy-seq-from-generator (php/:: Seq (dropWhile pred coll)))]
+          (let [result (lazy-seq-from-generator (Seq/dropWhile pred coll))]
             (copy-meta coll (or result [])))))
-    (throw (php/new InvalidArgumentException "drop-while expects 1 or 2 arguments"))))
+    (throw (new InvalidArgumentException "drop-while expects 1 or 2 arguments"))))
 
 (defn take
   "Takes the first `n` elements of `coll`. When called with n only, returns a transducer."
@@ -471,12 +471,12 @@ Creates intermediate maps if they don't exist."
               n    (if (php/< n 0) 0 n)]
           (if (php/=== n 0)
             []
-            (let [result (lazy-seq-from-generator (php/:: Seq (take n coll)))]
+            (let [result (lazy-seq-from-generator (Seq/take n coll))]
               (if (nil? result)
                 []
                 (copy-meta coll result)))))
-        (throw (php/new InvalidArgumentException (str "take expects an integer count, got " (type n)))))
-    (throw (php/new InvalidArgumentException "take expects 1 or 2 arguments"))))
+        (throw (new InvalidArgumentException (str "take expects an integer count, got " (type n)))))
+    (throw (new InvalidArgumentException "take expects 1 or 2 arguments"))))
 
 (defn- take-last-buffered
   [n coll]
@@ -485,7 +485,7 @@ Creates intermediate maps if they don't exist."
       (php/apush buffer x)
       (when (php/> (php/count buffer) n)
         (php/array_shift buffer)))
-    (php/:: Phel (vector buffer))))
+    (Phel/vector buffer)))
 
 (defn take-last
   "Takes the last `n` elements of `coll`."
@@ -493,10 +493,10 @@ Creates intermediate maps if they don't exist."
    :see-also ["take" "drop-last"]}
   [n coll]
   (cond
-    (php/<= (php/:: NumericOperations (compare n 0)) 0) []
+    (php/<= (NumericOperations/compare n 0) 0) []
     (nil? coll)    nil
     (or (php-array? coll)
-        (php/instanceof coll SliceInterface)) (slice coll (php/:: NumericOperations (subtract 0 n)))
+        (php/instanceof coll SliceInterface)) (slice coll (NumericOperations/subtract 0 n))
     :else (take-last-buffered n coll)))
 
 (defn take-while
@@ -511,9 +511,9 @@ Creates intermediate maps if they don't exist."
     1 (let [coll (first args)]
         (if (nil? coll)
           []
-          (let [result (lazy-seq-from-generator (php/:: Seq (takeWhile pred coll)))]
+          (let [result (lazy-seq-from-generator (Seq/takeWhile pred coll))]
             (copy-meta coll (or result [])))))
-    (throw (php/new InvalidArgumentException "take-while expects 1 or 2 arguments"))))
+    (throw (new InvalidArgumentException "take-while expects 1 or 2 arguments"))))
 
 (defn take-nth
   "Returns every nth item in `coll`. Returns a lazy sequence. When called with n only, returns a transducer."
@@ -531,10 +531,10 @@ Creates intermediate maps if they don't exist."
             s    (seq coll)]
         (cond
           (nil? s)     []
-          (php/<= n 0) (copy-meta coll (lazy-seq-from-generator (php/:: Seq (repeat (first s)))))
-          :else        (let [result (lazy-seq-from-generator (php/:: Seq (takeNth n coll)))]
+          (php/<= n 0) (copy-meta coll (lazy-seq-from-generator (Seq/repeat (first s))))
+          :else        (let [result (lazy-seq-from-generator (Seq/takeNth n coll))]
                          (copy-meta coll (or result [])))))
-    (throw (php/new InvalidArgumentException "take-nth expects 1 or 2 arguments"))))
+    (throw (new InvalidArgumentException "take-nth expects 1 or 2 arguments"))))
 
 (defn filter
   "Returns a lazy sequence of elements where predicate returns true. When called with pred only, returns a transducer."
@@ -548,12 +548,12 @@ Creates intermediate maps if they don't exist."
             ;; Use LazySeq (not ChunkedSeq) so the first chunk isn't
             ;; pre-realized: a sparse predicate over an infinite source
             ;; would otherwise loop forever trying to fill 32 matches.
-            result (php/:: LazySeq (fromGenerator
-                                    (php/new Hasher)
-                                    (php/new Equalizer)
-                                    (php/:: Seq (filter pred coll))))]
+            result (LazySeq/fromGenerator
+                    (new Hasher)
+                    (new Equalizer)
+                    (Seq/filter pred coll))]
         (copy-meta coll result))
-    (throw (php/new InvalidArgumentException "filter expects 1 or 2 arguments"))))
+    (throw (new InvalidArgumentException "filter expects 1 or 2 arguments"))))
 
 (defn mapv
   "Returns a vector consisting of the result of applying `f` to the set of first items of each coll, followed by applying `f` to the set of second items in each coll, until any one of the colls is exhausted. Like `map`, but eager and returns a vector rather than a lazy sequence."
@@ -577,7 +577,7 @@ Creates intermediate maps if they don't exist."
   (case (count args)
     0 (filter #(not (pred %)))
     1 (filter #(not (pred %)) (first args))
-    (throw (php/new InvalidArgumentException "remove expects 1 or 2 arguments"))))
+    (throw (new InvalidArgumentException "remove expects 1 or 2 arguments"))))
 
 (defn keep
   "Returns a lazy sequence of non-nil results of applying function to elements. When called with f only, returns a transducer."
@@ -592,9 +592,9 @@ Creates intermediate maps if they don't exist."
     1 (let [coll (first args)]
         (if (nil? coll)
           []
-          (let [result (lazy-seq-from-generator (php/:: Seq (keep pred coll)))]
+          (let [result (lazy-seq-from-generator (Seq/keep pred coll))]
             (copy-meta coll (or result [])))))
-    (throw (php/new InvalidArgumentException "keep expects 1 or 2 arguments"))))
+    (throw (new InvalidArgumentException "keep expects 1 or 2 arguments"))))
 
 (defn keep-indexed
   "Returns a lazy sequence of non-nil results of `(pred i x)`. When called with f only, returns a transducer."
@@ -611,9 +611,9 @@ Creates intermediate maps if they don't exist."
     1 (let [coll (first args)]
         (if (nil? coll)
           []
-          (let [result (lazy-seq-from-generator (php/:: Seq (keepIndexed pred coll)))]
+          (let [result (lazy-seq-from-generator (Seq/keepIndexed pred coll))]
             (copy-meta coll (or result [])))))
-    (throw (php/new InvalidArgumentException "keep-indexed expects 1 or 2 arguments"))))
+    (throw (new InvalidArgumentException "keep-indexed expects 1 or 2 arguments"))))
 
 (defn- find-entry
   [coll key]
@@ -665,12 +665,12 @@ Creates intermediate maps if they don't exist."
           []
           ;; LazySeq keeps the seq unrealized until accessed; ChunkedSeq
           ;; would pre-pull 32 unique elements at construction.
-          (let [result (php/:: LazySeq (fromGenerator
-                                        (php/new Hasher)
-                                        (php/new Equalizer)
-                                        (php/:: Seq (distinct coll))))]
+          (let [result (LazySeq/fromGenerator
+                        (new Hasher)
+                        (new Equalizer)
+                        (Seq/distinct coll))]
             (copy-meta coll result))))
-    (throw (php/new InvalidArgumentException "distinct expects 0 or 1 arguments"))))
+    (throw (new InvalidArgumentException "distinct expects 0 or 1 arguments"))))
 
 (defn distinct?
   "Returns true if no two of the arguments are `=`. Requires at least one argument."
@@ -701,7 +701,7 @@ Creates intermediate maps if they don't exist."
   (let [arr    (if (string? coll)
                  (php/mb_str_split coll)
                  (to-php-array coll))
-        result (php/:: Phel (vector (php/array_reverse arr)))]
+        result (Phel/vector (php/array_reverse arr))]
     (copy-meta coll result)))
 
 (defn reversible?
@@ -718,10 +718,10 @@ Creates intermediate maps if they don't exist."
    :see-also ["reversible?" "reverse"]}
   [rev]
   (when-not (reversible? rev)
-    (throw (php/new InvalidArgumentException
-                    "rseq requires a reversible collection (vector, sorted-map, or sorted-set)")))
+    (throw (new InvalidArgumentException
+                "rseq requires a reversible collection (vector, sorted-map, or sorted-set)")))
   (when (php/> (count rev) 0)
-    (php/:: Phel (seqList (apply php/array (reverse (if (vector? rev) rev (vec rev))))))))
+    (Phel/seqList (apply php/array (reverse (if (vector? rev) rev (vec rev)))))))
 
 (defn frequencies
   "Returns a map from distinct items in `coll` to the number of times they appear.
@@ -755,7 +755,7 @@ Works with vectors, lists, sets, and strings."
   {:example "(map-entry :a 1) ; => [:a 1]"
    :see-also ["map-entry?" "key" "val"]}
   [k v]
-  (php/:: MapEntry (create k v)))
+  (MapEntry/create k v))
 
 (defn key
   "Returns the key of a map entry. Accepts a typed
@@ -765,7 +765,7 @@ Works with vectors, lists, sets, and strings."
    :see-also ["val" "keys" "pairs" "map-entry"]}
   [entry]
   (if (php/instanceof entry MapEntry)
-    (php/-> entry (key))
+    (.key entry)
     (first entry)))
 
 (defn val
@@ -776,21 +776,21 @@ Works with vectors, lists, sets, and strings."
    :see-also ["key" "vals" "pairs" "map-entry"]}
   [entry]
   (if (php/instanceof entry MapEntry)
-    (php/-> entry (value))
+    (.value entry)
     (second entry)))
 
 (defn- assert-sorted-coll
   [caller sc]
   (when-not (sorted? sc)
-    (throw (php/new InvalidArgumentException
-                    (str caller " expects a sorted collection (sorted-map or sorted-set), got " (type sc))))))
+    (throw (new InvalidArgumentException
+                (str caller " expects a sorted collection (sorted-map or sorted-set), got " (type sc))))))
 
 (defn- sorted-bound-fn
   "Boundary predicate for subseq/rsubseq: true when the element's key (for a
   sorted map) or the element itself (for a sorted set) satisfies
   `(test (cmp k bound-key) 0)` under the collection's own comparator."
   [sc test bound-key]
-  (let [cmp       (php/-> sc (getEffectiveComparator))
+  (let [cmp       (.getEffectiveComparator sc)
         entry-key (if (map? sc) key identity)]
     (fn [x] (test (cmp (entry-key x) bound-key) 0))))
 
@@ -841,8 +841,8 @@ Works with vectors, lists, sets, and strings."
   [coll]
   (let [res (transient [])]
     (foreach [k v coll]
-      (php/-> res (append k))
-      (php/-> res (append v)))
+      (.append res k)
+      (.append res v))
     (copy-meta coll (persistent res))))
 
 (defn php-array-to-map
@@ -852,7 +852,7 @@ Works with vectors, lists, sets, and strings."
   [arr]
   (let [res (transient {})]
     (foreach [k v arr]
-      (php/-> res (put k v)))
+      (.put res k v))
     (persistent res)))
 
 (defn- phel->php-key
@@ -934,10 +934,10 @@ Indexed PHP arrays become vectors, associative PHP arrays become maps."
   {:example "(hydrate \"My\\\\Dto\" {:id 1 :name \"x\"})"
    :see-also ["bean"]}
   [class-name m]
-  (let [rc  (php/new \ReflectionClass class-name)
-        obj (php/-> rc (newInstanceWithoutConstructor))]
+  (let [rc  (new \ReflectionClass class-name)
+        obj (.newInstanceWithoutConstructor rc)]
     (foreach [k v m]
-      (php/-> (php/-> rc (getProperty (name k))) (setValue obj v)))
+      (.setValue (.getProperty rc (name k)) obj v))
     obj))
 
 (defn contains-value?
@@ -963,7 +963,7 @@ Indexed PHP arrays become vectors, associative PHP arrays become maps."
   [coll comp]
   (let [php-array (to-php-array coll)]
     (php/usort php-array comp)
-    (copy-meta coll (php/:: Phel (vector php-array)))))
+    (copy-meta coll (Phel/vector php-array))))
 
 (defn- sort-with
   [coll comp]
@@ -1004,7 +1004,7 @@ If no comparator is supplied compare is used."
   [coll]
   (let [php-array (to-php-array coll)]
     (php/shuffle php-array)
-    (copy-meta coll (php/:: Phel (vector php-array)))))
+    (copy-meta coll (Phel/vector php-array))))
 
 (defn repeat
   "Returns a vector of length n where every element is x.
@@ -1014,9 +1014,9 @@ With one argument returns an infinite lazy sequence of x."
    :see-also ["repeatedly" "cycle"]}
   [a & rest]
   (case (count rest)
-    0 (lazy-seq-from-generator (php/:: Seq (repeat a)))
+    0 (lazy-seq-from-generator (Seq/repeat a))
     1 (for [_ :range [a]] (get rest 0))
-    (throw (php/new InvalidArgumentException "repeat expects one or two arguments"))))
+    (throw (new InvalidArgumentException "repeat expects one or two arguments"))))
 
 (defn repeatedly
   "Returns a vector of length n with values produced by repeatedly calling f.
@@ -1026,26 +1026,26 @@ With one argument returns an infinite lazy sequence of calls to f."
    :see-also ["repeat" "iterate"]}
   [a & rest]
   (case (count rest)
-    0 (php/:: LazySeq (fromGenerator
-                       (php/new Hasher)
-                       (php/new Equalizer)
-                       (php/:: Seq (repeatedly a))))
+    0 (LazySeq/fromGenerator
+       (new Hasher)
+       (new Equalizer)
+       (Seq/repeatedly a))
     1 (let [n a
             f (get rest 0)]
-        (php/new \Phel\Lang\Collections\LazySeq\LazySeq
-                 (php/new Hasher)
-                 (php/new Equalizer)
-                 (fn [] (for [_ :range [n]] (f)))))
-    (throw (php/new InvalidArgumentException "repeatedly expects one or two arguments"))))
+        (new \Phel\Lang\Collections\LazySeq\LazySeq
+             (new Hasher)
+             (new Equalizer)
+             (fn [] (for [_ :range [n]] (f)))))
+    (throw (new InvalidArgumentException "repeatedly expects one or two arguments"))))
 
 (defmacro lazy-seq
   "Creates a lazy sequence that evaluates the body only when accessed."
   {:example "(lazy-seq (cons 1 (lazy-seq nil))) ; => @[1]"}
   [& body]
-  `(php/new \Phel\Lang\Collections\LazySeq\LazySeq
-            (php/new \Phel\Lang\Hasher)
-            (php/new \Phel\Lang\Equalizer)
-            (fn [] ~@body)))
+  `(new \Phel\Lang\Collections\LazySeq\LazySeq
+        (new \Phel\Lang\Hasher)
+        (new \Phel\Lang\Equalizer)
+        (fn [] ~@body)))
 
 (defmacro lazy-cat
   "Concatenates collections into a lazy sequence (expands to concat)."
@@ -1058,7 +1058,7 @@ With one argument returns an infinite lazy sequence of calls to f."
   {:example "(take 5 (iterate inc 0)) ; => @[0 1 2 3 4]"
    :see-also ["repeatedly" "cycle"]}
   [f x]
-  (lazy-seq-from-generator (php/:: Seq (iterate f x))))
+  (lazy-seq-from-generator (Seq/iterate f x)))
 
 (defn reductions
   "Returns a lazy sequence of the intermediate values of the reduction (as per reduce) of coll by f, starting with init when supplied."
@@ -1081,10 +1081,10 @@ With one argument returns an infinite lazy sequence of calls to f."
 
 (defn iterator-seq
   "Returns a lazy sequence over a PHP `Traversable` (Iterator, Generator, IteratorAggregate, ...), pulling one element at a time. Unlike the eager coercion that materialises a `Traversable` via `iterator_to_array`, this streams a large or infinite source (DB cursor, stream reader, paginated API), so `take`/`map`/`filter` only pull what they consume."
-  {:example "(take 3 (iterator-seq (php/new \\ArrayIterator (php/array 1 2 3 4 5)))) ; => @[1 2 3]"
+  {:example "(take 3 (iterator-seq (new \\ArrayIterator (php/array 1 2 3 4 5)))) ; => @[1 2 3]"
    :see-also ["lazy-seq" "map" "take"]}
   [traversable]
-  (php/:: LazySeq (fromTraversable (php/new Hasher) (php/new Equalizer) traversable)))
+  (LazySeq/fromTraversable (new Hasher) (new Equalizer) traversable))
 
 (defn cycle
   "Returns an infinite lazy sequence that cycles through the elements of collection. Maps are iterated as `[key value]` pairs."
@@ -1093,7 +1093,7 @@ With one argument returns an infinite lazy sequence of calls to f."
   [coll]
   (if (or (php/=== nil coll) (empty? coll))
     []
-    (lazy-seq-from-generator (php/:: Seq (cycle (or (seq coll) coll))))))
+    (lazy-seq-from-generator (Seq/cycle (or (seq coll) coll)))))
 
 (defn concat
   "Concatenates multiple collections into a lazy sequence."
@@ -1103,12 +1103,12 @@ With one argument returns an infinite lazy sequence of calls to f."
     '()
     ;; Use LazySeq (not ChunkedSeq) so the head is not pre-realized:
     ;; the result must not satisfy `realized?` until accessed.
-    (php/:: LazySeq (fromGenerator
-                     (php/new Hasher)
-                     (php/new Equalizer)
-                     (php/call_user_func_array
-                      (php/array "\\Phel\\Lang\\Seq" "concat")
-                      (apply php/array colls))))))
+    (LazySeq/fromGenerator
+     (new Hasher)
+     (new Equalizer)
+     (php/call_user_func_array
+      (php/array "\\Phel\\Lang\\Seq" "concat")
+      (apply php/array colls)))))
 
 (defn cat
   "A transducer that concatenates the contents of each input into the reduction."
@@ -1136,7 +1136,7 @@ With one argument returns an infinite lazy sequence of calls to f."
           '()
           (let [input  (if (map? coll) (pairs coll) coll)
                 result (lazy-seq-from-generator
-                        (php/:: \Phel\Lang\Seq (mapcat f input)))]
+                        (\Phel\Lang\Seq/mapcat f input))]
             (if (php/=== nil result)
               '()
               (copy-meta coll result)))))
@@ -1166,11 +1166,11 @@ With one argument returns an infinite lazy sequence of calls to f."
           '()
           (let [seqd   (or (seq coll) coll)
                 result (lazy-seq-from-generator
-                        (php/:: \Phel\Lang\Seq (interpose sep seqd)))]
+                        (\Phel\Lang\Seq/interpose sep seqd))]
             (if (php/=== nil result)
               '()
               (copy-meta coll result)))))
-    (throw (php/new InvalidArgumentException "interpose expects 1 or 2 arguments"))))
+    (throw (new InvalidArgumentException "interpose expects 1 or 2 arguments"))))
 
 (defn map-indexed
   "Maps a function over a collection with index. Returns a lazy sequence.
@@ -1181,7 +1181,7 @@ Applies `f` to each element in `xs`. `f` is a two-argument function where the fi
   (if (php/=== nil coll)
     '()
     (let [result (lazy-seq-from-generator
-                  (php/:: \Phel\Lang\Seq (mapIndexed f coll)))]
+                  (\Phel\Lang\Seq/mapIndexed f coll))]
       (if (php/=== nil result)
         '()
         (copy-meta coll result)))))
@@ -1208,7 +1208,7 @@ Applies `f` to each element in `xs`. `f` is a two-argument function where the fi
   {:example "(doall (map println [1 2 3])) ; => [nil nil nil]"}
   [coll]
   (if (seq? coll)
-    (php/:: Phel (vector (php/-> coll (toArray))))
+    (Phel/vector (.toArray coll))
     coll))
 
 (defn dorun
@@ -1227,12 +1227,12 @@ Applies `f` to each element in `xs`. `f` is a two-argument function where the fi
    :see-also ["delay" "force" "lazy-seq" "future"]}
   [coll]
   (cond
-    (php/instanceof coll LazySeqInterface) (php/-> coll (isRealized))
+    (php/instanceof coll LazySeqInterface) (.isRealized coll)
     (php/instanceof coll PersistentListInterface) true
-    (php/instanceof coll Delay) (php/-> coll (isRealized))
-    (php/instanceof coll \Phel\Lang\Future) (php/-> coll (isRealized))
-    (php/instanceof coll \Phel\Fiber\Domain\Future) (php/-> coll (isRealized))
-    (php/instanceof coll \Phel\Fiber\Domain\Promise) (php/-> coll (isRealized))
+    (php/instanceof coll Delay) (.isRealized coll)
+    (php/instanceof coll \Phel\Lang\Future) (.isRealized coll)
+    (php/instanceof coll \Phel\Fiber\Domain\Future) (.isRealized coll)
+    (php/instanceof coll \Phel\Fiber\Domain\Promise) (.isRealized coll)
     true))
 
 (defn group-by
@@ -1354,7 +1354,7 @@ If map has duplicated values, some keys will be ignored."
   (cond
     (nil? coll)                              []
     (and (indexed? coll) (= 0 (count coll))) []
-    true                                     (lazy-seq-from-generator (php/:: Seq (partitionBy f coll)))))
+    true                                     (lazy-seq-from-generator (Seq/partitionBy f coll))))
 
 (defn dedupe
   "Returns a lazy sequence with consecutive duplicate values removed in `coll`. When called with no args, returns a transducer."
@@ -1372,8 +1372,8 @@ If map has duplicated values, some keys will be ignored."
         (cond
           (nil? coll)                              []
           (and (indexed? coll) (= 0 (count coll))) []
-          true                                     (lazy-seq-from-generator (php/:: Seq (dedupe coll)))))
-    (throw (php/new InvalidArgumentException "dedupe expects 0 or 1 arguments"))))
+          true                                     (lazy-seq-from-generator (Seq/dedupe coll))))
+    (throw (new InvalidArgumentException "dedupe expects 0 or 1 arguments"))))
 
 (defn sequence
   "Applies transducer `xform` to `coll`, returning a vector of results."
@@ -1395,7 +1395,7 @@ If map has duplicated values, some keys will be ignored."
         xform (if (or (nil? xs) (empty? xs))
                 identity
                 (apply comp xs))]
-    (php/new Eduction xform coll)))
+    (new Eduction xform coll)))
 
 (defn compact
   "Returns a lazy sequence with specified values removed from `coll`. If no values are specified, removes nil values by default."

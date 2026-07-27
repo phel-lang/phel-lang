@@ -6,12 +6,12 @@
 (defn- print-value
   "Prints a scalar or non-collection value using the standard readable printer."
   [x]
-  (php/-> (php/:: Printer (readable)) (print x)))
+  (.print (Printer/readable) x))
 
 (defn- render-value
   "Prints `x` with the given printer (plain or colored)."
   [printer x]
-  (php/-> printer (print x)))
+  (.print printer x))
 
 (defn- pp-str
   "Pretty-prints `form` to a string with the given indent level and max width.
@@ -95,7 +95,7 @@
    :example "(pprint-str {:a [1 2 3] :b {:c 4 :d 5}})"}
   [form & [width]]
   (let [w (or width *default-width*)]
-    (pp-str form 0 w (php/:: Printer (readable)))))
+    (pp-str form 0 w (Printer/readable))))
 
 (defn pprint
   "Pretty-prints `form` to stdout with optional `width` (default 72)."
@@ -124,8 +124,8 @@
   [x & [width]]
   (let [w       (or width *default-width*)
         printer (if (color-output?)
-                  (php/:: Printer (readableWithColor))
-                  (php/:: Printer (readable)))]
+                  (Printer/readableWithColor)
+                  (Printer/readable))]
     (php/print (pp-str x 0 w printer))
     (php/print "\n")
     x))

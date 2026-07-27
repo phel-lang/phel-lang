@@ -169,7 +169,7 @@
   (is (false? (all? pos? [1 -1 3])) "all pos? in list"))
 
 (deftest test-all?-empty-element
-  (is (true? (all? #(throw (php/new \Exception)) [])) "`pred` is not executed when searching for empty vectors."))
+  (is (true? (all? #(throw (new \Exception)) [])) "`pred` is not executed when searching for empty vectors."))
 
 (deftest test-every?
   (is (true? (every? pos? [1 2 3])) "every? pos? in list")
@@ -188,7 +188,7 @@
   (is (false? (some? pos? [-1 -1 -3])) "some pos? in list"))
 
 (deftest test-some?-empty-element
-  (is (false? (some? #(throw (php/new \Exception)) [])) "`pred` is not executed when searching for empty vectors."))
+  (is (false? (some? #(throw (new \Exception)) [])) "`pred` is not executed when searching for empty vectors."))
 
 (deftest test-some?-1-arg-clojure-semantics
   (is (true? (some? 0))           "0 is not nil")

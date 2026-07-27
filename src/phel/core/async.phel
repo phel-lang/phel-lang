@@ -14,13 +14,13 @@
 (defn- fiber-facade
   "Lazily resolves the shared FiberFacade instance."
   []
-  (php/new \Phel\Fiber\FiberFacade))
+  (new \Phel\Fiber\FiberFacade))
 
 (defn ->closure
   "Converts a Phel function to a PHP Closure. Many PHP libraries (AMPHP, ReactPHP) type-hint `\\Closure` and reject Phel's `AbstractFn` even though it is callable. This bridges the gap."
   {:example "(->closure (fn [x] (* x 2)))"}
   [f]
-  (php/:: \Closure (fromCallable f)))
+  (\Closure/fromCallable f))
 
 (defmacro async
   "Runs body asynchronously in a new fiber. Returns an Amp\\Future.
@@ -31,16 +31,16 @@
   {:example "(async (do-something))"
    :see-also ["await" "await-all" "await-any" "future"]}
   [& body]
-  `(let [frame# (php/:: \Phel (snapshotDynamicBindings))]
+  `(let [frame# (\Phel/snapshotDynamicBindings)]
      (php/amp\async
       (fn []
-        (php/:: \Phel (withDynamicBindings frame# (fn [] ~@body)))))))
+        (\Phel/withDynamicBindings frame# (fn [] ~@body))))))
 
 (defn- unwrap-future
   "Returns the raw Amp\\Future for either a `Future` wrapper or a bare `Amp\\Future`."
   [future]
   (if (php/instanceof future \Phel\Lang\Future)
-    (php/-> future (unwrap))
+    (.unwrap future)
     future))
 
 (defn await
@@ -48,7 +48,7 @@
   {:example "(await (async (+ 1 2)))"
    :see-also ["async" "await-all" "await-any"]}
   [future]
-  (php/-> (unwrap-future future) (await)))
+  (.await (unwrap-future future)))
 
 (defn await-all
   "Awaits all Futures in the given collection. Returns a vector of results in the same order as the input collection, regardless of which Future resolves first. Accepts a mix of raw `Amp\\Future` and `Future` wrappers."
@@ -82,7 +82,7 @@ PHP fibers are cooperative on a single thread, so `pmap` overlaps IO-bound work 
    :see-also ["map" "async" "await-all"]}
   [f & colls]
   (case (count colls)
-    0 (throw (php/new \InvalidArgumentException "pmap expects at least one collection"))
+    0 (throw (new \InvalidArgumentException "pmap expects at least one collection"))
     1 (await-all (map #(async (f %)) (first colls)))
     (await-all (apply map (fn [& args] (async (apply f args))) colls))))
 
@@ -91,14 +91,14 @@ PHP fibers are cooperative on a single thread, so `pmap` overlaps IO-bound work 
   {:example "(future-cancel (future (expensive-call)))"
    :see-also ["future" "future-cancelled?" "future-done?" "deref"]}
   [f]
-  (php/-> f (cancel)))
+  (.cancel f))
 
 (defn future-cancelled?
   "Returns `true` if `future-cancel` was called on `f`, `false` otherwise."
   {:example "(future-cancelled? f)"
    :see-also ["future-cancel" "future-done?" "future"]}
   [f]
-  (php/-> f (isCancelled)))
+  (.isCancelled f))
 
 (defn future-done?
   "Returns `true` if the future is in a final state (completed, failed, or cancelled).
@@ -108,7 +108,7 @@ Dispatches on type: for a `\\Phel\\Fiber\\Domain\\Future` (fiber-backed) it call
    :see-also ["realized?" "future-cancel" "future" "future-fiber"]}
   [f]
   (cond
-    (php/instanceof f \Phel\Fiber\Domain\Future) (php/-> f (isDone))
+    (php/instanceof f \Phel\Fiber\Domain\Future) (.isDone f)
     true                                         (realized? f)))
 
 ;; -----------------------------------------------------------------
@@ -126,14 +126,14 @@ Once delivered the value is frozen; subsequent `deliver` calls are no-ops. `dere
   {:example "(let [p (promise)] (deliver p 42) @p) ; => 42"
    :see-also ["deliver" "deref" "realized?" "future-call" "future-fiber"]}
   []
-  (php/-> (fiber-facade) (createPromise)))
+  (.createPromise (fiber-facade)))
 
 (defn deliver
   "Delivers `value` to `p` if it is still unrealized. Returns `p` on first delivery, `nil` if `p` was already delivered."
   {:example "(deliver (promise) 7)"
    :see-also ["promise" "deref" "realized?"]}
   [p value]
-  (if (php/-> p (deliver value)) p nil))
+  (if (.deliver p value) p nil))
 
 (defn future-call
   "Invokes `f` (a zero-arg function) in a new fiber. Returns a
@@ -147,9 +147,9 @@ Once delivered the value is frozen; subsequent `deliver` calls are no-ops. `dere
    :see-also ["future-fiber" "deref" "future-done?" "future-cancel"
               "promise" "deliver"]}
   [f]
-  (let [frame   (php/:: \Phel (snapshotDynamicBindings))
-        wrapped (fn [] (php/:: \Phel (withDynamicBindings frame f)))]
-    (php/-> (fiber-facade) (future (->closure wrapped)))))
+  (let [frame   (\Phel/snapshotDynamicBindings)
+        wrapped (fn [] (\Phel/withDynamicBindings frame f))]
+    (.future (fiber-facade) (->closure wrapped))))
 
 (defmacro future-fiber
   "Runs `body` in a new fiber via the cooperative scheduler. Returns a

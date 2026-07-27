@@ -22,7 +22,7 @@
   (is (= [[0 "a"] [1 "b"] [2 "c"]] (map-indexed vector ["a" "b" "c"])) "map-indexed"))
 
 (deftest test-map-empty-element
-  (is (= [] (map #(throw (php/new \Exception)) [])) "`pred` is not executed when searching for empty vectors."))
+  (is (= [] (map #(throw (new \Exception)) [])) "`pred` is not executed when searching for empty vectors."))
 
 (deftest test-mapv
   (is (= [2 3 4] (mapv inc [1 2 3])) "mapv applies f eagerly")
@@ -176,7 +176,7 @@
   (is (= [1 2 3 4 -1 -2 -3] (doall (drop-while neg? (php/array -1 -2 -3 1 2 3 4 -1 -2 -3)))) "drop-while: php array (returns lazy seq)"))
 
 (deftest test-drop-while-empty-element
-  (is (= [] (drop-while #(throw (php/new \Exception)) [])) "`pred` is not executed when searching for empty vectors."))
+  (is (= [] (drop-while #(throw (new \Exception)) [])) "`pred` is not executed when searching for empty vectors."))
 
 (deftest test-take
   (is (= ["a" "b"] (take 2 ["a" "b" "c"])) "take two elements")
@@ -237,7 +237,7 @@
   (is (= [-1 -2 -3] (filter neg? (php/array -1 2 3 -2 -3 4 5))) "filter on php array"))
 
 (deftest test-filter-empty-element
-  (is (= [] (filter #(throw (php/new \Exception)) [])) "`pred` is not executed when searching for empty vectors."))
+  (is (= [] (filter #(throw (new \Exception)) [])) "`pred` is not executed when searching for empty vectors."))
 
 ;; A Phel predicate returns an arbitrary value, and only nil/false are logically
 ;; false. The lazy `filter` used to apply PHP truthiness, so 0, "" and friends
@@ -277,7 +277,7 @@
   (is (nil? (find {:a 1 :b 2 :c 3} :d)) "find returns nil for missing key"))
 
 (deftest test-find-empty-element
-  (is (nil? (find #(throw (php/new \Exception)) [])) "`pred` is not executed when searching for empty vectors."))
+  (is (nil? (find #(throw (new \Exception)) [])) "`pred` is not executed when searching for empty vectors."))
 
 (deftest test-find-index?
   (is (= 3 (find-index neg? [1 2 3 -1 2 3])) "find-index first neg number")
@@ -285,7 +285,7 @@
   (is (nil? (find-index neg? [])) "find-index on empty array"))
 
 (deftest test-find-index-empty-element
-  (is (nil? (find-index #(throw (php/new \Exception)) [])) "`pred` is not executed when searching for empty vectors."))
+  (is (nil? (find-index #(throw (new \Exception)) [])) "`pred` is not executed when searching for empty vectors."))
 
 ;; =============================================================================
 ;; Collection Utilities (distinct, dedupe, reverse, interleave, etc.)

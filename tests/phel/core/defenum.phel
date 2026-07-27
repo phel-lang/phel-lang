@@ -11,19 +11,19 @@
 (defenum Color :red :green :blue)
 
 (deftest string-backed-enum
-  (let [active (php/:: \phel_test\core\defenum\Status (from "active"))]
-    (is (= "active" (php/-> active value)) "case carries its string value")
-    (is (= "active" (php/-> active name)) "case name matches the keyword")
+  (let [active (\phel_test\core\defenum\Status/from "active")]
+    (is (= "active" (.-value active)) "case carries its string value")
+    (is (= "active" (.-name active)) "case name matches the keyword")
     (is (true? (Status? active)) "predicate recognises its own case")
     (is (false? (Status? :active)) "predicate rejects a plain keyword")))
 
 (deftest int-backed-enum
-  (let [high (php/:: \phel_test\core\defenum\Priority (from 10))]
-    (is (= 10 (php/-> high value)) "int case carries its value")
+  (let [high (\phel_test\core\defenum\Priority/from 10)]
+    (is (= 10 (.-value high)) "int case carries its value")
     (is (true? (Priority? high)) "int predicate works")))
 
 (deftest pure-enum
-  (let [cases (php/:: \phel_test\core\defenum\Color (cases))]
+  (let [cases (\phel_test\core\defenum\Color/cases)]
     (is (= 3 (count cases)) "pure enum exposes all cases")
     (is (true? (Color? (php/aget cases 0))) "pure case satisfies predicate")))
 
@@ -31,7 +31,7 @@
   ;; The enum's bare name resolves to the namespaced PHP class, so the
   ;; documented `EnumName/case` access form works (issue #2358).
   (is (true? (Status? Status/active)) "Status/active resolves to a case")
-  (is (= "active" (php/-> Status/active value)) "the resolved case carries its value")
+  (is (= "active" (.-value Status/active)) "the resolved case carries its value")
   (is (true? (Color? Color/red)) "pure-enum case access works too"))
 
 ;; Enum with an implemented interface and a `:php` block of plain methods.
@@ -42,27 +42,27 @@
   :hearts :spades :clubs :diamonds
   Describable
   (describe [this]
-            (let [n (php/-> this name)]
+            (let [n (.-name this)]
               (if (or (= n "hearts") (= n "diamonds")) "red" "black")))
   :php
-  (label [this] (php/-> this name)))
+  (label [this] (.-name this)))
 
 ;; Backed enum carrying a `:php` method that reads its own value.
 (defenum Coin
   :penny 1 :nickel 5
   :php
-  (doubled [this] (* 2 (php/-> this value))))
+  (doubled [this] (* 2 (.-value this))))
 
 (deftest enum-implements-interface
-  (let [hearts (php/:: \phel_test\core\defenum\Suit hearts)]
+  (let [hearts \phel_test\core\defenum\Suit/hearts]
     (is (php/is_a hearts "phel_test\\core\\defenum\\Describable") "enum implements the declared interface")
-    (is (= "red" (php/-> hearts (describe))) "interface method runs on a red suit")
-    (is (= "black" (php/-> (php/:: \phel_test\core\defenum\Suit spades) (describe))) "interface method runs on a black suit")))
+    (is (= "red" (.describe hearts)) "interface method runs on a red suit")
+    (is (= "black" (.describe \phel_test\core\defenum\Suit/spades)) "interface method runs on a black suit")))
 
 (deftest enum-php-block-method
-  (let [hearts (php/:: \phel_test\core\defenum\Suit hearts)]
-    (is (= "hearts" (php/-> hearts (label))) "a :php block method runs on a pure enum case")))
+  (let [hearts \phel_test\core\defenum\Suit/hearts]
+    (is (= "hearts" (.label hearts)) "a :php block method runs on a pure enum case")))
 
 (deftest backed-enum-php-method
-  (let [nickel (php/:: \phel_test\core\defenum\Coin (from 5))]
-    (is (= 10 (php/-> nickel (doubled))) "a :php method can read the backed value")))
+  (let [nickel (\phel_test\core\defenum\Coin/from 5)]
+    (is (= 10 (.doubled nickel)) "a :php method can read the backed value")))

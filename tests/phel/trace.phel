@@ -56,7 +56,7 @@
         "nested calls are indented and returns align with their call")))
 
 (deftest test-trace-fn-depth-restored-after-throw
-  (let [boom           (t/trace-fn "boom" (fn [] (throw (php/new \Exception "no"))))
+  (let [boom           (t/trace-fn "boom" (fn [] (throw (new \Exception "no"))))
         [result lines] (capture-trace
                         (fn []
                           (try (boom) (catch \Exception _ :caught))))]

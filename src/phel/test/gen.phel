@@ -86,8 +86,8 @@
   {:example "((choose 1 6) 100) ; => 1..6"}
   [lo hi]
   (when (> lo hi)
-    (throw (php/new InvalidArgumentException
-                    (str "gen/choose requires lo <= hi, got " lo ", " hi))))
+    (throw (new InvalidArgumentException
+                (str "gen/choose requires lo <= hi, got " lo ", " hi))))
   (fn [_size] (rand-int* lo hi)))
 
 ;; -----------------
@@ -192,8 +192,8 @@
    (fn [size]
      (loop [i 0]
        (when (>= i max-tries)
-         (throw (php/new RuntimeException
-                         (str "gen/such-that exceeded " max-tries " retries"))))
+         (throw (new RuntimeException
+                     (str "gen/such-that exceeded " max-tries " retries"))))
        (let [v (g size)]
          (if (pred v) v (recur (inc i))))))))
 
@@ -215,8 +215,8 @@
   [coll]
   (let [v (into [] coll)]
     (when (zero? (count v))
-      (throw (php/new InvalidArgumentException
-                      "gen/elements requires a non-empty collection")))
+      (throw (new InvalidArgumentException
+                  "gen/elements requires a non-empty collection")))
     (fn [_size] (rand-elem v))))
 
 (defn one-of
@@ -225,8 +225,8 @@
   [gens]
   (let [v (into [] gens)]
     (when (zero? (count v))
-      (throw (php/new InvalidArgumentException
-                      "gen/one-of requires at least one generator")))
+      (throw (new InvalidArgumentException
+                  "gen/one-of requires at least one generator")))
     (fn [size] ((rand-elem v) size))))
 
 (defn frequency
@@ -236,8 +236,8 @@
   (let [v     (into [] pairs)
         total (reduce + 0 (map (fn [p] (get p 0)) v))]
     (when (<= total 0)
-      (throw (php/new InvalidArgumentException
-                      "gen/frequency requires at least one pair with positive weight")))
+      (throw (new InvalidArgumentException
+                  "gen/frequency requires at least one pair with positive weight")))
     (fn [size]
       (loop [i 0 remaining (rand-int* 1 total)]
         (let [pair           (get v i)
@@ -406,7 +406,7 @@
                   parts)
         parts   (if ex
                   (conj parts (str ", threw " (php/get_class ex) ": "
-                                   (php/-> ex (getMessage))))
+                                   (.getMessage ex)))
                   parts)]
     (apply str (conj parts ")"))))
 
@@ -449,7 +449,7 @@
         n-sym      (gensym)
         res-sym    (gensym)
         final-opts (gensym)
-        name-meta  (or (php/-> name (getMeta)) {})
+        name-meta  (or (.getMeta name) {})
         no-shrink? (true? (get name-meta :no-shrink))
         name-str   (str name)]
     `(t/deftest ~name

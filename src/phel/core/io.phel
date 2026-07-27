@@ -32,7 +32,7 @@
 (defn- print-joined
   "Space-joins `xs`, stringifying each element with `printer`."
   [printer xs]
-  (let [pp #(php/-> printer (print %))]
+  (let [pp #(.print printer %)]
     (case (count xs)
       0 ""
       1 (pp (first xs))
@@ -47,14 +47,14 @@
   {:example "(print-str \"a\" 1) ; => \"a 1\""
    :see-also ["pr-str" "println-str" "str"]}
   ^string [& xs]
-  (print-joined (php/:: Printer (nonReadable)) xs))
+  (print-joined (Printer/nonReadable) xs))
 
 (defn pr-str
   "Same as `print-str`, but prints each value readably: strings are quoted and escaped so the output can be read back. Phel has no dedicated char type, so character literals such as `\\A` are single-character strings and print as `\"A\"` (ClojureScript-aligned; Clojure/JVM would print `\\A`)."
   {:example "(pr-str \"a\" 1) ; => \"\\\"a\\\" 1\""
    :see-also ["print-str" "prn-str" "prn"]}
   ^string [& xs]
-  (print-joined (php/:: Printer (readable)) xs))
+  (print-joined (Printer/readable) xs))
 
 (defn print
   "Prints the given values to the default output stream. Returns nil."
@@ -126,9 +126,9 @@
 
 (defn- dbg-location-str [form]
   (if (php/instanceof form SourceLocationInterface)
-    (let [start-loc (php/-> form (getStartLocation))]
+    (let [start-loc (.getStartLocation form)]
       (if start-loc
-        (str (php/-> start-loc (getFile)) ":" (php/-> start-loc (getLine)))
+        (str (.getFile start-loc) ":" (.getLine start-loc))
         "unknown"))
     "unknown"))
 
@@ -165,11 +165,11 @@
     ;; Validate for non-URLs
     (when-not is-url?
       (when (php/is_dir path)
-        (throw (php/new \InvalidArgumentException
-                        (str "Cannot read directory: " path))))
+        (throw (new \InvalidArgumentException
+                    (str "Cannot read directory: " path))))
       (when-not (php/is_file path)
-        (throw (php/new \InvalidArgumentException
-                        (str "File not found: " path)))))
+        (throw (new \InvalidArgumentException
+                    (str "File not found: " path)))))
     ;; Read content
     (let [opts             (or opts {})
           use-include-path (or (:use-include-path opts) false)
@@ -178,8 +178,8 @@
           length           (or (:length opts) nil)
           content          (file-get-contents-silenced path use-include-path context offset length)]
       (when (= content false)
-        (throw (php/new \InvalidArgumentException
-                        (str "Failed to read from: " path))))
+        (throw (new \InvalidArgumentException
+                    (str "Failed to read from: " path))))
       content)))
 
 (defn spit
@@ -188,8 +188,8 @@
 See PHP's [file_put_contents](https://www.php.net/manual/en/function.file-put-contents.php) for more information."
   [filename data & [opts]]
   (when (php/is_dir filename)
-    (throw (php/new \InvalidArgumentException
-                    "Argument filename should be a valid path to a file, directory given.")))
+    (throw (new \InvalidArgumentException
+                "Argument filename should be a valid path to a file, directory given.")))
   (let [opts    (or opts {})
         flags   (or (:flags opts) 0)
         context (or (:context opts) nil)
@@ -259,7 +259,7 @@ See PHP's [file_put_contents](https://www.php.net/manual/en/function.file-put-co
   (cond
     (nil? resource) nil
     (and (php/is_object resource) (php/method_exists resource "close"))
-    (php/-> resource (close))
+    (.close resource)
     (and (php/is_resource resource) (= "stream" (php/get_resource_type resource)))
     (php/fclose resource)
     nil))
@@ -272,7 +272,7 @@ See PHP's [file_put_contents](https://www.php.net/manual/en/function.file-put-co
   {:example "(with-open [f (php/fopen \"data.txt\" \"r\")] (php/fgets f))"
    :see-also ["slurp" "spit" "line-seq"]}
   [bindings & body]
-  (let [err #(throw (php/new \InvalidArgumentException %))]
+  (let [err #(throw (new \InvalidArgumentException %))]
     (when-not (vector? bindings)
       (err (str "with-open requires a vector for its bindings, "
                 (type bindings) " given")))
@@ -490,14 +490,16 @@ See PHP's [file_put_contents](https://www.php.net/manual/en/function.file-put-co
   fiber-local recording (`openBindingFrame` for dynamic-only,
   `openRedefsFrame` for any var)."
   [open-method bindings body]
+  ;; `php/::` stays: the static method name arrives as a symbol at
+  ;; expansion time, and `\Phel/m` needs the name written literally.
   `(do
      (php/:: \Phel (~open-method))
      (try
        (do
          ~@(emit-set-vars bindings)
-         (php/:: \Phel (commitAndRunBindingFrame (fn [] ~@body))))
+         (\Phel/commitAndRunBindingFrame (fn [] ~@body)))
        (finally
-         (php/:: \Phel (abortBindingFrameIfOpen))))))
+         (\Phel/abortBindingFrameIfOpen)))))
 
 (defmacro binding
   "Temporarily rebinds dynamic vars while executing `body`.
@@ -533,14 +535,13 @@ See PHP's [file_put_contents](https://www.php.net/manual/en/function.file-put-co
         v-sym (gensym "v__")
         x-sym (gensym "x__")]
     `(let [~m-sym ~m]
-       (php/:: \Phel (openBindingFrame))
+       (\Phel/openBindingFrame)
        (try
          (do
            (foreach [~v-sym ~x-sym ~m-sym]
-             (php/:: \Phel
-                     (setVar (php/-> ~v-sym (getNamespace))
-                             (php/-> ~v-sym (getName))
-                             ~x-sym)))
-           (php/:: \Phel (commitAndRunBindingFrame (fn [] ~@body))))
+             (\Phel/setVar (.getNamespace ~v-sym)
+                           (.getName ~v-sym)
+                           ~x-sym))
+           (\Phel/commitAndRunBindingFrame (fn [] ~@body)))
          (finally
-           (php/:: \Phel (abortBindingFrameIfOpen)))))))
+           (\Phel/abortBindingFrameIfOpen))))))

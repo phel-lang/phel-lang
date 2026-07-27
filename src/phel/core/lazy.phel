@@ -14,7 +14,7 @@
   {:example "(def d (delay (println \"computing\") 42))"
    :see-also ["force" "delay?" "realized?"]}
   [& body]
-  `(php/new \Phel\Lang\Delay (fn [] ~@body)))
+  `(new \Phel\Lang\Delay (fn [] ~@body)))
 
 (defn force
   "If x is a Delay, forces it and returns its cached value. Otherwise returns x."
@@ -22,7 +22,7 @@
    :see-also ["delay" "deref"]}
   [x]
   (if (php/instanceof x Delay)
-    (php/-> x (deref))
+    (.deref x)
     x))
 
 (defn delay?

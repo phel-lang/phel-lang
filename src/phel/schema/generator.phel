@@ -15,7 +15,7 @@
 (declare schema->gen)
 
 (defn- inst-gen []
-  (g/fmap (fn [secs] (php/:: \DateTimeImmutable (createFromFormat "U" (str secs))))
+  (g/fmap (fn [secs] (\DateTimeImmutable/createFromFormat "U" (str secs)))
           (g/choose 0 2147483647)))
 
 (defn- uuid-gen []
@@ -131,8 +131,8 @@
 (defn- ref-gen [args]
   (let [target (reg/deref-ref (first args))]
     (when (nil? target)
-      (throw (php/new \InvalidArgumentException
-                      (str "schema ref not registered: " (first args)))))
+      (throw (new \InvalidArgumentException
+                  (str "schema ref not registered: " (first args)))))
     (schema->gen target)))
 
 (defn- vector-kind->gen
@@ -153,8 +153,8 @@
       :re     (re-gen args)
       :fn     (fn-gen args)
       :ref    (ref-gen args)
-      :=>     (throw (php/new \InvalidArgumentException
-                              "cannot generate function schemas"))
+      :=>     (throw (new \InvalidArgumentException
+                          "cannot generate function schemas"))
       (v/resolve-or-throw "no generator for schema kind" head
                           (fn [target] (schema->gen target))))))
 
@@ -172,8 +172,8 @@
       (if custom custom (vector-kind->gen schema)))
 
     :else
-    (throw (php/new \InvalidArgumentException
-                    (str "unsupported schema shape: " (print-str schema))))))
+    (throw (new \InvalidArgumentException
+                (str "unsupported schema shape: " (print-str schema))))))
 
 (defn generate
   "Generates one random value conforming to `schema`. Accepts the same

@@ -30,7 +30,7 @@
 (defn- normalize-element [[tag & content]]
   (do
     (when-not (or (keyword? tag) (string? tag))
-      (throw (php/new InvalidArgumentException (str tag " is not a valid element name."))))
+      (throw (new InvalidArgumentException (str tag " is not a valid element name."))))
     (let [tag         (to-str tag)
           elem        (first content)
           map-attrs   (if (map? elem) elem {})

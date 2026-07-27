@@ -7,7 +7,7 @@
 (def ^:private symbol-munge
   ;; Munge is a final readonly class; reuse one instance to decode var
   ;; namespaces back to their display form when constructing symbols.
-  (php/new Munge))
+  (new Munge))
 
 ;; Two families of primitive value constructors grouped together:
 ;;   - Symbol constructors: `symbol` (a runtime symbol from a string or
@@ -24,7 +24,7 @@
   (if (php/=== nil x)
     nil
     (if (php/instanceof x \Phel\Lang\NamedInterface)
-      (php/-> x (getName))
+      (.getName x)
       x)))
 
 (defn- valid-symbol-name? [x]
@@ -37,11 +37,11 @@
 (defn- assert-symbol-name [arg-name x]
   (if (valid-symbol-name? x)
     nil
-    (throw (php/new \InvalidArgumentException
-                    (php/. "symbol expects a string, keyword, or symbol for "
-                           arg-name
-                           ", got "
-                           (php/get_debug_type x))))))
+    (throw (new \InvalidArgumentException
+                (php/. "symbol expects a string, keyword, or symbol for "
+                       arg-name
+                       ", got "
+                       (php/get_debug_type x))))))
 
 (defn symbol
   "Returns a new symbol for the given name with an optional namespace.
@@ -55,28 +55,28 @@ Throws `InvalidArgumentException` for any other input (including functions, numb
     (do
       (assert-symbol-name "name" name)
       (if (php/=== nil name-or-ns)
-        (php/:: Symbol (create (to-symbol-part name)))
+        (Symbol/create (to-symbol-part name))
         (do
           (assert-symbol-name "namespace" name-or-ns)
-          (php/:: Symbol (createForNamespace
-                          (to-symbol-part name-or-ns)
-                          (to-symbol-part name))))))
+          (Symbol/createForNamespace
+           (to-symbol-part name-or-ns)
+           (to-symbol-part name)))))
     (if (php/instanceof name-or-ns Symbol)
       name-or-ns
       (if (php/instanceof name-or-ns PhelVar)
-        (php/:: Symbol (createForNamespace
-                        (php/-> symbol-munge (decodeNs (php/-> name-or-ns (getNamespace))))
-                        (php/-> name-or-ns (getName))))
+        (Symbol/createForNamespace
+         (.decodeNs symbol-munge (.getNamespace name-or-ns))
+         (.getName name-or-ns))
         (do
           (assert-symbol-name "name-or-ns" name-or-ns)
-          (php/:: Symbol (create (to-symbol-part name-or-ns))))))))
+          (Symbol/create (to-symbol-part name-or-ns)))))))
 
 (defn gensym
   "Generates a new unique symbol."
   {:example "(gensym) ; => __phel_1"
    :see-also ["symbol"]}
   []
-  (php/:: Symbol (gen)))
+  (Symbol/gen))
 
 (defn- float-to-str
   "Renders a float so integer-valued floats keep the trailing `.0`, while `NaN` and ±Infinity stringify readably."

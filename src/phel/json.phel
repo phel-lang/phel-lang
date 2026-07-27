@@ -22,7 +22,7 @@
   (let [arr (php/array)]
     (foreach [k v x]
       (when-not (valid-key? k)
-        (throw (php/new JsonException "Key can only be an integer, float, symbol, keyword or a string.")))
+        (throw (new JsonException "Key can only be an integer, float, symbol, keyword or a string.")))
       (php/aset arr (encode-key k) (encode-value v)))
     arr))
 
@@ -34,7 +34,7 @@
   (cond
     ;; An empty map must encode as a JSON object `{}`, not the `[]` an empty
     ;; php/array would produce; a stdClass forces object encoding.
-    (and (map? x) (empty? x)) (php/new \stdClass)
+    (and (map? x) (empty? x)) (new \stdClass)
     (php/is_iterable x)       (encode-value-iterable x)
     (symbol? x)               (name x)
     (keyword? x)              (name x)
@@ -46,10 +46,10 @@
   [value & [{:flags flags, :depth depth}]]
   (let [flags (or flags 0)
         depth (or depth 512)]
-    (when (php/is_resource value) (throw (php/new JsonException "Value can be any type except a resource.")))
-    (when-not (int? flags) (throw (php/new JsonException "Flags must be an integer.")))
-    (when-not (int? depth) (throw (php/new JsonException "Depth must be an integer.")))
-    (when-not (> depth 0) (throw (php/new JsonException "Depth must be greater than zero.")))
+    (when (php/is_resource value) (throw (new JsonException "Value can be any type except a resource.")))
+    (when-not (int? flags) (throw (new JsonException "Flags must be an integer.")))
+    (when-not (int? depth) (throw (new JsonException "Depth must be an integer.")))
+    (when-not (> depth 0) (throw (new JsonException "Depth must be greater than zero.")))
     (php/json_encode (encode-value value) flags depth)))
 
 (defn decode-value
@@ -64,7 +64,7 @@
                        ;; JSON object keys are strings, but php/json_decode coerces
                        ;; numeric keys to ints; stringify first so `(keyword k)`
                        ;; never collapses them to a single nil key.
-                       (php/-> hashmap (put (keyword (str k)) (decode-value v))))
+                       (.put hashmap (keyword (str k)) (decode-value v)))
                      (persistent hashmap))
     true           x))
 
@@ -74,8 +74,8 @@
   [json & [{:flags flags, :depth depth}]]
   (let [flags (or flags 0)
         depth (or depth 512)]
-    (when-not (string? json) (throw (php/new JsonException "Json must be a string.")))
-    (when-not (int? flags) (throw (php/new JsonException "Flags must be an integer.")))
-    (when-not (int? depth) (throw (php/new JsonException "Depth must be an integer.")))
-    (when-not (> depth 0) (throw (php/new JsonException "Depth must be greater than zero.")))
+    (when-not (string? json) (throw (new JsonException "Json must be a string.")))
+    (when-not (int? flags) (throw (new JsonException "Flags must be an integer.")))
+    (when-not (int? depth) (throw (new JsonException "Depth must be an integer.")))
+    (when-not (> depth 0) (throw (new JsonException "Depth must be greater than zero.")))
     (decode-value (php/json_decode json true depth flags))))

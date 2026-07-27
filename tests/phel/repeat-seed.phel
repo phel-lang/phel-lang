@@ -40,8 +40,8 @@
                             (swap! counter inc)))
         saved-reporters (t/get-reporters)]
     (t/with-isolated-stats
-     (with-output-buffer
-       (t/run-tests {:reporters [bump-reporter] :repeat 4} fixture-ns)))
+      (with-output-buffer
+        (t/run-tests {:reporters [bump-reporter] :repeat 4} fixture-ns)))
     ;; `run-tests` installs its own reporters, so only the restore is ours.
     (t/set-reporters! saved-reporters)
     ;; 3 fixtures × 4 iterations = 12 pass events.
@@ -59,11 +59,11 @@
                             (swap! order conj (:test-name e))))
         saved-reporters (t/get-reporters)]
     (t/with-isolated-stats
-     (with-output-buffer
-       (t/run-tests {:reporters [capture]
-                     :random-order true
-                     :seed seed}
-                    fixture-ns)))
+      (with-output-buffer
+        (t/run-tests {:reporters [capture]
+                      :random-order true
+                      :seed seed}
+                     fixture-ns)))
     ;; `run-tests` installs its own reporters, so only the restore is ours.
     (t/set-reporters! saved-reporters)
     (deref order)))

@@ -86,8 +86,8 @@
     (case marker
       ":" (keyword rep)
       "$" (symbol rep)
-      "u" (php/:: UUID (fromString rep))
-      "t" (php/new \DateTimeImmutable rep)
+      "u" (UUID/fromString rep)
+      "t" (new \DateTimeImmutable rep)
       "?" (php/=== rep "t")
       "i" (php/intval rep)
       "d" (php/floatval rep)
@@ -100,8 +100,8 @@
       (let [default (get opts :default-handler)]
         (if default
           (default (str marker) rep)
-          (throw (php/new \InvalidArgumentException
-                          (str "Unknown Transit scalar tag '~" marker "'"))))))))
+          (throw (new \InvalidArgumentException
+                      (str "Unknown Transit scalar tag '~" marker "'"))))))))
 
 (defn- decode-cmap
   "Decodes a `~#cmap` payload — a flat sequence of alternating key/value representations — into a persistent map."
@@ -112,7 +112,7 @@
         (persistent acc)
         (let [k (decode (first items) opts)
               v (decode (first (next items)) opts)]
-          (php/-> acc (put k v))
+          (.put acc k v)
           (recur (next (next items))))))))
 
 (defn- decode-tagged-array
@@ -130,8 +130,8 @@
         handler (handler (decode rep opts))
         default (default tag (decode rep opts))
         :else
-        (throw (php/new \InvalidArgumentException
-                        (str "Unknown Transit tag '~#" tag "'")))))))
+        (throw (new \InvalidArgumentException
+                    (str "Unknown Transit tag '~#" tag "'")))))))
 
 (defn- decode-array
   "Decodes a JSON array. Detects `[\"~#tag\", rep]` markers before falling back to a positional vector decode."
@@ -154,7 +154,7 @@
       ;; numeric ones to ints; restore the string so a key like "1" decodes
       ;; to the string "1" rather than the int 1.
       (let [k (if (php/is_int k) (php/strval k) k)]
-        (php/-> acc (put (decode k opts) (decode v opts)))))
+        (.put acc (decode k opts) (decode v opts))))
     (persistent acc)))
 
 (defn- decode
@@ -173,9 +173,9 @@
          (php/array_is_list x))  (decode-array x opts)
     (php/is_array x)             (decode-object x opts)
     :else
-    (throw (php/new \InvalidArgumentException
-                    (str "Cannot decode Transit value of type "
-                         (php/gettype x))))))
+    (throw (new \InvalidArgumentException
+                (str "Cannot decode Transit value of type "
+                     (php/gettype x))))))
 
 (defn read-string
   "Reads one Transit+JSON-Verbose value from string `s`.
@@ -193,8 +193,8 @@
    (let [raw (php/json_decode s true)
          err (php/json_last_error)]
      (when-not (zero? err)
-       (throw (php/new \InvalidArgumentException
-                       (str "Invalid Transit JSON: " (php/json_last_error_msg)))))
+       (throw (new \InvalidArgumentException
+                   (str "Invalid Transit JSON: " (php/json_last_error_msg)))))
      (decode raw opts))))
 
 ;; ---------------------------------------------------------------------------
@@ -221,7 +221,7 @@
   (str "~u" (str u)))
 
 (defn- encode-datetime [d]
-  (str "~t" (php/-> d (format "Y-m-d\\TH:i:s.vP"))))
+  (str "~t" (.format d "Y-m-d\\TH:i:s.vP")))
 
 (defn- string-keys?
   "True when `m` is non-empty and every key is a plain Phel string. An empty
@@ -275,8 +275,8 @@
     (list? x)                             (encode-list x)
     (map? x)                              (encode-map x)
     :else
-    (throw (php/new \InvalidArgumentException
-                    (str "Cannot encode value of type " (php/gettype x) " to Transit")))))
+    (throw (new \InvalidArgumentException
+                (str "Cannot encode value of type " (php/gettype x) " to Transit")))))
 
 (defn write-string
   "Serialises `value` to a Transit+JSON-Verbose string."

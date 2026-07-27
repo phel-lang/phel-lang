@@ -21,13 +21,13 @@
   rather than a literal. `target` is either an object or a class-name string
   for a static method. Matches ClojureScript's `js-invoke`; use the dot
   syntax (`(.format d \"Y\")`) whenever the name is known at compile time."
-  {:example "(php-invoke (php/new \\DateTimeImmutable \"2024-03-10\") \"format\" \"Y\") ; => \"2024\"\n(let [m \"format\"] (php-invoke (php/new \\DateTimeImmutable \"2024-03-10\") m \"Y\")) ; => \"2024\""
+  {:example "(php-invoke (new \\DateTimeImmutable \"2024-03-10\") \"format\" \"Y\") ; => \"2024\"\n(let [m \"format\"] (php-invoke (new \\DateTimeImmutable \"2024-03-10\") m \"Y\")) ; => \"2024\""
    :see-also ["php/callable" "apply"]}
   [target method & args]
   (let [callable (php/array target method)]
     (if (php/is_callable callable)
       (php/call_user_func_array callable (to-php-array args))
-      (throw (php/new InvalidArgumentException
-                      (str "Call to undefined method "
-                           (invoke-target-name target)
-                           "::" method "()"))))))
+      (throw (new InvalidArgumentException
+                  (str "Call to undefined method "
+                       (invoke-target-name target)
+                       "::" method "()"))))))

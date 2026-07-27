@@ -20,9 +20,9 @@
 
 (defn- walk-one [routes prefix-path prev-data]
   (when (string? routes)
-    (throw (php/new \InvalidArgumentException
-                    (str "router expects a route vector `[path data? children*]` or a vector of such routes, got a bare string: \""
-                         routes "\". Wrap it like [\"" routes "\"]."))))
+    (throw (new \InvalidArgumentException
+                (str "router expects a route vector `[path data? children*]` or a vector of such routes, got a bare string: \""
+                     routes "\". Wrap it like [\"" routes "\"]."))))
   (let [head (first routes)]
     (cond
       (empty? routes)
@@ -44,9 +44,9 @@
           (walk-many (keep identity childs) full-path next-data)))
 
       :else
-      (throw (php/new \InvalidArgumentException
-                      (str "router route must start with a string path, got: "
-                           (type head) " in route " (print-str routes)))))))
+      (throw (new \InvalidArgumentException
+                  (str "router route must start with a string path, got: "
+                       (type head) " in route " (print-str routes)))))))
 
 (defn flatten-routes
   "Flattens nested routes to a vector of `[path data]` tuples.
@@ -143,9 +143,9 @@
 (defn- build-route-collection [normalized-routes]
   (for [route :in normalized-routes
         :let [[path data] route
-              symfony-route (php/new Route path (php/array) (php/array) (php-associative-array "data" data "template" path))]
-        :reduce [coll (php/new RouteCollection)]]
-    (php/-> coll (add (route-name-of route) symfony-route))
+              symfony-route (new Route path (php/array) (php/array) (php-associative-array "data" data "template" path))]
+        :reduce [coll (new RouteCollection)]]
+    (.add coll (route-name-of route) symfony-route)
     coll))
 
 (defn- params->php-array
@@ -171,7 +171,7 @@
    Returns nil when no route matches."
   [matcher path lookup-fn]
   (try
-    (let [parameters      (php/-> matcher (match path))
+    (let [parameters      (.match matcher path)
           route-name      (php/aget parameters "_route")
           [template data] (lookup-fn route-name)]
       {:route-name  route-name
@@ -186,7 +186,7 @@
 (defn- generate-with
   "Generates a URL using the given Symfony generator."
   [generator route-name parameters]
-  (php/-> generator (generate (full-name route-name) (params->php-array parameters))))
+  (.generate generator (full-name route-name) (params->php-array parameters)))
 
 (defn- indexed-route->match
   "Converts an `[path data]` tuple from the compiled router's index into a by-name match response. Returns nil when the tuple is nil."
@@ -200,13 +200,13 @@
   (match-by-path [this path]
                  (match-with matcher path
                              (fn [route-name]
-                               (let [route (php/-> route-collection (get route-name))]
-                                 [(php/-> route (getOption "template"))
-                                  (php/-> route (getOption "data"))]))))
+                               (let [route (.get route-collection route-name)]
+                                 [(.getOption route "template")
+                                  (.getOption route "data")]))))
   (match-by-name [this route-name]
-                 (when-let [route (php/-> route-collection (get (full-name route-name)))]
-                   {:template (php/-> route (getOption "template"))
-                    :data     (php/-> route (getOption "data"))}))
+                 (when-let [route (.get route-collection (full-name route-name))]
+                   {:template (.getOption route "template")
+                    :data     (.getOption route "data")}))
   (generate [this route-name parameters]
             (generate-with generator route-name parameters)))
 
@@ -230,10 +230,10 @@
   [raw-routes & [options]]
   (let [normalized (normalize-routes raw-routes options)
         coll       (build-route-collection normalized)
-        ctx        (php/new RequestContext)]
+        ctx        (new RequestContext)]
     (SymfonyRouter normalized coll
-                   (php/new UrlMatcher coll ctx)
-                   (php/new UrlGenerator coll ctx))))
+                   (new UrlMatcher coll ctx)
+                   (new UrlGenerator coll ctx))))
 
 (defstruct CompiledSymfonyRouter [normalized-routes matcher generator indexed-routes]
   Router
@@ -256,11 +256,11 @@
                     (for [route :in normalized
                           :reduce [acc (transient {})]]
                       (assoc! acc (route-name-of route) route)))
-        ctx        (php/new RequestContext)]
+        ctx        (new RequestContext)]
     (CompiledSymfonyRouter
      normalized
-     (php/new CompiledUrlMatcher compiled-matcher-routes ctx)
-     (php/new CompiledUrlGenerator compiled-generator-routes ctx)
+     (new CompiledUrlMatcher compiled-matcher-routes ctx)
+     (new CompiledUrlGenerator compiled-generator-routes ctx)
      indexed)))
 
 (defmacro compiled-router
@@ -276,8 +276,8 @@ Because compilation runs during macro expansion, `raw-routes` must be a literal 
   ;; are rebuilt at runtime from the `raw-routes`/`options` forms.
   (let [flattened-routes          (normalize-routes (eval raw-routes) (eval options))
         route-collection          (build-route-collection flattened-routes)
-        compiled-matcher-routes   (php/-> (php/new CompiledUrlMatcherDumper route-collection) (getCompiledRoutes))
-        compiled-generator-routes (php/-> (php/new CompiledUrlGeneratorDumper route-collection) (getCompiledRoutes))]
+        compiled-matcher-routes   (.getCompiledRoutes (new CompiledUrlMatcherDumper route-collection))
+        compiled-generator-routes (.getCompiledRoutes (new CompiledUrlGeneratorDumper route-collection))]
     `(build-compiled-router ~raw-routes ~options ~compiled-matcher-routes ~compiled-generator-routes)))
 
 (defn handler

@@ -196,11 +196,11 @@
 
 (defn- location [form]
   (when (php/instanceof form SourceLocationInterface)
-    (let [loc (php/-> form (getStartLocation))]
+    (let [loc (.getStartLocation form)]
       (when loc
-        {:file (php/-> loc (getFile))
-         :line (php/-> loc (getLine))
-         :column (php/-> loc (getColumn))}))))
+        {:file (.getFile loc)
+         :line (.getLine loc)
+         :column (.getColumn loc)}))))
 
 (defn- assert-predicate [form message negated]
   (let [pred            (first form)
@@ -294,7 +294,7 @@
          ~@body
          (report (merge ~report-data {:state :failed :actual-message nil}))
          (catch ~exception-symbol ~e
-           (let [~actual-message (php/-> ~e (getMessage))]
+           (let [~actual-message (.getMessage ~e)]
              (if (= ~expected-message ~actual-message)
                (report (merge ~report-data {:state :pass :actual-message ~actual-message}))
                (report (merge ~report-data {:state :failed :actual-message ~actual-message})))))))))
@@ -388,10 +388,10 @@ Metadata attached to `test-name` is forwarded to the defined function so selecto
   {:example "(deftest test-add)"}
   [test-name & body]
   (when-not (symbol? test-name)
-    (throw (php/new \InvalidArgumentException
-                    (str "deftest requires a symbol name as its first argument, got "
-                         (type test-name) ". Example: (deftest test-add ...)."))))
-  (let [sym-meta (or (php/-> test-name (getMeta)) {})
+    (throw (new \InvalidArgumentException
+                (str "deftest requires a symbol name as its first argument, got "
+                     (type test-name) ". Example: (deftest test-add ...)."))))
+  (let [sym-meta (or (.getMeta test-name) {})
         base     {:test true, :test-name (name test-name)}
         merged   (merge sym-meta base)]
     `(defn ~test-name ~merged []
@@ -462,10 +462,10 @@ Metadata attached to `test-name` is forwarded to the defined function so selecto
 (defn- print-error-headline [data]
   (print-headline "ERROR" data))
 
-(def- readable-printer (php/:: Printer (readable)))
+(def- readable-printer (Printer/readable))
 
 (defn- readable-str [value]
-  (php/-> readable-printer (print value)))
+  (.print readable-printer value))
 
 (defn- print-label
   "Prints `label:`, the readable form of `value`, then any extra trailing words on a single line. Used by the built-in failure printers to keep the right-aligned two-column layout consistent."
@@ -634,14 +634,14 @@ Metadata attached to `test-name` is forwarded to the defined function so selecto
 (defn- print-error [data]
   (print-error-headline data)
   (let [{:exception exception, :form form} data
-        command-facade                     (php/new CommandFacade)
-        printer                            (php/-> command-facade (getExceptionPrinter))]
+        command-facade                     (new CommandFacade)
+        printer                            (.getExceptionPrinter command-facade)]
     (print-label "              Form" form)
     (println "             threw:" (php/get_class exception))
     (when-let [exception-message (ex-message exception)]
       (println "      with message:" exception-message))
     (when (deref print-stack-trace?)
-      (php/-> printer (printStackTrace exception)))))
+      (.printStackTrace printer exception))))
 
 (defn- print-predicate-failure [{:pred pred, :value value, :result result}]
   (print-form-evaluated "                 Form" value
@@ -1071,8 +1071,8 @@ Metadata attached to `test-name` is forwarded to the defined function so selecto
   [name reporter-fn]
   (let [kw (reporter-key name)]
     (when (nil? kw)
-      (throw (php/new \InvalidArgumentException
-                      "register-reporter! name must be a keyword or string")))
+      (throw (new \InvalidArgumentException
+                  "register-reporter! name must be a keyword or string")))
     (swap! custom-reporters assoc kw reporter-fn)
     kw))
 
@@ -1136,14 +1136,14 @@ Metadata attached to `test-name` is forwarded to the defined function so selecto
    :see-also ["deftest" "run-tests"]}
   [fixture-type & fns]
   (when (some (fn [f] (not (fn? f))) fns)
-    (throw (php/new \InvalidArgumentException
-                    "All arguments to use-fixtures must be functions")))
+    (throw (new \InvalidArgumentException
+                "All arguments to use-fixtures must be functions")))
   (let [key     (case fixture-type
                   :each :each-fixtures
                   :once :once-fixtures
-                  (throw (php/new \InvalidArgumentException
-                                  (str "use-fixtures: invalid fixture-type "
-                                       fixture-type ", expected :each or :once"))))
+                  (throw (new \InvalidArgumentException
+                              (str "use-fixtures: invalid fixture-type "
+                                   fixture-type ", expected :each or :once"))))
         ns-name *ns*]
     (swap! fixtures-by-ns
            (fn [m]
@@ -1167,12 +1167,12 @@ Metadata attached to `test-name` is forwarded to the defined function so selecto
 (defn- find-test-vars
   "Discovers every `deftest`-defined function in `ns` and returns a vector of `{:fn <callable> :meta <map>}` entries. The caller is responsible for applying selectors."
   [ns]
-  (let [munge    (php/new Munge)
-        munge-ns (php/-> munge (encodeRegistryKey ns))]
-    (vec (for [fn-name :keys (php/:: Phel (getDefinitionInNamespace munge-ns))
-               :let [meta (php/:: Phel (getDefinitionMetaData munge-ns fn-name))]
+  (let [munge    (new Munge)
+        munge-ns (.encodeRegistryKey munge ns)]
+    (vec (for [fn-name :keys (Phel/getDefinitionInNamespace munge-ns)
+               :let [meta (Phel/getDefinitionMetaData munge-ns fn-name)]
                :when (:test meta)]
-           {:fn   (php/:: Phel (getDefinition munge-ns fn-name))
+           {:fn   (Phel/getDefinition munge-ns fn-name)
             :meta meta}))))
 
 (defn- selector-options
@@ -1303,12 +1303,12 @@ Metadata attached to `test-name` is forwarded to the defined function so selecto
 
     (or (keyword? r) (string? r))
     (or (resolve-reporter r)
-        (throw (php/new \InvalidArgumentException
-                        (str "Unknown reporter: " r))))
+        (throw (new \InvalidArgumentException
+                    (str "Unknown reporter: " r))))
 
     :else
-    (throw (php/new \InvalidArgumentException
-                    (str "Invalid reporter value: " r)))))
+    (throw (new \InvalidArgumentException
+                (str "Invalid reporter value: " r)))))
 
 (defn- requested-reporters
   "Returns the user-selected reporter identifiers, honouring the

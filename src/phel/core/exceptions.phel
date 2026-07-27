@@ -13,9 +13,9 @@
   {:example "(throw (ex-info \"Invalid input\" {:field :email}))"
    :see-also ["ex-data" "ex-message" "ex-cause"]}
   ([msg data]
-   (php/new \Phel\Lang\ExceptionInfo msg data))
+   (new \Phel\Lang\ExceptionInfo msg data))
   ([msg data cause]
-   (php/new \Phel\Lang\ExceptionInfo msg data cause)))
+   (new \Phel\Lang\ExceptionInfo msg data cause)))
 
 (defn ex-data
   "Returns the data map from an ex-info exception, or nil if not an ExceptionInfo."
@@ -23,18 +23,18 @@
    :see-also ["ex-info" "ex-message" "ex-cause"]}
   [ex]
   (when (php/instanceof ex ExceptionInfo)
-    (php/-> ex (getData))))
+    (.getData ex)))
 
 (defn ex-message
   "Returns the message of an exception."
   {:example "(ex-message (ex-info \"boom\" {})) ; => \"boom\""
    :see-also ["ex-info" "ex-data" "ex-cause"]}
   [ex]
-  (php/-> ex (getMessage)))
+  (.getMessage ex))
 
 (defn ex-cause
   "Returns the cause of an exception, or nil."
   {:example "(ex-cause (ex-info \"boom\" {})) ; => nil"
    :see-also ["ex-info" "ex-data" "ex-message"]}
   [ex]
-  (php/-> ex (getPrevious)))
+  (.getPrevious ex))
