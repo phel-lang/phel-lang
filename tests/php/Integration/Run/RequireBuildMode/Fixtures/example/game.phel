@@ -1,6 +1,9 @@
 (ns buildmode\game)
 
-(def executed-file (str (php/constant "__DIR__") "/executed.txt"))
+; Not `(php/constant "__DIR__")`: PHP's `constant()` reads defined constants, not
+; compile-time magic ones, so that throws as soon as this file is really
+; evaluated. `*file*` is emitted per namespace and holds this file's path.
+(def executed-file (str (php/dirname *file*) "/executed.txt"))
 
 (when-not *build-mode*
   (php/file_put_contents executed-file "executed"))
