@@ -118,4 +118,32 @@ final class NsEmitterTest extends TestCase
             'The error must name both the missing namespace and the one requiring it, in canonical form',
         );
     }
+
+    /**
+     * `clojure.set` has no Phel counterpart and no source file, and the
+     * clojure-test-suite requires it. The bundled stdlib is equally absent from
+     * a downstream scan index. Neither may be reported as missing.
+     */
+    public function test_ns_does_not_guard_a_required_framework_namespace(): void
+    {
+        $node = new NsNode('my\\app', [
+            Symbol::create('clojure\\set'),
+            Symbol::create('phel\\json'),
+        ], []);
+
+        ob_start();
+        $this->nsEmitter->emit($node);
+        $output = (string) ob_get_clean();
+
+        self::assertStringNotContainsString(
+            'missingRequiredNamespaceMessage',
+            $output,
+            'A phel.*/clojure.* require resolves at runtime, so it must carry no missing-namespace guard',
+        );
+        self::assertStringContainsString(
+            sprintf("getDependenciesForNamespace(\$__phelSrcDirs, ['%s'])", addslashes('clojure\\set')),
+            $output,
+            'It must still be resolved and loaded like any other require',
+        );
+    }
 }

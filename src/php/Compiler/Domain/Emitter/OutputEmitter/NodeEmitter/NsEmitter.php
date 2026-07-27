@@ -8,6 +8,7 @@ use Phel\Compiler\Domain\Analyzer\Ast\AbstractNode;
 use Phel\Compiler\Domain\Analyzer\Ast\NsNode;
 use Phel\Compiler\Domain\Emitter\OutputEmitter\NodeEmitterInterface;
 use Phel\Lang\Symbol;
+use Phel\Shared\FrameworkNamespaces;
 use Phel\Shared\Munge;
 
 use function addslashes;
@@ -127,6 +128,14 @@ final class NsEmitter implements NodeEmitterInterface
     private function emitMissingNamespaceGuard(NsNode $node, Symbol $ns): void
     {
         $requiredNs = Munge::canonicalNs($ns->getName());
+
+        // `phel.*`/`clojure.*` resolve at runtime whether or not the scan sees
+        // them, so they get no guard at all. `(:require clojure.set)` has no
+        // Phel counterpart and must keep working, which is what the
+        // clojure-test-suite relies on.
+        if (FrameworkNamespaces::matches($requiredNs)) {
+            return;
+        }
 
         // Two exemptions. Build resolves dependencies itself and deliberately
         // leaves the search path empty here (#2886), so every seed would look
