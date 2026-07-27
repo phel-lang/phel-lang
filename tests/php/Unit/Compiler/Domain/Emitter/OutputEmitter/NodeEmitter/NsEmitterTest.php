@@ -68,6 +68,11 @@ final class NsEmitterTest extends TestCase
         $this->nsEmitter->emit($node);
         $output = (string) ob_get_clean();
 
+        self::assertStringContainsString(
+            'BuildFacade::isBuildMode()',
+            $output,
+            'The lookup should be skipped during builds only, so eval and nREPL can load requires',
+        );
         self::assertStringNotContainsString(
             '*repl-mode*',
             $output,

@@ -7,7 +7,6 @@ namespace Phel\Compiler\Domain\Emitter\OutputEmitter\NodeEmitter;
 use Phel\Compiler\Domain\Analyzer\Ast\AbstractNode;
 use Phel\Compiler\Domain\Analyzer\Ast\NsNode;
 use Phel\Compiler\Domain\Emitter\OutputEmitter\NodeEmitterInterface;
-use Phel\Shared\BuildConstants;
 
 use function addslashes;
 use function assert;
@@ -79,14 +78,8 @@ final class NsEmitter implements NodeEmitterInterface
             // scanning again there picks the same namespace up twice.
             $this->outputEmitter->emitLine('$__phelBuildFacade = new \\Phel\\Build\\BuildFacade();');
             $this->outputEmitter->emitLine('$__phelSrcDirs = [];');
-            $this->outputEmitter->emitLine('if (!\\Phel::getDefinition(');
+            $this->outputEmitter->emitLine('if (!\\Phel\\Build\\BuildFacade::isBuildMode()) {');
             $this->outputEmitter->increaseIndentLevel();
-            $this->outputEmitter->emitStr('"');
-            $this->outputEmitter->emitStr(addslashes($this->outputEmitter->mungeEncodeRegistryKey('phel.core')));
-            $this->outputEmitter->emitLine('",');
-            $this->outputEmitter->emitStr('"');
-            $this->outputEmitter->emitStr(addslashes(BuildConstants::BUILD_MODE));
-            $this->outputEmitter->emitLine('")) {');
             $this->outputEmitter->emitLine('$__phelSrcDirs = (new \\Phel\\Command\\CommandFacade())->getAllPhelDirectories();');
             $this->outputEmitter->emitLine('$__phelCwd = getcwd();');
             $this->outputEmitter->emitLine('if ($__phelCwd !== false) { $__phelSrcDirs[] = $__phelCwd; }');
