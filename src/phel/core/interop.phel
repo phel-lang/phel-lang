@@ -6,6 +6,19 @@
 ;; PHP interop helpers whose target is a value
 ;; --------------------------------------------
 
+(defmacro set!
+  "Sets the property named by `place` to `value`, and returns `value`. `place`
+  is a property access on an object (`(.-prop obj)`) or on a class
+  (`(php/:: Class prop)`), the same places `php/oset` accepts. Matches
+  Clojure's `(set! (.-field o) v)`; a macro rather than a function because the
+  place is a location, not a value."
+  {:example "(let [o (php/new \\ArrayObject)] (set! (.-y o) 2024)) ; => 2024"
+   :see-also ["aset" "reset!" "php/oset"]}
+  [place value]
+  `(let [value# ~value]
+     (php/oset ~place value#)
+     value#))
+
 (defn- invoke-target-name
   "Returns the name to report for `target` in an undefined-method error:
   the class of an object, the string itself for a class name, and the PHP

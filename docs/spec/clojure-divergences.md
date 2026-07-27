@@ -163,6 +163,36 @@ a string receiver was an error before the change and is an error after it, and o
 message differs. It is listed because the *capability* is a difference a Clojure reader
 will notice, not because a behaviour changed under them.
 
+### `aset` and `set!` are macros, not functions
+
+Clojure's `aset` is a function, so `(map (partial aset arr) …)` and any other
+higher-order use works. Phel's is a **macro**, and so is `set!`.
+
+PHP arrays are value types: a function receiving one receives a copy, so a function
+`aset` would mutate the copy and drop the write. `set!` is a macro for the usual reason
+a place-setting form is: its first argument is a location (`(.-field o)`), not a value.
+
+The practical consequence is that neither can be passed to a higher-order function.
+Where Clojure would use `(partial aset arr)`, wrap it: `(fn [i v] (aset arr i v))`.
+
+### Mutation naming: which forms got Clojure names
+
+`set!` is the one mutating `php/*` form with a Clojure spelling, and it has it
+([#2884](https://github.com/phel-lang/phel-lang/issues/2884)). The rest keep the `php/`
+prefix, deliberately:
+
+| Form | Decision | Why |
+|---|---|---|
+| `php/oset` | `set!` in `phel.core` | Clojure spells this exact operation `(set! (.-field o) v)` |
+| `php/aset`, `php/aget`, `php/aclone`, `php/alength` | core names since [#1411](https://github.com/phel-lang/phel-lang/issues/1411) | same names Clojure uses |
+| `php/apush`, `php/aunset` | stay `php/*` | JVM arrays are fixed size, so Clojure has no counterpart and any core name would be invented. 1.0 freezes whatever ships, so an invented name is the expensive kind of guess; revisit when a concrete need names it |
+| `php/ref`, `php/callable` | stay `php/*` | both take an **unevaluated** form (a variable to reference, a call target), so neither can be a plain function, and both name a host mechanism with no Clojure analogue |
+
+`set-var` is a separate question, tracked in
+[#2888](https://github.com/phel-lang/phel-lang/issues/2888): it writes a var's root, so
+the Clojure name for it is `alter-var-root` rather than `set!`, and Clojure's
+thread-local var `set!` has no Phel equivalent yet.
+
 ## 7. Absent concepts
 
 | Clojure | Phel |
