@@ -60,9 +60,9 @@ final class KebabNamespaceRequireTest extends TestCase
             tempnam(sys_get_temp_dir(), 'phel-core'),
         );
 
-        // The emitted require code only resolves source directories when the
-        // session is a REPL/eval one; without this it walks an empty dir list.
-        Phel::addDefinition('phel.core', '*repl-mode*', true);
+        // The emitted require code resolves source directories in every
+        // non-build eval context; this boot is one (no build mode active),
+        // so no extra flag has to be set for requires to load.
     }
 
     private function evalCode(string $phelCode): void

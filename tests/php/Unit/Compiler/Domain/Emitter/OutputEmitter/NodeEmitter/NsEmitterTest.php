@@ -54,7 +54,7 @@ final class NsEmitterTest extends TestCase
         self::assertStringContainsString('"app.module"', $output);
     }
 
-    public function test_ns_with_requires_emits_repl_gated_fallback(): void
+    public function test_ns_with_requires_emits_build_mode_gated_fallback(): void
     {
         $node = new NsNode('my\\app', [Symbol::create('phel\\string')], []);
 
@@ -63,9 +63,9 @@ final class NsEmitterTest extends TestCase
         $output = (string) ob_get_clean();
 
         self::assertStringContainsString(
-            '*repl-mode*',
+            'BuildFacade::isBuildMode()',
             $output,
-            'Fallback should be gated on REPL mode',
+            'Fallback should be gated off during builds only, so eval/nREPL can load requires',
         );
         self::assertStringContainsString(
             'CommandFacade',

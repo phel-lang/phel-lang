@@ -71,14 +71,14 @@ final class NsEmitter implements NodeEmitterInterface
         } else {
             $this->outputEmitter->emitLine('$__phelBuildFacade = new \\Phel\\Build\\BuildFacade();');
             $this->outputEmitter->emitLine('$__phelSrcDirs = [];');
-            $this->outputEmitter->emitLine('if (\\Phel::getDefinition(');
+            // Runtime dependency loading must stay out of builds (`phel build`
+            // evaluates each form while compiling it). In every other eval
+            // context (repl, `phel eval`, nREPL, run/test) a required namespace
+            // has to be locatable and loadable from the project source dirs —
+            // gating on `*repl-mode*` left eval/nREPL with an empty dir list,
+            // so their `:require`s silently loaded nothing.
+            $this->outputEmitter->emitLine('if (!\\Phel\\Build\\BuildFacade::isBuildMode()) {');
             $this->outputEmitter->increaseIndentLevel();
-            $this->outputEmitter->emitStr('"');
-            $this->outputEmitter->emitStr(addslashes($this->outputEmitter->mungeEncodeRegistryKey('phel.core')));
-            $this->outputEmitter->emitLine('",');
-            $this->outputEmitter->emitStr('"');
-            $this->outputEmitter->emitStr(addslashes('*repl-mode*'));
-            $this->outputEmitter->emitLine('")) {');
             $this->outputEmitter->emitLine('$__phelSrcDirs = (new \\Phel\\Command\\CommandFacade())->getAllPhelDirectories();');
             $this->outputEmitter->emitLine('$__phelCwd = getcwd();');
             $this->outputEmitter->emitLine('if ($__phelCwd !== false) { $__phelSrcDirs[] = $__phelCwd; }');
