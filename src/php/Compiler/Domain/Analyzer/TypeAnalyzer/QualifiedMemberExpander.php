@@ -65,10 +65,10 @@ final readonly class QualifiedMemberExpander
         }
 
         if ($this->isStaticMethodOnly((string) $ns, $name, $symbol, $env)) {
-            return $this->staticMethodValue($symbol);
+            return $this->classMemberForm(Symbol::NAME_PHP_CALLABLE, $symbol);
         }
 
-        return $this->constantAccess($symbol);
+        return $this->classMemberForm(Symbol::NAME_PHP_OBJECT_STATIC_CALL, $symbol);
     }
 
     private function isClassReference(?string $ns): bool
@@ -129,12 +129,15 @@ final readonly class QualifiedMemberExpander
     }
 
     /**
+     * `(<head> \C member)`, the shape both `php/callable` and `php/::` take
+     * for a class member.
+     *
      * @return PersistentListInterface<mixed>
      */
-    private function staticMethodValue(Symbol $symbol): PersistentListInterface
+    private function classMemberForm(string $head, Symbol $symbol): PersistentListInterface
     {
         return Phel::list([
-            Symbol::create(Symbol::NAME_PHP_CALLABLE)->copyLocationFrom($symbol),
+            Symbol::create($head)->copyLocationFrom($symbol),
             Symbol::create((string) $symbol->getNamespace())->copyLocationFrom($symbol),
             Symbol::create($symbol->getName())->copyLocationFrom($symbol),
         ])->copyLocationFrom($symbol);
@@ -169,18 +172,6 @@ final readonly class QualifiedMemberExpander
             Phel::vector([$receiver, Symbol::create('&')->copyLocationFrom($symbol), $args])
                 ->copyLocationFrom($symbol),
             $body,
-        ])->copyLocationFrom($symbol);
-    }
-
-    /**
-     * @return PersistentListInterface<mixed>
-     */
-    private function constantAccess(Symbol $symbol): PersistentListInterface
-    {
-        return Phel::list([
-            Symbol::create(Symbol::NAME_PHP_OBJECT_STATIC_CALL)->copyLocationFrom($symbol),
-            Symbol::create((string) $symbol->getNamespace())->copyLocationFrom($symbol),
-            Symbol::create($symbol->getName())->copyLocationFrom($symbol),
         ])->copyLocationFrom($symbol);
     }
 
