@@ -148,7 +148,51 @@ final class EvalOpTest extends TestCase
         );
         $responses = $op->handle(new OpRequest('eval', 'r1', null, ['op' => 'eval']));
 
-        self::assertContains('eval-error', $responses[0]->payload['status']);
+        self::assertContains('no-code', $responses[0]->payload['status']);
+        self::assertContains('done', $responses[0]->payload['status']);
+    }
+
+    public function test_it_treats_empty_code_as_a_no_op_reporting_the_current_namespace(): void
+    {
+        $run = $this->createMock(RunFacadeInterface::class);
+        $run->expects(self::never())->method('structuredEval');
+
+        $registry = new SessionRegistry();
+        $session = $registry->create();
+
+        $op = new EvalOp($run, new EvalResultResponder(
+            $this->createStub(PrinterInterface::class),
+            $registry,
+            $this->createStub(CompilerFacadeInterface::class),
+        ));
+        $responses = $op->handle(new OpRequest('eval', 'r1', $session->id, [
+            'op' => 'eval',
+            'code' => '',
+        ]));
+
+        self::assertCount(1, $responses);
+        self::assertSame('user', $responses[0]->payload['ns']);
+        self::assertContains('done', $responses[0]->payload['status']);
+        self::assertNotContains('error', $responses[0]->payload['status']);
+    }
+
+    public function test_it_treats_whitespace_only_code_as_a_no_op(): void
+    {
+        $run = $this->createMock(RunFacadeInterface::class);
+        $run->expects(self::never())->method('structuredEval');
+
+        $op = new EvalOp($run, new EvalResultResponder(
+            $this->createStub(PrinterInterface::class),
+            new SessionRegistry(),
+            $this->createStub(CompilerFacadeInterface::class),
+        ));
+        $responses = $op->handle(new OpRequest('eval', 'r1', null, [
+            'op' => 'eval',
+            'code' => "  \n ",
+        ]));
+
+        self::assertCount(1, $responses);
+        self::assertContains('done', $responses[0]->payload['status']);
     }
 
     public function test_it_passes_compile_options(): void

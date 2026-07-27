@@ -26,6 +26,8 @@ final class OpStatus
 
     public const string EVAL_ERROR = 'eval-error';
 
+    public const string NO_CODE = 'no-code';
+
     public const string LOAD_FILE_ERROR = 'load-file-error';
 
     public const string INCOMPLETE = 'incomplete';

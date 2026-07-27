@@ -148,6 +148,35 @@ final class NreplServerTest extends TestCase
         $clone = $this->readUntil($client, $decoder, $server, 1);
         $sessionId = $clone[0]['new-session'];
 
+        // Editors send an empty init eval on connect to prime their
+        // namespace state from the response: it is a no-op that must still
+        // report the current `ns`, or the client's prompt stays unset.
+        $this->writeMessage($client, $encoder->encode([
+            'op' => 'eval',
+            'id' => 'init',
+            'session' => $sessionId,
+            'code' => '',
+        ]));
+        $this->pump($server);
+        $init = $this->readUntil($client, $decoder, $server, 1);
+        self::assertCount(1, $init);
+        self::assertSame('user', $init[0]['ns']);
+        self::assertSame(['done'], $init[0]['status']);
+
+        // A failed eval reports the current namespace too, so a client can
+        // initialize its prompt even when the first eval errors (CIDER's
+        // default Clojure init code does not evaluate under Phel).
+        $this->writeMessage($client, $encoder->encode([
+            'op' => 'eval',
+            'id' => 'err',
+            'session' => $sessionId,
+            'code' => '(clojure.core/require @foo)',
+        ]));
+        $this->pump($server);
+        $error = $this->readUntil($client, $decoder, $server, 2);
+        self::assertSame('user', $error[0]['ns']);
+        self::assertContains('eval-error', $error[0]['status']);
+
         // The session starts in the `user` namespace.
         $this->writeMessage($client, $encoder->encode([
             'op' => 'eval',

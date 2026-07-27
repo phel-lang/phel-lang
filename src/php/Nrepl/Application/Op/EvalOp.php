@@ -11,6 +11,9 @@ use Phel\Nrepl\Domain\Op\OpStatus;
 use Phel\Shared\CompileOptions;
 use Phel\Shared\Facade\RunFacadeInterface;
 
+use function is_string;
+use function trim;
+
 /**
  * @internal
  */
@@ -28,13 +31,20 @@ final readonly class EvalOp implements OpHandlerInterface
 
     public function handle(OpRequest $request): array
     {
-        $code = $request->stringParam('code');
-        if ($code === '') {
+        $code = $request->raw['code'] ?? null;
+        if (!is_string($code)) {
             return [OpResponse::errorDone(
                 $request,
                 'Missing required "code" param for eval op.',
-                [OpStatus::EVAL_ERROR],
+                [OpStatus::NO_CODE],
             )];
+        }
+
+        // Nothing to evaluate: editors send an empty init eval on connect to
+        // prime their namespace state from the response (CIDER sets its
+        // initial prompt from it), so the reply must still report the `ns`.
+        if (trim($code) === '') {
+            return $this->responder->respondEmptyCode($request);
         }
 
         // structuredEval compiles and evaluates the code in the session's

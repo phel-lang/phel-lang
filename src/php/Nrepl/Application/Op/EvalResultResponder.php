@@ -54,14 +54,12 @@ final readonly class EvalResultResponder
         }
 
         $session = $this->sessionFor($request);
-        if ($session instanceof Session) {
-            $this->syncSessionNamespace($session);
-        }
+        $ns = $this->resolveNamespace($session);
 
         if ($result->success) {
             $session?->recordValue($result->value);
 
-            $responses[] = OpResponse::forRequest($request, $this->successPayload($session, $result->value));
+            $responses[] = OpResponse::forRequest($request, $this->successPayload($session, $ns, $result->value));
             $responses[] = OpResponse::done($request);
 
             return $responses;
@@ -77,10 +75,27 @@ final readonly class EvalResultResponder
             return $responses;
         }
 
-        $responses[] = $this->errorFrame($request, $result->error, $errorFallbackMessage, $fileName);
+        $responses[] = $this->errorFrame($request, $result->error, $errorFallbackMessage, $fileName, $ns);
         $responses[] = OpResponse::done($request);
 
         return $responses;
+    }
+
+    /**
+     * Reply to an eval request carrying empty code (nothing to evaluate):
+     * a single done frame that still reports the current namespace. Clients
+     * prime their namespace state from the first eval response on connect —
+     * CIDER emits its initial prompt from it — so the `ns` must be present
+     * even though there is no value. Mirrors the reference nREPL, where
+     * empty code reads as EOF and only a done frame comes back.
+     *
+     * @return list<OpResponse>
+     */
+    public function respondEmptyCode(OpRequest $request): array
+    {
+        $ns = $this->resolveNamespace($this->sessionFor($request));
+
+        return [OpResponse::forRequest($request, ['ns' => $ns], [OpStatus::DONE])];
     }
 
     private function sessionFor(OpRequest $request): ?Session
@@ -91,32 +106,34 @@ final readonly class EvalResultResponder
     }
 
     /**
-     * Mirror the compiler's current namespace into the session, so the `ns`
-     * field of eval responses tracks `ns`/`in-ns` forms as they evaluate —
-     * editor prompts (CIDER, Calva, ...) are driven by that field. This is
-     * the same source of truth the terminal REPL prompt reads. A failed or
-     * incomplete eval restores the environment snapshot, so syncing here is
-     * a no-op in that case.
+     * The namespace an eval ran in: the compiler's current namespace, mirrored
+     * into the session so the `ns` field of eval responses tracks `ns`/`in-ns`
+     * forms as they evaluate — editor prompts (CIDER, Calva, ...) are driven
+     * by that field. This is the same source of truth the terminal REPL prompt
+     * reads. A failed or incomplete eval restores the environment snapshot, so
+     * after one this simply yields the pre-eval namespace.
      */
-    private function syncSessionNamespace(Session $session): void
+    private function resolveNamespace(?Session $session): string
     {
-        if (!$this->compilerFacade->isGlobalEnvironmentInitialized()) {
-            return;
+        if ($this->compilerFacade->isGlobalEnvironmentInitialized()) {
+            $ns = Munge::displayNs($this->compilerFacade->getGlobalEnvironment()->getNs());
+            if ($ns !== '') {
+                $session?->setNamespace($ns);
+
+                return $ns;
+            }
         }
 
-        $ns = Munge::displayNs($this->compilerFacade->getGlobalEnvironment()->getNs());
-        if ($ns !== '') {
-            $session->setNamespace($ns);
-        }
+        return $session instanceof Session ? $session->namespace() : 'user';
     }
 
     /**
      * @return array<string, string>
      */
-    private function successPayload(?Session $session, mixed $value): array
+    private function successPayload(?Session $session, string $ns, mixed $value): array
     {
         $payload = [
-            'ns' => $session instanceof Session ? $session->namespace() : 'user',
+            'ns' => $ns,
             'value' => $this->printer->print($value),
         ];
 
@@ -135,11 +152,16 @@ final readonly class EvalResultResponder
         ?EvalError $error,
         string $fallbackMessage,
         ?string $fileName,
+        string $ns,
     ): OpResponse {
         $message = $error instanceof EvalError ? $error->message : $fallbackMessage;
         $exClass = $error instanceof EvalError ? $error->exceptionClass : 'Error';
 
         $body = [
+            // Clients track the namespace from every eval response frame;
+            // without it a failed eval (e.g. CIDER's Clojure-only init code)
+            // would leave the client's prompt namespace unset.
+            'ns' => $ns,
             'ex' => $exClass,
             'err' => $fileName === null
                 ? sprintf('%s: %s', $exClass, $message)

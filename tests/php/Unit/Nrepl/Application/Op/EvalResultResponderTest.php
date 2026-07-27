@@ -235,6 +235,89 @@ final class EvalResultResponderTest extends TestCase
         self::assertStringContainsString('real message', (string) $responses[0]->payload['err']);
     }
 
+    public function test_failure_frame_carries_the_current_namespace(): void
+    {
+        $env = $this->createStub(GlobalEnvironmentInterface::class);
+        $env->method('getNs')->willReturn('foo');
+
+        $compiler = $this->createStub(CompilerFacadeInterface::class);
+        $compiler->method('isGlobalEnvironmentInitialized')->willReturn(true);
+        $compiler->method('getGlobalEnvironment')->willReturn($env);
+
+        $registry = new SessionRegistry();
+        $session = $registry->create();
+        $responder = new EvalResultResponder(
+            $this->createStub(PrinterInterface::class),
+            $registry,
+            $compiler,
+        );
+
+        $responses = $responder->respond(
+            new OpRequest('eval', 'req-1', $session->id, []),
+            EvalResult::failure(new EvalError(
+                exceptionClass: 'E',
+                message: 'boom',
+                errorCode: null,
+                file: null,
+                line: null,
+                column: null,
+                endLine: null,
+                endColumn: null,
+                codeSnippet: null,
+                stackTrace: '',
+                phase: 'compile',
+                frames: [],
+            )),
+            'fallback',
+        );
+
+        self::assertSame('foo', $responses[0]->payload['ns']);
+        self::assertSame('foo', $session->namespace());
+    }
+
+    public function test_empty_code_replies_done_with_the_session_namespace(): void
+    {
+        $registry = new SessionRegistry();
+        $session = $registry->create();
+        $session->setNamespace('foo');
+
+        $responder = new EvalResultResponder(
+            $this->createStub(PrinterInterface::class),
+            $registry,
+            $this->createStub(CompilerFacadeInterface::class),
+        );
+
+        $responses = $responder->respondEmptyCode(new OpRequest('eval', 'req-1', $session->id, []));
+
+        self::assertCount(1, $responses);
+        self::assertSame('foo', $responses[0]->payload['ns']);
+        self::assertSame(['done'], $responses[0]->payload['status']);
+    }
+
+    public function test_empty_code_syncs_the_namespace_from_the_environment(): void
+    {
+        $env = $this->createStub(GlobalEnvironmentInterface::class);
+        $env->method('getNs')->willReturn('foo.bar');
+
+        $compiler = $this->createStub(CompilerFacadeInterface::class);
+        $compiler->method('isGlobalEnvironmentInitialized')->willReturn(true);
+        $compiler->method('getGlobalEnvironment')->willReturn($env);
+
+        $registry = new SessionRegistry();
+        $session = $registry->create();
+
+        $responder = new EvalResultResponder(
+            $this->createStub(PrinterInterface::class),
+            $registry,
+            $compiler,
+        );
+
+        $responses = $responder->respondEmptyCode(new OpRequest('eval', 'req-1', $session->id, []));
+
+        self::assertSame('foo.bar', $responses[0]->payload['ns']);
+        self::assertSame('foo.bar', $session->namespace());
+    }
+
     public function test_failure_with_filename_embeds_filename_in_err_message(): void
     {
         $responder = new EvalResultResponder(
