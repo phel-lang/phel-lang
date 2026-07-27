@@ -2238,6 +2238,7 @@ final class Phel\Shared\ProjectRootResolver
   public static function resolveFromCwd(string $cwd): string
 
 interface Phel\Shared\ReplConstants
+  public const string INTERACTIVE_MODE = '*interactive-mode*'
   public const string REPL_MODE = '*repl-mode*'
 
 final class Phel\Shared\ResourceUsageFormatter

@@ -7,10 +7,13 @@ namespace Phel\Compiler\Domain\Emitter\OutputEmitter\NodeEmitter;
 use Phel\Compiler\Domain\Analyzer\Ast\AbstractNode;
 use Phel\Compiler\Domain\Analyzer\Ast\NsNode;
 use Phel\Compiler\Domain\Emitter\OutputEmitter\NodeEmitterInterface;
+use Phel\Lang\Symbol;
+use Phel\Shared\Munge;
 
 use function addslashes;
 use function assert;
 use function count;
+use function sprintf;
 
 /**
  * @internal
@@ -92,6 +95,7 @@ final class NsEmitter implements NodeEmitterInterface
                     . "'" . addslashes($ns->getName()) . "'"
                     . ']);',
                 );
+                $this->emitMissingNamespaceGuard($node, $ns);
                 $this->outputEmitter->emitLine('foreach ($__phelNsInfos as $__phelNsInfo) {');
                 $this->outputEmitter->increaseIndentLevel();
                 // `getNamespace()` is the canonical Phel form (`my-app.lib`);
@@ -110,6 +114,38 @@ final class NsEmitter implements NodeEmitterInterface
                 $this->outputEmitter->emitLine('}');
             }
         }
+    }
+
+    /**
+     * A seed that resolves to no file comes back as an empty list, and the loop
+     * below then does nothing at all, so a typo'd or missing `(:require ...)`
+     * used to be indistinguishable from a successful one: the program ran on
+     * until the first use of a definition that was never loaded, and reported
+     * `Cannot resolve symbol` at the call site instead (#2891). `phel.repl`'s
+     * own `require` has always checked this; the `ns` form did not.
+     */
+    private function emitMissingNamespaceGuard(NsNode $node, Symbol $ns): void
+    {
+        $requiredNs = Munge::canonicalNs($ns->getName());
+
+        // Two exemptions. Build resolves dependencies itself and deliberately
+        // leaves the search path empty here (#2886), so every seed would look
+        // missing. And an already-loaded namespace has no file to find, so
+        // `(ns a)` typed into a session and required from `(ns b (:require a))`
+        // is a legitimate resolve-to-nothing.
+        $this->outputEmitter->emitLine(sprintf(
+            "if (\$__phelNsInfos === [] && !\\Phel\\Build\\BuildFacade::isBuildMode() && !\\Phel::isNamespaceLoaded('%s')) {",
+            addslashes($requiredNs),
+        ));
+        $this->outputEmitter->increaseIndentLevel();
+        $this->outputEmitter->emitLine(sprintf(
+            'throw new \\Phel\\Build\\Domain\\Extractor\\ExtractorException('
+            . "\\Phel\\Build\\Domain\\Extractor\\ExtractorException::missingRequiredNamespaceMessage('%s', '%s'));",
+            addslashes($requiredNs),
+            addslashes(Munge::canonicalNs($node->getNamespace())),
+        ), $ns->getStartLocation());
+        $this->outputEmitter->decreaseIndentLevel();
+        $this->outputEmitter->emitLine('}');
     }
 
     private function emitCurrentNamespace(NsNode $node): void

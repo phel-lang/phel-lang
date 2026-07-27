@@ -562,16 +562,18 @@ Returns nil. Prints one name per line, sorted alphabetically."
       (filter (fn [info] (reloadable? (php/-> info (getNamespace))))
               (php/-> build-facade (getDependenciesForNamespace (get-src-dirs) ns-array))))))
 
-(defn- with-repl-mode
-  "Runs `thunk` with `*repl-mode*` enabled so re-evaluating a definition does
-  not trip the duplicate-definition guard, restoring the previous mode after."
+(defn- with-interactive-mode
+  "Runs `thunk` with `*interactive-mode*` enabled so re-evaluating a definition
+  does not trip the duplicate-definition guard, restoring the previous mode
+  after. Not `*repl-mode*`: that one also injects the `phel.repl` refers, which
+  a reloaded project namespace must not silently gain."
   [thunk]
-  (let [previous (php/:: Phel (getDefinition "phel.core" "*repl-mode*"))]
-    (php/:: Phel (addDefinition "phel.core" "*repl-mode*" true))
+  (let [previous (php/:: Phel (getDefinition "phel.core" "*interactive-mode*"))]
+    (php/:: Phel (addDefinition "phel.core" "*interactive-mode*" true))
     (try
       (thunk)
       (finally
-        (php/:: Phel (addDefinition "phel.core" "*repl-mode*" previous))))))
+        (php/:: Phel (addDefinition "phel.core" "*interactive-mode*" previous))))))
 
 (defn- reload-infos!
   "Reloads the given namespace infos (topologically sorted) when their source
@@ -582,7 +584,7 @@ Returns nil. Prints one name per line, sorted alphabetically."
   (let [dirty      (atom {})
         reloaded   (atom [])
         current-ns *ns*]
-    (with-repl-mode
+    (with-interactive-mode
      (fn []
        (foreach [info infos]
          (let [ns-name   (canonical-ns (php/-> info (getNamespace)))

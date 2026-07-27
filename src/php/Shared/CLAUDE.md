@@ -39,7 +39,8 @@ It also does not weaken the Gacela rule it appears to touch. Shared only *names*
 | `CompilerConstants::PHEL_CORE_NAMESPACE` | `'phel.core'` |
 | `CompilerConstants::DEFAULT_SOURCE` | `'string'` — `lexString` source label; `CompilerFacadeInterface` defaults to it to avoid referencing `Application\Lexer` |
 | `BuildConstants::BUILD_MODE` | `'*build-mode*'` |
-| `ReplConstants::REPL_MODE` | `'*repl-mode*'` |
+| `ReplConstants::REPL_MODE` | `'*repl-mode*'` — set by `phel repl` only; carries the `phel.repl` refer injection |
+| `ReplConstants::INTERACTIVE_MODE` | `'*interactive-mode*'` — set by `phel repl`, `phel eval` and the nREPL server; stands the duplicate-definition guard down |
 | `CompileOptions` defaults | `DEFAULT_SOURCE`, `DEFAULT_STARTING_LINE`, `DEFAULT_ENABLE_SOURCE_MAPS`, `DEFAULT_EMIT_ONLY` |
 
 ## Exceptions (`Exceptions/`)
