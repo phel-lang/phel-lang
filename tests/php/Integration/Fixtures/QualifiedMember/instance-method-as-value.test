@@ -1,0 +1,7 @@
+--PHEL--
+(map \PhelTest\Support\Fixtures\PhpInterop\QualifiedMemberFixture/.label [])
+--PHP--
+(\Phel::getDefinition("phel.core", "map"))->__invoke((function($receiver_1, ...$args_2) {
+  $args_2 = \Phel::vector($args_2);
+  return ((($receiver_1)->label(...)))(...\Phel\Lang\Seq::toApplyArguments($args_2));
+}), \Phel::vector([]));

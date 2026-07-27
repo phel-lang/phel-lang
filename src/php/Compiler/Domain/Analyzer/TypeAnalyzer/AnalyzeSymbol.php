@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace Phel\Compiler\Domain\Analyzer\TypeAnalyzer;
 
-use Phel;
 use Phel\Compiler\Domain\Analyzer\Ast\AbstractNode;
 use Phel\Compiler\Domain\Analyzer\Ast\LocalVarNode;
 use Phel\Compiler\Domain\Analyzer\Ast\PhpVarNode;
@@ -14,8 +13,6 @@ use Phel\Compiler\Domain\Analyzer\SymbolSuggestionProvider;
 use Phel\Lang\Collections\LinkedList\PersistentListInterface;
 use Phel\Lang\Symbol;
 
-use function in_array;
-
 /**
  * @internal
  */
@@ -24,6 +21,8 @@ final class AnalyzeSymbol
     use WithAnalyzerTrait;
 
     private ?SymbolSuggestionProvider $suggestionProvider = null;
+
+    private ?QualifiedMemberExpander $memberExpander = null;
 
     public function analyze(Symbol $symbol, NodeEnvironmentInterface $env): AbstractNode
     {
@@ -59,11 +58,9 @@ final class AnalyzeSymbol
             return $globalResolve;
         }
 
-        if ($this->isStaticMemberShorthand($symbol)) {
-            return $this->analyzer->analyze(
-                $this->expandStaticMemberShorthand($symbol),
-                $env,
-            );
+        $memberForm = $this->getMemberExpander()->expand($symbol, $env);
+        if ($memberForm instanceof PersistentListInterface) {
+            return $this->analyzer->analyze($memberForm, $env);
         }
 
         $suggestions = $this->getSuggestionProvider()->findSimilar(
@@ -74,44 +71,9 @@ final class AnalyzeSymbol
         throw AnalyzerException::cannotResolveSymbol($symbol->getFullName(), $symbol, $suggestions);
     }
 
-    /**
-     * Bare `Class/MEMBER` symbol expands to `(php/:: Class MEMBER)` so a static
-     * property or constant access reads the same as the list-form static call
-     * shorthand handled by AnalyzePersistentList.
-     */
-    private function isStaticMemberShorthand(Symbol $symbol): bool
+    private function getMemberExpander(): QualifiedMemberExpander
     {
-        $ns = $symbol->getNamespace();
-        if (in_array($ns, [null, '', 'php'], true)) {
-            return false;
-        }
-
-        $name = $symbol->getName();
-        if ($name === '' || !$this->isIdentifierStartChar($name[0])) {
-            return false;
-        }
-
-        return $ns[0] === '\\'
-            || ($ns[0] >= 'A' && $ns[0] <= 'Z');
-    }
-
-    /**
-     * @return PersistentListInterface<mixed>
-     */
-    private function expandStaticMemberShorthand(Symbol $symbol): PersistentListInterface
-    {
-        $staticSymbol = Symbol::create(Symbol::NAME_PHP_OBJECT_STATIC_CALL)->copyLocationFrom($symbol);
-        $classSymbol = Symbol::create((string) $symbol->getNamespace())->copyLocationFrom($symbol);
-        $memberSymbol = Symbol::create($symbol->getName())->copyLocationFrom($symbol);
-
-        return Phel::list([$staticSymbol, $classSymbol, $memberSymbol])->copyLocationFrom($symbol);
-    }
-
-    private function isIdentifierStartChar(string $c): bool
-    {
-        return ($c >= 'a' && $c <= 'z')
-            || ($c >= 'A' && $c <= 'Z')
-            || $c === '_';
+        return $this->memberExpander ??= new QualifiedMemberExpander($this->analyzer);
     }
 
     private function getSuggestionProvider(): SymbolSuggestionProvider

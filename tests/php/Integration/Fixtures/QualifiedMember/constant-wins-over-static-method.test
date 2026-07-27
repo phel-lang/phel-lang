@@ -1,0 +1,4 @@
+--PHEL--
+\PhelTest\Support\Fixtures\PhpInterop\QualifiedMemberFixture/new
+--PHP--
+(\PhelTest\Support\Fixtures\PhpInterop\QualifiedMemberFixture::new);
