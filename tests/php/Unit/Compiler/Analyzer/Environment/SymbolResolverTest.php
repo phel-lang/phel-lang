@@ -174,7 +174,7 @@ final class SymbolResolverTest extends TestCase
         $nodeEnv = NodeEnvironment::empty();
 
         self::assertEquals(
-            new PhpClassNameNode($nodeEnv, Symbol::createForNamespace('bar', 'Shape'), null),
+            new PhpClassNameNode($nodeEnv, Symbol::createForNamespace('bar', 'Shape')),
             $this->resolver->resolve(Symbol::create('Shape'), $nodeEnv),
         );
     }

@@ -248,7 +248,7 @@ final class NreplServerTest extends TestCase
         $this->pump($server);
         $untouched = $this->firstWithKey($this->readUntil($client, $decoder, $server, 2), 'value');
         self::assertNotNull($untouched, 'eval response should include a value');
-        self::assertStringContainsString('if', $untouched['value']);
+        self::assertStringContainsString('if', (string) $untouched['value']);
 
         $captured = $this->capturedCompilerWarnings();
         self::assertCount(1, $captured);
