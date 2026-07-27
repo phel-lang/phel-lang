@@ -7,17 +7,24 @@
 ;; --------------------------------------------
 
 (defmacro set!
-  "Sets the property named by `place` to `value`, and returns `value`. `place`
-  is a property access on an object (`(.-prop obj)`) or on a class
-  (`(php/:: Class prop)`), the same places `php/oset` accepts. Matches
-  Clojure's `(set! (.-field o) v)`; a macro rather than a function because the
-  place is a location, not a value."
-  {:example "(let [o (php/new \\ArrayObject)] (set! (.-y o) 2024)) ; => 2024"
-   :see-also ["aset" "reset!" "php/oset"]}
+  "Sets `place` to `value` and returns `value`, covering both shapes Clojure's
+  `set!` covers.
+
+  A property access (`(.-prop obj)`, or `(php/:: Class prop)`) assigns the
+  property, the places `php/oset` accepts. A **symbol** naming a dynamic var
+  assigns its current thread-local binding, and throws when no `binding` frame
+  is active, so it never writes the root by accident; `alter-var-root` is the
+  way to change a root.
+
+  A macro rather than a function because the place is a location, not a value."
+  {:example "(let [o (php/new \\ArrayObject)] (set! (.-y o) 2024)) ; => 2024\n(def ^:dynamic *x* 0)\n(binding [*x* 1] (set! *x* 2) *x*) ; => 2"
+   :see-also ["var-set" "alter-var-root" "aset" "php/oset"]}
   [place value]
-  `(let [value# ~value]
-     (php/oset ~place value#)
-     value#))
+  (if (symbol? place)
+    `(var-set (var ~place) ~value)
+    `(let [value# ~value]
+       (php/oset ~place value#)
+       value#)))
 
 (defn- invoke-target-name
   "Returns the name to report for `target` in an undefined-method error:

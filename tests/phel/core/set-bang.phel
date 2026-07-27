@@ -2,6 +2,8 @@
   (:require phel.test :refer [deftest is])
   (:use \stdClass))
 
+(def ^:dynamic *counter* 0)
+
 (deftest sets-an-object-property
   (let [o (php/new stdClass)]
     (set! (.-total o) 10)
@@ -31,3 +33,20 @@
         value 5]
     (set! (.-total o) value)
     (is (= 5 (.-total o)) "a caller binding named `value` survives the expansion")))
+
+(deftest sets-a-thread-local-var-binding
+  (is (= 2 (binding [*counter* 1] (set! *counter* 2) *counter*))
+      "set! on a symbol writes the current binding frame")
+  (is (= 0 *counter*)
+      "the root is untouched, unlike set-var"))
+
+(deftest returns-the-value-for-a-var-too
+  (is (= 7 (binding [*counter* 1] (set! *counter* 7)))
+      "the var branch returns the assigned value as well"))
+
+(deftest refuses-to-write-a-root
+  (let [err (try (set! *counter* 3)
+                 (catch \InvalidArgumentException e e))]
+    (is (php/instanceof err \InvalidArgumentException)
+        "set! outside a binding frame throws instead of writing the root")
+    (is (= 0 *counter*) "the root is still the value def gave it")))
