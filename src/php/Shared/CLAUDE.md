@@ -39,7 +39,8 @@ It also does not weaken the Gacela rule it appears to touch. Shared only *names*
 | `CompilerConstants::PHEL_CORE_NAMESPACE` | `'phel.core'` |
 | `CompilerConstants::DEFAULT_SOURCE` | `'string'` — `lexString` source label; `CompilerFacadeInterface` defaults to it to avoid referencing `Application\Lexer` |
 | `BuildConstants::BUILD_MODE` | `'*build-mode*'` |
-| `ReplConstants::REPL_MODE` | `'*repl-mode*'` |
+| `ReplConstants::REPL_MODE` | `'*repl-mode*'` — set by `phel repl` only; carries the `phel.repl` refer injection |
+| `ReplConstants::INTERACTIVE_MODE` | `'*interactive-mode*'` — set by `phel repl`, `phel eval` and the nREPL server; stands the duplicate-definition guard down |
 | `CompileOptions` defaults | `DEFAULT_SOURCE`, `DEFAULT_STARTING_LINE`, `DEFAULT_ENABLE_SOURCE_MAPS`, `DEFAULT_EMIT_ONLY` |
 
 ## Exceptions (`Exceptions/`)
@@ -76,6 +77,7 @@ Stateless strategy-pattern printer (see `Printer/CLAUDE.md`); consumers instanti
 | `Munge` | namespace/symbol encoding: `encode()`, `encodePhpNs()`, `encodeRegistryKey()`, `decodeNs()`; static `canonicalNs()`, `displayNs()` |
 | `ColorStyle` | ANSI colors; static factories `withStyles()`, `noStyles()`; `green/yellow/blue/red/color()` |
 | `ScalarCoercion` | coerce config `mixed`→scalar with default: static `toString()`, `toInt()`, `toFloat()`, `toStringList()` |
+| `FrameworkNamespaces` | static `matches(string)` → is this the `phel.*`/`clojure.*` space Phel itself provides, plus the two prefix consts. A require of one resolves at runtime even when a source scan cannot see it (precompiled+lazily-loaded stdlib, or a `clojure.*` compat shim with no Phel counterpart at all, like `clojure.set`), so both Build's dependency walk and the emitted `ns` form must tolerate one instead of reporting it missing. Shared so those two cannot drift on which namespaces are exempt |
 | `ExistingPaths` | static `filter(list<string>)` → drops paths that are neither a file nor a dir. Shared by the `lint` / `watch` commands and `WatchRunner` so a user-supplied path list narrows identically everywhere |
 | `ResourceUsageFormatter` | `resourceUsageSinceStartOfRequest()` → "Time: HH:MM:SS.mmm, Memory: X.XX MB" |
 | `PhelProjectDirectory` | manages `.phel/` dir; static `ensure()`/`path()`/`resolve()`/`resolveCacheDir()`. Effective location: `PHEL_DIR` env → `withPhelDir()` override → `<projectRoot>/.phel`. `resolveCacheDir()` (`PHEL_CACHE_DIR` env → `resolve()`) is the single source for `BuildConfig::getCacheDir()` and `CompilerConfig::getCacheDir()`, so the build cache and the intermediate-artifact cache cannot drift apart — and so Compiler needs no reference to Build |

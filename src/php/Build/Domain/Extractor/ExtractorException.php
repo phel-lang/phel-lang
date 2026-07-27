@@ -56,11 +56,22 @@ final class ExtractorException extends RuntimeException
 
     public static function cannotResolveRequiredNamespace(string $requiredNs, string $requiringNs): self
     {
-        return new self(sprintf(
+        return new self(self::missingRequiredNamespaceMessage($requiredNs, $requiringNs));
+    }
+
+    /**
+     * Split out of the factory above for the emitted `(ns ... (:require ...))`
+     * code, which has to construct the exception at the throw site itself: one
+     * built in here reports this file and line, and the eval'd-code source map
+     * cannot translate that back to the user's `:require`.
+     */
+    public static function missingRequiredNamespaceMessage(string $requiredNs, string $requiringNs): string
+    {
+        return sprintf(
             "Cannot find namespace '%s' required by '%s'. "
             . 'Check the spelling, or that its source file exists on the configured src/test/vendor dirs.',
             $requiredNs,
             $requiringNs,
-        ));
+        );
     }
 }

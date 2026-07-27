@@ -4,11 +4,15 @@ declare(strict_types=1);
 
 namespace PhelTest\Unit\Compiler\Domain\Emitter\OutputEmitter\NodeEmitter;
 
+use Phel;
+use Phel\Build\BuildFacade;
 use Phel\Compiler\CompilerFactory;
 use Phel\Compiler\Domain\Analyzer\Ast\NsNode;
 use Phel\Compiler\Domain\Emitter\OutputEmitter\NodeEmitter\NsEmitter;
 use Phel\Lang\Symbol;
 use PHPUnit\Framework\TestCase;
+
+use function sprintf;
 
 final class NsEmitterTest extends TestCase
 {
@@ -82,6 +86,64 @@ final class NsEmitterTest extends TestCase
             'getAllPhelDirectories',
             $output,
             'Fallback should use CommandFacade to resolve directories',
+        );
+    }
+
+    /**
+     * A seed that resolves to no file returns an empty list, and the load loop
+     * then does nothing, so a missing or typo'd `:require` used to be
+     * indistinguishable from a successful one (#2891).
+     */
+    public function test_ns_with_requires_raises_when_a_required_namespace_resolves_to_no_file(): void
+    {
+        $node = new NsNode('my\\app', [Symbol::create('totally\\missing')], []);
+
+        ob_start();
+        $this->nsEmitter->emit($node);
+        $output = (string) ob_get_clean();
+
+        self::assertStringContainsString(
+            sprintf(
+                "\$__phelNsInfos === [] && !\\%s::isBuildMode() && !\\%s::isNamespaceLoaded('totally.missing')",
+                BuildFacade::class,
+                Phel::class,
+            ),
+            $output,
+            'An unresolved require must raise, except during a build (which resolves dependencies itself)'
+            . ' or when the namespace is already loaded and so has no file to find',
+        );
+        self::assertStringContainsString(
+            "missingRequiredNamespaceMessage('totally.missing', 'my.app')",
+            $output,
+            'The error must name both the missing namespace and the one requiring it, in canonical form',
+        );
+    }
+
+    /**
+     * `clojure.set` has no Phel counterpart and no source file, and the
+     * clojure-test-suite requires it. The bundled stdlib is equally absent from
+     * a downstream scan index. Neither may be reported as missing.
+     */
+    public function test_ns_does_not_guard_a_required_framework_namespace(): void
+    {
+        $node = new NsNode('my\\app', [
+            Symbol::create('clojure\\set'),
+            Symbol::create('phel\\json'),
+        ], []);
+
+        ob_start();
+        $this->nsEmitter->emit($node);
+        $output = (string) ob_get_clean();
+
+        self::assertStringNotContainsString(
+            'missingRequiredNamespaceMessage',
+            $output,
+            'A phel.*/clojure.* require resolves at runtime, so it must carry no missing-namespace guard',
+        );
+        self::assertStringContainsString(
+            sprintf("getDependenciesForNamespace(\$__phelSrcDirs, ['%s'])", addslashes('clojure\\set')),
+            $output,
+            'It must still be resolved and loaded like any other require',
         );
     }
 }
