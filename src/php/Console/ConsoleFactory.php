@@ -45,10 +45,7 @@ final class ConsoleFactory extends AbstractFactory
 
     public function getFilesystemFacade(): FilesystemFacadeInterface
     {
-        /** @var FilesystemFacadeInterface $facade */
-        $facade = $this->getProvidedDependency(ConsoleProvider::FACADE_FILESYSTEM);
-
-        return $facade;
+        return $this->getProvidedDependency(FilesystemFacadeInterface::class);
     }
 
     public function createVersionResolver(): VersionResolver

@@ -11,22 +11,24 @@ use Phel\Api\ApiFacade;
 use Phel\Formatter\FormatterFacade;
 use Phel\Lint\LintFacade;
 use Phel\Run\RunFacade;
+use Phel\Shared\Facade\ApiFacadeInterface;
+use Phel\Shared\Facade\FormatterFacadeInterface;
+use Phel\Shared\Facade\RunFacadeInterface;
 
 /**
  * @internal
  */
 final class LspProvider extends AbstractProvider
 {
-    public const string FACADE_API = 'FACADE_API';
-
+    /**
+     * `Lint` publishes no `*FacadeInterface`, so this cannot be keyed by
+     * `LintFacade::class`: the body resolves that same id and the binding would
+     * re-enter itself. See {@see CommandProvider} for the general rule.
+     */
     public const string FACADE_LINT = 'FACADE_LINT';
 
-    public const string FACADE_FORMATTER = 'FACADE_FORMATTER';
-
-    public const string FACADE_RUN = 'FACADE_RUN';
-
-    #[Provides(self::FACADE_API)]
-    public function apiFacade(Container $container): ApiFacade
+    #[Provides(ApiFacadeInterface::class)]
+    public function apiFacade(Container $container): ApiFacadeInterface
     {
         return $container->getLocator()->getRequired(ApiFacade::class);
     }
@@ -37,14 +39,14 @@ final class LspProvider extends AbstractProvider
         return $container->getLocator()->getRequired(LintFacade::class);
     }
 
-    #[Provides(self::FACADE_FORMATTER)]
-    public function formatterFacade(Container $container): FormatterFacade
+    #[Provides(FormatterFacadeInterface::class)]
+    public function formatterFacade(Container $container): FormatterFacadeInterface
     {
         return $container->getLocator()->getRequired(FormatterFacade::class);
     }
 
-    #[Provides(self::FACADE_RUN)]
-    public function runFacade(Container $container): RunFacade
+    #[Provides(RunFacadeInterface::class)]
+    public function runFacade(Container $container): RunFacadeInterface
     {
         return $container->getLocator()->getRequired(RunFacade::class);
     }

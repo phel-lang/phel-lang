@@ -20,6 +20,7 @@ use Phel\Console\Infrastructure\Command\ProfileCommands;
 use Phel\Console\Infrastructure\Command\RunCommands;
 use Phel\Console\Infrastructure\Command\WatchCommands;
 use Phel\Filesystem\FilesystemFacade;
+use Phel\Filesystem\FilesystemFacadeInterface;
 use Symfony\Component\Console\Command\LazyCommand;
 
 /**
@@ -29,10 +30,8 @@ final class ConsoleProvider extends AbstractProvider
 {
     public const string LAZY_COMMANDS = 'LAZY_COMMANDS';
 
-    public const string FACADE_FILESYSTEM = 'FACADE_FILESYSTEM';
-
-    #[Provides(self::FACADE_FILESYSTEM)]
-    public function filesystemFacade(Container $container): FilesystemFacade
+    #[Provides(FilesystemFacadeInterface::class)]
+    public function filesystemFacade(Container $container): FilesystemFacadeInterface
     {
         return $container->getLocator()->getRequired(FilesystemFacade::class);
     }

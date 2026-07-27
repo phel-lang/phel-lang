@@ -9,24 +9,22 @@ use Gacela\Framework\Attribute\Provides;
 use Gacela\Framework\Container\Container;
 use Phel\Api\ApiFacade;
 use Phel\Run\RunFacade;
+use Phel\Shared\Facade\ApiFacadeInterface;
+use Phel\Shared\Facade\RunFacadeInterface;
 
 /**
  * @internal
  */
 final class NreplProvider extends AbstractProvider
 {
-    public const string FACADE_RUN = 'FACADE_RUN';
-
-    public const string FACADE_API = 'FACADE_API';
-
-    #[Provides(self::FACADE_RUN)]
-    public function runFacade(Container $container): RunFacade
+    #[Provides(RunFacadeInterface::class)]
+    public function runFacade(Container $container): RunFacadeInterface
     {
         return $container->getLocator()->getRequired(RunFacade::class);
     }
 
-    #[Provides(self::FACADE_API)]
-    public function apiFacade(Container $container): ApiFacade
+    #[Provides(ApiFacadeInterface::class)]
+    public function apiFacade(Container $container): ApiFacadeInterface
     {
         return $container->getLocator()->getRequired(ApiFacade::class);
     }

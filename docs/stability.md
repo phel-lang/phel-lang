@@ -52,7 +52,7 @@ project's own `phel-config.php` constructs (`Config`).
 Everything below is internal even when a public class happens to return it:
 
 - `Phel\<Module>\Domain\`, `Phel\<Module>\Application\`, `Phel\<Module>\Infrastructure\`
-- `*Factory`, `*Config`, `*DependencyProvider`, `*Provider` (the Gacela plumbing)
+- `*Factory`, `*Config`, `*Provider` (the Gacela plumbing)
 - `Phel\<Module>\Transfer\` (module-local transfers; the cross-module ones live in `Phel\Shared\Api\`)
 
 Depending on an internal symbol is not forbidden, it is unsupported. Reaching for one

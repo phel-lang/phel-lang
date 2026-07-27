@@ -145,10 +145,7 @@ final class ApiFactory extends AbstractFactory
 
     public function getRunFacade(): RunFacadeInterface
     {
-        /** @var RunFacadeInterface $facade */
-        $facade = $this->getProvidedDependency(ApiProvider::FACADE_RUN);
-
-        return $facade;
+        return $this->getProvidedDependency(RunFacadeInterface::class);
     }
 
     private function createPhelFnLoader(): PhelFnLoaderInterface
@@ -165,9 +162,6 @@ final class ApiFactory extends AbstractFactory
 
     private function getCompilerFacade(): CompilerFacadeInterface
     {
-        /** @var CompilerFacadeInterface $facade */
-        $facade = $this->getProvidedDependency(ApiProvider::FACADE_COMPILER);
-
-        return $facade;
+        return $this->getProvidedDependency(CompilerFacadeInterface::class);
     }
 }

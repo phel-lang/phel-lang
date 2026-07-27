@@ -72,9 +72,7 @@ class RunFactory extends AbstractFactory
 
     public function getCommandFacade(): CommandFacadeInterface
     {
-        /** @var CommandFacadeInterface $facade */
-        $facade = $this->getProvidedDependency(RunProvider::FACADE_COMMAND);
-        return $facade;
+        return $this->getProvidedDependency(CommandFacadeInterface::class);
     }
 
     public function createCoverageDriver(): ?CoverageDriver
@@ -93,16 +91,12 @@ class RunFactory extends AbstractFactory
 
     public function getBuildFacade(): BuildFacadeInterface
     {
-        /** @var BuildFacadeInterface $facade */
-        $facade = $this->getProvidedDependency(RunProvider::FACADE_BUILD);
-        return $facade;
+        return $this->getProvidedDependency(BuildFacadeInterface::class);
     }
 
     public function getCompilerFacade(): CompilerFacadeInterface
     {
-        /** @var CompilerFacadeInterface $facade */
-        $facade = $this->getProvidedDependency(RunProvider::FACADE_COMPILER);
-        return $facade;
+        return $this->getProvidedDependency(CompilerFacadeInterface::class);
     }
 
     public function createNamespaceCollector(): NamespaceCollector
@@ -203,16 +197,12 @@ class RunFactory extends AbstractFactory
 
     public function getApiFacade(): ApiFacadeInterface
     {
-        /** @var ApiFacadeInterface $facade */
-        $facade = $this->getProvidedDependency(RunProvider::FACADE_API);
-        return $facade;
+        return $this->getProvidedDependency(ApiFacadeInterface::class);
     }
 
     public function getFilesystemFacade(): FilesystemFacadeInterface
     {
-        /** @var FilesystemFacadeInterface $facade */
-        $facade = $this->getProvidedDependency(RunProvider::FACADE_FILESYSTEM);
-        return $facade;
+        return $this->getProvidedDependency(FilesystemFacadeInterface::class);
     }
 
     /**

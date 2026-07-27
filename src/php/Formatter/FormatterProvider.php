@@ -9,24 +9,22 @@ use Gacela\Framework\Attribute\Provides;
 use Gacela\Framework\Container\Container;
 use Phel\Command\CommandFacade;
 use Phel\Compiler\CompilerFacade;
+use Phel\Shared\Facade\CommandFacadeInterface;
+use Phel\Shared\Facade\CompilerFacadeInterface;
 
 /**
  * @internal
  */
 final class FormatterProvider extends AbstractProvider
 {
-    public const string FACADE_COMPILER = 'FACADE_COMPILER';
-
-    public const string FACADE_COMMAND = 'FACADE_COMMAND';
-
-    #[Provides(self::FACADE_COMPILER)]
-    public function compilerFacade(Container $container): CompilerFacade
+    #[Provides(CompilerFacadeInterface::class)]
+    public function compilerFacade(Container $container): CompilerFacadeInterface
     {
         return $container->getLocator()->getRequired(CompilerFacade::class);
     }
 
-    #[Provides(self::FACADE_COMMAND)]
-    public function commandFacade(Container $container): CommandFacade
+    #[Provides(CommandFacadeInterface::class)]
+    public function commandFacade(Container $container): CommandFacadeInterface
     {
         return $container->getLocator()->getRequired(CommandFacade::class);
     }

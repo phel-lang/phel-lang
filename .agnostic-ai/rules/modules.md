@@ -12,7 +12,7 @@ Each module in `src/php/` has a `CLAUDE.md` file that documents its purpose, Gac
 After modifying a module, check if any of these changed:
 
 - Facade method added, removed, or signature changed
-- DependencyProvider gains or loses a dependency
+- Provider gains or loses a dependency
 - New subdirectory or key class added/removed
 - Module constraints changed (e.g. new special form registered)
 

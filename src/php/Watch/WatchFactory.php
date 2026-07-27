@@ -98,33 +98,21 @@ final class WatchFactory extends AbstractFactory
 
     public function getRunFacade(): RunFacadeInterface
     {
-        /** @var RunFacadeInterface $facade */
-        $facade = $this->getProvidedDependency(WatchProvider::FACADE_RUN);
-
-        return $facade;
+        return $this->getProvidedDependency(RunFacadeInterface::class);
     }
 
     public function getBuildFacade(): BuildFacadeInterface
     {
-        /** @var BuildFacadeInterface $facade */
-        $facade = $this->getProvidedDependency(WatchProvider::FACADE_BUILD);
-
-        return $facade;
+        return $this->getProvidedDependency(BuildFacadeInterface::class);
     }
 
     public function getApiFacade(): ApiFacadeInterface
     {
-        /** @var ApiFacadeInterface $facade */
-        $facade = $this->getProvidedDependency(WatchProvider::FACADE_API);
-
-        return $facade;
+        return $this->getProvidedDependency(ApiFacadeInterface::class);
     }
 
     public function getCommandFacade(): CommandFacadeInterface
     {
-        /** @var CommandFacadeInterface $facade */
-        $facade = $this->getProvidedDependency(WatchProvider::FACADE_COMMAND);
-
-        return $facade;
+        return $this->getProvidedDependency(CommandFacadeInterface::class);
     }
 }
