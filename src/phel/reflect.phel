@@ -159,7 +159,7 @@
   [enum-class kw]
   (let [case-name (name kw)]
     (first (filter (fn [c] (= case-name (php/-> c name)))
-                   (php/:: enum-class (cases))))))
+                   (.cases enum-class)))))
 
 (defn enum-values
   "Returns a vector of keywords, one per case of the native PHP enum
@@ -167,5 +167,5 @@
   {:example "(enum-values \\App\\Status)"
    :see-also ["enum->keyword" "keyword->enum"]}
   [enum-class]
-  (vec (for [c :in (php/:: enum-class (cases))]
+  (vec (for [c :in (.cases enum-class)]
          (enum->keyword c))))

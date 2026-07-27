@@ -8,6 +8,7 @@ All notable changes to this project will be documented in this file.
 
 ### Added
 
+- The dot syntax now reaches a static method through a class name held in a value: `(.cases enum-class)` works whether `enum-class` holds an object or a string like `"\\App\\Status"`, with no type annotation needed. `php/::` used to be the only spelling for this, and it was the last thing that form could do which the Clojure-style syntax could not (#2881). A receiver the compiler can prove is a class name emits `Class::m()` directly, one it can prove is an object emits `$o->m()`, and only an unprovable one carries a runtime check
 - `phel\test/with-isolated-stats` and `with-isolated-reporters`: run a body against a fresh statistics accumulator or reporter set and restore the caller's afterwards, rolling back even when the body throws
 - Deprecation warnings for your own code: any `def`/`defn` with `:deprecated` metadata now warns at every call site under `--warn-deprecations` (or `PHEL_WARN_DEPRECATIONS=1`), deduplicated per file and symbol
 - New lint rule `phel/comment-style` (warning): flags a whole-line comment written with a single `;`, which the convention reserves for trailing comments

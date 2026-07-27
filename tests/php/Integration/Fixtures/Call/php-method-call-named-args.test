@@ -2,4 +2,4 @@
 (let [o (php/new \ArrayObject)] (php/-> o (setFlags :& :flags 1)))
 --PHP--
 $o_1 = (new \ArrayObject());
-($o_1->setFlags(flags: 1));
+(is_string($o_1) ? $o_1::setFlags(flags: 1) : $o_1->setFlags(flags: 1));

@@ -53,7 +53,7 @@ final class my_type_with_two_interfaces extends \Phel\Lang\Collections\Struct\Ab
   public function foobar() {
     $v = $this->v;
     $this_3 = $this;
-    return ($this_3->foo());
+    return (is_string($this_3) ? $this_3::foo() : $this_3->foo());
   }
 }
 }

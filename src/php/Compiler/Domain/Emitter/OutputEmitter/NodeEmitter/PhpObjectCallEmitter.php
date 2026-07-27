@@ -14,6 +14,9 @@ use Phel\Compiler\Domain\Analyzer\Ast\PropertyOrConstantAccessNode;
 use Phel\Compiler\Domain\Emitter\OutputEmitter\ByRefLocalCollector;
 use Phel\Compiler\Domain\Emitter\OutputEmitter\ContextualWrapEmitter;
 use Phel\Compiler\Domain\Emitter\OutputEmitter\NodeEmitterInterface;
+use Phel\Compiler\Domain\Emitter\OutputEmitter\PhpObjectCallDispatch;
+use Phel\Compiler\Domain\Emitter\OutputEmitter\PhpObjectCallDispatchResolver;
+use Phel\Compiler\Domain\Emitter\OutputEmitterInterface;
 use Phel\Lang\Symbol;
 use RuntimeException;
 
@@ -22,9 +25,15 @@ use function assert;
 /**
  * @internal
  */
-final class PhpObjectCallEmitter implements NodeEmitterInterface
+final readonly class PhpObjectCallEmitter implements NodeEmitterInterface
 {
-    use WithOutputEmitterTrait;
+    private PhpObjectCallDispatchResolver $dispatchResolver;
+
+    public function __construct(
+        private OutputEmitterInterface $outputEmitter,
+    ) {
+        $this->dispatchResolver = new PhpObjectCallDispatchResolver();
+    }
 
     public function emit(AbstractNode $node): void
     {
@@ -70,9 +79,14 @@ final class PhpObjectCallEmitter implements NodeEmitterInterface
         $this->outputEmitter->emitContextPrefix($node->getEnv(), $node->getStartSourceLocation());
 
         $this->outputEmitter->emitStr('(', $node->getStartSourceLocation());
-        $this->emitTarget($node);
-        $this->outputEmitter->emitStr($this->fnCode($node), $node->getStartSourceLocation());
-        $this->emitCall($node);
+        if ($this->dispatchResolver->resolve($node) === PhpObjectCallDispatch::Runtime) {
+            $this->emitRuntimeDispatch($node, fn(): null => $this->emitTarget($node));
+        } else {
+            $this->emitTarget($node);
+            $this->outputEmitter->emitStr($this->fnCode($node), $node->getStartSourceLocation());
+            $this->emitCall($node);
+        }
+
         $this->outputEmitter->emitStr(')', $node->getStartSourceLocation());
 
         $this->outputEmitter->emitContextSuffix($node->getEnv(), $node->getStartSourceLocation());
@@ -136,8 +150,45 @@ final class PhpObjectCallEmitter implements NodeEmitterInterface
 
     private function emitTargetCall(PhpObjectCallNode $node, Symbol $targetSym): void
     {
-        $this->outputEmitter->emitPhpVariable($targetSym, $node->getStartSourceLocation());
+        $emitTarget = fn(): null => $this->outputEmitter->emitPhpVariable($targetSym, $node->getStartSourceLocation());
+
+        if ($this->dispatchResolver->resolve($node) === PhpObjectCallDispatch::Runtime) {
+            $this->emitRuntimeDispatch($node, $emitTarget);
+
+            return;
+        }
+
+        $emitTarget();
         $this->outputEmitter->emitStr($this->fnCode($node), $node->getStartSourceLocation());
+        $this->emitCall($node);
+    }
+
+    /**
+     * `is_string($t) ? $t::m(...) : $t->m(...)`, for a receiver the analyzer
+     * could not classify. Measured at +7.8% on the object path without OPcache
+     * and inside noise with OPcache + JIT, which is why this is a ternary rather
+     * than a callable array (`[$t, 'm'](...)`, +179% even under JIT) or a helper
+     * call. `$emitTarget` is only ever a local or a `target_` temp, so emitting
+     * it three times cannot duplicate a side effect.
+     *
+     * @param callable(): null $emitTarget
+     */
+    private function emitRuntimeDispatch(PhpObjectCallNode $node, callable $emitTarget): void
+    {
+        $location = $node->getStartSourceLocation();
+
+        $this->outputEmitter->emitStr('is_string(', $location);
+        $emitTarget();
+        $this->outputEmitter->emitStr(') ? ', $location);
+
+        $emitTarget();
+        $this->outputEmitter->emitStr('::', $location);
+        $this->emitCall($node);
+
+        $this->outputEmitter->emitStr(' : ', $location);
+
+        $emitTarget();
+        $this->outputEmitter->emitStr('->', $location);
         $this->emitCall($node);
     }
 
@@ -203,6 +254,6 @@ final class PhpObjectCallEmitter implements NodeEmitterInterface
 
     private function fnCode(PhpObjectCallNode $node): string
     {
-        return $node->isStatic() ? '::' : '->';
+        return $this->dispatchResolver->resolve($node) === PhpObjectCallDispatch::StaticClass ? '::' : '->';
     }
 }
