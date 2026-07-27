@@ -118,7 +118,29 @@ The one place Phel is *less* permissive. `phel.string` functions require a strin
 non-string rather than coercing through `str`. This matches ClojureScript, Basilisp and
 ClojureCLR; the JVM's coercing `:default` branch is the outlier.
 
-## 6. Absent concepts
+## 6. Host interop
+
+### A string receiver is a class name
+
+`(.m x)` reads a string `x` as a **class name**, so `(.cases "\\App\\Status")` reaches
+`App\Status::cases()`. Clojure reads the same receiver as the object, because a JVM
+`String` has methods and `(.length "abc")` has to work.
+
+The difference is forced by the host: PHP strings have no methods at all, so
+`$string->m()` is never valid PHP and there is no behaviour to preserve. Reading the
+receiver as a class name is therefore free here and impossible there. Clojure's own
+answer for a class known only at runtime is `clojure.lang.Reflector/invokeStaticMethod`,
+a function rather than syntax ([#2881](https://github.com/phel-lang/phel-lang/issues/2881)).
+
+A receiver the compiler can prove is an object still emits `->`, so only an unprovable
+one carries the runtime test.
+
+This is the one entry the suite does not pin, because no working program can observe it:
+a string receiver was an error before the change and is an error after it, and only the
+message differs. It is listed because the *capability* is a difference a Clojure reader
+will notice, not because a behaviour changed under them.
+
+## 7. Absent concepts
 
 | Clojure | Phel |
 |---|---|
@@ -126,7 +148,7 @@ ClojureCLR; the JVM's coercing `:default` branch is the outlier.
 | `special-symbol?` | Phel does not recognise the JVM special-symbol set |
 | Class objects (`string?` on a class) | classes are represented as strings |
 
-## 7. Known gap, not a decision
+## 8. Known gap, not a decision
 
 `case` returns `nil` when nothing matches and there is no default clause. Clojure
 throws. The suite marks this `:phel` with a note that it is arguably a real semantic
