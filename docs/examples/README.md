@@ -20,7 +20,7 @@ Copy any file into your project and tweak it.
 | 06 | `06_data-pipeline.phel` | Threading macros, `filter`/`map`/`reduce`, `group-by` |
 | 07 | `07_macro-playground.phel` | A small DSL built with `defmacro` |
 | 08 | `08_interfaces.phel` | `definterface` + `defstruct` polymorphism |
-| 09 | `09_php-integration.phel` | PHP interop: `DateTimeImmutable`, `DateInterval`, JSON |
+| 09 | `09_php-integration.phel` | PHP interop the idiomatic way (`new`, `.method`, `Class/method`), with the `php/*` equivalent shown once |
 | 10 | `10_html-rendering.phel` | HTML templating with `phel.html` |
 | 11 | `11_async-concurrency.phel` | AMPHP + fiber concurrency (`async`, `await`, `promise`) |
 | 12 | `12_cli.phel` | A todo-list CLI on `phel.cli` with subcommands and tables |

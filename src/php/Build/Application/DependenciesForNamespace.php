@@ -7,6 +7,7 @@ namespace Phel\Build\Application;
 use Phel;
 use Phel\Build\Domain\Extractor\ExtractorException;
 use Phel\Build\Domain\Extractor\NamespaceExtractorInterface;
+use Phel\Shared\FrameworkNamespaces;
 use Phel\Shared\Munge;
 use Phel\Shared\NamespaceInformation;
 
@@ -36,10 +37,6 @@ final class DependenciesForNamespace
      * part, so the two sets cannot collide across the boundary.
      */
     private const string MEMO_PART_SEPARATOR = "\x01";
-
-    private const string CLOJURE_PREFIX = 'clojure.';
-
-    private const string PHEL_PREFIX = 'phel.';
 
     /**
      * Intra-process memo keyed by `(dirs, seeds)` so the three root callers
@@ -148,8 +145,9 @@ final class DependenciesForNamespace
 
         // `clojure.X` resolves to a bundled `phel.X` source (same remap the
         // analyzer and FileRunner apply); enqueue the phel.* target.
-        if (str_starts_with($depNs, self::CLOJURE_PREFIX)) {
-            $phelNs = self::PHEL_PREFIX . substr($depNs, strlen(self::CLOJURE_PREFIX));
+        if (str_starts_with($depNs, FrameworkNamespaces::CLOJURE_PREFIX)) {
+            $phelNs = FrameworkNamespaces::PHEL_PREFIX
+                . substr($depNs, strlen(FrameworkNamespaces::CLOJURE_PREFIX));
             if (array_key_exists($phelNs, $index)) {
                 return $phelNs;
             }
@@ -161,24 +159,13 @@ final class DependenciesForNamespace
             return $depNs;
         }
 
-        // Framework-provided `phel.*`/`clojure.*` requires resolve at runtime
-        // (precompiled+lazy-loaded bundled stdlib, or a clojure-compat shim
-        // whose referred symbols live in phel.core); downstream/vendored builds
-        // don't carry them in the source scan index, so tolerate them here
-        // rather than throw. Only genuinely-missing user namespaces error.
-        if ($this->isFrameworkNamespace($depNs)) {
+        // Only genuinely-missing user namespaces error; see FrameworkNamespaces
+        // for why a `phel.*`/`clojure.*` require is tolerated instead.
+        if (FrameworkNamespaces::matches($depNs)) {
             return $depNs;
         }
 
         throw ExtractorException::cannotResolveRequiredNamespace($depNs, $requiringNs);
-    }
-
-    private function isFrameworkNamespace(string $namespace): bool
-    {
-        $canonical = Munge::canonicalNs($namespace);
-
-        return str_starts_with($canonical, self::PHEL_PREFIX)
-            || str_starts_with($canonical, self::CLOJURE_PREFIX);
     }
 
     /**

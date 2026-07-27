@@ -31,6 +31,15 @@ Lexer (source → `TokenStream`) → Parser (→ `FileNode` parse tree) → Read
 
 - Lexer `Token` and parse-tree nodes live in `Phel\Shared\Parser\Node`; `ExpressionParserFactory` produces them (sub-parsers in `Domain/Parser/ExpressionParser/`).
 
+### Interop shorthand expansion
+
+Clojure-style interop spellings are sugar, expanded to `php/*` forms before analysis, never registered as special forms (`LanguageSurfaceSpecTest` fails on a spec table row with no dispatch entry):
+
+- Call position — `AnalyzePersistentList`: `(.m obj …)`, `(.-field obj)`, `(\C/m …)`, `(\C. …)`.
+- Value position — `Domain/Analyzer/TypeAnalyzer/QualifiedMemberExpander`, reached from `AnalyzeSymbol` when global resolution finds nothing: `\C/CONST` → `php/::`, `\C/m` → `php/callable`, `\C/.m` → an `fn` of the receiver.
+
+`QualifiedMemberExpander` reflects the resolved class to tell a static method from a constant. A class carrying both under one name resolves to the **constant** (pre-existing behaviour, and the reason `\C/new` is not a constructor); an unresolvable or unloadable class falls back to the constant reading so the error stays what it was.
+
 ### Simplification pass
 
 Runs after `ConstantFolder` (in `Domain/Analyzer/TypeAnalyzer/Simplification/`):
@@ -110,6 +119,23 @@ GOTCHA: only eager core fns can be lowered to a native loop. `reduce` (3-arity) 
 - `^:php/override` on a method (defstruct/defenum interface impls, definterface methods) → `#[\Override]` (PHP 8.3); `PhpAttributeEmitterTrait::phpAttributeLines` renders it ahead of explicit `:php/attr` lines. Struct/enum inline method impls emit method-level `:php/attr`/`:php/doc`/`^:php/override` too.
 - Export wrappers carry the same `:php/attr` via `Interop`'s `CompiledPhpMethodBuilder` (see `src/php/Interop/CLAUDE.md`).
 
+## Compiler Diagnostics
+
+Two channels, differing only in the gate. Both raise through `Domain/Diagnostic/ErrorNotice::raise($message, $level)`, the compiler's single `trigger_error()` call, which pins `display_errors` to stderr for the duration (see the deprecation section below for why).
+
+| Channel | Level | Gate |
+|---|---|---|
+| `Domain/Deprecation/DeprecationWarnings` | `E_USER_DEPRECATED` | off unless `--warn-deprecations` |
+| `Domain/Diagnostic/CompilerWarnings` | `E_USER_WARNING` | always on |
+
+`CompilerWarnings` is for a diagnostic that has already changed what the program does, so staying quiet is itself the bug. It owns the bundled-stdlib suppression (reusing `DeprecationWarnings::isBundledStdlibSource()`) and the per-`(file, subject)` dedup; `reset()` exists for test `tearDown()`. Its one detector today:
+
+| Detector | Catches |
+|---|---|
+| `Domain/Analyzer/Environment/ReferShadowWarner` | a `def` whose name is already `:refer`red into the same namespace (#2897). Called from `DefSymbol` before `addDefinition`, so it warns once at `def` time like Clojure, not at every call site. Anchors on the *name* symbol: the enclosing list carries a `defn` expansion origin in `src/phel/core/defs.phel`, which the stdlib suppression would silence |
+
+Not to be confused with `Phel\Lsp\Application\Diagnostics` (LSP publishing) or `Phel\Shared\Api\Diagnostic` (the Lint value object). Same word, unrelated concepts.
+
 ## Deprecation Warnings
 
 `Domain/Deprecation/DeprecationWarnings` is the single process-wide switch for every `E_USER_DEPRECATED` notice the compiler raises, syntax and definition alike. Off by default; turned on by `--warn-deprecations` (`Console\Application\WarnDeprecationsFlag`), `PHEL_WARN_DEPRECATIONS`, or the `warn-deprecations` config key (`CompilerFactory::createAnalyzer()`). It owns five things so no detector re-implements them: the enabled flag, the bundled-stdlib suppression, the `(file, subject)` dedup, the macro-expansion attribution, and the syntax message shape.
@@ -124,7 +150,7 @@ Detectors detect and nothing else — they hold no flag, no dedup table, and no 
 | `Domain/Analyzer/Environment/DeprecatedDefinitionWarner` | any resolved definition whose meta carries `:deprecated` (`:superseded-by` names the replacement); works for project code too |
 
 - Never suppress a notice with `@`: that hides it unconditionally, so a `--warn-deprecations` run prints nothing. Call `warn()` / `warnForSource()` / `warnOnceForSource()` / `warnSyntax()` instead.
-- They route through one private `raise()`, which pins `display_errors` to `stderr` for the duration of the `trigger_error()` call (skipped when display is already off or already on stderr, so the redirect never *enables* a silenced notice). The case that forced this was `MethodEmitter`'s `^:reference` check, which ran during emission inside the emitter's `ob_start()`: under PHP CLI's default `display_errors=1` the notice text landed in that buffer and was spliced into the generated PHP, failing the compile with `syntax error, unexpected token ":"` (#2827). That alias is removed and nothing detects during emission today, but keep new notices on `raise()`: a diagnostic must never be able to corrupt captured output.
+- They route through `Domain/Diagnostic/ErrorNotice::raise()`, which pins `display_errors` to `stderr` for the duration of the `trigger_error()` call (skipped when display is already off or already on stderr, so the redirect never *enables* a silenced notice). The case that forced this was `MethodEmitter`'s `^:reference` check, which ran during emission inside the emitter's `ob_start()`: under PHP CLI's default `display_errors=1` the notice text landed in that buffer and was spliced into the generated PHP, failing the compile with `syntax error, unexpected token ":"` (#2827). That alias is removed and nothing detects during emission today, but keep new notices on `raise()`: a diagnostic must never be able to corrupt captured output.
 - `syntaxMessage()` is the only way to phrase a syntax notice. It has nowhere to put a concrete removal version, which is the point: a named release ships and the message goes stale (#2783). `LexerTest::VERSION_REFERENCE` still guards it.
 - `warnOnceForSource()` dedups per `(file, subject)` — used where one subject recurs across a file (a deprecated definition, a `\`-separated symbol). Syntax notices deliberately do not dedup: each occurrence is a separate edit.
 - `isEnabledForSource()` / `isBundledStdlibSource()` drop notices whose source is phel's own `src/phel` or has no file, so only code the user can edit is flagged. The Lexer resolves it once per source, not per token. Paths are `realpath`-normalized (memoized, and only once warnings are on) so a stdlib file reached through a relative prefix still matches.

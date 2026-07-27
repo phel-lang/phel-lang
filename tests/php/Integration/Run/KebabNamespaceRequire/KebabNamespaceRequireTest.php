@@ -6,7 +6,9 @@ namespace PhelTest\Integration\Run\KebabNamespaceRequire;
 
 use Phel;
 use Phel\Build\BuildFacade;
+use Phel\Build\Domain\Extractor\ExtractorException;
 use Phel\Compiler\CompilerFacade;
+use Phel\Compiler\Domain\Evaluator\Exceptions\EvaluatedCodeException;
 use Phel\Shared\CompileOptions;
 use PHPUnit\Framework\Attributes\PreserveGlobalState;
 use PHPUnit\Framework\Attributes\RunInSeparateProcess;
@@ -73,6 +75,49 @@ final class KebabNamespaceRequireTest extends TestCase
             'hello',
             $this->evalCode('(kebabns.plainlib/greet)'),
             'The required namespace must export its definitions to the caller.',
+        );
+    }
+
+    /**
+     * A `:require` that resolves to no file used to load nothing and say
+     * nothing, so the failure surfaced later as `Cannot resolve symbol` at the
+     * first use of a definition that was never loaded (#2891).
+     */
+    #[RunInSeparateProcess]
+    #[PreserveGlobalState(false)]
+    public function test_a_require_that_resolves_to_no_file_names_the_missing_namespace(): void
+    {
+        $this->bootRepl();
+
+        try {
+            $this->evalCode('(ns consumer (:require kebabns.nosuch))');
+            self::fail('An unresolvable require must raise instead of loading nothing.');
+        } catch (EvaluatedCodeException $evaluatedCodeException) {
+            self::assertStringContainsString(
+                "Cannot find namespace 'kebabns.nosuch' required by 'consumer'",
+                $evaluatedCodeException->getMessage(),
+            );
+            self::assertInstanceOf(ExtractorException::class, $evaluatedCodeException->getPrevious());
+        }
+    }
+
+    /**
+     * A namespace typed straight into a session has no file on disk, so it
+     * resolves to nothing too. Requiring it must still work, otherwise the
+     * missing-namespace check above would break `(ns a)` followed by
+     * `(ns b (:require a))`.
+     */
+    #[RunInSeparateProcess]
+    #[PreserveGlobalState(false)]
+    public function test_a_require_of_an_already_loaded_fileless_namespace_is_accepted(): void
+    {
+        $this->bootRepl();
+
+        $this->evalCode('(ns fileless) (def answer 42)');
+
+        self::assertSame(
+            42,
+            $this->evalCode('(ns fileless-consumer (:require fileless)) fileless/answer'),
         );
     }
 

@@ -38,6 +38,13 @@ interface AnalyzerInterface
      */
     public function addRefers(string $ns, array $referSymbols, Symbol $nsSymbol): void;
 
+    /**
+     * The refer table of `$ns`, keyed by the referred name.
+     *
+     * @return array<string, Symbol>
+     */
+    public function getRefers(string $ns): array;
+
     public function addDefinition(string $ns, Symbol $symbol, bool $allowRedefinition = false): void;
 
     /**

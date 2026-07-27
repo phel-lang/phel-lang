@@ -1,0 +1,4 @@
+--PHEL--
+(map \PhelTest\Support\Fixtures\PhpInterop\QualifiedMemberFixture/upper ["a" "b"])
+--PHP--
+(\Phel::getDefinition("phel.core", "map"))->__invoke((\PhelTest\Support\Fixtures\PhpInterop\QualifiedMemberFixture::upper(...)), \Phel::vector(["a", "b"]));

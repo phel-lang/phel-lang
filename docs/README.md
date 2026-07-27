@@ -20,6 +20,37 @@ modules, deployment) live on **[phel-lang.org](https://phel-lang.org/documentati
 - [AI agents](../resources/agents/README.md): Claude Code, Cursor, Codex, Gemini, Copilot, Aider
 - [agent-docs](agent-docs.md) · [agent-metrics](agent-metrics.md)
 
+## PHP interop, in one paragraph
+
+Phel has two spellings for reaching PHP, and the Clojure-style one is the idiomatic
+default:
+
+```phel
+(new \DateTime "2020-01-01")   ; or (\DateTime. "2020-01-01")
+(.format d "Y")                ; instance method
+(.-prop obj)                   ; property
+(\DateTime/createFromFormat "Y-m-d" "2020-01-01")   ; static method
+```
+
+Each of those desugars to a `php/*` special form (`php/new`, `php/->`, `php/::`)
+before analysis, and the `php/*` forms remain available as the escape hatch: they
+are the only spelling that takes an unevaluated form in a position the shorthand
+cannot express, and they are what the compiler and this repo's older stdlib code
+still emit. Both exist because the `php/*` layer came first and is the compilation
+target; you are meant to write the shorthand.
+
+Chaining does **not** need `php/->`, mixed method and property chains included:
+
+```phel
+(-> (php/new \DateTimeImmutable "2024-03-10") (.modify "+1 day") (.format "Y-m-d"))
+```
+
+The full expansion table, including `\C/m` and `\C/.m` in value position, is in
+[the language surface spec](spec/language-surface.md#interop-shorthands). The
+complete guide with runnable examples is on the website:
+<https://phel-lang.org/documentation/php-interop/>. A runnable sample lives in
+[examples/09_php-integration.phel](examples/09_php-integration.phel).
+
 ## User-facing guides moved to phel-lang.org
 
 The guides below were ported to the website and removed from this repo. Use these

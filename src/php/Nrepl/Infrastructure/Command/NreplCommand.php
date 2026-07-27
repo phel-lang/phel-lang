@@ -10,6 +10,8 @@ use Phel;
 use Phel\Nrepl\NreplConfig;
 use Phel\Nrepl\NreplFacade;
 use Phel\Nrepl\NreplFactory;
+use Phel\Shared\CompilerConstants;
+use Phel\Shared\ReplConstants;
 use Phel\Shared\ScalarCoercion;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
@@ -74,6 +76,11 @@ HELP)
         // Normalise runtime args so loaded code sees a clean argv.
         Phel::setupRuntimeArgs('nrepl', []);
         $this->getFacade()->loadPhelNamespaces();
+
+        // An editor session re-evaluates the same form as it is edited, so the
+        // duplicate-definition guard has to stand down here as it does at the
+        // `phel repl` prompt (#2896).
+        Phel::addDefinition(CompilerConstants::PHEL_CORE_NAMESPACE, ReplConstants::INTERACTIVE_MODE, true);
 
         try {
             $server = $this->getFactory()->createSocketServer(

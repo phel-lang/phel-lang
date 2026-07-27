@@ -121,6 +121,23 @@ final class EvalCommandTest extends AbstractTestCommand
         self::assertSame(0, $exitCode);
     }
 
+    /**
+     * The REPL prompt accepts a re-definition; `phel eval` raised
+     * `DuplicateDefinitionException` on the very same input because the guard
+     * was gated on `*repl-mode*`, which only `phel repl` sets (#2896).
+     */
+    public function test_eval_allows_redefining_a_symbol(): void
+    {
+        $this->expectOutputRegex('/a = 2/');
+
+        $exitCode = $this->createEvalCommand()->run(
+            $this->stubInput('(ns redefine-user) (def a 1) (def a 2) (println "a =" a)'),
+            $this->stubOutput(),
+        );
+
+        self::assertSame(0, $exitCode);
+    }
+
     private function createEvalCommand(): EvalCommand
     {
         return new EvalCommand();

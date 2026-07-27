@@ -244,6 +244,7 @@ A lazily consumed source with no indexed access of its own (an `eduction` pipeli
 (load "core/exceptions")
 (load "core/macroexpand")
 (load "core/parsing")
+(load "core/interop")
 (load "core/uuid")
 (load "core/loops")
 (load "core/futures")

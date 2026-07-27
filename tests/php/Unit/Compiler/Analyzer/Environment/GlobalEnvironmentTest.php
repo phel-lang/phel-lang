@@ -17,6 +17,8 @@ use Phel\Lang\Collections\Map\PersistentMapInterface;
 use Phel\Lang\Keyword;
 use Phel\Lang\SourceLocation;
 use Phel\Lang\Symbol;
+use Phel\Shared\CompilerConstants;
+use Phel\Shared\ReplConstants;
 use PHPUnit\Framework\TestCase;
 use RuntimeException;
 
@@ -465,6 +467,46 @@ final class GlobalEnvironmentTest extends TestCase
 
         $this->expectException(RuntimeException::class);
         $this->expectExceptionMessage('Symbol x is already bound in namespace foo in ' . __FILE__ . ':1');
+
+        $env->addDefinition('foo', $sym);
+    }
+
+    /**
+     * `phel eval` and the nREPL server evaluate typed-in forms just like the
+     * REPL prompt, so all three set `*interactive-mode*`. Gating on
+     * `*repl-mode*` instead made only the prompt tolerate a re-definition
+     * (#2896).
+     */
+    public function test_interactive_mode_allows_redefining_an_already_bound_symbol(): void
+    {
+        $env = new GlobalEnvironment();
+        $sym = Symbol::create('x');
+
+        $env->addDefinition('foo', $sym);
+        Phel::addDefinition('foo', 'x', 1);
+        Phel::addDefinition(CompilerConstants::PHEL_CORE_NAMESPACE, ReplConstants::INTERACTIVE_MODE, true);
+
+        $env->addDefinition('foo', $sym);
+
+        $this->assertTrue($env->hasDefinition('foo', $sym));
+    }
+
+    /**
+     * `*repl-mode*` carries the `phel.repl` refer injection only. Leaving the
+     * guard on it too is what kept `phel eval` broken, so a mode flip alone
+     * must not reopen the guard.
+     */
+    public function test_repl_mode_alone_does_not_allow_redefining_an_already_bound_symbol(): void
+    {
+        $env = new GlobalEnvironment();
+        $sym = Symbol::create('x');
+
+        $env->addDefinition('foo', $sym);
+        Phel::addDefinition('foo', 'x', 1);
+        Phel::addDefinition(CompilerConstants::PHEL_CORE_NAMESPACE, ReplConstants::REPL_MODE, true);
+
+        $this->expectException(RuntimeException::class);
+        $this->expectExceptionMessage('Symbol x is already bound in namespace foo');
 
         $env->addDefinition('foo', $sym);
     }

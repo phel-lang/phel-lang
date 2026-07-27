@@ -1,0 +1,33 @@
+(in-ns phel.core)
+
+(use InvalidArgumentException)
+
+;; --------------------------------------------
+;; PHP interop helpers whose target is a value
+;; --------------------------------------------
+
+(defn- invoke-target-name
+  "Returns the name to report for `target` in an undefined-method error:
+  the class of an object, the string itself for a class name, and the PHP
+  type for anything else."
+  [target]
+  (cond
+    (string? target)       target
+    (php/is_object target) (php/get_class target)
+    :else                  (php/gettype target)))
+
+(defn php-invoke
+  "Calls the method `method` on `target`, where the method name is a value
+  rather than a literal. `target` is either an object or a class-name string
+  for a static method. Matches ClojureScript's `js-invoke`; use the dot
+  syntax (`(.format d \"Y\")`) whenever the name is known at compile time."
+  {:example "(php-invoke (php/new \\DateTimeImmutable \"2024-03-10\") \"format\" \"Y\") ; => \"2024\"\n(let [m \"format\"] (php-invoke (php/new \\DateTimeImmutable \"2024-03-10\") m \"Y\")) ; => \"2024\""
+   :see-also ["php/callable" "apply"]}
+  [target method & args]
+  (let [callable (php/array target method)]
+    (if (php/is_callable callable)
+      (php/call_user_func_array callable (to-php-array args))
+      (throw (php/new InvalidArgumentException
+                      (str "Call to undefined method "
+                           (invoke-target-name target)
+                           "::" method "()"))))))

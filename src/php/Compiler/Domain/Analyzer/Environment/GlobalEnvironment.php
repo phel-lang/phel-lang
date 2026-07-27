@@ -428,9 +428,12 @@ final class GlobalEnvironment implements GlobalEnvironmentInterface
 
     private function shouldThrowOnDuplicateDefinition(string $namespace, Symbol $name): bool
     {
+        // The gate used to be `*repl-mode*`, which only `phel repl` sets, so
+        // `phel eval` and the nREPL server raised on a re-definition the same
+        // prompt accepts (#2896). `*interactive-mode*` is what all three set.
         if ($this->isAnalysisMode()
             || Phel::getDefinition(CompilerConstants::PHEL_CORE_NAMESPACE, BuildConstants::BUILD_MODE)
-            || Phel::getDefinition(CompilerConstants::PHEL_CORE_NAMESPACE, ReplConstants::REPL_MODE)
+            || Phel::getDefinition(CompilerConstants::PHEL_CORE_NAMESPACE, ReplConstants::INTERACTIVE_MODE)
             || $namespace === CompilerConstants::PHEL_CORE_NAMESPACE
         ) {
             return false;

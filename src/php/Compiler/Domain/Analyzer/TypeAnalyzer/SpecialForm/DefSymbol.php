@@ -12,6 +12,7 @@ use Phel\Compiler\Domain\Analyzer\Ast\FnNode;
 use Phel\Compiler\Domain\Analyzer\Ast\MapNode;
 use Phel\Compiler\Domain\Analyzer\Ast\MultiFnNode;
 use Phel\Compiler\Domain\Analyzer\Environment\NodeEnvironmentInterface;
+use Phel\Compiler\Domain\Analyzer\Environment\ReferShadowWarner;
 use Phel\Compiler\Domain\Analyzer\Exceptions\AnalyzerException;
 use Phel\Lang\Collections\LinkedList\PersistentListInterface;
 use Phel\Lang\Collections\Map\PersistentMapInterface;
@@ -72,6 +73,12 @@ final readonly class DefSymbol implements SpecialFormAnalyzerInterface
         }
 
         $namespace = $this->analyzer->getNamespace();
+
+        ReferShadowWarner::getInstance()->maybeWarn(
+            $namespace,
+            $nameSymbol,
+            $this->analyzer->getRefers($namespace),
+        );
 
         $this->analyzer->addDefinition($namespace, $nameSymbol, $this->defonce);
 

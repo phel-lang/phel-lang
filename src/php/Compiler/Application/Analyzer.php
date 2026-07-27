@@ -109,6 +109,11 @@ final class Analyzer implements AnalyzerInterface
         }
     }
 
+    public function getRefers(string $ns): array
+    {
+        return $this->globalEnvironment->getRefers($ns);
+    }
+
     public function addDefinition(string $ns, Symbol $symbol, bool $allowRedefinition = false): void
     {
         $this->globalEnvironment->addDefinition($ns, $symbol, $allowRedefinition);
