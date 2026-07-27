@@ -1,0 +1,6 @@
+--PHEL--
+(let [cls "\\DateTimeImmutable"] (.createFromFormat cls "Y-m-d" "2024-03-10"))
+--PHP--
+/** @var string $cls_1 */
+$cls_1 = "\\DateTimeImmutable";
+($cls_1::createFromFormat("Y-m-d", "2024-03-10"));

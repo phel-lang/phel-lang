@@ -2,4 +2,4 @@
 (let [o (php/new \ArrayObject)] (php/-> o (count)))
 --PHP--
 $o_1 = (new \ArrayObject());
-($o_1->count());
+(is_string($o_1) ? $o_1::count() : $o_1->count());

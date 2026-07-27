@@ -1,0 +1,6 @@
+--PHEL--
+(fn [x] (.format x "Y"))
+--PHP--
+(function($x) {
+  return (is_string($x) ? $x::format("Y") : $x->format("Y"));
+});

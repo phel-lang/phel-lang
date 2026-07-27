@@ -4,4 +4,4 @@
 /** @var int $x_1 */
 $x_1 = 1;
 $o_2 = (new \ArrayObject());
-($o_2->offsetSet(0, $x_1));
+(is_string($o_2) ? $o_2::offsetSet(0, $x_1) : $o_2->offsetSet(0, $x_1));

@@ -1,0 +1,5 @@
+--PHEL--
+(.format (php/new \DateTimeImmutable "2024-03-10") "Y")
+--PHP--
+$target_1 = (new \DateTimeImmutable("2024-03-10"));
+$target_1->format("Y");
