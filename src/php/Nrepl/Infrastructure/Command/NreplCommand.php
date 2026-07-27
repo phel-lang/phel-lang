@@ -7,6 +7,7 @@ namespace Phel\Nrepl\Infrastructure\Command;
 use Gacela\Framework\ServiceResolver\ServiceMap;
 use Gacela\Framework\ServiceResolverAwareTrait;
 use Phel;
+use Phel\Nrepl\Infrastructure\NreplSocketServer;
 use Phel\Nrepl\NreplConfig;
 use Phel\Nrepl\NreplFacade;
 use Phel\Nrepl\NreplFactory;
@@ -17,7 +18,15 @@ use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
 use Throwable;
 
+use function function_exists;
+use function getcwd;
+use function pcntl_async_signals;
+use function pcntl_signal;
+use function register_shutdown_function;
 use function sprintf;
+
+use const SIGINT;
+use const SIGTERM;
 
 /**
  * @method NreplFacade  getFacade()
@@ -45,6 +54,8 @@ final class NreplCommand extends Command
         $this->setDescription('Start an nREPL server for editor tooling (bencode-over-TCP protocol).')
             ->setHelp(<<<'HELP'
 Starts an nREPL server your editor (Cursive, Calva, CIDER, Conjure) connects to.
+The bound port is written to <comment>.nrepl-port</comment> in the current directory, and the
+file is removed again when the server stops.
 
 <info>Examples:</info>
   <comment>phel nrepl</comment>             Listen on the default 127.0.0.1:7888
@@ -84,14 +95,53 @@ HELP)
                 },
             );
             $server->start();
+
+            // Register cleanup before writing the file, so a signal landing
+            // at any point afterwards takes the graceful path.
+            $portFile = $this->getFactory()->createPortFile((string) getcwd());
+            // Backstop if the process exits while the accept loop is still
+            // running (e.g. on a fatal error); the finally below covers the
+            // graceful path.
+            register_shutdown_function(static function () use ($portFile): void {
+                $portFile->delete();
+            });
+            $this->registerSignalHandlers($server);
+            $portFile->write($server->port());
+
             $output->writeln(sprintf('nREPL server started on %s:%d', $host, $server->port()));
+            $output->writeln(sprintf('Port written to %s', $portFile->path()));
             $output->writeln('Connect your editor via the bencode-over-TCP nREPL protocol.');
-            $server->run();
+
+            try {
+                $server->run();
+            } finally {
+                $server->stop();
+                $portFile->delete();
+            }
 
             return self::SUCCESS;
         } catch (Throwable $throwable) {
             $output->writeln(sprintf('<error>%s</error>', $throwable->getMessage()));
             return self::FAILURE;
         }
+    }
+
+    /**
+     * Stop the accept loop on Ctrl+C/SIGTERM so run() returns and the
+     * finally block removes the port file, instead of the OS killing the
+     * process and leaving the file behind. No-op without ext-pcntl.
+     */
+    private function registerSignalHandlers(NreplSocketServer $server): void
+    {
+        if (!function_exists('pcntl_signal') || !function_exists('pcntl_async_signals')) {
+            return;
+        }
+
+        pcntl_async_signals(true);
+        $handler = static function () use ($server): void {
+            $server->stop();
+        };
+        pcntl_signal(SIGINT, $handler);
+        pcntl_signal(SIGTERM, $handler);
     }
 }

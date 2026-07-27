@@ -5,6 +5,7 @@ All notable changes to this project will be documented in this file.
 ## Unreleased
 
 - Add heredoc example to `phel eval -h` help output for reliable multi-line one-shot evaluation
+- `phel nrepl` writes the bound port to a Clojure-standard `.nrepl-port` file in the working directory, so editors (CIDER, Calva, Conjure) can discover the server, and removes the file when the server stops. Ctrl+C/SIGTERM now stop the accept loop gracefully instead of killing the process, so the port file is never left pointing at a dead server
 
 ### Added
 
