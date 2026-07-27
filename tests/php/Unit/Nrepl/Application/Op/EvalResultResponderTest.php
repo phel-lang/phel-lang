@@ -4,11 +4,13 @@ declare(strict_types=1);
 
 namespace PhelTest\Unit\Nrepl\Application\Op;
 
+use Phel\Compiler\Domain\Analyzer\Environment\GlobalEnvironmentInterface;
 use Phel\Nrepl\Application\Op\EvalResultResponder;
 use Phel\Nrepl\Domain\Op\OpRequest;
 use Phel\Nrepl\Domain\Session\SessionRegistry;
 use Phel\Shared\Eval\EvalError;
 use Phel\Shared\Eval\EvalResult;
+use Phel\Shared\Facade\CompilerFacadeInterface;
 use Phel\Shared\Printer\PrinterInterface;
 use PHPUnit\Framework\TestCase;
 
@@ -21,7 +23,7 @@ final class EvalResultResponderTest extends TestCase
 
         $registry = new SessionRegistry();
         $session = $registry->create();
-        $responder = new EvalResultResponder($printer, $registry);
+        $responder = new EvalResultResponder($printer, $registry, $this->createStub(CompilerFacadeInterface::class));
 
         $responses = $responder->respond(
             new OpRequest('eval', 'req-1', $session->id, []),
@@ -36,12 +38,86 @@ final class EvalResultResponderTest extends TestCase
         self::assertSame(42, $session->lastValue());
     }
 
+    public function test_success_syncs_session_namespace_from_global_environment(): void
+    {
+        $printer = $this->createStub(PrinterInterface::class);
+        $printer->method('print')->willReturn('nil');
+
+        $env = $this->createStub(GlobalEnvironmentInterface::class);
+        $env->method('getNs')->willReturn('foo.bar');
+
+        $compiler = $this->createStub(CompilerFacadeInterface::class);
+        $compiler->method('isGlobalEnvironmentInitialized')->willReturn(true);
+        $compiler->method('getGlobalEnvironment')->willReturn($env);
+
+        $registry = new SessionRegistry();
+        $session = $registry->create();
+        $responder = new EvalResultResponder($printer, $registry, $compiler);
+
+        $responses = $responder->respond(
+            new OpRequest('eval', 'req-1', $session->id, []),
+            EvalResult::success(null),
+            'fallback',
+        );
+
+        self::assertSame('foo.bar', $responses[0]->payload['ns']);
+        self::assertSame('foo.bar', $session->namespace());
+    }
+
+    public function test_success_normalizes_backslash_namespace_to_display_form(): void
+    {
+        $printer = $this->createStub(PrinterInterface::class);
+        $printer->method('print')->willReturn('nil');
+
+        $env = $this->createStub(GlobalEnvironmentInterface::class);
+        $env->method('getNs')->willReturn('foo\\bar-baz');
+
+        $compiler = $this->createStub(CompilerFacadeInterface::class);
+        $compiler->method('isGlobalEnvironmentInitialized')->willReturn(true);
+        $compiler->method('getGlobalEnvironment')->willReturn($env);
+
+        $registry = new SessionRegistry();
+        $session = $registry->create();
+        $responder = new EvalResultResponder($printer, $registry, $compiler);
+
+        $responses = $responder->respond(
+            new OpRequest('eval', 'req-1', $session->id, []),
+            EvalResult::success(null),
+            'fallback',
+        );
+
+        self::assertSame('foo.bar-baz', $responses[0]->payload['ns']);
+    }
+
+    public function test_uninitialized_environment_leaves_session_namespace_untouched(): void
+    {
+        $printer = $this->createStub(PrinterInterface::class);
+        $printer->method('print')->willReturn('nil');
+
+        $registry = new SessionRegistry();
+        $session = $registry->create();
+        $responder = new EvalResultResponder(
+            $printer,
+            $registry,
+            $this->createStub(CompilerFacadeInterface::class),
+        );
+
+        $responses = $responder->respond(
+            new OpRequest('eval', 'req-1', $session->id, []),
+            EvalResult::success(null),
+            'fallback',
+        );
+
+        self::assertSame('user', $responses[0]->payload['ns']);
+        self::assertSame('user', $session->namespace());
+    }
+
     public function test_success_uses_user_namespace_when_session_missing(): void
     {
         $printer = $this->createStub(PrinterInterface::class);
         $printer->method('print')->willReturn('nil');
 
-        $responder = new EvalResultResponder($printer, new SessionRegistry());
+        $responder = new EvalResultResponder($printer, new SessionRegistry(), $this->createStub(CompilerFacadeInterface::class));
 
         $responses = $responder->respond(
             new OpRequest('eval', null, null, []),
@@ -59,7 +135,7 @@ final class EvalResultResponderTest extends TestCase
 
         $registry = new SessionRegistry();
         $session = $registry->create();
-        $responder = new EvalResultResponder($printer, $registry);
+        $responder = new EvalResultResponder($printer, $registry, $this->createStub(CompilerFacadeInterface::class));
 
         $responder->respond(new OpRequest('eval', 'r1', $session->id, []), EvalResult::success(1), 'fallback');
         $responder->respond(new OpRequest('eval', 'r2', $session->id, []), EvalResult::success(2), 'fallback');
@@ -77,7 +153,7 @@ final class EvalResultResponderTest extends TestCase
         $printer = $this->createStub(PrinterInterface::class);
         $printer->method('print')->willReturn('nil');
 
-        $responder = new EvalResultResponder($printer, new SessionRegistry());
+        $responder = new EvalResultResponder($printer, new SessionRegistry(), $this->createStub(CompilerFacadeInterface::class));
 
         $responses = $responder->respond(
             new OpRequest('eval', null, null, []),
@@ -93,7 +169,7 @@ final class EvalResultResponderTest extends TestCase
         $printer = $this->createStub(PrinterInterface::class);
         $printer->method('print')->willReturn('nil');
 
-        $responder = new EvalResultResponder($printer, new SessionRegistry());
+        $responder = new EvalResultResponder($printer, new SessionRegistry(), $this->createStub(CompilerFacadeInterface::class));
 
         $responses = $responder->respond(
             new OpRequest('eval', null, null, []),
@@ -110,6 +186,7 @@ final class EvalResultResponderTest extends TestCase
         $responder = new EvalResultResponder(
             $this->createStub(PrinterInterface::class),
             new SessionRegistry(),
+            $this->createStub(CompilerFacadeInterface::class),
         );
 
         $responses = $responder->respond(
@@ -128,6 +205,7 @@ final class EvalResultResponderTest extends TestCase
         $responder = new EvalResultResponder(
             $this->createStub(PrinterInterface::class),
             new SessionRegistry(),
+            $this->createStub(CompilerFacadeInterface::class),
         );
 
         $error = new EvalError(
@@ -162,6 +240,7 @@ final class EvalResultResponderTest extends TestCase
         $responder = new EvalResultResponder(
             $this->createStub(PrinterInterface::class),
             new SessionRegistry(),
+            $this->createStub(CompilerFacadeInterface::class),
         );
 
         $responses = $responder->respond(
@@ -194,6 +273,7 @@ final class EvalResultResponderTest extends TestCase
         $responder = new EvalResultResponder(
             $this->createStub(PrinterInterface::class),
             new SessionRegistry(),
+            $this->createStub(CompilerFacadeInterface::class),
         );
 
         // An explicit "non-success, non-incomplete, no error" case (defensive);

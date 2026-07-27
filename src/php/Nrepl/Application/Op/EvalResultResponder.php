@@ -11,6 +11,8 @@ use Phel\Nrepl\Domain\Session\Session;
 use Phel\Nrepl\Domain\Session\SessionRegistry;
 use Phel\Shared\Eval\EvalError;
 use Phel\Shared\Eval\EvalResult;
+use Phel\Shared\Facade\CompilerFacadeInterface;
+use Phel\Shared\Munge;
 use Phel\Shared\Printer\PrinterInterface;
 
 use function sprintf;
@@ -28,6 +30,7 @@ final readonly class EvalResultResponder
     public function __construct(
         private PrinterInterface $printer,
         private SessionRegistry $sessions,
+        private CompilerFacadeInterface $compilerFacade,
     ) {}
 
     /**
@@ -50,8 +53,12 @@ final readonly class EvalResultResponder
             $responses[] = OpResponse::forRequest($request, ['out' => $result->output]);
         }
 
+        $session = $this->sessionFor($request);
+        if ($session instanceof Session) {
+            $this->syncSessionNamespace($session);
+        }
+
         if ($result->success) {
-            $session = $this->sessionFor($request);
             $session?->recordValue($result->value);
 
             $responses[] = OpResponse::forRequest($request, $this->successPayload($session, $result->value));
@@ -81,6 +88,26 @@ final readonly class EvalResultResponder
         return $request->session !== null
             ? $this->sessions->get($request->session)
             : null;
+    }
+
+    /**
+     * Mirror the compiler's current namespace into the session, so the `ns`
+     * field of eval responses tracks `ns`/`in-ns` forms as they evaluate —
+     * editor prompts (CIDER, Calva, ...) are driven by that field. This is
+     * the same source of truth the terminal REPL prompt reads. A failed or
+     * incomplete eval restores the environment snapshot, so syncing here is
+     * a no-op in that case.
+     */
+    private function syncSessionNamespace(Session $session): void
+    {
+        if (!$this->compilerFacade->isGlobalEnvironmentInitialized()) {
+            return;
+        }
+
+        $ns = Munge::displayNs($this->compilerFacade->getGlobalEnvironment()->getNs());
+        if ($ns !== '') {
+            $session->setNamespace($ns);
+        }
     }
 
     /**

@@ -8,8 +8,10 @@ use Gacela\Framework\AbstractProvider;
 use Gacela\Framework\Attribute\Provides;
 use Gacela\Framework\Container\Container;
 use Phel\Api\ApiFacade;
+use Phel\Compiler\CompilerFacade;
 use Phel\Run\RunFacade;
 use Phel\Shared\Facade\ApiFacadeInterface;
+use Phel\Shared\Facade\CompilerFacadeInterface;
 use Phel\Shared\Facade\RunFacadeInterface;
 
 /**
@@ -27,5 +29,11 @@ final class NreplProvider extends AbstractProvider
     public function apiFacade(Container $container): ApiFacadeInterface
     {
         return $container->getLocator()->getRequired(ApiFacade::class);
+    }
+
+    #[Provides(CompilerFacadeInterface::class)]
+    public function compilerFacade(Container $container): CompilerFacadeInterface
+    {
+        return $container->getLocator()->getRequired(CompilerFacade::class);
     }
 }

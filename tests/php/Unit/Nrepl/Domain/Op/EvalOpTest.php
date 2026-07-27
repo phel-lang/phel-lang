@@ -11,6 +11,7 @@ use Phel\Nrepl\Domain\Session\SessionRegistry;
 use Phel\Shared\CompileOptions;
 use Phel\Shared\Eval\EvalError;
 use Phel\Shared\Eval\EvalResult;
+use Phel\Shared\Facade\CompilerFacadeInterface;
 use Phel\Shared\Facade\RunFacadeInterface;
 use Phel\Shared\Printer\PrinterInterface;
 use PHPUnit\Framework\TestCase;
@@ -28,7 +29,7 @@ final class EvalOpTest extends TestCase
         $registry = new SessionRegistry();
         $session = $registry->create();
 
-        $op = new EvalOp($run, new EvalResultResponder($printer, $registry));
+        $op = new EvalOp($run, new EvalResultResponder($printer, $registry, $this->createStub(CompilerFacadeInterface::class)));
         $responses = $op->handle(new OpRequest('eval', 'r1', $session->id, [
             'op' => 'eval',
             'code' => '(+ 1 2)',
@@ -51,7 +52,7 @@ final class EvalOpTest extends TestCase
         $printer->method('print')->willReturn('nil');
 
         $registry = new SessionRegistry();
-        $op = new EvalOp($run, new EvalResultResponder($printer, $registry));
+        $op = new EvalOp($run, new EvalResultResponder($printer, $registry, $this->createStub(CompilerFacadeInterface::class)));
         $responses = $op->handle(new OpRequest('eval', 'r1', null, [
             'op' => 'eval',
             'code' => '(println "x")',
@@ -86,7 +87,7 @@ final class EvalOpTest extends TestCase
         $printer = $this->createStub(PrinterInterface::class);
 
         $registry = new SessionRegistry();
-        $op = new EvalOp($run, new EvalResultResponder($printer, $registry));
+        $op = new EvalOp($run, new EvalResultResponder($printer, $registry, $this->createStub(CompilerFacadeInterface::class)));
         $responses = $op->handle(new OpRequest('eval', 'r1', null, [
             'op' => 'eval',
             'code' => 'xx',
@@ -110,6 +111,7 @@ final class EvalOpTest extends TestCase
         $op = new EvalOp($run, new EvalResultResponder(
             $this->createStub(PrinterInterface::class),
             $registry,
+            $this->createStub(CompilerFacadeInterface::class),
         ));
         $responses = $op->handle(new OpRequest('eval', 'r1', null, [
             'op' => 'eval',
@@ -128,6 +130,7 @@ final class EvalOpTest extends TestCase
         $op = new EvalOp($run, new EvalResultResponder(
             $this->createStub(PrinterInterface::class),
             new SessionRegistry(),
+            $this->createStub(CompilerFacadeInterface::class),
         ));
         $responses = $op->handle(new OpRequest('eval', 'r1', null, [
             'op' => 'eval',
@@ -141,7 +144,7 @@ final class EvalOpTest extends TestCase
     {
         $op = new EvalOp(
             $this->createStub(RunFacadeInterface::class),
-            new EvalResultResponder($this->createStub(PrinterInterface::class), new SessionRegistry()),
+            new EvalResultResponder($this->createStub(PrinterInterface::class), new SessionRegistry(), $this->createStub(CompilerFacadeInterface::class)),
         );
         $responses = $op->handle(new OpRequest('eval', 'r1', null, ['op' => 'eval']));
 
@@ -159,7 +162,7 @@ final class EvalOpTest extends TestCase
         $printer = $this->createStub(PrinterInterface::class);
         $printer->method('print')->willReturn('3');
 
-        $op = new EvalOp($run, new EvalResultResponder($printer, new SessionRegistry()));
+        $op = new EvalOp($run, new EvalResultResponder($printer, new SessionRegistry(), $this->createStub(CompilerFacadeInterface::class)));
         $op->handle(new OpRequest('eval', 'r1', null, ['op' => 'eval', 'code' => '(+ 1 2)']));
     }
 }

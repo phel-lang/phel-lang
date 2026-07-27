@@ -10,6 +10,7 @@ use Phel\Nrepl\Domain\Op\OpRequest;
 use Phel\Nrepl\Domain\Session\SessionRegistry;
 use Phel\Shared\Eval\EvalError;
 use Phel\Shared\Eval\EvalResult;
+use Phel\Shared\Facade\CompilerFacadeInterface;
 use Phel\Shared\Facade\RunFacadeInterface;
 use Phel\Shared\Printer\PrinterInterface;
 use PHPUnit\Framework\TestCase;
@@ -24,7 +25,7 @@ final class LoadFileOpTest extends TestCase
         $printer = $this->createStub(PrinterInterface::class);
         $printer->method('print')->willReturn('42');
 
-        $op = new LoadFileOp($run, new EvalResultResponder($printer, new SessionRegistry()));
+        $op = new LoadFileOp($run, new EvalResultResponder($printer, new SessionRegistry(), $this->createStub(CompilerFacadeInterface::class)));
         $responses = $op->handle(new OpRequest('load-file', 'r1', null, [
             'op' => 'load-file',
             'file' => '(def x 42) x',
@@ -40,7 +41,7 @@ final class LoadFileOpTest extends TestCase
     {
         $op = new LoadFileOp(
             $this->createStub(RunFacadeInterface::class),
-            new EvalResultResponder($this->createStub(PrinterInterface::class), new SessionRegistry()),
+            new EvalResultResponder($this->createStub(PrinterInterface::class), new SessionRegistry(), $this->createStub(CompilerFacadeInterface::class)),
         );
         $responses = $op->handle(new OpRequest('load-file', 'r1', null, ['op' => 'load-file']));
 
@@ -51,7 +52,7 @@ final class LoadFileOpTest extends TestCase
     {
         $op = new LoadFileOp(
             $this->createStub(RunFacadeInterface::class),
-            new EvalResultResponder($this->createStub(PrinterInterface::class), new SessionRegistry()),
+            new EvalResultResponder($this->createStub(PrinterInterface::class), new SessionRegistry(), $this->createStub(CompilerFacadeInterface::class)),
         );
         self::assertSame('load-file', $op->name());
     }
@@ -78,7 +79,7 @@ final class LoadFileOpTest extends TestCase
 
         $op = new LoadFileOp(
             $run,
-            new EvalResultResponder($this->createStub(PrinterInterface::class), new SessionRegistry()),
+            new EvalResultResponder($this->createStub(PrinterInterface::class), new SessionRegistry(), $this->createStub(CompilerFacadeInterface::class)),
         );
         $responses = $op->handle(new OpRequest('load-file', 'r1', null, [
             'op' => 'load-file',
