@@ -68,7 +68,7 @@
 (deftest test-some-fn-short-circuits-preds
   (let [calls (atom 0)
         p1    (fn [x] (swap! calls inc) (even? x))
-        p2    (fn [_] (throw (php/new \Exception "should not be called")))]
+        p2    (fn [_] (throw (new \Exception "should not be called")))]
     (is (true? ((some-fn p1 p2) 2)) "some-fn short-circuits on first truthy pred")
     (is (= 1 (deref calls)) "second pred was not invoked")))
 
@@ -112,7 +112,7 @@
 (deftest test-every-pred-short-circuits-preds
   (let [calls (atom 0)
         p1    (fn [x] (swap! calls inc) (even? x))
-        p2    (fn [_] (throw (php/new \Exception "should not be called")))]
+        p2    (fn [_] (throw (new \Exception "should not be called")))]
     (is (false? ((every-pred p1 p2) 3)) "every-pred short-circuits on first false pred")
     (is (= 1 (deref calls)) "second pred was not invoked")))
 

@@ -59,10 +59,10 @@
   (testing "epoch boundary timestamps coerce to a DateTime"
            (let [zero (s/coerce :inst 0)]
              (is (= true (php/instanceof zero \DateTimeInterface)) "epoch 0 coerces")
-             (is (= "1970-01-01" (php/-> zero (format "Y-m-d"))) "epoch 0 is 1970-01-01"))
+             (is (= "1970-01-01" (.format zero "Y-m-d")) "epoch 0 is 1970-01-01"))
            (let [neg (s/coerce :inst -1000000)]
              (is (= true (php/instanceof neg \DateTimeInterface)) "negative epoch coerces")
-             (is (= "1969-12-20" (php/-> neg (format "Y-m-d"))) "negative epoch is before 1970"))))
+             (is (= "1969-12-20" (.format neg "Y-m-d")) "negative epoch is before 1970"))))
 
 (deftest test-coerce-string
   (is (= "42" (s/coerce :string 42)))

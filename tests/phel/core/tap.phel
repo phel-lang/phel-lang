@@ -27,7 +27,7 @@
 
 (deftest tap-swallows-exceptions
   (let [seen (atom 0)
-        bad  (fn [_] (throw (php/new \RuntimeException "boom")))
+        bad  (fn [_] (throw (new \RuntimeException "boom")))
         good (fn [_] (swap! seen inc))]
     (add-tap bad)
     (add-tap good)

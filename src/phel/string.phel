@@ -9,7 +9,7 @@
   (a hard `TypeError` in PHP 9) and return nonsense on non-string input."
   [x]
   (when-not (string? x)
-    (throw (php/new InvalidArgumentException (str "Expected a string, got " (type x))))))
+    (throw (new InvalidArgumentException (str "Expected a string, got " (type x))))))
 
 (defn split
   "Splits string on a regular expression, returning a vector of parts."
@@ -26,7 +26,7 @@ This is a convenience function for converting strings to character sequences. Pr
    :see-also ["seq"]}
   [s]
   (assert-string s)
-  (php/:: \Phel (vector (php/mb_str_split s))))
+  (\Phel/vector (php/mb_str_split s)))
 
 (defn join
   "Returns a string of all elements in coll, separated by an optional separator."
@@ -42,7 +42,7 @@ This is a convenience function for converting strings to character sequences. Pr
   (let [len (php/mb_strlen s)
         end (or end len)]
     (when (or (php/< start 0) (php/< end start) (php/> end len))
-      (throw (php/new InvalidArgumentException "Invalid start or end index for subs")))
+      (throw (new InvalidArgumentException "Invalid start or end index for subs")))
     (php/mb_substr s start (- end start))))
 
 (defn reverse
@@ -161,7 +161,7 @@ This is a convenience function for converting strings to character sequences. Pr
     (string? s) (not= 0 (php/preg_match
                          "/^[\\t\\n\\x0B\\f\\r\\x1C-\\x1F \\x{1680}\\x{2000}-\\x{2006}\\x{2008}-\\x{200A}\\x{2028}\\x{2029}\\x{205F}\\x{3000}]*$/u"
                          s))
-    :else       (throw (php/new InvalidArgumentException (str "blank? expects a string or nil, got " (type s))))))
+    :else       (throw (new InvalidArgumentException (str "blank? expects a string or nil, got " (type s))))))
 
 (defn starts-with?
   "True if s starts with substr."

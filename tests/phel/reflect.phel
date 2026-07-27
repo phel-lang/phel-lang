@@ -8,7 +8,7 @@
 
 (deftest class-info-by-string-or-object
   (let [from-string (r/class-info "DateTime")
-        from-object (r/class-info (php/new DateTime))]
+        from-object (r/class-info (new DateTime))]
     (is (= "DateTime" (get from-string :name))
         "class-info accepts class name string")
     (is (= "DateTime" (get from-object :name))
@@ -77,11 +77,11 @@
     (is (= "/products/{id}" (get-in attr [:args 0])) "property attribute positional arg")))
 
 (deftest attributes-alias-works-on-an-instance
-  (let [attr (first (r/attributes (php/new annotated)))]
+  (let [attr (first (r/attributes (new annotated)))]
     (is (= route-attr (get attr :name)) "an instance reflects its class' attributes")))
 
 (def- status-class "PhelTest\\Fixtures\\Enum\\Status")
-(def- status-active (php/:: \PhelTest\Fixtures\Enum\Status Active))
+(def- status-active \PhelTest\Fixtures\Enum\Status/Active)
 
 (deftest enum->keyword-uses-the-case-name
   (is (= :Active (r/enum->keyword status-active))

@@ -60,12 +60,12 @@
 
 (deftest test-are-records-individual-failures
   (let [counts (:counts (with-isolated-stats
-                         (with-output-buffer
-                           (are [x y] (= x y)
-                                1 1
-                                2 3
-                                4 4
-                                5 6))))]
+                          (with-output-buffer
+                            (are [x y] (= x y)
+                                 1 1
+                                 2 3
+                                 4 4
+                                 5 6))))]
     (is (= 2 (:pass counts)) "two groups pass")
     (is (= 2 (:failed counts)) "two groups fail")))
 
@@ -75,11 +75,11 @@
 
 (deftest test-are-drops-incomplete-trailing-group
   (let [counts (:counts (with-isolated-stats
-                         (with-output-buffer
-                           (are [x y] (= x y)
-                                1 1
-                                2 2
-                                3))))]
+                          (with-output-buffer
+                            (are [x y] (= x y)
+                                 1 1
+                                 2 2
+                                 3))))]
     (is (= 2 (:pass counts)) "only complete groups are asserted")
     (is (= 0 (:failed counts)) "no failures from dropped group")))
 
@@ -108,8 +108,8 @@
 
 (deftest test-are-zero-args
   (let [counts (:counts (with-isolated-stats
-                         (with-output-buffer
-                           (are [x y] (= x y)))))]
+                          (with-output-buffer
+                            (are [x y] (= x y)))))]
     (is (= 0 (:total counts)) "no assertions generated")))
 
 ;; ---------------------------------------------------------------------------

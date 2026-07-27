@@ -22,7 +22,7 @@
   {:example "(random-uuid) ; => #uuid \"550e8400-e29b-41d4-a716-446655440000\""
    :see-also ["uuid?" "parse-uuid"]}
   []
-  (php/:: UUID (randomV4)))
+  (UUID/randomV4))
 
 (defn parse-uuid
   "Parses `s` as a canonical UUID string and returns a `Phel\\Lang\\UUID`
@@ -35,7 +35,7 @@
   (cond
     (php/instanceof s UUID) s
     (string? s)             (try
-                              (php/:: UUID (fromString s))
+                              (UUID/fromString s)
                               (catch \InvalidArgumentException _ nil))
     :else                   nil))
 
@@ -53,7 +53,7 @@
    :see-also ["uuid?"]}
   [x]
   (and (uuid? x)
-       (php/-> x (isNil))))
+       (.isNil x)))
 
 (defn uuid-version
   "Returns the version digit (1-5) encoded in UUID `x`, or nil if `x` is not a `UUID` value."
@@ -61,7 +61,7 @@
    :see-also ["uuid?" "uuid-variant"]}
   [x]
   (when (uuid? x)
-    (php/-> x (version))))
+    (.version x)))
 
 (defn uuid-variant
   "Returns a keyword describing the variant field of UUID `x`: `:ncs`,
@@ -71,4 +71,4 @@
    :see-also ["uuid?" "uuid-version"]}
   [x]
   (when (uuid? x)
-    (keyword (php/-> x (variant)))))
+    (keyword (.variant x))))

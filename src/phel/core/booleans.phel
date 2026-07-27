@@ -71,18 +71,18 @@
    (cond
      (php/=== nil x)            nil
      (php/instanceof x Keyword) x
-     (php/instanceof x Symbol)  (php/:: Keyword (createForNamespace (php/-> x (getNamespace))
-                                                                    (php/-> x (getName))))
-     (php/is_string x)          (php/:: Keyword (create x))
+     (php/instanceof x Symbol)  (Keyword/createForNamespace (.getNamespace x)
+                                                            (.getName x))
+     (php/is_string x)          (Keyword/create x)
      :else                      nil))
   ([ns nm]
    (when-not (php/=== nil nm)
-     (php/:: Keyword (createForNamespace (when-not (php/=== nil ns) (php/strval ns))
-                                         (php/strval nm))))))
+     (Keyword/createForNamespace (when-not (php/=== nil ns) (php/strval ns))
+                                 (php/strval nm)))))
 
 (defn- id2 [a b]
   (if (php/instanceof a IdenticalInterface)
-    (php/-> a (identical b))
+    (.identical a b)
     (php/=== a b)))
 
 (defn identical?
@@ -117,12 +117,12 @@
 
 (defn- num-equals1 [a b]
   (when-not (num? a)
-    (throw (php/new \InvalidArgumentException
-                    (str "Argument must be a number, got: " a))))
+    (throw (new \InvalidArgumentException
+                (str "Argument must be a number, got: " a))))
   (when-not (num? b)
-    (throw (php/new \InvalidArgumentException
-                    (str "Argument must be a number, got: " b))))
-  (php/:: NumericOperations (isEqual a b)))
+    (throw (new \InvalidArgumentException
+                (str "Argument must be a number, got: " b))))
+  (NumericOperations/isEqual a b))
 
 (defn ==
   "Numeric equality comparison. Returns true if all arguments have the same
@@ -165,30 +165,30 @@
   "Rejects `nil` operands so ordered comparisons fail loudly instead of silently coercing `nil` to 0. Mirrors the arithmetic functions, which already reject `nil`, and matches Clojure/JVM (which throws). Defined locally because `booleans` loads before the arithmetic module."
   [a b]
   (when (or (php/=== nil a) (php/=== nil b))
-    (throw (php/new InvalidArgumentException "Comparison functions do not accept nil values"))))
+    (throw (new InvalidArgumentException "Comparison functions do not accept nil values"))))
 
 (defn- lt2 [a b]
   (assert-non-nil a b)
   (if (or (numeric-object? a) (numeric-object? b))
-    (php/< (php/:: NumericOperations (compare a b)) 0)
+    (php/< (NumericOperations/compare a b) 0)
     (php/< a b)))
 
 (defn- lte2 [a b]
   (assert-non-nil a b)
   (if (or (numeric-object? a) (numeric-object? b))
-    (php/<= (php/:: NumericOperations (compare a b)) 0)
+    (php/<= (NumericOperations/compare a b) 0)
     (php/<= a b)))
 
 (defn- gt2 [a b]
   (assert-non-nil a b)
   (if (or (numeric-object? a) (numeric-object? b))
-    (php/> (php/:: NumericOperations (compare a b)) 0)
+    (php/> (NumericOperations/compare a b) 0)
     (php/> a b)))
 
 (defn- gte2 [a b]
   (assert-non-nil a b)
   (if (or (numeric-object? a) (numeric-object? b))
-    (php/>= (php/:: NumericOperations (compare a b)) 0)
+    (php/>= (NumericOperations/compare a b) 0)
     (php/>= a b)))
 
 (defn <
@@ -243,7 +243,7 @@
    :see-also ["compare" ">=<"]}
   [a b]
   (if (or (numeric-object? a) (numeric-object? b))
-    (php/:: NumericOperations (compare a b))
+    (NumericOperations/compare a b)
     (php/<=> a b)))
 
 (defn >=<
@@ -252,7 +252,7 @@
    :see-also ["compare" "<=>"]}
   [a b]
   (if (or (numeric-object? a) (numeric-object? b))
-    (php/:: NumericOperations (compare b a))
+    (NumericOperations/compare b a)
     (php/<=> b a)))
 
 (declare empty?)
@@ -322,7 +322,7 @@
   {:example "(truthy? 0) ; => true\n(truthy? nil) ; => false"
    :see-also ["true?" "false?" "nil?"]}
   [x]
-  (php/:: Truthy (isTruthy x)))
+  (Truthy/isTruthy x))
 
 (defn false?
   "Checks if value is exactly false (not just falsy)."
@@ -342,14 +342,14 @@
   [coll key]
   (cond
     (nil? coll) false
-    (php/instanceof coll ContainsInterface) (php/-> coll (contains key))
+    (php/instanceof coll ContainsInterface) (.contains coll key)
     (php/is_array coll) (php/array_key_exists key coll)
     (php/is_string coll) (and (php/is_int key) (php/>= key 0) (php/< key (php/mb_strlen coll)))
-    (throw (php/new InvalidArgumentException
-                    (str "cannot call 'contains?' on "
-                         (if (php/is_object coll)
-                           (php/get_class coll)
-                           (php/gettype coll)))))))
+    (throw (new InvalidArgumentException
+                (str "cannot call 'contains?' on "
+                     (if (php/is_object coll)
+                       (php/get_class coll)
+                       (php/gettype coll)))))))
 
 (defn- comparable-number?
   [x]
@@ -399,8 +399,8 @@
 
 (defn- compare-named
   [x y]
-  (let [ns-x   (php/-> x (getNamespace))
-        ns-y   (php/-> y (getNamespace))
+  (let [ns-x   (.getNamespace x)
+        ns-y   (.getNamespace y)
         ns-cmp (cond
                  (php/=== ns-x ns-y) 0
                  (php/=== ns-x nil)  -1
@@ -408,7 +408,7 @@
                  :else               (php/<=> ns-x ns-y))]
     (if (php/!== 0 ns-cmp)
       ns-cmp
-      (php/<=> (php/-> x (getName)) (php/-> y (getName))))))
+      (php/<=> (.getName x) (.getName y)))))
 
 (defn- compare-same-category [category x y]
   (cond
@@ -419,7 +419,7 @@
     (compare-sequential x y)
 
     (= category :number)
-    (php/:: NumericOperations (compare x y))
+    (NumericOperations/compare x y)
 
     :else
     (php/<=> x y)))
@@ -444,5 +444,5 @@
           cy (compare-category y)]
       (if (= cx cy)
         (compare-same-category cx x y)
-        (throw (php/new InvalidArgumentException
-                        (str "Cannot compare " cx " with " cy)))))))
+        (throw (new InvalidArgumentException
+                    (str "Cannot compare " cx " with " cy)))))))

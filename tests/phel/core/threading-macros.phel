@@ -29,19 +29,19 @@
 (deftest test-as->
   (is (= 1 (as-> 1 v)))
   (is (= -3 (as-> 5 v (+ 3 v) (/ v 2) (- 1 v))))
-  (is (= "oo" (as-> [:foo :bar] v (map #(php/-> % (getName)) v) (first v) (php/substr v 1))))
+  (is (= "oo" (as-> [:foo :bar] v (map #(.getName %) v) (first v) (php/substr v 1))))
   (let [animals [{:name "Rex" :type :dog} {:name "Kitty" :type :cat}]]
     (is (= :cat (as-> animals o (o 1) (o :type))))
     (is (= :cat (as-> animals $ ($ 1) ($ :type))))))
 
 (deftest test-doto
-  (let [dt (doto (php/new DateTime "2025-02-02 12:00:00")
-                 (php/-> (modify "+1 hour"))
-                 (php/-> (modify "+1 week"))
-                 (php/-> (modify "+1 year")))]
+  (let [dt (doto (new DateTime "2025-02-02 12:00:00")
+                 (.modify "+1 hour")
+                 (.modify "+1 week")
+                 (.modify "+1 year"))]
     (is (= :php/object (type dt)))
     (is (= "DateTime" (php/get_class dt)))
-    (is (= "2026-02-09 13:00:00" (php/-> dt (format "Y-m-d H:i:s"))))))
+    (is (= "2026-02-09 13:00:00" (.format dt "Y-m-d H:i:s")))))
 
 (deftest test-cond->
   (is (= 1 (cond-> 1)) "identity when no clauses")

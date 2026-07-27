@@ -70,18 +70,18 @@
 (defn- schema-violation!
   [label schema value]
   (let [result (e/explain schema value)]
-    (throw (php/new \InvalidArgumentException
-                    (str label "\n"
-                         (e/human-readable-explain result))))))
+    (throw (new \InvalidArgumentException
+                (str label "\n"
+                     (e/human-readable-explain result))))))
 
 (defn- validate-args!
   [arg-schemas args]
   (let [expected (if (vector? arg-schemas) arg-schemas [arg-schemas])
         actual   (into [] args)]
     (when (not= (count actual) (count expected))
-      (throw (php/new \InvalidArgumentException
-                      (str "schema arity mismatch: expected "
-                           (count expected) " args, got " (count actual)))))
+      (throw (new \InvalidArgumentException
+                  (str "schema arity mismatch: expected "
+                       (count expected) " args, got " (count actual)))))
     (loop [i 0]
       (when (< i (count expected))
         (let [s (get expected i)
@@ -120,9 +120,9 @@
    :see-also ["wrap-with-schema"]}
   [f schema]
   (when-not (function-schema? schema)
-    (throw (php/new \InvalidArgumentException
-                    (str "expected function schema `[:=> args ret]`, got "
-                         (print-str schema)))))
+    (throw (new \InvalidArgumentException
+                (str "expected function schema `[:=> args ret]`, got "
+                     (print-str schema)))))
   (wrap-with-schema f (get schema 1) (get schema 2)))
 
 (defn instrument!

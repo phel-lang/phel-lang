@@ -9,38 +9,38 @@
 (defn- reflection-class
   "Returns a ReflectionClass for `class-or-name` (string FQN or object)."
   [class-or-name]
-  (php/new ReflectionClass class-or-name))
+  (new ReflectionClass class-or-name))
 
 (defn- type-string
   "Renders a ReflectionType (named, union, or intersection) as a string. Returns nil when the reflection type itself is nil (no declaration)."
   [rt]
-  (when rt (php/-> rt (__toString))))
+  (when rt (.__toString rt)))
 
 (defn- visibility-of [m]
   (cond
-    (php/-> m (isPrivate))   :private
-    (php/-> m (isProtected)) :protected
-    true                     :public))
+    (.isPrivate m)   :private
+    (.isProtected m) :protected
+    true             :public))
 
 (defn- parameter->map [p]
-  {:name     (php/-> p (getName))
-   :type     (type-string (php/-> p (getType)))
-   :optional (php/-> p (isOptional))
-   :variadic (php/-> p (isVariadic))})
+  {:name     (.getName p)
+   :type     (type-string (.getType p))
+   :optional (.isOptional p)
+   :variadic (.isVariadic p)})
 
 (defn- method->map [m]
-  {:name        (php/-> m (getName))
-   :params      (vec (for [p :in (php/-> m (getParameters))]
+  {:name        (.getName m)
+   :params      (vec (for [p :in (.getParameters m)]
                        (parameter->map p)))
-   :return-type (type-string (php/-> m (getReturnType)))
-   :static?     (php/-> m (isStatic))
+   :return-type (type-string (.getReturnType m))
+   :static?     (.isStatic m)
    :visibility  (visibility-of m)})
 
 (defn- property->map [p]
-  {:name       (php/-> p (getName))
-   :type       (type-string (php/-> p (getType)))
-   :static?    (php/-> p (isStatic))
-   :readonly?  (php/-> p (isReadonly))
+  {:name       (.getName p)
+   :type       (type-string (.getType p))
+   :static?    (.isStatic p)
+   :readonly?  (.isReadonly p)
    :visibility (visibility-of p)})
 
 (defn methods
@@ -49,7 +49,7 @@
   {:example "(methods DateTime)"}
   [class-or-name]
   (let [rc (reflection-class class-or-name)]
-    (vec (for [m :in (php/-> rc (getMethods))]
+    (vec (for [m :in (.getMethods rc)]
            (method->map m)))))
 
 (defn properties
@@ -58,7 +58,7 @@
   {:example "(properties \\DateInterval)"}
   [class-or-name]
   (let [rc (reflection-class class-or-name)]
-    (vec (for [p :in (php/-> rc (getProperties))]
+    (vec (for [p :in (.getProperties rc)]
            (property->map p)))))
 
 (defn supers
@@ -67,13 +67,13 @@
   [class-or-name]
   (let [rc    (reflection-class class-or-name)
         names (transient (hash-set))
-        names (loop [parent (php/-> rc (getParentClass))
+        names (loop [parent (.getParentClass rc)
                      acc    names]
                 (if parent
-                  (recur (php/-> parent (getParentClass))
-                         (conj! acc (php/-> parent (getName))))
+                  (recur (.getParentClass parent)
+                         (conj! acc (.getName parent)))
                   acc))]
-    (foreach [iface (php/-> rc (getInterfaceNames))]
+    (foreach [iface (.getInterfaceNames rc)]
       (conj! names iface))
     (persistent! names)))
 
@@ -81,16 +81,16 @@
   "Builds the `:args` map for a `ReflectionAttribute`: named arguments become keyword keys, positional arguments keep their integer index."
   [a]
   (let [res (transient {})]
-    (foreach [k v (php/-> a (getArguments))]
-      (php/-> res (put (if (string? k) (keyword k) k) v)))
+    (foreach [k v (.getArguments a)]
+      (.put res (if (string? k) (keyword k) k) v))
     (persistent res)))
 
 (defn- attribute->map [a]
-  {:name (php/-> a (getName))
+  {:name (.getName a)
    :args (attribute-args a)})
 
 (defn- attributes-of [reflectable]
-  (vec (for [a :in (php/-> reflectable (getAttributes))]
+  (vec (for [a :in (.getAttributes reflectable)]
          (attribute->map a))))
 
 (defn class-attributes
@@ -105,14 +105,14 @@
   {:example "(method-attributes \\App\\Foo \"handle\")"
    :see-also ["class-attributes" "property-attributes"]}
   [class-or-name method-name]
-  (attributes-of (php/-> (reflection-class class-or-name) (getMethod method-name))))
+  (attributes-of (.getMethod (reflection-class class-or-name) method-name)))
 
 (defn property-attributes
   "Returns a vector of attribute maps for property `property-name` on `class-or-name`."
   {:example "(property-attributes \\App\\Foo \"id\")"
    :see-also ["class-attributes" "method-attributes"]}
   [class-or-name property-name]
-  (attributes-of (php/-> (reflection-class class-or-name) (getProperty property-name))))
+  (attributes-of (.getProperty (reflection-class class-or-name) property-name)))
 
 (defn attributes
   "Returns the class-level attribute maps for `obj-or-class`; an instance uses its class. Convenience alias of `class-attributes`."
@@ -128,17 +128,17 @@
    :see-also ["methods" "properties" "supers"]}
   [class-or-name]
   (let [rc     (reflection-class class-or-name)
-        parent (php/-> rc (getParentClass))]
-    {:name       (php/-> rc (getName))
+        parent (.getParentClass rc)]
+    {:name       (.getName rc)
      :methods    (methods class-or-name)
      :properties (properties class-or-name)
      :parents    (vec (loop [p   parent
                              acc []]
                         (if p
-                          (recur (php/-> p (getParentClass))
-                                 (conj acc (php/-> p (getName))))
+                          (recur (.getParentClass p)
+                                 (conj acc (.getName p)))
                           acc)))
-     :interfaces (vec (php/-> rc (getInterfaceNames)))}))
+     :interfaces (vec (.getInterfaceNames rc))}))
 
 ;; Bridge native PHP enums (Symfony/Doctrine column enums, library enums)
 ;; to Phel keywords and back. Works with `defenum`-generated enums and any
@@ -150,7 +150,7 @@
   {:example "(enum->keyword Status/Active)"
    :see-also ["keyword->enum" "enum-values"]}
   [enum-case]
-  (keyword (php/-> enum-case name)))
+  (keyword (.-name enum-case)))
 
 (defn keyword->enum
   "Returns the case of the native PHP enum `enum-class` (string FQN) whose name matches keyword `kw`, or nil when no case matches. Inverse of `enum->keyword`."
@@ -158,7 +158,7 @@
    :see-also ["enum->keyword" "enum-values"]}
   [enum-class kw]
   (let [case-name (name kw)]
-    (first (filter (fn [c] (= case-name (php/-> c name)))
+    (first (filter (fn [c] (= case-name (.-name c)))
                    (.cases enum-class)))))
 
 (defn enum-values

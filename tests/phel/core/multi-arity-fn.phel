@@ -64,9 +64,9 @@
 
 (deftest multi-arity-fn-returned-from-fn
   (let [make  (fn [x]
-               (fn
-                 ([a] (+ a x))
-                 ([a b] (+ a b x))))
+                (fn
+                  ([a] (+ a x))
+                  ([a b] (+ a b x))))
         add10 (make 10)]
     (is (= 15 (add10 5)) "returned multi-arity fn: one-arg overload with captured local")
     (is (= 16 (add10 5 1)) "returned multi-arity fn: two-arg overload with captured local"))

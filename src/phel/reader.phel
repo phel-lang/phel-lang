@@ -14,7 +14,7 @@
 (defn- registry
   "Returns the shared TagRegistry singleton."
   []
-  (php/:: TagRegistry (getInstance)))
+  (TagRegistry/getInstance))
 
 (defn register-tag
   "Registers a handler for reader tag `tag-name` (a string without the leading `#`). The handler `f` is a 1-arg function receiving the already-read form value and returning the value that should replace the tagged literal.
@@ -24,7 +24,7 @@ Re-registering an existing tag overwrites the previous handler."
   ; later: #date \"2026-04-20\" => (my-ns/parse-date \"2026-04-20\")"
    :see-also ["tag-registered?" "unregister-tag" "registered-tags"]}
   [tag-name f]
-  (php/-> (registry) (register tag-name f))
+  (.register (registry) tag-name f)
   nil)
 
 (defn tag-registered?
@@ -32,14 +32,14 @@ Re-registering an existing tag overwrites the previous handler."
   {:example "(tag-registered? \"inst\") ; => true"
    :see-also ["register-tag" "unregister-tag" "registered-tags"]}
   [tag-name]
-  (php/-> (registry) (has tag-name)))
+  (.has (registry) tag-name))
 
 (defn unregister-tag
   "Removes any handler registered for reader tag `tag-name`. Built-in tags can be unregistered but are re-installed on the next reader bootstrap."
   {:example "(unregister-tag \"date\")"
    :see-also ["register-tag" "tag-registered?" "registered-tags"]}
   [tag-name]
-  (php/-> (registry) (unregister tag-name))
+  (.unregister (registry) tag-name)
   nil)
 
 (defn registered-tags
@@ -47,4 +47,4 @@ Re-registering an existing tag overwrites the previous handler."
   {:example "(registered-tags) ; => [\"inst\" \"regex\" \"uuid\"]"
    :see-also ["register-tag" "tag-registered?" "unregister-tag"]}
   []
-  (php/:: Phel (vector (php/-> (registry) (tags)))))
+  (Phel/vector (.tags (registry))))

@@ -17,7 +17,7 @@
 
 (deftest test-persistent-map-alias
   (is (php/instanceof {:a 1} PersistentMap))
-  (is (php/instanceof (php/:: \Phel\Lang\Collections\Map\MapEntry (create :k :v)) MapEntry)))
+  (is (php/instanceof (\Phel\Lang\Collections\Map\MapEntry/create :k :v) MapEntry)))
 
 (deftest test-persistent-hash-set-alias
   (is (php/instanceof (hash-set 1 2 3) PersistentHashSet)))

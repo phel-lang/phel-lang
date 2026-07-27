@@ -8,7 +8,7 @@
   (is (= "boom"
          (try
            (throw (NotFound "boom"))
-           (catch \RuntimeException e (php/-> e (getMessage)))))
+           (catch \RuntimeException e (.getMessage e))))
       "an exception with :extends parent is caught as that parent")
   (is (instance? \RuntimeException (NotFound "x")) "instance of the custom parent")
   (is (NotFound? (NotFound "x")) "its own predicate still works"))

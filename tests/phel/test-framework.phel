@@ -26,7 +26,7 @@
 
 (deftest test-is-not-predicate-fails-when-predicate-is-true
   (let [counts (:counts (with-isolated-stats
-                         (with-output-buffer (is (not (nil? nil))))))]
+                          (with-output-buffer (is (not (nil? nil))))))]
     (is (= 1 (:failed counts)) "not nil? on nil records a failure")
     (is (= 0 (:pass counts)) "no pass recorded")))
 
@@ -42,7 +42,7 @@
 
 (deftest test-is-not-binary-fails-when-predicate-is-true
   (let [counts (:counts (with-isolated-stats
-                         (with-output-buffer (is (not (= 1 1))))))]
+                          (with-output-buffer (is (not (= 1 1))))))]
     (is (= 1 (:failed counts)) "not (= 1 1) records a failure")))
 
 ;; ---------------------------------------------------------------------------
@@ -51,16 +51,16 @@
 
 (deftest test-is-thrown-passes-when-exception-type-matches
   (is (thrown? \InvalidArgumentException
-               (throw (php/new \InvalidArgumentException "boom")))
+               (throw (new \InvalidArgumentException "boom")))
       "thrown? passes when matching exception is thrown")
   (is (thrown? \Exception
-               (throw (php/new \RuntimeException "boom")))
+               (throw (new \RuntimeException "boom")))
       "thrown? passes for subclass of expected exception"))
 
 (deftest test-is-thrown-fails-when-no-exception-thrown
   (let [counts (:counts (with-isolated-stats
-                         (with-output-buffer
-                           (is (thrown? \InvalidArgumentException (+ 1 1))))))]
+                          (with-output-buffer
+                            (is (thrown? \InvalidArgumentException (+ 1 1))))))]
     (is (= 1 (:failed counts)) "thrown? without throw records a failure")))
 
 ;; ---------------------------------------------------------------------------
@@ -69,27 +69,27 @@
 ;; ---------------------------------------------------------------------------
 
 (deftest test-is-thrown-single-arg-passes-for-any-exception
-  (is (thrown? (throw (php/new \Exception "boom")))
+  (is (thrown? (throw (new \Exception "boom")))
       "single-arg thrown? catches a bare \\Exception")
-  (is (thrown? (throw (php/new \RuntimeException "runtime")))
+  (is (thrown? (throw (new \RuntimeException "runtime")))
       "single-arg thrown? catches a \\RuntimeException")
-  (is (thrown? (throw (php/new \InvalidArgumentException "bad")))
+  (is (thrown? (throw (new \InvalidArgumentException "bad")))
       "single-arg thrown? catches an \\InvalidArgumentException")
-  (is (thrown? (throw (php/new \DivisionByZeroError "divzero")))
+  (is (thrown? (throw (new \DivisionByZeroError "divzero")))
       "single-arg thrown? catches an \\Error subclass"))
 
 (deftest test-is-thrown-single-arg-fails-when-body-does-not-throw
   (let [counts (:counts (with-isolated-stats
-                         (with-output-buffer
-                           (is (thrown? (+ 1 2))))))]
+                          (with-output-buffer
+                            (is (thrown? (+ 1 2))))))]
     (is (= 1 (:failed counts))
         "single-arg thrown? without throw records a failure")
     (is (= 0 (:pass counts)) "no pass recorded")))
 
 (deftest test-is-thrown-two-arg-still-works-alongside-single-arg
-  (is (thrown? \Exception (throw (php/new \Exception "still works")))
+  (is (thrown? \Exception (throw (new \Exception "still works")))
       "two-arg thrown? keeps working when single-arg is supported")
-  (is (thrown? \RuntimeException (throw (php/new \RuntimeException "ok")))
+  (is (thrown? \RuntimeException (throw (new \RuntimeException "ok")))
       "two-arg thrown? with explicit class still catches the right type"))
 
 ;; ---------------------------------------------------------------------------
@@ -98,20 +98,20 @@
 
 (deftest test-is-thrown-with-msg-passes-when-message-matches
   (is (thrown-with-msg? \InvalidArgumentException "boom"
-                        (throw (php/new \InvalidArgumentException "boom")))
+                        (throw (new \InvalidArgumentException "boom")))
       "thrown-with-msg? passes when message matches exactly"))
 
 (deftest test-is-thrown-with-msg-fails-when-no-exception
   (let [counts (:counts (with-isolated-stats
-                         (with-output-buffer
-                           (is (thrown-with-msg? \InvalidArgumentException "boom" (+ 1 1))))))]
+                          (with-output-buffer
+                            (is (thrown-with-msg? \InvalidArgumentException "boom" (+ 1 1))))))]
     (is (= 1 (:failed counts)) "thrown-with-msg? without throw records a failure")))
 
 (deftest test-is-thrown-with-msg-fails-when-message-differs
   (let [counts (:counts (with-isolated-stats
-                         (with-output-buffer
-                           (is (thrown-with-msg? \InvalidArgumentException "expected"
-                                                 (throw (php/new \InvalidArgumentException "different")))))))]
+                          (with-output-buffer
+                            (is (thrown-with-msg? \InvalidArgumentException "expected"
+                                                  (throw (new \InvalidArgumentException "different")))))))]
     (is (= 1 (:failed counts)) "thrown-with-msg? with wrong message records a failure")))
 
 ;; ---------------------------------------------------------------------------
@@ -123,8 +123,8 @@
 
 (deftest test-is-output-fails-when-output-differs
   (let [counts (:counts (with-isolated-stats
-                         (with-output-buffer
-                           (is (output? "expected" (print "actual"))))))]
+                          (with-output-buffer
+                            (is (output? "expected" (print "actual"))))))]
     (is (= 1 (:failed counts)) "output? mismatch records a failure")))
 
 ;; ---------------------------------------------------------------------------
@@ -156,7 +156,7 @@
 
 (deftest test-is-binary-default-fails
   (let [counts (:counts (with-isolated-stats
-                         (with-output-buffer (is (= 1 2)))))]
+                          (with-output-buffer (is (= 1 2)))))]
     (is (= 1 (:failed counts)) "= on unequal values records a failure")))
 
 ;; ---------------------------------------------------------------------------
@@ -170,7 +170,7 @@
 
 (deftest test-is-predicate-default-fails
   (let [counts (:counts (with-isolated-stats
-                         (with-output-buffer (is (nil? 1)))))]
+                          (with-output-buffer (is (nil? 1)))))]
     (is (= 1 (:failed counts)) "nil? on non-nil records a failure")))
 
 ;; ---------------------------------------------------------------------------
@@ -183,8 +183,8 @@
 
 (deftest test-is-any-fails-when-list-result-is-falsy
   (let [counts (:counts (with-isolated-stats
-                         (with-output-buffer (is (and true false 1 2)))
-                         (with-output-buffer (is (or false nil false nil)))))]
+                          (with-output-buffer (is (and true false 1 2)))
+                          (with-output-buffer (is (or false nil false nil)))))]
     (is (= 2 (:failed counts)) "falsy and/or expressions both record failures")))
 
 (deftest test-is-accepts-scalar-literal-arguments
@@ -194,8 +194,8 @@
 
 (deftest test-is-scalar-literal-failures-record-failure
   (let [counts (:counts (with-isolated-stats
-                         (with-output-buffer (is false "false literal"))
-                         (with-output-buffer (is nil "nil literal"))))]
+                          (with-output-buffer (is false "false literal"))
+                          (with-output-buffer (is nil "nil literal"))))]
     (is (= 2 (:failed counts)) "scalar false/nil record failures without error")
     (is (= 0 (:error counts)) "scalar literals do not raise an internal error")))
 
@@ -206,8 +206,8 @@
 
 (deftest test-is-records-error-when-body-throws
   (let [counts (:counts (with-isolated-stats
-                         (with-output-buffer
-                           (is (= 1 (throw (php/new \RuntimeException "boom inside is")))))))]
+                          (with-output-buffer
+                            (is (= 1 (throw (new \RuntimeException "boom inside is")))))))]
     (is (= 1 (:error counts)) "uncaught exception in assertion is reported as :error")
     (is (= 0 (:failed counts)) "not counted as a failure")))
 
@@ -217,7 +217,7 @@
 
 (deftest test-passing-assertion-increments-pass-and-total-only
   (let [counts (:counts (with-isolated-stats
-                         (with-output-buffer (is (= 1 1)))))]
+                          (with-output-buffer (is (= 1 1)))))]
     (is (= 1 (:pass counts)) "pass count incremented")
     (is (= 0 (:failed counts)) "failed count untouched")
     (is (= 0 (:error counts)) "error count untouched")
@@ -229,7 +229,7 @@
 
 (deftest test-failing-assertion-records-failure-data
   (let [snapshot (with-isolated-stats
-                  (with-output-buffer (is (= 1 2) "intentional failure")))]
+                   (with-output-buffer (is (= 1 2) "intentional failure")))]
     (is (= 1 (count (get snapshot :failed))) "one failure recorded in :failed list")
     (let [failure (first (get snapshot :failed))]
       (is (= "intentional failure" (get failure :message))
@@ -250,9 +250,9 @@
 
 (deftest test-testing-context-in-failure-message
   (let [snapshot (with-isolated-stats
-                  (with-output-buffer
-                    (testing "math basics"
-                             (is (= 1 2) "addition"))))]
+                   (with-output-buffer
+                     (testing "math basics"
+                              (is (= 1 2) "addition"))))]
     (let [failure (first (get snapshot :failed))]
       (is (= "math basics - addition" (get failure :message))
           "testing context is prepended to failure message"))))
@@ -263,14 +263,14 @@
 
 (deftest test-do-report-pass-increments-pass-count
   (let [counts (:counts (with-isolated-stats
-                         (with-output-buffer (do-report {:state :pass :type :any :message "ok"}))))]
+                          (with-output-buffer (do-report {:state :pass :type :any :message "ok"}))))]
     (is (= 1 (:pass counts)) "do-report with :pass increments pass count")
     (is (= 1 (:total counts)) "do-report with :pass increments total")
     (is (= 0 (:failed counts)) "do-report with :pass does not increment failed")))
 
 (deftest test-do-report-failure-records-failure
   (let [snapshot (with-isolated-stats
-                  (with-output-buffer (do-report {:state :failed :type :any :message "nope"})))]
+                   (with-output-buffer (do-report {:state :failed :type :any :message "nope"})))]
     (is (= 1 (:failed (get snapshot :counts))) "do-report with :failed increments failed count")
     (is (= 1 (count (get snapshot :failed))) "do-report with :failed records failure data")
     (let [failure (first (get snapshot :failed))]
@@ -279,11 +279,11 @@
 (deftest test-do-report-preserves-location
   (let [loc      {:file "test.phel" :line 42 :column 1}
         snapshot (with-isolated-stats
-                  (with-output-buffer (do-report {:state :failed :type :any :location loc})))]
+                   (with-output-buffer (do-report {:state :failed :type :any :location loc})))]
     (let [failure (first (get snapshot :failed))]
       (is (= loc (get failure :location)) "do-report preserves :location in result"))))
 
 (deftest test-do-report-works-without-location
   (let [counts (:counts (with-isolated-stats
-                         (with-output-buffer (do-report {:state :pass :type :any}))))]
+                          (with-output-buffer (do-report {:state :pass :type :any}))))]
     (is (= 1 (:pass counts)) "do-report works without :location key")))

@@ -11,16 +11,16 @@
   (DEFAULT nil))
 
 (deftest typed-constants-are-readable
-  (is (= 100 (php/:: \phel_test\core\definterface_consts\HasLimits MAX)) "int const is reachable")
-  (is (= "limit" (php/:: \phel_test\core\definterface_consts\HasLimits LABEL)) "string const is reachable"))
+  (is (= 100 \phel_test\core\definterface_consts\HasLimits/MAX) "int const is reachable")
+  (is (= "limit" \phel_test\core\definterface_consts\HasLimits/LABEL) "string const is reachable"))
 
 (deftest scalar-constant-values-are-supported
-  (is (= 1.5 (php/:: \phel_test\core\definterface_consts\HasLimits RATE)) "float const value")
-  (is (= true (php/:: \phel_test\core\definterface_consts\HasLimits ENABLED)) "bool const value")
-  (is (nil? (php/:: \phel_test\core\definterface_consts\HasLimits DEFAULT)) "nil const value"))
+  (is (= 1.5 \phel_test\core\definterface_consts\HasLimits/RATE) "float const value")
+  (is (= true \phel_test\core\definterface_consts\HasLimits/ENABLED) "bool const value")
+  (is (nil? \phel_test\core\definterface_consts\HasLimits/DEFAULT) "nil const value"))
 
 (deftest constant-is-typed
-  (let [rc   (php/new \ReflectionClassConstant
-                      "phel_test\\core\\definterface_consts\\HasLimits" "MAX")
-        type (php/-> rc (getType))]
-    (is (= "int" (php/-> type (getName))) "the constant carries its declared PHP type")))
+  (let [rc   (new \ReflectionClassConstant
+                  "phel_test\\core\\definterface_consts\\HasLimits" "MAX")
+        type (.getType rc)]
+    (is (= "int" (.getName type)) "the constant carries its declared PHP type")))

@@ -31,8 +31,8 @@ Optional `:meta` and `:validator` keyword arguments may follow the value in any 
   (let [pairs (apply hash-map opts)
         m     (get pairs :meta)
         vf    (get pairs :validator)
-        v     (php/:: Phel (atom value m))]
-    (when vf (php/-> v (setValidator vf)))
+        v     (Phel/atom value m)]
+    (when vf (.setValidator v vf))
     v))
 
 (defn atom?
@@ -53,14 +53,14 @@ Optional `:meta` and `:validator` keyword arguments may follow the value in any 
   "Throws `InvalidArgumentException` with `msg` unless `v` is a `Var`."
   [v msg]
   (when-not (var? v)
-    (throw (php/new \InvalidArgumentException msg))))
+    (throw (new \InvalidArgumentException msg))))
 
 (defn reset!
   "Sets a new value on the given atom. Returns the new value."
   {:example "(def x (atom 10))"
    :see-also ["atom" "deref" "swap!"]}
   [variable value]
-  (php/-> variable (set value)))
+  (.set variable value))
 
 (defn deref
   "Returns the current value inside an atom or var.
@@ -72,19 +72,19 @@ With three arguments, and when `variable` is a future or promise, blocks for at 
    :see-also ["atom" "reset!" "swap!" "future" "var-get"]}
   [variable & args]
   (case (count args)
-    0 (php/-> variable (deref))
+    0 (.deref variable)
     2 (cond
         (php/instanceof variable \Phel\Lang\Future)
-        (php/-> variable (derefWithTimeout (first args) (get args 1)))
+        (.derefWithTimeout variable (first args) (get args 1))
         (php/instanceof variable \Phel\Fiber\Domain\Future)
-        (php/-> variable (derefWithTimeout (first args) (get args 1)))
+        (.derefWithTimeout variable (first args) (get args 1))
         (php/instanceof variable \Phel\Fiber\Domain\Promise)
-        (php/-> variable (derefWithTimeout (first args) (get args 1)))
+        (.derefWithTimeout variable (first args) (get args 1))
         true
-        (throw (php/new \InvalidArgumentException
-                        "3-arg deref is only supported on futures and promises")))
-    (throw (php/new \InvalidArgumentException
-                    "deref expects 1 or 3 arguments"))))
+        (throw (new \InvalidArgumentException
+                    "3-arg deref is only supported on futures and promises")))
+    (throw (new \InvalidArgumentException
+                "deref expects 1 or 3 arguments"))))
 
 (defn swap!
   "Atomically swaps the value of the atom to `(apply f current-value args)`.
@@ -138,7 +138,7 @@ Returns the new value after the swap."
   {:example "(add-watch my-var :logger (fn [key ref old new] (println old \"->\" new)))"
    :see-also ["remove-watch" "atom" "swap!"]}
   [variable key f]
-  (php/-> variable (addWatch (name key) f))
+  (.addWatch variable (name key) f)
   variable)
 
 (defn alter-var-root
@@ -147,7 +147,7 @@ Returns the new value after the swap."
    :see-also ["var" "var?" "swap!"]}
   [v f & args]
   (assert-var! v "alter-var-root expects a Var as first argument; use swap! for atoms")
-  (php/-> v (alterRoot (fn [current] (apply f current args)))))
+  (.alterRoot v (fn [current] (apply f current args))))
 
 (defn bound?
   "Returns true when `v` has a current root binding in the namespace registry. `v` must be a `Var`."
@@ -155,8 +155,8 @@ Returns the new value after the swap."
    :see-also ["thread-bound?" "var-get" "find-var"]}
   [v]
   (assert-var! v "bound? expects a Var as its argument")
-  (php/:: Phel (isDefined (php/-> v (getNamespace))
-                          (php/-> v (getName)))))
+  (Phel/isDefined (.getNamespace v)
+                  (.getName v)))
 
 (defn thread-bound?
   "Returns true when a fiber-local `binding` (or `with-bindings`) frame currently overrides the value of `v` on the calling fiber."
@@ -164,9 +164,9 @@ Returns the new value after the swap."
    :see-also ["bound?" "binding" "var-set"]}
   [v]
   (assert-var! v "thread-bound? expects a Var as its argument")
-  (let [scope (php/:: DynamicScope (getInstance))]
-    (php/-> scope (hasBinding (php/-> v (getNamespace))
-                              (php/-> v (getName))))))
+  (let [scope (DynamicScope/getInstance)]
+    (.hasBinding scope (.getNamespace v)
+                 (.getName v))))
 
 (defn var-set
   "Sets the value of the topmost active fiber-local binding frame for
@@ -176,9 +176,9 @@ Returns the new value after the swap."
    :see-also ["binding" "thread-bound?" "alter-var-root"]}
   [v val]
   (assert-var! v "var-set expects a Var as its first argument")
-  (php/:: Phel (varSet (php/-> v (getNamespace))
-                       (php/-> v (getName))
-                       val)))
+  (Phel/varSet (.getNamespace v)
+               (.getName v)
+               val))
 
 (defn alter-meta!
   "Replaces the metadata on `r` with `(apply f current-meta args)`.
@@ -189,12 +189,12 @@ Returns the new value after the swap."
    :see-also ["reset-meta!" "meta" "with-meta"]}
   [r f & args]
   (cond
-    (var? r)  (php/-> r (alterMeta (fn [current] (apply f current args))))
-    (atom? r) (let [next (apply f (php/-> r (getMeta)) args)]
-                (php/-> r (withMeta next))
+    (var? r)  (.alterMeta r (fn [current] (apply f current args)))
+    (atom? r) (let [next (apply f (.getMeta r) args)]
+                (.withMeta r next)
                 next)
-    :else     (throw (php/new \InvalidArgumentException
-                              "alter-meta! expects a Var or atom as first argument"))))
+    :else     (throw (new \InvalidArgumentException
+                          "alter-meta! expects a Var or atom as first argument"))))
 
 (defn reset-meta!
   "Installs `meta-map` as the metadata on `r`, replacing any prior metadata. Works on `Var` handles and on atoms. Returns the installed map."
@@ -202,16 +202,16 @@ Returns the new value after the swap."
    :see-also ["alter-meta!" "meta" "with-meta"]}
   [r meta-map]
   (cond
-    (var? r)  (php/-> r (resetMeta meta-map))
-    (atom? r) (do (php/-> r (withMeta meta-map)) meta-map)
-    :else     (throw (php/new \InvalidArgumentException
-                              "reset-meta! expects a Var or atom as first argument"))))
+    (var? r)  (.resetMeta r meta-map)
+    (atom? r) (do (.withMeta r meta-map) meta-map)
+    :else     (throw (new \InvalidArgumentException
+                          "reset-meta! expects a Var or atom as first argument"))))
 
 (defn remove-watch
   "Removes a watch function from a variable by key."
   {:see-also ["add-watch"]}
   [variable key]
-  (php/-> variable (removeWatch (name key)))
+  (.removeWatch variable (name key))
   variable)
 
 (defn set-validator!
@@ -219,7 +219,7 @@ Returns the new value after the swap."
   {:example "(set-validator! my-var pos?)"
    :see-also ["get-validator" "atom"]}
   [variable f]
-  (php/-> variable (setValidator f))
+  (.setValidator variable f)
   variable)
 
 (defn get-validator
@@ -227,7 +227,7 @@ Returns the new value after the swap."
   {:example "(get-validator (atom 1)) ; => nil"
    :see-also ["set-validator!"]}
   [variable]
-  (php/-> variable (getValidator)))
+  (.getValidator variable))
 
 ;; --------
 ;; For loop
@@ -236,10 +236,10 @@ Returns the new value after the swap."
 (defn- lazy-seq-from-generator
   "Wraps a PHP Generator in a ChunkedSeq for efficient lazy evaluation. ChunkedSeq realizes elements in batches for better performance."
   [generator]
-  (php/:: ChunkedSeq (fromGenerator
-                      (php/new Hasher)
-                      (php/new Equalizer)
-                      generator)))
+  (ChunkedSeq/fromGenerator
+   (new Hasher)
+   (new Equalizer)
+   generator))
 
 (defn range
   "Creates a lazy sequence of numbers. With no arguments returns an infinite sequence starting at 0. With one argument returns (0..n). With two (start..end). With three (start..end step). Note: the infinite sequence is bounded by PHP_INT_MAX."
@@ -247,11 +247,11 @@ Returns the new value after the swap."
    :see-also ["iterate" "repeat"]}
   [& args]
   (case (count args)
-    0 (lazy-seq-from-generator (php/:: Seq (infiniteRange)))
-    1 (lazy-seq-from-generator (php/:: Seq (range 0 (get args 0) 1)))
-    2 (lazy-seq-from-generator (php/:: Seq (range (get args 0) (get args 1) 1)))
-    3 (lazy-seq-from-generator (php/:: Seq (range (get args 0) (get args 1) (get args 2))))
-    (throw (php/new InvalidArgumentException "Range function expects zero to three arguments"))))
+    0 (lazy-seq-from-generator (Seq/infiniteRange))
+    1 (lazy-seq-from-generator (Seq/range 0 (get args 0) 1))
+    2 (lazy-seq-from-generator (Seq/range (get args 0) (get args 1) 1))
+    3 (lazy-seq-from-generator (Seq/range (get args 0) (get args 1) (get args 2)))
+    (throw (new InvalidArgumentException "Range function expects zero to three arguments"))))
 
 (def- for-options (hash-set :reduce))
 
@@ -286,7 +286,7 @@ Returns the new value after the swap."
             :while `(if ~verb ~rest php/break)
             :let   `(let ~verb ~rest)
             :when  `(when ~verb ~rest)
-            (throw (php/new InvalidArgumentException (str "This modifier is not supported in for loop: " verb)))))
+            (throw (new InvalidArgumentException (str "This modifier is not supported in for loop: " verb)))))
 
         ;; Case 3: Verbs
         (let [object    (php/aget head (php/+ i 2))
@@ -300,7 +300,7 @@ Returns the new value after the swap."
             :pairs (let [key-sym (gensym)]
                      `(foreach [~key-sym ~value-sym ~object]
                         (let [~binding [~key-sym ~value-sym]] ~rest)))
-            (throw (php/new InvalidArgumentException (str "This verb is not supported in for loop " verb)))))))))
+            (throw (new InvalidArgumentException (str "This verb is not supported in for loop " verb)))))))))
 
 (defmacro for
   "List comprehension. The head of the loop is a vector that contains a

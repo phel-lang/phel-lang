@@ -22,7 +22,7 @@
   (let [target (transient (hash-set))]
     (foreach [s sets]
       (foreach [v s]
-        (php/-> target (add v))))
+        (.add target v)))
     (persistent target)))
 
 (defn- intersection-pair
@@ -31,8 +31,8 @@
     (recur s2 s1)
     (let [result (transient s1)]
       (foreach [item s1]
-        (when-not (php/-> s2 (contains item))
-          (php/-> result (remove item))))
+        (when-not (.contains s2 item)
+          (.remove result item)))
       (persistent result))))
 
 (defn intersection
@@ -47,13 +47,13 @@
   (if (< (count s1) (count s2))
     (let [result (transient s1)]
       (foreach [item s1]
-        (when (php/-> s2 (contains item))
-          (php/-> result (remove item))))
+        (when (.contains s2 item)
+          (.remove result item)))
       (persistent result))
 
     (let [result (transient s1)]
       (foreach [item s2]
-        (php/-> result (remove item)))
+        (.remove result item))
       (persistent result))))
 
 (defn difference
@@ -76,7 +76,7 @@
   [s1 s2]
   (if (> (count s1) (count s2))
     false
-    (every? #(php/-> s2 (contains %)) s1)))
+    (every? #(.contains s2 %) s1)))
 
 (defn superset?
   "Returns true if `s1` is a superset of `s2`, i.e. every element in `s2` is also in `s1`."
@@ -149,28 +149,28 @@
 ;; `__invoke` signature is the single reflection point covering both.
 (defn- fn-reflection
   [f]
-  (php/new \ReflectionMethod f "__invoke"))
+  (new \ReflectionMethod f "__invoke"))
 
 (defn arity
   "Returns the number of required parameters of the function `f`. For a variadic function this is the number of parameters before `&`. A multi-arity function compiles to a single variadic dispatch, so it reports `0`."
   {:example "(arity inc) ; => 1\n(arity assoc) ; => 3"
    :see-also ["variadic?" "apply" "partial"]}
   [f]
-  (php/-> (fn-reflection f) (getNumberOfRequiredParameters)))
+  (.getNumberOfRequiredParameters (fn-reflection f)))
 
 (defn variadic?
   "Returns true if the function `f` accepts a variable number of arguments. A multi-arity function compiles to a single variadic dispatch, so it always reports `true`."
   {:example "(variadic? +) ; => true\n(variadic? inc) ; => false"
    :see-also ["arity" "apply"]}
   [f]
-  (php/-> (fn-reflection f) (isVariadic)))
+  (.isVariadic (fn-reflection f)))
 
 (defn some-fn
   "Takes a variadic set of predicates and returns a function `f` that, when called with any number of arguments, returns the first logical true value produced by applying any of the composing predicates to any of its arguments, and `false` when none match. The returned function short-circuits on the first truthy result: arguments after it are not inspected, and predicates after it are not tried. Predicates are consulted in the order supplied; for a given predicate, arguments are consulted left-to-right."
   {:example "((some-fn even? nil?) 1 2) ; => true\n((some-fn pos? even?) -3 -1) ; => false"
    :see-also ["some" "complement" "every?" "not-any?"]}
   ([]
-   (throw (php/new \InvalidArgumentException "some-fn expects at least one predicate")))
+   (throw (new \InvalidArgumentException "some-fn expects at least one predicate")))
   ([p & ps]
    (let [preds (cons p ps)]
      (fn [& args]
@@ -181,7 +181,7 @@
   {:example "((every-pred even? pos?) 2 4 6) ; => true\n((every-pred even? pos?) 2 -4) ; => false"
    :see-also ["some-fn" "complement" "every?" "not-every?"]}
   ([]
-   (throw (php/new \InvalidArgumentException "every-pred expects at least one predicate")))
+   (throw (new \InvalidArgumentException "every-pred expects at least one predicate")))
   ([p & ps]
    (let [preds (cons p ps)]
      (fn [& args]
@@ -312,7 +312,7 @@ Without arguments, uses a default cache size of 128 entries."
     (loop [stack (php/array root)]
       (if (> (count stack) 0)
         (let [node (pop stack)]
-          (php/-> ret (append node))
+          (.append ret node)
           (when (branch? node)
             (foreach [child (reverse (children node))]
               (php/apush stack child)))

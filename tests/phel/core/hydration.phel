@@ -7,8 +7,8 @@
   (let [t (hydrate target {:id 7 :name "kb"})]
     (is (instance? \PhelTest\Fixtures\Interop\HydrationTarget t)
         "hydrate returns an instance of the target class")
-    (is (= 7 (php/-> t id)) "id property is set")
-    (is (= "kb" (php/-> t name)) "name property is set")))
+    (is (= 7 (.-id t)) "id property is set")
+    (is (= "kb" (.-name t)) "name property is set")))
 
 (deftest bean-reads-public-properties
   (is (= {:id 7 :name "kb"} (bean (hydrate target {:id 7 :name "kb"})))

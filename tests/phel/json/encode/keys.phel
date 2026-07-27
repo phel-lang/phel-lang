@@ -44,10 +44,10 @@
   (is
    (thrown-with-msg?
     Exception "Key can only be an integer, float, symbol, keyword or a string."
-    (json/encode {(php/new \stdClass) "stdClass"}))
+    (json/encode {(new \stdClass) "stdClass"}))
    "It tests if stdClass is a valid key.")
   (is
    (thrown-with-msg?
     Exception "Key can only be an integer, float, symbol, keyword or a string."
-    (json/encode {(php/new \DateTime) "DateTime"}))
+    (json/encode {(new \DateTime) "DateTime"}))
    "It tests if DateTime is a valid key."))

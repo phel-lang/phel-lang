@@ -464,7 +464,7 @@
     (let [handle (php/fopen target-file "r")]
       (is (thrown? \RuntimeException
                    (with-open [f handle]
-                     (throw (php/new \RuntimeException "boom"))))
+                     (throw (new \RuntimeException "boom"))))
           "exception propagates out of with-open")
       (is (false? (php/is_resource handle)) "stream is closed even when the body throws"))
     (php/unlink target-file)))
@@ -474,7 +474,7 @@
         r       (reify Closable (close [this] (reset! closed? true)))]
     (is (thrown? \RuntimeException
                  (with-open [x r]
-                   (throw (php/new \RuntimeException "boom"))))
+                   (throw (new \RuntimeException "boom"))))
         "exception propagates out of with-open")
     (is (true? (deref closed?)) "object close method is called when the body throws")))
 

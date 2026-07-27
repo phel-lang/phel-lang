@@ -17,8 +17,8 @@
                  (when (= :defspec-failed (:type ev))
                    (swap! events conj ev)))]
     (t/with-isolated-reporters [rep]
-                               (t/with-isolated-stats
-                                (with-output-buffer (spec-thunk))))
+      (t/with-isolated-stats
+        (with-output-buffer (spec-thunk))))
     (first (deref events))))
 
 (defn- emit-failure-event! [outcome name-str]

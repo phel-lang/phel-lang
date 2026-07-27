@@ -92,14 +92,13 @@
                          [headers body])
         url            (append-query-params url query-params)]
     (transport-result->response
-     (php/:: \Phel\HttpClient\StreamTransport
-             (send (php/strtoupper (key->string method))
-                   url
-                   (build-headers-array headers)
-                   body
-                   (build-options-array {:timeout timeout
-                                         :follow-redirects follow-redirects
-                                         :verify-ssl verify-ssl}))))))
+     (\Phel\HttpClient\StreamTransport/send (php/strtoupper (key->string method))
+                                            url
+                                            (build-headers-array headers)
+                                            body
+                                            (build-options-array {:timeout timeout
+                                                                  :follow-redirects follow-redirects
+                                                                  :verify-ssl verify-ssl})))))
 
 (defn get
   "Makes a GET request. See `request` for available options."

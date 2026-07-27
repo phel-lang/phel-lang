@@ -89,7 +89,7 @@
   (s/set-schema-check! true)
   (let [caught (try
                  (s/with-schema-check false
-                                      (fn [] (throw (php/new \RuntimeException "oops"))))
+                                      (fn [] (throw (new \RuntimeException "oops"))))
                  :no-throw
                  (catch \RuntimeException _ :caught))]
     (is (= :caught caught))

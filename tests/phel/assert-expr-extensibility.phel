@@ -32,7 +32,7 @@
 
 (deftest test-approx-equal-fails-outside-epsilon
   (let [counts (:counts (with-isolated-stats
-                         (with-output-buffer (is (approx= 1.0 2.0)))))]
+                          (with-output-buffer (is (approx= 1.0 2.0)))))]
     (is (= 1 (:failed counts)) "approx= records a failure when outside epsilon")))
 
 ;; ---------------------------------------------------------------------------
@@ -51,7 +51,7 @@
 
 (deftest test-divisible-fails-when-not-divisible
   (let [counts (:counts (with-isolated-stats
-                         (with-output-buffer (is (divisible? 10 3)))))]
+                          (with-output-buffer (is (divisible? 10 3)))))]
     (is (= 1 (:failed counts)) "non-divisible records a failure")))
 
 ;; ---------------------------------------------------------------------------
@@ -68,9 +68,9 @@
 
 (deftest test-even-positive-fails-for-odd-or-non-positive
   (let [counts (:counts (with-isolated-stats
-                         (with-output-buffer (is (even-positive? 3)))
-                         (with-output-buffer (is (even-positive? -2)))
-                         (with-output-buffer (is (even-positive? 0)))))]
+                          (with-output-buffer (is (even-positive? 3)))
+                          (with-output-buffer (is (even-positive? -2)))
+                          (with-output-buffer (is (even-positive? 0)))))]
     (is (= 3 (:failed counts)) "odd, negative, and zero all fail")))
 
 ;; ---------------------------------------------------------------------------
@@ -80,11 +80,11 @@
 ;; ---------------------------------------------------------------------------
 
 (defmethod phel.test/assert-expr 'always-throws [_message _form]
-  `(throw (php/new \RuntimeException "boom from custom assertion")))
+  `(throw (new \RuntimeException "boom from custom assertion")))
 
 (deftest test-custom-method-exception-is-reported-as-error
   (let [counts (:counts (with-isolated-stats
-                         (with-output-buffer (is (always-throws)))))]
+                          (with-output-buffer (is (always-throws)))))]
     (is (= 1 (:error counts)) "throw from custom method is reported as :error")
     (is (= 0 (:failed counts)) "not reported as :failed")
     (is (= 0 (:pass counts)) "not reported as :pass")))
@@ -133,6 +133,6 @@
 
 (deftest test-custom-clojure-style-thrown-symbol-dispatches-through-new-method
   (let [counts (:counts (with-isolated-stats
-                         (with-output-buffer
-                           (t/is (p/thrown? (throw (php/new \RuntimeException "boom")))))))]
+                          (with-output-buffer
+                            (t/is (p/thrown? (throw (new \RuntimeException "boom")))))))]
     (is (= 1 (:pass counts)) "namespaced custom assert dispatch values do not require a resolved function")))

@@ -12,14 +12,14 @@
 
 (def ^:private munge-instance
   ;; Munge is a final readonly class; reuse a single instance to avoid per-call allocation.
-  (php/new Munge))
+  (new Munge))
 
 (defn canonical-ns
   "Returns the canonical (dot-separated) form of a namespace string. Pass user-supplied namespace strings through this before any registry lookup or write."
   {:example "(canonical-ns \"phel\\core\") ; => \"phel.core\""
    :see-also ["display-ns" "find-ns" "create-ns" "intern"]}
   [ns-str]
-  (php/:: Munge (canonicalNs ns-str)))
+  (Munge/canonicalNs ns-str))
 
 (defn display-ns
   "Returns the display (dot-separated) form of a namespace string. Equivalent to `canonical-ns`; kept as a separate name so call sites read intent (display vs. canonicalize)."
@@ -32,21 +32,21 @@
   "Returns all namespaces currently loaded, in dot-separated display form."
   {:example "(loaded-namespaces) ; => [\"phel.core\" \"phel.repl\"]"}
   []
-  (let [raw    (php/:: Phel (getNamespaces))
+  (let [raw    (Phel/getNamespaces)
         result (transient [])]
     (foreach [ns raw]
-      (conj result (php/-> munge-instance (decodeNs ns))))
+      (conj result (.decodeNs munge-instance ns)))
     (persistent result)))
 
 (defn- core-munge-ns
   "Encodes a namespace string for registry lookup."
   [ns-str]
-  (php/-> munge-instance (encodeRegistryKey ns-str)))
+  (.encodeRegistryKey munge-instance ns-str))
 
 (defn- core-munge-name
   "Encodes a definition name for registry lookup."
   [name-str]
-  (php/-> munge-instance (encode name-str)))
+  (.encode munge-instance name-str))
 
 (defn find-ns
   "Returns the namespace name in display form if it is loaded, or nil if no namespace of that name exists. Accepts dot or backslash separators on input."
@@ -54,7 +54,7 @@
    :see-also ["create-ns" "remove-ns" "loaded-namespaces"]}
   [ns-str]
   (let [canonical (canonical-ns ns-str)]
-    (when (php/:: Phel (hasNamespace (core-munge-ns canonical)))
+    (when (Phel/hasNamespace (core-munge-ns canonical))
       (display-ns canonical))))
 
 (defn create-ns
@@ -63,7 +63,7 @@
    :see-also ["find-ns" "remove-ns" "intern"]}
   [ns-str]
   (let [canonical (canonical-ns ns-str)]
-    (php/:: Phel (registerNamespace (core-munge-ns canonical)))
+    (Phel/registerNamespace (core-munge-ns canonical))
     (display-ns canonical)))
 
 (defn remove-ns
@@ -71,18 +71,18 @@
   {:example "(remove-ns \"my-app\\tmp\")"
    :see-also ["find-ns" "create-ns"]}
   [ns-str]
-  (php/:: Phel (removeNamespace (core-munge-ns ns-str)))
+  (Phel/removeNamespace (core-munge-ns ns-str))
   nil)
 
 (defn- defs->map
   "Builds a {decoded-name => value} map of the definitions in `encoded-ns`,
   keeping only those whose encoded `fn-name` satisfies `keep?`."
   [encoded-ns keep?]
-  (let [defs   (php/:: Phel (getDefinitionInNamespace encoded-ns))
+  (let [defs   (Phel/getDefinitionInNamespace encoded-ns)
         result (transient {})]
     (foreach [fn-name value defs]
       (when (keep? fn-name)
-        (assoc! result (php/-> munge-instance (decodeNs fn-name)) value)))
+        (assoc! result (.decodeNs munge-instance fn-name) value)))
     (persistent result)))
 
 (defn ns-interns
@@ -103,11 +103,11 @@
         encoded-ns   (core-munge-ns canonical)
         encoded-name (core-munge-name name-str)]
     (if (seq rest)
-      (php/:: Phel (addDefinition encoded-ns encoded-name (first rest)))
+      (Phel/addDefinition encoded-ns encoded-name (first rest))
       ;; skip when no value is provided and the definition already exists
-      (when-not (php/:: Phel (isDefined encoded-ns encoded-name))
-        (php/:: Phel (addDefinition encoded-ns encoded-name nil))))
-    (php/:: Symbol (createForNamespace (display-ns canonical) name-str))))
+      (when-not (Phel/isDefined encoded-ns encoded-name)
+        (Phel/addDefinition encoded-ns encoded-name nil)))
+    (Symbol/createForNamespace (display-ns canonical) name-str)))
 
 (defn var-get
   "Resolves the value bound to a `Var` or to a fully-qualified symbol.
@@ -128,19 +128,19 @@
   ([x not-found]
    (cond
      (php/instanceof x PhelVar)
-     (php/-> x (deref))
+     (.deref x)
 
      (and (symbol? x) (namespace x))
      (let [encoded-ns (core-munge-ns (namespace x))
            raw-name   (name x)]
        (cond
-         (php/:: Phel (isDefined encoded-ns raw-name))
-         (php/:: Phel (getDefinition encoded-ns raw-name))
+         (Phel/isDefined encoded-ns raw-name)
+         (Phel/getDefinition encoded-ns raw-name)
 
-         (php/:: Phel (isDefined encoded-ns (core-munge-name raw-name)))
-         (php/:: Phel (getDefinition encoded-ns (core-munge-name raw-name)))
+         (Phel/isDefined encoded-ns (core-munge-name raw-name))
+         (Phel/getDefinition encoded-ns (core-munge-name raw-name))
 
-         true                                                            not-found))
+         true                                                   not-found))
 
      true                            not-found)))
 
@@ -153,13 +153,13 @@
     (let [encoded-ns (core-munge-ns (namespace sym))
           raw-name   (name sym)]
       (cond
-        (php/:: Phel (isDefined encoded-ns raw-name))
-        (php/:: Phel (getVar encoded-ns raw-name))
+        (Phel/isDefined encoded-ns raw-name)
+        (Phel/getVar encoded-ns raw-name)
 
-        (php/:: Phel (isDefined encoded-ns (core-munge-name raw-name)))
-        (php/:: Phel (getVar encoded-ns (core-munge-name raw-name)))
+        (Phel/isDefined encoded-ns (core-munge-name raw-name))
+        (Phel/getVar encoded-ns (core-munge-name raw-name))
 
-        true                                                            nil))))
+        true                                                   nil))))
 
 (defn ns-publics
   "Returns a hash-map of {name => value} for all public definitions in the
@@ -170,7 +170,7 @@
   (let [encoded (core-munge-ns ns-str)]
     (defs->map encoded
                (fn [fn-name]
-                 (not (get (php/:: Phel (getDefinitionMetaData encoded fn-name)) :private))))))
+                 (not (get (Phel/getDefinitionMetaData encoded fn-name) :private))))))
 
 (defn ns-aliases
   "Returns a hash-map of {alias => namespace} for all require aliases in the
@@ -178,11 +178,11 @@
   {:example "(ns-aliases *ns*) ; => {\"repl\" \"phel.repl\" ...}"
    :see-also ["ns-publics" "ns-refers" "loaded-namespaces"]}
   [ns-str]
-  (let [env     (php/:: GlobalEnvironmentSingleton (getInstance))
-        aliases (php/-> env (getRequireAliases (canonical-ns ns-str)))
+  (let [env     (GlobalEnvironmentSingleton/getInstance)
+        aliases (.getRequireAliases env (canonical-ns ns-str))
         result  (transient {})]
     (foreach [alias-name target-sym aliases]
-      (assoc! result alias-name (display-ns (php/-> target-sym (getName)))))
+      (assoc! result alias-name (display-ns (.getName target-sym))))
     (persistent result)))
 
 (defn ns-refers
@@ -191,11 +191,11 @@
   {:example "(ns-refers *ns*) ; => {\"doc\" \"phel.repl\" ...}"
    :see-also ["ns-publics" "ns-aliases" "loaded-namespaces"]}
   [ns-str]
-  (let [env    (php/:: GlobalEnvironmentSingleton (getInstance))
-        refers (php/-> env (getRefers (canonical-ns ns-str)))
+  (let [env    (GlobalEnvironmentSingleton/getInstance)
+        refers (.getRefers env (canonical-ns ns-str))
         result (transient {})]
     (foreach [refer-name source-sym refers]
-      (assoc! result refer-name (display-ns (php/-> source-sym (getName)))))
+      (assoc! result refer-name (display-ns (.getName source-sym))))
     (persistent result)))
 
 (defn load-file
@@ -205,6 +205,6 @@
   [path]
   (let [content (php/file_get_contents path)]
     (when content
-      (let [cf   (php/new CompilerFacade)
-            opts (php/-> (php/new CompileOptions) (setSource path))]
-        (php/-> cf (eval content opts))))))
+      (let [cf   (new CompilerFacade)
+            opts (.setSource (new CompileOptions) path)]
+        (.eval cf content opts)))))

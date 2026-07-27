@@ -32,32 +32,32 @@
   {:doc "Creates a new list. If no argument is provided, an empty list is created. Shortcut: '()"
    :example "(list 1 2 3) ; => '(1 2 3)"}
   (fn [& xs]
-    (php/:: Phel (list (apply php/array xs)))))
+    (Phel/list (apply php/array xs))))
 
 (def vector
   {:doc "Creates a new vector. If no argument is provided, an empty vector is created. Shortcut: []"
    :example "(vector 1 2 3) ; => [1 2 3]"}
   (fn [& xs]
-    (php/:: Phel (vector (apply php/array xs)))))
+    (Phel/vector (apply php/array xs))))
 
 (def queue
   {:doc "Creates a persistent FIFO queue. With no arguments returns an empty queue; with arguments returns a queue with the values pushed in order so that the first argument is at the front."
    :example "(queue 1 2 3) ; => <-(1 2 3)-<"}
   (fn [& xs]
-    (php/:: Phel (queue (apply php/array xs)))))
+    (Phel/queue (apply php/array xs))))
 
 (def hash-map
   {:doc "Creates a new hash map. If no argument is provided, an empty hash map is created. The number of parameters must be even. Shortcut: {}"
    :example "(hash-map :a 1 :b 2) ; => {:a 1, :b 2}"}
   (fn [& xs]
-    (php/:: Phel (map (apply php/array xs)))))
+    (Phel/map (apply php/array xs))))
 
 (def array-map
   {:doc "Constructs a map from the given key/value pairs. If any keys are equal, later values replace earlier ones, as if by repeated `assoc`. Phel has no distinct array-map type, so the result is the same persistent map as `hash-map` — `array-map` exists for `.cljc` interop with Clojure sources."
    :example "(array-map :a 1 :b 2) ; => {:a 1, :b 2}"
    :see-also ["hash-map"]}
   (fn [& xs]
-    (php/:: Phel (map (apply php/array xs)))))
+    (Phel/map (apply php/array xs))))
 
 (def next-vector-or-nil
   {:private true
@@ -66,13 +66,13 @@
     (let [sliced (php/array_slice values 1)]
       (if (php/empty sliced)
         nil
-        (php/:: Phel (vector sliced))))))
+        (Phel/vector sliced)))))
 
 (def next-of-set
   {:private true
    :doc "Returns all values after the first persistent set value, or nil."}
   (fn [s]
-    (next-vector-or-nil (php/-> s (toPhpArray)))))
+    (next-vector-or-nil (.toPhpArray s))))
 
 (def next-of-map
   {:private true
@@ -80,7 +80,7 @@
   (fn [m]
     (let [entries (php/array)]
       (foreach [k v m]
-        (php/apush entries (php/:: MapEntry (create k v))))
+        (php/apush entries (MapEntry/create k v)))
       (next-vector-or-nil entries))))
 
 (def next
@@ -90,16 +90,16 @@
     (if (php/=== xs nil)
       nil
       (if (php/instanceof xs LazySeqInterface)
-        (php/-> xs (nextSeq))
+        (.nextSeq xs)
         (if (php/instanceof xs Cons)
-          (php/-> xs (nextSeq))
+          (.nextSeq xs)
           (if (php/instanceof xs CdrInterface)
-            (php/-> xs (cdr))
+            (.cdr xs)
             (if (php/is_string xs)
               (let [chars (php/mb_str_split xs)]
                 (if (php/<= (php/count chars) 1)
                   nil
-                  (php/:: Phel (vector (php/array_slice chars 1)))))
+                  (Phel/vector (php/array_slice chars 1))))
               (if (php/is_array xs)
                 (let [sliced (php/array_slice xs 1)]
                   (if (php/empty sliced)
@@ -109,17 +109,17 @@
                   (next-of-set xs)
                   (if (php/instanceof xs PersistentMapInterface)
                     (next-of-map xs)
-                    (throw (php/new InvalidArgumentException
-                                    (php/. "cannot call 'next on " (php/gettype xs))))))))))))))
+                    (throw (new InvalidArgumentException
+                                (php/. "cannot call 'next on " (php/gettype xs))))))))))))))
 
 (def first-map-entry
   {:private true
    :doc "Returns the first entry of a persistent map as a typed `MapEntry`, or nil if empty."}
   (fn [m]
-    (let [it (php/-> m (getIterator))]
-      (php/-> it (rewind))
-      (if (php/-> it (valid))
-        (php/:: MapEntry (create (php/-> it (key)) (php/-> it (current))))
+    (let [it (.getIterator m)]
+      (.rewind it)
+      (if (.valid it)
+        (MapEntry/create (.key it) (.current it))
         nil))))
 
 (def first-of-string
@@ -132,7 +132,7 @@
   {:private true
    :doc "Returns the first value of a persistent set, or nil if empty."}
   (fn [s]
-    (let [values (php/-> s (toPhpArray))]
+    (let [values (.toPhpArray s)]
       (if (php/empty values) nil (php/aget values 0)))))
 
 (def first
@@ -143,11 +143,11 @@ Maps are treated as a sequence of entries: `(first {:a 1})` returns a typed `Map
 A lazily consumed source with no indexed access of its own (an `eduction` pipeline, a PHP generator, an iterator) is answered by pulling a single element, the same way `empty?` answers it. `count` is the one that refuses such a source, because counting means draining it."
    :example "(first [1 2 3]) ; => 1"}
   (fn [xs]
-    (if (php/instanceof xs FirstInterface)         (php/-> xs (first))
+    (if (php/instanceof xs FirstInterface)         (.first xs)
         (if (php/instanceof xs PersistentMapInterface) (first-map-entry xs)
             (if (php/is_string xs)                      (first-of-string xs)
                 (if (php/instanceof xs PersistentHashSetInterface) (first-of-set xs)
-                    (if (php/instanceof xs Traversable) (php/:: Seq (first xs))
+                    (if (php/instanceof xs Traversable) (Seq/first xs)
                         (php/aget xs 0))))))))
 
 (def concat1
@@ -157,7 +157,7 @@ A lazily consumed source with no indexed access of its own (an `eduction` pipeli
     (if (php/=== nil ys)
       xs
       (if (php/instanceof xs ConcatInterface)
-        (php/-> xs (concat ys))
+        (.concat xs ys)
         (do
           (foreach [y ys]
             (php/apush xs y))
@@ -199,7 +199,7 @@ A lazily consumed source with no indexed access of its own (an `eduction` pipeli
   (let [argv-raw (php/aget php/$GLOBALS "__phel_argv")]
     (if (php/=== argv-raw nil)
       []
-      (php/:: Phel (vector argv-raw)))))
+      (Phel/vector argv-raw))))
 
 ;; Metadata + macro machinery, then the primitive value constructors that
 ;; depend on `defn` / `defmacro`

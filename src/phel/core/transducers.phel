@@ -20,7 +20,7 @@
   {:example "(reduce (fn [acc x] (if (= x 3) (reduced acc) (+ acc x))) 0 [1 2 3 4]) ; => 3"
    :see-also ["reduced?" "unreduced"]}
   [x]
-  (php/new Reduced x))
+  (new Reduced x))
 
 (defn reduced?
   "Returns true if `x` is a Reduced value."
@@ -35,7 +35,7 @@
    :see-also ["reduced" "reduced?"]}
   [x]
   (if (reduced? x)
-    (php/-> x (deref))
+    (.deref x)
     x))
 
 (defn- ensure-reduced
@@ -67,31 +67,31 @@
           (reduce f (first s) (next s))))
     2 (let [init (first args)
             coll (second args)
-            acc  (php/new Volatile init)
-            done (php/new Volatile false)]
-        (dofor [x :in coll :while (not (php/-> done (deref)))]
-          (let [result (f (php/-> acc (deref)) x)]
+            acc  (new Volatile init)
+            done (new Volatile false)]
+        (dofor [x :in coll :while (not (.deref done))]
+          (let [result (f (.deref acc) x)]
             (if (reduced? result)
-              (do (php/-> acc (reset (php/-> result (deref))))
-                  (php/-> done (reset true)))
-              (php/-> acc (reset result)))))
-        (php/-> acc (deref)))
-    (throw (php/new InvalidArgumentException "expected 2 or 3 arguments in reduce"))))
+              (do (.reset acc (.deref result))
+                  (.reset done true))
+              (.reset acc result))))
+        (.deref acc))
+    (throw (new InvalidArgumentException "expected 2 or 3 arguments in reduce"))))
 
 (defn reduce-kv
   "Reduces an associative collection by applying `f` to the accumulator, key and value of each entry, starting with `init`. Vectors use the index as key. Respects early termination via `(reduced val)`."
   {:example "(reduce-kv (fn [m k v] (assoc m v k)) {} {:a 1 :b 2}) ; => {1 :a, 2 :b}"
    :see-also ["reduce" "update-keys" "update-vals" "reduced"]}
   [f init coll]
-  (let [acc  (php/new Volatile init)
-        done (php/new Volatile false)]
-    (dofor [[k v] :pairs coll :while (not (php/-> done (deref)))]
-      (let [result (f (php/-> acc (deref)) k v)]
+  (let [acc  (new Volatile init)
+        done (new Volatile false)]
+    (dofor [[k v] :pairs coll :while (not (.deref done))]
+      (let [result (f (.deref acc) k v)]
         (if (reduced? result)
-          (do (php/-> acc (reset (php/-> result (deref))))
-              (php/-> done (reset true)))
-          (php/-> acc (reset result)))))
-    (php/-> acc (deref))))
+          (do (.reset acc (.deref result))
+              (.reset done true))
+          (.reset acc result))))
+    (.deref acc)))
 
 (defn completing
   "Takes a reducing function `f` of 2 args and returns a fn suitable for transduce by adding a 1-arity (completion) that calls `cf` (default: identity)."
@@ -120,21 +120,21 @@
             f    (xform (completing f))
             ret  (reduce f init coll)]
         (f ret))
-    (throw (php/new InvalidArgumentException "transduce expects 3 or 4 arguments"))))
+    (throw (new InvalidArgumentException "transduce expects 3 or 4 arguments"))))
 
 (defn volatile!
   "Creates a volatile mutable reference with initial value `val`. Use for transducer state that needs fast mutation without watches."
   {:example "(let [v (volatile! 0)] (vreset! v 5) @v) ; => 5"
    :see-also ["vreset!" "vswap!" "var"]}
   [val]
-  (php/new Volatile val))
+  (new Volatile val))
 
 (defn vreset!
   "Sets the value of volatile `vol` to `val`. Returns `val`."
   {:example "(let [v (volatile! 0)] (vreset! v 9)) ; => 9"
    :see-also ["volatile!" "vswap!"]}
   [vol val]
-  (php/-> vol (reset val)))
+  (.reset vol val))
 
 (defn vswap!
   "Applies `f` to the current value of volatile `vol` plus `args`, and sets the new value. Returns the new value."

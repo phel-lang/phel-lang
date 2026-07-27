@@ -26,10 +26,10 @@
 ;;                               (default nil)
 
 (defn- compiler-facade []
-  (php/new CompilerFacade))
+  (new CompilerFacade))
 
 (defn- tag-registry []
-  (php/:: TagRegistry (getInstance)))
+  (TagRegistry/getInstance))
 
 (defn- tag-key
   "Normalises a tag from a symbol, keyword, or string to the string key used by the global `TagRegistry`."
@@ -38,31 +38,31 @@
     (string? tag)  tag
     (symbol? tag)  (full-name tag)
     (keyword? tag) (name tag)
-    :else          (throw (php/new \InvalidArgumentException
-                                   (str "EDN reader tag must be a symbol, keyword, or string, got: "
-                                        (php/gettype tag))))))
+    :else          (throw (new \InvalidArgumentException
+                               (str "EDN reader tag must be a symbol, keyword, or string, got: "
+                                    (php/gettype tag))))))
 
 (defn- snapshot-tags
   "Captures the existing handler for each tag key so it can be restored after the call. Returns a map `{tag-key handler-or-nil}`."
   [reg tag-keys]
   (let [acc (transient {})]
     (foreach [k tag-keys]
-      (php/-> acc (put k (php/-> reg (get k)))))
+      (.put acc k (.get reg k)))
     (persistent acc)))
 
 (defn- install-readers
   "Registers each `tag -> fn` from `readers` on the registry."
   [reg readers]
   (foreach [tag handler readers]
-    (php/-> reg (register (tag-key tag) handler))))
+    (.register reg (tag-key tag) handler)))
 
 (defn- restore-tags
   "Reinstates the original handlers captured by `snapshot-tags`. When a tag had no prior handler, it is unregistered so the registry returns to its earlier shape."
   [reg snapshot]
   (foreach [k handler snapshot]
     (if (php/=== handler nil)
-      (php/-> reg (unregister k))
-      (php/-> reg (register k handler)))))
+      (.unregister reg k)
+      (.register reg k handler))))
 
 (defn- with-readers*
   "Runs `thunk` with `readers` temporarily installed on the tag registry. Restores prior state in a `finally` so exceptions still clean up."
@@ -82,20 +82,20 @@
   "Reads the next form from the open `token-stream` using `cf`. Skips whitespace, comments, and other trivia parser nodes that precede the next data form. Returns nil when the stream is exhausted."
   [cf token-stream]
   (loop []
-    (let [node (php/-> cf (parseNext token-stream))]
+    (let [node (.parseNext cf token-stream)]
       (cond
         (php/=== nil node)                        nil
         (php/instanceof node TriviaNodeInterface) (recur)
-        :else                                     (php/-> (php/-> cf (read node)) (getAst))))))
+        :else                                     (.getAst (.read cf node))))))
 
 (defn- parse-one [s]
   (let [cf           (compiler-facade)
-        token-stream (php/-> cf (lexString s))]
+        token-stream (.lexString cf s)]
     (read-next cf token-stream)))
 
 (defn- parse-all [s]
   (let [cf           (compiler-facade)
-        token-stream (php/-> cf (lexString s))]
+        token-stream (.lexString cf s)]
     (loop [acc (transient [])]
       (let [form (read-next cf token-stream)]
         (if (php/=== form nil)
@@ -132,14 +132,14 @@
    (let [readers (get opts :readers)]
      (with-readers* readers #(parse-all s)))))
 
-(def- readable-printer (php/:: Printer (readable)))
+(def- readable-printer (Printer/readable))
 
 (defn write-string
   "Serialises `value` to its EDN string representation. Uses Phel's readable printer so the output round-trips through `read-string` for all EDN-compatible values (nil, booleans, numbers, strings, keywords, symbols, lists, vectors, maps, sets, and built-in tagged literals such as `#uuid`)."
   {:example "(write-string {:a 1}) ; => \"{:a 1}\""
    :see-also ["read-string" "write-string-all"]}
   [value]
-  (php/-> readable-printer (print value)))
+  (.print readable-printer value))
 
 (defn write-string-all
   "Serialises a sequence of values to EDN, separating top-level forms with a single space. Inverse of `read-string-all`."
