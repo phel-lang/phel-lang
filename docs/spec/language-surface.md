@@ -106,6 +106,27 @@ from the compiler. A form added or removed in the analyzer fails the build until
 page is updated too, which is the point at which somebody has to decide whether the
 change is allowed inside the major.
 
+### Interop shorthands
+
+The Clojure-style interop spellings are analyzer sugar, not special forms: each expands
+to one of the `php/*` entries above before analysis, so they are deliberately absent
+from the table.
+
+| Written | Expands to | Position |
+|---|---|---|
+| `(.m obj args…)` | `(php/-> obj (m args…))` | call |
+| `(.-field obj)` | `(php/-> obj field)` | call |
+| `(\C/m args…)` | `(php/:: \C (m args…))` | call |
+| `(\C. args…)` | `(php/new \C args…)` | call |
+| `\C/CONST` | `(php/:: \C CONST)` | value |
+| `\C/m` | `(php/callable \C m)` | value |
+| `\C/.m` | `(fn [o & args] (apply (php/callable o m) args))` | value |
+
+In value position a qualified member is a class constant unless the class carries no
+constant of that name and does carry a public static method, decided by reflection at
+analysis time. A class with both keeps the constant. `\C/new` is therefore never a
+constructor; see [clojure-divergences.md](clojure-divergences.md).
+
 ## 3. The standard library
 
 Every public definition in a `phel.*` namespace is frozen: it keeps its name, and it

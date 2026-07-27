@@ -6,8 +6,10 @@ namespace PhelTest\Unit\Compiler\Analyzer;
 
 use Phel;
 use Phel\Compiler\Application\Analyzer;
+use Phel\Compiler\Domain\Analyzer\Ast\FnNode;
 use Phel\Compiler\Domain\Analyzer\Ast\GlobalVarNode;
 use Phel\Compiler\Domain\Analyzer\Ast\LocalVarNode;
+use Phel\Compiler\Domain\Analyzer\Ast\PhpCallableNode;
 use Phel\Compiler\Domain\Analyzer\Ast\PhpObjectCallNode;
 use Phel\Compiler\Domain\Analyzer\Ast\PhpVarNode;
 use Phel\Compiler\Domain\Analyzer\Environment\GlobalEnvironment;
@@ -15,6 +17,7 @@ use Phel\Compiler\Domain\Analyzer\Environment\NodeEnvironment;
 use Phel\Compiler\Domain\Analyzer\Exceptions\AnalyzerException;
 use Phel\Compiler\Domain\Analyzer\TypeAnalyzer\AnalyzeSymbol;
 use Phel\Lang\Symbol;
+use PhelTest\Support\Fixtures\PhpInterop\QualifiedMemberFixture;
 use PHPUnit\Framework\TestCase;
 
 final class AnalyzeSymbolTest extends TestCase
@@ -178,5 +181,67 @@ final class AnalyzeSymbolTest extends TestCase
 
         $env = NodeEnvironment::empty();
         $this->symbolAnalyzer->analyze(Symbol::createForNamespace('foo', 'bar'), $env);
+    }
+
+    public function test_static_method_in_value_position_becomes_a_callable(): void
+    {
+        $env = NodeEnvironment::empty();
+        $node = $this->analyzer->analyze(
+            Symbol::createForNamespace('\\' . QualifiedMemberFixture::class, 'upper'),
+            $env,
+        );
+
+        self::assertInstanceOf(PhpCallableNode::class, $node);
+        self::assertTrue($node->isStatic());
+        self::assertSame('upper', $node->getName());
+    }
+
+    public function test_a_constant_beats_a_static_method_of_the_same_name(): void
+    {
+        $env = NodeEnvironment::empty();
+        $node = $this->analyzer->analyze(
+            Symbol::createForNamespace('\\' . QualifiedMemberFixture::class, 'new'),
+            $env,
+        );
+
+        self::assertInstanceOf(PhpObjectCallNode::class, $node);
+        self::assertTrue($node->isStatic());
+    }
+
+    public function test_instance_method_in_value_position_becomes_a_fn_of_the_receiver(): void
+    {
+        $env = NodeEnvironment::empty();
+        $node = $this->analyzer->analyze(
+            Symbol::createForNamespace('\\' . QualifiedMemberFixture::class, '.label'),
+            $env,
+        );
+
+        self::assertInstanceOf(FnNode::class, $node);
+        self::assertTrue($node->isVariadic());
+        self::assertCount(2, $node->getParams());
+    }
+
+    public function test_an_unknown_member_still_reads_as_a_constant(): void
+    {
+        $env = NodeEnvironment::empty();
+        $node = $this->analyzer->analyze(
+            Symbol::createForNamespace('\\' . QualifiedMemberFixture::class, 'MISSING'),
+            $env,
+        );
+
+        self::assertInstanceOf(PhpObjectCallNode::class, $node);
+        self::assertTrue($node->isStatic());
+    }
+
+    public function test_a_member_of_an_unknown_class_still_reads_as_a_constant(): void
+    {
+        $env = NodeEnvironment::empty();
+        $node = $this->analyzer->analyze(
+            Symbol::createForNamespace('\\NotLoaded\\Nowhere', 'member'),
+            $env,
+        );
+
+        self::assertInstanceOf(PhpObjectCallNode::class, $node);
+        self::assertTrue($node->isStatic());
     }
 }

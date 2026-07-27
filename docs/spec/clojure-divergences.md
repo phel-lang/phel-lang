@@ -135,6 +135,29 @@ a function rather than syntax ([#2881](https://github.com/phel-lang/phel-lang/is
 A receiver the compiler can prove is an object still emits `->`, so only an unprovable
 one carries the runtime test.
 
+### `Class/new` is not a constructor
+
+Clojure 1.12 reads `File/new` in value position as the constructor. Phel does not, and
+`\C/new` keeps meaning the class constant `new`.
+
+PHP 7 lifted the ban on reserved words as member names, so `Foo::new()` is both legal
+and a common named-constructor idiom, and a single class can carry a constant `new` and
+a static method `new` at once. Claiming the name would silently change what existing
+code reads: `(\League\Uri\Urn/new "urn:isbn:1234")` already calls a real `::new()`
+factory, and `league/uri` and `phpbench` both ship one. Java forbids the name outright,
+which is what let Clojure take it safely;
+[Basilisp declined it](https://docs.basilisp.org/en/latest/differencesfromclojure.html#host-interop)
+for the same reason Python does not.
+
+A constructor as a value stays `(fn [x] (new \C x))`. The two safe halves of the Clojure
+1.12 syntax are supported: `\C/m` is a static method as a value and `\C/.m` is an
+instance method as a function of its receiver
+([#2883](https://github.com/phel-lang/phel-lang/issues/2883)).
+
+Where a class carries a constant *and* a static method under one name, the constant
+wins, which is what happened before the value-position forms existed. The shadowed
+method stays reachable in call position, `(\C/m x)`, and as `(fn [x] (\C/m x))`.
+
 This is the one entry the suite does not pin, because no working program can observe it:
 a string receiver was an error before the change and is an error after it, and only the
 message differs. It is listed because the *capability* is a difference a Clojure reader
