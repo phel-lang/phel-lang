@@ -188,10 +188,27 @@ prefix, deliberately:
 | `php/apush`, `php/aunset` | stay `php/*` | JVM arrays are fixed size, so Clojure has no counterpart and any core name would be invented. 1.0 freezes whatever ships, so an invented name is the expensive kind of guess; revisit when a concrete need names it |
 | `php/ref`, `php/callable` | stay `php/*` | both take an **unevaluated** form (a variable to reference, a call target), so neither can be a plain function, and both name a host mechanism with no Clojure analogue |
 
-`set-var` is a separate question, tracked in
-[#2888](https://github.com/phel-lang/phel-lang/issues/2888): it writes a var's root, so
-the Clojure name for it is `alter-var-root` rather than `set!`, and Clojure's
-thread-local var `set!` has no Phel equivalent yet.
+### Var mutation: three operations, three names
+
+Clojure overloads `set!` across a field and a thread-local var binding, and gives root
+mutation its own name. Phel matches that, with one extra name it inherited:
+
+| Operation | Clojure | Phel |
+|---|---|---|
+| assign an object field | `(set! (.-f o) v)` | `(set! (.-f o) v)` |
+| assign the current thread-local binding | `(set! *x* v)` | `(set! *x* v)`, or `(var-set #'*x* v)` |
+| change the root | `(alter-var-root #'*x* f)` | `(alter-var-root #'*x* f)` |
+| *(no Clojure counterpart)* | | `(set-var *x* v)`, a special form that writes the root directly |
+
+`set!` on a symbol writes only the binding frame and **throws when none is active**, so
+it can never change a root by accident, exactly as in Clojure.
+
+`set-var` is the odd one out: it is a special form, it takes a value rather than a
+function, and its name reads like Clojure's `set!` while behaving like
+`alter-var-root`. Whether it gets deprecated in favour of `alter-var-root` is
+[#2888](https://github.com/phel-lang/phel-lang/issues/2888); it is on the closed
+special-form list, so that would be a deprecate-in-1.x, remove-at-2.0 change rather
+than a rename.
 
 ## 7. Absent concepts
 
