@@ -14,8 +14,11 @@ use Phel\Compiler\Domain\Analyzer\Environment\GlobalEnvironment;
 use Phel\Compiler\Domain\Analyzer\Environment\NodeEnvironment;
 use Phel\Compiler\Domain\Analyzer\Exceptions\AnalyzerException;
 use Phel\Compiler\Domain\Analyzer\TypeAnalyzer\SpecialForm\DefSymbol;
+use Phel\Lang\Collections\LinkedList\PersistentListInterface;
 use Phel\Lang\Keyword;
+use Phel\Lang\SourceLocation;
 use Phel\Lang\Symbol;
+use PhelTest\Support\CapturesCompilerWarningsTrait;
 use PHPUnit\Framework\TestCase;
 use stdClass;
 
@@ -23,11 +26,41 @@ use function count;
 
 final class DefSymbolTest extends TestCase
 {
+    use CapturesCompilerWarningsTrait;
+
     private AnalyzerInterface $analyzer;
 
     protected function setUp(): void
     {
         $this->analyzer = new Analyzer(new GlobalEnvironment());
+    }
+
+    protected function tearDown(): void
+    {
+        $this->stopCapturingCompilerWarnings();
+    }
+
+    public function test_def_over_an_existing_refer_warns_naming_both_vars(): void
+    {
+        $this->startCapturingCompilerWarnings();
+        $this->analyzer->addRefers('user', [Symbol::create('doc')], Symbol::create('phel.repl'));
+
+        new DefSymbol($this->analyzer)->analyze($this->locatedDefOf('doc'), NodeEnvironment::empty());
+
+        $captured = $this->capturedCompilerWarnings();
+        self::assertCount(1, $captured);
+        self::assertStringContainsString("doc already refers to: #'phel.repl/doc", $captured[0]);
+        self::assertStringContainsString("being replaced by: #'user/doc", $captured[0]);
+    }
+
+    public function test_def_without_a_colliding_refer_does_not_warn(): void
+    {
+        $this->startCapturingCompilerWarnings();
+        $this->analyzer->addRefers('user', [Symbol::create('other')], Symbol::create('phel.repl'));
+
+        new DefSymbol($this->analyzer)->analyze($this->locatedDefOf('doc'), NodeEnvironment::empty());
+
+        self::assertSame([], $this->capturedCompilerWarnings());
     }
 
     public function test_nested_def_is_allowed(): void
@@ -410,6 +443,20 @@ final class DefSymbolTest extends TestCase
         $defNode = new DefSymbol($this->analyzer)->analyze($list, $env);
 
         self::assertNull($this->findMetaValue($defNode, 'arglists'));
+    }
+
+    /**
+     * `(def <name> 1)` whose name symbol carries a location, which is what the
+     * refer-shadow warning anchors on.
+     *
+     * @return PersistentListInterface<mixed>
+     */
+    private function locatedDefOf(string $name): PersistentListInterface
+    {
+        $nameSymbol = Symbol::create($name);
+        $nameSymbol->setStartLocation(new SourceLocation('/app/user.phel', 1, 1));
+
+        return Phel::list([Symbol::create(Symbol::NAME_DEF), $nameSymbol, 1]);
     }
 
     private function findMetaValue(DefNode $defNode, string $key): mixed

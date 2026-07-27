@@ -133,6 +133,80 @@ final class SymbolResolverTest extends TestCase
         );
     }
 
+    public function test_own_definition_wins_over_a_refer_of_the_same_name(): void
+    {
+        $this->globalEnv->addDefinition('foo', Symbol::create('x'));
+        $this->globalEnv->setNs('bar');
+        $this->globalEnv->addDefinition('bar', Symbol::create('x'));
+        $this->globalEnv->addRefer('bar', Symbol::create('x'), Symbol::create('foo'));
+
+        $nodeEnv = NodeEnvironment::empty();
+
+        self::assertEquals(
+            new GlobalVarNode($nodeEnv, 'bar', Symbol::create('x'), Phel::map()),
+            $this->resolver->resolve(Symbol::create('x'), $nodeEnv),
+        );
+    }
+
+    public function test_own_private_definition_wins_over_a_public_refer(): void
+    {
+        $this->globalEnv->addDefinition('foo', Symbol::create('x'));
+        $this->globalEnv->setNs('bar');
+        Phel::addDefinition('bar', 'x', null, Phel::map(Keyword::create('private'), true));
+        $this->globalEnv->addDefinition('bar', Symbol::create('x'));
+        $this->globalEnv->addRefer('bar', Symbol::create('x'), Symbol::create('foo'));
+
+        $nodeEnv = NodeEnvironment::empty();
+
+        self::assertEquals(
+            new GlobalVarNode($nodeEnv, 'bar', Symbol::create('x'), Phel::map(Keyword::create('private'), true)),
+            $this->resolver->resolve(Symbol::create('x'), $nodeEnv),
+        );
+    }
+
+    public function test_own_interface_wins_over_a_refer_of_the_same_name(): void
+    {
+        $this->globalEnv->addDefinition('foo', Symbol::create('Shape'));
+        $this->globalEnv->setNs('bar');
+        $this->globalEnv->addInterface('bar', Symbol::create('Shape'));
+        $this->globalEnv->addRefer('bar', Symbol::create('Shape'), Symbol::create('foo'));
+
+        $nodeEnv = NodeEnvironment::empty();
+
+        self::assertEquals(
+            new PhpClassNameNode($nodeEnv, Symbol::createForNamespace('bar', 'Shape'), null),
+            $this->resolver->resolve(Symbol::create('Shape'), $nodeEnv),
+        );
+    }
+
+    public function test_refer_still_resolves_when_the_current_namespace_has_no_definition(): void
+    {
+        $this->globalEnv->addDefinition('foo', Symbol::create('x'));
+        $this->globalEnv->setNs('bar');
+        $this->globalEnv->addRefer('bar', Symbol::create('x'), Symbol::create('foo'));
+
+        $nodeEnv = NodeEnvironment::empty();
+
+        self::assertEquals(
+            new GlobalVarNode($nodeEnv, 'foo', Symbol::create('x'), Phel::map()),
+            $this->resolver->resolve(Symbol::create('x'), $nodeEnv),
+        );
+    }
+
+    public function test_referred_name_absent_from_its_namespace_still_falls_back_to_phel_core(): void
+    {
+        $this->globalEnv->addDefinition('phel.core', Symbol::create('x'));
+        $this->globalEnv->setNs('bar');
+        $this->globalEnv->addRefer('bar', Symbol::create('x'), Symbol::create('foo'));
+
+        $nodeEnv = NodeEnvironment::empty();
+
+        self::assertEquals(
+            new GlobalVarNode($nodeEnv, 'phel.core', Symbol::create('x'), Phel::map()),
+            $this->resolver->resolve(Symbol::create('x'), $nodeEnv),
+        );
+    }
+
     public function test_resolve_unqualified_falls_back_to_current_ns(): void
     {
         $this->globalEnv->setNs('bar');
