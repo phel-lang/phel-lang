@@ -30,6 +30,7 @@ All notable changes to this project will be documented in this file.
 
 ### Fixed
 
+- `(:require my.ns)` of a project namespace now works under `phel eval` and the nREPL server, not only in the REPL. The source directories were resolved only when `*repl-mode*` was set, which only `phel repl` does, so everywhere else the require searched an empty path, silently loaded nothing, and the failure surfaced later as `Cannot resolve symbol` at the call site. Reported with a full repro in #2886
 - A multimethod's parameter list no longer renders as a gensym. `defmulti` named it with `(gensym)`, so `phel doc assert-expr` showed `(assert-expr & __phel_3167)`, with a different number on every run. It is `(assert-expr & args)` now. The generated `<name>-methods` and `<name>-prefers` tables also carry docstrings, since they are public (`defmethod` resolves them across namespaces) and were showing up undocumented
 - `filter`, `take-while` and `drop-while` now use Phel truthiness for the predicate result. A predicate returning `0`, `0.0`, `""`, `"0"` or `@[]` was silently dropping elements, so `(filter identity [0 1 2])` gave `@[1 2]` while the transducer arity gave all three. Only `nil` and `false` are false
 - `persistent!` now keeps the collection's metadata for maps, vectors and sets. Everything built through a transient inherits the fix, including the compiler's `assoc`/`conj` specialisation, where `(assoc (assoc m :b 2) :c 3)` lost `m`'s metadata as soon as `m` carried a type tag
