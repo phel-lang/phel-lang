@@ -1,0 +1,55 @@
+(ns phel-test.core.php-invoke
+  (:require phel.test :refer [deftest is])
+  (:use \DateTimeImmutable))
+
+(deftest invokes-a-method-named-by-a-value
+  (let [d (php/new DateTimeImmutable "2024-03-10")]
+    (is (= "2024" (php-invoke d "format" "Y"))
+        "the method name comes from a runtime value")
+    (is (= "2024-03-10" (php-invoke d "format" "Y-m-d"))
+        "extra arguments are forwarded in order")))
+
+(deftest invokes-a-method-held-in-a-binding
+  (let [m "format"
+        d (php/new DateTimeImmutable "2024-03-10")]
+    (is (= "03" (php-invoke d m "m"))
+        "the name may be any expression, not only a literal")))
+
+(deftest invokes-a-method-without-arguments
+  (let [d (php/new DateTimeImmutable "2024-03-10")]
+    (is (= 2024 (php/intval (php-invoke d "format" "Y")))
+        "a call with one argument still works")
+    (is (php/is_int (php-invoke d "getTimestamp"))
+        "a call with no arguments works")))
+
+(deftest invokes-a-static-method-on-a-class-name
+  (is (= :foo (php-invoke "\\Phel\\Lang\\Keyword" "create" "foo"))
+      "a class name string calls the static method"))
+
+(deftest invokes-a-method-on-a-phel-runtime-object
+  (is (= "foo" (php-invoke (keyword "foo") "getName"))
+      "Phel values are PHP objects, so their methods are reachable too"))
+
+(deftest unknown-method-raises-a-clear-error
+  (let [d   (php/new DateTimeImmutable "2024-03-10")
+        err (try (php-invoke d "nope" 1)
+                 (catch \InvalidArgumentException e e))]
+    (is (php/instanceof err \InvalidArgumentException)
+        "an undefined method throws instead of a PHP TypeError")
+    (is (= "Call to undefined method DateTimeImmutable::nope()"
+           (php/-> err (getMessage)))
+        "the message matches what a literal method call reports")))
+
+(deftest unknown-static-method-names-the-class
+  (let [err (try (php-invoke "\\Phel\\Lang\\Keyword" "nope")
+                 (catch \InvalidArgumentException e e))]
+    (is (= "Call to undefined method \\Phel\\Lang\\Keyword::nope()"
+           (php/-> err (getMessage)))
+        "the class name is reported as given")))
+
+(deftest non-object-target-raises
+  (let [err (try (php-invoke 42 "format")
+                 (catch \InvalidArgumentException e e))]
+    (is (= "Call to undefined method integer::format()"
+           (php/-> err (getMessage)))
+        "a non-object target reports its type instead of crashing")))

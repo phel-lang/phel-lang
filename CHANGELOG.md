@@ -8,6 +8,7 @@ All notable changes to this project will be documented in this file.
 
 ### Added
 
+- `php-invoke` calls a method whose name is only known at runtime: `(php-invoke obj "format" "Y")`, the counterpart of ClojureScript's `js-invoke`. It was the one interop case with no spelling at all, since the dot syntax and `php/->` both emit the method name literally. A class-name string as the target calls the static method, so a runtime class and a runtime method name work together. An undefined method raises `InvalidArgumentException` with the same wording a literal call reports instead of a `call_user_func_array` type error
 - The dot syntax now reaches a static method through a class name held in a value: `(.cases enum-class)` works whether `enum-class` holds an object or a string like `"\\App\\Status"`, with no type annotation needed. `php/::` used to be the only spelling for this, and it was the last thing that form could do which the Clojure-style syntax could not (#2881). A receiver the compiler can prove is a class name emits `Class::m()` directly, one it can prove is an object emits `$o->m()`, and only an unprovable one carries a runtime check
 - `phel\test/with-isolated-stats` and `with-isolated-reporters`: run a body against a fresh statistics accumulator or reporter set and restore the caller's afterwards, rolling back even when the body throws
 - Deprecation warnings for your own code: any `def`/`defn` with `:deprecated` metadata now warns at every call site under `--warn-deprecations` (or `PHEL_WARN_DEPRECATIONS=1`), deduplicated per file and symbol
