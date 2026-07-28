@@ -6,6 +6,7 @@ namespace PhelTest\Unit\Nrepl\Application\Op;
 
 use Phel\Compiler\Domain\Analyzer\Environment\GlobalEnvironmentInterface;
 use Phel\Nrepl\Application\Op\EvalResultResponder;
+use Phel\Nrepl\Application\Session\SessionNamespaceBinder;
 use Phel\Nrepl\Domain\Op\OpRequest;
 use Phel\Nrepl\Domain\Session\SessionRegistry;
 use Phel\Shared\Eval\EvalError;
@@ -20,7 +21,7 @@ final class EvalResultResponderTest extends TestCase
     {
         $registry = new SessionRegistry();
         $session = $registry->create();
-        $responder = new EvalResultResponder($this->printerReturning('42'), $registry, $this->uninitializedCompiler());
+        $responder = new EvalResultResponder($this->printerReturning('42'), new SessionNamespaceBinder($this->uninitializedCompiler(), $registry));
 
         $responses = $responder->respond(
             new OpRequest('eval', 'req-1', $session->id, []),
@@ -39,7 +40,7 @@ final class EvalResultResponderTest extends TestCase
     {
         $registry = new SessionRegistry();
         $session = $registry->create();
-        $responder = new EvalResultResponder($this->printerReturning('nil'), $registry, $this->compilerInNamespace('foo.bar'));
+        $responder = new EvalResultResponder($this->printerReturning('nil'), new SessionNamespaceBinder($this->compilerInNamespace('foo.bar'), $registry));
 
         $responses = $responder->respond(
             new OpRequest('eval', 'req-1', $session->id, []),
@@ -55,7 +56,7 @@ final class EvalResultResponderTest extends TestCase
     {
         $registry = new SessionRegistry();
         $session = $registry->create();
-        $responder = new EvalResultResponder($this->printerReturning('nil'), $registry, $this->compilerInNamespace('foo\\bar-baz'));
+        $responder = new EvalResultResponder($this->printerReturning('nil'), new SessionNamespaceBinder($this->compilerInNamespace('foo\\bar-baz'), $registry));
 
         $responses = $responder->respond(
             new OpRequest('eval', 'req-1', $session->id, []),
@@ -70,7 +71,7 @@ final class EvalResultResponderTest extends TestCase
     {
         $registry = new SessionRegistry();
         $session = $registry->create();
-        $responder = new EvalResultResponder($this->printerReturning('nil'), $registry, $this->uninitializedCompiler());
+        $responder = new EvalResultResponder($this->printerReturning('nil'), new SessionNamespaceBinder($this->uninitializedCompiler(), $registry));
 
         $responses = $responder->respond(
             new OpRequest('eval', 'req-1', $session->id, []),
@@ -88,7 +89,7 @@ final class EvalResultResponderTest extends TestCase
         $session = $registry->create();
         $session->setNamespace('foo');
 
-        $responder = new EvalResultResponder($this->printerReturning('nil'), $registry, $this->compilerInNamespace(''));
+        $responder = new EvalResultResponder($this->printerReturning('nil'), new SessionNamespaceBinder($this->compilerInNamespace(''), $registry));
 
         $responses = $responder->respond(
             new OpRequest('eval', 'req-1', $session->id, []),
@@ -102,7 +103,7 @@ final class EvalResultResponderTest extends TestCase
 
     public function test_success_uses_user_namespace_when_session_missing(): void
     {
-        $responder = new EvalResultResponder($this->printerReturning('nil'), new SessionRegistry(), $this->uninitializedCompiler());
+        $responder = new EvalResultResponder($this->printerReturning('nil'), new SessionNamespaceBinder($this->uninitializedCompiler(), new SessionRegistry()));
 
         $responses = $responder->respond(
             new OpRequest('eval', null, null, []),
@@ -120,7 +121,7 @@ final class EvalResultResponderTest extends TestCase
 
         $registry = new SessionRegistry();
         $session = $registry->create();
-        $responder = new EvalResultResponder($printer, $registry, $this->uninitializedCompiler());
+        $responder = new EvalResultResponder($printer, new SessionNamespaceBinder($this->uninitializedCompiler(), $registry));
 
         $responder->respond(new OpRequest('eval', 'r1', $session->id, []), EvalResult::success(1), 'fallback');
         $responder->respond(new OpRequest('eval', 'r2', $session->id, []), EvalResult::success(2), 'fallback');
@@ -135,7 +136,7 @@ final class EvalResultResponderTest extends TestCase
 
     public function test_no_history_keys_without_a_session(): void
     {
-        $responder = new EvalResultResponder($this->printerReturning('nil'), new SessionRegistry(), $this->uninitializedCompiler());
+        $responder = new EvalResultResponder($this->printerReturning('nil'), new SessionNamespaceBinder($this->uninitializedCompiler(), new SessionRegistry()));
 
         $responses = $responder->respond(
             new OpRequest('eval', null, null, []),
@@ -148,7 +149,7 @@ final class EvalResultResponderTest extends TestCase
 
     public function test_success_prepends_out_frame_when_output_present(): void
     {
-        $responder = new EvalResultResponder($this->printerReturning('nil'), new SessionRegistry(), $this->uninitializedCompiler());
+        $responder = new EvalResultResponder($this->printerReturning('nil'), new SessionNamespaceBinder($this->uninitializedCompiler(), new SessionRegistry()));
 
         $responses = $responder->respond(
             new OpRequest('eval', null, null, []),
@@ -164,8 +165,7 @@ final class EvalResultResponderTest extends TestCase
     {
         $responder = new EvalResultResponder(
             $this->createStub(PrinterInterface::class),
-            new SessionRegistry(),
-            $this->uninitializedCompiler(),
+            new SessionNamespaceBinder($this->uninitializedCompiler(), new SessionRegistry()),
         );
 
         $responses = $responder->respond(
@@ -185,8 +185,7 @@ final class EvalResultResponderTest extends TestCase
         $session = $registry->create();
         $responder = new EvalResultResponder(
             $this->createStub(PrinterInterface::class),
-            $registry,
-            $this->compilerInNamespace('foo.bar'),
+            new SessionNamespaceBinder($this->compilerInNamespace('foo.bar'), $registry),
         );
 
         $responses = $responder->respond(
@@ -208,8 +207,7 @@ final class EvalResultResponderTest extends TestCase
     {
         $responder = new EvalResultResponder(
             $this->createStub(PrinterInterface::class),
-            new SessionRegistry(),
-            $this->uninitializedCompiler(),
+            new SessionNamespaceBinder($this->uninitializedCompiler(), new SessionRegistry()),
         );
 
         $responses = $responder->respond(
@@ -230,8 +228,7 @@ final class EvalResultResponderTest extends TestCase
         $session = $registry->create();
         $responder = new EvalResultResponder(
             $this->createStub(PrinterInterface::class),
-            $registry,
-            $this->compilerInNamespace('foo'),
+            new SessionNamespaceBinder($this->compilerInNamespace('foo'), $registry),
         );
 
         $responses = $responder->respond(
@@ -252,8 +249,7 @@ final class EvalResultResponderTest extends TestCase
 
         $responder = new EvalResultResponder(
             $this->createStub(PrinterInterface::class),
-            $registry,
-            $this->uninitializedCompiler(),
+            new SessionNamespaceBinder($this->uninitializedCompiler(), $registry),
         );
 
         $responses = $responder->respondEmptyCode(new OpRequest('eval', 'req-1', $session->id, []));
@@ -270,8 +266,7 @@ final class EvalResultResponderTest extends TestCase
 
         $responder = new EvalResultResponder(
             $this->createStub(PrinterInterface::class),
-            $registry,
-            $this->compilerInNamespace('foo.bar'),
+            new SessionNamespaceBinder($this->compilerInNamespace('foo.bar'), $registry),
         );
 
         $responses = $responder->respondEmptyCode(new OpRequest('eval', 'req-1', $session->id, []));
@@ -284,8 +279,7 @@ final class EvalResultResponderTest extends TestCase
     {
         $responder = new EvalResultResponder(
             $this->createStub(PrinterInterface::class),
-            new SessionRegistry(),
-            $this->uninitializedCompiler(),
+            new SessionNamespaceBinder($this->uninitializedCompiler(), new SessionRegistry()),
         );
 
         $responses = $responder->respondEmptyCode(new OpRequest('eval', 'req-1', null, []));
@@ -297,8 +291,7 @@ final class EvalResultResponderTest extends TestCase
     {
         $responder = new EvalResultResponder(
             $this->createStub(PrinterInterface::class),
-            new SessionRegistry(),
-            $this->uninitializedCompiler(),
+            new SessionNamespaceBinder($this->uninitializedCompiler(), new SessionRegistry()),
         );
 
         $responses = $responder->respond(
@@ -317,8 +310,7 @@ final class EvalResultResponderTest extends TestCase
     {
         $responder = new EvalResultResponder(
             $this->createStub(PrinterInterface::class),
-            new SessionRegistry(),
-            $this->uninitializedCompiler(),
+            new SessionNamespaceBinder($this->uninitializedCompiler(), new SessionRegistry()),
         );
 
         // An explicit "non-success, non-incomplete, no error" case (defensive);

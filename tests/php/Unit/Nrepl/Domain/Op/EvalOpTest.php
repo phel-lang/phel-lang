@@ -6,6 +6,7 @@ namespace PhelTest\Unit\Nrepl\Domain\Op;
 
 use Phel\Nrepl\Application\Op\EvalOp;
 use Phel\Nrepl\Application\Op\EvalResultResponder;
+use Phel\Nrepl\Application\Session\SessionNamespaceBinder;
 use Phel\Nrepl\Domain\Op\OpRequest;
 use Phel\Nrepl\Domain\Session\SessionRegistry;
 use Phel\Shared\CompileOptions;
@@ -29,7 +30,7 @@ final class EvalOpTest extends TestCase
         $registry = new SessionRegistry();
         $session = $registry->create();
 
-        $op = new EvalOp($run, $this->responder($printer, $registry));
+        $op = $this->evalOp($run, $printer, $registry);
         $responses = $op->handle(new OpRequest('eval', 'r1', $session->id, [
             'op' => 'eval',
             'code' => '(+ 1 2)',
@@ -52,7 +53,7 @@ final class EvalOpTest extends TestCase
         $printer->method('print')->willReturn('nil');
 
         $registry = new SessionRegistry();
-        $op = new EvalOp($run, $this->responder($printer, $registry));
+        $op = $this->evalOp($run, $printer, $registry);
         $responses = $op->handle(new OpRequest('eval', 'r1', null, [
             'op' => 'eval',
             'code' => '(println "x")',
@@ -87,7 +88,7 @@ final class EvalOpTest extends TestCase
         $printer = $this->createStub(PrinterInterface::class);
 
         $registry = new SessionRegistry();
-        $op = new EvalOp($run, $this->responder($printer, $registry));
+        $op = $this->evalOp($run, $printer, $registry);
         $responses = $op->handle(new OpRequest('eval', 'r1', null, [
             'op' => 'eval',
             'code' => 'xx',
@@ -108,7 +109,7 @@ final class EvalOpTest extends TestCase
         $run->method('structuredEval')->willReturn(EvalResult::incomplete());
 
         $registry = new SessionRegistry();
-        $op = new EvalOp($run, $this->responder(registry: $registry));
+        $op = $this->evalOp($run, registry: $registry);
         $responses = $op->handle(new OpRequest('eval', 'r1', null, [
             'op' => 'eval',
             'code' => '(+ 1',
@@ -123,7 +124,7 @@ final class EvalOpTest extends TestCase
         $run = $this->createStub(RunFacadeInterface::class);
         $run->method('structuredEval')->willReturn(EvalResult::incomplete());
 
-        $op = new EvalOp($run, $this->responder());
+        $op = $this->evalOp($run);
         $responses = $op->handle(new OpRequest('eval', 'r1', null, [
             'op' => 'eval',
             'code' => '(+ 1',
@@ -134,10 +135,7 @@ final class EvalOpTest extends TestCase
 
     public function test_it_rejects_missing_code_param(): void
     {
-        $op = new EvalOp(
-            $this->createStub(RunFacadeInterface::class),
-            $this->responder(),
-        );
+        $op = $this->evalOp($this->createStub(RunFacadeInterface::class));
         $responses = $op->handle(new OpRequest('eval', 'r1', null, ['op' => 'eval']));
 
         self::assertContains('no-code', $responses[0]->payload['status']);
@@ -149,7 +147,7 @@ final class EvalOpTest extends TestCase
         $run = $this->createMock(RunFacadeInterface::class);
         $run->expects(self::never())->method('structuredEval');
 
-        $op = new EvalOp($run, $this->responder());
+        $op = $this->evalOp($run);
         $responses = $op->handle(new OpRequest('eval', 'r1', null, ['op' => 'eval', 'code' => 42]));
 
         self::assertContains('no-code', $responses[0]->payload['status']);
@@ -163,7 +161,7 @@ final class EvalOpTest extends TestCase
         $registry = new SessionRegistry();
         $session = $registry->create();
 
-        $op = new EvalOp($run, $this->responder(registry: $registry));
+        $op = $this->evalOp($run, registry: $registry);
         $responses = $op->handle(new OpRequest('eval', 'r1', $session->id, [
             'op' => 'eval',
             'code' => '',
@@ -180,7 +178,7 @@ final class EvalOpTest extends TestCase
         $run = $this->createMock(RunFacadeInterface::class);
         $run->expects(self::never())->method('structuredEval');
 
-        $op = new EvalOp($run, $this->responder());
+        $op = $this->evalOp($run);
         $responses = $op->handle(new OpRequest('eval', 'r1', null, [
             'op' => 'eval',
             'code' => "  \n ",
@@ -201,21 +199,33 @@ final class EvalOpTest extends TestCase
         $printer = $this->createStub(PrinterInterface::class);
         $printer->method('print')->willReturn('3');
 
-        $op = new EvalOp($run, $this->responder($printer));
+        $op = $this->evalOp($run, $printer);
         $op->handle(new OpRequest('eval', 'r1', null, ['op' => 'eval', 'code' => '(+ 1 2)']));
     }
 
     /**
+     * The op and its responder share one namespace binder, as they do in
+     * production: the op binds the session's namespace before evaluating and
+     * the responder reads the result back out of the same place.
+     *
      * The responder is exercised on its own in `EvalResultResponderTest`; here
-     * it only has to translate results, so its compiler facade stays a stub
-     * with no global environment (namespaces fall back to `user`).
+     * it only has to translate results, so the binder's compiler facade stays
+     * a stub with no global environment (namespaces fall back to `user`).
      */
-    private function responder(?PrinterInterface $printer = null, ?SessionRegistry $registry = null): EvalResultResponder
-    {
-        return new EvalResultResponder(
-            $printer ?? $this->createStub(PrinterInterface::class),
-            $registry ?? new SessionRegistry(),
+    private function evalOp(
+        RunFacadeInterface $run,
+        ?PrinterInterface $printer = null,
+        ?SessionRegistry $registry = null,
+    ): EvalOp {
+        $binder = new SessionNamespaceBinder(
             $this->createStub(CompilerFacadeInterface::class),
+            $registry ?? new SessionRegistry(),
+        );
+
+        return new EvalOp(
+            $run,
+            new EvalResultResponder($printer ?? $this->createStub(PrinterInterface::class), $binder),
+            $binder,
         );
     }
 }

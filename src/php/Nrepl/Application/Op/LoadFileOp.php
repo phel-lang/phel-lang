@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Phel\Nrepl\Application\Op;
 
+use Phel\Nrepl\Application\Session\SessionNamespaceBinder;
 use Phel\Nrepl\Domain\Op\OpHandlerInterface;
 use Phel\Nrepl\Domain\Op\OpRequest;
 use Phel\Nrepl\Domain\Op\OpResponse;
@@ -19,6 +20,7 @@ final readonly class LoadFileOp implements OpHandlerInterface
     public function __construct(
         private RunFacadeInterface $runFacade,
         private EvalResultResponder $responder,
+        private SessionNamespaceBinder $namespaceBinder,
     ) {}
 
     public function name(): string
@@ -38,6 +40,10 @@ final readonly class LoadFileOp implements OpHandlerInterface
                 [OpStatus::LOAD_FILE_ERROR],
             )];
         }
+
+        // A file without its own `(ns ...)` header loads into the ambient
+        // namespace, so it has to be this session's, not another's.
+        $this->namespaceBinder->bind($request);
 
         $result = $this->runFacade->structuredEval($fileContent, new CompileOptions());
 

@@ -6,6 +6,7 @@ namespace PhelTest\Unit\Nrepl\Domain\Op;
 
 use Phel\Nrepl\Application\Op\EvalResultResponder;
 use Phel\Nrepl\Application\Op\LoadFileOp;
+use Phel\Nrepl\Application\Session\SessionNamespaceBinder;
 use Phel\Nrepl\Domain\Op\OpRequest;
 use Phel\Nrepl\Domain\Session\SessionRegistry;
 use Phel\Shared\Eval\EvalError;
@@ -25,7 +26,7 @@ final class LoadFileOpTest extends TestCase
         $printer = $this->createStub(PrinterInterface::class);
         $printer->method('print')->willReturn('42');
 
-        $op = new LoadFileOp($run, $this->responder($printer));
+        $op = $this->loadFileOp($run, $printer);
         $responses = $op->handle(new OpRequest('load-file', 'r1', null, [
             'op' => 'load-file',
             'file' => '(def x 42) x',
@@ -39,10 +40,7 @@ final class LoadFileOpTest extends TestCase
 
     public function test_it_rejects_missing_file_param(): void
     {
-        $op = new LoadFileOp(
-            $this->createStub(RunFacadeInterface::class),
-            $this->responder(),
-        );
+        $op = $this->loadFileOp($this->createStub(RunFacadeInterface::class));
         $responses = $op->handle(new OpRequest('load-file', 'r1', null, ['op' => 'load-file']));
 
         self::assertContains('load-file-error', $responses[0]->payload['status']);
@@ -50,10 +48,7 @@ final class LoadFileOpTest extends TestCase
 
     public function test_op_name_is_load_file(): void
     {
-        $op = new LoadFileOp(
-            $this->createStub(RunFacadeInterface::class),
-            $this->responder(),
-        );
+        $op = $this->loadFileOp($this->createStub(RunFacadeInterface::class));
         self::assertSame('load-file', $op->name());
     }
 
@@ -77,10 +72,7 @@ final class LoadFileOpTest extends TestCase
         $run = $this->createStub(RunFacadeInterface::class);
         $run->method('structuredEval')->willReturn(EvalResult::failure($error));
 
-        $op = new LoadFileOp(
-            $run,
-            $this->responder(),
-        );
+        $op = $this->loadFileOp($run);
         $responses = $op->handle(new OpRequest('load-file', 'r1', null, [
             'op' => 'load-file',
             'file' => '(broken form)',
@@ -94,16 +86,25 @@ final class LoadFileOpTest extends TestCase
     }
 
     /**
+     * The op and its responder share one namespace binder, as they do in
+     * production: the op binds the session's namespace before evaluating and
+     * the responder reads the result back out of the same place.
+     *
      * The responder is exercised on its own in `EvalResultResponderTest`; here
-     * it only has to translate results, so its compiler facade stays a stub
-     * with no global environment (namespaces fall back to `user`).
+     * it only has to translate results, so the binder's compiler facade stays
+     * a stub with no global environment (namespaces fall back to `user`).
      */
-    private function responder(?PrinterInterface $printer = null): EvalResultResponder
+    private function loadFileOp(RunFacadeInterface $run, ?PrinterInterface $printer = null): LoadFileOp
     {
-        return new EvalResultResponder(
-            $printer ?? $this->createStub(PrinterInterface::class),
-            new SessionRegistry(),
+        $binder = new SessionNamespaceBinder(
             $this->createStub(CompilerFacadeInterface::class),
+            new SessionRegistry(),
+        );
+
+        return new LoadFileOp(
+            $run,
+            new EvalResultResponder($printer ?? $this->createStub(PrinterInterface::class), $binder),
+            $binder,
         );
     }
 }
