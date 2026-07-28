@@ -11,7 +11,6 @@ use Phel\Nrepl\Domain\Op\OpStatus;
 use Phel\Shared\CompileOptions;
 use Phel\Shared\Facade\RunFacadeInterface;
 
-use function is_string;
 use function trim;
 
 /**
@@ -31,8 +30,8 @@ final readonly class EvalOp implements OpHandlerInterface
 
     public function handle(OpRequest $request): array
     {
-        $code = $request->raw['code'] ?? null;
-        if (!is_string($code)) {
+        $code = $request->optionalStringParam('code');
+        if ($code === null) {
             return [OpResponse::errorDone(
                 $request,
                 'Missing required "code" param for eval op.',
@@ -47,9 +46,10 @@ final readonly class EvalOp implements OpHandlerInterface
             return $this->responder->respondEmptyCode($request);
         }
 
-        // structuredEval compiles and evaluates the code in the session's
-        // current namespace. CompileOptions is left empty: there is currently
-        // no nREPL-specific tuning (no optimization flags) to pass through.
+        // structuredEval compiles and evaluates the code in the compiler's
+        // current namespace, which every session shares. CompileOptions is
+        // left empty: there is currently no nREPL-specific tuning (no
+        // optimization flags) to pass through.
         $result = $this->runFacade->structuredEval($code, new CompileOptions());
 
         return $this->responder->respond($request, $result, 'Evaluation failed.');

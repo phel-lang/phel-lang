@@ -54,7 +54,7 @@ final readonly class EvalResultResponder
         }
 
         $session = $this->sessionFor($request);
-        $ns = $this->resolveNamespace($session);
+        $ns = $this->syncNamespace($session);
 
         if ($result->success) {
             $session?->recordValue($result->value);
@@ -93,7 +93,7 @@ final readonly class EvalResultResponder
      */
     public function respondEmptyCode(OpRequest $request): array
     {
-        $ns = $this->resolveNamespace($this->sessionFor($request));
+        $ns = $this->syncNamespace($this->sessionFor($request));
 
         return [OpResponse::forRequest($request, ['ns' => $ns], [OpStatus::DONE])];
     }
@@ -106,14 +106,15 @@ final readonly class EvalResultResponder
     }
 
     /**
-     * The namespace an eval ran in: the compiler's current namespace, mirrored
-     * into the session so the `ns` field of eval responses tracks `ns`/`in-ns`
-     * forms as they evaluate — editor prompts (CIDER, Calva, ...) are driven
-     * by that field. This is the same source of truth the terminal REPL prompt
-     * reads. A failed or incomplete eval restores the environment snapshot, so
-     * after one this simply yields the pre-eval namespace.
+     * Mirror the compiler's current namespace into the session and return it:
+     * the `ns` field of eval responses then tracks `ns`/`in-ns` forms as they
+     * evaluate — editor prompts (CIDER, Calva, ...) are driven by that field.
+     * This is the same source of truth the terminal REPL prompt reads. A failed
+     * or incomplete eval restores the environment snapshot, so after one this
+     * simply yields the pre-eval namespace. Falls back to what the session
+     * already knows while the global environment is still uninitialized.
      */
-    private function resolveNamespace(?Session $session): string
+    private function syncNamespace(?Session $session): string
     {
         if ($this->compilerFacade->isGlobalEnvironmentInitialized()) {
             $ns = Munge::displayNs($this->compilerFacade->getGlobalEnvironment()->getNs());
@@ -124,7 +125,7 @@ final readonly class EvalResultResponder
             }
         }
 
-        return $session instanceof Session ? $session->namespace() : 'user';
+        return $session instanceof Session ? $session->namespace() : Session::DEFAULT_NAMESPACE;
     }
 
     /**

@@ -40,7 +40,18 @@ final readonly class OpRequest
 
     public function stringParam(string $key, string $default = ''): string
     {
+        return $this->optionalStringParam($key) ?? $default;
+    }
+
+    /**
+     * The param as a string, or null when it is absent or not a string.
+     * Use this over {@see self::stringParam()} when "absent" and "empty"
+     * are different cases — the `eval` op answers a missing `code` param
+     * with `no-code` but treats empty code as a no-op.
+     */
+    public function optionalStringParam(string $key): ?string
+    {
         $value = $this->raw[$key] ?? null;
-        return is_string($value) ? $value : $default;
+        return is_string($value) ? $value : null;
     }
 }

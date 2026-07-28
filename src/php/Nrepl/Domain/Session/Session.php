@@ -15,6 +15,8 @@ use function array_slice;
  */
 final class Session
 {
+    public const string DEFAULT_NAMESPACE = 'user';
+
     private const int HISTORY_SIZE = 3;
 
     /** @var list<mixed> the last few evaluated values, newest first */
@@ -22,11 +24,14 @@ final class Session
 
     public function __construct(
         public readonly string $id,
-        private string $namespace = 'user',
+        private string $namespace = self::DEFAULT_NAMESPACE,
     ) {}
 
     /**
-     * The namespace eval ops run in for this session.
+     * The namespace this session last evaluated in. Evaluation itself runs in
+     * the compiler's global environment, which every session shares; this is
+     * the mirror of it that `EvalResultResponder` reports as the `ns` response
+     * field and `LookupOp` resolves unqualified symbols against.
      */
     public function namespace(): string
     {

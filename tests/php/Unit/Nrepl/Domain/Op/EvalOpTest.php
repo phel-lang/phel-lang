@@ -29,7 +29,7 @@ final class EvalOpTest extends TestCase
         $registry = new SessionRegistry();
         $session = $registry->create();
 
-        $op = new EvalOp($run, new EvalResultResponder($printer, $registry, $this->createStub(CompilerFacadeInterface::class)));
+        $op = new EvalOp($run, $this->responder($printer, $registry));
         $responses = $op->handle(new OpRequest('eval', 'r1', $session->id, [
             'op' => 'eval',
             'code' => '(+ 1 2)',
@@ -52,7 +52,7 @@ final class EvalOpTest extends TestCase
         $printer->method('print')->willReturn('nil');
 
         $registry = new SessionRegistry();
-        $op = new EvalOp($run, new EvalResultResponder($printer, $registry, $this->createStub(CompilerFacadeInterface::class)));
+        $op = new EvalOp($run, $this->responder($printer, $registry));
         $responses = $op->handle(new OpRequest('eval', 'r1', null, [
             'op' => 'eval',
             'code' => '(println "x")',
@@ -87,7 +87,7 @@ final class EvalOpTest extends TestCase
         $printer = $this->createStub(PrinterInterface::class);
 
         $registry = new SessionRegistry();
-        $op = new EvalOp($run, new EvalResultResponder($printer, $registry, $this->createStub(CompilerFacadeInterface::class)));
+        $op = new EvalOp($run, $this->responder($printer, $registry));
         $responses = $op->handle(new OpRequest('eval', 'r1', null, [
             'op' => 'eval',
             'code' => 'xx',
@@ -108,11 +108,7 @@ final class EvalOpTest extends TestCase
         $run->method('structuredEval')->willReturn(EvalResult::incomplete());
 
         $registry = new SessionRegistry();
-        $op = new EvalOp($run, new EvalResultResponder(
-            $this->createStub(PrinterInterface::class),
-            $registry,
-            $this->createStub(CompilerFacadeInterface::class),
-        ));
+        $op = new EvalOp($run, $this->responder(registry: $registry));
         $responses = $op->handle(new OpRequest('eval', 'r1', null, [
             'op' => 'eval',
             'code' => '(+ 1',
@@ -127,11 +123,7 @@ final class EvalOpTest extends TestCase
         $run = $this->createStub(RunFacadeInterface::class);
         $run->method('structuredEval')->willReturn(EvalResult::incomplete());
 
-        $op = new EvalOp($run, new EvalResultResponder(
-            $this->createStub(PrinterInterface::class),
-            new SessionRegistry(),
-            $this->createStub(CompilerFacadeInterface::class),
-        ));
+        $op = new EvalOp($run, $this->responder());
         $responses = $op->handle(new OpRequest('eval', 'r1', null, [
             'op' => 'eval',
             'code' => '(+ 1',
@@ -144,12 +136,23 @@ final class EvalOpTest extends TestCase
     {
         $op = new EvalOp(
             $this->createStub(RunFacadeInterface::class),
-            new EvalResultResponder($this->createStub(PrinterInterface::class), new SessionRegistry(), $this->createStub(CompilerFacadeInterface::class)),
+            $this->responder(),
         );
         $responses = $op->handle(new OpRequest('eval', 'r1', null, ['op' => 'eval']));
 
         self::assertContains('no-code', $responses[0]->payload['status']);
         self::assertContains('done', $responses[0]->payload['status']);
+    }
+
+    public function test_it_rejects_a_non_string_code_param(): void
+    {
+        $run = $this->createMock(RunFacadeInterface::class);
+        $run->expects(self::never())->method('structuredEval');
+
+        $op = new EvalOp($run, $this->responder());
+        $responses = $op->handle(new OpRequest('eval', 'r1', null, ['op' => 'eval', 'code' => 42]));
+
+        self::assertContains('no-code', $responses[0]->payload['status']);
     }
 
     public function test_it_treats_empty_code_as_a_no_op_reporting_the_current_namespace(): void
@@ -160,11 +163,7 @@ final class EvalOpTest extends TestCase
         $registry = new SessionRegistry();
         $session = $registry->create();
 
-        $op = new EvalOp($run, new EvalResultResponder(
-            $this->createStub(PrinterInterface::class),
-            $registry,
-            $this->createStub(CompilerFacadeInterface::class),
-        ));
+        $op = new EvalOp($run, $this->responder(registry: $registry));
         $responses = $op->handle(new OpRequest('eval', 'r1', $session->id, [
             'op' => 'eval',
             'code' => '',
@@ -181,11 +180,7 @@ final class EvalOpTest extends TestCase
         $run = $this->createMock(RunFacadeInterface::class);
         $run->expects(self::never())->method('structuredEval');
 
-        $op = new EvalOp($run, new EvalResultResponder(
-            $this->createStub(PrinterInterface::class),
-            new SessionRegistry(),
-            $this->createStub(CompilerFacadeInterface::class),
-        ));
+        $op = new EvalOp($run, $this->responder());
         $responses = $op->handle(new OpRequest('eval', 'r1', null, [
             'op' => 'eval',
             'code' => "  \n ",
@@ -206,7 +201,21 @@ final class EvalOpTest extends TestCase
         $printer = $this->createStub(PrinterInterface::class);
         $printer->method('print')->willReturn('3');
 
-        $op = new EvalOp($run, new EvalResultResponder($printer, new SessionRegistry(), $this->createStub(CompilerFacadeInterface::class)));
+        $op = new EvalOp($run, $this->responder($printer));
         $op->handle(new OpRequest('eval', 'r1', null, ['op' => 'eval', 'code' => '(+ 1 2)']));
+    }
+
+    /**
+     * The responder is exercised on its own in `EvalResultResponderTest`; here
+     * it only has to translate results, so its compiler facade stays a stub
+     * with no global environment (namespaces fall back to `user`).
+     */
+    private function responder(?PrinterInterface $printer = null, ?SessionRegistry $registry = null): EvalResultResponder
+    {
+        return new EvalResultResponder(
+            $printer ?? $this->createStub(PrinterInterface::class),
+            $registry ?? new SessionRegistry(),
+            $this->createStub(CompilerFacadeInterface::class),
+        );
     }
 }
