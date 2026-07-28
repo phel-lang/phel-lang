@@ -172,15 +172,22 @@ final class NreplCommandPortFileTest extends TestCase
         while (microtime(true) < $deadline) {
             $status = proc_get_status($process);
             if (!$status['running']) {
-                return proc_close($process);
+                // proc_get_status() reaps the child itself, so proc_close()
+                // finds nothing left to wait for and answers -1. The real
+                // exit code is only in this status array.
+                $exitCode = $status['exitcode'];
+                proc_close($process);
+
+                return $exitCode;
             }
 
             usleep(100_000);
         }
 
         proc_terminate($process, SIGKILL);
+        proc_close($process);
 
-        return proc_close($process);
+        self::fail('nREPL server did not exit within 15s of SIGTERM');
     }
 
     private function killServer(): void

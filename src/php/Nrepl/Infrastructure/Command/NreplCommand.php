@@ -14,6 +14,7 @@ use Phel\Nrepl\NreplFactory;
 use Phel\Shared\CompilerConstants;
 use Phel\Shared\ReplConstants;
 use Phel\Shared\ScalarCoercion;
+use RuntimeException;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
@@ -116,10 +117,23 @@ HELP)
                 $portFile->delete();
             });
             $this->registerSignalHandlers($server);
-            $portFile->write($server->port());
 
             $output->writeln(sprintf('nREPL server started on %s:%d', $host, $server->port()));
-            $output->writeln(sprintf('Port written to %s', $portFile->path()));
+
+            // A directory we cannot write to costs editors their automatic
+            // discovery, nothing more: the server is still usable through an
+            // explicit --port, so say so and keep listening.
+            try {
+                $portFile->write($server->port());
+                $output->writeln(sprintf('Port written to %s', $portFile->path()));
+            } catch (RuntimeException $runtimeException) {
+                $output->writeln(sprintf(
+                    '<comment>%s Connect on port %d explicitly.</comment>',
+                    $runtimeException->getMessage(),
+                    $server->port(),
+                ));
+            }
+
             $output->writeln('Connect your editor via the bencode-over-TCP nREPL protocol.');
 
             try {
