@@ -17,6 +17,7 @@ use Phel\Shared\CompilerConstants;
 use RuntimeException;
 
 use function class_exists;
+use function enum_exists;
 use function interface_exists;
 use function ltrim;
 use function strlen;
@@ -101,22 +102,20 @@ final readonly class SymbolResolver
             return $resolved;
         }
 
-        if ($name->getNamespace() === null && $this->looksLikePhpConstantName($strName)) {
-            return new PhpVarNode($env, $strName, $name->getStartLocation());
-        }
-
-        // Fallback: a bare class identifier with no other resolution is
-        // treated as a PHP root-namespace class FQN. Class-shaped uppercase
-        // names keep Clojure-style behavior for unloaded classes, while
-        // constant-shaped names like JSON_HEX_AMP stay PHP constants.
-        // Lowercase PHP built-ins like `stdClass` resolve when PHP already
-        // knows them.
-        // Kicks in *after* normal resolution so `(def Foo ...)` still wins.
+        // Host fallback: a real PHP class-like symbol wins even when its name
+        // also has the all-caps shape of a global constant (`PDO` is the common
+        // case). This runs after Phel resolution, so local language definitions
+        // keep winning. `php/NAME` bypasses this resolver and remains the
+        // explicit escape hatch for a colliding global constant.
         if ($name->getNamespace() === null && $this->looksLikeBareClassName($strName)) {
             $fqn = Symbol::create('\\' . $strName);
             $fqn->copyLocationFrom($name);
 
             return new PhpClassNameNode($env, $fqn, $name->getStartLocation());
+        }
+
+        if ($name->getNamespace() === null && $this->looksLikePhpConstantName($strName)) {
+            return new PhpVarNode($env, $strName, $name->getStartLocation());
         }
 
         return null;
@@ -135,7 +134,12 @@ final readonly class SymbolResolver
         $alias = $useAliases[$strName];
         $alias->copyLocationFrom($name);
 
-        if ($alias->getNamespace() === null && $this->looksLikePhpConstantName(ltrim($alias->getName(), '\\'))) {
+        $targetName = ltrim($alias->getName(), '\\');
+        if (
+            $alias->getNamespace() === null
+            && $this->looksLikePhpConstantName($targetName)
+            && !$this->phpClassLikeExists($targetName)
+        ) {
             return new PhpVarNode($env, $alias->getName(), $name->getStartLocation());
         }
 
@@ -207,8 +211,10 @@ final readonly class SymbolResolver
     /**
      * Accept bare uppercase identifiers as root-namespace PHP class FQN
      * aliases, so `Exception` resolves the same as `\Exception`. Also
-     * accepts known PHP class/interface/trait names regardless of leading
-     * case, so `stdClass` matches PHP's case-insensitive class lookup.
+     * accepts existing PHP class-like names regardless of casing, including
+     * all-caps names such as `PDO` and lowercase names such as `stdClass`.
+     * The existence checks deliberately autoload: resolution must not depend
+     * on whether some earlier form happened to load the class first.
      */
     private function looksLikeBareClassName(string $name): bool
     {
@@ -217,11 +223,21 @@ final readonly class SymbolResolver
         }
 
         return preg_match('/^[A-Za-z_]\w*$/', $name) === 1
-            && (
-                class_exists($name, false)
-                || interface_exists($name, false)
-                || trait_exists($name, false)
-            );
+            && $this->phpClassLikeExists($name);
+    }
+
+    private function phpClassLikeExists(string $name): bool
+    {
+        // One autoload attempt is enough: the loader receives only the name,
+        // not which class-like kind the caller asked about. The non-autoloading
+        // probes then identify an interface/trait/enum the loader just defined.
+        if (class_exists($name)) {
+            return true;
+        }
+
+        return interface_exists($name, false)
+            || trait_exists($name, false)
+            || enum_exists($name, false);
     }
 
     private function looksLikePhpConstantName(string $name): bool

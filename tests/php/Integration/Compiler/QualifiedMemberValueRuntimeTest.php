@@ -4,14 +4,38 @@ declare(strict_types=1);
 
 namespace PhelTest\Integration\Compiler;
 
+use Override;
+use PDO;
 use Phel\Shared\CompileOptions;
 use PhelTest\Support\Fixtures\PhpInterop\QualifiedMemberFixture;
 
+use function class_alias;
+use function class_exists;
+use function define;
+use function defined;
 use function sprintf;
 
 final class QualifiedMemberValueRuntimeTest extends AbstractCompilerRuntimeTestCase
 {
     private const string FIXTURE = '\\' . QualifiedMemberFixture::class;
+
+    private const string HOST_COLLISION = 'PHEL_TEST_RUNTIME_CLASS_CONSTANT_COLLISION';
+
+    private const int HOST_CONSTANT_VALUE = 43;
+
+    #[Override]
+    public static function setUpBeforeClass(): void
+    {
+        parent::setUpBeforeClass();
+
+        if (!class_exists(self::HOST_COLLISION, false)) {
+            self::assertTrue(class_alias(QualifiedMemberFixture::class, self::HOST_COLLISION));
+        }
+
+        if (!defined(self::HOST_COLLISION)) {
+            define(self::HOST_COLLISION, self::HOST_CONSTANT_VALUE);
+        }
+    }
 
     public function test_a_static_method_is_usable_as_a_value(): void
     {
@@ -76,5 +100,48 @@ final class QualifiedMemberValueRuntimeTest extends AbstractCompilerRuntimeTestC
         );
 
         self::assertSame('fixture', $result);
+    }
+
+    public function test_an_all_caps_class_works_in_both_static_constant_spellings(): void
+    {
+        $qualified = $this->compilerFacade->eval(
+            self::HOST_COLLISION . '/LABEL',
+            new CompileOptions(),
+        );
+        $dot = $this->compilerFacade->eval(
+            '(.-LABEL ' . self::HOST_COLLISION . ')',
+            new CompileOptions(),
+        );
+
+        self::assertSame('fixture', $qualified);
+        self::assertSame('fixture', $dot);
+    }
+
+    public function test_a_class_wins_over_a_same_named_global_constant(): void
+    {
+        $class = $this->compilerFacade->eval(
+            '(identity ' . self::HOST_COLLISION . ')',
+            new CompileOptions(),
+        );
+        $constant = $this->compilerFacade->eval(
+            'php/' . self::HOST_COLLISION,
+            new CompileOptions(),
+        );
+
+        self::assertSame(self::HOST_COLLISION, $class);
+        self::assertSame(self::HOST_CONSTANT_VALUE, $constant);
+    }
+
+    public function test_pdo_class_constants_need_no_leading_backslash(): void
+    {
+        if (!class_exists(PDO::class)) {
+            self::markTestSkipped('The PDO extension is not available.');
+        }
+
+        $qualified = $this->compilerFacade->eval('PDO/ATTR_ERRMODE', new CompileOptions());
+        $dot = $this->compilerFacade->eval('(.-ATTR_ERRMODE PDO)', new CompileOptions());
+
+        self::assertSame(PDO::ATTR_ERRMODE, $qualified);
+        self::assertSame(PDO::ATTR_ERRMODE, $dot);
     }
 }
