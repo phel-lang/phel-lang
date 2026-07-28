@@ -36,7 +36,7 @@ The facade is production surface only. `NreplFactory::createOpDispatcher()` stay
 - `Domain/Session/` — `Session`, `SessionRegistry`
 - `Domain/Transport/` — `ClientConnection`
 - `Application/Op/` — one class per op (+ `EvalResultResponder`)
-- `Infrastructure/` — `NreplSocketServer`, `ClientFiberPool`, `Command/NreplCommand`
+- `Infrastructure/` — `NreplSocketServer`, `ClientFiberPool`, `NreplPortFile`, `Command/NreplCommand`
 
 ## Key Constraints
 
@@ -48,3 +48,4 @@ The facade is production surface only. `NreplFactory::createOpDispatcher()` stay
 - `Session` tracks id, namespace, and a 3-deep value ring (`value(1..3)`; `lastValue()` is `value(1)`). `EvalResultResponder` surfaces it as `*1`/`*2`/`*3` in each successful eval response (session-scoped; absent for session-less evals). `*e` stays REPL-only.
 - `EvalResultResponder` syncs the session namespace from the compiler's `GlobalEnvironment` after every eval (same source of truth as the terminal REPL prompt), so the `ns` response field — which editor clients use for their prompt — tracks `(ns ...)`/`in-ns` forms. The `ns` is also attached to eval error frames, and `EvalOp` answers empty `code` with a no-op `done` frame carrying the `ns`: clients (CIDER's `cider-repl-init-code`) prime their initial prompt namespace from the first eval response on connect, whatever its outcome.
 - `NreplSocketServer::run(int $maxIterations = 0)` bounds test runs; `0` = unbounded.
+- `NreplCommand` writes the bound port to `.nrepl-port` in the working directory (the Clojure-standard discovery file editors read) once the socket is listening, so `--port=0` records the real port. It is removed on every exit path: `finally` around `run()`, a `register_shutdown_function` backstop for fatal exits, and SIGINT/SIGTERM handlers that call `stop()` so the accept loop returns (no-op without ext-pcntl, i.e. on Windows). `NreplPortFile::delete()` only removes a file the same instance wrote, so a server that failed before writing never deletes the file another server is advertising.

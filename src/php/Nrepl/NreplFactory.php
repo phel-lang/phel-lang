@@ -18,6 +18,7 @@ use Phel\Nrepl\Application\Op\ReloadOp;
 use Phel\Nrepl\Application\Op\RunTestsOp;
 use Phel\Nrepl\Domain\Op\OpDispatcher;
 use Phel\Nrepl\Domain\Session\SessionRegistry;
+use Phel\Nrepl\Infrastructure\NreplPortFile;
 use Phel\Nrepl\Infrastructure\NreplSocketServer;
 use Phel\Shared\Facade\ApiFacadeInterface;
 use Phel\Shared\Facade\CompilerFacadeInterface;
@@ -46,6 +47,11 @@ final class NreplFactory extends AbstractFactory
             $host,
             $logger,
         );
+    }
+
+    public function createPortFile(string $directory): NreplPortFile
+    {
+        return new NreplPortFile($directory);
     }
 
     public function createOpDispatcher(): OpDispatcher

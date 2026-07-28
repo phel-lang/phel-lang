@@ -46,3 +46,4 @@ agnostic-ai.local.yaml
 .agents/
 /CLAUDE.md
 /AGENTS.md
+/.nrepl-port
