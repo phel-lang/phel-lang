@@ -1,7 +1,7 @@
-(ns todo-app\handlers
-  (:require phel\http :as h)
-  (:require phel\json :as json)
-  (:require todo-app\store :as s))
+(ns todo-app.handlers
+  (:require phel.http :as h)
+  (:require phel.json :as json)
+  (:require todo-app.store :as s))
 
 (defn- json-response [status data]
   (h/response-from-map

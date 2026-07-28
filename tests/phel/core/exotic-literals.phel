@@ -1,5 +1,5 @@
 (ns phel-test.core.exotic-literals
-  (:require phel\test :refer [deftest is]))
+  (:require phel.test :refer [deftest is]))
 
 (defn- make-inst [] #inst"2024-01-15T10:30:00Z")
 

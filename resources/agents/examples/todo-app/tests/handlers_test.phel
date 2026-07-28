@@ -1,9 +1,9 @@
-(ns tests\handlers-test
-  (:require phel\test :refer [deftest is use-fixtures])
-  (:require phel\http :as h)
-  (:require phel\json :as json)
-  (:require todo-app\store :as s)
-  (:require todo-app\handlers :as hdl))
+(ns tests.handlers-test
+  (:require phel.test :refer [deftest is use-fixtures])
+  (:require phel.http :as h)
+  (:require phel.json :as json)
+  (:require todo-app.store :as s)
+  (:require todo-app.handlers :as hdl))
 
 (use-fixtures :each
   (fn [t]

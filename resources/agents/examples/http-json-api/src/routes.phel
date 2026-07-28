@@ -1,6 +1,6 @@
-(ns http-json-api\routes
-  (:require phel\router :as r)
-  (:require http-json-api\handlers :as h))
+(ns http-json-api.routes
+  (:require phel.router :as r)
+  (:require http-json-api.handlers :as h))
 
 (def app-router
   (r/router

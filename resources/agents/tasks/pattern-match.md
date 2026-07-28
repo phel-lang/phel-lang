@@ -16,8 +16,8 @@ Each pattern is a vector whose length must equal the target count.
 ## Basic example
 
 ```phel
-(ns my-app\main
-  (:require phel\match :refer [match]))
+(ns my-app.main
+  (:require phel.match :refer [match]))
 
 (defn describe [x]
   (match [x]

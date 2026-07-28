@@ -3,4 +3,4 @@
 
 require __DIR__ . '/../vendor/autoload.php';
 
-\Phel::run(__DIR__ . '/..', 'cli-wordcount\\main', array_slice($argv, 1));
+\Phel::run(__DIR__ . '/..', 'cli-wordcount.main', array_slice($argv, 1));

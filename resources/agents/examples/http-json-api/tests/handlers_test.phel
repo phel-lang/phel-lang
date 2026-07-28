@@ -1,8 +1,8 @@
-(ns tests\handlers-test
-  (:require phel\test :refer [deftest is])
-  (:require phel\http :as h)
-  (:require phel\json :as json)
-  (:require http-json-api\handlers :as hdl))
+(ns tests.handlers-test
+  (:require phel.test :refer [deftest is])
+  (:require phel.http :as h)
+  (:require phel.json :as json)
+  (:require http-json-api.handlers :as hdl))
 
 (defn- body-of [resp] (json/decode (get resp :body)))
 

@@ -102,7 +102,7 @@ final class InitCommandTest extends TestCase
         $configContent = (string) file_get_contents($this->testDir . '/phel-config.php');
 
         self::assertStringContainsString('PhelConfig::forProject(ProjectLayout::Root)', $configContent);
-        self::assertStringContainsString("->withMainPhelNamespace('sandbox\\main')", $configContent);
+        self::assertStringContainsString("->withMainPhelNamespace('sandbox.main')", $configContent);
     }
 
     public function test_minimal_main_file_uses_main_namespace(): void
@@ -118,7 +118,7 @@ final class InitCommandTest extends TestCase
 
         $mainContent = (string) file_get_contents($this->testDir . '/main.phel');
 
-        self::assertStringContainsString('(ns sandbox\\main)', $mainContent);
+        self::assertStringContainsString('(ns sandbox.main)', $mainContent);
         self::assertStringContainsString('(defn greet [name]', $mainContent);
     }
 
@@ -135,8 +135,8 @@ final class InitCommandTest extends TestCase
 
         $testContent = (string) file_get_contents($this->testDir . '/main_test.phel');
 
-        self::assertStringContainsString('(ns sandbox\\main-test', $testContent);
-        self::assertStringContainsString('sandbox\\main :refer [greet]', $testContent);
+        self::assertStringContainsString('(ns sandbox.main-test', $testContent);
+        self::assertStringContainsString('sandbox.main :refer [greet]', $testContent);
         self::assertStringContainsString('deftest test-greet', $testContent);
     }
 
@@ -202,9 +202,9 @@ final class InitCommandTest extends TestCase
         self::assertStringContainsString('use Phel\\Config\\PhelConfig;', $configContent);
         self::assertStringContainsString('use Phel\\Config\\ProjectLayout;', $configContent);
         self::assertStringContainsString('PhelConfig::forProject(ProjectLayout::Flat)', $configContent);
-        self::assertStringContainsString("->withMainPhelNamespace('myapp\\main')", $configContent);
+        self::assertStringContainsString("->withMainPhelNamespace('myapp.main')", $configContent);
         // New projects ship -O2 as an active chained call, not the commented hint (#2631).
-        self::assertStringContainsString("->withMainPhelNamespace('myapp\\main')\n    ->withOptimizationLevel(2);", $configContent);
+        self::assertStringContainsString("->withMainPhelNamespace('myapp.main')\n    ->withOptimizationLevel(2);", $configContent);
     }
 
     public function test_generated_config_uses_nested_layout(): void
@@ -221,7 +221,7 @@ final class InitCommandTest extends TestCase
         $configContent = (string) file_get_contents($this->testDir . '/phel-config.php');
 
         self::assertStringContainsString('PhelConfig::forProject(ProjectLayout::Nested)', $configContent);
-        self::assertStringContainsString("->withMainPhelNamespace('testproject\\main')", $configContent);
+        self::assertStringContainsString("->withMainPhelNamespace('testproject.main')", $configContent);
     }
 
     public function test_generated_main_file_contains_namespace(): void
@@ -234,7 +234,7 @@ final class InitCommandTest extends TestCase
 
         $mainContent = file_get_contents($this->testDir . '/src/main.phel');
 
-        self::assertStringContainsString('(ns myapp\\main)', (string) $mainContent);
+        self::assertStringContainsString('(ns myapp.main)', (string) $mainContent);
         self::assertStringContainsString('(defn main []', (string) $mainContent);
         self::assertStringContainsString('greet', (string) $mainContent);
     }
@@ -283,10 +283,10 @@ final class InitCommandTest extends TestCase
 
         $configContent = (string) file_get_contents($this->testDir . '/phel-config.php');
         self::assertStringContainsString('PhelConfig::forProject(ProjectLayout::Flat)', $configContent);
-        self::assertStringContainsString("->withMainPhelNamespace('app\\main')", $configContent);
+        self::assertStringContainsString("->withMainPhelNamespace('app.main')", $configContent);
 
         $mainContent = file_get_contents($this->testDir . '/src/main.phel');
-        self::assertStringContainsString('(ns app\\main)', (string) $mainContent);
+        self::assertStringContainsString('(ns app.main)', (string) $mainContent);
     }
 
     public function test_namespace_conversion_removes_hyphens(): void
@@ -299,7 +299,7 @@ final class InitCommandTest extends TestCase
 
         $mainContent = file_get_contents($this->testDir . '/src/main.phel');
 
-        self::assertStringContainsString('(ns mycoolapp\\main)', (string) $mainContent);
+        self::assertStringContainsString('(ns mycoolapp.main)', (string) $mainContent);
     }
 
     public function test_gitignore_contains_standard_entries(): void
@@ -456,14 +456,14 @@ final class InitCommandTest extends TestCase
         self::assertFileExists($this->testDir . '/composer.json');
 
         $entry = (string) file_get_contents($this->testDir . '/src/entry.phel');
-        self::assertStringContainsString('(ns my-api\\entry', $entry);
+        self::assertStringContainsString('(ns my-api.entry', $entry);
         self::assertStringNotContainsString('http-json-api', $entry);
 
         $composer = (string) file_get_contents($this->testDir . '/composer.json');
         self::assertStringContainsString('my-api', $composer);
 
         $index = (string) file_get_contents($this->testDir . '/public/index.php');
-        self::assertStringContainsString("'my-api\\\\entry'", $index);
+        self::assertStringContainsString("'my-api.entry'", $index);
     }
 
     /**

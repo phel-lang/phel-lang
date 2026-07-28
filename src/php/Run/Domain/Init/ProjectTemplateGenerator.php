@@ -59,7 +59,7 @@ PHEL;
 
         return <<<PHEL
 (ns {$testNamespace}
-  (:require phel\\test :refer [deftest is])
+  (:require phel.test :refer [deftest is])
   (:require {$namespace} :refer [greet]))
 
 (deftest test-greet

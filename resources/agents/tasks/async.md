@@ -5,8 +5,8 @@
 ## Basic
 
 ```phel
-(ns my-app\main
-  (:require phel\async :refer [async await delay future]))
+(ns my-app.main
+  (:require phel.async :refer [async await delay future]))
 
 (defn fetch-slow [url]
   (delay 200)                          ; simulate latency

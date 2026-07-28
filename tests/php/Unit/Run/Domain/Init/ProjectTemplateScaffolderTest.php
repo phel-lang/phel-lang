@@ -40,7 +40,7 @@ final class ProjectTemplateScaffolderTest extends TestCase
         self::assertArrayHasKey('composer.json', $files);
 
         $main = $files['src/main.phel'];
-        self::assertStringContainsString('(ns my-tool\\main', $main);
+        self::assertStringContainsString('(ns my-tool.main', $main);
         self::assertStringNotContainsString('cli-wordcount', $main);
         self::assertStringContainsString('my-tool', $files['composer.json']);
     }
@@ -49,7 +49,7 @@ final class ProjectTemplateScaffolderTest extends TestCase
     {
         $files = $this->scaffolder->files('cli-wordcount', 'My Cool API!');
 
-        self::assertStringContainsString('(ns my-cool-api\\main', $files['src/main.phel']);
+        self::assertStringContainsString('(ns my-cool-api.main', $files['src/main.phel']);
     }
 
     public function test_files_throws_for_unknown_template(): void

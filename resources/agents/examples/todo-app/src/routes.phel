@@ -1,6 +1,6 @@
-(ns todo-app\routes
-  (:require phel\router :as r)
-  (:require todo-app\handlers :as h))
+(ns todo-app.routes
+  (:require phel.router :as r)
+  (:require todo-app.handlers :as h))
 
 (defn- logging-mw [handler request]
   (let [response (handler request)]
