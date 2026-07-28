@@ -121,6 +121,118 @@ final class NreplServerTest extends TestCase
 
     #[RunInSeparateProcess]
     #[PreserveGlobalState(false)]
+    public function test_eval_response_reports_the_current_namespace_after_an_ns_form(): void
+    {
+        Phel::bootstrap(__DIR__);
+        Phel::clear();
+        Symbol::resetGen();
+        GlobalEnvironmentSingleton::initializeNew();
+
+        $facade = new NreplFacade();
+        $facade->loadPhelNamespaces();
+
+        $server = $facade->createSocketServer(0, '127.0.0.1');
+        $server->start();
+
+        $client = @stream_socket_client(
+            sprintf('tcp://127.0.0.1:%d', $server->port()),
+            $errno,
+            $errstr,
+            2.0,
+        );
+        if ($client === false) {
+            $server->stop();
+            self::fail(sprintf('Could not connect to server: %s', $errstr));
+        }
+
+        stream_set_blocking($client, false);
+        stream_set_timeout($client, 2);
+
+        $encoder = new BencodeEncoder();
+        $decoder = new BencodeStreamDecoder();
+
+        $this->writeMessage($client, $encoder->encode(['op' => 'clone', 'id' => 'c1']));
+        $this->pump($server);
+        $clone = $this->readUntil($client, $decoder, $server, 1);
+        $sessionId = $clone[0]['new-session'];
+
+        // Editors send an empty init eval on connect to prime their
+        // namespace state from the response: it is a no-op that must still
+        // report the current `ns`, or the client's prompt stays unset.
+        $this->writeMessage($client, $encoder->encode([
+            'op' => 'eval',
+            'id' => 'init',
+            'session' => $sessionId,
+            'code' => '',
+        ]));
+        $this->pump($server);
+        $init = $this->readUntil($client, $decoder, $server, 1);
+        self::assertCount(1, $init);
+        self::assertSame('user', $init[0]['ns']);
+        self::assertSame(['done'], $init[0]['status']);
+
+        // A failed eval reports the current namespace too, so a client can
+        // initialize its prompt even when the first eval errors (CIDER's
+        // default Clojure init code does not evaluate under Phel).
+        $this->writeMessage($client, $encoder->encode([
+            'op' => 'eval',
+            'id' => 'err',
+            'session' => $sessionId,
+            'code' => '(clojure.core/require @foo)',
+        ]));
+        $this->pump($server);
+        $error = $this->readUntil($client, $decoder, $server, 2);
+        self::assertSame('user', $error[0]['ns']);
+        self::assertContains('eval-error', $error[0]['status']);
+
+        // The session starts in the `user` namespace.
+        $this->writeMessage($client, $encoder->encode([
+            'op' => 'eval',
+            'id' => 'e1',
+            'session' => $sessionId,
+            'code' => '(+ 1 2)',
+        ]));
+        $this->pump($server);
+        $first = $this->readUntil($client, $decoder, $server, 2);
+        $firstValue = $this->firstWithKey($first, 'value');
+        self::assertNotNull($firstValue);
+        self::assertSame('user', $firstValue['ns']);
+
+        // Switching namespaces must be reflected in the `ns` response field,
+        // which editor clients use to render the prompt.
+        $this->writeMessage($client, $encoder->encode([
+            'op' => 'eval',
+            'id' => 'e2',
+            'session' => $sessionId,
+            'code' => '(ns foo)',
+        ]));
+        $this->pump($server);
+        $nsSwitch = $this->readUntil($client, $decoder, $server, 2);
+        $nsValue = $this->firstWithKey($nsSwitch, 'value');
+        self::assertNotNull($nsValue);
+        self::assertSame('foo', $nsValue['ns']);
+
+        // ... and it sticks for subsequent evals in the same session.
+        $this->writeMessage($client, $encoder->encode([
+            'op' => 'eval',
+            'id' => 'e3',
+            'session' => $sessionId,
+            'code' => '*ns*',
+        ]));
+        $this->pump($server);
+        $after = $this->readUntil($client, $decoder, $server, 2);
+        $afterValue = $this->firstWithKey($after, 'value');
+        self::assertNotNull($afterValue);
+        self::assertSame('foo', $afterValue['ns']);
+        // Readable printing keeps the quotes around the string value.
+        self::assertSame('"foo"', $afterValue['value']);
+
+        fclose($client);
+        $server->stop();
+    }
+
+    #[RunInSeparateProcess]
+    #[PreserveGlobalState(false)]
     public function test_it_returns_lookup_info_for_session_defined_symbols(): void
     {
         Phel::bootstrap(__DIR__);

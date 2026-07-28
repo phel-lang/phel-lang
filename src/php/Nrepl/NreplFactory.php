@@ -20,6 +20,7 @@ use Phel\Nrepl\Domain\Op\OpDispatcher;
 use Phel\Nrepl\Domain\Session\SessionRegistry;
 use Phel\Nrepl\Infrastructure\NreplSocketServer;
 use Phel\Shared\Facade\ApiFacadeInterface;
+use Phel\Shared\Facade\CompilerFacadeInterface;
 use Phel\Shared\Facade\RunFacadeInterface;
 use Phel\Shared\Printer\Printer;
 use Phel\Shared\Printer\PrinterInterface;
@@ -50,7 +51,7 @@ final class NreplFactory extends AbstractFactory
     public function createOpDispatcher(): OpDispatcher
     {
         $sessions = $this->createSessionRegistry();
-        $responder = new EvalResultResponder($this->createPrinter(), $sessions);
+        $responder = new EvalResultResponder($this->createPrinter(), $sessions, $this->getCompilerFacade());
         $dispatcher = new OpDispatcher();
 
         $dispatcher->register(new CloneOp($sessions));
@@ -86,6 +87,11 @@ final class NreplFactory extends AbstractFactory
     public function getRunFacade(): RunFacadeInterface
     {
         return $this->getProvidedDependency(RunFacadeInterface::class);
+    }
+
+    public function getCompilerFacade(): CompilerFacadeInterface
+    {
+        return $this->getProvidedDependency(CompilerFacadeInterface::class);
     }
 
     public function getApiFacade(): ApiFacadeInterface

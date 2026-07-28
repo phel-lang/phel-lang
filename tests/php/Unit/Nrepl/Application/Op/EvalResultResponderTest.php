@@ -4,11 +4,13 @@ declare(strict_types=1);
 
 namespace PhelTest\Unit\Nrepl\Application\Op;
 
+use Phel\Compiler\Domain\Analyzer\Environment\GlobalEnvironmentInterface;
 use Phel\Nrepl\Application\Op\EvalResultResponder;
 use Phel\Nrepl\Domain\Op\OpRequest;
 use Phel\Nrepl\Domain\Session\SessionRegistry;
 use Phel\Shared\Eval\EvalError;
 use Phel\Shared\Eval\EvalResult;
+use Phel\Shared\Facade\CompilerFacadeInterface;
 use Phel\Shared\Printer\PrinterInterface;
 use PHPUnit\Framework\TestCase;
 
@@ -16,12 +18,9 @@ final class EvalResultResponderTest extends TestCase
 {
     public function test_success_emits_value_and_done_and_records_session_value(): void
     {
-        $printer = $this->createStub(PrinterInterface::class);
-        $printer->method('print')->willReturn('42');
-
         $registry = new SessionRegistry();
         $session = $registry->create();
-        $responder = new EvalResultResponder($printer, $registry);
+        $responder = new EvalResultResponder($this->printerReturning('42'), $registry, $this->uninitializedCompiler());
 
         $responses = $responder->respond(
             new OpRequest('eval', 'req-1', $session->id, []),
@@ -36,12 +35,74 @@ final class EvalResultResponderTest extends TestCase
         self::assertSame(42, $session->lastValue());
     }
 
+    public function test_success_syncs_session_namespace_from_global_environment(): void
+    {
+        $registry = new SessionRegistry();
+        $session = $registry->create();
+        $responder = new EvalResultResponder($this->printerReturning('nil'), $registry, $this->compilerInNamespace('foo.bar'));
+
+        $responses = $responder->respond(
+            new OpRequest('eval', 'req-1', $session->id, []),
+            EvalResult::success(null),
+            'fallback',
+        );
+
+        self::assertSame('foo.bar', $responses[0]->payload['ns']);
+        self::assertSame('foo.bar', $session->namespace());
+    }
+
+    public function test_success_normalizes_backslash_namespace_to_display_form(): void
+    {
+        $registry = new SessionRegistry();
+        $session = $registry->create();
+        $responder = new EvalResultResponder($this->printerReturning('nil'), $registry, $this->compilerInNamespace('foo\\bar-baz'));
+
+        $responses = $responder->respond(
+            new OpRequest('eval', 'req-1', $session->id, []),
+            EvalResult::success(null),
+            'fallback',
+        );
+
+        self::assertSame('foo.bar-baz', $responses[0]->payload['ns']);
+    }
+
+    public function test_uninitialized_environment_leaves_session_namespace_untouched(): void
+    {
+        $registry = new SessionRegistry();
+        $session = $registry->create();
+        $responder = new EvalResultResponder($this->printerReturning('nil'), $registry, $this->uninitializedCompiler());
+
+        $responses = $responder->respond(
+            new OpRequest('eval', 'req-1', $session->id, []),
+            EvalResult::success(null),
+            'fallback',
+        );
+
+        self::assertSame('user', $responses[0]->payload['ns']);
+        self::assertSame('user', $session->namespace());
+    }
+
+    public function test_empty_environment_namespace_leaves_session_namespace_untouched(): void
+    {
+        $registry = new SessionRegistry();
+        $session = $registry->create();
+        $session->setNamespace('foo');
+
+        $responder = new EvalResultResponder($this->printerReturning('nil'), $registry, $this->compilerInNamespace(''));
+
+        $responses = $responder->respond(
+            new OpRequest('eval', 'req-1', $session->id, []),
+            EvalResult::success(null),
+            'fallback',
+        );
+
+        self::assertSame('foo', $responses[0]->payload['ns']);
+        self::assertSame('foo', $session->namespace());
+    }
+
     public function test_success_uses_user_namespace_when_session_missing(): void
     {
-        $printer = $this->createStub(PrinterInterface::class);
-        $printer->method('print')->willReturn('nil');
-
-        $responder = new EvalResultResponder($printer, new SessionRegistry());
+        $responder = new EvalResultResponder($this->printerReturning('nil'), new SessionRegistry(), $this->uninitializedCompiler());
 
         $responses = $responder->respond(
             new OpRequest('eval', null, null, []),
@@ -59,7 +120,7 @@ final class EvalResultResponderTest extends TestCase
 
         $registry = new SessionRegistry();
         $session = $registry->create();
-        $responder = new EvalResultResponder($printer, $registry);
+        $responder = new EvalResultResponder($printer, $registry, $this->uninitializedCompiler());
 
         $responder->respond(new OpRequest('eval', 'r1', $session->id, []), EvalResult::success(1), 'fallback');
         $responder->respond(new OpRequest('eval', 'r2', $session->id, []), EvalResult::success(2), 'fallback');
@@ -74,10 +135,7 @@ final class EvalResultResponderTest extends TestCase
 
     public function test_no_history_keys_without_a_session(): void
     {
-        $printer = $this->createStub(PrinterInterface::class);
-        $printer->method('print')->willReturn('nil');
-
-        $responder = new EvalResultResponder($printer, new SessionRegistry());
+        $responder = new EvalResultResponder($this->printerReturning('nil'), new SessionRegistry(), $this->uninitializedCompiler());
 
         $responses = $responder->respond(
             new OpRequest('eval', null, null, []),
@@ -90,10 +148,7 @@ final class EvalResultResponderTest extends TestCase
 
     public function test_success_prepends_out_frame_when_output_present(): void
     {
-        $printer = $this->createStub(PrinterInterface::class);
-        $printer->method('print')->willReturn('nil');
-
-        $responder = new EvalResultResponder($printer, new SessionRegistry());
+        $responder = new EvalResultResponder($this->printerReturning('nil'), new SessionRegistry(), $this->uninitializedCompiler());
 
         $responses = $responder->respond(
             new OpRequest('eval', null, null, []),
@@ -110,6 +165,7 @@ final class EvalResultResponderTest extends TestCase
         $responder = new EvalResultResponder(
             $this->createStub(PrinterInterface::class),
             new SessionRegistry(),
+            $this->uninitializedCompiler(),
         );
 
         $responses = $responder->respond(
@@ -123,31 +179,42 @@ final class EvalResultResponderTest extends TestCase
         self::assertContains('done', $responses[0]->payload['status']);
     }
 
+    public function test_incomplete_leaves_the_session_namespace_alone(): void
+    {
+        $registry = new SessionRegistry();
+        $session = $registry->create();
+        $responder = new EvalResultResponder(
+            $this->createStub(PrinterInterface::class),
+            $registry,
+            $this->compilerInNamespace('foo.bar'),
+        );
+
+        $responses = $responder->respond(
+            new OpRequest('eval', 'req-1', $session->id, []),
+            EvalResult::incomplete(),
+            'fallback',
+        );
+
+        self::assertCount(1, $responses);
+        self::assertArrayNotHasKey('ns', $responses[0]->payload);
+        self::assertSame(
+            'user',
+            $session->namespace(),
+            'an unfinished form is restored by the evaluator, so the session must not record a namespace from it',
+        );
+    }
+
     public function test_failure_uses_fallback_message_when_no_error_attached(): void
     {
         $responder = new EvalResultResponder(
             $this->createStub(PrinterInterface::class),
             new SessionRegistry(),
-        );
-
-        $error = new EvalError(
-            exceptionClass: 'CustomException',
-            message: 'real message',
-            errorCode: null,
-            file: null,
-            line: null,
-            column: null,
-            endLine: null,
-            endColumn: null,
-            codeSnippet: null,
-            stackTrace: '',
-            phase: 'compile',
-            frames: [],
+            $this->uninitializedCompiler(),
         );
 
         $responses = $responder->respond(
             new OpRequest('eval', 'req-1', null, []),
-            EvalResult::failure($error),
+            EvalResult::failure($this->evalError('CustomException', 'real message')),
             'fallback',
         );
 
@@ -157,29 +224,86 @@ final class EvalResultResponderTest extends TestCase
         self::assertStringContainsString('real message', (string) $responses[0]->payload['err']);
     }
 
+    public function test_failure_frame_carries_the_current_namespace(): void
+    {
+        $registry = new SessionRegistry();
+        $session = $registry->create();
+        $responder = new EvalResultResponder(
+            $this->createStub(PrinterInterface::class),
+            $registry,
+            $this->compilerInNamespace('foo'),
+        );
+
+        $responses = $responder->respond(
+            new OpRequest('eval', 'req-1', $session->id, []),
+            EvalResult::failure($this->evalError()),
+            'fallback',
+        );
+
+        self::assertSame('foo', $responses[0]->payload['ns']);
+        self::assertSame('foo', $session->namespace());
+    }
+
+    public function test_empty_code_replies_done_with_the_session_namespace(): void
+    {
+        $registry = new SessionRegistry();
+        $session = $registry->create();
+        $session->setNamespace('foo');
+
+        $responder = new EvalResultResponder(
+            $this->createStub(PrinterInterface::class),
+            $registry,
+            $this->uninitializedCompiler(),
+        );
+
+        $responses = $responder->respondEmptyCode(new OpRequest('eval', 'req-1', $session->id, []));
+
+        self::assertCount(1, $responses);
+        self::assertSame('foo', $responses[0]->payload['ns']);
+        self::assertSame(['done'], $responses[0]->payload['status']);
+    }
+
+    public function test_empty_code_syncs_the_namespace_from_the_environment(): void
+    {
+        $registry = new SessionRegistry();
+        $session = $registry->create();
+
+        $responder = new EvalResultResponder(
+            $this->createStub(PrinterInterface::class),
+            $registry,
+            $this->compilerInNamespace('foo.bar'),
+        );
+
+        $responses = $responder->respondEmptyCode(new OpRequest('eval', 'req-1', $session->id, []));
+
+        self::assertSame('foo.bar', $responses[0]->payload['ns']);
+        self::assertSame('foo.bar', $session->namespace());
+    }
+
+    public function test_empty_code_without_a_session_reports_the_user_namespace(): void
+    {
+        $responder = new EvalResultResponder(
+            $this->createStub(PrinterInterface::class),
+            new SessionRegistry(),
+            $this->uninitializedCompiler(),
+        );
+
+        $responses = $responder->respondEmptyCode(new OpRequest('eval', 'req-1', null, []));
+
+        self::assertSame('user', $responses[0]->payload['ns']);
+    }
+
     public function test_failure_with_filename_embeds_filename_in_err_message(): void
     {
         $responder = new EvalResultResponder(
             $this->createStub(PrinterInterface::class),
             new SessionRegistry(),
+            $this->uninitializedCompiler(),
         );
 
         $responses = $responder->respond(
             new OpRequest('load-file', 'req-1', null, []),
-            EvalResult::failure(new EvalError(
-                exceptionClass: 'E',
-                message: 'boom',
-                errorCode: null,
-                file: null,
-                line: null,
-                column: null,
-                endLine: null,
-                endColumn: null,
-                codeSnippet: null,
-                stackTrace: '',
-                phase: 'compile',
-                frames: [],
-            )),
+            EvalResult::failure($this->evalError()),
             'fallback',
             'my.phel',
         );
@@ -194,13 +318,60 @@ final class EvalResultResponderTest extends TestCase
         $responder = new EvalResultResponder(
             $this->createStub(PrinterInterface::class),
             new SessionRegistry(),
+            $this->uninitializedCompiler(),
         );
 
         // An explicit "non-success, non-incomplete, no error" case (defensive);
         // the responder should still produce a two-frame error reply.
-        $failure = EvalResult::failure(new EvalError(
-            exceptionClass: 'Boom',
-            message: 'raw',
+        $responses = $responder->respond(
+            new OpRequest('eval', 'req-1', null, []),
+            EvalResult::failure($this->evalError('Boom', 'raw')),
+            'fallback',
+        );
+
+        self::assertCount(2, $responses);
+        self::assertContains('eval-error', $responses[0]->payload['status']);
+        self::assertContains('done', $responses[1]->payload['status']);
+    }
+
+    private function printerReturning(string $value): PrinterInterface
+    {
+        $printer = $this->createStub(PrinterInterface::class);
+        $printer->method('print')->willReturn($value);
+
+        return $printer;
+    }
+
+    /**
+     * A compiler facade whose global environment is initialized and sits in
+     * the given namespace — what the responder mirrors into the session.
+     */
+    private function compilerInNamespace(string $ns): CompilerFacadeInterface
+    {
+        $env = $this->createStub(GlobalEnvironmentInterface::class);
+        $env->method('getNs')->willReturn($ns);
+
+        $compiler = $this->createStub(CompilerFacadeInterface::class);
+        $compiler->method('isGlobalEnvironmentInitialized')->willReturn(true);
+        $compiler->method('getGlobalEnvironment')->willReturn($env);
+
+        return $compiler;
+    }
+
+    /**
+     * A compiler facade with no global environment yet: the responder must
+     * fall back to whatever namespace the session already knows.
+     */
+    private function uninitializedCompiler(): CompilerFacadeInterface
+    {
+        return $this->createStub(CompilerFacadeInterface::class);
+    }
+
+    private function evalError(string $exceptionClass = 'E', string $message = 'boom'): EvalError
+    {
+        return new EvalError(
+            exceptionClass: $exceptionClass,
+            message: $message,
             errorCode: null,
             file: null,
             line: null,
@@ -211,16 +382,6 @@ final class EvalResultResponderTest extends TestCase
             stackTrace: '',
             phase: 'compile',
             frames: [],
-        ));
-
-        $responses = $responder->respond(
-            new OpRequest('eval', 'req-1', null, []),
-            $failure,
-            'fallback',
         );
-
-        self::assertCount(2, $responses);
-        self::assertContains('eval-error', $responses[0]->payload['status']);
-        self::assertContains('done', $responses[1]->payload['status']);
     }
 }
