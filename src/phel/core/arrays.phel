@@ -31,7 +31,7 @@
   (let [cnt (php/count xs)
         res (php/array)]
     (if (php/=== 1 (php/% cnt 2))
-      (throw (php/new InvalidArgumentException "An even number of parameters must be provided for 'php-associative-array'")))
+      (throw (new InvalidArgumentException "An even number of parameters must be provided for 'php-associative-array'")))
     (loop [i 0]
       (if (php/< i cnt)
         (do
@@ -50,7 +50,7 @@
   [size-or-seq]
   (if (php/is_int size-or-seq)
     (if (php/< size-or-seq 0)
-      (throw (php/new InvalidArgumentException "Size for 'object-array' must be non-negative"))
+      (throw (new InvalidArgumentException "Size for 'object-array' must be non-negative"))
       (if (php/=== 0 size-or-seq)
         (php/array)
         (php/array_fill 0 size-or-seq nil)))
@@ -84,7 +84,7 @@
   [op-name arr]
   (if (php/is_array arr)
     arr
-    (throw (php/new InvalidArgumentException (str op-name " expects a PHP array")))))
+    (throw (new InvalidArgumentException (str op-name " expects a PHP array")))))
 
 (defn aclone
   "Returns a shallow copy of a PHP array. The returned array is a distinct value — mutating the copy via `php/aset` does not affect the original, and vice versa. Matches Clojure's `aclone` for `.cljc` interop; raises `InvalidArgumentException` on non-array inputs since Phel's persistent collections are already immutable and don't need cloning."
@@ -121,7 +121,7 @@
 (defn- typed-array-with-size
   [coerce-fn default size init]
   (if (php/< size 0)
-    (throw (php/new InvalidArgumentException "Array size must be non-negative"))
+    (throw (new InvalidArgumentException "Array size must be non-negative"))
     (if (php/=== 0 size)
       (php/array)
       (if (php/=== nil init)
@@ -207,13 +207,13 @@
   {:example "(let [a (php/array 1 2 3)] (aset a 0 42) (aget a 0)) ; => 42"
    :see-also ["aget" "aclone" "object-array"]}
   [arr idx & more]
-  (let [n   (php/-> more (count))
-        val (php/-> more (get (php/- n 1)))]
+  (let [n   (.count more)
+        val (.get more (php/- n 1))]
     (if (php/=== 1 n)
       `(do (php/aset ~arr ~idx ~val) ~val)
       (let [extra-keys (loop [i  0
                               ks [idx]]
                          (if (php/< i (php/- n 1))
-                           (recur (php/+ i 1) (php/-> ks (push (php/-> more (get i)))))
+                           (recur (php/+ i 1) (.push ks (.get more i)))
                            ks))]
         `(do (php/aset-in ~arr ~extra-keys ~val) ~val)))))

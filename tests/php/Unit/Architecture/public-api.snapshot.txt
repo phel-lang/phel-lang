@@ -1894,6 +1894,11 @@ final readonly class Phel\Shared\Formatter\FormatResult
   public function hasChanges(): bool
   public function hasFailures(): bool
 
+final class Phel\Shared\FrameworkNamespaces
+  public const string CLOJURE_PREFIX = 'clojure.'
+  public const string PHEL_PREFIX = 'phel.'
+  public static function matches(string $namespace): bool
+
 final readonly class Phel\Shared\Interop\Wrapper
   public function __construct(string $relativeFilenamePath, string $compiledPhp)
   public function compiledPhp(): string
@@ -2238,6 +2243,7 @@ final class Phel\Shared\ProjectRootResolver
   public static function resolveFromCwd(string $cwd): string
 
 interface Phel\Shared\ReplConstants
+  public const string INTERACTIVE_MODE = '*interactive-mode*'
   public const string REPL_MODE = '*repl-mode*'
 
 final class Phel\Shared\ResourceUsageFormatter

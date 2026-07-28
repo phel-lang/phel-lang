@@ -94,11 +94,11 @@
     (php/instanceof value \DateTimeInterface) value
     (string? value)
     (try
-      (php/new \DateTimeImmutable value)
+      (new \DateTimeImmutable value)
       (catch \Throwable _ value))
     (int? value)
     (try
-      (php/:: \DateTimeImmutable (createFromFormat "U" (str value)))
+      (\DateTimeImmutable/createFromFormat "U" (str value))
       (catch \Throwable _ value))
     :else                                     value))
 

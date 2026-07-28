@@ -11,6 +11,7 @@ use Phel\Nrepl\Domain\Bencode\BencodeEncoder;
 use Phel\Nrepl\Domain\Bencode\BencodeStreamDecoder;
 use Phel\Nrepl\Infrastructure\NreplSocketServer;
 use Phel\Nrepl\NreplFacade;
+use PhelTest\Support\CapturesCompilerWarningsTrait;
 use PHPUnit\Framework\Attributes\PreserveGlobalState;
 use PHPUnit\Framework\Attributes\RunInSeparateProcess;
 use PHPUnit\Framework\TestCase;
@@ -31,6 +32,13 @@ use function usleep;
 
 final class NreplServerTest extends TestCase
 {
+    use CapturesCompilerWarningsTrait;
+
+    protected function tearDown(): void
+    {
+        $this->stopCapturingCompilerWarnings();
+    }
+
     #[RunInSeparateProcess]
     #[PreserveGlobalState(false)]
     public function test_it_handles_describe_clone_eval_and_close_over_a_live_socket(): void
@@ -172,6 +180,79 @@ final class NreplServerTest extends TestCase
         self::assertSame('user', $info['ns']);
         self::assertSame('(greet n)', $info['arglists-str']);
         self::assertContains('done', $lookup[0]['status']);
+
+        fclose($client);
+        $server->stop();
+    }
+
+    #[RunInSeparateProcess]
+    #[PreserveGlobalState(false)]
+    public function test_a_session_def_beats_an_injected_refer_of_the_same_name(): void
+    {
+        // The nREPL shares the prompt's refer injection
+        // ({@see \Phel\Compiler\Domain\Analyzer\TypeAnalyzer\SpecialForm\ReplReferInjector}),
+        // so it inherited #2897: `doc` resolved to `phel.repl/doc` forever.
+        $this->startCapturingCompilerWarnings();
+        Phel::bootstrap(__DIR__);
+        Phel::clear();
+        Symbol::resetGen();
+        GlobalEnvironmentSingleton::initializeNew();
+
+        $facade = new NreplFacade();
+        $facade->loadPhelNamespaces();
+
+        $server = $facade->createSocketServer(0, '127.0.0.1');
+        $server->start();
+
+        $client = @stream_socket_client(
+            sprintf('tcp://127.0.0.1:%d', $server->port()),
+            $errno,
+            $errstr,
+            2.0,
+        );
+        if ($client === false) {
+            $server->stop();
+            self::fail(sprintf('Could not connect to server: %s', $errstr));
+        }
+
+        stream_set_blocking($client, false);
+        stream_set_timeout($client, 2);
+
+        $encoder = new BencodeEncoder();
+        $decoder = new BencodeStreamDecoder();
+
+        $this->writeMessage($client, $encoder->encode(['op' => 'clone', 'id' => 'c1']));
+        $this->pump($server);
+        $sessionId = $this->readUntil($client, $decoder, $server, 1)[0]['new-session'];
+
+        $this->writeMessage($client, $encoder->encode([
+            'op' => 'eval',
+            'id' => 'e1',
+            'session' => $sessionId,
+            'code' => '(def doc 1) doc',
+        ]));
+        $this->pump($server);
+        $shadowed = $this->readUntil($client, $decoder, $server, 2);
+
+        $value = $this->firstWithKey($shadowed, 'value');
+        self::assertNotNull($value, 'eval response should include a value');
+        self::assertSame('1', $value['value']);
+
+        // A refer the session never redefines still resolves.
+        $this->writeMessage($client, $encoder->encode([
+            'op' => 'eval',
+            'id' => 'e2',
+            'session' => $sessionId,
+            'code' => "(macroexpand-1 '(when true 1))",
+        ]));
+        $this->pump($server);
+        $untouched = $this->firstWithKey($this->readUntil($client, $decoder, $server, 2), 'value');
+        self::assertNotNull($untouched, 'eval response should include a value');
+        self::assertStringContainsString('if', (string) $untouched['value']);
+
+        $captured = $this->capturedCompilerWarnings();
+        self::assertCount(1, $captured);
+        self::assertStringContainsString("doc already refers to: #'phel.repl/doc", $captured[0]);
 
         fclose($client);
         $server->stop();

@@ -135,10 +135,80 @@ a function rather than syntax ([#2881](https://github.com/phel-lang/phel-lang/is
 A receiver the compiler can prove is an object still emits `->`, so only an unprovable
 one carries the runtime test.
 
+### `Class/new` is not a constructor
+
+Clojure 1.12 reads `File/new` in value position as the constructor. Phel does not, and
+`\C/new` keeps meaning the class constant `new`.
+
+PHP 7 lifted the ban on reserved words as member names, so `Foo::new()` is both legal
+and a common named-constructor idiom, and a single class can carry a constant `new` and
+a static method `new` at once. Claiming the name would silently change what existing
+code reads: `(\League\Uri\Urn/new "urn:isbn:1234")` already calls a real `::new()`
+factory, and `league/uri` and `phpbench` both ship one. Java forbids the name outright,
+which is what let Clojure take it safely;
+[Basilisp declined it](https://docs.basilisp.org/en/latest/differencesfromclojure.html#host-interop)
+for the same reason Python does not.
+
+A constructor as a value stays `(fn [x] (new \C x))`. The two safe halves of the Clojure
+1.12 syntax are supported: `\C/m` is a static method as a value and `\C/.m` is an
+instance method as a function of its receiver
+([#2883](https://github.com/phel-lang/phel-lang/issues/2883)).
+
+Where a class carries a constant *and* a static method under one name, the constant
+wins, which is what happened before the value-position forms existed. The shadowed
+method stays reachable in call position, `(\C/m x)`, and as `(fn [x] (\C/m x))`.
+
 This is the one entry the suite does not pin, because no working program can observe it:
 a string receiver was an error before the change and is an error after it, and only the
 message differs. It is listed because the *capability* is a difference a Clojure reader
 will notice, not because a behaviour changed under them.
+
+### `aset` and `set!` are macros, not functions
+
+Clojure's `aset` is a function, so `(map (partial aset arr) …)` and any other
+higher-order use works. Phel's is a **macro**, and so is `set!`.
+
+PHP arrays are value types: a function receiving one receives a copy, so a function
+`aset` would mutate the copy and drop the write. `set!` is a macro for the usual reason
+a place-setting form is: its first argument is a location (`(.-field o)`), not a value.
+
+The practical consequence is that neither can be passed to a higher-order function.
+Where Clojure would use `(partial aset arr)`, wrap it: `(fn [i v] (aset arr i v))`.
+
+### Mutation naming: which forms got Clojure names
+
+`set!` is the one mutating `php/*` form with a Clojure spelling, and it has it
+([#2884](https://github.com/phel-lang/phel-lang/issues/2884)). The rest keep the `php/`
+prefix, deliberately:
+
+| Form | Decision | Why |
+|---|---|---|
+| `php/oset` | `set!` in `phel.core` | Clojure spells this exact operation `(set! (.-field o) v)` |
+| `php/aset`, `php/aget`, `php/aclone`, `php/alength` | core names since [#1411](https://github.com/phel-lang/phel-lang/issues/1411) | same names Clojure uses |
+| `php/apush`, `php/aunset` | stay `php/*` | JVM arrays are fixed size, so Clojure has no counterpart and any core name would be invented. 1.0 freezes whatever ships, so an invented name is the expensive kind of guess; revisit when a concrete need names it |
+| `php/ref`, `php/callable` | stay `php/*` | both take an **unevaluated** form (a variable to reference, a call target), so neither can be a plain function, and both name a host mechanism with no Clojure analogue |
+
+### Var mutation: three operations, three names
+
+Clojure overloads `set!` across a field and a thread-local var binding, and gives root
+mutation its own name. Phel matches that, with one extra name it inherited:
+
+| Operation | Clojure | Phel |
+|---|---|---|
+| assign an object field | `(set! (.-f o) v)` | `(set! (.-f o) v)` |
+| assign the current thread-local binding | `(set! *x* v)` | `(set! *x* v)`, or `(var-set #'*x* v)` |
+| change the root | `(alter-var-root #'*x* f)` | `(alter-var-root #'*x* f)` |
+| *(no Clojure counterpart)* | | `(set-var *x* v)`, a special form that writes the root directly |
+
+`set!` on a symbol writes only the binding frame and **throws when none is active**, so
+it can never change a root by accident, exactly as in Clojure.
+
+`set-var` is the odd one out: it is a special form, it takes a value rather than a
+function, and its name reads like Clojure's `set!` while behaving like
+`alter-var-root`. Whether it gets deprecated in favour of `alter-var-root` is
+[#2888](https://github.com/phel-lang/phel-lang/issues/2888); it is on the closed
+special-form list, so that would be a deprecate-in-1.x, remove-at-2.0 change rather
+than a rename.
 
 ## 7. Absent concepts
 

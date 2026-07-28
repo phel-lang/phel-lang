@@ -33,7 +33,7 @@
   "Starts the file watcher on the given vector of paths. Blocks until the watcher is stopped (e.g. Ctrl+C). Reloads changed namespaces in dependency order and runs any hooks registered with `register-on-reload`."
   {:example "(watch! [\"src/\" \"tests/\"])"}
   [paths & [opts]]
-  (let [facade  (php/new WatchFacade)
+  (let [facade  (new WatchFacade)
         phpOpts (php/array)]
     (when (and opts (get opts :backend))
       (php/aset phpOpts "backend" (get opts :backend)))
@@ -41,5 +41,5 @@
       (php/aset phpOpts "poll" (get opts :poll)))
     (when (and opts (get opts :debounce))
       (php/aset phpOpts "debounce" (get opts :debounce)))
-    (php/-> facade (watch (to-php-array paths) phpOpts))
+    (.watch facade (to-php-array paths) phpOpts)
     nil))

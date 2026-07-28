@@ -6,8 +6,8 @@
 (defstruct plain-point [a b])
 
 (defn- readonly-prop? [class-fqn prop]
-  (let [rp (php/new \ReflectionProperty class-fqn prop)]
-    (php/-> rp (isReadonly))))
+  (let [rp (new \ReflectionProperty class-fqn prop)]
+    (.isReadonly rp)))
 
 (deftest readonly-struct-constructs-and-reads
   (let [p (point 1 2)]

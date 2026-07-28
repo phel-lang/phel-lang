@@ -8,7 +8,7 @@
     (is (nil? (ex-cause ex)) "ex-cause is nil when no cause")))
 
 (deftest test-ex-info-with-cause
-  (let [cause (php/new \Exception "root cause")
+  (let [cause (new \Exception "root cause")
         ex    (ex-info "wrapped" {:code 42} cause)]
     (is (= "wrapped" (ex-message ex)) "ex-message on wrapped exception")
     (is (= {:code 42} (ex-data ex)) "ex-data on wrapped exception")
@@ -31,11 +31,11 @@
       "ex-data works inside catch block"))
 
 (deftest test-ex-data-on-regular-exception
-  (let [ex (php/new \Exception "plain")]
+  (let [ex (new \Exception "plain")]
     (is (nil? (ex-data ex)) "ex-data returns nil for non-ExceptionInfo")))
 
 (deftest test-ex-message-on-regular-exception
-  (let [ex (php/new \Exception "hello")]
+  (let [ex (new \Exception "hello")]
     (is (= "hello" (ex-message ex)) "ex-message works on regular exceptions")))
 
 (deftest test-ex-info-with-empty-data

@@ -39,9 +39,9 @@
         events          (atom [])
         capture         (fn [e] (swap! events conj e))]
     (t/with-isolated-stats
-     (with-output-buffer
-       (t/run-tests {:reporters [capture]} fixture-ns)
-       (t/run-tests {:reporters [capture]} fixture-ns)))
+      (with-output-buffer
+        (t/run-tests {:reporters [capture]} fixture-ns)
+        (t/run-tests {:reporters [capture]} fixture-ns)))
     ;; `run-tests` installs its own reporters, so only the restore is ours.
     (t/set-reporters! saved-reporters)
     (let [summaries (events-of (deref events) :summary)]

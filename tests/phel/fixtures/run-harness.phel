@@ -22,8 +22,8 @@ run's output, restores the outer suite's reporters and stats, and returns
         run-options     (assoc options :reporters
                                (conj (vec (:reporters options)) capture))
         snapshot        (t/with-isolated-stats
-                         (with-output-buffer
-                           (t/run-tests run-options test-ns)))]
+                          (with-output-buffer
+                            (t/run-tests run-options test-ns)))]
     ;; `run-tests` installs its own reporters from `run-options`, so there is
     ;; nothing to hand to `with-isolated-reporters`; only the restore is ours.
     (t/set-reporters! saved-reporters)

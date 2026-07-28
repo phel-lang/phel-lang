@@ -25,32 +25,32 @@
   ;; `AbstractType` already implements `EqualsInterface` via `TypeInterface`,
   ;; so a single instanceof check per side is enough.
   (if (php/instanceof a \Phel\Lang\EqualsInterface)
-    (php/-> a (equals b))
+    (.equals a b)
     (if (php/instanceof b \Phel\Lang\EqualsInterface)
-      (php/-> b (equals a))
+      (.equals b a)
       (php/=== a b))))
 
 (defn- cons-string [x coll]
   (let [result (php/array x)]
     (foreach [char (php/mb_str_split coll)]
       (php/apush result char))
-    (php/:: Phel (vector result))))
+    (Phel/vector result)))
 
 (defn- cons-map [x coll]
   (let [result (php/array x)]
     (foreach [k v coll]
       (php/apush result [k v]))
-    (php/:: Phel (vector result))))
+    (Phel/vector result)))
 
 (defn- cons-iterable [x coll]
   (let [result (php/array x)]
     (foreach [v coll]
       (php/apush result v))
-    (php/:: Phel (vector result))))
+    (Phel/vector result)))
 
 (defn- cons-non-array [x coll]
   (if (php/instanceof coll ConsInterface)
-    (php/-> coll (cons x))
+    (.cons coll x)
     (if (php/=== coll nil)
       [x]
       (if (php/is_string coll)
@@ -59,8 +59,8 @@
           (cons-map x coll)
           (if (php/is_iterable coll)
             (cons-iterable x coll)
-            (throw (php/new InvalidArgumentException
-                            (php/. "cannot do cons " (php/print_r x true))))))))))
+            (throw (new InvalidArgumentException
+                        (php/. "cannot do cons " (php/print_r x true))))))))))
 
 (defn cons
   "Prepends an element to the beginning of a collection."
@@ -73,7 +73,7 @@
     (cons-non-array x coll)))
 
 (defn- rest-of-set [coll]
-  (php/:: Phel (vector (php/array_slice (php/-> coll (toPhpArray)) 1))))
+  (Phel/vector (php/array_slice (.toPhpArray coll) 1)))
 
 (defn ffirst
   "Same as `(first (first coll))`."
@@ -95,14 +95,14 @@
   (if (nil? coll)
     []
     (if (php/instanceof coll RestInterface)
-      (php/-> coll (rest))
+      (.rest coll)
       (if (php/is_string coll)
-        (php/:: Phel (vector (php/array_slice (php/mb_str_split coll) 1)))
+        (Phel/vector (php/array_slice (php/mb_str_split coll) 1))
         (if (php/instanceof coll PersistentHashSetInterface)
           (rest-of-set coll)
           (if (php/is_array coll)
             (php/array_slice coll 1)
-            (throw (php/new InvalidArgumentException "cannot do rest"))))))))
+            (throw (new InvalidArgumentException "cannot do rest"))))))))
 
 (defn nfirst
   "Same as `(next (first coll))`."
@@ -135,7 +135,7 @@ Throws for a lazily consumed source that has no size of its own — a transducer
    :see-also ["empty?" "seq"]}
   ^int [coll]
   (if (php/instanceof coll Countable)
-    (php/-> coll (count))
+    (.count coll)
     (if (php/is_array coll)
       (php/count coll)
       (if (php/is_string coll)
@@ -143,9 +143,9 @@ Throws for a lazily consumed source that has no size of its own — a transducer
         (if (php/=== coll nil)
           0
           (if (php/instanceof coll Traversable)
-            (throw (php/new InvalidArgumentException
-                            (str "count is not supported on a lazily consumed source: "
-                                 (php/get_debug_type coll)
-                                 ". Draining it re-runs the pipeline, so realize it first: (count (into [] coll)).")))
-            (throw (php/new InvalidArgumentException
-                            (str "count is not supported on this type: " (php/get_debug_type coll))))))))))
+            (throw (new InvalidArgumentException
+                        (str "count is not supported on a lazily consumed source: "
+                             (php/get_debug_type coll)
+                             ". Draining it re-runs the pipeline, so realize it first: (count (into [] coll)).")))
+            (throw (new InvalidArgumentException
+                        (str "count is not supported on this type: " (php/get_debug_type coll))))))))))

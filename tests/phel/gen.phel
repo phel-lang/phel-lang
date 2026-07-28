@@ -143,7 +143,7 @@
 
 (deftest test-quick-check-error
   (let [res (g/quick-check 10 (g/tuple (g/return 0))
-                           (fn [_] (throw (php/new \RuntimeException "boom")))
+                           (fn [_] (throw (new \RuntimeException "boom")))
                            {:seed fixed-seed})]
     (is (= :error (:result res)))
     (is (some? (:exception res)))))

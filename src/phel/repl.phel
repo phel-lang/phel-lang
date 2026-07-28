@@ -13,24 +13,24 @@
   (:require phel.ai :as ai)
   (:require phel.test :as t))
 
-(def- build-facade (php/new BuildFacade))
+(def- build-facade (new BuildFacade))
 
 (def- munge-instance
   ;; Munge is a final readonly class; reuse one instance to avoid per-call allocation.
-  (php/new Munge))
+  (new Munge))
 
 (defn- get-global-env []
-  (php/:: GlobalEnvironmentSingleton (getInstance)))
+  (GlobalEnvironmentSingleton/getInstance))
 
 (defn loaded-namespaces
   "Returns all namespaces currently loaded in the REPL, in dot-separated display form."
   {:example "(loaded-namespaces) ; => [\"phel.core\" \"phel.repl\"]"}
   []
-  (let [raw    (php/:: Phel (getNamespaces))
+  (let [raw    (Phel/getNamespaces)
         munge  munge-instance
         result (transient [])]
     (foreach [ns raw]
-      (conj result (php/:: Munge (displayNs (php/-> munge (decodeNs ns))))))
+      (conj result (Munge/displayNs (.decodeNs munge ns))))
     (persistent result)))
 
 (defn ns-list
@@ -41,12 +41,12 @@
   (sort (loaded-namespaces)))
 
 (defn- eval-file [file]
-  (php/-> build-facade (evalFile file)))
+  (.evalFile build-facade file))
 
 (defn- get-src-dirs
   "Returns source directories for namespace resolution: the configured Phel directories plus the current working directory."
   []
-  (let [dirs (php/-> (php/new CommandFacade) (getAllPhelDirectories))
+  (let [dirs (.getAllPhelDirectories (new CommandFacade))
         cwd  (php/getcwd)]
     (when cwd
       (php/array_push dirs cwd))
@@ -54,20 +54,20 @@
 
 (defn- eval-namespace [namespace]
   (let [canonical    (canonical-ns namespace)
-        dependencies (php/-> build-facade (getDependenciesForNamespace (get-src-dirs) (php/array canonical)))
+        dependencies (.getDependenciesForNamespace build-facade (get-src-dirs) (php/array canonical))
         found        (php/> (php/count dependencies) 0)]
     (when-not found
-      (throw (php/new \RuntimeException
-                      (str "Could not locate namespace '" canonical "' on the source paths."))))
+      (throw (new \RuntimeException
+                  (str "Could not locate namespace '" canonical "' on the source paths."))))
     (foreach [dep dependencies]
-      (when-not (php/in_array (php/-> dep (getNamespace)) (php/:: Phel (getNamespaces)))
-        (eval-file (php/-> dep (getFile)))))))
+      (when-not (php/in_array (.getNamespace dep) (Phel/getNamespaces))
+        (eval-file (.getFile dep))))))
 
 (defn- clean-doc [str]
   (php/trim (php/str_replace (php/array "```phel\n" "```") "" str)))
 
 (defn- find-doc [namespace name]
-  (let [meta (php/:: Phel (getDefinitionMetaData namespace name))]
+  (let [meta (Phel/getDefinitionMetaData namespace name)]
     (when meta
       (let [doc        (or (get meta :doc) "")
             deprecated (get meta :deprecated)
@@ -99,7 +99,7 @@
     (let [normalized (php/str_replace "\\" "." (name sym))
           parts      (php/explode "." normalized)
           last       (php/array_pop parts)]
-      (php/:: Symbol (create last)))))
+      (Symbol/create last))))
 
 (defn- set-ns [namespace]
   (set-var *ns* namespace))
@@ -112,7 +112,7 @@
       ns-str
       (let [target (str "phel." (php/substr ns-str 8))
             munged (php/str_replace "-" "_" target)
-            exists (not (php/empty (php/-> (php/:: Registry (getInstance)) (getDefinitionInNamespace munged))))]
+            exists (not (php/empty (.getDefinitionInNamespace (Registry/getInstance) munged)))]
         (if exists target ns-str)))))
 
 (defn- normalize-require-symbol
@@ -121,18 +121,18 @@
   (let [normalized (normalize-ns-str (name sym))]
     (if (php/=== normalized (name sym))
       sym
-      (php/:: Symbol (create normalized)))))
+      (Symbol/create normalized))))
 
 (defn- require-namespace
   [namespace alias refers]
   (let [namespace  (normalize-require-symbol namespace)
         env        (get-global-env)
         current-ns *ns*]
-    (php/-> env (addRequireAlias current-ns alias namespace))
+    (.addRequireAlias env current-ns alias namespace)
     (foreach [r refers]
-      (php/-> env (addRefer current-ns r namespace)))
+      (.addRefer env current-ns r namespace))
     (eval-namespace namespace)
-    (php/-> (get-global-env) (setNs current-ns))
+    (.setNs (get-global-env) current-ns)
     (set-ns current-ns)
     namespace))
 
@@ -155,7 +155,7 @@
 
 (defn- use-namespace
   [namespace alias]
-  (php/-> (get-global-env) (addUseAlias *ns* alias namespace))
+  (.addUseAlias (get-global-env) *ns* alias namespace)
   namespace)
 
 (defmacro use
@@ -170,8 +170,8 @@
 (defn- print-colorful-str
   "Same as print-str from core, but with color."
   [& xs]
-  (let [printer (php/:: Printer (readableWithColor))
-        pp      #(php/-> printer (print %))]
+  (let [printer (Printer/readableWithColor)
+        pp      #(.print printer %)]
     (case (count xs)
       0 ""
       1 (pp (first xs))
@@ -211,23 +211,23 @@ Compilation happens in expression context, so a bare top-level expression yields
   {:example "(compile-str \"(+ 1 2)\") ; => \"3\"\n(compile-str \"[1 2 3]\") ; => \"\\\\Phel::vector([1, 2, 3])\""
    :see-also ["eval-str" "load-file"]}
   [s]
-  (let [cf   (php/new CompilerFacade)
-        opts (php/new CompileOptions)]
+  (let [cf   (new CompilerFacade)
+        opts (new CompileOptions)]
     ;; `setEmitOnly` keeps this a pure read of the generated PHP: without it the
     ;; compiler evaluates what it emits, so asking to see `(def x 1)` would define
     ;; `x`. It is also required by `setEmitAsExpression`, whose output has no
     ;; trailing `;` and therefore cannot be evaluated as a statement.
-    (php/-> opts (setEmitOnly true) (setEmitAsExpression true))
-    (php/trim (php/-> cf (compile s opts) (getPhpCode)))))
+    (-> opts (.setEmitOnly true) (.setEmitAsExpression true))
+    (php/trim (-> cf (.compile s opts) (.getPhpCode)))))
 
 (defn eval-str
   "Evaluates a string of Phel code and returns the result. If the string contains multiple expressions, returns the result of the last one."
   {:example "(eval-str \"(+ 1 2)\") ; => 3"
    :see-also ["compile-str" "load-file"]}
   [s]
-  (let [cf   (php/new CompilerFacade)
-        opts (php/new CompileOptions)]
-    (php/-> cf (eval s opts))))
+  (let [cf   (new CompilerFacade)
+        opts (new CompileOptions)]
+    (.eval cf s opts)))
 
 (defn load-file
   "Loads and evaluates a Phel source file in the current REPL session. Reads the file content and evaluates it using the compiler, preserving the current REPL namespace context. Returns the result of the last expression."
@@ -235,15 +235,15 @@ Compilation happens in expression context, so a bare top-level expression yields
   [path]
   (let [content (php/file_get_contents path)]
     (when content
-      (let [cf   (php/new CompilerFacade)
-            opts (php/-> (php/new CompileOptions) (setSource path))]
-        (php/-> cf (eval content opts))))))
+      (let [cf   (new CompilerFacade)
+            opts (.setSource (new CompileOptions) path)]
+        (.eval cf content opts)))))
 
 (defn- munge-ns
   "Encodes a namespace string for registry lookup."
   [ns-str]
   (let [munge munge-instance]
-    (php/-> munge (encodeRegistryKey ns-str))))
+    (.encodeRegistryKey munge ns-str)))
 
 (defn get-symbol-info
   "Returns a hash-map of structured metadata for the definition identified by
@@ -256,8 +256,8 @@ Compilation happens in expression context, so a bare top-level expression yields
   (let [canonical    (canonical-ns ns-str)
         encoded-ns   (munge-ns canonical)
         munge        munge-instance
-        encoded-name (php/-> munge (encode name-str))
-        meta         (php/:: Phel (getDefinitionMetaData encoded-ns encoded-name))]
+        encoded-name (.encode munge name-str)
+        meta         (Phel/getDefinitionMetaData encoded-ns encoded-name)]
     (when meta
       (let [start-loc (get meta :start-location)
             end-loc   (get meta :end-location)]
@@ -272,7 +272,7 @@ Compilation happens in expression context, so a bare top-level expression yields
          :min-arity (get meta "min-arity")
          :max-arity (get meta "max-arity")
          :is-variadic (or (get meta "is-variadic") false)
-         :ns (php/:: Munge (displayNs canonical))
+         :ns (Munge/displayNs canonical)
          :name name-str}))))
 
 (defmacro symbol-info
@@ -295,12 +295,12 @@ Returns nil. Prints one name per line, sorted alphabetically."
   [ns]
   (let [ns-str  (name ns)
         encoded (munge-ns ns-str)
-        defs    (php/:: Phel (getDefinitionInNamespace encoded))
+        defs    (Phel/getDefinitionInNamespace encoded)
         munge   munge-instance
         names   (for [fn-name :keys defs
-                      :let [meta (php/:: Phel (getDefinitionMetaData encoded fn-name))]
+                      :let [meta (Phel/getDefinitionMetaData encoded fn-name)]
                       :when (not (get meta :private))]
-                  (php/-> munge (decodeNs fn-name)))]
+                  (.decodeNs munge fn-name))]
     (foreach [n (sort names)]
       (println n))
     nil))
@@ -321,15 +321,15 @@ Returns nil. Prints one name per line, sorted alphabetically."
   [search]
   (let [munge   munge-instance
         results (transient [])]
-    (foreach [ns (php/:: Phel (getNamespaces))]
-      (let [defs     (php/:: Phel (getDefinitionInNamespace ns))
+    (foreach [ns (Phel/getNamespaces)]
+      (let [defs     (Phel/getDefinitionInNamespace ns)
             fn-names (php/array_keys defs)]
         (foreach [fn-name fn-names]
-          (let [decoded (php/-> munge (decodeNs fn-name))
-                meta    (php/:: Phel (getDefinitionMetaData ns fn-name))]
+          (let [decoded (.decodeNs munge fn-name)
+                meta    (Phel/getDefinitionMetaData ns fn-name)]
             (when (and (not (get meta :private))
                        (php/str_contains decoded search))
-              (conj results (str (php/:: Munge (displayNs (php/-> munge (decodeNs ns))))
+              (conj results (str (Munge/displayNs (.decodeNs munge ns))
                                  "/" decoded)))))))
     (sort (persistent results))))
 
@@ -341,15 +341,15 @@ Returns nil. Prints one name per line, sorted alphabetically."
   (let [munge        munge-instance
         search-lower (php/strtolower search)
         results      (transient [])]
-    (foreach [ns (php/:: Phel (getNamespaces))]
-      (let [defs     (php/:: Phel (getDefinitionInNamespace ns))
+    (foreach [ns (Phel/getNamespaces)]
+      (let [defs     (Phel/getDefinitionInNamespace ns)
             fn-names (php/array_keys defs)]
         (foreach [fn-name fn-names]
-          (let [definition (php/:: Phel (getDefinition ns fn-name))]
+          (let [definition (Phel/getDefinition ns fn-name)]
             (when (php/instanceof definition FnInterface)
-              (let [meta         (php/:: Phel (getDefinitionMetaData ns fn-name))
-                    decoded-name (php/-> munge (decodeNs fn-name))
-                    decoded-ns   (php/:: Munge (displayNs (php/-> munge (decodeNs ns))))
+              (let [meta         (Phel/getDefinitionMetaData ns fn-name)
+                    decoded-name (.decodeNs munge fn-name)
+                    decoded-ns   (Munge/displayNs (.decodeNs munge ns))
                     doc          (or (get meta :doc) "")
                     name-lower   (php/strtolower decoded-name)
                     doc-lower    (php/strtolower doc)]
@@ -395,8 +395,8 @@ Returns nil. Prints one name per line, sorted alphabetically."
    :see-also ["create-ns" "remove-ns" "loaded-namespaces"]}
   [ns-str]
   (let [canonical (canonical-ns ns-str)]
-    (when (php/:: Phel (hasNamespace (munge-ns canonical)))
-      (php/:: Munge (displayNs canonical)))))
+    (when (Phel/hasNamespace (munge-ns canonical))
+      (Munge/displayNs canonical))))
 
 (defn create-ns
   "Creates the given namespace if it does not already exist. Returns the namespace name in display form. Existing namespaces are left untouched."
@@ -404,15 +404,15 @@ Returns nil. Prints one name per line, sorted alphabetically."
    :see-also ["find-ns" "remove-ns" "intern"]}
   [ns-str]
   (let [canonical (canonical-ns ns-str)]
-    (php/:: Phel (registerNamespace (munge-ns canonical)))
-    (php/:: Munge (displayNs canonical))))
+    (Phel/registerNamespace (munge-ns canonical))
+    (Munge/displayNs canonical)))
 
 (defn remove-ns
   "Removes the namespace and all of its definitions from the registry. Use with caution. Returns nil."
   {:example "(remove-ns \"my-app.tmp\")"
    :see-also ["find-ns" "create-ns"]}
   [ns-str]
-  (php/:: Phel (removeNamespace (munge-ns ns-str)))
+  (Phel/removeNamespace (munge-ns ns-str))
   nil)
 
 (defn intern
@@ -422,10 +422,10 @@ Returns nil. Prints one name per line, sorted alphabetically."
   [ns-str name-str & rest]
   (let [canonical    (canonical-ns ns-str)
         encoded-ns   (munge-ns canonical)
-        encoded-name (php/-> munge-instance (encode name-str))
+        encoded-name (.encode munge-instance name-str)
         value        (first rest)]
-    (php/:: Phel (addDefinition encoded-ns encoded-name value))
-    (php/:: Symbol (createForNamespace (php/:: Munge (displayNs canonical)) name-str))))
+    (Phel/addDefinition encoded-ns encoded-name value)
+    (Symbol/createForNamespace (Munge/displayNs canonical) name-str)))
 
 (defn ns-interns
   "Returns a hash-map of {name => value} for every definition in the
@@ -434,11 +434,11 @@ Returns nil. Prints one name per line, sorted alphabetically."
   {:example "(ns-interns \"phel\\core\")"
    :see-also ["ns-publics" "intern" "find-ns"]}
   [ns-str]
-  (let [defs   (php/:: Phel (getDefinitionInNamespace (munge-ns ns-str)))
+  (let [defs   (Phel/getDefinitionInNamespace (munge-ns ns-str))
         munge  munge-instance
         result (transient {})]
     (foreach [fn-name value defs]
-      (assoc! result (php/-> munge (decodeNs fn-name)) value))
+      (assoc! result (.decodeNs munge fn-name) value))
     (persistent result)))
 
 (defn ns-publics
@@ -448,13 +448,13 @@ Returns nil. Prints one name per line, sorted alphabetically."
    :see-also ["ns-aliases" "ns-refers" "dir" "loaded-namespaces"]}
   [ns-str]
   (let [encoded (munge-ns ns-str)
-        defs    (php/:: Phel (getDefinitionInNamespace encoded))
+        defs    (Phel/getDefinitionInNamespace encoded)
         munge   munge-instance
         result  (transient {})]
     (foreach [fn-name value defs]
-      (let [meta (php/:: Phel (getDefinitionMetaData encoded fn-name))]
+      (let [meta (Phel/getDefinitionMetaData encoded fn-name)]
         (when-not (get meta :private)
-          (assoc! result (php/-> munge (decodeNs fn-name)) value))))
+          (assoc! result (.decodeNs munge fn-name) value))))
     (persistent result)))
 
 (defn ns-aliases
@@ -464,10 +464,10 @@ Returns nil. Prints one name per line, sorted alphabetically."
    :see-also ["ns-publics" "ns-refers" "loaded-namespaces"]}
   [ns-str]
   (let [env     (get-global-env)
-        aliases (php/-> env (getRequireAliases (canonical-ns ns-str)))
+        aliases (.getRequireAliases env (canonical-ns ns-str))
         result  (transient {})]
     (foreach [alias-name target-sym aliases]
-      (assoc! result alias-name (php/:: Munge (displayNs (php/-> target-sym (getName))))))
+      (assoc! result alias-name (Munge/displayNs (.getName target-sym))))
     (persistent result)))
 
 (defn ns-refers
@@ -477,10 +477,10 @@ Returns nil. Prints one name per line, sorted alphabetically."
    :see-also ["ns-publics" "ns-aliases" "loaded-namespaces"]}
   [ns-str]
   (let [env    (get-global-env)
-        refers (php/-> env (getRefers (canonical-ns ns-str)))
+        refers (.getRefers env (canonical-ns ns-str))
         result (transient {})]
     (foreach [refer-name source-sym refers]
-      (assoc! result refer-name (php/:: Munge (displayNs (php/-> source-sym (getName))))))
+      (assoc! result refer-name (Munge/displayNs (.getName source-sym))))
     (persistent result)))
 
 (defn search-doc
@@ -489,16 +489,16 @@ Returns nil. Prints one name per line, sorted alphabetically."
   [search]
   (let [munge        munge-instance
         search-lower (php/strtolower search)]
-    (foreach [ns (php/:: Phel (getNamespaces))]
-      (let [defs     (php/:: Phel (getDefinitionInNamespace ns))
+    (foreach [ns (Phel/getNamespaces)]
+      (let [defs     (Phel/getDefinitionInNamespace ns)
             fn-names (php/array_keys defs)]
         (foreach [fn-name fn-names]
-          (let [meta (php/:: Phel (getDefinitionMetaData ns fn-name))]
+          (let [meta (Phel/getDefinitionMetaData ns fn-name)]
             (when meta
               (let [doc          (or (get meta :doc) "")
                     doc-lower    (php/strtolower doc)
-                    decoded-name (php/-> munge (decodeNs fn-name))
-                    decoded-ns   (php/:: Munge (displayNs (php/-> munge (decodeNs ns))))]
+                    decoded-name (.decodeNs munge fn-name)
+                    decoded-ns   (Munge/displayNs (.decodeNs munge ns))]
                 (when (and (not (get meta :private))
                            (php/str_contains doc-lower search-lower))
                   (println (str "--- " decoded-ns "/" decoded-name " ---"))
@@ -518,9 +518,9 @@ Returns nil. Prints one name per line, sorted alphabetically."
   [code-str]
   (php/ob_start)
   (try
-    (let [cf    (php/new CompilerFacade)
-          opts  (php/new CompileOptions)
-          value (php/-> cf (eval code-str opts))
+    (let [cf    (new CompilerFacade)
+          opts  (new CompileOptions)
+          value (.eval cf code-str opts)
           out   (php/ob_get_clean)]
       {:value value
        :out out
@@ -531,7 +531,7 @@ Returns nil. Prints one name per line, sorted alphabetically."
         {:value nil
          :out out
          :success false
-         :error (php/-> e (getMessage))}))))
+         :error (.getMessage e)}))))
 
 ;; -------------------------------------------------------------------
 ;; Namespace reloading
@@ -559,19 +559,21 @@ Returns nil. Prints one name per line, sorted alphabetically."
         ns-array (apply php/array (map canonical-ns project))]
     (if (php/empty ns-array)
       (php/array)
-      (filter (fn [info] (reloadable? (php/-> info (getNamespace))))
-              (php/-> build-facade (getDependenciesForNamespace (get-src-dirs) ns-array))))))
+      (filter (fn [info] (reloadable? (.getNamespace info)))
+              (.getDependenciesForNamespace build-facade (get-src-dirs) ns-array)))))
 
-(defn- with-repl-mode
-  "Runs `thunk` with `*repl-mode*` enabled so re-evaluating a definition does
-  not trip the duplicate-definition guard, restoring the previous mode after."
+(defn- with-interactive-mode
+  "Runs `thunk` with `*interactive-mode*` enabled so re-evaluating a definition
+  does not trip the duplicate-definition guard, restoring the previous mode
+  after. Not `*repl-mode*`: that one also injects the `phel.repl` refers, which
+  a reloaded project namespace must not silently gain."
   [thunk]
-  (let [previous (php/:: Phel (getDefinition "phel.core" "*repl-mode*"))]
-    (php/:: Phel (addDefinition "phel.core" "*repl-mode*" true))
+  (let [previous (Phel/getDefinition "phel.core" "*interactive-mode*")]
+    (Phel/addDefinition "phel.core" "*interactive-mode*" true)
     (try
       (thunk)
       (finally
-        (php/:: Phel (addDefinition "phel.core" "*repl-mode*" previous))))))
+        (Phel/addDefinition "phel.core" "*interactive-mode*" previous)))))
 
 (defn- reload-infos!
   "Reloads the given namespace infos (topologically sorted) when their source
@@ -582,12 +584,12 @@ Returns nil. Prints one name per line, sorted alphabetically."
   (let [dirty      (atom {})
         reloaded   (atom [])
         current-ns *ns*]
-    (with-repl-mode
+    (with-interactive-mode
      (fn []
        (foreach [info infos]
-         (let [ns-name   (canonical-ns (php/-> info (getNamespace)))
-               file      (php/-> info (getFile))
-               deps      (map canonical-ns (php/-> info (getDependencies)))
+         (let [ns-name   (canonical-ns (.getNamespace info))
+               file      (.getFile info)
+               deps      (map canonical-ns (.getDependencies info))
                cur-hash  (file-hash file)
                prev-hash (get (deref reload-state) ns-name)
                self?     (or force? (not= cur-hash prev-hash))
@@ -600,7 +602,7 @@ Returns nil. Prints one name per line, sorted alphabetically."
              (swap! reloaded conj ns-name))
            (swap! reload-state assoc ns-name cur-hash)))))
     ;; Re-evaluating files switches the current namespace; restore the caller's.
-    (php/-> (get-global-env) (setNs current-ns))
+    (.setNs (get-global-env) current-ns)
     (set-ns current-ns)
     (deref reloaded)))
 
@@ -638,7 +640,7 @@ Returns nil. Prints one name per line, sorted alphabetically."
   (when-not (find-ns ns-str)
     (let [current *ns*]
       (eval-namespace ns-str)
-      (php/-> (get-global-env) (setNs current))
+      (.setNs (get-global-env) current)
       (set-ns current))))
 
 (defn- run-tests-collecting
@@ -663,7 +665,7 @@ Returns nil. Prints one name per line, sorted alphabetically."
   {:example "(run-tests 'my-app.foo-test 'my-app.bar-test)"
    :see-also ["run-test" "test-ns" "reload!"]}
   [& namespaces]
-  (let [ns-syms (map (fn [n] (php/:: Symbol (create (canonical-ns (name n))))) namespaces)]
+  (let [ns-syms (map (fn [n] (Symbol/create (canonical-ns (name n)))) namespaces)]
     (foreach [n ns-syms]
       (load-namespace! (name n)))
     (run-tests-collecting {} ns-syms)))
@@ -677,7 +679,7 @@ Returns nil. Prints one name per line, sorted alphabetically."
   [test-sym]
   (let [ns-str    (canonical-ns (namespace test-sym))
         test-name (name test-sym)
-        ns-symbol (php/:: Symbol (create ns-str))]
+        ns-symbol (Symbol/create ns-str)]
     (load-namespace! ns-str)
     (run-tests-collecting {:only-tests [(str ns-str "/" test-name)]} [ns-symbol])))
 
@@ -687,23 +689,23 @@ Returns nil. Prints one name per line, sorted alphabetically."
    :see-also ["run-tests" "run-test" "dir" "loaded-namespaces"]}
   [ns-str]
   (load-namespace! ns-str)
-  (run-tests-collecting {} [(php/:: Symbol (create (canonical-ns ns-str)))]))
+  (run-tests-collecting {} [(Symbol/create (canonical-ns ns-str))]))
 
 (defn macroexpand-1-form
   "Expands the given form once if it is a macro call. Takes a quoted form and returns the expanded form, or the original form unchanged if it is not a macro call. Uses the CompilerFacade to perform the expansion without going through analyze+emit."
   {:example "(macroexpand-1-form '(defn foo [x] x))"
    :see-also ["macroexpand-form" "macroexpand-1" "macroexpand"]}
   [form]
-  (let [cf (php/new CompilerFacade)]
-    (php/-> cf (macroexpand1 form))))
+  (let [cf (new CompilerFacade)]
+    (.macroexpand1 cf form)))
 
 (defn macroexpand-form
   "Recursively expands the given form until it is no longer a macro call. Takes a quoted form and returns the fully expanded form. Uses the CompilerFacade to perform the expansion without going through analyze+emit."
   {:example "(macroexpand-form '(defn foo [x] x))"
    :see-also ["macroexpand-1-form" "macroexpand-1" "macroexpand"]}
   [form]
-  (let [cf (php/new CompilerFacade)]
-    (php/-> cf (macroexpand form))))
+  (let [cf (new CompilerFacade)]
+    (.macroexpand cf form)))
 
 (defn macroexpand-1
   "Expands the given form once if it is a macro call. The form must be quoted to prevent evaluation, matching Clojure semantics."

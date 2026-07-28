@@ -333,7 +333,7 @@
         "an eduction re-runs its pipeline, so first is not consuming")))
 
 (deftest test-first-of-a-php-generator
-  (is (= 6 (first (php/:: \Phel\Lang\Seq (map inc [5 6]))))
+  (is (= 6 (first (\Phel\Lang\Seq/map inc [5 6])))
       "first pulls one element from a bare PHP generator"))
 
 (deftest test-eduction-count-is-a-deliberate-error

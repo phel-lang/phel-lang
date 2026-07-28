@@ -38,7 +38,7 @@
   (let [original @ai/config]
     (try
       (ai/with-config {:provider :openai}
-                      (throw (php/new \RuntimeException "boom")))
+                      (throw (new \RuntimeException "boom")))
       (catch \RuntimeException _e nil))
     (is (= (get original :provider) (get @ai/config :provider)) "config restored after throw")))
 
@@ -749,8 +749,8 @@
         (ai/complete "hi" {:api-key "k"})
         (is false "should have thrown")
         (catch \RuntimeException e
-          (is (php/str_contains (php/-> e (getMessage)) "bad prompt") "error surfaces provider message")
-          (is (php/str_contains (php/-> e (getMessage)) "400") "error includes status code"))))))
+          (is (php/str_contains (.getMessage e) "bad prompt") "error surfaces provider message")
+          (is (php/str_contains (.getMessage e) "400") "error includes status code"))))))
 
 ;; --- Embeddings ---
 ;; Note: responses use raw JSON strings because phel.json stringifies floats

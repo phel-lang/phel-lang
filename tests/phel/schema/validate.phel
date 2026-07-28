@@ -41,7 +41,7 @@
 
 (deftest test-inst
   (testing ":inst matches DateTime instances"
-           (let [now (php/new \DateTimeImmutable)]
+           (let [now (new \DateTimeImmutable)]
              (is (s/validate :inst now))))
   (testing ":inst rejects strings"
            (is (not (s/validate :inst "2026-01-01")))))

@@ -125,6 +125,7 @@ HELP);
 
             $this->getFacade()->loadPhelNamespaces($this->replStartupFile);
             Phel::addDefinition(CompilerConstants::PHEL_CORE_NAMESPACE, ReplConstants::REPL_MODE, true);
+            Phel::addDefinition(CompilerConstants::PHEL_CORE_NAMESPACE, ReplConstants::INTERACTIVE_MODE, true);
             $this->registerDefaultTap();
 
             $history = $this->getFactory()->createReplHistory();
@@ -139,6 +140,7 @@ HELP);
             return self::FAILURE;
         } finally {
             Phel::addDefinition(CompilerConstants::PHEL_CORE_NAMESPACE, ReplConstants::REPL_MODE, false);
+            Phel::addDefinition(CompilerConstants::PHEL_CORE_NAMESPACE, ReplConstants::INTERACTIVE_MODE, false);
         }
     }
 

@@ -15,7 +15,7 @@
   builder private, so a test that needs to drive a reporter through a summary
   mid-run assembles the event from the public `get-stats` snapshot."
   []
-  (let [{:failed failures :skipped skips :counts counts} (t/get-stats)
+  (let [{:failed failures :skipped skips :counts counts}          (t/get-stats)
         {:failed failed :error error :pass pass :skipped skipped} counts]
     {:type :summary
      :failures failures
@@ -60,9 +60,9 @@
 (deftest test-report-fans-out-to-active-reporters
   (let [events (atom [])]
     (t/with-isolated-reporters [(fn [e] (swap! events conj e))]
-                               (t/with-isolated-stats
-                                (t/report {:type :pass :state :pass :message "ok"})
-                                (t/report {:type :failed :state :failed :message "boom"})))
+      (t/with-isolated-stats
+        (t/report {:type :pass :state :pass :message "ok"})
+        (t/report {:type :failed :state :failed :message "boom"})))
     (is (= 2 (count (deref events))) "both events fanned out")
     (is (= :pass (:state (first (deref events)))) "pass state preserved")
     (is (= :failed (:state (nth (deref events) 1))) "failed state preserved")))
@@ -71,15 +71,15 @@
   (let [order (atom [])]
     (t/with-isolated-reporters [(fn [_] (swap! order conj :a))
                                 (fn [_] (swap! order conj :b))]
-                               (t/with-isolated-stats
-                                (t/report {:type :pass :state :pass})))
+      (t/with-isolated-stats
+        (t/report {:type :pass :state :pass})))
     (is (= [:a :b] (deref order)) "reporters invoked in registration order")))
 
 (deftest test-default-report-method-preserves-event
   (let [captured (atom nil)]
     (t/with-isolated-reporters [(fn [e] (reset! captured e))]
-                               (t/with-isolated-stats
-                                (t/report {:type :my-custom-type :payload 42})))
+      (t/with-isolated-stats
+        (t/report {:type :my-custom-type :payload 42})))
     (is (= :my-custom-type (:type (deref captured)))
         "unknown event types reach reporters via :default method")
     (is (= 42 (:payload (deref captured))) "payload flows through untouched")))
@@ -194,10 +194,10 @@
   (let [rep (t/resolve-reporter :default)
         out (with-output-buffer
               (t/with-isolated-reporters [rep]
-                                         (t/with-isolated-stats
-                                          (rep {:type :begin-test-run})
-                                          (is (= 0 (apply + "")))
-                                          (rep (summary-of-current-stats)))))]
+                (t/with-isolated-stats
+                  (rep {:type :begin-test-run})
+                  (is (= 0 (apply + "")))
+                  (rep (summary-of-current-stats)))))]
     (is (php/preg_match "/Test: \\(= 0 \\(apply \\+ \"\"\\)\\)/" out)
         "error output renders empty strings with quotes")))
 
@@ -274,8 +274,8 @@
 (deftest test-assertion-like-state-error-is-recorded
   (let [events   (atom [])
         snapshot (t/with-isolated-reporters [(fn [e] (swap! events conj e))]
-                                            (t/with-isolated-stats
-                                             (t/report {:type :predicate :state :error :message "threw"})))]
+                   (t/with-isolated-stats
+                     (t/report {:type :predicate :state :error :message "threw"})))]
     (is (= 1 (count (deref events))) "event reached the reporter")
     (is (= 1 (:error (:counts snapshot)))
         ":predicate with :state :error increments :error count")))
@@ -283,8 +283,8 @@
 (deftest test-assertion-like-without-state-flows-through
   (let [events   (atom [])
         snapshot (t/with-isolated-reporters [(fn [e] (swap! events conj e))]
-                                            (t/with-isolated-stats
-                                             (t/report {:type :binary :payload "no state"})))]
+                   (t/with-isolated-stats
+                     (t/report {:type :binary :payload "no state"})))]
     (is (= 1 (count (deref events))) "event still fans out")
     (is (= 0 (:pass (:counts snapshot)))
         "event without :state does not touch stats")))
@@ -492,8 +492,8 @@
   (let [events (atom [])
         prev   (t/get-reporters)]
     (t/with-isolated-stats
-     (with-output-buffer
-       (t/run-tests {:reporters [(fn [e] (swap! events conj (:type e)))]})))
+      (with-output-buffer
+        (t/run-tests {:reporters [(fn [e] (swap! events conj (:type e)))]})))
     ;; `run-tests` installs its own reporters, so only the restore is ours.
     (t/set-reporters! prev)
     (is (contains? (into (hash-set) (deref events)) :begin-test-run)

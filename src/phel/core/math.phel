@@ -21,7 +21,7 @@
   [xs]
   (foreach [x xs]
     (when (php/=== nil x)
-      (throw (php/new \InvalidArgumentException "Arithmetic functions do not accept nil values")))))
+      (throw (new \InvalidArgumentException "Arithmetic functions do not accept nil values")))))
 
 (defn- assert-non-nil
   [& xs]
@@ -154,8 +154,8 @@
   (case (count xs)
     0 0
     1 (first xs)
-    2 (php/:: NumericOperations (add (first xs) (second xs)))
-    (reduce #(php/:: NumericOperations (add %1 %2)) xs)))
+    2 (NumericOperations/add (first xs) (second xs))
+    (reduce #(NumericOperations/add %1 %2) xs)))
 
 (defn -
   "Returns the difference of all elements in `xs`. If `xs` is empty, return 0. If `xs` has one element, return the negative value of that element."
@@ -165,9 +165,9 @@
   (assert-non-nil-coll xs)
   (case (count xs)
     0 0
-    1 (php/:: NumericOperations (negate (first xs)))
-    2 (php/:: NumericOperations (subtract (first xs) (second xs)))
-    (reduce #(php/:: NumericOperations (subtract %1 %2)) xs)))
+    1 (NumericOperations/negate (first xs))
+    2 (NumericOperations/subtract (first xs) (second xs))
+    (reduce #(NumericOperations/subtract %1 %2) xs)))
 
 (defn *
   "Returns the product of all elements in `xs`. All elements in `xs` must be numbers. If `xs` is empty, return 1."
@@ -178,8 +178,8 @@
   (case (count xs)
     0 1
     1 (first xs)
-    2 (php/:: NumericOperations (multiply (first xs) (second xs)))
-    (reduce #(php/:: NumericOperations (multiply %1 %2)) xs)))
+    2 (NumericOperations/multiply (first xs) (second xs))
+    (reduce #(NumericOperations/multiply %1 %2) xs)))
 
 (defn /
   "Returns the nominator divided by all the denominators. If `xs` is empty,
@@ -194,9 +194,9 @@ returns 1. If `xs` has one value, returns the reciprocal of x.
   (assert-non-nil-coll xs)
   (case (count xs)
     0 1
-    1 (php/:: NumericOperations (divide 1 (first xs)))
-    2 (php/:: NumericOperations (divide (first xs) (second xs)))
-    (reduce #(php/:: NumericOperations (divide %1 %2)) xs)))
+    1 (NumericOperations/divide 1 (first xs))
+    2 (NumericOperations/divide (first xs) (second xs))
+    (reduce #(NumericOperations/divide %1 %2) xs)))
 
 (defn quot
   "Returns the truncated integer quotient of `dividend` / `divisor`. Truncates toward zero. Throws `\\DivisionByZeroError` when `divisor` is zero."
@@ -204,7 +204,7 @@ returns 1. If `xs` has one value, returns the reciprocal of x.
    :see-also ["rem" "mod" "/"]}
   [dividend divisor]
   (assert-non-nil dividend divisor)
-  (php/:: NumericOperations (quot dividend divisor)))
+  (NumericOperations/quot dividend divisor))
 
 (defn rem
   "Returns the truncated remainder of `dividend` / `divisor`. The result has the same sign as `dividend` (matches PHP's `%`)."
@@ -212,7 +212,7 @@ returns 1. If `xs` has one value, returns the reciprocal of x.
    :see-also ["quot" "mod" "%"]}
   [dividend divisor]
   (assert-non-nil dividend divisor)
-  (php/:: NumericOperations (rem dividend divisor)))
+  (NumericOperations/rem dividend divisor))
 
 (defn mod
   "Returns the floor remainder of `dividend` / `divisor`. The result has
@@ -222,7 +222,7 @@ returns 1. If `xs` has one value, returns the reciprocal of x.
    :see-also ["quot" "rem" "%"]}
   [dividend divisor]
   (assert-non-nil dividend divisor)
-  (php/:: NumericOperations (mod dividend divisor)))
+  (NumericOperations/mod dividend divisor))
 
 (defn %
   "Alias for `rem`. Returns the truncated remainder of `dividend` /
@@ -238,7 +238,7 @@ returns 1. If `xs` has one value, returns the reciprocal of x.
    :see-also ["*" "sqrt"]}
   [a x]
   (assert-non-nil a x)
-  (php/:: NumericOperations (power a x)))
+  (NumericOperations/power a x))
 
 (defn inc
   "Increments `x` by one."
@@ -246,7 +246,7 @@ returns 1. If `xs` has one value, returns the reciprocal of x.
    :see-also ["dec" "+"]}
   [x]
   (assert-non-nil x)
-  (php/:: NumericOperations (add x 1)))
+  (NumericOperations/add x 1))
 
 (defn dec
   "Decrements `x` by one."
@@ -254,12 +254,12 @@ returns 1. If `xs` has one value, returns the reciprocal of x.
    :see-also ["inc" "-"]}
   [x]
   (assert-non-nil x)
-  (php/:: NumericOperations (subtract x 1)))
+  (NumericOperations/subtract x 1))
 
 (defn- promote-int->bigint
   [x]
   (if (php/is_int x)
-    (php/:: BigInt (fromInt x))
+    (BigInt/fromInt x)
     x))
 
 (defn +'
@@ -310,7 +310,7 @@ returns 1. If `xs` has one value, returns the reciprocal of x.
   {:example "(even? 4) ; => true"
    :see-also ["odd?" "zero?"]}
   [x]
-  (php/:: NumericOperations (isZero (% x 2))))
+  (NumericOperations/isZero (% x 2)))
 
 (defn odd?
   "Checks if `x` is odd."
@@ -324,7 +324,7 @@ returns 1. If `xs` has one value, returns the reciprocal of x.
   {:example "(zero? 0) ; => true"
    :see-also ["pos?" "neg?" "one?"]}
   [x]
-  (php/:: NumericOperations (isZero x)))
+  (NumericOperations/isZero x))
 
 (defn one?
   "Checks if `x` is one."
@@ -384,9 +384,9 @@ returns 1. If `xs` has one value, returns the reciprocal of x.
   {:example "(abs -5) ; => 5"}
   [x]
   (if (number? x)
-    (php/:: NumericOperations (abs x))
-    (throw (php/new InvalidArgumentException
-                    (str "abs expects a number, got " (type x))))))
+    (NumericOperations/abs x)
+    (throw (new InvalidArgumentException
+                (str "abs expects a number, got " (type x))))))
 
 (defn gcd
   "Returns the greatest common divisor of `a` and `b`, computed with the
@@ -426,10 +426,10 @@ returns 1. If `xs` has one value, returns the reciprocal of x.
   (cond
     (or (php/instanceof x Ratio)
         (php/instanceof x BigInt)
-        (php/instanceof x BigDecimal)) (php/-> x (toInt))
-    (php/is_float x)                   (php/-> (php/:: BigInt (fromFloat x)) (toInt))
-    (php/is_object x)                  (throw (php/new InvalidArgumentException
-                                                       (str "int expects a number, numeric string, or nil, got " (type x))))
+        (php/instanceof x BigDecimal)) (.toInt x)
+    (php/is_float x)                   (.toInt (BigInt/fromFloat x))
+    (php/is_object x)                  (throw (new InvalidArgumentException
+                                                   (str "int expects a number, numeric string, or nil, got " (type x))))
     :else                             (php/intval x)))
 
 (defn float
@@ -444,11 +444,11 @@ returns 1. If `xs` has one value, returns the reciprocal of x.
    :see-also ["double" "int?" "number?"]}
   [x]
   (cond
-    (php/instanceof x Ratio)      (php/-> x (toFloat))
+    (php/instanceof x Ratio)      (.toFloat x)
     (php/instanceof x BigInt)     (php/floatval (str x))
-    (php/instanceof x BigDecimal) (php/-> x (toFloat))
-    (php/is_object x)             (throw (php/new InvalidArgumentException
-                                                  (str "float expects a number, numeric string, or nil, got " (type x))))
+    (php/instanceof x BigDecimal) (.toFloat x)
+    (php/is_object x)             (throw (new InvalidArgumentException
+                                              (str "float expects a number, numeric string, or nil, got " (type x))))
     :else                         (php/floatval x)))
 
 (defn double
@@ -473,10 +473,10 @@ returns 1. If `xs` has one value, returns the reciprocal of x.
   (if (number? x)
     (let [truncated (int x)]
       (if (or (php/< truncated lo) (php/> truncated hi))
-        (throw (php/new InvalidArgumentException
-                        (php/. "Value out of range for " label ": " (php/strval truncated))))
+        (throw (new InvalidArgumentException
+                    (php/. "Value out of range for " label ": " (php/strval truncated))))
         truncated))
-    (throw (php/new InvalidArgumentException (php/. label " expects a numeric value")))))
+    (throw (new InvalidArgumentException (php/. label " expects a numeric value")))))
 
 (defn short
   "Coerces `x` to a signed 16-bit integer in the range `-32768..32767`. Decimal values are truncated toward zero. `Ratio` and `BigInt` values are accepted (truncate toward zero, then range-check). Values outside the range or non-numeric inputs raise `InvalidArgumentException`. Phel has no dedicated short type, so the result is a plain PHP int."
@@ -500,23 +500,23 @@ returns 1. If `xs` has one value, returns the reciprocal of x.
   (cond
     (int? x)
     (if (php/< x 0)
-      (throw (php/new InvalidArgumentException
-                      (php/. "Value out of range for char: " (php/strval x))))
+      (throw (new InvalidArgumentException
+                  (php/. "Value out of range for char: " (php/strval x))))
       (let [ch (php/mb_chr x "UTF-8")]
         (if (php/=== ch false)
-          (throw (php/new InvalidArgumentException
-                          (php/. "Invalid code point for char: " (php/strval x))))
+          (throw (new InvalidArgumentException
+                      (php/. "Invalid code point for char: " (php/strval x))))
           ch)))
 
     (string? x)
     (if (php/=== 1 (php/mb_strlen x "UTF-8"))
       x
-      (throw (php/new InvalidArgumentException
-                      "char expects a single-character string")))
+      (throw (new InvalidArgumentException
+                  "char expects a single-character string")))
 
     :else
-    (throw (php/new InvalidArgumentException
-                    "char expects a non-negative integer or a single-character string"))))
+    (throw (new InvalidArgumentException
+                "char expects a non-negative integer or a single-character string"))))
 
 (defn rand
   "Without arguments, returns a random number in `[0, 1)`. With one argument `n`, returns a random number in `[0, n)`."
@@ -616,7 +616,7 @@ returns 1. If `xs` has one value, returns the reciprocal of x.
    :see-also ["min" "max"]}
   [v min max]
   (when (< max min)
-    (throw (php/new \InvalidArgumentException "Max values is bigger than min value")))
+    (throw (new \InvalidArgumentException "Max values is bigger than min value")))
   (php/max (php/min v max) min))
 
 (defn sum
@@ -641,7 +641,7 @@ returns 1. If `xs` has one value, returns the reciprocal of x.
   (let [arr (to-php-array xs)
         cnt (count arr)]
     (when (zero? cnt)
-      (throw (php/new \InvalidArgumentException "Cannot compute median of empty sequence")))
+      (throw (new \InvalidArgumentException "Cannot compute median of empty sequence")))
     (php/sort arr)
     (let [mid (php/intdiv cnt 2)]
       (if (odd? cnt)
@@ -654,7 +654,7 @@ returns 1. If `xs` has one value, returns the reciprocal of x.
 
 (defn bigint?
   "Returns true when `x` is a `Phel\\Lang\\BigInt` value."
-  {:example "(bigint? (php/:: \\Phel\\Lang\\BigInt (fromInt 1))) ; => true"
+  {:example "(bigint? (\\Phel\\Lang\\BigInt/fromInt 1)) ; => true"
    :see-also ["int?" "ratio?" "number?"]}
   [x]
   (php/instanceof x BigInt))
@@ -680,16 +680,15 @@ returns 1. If `xs` has one value, returns the reciprocal of x.
   [x]
   (cond
     (php/instanceof x BigDecimal) x
-    (php/is_int x)                (php/:: BigDecimal (fromInt x))
-    (php/is_float x)              (php/:: BigDecimal (fromFloat x))
-    (php/instanceof x BigInt)     (php/:: BigDecimal (fromBigInt x))
-    (php/instanceof x Ratio)      (php/-> (php/:: BigDecimal (fromBigInt (php/-> x (numerator))))
-                                          (divideExact (php/:: BigDecimal (fromBigInt (php/-> x (denominator))))))
-    (string? x)                   (php/:: BigDecimal (fromString x))
+    (php/is_int x)                (BigDecimal/fromInt x)
+    (php/is_float x)              (BigDecimal/fromFloat x)
+    (php/instanceof x BigInt)     (BigDecimal/fromBigInt x)
+    (php/instanceof x Ratio)      (.divideExact (BigDecimal/fromBigInt (.numerator x)) (BigDecimal/fromBigInt (.denominator x)))
+    (string? x)                   (BigDecimal/fromString x)
     :else
-    (throw (php/new \InvalidArgumentException
-                    (php/. "bigdec expects a BigDecimal, int, float, BigInt, Ratio, or numeric string, got "
-                           (php/get_debug_type x))))))
+    (throw (new \InvalidArgumentException
+                (php/. "bigdec expects a BigDecimal, int, float, BigInt, Ratio, or numeric string, got "
+                       (php/get_debug_type x))))))
 
 (defn numerator
   "Returns the numerator of `r`. For rationals the numerator collapses to a PHP int when it fits; for plain ints and `BigInt` values `r` is returned unchanged."
@@ -698,18 +697,18 @@ returns 1. If `xs` has one value, returns the reciprocal of x.
   [r]
   (cond
     (php/instanceof r Ratio)
-    (let [n (php/-> r (numerator))]
-      (if (php/-> n (fitsInPhpInt))
-        (php/-> n (toInt))
+    (let [n (.numerator r)]
+      (if (.fitsInPhpInt n)
+        (.toInt n)
         n))
 
     (or (php/is_int r) (php/instanceof r BigInt))
     r
 
     :else
-    (throw (php/new InvalidArgumentException
-                    (str "numerator expects a rational, integer, or BigInt, got "
-                         (type r))))))
+    (throw (new InvalidArgumentException
+                (str "numerator expects a rational, integer, or BigInt, got "
+                     (type r))))))
 
 (defn denominator
   "Returns the denominator of `r`. For rationals the denominator collapses to a PHP int when it fits; integers and `BigInt` values report `1`."
@@ -718,18 +717,18 @@ returns 1. If `xs` has one value, returns the reciprocal of x.
   [r]
   (cond
     (php/instanceof r Ratio)
-    (let [d (php/-> r (denominator))]
-      (if (php/-> d (fitsInPhpInt))
-        (php/-> d (toInt))
+    (let [d (.denominator r)]
+      (if (.fitsInPhpInt d)
+        (.toInt d)
         d))
 
     (or (php/is_int r) (php/instanceof r BigInt))
     1
 
     :else
-    (throw (php/new InvalidArgumentException
-                    (str "denominator expects a rational, integer, or BigInt, got "
-                         (type r))))))
+    (throw (new InvalidArgumentException
+                (str "denominator expects a rational, integer, or BigInt, got "
+                     (type r))))))
 
 (defn- float-shortest-decimal
   "Shortest %g-formatted decimal that round-trips back to `x`. Tries increasing precision so 0.1 becomes \"0.1\", not \"0.10000000000000001\"."
@@ -760,20 +759,20 @@ returns 1. If `xs` has one value, returns the reciprocal of x.
         stripped   (php/ltrim joined "0")
         digits     (if (php/=== "" stripped) "0" stripped)
         signed     (if negative? (php/. "-" digits) digits)
-        num        (php/:: BigInt (fromString signed))
+        num        (BigInt/fromString signed)
         eff-exp    (php/- exponent (php/strlen frac-part))]
     (if (php/>= eff-exp 0)
-      (let [scale (php/-> (php/:: BigInt (fromInt 10)) (pow eff-exp))]
-        (php/:: Ratio (create (php/-> num (multiply scale)) 1)))
-      (let [denom (php/-> (php/:: BigInt (fromInt 10)) (pow (php/- 0 eff-exp)))]
-        (php/:: Ratio (create num denom))))))
+      (let [scale (.pow (BigInt/fromInt 10) eff-exp)]
+        (Ratio/create (.multiply num scale) 1))
+      (let [denom (.pow (BigInt/fromInt 10) (php/- 0 eff-exp))]
+        (Ratio/create num denom)))))
 
 (defn- float->rational
   "Converts a finite float to a Ratio using its shortest round-trip decimal expansion. Non-finite floats are rejected."
   [x]
   (when (or (php/is_infinite x) (php/is_nan x))
-    (throw (php/new InvalidArgumentException
-                    "rationalize cannot convert ##Inf, ##-Inf, or ##NaN")))
+    (throw (new InvalidArgumentException
+                "rationalize cannot convert ##Inf, ##-Inf, or ##NaN")))
   (decimal-string->rational (float-shortest-decimal x)))
 
 (defn rationalize
@@ -786,10 +785,10 @@ returns 1. If `xs` has one value, returns the reciprocal of x.
     (php/instanceof x BigInt)     x
     (php/is_int x)                x
     (php/is_float x)              (float->rational x)
-    (php/instanceof x BigDecimal) (decimal-string->rational (php/-> x (toPlainString)))
+    (php/instanceof x BigDecimal) (decimal-string->rational (.toPlainString x))
     :else
-    (throw (php/new InvalidArgumentException
-                    (str "rationalize expects a number, got " (type x))))))
+    (throw (new InvalidArgumentException
+                (str "rationalize expects a number, got " (type x))))))
 
 (defn bigint
   "Coerces `x` to a `Phel\\Lang\\BigInt`. Accepts ints, floats
@@ -800,12 +799,12 @@ returns 1. If `xs` has one value, returns the reciprocal of x.
   [x]
   (cond
     (php/instanceof x BigInt) x
-    (php/is_int x)            (php/:: BigInt (fromInt x))
-    (php/is_float x)          (php/:: BigInt (fromFloat x))
-    (string? x)               (php/:: BigInt (fromString x))
+    (php/is_int x)            (BigInt/fromInt x)
+    (php/is_float x)          (BigInt/fromFloat x)
+    (string? x)               (BigInt/fromString x)
     :else
-    (throw (php/new InvalidArgumentException
-                    (str "bigint expects an int, float, numeric string, or BigInt, got " (type x))))))
+    (throw (new InvalidArgumentException
+                (str "bigint expects an int, float, numeric string, or BigInt, got " (type x))))))
 
 (defn biginteger
   "Alias for `bigint`. Coerces `x` to a `Phel\\Lang\\BigInt`."
@@ -822,8 +821,8 @@ returns 1. If `xs` has one value, returns the reciprocal of x.
   [x]
   (if (number? x)
     (float x)
-    (throw (php/new InvalidArgumentException
-                    (str "expected a number, got " (type x))))))
+    (throw (new InvalidArgumentException
+                (str "expected a number, got " (type x))))))
 
 (defn- rational-floor
   ;; floor(n/d) = (n - mod(n,d)) / d; Ratio denominators are positive.
@@ -844,8 +843,8 @@ returns 1. If `xs` has one value, returns the reciprocal of x.
     (php/instanceof x Ratio)  (rational-floor x)
     (php/is_float x)          (php/floor x)
     :else
-    (throw (php/new InvalidArgumentException
-                    (str "floor expects a number, got " (type x))))))
+    (throw (new InvalidArgumentException
+                (str "floor expects a number, got " (type x))))))
 
 (defn ceil
   "Returns the smallest integer not less than `x`. Ints and `BigInt` values are returned unchanged. Ratios collapse via ceiling division. Floats route through PHP's `ceil`."
@@ -859,8 +858,8 @@ returns 1. If `xs` has one value, returns the reciprocal of x.
     (php/instanceof x Ratio)  (- (rational-floor (- x)))
     (php/is_float x)          (php/ceil x)
     :else
-    (throw (php/new InvalidArgumentException
-                    (str "ceil expects a number, got " (type x))))))
+    (throw (new InvalidArgumentException
+                (str "ceil expects a number, got " (type x))))))
 
 (defn round
   "Rounds `x` to the nearest integer using PHP's `round` (half away from zero). Ints and `BigInt` values are returned unchanged. Ratios and floats return floats."

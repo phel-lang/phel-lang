@@ -37,13 +37,13 @@
                          nil)
                        nil)]
       (if quoted-sym
-        (let [ns (php/-> quoted-sym (getNamespace))]
+        (let [ns (.getNamespace quoted-sym)]
           (if ns
-            `(php/:: \Phel (getDefinitionMetaData ~ns ~(php/-> quoted-sym (getName))))
-            `(php/:: \Phel (getDefinitionMetaData (php/str_replace "-" "_" *ns*) ~(php/-> quoted-sym (getName))))))
+            `(\Phel/getDefinitionMetaData ~ns ~(.getName quoted-sym))
+            `(\Phel/getDefinitionMetaData (php/str_replace "-" "_" *ns*) ~(.getName quoted-sym))))
         `(let [obj-meta ~obj]
            (if (php/instanceof obj-meta \Phel\Lang\MetaInterface)
-             (php/-> obj-meta (getMeta))
+             (.getMeta obj-meta)
              nil))))))
 
 (def copy-meta
@@ -52,9 +52,9 @@
   (fn [source target]
     (if (php/instanceof source MetaInterface)
       (if (php/instanceof target MetaInterface)
-        (let [src-meta (php/-> source (getMeta))]
+        (let [src-meta (.getMeta source)]
           (if src-meta
-            (php/-> target (withMeta src-meta))
+            (.withMeta target src-meta)
             target))
         target)
       target)))
@@ -63,13 +63,13 @@
   {:doc "Returns `obj` with the given metadata `meta` attached."
    :see-also ["meta" "vary-meta"]}
   (fn [obj meta]
-    (php/-> obj (withMeta meta))))
+    (.withMeta obj meta)))
 
 (def vary-meta
   {:doc "Returns an object with (apply f (meta obj) args) as its new metadata."
    :see-also ["meta" "with-meta"]}
   (fn [obj f & args]
     (let [m (if (php/instanceof obj MetaInterface)
-              (php/-> obj (getMeta))
+              (.getMeta obj)
               nil)]
-      (php/-> obj (withMeta (apply f m args))))))
+      (.withMeta obj (apply f m args)))))

@@ -22,14 +22,14 @@ Transient collections provide faster performance for multiple sequential updates
   {:example "(def t (transient []))"
    :see-also ["persistent"]}
   [coll]
-  (php/-> coll (asTransient)))
+  (.asTransient coll))
 
 (defn persistent
   "Converts a transient collection back to a persistent collection."
   {:example "(def t (transient {}))"
    :see-also ["transient"]}
   [coll]
-  (php/-> coll (persistent)))
+  (.persistent coll))
 
 (defn persistent!
   "Converts a transient collection back to a persistent collection. Alias for `persistent`, matching Clojure's `persistent!` naming."
@@ -47,15 +47,15 @@ Transient collections provide faster performance for multiple sequential updates
                      (do
                        (php/aset acc key value)
                        acc)
-                     (php/-> acc (put key value))))]
+                     (.put acc key value)))]
       (cond
         (php/instanceof entry MapEntry)
-        (assign coll (php/-> entry (key)) (php/-> entry (value)))
+        (assign coll (.key entry) (.value entry))
 
         (indexed? entry)
         (if (php/!= (count entry) 2)
-          (throw (php/new InvalidArgumentException
-                          "conj on a map expects entries of length 2"))
+          (throw (new InvalidArgumentException
+                      "conj on a map expects entries of length 2"))
           (assign coll (first entry) (second entry)))
 
         (associative? entry)
@@ -64,18 +64,18 @@ Transient collections provide faster performance for multiple sequential updates
           (assign acc key value))
 
         :else
-        (throw (php/new InvalidArgumentException
-                        "conj on a map expects a [key value] pair or an associative collection"))))))
+        (throw (new InvalidArgumentException
+                    "conj on a map expects a [key value] pair or an associative collection"))))))
 
 (defn- conj-bang-single
   [tcoll value]
   (cond
-    (php/instanceof tcoll TransientVectorInterface)  (php/-> tcoll (append value))
-    (php/instanceof tcoll TransientHashSetInterface) (php/-> tcoll (add value))
+    (php/instanceof tcoll TransientVectorInterface)  (.append tcoll value)
+    (php/instanceof tcoll TransientHashSetInterface) (.add tcoll value)
     (php/instanceof tcoll TransientMapInterface)     (conj-map-entry tcoll value)
     :else
-    (throw (php/new InvalidArgumentException
-                    (str "conj! expects a transient collection, got " (type tcoll))))))
+    (throw (new InvalidArgumentException
+                (str "conj! expects a transient collection, got " (type tcoll))))))
 
 (defn conj!
   "Adds `value` to the transient collection `tcoll`, mutating it in place, and returns `tcoll`. The 'addition' may happen at different 'places' depending on the concrete transient type: transient vectors append at the tail, transient hash-sets add the element (no-op if already present), and transient hash-maps treat `value` as a `[key value]` pair (or an associative collection of entries). With zero arguments returns a new empty transient vector. With one argument returns `tcoll` unchanged. Variadic forms reduce `conj!` over the remaining values. Raises `InvalidArgumentException` when `tcoll` is not a transient collection. Matches Clojure's `conj!` semantics."
@@ -91,14 +91,14 @@ Transient collections provide faster performance for multiple sequential updates
   [tcoll key value]
   (cond
     (php/instanceof tcoll TransientMapInterface)
-    (php/-> tcoll (put key value))
+    (.put tcoll key value)
 
     (php/instanceof tcoll TransientVectorInterface)
-    (php/-> tcoll (update key value))
+    (.update tcoll key value)
 
     :else
-    (throw (php/new InvalidArgumentException
-                    (str "assoc! expects a transient map or transient vector, got " (type tcoll))))))
+    (throw (new InvalidArgumentException
+                (str "assoc! expects a transient map or transient vector, got " (type tcoll))))))
 
 (defn assoc!
   "Associates one or more key-value pairs with a transient collection,
@@ -125,11 +125,11 @@ Transient collections provide faster performance for multiple sequential updates
   [tcoll key]
   (cond
     (php/instanceof tcoll TransientMapInterface)
-    (php/-> tcoll (remove key))
+    (.remove tcoll key)
 
     :else
-    (throw (php/new InvalidArgumentException
-                    (str "dissoc! expects a transient map, got " (type tcoll))))))
+    (throw (new InvalidArgumentException
+                (str "dissoc! expects a transient map, got " (type tcoll))))))
 
 (defn dissoc!
   "Dissociates one or more keys from a transient map, mutating it in place. Raises `InvalidArgumentException` when `tcoll` is not a transient map. Matches Clojure's `dissoc!` semantics."
@@ -144,11 +144,11 @@ Transient collections provide faster performance for multiple sequential updates
   [tcoll value]
   (cond
     (php/instanceof tcoll TransientHashSetInterface)
-    (php/-> tcoll (remove value))
+    (.remove tcoll value)
 
     :else
-    (throw (php/new InvalidArgumentException
-                    (str "disj! expects a transient set, got " (type tcoll))))))
+    (throw (new InvalidArgumentException
+                (str "disj! expects a transient set, got " (type tcoll))))))
 
 (defn disj!
   "Removes one or more elements from a transient set, mutating it in place. Raises `InvalidArgumentException` when `tcoll` is not a transient set. Matches Clojure's `disj!` semantics."
@@ -166,8 +166,8 @@ Transient collections provide faster performance for multiple sequential updates
   [tcoll]
   (cond
     (php/instanceof tcoll TransientVectorInterface)
-    (php/-> tcoll (pop))
+    (.pop tcoll)
 
     :else
-    (throw (php/new InvalidArgumentException
-                    (str "pop! expects a transient vector, got " (type tcoll))))))
+    (throw (new InvalidArgumentException
+                (str "pop! expects a transient vector, got " (type tcoll))))))

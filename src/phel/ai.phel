@@ -73,10 +73,10 @@
         env-var  (provider-env-var provider)]
     (or (get cfg :api-key)
         (php/getenv env-var)
-        (throw (php/new RuntimeException
-                        (str "No API key configured for provider " provider
-                             ". Use (ai/configure {:api-key \"...\"}) or set "
-                             env-var " env var."))))))
+        (throw (new RuntimeException
+                    (str "No API key configured for provider " provider
+                         ". Use (ai/configure {:api-key \"...\"}) or set "
+                         env-var " env var."))))))
 
 ;; -----------
 ;; Provider-specific request builders
@@ -247,9 +247,9 @@
     (when (or (< status 200) (>= status 300))
       (let [body   (get response :body)
             parsed (try (json/decode body) (catch \Throwable _e nil))]
-        (throw (php/new RuntimeException
-                        (str "AI API error (HTTP " status "): "
-                             (provider-error-message parsed body))))))))
+        (throw (new RuntimeException
+                    (str "AI API error (HTTP " status "): "
+                         (provider-error-message parsed body))))))))
 
 (defn- send-request
   "Sends a prepared request map with retry + timeout."
@@ -307,7 +307,7 @@
                    (anthropic-request cfg messages system))
         body     (send-request cfg req)]
     (or (extract-text provider body)
-        (throw (php/new RuntimeException "No text content in AI response")))))
+        (throw (new RuntimeException "No text content in AI response")))))
 
 (defn complete
   "Sends a simple text completion request.
@@ -389,8 +389,8 @@ Useful for building multi-turn conversations."
         end   (php/strrpos trimmed close)]
     (if (and start end (>= end start))
       (php/substr trimmed start (+ (- end start) 1))
-      (throw (php/new RuntimeException
-                      (str error-prefix (truncate-for-error trimmed)))))))
+      (throw (new RuntimeException
+                  (str error-prefix (truncate-for-error trimmed)))))))
 
 (defn- extract-json-from-response
   "Extracts JSON from an AI response, handling markdown code blocks."
@@ -568,20 +568,20 @@ Similar to `extract`, but returns a vector of maps when the text contains multip
     (loop [msgs messages
            turn 0]
       (when (>= turn max-turns)
-        (throw (php/new RuntimeException
-                        (str "run-tools exceeded :max-turns (" max-turns ")"))))
+        (throw (new RuntimeException
+                    (str "run-tools exceeded :max-turns (" max-turns ")"))))
       (let [response (chat-with-tools msgs tools opts)
             calls    (get response :tool-calls)]
         (if (empty? calls)
           (or (get response :text)
-              (throw (php/new RuntimeException "run-tools: model returned no text and no tool calls")))
+              (throw (new RuntimeException "run-tools: model returned no text and no tool calls")))
           (let [assistant (assistant-message (get response :raw))
                 results   (for [c :in calls]
                             (let [name-str (get c :name)
                                   handler  (get handlers name-str)]
                               (when (nil? handler)
-                                (throw (php/new RuntimeException
-                                                (str "run-tools: no handler for tool '" name-str "'"))))
+                                (throw (new RuntimeException
+                                            (str "run-tools: no handler for tool '" name-str "'"))))
                               (tool-result (get c :id) (handler (get c :input)))))
                 next-msgs (concat msgs [assistant] results)]
             (recur next-msgs (+ turn 1))))))))
@@ -596,7 +596,7 @@ Similar to `extract`, but returns a vector of maps when the text contains multip
    :see-also ["cosine-similarity" "magnitude"]}
   [a b]
   (when (not= (count a) (count b))
-    (throw (php/new RuntimeException "Vectors must have the same length for dot product.")))
+    (throw (new RuntimeException "Vectors must have the same length for dot product.")))
   (apply + (map * a b)))
 
 (defn magnitude

@@ -57,7 +57,7 @@
     (is (= true (realized? f)) "future is realized after deref")))
 
 (deftest test-future-fiber-propagates-exceptions
-  (let [f (future-fiber (throw (php/new \RuntimeException "boom")))]
+  (let [f (future-fiber (throw (new \RuntimeException "boom")))]
     (is (thrown? \RuntimeException @f)
         "deref on a failed fiber-future rethrows")))
 

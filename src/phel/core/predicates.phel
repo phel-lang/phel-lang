@@ -99,26 +99,26 @@
     :unknown))
 
 (defn- throw-class-type-error [op-name expected-suffix x]
-  (throw (php/new \InvalidArgumentException
-                  (php/. op-name " expects " expected-suffix ", got "
-                         (php/get_debug_type x)))))
+  (throw (new \InvalidArgumentException
+              (php/. op-name " expects " expected-suffix ", got "
+                     (php/get_debug_type x)))))
 
 (defn class?
   "Returns true if `x` is a `Phel\\Lang\\PhpClass` value."
-  {:example "(class? (class (php/new \\stdClass))) ; => true"
+  {:example "(class? (class (new \\stdClass))) ; => true"
    :see-also ["class" "class-name" "type"]}
   [x]
   (php/instanceof x PhpClass))
 
 (defn class
   "Returns a `Phel\\Lang\\PhpClass` for `x`. With an object argument returns the class of the object. With a string argument resolves the named class or interface FQN. Throws `InvalidArgumentException` for any other input."
-  {:example "(class (php/new \\stdClass)) ; => stdClass"
+  {:example "(class (new \\stdClass)) ; => stdClass"
    :see-also ["class?" "class-name" "type"]}
   [x]
   (cond
     (php/instanceof x PhpClass) x
-    (php/is_object x)           (php/:: PhpClass (ofValue x))
-    (php/is_string x)           (php/:: PhpClass (fromName x))
+    (php/is_object x)           (PhpClass/ofValue x)
+    (php/is_string x)           (PhpClass/fromName x)
     :else                       (throw-class-type-error "class" "an object or class-name string" x)))
 
 (defn class-name
@@ -127,7 +127,7 @@
    :see-also ["class" "class?"]}
   [c]
   (if (php/instanceof c PhpClass)
-    (php/-> c (name))
+    (.name c)
     (throw-class-type-error "class-name" "a Phel\\Lang\\PhpClass" c)))
 
 (defn float?
@@ -158,7 +158,7 @@
   (PHP int, BigInt, Ratio, float). Negative for x<0, 0 for x=0,
   positive for x>0."
   [x]
-  (php/:: NumericOperations (compare x 0)))
+  (NumericOperations/compare x 0))
 
 (defn neg-int?
   "Returns true if `x` is a negative integer. Accepts both fixed-precision PHP `int` and arbitrary-precision `BigInt` values."
@@ -259,14 +259,14 @@
   {:example "(simple-symbol? 'a) ; => true\n(simple-symbol? 'foo/bar) ; => false"
    :see-also ["symbol?" "simple-ident?"]}
   [x]
-  (and (symbol? x) (nil? (php/-> x (getNamespace)))))
+  (and (symbol? x) (nil? (.getNamespace x))))
 
 (defn simple-keyword?
   "Returns true if `x` is a keyword without a namespace."
   {:example "(simple-keyword? :a) ; => true\n(simple-keyword? :foo/bar) ; => false"
    :see-also ["keyword?" "simple-ident?"]}
   [x]
-  (and (keyword? x) (nil? (php/-> x (getNamespace)))))
+  (and (keyword? x) (nil? (.getNamespace x))))
 
 (defn simple-ident?
   "Returns true if `x` is a symbol or keyword without a namespace."
@@ -348,7 +348,7 @@
   ;; A seq view over a vector or a map is also a `PersistentListInterface`, so
   ;; dropping either half makes `(list? (seq [1 2]))` return true.
   (and (php/instanceof x PersistentListInterface)
-       (php/-> x (isList))))
+       (.isList x)))
 
 (defn queue?
   "Returns true if `x` is a `Phel\\Lang\\Collections\\Queue\\PersistentQueue` value."
@@ -384,7 +384,7 @@
   value second). `c` should be a literal class reference such as
   `DateTime` or a `:use`d short name; for runtime class names use
   `(php/is_a x class-name)`."
-  {:example "(instance? DateTime (php/new DateTime)) ; => true"
+  {:example "(instance? DateTime (new DateTime)) ; => true"
    :see-also ["type"]}
   [c x]
   `(php/instanceof ~x ~c))
@@ -403,7 +403,7 @@
 
 (defn php-object?
   "Returns true if `x` is a PHP object, false otherwise."
-  {:example "(php-object? (php/new \\stdClass)) ; => true"
+  {:example "(php-object? (new \\stdClass)) ; => true"
    :see-also ["php-array?" "php-resource?"]}
   [x]
   (= (type x) :php/object))
@@ -440,7 +440,7 @@ A non-countable iterable (an `eduction` pipeline, a PHP generator) is answered b
     (php/instanceof x LazySeqInterface) (nil? (first x))
     (php/instanceof x Cons)             false
     (php/instanceof x Countable)        (= 0 (count x))
-    (php/instanceof x Traversable)      (php/:: Seq (isEmpty x))
+    (php/instanceof x Traversable)      (Seq/isEmpty x)
     :else                               (= 0 (count x))))
 
 (defn not-empty
@@ -472,11 +472,11 @@ A non-countable iterable (an `eduction` pipeline, a PHP generator) is answered b
 
 (defn- seq-vector
   [values]
-  (if (php/empty values) nil (php/:: Phel (vector values))))
+  (if (php/empty values) nil (Phel/vector values)))
 
 (defn- seq-list
   [values]
-  (if (php/empty values) nil (php/:: Phel (seqList values))))
+  (if (php/empty values) nil (Phel/seqList values)))
 
 (defn seq
   "Returns a seq on the collection. Strings are converted to a vector of characters. Other non-empty collections (vectors, sets, sorted-maps, sorted-sets, PHP arrays) are converted to a non-list seq. Returns nil if `coll` is empty or nil.
@@ -494,7 +494,7 @@ This function is useful for explicitly converting strings to sequences of charac
 
     ;; For lazy sequences and lists, don't force them - just check if first element exists
     (seq? coll)
-    (if (php/=== nil (php/-> coll (first))) nil coll)
+    (if (php/=== nil (.first coll)) nil coll)
 
     ;; For other countable collections, check count (won't force lazy seqs)
     (and (php/instanceof coll Countable) (= 0 (count coll)))

@@ -1,0 +1,52 @@
+(ns phel-test.core.set-bang
+  (:require phel.test :refer [deftest is])
+  (:use \stdClass))
+
+(def ^:dynamic *counter* 0)
+
+(deftest sets-an-object-property
+  (let [o (php/new stdClass)]
+    (set! (.-total o) 10)
+    (is (= 10 (.-total o)) "the property holds the assigned value")))
+
+(deftest returns-the-assigned-value
+  (let [o (php/new stdClass)]
+    (is (= 42 (set! (.-total o) 42))
+        "set! evaluates to the value, like Clojure, not to the target object")
+    (is (php/instanceof (php/oset (.-total o) 43) \stdClass)
+        "php/oset still evaluates to the target object")))
+
+(deftest overwrites-an-existing-value
+  (let [o (php/new stdClass)]
+    (set! (.-total o) 1)
+    (set! (.-total o) 2)
+    (is (= 2 (.-total o)) "the second assignment wins")))
+
+(deftest accepts-a-computed-value
+  (let [o (php/new stdClass)
+        n 20]
+    (set! (.-total o) (php/* n 2))
+    (is (= 40 (.-total o)) "the value expression is evaluated before the assignment")))
+
+(deftest does-not-capture-a-local-named-value
+  (let [o     (php/new stdClass)
+        value 5]
+    (set! (.-total o) value)
+    (is (= 5 (.-total o)) "a caller binding named `value` survives the expansion")))
+
+(deftest sets-a-thread-local-var-binding
+  (is (= 2 (binding [*counter* 1] (set! *counter* 2) *counter*))
+      "set! on a symbol writes the current binding frame")
+  (is (= 0 *counter*)
+      "the root is untouched, unlike set-var"))
+
+(deftest returns-the-value-for-a-var-too
+  (is (= 7 (binding [*counter* 1] (set! *counter* 7)))
+      "the var branch returns the assigned value as well"))
+
+(deftest refuses-to-write-a-root
+  (let [err (try (set! *counter* 3)
+                 (catch \InvalidArgumentException e e))]
+    (is (php/instanceof err \InvalidArgumentException)
+        "set! outside a binding frame throws instead of writing the root")
+    (is (= 0 *counter*) "the root is still the value def gave it")))

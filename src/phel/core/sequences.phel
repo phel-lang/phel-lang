@@ -53,8 +53,8 @@
   (cond
     (nil? coll) nil
     (php-array? coll) (php/array_pop coll)
-    (php/instanceof coll PopInterface) (php/-> coll (pop))
-    (throw (php/new InvalidArgumentException "Cannot pop"))))
+    (php/instanceof coll PopInterface) (.pop coll)
+    (throw (new InvalidArgumentException "Cannot pop"))))
 
 (defmacro pop
   "Removes the last element of a collection. Returns nil for nil."
@@ -94,7 +94,7 @@
     (or (set? ds)
         (php/instanceof ds PersistentHashSetInterface)
         (php/instanceof ds TransientHashSetInterface))
-    (if (php/-> ds (contains k))
+    (if (.contains ds k)
       k
       opt)
 
@@ -141,23 +141,23 @@
      nil
 
      (not (integer? index))
-     (throw (php/new OutOfBoundsException (str "Index " index " is not an integer")))
+     (throw (new OutOfBoundsException (str "Index " index " is not an integer")))
 
      (php/is_string coll)
      (if (in-bounds? index (php/mb_strlen coll "UTF-8"))
        (php/mb_substr coll index 1 "UTF-8")
-       (throw (php/new OutOfBoundsException (str "String index " index " out of bounds"))))
+       (throw (new OutOfBoundsException (str "String index " index " out of bounds"))))
 
      (indexed-vector? coll)
      (if (in-bounds? index (count coll))
        (get coll index)
-       (throw (php/new OutOfBoundsException (str "Vector index " index " out of bounds"))))
+       (throw (new OutOfBoundsException (str "Vector index " index " out of bounds"))))
 
      :else
      (loop [i index
             s coll]
        (cond
-         (nil? s)      (throw (php/new OutOfBoundsException (str "Index " index " out of bounds")))
+         (nil? s)      (throw (new OutOfBoundsException (str "Index " index " out of bounds")))
          (php/=== i 0) (first s)
          :else         (recur (php/- i 1) (next s))))))
 
@@ -191,12 +191,12 @@
   {:example "(nthrest [1 2 3 4 5] 2) ; => [3 4 5]\n(nthrest [1 2] 5) ; => ()\n(nthrest nil 0) ; => nil\n(nthrest nil 3) ; => ()"
    :see-also ["nth" "nthnext" "drop"]}
   [coll n]
-  (if (php/< (php/:: NumericOperations (compare n 1)) 0)
+  (if (php/< (NumericOperations/compare n 1) 0)
     coll
     (loop [i n
            s coll]
-      (if (and (php/> (php/:: NumericOperations (compare i 0)) 0) s)
-        (recur (php/:: NumericOperations (subtract i 1)) (next s))
+      (if (and (php/> (NumericOperations/compare i 0) 0) s)
+        (recur (NumericOperations/subtract i 1) (next s))
         (if (nil? s) '() s)))))
 
 (defn nthnext
@@ -236,9 +236,9 @@
   "Updates a vector at an integer index. Vectors index by int only; a non-integer key raises a clean `InvalidArgumentException` instead of leaking PHP's `update(): Argument #1 ($i) must be of type int` TypeError."
   [v key value]
   (if (integer? key)
-    (php/-> v (update key value))
-    (throw (php/new InvalidArgumentException
-                    (str "assoc on a vector expects an integer index, got " (type key))))))
+    (.update v key value)
+    (throw (new InvalidArgumentException
+                (str "assoc on a vector expects an integer index, got " (type key))))))
 
 (defn- assoc-pair
   "Associates a single key-value pair with a collection."
@@ -246,13 +246,13 @@
   (cond
     ;; Clojure-compat: (assoc nil k v) creates a fresh map instead of erroring.
     (nil? ds)
-    (php/-> {} (put key value))
+    (.put {} key value)
 
     (php-array? ds)
-    (throw (php/new InvalidArgumentException "Cannot call assoc on pure PHP arrays. Use (php/aset ds key value)"))
+    (throw (new InvalidArgumentException "Cannot call assoc on pure PHP arrays. Use (php/aset ds key value)"))
 
     (map-target? ds)
-    (php/-> ds (put key value))
+    (.put ds key value)
 
     (vector-target? ds)
     (vector-assoc ds key value)
@@ -261,23 +261,23 @@
     ;; longer represents a real map entry. Matches Clojure's MapEntry
     ;; behavior under assoc.
     (php/instanceof ds MapEntry)
-    (vector-assoc [(php/-> ds (key)) (php/-> ds (value))] key value)
+    (vector-assoc [(.key ds) (.value ds)] key value)
 
     ;; Explicit rejection for any other shape (string, list, set, sorted set,
     ;; number, …). Without this the old fall-through silently mutated strings
     ;; via `php/aset` and leaked raw PHP "offsetSet not supported" errors for
     ;; lists and sets.
-    (throw (php/new InvalidArgumentException
-                    (str "assoc expects a map, vector, struct, or nil; got " (type ds))))))
+    (throw (new InvalidArgumentException
+                (str "assoc expects a map, vector, struct, or nil; got " (type ds))))))
 
 (defn assoc
   "Associates one or more key-value pairs with a collection. Additional key-value pairs beyond the first are applied in order. Throws if an odd number of extra arguments is provided."
   {:example "(assoc {:a 1} :b 2) ; => {:a 1, :b 2}\n(assoc {:a 1} :b 2 :c 3) ; => {:a 1, :b 2, :c 3}"}
   [ds key value & more]
   (when (php/!== 0 (php/& (count more) 1))
-    (throw (php/new InvalidArgumentException
-                    (str "assoc expects an even number of extra arguments (key-value pairs), got "
-                         (count more)))))
+    (throw (new InvalidArgumentException
+                (str "assoc expects an even number of extra arguments (key-value pairs), got "
+                     (count more)))))
   (loop [acc       (assoc-pair ds key value)
          remaining more]
     (if (empty? remaining)
@@ -292,16 +292,16 @@
     nil
 
     (php/is_array ds)
-    (throw (php/new InvalidArgumentException "Cannot call dissoc on pure PHP arrays. Use (php/aunset ds key)"))
+    (throw (new InvalidArgumentException "Cannot call dissoc on pure PHP arrays. Use (php/aunset ds key)"))
 
     (map-target? ds)
-    (php/-> ds (remove key))
+    (.remove ds key)
 
     (set-target? ds)
-    (php/-> ds (remove key))
+    (.remove ds key)
 
-    (throw (php/new InvalidArgumentException
-                    (str "dissoc requires a map, set, or struct; got " (type ds))))))
+    (throw (new InvalidArgumentException
+                (str "dissoc requires a map, set, or struct; got " (type ds))))))
 
 (defn dissoc
   "Returns `ds` without the given keys. With no keys returns `ds` unchanged."

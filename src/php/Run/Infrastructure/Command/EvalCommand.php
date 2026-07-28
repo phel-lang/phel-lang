@@ -6,9 +6,12 @@ namespace Phel\Run\Infrastructure\Command;
 
 use Gacela\Framework\ServiceResolver\ServiceMap;
 use Gacela\Framework\ServiceResolverAwareTrait;
+use Phel;
 use Phel\Run\Domain\StdinReaderInterface;
 use Phel\Run\RunFacade;
 use Phel\Run\RunFactory;
+use Phel\Shared\CompilerConstants;
+use Phel\Shared\ReplConstants;
 use Phel\Shared\ScalarCoercion;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputArgument;
@@ -69,9 +72,17 @@ HELP)
             $expression = ($this->stdinReader ?? $this->getFactory()->createStdinReader())->read();
         }
 
-        $result = $this->getFactory()
-            ->createEvalExecutor()
-            ->execute($expression);
+        // Same input model as the REPL prompt: forms a human typed, where
+        // re-defining a symbol is expected rather than a mistake (#2896).
+        Phel::addDefinition(CompilerConstants::PHEL_CORE_NAMESPACE, ReplConstants::INTERACTIVE_MODE, true);
+
+        try {
+            $result = $this->getFactory()
+                ->createEvalExecutor()
+                ->execute($expression);
+        } finally {
+            Phel::addDefinition(CompilerConstants::PHEL_CORE_NAMESPACE, ReplConstants::INTERACTIVE_MODE, false);
+        }
 
         return $result ? self::SUCCESS : self::FAILURE;
     }

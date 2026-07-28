@@ -2,33 +2,33 @@
   (:require phel.test :refer [deftest is]))
 
 (deftest test-set-object-property
-  (is (= "foo" (php/-> (php/oset (php/-> (php/new \stdClass) name) "foo") name)) "set value to stdClass"))
+  (is (= "foo" (.-name (php/oset (.-name (new \stdClass)) "foo"))) "set value to stdClass"))
 
 (deftest test-oset-expression-returns-target-object
   ;; `php/oset` as an expression must evaluate to the *target object*, not
   ;; the assigned value (a bare PHP `$o->p = v` would yield `v`). Reading the
   ;; property back off the result proves the target object flowed out.
-  (let [o   (php/new \stdClass)
-        ret (php/oset (php/-> o name) "bar")]
+  (let [o   (new \stdClass)
+        ret (php/oset (.-name o) "bar")]
     (is (php/=== o ret) "oset expression returns the same target object")
-    (is (= "bar" (php/-> ret name)) "the property was set on the returned object")))
+    (is (= "bar" (.-name ret)) "the property was set on the returned object")))
 
 (deftest test-nested-php-object-call
   (let [xml-string "<root><user id='1'><name>John</name></user></root>"
-        xml        (php/new \SimpleXMLElement xml-string)]
-    (is (= "John" (str (php/-> xml user name))))))
+        xml        (new \SimpleXMLElement xml-string)]
+    (is (= "John" (str (-> xml (.-user) (.-name)))))))
 
 (deftest test-php-new-dynamic-class-from-variable
   (let [cls "\\DateTimeZone"
-        tz  (php/new cls "Europe/Berlin")]
-    (is (= "Europe/Berlin" (php/-> tz (getName)))
-        "php/new with a class held in a variable resolves at runtime")))
+        tz  (new cls "Europe/Berlin")]
+    (is (= "Europe/Berlin" (.getName tz))
+        "new with a class held in a variable resolves at runtime")))
 
 (deftest test-php-new-dynamic-invalid-class-throws
   (is (thrown? \InvalidArgumentException
-        (let [cls 42]
-          (php/new cls)))
-      "php/new with a non-string, non-object class value throws InvalidArgumentException"))
+               (let [cls 42]
+                 (new cls)))
+      "new with a non-string, non-object class value throws InvalidArgumentException"))
 
 (deftest test-def-duplication
   (let [form (read-string "(do (def a \"first\") (def a \"second\") a)")]

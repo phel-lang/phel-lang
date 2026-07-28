@@ -4,15 +4,15 @@
 (def- target "PhelTest\\Fixtures\\Interop\\ByRefTarget")
 
 (deftest php-ref-observes-by-reference-write
-  (let [t   (php/new target)
+  (let [t   (new target)
         out "init"]
-    (php/-> t (writeInto (php/ref out) "written"))
+    (.writeInto t (php/ref out) "written")
     (is (= "written" out) "a by-ref method writes back into the Phel local")))
 
 (deftest without-php-ref-the-write-is-not-observed
-  (let [t   (php/new target)
+  (let [t   (new target)
         out "init"]
-    (php/-> t (writeInto out "written"))
+    (.writeInto t out "written")
     (is (= "init" out) "a value-captured local is unaffected by the by-ref write")))
 
 (deftest php-ref-on-a-plain-function-call
@@ -34,7 +34,7 @@
     (is (= "123" (php/aget m 1)) "by-ref survives an enclosing IIFE wrap")))
 
 (deftest php-method-ref-survives-an-enclosing-closure-wrap
-  (let [t   (php/new target)
+  (let [t   (new target)
         out "init"]
-    (php/intval (do (php/-> t (writeInto (php/ref out) "written")) 0))
+    (php/intval (do (.writeInto t (php/ref out) "written") 0))
     (is (= "written" out) "method by-ref survives an enclosing IIFE wrap")))

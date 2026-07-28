@@ -1,0 +1,12 @@
+(ns refershadow.main
+  (:require refershadow.lib :refer [greet countdown untouched]))
+
+(defn greet [] "mine")
+
+(defn countdown [n]
+  (if (= n 0) "base" (countdown (dec n))))
+
+(def bare (greet))
+(def qualified (refershadow.main/greet))
+(def recursed (countdown 1))
+(def not-redefined (untouched))

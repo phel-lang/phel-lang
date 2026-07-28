@@ -92,7 +92,7 @@
         parts        (php/parse_url (str prefix encodedUrl))
         parts        (php/array_map php/urldecode parts)]
     (when-not parts
-      (throw (php/new InvalidArgumentException (str "This is not a valid uri: " url))))
+      (throw (new InvalidArgumentException (str "This is not a valid uri: " url))))
     (uri
      (php/aget parts "scheme")
      (if (php/aget parts "pass")
@@ -145,7 +145,7 @@
         (indexed? v)
         (assoc res k (normalize-files v))
 
-        (throw (php/new InvalidArgumentException "Invalid value in files specification"))))
+        (throw (new InvalidArgumentException "Invalid value in files specification"))))
     (persistent res)))
 
 (defn files-from-globals
@@ -203,11 +203,11 @@
   (let [method (get (or server php/$_SERVER) "REQUEST_METHOD")]
     (if method
       method
-      (throw (php/new InvalidArgumentException
-                      (str "cannot determine HTTP Method: $_SERVER['REQUEST_METHOD'] is not set. "
-                           "request-from-globals requires a web request context (PHP-FPM, mod_php, or `php -S`); "
-                           "it cannot be used from the REPL or a CLI script. "
-                           "Build a request manually with `request-from-map` for testing."))))))
+      (throw (new InvalidArgumentException
+                  (str "cannot determine HTTP Method: $_SERVER['REQUEST_METHOD'] is not set. "
+                       "request-from-globals requires a web request context (PHP-FPM, mod_php, or `php -S`); "
+                       "it cannot be used from the REPL or a CLI script. "
+                       "Build a request manually with `request-from-map` for testing."))))))
 
 (defn- content-type-base
   "Lowercased media type from the `:content-type` header with any parameters
@@ -301,7 +301,7 @@
      (string? uri) (uri-from-string uri)
      (uri? uri) uri
      (nil? uri) nil
-     (throw (php/new InvalidArgumentException "Invalid :uri provided. Must be nil, string or uri")))
+     (throw (new InvalidArgumentException "Invalid :uri provided. Must be nil, string or uri")))
    (or headers {})
    parsed-body
    (or query-params {})
@@ -441,12 +441,12 @@
 (defn- assert-no-crlf [value]
   (when (and (string? value)
              (or (php/str_contains value "\r") (php/str_contains value "\n")))
-    (throw (php/new InvalidArgumentException "Header must not contain CR or LF characters")))
+    (throw (new InvalidArgumentException "Header must not contain CR or LF characters")))
   value)
 
 (defn- normalize-header-name [header-name]
   (when-not (or (keyword? header-name) (string? header-name))
-    (throw (php/new InvalidArgumentException (str "Header must be a keyword or string. Given: " header-name))))
+    (throw (new InvalidArgumentException (str "Header must be a keyword or string. Given: " header-name))))
   (assert-no-crlf (php/ucwords (name header-name) "-")))
 
 (defn- emit-headers [{:status status, :headers headers}]
