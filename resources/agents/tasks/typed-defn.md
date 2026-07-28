@@ -14,7 +14,7 @@
 (defn ^"?int"   parse   [^string s]          (try (php/intval s) (catch \Throwable _ nil)))
 (defn ^string   greet   [^string name]       (str "Hello, " name "!"))
 (defn ^bool     valid?  [^string s]          (php/!== "" s))
-(defn ^"\\DateTimeImmutable" now [] (php/new \DateTimeImmutable))
+(defn ^"\\DateTimeImmutable" now [] (new \DateTimeImmutable))
 (defn ^{:tag "array"} pairs [m] (to-php-array m))
 ```
 

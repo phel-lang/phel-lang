@@ -24,7 +24,7 @@ use const E_USER_DEPRECATED;
  * A macro pastes its body into the caller's file, and the analyzer stamps the
  * call site onto every form of the expansion so errors stay locatable. That
  * made `phel.core`'s own `\`-form class FQNs (`(delay ...)` expands to
- * `(php/new \Phel\Lang\Delay ...)`) look like backslash separators the *user*
+ * `(new \Phel\Lang\Delay ...)`) look like backslash separators the *user*
  * had written, reporting a deprecation against a file whose author could not
  * act on it (#2827). A macro whose expansion *calls a `:deprecated`
  * definition* misattributes the same way.
@@ -85,7 +85,7 @@ final class MacroExpansionDeprecationTest extends TestCase
 
     public function test_a_backslash_fqn_the_user_wrote_is_still_reported(): void
     {
-        $warnings = $this->compileCapturingDeprecations('(php/new \Phel\Lang\Delay (fn [] 42))');
+        $warnings = $this->compileCapturingDeprecations('(new \Phel\Lang\Delay (fn [] 42))');
 
         self::assertCount(1, $warnings);
         self::assertStringContainsString('\\' . Delay::class, $warnings[0]);
@@ -96,7 +96,7 @@ final class MacroExpansionDeprecationTest extends TestCase
     {
         // The argument keeps the reader's own location, so it must survive the
         // expansion-origin suppression that silences the macro's own body.
-        $warnings = $this->compileCapturingDeprecations('(delay (php/new \Phel\Lang\Delay (fn [] 1)))');
+        $warnings = $this->compileCapturingDeprecations('(delay (new \Phel\Lang\Delay (fn [] 1)))');
 
         self::assertCount(1, $warnings);
         self::assertStringContainsString('\\' . Delay::class, $warnings[0]);

@@ -2,9 +2,8 @@
 ;;
 ;; `(new \C ...)`, `(.method obj ...)` and `(\C/staticMethod ...)` are the
 ;; spellings to reach for. Each desugars to a `php/*` special form (`php/new`,
-;; `php/->`, `php/::`) before analysis, so the two are the same program; the
-;; `php/*` layer is the compilation target and the escape hatch, not the thing
-;; to write by hand. One `php/->` call below shows the equivalence.
+;; `php/->`, `php/::`) before analysis, so the two are the same program — but the
+;; `php/*` layer is the compilation target only, and deprecated as source.
 ;;
 ;; Full guide: https://phel-lang.org/documentation/php-interop/
 
@@ -36,7 +35,7 @@
 (defn iso [datetime]
   (.format datetime "c"))
 
-;; A static method reads `Class/method`, with no `php/::` in sight.
+;; A static method reads `Class/method`.
 (defn parse-day [text]
   (\DateTimeImmutable/createFromFormat "Y-m-d H:i" text))
 
@@ -51,8 +50,6 @@
         start    (new DateTimeImmutable "2024-06-01 09:00" timezone)
         plan     (schedule-blocks start workshop-blocks)
         payload  {:timezone (.getName timezone)
-                 ;; The same call through the `php/*` escape hatch, for comparison.
-                 :timezone-again (php/-> timezone (getName))
                  :starts (iso start)
                  :next-day (day-after start)
                  :reparsed (iso (parse-day "2024-06-01 09:00"))

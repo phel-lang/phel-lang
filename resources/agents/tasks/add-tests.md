@@ -23,7 +23,7 @@ Namespace: `tests\<name>-test`.
 
 (defn divide [^"int|float" a ^"int|float" b]
   (when (zero? b)
-    (throw (php/new \InvalidArgumentException "division by zero")))
+    (throw (new \InvalidArgumentException "division by zero")))
   (/ a b))
 ```
 

@@ -66,6 +66,11 @@ Trailing `*` means not user-facing. Macros `defstruct`, `definterface`, `defexce
 
 ## PHP interop
 
+`php/new`, `php/->` and `php/::` are deprecated **as source** but still exist as the
+compilation target the Clojure-style shorthand expands into, so they keep their
+analyzers and emitters. `SupersededFormDeprecator` warns on a *written* one, which is
+why it runs on the list before `AnalyzePersistentList` desugars.
+
 | Form | Const | Emits |
 |------|-------|-------|
 | `php/new` (`new`) | `NAME_PHP_NEW` / `NAME_NEW` | `new Foo(...)` |

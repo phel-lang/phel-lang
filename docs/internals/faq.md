@@ -10,7 +10,7 @@ Grouped by reader.
 
 **Why `\Phel::addDefinition()` instead of plain functions?** Phel namespaces are runtime values (see [runtime.md](runtime.md)). A single static surface tracks definitions, metadata, and reloads; one `require` registers a whole namespace with no per-definition class-loading.
 
-**How does `(my-fn arg)` reach my PHP?** Phel function: compiles to a class with `__invoke`, call site emits `(($lookup))($arg)`. Interop: `(php/-> $obj method arg)` and friends compile to literal `$obj->method($arg)`. See [special-forms.md](special-forms.md).
+**How does `(my-fn arg)` reach my PHP?** Phel function: compiles to a class with `__invoke`, call site emits `(($lookup))($arg)`. Interop: `(.method obj arg)` and friends compile to literal `$obj->method($arg)`. See [special-forms.md](special-forms.md).
 
 **Xdebug, Psalm, PHPStan?** Yes, on the generated PHP. Source maps point traces back to `.phel`. `composer test-quality` runs Psalm + PHPStan on `src/php/`.
 

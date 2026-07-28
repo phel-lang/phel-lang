@@ -6,10 +6,12 @@ namespace PhelTest\Unit\Architecture;
 
 use Phel\Compiler\Domain\Analyzer\AnalyzerInterface;
 use Phel\Compiler\Domain\Analyzer\TypeAnalyzer\AnalyzePersistentList;
+use Phel\Compiler\Domain\Deprecation\SupersededFormDeprecator;
 use PHPUnit\Framework\TestCase;
 
 use function dirname;
 use function file_get_contents;
+use function preg_match;
 use function preg_match_all;
 use function sort;
 
@@ -38,6 +40,20 @@ final class LanguageSurfaceSpecTest extends TestCase
         );
     }
 
+    public function test_the_spec_lists_exactly_the_forms_that_warn_as_deprecated(): void
+    {
+        $documented = $this->deprecatedFormsDocumentedInTheSpec();
+        $warning = SupersededFormDeprecator::supersededFormNames();
+        sort($warning);
+
+        self::assertSame(
+            $warning,
+            $documented,
+            "docs/spec/language-surface.md no longer matches SupersededFormDeprecator.\n"
+            . 'Update the "Deprecated inside 1.x" table in section 2.',
+        );
+    }
+
     /**
      * The first column of the table in section 2, where every cell is a single
      * form wrapped in backticks.
@@ -49,6 +65,25 @@ final class LanguageSurfaceSpecTest extends TestCase
         $spec = (string) file_get_contents(dirname(__DIR__, 4) . '/docs/spec/language-surface.md');
 
         preg_match_all('/^\| `([^`]+)` \| (?:core|interop|namespacing|type definition) \|/m', $spec, $matches);
+
+        $forms = $matches[1];
+        sort($forms);
+
+        return $forms;
+    }
+
+    /**
+     * The first column of the "Deprecated inside 1.x" table, scoped to that
+     * subsection so the closed-list table above it cannot leak in.
+     *
+     * @return list<string>
+     */
+    private function deprecatedFormsDocumentedInTheSpec(): array
+    {
+        $spec = (string) file_get_contents(dirname(__DIR__, 4) . '/docs/spec/language-surface.md');
+
+        preg_match('/^### Deprecated inside 1\.x$(.*?)^### /ms', $spec, $section);
+        preg_match_all('/^\| `([^`]+)` \| /m', $section[1] ?? '', $matches);
 
         $forms = $matches[1];
         sort($forms);

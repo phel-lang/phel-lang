@@ -58,6 +58,69 @@ Full detail, including what is and is not detected today, is in
 [backslash-to-dot.md](backslash-to-dot.md). Tracked in
 [#1567](https://github.com/phel-lang/phel-lang/issues/1567).
 
+## Redundant interop forms: `php/new`, `php/->`, `php/::`
+
+`php/` marks host access: reaching a PHP function, a PHP array or a PHP
+reference, none of which Phel has a word for. It is not a second spelling for
+something Phel already says the Clojure way. These three were the second
+spelling, so they are deprecated and the Clojure-style form is now the only
+one. Everything on the right has worked for a long time; what changed is that
+the last positions needing a `php/*` fallback were closed
+([#2881](https://github.com/phel-lang/phel-lang/issues/2881),
+[#2883](https://github.com/phel-lang/phel-lang/issues/2883),
+[#2887](https://github.com/phel-lang/phel-lang/issues/2887)).
+
+```phel
+(php/new \DateTime "2024-03-10")      (new \DateTime "2024-03-10")
+                                      (\DateTime. "2024-03-10")
+
+(php/-> d (format "Y"))               (.format d "Y")
+(php/-> obj prop)                     (.-prop obj)
+
+(php/:: \DateTime (createFromFormat   (\DateTime/createFromFormat
+        "Y-m-d" "2024-03-10"))          "Y-m-d" "2024-03-10")
+(php/:: \Foo BAR)                     \Foo/BAR
+```
+
+Chaining needs nothing special: `(-> d (.modify "+1 day") (.format "Y-m-d"))`
+threads with plain `->`, methods and properties alike.
+
+**Writing a macro** whose method or class name is computed at expansion time is
+the one case that used to force `php/->`. Build the head symbol instead:
+
+```phel
+`(~(symbol (str "." method-name)) ~receiver ~@args)   ; (.method recv args)
+`(~(symbol "\\Phel" static-name))                     ; (\Phel/staticName)
+```
+
+The mutating forms are unaffected and stay: `php/aget`, `php/aset`,
+`php/apush`, `php/aunset`, `php/oset`, `php/ref` and `php/callable` each reach
+a PHP capability with no Clojure counterpart. `phel.core` spells the common
+ones at top level (`aget`, `aset`, `aclone`, `alength`, `set!`).
+
+Tracked in [#2877](https://github.com/phel-lang/phel-lang/issues/2877).
+
+## `set-var`
+
+`set-var` writes a var's **root**, which Clojure calls `alter-var-root`. Its
+name reads like Clojure's `set!`, which does the opposite (it assigns the
+current thread-local binding and throws when there is none) — and since
+[#2905](https://github.com/phel-lang/phel-lang/pull/2905) Phel has that `set!`
+too, so the misleading name now sits next to the thing it is mistaken for.
+
+```phel
+(set-var *x* 3)                       (alter-var-root #'*x* (constantly 3))
+```
+
+`alter-var-root` takes a var and a **function**, so a plain value goes through
+`constantly`. To assign only the current `binding` frame, that is `(set! *x* 3)`.
+
+`binding` and `with-redefs` still expand into `set-var`: an emitted `set-var`
+inside an open frame is what records the rebinding. Removing the public form
+therefore needs a non-public primitive to take that over first.
+
+Tracked in [#2888](https://github.com/phel-lang/phel-lang/issues/2888).
+
 ## Deprecating your own definitions
 
 The mechanism is not phel-specific. Any `def`/`defn` carrying

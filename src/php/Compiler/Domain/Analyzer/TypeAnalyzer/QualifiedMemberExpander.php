@@ -137,7 +137,11 @@ final readonly class QualifiedMemberExpander
     private function classMemberForm(string $head, Symbol $symbol): PersistentListInterface
     {
         return Phel::list([
-            Symbol::create($head)->copyLocationFrom($symbol),
+            // Deliberately unlocated: nobody wrote this head, and `php/::` is
+            // deprecated as source, so locating it would report `\C/CONST` as a
+            // use of the form it expands to. The list keeps the position that
+            // error reporting needs.
+            Symbol::create($head),
             Symbol::create((string) $symbol->getNamespace())->copyLocationFrom($symbol),
             Symbol::create($symbol->getName())->copyLocationFrom($symbol),
         ])->copyLocationFrom($symbol);

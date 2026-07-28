@@ -34,12 +34,10 @@
         defs           (for [[fn-name args doc] :in method-forms
                              :let [fn-name-str (.getName fn-name)
                                    munged-fn-name (.encode munge fn-name-str)
-                                   munged-fn-symbol (Symbol/create munged-fn-name)]]
+                                   dot-call-symbol (Symbol/create (str "." munged-fn-name))]]
                          `(defn ~fn-name {:doc ~doc} ~args
                             (if (php/is_a ~(first args) ~class-name-str)
-                              ;; `php/->` stays: the method name is a symbol
-                              ;; computed at expansion time, which `.m` cannot take.
-                              (php/-> ~(first args) (~munged-fn-symbol ~@(rest args)))
+                              (~dot-call-symbol ~@args)
                               (throw (new \InvalidArgumentException ~(str "Value doesn't implement interface " name))))))]
     `(do
        (definterface* ~name ~@fns)
@@ -624,17 +622,15 @@ Equivalent to multiple `extend-type` calls."
                  proto-str (.getName proto)]
              (reduce
               (fn [inner method]
-                (let [mname          (first method)
-                      mname-str      (.getName mname)
-                      margs          (second method)
-                      rest-args      (next margs)
-                      dispatch-var   (Symbol/create (php/. proto-str "--" mname-str "--dispatch"))
-                      php-method-sym (Symbol/create (.encode munge mname-str))]
+                (let [mname           (first method)
+                      mname-str       (.getName mname)
+                      margs           (second method)
+                      dispatch-var    (Symbol/create (php/. proto-str "--" mname-str "--dispatch"))
+                      dot-call-symbol (Symbol/create (str "." (.encode munge mname-str)))]
                   (conj inner
                         `(swap! ~dispatch-var assoc ~class-name-sym
                                 (fn ~margs
-                                  ;; `php/->` stays: the method name is computed here too.
-                                  (php/-> ~(first margs) (~php-method-sym ~@rest-args)))))))
+                                  (~dot-call-symbol ~@margs))))))
               acc
               methods)))
          []

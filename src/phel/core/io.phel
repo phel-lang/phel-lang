@@ -490,10 +490,8 @@ See PHP's [file_put_contents](https://www.php.net/manual/en/function.file-put-co
   fiber-local recording (`openBindingFrame` for dynamic-only,
   `openRedefsFrame` for any var)."
   [open-method bindings body]
-  ;; `php/::` stays: the static method name arrives as a symbol at
-  ;; expansion time, and `\Phel/m` needs the name written literally.
   `(do
-     (php/:: \Phel (~open-method))
+     (~(symbol "\\Phel" (name open-method)))
      (try
        (do
          ~@(emit-set-vars bindings)

@@ -106,18 +106,55 @@ from the compiler. A form added or removed in the analyzer fails the build until
 page is updated too, which is the point at which somebody has to decide whether the
 change is allowed inside the major.
 
+### Deprecated inside 1.x
+
+Four of the forms above are frozen but superseded. They keep working for every `1.x`,
+they warn under `--warn-deprecations`, and they are the candidates for removal at the
+next major. One rule puts them here:
+
+> **`php/` means host access. It is never a second spelling for something Phel already
+> says the Clojure way.**
+
+| Deprecated | Write instead |
+|---|---|
+| `php/new` | `(new \Foo arg)` or `(\Foo. arg)` |
+| `php/->` | `(.method obj arg)` and `(.-field obj)` |
+| `php/::` | `(\Foo/method arg)` and `\Foo/CONST` |
+| `set-var` | `(alter-var-root #'v f)`, or `(set! v x)` for the current binding frame |
+
+One position is still open: an **assignable static property**. Neither spelling works
+today — `(php/oset (php/:: \Foo slot) v)` emits invalid PHP and `(set! \Foo/slot v)`
+routes to the var branch — so `php/::` is not the answer for it either. Tracked in
+[#2907](https://github.com/phel-lang/phel-lang/issues/2907).
+
+The remaining `php/*` forms stay, because each reaches a PHP capability Phel has no
+other word for: `php/aget`, `php/aset`, `php/apush`, `php/aunset` and `php/oset` mutate
+in place, `php/ref` takes a PHP reference, and `php/callable` makes a PHP callable.
+`phel.core` already spells the common ones at top level (`aget`, `aset`, `aclone`,
+`alength`, `set!`), which is what a Clojure reader should reach for first.
+
+`set-var` carries one extra constraint that its removal has to solve first: `binding`
+and `with-redefs` expand into it, because an emitted `set-var` inside an open frame is
+what records a rebinding. Removing the public form therefore needs a non-public
+primitive to take over that job.
+
+`tests/php/Unit/Architecture/LanguageSurfaceSpecTest.php` checks this table against
+`SupersededFormDeprecator` too, so the page and the compiler cannot disagree about
+which forms warn.
+
 ### Interop shorthands
 
 The Clojure-style interop spellings are analyzer sugar, not special forms: each expands
 to one of the `php/*` entries above before analysis, so they are deliberately absent
 from the table.
 
-**The shorthand is the idiomatic spelling.** The `php/*` forms are the compilation
-target and the escape hatch, kept public because they are the only spelling for the
-positions the shorthand cannot express. New code should read `(.format d "Y")`, not
-`(php/-> d (format "Y"))`; chaining, mixed method and property alike, threads with
-plain `->` and needs no `php/->`. The full guide is at
-<https://phel-lang.org/documentation/php-interop/>.
+**The shorthand is the only spelling.** The `php/*` forms it expands to are the
+compilation target, and they are deprecated as source (see above): every position they
+once had to themselves now has a shorthand. A method or class name computed at
+expansion time is reached by building the head symbol, `(symbol (str "." name))` or
+`(symbol "\\Foo" name)`, not by falling back to `php/->`. New code reads
+`(.format d "Y")`; chaining, mixed method and property alike, threads with plain `->`.
+The full guide is at <https://phel-lang.org/documentation/php-interop/>.
 
 | Written | Expands to | Position |
 |---|---|---|
