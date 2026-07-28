@@ -20,14 +20,21 @@ use const DIRECTORY_SEPARATOR;
  * nREPL server. Written once the server is listening and removed when it
  * stops, so a stale file never points at a dead port.
  *
+ * `delete()` only removes a file this instance wrote. A second server started
+ * in the same directory overwrites the first one's file (as Clojure's does),
+ * and a server that never got as far as writing must not remove the file
+ * another one is still advertising.
+ *
  * @internal
  */
-final readonly class NreplPortFile
+final class NreplPortFile
 {
     public const string FILE_NAME = '.nrepl-port';
 
+    private bool $written = false;
+
     public function __construct(
-        private string $directory,
+        private readonly string $directory,
     ) {}
 
     public function path(): string
@@ -53,12 +60,15 @@ final readonly class NreplPortFile
                 $this->directory,
             ));
         }
+
+        $this->written = true;
     }
 
     public function delete(): void
     {
-        if (is_file($this->path())) {
+        if ($this->written && is_file($this->path())) {
             @unlink($this->path());
+            $this->written = false;
         }
     }
 }

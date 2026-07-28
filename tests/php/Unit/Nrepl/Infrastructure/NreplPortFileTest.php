@@ -13,6 +13,7 @@ use function mkdir;
 use function rmdir;
 use function sys_get_temp_dir;
 use function uniqid;
+use function unlink;
 
 use const DIRECTORY_SEPARATOR;
 
@@ -28,7 +29,7 @@ final class NreplPortFileTest extends TestCase
 
     protected function tearDown(): void
     {
-        new NreplPortFile($this->dir)->delete();
+        @unlink($this->dir . DIRECTORY_SEPARATOR . NreplPortFile::FILE_NAME);
         rmdir($this->dir);
     }
 
@@ -71,6 +72,19 @@ final class NreplPortFileTest extends TestCase
         $portFile->delete();
 
         self::assertFileDoesNotExist($portFile->path());
+    }
+
+    public function test_delete_leaves_a_file_this_instance_did_not_write(): void
+    {
+        // A second server in the same directory, or one that failed before it
+        // could write, must not remove the file another server is advertising.
+        new NreplPortFile($this->dir)->write(7888);
+        $other = new NreplPortFile($this->dir);
+
+        $other->delete();
+
+        self::assertFileExists($other->path());
+        self::assertSame('7888', file_get_contents($other->path()));
     }
 
     public function test_write_throws_when_the_directory_is_missing(): void

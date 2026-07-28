@@ -98,7 +98,10 @@ HELP)
 
             // Register cleanup before writing the file, so a signal landing
             // at any point afterwards takes the graceful path.
-            $portFile = $this->getFactory()->createPortFile((string) getcwd());
+            // getcwd() fails only when the working directory has been removed
+            // from under the process; `.` still names it for file_put_contents.
+            $cwd = getcwd();
+            $portFile = $this->getFactory()->createPortFile($cwd === false ? '.' : $cwd);
             // Backstop if the process exits while the accept loop is still
             // running (e.g. on a fatal error); the finally below covers the
             // graceful path.

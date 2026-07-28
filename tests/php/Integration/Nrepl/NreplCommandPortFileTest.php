@@ -213,9 +213,11 @@ final class NreplCommandPortFileTest extends TestCase
             if ($entry === '.') {
                 continue;
             }
+
             if ($entry === '..') {
                 continue;
             }
+
             $path = $dir . DIRECTORY_SEPARATOR . $entry;
             if (is_dir($path)) {
                 $this->removeTree($path);
