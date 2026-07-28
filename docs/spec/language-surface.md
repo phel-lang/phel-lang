@@ -172,10 +172,10 @@ Namespaced classes have the Clojure-readable dotted form, for example
 `Symfony.Component.Console.Command.Command/SUCCESS`.
 
 At host-symbol fallback an existing PHP class, interface, trait or enum takes
-precedence over the global-constant interpretation of the same bare name. **If a class
-and global constant have the same name, the class wins; `php/NAME` remains the
-explicit constant escape hatch.** Phel locals and definitions still resolve before
-this host fallback.
+precedence over the global-constant reading of the same bare name, so a class and a
+global constant sharing a name resolve to the class. `php/NAME` bypasses the fallback
+and stays the explicit constant escape hatch. Phel locals and definitions still
+resolve before this host fallback.
 
 In value position a qualified member is a class constant unless the class carries no
 constant of that name and does carry a public static method, decided by reflection at

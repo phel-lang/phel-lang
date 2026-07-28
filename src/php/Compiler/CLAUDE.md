@@ -40,7 +40,7 @@ Clojure-style interop spellings are sugar, expanded to `php/*` forms before anal
 
 `QualifiedMemberExpander` reflects the resolved class to tell a static method from a constant. A class carrying both under one name resolves to the **constant** (pre-existing behaviour, and the reason `\C/new` is not a constructor); an unresolvable or unloadable class falls back to the constant reading so the error stays what it was.
 
-Bare host symbols have one separate collision rule in `SymbolResolver`: an existing PHP class/interface/trait/enum wins over a same-named global constant, including all-caps classes such as `PDO`; `php/NAME` is the explicit constant escape hatch. Keep the class-like existence check autoloading, otherwise the same source changes meaning according to which earlier form happened to load the class.
+Bare host symbols have one separate collision rule, in `SymbolResolver::resolveBareHostSymbol()`: an existing PHP class/interface/trait/enum wins over a same-named global constant, including all-caps classes such as `PDO`; `php/NAME` is the explicit constant escape hatch. `Domain/Analyzer/PhpClassLike` is the single class-like existence predicate (also used by `UseAliasRegistrar`). Keep it autoloading, otherwise the same source changes meaning according to which earlier form happened to load the class.
 
 ### Simplification pass
 

@@ -24,16 +24,16 @@ use Phel\Lang\Registry;
 use Phel\Lang\SourceLocation;
 use Phel\Lang\Symbol;
 use PhelTest\Support\CapturesDeprecationsTrait;
+use PhelTest\Support\DefinesClassConstantCollisionTrait;
 use PHPUnit\Framework\TestCase;
 
-use function class_alias;
-use function class_exists;
 use function define;
 use function defined;
 
 final class SymbolResolverTest extends TestCase
 {
     use CapturesDeprecationsTrait;
+    use DefinesClassConstantCollisionTrait;
 
     private const string HOST_COLLISION = 'PHEL_TEST_RESOLVER_CLASS_CONSTANT_COLLISION';
 
@@ -45,13 +45,7 @@ final class SymbolResolverTest extends TestCase
 
     public static function setUpBeforeClass(): void
     {
-        if (!class_exists(self::HOST_COLLISION, false)) {
-            self::assertTrue(class_alias(Keyword::class, self::HOST_COLLISION));
-        }
-
-        if (!defined(self::HOST_COLLISION)) {
-            define(self::HOST_COLLISION, 41);
-        }
+        self::defineClassConstantCollision(self::HOST_COLLISION, Keyword::class, 41);
 
         if (!defined(self::HOST_CONSTANT_ONLY)) {
             define(self::HOST_CONSTANT_ONLY, 42);

@@ -7,21 +7,18 @@ namespace Phel\Compiler\Domain\Analyzer\TypeAnalyzer\SpecialForm;
 use Phel\Compiler\Domain\Analyzer\AnalyzerInterface;
 use Phel\Compiler\Domain\Analyzer\Environment\BackslashSeparatorDeprecator;
 use Phel\Compiler\Domain\Analyzer\Exceptions\AnalyzerException;
+use Phel\Compiler\Domain\Analyzer\PhpClassLike;
 use Phel\Lang\Collections\LinkedList\PersistentListInterface;
 use Phel\Lang\Keyword;
 use Phel\Lang\Symbol;
 
-use function class_exists;
 use function count;
 use function defined;
-use function enum_exists;
 use function explode;
-use function interface_exists;
 use function ltrim;
 use function sprintf;
 use function str_contains;
 use function str_replace;
-use function trait_exists;
 
 /**
  * @internal
@@ -140,12 +137,11 @@ final readonly class UseAliasRegistrar
     private function importExists(string $name): bool
     {
         $lookupName = ltrim($name, '\\');
+        if (PhpClassLike::exists($lookupName)) {
+            return true;
+        }
 
-        return class_exists($lookupName)
-            || interface_exists($lookupName)
-            || trait_exists($lookupName)
-            || enum_exists($lookupName)
-            || defined($name);
+        return defined($name);
     }
 
     private function createAliasFromSymbol(?Symbol $alias, Symbol $symbol): Symbol

@@ -7,16 +7,16 @@ namespace PhelTest\Integration\Compiler;
 use Override;
 use PDO;
 use Phel\Shared\CompileOptions;
+use PhelTest\Support\DefinesClassConstantCollisionTrait;
 use PhelTest\Support\Fixtures\PhpInterop\QualifiedMemberFixture;
 
-use function class_alias;
 use function class_exists;
-use function define;
-use function defined;
 use function sprintf;
 
 final class QualifiedMemberValueRuntimeTest extends AbstractCompilerRuntimeTestCase
 {
+    use DefinesClassConstantCollisionTrait;
+
     private const string FIXTURE = '\\' . QualifiedMemberFixture::class;
 
     private const string HOST_COLLISION = 'PHEL_TEST_RUNTIME_CLASS_CONSTANT_COLLISION';
@@ -28,13 +28,11 @@ final class QualifiedMemberValueRuntimeTest extends AbstractCompilerRuntimeTestC
     {
         parent::setUpBeforeClass();
 
-        if (!class_exists(self::HOST_COLLISION, false)) {
-            self::assertTrue(class_alias(QualifiedMemberFixture::class, self::HOST_COLLISION));
-        }
-
-        if (!defined(self::HOST_COLLISION)) {
-            define(self::HOST_COLLISION, self::HOST_CONSTANT_VALUE);
-        }
+        self::defineClassConstantCollision(
+            self::HOST_COLLISION,
+            QualifiedMemberFixture::class,
+            self::HOST_CONSTANT_VALUE,
+        );
     }
 
     public function test_a_static_method_is_usable_as_a_value(): void
