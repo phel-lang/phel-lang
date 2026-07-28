@@ -53,6 +53,20 @@ final readonly class EvalResultResponder
             $responses[] = OpResponse::forRequest($request, ['out' => $result->output]);
         }
 
+        // `StructuredEvaluator` restores its environment snapshot before
+        // reporting an unfinished form, so the namespace is back where it
+        // started and the frame carries no `ns` to fill. Answer before
+        // syncing rather than writing the session a value it already holds.
+        if ($result->incomplete) {
+            $responses[] = OpResponse::errorDone(
+                $request,
+                'Incomplete form: unfinished parser input.',
+                [OpStatus::INCOMPLETE],
+            );
+
+            return $responses;
+        }
+
         $session = $this->sessionFor($request);
         $ns = $this->syncNamespace($session);
 
@@ -61,16 +75,6 @@ final readonly class EvalResultResponder
 
             $responses[] = OpResponse::forRequest($request, $this->successPayload($session, $ns, $result->value));
             $responses[] = OpResponse::done($request);
-
-            return $responses;
-        }
-
-        if ($result->incomplete) {
-            $responses[] = OpResponse::errorDone(
-                $request,
-                'Incomplete form: unfinished parser input.',
-                [OpStatus::INCOMPLETE],
-            );
 
             return $responses;
         }

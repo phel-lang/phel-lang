@@ -179,6 +179,31 @@ final class EvalResultResponderTest extends TestCase
         self::assertContains('done', $responses[0]->payload['status']);
     }
 
+    public function test_incomplete_leaves_the_session_namespace_alone(): void
+    {
+        $registry = new SessionRegistry();
+        $session = $registry->create();
+        $responder = new EvalResultResponder(
+            $this->createStub(PrinterInterface::class),
+            $registry,
+            $this->compilerInNamespace('foo.bar'),
+        );
+
+        $responses = $responder->respond(
+            new OpRequest('eval', 'req-1', $session->id, []),
+            EvalResult::incomplete(),
+            'fallback',
+        );
+
+        self::assertCount(1, $responses);
+        self::assertArrayNotHasKey('ns', $responses[0]->payload);
+        self::assertSame(
+            'user',
+            $session->namespace(),
+            'an unfinished form is restored by the evaluator, so the session must not record a namespace from it',
+        );
+    }
+
     public function test_failure_uses_fallback_message_when_no_error_attached(): void
     {
         $responder = new EvalResultResponder(
