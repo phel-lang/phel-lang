@@ -5,8 +5,8 @@
 ## Define a schema
 
 ```phel
-(ns my-app\main
-  (:require phel\schema :as s))
+(ns my-app.main
+  (:require phel.schema :as s))
 
 (def User
   [:map {:closed? true}

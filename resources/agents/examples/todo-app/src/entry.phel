@@ -1,6 +1,6 @@
-(ns todo-app\entry
-  (:require phel\http :as h)
-  (:require todo-app\routes :refer [app-handler]))
+(ns todo-app.entry
+  (:require phel.http :as h)
+  (:require todo-app.routes :refer [app-handler]))
 
 (when-not *build-mode*
   (-> (h/request-from-globals)

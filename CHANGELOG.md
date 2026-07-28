@@ -25,6 +25,7 @@ All notable changes to this project will be documented in this file.
 
 ### Fixed
 
+- `phel init` scaffolds projects with the dot namespace separator (`my-app.main`) instead of the deprecated backslash. The three bundled example apps, the task recipes installed as `.agents/`, and the `--template=` scaffolds they back were all still written with `\`, so an agent reading them or a project generated from them started out on syntax the compiler warns about (#2827)
 - nREPL sessions each keep their own namespace, as reference nREPL does. Two editors on one server no longer walk over each other: client A evaluating `(ns foo)` used to move where client B's next form compiled, and B's prompt jumped namespace with nobody having asked. Definitions stay shared, since the registry is global; only the current namespace is per session (#2906)
 - A namespace's own `def`/`defn` beats a `:refer` of the same name, and redefining a referred name warns instead of silently keeping the refer. A recursive self-call used to resolve to the refer and never recurse; at the prompt, `(def doc 1)` then `doc` printed `<function:doc>` (#2897)
 - A `(:require ...)` resolving to no source file fails at the require, naming both namespaces, instead of loading nothing silently and surfacing as `Cannot resolve symbol` lines later (#2891, #2886)

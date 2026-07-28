@@ -19,50 +19,50 @@ final class ProjectTemplateGeneratorTest extends TestCase
 
     public function test_generate_config_flat_layout(): void
     {
-        $config = $this->generator->generateConfig('myapp\\main', ProjectLayout::Flat);
+        $config = $this->generator->generateConfig('myapp.main', ProjectLayout::Flat);
 
         self::assertStringContainsString('declare(strict_types=1);', $config);
         self::assertStringContainsString('use Phel\\Config\\PhelConfig;', $config);
         self::assertStringContainsString('use Phel\\Config\\ProjectLayout;', $config);
         self::assertStringContainsString('PhelConfig::forProject(ProjectLayout::Flat)', $config);
-        self::assertStringContainsString("->withMainPhelNamespace('myapp\\main')", $config);
+        self::assertStringContainsString("->withMainPhelNamespace('myapp.main')", $config);
     }
 
     public function test_generate_config_enables_optimization_by_default(): void
     {
         // New projects ship -O2 so compute-heavy code gets inlined arithmetic
         // and elided nil-guards out of the box (#2631); the runtime default is 0.
-        $config = $this->generator->generateConfig('myapp\\main', ProjectLayout::Flat);
+        $config = $this->generator->generateConfig('myapp.main', ProjectLayout::Flat);
 
         // Must be an active chained call (trailing `;`), not the commented example.
-        self::assertStringContainsString("->withMainPhelNamespace('myapp\\main')\n    ->withOptimizationLevel(2);", $config);
+        self::assertStringContainsString("->withMainPhelNamespace('myapp.main')\n    ->withOptimizationLevel(2);", $config);
     }
 
     public function test_generate_config_nested_layout(): void
     {
-        $config = $this->generator->generateConfig('myapp\\main', ProjectLayout::Nested);
+        $config = $this->generator->generateConfig('myapp.main', ProjectLayout::Nested);
 
         self::assertStringContainsString('use Phel\\Config\\PhelConfig;', $config);
         self::assertStringContainsString('use Phel\\Config\\ProjectLayout;', $config);
         self::assertStringContainsString('PhelConfig::forProject(ProjectLayout::Nested)', $config);
-        self::assertStringContainsString("->withMainPhelNamespace('myapp\\main')", $config);
+        self::assertStringContainsString("->withMainPhelNamespace('myapp.main')", $config);
     }
 
     public function test_generate_config_root_layout(): void
     {
-        $config = $this->generator->generateConfig('sandbox\\main', ProjectLayout::Root);
+        $config = $this->generator->generateConfig('sandbox.main', ProjectLayout::Root);
 
         self::assertStringContainsString('use Phel\\Config\\PhelConfig;', $config);
         self::assertStringContainsString('use Phel\\Config\\ProjectLayout;', $config);
         self::assertStringContainsString('PhelConfig::forProject(ProjectLayout::Root)', $config);
-        self::assertStringContainsString("->withMainPhelNamespace('sandbox\\main')", $config);
+        self::assertStringContainsString("->withMainPhelNamespace('sandbox.main')", $config);
     }
 
     public function test_generate_main_file(): void
     {
-        $main = $this->generator->generateMainFile('myapp\\main');
+        $main = $this->generator->generateMainFile('myapp.main');
 
-        self::assertStringContainsString('(ns myapp\\main)', $main);
+        self::assertStringContainsString('(ns myapp.main)', $main);
         self::assertStringContainsString('(defn greet [name]', $main);
         self::assertStringContainsString('(defn main []', $main);
         self::assertStringContainsString('println', $main);
@@ -71,10 +71,10 @@ final class ProjectTemplateGeneratorTest extends TestCase
 
     public function test_generate_test_file(): void
     {
-        $test = $this->generator->generateTestFile('myapp\\main');
+        $test = $this->generator->generateTestFile('myapp.main');
 
-        self::assertStringContainsString('(ns myapp\\main-test', $test);
-        self::assertStringContainsString('phel\\test', $test);
+        self::assertStringContainsString('(ns myapp.main-test', $test);
+        self::assertStringContainsString('phel.test', $test);
         self::assertStringContainsString(':refer [deftest is]', $test);
         self::assertStringContainsString(':refer [greet]', $test);
         self::assertStringContainsString('(deftest test-greet', $test);

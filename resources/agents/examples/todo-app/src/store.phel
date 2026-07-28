@@ -1,4 +1,4 @@
-(ns todo-app\store)
+(ns todo-app.store)
 
 (def store (atom {:next 1 :items {}}))
 

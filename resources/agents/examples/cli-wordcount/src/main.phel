@@ -1,5 +1,5 @@
-(ns cli-wordcount\main
-  (:require cli-wordcount\counts :as c))
+(ns cli-wordcount.main
+  (:require cli-wordcount.counts :as c))
 
 (defn- read-stdin []
   (let [h (php/fopen "php://stdin" "r")]

@@ -1,6 +1,6 @@
-(ns tests\store-test
-  (:require phel\test :refer [deftest is use-fixtures])
-  (:require todo-app\store :as s))
+(ns tests.store-test
+  (:require phel.test :refer [deftest is use-fixtures])
+  (:require todo-app.store :as s))
 
 (use-fixtures :each
   (fn [t]

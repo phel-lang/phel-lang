@@ -9,9 +9,9 @@ Runnable: `.agents/examples/todo-app/`.
 `src/handlers.phel`:
 
 ```phel
-(ns my-api\handlers
-  (:require phel\http :as h)
-  (:require phel\json :as json))
+(ns my-api.handlers
+  (:require phel.http :as h)
+  (:require phel.json :as json))
 
 (defn- json-response [status data]
   (h/response-from-map
@@ -31,9 +31,9 @@ Runnable: `.agents/examples/todo-app/`.
 `src/routes.phel`:
 
 ```phel
-(ns my-api\routes
-  (:require phel\router :as r)
-  (:require my-api\handlers :as h))
+(ns my-api.routes
+  (:require phel.router :as r)
+  (:require my-api.handlers :as h))
 
 (def app-router
   (r/router
@@ -57,9 +57,9 @@ Nested children inherit path prefix and deep-merged data.
 `src/entry.phel`:
 
 ```phel
-(ns my-api\entry
-  (:require phel\http :as h)
-  (:require my-api\routes :refer [app-handler]))
+(ns my-api.entry
+  (:require phel.http :as h)
+  (:require my-api.routes :refer [app-handler]))
 
 (when-not *build-mode*
   (-> (h/request-from-globals) app-handler h/emit-response))
@@ -70,7 +70,7 @@ Nested children inherit path prefix and deep-merged data.
 ```php
 <?php
 require __DIR__ . '/../vendor/autoload.php';
-\Phel::run(__DIR__ . '/..', 'my-api\\entry');
+\Phel::run(__DIR__ . '/..', 'my-api.entry');
 ```
 
 ```bash
@@ -106,7 +106,7 @@ Route-level: `{:middleware [auth-mw] :get {:handler ...}}`. Method-level goes in
 ## URL generation
 
 ```phel
-(:require phel\router :as r :refer [generate match-by-name])
+(:require phel.router :as r :refer [generate match-by-name])
 
 (def app-router
   (r/router [["/users/{id}" {:name :user-show :get {:handler show}}]]))
@@ -128,7 +128,7 @@ Macro — routes must be literal at call site. ~3x faster matching + URL gen.
 ## Outbound HTTP
 
 ```phel
-(:require phel\http-client :as hc)
+(:require phel.http-client :as hc)
 
 (hc/get  "https://api.example.com/users/42")
 (hc/post "https://api.example.com/users"
@@ -142,11 +142,11 @@ Returns `h/response` struct. Opts: `:headers` `:body` `:json` `:query-params` `:
 ## Tests
 
 ```phel
-(ns tests\handlers-test
-  (:require phel\test :refer [deftest is])
-  (:require phel\http :as h)
-  (:require phel\json :as json)
-  (:require my-api\handlers :refer [health greet]))
+(ns tests.handlers-test
+  (:require phel.test :refer [deftest is])
+  (:require phel.http :as h)
+  (:require phel.json :as json)
+  (:require my-api.handlers :refer [health greet]))
 
 (deftest health-ok
   (is (= 200 (get (health (h/request-from-map {})) :status))))
