@@ -16,6 +16,7 @@ use Phel\Nrepl\Application\Op\LoadFileOp;
 use Phel\Nrepl\Application\Op\LookupOp;
 use Phel\Nrepl\Application\Op\ReloadOp;
 use Phel\Nrepl\Application\Op\RunTestsOp;
+use Phel\Nrepl\Application\Session\SessionNamespaceBinder;
 use Phel\Nrepl\Domain\Op\OpDispatcher;
 use Phel\Nrepl\Domain\Session\SessionRegistry;
 use Phel\Nrepl\Infrastructure\NreplPortFile;
@@ -57,13 +58,14 @@ final class NreplFactory extends AbstractFactory
     public function createOpDispatcher(): OpDispatcher
     {
         $sessions = $this->createSessionRegistry();
-        $responder = new EvalResultResponder($this->createPrinter(), $sessions, $this->getCompilerFacade());
+        $namespaceBinder = new SessionNamespaceBinder($this->getCompilerFacade(), $sessions);
+        $responder = new EvalResultResponder($this->createPrinter(), $namespaceBinder);
         $dispatcher = new OpDispatcher();
 
         $dispatcher->register(new CloneOp($sessions));
         $dispatcher->register(new CloseOp($sessions));
-        $dispatcher->register(new EvalOp($this->getRunFacade(), $responder));
-        $dispatcher->register(new LoadFileOp($this->getRunFacade(), $responder));
+        $dispatcher->register(new EvalOp($this->getRunFacade(), $responder, $namespaceBinder));
+        $dispatcher->register(new LoadFileOp($this->getRunFacade(), $responder, $namespaceBinder));
         $dispatcher->register(new ReloadOp($this->getRunFacade(), $responder));
         $dispatcher->register(new RunTestsOp($this->getRunFacade(), $responder));
         $dispatcher->register(new InterruptOp());

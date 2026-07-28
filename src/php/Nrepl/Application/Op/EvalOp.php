@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Phel\Nrepl\Application\Op;
 
+use Phel\Nrepl\Application\Session\SessionNamespaceBinder;
 use Phel\Nrepl\Domain\Op\OpHandlerInterface;
 use Phel\Nrepl\Domain\Op\OpRequest;
 use Phel\Nrepl\Domain\Op\OpResponse;
@@ -21,6 +22,7 @@ final readonly class EvalOp implements OpHandlerInterface
     public function __construct(
         private RunFacadeInterface $runFacade,
         private EvalResultResponder $responder,
+        private SessionNamespaceBinder $namespaceBinder,
     ) {}
 
     public function name(): string
@@ -46,10 +48,13 @@ final readonly class EvalOp implements OpHandlerInterface
             return $this->responder->respondEmptyCode($request);
         }
 
-        // structuredEval compiles and evaluates the code in the compiler's
-        // current namespace, which every session shares. CompileOptions is
-        // left empty: there is currently no nREPL-specific tuning (no
-        // optimization flags) to pass through.
+        // The compiler's namespace is process-wide, so point it at this
+        // session's before compiling: without it another session's `(ns ...)`
+        // decides where this code lands.
+        $this->namespaceBinder->bind($request);
+
+        // CompileOptions is left empty: there is currently no nREPL-specific
+        // tuning (no optimization flags) to pass through.
         $result = $this->runFacade->structuredEval($code, new CompileOptions());
 
         return $this->responder->respond($request, $result, 'Evaluation failed.');

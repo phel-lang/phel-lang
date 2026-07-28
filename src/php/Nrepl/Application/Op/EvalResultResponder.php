@@ -4,15 +4,13 @@ declare(strict_types=1);
 
 namespace Phel\Nrepl\Application\Op;
 
+use Phel\Nrepl\Application\Session\SessionNamespaceBinder;
 use Phel\Nrepl\Domain\Op\OpRequest;
 use Phel\Nrepl\Domain\Op\OpResponse;
 use Phel\Nrepl\Domain\Op\OpStatus;
 use Phel\Nrepl\Domain\Session\Session;
-use Phel\Nrepl\Domain\Session\SessionRegistry;
 use Phel\Shared\Eval\EvalError;
 use Phel\Shared\Eval\EvalResult;
-use Phel\Shared\Facade\CompilerFacadeInterface;
-use Phel\Shared\Munge;
 use Phel\Shared\Printer\PrinterInterface;
 
 use function sprintf;
@@ -29,8 +27,7 @@ final readonly class EvalResultResponder
 {
     public function __construct(
         private PrinterInterface $printer,
-        private SessionRegistry $sessions,
-        private CompilerFacadeInterface $compilerFacade,
+        private SessionNamespaceBinder $namespaceBinder,
     ) {}
 
     /**
@@ -67,8 +64,8 @@ final readonly class EvalResultResponder
             return $responses;
         }
 
-        $session = $this->sessionFor($request);
-        $ns = $this->syncNamespace($session);
+        $session = $this->namespaceBinder->sessionFor($request);
+        $ns = $this->namespaceBinder->sync($session);
 
         if ($result->success) {
             $session?->recordValue($result->value);
@@ -97,39 +94,9 @@ final readonly class EvalResultResponder
      */
     public function respondEmptyCode(OpRequest $request): array
     {
-        $ns = $this->syncNamespace($this->sessionFor($request));
+        $ns = $this->namespaceBinder->sync($this->namespaceBinder->sessionFor($request));
 
         return [OpResponse::forRequest($request, ['ns' => $ns], [OpStatus::DONE])];
-    }
-
-    private function sessionFor(OpRequest $request): ?Session
-    {
-        return $request->session !== null
-            ? $this->sessions->get($request->session)
-            : null;
-    }
-
-    /**
-     * Mirror the compiler's current namespace into the session and return it:
-     * the `ns` field of eval responses then tracks `ns`/`in-ns` forms as they
-     * evaluate — editor prompts (CIDER, Calva, ...) are driven by that field.
-     * This is the same source of truth the terminal REPL prompt reads. A failed
-     * or incomplete eval restores the environment snapshot, so after one this
-     * simply yields the pre-eval namespace. Falls back to what the session
-     * already knows while the global environment is still uninitialized.
-     */
-    private function syncNamespace(?Session $session): string
-    {
-        if ($this->compilerFacade->isGlobalEnvironmentInitialized()) {
-            $ns = Munge::displayNs($this->compilerFacade->getGlobalEnvironment()->getNs());
-            if ($ns !== '') {
-                $session?->setNamespace($ns);
-
-                return $ns;
-            }
-        }
-
-        return $session instanceof Session ? $session->namespace() : Session::DEFAULT_NAMESPACE;
     }
 
     /**

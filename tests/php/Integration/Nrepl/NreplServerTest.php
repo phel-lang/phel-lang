@@ -231,6 +231,99 @@ final class NreplServerTest extends TestCase
         $server->stop();
     }
 
+    /**
+     * Two editors on one server. Evaluation runs in a single process-wide
+     * environment, so before #2906 client A's `(ns foo)` silently moved where
+     * client B's next form compiled, and B's prompt jumped namespace with
+     * nobody having asked.
+     *
+     * Definitions stay shared, which is the other half of the contract: the
+     * registry is global, so B still sees a `def` A made.
+     */
+    #[RunInSeparateProcess]
+    #[PreserveGlobalState(false)]
+    public function test_two_sessions_keep_independent_namespaces(): void
+    {
+        Phel::bootstrap(__DIR__);
+        Phel::clear();
+        Symbol::resetGen();
+        GlobalEnvironmentSingleton::initializeNew();
+
+        $facade = new NreplFacade();
+        $facade->loadPhelNamespaces();
+
+        $server = $facade->createSocketServer(0, '127.0.0.1');
+        $server->start();
+
+        $alice = $this->connect($server);
+        $bob = $this->connect($server);
+
+        $encoder = new BencodeEncoder();
+        $aliceDecoder = new BencodeStreamDecoder();
+        $bobDecoder = new BencodeStreamDecoder();
+
+        $this->writeMessage($alice, $encoder->encode(['op' => 'clone', 'id' => 'ca']));
+        $aliceSession = $this->readUntil($alice, $aliceDecoder, $server, 1)[0]['new-session'];
+
+        $this->writeMessage($bob, $encoder->encode(['op' => 'clone', 'id' => 'cb']));
+        $bobSession = $this->readUntil($bob, $bobDecoder, $server, 1)[0]['new-session'];
+
+        self::assertNotSame($aliceSession, $bobSession);
+
+        // Alice moves to her own namespace and defines something there.
+        $this->writeMessage($alice, $encoder->encode([
+            'op' => 'eval',
+            'id' => 'a1',
+            'session' => $aliceSession,
+            'code' => '(ns alice.scratch) (def shared 42)',
+        ]));
+        $aliceNs = $this->firstWithKey($this->readUntil($alice, $aliceDecoder, $server, 2), 'value');
+        self::assertNotNull($aliceNs);
+        self::assertSame('alice.scratch', $aliceNs['ns']);
+
+        // Bob never asked to leave `user`, so his eval must still land there.
+        $this->writeMessage($bob, $encoder->encode([
+            'op' => 'eval',
+            'id' => 'b1',
+            'session' => $bobSession,
+            'code' => '*ns*',
+        ]));
+        $bobNs = $this->firstWithKey($this->readUntil($bob, $bobDecoder, $server, 2), 'value');
+        self::assertNotNull($bobNs);
+        self::assertSame('user', $bobNs['ns'], "Alice's (ns ...) must not move Bob's session");
+        self::assertSame('"user"', $bobNs['value']);
+
+        // Definitions are global, so Bob resolves Alice's `def` by its
+        // qualified name even though he is in a different namespace.
+        $this->writeMessage($bob, $encoder->encode([
+            'op' => 'eval',
+            'id' => 'b2',
+            'session' => $bobSession,
+            'code' => 'alice.scratch/shared',
+        ]));
+        $bobRead = $this->firstWithKey($this->readUntil($bob, $bobDecoder, $server, 2), 'value');
+        self::assertNotNull($bobRead);
+        self::assertSame('42', $bobRead['value']);
+        self::assertSame('user', $bobRead['ns']);
+
+        // Alice is still where she left off, after Bob's two evals ran in
+        // `user` in between.
+        $this->writeMessage($alice, $encoder->encode([
+            'op' => 'eval',
+            'id' => 'a2',
+            'session' => $aliceSession,
+            'code' => '*ns*',
+        ]));
+        $aliceAgain = $this->firstWithKey($this->readUntil($alice, $aliceDecoder, $server, 2), 'value');
+        self::assertNotNull($aliceAgain);
+        self::assertSame('alice.scratch', $aliceAgain['ns']);
+        self::assertSame('"alice.scratch"', $aliceAgain['value']);
+
+        fclose($alice);
+        fclose($bob);
+        $server->stop();
+    }
+
     #[RunInSeparateProcess]
     #[PreserveGlobalState(false)]
     public function test_it_returns_lookup_info_for_session_defined_symbols(): void
@@ -507,8 +600,27 @@ final class NreplServerTest extends TestCase
     }
 
     /**
-     * @param resource $client
+     * @return resource
      */
+    private function connect(NreplSocketServer $server)
+    {
+        $client = @stream_socket_client(
+            sprintf('tcp://127.0.0.1:%d', $server->port()),
+            $errno,
+            $errstr,
+            2.0,
+        );
+        if ($client === false) {
+            $server->stop();
+            self::fail(sprintf('Could not connect to server: %s', $errstr));
+        }
+
+        stream_set_blocking($client, false);
+        stream_set_timeout($client, 2);
+
+        return $client;
+    }
+
     private function writeMessage($client, string $message): void
     {
         $written = 0;
