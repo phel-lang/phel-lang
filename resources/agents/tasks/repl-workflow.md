@@ -36,7 +36,7 @@ Shell: `./vendor/bin/phel doc <fn>`.
 (require 'phel\test :refer [run-tests])
 (require 'tests\math-test)
 (run-tests {} 'tests\math-test)
-(tests\math-test/test-add)
+(tests.math-test/test-add)
 ```
 
 Each `deftest` is a zero-arg fn tagged `{:test true}`.

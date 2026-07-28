@@ -1,5 +1,5 @@
-(ns http-json-api\handlers
-  (:require phel\http :as h))
+(ns http-json-api.handlers
+  (:require phel.http :as h))
 
 (defn health [_request]
   (h/json-response 200 {:status "ok" :ts (php/time)}))

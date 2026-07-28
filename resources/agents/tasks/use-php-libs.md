@@ -26,9 +26,9 @@ composer require guzzlehttp/guzzle
 ```
 
 ```phel
-(ns my-app\http
+(ns my-app.http
   (:use GuzzleHttp\Client)
-  (:require phel\json :as json))
+  (:require phel.json :as json))
 
 (def client
   (new Client
@@ -42,7 +42,7 @@ composer require guzzlehttp/guzzle
 ## PDO
 
 ```phel
-(ns my-app\db
+(ns my-app.db
   (:use PDO PDOException))
 
 (defn connect [dsn user pass]

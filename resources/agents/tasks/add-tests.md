@@ -17,7 +17,7 @@ Namespace: `tests\<name>-test`.
 `src/math.phel`:
 
 ```phel
-(ns my-app\math)
+(ns my-app.math)
 
 (defn ^int add [^int a ^int b] (+ a b))
 
@@ -30,9 +30,9 @@ Namespace: `tests\<name>-test`.
 `tests/math_test.phel`:
 
 ```phel
-(ns tests\math-test
-  (:require phel\test :refer [deftest is are testing])
-  (:require my-app\math :refer [add divide]))
+(ns tests.math-test
+  (:require phel.test :refer [deftest is are testing])
+  (:require my-app.math :refer [add divide]))
 
 (deftest test-add
   (is (= 4 (add 2 2))))
@@ -81,7 +81,7 @@ Compose outer-to-inner. Keyed by `*ns*`.
 ## Mocking
 
 ```phel
-(:require phel\mock :refer [with-mocks mock mock-fn mock-returning mock-throwing spy
+(:require phel.mock :refer [with-mocks mock mock-fn mock-returning mock-throwing spy
                             called? called-with? called-once? never-called?
                             call-count calls reset-mock!])
 

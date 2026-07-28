@@ -1,5 +1,5 @@
-(ns cli-wordcount\counts
-  (:require phel\string :as str))
+(ns cli-wordcount.counts
+  (:require phel.string :as str))
 
 (defn count-text [text]
   {:lines (if (php/empty text) 0 (count (str/split text #"\n")))

@@ -9,8 +9,8 @@ Full reference: <https://phel-lang.org/documentation/tooling/cli-commands/>. Mod
 `src/main.phel`:
 
 ```phel
-(ns my-tool\main
-  (:require phel\cli :as cli))
+(ns my-tool.main
+  (:require phel.cli :as cli))
 
 (defn- greet [ctx]
   (let [name (or (cli/arg ctx "name")
@@ -162,7 +162,7 @@ Composer bin shim `bin/greet`:
 #!/usr/bin/env php
 <?php
 require __DIR__ . '/../vendor/autoload.php';
-\Phel::run(__DIR__ . '/..', 'my-tool\\main');
+\Phel::run(__DIR__ . '/..', 'my-tool.main');
 ```
 
 `composer.json`: `{ "bin": ["bin/greet"] }`, then `chmod +x bin/greet`.
@@ -170,10 +170,10 @@ require __DIR__ . '/../vendor/autoload.php';
 ## Tests
 
 ```phel
-(ns tests\main-test
-  (:require phel\test :refer [deftest is])
-  (:require phel\cli  :as cli)
-  (:require my-tool\main :refer [app]))
+(ns tests.main-test
+  (:require phel.test :refer [deftest is])
+  (:require phel.cli  :as cli)
+  (:require my-tool.main :refer [app]))
 
 (deftest greets
   (let [input  (cli/argv ["greet" "alice"])
@@ -203,7 +203,7 @@ require __DIR__ . '/../vendor/autoload.php';
 For a trivial script without subcommands, drop `phel\cli`:
 
 ```phel
-(ns my-tool\main)
+(ns my-tool.main)
 
 (defn -main [& args]
   (println (str "Hello, " (or (first args) "World") "!"))
