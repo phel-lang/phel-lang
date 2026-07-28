@@ -8,12 +8,10 @@ use PHPUnit\Framework\TestCase;
 
 use function bin2hex;
 use function dirname;
-use function escapeshellarg;
 use function fclose;
 use function file_get_contents;
 use function file_put_contents;
 use function function_exists;
-use function implode;
 use function is_dir;
 use function is_file;
 use function is_resource;
@@ -83,12 +81,10 @@ final class NreplCommandPortFileTest extends TestCase
         }
 
         $logFile = $this->projectDir . DIRECTORY_SEPARATOR . 'server.log';
-        $cmd = implode(' ', [
-            escapeshellarg(PHP_BINARY),
-            escapeshellarg($this->binPath),
-            'nrepl',
-            '--port=0',
-        ]);
+        // Array form on purpose: a string command runs through `/bin/sh`, and
+        // proc_terminate() would then signal the shell rather than the server,
+        // which reads back as a signal-killed exit instead of a clean one.
+        $cmd = [PHP_BINARY, $this->binPath, 'nrepl', '--port=0'];
 
         $process = proc_open(
             $cmd,
@@ -122,9 +118,35 @@ final class NreplCommandPortFileTest extends TestCase
         self::assertSame(
             0,
             $exitCode,
-            'server should shut down gracefully; log: ' . @file_get_contents($logFile),
+            sprintf(
+                'server should shut down gracefully, got %d (-1 means it was killed by a signal '
+                . 'rather than handling SIGTERM); log: %s',
+                $exitCode,
+                (string) @file_get_contents($logFile),
+            ),
         );
-        self::assertFileDoesNotExist($this->portFile());
+        self::assertTrue(
+            $this->waitForPortFileRemoval(),
+            'the port file should be gone once the server has exited',
+        );
+    }
+
+    /**
+     * The file is removed as the process exits, so give the filesystem the
+     * same courtesy the startup side gets rather than racing the last syscall.
+     */
+    private function waitForPortFileRemoval(): bool
+    {
+        $deadline = microtime(true) + 5.0;
+        while (microtime(true) < $deadline) {
+            if (!is_file($this->portFile())) {
+                return true;
+            }
+
+            usleep(100_000);
+        }
+
+        return false;
     }
 
     private function portFile(): string
