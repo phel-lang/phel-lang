@@ -9,6 +9,7 @@ use Phel\Compiler\Domain\Analyzer\Ast\AbstractNode;
 use Phel\Compiler\Domain\Analyzer\Ast\GlobalVarNode;
 use Phel\Compiler\Domain\Analyzer\Ast\LiteralNode;
 use Phel\Compiler\Domain\Analyzer\Ast\PhpClassNameNode;
+use Phel\Compiler\Domain\Analyzer\Ast\PhpVarNode;
 use Phel\Compiler\Domain\Analyzer\Environment\BackslashSeparatorDeprecator;
 use Phel\Compiler\Domain\Analyzer\Environment\BundledNamespaceResolverInterface;
 use Phel\Compiler\Domain\Analyzer\Environment\DeprecatedDefinitionWarner;
@@ -23,15 +24,33 @@ use Phel\Lang\Registry;
 use Phel\Lang\SourceLocation;
 use Phel\Lang\Symbol;
 use PhelTest\Support\CapturesDeprecationsTrait;
+use PhelTest\Support\DefinesClassConstantCollisionTrait;
 use PHPUnit\Framework\TestCase;
+
+use function define;
+use function defined;
 
 final class SymbolResolverTest extends TestCase
 {
     use CapturesDeprecationsTrait;
+    use DefinesClassConstantCollisionTrait;
+
+    private const string HOST_COLLISION = 'PHEL_TEST_RESOLVER_CLASS_CONSTANT_COLLISION';
+
+    private const string HOST_CONSTANT_ONLY = 'PHEL_TEST_RESOLVER_CONSTANT_ONLY';
 
     private GlobalEnvironment $globalEnv;
 
     private SymbolResolver $resolver;
+
+    public static function setUpBeforeClass(): void
+    {
+        self::defineClassConstantCollision(self::HOST_COLLISION, Keyword::class, 41);
+
+        if (!defined(self::HOST_CONSTANT_ONLY)) {
+            define(self::HOST_CONSTANT_ONLY, 42);
+        }
+    }
 
     protected function setUp(): void
     {
@@ -89,6 +108,34 @@ final class SymbolResolverTest extends TestCase
         self::assertEquals(
             new PhpClassNameNode($nodeEnv, Symbol::create('bar')),
             $this->resolver->resolve(Symbol::create('b'), $nodeEnv),
+        );
+    }
+
+    public function test_use_alias_prefers_a_class_over_a_same_named_global_constant(): void
+    {
+        $this->globalEnv->setNs('foo');
+        $target = Symbol::create('\\' . self::HOST_COLLISION);
+        $this->globalEnv->addUseAlias('foo', Symbol::create('Collision'), $target);
+
+        $nodeEnv = NodeEnvironment::empty();
+
+        self::assertEquals(
+            new PhpClassNameNode($nodeEnv, $target),
+            $this->resolver->resolve(Symbol::create('Collision'), $nodeEnv),
+        );
+    }
+
+    public function test_use_alias_keeps_a_global_constant_when_no_class_has_that_name(): void
+    {
+        $this->globalEnv->setNs('foo');
+        $target = Symbol::create('\\' . self::HOST_CONSTANT_ONLY);
+        $this->globalEnv->addUseAlias('foo', Symbol::create('ConstantOnly'), $target);
+
+        $nodeEnv = NodeEnvironment::empty();
+
+        self::assertEquals(
+            new PhpVarNode($nodeEnv, $target->getName()),
+            $this->resolver->resolve(Symbol::create('ConstantOnly'), $nodeEnv),
         );
     }
 
@@ -422,6 +469,26 @@ final class SymbolResolverTest extends TestCase
         self::assertEquals(
             new PhpClassNameNode($nodeEnv, Symbol::create('\\Exception')),
             $this->resolver->resolve(Symbol::create('Exception'), $nodeEnv),
+        );
+    }
+
+    public function test_existing_all_caps_class_wins_over_a_same_named_global_constant(): void
+    {
+        $nodeEnv = NodeEnvironment::empty();
+
+        self::assertEquals(
+            new PhpClassNameNode($nodeEnv, Symbol::create('\\' . self::HOST_COLLISION)),
+            $this->resolver->resolve(Symbol::create(self::HOST_COLLISION), $nodeEnv),
+        );
+    }
+
+    public function test_all_caps_global_constant_stays_a_constant_when_no_class_has_that_name(): void
+    {
+        $nodeEnv = NodeEnvironment::empty();
+
+        self::assertEquals(
+            new PhpVarNode($nodeEnv, self::HOST_CONSTANT_ONLY),
+            $this->resolver->resolve(Symbol::create(self::HOST_CONSTANT_ONLY), $nodeEnv),
         );
     }
 

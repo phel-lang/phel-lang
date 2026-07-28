@@ -166,6 +166,17 @@ The full guide is at <https://phel-lang.org/documentation/php-interop/>.
 | `\C/m` | `(php/callable \C m)` | value |
 | `\C/.m` | `(fn [o & args] (apply (php/callable o m) args))` | value |
 
+A root PHP class does not need a leading backslash: `PDO/ATTR_ERRMODE` reads the
+class constant, and `(.-ATTR_ERRMODE PDO)` is the equivalent dot-member spelling.
+Namespaced classes have the Clojure-readable dotted form, for example
+`Symfony.Component.Console.Command.Command/SUCCESS`.
+
+At host-symbol fallback an existing PHP class, interface, trait or enum takes
+precedence over the global-constant reading of the same bare name, so a class and a
+global constant sharing a name resolve to the class. `php/NAME` bypasses the fallback
+and stays the explicit constant escape hatch. Phel locals and definitions still
+resolve before this host fallback.
+
 In value position a qualified member is a class constant unless the class carries no
 constant of that name and does carry a public static method, decided by reflection at
 analysis time. A class with both keeps the constant. `\C/new` is therefore never a

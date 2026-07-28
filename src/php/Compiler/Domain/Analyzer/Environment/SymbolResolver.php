@@ -9,6 +9,7 @@ use Phel\Compiler\Domain\Analyzer\Ast\GlobalVarNode;
 use Phel\Compiler\Domain\Analyzer\Ast\LiteralNode;
 use Phel\Compiler\Domain\Analyzer\Ast\PhpClassNameNode;
 use Phel\Compiler\Domain\Analyzer\Ast\PhpVarNode;
+use Phel\Compiler\Domain\Analyzer\PhpClassLike;
 use Phel\Lang\Collections\Map\PersistentMapInterface;
 use Phel\Lang\Keyword;
 use Phel\Lang\Registry;
@@ -16,11 +17,8 @@ use Phel\Lang\Symbol;
 use Phel\Shared\CompilerConstants;
 use RuntimeException;
 
-use function class_exists;
-use function interface_exists;
 use function ltrim;
 use function strlen;
-use function trait_exists;
 
 /**
  * @internal
@@ -101,22 +99,33 @@ final readonly class SymbolResolver
             return $resolved;
         }
 
-        if ($name->getNamespace() === null && $this->looksLikePhpConstantName($strName)) {
-            return new PhpVarNode($env, $strName, $name->getStartLocation());
+        if ($name->getNamespace() === null) {
+            return $this->resolveBareHostSymbol($name, $env);
         }
 
-        // Fallback: a bare class identifier with no other resolution is
-        // treated as a PHP root-namespace class FQN. Class-shaped uppercase
-        // names keep Clojure-style behavior for unloaded classes, while
-        // constant-shaped names like JSON_HEX_AMP stay PHP constants.
-        // Lowercase PHP built-ins like `stdClass` resolve when PHP already
-        // knows them.
-        // Kicks in *after* normal resolution so `(def Foo ...)` still wins.
-        if ($name->getNamespace() === null && $this->looksLikeBareClassName($strName)) {
-            $fqn = Symbol::create('\\' . $strName);
-            $fqn->copyLocationFrom($name);
+        return null;
+    }
+
+    /**
+     * Host fallback for a bare name Phel itself could not resolve, in the order
+     * that decides a collision: an existing PHP class-like wins over the
+     * global-constant reading of the same all-caps name (`PDO` is the common
+     * case). Running last means locals and definitions keep winning, and
+     * `php/NAME` bypasses this resolver entirely, so it stays the explicit
+     * escape hatch for a shadowed global constant.
+     */
+    private function resolveBareHostSymbol(Symbol $name, NodeEnvironmentInterface $env): ?AbstractNode
+    {
+        $strName = $name->getName();
+
+        if ($this->looksLikeBareClassName($strName)) {
+            $fqn = Symbol::create('\\' . $strName)->copyLocationFrom($name);
 
             return new PhpClassNameNode($env, $fqn, $name->getStartLocation());
+        }
+
+        if ($this->looksLikePhpConstantName($strName)) {
+            return new PhpVarNode($env, $strName, $name->getStartLocation());
         }
 
         return null;
@@ -135,7 +144,12 @@ final readonly class SymbolResolver
         $alias = $useAliases[$strName];
         $alias->copyLocationFrom($name);
 
-        if ($alias->getNamespace() === null && $this->looksLikePhpConstantName(ltrim($alias->getName(), '\\'))) {
+        $targetName = ltrim($alias->getName(), '\\');
+        if (
+            $alias->getNamespace() === null
+            && $this->looksLikePhpConstantName($targetName)
+            && !PhpClassLike::exists($targetName)
+        ) {
             return new PhpVarNode($env, $alias->getName(), $name->getStartLocation());
         }
 
@@ -206,9 +220,11 @@ final readonly class SymbolResolver
 
     /**
      * Accept bare uppercase identifiers as root-namespace PHP class FQN
-     * aliases, so `Exception` resolves the same as `\Exception`. Also
-     * accepts known PHP class/interface/trait names regardless of leading
-     * case, so `stdClass` matches PHP's case-insensitive class lookup.
+     * aliases, so `Exception` resolves the same as `\Exception`. Also accepts
+     * existing PHP class-like names regardless of casing, so all-caps `PDO`
+     * and lowercase `stdClass` both match. {@see PhpClassLike} autoloads for
+     * that check on purpose: resolution must not depend on whether some
+     * earlier form happened to load the class first.
      */
     private function looksLikeBareClassName(string $name): bool
     {
@@ -217,11 +233,7 @@ final readonly class SymbolResolver
         }
 
         return preg_match('/^[A-Za-z_]\w*$/', $name) === 1
-            && (
-                class_exists($name, false)
-                || interface_exists($name, false)
-                || trait_exists($name, false)
-            );
+            && PhpClassLike::exists($name);
     }
 
     private function looksLikePhpConstantName(string $name): bool
@@ -250,7 +262,7 @@ final readonly class SymbolResolver
         $phelShortName = self::CLOJURE_CLASS_RENAMES[$shortName] ?? $shortName;
         $fqn = self::PHEL_LANG_NAMESPACE . $phelShortName;
 
-        if (!class_exists($fqn) && !interface_exists($fqn) && !trait_exists($fqn)) {
+        if (!PhpClassLike::exists($fqn)) {
             return null;
         }
 
