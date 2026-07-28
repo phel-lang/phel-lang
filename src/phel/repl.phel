@@ -102,7 +102,7 @@
       (Symbol/create last))))
 
 (defn- set-ns [namespace]
-  (set-var *ns* namespace))
+  (alter-var-root (var *ns*) (constantly namespace)))
 
 (defn- normalize-ns-str
   "Converts backslashes to dots and remaps clojure.* to phel.* when the target exists."

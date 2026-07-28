@@ -33,16 +33,14 @@ default:
 ```
 
 Each of those desugars to a `php/*` special form (`php/new`, `php/->`, `php/::`)
-before analysis, and the `php/*` forms remain available as the escape hatch: they
-are the only spelling that takes an unevaluated form in a position the shorthand
-cannot express, and they are what the compiler and this repo's older stdlib code
-still emit. Both exist because the `php/*` layer came first and is the compilation
-target; you are meant to write the shorthand.
+before analysis. That layer is the compilation target, and it came first, which is
+why older code is written in it — but it is **deprecated as source**: every position
+it once had to itself now has a shorthand. Write the shorthand.
 
-Chaining does **not** need `php/->`, mixed method and property chains included:
+Chaining threads with plain `->`, mixed method and property chains included:
 
 ```phel
-(-> (php/new \DateTimeImmutable "2024-03-10") (.modify "+1 day") (.format "Y-m-d"))
+(-> (new \DateTimeImmutable "2024-03-10") (.modify "+1 day") (.format "Y-m-d"))
 ```
 
 The full expansion table, including `\C/m` and `\C/.m` in value position, is in

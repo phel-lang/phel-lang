@@ -55,6 +55,7 @@ use Phel\Compiler\Domain\Analyzer\TypeAnalyzer\SpecialForm\ThrowSymbol;
 use Phel\Compiler\Domain\Analyzer\TypeAnalyzer\SpecialForm\TrySymbol;
 use Phel\Compiler\Domain\Analyzer\TypeAnalyzer\SpecialForm\UseSymbol;
 use Phel\Compiler\Domain\Analyzer\TypeAnalyzer\SpecialForm\VarSymbol;
+use Phel\Compiler\Domain\Deprecation\SupersededFormDeprecator;
 use Phel\Lang\Collections\LinkedList\PersistentListInterface;
 use Phel\Lang\Symbol;
 use Phel\Shared\Exceptions\AbstractLocatedException;
@@ -83,6 +84,7 @@ final class AnalyzePersistentList
         private readonly AnalyzerInterface $analyzer,
         private readonly bool $assertsEnabled,
         private readonly MungeInterface $munge = new Munge(),
+        private readonly SupersededFormDeprecator $supersededFormDeprecator = new SupersededFormDeprecator(),
     ) {}
 
     /**
@@ -98,6 +100,10 @@ final class AnalyzePersistentList
             // `(into () ...)` or `(= () (list))` usable.
             return new QuoteNode($env, $list, $list->getStartLocation());
         }
+
+        // Before the expansions: they rewrite `(.m obj)` into `(php/-> obj (m))`,
+        // so a detector running after them would warn about every shorthand.
+        $this->supersededFormDeprecator->maybeWarn($list);
 
         $list = $this->expandConstructorShorthand($list, $env);
         $list = $this->expandMemberAccessShorthand($list);

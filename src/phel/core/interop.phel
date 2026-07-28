@@ -10,14 +10,14 @@
   "Sets `place` to `value` and returns `value`, covering both shapes Clojure's
   `set!` covers.
 
-  A property access (`(.-prop obj)`, or `(php/:: Class prop)`) assigns the
-  property, the places `php/oset` accepts. A **symbol** naming a dynamic var
+  A property access (`(.-prop obj)`) assigns the property, as does any other
+  place `php/oset` accepts. A **symbol** naming a dynamic var
   assigns its current thread-local binding, and throws when no `binding` frame
   is active, so it never writes the root by accident; `alter-var-root` is the
   way to change a root.
 
   A macro rather than a function because the place is a location, not a value."
-  {:example "(let [o (php/new \\ArrayObject)] (set! (.-y o) 2024)) ; => 2024\n(def ^:dynamic *x* 0)\n(binding [*x* 1] (set! *x* 2) *x*) ; => 2"
+  {:example "(let [o (new \\ArrayObject)] (set! (.-y o) 2024)) ; => 2024\n(def ^:dynamic *x* 0)\n(binding [*x* 1] (set! *x* 2) *x*) ; => 2"
    :see-also ["var-set" "alter-var-root" "aset" "php/oset"]}
   [place value]
   (if (symbol? place)

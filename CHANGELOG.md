@@ -49,6 +49,11 @@ All notable changes to this project will be documented in this file.
 - Diagnostics: a circular namespace dependency reports the whole cycle (`a -> b -> a`), atom validator rejections name the value without realizing a lazy seq, parser/reader/analyzer errors chain the original exception, and reporting an error no longer crashes on an unterminated list or an unanchorable snippet
 - Documentation: 60+ previously undocumented public core functions gained `:example`/`:see-also`, and 34 `:example` blocks whose printed output was wrong were corrected by evaluating every one
 
+### Deprecated
+
+- `php/new`, `php/->` and `php/::` are deprecated as source. `php/` means host access, never a second spelling for something Phel already says the Clojure way, and the last positions that needed one were closed by #2881, #2883 and #2887. Write `(new \Foo arg)` or `(\Foo. arg)`, `(.method obj arg)` and `(.-field obj)`, `(\Foo/method arg)` and `\Foo/CONST`. A macro whose method name is computed at expansion time builds the head symbol, `(symbol (str "." name))`, rather than falling back. The forms keep working for all of `1.x` and stay the compilation target the shorthand expands into; only writing them warns, under `--warn-deprecations`. `phel doc` marks each one deprecated and names the replacement, and the examples it prints for `try`, `throw` and `php/ref` are written in the shorthand (#2877)
+- `set-var` is deprecated in favour of `alter-var-root`: it writes a var's root under a name that reads like Clojure's `set!`, which since #2905 exists and does the opposite. `(set-var *x* 3)` becomes `(alter-var-root #'*x* (constantly 3))`; `(set! *x* 3)` assigns only the current `binding` frame (#2888)
+
 ### Changed
 
 - **BREAKING** (installation): `symfony/console` narrows from `^6.0|^7.0|^8.0` to `^7.3|^8.0`. The old range was never true, since `phel\cli` renders with the `markdown` output style added in Symfony 7.3. `symfony/routing` already required `^7.3|^8.0`, so nothing that installs cleanly today is affected

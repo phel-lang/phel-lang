@@ -6,10 +6,10 @@
 
 | Task | Phel |
 |------|------|
-| Instantiate | `(php/new Class args)` / `(new Class args)` / `(Class. args)` |
-| Method | `(.method obj args)` / `(php/-> obj (method args))` |
-| Static | `(Class/method args)` / `(php/:: Class (method args))` |
-| Constant | `Class/CONST` / `(php/:: Class CONST)` |
+| Instantiate | `(new Class args)` / `(Class. args)` |
+| Method | `(.method obj args)` |
+| Static | `(Class/method args)` |
+| Constant | `Class/CONST` |
 | Property | `(.-prop obj)` |
 | Fn (global) | `(php/strlen s)` |
 | Fn (namespaced) | `(php/Amp\trapSignal xs)` |
@@ -31,7 +31,7 @@ composer require guzzlehttp/guzzle
   (:require phel\json :as json))
 
 (def client
-  (php/new Client
+  (new Client
     #php {"base_uri" "https://api.example.com/" "timeout" 5.0}))
 
 (defn fetch-user [id]
@@ -47,7 +47,7 @@ composer require guzzlehttp/guzzle
 
 (defn connect [dsn user pass]
   (try
-    (php/new PDO dsn user pass
+    (new PDO dsn user pass
       #php {PDO/ATTR_ERRMODE PDO/ERRMODE_EXCEPTION})
     (catch PDOException e (println "fail:" (.getMessage e)) nil)))
 
@@ -76,7 +76,8 @@ composer require guzzlehttp/guzzle
 ## Gotchas
 
 - Convert maps for PHP libs; use `#php {}` or `to-php-array`.
-- Method chain: `(php/-> obj (a) (b))`, not `(-> obj .a .b)`.
+- Method chain: `(-> obj (.a) (.b))`, not `(-> obj .a .b)`.
+- `php/new`, `php/->` and `php/::` are deprecated; the spellings above are the only ones to write.
 - Static constants need `:use` or full path.
 - PHP warnings don't throw; `(php/error_get_last)` to check.
 - Hot loops: prefer `php/array_map` over round-tripping.

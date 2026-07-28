@@ -51,11 +51,11 @@
 
 (let [risky (async
               (delay 0.01)
-              (throw (php/new \RuntimeException "network timeout")))]
+              (throw (new \RuntimeException "network timeout")))]
   (try
     (await risky)
     (catch \RuntimeException e
-      (println "  Caught:" (php/-> e (getMessage))))))
+      (println "  Caught:" (.getMessage e)))))
 
 ;; --- 5. Promise handoff (fiber layer) ---
 

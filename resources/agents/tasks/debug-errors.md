@@ -48,7 +48,7 @@ Check `(doc fn)`. Variadic: `[a b & rest]`.
 - Calling a value: `(5 1 2)`
 - Missing parens: `(map f xs)`, not `map f xs`
 
-### `php/->` on nil
+### Method call on nil
 
 Use `some->`:
 

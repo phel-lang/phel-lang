@@ -198,17 +198,26 @@ mutation its own name. Phel matches that, with one extra name it inherited:
 | assign an object field | `(set! (.-f o) v)` | `(set! (.-f o) v)` |
 | assign the current thread-local binding | `(set! *x* v)` | `(set! *x* v)`, or `(var-set #'*x* v)` |
 | change the root | `(alter-var-root #'*x* f)` | `(alter-var-root #'*x* f)` |
-| *(no Clojure counterpart)* | | `(set-var *x* v)`, a special form that writes the root directly |
+| *(no Clojure counterpart)* | | `(set-var *x* v)`, a special form that writes the root directly — **deprecated** |
 
 `set!` on a symbol writes only the binding frame and **throws when none is active**, so
 it can never change a root by accident, exactly as in Clojure.
 
 `set-var` is the odd one out: it is a special form, it takes a value rather than a
 function, and its name reads like Clojure's `set!` while behaving like
-`alter-var-root`. Whether it gets deprecated in favour of `alter-var-root` is
-[#2888](https://github.com/phel-lang/phel-lang/issues/2888); it is on the closed
-special-form list, so that would be a deprecate-in-1.x, remove-at-2.0 change rather
-than a rename.
+`alter-var-root`. A name that points a Clojure reader at the wrong operation is the
+failure mode this page exists to prevent, so it is **deprecated** in favour of
+`alter-var-root` ([#2888](https://github.com/phel-lang/phel-lang/issues/2888)). It is
+on the closed special-form list, so it still works throughout `1.x`, warns under
+`--warn-deprecations`, and can only be removed at a major:
+
+```phel
+(set-var *x* 3)                        (alter-var-root #'*x* (constantly 3))
+```
+
+The two do not have the same call shape, which is why this is a deprecation and not a
+rename: `set-var` takes the symbol and a value, `alter-var-root` takes a var and a
+function. Wrap a plain value in `constantly`.
 
 ## 7. Absent concepts
 

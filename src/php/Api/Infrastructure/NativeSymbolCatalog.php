@@ -79,7 +79,7 @@ Handle exceptions thrown in a `try` block by matching on the provided exception 
             'docUrl' => '/documentation/control-flow/#try-catch-and-finally',
             'signatures' => ['(catch exception-type exception-name expr*)'],
             'desc' => 'Handle exceptions thrown in a `try` block by matching on the provided exception type. The caught exception is bound to exception-name while evaluating the expressions.',
-            'example' => '(try (throw (php/new \Exception "error")) (catch \Exception e (php/-> e (getMessage))))',
+            'example' => '(try (throw (new \Exception "error")) (catch \Exception e (.getMessage e)))',
         ],
         Symbol::NAME_CONJ => [
             'doc' => '```phel
@@ -163,7 +163,7 @@ Evaluate expressions after the try body and all matching catches have completed.
             'docUrl' => '/documentation/control-flow/#try-catch-and-finally',
             'signatures' => ['(finally expr*)'],
             'desc' => 'Evaluate expressions after the try body and all matching catches have completed. The finally block runs regardless of whether an exception was thrown.',
-            'example' => '(defn risky-operation [] (throw (php/new \Exception "Error!")))' . PHP_EOL
+            'example' => '(defn risky-operation [] (throw (new \Exception "Error!")))' . PHP_EOL
                 . '(defn cleanup [] (println "Cleanup!"))' . PHP_EOL
                 . '(try (risky-operation) (catch \Exception e nil) (finally (cleanup)))',
         ],
@@ -354,44 +354,50 @@ Equivalent to PHP\'s `unset(arr[k1][k2][k...])`.',
             'doc' => '```phel
 (php/new expr args*)
 ```
-Evaluates expr and creates a new PHP class using the arguments. The instance of the class is returned.',
+Evaluates expr and creates a new PHP class using the arguments. The instance of the class is returned.
+
+**Deprecated**: write `(new \DateTime "2024-01-01")` or `(\DateTime. "2024-01-01")`.',
             'docUrl' => '/documentation/php-interop/#php-class-instantiation',
             'signatures' => ['(php/new expr args*)'],
-            'desc' => 'Evaluates expr and creates a new PHP class using the arguments. The instance of the class is returned.',
-            'example' => '(php/new DateTime "2024-01-01")',
+            'desc' => 'Deprecated. Creates a PHP object; write `(new \Foo arg)` instead.',
+            'example' => '(new \DateTime "2024-01-01")',
         ],
         Symbol::NAME_PHP_OBJECT_CALL => [
             'doc' => '```phel
 (php/-> object call*)
 (php/:: class call*)
 ```
-Access to an object property or result of chained calls.',
+Access to an object property or result of chained calls.
+
+**Deprecated**: write `(.format date "Y-m-d")` for a method and `(.-prop obj)` for a property. Chains thread with plain `->`.',
             'docUrl' => '/documentation/php-interop/#php-set-object-properties',
             'signatures' => ['(php/-> object call*)', '(php/:: class call*)'],
-            'desc' => 'Access to an object property or result of chained calls.',
-            'example' => '(php/-> date (format "Y-m-d"))',
+            'desc' => 'Deprecated. Reaches an instance member; write `(.method obj arg)` or `(.-field obj)` instead.',
+            'example' => '(.format date "Y-m-d")',
         ],
         Symbol::NAME_PHP_OBJECT_SET => [
             'doc' => '```phel
-(php/oset (php/-> object property) value)
+(php/oset (.-property object) value)
 (php/oset (php/:: class property) value)
 ```
-Use `php/oset` to set a value to a class/object property.',
+Sets a class/object property. `set!` is the top-level name for the same thing.',
             'docUrl' => '/documentation/php-interop/#php-set-object-properties',
-            'signatures' => ['(php/oset (php/-> object property) value)', '(php/oset (php/:: class property) value)'],
-            'desc' => 'Use `php/oset` to set a value to a class/object property.',
-            'example' => '(php/oset (php/-> obj name) "Alice")',
+            'signatures' => ['(php/oset (.-property object) value)', '(php/oset (php/:: class property) value)'],
+            'desc' => 'Sets a class/object property. `set!` is the top-level name for the same thing.',
+            'example' => '(php/oset (.-name obj) "Alice")',
         ],
         Symbol::NAME_PHP_OBJECT_STATIC_CALL => [
             'doc' => '```phel
 (php/:: class (method-name expr*))
 (php/:: class call*)
 ```
-Calls a static method or property from a PHP class. Both method-name and property must be symbols and cannot be an evaluated value.',
+Calls a static method or property from a PHP class. Both method-name and property must be symbols and cannot be an evaluated value.
+
+**Deprecated**: write `(\DateTime/createFromFormat "Y-m-d" "2024-01-01")` for a method and `\DateTime/ATOM` for a constant.',
             'docUrl' => '/documentation/php-interop/#php-static-method-and-property-call',
             'signatures' => ['(php/:: class (method-name expr*))', '(php/:: class call*)'],
-            'desc' => 'Calls a static method or property from a PHP class. Both method-name and property must be symbols and cannot be an evaluated value.',
-            'example' => '(php/:: DateTime (createFromFormat "Y-m-d" "2024-01-01"))',
+            'desc' => 'Deprecated. Reaches a static member; write `(\Foo/method arg)` or `\Foo/CONST` instead.',
+            'example' => '(\DateTime/createFromFormat "Y-m-d" "2024-01-01")',
         ],
         Symbol::NAME_PHP_CALLABLE => [
             'doc' => '```phel
@@ -407,13 +413,13 @@ Builds a native PHP 8.1 first-class callable `(...)` from a free function, a sta
         ],
         Symbol::NAME_PHP_REF => [
             'doc' => '```phel
-(php/-> object (method (php/ref local)))
+(.method object (php/ref local))
 ```
-Marks a local variable as passed by reference in a `php/->`/`php/::` interop call, so an output-parameter PHP method can write back into the Phel binding.',
+Marks a local variable as passed by reference in an interop call, so an output-parameter PHP method can write back into the Phel binding.',
             'docUrl' => '/documentation/php-interop/',
             'signatures' => ['(php/ref local)'],
             'desc' => 'Passes a local variable by reference into a PHP interop call.',
-            'example' => '(php/-> stmt (bindColumn 1 (php/ref out)))',
+            'example' => '(.bindColumn stmt 1 (php/ref out))',
         ],
         Symbol::NAME_QUOTE => [
             'doc' => '```phel
@@ -453,7 +459,7 @@ Throw an exception.',
             'docUrl' => '/documentation/control-flow/#try-catch-and-finally',
             'signatures' => ['(throw exception)'],
             'desc' => 'Throw an exception.',
-            'example' => '(throw (php/new \InvalidArgumentException "Invalid input"))',
+            'example' => '(throw (new \InvalidArgumentException "Invalid input"))',
         ],
         Symbol::NAME_TRY => [
             'doc' => '```phel
