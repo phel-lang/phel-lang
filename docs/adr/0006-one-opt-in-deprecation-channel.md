@@ -40,8 +40,10 @@ nothing else.
    against the macro's file with the call site appended, a stdlib origin is
    suppressed, an unknown origin stays silent rather than misattributed.
 
-CLI-option deprecations are the one exception, always printing on stderr through
-`Phel\Shared\Console\DeprecatedOptionWarner`.
+CLI-option deprecations are the one exception and print on stderr
+unconditionally. No rename is in flight, so no shared helper exists today;
+[cli-flag-conventions.md](../internals/cli-flag-conventions.md#renaming-an-option)
+carries the procedure.
 
 Every live deprecation also appears in
 [the deprecated surface map](../migration/deprecated-surface.md) and moves to the

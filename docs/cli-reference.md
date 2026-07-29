@@ -1,12 +1,11 @@
 # CLI Reference & DX Guide
 
-A single map of every `phel` command, the common workflows, and the
-edit→test dev loop. Run `phel <command> --help` for the full options of any
-command (each ships a usage example), and `phel completion bash|zsh|fish` to
-enable tab-completion (see the [README](../README.md#enable-shell-completion-optional)).
+Every `phel` command, the common workflows, and the dev loop. `phel <command>
+--help` gives full options and a usage example; `phel completion bash|zsh|fish`
+enables tab-completion (setup in the [README](../README.md)).
 
-> User-facing tutorials live on [phel-lang.org](https://phel-lang.org/documentation/tooling/cli-commands/);
-> this page is the quick reference kept next to the code.
+> Tutorials live on [phel-lang.org](https://phel-lang.org/documentation/tooling/cli-commands/);
+> this is the quick reference kept next to the code.
 
 ## Commands
 
@@ -48,22 +47,17 @@ Phel into your editor. Per-editor setup lives on the website:
 
 ## compile vs eval vs run vs build
 
-These four overlap; pick by what you want back:
+Pick by what you want back:
 
 | Command | Input | Runs the code? | Output |
 |---|---|---|---|
 | `compile` | snippet / file / stdin | no | emitted **PHP source** (honors `optimizationLevel`) |
 | `eval` | expression / stdin | yes | the **value** of the last form |
 | `run` | file / namespace | yes | whatever the script prints / its side effects |
-| `build` | the whole project | compiles (no run) | **PHP files** written to the output dir, for deployment |
+| `build` | the whole project | compiles (no run) | **PHP files** in the output dir, for deployment |
 
-Rule of thumb: `eval` to check a value, `run` to execute a script, `compile`
-to inspect generated PHP for one form, `build` to produce deployable PHP for
-the entire project.
-
-`eval` is a developer tool with full host access, not a sandbox. For using it
-as a playground eval primitive (and why that needs isolation), see
-[playground.md](playground.md).
+`eval` is a developer tool with full host access, not a sandbox. On using it as a
+playground primitive, and why that needs isolation: [playground.md](playground.md).
 
 ## Common workflows
 
@@ -78,13 +72,12 @@ phel completion zsh       # (optional) enable tab-completion
 ### The dev loop
 
 ```sh
-phel test --watch         # re-run tests on every change (incremental cache reuse)
-# or, for hot-reloading namespaces:
-phel watch
+phel test --watch         # re-run tests on change
+phel watch                # hot-reload namespaces instead
 ```
 
 Both reuse the compiled-code cache, so a one-file edit recompiles only the
-affected namespaces. Use `phel repl` (or `phel nrepl` from your editor) for
+affected namespaces. `phel repl` (or `phel nrepl` from your editor) for
 interactive exploration.
 
 ### Ship it

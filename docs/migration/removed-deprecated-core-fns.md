@@ -1,6 +1,12 @@
 # Migration: Removed Long-Deprecated Core Functions
 
-The core functions below were deprecated for many releases and are now **removed** ([#2784](https://github.com/phel-lang/phel-lang/issues/2784)). Each was a thin alias, so replace every call site with the canonical function; arguments and behavior are unchanged.
+Everything here is **removed**. The step-by-step upgrade path is
+[upgrade-0.49-to-1.0.md](upgrade-0.49-to-1.0.md); this page is the full record.
+
+## Core aliases ([#2784](https://github.com/phel-lang/phel-lang/issues/2784))
+
+Each was a thin alias, so the replacement takes the same arguments and behaves
+the same way.
 
 | Removed | Deprecated since | Replacement |
 |---------|------------------|-------------|
@@ -13,95 +19,25 @@ The core functions below were deprecated for many releases and are now **removed
 | `function?` | 0.32.0 | `fn?` |
 | `hash-map?` | 0.32.0 | `map?` |
 | `id` | 0.32.0 | `identical?` |
-| `str-contains?` | long-deprecated | `phel\string\contains?` |
+| `str-contains?` | long-deprecated | `phel.string/contains?` |
+| `set-meta!` | 0.32.0 | `with-meta` |
+| `phel.test/print-summary` | 0.49.0 | react to the `:summary` event |
 
-## How to migrate
-
-The replacement keeps the same signature:
-
-```phel
-(push coll x)      ; -> (conj coll x)
-(put m :k v)       ; -> (assoc m :k v)
-(unset m :k)       ; -> (dissoc m :k)
-(put-in m ks v)    ; -> (assoc-in m ks v)
-(unset-in m ks)    ; -> (dissoc-in m ks)
-(values m)         ; -> (vals m)
-(function? x)      ; -> (fn? x)
-(hash-map? x)      ; -> (map? x)
-(id a b)           ; -> (identical? a b)
-```
-
-`str-contains?` now lives in the `phel\string` namespace:
+`str-contains?` moved namespace, so it needs a require:
 
 ```phel
-(ns my-app (:require phel\string :as s))
+(ns my-app (:require phel.string :as s))
 
 (str-contains? haystack needle)   ; -> (s/contains? haystack needle)
 ```
 
-## Removed CLI option aliases
+`run-tests` already emits `:summary` at the end of a run, so calling
+`print-summary` double-reported. A custom reporter reacts to the event instead of
+triggering it. A harness needing a summary for stats it assembled itself builds
+the event from the public `get-stats` snapshot; `phel.test` keeps its own builder
+private so the event shape stays free to change.
 
-Two renamed options kept a deprecated alias; the aliases are now removed ([#2827](https://github.com/phel-lang/phel-lang/issues/2827)).
-
-| Removed | Replacement |
-|---------|-------------|
-| `phel index --out=PATH` | `phel index --output=PATH` (`-o`) |
-| `phel config --json` | `phel config --format=json` (`-f json`) |
-
-```bash
-phel index --out=index.json      # -> phel index --output=index.json
-phel config --json               # -> phel config --format=json
-```
-
-Passing a removed alias now fails with Symfony's own `The "--out" option does not exist.`, so a stale CI invocation surfaces immediately rather than silently. The conventions these were aligned to are in [../internals/cli-flag-conventions.md](../internals/cli-flag-conventions.md).
-
-## Removed REPL history migration
-
-The REPL history file moved from `<project>/.phel-repl-history` to `<project>/.phel/repl-history` in `0.37.0`, and every REPL start since then migrated a legacy file automatically. That migration is now removed, along with the `PHEL_QUIET_MIGRATION` environment variable that silenced its notice.
-
-A project that upgraded through any release from `0.37.0` onwards has already been migrated and needs to do nothing. A project jumping straight from before `0.37.0` keeps its old file untouched and simply starts a fresh history; move it by hand to keep it:
-
-```bash
-mkdir -p .phel && mv .phel-repl-history .phel/repl-history
-```
-
-Replace any literal `.phel-repl-history` in a `.gitignore` or CI cache key with `.phel/`.
-## Removed function-parameter metadata
-
-`^:reference` marked a by-reference fn parameter. `^:by-ref` was always the canonical spelling and the two were exactly equivalent, so the alias is removed ([#2827](https://github.com/phel-lang/phel-lang/issues/2827)).
-
-```phel
-(defn fill [^:reference buffer]       (defn fill [^:by-ref buffer]
-  (php/array_push buffer 1))            (php/array_push buffer 1))
-```
-
-`^:reference` is now simply not a by-reference marker: the parameter compiles by value, and a function relying on the mutation stops propagating it to the caller. Grep for the literal `:reference` in parameter metadata, since a symbol rename will not find it.
-
-## Removed core definitions
-
-| Removed | Deprecated since | Replacement |
-|---------|------------------|-------------|
-| `set-meta!` | 0.32.0 | `with-meta` |
-| `phel\test/print-summary` | 0.49.0 | react to the `:summary` event |
-
-`set-meta!` was a thin alias with the same arguments and return value:
-
-```phel
-(set-meta! [] {:a 1})   ; -> (with-meta [] {:a 1})
-```
-
-`run-tests` already emits the `:summary` event at the end of a run, so calling `print-summary` yourself double-reported:
-
-```phel
-(t/run-tests {} 'my-app.core-test)    (t/run-tests {} 'my-app.core-test)
-(t/print-summary)                     ;; nothing else needed
-```
-
-A custom reporter reacts to the `:summary` event instead of triggering it. A test harness that needs a summary for stats it assembled itself builds the event from the public `get-stats` snapshot and hands it to the reporter; `phel.test` keeps its own builder private on purpose, so the event shape stays free to change.
-
-## Removed reader syntax
-
-Six spellings are removed ([#2827](https://github.com/phel-lang/phel-lang/issues/2827)).
+## Reader syntax ([#2827](https://github.com/phel-lang/phel-lang/issues/2827))
 
 | Removed | Replacement |
 |---|---|
@@ -115,10 +51,6 @@ Six spellings are removed ([#2827](https://github.com/phel-lang/phel-lang/issues
 ```phel
 # old line comment                    ;; new line comment
 
-#|
-  old block comment
-|#                                    ;; new block comment, one line at a time
-
 (map |(inc $) xs)                     (map #(inc %) xs)
 (map |(+ $1 $2) xs ys)                (map #(+ %1 %2) xs ys)
 
@@ -126,26 +58,67 @@ Six spellings are removed ([#2827](https://github.com/phel-lang/phel-lang/issues
 `(let [v$ ,x] (+ v$ v$))              `(let [v# ~x] (+ v# v#))
 ```
 
-### Most of these now fail loudly
+`#`, `#|` and `|(` are no longer tokens, so a file using them fails to lex or
+reports an unresolvable symbol `|`.
 
-`#`, `#|` and `|(` are simply not tokens any more, so a file still using them fails to lex or reports an unresolvable symbol `|`. You will know immediately.
-
-**`,` is the exception, and it is the one to grep for.** A comma is now plain whitespace *everywhere*, syntax-quote included. `` `(foo ,x) `` still parses; it just quotes the symbol `x` instead of unquoting it, so a macro keeps compiling and starts producing the wrong expansion. Phel's own stdlib had three of these (`aset`, `aset-in` and `router/compiled-router`), which is a fair warning about how easy they are to miss.
-
-Grep for a comma directly followed by the start of a form:
+**`,` is the exception and the one to grep for.** A comma is plain whitespace
+everywhere now, syntax-quote included: `` `(foo ,x) `` still parses and quotes
+`x` instead of unquoting it, so a macro keeps compiling and starts producing the
+wrong expansion. Phel's own stdlib had three (`aset`, `aset-in`,
+`router/compiled-router`).
 
 ```bash
 grep -rnE ",[A-Za-z0-9_(\[{'\`~@:*+-]" --include='*.phel' src/ tests/
 ```
 
-A comma between map pairs (`{:a 1, :b 2}`) is followed by a space and is unaffected. `phel format` keeps preserving commas and still never inserts them.
+A comma between map pairs (`{:a 1, :b 2}`) is followed by a space and is
+unaffected. `phel format` preserves commas and never inserts them.
 
-### `$` is still a symbol
+Only the auto-gensym meaning of a trailing `$` is gone. `$` is still the return
+value inside an `fn` `:post` condition, and an ordinary character in a name.
 
-Only the *auto-gensym* meaning of a trailing `$` is gone. `$` remains the return value inside an `fn` `:post` condition, and a `$` anywhere in a name is an ordinary character.
+## Function-parameter metadata ([#2827](https://github.com/phel-lang/phel-lang/issues/2827))
 
-## Still deprecated (not removed)
+`^:reference` and `^:by-ref` marked the same thing; the alias is removed.
 
-The `warn-deprecations` infrastructure stays, since it still serves live deprecations such as the deprecated reader syntax and the `\` namespace separator (see [backslash-to-dot.md](backslash-to-dot.md)). `DeprecatedDefinitionWarner` stays too: it is a general facility that project code uses for its own `:deprecated` definitions.
+```phel
+(defn fill [^:reference buffer]       (defn fill [^:by-ref buffer]
+  (php/array_push buffer 1))            (php/array_push buffer 1))
+```
 
-[deprecated-surface.md](deprecated-surface.md) maps the whole set of deprecations that are still shipped, with a before/after for each.
+`^:reference` is no longer a by-reference marker: the parameter compiles by
+value and a function relying on the mutation stops propagating it. Grep for the
+literal `:reference`, since a symbol rename will not find it.
+
+## CLI option aliases ([#2827](https://github.com/phel-lang/phel-lang/issues/2827))
+
+| Removed | Replacement |
+|---------|-------------|
+| `phel index --out=PATH` | `phel index --output=PATH` (`-o`) |
+| `phel config --json` | `phel config --format=json` (`-f json`) |
+
+A removed alias now fails with Symfony's `The "--out" option does not exist.`, so
+a stale CI invocation surfaces immediately. Conventions:
+[cli-flag-conventions.md](../internals/cli-flag-conventions.md).
+
+## REPL history migration
+
+History moved from `<project>/.phel-repl-history` to `<project>/.phel/repl-history`
+in `0.37.0`, and every REPL start since migrated a legacy file automatically. That
+migration is removed, along with `PHEL_QUIET_MIGRATION`.
+
+A project that upgraded through any release from `0.37.0` on is already migrated.
+One jumping straight from before `0.37.0` starts a fresh history; move it by hand
+to keep it, and replace any literal `.phel-repl-history` in `.gitignore` or a CI
+cache key with `.phel/`:
+
+```bash
+mkdir -p .phel && mv .phel-repl-history .phel/repl-history
+```
+
+## Still deprecated
+
+The `warn-deprecations` infrastructure stays: it serves live deprecations such as
+the `\` namespace separator, and `DeprecatedDefinitionWarner` is a general
+facility project code uses for its own `:deprecated` definitions.
+[deprecated-surface.md](deprecated-surface.md) maps everything still shipped.
