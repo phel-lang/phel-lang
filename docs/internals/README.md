@@ -31,6 +31,12 @@ promises lives in [../spec/](../spec/README.md), and what the *PHP API* promises
 in [../stability.md](../stability.md). When the two disagree, the spec wins and the
 implementation has a bug.
 
+Why the implementation looks like this, as opposed to some other reasonable shape,
+lives in [../adr/](../adr/README.md). Reach for a record there before proposing to
+straighten something out: the four accepted module cycles, the deprecated form that
+is also the compilation target, and the static analysis that stops at `src/` were
+each argued once already.
+
 ## Adjacent
 
 - Each `src/php/<Module>/CLAUDE.md`: public API + constraints. Read before editing.

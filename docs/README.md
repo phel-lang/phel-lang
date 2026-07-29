@@ -8,6 +8,8 @@ modules, deployment) live on **[phel-lang.org](https://phel-lang.org/documentati
 
 - [Specification](spec/README.md): the normative language surface and the deliberate Clojure divergences
 - [Stability policy](stability.md): what a version number promises, which PHP symbols semver covers, and the 1.x deprecation and PHP support policies
+- [Architecture decisions](adr/README.md): why the repository is shaped the way it
+  is, one record per decision, including the ones that look like oversights
 - [CLI Reference & DX Guide](cli-reference.md): every command, the dev loop, and compile vs eval vs run vs build
 - [Project Layout](project-layout.md): the `.phel/` directory and runtime state
 - [Internals](internals/README.md): architecture, compiler phases, AST, emitter,
@@ -17,6 +19,7 @@ modules, deployment) live on **[phel-lang.org](https://phel-lang.org/documentati
 - [Migration: backslash to dot](migration/backslash-to-dot.md)
 - [Migration: removed deprecated core functions](migration/removed-deprecated-core-fns.md)
 - [Examples](examples/README.md): runnable single-file samples
+- [Web playground](playground.md): design notes and the language-side spike for "try Phel in the browser"
 - [AI agents](../resources/agents/README.md): Claude Code, Cursor, Codex, Gemini, Copilot, Aider
 - [agent-docs](agent-docs.md) · [agent-metrics](agent-metrics.md)
 

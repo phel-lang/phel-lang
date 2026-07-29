@@ -11,7 +11,8 @@ opposite: descriptive, and free to change with the implementation.
 
 The PHP-side half of the same contract is [../stability.md](../stability.md): the
 public embedding API, the deprecation policy, and the PHP and platform support
-policies.
+policies. The reasoning behind the shape of both, and behind the divergences
+themselves, is recorded in [../adr/](../adr/README.md).
 
 ## Each page is checked, not just written
 
