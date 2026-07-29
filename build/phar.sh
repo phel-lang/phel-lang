@@ -98,6 +98,8 @@ mkdir -p "$WORK_DIR" "$CACHE_DIR" "$OUTPUT_DIR"
 rsync -a "$REPO_ROOT/" "$WORK_DIR/" \
   --include='resources/' \
   --include='resources/agents/' \
+  --exclude='resources/agents/examples/*/vendor/' \
+  --exclude='resources/agents/examples/*/.phel/' \
   --include='resources/agents/examples/***' \
   --exclude='resources/agents/**' \
   --exclude='.git' \
@@ -109,6 +111,7 @@ rsync -a "$REPO_ROOT/" "$WORK_DIR/" \
   --exclude='.agents' \
   --exclude='.phpbench' \
   --exclude='.phpunit.cache' \
+  --exclude='/.phel/' \
   --exclude='/.phel-cache' \
   --exclude='docs' \
   --exclude='tests' \
