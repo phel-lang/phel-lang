@@ -3,8 +3,11 @@
 </p>
 
 <p align="center">
-  <a href="https://github.com/phel-lang/phel-lang/actions">
-    <img src="https://github.com/phel-lang/phel-lang/workflows/CI/badge.svg" alt="GitHub Build Status">
+  <a href="https://github.com/phel-lang/phel-lang/actions/workflows/tests.yml">
+    <img src="https://github.com/phel-lang/phel-lang/actions/workflows/tests.yml/badge.svg" alt="Tests">
+  </a>
+  <a href="https://github.com/phel-lang/phel-lang/actions/workflows/quality.yml">
+    <img src="https://github.com/phel-lang/phel-lang/actions/workflows/quality.yml/badge.svg" alt="Quality">
   </a>
   <a href="https://github.com/phel-lang/phel-lang/blob/main/phpstan.neon">
     <img src="https://img.shields.io/badge/PHPStan-level%209-brightgreen" alt="PHPStan level 9">
@@ -183,11 +186,11 @@ rm -f ~/.zcompdump*                                  # force compinit to rebuild
 ```clojure
 (ns app)
 
-(def now (php/new \DateTime))
+(def now (new \DateTime))
 (.format now "Y-m-d")
 ;; => "2026-04-20"
 
-(def epoch (php/new \DateTime "1970-01-01"))
+(def epoch (new \DateTime "1970-01-01"))
 (.-days (.diff now epoch))
 ;; => 20564
 ```
@@ -203,6 +206,7 @@ rm -f ~/.zcompdump*                                  # force compinit to rebuild
 - [CLI Reference & DX Guide](docs/cli-reference.md): every command, the dev loop, compile vs eval vs run vs build
 - [phel-lang.org](https://phel-lang.org/documentation/): full documentation, tutorials, exercises, blog
 - [Contributor docs](docs/README.md): repository internals, agent tooling, project layout
+- [Architecture decisions](docs/adr/README.md): why the repository is shaped the way it is
 - [Packagist](https://packagist.org/packages/phel-lang/phel-lang)
 - [CONTRIBUTING.md](.github/CONTRIBUTING.md): setup and workflow
 - [AGENTS.md](AGENTS.md): architecture and review expectations

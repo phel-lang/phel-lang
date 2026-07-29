@@ -220,3 +220,7 @@ demand with `workflow_dispatch`, including a one-off floor override.
 - [Clojure divergences](spec/clojure-divergences.md): where Phel deliberately differs
 - [The currently deprecated surface](migration/deprecated-surface.md)
 - [Architecture](internals/architecture.md): why the module boundary sits where it does
+- [Architecture decisions](adr/README.md): the arguments behind this policy.
+  [ADR 0005](adr/0005-public-php-api-by-rule-and-snapshot.md) for the public API as
+  a rule plus a snapshot, [ADR 0006](adr/0006-one-opt-in-deprecation-channel.md)
+  for deprecation warnings being off by default
