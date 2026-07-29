@@ -5,28 +5,20 @@
 
 ## Context
 
-Phel reaches PHP through special forms that came first and read like PHP:
-`(php/new \DateTime "2020-01-01")`, `(php/-> obj (format "Y"))`,
-`(php/:: \DateTime (createFromFormat …))`. Clojure-style shorthands
-(`(new \DateTime …)`, `(.format obj "Y")`, `(\DateTime/createFromFormat …)`) were
-added later as sugar over them.
+Phel reached PHP through forms that came first and read like PHP:
+`(php/new \DateTime …)`, `(php/-> obj (format "Y"))`,
+`(php/:: \DateTime (createFromFormat …))`. Clojure-style shorthands were added
+later as sugar over them.
 
-Two spellings for one operation is a tax on everything: documentation shows one
-and search results show the other, an agent writing Phel picks whichever it saw
-last, and a reader arriving from Clojure has to learn a second dialect for
-something they already know how to say. The standard library itself was written
-in the older spelling, so the most-read Phel code in existence taught the form the
-project wanted people to stop writing.
+Two spellings for one operation taxes everything: docs show one and search results
+the other, agents pick whichever they saw last, and a Clojure reader learns a
+second dialect for something they can already say. The standard library used the
+older spelling, so the most-read Phel code taught the discouraged form.
 
-The reason both survived was not taste. Some positions had **only** the `php/*`
-spelling: a static method as a value, an instance method as a function of its
-receiver, a method name computed at expansion time. As long as those gaps existed,
-`php/->` was a necessary fallback and could not be deprecated honestly.
-
-[#2881](https://github.com/phel-lang/phel-lang/issues/2881),
-[#2883](https://github.com/phel-lang/phel-lang/issues/2883) and
-[#2887](https://github.com/phel-lang/phel-lang/issues/2887) closed the last of
-them.
+Both survived because some positions had only the `php/*` spelling: a static
+method as a value, an instance method as a function of its receiver, a name
+computed at expansion time. While those gaps existed, `php/->` could not be
+deprecated honestly. #2881, #2883 and #2887 closed them.
 
 ## Decision
 
@@ -35,74 +27,60 @@ One rule decides which interop forms exist:
 > **`php/` means host access. It is never a second spelling for something Phel
 > already says the Clojure way.**
 
-Applying it:
-
-- `php/new`, `php/->` and `php/::` are **deprecated as source** and the
-  Clojure-style form is the only spelling to write. They remain the compilation
-  target the shorthand expands into, and they keep working for all of `1.x`.
-- The shorthands are analyzer sugar, expanded before analysis, and are
-  deliberately *not* special forms. Call position is handled in
-  `AnalyzePersistentList`, value position in `QualifiedMemberExpander`.
-- The rest of `php/*` stays, because each reaches a PHP capability Phel has no
-  other word for: `php/aget`, `php/aset`, `php/apush`, `php/aunset` and `php/oset`
-  mutate in place, `php/ref` takes a PHP reference, `php/callable` makes a PHP
+- `php/new`, `php/->`, `php/::` are **deprecated as source**; the Clojure-style
+  form is the only spelling to write. They remain the compilation target and keep
+  working for all of `1.x`.
+- Shorthands are analyzer sugar expanded before analysis, deliberately not special
+  forms. Call position in `AnalyzePersistentList`, value position in
+  `QualifiedMemberExpander`.
+- The rest of `php/*` stays: `php/aget`, `php/aset`, `php/apush`, `php/aunset`,
+  `php/oset` mutate in place, `php/ref` takes a reference, `php/callable` makes a
   callable. `phel.core` spells the common ones at top level (`aget`, `aset`,
   `aclone`, `alength`, `set!`).
-- A macro whose method or class name is computed at expansion time builds the head
-  symbol, `` `(~(symbol (str "." name)) ~recv ~@args) ``, rather than falling back
-  to `php/->`.
-- The standard library and `docs/` are written in the shorthand (#2875, #2882,
-  #2904), so the most-read Phel code teaches the intended form.
+- A macro computing a method or class name builds the head symbol,
+  `` `(~(symbol (str "." name)) ~recv ~@args) ``, instead of falling back.
+- The stdlib and `docs/` are written in the shorthand (#2875, #2882, #2904).
 
 ## Consequences
 
-The deprecation is unusual and needs stating plainly: a form can be both
-deprecated and load-bearing. `php/->` warns when you write it and is emitted by
-the compiler on your behalf a moment later. `SupersededFormDeprecator` therefore
-runs in `AnalyzePersistentList::analyze()` **before** the shorthand expansions,
-because afterwards every shorthand would warn about itself. It also ignores an
-unlocated head, which is how `QualifiedMemberExpander`'s synthesized `php/::`
-stays quiet.
+A form can be both deprecated and load-bearing: `php/->` warns when written and is
+emitted on your behalf a moment later. `SupersededFormDeprecator` therefore runs in
+`AnalyzePersistentList::analyze()` **before** the shorthand expansions; afterwards
+every shorthand would warn about itself. It also ignores an unlocated head, which
+keeps `QualifiedMemberExpander`'s synthesized `php/::` quiet.
 
-Removing the forms is a major-release change and is not scheduled here.
+Removal is a major-release change, not scheduled here.
 
-Some ambiguity is inherited from PHP rather than invented. In value position a
-qualified member is a class constant unless the class has no constant of that name
-and does have a public static method, decided by reflection at analysis time. A
-class with both keeps the constant, which is why `\C/new` is never a constructor.
-At bare-host-symbol fallback an existing class, interface, trait or enum beats the
-global-constant reading of the same name, and `php/NAME` is the explicit escape
-hatch.
+Some ambiguity is inherited from PHP. In value position a qualified member is a
+class constant unless the class has no such constant and does have a public static
+method, decided by reflection at analysis time. A class with both keeps the
+constant, so `\C/new` is never a constructor. At bare-host-symbol fallback a class,
+interface, trait or enum beats the global constant of the same name; `php/NAME` is
+the escape hatch.
 
-One position is still open: an assignable static property. Neither spelling works
-today, so `php/::` is not the answer for it either. Tracked in
-[#2907](https://github.com/phel-lang/phel-lang/issues/2907).
+One position is still open: an assignable static property. Neither spelling works,
+so `php/::` is not the answer either
+([#2907](https://github.com/phel-lang/phel-lang/issues/2907)).
 
 ## Enforcement
 
-- `tests/php/Unit/Architecture/LanguageSurfaceSpecTest.php` checks the deprecated
-  table in the language surface spec against `SupersededFormDeprecator`, and fails
-  on a spec row with no dispatch entry (which is how the shorthands are kept out
-  of the special-form list)
-- `tests/php/Integration/Compiler/SupersededFormDeprecationTest.php`
-- `tests/php/Integration/Compiler/QualifiedMemberValueRuntimeTest.php`
-- `tests/php/Integration/Api/core-api.snapshot.txt` pins the stdlib surface across
-  the rewrite
+- `LanguageSurfaceSpecTest`: checks the spec's deprecated table against
+  `SupersededFormDeprecator`, and fails on a spec row with no dispatch entry,
+  which is how shorthands stay out of the special-form list
+- `SupersededFormDeprecationTest`, `QualifiedMemberValueRuntimeTest`
+- `core-api.snapshot.txt` pins the stdlib surface across the rewrite
 
 ## Alternatives considered
 
-- **Keep both spellings, document a preference.** This was the status quo, and it
-  is what produced a standard library written in the form the docs discouraged.
-- **Remove `php/new`, `php/->`, `php/::` outright.** Rejected: they are the
-  compilation target, and removing them inside `1.x` would break the promise the
-  spec makes.
-- **Deprecate the whole `php/*` family.** Rejected: the mutating forms and
-  `php/ref` reach capabilities with no Clojure counterpart. The rule is about
-  duplicate spellings, not about the prefix.
+- **Keep both, document a preference.** The status quo that produced a stdlib
+  written in the discouraged form.
+- **Remove `php/new`, `php/->`, `php/::`.** They are the compilation target, and
+  removal inside `1.x` breaks the spec's promise.
+- **Deprecate all of `php/*`.** The mutating forms and `php/ref` reach
+  capabilities with no Clojure counterpart. The rule is about duplicate spellings.
 
 ## See also
 
-- [Language surface spec: interop shorthands](../spec/language-surface.md#interop-shorthands)
+- [Language surface spec](../spec/language-surface.md#interop-shorthands)
 - [The currently deprecated surface](../migration/deprecated-surface.md)
-- `src/php/Compiler/CLAUDE.md`: expansion points and the reflection rule
-- [ADR 0006](0006-one-opt-in-deprecation-channel.md)
+- `src/php/Compiler/CLAUDE.md`, [ADR 0006](0006-one-opt-in-deprecation-channel.md)

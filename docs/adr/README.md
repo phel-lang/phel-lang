@@ -1,13 +1,9 @@
 # Architecture Decision Records
 
-An ADR records a decision that shaped the repository, the situation that forced
-it, and what it costs. The code says *what* Phel does; `../internals/` says *how*;
-these pages say **why it is not something else**.
+Why the repository is shaped this way. The code says what, `../internals/` says how.
 
-They are written once and then left alone. An ADR is not documentation to be kept
-up to date: when a decision changes, the old record stays as it was and a new ADR
-supersedes it. That trail is the value. A page that is silently rewritten every
-time the answer changes cannot tell you which arguments were already had.
+Records are immutable. A changed decision gets a new ADR that supersedes the old
+one; the old one keeps its text.
 
 ## Index
 
@@ -26,28 +22,23 @@ time the answer changes cannot tell you which arguments were already had.
 | [0011](0011-persistent-collections-in-php.md) | Persistent collections implemented in PHP | Accepted |
 | [0012](0012-non-hygienic-macros-with-auto-gensym.md) | Non-hygienic macros with auto-gensym | Accepted |
 
-Statuses: **Proposed** (open for argument), **Accepted** (in force), **Superseded
-by NNNN** (kept for the trail, no longer in force), **Deprecated** (in force but
-being unwound, with no replacement decided yet).
+Statuses: **Proposed**, **Accepted**, **Superseded by NNNN**, **Deprecated** (in
+force, being unwound, no replacement decided).
 
 ## When to write one
 
-Write an ADR when a choice satisfies all three:
+All three must hold:
 
-1. Somebody will ask "why is it like this?" in a year, and the answer is not in
-   the code.
+1. Somebody will ask "why is it like this?" in a year, and the code does not say.
 2. Reversing it costs more than a pull request.
 3. A reasonable contributor would otherwise "fix" it.
 
-That last one is the practical test. Most of the records here exist because the
-decision looks like an oversight from the outside: four module cycles that a
-dependency test allows, a `php/*` form that is both deprecated and the compilation
-target, static analysis that stops at `src/`. Each was argued, and each argument
-was about to be repeated.
+Point 3 is the practical test. Most records here exist because the decision looks
+like an oversight: four allowed module cycles, a `php/*` form that is both
+deprecated and the compilation target, static analysis stopping at `src/`.
 
-Do **not** write an ADR for a bug fix, a refactor that preserves behaviour, a
-naming convention (those live in `.claude/rules/` and `AGENTS.md`), or anything a
-test already explains at the point of failure.
+Not an ADR: bug fixes, behaviour-preserving refactors, naming conventions (those
+live in `.agnostic-ai/rules/`), anything a failing test already explains.
 
 ## Writing one
 
@@ -55,28 +46,21 @@ test already explains at the point of failure.
 cp docs/adr/template.md docs/adr/00NN-short-kebab-title.md
 ```
 
-Take the next free number, keep the title a claim rather than a topic ("Compile to
-PHP source" beats "Compilation strategy"), and add the row to the index above.
-Ship it in the pull request that makes the decision, not afterwards.
+Next free number, never reused. Title is a claim, not a topic. Add the index row.
+Ship it in the pull request that makes the decision.
 
-Records numbered here before an ADR process existed are marked **recorded
-retroactively**: the decision was made in the pull request or issue each one
-cites, and this page is the first place the reasoning was written down as
-something other than a review comment.
+Records written before this process existed are marked **recorded retroactively**
+and cite the pull request or issue where the argument happened.
 
 ## Superseding
 
-Never edit a decision out of an accepted ADR. Instead:
-
-1. Write the new ADR, with a `Supersedes: NNNN` line.
-2. Change the old one's status to `Superseded by NNNN` and add the link. That is
-   the only edit an accepted ADR takes.
+1. Write the new ADR with a `Supersedes: NNNN` line.
+2. Set the old status to `Superseded by NNNN` and link it. That is the only edit
+   an accepted ADR takes.
 3. Update the index.
 
 ## See also
 
-- [Stability policy](../stability.md): what a version number promises. The
-  policy is normative; these records explain how it got its shape.
-- [Specification](../spec/README.md): the frozen language surface.
-- [Internals](../internals/README.md): how the implementation works today.
-- `src/php/<Module>/CLAUDE.md`: per-module API and constraints.
+- [Stability policy](../stability.md), [Specification](../spec/README.md),
+  [Internals](../internals/README.md)
+- `src/php/<Module>/CLAUDE.md`: per-module API and constraints

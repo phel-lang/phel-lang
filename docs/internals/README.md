@@ -31,11 +31,10 @@ promises lives in [../spec/](../spec/README.md), and what the *PHP API* promises
 in [../stability.md](../stability.md). When the two disagree, the spec wins and the
 implementation has a bug.
 
-Why the implementation looks like this, as opposed to some other reasonable shape,
-lives in [../adr/](../adr/README.md). Reach for a record there before proposing to
-straighten something out: the four accepted module cycles, the deprecated form that
-is also the compilation target, and the static analysis that stops at `src/` were
-each argued once already.
+Why it looks like this rather than some other reasonable shape lives in
+[../adr/](../adr/README.md). Check there before proposing to straighten something
+out: the four accepted module cycles, the deprecated form that is also the
+compilation target, and static analysis stopping at `src/` were each argued once.
 
 ## Adjacent
 
