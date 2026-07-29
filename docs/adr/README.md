@@ -1,9 +1,8 @@
 # Architecture Decision Records
 
-Why the repository is shaped this way. The code says what, `../internals/` says how.
+Why the repository is shaped this way. Code says what, `../internals/` says how.
 
-Records are immutable. A changed decision gets a new ADR that supersedes the old
-one; the old one keeps its text.
+Records are immutable: a changed decision gets a new ADR superseding the old one.
 
 ## Index
 
@@ -23,44 +22,34 @@ one; the old one keeps its text.
 | [0012](0012-non-hygienic-macros-with-auto-gensym.md) | Non-hygienic macros with auto-gensym | Accepted |
 
 Statuses: **Proposed**, **Accepted**, **Superseded by NNNN**, **Deprecated** (in
-force, being unwound, no replacement decided).
+force, being unwound).
 
 ## When to write one
 
 All three must hold:
 
-1. Somebody will ask "why is it like this?" in a year, and the code does not say.
+1. Somebody will ask "why is it like this?" in a year and the code does not say.
 2. Reversing it costs more than a pull request.
 3. A reasonable contributor would otherwise "fix" it.
 
-Point 3 is the practical test. Most records here exist because the decision looks
-like an oversight: four allowed module cycles, a `php/*` form that is both
-deprecated and the compilation target, static analysis stopping at `src/`.
-
-Not an ADR: bug fixes, behaviour-preserving refactors, naming conventions (those
-live in `.agnostic-ai/rules/`), anything a failing test already explains.
+Not an ADR: bug fixes, behaviour-preserving refactors, conventions (those live in
+`.agnostic-ai/rules/`), anything a failing test explains.
 
 ## Writing one
 
-```bash
-cp docs/adr/template.md docs/adr/00NN-short-kebab-title.md
-```
+`cp docs/adr/template.md docs/adr/00NN-short-kebab-title.md`. Next free number,
+never reused. Title is a claim. Add the index row. Ship it in the pull request that
+makes the decision.
 
-Next free number, never reused. Title is a claim, not a topic. Add the index row.
-Ship it in the pull request that makes the decision.
-
-Records written before this process existed are marked **recorded retroactively**
-and cite the pull request or issue where the argument happened.
+Records marked **recorded retroactively** predate this process and cite the pull
+request or issue where the argument happened.
 
 ## Superseding
 
-1. Write the new ADR with a `Supersedes: NNNN` line.
-2. Set the old status to `Superseded by NNNN` and link it. That is the only edit
-   an accepted ADR takes.
-3. Update the index.
+New ADR carries `Supersedes: NNNN`. Old one gets `Superseded by NNNN` and a link,
+the only edit an accepted ADR takes. Update the index.
 
 ## See also
 
-- [Stability policy](../stability.md), [Specification](../spec/README.md),
-  [Internals](../internals/README.md)
-- `src/php/<Module>/CLAUDE.md`: per-module API and constraints
+[Stability policy](../stability.md) · [Spec](../spec/README.md) ·
+[Internals](../internals/README.md) · `src/php/<Module>/CLAUDE.md`
