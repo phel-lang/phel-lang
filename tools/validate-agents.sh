@@ -14,6 +14,12 @@ if [[ ! -d "$examples_dir" ]]; then
   exit 1
 fi
 
+# Each example's `.phel/` (compiled cache + opcache) is throwaway state worth
+# ~18M per project. Keep it outside the repo so the working tree stays small and
+# `build/phar.sh` has nothing extra to sync.
+phel_state_dir=$(mktemp -d "${TMPDIR:-/tmp}/phel-agents-XXXXXX")
+trap 'rm -rf "$phel_state_dir"' EXIT
+
 failures=0
 for example in "$examples_dir"/*/; do
   name=$(basename "$example")
@@ -38,7 +44,7 @@ JSON
     rm -f composer.local.json composer.local.lock
   fi
 
-  if ./vendor/bin/phel test; then
+  if PHEL_DIR="$phel_state_dir/$name" ./vendor/bin/phel test; then
     echo "    OK: $name"
   else
     echo "    FAIL: $name"

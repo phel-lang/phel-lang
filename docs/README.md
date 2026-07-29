@@ -25,31 +25,25 @@ modules, deployment) live on **[phel-lang.org](https://phel-lang.org/documentati
 
 ## PHP interop, in one paragraph
 
-Phel has two spellings for reaching PHP, and the Clojure-style one is the idiomatic
-default:
+Write the Clojure-style spelling:
 
 ```phel
 (new \DateTime "2020-01-01")   ; or (\DateTime. "2020-01-01")
 (.format d "Y")                ; instance method
 (.-prop obj)                   ; property
 (\DateTime/createFromFormat "Y-m-d" "2020-01-01")   ; static method
-```
 
-Each of those desugars to a `php/*` special form (`php/new`, `php/->`, `php/::`)
-before analysis. That layer is the compilation target, and it came first, which is
-why older code is written in it — but it is **deprecated as source**: every position
-it once had to itself now has a shorthand. Write the shorthand.
-
-Chaining threads with plain `->`, mixed method and property chains included:
-
-```phel
 (-> (new \DateTimeImmutable "2024-03-10") (.modify "+1 day") (.format "Y-m-d"))
 ```
 
-The full expansion table, including `\C/m` and `\C/.m` in value position, is in
-[the language surface spec](spec/language-surface.md#interop-shorthands). The
-complete guide with runnable examples is on the website:
-<https://phel-lang.org/documentation/php-interop/>. A runnable sample lives in
+Each desugars to a `php/*` special form (`php/new`, `php/->`, `php/::`) before
+analysis. That layer is the compilation target and came first, which is why older
+code uses it, but it is **deprecated as source**: every position it once had to
+itself now has a shorthand ([ADR 0007](adr/0007-clojure-style-interop-is-the-source-spelling.md)).
+
+Expansion table including `\C/m` and `\C/.m` in value position:
+[the language surface spec](spec/language-surface.md#interop-shorthands). Full
+guide: <https://phel-lang.org/documentation/php-interop/>. Runnable sample:
 [examples/09_php-integration.phel](examples/09_php-integration.phel).
 
 ## User-facing guides moved to phel-lang.org

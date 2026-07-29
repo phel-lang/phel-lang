@@ -1,20 +1,17 @@
 # Language Surface Specification
 
-This page is **normative**. It enumerates the part of the Phel language that
-[the stability policy](../stability.md) freezes: Phel source that compiles on
-`1.0.0` compiles on every later `1.x`.
+**Normative.** The part of the language [the stability policy](../stability.md)
+freezes: Phel source that compiles on `1.0.0` compiles on every later `1.x`.
 
-Anything listed here can change only in a major release, and only after the
-[deprecation policy](../stability.md#deprecation-policy-for-1x) has run its course.
-Anything not listed is not frozen.
-
-[special-forms.md](../internals/special-forms.md) explains how these are dispatched
-and how to add one. This page says which ones exist and that the list is closed.
+Anything listed here changes only in a major, and only after the
+[deprecation policy](../stability.md#deprecation-policy-for-1x) has run its
+course. Anything not listed is not frozen.
+[special-forms.md](../internals/special-forms.md) explains dispatch; this page
+says which forms exist and that the list is closed.
 
 ## 1. Reader syntax
 
-The lexer's token set is the outermost contract: it decides whether a file parses at
-all. Every entry below is frozen.
+The lexer's token set decides whether a file parses at all. Every entry is frozen.
 
 | Syntax | Meaning |
 |---|---|
@@ -39,23 +36,23 @@ all. Every entry below is frozen.
 | `"…"` | string, with `\` escapes |
 | `foo#` | auto-gensym inside a quasiquote |
 
-Removed in the run-up to 1.0 and **not** coming back: `#\| \|#` block comments, a bare
-`#` comment, `\|()` short functions, `,` and `,@` as unquote, and `foo$` as auto-gensym.
-See [removed-deprecated-core-fns.md](../migration/removed-deprecated-core-fns.md).
+Removed in the run-up to 1.0 and **not** coming back: `#| |#` block comments, a
+bare `#` comment, `|()` short functions, `,` and `,@` as unquote, `foo$`
+auto-gensym. See
+[removed-deprecated-core-fns.md](../migration/removed-deprecated-core-fns.md).
 
-Still shipped and still deprecated: `\` as a namespace separator, tracked in
-[#1567](https://github.com/phel-lang/phel-lang/issues/1567). It is the only reader-level
-item whose fate is not yet settled; see
-[the deprecated surface map](../migration/deprecated-surface.md).
+Still shipped and still deprecated: `\` as a namespace separator
+([#1567](https://github.com/phel-lang/phel-lang/issues/1567)). The only
+reader-level item whose fate is unsettled.
 
 ## 2. Special forms
 
-A list whose head is one of these routes to a dedicated analyzer instead of being a
-function call. **The list is closed for 1.x**: entries are not removed and not renamed.
-Adding one is a minor-release feature, since existing source cannot be using it.
+A list whose head is one of these routes to a dedicated analyzer instead of being
+a function call. **The list is closed for 1.x**: entries are not removed and not
+renamed. Adding one is a minor feature, since existing source cannot use it.
 
-Trailing `*` marks a low-level form users are not expected to write directly; the
-macro that expands into it is named in the last column.
+Trailing `*` marks a low-level form users are not expected to write; the macro
+that expands into it is in the last column.
 
 | Form | Kind | Written directly as |
 |---|---|---|
@@ -101,19 +98,19 @@ macro that expands into it is named in the last column.
 | `var` | core | |
 
 `tests/php/Unit/Architecture/LanguageSurfaceSpecTest.php` parses this table and
-compares it against the analyzer's own dispatch registry, so the spec cannot drift
-from the compiler. A form added or removed in the analyzer fails the build until this
-page is updated too, which is the point at which somebody has to decide whether the
-change is allowed inside the major.
+compares it against the analyzer's dispatch registry, so the spec cannot drift
+from the compiler. A form added or removed in the analyzer fails the build until
+this page is updated, which is when somebody decides whether the change is
+allowed inside the major.
 
 ### Deprecated inside 1.x
 
-Four of the forms above are frozen but superseded. They keep working for every `1.x`,
-they warn under `--warn-deprecations`, and they are the candidates for removal at the
-next major. One rule puts them here:
+Four forms above are frozen but superseded. They keep working for every `1.x`,
+warn under `--warn-deprecations`, and are the candidates for removal at the next
+major. One rule puts them here:
 
-> **`php/` means host access. It is never a second spelling for something Phel already
-> says the Clojure way.**
+> **`php/` means host access. It is never a second spelling for something Phel
+> already says the Clojure way.**
 
 | Deprecated | Write instead |
 |---|---|
@@ -122,39 +119,37 @@ next major. One rule puts them here:
 | `php/::` | `(\Foo/method arg)` and `\Foo/CONST` |
 | `set-var` | `(alter-var-root #'v f)`, or `(set! v x)` for the current binding frame |
 
-One position is still open: an **assignable static property**. Neither spelling works
-today — `(php/oset (php/:: \Foo slot) v)` emits invalid PHP and `(set! \Foo/slot v)`
-routes to the var branch — so `php/::` is not the answer for it either. Tracked in
-[#2907](https://github.com/phel-lang/phel-lang/issues/2907).
+One position is still open: an **assignable static property**. Neither spelling
+works today (`(php/oset (php/:: \Foo slot) v)` emits invalid PHP and
+`(set! \Foo/slot v)` routes to the var branch), so `php/::` is not the answer for
+it either ([#2907](https://github.com/phel-lang/phel-lang/issues/2907)).
 
-The remaining `php/*` forms stay, because each reaches a PHP capability Phel has no
-other word for: `php/aget`, `php/aset`, `php/apush`, `php/aunset` and `php/oset` mutate
-in place, `php/ref` takes a PHP reference, and `php/callable` makes a PHP callable.
-`phel.core` already spells the common ones at top level (`aget`, `aset`, `aclone`,
-`alength`, `set!`), which is what a Clojure reader should reach for first.
+The remaining `php/*` forms stay, because each reaches a PHP capability Phel has
+no other word for: `php/aget`, `php/aset`, `php/apush`, `php/aunset` and
+`php/oset` mutate in place, `php/ref` takes a PHP reference, `php/callable` makes
+a PHP callable. `phel.core` spells the common ones at top level (`aget`, `aset`,
+`aclone`, `alength`, `set!`).
 
-`set-var` carries one extra constraint that its removal has to solve first: `binding`
-and `with-redefs` expand into it, because an emitted `set-var` inside an open frame is
-what records a rebinding. Removing the public form therefore needs a non-public
-primitive to take over that job.
+`set-var` carries one extra constraint its removal has to solve first: `binding`
+and `with-redefs` expand into it, because an emitted `set-var` inside an open
+frame is what records a rebinding. Removing the public form needs a non-public
+primitive to take that job.
 
-`tests/php/Unit/Architecture/LanguageSurfaceSpecTest.php` checks this table against
-`SupersededFormDeprecator` too, so the page and the compiler cannot disagree about
-which forms warn.
+`LanguageSurfaceSpecTest` checks this table against `SupersededFormDeprecator`
+too, so the page and the compiler cannot disagree about which forms warn.
+Rationale: [ADR 0007](../adr/0007-clojure-style-interop-is-the-source-spelling.md).
 
 ### Interop shorthands
 
-The Clojure-style interop spellings are analyzer sugar, not special forms: each expands
-to one of the `php/*` entries above before analysis, so they are deliberately absent
+Clojure-style interop spellings are analyzer sugar, not special forms: each
+expands to a `php/*` entry above before analysis, which is why they are absent
 from the table.
 
 **The shorthand is the only spelling.** The `php/*` forms it expands to are the
-compilation target, and they are deprecated as source (see above): every position they
-once had to themselves now has a shorthand. A method or class name computed at
-expansion time is reached by building the head symbol, `(symbol (str "." name))` or
-`(symbol "\\Foo" name)`, not by falling back to `php/->`. New code reads
-`(.format d "Y")`; chaining, mixed method and property alike, threads with plain `->`.
-The full guide is at <https://phel-lang.org/documentation/php-interop/>.
+compilation target and are deprecated as source. A method or class name computed
+at expansion time is reached by building the head symbol,
+`(symbol (str "." name))` or `(symbol "\\Foo" name)`, not by falling back to
+`php/->`. Full guide: <https://phel-lang.org/documentation/php-interop/>.
 
 | Written | Expands to | Position |
 |---|---|---|
@@ -166,46 +161,42 @@ The full guide is at <https://phel-lang.org/documentation/php-interop/>.
 | `\C/m` | `(php/callable \C m)` | value |
 | `\C/.m` | `(fn [o & args] (apply (php/callable o m) args))` | value |
 
-A root PHP class does not need a leading backslash: `PDO/ATTR_ERRMODE` reads the
-class constant, and `(.-ATTR_ERRMODE PDO)` is the equivalent dot-member spelling.
-Namespaced classes have the Clojure-readable dotted form, for example
+A root PHP class needs no leading backslash: `PDO/ATTR_ERRMODE` reads the class
+constant, `(.-ATTR_ERRMODE PDO)` is the dot-member equivalent. Namespaced classes
+have the dotted form, for example
 `Symfony.Component.Console.Command.Command/SUCCESS`.
 
 At host-symbol fallback an existing PHP class, interface, trait or enum takes
-precedence over the global-constant reading of the same bare name, so a class and a
-global constant sharing a name resolve to the class. `php/NAME` bypasses the fallback
-and stays the explicit constant escape hatch. Phel locals and definitions still
-resolve before this host fallback.
+precedence over the global-constant reading of the same bare name. `php/NAME`
+bypasses the fallback and stays the explicit constant escape hatch. Phel locals
+and definitions still resolve first.
 
-In value position a qualified member is a class constant unless the class carries no
-constant of that name and does carry a public static method, decided by reflection at
-analysis time. A class with both keeps the constant. `\C/new` is therefore never a
+In value position a qualified member is a class constant unless the class has no
+constant of that name and does have a public static method, decided by reflection
+at analysis time. A class with both keeps the constant, so `\C/new` is never a
 constructor; see [clojure-divergences.md](clojure-divergences.md).
 
 ## 3. The standard library
 
-Every public definition in a `phel.*` namespace is frozen: it keeps its name, and it
-keeps every arity it has. A definition may **gain** an arity in a minor; it may not
-lose one, and it may not gain a required parameter.
+Every public definition in a `phel.*` namespace is frozen: it keeps its name and
+every arity it has. A definition may **gain** an arity in a minor; it may not lose
+one, and may not gain a required parameter.
 
-The full list lives in `tests/php/Integration/Api/core-api.snapshot.txt`, one line per
-definition with its arities, and `CoreApiSurfaceTest` fails when it drifts. Regenerate
-it with:
+The full list is `tests/php/Integration/Api/core-api.snapshot.txt`, one line per
+definition with its arities, and `CoreApiSurfaceTest` fails on drift. Regenerate:
 
 ```bash
 composer core-api:update
 ```
 
-Private definitions (`defn-`, `def-`) are not part of the surface. Neither is anything
-under `phel-internal.*`.
+Private definitions (`defn-`, `def-`) are not part of the surface. Neither is
+anything under `phel-internal.*`.
 
-### Deliberate divergences from Clojure
-
-Phel tracks Clojure semantics where it can and diverges where PHP makes the Clojure
-behaviour wrong or pointless. Those divergences are catalogued in
+Phel tracks Clojure semantics where it can and diverges where PHP makes the
+Clojure behaviour wrong or pointless. Those divergences are catalogued in
 [clojure-divergences.md](clojure-divergences.md) and marked `:phel` in the
-[clojure-test-suite](https://github.com/phel-lang/clojure-test-suite), which runs
-nightly. A behaviour listed there is a decision, not a bug.
+nightly [clojure-test-suite](https://github.com/phel-lang/clojure-test-suite). A
+behaviour listed there is a decision, not a bug.
 
 ## 4. Namespaces and project layout
 
@@ -218,23 +209,22 @@ nightly. A behaviour listed there is a decision, not a bug.
 
 ## 5. Not frozen
 
-- The PHP source text the emitter produces. Only its behaviour is promised.
+- The PHP source the emitter produces. Only its behaviour is promised.
 - Diagnostic wording and error-output shape.
-- Macro *expansions*. A macro's expansion may change freely as long as the behaviour
-  of the macro does not. Only forms that are themselves special forms are pinned.
-- Performance characteristics, beyond the complexity classes documented for the
+- Macro *expansions*. A macro's expansion may change freely as long as its
+  behaviour does not; only forms that are themselves special forms are pinned.
+- Performance characteristics, beyond the documented complexity classes of the
   persistent collections.
 - Anything reachable only through `phel-internal.*`.
 
 ## Stated non-goals
 
-These will not arrive in 1.x, and asking for them is answered with the alternative
-rather than a roadmap entry:
+Not arriving in 1.x. Asking is answered with the alternative, not a roadmap entry.
 
 | Absent | Use instead |
 |---|---|
-| Software transactional memory, refs | `atom` with `swap!` / `reset!`, and `binding` for dynamic scope |
-| Agents | `future` (see the [async guide](https://phel-lang.org/documentation/language/async/)) |
+| Software transactional memory, refs | `atom` with `swap!` / `reset!`, `binding` for dynamic scope |
+| Agents | `future` ([async guide](https://phel-lang.org/documentation/language/async/)) |
 | `core.async`, channels, `go` blocks | PHP fibers and futures under `Fiber/` |
 | A self-hosted compiler | The PHP compiler is the only implementation |
 | A character type | Character literals read as one-character strings |
@@ -242,7 +232,7 @@ rather than a roadmap entry:
 
 ## See also
 
-- [Stability policy](../stability.md): the PHP half of the same promise
-- [Clojure divergences](clojure-divergences.md)
-- [Special forms internals](../internals/special-forms.md): dispatch, and how to add one
-- [Macros](../internals/macros.md)
+[Stability policy](../stability.md) ·
+[Clojure divergences](clojure-divergences.md) ·
+[Special forms internals](../internals/special-forms.md) ·
+[Macros](../internals/macros.md)

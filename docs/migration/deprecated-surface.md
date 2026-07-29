@@ -17,10 +17,11 @@ Everything the **compiler** knows about, syntax and definitions alike, goes
 through one switch: `Phel\Compiler\Domain\Deprecation\DeprecationWarnings`. It
 is off by default and reports when you ask for it.
 
-CLI-option deprecations are the one thing outside it: they always print a
-one-line notice on stderr through `Phel\Shared\Console\DeprecatedOptionWarner`,
-because a renamed flag is a single unmissable event rather than something
-scattered through your source.
+CLI-option deprecations are the one thing outside it: a renamed flag prints a
+one-line notice on stderr unconditionally, because it is a single unmissable
+event rather than something scattered through your source. No rename is in
+flight today, so there is no shared helper for it; see
+[cli-flag-conventions.md](../internals/cli-flag-conventions.md#renaming-an-option).
 
 Turn compiler deprecation warnings on with any of:
 
