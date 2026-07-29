@@ -1,22 +1,15 @@
-FROM php:8.4-cli
+FROM php:8.4-cli-alpine
 
-# Install composer
-COPY --from=composer /usr/bin/composer /usr/bin/composer
+COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
 
-# Install zip extension
-RUN apt-get update && apt-get install -y --no-install-recommends \
-        libzip-dev \
-        zip \
-  && rm -rf /var/lib/apt/lists/* \
-  && docker-php-ext-install zip
+# `unzip` lets composer unpack dist archives. It replaces ext-zip, which needed
+# libzip-dev plus a compile step at build and libzip at runtime.
+RUN apk add --no-cache unzip
 
-# Create project
-RUN mkdir /usr/src/repl
-RUN mkdir /usr/src/repl/src
-RUN mkdir /usr/src/repl/tests
-COPY ./composer.json /usr/src/repl
-RUN cd /usr/src/repl && composer update
 WORKDIR /usr/src/repl
+COPY ./composer.json ./
+RUN mkdir -p src tests \
+  && composer update --no-dev --prefer-dist --no-interaction --optimize-autoloader \
+  && composer clear-cache
 
-# Execute repl
 CMD ["./vendor/bin/phel", "repl"]
