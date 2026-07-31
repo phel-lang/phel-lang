@@ -125,7 +125,7 @@ which is what Clojure writes for a static field. `set!` tells the two symbol
 shapes apart the way the analyzer does everywhere else: a namespace starting with
 `\` or an upper-case letter is a class reference and assigns the static property,
 anything else is a dynamic var. The primitive underneath stays
-`(php/oset (php/:: \Foo slot) v)`, now emitting `\Foo::$slot = v` — in assignment
+`(php/oset (php/:: \Foo slot) v)`, now emitting `\Foo::$slot = v`: in assignment
 position a bare name can only be the property, since a class constant is not
 assignable. Reading it back needs the explicit sigil, `\Foo/$slot`, because in
 read position the bare name is the constant: PHP keeps the two in separate
