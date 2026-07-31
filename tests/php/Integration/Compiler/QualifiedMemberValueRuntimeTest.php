@@ -9,6 +9,7 @@ use PDO;
 use Phel\Shared\CompileOptions;
 use PhelTest\Support\DefinesClassConstantCollisionTrait;
 use PhelTest\Support\Fixtures\PhpInterop\QualifiedMemberFixture;
+use PhelTest\Support\Fixtures\PhpInterop\StaticPropertyTarget;
 
 use function class_exists;
 use function sprintf;
@@ -18,6 +19,8 @@ final class QualifiedMemberValueRuntimeTest extends AbstractCompilerRuntimeTestC
     use DefinesClassConstantCollisionTrait;
 
     private const string FIXTURE = '\\' . QualifiedMemberFixture::class;
+
+    private const string STATIC_PROPERTY = '\\' . StaticPropertyTarget::class;
 
     private const string HOST_COLLISION = 'PHEL_TEST_RUNTIME_CLASS_CONSTANT_COLLISION';
 
@@ -98,6 +101,37 @@ final class QualifiedMemberValueRuntimeTest extends AbstractCompilerRuntimeTestC
         );
 
         self::assertSame('fixture', $result);
+    }
+
+    public function test_a_static_property_is_read_through_the_sigil(): void
+    {
+        StaticPropertyTarget::$slot = 'i-am-a-property';
+
+        try {
+            $property = $this->compilerFacade->eval(self::STATIC_PROPERTY . '/$slot', new CompileOptions());
+            $constant = $this->compilerFacade->eval(self::STATIC_PROPERTY . '/slot', new CompileOptions());
+        } finally {
+            StaticPropertyTarget::reset();
+        }
+
+        self::assertSame('i-am-a-property', $property);
+        self::assertSame(StaticPropertyTarget::slot, $constant, 'the bare name stays the constant');
+    }
+
+    public function test_a_static_property_is_assigned_through_set(): void
+    {
+        try {
+            $result = $this->compilerFacade->eval(
+                sprintf('(set! %s/slot "written")', self::STATIC_PROPERTY),
+                new CompileOptions(),
+            );
+
+            self::assertSame('written', $result, 'set! returns the assigned value');
+            self::assertSame('written', StaticPropertyTarget::$slot);
+            self::assertSame('i-am-a-constant', StaticPropertyTarget::slot, 'the constant is untouched');
+        } finally {
+            StaticPropertyTarget::reset();
+        }
     }
 
     public function test_an_all_caps_class_works_in_both_static_constant_spellings(): void

@@ -6,25 +6,43 @@
 ;; PHP interop helpers whose target is a value
 ;; --------------------------------------------
 
+(defn- class-reference-ns?
+  "True when `ns-str` reads as a PHP class reference rather than a Phel
+  namespace: a leading `\\` or an upper-case first character. Same test the
+  analyzer applies to the namespace part of `\\Foo/member`."
+  [ns-str]
+  (and (string? ns-str)
+       (= 1 (php/preg_match "/^[\\\\A-Z]/" ns-str))))
+
 (defmacro set!
-  "Sets `place` to `value` and returns `value`, covering both shapes Clojure's
-  `set!` covers.
+  "Sets `place` to `value` and returns `value`, covering all three shapes
+  Clojure's `set!` covers.
 
   A property access (`(.-prop obj)`) assigns the property, as does any other
-  place `php/oset` accepts. A **symbol** naming a dynamic var
-  assigns its current thread-local binding, and throws when no `binding` frame
-  is active, so it never writes the root by accident; `alter-var-root` is the
-  way to change a root.
+  place `php/oset` accepts. A **qualified symbol whose namespace names a PHP
+  class** (`\\Foo/slot`) assigns that static property. Any other **symbol**
+  names a dynamic var and assigns its current thread-local binding, throwing
+  when no `binding` frame is active, so it never writes the root by accident;
+  `alter-var-root` is the way to change a root.
 
   A macro rather than a function because the place is a location, not a value."
   {:example "(let [o (new \\ArrayObject)] (set! (.-y o) 2024)) ; => 2024\n(def ^:dynamic *x* 0)\n(binding [*x* 1] (set! *x* 2) *x*) ; => 2"
    :see-also ["var-set" "alter-var-root" "aset" "php/oset"]}
   [place value]
-  (if (symbol? place)
-    `(var-set (var ~place) ~value)
-    `(let [value# ~value]
-       (php/oset ~place value#)
-       value#)))
+  (let [place-ns (when (symbol? place) (namespace place))]
+    (cond
+      (class-reference-ns? place-ns)
+      `(let [value# ~value]
+         (php/oset (php/:: ~(symbol place-ns) ~(symbol (name place))) value#)
+         value#)
+
+      (symbol? place)
+      `(var-set (var ~place) ~value)
+
+      :else
+      `(let [value# ~value]
+         (php/oset ~place value#)
+         value#))))
 
 (defn- invoke-target-name
   "Returns the name to report for `target` in an undefined-method error:

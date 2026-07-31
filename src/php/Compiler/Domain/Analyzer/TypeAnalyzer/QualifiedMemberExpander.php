@@ -60,6 +60,10 @@ final readonly class QualifiedMemberExpander
             return $this->instanceMethodValue($symbol, substr($name, 1));
         }
 
+        if ($this->isStaticPropertyName($name)) {
+            return $this->classMemberForm(Symbol::NAME_PHP_OBJECT_STATIC_CALL, $symbol);
+        }
+
         if ($name === '' || !$this->isIdentifierStartChar($name[0])) {
             return null;
         }
@@ -89,6 +93,19 @@ final readonly class QualifiedMemberExpander
     {
         return strlen($name) > 1
             && $name[0] === '.'
+            && $this->isIdentifierStartChar($name[1]);
+    }
+
+    /**
+     * `$slot` names a static property. PHP keeps constants and static
+     * properties in separate namespaces and only the sigil tells them apart,
+     * so the bare name stays the constant it has always been and no reflection
+     * is needed here.
+     */
+    private function isStaticPropertyName(string $name): bool
+    {
+        return strlen($name) > 1
+            && $name[0] === '$'
             && $this->isIdentifierStartChar($name[1]);
     }
 

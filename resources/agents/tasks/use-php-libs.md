@@ -11,6 +11,7 @@
 | Static | `(Class/method args)` |
 | Constant | `Class/CONST` |
 | Property | `(.-prop obj)` |
+| Static property | read `Class/$prop`, write `(set! Class/prop v)` |
 | Fn (global) | `(php/strlen s)` |
 | Fn (namespaced) | `(php/Amp\trapSignal xs)` |
 | PHP array indexed | `#php [1 2 3]` |

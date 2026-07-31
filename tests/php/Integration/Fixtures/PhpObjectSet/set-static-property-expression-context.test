@@ -1,0 +1,9 @@
+--PHEL--
+(fn [] (php/print_r (php/oset (php/:: \DateTime slot) "x")))
+--PHP--
+(function() {
+  return print_r((function() {
+    \DateTime::$slot = "x";
+    return \DateTime::class;
+  })());
+});

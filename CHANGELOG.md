@@ -9,7 +9,8 @@ All notable changes to this project will be documented in this file.
 - Qualified members in value position: `\C/m` is a static method as a value (`(map \Phel\Lang\Keyword/create ["a" "b"])`), `\C/.m` an instance method as a function of its receiver. `\C/CONST` wins when a class has both, so `\C/new` is never a constructor (#2883)
 - `(.cases enum-class)` reaches a static method through a class name held in a value, object or `"\\App\\Status"` alike (#2881)
 - `php-invoke` calls a method named at runtime: `(php-invoke obj "format" "Y")`, ClojureScript's `js-invoke`. A class-name target calls the static method (#2887)
-- `set!` covers both Clojure shapes: `(set! (.-total o) 10)` assigns a property, `(set! *x* 2)` the current `binding` frame, throwing when there is none. `alter-var-root` still changes a root (#2884, #2888)
+- `set!` covers all three Clojure shapes: `(set! (.-total o) 10)` assigns a property, `(set! \Foo/slot v)` a static property, `(set! *x* 2)` the current `binding` frame, throwing when there is none. `alter-var-root` still changes a root (#2884, #2888, #2907)
+- `\C/$prop` reads a static property in value position. The bare name stays the class constant, since PHP files the two separately and a class may carry both (#2907)
 - The standard library is written in the Clojure-style interop spelling, and `docs/` leads with it (#2875, #2882)
 - `phel nrepl` writes the bound port to `.nrepl-port` for editor discovery and removes it on exit; Ctrl+C and SIGTERM shut the accept loop down gracefully (#2894)
 - A `def`/`defn` carrying `:deprecated` metadata warns at every call site under `--warn-deprecations` (or `PHEL_WARN_DEPRECATIONS=1`)
@@ -26,6 +27,7 @@ All notable changes to this project will be documented in this file.
 
 ### Fixed
 
+- Assigning a static property compiles. `(php/oset (php/:: \Foo slot) v)` emitted `\Foo::slot = v`, a class-constant fetch PHP rejects with `syntax error, unexpected token "="`, and a class name as the place of `.-` emitted `\Foo::class->slot = v` (#2907)
 - Bare all-caps PHP classes such as `PDO` are no longer read as global constants, so `PDO/ATTR_ERRMODE`, `(.-ATTR_ERRMODE PDO)` and `(new PDO ...)` need no leading backslash. A class beats a same-named constant; `php/NAME` stays the explicit escape hatch
 - `phel init`, the three bundled example apps, the `.agents/` task recipes and the `--template=` scaffolds all emit the dot separator (`my-app.main`). A generated project used to start on syntax the compiler warns about (#2827)
 - nREPL sessions each keep their own namespace, as reference nREPL does. Client A evaluating `(ns foo)` no longer moves where client B's next form compiles. Definitions stay shared; only the current namespace is per session (#2906)

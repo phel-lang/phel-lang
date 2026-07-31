@@ -1,6 +1,7 @@
 (ns phel-test.core.set-bang
   (:require phel.test :refer [deftest is])
-  (:use \stdClass))
+  (:use \stdClass)
+  (:use PhelTest\Support\Fixtures\PhpInterop\StaticPropertyTarget))
 
 (def ^:dynamic *counter* 0)
 
@@ -43,6 +44,41 @@
 (deftest returns-the-value-for-a-var-too
   (is (= 7 (binding [*counter* 1] (set! *counter* 7)))
       "the var branch returns the assigned value as well"))
+
+(defn- reset-static-target []
+  (.reset StaticPropertyTarget))
+
+(deftest sets-a-static-property
+  (reset-static-target)
+  (is (= "written" (set! StaticPropertyTarget/slot "written"))
+      "the static branch returns the assigned value, like the other two")
+  (is (= "written" StaticPropertyTarget/$slot)
+      "the class-level property holds the assigned value")
+  (reset-static-target))
+
+(deftest keeps-a-same-named-constant-out-of-the-way
+  (reset-static-target)
+  (set! StaticPropertyTarget/slot "property")
+  (is (= "i-am-a-constant" StaticPropertyTarget/slot)
+      "the bare name is still the constant; only the sigil reaches the property")
+  (reset-static-target))
+
+(deftest sets-a-static-property-through-a-class-place
+  (reset-static-target)
+  (set! (.-slot StaticPropertyTarget) "dot-member")
+  (is (= "dot-member" StaticPropertyTarget/$slot)
+      "a class name as the place of `.-` assigns the static property")
+  (reset-static-target))
+
+(deftest sets-a-static-property-through-oset
+  (reset-static-target)
+  (php/oset (php/:: StaticPropertyTarget slot) "via-oset")
+  (is (= "via-oset" StaticPropertyTarget/$slot)
+      "a bare name in assignment position is the property, never the constant")
+  (php/oset (php/:: StaticPropertyTarget $slot) "via-sigil")
+  (is (= "via-sigil" StaticPropertyTarget/$slot)
+      "an explicit `$` sigil is not doubled into a variable variable")
+  (reset-static-target))
 
 (deftest refuses-to-write-a-root
   (let [err (try (set! *counter* 3)

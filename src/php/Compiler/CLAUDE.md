@@ -36,7 +36,9 @@ Lexer (source → `TokenStream`) → Parser (→ `FileNode` parse tree) → Read
 Clojure-style interop spellings are sugar, expanded to `php/*` forms before analysis, never registered as special forms (`LanguageSurfaceSpecTest` fails on a spec table row with no dispatch entry):
 
 - Call position — `AnalyzePersistentList`: `(.m obj …)`, `(.-field obj)`, `(\C/m …)`, `(\C. …)`.
-- Value position — `Domain/Analyzer/TypeAnalyzer/QualifiedMemberExpander`, reached from `AnalyzeSymbol` when global resolution finds nothing: `\C/CONST` → `php/::`, `\C/m` → `php/callable`, `\C/.m` → an `fn` of the receiver.
+- Value position — `Domain/Analyzer/TypeAnalyzer/QualifiedMemberExpander`, reached from `AnalyzeSymbol` when global resolution finds nothing: `\C/CONST` → `php/::`, `\C/$prop` → `php/::` (static property, no reflection: the sigil decides), `\C/m` → `php/callable`, `\C/.m` → an `fn` of the receiver.
+
+`NodeEmitter/PhpObjectSetEmitter` shares `PhpObjectCallDispatchResolver` with the read path, so a class-name target is static however it was written, and it prefixes a bare static member name with `$`: a class constant is not assignable, so an assignment can only mean the property (#2907).
 
 `QualifiedMemberExpander` reflects the resolved class to tell a static method from a constant. A class carrying both under one name resolves to the **constant** (pre-existing behaviour, and the reason `\C/new` is not a constructor); an unresolvable or unloadable class falls back to the constant reading so the error stays what it was.
 
