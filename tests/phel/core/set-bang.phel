@@ -70,6 +70,12 @@
       "a class name as the place of `.-` assigns the static property")
   (reset-static-target))
 
+(deftest a-var-in-a-class-looking-namespace-stays-a-var
+  (is (= 'phel.core/var-set (first (macroexpand '(set! Foo/*x* 1))))
+      "an earmuffed name is no member PHP can spell, so an upper-case namespace does not capture it")
+  (is (= 'php/oset (first (nth (macroexpand '(set! Foo/slot 1)) 2)))
+      "a member-shaped name in the same namespace is the static-property branch"))
+
 (deftest sets-a-static-property-through-oset
   (reset-static-target)
   (php/oset (php/:: StaticPropertyTarget slot) "via-oset")
