@@ -42,7 +42,7 @@ auto-gensym. See
 [removed-deprecated-core-fns.md](../migration/removed-deprecated-core-fns.md).
 
 Still shipped and still deprecated: `\` as a namespace separator
-([#1567](https://github.com/phel-lang/phel-lang/issues/1567)). The only
+([#2827](https://github.com/phel-lang/phel-lang/issues/2827)). The only
 reader-level item whose fate is unsettled.
 
 ## 2. Special forms
@@ -213,7 +213,7 @@ behaviour listed there is a decision, not a bug.
 ## 4. Namespaces and project layout
 
 - A namespace name maps to a path. `.` is the separator; `\` still parses and is
-  deprecated (#1567).
+  deprecated (#2827).
 - `phel.core` is always loaded and must never be `:require`d explicitly.
 - The `.phel/` state directory and the `phel-config.php` keys are frozen; see
   [the configuration surface](../stability.md#configuration-surface) and

@@ -57,7 +57,7 @@ release such a message promises inevitably ships and the text goes stale.
 
 Full detail, including what is and is not detected today, is in
 [backslash-to-dot.md](backslash-to-dot.md). Tracked in
-[#1567](https://github.com/phel-lang/phel-lang/issues/1567).
+[#2827](https://github.com/phel-lang/phel-lang/issues/2827).
 
 ## Redundant interop forms: `php/new`, `php/->`, `php/::`
 
