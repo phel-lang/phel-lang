@@ -129,7 +129,8 @@ anything else is a dynamic var. The primitive underneath stays
 position a bare name can only be the property, since a class constant is not
 assignable. Reading it back needs the explicit sigil, `\Foo/$slot`, because in
 read position the bare name is the constant: PHP keeps the two in separate
-namespaces and a class may hold both under one name.
+namespaces and a class may hold both under one name. Rationale:
+[ADR 0013](../adr/0013-static-property-spelling.md).
 
 The remaining `php/*` forms stay, because each reaches a PHP capability Phel has
 no other word for: `php/aget`, `php/aset`, `php/apush`, `php/aunset` and
