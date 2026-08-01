@@ -1,0 +1,7 @@
+--PHEL--
+(fn [] (php/oset (php/:: \DateTime slot) "x"))
+--PHP--
+(function() {
+  \DateTime::$slot = "x";
+  return \DateTime::class;
+});

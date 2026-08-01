@@ -153,6 +153,18 @@ The suite does not pin this one, because no working program can observe it: a
 string receiver was an error before and after, and only the message differs. It is
 listed because the *capability* is a difference a Clojure reader will notice.
 
+### A static property is read with a `$` sigil
+
+Clojure reads a static field and a constant with one spelling, `Classname/field`,
+because the JVM has no separate constant namespace. PHP has two, and a class may
+carry `const slot` and `public static $slot` at once, so Phel keeps the bare name
+on the constant it has always meant and spells the property `\C/$prop`
+([#2907](https://github.com/phel-lang/phel-lang/issues/2907)).
+
+Assignment needs no sigil: a class constant cannot be assigned, so
+`(set! \C/slot v)` and `(php/oset (php/:: \C slot) v)` can only mean the property
+and emit `\C::$slot = v`.
+
 ### `aset` and `set!` are macros, not functions
 
 Clojure's `aset` is a function, so `(map (partial aset arr) …)` works. Phel's is a
@@ -186,6 +198,7 @@ mutation its own name. Phel matches that, plus one name it inherited:
 | Operation | Clojure | Phel |
 |---|---|---|
 | assign an object field | `(set! (.-f o) v)` | `(set! (.-f o) v)` |
+| assign a static field | `(set! Foo/staticField v)` | `(set! \Foo/slot v)` |
 | assign the current thread-local binding | `(set! *x* v)` | `(set! *x* v)`, or `(var-set #'*x* v)` |
 | change the root | `(alter-var-root #'*x* f)` | `(alter-var-root #'*x* f)` |
 | *(no Clojure counterpart)* | | `(set-var *x* v)`, a special form writing the root directly, **deprecated** |
