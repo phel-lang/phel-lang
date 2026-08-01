@@ -32,3 +32,18 @@
 (deftest nullable-return-tag-accepts-nil-and-value
   (is (= 1 (nullable-ret true)) "nullable return yields the int")
   (is (nil? (nullable-ret false)) "nullable return yields nil"))
+
+;; A class tag may use the dot separator, the way every other position spells a
+;; class name. PHP knows only `\`, so the tag is rooted before it is emitted.
+(defn dotted-tag ^Phel.Lang.Symbol [^Phel.Lang.Symbol s] s)
+
+(deftest dot-separated-class-tag-round-trips
+  (let [s (symbol "abc")]
+    (is (= s (dotted-tag s)) "a dotted class tag accepts and returns the class"))
+  (is (php/instanceof (dotted-tag (symbol "x")) \Phel\Lang\Symbol)
+      "the emitted signature names the real class"))
+
+(deftest dot-separated-class-tag-rejects-a-wrong-type
+  (let [err (try (dotted-tag 42) (catch \TypeError e e))]
+    (is (php/instanceof err \TypeError)
+        "the PHP type declaration is enforced, so it was emitted as a type")))

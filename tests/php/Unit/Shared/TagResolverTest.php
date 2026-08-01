@@ -63,6 +63,41 @@ final class TagResolverTest extends TestCase
         self::assertNull(TagResolver::normalizeScalar(null));
     }
 
+    public function test_dotted_class_tag_is_rooted_for_php(): void
+    {
+        // The leading backslash is the point: a generated file declares its own
+        // namespace, so an unrooted type would resolve against it.
+        $rooted = '\\' . Symbol::class;
+
+        self::assertSame($rooted, TagResolver::normalizeScalar(Symbol::create('Phel.Lang.Symbol')));
+        self::assertSame($rooted, TagResolver::normalizeScalar('Phel.Lang.Symbol'));
+    }
+
+    public function test_dotted_class_tag_keeps_its_nullable_marker(): void
+    {
+        self::assertSame('?\\My\\Ns\\Thing', TagResolver::normalizeScalar('?My.Ns.Thing'));
+    }
+
+    public function test_each_member_of_a_composite_tag_is_rooted(): void
+    {
+        self::assertSame('\\My\\Ns\\Thing|null', TagResolver::normalizeScalar('My.Ns.Thing|null'));
+        self::assertSame('\\A\\B&\\C\\D', TagResolver::normalizeScalar('A.B&C.D'));
+    }
+
+    public function test_a_tag_without_a_dot_is_untouched(): void
+    {
+        self::assertSame('int|null', TagResolver::normalizeScalar('int|null'));
+        self::assertSame('DateTime', TagResolver::normalizeScalar('DateTime'));
+        self::assertSame('self', TagResolver::normalizeScalar('self'));
+    }
+
+    public function test_a_backslash_tag_is_untouched(): void
+    {
+        $rooted = '\\' . Symbol::class;
+
+        self::assertSame($rooted, TagResolver::normalizeScalar($rooted));
+    }
+
     private function tagMeta(mixed $value): PersistentMapInterface
     {
         return $this->meta(Keyword::create('tag'), $value);
