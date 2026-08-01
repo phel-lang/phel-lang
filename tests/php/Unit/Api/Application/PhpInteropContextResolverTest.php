@@ -285,6 +285,65 @@ final class PhpInteropContextResolverTest extends TestCase
         self::assertSame('DateTimeImmutable', $context->class);
     }
 
+    public function test_qualified_member_is_a_static_member_position(): void
+    {
+        $context = $this->resolveAtEnd('(\\DateTimeImmutable/create');
+
+        self::assertSame(PhpInteropContext::KIND_STATIC_MEMBER, $context->kind);
+        self::assertSame('DateTimeImmutable', $context->class);
+        self::assertSame('create', $context->prefix);
+    }
+
+    public function test_qualified_member_in_value_position(): void
+    {
+        $context = $this->resolveAtEnd('(map \\DateTimeImmutable/ATO');
+
+        self::assertSame(PhpInteropContext::KIND_STATIC_MEMBER, $context->kind);
+        self::assertSame('DateTimeImmutable', $context->class);
+        self::assertSame('ATO', $context->prefix);
+    }
+
+    public function test_qualified_member_keeps_the_static_property_sigil(): void
+    {
+        $context = $this->resolveAtEnd('\\DateTimeImmutable/$sl');
+
+        self::assertSame(PhpInteropContext::KIND_STATIC_MEMBER, $context->kind);
+        self::assertSame('$sl', $context->prefix);
+    }
+
+    public function test_a_phel_namespace_is_not_a_qualified_member(): void
+    {
+        $context = $this->resolveAtEnd('(my-ns/some-fn');
+
+        self::assertTrue($context->isNone());
+    }
+
+    public function test_dot_method_resolves_the_receiver_after_the_cursor(): void
+    {
+        $source = '(let [dt (php/new \\DateTimeImmutable)] (.for';
+        $context = $this->resolver->resolve($source . ' dt))', 1, strlen($source) + 1);
+
+        self::assertSame(PhpInteropContext::KIND_INSTANCE_MEMBER, $context->kind);
+        self::assertSame('DateTimeImmutable', $context->class);
+        self::assertSame('for', $context->prefix);
+    }
+
+    public function test_dot_field_resolves_the_receiver_after_the_cursor(): void
+    {
+        $source = '(let [dt (php/new \\DateTimeImmutable)] (.-';
+        $context = $this->resolver->resolve($source . 'x dt))', 1, strlen($source) + 1);
+
+        self::assertSame(PhpInteropContext::KIND_INSTANCE_MEMBER, $context->kind);
+        self::assertSame('DateTimeImmutable', $context->class);
+    }
+
+    public function test_dot_member_without_a_receiver_is_none(): void
+    {
+        $context = $this->resolveAtEnd('(.for');
+
+        self::assertTrue($context->isNone());
+    }
+
     private function resolveAtEnd(string $source): PhpInteropContext
     {
         $lastNewline = strrpos($source, "\n");

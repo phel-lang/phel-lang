@@ -69,6 +69,21 @@ final readonly class PhpInteropContextResolver
             return $this->memberContext(PhpInteropContext::KIND_STATIC_MEMBER, $m, $source);
         }
 
+        // \Foo/member| and (\Foo/member| , the source spelling of `php/::`
+        // (ADR 0007). The class sits before the cursor, so the same receiver
+        // resolution applies; `$prop` is a static property (ADR 0013).
+        if (preg_match('/(?:^|[\s(\[{])(\\\\?[A-Za-z_][A-Za-z0-9_\\\\.]*)\/(\$?\w*)$/', $before, $m) === 1
+            && $this->isClassReference($m[1])
+        ) {
+            return $this->memberContext(PhpInteropContext::KIND_STATIC_MEMBER, $m, $source);
+        }
+
+        // (.method receiver| and (.-field receiver| , where the receiver
+        // follows the cursor rather than preceding it.
+        if (preg_match('/\(\s*\.(-?)(\w*)$/', $before, $m) === 1) {
+            return $this->dotMemberContext($m[2], $source, $line, $col);
+        }
+
         // (php/new \Foo|
         if (preg_match('/\(\s*php\/new\s+\\\\?([A-Za-z0-9_\\\\]*)$/', $before, $m) === 1) {
             return new PhpInteropContext(PhpInteropContext::KIND_CLASS_NAME, $m[1]);
@@ -86,6 +101,43 @@ final readonly class PhpInteropContextResolver
         }
 
         return PhpInteropContext::none();
+    }
+
+    /**
+     * A namespace part that names a PHP class rather than a Phel namespace:
+     * the analyzer's rule, restated lexically here because completion runs on
+     * text the compiler has not seen. `php/` is the host-function prefix and
+     * has its own context.
+     */
+    private function isClassReference(string $token): bool
+    {
+        if ($token === '' || $token === 'php') {
+            return false;
+        }
+
+        return $token[0] === '\\'
+            || ($token[0] >= 'A' && $token[0] <= 'Z');
+    }
+
+    /**
+     * `(.method receiver|` and `(.-field receiver|`. The dot shorthands put the
+     * member before the receiver, so unlike every other position the class has
+     * to come from the text *after* the cursor: the first token of what is
+     * already typed there.
+     */
+    private function dotMemberContext(string $prefix, string $source, int $line, int $col): PhpInteropContext
+    {
+        $receiver = CursorText::firstTokenAfter($source, $line, $col);
+        if ($receiver === '') {
+            return PhpInteropContext::none();
+        }
+
+        $class = $this->resolveReceiver($receiver, $source, $this->aliasExtractor->extract($source));
+        if ($class === '') {
+            return PhpInteropContext::none();
+        }
+
+        return new PhpInteropContext(PhpInteropContext::KIND_INSTANCE_MEMBER, $prefix, $class);
     }
 
     /**

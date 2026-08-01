@@ -10,6 +10,7 @@ All notable changes to this project will be documented in this file.
 - `(.cases enum-class)` reaches a static method through a class name held in a value, object or `"\\App\\Status"` alike (#2881)
 - `php-invoke` calls a method named at runtime: `(php-invoke obj "format" "Y")`, ClojureScript's `js-invoke`. A class-name target calls the static method (#2887)
 - `set!` covers all three Clojure shapes: `(set! (.-total o) 10)` assigns a property, `(set! \Foo/slot v)` a static property, `(set! *x* 2)` the current `binding` frame, throwing when there is none. `alter-var-root` still changes a root (#2884, #2888, #2907)
+- Editor completion and hover cover the Clojure-style interop spellings, not only the deprecated `php/*` ones: `\C/member` offers static methods, constants and static properties, and `(.method recv` / `(.-field recv` offer instance members of a receiver the resolver can type. Static properties are offered and hovered with their `$` sigil (#2916)
 - `\C/$prop` reads a static property in value position. The bare name stays the class constant, since PHP files the two separately and a class may carry both (#2907)
 - The standard library is written in the Clojure-style interop spelling, and `docs/` leads with it (#2875, #2882)
 - `phel nrepl` writes the bound port to `.nrepl-port` for editor discovery and removes it on exit; Ctrl+C and SIGTERM shut the accept loop down gracefully (#2894)

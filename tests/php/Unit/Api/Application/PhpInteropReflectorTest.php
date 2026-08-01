@@ -12,6 +12,7 @@ use PhelTest\Support\Fixtures\PhpInterop\HoverEnum;
 use PhelTest\Support\Fixtures\PhpInterop\HoverFixture;
 use PhelTest\Support\Fixtures\PhpInterop\IntersectionReturnFixture;
 use PhelTest\Support\Fixtures\PhpInterop\SignatureFixture;
+use PhelTest\Support\Fixtures\PhpInterop\StaticPropertyTarget;
 use PHPUnit\Framework\TestCase;
 
 use function array_map;
@@ -171,6 +172,35 @@ final class PhpInteropReflectorTest extends TestCase
         self::assertNotNull($info);
         self::assertSame('case First = "first"', $info->label);
         self::assertStringContainsString('very first case', $info->documentation);
+    }
+
+    public function test_static_members_offer_a_static_property_with_its_sigil(): void
+    {
+        $labels = $this->labels($this->reflector->staticMembers(StaticPropertyTarget::class));
+
+        self::assertContains('$slot', $labels, 'the property carries the sigil that spells it');
+        self::assertContains('slot', $labels, 'the same-named constant stays its own completion');
+    }
+
+    public function test_static_members_match_a_property_prefix_with_or_without_the_sigil(): void
+    {
+        self::assertSame(
+            ['$slot'],
+            $this->labels($this->reflector->staticMembers(StaticPropertyTarget::class, '$sl')),
+        );
+    }
+
+    public function test_static_member_info_resolves_a_static_property(): void
+    {
+        $info = $this->reflector->staticMemberInfo(StaticPropertyTarget::class, '$slot');
+
+        self::assertNotNull($info);
+        self::assertSame('mixed $slot', $info->label);
+    }
+
+    public function test_static_member_info_ignores_a_sigil_on_an_instance_property(): void
+    {
+        self::assertNull($this->reflector->staticMemberInfo(HoverFixture::class, '$count'));
     }
 
     public function test_class_info_exposes_kind_parent_interfaces_and_constructor(): void
