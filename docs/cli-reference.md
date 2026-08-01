@@ -64,6 +64,40 @@ Pick by what you want back:
 `eval` is a developer tool with full host access, not a sandbox. On using it as a
 playground primitive, and why that needs isolation: [playground.md](playground.md).
 
+## Errors from a built app
+
+`build` writes a `.php.map` and a `.phel` beside every compiled file, so a stack
+trace can be reported against the source you wrote. Nothing installs that
+reporting for you, and PHP's default handler knows only the generated file:
+
+```
+Uncaught RuntimeException: boom in out/app/main.php:22
+#0 out/app/main.php(43): Phel\Lang\AbstractFn@anonymous->__invoke(2)
+```
+
+One line in the entry point replaces it with the Phel reading:
+
+```php
+\Phel\Phel::installExceptionHandler(__DIR__);
+```
+
+```
+RuntimeException: boom
+in out/app/main.phel:3 (gen: out/app/main.php:22)
+
+#0 out/app/main.phel:6 (gen: out/app/main.php:43) : (app\main\level-three 2)
+#1 out/app/main.phel:9 (gen: out/app/main.php:64) : (app\main\level-two 1)
+```
+
+It follows PHP's own rules about where a report goes rather than inventing new
+ones: the error log when `log_errors` is on, and output only when
+`display_errors` is on, so a production response body stays clean. The process
+still exits `255`. The log copy carries no ANSI escapes; the `display_errors`
+copy is coloured unless `NO_COLOR` is set.
+
+If the trace cannot be mapped, the plain PHP rendering goes out instead: the
+reporter never replaces the exception it exists to report.
+
 ## Common workflows
 
 ### Start a project

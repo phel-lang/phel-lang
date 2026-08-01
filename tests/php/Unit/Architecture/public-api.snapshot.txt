@@ -19,6 +19,7 @@ final class Phel extends Phel\Phel
   public static function getDefinition(string $ns, string $name): mixed
   public static function getDefinitionReference(string $ns, string $name): mixed
   public static function getProgram(): string
+  public static function installExceptionHandler(string $projectRootDir): void
   public static function isDynamicVar(string $ns, string $name): bool
   public static function isNamespaceLoaded(string $namespace): bool
   public static function keyword(string $name, ?string $namespace = null): Phel\Lang\Keyword

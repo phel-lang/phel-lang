@@ -9,6 +9,7 @@ use Gacela\Framework\Bootstrap\GacelaConfig;
 use Gacela\Framework\Config\Config;
 use Gacela\Framework\Gacela;
 use Phar;
+use Phel\Command\CommandFacade;
 use Phel\Config\ConfigLoadException;
 use Phel\Config\PhelConfig;
 use Phel\Config\ProjectLayout;
@@ -24,6 +25,7 @@ use Throwable;
 use function dirname;
 use function getcwd;
 use function in_array;
+use function ini_get;
 use function is_array;
 
 /**
@@ -176,6 +178,48 @@ class Phel
     }
 
     /**
+     * Reports an uncaught throwable through Phel's source maps, so a deployed
+     * build names the `.phel` file, line and call form instead of the generated
+     * PHP and its anonymous closures (#2922).
+     *
+     * Reporting follows PHP's own rules rather than inventing new ones: the
+     * report goes to the error log when `log_errors` is on and to output only
+     * when `display_errors` is on, which is what keeps a stack trace out of a
+     * production response body. The process still exits `255`, the code PHP
+     * uses for an uncaught exception.
+     *
+     * The reporter never replaces the exception it is reporting: if the trace
+     * cannot be mapped, for any reason, the plain PHP rendering goes out
+     * instead.
+     */
+    public static function installExceptionHandler(string $projectRootDir): void
+    {
+        set_exception_handler(static function (Throwable $throwable) use ($projectRootDir): void {
+            $report = self::renderUncaught($throwable, $projectRootDir);
+
+            if (self::iniEnabled('log_errors')) {
+                // The log is a machine sink, so it gets the text without the
+                // escapes a terminal would render. The `display_errors` write
+                // below keeps them, and honours `NO_COLOR` like the rest.
+                error_log(self::withoutAnsi($report));
+            }
+
+            if (self::iniEnabled('display_errors')) {
+                // `php://stderr` rather than the `STDERR` constant, which only
+                // the CLI SAPI defines, and rather than the response body,
+                // which is where a web SAPI would put it.
+                $stderr = fopen('php://stderr', 'w');
+                if ($stderr !== false) {
+                    fwrite($stderr, $report . PHP_EOL);
+                    fclose($stderr);
+                }
+            }
+
+            exit(255);
+        });
+    }
+
+    /**
      * @param list<string> $appModulePaths
      *
      * @return Closure(GacelaConfig):void
@@ -269,6 +313,45 @@ class Phel
         }
 
         return $config instanceof PhelConfig ? $config->getAppModulePaths() : [];
+    }
+
+    private static function withoutAnsi(string $text): string
+    {
+        return ScalarCoercion::toString(preg_replace('/\033\[[0-9;]*m/', '', $text), $text);
+    }
+
+    /**
+     * An ini flag PHP reports as a string: `"0"` and `"off"` are off, and
+     * `display_errors` additionally takes `"stderr"` / `"stdout"`, which
+     * `filter_var()`'s boolean filter would read as off.
+     */
+    private static function iniEnabled(string $option): bool
+    {
+        $value = strtolower(trim(ScalarCoercion::toString(ini_get($option), '')));
+
+        return !in_array($value, ['', '0', 'off', 'false', 'no'], true);
+    }
+
+    private static function renderUncaught(Throwable $throwable, string $projectRootDir): string
+    {
+        try {
+            return new CommandFacade()->getStackTraceString($throwable);
+        } catch (Throwable) {
+            // Not bootstrapped: a generated entry point calls only
+            // `setupRuntimeArgs()`, so the facade has no container to resolve
+            // from yet. Booting inside the handler keeps the caller's own
+            // bootstrap optional.
+        }
+
+        try {
+            self::bootstrap($projectRootDir);
+
+            return new CommandFacade()->getStackTraceString($throwable);
+        } catch (Throwable) {
+            // A reporter that throws would replace the exception it exists to
+            // report, which is the failure this whole handler is here to avoid.
+            return (string) $throwable;
+        }
     }
 
     /**
