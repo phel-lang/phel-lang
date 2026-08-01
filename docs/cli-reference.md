@@ -37,6 +37,11 @@ enables tab-completion (setup in the [README](../README.md)).
 | `test` `t` | Run the test suite (all tests, or the files/namespaces you pass) |
 | `watch` | Watch Phel files and reload changed namespaces on change |
 
+Gacela registers a few more through `Console/Infrastructure/Command/FrameworkCommands`:
+`debug:container`, `debug:dependencies`, `debug:modules`, `list:modules`,
+`profile:report` and `validate:config`. They inspect the module wiring rather than
+your Phel code, and `phel list` shows them alongside the commands above.
+
 ## Editor setup
 
 `phel lsp` (Language Server, stdio) and `phel nrepl` (default `127.0.0.1:7888`) plug

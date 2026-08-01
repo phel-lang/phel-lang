@@ -16,7 +16,7 @@
 | Fn (namespaced) | `(php/Amp\trapSignal xs)` |
 | PHP array indexed | `#php [1 2 3]` |
 | PHP array assoc | `#php {"k" "v"}` |
-| Catch | `(catch php\SomeException e ...)` |
+| Catch | `(catch \SomeException e ...)` |
 
 Full table: <https://phel-lang.org/documentation/php-interop/>.
 

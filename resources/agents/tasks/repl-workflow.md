@@ -52,7 +52,7 @@ Shell: `./vendor/bin/phel test [path] [--filter=substring] [--testdox] [--fail-f
 
 ## Errors
 
-Errors print trace and keep REPL alive. `(try expr (catch php\Foo e (.getMessage e)))`.
+Errors print trace and keep REPL alive. `(try expr (catch \Foo e (.getMessage e)))`.
 
 ## Gotchas
 

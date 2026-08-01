@@ -32,7 +32,9 @@ Every public function should have metadata:
 
 ## Macros
 
-Editing a `defmacro` body or `` ` `` quasiquote? Load [macro-hygiene.md](macro-hygiene.md) first — local `let` names can silently shadow globals.
+Editing a `defmacro` body or `` ` `` quasiquote? Load the macro-hygiene rule
+(`.agnostic-ai/rules/macro-hygiene.md`, mirrored into each adapter directory)
+first: local `let` names can silently shadow globals.
 
 ## Formatting
 

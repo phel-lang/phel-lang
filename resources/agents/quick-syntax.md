@@ -55,5 +55,9 @@ One-screen cheatsheet. For exhaustive rules see [`RULES.md`](RULES.md); for typi
 ;; PHP interop
 (new \DateTime "now")
 (.method obj args)
+(.-prop obj)
 (Class/staticMethod)
+Class/CONST
+Class/$staticProp             ; sigil reads a static property
+(set! Class/staticProp 1)     ; assignment takes no sigil
 ```

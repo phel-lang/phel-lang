@@ -76,10 +76,11 @@ phel:3:> (greet "Phel")
 ./vendor/bin/phel init         # add `--minimal` for a single-file layout
 ```
 
-Creates `phel-config.php`, `src/phel/main.phel`, `tests/phel/main_test.phel`. Then:
+Creates `phel-config.php`, `src/main.phel`, `tests/main_test.phel`. With
+`--minimal` the two sources sit at the project root instead. Then:
 
 ```sh
-./vendor/bin/phel run src/phel/main.phel   # run
+./vendor/bin/phel run src/main.phel        # run
 ./vendor/bin/phel test                     # tests
 ./vendor/bin/phel build                    # compile to PHP
 ./vendor/bin/phel config                   # inspect the merged config

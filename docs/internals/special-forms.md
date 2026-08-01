@@ -75,9 +75,9 @@ why it runs on the list before `AnalyzePersistentList` desugars.
 |------|-------|-------|
 | `php/new` (`new`) | `NAME_PHP_NEW` / `NAME_NEW` | `new Foo(...)` |
 | `php/->` | `NAME_PHP_OBJECT_CALL` | `$obj->method(...)` / `$obj->prop` |
-| `php/::` | `NAME_PHP_OBJECT_STATIC_CALL` | `Foo::method(...)` / `Foo::CONST` |
+| `php/::` | `NAME_PHP_OBJECT_STATIC_CALL` | `Foo::method(...)` / `Foo::CONST` / `Foo::$prop` (sigil written by the author) |
 | `php/ref` | `NAME_PHP_REF` | by-ref interop arg; captures local via `use(&$x)` so an output parameter writes back |
-| `php/oset` | `NAME_PHP_OBJECT_SET` | `$obj->prop = $v` |
+| `php/oset` | `NAME_PHP_OBJECT_SET` | `$obj->prop = $v`, or `Foo::$prop = $v` when the target is a class; the emitter adds the sigil, since a constant is not assignable ([ADR 0013](../adr/0013-static-property-spelling.md)) |
 | `php/aget` | `NAME_PHP_ARRAY_GET` | `$arr[$k]` |
 | `php/aset` | `NAME_PHP_ARRAY_SET` | `$arr[$k] = $v` |
 | `php/apush` | `NAME_PHP_ARRAY_PUSH` | `$arr[] = $v` |

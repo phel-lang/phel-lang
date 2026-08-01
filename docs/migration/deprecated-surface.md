@@ -69,7 +69,8 @@ one. Everything on the right has worked for a long time; what changed is that
 the last positions needing a `php/*` fallback were closed
 ([#2881](https://github.com/phel-lang/phel-lang/issues/2881),
 [#2883](https://github.com/phel-lang/phel-lang/issues/2883),
-[#2887](https://github.com/phel-lang/phel-lang/issues/2887)).
+[#2887](https://github.com/phel-lang/phel-lang/issues/2887),
+[#2907](https://github.com/phel-lang/phel-lang/issues/2907)).
 
 ```phel
 (php/new \DateTime "2024-03-10")      (new \DateTime "2024-03-10")
@@ -81,7 +82,14 @@ the last positions needing a `php/*` fallback were closed
 (php/:: \DateTime (createFromFormat   (\DateTime/createFromFormat
         "Y-m-d" "2024-03-10"))          "Y-m-d" "2024-03-10")
 (php/:: \Foo BAR)                     \Foo/BAR
+(php/:: \Foo $slot)                   \Foo/$slot
+(php/oset (php/:: \Foo slot) v)       (set! \Foo/slot v)
 ```
+
+A static property is the one member whose two spellings differ: the sigil reads
+it (`\Foo/$slot`), and assignment takes the plain name, because a class constant
+is not assignable and there is nothing to disambiguate
+([ADR 0013](../adr/0013-static-property-spelling.md)).
 
 Chaining needs nothing special: `(-> d (.modify "+1 day") (.format "Y-m-d"))`
 threads with plain `->`, methods and properties alike.
