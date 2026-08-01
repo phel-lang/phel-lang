@@ -95,7 +95,7 @@ facade is missing a method.
 ## What is *not* changing
 
 - **The `\` namespace separator still works.** Deprecated in favour of `.`, not
-  removed in 1.0 ([#1567](https://github.com/phel-lang/phel-lang/issues/1567)).
+  removed in 1.0 ([#2827](https://github.com/phel-lang/phel-lang/issues/2827)).
   Details in [backslash-to-dot.md](backslash-to-dot.md).
 - **Every other public `phel.*` function.** Pinned in
   `tests/php/Integration/Api/core-api.snapshot.txt`; a test fails if a definition

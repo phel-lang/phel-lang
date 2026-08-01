@@ -2,7 +2,9 @@
 
 Phel historically used the PHP-style backslash (`\`) as the namespace separator everywhere: `ns` forms, `:require`/`:use` clauses, fully-qualified call sites, and class FQNs. The dot (`.`) is the target form going forward. The backslash form is **deprecated** and will be removed in a future release.
 
-Tracking issue: [phel-lang/phel-lang#1567](https://github.com/phel-lang/phel-lang/issues/1567).
+Tracking issue: [phel-lang/phel-lang#2827](https://github.com/phel-lang/phel-lang/issues/2827),
+which owns the removal decision. [#1567](https://github.com/phel-lang/phel-lang/issues/1567)
+delivered the deprecation and this migration path, and is closed.
 
 ## Opt-in to deprecation warnings
 
@@ -44,7 +46,7 @@ Symbols flowing through the analyzer's `SymbolResolver` or the `ns`-form analyze
 
 ## What is NOT yet detected
 
-Tracked as follow-up sub-tasks in #1567:
+Tracked as follow-up sub-tasks in #2827:
 
 - `:refer` targets inside a require (rarely contain `\` in practice)
 - `load` forms (take strings, not symbols)
@@ -58,4 +60,20 @@ Warnings are suppressed automatically for files under phel's bundled stdlib. Use
 
 ## Removal target
 
-TBD, tracked in #1567. At minimum one full minor-release cycle after the warning flag flips on by default.
+**Not 1.0.** The [0.49 to 1.0 upgrade guide](upgrade-0.49-to-1.0.md) lists the
+separator under what is *not* changing, so `\` keeps working for projects moving
+to the first stable release.
+
+That has a consequence worth stating plainly: the
+[deprecation policy](../stability.md#deprecation-policy-for-1x) removes a
+deprecated form **only in a major**, so a separator still shipping at `1.0.0`
+ships for the whole of `1.x`. The decision is not "now or later", it is "at 1.0
+or not until 2.0", and [#2827](https://github.com/phel-lang/phel-lang/issues/2827)
+owns it.
+
+An earlier version of this page set the bar at "one full minor-release cycle
+after the warning flag flips on by default". That bar cannot be met as written:
+the flag is opt-in by design and stays that way
+([ADR 0006](../adr/0006-one-opt-in-deprecation-channel.md)), because phel's own
+suite would flood stderr otherwise. Whoever decides the removal is deciding it
+for users who were never warned unless they asked to be.
