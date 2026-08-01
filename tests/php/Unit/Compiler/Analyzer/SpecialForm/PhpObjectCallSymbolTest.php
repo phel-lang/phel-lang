@@ -117,6 +117,65 @@ final class PhpObjectCallSymbolTest extends TestCase
         self::assertInstanceOf(PropertyOrConstantAccessNode::class, $objCallNode->getCallExpr());
     }
 
+    public function test_sigil_on_an_instance_member_is_rejected(): void
+    {
+        $this->expectException(AbstractLocatedException::class);
+        $this->expectExceptionMessage("'\$foo' names a static property, which only a class can hold");
+
+        $list = Phel::list([
+            Symbol::create(Symbol::NAME_PHP_OBJECT_CALL),
+            1,
+            Symbol::create('$foo'),
+        ]);
+
+        new PhpObjectCallSymbol($this->analyzer, isStatic: false)
+            ->analyze($list, NodeEnvironment::empty());
+    }
+
+    public function test_sigil_on_a_method_name_is_rejected(): void
+    {
+        $this->expectException(AbstractLocatedException::class);
+        $this->expectExceptionMessage("'\$foo' names a static property, which only a class can hold");
+
+        $list = Phel::list([
+            Symbol::create(Symbol::NAME_PHP_OBJECT_STATIC_CALL),
+            Symbol::create('\\'),
+            Phel::list([Symbol::create('$foo')]),
+        ]);
+
+        new PhpObjectCallSymbol($this->analyzer, isStatic: true)
+            ->analyze($list, NodeEnvironment::empty());
+    }
+
+    public function test_sigil_on_a_static_property_is_allowed(): void
+    {
+        $list = Phel::list([
+            Symbol::create(Symbol::NAME_PHP_OBJECT_STATIC_CALL),
+            Symbol::create('\\'),
+            Symbol::create('$foo'),
+        ]);
+
+        $objCallNode = new PhpObjectCallSymbol($this->analyzer, isStatic: true)
+            ->analyze($list, NodeEnvironment::empty());
+
+        self::assertInstanceOf(PropertyOrConstantAccessNode::class, $objCallNode->getCallExpr());
+    }
+
+    public function test_sigil_on_a_class_name_target_is_allowed(): void
+    {
+        $list = Phel::list([
+            Symbol::create(Symbol::NAME_PHP_OBJECT_CALL),
+            Symbol::create('\\'),
+            Symbol::create('$foo'),
+        ]);
+
+        $objCallNode = new PhpObjectCallSymbol($this->analyzer, isStatic: false)
+            ->analyze($list, NodeEnvironment::empty());
+
+        self::assertInstanceOf(PhpClassNameNode::class, $objCallNode->getTargetExpr());
+        self::assertInstanceOf(PropertyOrConstantAccessNode::class, $objCallNode->getCallExpr());
+    }
+
     public function test_nested_calls(): void
     {
         $list = Phel::list([

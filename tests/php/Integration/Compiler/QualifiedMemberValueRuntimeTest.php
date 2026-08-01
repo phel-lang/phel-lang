@@ -7,6 +7,7 @@ namespace PhelTest\Integration\Compiler;
 use Override;
 use PDO;
 use Phel\Shared\CompileOptions;
+use Phel\Shared\Exceptions\CompilerException;
 use PhelTest\Support\DefinesClassConstantCollisionTrait;
 use PhelTest\Support\Fixtures\PhpInterop\QualifiedMemberFixture;
 use PhelTest\Support\Fixtures\PhpInterop\StaticPropertyTarget;
@@ -132,6 +133,17 @@ final class QualifiedMemberValueRuntimeTest extends AbstractCompilerRuntimeTestC
         } finally {
             StaticPropertyTarget::reset();
         }
+    }
+
+    public function test_a_sigil_on_an_instance_member_fails_to_compile(): void
+    {
+        $this->expectException(CompilerException::class);
+        $this->expectExceptionMessage("'\$foo' names a static property, which only a class can hold");
+
+        $this->compilerFacade->eval(
+            '(let [o (php/new \\stdClass)] (php/-> o $foo))',
+            new CompileOptions(),
+        );
     }
 
     public function test_an_all_caps_class_works_in_both_static_constant_spellings(): void
