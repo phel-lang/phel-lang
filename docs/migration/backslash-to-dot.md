@@ -6,9 +6,23 @@ Tracking issue: [phel-lang/phel-lang#2827](https://github.com/phel-lang/phel-lan
 which owns the removal decision. [#1567](https://github.com/phel-lang/phel-lang/issues/1567)
 delivered the deprecation and this migration path, and is closed.
 
-## Opt-in to deprecation warnings
+## This one warns without being asked
 
-Three equivalent ways; pick whichever fits your pipeline.
+The separator is the single deprecation that announces by default
+([ADR 0014](../adr/0014-announce-the-separator-deprecation.md)): it is scheduled
+for removal at the next major, and a notice shown only to people who already knew
+to ask for it does not give anyone time to act. Every other deprecation stays
+opt-in.
+
+Two rules keep it quiet enough to live with. A file naming one `\`-separated
+symbol a hundred times reports **once** per `(file, symbol)`, and code under a
+`vendor/` directory is never reported: a dependency's spelling is its author's to
+fix.
+
+## Opt-in to the rest of the deprecations
+
+Three equivalent ways; pick whichever fits your pipeline. These turn on every
+*other* detector, and the separator reports either way.
 
 **CLI flag**, for one-off runs and CI:
 
@@ -40,11 +54,15 @@ Symbols flowing through the analyzer's `SymbolResolver` or the `ns`-form analyze
 
 - **Namespace declarations** (Phase 1b): `(ns phel\foo)` becomes `(ns phel.foo)`
 - **`:require` targets** (Phase 1b, flat and `[ns :as alias]` vector forms): `(:require phel\walk)` becomes `(:require phel.walk)`
-- **Fully-qualified call sites** (Phase 1a): `(phel\core/map inc xs)` becomes `(phel.core/map inc xs)`
 - **Leading-backslash class FQNs** (Phase 1a): `\Phel\Lang\ExceptionInfo` becomes `Phel.Lang.ExceptionInfo`. Dot alias landed in [#1553](https://github.com/phel-lang/phel-lang/issues/1553).
 - **`:use` targets**: `(:use Phel\Lang\Foo)` becomes `(:use Phel.Lang.Foo)`. The analyzer already accepted the dot form; the warning makes the migration target explicit.
 
 ## What is NOT yet detected
+
+A **fully-qualified call site** (`(phel\string/join "," xs)`) is the notable one:
+it is not reported, with or without the flag
+([#2931](https://github.com/phel-lang/phel-lang/issues/2931)). An earlier version
+of this page listed it as detected, which it has never been.
 
 Tracked as follow-up sub-tasks in #2827:
 
@@ -56,7 +74,10 @@ Migrate these positions by hand now; the dot forms already work at the language 
 
 ## Suppression
 
-Warnings are suppressed automatically for files under phel's bundled stdlib. User projects using the nested `src/phel` layout still emit warnings normally.
+Warnings are suppressed automatically for files under phel's bundled stdlib, and
+for anything under a `vendor/` directory: a dependency's spelling is its author's
+to fix, not yours. User projects using the nested `src/phel` layout still emit
+warnings normally, since the stdlib rule anchors on phel's own package path.
 
 ## Removal target
 
@@ -72,8 +93,12 @@ or not until 2.0", and [#2827](https://github.com/phel-lang/phel-lang/issues/282
 owns it.
 
 An earlier version of this page set the bar at "one full minor-release cycle
-after the warning flag flips on by default". That bar cannot be met as written:
-the flag is opt-in by design and stays that way
-([ADR 0006](../adr/0006-one-opt-in-deprecation-channel.md)), because phel's own
-suite would flood stderr otherwise. Whoever decides the removal is deciding it
-for users who were never warned unless they asked to be.
+after the warning flag flips on by default", which could not be met while the
+flag gated this notice: the switch is opt-in by design
+([ADR 0006](../adr/0006-one-opt-in-deprecation-channel.md)), so the cycle could
+never start and a removal would have landed on users who were never warned.
+
+That is now settled the other way. The separator announces without the flag from
+`1.0.0` ([ADR 0014](../adr/0014-announce-the-separator-deprecation.md)), so the
+notice period is running for everyone, and the removal at the next major follows
+a warning people actually saw.

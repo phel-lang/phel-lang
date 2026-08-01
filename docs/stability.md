@@ -111,10 +111,15 @@ are where to look.
    least one full minor, and is removed only in a major.
 2. **One channel.** Everything the compiler knows about reports through
    `Phel\Compiler\Domain\Deprecation\DeprecationWarnings`, off by default,
-   enabled with `--warn-deprecations` or `PHEL_WARN_DEPRECATIONS=1`. CLI option
-   renames are the documented exception and always print on stderr, because a
-   renamed flag is one unmissable event.
-   ([ADR 0006](adr/0006-one-opt-in-deprecation-channel.md).)
+   enabled with `--warn-deprecations` or `PHEL_WARN_DEPRECATIONS=1`. Two
+   documented exceptions announce without the flag: a CLI option rename, because
+   a renamed flag is one unmissable event, and the `\` namespace separator,
+   because it is scheduled for removal at the next major and a notice nobody is
+   shown does not keep rule 1's promise
+   ([ADR 0006](adr/0006-one-opt-in-deprecation-channel.md),
+   [ADR 0014](adr/0014-announce-the-separator-deprecation.md)).
+   A deprecation inside a `vendor/` path is never reported: it belongs to the
+   dependency's author.
 3. **No version promises in the message.** The release such a message names
    inevitably ships and the text goes stale. The tracking issue carries the
    schedule.

@@ -80,8 +80,10 @@ final class WarnDeprecationsFlagTest extends TestCase
         self::assertSame(['phel', 'run', 'src/main.phel'], $result);
     }
 
-    public function test_detectors_stay_silent_when_the_flag_is_absent(): void
+    public function test_the_separator_announces_when_the_flag_is_absent(): void
     {
+        // The documented exception to the opt-in channel: the separator is the
+        // one deprecation already scheduled for removal at the next major.
         DeprecationWarnings::disable();
         $this->captureDeprecationsWithoutEnabling();
 
@@ -93,7 +95,7 @@ final class WarnDeprecationsFlagTest extends TestCase
             $this->locatedRawNameSymbol('phel\\core/map', '/app/user.phel'),
         );
 
-        self::assertSame([], $this->capturedDeprecations());
+        self::assertCount(1, $this->capturedDeprecations());
     }
 
     /**

@@ -82,9 +82,34 @@ final class DeprecationWarnings
      */
     public static function isEnabledForSource(string $sourceFile): bool
     {
-        return self::isEnabled()
-            && $sourceFile !== ''
-            && !self::isBundledStdlibSource($sourceFile);
+        return self::isEnabled() && self::isReportableSource($sourceFile);
+    }
+
+    /**
+     * Whether a deprecation in `$sourceFile` names code the user can edit,
+     * independently of whether the flag is on.
+     *
+     * Two sources are excluded. Phel's own `src/phel`, for the reason below,
+     * and anything under a `vendor/` directory: a deprecation inside a
+     * dependency is the dependency author's to fix, and reporting it is how a
+     * channel earns the global silencing that loses it permanently. ADR 0006
+     * named this scoping as the precondition for ever announcing a deprecation
+     * by default, and `announceOnceAtOrigin()` is what spends it.
+     *
+     * A project living under a directory literally named `vendor` is
+     * suppressed too. That is the safe direction to be wrong in: a missing
+     * notice, never a misdirected one.
+     */
+    public static function isReportableSource(string $sourceFile): bool
+    {
+        return $sourceFile !== ''
+            && !self::isBundledStdlibSource($sourceFile)
+            && !self::isThirdPartySource($sourceFile);
+    }
+
+    public static function isThirdPartySource(string $file): bool
+    {
+        return str_contains(self::normalizePath($file) . '/', '/vendor/');
     }
 
     /**
@@ -179,13 +204,29 @@ final class DeprecationWarnings
         string $subject,
         callable $buildMessage,
     ): void {
-        $reportAt = $location->getExpansionOrigin() ?? $location;
+        self::reportOnceAtOrigin($location, $subject, $buildMessage, announced: false);
+    }
 
-        self::warnOnceForSource(
-            $reportAt->getFile(),
-            $subject,
-            $buildMessage($reportAt->getFile(), $reportAt->getLine()) . self::expansionSuffix($location),
-        );
+    /**
+     * Like {@see warnOnceAtOrigin()}, but reports whether or not the flag is
+     * on. Reserved for a deprecation already scheduled for removal at the next
+     * major, where an opt-in notice is no notice at all: the policy promises
+     * "one full minor of warning", and a warning nobody is shown does not keep
+     * that promise.
+     *
+     * Every other rule still applies, and they are what makes this safe: the
+     * per-`(file, subject)` dedup, the expansion attribution, and the
+     * first-party scoping in {@see isReportableSource()}, so a dependency's
+     * code stays quiet.
+     *
+     * @param callable(string, int): string $buildMessage receives the file and line to report against
+     */
+    public static function announceOnceAtOrigin(
+        SourceLocation $location,
+        string $subject,
+        callable $buildMessage,
+    ): void {
+        self::reportOnceAtOrigin($location, $subject, $buildMessage, announced: true);
     }
 
     /**
@@ -245,6 +286,35 @@ final class DeprecationWarnings
             $reportAt instanceof SourceLocation ? $reportAt->getFile() : '',
             self::syntaxMessage($construct, $purpose, $replacement, $reportAt) . self::expansionSuffix($location),
         );
+    }
+
+    /**
+     * @param callable(string, int): string $buildMessage
+     */
+    private static function reportOnceAtOrigin(
+        SourceLocation $location,
+        string $subject,
+        callable $buildMessage,
+        bool $announced,
+    ): void {
+        $reportAt = $location->getExpansionOrigin() ?? $location;
+        $sourceFile = $reportAt->getFile();
+
+        if (!$announced && !self::isEnabled()) {
+            return;
+        }
+
+        if (!self::isReportableSource($sourceFile)) {
+            return;
+        }
+
+        $key = $sourceFile . '|' . $subject;
+        if (isset(self::$seen[$key])) {
+            return;
+        }
+
+        self::$seen[$key] = true;
+        self::raise($buildMessage($sourceFile, $reportAt->getLine()) . self::expansionSuffix($location));
     }
 
     private static function raise(string $message): void

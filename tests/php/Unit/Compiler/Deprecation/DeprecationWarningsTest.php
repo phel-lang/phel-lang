@@ -66,6 +66,26 @@ final class DeprecationWarningsTest extends TestCase
         }));
     }
 
+    public function test_source_gate_suppresses_a_dependency(): void
+    {
+        DeprecationWarnings::enable();
+
+        $vendorFile = '/app/vendor/acme/lib/src/thing.phel';
+
+        self::assertTrue(DeprecationWarnings::isThirdPartySource($vendorFile));
+        self::assertFalse(DeprecationWarnings::isReportableSource($vendorFile));
+        self::assertSame([], $this->capture(static function () use ($vendorFile): void {
+            DeprecationWarnings::warnForSource($vendorFile, 'a dependency deprecation');
+        }));
+    }
+
+    public function test_a_vendor_named_segment_is_only_matched_whole(): void
+    {
+        self::assertFalse(DeprecationWarnings::isThirdPartySource('/app/vendored/src/thing.phel'));
+        self::assertFalse(DeprecationWarnings::isThirdPartySource('/app/my-vendor/src/thing.phel'));
+        self::assertTrue(DeprecationWarnings::isThirdPartySource('/app/vendor'));
+    }
+
     public function test_source_gate_allows_user_sources_including_nested_src_phel(): void
     {
         DeprecationWarnings::enable();

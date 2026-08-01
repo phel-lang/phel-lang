@@ -24,7 +24,7 @@ use function str_starts_with;
  * Scope of detection is intentionally narrow: only symbols that pass
  * through `SymbolResolver::resolve()` — call sites and qualified refs.
  * `ns`, `:require`, `:use`, and related forms are tracked as follow-ups
- * in https://github.com/phel-lang/phel-lang/issues/1567.
+ * in https://github.com/phel-lang/phel-lang/issues/2827.
  *
  * @internal
  */
@@ -53,15 +53,15 @@ final class BackslashSeparatorDeprecator
 
     public function maybeWarnString(string $namespace, SourceLocation $location): void
     {
-        if (!DeprecationWarnings::isEnabled()) {
-            return;
-        }
-
+        // No `isEnabled()` short-circuit: this one deprecation announces
+        // whether or not the flag is on, because it is the one already
+        // scheduled for removal at the next major. `announceOnceAtOrigin()`
+        // still applies the dedup and the first-party scoping.
         if (!$this->containsBackslashSeparator($namespace)) {
             return;
         }
 
-        DeprecationWarnings::warnOnceAtOrigin(
+        DeprecationWarnings::announceOnceAtOrigin(
             $location,
             $namespace,
             fn(string $file, int $line): string => $this->buildMessage($namespace, $file, $line),
