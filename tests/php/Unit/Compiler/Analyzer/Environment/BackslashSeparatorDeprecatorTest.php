@@ -49,13 +49,27 @@ final class BackslashSeparatorDeprecatorTest extends TestCase
         self::assertStringContainsString("'Phel.Lang.Foo'", $captured[0]);
     }
 
-    public function test_stays_silent_when_warnings_are_disabled(): void
+    public function test_announces_even_when_warnings_are_disabled(): void
     {
+        // The one deprecation that does not wait for `--warn-deprecations`:
+        // it is scheduled for removal at the next major, and a notice nobody
+        // is shown does not keep the policy's promise of a minor of warning.
         DeprecationWarnings::disable();
 
         $this->deprecator()->maybeWarn($this->locatedRawNameSymbol('phel\\core/map', '/app/user.phel'));
 
-        self::assertSame([], $this->capturedDeprecations());
+        self::assertCount(1, $this->capturedDeprecations());
+    }
+
+    public function test_stays_silent_for_a_dependency(): void
+    {
+        DeprecationWarnings::disable();
+
+        $this->deprecator()->maybeWarn(
+            $this->locatedRawNameSymbol('phel\\core/map', '/app/vendor/acme/lib/src/x.phel'),
+        );
+
+        self::assertSame([], $this->capturedDeprecations(), 'a dependency is not the user to fix it');
     }
 
     public function test_no_warning_for_dot_separated_symbol(): void

@@ -23,10 +23,15 @@ All notable changes to this project will be documented in this file.
 - `phel eval -h` shows a heredoc example for multi-line evaluation
 - The normative [language-surface spec](docs/spec/language-surface.md) and [Clojure divergences](docs/spec/clojure-divergences.md). A test compares the special-form table against the analyzer's dispatch registry, so the spec cannot drift from the compiler
 - The [stability policy](docs/stability.md), plus migration guides for [0.49 to 1.0](docs/migration/upgrade-0.49-to-1.0.md), [live deprecations](docs/migration/deprecated-surface.md) and [removed core fns](docs/migration/removed-deprecated-core-fns.md)
-- [Architecture decision records](docs/adr/README.md): 13 records covering the decisions that read as oversights and get re-proposed, each naming the test that fails when it is broken
+- [Architecture decision records](docs/adr/README.md): 14 records covering the decisions that read as oversights and get re-proposed, each naming the test that fails when it is broken
 - Compatibility gates that fail the build on drift: snapshots of the public PHP surface (`composer api-surface:update`) and of every public `phel.*` definition and arity (`composer core-api:update`), plus a `:doc` gate on public definitions
 - Every class outside the public PHP surface carries `@internal`, so the split reaches IDEs and static analysis. A test pins both directions
 - CI: macOS is a supported platform (Windows stays declared best-effort), coverage is published and gated at 85%, benchmarks are asserted against the base revision, and mutation testing runs weekly over `src/php/Lang/` and the analyzer (MSI floor 80)
+
+### Changed
+
+- The `\` namespace separator now warns without `--warn-deprecations`. It is the last deprecated language surface and the one scheduled for removal at the next major, so an opt-in notice was no notice at all: the policy promises a minor of warning before a removal and nobody was being warned. Every other deprecation stays opt-in ([ADR 0014](docs/adr/0014-announce-the-separator-deprecation.md), #2827)
+- Deprecations are never reported for code under a `vendor/` directory. A dependency's spelling is its author's to fix, and reporting it is how a warning channel earns being globally silenced. This is the first-party scoping ADR 0006 named as the precondition for announcing anything by default (#2827)
 
 ### Fixed
 

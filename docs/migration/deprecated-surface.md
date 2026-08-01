@@ -17,11 +17,14 @@ Everything the **compiler** knows about, syntax and definitions alike, goes
 through one switch: `Phel\Compiler\Domain\Deprecation\DeprecationWarnings`. It
 is off by default and reports when you ask for it.
 
-CLI-option deprecations are the one thing outside it: a renamed flag prints a
-one-line notice on stderr unconditionally, because it is a single unmissable
-event rather than something scattered through your source. No rename is in
-flight today, so there is no shared helper for it; see
+Two things are outside it. A renamed CLI flag prints a one-line notice on stderr
+unconditionally, because it is a single unmissable event rather than something
+scattered through your source; no rename is in flight today, so there is no
+shared helper for it, see
 [cli-flag-conventions.md](../internals/cli-flag-conventions.md#renaming-an-option).
+And the `\` namespace separator announces without the flag, because it is the one
+deprecation scheduled for removal at the next major
+([ADR 0014](../adr/0014-announce-the-separator-deprecation.md)).
 
 Turn compiler deprecation warnings on with any of:
 
@@ -34,8 +37,8 @@ PHEL_WARN_DEPRECATIONS=1 vendor/bin/phel test
 return PhelConfig::forProject()->withWarnDeprecations(true);
 ```
 
-Uses inside phel's own bundled stdlib are suppressed, so the output lists only
-code you own. Notices about a *definition* or a `\`-separated symbol are
+Uses inside phel's own bundled stdlib are suppressed, and so is anything under a
+`vendor/` directory, so the output lists only code you own. Notices about a *definition* or a `\`-separated symbol are
 deduplicated per `(file, subject)` pair, since one name can recur hundreds of
 times in a file. Syntax notices are not deduplicated: each occurrence is a
 separate edit you have to make.

@@ -21,6 +21,7 @@ Records are immutable: a changed decision gets a new ADR superseding the old one
 | [0011](0011-persistent-collections-in-php.md) | Persistent collections implemented in PHP | Accepted |
 | [0012](0012-non-hygienic-macros-with-auto-gensym.md) | Non-hygienic macros with auto-gensym | Accepted |
 | [0013](0013-static-property-spelling.md) | A static property is `$prop` to read and a plain name to assign | Accepted |
+| [0014](0014-announce-the-separator-deprecation.md) | The `\` separator deprecation announces by default | Accepted |
 
 Statuses: **Proposed**, **Accepted**, **Superseded by NNNN**, **Deprecated** (in
 force, being unwound).
