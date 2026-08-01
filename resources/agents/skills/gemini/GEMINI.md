@@ -13,7 +13,7 @@ Phel is a Lisp dialect that compiles to PHP.
 ## Before suggesting code
 
 - Verify fn names in `src/phel/core/` or `./vendor/bin/phel doc <fn>`. Never invent.
-- Hot or public `defn`: add `:tag` (`^int`, `^"?int"`, `^"\\Foo\\Bar"`, `^{:tag "..."}`). See `.agents/tasks/typed-defn.md`.
+- Hot or public `defn`: add `:tag` (`^int`, `^"?int"`, `^Foo.Bar`, `^{:tag "..."}`). See `.agents/tasks/typed-defn.md`.
 - Opt-in defn metadata: `^:async`, `^:memoize`, `^{:memoize-lru N}`.
 - `phel profile <path>` locates hot fns before tagging.
 - Namespace separator: prefer `.` (`app.main`); `\` still parses but is deprecated.

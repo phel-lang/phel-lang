@@ -23,7 +23,8 @@
 | `^int`, `^string`, `^bool`, `^float`, `^array`, `^void`, `^mixed` | builtin scalars |
 | `^"?int"` | `?int` (nullable) |
 | `^"int\|string"` | union |
-| `^"\\Foo\\Bar"` | leading `\\` for FQ class name |
+| `^Foo.Bar` | class name, dot separator (preferred) |
+| `^"\\Foo\\Bar"` | same class, backslash form |
 | `^{:tag "..."}` | map form (any string accepted by PHP) |
 
 ## Defn-name tag propagation
@@ -81,7 +82,7 @@ Type tags compose with `^:async`, `^:memoize`, `^{:memoize-lru N}`:
   [^int n]
   (if (< n 2) n (+ (fib (- n 1)) (fib (- n 2)))))
 
-(defn ^:async ^"\\Amp\\Future" fetch [^string url]
+(defn ^:async ^Amp.Future fetch [^string url]
   (await (http-get url)))
 ```
 
@@ -110,7 +111,7 @@ Per-fn call counts and self/total/avg/max timings, plus compile-phase cost (lex,
 - `:tag` on `def` of a non-fn is ignored (no PHP slot to type).
 - A bound symbol passed to a typed param is checked at runtime (PHP-level), not compile time; only literal mismatches are static.
 - `(php/+ 1 1.0)` infers `float`, not `int`. Promotion follows PHP rules.
-- Class FQNs need leading `\\`: `^"\\App\\User"`, otherwise the reader treats it as a relative ns symbol.
+- A class tag takes either separator: `^App.User` or `^"\\App\\User"`. The dot form is rooted for you; a backslash form needs the leading `\\`, or the reader treats it as a relative ns symbol.
 
 ## See also
 

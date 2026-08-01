@@ -33,7 +33,7 @@ Use these when appropriate; stable and tested.
 | `defrecord` w/ protocols | `(defrecord Foo [x] MyProto (my-fn [this] ...))` | v0.32 |
 | `doseq` | `(doseq [x :in coll] (println x))`; side-effecting iteration | v0.31 |
 | `for` comprehension | `(for [x :in xs :when (odd? x)] (* x x))`; builds sequence | v0.31 |
-| `:tag` types | `(defn ^int square [^int x] (* x x))`, `^"?int"`, `^"\\Foo\\Bar"`, `^{:tag "..."}`. Emits PHP type decls; static checker rejects literal mismatches | main |
+| `:tag` types | `(defn ^int square [^int x] (* x x))`, `^"?int"`, `^Foo.Bar`, `^{:tag "..."}`. Emits PHP type decls; static checker rejects literal mismatches | main |
 | Return inference | Tagged params + tail primitive op (`(php/+ ...)` -> `int`, `(php/. ...)` -> `string`, comparisons -> `bool`) infers return; `if` / `let` / `loop` propagate. Explicit `:tag` always wins | main |
 | `^:async` defn | `(defn ^:async fetch [url] (await (http-get url)))`; body wrapped in `async`, returns `Amp\Future` | main |
 | `^:memoize` / `^{:memoize-lru N}` | `(defn ^{:memoize-lru 32} fib [^int n] ...)`; opt-in caching by arg vector, LRU bound optional | main |

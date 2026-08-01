@@ -51,4 +51,4 @@ Cache hits skip the fiber entirely.
 ## See also
 
 - <https://phel-lang.org/documentation/language/async/>
-- `tasks/typed-defn.md` for combining `^:async` with `:tag` (`^"\\Amp\\Future"` return tag)
+- `tasks/typed-defn.md` for combining `^:async` with `:tag` (`^Amp.Future` return tag)
