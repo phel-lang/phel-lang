@@ -1927,6 +1927,10 @@ final readonly class Phel\Shared\NamespaceInformation
   public function getNamespace(): string
   public function isPrimaryDefinition(): bool
 
+final class Phel\Shared\NoColor
+  public static function isRequested(?array $env = null): bool
+  public static function style(?array $env = null): Phel\Shared\ColorStyleInterface
+
 abstract class Phel\Shared\Parser\Node\AbstractAtomNode implements Phel\Shared\Parser\Node\NodeInterface
   public function __construct(string $code, Phel\Lang\SourceLocation $startLocation, Phel\Lang\SourceLocation $endLocation, mixed $value)
   public function getCode(): string

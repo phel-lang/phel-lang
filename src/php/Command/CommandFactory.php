@@ -17,7 +17,6 @@ use Phel\Command\Domain\Finder\VendorDirectoriesFinderInterface;
 use Phel\Command\Infrastructure\ComposerVendorDirectoriesFinder;
 use Phel\Command\Infrastructure\ErrorLog;
 use Phel\Command\Infrastructure\SourceMapExtractor;
-use Phel\Shared\ColorStyle;
 use Phel\Shared\Exceptions\ExceptionPrinterInterface;
 use Phel\Shared\Exceptions\Hint\ArgumentCountHint;
 use Phel\Shared\Exceptions\Hint\ExceptionHintInterface;
@@ -25,6 +24,7 @@ use Phel\Shared\Exceptions\Hint\ExceptionHintResolver;
 use Phel\Shared\Exceptions\Hint\NotCallableHint;
 use Phel\Shared\Exceptions\Hint\UndefinedSymbolHint;
 use Phel\Shared\Munge;
+use Phel\Shared\NoColor;
 use Phel\Shared\Printer\Printer;
 
 /**
@@ -66,7 +66,7 @@ final class CommandFactory extends AbstractFactory
     {
         return new TextExceptionPrinter(
             new ExceptionArgsPrinter(Printer::readable()),
-            ColorStyle::withStyles(),
+            NoColor::style(),
             new Munge(),
             $this->createFilePositionExtractor(),
             new ErrorLog($this->getConfig()->getErrorLogFile()),

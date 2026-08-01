@@ -38,12 +38,12 @@ use Phel\Run\Domain\Runner\NamespaceCollector;
 use Phel\Run\Domain\Runner\NamespaceRunnerInterface;
 use Phel\Run\Domain\StdinReaderInterface;
 use Phel\Run\Infrastructure\PhpStdinReader;
-use Phel\Shared\ColorStyle;
 use Phel\Shared\ColorStyleInterface;
 use Phel\Shared\Facade\ApiFacadeInterface;
 use Phel\Shared\Facade\BuildFacadeInterface;
 use Phel\Shared\Facade\CommandFacadeInterface;
 use Phel\Shared\Facade\CompilerFacadeInterface;
+use Phel\Shared\NoColor;
 use Phel\Shared\Performance\OpcacheWorkerFlags;
 use Phel\Shared\Printer\Printer;
 use Phel\Shared\Printer\PrinterInterface;
@@ -132,7 +132,7 @@ class RunFactory extends AbstractFactory
 
     public function createColorStyle(): ColorStyleInterface
     {
-        return ColorStyle::withStyles();
+        return NoColor::style();
     }
 
     public function createPrinter(): PrinterInterface

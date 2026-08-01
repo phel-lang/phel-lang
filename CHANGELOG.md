@@ -11,6 +11,7 @@ All notable changes to this project will be documented in this file.
 - `php-invoke` calls a method named at runtime: `(php-invoke obj "format" "Y")`, ClojureScript's `js-invoke`. A class-name target calls the static method (#2887)
 - `set!` covers all three Clojure shapes: `(set! (.-total o) 10)` assigns a property, `(set! \Foo/slot v)` a static property, `(set! *x* 2)` the current `binding` frame, throwing when there is none. `alter-var-root` still changes a root (#2884, #2888, #2907)
 - `Phel::installExceptionHandler($projectRootDir)` reports an uncaught throwable against the `.phel` file, line and call form instead of the generated PHP and its anonymous closures. A built app installs it in one line; the report goes to the error log when `log_errors` is on and to output only when `display_errors` is on, so a production response body stays clean, and the process still exits `255` (#2922)
+- `Phel\Shared\NoColor` on the public PHP surface: `isRequested()` and `style()` answer whether the environment asked for plain output, so an embedder rendering Phel output makes the same decision the CLI does (#2923)
 - Editor completion and hover cover the Clojure-style interop spellings, not only the deprecated `php/*` ones: `\C/member` offers static methods, constants and static properties, and `(.method recv` / `(.-field recv` offer instance members of a receiver the resolver can type. Static properties are offered and hovered with their `$` sigil (#2916)
 - `\C/$prop` reads a static property in value position. The bare name stays the class constant, since PHP files the two separately and a class may carry both (#2907)
 - The standard library is written in the Clojure-style interop spelling, and `docs/` leads with it (#2875, #2882)
@@ -29,6 +30,7 @@ All notable changes to this project will be documented in this file.
 
 ### Fixed
 
+- `NO_COLOR` is honoured by the exception printer and the REPL error formatter. `getStackTraceString()` returns a string, so the caller may be writing to a log or an error tracker, and it used to bake ANSI escapes in regardless. Symfony Console already obeyed the variable, so the two halves of a command disagreed (#2923)
 - A `:tag` naming a class takes the dot separator: `^Phel.Lang.Symbol` emits `\Phel\Lang\Symbol` instead of reaching the generated signature verbatim and failing to parse. Unions, intersections and the nullable marker are handled; scalars and the backslash form are unchanged (#2924)
 - A `$`-prefixed member outside a static-property place fails to compile instead of emitting a PHP variable-property access. `(php/-> o $foo)` used to compile to `$o->$foo`, warn twice about an undefined variable and read `$o->{''}` (#2915)
 - Assigning a static property compiles. `(php/oset (php/:: \Foo slot) v)` emitted `\Foo::slot = v`, a class-constant fetch PHP rejects with `syntax error, unexpected token "="`, and a class name as the place of `.-` emitted `\Foo::class->slot = v` (#2907)
