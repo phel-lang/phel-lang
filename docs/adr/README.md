@@ -20,6 +20,7 @@ Records are immutable: a changed decision gets a new ADR superseding the old one
 | [0010](0010-static-analysis-covers-src-only.md) | Static analysis covers `src/` only | Accepted |
 | [0011](0011-persistent-collections-in-php.md) | Persistent collections implemented in PHP | Accepted |
 | [0012](0012-non-hygienic-macros-with-auto-gensym.md) | Non-hygienic macros with auto-gensym | Accepted |
+| [0013](0013-static-property-spelling.md) | A static property is `$prop` to read and a plain name to assign | Accepted |
 
 Statuses: **Proposed**, **Accepted**, **Superseded by NNNN**, **Deprecated** (in
 force, being unwound).
