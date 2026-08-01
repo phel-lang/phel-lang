@@ -106,6 +106,32 @@ final class CursorText
     }
 
     /**
+     * The first whitespace-delimited token after the word the cursor sits on,
+     * stopping at the end of the enclosing form. The dot shorthands are the one
+     * position where the receiver follows the member (`(.method receiver)`), so
+     * resolving them needs to look forward; every other interop form has what
+     * it needs in the prefix.
+     */
+    public static function firstTokenAfter(string $source, int $line, int $col): string
+    {
+        $lines = preg_split('/\r?\n/', $source) ?: [];
+        if (!isset($lines[$line - 1])) {
+            return '';
+        }
+
+        $rest = implode("\n", [
+            substr($lines[$line - 1], max(0, self::wordEndColumn($source, $line, $col) - 1)),
+            ...array_slice($lines, $line),
+        ]);
+
+        if (preg_match('/^[\s]*([^\s()\[\]{}]+)/', $rest, $m) === 1) {
+            return $m[1];
+        }
+
+        return '';
+    }
+
+    /**
      * Indices of every `(` still open at the end of `$prefix`, outermost first.
      * String literals and `;` line comments are skipped while balancing. Only
      * parens are tracked (not `[`/`{`): the interop forms are paren-delimited,

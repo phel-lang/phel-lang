@@ -16,6 +16,7 @@ use ReflectionIntersectionType;
 use ReflectionMethod;
 use ReflectionNamedType;
 use ReflectionParameter;
+use ReflectionProperty;
 use ReflectionType;
 use ReflectionUnionType;
 use Throwable;
@@ -43,6 +44,7 @@ use function rtrim;
 use function sprintf;
 use function str_starts_with;
 use function strtolower;
+use function substr;
 use function trim;
 
 /**
@@ -151,6 +153,25 @@ final class PhpInteropReflector
                     label: $constant->getName(),
                     kind: Completion::KIND_KEYWORD,
                     detail: $constant->isEnumCase() ? 'enum case' : 'constant',
+                );
+            }
+        }
+
+        // A static property is spelled with the sigil (`\Foo/$prop`), which is
+        // also what tells it from a same-named constant, so the label carries
+        // one and the prefix is matched with or without it (ADR 0013).
+        $propertyPrefix = ltrim($prefix, '$');
+
+        foreach ($reflection->getProperties(ReflectionProperty::IS_PUBLIC) as $property) {
+            if (!$property->isStatic()) {
+                continue;
+            }
+
+            if ($this->matches($property->getName(), $propertyPrefix)) {
+                $completions[] = new Completion(
+                    label: '$' . $property->getName(),
+                    kind: Completion::KIND_LOCAL,
+                    detail: $this->renderType($property->getType()) . ' static property',
                 );
             }
         }
@@ -352,7 +373,15 @@ final class PhpInteropReflector
         }
 
         $reflection = $this->reflect($class);
-        if (!$reflection instanceof ReflectionClass || !$reflection->hasConstant($member)) {
+        if (!$reflection instanceof ReflectionClass) {
+            return null;
+        }
+
+        if (str_starts_with($member, '$')) {
+            return $this->staticPropertyInfo($reflection, substr($member, 1));
+        }
+
+        if (!$reflection->hasConstant($member)) {
             return null;
         }
 
@@ -394,6 +423,30 @@ final class PhpInteropReflector
             $this->cleanDoc($reflection->getDocComment()),
             $this->methodSignatureInfo($class, '__construct'),
         );
+    }
+
+    /**
+     * Hover for the sigil spelling, `\Foo/$prop`. The member arrives with its
+     * sigil, which is the only thing telling it from a constant of the same
+     * name, so it is stripped before reflecting and put back in the label.
+     *
+     * @param ReflectionClass<object> $reflection
+     */
+    private function staticPropertyInfo(ReflectionClass $reflection, string $name): ?PhpInteropSignature
+    {
+        if (!$reflection->hasProperty($name)) {
+            return null;
+        }
+
+        $property = $reflection->getProperty($name);
+        if (!$property->isPublic() || !$property->isStatic()) {
+            return null;
+        }
+
+        $type = $this->renderType($property->getType());
+        $label = ($type === '' ? '' : $type . ' ') . '$' . $property->getName();
+
+        return new PhpInteropSignature($label, [], $this->cleanDoc($property->getDocComment()));
     }
 
     /**
