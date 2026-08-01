@@ -1,7 +1,7 @@
 (ns phel-test.core.set-bang
   (:require phel.test :refer [deftest is])
   (:use \stdClass)
-  (:use PhelTest\Support\Fixtures\PhpInterop\StaticPropertyTarget))
+  (:use PhelTest.Support.Fixtures.PhpInterop.StaticPropertyTarget))
 
 (def ^:dynamic *counter* 0)
 

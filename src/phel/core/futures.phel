@@ -16,8 +16,8 @@ Must be called from inside a fiber context (e.g. the AMPHP event loop or an encl
    :see-also ["realized?" "deref"]}
   [& body]
   `(let [frame# (\Phel/snapshotDynamicBindings)]
-     (new \Phel\Lang\Future
+     (new Phel.Lang.Future
           (php/amp\async
            (fn []
              (\Phel/withDynamicBindings frame# (fn [] ~@body))))
-          (new \Amp\DeferredCancellation))))
+          (new Amp.DeferredCancellation))))

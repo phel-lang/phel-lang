@@ -81,7 +81,7 @@
     (is (= route-attr (get attr :name)) "an instance reflects its class' attributes")))
 
 (def- status-class "PhelTest\\Fixtures\\Enum\\Status")
-(def- status-active \PhelTest\Fixtures\Enum\Status/Active)
+(def- status-active PhelTest.Fixtures.Enum.Status/Active)
 
 (deftest enum->keyword-uses-the-case-name
   (is (= :Active (r/enum->keyword status-active))

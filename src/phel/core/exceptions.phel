@@ -4,7 +4,7 @@
 
 ;; Structured exceptions: the `ex-info` constructor and the `ex-data` /
 ;; `ex-message` / `ex-cause` accessors for carrying a data map alongside
-;; a thrown error. Thin wrapper over `Phel\Lang\ExceptionInfo`.
+;; a thrown error. Thin wrapper over `Phel.Lang.ExceptionInfo`.
 
 ;; --- Rich exceptions ---
 
@@ -13,9 +13,9 @@
   {:example "(throw (ex-info \"Invalid input\" {:field :email}))"
    :see-also ["ex-data" "ex-message" "ex-cause"]}
   ([msg data]
-   (new \Phel\Lang\ExceptionInfo msg data))
+   (new Phel.Lang.ExceptionInfo msg data))
   ([msg data cause]
-   (new \Phel\Lang\ExceptionInfo msg data cause)))
+   (new Phel.Lang.ExceptionInfo msg data cause)))
 
 (defn ex-data
   "Returns the data map from an ex-info exception, or nil if not an ExceptionInfo."

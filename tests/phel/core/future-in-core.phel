@@ -8,7 +8,7 @@
 (deftest test-future-macro-is-available-without-require
   (let [expanded (macroexpand '(future 42))
         source   (print-str expanded)]
-    (is (php/str_contains source "Phel\\Lang\\Future")
+    (is (php/str_contains source "Phel.Lang.Future")
         "future expansion constructs a Future")
     (is (php/str_contains source "amp\\async")
         "future expansion delegates to amp\\async")
@@ -17,5 +17,5 @@
 
 (deftest test-future-returns-phel-future-without-require
   (let [f (future 1)]
-    (is (= true (php/instanceof f \Phel\Lang\Future))
+    (is (= true (php/instanceof f Phel.Lang.Future))
         "future produces a Future instance at the top level")))

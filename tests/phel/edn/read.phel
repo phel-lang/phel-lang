@@ -64,7 +64,7 @@
 
 (deftest test-read-builtin-tags
   (let [uuid (edn/read-string "#uuid \"550e8400-e29b-41d4-a716-446655440000\"")]
-    (is (php/instanceof uuid \Phel\Lang\UUID) "#uuid returns UUID")
+    (is (php/instanceof uuid Phel.Lang.UUID) "#uuid returns UUID")
     (is (= "550e8400-e29b-41d4-a716-446655440000" (.__toString uuid)))))
 
 (deftest test-read-custom-tag
@@ -85,5 +85,5 @@
 (deftest test-read-readers-restored-after-call
   (edn/read-string "1" {:readers {'myapp/x (fn [v] v)}})
   (is (false?
-       (.has (\Phel\Lang\TagRegistry/getInstance) "myapp/x"))
+       (.has (Phel.Lang.TagRegistry/getInstance) "myapp/x"))
       "custom reader unregistered after call"))

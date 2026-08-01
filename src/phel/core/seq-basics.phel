@@ -24,9 +24,9 @@
   ;; Symmetric dispatch: prefer the side that carries equality semantics.
   ;; `AbstractType` already implements `EqualsInterface` via `TypeInterface`,
   ;; so a single instanceof check per side is enough.
-  (if (php/instanceof a \Phel\Lang\EqualsInterface)
+  (if (php/instanceof a Phel.Lang.EqualsInterface)
     (.equals a b)
-    (if (php/instanceof b \Phel\Lang\EqualsInterface)
+    (if (php/instanceof b Phel.Lang.EqualsInterface)
       (.equals b a)
       (php/=== a b))))
 

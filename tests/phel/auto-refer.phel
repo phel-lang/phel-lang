@@ -1,7 +1,7 @@
 (ns phel-test.auto-refer
   (:require phel.test :refer [deftest is]))
 
-;; Verifies the curated `Phel\Lang\*` aliases are pre-registered in every
+;; Verifies the curated `Phel.Lang\*` aliases are pre-registered in every
 ;; namespace without any explicit `(:use ...)` line. See issue #1996.
 
 (deftest test-lazy-seq-alias-resolves-without-explicit-use
@@ -17,7 +17,7 @@
 
 (deftest test-persistent-map-alias
   (is (php/instanceof {:a 1} PersistentMap))
-  (is (php/instanceof (\Phel\Lang\Collections\Map\MapEntry/create :k :v) MapEntry)))
+  (is (php/instanceof (Phel.Lang.Collections.Map.MapEntry/create :k :v) MapEntry)))
 
 (deftest test-persistent-hash-set-alias
   (is (php/instanceof (hash-set 1 2 3) PersistentHashSet)))

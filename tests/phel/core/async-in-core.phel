@@ -28,7 +28,7 @@
   (is (= [2 3 4] (pmap inc [1 2 3])) "pmap is in core"))
 
 ;; Regression: `await-all` must return results in *input* order even when
-;; later Futures resolve first. `Amp\Future\await` fills its result array
+;; later Futures resolve first. `Amp.Future.await` fills its result array
 ;; in completion order, so a naive value-iteration returned them shuffled.
 (deftest test-await-all-preserves-input-order
   (is (= [:a0 :a1 :a2 :a3]
@@ -77,7 +77,7 @@
 
 (deftest test-defn-async-basic
   (is (= 5 (await (async-meta-add 2 3))) "^:async defn returns awaitable")
-  (is (= true (php/instanceof (async-meta-add 1 1) \Amp\Future))
+  (is (= true (php/instanceof (async-meta-add 1 1) Amp.Future))
       "^:async defn returns Amp\\Future"))
 
 (defn ^:async async-meta-doc
@@ -108,7 +108,7 @@
 
 (deftest test-defn-async-false-opts-out
   (is (= 7 (async-meta-false 7)) "^{:async false} returns the value, not a future")
-  (is (= false (php/instanceof (async-meta-false 7) \Amp\Future))
+  (is (= false (php/instanceof (async-meta-false 7) Amp.Future))
       "^{:async false} bypasses async wrapper"))
 
 (def async-memoize-counter (atom 0))

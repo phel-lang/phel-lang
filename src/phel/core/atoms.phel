@@ -74,11 +74,11 @@ With three arguments, and when `variable` is a future or promise, blocks for at 
   (case (count args)
     0 (.deref variable)
     2 (cond
-        (php/instanceof variable \Phel\Lang\Future)
+        (php/instanceof variable Phel.Lang.Future)
         (.derefWithTimeout variable (first args) (get args 1))
-        (php/instanceof variable \Phel\Fiber\Domain\Future)
+        (php/instanceof variable Phel.Fiber.Domain.Future)
         (.derefWithTimeout variable (first args) (get args 1))
-        (php/instanceof variable \Phel\Fiber\Domain\Promise)
+        (php/instanceof variable Phel.Fiber.Domain.Promise)
         (.derefWithTimeout variable (first args) (get args 1))
         true
         (throw (new \InvalidArgumentException

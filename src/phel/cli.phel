@@ -372,7 +372,7 @@
 ;; ---- Application --------------------------------------------------------
 
 (defn- build-dispatcher [spec]
-  (let [d      (new \Symfony\Component\EventDispatcher\EventDispatcher)
+  (let [d      (new Symfony.Component.EventDispatcher.EventDispatcher)
         before (get spec :before)
         after  (get spec :after)
         on-err (get spec :on-error)]

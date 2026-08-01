@@ -1,7 +1,7 @@
 (ns phel-test.core.type-operation
   (:use DateTime)
   (:use RuntimeException)
-  (:use Phel\Lang\Symbol)
+  (:use Phel.Lang.Symbol)
   (:require phel.test :refer [deftest is are]))
 
 (deftest test-type
@@ -374,7 +374,7 @@
        {:a 1}))
 
 (deftest test-bigint?
-  (is (true? (bigint? (\Phel\Lang\BigInt/fromString "100000000000000000000000")))
+  (is (true? (bigint? (Phel.Lang.BigInt/fromString "100000000000000000000000")))
       "bigint? on a BigInt value")
   (are [x] (false? (bigint? x))
        1
