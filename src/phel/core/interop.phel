@@ -7,12 +7,12 @@
 ;; --------------------------------------------
 
 (defn- static-property-place?
-  "True when `place` is a symbol naming a static property. Both halves are the
-  test the analyzer applies to `\\Foo/member`: the namespace reads as a PHP
-  class reference (a leading `\\` or an upper-case first character) and the
-  name starts like a PHP member, optionally carrying the `$` sigil. A dynamic
-  var fails the second half, since `Foo/*x*` is no member PHP can name, and
-  stays a var."
+  "True when `place` is a symbol naming a static property. Both halves restate
+  the analyzer's `QualifiedMemberSyntax`, which the standard library cannot
+  import: the namespace reads as a PHP class reference (a leading `\\` or an
+  upper-case first character) and the name starts like a PHP member, optionally
+  carrying the `$` sigil. A dynamic var fails the second half, since `Foo/*x*`
+  is no member PHP can name, and stays a var."
   [place]
   (and (symbol? place)
        (= 1 (php/preg_match "/^[\\\\A-Z]/" (or (namespace place) "")))

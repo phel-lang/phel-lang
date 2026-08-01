@@ -42,6 +42,8 @@ Clojure-style interop spellings are sugar, expanded to `php/*` forms before anal
 
 `QualifiedMemberExpander` reflects the resolved class to tell a static method from a constant. A class carrying both under one name resolves to the **constant** (pre-existing behaviour, and the reason `\C/new` is not a constructor); an unresolvable or unloadable class falls back to the constant reading so the error stays what it was.
 
+`Domain/Analyzer/QualifiedMemberSyntax` is the single statement of *how a class member is spelled* (namespace reads as a class reference, name starts like a PHP member). Call position, value position and `phel.core/set!` all decide with it, so `(\Foo/m 1)`, `\Foo/CONST` and `(set! \Foo/slot v)` cannot disagree; `set!` re-spells it in Phel because the stdlib cannot import `@internal` compiler classes. Purely lexical: `PhpClassLike` answers existence.
+
 Bare host symbols have one separate collision rule, in `SymbolResolver::resolveBareHostSymbol()`: an existing PHP class/interface/trait/enum wins over a same-named global constant, including all-caps classes such as `PDO`; `php/NAME` is the explicit constant escape hatch. `Domain/Analyzer/PhpClassLike` is the single class-like existence predicate (also used by `UseAliasRegistrar`). Keep it autoloading, otherwise the same source changes meaning according to which earlier form happened to load the class.
 
 ### Simplification pass

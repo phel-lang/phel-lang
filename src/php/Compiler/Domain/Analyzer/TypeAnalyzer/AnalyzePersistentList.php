@@ -11,6 +11,7 @@ use Phel\Compiler\Domain\Analyzer\Ast\GlobalVarNode;
 use Phel\Compiler\Domain\Analyzer\Ast\QuoteNode;
 use Phel\Compiler\Domain\Analyzer\Environment\NodeEnvironmentInterface;
 use Phel\Compiler\Domain\Analyzer\Exceptions\AnalyzerException;
+use Phel\Compiler\Domain\Analyzer\QualifiedMemberSyntax;
 use Phel\Compiler\Domain\Analyzer\TypeAnalyzer\SpecialForm\ApplySymbol;
 use Phel\Compiler\Domain\Analyzer\TypeAnalyzer\SpecialForm\Binding\BindingValidator;
 use Phel\Compiler\Domain\Analyzer\TypeAnalyzer\SpecialForm\Binding\Deconstructor;
@@ -64,7 +65,6 @@ use Phel\Shared\MungeInterface;
 
 use function array_keys;
 use function count;
-use function in_array;
 use function str_ends_with;
 use function strlen;
 use function substr;
@@ -286,18 +286,8 @@ final class AnalyzePersistentList
 
     private function isStaticCallShorthand(Symbol $symbol): bool
     {
-        $ns = $symbol->getNamespace();
-        if (in_array($ns, [null, '', 'php'], true)) {
-            return false;
-        }
-
-        $method = $symbol->getName();
-        if ($method === '' || !$this->isIdentifierStartChar($method[0])) {
-            return false;
-        }
-
-        return $ns[0] === '\\'
-            || ($ns[0] >= 'A' && $ns[0] <= 'Z');
+        return QualifiedMemberSyntax::isClassReference($symbol->getNamespace())
+            && QualifiedMemberSyntax::isMemberName($symbol->getName());
     }
 
     private function isMethodCallShorthandName(string $name): bool
@@ -307,7 +297,7 @@ final class AnalyzePersistentList
             return false;
         }
 
-        return $this->isIdentifierStartChar($name[1]);
+        return QualifiedMemberSyntax::isIdentifierStartChar($name[1]);
     }
 
     private function isPropertyAccessShorthandName(string $name): bool
@@ -317,14 +307,7 @@ final class AnalyzePersistentList
             return false;
         }
 
-        return $this->isIdentifierStartChar($name[2]);
-    }
-
-    private function isIdentifierStartChar(string $c): bool
-    {
-        return ($c >= 'a' && $c <= 'z')
-            || ($c >= 'A' && $c <= 'Z')
-            || $c === '_';
+        return QualifiedMemberSyntax::isIdentifierStartChar($name[2]);
     }
 
     private function createSymbolAnalyzerByName(string $symbolName): SpecialFormAnalyzerInterface

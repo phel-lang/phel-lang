@@ -8,13 +8,13 @@ use Phel;
 use Phel\Compiler\Domain\Analyzer\AnalyzerInterface;
 use Phel\Compiler\Domain\Analyzer\Ast\PhpClassNameNode;
 use Phel\Compiler\Domain\Analyzer\Environment\NodeEnvironmentInterface;
+use Phel\Compiler\Domain\Analyzer\QualifiedMemberSyntax;
 use Phel\Lang\Collections\LinkedList\PersistentListInterface;
 use Phel\Lang\Symbol;
 use ReflectionClass;
 
 use function class_exists;
 use function enum_exists;
-use function in_array;
 use function interface_exists;
 use function strlen;
 use function substr;
@@ -24,6 +24,7 @@ use function substr;
  * that are safe in PHP:
  *
  *   `\C/CONST`  -> `(php/:: \C CONST)`            class constant, unchanged
+ *   `\C/$prop`  -> `(php/:: \C $prop)`            static property
  *   `\C/m`      -> `(php/callable \C m)`          static method as a value
  *   `\C/.m`     -> `(fn [o & args] ...)`          instance method as a value
  *
@@ -50,7 +51,7 @@ final readonly class QualifiedMemberExpander
     public function expand(Symbol $symbol, NodeEnvironmentInterface $env): ?PersistentListInterface
     {
         $ns = $symbol->getNamespace();
-        if (!$this->isClassReference($ns)) {
+        if (!QualifiedMemberSyntax::isClassReference($ns)) {
             return null;
         }
 
@@ -60,11 +61,11 @@ final readonly class QualifiedMemberExpander
             return $this->instanceMethodValue($symbol, substr($name, 1));
         }
 
-        if ($this->isStaticPropertyName($name)) {
+        if (QualifiedMemberSyntax::isStaticPropertyName($name)) {
             return $this->classMemberForm(Symbol::NAME_PHP_OBJECT_STATIC_CALL, $symbol);
         }
 
-        if ($name === '' || !$this->isIdentifierStartChar($name[0])) {
+        if (!QualifiedMemberSyntax::isMemberName($name)) {
             return null;
         }
 
@@ -75,16 +76,6 @@ final readonly class QualifiedMemberExpander
         return $this->classMemberForm(Symbol::NAME_PHP_OBJECT_STATIC_CALL, $symbol);
     }
 
-    private function isClassReference(?string $ns): bool
-    {
-        if (in_array($ns, [null, '', 'php'], true)) {
-            return false;
-        }
-
-        return $ns[0] === '\\'
-            || ($ns[0] >= 'A' && $ns[0] <= 'Z');
-    }
-
     /**
      * `.m` names an instance method; `.` is not a legal PHP identifier
      * character, so the form cannot collide with a real member name.
@@ -93,20 +84,7 @@ final readonly class QualifiedMemberExpander
     {
         return strlen($name) > 1
             && $name[0] === '.'
-            && $this->isIdentifierStartChar($name[1]);
-    }
-
-    /**
-     * `$slot` names a static property. PHP keeps constants and static
-     * properties in separate namespaces and only the sigil tells them apart,
-     * so the bare name stays the constant it has always been and no reflection
-     * is needed here.
-     */
-    private function isStaticPropertyName(string $name): bool
-    {
-        return strlen($name) > 1
-            && $name[0] === '$'
-            && $this->isIdentifierStartChar($name[1]);
+            && QualifiedMemberSyntax::isIdentifierStartChar($name[1]);
     }
 
     /**
@@ -194,12 +172,5 @@ final readonly class QualifiedMemberExpander
                 ->copyLocationFrom($symbol),
             $body,
         ])->copyLocationFrom($symbol);
-    }
-
-    private function isIdentifierStartChar(string $c): bool
-    {
-        return ($c >= 'a' && $c <= 'z')
-            || ($c >= 'A' && $c <= 'Z')
-            || $c === '_';
     }
 }
