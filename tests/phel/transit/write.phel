@@ -18,7 +18,7 @@
   (is (= "\"~$bar\"" (transit/write-string 'bar))))
 
 (deftest test-write-uuid
-  (let [u (\Phel\Lang\UUID/fromString "550e8400-e29b-41d4-a716-446655440000")]
+  (let [u (Phel.Lang.UUID/fromString "550e8400-e29b-41d4-a716-446655440000")]
     (is (= "\"~u550e8400-e29b-41d4-a716-446655440000\"" (transit/write-string u)))))
 
 (deftest test-write-vector

@@ -1032,7 +1032,7 @@ With one argument returns an infinite lazy sequence of calls to f."
        (Seq/repeatedly a))
     1 (let [n a
             f (get rest 0)]
-        (new \Phel\Lang\Collections\LazySeq\LazySeq
+        (new Phel.Lang.Collections.LazySeq.LazySeq
              (new Hasher)
              (new Equalizer)
              (fn [] (for [_ :range [n]] (f)))))
@@ -1042,9 +1042,9 @@ With one argument returns an infinite lazy sequence of calls to f."
   "Creates a lazy sequence that evaluates the body only when accessed."
   {:example "(lazy-seq (cons 1 (lazy-seq nil))) ; => @[1]"}
   [& body]
-  `(new \Phel\Lang\Collections\LazySeq\LazySeq
-        (new \Phel\Lang\Hasher)
-        (new \Phel\Lang\Equalizer)
+  `(new Phel.Lang.Collections.LazySeq.LazySeq
+        (new Phel.Lang.Hasher)
+        (new Phel.Lang.Equalizer)
         (fn [] ~@body)))
 
 (defmacro lazy-cat
@@ -1136,7 +1136,7 @@ With one argument returns an infinite lazy sequence of calls to f."
           '()
           (let [input  (if (map? coll) (pairs coll) coll)
                 result (lazy-seq-from-generator
-                        (\Phel\Lang\Seq/mapcat f input))]
+                        (Phel.Lang.Seq/mapcat f input))]
             (if (php/=== nil result)
               '()
               (copy-meta coll result)))))
@@ -1166,7 +1166,7 @@ With one argument returns an infinite lazy sequence of calls to f."
           '()
           (let [seqd   (or (seq coll) coll)
                 result (lazy-seq-from-generator
-                        (\Phel\Lang\Seq/interpose sep seqd))]
+                        (Phel.Lang.Seq/interpose sep seqd))]
             (if (php/=== nil result)
               '()
               (copy-meta coll result)))))
@@ -1181,7 +1181,7 @@ Applies `f` to each element in `xs`. `f` is a two-argument function where the fi
   (if (php/=== nil coll)
     '()
     (let [result (lazy-seq-from-generator
-                  (\Phel\Lang\Seq/mapIndexed f coll))]
+                  (Phel.Lang.Seq/mapIndexed f coll))]
       (if (php/=== nil result)
         '()
         (copy-meta coll result)))))
@@ -1230,9 +1230,9 @@ Applies `f` to each element in `xs`. `f` is a two-argument function where the fi
     (php/instanceof coll LazySeqInterface) (.isRealized coll)
     (php/instanceof coll PersistentListInterface) true
     (php/instanceof coll Delay) (.isRealized coll)
-    (php/instanceof coll \Phel\Lang\Future) (.isRealized coll)
-    (php/instanceof coll \Phel\Fiber\Domain\Future) (.isRealized coll)
-    (php/instanceof coll \Phel\Fiber\Domain\Promise) (.isRealized coll)
+    (php/instanceof coll Phel.Lang.Future) (.isRealized coll)
+    (php/instanceof coll Phel.Fiber.Domain.Future) (.isRealized coll)
+    (php/instanceof coll Phel.Fiber.Domain.Promise) (.isRealized coll)
     true))
 
 (defn group-by

@@ -49,9 +49,9 @@
          (edn/read-string (edn/write-string #{1 2 3})))))
 
 (deftest test-write-uuid-round-trip
-  (let [u             (\Phel\Lang\UUID/fromString "550e8400-e29b-41d4-a716-446655440000")
+  (let [u             (Phel.Lang.UUID/fromString "550e8400-e29b-41d4-a716-446655440000")
         round-tripped (edn/read-string (edn/write-string u))]
-    (is (php/instanceof round-tripped \Phel\Lang\UUID))
+    (is (php/instanceof round-tripped Phel.Lang.UUID))
     (is (= (str u) (str round-tripped)) "UUID round-trips through EDN")))
 
 (deftest test-write-inst-round-trip

@@ -23,16 +23,16 @@
   [x]
   (if (php/=== nil x)
     nil
-    (if (php/instanceof x \Phel\Lang\NamedInterface)
+    (if (php/instanceof x Phel.Lang.NamedInterface)
       (.getName x)
       x)))
 
 (defn- valid-symbol-name? [x]
   (if (php/is_string x)
     true
-    (if (php/instanceof x \Phel\Lang\Keyword)
+    (if (php/instanceof x Phel.Lang.Keyword)
       true
-      (php/instanceof x \Phel\Lang\Symbol))))
+      (php/instanceof x Phel.Lang.Symbol))))
 
 (defn- assert-symbol-name [arg-name x]
   (if (valid-symbol-name? x)

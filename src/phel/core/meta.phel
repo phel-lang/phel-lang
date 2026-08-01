@@ -42,7 +42,7 @@
             `(\Phel/getDefinitionMetaData ~ns ~(.getName quoted-sym))
             `(\Phel/getDefinitionMetaData (php/str_replace "-" "_" *ns*) ~(.getName quoted-sym))))
         `(let [obj-meta ~obj]
-           (if (php/instanceof obj-meta \Phel\Lang\MetaInterface)
+           (if (php/instanceof obj-meta Phel.Lang.MetaInterface)
              (.getMeta obj-meta)
              nil))))))
 

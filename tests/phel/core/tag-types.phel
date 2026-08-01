@@ -40,7 +40,7 @@
 (deftest dot-separated-class-tag-round-trips
   (let [s (symbol "abc")]
     (is (= s (dotted-tag s)) "a dotted class tag accepts and returns the class"))
-  (is (php/instanceof (dotted-tag (symbol "x")) \Phel\Lang\Symbol)
+  (is (php/instanceof (dotted-tag (symbol "x")) Phel.Lang.Symbol)
       "the emitted signature names the real class"))
 
 (deftest dot-separated-class-tag-rejects-a-wrong-type

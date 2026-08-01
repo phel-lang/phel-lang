@@ -894,7 +894,7 @@
 
 (deftest test-lazy-seq-returns-lazy-seq
   (let [result (lazy-seq [1 2 3])]
-    (is (true? (php/instanceof result \Phel\Lang\Collections\LazySeq\LazySeq))
+    (is (true? (php/instanceof result Phel.Lang.Collections.LazySeq.LazySeq))
         "lazy-seq should return a LazySeq instance")))
 
 (deftest test-lazy-seq-defers-evaluation
@@ -1031,11 +1031,11 @@
 ;; private `LazySeq::realize()` return type; it now reports a Phel-level error,
 ;; the way Clojure rejects `(lazy-seq 5)`.
 (deftest test-lazy-seq-with-non-seq-body-reports-a-clear-error
-  (is (thrown-with-msg? \Phel\Lang\Collections\Exceptions\NotASeqException
+  (is (thrown-with-msg? Phel.Lang.Collections.Exceptions.NotASeqException
                         "Don't know how to create a seq from: int"
                         (first (lazy-seq 5)))
       "(lazy-seq <scalar>) reports a domain error instead of a PHP TypeError")
-  (is (thrown-with-msg? \Phel\Lang\Collections\Exceptions\NotASeqException
+  (is (thrown-with-msg? Phel.Lang.Collections.Exceptions.NotASeqException
                         "Don't know how to create a seq from: int"
                         (doall (lazy-seq 5)))
       "realizing (lazy-seq <scalar>) reports the same error from every entry point"))

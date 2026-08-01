@@ -3,7 +3,7 @@
 ;; AMPHP-backed and fiber-backed async primitives, kept in core so that
 ;; `.cljc` portable code mirrors `clojure.core`'s default availability
 ;; (see #1537 for the analogous `future` move). The classes referenced
-;; below (`\Phel\Fiber\FiberFacade`, `\Phel\Lang\Future`, `Amp\\…`)
+;; below (`Phel.Fiber.FiberFacade`, `Phel.Lang.Future`, `Amp\\…`)
 ;; are autoloaded only when these functions are actually called, so
 ;; namespaces that don't use them pay no runtime cost.
 ;;
@@ -14,7 +14,7 @@
 (defn- fiber-facade
   "Lazily resolves the shared FiberFacade instance."
   []
-  (new \Phel\Fiber\FiberFacade))
+  (new Phel.Fiber.FiberFacade))
 
 (defn ->closure
   "Converts a Phel function to a PHP Closure. Many PHP libraries (AMPHP, ReactPHP) type-hint `\\Closure` and reject Phel's `AbstractFn` even though it is callable. This bridges the gap."
@@ -39,7 +39,7 @@
 (defn- unwrap-future
   "Returns the raw Amp\\Future for either a `Future` wrapper or a bare `Amp\\Future`."
   [future]
-  (if (php/instanceof future \Phel\Lang\Future)
+  (if (php/instanceof future Phel.Lang.Future)
     (.unwrap future)
     future))
 
@@ -108,15 +108,15 @@ Dispatches on type: for a `\\Phel\\Fiber\\Domain\\Future` (fiber-backed) it call
    :see-also ["realized?" "future-cancel" "future" "future-fiber"]}
   [f]
   (cond
-    (php/instanceof f \Phel\Fiber\Domain\Future) (.isDone f)
-    true                                         (realized? f)))
+    (php/instanceof f Phel.Fiber.Domain.Future) (.isDone f)
+    true                                        (realized? f)))
 
 ;; -----------------------------------------------------------------
 ;; Fiber-based promises and futures
 ;;
 ;; Unlike `future`/`async` above, these do not require AMPHP and work
 ;; at the top level. They use a cooperative single-threaded scheduler
-;; exposed by `\Phel\Fiber\FiberFacade`.
+;; exposed by `Phel.Fiber.FiberFacade`.
 ;; -----------------------------------------------------------------
 
 (defn promise
@@ -167,5 +167,5 @@ Once delivered the value is frozen; subsequent `deliver` calls are no-ops. `dere
   {:example "(future? (future-call (fn [] 1))) ; => true"
    :see-also ["future" "future-call" "future-fiber"]}
   [x]
-  (or (php/instanceof x \Phel\Fiber\Domain\Future)
-      (php/instanceof x \Phel\Lang\Future)))
+  (or (php/instanceof x Phel.Fiber.Domain.Future)
+      (php/instanceof x Phel.Lang.Future)))

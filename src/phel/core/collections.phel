@@ -4,7 +4,7 @@
 
 ;; Persistent collection constructors. Hash and sorted variants for both
 ;; maps and sets: `hash-set`, `sorted-map`, `sorted-map-by`, `sorted-set`,
-;; `sorted-set-by`. Thin wrappers around `Phel\Lang\Collections` factories —
+;; `sorted-set-by`. Thin wrappers around `Phel.Lang.Collections` factories —
 ;; `hash-map` / `array-map` / `list` / `vector` live in core.phel itself
 ;; because they are needed by the bootstrap primitives.
 

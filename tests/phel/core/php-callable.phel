@@ -4,8 +4,8 @@
 ;; Free function: emits `strtoupper(...)`.
 (def upper (php/callable \strtoupper))
 
-;; Static method: emits `\Phel\Lang\Keyword::create(...)`.
-(def make-kw (php/callable \Phel\Lang\Keyword create))
+;; Static method: emits `Phel.Lang.Keyword::create(...)`.
+(def make-kw (php/callable Phel.Lang.Keyword create))
 
 ;; Instance method: emits `($dt->format(...))`.
 (def formatter (php/callable (new \DateTime "2020-03-04") format))

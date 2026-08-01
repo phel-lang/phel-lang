@@ -2,8 +2,8 @@
   (:require phel.http :as h)
   (:require phel.test :refer [deftest is])
   (:require phel.router :as r :refer [routes match-by-path match-by-name generate])
-  (:use Symfony\Component\Routing\Exception\RouteNotFoundException)
-  (:use Symfony\Component\Routing\Exception\MissingMandatoryParametersException))
+  (:use Symfony.Component.Routing.Exception.RouteNotFoundException)
+  (:use Symfony.Component.Routing.Exception.MissingMandatoryParametersException))
 
 ;; The `r/compiled-router` macro requires literal routes at compile-time, so the
 ;; shared assertions are wrapped in macros that take the router constructor as a

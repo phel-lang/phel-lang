@@ -4,7 +4,7 @@
 (use Phel.Lang.UUID)
 
 ;; UUID predicates, generator, and parser: `uuid?`, `random-uuid`,
-;; `parse-uuid`. Backed by the `Phel\Lang\UUID` value type — the literal
+;; `parse-uuid`. Backed by the `Phel.Lang.UUID` value type — the literal
 ;; `#uuid "..."` and `random-uuid` produce a typed value, so `uuid?`
 ;; rejects raw canonical strings.
 

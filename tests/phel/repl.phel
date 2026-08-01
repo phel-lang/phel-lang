@@ -346,7 +346,7 @@
   (let [original *ns*]
     (eval-str "(ns test-ns-propagation)")
     (is (= "test-ns-propagation" *ns*) "*ns* propagates after eval-str returns")
-    (is (= *ns* (.getNs (\Phel\Compiler\Infrastructure\GlobalEnvironmentSingleton/getInstance)))
+    (is (= *ns* (.getNs (Phel.Compiler.Infrastructure.GlobalEnvironmentSingleton/getInstance)))
         "GlobalEnvironment.ns matches *ns*")
     (eval-str (str "(ns " original ")"))))
 

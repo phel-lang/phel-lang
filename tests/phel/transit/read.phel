@@ -20,7 +20,7 @@
 
 (deftest test-read-uuid
   (let [u (transit/read-string "\"~u550e8400-e29b-41d4-a716-446655440000\"")]
-    (is (php/instanceof u \Phel\Lang\UUID))
+    (is (php/instanceof u Phel.Lang.UUID))
     (is (= "550e8400-e29b-41d4-a716-446655440000" (str u)))))
 
 (deftest test-read-instant

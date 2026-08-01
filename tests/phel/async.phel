@@ -110,7 +110,7 @@
 
 (deftest test-future-returns-phel-future
   (let [f (await (async (future 42)))]
-    (is (= true (php/instanceof f \Phel\Lang\Future))
+    (is (= true (php/instanceof f Phel.Lang.Future))
         "future returns a Future wrapper")))
 
 (deftest test-future-deref

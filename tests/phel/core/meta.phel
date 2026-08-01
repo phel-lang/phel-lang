@@ -73,10 +73,10 @@
 ;; The compiler lowers a chain of `assoc`/`conj` calls on a type-tagged target
 ;; to one transient chain. That fast path must answer `meta` exactly like the
 ;; untagged runtime path, which threads the metadata through every `put`.
-(defn- assoc-chain [^\Phel\Lang\Collections\Map\PersistentMapInterface m]
+(defn- assoc-chain [^Phel.Lang.Collections.Map.PersistentMapInterface m]
   (assoc (assoc m :b 2) :c 3))
 
-(defn- conj-chain [^\Phel\Lang\Collections\Vector\PersistentVectorInterface v]
+(defn- conj-chain [^Phel.Lang.Collections.Vector.PersistentVectorInterface v]
   (conj (conj v 2) 3))
 
 (deftest typed-assoc-conj-chain-preserves-meta
