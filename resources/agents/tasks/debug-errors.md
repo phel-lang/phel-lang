@@ -27,6 +27,7 @@ File path must match ns:
 | flat | `my-app\main` | `src/main.phel` |
 | flat | `my-app\users\repo` | `src/users/repo.phel` |
 | nested | `my-app\main` | `src/phel/main.phel` |
+| root | `my-app\main` | `main.phel` (what `phel init --minimal` writes) |
 
 Namespaces need ≥ 2 segments.
 
