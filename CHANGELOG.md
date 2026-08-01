@@ -27,6 +27,7 @@ All notable changes to this project will be documented in this file.
 
 ### Fixed
 
+- A `$`-prefixed member outside a static-property place fails to compile instead of emitting a PHP variable-property access. `(php/-> o $foo)` used to compile to `$o->$foo`, warn twice about an undefined variable and read `$o->{''}` (#2915)
 - Assigning a static property compiles. `(php/oset (php/:: \Foo slot) v)` emitted `\Foo::slot = v`, a class-constant fetch PHP rejects with `syntax error, unexpected token "="`, and a class name as the place of `.-` emitted `\Foo::class->slot = v` (#2907)
 - Bare all-caps PHP classes such as `PDO` are no longer read as global constants, so `PDO/ATTR_ERRMODE`, `(.-ATTR_ERRMODE PDO)` and `(new PDO ...)` need no leading backslash. A class beats a same-named constant; `php/NAME` stays the explicit escape hatch
 - `phel init`, the three bundled example apps, the `.agents/` task recipes and the `--template=` scaffolds all emit the dot separator (`my-app.main`). A generated project used to start on syntax the compiler warns about (#2827)

@@ -165,6 +165,11 @@ Assignment needs no sigil: a class constant cannot be assigned, so
 `(set! \C/slot v)` and `(php/oset (php/:: \C slot) v)` can only mean the property
 and emit `\C::$slot = v`.
 
+The sigil is rejected anywhere it could not mean a static property, `(php/-> o $x)`
+and `(php/:: \C ($x))` among them. PHP would read the `$x` as one of its own
+variables, which no Phel binding defines
+([#2915](https://github.com/phel-lang/phel-lang/issues/2915)).
+
 ### `aset` and `set!` are macros, not functions
 
 Clojure's `aset` is a function, so `(map (partial aset arr) …)` works. Phel's is a

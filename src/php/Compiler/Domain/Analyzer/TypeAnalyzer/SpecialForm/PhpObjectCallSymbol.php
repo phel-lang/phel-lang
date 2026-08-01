@@ -6,6 +6,7 @@ namespace Phel\Compiler\Domain\Analyzer\TypeAnalyzer\SpecialForm;
 
 use Phel\Compiler\Domain\Analyzer\AnalyzerInterface;
 use Phel\Compiler\Domain\Analyzer\Ast\MethodCallNode;
+use Phel\Compiler\Domain\Analyzer\Ast\PhpClassNameNode;
 use Phel\Compiler\Domain\Analyzer\Ast\PhpObjectCallNode;
 use Phel\Compiler\Domain\Analyzer\Ast\PropertyOrConstantAccessNode;
 use Phel\Compiler\Domain\Analyzer\Environment\NodeEnvironmentInterface;
@@ -64,6 +65,10 @@ final readonly class PhpObjectCallSymbol implements SpecialFormAnalyzerInterface
                 $callExpr = $this->callExprForPropertyCall($env, $current);
             }
 
+            $isStaticPlace = !$methodCall
+                && ($this->isStatic && $i === 2 || $targetExpr instanceof PhpClassNameNode);
+            $this->assertSigilNamesAStaticProperty($current, $isStaticPlace, $list);
+
             $isLast = $i === $counter - 1;
             $nodeEnv = $isLast ? $env : $env->withExpressionContext();
 
@@ -107,5 +112,41 @@ final readonly class PhpObjectCallSymbol implements SpecialFormAnalyzerInterface
     private function callExprForPropertyCall(NodeEnvironmentInterface $env, Symbol $segment): PropertyOrConstantAccessNode
     {
         return new PropertyOrConstantAccessNode($env, $segment, $segment->getStartLocation());
+    }
+
+    /**
+     * The `$` sigil names a static property, and PHP spells every other member
+     * without it. Emitted verbatim anywhere else it reads as a PHP *variable*
+     * of that name, which no Phel binding ever defines: `(php/-> o $foo)` used
+     * to compile to `$o->$foo` and read `$o->{''}` after two warnings (#2915).
+     *
+     * @param PersistentListInterface<mixed>|Symbol $segment
+     * @param PersistentListInterface<mixed>        $list
+     */
+    private function assertSigilNamesAStaticProperty(
+        Symbol|PersistentListInterface $segment,
+        bool $isStaticPlace,
+        PersistentListInterface $list,
+    ): void {
+        $member = $segment instanceof PersistentListInterface ? $segment->get(0) : $segment;
+        if (!$member instanceof Symbol) {
+            return;
+        }
+
+        $name = $member->getName();
+        if (!str_starts_with($name, '$') || $isStaticPlace) {
+            return;
+        }
+
+        throw AnalyzerException::withLocation(
+            sprintf(
+                "'%s' names a static property, which only a class can hold: write \\Foo/%s or (php/:: \\Foo %s). "
+                . 'An instance member and a method name carry no sigil.',
+                $name,
+                $name,
+                $name,
+            ),
+            $list,
+        );
     }
 }
