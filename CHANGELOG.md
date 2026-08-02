@@ -28,22 +28,12 @@ All notable changes to this project will be documented in this file.
 - Every class outside the public PHP surface carries `@internal`, so the split reaches IDEs and static analysis. A test pins both directions
 - CI: macOS is a supported platform (Windows stays declared best-effort), coverage is published and gated at 85%, benchmarks are asserted against the base revision, and mutation testing runs weekly over `src/php/Lang/` and the analyzer (MSI floor 80)
 
-### Changed
-
-- The spelling a PHP class will have after `\` goes is recorded: dotted or bare, with no leading marker, and the marker retires with the separator rather than becoming permanent ([ADR 0015](docs/adr/0015-a-php-class-is-named-with-dots.md), #2876). Nothing changes in `1.x`, where both spellings work
-
-- A `def` whose name is a loadable PHP class warns. The definition wins from there on, so `(def DateTime "shadow")` used to make `(new DateTime)` fail with `Class "shadow" not found` and nothing said why. Clojure refuses the `def`; Phel warns for now and names `\DateTime` as the spelling that still reaches the class, with the refusal scheduled for the major that drops the leading `\` (#2876)
-
-- The `\` namespace separator now warns without `--warn-deprecations`. It is the last deprecated language surface and the one scheduled for removal at the next major, so an opt-in notice was no notice at all: the policy promises a minor of warning before a removal and nobody was being warned. Every other deprecation stays opt-in ([ADR 0014](docs/adr/0014-announce-the-separator-deprecation.md), #2827)
-- Deprecations are never reported for code under a `vendor/` directory. A dependency's spelling is its author's to fix, and reporting it is how a warning channel earns being globally silenced. This is the first-party scoping ADR 0006 named as the precondition for announcing anything by default (#2827)
-
 ### Fixed
 
 - [The stability policy](docs/stability.md#what-a-deployment-loads) records what a built application actually loads: `Phel\Lang` plus seven `Phel\Compiler` classes reached through the singleton whose name is compiled into build artifacts, and nothing from `Run`, `Console`, `Api`, `Lsp`, `Nrepl`, `Build`, `Formatter` or `Lint`. Measured rather than asserted
 - `(in-ns ...)`, `(ns ...)` and `(use ...)` teach the dot separator in `phel doc`, instead of the spelling being retired
 - `phel doc` no longer warns about `phel-internal\doc`, a namespace only Phel writes. It generated the deprecated separator, which became visible once the notice stopped being opt-in (#2936)
 - `defexception` takes the same class spellings every other position takes. Its parent was wrapped raw instead of resolved, so `\Exception` worked while a bare `RuntimeException` bound to the *current* PHP namespace and a dotted `My.Ns.Error` reached the generated file with its dots and failed to parse. `(:use ...)` aliases now work there too (#2936)
-
 - `NO_COLOR` is honoured by the exception printer and the REPL error formatter. `getStackTraceString()` returns a string, so the caller may be writing to a log or an error tracker, and it used to bake ANSI escapes in regardless. Symfony Console already obeyed the variable, so the two halves of a command disagreed (#2923)
 - A `:tag` naming a class takes the dot separator: `^Phel.Lang.Symbol` emits `\Phel\Lang\Symbol` instead of reaching the generated signature verbatim and failing to parse. Unions, intersections and the nullable marker are handled; scalars and the backslash form are unchanged (#2924)
 - A `$`-prefixed member outside a static-property place fails to compile instead of emitting a PHP variable-property access. `(php/-> o $foo)` used to compile to `$o->$foo`, warn twice about an undefined variable and read `$o->{''}` (#2915)
@@ -82,6 +72,10 @@ All notable changes to this project will be documented in this file.
 
 ### Changed
 
+- The `\` namespace separator now warns without `--warn-deprecations`. It is the last deprecated language surface and the one scheduled for removal at the next major, so an opt-in notice was no notice at all: the policy promises a minor of warning before a removal and nobody was being warned. Every other deprecation stays opt-in ([ADR 0014](docs/adr/0014-announce-the-separator-deprecation.md), #2827)
+- The spelling a PHP class will have after `\` goes is recorded: dotted or bare, with no leading marker, and the marker retires with the separator rather than becoming permanent ([ADR 0015](docs/adr/0015-a-php-class-is-named-with-dots.md), #2876). Nothing changes in `1.x`, where both spellings work
+- A `def` whose name is a loadable PHP class warns. The definition wins from there on, so `(def DateTime "shadow")` used to make `(new DateTime)` fail with `Class "shadow" not found` and nothing said why. Clojure refuses the `def`; Phel warns for now and names `\DateTime` as the spelling that still reaches the class, with the refusal scheduled for the major that drops the leading `\` (#2876)
+- Deprecations are never reported for code under a `vendor/` directory. A dependency's spelling is its author's to fix, and reporting it is how a warning channel earns being globally silenced. This is the first-party scoping ADR 0006 named as the precondition for announcing anything by default (#2827)
 - **BREAKING** (installation): `symfony/console` narrows from `^6.0|^7.0|^8.0` to `^7.3|^8.0`. The old range was never true, since `phel.cli` renders with the `markdown` output style added in Symfony 7.3. `symfony/routing` already required `^7.3|^8.0`, so nothing that installs cleanly today is affected
 - **BREAKING** (PHP API, implementers only): `ApiFacadeInterface` declares the whole semantic-analysis surface (`analyzeSource`, `indexProject`, `extractDefinitions`, `resolveSymbol`, `findReferences`, `completeAtPoint`, `phpInteropHoverAt`, `phpInteropSignatureAt`, `phelSignatureAt`), and `FormatterFacadeInterface` gains `formatString`. Callers unaffected
 - **BREAKING** (PHP API): the five transfers named by `ApiFacadeInterface` moved from `Phel\Api\Transfer\` to `Phel\Shared\Api\` (`Diagnostic`, `ProjectIndex`, `Definition`, `Location`, `Completion`), shapes unchanged
