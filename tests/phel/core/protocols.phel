@@ -28,7 +28,7 @@
   (is (= "keyword: :foo" (describe :foo)) "dispatches on keyword"))
 
 (deftest test-protocol-no-impl-throws
-  (is (thrown? \InvalidArgumentException (describe 3.14))
+  (is (thrown? InvalidArgumentException (describe 3.14))
       "throws for unimplemented type"))
 
 ;; --- Additional primitive types ---

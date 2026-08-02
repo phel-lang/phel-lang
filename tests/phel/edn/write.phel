@@ -59,7 +59,7 @@
         written       (edn/write-string i)
         round-tripped (edn/read-string written)]
     (is (= "#inst \"2026-06-17T08:30:15+00:00\"" written) "inst writes as #inst literal")
-    (is (php/instanceof round-tripped \DateTimeImmutable))
+    (is (php/instanceof round-tripped DateTimeImmutable))
     (is (php/== i round-tripped) "inst round-trips to an equal instant"))
   ;; sub-second precision survives the round-trip
   (let [micros (edn/read-string "#inst \"2026-06-17T08:30:15.123456Z\"")]

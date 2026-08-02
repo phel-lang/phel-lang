@@ -27,7 +27,7 @@
 (deftest test-choose
   (let [vs (g/sample (g/choose 5 9) 100 {:seed fixed-seed})]
     (is (every? (fn [n] (and (<= 5 n) (<= n 9))) vs)))
-  (is (thrown? \InvalidArgumentException (g/choose 10 1))))
+  (is (thrown? InvalidArgumentException (g/choose 10 1))))
 
 (deftest test-float
   (let [vs (g/sample g/float 100 {:seed fixed-seed})]
@@ -61,7 +61,7 @@
 (deftest test-elements
   (let [vs (g/sample (g/elements [:a :b :c]) 50 {:seed fixed-seed})]
     (is (every? (fn [v] (contains? (hash-set :a :b :c) v)) vs)))
-  (is (thrown? \InvalidArgumentException (g/elements []))))
+  (is (thrown? InvalidArgumentException (g/elements []))))
 
 (deftest test-one-of
   (let [vs (g/sample (g/one-of [(g/return :a) (g/return :b)]) 50 {:seed fixed-seed})]
@@ -80,7 +80,7 @@
 (deftest test-such-that
   (let [vs (g/sample (g/such-that even? g/nat) 20 {:size 50 :seed fixed-seed})]
     (is (every? even? vs)))
-  (is (thrown? \RuntimeException
+  (is (thrown? RuntimeException
                (g/generate (g/such-that (fn [_] false) g/nat 5)))))
 
 (deftest test-tuple-variadic
@@ -143,7 +143,7 @@
 
 (deftest test-quick-check-error
   (let [res (g/quick-check 10 (g/tuple (g/return 0))
-                           (fn [_] (throw (new \RuntimeException "boom")))
+                           (fn [_] (throw (new RuntimeException "boom")))
                            {:seed fixed-seed})]
     (is (= :error (:result res)))
     (is (some? (:exception res)))))

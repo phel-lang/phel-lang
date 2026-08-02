@@ -23,9 +23,9 @@
 
 (deftest test-nth-constant-index-on-typed-vector
   (is (= 20 (nth-const [10 20 30])) "specialised constant-index nth hits PersistentVector::get")
-  (is (thrown? \Throwable (nth-const [10]))
+  (is (thrown? Throwable (nth-const [10]))
       "specialised nth throws out of range, matching runtime nth")
-  (is (thrown? \Throwable (nth [10] 1))
+  (is (thrown? Throwable (nth [10] 1))
       "runtime nth also throws out of range"))
 
 (deftest test-second-on-typed-vector

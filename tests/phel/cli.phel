@@ -60,22 +60,22 @@
 ;; ---------------------------------------------------------------------------
 
 (deftest test-missing-name-rejected
-  (is (thrown? \InvalidArgumentException
+  (is (thrown? InvalidArgumentException
                (cli/command {:run (fn [_] 0)}))))
 
 (deftest test-missing-run-rejected
-  (is (thrown? \InvalidArgumentException
+  (is (thrown? InvalidArgumentException
                (cli/command {:name "x"}))))
 
 (deftest test-invalid-arg-mode-rejected
-  (is (thrown? \InvalidArgumentException
+  (is (thrown? InvalidArgumentException
                (cli/command {:name "x"
                              :args [{:name "p" :mode :bogus}]
                              :run  (fn [_] 0)}))))
 
 (deftest test-handler-exception-becomes-exit-1
   (let [res (run-cmd {:name "boom"
-                      :run  (fn [ctx] (throw (new \RuntimeException "kaboom")))}
+                      :run  (fn [ctx] (throw (new RuntimeException "kaboom")))}
                      ["boom"])]
     (is (= 1 (get res :code)))
     (is (cli/output-contains? res "kaboom"))))
@@ -184,12 +184,12 @@
   ;; Extract the Closure registered via Command::setCode across all supported
   ;; Symfony versions. Symfony 6 stores the raw Closure on `Command::$code`;
   ;; 7+ wraps it in an InvokableCommand whose own `$code` holds the Closure.
-  (let [rc  (new \ReflectionClass cmd)
+  (let [rc  (new ReflectionClass cmd)
         cp  (.getProperty rc "code")
         raw (.getValue cp cmd)]
-    (if (php/instanceof raw \Closure)
+    (if (php/instanceof raw Closure)
       raw
-      (let [icrc (new \ReflectionClass raw)
+      (let [icrc (new ReflectionClass raw)
             icp  (.getProperty icrc "code")]
         (.getValue icp raw)))))
 
@@ -200,7 +200,7 @@
   ;; Symfony interface as a named type. Works on Symfony 6, 7, and 8.
   (let [cmd     (cli/command {:name "x" :run (fn [_] 0)})
         closure (handler-closure cmd)
-        rf      (new \ReflectionFunction closure)
+        rf      (new ReflectionFunction closure)
         params  (.getParameters rf)
         p0      (php/aget params 0)
         p1      (php/aget params 1)

@@ -41,7 +41,7 @@
   (let [caught (try
                  (s/validate [:ref :definitely-not-registered] 1)
                  :no-throw
-                 (catch \InvalidArgumentException _ :caught))]
+                 (catch InvalidArgumentException _ :caught))]
     (is (= :caught caught))))
 
 (deftest test-re-register-overwrites-previous-schema

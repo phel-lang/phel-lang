@@ -149,7 +149,7 @@
 ;; `__invoke` signature is the single reflection point covering both.
 (defn- fn-reflection
   [f]
-  (new \ReflectionMethod f "__invoke"))
+  (new ReflectionMethod f "__invoke"))
 
 (defn arity
   "Returns the number of required parameters of the function `f`. For a variadic function this is the number of parameters before `&`. A multi-arity function compiles to a single variadic dispatch, so it reports `0`."
@@ -170,7 +170,7 @@
   {:example "((some-fn even? nil?) 1 2) ; => true\n((some-fn pos? even?) -3 -1) ; => false"
    :see-also ["some" "complement" "every?" "not-any?"]}
   ([]
-   (throw (new \InvalidArgumentException "some-fn expects at least one predicate")))
+   (throw (new InvalidArgumentException "some-fn expects at least one predicate")))
   ([p & ps]
    (let [preds (cons p ps)]
      (fn [& args]
@@ -181,7 +181,7 @@
   {:example "((every-pred even? pos?) 2 4 6) ; => true\n((every-pred even? pos?) 2 -4) ; => false"
    :see-also ["some-fn" "complement" "every?" "not-every?"]}
   ([]
-   (throw (new \InvalidArgumentException "every-pred expects at least one predicate")))
+   (throw (new InvalidArgumentException "every-pred expects at least one predicate")))
   ([p & ps]
    (let [preds (cons p ps)]
      (fn [& args]

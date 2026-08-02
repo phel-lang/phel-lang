@@ -86,21 +86,21 @@
     (string? value) (or (parse-uuid value) value)
     :else           value))
 
-;; Coerces to a `\DateTimeImmutable`: parses date strings and treats ints
+;; Coerces to a `DateTimeImmutable`: parses date strings and treats ints
 ;; as UNIX timestamps. Invalid strings/timestamps are caught and the
 ;; original value is returned unchanged.
 (defn- coerce-inst [value]
   (cond
-    (php/instanceof value \DateTimeInterface) value
+    (php/instanceof value DateTimeInterface) value
     (string? value)
     (try
-      (new \DateTimeImmutable value)
-      (catch \Throwable _ value))
+      (new DateTimeImmutable value)
+      (catch Throwable _ value))
     (int? value)
     (try
-      (\DateTimeImmutable/createFromFormat "U" (str value))
-      (catch \Throwable _ value))
-    :else                                     value))
+      (DateTimeImmutable/createFromFormat "U" (str value))
+      (catch Throwable _ value))
+    :else                                    value))
 
 (defn- coerce-keyword-kind [head value]
   (case head

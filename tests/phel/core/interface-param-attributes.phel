@@ -8,7 +8,7 @@
   (map #(.getName %) attrs))
 
 (deftest method-and-param-attributes-are-emitted
-  (let [rm    (new \ReflectionMethod "phel_test\\core\\interface_param_attributes\\Ctrl" "act")
+  (let [rm    (new ReflectionMethod "phel_test\\core\\interface_param_attributes\\Ctrl" "act")
         p0    (php/aget (.getParameters rm) 0)
         margs (attr-names (.getAttributes rm))
         pargs (attr-names (.getAttributes p0))]

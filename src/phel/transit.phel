@@ -1,8 +1,8 @@
 (ns phel.transit
   (:use Phel.Lang.UUID)
-  (:use \JSON_UNESCAPED_SLASHES)
-  (:use \JSON_UNESCAPED_UNICODE)
-  (:use \JSON_PRESERVE_ZERO_FRACTION))
+  (:use JSON_UNESCAPED_SLASHES)
+  (:use JSON_UNESCAPED_UNICODE)
+  (:use JSON_PRESERVE_ZERO_FRACTION))
 
 ;; phel.transit: read and write Transit+JSON-Verbose data.
 ;;
@@ -87,7 +87,7 @@
       ":" (keyword rep)
       "$" (symbol rep)
       "u" (UUID/fromString rep)
-      "t" (new \DateTimeImmutable rep)
+      "t" (new DateTimeImmutable rep)
       "?" (php/=== rep "t")
       "i" (php/intval rep)
       "d" (php/floatval rep)
@@ -100,7 +100,7 @@
       (let [default (get opts :default-handler)]
         (if default
           (default (str marker) rep)
-          (throw (new \InvalidArgumentException
+          (throw (new InvalidArgumentException
                       (str "Unknown Transit scalar tag '~" marker "'"))))))))
 
 (defn- decode-cmap
@@ -130,7 +130,7 @@
         handler (handler (decode rep opts))
         default (default tag (decode rep opts))
         :else
-        (throw (new \InvalidArgumentException
+        (throw (new InvalidArgumentException
                     (str "Unknown Transit tag '~#" tag "'")))))))
 
 (defn- decode-array
@@ -173,7 +173,7 @@
          (php/array_is_list x))  (decode-array x opts)
     (php/is_array x)             (decode-object x opts)
     :else
-    (throw (new \InvalidArgumentException
+    (throw (new InvalidArgumentException
                 (str "Cannot decode Transit value of type "
                      (php/gettype x))))))
 
@@ -193,7 +193,7 @@
    (let [raw (php/json_decode s true)
          err (php/json_last_error)]
      (when-not (zero? err)
-       (throw (new \InvalidArgumentException
+       (throw (new InvalidArgumentException
                    (str "Invalid Transit JSON: " (php/json_last_error_msg)))))
      (decode raw opts))))
 
@@ -261,21 +261,21 @@
   escaped with a leading `~`."
   [x]
   (cond
-    (nil? x)                              nil
-    (php/is_bool x)                       x
-    (php/is_int x)                        x
-    (php/is_float x)                      x
-    (keyword? x)                          (encode-keyword x)
-    (symbol? x)                           (encode-symbol x)
-    (php/instanceof x UUID)               (encode-uuid x)
-    (php/instanceof x \DateTimeInterface) (encode-datetime x)
-    (php/is_string x)                     (escape-string x)
-    (set? x)                              (encode-set x)
-    (vector? x)                           (encode-vector x)
-    (list? x)                             (encode-list x)
-    (map? x)                              (encode-map x)
+    (nil? x)                             nil
+    (php/is_bool x)                      x
+    (php/is_int x)                       x
+    (php/is_float x)                     x
+    (keyword? x)                         (encode-keyword x)
+    (symbol? x)                          (encode-symbol x)
+    (php/instanceof x UUID)              (encode-uuid x)
+    (php/instanceof x DateTimeInterface) (encode-datetime x)
+    (php/is_string x)                    (escape-string x)
+    (set? x)                             (encode-set x)
+    (vector? x)                          (encode-vector x)
+    (list? x)                            (encode-list x)
+    (map? x)                             (encode-map x)
     :else
-    (throw (new \InvalidArgumentException
+    (throw (new InvalidArgumentException
                 (str "Cannot encode value of type " (php/gettype x) " to Transit")))))
 
 (defn write-string

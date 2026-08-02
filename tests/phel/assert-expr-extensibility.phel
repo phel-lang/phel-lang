@@ -80,7 +80,7 @@
 ;; ---------------------------------------------------------------------------
 
 (defmethod phel.test/assert-expr 'always-throws [_message _form]
-  `(throw (new \RuntimeException "boom from custom assertion")))
+  `(throw (new RuntimeException "boom from custom assertion")))
 
 (deftest test-custom-method-exception-is-reported-as-error
   (let [counts (:counts (with-isolated-stats
@@ -134,5 +134,5 @@
 (deftest test-custom-clojure-style-thrown-symbol-dispatches-through-new-method
   (let [counts (:counts (with-isolated-stats
                           (with-output-buffer
-                            (t/is (p/thrown? (throw (new \RuntimeException "boom")))))))]
+                            (t/is (p/thrown? (throw (new RuntimeException "boom")))))))]
     (is (= 1 (:pass counts)) "namespaced custom assert dispatch values do not require a resolved function")))

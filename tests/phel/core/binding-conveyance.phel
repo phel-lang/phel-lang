@@ -65,7 +65,7 @@
   (let [thrown? (try
                   (binding [*not-dynamic* :rebound] :unreached)
                   false
-                  (catch \Throwable _ true))]
+                  (catch Throwable _ true))]
     (is thrown? "binding on a non-dynamic var raises an exception"))
   (is (= :root *not-dynamic*) "non-dynamic var is left untouched after the failed bind"))
 

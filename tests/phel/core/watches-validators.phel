@@ -105,7 +105,7 @@
 (deftest test-set-validator-rejects-invalid
   (let [v        (atom 10)
         _        (set-validator! v pos?)
-        rejected (try (reset! v -1) false (catch \Throwable e true))]
+        rejected (try (reset! v -1) false (catch Throwable e true))]
     (is (true? rejected) "validator rejects negative value")
     (is (= 10 (deref v)) "value unchanged")))
 
@@ -113,7 +113,7 @@
   (let [v        (atom 5)
         _        (set-validator! v pos?)
         _        (swap! v inc)
-        rejected (try (swap! v (fn [x] (- x 100))) false (catch \Throwable e true))]
+        rejected (try (swap! v (fn [x] (- x 100))) false (catch Throwable e true))]
     (is (= 6 (deref v)) "valid swap accepted")
     (is (true? rejected) "invalid swap rejected")))
 
@@ -126,7 +126,7 @@
 
 (deftest test-set-validator-checks-current-value
   (let [v        (atom -5)
-        rejected (try (set-validator! v pos?) false (catch \Throwable e true))]
+        rejected (try (set-validator! v pos?) false (catch Throwable e true))]
     (is (true? rejected) "setting validator rejects current value")))
 
 ;; --- Watches + Validators together ---
@@ -144,13 +144,13 @@
         v     (atom 1)
         _     (set-validator! v pos?)
         _     (add-watch v :log (fn [k r o n] (reset! fired true)))]
-    (try (reset! v -1) (catch \Throwable e nil))
+    (try (reset! v -1) (catch Throwable e nil))
     (is (false? (deref fired)) "watch does not fire when rejected")))
 
 ;; --- alter-var-root rejects non-Var inputs ---
 
 (deftest test-alter-var-root-rejects-atom
-  (is (thrown? \InvalidArgumentException (alter-var-root (atom 0) inc))
+  (is (thrown? InvalidArgumentException (alter-var-root (atom 0) inc))
       "alter-var-root rejects atoms")
-  (is (thrown? \InvalidArgumentException (alter-var-root nil inc))
+  (is (thrown? InvalidArgumentException (alter-var-root nil inc))
       "alter-var-root rejects nil"))

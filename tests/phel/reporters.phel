@@ -298,7 +298,7 @@
       "resolve-reporter with nil returns nil instead of throwing"))
 
 (deftest test-register-reporter-rejects-non-name-types
-  (is (thrown-with-msg? \InvalidArgumentException
+  (is (thrown-with-msg? InvalidArgumentException
                         "register-reporter! name must be a keyword or string"
                         (t/register-reporter! 42 (fn [_])))
       "register-reporter! rejects numeric names"))
@@ -477,13 +477,13 @@
 ;; ---------------------------------------------------------------------------
 
 (deftest test-run-tests-throws-on-unknown-reporter-keyword
-  (is (thrown-with-msg? \InvalidArgumentException
+  (is (thrown-with-msg? InvalidArgumentException
                         "Unknown reporter: :does-not-exist"
                         (t/run-tests {:reporters [:does-not-exist]}))
       "run-tests rejects unknown reporter keywords at configure time"))
 
 (deftest test-run-tests-throws-on-invalid-reporter-value
-  (is (thrown-with-msg? \InvalidArgumentException
+  (is (thrown-with-msg? InvalidArgumentException
                         "Invalid reporter value: 42"
                         (t/run-tests {:reporters [42]}))
       "run-tests rejects non-keyword, non-string, non-fn reporter values"))

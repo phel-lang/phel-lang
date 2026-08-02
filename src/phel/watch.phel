@@ -26,7 +26,7 @@
     (foreach [_ hook entry]
       (try
         (hook)
-        (catch \Throwable _e nil)))
+        (catch Throwable _e nil)))
     (count entry)))
 
 (defn watch!

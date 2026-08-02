@@ -88,7 +88,7 @@
 
 (deftest refuses-to-write-a-root
   (let [err (try (set! *counter* 3)
-                 (catch \InvalidArgumentException e e))]
-    (is (php/instanceof err \InvalidArgumentException)
+                 (catch InvalidArgumentException e e))]
+    (is (php/instanceof err InvalidArgumentException)
         "set! outside a binding frame throws instead of writing the root")
     (is (= 0 *counter*) "the root is still the value def gave it")))

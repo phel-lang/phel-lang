@@ -58,7 +58,7 @@
   (is (true? ((some-fn neg? zero? pos?) 0)) "some-fn with three preds matches middle"))
 
 (deftest test-some-fn-zero-arity-throws-at-runtime
-  (is (thrown? \InvalidArgumentException (some-fn))
+  (is (thrown? InvalidArgumentException (some-fn))
       "some-fn with no predicates compiles and throws at runtime"))
 
 (deftest test-some-fn-returns-actual-value
@@ -68,7 +68,7 @@
 (deftest test-some-fn-short-circuits-preds
   (let [calls (atom 0)
         p1    (fn [x] (swap! calls inc) (even? x))
-        p2    (fn [_] (throw (new \Exception "should not be called")))]
+        p2    (fn [_] (throw (new Exception "should not be called")))]
     (is (true? ((some-fn p1 p2) 2)) "some-fn short-circuits on first truthy pred")
     (is (= 1 (deref calls)) "second pred was not invoked")))
 
@@ -102,7 +102,7 @@
   (is (false? ((every-pred pos? even?) 2 3)) "every-pred false when a pred fails one arg"))
 
 (deftest test-every-pred-zero-arity-throws-at-runtime
-  (is (thrown? \InvalidArgumentException (every-pred))
+  (is (thrown? InvalidArgumentException (every-pred))
       "every-pred with no predicates compiles and throws at runtime"))
 
 (deftest test-every-pred-returns-boolean
@@ -112,7 +112,7 @@
 (deftest test-every-pred-short-circuits-preds
   (let [calls (atom 0)
         p1    (fn [x] (swap! calls inc) (even? x))
-        p2    (fn [_] (throw (new \Exception "should not be called")))]
+        p2    (fn [_] (throw (new Exception "should not be called")))]
     (is (false? ((every-pred p1 p2) 3)) "every-pred short-circuits on first false pred")
     (is (= 1 (deref calls)) "second pred was not invoked")))
 

@@ -140,22 +140,22 @@
       "binds from multi-target row"))
 
 (deftest test-no-match-without-else-throws
-  (is (thrown? \RuntimeException (match [99] [1] :never))
+  (is (thrown? RuntimeException (match [99] [1] :never))
       "missing :else raises RuntimeException"))
 
 (deftest test-target-count-mismatch-throws-at-expand
   ;; Target-count errors are macro-expansion time, not runtime, so the
   ;; expression under test itself would fail to expand. Verify the
   ;; error via `macroexpand-1` instead.
-  (is (thrown? \InvalidArgumentException
+  (is (thrown? InvalidArgumentException
                (macroexpand-1 '(phel.match/match [1 2] [1 2 3] :x :else :y)))
       "mismatched target/pattern count raises at expansion"))
 
 (deftest test-invalid-pattern-shapes-throw-at-expand
-  (is (thrown? \InvalidArgumentException
+  (is (thrown? InvalidArgumentException
                (macroexpand-1 '(phel.match/match "not-a-vector" [1] :x :else :y)))
       "non-vector target list raises")
-  (is (thrown? \InvalidArgumentException
+  (is (thrown? InvalidArgumentException
                (macroexpand-1 '(phel.match/match [1] :not-a-vector-pattern :x :else :y)))
       "non-vector pattern raises"))
 
@@ -244,12 +244,12 @@
            (is (= :else (match [1] [(:or nil false 0)] :ok :else :else))
                "no alternative matches"))
   (testing ":or requires at least one alternative"
-           (is (thrown? \InvalidArgumentException
+           (is (thrown? InvalidArgumentException
                         (macroexpand-1 '(phel.match/match [1] [(:or)] :x :else :y)))
                "empty :or raises at expansion")))
 
 (deftest test-or-pattern-rejects-binding-alternatives
-  (is (thrown? \InvalidArgumentException
+  (is (thrown? InvalidArgumentException
                (macroexpand-1 '(phel.match/match [1] [(:or x 2)] x :else :none)))
       ":or alternatives may not introduce bindings"))
 
@@ -272,10 +272,10 @@
            (is (= [:ok [2 3]]
                   (match [[1 2 3]] [[_ & tail]] [:ok tail] :else :else))))
   (testing "rest position must be symbol"
-           (is (thrown? \InvalidArgumentException
+           (is (thrown? InvalidArgumentException
                         (macroexpand-1 '(phel.match/match [[1 2]] [[a & 3]] :x :else :y)))
                "non-symbol rest binding raises")
-           (is (thrown? \InvalidArgumentException
+           (is (thrown? InvalidArgumentException
                         (macroexpand-1 '(phel.match/match [[1 2]] [[a & b c]] :x :else :y)))
                "multiple items after & raises")))
 

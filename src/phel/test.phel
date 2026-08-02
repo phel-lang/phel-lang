@@ -257,10 +257,10 @@
   ;; `(thrown? ExceptionClass body...)` asserts that `body` throws an instance of
   ;; `ExceptionClass` (or a subclass). The single-argument form `(thrown? body)`
   ;; used by portability shims asserts only that `body` throws *anything*, so
-  ;; the caught type defaults to `\Throwable` (the root of all PHP throwables
+  ;; the caught type defaults to `Throwable` (the root of all PHP throwables
   ;; since PHP 7).
   (let [single-arg?      (= 2 (count form))
-        exception-symbol (if single-arg? '\Throwable (second form))
+        exception-symbol (if single-arg? 'Throwable (second form))
         body             (if single-arg? (next form) (nnext form))
         loc              (location form)
         report-data      (gensym)
@@ -369,7 +369,7 @@
   [form & [message]]
   (let [loc (location form) e (gensym)]
     `(try ~(assert-expr message form)
-          (catch \Throwable ~e
+          (catch Throwable ~e
             (report {:type :error
                      :state :error
                      :location ~loc
@@ -388,7 +388,7 @@ Metadata attached to `test-name` is forwarded to the defined function so selecto
   {:example "(deftest test-add)"}
   [test-name & body]
   (when-not (symbol? test-name)
-    (throw (new \InvalidArgumentException
+    (throw (new InvalidArgumentException
                 (str "deftest requires a symbol name as its first argument, got "
                      (type test-name) ". Example: (deftest test-add ...)."))))
   (let [sym-meta (or (.getMeta test-name) {})
@@ -1071,7 +1071,7 @@ Metadata attached to `test-name` is forwarded to the defined function so selecto
   [name reporter-fn]
   (let [kw (reporter-key name)]
     (when (nil? kw)
-      (throw (new \InvalidArgumentException
+      (throw (new InvalidArgumentException
                   "register-reporter! name must be a keyword or string")))
     (swap! custom-reporters assoc kw reporter-fn)
     kw))
@@ -1136,12 +1136,12 @@ Metadata attached to `test-name` is forwarded to the defined function so selecto
    :see-also ["deftest" "run-tests"]}
   [fixture-type & fns]
   (when (some (fn [f] (not (fn? f))) fns)
-    (throw (new \InvalidArgumentException
+    (throw (new InvalidArgumentException
                 "All arguments to use-fixtures must be functions")))
   (let [key     (case fixture-type
                   :each :each-fixtures
                   :once :once-fixtures
-                  (throw (new \InvalidArgumentException
+                  (throw (new InvalidArgumentException
                               (str "use-fixtures: invalid fixture-type "
                                    fixture-type ", expected :each or :once"))))
         ns-name *ns*]
@@ -1303,11 +1303,11 @@ Metadata attached to `test-name` is forwarded to the defined function so selecto
 
     (or (keyword? r) (string? r))
     (or (resolve-reporter r)
-        (throw (new \InvalidArgumentException
+        (throw (new InvalidArgumentException
                     (str "Unknown reporter: " r))))
 
     :else
-    (throw (new \InvalidArgumentException
+    (throw (new InvalidArgumentException
                 (str "Invalid reporter value: " r)))))
 
 (defn- requested-reporters

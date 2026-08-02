@@ -53,7 +53,7 @@ Optional `:meta` and `:validator` keyword arguments may follow the value in any 
   "Throws `InvalidArgumentException` with `msg` unless `v` is a `Var`."
   [v msg]
   (when-not (var? v)
-    (throw (new \InvalidArgumentException msg))))
+    (throw (new InvalidArgumentException msg))))
 
 (defn reset!
   "Sets a new value on the given atom. Returns the new value."
@@ -81,9 +81,9 @@ With three arguments, and when `variable` is a future or promise, blocks for at 
         (php/instanceof variable Phel.Fiber.Domain.Promise)
         (.derefWithTimeout variable (first args) (get args 1))
         true
-        (throw (new \InvalidArgumentException
+        (throw (new InvalidArgumentException
                     "3-arg deref is only supported on futures and promises")))
-    (throw (new \InvalidArgumentException
+    (throw (new InvalidArgumentException
                 "deref expects 1 or 3 arguments"))))
 
 (defn swap!
@@ -193,7 +193,7 @@ Returns the new value after the swap."
     (atom? r) (let [next (apply f (.getMeta r) args)]
                 (.withMeta r next)
                 next)
-    :else     (throw (new \InvalidArgumentException
+    :else     (throw (new InvalidArgumentException
                           "alter-meta! expects a Var or atom as first argument"))))
 
 (defn reset-meta!
@@ -204,7 +204,7 @@ Returns the new value after the swap."
   (cond
     (var? r)  (.resetMeta r meta-map)
     (atom? r) (do (.withMeta r meta-map) meta-map)
-    :else     (throw (new \InvalidArgumentException
+    :else     (throw (new InvalidArgumentException
                           "reset-meta! expects a Var or atom as first argument"))))
 
 (defn remove-watch

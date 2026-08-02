@@ -337,17 +337,17 @@
       "first pulls one element from a bare PHP generator"))
 
 (deftest test-eduction-count-is-a-deliberate-error
-  (is (thrown? \InvalidArgumentException (count (eduction (map inc) [1 2 3])))
+  (is (thrown? InvalidArgumentException (count (eduction (map inc) [1 2 3])))
       "count refuses an eduction rather than draining it")
   (is (thrown-with-msg?
-       \InvalidArgumentException
+       InvalidArgumentException
        "count is not supported on a lazily consumed source: Phel\\Lang\\Eduction. Draining it re-runs the pipeline, so realize it first: (count (into [] coll))."
        (count (eduction (map inc) [1 2 3])))
       "the error names the reason, not a PHP stringification failure"))
 
 (deftest test-count-of-an-uncountable-value-reports-its-type
   (is (thrown-with-msg?
-       \InvalidArgumentException
+       InvalidArgumentException
        "count is not supported on this type: bool"
        (count true))
       "count of a non-collection reports the type instead of interpolating the value"))

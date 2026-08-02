@@ -15,7 +15,7 @@
 
 (deftest test-nested-php-object-call
   (let [xml-string "<root><user id='1'><name>John</name></user></root>"
-        xml        (new \SimpleXMLElement xml-string)]
+        xml        (new SimpleXMLElement xml-string)]
     (is (= "John" (str (-> xml (.-user) (.-name)))))))
 
 (deftest test-php-new-dynamic-class-from-variable
@@ -25,7 +25,7 @@
         "new with a class held in a variable resolves at runtime")))
 
 (deftest test-php-new-dynamic-invalid-class-throws
-  (is (thrown? \InvalidArgumentException
+  (is (thrown? InvalidArgumentException
                (let [cls 42]
                  (new cls)))
       "new with a non-string, non-object class value throws InvalidArgumentException"))

@@ -1,6 +1,6 @@
 (ns phel-test.core.php-invoke
   (:require phel.test :refer [deftest is])
-  (:use \DateTimeImmutable))
+  (:use DateTimeImmutable))
 
 (deftest invokes-a-method-named-by-a-value
   (let [d (new DateTimeImmutable "2024-03-10")]
@@ -33,8 +33,8 @@
 (deftest unknown-method-raises-a-clear-error
   (let [d   (new DateTimeImmutable "2024-03-10")
         err (try (php-invoke d "nope" 1)
-                 (catch \InvalidArgumentException e e))]
-    (is (php/instanceof err \InvalidArgumentException)
+                 (catch InvalidArgumentException e e))]
+    (is (php/instanceof err InvalidArgumentException)
         "an undefined method throws instead of a PHP TypeError")
     (is (= "Call to undefined method DateTimeImmutable::nope()"
            (.getMessage err))
@@ -42,14 +42,14 @@
 
 (deftest unknown-static-method-names-the-class
   (let [err (try (php-invoke "\\Phel\\Lang\\Keyword" "nope")
-                 (catch \InvalidArgumentException e e))]
+                 (catch InvalidArgumentException e e))]
     (is (= "Call to undefined method \\Phel\\Lang\\Keyword::nope()"
            (.getMessage err))
         "the class name is reported as given")))
 
 (deftest non-object-target-raises
   (let [err (try (php-invoke 42 "format")
-                 (catch \InvalidArgumentException e e))]
+                 (catch InvalidArgumentException e e))]
     (is (= "Call to undefined method integer::format()"
            (.getMessage err))
         "a non-object target reports its type instead of crashing")))

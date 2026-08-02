@@ -27,7 +27,7 @@
         rejected? (atom false)]
     (try
       (reset! a 3)
-      (catch \InvalidArgumentException _e
+      (catch InvalidArgumentException _e
         (reset! rejected? true)))
     (is (true? (deref rejected?)) "validator throws on rejected value")
     (is (= 0 (deref a)) "rejected value does not mutate atom")))

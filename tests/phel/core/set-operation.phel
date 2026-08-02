@@ -70,7 +70,7 @@
   (is (= (sorted-set 1 3) (disj (sorted-set 1 2 3) 2)) "disj works on sorted-set")
   (is (= (sorted-set 1) (disj (sorted-set 1 2 3) 2 3)) "disj removes multiple keys from sorted-set")
   (is (nil? (disj nil 1)) "disj on nil returns nil")
-  (is (thrown? \InvalidArgumentException (disj [1 2 3] 1)) "disj on vector throws InvalidArgumentException"))
+  (is (thrown? InvalidArgumentException (disj [1 2 3] 1)) "disj on vector throws InvalidArgumentException"))
 
 (deftest test-set-push
   (let [s1 (hash-set 1 2)

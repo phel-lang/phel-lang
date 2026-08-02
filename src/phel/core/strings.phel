@@ -37,7 +37,7 @@
 (defn- assert-symbol-name [arg-name x]
   (if (valid-symbol-name? x)
     nil
-    (throw (new \InvalidArgumentException
+    (throw (new InvalidArgumentException
                 (php/. "symbol expects a string, keyword, or symbol for "
                        arg-name
                        ", got "

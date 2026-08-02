@@ -221,7 +221,7 @@
       (for [c :in calls]
         (let [fn-def   (get c :function)
               args-str (get fn-def :arguments)
-              args     (try (json/decode args-str) (catch \Throwable _e args-str))]
+              args     (try (json/decode args-str) (catch Throwable _e args-str))]
           {:name (get fn-def :name)
            :id (get c :id)
            :input args}))
@@ -246,7 +246,7 @@
   (let [status (get response :status)]
     (when (or (< status 200) (>= status 300))
       (let [body   (get response :body)
-            parsed (try (json/decode body) (catch \Throwable _e nil))]
+            parsed (try (json/decode body) (catch Throwable _e nil))]
         (throw (new RuntimeException
                     (str "AI API error (HTTP " status "): "
                          (provider-error-message parsed body))))))))

@@ -41,7 +41,7 @@
 
 (deftest test-inst
   (testing ":inst matches DateTime instances"
-           (let [now (new \DateTimeImmutable)]
+           (let [now (new DateTimeImmutable)]
              (is (s/validate :inst now))))
   (testing ":inst rejects strings"
            (is (not (s/validate :inst "2026-01-01")))))
@@ -160,14 +160,14 @@
   (is (not (s/schema? 1))))
 
 (deftest test-validate-rejects-unknown-keyword-head
-  (is (thrown? \InvalidArgumentException (s/validate :not-a-real-kind 1))))
+  (is (thrown? InvalidArgumentException (s/validate :not-a-real-kind 1))))
 
 (deftest test-validate-rejects-unknown-vector-head
-  (is (thrown? \InvalidArgumentException (s/validate [:not-a-real-kind 1] 1))))
+  (is (thrown? InvalidArgumentException (s/validate [:not-a-real-kind 1] 1))))
 
 (deftest test-validate-rejects-non-schema-shape
-  (is (thrown? \InvalidArgumentException (s/validate "string-is-not-a-schema" 1)))
-  (is (thrown? \InvalidArgumentException (s/validate 42 1))))
+  (is (thrown? InvalidArgumentException (s/validate "string-is-not-a-schema" 1)))
+  (is (thrown? InvalidArgumentException (s/validate 42 1))))
 
 (deftest test-empty-and-matches-anything
   (is (s/validate [:and] 1))

@@ -165,10 +165,10 @@
     ;; Validate for non-URLs
     (when-not is-url?
       (when (php/is_dir path)
-        (throw (new \InvalidArgumentException
+        (throw (new InvalidArgumentException
                     (str "Cannot read directory: " path))))
       (when-not (php/is_file path)
-        (throw (new \InvalidArgumentException
+        (throw (new InvalidArgumentException
                     (str "File not found: " path)))))
     ;; Read content
     (let [opts             (or opts {})
@@ -178,7 +178,7 @@
           length           (or (:length opts) nil)
           content          (file-get-contents-silenced path use-include-path context offset length)]
       (when (= content false)
-        (throw (new \InvalidArgumentException
+        (throw (new InvalidArgumentException
                     (str "Failed to read from: " path))))
       content)))
 
@@ -188,7 +188,7 @@
 See PHP's [file_put_contents](https://www.php.net/manual/en/function.file-put-contents.php) for more information."
   [filename data & [opts]]
   (when (php/is_dir filename)
-    (throw (new \InvalidArgumentException
+    (throw (new InvalidArgumentException
                 "Argument filename should be a valid path to a file, directory given.")))
   (let [opts    (or opts {})
         flags   (or (:flags opts) 0)
@@ -272,7 +272,7 @@ See PHP's [file_put_contents](https://www.php.net/manual/en/function.file-put-co
   {:example "(with-open [f (php/fopen \"data.txt\" \"r\")] (php/fgets f))"
    :see-also ["slurp" "spit" "line-seq"]}
   [bindings & body]
-  (let [err #(throw (new \InvalidArgumentException %))]
+  (let [err #(throw (new InvalidArgumentException %))]
     (when-not (vector? bindings)
       (err (str "with-open requires a vector for its bindings, "
                 (type bindings) " given")))
@@ -495,9 +495,9 @@ See PHP's [file_put_contents](https://www.php.net/manual/en/function.file-put-co
      (try
        (do
          ~@(emit-set-vars bindings)
-         (\Phel/commitAndRunBindingFrame (fn [] ~@body)))
+         (Phel/commitAndRunBindingFrame (fn [] ~@body)))
        (finally
-         (\Phel/abortBindingFrameIfOpen)))))
+         (Phel/abortBindingFrameIfOpen)))))
 
 (defmacro binding
   "Temporarily rebinds dynamic vars while executing `body`.
@@ -533,13 +533,13 @@ See PHP's [file_put_contents](https://www.php.net/manual/en/function.file-put-co
         v-sym (gensym "v__")
         x-sym (gensym "x__")]
     `(let [~m-sym ~m]
-       (\Phel/openBindingFrame)
+       (Phel/openBindingFrame)
        (try
          (do
            (foreach [~v-sym ~x-sym ~m-sym]
-             (\Phel/setVar (.getNamespace ~v-sym)
-                           (.getName ~v-sym)
-                           ~x-sym))
-           (\Phel/commitAndRunBindingFrame (fn [] ~@body)))
+             (Phel/setVar (.getNamespace ~v-sym)
+                          (.getName ~v-sym)
+                          ~x-sym))
+           (Phel/commitAndRunBindingFrame (fn [] ~@body)))
          (finally
-           (\Phel/abortBindingFrameIfOpen))))))
+           (Phel/abortBindingFrameIfOpen))))))

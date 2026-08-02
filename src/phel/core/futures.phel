@@ -15,9 +15,9 @@ Must be called from inside a fiber context (e.g. the AMPHP event loop or an encl
   {:example "(let [f (future (expensive-computation))] @f)"
    :see-also ["realized?" "deref"]}
   [& body]
-  `(let [frame# (\Phel/snapshotDynamicBindings)]
+  `(let [frame# (Phel/snapshotDynamicBindings)]
      (new Phel.Lang.Future
           (php/amp\async
            (fn []
-             (\Phel/withDynamicBindings frame# (fn [] ~@body))))
+             (Phel/withDynamicBindings frame# (fn [] ~@body))))
           (new Amp.DeferredCancellation))))

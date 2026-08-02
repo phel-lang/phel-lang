@@ -3,7 +3,7 @@
   (:require phel.test :refer [deftest is]))
 
 (defn- datetime? [x]
-  (php/instanceof x \DateTimeImmutable))
+  (php/instanceof x DateTimeImmutable))
 
 (deftest test-inst-returns-datetime
   (let [dt #inst"2026-04-20T12:00:00Z"]

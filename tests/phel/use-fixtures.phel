@@ -40,12 +40,12 @@
         ":each fixture wrapped the first test and opened around this one")))
 
 (deftest test-use-fixtures-rejects-non-function-arg
-  (is (thrown? \InvalidArgumentException
+  (is (thrown? InvalidArgumentException
                (use-fixtures :each 42))
       "non-function fixture is rejected"))
 
 (deftest test-use-fixtures-rejects-invalid-fixture-type
-  (is (thrown? \InvalidArgumentException
+  (is (thrown? InvalidArgumentException
                (use-fixtures :bogus (fn [t] (t))))
       "invalid fixture-type is rejected"))
 

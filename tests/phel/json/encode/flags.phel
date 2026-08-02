@@ -1,13 +1,13 @@
 (ns phel-test.json.encode.flags
   (:require phel.json)
   (:require phel.test :refer [deftest is])
-  (:use \JSON_HEX_TAG)
-  (:use \JSON_HEX_AMP)
-  (:use \JSON_PRETTY_PRINT))
+  (:use JSON_HEX_TAG)
+  (:use JSON_HEX_AMP)
+  (:use JSON_PRETTY_PRINT))
 
 (deftest test-json-encode-invalid-flag
   (is (thrown-with-msg?
-       \Exception "Flags must be an integer."
+       Exception "Flags must be an integer."
        (json/encode
         {:and "a & b"}
         {:flags "flags"}))

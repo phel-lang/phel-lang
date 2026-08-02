@@ -287,7 +287,7 @@
 
 (defn- sugg-array [spec]
   (if (fn? (get spec :complete))
-    (\Closure/fromCallable (fn [input] (apply php/array ((get spec :complete) input))))
+    (Closure/fromCallable (fn [input] (apply php/array ((get spec :complete) input))))
     (php/array)))
 
 (defn- add-args [cmd args]
@@ -323,14 +323,14 @@
   ;; check passes on every supported version.
   (let [handler (get spec :run)]
     (.setCode
-     cmd             (\Closure/fromCallable
+     cmd             (Closure/fromCallable
                       (fn [^"\\Symfony\\Component\\Console\\Input\\InputInterface" input
                            ^"\\Symfony\\Component\\Console\\Output\\OutputInterface" output]
                         (let [ctx (build-ctx input output spec)]
                           (try
                             (let [result (handler ctx)]
                               (if (int? result) result 0))
-                            (catch \Throwable e
+                            (catch Throwable e
                               (error ctx (str "Error: " (.getMessage e)))
                               (when (>= (.getVerbosity output)
                                         OutputInterface/VERBOSITY_VERBOSE)
@@ -378,13 +378,13 @@
         on-err (get spec :on-error)]
     (when (fn? before)
       (.addListener d ConsoleEvents/COMMAND
-                    (\Closure/fromCallable (fn [e] (before e)))))
+                    (Closure/fromCallable (fn [e] (before e)))))
     (when (fn? after)
       (.addListener d ConsoleEvents/TERMINATE
-                    (\Closure/fromCallable (fn [e] (after e)))))
+                    (Closure/fromCallable (fn [e] (after e)))))
     (when (fn? on-err)
       (.addListener d ConsoleEvents/ERROR
-                    (\Closure/fromCallable (fn [e] (on-err e)))))
+                    (Closure/fromCallable (fn [e] (on-err e)))))
     d))
 
 (def- signal-numbers {:sigint 2, :sigterm 15, :sighup 1, :sigquit 3})
@@ -396,7 +396,7 @@
           num     (or (get signal-numbers k) k)]
       (when (fn? handler)
         (.register (.getSignalRegistry app) num
-                   (\Closure/fromCallable (fn [s] (handler s))))))))
+                   (Closure/fromCallable (fn [s] (handler s))))))))
 
 (defn application
   "Build a Symfony `Application`.

@@ -14,13 +14,13 @@
 
 (deftest test-json-encode-invalid-depth
   (is (thrown-with-msg?
-       \Exception "Depth must be an integer."
+       Exception "Depth must be an integer."
        (json/encode
         {:and "a & b"}
         {:depth "depth"}))
       "It tests if depth parameter is an integer.")
   (is  (thrown-with-msg?
-        \Exception "Depth must be greater than zero."
+        Exception "Depth must be greater than zero."
         (json/encode
          {:and "a & b"}
          {:depth 0}))

@@ -10,7 +10,7 @@
 
 (deftest test-closure-bridge-is-available-without-require
   (let [c (->closure (fn [x] (* x 2)))]
-    (is (= true (php/instanceof c \Closure)) "->closure is in core")
+    (is (= true (php/instanceof c Closure)) "->closure is in core")
     (is (= 6 (c 3)) "the produced Closure is callable")))
 
 (deftest test-async-await-are-available-without-require

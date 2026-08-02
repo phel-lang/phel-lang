@@ -9,7 +9,7 @@
   (^:php/override greet [this] (php/. "hi " (get this :name))))
 
 (defn- method-has-override? [class-fqn method]
-  (let [rm    (new \ReflectionMethod class-fqn method)
+  (let [rm    (new ReflectionMethod class-fqn method)
         attrs (.getAttributes rm "Override")]
     (php/< 0 (php/count attrs))))
 

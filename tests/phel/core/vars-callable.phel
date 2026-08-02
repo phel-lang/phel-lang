@@ -26,7 +26,7 @@
 (def non-callable-data 42)
 
 (deftest test-invoke-var-non-callable-throws
-  (is (thrown? \RuntimeException (#'non-callable-data))
+  (is (thrown? RuntimeException (#'non-callable-data))
       "invoking a var whose root is not callable raises RuntimeException"))
 
 (deftest test-invoke-core-var

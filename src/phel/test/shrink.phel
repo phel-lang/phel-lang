@@ -68,7 +68,7 @@
   [pred value]
   (try
     (not (pred value))
-    (catch \Throwable _ true)))
+    (catch Throwable _ true)))
 
 (defn- find-failing-child [pred children]
   (loop [cs children]

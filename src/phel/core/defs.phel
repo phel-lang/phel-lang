@@ -35,7 +35,7 @@
     ;; `catch (Exception)`, leaking core internals; throwing surfaces as `[PHEL005]`.
     (if (php/instanceof name Symbol)
       nil
-      (throw (new \InvalidArgumentException
+      (throw (new InvalidArgumentException
                   (php/. "First argument must be a symbol, but got: " (php/get_debug_type name)))))
     (let [sym-meta        (.getMeta name)
           meta            (if sym-meta (.merge sym-meta meta) meta)
@@ -146,7 +146,7 @@
     `(do
        (defexception* ~name ~@(if parent [parent] []))
        (defn ~name ~(php/. "Creates a new " name " exception.") [& args]
-         (.newInstanceArgs (new \ReflectionClass ~class-name-str) (to-php-array args)))
+         (.newInstanceArgs (new ReflectionClass ~class-name-str) (to-php-array args)))
        (defn ~is-name ~(php/. "Checks if `x` is an instance of the " name " exception.") [x] (php/is_a x ~class-name-str)))))
 
 (defmacro defenum

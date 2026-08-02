@@ -5,7 +5,7 @@
   [^{:php/doc "@var list<int>"} items])
 
 (deftest class-and-property-docblocks-are-emitted
-  (let [rc        (new \ReflectionClass "phel_test\\core\\phpdoc_emission\\bag")
+  (let [rc        (new ReflectionClass "phel_test\\core\\phpdoc_emission\\bag")
         class-doc (.getDocComment rc)
         prop-doc  (.getDocComment (.getProperty rc "items"))]
     (is (php/str_contains class-doc "@implements \\IteratorAggregate<int, string>")

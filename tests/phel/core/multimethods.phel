@@ -67,7 +67,7 @@
 
 (deftest test-no-match-throws
   (is (= "matched a" (strict-fn :a)) "matches known value")
-  (let [error-thrown (try (strict-fn :b) (catch \InvalidArgumentException e true))]
+  (let [error-thrown (try (strict-fn :b) (catch InvalidArgumentException e true))]
     (is (= true error-thrown) "throws on unknown dispatch value without default")))
 
 ;; --------------------------------
@@ -92,7 +92,7 @@
   (let [err (try
               (eval '(defmulti broken "stray string as dispatch-fn"))
               false
-              (catch \Throwable e (.getMessage e)))]
+              (catch Throwable e (.getMessage e)))]
     (is (not (= false err)) "throws when dispatch-fn missing (string as dispatch)")
     (is (php/str_contains err "requires a callable dispatch-fn")
         "error mentions callable dispatch-fn")))
@@ -112,7 +112,7 @@
 
 (deftest test-prefer-method-ambiguity-throws-without-preference
   (let [err (try (pm1-render ::pm1-rect) false
-                 (catch \InvalidArgumentException e (.getMessage e)))]
+                 (catch InvalidArgumentException e (.getMessage e)))]
     (is (not (= false err)) "ambiguous dispatch throws")
     (is (php/str_contains err "Multiple methods match dispatch value")
         "error message identifies ambiguity")))
@@ -157,14 +157,14 @@
 (deftest test-prefer-method-cycle-throws
   (prefer-method pm3-cycle ::pm3-a ::pm3-b)
   (let [err (try (prefer-method pm3-cycle ::pm3-b ::pm3-a) false
-                 (catch \InvalidArgumentException e (.getMessage e)))]
+                 (catch InvalidArgumentException e (.getMessage e)))]
     (is (not (= false err)) "cycle creation throws")
     (is (php/str_contains err "already preferred")
         "error explains the cycle")))
 
 (deftest test-prefer-method-self-throws
   (let [err (try (prefer-method pm3-cycle ::pm3-a ::pm3-a) false
-                 (catch \InvalidArgumentException e (.getMessage e)))]
+                 (catch InvalidArgumentException e (.getMessage e)))]
     (is (not (= false err)) "preferring value to itself throws")
     (is (php/str_contains err "cannot prefer dispatch value to itself")
         "error explains self-preference")))

@@ -39,8 +39,8 @@
       (if quoted-sym
         (let [ns (.getNamespace quoted-sym)]
           (if ns
-            `(\Phel/getDefinitionMetaData ~ns ~(.getName quoted-sym))
-            `(\Phel/getDefinitionMetaData (php/str_replace "-" "_" *ns*) ~(.getName quoted-sym))))
+            `(Phel/getDefinitionMetaData ~ns ~(.getName quoted-sym))
+            `(Phel/getDefinitionMetaData (php/str_replace "-" "_" *ns*) ~(.getName quoted-sym))))
         `(let [obj-meta ~obj]
            (if (php/instanceof obj-meta Phel.Lang.MetaInterface)
              (.getMeta obj-meta)
