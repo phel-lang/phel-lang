@@ -39,6 +39,7 @@ All notable changes to this project will be documented in this file.
 
 ### Fixed
 
+- `phel doc` no longer warns about `phel-internal\doc`, a namespace only Phel writes. It generated the deprecated separator, which became visible once the notice stopped being opt-in (#2936)
 - `defexception` takes the same class spellings every other position takes. Its parent was wrapped raw instead of resolved, so `\Exception` worked while a bare `RuntimeException` bound to the *current* PHP namespace and a dotted `My.Ns.Error` reached the generated file with its dots and failed to parse. `(:use ...)` aliases now work there too (#2936)
 
 - `NO_COLOR` is honoured by the exception printer and the REPL error formatter. `getStackTraceString()` returns a string, so the caller may be writing to a log or an error tracker, and it used to bake ANSI escapes in regardless. Symfony Console already obeyed the variable, so the two halves of a command disagreed (#2923)
