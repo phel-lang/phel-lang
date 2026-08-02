@@ -49,6 +49,19 @@ final class BackslashSeparatorDeprecatorTest extends TestCase
         self::assertStringContainsString("'Phel.Lang.Foo'", $captured[0]);
     }
 
+    public function test_emits_for_a_qualified_call_site(): void
+    {
+        // The shape the reader really produces: namespace and name held
+        // separately. `getFullName()` renders that through the canonical dot
+        // translation, so asking it hid every call site (#2931).
+        $this->deprecator()->maybeWarn($this->locatedSymbol('phel\\string', 'join', '/app/user.phel'));
+
+        $captured = $this->capturedDeprecations();
+        self::assertCount(1, $captured);
+        self::assertStringContainsString("'phel\\string/join'", $captured[0]);
+        self::assertStringContainsString("'phel.string/join'", $captured[0]);
+    }
+
     public function test_announces_even_when_warnings_are_disabled(): void
     {
         // The one deprecation that does not wait for `--warn-deprecations`:
@@ -227,9 +240,13 @@ final class BackslashSeparatorDeprecatorTest extends TestCase
     }
 
     /**
-     * Builds a Symbol whose raw name preserves backslash separators verbatim
-     * so the deprecator sees the legacy form via `getFullName()` without the
-     * canonical dot translation kicking in.
+     * Builds a Symbol whose raw name preserves backslash separators verbatim,
+     * by holding the whole thing in the *name* with no namespace.
+     *
+     * This is the shape `in-ns` and the `ns` form hand over, since they detect
+     * on the text before it is split. A qualified call site arrives split
+     * instead, which is what {@see test_emits_for_a_qualified_call_site()}
+     * covers; relying on this helper alone is how #2931 stayed hidden.
      */
     private function locatedRawNameSymbol(string $rawName, string $file): Symbol
     {
