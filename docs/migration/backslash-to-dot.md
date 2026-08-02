@@ -102,3 +102,20 @@ That is now settled the other way. The separator announces without the flag from
 `1.0.0` ([ADR 0014](../adr/0014-announce-the-separator-deprecation.md)), so the
 notice period is running for everyone, and the removal at the next major follows
 a warning people actually saw.
+
+## What replaces it
+
+The destination is one spelling, with no marker:
+[ADR 0015](../adr/0015-a-php-class-is-named-with-dots.md).
+
+```phel
+(new DateTime "now")                  ; a root class, bare
+(new Phel.Lang.Keyword "x")           ; a namespaced class, dotted
+Phel.Lang.Symbol                      ; in value position
+```
+
+The leading `\` retires **with** the separator rather than being promoted to a
+permanent host-class marker, so `\Phel.Lang.Symbol` is deliberately not a form.
+A namespace whose first segment is lower case (`phpDocumentor\Reflection\…`) is
+reached by importing it, `(:use phpDocumentor.Reflection.DocBlock)`, the way
+Clojure reaches a class through `:import`.

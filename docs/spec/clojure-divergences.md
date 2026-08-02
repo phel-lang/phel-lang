@@ -150,7 +150,9 @@ drops the leading `\`, because that is when a bare class name has to be
 unambiguous ([#2876](https://github.com/phel-lang/phel-lang/issues/2876),
 [#2827](https://github.com/phel-lang/phel-lang/issues/2827)). Until then the
 leading `\` is the escape, and Clojure needs no equivalent because Java packages
-are lower case while PHP's are not.
+are lower case while PHP's are not. The refusal is what lets the marker retire
+rather than become permanent
+([ADR 0015](../adr/0015-a-php-class-is-named-with-dots.md)).
 
 ### `Class/new` is not a constructor
 
