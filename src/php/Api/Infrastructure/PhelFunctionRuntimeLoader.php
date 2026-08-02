@@ -182,9 +182,12 @@ final readonly class PhelFunctionRuntimeLoader
             $requireNamespaces .= sprintf('(:require %s)', $ns);
         }
 
+        // The dot separator, like any Phel source: `\` is deprecated and now
+        // announces without the flag, so generating it here made `phel doc`
+        // warn the user about a namespace only Phel writes (ADR 0014).
         return <<<EOF
 ;; Simply require all namespaces that should be documented
-(ns phel-internal\doc
+(ns phel-internal.doc
   {$requireNamespaces}
 )
 EOF;

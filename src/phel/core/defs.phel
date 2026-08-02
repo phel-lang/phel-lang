@@ -136,8 +136,9 @@
 
 (defmacro defexception
   "Define a new exception. Optionally pass a parent class to extend (defaults to
-  `\\Exception`), so frameworks can catch it by type, e.g.
-  `(defexception ProductNotFound \\RuntimeException)`."
+  `Exception`), so frameworks can catch it by type, e.g.
+  `(defexception ProductNotFound RuntimeException)`. The parent takes any class
+  spelling: bare, dotted (`My.Ns.Error`), or an alias brought in with `:use`."
   [name & [parent]]
   (let [name-str       (.getName name)
         munge          (new Munge)

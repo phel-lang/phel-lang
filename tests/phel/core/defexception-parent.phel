@@ -15,3 +15,16 @@
 
 (deftest default-parent-is-exception
   (is (instance? Exception (Plain "y")) "without a parent it still extends \\Exception"))
+
+;; The parent takes the same spellings every other class position takes:
+;; bare for a root class, dots for a namespaced one (#2936).
+(defexception BareParent RuntimeException)
+(defexception DottedParent PhelTest.Support.Fixtures.PhpInterop.ExtendableException)
+
+(deftest bare-root-class-parent
+  (is (instance? \RuntimeException (BareParent "x"))
+      "a bare root class names the global class, not one in the current namespace"))
+
+(deftest dotted-namespaced-parent
+  (is (instance? PhelTest.Support.Fixtures.PhpInterop.ExtendableException (DottedParent "x"))
+      "a dotted class path resolves like it does everywhere else"))
