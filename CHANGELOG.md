@@ -39,6 +39,8 @@ All notable changes to this project will be documented in this file.
 
 ### Fixed
 
+- [The stability policy](docs/stability.md#what-a-deployment-loads) records what a built application actually loads: `Phel\Lang` plus seven `Phel\Compiler` classes reached through the singleton whose name is compiled into build artifacts, and nothing from `Run`, `Console`, `Api`, `Lsp`, `Nrepl`, `Build`, `Formatter` or `Lint`. Measured rather than asserted
+- `(in-ns ...)`, `(ns ...)` and `(use ...)` teach the dot separator in `phel doc`, instead of the spelling being retired
 - `phel doc` no longer warns about `phel-internal\doc`, a namespace only Phel writes. It generated the deprecated separator, which became visible once the notice stopped being opt-in (#2936)
 - `defexception` takes the same class spellings every other position takes. Its parent was wrapped raw instead of resolved, so `\Exception` worked while a bare `RuntimeException` bound to the *current* PHP namespace and a dotted `My.Ns.Error` reached the generated file with its dots and failed to parse. `(:use ...)` aliases now work there too (#2936)
 

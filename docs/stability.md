@@ -105,6 +105,38 @@ base's members, so a dependency upgrade changing an inherited signature is a rea
 break the snapshot cannot see. Phel ancestors are folded in. Dependency upgrades
 are where to look.
 
+## What a deployment loads
+
+`phel build` emits PHP, and the emitted PHP is what production runs. Measured on
+a stock `phel init` project, `require`-ing the built entry point declares classes
+from four places and no others:
+
+| Namespace | Classes | Why |
+|---|---|---|
+| `Phel\Lang\` | ~690 | the runtime: persistent collections, `AbstractFn`, `Registry` |
+| `Phel\Compiler\` | 7 | `GlobalEnvironmentSingleton` and the environment it resolves through. The emitter bakes that FQN into every compiled file, so it is an ABI shim rather than the compiler running |
+| `Phel\Shared\` | 3 | `Munge` and the printer reached from generated code |
+| `Phel\Phel` | 1 | `addDefinition()` / `getDefinition()`, which every compiled file calls |
+
+Nothing from `Run`, `Console`, `Api`, `Lsp`, `Nrepl`, `Build`, `Formatter` or
+`Lint` is loaded by a built application. Those are build-time and tooling
+surfaces: they ship in the package, and a request never touches them.
+
+Two consequences worth stating, because both come up in review:
+
+- **A deployed app does load compiler classes**, seven of them. "Production needs
+  only `Lang`" is the intuitive answer and it is wrong. The reason is the
+  singleton whose fully-qualified name is compiled into build artifacts, which is
+  also why it cannot be renamed.
+- **The package is not split.** One Composer package carries the compiler, the
+  language server and the nREPL server into a production install. Splitting it is
+  not a `1.x` change, so this section is the honest answer in the meantime: what
+  is *reachable* is broader than what is *loaded*, and the table says which is
+  which.
+
+The numbers come from counting declared classes before and after requiring the
+entry point, so they follow the code rather than an intention.
+
 ## Deprecation policy for 1.x
 
 1. **Announce before removing.** A deprecated symbol ships with a notice for at
