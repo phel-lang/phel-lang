@@ -139,6 +139,7 @@ Two channels, differing only in the gate. Both raise through `Domain/Diagnostic/
 | Detector | Catches |
 |---|---|
 | `Domain/Analyzer/Environment/ReferShadowWarner` | a `def` whose name is already `:refer`red into the same namespace (#2897). Called from `DefSymbol` before `addDefinition`, so it warns once at `def` time like Clojure, not at every call site. Anchors on the *name* symbol: the enclosing list carries a `defn` expansion origin in `src/phel/core/defs.phel`, which the stdlib suppression would silence |
+| `Domain/Analyzer/Environment/ClassShadowWarner` | a `def` whose name is a loadable PHP class (#2876). Same hook point and the same reason to warn at `def` time. Filters on a PHP-identifier regex before probing, because `PhpClassLike::exists()` autoloads and `def` runs thousands of times loading the stdlib. Warns rather than refusing, which is what Clojure does; refusing is breaking and belongs to the major that drops the leading `\` |
 
 Not to be confused with `Phel\Lsp\Application\Diagnostics` (LSP publishing) or `Phel\Shared\Api\Diagnostic` (the Lint value object). Same word, unrelated concepts.
 

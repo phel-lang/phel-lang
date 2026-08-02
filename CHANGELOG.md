@@ -30,6 +30,8 @@ All notable changes to this project will be documented in this file.
 
 ### Changed
 
+- A `def` whose name is a loadable PHP class warns. The definition wins from there on, so `(def DateTime "shadow")` used to make `(new DateTime)` fail with `Class "shadow" not found` and nothing said why. Clojure refuses the `def`; Phel warns for now and names `\DateTime` as the spelling that still reaches the class, with the refusal scheduled for the major that drops the leading `\` (#2876)
+
 - The `\` namespace separator now warns without `--warn-deprecations`. It is the last deprecated language surface and the one scheduled for removal at the next major, so an opt-in notice was no notice at all: the policy promises a minor of warning before a removal and nobody was being warned. Every other deprecation stays opt-in ([ADR 0014](docs/adr/0014-announce-the-separator-deprecation.md), #2827)
 - Deprecations are never reported for code under a `vendor/` directory. A dependency's spelling is its author's to fix, and reporting it is how a warning channel earns being globally silenced. This is the first-party scoping ADR 0006 named as the precondition for announcing anything by default (#2827)
 
