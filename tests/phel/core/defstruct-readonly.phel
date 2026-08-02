@@ -6,7 +6,7 @@
 (defstruct plain-point [a b])
 
 (defn- readonly-prop? [class-fqn prop]
-  (let [rp (new \ReflectionProperty class-fqn prop)]
+  (let [rp (new ReflectionProperty class-fqn prop)]
     (.isReadonly rp)))
 
 (deftest readonly-struct-constructs-and-reads

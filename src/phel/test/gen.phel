@@ -331,7 +331,7 @@
 (defn- trial-result [property args]
   (try
     (if (apply property args) :pass :fail)
-    (catch \Throwable e e)))
+    (catch Throwable e e)))
 
 (defn- run-trials [property args-gen num-tests size]
   (loop [i 0]
@@ -342,7 +342,7 @@
         (cond
           (= :pass outcome)
           (recur (inc i))
-          (php/instanceof outcome \Throwable)
+          (php/instanceof outcome Throwable)
           {:result :error, :num-tests (inc i), :args args, :exception outcome}
           :else
           {:result :failed, :num-tests (inc i), :args args})))))

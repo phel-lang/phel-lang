@@ -57,7 +57,7 @@
         dependencies (.getDependenciesForNamespace build-facade (get-src-dirs) (php/array canonical))
         found        (php/> (php/count dependencies) 0)]
     (when-not found
-      (throw (new \RuntimeException
+      (throw (new RuntimeException
                   (str "Could not locate namespace '" canonical "' on the source paths."))))
     (foreach [dep dependencies]
       (when-not (php/in_array (.getNamespace dep) (Phel/getNamespaces))
@@ -526,7 +526,7 @@ Returns nil. Prints one name per line, sorted alphabetically."
        :out out
        :success true
        :error nil})
-    (catch \Throwable e
+    (catch Throwable e
       (let [out (php/ob_get_clean)]
         {:value nil
          :out out
@@ -763,10 +763,10 @@ Includes compilation output and namespace context to provide a thorough, grounde
    :example "(explain \"(map inc [1 2 3])\")"
    :see-also ["suggest" "fix" "explain-sym"]}
   [code-str]
-  (let [compiled (try (compile-str code-str) (catch \Throwable _e nil))
+  (let [compiled (try (compile-str code-str) (catch Throwable _e nil))
         expanded (try (let [form (eval-str (str "'" code-str))]
                         (str (macroexpand-form form)))
-                      (catch \Throwable _e nil))
+                      (catch Throwable _e nil))
         context  (str phel-expert-preamble
                       "Explain the following Phel code clearly and concisely:\n\n"
                       "```phel\n" code-str "\n```\n"

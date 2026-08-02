@@ -16,8 +16,8 @@
 
 (deftest test-bound-rejects-non-var
   (is (php/instanceof
-       (try (bound? 42) nil (catch \Throwable e e))
-       \InvalidArgumentException)
+       (try (bound? 42) nil (catch Throwable e e))
+       InvalidArgumentException)
       "bound? throws on non-var input"))
 
 ;; ---- thread-bound? -------------------------------------------------------
@@ -33,8 +33,8 @@
 
 (deftest test-thread-bound-rejects-non-var
   (is (php/instanceof
-       (try (thread-bound? :not-a-var) nil (catch \Throwable e e))
-       \InvalidArgumentException)
+       (try (thread-bound? :not-a-var) nil (catch Throwable e e))
+       InvalidArgumentException)
       "thread-bound? throws on non-var input"))
 
 ;; ---- var-set -------------------------------------------------------------
@@ -53,14 +53,14 @@
 
 (deftest test-var-set-without-binding-throws
   (is (php/instanceof
-       (try (var-set #'*intro-dyn* :nope) nil (catch \Throwable e e))
-       \InvalidArgumentException)
+       (try (var-set #'*intro-dyn* :nope) nil (catch Throwable e e))
+       InvalidArgumentException)
       "var-set outside any binding frame throws"))
 
 (deftest test-var-set-rejects-non-var
   (is (php/instanceof
-       (try (var-set "string" 1) nil (catch \Throwable e e))
-       \InvalidArgumentException)
+       (try (var-set "string" 1) nil (catch Throwable e e))
+       InvalidArgumentException)
       "var-set rejects non-var first arg"))
 
 ;; ---- with-bindings -------------------------------------------------------
@@ -79,8 +79,8 @@
        (try
          (with-bindings {#'*intro-static* :nope} :unreached)
          nil
-         (catch \Throwable e e))
-       \InvalidArgumentException)
+         (catch Throwable e e))
+       InvalidArgumentException)
       "with-bindings rejects non-dynamic vars")
   (is (= :static-root *intro-static*)
       "non-dynamic var left untouched after the failed with-bindings"))

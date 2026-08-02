@@ -13,7 +13,7 @@
 (deftest test-conj-bang-after-persistent-throws
   (let [t (transient [1 2])]
     (persistent! t)
-    (is (thrown-with-msg? \RuntimeException "Transient used after persistent! call"
+    (is (thrown-with-msg? RuntimeException "Transient used after persistent! call"
                           (conj! t 3)))))
 
 (deftest test-assoc-bang-after-persistent-throws
@@ -21,28 +21,28 @@
         tm (transient {:a 1})]
     (persistent! tv)
     (persistent! tm)
-    (is (thrown? \RuntimeException (assoc! tv 0 9)))
-    (is (thrown? \RuntimeException (assoc! tm :b 2)))))
+    (is (thrown? RuntimeException (assoc! tv 0 9)))
+    (is (thrown? RuntimeException (assoc! tm :b 2)))))
 
 (deftest test-dissoc-bang-after-persistent-throws
   (let [t (transient {:a 1 :b 2})]
     (persistent! t)
-    (is (thrown? \RuntimeException (dissoc! t :a)))))
+    (is (thrown? RuntimeException (dissoc! t :a)))))
 
 (deftest test-disj-bang-after-persistent-throws
   (let [t (transient #{1 2 3})]
     (persistent! t)
-    (is (thrown? \RuntimeException (disj! t 1)))))
+    (is (thrown? RuntimeException (disj! t 1)))))
 
 (deftest test-pop-bang-after-persistent-throws
   (let [t (transient [1 2 3])]
     (persistent! t)
-    (is (thrown? \RuntimeException (pop! t)))))
+    (is (thrown? RuntimeException (pop! t)))))
 
 (deftest test-persistent-bang-twice-throws
   (let [t (transient {})]
     (persistent! t)
-    (is (thrown? \RuntimeException (persistent! t)))))
+    (is (thrown? RuntimeException (persistent! t)))))
 
 (defn- big-map
   "A map with more entries than `PersistentArrayMap::MAX_SIZE`, so `transient`
@@ -53,10 +53,10 @@
 (deftest test-hash-backed-transient-map-after-persistent-throws
   (let [t (transient (big-map))]
     (persistent! t)
-    (is (thrown-with-msg? \RuntimeException "Transient used after persistent! call"
+    (is (thrown-with-msg? RuntimeException "Transient used after persistent! call"
                           (assoc! t :extra 1))
         "a map past the array-map size limit guards reuse too")
-    (is (thrown? \RuntimeException (persistent! t))
+    (is (thrown? RuntimeException (persistent! t))
         "a second persistent! on a hash-backed transient throws")))
 
 (deftest test-array-backed-transient-map-that-outgrows-its-store-still-guards
@@ -64,7 +64,7 @@
     (dofor [i :range [0 40]]
       (assoc! t (keyword (str "k" i)) i))
     (persistent! t)
-    (is (thrown? \RuntimeException (assoc! t :extra 1))
+    (is (thrown? RuntimeException (assoc! t :extra 1))
         "handing the contents to a hash-backed store mid-flight keeps the guard")))
 
 (deftest test-sorted-transient-collections-after-persistent-throw
@@ -72,8 +72,8 @@
         ts (transient (sorted-set 1 2 3))]
     (persistent! tm)
     (persistent! ts)
-    (is (thrown? \RuntimeException (assoc! tm :b 2)) "sorted map guards reuse")
-    (is (thrown? \RuntimeException (conj! ts 4)) "sorted set guards reuse")))
+    (is (thrown? RuntimeException (assoc! tm :b 2)) "sorted map guards reuse")
+    (is (thrown? RuntimeException (conj! ts 4)) "sorted set guards reuse")))
 
 ;; Persistent ops on a transient stay lenient by design (the fast `into`/
 ;; `group-by` paths reduce `conj`/`assoc` over a transient accumulator).

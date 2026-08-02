@@ -21,7 +21,7 @@
   [xs]
   (foreach [x xs]
     (when (php/=== nil x)
-      (throw (new \InvalidArgumentException "Arithmetic functions do not accept nil values")))))
+      (throw (new InvalidArgumentException "Arithmetic functions do not accept nil values")))))
 
 (defn- assert-non-nil
   [& xs]
@@ -616,7 +616,7 @@ returns 1. If `xs` has one value, returns the reciprocal of x.
    :see-also ["min" "max"]}
   [v min max]
   (when (< max min)
-    (throw (new \InvalidArgumentException "Max values is bigger than min value")))
+    (throw (new InvalidArgumentException "Max values is bigger than min value")))
   (php/max (php/min v max) min))
 
 (defn sum
@@ -641,7 +641,7 @@ returns 1. If `xs` has one value, returns the reciprocal of x.
   (let [arr (to-php-array xs)
         cnt (count arr)]
     (when (zero? cnt)
-      (throw (new \InvalidArgumentException "Cannot compute median of empty sequence")))
+      (throw (new InvalidArgumentException "Cannot compute median of empty sequence")))
     (php/sort arr)
     (let [mid (php/intdiv cnt 2)]
       (if (odd? cnt)
@@ -686,7 +686,7 @@ returns 1. If `xs` has one value, returns the reciprocal of x.
     (php/instanceof x Ratio)      (.divideExact (BigDecimal/fromBigInt (.numerator x)) (BigDecimal/fromBigInt (.denominator x)))
     (string? x)                   (BigDecimal/fromString x)
     :else
-    (throw (new \InvalidArgumentException
+    (throw (new InvalidArgumentException
                 (php/. "bigdec expects a BigDecimal, int, float, BigInt, Ratio, or numeric string, got "
                        (php/get_debug_type x))))))
 

@@ -44,6 +44,6 @@
       "the emitted signature names the real class"))
 
 (deftest dot-separated-class-tag-rejects-a-wrong-type
-  (let [err (try (dotted-tag 42) (catch \TypeError e e))]
-    (is (php/instanceof err \TypeError)
+  (let [err (try (dotted-tag 42) (catch TypeError e e))]
+    (is (php/instanceof err TypeError)
         "the PHP type declaration is enforced, so it was emitted as a type")))

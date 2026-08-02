@@ -3,7 +3,7 @@
 
 (deftest test-slurp
   (is (string? (slurp php/__FILE__)) "reads current file successfully")
-  (is (thrown? \InvalidArgumentException
+  (is (thrown? InvalidArgumentException
                (slurp "/non/existent/file.txt")) "reading non-existent file throws exception"))
 
 (deftest test-slurp-backwards-compatibility
@@ -40,7 +40,7 @@
     (is (= 4 (spit target-file "TEST"))
         "successful writing returning number of bytes written")
     (is (= "TEST" (slurp target-file)) "written file reads back correctly after over writing")
-    (is (thrown? \InvalidArgumentException (spit target-directory "test"))
+    (is (thrown? InvalidArgumentException (spit target-directory "test"))
         "writing to a directory path throws exception")
     (php/unlink target-file)))
 
@@ -93,11 +93,11 @@
     (php/unlink target-file)))
 
 (deftest test-line-seq-non-existent-file
-  (is (thrown? \InvalidArgumentException (doall (line-seq "/non/existent/file.txt")))
+  (is (thrown? InvalidArgumentException (doall (line-seq "/non/existent/file.txt")))
       "line-seq throws exception for non-existent file"))
 
 (deftest test-line-seq-directory
-  (is (thrown? \InvalidArgumentException (doall (line-seq (php/sys_get_temp_dir))))
+  (is (thrown? InvalidArgumentException (doall (line-seq (php/sys_get_temp_dir))))
       "line-seq throws exception for directory"))
 
 (deftest test-line-seq-returns-lazy-seq
@@ -156,7 +156,7 @@
     (php/rmdir target-directory)))
 
 (deftest test-file-seq-non-existent-path
-  (is (thrown? \InvalidArgumentException (doall (file-seq "/non/existent/path")))
+  (is (thrown? InvalidArgumentException (doall (file-seq "/non/existent/path")))
       "file-seq throws exception for non-existent path"))
 
 (deftest test-file-seq-returns-lazy-seq
@@ -282,20 +282,20 @@
     (php/unlink target-file)))
 
 (deftest test-read-file-lazy-non-existent-file
-  (is (thrown? \InvalidArgumentException (doall (read-file-lazy "/non/existent/file.bin")))
+  (is (thrown? InvalidArgumentException (doall (read-file-lazy "/non/existent/file.bin")))
       "read-file-lazy throws exception for non-existent file"))
 
 (deftest test-read-file-lazy-directory
-  (is (thrown? \InvalidArgumentException (doall (read-file-lazy (php/sys_get_temp_dir))))
+  (is (thrown? InvalidArgumentException (doall (read-file-lazy (php/sys_get_temp_dir))))
       "read-file-lazy throws exception for directory"))
 
 (deftest test-read-file-lazy-invalid-chunk-size
   (let [target-directory (str (php/sys_get_temp_dir))
         target-file      (str target-directory php/DIRECTORY_SEPARATOR "test-read-file-lazy-invalid-chunk.txt")]
     (spit target-file "content")
-    (is (thrown? \InvalidArgumentException (doall (read-file-lazy target-file 0)))
+    (is (thrown? InvalidArgumentException (doall (read-file-lazy target-file 0)))
         "read-file-lazy throws exception for zero chunk size")
-    (is (thrown? \InvalidArgumentException (doall (read-file-lazy target-file -1)))
+    (is (thrown? InvalidArgumentException (doall (read-file-lazy target-file -1)))
         "read-file-lazy throws exception for negative chunk size")
     (php/unlink target-file)))
 
@@ -412,11 +412,11 @@
     (php/unlink target-file)))
 
 (deftest test-csv-seq-non-existent-file
-  (is (thrown? \InvalidArgumentException (doall (csv-seq "/non/existent/file.csv")))
+  (is (thrown? InvalidArgumentException (doall (csv-seq "/non/existent/file.csv")))
       "csv-seq throws exception for non-existent file"))
 
 (deftest test-csv-seq-directory
-  (is (thrown? \InvalidArgumentException (doall (csv-seq (php/sys_get_temp_dir))))
+  (is (thrown? InvalidArgumentException (doall (csv-seq (php/sys_get_temp_dir))))
       "csv-seq throws exception for directory"))
 
 (deftest test-csv-seq-returns-lazy-seq
@@ -462,9 +462,9 @@
   (let [target-file (str (php/sys_get_temp_dir) php/DIRECTORY_SEPARATOR "test-with-open-throw.txt")]
     (spit target-file "content")
     (let [handle (php/fopen target-file "r")]
-      (is (thrown? \RuntimeException
+      (is (thrown? RuntimeException
                    (with-open [f handle]
-                     (throw (new \RuntimeException "boom"))))
+                     (throw (new RuntimeException "boom"))))
           "exception propagates out of with-open")
       (is (false? (php/is_resource handle)) "stream is closed even when the body throws"))
     (php/unlink target-file)))
@@ -472,9 +472,9 @@
 (deftest test-with-open-calls-close-method-on-exception
   (let [closed? (atom false)
         r       (reify Closable (close [this] (reset! closed? true)))]
-    (is (thrown? \RuntimeException
+    (is (thrown? RuntimeException
                  (with-open [x r]
-                   (throw (new \RuntimeException "boom"))))
+                   (throw (new RuntimeException "boom"))))
         "exception propagates out of with-open")
     (is (true? (deref closed?)) "object close method is called when the body throws")))
 

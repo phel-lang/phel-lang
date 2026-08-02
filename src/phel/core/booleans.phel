@@ -117,10 +117,10 @@
 
 (defn- num-equals1 [a b]
   (when-not (num? a)
-    (throw (new \InvalidArgumentException
+    (throw (new InvalidArgumentException
                 (str "Argument must be a number, got: " a))))
   (when-not (num? b)
-    (throw (new \InvalidArgumentException
+    (throw (new InvalidArgumentException
                 (str "Argument must be a number, got: " b))))
   (NumericOperations/isEqual a b))
 

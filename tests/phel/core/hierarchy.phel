@@ -31,15 +31,15 @@
 
 (deftest test-cyclic-derivation-throws
   (derive ::cy-a ::cy-b)
-  (is (thrown? \InvalidArgumentException (derive ::cy-b ::cy-a))
+  (is (thrown? InvalidArgumentException (derive ::cy-b ::cy-a))
       "cyclic derivation throws"))
 
 (deftest test-global-derive-rejects-invalid-tags
-  (is (thrown? \InvalidArgumentException (derive nil nil))
+  (is (thrown? InvalidArgumentException (derive nil nil))
       "nil tags are rejected")
-  (is (thrown? \InvalidArgumentException (derive ::invalid-parent 42))
+  (is (thrown? InvalidArgumentException (derive ::invalid-parent 42))
       "scalar parents are rejected")
-  (is (thrown? \InvalidArgumentException (derive stdClass :invalid-parent))
+  (is (thrown? InvalidArgumentException (derive stdClass :invalid-parent))
       "non-namespaced parents are rejected")
   (is (nil? (parents stdClass))
       "failed derives do not pollute global parents")
@@ -225,7 +225,7 @@
 
 (deftest test-derive-hierarchy-cyclic-throws
   (let [h (derive (make-hierarchy) ::hd3-a ::hd3-b)]
-    (is (thrown? \InvalidArgumentException (derive h ::hd3-b ::hd3-a))
+    (is (thrown? InvalidArgumentException (derive h ::hd3-b ::hd3-a))
         "pure derive rejects cycles")))
 
 (deftest test-derive-hierarchy-does-not-touch-global

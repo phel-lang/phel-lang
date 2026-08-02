@@ -99,7 +99,7 @@
     :unknown))
 
 (defn- throw-class-type-error [op-name expected-suffix x]
-  (throw (new \InvalidArgumentException
+  (throw (new InvalidArgumentException
               (php/. op-name " expects " expected-suffix ", got "
                      (php/get_debug_type x)))))
 

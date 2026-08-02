@@ -194,7 +194,7 @@
 (deftest test-error-headline-shows-test-name
   (let [out (run-default-reporter-event
              (named-failure-event {:state :error
-                                   :exception (new \RuntimeException "kaput")}))]
+                                   :exception (new RuntimeException "kaput")}))]
     (is (php/preg_match "/ERROR my-test \\(diff\\.phel:7\\)/" out)
         "error headline carries the deftest name before the location")))
 

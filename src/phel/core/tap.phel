@@ -35,5 +35,5 @@
   (foreach [f (deref *taps*)]
     (try
       (f x)
-      (catch \Throwable _ nil)))
+      (catch Throwable _ nil)))
   true)

@@ -38,7 +38,7 @@
     (string? tag)  tag
     (symbol? tag)  (full-name tag)
     (keyword? tag) (name tag)
-    :else          (throw (new \InvalidArgumentException
+    :else          (throw (new InvalidArgumentException
                                (str "EDN reader tag must be a symbol, keyword, or string, got: "
                                     (php/gettype tag))))))
 

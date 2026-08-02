@@ -20,7 +20,7 @@
   (is (nil? \phel_test\core\definterface_consts\HasLimits/DEFAULT) "nil const value"))
 
 (deftest constant-is-typed
-  (let [rc   (new \ReflectionClassConstant
+  (let [rc   (new ReflectionClassConstant
                   "phel_test\\core\\definterface_consts\\HasLimits" "MAX")
         type (.getType rc)]
     (is (= "int" (.getName type)) "the constant carries its declared PHP type")))

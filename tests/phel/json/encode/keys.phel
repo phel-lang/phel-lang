@@ -1,7 +1,7 @@
 (ns phel-test.json.encode.keys
   (:require phel.json)
   (:require phel.test :refer [deftest is])
-  (:use \Exception))
+  (:use Exception))
 
 (deftest test-json-encode-valid-keys
   (is
@@ -49,5 +49,5 @@
   (is
    (thrown-with-msg?
     Exception "Key can only be an integer, float, symbol, keyword or a string."
-    (json/encode {(new \DateTime) "DateTime"}))
+    (json/encode {(new DateTime) "DateTime"}))
    "It tests if DateTime is a valid key."))

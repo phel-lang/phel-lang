@@ -55,7 +55,7 @@
 ;; rejected at compile time with a clear message instead of a PHP fatal.
 
 (deftest struct-invoke-bad-arity-rejected
-  (is (thrown? \Exception
+  (is (thrown? Exception
                (eval '(defstruct broken [x]
                         :php
                         (__invoke [this] (get this :x)))))

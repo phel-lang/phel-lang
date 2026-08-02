@@ -50,32 +50,32 @@
 ;; ---------------------------------------------------------------------------
 
 (deftest test-is-thrown-passes-when-exception-type-matches
-  (is (thrown? \InvalidArgumentException
-               (throw (new \InvalidArgumentException "boom")))
+  (is (thrown? InvalidArgumentException
+               (throw (new InvalidArgumentException "boom")))
       "thrown? passes when matching exception is thrown")
-  (is (thrown? \Exception
-               (throw (new \RuntimeException "boom")))
+  (is (thrown? Exception
+               (throw (new RuntimeException "boom")))
       "thrown? passes for subclass of expected exception"))
 
 (deftest test-is-thrown-fails-when-no-exception-thrown
   (let [counts (:counts (with-isolated-stats
                           (with-output-buffer
-                            (is (thrown? \InvalidArgumentException (+ 1 1))))))]
+                            (is (thrown? InvalidArgumentException (+ 1 1))))))]
     (is (= 1 (:failed counts)) "thrown? without throw records a failure")))
 
 ;; ---------------------------------------------------------------------------
 ;; 'thrown? — Clojure-style single-arg form: (thrown? body) catches any
-;; \Throwable, used by portability shims like jank-lang/clojure-test-suite
+;; Throwable, used by portability shims like jank-lang/clojure-test-suite
 ;; ---------------------------------------------------------------------------
 
 (deftest test-is-thrown-single-arg-passes-for-any-exception
-  (is (thrown? (throw (new \Exception "boom")))
+  (is (thrown? (throw (new Exception "boom")))
       "single-arg thrown? catches a bare \\Exception")
-  (is (thrown? (throw (new \RuntimeException "runtime")))
+  (is (thrown? (throw (new RuntimeException "runtime")))
       "single-arg thrown? catches a \\RuntimeException")
-  (is (thrown? (throw (new \InvalidArgumentException "bad")))
+  (is (thrown? (throw (new InvalidArgumentException "bad")))
       "single-arg thrown? catches an \\InvalidArgumentException")
-  (is (thrown? (throw (new \DivisionByZeroError "divzero")))
+  (is (thrown? (throw (new DivisionByZeroError "divzero")))
       "single-arg thrown? catches an \\Error subclass"))
 
 (deftest test-is-thrown-single-arg-fails-when-body-does-not-throw
@@ -87,9 +87,9 @@
     (is (= 0 (:pass counts)) "no pass recorded")))
 
 (deftest test-is-thrown-two-arg-still-works-alongside-single-arg
-  (is (thrown? \Exception (throw (new \Exception "still works")))
+  (is (thrown? Exception (throw (new Exception "still works")))
       "two-arg thrown? keeps working when single-arg is supported")
-  (is (thrown? \RuntimeException (throw (new \RuntimeException "ok")))
+  (is (thrown? RuntimeException (throw (new RuntimeException "ok")))
       "two-arg thrown? with explicit class still catches the right type"))
 
 ;; ---------------------------------------------------------------------------
@@ -97,21 +97,21 @@
 ;; ---------------------------------------------------------------------------
 
 (deftest test-is-thrown-with-msg-passes-when-message-matches
-  (is (thrown-with-msg? \InvalidArgumentException "boom"
-                        (throw (new \InvalidArgumentException "boom")))
+  (is (thrown-with-msg? InvalidArgumentException "boom"
+                        (throw (new InvalidArgumentException "boom")))
       "thrown-with-msg? passes when message matches exactly"))
 
 (deftest test-is-thrown-with-msg-fails-when-no-exception
   (let [counts (:counts (with-isolated-stats
                           (with-output-buffer
-                            (is (thrown-with-msg? \InvalidArgumentException "boom" (+ 1 1))))))]
+                            (is (thrown-with-msg? InvalidArgumentException "boom" (+ 1 1))))))]
     (is (= 1 (:failed counts)) "thrown-with-msg? without throw records a failure")))
 
 (deftest test-is-thrown-with-msg-fails-when-message-differs
   (let [counts (:counts (with-isolated-stats
                           (with-output-buffer
-                            (is (thrown-with-msg? \InvalidArgumentException "expected"
-                                                  (throw (new \InvalidArgumentException "different")))))))]
+                            (is (thrown-with-msg? InvalidArgumentException "expected"
+                                                  (throw (new InvalidArgumentException "different")))))))]
     (is (= 1 (:failed counts)) "thrown-with-msg? with wrong message records a failure")))
 
 ;; ---------------------------------------------------------------------------
@@ -207,7 +207,7 @@
 (deftest test-is-records-error-when-body-throws
   (let [counts (:counts (with-isolated-stats
                           (with-output-buffer
-                            (is (= 1 (throw (new \RuntimeException "boom inside is")))))))]
+                            (is (= 1 (throw (new RuntimeException "boom inside is")))))))]
     (is (= 1 (:error counts)) "uncaught exception in assertion is reported as :error")
     (is (= 0 (:failed counts)) "not counted as a failure")))
 

@@ -159,8 +159,8 @@
   (is (= [] (subseq (sorted-map) >= 1)) "subseq on an empty sorted map")
   (is (= [] (subseq (sorted-map 1 :a) > 99)) "subseq with a boundary past the end")
   (is (= [6 7] (take 2 (subseq (apply sorted-set (range 100)) > 5))) "subseq is lazy")
-  (is (thrown? \InvalidArgumentException (subseq {:a 1} > 1)) "subseq rejects unsorted collections")
-  (is (thrown? \InvalidArgumentException (rsubseq #{1 2} > 1)) "rsubseq rejects unsorted collections"))
+  (is (thrown? InvalidArgumentException (subseq {:a 1} > 1)) "subseq rejects unsorted collections")
+  (is (thrown? InvalidArgumentException (rsubseq #{1 2} > 1)) "rsubseq rejects unsorted collections"))
 
 (deftest test-rsubseq
   (let [sm (sorted-map 1 :a 2 :b 3 :c 4 :d)]

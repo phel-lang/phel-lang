@@ -144,7 +144,7 @@
     (is (= 0 (php/count arr)) "object-array from empty vector is empty")))
 
 (deftest test-object-array-negative-size-throws
-  (is (thrown? \InvalidArgumentException (object-array -1))
+  (is (thrown? InvalidArgumentException (object-array -1))
       "object-array raises InvalidArgumentException on negative size"))
 
 (deftest test-into-array-from-vector
@@ -260,9 +260,9 @@
     (is (= "a" (php/aget cloned 0)) "aclone element 0")))
 
 (deftest test-aclone-rejects-non-array
-  (is (thrown? \InvalidArgumentException (aclone [1 2 3]))
+  (is (thrown? InvalidArgumentException (aclone [1 2 3]))
       "aclone of persistent vector raises InvalidArgumentException")
-  (is (thrown? \InvalidArgumentException (aclone nil))
+  (is (thrown? InvalidArgumentException (aclone nil))
       "aclone of nil raises InvalidArgumentException"))
 
 (deftest test-alength
@@ -273,7 +273,7 @@
        4 (php-indexed-array :a :b :c :d)))
 
 (deftest test-alength-rejects-non-array
-  (are [arr] (thrown? \InvalidArgumentException (alength arr))
+  (are [arr] (thrown? InvalidArgumentException (alength arr))
        [1 2 3]
        nil
        "abc"
@@ -316,8 +316,8 @@
     (is (= 20 (php/aget arr 1)))))
 
 (deftest test-int-array-rejects-negative-size
-  (is (thrown? \InvalidArgumentException (int-array -1)))
-  (is (thrown? \InvalidArgumentException (int-array -1 7))))
+  (is (thrown? InvalidArgumentException (int-array -1)))
+  (is (thrown? InvalidArgumentException (int-array -1 7))))
 
 (deftest test-long-array-from-size
   (let [arr (long-array 2)]
@@ -346,7 +346,7 @@
     (is (= 0 (php/count arr)) "int-array 0 is empty")))
 
 (deftest test-typed-array-negative-size
-  (is (thrown? \InvalidArgumentException (int-array -1))
+  (is (thrown? InvalidArgumentException (int-array -1))
       "int-array raises on negative size"))
 
 (deftest test-aget

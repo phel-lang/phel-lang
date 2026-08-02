@@ -18,9 +18,9 @@
   (is (= 3.14 (abs -3.14)) "(abs -3.14)")
   ;; Reject non-numbers instead of PHP's permissive coercion
   ;; (which would silently return 0 for nil and throw a raw TypeError for strings).
-  (is (thrown? \InvalidArgumentException (abs nil)) "(abs nil) throws")
-  (is (thrown? \InvalidArgumentException (abs "abc")) "(abs string) throws")
-  (is (thrown? \InvalidArgumentException (abs :k)) "(abs keyword) throws"))
+  (is (thrown? InvalidArgumentException (abs nil)) "(abs nil) throws")
+  (is (thrown? InvalidArgumentException (abs "abc")) "(abs string) throws")
+  (is (thrown? InvalidArgumentException (abs :k)) "(abs keyword) throws"))
 
 (deftest test-abs-php-int-min-promotes
   (let [r (abs php/PHP_INT_MIN)]

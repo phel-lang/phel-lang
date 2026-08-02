@@ -32,7 +32,7 @@
   [label head f]
   (if (reg/registered? head)
     (f (reg/deref-ref head))
-    (throw (new \InvalidArgumentException
+    (throw (new InvalidArgumentException
                 (str label ": " head)))))
 
 (defn resolve-or-default
@@ -88,7 +88,7 @@
   "PHP has no native instant type; canonical inst values are
   `\\DateTimeInterface` instances."
   [x]
-  (php/instanceof x \DateTimeInterface))
+  (php/instanceof x DateTimeInterface))
 
 ;; ----------------
 ;; Collection predicates
@@ -263,10 +263,10 @@
       :re     (valid-regex? (get args 0) value)
       :fn     (try
                 (boolean ((get args 0) value))
-                (catch \Throwable _ false))
+                (catch Throwable _ false))
       :ref    (let [target (reg/deref-ref (get args 0))]
                 (when (nil? target)
-                  (throw (new \InvalidArgumentException
+                  (throw (new InvalidArgumentException
                               (str "schema ref not registered: " (get args 0)))))
                 (valid? target value))
       :=>     true
@@ -290,5 +290,5 @@
     (validate-vector-kind schema value)
 
     :else
-    (throw (new \InvalidArgumentException
+    (throw (new InvalidArgumentException
                 (str "unsupported schema shape: " (print-str schema))))))

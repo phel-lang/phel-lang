@@ -43,8 +43,8 @@
         caught (try
                  (t/with-isolated-stats
                    (with-output-buffer (is (= 1 2)))
-                   (throw (new \RuntimeException "boom")))
-                 (catch \RuntimeException e (.getMessage e)))
+                   (throw (new RuntimeException "boom")))
+                 (catch RuntimeException e (.getMessage e)))
         after  (t/get-stats)]
     (is (= "boom" caught) "the body's exception propagates to the caller")
     (is (= (:counts before) (:counts after))
@@ -90,8 +90,8 @@
   (let [before (t/get-reporters)
         caught (try
                  (t/with-isolated-reporters [(fn [_] nil)]
-                   (throw (new \RuntimeException "boom")))
-                 (catch \RuntimeException e (.getMessage e)))]
+                   (throw (new RuntimeException "boom")))
+                 (catch RuntimeException e (.getMessage e)))]
     (is (= "boom" caught) "the body's exception propagates to the caller")
     (is (= before (t/get-reporters))
         "the previous reporter set is restored on the exceptional path too")))

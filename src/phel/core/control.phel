@@ -70,7 +70,7 @@
   (let [cnt (count clauses)]
     (cond
       (php/=== cnt 0)
-      (list 'throw (list 'new '\InvalidArgumentException
+      (list 'throw (list 'new 'InvalidArgumentException
                          "No matching clause in condp"))
       (php/=== cnt 1)
       (first clauses)

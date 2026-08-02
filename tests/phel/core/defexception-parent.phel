@@ -8,10 +8,10 @@
   (is (= "boom"
          (try
            (throw (NotFound "boom"))
-           (catch \RuntimeException e (.getMessage e))))
+           (catch RuntimeException e (.getMessage e))))
       "an exception with :extends parent is caught as that parent")
-  (is (instance? \RuntimeException (NotFound "x")) "instance of the custom parent")
+  (is (instance? RuntimeException (NotFound "x")) "instance of the custom parent")
   (is (NotFound? (NotFound "x")) "its own predicate still works"))
 
 (deftest default-parent-is-exception
-  (is (instance? \Exception (Plain "y")) "without a parent it still extends \\Exception"))
+  (is (instance? Exception (Plain "y")) "without a parent it still extends \\Exception"))

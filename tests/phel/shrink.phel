@@ -105,7 +105,7 @@
   (testing "a predicate that throws is treated as a failing trial"
            (let [res (shrink/shrink-args
                       (fn [n]
-                        (when (> n 0) (throw (new \RuntimeException "boom")))
+                        (when (> n 0) (throw (new RuntimeException "boom")))
                         true)
                       [100])]
              (is (= [1] (:smallest res)) "shrinks to the smallest throwing value")

@@ -934,7 +934,7 @@ Indexed PHP arrays become vectors, associative PHP arrays become maps."
   {:example "(hydrate \"My\\\\Dto\" {:id 1 :name \"x\"})"
    :see-also ["bean"]}
   [class-name m]
-  (let [rc  (new \ReflectionClass class-name)
+  (let [rc  (new ReflectionClass class-name)
         obj (.newInstanceWithoutConstructor rc)]
     (foreach [k v m]
       (.setValue (.getProperty rc (name k)) obj v))

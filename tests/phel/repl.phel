@@ -481,7 +481,7 @@
     (ai/configure {:api-key nil :base-url "http://0.0.0.0:1"})
     (let [saved-key (php/getenv "ANTHROPIC_API_KEY")]
       (php/putenv "ANTHROPIC_API_KEY=")
-      (is (thrown? \RuntimeException (explain "(+ 1 2)"))
+      (is (thrown? RuntimeException (explain "(+ 1 2)"))
           "explain throws without API key")
       (when saved-key
         (php/putenv (str "ANTHROPIC_API_KEY=" saved-key))))
@@ -492,7 +492,7 @@
     (ai/configure {:api-key nil :base-url "http://0.0.0.0:1"})
     (let [saved-key (php/getenv "ANTHROPIC_API_KEY")]
       (php/putenv "ANTHROPIC_API_KEY=")
-      (is (thrown? \RuntimeException (suggest "filter a list"))
+      (is (thrown? RuntimeException (suggest "filter a list"))
           "suggest throws without API key")
       (when saved-key
         (php/putenv (str "ANTHROPIC_API_KEY=" saved-key))))
@@ -503,7 +503,7 @@
     (ai/configure {:api-key nil :base-url "http://0.0.0.0:1"})
     (let [saved-key (php/getenv "ANTHROPIC_API_KEY")]
       (php/putenv "ANTHROPIC_API_KEY=")
-      (is (thrown? \RuntimeException (fix "(+ 1)" "arity error"))
+      (is (thrown? RuntimeException (fix "(+ 1)" "arity error"))
           "fix throws without API key")
       (when saved-key
         (php/putenv (str "ANTHROPIC_API_KEY=" saved-key))))
@@ -514,7 +514,7 @@
     (ai/configure {:api-key nil :base-url "http://0.0.0.0:1"})
     (let [saved-key (php/getenv "ANTHROPIC_API_KEY")]
       (php/putenv "ANTHROPIC_API_KEY=")
-      (is (thrown? \RuntimeException (review "(defn add [a b] (+ a b))"))
+      (is (thrown? RuntimeException (review "(defn add [a b] (+ a b))"))
           "review throws without API key")
       (when saved-key
         (php/putenv (str "ANTHROPIC_API_KEY=" saved-key))))
@@ -523,14 +523,14 @@
 (deftest test-explain-with-bad-endpoint-throws
   (let [original @ai/config]
     (ai/configure {:api-key "test-key" :base-url "http://0.0.0.0:1"})
-    (is (thrown? \RuntimeException (explain "(+ 1 2)"))
+    (is (thrown? RuntimeException (explain "(+ 1 2)"))
         "explain throws when endpoint is unreachable")
     (reset! ai/config original)))
 
 (deftest test-fix-with-bad-endpoint-throws
   (let [original @ai/config]
     (ai/configure {:api-key "test-key" :base-url "http://0.0.0.0:1"})
-    (is (thrown? \RuntimeException (fix "(+ 1)" "error"))
+    (is (thrown? RuntimeException (fix "(+ 1)" "error"))
         "fix throws when endpoint is unreachable")
     (reset! ai/config original)))
 

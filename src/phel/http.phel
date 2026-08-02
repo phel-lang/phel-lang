@@ -223,7 +223,7 @@
   "Decodes a JSON request body. Returns nil for an empty or malformed body so handlers can distinguish 'no usable body' from a real value."
   [raw-body]
   (when (and (string? raw-body) (not= raw-body ""))
-    (try (json/decode raw-body) (catch \Throwable _ nil))))
+    (try (json/decode raw-body) (catch Throwable _ nil))))
 
 (defn- resolve-parsed-body
   "Resolves `:parsed-body`: form data from `$_POST`, a decoded JSON body, or nil. The `:content-type` header is parsed once and matched against both cases."

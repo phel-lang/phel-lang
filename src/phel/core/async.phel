@@ -20,7 +20,7 @@
   "Converts a Phel function to a PHP Closure. Many PHP libraries (AMPHP, ReactPHP) type-hint `\\Closure` and reject Phel's `AbstractFn` even though it is callable. This bridges the gap."
   {:example "(->closure (fn [x] (* x 2)))"}
   [f]
-  (\Closure/fromCallable f))
+  (Closure/fromCallable f))
 
 (defmacro async
   "Runs body asynchronously in a new fiber. Returns an Amp\\Future.
@@ -31,10 +31,10 @@
   {:example "(async (do-something))"
    :see-also ["await" "await-all" "await-any" "future"]}
   [& body]
-  `(let [frame# (\Phel/snapshotDynamicBindings)]
+  `(let [frame# (Phel/snapshotDynamicBindings)]
      (php/amp\async
       (fn []
-        (\Phel/withDynamicBindings frame# (fn [] ~@body))))))
+        (Phel/withDynamicBindings frame# (fn [] ~@body))))))
 
 (defn- unwrap-future
   "Returns the raw Amp\\Future for either a `Future` wrapper or a bare `Amp\\Future`."
@@ -82,7 +82,7 @@ PHP fibers are cooperative on a single thread, so `pmap` overlaps IO-bound work 
    :see-also ["map" "async" "await-all"]}
   [f & colls]
   (case (count colls)
-    0 (throw (new \InvalidArgumentException "pmap expects at least one collection"))
+    0 (throw (new InvalidArgumentException "pmap expects at least one collection"))
     1 (await-all (map #(async (f %)) (first colls)))
     (await-all (apply map (fn [& args] (async (apply f args))) colls))))
 
@@ -147,8 +147,8 @@ Once delivered the value is frozen; subsequent `deliver` calls are no-ops. `dere
    :see-also ["future-fiber" "deref" "future-done?" "future-cancel"
               "promise" "deliver"]}
   [f]
-  (let [frame   (\Phel/snapshotDynamicBindings)
-        wrapped (fn [] (\Phel/withDynamicBindings frame f))]
+  (let [frame   (Phel/snapshotDynamicBindings)
+        wrapped (fn [] (Phel/withDynamicBindings frame f))]
     (.future (fiber-facade) (->closure wrapped))))
 
 (defmacro future-fiber

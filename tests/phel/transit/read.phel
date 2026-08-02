@@ -25,7 +25,7 @@
 
 (deftest test-read-instant
   (let [d (transit/read-string "\"~t2026-05-19T12:00:00+00:00\"")]
-    (is (php/instanceof d \DateTimeImmutable))
+    (is (php/instanceof d DateTimeImmutable))
     (is (= "2026-05-19T12:00:00+00:00" (.format d "c")))))
 
 (deftest test-read-vector

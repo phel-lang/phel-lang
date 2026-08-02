@@ -121,10 +121,10 @@
   (is (= {1 2 3 4} (conj {1 2} {3 4})) "conj merges two maps"))
 
 (deftest test-conj-error-cases
-  (is (thrown? \InvalidArgumentException (conj {} [1])) "conj on map with single-element vector throws error")
-  (is (thrown? \InvalidArgumentException (conj {} [1 2 3])) "conj on map with three-element vector throws error")
-  (is (thrown? \InvalidArgumentException (conj {} "invalid")) "conj on map with non-indexed, non-associative entry throws error")
-  (is (thrown? \InvalidArgumentException (conj "string" 1)) "conj on invalid collection type throws error"))
+  (is (thrown? InvalidArgumentException (conj {} [1])) "conj on map with single-element vector throws error")
+  (is (thrown? InvalidArgumentException (conj {} [1 2 3])) "conj on map with three-element vector throws error")
+  (is (thrown? InvalidArgumentException (conj {} "invalid")) "conj on map with non-indexed, non-associative entry throws error")
+  (is (thrown? InvalidArgumentException (conj "string" 1)) "conj on invalid collection type throws error"))
 
 (deftest test-conj-bang-zero-arity
   (is (= [] (persistent (conj!))) "conj! with no args returns a new empty transient vector")
@@ -150,11 +150,11 @@
   (is (= {} (persistent (conj! (transient {}) nil))) "conj! on transient map with nil is a no-op"))
 
 (deftest test-conj-bang-error-on-persistent
-  (is (thrown? \InvalidArgumentException (conj! [1 2] 3)) "conj! on persistent vector throws")
-  (is (thrown? \InvalidArgumentException (conj! #{1 2} 3)) "conj! on persistent set throws")
-  (is (thrown? \InvalidArgumentException (conj! {} [:a 1])) "conj! on persistent map throws")
-  (is (thrown? \InvalidArgumentException (conj! "string" 1)) "conj! on string throws")
-  (is (thrown? \InvalidArgumentException (conj! nil 1)) "conj! on nil throws"))
+  (is (thrown? InvalidArgumentException (conj! [1 2] 3)) "conj! on persistent vector throws")
+  (is (thrown? InvalidArgumentException (conj! #{1 2} 3)) "conj! on persistent set throws")
+  (is (thrown? InvalidArgumentException (conj! {} [:a 1])) "conj! on persistent map throws")
+  (is (thrown? InvalidArgumentException (conj! "string" 1)) "conj! on string throws")
+  (is (thrown? InvalidArgumentException (conj! nil 1)) "conj! on nil throws"))
 
 (deftest test-persistent-bang
   (is (= [1 2 3] (persistent! (conj! (transient []) 1 2 3))) "persistent! round-trips a transient vector")
@@ -178,10 +178,10 @@
       "assoc! with apply treats a trailing vector index as nil"))
 
 (deftest test-assoc-bang-errors
-  (is (thrown? \InvalidArgumentException (assoc! {:a 1} :b 2)) "assoc! on persistent map throws")
-  (is (thrown? \InvalidArgumentException (assoc! [1 2] 0 9)) "assoc! on persistent vector throws")
-  (is (thrown? \InvalidArgumentException (assoc! (transient #{1 2}) 0 9)) "assoc! on transient set throws")
-  (is (thrown? \InvalidArgumentException (assoc! nil :a 1)) "assoc! on nil throws"))
+  (is (thrown? InvalidArgumentException (assoc! {:a 1} :b 2)) "assoc! on persistent map throws")
+  (is (thrown? InvalidArgumentException (assoc! [1 2] 0 9)) "assoc! on persistent vector throws")
+  (is (thrown? InvalidArgumentException (assoc! (transient #{1 2}) 0 9)) "assoc! on transient set throws")
+  (is (thrown? InvalidArgumentException (assoc! nil :a 1)) "assoc! on nil throws"))
 
 (deftest test-dissoc-bang
   (is (= {} (persistent! (dissoc! (transient {:a 1}) :a))) "dissoc! single key")
@@ -190,10 +190,10 @@
   (is (= {:b 2} (persistent! (dissoc! (transient {:a 1 :b 2 :c 3}) :a :c))) "dissoc! variadic"))
 
 (deftest test-dissoc-bang-errors
-  (is (thrown? \InvalidArgumentException (dissoc! {:a 1} :a)) "dissoc! on persistent map throws")
-  (is (thrown? \InvalidArgumentException (dissoc! (transient [1 2]) 0)) "dissoc! on transient vector throws")
-  (is (thrown? \InvalidArgumentException (dissoc! (transient #{:a}) :a)) "dissoc! on transient set throws")
-  (is (thrown? \InvalidArgumentException (dissoc! nil :a)) "dissoc! on nil throws"))
+  (is (thrown? InvalidArgumentException (dissoc! {:a 1} :a)) "dissoc! on persistent map throws")
+  (is (thrown? InvalidArgumentException (dissoc! (transient [1 2]) 0)) "dissoc! on transient vector throws")
+  (is (thrown? InvalidArgumentException (dissoc! (transient #{:a}) :a)) "dissoc! on transient set throws")
+  (is (thrown? InvalidArgumentException (dissoc! nil :a)) "dissoc! on nil throws"))
 
 (deftest test-disj-bang
   (is (= #{1 3} (persistent! (disj! (transient #{1 2 3}) 2))) "disj! single element")
@@ -202,20 +202,20 @@
   (is (= #{} (persistent! (disj! (transient #{1 2 3}) 1 2 3))) "disj! removes all"))
 
 (deftest test-disj-bang-errors
-  (is (thrown? \InvalidArgumentException (disj! #{1 2} 1)) "disj! on persistent set throws")
-  (is (thrown? \InvalidArgumentException (disj! (transient [1 2]) 0)) "disj! on transient vector throws")
-  (is (thrown? \InvalidArgumentException (disj! (transient {:a 1}) :a)) "disj! on transient map throws")
-  (is (thrown? \InvalidArgumentException (disj! nil 1)) "disj! on nil throws"))
+  (is (thrown? InvalidArgumentException (disj! #{1 2} 1)) "disj! on persistent set throws")
+  (is (thrown? InvalidArgumentException (disj! (transient [1 2]) 0)) "disj! on transient vector throws")
+  (is (thrown? InvalidArgumentException (disj! (transient {:a 1}) :a)) "disj! on transient map throws")
+  (is (thrown? InvalidArgumentException (disj! nil 1)) "disj! on nil throws"))
 
 (deftest test-pop-bang
   (is (= [1 2] (persistent! (pop! (transient [1 2 3])))) "pop! on transient vector")
   (is (= [] (persistent! (pop! (transient [1])))) "pop! on single-element transient vector"))
 
 (deftest test-pop-bang-errors
-  (is (thrown? \InvalidArgumentException (pop! [1 2 3])) "pop! on persistent vector throws")
-  (is (thrown? \InvalidArgumentException (pop! (transient #{1 2}))) "pop! on transient set throws")
-  (is (thrown? \InvalidArgumentException (pop! (transient {:a 1}))) "pop! on transient map throws")
-  (is (thrown? \InvalidArgumentException (pop! nil)) "pop! on nil throws"))
+  (is (thrown? InvalidArgumentException (pop! [1 2 3])) "pop! on persistent vector throws")
+  (is (thrown? InvalidArgumentException (pop! (transient #{1 2}))) "pop! on transient set throws")
+  (is (thrown? InvalidArgumentException (pop! (transient {:a 1}))) "pop! on transient map throws")
+  (is (thrown? InvalidArgumentException (pop! nil)) "pop! on nil throws"))
 
 (deftest test-pop
   (let [x (php/array 1 2)
@@ -250,25 +250,25 @@
   (is (= [1 2 3] (subvec [1 2 3] 0 3)) "full slice")
   (is (= [] (subvec [] 0 0)) "full slice of empty vector")
   (is (vector? (subvec [1 2 3] 0 2)) "subvec returns a vector")
-  (is (thrown? \OutOfBoundsException (subvec [1 2 3] -1)) "negative start throws")
-  (is (thrown? \OutOfBoundsException (subvec [1 2 3] 0 4)) "end beyond count throws")
-  (is (thrown? \OutOfBoundsException (subvec [1 2 3] 4)) "start beyond count throws")
-  (is (thrown? \OutOfBoundsException (subvec [1 2 3] 2 1)) "start greater than end throws")
-  (is (thrown? \InvalidArgumentException (subvec '(1 2 3) 0)) "subvec on a list throws")
+  (is (thrown? OutOfBoundsException (subvec [1 2 3] -1)) "negative start throws")
+  (is (thrown? OutOfBoundsException (subvec [1 2 3] 0 4)) "end beyond count throws")
+  (is (thrown? OutOfBoundsException (subvec [1 2 3] 4)) "start beyond count throws")
+  (is (thrown? OutOfBoundsException (subvec [1 2 3] 2 1)) "start greater than end throws")
+  (is (thrown? InvalidArgumentException (subvec '(1 2 3) 0)) "subvec on a list throws")
   (is (= [] (subvec [0 1 2] ##NaN ##NaN)) "NaN indices count as 0")
   (is (= [0 1 2] (subvec [0 1 2] ##NaN 3)) "NaN start counts as 0")
   (is (= [] (subvec [0 1 2] 0 ##NaN)) "NaN end counts as 0")
   (is (= [2] (subvec [0 1 2] 2.72 3.14)) "float indices truncate toward zero")
   (is (= [0] (subvec [0 1 2] 1/2 4/3)) "ratio indices truncate toward zero")
-  (is (thrown? \InvalidArgumentException (subvec [] nil 0)) "nil start throws")
-  (is (thrown? \InvalidArgumentException (subvec [0 1 2] 1 nil)) "nil end throws")
-  (is (thrown? \InvalidArgumentException (subvec [0 1 2] :a 2)) "keyword start throws")
-  (is (thrown? \InvalidArgumentException (subvec [0 1 2] 1 :b)) "keyword end throws")
-  (is (thrown? \InvalidArgumentException (subvec [0 1 2] 'c 'd)) "symbol indices throw")
-  (is (thrown? \InvalidArgumentException (subvec [0 1 2] "a" "b")) "string indices throw")
-  (is (thrown? \InvalidArgumentException (subvec [0 1 2] [] {})) "collection indices throw")
-  (is (thrown? \OutOfBoundsException (subvec [0 1 2 3] ##-Inf 4)) "negative infinity start is out of bounds")
-  (is (thrown? \OutOfBoundsException (subvec [0 1 2 3] 0 ##Inf)) "positive infinity end is out of bounds")
+  (is (thrown? InvalidArgumentException (subvec [] nil 0)) "nil start throws")
+  (is (thrown? InvalidArgumentException (subvec [0 1 2] 1 nil)) "nil end throws")
+  (is (thrown? InvalidArgumentException (subvec [0 1 2] :a 2)) "keyword start throws")
+  (is (thrown? InvalidArgumentException (subvec [0 1 2] 1 :b)) "keyword end throws")
+  (is (thrown? InvalidArgumentException (subvec [0 1 2] 'c 'd)) "symbol indices throw")
+  (is (thrown? InvalidArgumentException (subvec [0 1 2] "a" "b")) "string indices throw")
+  (is (thrown? InvalidArgumentException (subvec [0 1 2] [] {})) "collection indices throw")
+  (is (thrown? OutOfBoundsException (subvec [0 1 2 3] ##-Inf 4)) "negative infinity start is out of bounds")
+  (is (thrown? OutOfBoundsException (subvec [0 1 2 3] 0 ##Inf)) "positive infinity end is out of bounds")
   (let [v   [1 2 3 4 5]
         sub (subvec v 1 3)]
     (is (= [2 3] sub) "subvec slices the vector")
@@ -362,7 +362,7 @@
   (is (= '() (nthrest nil 3)) "nthrest on nil with positive n returns empty list")
   (is (= '() (nthrest [] 100)) "nthrest on empty vector returns empty list")
   (is (= '() (nthrest (range 0 10) 10)) "nthrest exhausting a range returns empty list")
-  (is (thrown? \InvalidArgumentException (nthrest (range 0 10) nil))
+  (is (thrown? InvalidArgumentException (nthrest (range 0 10) nil))
       "nthrest with nil n compiles and throws at runtime"))
 
 (deftest test-nthnext
@@ -380,21 +380,21 @@
   (is (= {:a 9 :b 9 :c 9} (assoc {:a 1 :b 2 :c 3} :a 9 :b 9 :c 9)) "assoc: replace multiple entries")
   (is (= [10 2 3] (assoc [1 2 3] 0 10)) "assoc: single pair on vector unchanged")
   (is (= [10 20 3] (assoc [1 2 3] 0 10 1 20)) "assoc: multiple pairs on vector")
-  (is (thrown? \InvalidArgumentException (assoc {} :a 1 :b)) "assoc: odd extra args throws")
+  (is (thrown? InvalidArgumentException (assoc {} :a 1 :b)) "assoc: odd extra args throws")
   ;; nil → empty map (Clojure-compat)
   (is (= {:a 1} (assoc nil :a 1)) "assoc: nil becomes a new map")
   (is (= {:a 1 :b 2} (assoc nil :a 1 :b 2)) "assoc: nil with multiple pairs")
   ;; Unsupported targets raise a clean `InvalidArgumentException` instead of
   ;; silently mutating strings or leaking raw PHP messages from lists/sets.
-  (is (thrown? \InvalidArgumentException (assoc "abc" 0 "z")) "assoc: rejects strings")
-  (is (thrown? \InvalidArgumentException (assoc '(1 2 3) 0 99)) "assoc: rejects lists")
-  (is (thrown? \InvalidArgumentException (assoc #{1 2 3} 1 9)) "assoc: rejects sets")
-  (is (thrown? \InvalidArgumentException (assoc 42 :a 1)) "assoc: rejects scalars")
+  (is (thrown? InvalidArgumentException (assoc "abc" 0 "z")) "assoc: rejects strings")
+  (is (thrown? InvalidArgumentException (assoc '(1 2 3) 0 99)) "assoc: rejects lists")
+  (is (thrown? InvalidArgumentException (assoc #{1 2 3} 1 9)) "assoc: rejects sets")
+  (is (thrown? InvalidArgumentException (assoc 42 :a 1)) "assoc: rejects scalars")
   ;; A non-integer key on a vector must raise a clean `InvalidArgumentException`
   ;; instead of leaking PHP's `update(): Argument #1 ($i) must be of type int`
   ;; TypeError (or, on older builds, a raw int-coercion warning).
-  (is (thrown? \InvalidArgumentException (assoc [1 2 3] :k 9)) "assoc: rejects keyword key on vector")
-  (is (thrown? \InvalidArgumentException (assoc [1 2 3] "0" 9)) "assoc: rejects string key on vector"))
+  (is (thrown? InvalidArgumentException (assoc [1 2 3] :k 9)) "assoc: rejects keyword key on vector")
+  (is (thrown? InvalidArgumentException (assoc [1 2 3] "0" 9)) "assoc: rejects string key on vector"))
 
 (deftest test-dissoc
   (is (= {:b 2} (dissoc {:a 1 :b 2} :a)) "dissoc: remove key from map")
@@ -404,8 +404,8 @@
   (is (= {:a 1} (dissoc {:a 1} :missing :also-missing)) "dissoc skips missing keys")
   (is (= {} (apply dissoc {} [])) "apply dissoc with no keys does not raise")
   (is (= {:b 2} (apply dissoc {:a 1 :b 2 :c 3} [:a :c])) "apply dissoc variadic through seq")
-  (is (thrown? \InvalidArgumentException (dissoc 42 :a)) "dissoc rejects scalars")
-  (is (thrown? \InvalidArgumentException (dissoc dissoc :a)) "dissoc rejects functions")
+  (is (thrown? InvalidArgumentException (dissoc 42 :a)) "dissoc rejects scalars")
+  (is (thrown? InvalidArgumentException (dissoc dissoc :a)) "dissoc rejects functions")
   (is (nil? (dissoc nil :a)) "dissoc on nil returns nil")
   (is (nil? (dissoc nil)) "dissoc on nil with no keys returns nil")
   (is (nil? (apply dissoc nil [nil])) "apply dissoc on nil with a nil key returns nil"))

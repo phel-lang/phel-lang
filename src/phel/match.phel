@@ -121,12 +121,12 @@
   [target pattern]
   (let [alts (vec (next pattern))]
     (when (empty? alts)
-      (throw (new \InvalidArgumentException
+      (throw (new InvalidArgumentException
                   "match :or pattern requires at least one alternative")))
     (let [compiled (for [a :in alts] (compile-pattern target a))]
       (doseq [c :in compiled]
         (when-not (empty? (get c :bindings))
-          (throw (new \InvalidArgumentException
+          (throw (new InvalidArgumentException
                       "match :or alternatives must not introduce bindings"))))
       (let [checks (for [c :in compiled] (get c :check))]
         {:check `(or ~@checks), :bindings []}))))
@@ -150,12 +150,12 @@
       [pattern nil]
       (do
         (when-not (= (+ idx 2) n)
-          (throw (new \InvalidArgumentException
+          (throw (new InvalidArgumentException
                       (str "match vector pattern: `&` must be followed by exactly one binding, got "
                            pattern))))
         (let [tail (get pattern (+ idx 1))]
           (when-not (symbol? tail)
-            (throw (new \InvalidArgumentException
+            (throw (new InvalidArgumentException
                         (str "match vector pattern: `&` binding must be a symbol, got " tail))))
           [(vec (take idx pattern)) tail])))))
 
@@ -225,14 +225,14 @@
     (vector? pattern)           (compile-vector target pattern)
     (map? pattern)              (compile-map target pattern)
     :else
-    (throw (new \InvalidArgumentException
+    (throw (new InvalidArgumentException
                 (str "match: unsupported pattern shape: " pattern)))))
 
 (defn- compile-clause
   "Compiles one clause row into `[check bindings]`."
   [target-syms patterns]
   (when-not (= (count target-syms) (count patterns))
-    (throw (new \InvalidArgumentException
+    (throw (new InvalidArgumentException
                 (str "match: pattern count (" (count patterns)
                      ") does not match target count (" (count target-syms)
                      "): " patterns))))
@@ -258,20 +258,20 @@
       (= (first remaining) else-keyword)
       (do
         (when-not (= (count remaining) 2)
-          (throw (new \InvalidArgumentException
+          (throw (new InvalidArgumentException
                       "match: :else must be followed by exactly one expression and must come last")))
         [clauses (get remaining 1)])
 
       :else
       (do
         (when (< (count remaining) 2)
-          (throw (new \InvalidArgumentException
+          (throw (new InvalidArgumentException
                       "match: every pattern must be paired with an expression")))
         (let [pat  (first remaining)
               expr (get remaining 1)
               rest (vec (drop 2 remaining))]
           (when-not (vector? pat)
-            (throw (new \InvalidArgumentException
+            (throw (new InvalidArgumentException
                         (str "match: pattern must be a vector, got " pat))))
           (recur rest
                  (conj clauses [pat expr])
@@ -298,7 +298,7 @@
    :example "(match [x y] [0 _] :zero-x [_ 0] :zero-y [a b] [:both a b])"}
   [targets & body]
   (when-not (vector? targets)
-    (throw (new \InvalidArgumentException
+    (throw (new InvalidArgumentException
                 (str "match: target list must be a vector, got " targets))))
   (let [n                 (count targets)
         target-syms       (vec
@@ -315,7 +315,7 @@
                                   [check bindings] (compile-clause target-syms pat)]
                               [check bindings expr]))
         no-match          (if (nil? default)
-                            `(throw (new \RuntimeException
+                            `(throw (new RuntimeException
                                          (str "match: no matching clause for " [~@target-syms])))
                             default)
         cond-body         (apply concat

@@ -20,7 +20,7 @@
 
 (defn- walk-one [routes prefix-path prev-data]
   (when (string? routes)
-    (throw (new \InvalidArgumentException
+    (throw (new InvalidArgumentException
                 (str "router expects a route vector `[path data? children*]` or a vector of such routes, got a bare string: \""
                      routes "\". Wrap it like [\"" routes "\"]."))))
   (let [head (first routes)]
@@ -44,7 +44,7 @@
           (walk-many (keep identity childs) full-path next-data)))
 
       :else
-      (throw (new \InvalidArgumentException
+      (throw (new InvalidArgumentException
                   (str "router route must start with a string path, got: "
                        (type head) " in route " (print-str routes)))))))
 

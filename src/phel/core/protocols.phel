@@ -38,7 +38,7 @@
                          `(defn ~fn-name {:doc ~doc} ~args
                             (if (php/is_a ~(first args) ~class-name-str)
                               (~dot-call-symbol ~@args)
-                              (throw (new \InvalidArgumentException ~(str "Value doesn't implement interface " name))))))]
+                              (throw (new InvalidArgumentException ~(str "Value doesn't implement interface " name))))))]
     `(do
        (definterface* ~name ~@fns)
        ~@defs)))
@@ -113,10 +113,10 @@ Maintained in parallel with `derive`'s class -> proto-class-string entry so hier
 (defn- assert-global-derive-tags!
   [child parent]
   (when-not (valid-global-child-tag? child)
-    (throw (new \InvalidArgumentException
+    (throw (new InvalidArgumentException
                 (str "derive child must be a namespaced symbol/keyword or class tag, got: " child))))
   (when-not (valid-global-parent-tag? parent)
-    (throw (new \InvalidArgumentException
+    (throw (new InvalidArgumentException
                 (str "derive parent must be a namespaced symbol/keyword, got: " parent)))))
 
 (defn- protocol-relations
@@ -240,7 +240,7 @@ Maintained in parallel with `derive`'s class -> proto-class-string entry so hier
 (defn- assert-hierarchy!
   [h]
   (when-not (valid-hierarchy-parents h)
-    (throw (new \InvalidArgumentException "Expected a hierarchy map")))
+    (throw (new InvalidArgumentException "Expected a hierarchy map")))
   h)
 
 (defn isa?
@@ -260,7 +260,7 @@ Maintained in parallel with `derive`'s class -> proto-class-string entry so hier
   ([child parent]
    (assert-global-derive-tags! child parent)
    (when (isa? parent child)
-     (throw (new \InvalidArgumentException
+     (throw (new InvalidArgumentException
                  (str "Cyclic derivation: " parent " already isa " child))))
    (swap! *hierarchy*
           (fn [h]
@@ -272,7 +272,7 @@ Maintained in parallel with `derive`'s class -> proto-class-string entry so hier
   ([h child parent]
    (assert-hierarchy! h)
    (when (isa? h parent child)
-     (throw (new \InvalidArgumentException
+     (throw (new InvalidArgumentException
                  (str "Cyclic derivation: " parent " already isa " child))))
    (let [parents-map (get h :parents)
          old-parents (get parents-map child (hash-set))
@@ -395,7 +395,7 @@ Maintained in parallel with `derive`'s class -> proto-class-string entry so hier
                          (dominates? prefers-map parents-map k best) k
                          (dominates? prefers-map parents-map best k) best
                          :else
-                         (throw (new \InvalidArgumentException
+                         (throw (new InvalidArgumentException
                                      (str "Multiple methods match dispatch value: "
                                           dispatch-val " -> " k " and " best
                                           ", and neither is preferred")))))
@@ -467,7 +467,7 @@ A `:default` type can be registered via `extend-type` as a fallback when no spec
                         (let [default-impl (get dispatch-table :default)]
                           (if default-impl
                             (default-impl ~@margs)
-                            (throw (new \InvalidArgumentException
+                            (throw (new InvalidArgumentException
                                         (str "No implementation of '" ~mname-str
                                              "' for type: " dk))))))))))))))
 
@@ -515,7 +515,7 @@ A `:default` type can be registered via `extend-type` as a fallback when no spec
   [type-spec & specs]
   (when (and (keyword? type-spec)
              (or (= type-spec :struct) (= type-spec :php/object)))
-    (throw (new \InvalidArgumentException
+    (throw (new InvalidArgumentException
                 (str "Cannot use " type-spec " as extend-type target. "
                      "Protocol dispatch resolves structs/objects to their PHP class name. "
                      "Use a struct symbol or PHP class name string instead."))))
@@ -719,7 +719,7 @@ Equivalent to multiple `extend-type` calls."
         docstring   (when has-doc? (first args))
         dispatch-fn (if has-doc? (second args) (first args))]
     (when-not (or (= 1 arg-count) has-doc?)
-      (throw (new \InvalidArgumentException
+      (throw (new InvalidArgumentException
                   (str "defmulti '" (.getName name)
                        "' expects (defmulti name docstring? dispatch-fn), got "
                        (inc arg-count) " arguments."))))
@@ -745,7 +745,7 @@ Equivalent to multiple `extend-type` calls."
                                  (let [default-method# (get methods# :default)]
                                    (if default-method#
                                      (apply default-method# ~args-sym)
-                                     (throw (new \InvalidArgumentException
+                                     (throw (new InvalidArgumentException
                                                  (str "No method for dispatch value: " dispatch-val#)))))))))]
       `(do
          ;; Both tables stay public: `defmethod` and `prefer-method` resolve them
@@ -763,7 +763,7 @@ Equivalent to multiple `extend-type` calls."
          (def ~dispatch-name {:private true}
            (let [~df-sym ~dispatch-fn]
              (when (and (string? ~df-sym) (not (php/is_callable ~df-sym)))
-               (throw (new \InvalidArgumentException
+               (throw (new InvalidArgumentException
                            (str "defmulti '" ~name-str
                                 "' requires a callable dispatch-fn, got a string: "
                                 (php/substr ~df-sym 0 60) "..."))))
@@ -808,10 +808,10 @@ Equivalent to multiple `extend-type` calls."
            y#    ~dispatch-val-y
            pmap# (deref ~prefers-name)]
        (when (= x# y#)
-         (throw (new \InvalidArgumentException
+         (throw (new InvalidArgumentException
                      (str "prefer-method: cannot prefer dispatch value to itself: " x#))))
        (when (prefers? pmap# y# x#)
-         (throw (new \InvalidArgumentException
+         (throw (new InvalidArgumentException
                      (str "Preference conflict: " y# " is already preferred to " x#
                           " in multimethod '" ~multi-str "'"))))
        (swap! ~prefers-name update x#
@@ -834,7 +834,7 @@ Equivalent to multiple `extend-type` calls."
   {:example "(if-let [x (get {:a 1} :a)] x :none) ; => 1"
    :see-also ["when-let" "if-some"]}
   [bindings then & [else]]
-  (let [err #(throw (new \InvalidArgumentException %))]
+  (let [err #(throw (new InvalidArgumentException %))]
     (when-not
       (vector? bindings)
       (err (str "if-let requires a vector for it's bindings, "
@@ -856,7 +856,7 @@ Equivalent to multiple `extend-type` calls."
   {:example "(when-let [x (get {:a 1} :a)] (* x 10)) ; => 10"
    :see-also ["if-let" "when-some"]}
   [bindings & body]
-  (let [err #(throw (new \InvalidArgumentException %))]
+  (let [err #(throw (new InvalidArgumentException %))]
     (when-not
       (vector? bindings)
       (err (str "when-let requires a vector for it's bindings, "
@@ -877,7 +877,7 @@ Equivalent to multiple `extend-type` calls."
   {:example "(if-some [x false] :yes :no) ; => :yes"
    :see-also ["if-let" "when-some"]}
   [bindings then & [else]]
-  (let [err #(throw (new \InvalidArgumentException %))]
+  (let [err #(throw (new InvalidArgumentException %))]
     (when-not
       (vector? bindings)
       (err (str "if-some requires a vector for its bindings, "
@@ -907,7 +907,7 @@ Equivalent to multiple `extend-type` calls."
   {:example "(when-first [x [1 2 3]] x) ; => 1"
    :see-also ["when-some" "first"]}
   [bindings & body]
-  (let [err #(throw (new \InvalidArgumentException %))]
+  (let [err #(throw (new InvalidArgumentException %))]
     (when-not
       (vector? bindings)
       (err (str "when-first requires a vector for its bindings, "
@@ -968,7 +968,7 @@ bindings is a vector of function specs: (letfn [(f [params] body) (g [params] bo
                 `(str "Assert failed: " ~message)
                 `(str "Assert failed: " (quote ~expr)))]
       `(when (not ~expr)
-         (throw (new \InvalidArgumentException ~msg))))))
+         (throw (new InvalidArgumentException ~msg))))))
 
 (defn name
   "Returns the name string of a string, keyword or symbol."

@@ -4,20 +4,20 @@
 (def- by-ref-target "PhelTest\\Fixtures\\Interop\\ByRefTarget")
 
 (deftest php-new-with-named-args
-  (let [ao (new \ArrayObject :& :array (php/array 1 2 3))]
+  (let [ao (new ArrayObject :& :array (php/array 1 2 3))]
     (is (= 3 (.count ao)) "named args bind to the constructor parameters")))
 
 (deftest php-new-with-positional-then-named-args
-  (let [dt (new \DateTime "2024-01-15 00:00:00" :& :timezone nil)]
+  (let [dt (new DateTime "2024-01-15 00:00:00" :& :timezone nil)]
     (is (= "2024-01-15" (.format dt "Y-m-d")) "positional args mix with trailing named args")))
 
 (deftest php-static-call-with-named-args
-  (let [dt (\DateTime/createFromFormat :& :format "Y-m-d" :datetime "2024-01-15")]
+  (let [dt (DateTime/createFromFormat :& :format "Y-m-d" :datetime "2024-01-15")]
     (is (= "2024-01-15" (.format dt "Y-m-d")) "static interop calls accept named args")))
 
 (deftest php-method-call-with-named-args
-  (let [ao (new \ArrayObject (php/array 1 2))]
-    (.setFlags ao :& :flags \ArrayObject/ARRAY_AS_PROPS)
+  (let [ao (new ArrayObject (php/array 1 2))]
+    (.setFlags ao :& :flags ArrayObject/ARRAY_AS_PROPS)
     (is (= 2 (.count ao)) "method interop calls accept named args")))
 
 (deftest php-ref-inside-a-named-arg-writes-back

@@ -2,7 +2,7 @@
   (:require phel.test :refer [deftest is]))
 
 (defn- array-iterator [& xs]
-  (new \ArrayIterator (apply php/array xs)))
+  (new ArrayIterator (apply php/array xs)))
 
 (defn- naturals []
   (loop [i 0]

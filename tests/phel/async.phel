@@ -7,7 +7,7 @@
 (deftest test-closure-conversion
   (let [f (fn [x] (* x 2))
         c (->closure f)]
-    (is (= true (php/instanceof c \Closure)) "->closure returns a PHP Closure")
+    (is (= true (php/instanceof c Closure)) "->closure returns a PHP Closure")
     (is (= 6 (c 3)) "Closure preserves function behavior")))
 
 (deftest test-delay-suspends-execution
@@ -62,8 +62,8 @@
     (is (< elapsed 0.15) "concurrent execution is faster than sequential")))
 
 (deftest test-async-error-propagation
-  (let [future (async (throw (new \RuntimeException "boom")))]
-    (is (thrown? \RuntimeException (await future))
+  (let [future (async (throw (new RuntimeException "boom")))]
+    (is (thrown? RuntimeException (await future))
         "exceptions in async body propagate through await")))
 
 ;; --- pmap tests ---
@@ -91,7 +91,7 @@
       "pmap stops at the shortest collection, like map"))
 
 (deftest test-pmap-no-collection-throws
-  (is (thrown? \InvalidArgumentException (pmap inc))
+  (is (thrown? InvalidArgumentException (pmap inc))
       "pmap requires at least one collection"))
 
 ;; Tagged `^:timing-sensitive` because the assertion is a wall-clock
@@ -137,9 +137,9 @@
 (deftest test-future-exception-propagation
   (let [raised? (await (async
                         (try
-                          (deref (future (throw (new \RuntimeException "boom"))))
+                          (deref (future (throw (new RuntimeException "boom"))))
                           false
-                          (catch \RuntimeException _e true))))]
+                          (catch RuntimeException _e true))))]
     (is (= true raised?) "deref re-raises the future's exception")))
 
 ;; Tagged `^:timing-sensitive` because the assertion is a wall-clock

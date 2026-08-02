@@ -44,11 +44,11 @@
 
 (deftest test-coerce-inst-string-to-datetime
   (let [v (s/coerce :inst "2026-04-20T12:00:00Z")]
-    (is (= true (php/instanceof v \DateTimeInterface)))))
+    (is (= true (php/instanceof v DateTimeInterface)))))
 
 (deftest test-coerce-inst-int-epoch
   (let [v (s/coerce :inst 1000000)]
-    (is (= true (php/instanceof v \DateTimeInterface)))))
+    (is (= true (php/instanceof v DateTimeInterface)))))
 
 (deftest test-coerce-inst-edge-cases
   (testing "unparseable date string is returned unchanged for downstream validation"
@@ -58,10 +58,10 @@
                "out-of-range date components stay a string"))
   (testing "epoch boundary timestamps coerce to a DateTime"
            (let [zero (s/coerce :inst 0)]
-             (is (= true (php/instanceof zero \DateTimeInterface)) "epoch 0 coerces")
+             (is (= true (php/instanceof zero DateTimeInterface)) "epoch 0 coerces")
              (is (= "1970-01-01" (.format zero "Y-m-d")) "epoch 0 is 1970-01-01"))
            (let [neg (s/coerce :inst -1000000)]
-             (is (= true (php/instanceof neg \DateTimeInterface)) "negative epoch coerces")
+             (is (= true (php/instanceof neg DateTimeInterface)) "negative epoch coerces")
              (is (= "1969-12-20" (.format neg "Y-m-d")) "negative epoch is before 1970"))))
 
 (deftest test-coerce-string
@@ -113,7 +113,7 @@
 ;; anything that then validates, `conform` included, still raises.
 (deftest test-coerce-unregistered-ref-passes-through-instead-of-throwing
   (is (= "7" (s/coerce [:ref :no-such-registered-schema] "7")))
-  (is (thrown-with-msg? \InvalidArgumentException
+  (is (thrown-with-msg? InvalidArgumentException
                         "schema ref not registered: :no-such-registered-schema"
                         (s/conform [:ref :no-such-registered-schema] "7"))
       "conform composes coerce with validation, so the failure still surfaces"))

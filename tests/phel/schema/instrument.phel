@@ -19,7 +19,7 @@
         caught  (try
                   (wrapped "a" 3)
                   :no-throw
-                  (catch \InvalidArgumentException e :caught))]
+                  (catch InvalidArgumentException e :caught))]
     (is (= :caught caught))))
 
 (deftest test-wrap-with-schema-rejects-bad-return
@@ -27,7 +27,7 @@
         caught  (try
                   (wrapped 1)
                   :no-throw
-                  (catch \InvalidArgumentException e :caught))]
+                  (catch InvalidArgumentException e :caught))]
     (is (= :caught caught))))
 
 (deftest test-wrap-with-function-schema
@@ -39,14 +39,14 @@
   (let [caught (try
                  (s/wrap-with-function-schema bare-add [:int :int])
                  :no-throw
-                 (catch \InvalidArgumentException _ :caught))]
+                 (catch InvalidArgumentException _ :caught))]
     (is (= :caught caught))))
 
 (deftest test-wrap-function-schema-rejects-bad-shape
   (let [caught (try
                  (s/wrap-with-function-schema bare-add [:int :int])
                  :no-throw
-                 (catch \InvalidArgumentException _ :caught))]
+                 (catch InvalidArgumentException _ :caught))]
     (is (= :caught caught))))
 
 (deftest test-instrument-and-unstrument
@@ -65,7 +65,7 @@
         caught  (try
                   (wrapped 1)
                   :no-throw
-                  (catch \InvalidArgumentException _ :caught))]
+                  (catch InvalidArgumentException _ :caught))]
     (is (= :caught caught))))
 
 (deftest test-schema?-predicate
@@ -78,7 +78,7 @@
   (let [wrapped (s/wrap-with-schema bad-return [:int] :int)]
     ;; Normally the return-value check throws
     (let [caught (try (wrapped 1) :no-throw
-                      (catch \InvalidArgumentException _ :caught))]
+                      (catch InvalidArgumentException _ :caught))]
       (is (= :caught caught)))
     ;; With the flag off the wrapper passes through
     (is (= "not an int" (s/with-schema-check false (fn [] (wrapped 1)))))
@@ -89,9 +89,9 @@
   (s/set-schema-check! true)
   (let [caught (try
                  (s/with-schema-check false
-                                      (fn [] (throw (new \RuntimeException "oops"))))
+                                      (fn [] (throw (new RuntimeException "oops"))))
                  :no-throw
-                 (catch \RuntimeException _ :caught))]
+                 (catch RuntimeException _ :caught))]
     (is (= :caught caught))
     (is (s/schema-check?) "flag is restored to its previous value even when the thunk throws")))
 

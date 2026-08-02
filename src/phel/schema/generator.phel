@@ -15,7 +15,7 @@
 (declare schema->gen)
 
 (defn- inst-gen []
-  (g/fmap (fn [secs] (\DateTimeImmutable/createFromFormat "U" (str secs)))
+  (g/fmap (fn [secs] (DateTimeImmutable/createFromFormat "U" (str secs)))
           (g/choose 0 2147483647)))
 
 (defn- uuid-gen []
@@ -131,7 +131,7 @@
 (defn- ref-gen [args]
   (let [target (reg/deref-ref (first args))]
     (when (nil? target)
-      (throw (new \InvalidArgumentException
+      (throw (new InvalidArgumentException
                   (str "schema ref not registered: " (first args)))))
     (schema->gen target)))
 
@@ -153,7 +153,7 @@
       :re     (re-gen args)
       :fn     (fn-gen args)
       :ref    (ref-gen args)
-      :=>     (throw (new \InvalidArgumentException
+      :=>     (throw (new InvalidArgumentException
                           "cannot generate function schemas"))
       (v/resolve-or-throw "no generator for schema kind" head
                           (fn [target] (schema->gen target))))))
@@ -172,7 +172,7 @@
       (if custom custom (vector-kind->gen schema)))
 
     :else
-    (throw (new \InvalidArgumentException
+    (throw (new InvalidArgumentException
                 (str "unsupported schema shape: " (print-str schema))))))
 
 (defn generate

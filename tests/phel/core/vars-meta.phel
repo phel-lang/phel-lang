@@ -51,7 +51,7 @@
     (is (nil? (get (meta a) :unit)) "previous keys gone")))
 
 (deftest test-alter-meta-rejects-non-ref
-  (is (thrown? \InvalidArgumentException (alter-meta! 42 assoc :a 1))
+  (is (thrown? InvalidArgumentException (alter-meta! 42 assoc :a 1))
       "alter-meta! refuses non-ref arguments")
-  (is (thrown? \InvalidArgumentException (reset-meta! :kw {:a 1}))
+  (is (thrown? InvalidArgumentException (reset-meta! :kw {:a 1}))
       "reset-meta! refuses non-ref arguments"))
