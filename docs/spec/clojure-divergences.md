@@ -127,6 +127,31 @@ than syntax ([#2881](https://github.com/phel-lang/phel-lang/issues/2881)). A
 receiver the compiler can prove is an object still emits `->`, so only an
 unprovable one carries the runtime test.
 
+### A `def` may shadow a PHP class, and warns
+
+Clojure refuses it outright:
+
+```clojure
+user=> (def RuntimeException "shadow")
+Syntax error compiling def at (REPL:1:1).
+Expecting var, but RuntimeException is mapped to class java.lang.RuntimeException
+```
+
+Phel accepts the `def` and warns, because the definition really does win from
+there on: the bare-host-symbol fallback resolves a Phel definition before a
+class, so `(new DateTime)` after `(def DateTime "shadow")` fails with
+`Class "shadow" not found`. The warning names `\DateTime` as the spelling that
+still reaches the class.
+
+Warning rather than refusing is a timing decision, not a preference. Refusing is
+a breaking change, and the [deprecation policy](../stability.md#deprecation-policy-for-1x)
+buys one with a minor of notice first. The refusal belongs to the major that also
+drops the leading `\`, because that is when a bare class name has to be
+unambiguous ([#2876](https://github.com/phel-lang/phel-lang/issues/2876),
+[#2827](https://github.com/phel-lang/phel-lang/issues/2827)). Until then the
+leading `\` is the escape, and Clojure needs no equivalent because Java packages
+are lower case while PHP's are not.
+
 ### `Class/new` is not a constructor
 
 Clojure 1.12 reads `File/new` in value position as the constructor. Phel does not:

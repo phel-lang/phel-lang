@@ -11,6 +11,7 @@ use Phel\Compiler\Domain\Analyzer\Ast\DefNode;
 use Phel\Compiler\Domain\Analyzer\Ast\FnNode;
 use Phel\Compiler\Domain\Analyzer\Ast\MapNode;
 use Phel\Compiler\Domain\Analyzer\Ast\MultiFnNode;
+use Phel\Compiler\Domain\Analyzer\Environment\ClassShadowWarner;
 use Phel\Compiler\Domain\Analyzer\Environment\NodeEnvironmentInterface;
 use Phel\Compiler\Domain\Analyzer\Environment\ReferShadowWarner;
 use Phel\Compiler\Domain\Analyzer\Exceptions\AnalyzerException;
@@ -79,6 +80,8 @@ final readonly class DefSymbol implements SpecialFormAnalyzerInterface
             $nameSymbol,
             $this->analyzer->getRefers($namespace),
         );
+
+        ClassShadowWarner::getInstance()->maybeWarn($namespace, $nameSymbol);
 
         $this->analyzer->addDefinition($namespace, $nameSymbol, $this->defonce);
 
