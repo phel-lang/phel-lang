@@ -213,7 +213,11 @@ behaviour listed there is a decision, not a bug.
 ## 4. Namespaces and project layout
 
 - A namespace name maps to a path. `.` is the separator; `\` still parses and is
-  deprecated (#2827).
+  deprecated (#2827). It announces without `--warn-deprecations`
+  ([ADR 0014](../adr/0014-announce-the-separator-deprecation.md)) and keeps
+  working for every `1.x`. What replaces it, including the fate of the leading
+  `\` on a class name, is
+  [ADR 0015](../adr/0015-a-php-class-is-named-with-dots.md).
 - `phel.core` is always loaded and must never be `:require`d explicitly.
 - The `.phel/` state directory and the `phel-config.php` keys are frozen; see
   [the configuration surface](../stability.md#configuration-surface) and

@@ -23,12 +23,14 @@ All notable changes to this project will be documented in this file.
 - `phel eval -h` shows a heredoc example for multi-line evaluation
 - The normative [language-surface spec](docs/spec/language-surface.md) and [Clojure divergences](docs/spec/clojure-divergences.md). A test compares the special-form table against the analyzer's dispatch registry, so the spec cannot drift from the compiler
 - The [stability policy](docs/stability.md), plus migration guides for [0.49 to 1.0](docs/migration/upgrade-0.49-to-1.0.md), [live deprecations](docs/migration/deprecated-surface.md) and [removed core fns](docs/migration/removed-deprecated-core-fns.md)
-- [Architecture decision records](docs/adr/README.md): 14 records covering the decisions that read as oversights and get re-proposed, each naming the test that fails when it is broken
+- [Architecture decision records](docs/adr/README.md): 15 records covering the decisions that read as oversights and get re-proposed, each naming the test that fails when it is broken
 - Compatibility gates that fail the build on drift: snapshots of the public PHP surface (`composer api-surface:update`) and of every public `phel.*` definition and arity (`composer core-api:update`), plus a `:doc` gate on public definitions
 - Every class outside the public PHP surface carries `@internal`, so the split reaches IDEs and static analysis. A test pins both directions
 - CI: macOS is a supported platform (Windows stays declared best-effort), coverage is published and gated at 85%, benchmarks are asserted against the base revision, and mutation testing runs weekly over `src/php/Lang/` and the analyzer (MSI floor 80)
 
 ### Changed
+
+- The spelling a PHP class will have after `\` goes is recorded: dotted or bare, with no leading marker, and the marker retires with the separator rather than becoming permanent ([ADR 0015](docs/adr/0015-a-php-class-is-named-with-dots.md), #2876). Nothing changes in `1.x`, where both spellings work
 
 - A `def` whose name is a loadable PHP class warns. The definition wins from there on, so `(def DateTime "shadow")` used to make `(new DateTime)` fail with `Class "shadow" not found` and nothing said why. Clojure refuses the `def`; Phel warns for now and names `\DateTime` as the spelling that still reaches the class, with the refusal scheduled for the major that drops the leading `\` (#2876)
 
