@@ -48,7 +48,7 @@ final class BackslashSeparatorDeprecator
             return;
         }
 
-        $this->maybeWarnString($symbol->getFullName(), $location);
+        $this->maybeWarnString($this->rawFullName($symbol), $location);
     }
 
     public function maybeWarnString(string $namespace, SourceLocation $location): void
@@ -66,6 +66,27 @@ final class BackslashSeparatorDeprecator
             $namespace,
             fn(string $file, int $line): string => $this->buildMessage($namespace, $file, $line),
         );
+    }
+
+    /**
+     * The symbol as written, rather than as displayed.
+     *
+     * `Symbol::getFullName()` renders through `displayNamespace()`, which
+     * rewrites a `\` separator to `.` and only leaves a leading `\` alone. Ask
+     * it and a qualified call site (`phel\string/join`) has already been
+     * canonicalised, so the separator this class exists to find is gone before
+     * it looks: only class FQNs ever warned (#2931). The raw namespace is what
+     * the user typed.
+     */
+    private function rawFullName(Symbol $symbol): string
+    {
+        $namespace = $symbol->getNamespace();
+
+        if ($namespace === null || $namespace === '') {
+            return $symbol->getName();
+        }
+
+        return $namespace . '/' . $symbol->getName();
     }
 
     /**
