@@ -7,7 +7,7 @@ modules, deployment) live on **[phel-lang.org](https://phel-lang.org/documentati
 ## What lives here
 
 - [Specification](spec/README.md): the normative language surface and the deliberate Clojure divergences
-- [Stability policy](stability.md): what a version number promises, which PHP symbols semver covers, and the 1.x deprecation and PHP support policies
+- [Stability policy](stability.md): what a version number promises, which PHP symbols semver covers, what a deployment actually loads, and the 1.x deprecation and PHP support policies
 - [Architecture decisions](adr/README.md): why the repository is shaped the way it
   is, one record per decision, including the ones that look like oversights
 - [CLI Reference & DX Guide](cli-reference.md): every command, the dev loop, and compile vs eval vs run vs build

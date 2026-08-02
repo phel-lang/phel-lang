@@ -208,7 +208,7 @@ Switches to an existing namespace without creating it. Two uses: at the REPL, to
             'docUrl' => '/documentation/namespaces/',
             'signatures' => ['(in-ns namespace)'],
             'desc' => 'Switches to an existing namespace without creating it (REPL, and `load`-ed files).',
-            'example' => '(in-ns my-app\\core)',
+            'example' => '(in-ns my-app.core)',
         ],
         Symbol::NAME_LET => [
             'doc' => '```phel
@@ -268,7 +268,7 @@ Defines the namespace for the current file and adds imports to the environment. 
             'docUrl' => '/documentation/namespaces/#namespace-ns',
             'signatures' => ['(ns name imports*)'],
             'desc' => 'Defines the namespace for the current file and adds imports to the environment. Imports can either be uses or requires. The keyword :use is used to import PHP classes, the keyword :require is used to import Phel modules and the keyword :require-file is used to load php files.',
-            'example' => '(ns my-app\\core (:require phel\\string :as str))',
+            'example' => '(ns my-app.core (:require phel.string :as str))',
         ],
         Symbol::NAME_PHP_ARRAY_GET => [
             'doc' => '```phel
@@ -501,7 +501,7 @@ Registers PHP class aliases in the current namespace without the full `(ns ... (
             'docUrl' => '/documentation/namespaces/',
             'signatures' => ['(use ClassName & options)'],
             'desc' => 'Registers PHP class aliases in the current namespace (compile-time only).',
-            'example' => '(use \\DateTimeImmutable :as Date)',
+            'example' => '(use DateTimeImmutable :as Date)',
         ],
         Symbol::NAME_VAR => [
             'doc' => '```phel
