@@ -258,8 +258,8 @@ Returns the new value after the swap."
 (defn- for-builder-options [head i initial-options]
   (if (<= (count head) i)
     initial-options
-    (let [binding (php/aget head i)
-          verb    (php/aget head (php/+ i 1))]
+    (let [binding (aget head i)
+          verb    (aget head (php/+ i 1))]
       (if (keyword? binding)
         (case binding
           :reduce (for-builder-options head (php/+ i 2) (assoc initial-options :reduce verb))
@@ -272,8 +272,8 @@ Returns the new value after the swap."
     body
 
     ;; Handle heads
-    (let [binding (php/aget head i)
-          verb    (php/aget head (php/+ i 1))]
+    (let [binding (aget head i)
+          verb    (aget head (php/+ i 1))]
       (cond
         ;; Case 1: Options
         (and (keyword? binding) (contains? for-options binding))
@@ -289,7 +289,7 @@ Returns the new value after the swap."
             (throw (new InvalidArgumentException (str "This modifier is not supported in for loop: " verb)))))
 
         ;; Case 3: Verbs
-        (let [object    (php/aget head (php/+ i 2))
+        (let [object    (aget head (php/+ i 2))
               rest      (for-builder body head (php/+ i 3))
               value-sym (gensym)]
           (case verb
@@ -376,8 +376,8 @@ Returns the new value after the swap."
          result []]
     (if (>= i (count head))
       result
-      (let [el      (php/aget head i)
-            next-el (php/aget head (php/+ i 1))]
+      (let [el      (aget head i)
+            next-el (aget head (php/+ i 1))]
         (cond
           ;; modifier keyword: keep pair as-is
           (keyword? el)
@@ -385,7 +385,7 @@ Returns the new value after the swap."
 
           ;; explicit verb already present: keep triple as-is
           (for-verb? next-el)
-          (recur (php/+ i 3) (push-binding-triple result el next-el (php/aget head (php/+ i 2))))
+          (recur (php/+ i 3) (push-binding-triple result el next-el (aget head (php/+ i 2))))
 
           ;; Clojure-style pair: insert `:in` with map-aware iteration helper
           :else

@@ -645,8 +645,8 @@ returns 1. If `xs` has one value, returns the reciprocal of x.
     (php/sort arr)
     (let [mid (php/intdiv cnt 2)]
       (if (odd? cnt)
-        (php/aget arr mid)
-        (php/fdiv (+ (php/aget arr (dec mid)) (php/aget arr mid)) 2)))))
+        (aget arr mid)
+        (php/fdiv (+ (aget arr (dec mid)) (aget arr mid)) 2)))))
 
 ;; -----------------------
 ;; Ratio / BigInt predicates and accessors

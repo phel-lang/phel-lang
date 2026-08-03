@@ -25,7 +25,7 @@
 (deftest pure-enum
   (let [cases (\phel_test\core\defenum\Color/cases)]
     (is (= 3 (count cases)) "pure enum exposes all cases")
-    (is (true? (Color? (php/aget cases 0))) "pure case satisfies predicate")))
+    (is (true? (Color? (aget cases 0))) "pure case satisfies predicate")))
 
 (deftest bare-name-case-access
   ;; The enum's bare name resolves to the namespaced PHP class, so the

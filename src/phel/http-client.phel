@@ -51,16 +51,16 @@
 (defn- transport-result->response
   "Converts a transport result PHP array to an http/response struct."
   [result]
-  (let [raw-headers (php/aget result "headers")
+  (let [raw-headers (aget result "headers")
         headers     (transient {})]
     (foreach [k v raw-headers]
       (assoc headers (keyword k) v))
     (http/response
-     (php/aget result "status")
+     (aget result "status")
      (persistent headers)
-     (php/aget result "body")
-     (php/aget result "version")
-     (php/aget result "reason"))))
+     (aget result "body")
+     (aget result "version")
+     (aget result "reason"))))
 
 ;; -----------
 ;; Public API

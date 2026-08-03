@@ -654,13 +654,13 @@
 ;; Issue #2298: phel->php must accept non-named map keys (int/string), not only keywords
 (deftest test-phel-php-integer-keys
   (let [arr (phel->php {1 "a"})]
-    (is (= "a" (php/aget arr 1)) "integer map key passes through unchanged"))
+    (is (= "a" (aget arr 1)) "integer map key passes through unchanged"))
   (let [arr (phel->php {"k" 1})]
-    (is (= 1 (php/aget arr "k")) "string map key passes through unchanged"))
+    (is (= 1 (aget arr "k")) "string map key passes through unchanged"))
   (let [arr (phel->php {:k 1})]
-    (is (= 1 (php/aget arr "k")) "keyword map key uses its name"))
+    (is (= 1 (aget arr "k")) "keyword map key uses its name"))
   (let [arr (phel->php {2 [3 4]})]
-    (is (= 3 (php/aget (php/aget arr 2) 0)) "integer-keyed value is converted recursively")))
+    (is (= 3 (aget (aget arr 2) 0)) "integer-keyed value is converted recursively")))
 
 ;; =============================================================================
 ;; String Seqability Tests

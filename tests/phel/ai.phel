@@ -812,8 +812,8 @@
         (let [index (ai/build-index ["hello" "world"])
               items (to-php-array index)]
           (is (= 2 (count index)) "builds two index entries")
-          (is (= "hello" (get (php/aget items 0) :text)) "first text preserved")
-          (is (= [0.1 0.9] (get (php/aget items 0) :embedding)) "first embedding attached"))
+          (is (= "hello" (get (aget items 0) :text)) "first text preserved")
+          (is (= [0.1 0.9] (get (aget items 0) :embedding)) "first embedding attached"))
         (reset! ai/config original)))))
 
 (deftest test-search-ranks-by-similarity

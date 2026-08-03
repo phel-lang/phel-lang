@@ -62,7 +62,7 @@
         ;; caller's input order — `pmap` and `.cljc` parity rely on it.
         results     (php/amp\future\await php-futures)]
     (for [i :in (range (php/count results))]
-      (php/aget results i))))
+      (aget results i))))
 
 (defn await-any
   "Awaits the first Future to resolve. Returns its value. Accepts a mix of raw `Amp\\Future` and `Future` wrappers."

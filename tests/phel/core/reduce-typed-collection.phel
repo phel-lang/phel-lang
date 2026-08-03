@@ -56,7 +56,7 @@
 (defn- reduce-with-by-ref-init [^"\Phel\Lang\Collections\Vector\PersistentVectorInterface" v]
   (let [m nil]
     (reduce + (do (php/preg_match "/(\\d+)/" "abc123" (php/ref m)) 0) v)
-    (php/aget m 1)))
+    (aget m 1)))
 
 (deftest test-reduce-preserves-by-ref-operand-writes
   (is (= "123" (reduce-with-by-ref-init [1 2 3]))

@@ -136,10 +136,10 @@
 (defn- decode-array
   "Decodes a JSON array. Detects `[\"~#tag\", rep]` markers before falling back to a positional vector decode."
   [arr opts]
-  (let [head (php/aget arr 0)
+  (let [head (aget arr 0)
         tag  (tag-string head)]
     (if tag
-      (decode-tagged-array tag (php/aget arr 1) opts)
+      (decode-tagged-array tag (aget arr 1) opts)
       (let [acc (transient [])]
         (foreach [x arr]
           (conj! acc (decode x opts)))

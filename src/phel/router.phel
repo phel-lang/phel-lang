@@ -172,7 +172,7 @@
   [matcher path lookup-fn]
   (try
     (let [parameters      (.match matcher path)
-          route-name      (php/aget parameters "_route")
+          route-name      (aget parameters "_route")
           [template data] (lookup-fn route-name)]
       {:route-name  route-name
        :template    template

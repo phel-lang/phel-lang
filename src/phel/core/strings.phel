@@ -108,10 +108,10 @@ Throws `InvalidArgumentException` for any other input (including functions, numb
     (if (php/=== cnt 0)
       ""
       (if (php/=== cnt 1)
-        (val-to-str (php/aget args 0))
+        (val-to-str (aget args 0))
         (let [parts (php/array)]
           (loop [i 0]
             (if (php/< i cnt)
-              (do (php/apush parts (val-to-str (php/aget args i)))
+              (do (php/apush parts (val-to-str (aget args i)))
                   (recur (php/+ i 1)))
               (php/implode "" parts))))))))

@@ -45,7 +45,7 @@
     (let [n (count coll)]
       (if (php/=== 0 n)
         nil
-        (php/aget coll (php/- n 1))))))
+        (aget coll (php/- n 1))))))
 
 (defn- pop*
   "Removes the last element of `coll`. Returns nil for nil or empty PHP arrays."
@@ -74,7 +74,7 @@
 (defn- indexed-vector?
   [coll]
   ;; Strict: persistent or transient `PersistentVectorInterface`. `MapEntry`
-  ;; is a vector to `vector?` callers but does not support `php/aget`, so
+  ;; is a vector to `vector?` callers but does not support `aget`, so
   ;; `nth`/`get` must keep walking to their seq fallbacks for it.
   (or (php/instanceof coll PersistentVectorInterface)
       (transient-vector? coll)))
@@ -117,13 +117,13 @@
       opt)
 
     ;; Vectors index by int only; reject non-int keys before they reach
-    ;; `php/aget`, which would otherwise trigger a raw PHP int-coercion
+    ;; `aget`, which would otherwise trigger a raw PHP int-coercion
     ;; warning on `PersistentVector::offsetExists`.
     (and (indexed-vector? ds) (not (integer? k)))
     opt
 
     :else
-    (let [res (php/aget ds k)]
+    (let [res (aget ds k)]
       (if (nil? res)
         opt
         res))))
