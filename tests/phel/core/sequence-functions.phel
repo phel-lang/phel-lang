@@ -647,8 +647,8 @@
 (deftest test-php-phel-roundtrip
   (let [m     (php/array)
         inner (php/array)]
-    (php/aset inner "b" 2)
-    (php/aset m "a" (php/array 1 inner))
+    (aset inner "b" 2)
+    (aset m "a" (php/array 1 inner))
     (is (= m (phel->php (php->phel m))) "php->phel -> phel->php roundtrip")))
 
 ;; Issue #2298: phel->php must accept non-named map keys (int/string), not only keywords

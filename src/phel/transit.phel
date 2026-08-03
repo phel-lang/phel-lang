@@ -235,7 +235,7 @@
   (if (string-keys? m)
     (let [obj (php/array)]
       (foreach [k v m]
-        (php/aset obj k (encode v)))
+        (aset obj k (encode v)))
       obj)
     (let [pairs (php/array)]
       (foreach [k v m]

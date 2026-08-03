@@ -16,7 +16,7 @@
   [headers]
   (let [arr (php/array)]
     (foreach [k v headers]
-      (php/aset arr (key->string k) (str v)))
+      (aset arr (key->string k) (str v)))
     arr))
 
 ;; -----------
@@ -27,9 +27,9 @@
   "Converts Phel options to a PHP associative array for the transport."
   [{:timeout timeout, :follow-redirects follow-redirects, :verify-ssl verify-ssl}]
   (let [arr (php/array)]
-    (when timeout (php/aset arr "timeout" timeout))
-    (when-not (nil? follow-redirects) (php/aset arr "follow_redirects" follow-redirects))
-    (when-not (nil? verify-ssl) (php/aset arr "verify_ssl" verify-ssl))
+    (when timeout (aset arr "timeout" timeout))
+    (when-not (nil? follow-redirects) (aset arr "follow_redirects" follow-redirects))
+    (when-not (nil? verify-ssl) (aset arr "verify_ssl" verify-ssl))
     arr))
 
 (defn- append-query-params
@@ -39,7 +39,7 @@
     url
     (let [php-params (php/array)]
       (foreach [k v params]
-        (php/aset php-params (key->string k) (str v)))
+        (aset php-params (key->string k) (str v)))
       (let [query-string (php/http_build_query php-params)
             separator    (if (php/str_contains url "?") "&" "?")]
         (str url separator query-string)))))

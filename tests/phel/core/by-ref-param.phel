@@ -13,10 +13,10 @@
     (is (= "world" (aget parts 1)))))
 
 (defn- reset-counter! [^:by-ref counter]
-  (php/aset counter "n" 0))
+  (aset counter "n" 0))
 
 (deftest test-by-ref-param-on-assoc-array
   (let [counter (php/array)]
-    (php/aset counter "n" 5)
+    (aset counter "n" 5)
     (reset-counter! counter)
-    (is (= 0 (aget counter "n")) "php/aset under ^:by-ref mutates caller")))
+    (is (= 0 (aget counter "n")) "aset under ^:by-ref mutates caller")))

@@ -87,7 +87,7 @@
     (throw (new InvalidArgumentException (str op-name " expects a PHP array")))))
 
 (defn aclone
-  "Returns a shallow copy of a PHP array. The returned array is a distinct value — mutating the copy via `php/aset` does not affect the original, and vice versa. Matches Clojure's `aclone` for `.cljc` interop; raises `InvalidArgumentException` on non-array inputs since Phel's persistent collections are already immutable and don't need cloning."
+  "Returns a shallow copy of a PHP array. The returned array is a distinct value — mutating the copy via `aset` does not affect the original, and vice versa. Matches Clojure's `aclone` for `.cljc` interop; raises `InvalidArgumentException` on non-array inputs since Phel's persistent collections are already immutable and don't need cloning."
   {:example "(aclone (object-array 3)) ; => <PHP-Array [nil, nil, nil]>"
    :see-also ["object-array" "to-array"]}
   [arr]

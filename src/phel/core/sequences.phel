@@ -249,7 +249,7 @@
     (.put {} key value)
 
     (php-array? ds)
-    (throw (new InvalidArgumentException "Cannot call assoc on pure PHP arrays. Use (php/aset ds key value)"))
+    (throw (new InvalidArgumentException "Cannot call assoc on pure PHP arrays. Use (aset ds key value)"))
 
     (map-target? ds)
     (.put ds key value)
@@ -265,7 +265,7 @@
 
     ;; Explicit rejection for any other shape (string, list, set, sorted set,
     ;; number, …). Without this the old fall-through silently mutated strings
-    ;; via `php/aset` and leaked raw PHP "offsetSet not supported" errors for
+    ;; via `aset` and leaked raw PHP "offsetSet not supported" errors for
     ;; lists and sets.
     (throw (new InvalidArgumentException
                 (str "assoc expects a map, vector, struct, or nil; got " (type ds))))))

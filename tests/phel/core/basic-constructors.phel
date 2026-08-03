@@ -224,9 +224,9 @@
 
 (deftest test-aclone-preserves-elements
   (let [arr (object-array 3)]
-    (php/aset arr 0 1)
-    (php/aset arr 1 2)
-    (php/aset arr 2 3)
+    (aset arr 0 1)
+    (aset arr 1 2)
+    (aset arr 2 3)
     (let [cloned (aclone arr)]
       (is (php/is_array cloned) "aclone returns a PHP array")
       (is (= 3 (php/count cloned)) "aclone preserves length")
@@ -236,14 +236,14 @@
 
 (deftest test-aclone-is-independent-copy
   (let [original (object-array 3)]
-    (php/aset original 0 1)
-    (php/aset original 1 2)
-    (php/aset original 2 3)
+    (aset original 0 1)
+    (aset original 1 2)
+    (aset original 2 3)
     (let [cloned (aclone original)]
-      (php/aset original 1 11)
+      (aset original 1 11)
       (is (= 11 (aget original 1)) "original reflects its own mutation")
       (is (= 2 (aget cloned 1)) "clone is unaffected by mutating original")
-      (php/aset cloned 2 12)
+      (aset cloned 2 12)
       (is (= 3 (aget original 2)) "original is unaffected by mutating clone")
       (is (= 12 (aget cloned 2)) "clone reflects its own mutation"))))
 
