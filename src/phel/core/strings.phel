@@ -86,9 +86,9 @@ Throws `InvalidArgumentException` for any other input (including functions, numb
     (if (php/is_infinite x)
       (if (php/> x 0) "Infinity" "-Infinity")
       (let [s (php/. "" x)]
-        (if (php/=== 1 (php/preg_match "/[.eE]/" s))
-          s
-          (php/. s ".0"))))))
+        (if (nil? (re-find "/[.eE]/" s))
+          (php/. s ".0")
+          s)))))
 
 (defn- val-to-str
   "Converts a value to its string representation. Booleans become \"true\" or \"false\". Nil becomes an empty string. Integer-valued floats keep their `.0` suffix (so `(str 0.0)` is `\"0.0\"`, not `\"0\"`). All other values use PHP string cast."

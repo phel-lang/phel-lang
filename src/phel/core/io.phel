@@ -161,7 +161,7 @@
   "Reads entire file or URL into a string."
   {:example "(slurp \"file.txt\") ; => \"file contents\""}
   [path & [opts]]
-  (let [is-url? (php/preg_match "/^(https?|ftp):\/\//i" path)]
+  (let [is-url? (not (nil? (re-find "/^(?:https?|ftp):\/\//i" path)))]
     ;; Validate for non-URLs
     (when-not is-url?
       (when (php/is_dir path)

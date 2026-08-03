@@ -205,6 +205,9 @@ A lazily consumed source with no indexed access of its own (an `eduction` pipeli
 ;; depend on `defn` / `defmacro`
 (load "core/meta")
 (load "core/defs")
+;; `core/strings` is loaded before `core/io`, but its numeric formatting
+;; uses the public regex predicate defined there.
+(declare re-find)
 (load "core/strings")
 
 ;; Persistent + PHP array constructors
