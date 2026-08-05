@@ -30,6 +30,7 @@ All notable changes to this project will be documented in this file.
 
 ### Fixed
 
+- `aset` evaluates its value expression once. The macro spliced the form twice, so `(aset arr 0 (swap! counter inc))` incremented twice, and any costly value expression ran twice over: exponentially so where a recursive function writes into a PHP array, which is why the standard library still wrote `php/aset` by hand. `set!` already bound its value once, and `aset` now takes the same shape (#2941)
 - [The stability policy](docs/stability.md#what-a-deployment-loads) records what a built application actually loads: `Phel\Lang` plus seven `Phel\Compiler` classes reached through the singleton whose name is compiled into build artifacts, and nothing from `Run`, `Console`, `Api`, `Lsp`, `Nrepl`, `Build`, `Formatter` or `Lint`. Measured rather than asserted
 - `(in-ns ...)`, `(ns ...)` and `(use ...)` teach the dot separator in `phel doc`, instead of the spelling being retired
 - `phel doc` no longer warns about `phel-internal\doc`, a namespace only Phel writes. It generated the deprecated separator, which became visible once the notice stopped being opt-in (#2936)
@@ -72,6 +73,7 @@ All notable changes to this project will be documented in this file.
 
 ### Changed
 
+- `aget` declares its single-index arity, `(aget arr index)`, instead of reaching every read through `& indices`. Collecting rest arguments cost more than the array read itself, which is why the standard library still wrote `php/aget` on hot paths; a single-index read is now around twice a raw `php/aget` rather than twelve times it. `(aget arr)` with no index is gone with the rest parameter, as in Clojure, where an index is required (#2941)
 - The `\` namespace separator now warns without `--warn-deprecations`. It is the last deprecated language surface and the one scheduled for removal at the next major, so an opt-in notice was no notice at all: the policy promises a minor of warning before a removal and nobody was being warned. Every other deprecation stays opt-in ([ADR 0014](docs/adr/0014-announce-the-separator-deprecation.md), #2827)
 - The spelling a PHP class will have after `\` goes is recorded: dotted or bare, with no leading marker, and the marker retires with the separator rather than becoming permanent ([ADR 0015](docs/adr/0015-a-php-class-is-named-with-dots.md), #2876). Nothing changes in `1.x`, where both spellings work
 - A `def` whose name is a loadable PHP class warns. The definition wins from there on, so `(def DateTime "shadow")` used to make `(new DateTime)` fail with `Class "shadow" not found` and nothing said why. Clojure refuses the `def`; Phel warns for now and names `\DateTime` as the spelling that still reaches the class, with the refusal scheduled for the major that drops the leading `\` (#2876)

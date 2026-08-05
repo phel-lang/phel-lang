@@ -375,6 +375,20 @@
     (aset outer 0 1 99)
     (is (= 99 (php/aget (php/aget outer 0) 1)) "aset nested modified inner array")))
 
+(deftest test-aset-evaluates-value-once
+  (let [calls (atom 0)
+        a     (php/array 1 2 3)]
+    (aset a 0 (do (swap! calls inc) 42))
+    (is (= 1 @calls) "aset evaluates its value expression once")
+    (is (= 42 (php/aget a 0)) "aset stored the evaluated value")))
+
+(deftest test-aset-nested-evaluates-value-once
+  (let [calls (atom 0)
+        outer (php/array (php/array 10 20))]
+    (aset outer 0 1 (do (swap! calls inc) 99))
+    (is (= 1 @calls) "nested aset evaluates its value expression once")
+    (is (= 99 (php/aget (php/aget outer 0) 1)) "nested aset stored the evaluated value")))
+
 (defstruct my-struct [a b c])
 
 (deftest test-struct
