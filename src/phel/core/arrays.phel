@@ -190,12 +190,15 @@
   "Returns the value at `index` in a PHP array. With multiple indices, accesses nested arrays: `(aget arr i j)` is `(aget (aget arr i) j)`. Matches Clojure's `aget` for `.cljc` interop."
   {:example "(aget (php/array 10 20 30) 1) ; => 20"
    :see-also ["aset" "aclone" "object-array"]}
-  [arr & indices]
-  (loop [a    arr
-         idxs indices]
-    (if (nil? idxs)
-      a
-      (recur (php/aget a (first idxs)) (next idxs)))))
+  ;; The single-index arity is spelled out so the common read does not pay for
+  ;; collecting rest arguments; it is the shape every hot path uses.
+  ([arr index] (php/aget arr index))
+  ([arr index & indices]
+   (loop [a    (php/aget arr index)
+          idxs indices]
+     (if (nil? idxs)
+       a
+       (recur (php/aget a (first idxs)) (next idxs))))))
 
 (defmacro aset
   "Sets the value at `index` in a PHP array to `val`. Returns `val`.
@@ -207,13 +210,18 @@
   {:example "(let [a (php/array 1 2 3)] (aset a 0 42) (aget a 0)) ; => 42"
    :see-also ["aget" "aclone" "object-array"]}
   [arr idx & more]
-  (let [n   (.count more)
-        val (.get more (php/- n 1))]
+  (let [n       (.count more)
+        val-arg (.get more (php/- n 1))]
+    ;; `arr` stays unbound: PHP arrays are value types, so a `let` would assign a copy.
     (if (php/=== 1 n)
-      `(do (php/aset ~arr ~idx ~val) ~val)
+      `(let [value# ~val-arg]
+         (php/aset ~arr ~idx value#)
+         value#)
       (let [extra-keys (loop [i  0
                               ks [idx]]
                          (if (php/< i (php/- n 1))
                            (recur (php/+ i 1) (.push ks (.get more i)))
                            ks))]
-        `(do (php/aset-in ~arr ~extra-keys ~val) ~val)))))
+        `(let [value# ~val-arg]
+           (php/aset-in ~arr ~extra-keys value#)
+           value#)))))
