@@ -401,7 +401,7 @@ Useful for building multi-turn conversations."
       (let [matches (php/array)
             found   (php/preg_match "/```(?:json)?\\s*\\n?(\\{[\\s\\S]*?\\})\\s*\\n?```/" trimmed matches)]
         (if (one? found)
-          (php/aget matches 1)
+          (aget matches 1)
           (slice-between trimmed "{" "}" "Could not extract JSON from AI response: "))))))
 
 (def- default-extract-system

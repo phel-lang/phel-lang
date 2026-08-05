@@ -481,7 +481,7 @@ See PHP's [file_put_contents](https://www.php.net/manual/en/function.file-put-co
   `(set-var v e)` forms consumed by an open binding/with-redefs frame."
   [bindings]
   (map (fn [pair]
-         (list 'set-var (php/aget pair 0) (php/aget pair 1)))
+         (list 'set-var (aget pair 0) (aget pair 1)))
        (php/array_chunk (apply php/array bindings) 2)))
 
 (defn- emit-binding-form

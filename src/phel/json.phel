@@ -23,7 +23,7 @@
     (foreach [k v x]
       (when-not (valid-key? k)
         (throw (new JsonException "Key can only be an integer, float, symbol, keyword or a string.")))
-      (php/aset arr (encode-key k) (encode-value v)))
+      (aset arr (encode-key k) (encode-value v)))
     arr))
 
 (defn encode-value

@@ -5,12 +5,12 @@
 
 (deftest struct-reads-via-string-offset
   (let [p (point 3 4)]
-    (is (= 3 (php/aget p "x")) "a plain PHP string offset reads the field")
-    (is (= 4 (php/aget p "y")) "string offset works for every field")))
+    (is (= 3 (aget p "x")) "a plain PHP string offset reads the field")
+    (is (= 4 (aget p "y")) "string offset works for every field")))
 
 (deftest struct-keyword-offset-still-works
   (let [p (point 3 4)]
-    (is (= 3 (php/aget p :x)) "keyword offset is unchanged")
+    (is (= 3 (aget p :x)) "keyword offset is unchanged")
     (is (= 3 (get p :x)) "the map protocol is unchanged")))
 
 (deftest struct-satisfies-spl-interfaces

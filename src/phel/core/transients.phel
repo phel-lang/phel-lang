@@ -45,7 +45,7 @@ Transient collections provide faster performance for multiple sequential updates
     (let [assign (fn [acc key value]
                    (if (php/is_array acc)
                      (do
-                       (php/aset acc key value)
+                       (aset acc key value)
                        acc)
                      (.put acc key value)))]
       (cond

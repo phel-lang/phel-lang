@@ -123,7 +123,7 @@
             v (second entry)]
         (if (php/is_array acc)
           (do
-            (php/aset acc k v)
+            (aset acc k v)
             acc)
           (assoc acc k v))))))
 
@@ -874,7 +874,7 @@ Works with vectors, lists, sets, and strings."
     (php-array? x)
     (let [arr (php/array)]
       (foreach [k v x]
-        (php/aset arr k (phel->php v)))
+        (aset arr k (phel->php v)))
       arr)
 
     (indexed? x)
@@ -886,7 +886,7 @@ Works with vectors, lists, sets, and strings."
     (associative? x)
     (let [arr (php/array)]
       (foreach [k v x]
-        (php/aset arr (phel->php-key k) (phel->php v)))
+        (aset arr (phel->php-key k) (phel->php v)))
       arr)
 
     (set? x)
