@@ -30,6 +30,7 @@ All notable changes to this project will be documented in this file.
 
 ### Fixed
 
+- `aset` evaluates its value expression once. The macro spliced the form twice, so `(aset arr 0 (swap! counter inc))` incremented twice, and any costly value expression ran twice over: exponentially so where a recursive function writes into a PHP array, which is why the standard library still wrote `php/aset` by hand. `set!` already bound its value once, and `aset` now takes the same shape (#2941)
 - [The stability policy](docs/stability.md#what-a-deployment-loads) records what a built application actually loads: `Phel\Lang` plus seven `Phel\Compiler` classes reached through the singleton whose name is compiled into build artifacts, and nothing from `Run`, `Console`, `Api`, `Lsp`, `Nrepl`, `Build`, `Formatter` or `Lint`. Measured rather than asserted
 - `(in-ns ...)`, `(ns ...)` and `(use ...)` teach the dot separator in `phel doc`, instead of the spelling being retired
 - `phel doc` no longer warns about `phel-internal\doc`, a namespace only Phel writes. It generated the deprecated separator, which became visible once the notice stopped being opt-in (#2936)
