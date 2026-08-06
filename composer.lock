@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "1a3740fcd70db33f52ebd66ebcad1ae3",
+    "content-hash": "32bfb5195aae407276db3fc31c0e3d28",
     "packages": [
         {
             "name": "amphp/amp",
@@ -89,30 +89,38 @@
         },
         {
             "name": "gacela-project/container",
-            "version": "0.10.0",
+            "version": "2.0.2",
             "source": {
                 "type": "git",
                 "url": "https://github.com/gacela-project/container.git",
-                "reference": "db13556a11f6892c852ef0f26a9915aee2a3ba4e"
+                "reference": "e9ac0b6b5c6b0eb8724e04b8e9cbc829f43c6707"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/gacela-project/container/zipball/db13556a11f6892c852ef0f26a9915aee2a3ba4e",
-                "reference": "db13556a11f6892c852ef0f26a9915aee2a3ba4e",
+                "url": "https://api.github.com/repos/gacela-project/container/zipball/e9ac0b6b5c6b0eb8724e04b8e9cbc829f43c6707",
+                "reference": "e9ac0b6b5c6b0eb8724e04b8e9cbc829f43c6707",
                 "shasum": ""
             },
             "require": {
-                "php": ">=8.1",
-                "psr/container": ">=1.1"
+                "php": ">=8.3",
+                "psr/container": "^1.1 || ^2.0"
             },
             "require-dev": {
                 "friendsofphp/php-cs-fixer": "^3.75",
-                "phpstan/phpstan": "^1.12",
-                "phpunit/phpunit": "^10.5",
-                "psalm/plugin-phpunit": "^0.18",
-                "symfony/var-dumper": "^5.4",
-                "vimeo/psalm": "^5.26"
+                "infection/infection": "^0.31 || ^0.34",
+                "phpbench/phpbench": "^1.4",
+                "phpstan/phpstan": "^2.2",
+                "phpunit/phpunit": "^12.5",
+                "symfony/var-dumper": "^6.4 || ^7.0",
+                "symfony/yaml": "^6.4 || ^7.0",
+                "vimeo/psalm": "^6.16"
             },
+            "suggest": {
+                "symfony/yaml": "To load container definitions from .yaml/.yml files with loadFile(); not required — parse it yourself and use load()"
+            },
+            "bin": [
+                "bin/gacela-container"
+            ],
             "type": "library",
             "autoload": {
                 "psr-4": {
@@ -145,7 +153,7 @@
             ],
             "support": {
                 "issues": "https://github.com/gacela-project/container/issues",
-                "source": "https://github.com/gacela-project/container/tree/0.10.0"
+                "source": "https://github.com/gacela-project/container/tree/2.0.2"
             },
             "funding": [
                 {
@@ -153,41 +161,35 @@
                     "type": "custom"
                 }
             ],
-            "time": "2026-07-19T22:59:58+00:00"
+            "time": "2026-08-06T08:42:24+00:00"
         },
         {
             "name": "gacela-project/gacela",
-            "version": "1.21.0",
-            "source": {
-                "type": "git",
-                "url": "https://github.com/gacela-project/gacela.git",
-                "reference": "32fef1b9651f72e8006c4f0cf7b3bf618bf381be"
-            },
+            "version": "dev-main",
             "dist": {
-                "type": "zip",
-                "url": "https://api.github.com/repos/gacela-project/gacela/zipball/32fef1b9651f72e8006c4f0cf7b3bf618bf381be",
-                "reference": "32fef1b9651f72e8006c4f0cf7b3bf618bf381be",
-                "shasum": ""
+                "type": "path",
+                "url": "/Users/chema/Code/gacela-project/gacela",
+                "reference": "699032ffa8fef41474666bf257f24944a9659d3c"
             },
             "require": {
-                "gacela-project/container": "^0.10.0",
-                "php": ">=8.1"
+                "gacela-project/container": "^2.0.2",
+                "php": ">=8.3"
             },
             "require-dev": {
                 "ergebnis/composer-normalize": "^2.50",
                 "friendsofphp/php-cs-fixer": "^3.95",
-                "infection/infection": "^0.29",
-                "nikic/php-parser": "^5.0",
+                "infection/infection": "^0.34",
+                "nikic/php-parser": "^5.4",
                 "phpbench/phpbench": "^1.4",
                 "phpmetrics/phpmetrics": "^2.9",
                 "phpstan/phpstan": "^2.0",
                 "phpstan/phpstan-strict-rules": "^2.0",
                 "phpunit/phpunit": "^10.5",
-                "psalm/plugin-phpunit": "^0.19.5",
+                "psalm/plugin-phpunit": "^0.19.7",
                 "rector/rector": "^2.0",
-                "symfony/console": "^6.4",
-                "symfony/dependency-injection": "^6.4",
-                "symfony/var-dumper": "^6.4",
+                "symfony/console": "^7.0 || ^8.0",
+                "symfony/dependency-injection": "^7.0 || ^8.0",
+                "symfony/var-dumper": "^7.0 || ^8.0",
                 "vimeo/psalm": "^6.16"
             },
             "suggest": {
@@ -206,7 +208,112 @@
                     "Gacela\\": "src/"
                 }
             },
-            "notification-url": "https://packagist.org/downloads/",
+            "autoload-dev": {
+                "psr-4": {
+                    "GacelaData\\": "data/",
+                    "GacelaTest\\": "tests/",
+                    "GacelaTest\\SymfonyBridge\\": "symfony-bridge/tests/",
+                    "Gacela\\SymfonyBridge\\": "symfony-bridge/src/"
+                }
+            },
+            "scripts": {
+                "post-install-cmd": [
+                    "@php tools/git-hooks/init.php"
+                ],
+                "clear-cache-gacela": [
+                    "@php tools/clear-cache-gacela.php"
+                ],
+                "clear-cache-phpstan": [
+                    "XDEBUG_MODE=off vendor/bin/phpstan clear-result-cache"
+                ],
+                "clear-cache-psalm": [
+                    "XDEBUG_MODE=off vendor/bin/psalm --clear-cache"
+                ],
+                "csfix": [
+                    "XDEBUG_MODE=off ./vendor/bin/php-cs-fixer fix"
+                ],
+                "csrun": [
+                    "XDEBUG_MODE=off ./vendor/bin/php-cs-fixer fix --dry-run"
+                ],
+                "ctal": [
+                    "@static-clear-cache",
+                    "@csfix",
+                    "@test-all"
+                ],
+                "fix": [
+                    "@static-clear-cache",
+                    "@composer normalize",
+                    "@csfix",
+                    "@rector"
+                ],
+                "infection": [
+                    "XDEBUG_MODE=coverage ./vendor/bin/infection --show-mutations --threads=max --min-msi=100 --min-covered-msi=100",
+                    "@static-clear-cache"
+                ],
+                "metrics-report": [
+                    "@test-all-suites",
+                    "XDEBUG_MODE=off ./vendor/bin/phpmetrics --config=phpmetrics-config.json --junit=data/log-junit.xml"
+                ],
+                "phpbench": [
+                    "XDEBUG_MODE=off ./vendor/bin/phpbench run --report=aggregate --ansi"
+                ],
+                "phpbench-base": [
+                    "XDEBUG_MODE=off ./vendor/bin/phpbench run --tag=baseline --report=aggregate --progress=plain --ansi"
+                ],
+                "phpbench-ref": [
+                    "XDEBUG_MODE=off ./vendor/bin/phpbench run --ref=baseline --report=aggregate --progress=plain --ansi"
+                ],
+                "phpstan": [
+                    "XDEBUG_MODE=develop ./vendor/bin/phpstan analyze --no-progress --memory-limit=1G"
+                ],
+                "phpstan-tests": [
+                    "XDEBUG_MODE=off ./vendor/bin/phpstan analyze -c phpstan-tests.neon --memory-limit=1G"
+                ],
+                "phpunit": [
+                    "@test-unit",
+                    "@test-integration",
+                    "@test-feature"
+                ],
+                "psalm": [
+                    "XDEBUG_MODE=off ./vendor/bin/psalm"
+                ],
+                "quality": [
+                    "@csrun",
+                    "@psalm",
+                    "@phpstan",
+                    "@phpstan-tests"
+                ],
+                "rector": [
+                    "./vendor/bin/rector"
+                ],
+                "static-clear-cache": [
+                    "@clear-cache-psalm",
+                    "@clear-cache-phpstan",
+                    "@clear-cache-gacela"
+                ],
+                "test": [
+                    "@test-all"
+                ],
+                "test-all": [
+                    "@quality",
+                    "@phpunit"
+                ],
+                "test-all-suites": [
+                    "XDEBUG_MODE=off ./vendor/bin/phpunit --testsuite=unit,integration,feature --log-junit=data/log-junit.xml"
+                ],
+                "test-coverage": [
+                    "XDEBUG_MODE=coverage ./vendor/bin/phpunit --testsuite=unit,integration,feature --coverage-html=data/coverage-html --coverage-xml=data/coverage-xml --log-junit=data/coverage-xml/junit.xml"
+                ],
+                "test-feature": [
+                    "XDEBUG_MODE=off ./vendor/bin/phpunit --testsuite=feature"
+                ],
+                "test-integration": [
+                    "XDEBUG_MODE=off ./vendor/bin/phpunit --testsuite=integration"
+                ],
+                "test-unit": [
+                    "XDEBUG_MODE=off ./vendor/bin/phpunit --testsuite=unit"
+                ]
+            },
             "license": [
                 "MIT"
             ],
@@ -231,16 +338,12 @@
                 "php"
             ],
             "support": {
-                "issues": "https://github.com/gacela-project/gacela/issues",
-                "source": "https://github.com/gacela-project/gacela/tree/1.21.0"
+                "issues": "https://github.com/gacela-project/gacela/issues"
             },
-            "funding": [
-                {
-                    "url": "https://chemaclass.com/sponsor",
-                    "type": "custom"
-                }
-            ],
-            "time": "2026-07-26T01:29:08+00:00"
+            "transport-options": {
+                "symlink": false,
+                "relative": false
+            }
         },
         {
             "name": "psr/container",
@@ -9433,9 +9536,18 @@
             "time": "2024-03-07T20:33:40+00:00"
         }
     ],
-    "aliases": [],
+    "aliases": [
+        {
+            "package": "gacela-project/gacela",
+            "version": "dev-main",
+            "alias": "2.0.0",
+            "alias_normalized": "2.0.0.0"
+        }
+    ],
     "minimum-stability": "stable",
-    "stability-flags": {},
+    "stability-flags": {
+        "gacela-project/gacela": 20
+    },
     "prefer-stable": false,
     "prefer-lowest": false,
     "platform": {
@@ -9447,5 +9559,5 @@
     "platform-overrides": {
         "php": "8.4.6"
     },
-    "plugin-api-version": "2.6.0"
+    "plugin-api-version": "2.9.0"
 }
