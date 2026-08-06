@@ -23,7 +23,10 @@ AST walker, no Phel bytecode.
 - `Domain/Evaluator/RequireEvaluator` writes to a temp file named by the code's
   MD5, calls `opcache_compile_file()` when available, `require`s it. Repeat code
   hits a process-local cache, then the file.
-- `InMemoryEvaluator` (`eval()`) is for tests only.
+- `InMemoryEvaluator` (`eval()`) takes the interactive path, where a temp file per
+  form buys nothing: `CompilerFacade::eval()`/`evalForm()` reach it, and through
+  them the REPL, `phel eval`, the test runner and the breakpoint debugger.
+  `RequireEvaluator` takes the file-compilation path.
 - Compilation and evaluation interleave per top-level form. Hence `defmacro` being
   available to later forms in the same file, and `GlobalEnvironment` (compile time)
   staying in step with `Lang\Registry` (runtime).

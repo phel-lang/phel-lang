@@ -53,7 +53,8 @@ expansion time. #2881, #2883 and #2887 closed them.
   the escape hatch.
 - Still open: an assignable static property. Neither spelling works, so `php/::` is
   not the answer either
-  ([#2907](https://github.com/phel-lang/phel-lang/issues/2907)).
+  ([#2907](https://github.com/phel-lang/phel-lang/issues/2907)). Closed by
+  [0013](0013-static-property-spelling.md): `$prop` reads, a plain name assigns.
 
 ## Enforcement
 

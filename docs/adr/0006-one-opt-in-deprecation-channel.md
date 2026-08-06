@@ -1,7 +1,12 @@
 # ADR 0006: One opt-in channel for compiler deprecations
 
-- **Status**: Accepted (recorded retroactively; shaped by #2783 and #2827)
+- **Status**: Accepted, amended by [0014](0014-announce-the-separator-deprecation.md)
+  (recorded retroactively; shaped by #2783 and #2827)
 - **Date**: 2026-07-29
+- **Amended by**: [0014](0014-announce-the-separator-deprecation.md) — the `\`
+  separator announces whether or not the flag is set, so "off by default" now has
+  exactly one exception. Everything else here holds, and 0014's first-party
+  scoping is the precondition this record named.
 
 ## Context
 
@@ -68,7 +73,9 @@ removed page once gone.
 
 - `tests/php/Unit/Compiler/Deprecation/`, including `SupersededFormDeprecatorTest`
 - `SupersededFormDeprecationTest`, `MacroExpansionDeprecationTest` (attribution)
-- `LexerTest::VERSION_REFERENCE` guards rule 3
+- `DeprecationWarningsTest::test_syntax_message_has_one_shape_and_no_room_for_a_version()`
+  guards rule 3: the message factory takes no version argument, and the test
+  asserts no version-shaped text reaches the output
 - `LanguageSurfaceSpecTest` checks the spec's deprecated table against
   `SupersededFormDeprecator`
 - PHPUnit narrows `error_reporting`; a test asserting on a notice must widen it to
