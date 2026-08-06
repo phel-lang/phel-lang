@@ -2,6 +2,8 @@
 
 - **Status**: Accepted
 - **Date**: 2026-08-02
+- **Amends**: [0006](0006-one-opt-in-deprecation-channel.md) — one exception to
+  the opt-in rule, on the conditions below. The rest of 0006 stands.
 
 ## Context
 

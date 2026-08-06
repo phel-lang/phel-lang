@@ -1,7 +1,11 @@
 # ADR 0008: The namespace separator is `.`, and `\` still parses
 
-- **Status**: Accepted (recorded retroactively; tracked in #1567)
+- **Status**: Accepted, amended by [0014](0014-announce-the-separator-deprecation.md)
+  (recorded retroactively; tracked in #1567)
 - **Date**: 2026-07-29
+- **Amended by**: [0014](0014-announce-the-separator-deprecation.md) — the warning
+  is no longer opt-in, and [0015](0015-a-php-class-is-named-with-dots.md) fixes the
+  removal to the next major rather than to a minor boundary.
 
 ## Context
 
@@ -19,7 +23,10 @@ project, every tutorial, and until #2827 every scaffold `phel init` generated.
 ## Decision
 
 `.` is the separator. `\` still parses everywhere it did, is deprecated, and warns
-through the opt-in channel ([ADR 0006](0006-one-opt-in-deprecation-channel.md)).
+through the one deprecation channel ([ADR 0006](0006-one-opt-in-deprecation-channel.md)).
+That channel was opt-in when this was recorded;
+[0014](0014-announce-the-separator-deprecation.md) made this one detector announce
+whether or not the flag is set.
 
 - Namespace declarations, `:require` targets (flat and `[ns :as alias]`),
   fully-qualified call sites, `:use` targets and leading-backslash class FQNs accept

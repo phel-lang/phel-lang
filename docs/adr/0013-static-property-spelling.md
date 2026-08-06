@@ -2,6 +2,8 @@
 
 - **Status**: Accepted
 - **Date**: 2026-08-01
+- **Amends**: [0007](0007-clojure-style-interop-is-the-source-spelling.md) — closes
+  the assignable-static-property question that record left open.
 
 ## Context
 

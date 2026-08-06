@@ -7,7 +7,7 @@
 
 Phel is embedded: projects wire the compiler into their build, integrations call
 `RunFacade`, editor plugins call `ApiFacade`. Semver on the PHP side means first
-saying which of ~2000 classes under `src/php/` it covers.
+saying which of the ~1080 classes under `src/php/` it covers.
 
 Per-symbol `@api` annotations degrade to what somebody remembered, and a missing
 one fails silently in the dangerous direction. No marking is worse: everything is

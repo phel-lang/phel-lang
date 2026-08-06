@@ -2,7 +2,11 @@
 
 Why the repository is shaped this way. Code says what, `../internals/` says how.
 
-Records are immutable: a changed decision gets a new ADR superseding the old one.
+A **decision** is immutable: changing one means a new ADR superseding the old.
+The prose around it is not. Correcting a fact a record asserts about the code (a
+renamed test, a count, a moved path) is an edit, not a new record: minting an ADR
+for a rename is a cost nobody pays, and the records that went stale here went
+stale exactly that way. See [Editing](#editing).
 
 ## Index
 
@@ -13,7 +17,7 @@ Records are immutable: a changed decision gets a new ADR superseding the old one
 | [0003](0003-modules-talk-through-facades.md) | Modules talk to each other through facades only | Accepted |
 | [0004](0004-accept-four-module-cycles.md) | Accept four module cycles and pin them | Accepted |
 | [0005](0005-public-php-api-by-rule-and-snapshot.md) | Define the public PHP API by rule, gate it by snapshot | Accepted |
-| [0006](0006-one-opt-in-deprecation-channel.md) | One opt-in channel for compiler deprecations | Accepted |
+| [0006](0006-one-opt-in-deprecation-channel.md) | One opt-in channel for compiler deprecations | Amended by 0014 |
 | [0007](0007-clojure-style-interop-is-the-source-spelling.md) | Clojure-style interop is the source spelling | Accepted |
 | [0008](0008-dot-namespace-separator.md) | The namespace separator is `.`, and `\` still parses | Accepted |
 | [0009](0009-stdlib-in-phel-precompiled-in-the-phar.md) | Write the standard library in Phel, ship it precompiled | Accepted |
@@ -24,8 +28,8 @@ Records are immutable: a changed decision gets a new ADR superseding the old one
 | [0014](0014-announce-the-separator-deprecation.md) | The `\` separator deprecation announces by default | Accepted |
 | [0015](0015-a-php-class-is-named-with-dots.md) | A PHP class is named with dots and no leading marker | Proposed |
 
-Statuses: **Proposed**, **Accepted**, **Superseded by NNNN**, **Deprecated** (in
-force, being unwound).
+Statuses: **Proposed**, **Accepted**, **Amended by NNNN** (in force, narrowed by a
+later record), **Superseded by NNNN**, **Deprecated** (in force, being unwound).
 
 ## When to write one
 
@@ -49,8 +53,30 @@ request or issue where the argument happened.
 
 ## Superseding
 
-New ADR carries `Supersedes: NNNN`. Old one gets `Superseded by NNNN` and a link,
-the only edit an accepted ADR takes. Update the index.
+New ADR carries `Supersedes: NNNN`. Old one gets `Superseded by NNNN` and a link.
+Update the index.
+
+## Amending
+
+A record that **narrows** an earlier one rather than replacing it carries
+`Amends: NNNN`, and the earlier one gets `Amended by NNNN` with a link. Both stay
+in force, so a reader of the earlier record cannot come away with a rule that no
+longer holds: ADR 0006 says a user who never passes `--warn-deprecations` sees no
+deprecation, which stopped being true when 0014 made one announce by default.
+
+## Editing
+
+Three edits an accepted record takes, and nothing else:
+
+1. The `Superseded by` / `Amended by` line above.
+2. A fact about the code it asserts and the code no longer honours: a test that
+   was renamed or moved, a count, a path. Fix it in place and say what it is now.
+   The decision and its reasoning stay untouched — if those are what changed, it
+   is a new record.
+3. A broken link.
+
+Rewriting the argument, softening a consequence, or adding a rationale the
+decision did not have at the time is not an edit. That is a new record.
 
 ## See also
 

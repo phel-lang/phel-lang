@@ -21,10 +21,11 @@ use function str_starts_with;
  * per-`(file, symbol)` dedup, and the macro-expansion attribution all belong
  * to {@see DeprecationWarnings}, which is why this class is stateless.
  *
- * Scope of detection is intentionally narrow: only symbols that pass
- * through `SymbolResolver::resolve()` — call sites and qualified refs.
- * `ns`, `:require`, `:use`, and related forms are tracked as follow-ups
- * in https://github.com/phel-lang/phel-lang/issues/2827.
+ * Detection reaches call sites and qualified refs through
+ * `SymbolResolver::resolve()`, and the namespace forms through their own
+ * analyzers: `ns` and `:require` in `NsSymbol`, `in-ns` in `InNsSymbol`,
+ * `:use` targets in `UseAliasRegistrar`. Still not
+ * reached: `:refer` names, `load`, and a reader macro read as data (#2827).
  *
  * @internal
  */
