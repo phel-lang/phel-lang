@@ -202,8 +202,8 @@
         closure (handler-closure cmd)
         rf      (new ReflectionFunction closure)
         params  (.getParameters rf)
-        p0      (php/aget params 0)
-        p1      (php/aget params 1)
+        p0      (aget params 0)
+        p1      (aget params 1)
         t0      (.getType p0)
         t1      (.getType p1)]
     (is (not (nil? t0)) "input param must declare a named type")

@@ -30,7 +30,7 @@
 (def- testing-set-global-array (php/array 1 2 3))
 
 (deftest test-native-global-array-set
-  (php/aset testing-set-global-array 0 4)
+  (aset testing-set-global-array 0 4)
   (is (= (php/array 4 2 3) testing-set-global-array) "native global set on PHP array"))
 
 (def- testing-unset-global-array (php/array 1 2 3))

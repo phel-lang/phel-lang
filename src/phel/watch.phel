@@ -36,10 +36,10 @@
   (let [facade  (new WatchFacade)
         phpOpts (php/array)]
     (when (and opts (get opts :backend))
-      (php/aset phpOpts "backend" (get opts :backend)))
+      (aset phpOpts "backend" (get opts :backend)))
     (when (and opts (get opts :poll))
-      (php/aset phpOpts "poll" (get opts :poll)))
+      (aset phpOpts "poll" (get opts :poll)))
     (when (and opts (get opts :debounce))
-      (php/aset phpOpts "debounce" (get opts :debounce)))
+      (aset phpOpts "debounce" (get opts :debounce)))
     (.watch facade (to-php-array paths) phpOpts)
     nil))

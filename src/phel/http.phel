@@ -76,7 +76,7 @@
   [url]
   (php/preg_replace_callback
    "%[^:/@?&=#]+%usD"
-   (fn [matches] (php/urlencode (php/aget matches 0)))
+   (fn [matches] (php/urlencode (aget matches 0)))
    url))
 
 (defn uri-from-string
@@ -86,7 +86,7 @@
   [url]
   (let [matches      (php/array)
         [prefix url] (if (one? (php/preg_match "%^(.*://\\[[0-9:a-f]+\\])(.*?)$%" url matches))
-                       [(php/aget matches 1) (php/aget matches 2)]
+                       [(aget matches 1) (aget matches 2)]
                        ["" url])
         encodedUrl   (encode-utf-8-url url)
         parts        (php/parse_url (str prefix encodedUrl))
@@ -94,15 +94,15 @@
     (when-not parts
       (throw (new InvalidArgumentException (str "This is not a valid uri: " url))))
     (uri
-     (php/aget parts "scheme")
-     (if (php/aget parts "pass")
-       (str (php/aget parts "user") ":" (php/aget parts "pass"))
-       (php/aget parts "user"))
-     (php/aget parts "host")
-     (when (php/aget parts "port") (php/intval (php/aget parts "port")))
-     (php/aget parts "path")
-     (php/aget parts "query")
-     (php/aget parts "fragment"))))
+     (aget parts "scheme")
+     (if (aget parts "pass")
+       (str (aget parts "user") ":" (aget parts "pass"))
+       (aget parts "user"))
+     (aget parts "host")
+     (when (aget parts "port") (php/intval (aget parts "port")))
+     (aget parts "path")
+     (aget parts "query")
+     (aget parts "fragment"))))
 
 ;; -----
 ;; Files

@@ -188,6 +188,7 @@ A lazily consumed source with no indexed access of its own (an `eduction` pipeli
 (declare nil?)
 (declare seq)
 (declare map)
+(declare aget)
 
 (def *program*
   "The script path or namespace being executed."
