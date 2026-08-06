@@ -86,7 +86,9 @@ Throws `InvalidArgumentException` for any other input (including functions, numb
     (if (php/is_infinite x)
       (if (php/> x 0) "Infinity" "-Infinity")
       (let [s (php/. "" x)]
-        (if (php/=== 1 (php/preg_match "/[.eE]/" s))
+        ;; `strpbrk` answers "does it already read as a float" in one scan; a
+        ;; regex would compile a pattern to look for three characters.
+        (if (php/strpbrk s ".eE")
           s
           (php/. s ".0"))))))
 

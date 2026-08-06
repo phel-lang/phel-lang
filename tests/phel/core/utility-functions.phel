@@ -54,7 +54,11 @@
   (is (nil? (parse-long "abc")) "parse-long non-numeric")
   (is (nil? (parse-long "12.5")) "parse-long float string")
   (is (nil? (parse-long "")) "parse-long empty string")
-  (is (nil? (parse-long nil)) "parse-long nil"))
+  (is (nil? (parse-long nil)) "parse-long nil")
+  (is (= 7 (parse-long "+7")) "parse-long explicit plus sign")
+  (is (nil? (parse-long "+-5")) "parse-long rejects a sign it cannot parse")
+  (is (nil? (parse-long "1e5")) "parse-long rejects exponent notation")
+  (is (nil? (parse-long "12a")) "parse-long rejects trailing characters"))
 
 (deftest test-parse-double
   (is (= 3.14 (parse-double "3.14")) "parse-double float")

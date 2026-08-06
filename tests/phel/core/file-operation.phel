@@ -1,10 +1,42 @@
 (ns phel-test.core.file-operation
-  (:require phel.test :refer [deftest is thrown?]))
+  (:require phel.test :refer [deftest is thrown? thrown-with-msg?]))
 
 (deftest test-slurp
   (is (string? (slurp php/__FILE__)) "reads current file successfully")
   (is (thrown? InvalidArgumentException
                (slurp "/non/existent/file.txt")) "reading non-existent file throws exception"))
+
+(deftest test-slurp-names-a-missing-file
+  (is (thrown-with-msg? InvalidArgumentException "File not found: /non/existent/file.txt"
+                        (slurp "/non/existent/file.txt"))
+      "a missing file is reported as missing, not as a failed read"))
+
+(deftest test-slurp-rejects-a-directory
+  (let [target-directory (php/sys_get_temp_dir)]
+    (is (thrown-with-msg? InvalidArgumentException (str "Cannot read directory: " target-directory)
+                          (slurp target-directory))
+        "a directory throws instead of reading as the empty string")))
+
+(deftest test-slurp-reads-a-stream-wrapper
+  (is (= "hello" (slurp "data://text/plain;base64,aGVsbG8="))
+      "a stream wrapper is read rather than validated as a path on disk"))
+
+(deftest test-slurp-honours-offset-and-length
+  (let [target-file (str (php/sys_get_temp_dir) php/DIRECTORY_SEPARATOR "test-slurp-opts.txt")]
+    (spit target-file "abcdefghij")
+    (is (= "defghij" (slurp target-file {:offset 3})) "offset skips the first bytes")
+    (is (= "abcd" (slurp target-file {:length 4})) "length caps what is read")
+    (is (= "cde" (slurp target-file {:offset 2, :length 3})) "offset and length combine")
+    (php/unlink target-file)))
+
+(deftest test-slurp-checks-a-path-no-wrapper-answers-to
+  ;; PHP reads a scheme it has no wrapper for as a literal filename, so the
+  ;; filesystem checks have to run for it. A relative directory may legally be
+  ;; named `something:` and be followed by a slash, and skipping the checks on
+  ;; the shape alone let that read back as the empty string.
+  (is (thrown-with-msg? InvalidArgumentException "File not found: no-such-scheme://x"
+                        (slurp "no-such-scheme://x"))
+      "a scheme no wrapper answers to is validated as a path, not waved through"))
 
 (deftest test-slurp-backwards-compatibility
   ;; Ensure slurp still works with regular files (backwards compatibility)
