@@ -15,8 +15,8 @@
   is no member PHP can name, and stays a var."
   [place]
   (and (symbol? place)
-       (not (nil? (re-find "/^[\\\\A-Z]/" (or (namespace place) ""))))
-       (not (nil? (re-find "/^[$]?[A-Za-z_]/" (name place))))))
+       (some? (re-find "/^[\\\\A-Z]/" (or (namespace place) "")))
+       (some? (re-find "/^[$]?[A-Za-z_]/" (name place)))))
 
 (defmacro set!
   "Sets `place` to `value` and returns `value`, covering all three shapes

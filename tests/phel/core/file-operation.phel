@@ -1,10 +1,30 @@
 (ns phel-test.core.file-operation
-  (:require phel.test :refer [deftest is thrown?]))
+  (:require phel.test :refer [deftest is thrown? thrown-with-msg?]))
 
 (deftest test-slurp
   (is (string? (slurp php/__FILE__)) "reads current file successfully")
   (is (thrown? InvalidArgumentException
                (slurp "/non/existent/file.txt")) "reading non-existent file throws exception"))
+
+(deftest test-slurp-names-a-missing-file
+  (is (thrown-with-msg? InvalidArgumentException "File not found: /non/existent/file.txt"
+                        (slurp "/non/existent/file.txt"))
+      "a missing file is reported as missing, not as a failed read"))
+
+(deftest test-slurp-rejects-a-directory
+  (let [target-directory (php/sys_get_temp_dir)]
+    (is (thrown-with-msg? InvalidArgumentException (str "Cannot read directory: " target-directory)
+                          (slurp target-directory))
+        "a directory throws instead of reading as the empty string")))
+
+(deftest test-slurp-reads-a-stream-wrapper
+  (is (= "hello" (slurp "data://text/plain;base64,aGVsbG8="))
+      "a stream wrapper is read rather than validated as a path on disk"))
+
+(deftest test-slurp-reports-an-unreadable-scheme
+  (is (thrown-with-msg? InvalidArgumentException "Failed to read from: no-such-scheme://x"
+                        (slurp "no-such-scheme://x"))
+      "an unregistered scheme fails at the read, which is what went wrong"))
 
 (deftest test-slurp-backwards-compatibility
   ;; Ensure slurp still works with regular files (backwards compatibility)

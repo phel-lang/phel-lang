@@ -14,7 +14,7 @@
   [s]
   (when (string? s)
     (let [trimmed (php/trim s)]
-      (when (not (nil? (re-matches "/^[+-]?[0-9]+$/" trimmed)))
+      (when (some? (re-matches "/[+-]?[0-9]+/" trimmed))
         (php/intval trimmed)))))
 
 (defn parse-double

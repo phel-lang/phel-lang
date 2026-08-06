@@ -31,6 +31,14 @@
   (is (= ["12-34" "12" "34"] (re-find "/(\\d+)-(\\d+)/" "abc12-34def"))
       "re-find with groups returns vector"))
 
+(deftest test-re-find-zero-length-match
+  (is (= "" (re-find "/a*/" "bbb"))
+      "a zero-length match is the empty string, distinct from nil for no match"))
+
+(deftest test-re-find-unmatched-optional-group
+  (is (= ["12" "12"] (re-find "/(\\d+)(x)?/" "12"))
+      "a trailing optional group that did not participate is absent from the vector"))
+
 ;; --- re-matches ---
 
 (deftest test-re-matches
