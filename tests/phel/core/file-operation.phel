@@ -21,6 +21,14 @@
   (is (= "hello" (slurp "data://text/plain;base64,aGVsbG8="))
       "a stream wrapper is read rather than validated as a path on disk"))
 
+(deftest test-slurp-honours-offset-and-length
+  (let [target-file (str (php/sys_get_temp_dir) php/DIRECTORY_SEPARATOR "test-slurp-opts.txt")]
+    (spit target-file "abcdefghij")
+    (is (= "defghij" (slurp target-file {:offset 3})) "offset skips the first bytes")
+    (is (= "abcd" (slurp target-file {:length 4})) "length caps what is read")
+    (is (= "cde" (slurp target-file {:offset 2, :length 3})) "offset and length combine")
+    (php/unlink target-file)))
+
 (deftest test-slurp-reports-an-unreadable-scheme
   (is (thrown-with-msg? InvalidArgumentException "Failed to read from: no-such-scheme://x"
                         (slurp "no-such-scheme://x"))
