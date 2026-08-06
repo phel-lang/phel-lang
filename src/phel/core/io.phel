@@ -213,11 +213,28 @@
     content))
 
 (defn- stream-path?
-  "True when `path` carries a URL scheme, so it reads through a stream wrapper
-  (`https://`, `data://`, `php://stdin`, `phar://`, a wrapper the host
-  registered) rather than naming a file on disk."
+  "True when `path` reads through a registered stream wrapper (`https://`,
+  `data://`, `php://stdin`, `phar://`, whatever the host registered) rather
+  than naming a file on disk. A scheme no wrapper answers to counts as a path,
+  because that is what PHP does with it, and because a relative directory may
+  legally be named `something:` and be followed by a slash."
   [path]
-  (some? (re-find "/^[a-zA-Z][a-zA-Z0-9+.-]*:\/\//" path)))
+  (let [scheme (re-find "/^[a-zA-Z][a-zA-Z0-9+.-]*(?=:\/\/)/" path)]
+    (and (some? scheme)
+         (php/in_array (php/strtolower scheme) (php/stream_get_wrappers)))))
+
+(defn- path-status-silenced
+  "Answers `:directory`, `:file` or `:absent` for `path` with warnings off: a
+  scheme-shaped path no wrapper answers to makes both checks warn, and the
+  caller reports what went wrong itself."
+  [path]
+  (let [old-error-level (php/error_reporting 0)
+        status          (cond
+                          (php/is_dir path)  :directory
+                          (php/is_file path) :file
+                          :else              :absent)]
+    (php/error_reporting old-error-level)
+    status))
 
 (defn slurp
   "Reads an entire file, URL or stream into a string."
@@ -228,12 +245,12 @@
   ;; answers to neither `is_dir` nor `is_file`, so rejecting one on that
   ;; evidence would refuse a target the read itself handles.
   (when-not (stream-path? path)
-    (when (php/is_dir path)
-      (throw (new InvalidArgumentException
-                  (str "Cannot read directory: " path))))
-    (when-not (php/is_file path)
-      (throw (new InvalidArgumentException
-                  (str "File not found: " path)))))
+    (case (path-status-silenced path)
+      :directory (throw (new InvalidArgumentException
+                             (str "Cannot read directory: " path)))
+      :absent    (throw (new InvalidArgumentException
+                             (str "File not found: " path)))
+      nil))
   (let [opts             (or opts {})
         use-include-path (or (:use-include-path opts) false)
         context          (or (:context opts) nil)

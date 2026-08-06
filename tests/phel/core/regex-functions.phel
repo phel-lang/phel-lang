@@ -39,6 +39,14 @@
   (is (= ["12" "12"] (re-find "/(\\d+)(x)?/" "12"))
       "a trailing optional group that did not participate is absent from the vector"))
 
+(deftest test-re-find-named-group-shape
+  ;; Named groups do not return the flat vector the docstring describes: PHP
+  ;; fills the match array under both the name and the number, and every entry
+  ;; survives as a pair. Pinned rather than endorsed - reading the match array
+  ;; in match order is what makes it stable enough to pin at all.
+  (is (= [[0 "123"] ["x" "123"] [1 "123"]] (re-find "/(?<x>\\d+)/" "abc123def"))
+      "a named group yields key/value pairs in the order PHP filled them"))
+
 ;; --- re-matches ---
 
 (deftest test-re-matches

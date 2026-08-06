@@ -29,10 +29,14 @@
     (is (= "cde" (slurp target-file {:offset 2, :length 3})) "offset and length combine")
     (php/unlink target-file)))
 
-(deftest test-slurp-reports-an-unreadable-scheme
-  (is (thrown-with-msg? InvalidArgumentException "Failed to read from: no-such-scheme://x"
+(deftest test-slurp-checks-a-path-no-wrapper-answers-to
+  ;; PHP reads a scheme it has no wrapper for as a literal filename, so the
+  ;; filesystem checks have to run for it. A relative directory may legally be
+  ;; named `something:` and be followed by a slash, and skipping the checks on
+  ;; the shape alone let that read back as the empty string.
+  (is (thrown-with-msg? InvalidArgumentException "File not found: no-such-scheme://x"
                         (slurp "no-such-scheme://x"))
-      "an unregistered scheme fails at the read, which is what went wrong"))
+      "a scheme no wrapper answers to is validated as a path, not waved through"))
 
 (deftest test-slurp-backwards-compatibility
   ;; Ensure slurp still works with regular files (backwards compatibility)
