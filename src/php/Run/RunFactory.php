@@ -6,6 +6,7 @@ namespace Phel\Run;
 
 use Gacela\Framework\AbstractFactory;
 use Gacela\Framework\Health\ModuleHealthCheckInterface;
+use Gacela\Framework\ServiceResolver\ServiceMap;
 use Phel\Filesystem\FilesystemFacadeInterface;
 use Phel\Run\Application\BreakpointDebugger;
 use Phel\Run\Application\BundledNamespaceDetector;
@@ -60,6 +61,7 @@ use function mkdir;
  *
  * @internal
  */
+#[ServiceMap(method: 'getConfig', className: RunConfig::class)]
 class RunFactory extends AbstractFactory
 {
     public function createNamespaceRunner(): NamespaceRunnerInterface

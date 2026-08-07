@@ -8,10 +8,12 @@ use Gacela\Framework\AbstractProvider;
 use Gacela\Framework\Attribute\Provides;
 use Gacela\Framework\Config\ConfigReader\PhpConfigReader;
 use Gacela\Framework\Container\Container;
+use Gacela\Framework\ServiceResolver\ServiceMap;
 
 /**
  * @internal
  */
+#[ServiceMap(method: 'getConfig', className: CommandConfig::class)]
 final class CommandProvider extends AbstractProvider
 {
     /**

@@ -23,11 +23,11 @@ The facade is production surface only. `NreplFactory::createOpDispatcher()` stay
 
 ## Dependencies (NreplProvider)
 
-| Constant | Facade | Used for |
-|----------|--------|----------|
-| `FACADE_RUN` | RunFacade | `structuredEval`, version, `loadPhelNamespaces` |
-| `FACADE_API` | ApiFacade | completion, symbol metadata |
-| `FACADE_COMPILER` | CompilerFacade | reading and writing the current namespace on the global environment around each eval |
+| Provider key | Facade | Used for |
+|--------------|--------|----------|
+| `RunFacadeInterface::class` | RunFacade | `structuredEval`, version, `loadPhelNamespaces` |
+| `ApiFacadeInterface::class` | ApiFacade | completion, symbol metadata |
+| `CompilerFacadeInterface::class` | CompilerFacade | reading and writing the current namespace on the global environment around each eval |
 
 ## Structure
 

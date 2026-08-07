@@ -6,6 +6,7 @@ namespace Phel\Run;
 
 use Gacela\Framework\AbstractFacade;
 use Gacela\Framework\Health\ModuleHealthCheckInterface;
+use Gacela\Framework\ServiceResolver\ServiceMap;
 use Phel\Lang\Collections\Map\PersistentMapInterface;
 use Phel\Run\Application\Test\Coverage\CoverageDriver;
 use Phel\Run\Application\Test\Coverage\CoverageReport;
@@ -22,6 +23,7 @@ use Throwable;
 /**
  * @extends AbstractFacade<RunFactory>
  */
+#[ServiceMap(method: 'getFactory', className: RunFactory::class)]
 final class RunFacade extends AbstractFacade implements RunFacadeInterface
 {
     public function runNamespace(string $namespace): void

@@ -13,7 +13,7 @@ The facade is production surface only. `WatchFactory::createFileWatcherBuilder()
 
 CLI: `./bin/phel watch [paths]... [-b backend] [--poll=500] [--debounce=100]` (`Infrastructure/Command/WatchCommand`).
 
-## Dependencies (Provider FACADE_* constants)
+## Dependencies (WatchProvider)
 
 | Facade | Injected as | Used for |
 |--------|-------------|----------|

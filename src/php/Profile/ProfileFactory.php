@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Phel\Profile;
 
 use Gacela\Framework\AbstractFactory;
+use Gacela\Framework\ServiceResolver\ServiceMap;
 use Phel\Profile\Domain\Formatter\JsonFormatter;
 use Phel\Profile\Domain\Formatter\TableFormatter;
 use Phel\Profile\Domain\ProfilerSession;
@@ -15,6 +16,7 @@ use Phel\Shared\Facade\RunFacadeInterface;
  *
  * @internal
  */
+#[ServiceMap(method: 'getConfig', className: ProfileConfig::class)]
 final class ProfileFactory extends AbstractFactory
 {
     public function createSession(): ProfilerSession

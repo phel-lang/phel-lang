@@ -11,11 +11,11 @@ CLI entry point: bootstraps Symfony Console, lazily registers every module's com
 
 ## Dependencies
 
-| Provider constant | Facade | Used for |
-|-------------------|--------|----------|
-| `FACADE_FILESYSTEM` | Filesystem | `clearAll()` cleanup after each run |
+| Provider key | Facade | Used for |
+|--------------|--------|----------|
+| `FilesystemFacadeInterface::class` | Filesystem | `clearAll()` cleanup after each run |
 
-`FACADE_FILESYSTEM` is the only *injected* dependency, but it is not the only edge. As the CLI entry point, `ConsoleFactory` also imports the command classes of twelve modules (Api, Build, Compiler, Filesystem, Formatter, Interop, Lint, Lsp, Nrepl, Profile, Run, Watch) to register them with Symfony Console.
+`FilesystemFacadeInterface::class` is the only injected facade dependency, but it is not the only edge. As the CLI entry point, `ConsoleFactory` also imports the command classes of twelve modules (Api, Build, Compiler, Filesystem, Formatter, Interop, Lint, Lsp, Nrepl, Profile, Run, Watch) to register them with Symfony Console.
 
 That makes Console the graph's sink: it depends on nearly everything and **nothing depends on it**. Keep it that way. A module importing `Phel\Console` would turn the widest fan-in in the codebase into a cycle, which is why `ConsoleFacadeInterface` exists in `Shared/Facade` for the rare case a module needs to describe console behaviour.
 

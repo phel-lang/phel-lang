@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Phel\Interop;
 
 use Gacela\Framework\AbstractFacade;
+use Gacela\Framework\ServiceResolver\ServiceMap;
 use Phel\Shared\Exceptions\CompilerException;
 use Phel\Shared\Facade\InteropFacadeInterface;
 use Phel\Shared\Interop\Wrapper;
@@ -14,6 +15,7 @@ use Throwable;
 /**
  * @extends AbstractFacade<InteropFactory>
  */
+#[ServiceMap(method: 'getFactory', className: InteropFactory::class)]
 final class InteropFacade extends AbstractFacade implements InteropFacadeInterface
 {
     /**

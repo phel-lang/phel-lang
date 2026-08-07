@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Phel\Nrepl;
 
 use Gacela\Framework\AbstractFactory;
+use Gacela\Framework\ServiceResolver\ServiceMap;
 use Phel\Nrepl\Application\Op\CloneOp;
 use Phel\Nrepl\Application\Op\CloseOp;
 use Phel\Nrepl\Application\Op\CompletionsOp;
@@ -32,6 +33,7 @@ use Phel\Shared\Printer\PrinterInterface;
  *
  * @internal
  */
+#[ServiceMap(method: 'getConfig', className: NreplConfig::class)]
 final class NreplFactory extends AbstractFactory
 {
     /**

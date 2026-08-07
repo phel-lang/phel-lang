@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Phel\Fiber;
 
 use Gacela\Framework\AbstractFacade;
+use Gacela\Framework\ServiceResolver\ServiceMap;
 use Phel\Fiber\Domain\Awaitable;
 use Phel\Fiber\Domain\Future;
 use Phel\Fiber\Domain\Promise;
@@ -22,6 +23,7 @@ use Phel\Fiber\Domain\Scheduler;
  *
  * @extends AbstractFacade<FiberFactory>
  */
+#[ServiceMap(method: 'getFactory', className: FiberFactory::class)]
 final class FiberFacade extends AbstractFacade implements FiberFacadeInterface
 {
     public function createPromise(): Promise

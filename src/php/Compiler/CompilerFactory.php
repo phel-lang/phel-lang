@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Phel\Compiler;
 
 use Gacela\Framework\AbstractFactory;
+use Gacela\Framework\ServiceResolver\ServiceMap;
 use Phel\Compiler\Application\Analyzer;
 use Phel\Compiler\Application\BestEffortFormReader;
 use Phel\Compiler\Application\CodeCompiler;
@@ -59,6 +60,7 @@ use Phel\Shared\VersionFinder;
  *
  * @internal
  */
+#[ServiceMap(method: 'getConfig', className: CompilerConfig::class)]
 final class CompilerFactory extends AbstractFactory
 {
     public function createEvalCompiler(): EvalCompilerInterface

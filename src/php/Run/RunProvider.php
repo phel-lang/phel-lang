@@ -7,6 +7,7 @@ namespace Phel\Run;
 use Gacela\Framework\AbstractProvider;
 use Gacela\Framework\Attribute\Provides;
 use Gacela\Framework\Container\Container;
+use Gacela\Framework\ServiceResolver\ServiceMap;
 use Phel\Api\ApiFacade;
 use Phel\Build\BuildFacade;
 use Phel\Command\CommandFacade;
@@ -21,6 +22,7 @@ use Phel\Shared\Facade\CompilerFacadeInterface;
 /**
  * @internal
  */
+#[ServiceMap(method: 'getConfig', className: RunConfig::class)]
 final class RunProvider extends AbstractProvider
 {
     #[Provides(CommandFacadeInterface::class)]

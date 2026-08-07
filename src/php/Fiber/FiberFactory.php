@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Phel\Fiber;
 
 use Gacela\Framework\AbstractFactory;
+use Gacela\Framework\ServiceResolver\ServiceMap;
 use Phel\Fiber\Domain\Awaitable;
 use Phel\Fiber\Domain\Future;
 use Phel\Fiber\Domain\Promise;
@@ -20,6 +21,7 @@ use Phel\Fiber\Domain\Scheduler;
  *
  * @internal
  */
+#[ServiceMap(method: 'getConfig', className: FiberConfig::class)]
 final class FiberFactory extends AbstractFactory
 {
     public function scheduler(): Scheduler

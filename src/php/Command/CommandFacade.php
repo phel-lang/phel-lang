@@ -6,6 +6,7 @@ namespace Phel\Command;
 
 use Gacela\Framework\AbstractFacade;
 use Gacela\Framework\Attribute\Cacheable;
+use Gacela\Framework\ServiceResolver\ServiceMap;
 use Phel\Shared\Exceptions\AbstractLocatedException;
 use Phel\Shared\Exceptions\ExceptionPrinterInterface;
 use Phel\Shared\Exceptions\Hint\ExceptionHintResolver;
@@ -17,6 +18,7 @@ use Throwable;
 /**
  * @extends AbstractFacade<CommandFactory>
  */
+#[ServiceMap(method: 'getFactory', className: CommandFactory::class)]
 final class CommandFacade extends AbstractFacade implements CommandFacadeInterface
 {
     public function writeLocatedException(

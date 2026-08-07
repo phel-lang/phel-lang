@@ -6,6 +6,7 @@ namespace Phel\Build;
 
 use Gacela\Framework\AbstractFactory;
 use Gacela\Framework\Health\ModuleHealthCheckInterface;
+use Gacela\Framework\ServiceResolver\ServiceMap;
 use Phel\Build\Application\BuildHealthCheck;
 use Phel\Build\Application\CacheClearer;
 use Phel\Build\Application\CachedNamespaceExtractor;
@@ -43,6 +44,7 @@ use Phel\Shared\VersionFinder;
  *
  * @internal
  */
+#[ServiceMap(method: 'getConfig', className: BuildConfig::class)]
 final class BuildFactory extends AbstractFactory
 {
     public function createProjectCompiler(): ProjectCompiler

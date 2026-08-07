@@ -4,9 +4,11 @@ declare(strict_types=1);
 
 namespace Phel\Console;
 
+use Gacela\Framework\AbstractConfig;
 use Gacela\Framework\AbstractProvider;
 use Gacela\Framework\Attribute\Provides;
 use Gacela\Framework\Container\Container;
+use Gacela\Framework\ServiceResolver\ServiceMap;
 use Phel\Console\Domain\ConsoleCommandProviderInterface;
 use Phel\Console\Infrastructure\Command\ApiCommands;
 use Phel\Console\Infrastructure\Command\BuildCommands;
@@ -26,6 +28,7 @@ use Symfony\Component\Console\Command\LazyCommand;
 /**
  * @internal
  */
+#[ServiceMap(method: 'getConfig', className: AbstractConfig::class)]
 final class ConsoleProvider extends AbstractProvider
 {
     public const string LAZY_COMMANDS = 'LAZY_COMMANDS';

@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Phel\Lsp;
 
 use Gacela\Framework\AbstractFactory;
+use Gacela\Framework\ServiceResolver\ServiceMap;
 use Phel\Lint\LintFacade;
 use Phel\Lsp\Application\Convert\CompletionConverter;
 use Phel\Lsp\Application\Convert\DiagnosticConverter;
@@ -51,6 +52,7 @@ use Phel\Shared\Facade\RunFacadeInterface;
  *
  * @internal
  */
+#[ServiceMap(method: 'getConfig', className: LspConfig::class)]
 final class LspFactory extends AbstractFactory
 {
     /**

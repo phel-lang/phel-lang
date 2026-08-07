@@ -19,7 +19,8 @@ Scaffolds a new module under `src/php/<ModuleName>/` following the project Gacel
 
 2. **Read a reference module** (pick a small one, e.g. `src/php/Filesystem/` or `src/php/Formatter/`) to mirror its layout. Record:
    - Facade method shape
-   - Provider constant names
+   - `#[ServiceMap(...)]` pillar mappings
+   - `#[Provides(...)]` dependency keys
    - CLAUDE.md section order
 
 3. **Create the following files** under `src/php/<ModuleName>/`:
@@ -34,7 +35,12 @@ Scaffolds a new module under `src/php/<ModuleName>/` following the project Gacel
 
 4. **Facade contract**: every public call must return from the Factory; never instantiate dependencies inline in the Facade.
 
-5. **CLAUDE.md template** (keep scannable — no prose):
+5. **Explicit pillar services**: import `Gacela\Framework\ServiceResolver\ServiceMap` and declare:
+   - Facade: `#[ServiceMap(method: 'getFactory', className: <ModuleName>Factory::class)]`
+   - Factory: `#[ServiceMap(method: 'getConfig', className: <ModuleName>Config::class)]`
+   - Provider: the same `getConfig` mapping; use `AbstractConfig::class` only when the module intentionally has no custom Config
+
+6. **CLAUDE.md template** (keep scannable — no prose):
    ```markdown
    # <ModuleName>
 
@@ -50,7 +56,7 @@ Scaffolds a new module under `src/php/<ModuleName>/` following the project Gacel
 
    ## Dependencies
 
-   - <OtherModule>Facade (via Provider)
+   - `<OtherFacadeInterface>::class` (via Provider)
 
    ## Structure
 
@@ -63,9 +69,9 @@ Scaffolds a new module under `src/php/<ModuleName>/` following the project Gacel
    - <key invariant or rule>
    ```
 
-6. **Do not** register the module anywhere — Gacela auto-discovers via PSR-4.
+7. **Do not** register the module anywhere — Gacela auto-discovers via PSR-4.
 
-7. **Run static analysis** on the new files only:
+8. **Run static analysis** on the new files only:
    ```bash
    composer test-quality
    ```
@@ -73,5 +79,7 @@ Scaffolds a new module under `src/php/<ModuleName>/` following the project Gacel
 ## Constraints
 
 - No classes instantiated across module boundaries — always go through another module's Facade.
+- Do not rely on Gacela's deprecated source/docblock service-resolution fallback; every inherited pillar accessor has an explicit `#[ServiceMap]`.
+- Provider entries use Gacela 2.0 `#[Provides(...)]`; key facade dependencies by the consumer-facing interface when one exists.
 - Mark classes `final` unless inheritance is explicitly justified.
 - Use `readonly` properties where possible (per `.claude/rules/php.md`).

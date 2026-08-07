@@ -6,6 +6,7 @@ namespace Phel\Compiler;
 
 use Gacela\Framework\AbstractFacade;
 use Gacela\Framework\Attribute\Cacheable;
+use Gacela\Framework\ServiceResolver\ServiceMap;
 use Generator;
 use Phel\Compiler\Application\Lexer;
 use Phel\Compiler\Domain\Analyzer\Ast\AbstractNode;
@@ -31,6 +32,7 @@ use Phel\Shared\Parser\Node\NodeInterface;
 /**
  * @extends AbstractFacade<CompilerFactory>
  */
+#[ServiceMap(method: 'getFactory', className: CompilerFactory::class)]
 final class CompilerFacade extends AbstractFacade implements CompilerFacadeInterface
 {
     /**

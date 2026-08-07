@@ -6,101 +6,98 @@ All notable changes to this project will be documented in this file.
 
 ### Added
 
-- Qualified members in value position: `\C/m` is a static method as a value (`(map \Phel\Lang\Keyword/create ["a" "b"])`), `\C/.m` an instance method as a function of its receiver. `\C/CONST` wins when a class has both, so `\C/new` is never a constructor (#2883)
-- `(.cases enum-class)` reaches a static method through a class name held in a value, object or `"\\App\\Status"` alike (#2881)
-- `php-invoke` calls a method named at runtime: `(php-invoke obj "format" "Y")`, ClojureScript's `js-invoke`. A class-name target calls the static method (#2887)
-- `set!` covers all three Clojure shapes: `(set! (.-total o) 10)` assigns a property, `(set! \Foo/slot v)` a static property, `(set! *x* 2)` the current `binding` frame, throwing when there is none. `alter-var-root` still changes a root (#2884, #2888, #2907)
-- `Phel::installExceptionHandler($projectRootDir)` reports an uncaught throwable against the `.phel` file, line and call form instead of the generated PHP and its anonymous closures. A built app installs it in one line; the report goes to the error log when `log_errors` is on and to output only when `display_errors` is on, so a production response body stays clean, and the process still exits `255` (#2922)
-- `Phel\Shared\NoColor` on the public PHP surface: `isRequested()` and `style()` answer whether the environment asked for plain output, so an embedder rendering Phel output makes the same decision the CLI does (#2923)
-- Editor completion and hover cover the Clojure-style interop spellings, not only the deprecated `php/*` ones: `\C/member` offers static methods, constants and static properties, and `(.method recv` / `(.-field recv` offer instance members of a receiver the resolver can type. Static properties are offered and hovered with their `$` sigil (#2916)
-- `\C/$prop` reads a static property in value position. The bare name stays the class constant, since PHP files the two separately and a class may carry both (#2907)
-- The standard library is written in the Clojure-style interop spelling, and `docs/` leads with it (#2875, #2882)
-- `phel nrepl` writes the bound port to `.nrepl-port` for editor discovery and removes it on exit; Ctrl+C and SIGTERM shut the accept loop down gracefully (#2894)
-- A `def`/`defn` carrying `:deprecated` metadata warns at every call site under `--warn-deprecations` (or `PHEL_WARN_DEPRECATIONS=1`)
-- `phel.test/with-isolated-stats` and `with-isolated-reporters` run a body against fresh statistics or reporters and restore the caller's, even when the body throws
-- Lint rules `phel/comment-style` (whole-line comment written with one `;`) and `phel/duplicate-def` (symbol defined twice in one file)
-- `phel agent-install --check` reports installed skill files and whether `.agents/` is behind the bundled docs, exiting 1 when it is
-- `phel eval -h` shows a heredoc example for multi-line evaluation
-- The normative [language-surface spec](docs/spec/language-surface.md) and [Clojure divergences](docs/spec/clojure-divergences.md). A test compares the special-form table against the analyzer's dispatch registry, so the spec cannot drift from the compiler
-- The [stability policy](docs/stability.md), plus migration guides for [0.49 to 1.0](docs/migration/upgrade-0.49-to-1.0.md), [live deprecations](docs/migration/deprecated-surface.md) and [removed core fns](docs/migration/removed-deprecated-core-fns.md)
-- [Architecture decision records](docs/adr/README.md): 15 records covering the decisions that read as oversights and get re-proposed, each naming the test that fails when it is broken
-- Compatibility gates that fail the build on drift: snapshots of the public PHP surface (`composer api-surface:update`) and of every public `phel.*` definition and arity (`composer core-api:update`), plus a `:doc` gate on public definitions
-- Every class outside the public PHP surface carries `@internal`, so the split reaches IDEs and static analysis. A test pins both directions
-- CI: macOS is a supported platform (Windows stays declared best-effort), coverage is published and gated at 85%, benchmarks are asserted against the base revision, and mutation testing runs weekly over `src/php/Lang/` and the analyzer (MSI floor 80)
+- Add Clojure-style PHP interop for value members, dynamic calls, enum cases and `set!` (#2881 #2883 #2887 #2888 #2907)
+- Add editor completion and hover for Clojure-style PHP interop, including static properties (#2916)
+- Add `Phel::installExceptionHandler($projectRootDir)` for source-mapped uncaught throwable reports (#2922)
+- Add public `Phel\Shared\NoColor` helpers for embedder output styling (#2923)
+- Add `.nrepl-port` discovery and graceful shutdown to `phel nrepl` (#2894)
+- Add call-site warnings for definitions marked with `:deprecated`
+- Add `phel.test/with-isolated-stats` and `with-isolated-reporters`
+- Add lint rules `phel/comment-style` and `phel/duplicate-def`
+- Add `phel agent-install --check` for installed `.agents/` drift checks
+- Add a heredoc example to `phel eval -h`
+- Add language surface, stability, migration and ADR documentation with drift gates
+- Add public PHP/core API snapshots, `:doc` checks and `@internal` enforcement
+- Add macOS support, coverage, benchmark and mutation gates to CI
 
 ### Fixed
 
-- Three [architecture decision records](docs/adr/README.md) asserted things the code no longer honoured: 0002 called `InMemoryEvaluator` test-only when it backs the REPL, `phel eval`, the test runner and the debugger; 0005 counted twice the classes under `src/php/`; 0006 named a guard constant that no longer exists. 0006 and 0008 also still called every deprecation opt-in, which 0014 made untrue for the `\` separator. The records now carry an `Amended by` status for a decision a later record narrows, and say which edits an accepted record takes, so correcting a renamed test is no longer grounds for minting an ADR (#2827, #2876)
-- `slurp` validates the path it was handed. The URL check read `php/preg_match`'s return value as a boolean, and `0` is truthy in Phel, so both guards under it were dead: a missing file reported `Failed to read from` rather than `File not found`, and a directory read as `""` instead of throwing. A path carrying a URL scheme still skips the filesystem checks, since `is_file` and `is_dir` cannot answer for a stream wrapper, so `(slurp "data://text/plain;base64,aGVsbG8=")` keeps working (#2941, #2943)
-- `aset` evaluates its value expression once. The macro spliced the form twice, so `(aset arr 0 (swap! counter inc))` incremented twice, and any costly value expression ran twice over: exponentially so where a recursive function writes into a PHP array, which is why the standard library still wrote `php/aset` by hand. `set!` already bound its value once, and `aset` now takes the same shape (#2941)
-- [The stability policy](docs/stability.md#what-a-deployment-loads) records what a built application actually loads: `Phel\Lang` plus seven `Phel\Compiler` classes reached through the singleton whose name is compiled into build artifacts, and nothing from `Run`, `Console`, `Api`, `Lsp`, `Nrepl`, `Build`, `Formatter` or `Lint`. Measured rather than asserted
-- `(in-ns ...)`, `(ns ...)` and `(use ...)` teach the dot separator in `phel doc`, instead of the spelling being retired
-- `phel doc` no longer warns about `phel-internal\doc`, a namespace only Phel writes. It generated the deprecated separator, which became visible once the notice stopped being opt-in (#2936)
-- `defexception` takes the same class spellings every other position takes. Its parent was wrapped raw instead of resolved, so `\Exception` worked while a bare `RuntimeException` bound to the *current* PHP namespace and a dotted `My.Ns.Error` reached the generated file with its dots and failed to parse. `(:use ...)` aliases now work there too (#2936)
-- `NO_COLOR` is honoured by the exception printer and the REPL error formatter. `getStackTraceString()` returns a string, so the caller may be writing to a log or an error tracker, and it used to bake ANSI escapes in regardless. Symfony Console already obeyed the variable, so the two halves of a command disagreed (#2923)
-- A `:tag` naming a class takes the dot separator: `^Phel.Lang.Symbol` emits `\Phel\Lang\Symbol` instead of reaching the generated signature verbatim and failing to parse. Unions, intersections and the nullable marker are handled; scalars and the backslash form are unchanged (#2924)
-- A `$`-prefixed member outside a static-property place fails to compile instead of emitting a PHP variable-property access. `(php/-> o $foo)` used to compile to `$o->$foo`, warn twice about an undefined variable and read `$o->{''}` (#2915)
-- Assigning a static property compiles. `(php/oset (php/:: \Foo slot) v)` emitted `\Foo::slot = v`, a class-constant fetch PHP rejects with `syntax error, unexpected token "="`, and a class name as the place of `.-` emitted `\Foo::class->slot = v` (#2907)
-- Bare all-caps PHP classes such as `PDO` are no longer read as global constants, so `PDO/ATTR_ERRMODE`, `(.-ATTR_ERRMODE PDO)` and `(new PDO ...)` need no leading backslash. A class beats a same-named constant; `php/NAME` stays the explicit escape hatch
-- `phel init`, the three bundled example apps, the `.agents/` task recipes and the `--template=` scaffolds all emit the dot separator (`my-app.main`). A generated project used to start on syntax the compiler warns about (#2827)
-- nREPL sessions each keep their own namespace, as reference nREPL does. Client A evaluating `(ns foo)` no longer moves where client B's next form compiles. Definitions stay shared; only the current namespace is per session (#2906)
-- A namespace's own `def`/`defn` beats a `:refer` of the same name, and redefining a referred name warns. A recursive self-call used to resolve to the refer and never recurse (#2897)
-- A `(:require ...)` resolving to no source file fails at the require, naming both namespaces, instead of surfacing later as `Cannot resolve symbol` (#2891, #2886)
-- `(:require my.ns)` of a project namespace works under `phel eval` and nREPL, not only in the REPL (#2886)
-- Redefining a symbol no longer raises `DuplicateDefinitionException` under `phel eval` or nREPL; compiling a file still rejects it (#2896)
-- Kebab-case namespaces are no longer re-evaluated on every `(:require ...)` in the REPL, nREPL and `phel eval`
-- nREPL reports the session namespace in the `ns` field, so editor prompts follow `(ns foo)` instead of sitting on `user>` or an unset `nil>`: empty init code replies `done` with the namespace, a missing `code` param answers `no-code`, and error frames carry it too (#2894)
-- `filter`, `take-while` and `drop-while` use Phel truthiness, so a predicate returning `0`, `""` or `@[]` no longer drops elements
-- `persistent!` keeps metadata for maps, vectors and sets, including through the compiler's `assoc`/`conj` specialisation
-- `first`, `empty?` and `reduce` (no init) work on an eduction; `count` still refuses and points at `(count (into [] coll))`
-- `seq` returns `nil` for an empty non-countable iterable, `(lazy-seq 5)` reports `Don't know how to create a seq from: int` rather than a PHP `TypeError`, and `((transient (sorted-set :a)) :a)` works
-- Sorted comparators are typed `bool|int`, so `(sorted-map-by < ...)` matches its contract
-- A multimethod's parameter list renders as `(assert-expr & args)` rather than a per-run gensym, and the generated `-methods`/`-prefers` tables carry docstrings
-- `phel.repl/compile-str` no longer throws on every call, and compiles without evaluating
-- Syntax deprecation notices (bare `#`, `#| |#`, `|()`, `,`/`,@`, `$` gensym) report under `--warn-deprecations` instead of being suppressed, are attributed to the file defining the macro rather than your call site, and can no longer corrupt generated PHP: compiler notices are pinned to stderr
-- `phel lint` no longer aborts with `Symbol ... is already bound` on projects whose files `:require` one another, and a crashing rule is reported as `phel/internal-error` with a non-zero exit instead of vanishing from a clean report
-- Lint accuracy: `for`/`dofor`/`foreach` heads are understood by `phel/shadowed-binding` and `phel/unused-binding`, multi-arity `defn` parameters are not flagged as shadows, dot-separated `:require` aliases resolve, and `phel/discouraged-var` keys off real `:deprecated` metadata. Editor completion follows
-- An unreadable `phel-lint.phel`, source file or directory fails loudly instead of linting with defaults
-- `php -d <ini>=<value> bin/phel …` keeps the setting: the OPcache re-exec rebuilt argv without the interpreter's own flags, dropping every `-d`/`-n`/`-c`
-- CLI exit codes: `phel format` exits non-zero on an unparsable file (so a `--dry-run` gate cannot pass over broken sources), `phel ns <unknown>` exits 1 instead of listing `phel.core`, `phel doc <no-match>` says so instead of printing an empty table, and `phel config` ends with a summary pointing at `phel doctor`
-- `phel watch` no longer picks the `inotify` backend when `inotifywait` is missing from PATH
-- A failing `data-readers.phel` bootstrap names the file and the cause instead of leaving every `(register-tag ...)` unregistered
-- Diagnostics: a circular namespace dependency reports the whole cycle (`a -> b -> a`), atom validator rejections name the value without realizing a lazy seq, parser/reader/analyzer errors chain the original exception, and error reporting no longer crashes on an unterminated list or an unanchorable snippet
-- Docs: 60+ undocumented public core functions gained `:example`/`:see-also`, and 34 `:example` blocks with wrong printed output were corrected by evaluating every one
+- Amend stale ADRs and document accepted ADR corrections (#2827 #2876)
+- Validate `slurp` paths correctly while preserving stream-wrapper support (#2941 #2943)
+- Evaluate `aset` value expressions once (#2941)
+- Document measured classes loaded by built applications
+- Teach dot namespace spelling in `phel doc` for `in-ns`, `ns` and `use`
+- Stop `phel doc` warnings from generated `phel-internal.doc` helpers (#2936)
+- Resolve `defexception` parent class spellings and `(:use ...)` aliases consistently (#2936)
+- Honor `NO_COLOR` in exception and REPL error formatting (#2923)
+- Resolve dotted class names in `:tag` metadata (#2924)
+- Reject `$` members outside static-property positions (#2915)
+- Compile static property assignment and class-name instance-property places (#2907)
+- Prefer all-caps PHP classes over same-named constants in host symbol resolution
+- Generate dot namespaces from `phel init`, examples, templates and `.agents/` recipes (#2827)
+- Isolate nREPL current namespaces per session and report them in `ns` frames (#2894 #2906)
+- Prefer local definitions over same-named `:refer` imports and warn on redefinition (#2897)
+- Fail unresolved `(:require ...)` at require time and support project requires in eval/nREPL (#2886 #2891)
+- Allow symbol redefinition in eval/nREPL while keeping file compilation strict (#2896)
+- Avoid re-evaluating kebab-case namespaces in REPL, nREPL and eval
+- Use Phel truthiness in `filter`, `take-while` and `drop-while`
+- Preserve metadata through `persistent!` and `assoc`/`conj` specialization
+- Support eduction in `first`, `empty?` and `reduce`; keep `count` guidance explicit
+- Fix empty iterable `seq`, invalid `lazy-seq` errors and transient sorted-set invocation
+- Accept `bool|int` sorted comparators
+- Stabilize multimethod parameter rendering and generated table docstrings
+- Make `phel.repl/compile-str` compile without evaluating
+- Report syntax deprecations under `--warn-deprecations` without corrupting generated PHP
+- Keep `phel lint` running across project requires and report crashing rules as internal errors
+- Improve lint handling for loop heads, multi-arity params, dot aliases and deprecated vars
+- Fail unreadable lint config, source files and directories loudly
+- Preserve PHP interpreter flags through OPcache re-exec
+- Fix CLI exit codes for format, ns, doc and config commands
+- Skip the `inotify` watch backend when `inotifywait` is missing
+- Report failing `data-readers.phel` bootstrap files with their cause
+- Improve circular dependency, atom validator and chained compiler diagnostics
+- Add and verify public core `:example` and `:see-also` metadata
 
 ### Deprecated
 
-- `php/new`, `php/->` and `php/::` are deprecated **as source**: `php/` means host access, never a second spelling for something Phel already says the Clojure way, and the last positions needing one closed in #2881, #2883 and #2887. Write `(new \Foo arg)` or `(\Foo. arg)`, `(.method obj arg)` and `(.-field obj)`, `(\Foo/method arg)` and `\Foo/CONST`; a macro computing a method name builds the head symbol, `(symbol (str "." name))`. They keep working for all of `1.x` and stay the compilation target the shorthand expands into, so only writing them warns. `phel doc` marks each and names the replacement (#2877)
-- `set-var` in favour of `alter-var-root`: it writes a var's root under a name that reads like Clojure's `set!`, which since #2905 exists and does the opposite. `(set-var *x* 3)` becomes `(alter-var-root #'*x* (constantly 3))`; `(set! *x* 3)` assigns only the current `binding` frame (#2888)
+- Deprecate source use of `php/new`, `php/->` and `php/::`; prefer Clojure-style interop (#2877)
+- Deprecate `set-var`; use `alter-var-root` for roots and `set!` for dynamic binding frames (#2888)
 
 ### Changed
 
-- `re-find` stops converting the whole match array to read one string out of it, so a group-less pattern costs about three times a raw `php/preg_match` instead of fifty times it (200k calls: 612 ms to 39 ms), and a pattern with groups builds its vector from the match array directly, 23% faster. That cost is why the core library still spelled its regex predicates by hand; they now ask `re-find` and `re-matches`, and `parse-long` came out 3x faster than the raw spelling it replaced. A named group also keeps the order PHP matched in, rather than whichever order a hash map happened to yield (#2941, #2943)
-- `aget` declares its single-index arity, `(aget arr index)`, instead of reaching every read through `& indices`. Collecting rest arguments cost more than the array read itself, which is why the standard library still wrote `php/aget` on hot paths; a single-index read is now around twice a raw `php/aget` rather than twelve times it. `(aget arr)` with no index is gone with the rest parameter, as in Clojure, where an index is required (#2941)
-- The core library and the standard library write `aget` and `aset` for array access instead of `php/aget` and `php/aset`, wherever the raw spelling is not required. It stays where a converted call would reference itself during bootstrap: `core/defs.phel`, the eager defs in `core.phel`, and `aget`/`aset`'s own definitions in `core/arrays.phel` (#2941, #2942)
-- The `\` namespace separator now warns without `--warn-deprecations`. It is the last deprecated language surface and the one scheduled for removal at the next major, so an opt-in notice was no notice at all: the policy promises a minor of warning before a removal and nobody was being warned. Every other deprecation stays opt-in ([ADR 0014](docs/adr/0014-announce-the-separator-deprecation.md), #2827)
-- The spelling a PHP class will have after `\` goes is recorded: dotted or bare, with no leading marker, and the marker retires with the separator rather than becoming permanent ([ADR 0015](docs/adr/0015-a-php-class-is-named-with-dots.md), #2876). Nothing changes in `1.x`, where both spellings work
-- A `def` whose name is a loadable PHP class warns. The definition wins from there on, so `(def DateTime "shadow")` used to make `(new DateTime)` fail with `Class "shadow" not found` and nothing said why. Clojure refuses the `def`; Phel warns for now and names `\DateTime` as the spelling that still reaches the class, with the refusal scheduled for the major that drops the leading `\` (#2876)
-- Deprecations are never reported for code under a `vendor/` directory. A dependency's spelling is its author's to fix, and reporting it is how a warning channel earns being globally silenced. This is the first-party scoping ADR 0006 named as the precondition for announcing anything by default (#2827)
-- **BREAKING** (installation): `symfony/console` narrows from `^6.0|^7.0|^8.0` to `^7.3|^8.0`. The old range was never true, since `phel.cli` renders with the `markdown` output style added in Symfony 7.3. `symfony/routing` already required `^7.3|^8.0`, so nothing that installs cleanly today is affected
-- **BREAKING** (PHP API, implementers only): `ApiFacadeInterface` declares the whole semantic-analysis surface (`analyzeSource`, `indexProject`, `extractDefinitions`, `resolveSymbol`, `findReferences`, `completeAtPoint`, `phpInteropHoverAt`, `phpInteropSignatureAt`, `phelSignatureAt`), and `FormatterFacadeInterface` gains `formatString`. Callers unaffected
-- **BREAKING** (PHP API): the five transfers named by `ApiFacadeInterface` moved from `Phel\Api\Transfer\` to `Phel\Shared\Api\` (`Diagnostic`, `ProjectIndex`, `Definition`, `Location`, `Completion`), shapes unchanged
-- **BREAKING** (PHP API): the four unrelated `FileIoInterface` interfaces are renamed after what each does: `DirectoryWritabilityCheckerInterface` (Filesystem), `FileContentsIoInterface` (Build), `ValidatedFileIoInterface` (Formatter), `FileWriterInterface` (Interop). Signatures unchanged
-- (PHP API) `Phel\Shared\Api\Definition` gains an optional `deprecated` field and `isDeprecated()`; `Parser`/`Reader` expression classes depend on `ParserInterface`/`ReaderInterface` rather than `Application` classes; `NullScanIndexCache` and `Lsp\Domain\HandlerInterface` moved. Behaviour unchanged
-- `phel agent-install` syncs `.agents/` incrementally (#2809): a re-run writes only what changed upstream, leaves files you edited alone and names them, backs them up to `<file>.pre-phel.bak` under `--force`, and `--uninstall` removes only what it installed. `.agents/.phel-agent-manifest.json` records the docs version and those paths
-- Cross-module dependencies are keyed by the interface the consumer asks for rather than a `FACADE_*` constant, dropping 30 constants and 31 hand-written `@var` docblocks so a provider cannot disagree with its accessor. `CrossModuleViaFacadeRule` is enabled with the 35 existing violations pinned by count, so a new cross-module reach fails the build
-- Every compiler deprecation notice goes through one switch, one message factory and one dedup table
-- Requires `gacela-project/gacela` `^1.21` (was `^1.18`), which types the `#[ServiceMap]` pillar accessors instead of suppressing them. Verified against gacela **2.0** (dev-main) with no source change needed
+- Warn for `\` namespace separators without `--warn-deprecations`; other deprecations stay opt-in (#2827)
+- Record the future PHP class spelling after `\`: dotted or bare, with no leading marker (#2876)
+- Warn when a `def` shadows a loadable PHP class; `\DateTime` still reaches the class (#2876)
+- Suppress deprecation reports for code under `vendor/` (#2827)
+- BC: require `symfony/console` `^7.3|^8.0`
+- BC: require `gacela-project/gacela` `^2.0`
+- BC: expand `ApiFacadeInterface` and add `FormatterFacadeInterface::formatString`
+- BC: move API transfer objects from `Phel\Api\Transfer` to `Phel\Shared\Api`
+- BC: rename four `FileIoInterface` contracts after their responsibilities
+- Change `Phel\Shared\Api\Definition`, parser/reader contracts and several internal class locations
+- Sync `.agents/` incrementally and track installed files in `.agents/.phel-agent-manifest.json` (#2809)
+- Adopt explicit Gacela 2 service maps and key facade dependencies by consumer-facing interface
+- Route compiler deprecations through one switch, message factory and dedup table
+
+### Performance
+
+- Keep the PHAR within its release size budget by excluding dependency-only Gacela tooling
+
+Runtime core:
+
+- Speed up `re-find`, `re-matches` and `parse-long` by avoiding full match-map conversion (#2941 #2943)
+- Give `aget` a fixed single-index arity and require an index, matching Clojure (#2941)
+- Use `aget` and `aset` across core/std libraries where bootstrap allows it (#2941 #2942)
 
 ### Removed
 
-- **BREAKING**: the deprecated reader syntax ([#2827](https://github.com/phel-lang/phel-lang/issues/2827)): `#| ... |#` comments, bare `#` line comments (use `;`/`;;`), the `|(...)` short fn with `$`/`$1` (use `#(...)` with `%`/`%1`), and `foo$` auto-gensym (use `foo#`). Those fail to lex, so a stale file stops loudly. **`,` is the exception to grep for**: it is plain whitespace everywhere now, syntax-quote included, so `` `(foo ,x) `` still parses and quietly quotes `x` (`~` is unquote, `~@` unquote-splicing). See [the migration guide](docs/migration/removed-deprecated-core-fns.md)
-- **BREAKING**: `^:reference` as a by-reference parameter marker; `^:by-ref` is the spelling ([#2827](https://github.com/phel-lang/phel-lang/issues/2827)). Also silent: a parameter still marked `^:reference` compiles by value and stops propagating mutations, so grep the literal `:reference`
-- **BREAKING**: long-deprecated core aliases (#2784): `push` (`conj`), `put` (`assoc`), `unset` (`dissoc`), `put-in` (`assoc-in`), `unset-in` (`dissoc-in`), `values` (`vals`), `function?` (`fn?`), `hash-map?` (`map?`), `id` (`identical?`), `str-contains?` (`phel.string/contains?`), plus `set-meta!` (`with-meta`) and `phel.test/print-summary` (`run-tests` already emits `:summary`). See [the migration guide](docs/migration/removed-deprecated-core-fns.md)
-- **BREAKING**: the CLI option aliases `phel index --out` (use `--output`/`-o`) and `phel config --json` (use `--format=json`) ([#2827](https://github.com/phel-lang/phel-lang/issues/2827)). A stale invocation now fails with `The "--out" option does not exist.`
-- **BREAKING**: the legacy REPL history migration from `0.37.0` and its `PHEL_QUIET_MIGRATION` switch. Upgrading from before `0.37.0` starts a fresh history: `mkdir -p .phel && mv .phel-repl-history .phel/repl-history`
-- **BREAKING** (PHP API): `ExceptionPrinterInterface::printError()`/`::printException()` and their `TextExceptionPrinter` implementations, which nothing called and which bypassed the `OutputInterface` commands write through
-- Five facade methods documented as test support but used by nothing (`LspFacade::createDispatcher()`, `NreplFacade::createOpDispatcher()`, `WatchFacade::createFileWatcherBuilder()`/`::createReloadOrchestrator()`/`::createNamespaceResolver()`); the `Factory` equivalents stay. Also unused internals: `LazySeqConfig::EAGER_THRESHOLD`, `NamespaceCacheInterface::remove()`/`::clear()`, `SessionRegistry::ids()`, and the empty `FiberProvider`
+- BC: remove deprecated reader syntax `#| |#`, bare `#`, `|(...)` and `foo$` (#2827)
+- BC: remove `^:reference`; use `^:by-ref` (#2827)
+- BC: remove long-deprecated core aliases; see the migration guide (#2784)
+- BC: remove CLI aliases `phel index --out` and `phel config --json` (#2827)
+- BC: remove legacy REPL history migration and `PHEL_QUIET_MIGRATION`
+- BC: remove unused `ExceptionPrinterInterface` print methods
+- Remove unused facade test-support methods and unused internal helpers
 
 ## [0.49.0](https://github.com/phel-lang/phel-lang/compare/v0.48.0...v0.49.0) - 2026-07-22
 

@@ -23,8 +23,8 @@ Each path lands in at most one bucket; an already-formatted file appears in neit
 
 ## Dependencies
 
-- `FACADE_COMPILER` — lex + parse to parse tree (`lexString`, `parseAll`). Injected as `CompilerFacadeInterface` via `FormatterFactory::getCompilerFacade()`.
-- `FACADE_COMMAND` — CLI output, as `CommandFacadeInterface`.
+- `CompilerFacadeInterface::class` — lex + parse to parse tree (`lexString`, `parseAll`).
+- `CommandFacadeInterface::class` — CLI output.
 - Config — `FormatterConfig.getFormatDirs()` reads `PhelConfig::FORMAT_DIRS`, defaults to `['src', 'tests']`.
 
 Both getters return the Shared contract, never a concrete facade, and `SatelliteFactoryFacadeInjectionTest` pins the return types. The residual `Formatter -> Compiler` imports are exception types named in `@throws` (`LexerValueException`, `AbstractParserException`), not behaviour.

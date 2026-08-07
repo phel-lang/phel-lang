@@ -18,14 +18,18 @@
 
     <plugins>
         <pluginClass class="Psalm\PhpUnitPlugin\Plugin"/>
+        <!-- Types `getFacade()`/`getFactory()`/`getConfig()` from the
+             `#[ServiceMap]` attribute (gacela 2.0). Registered here rather than
+             through the XInclude, which replaces one element and cannot reach
+             `<plugins>`. -->
+        <pluginClass class="Gacela\Psalm\Plugin"/>
     </plugins>
 
-    <!-- psalm-gacela.xml is deliberately NOT included. All it does is suppress
-         UndefinedMagicMethod for `getFacade()`/`getFactory()`/`getConfig()`,
-         which leaves their return type as `mixed`. Every class using
-         `ServiceResolverAwareTrait` declares them with `@method` instead, so
-         the suppression would never match and a class that forgets the
-         annotation should fail rather than silently degrade to `mixed`. -->
+    <!-- psalm-gacela.xml is still deliberately NOT included. All it does is
+         suppress UndefinedMagicMethod for those three accessors, leaving their
+         return type as `mixed`. The plugin above resolves them instead. Every
+         class using `ServiceResolverAwareTrait` also declares them with
+         `@method`, for IDE completion; keep both. -->
 
     <issueHandlers>
         <!-- Suppress overly strict checks -->

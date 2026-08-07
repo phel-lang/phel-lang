@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Phel\Lint;
 
 use Gacela\Framework\AbstractFactory;
+use Gacela\Framework\ServiceResolver\ServiceMap;
 use Phel\Lint\Application\Cache\LintCache;
 use Phel\Lint\Application\Config\ConfigLoader;
 use Phel\Lint\Application\Config\RuleRegistry;
@@ -44,6 +45,7 @@ use function sort;
  *
  * @internal
  */
+#[ServiceMap(method: 'getConfig', className: LintConfig::class)]
 final class LintFactory extends AbstractFactory
 {
     public function createLintRunner(?LintCache $cache = null): LintRunner

@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Phel\Filesystem;
 
 use Gacela\Framework\AbstractFactory;
+use Gacela\Framework\ServiceResolver\ServiceMap;
 use Phel\Filesystem\Application\FileIo;
 use Phel\Filesystem\Application\TempDirFinder;
 use Phel\Filesystem\Application\TempDirHealthCheck;
@@ -17,6 +18,7 @@ use Phel\Filesystem\Infrastructure\RealFilesystem;
  *
  * @internal
  */
+#[ServiceMap(method: 'getConfig', className: FilesystemConfig::class)]
 final class FilesystemFactory extends AbstractFactory
 {
     /**

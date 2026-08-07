@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Phel\Api;
 
 use Gacela\Framework\AbstractFacade;
+use Gacela\Framework\ServiceResolver\ServiceMap;
 use Phel\Api\Infrastructure\Daemon\ApiDaemon;
 use Phel\Shared\Api\Completion;
 use Phel\Shared\Api\CompletionResultTransfer;
@@ -20,6 +21,7 @@ use Phel\Shared\Facade\ApiFacadeInterface;
  *
  * @extends AbstractFacade<ApiFactory>
  */
+#[ServiceMap(method: 'getFactory', className: ApiFactory::class)]
 final class ApiFacade extends AbstractFacade implements ApiFacadeInterface
 {
     /**

@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Phel\Formatter;
 
 use Gacela\Framework\AbstractFactory;
+use Gacela\Framework\ServiceResolver\ServiceMap;
 use Phel\Formatter\Application\Formatter;
 use Phel\Formatter\Application\PathsFormatter;
 use Phel\Formatter\Application\PhelPathFilter;
@@ -28,6 +29,7 @@ use Phel\Shared\Facade\CompilerFacadeInterface;
  *
  * @internal
  */
+#[ServiceMap(method: 'getConfig', className: FormatterConfig::class)]
 final class FormatterFactory extends AbstractFactory
 {
     /**

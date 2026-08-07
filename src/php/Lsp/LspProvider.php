@@ -7,6 +7,7 @@ namespace Phel\Lsp;
 use Gacela\Framework\AbstractProvider;
 use Gacela\Framework\Attribute\Provides;
 use Gacela\Framework\Container\Container;
+use Gacela\Framework\ServiceResolver\ServiceMap;
 use Phel\Api\ApiFacade;
 use Phel\Formatter\FormatterFacade;
 use Phel\Lint\LintFacade;
@@ -18,6 +19,7 @@ use Phel\Shared\Facade\RunFacadeInterface;
 /**
  * @internal
  */
+#[ServiceMap(method: 'getConfig', className: LspConfig::class)]
 final class LspProvider extends AbstractProvider
 {
     /**

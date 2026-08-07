@@ -16,7 +16,7 @@ Compiler is PHP. Stdlib is Phel: `src/phel/core.phel` bootstraps the core namesp
 
 ## Modules
 
-Every directory under `src/php/` is a module. Most follow the [Gacela](https://gacela-project.com/) pattern: `Facade` for public API, `Provider` for cross-module deps, `Factory` for internal wiring. `Lang/`, `Shared/`, `Config/` and `HttpClient/` are leaves with no Gacela wiring; their `CLAUDE.md` says "No Gacela Pattern".
+Every directory under `src/php/` is a module. Most follow the [Gacela](https://gacela-project.com/) pattern: `Facade` for public API, `Provider` for cross-module deps, `Factory` for internal wiring. The Gacela pillars themselves are internal PHP wiring, not user-facing API; public consumers enter through facades and documented Shared contracts. `Lang/`, `Shared/`, `Config/` and `HttpClient/` are leaves with no Gacela wiring; their `CLAUDE.md` says "No Gacela Pattern".
 
 | Module | Purpose |
 |--------|---------|
@@ -56,16 +56,26 @@ Rules:
 - Never instantiate another module's class directly. Go via Facade.
 - Never reach into another module's `Domain/`.
 - Add a method to your facade before consuming someone else's internals.
-
-Provider declares deps as facade constants:
+- Declare inherited services explicitly: Facade `getFactory()` maps to its Factory, while Factory and Provider `getConfig()` map to the module Config. This avoids Gacela's deprecated source/docblock fallback.
 
 ```php
-#[Provides(self::FACADE_COMPILER)]
-public function compilerFacade(Container $container): CompilerFacade
+#[ServiceMap(method: 'getFactory', className: RunFactory::class)]
+final class RunFacade extends AbstractFacade
+{
+}
+```
+
+Provider declares dependencies with Gacela 2.0 `#[Provides]`. Facade dependencies are keyed by the contract the consuming factory requests:
+
+```php
+#[Provides(CompilerFacadeInterface::class)]
+public function compilerFacade(Container $container): CompilerFacadeInterface
 {
     return $container->getLocator()->getRequired(CompilerFacade::class);
 }
 ```
+
+Use string keys only for non-facade services such as `ConsoleProvider::LAZY_COMMANDS` and `CommandProvider::PHP_CONFIG_READER`. The one concrete-facade exception is `LspProvider::FACADE_LINT`, because `Lint` has no Shared facade contract yet.
 
 Each module ships `CLAUDE.md` with API + constraints. Read it before editing.
 
@@ -107,4 +117,4 @@ Same physical PHP process (REPL, `phel run`) or different (cached files in a fra
 | LSP capability | `Lsp/Domain/` |
 | Lint rule | `Lint/Application/Rule/` |
 
-`grep -r "FACADE_" src/php/<Module>/<Module>Provider.php` shows a module's deps.
+`rg '#\[Provides' src/php/<Module>/<Module>Provider.php` shows a module's Gacela-provided deps.

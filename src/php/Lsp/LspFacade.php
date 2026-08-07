@@ -5,11 +5,13 @@ declare(strict_types=1);
 namespace Phel\Lsp;
 
 use Gacela\Framework\AbstractFacade;
+use Gacela\Framework\ServiceResolver\ServiceMap;
 use Phel\Lsp\Application\Rpc\LspServer;
 
 /**
  * @extends AbstractFacade<LspFactory>
  */
+#[ServiceMap(method: 'getFactory', className: LspFactory::class)]
 final class LspFacade extends AbstractFacade
 {
     /**

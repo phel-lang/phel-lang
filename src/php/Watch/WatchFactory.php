@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Phel\Watch;
 
 use Gacela\Framework\AbstractFactory;
+use Gacela\Framework\ServiceResolver\ServiceMap;
 use Phel\Shared\Facade\ApiFacadeInterface;
 use Phel\Shared\Facade\BuildFacadeInterface;
 use Phel\Shared\Facade\CommandFacadeInterface;
@@ -30,6 +31,7 @@ use Phel\Watch\Domain\ReloadOrchestratorInterface;
  *
  * @internal
  */
+#[ServiceMap(method: 'getConfig', className: WatchConfig::class)]
 final class WatchFactory extends AbstractFactory
 {
     public function createWatchRunner(?ReloadEventPublisherInterface $publisher = null, ?int $pollIntervalMs = null, ?int $debounceMs = null): WatchRunner

@@ -7,6 +7,7 @@ namespace Phel\Formatter;
 use Gacela\Framework\AbstractProvider;
 use Gacela\Framework\Attribute\Provides;
 use Gacela\Framework\Container\Container;
+use Gacela\Framework\ServiceResolver\ServiceMap;
 use Phel\Command\CommandFacade;
 use Phel\Compiler\CompilerFacade;
 use Phel\Shared\Facade\CommandFacadeInterface;
@@ -15,6 +16,7 @@ use Phel\Shared\Facade\CompilerFacadeInterface;
 /**
  * @internal
  */
+#[ServiceMap(method: 'getConfig', className: FormatterConfig::class)]
 final class FormatterProvider extends AbstractProvider
 {
     #[Provides(CompilerFacadeInterface::class)]

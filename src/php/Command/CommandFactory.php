@@ -6,6 +6,7 @@ namespace Phel\Command;
 
 use Gacela\Framework\AbstractFactory;
 use Gacela\Framework\Config\ConfigReader\PhpConfigReader;
+use Gacela\Framework\ServiceResolver\ServiceMap;
 use Phel\Command\Application\CommandExceptionWriter;
 use Phel\Command\Application\DirectoryFinder;
 use Phel\Command\Application\TextExceptionPrinter;
@@ -32,6 +33,7 @@ use Phel\Shared\Printer\Printer;
  *
  * @internal
  */
+#[ServiceMap(method: 'getConfig', className: CommandConfig::class)]
 final class CommandFactory extends AbstractFactory
 {
     public function createCommandExceptionWriter(): CommandExceptionWriterInterface

@@ -63,6 +63,32 @@ final class PharBuilder
         'data', 'node_modules', 'var',
     ];
 
+    /**
+     * Dependency paths that cannot be used from the standalone Phel PHAR.
+     * Keep this path-specific so similarly named first-party runtime code is
+     * still bundled.
+     */
+    private array $excludeDependencyDirs = [
+        '/vendor/bin' => true,
+        '/vendor/gacela-project/container/bin' => true,
+        '/vendor/gacela-project/container/src/Container/Console' => true,
+        '/vendor/gacela-project/gacela/bin' => true,
+        '/vendor/gacela-project/gacela/src/Console/Infrastructure/Template' => true,
+        '/vendor/gacela-project/gacela/src/Framework/Testing' => true,
+        '/vendor/gacela-project/gacela/src/PHPStan' => true,
+        '/vendor/gacela-project/gacela/src/Psalm' => true,
+    ];
+
+    private array $excludeDependencyFiles = [
+        '/vendor/gacela-project/gacela/allowed-module-cycles.json' => true,
+        '/vendor/gacela-project/gacela/gacela.php' => true,
+        '/vendor/gacela-project/gacela/phpstan-gacela.neon' => true,
+        '/vendor/gacela-project/gacela/src/Console/Infrastructure/Command/DoctorCommand.php' => true,
+        '/vendor/gacela-project/gacela/src/Console/Infrastructure/Command/InitCommand.php' => true,
+        '/vendor/gacela-project/gacela/src/Console/Infrastructure/Command/MakeFileCommand.php' => true,
+        '/vendor/gacela-project/gacela/src/Console/Infrastructure/Command/MakeModuleCommand.php' => true,
+    ];
+
     private array $excludeFiles = [
         'composer.lock' => true,
         'composer.json' => true,
@@ -409,6 +435,8 @@ final class PharBuilder
     {
         $excludeDirMap = array_fill_keys($this->excludeDirs, true);
         $excludeRootDirMap = array_fill_keys($this->excludeDirsAtRoot, true);
+        $excludeDependencyDirs = $this->excludeDependencyDirs;
+        $excludeDependencyFiles = $this->excludeDependencyFiles;
         $excludeFiles = $this->excludeFiles;
         $excludeExtensions = $this->excludeExtensions;
         $versionedDocPattern = $this->versionedDocPattern;
@@ -417,15 +445,20 @@ final class PharBuilder
         $filter = static function ($current) use (
             $excludeDirMap,
             $excludeRootDirMap,
+            $excludeDependencyDirs,
+            $excludeDependencyFiles,
             $excludeFiles,
             $excludeExtensions,
             $versionedDocPattern,
             $rootLen,
         ): bool {
             $basename = $current->getBasename();
+            $relative = str_replace('\\', '/', substr($current->getPathname(), $rootLen));
 
             if ($current->isDir()) {
-                $relative = str_replace('\\', '/', substr($current->getPathname(), $rootLen));
+                if (isset($excludeDependencyDirs[$relative])) {
+                    return false;
+                }
 
                 // Root-only excludes — match `data` at the workdir top level
                 // without breaking nested vendor dirs like
@@ -452,6 +485,10 @@ final class PharBuilder
                 }
 
                 return true;
+            }
+
+            if (isset($excludeDependencyFiles[$relative])) {
+                return false;
             }
 
             if (isset($excludeFiles[$basename])) {

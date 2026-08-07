@@ -18,15 +18,15 @@ Runtime execution: runs Phel namespaces/files, REPL, evaluation, test runner, an
 
 ## Dependencies
 
-Most-connected module. 5 Provider facades:
+Most-connected module. 5 provider facade contracts:
 
-| Facade | Used for |
-|--------|----------|
-| Build | namespace extraction, dependency resolution, file evaluation |
-| Compiler | compilation, evaluation, environment |
-| Command | directories, error formatting, exception hints |
-| Api | REPL autocompletion |
-| Filesystem | module health check (`phel doctor`) |
+| Provider key | Used for |
+|--------------|----------|
+| `BuildFacadeInterface::class` | namespace extraction, dependency resolution, file evaluation |
+| `CompilerFacadeInterface::class` | compilation, evaluation, environment |
+| `CommandFacadeInterface::class` | directories, error formatting, exception hints |
+| `ApiFacadeInterface::class` | REPL autocompletion |
+| `FilesystemFacadeInterface::class` | module health check (`phel doctor`) |
 
 Version comes from `Shared\VersionResolver` directly — Run does **not** depend on Console.
 

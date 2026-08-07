@@ -7,6 +7,7 @@ namespace Phel\Interop;
 use Gacela\Framework\AbstractProvider;
 use Gacela\Framework\Attribute\Provides;
 use Gacela\Framework\Container\Container;
+use Gacela\Framework\ServiceResolver\ServiceMap;
 use Phel\Build\BuildFacade;
 use Phel\Command\CommandFacade;
 use Phel\Shared\Facade\BuildFacadeInterface;
@@ -15,6 +16,7 @@ use Phel\Shared\Facade\CommandFacadeInterface;
 /**
  * @internal
  */
+#[ServiceMap(method: 'getConfig', className: InteropConfig::class)]
 final class InteropProvider extends AbstractProvider
 {
     #[Provides(CommandFacadeInterface::class)]

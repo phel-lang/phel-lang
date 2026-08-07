@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Phel\Formatter;
 
 use Gacela\Framework\AbstractFacade;
+use Gacela\Framework\ServiceResolver\ServiceMap;
 use Phel\Shared\CompilerConstants;
 use Phel\Shared\Facade\FormatterFacadeInterface;
 use Phel\Shared\Formatter\FormatResult;
@@ -13,6 +14,7 @@ use Symfony\Component\Console\Output\OutputInterface;
 /**
  * @extends AbstractFacade<FormatterFactory>
  */
+#[ServiceMap(method: 'getFactory', className: FormatterFactory::class)]
 final class FormatterFacade extends AbstractFacade implements FormatterFacadeInterface
 {
     /**

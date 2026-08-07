@@ -5,12 +5,14 @@ declare(strict_types=1);
 namespace Phel\Watch;
 
 use Gacela\Framework\AbstractFacade;
+use Gacela\Framework\ServiceResolver\ServiceMap;
 use Phel\Watch\Domain\FileWatcherInterface;
 use Phel\Watch\Domain\ReloadEventPublisherInterface;
 
 /**
  * @extends AbstractFacade<WatchFactory>
  */
+#[ServiceMap(method: 'getFactory', className: WatchFactory::class)]
 final class WatchFacade extends AbstractFacade
 {
     /**
