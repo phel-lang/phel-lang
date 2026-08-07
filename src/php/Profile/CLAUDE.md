@@ -16,7 +16,7 @@ Instrumentation profiler for `phel profile`. Reports per-fn call counts, self/to
 
 | Via | What |
 |-----|------|
-| `ProfileProvider::FACADE_RUN` → `RunFacade` | `runFile`, `runNamespace`, `autoDetectEntryPoint`, `writeLocatedException`, `writeStackTrace` |
+| `RunFacadeInterface::class` → `RunFacade` | `runFile`, `runNamespace`, `autoDetectEntryPoint`, `writeLocatedException`, `writeStackTrace` |
 | `Phel\Shared\Munge` (direct) | `canonicalNs` for namespace targets |
 | `Phel\Lang` (types) | `AbstractFn`, `ProfilerHookInterface`, `Registry` |
 | `Phel\Phel` (composition root, direct) | `ProfileCommand` calls `setupRuntimeArgs()` before running the profiled entry point, exactly as `RunCommand` does |

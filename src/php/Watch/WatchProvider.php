@@ -7,6 +7,7 @@ namespace Phel\Watch;
 use Gacela\Framework\AbstractProvider;
 use Gacela\Framework\Attribute\Provides;
 use Gacela\Framework\Container\Container;
+use Gacela\Framework\ServiceResolver\ServiceMap;
 use Phel\Api\ApiFacade;
 use Phel\Build\BuildFacade;
 use Phel\Command\CommandFacade;
@@ -24,6 +25,7 @@ use Phel\Shared\Facade\RunFacadeInterface;
  *
  * @internal
  */
+#[ServiceMap(method: 'getConfig', className: WatchConfig::class)]
 final class WatchProvider extends AbstractProvider
 {
     #[Provides(RunFacadeInterface::class)]

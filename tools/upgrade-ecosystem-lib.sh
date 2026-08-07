@@ -69,7 +69,27 @@ run_with_timeout() {
   local secs="$1"; shift
   if command -v timeout  >/dev/null 2>&1; then timeout  "$secs" "$@"
   elif command -v gtimeout >/dev/null 2>&1; then gtimeout "$secs" "$@"
-  else perl -e 'my $s=shift; $SIG{ALRM}=sub{exit 124}; alarm $s; exec @ARGV' \
-        "$secs" "$@"
+  else perl -e '
+    my $s = shift;
+    my @cmd = @ARGV;
+    my $pid = fork();
+    die "fork failed: $!" unless defined $pid;
+    if ($pid == 0) {
+      exec @cmd;
+      exit 127;
+    }
+    $SIG{ALRM} = sub {
+      kill "TERM", $pid;
+      sleep 1;
+      kill "KILL", $pid;
+      waitpid($pid, 0);
+      exit 124;
+    };
+    alarm $s;
+    waitpid($pid, 0);
+    my $status = $?;
+    alarm 0;
+    exit(($status & 127) ? 128 + ($status & 127) : $status >> 8);
+  ' "$secs" "$@"
   fi
 }

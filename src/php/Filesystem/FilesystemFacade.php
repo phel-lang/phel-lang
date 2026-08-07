@@ -6,10 +6,12 @@ namespace Phel\Filesystem;
 
 use Gacela\Framework\AbstractFacade;
 use Gacela\Framework\Health\ModuleHealthCheckInterface;
+use Gacela\Framework\ServiceResolver\ServiceMap;
 
 /**
  * @extends AbstractFacade<FilesystemFactory>
  */
+#[ServiceMap(method: 'getFactory', className: FilesystemFactory::class)]
 final class FilesystemFacade extends AbstractFacade implements FilesystemFacadeInterface
 {
     /**

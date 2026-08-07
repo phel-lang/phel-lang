@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Phel\Profile;
 
 use Gacela\Framework\AbstractFacade;
+use Gacela\Framework\ServiceResolver\ServiceMap;
 use Phel\Profile\Domain\ProfileReport;
 use Phel\Profile\Domain\ProfilerSession;
 use Phel\Profile\Domain\SortOrder;
@@ -12,6 +13,7 @@ use Phel\Profile\Domain\SortOrder;
 /**
  * @extends AbstractFacade<ProfileFactory>
  */
+#[ServiceMap(method: 'getFactory', className: ProfileFactory::class)]
 final class ProfileFacade extends AbstractFacade
 {
     /**

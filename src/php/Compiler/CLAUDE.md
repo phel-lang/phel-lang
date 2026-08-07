@@ -18,7 +18,7 @@ Core compilation pipeline: Phel source → tokens → AST → analyzed nodes →
 
 ## Dependencies
 
-- **Filesystem** — file I/O (`FACADE_FILESYSTEM`, the module's only Provider entry).
+- **Filesystem** — file I/O (`FilesystemFacadeInterface::class`, the module's only Provider entry).
 - **Config** — `PhelConfig` data model, wrapped by `CompilerConfig` (`assertsEnabled()`, `warnDeprecationsEnabled()`, `isIntermediateCacheEnabled()`, `getCacheDir()`).
 - **Lang** — the compiler's widest edge by far (~200 files): every phase after the lexer reads and produces `Phel\Lang` values, and the emitter writes their FQNs into generated PHP.
 - **Shared** — `Munge`, `Printer`, exceptions, `SourceMap\VLQ`. Shared points back through `Facade/CompilerFacadeInterface`; see the "Compiler Back-Edge" section of `Shared/CLAUDE.md`.

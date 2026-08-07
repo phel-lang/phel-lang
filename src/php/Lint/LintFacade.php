@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Phel\Lint;
 
 use Gacela\Framework\AbstractFacade;
+use Gacela\Framework\ServiceResolver\ServiceMap;
 use Phel\Lint\Application\Cache\LintCache;
 use Phel\Lint\Application\Config\RuleSettings;
 use Phel\Lint\Application\Formatter\FormatterRegistry;
@@ -15,6 +16,7 @@ use Phel\Lint\Transfer\LintResult;
 /**
  * @extends AbstractFacade<LintFactory>
  */
+#[ServiceMap(method: 'getFactory', className: LintFactory::class)]
 final class LintFacade extends AbstractFacade
 {
     /**

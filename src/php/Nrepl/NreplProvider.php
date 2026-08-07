@@ -7,6 +7,7 @@ namespace Phel\Nrepl;
 use Gacela\Framework\AbstractProvider;
 use Gacela\Framework\Attribute\Provides;
 use Gacela\Framework\Container\Container;
+use Gacela\Framework\ServiceResolver\ServiceMap;
 use Phel\Api\ApiFacade;
 use Phel\Compiler\CompilerFacade;
 use Phel\Run\RunFacade;
@@ -17,6 +18,7 @@ use Phel\Shared\Facade\RunFacadeInterface;
 /**
  * @internal
  */
+#[ServiceMap(method: 'getConfig', className: NreplConfig::class)]
 final class NreplProvider extends AbstractProvider
 {
     #[Provides(RunFacadeInterface::class)]

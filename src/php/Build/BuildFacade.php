@@ -6,6 +6,7 @@ namespace Phel\Build;
 
 use Gacela\Framework\AbstractFacade;
 use Gacela\Framework\Health\ModuleHealthCheckInterface;
+use Gacela\Framework\ServiceResolver\ServiceMap;
 use Phel\Build\Domain\Compile\BuildOptions;
 use Phel\Lang\Registry;
 use Phel\Shared\BuildConstants;
@@ -20,6 +21,7 @@ use Throwable;
 /**
  * @extends AbstractFacade<BuildFactory>
  */
+#[ServiceMap(method: 'getFactory', className: BuildFactory::class)]
 final class BuildFacade extends AbstractFacade implements BuildFacadeInterface
 {
     public static function enableBuildMode(): void

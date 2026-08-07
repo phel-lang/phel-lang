@@ -12,10 +12,10 @@ Generates PHP wrapper classes for Phel functions marked `^{:export true}`, so PH
 
 ## Dependencies
 
-| Facade (`InteropProvider::*`) | Used for |
-|--------|----------|
-| `FACADE_COMMAND` | error / exception output |
-| `FACADE_BUILD` | namespace extraction, compilation, evaluation |
+| Provider key | Used for |
+|--------------|----------|
+| `CommandFacadeInterface::class` | error / exception output |
+| `BuildFacadeInterface::class` | namespace extraction, compilation, evaluation |
 
 One non-facade edge: **Config** — `InteropConfig` imports `PhelConfig` and `PhelExportConfig`.
 

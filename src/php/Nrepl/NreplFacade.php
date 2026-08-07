@@ -5,11 +5,13 @@ declare(strict_types=1);
 namespace Phel\Nrepl;
 
 use Gacela\Framework\AbstractFacade;
+use Gacela\Framework\ServiceResolver\ServiceMap;
 use Phel\Nrepl\Infrastructure\NreplSocketServer;
 
 /**
  * @extends AbstractFacade<NreplFactory>
  */
+#[ServiceMap(method: 'getFactory', className: NreplFactory::class)]
 final class NreplFacade extends AbstractFacade
 {
     /**

@@ -7,6 +7,7 @@ namespace Phel\Lint;
 use Gacela\Framework\AbstractProvider;
 use Gacela\Framework\Attribute\Provides;
 use Gacela\Framework\Container\Container;
+use Gacela\Framework\ServiceResolver\ServiceMap;
 use Phel\Api\ApiFacade;
 use Phel\Command\CommandFacade;
 use Phel\Compiler\CompilerFacade;
@@ -19,6 +20,7 @@ use Phel\Shared\Facade\RunFacadeInterface;
 /**
  * @internal
  */
+#[ServiceMap(method: 'getConfig', className: LintConfig::class)]
 final class LintProvider extends AbstractProvider
 {
     #[Provides(ApiFacadeInterface::class)]

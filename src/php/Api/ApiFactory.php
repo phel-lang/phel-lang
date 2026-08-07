@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Phel\Api;
 
 use Gacela\Framework\AbstractFactory;
+use Gacela\Framework\ServiceResolver\ServiceMap;
 use Phel\Api\Application\Analysis\LexAndParseStage;
 use Phel\Api\Application\Analysis\PreloadDependenciesStage;
 use Phel\Api\Application\Analysis\ReadAndAnalyzeStage;
@@ -46,6 +47,7 @@ use Phel\Shared\Munge;
  *
  * @internal
  */
+#[ServiceMap(method: 'getConfig', className: ApiConfig::class)]
 final class ApiFactory extends AbstractFactory
 {
     public function createReplCompleter(): ReplCompleterInterface

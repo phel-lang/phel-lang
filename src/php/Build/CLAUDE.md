@@ -18,10 +18,10 @@ Compiles Phel projects to PHP: namespace extraction, dependency ordering, and ca
 
 ## Dependencies
 
-| Facade | Used for |
-|--------|----------|
-| `FACADE_COMPILER` | Phel-to-PHP compilation |
-| `FACADE_COMMAND` | Output/source dirs, error formatting |
+| Provider key | Used for |
+|--------------|----------|
+| `CompilerFacadeInterface::class` | Phel-to-PHP compilation |
+| `CommandFacadeInterface::class` | Output/source dirs, error formatting |
 
 Both are injected as their Shared `*FacadeInterface`. One non-facade edge: **Config** — `BuildConfig` reads `PhelConfig`/`PhelBuildConfig`, and `Domain/Compile/Output/EntryPointPhpFile` reads `PhelBuildConfig`.
 

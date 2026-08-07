@@ -54,7 +54,7 @@ Why the rules take this shape:
 Internal even when a public class returns it:
 
 - `Phel\<Module>\Domain\`, `…\Application\`, `…\Infrastructure\`
-- `*Factory`, `*Config`, `*Provider` (the Gacela plumbing)
+- `*Factory`, `*Config`, `*Provider` and `#[ServiceMap]` accessors (Gacela plumbing)
 - `Phel\<Module>\Transfer\` (cross-module transfers live in `Phel\Shared\Api\`)
 
 Depending on an internal symbol is not forbidden, it is unsupported. Reaching for
@@ -187,8 +187,9 @@ the `phel watch` backends, which fall back to polling.
 `phel-config.php` returns a `Phel\Config\PhelConfig`. Two things are frozen:
 
 - **The wire keys.** `PhelConfig::SRC_DIRS` is the string `'src-dirs'`, and every
-  sibling constant is the literal key Gacela reads. Renaming one silently changes
-  the meaning of an existing config file, so they are covered by rule 6.
+  sibling constant is the literal key the config reader consumes. Renaming one
+  silently changes the meaning of an existing config file, so they are covered
+  by rule 6. The Gacela mechanics that load those keys stay internal.
 - **The builder API.** `with*()` methods only gain siblings; an existing one keeps
   its name, parameter type and "returns a new instance" contract.
 

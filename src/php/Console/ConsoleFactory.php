@@ -6,6 +6,7 @@ namespace Phel\Console;
 
 use Gacela\Framework\AbstractConfig;
 use Gacela\Framework\AbstractFactory;
+use Gacela\Framework\ServiceResolver\ServiceMap;
 use Phel\Console\Application\ArgvInputSanitizer;
 use Phel\Console\Infrastructure\Command\LazyCommandLoader;
 use Phel\Console\Infrastructure\ConsoleBootstrap;
@@ -19,6 +20,7 @@ use Symfony\Component\Console\CommandLoader\CommandLoaderInterface;
  *
  * @internal
  */
+#[ServiceMap(method: 'getConfig', className: AbstractConfig::class)]
 final class ConsoleFactory extends AbstractFactory
 {
     /**

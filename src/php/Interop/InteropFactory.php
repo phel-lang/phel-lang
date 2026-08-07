@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Phel\Interop;
 
 use Gacela\Framework\AbstractFactory;
+use Gacela\Framework\ServiceResolver\ServiceMap;
 use Phel\Interop\Application\ExportCodeGenerator;
 use Phel\Interop\Domain\DirectoryRemover\DirectoryRemover;
 use Phel\Interop\Domain\DirectoryRemover\DirectoryRemoverInterface;
@@ -26,6 +27,7 @@ use Phel\Shared\Facade\CommandFacadeInterface;
  *
  * @internal
  */
+#[ServiceMap(method: 'getConfig', className: InteropConfig::class)]
 final class InteropFactory extends AbstractFactory
 {
     public function createExportCodeGenerator(): ExportCodeGenerator

@@ -33,12 +33,12 @@ Modular architecture expert for the Phel compiler and runtime. Maintains clean m
 | `Filesystem/` | File system abstraction | Shared |
 | `Shared/` | Cross-cutting utilities | None |
 
-**Wiring**: Gacela provides module Facades and dependency providers. Each module exposes a `Facade` as its public API. Internal classes must not cross module boundaries.
+**Wiring**: Gacela provides module Facades and dependency providers. Each module exposes a `Facade` as its public API; `Factory`, `Config`, `Provider`, and service resolver accessors are internal wiring. Providers use Gacela 2.0 `#[Provides(...)]`, keyed by Shared facade contracts when available. Internal classes must not cross module boundaries.
 
 ## Rules
 
 1. **Lang is foundational** — zero dependencies on other modules
-2. **No circular dependencies** — graph must be a DAG
+2. **No new circular dependencies** — four accepted cycles are pinned by ADR/tests; additions need written rationale
 3. **Compiler phases are sequential** — Lexer → Parser → Analyzer → Emitter, never bypass
 4. **Shared stays thin** — genuinely cross-cutting only
 5. **Facades for external access** — consumers use `Api/` or CLI, not internals

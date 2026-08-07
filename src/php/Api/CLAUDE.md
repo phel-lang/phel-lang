@@ -27,13 +27,13 @@ Every transfer the contract names lives in `Phel\Shared\Api`: `ProjectIndex`, `D
 
 ## Dependencies
 
-- Run (namespace resolution, directory listing) — `FACADE_RUN`.
-- Compiler (lex, parse, read, analyze phases) — `FACADE_COMPILER`.
+- Run (namespace resolution, directory listing) — provided as `RunFacadeInterface::class`.
+- Compiler (lex, parse, read, analyze phases) — provided as `CompilerFacadeInterface::class`.
 - `ApiConfig::allNamespaces()` lists the 26 documented Phel namespaces; `ApiConfig::githubRef()` returns `VersionFinder::LATEST_VERSION`.
 
 `Api <-> Run` is the codebase's only mutual Gacela provider pair, and the cycle is a wiring detail rather than a structural one: both sides consume each other through `Phel\Shared\Facade\*Interface`, and the concrete facades appear only in `ApiProvider` / `RunProvider`, because Gacela's locator has to name a class. `ModuleDependencyCycleTest` pins exactly those two files.
 
-`ApiProvider` / `RunProvider` and the peer providers in `Lint`, `Lsp`, `Nrepl` and `Watch` still name the concrete `ApiFacade`, because Gacela's locator resolves by class. That is wiring, not coupling: every factory getter and every collaborator behind it types `ApiFacadeInterface`.
+`ApiProvider` / `RunProvider` and the peer providers in `Lint`, `Lsp`, `Nrepl` and `Watch` still name the concrete `ApiFacade` inside provider method bodies, because Gacela's locator resolves by class. That is wiring, not coupling: every provider key, factory getter, and collaborator behind it types `ApiFacadeInterface`.
 
 ## PHP Interop Tooling (`Application/Php*`)
 
