@@ -93,7 +93,7 @@ GOTCHA: only eager core fns can be lowered to a native loop. `reduce` (3-arity) 
 
 `DefStructEmitter`, `DefInterfaceEmitter`, and `DefEnumEmitter` read per-symbol metadata to enrich generated PHP. They share `PhpAttributeEmitterTrait` (tag + `:php/attr` reading) and the pure `Phel\Shared\PhpAttributeRenderer`. All opt-in; untagged forms are byte-identical to before.
 
-`:tag` value forms: bare symbol/string = verbatim (`?int`/`self`/`\DateTime` pass through); list = union (`a|b`); vector = intersection (`a&b`).
+`:tag` value forms: bare symbol/string = verbatim (`?int`/`self`/`DateTime` pass through); list = union (`a|b`); vector = intersection (`a&b`).
 
 ### defstruct (`DefStructEmitter`)
 

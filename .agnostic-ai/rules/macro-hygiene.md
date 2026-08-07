@@ -37,7 +37,7 @@ Macro body runs expand-time. Only forms inside `` ` `` reach runtime. Splice com
 ## Checklist
 
 - List every `let`-binding name in body
-- Grep each against in-scope globals (own ns, `phel\core`, `use`d modules)
+- Grep each against in-scope globals (own ns, `phel.core`, `use`d modules)
 - Collision → suffix or `name#`
 - New scope-introduced symbol → `name#`
 - Add test exercising recursion / self-reference (where shadow diverges from global)

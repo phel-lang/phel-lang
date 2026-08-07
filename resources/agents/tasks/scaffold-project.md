@@ -28,7 +28,7 @@ Verify:
 
 `phel-config.php` optional; `PhelConfig::forProject()` auto-detects layout.
 
-Namespaces need ≥ 2 segments (`my-app\main`, not `main`).
+Namespaces need ≥ 2 segments (`my-app.main`, not `main`).
 
 ## Shell completion (install skill adapters)
 

@@ -52,7 +52,7 @@ user-invocable: false
 
 (deftest test-descriptive-name
   (is (= expected (function-under-test input)))
-  (is (thrown? \Exception (function-that-throws))))
+  (is (thrown? Exception (function-that-throws))))
 ```
 
 Run: `./bin/phel test` (all) or `./bin/phel test tests/phel/<file>` (specific)

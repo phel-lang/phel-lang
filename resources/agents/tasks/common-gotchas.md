@@ -76,7 +76,7 @@ Same for `recur` args vs binding tags and tail literal vs declared return tag. S
 ```phel
 (defn parse [^"?int" s] ...)              ; quote the type string
 (defn parse [^{:tag "?int"} s] ...)       ; map form
-(defn now   [^"\\DateTimeImmutable"] ...) ; class FQN needs leading \\
+(defn now   [^DateTimeImmutable] ...)        ; root classes need no marker
 ```
 
 `^?int` parses as a symbol named `?int`, not a nullable-int tag.

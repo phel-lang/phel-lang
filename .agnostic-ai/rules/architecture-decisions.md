@@ -14,7 +14,7 @@ Each of these looks like an oversight and was argued once:
 - `php/new` / `php/->` / `php/::` are deprecated as source yet remain the
   compilation target the shorthand expands into (ADR 0007)
 - `\` still parses as a namespace separator alongside `.` (ADR 0008)
-- a static property reads as `\Foo/$prop` and assigns as `(set! \Foo/prop v)`,
+- a static property reads as `Foo/$prop` and assigns as `(set! Foo/prop v)`,
   sigil on one side only (ADR 0013)
 - static analysis stops at `src/`, never `tests/` (ADR 0010)
 - deprecation warnings are off unless `--warn-deprecations` (ADR 0006)

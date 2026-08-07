@@ -52,8 +52,8 @@ tests/php/Integration/  → File system, real compilation
 ## Phel Tests (tests/phel/)
 
 ```phel
-(ns phel-test\core
-  (:require phel\test :refer [deftest is]))
+(ns phel-test.core
+  (:require phel.test :refer [deftest is]))
 
 (deftest test-my-function
   (is (= expected (my-function input))))

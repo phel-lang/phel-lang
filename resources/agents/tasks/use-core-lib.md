@@ -79,7 +79,7 @@ fn? ifn?
 (binding [*debug* true] (log "x"))
 ```
 
-## Strings (`phel\string :as str`)
+## Strings (`phel.string :as str`)
 
 ```phel
 (str/split s #",")    (str/join "-" xs)
@@ -94,34 +94,34 @@ Core: `(str a b c)`, `(name :k)`, `(keyword "x")`, `(symbol "x")`.
 ## IO + serialisation
 
 - `println`, `print`, `(pr-str x)`
-- `phel\json`: `(json/encode m)`, `(json/decode s)`
-- `phel\pprint`: `(pprint x)`
-- `phel\walk`: `(postwalk f m)`, `(prewalk f m)`
-- `phel\base64`: `(encode s)`, `(decode s)`, `(encode-url s)`, `(decode-url s)`
+- `phel.json`: `(json/encode m)`, `(json/decode s)`
+- `phel.pprint`: `(pprint x)`
+- `phel.walk`: `(postwalk f m)`, `(prewalk f m)`
+- `phel.base64`: `(encode s)`, `(decode s)`, `(encode-url s)`, `(decode-url s)`
 - File: `(php/file_get_contents p)`, `(php/file_put_contents p s)`
 
 ## Bundled modules
 
 | Module | Purpose | Task |
 |--------|---------|------|
-| `phel\core` | collections, threading, state, predicates | — |
-| `phel\string` (`:as str`) | string ops | — |
-| `phel\json` | encode / decode | — |
-| `phel\pprint` | pretty-print | — |
-| `phel\walk` | tree traversal | — |
-| `phel\base64` | base64 encode/decode (URL-safe variants) | — |
-| `phel\http` | request/response structs, `request-from-globals`, `emit-response` | [`http-app.md`](http-app.md) |
-| `phel\router` | nested routes, middleware, URL gen, `compiled-router` | [`http-app.md`](http-app.md) |
-| `phel\http-client` | outbound HTTP: `get`, `post`, `put`, `patch`, `delete`, `head` | [`http-app.md`](http-app.md) § Outbound |
-| `phel\cli` | Symfony-console wrapper | [`cli-tool.md`](cli-tool.md) |
-| `phel\html` | HTML templating | — |
-| `phel\test` | `deftest`, `is`, `are`, `testing`, fixtures | [`add-tests.md`](add-tests.md) |
-| `phel\mock` | `with-mocks`, `mock`, `spy`, `called-with?` | [`add-tests.md`](add-tests.md) § Mocking |
-| `phel\async` | `future`, `async`, `await`, `delay` (AMPHP-backed fibers) | [`async.md`](async.md) |
-| `phel\match` | data-shape pattern matching | [`pattern-match.md`](pattern-match.md) |
-| `phel\schema` | validate / coerce / generate | [`validate-with-schema.md`](validate-with-schema.md) |
-| `phel\ai` | LLM client (`complete`, `chat`, `configure`) | — |
-| `phel\repl` | REPL utilities | [`repl-workflow.md`](repl-workflow.md) |
+| `phel.core` | collections, threading, state, predicates | — |
+| `phel.string` (`:as str`) | string ops | — |
+| `phel.json` | encode / decode | — |
+| `phel.pprint` | pretty-print | — |
+| `phel.walk` | tree traversal | — |
+| `phel.base64` | base64 encode/decode (URL-safe variants) | — |
+| `phel.http` | request/response structs, `request-from-globals`, `emit-response` | [`http-app.md`](http-app.md) |
+| `phel.router` | nested routes, middleware, URL gen, `compiled-router` | [`http-app.md`](http-app.md) |
+| `phel.http-client` | outbound HTTP: `get`, `post`, `put`, `patch`, `delete`, `head` | [`http-app.md`](http-app.md) § Outbound |
+| `phel.cli` | Symfony-console wrapper | [`cli-tool.md`](cli-tool.md) |
+| `phel.html` | HTML templating | — |
+| `phel.test` | `deftest`, `is`, `are`, `testing`, fixtures | [`add-tests.md`](add-tests.md) |
+| `phel.mock` | `with-mocks`, `mock`, `spy`, `called-with?` | [`add-tests.md`](add-tests.md) § Mocking |
+| `phel.async` | `future`, `async`, `await`, `delay` (AMPHP-backed fibers) | [`async.md`](async.md) |
+| `phel.match` | data-shape pattern matching | [`pattern-match.md`](pattern-match.md) |
+| `phel.schema` | validate / coerce / generate | [`validate-with-schema.md`](validate-with-schema.md) |
+| `phel.ai` | LLM client (`complete`, `chat`, `configure`) | — |
+| `phel.repl` | REPL utilities | [`repl-workflow.md`](repl-workflow.md) |
 
 ## When to use what
 

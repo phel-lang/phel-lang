@@ -1,6 +1,6 @@
 # Use a PHP library
 
-`composer require <vendor/pkg>`, `(:use Fully\Qualified\Name)`, call via interop.
+`composer require <vendor/pkg>`, `(:use Fully.Qualified.Name)`, call via interop.
 
 ## Syntax
 
@@ -16,7 +16,7 @@
 | Fn (namespaced) | `(php/Amp\trapSignal xs)` |
 | PHP array indexed | `#php [1 2 3]` |
 | PHP array assoc | `#php {"k" "v"}` |
-| Catch | `(catch \SomeException e ...)` |
+| Catch | `(catch SomeException e ...)` |
 
 Full table: <https://phel-lang.org/documentation/php-interop/>.
 
@@ -28,7 +28,7 @@ composer require guzzlehttp/guzzle
 
 ```phel
 (ns my-app.http
-  (:use GuzzleHttp\Client)
+  (:use GuzzleHttp.Client)
   (:require phel.json :as json))
 
 (def client

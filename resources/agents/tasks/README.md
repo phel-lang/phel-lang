@@ -12,14 +12,14 @@ handling) live in [`../RULES.md`](../RULES.md).
 
 | File | Recipe |
 |---|---|
-| [`add-tests.md`](add-tests.md) | `phel\test`: `deftest`, `is`, `are`, `testing`, fixtures. |
-| [`async.md`](async.md) | `phel\async` fibers for I/O concurrency (AMPHP). |
-| [`cli-tool.md`](cli-tool.md) | `phel\cli` — data-driven Symfony Console wrapper. |
+| [`add-tests.md`](add-tests.md) | `phel.test`: `deftest`, `is`, `are`, `testing`, fixtures. |
+| [`async.md`](async.md) | `phel.async` fibers for I/O concurrency (AMPHP). |
+| [`cli-tool.md`](cli-tool.md) | `phel.cli` — data-driven Symfony Console wrapper. |
 | [`common-gotchas.md`](common-gotchas.md) | Pitfalls; read before writing your first app. |
 | [`debug-errors.md`](debug-errors.md) | Reading Phel error output and recovering. |
-| [`http-app.md`](http-app.md) | `phel\http`, `phel\router`, `phel\json`, `phel\http-client`. |
+| [`http-app.md`](http-app.md) | `phel.http`, `phel.router`, `phel.json`, `phel.http-client`. |
 | [`memoize.md`](memoize.md) | Opt-in caching via `defn` metadata. |
-| [`pattern-match.md`](pattern-match.md) | `phel\match/match` for shape-based destructuring. |
+| [`pattern-match.md`](pattern-match.md) | `phel.match/match` for shape-based destructuring. |
 | [`repl-workflow.md`](repl-workflow.md) | Interactive development (`./bin/phel repl`, built-in nREPL). |
 | [`scaffold-project.md`](scaffold-project.md) | New project from scratch. |
 | [`typed-defn.md`](typed-defn.md) | Typed function signatures. |

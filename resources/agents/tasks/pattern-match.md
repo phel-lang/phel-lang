@@ -1,6 +1,6 @@
 # Pattern match
 
-`phel\match/match` destructures by shape. It expands to nested `cond` + `let` at compile time.
+`phel.match/match` destructures by shape. It expands to nested `cond` + `let` at compile time.
 
 ## Syntax
 

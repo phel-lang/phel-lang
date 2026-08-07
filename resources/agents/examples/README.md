@@ -4,8 +4,8 @@ Runnable projects agents can copy into a user workspace.
 
 | Directory | What | Stack |
 |-----------|------|-------|
-| `todo-app/` | HTTP CRUD with in-memory atom store | `phel\router`, `phel\http`, `phel\json` |
-| `http-json-api/` | Three JSON endpoints, no persistence | `phel\router`, `phel\http`, `phel\json` |
+| `todo-app/` | HTTP CRUD with in-memory atom store | `phel.router`, `phel.http`, `phel.json` |
+| `http-json-api/` | Three JSON endpoints, no persistence | `phel.router`, `phel.http`, `phel.json` |
 | `cli-wordcount/` | Counts words from stdin or file args | `phel run`, PHP stdin |
 
 ## Run

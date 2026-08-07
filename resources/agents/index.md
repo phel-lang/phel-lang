@@ -32,6 +32,6 @@ Rules + CLI: [`RULES.md`](RULES.md).
 
 ## Examples
 
-- `examples/todo-app/` — HTTP CRUD on `phel\router`, atom store, tests
+- `examples/todo-app/` — HTTP CRUD on `phel.router`, atom store, tests
 - `examples/http-json-api/` — three JSON endpoints
 - `examples/cli-wordcount/` — stdin + argv, PHP shim binary

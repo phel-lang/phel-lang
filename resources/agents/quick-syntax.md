@@ -53,7 +53,7 @@ One-screen cheatsheet. For exhaustive rules see [`RULES.md`](RULES.md); for typi
 (spit "out.txt" "content")
 
 ;; PHP interop
-(new \DateTime "now")
+(new DateTime "now")
 (.method obj args)
 (.-prop obj)
 (Class/staticMethod)

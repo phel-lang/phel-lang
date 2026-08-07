@@ -1,6 +1,6 @@
 # Add tests
 
-`phel\test`: `deftest`, `is`, `are`, `testing`, fixtures.
+`phel.test`: `deftest`, `is`, `are`, `testing`, fixtures.
 
 ## Layout
 
@@ -10,7 +10,7 @@
 | `--nested` | `src/phel/<name>.phel` | `tests/phel/<name>_test.phel` |
 | `--minimal` | `<name>.phel` | `<name>_test.phel` |
 
-Namespace: `tests\<name>-test`.
+Namespace: `tests.<name>-test`.
 
 ## Example
 
@@ -23,7 +23,7 @@ Namespace: `tests\<name>-test`.
 
 (defn divide [^"int|float" a ^"int|float" b]
   (when (zero? b)
-    (throw (new \InvalidArgumentException "division by zero")))
+    (throw (new InvalidArgumentException "division by zero")))
   (/ a b))
 ```
 
@@ -43,7 +43,7 @@ Namespace: `tests\<name>-test`.
     1 2 3))
 
 (deftest test-divide-rejects-zero
-  (is (thrown-with-msg? \InvalidArgumentException "division by zero"
+  (is (thrown-with-msg? InvalidArgumentException "division by zero"
         (divide 1 0))))
 ```
 
@@ -98,13 +98,13 @@ Full: <https://phel-lang.org/documentation/testing/>.
 
 ## Extend `is`
 
-`phel\test/assert-expr` is an open multimethod. Register a `defmethod` to teach `is` a new form. See <https://phel-lang.org/documentation/language/macros/>.
+`phel.test/assert-expr` is an open multimethod. Register a `defmethod` to teach `is` a new form. See <https://phel-lang.org/documentation/language/macros/>.
 
 ## Gotchas
 
 - File `_test.phel`, namespace `-test`.
 - `:refer [deftest is]` required.
-- `(thrown? body)` catches any `\Throwable`; specify class to target.
+- `(thrown? body)` catches any `Throwable`; specify class to target.
 - No `:reload`. Restart REPL or run `phel test`.
 - Typed fn under test: literal arg mismatch is now a compile error in the test file too. Cast or use a non-literal binding to test runtime paths.
 
