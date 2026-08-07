@@ -26,7 +26,7 @@ stale exactly that way. See [Editing](#editing).
 | [0012](0012-non-hygienic-macros-with-auto-gensym.md) | Non-hygienic macros with auto-gensym | Accepted |
 | [0013](0013-static-property-spelling.md) | A static property is `$prop` to read and a plain name to assign | Accepted |
 | [0014](0014-announce-the-separator-deprecation.md) | The `\` separator deprecation announces by default | Accepted |
-| [0015](0015-a-php-class-is-named-with-dots.md) | A PHP class is named with dots and no leading marker | Proposed |
+| [0015](0015-a-php-class-is-named-with-dots.md) | A PHP class is named with dots and no leading marker | Accepted |
 
 Statuses: **Proposed**, **Accepted**, **Amended by NNNN** (in force, narrowed by a
 later record), **Superseded by NNNN**, **Deprecated** (in force, being unwound).
