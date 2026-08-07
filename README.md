@@ -187,11 +187,11 @@ rm -f ~/.zcompdump*                                  # force compinit to rebuild
 ```clojure
 (ns app)
 
-(def now (new \DateTime))
+(def now (new DateTime))
 (.format now "Y-m-d")
 ;; => "2026-04-20"
 
-(def epoch (new \DateTime "1970-01-01"))
+(def epoch (new DateTime "1970-01-01"))
 (.-days (.diff now epoch))
 ;; => 20564
 ```

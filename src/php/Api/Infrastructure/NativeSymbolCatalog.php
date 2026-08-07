@@ -79,7 +79,7 @@ Handle exceptions thrown in a `try` block by matching on the provided exception 
             'docUrl' => '/documentation/control-flow/#try-catch-and-finally',
             'signatures' => ['(catch exception-type exception-name expr*)'],
             'desc' => 'Handle exceptions thrown in a `try` block by matching on the provided exception type. The caught exception is bound to exception-name while evaluating the expressions.',
-            'example' => '(try (throw (new \Exception "error")) (catch \Exception e (.getMessage e)))',
+            'example' => '(try (throw (new Exception "error")) (catch Exception e (.getMessage e)))',
         ],
         Symbol::NAME_CONJ => [
             'doc' => '```phel
@@ -163,9 +163,9 @@ Evaluate expressions after the try body and all matching catches have completed.
             'docUrl' => '/documentation/control-flow/#try-catch-and-finally',
             'signatures' => ['(finally expr*)'],
             'desc' => 'Evaluate expressions after the try body and all matching catches have completed. The finally block runs regardless of whether an exception was thrown.',
-            'example' => '(defn risky-operation [] (throw (new \Exception "Error!")))' . PHP_EOL
+            'example' => '(defn risky-operation [] (throw (new Exception "Error!")))' . PHP_EOL
                 . '(defn cleanup [] (println "Cleanup!"))' . PHP_EOL
-                . '(try (risky-operation) (catch \Exception e nil) (finally (cleanup)))',
+                . '(try (risky-operation) (catch Exception e nil) (finally (cleanup)))',
         ],
         Symbol::NAME_FN => [
             'doc' => '```phel
@@ -356,11 +356,11 @@ Equivalent to PHP\'s `unset(arr[k1][k2][k...])`.',
 ```
 Evaluates expr and creates a new PHP class using the arguments. The instance of the class is returned.
 
-**Deprecated**: write `(new \DateTime "2024-01-01")` or `(\DateTime. "2024-01-01")`.',
+**Deprecated**: write `(new DateTime "2024-01-01")` or `(DateTime. "2024-01-01")`.',
             'docUrl' => '/documentation/php-interop/#php-class-instantiation',
             'signatures' => ['(php/new expr args*)'],
-            'desc' => 'Deprecated. Creates a PHP object; write `(new \Foo arg)` instead.',
-            'example' => '(new \DateTime "2024-01-01")',
+            'desc' => 'Deprecated. Creates a PHP object; write `(new Foo arg)` instead.',
+            'example' => '(new DateTime "2024-01-01")',
         ],
         Symbol::NAME_PHP_OBJECT_CALL => [
             'doc' => '```phel
@@ -393,11 +393,11 @@ Sets a class/object property. `set!` is the top-level name for the same thing.',
 ```
 Calls a static method or property from a PHP class. Both method-name and property must be symbols and cannot be an evaluated value.
 
-**Deprecated**: write `(\DateTime/createFromFormat "Y-m-d" "2024-01-01")` for a method and `\DateTime/ATOM` for a constant.',
+**Deprecated**: write `(DateTime/createFromFormat "Y-m-d" "2024-01-01")` for a method and `DateTime/ATOM` for a constant.',
             'docUrl' => '/documentation/php-interop/#php-static-method-and-property-call',
             'signatures' => ['(php/:: class (method-name expr*))', '(php/:: class call*)'],
-            'desc' => 'Deprecated. Reaches a static member; write `(\Foo/method arg)` or `\Foo/CONST` instead.',
-            'example' => '(\DateTime/createFromFormat "Y-m-d" "2024-01-01")',
+            'desc' => 'Deprecated. Reaches a static member; write `(Foo/method arg)` or `Foo/CONST` instead.',
+            'example' => '(DateTime/createFromFormat "Y-m-d" "2024-01-01")',
         ],
         Symbol::NAME_PHP_CALLABLE => [
             'doc' => '```phel
@@ -459,7 +459,7 @@ Throw an exception.',
             'docUrl' => '/documentation/control-flow/#try-catch-and-finally',
             'signatures' => ['(throw exception)'],
             'desc' => 'Throw an exception.',
-            'example' => '(throw (new \InvalidArgumentException "Invalid input"))',
+            'example' => '(throw (new InvalidArgumentException "Invalid input"))',
         ],
         Symbol::NAME_TRY => [
             'doc' => '```phel
@@ -469,7 +469,7 @@ All expressions are evaluated and if no exception is thrown the value of the las
             'docUrl' => '/documentation/control-flow/#try-catch-and-finally',
             'signatures' => ['(try expr* catch-clause* finally-clause?)'],
             'desc' => 'All expressions are evaluated and if no exception is thrown the value of the last expression is returned. If an exception occurs and a matching catch-clause is provided, its expression is evaluated and the value is returned. If no matching catch-clause can be found the exception is propagated out of the function. Before returning normally or abnormally the optionally finally-clause is evaluated.',
-            'example' => '(try (/ 1 0) (catch \Exception e "error"))',
+            'example' => '(try (/ 1 0) (catch Exception e "error"))',
         ],
         Symbol::NAME_UNQUOTE => [
             'doc' => '```phel

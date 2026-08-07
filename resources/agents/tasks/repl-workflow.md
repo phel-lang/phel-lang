@@ -9,8 +9,8 @@ Exit: `(exit)` or Ctrl-D. No hot-reload — restart after source edits or run `p
 ## Load + switch ns
 
 ```phel
-(require 'my-app\core)
-(in-ns 'my-app\core)
+(require 'my-app.core)
+(in-ns 'my-app.core)
 ```
 
 ## Inspect
@@ -33,9 +33,9 @@ Shell: `./vendor/bin/phel doc <fn>`.
 ## Run tests
 
 ```phel
-(require 'phel\test :refer [run-tests])
-(require 'tests\math-test)
-(run-tests {} 'tests\math-test)
+(require 'phel.test :refer [run-tests])
+(require 'tests.math-test)
+(run-tests {} 'tests.math-test)
 (tests.math-test/test-add)
 ```
 
@@ -47,12 +47,12 @@ Shell: `./vendor/bin/phel test [path] [--filter=substring] [--testdox] [--fail-f
 
 ```phel
 (def c (atom 0))  (swap! c inc)  @c
-(require 'phel\pprint :refer [pprint])  (pprint x)
+(require 'phel.pprint :refer [pprint])  (pprint x)
 ```
 
 ## Errors
 
-Errors print trace and keep REPL alive. `(try expr (catch \Foo e (.getMessage e)))`.
+Errors print trace and keep REPL alive. `(try expr (catch Foo e (.getMessage e)))`.
 
 ## Gotchas
 

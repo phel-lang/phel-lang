@@ -157,24 +157,24 @@ rather than become permanent
 ### `Class/new` is not a constructor
 
 Clojure 1.12 reads `File/new` in value position as the constructor. Phel does not:
-`\C/new` keeps meaning the class constant `new`.
+`C/new` keeps meaning the class constant `new`.
 
 PHP 7 lifted the ban on reserved words as member names, so `Foo::new()` is both
 legal and a common named-constructor idiom, and one class can carry a constant
 `new` and a static method `new` at once. Claiming the name would silently change
-what existing code reads: `(\League\Uri\Urn/new "urn:isbn:1234")` already calls a
+what existing code reads: `(League.Uri.Urn/new "urn:isbn:1234")` already calls a
 real `::new()` factory, and `league/uri` and `phpbench` both ship one. Java
 forbids the name outright, which is what let Clojure take it safely;
 [Basilisp declined it](https://docs.basilisp.org/en/latest/differencesfromclojure.html#host-interop)
 for the same reason Python does not.
 
-A constructor as a value stays `(fn [x] (new \C x))`. The two safe halves of the
-Clojure 1.12 syntax are supported: `\C/m` is a static method as a value, `\C/.m`
+A constructor as a value stays `(fn [x] (new C x))`. The two safe halves of the
+Clojure 1.12 syntax are supported: `C/m` is a static method as a value, `C/.m`
 an instance method as a function of its receiver
 ([#2883](https://github.com/phel-lang/phel-lang/issues/2883)). Where a class
 carries a constant *and* a static method under one name the constant wins, as it
 did before the value-position forms existed; the shadowed method stays reachable
-as `(\C/m x)`.
+as `(C/m x)`.
 
 The suite does not pin this one, because no working program can observe it: a
 string receiver was an error before and after, and only the message differs. It is
@@ -185,15 +185,15 @@ listed because the *capability* is a difference a Clojure reader will notice.
 Clojure reads a static field and a constant with one spelling, `Classname/field`,
 because the JVM has no separate constant namespace. PHP has two, and a class may
 carry `const slot` and `public static $slot` at once, so Phel keeps the bare name
-on the constant it has always meant and spells the property `\C/$prop`
+on the constant it has always meant and spells the property `C/$prop`
 ([#2907](https://github.com/phel-lang/phel-lang/issues/2907)).
 
 Assignment needs no sigil: a class constant cannot be assigned, so
-`(set! \C/slot v)` and `(php/oset (php/:: \C slot) v)` can only mean the property
+`(set! C/slot v)` and `(php/oset (php/:: C slot) v)` can only mean the property
 and emit `\C::$slot = v`.
 
 The sigil is rejected anywhere it could not mean a static property, `(php/-> o $x)`
-and `(php/:: \C ($x))` among them. PHP would read the `$x` as one of its own
+and `(php/:: C ($x))` among them. PHP would read the `$x` as one of its own
 variables, which no Phel binding defines
 ([#2915](https://github.com/phel-lang/phel-lang/issues/2915)).
 
@@ -230,7 +230,7 @@ mutation its own name. Phel matches that, plus one name it inherited:
 | Operation | Clojure | Phel |
 |---|---|---|
 | assign an object field | `(set! (.-f o) v)` | `(set! (.-f o) v)` |
-| assign a static field | `(set! Foo/staticField v)` | `(set! \Foo/slot v)` |
+| assign a static field | `(set! Foo/staticField v)` | `(set! Foo/slot v)` |
 | assign the current thread-local binding | `(set! *x* v)` | `(set! *x* v)`, or `(var-set #'*x* v)` |
 | change the root | `(alter-var-root #'*x* f)` | `(alter-var-root #'*x* f)` |
 | *(no Clojure counterpart)* | | `(set-var *x* v)`, a special form writing the root directly, **deprecated** |

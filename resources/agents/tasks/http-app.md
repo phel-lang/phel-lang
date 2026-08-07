@@ -1,6 +1,6 @@
 # HTTP app
 
-Bundled modules: `phel\http` (req/res structs), `phel\router` (nested routes, middleware, URL gen), `phel\json`. Outbound HTTP: `phel\http-client`.
+Bundled modules: `phel.http` (req/res structs), `phel.router` (nested routes, middleware, URL gen), `phel.json`. Outbound HTTP: `phel.http-client`.
 
 Runnable: `.agents/examples/todo-app/`.
 

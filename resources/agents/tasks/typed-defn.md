@@ -11,10 +11,10 @@
 ```phel
 (defn ^int      square  [^int x]            (* x x))
 (defn ^float    avg     [^"int|float" a ^"int|float" b] (/ (+ a b) 2))
-(defn ^"?int"   parse   [^string s]          (try (php/intval s) (catch \Throwable _ nil)))
+(defn ^"?int"   parse   [^string s]          (try (php/intval s) (catch Throwable _ nil)))
 (defn ^string   greet   [^string name]       (str "Hello, " name "!"))
 (defn ^bool     valid?  [^string s]          (php/!== "" s))
-(defn ^"\\DateTimeImmutable" now [] (new \DateTimeImmutable))
+(defn ^DateTimeImmutable now [] (new DateTimeImmutable))
 (defn ^{:tag "array"} pairs [m] (to-php-array m))
 ```
 
@@ -24,7 +24,7 @@
 | `^"?int"` | `?int` (nullable) |
 | `^"int\|string"` | union |
 | `^Foo.Bar` | class name, dot separator (preferred) |
-| `^"\\Foo\\Bar"` | same class, backslash form |
+| `^"Foo.Bar"` | same class, explicit string form |
 | `^{:tag "..."}` | map form (any string accepted by PHP) |
 
 ## Defn-name tag propagation
@@ -111,7 +111,7 @@ Per-fn call counts and self/total/avg/max timings, plus compile-phase cost (lex,
 - `:tag` on `def` of a non-fn is ignored (no PHP slot to type).
 - A bound symbol passed to a typed param is checked at runtime (PHP-level), not compile time; only literal mismatches are static.
 - `(php/+ 1 1.0)` infers `float`, not `int`. Promotion follows PHP rules.
-- A class tag takes either separator: `^App.User` or `^"\\App\\User"`. The dot form is rooted for you; a backslash form needs the leading `\\`, or the reader treats it as a relative ns symbol.
+- A class tag uses the markerless dot spelling: `^App.User` (or `^"App.User"` when a string form is needed). Import lower-case-initial vendor namespaces with `(:use ...)` before using their short class name.
 
 ## See also
 

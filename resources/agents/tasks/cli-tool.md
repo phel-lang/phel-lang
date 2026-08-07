@@ -1,6 +1,6 @@
 # CLI tool
 
-Use `phel\cli` — data-driven wrapper over `symfony/console` (bundled, no extra deps). Describe commands as Phel maps; get subcommands, args, options, prompts, tables, progress bars, shell completion, signals, test helpers.
+Use `phel.cli` — data-driven wrapper over `symfony/console` (bundled, no extra deps). Describe commands as Phel maps; get subcommands, args, options, prompts, tables, progress bars, shell completion, signals, test helpers.
 
 Full reference: <https://phel-lang.org/documentation/tooling/cli-commands/>. Module: `src/phel/cli.phel`.
 
@@ -200,7 +200,7 @@ require __DIR__ . '/../vendor/autoload.php';
 
 ## Raw approach (minimal CLI, no Symfony)
 
-For a trivial script without subcommands, drop `phel\cli`:
+For a trivial script without subcommands, drop `phel.cli`:
 
 ```phel
 (ns my-tool.main)

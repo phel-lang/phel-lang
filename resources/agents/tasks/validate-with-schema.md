@@ -1,6 +1,6 @@
 # Validate with schema
 
-`phel\schema` validates, coerces, and generates values against data-driven schemas.
+`phel.schema` validates, coerces, and generates values against data-driven schemas.
 
 ## Define a schema
 

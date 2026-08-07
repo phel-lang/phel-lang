@@ -11,7 +11,7 @@
 ;; section of https://phel-lang.org/documentation/web/framework-integration/.
 
 (def db
-  (let [pdo (new \PDO "sqlite::memory:")]
+  (let [pdo (new PDO "sqlite::memory:")]
     (.exec pdo "CREATE TABLE products (id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT NOT NULL, price REAL NOT NULL)")
     pdo))
 
@@ -25,22 +25,22 @@
 
 (defn find-by-id [id]
   (let [stmt (.prepare db "SELECT id, name, price FROM products WHERE id = ?")]
-    (.execute stmt (php/array id))
-    (let [row (.fetch stmt \PDO/FETCH_ASSOC)]
+    (.execute stmt (php-indexed-array id))
+    (let [row (.fetch stmt PDO/FETCH_ASSOC)]
       (if row (row->product row) nil))))
 
 (defn all-products []
   (let [stmt (.query db "SELECT id, name, price FROM products ORDER BY id")]
-    (map row->product (.fetchAll stmt \PDO/FETCH_ASSOC))))
+    (map row->product (.fetchAll stmt PDO/FETCH_ASSOC))))
 
 (defn create-product! [product]
   (let [stmt (.prepare db "INSERT INTO products (name, price) VALUES (?, ?)")]
-    (.execute stmt (php/array (get product :name) (get product :price)))
+    (.execute stmt (php-indexed-array (get product :name) (get product :price)))
     (find-by-id (.lastInsertId db))))
 
 (defn update-price! [id new-price]
   (let [stmt (.prepare db "UPDATE products SET price = ? WHERE id = ?")]
-    (.execute stmt (php/array new-price id))
+    (.execute stmt (php-indexed-array new-price id))
     (find-by-id id)))
 
 (defn delete-product! [id]

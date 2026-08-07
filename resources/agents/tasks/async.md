@@ -1,6 +1,6 @@
 # Async / fibers
 
-`phel\async` wraps AMPHP fibers. Use for I/O concurrency (HTTP, file, sleep), not CPU work.
+`phel.async` wraps AMPHP fibers. Use for I/O concurrency (HTTP, file, sleep), not CPU work.
 
 ## Basic
 

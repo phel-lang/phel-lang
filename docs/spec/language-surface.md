@@ -114,20 +114,20 @@ major. One rule puts them here:
 
 | Deprecated | Write instead |
 |---|---|
-| `php/new` | `(new \Foo arg)` or `(\Foo. arg)` |
+| `php/new` | `(new Foo arg)` or `(Foo. arg)` |
 | `php/->` | `(.method obj arg)` and `(.-field obj)` |
-| `php/::` | `(\Foo/method arg)` and `\Foo/CONST` |
+| `php/::` | `(Foo/method arg)` and `Foo/CONST` |
 | `set-var` | `(alter-var-root #'v f)`, or `(set! v x)` for the current binding frame |
 
 The one position that had no spelling, an **assignable static property**, is
-`(set! \Foo/slot v)` ([#2907](https://github.com/phel-lang/phel-lang/issues/2907)),
+`(set! Foo/slot v)` ([#2907](https://github.com/phel-lang/phel-lang/issues/2907)),
 which is what Clojure writes for a static field. `set!` tells the two symbol
 shapes apart the way the analyzer does everywhere else: a namespace starting with
 `\` or an upper-case letter is a class reference and assigns the static property,
 anything else is a dynamic var. The primitive underneath stays
-`(php/oset (php/:: \Foo slot) v)`, now emitting `\Foo::$slot = v`: in assignment
+`(php/oset (php/:: Foo slot) v)`, now emitting `\Foo::$slot = v`: in assignment
 position a bare name can only be the property, since a class constant is not
-assignable. Reading it back needs the explicit sigil, `\Foo/$slot`, because in
+assignable. Reading it back needs the explicit sigil, `Foo/$slot`, because in
 read position the bare name is the constant: PHP keeps the two in separate
 namespaces and a class may hold both under one name. Rationale:
 [ADR 0013](../adr/0013-static-property-spelling.md).
@@ -156,19 +156,19 @@ from the table.
 **The shorthand is the only spelling.** The `php/*` forms it expands to are the
 compilation target and are deprecated as source. A method or class name computed
 at expansion time is reached by building the head symbol,
-`(symbol (str "." name))` or `(symbol "\\Foo" name)`, not by falling back to
+`(symbol (str "." name))` or `(symbol "Foo" name)`, not by falling back to
 `php/->`. Full guide: <https://phel-lang.org/documentation/php-interop/>.
 
 | Written | Expands to | Position |
 |---|---|---|
 | `(.m obj args…)` | `(php/-> obj (m args…))` | call |
 | `(.-field obj)` | `(php/-> obj field)` | call |
-| `(\C/m args…)` | `(php/:: \C (m args…))` | call |
-| `(\C. args…)` | `(php/new \C args…)` | call |
-| `\C/CONST` | `(php/:: \C CONST)` | value |
-| `\C/$prop` | `(php/:: \C $prop)` | value |
-| `\C/m` | `(php/callable \C m)` | value |
-| `\C/.m` | `(fn [o & args] (apply (php/callable o m) args))` | value |
+| `(C/m args…)` | `(php/:: C (m args…))` | call |
+| `(C. args…)` | `(php/new C args…)` | call |
+| `C/CONST` | `(php/:: C CONST)` | value |
+| `C/$prop` | `(php/:: C $prop)` | value |
+| `C/m` | `(php/callable C m)` | value |
+| `C/.m` | `(fn [o & args] (apply (php/callable o m) args))` | value |
 
 A root PHP class needs no leading backslash: `PDO/ATTR_ERRMODE` reads the class
 constant, `(.-ATTR_ERRMODE PDO)` is the dot-member equivalent. Namespaced classes
@@ -190,10 +190,10 @@ and definitions still resolve first.
 
 In value position a qualified member is a class constant unless the class has no
 constant of that name and does have a public static method, decided by reflection
-at analysis time. A class with both keeps the constant, so `\C/new` is never a
+at analysis time. A class with both keeps the constant, so `C/new` is never a
 constructor; see [clojure-divergences.md](clojure-divergences.md). A static
 property is the one member the bare name cannot reach: PHP files constants and
-static properties separately, so `\C/$prop` carries the sigil and needs no
+static properties separately, so `C/$prop` carries the sigil and needs no
 reflection.
 
 ## 3. The standard library

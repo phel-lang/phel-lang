@@ -12,7 +12,7 @@
 (defn- read-file [path]
   (let [content (php/file_get_contents path)]
     (if (false? content)
-      (throw (new \RuntimeException (str "cannot read: " path)))
+      (throw (new RuntimeException (str "cannot read: " path)))
       content)))
 
 (defn run [args]

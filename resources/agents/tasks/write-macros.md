@@ -58,7 +58,7 @@ Convention: suffix macro-local bindings with `-arg`, `-flag`, `-val`, `-sym`, `-
 Hygiene checklist:
 
 - List every `let`-binding name in the macro body.
-- Grep each against in-scope globals (own ns, `phel\core`, `:use`d modules).
+- Grep each against in-scope globals (own ns, `phel.core`, `:use`d modules).
 - Collision → suffix.
 - New scope-introduced symbol → `name#`.
 - Add a test exercising recursion / self-reference where shadowing diverges from the global.

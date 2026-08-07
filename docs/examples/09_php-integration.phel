@@ -1,6 +1,6 @@
 ;; PHP interop, written the idiomatic way.
 ;;
-;; `(new \C ...)`, `(.method obj ...)` and `(\C/staticMethod ...)` are the
+;; `(new C ...)`, `(.method obj ...)` and `(C/staticMethod ...)` are the
 ;; spellings to reach for. Each desugars to a `php/*` special form (`php/new`,
 ;; `php/->`, `php/::`) before analysis, so the two are the same program — but the
 ;; `php/*` layer is the compilation target only, and deprecated as source.
@@ -25,9 +25,9 @@
                 interval (new DateInterval (get block :length))
                 finish   (.add cursor interval)
                 entry    {:title (get block :title)
-                       :start (.format cursor "H:i")
-                       :end (.format finish "H:i")
-                       :length (get block :length)}]
+                          :start (.format cursor "H:i")
+                          :end (.format finish "H:i")
+                          :length (get block :length)}]
             {:cursor finish
              :entries (conj (get acc :entries) entry)}))]
     (get result :entries)))
@@ -37,7 +37,7 @@
 
 ;; A static method reads `Class/method`.
 (defn parse-day [text]
-  (\DateTimeImmutable/createFromFormat "Y-m-d H:i" text))
+  (DateTimeImmutable/createFromFormat "Y-m-d H:i" text))
 
 ;; Mixed method and property chains thread with plain `->`.
 (defn day-after [datetime]
@@ -50,10 +50,10 @@
         start    (new DateTimeImmutable "2024-06-01 09:00" timezone)
         plan     (schedule-blocks start workshop-blocks)
         payload  {:timezone (.getName timezone)
-                 :starts (iso start)
-                 :next-day (day-after start)
-                 :reparsed (iso (parse-day "2024-06-01 09:00"))
-                 :sessions plan}]
+                  :starts (iso start)
+                  :next-day (day-after start)
+                  :reparsed (iso (parse-day "2024-06-01 09:00"))
+                  :sessions plan}]
     (println "Workshop agenda (" (get payload :timezone) "):")
     (for [session :in plan]
       (println (php/sprintf "%s-%s %s"

@@ -19,7 +19,7 @@ Phel is a Lisp dialect that compiles to PHP.
 - Collections immutable. Rebind with `def`/`let` or use `atom`.
 - PHP interop prefix `php/`. See `.agents/RULES.md` for full syntax.
 - Top-level side effects: guard with `(when-not *build-mode* ...)`.
-- Hot or public `defn`: add `:tag` (`^int`, `^string`, `^"?int"`, `^"\\Foo\\Bar"`). See `.agents/tasks/typed-defn.md`.
+- Hot or public `defn`: add `:tag` (`^int`, `^string`, `^"?int"`, `^Foo.Bar`). See `.agents/tasks/typed-defn.md`.
 - Opt-in defn metadata: `^:async`, `^:memoize`, `^{:memoize-lru N}`.
 - Namespace separator: prefer `.` (`app.main`); `\` still parses but is deprecated.
 

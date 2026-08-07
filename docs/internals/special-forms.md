@@ -40,7 +40,7 @@ Each handler returns one `AbstractNode`. Every node maps 1:1 to an `*Emitter.php
 | `apply` | `NAME_APPLY` | `ApplySymbol` | `ApplyNode` | Call fn with seq of args. |
 | `foreach` | `NAME_FOREACH` | `ForeachSymbol` | `ForeachNode` | Side-effect iteration; `nil` result. |
 | `try` / `catch` / `finally` | `NAME_TRY` | `TrySymbol` | `TryNode`, `CatchNode` | `catch`/`finally` only inside `try`. |
-| `throw` | `NAME_THROW` | `ThrowSymbol` | `ThrowNode` | Any `\Throwable`. |
+| `throw` | `NAME_THROW` | `ThrowSymbol` | `ThrowNode` | Any `Throwable`. |
 | `set-var` | `NAME_SET_VAR` | `SetVarSymbol` | `SetVarNode` | Rare; prefer `swap!`. |
 
 ## Namespacing

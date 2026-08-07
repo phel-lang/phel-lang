@@ -24,7 +24,7 @@
 (println)
 (println "--- Concurrent fetches ---")
 
-(let [start (php/microtime true)
+(let [start   (php/microtime true)
       results (await-all [(fetch-data "user-profile" 50)
                           (fetch-data "notifications" 80)
                           (fetch-data "feed" 60)])
@@ -39,9 +39,9 @@
 (println "--- Race: first to respond wins ---")
 
 (let [winner (await-any
-               [(fetch-data "server-eu" 70)
-                (fetch-data "server-us" 30)
-                (fetch-data "server-asia" 50)])]
+              [(fetch-data "server-eu" 70)
+               (fetch-data "server-us" 30)
+               (fetch-data "server-asia" 50)])]
   (println "  Winner:" winner))
 
 ;; --- 4. Error handling ---
@@ -50,11 +50,11 @@
 (println "--- Error handling ---")
 
 (let [risky (async
-              (delay 0.01)
-              (throw (new \RuntimeException "network timeout")))]
+             (delay 0.01)
+             (throw (new RuntimeException "network timeout")))]
   (try
     (await risky)
-    (catch \RuntimeException e
+    (catch RuntimeException e
       (println "  Caught:" (.getMessage e)))))
 
 ;; --- 5. Promise handoff (fiber layer) ---
@@ -77,7 +77,7 @@
 
 ;; Works without an enclosing `async` block; no event loop required.
 (let [sum @(future-fiber
-             (apply + (range 1 11)))]
+            (apply + (range 1 11)))]
   (println "  Sum 1..10:" sum))
 
 ;; --- 7. Timeout via 3-arg deref ---
@@ -87,7 +87,7 @@
 
 ;; `deref` with (deref x timeout-ms timeout-val) returns the fallback
 ;; value when the deadline elapses instead of raising.
-(let [p (promise)
+(let [p      (promise)
       result (deref p 20 :timed-out)]
   (println "  Result:" result))
 

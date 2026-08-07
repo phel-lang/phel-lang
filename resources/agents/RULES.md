@@ -13,7 +13,7 @@ Single source for every skill adapter.
 7. Namespaces need ≥ 2 segments. Prefer `.` separator (`app.main`); `\` still parses but is deprecated. File path matches ns under src dir.
 8. Comments: `;` inline, `;;` standalone, `#_` skips the next form.
 9. PHP assoc array: `#php {"k" "v"}` or `(to-php-array m)`. Not `{:k "v"}`.
-10. Catch PHP: `(catch \SomeException e ...)`.
+10. Catch PHP: `(catch SomeException e ...)`.
 11. Annotate hot-path `defn` with `:tag` on params + return for PHP type emission, JIT-friendly call shape, and compile-time mismatch diagnostics. See `tasks/typed-defn.md`.
 
 ## New features (v0.30 – main)
@@ -43,7 +43,7 @@ Use these when appropriate; stable and tested.
 ```phel
 (defn ^int  add  [^int a ^int b] (+ a b))               ; param + return
 (defn ^"?int" maybe-id [^string s] ...)                 ; nullable
-(defn ^"\\DateTimeImmutable" now [] (new \DateTimeImmutable))
+(defn ^DateTimeImmutable now [] (new DateTimeImmutable))
 (defn ^{:tag "array"} pairs [m] ...)                    ; map form
 ```
 
@@ -56,7 +56,7 @@ See [`tasks/common-gotchas.md`](tasks/common-gotchas.md) for details. Quick summ
 - **CLI args**: use `*argv*` (vec of strings after script path), not `php/$argv`.
 - **`transduce` + `max`/`min`**: these don't support 0-arity; pass explicit init: `(transduce xf (fn [a b] (max a b)) 0 coll)`.
 - **`for` vs `doseq`**: `for` builds a sequence (lazy); `doseq` is for side effects. Don't use `for` for `println` loops.
-- **`phel\string`**: was `phel\str` before v0.33.
+- **`phel.string`**: was `phel.str` before v0.33.
 
 ## CLI
 
