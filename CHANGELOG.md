@@ -66,7 +66,7 @@ All notable changes to this project will be documented in this file.
 ### Changed
 
 - Warn for `\` namespace separators without `--warn-deprecations`; other deprecations stay opt-in (#2827)
-- Record the future PHP class spelling after `\`: dotted or bare, with no leading marker (#2876)
+- Accept the future PHP class spelling after `\`: dotted or bare, with no leading marker (#2876)
 - Warn when a `def` shadows a loadable PHP class; `\DateTime` still reaches the class (#2876)
 - Suppress deprecation reports for code under `vendor/` (#2827)
 - BC: require `symfony/console` `^7.3|^8.0`

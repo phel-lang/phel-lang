@@ -175,6 +175,14 @@ constant, `(.-ATTR_ERRMODE PDO)` is the dot-member equivalent. Namespaced classe
 have the dotted form, for example
 `Symfony.Component.Console.Command.Command/SUCCESS`.
 
+A class name is recognized lexically by an upper-case first segment. Import a
+lower-case-initial vendor namespace before using its short name, for example
+`(:use phpDocumentor.Reflection.DocBlock)`. Recasing the prefix is not portable:
+PHP class names are case-insensitive after loading, but Composer may need the
+declared prefix casing to autoload the class first. The destination at the next
+major is this dotted spelling without a leading `\`; see
+[ADR 0015](../adr/0015-a-php-class-is-named-with-dots.md).
+
 At host-symbol fallback an existing PHP class, interface, trait or enum takes
 precedence over the global-constant reading of the same bare name. `php/NAME`
 bypasses the fallback and stays the explicit constant escape hatch. Phel locals
@@ -215,9 +223,10 @@ behaviour listed there is a decision, not a bug.
 - A namespace name maps to a path. `.` is the separator; `\` still parses and is
   deprecated (#2827). It announces without `--warn-deprecations`
   ([ADR 0014](../adr/0014-announce-the-separator-deprecation.md)) and keeps
-  working for every `1.x`. What replaces it, including the fate of the leading
-  `\` on a class name, is
-  [ADR 0015](../adr/0015-a-php-class-is-named-with-dots.md).
+  working for every `1.x`. At the next major, a PHP class uses the dotted
+  upper-case-first spelling above, the leading `\` marker retires, and a `def`
+  that shadows a loadable class becomes an error
+  ([ADR 0015](../adr/0015-a-php-class-is-named-with-dots.md)).
 - `phel.core` is always loaded and must never be `:require`d explicitly.
 - The `.phel/` state directory and the `phel-config.php` keys are frozen; see
   [the configuration surface](../stability.md#configuration-surface) and

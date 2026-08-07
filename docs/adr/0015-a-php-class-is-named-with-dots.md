@@ -1,10 +1,8 @@
 # ADR 0015: A PHP class is named with dots and no leading marker
 
-- **Status**: Proposed. Nothing in `1.x` depends on accepting it, and it should
-  carry @jasalt's review before it does: the Clojure-alignment argument is his
-  ([#2876](https://github.com/phel-lang/phel-lang/issues/2876#issuecomment-5156046021),
-  [#2859](https://github.com/phel-lang/phel-lang/issues/2859#issuecomment-5152721973)),
-  and this record only follows it to its conclusion.
+- **Status**: Accepted. Reviewed by @jasalt, including the lower-case vendor
+  namespace trade-off
+  ([#2876](https://github.com/phel-lang/phel-lang/issues/2876#issuecomment-5159303444)).
 - **Date**: 2026-08-02
 - **Supersedes**: none. Settles the question [ADR 0008](0008-dot-namespace-separator.md) left open.
 
@@ -30,7 +28,9 @@ PHP is close enough for the same shape to work. A vendor namespace is
 conventionally PascalCase (`Symfony\Component\…`, `League\Uri\…`), so an
 upper-case first segment identifies a host class as reliably as lower case
 identifies a package on the JVM. Of the 99 PSR-4 namespaces installed in this
-repository, one begins lower case.
+repository, one begins lower case. PHP class names are case-insensitive once a
+class is loaded, but that does not make recasing a portable source spelling:
+an autoloader may need the declared prefix casing to load the class first.
 
 The push to write Phel's own sources in the dot spelling, and the observation
 that Clojure's refusal is what makes a bare class name safe, both came from
@@ -62,8 +62,11 @@ Symfony.Component.Console.Command.Command/SUCCESS
    No reflection, so meaning never depends on what happened to be loaded.
 3. A namespace whose first segment is lower case (`phpDocumentor\Reflection\…`)
    is reached by importing it, `(:use phpDocumentor.Reflection.DocBlock)`, which
-   is Phel's `:import`. This is the one place PHP's conventions are looser than
-   the JVM's, and an import is the answer Clojure already gives.
+   is Phel's `:import`. An upper-case spelling may resolve after PHP has already
+   loaded the class, because PHP class names are case-insensitive, but it can
+   fail when Composer must autoload the lower-case PSR-4 prefix. It is therefore
+   not part of the language contract. This is the one place PHP's conventions
+   are looser than the JVM's, and an import is the answer Clojure already gives.
 4. **The leading `\` retires with the separator**, at the next major. It is not
    promoted to a permanent marker, and `\Phel.Lang.Symbol` is deliberately never
    made to work: a marker that survives is a second way to say one thing.
