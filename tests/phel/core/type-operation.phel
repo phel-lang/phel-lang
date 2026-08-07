@@ -18,7 +18,7 @@
   (is (= :boolean (type true)) "type of boolean")
   (is (= :boolean (type false)) "type of boolean")
   (is (= :function (type concat)) "type of function")
-  (is (= :php/array (type (php/array))) "type of php array")
+  (is (= :php/array (type (php-indexed-array))) "type of php array")
   (is (= :php/resource (type (php/tmpfile))) "type of php resource")
   (is (= :php/object (type (new DateTime))) "type of php object"))
 
@@ -431,7 +431,7 @@
       "clojure.lang.Symbol auto-aliases to Phel\\Lang\\Symbol"))
 
 (deftest test-php-array?
-  (is (true? (php-array? (php/array))) "php-array? on php array")
+  (is (true? (php-array? (php-indexed-array))) "php-array? on php array")
   (is (false? (php-array? [])) "php-array? on vector"))
 
 (deftest test-php-resource?
@@ -442,11 +442,11 @@
 
 (deftest test-empty?
   (is (true? (empty? [])) "empty? on empty vector")
-  (is (true? (empty? (php/array))) "empty? on empty php array")
+  (is (true? (empty? (php-indexed-array))) "empty? on empty php array")
   (is (true? (empty? {})) "empty? on empty map")
   (is (true? (empty? "")) "empty? on one empty string")
   (is (false? (empty? [1])) "empty? on one element vector")
-  (is (false? (empty? (php/array 1))) "empty? on one element php array")
+  (is (false? (empty? (php-indexed-array 1))) "empty? on one element php array")
   (is (false? (empty? {:a 1})) "empty? on one element map")
   (is (false? (empty? 1)) "empty? on positive number")
   (is (true? (empty? 0)) "empty? on zero")
@@ -460,7 +460,7 @@
   (is (false? (indexed? {})) "indexed? on map")
   (is (false? (indexed? (php-associative-array "a" 1 "b" 2))) "indexed? on associative array")
   (is (true? (indexed? [])) "indexed? on vector")
-  (is (true? (indexed? (php/array))) "indexed? on php array"))
+  (is (true? (indexed? (php-indexed-array))) "indexed? on php array"))
 
 (deftest test-associative?
   (is (true? (associative? {})) "associative? on empty map")
@@ -468,8 +468,8 @@
   (is (true? (associative? (php-associative-array "a" 1 "b" 2))) "associative? on associative php array")
   (is (true? (associative? [])) "associative? on empty vector")
   (is (true? (associative? [1 2 3])) "associative? on non-empty vector")
-  (is (true? (associative? (php/array))) "associative? on empty php array")
-  (is (true? (associative? (php/array "a" "b"))) "associative? on indexed php array")
+  (is (true? (associative? (php-indexed-array))) "associative? on empty php array")
+  (is (true? (associative? (php-indexed-array "a" "b"))) "associative? on indexed php array")
   (is (false? (associative? '())) "associative? on list is false")
   (is (false? (associative? '(1 2 3))) "associative? on non-empty list is false")
   (is (false? (associative? #{1 2})) "associative? on set is false")
@@ -512,8 +512,8 @@
   (is (false? (counted? true)) "counted? on boolean")
   (is (false? (counted? :a)) "counted? on keyword")
   (is (false? (counted? 'a)) "counted? on symbol")
-  (is (false? (counted? (php/array))) "counted? on empty php array")
-  (is (false? (counted? (php/array 1 2 3))) "counted? on non-empty php array"))
+  (is (false? (counted? (php-indexed-array))) "counted? on empty php array")
+  (is (false? (counted? (php-indexed-array 1 2 3))) "counted? on non-empty php array"))
 
 (deftest test-sequential?
   (is (true? (sequential? [])) "sequential? on empty vector")
@@ -553,8 +553,8 @@
   (is (false? (coll? true)) "coll? on boolean")
   (is (false? (coll? :a)) "coll? on keyword")
   (is (false? (coll? 'a)) "coll? on symbol")
-  (is (false? (coll? (php/array))) "coll? on empty php array")
-  (is (false? (coll? (php/array 1 2 3))) "coll? on non-empty php array"))
+  (is (false? (coll? (php-indexed-array))) "coll? on empty php array")
+  (is (false? (coll? (php-indexed-array 1 2 3))) "coll? on non-empty php array"))
 
 (deftest test-seqable?
   (is (true? (seqable? [])) "seqable? on empty vector")
@@ -569,7 +569,7 @@
   (is (true? (seqable? "hello")) "seqable? on string")
   (is (true? (seqable? "")) "seqable? on empty string")
   (is (true? (seqable? nil)) "seqable? on nil")
-  (is (true? (seqable? (php/array 1 2))) "seqable? on php array")
+  (is (true? (seqable? (php-indexed-array 1 2))) "seqable? on php array")
   (is (false? (seqable? 42)) "seqable? on integer")
   (is (false? (seqable? 1.5)) "seqable? on float")
   (is (false? (seqable? true)) "seqable? on boolean")

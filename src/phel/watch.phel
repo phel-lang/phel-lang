@@ -34,7 +34,7 @@
   {:example "(watch! [\"src/\" \"tests/\"])"}
   [paths & [opts]]
   (let [facade  (new WatchFacade)
-        phpOpts (php/array)]
+        phpOpts (php-indexed-array)]
     (when (and opts (get opts :backend))
       (aset phpOpts "backend" (get opts :backend)))
     (when (and opts (get opts :poll))

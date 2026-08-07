@@ -31,19 +31,19 @@
       (php/=== a b))))
 
 (defn- cons-string [x coll]
-  (let [result (php/array x)]
+  (let [result (php-indexed-array x)]
     (foreach [char (php/mb_str_split coll)]
       (php/apush result char))
     (Phel/vector result)))
 
 (defn- cons-map [x coll]
-  (let [result (php/array x)]
+  (let [result (php-indexed-array x)]
     (foreach [k v coll]
       (php/apush result [k v]))
     (Phel/vector result)))
 
 (defn- cons-iterable [x coll]
-  (let [result (php/array x)]
+  (let [result (php-indexed-array x)]
     (foreach [v coll]
       (php/apush result v))
     (Phel/vector result)))

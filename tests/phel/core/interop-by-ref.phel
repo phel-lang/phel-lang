@@ -21,7 +21,7 @@
     (is (= "123" (aget m 1)) "preg_match writes its matches into the local")))
 
 (deftest php-ref-on-a-plain-function-mutating-in-place
-  (let [arr (php/array 3 1 2)]
+  (let [arr (php-indexed-array 3 1 2)]
     (php/sort (php/ref arr))
     (is (and (= 1 (aget arr 0)) (= 2 (aget arr 1)) (= 3 (aget arr 2)))
         "sort reorders the local array in place")))

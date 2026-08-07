@@ -114,7 +114,7 @@
   (is (= [] (drop 4 ["a" "b" "c"])) "drop four elements")
   (is (= ["a" "b" "c"] (doall (drop -1 ["a" "b" "c"]))) "drop with negative number")
   (is (= ["c"] (doall (drop 2 ["a" "b" "c"]))) "drop on vector")
-  (is (= ["c"] (doall (drop 2 (php/array "a" "b" "c")))) "drop on php array (returns lazy seq)"))
+  (is (= ["c"] (doall (drop 2 (php-indexed-array "a" "b" "c")))) "drop on php array (returns lazy seq)"))
 
 (deftest test-drop-last
   (is (= ["a" "b"] (doall (drop-last 1 ["a" "b" "c"]))) "drop-last element")
@@ -124,16 +124,16 @@
   (is (= ["a" "b" "c"] (doall (drop-last 0 ["a" "b" "c"]))) "drop-last zero elements")
   (is (= ["a" "b" "c"] (doall (drop-last -1 ["a" "b" "c"]))) "drop-last with negative number")
   (is (= [] (doall (drop-last 1 []))) "drop-last on empty vector")
-  (is (= ["a" "b"] (doall (drop-last 1 (php/array "a" "b" "c")))) "drop-last on php array")
-  (is (= [] (doall (drop-last 1 (php/array)))) "drop-last on empty php array"))
+  (is (= ["a" "b"] (doall (drop-last 1 (php-indexed-array "a" "b" "c")))) "drop-last on php array")
+  (is (= [] (doall (drop-last 1 (php-indexed-array)))) "drop-last on empty php array"))
 
 (deftest test-drop-last-single-arity
   (is (= ["a" "b"] (doall (drop-last ["a" "b" "c"]))) "drop-last single-arity defaults to 1 on vector")
   (is (= [] (doall (drop-last ["a"]))) "drop-last single-arity on single-element vector")
   (is (= [] (doall (drop-last []))) "drop-last single-arity on empty vector")
   (is (= [1 2 3] (doall (drop-last [1 2 3 4]))) "drop-last single-arity on longer vector")
-  (is (= ["a" "b"] (doall (drop-last (php/array "a" "b" "c")))) "drop-last single-arity on php array")
-  (is (= [] (doall (drop-last (php/array "a")))) "drop-last single-arity on single-element php array"))
+  (is (= ["a" "b"] (doall (drop-last (php-indexed-array "a" "b" "c")))) "drop-last single-arity on php array")
+  (is (= [] (doall (drop-last (php-indexed-array "a")))) "drop-last single-arity on single-element php array"))
 
 (deftest test-drop-last-nil
   (is (= [] (doall (drop-last 5 nil))) "drop-last with n on nil returns empty sequence")
@@ -149,8 +149,8 @@
 (deftest test-last
   (is (= "c" (last ["a" "b" "c"])) "last element")
   (is (nil? (last [])) "last on empty vector")
-  (is (= "c" (last (php/array "a" "b" "c"))) "last on php array")
-  (is (nil? (last (php/array))) "last on empty php array")
+  (is (= "c" (last (php-indexed-array "a" "b" "c"))) "last on php array")
+  (is (nil? (last (php-indexed-array))) "last on empty php array")
   (is (= 3 (last [1 2 3])) "last on numeric vector")
   (is (nil? (last nil)) "last on nil")
   (is (= "c" (last "abc")) "last on string")
@@ -165,7 +165,7 @@
   (is (nil? (butlast '(0))) "butlast single-element list returns nil")
   (is (nil? (butlast (range 1))) "butlast single-element range returns nil")
   (is (nil? (butlast nil)) "butlast on nil returns nil")
-  (is (= ["a" "b"] (doall (butlast (php/array "a" "b" "c")))) "butlast on php array"))
+  (is (= ["a" "b"] (doall (butlast (php-indexed-array "a" "b" "c")))) "butlast on php array"))
 
 (deftest test-drop-while
   (is (= [1 2 3 4 -1 -2 -3] (doall (drop-while neg? [-1 -2 -3 1 2 3 4 -1 -2 -3]))) "drop-while: first three element")
@@ -173,7 +173,7 @@
   (is (= [] (drop-while neg? [])) "drop-while: empty array")
   (is (= [1 2 3 4] (doall (drop-while neg? [1 2 3 4]))) "drop-while: nothing")
   (is (= [1 2 3 4 -1 -2 -3] (doall (drop-while neg? [-1 -2 -3 1 2 3 4 -1 -2 -3]))) "drop-while: vector")
-  (is (= [1 2 3 4 -1 -2 -3] (doall (drop-while neg? (php/array -1 -2 -3 1 2 3 4 -1 -2 -3)))) "drop-while: php array (returns lazy seq)"))
+  (is (= [1 2 3 4 -1 -2 -3] (doall (drop-while neg? (php-indexed-array -1 -2 -3 1 2 3 4 -1 -2 -3)))) "drop-while: php array (returns lazy seq)"))
 
 (deftest test-drop-while-empty-element
   (is (= [] (drop-while #(throw (new Exception)) [])) "`pred` is not executed when searching for empty vectors."))
@@ -186,8 +186,8 @@
   (is (= [] (take -1 ["a" "b" "c"])) "take with negative number")
   (is (= ["a" "b"] (doall (take 2 ["a" "b" "c"]))) "take on vector")
   (is (= [] (take -1 ["a" "b" "c"])) "take on vector")
-  (is (= ["a" "b"] (doall (take 2 (php/array "a" "b" "c")))) "take on php array returns lazy seq")
-  (is (= [] (take -1 (php/array "a" "b" "c"))) "take on php array with negative"))
+  (is (= ["a" "b"] (doall (take 2 (php-indexed-array "a" "b" "c")))) "take on php array returns lazy seq")
+  (is (= [] (take -1 (php-indexed-array "a" "b" "c"))) "take on php array with negative"))
 
 (deftest test-take-generator
   (is (= [0 1 2] (take 3 (naturals))) "take on generator"))
@@ -212,9 +212,9 @@
   (is (= ["b" "c"] (take-last 2 ["a" "b" "c"])) "take-last on vector")
   (is (= [] (take-last 1 [])) "take-last on empty vector")
   (is (= [] (take-last -1 ["a" "b" "c"])) "take-last with negative number on vector")
-  (is (= (php/array "b" "c") (take-last 2 (php/array "a" "b" "c"))) "take-last on php array")
-  (is (= (php/array) (take-last 1 (php/array))) "take-last on empty php array")
-  (is (= [] (take-last -1 (php/array "a" "b" "c"))) "take-last with negative number on php array")
+  (is (= (php-indexed-array "b" "c") (take-last 2 (php-indexed-array "a" "b" "c"))) "take-last on php array")
+  (is (= (php-indexed-array) (take-last 1 (php-indexed-array))) "take-last on empty php array")
+  (is (= [] (take-last -1 (php-indexed-array "a" "b" "c"))) "take-last with negative number on php array")
   (is (= [8 9] (take-last 2 (range 0 10))) "take-last on finite range")
   (is (thrown? InvalidArgumentException (doall (take-last nil (range 0 10))))
       "take-last with nil n compiles and throws at runtime"))
@@ -225,7 +225,7 @@
   (is (= [] (take-while neg? [1 2 3 4])) "take-while: nothing")
   (is (= [] (take-while neg? [])) "take-while: empty array")
   (is (= [-1 -2 -3] (take-while neg? [-1 -2 -3 1 2 3 4 -4 -5 -6])) "take-while on vector")
-  (is (= [-1 -2 -3] (take-while neg? (php/array -1 -2 -3 1 2 3 4 -4 -5 -6))) "take-while on php array"))
+  (is (= [-1 -2 -3] (take-while neg? (php-indexed-array -1 -2 -3 1 2 3 4 -4 -5 -6))) "take-while on php array"))
 
 ;; =============================================================================
 ;; Filtering & Searching
@@ -234,7 +234,7 @@
 (deftest test-filter
   (is (= [-1 -2 -3] (filter neg? [-1 2 3 -2 -3 4 5])) "filter: neg?")
   (is (= [-1 -2 -3] (filter neg? [-1 2 3 -2 -3 4 5])) "filter on vector")
-  (is (= [-1 -2 -3] (filter neg? (php/array -1 2 3 -2 -3 4 5))) "filter on php array"))
+  (is (= [-1 -2 -3] (filter neg? (php-indexed-array -1 2 3 -2 -3 4 5))) "filter on php array"))
 
 (deftest test-filter-empty-element
   (is (= [] (filter #(throw (new Exception)) [])) "`pred` is not executed when searching for empty vectors."))
@@ -293,7 +293,7 @@
 
 (deftest test-distinct
   (is (= [1 2 3] (distinct [1 1 2 3 2 2 3 1])) "distinct: array")
-  (is (= [1 2 3] (distinct (php/array 1 1 2 3 2 2 3 1))) "distinct: php array"))
+  (is (= [1 2 3] (distinct (php-indexed-array 1 1 2 3 2 2 3 1))) "distinct: php array"))
 
 (deftest test-distinct?
   (is (true? (distinct? 1)) "distinct? of a single argument")
@@ -425,8 +425,8 @@
   (is (= [0 3 1 2 2 1] (kvs [3 2 1])) "kvs of vector"))
 
 (deftest test-to-php-array
-  (is (= (php/array 3 2 1) (to-php-array [3 2 1])) "to-php-array")
-  (is (= (php/array "a" "b" "c") (to-php-array "abc")) "to-php-array string characters"))
+  (is (= (php-indexed-array 3 2 1) (to-php-array [3 2 1])) "to-php-array")
+  (is (= (php-indexed-array "a" "b" "c") (to-php-array "abc")) "to-php-array string characters"))
 
 (deftest test-sort
   (is (= [] (sort nil)) "sort nil")
@@ -645,10 +645,10 @@
       (is (= {"a" [1 {"b" 2}]} (php->phel arr)) "phel->php -> php->phel roundtrip"))))
 
 (deftest test-php-phel-roundtrip
-  (let [m     (php/array)
-        inner (php/array)]
+  (let [m     (php-indexed-array)
+        inner (php-indexed-array)]
     (aset inner "b" 2)
-    (aset m "a" (php/array 1 inner))
+    (aset m "a" (php-indexed-array 1 inner))
     (is (= m (phel->php (php->phel m))) "php->phel -> phel->php roundtrip")))
 
 ;; Issue #2298: phel->php must accept non-named map keys (int/string), not only keywords

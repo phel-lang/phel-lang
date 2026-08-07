@@ -19,7 +19,7 @@
     (encode-value k)))
 
 (defn- encode-value-iterable [x]
-  (let [arr (php/array)]
+  (let [arr (php-indexed-array)]
     (foreach [k v x]
       (when-not (valid-key? k)
         (throw (new JsonException "Key can only be an integer, float, symbol, keyword or a string.")))

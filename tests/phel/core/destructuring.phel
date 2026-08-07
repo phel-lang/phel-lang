@@ -3,7 +3,7 @@
 
 (deftest destructure-vector
   (is (= 3 (let [[a b] [1 2]] (+ a b))) "from vector")
-  (is (= 3 (let [[a b] (php/array 1 2)] (+ a b))) "from php array")
+  (is (= 3 (let [[a b] (php-indexed-array 1 2)] (+ a b))) "from php array")
   (is (= 10 (let [[a [c d] b] [1 (list 4 3) 2]] (+ a b c d))) "nested")
   (is (= 4 (let [[a _ b] [1 2 3]] (+ a b))) "ignore value"))
 

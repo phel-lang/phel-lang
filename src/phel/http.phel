@@ -42,7 +42,7 @@
         http-host    (get server "HTTP_HOST")
         server-name  (get server "SERVER_NAME")
         server-port  (php/intval (get server "SERVER_PORT"))
-        matches      (php/array)
+        matches      (php-indexed-array)
         match-result (when-not (nil? http-host) (php/preg_match uri-host-port-regex http-host matches))]
     (cond
       (and (not (nil? http-host)) (one? match-result))
@@ -84,7 +84,7 @@
   {:example "(uri-from-string \"https://example.com/path?foo=bar\") ; => (phel.http.uri \"https\" nil \"example.com\" nil \"/path\" \"foo=bar\" nil)"
    :see-also ["uri-from-globals" "request-from-map"]}
   [url]
-  (let [matches      (php/array)
+  (let [matches      (php-indexed-array)
         [prefix url] (if (one? (php/preg_match "%^(.*://\\[[0-9:a-f]+\\])(.*?)$%" url matches))
                        [(aget matches 1) (aget matches 2)]
                        ["" url])
@@ -217,7 +217,7 @@
 
 (defn- form-content-type? [content-type]
   (php/in_array content-type
-                (php/array "application/x-www-form-urlencoded" "multipart/form-data")))
+                (php-indexed-array "application/x-www-form-urlencoded" "multipart/form-data")))
 
 (defn- decode-json-body
   "Decodes a JSON request body. Returns nil for an empty or malformed body so handlers can distinguish 'no usable body' from a real value."

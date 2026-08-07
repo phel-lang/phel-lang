@@ -38,7 +38,7 @@
   {:example "(re-seq #\"\\d+\" \"a1b2c3\") ; => [\"1\" \"2\" \"3\"]"
    :see-also ["re-find" "re-matches"]}
   [re s]
-  (let [matches (php/array)
+  (let [matches (php-indexed-array)
         _       (php/preg_match_all re s matches) ; fills `matches` by reference
         matches (php->phel matches)]
     (if (= (count matches) 1)
@@ -50,7 +50,7 @@
   {:example "(re-find #\"\\d+\" \"abc123def\") ; => \"123\""
    :see-also ["re-seq" "re-matches"]}
   [re s]
-  (let [matches (php/array)]
+  (let [matches (php-indexed-array)]
     (when (php/=== 1 (php/preg_match re s matches))
       ;; A group-less pattern is the common case, and converting the whole
       ;; match array to read element zero out of it costs more than the match.
@@ -282,8 +282,8 @@ See PHP's [file_put_contents](https://www.php.net/manual/en/function.file-put-co
   [filename]
   (let [result (lazy-seq-from-generator
                 (php/call_user_func_array
-                 (php/array "\\Phel\\Lang\\Seq" "fileLines")
-                 (php/array filename)))]
+                 (php-indexed-array "\\Phel\\Lang\\Seq" "fileLines")
+                 (php-indexed-array filename)))]
     (if (php/=== nil result)
       '()
       result)))
@@ -294,8 +294,8 @@ See PHP's [file_put_contents](https://www.php.net/manual/en/function.file-put-co
   [path]
   (let [result (lazy-seq-from-generator
                 (php/call_user_func_array
-                 (php/array "\\Phel\\Lang\\Seq" "fileSeq")
-                 (php/array path)))]
+                 (php-indexed-array "\\Phel\\Lang\\Seq" "fileSeq")
+                 (php-indexed-array path)))]
     (if (php/=== nil result)
       '()
       result)))
@@ -308,8 +308,8 @@ See PHP's [file_put_contents](https://www.php.net/manual/en/function.file-put-co
   ([filename chunk-size]
    (let [result (lazy-seq-from-generator
                  (php/call_user_func_array
-                  (php/array "\\Phel\\Lang\\Seq" "readFileChunks")
-                  (php/array filename chunk-size)))]
+                  (php-indexed-array "\\Phel\\Lang\\Seq" "readFileChunks")
+                  (php-indexed-array filename chunk-size)))]
      (if (php/=== nil result)
        '()
        result))))
@@ -325,8 +325,8 @@ See PHP's [file_put_contents](https://www.php.net/manual/en/function.file-put-co
          escape    (get options :escape "\\")
          result    (lazy-seq-from-generator
                     (php/call_user_func_array
-                     (php/array "\\Phel\\Lang\\Seq" "csvLines")
-                     (php/array filename separator enclosure escape)))]
+                     (php-indexed-array "\\Phel\\Lang\\Seq" "csvLines")
+                     (php-indexed-array filename separator enclosure escape)))]
      (if (php/=== nil result)
        '()
        result))))

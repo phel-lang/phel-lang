@@ -14,7 +14,7 @@
 (defn- build-headers-array
   "Converts a Phel header map to a PHP associative array."
   [headers]
-  (let [arr (php/array)]
+  (let [arr (php-indexed-array)]
     (foreach [k v headers]
       (aset arr (key->string k) (str v)))
     arr))
@@ -26,7 +26,7 @@
 (defn- build-options-array
   "Converts Phel options to a PHP associative array for the transport."
   [{:timeout timeout, :follow-redirects follow-redirects, :verify-ssl verify-ssl}]
-  (let [arr (php/array)]
+  (let [arr (php-indexed-array)]
     (when timeout (aset arr "timeout" timeout))
     (when-not (nil? follow-redirects) (aset arr "follow_redirects" follow-redirects))
     (when-not (nil? verify-ssl) (aset arr "verify_ssl" verify-ssl))
@@ -37,7 +37,7 @@
   [url params]
   (if (or (nil? params) (empty? params))
     url
-    (let [php-params (php/array)]
+    (let [php-params (php-indexed-array)]
       (foreach [k v params]
         (aset php-params (key->string k) (str v)))
       (let [query-string (php/http_build_query php-params)

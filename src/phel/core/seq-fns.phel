@@ -85,8 +85,8 @@
                   (new Hasher)
                   (new Equalizer)
                   (php/call_user_func_array
-                   (php/array "\\Phel\\Lang\\Seq" "mapMulti")
-                   (php/array_merge (php/array f) (apply php/array colls))))]
+                   (php-indexed-array "\\Phel\\Lang\\Seq" "mapMulti")
+                   (php/array_merge (php-indexed-array f) (apply php/array colls))))]
       (copy-meta (first colls) result))))
 
 (defn comp
@@ -480,7 +480,7 @@ Creates intermediate maps if they don't exist."
 
 (defn- take-last-buffered
   [n coll]
-  (let [buffer (php/array)]
+  (let [buffer (php-indexed-array)]
     (dofor [x :in coll]
       (php/apush buffer x)
       (when (php/> (php/count buffer) n)
@@ -872,25 +872,25 @@ Works with vectors, lists, sets, and strings."
   [x]
   (cond
     (php-array? x)
-    (let [arr (php/array)]
+    (let [arr (php-indexed-array)]
       (foreach [k v x]
         (aset arr k (phel->php v)))
       arr)
 
     (indexed? x)
-    (let [arr (php/array)]
+    (let [arr (php-indexed-array)]
       (foreach [v x]
         (php/apush arr (phel->php v)))
       arr)
 
     (associative? x)
-    (let [arr (php/array)]
+    (let [arr (php-indexed-array)]
       (foreach [k v x]
         (aset arr (phel->php-key k) (phel->php v)))
       arr)
 
     (set? x)
-    (let [arr (php/array)]
+    (let [arr (php-indexed-array)]
       (foreach [v x]
         (php/apush arr (phel->php v)))
       arr)
@@ -1081,7 +1081,7 @@ With one argument returns an infinite lazy sequence of calls to f."
 
 (defn iterator-seq
   "Returns a lazy sequence over a PHP `Traversable` (Iterator, Generator, IteratorAggregate, ...), pulling one element at a time. Unlike the eager coercion that materialises a `Traversable` via `iterator_to_array`, this streams a large or infinite source (DB cursor, stream reader, paginated API), so `take`/`map`/`filter` only pull what they consume."
-  {:example "(take 3 (iterator-seq (new \\ArrayIterator (php/array 1 2 3 4 5)))) ; => @[1 2 3]"
+  {:example "(take 3 (iterator-seq (new \\ArrayIterator (php-indexed-array 1 2 3 4 5)))) ; => @[1 2 3]"
    :see-also ["lazy-seq" "map" "take"]}
   [traversable]
   (LazySeq/fromTraversable (new Hasher) (new Equalizer) traversable))
@@ -1107,7 +1107,7 @@ With one argument returns an infinite lazy sequence of calls to f."
      (new Hasher)
      (new Equalizer)
      (php/call_user_func_array
-      (php/array "\\Phel\\Lang\\Seq" "concat")
+      (php-indexed-array "\\Phel\\Lang\\Seq" "concat")
       (apply php/array colls)))))
 
 (defn cat
@@ -1194,10 +1194,10 @@ Applies `f` to each element in `xs`. `f` is a two-argument function where the fi
     (php/=== nil colls) '()
     (some nil? colls)   '()
     :else
-    (let [seqs   (apply php/array (map (fn [c] (or (seq c) (php/array))) colls))
+    (let [seqs   (apply php/array (map (fn [c] (or (seq c) (php-indexed-array))) colls))
           result (lazy-seq-from-generator
                   (php/call_user_func_array
-                   (php/array "\\Phel\\Lang\\Seq" "interleave")
+                   (php-indexed-array "\\Phel\\Lang\\Seq" "interleave")
                    seqs))]
       (if (php/=== nil result)
         '()
@@ -1406,8 +1406,8 @@ If map has duplicated values, some keys will be ignored."
     (and (indexed? coll) (= 0 (count coll))) []
     true                                     (lazy-seq-from-generator
                                               (php/call_user_func_array
-                                               (php/array "\\Phel\\Lang\\Seq" "compact")
-                                               (php/array_merge (php/array coll) (apply php/array values))))))
+                                               (php-indexed-array "\\Phel\\Lang\\Seq" "compact")
+                                               (php/array_merge (php-indexed-array coll) (apply php/array values))))))
 
 (defn partition
   "Partitions `coll` into chunks of `n` elements.
@@ -1418,8 +1418,8 @@ If map has duplicated values, some keys will be ignored."
   ([n coll]
    (let [result (lazy-seq-from-generator
                  (php/call_user_func_array
-                  (php/array "\\Phel\\Lang\\Seq" "partition")
-                  (php/array n coll)))]
+                  (php-indexed-array "\\Phel\\Lang\\Seq" "partition")
+                  (php-indexed-array n coll)))]
      (if (php/=== nil result)
        '()
        (copy-meta coll result))))
@@ -1446,8 +1446,8 @@ If map has duplicated values, some keys will be ignored."
   ([n coll]
    (let [result (lazy-seq-from-generator
                  (php/call_user_func_array
-                  (php/array "\\Phel\\Lang\\Seq" "partitionAll")
-                  (php/array n coll)))]
+                  (php-indexed-array "\\Phel\\Lang\\Seq" "partitionAll")
+                  (php-indexed-array n coll)))]
      (if (php/=== nil result)
        '()
        (copy-meta coll result))))
