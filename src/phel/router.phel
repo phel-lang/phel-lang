@@ -143,7 +143,7 @@
 (defn- build-route-collection [normalized-routes]
   (for [route :in normalized-routes
         :let [[path data] route
-              symfony-route (new Route path (php/array) (php/array) (php-associative-array "data" data "template" path))]
+              symfony-route (new Route path (php-indexed-array) (php-indexed-array) (php-associative-array "data" data "template" path))]
         :reduce [coll (new RouteCollection)]]
     (.add coll (route-name-of route) symfony-route)
     coll))
@@ -151,7 +151,7 @@
 (defn- params->php-array
   "Converts a Phel map of parameters into a PHP associative array keyed by name."
   [parameters]
-  (let [arr (php/array)]
+  (let [arr (php-indexed-array)]
     (dofor [[k v] :pairs parameters]
       (aset arr (name k) v))
     arr))

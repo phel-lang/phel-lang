@@ -29,6 +29,7 @@ Every public function should have metadata:
 - Follow Clojure-aligned semantics where possible
 - Prefer `conj` over `put` for collection operations
 - Use `defstruct` for data types, not PHP classes
+- Prefer `php-indexed-array` / `php-associative-array` over direct `php/array` construction. Raw construction is reserved for core bootstrap code that loads before `core/arrays`, the constructor implementations themselves, and measured higher-order paths where applying the wrapper would add runtime cost.
 
 ## Macros
 

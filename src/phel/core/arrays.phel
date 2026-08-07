@@ -14,10 +14,12 @@
 ;;      typed builders just coerce element type.
 ;; Persistent collection constructors (`hash-set`, `sorted-map`, …) live
 ;; in core.phel because they are required earlier in the bootstrap.
+;; Raw `php/array` calls in this file implement the public constructors.
 
 (defn php-indexed-array
   "Creates a PHP indexed array from the given values."
-  {:example "(php-indexed-array 1 2 3) ; => <PHP-Array [1, 2, 3]>"}
+  {:inline (fn [& xs] `(php/array ~@xs))
+   :example "(php-indexed-array 1 2 3) ; => <PHP-Array [1, 2, 3]>"}
   [& xs]
   (apply php/array xs))
 
@@ -26,7 +28,22 @@
 
   Arguments:
     Key-value pairs (must be even number of arguments)"
-  {:example "(php-associative-array \"name\" \"Alice\" \"age\" 30) ; => <PHP-Array [\"name\":\"Alice\", \"age\":30]>"}
+  {:inline
+   (fn [& xs]
+     (let [result-sym (gensym)
+           cnt        (.count xs)]
+       (loop [i                0
+              assignment-forms []]
+         (if (php/< i cnt)
+           (recur
+            (php/+ i 2)
+            (conj assignment-forms
+                  `(php/aset ~result-sym ~(.get xs i) ~(.get xs (php/+ i 1)))))
+           `(let [~result-sym (php/array)]
+              ~@assignment-forms
+              ~result-sym)))))
+   :inline-arity (fn [n] (php/=== 0 (php/% n 2)))
+   :example "(php-associative-array \"name\" \"Alice\" \"age\" 30) ; => <PHP-Array [\"name\":\"Alice\", \"age\":30]>"}
   [& xs]
   (let [cnt (php/count xs)
         res (php/array)]
@@ -188,7 +205,7 @@
 
 (defn aget
   "Returns the value at `index` in a PHP array. With multiple indices, accesses nested arrays: `(aget arr i j)` is `(aget (aget arr i) j)`. Matches Clojure's `aget` for `.cljc` interop."
-  {:example "(aget (php/array 10 20 30) 1) ; => 20"
+  {:example "(aget (php-indexed-array 10 20 30) 1) ; => 20"
    :see-also ["aset" "aclone" "object-array"]}
   ;; The single-index arity is spelled out so the common read does not pay for
   ;; collecting rest arguments; it is the shape every hot path uses.
@@ -207,7 +224,7 @@
    Matches Clojure's `aset` for `.cljc` interop.
    This is a macro because PHP arrays are value types; a function
    wrapper would mutate a copy rather than the original."
-  {:example "(let [a (php/array 1 2 3)] (aset a 0 42) (aget a 0)) ; => 42"
+  {:example "(let [a (php-indexed-array 1 2 3)] (aset a 0 42) (aget a 0)) ; => 42"
    :see-also ["aget" "aclone" "object-array"]}
   [arr idx & more]
   (let [n       (.count more)

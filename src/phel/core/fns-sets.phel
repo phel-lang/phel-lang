@@ -309,7 +309,7 @@ Without arguments, uses a default cache size of 128 entries."
    :see-also ["flatten"]}
   [branch? children root]
   (let [ret (transient [])]
-    (loop [stack (php/array root)]
+    (loop [stack (php-indexed-array root)]
       (if (> (count stack) 0)
         (let [node (pop stack)]
           (.append ret node)

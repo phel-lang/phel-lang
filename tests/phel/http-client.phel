@@ -6,9 +6,9 @@
 ;; --- Response parser integration (via PHP static call) ---
 
 (deftest test-response-parser-basic
-  (let [parsed (Phel.HttpClient.ResponseParser/parse (php/array "HTTP/1.1 200 OK"
-                                                                "Content-Type: application/json"
-                                                                "X-Request-Id: abc-123"))]
+  (let [parsed (Phel.HttpClient.ResponseParser/parse (php-indexed-array "HTTP/1.1 200 OK"
+                                                                        "Content-Type: application/json"
+                                                                        "X-Request-Id: abc-123"))]
     (is (= 200 (aget parsed "status")) "parses status code")
     (is (= "1.1" (aget parsed "version")) "parses HTTP version")
     (is (= "OK" (aget parsed "reason")) "parses reason phrase")
@@ -17,27 +17,27 @@
       (is (= "abc-123" (aget headers "x-request-id")) "parses custom header"))))
 
 (deftest test-response-parser-empty-headers
-  (let [parsed (Phel.HttpClient.ResponseParser/parse (php/array))]
+  (let [parsed (Phel.HttpClient.ResponseParser/parse (php-indexed-array))]
     (is (= 200 (aget parsed "status")) "defaults to 200 when no status line")
     (is (= "1.1" (aget parsed "version")) "defaults to HTTP/1.1")))
 
 (deftest test-response-parser-404
-  (let [parsed (Phel.HttpClient.ResponseParser/parse (php/array "HTTP/1.1 404 Not Found"))]
+  (let [parsed (Phel.HttpClient.ResponseParser/parse (php-indexed-array "HTTP/1.1 404 Not Found"))]
     (is (= 404 (aget parsed "status")) "parses 404 status")
     (is (= "Not Found" (aget parsed "reason")) "parses reason phrase")))
 
 (deftest test-response-parser-redirect-chain
-  (let [parsed (Phel.HttpClient.ResponseParser/parse (php/array "HTTP/1.1 301 Moved"
-                                                                "Location: /new"
-                                                                "HTTP/1.1 200 OK"
-                                                                "Content-Type: text/html"))]
+  (let [parsed (Phel.HttpClient.ResponseParser/parse (php-indexed-array "HTTP/1.1 301 Moved"
+                                                                        "Location: /new"
+                                                                        "HTTP/1.1 200 OK"
+                                                                        "Content-Type: text/html"))]
     (is (= 200 (aget parsed "status")) "uses final status after redirect")
     (is (= "text/html" (aget (aget parsed "headers") "content-type"))
         "parses headers from final response")))
 
 (deftest test-response-parser-colon-in-value
-  (let [parsed (Phel.HttpClient.ResponseParser/parse (php/array "HTTP/1.1 200 OK"
-                                                                "Location: https://example.com:8080/path"))]
+  (let [parsed (Phel.HttpClient.ResponseParser/parse (php-indexed-array "HTTP/1.1 200 OK"
+                                                                        "Location: https://example.com:8080/path"))]
     (is (= "https://example.com:8080/path"
            (aget (aget parsed "headers") "location"))
         "preserves colons in header values")))

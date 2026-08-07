@@ -111,6 +111,7 @@ Throws `InvalidArgumentException` for any other input (including functions, numb
       ""
       (if (php/=== cnt 1)
         (val-to-str (aget args 0))
+        ;; Bootstrap: `php-indexed-array` is defined after `str`.
         (let [parts (php/array)]
           (loop [i 0]
             (if (php/< i cnt)

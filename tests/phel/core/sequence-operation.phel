@@ -17,8 +17,8 @@
 (deftest test-peek
   (is (= 3 (peek [1 2 3])) "peek on a vector returns the last element")
   (is (nil? (peek [])) "peek on empty vector")
-  (is (= 3 (peek (php/array 1 2 3))) "peek on php array returns the last element")
-  (is (nil? (peek (php/array))) "peek on empty php array")
+  (is (= 3 (peek (php-indexed-array 1 2 3))) "peek on php array returns the last element")
+  (is (nil? (peek (php-indexed-array))) "peek on empty php array")
   (is (nil? (peek nil)) "peek on nil")
   (is (= :a (peek '(:a :b :c))) "peek on a list returns the first element")
   (is (nil? (peek '())) "peek on an empty list")
@@ -27,47 +27,47 @@
   (is (= 2 (peek (map #(* % 2) [1 2 3]))) "peek on lazy seq from map returns the head")
   (is (nil? (peek (filter false? [1 2 3]))) "peek on empty lazy seq"))
 
-(def- testing-set-global-array (php/array 1 2 3))
+(def- testing-set-global-array (php-indexed-array 1 2 3))
 
 (deftest test-native-global-array-set
   (aset testing-set-global-array 0 4)
-  (is (= (php/array 4 2 3) testing-set-global-array) "native global set on PHP array"))
+  (is (= (php-indexed-array 4 2 3) testing-set-global-array) "native global set on PHP array"))
 
-(def- testing-unset-global-array (php/array 1 2 3))
+(def- testing-unset-global-array (php-indexed-array 1 2 3))
 
 (deftest test-native-global-array-unset
   (php/aunset testing-unset-global-array 2)
-  (is (= (php/array 1 2) testing-unset-global-array) "native global unset on PHP array"))
+  (is (= (php-indexed-array 1 2) testing-unset-global-array) "native global unset on PHP array"))
 
-(def- testing-push-global-array (php/array 1 2 3))
+(def- testing-push-global-array (php-indexed-array 1 2 3))
 
 (deftest test-native-global-array-push
   (php/apush testing-push-global-array 4)
-  (is (= (php/array 1 2 3 4) testing-push-global-array) "native global push on PHP array"))
+  (is (= (php-indexed-array 1 2 3 4) testing-push-global-array) "native global push on PHP array"))
 
 (deftest test-native-array-aget-in
-  (let [arr (php/array (php/array 1 2 3))]
+  (let [arr (php-indexed-array (php-indexed-array 1 2 3))]
     (is (= 2 (php/aget-in arr [0 1])) "nested php array get")))
 
 (deftest test-native-array-aset-in
-  (let [arr (php/array (php/array 1 2 3))]
+  (let [arr (php-indexed-array (php-indexed-array 1 2 3))]
     (php/aset-in arr [0 1] 4)
-    (is (= (php/array (php/array 1 4 3)) arr) "nested php array set")))
+    (is (= (php-indexed-array (php-indexed-array 1 4 3)) arr) "nested php array set")))
 
 (deftest test-native-array-aunset-in
-  (let [arr (php/array (php/array 1 2 3))]
+  (let [arr (php-indexed-array (php-indexed-array 1 2 3))]
     (php/aunset-in arr [0 2])
-    (is (= (php/array (php/array 1 2)) arr) "nested php array unset")))
+    (is (= (php-indexed-array (php-indexed-array 1 2)) arr) "nested php array unset")))
 
 (deftest test-native-array-apush-in
-  (let [arr (php/array (php/array 1 2))]
+  (let [arr (php-indexed-array (php-indexed-array 1 2))]
     (php/apush-in arr [0] 3)
-    (is (= (php/array (php/array 1 2 3)) arr) "nested php array push")))
+    (is (= (php-indexed-array (php-indexed-array 1 2 3)) arr) "nested php array push")))
 
 (deftest test-native-apush
-  (let [x (php/array)]
+  (let [x (php-indexed-array)]
     (php/apush x 1)
-    (is (= (php/array 1) x) "native push on PHP array")))
+    (is (= (php-indexed-array 1) x) "native push on PHP array")))
 
 (deftest test-conj
   (is (= [] (conj)) "conj without arguments returns an empty vector")
@@ -88,8 +88,8 @@
   (is (= (list 1) (conj nil 1)) "conj on nil with a value returns a single-item list"))
 
 (deftest test-conj-php-arrays
-  (is (= (php/array 1 2 3) (conj (php/array 1 2) 3)) "conj on PHP array appends element")
-  (is (= (php/array 1 2 3 4) (conj (php/array 1 2) 3 4)) "conj on PHP array with multiple values"))
+  (is (= (php-indexed-array 1 2 3) (conj (php-indexed-array 1 2) 3)) "conj on PHP array appends element")
+  (is (= (php-indexed-array 1 2 3 4) (conj (php-indexed-array 1 2) 3 4)) "conj on PHP array with multiple values"))
 
 (deftest test-conj-transients
   (is (= [1 2 3] (persistent (conj (transient [1 2]) 3))) "conj on transient vector appends")
@@ -218,9 +218,9 @@
   (is (thrown? InvalidArgumentException (pop! nil)) "pop! on nil throws"))
 
 (deftest test-pop
-  (let [x (php/array 1 2)
+  (let [x (php-indexed-array 1 2)
         y (pop x)]
-    (is (= (php/array 1) x) "pop on PHP array: last element is removed")
+    (is (= (php-indexed-array 1) x) "pop on PHP array: last element is removed")
     (is (= 2 y) "pop on PHP array: last element is returned"))
 
   (is (nil? (pop nil)) "pop on nil returns nil")
@@ -275,7 +275,7 @@
     (is (= [1 2 3 4 5] v) "original vector is unchanged")))
 
 (deftest test-get
-  (is (= "b" (get (php/array "a" "b" "c") 1)) "get on php array")
+  (is (= "b" (get (php-indexed-array "a" "b" "c") 1)) "get on php array")
   (is (= "b" (get ["a" "b" "c"] 1)) "get on vector")
   (is (= "a" (get {:a "a" :b "b"} :a)) "get on map")
   (is (= 1 (get #{1 2 3} 1)) "get on set")

@@ -78,6 +78,7 @@
   {:private true
    :doc "Returns all entries after the first persistent map entry as `MapEntry` instances, or nil."}
   (fn [m]
+    ;; Bootstrap: `php-indexed-array` is defined later in `core/arrays`.
     (let [entries (php/array)]
       (foreach [k v m]
         (php/apush entries (MapEntry/create k v)))

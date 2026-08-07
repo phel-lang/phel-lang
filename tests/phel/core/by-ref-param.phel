@@ -5,7 +5,7 @@
   (php/array_push parts msg))
 
 (deftest test-by-ref-param-propagates-mutation
-  (let [parts (php/array)]
+  (let [parts (php-indexed-array)]
     (paint-overlay! parts "hello")
     (paint-overlay! parts "world")
     (is (= 2 (php/count parts)) "mutations via &$arg propagate to caller")
@@ -16,7 +16,7 @@
   (aset counter "n" 0))
 
 (deftest test-by-ref-param-on-assoc-array
-  (let [counter (php/array)]
+  (let [counter (php-indexed-array)]
     (aset counter "n" 5)
     (reset-counter! counter)
     (is (= 0 (aget counter "n")) "aset under ^:by-ref mutates caller")))

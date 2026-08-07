@@ -350,41 +350,41 @@
       "int-array raises on negative size"))
 
 (deftest test-aget
-  (let [a (php/array 10 20 30)]
+  (let [a (php-indexed-array 10 20 30)]
     (is (= 10 (aget a 0)) "aget first element")
     (is (= 20 (aget a 1)) "aget second element")
     (is (= 30 (aget a 2)) "aget third element")))
 
 (deftest test-aget-nested
-  (let [outer (php/array (php/array 1 2) (php/array 3 4))]
+  (let [outer (php-indexed-array (php-indexed-array 1 2) (php-indexed-array 3 4))]
     (is (= 2 (aget outer 0 1)) "aget nested with two indices")
     (is (= 3 (aget outer 1 0)) "aget nested second array")))
 
 (deftest test-aset-returns-value
-  (let [a (php/array 1 2 3)]
+  (let [a (php-indexed-array 1 2 3)]
     (is (= 42 (aset a 0 42)) "aset returns the value")))
 
 (deftest test-aset-mutates-array
-  (let [a (php/array 1 2 3)]
+  (let [a (php-indexed-array 1 2 3)]
     (aset a 0 42)
     (is (= 42 (aget a 0)) "aset mutated the array")))
 
 (deftest test-aset-nested
-  (let [inner (php/array 10 20)
-        outer (php/array inner)]
+  (let [inner (php-indexed-array 10 20)
+        outer (php-indexed-array inner)]
     (aset outer 0 1 99)
     (is (= 99 (aget (aget outer 0) 1)) "aset nested modified inner array")))
 
 (deftest test-aset-evaluates-value-once
   (let [calls (atom 0)
-        a     (php/array 1 2 3)]
+        a     (php-indexed-array 1 2 3)]
     (aset a 0 (do (swap! calls inc) 42))
     (is (= 1 @calls) "aset evaluates its value expression once")
     (is (= 42 (aget a 0)) "aset stored the evaluated value")))
 
 (deftest test-aset-nested-evaluates-value-once
   (let [calls (atom 0)
-        outer (php/array (php/array 10 20))]
+        outer (php-indexed-array (php-indexed-array 10 20))]
     (aset outer 0 1 (do (swap! calls inc) 99))
     (is (= 1 @calls) "nested aset evaluates its value expression once")
     (is (= 99 (aget outer 0 1)) "nested aset stored the evaluated value")))

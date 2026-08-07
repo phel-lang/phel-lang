@@ -64,6 +64,7 @@
                                 (php/. "(" name ")")))
                        ;; Multi-arity: generate signature for each arity
                             (let [arities fdecl
+                                  ;; Bootstrap: `php-indexed-array` is defined after `defn`.
                                   sigs    (php/array)]
                               (foreach [arity arities]
                                 (if (php/instanceof arity PersistentListInterface)

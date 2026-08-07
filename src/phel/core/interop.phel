@@ -65,7 +65,7 @@
   {:example "(php-invoke (new \\DateTimeImmutable \"2024-03-10\") \"format\" \"Y\") ; => \"2024\"\n(let [m \"format\"] (php-invoke (new \\DateTimeImmutable \"2024-03-10\") m \"Y\")) ; => \"2024\""
    :see-also ["php/callable" "apply"]}
   [target method & args]
-  (let [callable (php/array target method)]
+  (let [callable (php-indexed-array target method)]
     (if (php/is_callable callable)
       (php/call_user_func_array callable (to-php-array args))
       (throw (new InvalidArgumentException

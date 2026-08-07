@@ -54,7 +54,7 @@
 
 (defn- eval-namespace [namespace]
   (let [canonical    (canonical-ns namespace)
-        dependencies (.getDependenciesForNamespace build-facade (get-src-dirs) (php/array canonical))
+        dependencies (.getDependenciesForNamespace build-facade (get-src-dirs) (php-indexed-array canonical))
         found        (php/> (php/count dependencies) 0)]
     (when-not found
       (throw (new RuntimeException
@@ -64,7 +64,7 @@
         (eval-file (.getFile dep))))))
 
 (defn- clean-doc [str]
-  (php/trim (php/str_replace (php/array "```phel\n" "```") "" str)))
+  (php/trim (php/str_replace (php-indexed-array "```phel\n" "```") "" str)))
 
 (defn- find-doc [namespace name]
   (let [meta (Phel/getDefinitionMetaData namespace name)]
@@ -558,7 +558,7 @@ Returns nil. Prints one name per line, sorted alphabetically."
   (let [project  (filter reloadable? (loaded-namespaces))
         ns-array (apply php/array (map canonical-ns project))]
     (if (php/empty ns-array)
-      (php/array)
+      (php-indexed-array)
       (filter (fn [info] (reloadable? (.getNamespace info)))
               (.getDependenciesForNamespace build-facade (get-src-dirs) ns-array)))))
 

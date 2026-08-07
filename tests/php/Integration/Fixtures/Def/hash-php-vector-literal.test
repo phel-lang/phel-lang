@@ -4,6 +4,6 @@
 \Phel::addDefinition(
   "user",
   "arr",
-  (\Phel::getDefinition("phel.core", "php-indexed-array"))->__invoke(1, 2, 3),
+  array(1, 2, 3),
   \Phel::locationMeta(\Phel::location("Def/hash-php-vector-literal.test", 1, 0), \Phel::location("Def/hash-php-vector-literal.test", 1, 22))
 );

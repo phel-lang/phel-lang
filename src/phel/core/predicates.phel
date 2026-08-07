@@ -391,7 +391,7 @@
 
 (defn php-array?
   "Returns true if `x` is a PHP Array, false otherwise."
-  {:example "(php-array? (php/array 1 2)) ; => true\n(php-array? [1 2]) ; => false"
+  {:example "(php-array? (php-indexed-array 1 2)) ; => true\n(php-array? [1 2]) ; => false"
    :see-also ["php-object?" "php-resource?" "vector?"]}
   [x]
   (php/is_array x))
@@ -464,7 +464,7 @@ A non-countable iterable (an `eduction` pipeline, a PHP generator) is answered b
                      (php/instanceof coll PersistentHashSetInterface) (hash-set)
                      (list? coll)                                     '()
                      (php/instanceof coll LazySeqInterface)           '()
-                     (php-array? coll)                                (php/array)
+                     (php-array? coll)                                (php-indexed-array)
                      :else                                            nil)]
     (if (and empty-coll (php/instanceof coll MetaInterface))
       (copy-meta coll empty-coll)

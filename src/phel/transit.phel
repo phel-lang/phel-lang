@@ -233,11 +233,11 @@
 
 (defn- encode-map [m]
   (if (string-keys? m)
-    (let [obj (php/array)]
+    (let [obj (php-indexed-array)]
       (foreach [k v m]
         (aset obj k (encode v)))
       obj)
-    (let [pairs (php/array)]
+    (let [pairs (php-indexed-array)]
       (foreach [k v m]
         (php/apush pairs (encode k))
         (php/apush pairs (encode v)))
@@ -246,7 +246,7 @@
 (defn- encode-sequential
   "Encodes each element of `coll` into a PHP array. When `tag` is non-nil the array is wrapped as a Transit tagged array (e.g. \"~#set\"); a nil `tag` yields a bare array."
   [coll tag]
-  (let [arr (php/array)]
+  (let [arr (php-indexed-array)]
     (foreach [x coll]
       (php/apush arr (encode x)))
     (if tag (php-indexed-array tag arr) arr)))

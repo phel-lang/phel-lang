@@ -398,7 +398,7 @@ Useful for building multi-turn conversations."
   (let [trimmed (php/trim response)]
     (if (php/str_starts_with trimmed "{")
       trimmed
-      (let [matches (php/array)
+      (let [matches (php-indexed-array)
             found   (php/preg_match "/```(?:json)?\\s*\\n?(\\{[\\s\\S]*?\\})\\s*\\n?```/" trimmed matches)]
         (if (one? found)
           (aget matches 1)

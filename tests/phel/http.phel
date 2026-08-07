@@ -48,7 +48,7 @@
     (php/array_merge uri-server-default (php-associative-array "SERVER_PORT" "8081" "HTTP_HOST" "::1:8081"))]
    ["empty server variable"
     (h/uri nil nil nil 0 nil nil nil)
-    (php/array)]])
+    (php-indexed-array)]])
 
 (deftest test-url
   (foreach [[name uri server] uri-examples]
@@ -133,27 +133,27 @@
    ["nested files"
     (php-associative-array
      "files" (php-associative-array
-              "name" (php/array "my-file.txt" "Image.png")
-              "type" (php/array "text/plain" "image/png")
-              "tmp_name" (php/array "/tmp/my-file.txt" "/tmp/my-image.png")
-              "error" (php/array "0" "1")
-              "size" (php/array "123" "4321"))
+              "name" (php-indexed-array "my-file.txt" "Image.png")
+              "type" (php-indexed-array "text/plain" "image/png")
+              "tmp_name" (php-indexed-array "/tmp/my-file.txt" "/tmp/my-image.png")
+              "error" (php-indexed-array "0" "1")
+              "size" (php-indexed-array "123" "4321"))
      "nested" (php-associative-array
                "name" (php-associative-array
                        "a" "a.txt"
-                       "b" (php/array "b.txt" ""))
+                       "b" (php-indexed-array "b.txt" ""))
                "type" (php-associative-array
                        "a" "text/plain"
-                       "b" (php/array "text/plain" ""))
+                       "b" (php-indexed-array "text/plain" ""))
                "tmp_name" (php-associative-array
                            "a" "/tmp/a.txt"
-                           "b" (php/array "/tmp/b1.txt" "/tmp/b2.txt"))
+                           "b" (php-indexed-array "/tmp/b1.txt" "/tmp/b2.txt"))
                "error" (php-associative-array
                         "a" "0"
-                        "b" (php/array "0" "4"))
+                        "b" (php-indexed-array "0" "4"))
                "size" (php-associative-array
                        "a" "421"
-                       "b" (php/array "32" "0"))))
+                       "b" (php-indexed-array "32" "0"))))
     {"files" {0 (h/uploaded-file "/tmp/my-file.txt" 123 0 "my-file.txt" "text/plain")
               1 (h/uploaded-file "/tmp/my-image.png" 4321 1 "Image.png" "image/png")}
      "nested" {"a" (h/uploaded-file "/tmp/a.txt" 421 0 "a.txt" "text/plain")
@@ -418,7 +418,7 @@
    "REQUEST_URI"    "/api"))
 
 (defn- req-with-body [server raw-body]
-  (h/request-from-globals-args server (php/array) (php/array) (php/array) (php/array) raw-body))
+  (h/request-from-globals-args server (php-indexed-array) (php-indexed-array) (php-indexed-array) (php-indexed-array) raw-body))
 
 (deftest test-json-body-decoded
   (is (= {:name "Alice" :age 30}
@@ -447,12 +447,12 @@
   (let [server (php/array_merge json-req-server
                                 (php-associative-array "CONTENT_TYPE" "application/x-www-form-urlencoded"))
         req    (h/request-from-globals-args
-                server (php/array) (php-associative-array "name" "Bob") (php/array) (php/array) "name=Bob")]
+                server (php-indexed-array) (php-associative-array "name" "Bob") (php-indexed-array) (php-indexed-array) "name=Bob")]
     ;; form data keeps string keys (php-array-to-map), unlike JSON's keyword keys
     (is (= {"name" "Bob"} (:parsed-body req))
         "form-encoded body still comes from $_POST")))
 
 (deftest test-no-body-arg-back-compat
   (is (nil? (:parsed-body (h/request-from-globals-args
-                           json-req-server (php/array) (php/array) (php/array) (php/array))))
+                           json-req-server (php-indexed-array) (php-indexed-array) (php-indexed-array) (php-indexed-array))))
       "omitting raw-body keeps the 5-arg arity working"))
