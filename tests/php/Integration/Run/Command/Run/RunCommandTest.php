@@ -263,6 +263,7 @@ PHEL);
                 default => '',
             },
         );
+        $input->method('getOption')->willReturn(false);
 
         return $input;
     }
