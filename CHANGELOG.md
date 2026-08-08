@@ -74,6 +74,7 @@ All notable changes to this project will be documented in this file.
 - Warn when a `def` shadows a loadable PHP class; `\DateTime` still reaches the class (#2876)
 - Suppress deprecation reports for code under `vendor/` (#2827)
 - BC: `get` declares `[ds k]` and `[ds k opt]` instead of `[ds k & [opt]]`; a fourth argument is now an arity error rather than silently ignored (#2960)
+- BC: `(max)` and `(min)` with no arguments are now rejected at compile time (PHEL002) rather than throwing `ArgumentCountError` at runtime, since both declare their arities (#2991)
 - BC: `reduce` and `into` declare their arities, so a wrong argument count raises an arity error rather than the hand-written "expected 2 or 3 arguments" message (#2975)
 - BC: `get-in` declares `[ds ks]` and `[ds ks opt]` instead of `[ds ks & [opt]]`; a fourth argument is now an arity error rather than silently ignored (#2964)
 - BC: `(arity get)` and `(arity assoc)` now report `0`. Both became multi-arity, and a multi-arity function compiles to one variadic dispatch, which `arity` documents as `0` (#2960 #2962)
@@ -108,6 +109,7 @@ Runtime core:
 - Specialize `count` on a map-tagged local to a direct `->count()`, as `empty?` already did (#2985)
 - Infer a primitive tag for `let` bindings whose init is `if`, `do` or a nested `let` (#2987)
 - Inline the nil guard in `inc` and `dec`, which still called the variadic one (#2989)
+- Give `max` and `min` fixed arities, dropping a lazy sequence built to NaN-check two arguments (#2991)
 - Declare real arities on `reduce` and `into` instead of a `case` over a rest argument (#2975)
 - Give `+`, `-`, `*` and `/` fixed arities, cutting untagged two-operand arithmetic 7.7x (#2978)
 

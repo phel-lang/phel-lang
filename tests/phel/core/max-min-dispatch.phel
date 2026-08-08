@@ -1,0 +1,43 @@
+(ns phel-test.core.max-min-dispatch
+  (:require phel.test :refer [deftest is thrown?]))
+
+;; Pins max/min across the arity boundary. NaN propagation is the constraint a
+;; naive arity split loses: any NaN argument makes the whole call NaN, however
+;; many arguments there are and wherever the NaN sits.
+
+(deftest test-max-arities
+  (is (= 5 (max 5)) "one argument")
+  (is (= 3 (max 3 1)) "two, first larger")
+  (is (= 3 (max 1 3)) "two, second larger")
+  (is (= 2 (max 2 2)) "two equal")
+  (is (= 3 (max 3 1 2)) "three")
+  (is (= 9 (max 1 2 3 9 4)) "five"))
+
+(deftest test-min-arities
+  (is (= 5 (min 5)) "one argument")
+  (is (= 1 (min 3 1)) "two, second smaller")
+  (is (= 1 (min 1 3)) "two, first smaller")
+  (is (= 2 (min 2 2)) "two equal")
+  (is (= 1 (min 3 1 2)) "three")
+  (is (= 1 (min 5 4 3 1 2)) "five"))
+
+(deftest test-nan-propagates-from-any-position
+  (is (php/is_nan (max 1 ##NaN)) "max, NaN second of two")
+  (is (php/is_nan (max ##NaN 1)) "max, NaN first of two")
+  (is (php/is_nan (max 1 ##NaN 2)) "max, NaN in the middle of three")
+  (is (php/is_nan (max 1 2 ##NaN)) "max, NaN last of three")
+  (is (php/is_nan (min 1 ##NaN)) "min, NaN second of two")
+  (is (php/is_nan (min ##NaN 1)) "min, NaN first of two")
+  (is (php/is_nan (min 1 ##NaN 2)) "min, NaN in the middle of three"))
+
+(deftest test-mixed-numeric-types
+  (is (= 2.5 (max 1 2.5)) "int against float")
+  (is (= 1 (min 1 2.5)) "int against float")
+  (is (= 1/2 (max 1/4 1/2)) "ratios"))
+
+;; `(max)` and `(min)` with no arguments are no longer testable from here, and
+;; that is the point: with declared arities the analyser rejects them at compile
+;; time (PHEL002, "Wrong number of arguments ... Expected: at least 1") where the
+;; variadic form compiled and threw ArgumentCountError at runtime. A file
+;; asserting the runtime throw cannot itself be compiled any more. Strictly
+;; earlier detection of code that was already broken.
