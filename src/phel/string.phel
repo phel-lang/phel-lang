@@ -60,19 +60,18 @@ This is a convenience function for converting strings to character sequences. Pr
   (php/str_repeat s n))
 
 (defn- as-pattern
-  "Ensures match is a regex pattern. If it looks like a delimited regex
-  (first and last chars match), returns as-is; otherwise wraps as literal."
+  "Returns slash-delimited patterns as-is and wraps other strings as literals."
   [match]
   (if (and
        (> (php/mb_strlen match) 1)
-       (=
-        (php/substr match 0 1)
-        (php/substr match -1 1)))
+       (= "/" (php/substr match 0 1))
+       (= "/" (php/substr match -1 1)))
     match
     (format "/%s/" (php/preg_quote match "/"))))
 
 (defn replace
-  "Replaces all instances of match with replacement in s."
+  "Replaces all instances of match with replacement in s. Plain string matches
+  are literal; use a regex literal for regular-expression matching."
   {:example "(replace \"hello world\" \"world\" \"there\") ; => \"hello there\""}
   [s match replacement]
   (assert-string s)
@@ -84,7 +83,8 @@ This is a convenience function for converting strings to character sequences. Pr
       (php/preg_replace match replacement s))))
 
 (defn replace-first
-  "Replaces the first instance of match with replacement in s."
+  "Replaces the first instance of match with replacement in s. Plain string
+  matches are literal; use a regex literal for regular-expression matching."
   {:example "(replace-first \"hello world world\" \"world\" \"there\") ; => \"hello there world\""}
   [s match replacement]
   (assert-string s)
