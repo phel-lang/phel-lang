@@ -96,6 +96,7 @@ Runtime core:
 - Use `aget` and `aset` across core/std libraries where bootstrap allows it (#2941 #2942)
 - Order `int` and `conj` dispatch by how often each case is hit (#2965)
 - Reach maps and vectors first in `get`, and give it fixed `[ds k]` / `[ds k opt]` arities (#2960)
+- Reach collections earlier in `empty?`, and count them without core dispatch (#2961)
 
 ### Removed
 

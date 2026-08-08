@@ -434,13 +434,26 @@ A non-countable iterable (an `eduction` pipeline, a PHP generator) is answered b
   {:example "(empty? []) ; => true\n(empty? [1]) ; => false"
    :see-also ["not-empty" "empty" "count"]}
   [x]
+  ;; Collections are the common argument and were reached fifth, behind two
+  ;; scalar checks. They move up, but only as far as the lazy branches: a
+  ;; `LazySeq` *is* `Countable`, so putting the countable branch above it would
+  ;; count an infinite sequence rather than pull one element, which is the
+  ;; guarantee in the docstring above.
+  ;;
+  ;; The scalar branches keep their order relative to each other. `is_numeric`
+  ;; claims `"0"` before `is_string` sees it, and `(php/empty "0")` is `true`
+  ;; where `(= 0 "0")` is `false`, so swapping them changes `(empty? "0")`.
   (cond
-    (php/is_numeric x)                  (= 0 x)
-    (php/is_string x)                   (true? (php/empty x))
     (php/instanceof x LazySeqInterface) (nil? (first x))
     (php/instanceof x Cons)             false
-    (php/instanceof x Countable)        (= 0 (count x))
+    ;; `instanceof Countable` has already proven `php/count` valid here, so
+    ;; there is nothing for core `count` and core `=` to dispatch on.
+    (php/instanceof x Countable)        (php/=== 0 (php/count x))
+    (php/is_numeric x)                  (= 0 x)
+    (php/is_string x)                   (true? (php/empty x))
     (php/instanceof x Traversable)      (Seq/isEmpty x)
+    ;; Core `count` stays: this branch is reached by values `php/count` would
+    ;; reject outright, `nil` among them.
     :else                               (= 0 (count x))))
 
 (defn not-empty
