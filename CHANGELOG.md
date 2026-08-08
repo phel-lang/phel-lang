@@ -99,6 +99,7 @@ Runtime core:
 - Reach maps and vectors first in `get`, and give it fixed `[ds k]` / `[ds k opt]` arities (#2960)
 - Reach collections earlier in `empty?`, and count them without core dispatch (#2961)
 - Give `assoc` a fixed three-argument arity so the common call skips the variadic path (#2962)
+- Inline the `seq?` check in `seq` and count countable collections without core dispatch (#2963)
 
 ### Removed
 

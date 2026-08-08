@@ -498,19 +498,29 @@ This function is useful for explicitly converting strings to sequences of charac
   {:example "(seq \"hello\") ; => [\"h\" \"e\" \"l\" \"l\" \"o\"]\n(seq [1 2 3]) ; => (1 2 3)"
    :see-also ["count"]}
   [coll]
+  ;; Most of what this function costs is the conversion at the bottom, not the
+  ;; dispatch: on a vector, `to-php-array` plus `seqList` is the bulk of it and
+  ;; no ordering changes that. What the dispatch can stop paying for is the
+  ;; `seq?` call and core `count`, which is what the two changes below remove.
   (cond
-    (php/is_string coll)
-    (seq-vector (php/mb_str_split coll))
-
     (php/=== coll nil)
     nil
 
-    ;; For lazy sequences and lists, don't force them - just check if first element exists
-    (seq? coll)
+    (php/is_string coll)
+    (seq-vector (php/mb_str_split coll))
+
+    ;; `seq?` inlined. Same three checks it makes, without the call, and it sits
+    ;; on the path of every collection that is not one of these three.
+    ;; Lazy sequences and lists are not forced: only the first element is read.
+    (or (php/instanceof coll LazySeqInterface)
+        (php/instanceof coll Cons)
+        (php/instanceof coll PersistentListInterface))
     (if (php/=== nil (.first coll)) nil coll)
 
-    ;; For other countable collections, check count (won't force lazy seqs)
-    (and (php/instanceof coll Countable) (= 0 (count coll)))
+    ;; For other countable collections, check count (won't force lazy seqs).
+    ;; `instanceof Countable` has already proven `php/count` valid, so core
+    ;; `count` and core `=` have nothing left to dispatch on.
+    (and (php/instanceof coll Countable) (php/=== 0 (php/count coll)))
     nil
 
     (php/is_array coll)
