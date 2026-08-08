@@ -35,6 +35,16 @@ use function sprintf;
  * Revs are looped internally, matching {@see \PhelTest\Benchmark\Lang\NumericOperationsBench},
  * so timer overhead is amortised rather than measured.
  *
+ * Two things here look like waste and are not:
+ *
+ * - **The inner loop is repeated in every subject** rather than extracted to a
+ *   helper taking a closure. Extracting it would put a closure invocation
+ *   inside the measurement, in every subject, which is a large fraction of
+ *   what these subjects cost. The duplication is the measurement.
+ * - **The raw subjects assign to `$unused`.** Discarding the expression
+ *   instead would let it be optimised away and leave the pair timing an
+ *   empty loop, which reads as "the wrapper is infinitely slow".
+ *
  * @BeforeMethods("setUp")
  */
 final class CoreDispatchBench
