@@ -3,5 +3,5 @@
 --PHP--
 (function(\Phel\Lang\Collections\Map\PersistentMapInterface $m, $ks) {
   static $__phel_call_0;
-  return ($__phel_call_0 ??= \Phel::getDefinition("phel.core", "get-in"))->__invoke($m, $ks);
+  return (($__phel_call_0 ??= \Phel::getDefinition("phel.core", "get-in")) instanceof \Phel\Lang\AbstractFn ? ($__phel_call_0 ??= \Phel::getDefinition("phel.core", "get-in"))->invokeArity2($m, $ks) : ($__phel_call_0 ??= \Phel::getDefinition("phel.core", "get-in"))->__invoke($m, $ks));
 });

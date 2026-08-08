@@ -1,0 +1,40 @@
+(ns phel-test.core.get-in-dispatch
+  (:require phel.test :refer [deftest is]))
+
+;; Pins `get-in` across its loop-exit conditions. The exhausted-path case is
+;; the one the traversal reorders around: `next` yields nil at the end for
+;; vectors, lists, seqs and PHP arrays alike, which is what lets the loop test
+;; `nil?` rather than `empty?` per step.
+
+(deftest test-get-in-hit
+  (is (= 42 (get-in {:a {:b {:c 42}}} [:a :b :c])) "three levels")
+  (is (= 1 (get-in {:a 1} [:a])) "one level")
+  (is (= 2 (get-in {:a [1 2 3]} [:a 1])) "through a vector"))
+
+(deftest test-get-in-miss
+  (is (nil? (get-in {:a 1} [:zz])) "missing top key")
+  (is (nil? (get-in {:a {:b 1}} [:a :zz])) "missing leaf key")
+  (is (nil? (get-in {:a {:b 1}} [:zz :b])) "missing intermediate key")
+  (is (= :fallback (get-in {:a 1} [:zz] :fallback)) "missing key takes the default")
+  (is (= :fallback (get-in {:a {:b 1}} [:a :zz] :fallback)) "missing leaf takes the default"))
+
+(deftest test-get-in-stops-at-a-non-traversable
+  (is (= :fallback (get-in {:a 1} [:a :b] :fallback))
+      "a scalar mid-path is not traversed into")
+  (is (= :fallback (get-in {:a nil} [:a :b] :fallback))
+      "a nil mid-path takes the default"))
+
+(deftest test-get-in-empty-and-nil-path
+  (is (= {:a 1} (get-in {:a 1} [])) "an empty path returns the collection as-is")
+  (is (= {:a 1} (get-in {:a 1} nil)) "a nil path returns the collection as-is")
+  (is (nil? (get-in nil [:a])) "nil collection is nil")
+  (is (= :fallback (get-in nil [:a] :fallback)) "nil collection takes the default"))
+
+(deftest test-get-in-path-shapes
+  (is (= 42 (get-in {:a {:b 42}} '(:a :b))) "a list works as a path")
+  (is (= 42 (get-in {:a {:b 42}} (seq [:a :b]))) "a seq works as a path")
+  (is (= 42 (get-in {:a {:b 42}} (php-indexed-array :a :b))) "a php array works as a path"))
+
+(deftest test-get-in-stored-nil
+  (is (= :fallback (get-in {:a nil} [:a] :fallback))
+      "a stored nil at the leaf is indistinguishable from a miss"))

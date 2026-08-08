@@ -331,21 +331,28 @@ When `from` is associative, it is treated as a sequence of key-value pairs. Supp
 Returns `opt` (default nil) when a key is missing mid-traversal. When the path is nil or empty, returns `ds` as-is (which may be nil)."
   {:example "(get-in {:a {:b {:c 42}}} [:a :b :c]) ; => 42"
    :see-also ["assoc-in" "update-in"]}
-  [ds ks & [opt]]
-  (if (empty? ks)
-    ds
-    (loop [res  ds
-           path ks]
-      (cond
-        (empty? path)
-        (if (nil? res) opt res)
+  ;; Fixed arities rather than `& [opt]`, and the loop tests `nil?` instead of
+  ;; `empty?`. `empty?` was called once on entry and once per path step; inside
+  ;; the loop it is unnecessary, because the entry guard has already rejected an
+  ;; empty path and `next` yields nil at exhaustion for vectors, lists, seqs and
+  ;; PHP arrays alike. The entry guard keeps `empty?`, which still has to answer
+  ;; for `[]` as well as nil.
+  ([ds ks] (get-in ds ks nil))
+  ([ds ks opt]
+   (if (empty? ks)
+     ds
+     (loop [res  ds
+            path ks]
+       (cond
+         (nil? path)
+         (if (nil? res) opt res)
 
-        (or (nil? res)
-            (not (get-in-traversable? res)))
-        opt
+         (or (nil? res)
+             (not (get-in-traversable? res)))
+         opt
 
-        :else
-        (recur (get res (first path)) (next path))))))
+         :else
+         (recur (get res (first path)) (next path)))))))
 
 (defn assoc-in
   "Associates a value in a nested data structure at the given path.
