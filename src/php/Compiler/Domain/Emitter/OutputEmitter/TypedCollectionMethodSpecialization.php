@@ -6,6 +6,7 @@ namespace Phel\Compiler\Domain\Emitter\OutputEmitter;
 
 use Phel\Compiler\Domain\Analyzer\Ast\CallNode;
 use Phel\Lang\Collections\LinkedList\PersistentListInterface;
+use Phel\Lang\Collections\Map\PersistentMapInterface;
 use Phel\Lang\Collections\Vector\PersistentVectorInterface;
 use Phel\Lang\SeqInterface;
 
@@ -55,15 +56,19 @@ final readonly class TypedCollectionMethodSpecialization
         }
 
         $args = $node->getArguments();
-        if (TagNormalizer::ofLocalVar($args[0] ?? null) !== PersistentVectorInterface::class) {
-            return null;
-        }
+        $tag = TagNormalizer::ofLocalVar($args[0] ?? null);
 
-        if ($name === 'count' && count($args) === 1) {
+        // `count` takes a map tag as well. Both interfaces extend `Countable`,
+        // and {@see TypedValueSpecialization::emptyCheckFragment} already emits
+        // `->count()` for either, so this widens a table rather than trusting a
+        // new type. `nth` stays vector-only: a map has no positional `get`.
+        if ($name === 'count' && count($args) === 1
+            && ($tag === PersistentVectorInterface::class || $tag === PersistentMapInterface::class)
+        ) {
             return ['method' => 'count', 'args' => []];
         }
 
-        if ($name === 'nth' && count($args) === 2) {
+        if ($name === 'nth' && count($args) === 2 && $tag === PersistentVectorInterface::class) {
             return ['method' => 'get', 'args' => [1]];
         }
 

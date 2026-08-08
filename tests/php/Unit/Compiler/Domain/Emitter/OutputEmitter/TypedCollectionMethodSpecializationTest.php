@@ -12,6 +12,7 @@ use Phel\Compiler\Domain\Analyzer\Ast\LiteralNode;
 use Phel\Compiler\Domain\Analyzer\Ast\LocalVarNode;
 use Phel\Compiler\Domain\Analyzer\Environment\NodeEnvironment;
 use Phel\Compiler\Domain\Emitter\OutputEmitter\TypedCollectionMethodSpecialization;
+use Phel\Lang\Collections\Map\PersistentMapInterface;
 use Phel\Lang\Collections\Vector\PersistentVectorInterface;
 use Phel\Lang\Keyword;
 use Phel\Lang\SeqInterface;
@@ -28,6 +29,34 @@ final class TypedCollectionMethodSpecializationTest extends TestCase
         $spec = TypedCollectionMethodSpecialization::typedVectorMethodCall($node);
 
         self::assertSame(['method' => 'count', 'args' => []], $spec);
+    }
+
+    /**
+     * Both interfaces extend `Countable`, and `empty?` already emits
+     * `->count()` for either, so the map tag is not a new trust edge.
+     */
+    public function test_count_on_typed_map_specialises_to_method_call(): void
+    {
+        $node = $this->coreCall('count', [$this->localWithTag('m', PersistentMapInterface::class)]);
+
+        $spec = TypedCollectionMethodSpecialization::typedVectorMethodCall($node);
+
+        self::assertSame(['method' => 'count', 'args' => []], $spec);
+    }
+
+    /**
+     * A map has no positional accessor, so widening `count` must not widen
+     * `nth` with it. `PersistentMap::get` exists but takes a key, not an index,
+     * and lowering to it here would silently return a value for a wrong lookup.
+     */
+    public function test_nth_on_typed_map_falls_back(): void
+    {
+        $node = $this->coreCall('nth', [
+            $this->localWithTag('m', PersistentMapInterface::class),
+            new LiteralNode($this->env(), 0),
+        ]);
+
+        self::assertNull(TypedCollectionMethodSpecialization::typedVectorMethodCall($node));
     }
 
     public function test_nth_on_typed_vector_specialises_to_get(): void
