@@ -25,9 +25,12 @@
 
 (deftest test-replace
   (is (= "barbarbar" (s/replace "foobarfoo" "foo" "bar")))
+  (is (= "1X2" (s/replace "1aba2" "aba" "X")))
+  (is (= "aXb" (s/replace "a--b" "--" "X")))
   (is (= "foobarfoo" (s/replace "foobarfoo" "baz" "bar")))
   (is (= "f$$d" (s/replace "food" "o" "$")))
   (is (= "f\\\\d" (s/replace "food" "o" "\\")))
+  (is (= "barbarbar" (s/replace "foobarfoo" #"foo" "bar")))
   (is (= "barbarbar" (s/replace "foobarfoo" "/foo/" "bar")))
   (is (= "foobarfoo" (s/replace "foobarfoo" "/baz/" "bar")))
   (is (= "f$$d" (s/replace "food" "/o/" "$")))
@@ -39,6 +42,8 @@
 
 (deftest test-replace-first
   (is (= "faobar" (s/replace-first "foobar" "o" "a")))
+  (is (= "1X2aba" (s/replace-first "1aba2aba" "aba" "X")))
+  (is (= "aXb--c" (s/replace-first "a--b--c" "--" "X")))
   (is (= "foobar" (s/replace-first "foobar" "z" "a")))
   (is (= "z.ology" (s/replace-first "zoology" "o" ".")))
   (is (= "barbarfoo" (s/replace-first "foobarfoo" "foo" "bar")))
