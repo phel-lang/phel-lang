@@ -423,14 +423,20 @@ returns 1. If `xs` has one value, returns the reciprocal of x.
   {:example "(int 1.9) ; => 1\n(int \"42\") ; => 42\n(int 1/10) ; => 0"
    :see-also ["float" "double" "int?" "number?"]}
   [x]
+  ;; Ordered by how often each case is reached, not by how interesting it is.
+  ;; An int or a numeric string used to fall through three `instanceof` checks
+  ;; and `is_object` before reaching `intval`; the boxed numerics are the rare
+  ;; case, so they now sit behind the single `is_object` they all require.
   (cond
-    (or (php/instanceof x Ratio)
-        (php/instanceof x BigInt)
-        (php/instanceof x BigDecimal)) (.toInt x)
-    (php/is_float x)                   (.toInt (BigInt/fromFloat x))
-    (php/is_object x)                  (throw (new InvalidArgumentException
-                                                   (str "int expects a number, numeric string, or nil, got " (type x))))
-    :else                             (php/intval x)))
+    (php/is_int x)    x
+    (php/is_float x)  (.toInt (BigInt/fromFloat x))
+    (php/is_object x) (cond
+                        (php/instanceof x Ratio)      (.toInt x)
+                        (php/instanceof x BigInt)     (.toInt x)
+                        (php/instanceof x BigDecimal) (.toInt x)
+                        :else                         (throw (new InvalidArgumentException
+                                          (str "int expects a number, numeric string, or nil, got " (type x)))))
+    :else             (php/intval x)))
 
 (defn float
   "Coerces `x` to a float. In PHP there is no distinction between float and

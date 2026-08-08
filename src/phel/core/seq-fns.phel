@@ -201,18 +201,24 @@ When `from` is associative, it is treated as a sequence of key-value pairs. Supp
 (defn- conj-impl
   [coll value]
   (cond
-    (php/=== coll nil)                            (list value)
-    (php/instanceof coll PersistentListInterface) (cons value coll)
-    (php/instanceof coll LazySeqInterface)        (cons value coll)
-    (php/is_array coll)                           (do (php/apush coll value) coll)
-    (vector-target? coll)                         (.append coll value)
-    (set-target? coll)                            (.add coll value)
-    (map-target? coll)                            (conj-map-entry coll value)
+    ;; Persistent vector first: it is the most common conj target, and reaching
+    ;; it through `vector-target?` cost two `instanceof`, an `is_array` and a
+    ;; function call. Hoisting the concrete check is safe because MapEntry does
+    ;; not implement PersistentVectorInterface, so the MapEntry branch below
+    ;; still sees every entry. Transients keep their original slot.
+    (php/instanceof coll PersistentVectorInterface) (.append coll value)
+    (php/=== coll nil)                              (list value)
+    (php/instanceof coll PersistentListInterface)   (cons value coll)
+    (php/instanceof coll LazySeqInterface)          (cons value coll)
+    (php/is_array coll)                             (do (php/apush coll value) coll)
+    (vector-target? coll)                           (.append coll value)
+    (set-target? coll)                              (.add coll value)
+    (map-target? coll)                              (conj-map-entry coll value)
     ;; MapEntry degrades to a 3-vector when grown; the result is no longer
     ;; an entry. Matches Clojure's MapEntry under conj.
     (php/instanceof coll MapEntry)
     (.append [(.key coll) (.value coll)] value)
-    (php/instanceof coll PushInterface)           (.push coll value)
+    (php/instanceof coll PushInterface)             (.push coll value)
     :else
     (throw (new InvalidArgumentException
                 (str "Cannot conj on type " (type coll))))))
