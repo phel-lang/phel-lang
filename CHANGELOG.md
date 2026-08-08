@@ -102,6 +102,7 @@ Runtime core:
 - Give `assoc` a fixed three-argument arity so the common call skips the variadic path (#2962)
 - Inline the `seq?` check in `seq` and count countable collections without core dispatch (#2963)
 - Give `get-in` fixed arities and test the path with `nil?` rather than `empty?` per step (#2964)
+- Give `str` fixed arities up to three arguments, skipping the array and `implode` (#2974)
 
 ### Removed
 

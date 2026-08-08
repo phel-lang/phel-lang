@@ -1,0 +1,36 @@
+(ns phel-test.core.str-dispatch
+  (:require phel.test :refer [deftest is]))
+
+;; Pins `str` across the arity boundary and over every value kind `val-to-str`
+;; special-cases. The float case is the one most easily lost: `(str 0.0)` keeps
+;; its `.0`, which a plain PHP string cast would drop.
+
+(deftest test-str-arities
+  (is (= "" (str)) "no arguments")
+  (is (= "a" (str "a")) "one argument")
+  (is (= "ab" (str "a" "b")) "two arguments")
+  (is (= "abc" (str "a" "b" "c")) "three arguments")
+  (is (= "abcd" (str "a" "b" "c" "d")) "four arguments crosses into the tail")
+  (is (= "abcde" (str "a" "b" "c" "d" "e")) "five arguments"))
+
+(deftest test-str-nil-and-booleans
+  (is (= "" (str nil)) "nil alone is empty")
+  (is (= "ab" (str "a" nil "b")) "nil between values contributes nothing")
+  (is (= "true" (str true)) "true")
+  (is (= "false" (str false)) "false")
+  (is (= "1truefalse" (str 1 true false)) "mixed across three arguments")
+  (is (= "atruebnilc" (str "a" true "b" "nil" "c")) "booleans in the tail arity"))
+
+(deftest test-str-numbers
+  (is (= "1" (str 1)) "int")
+  (is (= "123" (str 1 2 3)) "three ints")
+  (is (= "0.0" (str 0.0)) "an integer-valued float keeps its .0")
+  (is (= "1.5" (str 1.5)) "a fractional float")
+  (is (= "0.01.5" (str 0.0 1.5)) "floats across two arguments")
+  (is (= "x0.0y" (str "x" 0.0 "y")) "a float in the middle of three"))
+
+(deftest test-str-untagged-values
+  ;; Values the analyser cannot type, which is the path that does not get
+  ;; lowered to native concatenation.
+  (let [a "x" b 2 c nil]
+    (is (= "x2" (str a b c)) "locals of mixed kinds")))
