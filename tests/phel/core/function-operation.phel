@@ -19,7 +19,7 @@
   (is (= 2 (arity #(+ %1 %2))) "arity of short fn literal"))
 
 (deftest test-arity-variadic
-  (is (= 3 (arity assoc)) "variadic fn reports required parameters before &")
+  (is (= 2 (arity swap!)) "variadic fn reports required parameters before &")
   (is (= 0 (arity +)) "fully variadic fn reports zero required parameters")
   (is (= 1 (arity (fn [x & xs] x))) "anonymous variadic fn reports required parameters"))
 
