@@ -8,6 +8,7 @@ use Phel;
 use Phel\Compiler\Domain\Reader\Exceptions\ReaderException;
 use Phel\Compiler\Domain\Reader\ReaderInterface;
 use Phel\Lang\Collections\LinkedList\PersistentListInterface;
+use Phel\Lang\Keyword;
 use Phel\Lang\Symbol;
 use Phel\Lang\TagHandlerException;
 use Phel\Lang\TagHandlers\BuiltinTagHandlers;
@@ -105,7 +106,7 @@ final readonly class TaggedLiteralReader
         }
 
         if ($tokenType === Token::T_OPEN_BRACE) {
-            return $this->buildCall($node, 'php-associative-array', $form);
+            return $this->buildCall($node, 'php-associative-array', $form, stringifyKeywordKeys: true);
         }
 
         throw ReaderException::forNode(
@@ -120,16 +121,26 @@ final readonly class TaggedLiteralReader
      *
      * @return PersistentListInterface<mixed>
      */
-    private function buildCall(TaggedLiteralNode $node, string $fnName, ListNode $form): PersistentListInterface
-    {
+    private function buildCall(
+        TaggedLiteralNode $node,
+        string $fnName,
+        ListNode $form,
+        bool $stringifyKeywordKeys = false,
+    ): PersistentListInterface {
         $elements = [Symbol::create($fnName)->setStartLocation($node->getStartLocation())];
+        $isKey = $stringifyKeywordKeys;
 
         foreach ($form->getChildren() as $child) {
             if ($child instanceof TriviaNodeInterface) {
                 continue;
             }
 
-            $elements[] = $this->reader->readExpression($child, $node);
+            $value = $this->reader->readExpression($child, $node);
+            $elements[] = $isKey && $value instanceof Keyword ? $value->getFullName() : $value;
+
+            if ($stringifyKeywordKeys) {
+                $isKey = !$isKey;
+            }
         }
 
         return Phel::list($elements)

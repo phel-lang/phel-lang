@@ -12,7 +12,7 @@ Single source for every skill adapter.
 6. Only `false` and `nil` are falsy. `0`, `""`, `[]` truthy.
 7. Namespaces need ≥ 2 segments. Prefer `.` separator (`app.main`); `\` still parses but is deprecated. File path matches ns under src dir.
 8. Comments: `;` inline, `;;` standalone, `#_` skips the next form.
-9. PHP assoc array: `#php {"k" "v"}` or `(to-php-array m)`. Not `{:k "v"}`.
+9. PHP assoc array: `#php {:k "v"}` stringifies keyword keys; use `(to-php-array m)` for an existing Phel map.
 10. Catch PHP: `(catch SomeException e ...)`.
 11. Annotate hot-path `defn` with `:tag` on params + return for PHP type emission, JIT-friendly call shape, and compile-time mismatch diagnostics. See `tasks/typed-defn.md`.
 

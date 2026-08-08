@@ -15,7 +15,7 @@
 | Fn (global) | `(php/strlen s)` |
 | Fn (namespaced) | `(php/Amp\trapSignal xs)` |
 | PHP array indexed | `#php [1 2 3]` |
-| PHP array assoc | `#php {"k" "v"}` |
+| PHP array assoc | `#php {:k "v"}` |
 | Catch | `(catch SomeException e ...)` |
 
 Full table: <https://phel-lang.org/documentation/php-interop/>.
@@ -33,7 +33,7 @@ composer require guzzlehttp/guzzle
 
 (def client
   (new Client
-    #php {"base_uri" "https://api.example.com/" "timeout" 5.0}))
+    #php {:base_uri "https://api.example.com/" :timeout 5.0}))
 
 (defn fetch-user [id]
   (let [resp (.request client "GET" (str "/users/" id))]

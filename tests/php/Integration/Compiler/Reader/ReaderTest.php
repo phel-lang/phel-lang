@@ -1282,10 +1282,14 @@ final class ReaderTest extends TestCase
 
     public function test_php_tagged_literal_on_map_expands_to_associative_array_call(): void
     {
-        $form = $this->read('#php {"a" 1 "b" 2}');
+        $form = $this->read('#php {:a :first :app/b :second}');
 
         self::assertInstanceOf(PersistentListInterface::class, $form);
         self::assertSame('php-associative-array', $form->get(0)->getName());
+        self::assertSame('a', $form->get(1));
+        self::assertSame(Keyword::create('first'), $form->get(2));
+        self::assertSame('app/b', $form->get(3));
+        self::assertSame(Keyword::create('second'), $form->get(4));
     }
 
     public function test_php_tagged_literal_rejects_non_collection_form(): void
