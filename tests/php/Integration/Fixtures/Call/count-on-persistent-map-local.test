@@ -1,0 +1,6 @@
+--PHEL--
+(fn [^"\\Phel\\Lang\\Collections\\Map\\PersistentMapInterface" m] (count m))
+--PHP--
+(function(\Phel\Lang\Collections\Map\PersistentMapInterface $m): int {
+  return ($m->count());
+});
