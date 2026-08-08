@@ -73,6 +73,7 @@ All notable changes to this project will be documented in this file.
 - Accept the future PHP class spelling after `\`: dotted or bare, with no leading marker (#2876)
 - Warn when a `def` shadows a loadable PHP class; `\DateTime` still reaches the class (#2876)
 - Suppress deprecation reports for code under `vendor/` (#2827)
+- BC: `get` declares `[ds k]` and `[ds k opt]` instead of `[ds k & [opt]]`; a fourth argument is now an arity error rather than silently ignored (#2960)
 - BC: require `symfony/console` `^7.3|^8.0`
 - BC: require `gacela-project/gacela` `^2.0`
 - BC: expand `ApiFacadeInterface` and add `FormatterFacadeInterface::formatString`
@@ -94,6 +95,7 @@ Runtime core:
 - Give `aget` a fixed single-index arity and require an index, matching Clojure (#2941)
 - Use `aget` and `aset` across core/std libraries where bootstrap allows it (#2941 #2942)
 - Order `int` and `conj` dispatch by how often each case is hit (#2965)
+- Reach maps and vectors first in `get`, and give it fixed `[ds k]` / `[ds k opt]` arities (#2960)
 
 ### Removed
 
