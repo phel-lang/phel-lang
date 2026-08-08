@@ -1,0 +1,50 @@
+(ns phel-test.core.empty-dispatch
+  (:require phel.test :refer [deftest is]))
+
+;; Pins the branches `empty?` dispatches through. Two of them are ordering
+;; constraints rather than behaviour, and neither is obvious from reading the
+;; function:
+;;
+;; - `LazySeq` implements `Countable`, so the lazy branches must stay above the
+;;   countable one. Reversing them makes `(empty? (iterate inc 0))` count an
+;;   infinite sequence and the suite hangs rather than fails.
+;; - `(php/empty "0")` is `true` in PHP, so `"0"` must keep reaching the numeric
+;;   branch before the string one. Swapping them flips `(empty? "0")`.
+
+(deftest test-empty-on-collections
+  (is (true? (empty? [])) "empty vector")
+  (is (false? (empty? [1])) "non-empty vector")
+  (is (true? (empty? {})) "empty map")
+  (is (false? (empty? {:a 1})) "non-empty map")
+  (is (true? (empty? '())) "empty list")
+  (is (false? (empty? '(1))) "non-empty list")
+  (is (true? (empty? (php-indexed-array))) "empty php array")
+  (is (false? (empty? (php-indexed-array 1))) "non-empty php array"))
+
+(deftest test-empty-on-strings
+  (is (true? (empty? "")) "empty string")
+  (is (false? (empty? "abc")) "non-empty string")
+  (is (false? (empty? "0"))
+      "\"0\" reaches the numeric branch, and `(= 0 \"0\")` is false: phel `=` does not coerce")
+  (is (false? (empty? "00")) "\"00\" is numeric and not zero"))
+
+(deftest test-empty-on-numbers
+  (is (true? (empty? 0)) "zero is empty")
+  (is (false? (empty? 1)) "non-zero is not empty")
+  (is (false? (empty? 0.0))
+      "0.0 is not `=` to the int 0, so a zero float is not empty"))
+
+(deftest test-empty-on-nil
+  (is (true? (empty? nil)) "nil is empty"))
+
+(deftest test-empty-on-lazy-seqs
+  (is (false? (empty? (map inc [1 2 3]))) "non-empty lazy seq")
+  (is (true? (empty? (filter (fn [x] false) [1 2 3]))) "lazy seq with nothing left")
+  ;; The one that would hang rather than fail if the ordering regressed: this
+  ;; sequence has no end to count.
+  (is (false? (empty? (iterate inc 0))) "an infinite lazy seq is answered without counting"))
+
+(deftest test-empty-on-eduction
+  ;; Traversable but not Countable: answered by pulling one element.
+  (is (false? (empty? (eduction (map inc) [1 2 3]))) "non-empty eduction")
+  (is (true? (empty? (eduction (filter (fn [x] false)) [1 2 3]))) "empty eduction"))
