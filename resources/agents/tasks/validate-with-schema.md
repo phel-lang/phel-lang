@@ -9,7 +9,7 @@
   (:require phel.schema :as s))
 
 (def User
-  [:map {:closed? true}
+  [:map {:closed true}
    [:id    :int]
    [:email [:re #"^[^@]+@[^@]+$"]]
    [:age   [:maybe :int]]])
@@ -44,7 +44,7 @@
 
 ## Gotchas
 
-- `:map` is open by default; add `{:closed? true}` to reject extras
+- `:map` is open by default; add `{:closed true}` to reject extras
 - `[:re #"..."]` expects a regex literal, not a string
 - `generate` may diverge on tight `[:and ...]` or `[:re ...]`; provide a `:gen` hint
 
