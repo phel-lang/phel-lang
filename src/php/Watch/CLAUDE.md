@@ -41,6 +41,6 @@ All four getters return the Shared contract, never a concrete facade, and `Satel
 
 - Backends are strategies. Only `PollingWatcher` runs in CI; `InotifyWatcher`/`FswatchWatcher` are runtime-probed but not unit-tested (need external binaries).
 - Debounce coalesces rapid changes so an editor double-save triggers a single reload.
-- `ReloadOrchestrator.handleChanges` order: resolve namespaces → reload in dep order → run `(phel\watch/run-on-reload-hooks <ns>)` per ns → re-index → publish event. Reload, hooks, and reindex are best-effort (catch `Throwable`) so one broken file never kills the loop. Deleted files are skipped.
+- `ReloadOrchestrator.handleChanges` order: resolve namespaces → reload in dep order → run `(phel.watch/run-on-reload-hooks <ns>)` per ns → re-index → publish event. Reload, hooks, and reindex are best-effort (catch `Throwable`) so one broken file never kills the loop. Deleted files are skipped.
 - `NullReloadEventPublisher` is the default; inject an nREPL-aware publisher for nREPL contexts.
 - `NamespaceResolver` uses a regex on the first `ns`/`in-ns` form (runs on every change — speed over full parse); not the compiler reader.

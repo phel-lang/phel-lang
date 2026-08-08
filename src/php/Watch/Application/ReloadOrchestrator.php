@@ -127,7 +127,7 @@ final readonly class ReloadOrchestrator implements ReloadOrchestratorInterface
     private function runReloadHooks(array $reloadedNamespaces): void
     {
         foreach ($reloadedNamespaces as $namespace) {
-            $code = sprintf('(phel\watch/run-on-reload-hooks "%s")', $namespace);
+            $code = sprintf('(phel.watch/run-on-reload-hooks "%s")', $namespace);
             try {
                 $this->runFacade->structuredEval($code, new CompileOptions());
             } catch (Throwable) {
