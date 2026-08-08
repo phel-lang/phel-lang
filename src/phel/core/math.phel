@@ -27,6 +27,20 @@
   [& xs]
   (assert-non-nil-coll xs))
 
+;; Inlined nil guards for the fixed arities of the arithmetic operators. A
+;; `defn-` here would put a call back on the path the arities exist to shorten,
+;; which is the point of #2978. Arguments must be symbols: each is referenced
+;; once in the expansion, and the operators only ever pass their own parameters.
+(defmacro- assert-non-nil-1
+  [a]
+  `(when (php/=== nil ~a)
+     (throw (new InvalidArgumentException "Arithmetic functions do not accept nil values"))))
+
+(defmacro- assert-non-nil-2
+  [a b]
+  `(when (or (php/=== nil ~a) (php/=== nil ~b))
+     (throw (new InvalidArgumentException "Arithmetic functions do not accept nil values"))))
+
 ;; -----------------
 ;; Bitwise operation
 ;; -----------------
@@ -149,37 +163,49 @@
   "Returns the sum of all elements in `xs`. All elements `xs` must be numbers. If `xs` is empty, return 0."
   {:example "(+ 1 2 3) ; => 6"
    :see-also ["-" "*" "/" "sum"]}
-  [& xs]
-  (assert-non-nil-coll xs)
-  (case (count xs)
-    0 0
-    1 (first xs)
-    2 (NumericOperations/add (first xs) (second xs))
-    (reduce #(NumericOperations/add %1 %2) xs)))
+  ;; Fixed arities. The variadic form allocated a rest argument, called
+  ;; `assert-non-nil-coll`, core `count`, a `case`, then `first` and `second` to
+  ;; recover values the caller had already passed positionally: about six calls
+  ;; to perform one operation. See #2973 and #2978.
+  ([] 0)
+  ([x] (assert-non-nil-1 x) x)
+  ([x y] (assert-non-nil-2 x y) (NumericOperations/add x y))
+  ([x y & more]
+   (assert-non-nil-2 x y)
+   (assert-non-nil-coll more)
+   (reduce #(NumericOperations/add %1 %2) (NumericOperations/add x y) more)))
 
 (defn -
   "Returns the difference of all elements in `xs`. If `xs` is empty, return 0. If `xs` has one element, return the negative value of that element."
   {:example "(- 10 3 2) ; => 5\n(- 4) ; => -4"
    :see-also ["+" "*" "/"]}
-  [& xs]
-  (assert-non-nil-coll xs)
-  (case (count xs)
-    0 0
-    1 (NumericOperations/negate (first xs))
-    2 (NumericOperations/subtract (first xs) (second xs))
-    (reduce #(NumericOperations/subtract %1 %2) xs)))
+  ;; Fixed arities. The variadic form allocated a rest argument, called
+  ;; `assert-non-nil-coll`, core `count`, a `case`, then `first` and `second` to
+  ;; recover values the caller had already passed positionally: about six calls
+  ;; to perform one operation. See #2973 and #2978.
+  ([] 0)
+  ([x] (assert-non-nil-1 x) (NumericOperations/negate x))
+  ([x y] (assert-non-nil-2 x y) (NumericOperations/subtract x y))
+  ([x y & more]
+   (assert-non-nil-2 x y)
+   (assert-non-nil-coll more)
+   (reduce #(NumericOperations/subtract %1 %2) (NumericOperations/subtract x y) more)))
 
 (defn *
   "Returns the product of all elements in `xs`. All elements in `xs` must be numbers. If `xs` is empty, return 1."
   {:example "(* 2 3 4) ; => 24"
    :see-also ["+" "-" "/"]}
-  [& xs]
-  (assert-non-nil-coll xs)
-  (case (count xs)
-    0 1
-    1 (first xs)
-    2 (NumericOperations/multiply (first xs) (second xs))
-    (reduce #(NumericOperations/multiply %1 %2) xs)))
+  ;; Fixed arities. The variadic form allocated a rest argument, called
+  ;; `assert-non-nil-coll`, core `count`, a `case`, then `first` and `second` to
+  ;; recover values the caller had already passed positionally: about six calls
+  ;; to perform one operation. See #2973 and #2978.
+  ([] 1)
+  ([x] (assert-non-nil-1 x) x)
+  ([x y] (assert-non-nil-2 x y) (NumericOperations/multiply x y))
+  ([x y & more]
+   (assert-non-nil-2 x y)
+   (assert-non-nil-coll more)
+   (reduce #(NumericOperations/multiply %1 %2) (NumericOperations/multiply x y) more)))
 
 (defn /
   "Returns the nominator divided by all the denominators. If `xs` is empty,
@@ -190,13 +216,17 @@ returns 1. If `xs` has one value, returns the reciprocal of x.
   division."
   {:example "(/ 1 2) ; => 1/2\n(/ 10 2) ; => 5"
    :see-also ["+" "-" "*" "quot" "mod"]}
-  [& xs]
-  (assert-non-nil-coll xs)
-  (case (count xs)
-    0 1
-    1 (NumericOperations/divide 1 (first xs))
-    2 (NumericOperations/divide (first xs) (second xs))
-    (reduce #(NumericOperations/divide %1 %2) xs)))
+  ;; Fixed arities. The variadic form allocated a rest argument, called
+  ;; `assert-non-nil-coll`, core `count`, a `case`, then `first` and `second` to
+  ;; recover values the caller had already passed positionally: about six calls
+  ;; to perform one operation. See #2973 and #2978.
+  ([] 1)
+  ([x] (assert-non-nil-1 x) (NumericOperations/divide 1 x))
+  ([x y] (assert-non-nil-2 x y) (NumericOperations/divide x y))
+  ([x y & more]
+   (assert-non-nil-2 x y)
+   (assert-non-nil-coll more)
+   (reduce #(NumericOperations/divide %1 %2) (NumericOperations/divide x y) more)))
 
 (defn quot
   "Returns the truncated integer quotient of `dividend` / `divisor`. Truncates toward zero. Throws `\\DivisionByZeroError` when `divisor` is zero."
@@ -435,7 +465,7 @@ returns 1. If `xs` has one value, returns the reciprocal of x.
                         (php/instanceof x BigInt)     (.toInt x)
                         (php/instanceof x BigDecimal) (.toInt x)
                         :else                         (throw (new InvalidArgumentException
-                                          (str "int expects a number, numeric string, or nil, got " (type x)))))
+                                                                  (str "int expects a number, numeric string, or nil, got " (type x)))))
     :else             (php/intval x)))
 
 (defn float
