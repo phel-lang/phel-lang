@@ -12,7 +12,7 @@ use Phel\Shared\Facade\RunFacadeInterface;
 /**
  * Reloads project namespaces whose source files changed since the last load
  * (or all of them when the `all` param is truthy), delegating to the
- * `phel\repl/reload!` / `phel\repl/reload-all!` helpers. Editors bind this to
+ * `phel.repl/reload!` / `phel.repl/reload-all!` helpers. Editors bind this to
  * a "reload changed namespaces" shortcut.
  *
  * @internal
@@ -35,7 +35,7 @@ final readonly class ReloadOp implements OpHandlerInterface
         $reloadFn = ($all === '1' || $all === 'true') ? 'reload-all!' : 'reload!';
 
         $result = $this->runFacade->structuredEval(
-            '(phel\repl/' . $reloadFn . ')',
+            '(phel.repl/' . $reloadFn . ')',
             new CompileOptions(),
         );
 

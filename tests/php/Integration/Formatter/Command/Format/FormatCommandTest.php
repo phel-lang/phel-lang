@@ -87,7 +87,7 @@ TXT;
     {
         Phel::bootstrap(__DIR__);
 
-        $path = $this->writeTemporaryPhelFile("(ns phel-test\\formatter\\broken)\n\n(defn broken [\n");
+        $path = $this->writeTemporaryPhelFile("(ns phel-test.formatter.broken)\n\n(defn broken [\n");
 
         try {
             $tester = $this->createCommandTester();
@@ -104,7 +104,7 @@ TXT;
     {
         Phel::bootstrap(__DIR__);
 
-        $path = $this->writeTemporaryPhelFile("(ns phel-test\\formatter\\broken)\n\n(defn broken [\n");
+        $path = $this->writeTemporaryPhelFile("(ns phel-test.formatter.broken)\n\n(defn broken [\n");
 
         try {
             $tester = $this->createCommandTester();

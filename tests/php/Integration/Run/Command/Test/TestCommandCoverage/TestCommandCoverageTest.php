@@ -58,7 +58,7 @@ final class TestCommandCoverageTest extends TestCase
         );
         file_put_contents(
             $this->projectDir . '/tests/calc_test.phel',
-            "(ns app.calc-test\n  (:require phel\\test :refer [deftest is])\n  (:require app.calc))\n"
+            "(ns app.calc-test\n  (:require phel.test :refer [deftest is])\n  (:require app.calc))\n"
             . "(deftest add-works\n  (is (= 3 (app.calc/add 1 2))))\n",
         );
     }

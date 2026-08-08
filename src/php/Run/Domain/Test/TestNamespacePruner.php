@@ -87,7 +87,7 @@ final readonly class TestNamespacePruner
     }
 
     /**
-     * Mirrors `phel\test\selector/glob->regex`: `*` matches one segment,
+     * Mirrors `phel.test.selector/glob->regex`: `*` matches one segment,
      * `**` matches any run, `.` is literal.
      */
     private function globToRegex(string $pattern): string

@@ -1,4 +1,4 @@
-(ns phel-test\formatter\good-format)
+(ns phel-test.formatter.good-format)
 
 (+ 1
    2)
