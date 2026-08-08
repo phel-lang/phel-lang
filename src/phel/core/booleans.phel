@@ -185,32 +185,38 @@
       (php/instanceof x BigInt)
       (php/instanceof x BigDecimal)))
 
-(defn- assert-non-nil
-  "Rejects `nil` operands so ordered comparisons fail loudly instead of silently coercing `nil` to 0. Mirrors the arithmetic functions, which already reject `nil`, and matches Clojure/JVM (which throws). Defined locally because `booleans` loads before the arithmetic module."
+(defn- assert-non-nil-pair
+  "Rejects `nil` operands so ordered comparisons fail loudly instead of silently coercing `nil` to 0. Mirrors the arithmetic functions, which already reject `nil`, and matches Clojure/JVM (which throws).
+
+  Named `-pair` rather than `assert-non-nil`: `core/math` defines a variadic
+  `assert-non-nil` in this same namespace and loads *after* `core/booleans`, so
+  the short name resolved to the variadic one at runtime and these comparisons
+  paid a rest-argument allocation on every call. The name has to differ for the
+  fixed arity to survive."
   [a b]
   (when (or (php/=== nil a) (php/=== nil b))
     (throw (new InvalidArgumentException "Comparison functions do not accept nil values"))))
 
 (defn- lt2 [a b]
-  (assert-non-nil a b)
+  (assert-non-nil-pair a b)
   (if (or (numeric-object? a) (numeric-object? b))
     (php/< (NumericOperations/compare a b) 0)
     (php/< a b)))
 
 (defn- lte2 [a b]
-  (assert-non-nil a b)
+  (assert-non-nil-pair a b)
   (if (or (numeric-object? a) (numeric-object? b))
     (php/<= (NumericOperations/compare a b) 0)
     (php/<= a b)))
 
 (defn- gt2 [a b]
-  (assert-non-nil a b)
+  (assert-non-nil-pair a b)
   (if (or (numeric-object? a) (numeric-object? b))
     (php/> (NumericOperations/compare a b) 0)
     (php/> a b)))
 
 (defn- gte2 [a b]
-  (assert-non-nil a b)
+  (assert-non-nil-pair a b)
   (if (or (numeric-object? a) (numeric-object? b))
     (php/>= (NumericOperations/compare a b) 0)
     (php/>= a b)))
