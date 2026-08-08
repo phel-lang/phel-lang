@@ -1,0 +1,8 @@
+--PHEL--
+(fn [c] (let [n (if c 1 2)] (+ n 1)))
+--PHP--
+(function($c) {
+  /** @var int $n_1 */
+  $n_1 = (($__truthy = $c) !== null && $__truthy !== false ? 1 : 2);
+  return ($n_1 + 1);
+});

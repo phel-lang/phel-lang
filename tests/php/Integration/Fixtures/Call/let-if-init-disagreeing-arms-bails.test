@@ -1,0 +1,8 @@
+--PHEL--
+(fn [c] (let [n (if c 1 "s")] (str n)))
+--PHP--
+(function($c): string {
+  static $__phel_call_0;
+  $n_1 = (($__truthy = $c) !== null && $__truthy !== false ? 1 : "s");
+  return ($__phel_call_0 ??= \Phel::getDefinition("phel.core", "str"))->__invoke($n_1);
+});

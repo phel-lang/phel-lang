@@ -105,6 +105,7 @@ Runtime core:
 - Give `get-in` fixed arities and test the path with `nil?` rather than `empty?` per step (#2964)
 - Give `str` fixed arities up to three arguments, skipping the array and `implode` (#2974)
 - Specialize `count` on a map-tagged local to a direct `->count()`, as `empty?` already did (#2985)
+- Infer a primitive tag for `let` bindings whose init is `if`, `do` or a nested `let` (#2987)
 - Declare real arities on `reduce` and `into` instead of a `case` over a rest argument (#2975)
 - Give `+`, `-`, `*` and `/` fixed arities, cutting untagged two-operand arithmetic 7.7x (#2978)
 

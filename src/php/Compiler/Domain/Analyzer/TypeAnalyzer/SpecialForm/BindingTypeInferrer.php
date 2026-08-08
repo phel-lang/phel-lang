@@ -256,6 +256,35 @@ final class BindingTypeInferrer
             return $this->callType($node, $locals);
         }
 
+        // Control-flow inits. `(let [n (if c 1 2)] ...)` left `n` untagged, so
+        // every later use of it paid a registry dispatch even though both arms
+        // are statically the same primitive. {@see collectRecurArgTypes} above
+        // already walks these three node kinds with the same accessors; this
+        // reads their value instead of their `recur` arguments.
+        if ($node instanceof DoNode) {
+            return $this->typeOf($node->getRet(), $locals);
+        }
+
+        if ($node instanceof IfNode) {
+            // Both arms must agree. A disagreement, or an arm this cannot type,
+            // yields null, which is exactly the untagged status quo. There is no
+            // `@bottom` here as there is in {@see ReturnTypeInferrer}: a `throw`
+            // arm types as null and suppresses the tag rather than deferring to
+            // its sibling. Conservative, and never wrong.
+            $then = $this->typeOf($node->getThenExpr(), $locals);
+            if ($then === null) {
+                return null;
+            }
+
+            return $then === $this->typeOf($node->getElseExpr(), $locals) ? $then : null;
+        }
+
+        // A loop is excluded for the same reason it is in `collectRecurArgTypes`:
+        // its body type depends on the recur fixpoint, not on a single walk.
+        if ($node instanceof LetNode && !$node->isLoop()) {
+            return $this->typeOf($node->getBodyExpr(), $locals);
+        }
+
         return null;
     }
 
