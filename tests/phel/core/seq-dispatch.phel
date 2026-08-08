@@ -1,0 +1,32 @@
+(ns phel-test.core.seq-dispatch
+  (:require phel.test :refer [deftest is]))
+
+;; Pins what `seq` returns per input category. The empty cases are the ones a
+;; reordering is most likely to break: `seq` answers nil for an empty
+;; collection, which is what makes it usable as a truth test.
+
+(deftest test-seq-on-nil-and-empty
+  (is (nil? (seq nil)) "nil")
+  (is (nil? (seq [])) "empty vector")
+  (is (nil? (seq {})) "empty map")
+  (is (nil? (seq '())) "empty list")
+  (is (nil? (seq "")) "empty string")
+  (is (nil? (seq (php-indexed-array))) "empty php array"))
+
+(deftest test-seq-on-string
+  (is (= ["h" "i"] (seq "hi")) "string becomes a vector of characters"))
+
+(deftest test-seq-on-collections
+  (is (= [1 2 3] (vec (seq [1 2 3]))) "vector keeps its order")
+  (is (= [1 2 3] (vec (seq '(1 2 3)))) "list keeps its order")
+  (is (= [1 2 3] (vec (seq (php-indexed-array 1 2 3)))) "php array keeps its order"))
+
+(deftest test-seq-on-lazy-seqs
+  (is (nil? (seq (filter (constantly false) [1 2 3]))) "a lazy seq with nothing left is nil")
+  (is (= [2 3 4] (vec (seq (map inc [1 2 3])))) "a non-empty lazy seq is returned as-is")
+  ;; Must not be counted: this one has no end.
+  (is (some? (seq (iterate inc 0))) "an infinite lazy seq is answered without counting"))
+
+(deftest test-seq-on-set
+  (is (= 2 (count (seq (set [:a :b])))) "a set becomes a two-element seq")
+  (is (nil? (seq (set []))) "an empty set is nil"))

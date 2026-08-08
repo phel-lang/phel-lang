@@ -197,12 +197,23 @@ final class CoreDispatchBench
     }
 
     /**
+     * A floor, not a target, and the only pair here that is not like for like.
+     *
+     * `seq` on a vector falls through to `(seq-list (to-php-array coll))`, so
+     * it materialises a *list*. No single native call does that, and the gap
+     * between this subject and `bench_seq_vector` is mostly `Phel::seqList`
+     * building the result, which is the value `seq` exists to return rather
+     * than overhead to remove.
+     *
+     * `getIterator()` was worse: it builds nothing at all, and reported a
+     * ratio near 15x that implied a win no reordering could deliver.
+     *
      * @Revs(1000)
      */
     public function bench_seq_vector_raw(): void
     {
         for ($i = 0; $i < self::INNER; ++$i) {
-            $this->vector->getIterator();
+            $this->vector->toArray();
         }
     }
 
