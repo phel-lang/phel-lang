@@ -39,7 +39,7 @@
 
 (deftest test-empty-on-lazy-seqs
   (is (false? (empty? (map inc [1 2 3]))) "non-empty lazy seq")
-  (is (true? (empty? (filter (fn [x] false) [1 2 3]))) "lazy seq with nothing left")
+  (is (true? (empty? (filter (constantly false) [1 2 3]))) "lazy seq with nothing left")
   ;; The one that would hang rather than fail if the ordering regressed: this
   ;; sequence has no end to count.
   (is (false? (empty? (iterate inc 0))) "an infinite lazy seq is answered without counting"))
@@ -47,4 +47,4 @@
 (deftest test-empty-on-eduction
   ;; Traversable but not Countable: answered by pulling one element.
   (is (false? (empty? (eduction (map inc) [1 2 3]))) "non-empty eduction")
-  (is (true? (empty? (eduction (filter (fn [x] false)) [1 2 3]))) "empty eduction"))
+  (is (true? (empty? (eduction (filter (constantly false)) [1 2 3]))) "empty eduction"))
