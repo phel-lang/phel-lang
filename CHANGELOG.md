@@ -74,6 +74,7 @@ All notable changes to this project will be documented in this file.
 - Warn when a `def` shadows a loadable PHP class; `\DateTime` still reaches the class (#2876)
 - Suppress deprecation reports for code under `vendor/` (#2827)
 - BC: `get` declares `[ds k]` and `[ds k opt]` instead of `[ds k & [opt]]`; a fourth argument is now an arity error rather than silently ignored (#2960)
+- BC: `reduce` and `into` declare their arities, so a wrong argument count raises an arity error rather than the hand-written "expected 2 or 3 arguments" message (#2975)
 - BC: `get-in` declares `[ds ks]` and `[ds ks opt]` instead of `[ds ks & [opt]]`; a fourth argument is now an arity error rather than silently ignored (#2964)
 - BC: `(arity get)` and `(arity assoc)` now report `0`. Both became multi-arity, and a multi-arity function compiles to one variadic dispatch, which `arity` documents as `0` (#2960 #2962)
 - BC: require `symfony/console` `^7.3|^8.0`
@@ -103,6 +104,7 @@ Runtime core:
 - Inline the `seq?` check in `seq` and count countable collections without core dispatch (#2963)
 - Give `get-in` fixed arities and test the path with `nil?` rather than `empty?` per step (#2964)
 - Give `str` fixed arities up to three arguments, skipping the array and `implode` (#2974)
+- Declare real arities on `reduce` and `into` instead of a `case` over a rest argument (#2975)
 
 ### Removed
 

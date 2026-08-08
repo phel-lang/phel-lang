@@ -54,29 +54,30 @@
   "Reduces collection to a single value by repeatedly applying function to accumulator and elements. Respects early termination via `(reduced val)`."
   {:example "(reduce + [1 2 3 4]) ; => 10"
    :see-also ["transduce" "into" "reduced"]}
-  [f & args]
-  (case (count args)
-    1 (let [s (seq (first args))]
-        ;; Seed from `seq` rather than from `coll` directly: the 2-arity loop
-        ;; only needs the collection to be iterable, so the no-init arity must
-        ;; not demand more. `first`/`next` reject a plain iterable (an
-        ;; `eduction`, a generator), while `seq` normalizes one into a seq that
-        ;; both understand, without forcing a lazy sequence.
-        (if (nil? s)
-          (f)
-          (reduce f (first s) (next s))))
-    2 (let [init (first args)
-            coll (second args)
-            acc  (new Volatile init)
-            done (new Volatile false)]
-        (dofor [x :in coll :while (not (.deref done))]
-          (let [result (f (.deref acc) x)]
-            (if (reduced? result)
-              (do (.reset acc (.deref result))
-                  (.reset done true))
-              (.reset acc result))))
-        (.deref acc))
-    (throw (new InvalidArgumentException "expected 2 or 3 arguments in reduce"))))
+  ;; Real arities rather than `(case (count args) ...)` over a rest argument.
+  ;; That spelling paid twice: once for the variadic parameter, once for
+  ;; recovering the arguments with `count`, `first` and `second` after the
+  ;; caller had already passed them positionally. See #2973.
+  ([f coll]
+   (let [s (seq coll)]
+     ;; Seed from `seq` rather than from `coll` directly: the 3-arity loop
+     ;; only needs the collection to be iterable, so the no-init arity must
+     ;; not demand more. `first`/`next` reject a plain iterable (an
+     ;; `eduction`, a generator), while `seq` normalizes one into a seq that
+     ;; both understand, without forcing a lazy sequence.
+     (if (nil? s)
+       (f)
+       (reduce f (first s) (next s)))))
+  ([f init coll]
+   (let [acc  (new Volatile init)
+         done (new Volatile false)]
+     (dofor [x :in coll :while (not (.deref done))]
+       (let [result (f (.deref acc) x)]
+         (if (reduced? result)
+           (do (.reset acc (.deref result))
+               (.reset done true))
+           (.reset acc result))))
+     (.deref acc))))
 
 (defn reduce-kv
   "Reduces an associative collection by applying `f` to the accumulator, key and value of each entry, starting with `init`. Vectors use the index as key. Respects early termination via `(reduced val)`."
