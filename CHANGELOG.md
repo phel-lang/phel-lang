@@ -92,6 +92,7 @@ Runtime core:
 - Speed up `re-find`, `re-matches` and `parse-long` by avoiding full match-map conversion (#2941 #2943)
 - Give `aget` a fixed single-index arity and require an index, matching Clojure (#2941)
 - Use `aget` and `aset` across core/std libraries where bootstrap allows it (#2941 #2942)
+- Order `int` and `conj` dispatch by how often each case is hit (#2965)
 
 ### Removed
 
