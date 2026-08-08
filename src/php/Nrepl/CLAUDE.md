@@ -18,8 +18,8 @@ The facade is production surface only. `NreplFactory::createOpDispatcher()` stay
 | `clone` `close` `describe` `eval` `load-file` `interrupt` | local handlers | core nREPL |
 | `completions` | Api `replCompleteWithTypes` | |
 | `lookup` / `info` / `eldoc` | Api `findSymbolMetadata` | three `LookupOp` instances differing only by name |
-| `reload` | Run `structuredEval` → `phel\repl/reload!`; `all` param (`1`/`true`) → `reload-all!` | |
-| `run-tests` | Run `structuredEval` → `phel\repl/run-tests` (required `ns` param); add `var` param → `phel\repl/run-test` (single test) | |
+| `reload` | Run `structuredEval` → `phel.repl/reload!`; `all` param (`1`/`true`) → `reload-all!` | |
+| `run-tests` | Run `structuredEval` → `phel.repl/run-tests` (required `ns` param); add `var` param → `phel.repl/run-test` (single test) | |
 
 ## Dependencies (NreplProvider)
 

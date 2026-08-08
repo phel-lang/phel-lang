@@ -77,7 +77,7 @@ final class TestWorkerCommand extends Command
 
         try {
             // Bootstrap: load phel.core and every bundled phel.* module
-            // so `(phel\test/run-tests ...)` resolves without per-call requires.
+            // so `(phel.test/run-tests ...)` resolves without per-call requires.
             $this->getFacade()->loadPhelNamespaces();
 
             while (true) {
@@ -151,10 +151,10 @@ final class TestWorkerCommand extends Command
     private function runTestsForNamespace(WorkRequest $request): mixed
     {
         $phelCode = sprintf(
-            "(do (phel\\test/run-tests %s '%s) "
-            . '(phel\\json/encode {"ok" (phel\\test/successful?) '
-            . '"failed-tests" (phel\\test/get-failed-tests) '
-            . '"counts" (get (phel\\test/get-stats) :counts)}))',
+            "(do (phel.test/run-tests %s '%s) "
+            . '(phel.json/encode {"ok" (phel.test/successful?) '
+            . '"failed-tests" (phel.test/get-failed-tests) '
+            . '"counts" (get (phel.test/get-stats) :counts)}))',
             $request->options,
             $request->ns,
         );

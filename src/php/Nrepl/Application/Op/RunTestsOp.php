@@ -14,8 +14,8 @@ use Phel\Shared\Facade\RunFacadeInterface;
 use function preg_match;
 
 /**
- * Runs tests from inside the nREPL session, delegating to `phel\repl/run-tests`
- * (a whole namespace) or `phel\repl/run-test` (a single test when the `var`
+ * Runs tests from inside the nREPL session, delegating to `phel.repl/run-tests`
+ * (a whole namespace) or `phel.repl/run-test` (a single test when the `var`
  * param is set). Editors bind this to "run namespace tests" / "run test under
  * cursor" shortcuts.
  *
@@ -63,8 +63,8 @@ final readonly class RunTestsOp implements OpHandlerInterface
         }
 
         $code = $var === ''
-            ? "(phel\\repl/run-tests '" . $ns . ')'
-            : "(phel\\repl/run-test '" . $identifier . ')';
+            ? "(phel.repl/run-tests '" . $ns . ')'
+            : "(phel.repl/run-test '" . $identifier . ')';
 
         $result = $this->runFacade->structuredEval($code, new CompileOptions());
 

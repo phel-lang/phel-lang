@@ -122,7 +122,7 @@ final class ReplPromptNamespaceTest extends AbstractTestCommand
     {
         $io = $this->createReplTestIo();
         $io->setInputs(
-            new InputLine('user:1> ', '(require phel\test :refer [deftest is run-tests])'),
+            new InputLine('user:1> ', '(require phel.test :refer [deftest is run-tests])'),
             new InputLine('user:2> ', '(deftest test-issue (is (= 0 "")))'),
             new InputLine('user:3> ', '(run-tests {} *ns*)'),
             new InputLine('user:4> ', 'exit'),

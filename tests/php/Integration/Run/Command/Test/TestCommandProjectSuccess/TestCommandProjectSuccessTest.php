@@ -33,6 +33,7 @@ final class TestCommandProjectSuccessTest extends TestCase
         self::assertMatchesRegularExpression('/Failed: 0/', $output);
         self::assertMatchesRegularExpression('/Error: 0/', $output);
         self::assertMatchesRegularExpression('/Total: 2/', $output);
+        self::assertStringNotContainsString("Backslash ('\\') namespace separator", $output);
     }
 
     public function test_one_file_in_project(): void

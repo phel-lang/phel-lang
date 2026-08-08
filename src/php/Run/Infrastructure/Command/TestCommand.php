@@ -494,7 +494,7 @@ HELP)
     private function generatePhelTestCodeFromOptions(array $options, array $namespacesInformation): string
     {
         return sprintf(
-            '(do (phel\test/run-tests %s %s) [(phel\test/successful?) (get (get (phel\test/get-stats) :counts) :total)])',
+            '(do (phel.test/run-tests %s %s) [(phel.test/successful?) (get (get (phel.test/get-stats) :counts) :total)])',
             TestCommandOptions::fromArray($options)->asPhelHashMap(),
             $this->namespacesAsString($namespacesInformation),
         );
