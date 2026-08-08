@@ -23,7 +23,7 @@ All notable changes to this project will be documented in this file.
 
 ### Fixed
 
-- Stop internal test and nREPL eval forms from emitting namespace separator deprecations (#2950)
+- Stop internal test, nREPL and watch eval forms from emitting namespace separator deprecations (#2950)
 - Teach preferred dotted namespace and markerless PHP class spellings across active docs and agent guidance (#2949)
 - Amend stale ADRs and document accepted ADR corrections (#2827 #2876)
 - Validate `slurp` paths correctly while preserving stream-wrapper support (#2941 #2943)

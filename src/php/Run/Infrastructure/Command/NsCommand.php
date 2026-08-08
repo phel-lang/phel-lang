@@ -42,7 +42,7 @@ Lists loaded namespaces, or shows the definitions of one you name.
 
 <info>Examples:</info>
   <comment>phel ns</comment>                 List all loaded namespaces
-  <comment>phel ns phel\core --simple</comment>   Names only, for one namespace
+  <comment>phel ns phel.core --simple</comment>   Names only, for one namespace
 HELP)
             ->addArgument('inspect', InputArgument::OPTIONAL, 'Namespace to inspect')
             ->addOption('simple', 's', InputOption::VALUE_NONE, 'Display only namespace names');

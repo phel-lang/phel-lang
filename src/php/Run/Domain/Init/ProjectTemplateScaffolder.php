@@ -35,7 +35,7 @@ final class ProjectTemplateScaffolder
 {
     /** Template name => one-line description, shown by `--list-templates`. */
     private const array TEMPLATES = [
-        'http-json-api' => 'Minimal HTTP JSON API (phel\http routing, handlers, public/index.php)',
+        'http-json-api' => 'Minimal HTTP JSON API (phel.http routing, handlers, public/index.php)',
         'todo-app' => 'HTTP todo app with an in-memory store and route handlers',
         'cli-wordcount' => 'CLI word-count tool reading stdin or file arguments',
     ];
