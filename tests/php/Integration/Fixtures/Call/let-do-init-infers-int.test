@@ -1,0 +1,12 @@
+--PHEL--
+(fn [] (let [n (do (php/count [1]) 7)] (+ n 1)))
+--PHP--
+(function() {
+  static $__phel_const_0;
+  /** @var int $n_1 */
+  $n_1 = (function() use(&$__phel_const_0) {
+    count(($__phel_const_0 ??= \Phel::vector([1])));
+    return 7;
+  })();
+  return ($n_1 + 1);
+});
