@@ -89,23 +89,27 @@
   ;; Fixed arities rather than `& [opt]`: the two-argument call is nearly every
   ;; call, and the variadic form made each one allocate and destructure a rest
   ;; argument before the dispatch below even started.
+  ;;
+  ;; The `(let [res (aget ds k)] ...)` shape below repeats rather than being
+  ;; lifted into a helper. Lifting it would put a function call back on the
+  ;; path this ordering exists to shorten.
   ([ds k] (get ds k nil))
   ([ds k opt]
    (cond
-    ;; Maps and structs first. They were reached last, behind `nil?`,
-    ;; `indexed?`, `set?`, `seq?` and `indexed-vector?`, five helper calls to
-    ;; land on the most common target. `indexed?` excludes maps and a struct is
-    ;; a PersistentMapInterface, so both arrive here with the same answer the
-    ;; `:else` branch gave them, from the same `aget`.
+     ;; Maps and structs first. They were reached last, behind `nil?`,
+     ;; `indexed?`, `set?`, `seq?` and `indexed-vector?`, five helper calls to
+     ;; land on the most common target. `indexed?` excludes maps and a struct is
+     ;; a PersistentMapInterface, so both arrive here with the same answer the
+     ;; `:else` branch gave them, from the same `aget`.
      (php/instanceof ds PersistentMapInterface)
      (let [res (aget ds k)]
        (if (nil? res)
          opt
          res))
 
-    ;; Vectors second, keeping the non-integer guard that stops `aget` coercing
-    ;; the key and leaking a PHP warning. `integer?` and not `php/is_int`,
-    ;; because a BigInt index is still an index.
+     ;; Vectors second, keeping the non-integer guard that stops `aget` coercing
+     ;; the key and leaking a PHP warning. `integer?` and not `php/is_int`,
+     ;; because a BigInt index is still an index.
      (php/instanceof ds PersistentVectorInterface)
      (if (integer? k)
        (let [res (aget ds k)]
