@@ -1,0 +1,64 @@
+(ns phel-test.core.get-dispatch
+  (:require phel.test :refer [deftest is]))
+
+;; Pins every branch `get` dispatches through, so reordering them is a change
+;; nothing can make quietly. Written against the dispatch chain rather than
+;; against the happy path: the interesting cases are the ones that decide
+;; *which* branch answers, not the ones that return an obvious value.
+
+(defstruct get-dispatch-point [x y])
+
+(deftest test-get-on-nil
+  (is (nil? (get nil :a)) "nil collection is nil, not an error")
+  (is (= :fallback (get nil :a :fallback)) "nil collection takes the default"))
+
+(deftest test-get-on-map
+  (is (= 1 (get {:a 1} :a)) "map hit")
+  (is (nil? (get {:a 1} :missing)) "map miss is nil")
+  (is (= :fallback (get {:a 1} :missing :fallback)) "map miss takes the default")
+  (is (= :fallback (get {:a nil} :a :fallback))
+      "a stored nil is indistinguishable from a miss, and yields the default"))
+
+(deftest test-get-on-map-with-nil-key
+  (is (nil? (get {:a 1} nil)) "a nil key on a map is simply absent")
+  (is (= :fallback (get {:a 1} nil :fallback)) "and takes the default"))
+
+(deftest test-get-on-struct
+  ;; Structs implement PersistentMapInterface, so they travel the map branch.
+  (let [p (get-dispatch-point 1 2)]
+    (is (= 1 (get p :x)) "struct field by keyword")
+    (is (nil? (get p :nope)) "unknown struct field is nil")
+    (is (= :fallback (get p :nope :fallback)) "unknown struct field takes the default")))
+
+(deftest test-get-on-vector
+  (is (= 10 (get [10 20] 0)) "vector by index")
+  (is (nil? (get [10 20] 9)) "out of range is nil")
+  (is (= :fallback (get [10 20] 9 :fallback)) "out of range takes the default"))
+
+(deftest test-get-on-vector-with-non-integer-key
+  ;; Guarded before `aget`, which would otherwise coerce and warn.
+  (is (nil? (get [10 20] :a)) "keyword key on a vector is absent")
+  (is (= :fallback (get [10 20] :a :fallback)) "and takes the default")
+  (is (nil? (get [10 20] nil)) "nil key on an indexed collection is absent")
+  (is (nil? (get [10 20] "1")) "string key on a vector is absent, not coerced"))
+
+(deftest test-get-on-set
+  (is (= :a (get (set [:a :b]) :a)) "a set returns the member itself")
+  (is (nil? (get (set [:a]) :zz)) "a set miss is nil")
+  (is (= :fallback (get (set [:a]) :zz :fallback)) "a set miss takes the default"))
+
+(deftest test-get-on-list
+  (is (= 20 (get '(10 20 30) 1)) "list indexes positionally")
+  (is (nil? (get '(10 20) 9)) "past the end is nil")
+  (is (= :fallback (get '(10 20) 9 :fallback)) "past the end takes the default")
+  (is (= :fallback (get '(10 20) -1 :fallback)) "a negative index takes the default")
+  (is (= :fallback (get '(10 20) :a :fallback)) "a non-integer index takes the default"))
+
+(deftest test-get-on-php-array
+  (is (= 2 (get (php-associative-array "a" 2) "a")) "php array by string key")
+  (is (= :fallback (get (php-associative-array "a" 2) "zz" :fallback))
+      "php array miss takes the default"))
+
+(deftest test-get-on-string
+  (is (= "b" (get "abc" 1)) "string indexes by character")
+  (is (= :fallback (get "abc" 9 :fallback)) "past the end takes the default"))
