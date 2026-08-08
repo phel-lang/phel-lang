@@ -89,24 +89,46 @@
   "Checks if all values are identical. Same as `a === b` in PHP."
   {:example "(identical? :a :a) ; => true"
    :see-also ["=" "true?"]}
-  [a & more]
-  (case (count more)
-    0 true
-    1 (id2 a (first more))
-    (if (id2 a (first more))
-      (recur (first more) (next more))
-      false)))
+  ;; Fixed arities. The two-argument call is nearly every call, and on the
+  ;; variadic form it allocated `more`, called core `count`, ran a `case`, then
+  ;; `first` to recover the value the caller had already passed. The chained
+  ;; arity keeps comparing each argument with the next and stops at the first
+  ;; failure. See #2973 and #2979.
+  (^bool [a] true)
+  (^bool [a b] (id2 a b))
+  (^bool [a b & more]
+   (if (id2 a b)
+     (loop [x         b
+            remaining more]
+       (if (nil? remaining)
+         true
+         (let [y (first remaining)]
+           (if (id2 x y)
+             (recur y (next remaining))
+             false))))
+     false)))
 
 (defn =
   "Checks if all values are equal (value equality, not identity)."
   {:example "(= [1 2 3] [1 2 3]) ; => true"}
-  [a & more]
-  (case (count more)
-    0 true
-    1 (equals1 a (first more))
-    (if (equals1 a (first more))
-      (recur (first more) (next more))
-      false)))
+  ;; Fixed arities. The two-argument call is nearly every call, and on the
+  ;; variadic form it allocated `more`, called core `count`, ran a `case`, then
+  ;; `first` to recover the value the caller had already passed. The chained
+  ;; arity keeps comparing each argument with the next and stops at the first
+  ;; failure. See #2973 and #2979.
+  (^bool [a] true)
+  (^bool [a b] (equals1 a b))
+  (^bool [a b & more]
+   (if (equals1 a b)
+     (loop [x         b
+            remaining more]
+       (if (nil? remaining)
+         true
+         (let [y (first remaining)]
+           (if (equals1 x y)
+             (recur y (next remaining))
+             false))))
+     false)))
 
 (defn- num? [x]
   (or (php/is_int x)
@@ -149,11 +171,13 @@
   "Checks if all values are unequal. Same as `a != b` in PHP."
   {:example "(not= 1 2) ; => true"
    :see-also ["=" "=="]}
-  [a & more]
-  (case (count more)
-    0 false
-    1 (not (= a (first more)))
-    (not (apply = a more))))
+  ;; Fixed arities. The two-argument call is nearly every call, and on the
+  ;; variadic form it allocated `more`, called core `count`, ran a `case`, then
+  ;; `first` to recover the value the caller had already passed. The chained arity still
+  ;; defers to `=`. See #2973 and #2979.
+  (^bool [a] false)
+  (^bool [a b] (not (= a b)))
+  (^bool [a b & more] (not (apply = a b more))))
 
 (defn- numeric-object?
   [x]
@@ -194,48 +218,92 @@
 (defn <
   "Checks if each argument is strictly less than the following argument."
   {:example "(< 1 2 3 4) ; => true"}
-  [a & more]
-  (case (count more)
-    0 true
-    1 (lt2 a (first more))
-    (if (lt2 a (first more))
-      (recur (first more) (next more))
-      false)))
+  ;; Fixed arities. The two-argument call is nearly every call, and on the
+  ;; variadic form it allocated `more`, called core `count`, ran a `case`, then
+  ;; `first` to recover the value the caller had already passed. The chained
+  ;; arity keeps comparing each argument with the next and stops at the first
+  ;; failure. See #2973 and #2979.
+  (^bool [a] true)
+  (^bool [a b] (lt2 a b))
+  (^bool [a b & more]
+   (if (lt2 a b)
+     (loop [x         b
+            remaining more]
+       (if (nil? remaining)
+         true
+         (let [y (first remaining)]
+           (if (lt2 x y)
+             (recur y (next remaining))
+             false))))
+     false)))
 
 (defn <=
   "Checks if each argument is less than or equal to the following argument. Returns a boolean."
   {:example "(<= 1 1 2) ; => true"
    :see-also ["<" ">="]}
-  [a & more]
-  (case (count more)
-    0 true
-    1 (lte2 a (first more))
-    (if (lte2 a (first more))
-      (recur (first more) (next more))
-      false)))
+  ;; Fixed arities. The two-argument call is nearly every call, and on the
+  ;; variadic form it allocated `more`, called core `count`, ran a `case`, then
+  ;; `first` to recover the value the caller had already passed. The chained
+  ;; arity keeps comparing each argument with the next and stops at the first
+  ;; failure. See #2973 and #2979.
+  (^bool [a] true)
+  (^bool [a b] (lte2 a b))
+  (^bool [a b & more]
+   (if (lte2 a b)
+     (loop [x         b
+            remaining more]
+       (if (nil? remaining)
+         true
+         (let [y (first remaining)]
+           (if (lte2 x y)
+             (recur y (next remaining))
+             false))))
+     false)))
 
 (defn >
   "Checks if each argument is strictly greater than the following argument."
   {:example "(> 4 3 2 1) ; => true"}
-  [a & more]
-  (case (count more)
-    0 true
-    1 (gt2 a (first more))
-    (if (gt2 a (first more))
-      (recur (first more) (next more))
-      false)))
+  ;; Fixed arities. The two-argument call is nearly every call, and on the
+  ;; variadic form it allocated `more`, called core `count`, ran a `case`, then
+  ;; `first` to recover the value the caller had already passed. The chained
+  ;; arity keeps comparing each argument with the next and stops at the first
+  ;; failure. See #2973 and #2979.
+  (^bool [a] true)
+  (^bool [a b] (gt2 a b))
+  (^bool [a b & more]
+   (if (gt2 a b)
+     (loop [x         b
+            remaining more]
+       (if (nil? remaining)
+         true
+         (let [y (first remaining)]
+           (if (gt2 x y)
+             (recur y (next remaining))
+             false))))
+     false)))
 
 (defn >=
   "Checks if each argument is greater than or equal to the following argument. Returns a boolean."
   {:example "(>= 3 3 2) ; => true"
    :see-also [">" "<="]}
-  [a & more]
-  (case (count more)
-    0 true
-    1 (gte2 a (first more))
-    (if (gte2 a (first more))
-      (recur (first more) (next more))
-      false)))
+  ;; Fixed arities. The two-argument call is nearly every call, and on the
+  ;; variadic form it allocated `more`, called core `count`, ran a `case`, then
+  ;; `first` to recover the value the caller had already passed. The chained
+  ;; arity keeps comparing each argument with the next and stops at the first
+  ;; failure. See #2973 and #2979.
+  (^bool [a] true)
+  (^bool [a b] (gte2 a b))
+  (^bool [a b & more]
+   (if (gte2 a b)
+     (loop [x         b
+            remaining more]
+       (if (nil? remaining)
+         true
+         (let [y (first remaining)]
+           (if (gte2 x y)
+             (recur y (next remaining))
+             false))))
+     false)))
 
 (defn <=>
   "Alias for the spaceship PHP operator in ascending order. Returns an int. Dispatches on `Ratio` and `BigInt` so numeric ordering stays correct for those types."

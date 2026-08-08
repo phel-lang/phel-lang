@@ -76,6 +76,7 @@ All notable changes to this project will be documented in this file.
 - Suppress deprecation reports for code under `vendor/` (#2827)
 - BC: `get` declares `[ds k]` and `[ds k opt]` instead of `[ds k & [opt]]`; a fourth argument is now an arity error rather than silently ignored (#2960)
 - BC: `(max)` and `(min)` with no arguments are now rejected at compile time (PHEL002) rather than throwing `ArgumentCountError` at runtime, since both declare their arities (#2991)
+- Declaring `bool` on the comparison operators lets the compiler infer more return types than before: a `defn` whose body is `(= x 5)` now emits `: bool`, and one branching on `(= x nil)` to two int literals now emits `: int`. More type information, but visible in generated output (#2979)
 - BC: `reduce` and `into` declare their arities, so a wrong argument count raises an arity error rather than the hand-written "expected 2 or 3 arguments" message (#2975)
 - BC: `get-in` declares `[ds ks]` and `[ds ks opt]` instead of `[ds ks & [opt]]`; a fourth argument is now an arity error rather than silently ignored (#2964)
 - BC: `(arity get)` and `(arity assoc)` now report `0`. Both became multi-arity, and a multi-arity function compiles to one variadic dispatch, which `arity` documents as `0` (#2960 #2962)
@@ -119,6 +120,7 @@ Runtime core:
 - Sort an all-int collection natively instead of calling back into Phel per comparison (#3003)
 - Declare real arities on `reduce` and `into` instead of a `case` over a rest argument (#2975)
 - Give `+`, `-`, `*` and `/` fixed arities, cutting untagged two-operand arithmetic 7.7x (#2978)
+- Give `=`, `not=`, `identical?`, `<`, `<=`, `>` and `>=` fixed arities and a declared `bool` return (#2979)
 
 ### Removed
 

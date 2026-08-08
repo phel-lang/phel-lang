@@ -3,7 +3,7 @@
 (fn [x] (some? x))
 (fn [^array a] (count a))
 --PHP--
-(function($x) {
+(function($x): bool {
   return ($x === null);
 });(function($x) {
   return ($x !== null);

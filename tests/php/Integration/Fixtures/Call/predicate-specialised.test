@@ -6,9 +6,9 @@
 (fn [^int n] (pos? n))
 (fn [^float n] (neg? n))
 --PHP--
-(function($x) {
+(function($x): bool {
   return ($x === true);
-});(function($x) {
+});(function($x): bool {
   return ($x === false);
 });(function($x) {
   return (($__truthy = $x) !== null && $__truthy !== false);
