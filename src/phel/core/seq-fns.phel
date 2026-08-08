@@ -137,67 +137,66 @@
 When `from` is associative, it is treated as a sequence of key-value pairs. Supports persistent and transient collections."
   {:example "(into [] '(1 2 3)) ; => [1 2 3]"
    :see-also ["conj" "concat" "transduce"]}
-  [to & rest]
-  (case (count rest)
-    0 to
-    2 (let [xf   (first rest)
-            from (second rest)]
-        (transduce xf conj to from))
-    1 (let [from (first rest)]
-        (if (php/=== nil from)
-          to
-          (let [entries (into-entries from)]
-            (cond
-              ;; Fast paths: persistent vector/set/hash-map targets build via transients,
-              ;; turning O(N log N) repeated copy-on-write into O(N).
-              (vector? to)
-              (persistent
-               (for [value :in entries
-                     :reduce [acc (transient to)]]
-                 (conj acc value)))
+  ;; Real arities rather than `(case (count rest) ...)` over a rest argument.
+  ;; That spelling paid twice: once for the variadic parameter, once for
+  ;; recovering the arguments with `count`, `first` and `second` after the
+  ;; caller had already passed them positionally. See #2973.
+  ([to] to)
+  ([to from]
+   (if (php/=== nil from)
+     to
+     (let [entries (into-entries from)]
+       (cond
+            ;; Fast paths: persistent vector/set/hash-map targets build via transients,
+            ;; turning O(N log N) repeated copy-on-write into O(N).
+         (vector? to)
+         (persistent
+          (for [value :in entries
+                :reduce [acc (transient to)]]
+            (conj acc value)))
 
-              (set? to)
-              (persistent
-               (for [value :in entries
-                     :reduce [acc (transient to)]]
-                 (conj acc value)))
+         (set? to)
+         (persistent
+          (for [value :in entries
+                :reduce [acc (transient to)]]
+            (conj acc value)))
 
-              (map? to)
-              (persistent
-               (for [entry :in entries
-                     :reduce [acc (transient to)]]
-                 (assoc-into-entry acc entry)))
+         (map? to)
+         (persistent
+          (for [entry :in entries
+                :reduce [acc (transient to)]]
+            (assoc-into-entry acc entry)))
 
-              (map-into-target? to)
-              (for [entry :in entries
-                    :reduce [acc to]]
-                (assoc-into-entry acc entry))
+         (map-into-target? to)
+         (for [entry :in entries
+               :reduce [acc to]]
+           (assoc-into-entry acc entry))
 
-              (transient-vector? to)
-              (for [value :in entries
-                    :reduce [acc to]]
-                (conj acc value))
+         (transient-vector? to)
+         (for [value :in entries
+               :reduce [acc to]]
+           (conj acc value))
 
-              (transient-set? to)
-              (for [value :in entries
-                    :reduce [acc to]]
-                (conj acc value))
+         (transient-set? to)
+         (for [value :in entries
+               :reduce [acc to]]
+           (conj acc value))
 
-              (php/instanceof to PushInterface)
-              (for [value :in entries
-                    :reduce [acc to]]
-                (conj acc value))
+         (php/instanceof to PushInterface)
+         (for [value :in entries
+               :reduce [acc to]]
+           (conj acc value))
 
-              (php/instanceof to ConcatInterface)
-              (.concat to (apply php/array entries))
+         (php/instanceof to ConcatInterface)
+         (.concat to (apply php/array entries))
 
-              (php/is_array to)
-              (concat to entries)
+         (php/is_array to)
+         (concat to entries)
 
-              (throw (new InvalidArgumentException
-                          (php/. "Cannot convert into type " (type to))))))))
-    (throw (new InvalidArgumentException "into expects 1, 2, or 3 arguments"))))
-
+         (throw (new InvalidArgumentException
+                     (php/. "Cannot convert into type " (type to))))))))
+  ([to xf from]
+   (transduce xf conj to from)))
 (defn- conj-impl
   [coll value]
   (cond

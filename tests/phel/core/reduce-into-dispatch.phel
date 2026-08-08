@@ -1,0 +1,40 @@
+(ns phel-test.core.reduce-into-dispatch
+  (:require phel.test :refer [deftest is thrown?]))
+
+;; Pins `reduce` and `into` across their arity boundaries. Both expressed
+;; those arities as a `case` over a rest argument, so the cases below are the
+;; ones that move when the dispatch does.
+
+(deftest test-reduce-two-args
+  (is (= 10 (reduce + [1 2 3 4])) "sum without an init")
+  (is (= 1 (reduce + [1])) "single element without an init")
+  (is (= 0 (reduce + [])) "empty collection calls f with no arguments")
+  (is (= 0 (reduce + nil)) "nil collection calls f with no arguments"))
+
+(deftest test-reduce-three-args
+  (is (= 20 (reduce + 10 [1 2 3 4])) "sum with an init")
+  (is (= 10 (reduce + 10 [])) "empty collection returns the init")
+  (is (= 10 (reduce + 10 nil)) "nil collection returns the init"))
+
+(deftest test-reduce-early-termination
+  (is (= 3 (reduce (fn [acc x] (if (= x 3) (reduced acc) (+ acc x))) 0 [1 2 3 4]))
+      "reduced stops the reduction and unwraps")
+  (is (= 6 (reduce (fn [acc x] (if (= x 10) (reduced acc) (+ acc x))) 0 [1 2 3]))
+      "a reduced that never fires runs to the end"))
+
+(deftest test-reduce-over-a-non-seq-iterable
+  ;; The no-init arity seeds from `seq` on purpose: `first`/`next` reject a
+  ;; plain iterable, `seq` normalises one.
+  (is (= 9 (reduce + (eduction (map inc) [1 2 3]))) "eduction without an init")
+  (is (= 19 (reduce + 10 (eduction (map inc) [1 2 3]))) "eduction with an init"))
+
+(deftest test-into
+  (is (= [1 2 3] (into [] '(1 2 3))) "list into a vector")
+  (is (= [1 2 3 4] (into [1 2] '(3 4))) "onto a non-empty vector")
+  (is (= [] (into [])) "one argument returns the target")
+  (is (= [1 2] (into [1 2] nil)) "a nil source leaves the target alone")
+  (is (= {:a 1 :b 2} (into {} [[:a 1] [:b 2]])) "pairs into a map"))
+
+(deftest test-into-with-a-transducer
+  (is (= [2 3 4] (into [] (map inc) [1 2 3])) "a transducer arity")
+  (is (= [1 3] (into [] (filter odd?) [1 2 3])) "filtering transducer"))
