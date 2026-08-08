@@ -30,6 +30,7 @@ The source map is split across the boundary on purpose: the writer (`Domain/Emit
 Lexer (source → `TokenStream`) → Parser (→ `FileNode` parse tree) → Reader (→ `ReaderResult` Phel data) → Analyzer (→ `AbstractNode` AST with `NodeEnvironment`) → Simplifier (→ optimized AST) → Emitter (→ `EmitterResult` PHP code).
 
 - Lexer `Token` and parse-tree nodes live in `Phel\Shared\Parser\Node`; `ExpressionParserFactory` produces them (sub-parsers in `Domain/Parser/ExpressionParser/`).
+- The `#php` reader tag expands vectors to indexed PHP arrays and maps to associative PHP arrays; literal keyword map keys become strings at read time.
 
 ### Interop shorthand expansion
 
