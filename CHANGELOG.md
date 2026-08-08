@@ -74,6 +74,7 @@ All notable changes to this project will be documented in this file.
 - Warn when a `def` shadows a loadable PHP class; `\DateTime` still reaches the class (#2876)
 - Suppress deprecation reports for code under `vendor/` (#2827)
 - BC: `get` declares `[ds k]` and `[ds k opt]` instead of `[ds k & [opt]]`; a fourth argument is now an arity error rather than silently ignored (#2960)
+- BC: `(arity get)` and `(arity assoc)` now report `0`. Both became multi-arity, and a multi-arity function compiles to one variadic dispatch, which `arity` documents as `0` (#2960 #2962)
 - BC: require `symfony/console` `^7.3|^8.0`
 - BC: require `gacela-project/gacela` `^2.0`
 - BC: expand `ApiFacadeInterface` and add `FormatterFacadeInterface::formatString`
@@ -97,6 +98,7 @@ Runtime core:
 - Order `int` and `conj` dispatch by how often each case is hit (#2965)
 - Reach maps and vectors first in `get`, and give it fixed `[ds k]` / `[ds k opt]` arities (#2960)
 - Reach collections earlier in `empty?`, and count them without core dispatch (#2961)
+- Give `assoc` a fixed three-argument arity so the common call skips the variadic path (#2962)
 
 ### Removed
 

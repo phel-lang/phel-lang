@@ -153,7 +153,7 @@
 
 (defn arity
   "Returns the number of required parameters of the function `f`. For a variadic function this is the number of parameters before `&`. A multi-arity function compiles to a single variadic dispatch, so it reports `0`."
-  {:example "(arity inc) ; => 1\n(arity assoc) ; => 3"
+  {:example "(arity inc) ; => 1\n(arity swap!) ; => 2"
    :see-also ["variadic?" "apply" "partial"]}
   [f]
   (.getNumberOfRequiredParameters (fn-reflection f)))

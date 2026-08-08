@@ -1,0 +1,21 @@
+(ns phel-test.core.assoc-dispatch
+  (:require phel.test :refer [deftest is thrown?]))
+
+;; Pins `assoc` across the arity boundary. The three-argument call is nearly
+;; every call and is the one that should not pay for the variadic form; the
+;; extras path keeps the odd-argument guard, which is only reachable there.
+
+(deftest test-assoc-three-args
+  (is (= {:a 1 :b 2} (assoc {:a 1} :b 2)) "map gains a key")
+  (is (= {:a 9} (assoc {:a 1} :a 9)) "existing key is replaced")
+  (is (= [9 2] (assoc [1 2] 0 9)) "vector index is replaced")
+  (is (= {:a 1} (assoc nil :a 1)) "nil collection becomes a map"))
+
+(deftest test-assoc-extra-pairs
+  (is (= {:a 1 :b 2 :c 3} (assoc {:a 1} :b 2 :c 3)) "two extra pairs")
+  (is (= {:a 1 :b 2 :c 3 :d 4} (assoc {:a 1} :b 2 :c 3 :d 4)) "three extra pairs")
+  (is (= {:a 3} (assoc {} :a 1 :a 2 :a 3)) "later pairs win over earlier ones"))
+
+(deftest test-assoc-odd-extra-arguments-throw
+  (is (thrown? Throwable (assoc {:a 1} :b 2 :c)) "a dangling key throws")
+  (is (thrown? Throwable (assoc {:a 1} :b 2 :c 3 :d)) "a dangling key after two pairs throws"))
