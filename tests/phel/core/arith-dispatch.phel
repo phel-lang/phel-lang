@@ -1,0 +1,45 @@
+(ns phel-test.core.arith-dispatch
+  (:require phel.test :refer [deftest is thrown?]))
+
+;; Pins every arity of the arithmetic operators plus the nil rejection, which
+;; applies on all of them and is easy to lose when arities are split out.
+
+(deftest test-plus
+  (is (= 0 (+)) "no arguments is the additive identity")
+  (is (= 5 (+ 5)) "one argument is itself")
+  (is (= 3 (+ 1 2)) "two arguments")
+  (is (= 6 (+ 1 2 3)) "three arguments")
+  (is (= 10 (+ 1 2 3 4)) "four arguments"))
+
+(deftest test-minus
+  (is (= 0 (-)) "no arguments is zero")
+  (is (= -4 (- 4)) "one argument negates")
+  (is (= 7 (- 10 3)) "two arguments")
+  (is (= 5 (- 10 3 2)) "three arguments"))
+
+(deftest test-times
+  (is (= 1 (*)) "no arguments is the multiplicative identity")
+  (is (= 5 (* 5)) "one argument is itself")
+  (is (= 6 (* 2 3)) "two arguments")
+  (is (= 24 (* 2 3 4)) "three arguments"))
+
+(deftest test-divide
+  (is (= 1 (/)) "no arguments is one")
+  (is (= 1/2 (/ 2)) "one argument is the reciprocal")
+  (is (= 5 (/ 10 2)) "two arguments")
+  (is (= 1/2 (/ 1 2)) "integer division with a remainder is a Ratio")
+  (is (= 2 (/ 12 3 2)) "three arguments"))
+
+(deftest test-nil-is-rejected-on-every-arity
+  (is (thrown? Throwable (+ nil)) "+ one argument")
+  (is (thrown? Throwable (+ 1 nil)) "+ two arguments")
+  (is (thrown? Throwable (+ nil 1)) "+ first of two")
+  (is (thrown? Throwable (+ 1 2 nil)) "+ in the tail")
+  (is (thrown? Throwable (- 1 nil)) "- two arguments")
+  (is (thrown? Throwable (* 1 nil)) "* two arguments")
+  (is (thrown? Throwable (/ 1 nil)) "/ two arguments"))
+
+(deftest test-mixed-numeric-tower
+  (is (= 3.5 (+ 1 2.5)) "int plus float")
+  (is (= 1/2 (+ 1/4 1/4)) "ratio plus ratio")
+  (is (= 2.0 (* 1.0 2)) "float times int"))

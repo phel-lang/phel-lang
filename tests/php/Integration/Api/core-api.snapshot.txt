@@ -73,7 +73,7 @@ phel.cli/warning  (warning ctx text)
 phel.cli/write  (write ctx text)
 phel.cli/writeln  (writeln ctx text)
 phel.core/%  (% dividend divisor)
-phel.core/*  (* & xs)
+phel.core/*  (*) | (* x) | (* x y) | (* x y & more)
 phel.core/*'  (*' & xs)
 phel.core/**  (** a x)
 phel.core/*argv*  <value>
@@ -82,14 +82,14 @@ phel.core/*build-mode*  <value>
 phel.core/*file*  *file*
 phel.core/*ns*  *ns*
 phel.core/*program*  <value>
-phel.core/+  (+ & xs)
+phel.core/+  (+) | (+ x) | (+ x y) | (+ x y & more)
 phel.core/+'  (+' & xs)
-phel.core/-  (- & xs)
+phel.core/-  (-) | (- x) | (- x y) | (- x y & more)
 phel.core/-'  (-' & xs)
 phel.core/->  (-> x & forms)
 phel.core/->>  (->> x & forms)
 phel.core/->closure  (->closure f)
-phel.core//  (/ & xs)
+phel.core//  (/) | (/ x) | (/ x y) | (/ x y & more)
 phel.core/<  (< a & more)
 phel.core/<=  (<= a & more)
 phel.core/<=>  (<=> a b)
