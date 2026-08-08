@@ -58,6 +58,9 @@ final class CoreDispatchBench
     private $assoc;
 
     /** @var callable */
+    private $getIn;
+
+    /** @var callable */
     private $isEmpty;
 
     /** @var callable */
@@ -74,6 +77,10 @@ final class CoreDispatchBench
     private mixed $vector = null;
 
     private mixed $list = null;
+
+    private mixed $nested = null;
+
+    private mixed $pathAC = null;
 
     private Keyword $keyA;
 
@@ -94,6 +101,7 @@ final class CoreDispatchBench
 
         $this->get = $this->coreFn('get');
         $this->assoc = $this->coreFn('assoc');
+        $this->getIn = $this->coreFn('get-in');
         $this->isEmpty = $this->coreFn('empty?');
         $this->seq = $this->coreFn('seq');
         $this->conj = $this->coreFn('conj');
@@ -103,6 +111,8 @@ final class CoreDispatchBench
         $this->keyC = Keyword::create('c');
         $this->map = Phel::map($this->keyA, 1, Keyword::create('b'), 2);
         $this->vector = Phel::vector([1, 2, 3]);
+        $this->nested = Phel::map($this->keyA, Phel::map($this->keyC, 42));
+        $this->pathAC = Phel::vector([$this->keyA, $this->keyC]);
         $this->list = Phel::list([1, 2, 3]);
     }
 
@@ -133,6 +143,20 @@ final class CoreDispatchBench
     {
         for ($i = 0; $i < self::INNER; ++$i) {
             ($this->get)($this->vector, 1);
+        }
+    }
+
+    /**
+     * Its reference is `bench_get_map`: a two-step `get-in` is two `get` calls
+     * plus the traversal around them, so anything much above twice that number
+     * is the loop rather than the lookups.
+     *
+     * @Revs(1000)
+     */
+    public function bench_get_in_nested(): void
+    {
+        for ($i = 0; $i < self::INNER; ++$i) {
+            ($this->getIn)($this->nested, $this->pathAC);
         }
     }
 
