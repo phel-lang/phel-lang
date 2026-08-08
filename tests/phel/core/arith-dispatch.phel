@@ -43,3 +43,15 @@
   (is (= 3.5 (+ 1 2.5)) "int plus float")
   (is (= 1/2 (+ 1/4 1/4)) "ratio plus ratio")
   (is (= 2.0 (* 1.0 2)) "float times int"))
+
+(deftest test-inc-dec-reject-nil
+  ;; The guard is inlined rather than a call to the variadic `assert-non-nil`,
+  ;; which `core/math` defines and which allocated a rest array for one value.
+  (is (thrown? Throwable (inc nil)) "inc rejects nil")
+  (is (thrown? Throwable (dec nil)) "dec rejects nil"))
+
+(deftest test-inc-dec-values
+  (is (= 2 (inc 1)) "inc int")
+  (is (= 4 (dec 5)) "dec int")
+  (is (= 2.5 (inc 1.5)) "inc float")
+  (is (= 3/4 (inc -1/4)) "inc ratio"))

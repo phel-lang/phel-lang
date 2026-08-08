@@ -275,7 +275,7 @@ returns 1. If `xs` has one value, returns the reciprocal of x.
   {:example "(inc 1) ; => 2"
    :see-also ["dec" "+"]}
   [x]
-  (assert-non-nil x)
+  (assert-non-nil-1 x)
   (NumericOperations/add x 1))
 
 (defn dec
@@ -283,7 +283,7 @@ returns 1. If `xs` has one value, returns the reciprocal of x.
   {:example "(dec 5) ; => 4"
    :see-also ["inc" "-"]}
   [x]
-  (assert-non-nil x)
+  (assert-non-nil-1 x)
   (NumericOperations/subtract x 1))
 
 (defn- promote-int->bigint
