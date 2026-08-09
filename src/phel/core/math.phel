@@ -602,21 +602,33 @@ returns 1. If `xs` has one value, returns the reciprocal of x.
   "Returns the minimum of all arguments. Returns `##NaN` whenever any numeric argument is `##NaN`."
   {:example "(min 3 1 2) ; => 1"
    :see-also ["max" "min-key" "extreme"]}
-  [& numbers]
-  (cond
-    (php/=== 1 (count numbers)) (first numbers)
-    (some numeric-nan? numbers) ##NaN
-    :else                       (extreme < numbers)))
+  ;; Fixed arities: the variadic form built a lazy sequence, via `some`, to
+  ;; NaN-check two arguments. The tail folds through the pair arity so NaN
+  ;; propagation stays in one place (#2991).
+  ([x] x)
+  ([x y]
+   (cond
+     (numeric-nan? x) ##NaN
+     (numeric-nan? y) ##NaN
+     (< x y)          x
+     :else            y))
+  ([x y & more] (reduce min (min x y) more)))
 
 (defn max
   "Returns the maximum of all arguments. Returns `##NaN` whenever any numeric argument is `##NaN`."
   {:example "(max 3 1 2) ; => 3"
    :see-also ["min" "max-key" "extreme"]}
-  [& numbers]
-  (cond
-    (php/=== 1 (count numbers)) (first numbers)
-    (some numeric-nan? numbers) ##NaN
-    :else                       (extreme > numbers)))
+  ;; Fixed arities: the variadic form built a lazy sequence, via `some`, to
+  ;; NaN-check two arguments. The tail folds through the pair arity so NaN
+  ;; propagation stays in one place (#2991).
+  ([x] x)
+  ([x y]
+   (cond
+     (numeric-nan? x) ##NaN
+     (numeric-nan? y) ##NaN
+     (> x y)          x
+     :else            y))
+  ([x y & more] (reduce max (max x y) more)))
 
 (defn min-key
   "Returns the arg for which (k arg) is smallest. On ties, returns the latest argument."
