@@ -1,0 +1,64 @@
+(ns phel-test.core.for-dispatch
+  (:require phel.test :refer [deftest is]))
+
+;; Pins the whole `for` surface before its accumulator changes: every verb,
+;; every modifier, nesting, the `:reduce` path, and the result type.
+
+(deftest test-verbs
+  (is (= [1 2 3] (for [x :in [1 2 3]] x)) ":in over a vector")
+  (is (= [2 4 6] (for [x :in [1 2 3]] (* x 2))) ":in with a body expression")
+  (is (= [0 1 2] (for [x :range [0 3]] x)) ":range")
+  (is (= [:a :b] (for [k :keys {:a 1 :b 2}] k)) ":keys over a map")
+  (is (= [[:a 1] [:b 2]] (for [p :pairs {:a 1 :b 2}] p)) ":pairs over a map")
+  (is (= [0 1 2] (for [k :keys [10 20 30]] k)) ":keys over a vector gives indexes")
+  (is (= ["a" "b"] (for [c :in "ab"] c)) ":in over a string"))
+
+(deftest test-modifiers
+  (is (= [1 3 5] (for [x :in [1 2 3 4 5] :when (odd? x)] x)) ":when filters")
+  (is (= [1 2] (for [x :in [1 2 3 4] :while (< x 3)] x)) ":while stops")
+  (is (= [10 20] (for [x :in [1 2] :let [y (* x 10)]] y)) ":let binds")
+  (is (= [2 8] (for [x :in [1 2 3] :when (odd? x) :let [y (* x 2)]] (+ y (dec x))))
+      ":when and :let together"))
+
+(deftest test-nesting
+  (is (= [[1 3] [1 4] [2 3] [2 4]] (for [x :in [1 2] y :in [3 4]] [x y]))
+      "two bindings nest")
+  (is (= [[1 3] [2 3]] (for [x :in [1 2] y :in [3 4] :when (= y 3)] [x y]))
+      "a modifier applies to the inner binding"))
+
+(deftest test-empty-and-nil
+  (is (= [] (for [x :in []] x)) "empty collection gives an empty vector")
+  (is (= [] (for [x :in {}] x)) "empty map")
+  (is (= [] (for [x :in [1 2 3] :when false] x)) "everything filtered out"))
+
+(deftest test-reduce-option
+  (is (= 6 (for [x :in [1 2 3] :reduce [acc 0]] (+ acc x))) ":reduce sums")
+  (is (= [3 2 1] (for [x :in [1 2 3] :reduce [acc []]] (cons x acc))) ":reduce builds")
+  (is (= 0 (for [x :in [] :reduce [acc 0]] (+ acc x))) ":reduce over empty returns the init")
+  (is (= 4 (for [x :in [1 2 3 4] :when (even? x) :reduce [acc 0]] (+ acc (- x acc))))
+      ":reduce with a modifier"))
+
+(deftest test-result-type
+  (is (vector? (for [x :in [1 2]] x)) "the collecting form returns a vector")
+  (is (vector? (for [x :in []] x)) "an empty result is still a vector"))
+
+(deftest test-callers-that-build-on-for
+  (is (= [:a :b] (keys {:a 1 :b 2})) "keys")
+  (is (= [1 2] (vals {:a 1 :b 2})) "vals")
+  (is (nil? (keys {})) "keys on an empty map is nil")
+  (is (= [1 2 3] (vec (php-indexed-array 1 2 3))) "vec")
+  (is (= {1 2, 3 1} (frequencies [1 1 3])) "frequencies"))
+
+(deftest test-nested-for-forms-keep-separate-accumulators
+  ;; Each `for` gensyms its own accumulator, so an inner one must not append
+  ;; into the outer one whichever way they are nested.
+  (is (= [[11 21] [12 22]] (for [x :in [1 2]] (for [y :in [10 20]] (php/+ x y))))
+      "a collecting for inside a collecting for")
+  (is (= [[6] [7]] (for [x :in [1 2] :reduce [a []]] (conj a (for [y :in [5]] (php/+ x y)))))
+      "a collecting for inside a :reduce for")
+  (is (= [11 11] (for [x :in [1 2]] (for [y :in [5 6] :reduce [a 0]] (php/+ a y))))
+      "a :reduce for inside a collecting for"))
+
+(deftest test-metadata-survives-the-accumulator
+  (is (= {:tag :m} (meta (keys (with-meta {:a 1} {:tag :m}))))
+      "keys copies the source metadata onto the result"))

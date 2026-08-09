@@ -327,20 +327,30 @@ Returns the new value after the swap."
      is bound to `initial-value`."
   {:example "(for [x :in [1 2 3]] (* x 2)) ; => [2 4 6]"}
   [head & body]
-  (let [res-sym   (gensym "res__")
-        acc-sym   (gensym "acc__")
-        options   (for-builder-options head 0 {})
-        swap-body (if (:reduce options)
-                    (let [[sym _] (:reduce options)]
-                      `(swap! ~res-sym (fn [~sym] (do ~@body))))
-                    `(swap! ~res-sym (fn [~acc-sym] (conj ~acc-sym (do ~@body)))))
-        init      (if (:reduce options)
-                    (second (:reduce options))
-                    [])
-        loop-body (for-builder swap-body head 0)]
-    `(let [~res-sym (atom ~init)]
-       ~loop-body
-       (deref ~res-sym))))
+  (let [res-sym (gensym "res__")
+        options (for-builder-options head 0 {})]
+    (if (:reduce options)
+      ;; `:reduce` threads a user-named accumulator whose value is whatever the
+      ;; body returns, so it keeps the atom: there is nothing to append to.
+      (let [[sym _]   (:reduce options)
+            loop-body (for-builder `(swap! ~res-sym (fn [~sym] (do ~@body))) head 0)]
+        `(let [~res-sym (atom ~(second (:reduce options)))]
+           ~loop-body
+           (deref ~res-sym)))
+
+      ;; The collecting form appends, so it does not need an atom at all.
+      ;; It used to pay, per element, a `swap!`, a closure, and a `conj` onto a
+      ;; persistent vector, which is copy-on-write and so O(N log N) over the
+      ;; loop. A PHP array appends in place and converts once at the end.
+      ;;
+      ;; This is sound because `for-builder` emits `foreach` in statement
+      ;; position, which the emitter compiles inline rather than as a closure,
+      ;; so `php/apush` reaches the binding above it. `:when`, `:while` and
+      ;; `:let` only wrap the body further inside that same scope.
+      (let [loop-body (for-builder `(php/apush ~res-sym (do ~@body)) head 0)]
+        `(let [~res-sym (php/array)]
+           ~loop-body
+           (Phel/vector ~res-sym))))))
 
 (defmacro dofor
   "Repeatedly executes body for side effects with bindings and modifiers as provided by for. Returns nil."
