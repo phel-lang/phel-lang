@@ -9,6 +9,7 @@ use Generator;
 use Iterator;
 use IteratorAggregate;
 use Phel\Lang\Collections\Exceptions\NotASeqException;
+use Phel\Lang\Collections\LazySeq\ChunkedSeq;
 use Phel\Lang\Collections\LazySeq\Cons;
 use Phel\Lang\Collections\LazySeq\LazySeq;
 use Phel\Lang\Collections\LazySeq\LazySeqInterface;
@@ -17,6 +18,7 @@ use PhelTest\Unit\Lang\Collections\ModuloHasher;
 use PhelTest\Unit\Lang\Collections\SimpleEqualizer;
 use PHPUnit\Framework\TestCase;
 
+use function iterator_to_array;
 use function sprintf;
 
 final class LazySeqTest extends TestCase
@@ -29,6 +31,51 @@ final class LazySeqTest extends TestCase
     {
         $this->hasher = new ModuloHasher();
         $this->equalizer = new SimpleEqualizer();
+    }
+
+    /**
+     * A `LazySeq` whose realized value is a `ChunkedSeq` used to yield only its
+     * first element from `getIterator()`, because the walk assigned null to
+     * anything that was not a `LazySeq` and stopped. `toArray()` merged the
+     * same tail correctly, so the two traversals of one value disagreed
+     * (#3020).
+     */
+    public function test_iterates_a_chunked_tail_to_the_end(): void
+    {
+        $lazySeq = new LazySeq(
+            $this->hasher,
+            $this->equalizer,
+            fn(): ?ChunkedSeq => ChunkedSeq::fromGenerator(
+                $this->hasher,
+                $this->equalizer,
+                (static function (): Generator {
+                    yield from [1, 2, 3, 4];
+                })(),
+            ),
+        );
+
+        self::assertSame([1, 2, 3, 4], iterator_to_array($lazySeq, false));
+    }
+
+    /**
+     * The two traversals must agree, which is the property that actually broke:
+     * there was no error, just a shorter sequence from one of them.
+     */
+    public function test_iterator_and_to_array_agree_on_a_chunked_tail(): void
+    {
+        $make = fn(): LazySeq => new LazySeq(
+            $this->hasher,
+            $this->equalizer,
+            fn(): ?ChunkedSeq => ChunkedSeq::fromGenerator(
+                $this->hasher,
+                $this->equalizer,
+                (static function (): Generator {
+                    yield from [1, 2, 3, 4];
+                })(),
+            ),
+        );
+
+        self::assertSame($make()->toArray(), iterator_to_array($make(), false));
     }
 
     public function test_creates_lazy_seq_from_function(): void

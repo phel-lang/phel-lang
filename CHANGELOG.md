@@ -23,6 +23,7 @@ All notable changes to this project will be documented in this file.
 
 ### Fixed
 
+- Fix `lazy-seq` over a chunked sequence (`take`, `keep`, `range`, ...) yielding only its first element while `count` reported the true length (#3020)
 - Stop the scan-index and namespace caches growing without bound on every `phel doc`, LSP hover and REPL completion (#3007)
 - Fix literal matching in `phel.string/replace` and `replace-first` (#2957)
 - Stop internal test, nREPL and watch eval forms from emitting namespace separator deprecations (#2950)
