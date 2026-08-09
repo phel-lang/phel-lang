@@ -28,36 +28,73 @@
 ;; Basic methods for quasiquote and destructure
 ;; --------------------------------------------
 
+;; Each constructor declares real arities for the small argument counts it is
+;; actually called with, and keeps a variadic tail for the rest. A `&`
+;; parameter costs several times a fixed one per call before the body runs
+;; (#2973), and these five sit on the quasiquote and destructuring expansion
+;; paths, so they pay it more often than anything else in the language.
+;; The tail still accepts every argument count, so nothing that used to be a
+;; runtime error becomes a compile-time one, and an odd argument count still
+;; reaches `Phel/map` and still throws there (#3010).
+
 (def list
   {:doc "Creates a new list. If no argument is provided, an empty list is created. Shortcut: '()"
    :example "(list 1 2 3) ; => '(1 2 3)"}
-  (fn [& xs]
-    (Phel/list (apply php/array xs))))
+  (fn
+    ([] (Phel/list (php/array)))
+    ([a] (Phel/list (php/array a)))
+    ([a b] (Phel/list (php/array a b)))
+    ([a b c] (Phel/list (php/array a b c)))
+    ([a b c & more] (Phel/list (apply php/array a b c more)))))
 
 (def vector
   {:doc "Creates a new vector. If no argument is provided, an empty vector is created. Shortcut: []"
    :example "(vector 1 2 3) ; => [1 2 3]"}
-  (fn [& xs]
-    (Phel/vector (apply php/array xs))))
+  (fn
+    ([] (Phel/vector (php/array)))
+    ([a] (Phel/vector (php/array a)))
+    ([a b] (Phel/vector (php/array a b)))
+    ([a b c] (Phel/vector (php/array a b c)))
+    ([a b c & more] (Phel/vector (apply php/array a b c more)))))
 
 (def queue
   {:doc "Creates a persistent FIFO queue. With no arguments returns an empty queue; with arguments returns a queue with the values pushed in order so that the first argument is at the front."
    :example "(queue 1 2 3) ; => <-(1 2 3)-<"}
-  (fn [& xs]
-    (Phel/queue (apply php/array xs))))
+  (fn
+    ([] (Phel/queue (php/array)))
+    ([a] (Phel/queue (php/array a)))
+    ([a b] (Phel/queue (php/array a b)))
+    ([a b c] (Phel/queue (php/array a b c)))
+    ([a b c & more] (Phel/queue (apply php/array a b c more)))))
 
+;; The map constructors take key/value pairs, so the arities that matter are
+;; the even ones: 2 and 4 cover the overwhelming majority of literal maps. The
+;; odd arities in between are declared anyway, and deliberately: without them
+;; an odd argument count would match no arity at all and fail on dispatch,
+;; where today it reaches `Phel/map` and throws there. Keeping them routes
+;; every count to the same constructor and leaves that error exactly as it was.
 (def hash-map
   {:doc "Creates a new hash map. If no argument is provided, an empty hash map is created. The number of parameters must be even. Shortcut: {}"
    :example "(hash-map :a 1 :b 2) ; => {:a 1, :b 2}"}
-  (fn [& xs]
-    (Phel/map (apply php/array xs))))
+  (fn
+    ([] (Phel/map (php/array)))
+    ([k] (Phel/map (php/array k)))
+    ([k v] (Phel/map (php/array k v)))
+    ([k v k2] (Phel/map (php/array k v k2)))
+    ([k v k2 v2] (Phel/map (php/array k v k2 v2)))
+    ([k v k2 v2 & more] (Phel/map (apply php/array k v k2 v2 more)))))
 
 (def array-map
   {:doc "Constructs a map from the given key/value pairs. If any keys are equal, later values replace earlier ones, as if by repeated `assoc`. Phel has no distinct array-map type, so the result is the same persistent map as `hash-map` — `array-map` exists for `.cljc` interop with Clojure sources."
    :example "(array-map :a 1 :b 2) ; => {:a 1, :b 2}"
    :see-also ["hash-map"]}
-  (fn [& xs]
-    (Phel/map (apply php/array xs))))
+  (fn
+    ([] (Phel/map (php/array)))
+    ([k] (Phel/map (php/array k)))
+    ([k v] (Phel/map (php/array k v)))
+    ([k v k2] (Phel/map (php/array k v k2)))
+    ([k v k2 v2] (Phel/map (php/array k v k2 v2)))
+    ([k v k2 v2 & more] (Phel/map (apply php/array k v k2 v2 more)))))
 
 (def next-vector-or-nil
   {:private true
