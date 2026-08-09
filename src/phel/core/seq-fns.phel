@@ -97,7 +97,18 @@
   (case (count fs)
     0 identity
     1 (first fs)
-    2 #((first fs) (apply (second fs) %&))
+    ;; Both functions are pulled out of `fs` here rather than inside the
+    ;; closure: the previous `#((first fs) (apply (second fs) %&))` re-ran both
+    ;; lookups on every call, on top of building a rest vector and going
+    ;; through `apply`. Real arities on the closure remove the rest of it
+    ;; (#3021).
+    2 (let [outer (first fs)
+            inner (second fs)]
+        (fn
+          ([] (outer (inner)))
+          ([a] (outer (inner a)))
+          ([a b] (outer (inner a b)))
+          ([a b & more] (outer (apply inner a b more)))))
     (reduce comp fs)))
 
 (defn- map-entry-source?

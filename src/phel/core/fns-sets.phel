@@ -202,25 +202,83 @@
   "Takes a function `f` and fewer than the normal number of arguments to `f`, and returns a function that takes a variable number of additional arguments. When called, `f` will be invoked with the bound `args` prepended to the additional arguments."
   {:example "((partial + 10) 1 2) ; => 13"
    :see-also ["comp" "apply"]}
+  ;; The returned closure is what runs per call, so it is the thing that must
+  ;; not be variadic. The bound argument count is known here, once, so dispatch
+  ;; on it now and hand back a closure with real arities; the previous single
+  ;; `#(apply f (concat args %&))` rebuilt a rest vector, built a lazy seq with
+  ;; `concat`, and went through `apply` on every call, which cost 44x the call
+  ;; it was wrapping (#3021). Clojure specialises the same three counts.
   [f & args]
-  #(apply f (concat args %&)))
+  (case (count args)
+    1 (let [a (first args)]
+        (fn
+          ([] (f a))
+          ([x] (f a x))
+          ([x y] (f a x y))
+          ([x y & more] (apply f a x y more))))
+    2 (let [a (first args)
+            b (second args)]
+        (fn
+          ([] (f a b))
+          ([x] (f a b x))
+          ([x y] (f a b x y))
+          ([x y & more] (apply f a b x y more))))
+    3 (let [a (first args)
+            b (second args)
+            c (get args 2)]
+        (fn
+          ([] (f a b c))
+          ([x] (f a b c x))
+          ([x y] (f a b c x y))
+          ([x y & more] (apply f a b c x y more))))
+    (fn [& more] (apply f (concat args more)))))
 
 (defn fnil
   "Returns a function that replaces nil arguments with the provided defaults before calling f. The number of defaults determines how many leading arguments are nil-checked."
   {:example "(let [safe-inc (fnil inc 0)] (safe-inc nil)) ; => 1"
    :see-also ["partial" "comp"]}
+  ;; As with `partial`, the returned closure is what runs per call. The general
+  ;; form below rebuilt a rest vector, walked it with a transient `for`, and
+  ;; `apply`ed, which cost 56x the call it wrapped (#3021). The number of
+  ;; defaults is known here, so the common counts get closures that patch the
+  ;; arguments inline, the way Clojure spells it.
   [f & defaults]
-  (let [n (count defaults)]
-    (fn [& args]
-      (let [patched (persistent
-                     (for [i :range [0 (count args)]
-                           :reduce [acc (transient [])]]
-                       (let [arg (get args i)]
-                         (conj acc
-                               (if (and (php/< i n) (nil? arg))
-                                 (get defaults i)
-                                 arg)))))]
-        (apply f patched)))))
+  (case (count defaults)
+    1 (let [x (first defaults)]
+        (fn
+          ([a] (f (if (nil? a) x a)))
+          ([a b] (f (if (nil? a) x a) b))
+          ([a b c] (f (if (nil? a) x a) b c))
+          ([a b c & more] (apply f (if (nil? a) x a) b c more))))
+    2 (let [x (first defaults)
+            y (second defaults)]
+        (fn
+          ([a] (f (if (nil? a) x a)))
+          ([a b] (f (if (nil? a) x a) (if (nil? b) y b)))
+          ([a b c] (f (if (nil? a) x a) (if (nil? b) y b) c))
+          ([a b c & more] (apply f (if (nil? a) x a) (if (nil? b) y b) c more))))
+    3 (let [x (first defaults)
+            y (second defaults)
+            z (get defaults 2)]
+        (fn
+          ([a] (f (if (nil? a) x a)))
+          ([a b] (f (if (nil? a) x a) (if (nil? b) y b)))
+          ([a b c] (f (if (nil? a) x a) (if (nil? b) y b) (if (nil? c) z c)))
+          ([a b c & more] (apply f (if (nil? a) x a) (if (nil? b) y b) (if (nil? c) z c) more))))
+    ;; 0 defaults, or more than three: keep the general walk. It patches the
+    ;; first `n` arguments that are present, which is the contract the fixed
+    ;; arities above reproduce.
+    (let [n (count defaults)]
+      (fn [& args]
+        (let [patched (persistent
+                       (for [i :range [0 (count args)]
+                             :reduce [acc (transient [])]]
+                         (let [arg (get args i)]
+                           (conj acc
+                                 (if (and (php/< i n) (nil? arg))
+                                   (get defaults i)
+                                   arg)))))]
+          (apply f patched))))))
 
 (defn trampoline
   "Calls `f` with any supplied `args`. While the return value is a function, calls it with no arguments and repeats; returns the first non-function value. Use it for stack-safe mutual recursion: have the functions return a zero-argument function wrapping the next call instead of calling it directly. Only Phel functions bounce — keywords and collections, although callable, are returned as-is. To return a function as the final value, wrap it in a collection and unwrap it after `trampoline` returns."
