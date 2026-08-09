@@ -23,6 +23,7 @@ All notable changes to this project will be documented in this file.
 
 ### Fixed
 
+- Stop the emptiness check on a lazy sequence realizing the whole sequence: an unbounded source now terminates, a 2,000,000 element one no longer crashes, and taking 5 of a 200,000 element `lazy-seq` drops from 21ms to 0.004ms (#3023)
 - Fix `lazy-seq` over a chunked sequence (`take`, `keep`, `range`, ...) yielding only its first element while `count` reported the true length (#3020)
 - Stop the scan-index and namespace caches growing without bound on every `phel doc`, LSP hover and REPL completion (#3007)
 - Fix literal matching in `phel.string/replace` and `replace-first` (#2957)

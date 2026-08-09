@@ -12,6 +12,7 @@ use Phel\Lang\Collections\Exceptions\NotASeqException;
 use Phel\Lang\Collections\Map\PersistentMapInterface;
 use Phel\Lang\EqualizerInterface;
 use Phel\Lang\HasherInterface;
+use Phel\Lang\Seq;
 use Phel\Lang\SeqInterface;
 
 use Traversable;
@@ -324,7 +325,7 @@ final class LazySeq extends AbstractType implements LazySeqInterface, Countable,
                 break;
             }
 
-            if ($realized instanceof Countable && count($realized) === 0) {
+            if ($this->isEmptySeq($realized)) {
                 break;
             }
 
@@ -367,7 +368,7 @@ final class LazySeq extends AbstractType implements LazySeqInterface, Countable,
                 return;
             }
 
-            if ($realized instanceof Countable && count($realized) === 0) {
+            if ($this->isEmptySeq($realized)) {
                 return;
             }
 
@@ -439,6 +440,36 @@ final class LazySeq extends AbstractType implements LazySeqInterface, Countable,
         }
 
         return LazySeqEquality::walkPairwise($this->getIterator(), $otherIter, $this->equalizer);
+    }
+
+    /**
+     * Whether a realized seq holds no elements, without realizing it.
+     *
+     * `count()` cannot answer this for a lazy seq: both `LazySeq::count()` and
+     * `ChunkedSeq::count()` compute it by realizing the whole sequence, and
+     * each says so in its own comment. Asking it here materialized every
+     * element of a chunked tail before the first one was yielded, and over an
+     * unbounded source never returned at all (#3023).
+     *
+     * `first() === null` cannot answer it either, because nil is a legitimate
+     * element: `(lazy-seq [nil])` holds one, not zero.
+     *
+     * So: a Countable that is not lazy knows its size in O(1) and is asked
+     * directly, and a lazy one is probed with {@see Seq::isEmpty()}, which
+     * pulls at most one element and therefore distinguishes "empty" from
+     * "first element is nil" without draining anything.
+     */
+    private function isEmptySeq(mixed $seq): bool
+    {
+        if ($seq instanceof Countable && !$seq instanceof LazySeqInterface) {
+            return count($seq) === 0;
+        }
+
+        if ($seq instanceof Traversable) {
+            return Seq::isEmpty($seq);
+        }
+
+        return false;
     }
 
     /**
