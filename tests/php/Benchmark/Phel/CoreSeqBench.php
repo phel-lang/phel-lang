@@ -13,8 +13,8 @@ use function usort;
 
 /**
  * The sequence functions of `phel.core` that carry an optimisation with no
- * benchmark guarding it: `sort` (#3003), `interleave` (#3002), `reduce` and
- * `into` (#2977), `count` (#2969, #2971).
+ * benchmark guarding it: `sort` (#3003), `sort-by` (#3006), `interleave`
+ * (#3002), `reduce` and `into` (#2977), `count` (#2969, #2971).
  *
  * Sizes are deliberately small. These subjects exist to catch a function that
  * grew a per-element or per-call cost it did not have, not to characterise
@@ -31,6 +31,12 @@ final class CoreSeqBench extends CoreBenchCase
 
     /** @var callable */
     private $sort;
+
+    /** @var callable */
+    private $sortBy;
+
+    /** @var callable */
+    private $identity;
 
     /** @var callable */
     private $interleave;
@@ -120,6 +126,45 @@ final class CoreSeqBench extends CoreBenchCase
     public function bench_sort_explicit_comparator(): void
     {
         ($this->sort)($this->ints, $this->compare);
+    }
+
+    /**
+     * `sort-by` computes each key once and sorts `[key value]` pairs (#3006).
+     * What the transform removes is `keyfn` invocations, so the win scales with
+     * what the key function costs and this subject is the floor: `identity` is
+     * about as cheap as a key function gets, so anything the pair loses here is
+     * the transform's own overhead rather than a saving it failed to make.
+     *
+     * @Revs(1000)
+     */
+    public function bench_sort_by_cheap_key(): void
+    {
+        ($this->sortBy)($this->identity, $this->ints);
+    }
+
+    /**
+     * The same sort with a key function that actually does something, which is
+     * the shape real code has. Read against `bench_sort_by_cheap_key`: the gap
+     * between them is the per-key cost, and under the old comparator it was
+     * paid about twice per comparison instead of once per element.
+     *
+     * @Revs(1000)
+     */
+    public function bench_sort_by_counting_key(): void
+    {
+        ($this->sortBy)($this->count, $this->strings);
+    }
+
+    /**
+     * The explicit-comparator arity. It has to apply the comparator to the
+     * keys rather than the values, so it takes a different path through the
+     * transform than the two argument form above.
+     *
+     * @Revs(1000)
+     */
+    public function bench_sort_by_explicit_comparator(): void
+    {
+        ($this->sortBy)($this->count, $this->compare, $this->strings);
     }
 
     /**
@@ -234,6 +279,8 @@ final class CoreSeqBench extends CoreBenchCase
     protected function setUpFixtures(): void
     {
         $this->sort = $this->coreFn('sort');
+        $this->sortBy = $this->coreFn('sort-by');
+        $this->identity = $this->coreFn('identity');
         $this->interleave = $this->coreFn('interleave');
         $this->reduce = $this->coreFn('reduce');
         $this->into = $this->coreFn('into');
