@@ -1,0 +1,119 @@
+(ns phel-test.bench
+  (:use Phel)
+  (:use Phel.Shared.Munge)
+  (:require phel.bench :refer [defbench run-benchmarks])
+  (:require phel.string :as s)
+  (:require phel.test :refer [deftest is]))
+
+;; Every benchmark here is deliberately trivial and runs one rev once: this
+;; suite is about `defbench` and `run-benchmarks` behaving correctly, not about
+;; how long anything takes. A benchmark that took measurable time would make
+;; the test suite slower for no assertion.
+
+(def- fast-options {:revs 1, :iterations 1, :warmup 0})
+
+(defbench bench-fixture-add
+          {:revs 1 :iterations 1 :warmup 0}
+          (+ 1 1))
+
+(defbench bench-fixture-other
+          {:revs 1 :iterations 1 :warmup 0}
+          (* 2 2))
+
+(defn- bench-meta
+  "The registry munges the namespace but keeps the definition name verbatim,
+so only the first argument goes through `Munge`."
+  [bench-name]
+  (Phel/getDefinitionMetaData (.encodeRegistryKey (new Munge) "phel-test.bench") bench-name))
+
+(defn- temp-path
+  [suffix]
+  (str (php/sys_get_temp_dir) "/phel-bench-test-" (php/uniqid) suffix))
+
+(deftest defbench-defines-a-callable-function
+  (is (= 2 (bench-fixture-add)) "the body is what the defined function returns")
+  (is (= 4 (bench-fixture-other))))
+
+(deftest defbench-marks-the-function-as-a-benchmark
+  (let [m (bench-meta "bench-fixture-add")]
+    (is (true? (:bench m)) "discovery works off :bench metadata")
+    (is (= "bench-fixture-add" (:bench-name m)))
+    (is (= 1 (get (:bench-options m) :revs)) "the option map is kept for the runner")))
+
+(deftest defbench-rejects-a-non-symbol-name
+  (is (thrown? InvalidArgumentException (macroexpand '(phel.bench/defbench "not-a-symbol" (+ 1 1))))))
+
+(deftest defbench-rejects-an-empty-body
+  (is (thrown? InvalidArgumentException (macroexpand '(phel.bench/defbench bench-nothing)))))
+
+(deftest defbench-rejects-an-options-map-with-no-body
+  (is (thrown? InvalidArgumentException (macroexpand '(phel.bench/defbench bench-nothing {:revs 1})))))
+
+(deftest run-benchmarks-reports-every-benchmark-in-the-namespace
+  (let [out (with-output-buffer (run-benchmarks fast-options 'phel-test.bench))]
+    (is (s/contains? out "phel-test.bench/bench-fixture-add"))
+    (is (s/contains? out "phel-test.bench/bench-fixture-other"))
+    (is (s/contains? out "rstdev") "the header is printed")))
+
+(deftest run-benchmarks-applies-the-name-filter
+  (let [out (with-output-buffer (run-benchmarks (merge fast-options {:filter "fixture-add"}) 'phel-test.bench))]
+    (is (s/contains? out "bench-fixture-add"))
+    (is (not (s/contains? out "bench-fixture-other")))))
+
+(deftest run-benchmarks-succeeds-when-nothing-matches
+  (let [result (atom nil)
+        out    (with-output-buffer
+                 (reset! result (run-benchmarks (merge fast-options {:filter "no-such-benchmark"}) 'phel-test.bench)))]
+    (is (true? (deref result)) "an empty selection is not a failure")
+    (is (s/contains? out "No benchmarks found."))))
+
+(deftest run-benchmarks-marks-benchmarks-without-a-baseline-as-new
+  (let [out (with-output-buffer (run-benchmarks fast-options 'phel-test.bench))]
+    (is (s/contains? out "new") "nothing to compare against is not a regression")))
+
+(deftest run-benchmarks-stores-a-baseline
+  (let [path (temp-path ".json")]
+    (with-output-buffer (run-benchmarks (merge fast-options {:store path}) 'phel-test.bench))
+    (is (php/file_exists path))
+    (let [stored (php/json_decode (php/file_get_contents path) true)]
+      (is (php/array_key_exists "phel-test.bench/bench-fixture-add" stored))
+      (is (> (php/aget stored "phel-test.bench/bench-fixture-add") 0)))
+    (php/unlink path)))
+
+(deftest run-benchmarks-compares-against-a-stored-baseline
+  (let [path (temp-path ".json")]
+    (with-output-buffer (run-benchmarks (merge fast-options {:store path}) 'phel-test.bench))
+    (let [out (with-output-buffer (run-benchmarks (merge fast-options {:ref path}) 'phel-test.bench))]
+      (is (not (s/contains? out "new")) "every benchmark is in the baseline")
+      (is (or (s/contains? out "+") (s/contains? out "-")) "a signed delta is printed"))
+    (php/unlink path)))
+
+;; The two tolerance cases use a hand-written baseline rather than a stored one.
+;; A real previous run would make the verdict depend on how fast the machine is
+;; that day, which is the one thing a test must not do.
+
+(deftest run-benchmarks-fails-when-slower-than-the-tolerance
+  (let [path (temp-path ".json")]
+    (php/file_put_contents path "{\"phel-test.bench/bench-fixture-add\": 1, \"phel-test.bench/bench-fixture-other\": 1}")
+    (let [result (atom nil)
+          out    (with-output-buffer
+                   (reset! result (run-benchmarks (merge fast-options {:ref path, :tolerance 1}) 'phel-test.bench)))]
+      (is (false? (deref result)) "one nanosecond is a baseline nothing can meet")
+      (is (s/contains? out "Slower than the baseline")))
+    (php/unlink path)))
+
+(deftest run-benchmarks-passes-when-within-the-tolerance
+  (let [path (temp-path ".json")]
+    (php/file_put_contents path "{\"phel-test.bench/bench-fixture-add\": 1000000000, \"phel-test.bench/bench-fixture-other\": 1000000000}")
+    (let [result (atom nil)]
+      (with-output-buffer
+        (reset! result (run-benchmarks (merge fast-options {:ref path, :tolerance 1}) 'phel-test.bench)))
+      (is (true? (deref result)) "a one second baseline is one nothing can miss"))
+    (php/unlink path)))
+
+(deftest run-benchmarks-ignores-a-missing-baseline-file
+  (let [result (atom nil)
+        out    (with-output-buffer
+                 (reset! result (run-benchmarks (merge fast-options {:ref (temp-path ".json"), :tolerance 1}) 'phel-test.bench)))]
+    (is (true? (deref result)) "a first run has nothing to compare against")
+    (is (s/contains? out "new"))))

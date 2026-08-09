@@ -20,6 +20,7 @@ final class ApiConfig extends AbstractConfig
         return [
             'phel.async',
             'phel.base64',
+            'phel.bench',
             'phel.cli',
             'phel.core',
             'phel.edn',

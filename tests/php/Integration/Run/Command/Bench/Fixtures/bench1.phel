@@ -1,0 +1,13 @@
+(ns fixtures.bench1
+  (:require phel.bench :refer [defbench]))
+
+;; One rev, one iteration, no warmup: the assertions are about what the runner
+;; reports, not about how long anything takes.
+
+(defbench bench-addition
+          {:revs 1 :iterations 1 :warmup 0}
+          (+ 1 2))
+
+(defbench bench-vector-build
+          {:revs 1 :iterations 1 :warmup 0}
+          (into [] [1 2 3]))

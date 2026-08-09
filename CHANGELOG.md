@@ -6,6 +6,7 @@ All notable changes to this project will be documented in this file.
 
 ### Added
 
+- Add `phel.bench` and the `phel bench` command: `defbench` benchmarks written in Phel, with baseline storage (`--store`), comparison (`--ref`) and a tolerance gate (`--tolerance`) (#3005)
 - Allow keyword keys in `#php` map literals (#2952)
 - Add Clojure-style PHP interop for value members, dynamic calls, enum cases and `set!` (#2881 #2883 #2887 #2888 #2907)
 - Add editor completion and hover for Clojure-style PHP interop, including static properties (#2916)

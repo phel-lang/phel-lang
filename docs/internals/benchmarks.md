@@ -1,9 +1,28 @@
 # Benchmarking Phel
 
-[PHPBench](https://phpbench.readthedocs.io/) (in `require-dev`) measures three
+This page is the PHPBench suite, which measures the compiler and the runtime.
+To benchmark **Phel code**, use `defbench` and `phel bench`, documented in
+[Benchmarking](../benchmarking.md).
+
+[PHPBench](https://phpbench.readthedocs.io/) (in `require-dev`) measures four
 areas: CLI commands (`phel run`, `phel test` end to end), persistent collections
-(vector and hash-map hot ops), and core bootstrap (loading and executing
-`phel.core`, tracking compiler startup).
+(vector and hash-map hot ops), core bootstrap (loading and executing
+`phel.core`, tracking compiler startup), and the dispatch cost of the hot
+`phel.core` functions themselves (`Phel/Core*Bench`).
+
+## What the core subjects are for
+
+`Phel/CoreDispatchBench`, `CoreSeqBench`, `CoreArithmeticBench`,
+`CoreConstructionBench` and `CoreMacroBench` call a core function through the
+registry as a PHP callable. Every subject is paired with the raw operation the
+function ultimately performs, `bench_x` against `bench_x_raw`, and the
+reviewable number is the **ratio** between the pair rather than either
+duration: a ratio survives a change of machine, where an absolute figure does
+not. A ratio of 1.0 means the wrapper is free.
+
+CI runs the whole suite twice on the same runner, once on the merge base and
+once on the pull request, and fails at +25%. It can only guard subjects that
+exist, so a change claiming a performance win should add or extend one.
 
 ```bash
 composer phpbench

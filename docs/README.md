@@ -12,6 +12,7 @@ modules, deployment) live on **[phel-lang.org](https://phel-lang.org/documentati
   is, one record per decision, including the ones that look like oversights
 - [CLI Reference & DX Guide](cli-reference.md): every command, the dev loop, and compile vs eval vs run vs build
 - [Project Layout](project-layout.md): the `.phel/` directory and runtime state
+- [Benchmarking](benchmarking.md): `defbench` and `phel bench` for Phel code, PHPBench for the compiler and runtime
 - [Internals](internals/README.md): architecture, compiler phases, AST, emitter,
   macros, runtime, FAQ, benchmarks
 - [Upgrading 0.49 to 1.0](migration/upgrade-0.49-to-1.0.md): what to change, and how to find out whether you need to change anything

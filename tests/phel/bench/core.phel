@@ -1,0 +1,52 @@
+(ns phel-bench.core
+  (:require phel.bench :refer [defbench]))
+
+;; Core functions benchmarked as Phel, through a real call site.
+;;
+;; This is the other half of `tests/php/Benchmark/Phel/`. Those classes resolve
+;; a core function out of the registry and call it as a PHP callable, which
+;; measures the function but bypasses everything the compiler does to a call
+;; site: arity selection, type-driven inlining, keyword hoisting. These
+;; benchmarks are compiled Phel, so what they measure is what user code pays.
+;;
+;; The two disagree on purpose. When a PHP subject stays flat and the Phel one
+;; moves, the change is in the emitter rather than in `phel.core`.
+
+(def- ints [3 1 4 1 5 9 2 6 5 3 5 8 9 7 9 3 2 3 8 4 6 2 6 4 3 3 8 3 2 7 9 5])
+
+(def- strings ["k3" "k1" "k4" "k1" "k5" "k9" "k2" "k6" "k5" "k3" "k8" "k7"])
+
+(def- nested {:a {:b {:c 42}}})
+
+(defbench bench-sort-ints
+          {:revs 200}
+          (sort ints))
+
+(defbench bench-sort-strings
+          {:revs 200}
+          (sort strings))
+
+(defbench bench-reduce-sum
+          {:revs 200}
+          (reduce + 0 ints))
+
+(defbench bench-for-collect
+          {:revs 200}
+          (for [x :in ints] (inc x)))
+
+(defbench bench-for-reduce
+          {:revs 200}
+          (for [x :in ints :reduce [acc 0]] (+ acc x)))
+
+(defbench bench-into-vector
+          {:revs 200}
+          (into [] ints))
+
+(defbench bench-get-in
+          (get-in nested [:a :b :c]))
+
+(defbench bench-str-three
+          (str "a" "b" "c"))
+
+(defbench bench-hash-set-three
+          (hash-set :a :b :c))
