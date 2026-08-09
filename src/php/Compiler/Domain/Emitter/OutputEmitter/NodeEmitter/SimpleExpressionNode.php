@@ -10,7 +10,10 @@ use Phel\Compiler\Domain\Analyzer\Ast\DoNode;
 use Phel\Compiler\Domain\Analyzer\Ast\GlobalVarNode;
 use Phel\Compiler\Domain\Analyzer\Ast\LiteralNode;
 use Phel\Compiler\Domain\Analyzer\Ast\LocalVarNode;
+use Phel\Compiler\Domain\Analyzer\Ast\PhpArrayGetNode;
+use Phel\Compiler\Domain\Analyzer\Ast\PhpClassNameNode;
 use Phel\Compiler\Domain\Analyzer\Ast\PhpVarNode;
+use Phel\Compiler\Domain\Analyzer\Ast\QuoteNode;
 
 use function array_all;
 
@@ -45,12 +48,21 @@ final readonly class SimpleExpressionNode
             || $node instanceof LiteralNode
             || $node instanceof GlobalVarNode
             || $node instanceof PhpVarNode
+            || $node instanceof PhpClassNameNode
+            || $node instanceof QuoteNode
         ) {
             return true;
         }
 
         if ($node instanceof CallNode) {
             return array_all([$node->getFn(), ...$node->getArguments()], static fn(AbstractNode $child): bool => self::is($child, $unwrapTransparentDo));
+        }
+
+        if ($node instanceof PhpArrayGetNode) {
+            return array_all(
+                [$node->getArrayExpr(), ...$node->getAccessExprs()],
+                static fn(AbstractNode $child): bool => self::is($child, $unwrapTransparentDo),
+            );
         }
 
         return false;

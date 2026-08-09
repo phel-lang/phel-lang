@@ -73,6 +73,7 @@ All notable changes to this project will be documented in this file.
 
 ### Changed
 
+- Lower `(or …)` / `(and …)` test chains containing `php/instanceof`, `php/aget` or a quoted literal to native `||` / `&&` instead of an IIFE; `(get <set> k)` is ~24% faster (#3027)
 - Warn for `\` namespace separators without `--warn-deprecations`; other deprecations stay opt-in (#2827)
 - Accept the future PHP class spelling after `\`: dotted or bare, with no leading marker (#2876)
 - Warn when a `def` shadows a loadable PHP class; `\DateTime` still reaches the class (#2876)
