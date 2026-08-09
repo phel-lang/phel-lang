@@ -20,11 +20,9 @@ use function is_string;
  */
 final class PhpNamespaceCache implements NamespaceCacheInterface
 {
+    use DeferredFlushTrait;
+
     private const string VERSION = '1.0';
-
-    private bool $dirty = false;
-
-    private bool $shutdownRegistered = false;
 
     /** @var array<string, NamespaceCacheEntry> */
     private array $entries;
@@ -32,14 +30,10 @@ final class PhpNamespaceCache implements NamespaceCacheInterface
     public function __construct(
         private readonly string $cacheFile,
     ) {
+        // `loadEntriesFromFile` marks a flush pending when it evicts entries
+        // under always-excluded segments, so that cleanup persists at shutdown
+        // even in a run that never puts anything.
         $this->entries = $this->loadEntriesFromFile();
-
-        // `loadEntriesFromFile` may evict entries under always-excluded
-        // segments; persist that cleanup at shutdown even if no put
-        // happens during the run.
-        if ($this->dirty) {
-            $this->registerShutdown();
-        }
     }
 
     public function get(string $file): ?NamespaceCacheEntry
@@ -50,8 +44,7 @@ final class PhpNamespaceCache implements NamespaceCacheInterface
     public function put(string $file, NamespaceCacheEntry $entry): void
     {
         $this->entries[$file] = $entry;
-        $this->dirty = true;
-        $this->registerShutdown();
+        $this->markFlushPending();
     }
 
     /**
@@ -64,7 +57,7 @@ final class PhpNamespaceCache implements NamespaceCacheInterface
 
     public function save(): void
     {
-        if (!$this->dirty) {
+        if (!$this->isFlushPending()) {
             return;
         }
 
@@ -87,7 +80,7 @@ final class PhpNamespaceCache implements NamespaceCacheInterface
         });
 
         if ($written) {
-            $this->dirty = false;
+            $this->clearFlushPending();
         }
     }
 
@@ -122,7 +115,7 @@ final class PhpNamespaceCache implements NamespaceCacheInterface
             // and trigger duplicate-namespace warnings against real sources
             // every time the exclusion policy gains a new prefix.
             if (ExcludedScanPaths::isAlwaysExcluded($file)) {
-                $this->dirty = true;
+                $this->markFlushPending();
                 continue;
             }
 
@@ -154,15 +147,5 @@ final class PhpNamespaceCache implements NamespaceCacheInterface
             'version' => self::VERSION,
             'entries' => $entries,
         ];
-    }
-
-    private function registerShutdown(): void
-    {
-        if ($this->shutdownRegistered) {
-            return;
-        }
-
-        register_shutdown_function([$this, 'save']);
-        $this->shutdownRegistered = true;
     }
 }
