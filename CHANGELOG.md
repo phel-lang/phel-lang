@@ -6,6 +6,7 @@ All notable changes to this project will be documented in this file.
 
 ### Added
 
+- `BuildFacade::enterDependencyLoad()`, `leaveDependencyLoad()` and `isLoadingDependencies()`, plus `BuildConstants::LOADING_DEPENDENCIES`. Additive: they mark the region in which an `ns` form loads its requires, so the emitter can decline to pin call sites there (#3015)
 - Add `phel.bench` and the `phel bench` command: `defbench` benchmarks written in Phel, with baseline storage (`--store`), comparison (`--ref`) and a tolerance gate (`--tolerance`) (#3005)
 - Allow keyword keys in `#php` map literals (#2952)
 - Add Clojure-style PHP interop for value members, dynamic calls, enum cases and `set!` (#2881 #2883 #2887 #2888 #2907)
@@ -24,6 +25,7 @@ All notable changes to this project will be documented in this file.
 
 ### Fixed
 
+- `with-redefs` is no longer ignored after `phel eval` has loaded a required namespace. Loading a dependency runs under build mode, which also let the emitter pin global call sites into `static` slots, and the pinned artifact was written to the ordinary cache for later `phel test` runs to reuse (#3015)
 - `phel doc` and the API reference report every arity of a `def` over an `fn`. `defn` renders its arities into the docstring and a bare `def` does not, so 23 symbols published no signature at all, `defn` and `defmacro` among them, while `list`, `vector` and `hash-map` published a stale hardcoded one (#3012)
 - Stop the emptiness check on a lazy sequence realizing the whole sequence: an unbounded source now terminates, a 2,000,000 element one no longer crashes, and taking 5 of a 200,000 element `lazy-seq` drops from 21ms to 0.004ms (#3023)
 - Fix `lazy-seq` over a chunked sequence (`take`, `keep`, `range`, ...) yielding only its first element while `count` reported the true length (#3020)

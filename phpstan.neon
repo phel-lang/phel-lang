@@ -117,7 +117,8 @@ parameters:
         # a mirror of the facade. `Shared/CLAUDE.md` says to keep its imports
         # minimal, and every method below is called only from inside its own
         # module (its own `Infrastructure/Command/`, or emitted PHP for the
-        # BuildMode trio), so no consumer type-hinting the interface is missing
+        # BuildMode trio and the `*loading-dependencies*` trio #3015 added
+        # alongside it), so no consumer type-hinting the interface is missing
         # anything. Declaring them would drag `BuildOptions`, `ApiDaemon`,
         # `CoverageDriver`, `CoverageReport`, `ParallelTestOrchestrator` and
         # `CpuCountDetector` into the leaf layer and widen the public surface
@@ -137,7 +138,11 @@ parameters:
         -
             identifier: gacela.facadeInterfaceDrift
             path: src/php/Build/BuildFacade.php
-            count: 8
+            # 8 + the three `*loading-dependencies*` statics (#3015). They are
+            # emitted into compiled PHP by NsEmitter exactly as the BuildMode
+            # trio is, so they have to be public static and cannot go on the
+            # cross-module contract.
+            count: 11
         -
             identifier: gacela.facadeInterfaceDrift
             path: src/php/Compiler/CompilerFacade.php

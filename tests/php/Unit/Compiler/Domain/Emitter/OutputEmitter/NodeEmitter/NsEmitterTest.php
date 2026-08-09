@@ -90,6 +90,42 @@ final class NsEmitterTest extends TestCase
     }
 
     /**
+     * Build mode is what lets the required file skip its non-build side
+     * effects, so it stays. It also licenses the emitter to pin global call
+     * sites, which is wrong for a runtime load, so the region is additionally
+     * marked as a dependency load for `MethodEmitter` to decline on (#3015).
+     */
+    public function test_loading_a_required_namespace_marks_the_region_as_a_dependency_load(): void
+    {
+        $node = new NsNode('my\\app', [Symbol::create('phel\\string')], []);
+
+        ob_start();
+        $this->nsEmitter->emit($node);
+        $output = (string) ob_get_clean();
+
+        self::assertStringContainsString(
+            'enterDependencyLoad()',
+            $output,
+            'The load must be marked, so call-site pinning can be declined for it',
+        );
+        self::assertStringContainsString(
+            'enableBuildMode()',
+            $output,
+            'Build mode still gates the non-build side effects of the required file',
+        );
+        self::assertStringContainsString(
+            'leaveDependencyLoad($__phelPrevLoading)',
+            $output,
+            'The previous value is restored, so a nested require cannot clear the flag for its parent',
+        );
+        self::assertStringContainsString(
+            '} finally {',
+            $output,
+            'A throwing dependency must not leak either flag into the rest of the process',
+        );
+    }
+
+    /**
      * A seed that resolves to no file returns an empty list, and the load loop
      * then does nothing, so a missing or typo'd `:require` used to be
      * indistinguishable from a successful one (#2891).
