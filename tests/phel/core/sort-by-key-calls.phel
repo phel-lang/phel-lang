@@ -70,6 +70,26 @@
   (is (= [[:a 1] [:b 1] [:c 1]] (sort-by second [[:a 1] [:b 1] [:c 1]]))
       "every key equal keeps the whole input order"))
 
+;; What counts as an element depends on how the collection is converted, not on
+;; how it iterates. A map converts to its `[key value]` entries and iterates to
+;; its values, so a transform that iterated the collection directly sorted the
+;; values and returned those instead of the entries. That is what `sort` does
+;; too, and the clojure-test-suite pins it.
+(deftest test-every-collection-kind-sorts-the-same-elements-as-sort
+  (is (= (sort {:c 3, :b 2, :a 1}) (sort-by identity {:c 3, :b 2, :a 1}))
+      "a map sorts its entries, not its values")
+  (is (= [[:a 1] [:b 2] [:c 3]] (sort-by identity {:c 3, :b 2, :a 1}))
+      "and the entries come back as pairs")
+  (is (= [1 2 3] (sort-by identity (set [3 1 2]))) "a set sorts its elements")
+  (is (= [1 2 3] (sort-by identity (list 3 1 2))) "a list sorts its elements")
+  (is (= ["a" "b" "c"] (sort-by identity "cab")) "a string sorts its characters")
+  (is (= [[:a 1] [:b 2]] (sort-by first {:b 2, :a 1})) "a key function over map entries"))
+
+(deftest test-the-key-function-still-runs-once-per-entry-on-a-map
+  (let [[calls keyfn] (counting-keyfn first)]
+    (sort-by keyfn {:a 1, :b 2, :c 3, :d 4})
+    (is (= 4 @calls) "four entries, four calls")))
+
 (deftest test-metadata-survives
   (is (= {:m 1} (meta (sort-by count (with-meta ["bb" "a"] {:m 1}))))
       "metadata is copied onto the result"))

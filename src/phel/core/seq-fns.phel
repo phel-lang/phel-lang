@@ -1040,9 +1040,15 @@ Indexed PHP arrays become vectors, associative PHP arrays become maps."
   it would add two Phel calls per comparison and give back a good part of what
   the transform buys."
   [keyfn coll comp]
-  (let [cmp   (sort-comparator comp)
-        pairs (php-indexed-array)]
-    (foreach [v coll]
+  (let [cmp    (sort-comparator comp)
+        ;; `to-php-array` and not `foreach` over `coll` directly: it is the
+        ;; conversion `sorted-vector` used, and it is what decides what an
+        ;; element *is*. Iterating a map yields its values, while converting one
+        ;; yields its `[key value]` entries, which is what `sort` and `sort-by`
+        ;; have always sorted.
+        values (to-php-array coll)
+        pairs  (php-indexed-array)]
+    (foreach [v values]
       (php/apush pairs (php-indexed-array (keyfn v) v)))
     ;; `usort` is stable as of PHP 8.0, so ties keep their input order, which is
     ;; what the undecorated result has to preserve.
