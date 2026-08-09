@@ -21,10 +21,32 @@
   (is (= 1 (count (lazy-seq [nil]))) "and counts as one")
   (is (= [nil nil] (vec (lazy-seq [nil nil]))) "two nils are two elements"))
 
-;; Not asserted here, deliberately: `(empty? (lazy-seq [nil]))` returns true
-;; while `count` returns 1 and `vec` returns `[nil]`. That disagreement is
-;; pre-existing and unrelated to the emptiness check inside `LazySeq`, which
-;; this file covers. Tracked separately.
+;; `empty?` used to answer that same question with `(nil? (first s))`, so it
+;; disagreed with `count` and `vec` about a sequence whose first element is nil
+;; (#3025). It now asks whether an element exists rather than what it is.
+(deftest test-empty-agrees-with-count-and-vec-about-a-leading-nil
+  (is (false? (empty? (lazy-seq [nil]))) "a single nil is not empty")
+  (is (false? (empty? (lazy-seq [nil nil]))) "two nils are not empty")
+  (is (false? (empty? (lazy-seq [nil 1]))) "nil first, value second")
+  (is (false? (empty? (lazy-seq [1 nil]))) "value first, nil second")
+  (is (= [nil] (not-empty (lazy-seq [nil]))) "not-empty hands the sequence back"))
+
+;; The three answers have to agree for every one of these, which is the property
+;; that failed: `empty?` said true where `count` said 1.
+(deftest test-empty-count-and-vec-agree
+  (let [cases [(lazy-seq [nil]) (lazy-seq [nil nil]) (lazy-seq [1 nil])
+               (lazy-seq []) (lazy-seq nil) (lazy-seq [1 2 3])]]
+    (foreach [s cases]
+      (is (= (empty? s) (= 0 (count s)))
+          (str "empty? agrees with count for " (vec s)))
+      (is (= (empty? s) (= [] (vec s)))
+          (str "empty? agrees with vec for " (vec s))))))
+
+;; A leading nil must not cost the laziness guarantee: the disambiguation pulls
+;; one element, it does not realize the sequence.
+(deftest test-an-unbounded-sequence-of-nils-still-answers
+  (is (false? (empty? (map (fn [_] nil) (iterate inc 0)))) "infinite nils")
+  (is (false? (empty? (iterate inc 0))) "infinite ints"))
 
 (deftest test-genuinely-empty-sources-are-still-empty
   (is (= [] (vec (lazy-seq []))) "empty vector")
