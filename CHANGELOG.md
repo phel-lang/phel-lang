@@ -104,6 +104,7 @@ Runtime core:
 
 - Compare two native ints in `<`, `<=`, `>` and `>=` without the numeric-tower dispatch: 2.5 to 2.7 times faster, down to raw PHP comparison speed (#2984)
 - **BREAKING** `sort-by` now calls its key function once per element instead of twice per comparison, so an *impure* key function runs far fewer times (100 rather than about 1114 when sorting 100 elements). The sorted result is unchanged. Up to 2.2 times faster; recorded in `docs/spec/clojure-divergences.md` since Clojure calls per comparison (#3006)
+- Give `+`, `-`, `*`, `max` and `min` fixed 3 and 4 argument arities: three arguments cost 11 to 12 times less for the operators and 3.5 times less for `max` and `min`, instead of 13 to 17 times more than two (#3017)
 - Give the closures returned by `partial`, `fnil` and `comp` real arities: 30x, 50x and 8x faster to call (#3021)
 - Guard the twelve nil-rejecting arithmetic functions with the fixed-arity macros instead of the variadic helper: `round` and `floor` 25x, `quot`, `rem` and `mod` 14 to 17x, `even?` and `odd?` 6 to 7x (#3018)
 - Compile a literal `(list ...)`, `(vector ...)`, `(queue ...)`, `(hash-map ...)` or `(array-map ...)` straight to its `Phel` factory: 2.2 to 3.6 times faster (#3014)
