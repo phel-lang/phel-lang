@@ -358,7 +358,9 @@ final class LazySeq extends AbstractType implements LazySeqInterface, Countable,
     {
         $seq = $this;
 
-        while ($seq instanceof self) {
+        // `$seq` only ever advances to another `self`; every other tail shape
+        // returns below, so the walk has no condition of its own.
+        while (true) {
             // See `toArray()`: realize is the only nil-safe empty check.
             $realized = $seq->realizeSeq();
             if (!$realized instanceof SeqInterface) {
@@ -376,7 +378,28 @@ final class LazySeq extends AbstractType implements LazySeqInterface, Countable,
                 return;
             }
 
-            $seq = $next instanceof self ? $next : null;
+            if (!$next instanceof self) {
+                // A tail that is lazy but is not a `LazySeq` (today that means
+                // `ChunkedSeq`, which everything built on
+                // `lazy-seq-from-generator` returns) cannot drive this loop,
+                // because the loop walks `LazySeq` links. Handing off to the
+                // tail's own iterator keeps it lazy; assigning null here
+                // instead ended the loop and silently dropped every remaining
+                // element, while `count` still reported the true length
+                // (#3020). `toArray()` above already merges this case, and the
+                // two traversals must not disagree.
+                //
+                // Yielding each value rather than `yield from` keeps the keys
+                // contiguous with the ones yielded above, which a caller doing
+                // `iterator_to_array()` with preserved keys depends on.
+                foreach ($next as $value) {
+                    yield $value;
+                }
+
+                return;
+            }
+
+            $seq = $next;
         }
     }
 
