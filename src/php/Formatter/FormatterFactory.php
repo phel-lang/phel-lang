@@ -38,7 +38,7 @@ final class FormatterFactory extends AbstractFactory
      * @var list<string>
      */
     private const array INNER_INDENT_SYMBOLS = [
-        'def', 'def-', 'defn', 'defn-', 'defmacro', 'defmacro-', 'deftest', 'fn',
+        'def', 'def-', 'defn', 'defn-', 'defmacro', 'defmacro-', 'deftest', 'defbench', 'fn',
         'defstruct', 'defrecord', 'definterface', 'defexception', 'defenum',
         'defprotocol', 'defmulti', 'defmethod', 'defonce', 'reify',
     ];

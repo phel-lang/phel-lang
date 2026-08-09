@@ -8,20 +8,20 @@
 ;; reporting all work off that metadata, so a benchmark is an ordinary `defn`
 ;; and stays callable by hand.
 
-(def- default-revs
-  "Times the body is called inside one measured iteration. Amortises the clock
-over the call, which matters when the body costs less than the timer does."
-  1000)
+;; `def-` takes a name and a value, and nothing else: a docstring in between
+;; binds as the value and the real value is dropped, silently. Hence comments.
 
-(def- default-iterations
-  "Measured iterations per benchmark. The reported figure is the mean over
-these, and their spread is what `rstdev` describes."
-  5)
+;; Times the body is called inside one measured iteration. Amortises the clock
+;; over the call, which matters when the body costs less than the timer does.
+(def- default-revs 1000)
 
-(def- default-warmup
-  "Unmeasured iterations run before measuring, so the first call, which also
-pays lazy loading and branch prediction, is not part of the result."
-  1)
+;; Measured iterations per benchmark. The reported figure is the mean over
+;; these, and their spread is what `rstdev` describes.
+(def- default-iterations 5)
+
+;; Unmeasured iterations run before measuring, so the first call, which also
+;; pays lazy loading and branch prediction, is not part of the result.
+(def- default-warmup 1)
 
 ;; ------------------
 ;; Defining benchmarks

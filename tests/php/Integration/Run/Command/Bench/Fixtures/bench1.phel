@@ -5,9 +5,9 @@
 ;; reports, not about how long anything takes.
 
 (defbench bench-addition
-          {:revs 1 :iterations 1 :warmup 0}
-          (+ 1 2))
+  {:revs 1 :iterations 1 :warmup 0}
+  (+ 1 2))
 
 (defbench bench-vector-build
-          {:revs 1 :iterations 1 :warmup 0}
-          (into [] [1 2 3]))
+  {:revs 1 :iterations 1 :warmup 0}
+  (into [] [1 2 3]))

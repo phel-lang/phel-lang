@@ -19,34 +19,34 @@
 (def- nested {:a {:b {:c 42}}})
 
 (defbench bench-sort-ints
-          {:revs 200}
-          (sort ints))
+  {:revs 200}
+  (sort ints))
 
 (defbench bench-sort-strings
-          {:revs 200}
-          (sort strings))
+  {:revs 200}
+  (sort strings))
 
 (defbench bench-reduce-sum
-          {:revs 200}
-          (reduce + 0 ints))
+  {:revs 200}
+  (reduce + 0 ints))
 
 (defbench bench-for-collect
-          {:revs 200}
-          (for [x :in ints] (inc x)))
+  {:revs 200}
+  (for [x :in ints] (inc x)))
 
 (defbench bench-for-reduce
-          {:revs 200}
-          (for [x :in ints :reduce [acc 0]] (+ acc x)))
+  {:revs 200}
+  (for [x :in ints :reduce [acc 0]] (+ acc x)))
 
 (defbench bench-into-vector
-          {:revs 200}
-          (into [] ints))
+  {:revs 200}
+  (into [] ints))
 
 (defbench bench-get-in
-          (get-in nested [:a :b :c]))
+  (get-in nested [:a :b :c]))
 
 (defbench bench-str-three
-          (str "a" "b" "c"))
+  (str "a" "b" "c"))
 
 (defbench bench-hash-set-three
-          (hash-set :a :b :c))
+  (hash-set :a :b :c))

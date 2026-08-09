@@ -13,12 +13,16 @@
 (def- fast-options {:revs 1, :iterations 1, :warmup 0})
 
 (defbench bench-fixture-add
-          {:revs 1 :iterations 1 :warmup 0}
-          (+ 1 1))
+  {:revs 1 :iterations 1 :warmup 0}
+  (+ 1 1))
 
 (defbench bench-fixture-other
-          {:revs 1 :iterations 1 :warmup 0}
-          (* 2 2))
+  {:revs 1 :iterations 1 :warmup 0}
+  (* 2 2))
+
+;; No option map: the only benchmark here that exercises the defaults.
+(defbench bench-fixture-defaults
+  (+ 1 1))
 
 (defn- bench-meta
   "The registry munges the namespace but keeps the definition name verbatim,
@@ -54,6 +58,15 @@ so only the first argument goes through `Munge`."
     (is (s/contains? out "phel-test.bench/bench-fixture-add"))
     (is (s/contains? out "phel-test.bench/bench-fixture-other"))
     (is (s/contains? out "rstdev") "the header is printed")))
+
+(deftest run-benchmarks-falls-back-to-the-defaults
+  ;; Guards the defaults themselves, which nothing else reaches: every other
+  ;; test here passes `:revs`/`:iterations` explicitly. They were silently the
+  ;; wrong value once, because `def-` binds a docstring as the value and drops
+  ;; the real one.
+  (let [out (with-output-buffer (run-benchmarks {:filter "fixture-defaults"} 'phel-test.bench))]
+    (is (re-find #"bench-fixture-defaults\s+1000\s+5\s" out)
+        "1000 revs over 5 iterations, with no option given")))
 
 (deftest run-benchmarks-applies-the-name-filter
   (let [out (with-output-buffer (run-benchmarks (merge fast-options {:filter "fixture-add"}) 'phel-test.bench))]
