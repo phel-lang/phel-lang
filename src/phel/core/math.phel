@@ -51,6 +51,16 @@
   `(when (or (php/=== nil ~a) (php/=== nil ~b))
      (throw (new InvalidArgumentException "Arithmetic functions do not accept nil values"))))
 
+(defmacro- assert-non-nil-3
+  [a b c]
+  `(when (or (php/=== nil ~a) (php/=== nil ~b) (php/=== nil ~c))
+     (throw (new InvalidArgumentException "Arithmetic functions do not accept nil values"))))
+
+(defmacro- assert-non-nil-4
+  [a b c d]
+  `(when (or (php/=== nil ~a) (php/=== nil ~b) (php/=== nil ~c) (php/=== nil ~d))
+     (throw (new InvalidArgumentException "Arithmetic functions do not accept nil values"))))
+
 ;; -----------------
 ;; Bitwise operation
 ;; -----------------
@@ -180,10 +190,21 @@
   ([] 0)
   ([x] (assert-non-nil-1 x) x)
   ([x y] (assert-non-nil-2 x y) (NumericOperations/add x y))
-  ([x y & more]
-   (assert-non-nil-2 x y)
+  ;; Three and four arguments get fixed arities of their own. The pair arity
+  ;; already made two cheap, but three fell straight into the variadic tail and
+  ;; cost 13 to 17 times as much, which is where a good deal of real code sits
+  ;; (#3017). The chain is spelled out rather than folded through the pair arity
+  ;; so it costs one dispatch instead of two.
+  ([x y z]
+   (assert-non-nil-3 x y z)
+   (NumericOperations/add (NumericOperations/add x y) z))
+  ([x y z w]
+   (assert-non-nil-4 x y z w)
+   (NumericOperations/add (NumericOperations/add (NumericOperations/add x y) z) w))
+  ([x y z w & more]
+   (assert-non-nil-4 x y z w)
    (assert-non-nil-coll more)
-   (reduce #(NumericOperations/add %1 %2) (NumericOperations/add x y) more)))
+   (reduce #(NumericOperations/add %1 %2) (NumericOperations/add (NumericOperations/add (NumericOperations/add x y) z) w) more)))
 
 (defn -
   "Returns the difference of all elements in `xs`. If `xs` is empty, return 0. If `xs` has one element, return the negative value of that element."
@@ -196,10 +217,21 @@
   ([] 0)
   ([x] (assert-non-nil-1 x) (NumericOperations/negate x))
   ([x y] (assert-non-nil-2 x y) (NumericOperations/subtract x y))
-  ([x y & more]
-   (assert-non-nil-2 x y)
+  ;; Three and four arguments get fixed arities of their own. The pair arity
+  ;; already made two cheap, but three fell straight into the variadic tail and
+  ;; cost 13 to 17 times as much, which is where a good deal of real code sits
+  ;; (#3017). The chain is spelled out rather than folded through the pair arity
+  ;; so it costs one dispatch instead of two.
+  ([x y z]
+   (assert-non-nil-3 x y z)
+   (NumericOperations/subtract (NumericOperations/subtract x y) z))
+  ([x y z w]
+   (assert-non-nil-4 x y z w)
+   (NumericOperations/subtract (NumericOperations/subtract (NumericOperations/subtract x y) z) w))
+  ([x y z w & more]
+   (assert-non-nil-4 x y z w)
    (assert-non-nil-coll more)
-   (reduce #(NumericOperations/subtract %1 %2) (NumericOperations/subtract x y) more)))
+   (reduce #(NumericOperations/subtract %1 %2) (NumericOperations/subtract (NumericOperations/subtract (NumericOperations/subtract x y) z) w) more)))
 
 (defn *
   "Returns the product of all elements in `xs`. All elements in `xs` must be numbers. If `xs` is empty, return 1."
@@ -212,10 +244,21 @@
   ([] 1)
   ([x] (assert-non-nil-1 x) x)
   ([x y] (assert-non-nil-2 x y) (NumericOperations/multiply x y))
-  ([x y & more]
-   (assert-non-nil-2 x y)
+  ;; Three and four arguments get fixed arities of their own. The pair arity
+  ;; already made two cheap, but three fell straight into the variadic tail and
+  ;; cost 13 to 17 times as much, which is where a good deal of real code sits
+  ;; (#3017). The chain is spelled out rather than folded through the pair arity
+  ;; so it costs one dispatch instead of two.
+  ([x y z]
+   (assert-non-nil-3 x y z)
+   (NumericOperations/multiply (NumericOperations/multiply x y) z))
+  ([x y z w]
+   (assert-non-nil-4 x y z w)
+   (NumericOperations/multiply (NumericOperations/multiply (NumericOperations/multiply x y) z) w))
+  ([x y z w & more]
+   (assert-non-nil-4 x y z w)
    (assert-non-nil-coll more)
-   (reduce #(NumericOperations/multiply %1 %2) (NumericOperations/multiply x y) more)))
+   (reduce #(NumericOperations/multiply %1 %2) (NumericOperations/multiply (NumericOperations/multiply (NumericOperations/multiply x y) z) w) more)))
 
 (defn /
   "Returns the nominator divided by all the denominators. If `xs` is empty,
@@ -622,7 +665,13 @@ returns 1. If `xs` has one value, returns the reciprocal of x.
      (numeric-nan? y) ##NaN
      (< x y)          x
      :else            y))
-  ([x y & more] (reduce min (min x y) more)))
+  ;; Three and four arguments fold through the pair arity rather than restating
+  ;; the NaN rules, exactly as the tail does, so propagation stays in one place
+  ;; (#2991). What they avoid is the tail's rest-argument allocation and
+  ;; `reduce`, which is the whole cost at these counts (#3017).
+  ([x y z] (min (min x y) z))
+  ([x y z w] (min (min (min x y) z) w))
+  ([x y z w & more] (reduce min (min (min (min x y) z) w) more)))
 
 (defn max
   "Returns the maximum of all arguments. Returns `##NaN` whenever any numeric argument is `##NaN`."
@@ -638,7 +687,13 @@ returns 1. If `xs` has one value, returns the reciprocal of x.
      (numeric-nan? y) ##NaN
      (> x y)          x
      :else            y))
-  ([x y & more] (reduce max (max x y) more)))
+  ;; Three and four arguments fold through the pair arity rather than restating
+  ;; the NaN rules, exactly as the tail does, so propagation stays in one place
+  ;; (#2991). What they avoid is the tail's rest-argument allocation and
+  ;; `reduce`, which is the whole cost at these counts (#3017).
+  ([x y z] (max (max x y) z))
+  ([x y z w] (max (max (max x y) z) w))
+  ([x y z w & more] (reduce max (max (max (max x y) z) w) more)))
 
 (defn min-key
   "Returns the arg for which (k arg) is smallest. On ties, returns the latest argument."

@@ -22,6 +22,12 @@ use PhpBench\Benchmark\Metadata\Annotations\Revs;
  * invisible if only the tail is measured, and a tail that regresses is
  * invisible if only the fixed arity is.
  *
+ * The three argument subjects exist because that count had no fixed arity and
+ * fell into the tail, costing 13 to 17 times the two argument call (#3017).
+ * Read each against its two argument sibling: they should sit within roughly
+ * 2x, and a jump back to an order of magnitude means an arity stopped being
+ * selected.
+ *
  * {@see CoreBenchCase} for the conventions every subject here follows.
  *
  * @BeforeMethods("setUp")
@@ -135,6 +141,46 @@ final class CoreArithmeticBench extends CoreBenchCase
     {
         for ($i = 0; $i < self::INNER; ++$i) {
             $unused = $this->a + $this->b + $this->c + $this->d;
+        }
+    }
+
+    /**
+     * @Revs(1000)
+     */
+    public function bench_add_three(): void
+    {
+        for ($i = 0; $i < self::INNER; ++$i) {
+            ($this->add)($this->a, $this->b, $this->c);
+        }
+    }
+
+    /**
+     * @Revs(1000)
+     */
+    public function bench_multiply_three(): void
+    {
+        for ($i = 0; $i < self::INNER; ++$i) {
+            ($this->multiply)($this->a, $this->b, $this->c);
+        }
+    }
+
+    /**
+     * @Revs(1000)
+     */
+    public function bench_max_three(): void
+    {
+        for ($i = 0; $i < self::INNER; ++$i) {
+            ($this->max)($this->a, $this->b, $this->c);
+        }
+    }
+
+    /**
+     * @Revs(1000)
+     */
+    public function bench_min_three(): void
+    {
+        for ($i = 0; $i < self::INNER; ++$i) {
+            ($this->min)($this->a, $this->b, $this->c);
         }
     }
 
