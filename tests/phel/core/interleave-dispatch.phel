@@ -1,0 +1,30 @@
+(ns phel-test.core.interleave-dispatch
+  (:require phel.test :refer [deftest is]))
+
+;; Pins interleave before its arity changes. The truncation rule and the
+;; empty/nil short-circuits are what a fixed 2-arity most easily loses.
+
+(deftest test-two-collections
+  (is (= [1 :a 2 :b 3 :c] (vec (interleave [1 2 3] [:a :b :c]))) "equal lengths")
+  (is (= [1 :a 2 :b] (vec (interleave [1 2 3] [:a :b]))) "stops at the shorter, second")
+  (is (= [1 :a 2 :b] (vec (interleave [1 2] [:a :b :c]))) "stops at the shorter, first"))
+
+(deftest test-more-than-two
+  (is (= [1 :a "x" 2 :b "y"] (vec (interleave [1 2] [:a :b] ["x" "y"]))) "three collections")
+  (is (= [1 :a "x"] (vec (interleave [1 2] [:a :b] ["x"]))) "three, truncated by the last"))
+
+(deftest test-empty-and-nil
+  (is (= [] (vec (interleave))) "no collections")
+  (is (= [] (vec (interleave [] [1 2]))) "an empty collection yields nothing")
+  (is (= [] (vec (interleave [1 2] []))) "an empty second collection")
+  (is (= [] (vec (interleave nil [1 2]))) "a nil collection")
+  (is (= [] (vec (interleave [1 2] nil))) "a nil second collection"))
+
+(deftest test-one-collection
+  (is (= [1 2 3] (vec (interleave [1 2 3]))) "a single collection is itself"))
+
+(deftest test-other-shapes
+  (is (= [1 :a 2 :b] (vec (interleave '(1 2) [:a :b]))) "a list works")
+  (is (= ["a" 1 "b" 2] (vec (interleave "ab" [1 2]))) "a string iterates by character")
+  (is (= [[:a 1] :x] (vec (interleave {:a 1} [:x])))
+      "a map iterates as pairs, so one entry is one element"))

@@ -1202,18 +1202,27 @@ Applies `f` to each element in `xs`. `f` is a two-argument function where the fi
   "Returns a lazy sequence of the first item in each `colls`, then the second item in each, until any one of the collections is exhausted. Any remaining items in the other collections are ignored. Returns an empty sequence when no collections are supplied or when any collection is empty or `nil`. Maps are iterated as `[key value]` pairs."
   {:example "(interleave [1 2 3] [:a :b :c]) ; => @[1 :a 2 :b 3 :c]\n(interleave [1 2 3] [:a :b]) ; => @[1 :a 2 :b]"}
   [& colls]
-  (cond
-    (php/=== nil colls) '()
-    (some nil? colls)   '()
-    :else
-    (let [seqs   (apply php/array (map (fn [c] (or (seq c) (php-indexed-array))) colls))
-          result (lazy-seq-from-generator
-                  (php/call_user_func_array
-                   (php-indexed-array "\\Phel\\Lang\\Seq" "interleave")
-                   seqs))]
-      (if (php/=== nil result)
-        '()
-        (copy-meta (first colls) result)))))
+  ;; One pass builds the seq array and answers "was any collection nil?".
+  ;; It used to take three: `some` built a lazy sequence to check for nil,
+  ;; `map` built another to convert, and `apply` then rebuilt that as a PHP
+  ;; array. Together those were about half the cost of the call (#2980).
+  (let [seqs    (php/array)
+        has-nil (php/array false)]
+    (dofor [c :in (or colls [])]
+      (if (php/=== nil c)
+        (php/aset has-nil 0 true)
+        (php/apush seqs (or (seq c) (php-indexed-array)))))
+    (cond
+      (php/=== nil colls)  '()
+      (php/aget has-nil 0) '()
+      :else
+      (let [result (lazy-seq-from-generator
+                    (php/call_user_func_array
+                     (php-indexed-array "\\Phel\\Lang\\Seq" "interleave")
+                     seqs))]
+        (if (php/=== nil result)
+          '()
+          (copy-meta (first colls) result))))))
 
 (defn doall
   "Forces realization of a lazy sequence and returns it as a vector."
