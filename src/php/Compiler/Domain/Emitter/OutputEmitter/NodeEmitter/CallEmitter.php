@@ -15,6 +15,7 @@ use Phel\Compiler\Domain\Emitter\OutputEmitter\CallSpecialization;
 use Phel\Compiler\Domain\Emitter\OutputEmitter\GlobalCallTarget;
 use Phel\Compiler\Domain\Emitter\OutputEmitter\NodeEmitter\Specialized\AssocConjCallEmitter;
 use Phel\Compiler\Domain\Emitter\OutputEmitter\NodeEmitter\Specialized\AtomMethodCallEmitter;
+use Phel\Compiler\Domain\Emitter\OutputEmitter\NodeEmitter\Specialized\ConstructorCallEmitter;
 use Phel\Compiler\Domain\Emitter\OutputEmitter\NodeEmitter\Specialized\CoreFnCallEmitter;
 use Phel\Compiler\Domain\Emitter\OutputEmitter\NodeEmitter\Specialized\GetInCallEmitter;
 use Phel\Compiler\Domain\Emitter\OutputEmitter\NodeEmitter\Specialized\NilBooleanCallEmitter;
@@ -52,6 +53,7 @@ final readonly class CallEmitter implements NodeEmitterInterface
         // analyser tags), so the order between families is not significant.
         $this->specializedEmitters = [
             new TypedValueCallEmitter($outputEmitter),
+            new ConstructorCallEmitter($outputEmitter),
             new CoreFnCallEmitter($outputEmitter),
             new GetInCallEmitter($outputEmitter),
             new NilBooleanCallEmitter($outputEmitter),

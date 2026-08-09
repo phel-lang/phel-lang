@@ -81,12 +81,14 @@ Analyzer tracks param/return types via `ParamTypeInferrer` and `ReturnTypeInferr
 
 Two halves, by family:
 
-- **Eligibility** — `*Specialization` classes in `Domain/Emitter/OutputEmitter/`: `NumericOperationSpecialization`, `TypePredicateSpecialization`, `TypedValueSpecialization`, `TypedCollectionMethodSpecialization`, `AssocConjSpecialization`, `GetInSpecialization`, `AtomMethodSpecialization`, `NilAndBooleanCheckSpecialization`, `ReduceSpecialization`. `CallSpecialization` aggregates them.
+- **Eligibility** — `*Specialization` classes in `Domain/Emitter/OutputEmitter/`: `NumericOperationSpecialization`, `TypePredicateSpecialization`, `TypedValueSpecialization`, `TypedCollectionMethodSpecialization`, `AssocConjSpecialization`, `GetInSpecialization`, `AtomMethodSpecialization`, `NilAndBooleanCheckSpecialization`, `ReduceSpecialization`, `ConstructorSpecialization`. `CallSpecialization` aggregates them.
 - **Emission** — one `Specialized/*CallEmitter implements SpecializedCallEmitterInterface` per family under `NodeEmitter/Specialized/`. `CallEmitter` builds them once and dispatches by looping `tryEmit()` before the generic call path.
 
 Family predicates are disjoint, so chain order between families is not significant.
 
 To add a family: write a `*Specialization` eligibility class, register it in `CallSpecialization::isSpecialized()`, and add the matching `Specialized/*CallEmitter` to `CallEmitter`'s ordered list.
+
+`ConstructorSpecialization` is the one family gated on the **callee alone**, with no analyser tag and no arity constraint: `(list …)`, `(vector …)`, `(queue …)`, `(hash-map …)`, `(array-map …)` become `\Phel::list([…])` and friends, which is where the runtime fn was heading anyway. Odd argument counts are lowered too, deliberately — `\Phel::map([1])` raises the same "even number of elements" error the runtime fn reaches, so filtering on parity would only move the error. `apply` and higher-order uses do not put the constructor in call-head position and keep the runtime fn; a local shadow is a `LocalVarNode`, so `PhelCoreCall::nameOf()` already declines it.
 
 GOTCHA: only eager core fns can be lowered to a native loop. `reduce` (3-arity) qualifies. `map`/`filter` do NOT — they return a `LazySeq` over a `Seq::map`/`Seq::filter` generator and `copy-meta` the source; an eager `foreach` lowering would change the return type, break infinite/expensive seqs, and shift side-effect timing. They also gain little: `f` is handed to the generator once, so there is no per-element registry dispatch to remove.
 
