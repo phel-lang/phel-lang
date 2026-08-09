@@ -27,10 +27,20 @@
   [& xs]
   (assert-non-nil-coll xs))
 
-;; Inlined nil guards for the fixed arities of the arithmetic operators. A
-;; `defn-` here would put a call back on the path the arities exist to shorten,
-;; which is the point of #2978. Arguments must be symbols: each is referenced
-;; once in the expansion, and the operators only ever pass their own parameters.
+;; Inlined nil guards, used by every fixed-arity function in this file that
+;; rejects nil: the arithmetic operators (#2978) and the twelve bodies that
+;; moved off the variadic `assert-non-nil` in #3018. A `defn-` here would put a
+;; call back on the path these guards exist to shorten, and for most of those
+;; twelve the guard was the whole cost of the call.
+;;
+;; Arguments must be symbols. Each is referenced once in the expansion, so a
+;; caller passing an expression would evaluate it a second time in the guard;
+;; every call site passes its own bare parameters.
+;;
+;; The `:inline` forms below still call the variadic `assert-non-nil` instead.
+;; They expand into the *caller's* namespace, where a `defmacro-` private to
+;; `phel.core` is not in scope, and three of them splice `~@args` and so have no
+;; fixed arity to target.
 (defmacro- assert-non-nil-1
   [a]
   `(when (php/=== nil ~a)
