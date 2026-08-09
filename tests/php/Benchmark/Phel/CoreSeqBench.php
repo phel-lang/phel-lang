@@ -14,7 +14,8 @@ use function usort;
 /**
  * The sequence functions of `phel.core` that carry an optimisation with no
  * benchmark guarding it: `sort` (#3003), `sort-by` (#3006), `interleave`
- * (#3002), `reduce` and `into` (#2977), `count` (#2969, #2971).
+ * (#3002), `reduce` and `into` (#2977), `count` (#2969, #2971), `map` and
+ * `filter` (#3021).
  *
  * Sizes are deliberately small. These subjects exist to catch a function that
  * grew a per-element or per-call cost it did not have, not to characterise
@@ -37,6 +38,18 @@ final class CoreSeqBench extends CoreBenchCase
 
     /** @var callable */
     private $identity;
+
+    /** @var callable */
+    private $mapFn;
+
+    /** @var callable */
+    private $filterFn;
+
+    /** @var callable */
+    private $inc;
+
+    /** @var callable */
+    private $isEven;
 
     /** @var callable */
     private $interleave;
@@ -168,6 +181,73 @@ final class CoreSeqBench extends CoreBenchCase
     }
 
     /**
+     * `map` and `filter` are the two most-called sequence functions, and both
+     * were `[f & args]` plus a `case` on the rest count (#3021). These subjects
+     * measure the call and the lazy-seq construction, not the realization, so a
+     * regression in the dispatch is not hidden behind the elements.
+     *
+     * @Revs(1000)
+     */
+    public function bench_map_unrealized(): void
+    {
+        ($this->mapFn)($this->inc, $this->ints);
+    }
+
+    /**
+     * @Revs(1000)
+     */
+    public function bench_filter_unrealized(): void
+    {
+        ($this->filterFn)($this->isEven, $this->ints);
+    }
+
+    /**
+     * The one-argument form returns a transducer and touches no collection at
+     * all, so it is almost entirely the call shape this change is about.
+     *
+     * @Revs(1000)
+     */
+    public function bench_map_transducer(): void
+    {
+        for ($i = 0; $i < self::INNER; ++$i) {
+            ($this->mapFn)($this->inc);
+        }
+    }
+
+    /**
+     * @Revs(1000)
+     */
+    public function bench_filter_transducer(): void
+    {
+        for ($i = 0; $i < self::INNER; ++$i) {
+            ($this->filterFn)($this->isEven);
+        }
+    }
+
+    /**
+     * The multi-collection tail, which keeps its rest argument because there it
+     * is a real case rather than an error. Kept so that speeding the fixed
+     * arities up by regressing the tail cannot read as a clean win.
+     *
+     * @Revs(1000)
+     */
+    public function bench_map_multi_collection(): void
+    {
+        ($this->mapFn)($this->add, $this->ints, $this->ints);
+    }
+
+    /**
+     * Realized, so the pair above is readable against the cost of the elements
+     * themselves rather than in isolation.
+     *
+     * @Revs(1000)
+     */
+    public function bench_map_realized(): void
+    {
+        ($this->count)(($this->mapFn)($this->inc, $this->ints));
+    }
+
+    /**
      * `interleave` is lazy: it builds its seq array eagerly and returns a lazy
      * sequence over it. This subject measures only the eager prefix, which is
      * the part #3002 rewrote, and is the one that guards it.
@@ -279,6 +359,10 @@ final class CoreSeqBench extends CoreBenchCase
     protected function setUpFixtures(): void
     {
         $this->sort = $this->coreFn('sort');
+        $this->mapFn = $this->coreFn('map');
+        $this->filterFn = $this->coreFn('filter');
+        $this->inc = $this->coreFn('inc');
+        $this->isEven = $this->coreFn('even?');
         $this->sortBy = $this->coreFn('sort-by');
         $this->identity = $this->coreFn('identity');
         $this->interleave = $this->coreFn('interleave');

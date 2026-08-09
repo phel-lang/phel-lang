@@ -67,27 +67,31 @@
   stopping when the shortest collection is exhausted."
   {:example "(map inc [1 2 3]) ; => @[2 3 4]"
    :see-also ["filter" "reduce" "map-indexed" "mapcat" "transduce"]}
-  [f & colls]
-  (case (count colls)
-    0 (fn [rf]
-        (xf-step rf (fn [result input] (rf result (f input)))))
-    1 (let [coll   (first colls)
-            ;; LazySeq keeps the seq unrealized until accessed; ChunkedSeq
-            ;; would eagerly materialise the first chunk. `Seq::map`
-            ;; yields `[k v]` pairs when `coll` is a `PersistentMap`
-            ;; (Clojure-aligned), otherwise it yields the elements.
-            result (LazySeq/fromGenerator
-                    (new Hasher)
-                    (new Equalizer)
-                    (Seq/map f coll))]
-        (copy-meta coll result))
-    (let [result (LazySeq/fromGenerator
-                  (new Hasher)
-                  (new Equalizer)
-                  (php/call_user_func_array
-                   (php-indexed-array "\\Phel\\Lang\\Seq" "mapMulti")
-                   (php/array_merge (php-indexed-array f) (apply php/array colls))))]
-      (copy-meta (first colls) result))))
+  ;; Fixed arities rather than `[f & colls]` plus `(case (count colls) ...)`:
+  ;; the rest argument was allocated, counted and then unpacked with `first` to
+  ;; recover a value the caller had already passed positionally (#2973, #3021).
+  ;; The multi-collection tail is a real case rather than an error, so it keeps
+  ;; the rest argument it genuinely needs.
+  ([f]
+   (fn [rf]
+     (xf-step rf (fn [result input] (rf result (f input))))))
+  ([f coll]
+   ;; LazySeq keeps the seq unrealized until accessed; ChunkedSeq would eagerly
+   ;; materialise the first chunk. `Seq::map` yields `[k v]` pairs when `coll`
+   ;; is a `PersistentMap` (Clojure-aligned), otherwise it yields the elements.
+   (let [result (LazySeq/fromGenerator
+                 (new Hasher)
+                 (new Equalizer)
+                 (Seq/map f coll))]
+     (copy-meta coll result)))
+  ([f coll & more]
+   (let [result (LazySeq/fromGenerator
+                 (new Hasher)
+                 (new Equalizer)
+                 (php/call_user_func_array
+                  (php-indexed-array "\\Phel\\Lang\\Seq" "mapMulti")
+                  (php/array_merge (php-indexed-array f coll) (apply php/array more))))]
+     (copy-meta coll result))))
 
 (defn comp
   "Takes a list of functions and returns a function that is the composition of those functions."
@@ -563,20 +567,25 @@ Creates intermediate maps if they don't exist."
   "Returns a lazy sequence of elements where predicate returns true. When called with pred only, returns a transducer."
   {:example "(filter even? [1 2 3 4 5 6]) ; => @[2 4 6]"
    :see-also ["remove" "keep" "transduce"]}
-  [pred & args]
-  (case (count args)
-    0 (fn [rf]
-        (xf-step rf (fn [result input] (if (pred input) (rf result input) result))))
-    1 (let [coll   (first args)
-            ;; Use LazySeq (not ChunkedSeq) so the first chunk isn't
-            ;; pre-realized: a sparse predicate over an infinite source
-            ;; would otherwise loop forever trying to fill 32 matches.
-            result (LazySeq/fromGenerator
-                    (new Hasher)
-                    (new Equalizer)
-                    (Seq/filter pred coll))]
-        (copy-meta coll result))
-    (throw (new InvalidArgumentException "filter expects 1 or 2 arguments"))))
+  ;; Fixed arities rather than `[pred & args]` plus `(case (count args) ...)`:
+  ;; the rest argument was allocated, counted and then unpacked with `first` to
+  ;; recover a value the caller had already passed positionally (#2973, #3021).
+  ;; The tail keeps the original error so an over-long call still reports what
+  ;; it always did rather than failing on arity dispatch.
+  ([pred]
+   (fn [rf]
+     (xf-step rf (fn [result input] (if (pred input) (rf result input) result)))))
+  ([pred coll]
+   ;; Use LazySeq (not ChunkedSeq) so the first chunk isn't pre-realized: a
+   ;; sparse predicate over an infinite source would otherwise loop forever
+   ;; trying to fill 32 matches.
+   (let [result (LazySeq/fromGenerator
+                 (new Hasher)
+                 (new Equalizer)
+                 (Seq/filter pred coll))]
+     (copy-meta coll result)))
+  ([pred coll & more]
+   (throw (new InvalidArgumentException "filter expects 1 or 2 arguments"))))
 
 (defn mapv
   "Returns a vector consisting of the result of applying `f` to the set of first items of each coll, followed by applying `f` to the set of second items in each coll, until any one of the colls is exhausted. Like `map`, but eager and returns a vector rather than a lazy sequence."
