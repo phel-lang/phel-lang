@@ -27,7 +27,7 @@
 
 ```phel
 (defn add [a b] (+ a b))
-(s/instrument! 'add add [:=> [:int :int] :int])
+(s/instrument! :add add [:=> [:int :int] :int])
 ;; (add "x" 2) ; throws with explain data
 ```
 
