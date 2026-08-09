@@ -1,0 +1,34 @@
+(ns phel-test.core.sort-dispatch
+  (:require phel.test :refer [deftest is]))
+
+;; Pins sort across the fast path and the general one. The fast path is gated
+;; on every element being a native int, so the cases that must NOT take it are
+;; as important as the ones that must.
+
+(deftest test-all-int-collections
+  (is (= [1 2 3] (sort [3 1 2])) "ints")
+  (is (= [0 1 2 3 4 5 6 7 8 9] (sort [5 3 9 1 7 2 8 4 6 0])) "ten ints")
+  (is (= [1 1 2] (sort [2 1 1])) "duplicates")
+  (is (= [-3 -1 2] (sort [2 -1 -3])) "negatives")
+  (is (= [] (sort [])) "empty")
+  (is (= [1] (sort [1])) "single"))
+
+(deftest test-collections-that-must-not-take-the-int-path
+  (is (= [1.5 2.5] (sort [2.5 1.5])) "floats")
+  (is (= [1 2.5] (sort [2.5 1])) "mixed int and float")
+  (is (= ["a" "b" "c"] (sort ["b" "c" "a"])) "strings")
+  (is (= [1/4 1/2] (sort [1/2 1/4])) "ratios")
+  (is (= [1 2 3] (sort '(3 1 2))) "a list still sorts"))
+
+(deftest test-custom-comparator
+  (is (= [3 2 1] (sort (fn [a b] (compare b a)) [1 2 3])) "reverse comparator")
+  (is (= [3 2 1] (sort (fn [a b] (> a b)) [1 3 2])) "predicate-style comparator")
+  (is (= [1 2 3] (sort compare [3 1 2])) "compare passed explicitly"))
+
+(deftest test-result-shape
+  (is (vector? (sort [3 1 2])) "returns a vector")
+  (is (= [1 2 3] (sort (php-indexed-array 3 1 2))) "sorts a php array"))
+
+(deftest test-sort-by-unaffected
+  (is (= ["b" "aa" "ccc"] (sort-by count ["aa" "ccc" "b"])) "sort-by still works")
+  (is (= [3 2 1] (sort-by (fn [x] (- x)) [1 2 3])) "sort-by with a key fn"))
