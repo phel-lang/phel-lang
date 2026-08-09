@@ -119,7 +119,8 @@ final class EvalDependencyRedefTest extends TestCase
             'the dependency was compiled as if for a build, pinning its call sites',
         );
         self::assertStringContainsString(
-            'getDefinition("app.target", "read-search")', $contents,
+            'getDefinition("app.target", "read-search")',
+            $contents,
             'the call site should still resolve through the registry',
         );
     }
