@@ -14,12 +14,12 @@ use function is_resource;
 use function sprintf;
 
 /**
- * Materializes a fixture Phel project in a temp directory and runs
- * `phel test` against it as a subprocess.
+ * Materializes a fixture Phel project in a temp directory and runs a `phel`
+ * command against it as a subprocess.
  *
- * The copy is required because `phel test` skips every file under
- * `tests/php/Integration/` (the repo's own PHPUnit fixtures); a fixture
- * project living there would silently lose all its tests.
+ * The copy is required because `phel test` and `phel bench` skip every file
+ * under `tests/php/Integration/` (the repo's own PHPUnit fixtures); a fixture
+ * project living there would silently lose all its tests and benchmarks.
  */
 final readonly class FixtureProjectHelper
 {
@@ -85,6 +85,16 @@ final readonly class FixtureProjectHelper
      */
     public function runPhelTest(array $arguments): array
     {
+        return $this->runPhelCommand('test', $arguments);
+    }
+
+    /**
+     * @param list<string> $arguments
+     *
+     * @return array{0: int, 1: string} exit code and combined output
+     */
+    public function runPhelCommand(string $command, array $arguments): array
+    {
         $args = '';
         foreach ($arguments as $argument) {
             $args .= ' ' . escapeshellarg($argument);
@@ -92,7 +102,7 @@ final readonly class FixtureProjectHelper
 
         $cmd = 'cd ' . escapeshellarg($this->projectDir)
             . ' && php -d memory_limit=256M ' . escapeshellarg($this->repoRoot . '/bin/phel')
-            . ' test' . $args . ' 2>&1';
+            . ' ' . $command . $args . ' 2>&1';
 
         exec($cmd, $output, $exitCode);
 

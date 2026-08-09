@@ -44,7 +44,7 @@ Wired in `FormatterFactory::createFormatter()`:
 
 Symbol lists live as `FormatterFactory` constants; `createIndentRule()` instantiates one indenter per symbol.
 
-- `InnerIndenter` (const `INNER_INDENT_SYMBOLS`): body indented 2 spaces under head line. `def`, `def-`, `defn`, `defn-`, `defmacro`, `defmacro-`, `deftest`, `fn`, `defstruct`, `defrecord`, `definterface`, `defexception`, `defenum`, `defprotocol`, `defmulti`, `defmethod`, `defonce`, `reify`.
+- `InnerIndenter` (const `INNER_INDENT_SYMBOLS`): body indented 2 spaces under head line. `def`, `def-`, `defn`, `defn-`, `defmacro`, `defmacro-`, `deftest`, `defbench`, `fn`, `defstruct`, `defrecord`, `definterface`, `defexception`, `defenum`, `defprotocol`, `defmulti`, `defmethod`, `defonce`, `reify`.
 - `BlockIndenter` (const `BLOCK_INDENT_SYMBOLS`, symbol → leading-arg count before body):
   - `0`: `do`, `cond`, `try`, `finally`, `with-output-buffer`, `delay`, `lazy-seq`, `with-isolated-stats`
   - `1`: `if`, `if-not`, `foreach`, `for`, `dofor`, `let`, `ns`, `loop`, `case`, `when`, `when-not`, `when-let`, `when-some`, `if-let`, `if-some`, `binding`, `when-first`, `doseq`, `dotimes`, `letfn`, `with-redefs`, `with-bindings`, `with-open`, `with-isolated-reporters`, `extend-type`, `extend-protocol`

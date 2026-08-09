@@ -374,6 +374,19 @@ final class FormatterFacadeTest extends TestCase
             ],
         ];
 
+        yield 'Indent defbench block' => [
+            [
+                '(defbench bench-sum',
+                '{:revs 200}',
+                '(reduce + 0 ints))',
+            ],
+            [
+                '(defbench bench-sum',
+                '  {:revs 200}',
+                '  (reduce + 0 ints))',
+            ],
+        ];
+
         yield 'Indent let block' => [
             [
                 '(let [x 1',

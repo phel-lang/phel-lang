@@ -41,7 +41,7 @@ The `Phel` import closes the `Phel <-> Run` cycle: the composition root wires `R
 
 ## Structure
 
-- `Infrastructure/Command/`: 10 user-facing Symfony commands (incl. `config` — dumps effective merged config) + 1 hidden `_test-worker` (`TestWorkerCommand`).
+- `Infrastructure/Command/`: 11 user-facing Symfony commands (incl. `config` — dumps effective merged config, and `bench` — runs `defbench` benchmarks) + 1 hidden `_test-worker` (`TestWorkerCommand`).
 - `Application/Test/Coverage/`: `CoverageDriver`, `CoverageAggregator`, `CoverageReport`, `CoverageFile`, `HtmlCoverageRenderer`.
 - `Runtime/PhelSourceLoader`: cached-PHP boot entry.
 
@@ -54,6 +54,7 @@ The `Phel` import closes the `Phel <-> Run` cycle: the composition root wires `R
 - **Bundled namespace lazy loading**: `BundledNamespaces` lists every `phel.*` module. `NamespaceLoader` (REPL/eval/lint/lsp/nrepl/watch startup) eagerly seeds only the startup ns + `phel.core`; others load lazily. It registers `LazyBundledNamespaceResolver` (implements Compiler's `BundledNamespaceResolverInterface`) on the global env; `SymbolResolver` invokes it when a fully qualified `phel.*` ref (`phel.json/encode`) hits an unloaded bundle — loads on demand, then retries (no "not defined"). `(require ...)` already loads via dependency resolution.
 - **File dedup**: `NamespaceFileTracker` (process-wide static) dedupes evaluated files across eager startup and lazy loads. `NamespaceLoader::reset()` clears it.
 - **Script bundles**: `FileRunner` uses `BundledNamespaceDetector` to seed only bundles referenced via fully qualified form (`phel.json/encode`) or Clojure-compatible requires (`clojure.test` → `phel.test`), avoiding cold-start cost for scripts that don't reach bundled modules.
+- **Benchmarks**: `BenchCommand` (`phel bench`) mirrors `TestCommand`'s shape — resolve paths through `getDependenciesFromPaths()`, `evalFile()` each namespace (skipping `tests/php/`), then `eval()` a generated `(phel.bench/run-benchmarks {...} 'ns ...)` form. The measurement lives in `phel.bench`, in Phel, so no language boundary sits inside the measured region. `run-benchmarks` returns a boolean verdict which becomes the exit code; a `--tolerance` regression is the only way it returns false. String options are `json_encode`d with `JSON_UNESCAPED_SLASHES` — without it, every `/` of a POSIX path reaches the reader as `\/`.
 - **Coverage**: `phel test --coverage[=text|clover|html]` wraps the serial test eval with the driver, maps raw PHP line coverage to `.phel` via `CommandFacade::getCompiledFileLineMap`, filters to project source dirs. Coverage **forces serial execution** (parallel workers can't merge). `html` writes a self-contained static report (`HtmlCoverageRenderer`) to `var/coverage/` by default; override the directory with `html:<dir>` or `--coverage-output`.
 - **Parallel testing**: `ParallelTestOrchestrator` spawns a `phel _test-worker` subprocess pool, one ns per length-prefixed JSON work frame; per-ns output is buffered and flushed in input order. `CpuCountDetector` honours `PHEL_TEST_WORKERS`, falls back to `nproc`/`sysctl`/`/proc/cpuinfo`, caps at 8.
 - **Watch testing**: `runTestWatchLoop` (`phel test --watch`) polls project src/test dirs for `.phel`/`phel-config.php` mtime changes every 500ms, re-invoking `$runTests` as a subprocess per change.

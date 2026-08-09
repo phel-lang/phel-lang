@@ -6,15 +6,10 @@ namespace PhelTest\Benchmark\Phel;
 
 use Phel;
 use Phel\Lang\Keyword;
-use Phel\Run\RunFacade;
 use PhpBench\Benchmark\Metadata\Annotations\BeforeMethods;
 use PhpBench\Benchmark\Metadata\Annotations\Revs;
-use RuntimeException;
 
 use function count;
-use function dirname;
-use function is_callable;
-use function sprintf;
 
 /**
  * Dispatch cost of the hot `phel.core` functions, measured through the
@@ -45,12 +40,14 @@ use function sprintf;
  *   instead would let it be optimised away and leave the pair timing an
  *   empty loop, which reads as "the wrapper is infinitely slow".
  *
+ * The sibling classes ({@see CoreSeqBench}, {@see CoreArithmeticBench},
+ * {@see CoreConstructionBench}, {@see CoreMacroBench}) cover the rest of the
+ * optimised core surface under the same rules.
+ *
  * @BeforeMethods("setUp")
  */
-final class CoreDispatchBench
+final class CoreDispatchBench extends CoreBenchCase
 {
-    private const int INNER = 32;
-
     /** @var callable */
     private $get;
 
@@ -92,29 +89,6 @@ final class CoreDispatchBench
     private mixed $rawString = '42';
 
     private mixed $rawFloat = 1.9;
-
-    public function setUp(): void
-    {
-        $root = dirname(__DIR__, 4);
-        Phel::bootstrap($root);
-        new RunFacade()->loadPhelNamespaces();
-
-        $this->get = $this->coreFn('get');
-        $this->assoc = $this->coreFn('assoc');
-        $this->getIn = $this->coreFn('get-in');
-        $this->isEmpty = $this->coreFn('empty?');
-        $this->seq = $this->coreFn('seq');
-        $this->conj = $this->coreFn('conj');
-        $this->int = $this->coreFn('int');
-
-        $this->keyA = Keyword::create('a');
-        $this->keyC = Keyword::create('c');
-        $this->map = Phel::map($this->keyA, 1, Keyword::create('b'), 2);
-        $this->vector = Phel::vector([1, 2, 3]);
-        $this->nested = Phel::map($this->keyA, Phel::map($this->keyC, 42));
-        $this->pathAC = Phel::vector([$this->keyA, $this->keyC]);
-        $this->list = Phel::list([1, 2, 3]);
-    }
 
     /**
      * @Revs(1000)
@@ -325,17 +299,22 @@ final class CoreDispatchBench
         }
     }
 
-    /**
-     * The registry keys bundled namespaces with `.`, so `phel.core` and not
-     * the `phel\core` that the compiled PHP file declares as its namespace.
-     */
-    private function coreFn(string $name): callable
+    protected function setUpFixtures(): void
     {
-        $fn = Phel::getDefinition('phel.core', $name);
-        if (!is_callable($fn)) {
-            throw new RuntimeException(sprintf('phel.core/%s is not callable; is core loaded?', $name));
-        }
+        $this->get = $this->coreFn('get');
+        $this->assoc = $this->coreFn('assoc');
+        $this->getIn = $this->coreFn('get-in');
+        $this->isEmpty = $this->coreFn('empty?');
+        $this->seq = $this->coreFn('seq');
+        $this->conj = $this->coreFn('conj');
+        $this->int = $this->coreFn('int');
 
-        return $fn;
+        $this->keyA = Keyword::create('a');
+        $this->keyC = Keyword::create('c');
+        $this->map = Phel::map($this->keyA, 1, Keyword::create('b'), 2);
+        $this->vector = Phel::vector([1, 2, 3]);
+        $this->nested = Phel::map($this->keyA, Phel::map($this->keyC, 42));
+        $this->pathAC = Phel::vector([$this->keyA, $this->keyC]);
+        $this->list = Phel::list([1, 2, 3]);
     }
 }
