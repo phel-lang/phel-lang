@@ -61,6 +61,9 @@ final class PharBuilder
      */
     private array $excludeDirsAtRoot = [
         'data', 'node_modules', 'var',
+        // Release automation, run by .github/workflows/announce-release*.yml
+        // against the repository. Nothing in the shipped runtime references it.
+        'scripts',
     ];
 
     /**
@@ -102,6 +105,7 @@ final class PharBuilder
         'psalm-gacela.xml' => true,
         'rector.php' => true,
         'phpunit.xml.dist' => true,
+        'infection.json5' => true,
         'logo_readme.svg' => true,
         'logo.svg' => true,
         'README.md' => true,

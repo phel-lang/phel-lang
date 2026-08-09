@@ -90,6 +90,7 @@ All notable changes to this project will be documented in this file.
 ### Performance
 
 - Keep the PHAR within its release size budget by excluding dependency-only Gacela tooling
+- Exclude the release-announcement scripts and `infection.json5` from the PHAR (#2994)
 
 Runtime core:
 
