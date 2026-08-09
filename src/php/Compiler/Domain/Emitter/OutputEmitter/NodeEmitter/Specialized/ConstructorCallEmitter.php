@@ -38,16 +38,9 @@ final readonly class ConstructorCallEmitter implements SpecializedCallEmitterInt
 
         $loc = $node->getStartSourceLocation();
         $this->outputEmitter->emitStr('\\' . Phel::class . '::' . $factory . '([', $loc);
-
-        foreach ($node->getArguments() as $i => $argument) {
-            if ($i > 0) {
-                $this->outputEmitter->emitStr(', ', $loc);
-            }
-
-            $this->outputEmitter->emitNode($argument);
-        }
-
+        $this->outputEmitter->emitArgList($node->getArguments(), $loc);
         $this->outputEmitter->emitStr('])', $loc);
+
         return true;
     }
 }
