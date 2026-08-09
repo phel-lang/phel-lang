@@ -96,6 +96,7 @@ All notable changes to this project will be documented in this file.
 
 Runtime core:
 
+- Compile a literal `(list ...)`, `(vector ...)`, `(queue ...)`, `(hash-map ...)` or `(array-map ...)` straight to its `Phel` factory: 2.2 to 3.6 times faster (#3014)
 - Inline PHP array constructors and use `php-indexed-array` across core and standard libraries (#2941)
 - Speed up `re-find`, `re-matches` and `parse-long` by avoiding full match-map conversion (#2941 #2943)
 - Give `aget` a fixed single-index arity and require an index, matching Clojure (#2941)

@@ -59,6 +59,7 @@ final readonly class CallSpecialization
     public static function isSpecialized(CallNode $node): bool
     {
         if (self::isStrConcat($node)
+            || ConstructorSpecialization::isConstructorCall($node)
             || TypedValueSpecialization::isKeywordFind($node)
             || self::isTypedGetAccess($node)
             || GetInSpecialization::isLiteralPathGetIn($node)

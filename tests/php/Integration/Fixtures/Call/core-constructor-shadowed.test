@@ -1,0 +1,9 @@
+--PHEL--
+(let [list (fn [& args] :shadowed)] (list 1 2))
+--PHP--
+$list_1 = (function(...$args) {
+  $args = \Phel::vector($args);
+  static $__phel_const_0;
+  return ($__phel_const_0 ??= \Phel\Lang\Keyword::create("shadowed"));
+});
+($list_1)(1, 2);
