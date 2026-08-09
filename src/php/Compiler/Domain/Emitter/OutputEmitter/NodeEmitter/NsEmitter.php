@@ -105,9 +105,33 @@ final class NsEmitter implements NodeEmitterInterface
                 // each require re-evaluated its file and re-ran its top level.
                 $this->outputEmitter->emitLine('if (!\\Phel::isNamespaceLoaded($__phelNsInfo->getNamespace())) {');
                 $this->outputEmitter->increaseIndentLevel();
+                // Build mode stays: a required file reads `*build-mode*` at its
+                // top level to skip non-build side effects, and
+                // `RequireBuildModeTest` pins that.
+                //
+                // `*loading-dependencies*` is set alongside it to say *why*
+                // build mode is on here. Build mode alone also licenses the
+                // emitter to pin global call sites into `static $__phel_call_N`
+                // slots, which is sound only when redefinitions are not
+                // expected. A runtime dependency load does not meet that, and
+                // the pinned artifact was written to the ordinary cache for
+                // later processes to reuse, so every later `with-redefs` was
+                // ignored (#3015). `MethodEmitter` reads this flag to decline.
+                //
+                // `finally` so a throwing dependency cannot leave either flag
+                // set for the rest of the process.
+                $this->outputEmitter->emitLine('$__phelPrevLoading = \\Phel\\Build\\BuildFacade::enterDependencyLoad();');
                 $this->outputEmitter->emitLine('\\Phel\\Build\\BuildFacade::enableBuildMode();');
+                $this->outputEmitter->emitLine('try {');
+                $this->outputEmitter->increaseIndentLevel();
                 $this->outputEmitter->emitLine('$__phelBuildFacade->evalFile($__phelNsInfo->getFile());');
+                $this->outputEmitter->decreaseIndentLevel();
+                $this->outputEmitter->emitLine('} finally {');
+                $this->outputEmitter->increaseIndentLevel();
                 $this->outputEmitter->emitLine('\\Phel\\Build\\BuildFacade::disableBuildMode();');
+                $this->outputEmitter->emitLine('\\Phel\\Build\\BuildFacade::leaveDependencyLoad($__phelPrevLoading);');
+                $this->outputEmitter->decreaseIndentLevel();
+                $this->outputEmitter->emitLine('}');
                 $this->outputEmitter->emitLine('\\Phel\\Compiler\\Infrastructure\\GlobalEnvironmentSingleton::getInstance()->setNs("' . addslashes($node->getNamespace()) . '");');
                 $this->outputEmitter->decreaseIndentLevel();
                 $this->outputEmitter->emitLine('}');

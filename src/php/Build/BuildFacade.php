@@ -53,6 +53,46 @@ final class BuildFacade extends AbstractFacade implements BuildFacadeInterface
     }
 
     /**
+     * Marks the region in which an `ns` form evaluates the files its requires
+     * resolve to, and returns the previous value so the caller can restore it.
+     *
+     * Nested requires are why the previous value is returned rather than
+     * assumed false: the inner region must not clear the flag on the way out
+     * and let the outer one start scanning again.
+     *
+     * {@see BuildConstants::LOADING_DEPENDENCIES} for why this is not build
+     * mode.
+     */
+    public static function enterDependencyLoad(): bool
+    {
+        $previous = self::isLoadingDependencies();
+        Registry::getInstance()->addDefinition(
+            CompilerConstants::PHEL_CORE_NAMESPACE,
+            BuildConstants::LOADING_DEPENDENCIES,
+            true,
+        );
+
+        return $previous;
+    }
+
+    public static function leaveDependencyLoad(bool $previous): void
+    {
+        Registry::getInstance()->addDefinition(
+            CompilerConstants::PHEL_CORE_NAMESPACE,
+            BuildConstants::LOADING_DEPENDENCIES,
+            $previous,
+        );
+    }
+
+    public static function isLoadingDependencies(): bool
+    {
+        return Registry::getInstance()->getDefinition(
+            CompilerConstants::PHEL_CORE_NAMESPACE,
+            BuildConstants::LOADING_DEPENDENCIES,
+        ) === true;
+    }
+
+    /**
      * Extracts the namespace from a given file. It expects that the
      * first statement in the file is the 'ns statement.
      *

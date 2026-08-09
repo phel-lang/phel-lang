@@ -119,14 +119,32 @@ final readonly class MethodEmitter
     }
 
     /**
-     * Read `*build-mode*` straight from the registry to avoid a hard
-     * compile-time dependency from the emitter onto `BuildFacade`.
-     * Caching call-site resolutions is only safe when redefinitions are
-     * not expected, which is exactly the contract of build mode.
+     * Read the flags straight from the registry to avoid a hard compile-time
+     * dependency from the emitter onto `BuildFacade`.
+     *
+     * Caching call-site resolutions is only safe when redefinitions are not
+     * expected, which is the contract of build mode.
+     *
+     * `*loading-dependencies*` is the one place that contract does not hold
+     * while build mode is set. An `ns` form turns build mode on to load the
+     * files its requires resolve to, so the required file can skip its
+     * non-build side effects, but that is an ordinary runtime load: the
+     * program goes on to run, and `with-redefs` is entitled to be seen. Pinning
+     * there produced an artifact that ignored every later redefinition, and
+     * wrote it to the ordinary cache for the next process to reuse (#3015).
      */
     private function shouldCacheCallSites(): bool
     {
-        return Registry::getInstance()->getDefinition(
+        $registry = Registry::getInstance();
+
+        if ($registry->getDefinition(
+            CompilerConstants::PHEL_CORE_NAMESPACE,
+            BuildConstants::LOADING_DEPENDENCIES,
+        ) === true) {
+            return false;
+        }
+
+        return $registry->getDefinition(
             CompilerConstants::PHEL_CORE_NAMESPACE,
             BuildConstants::BUILD_MODE,
         ) === true;
