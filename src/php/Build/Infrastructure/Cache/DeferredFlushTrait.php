@@ -5,8 +5,9 @@ declare(strict_types=1);
 namespace Phel\Build\Infrastructure\Cache;
 
 /**
- * Shared "flush once at shutdown" bookkeeping for the on-disk caches. Both
- * {@see CompiledCodeCache} and {@see PhpScanIndexCache} only mutate their
+ * Shared "flush once at shutdown" bookkeeping for the on-disk caches.
+ * {@see CompiledCodeCache}, {@see PhpScanIndexCache} and
+ * {@see PhpNamespaceCache} only mutate their
  * in-memory index per `put`/`invalidate` and defer the disk write to a single
  * `register_shutdown_function` flush, turning a cold build's index I/O from
  * O(N²) into O(N). This keeps the dirty-flag + lazy-registration pair in one
