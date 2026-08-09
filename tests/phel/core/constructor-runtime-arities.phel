@@ -1,0 +1,110 @@
+(ns phel-test.core.constructor-runtime-arities
+  (:require phel.test :refer [deftest is]))
+
+;; `constructor-dispatch.phel` pins the emitter lowering (#3014): a literal
+;; `(list 1 2 3)` compiles straight to the `Phel` factory and never reaches the
+;; function defined in `core.phel` at all. So it cannot see the arities added in
+;; #3010, and this file exists to cover the other half.
+;;
+;; Every call below goes through a `let`-bound alias. An alias is a
+;; `LocalVarNode`, which the lowering declines, so the call reaches the runtime
+;; function and dispatches on its declared arities. That is the only way to
+;; exercise them from Phel.
+
+(deftest test-list-reaches-every-declared-arity
+  (let [f list]
+    (is (= '() (f)) "arity 0")
+    (is (= '(1) (f 1)) "arity 1")
+    (is (= '(1 2) (f 1 2)) "arity 2")
+    (is (= '(1 2 3) (f 1 2 3)) "arity 3, the last fixed one")
+    (is (= '(1 2 3 4) (f 1 2 3 4)) "one past the fixed arities, into the tail")
+    (is (= '(1 2 3 4 5 6) (f 1 2 3 4 5 6)) "well into the tail")))
+
+(deftest test-vector-reaches-every-declared-arity
+  (let [f vector]
+    (is (= [] (f)) "arity 0")
+    (is (= [1] (f 1)) "arity 1")
+    (is (= [1 2] (f 1 2)) "arity 2")
+    (is (= [1 2 3] (f 1 2 3)) "arity 3, the last fixed one")
+    (is (= [1 2 3 4] (f 1 2 3 4)) "one past the fixed arities, into the tail")
+    (is (= [1 2 3 4 5 6] (f 1 2 3 4 5 6)) "well into the tail")))
+
+(deftest test-queue-reaches-every-declared-arity
+  (let [f queue]
+    (is (= 0 (count (f))) "arity 0")
+    (is (= 1 (count (f 1))) "arity 1")
+    (is (= 2 (count (f 1 2))) "arity 2")
+    (is (= 3 (count (f 1 2 3))) "arity 3, the last fixed one")
+    (is (= 4 (count (f 1 2 3 4))) "one past the fixed arities, into the tail")
+    (is (= 1 (first (f 1 2 3))) "the front is the first argument, fixed arity")
+    (is (= 1 (first (f 1 2 3 4 5))) "and through the tail too")))
+
+(deftest test-hash-map-reaches-every-declared-arity
+  (let [f hash-map]
+    (is (= {} (f)) "arity 0")
+    (is (= {:a 1} (f :a 1)) "arity 2, one pair")
+    (is (= {:a 1, :b 2} (f :a 1 :b 2)) "arity 4, the last fixed even one")
+    (is (= {:a 1, :b 2, :c 3} (f :a 1 :b 2 :c 3)) "one pair past the fixed arities")
+    (is (= {:a 1, :b 2, :c 3, :d 4} (f :a 1 :b 2 :c 3 :d 4)) "well into the tail")))
+
+(deftest test-array-map-reaches-every-declared-arity
+  (let [f array-map]
+    (is (= {} (f)) "arity 0")
+    (is (= {:a 1} (f :a 1)) "arity 2, one pair")
+    (is (= {:a 1, :b 2} (f :a 1 :b 2)) "arity 4, the last fixed even one")
+    (is (= {:a 1, :b 2, :c 3} (f :a 1 :b 2 :c 3)) "one pair past the fixed arities")))
+
+;; The map constructors declare their odd arities as well as their even ones,
+;; which looks redundant and is not. An odd count has no pair to build from and
+;; has always failed inside `Phel/map`, with a message naming the real problem.
+;; Drop the odd arities and an odd count matches no arity at all, so it fails
+;; earlier and less usefully, on dispatch. These assertions are what keeps them.
+(deftest test-an-odd-argument-count-still-fails-inside-the-constructor
+  (let [f hash-map g array-map]
+    (is (thrown-with-msg? \RuntimeException
+                          "An even number of elements must be provided to build a map, got 1"
+                          (f :a))
+        "one argument")
+    (is (thrown-with-msg? \RuntimeException
+                          "An even number of elements must be provided to build a map, got 3"
+                          (f :a 1 :b))
+        "three arguments")
+    (is (thrown-with-msg? \RuntimeException
+                          "An even number of elements must be provided to build a map, got 5"
+                          (f :a 1 :b 2 :c))
+        "five arguments, past the fixed arities and into the tail")
+    (is (thrown-with-msg? \RuntimeException
+                          "An even number of elements must be provided to build a map, got 1"
+                          (g :a))
+        "array-map fails the same way")))
+
+;; The two paths have to agree. A literal call is lowered to the factory and an
+;; aliased one runs the arities, so a divergence between them is exactly the
+;; regression the split could introduce.
+(deftest test-the-runtime-function-agrees-with-the-lowered-call
+  (let [l list v vector q queue h hash-map]
+    (is (= (list) (l)) "list, no arguments")
+    (is (= (list 1 2 3) (l 1 2 3)) "list, a fixed arity")
+    (is (= (list 1 2 3 4 5) (l 1 2 3 4 5)) "list, the tail")
+    (is (= (vector 1 2 3) (v 1 2 3)) "vector, a fixed arity")
+    (is (= (count (queue 1 2)) (count (q 1 2))) "queue, a fixed arity")
+    (is (= (hash-map :a 1 :b 2) (h :a 1 :b 2)) "hash-map, a fixed arity")
+    (is (= (hash-map :a 1 :b 2 :c 3 :d 4) (h :a 1 :b 2 :c 3 :d 4)) "hash-map, the tail")))
+
+;; `apply` never puts the constructor in call-head position either, so it also
+;; reaches the runtime function and dispatches on the same arities.
+(deftest test-apply-dispatches-on-the-same-arities
+  (is (= '() (apply list [])) "arity 0")
+  (is (= '(1 2 3) (apply list [1 2 3])) "a fixed arity")
+  (is (= '(1 2 3 4 5) (apply list [1 2 3 4 5])) "the tail")
+  (is (= [1 2 3] (apply vector [1 2 3])) "vector, a fixed arity")
+  (is (= {:a 1, :b 2} (apply hash-map [:a 1 :b 2])) "hash-map, a fixed arity")
+  (is (thrown? \RuntimeException (apply hash-map [:a])) "an odd count still fails in the constructor"))
+
+;; Passing a constructor as a value is the other common way to reach the runtime
+;; function, and the one that benefits most from the arities in practice.
+(deftest test-constructors-work-as-values
+  (is (= ['(1) '(2) '(3)] (map list [1 2 3])) "list as a value")
+  (is (= [[1] [2] [3]] (map vector [1 2 3])) "vector as a value")
+  (is (= '((1 4) (2 5) (3 6)) (map list [1 2 3] [4 5 6])) "list as a value, arity 2")
+  (is (= [[1 4] [2 5]] (map vector [1 2] [4 5])) "vector as a value, arity 2"))

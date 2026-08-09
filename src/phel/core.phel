@@ -29,10 +29,15 @@
 ;; --------------------------------------------
 
 ;; Each constructor declares real arities for the small argument counts it is
-;; actually called with, and keeps a variadic tail for the rest. A `&`
-;; parameter costs several times a fixed one per call before the body runs
-;; (#2973), and these five sit on the quasiquote and destructuring expansion
-;; paths, so they pay it more often than anything else in the language.
+;; actually called with, and keeps a variadic tail for the rest. A `&` parameter
+;; costs several times a fixed one per call before the body runs (#2973).
+;;
+;; A literal call does not reach these functions at all: the emitter lowers it
+;; straight to the `Phel` factory (#3014). What is left is every other way of
+;; calling them, which the lowering declines by design because the callee is not
+;; in call-head position: through a local alias, through `apply`, and passed as
+;; a value to `map` and friends. Those are the calls the arities are for.
+;;
 ;; The tail still accepts every argument count, so no call that used to fail at
 ;; runtime now fails at compile time (#3010).
 
