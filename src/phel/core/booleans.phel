@@ -197,29 +197,52 @@
   (when (or (php/=== nil a) (php/=== nil b))
     (throw (new InvalidArgumentException "Comparison functions do not accept nil values"))))
 
+;; Two native ints is the overwhelmingly common case, and answering it through
+;; the general chain costs three calls and six `instanceof` before comparing
+;; anything: `assert-non-nil-pair`, then `numeric-object?` on each operand.
+;;
+;; The `is_int` pair is what makes the shortcut safe rather than a hole in the
+;; nil guard. `(php/is_int nil)` is false, so a nil operand cannot take this
+;; branch and still reaches `assert-non-nil-pair` below. Everything else the
+;; general path exists for is equally excluded by construction: a `Ratio`,
+;; `BigInt` or `BigDecimal` is an object, and a float is not an int, so both
+;; keep routing to `NumericOperations/compare` and to PHP's own comparison
+;; respectively. Two ints never needed either.
 (defn- lt2 [a b]
-  (assert-non-nil-pair a b)
-  (if (or (numeric-object? a) (numeric-object? b))
-    (php/< (NumericOperations/compare a b) 0)
-    (php/< a b)))
+  (if (and (php/is_int a) (php/is_int b))
+    (php/< a b)
+    (do
+      (assert-non-nil-pair a b)
+      (if (or (numeric-object? a) (numeric-object? b))
+        (php/< (NumericOperations/compare a b) 0)
+        (php/< a b)))))
 
 (defn- lte2 [a b]
-  (assert-non-nil-pair a b)
-  (if (or (numeric-object? a) (numeric-object? b))
-    (php/<= (NumericOperations/compare a b) 0)
-    (php/<= a b)))
+  (if (and (php/is_int a) (php/is_int b))
+    (php/<= a b)
+    (do
+      (assert-non-nil-pair a b)
+      (if (or (numeric-object? a) (numeric-object? b))
+        (php/<= (NumericOperations/compare a b) 0)
+        (php/<= a b)))))
 
 (defn- gt2 [a b]
-  (assert-non-nil-pair a b)
-  (if (or (numeric-object? a) (numeric-object? b))
-    (php/> (NumericOperations/compare a b) 0)
-    (php/> a b)))
+  (if (and (php/is_int a) (php/is_int b))
+    (php/> a b)
+    (do
+      (assert-non-nil-pair a b)
+      (if (or (numeric-object? a) (numeric-object? b))
+        (php/> (NumericOperations/compare a b) 0)
+        (php/> a b)))))
 
 (defn- gte2 [a b]
-  (assert-non-nil-pair a b)
-  (if (or (numeric-object? a) (numeric-object? b))
-    (php/>= (NumericOperations/compare a b) 0)
-    (php/>= a b)))
+  (if (and (php/is_int a) (php/is_int b))
+    (php/>= a b)
+    (do
+      (assert-non-nil-pair a b)
+      (if (or (numeric-object? a) (numeric-object? b))
+        (php/>= (NumericOperations/compare a b) 0)
+        (php/>= a b)))))
 
 (defn <
   "Checks if each argument is strictly less than the following argument."
