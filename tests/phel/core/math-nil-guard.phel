@@ -1,0 +1,67 @@
+(ns phel-test.core.math-nil-guard
+  (:require phel.test :refer [deftest is]))
+
+;; The twelve arithmetic functions that reject nil arguments do so through a
+;; guard in their body. Nothing pinned that guard before, which mattered when
+;; the variadic `assert-non-nil` was swapped for the fixed-arity
+;; `assert-non-nil-1` / `assert-non-nil-2` macros: the rejection is the whole
+;; observable behaviour of the thing being replaced.
+;;
+;; Both arguments are covered for the two-argument functions, since a guard
+;; that only checks the first would still pass a first-argument test.
+
+(deftest test-single-argument-functions-reject-nil
+  (is (thrown? \InvalidArgumentException (bit-not nil)) "bit-not")
+  (is (thrown? \InvalidArgumentException (floor nil)) "floor")
+  (is (thrown? \InvalidArgumentException (ceil nil)) "ceil")
+  (is (thrown? \InvalidArgumentException (round nil)) "round")
+  (is (thrown? \InvalidArgumentException (sqrt nil)) "sqrt"))
+
+(deftest test-two-argument-functions-reject-nil-in-first-position
+  (is (thrown? \InvalidArgumentException (bit-shift-left nil 1)) "bit-shift-left")
+  (is (thrown? \InvalidArgumentException (bit-shift-right nil 1)) "bit-shift-right")
+  (is (thrown? \InvalidArgumentException (unsigned-bit-shift-right nil 1)) "unsigned-bit-shift-right")
+  (is (thrown? \InvalidArgumentException (quot nil 2)) "quot")
+  (is (thrown? \InvalidArgumentException (rem nil 2)) "rem")
+  (is (thrown? \InvalidArgumentException (mod nil 2)) "mod")
+  (is (thrown? \InvalidArgumentException (** nil 2)) "**"))
+
+(deftest test-two-argument-functions-reject-nil-in-second-position
+  (is (thrown? \InvalidArgumentException (bit-shift-left 1 nil)) "bit-shift-left")
+  (is (thrown? \InvalidArgumentException (bit-shift-right 1 nil)) "bit-shift-right")
+  (is (thrown? \InvalidArgumentException (unsigned-bit-shift-right 1 nil)) "unsigned-bit-shift-right")
+  (is (thrown? \InvalidArgumentException (quot 4 nil)) "quot")
+  (is (thrown? \InvalidArgumentException (rem 4 nil)) "rem")
+  (is (thrown? \InvalidArgumentException (mod 4 nil)) "mod")
+  (is (thrown? \InvalidArgumentException (** 4 nil)) "**"))
+
+(deftest test-the-message-is-unchanged
+  (is (thrown-with-msg? \InvalidArgumentException "Arithmetic functions do not accept nil values"
+                        (rem nil 2))
+      "one argument guard")
+  (is (thrown-with-msg? \InvalidArgumentException "Arithmetic functions do not accept nil values"
+                        (sqrt nil))
+      "two argument guard"))
+
+;; `even?` and `odd?` reach the guard through `%`, so they are the indirect
+;; callers and worth pinning separately from the functions that hold it.
+(deftest test-parity-predicates-reject-nil
+  (is (thrown? \InvalidArgumentException (even? nil)) "even?")
+  (is (thrown? \InvalidArgumentException (odd? nil)) "odd?"))
+
+(deftest test-valid-arguments-still-compute
+  (is (= 2 (quot 5 2)) "quot")
+  (is (= 1 (rem 5 2)) "rem")
+  (is (= 1 (mod 5 2)) "mod")
+  (is (= 1 (mod -5 2)) "mod keeps its sign convention")
+  (is (= 16 (** 2 4)) "**")
+  (is (= 3.0 (floor 3.7)) "floor returns a float")
+  (is (= 4.0 (ceil 3.2)) "ceil returns a float")
+  (is (= 4.0 (round 3.5)) "round returns a float")
+  (is (= 3.0 (sqrt 9)) "sqrt")
+  (is (= -1 (bit-not 0)) "bit-not")
+  (is (= 8 (bit-shift-left 1 3)) "bit-shift-left")
+  (is (= 1 (bit-shift-right 8 3)) "bit-shift-right")
+  (is (= 1 (unsigned-bit-shift-right 8 3)) "unsigned-bit-shift-right")
+  (is (even? 4) "even?")
+  (is (odd? 3) "odd?"))
