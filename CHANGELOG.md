@@ -114,6 +114,7 @@ Runtime core:
 - Thread the `for` `:reduce` accumulator through a one-slot PHP array instead of an atom (#2999)
 - Give `hash-set` fixed arities for the small counts, skipping the variadic parameter and `apply` (#2981)
 - Build `interleave`'s seq array in one pass instead of `some`, `map` and `apply` (#2980)
+- Sort an all-int collection natively instead of calling back into Phel per comparison (#3003)
 - Declare real arities on `reduce` and `into` instead of a `case` over a rest argument (#2975)
 - Give `+`, `-`, `*` and `/` fixed arities, cutting untagged two-operand arithmetic 7.7x (#2978)
 

@@ -971,10 +971,42 @@ Indexed PHP arrays become vectors, associative PHP arrays become maps."
           (cmp b a)     1
           :else         0)))))
 
+(defn- all-native-ints?
+  "True when every element is a PHP int. Deliberately narrow: floats bring NaN
+  and mixed-type comparison, and anything else is not orderable by
+  `SORT_NUMERIC` the way `compare` orders it."
+  [php-array]
+  ;; `foreach` rather than `dofor`: this runs during bootstrap, before the
+  ;; macro layer `dofor` expands into is resolvable. `php/break` leaves at the
+  ;; first non-int, so a float or string sort does not walk its whole
+  ;; collection to discover it cannot use the fast path.
+  (let [found (php/array true)]
+    (foreach [x php-array]
+      (when-not (php/is_int x)
+        (php/aset found 0 false)
+        php/break))
+    (php/aget found 0)))
+
 (defn- sorted-vector
   [coll comp]
   (let [php-array (to-php-array coll)]
     (php/usort php-array comp)
+    (copy-meta coll (Phel/vector php-array))))
+
+(defn- sorted-vector-natural
+  "`sort` with no comparator, where `usort` would call back into Phel twice per
+  comparison: once for the `sort-comparator` wrapper and once for `compare`,
+  O(n log n) times. When every element is a native int, `SORT_NUMERIC` produces
+  exactly the order `compare` produces, and PHP does the whole sort natively.
+  One O(n) scan buys that, which is cheaper than the calls it replaces."
+  [coll]
+  ;; The array is converted once and reused by both branches. Delegating the
+  ;; fallback to `sorted-vector` would convert a second time, which made every
+  ;; non-int sort slower than before the fast path existed.
+  (let [php-array (to-php-array coll)]
+    (if (all-native-ints? php-array)
+      (php/sort (php/ref php-array) php/SORT_NUMERIC)
+      (php/usort php-array (sort-comparator nil)))
     (copy-meta coll (Phel/vector php-array))))
 
 (defn- sort-with
@@ -991,7 +1023,7 @@ Indexed PHP arrays become vectors, associative PHP arrays become maps."
   {:example "(sort [3 1 4 1 5 9 2 6]) ; => [1 1 2 3 4 5 6 9]\n(sort (fn [a b] (compare b a)) [1 2 3]) ; => [3 2 1]"
    :see-also ["sort-by" "compare"]}
   ([coll]
-   (sort-with coll compare))
+   (sorted-vector-natural coll))
   ([a b]
    (if (fn? a)
      (sort-with b a)
