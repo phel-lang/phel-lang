@@ -28,6 +28,24 @@ final class NativeSymbolCatalogTest extends TestCase
         'reify*',
     ];
 
+    /**
+     * Entries that deliberately declare no `signatures` because the symbol has
+     * a real `phel.core` definition whose `arglists` metadata is the better
+     * answer. A catalog signature *overrides* the runtime one, so hardcoding it
+     * here freezes the published signature: all three of these were still
+     * advertising a single variadic arity after #3010 gave them five and six
+     * (#3012).
+     *
+     * A special form has no runtime definition and so cannot appear here.
+     *
+     * @var list<string>
+     */
+    private const array SIGNATURES_FROM_RUNTIME_METADATA = [
+        Symbol::NAME_LIST,
+        Symbol::NAME_VECTOR,
+        Symbol::NAME_MAP,
+    ];
+
     public function test_definitions_is_non_empty(): void
     {
         self::assertNotSame([], NativeSymbolCatalog::definitions());
@@ -45,6 +63,15 @@ final class NativeSymbolCatalogTest extends TestCase
     public function test_every_entry_exposes_signatures(): void
     {
         foreach (NativeSymbolCatalog::definitions() as $symbol => $meta) {
+            if (in_array($symbol, self::SIGNATURES_FROM_RUNTIME_METADATA, true)) {
+                self::assertArrayNotHasKey(
+                    'signatures',
+                    $meta,
+                    sprintf('Entry "%s" delegates its signature to the runtime metadata and must not hardcode one', $symbol),
+                );
+                continue;
+            }
+
             self::assertArrayHasKey('signatures', $meta, sprintf('Entry "%s" should declare signatures', $symbol));
             self::assertNotSame([], $meta['signatures']);
         }
