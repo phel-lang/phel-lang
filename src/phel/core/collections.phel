@@ -15,8 +15,15 @@
 (defn hash-set
   "Creates a new Set from the given arguments. Shortcut: #{}"
   {:example "(hash-set 1 2 3) ; => #{1 2 3}"}
-  [& xs]
-  (Phel/set (apply php/array xs)))
+  ;; Fixed arities for the small counts. The rest argument is a
+  ;; PersistentVector, so `(apply php/array xs)` is a real conversion rather
+  ;; than a redundant rebuild, but the small cases can build the PHP array
+  ;; directly and skip both the variadic parameter and the `apply` (#2981).
+  ([] (Phel/set (php/array)))
+  ([a] (Phel/set (php/array a)))
+  ([a b] (Phel/set (php/array a b)))
+  ([a b c] (Phel/set (php/array a b c)))
+  ([a b c & more] (Phel/set (apply php/array a b c more))))
 
 (defn sorted-map
   "Creates a new sorted map. Keys are in natural sorted order. The number of parameters must be even."

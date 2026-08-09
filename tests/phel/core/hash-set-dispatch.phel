@@ -1,0 +1,26 @@
+(ns phel-test.core.hash-set-dispatch
+  (:require phel.test :refer [deftest is]))
+
+;; Pins hash-set across the arity boundary. Duplicate collapsing and the empty
+;; case are what a naive arity split loses.
+
+(deftest test-hash-set-arities
+  (is (= (hash-set) (hash-set)) "no arguments")
+  (is (= 0 (count (hash-set))) "no arguments is empty")
+  (is (= 1 (count (hash-set 1))) "one argument")
+  (is (= 2 (count (hash-set 1 2))) "two arguments")
+  (is (= 3 (count (hash-set 1 2 3))) "three arguments")
+  (is (= 5 (count (hash-set 1 2 3 4 5))) "five arguments crosses into the tail"))
+
+(deftest test-duplicates-collapse-on-every-arity
+  (is (= 1 (count (hash-set 1 1))) "two equal")
+  (is (= 2 (count (hash-set 1 1 2))) "three with a duplicate")
+  (is (= 2 (count (hash-set 1 2 1 2 1))) "five with duplicates"))
+
+(deftest test-membership
+  (is (contains? (hash-set :a :b) :a) "member")
+  (is (not (contains? (hash-set :a :b) :z)) "non-member")
+  (is (contains? (hash-set :a :b :c :d) :d) "member from the tail arity"))
+
+(deftest test-set-literal-agrees
+  (is (= #{1 2 3} (hash-set 1 2 3)) "the #{} literal and hash-set agree"))
