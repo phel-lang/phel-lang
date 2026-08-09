@@ -1,6 +1,6 @@
 --PHEL--
 (fn [x] (cond (= x :a) 1 (= x :b) 2 :else 99))
 --PHP--
-(function($x) {
+(function($x): int {
   return match ($x) { \Phel\Lang\Keyword::create("a") => 1, \Phel\Lang\Keyword::create("b") => 2, default => 99 };
 });

@@ -7,7 +7,7 @@
   new class() extends \Phel\Lang\AbstractFn {
     public const BOUND_TO = "user\\is_five?";
 
-    public function __invoke($x) {
+    public function __invoke($x): bool {
       static $__phel_call_0;
       return ($__phel_call_0 ??= \Phel::getDefinition("phel.core", "="))->__invoke($x, 5);
     }
@@ -18,6 +18,7 @@
     \Phel\Lang\Keyword::create("doc"), "```phel\n(is-five? x)\n```\n",
     "min-arity", 1,
     "is-variadic", false,
-    "arglists", "[x]"
+    "arglists", "[x]",
+    \Phel\Lang\Keyword::create("tag"), "bool"
   )
 );

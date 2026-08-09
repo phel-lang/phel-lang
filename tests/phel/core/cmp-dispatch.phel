@@ -1,0 +1,56 @@
+(ns phel-test.core.cmp-dispatch
+  (:require phel.test :refer [deftest is]))
+
+;; Pins the comparison operators across their arity boundaries. The chained
+;; forms are what a naive arity split breaks: they must keep comparing each
+;; argument with the next, and stop at the first failure.
+
+(deftest test-equality-arities
+  (is (true? (= 1)) "one argument is true")
+  (is (true? (= 1 1)) "two equal")
+  (is (false? (= 1 2)) "two unequal")
+  (is (true? (= 1 1 1)) "three equal")
+  (is (false? (= 1 1 2)) "three, last differs")
+  (is (false? (= 1 2 1)) "three, middle differs")
+  (is (true? (= [1 2] [1 2])) "value equality on collections"))
+
+(deftest test-not-equal
+  (is (false? (not= 1)) "one argument is false")
+  (is (true? (not= 1 2)) "two unequal")
+  (is (false? (not= 1 1)) "two equal")
+  (is (false? (not= 1 1 1)) "three equal")
+  (is (true? (not= 1 1 2)) "three, one differs"))
+
+(deftest test-identical
+  (is (true? (identical? :a)) "one argument is true")
+  (is (true? (identical? :a :a)) "two identical keywords")
+  (is (false? (identical? :a :b)) "two different keywords")
+  (is (true? (identical? :a :a :a)) "three identical"))
+
+(deftest test-ordering-two-args
+  (is (true? (< 1 2)) "less than")
+  (is (false? (< 2 1)) "not less than")
+  (is (false? (< 1 1)) "strict")
+  (is (true? (<= 1 1)) "less or equal")
+  (is (true? (> 2 1)) "greater than")
+  (is (true? (>= 1 1)) "greater or equal"))
+
+(deftest test-ordering-chained
+  (is (true? (< 1 2 3 4)) "ascending chain")
+  (is (false? (< 1 2 2 4)) "chain broken by an equal pair")
+  (is (false? (< 1 3 2)) "chain broken in the middle")
+  (is (true? (<= 1 1 2)) "non-strict chain")
+  (is (true? (> 4 3 2 1)) "descending chain")
+  (is (false? (> 4 3 3)) "descending chain broken")
+  (is (true? (>= 3 3 2)) "non-strict descending chain"))
+
+(deftest test-ordering-single-argument
+  (is (true? (< 1)) "one argument is true")
+  (is (true? (> 1)) "one argument is true")
+  (is (true? (<= 1)) "one argument is true")
+  (is (true? (>= 1)) "one argument is true"))
+
+(deftest test-mixed-numeric-comparison
+  (is (true? (< 1 1.5)) "int against float")
+  (is (true? (= 1 1)) "int equality")
+  (is (true? (< 1/2 1)) "ratio against int"))
