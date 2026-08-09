@@ -1025,9 +1025,38 @@ Indexed PHP arrays become vectors, associative PHP arrays become maps."
   (sorted-vector coll (sort-comparator comp)))
 
 (defn- sort-by-with
+  "Decorate, sort, undecorate. Building the comparator as
+  `#(cmp (keyfn %1) (keyfn %2))` runs `keyfn` twice per comparison, so O(n log n)
+  times: sorting 100 elements called it 1114 times to derive 100 keys. Computing
+  each key once up front and sorting `[key value]` pairs calls it exactly n
+  times, and the gap widens with n (#3006).
+
+  This is an observable divergence from Clojure, whose `sort-by` calls `keyfn`
+  per comparison as this one used to. It is invisible to a pure key function,
+  which is the normal case, and visible to one that counts calls, logs or
+  memoises. Recorded in `docs/spec/clojure-divergences.md`.
+
+  `php/aget` rather than `aget` inside the comparator: `aget` is a function, so
+  it would add two Phel calls per comparison and give back a good part of what
+  the transform buys."
   [keyfn coll comp]
-  (let [cmp (sort-comparator comp)]
-    (sorted-vector coll #(cmp (keyfn %1) (keyfn %2)))))
+  (let [cmp    (sort-comparator comp)
+        ;; `to-php-array` and not `foreach` over `coll` directly: it is the
+        ;; conversion `sorted-vector` used, and it is what decides what an
+        ;; element *is*. Iterating a map yields its values, while converting one
+        ;; yields its `[key value]` entries, which is what `sort` and `sort-by`
+        ;; have always sorted.
+        values (to-php-array coll)
+        pairs  (php-indexed-array)]
+    (foreach [v values]
+      (php/apush pairs (php-indexed-array (keyfn v) v)))
+    ;; `usort` is stable as of PHP 8.0, so ties keep their input order, which is
+    ;; what the undecorated result has to preserve.
+    (php/usort pairs (fn [a b] (cmp (php/aget a 0) (php/aget b 0))))
+    (let [result (php-indexed-array)]
+      (foreach [p pairs]
+        (php/apush result (php/aget p 1)))
+      (copy-meta coll (Phel/vector result)))))
 
 (defn sort
   "Returns a sorted vector. If no comparator is supplied compare is used."
