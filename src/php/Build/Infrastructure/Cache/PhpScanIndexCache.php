@@ -70,9 +70,15 @@ final class PhpScanIndexCache implements ScanIndexCacheInterface
         }
 
         $written = LockedPhpCacheWriter::write($this->cacheFile, function (): array {
-            // Merge disk entries with our in-memory changes (ours take precedence)
+            // Merge disk entries with our in-memory changes (ours take
+            // precedence), then drop everything that can never be read back.
+            // Without the prune the index only ever grows: the merge inherits
+            // every dead entry every previous run left behind (#3007).
             $diskEntries = $this->loadEntriesFromFile();
-            $this->entries = array_merge($diskEntries, $this->entries);
+            $this->entries = array_filter(
+                array_merge($diskEntries, $this->entries),
+                static fn(ScanIndexEntry $entry): bool => $entry->isReachable(),
+            );
 
             return $this->toArray();
         });

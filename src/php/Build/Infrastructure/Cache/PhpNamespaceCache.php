@@ -69,9 +69,19 @@ final class PhpNamespaceCache implements NamespaceCacheInterface
         }
 
         $written = LockedPhpCacheWriter::write($this->cacheFile, function (): array {
-            // Merge disk entries with our in-memory changes (ours take precedence)
+            // Merge disk entries with our in-memory changes (ours take
+            // precedence), then drop every entry whose file is gone. Such an
+            // entry can never be read back (`NamespaceCacheEntry::isValid()`
+            // rejects a missing file), so re-persisting it on each merge only
+            // grows the cache. `phel doc` / LSP completion produce one per
+            // call, in a temp directory they delete before the shutdown flush
+            // runs (#3007).
             $diskEntries = $this->loadEntriesFromFile();
-            $this->entries = array_merge($diskEntries, $this->entries);
+            $this->entries = array_filter(
+                array_merge($diskEntries, $this->entries),
+                file_exists(...),
+                ARRAY_FILTER_USE_KEY,
+            );
 
             return $this->toArray();
         });

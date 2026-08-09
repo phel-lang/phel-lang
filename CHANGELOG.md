@@ -23,6 +23,7 @@ All notable changes to this project will be documented in this file.
 
 ### Fixed
 
+- Stop the scan-index and namespace caches growing without bound on every `phel doc`, LSP hover and REPL completion (#3007)
 - Fix literal matching in `phel.string/replace` and `replace-first` (#2957)
 - Stop internal test, nREPL and watch eval forms from emitting namespace separator deprecations (#2950)
 - Teach preferred dotted namespace and markerless PHP class spellings across active docs and agent guidance (#2949)

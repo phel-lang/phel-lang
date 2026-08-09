@@ -91,6 +91,66 @@ final class PhpNamespaceCacheTest extends TestCase
     }
 
     /**
+     * The `phel doc` / LSP / REPL-completion path scans a unique
+     * `.phel_temp_<uniqid>` directory and removes it again before the shutdown
+     * flush, so the entry it produces can never be read back. Re-persisting it
+     * on every run is what grew this cache to 2619 entries, 87% of them dead
+     * (#3007).
+     */
+    public function test_save_drops_entries_whose_file_no_longer_exists(): void
+    {
+        $this->writeCacheFile([
+            $this->tmpDir . '/gone.phel' => [
+                'mtime' => 100,
+                'namespace' => 'gone',
+                'dependencies' => [],
+                'isPrimaryDefinition' => true,
+            ],
+        ]);
+        $liveFile = $this->tmpDir . '/live.phel';
+        file_put_contents($liveFile, '(ns live)');
+
+        $cache = new PhpNamespaceCache($this->cacheFile);
+        $cache->put($liveFile, new NamespaceCacheEntry($liveFile, 100, 'live', [], true));
+        $cache->save();
+
+        $reloaded = new PhpNamespaceCache($this->cacheFile);
+
+        self::assertSame([$liveFile], $reloaded->getAllFiles());
+
+        unlink($liveFile);
+    }
+
+    /**
+     * A file that is still there but whose `mtime` moved on stays reachable:
+     * the next scan overwrites it under the same key, so only a missing file
+     * makes an entry unreachable.
+     */
+    public function test_save_keeps_an_entry_whose_file_exists_but_is_out_of_date(): void
+    {
+        $staleFile = $this->tmpDir . '/stale.phel';
+        file_put_contents($staleFile, '(ns stale)');
+        $this->writeCacheFile([
+            $staleFile => [
+                'mtime' => 1,
+                'namespace' => 'stale',
+                'dependencies' => [],
+                'isPrimaryDefinition' => true,
+            ],
+        ]);
+
+        $cache = new PhpNamespaceCache($this->cacheFile);
+        $cache->put('/other.phel', new NamespaceCacheEntry('/other.phel', 100, 'other', [], true));
+        $cache->save();
+
+        $reloaded = new PhpNamespaceCache($this->cacheFile);
+
+        self::assertNotNull($reloaded->get($staleFile));
+
+        unlink($staleFile);
+    }
+
+    /**
      * @param array<string, array{mtime: int, namespace: string, dependencies: list<string>, isPrimaryDefinition: bool}> $entries
      */
     private function writeCacheFile(array $entries): void

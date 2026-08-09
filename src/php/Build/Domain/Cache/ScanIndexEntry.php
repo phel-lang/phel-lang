@@ -6,8 +6,10 @@ namespace Phel\Build\Domain\Cache;
 
 use Phel\Shared\NamespaceInformation;
 
+use function array_keys;
 use function count;
 use function is_array;
+use function is_dir;
 use function is_int;
 use function is_string;
 
@@ -83,6 +85,29 @@ final readonly class ScanIndexEntry
         }
 
         return true;
+    }
+
+    /**
+     * Whether this entry is still reachable, i.e. whether a future scan could
+     * ever produce its key again.
+     *
+     * Deliberately weaker than {@see isValid()}: an entry whose files merely
+     * changed is worth keeping, because the next scan of the same directory
+     * set overwrites it under the same key. An entry whose *directories* are
+     * gone can never be hit again, since the key is built from their paths.
+     *
+     * `phel doc`, LSP hover and REPL completion each scan a unique
+     * `.phel_temp_<uniqid>` directory and delete it before the shutdown flush
+     * runs, so without this check every one of those calls would append a
+     * permanently dead entry to the index (#3007).
+     *
+     * Only the `perDir` keys are probed, not {@see $files}: the directories
+     * are what the key is made of, and it keeps this O(directories) rather
+     * than O(files scanned).
+     */
+    public function isReachable(): bool
+    {
+        return array_all(array_keys($this->perDir), static fn(string $dir): bool => is_dir($dir));
     }
 
     /**
