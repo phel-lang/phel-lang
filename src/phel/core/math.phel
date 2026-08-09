@@ -81,7 +81,7 @@
    :example "(bit-not 0) ; => -1"
    :see-also ["bit-and" "bit-or" "bit-xor"]}
   [x]
-  (assert-non-nil x)
+  (assert-non-nil-1 x)
   (php/~ x))
 
 (defn bit-shift-left
@@ -90,7 +90,7 @@
    :example "(bit-shift-left 1 4) ; => 16"
    :see-also ["bit-shift-right"]}
   [x n]
-  (assert-non-nil x n)
+  (assert-non-nil-2 x n)
   (php/<< x n))
 
 (defn bit-shift-right
@@ -99,7 +99,7 @@
    :example "(bit-shift-right 16 2) ; => 4"
    :see-also ["bit-shift-left"]}
   [x n]
-  (assert-non-nil x n)
+  (assert-non-nil-2 x n)
   (php/>> x n))
 
 (defn unsigned-bit-shift-right
@@ -107,7 +107,7 @@
   {:example "(unsigned-bit-shift-right -1 10) ; => 18014398509481983"
    :see-also ["bit-shift-right" "bit-shift-left"]}
   [x n]
-  (assert-non-nil x n)
+  (assert-non-nil-2 x n)
   ;; A right shift by 0 would make the mask `PHP_INT_MAX >> -1`, which PHP
   ;; rejects as a negative shift; the value is already unchanged in that case.
   (if (php/=== 0 n)
@@ -233,7 +233,7 @@ returns 1. If `xs` has one value, returns the reciprocal of x.
   {:example "(quot 7 3) ; => 2\n(quot -7 3) ; => -2"
    :see-also ["rem" "mod" "/"]}
   [dividend divisor]
-  (assert-non-nil dividend divisor)
+  (assert-non-nil-2 dividend divisor)
   (NumericOperations/quot dividend divisor))
 
 (defn rem
@@ -241,7 +241,7 @@ returns 1. If `xs` has one value, returns the reciprocal of x.
   {:example "(rem 7 3) ; => 1\n(rem -7 3) ; => -1"
    :see-also ["quot" "mod" "%"]}
   [dividend divisor]
-  (assert-non-nil dividend divisor)
+  (assert-non-nil-2 dividend divisor)
   (NumericOperations/rem dividend divisor))
 
 (defn mod
@@ -251,7 +251,7 @@ returns 1. If `xs` has one value, returns the reciprocal of x.
   {:example "(mod 7 3) ; => 1\n(mod -7 3) ; => 2"
    :see-also ["quot" "rem" "%"]}
   [dividend divisor]
-  (assert-non-nil dividend divisor)
+  (assert-non-nil-2 dividend divisor)
   (NumericOperations/mod dividend divisor))
 
 (defn %
@@ -267,7 +267,7 @@ returns 1. If `xs` has one value, returns the reciprocal of x.
   {:example "(** 2 8) ; => 256"
    :see-also ["*" "sqrt"]}
   [a x]
-  (assert-non-nil a x)
+  (assert-non-nil-2 a x)
   (NumericOperations/power a x))
 
 (defn inc
@@ -884,7 +884,7 @@ returns 1. If `xs` has one value, returns the reciprocal of x.
   {:example "(floor 1.7) ; => 1.0\n(floor -1.2) ; => -2.0\n(floor 7/3) ; => 2"
    :see-also ["ceil" "round" "quot"]}
   [x]
-  (assert-non-nil x)
+  (assert-non-nil-1 x)
   (cond
     (php/is_int x)            x
     (php/instanceof x BigInt) x
@@ -899,7 +899,7 @@ returns 1. If `xs` has one value, returns the reciprocal of x.
   {:example "(ceil 1.2) ; => 2.0\n(ceil -1.7) ; => -1.0\n(ceil 7/3) ; => 3"
    :see-also ["floor" "round" "quot"]}
   [x]
-  (assert-non-nil x)
+  (assert-non-nil-1 x)
   (cond
     (php/is_int x)            x
     (php/instanceof x BigInt) x
@@ -914,7 +914,7 @@ returns 1. If `xs` has one value, returns the reciprocal of x.
   {:example "(round 1.5) ; => 2.0\n(round -1.5) ; => -2.0\n(round 5) ; => 5"
    :see-also ["floor" "ceil"]}
   [x]
-  (assert-non-nil x)
+  (assert-non-nil-1 x)
   (cond
     (php/is_int x)            x
     (php/instanceof x BigInt) x
@@ -926,5 +926,5 @@ returns 1. If `xs` has one value, returns the reciprocal of x.
   {:example "(sqrt 9) ; => 3.0\n(sqrt 2) ; => 1.4142135623731"
    :see-also ["**" "abs"]}
   [x]
-  (assert-non-nil x)
+  (assert-non-nil-1 x)
   (php/sqrt (number->float x)))
