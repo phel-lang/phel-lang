@@ -331,12 +331,17 @@ Returns the new value after the swap."
         options (for-builder-options head 0 {})]
     (if (:reduce options)
       ;; `:reduce` threads a user-named accumulator whose value is whatever the
-      ;; body returns, so it keeps the atom: there is nothing to append to.
+      ;; body returns, so it cannot append the way the collecting form does. It
+      ;; still does not need an atom: a one-slot PHP array is a mutable cell in
+      ;; the same scope, which drops the `swap!` and its closure per element.
+      ;; Same inline-`foreach` reasoning as the collecting branch below.
       (let [[sym _]   (:reduce options)
-            loop-body (for-builder `(swap! ~res-sym (fn [~sym] (do ~@body))) head 0)]
-        `(let [~res-sym (atom ~(second (:reduce options)))]
+            loop-body (for-builder
+                       `(php/aset ~res-sym 0 (let [~sym (php/aget ~res-sym 0)] (do ~@body)))
+                       head 0)]
+        `(let [~res-sym (php/array ~(second (:reduce options)))]
            ~loop-body
-           (deref ~res-sym)))
+           (php/aget ~res-sym 0)))
 
       ;; The collecting form appends, so it does not need an atom at all.
       ;; It used to pay, per element, a `swap!`, a closure, and a `conj` onto a
