@@ -121,8 +121,10 @@
      (nil? ds)                                                                                                                   opt
      (and (nil? k) (indexed? ds))                                                                                                opt
 
+     ;; `set?` is `(php/instanceof x PersistentHashSetInterface)` and the
+     ;; emitter inlines it to exactly that, so spelling it alongside the same
+     ;; `php/instanceof` tested the identical thing twice per lookup.
      (or (set? ds)
-         (php/instanceof ds PersistentHashSetInterface)
          (php/instanceof ds TransientHashSetInterface))
      (if (.contains ds k)
        k
