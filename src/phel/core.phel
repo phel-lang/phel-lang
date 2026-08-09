@@ -33,9 +33,8 @@
 ;; parameter costs several times a fixed one per call before the body runs
 ;; (#2973), and these five sit on the quasiquote and destructuring expansion
 ;; paths, so they pay it more often than anything else in the language.
-;; The tail still accepts every argument count, so nothing that used to be a
-;; runtime error becomes a compile-time one, and an odd argument count still
-;; reaches `Phel/map` and still throws there (#3010).
+;; The tail still accepts every argument count, so no call that used to fail at
+;; runtime now fails at compile time (#3010).
 
 (def list
   {:doc "Creates a new list. If no argument is provided, an empty list is created. Shortcut: '()"
