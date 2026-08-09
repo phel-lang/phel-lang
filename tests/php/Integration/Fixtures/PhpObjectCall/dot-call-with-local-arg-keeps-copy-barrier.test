@@ -1,0 +1,9 @@
+--PHEL--
+(fn [o k] (.offsetGet o k))
+--PHP--
+(function($o, $k) {
+  return (function() use($o,$k) {
+    $target_1 = $o;
+    return is_string($target_1) ? $target_1::offsetGet($k) : $target_1->offsetGet($k);
+  })();
+});
