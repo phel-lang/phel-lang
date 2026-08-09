@@ -25,6 +25,7 @@ All notable changes to this project will be documented in this file.
 ### Fixed
 
 - `phel doc` and the API reference report every arity of a `def` over an `fn`. `defn` renders its arities into the docstring and a bare `def` does not, so 23 symbols published no signature at all, `defn` and `defmacro` among them, while `list`, `vector` and `hash-map` published a stale hardcoded one (#3012)
+- `empty?` no longer reports a lazy sequence whose first element is `nil` as empty. `(empty? (lazy-seq [nil]))` answered `true` while `count` answered 1 and `vec` answered `[nil]` (#3025)
 - Stop the emptiness check on a lazy sequence realizing the whole sequence: an unbounded source now terminates, a 2,000,000 element one no longer crashes, and taking 5 of a 200,000 element `lazy-seq` drops from 21ms to 0.004ms (#3023)
 - Fix `lazy-seq` over a chunked sequence (`take`, `keep`, `range`, ...) yielding only its first element while `count` reported the true length (#3020)
 - Stop the scan-index and namespace caches growing without bound on every `phel doc`, LSP hover and REPL completion (#3007)

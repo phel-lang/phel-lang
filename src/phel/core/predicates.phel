@@ -444,7 +444,16 @@ A non-countable iterable (an `eduction` pipeline, a PHP generator) is answered b
   ;; claims `"0"` before `is_string` sees it, and `(php/empty "0")` is `true`
   ;; where `(= 0 "0")` is `false`, so swapping them changes `(empty? "0")`.
   (cond
-    (php/instanceof x LazySeqInterface) (nil? (first x))
+    ;; `(nil? (first x))` is not the question. `first` answers `nil` both for an
+    ;; empty sequence and for one whose first element *is* `nil`, and `nil` is a
+    ;; legitimate element: `(empty? (lazy-seq [nil]))` was `true` while `count`
+    ;; said 1 and `vec` said `[nil]` (#3025). `LazySeq::toArray()` already states
+    ;; the rule, that only realizing distinguishes the two.
+    ;;
+    ;; `Seq/isEmpty` pulls at most one element through the iterator, so it
+    ;; answers from whether an element exists rather than from what it is, and
+    ;; still never realizes an unbounded sequence (#3023).
+    (php/instanceof x LazySeqInterface) (Seq/isEmpty x)
     (php/instanceof x Cons)             false
     ;; `instanceof Countable` has already proven `php/count` valid here, so
     ;; there is nothing for core `count` and core `=` to dispatch on.
