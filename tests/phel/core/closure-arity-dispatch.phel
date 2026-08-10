@@ -1,0 +1,82 @@
+(ns phel-test.core.closure-arity-dispatch
+  (:require phel.test :refer [deftest is]))
+
+;; `partial`, `fnil` and `comp` each return a closure, and that closure is what
+;; runs per call, so it is the part that had to stop being variadic (#3021).
+;; Each now dispatches once, at construction, on how many arguments were bound,
+;; and hands back a closure with real arities plus a variadic tail.
+;;
+;; The interesting cases are therefore the boundaries of that dispatch: the
+;; bound counts that get a specialised closure, the count just past them that
+;; falls to the general form, and the call arities either side of each
+;; closure's own tail.
+
+(deftest test-partial-by-bound-argument-count
+  (is (= 3 ((partial +) 1 2)) "no bound arguments falls to the general form")
+  (is (= 15 ((partial + 10) 5)) "one bound")
+  (is (= 35 ((partial + 10 20) 5)) "two bound")
+  (is (= 15 ((partial + 1 2 3) 4 5)) "three bound, the last specialised count")
+  (is (= 21 ((partial + 1 2 3 4 5) 6)) "five bound falls to the general form"))
+
+(deftest test-partial-by-call-argument-count
+  (let [add10 (partial + 10)]
+    (is (= 10 (add10)) "called with none")
+    (is (= 11 (add10 1)) "called with one")
+    (is (= 13 (add10 1 2)) "called with two")
+    (is (= 16 (add10 1 2 3)) "called with three, into the closure's tail")
+    (is (= 25 (add10 1 2 3 4 5)) "well into the tail")))
+
+(deftest test-partial-preserves-argument-order
+  (is (= "abc" ((partial str "a") "b" "c")) "bound arguments come first")
+  (is (= [1 2 3] ((partial vector 1) 2 3)) "and stay in order")
+  (is (= [1 2 3 4] ((partial vector 1 2) 3 4)) "two bound")
+  (is (= 5 ((partial - 10) 5)) "order matters for a non-commutative fn")
+  (is (= 3 ((partial - 10 2) 5)) "two bound, non-commutative"))
+
+(deftest test-fnil-patches-only-nil-and-only-the-leading-arguments
+  (is (= 1 ((fnil inc 0) nil)) "one default, nil patched")
+  (is (= 6 ((fnil inc 0) 5)) "one default, value kept")
+  (is (= 3 ((fnil + 1 2) nil nil)) "two defaults, both patched")
+  (is (= 10 ((fnil + 1 2) nil 9)) "two defaults, second kept")
+  (is (= 9 ((fnil + 1 2) 7 nil)) "two defaults, first kept")
+  (is (= 15 ((fnil + 1 2) 7 8)) "two defaults, neither patched")
+  (is (= 6 ((fnil + 1 2 3) nil nil nil)) "three defaults")
+  (is (= 10 ((fnil + 1 2 3 4) nil nil nil nil)) "four defaults falls to the general form")
+  (is (= 12 ((fnil + 1) nil 5 6)) "arguments past the defaults are untouched")
+  (is (= [1 9 3] ((fnil vector 1 2 3) nil 9 nil)) "patched and kept interleaved"))
+
+;; Only nil is replaced. `false` is a value, and treating it as missing would
+;; be the easy mistake for a nil check to make.
+(deftest test-fnil-does-not-patch-false
+  (is (= :d ((fnil identity :d) nil)) "nil is replaced")
+  (is (= false ((fnil identity :d) false)) "false is not")
+  (is (= 0 ((fnil identity :d) 0)) "nor is zero")
+  (is (= "" ((fnil identity :d) "")) "nor is an empty string"))
+
+(deftest test-comp-by-function-count
+  (is (= 7 ((comp) 7)) "no functions is identity")
+  (is (= 8 ((comp inc) 7)) "one function")
+  (is (= 7 ((comp inc inc) 5)) "two functions, the specialised count")
+  (is (= 4 ((comp inc inc inc) 1)) "three functions folds through the pair"))
+
+(deftest test-comp-applies-right-to-left
+  (is (= 7 ((comp inc (fn [x] (* x 2))) 3)) "the docstring example")
+  (is (= 8 ((comp (fn [x] (* x 2)) inc) 3)) "the other order gives a different answer")
+  (is (= 4 ((comp inc +) 1 2)) "the inner function takes the arguments"))
+
+(deftest test-comp-by-call-argument-count
+  (let [f (comp inc +)]
+    (is (= 1 (f)) "called with none")
+    (is (= 2 (f 1)) "called with one")
+    (is (= 4 (f 1 2)) "called with two")
+    (is (= 7 (f 1 2 3)) "called with three, into the closure's tail")
+    (is (= 16 (f 1 2 3 4 5)) "well into the tail")))
+
+;; These are the shapes a caller reaches through `apply` or by passing the
+;; closure on, neither of which sees a fixed arity.
+(deftest test-the-returned-closures-work-through-apply
+  (is (= 16 (apply (partial + 10) [1 2 3])) "partial")
+  (is (= 1 (apply (fnil inc 0) [nil])) "fnil")
+  (is (= 4 (apply (comp inc +) [1 2])) "comp")
+  (is (= [11 12] (map (partial + 10) [1 2])) "partial as a value")
+  (is (= [1 6] (map (fnil inc 0) [nil 5])) "fnil as a value"))

@@ -7,12 +7,11 @@ namespace PhelTest\Benchmark\Compiler;
 use Phel;
 use Phel\Compiler\CompilerFacade;
 use Phel\Compiler\Domain\Lexer\LexerInterface;
+use PhelTest\Benchmark\Compiler\Fixtures\CoreCorpus;
 use PhpBench\Benchmark\Metadata\Annotations\BeforeMethods;
 use PhpBench\Benchmark\Metadata\Annotations\Iterations;
 use PhpBench\Benchmark\Metadata\Annotations\Revs;
 use RuntimeException;
-
-use function sprintf;
 
 /**
  * Lexer throughput micro-benchmark.
@@ -29,10 +28,13 @@ use function sprintf;
  * comments carry multibyte code points, so a regression in the
  * multibyte path shows up as a divergence between the two.
  *
- * A third subject lexes the real `phel.core` aggregate source so the
- * realistic token mix (symbols, keywords, parens, strings, comments)
- * is covered too. All fixtures are built once in `setUp` and are
- * deterministic — no wall-clock or cache dependency.
+ * A third subject lexes {@see CoreCorpus}, a frozen snapshot of the
+ * `phel.core` source, so the realistic token mix (symbols, keywords,
+ * parens, strings, comments) is covered too. It is a snapshot rather
+ * than a read of `src/` so that a commit which grows the standard
+ * library does not read as a lexer regression. All fixtures are built
+ * once in `setUp` and are deterministic — no wall-clock or cache
+ * dependency.
  *
  * @BeforeMethods("setUp")
  */
@@ -55,7 +57,7 @@ final class LexerBench
         $this->compilerFacade = new CompilerFacade();
         $this->asciiSource = $this->buildSource(asciiOnly: true);
         $this->utf8Source = $this->buildSource(asciiOnly: false);
-        $this->coreSource = $this->readCoreSource();
+        $this->coreSource = CoreCorpus::source();
     }
 
     /**
@@ -130,14 +132,4 @@ final class LexerBench
         return implode("\n\n", $forms) . "\n";
     }
 
-    private function readCoreSource(): string
-    {
-        $path = __DIR__ . '/../../../../src/phel/core.phel';
-        $source = file_get_contents($path);
-        if ($source === false) {
-            throw new RuntimeException(sprintf('Unable to read core source at %s', $path));
-        }
-
-        return $source;
-    }
 }

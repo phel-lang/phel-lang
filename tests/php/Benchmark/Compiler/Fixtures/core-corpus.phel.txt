@@ -1,0 +1,273 @@
+;; Frozen corpus for the compiler benchmarks. Do not edit by hand.
+;;
+;; This is a snapshot of `src/phel/core.phel`, kept here so that the lexer,
+;; parser and reader benchmarks measure the compiler rather than the size of
+;; the standard library. The CI bench job checks out `tests/php/Benchmark`
+;; from the pull request for both the baseline and the head run, so a corpus
+;; that lives here is byte-identical on both sides of the comparison; one read
+;; out of `src/` is not, and any commit that adds a function to the core
+;; library moves the number.
+;;
+;; Refreshing it is a deliberate act: it will shift every subject that reads
+;; it by however much the token mix changed, once, in that pull request.
+;;
+;; The `.txt` extension keeps the namespace scanner out: this file declares
+;; `ns phel.core`, and a second loadable file claiming that namespace breaks
+;; `(load ...)` resolution across the whole project.
+
+(ns phel.core
+  (:use InvalidArgumentException)
+  (:use Phel)
+  (:use Phel.Lang.CdrInterface)
+  (:use Phel.Lang.Collections.HashSet.PersistentHashSetInterface)
+  (:use Phel.Lang.Collections.LazySeq.Cons)
+  (:use Phel.Lang.Collections.LazySeq.LazySeqInterface)
+  (:use Phel.Lang.Collections.Map.MapEntry)
+  (:use Phel.Lang.Collections.Map.PersistentMapInterface)
+  (:use Phel.Lang.ConcatInterface)
+  (:use Phel.Lang.FirstInterface)
+  (:use Phel.Lang.Seq)
+  (:use Traversable))
+
+(def *ns*
+  {:doc "Returns the namespace in the current scope."}
+  "phel.core")
+
+(def *file*
+  {:doc "Returns the path of the current source file."}
+  "")
+
+(def *assert*
+  {:doc "Controls whether `assert` expands to a runtime check. When logical false at macroexpansion time, `assert` expands to nil and performs no runtime check, matching Clojure's compile-time `*assert*` semantics. Defaults to `true`. To disable globally, set the core binding before compilation via PHP: `\\Phel::addDefinition(\"phel\\\\core\", \"*assert*\", false)`."}
+  true)
+
+;; --------------------------------------------
+;; Basic methods for quasiquote and destructure
+;; --------------------------------------------
+
+(def list
+  {:doc "Creates a new list. If no argument is provided, an empty list is created. Shortcut: '()"
+   :example "(list 1 2 3) ; => '(1 2 3)"}
+  (fn [& xs]
+    (Phel/list (apply php/array xs))))
+
+(def vector
+  {:doc "Creates a new vector. If no argument is provided, an empty vector is created. Shortcut: []"
+   :example "(vector 1 2 3) ; => [1 2 3]"}
+  (fn [& xs]
+    (Phel/vector (apply php/array xs))))
+
+(def queue
+  {:doc "Creates a persistent FIFO queue. With no arguments returns an empty queue; with arguments returns a queue with the values pushed in order so that the first argument is at the front."
+   :example "(queue 1 2 3) ; => <-(1 2 3)-<"}
+  (fn [& xs]
+    (Phel/queue (apply php/array xs))))
+
+(def hash-map
+  {:doc "Creates a new hash map. If no argument is provided, an empty hash map is created. The number of parameters must be even. Shortcut: {}"
+   :example "(hash-map :a 1 :b 2) ; => {:a 1, :b 2}"}
+  (fn [& xs]
+    (Phel/map (apply php/array xs))))
+
+(def array-map
+  {:doc "Constructs a map from the given key/value pairs. If any keys are equal, later values replace earlier ones, as if by repeated `assoc`. Phel has no distinct array-map type, so the result is the same persistent map as `hash-map` — `array-map` exists for `.cljc` interop with Clojure sources."
+   :example "(array-map :a 1 :b 2) ; => {:a 1, :b 2}"
+   :see-also ["hash-map"]}
+  (fn [& xs]
+    (Phel/map (apply php/array xs))))
+
+(def next-vector-or-nil
+  {:private true
+   :doc "Returns all values after the first array value as a persistent vector, or nil."}
+  (fn [values]
+    (let [sliced (php/array_slice values 1)]
+      (if (php/empty sliced)
+        nil
+        (Phel/vector sliced)))))
+
+(def next-of-set
+  {:private true
+   :doc "Returns all values after the first persistent set value, or nil."}
+  (fn [s]
+    (next-vector-or-nil (.toPhpArray s))))
+
+(def next-of-map
+  {:private true
+   :doc "Returns all entries after the first persistent map entry as `MapEntry` instances, or nil."}
+  (fn [m]
+    ;; Bootstrap: `php-indexed-array` is defined later in `core/arrays`.
+    (let [entries (php/array)]
+      (foreach [k v m]
+        (php/apush entries (MapEntry/create k v)))
+      (next-vector-or-nil entries))))
+
+(def next
+  {:doc "Returns the sequence after the first element, or nil if empty."
+   :example "(next [1 2 3]) ; => [2 3]"}
+  (fn [xs]
+    (if (php/=== xs nil)
+      nil
+      (if (php/instanceof xs LazySeqInterface)
+        (.nextSeq xs)
+        (if (php/instanceof xs Cons)
+          (.nextSeq xs)
+          (if (php/instanceof xs CdrInterface)
+            (.cdr xs)
+            (if (php/is_string xs)
+              (let [chars (php/mb_str_split xs)]
+                (if (php/<= (php/count chars) 1)
+                  nil
+                  (Phel/vector (php/array_slice chars 1))))
+              (if (php/is_array xs)
+                (let [sliced (php/array_slice xs 1)]
+                  (if (php/empty sliced)
+                    nil
+                    sliced))
+                (if (php/instanceof xs PersistentHashSetInterface)
+                  (next-of-set xs)
+                  (if (php/instanceof xs PersistentMapInterface)
+                    (next-of-map xs)
+                    (throw (new InvalidArgumentException
+                                (php/. "cannot call 'next on " (php/gettype xs))))))))))))))
+
+(def first-map-entry
+  {:private true
+   :doc "Returns the first entry of a persistent map as a typed `MapEntry`, or nil if empty."}
+  (fn [m]
+    (let [it (.getIterator m)]
+      (.rewind it)
+      (if (.valid it)
+        (MapEntry/create (.key it) (.current it))
+        nil))))
+
+(def first-of-string
+  {:private true
+   :doc "Returns the first multibyte character of a string, or nil if empty."}
+  (fn [s]
+    (if (php/=== "" s) nil (php/mb_substr s 0 1))))
+
+(def first-of-set
+  {:private true
+   :doc "Returns the first value of a persistent set, or nil if empty."}
+  (fn [s]
+    (let [values (.toPhpArray s)]
+      (if (php/empty values) nil (php/aget values 0)))))
+
+(def first
+  {:doc "Returns the first element of a sequence, or nil if empty.
+
+Maps are treated as a sequence of entries: `(first {:a 1})` returns a typed `MapEntry` equal by value to `[:a 1]`. Strings are treated as sequences of multibyte characters.
+
+A lazily consumed source with no indexed access of its own (an `eduction` pipeline, a PHP generator, an iterator) is answered by pulling a single element, the same way `empty?` answers it. `count` is the one that refuses such a source, because counting means draining it."
+   :example "(first [1 2 3]) ; => 1"}
+  (fn [xs]
+    (if (php/instanceof xs FirstInterface)         (.first xs)
+        (if (php/instanceof xs PersistentMapInterface) (first-map-entry xs)
+            (if (php/is_string xs)                      (first-of-string xs)
+                (if (php/instanceof xs PersistentHashSetInterface) (first-of-set xs)
+                    (if (php/instanceof xs Traversable) (Seq/first xs)
+                        (php/aget xs 0))))))))
+
+(def concat1
+  {:private true
+   :doc "Concatenates two sequential data structures."}
+  (fn [xs ys]
+    (if (php/=== nil ys)
+      xs
+      (if (php/instanceof xs ConcatInterface)
+        (.concat xs ys)
+        (do
+          (foreach [y ys]
+            (php/apush xs y))
+          xs)))))
+
+(def concat
+  "Concatenates multiple sequential data structures."
+  (fn [arr & others]
+    (if (php/=== nil arr)
+      '()
+      (loop [res   arr
+             other others]
+        (if (php/=== nil other)
+          res
+          (let [[y & ys] other]
+            (recur (concat1 res y) ys)))))))
+
+;; quasiquote can be used down here
+
+(def declare
+  {:macro true
+   :doc "Declare a global symbol before it is defined."}
+  (fn [name]
+    `(def ~name nil)))
+
+;; Forward-declare symbols used by sub-files loaded before their definitions
+;; so they can still pass compile-time symbol resolution.
+(declare nil?)
+(declare seq)
+(declare map)
+(declare aget)
+
+(def *program*
+  "The script path or namespace being executed."
+  (let [prog (php/aget php/$GLOBALS "__phel_program")]
+    (if (php/=== prog nil) "" prog)))
+
+(def *argv*
+  "Vector of user arguments passed to the script (excludes program name). Use *program* to get the script path or namespace."
+  (let [argv-raw (php/aget php/$GLOBALS "__phel_argv")]
+    (if (php/=== argv-raw nil)
+      []
+      (Phel/vector argv-raw))))
+
+;; Metadata + macro machinery, then the primitive value constructors that
+;; depend on `defn` / `defmacro`
+(load "core/meta")
+(load "core/defs")
+(load "core/strings")
+
+;; Persistent + PHP array constructors
+(load "core/collections")
+(load "core/arrays")
+
+;; Tier-1 sequence primitives (cons, count, rest, …)
+(load "core/seq-basics")
+
+;; Control flow and boolean / comparison operators
+(load "core/control")
+(load "core/booleans")
+
+;; Type system, seq/peek access, mutable references
+(load "core/predicates")
+(load "core/sequences")
+(load "core/atoms")
+
+;; Reducers + transducers, transient mutation, then the full sequence-function library
+(load "core/transducers")
+(load "core/transients")
+(load "core/seq-fns")
+
+;; Functional core
+(load "core/fns-sets")
+(load "core/math")
+
+;; I/O and polymorphism
+(load "core/io")
+(load "core/protocols")
+
+;; Ad-hoc observability (requires disj + filter from seq-fns)
+(load "core/tap")
+
+;; Topic libraries
+(load "core/lazy")
+(load "core/exceptions")
+(load "core/macroexpand")
+(load "core/parsing")
+(load "core/interop")
+(load "core/uuid")
+(load "core/loops")
+(load "core/futures")
+(load "core/async")
+
+;; Namespace introspection and manipulation
+(load "core/ns")

@@ -1,0 +1,45 @@
+(ns phel-test.core.lazy-seq-chunked-tail
+  (:require phel.test :refer [deftest is]))
+
+;; A `lazy-seq` whose body returns a chunked sequence used to yield only its
+;; first element, while `count` still reported the true length, so the
+;; collection disagreed with itself (#3020). Everything built on
+;; `lazy-seq-from-generator` is chunked: `take`, `drop`, `keep`, `keep-indexed`,
+;; `take-while`, `take-nth`, `interpose`, `dedupe`, `map-indexed`,
+;; `partition-by`, `range`.
+;;
+;; The combination is what matters, not either half: a bare `(take 4 …)` was
+;; always correct, and a `lazy-seq` over a non-chunked tail (`map`, `filter`)
+;; was always correct. Only the two together lost elements.
+
+(deftest test-lazy-seq-over-a-chunked-tail-keeps-every-element
+  (is (= [1 2 3 4] (vec (lazy-seq (take 4 [1 2 3 4 5 6])))) "take")
+  (is (= [1 2 3] (vec (lazy-seq (keep identity [1 2 3])))) "keep")
+  (is (= [3 4 5] (vec (lazy-seq (drop 2 [1 2 3 4 5])))) "drop")
+  (is (= [0 1 2] (vec (lazy-seq (range 0 3)))) "range")
+  (is (= [1 2] (vec (lazy-seq (take-while #(< % 3) [1 2 3 4])))) "take-while"))
+
+;; The three traversals have to agree. Before the fix `count` said 4 while `vec`
+;; said 1, which is the shape of the bug: no error, just a shorter sequence.
+(deftest test-count-vec-and-foreach-agree
+  (let [s (lazy-seq (take 4 [1 2 3 4 5 6]))]
+    (is (= 4 (count s)) "count")
+    (is (= 4 (count (vec s))) "vec")
+    (is (= 4 (let [n (php/array 0)]
+               (foreach [_ s] (php/aset n 0 (php/+ 1 (php/aget n 0))))
+               (php/aget n 0)))
+        "foreach")))
+
+;; A non-chunked tail was never affected; pinned so a fix for the chunked case
+;; cannot regress the case that already worked.
+(deftest test-lazy-seq-over-a-non-chunked-tail-still-works
+  (is (= [2 3 4] (vec (lazy-seq (map inc [1 2 3])))) "map")
+  (is (= [2 4] (vec (lazy-seq (filter even? [1 2 3 4])))) "filter"))
+
+(deftest test-nesting-does-not-truncate
+  (is (= [1 2 3 4] (vec (lazy-seq (lazy-seq (take 4 [1 2 3 4 5 6]))))) "two wrappers")
+  (is (= [2 3 4 5] (vec (map inc (lazy-seq (take 4 [1 2 3 4 5 6]))))) "consumed through map"))
+
+(deftest test-an-empty-chunked-tail-is-still-empty
+  (is (= [] (vec (lazy-seq (take 0 [1 2 3])))) "take 0")
+  (is (= [] (vec (lazy-seq (keep (fn [_] nil) [1 2 3])))) "keep that matches nothing"))

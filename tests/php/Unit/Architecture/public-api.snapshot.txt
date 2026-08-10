@@ -77,7 +77,10 @@ final class Phel\Build\BuildFacade extends Gacela\Framework\AbstractFacade imple
   public function writeStackTrace(Symfony\Component\Console\Output\OutputInterface $output, Throwable $e): void
   public static function disableBuildMode(): void
   public static function enableBuildMode(): void
+  public static function enterDependencyLoad(): bool
   public static function isBuildMode(): bool
+  public static function isLoadingDependencies(): bool
+  public static function leaveDependencyLoad(bool $previous): void
 
 final class Phel\Command\CommandFacade extends Gacela\Framework\AbstractFacade implements Phel\Shared\Facade\CommandFacadeInterface
   public function getAllPhelDirectories(): array
@@ -1630,6 +1633,7 @@ final class Phel\Shared\Binding\IterationHead
 
 interface Phel\Shared\BuildConstants
   public const string BUILD_MODE = '*build-mode*'
+  public const string LOADING_DEPENDENCIES = '*loading-dependencies*'
 
 final class Phel\Shared\ColorStyle implements Phel\Shared\ColorStyleInterface
   public function blue(string $str): string

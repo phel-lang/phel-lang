@@ -1,0 +1,314 @@
+(ns phel.bench
+  (:use Phel)
+  (:use Phel.Shared.Munge)
+  (:require phel.string :as s))
+
+;; A benchmark is a zero-argument function carrying `:bench` metadata, the way
+;; a test is a zero-argument function carrying `:test`. Discovery, selection and
+;; reporting all work off that metadata, so a benchmark is an ordinary `defn`
+;; and stays callable by hand.
+
+;; `def-` takes a name and a value, and nothing else: a docstring in between
+;; binds as the value and the real value is dropped, silently. Hence comments.
+
+;; Times the body is called inside one measured iteration. Amortises the clock
+;; over the call, which matters when the body costs less than the timer does.
+(def- default-revs 1000)
+
+;; Measured iterations per benchmark. The reported figure is the mean over
+;; these, and their spread is what `rstdev` describes.
+(def- default-iterations 5)
+
+;; Unmeasured iterations run before measuring, so the first call, which also
+;; pays lazy loading and branch prediction, is not part of the result.
+(def- default-warmup 1)
+
+;; ------------------
+;; Defining benchmarks
+;; ------------------
+
+(defmacro defbench
+  "Defines a benchmark function.
+
+The body is timed, not asserted. An optional option map may follow the name:
+`:revs` (calls per measured iteration), `:iterations` (measured iterations),
+`:warmup` (unmeasured iterations first). Anything omitted falls back to the
+default. A run-wide option of the same name, such as a `phel bench --revs`
+flag, overrides what the benchmark asks for.
+
+Metadata attached to `bench-name` is forwarded to the defined function, so
+`^:slow` and `^{:tags [:io]}` work here exactly as they do on `deftest`."
+  {:example "(defbench bench-sum {:revs 10000}\n  (reduce + 0 (range 100)))"
+   :see-also ["run-benchmarks"]}
+  [bench-name & body]
+  (when-not (symbol? bench-name)
+    (throw (new InvalidArgumentException
+                (str "defbench requires a symbol name as its first argument, got "
+                     (type bench-name) ". Example: (defbench bench-add ...)."))))
+  (let [opts-arg (if (map? (first body)) (first body) {})
+        body-arg (if (map? (first body)) (next body) body)
+        sym-meta (or (.getMeta bench-name) {})
+        base     {:bench true, :bench-name (name bench-name), :bench-options opts-arg}
+        merged   (merge sym-meta base)]
+    (when (empty? body-arg)
+      (throw (new InvalidArgumentException
+                  (str "defbench " (name bench-name) " has an empty body; there is nothing to measure."))))
+    `(defn ~bench-name ~merged []
+       ~@body-arg)))
+
+;; ---------
+;; Measuring
+;; ---------
+
+(defn- now-ns
+  "Monotonic nanoseconds. `hrtime` is unaffected by wall-clock adjustments,
+which `microtime` is not."
+  []
+  (php/hrtime true))
+
+(defn- time-revs
+  "Calls `f` `revs` times and returns the nanoseconds per call.
+
+The loop is `dofor` rather than `dotimes` over a seq so the measured region
+allocates nothing per rev beyond what the body itself allocates."
+  [f revs]
+  (let [start (now-ns)]
+    (dofor [_ :range [0 revs]]
+      (f))
+    ;; `float` before dividing: `/` on two integers is exact in Phel and yields
+    ;; a `Ratio`, which the statistics below cannot feed to `sqrt`, and which
+    ;; would print as `243205/8` rather than as a duration.
+    (/ (float (php/- (now-ns) start)) revs)))
+
+(defn- mean
+  [xs]
+  (if (empty? xs)
+    0
+    (/ (reduce + 0 xs) (count xs))))
+
+(defn- std-dev
+  [xs]
+  (let [n (count xs)]
+    (if (< n 2)
+      0
+      (let [avg  (mean xs)
+            sum2 (reduce (fn [acc x] (+ acc (* (- x avg) (- x avg)))) 0 xs)]
+        (php/sqrt (/ sum2 (php/- n 1)))))))
+
+(defn- rstdev
+  "Relative standard deviation, as a percentage. This is the number that says
+whether a run is trustworthy: above a few percent, a comparison against a
+baseline is noise."
+  [xs]
+  (let [avg (mean xs)]
+    (if (zero? avg)
+      0
+      (* 100 (/ (std-dev xs) avg)))))
+
+(defn- option-for
+  "Run-wide option, falling back to the benchmark's own and then the default.
+
+The run-wide value wins on purpose: it is what the caller asked for *now*,
+typically a `phel bench --revs` flag, and a flag that a file could silently
+override would be worse than no flag at all."
+  [bench-opts run-opts key fallback]
+  (or (get run-opts key)
+      (get bench-opts key)
+      fallback))
+
+(defn- measure
+  "Runs one benchmark and returns its result map. The benchmark function itself
+is never passed on: everything downstream works off the numbers."
+  [entry run-opts]
+  (let [f          (:fn entry)
+        meta       (:meta entry)
+        bench-opts (or (:bench-options meta) {})
+        revs       (option-for bench-opts run-opts :revs default-revs)
+        iterations (option-for bench-opts run-opts :iterations default-iterations)
+        warmup     (option-for bench-opts run-opts :warmup default-warmup)]
+    (dofor [_ :range [0 warmup]]
+      (time-revs f revs))
+    (let [times (for [_ :range [0 iterations]]
+                  (time-revs f revs))]
+      {:name       (:bench-name meta)
+       :ns         (:ns entry)
+       :revs       revs
+       :iterations iterations
+       :times      times
+       :mean-ns    (mean times)
+       :rstdev     (rstdev times)})))
+
+;; ---------
+;; Discovery
+;; ---------
+
+(defn- find-benchmarks
+  "Every `defbench`-defined function in `ns`, in definition order."
+  [ns]
+  (let [munge    (new Munge)
+        munge-ns (.encodeRegistryKey munge ns)]
+    (vec (for [fn-name :keys (Phel/getDefinitionInNamespace munge-ns)
+               :let [meta (Phel/getDefinitionMetaData munge-ns fn-name)]
+               :when (:bench meta)]
+           {:fn   (Phel/getDefinition munge-ns fn-name)
+            :meta meta
+            :ns   ns}))))
+
+(defn- matches-filter?
+  [filter-value entry]
+  (or (nil? filter-value)
+      (s/contains? (or (:bench-name (:meta entry)) "") filter-value)))
+
+;; ---------
+;; Reporting
+;; ---------
+
+(defn- format-duration
+  "Nanoseconds rendered in the largest unit that keeps the number readable."
+  [ns]
+  (cond
+    (< ns 1000)    (str (php/number_format ns 3) "ns")
+    (< ns 1000000) (str (php/number_format (/ ns 1000) 3) "μs")
+    :else          (str (php/number_format (/ ns 1000000) 3) "ms")))
+
+(defn- format-percent
+  [value]
+  (str (if (>= value 0) "+" "") (php/number_format value 2) "%"))
+
+;; `mb_*` throughout: `format-duration` emits `μs`, which is two bytes and one
+;; column. Measuring it with `strlen` pads every microsecond cell one short and
+;; skews the whole table.
+
+(defn- pad-right
+  [value width]
+  (php/mb_str_pad (str value) width))
+
+(defn- pad-left
+  [value width]
+  (php/mb_str_pad (str value) width " " php/STR_PAD_LEFT))
+
+(defn- column-width
+  [rows key minimum]
+  (reduce (fn [acc row] (max acc (php/mb_strlen (str (get row key))))) minimum rows))
+
+(defn- comparison-cell
+  "Delta against the baseline, or a placeholder when there is nothing to
+compare against. A benchmark added since the baseline was stored is `new`
+rather than an improvement of infinity."
+  [result baseline]
+  (let [previous (get baseline (str (:ns result) "/" (:name result)))]
+    (cond
+      (nil? previous)  "new"
+      (zero? previous) "n/a"
+      :else            (format-percent (* 100 (/ (- (:mean-ns result) previous) previous))))))
+
+(defn- render-table
+  [results baseline]
+  (let [rows     (for [r :in results]
+                   {:benchmark  (str (:ns r) "/" (:name r))
+                    :revs       (:revs r)
+                    :its        (:iterations r)
+                    :mean       (format-duration (:mean-ns r))
+                    :rstdev     (str "±" (php/number_format (:rstdev r) 2) "%")
+                    :vs-baseline (comparison-cell r baseline)})
+        w-name   (column-width rows :benchmark 9)
+        w-revs   (column-width rows :revs 4)
+        w-its    (column-width rows :its 3)
+        w-mean   (column-width rows :mean 4)
+        w-rstdev (column-width rows :rstdev 6)
+        w-vs     (column-width rows :vs-baseline 11)]
+    (println (pad-right "benchmark" w-name) (pad-left "revs" w-revs) (pad-left "its" w-its)
+             (pad-left "mean" w-mean) (pad-left "rstdev" w-rstdev) (pad-left "vs-baseline" w-vs))
+    (dofor [row :in rows]
+      (println (pad-right (:benchmark row) w-name) (pad-left (:revs row) w-revs) (pad-left (:its row) w-its)
+               (pad-left (:mean row) w-mean) (pad-left (:rstdev row) w-rstdev) (pad-left (:vs-baseline row) w-vs)))))
+
+;; --------
+;; Baseline
+;; --------
+
+(defn- result-key
+  [result]
+  (str (:ns result) "/" (:name result)))
+
+(defn- baseline-map
+  "Reads a stored baseline as `{\"ns/name\" mean-ns}`. A missing or unreadable
+file is an empty baseline rather than an error: comparing against nothing is a
+normal first run, not a failure."
+  [path]
+  (if (and path (php/file_exists path))
+    (let [raw (php/json_decode (php/file_get_contents path) true)]
+      (if (php/is_array raw)
+        (php-array-to-map raw)
+        {}))
+    {}))
+
+(defn- write-baseline!
+  [path results]
+  (let [payload (php/array)]
+    (dofor [r :in results]
+      (php/aset payload (result-key r) (:mean-ns r)))
+    (php/file_put_contents path (php/json_encode payload))
+    path))
+
+(defn- slower-than-tolerance
+  "The results that regressed against the baseline by more than `tolerance`
+percent. A benchmark with no baseline entry cannot regress, so it is never a
+failure: the first run after adding one would otherwise fail."
+  [results baseline tolerance]
+  (vec (for [r :in results
+             :let [previous (get baseline (result-key r))]
+             :when (and (some? previous)
+                        (not (zero? previous))
+                        (> (* 100 (/ (- (:mean-ns r) previous) previous)) tolerance))]
+         r)))
+
+(defn- report-regressions!
+  "Prints the regressions and returns false, or returns true when there are
+none. Returning the verdict rather than throwing keeps the decision with the
+caller, which is what lets the CLI turn it into an exit code."
+  [results baseline tolerance]
+  (let [regressed (slower-than-tolerance results baseline tolerance)]
+    (if (empty? regressed)
+      true
+      (do
+        (println)
+        (println (str "Slower than the baseline by more than " tolerance "%:"))
+        (dofor [r :in regressed]
+          (println (str "  " (result-key r) " " (comparison-cell r baseline))))
+        false))))
+
+;; -------
+;; Running
+;; -------
+
+(defn run-benchmarks
+  "Runs every `defbench` in the given namespaces and prints a table.
+
+Recognized option keys: `:revs`, `:iterations`, `:warmup` (each overrides the
+per-benchmark option of the same name), `:filter` (substring match against
+the benchmark name), `:store` (path to write the results to as a baseline),
+`:ref` (path to a stored baseline to compare against), and `:tolerance` (a
+percentage; when set, a benchmark slower than its baseline by more than this
+makes the run unsuccessful).
+
+Returns true when the run is within tolerance, which is always the case when no
+tolerance is set."
+  {:example "(run-benchmarks {:revs 100} 'my-app.bench)"
+   :see-also ["defbench"]}
+  [options & namespaces]
+  (let [entries  (apply concat (for [ns :in namespaces] (find-benchmarks ns)))
+        selected (filter #(matches-filter? (:filter options) %) entries)]
+    (if (empty? selected)
+      (do (println "No benchmarks found.")
+          true)
+      (let [baseline (baseline-map (:ref options))
+            results  (for [entry :in selected] (measure entry options))]
+        (render-table results baseline)
+        (when (:store options)
+          (write-baseline! (:store options) results)
+          (println)
+          (println (str "Baseline written to " (:store options))))
+        (if (:tolerance options)
+          (report-regressions! results baseline (:tolerance options))
+          true)))))

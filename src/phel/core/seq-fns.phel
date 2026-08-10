@@ -67,27 +67,31 @@
   stopping when the shortest collection is exhausted."
   {:example "(map inc [1 2 3]) ; => @[2 3 4]"
    :see-also ["filter" "reduce" "map-indexed" "mapcat" "transduce"]}
-  [f & colls]
-  (case (count colls)
-    0 (fn [rf]
-        (xf-step rf (fn [result input] (rf result (f input)))))
-    1 (let [coll   (first colls)
-            ;; LazySeq keeps the seq unrealized until accessed; ChunkedSeq
-            ;; would eagerly materialise the first chunk. `Seq::map`
-            ;; yields `[k v]` pairs when `coll` is a `PersistentMap`
-            ;; (Clojure-aligned), otherwise it yields the elements.
-            result (LazySeq/fromGenerator
-                    (new Hasher)
-                    (new Equalizer)
-                    (Seq/map f coll))]
-        (copy-meta coll result))
-    (let [result (LazySeq/fromGenerator
-                  (new Hasher)
-                  (new Equalizer)
-                  (php/call_user_func_array
-                   (php-indexed-array "\\Phel\\Lang\\Seq" "mapMulti")
-                   (php/array_merge (php-indexed-array f) (apply php/array colls))))]
-      (copy-meta (first colls) result))))
+  ;; Fixed arities rather than `[f & colls]` plus `(case (count colls) ...)`:
+  ;; the rest argument was allocated, counted and then unpacked with `first` to
+  ;; recover a value the caller had already passed positionally (#2973, #3021).
+  ;; The multi-collection tail is a real case rather than an error, so it keeps
+  ;; the rest argument it genuinely needs.
+  ([f]
+   (fn [rf]
+     (xf-step rf (fn [result input] (rf result (f input))))))
+  ([f coll]
+   ;; LazySeq keeps the seq unrealized until accessed; ChunkedSeq would eagerly
+   ;; materialise the first chunk. `Seq::map` yields `[k v]` pairs when `coll`
+   ;; is a `PersistentMap` (Clojure-aligned), otherwise it yields the elements.
+   (let [result (LazySeq/fromGenerator
+                 (new Hasher)
+                 (new Equalizer)
+                 (Seq/map f coll))]
+     (copy-meta coll result)))
+  ([f coll & more]
+   (let [result (LazySeq/fromGenerator
+                 (new Hasher)
+                 (new Equalizer)
+                 (php/call_user_func_array
+                  (php-indexed-array "\\Phel\\Lang\\Seq" "mapMulti")
+                  (php/array_merge (php-indexed-array f coll) (apply php/array more))))]
+     (copy-meta coll result))))
 
 (defn comp
   "Takes a list of functions and returns a function that is the composition of those functions."
@@ -97,7 +101,18 @@
   (case (count fs)
     0 identity
     1 (first fs)
-    2 #((first fs) (apply (second fs) %&))
+    ;; Both functions are pulled out of `fs` here rather than inside the
+    ;; closure: the previous `#((first fs) (apply (second fs) %&))` re-ran both
+    ;; lookups on every call, on top of building a rest vector and going
+    ;; through `apply`. Real arities on the closure remove the rest of it
+    ;; (#3021).
+    2 (let [outer (first fs)
+            inner (second fs)]
+        (fn
+          ([] (outer (inner)))
+          ([a] (outer (inner a)))
+          ([a b] (outer (inner a b)))
+          ([a b & more] (outer (apply inner a b more)))))
     (reduce comp fs)))
 
 (defn- map-entry-source?
@@ -552,20 +567,25 @@ Creates intermediate maps if they don't exist."
   "Returns a lazy sequence of elements where predicate returns true. When called with pred only, returns a transducer."
   {:example "(filter even? [1 2 3 4 5 6]) ; => @[2 4 6]"
    :see-also ["remove" "keep" "transduce"]}
-  [pred & args]
-  (case (count args)
-    0 (fn [rf]
-        (xf-step rf (fn [result input] (if (pred input) (rf result input) result))))
-    1 (let [coll   (first args)
-            ;; Use LazySeq (not ChunkedSeq) so the first chunk isn't
-            ;; pre-realized: a sparse predicate over an infinite source
-            ;; would otherwise loop forever trying to fill 32 matches.
-            result (LazySeq/fromGenerator
-                    (new Hasher)
-                    (new Equalizer)
-                    (Seq/filter pred coll))]
-        (copy-meta coll result))
-    (throw (new InvalidArgumentException "filter expects 1 or 2 arguments"))))
+  ;; Fixed arities rather than `[pred & args]` plus `(case (count args) ...)`:
+  ;; the rest argument was allocated, counted and then unpacked with `first` to
+  ;; recover a value the caller had already passed positionally (#2973, #3021).
+  ;; The tail keeps the original error so an over-long call still reports what
+  ;; it always did rather than failing on arity dispatch.
+  ([pred]
+   (fn [rf]
+     (xf-step rf (fn [result input] (if (pred input) (rf result input) result)))))
+  ([pred coll]
+   ;; Use LazySeq (not ChunkedSeq) so the first chunk isn't pre-realized: a
+   ;; sparse predicate over an infinite source would otherwise loop forever
+   ;; trying to fill 32 matches.
+   (let [result (LazySeq/fromGenerator
+                 (new Hasher)
+                 (new Equalizer)
+                 (Seq/filter pred coll))]
+     (copy-meta coll result)))
+  ([pred coll & more]
+   (throw (new InvalidArgumentException "filter expects 1 or 2 arguments"))))
 
 (defn mapv
   "Returns a vector consisting of the result of applying `f` to the set of first items of each coll, followed by applying `f` to the set of second items in each coll, until any one of the colls is exhausted. Like `map`, but eager and returns a vector rather than a lazy sequence."
@@ -1014,9 +1034,38 @@ Indexed PHP arrays become vectors, associative PHP arrays become maps."
   (sorted-vector coll (sort-comparator comp)))
 
 (defn- sort-by-with
+  "Decorate, sort, undecorate. Building the comparator as
+  `#(cmp (keyfn %1) (keyfn %2))` runs `keyfn` twice per comparison, so O(n log n)
+  times: sorting 100 elements called it 1114 times to derive 100 keys. Computing
+  each key once up front and sorting `[key value]` pairs calls it exactly n
+  times, and the gap widens with n (#3006).
+
+  This is an observable divergence from Clojure, whose `sort-by` calls `keyfn`
+  per comparison as this one used to. It is invisible to a pure key function,
+  which is the normal case, and visible to one that counts calls, logs or
+  memoises. Recorded in `docs/spec/clojure-divergences.md`.
+
+  `php/aget` rather than `aget` inside the comparator: `aget` is a function, so
+  it would add two Phel calls per comparison and give back a good part of what
+  the transform buys."
   [keyfn coll comp]
-  (let [cmp (sort-comparator comp)]
-    (sorted-vector coll #(cmp (keyfn %1) (keyfn %2)))))
+  (let [cmp    (sort-comparator comp)
+        ;; `to-php-array` and not `foreach` over `coll` directly: it is the
+        ;; conversion `sorted-vector` used, and it is what decides what an
+        ;; element *is*. Iterating a map yields its values, while converting one
+        ;; yields its `[key value]` entries, which is what `sort` and `sort-by`
+        ;; have always sorted.
+        values (to-php-array coll)
+        pairs  (php-indexed-array)]
+    (foreach [v values]
+      (php/apush pairs (php-indexed-array (keyfn v) v)))
+    ;; `usort` is stable as of PHP 8.0, so ties keep their input order, which is
+    ;; what the undecorated result has to preserve.
+    (php/usort pairs (fn [a b] (cmp (php/aget a 0) (php/aget b 0))))
+    (let [result (php-indexed-array)]
+      (foreach [p pairs]
+        (php/apush result (php/aget p 1)))
+      (copy-meta coll (Phel/vector result)))))
 
 (defn sort
   "Returns a sorted vector. If no comparator is supplied compare is used."

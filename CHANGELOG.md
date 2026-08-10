@@ -7,6 +7,8 @@ All notable changes to this project will be documented in this file.
 ### Added
 
 - Add LSP completion for PHP superglobals (#3037)
+- `BuildFacade::enterDependencyLoad()`, `leaveDependencyLoad()` and `isLoadingDependencies()`, plus `BuildConstants::LOADING_DEPENDENCIES`. Additive: they mark the region in which an `ns` form loads its requires, so the emitter can decline to pin call sites there (#3015)
+- Add `phel.bench` and the `phel bench` command: `defbench` benchmarks written in Phel, with baseline storage (`--store`), comparison (`--ref`) and a tolerance gate (`--tolerance`) (#3005)
 - Allow keyword keys in `#php` map literals (#2952)
 - Add Clojure-style PHP interop for value members, dynamic calls, enum cases and `set!` (#2881 #2883 #2887 #2888 #2907)
 - Add editor completion and hover for Clojure-style PHP interop, including static properties (#2916)
@@ -24,6 +26,11 @@ All notable changes to this project will be documented in this file.
 
 ### Fixed
 
+- `with-redefs` is no longer ignored after `phel eval` has loaded a required namespace. Loading a dependency runs under build mode, which also let the emitter pin global call sites into `static` slots, and the pinned artifact was written to the ordinary cache for later `phel test` runs to reuse (#3015)
+- `phel doc` and the API reference report every arity of a `def` over an `fn`. `defn` renders its arities into the docstring and a bare `def` does not, so 23 symbols published no signature at all, `defn` and `defmacro` among them, while `list`, `vector` and `hash-map` published a stale hardcoded one (#3012)
+- `empty?` no longer reports a lazy sequence whose first element is `nil` as empty. `(empty? (lazy-seq [nil]))` answered `true` while `count` answered 1 and `vec` answered `[nil]` (#3025)
+- Stop the emptiness check on a lazy sequence realizing the whole sequence: an unbounded source now terminates, a 2,000,000 element one no longer crashes, and taking 5 of a 200,000 element `lazy-seq` drops from 21ms to 0.004ms (#3023)
+- Fix `lazy-seq` over a chunked sequence (`take`, `keep`, `range`, ...) yielding only its first element while `count` reported the true length (#3020)
 - Stop the scan-index and namespace caches growing without bound on every `phel doc`, LSP hover and REPL completion (#3007)
 - Fix literal matching in `phel.string/replace` and `replace-first` (#2957)
 - Stop internal test, nREPL and watch eval forms from emitting namespace separator deprecations (#2950)
@@ -71,12 +78,14 @@ All notable changes to this project will be documented in this file.
 
 ### Changed
 
+- Lower `(or …)` / `(and …)` test chains containing `php/instanceof`, `php/aget` or a quoted literal to native `||` / `&&` instead of an IIFE; `(get <set> k)` is ~24% faster (#3027)
 - Warn for `\` namespace separators without `--warn-deprecations`; other deprecations stay opt-in (#2827)
 - Accept the future PHP class spelling after `\`: dotted or bare, with no leading marker (#2876)
 - Warn when a `def` shadows a loadable PHP class; `\DateTime` still reaches the class (#2876)
 - Suppress deprecation reports for code under `vendor/` (#2827)
 - BC: `get` declares `[ds k]` and `[ds k opt]` instead of `[ds k & [opt]]`; a fourth argument is now an arity error rather than silently ignored (#2960)
 - BC: `(max)` and `(min)` with no arguments are now rejected at compile time (PHEL002) rather than throwing `ArgumentCountError` at runtime, since both declare their arities (#2991)
+- Declaring `bool` on the comparison operators lets the compiler infer more return types than before: a `defn` whose body is `(= x 5)` now emits `: bool`, and one branching on `(= x nil)` to two int literals now emits `: int`. More type information, but visible in generated output (#2979)
 - BC: `reduce` and `into` declare their arities, so a wrong argument count raises an arity error rather than the hand-written "expected 2 or 3 arguments" message (#2975)
 - BC: `get-in` declares `[ds ks]` and `[ds ks opt]` instead of `[ds ks & [opt]]`; a fourth argument is now an arity error rather than silently ignored (#2964)
 - BC: `(arity get)` and `(arity assoc)` now report `0`. Both became multi-arity, and a multi-arity function compiles to one variadic dispatch, which `arity` documents as `0` (#2960 #2962)
@@ -97,6 +106,14 @@ All notable changes to this project will be documented in this file.
 
 Runtime core:
 
+- Give `map` and `filter` fixed arities instead of a rest argument plus a count check: 2.7 times faster to call, and 3 times for the transducer arity (#3021)
+- Compare two native ints in `<`, `<=`, `>` and `>=` without the numeric-tower dispatch: 2.5 to 2.7 times faster, down to raw PHP comparison speed (#2984)
+- **BREAKING** `sort-by` now calls its key function once per element instead of twice per comparison, so an *impure* key function runs far fewer times (100 rather than about 1114 when sorting 100 elements). The sorted result is unchanged. Up to 2.2 times faster; recorded in `docs/spec/clojure-divergences.md` since Clojure calls per comparison (#3006)
+- Give `+`, `-`, `*`, `max` and `min` fixed 3 and 4 argument arities: three arguments cost 11 to 12 times less for the operators and 3.5 times less for `max` and `min`, instead of 13 to 17 times more than two (#3017)
+- Give the closures returned by `partial`, `fnil` and `comp` real arities: 30x, 50x and 8x faster to call (#3021)
+- Guard the twelve nil-rejecting arithmetic functions with the fixed-arity macros instead of the variadic helper: `round` and `floor` 25x, `quot`, `rem` and `mod` 14 to 17x, `even?` and `odd?` 6 to 7x (#3018)
+- Compile a literal `(list ...)`, `(vector ...)`, `(queue ...)`, `(hash-map ...)` or `(array-map ...)` straight to its `Phel` factory: 2.2 to 3.6 times faster (#3014)
+- Give `list`, `vector`, `queue`, `hash-map` and `array-map` fixed arities, so the calls the literal lowering cannot reach get faster too: 2.1 to 3.4 times through an alias or `apply`, 1.5 times passed as a value to `map` (#3010)
 - Inline PHP array constructors and use `php-indexed-array` across core and standard libraries (#2941)
 - Speed up `re-find`, `re-matches` and `parse-long` by avoiding full match-map conversion (#2941 #2943)
 - Give `aget` a fixed single-index arity and require an index, matching Clojure (#2941)
@@ -119,6 +136,7 @@ Runtime core:
 - Sort an all-int collection natively instead of calling back into Phel per comparison (#3003)
 - Declare real arities on `reduce` and `into` instead of a `case` over a rest argument (#2975)
 - Give `+`, `-`, `*` and `/` fixed arities, cutting untagged two-operand arithmetic 7.7x (#2978)
+- Give `=`, `not=`, `identical?`, `<`, `<=`, `>` and `>=` fixed arities and a declared `bool` return (#2979)
 
 ### Removed
 

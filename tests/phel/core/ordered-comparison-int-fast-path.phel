@@ -1,0 +1,89 @@
+(ns phel-test.core.ordered-comparison-int-fast-path
+  (:require phel.test :refer [deftest is]))
+
+;; `<`, `<=`, `>` and `>=` take a native-int shortcut ahead of the general
+;; chain (#2984). Everything here goes through these helpers rather than
+;; comparing literals directly, because the emitter folds a comparison of two
+;; literals at compile time: `(< 1 2)` never reaches the runtime function, so a
+;; test written that way cannot see the shortcut or the path around it.
+(defn- lt [a b] (< a b))
+(defn- lte [a b] (<= a b))
+(defn- gt [a b] (> a b))
+(defn- gte [a b] (>= a b))
+
+(deftest test-two-native-ints-take-the-fast-path
+  (is (true? (lt 1 2)) "less than")
+  (is (false? (lt 2 1)) "not less than")
+  (is (false? (lt 1 1)) "strict, equal is not less")
+  (is (true? (lte 1 1)) "less or equal, equal")
+  (is (true? (lte 1 2)) "less or equal, less")
+  (is (false? (lte 2 1)) "less or equal, greater")
+  (is (true? (gt 2 1)) "greater than")
+  (is (false? (gt 1 2)) "not greater than")
+  (is (false? (gt 1 1)) "strict, equal is not greater")
+  (is (true? (gte 1 1)) "greater or equal, equal")
+  (is (true? (gte 2 1)) "greater or equal, greater")
+  (is (false? (gte 1 2)) "greater or equal, less"))
+
+(deftest test-negative-and-zero-ints
+  (is (true? (lt -2 -1)) "two negatives")
+  (is (true? (lt -1 0)) "negative against zero")
+  (is (false? (gt -1 0)) "negative is not greater than zero")
+  (is (true? (gte 0 0)) "zero against zero"))
+
+;; The shortcut is guarded by `is_int` on both operands, and `(php/is_int nil)`
+;; is false, so a nil operand cannot take it and still reaches the nil guard.
+;; This is the assertion that makes the shortcut safe rather than a hole.
+(deftest test-nil-is-still-rejected-on-both-sides
+  (let [msg "Comparison functions do not accept nil values"]
+    (is (thrown-with-msg? \InvalidArgumentException msg (lt nil 1)) "< nil on the left")
+    (is (thrown-with-msg? \InvalidArgumentException msg (lt 1 nil)) "< nil on the right")
+    (is (thrown-with-msg? \InvalidArgumentException msg (lt nil nil)) "< nil on both sides")
+    (is (thrown-with-msg? \InvalidArgumentException msg (lte nil 1)) "<= nil")
+    (is (thrown-with-msg? \InvalidArgumentException msg (gt nil 1)) "> nil")
+    (is (thrown-with-msg? \InvalidArgumentException msg (gte 1 nil)) ">= nil")))
+
+;; A Ratio, BigInt or BigDecimal is an object, so `is_int` is false and the
+;; operand keeps routing through `NumericOperations/compare`. Comparing them by
+;; PHP's own operators would be wrong, which is what the general path is for.
+(deftest test-the-numeric-tower-keeps-its-own-comparison
+  (is (true? (lt (/ 1 3) 1)) "ratio against int")
+  (is (false? (lt 1 (/ 1 3))) "int against ratio")
+  (is (true? (lt (/ 1 3) (/ 1 2))) "ratio against ratio")
+  (is (true? (gt 1 (/ 1 2))) "int greater than ratio")
+  (is (true? (lt (bigint "5") (bigint "6"))) "bigint against bigint")
+  (is (true? (lt (bigint "5") 6)) "bigint against int")
+  (is (true? (gt 6 (bigint "5"))) "int against bigint")
+  (is (true? (lte (bigint "5") (bigint "5"))) "equal bigints")
+  (is (true? (lt (bigdec "1.5") (bigdec "2.5"))) "bigdec against bigdec")
+  (is (true? (lt (bigdec "1.5") 2)) "bigdec against int"))
+
+;; A float is not an int, so a mixed pair keeps PHP's comparison rather than
+;; taking the int branch on one side only.
+(deftest test-mixed-int-and-float
+  (is (true? (lt 1 1.5)) "int against float")
+  (is (true? (gt 1.5 1)) "float against int")
+  (is (true? (lt 1.5 2.5)) "two floats")
+  (is (true? (gte 1 1.0)) "int against an equal float")
+  (is (true? (lte 1.0 1)) "float against an equal int"))
+
+(deftest test-strings-are-unaffected
+  (is (true? (lt "ab" "cd")) "string ordering")
+  (is (false? (gt "ab" "cd")) "string ordering, reversed")
+  (is (true? (gte "b" "a")) "single characters"))
+
+;; Booleans are not ints either, so they fall through to PHP's comparison,
+;; which is the behaviour these operators had before the shortcut.
+(deftest test-booleans-fall-through
+  (is (true? (lt false true)) "false is less than true")
+  (is (false? (gt false true)) "false is not greater than true"))
+
+;; The chained arities compare each argument with the next through the same
+;; helpers, so a shortcut that answered one pair wrongly would surface here.
+(deftest test-chained-comparisons-still-hold
+  (let [a 1 b 2 c 3]
+    (is (true? (< a b c)) "ascending chain of ints")
+    (is (false? (< a c b)) "chain broken in the middle")
+    (is (true? (> c b a)) "descending chain")
+    (is (true? (<= a a b)) "non-strict chain")
+    (is (false? (< a b b)) "strict chain rejects an equal pair")))

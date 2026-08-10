@@ -12,14 +12,16 @@ use Phel\Compiler\Infrastructure\GlobalEnvironmentSingleton;
 use Phel\Lang\Symbol;
 use Phel\Shared\Parser\Node\NodeInterface;
 use Phel\Shared\Parser\Node\TriviaNodeInterface;
+use PhelTest\Benchmark\Compiler\Fixtures\CoreCorpus;
 use PhpBench\Benchmark\Metadata\Annotations\BeforeMethods;
 use PhpBench\Benchmark\Metadata\Annotations\Iterations;
 use PhpBench\Benchmark\Metadata\Annotations\Revs;
 use PhpBench\Benchmark\Metadata\Annotations\Warmup;
 
 /**
- * Isolates the front half of the compiler (lex -> parse -> read) over the whole
- * `phel.core` source, contrasting a cold run that re-lexes/parses/reads every
+ * Isolates the front half of the compiler (lex -> parse -> read) over
+ * {@see CoreCorpus}, a frozen snapshot of the `phel.core` source, contrasting
+ * a cold run that re-lexes/parses/reads every
  * form against a warm run served from the {@see FileSystemReaderResultCache}
  * (gzip-inflate + unserialize). This is the slice the intermediate-artifact
  * cache replaces on a warm rebuild; analysis + emission are unchanged by it and
@@ -42,7 +44,7 @@ final class ReaderResultCacheBench
         GlobalEnvironmentSingleton::initializeNew();
 
         $this->facade = new CompilerFacade();
-        $this->source = (string) file_get_contents($projectRoot . 'src/phel/core.phel');
+        $this->source = CoreCorpus::source();
         $this->cacheDir = sys_get_temp_dir() . '/phel-rr-cache-bench-' . uniqid();
 
         // Prime the persisted cache once so the warm subject reads it back.

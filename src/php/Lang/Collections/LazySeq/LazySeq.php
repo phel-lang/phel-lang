@@ -12,6 +12,7 @@ use Phel\Lang\Collections\Exceptions\NotASeqException;
 use Phel\Lang\Collections\Map\PersistentMapInterface;
 use Phel\Lang\EqualizerInterface;
 use Phel\Lang\HasherInterface;
+use Phel\Lang\Seq;
 use Phel\Lang\SeqInterface;
 
 use Traversable;
@@ -324,7 +325,7 @@ final class LazySeq extends AbstractType implements LazySeqInterface, Countable,
                 break;
             }
 
-            if ($realized instanceof Countable && count($realized) === 0) {
+            if ($this->isEmptySeq($realized)) {
                 break;
             }
 
@@ -358,14 +359,16 @@ final class LazySeq extends AbstractType implements LazySeqInterface, Countable,
     {
         $seq = $this;
 
-        while ($seq instanceof self) {
+        // `$seq` only ever advances to another `self`; every other tail shape
+        // returns below, so the walk has no condition of its own.
+        while (true) {
             // See `toArray()`: realize is the only nil-safe empty check.
             $realized = $seq->realizeSeq();
             if (!$realized instanceof SeqInterface) {
                 return;
             }
 
-            if ($realized instanceof Countable && count($realized) === 0) {
+            if ($this->isEmptySeq($realized)) {
                 return;
             }
 
@@ -376,7 +379,26 @@ final class LazySeq extends AbstractType implements LazySeqInterface, Countable,
                 return;
             }
 
-            $seq = $next instanceof self ? $next : null;
+            if (!$next instanceof self) {
+                // A lazy tail that is not a `LazySeq` (today: `ChunkedSeq`,
+                // which everything built on `lazy-seq-from-generator` returns)
+                // cannot drive this loop, which walks `LazySeq` links. Hand off
+                // to its own iterator, itself a generator, so this stays lazy.
+                // Ending the walk here instead silently dropped the rest while
+                // `count` still reported the full length (#3020); `toArray()`
+                // merges the same tail, and the two must not disagree.
+                //
+                // Yield each value rather than `yield from`: that keeps the
+                // keys contiguous with the ones yielded above, which a caller
+                // using `iterator_to_array()` with preserved keys relies on.
+                foreach ($next as $value) {
+                    yield $value;
+                }
+
+                return;
+            }
+
+            $seq = $next;
         }
     }
 
@@ -418,6 +440,36 @@ final class LazySeq extends AbstractType implements LazySeqInterface, Countable,
         }
 
         return LazySeqEquality::walkPairwise($this->getIterator(), $otherIter, $this->equalizer);
+    }
+
+    /**
+     * Whether a realized seq holds no elements, without realizing it.
+     *
+     * `count()` cannot answer this for a lazy seq: both `LazySeq::count()` and
+     * `ChunkedSeq::count()` compute it by realizing the whole sequence, and
+     * each says so in its own comment. Asking it here materialized every
+     * element of a chunked tail before the first one was yielded, and over an
+     * unbounded source never returned at all (#3023).
+     *
+     * `first() === null` cannot answer it either, because nil is a legitimate
+     * element: `(lazy-seq [nil])` holds one, not zero.
+     *
+     * So: a Countable that is not lazy knows its size in O(1) and is asked
+     * directly, and a lazy one is probed with {@see Seq::isEmpty()}, which
+     * pulls at most one element and therefore distinguishes "empty" from
+     * "first element is nil" without draining anything.
+     */
+    private function isEmptySeq(mixed $seq): bool
+    {
+        if ($seq instanceof Countable && !$seq instanceof LazySeqInterface) {
+            return count($seq) === 0;
+        }
+
+        if ($seq instanceof Traversable) {
+            return Seq::isEmpty($seq);
+        }
+
+        return false;
     }
 
     /**

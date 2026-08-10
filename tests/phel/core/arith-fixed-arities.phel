@@ -1,0 +1,101 @@
+(ns phel-test.core.arith-fixed-arities
+  (:require phel.test :refer [deftest is thrown?]))
+
+;; `+`, `-`, `*`, `max` and `min` gained fixed 3 and 4 argument arities (#3017).
+;;
+;; Everything here goes through a helper rather than operating on literals,
+;; because `NumericOperationSpecialization` lowers a call with known numeric
+;; operands to a native PHP operator: `(+ 1 2 3)` in a test never reaches the
+;; runtime function, so literal assertions cannot see these arities at all.
+;; `arith-dispatch.phel` covers the lowered spelling; this file covers the
+;; function `apply` and every higher-order position reach.
+
+(defn- add [& xs] (apply + xs))
+(defn- sub [& xs] (apply - xs))
+(defn- mul [& xs] (apply * xs))
+(defn- mx [& xs] (apply max xs))
+(defn- mn [& xs] (apply min xs))
+
+(deftest test-plus-across-the-arity-boundary
+  (is (= 0 (add)) "no arguments")
+  (is (= 5 (add 5)) "one argument")
+  (is (= 3 (add 1 2)) "two, the last arity before the new ones")
+  (is (= 6 (add 1 2 3)) "three, a new fixed arity")
+  (is (= 10 (add 1 2 3 4)) "four, a new fixed arity")
+  (is (= 15 (add 1 2 3 4 5)) "five, the first into the tail")
+  (is (= 21 (add 1 2 3 4 5 6)) "six, well into the tail"))
+
+(deftest test-minus-across-the-arity-boundary
+  (is (= 0 (sub)) "no arguments")
+  (is (= -4 (sub 4)) "one argument negates")
+  (is (= 7 (sub 10 3)) "two arguments")
+  (is (= 5 (sub 10 3 2)) "three, left to right")
+  (is (= 4 (sub 10 3 2 1)) "four, left to right")
+  (is (= 3 (sub 10 3 2 1 1)) "five, into the tail"))
+
+(deftest test-times-across-the-arity-boundary
+  (is (= 1 (mul)) "no arguments")
+  (is (= 5 (mul 5)) "one argument")
+  (is (= 6 (mul 2 3)) "two arguments")
+  (is (= 24 (mul 2 3 4)) "three arguments")
+  (is (= 120 (mul 2 3 4 5)) "four arguments")
+  (is (= 720 (mul 2 3 4 5 6)) "five, into the tail"))
+
+(deftest test-max-and-min-across-the-arity-boundary
+  (is (= 3 (mx 3 1)) "max, two")
+  (is (= 3 (mx 3 1 2)) "max, three")
+  (is (= 9 (mx 3 1 2 9)) "max, four")
+  (is (= 9 (mx 3 1 2 9 4)) "max, five into the tail")
+  (is (= 1 (mn 3 1)) "min, two")
+  (is (= 1 (mn 3 1 2)) "min, three")
+  (is (= 0 (mn 3 1 2 0)) "min, four")
+  (is (= 0 (mn 3 1 2 0 5)) "min, five into the tail"))
+
+;; The new arities fold through the pair arity rather than restating the NaN
+;; rules, so this is what proves the fold is really happening.
+(deftest test-nan-propagates-at-every-arity
+  (is (nan? (mx 1 ##NaN)) "max, two")
+  (is (nan? (mx ##NaN 1 2)) "max, three, NaN first")
+  (is (nan? (mx 1 ##NaN 2)) "max, three, NaN middle")
+  (is (nan? (mx 1 2 ##NaN)) "max, three, NaN last")
+  (is (nan? (mx 1 2 3 ##NaN)) "max, four, NaN last")
+  (is (nan? (mx ##NaN 1 2 3)) "max, four, NaN first")
+  (is (nan? (mx 1 2 3 4 ##NaN)) "max, five, into the tail")
+  (is (nan? (mn 1 ##NaN)) "min, two")
+  (is (nan? (mn ##NaN 1 2)) "min, three, NaN first")
+  (is (nan? (mn 1 ##NaN 2)) "min, three, NaN middle")
+  (is (nan? (mn 1 2 ##NaN)) "min, three, NaN last")
+  (is (nan? (mn 1 2 3 ##NaN)) "min, four")
+  (is (nan? (mn 1 2 3 4 ##NaN)) "min, five, into the tail"))
+
+;; Every position of every arity, because a guard that checks three of four
+;; arguments is exactly the mistake this shape invites.
+(deftest test-nil-is-rejected-at-every-position-of-every-arity
+  (is (thrown? Throwable (add nil 2 3)) "+ three, first")
+  (is (thrown? Throwable (add 1 nil 3)) "+ three, middle")
+  (is (thrown? Throwable (add 1 2 nil)) "+ three, last")
+  (is (thrown? Throwable (add nil 2 3 4)) "+ four, first")
+  (is (thrown? Throwable (add 1 nil 3 4)) "+ four, second")
+  (is (thrown? Throwable (add 1 2 nil 4)) "+ four, third")
+  (is (thrown? Throwable (add 1 2 3 nil)) "+ four, last")
+  (is (thrown? Throwable (add 1 2 3 4 nil)) "+ five, in the tail")
+  (is (thrown? Throwable (sub 1 nil 3)) "- three")
+  (is (thrown? Throwable (sub 1 2 3 nil)) "- four")
+  (is (thrown? Throwable (mul 1 nil 3)) "* three")
+  (is (thrown? Throwable (mul 1 2 3 nil)) "* four"))
+
+(deftest test-the-numeric-tower-at-the-new-arities
+  (is (= 7/4 (add 1/4 1/2 1)) "ratios and an int, three")
+  (is (= 2 (add 1/4 1/4 1/4 5/4)) "four ratios")
+  (is (= 6.5 (add 1 2.5 3)) "int, float, int")
+  (is (= 3/8 (mul 1/2 1/2 3/2)) "three ratios")
+  (is (= (bigint "3") (add (bigint "1") (bigint "1") (bigint "1"))) "three bigints"))
+
+;; A fixed arity that stops being selected is invisible unless the result is
+;; compared with the path that never used it.
+(deftest test-the-fixed-arities-agree-with-the-tail
+  (is (= (add 1 2 3) (reduce + [1 2 3])) "+ three against a fold")
+  (is (= (add 1 2 3 4) (reduce + [1 2 3 4])) "+ four against a fold")
+  (is (= (mul 2 3 4) (reduce * [2 3 4])) "* three against a fold")
+  (is (= (mx 3 1 2) (reduce max [3 1 2])) "max three against a fold")
+  (is (= (mn 3 1 2) (reduce min [3 1 2])) "min three against a fold"))

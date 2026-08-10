@@ -8,8 +8,8 @@
     public const BOUND_TO = "user\\plus1";
 
     public function __invoke($_AMPERSAND_form, $_AMPERSAND_env, $x) {
-      static $__phel_call_0, $__phel_call_1, $__phel_call_2, $__phel_call_3;
-      return (\Phel::getDefinition("phel.core", "list"))(...\Phel\Lang\Seq::toApplyArguments(($__phel_call_0 ??= \Phel::getDefinition("phel.core", "concat"))->__invoke(($__phel_call_1 ??= \Phel::getDefinition("phel.core", "list"))->__invoke((\Phel\Lang\Symbol::create("php/+"))), ($__phel_call_2 ??= \Phel::getDefinition("phel.core", "list"))->__invoke($x), ($__phel_call_3 ??= \Phel::getDefinition("phel.core", "list"))->__invoke(1))));
+      static $__phel_call_0;
+      return (\Phel::getDefinition("phel.core", "list"))(...\Phel\Lang\Seq::toApplyArguments(($__phel_call_0 ??= \Phel::getDefinition("phel.core", "concat"))->__invoke(\Phel::list([(\Phel\Lang\Symbol::create("php/+"))]), \Phel::list([$x]), \Phel::list([1]))));
     }
   },
   \Phel::locationMeta(

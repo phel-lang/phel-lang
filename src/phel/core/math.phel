@@ -27,10 +27,20 @@
   [& xs]
   (assert-non-nil-coll xs))
 
-;; Inlined nil guards for the fixed arities of the arithmetic operators. A
-;; `defn-` here would put a call back on the path the arities exist to shorten,
-;; which is the point of #2978. Arguments must be symbols: each is referenced
-;; once in the expansion, and the operators only ever pass their own parameters.
+;; Inlined nil guards, used by every fixed-arity function in this file that
+;; rejects nil: the arithmetic operators (#2978) and the twelve bodies that
+;; moved off the variadic `assert-non-nil` in #3018. A `defn-` here would put a
+;; call back on the path these guards exist to shorten, and for most of those
+;; twelve the guard was the whole cost of the call.
+;;
+;; Arguments must be symbols. Each is referenced once in the expansion, so a
+;; caller passing an expression would evaluate it a second time in the guard;
+;; every call site passes its own bare parameters.
+;;
+;; The `:inline` forms below still call the variadic `assert-non-nil` instead.
+;; They expand into the *caller's* namespace, where a `defmacro-` private to
+;; `phel.core` is not in scope, and three of them splice `~@args` and so have no
+;; fixed arity to target.
 (defmacro- assert-non-nil-1
   [a]
   `(when (php/=== nil ~a)
@@ -39,6 +49,16 @@
 (defmacro- assert-non-nil-2
   [a b]
   `(when (or (php/=== nil ~a) (php/=== nil ~b))
+     (throw (new InvalidArgumentException "Arithmetic functions do not accept nil values"))))
+
+(defmacro- assert-non-nil-3
+  [a b c]
+  `(when (or (php/=== nil ~a) (php/=== nil ~b) (php/=== nil ~c))
+     (throw (new InvalidArgumentException "Arithmetic functions do not accept nil values"))))
+
+(defmacro- assert-non-nil-4
+  [a b c d]
+  `(when (or (php/=== nil ~a) (php/=== nil ~b) (php/=== nil ~c) (php/=== nil ~d))
      (throw (new InvalidArgumentException "Arithmetic functions do not accept nil values"))))
 
 ;; -----------------
@@ -81,7 +101,7 @@
    :example "(bit-not 0) ; => -1"
    :see-also ["bit-and" "bit-or" "bit-xor"]}
   [x]
-  (assert-non-nil x)
+  (assert-non-nil-1 x)
   (php/~ x))
 
 (defn bit-shift-left
@@ -90,7 +110,7 @@
    :example "(bit-shift-left 1 4) ; => 16"
    :see-also ["bit-shift-right"]}
   [x n]
-  (assert-non-nil x n)
+  (assert-non-nil-2 x n)
   (php/<< x n))
 
 (defn bit-shift-right
@@ -99,7 +119,7 @@
    :example "(bit-shift-right 16 2) ; => 4"
    :see-also ["bit-shift-left"]}
   [x n]
-  (assert-non-nil x n)
+  (assert-non-nil-2 x n)
   (php/>> x n))
 
 (defn unsigned-bit-shift-right
@@ -107,7 +127,7 @@
   {:example "(unsigned-bit-shift-right -1 10) ; => 18014398509481983"
    :see-also ["bit-shift-right" "bit-shift-left"]}
   [x n]
-  (assert-non-nil x n)
+  (assert-non-nil-2 x n)
   ;; A right shift by 0 would make the mask `PHP_INT_MAX >> -1`, which PHP
   ;; rejects as a negative shift; the value is already unchanged in that case.
   (if (php/=== 0 n)
@@ -170,10 +190,21 @@
   ([] 0)
   ([x] (assert-non-nil-1 x) x)
   ([x y] (assert-non-nil-2 x y) (NumericOperations/add x y))
-  ([x y & more]
-   (assert-non-nil-2 x y)
+  ;; Three and four arguments get fixed arities of their own. The pair arity
+  ;; already made two cheap, but three fell straight into the variadic tail and
+  ;; cost 13 to 17 times as much, which is where a good deal of real code sits
+  ;; (#3017). The chain is spelled out rather than folded through the pair arity
+  ;; so it costs one dispatch instead of two.
+  ([x y z]
+   (assert-non-nil-3 x y z)
+   (NumericOperations/add (NumericOperations/add x y) z))
+  ([x y z w]
+   (assert-non-nil-4 x y z w)
+   (NumericOperations/add (NumericOperations/add (NumericOperations/add x y) z) w))
+  ([x y z w & more]
+   (assert-non-nil-4 x y z w)
    (assert-non-nil-coll more)
-   (reduce #(NumericOperations/add %1 %2) (NumericOperations/add x y) more)))
+   (reduce #(NumericOperations/add %1 %2) (NumericOperations/add (NumericOperations/add (NumericOperations/add x y) z) w) more)))
 
 (defn -
   "Returns the difference of all elements in `xs`. If `xs` is empty, return 0. If `xs` has one element, return the negative value of that element."
@@ -186,10 +217,21 @@
   ([] 0)
   ([x] (assert-non-nil-1 x) (NumericOperations/negate x))
   ([x y] (assert-non-nil-2 x y) (NumericOperations/subtract x y))
-  ([x y & more]
-   (assert-non-nil-2 x y)
+  ;; Three and four arguments get fixed arities of their own. The pair arity
+  ;; already made two cheap, but three fell straight into the variadic tail and
+  ;; cost 13 to 17 times as much, which is where a good deal of real code sits
+  ;; (#3017). The chain is spelled out rather than folded through the pair arity
+  ;; so it costs one dispatch instead of two.
+  ([x y z]
+   (assert-non-nil-3 x y z)
+   (NumericOperations/subtract (NumericOperations/subtract x y) z))
+  ([x y z w]
+   (assert-non-nil-4 x y z w)
+   (NumericOperations/subtract (NumericOperations/subtract (NumericOperations/subtract x y) z) w))
+  ([x y z w & more]
+   (assert-non-nil-4 x y z w)
    (assert-non-nil-coll more)
-   (reduce #(NumericOperations/subtract %1 %2) (NumericOperations/subtract x y) more)))
+   (reduce #(NumericOperations/subtract %1 %2) (NumericOperations/subtract (NumericOperations/subtract (NumericOperations/subtract x y) z) w) more)))
 
 (defn *
   "Returns the product of all elements in `xs`. All elements in `xs` must be numbers. If `xs` is empty, return 1."
@@ -202,10 +244,21 @@
   ([] 1)
   ([x] (assert-non-nil-1 x) x)
   ([x y] (assert-non-nil-2 x y) (NumericOperations/multiply x y))
-  ([x y & more]
-   (assert-non-nil-2 x y)
+  ;; Three and four arguments get fixed arities of their own. The pair arity
+  ;; already made two cheap, but three fell straight into the variadic tail and
+  ;; cost 13 to 17 times as much, which is where a good deal of real code sits
+  ;; (#3017). The chain is spelled out rather than folded through the pair arity
+  ;; so it costs one dispatch instead of two.
+  ([x y z]
+   (assert-non-nil-3 x y z)
+   (NumericOperations/multiply (NumericOperations/multiply x y) z))
+  ([x y z w]
+   (assert-non-nil-4 x y z w)
+   (NumericOperations/multiply (NumericOperations/multiply (NumericOperations/multiply x y) z) w))
+  ([x y z w & more]
+   (assert-non-nil-4 x y z w)
    (assert-non-nil-coll more)
-   (reduce #(NumericOperations/multiply %1 %2) (NumericOperations/multiply x y) more)))
+   (reduce #(NumericOperations/multiply %1 %2) (NumericOperations/multiply (NumericOperations/multiply (NumericOperations/multiply x y) z) w) more)))
 
 (defn /
   "Returns the nominator divided by all the denominators. If `xs` is empty,
@@ -233,7 +286,7 @@ returns 1. If `xs` has one value, returns the reciprocal of x.
   {:example "(quot 7 3) ; => 2\n(quot -7 3) ; => -2"
    :see-also ["rem" "mod" "/"]}
   [dividend divisor]
-  (assert-non-nil dividend divisor)
+  (assert-non-nil-2 dividend divisor)
   (NumericOperations/quot dividend divisor))
 
 (defn rem
@@ -241,7 +294,7 @@ returns 1. If `xs` has one value, returns the reciprocal of x.
   {:example "(rem 7 3) ; => 1\n(rem -7 3) ; => -1"
    :see-also ["quot" "mod" "%"]}
   [dividend divisor]
-  (assert-non-nil dividend divisor)
+  (assert-non-nil-2 dividend divisor)
   (NumericOperations/rem dividend divisor))
 
 (defn mod
@@ -251,7 +304,7 @@ returns 1. If `xs` has one value, returns the reciprocal of x.
   {:example "(mod 7 3) ; => 1\n(mod -7 3) ; => 2"
    :see-also ["quot" "rem" "%"]}
   [dividend divisor]
-  (assert-non-nil dividend divisor)
+  (assert-non-nil-2 dividend divisor)
   (NumericOperations/mod dividend divisor))
 
 (defn %
@@ -267,7 +320,7 @@ returns 1. If `xs` has one value, returns the reciprocal of x.
   {:example "(** 2 8) ; => 256"
    :see-also ["*" "sqrt"]}
   [a x]
-  (assert-non-nil a x)
+  (assert-non-nil-2 a x)
   (NumericOperations/power a x))
 
 (defn inc
@@ -612,7 +665,13 @@ returns 1. If `xs` has one value, returns the reciprocal of x.
      (numeric-nan? y) ##NaN
      (< x y)          x
      :else            y))
-  ([x y & more] (reduce min (min x y) more)))
+  ;; Three and four arguments fold through the pair arity rather than restating
+  ;; the NaN rules, exactly as the tail does, so propagation stays in one place
+  ;; (#2991). What they avoid is the tail's rest-argument allocation and
+  ;; `reduce`, which is the whole cost at these counts (#3017).
+  ([x y z] (min (min x y) z))
+  ([x y z w] (min (min (min x y) z) w))
+  ([x y z w & more] (reduce min (min (min (min x y) z) w) more)))
 
 (defn max
   "Returns the maximum of all arguments. Returns `##NaN` whenever any numeric argument is `##NaN`."
@@ -628,7 +687,13 @@ returns 1. If `xs` has one value, returns the reciprocal of x.
      (numeric-nan? y) ##NaN
      (> x y)          x
      :else            y))
-  ([x y & more] (reduce max (max x y) more)))
+  ;; Three and four arguments fold through the pair arity rather than restating
+  ;; the NaN rules, exactly as the tail does, so propagation stays in one place
+  ;; (#2991). What they avoid is the tail's rest-argument allocation and
+  ;; `reduce`, which is the whole cost at these counts (#3017).
+  ([x y z] (max (max x y) z))
+  ([x y z w] (max (max (max x y) z) w))
+  ([x y z w & more] (reduce max (max (max (max x y) z) w) more)))
 
 (defn min-key
   "Returns the arg for which (k arg) is smallest. On ties, returns the latest argument."
@@ -884,7 +949,7 @@ returns 1. If `xs` has one value, returns the reciprocal of x.
   {:example "(floor 1.7) ; => 1.0\n(floor -1.2) ; => -2.0\n(floor 7/3) ; => 2"
    :see-also ["ceil" "round" "quot"]}
   [x]
-  (assert-non-nil x)
+  (assert-non-nil-1 x)
   (cond
     (php/is_int x)            x
     (php/instanceof x BigInt) x
@@ -899,7 +964,7 @@ returns 1. If `xs` has one value, returns the reciprocal of x.
   {:example "(ceil 1.2) ; => 2.0\n(ceil -1.7) ; => -1.0\n(ceil 7/3) ; => 3"
    :see-also ["floor" "round" "quot"]}
   [x]
-  (assert-non-nil x)
+  (assert-non-nil-1 x)
   (cond
     (php/is_int x)            x
     (php/instanceof x BigInt) x
@@ -914,7 +979,7 @@ returns 1. If `xs` has one value, returns the reciprocal of x.
   {:example "(round 1.5) ; => 2.0\n(round -1.5) ; => -2.0\n(round 5) ; => 5"
    :see-also ["floor" "ceil"]}
   [x]
-  (assert-non-nil x)
+  (assert-non-nil-1 x)
   (cond
     (php/is_int x)            x
     (php/instanceof x BigInt) x
@@ -926,5 +991,5 @@ returns 1. If `xs` has one value, returns the reciprocal of x.
   {:example "(sqrt 9) ; => 3.0\n(sqrt 2) ; => 1.4142135623731"
    :see-also ["**" "abs"]}
   [x]
-  (assert-non-nil x)
+  (assert-non-nil-1 x)
   (php/sqrt (number->float x)))

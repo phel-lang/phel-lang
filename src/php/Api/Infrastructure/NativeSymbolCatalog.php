@@ -226,7 +226,6 @@ Creates a new lexical context with assignments defined in bindings. Afterwards t
 ```
 Creates a new list. If no argument is provided, an empty list is created. Shortcut: \'()',
             'docUrl' => '/documentation/data-structures/#lists',
-            'signatures' => ['(list & xs)'],
             'desc' => 'Creates a new list. If no argument is provided, an empty list is created.',
             'example' => "(list 1 2 3) ; => '(1 2 3)",
         ],
@@ -256,7 +255,6 @@ Creates a new lexical context with variables defined in bindings and defines a r
 ```
 Creates a new hash map. If no argument is provided, an empty hash map is created. The number of parameters must be even. Shortcut: {}',
             'docUrl' => '/documentation/data-structures/#maps',
-            'signatures' => ['(hash-map & xs)'],
             'desc' => 'Creates a new hash map. If no argument is provided, an empty hash map is created. The number of parameters must be even.',
             'example' => '(hash-map :name "Alice" :age 30) ; => {:name "Alice", :age 30}',
         ],
@@ -519,7 +517,6 @@ Resolves `sym` against the current namespace, require aliases, and refers, yield
 ```
 Creates a new vector. If no argument is provided, an empty vector is created. Shortcut: []',
             'docUrl' => '/documentation/data-structures/#vectors',
-            'signatures' => ['(vector & xs)'],
             'desc' => 'Creates a new vector. If no argument is provided, an empty vector is created.',
             'example' => '(vector 1 2 3) ; => [1 2 3]',
         ],

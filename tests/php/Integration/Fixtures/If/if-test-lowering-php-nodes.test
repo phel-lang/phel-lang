@@ -1,0 +1,11 @@
+--PHEL--
+(fn [ds k] (if (or (php/instanceof ds Phel.Lang.Keyword) (php/instanceof ds Phel.Lang.Symbol)) 1 2))
+(fn [arr] (if (or (php/aget arr 0) (php/aget arr 1)) 1 2))
+--PHP--
+(function($ds, $k): int {
+  return ((($ds instanceof \Phel\Lang\Keyword)) || (($ds instanceof \Phel\Lang\Symbol)) ? 1 : 2);
+
+});(function($arr) {
+  return ((($__truthy = (($arr)[(0)] ?? null)) !== null && $__truthy !== false) || (($__truthy = (($arr)[(1)] ?? null)) !== null && $__truthy !== false) ? 1 : 2);
+
+});

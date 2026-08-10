@@ -55,6 +55,11 @@ final readonly class PhelFnNormalizer implements PhelFnNormalizerInterface
         $normalizedData = $this->phelFnLoader->getNormalizedPhelFunctions($namespaces);
 
         $normalizedFns = [];
+        // Keyed by the same full name the NativeSymbolCatalog uses, so a
+        // catalog entry can fall back to the runtime metadata of the function
+        // it describes. `$flattenedFns` cannot serve: `array_merge` renumbers
+        // it, so the lookup by name there silently found nothing.
+        $byFullName = [];
         foreach ($normalizedData as $fnName => $meta) {
             $isPrivate = $meta[Keyword::create('private')] ?? false;
             if ($isPrivate) {
@@ -65,6 +70,17 @@ final readonly class PhelFnNormalizer implements PhelFnNormalizerInterface
             $parsed = DocstringSignatureParser::parse($doc);
             $signatures = $parsed['signatures'];
             $description = $parsed['description'];
+
+            // A `defn` renders its arities into a fenced block at the top of
+            // the docstring, which is what the parser above reads. A bare `def`
+            // over an `fn` has no such block, so its signatures come from the
+            // `arglists` metadata the analyzer already wrote for both (#3012).
+            if ($signatures === []) {
+                $signatures = ArglistSignatureParser::parse(
+                    ScalarCoercion::toString($meta['arglists'] ?? null),
+                    $this->extractNameWithoutNamespace($fnName),
+                );
+            }
 
             $namespace = $this->extractNamespace($fnName);
             $groupKey = $this->phelFnGroupKeyGenerator->generateGroupKey($namespace, $fnName);
@@ -78,7 +94,7 @@ final readonly class PhelFnNormalizer implements PhelFnNormalizerInterface
                 $line = ScalarCoercion::toInt($location[Keyword::create('line')] ?? null);
             }
 
-            $normalizedFns[$groupKey][$fnName] = new PhelFunction(
+            $byFullName[$fnName] = $normalizedFns[$groupKey][$fnName] = new PhelFunction(
                 namespace: $namespace,
                 name: $this->extractNameWithoutNamespace($fnName),
                 doc: $doc,
@@ -102,7 +118,7 @@ final readonly class PhelFnNormalizer implements PhelFnNormalizerInterface
         $flattenedFns = array_merge(...array_values($normalizedFns));
 
         $result = [
-            ...$this->normalizeNativeSymbols($flattenedFns),
+            ...$this->normalizeNativeSymbols($byFullName),
             ...$flattenedFns,
         ];
 

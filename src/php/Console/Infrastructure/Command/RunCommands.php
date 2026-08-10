@@ -6,6 +6,7 @@ namespace Phel\Console\Infrastructure\Command;
 
 use Phel\Console\Domain\ConsoleCommandProviderInterface;
 use Phel\Run\Infrastructure\Command\AgentInstallCommand;
+use Phel\Run\Infrastructure\Command\BenchCommand;
 use Phel\Run\Infrastructure\Command\CompileCommand;
 use Phel\Run\Infrastructure\Command\ConfigCommand;
 use Phel\Run\Infrastructure\Command\DoctorCommand;
@@ -34,6 +35,7 @@ final class RunCommands implements ConsoleCommandProviderInterface
             new LazyCommand('compile', [], 'Compile a Phel snippet and print the emitted PHP. Does not evaluate.', false, static fn(): CompileCommand => new CompileCommand()),
             new LazyCommand('run', ['r'], 'Runs a script', false, static fn(): RunCommand => new RunCommand()),
             new LazyCommand(TestCommand::COMMAND_NAME, ['t'], 'Tests the given files. If no filenames are provided all tests in the "tests" directory are executed', false, static fn(): TestCommand => new TestCommand()),
+            new LazyCommand(BenchCommand::COMMAND_NAME, [], 'Runs the benchmarks of the given paths. If no paths are provided all benchmarks in the "tests" directory are executed', false, static fn(): BenchCommand => new BenchCommand()),
             new LazyCommand(TestWorkerCommand::COMMAND_NAME, [], 'Internal: parallel test worker. Not for direct use.', true, static fn(): TestWorkerCommand => new TestWorkerCommand()),
             new LazyCommand('doctor', [], 'Check system requirements for running the Phel CLI', false, static fn(): DoctorCommand => new DoctorCommand()),
             new LazyCommand('config', [], 'Show the effective Phel configuration and where it comes from', false, static fn(): ConfigCommand => new ConfigCommand()),

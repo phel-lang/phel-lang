@@ -7,12 +7,11 @@ namespace PhelTest\Benchmark\Compiler;
 use Phel;
 use Phel\Compiler\CompilerFacade;
 use Phel\Compiler\Domain\Lexer\LexerInterface;
+use PhelTest\Benchmark\Compiler\Fixtures\CoreCorpus;
 use PhpBench\Benchmark\Metadata\Annotations\BeforeMethods;
 use PhpBench\Benchmark\Metadata\Annotations\Iterations;
 use PhpBench\Benchmark\Metadata\Annotations\Revs;
 use RuntimeException;
-
-use function sprintf;
 
 /**
  * Parser throughput micro-benchmark.
@@ -24,8 +23,10 @@ use function sprintf;
  * `FileNode`. The lex cost is shared overhead common to both subjects,
  * so deltas still attribute cleanly to the parser.
  *
- * `bench_parse_core` parses the real `phel.core` aggregate; the
- * synthetic `bench_parse_fixture` parses a fixed-shape source with a
+ * `bench_parse_core` parses {@see CoreCorpus}, a frozen snapshot of the
+ * `phel.core` source held under `tests/` so that growing the standard
+ * library cannot read as a parser regression; the synthetic
+ * `bench_parse_fixture` parses a fixed-shape source with a
  * dense mix of vectors, maps and nested calls to stress collection and
  * list node construction. Both fixtures are deterministic and built
  * once in `setUp`.
@@ -47,7 +48,7 @@ final class ParserBench
         Phel::bootstrap(__DIR__ . '/../../../../');
 
         $this->compilerFacade = new CompilerFacade();
-        $this->coreSource = $this->readCoreSource();
+        $this->coreSource = CoreCorpus::source();
         $this->fixtureSource = $this->buildFixtureSource();
     }
 
@@ -97,14 +98,4 @@ final class ParserBench
         return implode("\n\n", $forms) . "\n";
     }
 
-    private function readCoreSource(): string
-    {
-        $path = __DIR__ . '/../../../../src/phel/core.phel';
-        $source = file_get_contents($path);
-        if ($source === false) {
-            throw new RuntimeException(sprintf('Unable to read core source at %s', $path));
-        }
-
-        return $source;
-    }
 }

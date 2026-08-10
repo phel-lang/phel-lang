@@ -1,0 +1,89 @@
+(ns phel-test.core.constructor-dispatch
+  (:require phel.test :refer [deftest is]))
+
+;; Pins `list`, `vector`, `queue`, `hash-map` and `array-map` at the boundary
+;; the emitter now lowers (#3014): a literal call compiles to the `Phel` static
+;; factory, while `apply` and a local shadow keep the runtime fn. So the cases
+;; that matter are direct calls at a range of argument counts, the same calls
+;; reached through `apply`, and the two having to agree.
+
+(deftest test-list-arities
+  (is (= '() (list)) "no arguments")
+  (is (= '(1) (list 1)) "one argument")
+  (is (= '(1 2) (list 1 2)) "two arguments")
+  (is (= '(1 2 3) (list 1 2 3)) "three arguments")
+  (is (= '(1 2 3 4) (list 1 2 3 4)) "four arguments")
+  (is (= '(1 2 3 4 5 6) (list 1 2 3 4 5 6)) "more arguments still"))
+
+(deftest test-vector-arities
+  (is (= [] (vector)) "no arguments")
+  (is (= [1] (vector 1)) "one argument")
+  (is (= [1 2] (vector 1 2)) "two arguments")
+  (is (= [1 2 3] (vector 1 2 3)) "three arguments")
+  (is (= [1 2 3 4] (vector 1 2 3 4)) "four arguments")
+  (is (= [1 2 3 4 5 6] (vector 1 2 3 4 5 6)) "more arguments still"))
+
+(deftest test-queue-arities
+  (is (= 0 (count (queue))) "no arguments")
+  (is (= 1 (count (queue 1))) "one argument")
+  (is (= 3 (count (queue 1 2 3))) "three arguments")
+  (is (= 5 (count (queue 1 2 3 4 5))) "five arguments")
+  (is (= 1 (first (queue 1 2 3))) "first argument is at the front")
+  (is (= 1 (first (queue 1 2 3 4 5))) "front is preserved at every count"))
+
+(deftest test-hash-map-arities
+  (is (= {} (hash-map)) "no arguments")
+  (is (= {:a 1} (hash-map :a 1)) "one pair")
+  (is (= {:a 1, :b 2} (hash-map :a 1 :b 2)) "two pairs")
+  (is (= {:a 1, :b 2, :c 3} (hash-map :a 1 :b 2 :c 3)) "three pairs")
+  (is (= {:a 1, :b 2, :c 3, :d 4} (hash-map :a 1 :b 2 :c 3 :d 4)) "more arguments still"))
+
+(deftest test-array-map-agrees-with-hash-map
+  (is (= (hash-map) (array-map)) "no arguments")
+  (is (= (hash-map :a 1) (array-map :a 1)) "one pair")
+  (is (= (hash-map :a 1 :b 2) (array-map :a 1 :b 2)) "two pairs")
+  (is (= (hash-map :a 1 :b 2 :c 3) (array-map :a 1 :b 2 :c 3)) "three pairs"))
+
+(deftest test-later-keys-win-on-every-arity
+  (is (= {:a 2} (hash-map :a 1 :a 2)) "duplicate key")
+  (is (= {:a 3, :b 9} (hash-map :a 1 :b 9 :a 3)) "duplicate key at a larger count"))
+
+;; `apply` never puts the constructor in call-head position, so it keeps the
+;; runtime fn where a direct call is lowered. The two paths must agree at every
+;; argument count, which is the property the lowering could most easily break.
+(deftest test-apply-agrees-with-direct-calls
+  (is (= (list) (apply list [])) "list, empty")
+  (is (= (list 1 2) (apply list [1 2])) "list, small")
+  (is (= (list 1 2 3 4 5) (apply list [1 2 3 4 5])) "list, larger")
+  (is (= (vector 1 2) (apply vector [1 2])) "vector, small")
+  (is (= (hash-map :a 1) (apply hash-map [:a 1])) "hash-map, one pair")
+  (is (= (hash-map :a 1 :b 2 :c 3) (apply hash-map [:a 1 :b 2 :c 3])) "hash-map, three pairs"))
+
+;; An odd argument count has no pair to build from. `\Phel::map([1])` raises the
+;; same error the runtime fn reaches, so lowering must not change it. The
+;; specialisation deliberately does not filter on parity for that reason.
+(deftest test-odd-argument-count-still-throws-from-the-constructor
+  (is (thrown? \RuntimeException (hash-map :a)) "one argument")
+  (is (thrown? \RuntimeException (hash-map :a 1 :b)) "three arguments")
+  (is (thrown? \RuntimeException (array-map :a)) "array-map, one argument"))
+
+;; A local binding shadows the core constructor, and the emitter must call the
+;; local rather than the `Phel` factory. This is the one way the lowering could
+;; silently change what a program means, so it is asserted at the language
+;; level and not only against emitted PHP.
+(deftest test-a-local-shadow-wins-over-the-lowering
+  (is (= :shadowed (let [list (fn [& args] :shadowed)] (list 1 2))) "let-bound list")
+  (is (= :shadowed (let [hash-map (fn [& args] :shadowed)] (hash-map :a 1))) "let-bound hash-map")
+  (is (= 7 (let [vector (fn [a] (php/+ a 4))] (vector 3))) "the local really is the one called"))
+
+;; Passing a constructor as a value never puts it in call-head position, so it
+;; keeps the runtime fn. It has to stay a working higher-order function.
+(deftest test-constructors-still-work-as-values
+  (is (= ['(1) '(2)] (map list [1 2])) "list as a value")
+  (is (= [[1] [2]] (map vector [1 2])) "vector as a value")
+  (is (= '(1 2 3) (apply list [1 2 3])) "list through apply"))
+
+(deftest test-literals-agree-with-the-constructors
+  (is (= '(1 2 3) (list 1 2 3)) "list literal")
+  (is (= [1 2 3] (vector 1 2 3)) "vector literal")
+  (is (= {:a 1, :b 2} (hash-map :a 1 :b 2)) "map literal"))

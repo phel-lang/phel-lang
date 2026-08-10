@@ -1,0 +1,63 @@
+(ns phel-test.core.lazy-seq-empty-check
+  (:require phel.test :refer [deftest is]))
+
+;; Asking a lazy sequence whether it is empty used to realize all of it,
+;; because the check went through `count`, and `count` on both `LazySeq` and
+;; `ChunkedSeq` is documented as realizing the whole sequence. So an unbounded
+;; source never returned, and a large bounded one was materialized in full to
+;; produce a handful of elements (#3023).
+
+;; The case that never terminated before. Kept deliberately: an unbounded
+;; source is the only input that distinguishes "lazy" from "fast".
+(deftest test-an-unbounded-source-terminates
+  (is (= [0 1 2 3 4] (vec (take 5 (lazy-seq (range))))) "take from an infinite range")
+  (is (= 0 (first (lazy-seq (range)))) "first of an infinite range")
+  (is (= [0 2 4] (vec (take 3 (filter even? (lazy-seq (range)))))) "filtered infinite range"))
+
+;; Emptiness has to stay distinguishable from "the first element is nil", which
+;; is why the check cannot simply be `(nil? (first s))`.
+(deftest test-nil-is-an-element-not-an-empty-signal
+  (is (= [nil] (vec (lazy-seq [nil]))) "a single nil is one element")
+  (is (= 1 (count (lazy-seq [nil]))) "and counts as one")
+  (is (= [nil nil] (vec (lazy-seq [nil nil]))) "two nils are two elements"))
+
+;; `empty?` used to answer that same question with `(nil? (first s))`, so it
+;; disagreed with `count` and `vec` about a sequence whose first element is nil
+;; (#3025). It now asks whether an element exists rather than what it is.
+(deftest test-empty-agrees-with-count-and-vec-about-a-leading-nil
+  (is (false? (empty? (lazy-seq [nil]))) "a single nil is not empty")
+  (is (false? (empty? (lazy-seq [nil nil]))) "two nils are not empty")
+  (is (false? (empty? (lazy-seq [nil 1]))) "nil first, value second")
+  (is (false? (empty? (lazy-seq [1 nil]))) "value first, nil second")
+  (is (= [nil] (not-empty (lazy-seq [nil]))) "not-empty hands the sequence back"))
+
+;; The three answers have to agree for every one of these, which is the property
+;; that failed: `empty?` said true where `count` said 1.
+(deftest test-empty-count-and-vec-agree
+  (let [cases [(lazy-seq [nil]) (lazy-seq [nil nil]) (lazy-seq [1 nil])
+               (lazy-seq []) (lazy-seq nil) (lazy-seq [1 2 3])]]
+    (foreach [s cases]
+      (is (= (empty? s) (= 0 (count s)))
+          (str "empty? agrees with count for " (vec s)))
+      (is (= (empty? s) (= [] (vec s)))
+          (str "empty? agrees with vec for " (vec s))))))
+
+;; A leading nil must not cost the laziness guarantee: the disambiguation pulls
+;; one element, it does not realize the sequence.
+(deftest test-an-unbounded-sequence-of-nils-still-answers
+  (is (false? (empty? (map (fn [_] nil) (iterate inc 0)))) "infinite nils")
+  (is (false? (empty? (iterate inc 0))) "infinite ints"))
+
+(deftest test-genuinely-empty-sources-are-still-empty
+  (is (= [] (vec (lazy-seq []))) "empty vector")
+  (is (= 0 (count (lazy-seq []))) "counts zero")
+  (is (empty? (lazy-seq [])) "empty?")
+  (is (= [] (vec (lazy-seq nil))) "nil body")
+  (is (= [] (vec (lazy-seq (lazy-seq [])))) "an empty lazy-seq inside a lazy-seq")
+  (is (= [] (vec (lazy-seq (take 0 [1 2 3])))) "an empty chunked tail"))
+
+;; A large bounded source should cost what the consumer asks for, not what the
+;; source holds. Correctness only here; the timing is in the PR.
+(deftest test-a-large-source-is-not-realized-to-take-a-few
+  (is (= [0 1 2 3 4] (vec (take 5 (lazy-seq (range 0 200000))))) "take 5 of 200k")
+  (is (= 0 (first (lazy-seq (range 0 200000)))) "first of 200k"))
