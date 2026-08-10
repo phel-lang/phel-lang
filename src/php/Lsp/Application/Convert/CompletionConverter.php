@@ -12,7 +12,10 @@ use Phel\Shared\Api\Completion;
  * LSP CompletionItemKind values: 1 = Text, 2 = Method, 3 = Function,
  * 6 = Variable, 14 = Keyword, ...
  *
- * @phpstan-type CompletionItem array{label: string, kind: int, detail: string, documentation: string, textEdit?: array{range: array{start: array{line: int, character: int}, end: array{line: int, character: int}}, newText: string}}
+ * @phpstan-import-type Range from PositionConverter
+ * @phpstan-import-type TextEdit from PositionConverter
+ *
+ * @phpstan-type CompletionItem array{label: string, kind: int, detail: string, documentation: string, textEdit?: TextEdit}
  *
  * @internal
  */
@@ -31,16 +34,32 @@ final class CompletionConverter
     public const int KIND_KEYWORD = 14;
 
     /**
+     * `$variableRange`, when given, is the span of the `$...` token under the
+     * cursor. Variable completions carry an explicit `textEdit` over it because
+     * a client's own word range stops at the `$` sigil, so accepting
+     * `$_SERVER` at `php/$_S|` would otherwise yield `php/$_$_SERVER`.
+     *
+     * @param Range|null $variableRange
+     *
      * @return CompletionItem
      */
-    public function fromCompletion(Completion $completion): array
+    public function fromCompletion(Completion $completion, ?array $variableRange = null): array
     {
-        return [
+        $item = [
             'label' => $completion->label,
             'kind' => $this->kindForCompletion($completion->kind),
             'detail' => $completion->detail,
             'documentation' => $completion->documentation,
         ];
+
+        if ($variableRange !== null && $completion->kind === Completion::KIND_VARIABLE) {
+            $item['textEdit'] = [
+                'range' => $variableRange,
+                'newText' => $completion->label,
+            ];
+        }
+
+        return $item;
     }
 
     private function kindForCompletion(string $kind): int

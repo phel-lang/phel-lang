@@ -100,6 +100,18 @@ final class Document
     }
 
     /**
+     * Text of a single 0-based line without its terminator, or null when the
+     * document has no such line. Line endings are normalised, so callers never
+     * have to care whether the editor sent LF or CRLF.
+     */
+    public function lineAt(int $line): ?string
+    {
+        $lines = explode("\n", str_replace("\r\n", "\n", $this->text));
+
+        return $lines[$line] ?? null;
+    }
+
+    /**
      * Return the word (identifier) at the given LSP-style position, or '' when
      * nothing is under the cursor. The matcher is permissive: it accepts
      * Lisp identifier characters.
@@ -108,14 +120,11 @@ final class Document
      */
     public function wordAt(array $position): string
     {
-        $normalized = str_replace("\r\n", "\n", $this->text);
-        $lines = explode("\n", $normalized);
-        $line = max(0, $position['line']);
-        if (!isset($lines[$line])) {
+        $lineText = $this->lineAt(max(0, $position['line']));
+        if ($lineText === null) {
             return '';
         }
 
-        $lineText = $lines[$line];
         $col = max(0, $position['character']);
         $col = min($col, strlen($lineText));
 

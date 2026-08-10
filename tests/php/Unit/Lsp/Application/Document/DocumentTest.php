@@ -53,6 +53,31 @@ final class DocumentTest extends TestCase
         self::assertSame(3, $document->lineCount());
     }
 
+    public function test_line_at_returns_the_requested_line(): void
+    {
+        $document = new Document('file:///x.phel', 'phel', 1, "a\nbb\nccc");
+
+        self::assertSame('a', $document->lineAt(0));
+        self::assertSame('bb', $document->lineAt(1));
+        self::assertSame('ccc', $document->lineAt(2));
+    }
+
+    public function test_line_at_strips_crlf_terminators(): void
+    {
+        $document = new Document('file:///x.phel', 'phel', 1, "a\r\nbb");
+
+        self::assertSame('a', $document->lineAt(0));
+        self::assertSame('bb', $document->lineAt(1));
+    }
+
+    public function test_line_at_out_of_bounds_returns_null(): void
+    {
+        $document = new Document('file:///x.phel', 'phel', 1, "a\nb");
+
+        self::assertNull($document->lineAt(2));
+        self::assertNull($document->lineAt(-1));
+    }
+
     public function test_apply_range_replaces_selection(): void
     {
         $document = new Document('file:///x.phel', 'phel', 1, 'hello world');
