@@ -19,6 +19,7 @@ use Phel\Lsp\Application\Session\Session;
 use Phel\Lsp\Domain\NotificationSink;
 use PhelTest\Support\Fixtures\PhpInterop\ChainFixture;
 use PhelTest\Support\Fixtures\PhpInterop\HoverFixture;
+use PhelTest\Support\Fixtures\PhpInterop\StaticPropertyTarget;
 use PHPUnit\Framework\Attributes\PreserveGlobalState;
 use PHPUnit\Framework\Attributes\RunInSeparateProcess;
 use PHPUnit\Framework\TestCase;
@@ -138,6 +139,124 @@ final class PhpInteropLspTest extends TestCase
 
         $labels = array_column($result['items'], 'label');
         self::assertContains('Countable', $labels, 'interfaces appear in class-name completion');
+    }
+
+    #[PreserveGlobalState(false)]
+    #[RunInSeparateProcess]
+    public function test_completion_lists_php_superglobals_and_preserves_php_prefix(): void
+    {
+        $uri = 'file:///x.phel';
+        $source = '(php/$_S';
+        $session = $this->sessionWith($uri, $source);
+
+        $result = $this->completion()->handle(
+            $this->params($uri, line: 0, character: strlen($source)),
+            $session,
+        );
+
+        $items = array_column($result['items'], null, 'label');
+        self::assertArrayHasKey('$_SERVER', $items);
+        self::assertArrayNotHasKey('$_GET', $items);
+        self::assertSame(CompletionConverter::KIND_VARIABLE, $items['$_SERVER']['kind']);
+        self::assertSame('PHP superglobal', $items['$_SERVER']['detail']);
+        self::assertNotSame('', $items['$_SERVER']['documentation']);
+        // The `$` sigil is inside the replaced span, so accepting the item
+        // yields `php/$_SERVER` and not `php/$$_SERVER`.
+        self::assertSame([
+            'range' => [
+                'start' => ['line' => 0, 'character' => 5],
+                'end' => ['line' => 0, 'character' => 8],
+            ],
+            'newText' => '$_SERVER',
+        ], $items['$_SERVER']['textEdit']);
+    }
+
+    #[PreserveGlobalState(false)]
+    #[RunInSeparateProcess]
+    public function test_completion_inside_a_superglobal_replaces_the_whole_name(): void
+    {
+        $uri = 'file:///x.phel';
+        $source = '(php/$_SERVER)';
+        $session = $this->sessionWith($uri, $source);
+
+        // Cursor between "$_SE" and "RVER".
+        $result = $this->completion()->handle(
+            $this->params($uri, line: 0, character: 9),
+            $session,
+        );
+
+        $items = array_column($result['items'], null, 'label');
+        self::assertArrayHasKey('$_SERVER', $items);
+        self::assertSame([
+            'range' => [
+                'start' => ['line' => 0, 'character' => 5],
+                'end' => ['line' => 0, 'character' => 13],
+            ],
+            'newText' => '$_SERVER',
+        ], $items['$_SERVER']['textEdit'], 'the tail after the cursor is replaced too');
+    }
+
+    #[PreserveGlobalState(false)]
+    #[RunInSeparateProcess]
+    public function test_completion_of_a_static_property_replaces_the_sigil_too(): void
+    {
+        $uri = 'file:///x.phel';
+        $source = '(\\' . StaticPropertyTarget::class . '/$sl';
+        $session = $this->sessionWith($uri, $source);
+
+        $result = $this->completion()->handle(
+            $this->params($uri, line: 0, character: strlen($source)),
+            $session,
+        );
+
+        $items = array_column($result['items'], null, 'label');
+        self::assertArrayHasKey('$slot', $items);
+        // Same sigil problem as a superglobal: without the edit the client
+        // would leave the typed `$` in place and write `/$$slot`.
+        self::assertSame([
+            'range' => [
+                'start' => ['line' => 0, 'character' => strlen($source) - 3],
+                'end' => ['line' => 0, 'character' => strlen($source)],
+            ],
+            'newText' => '$slot',
+        ], $items['$slot']['textEdit']);
+    }
+
+    #[PreserveGlobalState(false)]
+    #[RunInSeparateProcess]
+    public function test_completion_of_a_php_function_carries_no_text_edit(): void
+    {
+        $uri = 'file:///x.phel';
+        $source = '(php/str_rep';
+        $session = $this->sessionWith($uri, $source);
+
+        $result = $this->completion()->handle(
+            $this->params($uri, line: 0, character: strlen($source)),
+            $session,
+        );
+
+        $items = array_column($result['items'], null, 'label');
+        self::assertArrayHasKey('str_replace', $items);
+        self::assertArrayNotHasKey('textEdit', $items['str_replace']);
+    }
+
+    #[PreserveGlobalState(false)]
+    #[RunInSeparateProcess]
+    public function test_hover_describes_a_superglobal(): void
+    {
+        $uri = 'file:///x.phel';
+        $source = '(php/aget php/$_SERVER "REQUEST_METHOD")';
+        $session = $this->sessionWith($uri, $source);
+
+        // Cursor on "$_SERVER".
+        $result = $this->hover()->handle(
+            $this->params($uri, line: 0, character: 17),
+            $session,
+        );
+
+        self::assertIsArray($result);
+        self::assertStringContainsString('php/$_SERVER', (string) $result['contents']['value']);
+        self::assertStringContainsString('Server and execution environment information.', (string) $result['contents']['value']);
     }
 
     #[PreserveGlobalState(false)]

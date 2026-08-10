@@ -92,6 +92,55 @@ final class PhpInteropContextResolverTest extends TestCase
         self::assertSame('strle', $context->prefix);
     }
 
+    public function test_global_variable_after_php_prefix(): void
+    {
+        $context = $this->resolveAtEnd('(php/$_S');
+
+        self::assertSame(PhpInteropContext::KIND_GLOBAL_VARIABLE, $context->kind);
+        self::assertSame('$_S', $context->prefix);
+    }
+
+    public function test_bare_sigil_is_a_global_variable_position(): void
+    {
+        $context = $this->resolveAtEnd('(php/$');
+
+        self::assertSame(PhpInteropContext::KIND_GLOBAL_VARIABLE, $context->kind);
+        self::assertSame('$', $context->prefix);
+    }
+
+    public function test_global_variable_outside_a_form(): void
+    {
+        // Not every interop position opens with a paren: `php/$_S` can be typed
+        // at the head of a line, as an argument, or inside a literal.
+        self::assertSame(PhpInteropContext::KIND_GLOBAL_VARIABLE, $this->resolveAtEnd('php/$_S')->kind);
+        self::assertSame(PhpInteropContext::KIND_GLOBAL_VARIABLE, $this->resolveAtEnd('(get php/$_S')->kind);
+        self::assertSame(PhpInteropContext::KIND_GLOBAL_VARIABLE, $this->resolveAtEnd('[php/$_S')->kind);
+    }
+
+    public function test_global_variable_is_not_resolved_in_a_string_or_comment(): void
+    {
+        self::assertTrue($this->resolveAtEnd('(def x "php/$_S')->isNone());
+        self::assertTrue($this->resolveAtEnd('; php/$_S')->isNone());
+    }
+
+    public function test_global_variable_branch_leaves_the_other_php_positions_alone(): void
+    {
+        // The `php/$` branch runs between the class-name and global-function
+        // branches, so pin the neighbours it could have stolen.
+        self::assertSame(PhpInteropContext::KIND_GLOBAL_FUNCTION, $this->resolveAtEnd('(php/str_rep')->kind);
+        self::assertSame(PhpInteropContext::KIND_CLASS_NAME, $this->resolveAtEnd('(php/new \\DateTimeImm')->kind);
+        self::assertSame(PhpInteropContext::KIND_CLASS_NAME, $this->resolveAtEnd('(def x \\Countab')->kind);
+    }
+
+    public function test_static_property_on_a_class_is_not_a_superglobal(): void
+    {
+        // `Class/$prop` and `php/$VAR` share the `$` sigil; only the latter is
+        // a superglobal position.
+        $context = $this->resolveAtEnd('(\\PhelTest\\Support\\Fixtures\\PhpInterop\\StaticPropertyTarget/$reg');
+
+        self::assertSame(PhpInteropContext::KIND_STATIC_MEMBER, $context->kind);
+    }
+
     public function test_interop_special_form_is_not_a_global_function(): void
     {
         // php/aset, php/oset, ... are special forms, not callable functions.

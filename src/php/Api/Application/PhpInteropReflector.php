@@ -170,7 +170,7 @@ final class PhpInteropReflector
             if ($this->matches($property->getName(), $propertyPrefix)) {
                 $completions[] = new Completion(
                     label: '$' . $property->getName(),
-                    kind: Completion::KIND_LOCAL,
+                    kind: Completion::KIND_VARIABLE,
                     detail: $this->renderType($property->getType()) . ' static property',
                 );
             }
@@ -223,6 +223,31 @@ final class PhpInteropReflector
                     label: $function,
                     kind: Completion::KIND_GLOBAL,
                     detail: $this->functionSignature($function) ?? 'function',
+                );
+            }
+        }
+
+        return $completions;
+    }
+
+    /**
+     * PHP superglobal variables matching a prefix. Used after the `php/$`
+     * prefix; the set is language-defined, so unlike functions and classes
+     * there is nothing to reflect over.
+     *
+     * @return list<Completion>
+     */
+    public function globalVariables(string $prefix = ''): array
+    {
+        $completions = [];
+
+        foreach (PhpSymbolCatalog::SUPERGLOBALS as $variable => $documentation) {
+            if ($this->matches($variable, $prefix)) {
+                $completions[] = new Completion(
+                    label: $variable,
+                    kind: Completion::KIND_VARIABLE,
+                    detail: 'PHP superglobal',
+                    documentation: $documentation,
                 );
             }
         }

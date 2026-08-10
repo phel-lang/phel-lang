@@ -7,6 +7,7 @@ namespace PhelTest\Unit\Api\Application;
 use Phel\Api\Application\PhpInteropDocResolver;
 use PhelTest\Support\Fixtures\PhpInterop\HoverEnum;
 use PhelTest\Support\Fixtures\PhpInterop\HoverFixture;
+use PhelTest\Support\Fixtures\PhpInterop\StaticPropertyTarget;
 use PHPUnit\Framework\TestCase;
 
 use function strlen;
@@ -43,6 +44,48 @@ final class PhpInteropDocResolverTest extends TestCase
         self::assertNotNull($hover);
         self::assertStringContainsString('php/strlen', $hover);
         self::assertStringContainsString('strlen(', $hover);
+    }
+
+    public function test_hover_on_superglobal(): void
+    {
+        $source = '(php/aget php/$_SERVER "REQUEST_METHOD")';
+        $cursor = (int) strpos($source, '$_SERVER') + 3;
+
+        $hover = $this->resolver->hoverAt($source, 1, $cursor);
+
+        self::assertNotNull($hover);
+        self::assertStringContainsString('php/$_SERVER', $hover);
+        self::assertStringContainsString('array $_SERVER', $hover);
+        self::assertStringContainsString('Server and execution environment information.', $hover);
+    }
+
+    public function test_hover_on_superglobal_from_the_sigil(): void
+    {
+        // The cursor sits on the `$`, which is not a word character, so the
+        // hover has to survive `wordEndColumn` starting outside the name.
+        $source = 'php/$_ENV';
+        $cursor = (int) strpos($source, '$') + 1;
+
+        $hover = $this->resolver->hoverAt($source, 1, $cursor);
+
+        self::assertNotNull($hover);
+        self::assertStringContainsString('php/$_ENV', $hover);
+    }
+
+    public function test_hover_returns_null_for_an_unknown_superglobal(): void
+    {
+        self::assertNull($this->resolver->hoverAt('(php/$_NOPE)', 1, 8));
+    }
+
+    public function test_hover_on_static_property_from_the_sigil(): void
+    {
+        $source = '(\\' . StaticPropertyTarget::class . '/$slot)';
+        $cursor = (int) strpos($source, '$slot') + 1;
+
+        $hover = $this->resolver->hoverAt($source, 1, $cursor);
+
+        self::assertNotNull($hover);
+        self::assertStringContainsString('$slot', $hover);
     }
 
     public function test_hover_returns_null_for_plain_phel(): void

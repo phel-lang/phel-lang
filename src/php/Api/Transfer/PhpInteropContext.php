@@ -23,6 +23,8 @@ final readonly class PhpInteropContext
 
     public const string KIND_GLOBAL_FUNCTION = 'global-function';
 
+    public const string KIND_GLOBAL_VARIABLE = 'global-variable';
+
     public function __construct(
         public string $kind,
         public string $prefix = '',

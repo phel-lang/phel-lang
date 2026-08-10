@@ -1539,6 +1539,7 @@ final readonly class Phel\Shared\Api\Completion
   public const string KIND_LOCAL = 'local'
   public const string KIND_MACRO = 'macro'
   public const string KIND_REQUIRE = 'require'
+  public const string KIND_VARIABLE = 'variable'
   public readonly string $detail
   public readonly string $documentation
   public readonly string $kind

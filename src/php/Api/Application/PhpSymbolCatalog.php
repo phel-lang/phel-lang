@@ -8,19 +8,42 @@ use function get_declared_classes;
 use function get_defined_functions;
 
 /**
- * Lazy cache over native PHP function and class lists.
+ * Catalog of the native PHP symbols reachable through the `php/` interop
+ * prefix: functions, classes, and superglobal variables.
  *
- * Two goals:
+ * Functions and classes are discovered at runtime and lazily cached, for two
+ * reasons:
  * - Avoid scanning `get_defined_functions()` / `get_declared_classes()`
  *   on every REPL completion request.
  * - Replace the previous static-field caching inside `ReplCompleter`
  *   so each REPL completer can be constructed in isolation and tested
  *   without leaking state across cases.
  *
+ * Superglobals have nothing to discover: the set is fixed by the language, so
+ * it is spelled out as a constant and shared by every completion surface.
+ *
  * @internal
  */
 final class PhpSymbolCatalog
 {
+    /**
+     * The nine PHP superglobals, each mapped to the one-line summary shown as
+     * completion documentation and hover text. All of them are arrays.
+     *
+     * @see https://www.php.net/manual/en/language.variables.superglobals.php
+     */
+    public const array SUPERGLOBALS = [
+        '$GLOBALS' => 'References all variables available in global scope.',
+        '$_SERVER' => 'Server and execution environment information.',
+        '$_GET' => 'HTTP GET variables.',
+        '$_POST' => 'HTTP POST variables.',
+        '$_FILES' => 'HTTP file upload variables.',
+        '$_COOKIE' => 'HTTP cookies.',
+        '$_SESSION' => 'Session variables.',
+        '$_REQUEST' => 'HTTP request variables.',
+        '$_ENV' => 'Environment variables.',
+    ];
+
     /** @var list<callable-string>|null */
     private ?array $functions = null;
 

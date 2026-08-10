@@ -94,6 +94,12 @@ final readonly class PhpInteropContextResolver
             return new PhpInteropContext(PhpInteropContext::KIND_CLASS_NAME, $m[1]);
         }
 
+        // php/$<name> PHP global variable. This is distinct from the function
+        // path because PHP variable names include a leading `$`.
+        if (preg_match('/(?:^|[\s(\[{])php\/(\$\w*)$/', $before, $m) === 1) {
+            return new PhpInteropContext(PhpInteropContext::KIND_GLOBAL_VARIABLE, $m[1]);
+        }
+
         // php/<fn> global function (excluding the interop special forms).
         if (preg_match('/(?:^|[\s(\[{])php\/(\w+)$/', $before, $m) === 1
             && !in_array($m[1], self::INTEROP_SPECIAL_FORMS, true)) {

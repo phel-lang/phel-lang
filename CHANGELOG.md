@@ -6,6 +6,7 @@ All notable changes to this project will be documented in this file.
 
 ### Added
 
+- Add editor completion and hover for PHP superglobals (`php/$_SERVER`, ...), in the LSP and in the REPL/nREPL (#3037)
 - `BuildFacade::enterDependencyLoad()`, `leaveDependencyLoad()` and `isLoadingDependencies()`, plus `BuildConstants::LOADING_DEPENDENCIES`. Additive: they mark the region in which an `ns` form loads its requires, so the emitter can decline to pin call sites there (#3015)
 - Add `phel.bench` and the `phel bench` command: `defbench` benchmarks written in Phel, with baseline storage (`--store`), comparison (`--ref`) and a tolerance gate (`--tolerance`) (#3005)
 - Allow keyword keys in `#php` map literals (#2952)

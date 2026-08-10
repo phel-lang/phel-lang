@@ -15,6 +15,7 @@ use PhelTest\Support\Fixtures\PhpInterop\SignatureFixture;
 use PhelTest\Support\Fixtures\PhpInterop\StaticPropertyTarget;
 use PHPUnit\Framework\TestCase;
 
+use function array_column;
 use function array_map;
 
 final class PhpInteropReflectorTest extends TestCase
@@ -92,6 +93,38 @@ final class PhpInteropReflectorTest extends TestCase
         $completions = $this->reflector->globalFunctions('strrev');
         self::assertNotSame([], $completions);
         self::assertStringContainsString('strrev(', $completions[0]->detail);
+    }
+
+    public function test_global_variables_complete_and_filter_by_prefix(): void
+    {
+        self::assertContains('$_SERVER', $this->labels($this->reflector->globalVariables('$_')));
+        self::assertSame(['$_SERVER', '$_SESSION'], $this->labels($this->reflector->globalVariables('$_S')));
+    }
+
+    public function test_global_variables_offer_the_whole_set_for_a_bare_sigil(): void
+    {
+        self::assertCount(9, $this->reflector->globalVariables('$'));
+        self::assertContains('$GLOBALS', $this->labels($this->reflector->globalVariables('$')));
+    }
+
+    public function test_global_variables_match_case_insensitively(): void
+    {
+        self::assertSame(['$_SERVER', '$_SESSION'], $this->labels($this->reflector->globalVariables('$_s')));
+    }
+
+    public function test_global_variables_carry_kind_and_documentation(): void
+    {
+        $completions = $this->reflector->globalVariables('$_SERVER');
+
+        self::assertCount(1, $completions);
+        self::assertSame(Completion::KIND_VARIABLE, $completions[0]->kind);
+        self::assertSame('PHP superglobal', $completions[0]->detail);
+        self::assertNotSame('', $completions[0]->documentation);
+    }
+
+    public function test_global_variables_reject_an_unknown_name(): void
+    {
+        self::assertSame([], $this->reflector->globalVariables('$_NOPE'));
     }
 
     public function test_method_signature_for_known_method(): void
@@ -180,6 +213,17 @@ final class PhpInteropReflectorTest extends TestCase
 
         self::assertContains('$slot', $labels, 'the property carries the sigil that spells it');
         self::assertContains('slot', $labels, 'the same-named constant stays its own completion');
+    }
+
+    public function test_static_property_is_a_variable_and_the_same_named_constant_is_not(): void
+    {
+        // The sigil is what breaks a client's own word range, so anything whose
+        // label carries one has to be KIND_VARIABLE to earn an explicit
+        // textEdit. The constant next to it must not.
+        $members = $this->labelledBy($this->reflector->staticMembers(StaticPropertyTarget::class));
+
+        self::assertSame(Completion::KIND_VARIABLE, $members['$slot']->kind);
+        self::assertNotSame(Completion::KIND_VARIABLE, $members['slot']->kind);
     }
 
     public function test_static_members_match_a_property_prefix_with_or_without_the_sigil(): void
@@ -296,5 +340,15 @@ final class PhpInteropReflectorTest extends TestCase
     private function labels(array $completions): array
     {
         return array_map(static fn(Completion $c): string => $c->label, $completions);
+    }
+
+    /**
+     * @param list<Completion> $completions
+     *
+     * @return array<string, Completion>
+     */
+    private function labelledBy(array $completions): array
+    {
+        return array_column($completions, null, 'label');
     }
 }

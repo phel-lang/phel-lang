@@ -38,7 +38,7 @@ final readonly class PhpInteropDocResolver
 
     /**
      * Markdown hover for the PHP symbol under the cursor (method, static
-     * member, global function, or class), or null.
+     * member, global function, superglobal, or class), or null.
      */
     public function hoverAt(string $source, int $line, int $col): ?string
     {
@@ -51,6 +51,7 @@ final readonly class PhpInteropDocResolver
             PhpInteropContext::KIND_INSTANCE_MEMBER,
             PhpInteropContext::KIND_STATIC_MEMBER => $this->memberHover($context),
             PhpInteropContext::KIND_GLOBAL_FUNCTION => $this->functionHover($context->prefix),
+            PhpInteropContext::KIND_GLOBAL_VARIABLE => $this->superglobalHover($context->prefix),
             PhpInteropContext::KIND_CLASS_NAME => $this->classHover($context->prefix),
             default => null,
         };
@@ -143,6 +144,23 @@ final readonly class PhpInteropDocResolver
         return $info instanceof PhpInteropSignature
             ? $this->memberMarkdown('php/' . $function, $info)
             : null;
+    }
+
+    /**
+     * Superglobals are not reflectable, so their hover comes from the same
+     * static table that feeds completion. Every one of them is an array.
+     */
+    private function superglobalHover(string $variable): ?string
+    {
+        $documentation = PhpSymbolCatalog::SUPERGLOBALS[$variable] ?? null;
+        if ($documentation === null) {
+            return null;
+        }
+
+        return $this->withDoc(
+            sprintf("**php/%s** _(php superglobal)_\n\n```php\narray %s\n```", $variable, $variable),
+            $documentation,
+        );
     }
 
     private function classHover(string $class): ?string
