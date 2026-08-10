@@ -19,6 +19,7 @@ use Phel\Lsp\Application\Session\Session;
 use Phel\Lsp\Domain\NotificationSink;
 use PhelTest\Support\Fixtures\PhpInterop\ChainFixture;
 use PhelTest\Support\Fixtures\PhpInterop\HoverFixture;
+use PhelTest\Support\Fixtures\PhpInterop\StaticPropertyTarget;
 use PHPUnit\Framework\Attributes\PreserveGlobalState;
 use PHPUnit\Framework\Attributes\RunInSeparateProcess;
 use PHPUnit\Framework\TestCase;
@@ -193,6 +194,32 @@ final class PhpInteropLspTest extends TestCase
             ],
             'newText' => '$_SERVER',
         ], $items['$_SERVER']['textEdit'], 'the tail after the cursor is replaced too');
+    }
+
+    #[PreserveGlobalState(false)]
+    #[RunInSeparateProcess]
+    public function test_completion_of_a_static_property_replaces_the_sigil_too(): void
+    {
+        $uri = 'file:///x.phel';
+        $source = '(\\' . StaticPropertyTarget::class . '/$sl';
+        $session = $this->sessionWith($uri, $source);
+
+        $result = $this->completion()->handle(
+            $this->params($uri, line: 0, character: strlen($source)),
+            $session,
+        );
+
+        $items = array_column($result['items'], null, 'label');
+        self::assertArrayHasKey('$slot', $items);
+        // Same sigil problem as a superglobal: without the edit the client
+        // would leave the typed `$` in place and write `/$$slot`.
+        self::assertSame([
+            'range' => [
+                'start' => ['line' => 0, 'character' => strlen($source) - 3],
+                'end' => ['line' => 0, 'character' => strlen($source)],
+            ],
+            'newText' => '$slot',
+        ], $items['$slot']['textEdit']);
     }
 
     #[PreserveGlobalState(false)]

@@ -170,7 +170,7 @@ final class PhpInteropReflector
             if ($this->matches($property->getName(), $propertyPrefix)) {
                 $completions[] = new Completion(
                     label: '$' . $property->getName(),
-                    kind: Completion::KIND_LOCAL,
+                    kind: Completion::KIND_VARIABLE,
                     detail: $this->renderType($property->getType()) . ' static property',
                 );
             }

@@ -16,6 +16,12 @@ final readonly class Completion
 
     public const string KIND_KEYWORD = 'keyword';
 
+    /**
+     * A PHP variable whose label carries the `$` sigil: a superglobal
+     * (`$_SERVER`) or a static property (`$prop`). Editors word-break on the
+     * sigil, so this kind is what tells an LSP client to replace the whole
+     * `$...` token rather than the part after the `$`.
+     */
     public const string KIND_VARIABLE = 'variable';
 
     public function __construct(

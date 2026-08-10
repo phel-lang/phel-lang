@@ -15,6 +15,7 @@ use PhelTest\Support\Fixtures\PhpInterop\SignatureFixture;
 use PhelTest\Support\Fixtures\PhpInterop\StaticPropertyTarget;
 use PHPUnit\Framework\TestCase;
 
+use function array_column;
 use function array_map;
 
 final class PhpInteropReflectorTest extends TestCase
@@ -214,6 +215,17 @@ final class PhpInteropReflectorTest extends TestCase
         self::assertContains('slot', $labels, 'the same-named constant stays its own completion');
     }
 
+    public function test_static_property_is_a_variable_and_the_same_named_constant_is_not(): void
+    {
+        // The sigil is what breaks a client's own word range, so anything whose
+        // label carries one has to be KIND_VARIABLE to earn an explicit
+        // textEdit. The constant next to it must not.
+        $members = $this->labelledBy($this->reflector->staticMembers(StaticPropertyTarget::class));
+
+        self::assertSame(Completion::KIND_VARIABLE, $members['$slot']->kind);
+        self::assertNotSame(Completion::KIND_VARIABLE, $members['slot']->kind);
+    }
+
     public function test_static_members_match_a_property_prefix_with_or_without_the_sigil(): void
     {
         self::assertSame(
@@ -328,5 +340,15 @@ final class PhpInteropReflectorTest extends TestCase
     private function labels(array $completions): array
     {
         return array_map(static fn(Completion $c): string => $c->label, $completions);
+    }
+
+    /**
+     * @param list<Completion> $completions
+     *
+     * @return array<string, Completion>
+     */
+    private function labelledBy(array $completions): array
+    {
+        return array_column($completions, null, 'label');
     }
 }
