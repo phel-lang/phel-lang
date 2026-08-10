@@ -123,6 +123,12 @@ final class BindingTypeInferrer
      * `$boundTo` is the enclosing def's `"ns\name"` (empty when anonymous),
      * used to skip a binding's own recursive self-call return tag.
      *
+     * MUST run before the `let`'s body is analyzed. A `let` nested in that body
+     * infers its own bindings as it is analyzed, so it can only read an outer
+     * tag that is already grafted (#3040). This is the opposite constraint to
+     * {@see self::graftLoopBindings}, whose bindings need the `recur` fixpoint
+     * and so cannot be typed until the body exists.
+     *
      * @param list<BindingNode> $bindings
      */
     public function graftLetBindings(array $bindings, string $boundTo = ''): void

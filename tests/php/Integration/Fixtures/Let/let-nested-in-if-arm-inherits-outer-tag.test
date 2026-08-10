@@ -1,0 +1,15 @@
+--PHEL--
+(fn [^"\Phel\Lang\Collections\Vector\PersistentVectorInterface" v] (let [w v] (if (php/=== 1 1) (let [x w] (nth x 0)) nil)))
+--PHP--
+(function(\Phel\Lang\Collections\Vector\PersistentVectorInterface $v) {
+  /** @var \Phel\Lang\Collections\Vector\PersistentVectorInterface $w_1 */
+  $w_1 = $v;
+  if (((1 === 1))) {
+    /** @var \Phel\Lang\Collections\Vector\PersistentVectorInterface $x_2 */
+    $x_2 = $w_1;
+    return ($x_2->get(0));
+  } else {
+    return null;
+  }
+
+});

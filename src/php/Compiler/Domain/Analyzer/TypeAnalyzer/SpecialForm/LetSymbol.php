@@ -84,6 +84,17 @@ final readonly class LetSymbol implements SpecialFormAnalyzerInterface
         $bindingVector = $list->get(1);
         $bindings = $this->analyzeBindings($bindingVector, $env->withDisallowRecurFrame());
 
+        // Infer a `:tag` from each binding's init so ops over the binding lower
+        // to native PHP (a `let` cannot `recur`, so the init type holds for the
+        // whole scope). Must precede the body analysis below, for the reason
+        // {@see BindingTypeInferrer::graftLetBindings} states.
+        //
+        // Running ahead of `LetSimplifier` costs nothing: it only drops or
+        // inlines whole bindings, never rewrites a surviving binding's init,
+        // so a tag it would have produced afterwards is the same tag, and a
+        // tag grafted onto a binding the simplifier then removes goes with it.
+        $this->bindingTypeInferrer->graftLetBindings($bindings, $env->getBoundTo());
+
         $locals = [];
         foreach ($bindings as $binding) {
             $locals[] = $binding->getSymbol();
@@ -119,18 +130,6 @@ final readonly class LetSymbol implements SpecialFormAnalyzerInterface
             $list->getStartLocation(),
         );
 
-        $simplified = $this->letSimplifier->simplify($node);
-
-        // Infer a primitive `:tag` from each binding's init so ops over the
-        // binding lower to native PHP operators (a `let` cannot `recur`, so
-        // the init type holds for the whole scope). Run after simplification:
-        // dropped / inlined bindings are gone, and a surviving binding's
-        // symbol is the same instance the body references, so the in-place
-        // graft is visible to its `LocalVarNode`s at emit time.
-        if ($simplified instanceof LetNode) {
-            $this->bindingTypeInferrer->graftLetBindings($simplified->getBindings(), $env->getBoundTo());
-        }
-
-        return $simplified;
+        return $this->letSimplifier->simplify($node);
     }
 }

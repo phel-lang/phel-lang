@@ -15,6 +15,7 @@ use Phel\Compiler\Domain\Analyzer\Environment\NodeEnvironment;
 use Phel\Compiler\Domain\Analyzer\Exceptions\AnalyzerException;
 use Phel\Compiler\Domain\Analyzer\TypeAnalyzer\SpecialForm\Binding\DeconstructorInterface;
 use Phel\Compiler\Domain\Analyzer\TypeAnalyzer\SpecialForm\LetSymbol;
+use Phel\Lang\Keyword;
 use Phel\Lang\Symbol;
 use PHPUnit\Framework\TestCase;
 
@@ -95,6 +96,13 @@ final class LetSymbolTest extends TestCase
         // The body is empty (analyser inserts an implicit `nil`), so the
         // binding `a` is unused and its literal init is pure — the
         // simplifier drops the binding entirely.
+        //
+        // `a` and its shadow still carry the inferred `^int`: the tag is
+        // grafted before the body is analyzed, so a nested `let` can read it
+        // (#3040), which is ahead of the simplifier deciding to drop this
+        // binding. Dead metadata on a node that no longer exists, and no
+        // `LocalVarNode` can reach it — the binding was dropped precisely
+        // because nothing references it.
         Symbol::resetGen();
         $list = Phel::list([
             Symbol::create('let'),
@@ -109,10 +117,12 @@ final class LetSymbolTest extends TestCase
                 $env,
                 [],
                 new DoNode(
-                    $env->withLocals([Symbol::create('a')])->withShadowedLocal(Symbol::create('a'), Symbol::create('a_1')),
+                    $env->withLocals([$this->intTagged('a')])
+                        ->withShadowedLocal($this->intTagged('a'), $this->intTagged('a_1')),
                     [],
                     new LiteralNode(
-                        $env->withLocals([Symbol::create('a')])->withShadowedLocal(Symbol::create('a'), Symbol::create('a_1')),
+                        $env->withLocals([$this->intTagged('a')])
+                            ->withShadowedLocal($this->intTagged('a'), $this->intTagged('a_1')),
                         null,
                     ),
                 ),
@@ -171,5 +181,15 @@ final class LetSymbolTest extends TestCase
             ),
             $this->analyzer->analyze($list, $env),
         );
+    }
+
+    /**
+     * A symbol carrying the `^int` the `BindingTypeInferrer` grafts, so an
+     * expected node tree compares equal to one built from a typed binding.
+     */
+    private function intTagged(string $name): Symbol
+    {
+        return Symbol::create($name)
+            ->withMeta(Phel::map(Keyword::create('tag'), Symbol::create('int')));
     }
 }
