@@ -100,6 +100,32 @@ final class PhpInteropReflectorTest extends TestCase
         self::assertSame(['$_SERVER', '$_SESSION'], $this->labels($this->reflector->globalVariables('$_S')));
     }
 
+    public function test_global_variables_offer_the_whole_set_for_a_bare_sigil(): void
+    {
+        self::assertCount(9, $this->reflector->globalVariables('$'));
+        self::assertContains('$GLOBALS', $this->labels($this->reflector->globalVariables('$')));
+    }
+
+    public function test_global_variables_match_case_insensitively(): void
+    {
+        self::assertSame(['$_SERVER', '$_SESSION'], $this->labels($this->reflector->globalVariables('$_s')));
+    }
+
+    public function test_global_variables_carry_kind_and_documentation(): void
+    {
+        $completions = $this->reflector->globalVariables('$_SERVER');
+
+        self::assertCount(1, $completions);
+        self::assertSame(Completion::KIND_VARIABLE, $completions[0]->kind);
+        self::assertSame('PHP superglobal', $completions[0]->detail);
+        self::assertNotSame('', $completions[0]->documentation);
+    }
+
+    public function test_global_variables_reject_an_unknown_name(): void
+    {
+        self::assertSame([], $this->reflector->globalVariables('$_NOPE'));
+    }
+
     public function test_method_signature_for_known_method(): void
     {
         $signature = $this->reflector->methodSignature('\\DateTimeImmutable', 'setTimestamp');

@@ -57,18 +57,6 @@ use function trim;
  */
 final class PhpInteropReflector
 {
-    private const array PHP_SUPERGLOBALS = [
-        '$GLOBALS',
-        '$_SERVER',
-        '$_GET',
-        '$_POST',
-        '$_FILES',
-        '$_COOKIE',
-        '$_SESSION',
-        '$_REQUEST',
-        '$_ENV',
-    ];
-
     /** @var list<class-string>|null */
     private ?array $classmapCache = null;
 
@@ -243,7 +231,9 @@ final class PhpInteropReflector
     }
 
     /**
-     * Language-defined PHP superglobal variables matching a prefix.
+     * PHP superglobal variables matching a prefix. Used after the `php/$`
+     * prefix; the set is language-defined, so unlike functions and classes
+     * there is nothing to reflect over.
      *
      * @return list<Completion>
      */
@@ -251,12 +241,13 @@ final class PhpInteropReflector
     {
         $completions = [];
 
-        foreach (self::PHP_SUPERGLOBALS as $variable) {
+        foreach (PhpSymbolCatalog::SUPERGLOBALS as $variable => $documentation) {
             if ($this->matches($variable, $prefix)) {
                 $completions[] = new Completion(
                     label: $variable,
                     kind: Completion::KIND_VARIABLE,
                     detail: 'PHP superglobal',
+                    documentation: $documentation,
                 );
             }
         }
