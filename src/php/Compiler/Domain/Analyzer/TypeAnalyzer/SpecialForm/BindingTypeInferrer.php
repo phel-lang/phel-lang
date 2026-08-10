@@ -35,8 +35,9 @@ use function strrpos;
 use function substr;
 
 /**
- * Infers a primitive `:tag` (`int` / `float` / `bool` / `string`) for
- * `let` / `loop` bindings from their already-analyzed init expression and
+ * Infers a `:tag` for `let` / `loop` bindings: a primitive
+ * (`int` / `float` / `bool` / `string`), or the source's own tag when the init
+ * is a pure alias. Read from their already-analyzed init expression and
  * grafts it onto the binding symbol — the very `:tag` a hand-written
  * `^int` annotation would carry. With the tag present,
  * {@see LocalVarNode::getInferredType()} reports the type and the emitter
@@ -56,8 +57,16 @@ use function substr;
  * tags are themselves author-declared or filled by {@see ReturnTypeInferrer},
  * so trusting them here cannot disagree with what the callee returns.
  *
- * Inference is intentionally conservative: any binding not provably one of
- * the primitive tags is left untouched. A missing tag only ever costs a
+ * A binding whose init is *another local* is the one case not limited to
+ * {@see self::PRIMITIVE_TAGS}: it is a pure alias, so whatever tag the source
+ * carries (a collection class among them) describes this binding exactly.
+ * Without that, `(let [w v] (nth w 0))` fell back to runtime dispatch where
+ * `(nth v 0)` emitted `$v->get(0)`, and the same drop hit the temp a vector
+ * destructure binds the collection to. Every other arm still narrows to a
+ * primitive, because it *derives* a type rather than carrying one over.
+ *
+ * Inference is intentionally conservative: any binding whose type is not
+ * provable is left untouched. A missing tag only ever costs a
  * (correct) runtime dispatch; it never produces a wrong lowering. An
  * inferred tag is byte-identical to the same tag written by hand, so it
  * inherits the emitter's existing specialization guards verbatim — including
@@ -236,9 +245,16 @@ final class BindingTypeInferrer
     }
 
     /**
-     * Primitive tag of an already-analyzed expression node, or `null` when it
-     * is not statically one of {@see self::PRIMITIVE_TAGS}. `$locals` maps a
-     * loop binding's shadow name to its seeded type for `recur` arg typing.
+     * Tag of an already-analyzed expression node, or `null` when it has none.
+     * `$locals` maps a loop binding's shadow name to its seeded type for
+     * `recur` arg typing.
+     *
+     * A `LocalVarNode` yields its tag verbatim (see the class docblock: an
+     * alias carries a class tag over too); every other arm derives a type and
+     * so answers only with a {@see self::PRIMITIVE_TAGS} member or `null`.
+     * The derivations stay narrow on their own: {@see ArithmeticResultType}
+     * rejects any operand that is not `int` or `float`, so a class tag
+     * reaching one of them bails rather than lowering to a native operator.
      *
      * @param array<string, string> $locals
      */
@@ -249,7 +265,7 @@ final class BindingTypeInferrer
         }
 
         if ($node instanceof LocalVarNode) {
-            return $locals[$node->getName()->getName()] ?? $this->primitiveInferredType($node);
+            return $locals[$node->getName()->getName()] ?? $node->getInferredType();
         }
 
         if ($node instanceof CallNode) {
@@ -388,12 +404,6 @@ final class BindingTypeInferrer
         return ArithmeticResultType::fromOperands(
             array_map(fn(AbstractNode $arg): ?string => $this->typeOf($arg, $locals), $node->getArguments()),
         );
-    }
-
-    private function primitiveInferredType(LocalVarNode $node): ?string
-    {
-        $type = $node->getInferredType();
-        return in_array($type, self::PRIMITIVE_TAGS, true) ? $type : null;
     }
 
     private function literalType(mixed $value): ?string

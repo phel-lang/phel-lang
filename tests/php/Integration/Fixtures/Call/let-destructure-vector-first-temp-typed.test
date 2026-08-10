@@ -1,0 +1,15 @@
+--PHEL--
+(fn [^"\Phel\Lang\Collections\Vector\PersistentVectorInterface" v] (let [[a b] v] [a b]))
+--PHP--
+(function(\Phel\Lang\Collections\Vector\PersistentVectorInterface $v) {
+  static $__phel_call_0, $__phel_call_1, $__phel_call_2;
+  /** @var \Phel\Lang\Collections\Vector\PersistentVectorInterface $__phel_1_6 */
+  $__phel_1_6 = $v;
+  $__phel_2_7 = ($__phel_1_6->first());
+  $__phel_3_8 = ($__phel_call_0 ??= \Phel::getDefinition("phel.core", "next"))->__invoke($__phel_1_6);
+  $a_9 = $__phel_2_7;
+  $__phel_4_10 = ($__phel_call_1 ??= \Phel::getDefinition("phel.core", "first"))->__invoke($__phel_3_8);
+  $__phel_5_11 = ($__phel_call_2 ??= \Phel::getDefinition("phel.core", "next"))->__invoke($__phel_3_8);
+  $b_12 = $__phel_4_10;
+  return \Phel::vector([$a_9, $b_12]);
+});

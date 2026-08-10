@@ -10,11 +10,13 @@ use Phel\Compiler\Domain\Analyzer\Ast\BindingNode;
 use Phel\Compiler\Domain\Analyzer\Ast\CallNode;
 use Phel\Compiler\Domain\Analyzer\Ast\GlobalVarNode;
 use Phel\Compiler\Domain\Analyzer\Ast\LiteralNode;
+use Phel\Compiler\Domain\Analyzer\Ast\LocalVarNode;
 use Phel\Compiler\Domain\Analyzer\Ast\PhpVarNode;
 use Phel\Compiler\Domain\Analyzer\Environment\NodeEnvironment;
 use Phel\Compiler\Domain\Analyzer\Environment\NodeEnvironmentInterface;
 use Phel\Compiler\Domain\Analyzer\TypeAnalyzer\SpecialForm\BindingTypeInferrer;
 use Phel\Lang\Collections\Map\PersistentMapInterface;
+use Phel\Lang\Collections\Vector\PersistentVectorInterface;
 use Phel\Lang\Keyword;
 use Phel\Lang\Symbol;
 use Phel\Shared\CompilerConstants;
@@ -26,8 +28,9 @@ use function is_string;
  * Pins the graft contract directly — what integration fixtures can only
  * observe transitively through emitted PHP. A grafted tag must land on BOTH
  * the binding symbol (for the emitter's doctag) and its shadow (the instance
- * a reference resolves to), an explicit user tag must always win, and a
- * non-primitive init must leave the binding untouched.
+ * a reference resolves to), an explicit user tag must always win, an
+ * untypeable init must leave the binding untouched, and a pure alias must
+ * carry its source's tag over verbatim, class tags included.
  */
 final class BindingTypeInferrerTest extends TestCase
 {
@@ -174,9 +177,60 @@ final class BindingTypeInferrerTest extends TestCase
         self::assertSame('string', $this->tagOf($binding->getSymbol()));
     }
 
+    public function test_class_tag_survives_a_rebinding(): void
+    {
+        // `(let [w v] ...)` where `v` is a tagged vector. The binding is a pure
+        // alias, so `w` is provably the same runtime type. Without this the
+        // rebinding dropped the tag and every accessor over `w` fell back to
+        // the runtime dispatch `v` was already skipping.
+        $binding = $this->letBinding('w', $this->taggedLocal('v', PersistentVectorInterface::class));
+
+        new BindingTypeInferrer()->graftLetBindings([$binding]);
+
+        self::assertSame(PersistentVectorInterface::class, $this->tagOf($binding->getSymbol()));
+        self::assertSame(PersistentVectorInterface::class, $this->tagOf($binding->getShadow()));
+    }
+
+    public function test_class_tagged_alias_does_not_become_a_numeric_operand(): void
+    {
+        // Aliasing propagates the tag verbatim, but arithmetic over it must
+        // still bail: only `int`/`float` operands lower to a native operator.
+        $binding = $this->letBinding('n', $this->coreCall('+', [
+            $this->taggedLocal('v', PersistentVectorInterface::class),
+            new LiteralNode($this->env, 1),
+        ]));
+
+        new BindingTypeInferrer()->graftLetBindings([$binding]);
+
+        self::assertNull($this->tagOf($binding->getSymbol()));
+    }
+
+    public function test_untagged_local_alias_stays_untagged(): void
+    {
+        $binding = $this->letBinding('w', new LocalVarNode($this->env, Symbol::create('v')));
+
+        new BindingTypeInferrer()->graftLetBindings([$binding]);
+
+        self::assertNull($this->tagOf($binding->getSymbol()));
+        self::assertNull($this->tagOf($binding->getShadow()));
+    }
+
     private function letBinding(string $name, AbstractNode $init): BindingNode
     {
         return new BindingNode($this->env, Symbol::create($name), Symbol::gen($name . '_'), $init);
+    }
+
+    /**
+     * A reference to a local whose binding symbol carries `$tag`: the shape
+     * {@see Phel\Compiler\Domain\Analyzer\TypeAnalyzer\AnalyzeSymbol} builds
+     * for a reference to a tagged `let` binding or `defn` param.
+     */
+    private function taggedLocal(string $name, string $tag): LocalVarNode
+    {
+        return new LocalVarNode(
+            $this->env,
+            Symbol::create($name)->withMeta(Phel::map(Keyword::create('tag'), Symbol::create($tag))),
+        );
     }
 
     /**
