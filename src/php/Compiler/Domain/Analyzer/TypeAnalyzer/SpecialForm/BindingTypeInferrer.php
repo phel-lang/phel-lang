@@ -30,8 +30,10 @@ use function is_bool;
 use function is_float;
 use function is_int;
 use function is_string;
+use function str_contains;
 use function str_replace;
 use function strrpos;
+use function strtolower;
 use function substr;
 
 /**
@@ -98,6 +100,27 @@ final class BindingTypeInferrer
      * @var list<string>
      */
     private const array CORE_INC_DEC_OPS = ['inc', 'dec'];
+
+    /**
+     * A tag containing any of these is a nullable, union or intersection type.
+     * None of them names one runtime type, so none can back a binding tag.
+     *
+     * @var list<string>
+     */
+    private const array COMPOSITE_TAG_MARKERS = ['?', '|', '&'];
+
+    /**
+     * PHP type names that are never a concrete instance type a specialisation
+     * can dispatch on, plus the three that resolve against the callee's class
+     * context rather than the binding's.
+     *
+     * @var array<string, true>
+     */
+    private const array NON_BINDABLE_TAGS = [
+        'void' => true, 'never' => true, 'null' => true, 'mixed' => true,
+        'object' => true, 'iterable' => true, 'callable' => true,
+        'self' => true, 'static' => true, 'parent' => true,
+    ];
 
     /** @var array<string, string> */
     private const array COMPARISON_OPS = [
@@ -379,11 +402,11 @@ final class BindingTypeInferrer
     }
 
     /**
-     * The callee's declared or inferred return `:tag`, kept only when it is one
-     * of {@see self::PRIMITIVE_TAGS} — a nullable/union/class return never feeds
-     * a native scalar op, and `int` inherits the same overflow policy as every
-     * other inferred int (see the class docblock). A recursive self-call is
-     * skipped so a redefinition never reads its own stale registry tag.
+     * The callee's declared or inferred return `:tag`, kept only when a binding
+     * can stand on it (see {@see self::isBindableReturnTag}). `int` inherits the
+     * same overflow policy as every other inferred int (see the class docblock).
+     * A recursive self-call is skipped so a redefinition never reads its own
+     * stale registry tag.
      */
     private function globalReturnTag(GlobalVarNode $fn): ?string
     {
@@ -396,7 +419,47 @@ final class BindingTypeInferrer
         }
 
         $tag = $this->tagFromMeta($fn->getMeta());
-        return in_array($tag, self::PRIMITIVE_TAGS, true) ? $tag : null;
+        return $this->isBindableReturnTag($tag) ? $tag : null;
+    }
+
+    /**
+     * Whether a callee's return `:tag` describes the binding it initialises.
+     *
+     * A `def`'s `:tag` over an `fn` **is** that fn's return type: `FnSymbol`
+     * emits it on every arity's closure, so PHP enforces it on the way out and
+     * the tag is a guarantee rather than a hope. That makes a class or `array`
+     * return as trustworthy as the `int` this used to be limited to, and the
+     * narrowing was an inconsistency rather than caution: `array` already
+     * propagates param to param, and {@see ReturnTypeInferrer::inferGlobalCall}
+     * already trusts the same tag wholesale for the *caller's* return type.
+     *
+     * Three groups stay out:
+     *
+     * - Anything composite (`?X`, `X|Y`, `X&Y`). A nullable collection is the
+     *   dangerous one: `TypedCollectionMethodSpecialization` would lower
+     *   `(nth a 0)` to `$a->get(0)` on a value that is allowed to be nil.
+     * - PHP's non-instance pseudo-types. They match no specialisation, so
+     *   keeping them buys nothing and only puts noise in the `@var` doctag.
+     * - `self` / `static` / `parent`, which resolve against the *callee's*
+     *   class context and would mean something else at the binding.
+     */
+    private function isBindableReturnTag(?string $tag): bool
+    {
+        if ($tag === null) {
+            return false;
+        }
+
+        if (in_array($tag, self::PRIMITIVE_TAGS, true)) {
+            return true;
+        }
+
+        foreach (self::COMPOSITE_TAG_MARKERS as $marker) {
+            if (str_contains($tag, $marker)) {
+                return false;
+            }
+        }
+
+        return !isset(self::NON_BINDABLE_TAGS[strtolower($tag)]);
     }
 
     /**

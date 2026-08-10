@@ -129,6 +129,7 @@ Runtime core:
 - Infer a primitive tag for `let` bindings whose init is `if`, `do` or a nested `let` (#2987)
 - Carry a collection tag through a `let` rebinding: `(let [w v] (nth w 0))` now emits `$w->get(0)` like `(nth v 0)` already did, and the temp a vector destructure binds the collection to reaches `first` as a direct method call (#3021)
 - Let an inferred tag reach a nested `let`, so `(let [n (php/count v)] (let [m n] (+ m 1)))` lowers to a native `+` like the flat `(let [n (php/count v) m n] ...)` already did. `if-let`, `when-let` and `binding` all expand to the nested shape (#3040)
+- Read a class or `array` return type into the binding it initialises, not only a scalar one, so `(let [a (mkvec)] (nth a 0))` over a fn returning a tagged vector emits `$a->get(0)`. Nullable, union and intersection returns stay on dispatch (#3021)
 - Inline the nil guard in `inc` and `dec`, which still called the variadic one (#2989)
 - Give `max` and `min` fixed arities, dropping a lazy sequence built to NaN-check two arguments (#2991)
 - Collect `for` results into a PHP array instead of an atom and a persistent `conj` per element (#2997)
