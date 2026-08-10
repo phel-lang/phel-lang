@@ -58,6 +58,22 @@ final class ReplCompleterTest extends TestCase
         self::assertContains('php/DateTime', $matches);
     }
 
+    public function test_php_superglobal_completion(): void
+    {
+        $matches = $this->completer->complete('php/$_S');
+
+        self::assertSame(['php/$_SERVER', 'php/$_SESSION'], $matches);
+    }
+
+    public function test_php_superglobal_completion_carries_its_type(): void
+    {
+        $results = $this->completer->completeWithTypes('php/$GLOB');
+        $globals = array_find($results, static fn($result): bool => $result->candidate === 'php/$GLOBALS');
+
+        self::assertInstanceOf(CompletionResultTransfer::class, $globals);
+        self::assertSame('php-variable', $globals->type);
+    }
+
     public function test_alias_based_completion(): void
     {
         $fn = self::createStub(FnInterface::class);

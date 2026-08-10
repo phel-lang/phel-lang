@@ -91,6 +91,10 @@ final class CursorText
     /**
      * The column just past the identifier the cursor sits on, so a resolver
      * sees the whole word rather than only the part before the caret.
+     *
+     * A leading `$` counts as part of the identifier: superglobals (`php/$_ENV`)
+     * and static properties (`\Foo/$bar`) carry the sigil in their name, and a
+     * cursor resting on it must still yield the whole symbol.
      */
     public static function wordEndColumn(string $source, int $line, int $col): int
     {
@@ -98,7 +102,7 @@ final class CursorText
         $text = $lines[$line - 1] ?? '';
         $offset = max(0, $col - 1);
 
-        if (preg_match('/[A-Za-z0-9_]+/A', substr($text, $offset), $m) === 1) {
+        if (preg_match('/\$?[A-Za-z0-9_]+/A', substr($text, $offset), $m) === 1) {
             return $col + strlen($m[0]);
         }
 

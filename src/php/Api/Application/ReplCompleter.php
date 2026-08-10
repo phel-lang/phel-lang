@@ -13,6 +13,7 @@ use Phel\Lang\FnInterface;
 use Phel\Lang\Keyword;
 use Phel\Shared\Api\CompletionResultTransfer;
 
+use function array_keys;
 use function str_starts_with;
 use function trim;
 
@@ -87,7 +88,8 @@ final class ReplCompleter implements ReplCompleterInterface
     }
 
     /**
-     * Complete native PHP functions and classes with type annotations.
+     * Complete native PHP functions, classes and superglobals with type
+     * annotations.
      *
      * @param string $prefix the input string without the `php/` prefix
      *
@@ -106,6 +108,12 @@ final class ReplCompleter implements ReplCompleterInterface
         foreach ($this->phpSymbols->classes() as $class) {
             if (str_starts_with($class, $prefix)) {
                 $matches[] = new CompletionResultTransfer('php/' . $class, 'class');
+            }
+        }
+
+        foreach (array_keys(PhpSymbolCatalog::SUPERGLOBALS) as $variable) {
+            if (str_starts_with($variable, $prefix)) {
+                $matches[] = new CompletionResultTransfer('php/' . $variable, 'php-variable');
             }
         }
 
