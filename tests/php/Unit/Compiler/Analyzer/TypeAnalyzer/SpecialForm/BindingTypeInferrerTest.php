@@ -222,7 +222,7 @@ final class BindingTypeInferrerTest extends TestCase
 
     /**
      * A reference to a local whose binding symbol carries `$tag`: the shape
-     * {@see Phel\Compiler\Domain\Analyzer\SpecialForm\AnalyzeSymbol} builds
+     * {@see Phel\Compiler\Domain\Analyzer\TypeAnalyzer\AnalyzeSymbol} builds
      * for a reference to a tagged `let` binding or `defn` param.
      */
     private function taggedLocal(string $name, string $tag): LocalVarNode
