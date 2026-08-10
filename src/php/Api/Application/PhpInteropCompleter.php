@@ -35,6 +35,7 @@ final readonly class PhpInteropCompleter
             PhpInteropContext::KIND_STATIC_MEMBER => $this->reflector->staticMembers($context->class, $context->prefix),
             PhpInteropContext::KIND_CLASS_NAME => $this->reflector->classNames($context->prefix),
             PhpInteropContext::KIND_GLOBAL_FUNCTION => $this->reflector->globalFunctions($context->prefix),
+            PhpInteropContext::KIND_GLOBAL_VARIABLE => $this->reflector->globalVariables($context->prefix),
             default => null,
         };
     }

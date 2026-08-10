@@ -92,6 +92,14 @@ final class PhpInteropContextResolverTest extends TestCase
         self::assertSame('strle', $context->prefix);
     }
 
+    public function test_global_variable_after_php_prefix(): void
+    {
+        $context = $this->resolveAtEnd('(php/$_S');
+
+        self::assertSame(PhpInteropContext::KIND_GLOBAL_VARIABLE, $context->kind);
+        self::assertSame('$_S', $context->prefix);
+    }
+
     public function test_interop_special_form_is_not_a_global_function(): void
     {
         // php/aset, php/oset, ... are special forms, not callable functions.

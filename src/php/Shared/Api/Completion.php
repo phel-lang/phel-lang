@@ -16,6 +16,8 @@ final readonly class Completion
 
     public const string KIND_KEYWORD = 'keyword';
 
+    public const string KIND_VARIABLE = 'variable';
+
     public function __construct(
         public string $label,
         public string $kind,

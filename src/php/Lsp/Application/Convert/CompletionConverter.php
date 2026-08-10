@@ -12,7 +12,7 @@ use Phel\Shared\Api\Completion;
  * LSP CompletionItemKind values: 1 = Text, 2 = Method, 3 = Function,
  * 6 = Variable, 14 = Keyword, ...
  *
- * @phpstan-type CompletionItem array{label: string, kind: int, detail: string, documentation: string}
+ * @phpstan-type CompletionItem array{label: string, kind: int, detail: string, documentation: string, textEdit?: array{range: array{start: array{line: int, character: int}, end: array{line: int, character: int}}, newText: string}}
  *
  * @internal
  */
@@ -46,7 +46,7 @@ final class CompletionConverter
     private function kindForCompletion(string $kind): int
     {
         return match ($kind) {
-            Completion::KIND_LOCAL => self::KIND_VARIABLE,
+            Completion::KIND_LOCAL, Completion::KIND_VARIABLE => self::KIND_VARIABLE,
             Completion::KIND_GLOBAL => self::KIND_FUNCTION,
             Completion::KIND_MACRO => self::KIND_METHOD,
             Completion::KIND_REQUIRE => self::KIND_MODULE,

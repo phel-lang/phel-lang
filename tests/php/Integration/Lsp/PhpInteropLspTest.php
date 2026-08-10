@@ -142,6 +142,32 @@ final class PhpInteropLspTest extends TestCase
 
     #[PreserveGlobalState(false)]
     #[RunInSeparateProcess]
+    public function test_completion_lists_php_superglobals_and_preserves_php_prefix(): void
+    {
+        $uri = 'file:///x.phel';
+        $source = '(php/$_S';
+        $session = $this->sessionWith($uri, $source);
+
+        $result = $this->completion()->handle(
+            $this->params($uri, line: 0, character: strlen($source)),
+            $session,
+        );
+
+        $items = array_column($result['items'], null, 'label');
+        self::assertArrayHasKey('$_SERVER', $items);
+        self::assertArrayNotHasKey('$_GET', $items);
+        self::assertSame(CompletionConverter::KIND_VARIABLE, $items['$_SERVER']['kind']);
+        self::assertSame([
+            'range' => [
+                'start' => ['line' => 0, 'character' => 5],
+                'end' => ['line' => 0, 'character' => 8],
+            ],
+            'newText' => '$_SERVER',
+        ], $items['$_SERVER']['textEdit']);
+    }
+
+    #[PreserveGlobalState(false)]
+    #[RunInSeparateProcess]
     public function test_hover_shows_global_function_signature(): void
     {
         $uri = 'file:///x.phel';

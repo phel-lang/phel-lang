@@ -57,6 +57,18 @@ use function trim;
  */
 final class PhpInteropReflector
 {
+    private const array PHP_SUPERGLOBALS = [
+        '$GLOBALS',
+        '$_SERVER',
+        '$_GET',
+        '$_POST',
+        '$_FILES',
+        '$_COOKIE',
+        '$_SESSION',
+        '$_REQUEST',
+        '$_ENV',
+    ];
+
     /** @var list<class-string>|null */
     private ?array $classmapCache = null;
 
@@ -223,6 +235,28 @@ final class PhpInteropReflector
                     label: $function,
                     kind: Completion::KIND_GLOBAL,
                     detail: $this->functionSignature($function) ?? 'function',
+                );
+            }
+        }
+
+        return $completions;
+    }
+
+    /**
+     * Language-defined PHP superglobal variables matching a prefix.
+     *
+     * @return list<Completion>
+     */
+    public function globalVariables(string $prefix = ''): array
+    {
+        $completions = [];
+
+        foreach (self::PHP_SUPERGLOBALS as $variable) {
+            if ($this->matches($variable, $prefix)) {
+                $completions[] = new Completion(
+                    label: $variable,
+                    kind: Completion::KIND_VARIABLE,
+                    detail: 'PHP superglobal',
                 );
             }
         }

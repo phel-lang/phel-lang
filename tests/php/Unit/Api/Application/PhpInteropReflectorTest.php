@@ -94,6 +94,12 @@ final class PhpInteropReflectorTest extends TestCase
         self::assertStringContainsString('strrev(', $completions[0]->detail);
     }
 
+    public function test_global_variables_complete_and_filter_by_prefix(): void
+    {
+        self::assertContains('$_SERVER', $this->labels($this->reflector->globalVariables('$_')));
+        self::assertSame(['$_SERVER', '$_SESSION'], $this->labels($this->reflector->globalVariables('$_S')));
+    }
+
     public function test_method_signature_for_known_method(): void
     {
         $signature = $this->reflector->methodSignature('\\DateTimeImmutable', 'setTimestamp');
