@@ -32,12 +32,13 @@ use function is_int;
 use function is_string;
 use function str_replace;
 use function strrpos;
+use function strtolower;
 use function substr;
 
 /**
  * Infers a `:tag` for `let` / `loop` bindings: a primitive
- * (`int` / `float` / `bool` / `string`), or the source's own tag when the init
- * is a pure alias. Read from their already-analyzed init expression and
+ * (`int` / `float` / `bool` / `string`) where the init derives one, else the
+ * type the init already carries. Read from their already-analyzed init and
  * grafts it onto the binding symbol — the very `:tag` a hand-written
  * `^int` annotation would carry. With the tag present,
  * {@see LocalVarNode::getInferredType()} reports the type and the emitter
@@ -51,19 +52,23 @@ use function substr;
  * `php/` interop operators.
  *
  * The init type is read from literals, sibling/param locals, `php/` interop
- * ops, `phel.core` arithmetic — and from the primitive return `:tag` of any
- * global call (a `phel.core` helper or user `defn`), so a call to a typed fn
- * feeds the binding the same way a hand-written annotation would. Those return
- * tags are themselves author-declared or filled by {@see ReturnTypeInferrer},
- * so trusting them here cannot disagree with what the callee returns.
+ * ops, `phel.core` arithmetic — and from the return `:tag` of any global call
+ * (a `phel.core` helper or user `defn`), so a call to a typed fn feeds the
+ * binding the same way a hand-written annotation would. Those return tags are
+ * themselves author-declared or filled by {@see ReturnTypeInferrer}, and either
+ * way `FnSymbol` emits them as the PHP return type, so trusting them here
+ * cannot disagree with what the callee returns. A class or `array` return is
+ * carried over too; {@see self::isBindableReturnTag} states what is not.
  *
- * A binding whose init is *another local* is the one case not limited to
- * {@see self::PRIMITIVE_TAGS}: it is a pure alias, so whatever tag the source
- * carries (a collection class among them) describes this binding exactly.
- * Without that, `(let [w v] (nth w 0))` fell back to runtime dispatch where
- * `(nth v 0)` emitted `$v->get(0)`, and the same drop hit the temp a vector
- * destructure binds the collection to. Every other arm still narrows to a
- * primitive, because it *derives* a type rather than carrying one over.
+ * Two arms *carry* a type rather than deriving one, and only those two reach
+ * past the primitives. A binding whose init is another local is a pure alias,
+ * so whatever tag the source holds (a collection class among them) describes
+ * it exactly; without that, `(let [w v] (nth w 0))` fell back to runtime
+ * dispatch where `(nth v 0)` emitted `$v->get(0)`, and the same drop hit the
+ * temp a vector destructure binds the collection to. A binding whose init is a
+ * call takes the callee's return tag, on the terms
+ * {@see self::isBindableReturnTag} sets out. Every remaining arm computes a
+ * type from its operands and so can only answer with a primitive.
  *
  * Inference is intentionally conservative: any binding whose type is not
  * provable is left untouched. A missing tag only ever costs a
@@ -78,9 +83,6 @@ use function substr;
  */
 final class BindingTypeInferrer
 {
-    /** @var list<string> */
-    private const array PRIMITIVE_TAGS = ['int', 'float', 'bool', 'string'];
-
     /**
      * `php/<op>` binary ops whose result type is exactly PHP's: `int` when
      * every operand is int, `float` when any operand is float. Restricted to
@@ -98,6 +100,26 @@ final class BindingTypeInferrer
      * @var list<string>
      */
     private const array CORE_INC_DEC_OPS = ['inc', 'dec'];
+
+    /**
+     * A tag containing any of these characters is a nullable, union or
+     * intersection type. None of them names one runtime type, so none can
+     * back a binding tag.
+     */
+    private const string COMPOSITE_TAG_CHARS = '?|&';
+
+    /**
+     * PHP type names that are never a concrete instance type a specialisation
+     * can dispatch on, plus the three that resolve against the callee's class
+     * context rather than the binding's.
+     *
+     * @var array<string, true>
+     */
+    private const array NON_BINDABLE_TAGS = [
+        'void' => true, 'never' => true, 'null' => true, 'mixed' => true,
+        'object' => true, 'iterable' => true, 'callable' => true,
+        'self' => true, 'static' => true, 'parent' => true,
+    ];
 
     /** @var array<string, string> */
     private const array COMPARISON_OPS = [
@@ -256,8 +278,9 @@ final class BindingTypeInferrer
      * `recur` arg typing.
      *
      * A `LocalVarNode` yields its tag verbatim (see the class docblock: an
-     * alias carries a class tag over too); every other arm derives a type and
-     * so answers only with a {@see self::PRIMITIVE_TAGS} member or `null`.
+     * alias carries a class tag over too), as does a call to a fn with a
+     * bindable return type; every other arm derives a type and so answers only
+     * with `int`, `float`, `bool`, `string` or `null`.
      * The derivations stay narrow on their own: {@see ArithmeticResultType}
      * rejects any operand that is not `int` or `float`, so a class tag
      * reaching one of them bails rather than lowering to a native operator.
@@ -379,11 +402,11 @@ final class BindingTypeInferrer
     }
 
     /**
-     * The callee's declared or inferred return `:tag`, kept only when it is one
-     * of {@see self::PRIMITIVE_TAGS} — a nullable/union/class return never feeds
-     * a native scalar op, and `int` inherits the same overflow policy as every
-     * other inferred int (see the class docblock). A recursive self-call is
-     * skipped so a redefinition never reads its own stale registry tag.
+     * The callee's declared or inferred return `:tag`, kept only when a binding
+     * can stand on it (see {@see self::isBindableReturnTag}). `int` inherits the
+     * same overflow policy as every other inferred int (see the class docblock).
+     * A recursive self-call is skipped so a redefinition never reads its own
+     * stale registry tag.
      */
     private function globalReturnTag(GlobalVarNode $fn): ?string
     {
@@ -396,7 +419,37 @@ final class BindingTypeInferrer
         }
 
         $tag = $this->tagFromMeta($fn->getMeta());
-        return in_array($tag, self::PRIMITIVE_TAGS, true) ? $tag : null;
+        return $this->isBindableReturnTag($tag) ? $tag : null;
+    }
+
+    /**
+     * Whether a callee's return `:tag` describes the binding it initialises.
+     *
+     * A `def`'s `:tag` over an `fn` **is** that fn's return type: `FnSymbol`
+     * emits it on every arity's closure, so PHP enforces it on the way out and
+     * the tag is a guarantee rather than a hope. That makes a class or `array`
+     * return as trustworthy as the `int` this used to be limited to, and the
+     * narrowing was an inconsistency rather than caution: `array` already
+     * propagates param to param, and {@see ReturnTypeInferrer::inferGlobalCall}
+     * already trusts the same tag wholesale for the *caller's* return type.
+     *
+     * Three groups stay out:
+     *
+     * - Anything composite (`?X`, `X|Y`, `X&Y`). A nullable collection is the
+     *   dangerous one: `TypedCollectionMethodSpecialization` would lower
+     *   `(nth a 0)` to `$a->get(0)` on a value that is allowed to be nil.
+     * - PHP's non-instance pseudo-types. They match no specialisation, so
+     *   keeping them buys nothing and only puts noise in the `@var` doctag.
+     * - `self` / `static` / `parent`, which resolve against the *callee's*
+     *   class context and would mean something else at the binding.
+     */
+    private function isBindableReturnTag(?string $tag): bool
+    {
+        if ($tag === null || strpbrk($tag, self::COMPOSITE_TAG_CHARS) !== false) {
+            return false;
+        }
+
+        return !isset(self::NON_BINDABLE_TAGS[strtolower($tag)]);
     }
 
     /**

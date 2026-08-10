@@ -144,15 +144,48 @@ final class BindingTypeInferrerTest extends TestCase
         self::assertSame('string', $this->tagOf($binding->getShadow()));
     }
 
-    public function test_non_primitive_return_tag_is_not_grafted(): void
+    public function test_composite_return_tag_is_not_grafted(): void
     {
-        // A `?int` / union / class return never feeds a native scalar op.
-        $binding = $this->letBinding('x', $this->taggedGlobalCall('app', 'find', '?int'));
+        // A nullable, union or intersection return names no single runtime
+        // type. The nullable collection is the dangerous one: the typed-vector
+        // specialisation would lower `(nth a 0)` to `$a->get(0)` on a value the
+        // signature allows to be nil.
+        foreach (['?int', '?\\Phel\\Lang\\Collections\\Vector\\PersistentVectorInterface', 'int|string', 'A&B'] as $tag) {
+            $binding = $this->letBinding('x', $this->taggedGlobalCall('app', 'find', $tag));
 
-        new BindingTypeInferrer()->graftLetBindings([$binding]);
+            new BindingTypeInferrer()->graftLetBindings([$binding]);
 
-        self::assertNull($this->tagOf($binding->getSymbol()));
-        self::assertNull($this->tagOf($binding->getShadow()));
+            self::assertNull($this->tagOf($binding->getSymbol()), $tag);
+            self::assertNull($this->tagOf($binding->getShadow()), $tag);
+        }
+    }
+
+    public function test_class_and_array_return_tags_type_the_binding(): void
+    {
+        // A `def`'s `:tag` over an `fn` is emitted as that fn's return type on
+        // every arity, so PHP enforces it: as trustworthy as the `int` this was
+        // once limited to.
+        $vector = $this->letBinding('v', $this->taggedGlobalCall('app', 'mkvec', PersistentVectorInterface::class));
+        $array = $this->letBinding('a', $this->taggedGlobalCall('app', 'mkarr', 'array'));
+
+        new BindingTypeInferrer()->graftLetBindings([$vector, $array]);
+
+        self::assertSame(PersistentVectorInterface::class, $this->tagOf($vector->getSymbol()));
+        self::assertSame(PersistentVectorInterface::class, $this->tagOf($vector->getShadow()));
+        self::assertSame('array', $this->tagOf($array->getSymbol()));
+    }
+
+    public function test_non_instance_return_tags_are_not_grafted(): void
+    {
+        // `void` / `never` / `mixed` and friends match no specialisation, and
+        // `self` / `static` / `parent` mean the callee's class, not this one.
+        foreach (['void', 'never', 'null', 'mixed', 'object', 'iterable', 'callable', 'self', 'static', 'parent'] as $tag) {
+            $binding = $this->letBinding('x', $this->taggedGlobalCall('app', 'find', $tag));
+
+            new BindingTypeInferrer()->graftLetBindings([$binding]);
+
+            self::assertNull($this->tagOf($binding->getSymbol()), $tag);
+        }
     }
 
     public function test_recursive_self_call_return_tag_is_skipped(): void

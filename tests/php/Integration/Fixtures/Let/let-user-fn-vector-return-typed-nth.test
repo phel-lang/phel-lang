@@ -1,0 +1,46 @@
+--PHEL--
+(defn ^"\Phel\Lang\Collections\Vector\PersistentVectorInterface" mkvec [] (vector 1 2 3))
+(defn use-it [] (let [a (mkvec)] (nth a 0)))
+--PHP--
+\Phel::addDefinition(
+  "user",
+  "mkvec",
+  new class() extends \Phel\Lang\AbstractFn {
+    public const BOUND_TO = "user\\mkvec";
+
+    public function __invoke(): \Phel\Lang\Collections\Vector\PersistentVectorInterface {
+      return \Phel::vector([1, 2, 3]);
+    }
+  },
+  \Phel::locationMeta(
+    \Phel::location("Let/let-user-fn-vector-return-typed-nth.test", 1, 0),
+    \Phel::location("Let/let-user-fn-vector-return-typed-nth.test", 1, 89),
+    \Phel\Lang\Keyword::create("tag"), "\\Phel\\Lang\\Collections\\Vector\\PersistentVectorInterface",
+    \Phel\Lang\Keyword::create("doc"), "```phel\n(mkvec)\n```\n",
+    "min-arity", 0,
+    "is-variadic", false,
+    "arglists", "[]"
+  )
+);
+\Phel::addDefinition(
+  "user",
+  "use-it",
+  new class() extends \Phel\Lang\AbstractFn {
+    public const BOUND_TO = "user\\use_it";
+
+    public function __invoke() {
+      static $__phel_call_0;
+      /** @var \Phel\Lang\Collections\Vector\PersistentVectorInterface $a_1 */
+      $a_1 = ($__phel_call_0 ??= \Phel::getDefinition("user", "mkvec"))->__invoke();
+      return ($a_1->get(0));
+    }
+  },
+  \Phel::locationMeta(
+    \Phel::location("Let/let-user-fn-vector-return-typed-nth.test", 2, 0),
+    \Phel::location("Let/let-user-fn-vector-return-typed-nth.test", 2, 44),
+    \Phel\Lang\Keyword::create("doc"), "```phel\n(use-it)\n```\n",
+    "min-arity", 0,
+    "is-variadic", false,
+    "arglists", "[]"
+  )
+);
