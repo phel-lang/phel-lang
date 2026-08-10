@@ -86,13 +86,8 @@ final readonly class LetSymbol implements SpecialFormAnalyzerInterface
 
         // Infer a `:tag` from each binding's init so ops over the binding lower
         // to native PHP (a `let` cannot `recur`, so the init type holds for the
-        // whole scope). Runs BEFORE the body is analyzed, because a `let` in
-        // that body infers its own bindings as it is analyzed: grafting
-        // afterwards left the inner scope reading an untagged outer binding,
-        // so `(let [n (php/count v)] (let [m n] (+ m 1)))` stayed on runtime
-        // dispatch while the flat `(let [n (php/count v) m n] ...)` did not
-        // (#3040). `if-let`, `when-let` and `binding` all expand to the nested
-        // shape.
+        // whole scope). Must precede the body analysis below, for the reason
+        // {@see BindingTypeInferrer::graftLetBindings} states.
         //
         // Running ahead of `LetSimplifier` costs nothing: it only drops or
         // inlines whole bindings, never rewrites a surviving binding's init,
