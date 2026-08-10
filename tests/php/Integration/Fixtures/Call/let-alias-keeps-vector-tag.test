@@ -1,0 +1,8 @@
+--PHEL--
+(fn [^"\Phel\Lang\Collections\Vector\PersistentVectorInterface" v] (let [w v] [(nth w 0) (count w) (first w)]))
+--PHP--
+(function(\Phel\Lang\Collections\Vector\PersistentVectorInterface $v) {
+  /** @var \Phel\Lang\Collections\Vector\PersistentVectorInterface $w_1 */
+  $w_1 = $v;
+  return \Phel::vector([($w_1->get(0)), ($w_1->count()), ($w_1->first())]);
+});
