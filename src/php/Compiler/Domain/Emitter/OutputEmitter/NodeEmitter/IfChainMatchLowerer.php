@@ -80,7 +80,7 @@ final readonly class IfChainMatchLowerer
 
             [$candidate, $key] = $info;
 
-            if ($shared === null) {
+            if (!$shared instanceof LocalVarNode) {
                 $shared = $candidate;
             } elseif ($shared->getName()->getName() !== $candidate->getName()->getName()) {
                 return null;

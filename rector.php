@@ -74,7 +74,10 @@ return RectorConfig::configure()
         SetList::CODE_QUALITY,
         SetList::CODING_STYLE,
         SetList::DEAD_CODE,
-        SetList::STRICT_BOOLEANS,
+        // STRICT_BOOLEANS is gone as of rector 2.6: the set file and its three
+        // boolean rules no longer exist in the package. Its one survivor,
+        // DisallowedEmptyRuleFixerRector, is in CodeQualityLevel::RULES, which
+        // CODE_QUALITY above already loads, so nothing that still ships is lost.
         SetList::PRIVATIZATION,
         SetList::TYPE_DECLARATION,
         SetList::EARLY_RETURN,
