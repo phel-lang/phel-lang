@@ -106,6 +106,22 @@
   (is (false? (not 10)) "(not 10)")
   (is (false? (not [])) "(not [])"))
 
+;; The emitter lowers `(not x)` to a native `!` only when `x` is a proven PHP
+;; bool. These pin the semantics on both sides of that line: PHP's `!` inverts
+;; truthiness for 0 and "", where Phel treats only nil and false as falsy.
+(deftest test-not-over-a-bool-operand
+  (is (false? (not (php/is_int 1))) "(not (php/is_int 1))")
+  (is (true? (not (php/is_int "a"))) "(not (php/is_int \"a\"))")
+  (is (false? (not (nil? nil))) "(not (nil? nil))")
+  (is (true? (not (nil? 0))) "(not (nil? 0))")
+  (is (true? (not (not (php/is_int 1)))) "a nested (not (not ...)) still folds"))
+
+(deftest test-not-over-a-non-bool-operand-keeps-phel-truthiness
+  (is (false? (not (php/strlen ""))) "(not (php/strlen \"\")) is false: 0 is truthy in Phel")
+  (is (false? (not 0)) "(not 0)")
+  (is (false? (not "")) "(not \"\")")
+  (is (true? (not nil)) "(not nil)"))
+
 (deftest test-not=
   (is (false? (not= false)) "(not= false)")
   (is (false? (not= false false)) "(notfalse? false)")

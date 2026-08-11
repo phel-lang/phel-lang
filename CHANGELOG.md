@@ -102,6 +102,7 @@ All notable changes to this project will be documented in this file.
 
 ### Performance
 
+- Lower `(not x)` to a native `!` when `x` is already a proven PHP bool, instead of dispatching `phel.core/not`: 3.7 times faster, and in an `if` test the `Truthy` adapter goes too. Only a hard bool guarantee qualifies, never "looks like a predicate", because `(not 0)` is `false` in Phel while `!0` is `true` in PHP (#3021)
 - Keep the PHAR within its release size budget by excluding dependency-only Gacela tooling
 - Exclude the release-announcement scripts and `infection.json5` from the PHAR (#2994)
 

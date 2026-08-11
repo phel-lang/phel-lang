@@ -1,0 +1,6 @@
+--PHEL--
+(fn [x] (not (php/is_int x)))
+--PHP--
+(function($x) {
+  return (!(is_int($x)));
+});
