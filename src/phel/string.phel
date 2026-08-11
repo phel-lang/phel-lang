@@ -52,7 +52,14 @@ This is a convenience function for converting strings to character sequences. Pr
 (defn subs
   "Returns the substring of s from start (inclusive) to end (exclusive)."
   {:example "(subs \"hello world\" 0 5) ; => \"hello\""}
-  ([s start] (assert-string s) (subs s start (php/mb_strlen s)))
+  ;; Not `(subs s start (php/mb_strlen s))`: delegating would scan the string
+  ;; once here and again for the bounds check, where the single-argument form
+  ;; used to scan once. `mb_substr` with no length already runs to the end.
+  ([s start]
+   (assert-string s)
+   (when (or (php/< start 0) (php/> start (php/mb_strlen s)))
+     (throw (new InvalidArgumentException "Invalid start or end index for subs")))
+   (php/mb_substr s start))
   ([s start end]
    (assert-string s)
    (let [len (php/mb_strlen s)
@@ -196,8 +203,8 @@ This is a convenience function for converting strings to character sequences. Pr
                     (php/=== ascii-run (php/strlen s))               true
                     (php/< (php/ord (php/substr s ascii-run 1)) 128) false
                     :else                                            (php/=== 1 (php/preg_match
-                                                                                "/^[\\t\\n\\x0B\\f\\r\\x1C-\\x1F \\x{1680}\\x{2000}-\\x{2006}\\x{2008}-\\x{200A}\\x{2028}\\x{2029}\\x{205F}\\x{3000}]*$/u"
-                                                                                s))))
+                                                                                 "/^[\\t\\n\\x0B\\f\\r\\x1C-\\x1F \\x{1680}\\x{2000}-\\x{2006}\\x{2008}-\\x{200A}\\x{2028}\\x{2029}\\x{205F}\\x{3000}]*$/u"
+                                                                                 s))))
     (nil? s)    true
     :else       (throw (new InvalidArgumentException (str "blank? expects a string or nil, got " (type s))))))
 
