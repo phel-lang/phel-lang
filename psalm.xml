@@ -22,7 +22,19 @@
              `#[ServiceMap]` attribute (gacela 2.0). Registered here rather than
              through the XInclude, which replaces one element and cannot reach
              `<plugins>`. -->
-        <pluginClass class="Gacela\Psalm\Plugin"/>
+        <!-- `<moduleRules>` reads the same `module-rules.json` the PHPStan
+             `DeclaredModuleDependencyRule` reads, so the declared module
+             boundaries mean one thing in both analysers. `sharedNamespace`
+             entries must match the `sharedNamespaces` list in `phpstan.neon`.
+             Omitting the element turns the check off silently, which is why it
+             is here and not left to a default. -->
+        <pluginClass class="Gacela\Psalm\Plugin">
+            <moduleRules rootNamespace="Phel" file="module-rules.json" modulePathSegments="1">
+                <sharedNamespace>Phel\Shared</sharedNamespace>
+                <sharedNamespace>Phel\Lang</sharedNamespace>
+                <sharedNamespace>Phel\Config</sharedNamespace>
+            </moduleRules>
+        </pluginClass>
     </plugins>
 
     <!-- psalm-gacela.xml is still deliberately NOT included. All it does is

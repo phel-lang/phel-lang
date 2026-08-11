@@ -24,6 +24,35 @@ services:
                 - Phel\Lang
                 - Phel\Config
 
+    # Which module may reach which, from `module-rules.json`. Until now that
+    # decision lived only in prose: `Console/CLAUDE.md` says nothing may import
+    # Console, `Filesystem/CLAUDE.md` and `Fiber/CLAUDE.md` call themselves
+    # leaves. Prose cannot see a new import in a diff. Every rule in the file is
+    # one of those sentences, and each one held when it was added.
+    #
+    # `sharedNamespaces` must stay identical to the list above. It exempts the
+    # namespaces Gacela's CLI graph cannot see at all (Lang, Shared and Config
+    # have no Gacela pillars), which is what makes one file mean the same thing
+    # to `debug:graph --check --rules` and to the analysers.
+    #
+    # GOTCHA: phpstan's result cache is not keyed on `module-rules.json`, so
+    # editing the file alone will not re-analyse, and a cached finding keeps the
+    # `reason` string it was written with. `--clear-cache` does NOT help, it
+    # clears a different cache; run `phpstan clear-result-cache`. Verified by
+    # watching a stale reason survive `--clear-cache` and disappear only after
+    # the result cache went. CI always starts cold, so this bites locally only.
+    -
+        class: Gacela\PHPStan\Rules\DeclaredModuleDependencyRule
+        tags: [phpstan.rules.rule]
+        arguments:
+            rootNamespace: Phel
+            rulesFile: %currentWorkingDirectory%/module-rules.json
+            modulePathSegments: 1
+            sharedNamespaces:
+                - Phel\Shared
+                - Phel\Lang
+                - Phel\Config
+
 parameters:
     level: 9
     parallel:
