@@ -27,6 +27,9 @@ All notable changes to this project will be documented in this file.
 
 ### Fixed
 
+- `phel.string/blank?` no longer reports an invalid UTF-8 string as blank. `preg_match` with the `/u` modifier returns `false` on malformed input, and the old body read that as a match, so `(blank? "\xFF")` answered `true` (#3052)
+- `phel.string/trim-newline` no longer rewrites invalid UTF-8 bytes to `?`. It walked the string with `mb_substr`, which substitutes on a byte that is not valid UTF-8, so trimming could corrupt the input it was not asked to touch (#3050)
+- `phel.string/join` with an explicit nil collection returns `""` rather than the separator. `(join ", " nil)` answered `", "`, because a nil collection made the old body swap its two arguments (#3052)
 - `with-redefs` is no longer ignored after `phel eval` has loaded a required namespace. Loading a dependency runs under build mode, which also let the emitter pin global call sites into `static` slots, and the pinned artifact was written to the ordinary cache for later `phel test` runs to reuse (#3015)
 - `phel doc` and the API reference report every arity of a `def` over an `fn`. `defn` renders its arities into the docstring and a bare `def` does not, so 23 symbols published no signature at all, `defn` and `defmacro` among them, while `list`, `vector` and `hash-map` published a stale hardcoded one (#3012)
 - `empty?` no longer reports a lazy sequence whose first element is `nil` as empty. `(empty? (lazy-seq [nil]))` answered `true` while `count` answered 1 and `vec` answered `[nil]` (#3025)
@@ -108,6 +111,7 @@ All notable changes to this project will be documented in this file.
 
 Standard library:
 
+- Rewrite the hot half of `phel.string`. `assert-string` becomes `:inline`, so a guard is an `is_string` test rather than a registry lookup; `index-of`, `last-index-of`, `subs`, `split`, `join` and the three `pad-*` take fixed arities in place of `& [x]`; `trim-newline` uses `rtrim` instead of walking backwards with `mb_substr`; `blank?` settles any string whose first non-blank byte is ASCII with `strspn` before reaching the unicode regex; `contains?` stops delegating to `includes?`, which ran the guards twice; and `split` builds its vector directly rather than through `vals`. Floor-subtracted, same process: `trim-newline` 8.4x, `last-index-of` 7.3x, `pad-left` 5.0x, `index-of` 4.8x, `join` 3.7x, `subs` 2.9x, `split` 2.2x, `contains?` 2.2x, `split-lines` 2.1x, `starts-with?` and `includes?` 1.8x, `blank?` and `lower-case` 1.6x. `join`'s residual is `to-php-array` (#3050 #3051 #3052)
 - Rewrite `phel.base64/encode-url` and `decode-url` around one `strtr` instead of a chain of `phel.string/replace` calls, each of which asserts, builds a delimited pattern with `preg_quote` and runs `preg_replace` to swap a single character: 28x and 17x faster. Both, plus `decode`, also take fixed arities in place of `& [strict?]`, which makes `decode` 5.2x faster and means a third argument is now an arity error rather than silently ignored (#3021)
 
 Runtime core:

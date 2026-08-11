@@ -285,3 +285,56 @@
     (is (false? (s/blank? "x")) "blank? non-blank is false")
     (is (thrown? InvalidArgumentException (s/blank? i)) "blank? int throws")
     (is (thrown? InvalidArgumentException (s/blank? k)) "blank? keyword throws")))
+
+;; --- guards added with the perf rewrite (#3050 #3051 #3052) ---
+
+(deftest test-blank?-rejects-invalid-utf8
+  ;; `preg_match` with `/u` returns false on invalid UTF-8, and the old body
+  ;; read that as "matched", so every malformed string reported as blank.
+  (is (not (s/blank? (php/chr 255))))
+  (is (not (s/blank? (php/chr 128))))
+  (is (not (s/blank? (str " " (php/chr 255)))))
+  (is (not (s/blank? (php/chr 0)))))
+
+(deftest test-blank?-unicode-separators
+  (is (s/blank? "\u{1680}"))
+  (is (s/blank? "\u{2000}"))
+  (is (s/blank? "\u{205F}"))
+  (is (s/blank? "\u{3000}"))
+  (is (s/blank? " \u{2000}\t"))
+  ;; Explicitly not whitespace, per the docstring.
+  (is (not (s/blank? "\u{00A0}")))
+  (is (not (s/blank? "\u{2007}")))
+  (is (not (s/blank? "\u{202F}")))
+  (is (not (s/blank? "\u{2000}x"))))
+
+(deftest test-trim-newline-preserves-bytes
+  ;; The old body walked backwards with `mb_substr`, which substitutes `?` for
+  ;; a byte that is not valid UTF-8. Trimming must not rewrite the input.
+  (is (= (php/chr 255) (s/trim-newline (php/chr 255))))
+  (is (= (php/chr 255) (s/trim-newline (str (php/chr 255) "\n"))))
+  (is (= "héllo" (s/trim-newline "héllo\n\r\n")))
+  (is (= "日本語" (s/trim-newline "日本語\r\n")))
+  (is (= "" (s/trim-newline "\n\r\n\r")))
+  (is (= "" (s/trim-newline "")))
+  (is (= "a\nb" (s/trim-newline "a\nb\n"))))
+
+(deftest test-arity-split-defaults-match-explicit
+  ;; Each function below grew fixed arities in place of `& [x]`; the defaulted
+  ;; call must stay identical to spelling the default out.
+  (let [h "hello world world"]
+    (is (= (s/index-of h "world" 0) (s/index-of h "world")))
+    (is (= (s/last-index-of h "world" (dec (php/mb_strlen h))) (s/last-index-of h "world")))
+    (is (= (s/subs h 0 (php/mb_strlen h)) (s/subs h 0)))
+    (is (= (s/pad-left h 20 " ") (s/pad-left h 20)))
+    (is (= (s/pad-right h 20 " ") (s/pad-right h 20)))
+    (is (= (s/pad-both h 21 " ") (s/pad-both h 21)))
+    (is (= (s/split h "/\\s+/" -1) (s/split h "/\\s+/")))))
+
+(deftest test-join-arities
+  (is (= "abc" (s/join ["a" "b" "c"])))
+  (is (= "a, b, c" (s/join ", " ["a" "b" "c"])))
+  (is (= "" (s/join ", " [])))
+  ;; `(join sep nil)` used to return the separator, because the nil coll made
+  ;; the old body swap its arguments. An empty join is what Clojure answers.
+  (is (= "" (s/join ", " nil))))
