@@ -3,11 +3,25 @@
 
 (defstruct raw-string [s])
 
+;; ENT_QUOTES escapes both quote styles; ENT_SUBSTITUTE replaces an invalid
+;; code unit with U+FFFD rather than returning an empty string.
+;;
+;; Hoisted out of `escape-html`, which combined them on every call, where
+;; `bit-or` also carries an `:inline` that expands to a closure allocated per
+;; call in expression position. `phel.transit` hoists its JSON flags the same
+;; way. `escape-html` runs once per attribute name, per attribute value and per
+;; text node, so this is on the hot path of rendering anything at all.
+;;
+;; An `:inline` on `escape-html` itself would fold the flags into the call site
+;; and remove this read too, worth another 1.8x, but `phel lint` crashes on any
+;; `:inline` whose namespace also calls it: see #3055.
+(def- escape-flags (bit-or php/ENT_QUOTES php/ENT_SUBSTITUTE))
+
 (defn escape-html
   "Escapes HTML special characters to prevent XSS."
   {:example "(escape-html \"<div>\") ; => \"&lt;div&gt;\""}
   [s]
-  (php/htmlspecialchars s (bit-or php/ENT_QUOTES php/ENT_SUBSTITUTE)))
+  (php/htmlspecialchars s escape-flags))
 
 (defn- to-str [x]
   (cond
