@@ -18,6 +18,8 @@
   [s]
   ;; `strtr` swaps the two alphabet bytes in one pass, and `=` is only ever
   ;; trailing padding in Base64 output, so `rtrim` removing it is exact.
+  ;; `php/base64_encode` rather than `encode`: the wrapper adds nothing here,
+  ;; and its call is most of what the whole function now costs.
   (php/rtrim (php/strtr (php/base64_encode s) "+/" "-_") "="))
 
 (defn decode-url

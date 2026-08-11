@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace PhelTest\Benchmark\Phel;
 
+use Override;
 use PhpBench\Benchmark\Metadata\Annotations\BeforeMethods;
 use PhpBench\Benchmark\Metadata\Annotations\Revs;
 
@@ -19,8 +20,9 @@ use function strtr;
  * The URL-safe pair of `phel.base64` (#3021 B1). Both used to reach one
  * character swap through a chain of `phel.string/replace` calls, each of which
  * runs `assert-string`, builds a delimited pattern with `preg_quote` and then
- * calls `preg_replace`: 6.98μs for `encode-url` and 7.38μs for `decode-url`
- * against a ~0.13μs empty-closure floor.
+ * calls `preg_replace`: 7.21μs for `encode-url` and 7.64μs for `decode-url`
+ * against a ~0.12μs empty-closure floor, measured in-process on the same
+ * machine as the 0.37μs and 0.57μs they now cost.
  *
  * The pair brackets what the rewrite removes. `bench_encode_url` invokes the
  * Phel function; `bench_encode_url_raw` is the PHP the body now reduces to. The
@@ -87,6 +89,7 @@ final class StdlibBase64Bench extends CoreBenchCase
         }
     }
 
+    #[Override]
     protected function extraNamespaces(): array
     {
         return ['phel.base64'];
