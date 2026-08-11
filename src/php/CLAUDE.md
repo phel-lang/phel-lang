@@ -26,13 +26,13 @@ Keeping non-facade edges out of the docs is how the graph erodes quietly, so the
 
 - **`Shared/Facade/`** (dependency inversion): Api, Build, Command, Compiler, Console, Formatter, Interop, Run.
 - **Module root**: Fiber, Filesystem (`FiberFacadeInterface`, `FilesystemFacadeInterface`).
-- **No interface — extend `AbstractFacade`**: Lint, Lsp, Nrepl, Profile, Watch.
+- **No interface — extend `AbstractFacade`**: Balance, Lint, Lsp, Nrepl, Profile, Watch.
 
 Rules:
 
 - Cross-module access goes through facades only; inject `*FacadeInterface`, never a concrete facade. Exactly one exception survives (`LspFactory::getLintFacade()`), because Lint has no contract yet; `SatelliteFactoryFacadeInjectionTest` fails on a second. `*Provider` methods may name concrete facades only in their bodies because Gacela's locator resolves by class; the provided binding id should still be the consumer-facing contract whenever one exists.
 - A Factory may only `new` classes from its own module or `Phel\Shared`; cross-module instances come via the injected Facade.
-- New modules add their `FacadeInterface` to `Shared/Facade/`.
+- New modules add their `FacadeInterface` to `Shared/Facade/` when another module injects them. `Balance` has none because nothing does: `Console` wraps its command, it never injects the facade.
 - The module graph has exactly four cyclic pairs (`Api <-> Run`, `Compiler <-> Shared`, `Lang <-> Shared`, `Phel <-> Run`), each documented in the owning module's CLAUDE.md and pinned by `tests/php/Unit/Architecture/ModuleDependencyCycleTest.php`. `Api <-> Run` is the only mutual Gacela provider pair. Adding a fifth needs a written rationale, not just a green build.
 
 ## Module Map
@@ -40,6 +40,7 @@ Rules:
 | Module | Role |
 |--------|------|
 | Api | REPL completion, docs, diagnostics, project index (jump-to-def, references) |
+| Balance | Delimiter repair (`phel balance`); the one module that writes a file it could not parse |
 | Build | Compile Phel projects to PHP: dependency order, caching, namespace extraction |
 | Command | Error reporting, exception formatting, directory discovery |
 | Compiler | Pipeline: lexer → parser → reader → analyzer → simplifier → emitter |

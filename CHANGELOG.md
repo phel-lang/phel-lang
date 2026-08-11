@@ -6,6 +6,7 @@ All notable changes to this project will be documented in this file.
 
 ### Added
 
+- Add `phel balance [paths]... [--fix]`: reports unbalanced `()`, `[]` and `{}`, and with `--fix` appends the missing closers. Scans the lexer's token stream, so `\(`, a `(` inside a string, a `;` comment or a `#"regex"` is never counted. Only appends: a surplus or mismatched closer (`(foo]`) and an unterminated string are reported and left untouched. Detection is the default so an agent post-write hook cannot silently guess wrong (#2827)
 - Add editor completion and hover for PHP superglobals (`php/$_SERVER`, ...), in the LSP and in the REPL/nREPL (#3037)
 - `BuildFacade::enterDependencyLoad()`, `leaveDependencyLoad()` and `isLoadingDependencies()`, plus `BuildConstants::LOADING_DEPENDENCIES`. Additive: they mark the region in which an `ns` form loads its requires, so the emitter can decline to pin call sites there (#3015)
 - Add `phel.bench` and the `phel bench` command: `defbench` benchmarks written in Phel, with baseline storage (`--store`), comparison (`--ref`) and a tolerance gate (`--tolerance`) (#3005)

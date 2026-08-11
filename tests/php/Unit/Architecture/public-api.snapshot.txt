@@ -63,6 +63,9 @@ final class Phel\Api\ApiFacade extends Gacela\Framework\AbstractFacade implement
   public function replCompleteWithTypes(string $input): array
   public function resolveSymbol(Phel\Shared\Api\ProjectIndex $index, string $namespace, string $symbol): ?Phel\Shared\Api\Definition
 
+final class Phel\Balance\BalanceFacade extends Gacela\Framework\AbstractFacade
+  public function balance(array $paths, bool $fix = false): Phel\Balance\Domain\BalanceResult
+
 final class Phel\Build\BuildFacade extends Gacela\Framework\AbstractFacade implements Phel\Shared\Facade\BuildFacadeInterface
   public function clearCache(): array
   public function compileFile(string $src, string $dest): Phel\Shared\CompiledFile

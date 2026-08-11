@@ -31,6 +31,7 @@ Every directory under `src/php/` is a module. Most follow the [Gacela](https://g
 | `Interop/` | Generates PHP wrappers so PHP can call Phel from an IDE. |
 | `Lint/` | `phel lint` over parse trees. |
 | `Formatter/` | Pretty-prints `.phel`. |
+| `Balance/` | `phel balance` over the token stream; the one module that writes a file it could not parse. |
 | `Lsp/` | LSP over stdio. |
 | `Nrepl/` | nREPL bencode/TCP. |
 | `Watch/` | Hot reload watcher. |

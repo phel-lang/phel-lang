@@ -70,6 +70,7 @@ See [`tasks/common-gotchas.md`](tasks/common-gotchas.md) for details. Quick summ
 | Build | `./vendor/bin/phel build` |
 | Doc | `./vendor/bin/phel doc <fn>` |
 | Format | `./vendor/bin/phel format <file>` |
+| Fix parens | `./vendor/bin/phel balance <file> --fix` |
 | Profile | `./vendor/bin/phel profile <path> [--format=text\|json\|both] [--output=<file>]` |
 | Install skill | `./vendor/bin/phel agent-install <platform>\|--all` |
 
@@ -81,6 +82,11 @@ See [`tasks/common-gotchas.md`](tasks/common-gotchas.md) for details. Quick summ
 4. `phel.test`: `deftest`, `is`. Run `phel test`.
 5. `phel run` or web entry.
 6. Hot loops: add `:tag` to params + return; `phel profile` to find them.
+
+After writing or editing a `.phel` file, `phel balance <file> --fix` appends any
+closing delimiter you dropped. It only appends: a surplus or mismatched closer
+and an unterminated string are reported and left for you to fix, since each has
+more than one plausible repair.
 
 ## Commits
 

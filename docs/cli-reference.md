@@ -14,6 +14,7 @@ enables tab-completion (setup in the [README](../README.md)).
 | `agent-install` | Install agent skill files (Claude, Cursor, Codex, Gemini, Copilot, Aider) into the current project |
 | `analyze` | Run semantic analysis on a single Phel source file and emit JSON diagnostics |
 | `api-daemon` | Long-running JSON-RPC daemon exposing the Api semantic-analysis facade over stdio (for tooling) |
+| `balance` | Report unbalanced `()`, `[]`, `{}` in Phel files; append the missing closers with `--fix` |
 | `bench` | Run the `defbench` benchmarks (all of them, or the files/namespaces you pass) |
 | `build` `b` | Build the current project: compile every namespace to PHP in the output dir |
 | `cache:clear` | Clear the temp and cache directories |

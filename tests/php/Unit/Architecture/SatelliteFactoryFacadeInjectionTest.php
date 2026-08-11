@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace PhelTest\Unit\Architecture;
 
 use Generator;
+use Phel\Balance\BalanceFactory;
 use Phel\Formatter\FormatterFactory;
 use Phel\Lint\LintFacade;
 use Phel\Lint\LintFactory;
@@ -67,6 +68,9 @@ final class SatelliteFactoryFacadeInjectionTest extends TestCase
 
         yield 'Formatter compiler' => [FormatterFactory::class, 'getCompilerFacade', CompilerFacadeInterface::class];
         yield 'Formatter command' => [FormatterFactory::class, 'getCommandFacade', CommandFacadeInterface::class];
+
+        yield 'Balance compiler' => [BalanceFactory::class, 'getCompilerFacade', CompilerFacadeInterface::class];
+        yield 'Balance command' => [BalanceFactory::class, 'getCommandFacade', CommandFacadeInterface::class];
     }
 
     /**

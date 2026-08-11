@@ -1,0 +1,83 @@
+# Balance Module
+
+Delimiter repair: reports, and on request appends, the `()`, `[]` and `{}` a
+Phel source file is missing.
+
+It is the only thing in the codebase that **writes a file it could not parse**.
+That is why it is its own module: `Formatter` can write but only from a parse
+tree, and `Lint` can read broken input but never rewrites it. `Balance` is the
+intersection and belongs to neither.
+
+## Public API (Facade)
+
+| Method | Returns |
+|--------|---------|
+| `balance(list<string> $paths, bool $fix = false)` | `BalanceResult`; throws `BalanceSourceException` when a listed directory cannot be walked |
+
+## Dependencies
+
+| Facade | Injected as | Used for |
+|--------|-------------|----------|
+| Compiler | `CompilerFacadeInterface` | `lexString()` only |
+| Command | `CommandFacadeInterface` | default source directories for a bare `phel balance` |
+
+No module imports `Balance`, so it adds no cycle to the four ADR 0004 accepts.
+It has no `Phel\Shared\Facade` contract, matching `Lint`, `Lsp`, `Nrepl`,
+`Profile` and `Watch`: nothing injects it, `Console` only wraps its command.
+
+## CLI
+
+`./bin/phel balance [paths]... [--fix]`
+
+Exit codes: `0` all balanced, or `--fix` repaired everything it found; `1` an
+imbalance remains; `2` invocation error (no readable path, unwalkable dir).
+
+**Detection is the default.** Writing is opt-in because the intended caller is
+an agent post-write hook, and a hook that silently guesses wrong is worse than
+the compile error it replaces. A `--fix` run that repaired everything exits `0`
+so it does not fail the hook.
+
+## Scan on tokens, never on bytes
+
+`DelimiterScanner` consumes `CompilerFacadeInterface::lexString()`. The lexer
+never parses, so it tokenizes a file whose delimiters do not match, and it
+neutralizes every construct a character counter gets wrong:
+
+| Construct | Token |
+|---|---|
+| `\(` `\)` `\[` `\]` `\{` `\}` | one `T_CHAR` each. This is where a byte counter dies |
+| `"a ( b"`, `"\" ("` | one `T_STRING` |
+| `; ) ) )` | one `T_COMMENT`, trailing newline included |
+| `#"^(a\|b)$"` | one `T_REGEX` |
+| `#(` `#{` `#?(` `#?@(` | one token each, swallowing its own opener |
+
+Because the hash openers swallow their `(`, opener text and closer text are not
+mirror images: `#?(` closes with a plain `)`, `#{` with `}`. `CLOSER_TEXT_FOR_OPENER`
+is a lookup for exactly that reason.
+
+Do **not** reuse `Compiler`'s `ParenthesesChecker`. It returns `true` for `(foo))`
+on purpose, so the REPL stops buffering, and its three REPL callers depend on
+that. It also carries no positions.
+
+## What it refuses to repair
+
+Repair only ever **appends** missing closers, innermost level first. Three cases
+are reported and left untouched, because each has more than one plausible fix:
+
+- **Surplus or mismatched closer.** `(foo]` could have meant `(foo)` or `[foo]`.
+- **Unterminated string literal.** The atom rule swallows an unclosed `"`, so in
+  `(println "hi) (there` the `)` the author meant as string content lexes as a
+  real closer. The imbalance the stack reports is a phantom, and appending to it
+  writes a differently broken file. Detected by a `T_ATOM` starting with `"`,
+  which no valid Phel atom does.
+- **Source that will not lex.** An unterminated `#"regex"`, a bare `#` and the
+  removed `#| |#` block comment raise `LexerValueException` rather than lexing to
+  something countable. Handle lex failure, not only parse failure.
+
+## Where the closers land
+
+End of the last non-blank line, so the repaired form reads the way a human would
+have closed it. The exception is a trailing `;` comment: there the closers go on
+their own line, since appended inside the comment they would be text and the
+file still would not parse. `BalanceReport::endsInLineComment` carries that flag
+from the scan.
