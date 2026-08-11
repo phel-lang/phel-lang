@@ -45,6 +45,7 @@ final readonly class CallSpecialization
             || TypedValueSpecialization::isEmptyCheck($node)
             || TypedValueSpecialization::isContainsCheck($node)
             || NumericOperationSpecialization::isNotEqPeephole($node)
+            || NumericOperationSpecialization::isNotOverBoolOperand($node)
         ) {
             return true;
         }
@@ -84,6 +85,7 @@ final readonly class CallSpecialization
             || AssocConjSpecialization::isTypedAssocConjDissoc($node)
             || AssocConjSpecialization::isAssocConjChain($node)
             || NumericOperationSpecialization::isNotEqPeephole($node)
+            || NumericOperationSpecialization::isNotOverBoolOperand($node)
             || NumericOperationSpecialization::isTypedVariadicChain($node)
             || NumericOperationSpecialization::isTypedIncDec($node)
             || ReduceSpecialization::isTypedVectorReduce($node)

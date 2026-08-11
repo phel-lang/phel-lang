@@ -10,6 +10,7 @@ use Phel\Compiler\Domain\Analyzer\Ast\CallNode;
 use Phel\Compiler\Domain\Analyzer\Ast\GlobalVarNode;
 use Phel\Compiler\Domain\Analyzer\Ast\LiteralNode;
 use Phel\Compiler\Domain\Analyzer\Ast\LocalVarNode;
+use Phel\Compiler\Domain\Analyzer\Ast\PhpVarNode;
 use Phel\Compiler\Domain\Analyzer\Environment\NodeEnvironment;
 use Phel\Compiler\Domain\Emitter\OutputEmitter\NumericOperationSpecialization;
 use Phel\Lang\Keyword;
@@ -55,6 +56,68 @@ final class NumericOperationSpecializationTest extends TestCase
         $outer = $this->coreCall('inc', [$inner]);
 
         self::assertNull(NumericOperationSpecialization::notEqPeepholeInner($outer));
+    }
+
+    public function test_not_over_bool_operand_returns_the_operand(): void
+    {
+        $operand = $this->boolPhpCall('is_int');
+        $outer = $this->coreCall('not', [$operand]);
+
+        self::assertSame($operand, NumericOperationSpecialization::notOverBoolOperand($outer));
+        self::assertTrue(NumericOperationSpecialization::isNotOverBoolOperand($outer));
+    }
+
+    /**
+     * `strlen` returns int, and `!0` is `true` in PHP while `(not 0)` is
+     * `false` in Phel. Anything looser than a hard bool guarantee inverts
+     * truthiness here.
+     */
+    public function test_not_over_a_non_bool_php_call_declines(): void
+    {
+        $outer = $this->coreCall('not', [$this->boolPhpCall('strlen')]);
+
+        self::assertNull(NumericOperationSpecialization::notOverBoolOperand($outer));
+    }
+
+    public function test_not_over_an_untyped_local_declines(): void
+    {
+        $outer = $this->coreCall('not', [new LocalVarNode($this->env(), Symbol::create('x'))]);
+
+        self::assertNull(NumericOperationSpecialization::notOverBoolOperand($outer));
+    }
+
+    /**
+     * A typed `=` operand is itself a bool, so both lowerings match. The
+     * `=` peephole emits `($a !== $b)`, which beats `!(($a === $b))`, so
+     * this one must stand down and let the emitter reach it.
+     */
+    public function test_not_over_bool_yields_to_the_typed_eq_peephole(): void
+    {
+        $inner = $this->coreCall('=', [
+            $this->localWithTag('a', 'int'),
+            $this->localWithTag('b', 'int'),
+        ]);
+        $outer = $this->coreCall('not', [$inner]);
+
+        self::assertNull(NumericOperationSpecialization::notOverBoolOperand($outer));
+        self::assertSame($inner, NumericOperationSpecialization::notEqPeepholeInner($outer));
+    }
+
+    public function test_not_with_two_arguments_declines(): void
+    {
+        $outer = $this->coreCall('not', [
+            $this->boolPhpCall('is_int'),
+            $this->boolPhpCall('is_int'),
+        ]);
+
+        self::assertNull(NumericOperationSpecialization::notOverBoolOperand($outer));
+    }
+
+    public function test_a_call_that_is_not_not_declines(): void
+    {
+        $outer = $this->coreCall('inc', [$this->boolPhpCall('is_int')]);
+
+        self::assertNull(NumericOperationSpecialization::notOverBoolOperand($outer));
     }
 
     public function test_variadic_mul_three_int_locals_chains_arith(): void
@@ -257,6 +320,20 @@ final class NumericOperationSpecializationTest extends TestCase
                 Phel::map(),
             ),
             $args,
+        );
+    }
+
+    /**
+     * A `(php/<fn> x)` call node. `is_int` is on
+     * `BooleanExprDetector::BOOL_PHP_FUNCTIONS`, `strlen` is not, which is
+     * what separates the eligible case from the ineligible one.
+     */
+    private function boolPhpCall(string $phpFunction): CallNode
+    {
+        return new CallNode(
+            $this->env(),
+            new PhpVarNode($this->env(), $phpFunction),
+            [new LocalVarNode($this->env(), Symbol::create('x'))],
         );
     }
 

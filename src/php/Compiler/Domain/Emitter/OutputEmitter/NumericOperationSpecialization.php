@@ -10,6 +10,7 @@ use Phel\Compiler\Domain\Analyzer\Ast\LiteralNode;
 use Phel\Compiler\Domain\Analyzer\Ast\LocalVarNode;
 use Phel\Compiler\Domain\Analyzer\Ast\PhpVarNode;
 use Phel\Compiler\Domain\Analyzer\TypeAnalyzer\PhpFunctionReturnTypes;
+use Phel\Compiler\Domain\Emitter\OutputEmitter\Cache\BooleanExprDetector;
 use Phel\Lang\Keyword;
 
 use function array_all;
@@ -239,6 +240,44 @@ final readonly class NumericOperationSpecialization
     public static function isTypedComparison(CallNode $node): bool
     {
         return in_array(self::typedBinaryOpName($node), self::BOOL_BINARY_OPS, true);
+    }
+
+    /**
+     * `(not x)` where `x` is guaranteed to be a PHP `bool`: returns the
+     * operand so the emitter can splice it behind a native `!`, sparing
+     * the `phel.core/not` dispatch and, in a test slot, the truthy adapter.
+     *
+     * The guard is {@see BooleanExprDetector::isBool()} and nothing looser.
+     * "Looks like a predicate" would be wrong: `(not 0)` is `false` in Phel
+     * because only `nil` and `false` are falsy, while `!0` is `true` in PHP.
+     *
+     * Declines when {@see self::notEqPeepholeInner()} applies. A typed `=`
+     * operand is itself a bool, so both match `(not (= a b))`, and that
+     * peephole's `($a !== $b)` beats this one's `!(($a === $b))`. Keeping
+     * every `not` lowering in this one class is what lets the emitter order
+     * them; the families registered in `CallEmitter` stay disjoint.
+     */
+    public static function notOverBoolOperand(CallNode $node): ?AbstractNode
+    {
+        if (!PhelCoreCall::is($node, 'not')) {
+            return null;
+        }
+
+        $args = $node->getArguments();
+        if (count($args) !== 1) {
+            return null;
+        }
+
+        if (self::notEqPeepholeInner($node) instanceof CallNode) {
+            return null;
+        }
+
+        return BooleanExprDetector::isBool($args[0]) ? $args[0] : null;
+    }
+
+    public static function isNotOverBoolOperand(CallNode $node): bool
+    {
+        return self::notOverBoolOperand($node) instanceof AbstractNode;
     }
 
     /**

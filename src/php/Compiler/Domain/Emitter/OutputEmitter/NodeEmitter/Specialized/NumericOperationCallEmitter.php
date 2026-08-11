@@ -32,6 +32,12 @@ final readonly class NumericOperationCallEmitter implements SpecializedCallEmitt
             return true;
         }
 
+        // After the `=` peephole on purpose: a typed `=` operand is itself a
+        // bool, so both match `(not (= a b))` and `!==` beats `!(===)`.
+        if ($this->tryEmitNotOverBool($node)) {
+            return true;
+        }
+
         if ($this->tryEmitTypedVariadicChain($node)) {
             return true;
         }
@@ -68,6 +74,28 @@ final readonly class NumericOperationCallEmitter implements SpecializedCallEmitt
         $this->outputEmitter->emitStr('(', $loc);
         $this->outputEmitter->emitNode($args[0]);
         $this->outputEmitter->emitStr(' ' . $op . ' 1)', $loc);
+        return true;
+    }
+
+    /**
+     * `(not x)` where `x` is a guaranteed PHP bool: emits `(!($x))`,
+     * skipping the `phel.core/not` dispatch. Registered as
+     * bool-returning, so a surrounding `if` splices it into the test slot
+     * instead of wrapping it in the truthy adapter.
+     *
+     * Eligibility lives on {@see NumericOperationSpecialization::notOverBoolOperand()}.
+     */
+    private function tryEmitNotOverBool(CallNode $node): bool
+    {
+        $operand = NumericOperationSpecialization::notOverBoolOperand($node);
+        if (!$operand instanceof AbstractNode) {
+            return false;
+        }
+
+        $loc = $node->getStartSourceLocation();
+        $this->outputEmitter->emitStr('(!(', $loc);
+        $this->outputEmitter->emitNode($operand);
+        $this->outputEmitter->emitStr('))', $loc);
         return true;
     }
 
