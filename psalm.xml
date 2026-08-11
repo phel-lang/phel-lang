@@ -22,7 +22,19 @@
              `#[ServiceMap]` attribute (gacela 2.0). Registered here rather than
              through the XInclude, which replaces one element and cannot reach
              `<plugins>`. -->
-        <pluginClass class="Gacela\Psalm\Plugin"/>
+        <!-- `<moduleRules>` reads the same `module-rules.json` the PHPStan
+             `DeclaredModuleDependencyRule` reads, so the declared module
+             boundaries mean one thing in both analysers. `sharedNamespace`
+             entries must match the `sharedNamespaces` list in `phpstan.neon`.
+             Omitting the element turns the check off silently, which is why it
+             is here and not left to a default. -->
+        <pluginClass class="Gacela\Psalm\Plugin">
+            <moduleRules rootNamespace="Phel" file="module-rules.json" modulePathSegments="1">
+                <sharedNamespace>Phel\Shared</sharedNamespace>
+                <sharedNamespace>Phel\Lang</sharedNamespace>
+                <sharedNamespace>Phel\Config</sharedNamespace>
+            </moduleRules>
+        </pluginClass>
     </plugins>
 
     <!-- psalm-gacela.xml is still deliberately NOT included. All it does is
@@ -56,6 +68,52 @@
         <ImplementedReturnTypeMismatch errorLevel="suppress" />
         <MoreSpecificImplementedParamType errorLevel="suppress" />
         <RedundantCastGivenDocblockType errorLevel="suppress" />
+
+        <!-- Gacela architecture rules, added to psalm in 2.1.0. Every finding
+             below is a decision already argued site by site in `phpstan.neon`,
+             which has run the same three rules since 2.0; these entries mirror
+             it so the two analysers agree rather than restating the reasoning.
+             Read `phpstan.neon` for the why before changing anything here.
+
+             One difference is structural and worth knowing: phpstan pins each
+             path with a `count`, so a genuinely new offender makes a count
+             short by one and gets reported. Psalm has no count, so these are
+             blanket per-file suppressions and phpstan keeps sole ownership of
+             the drift detection. Add a path here only after pinning its count
+             there. -->
+        <PluginIssue name="GacelaFacadeInterfaceDrift">
+            <errorLevel type="suppress">
+                <file name="src/php/Api/ApiFacade.php" />
+                <file name="src/php/Build/BuildFacade.php" />
+                <file name="src/php/Compiler/CompilerFacade.php" />
+                <file name="src/php/Interop/InteropFacade.php" />
+                <file name="src/php/Run/RunFacade.php" />
+            </errorLevel>
+        </PluginIssue>
+        <PluginIssue name="GacelaFacadeOnlyDelegates">
+            <errorLevel type="suppress">
+                <file name="src/php/Build/BuildFacade.php" />
+            </errorLevel>
+        </PluginIssue>
+        <PluginIssue name="GacelaSuffixExtends">
+            <errorLevel type="suppress">
+                <file name="src/php/Compiler/Domain/Analyzer/SymbolSuggestionProvider.php" />
+                <file name="src/php/Compiler/Domain/Emitter/OutputEmitter/NodeEmitterFactory.php" />
+                <file name="src/php/Compiler/Domain/Parser/ExpressionParserFactory.php" />
+                <file name="src/php/Compiler/Domain/Reader/ExpressionReaderFactory.php" />
+                <file name="src/php/Config/PhelBuildConfig.php" />
+                <file name="src/php/Config/PhelConfig.php" />
+                <file name="src/php/Config/PhelExportConfig.php" />
+                <file name="src/php/Lang/Collections/LazySeq/LazySeqConfig.php" />
+                <!-- Not in phpstan's list, which does not flag it. `Lang` is a
+                     leaf with no Gacela pillars at all (`src/php/CLAUDE.md`), so
+                     this is the same category as the rest: a runtime type whose
+                     suffix collides with a pillar name. The two lists are not
+                     meant to match line for line; each analyser is pinned
+                     against what it actually reports. -->
+                <file name="src/php/Lang/TypeFactory.php" />
+            </errorLevel>
+        </PluginIssue>
 
         <!-- Mixed* handlers: what stays global and why.
 

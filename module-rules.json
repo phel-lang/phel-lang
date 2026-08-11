@@ -1,0 +1,29 @@
+{
+  "rules": [
+    {
+      "from": "Phel",
+      "deny": ["Phel\\Console"],
+      "reason": "Console is the graph's sink: it registers every module's commands and nothing may import it back, or the widest fan-in in the codebase becomes a cycle. A module that needs to describe console behaviour injects Shared\\Facade\\ConsoleFacadeInterface instead. See src/php/Console/CLAUDE.md."
+    },
+    {
+      "from": "Phel\\Compiler",
+      "allow": ["Phel\\Filesystem"],
+      "reason": "Filesystem is the compiler's only Provider entry. ADR 0004 accepts Compiler, Config, Filesystem, Lang and Shared loading together as one kernel; the compiler reaches no module outside that group."
+    },
+    {
+      "from": "Phel\\Filesystem",
+      "allow": [],
+      "reason": "Filesystem is a leaf: no Provider, no facade dependencies, and its only module import is the Config data model. See src/php/Filesystem/CLAUDE.md."
+    },
+    {
+      "from": "Phel\\Fiber",
+      "allow": [],
+      "reason": "Fiber depends on nothing beyond the Lang leaf: no Provider and no cross-module facades. See src/php/Fiber/CLAUDE.md."
+    },
+    {
+      "from": "Phel\\Command",
+      "allow": ["Phel\\Compiler"],
+      "reason": "Command has no facade dependencies. Its single compiler import is the type-only EvaluatedCodeException instanceof check; it injects no compiler facade. See src/php/Command/CLAUDE.md."
+    }
+  ]
+}
