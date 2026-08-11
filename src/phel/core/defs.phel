@@ -34,7 +34,7 @@
       ;; keep the old path, which is also the only one that can flatten a map
       ;; into pairs.
       (if (php/instanceof coll SeqInterface)
-        (php/-> coll (toArray))
+        (.toArray coll)
         (apply php/array coll)))))
 
 (def defn-builder
