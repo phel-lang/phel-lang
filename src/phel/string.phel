@@ -2,21 +2,36 @@
   (:require phel.core)
   (:use InvalidArgumentException))
 
+(defn- string-expected
+  "The throwing half of `assert-string`, kept out of line so the guard itself
+  compiles to a bare `is_string` test."
+  [x]
+  (throw (new InvalidArgumentException (str "Expected a string, got " (type x)))))
+
 (defn- assert-string
   "Throws `InvalidArgumentException` unless `x` is a string. Guards the PHP
   string builtins these functions delegate to, which would otherwise leak a
   raw `Passing null to parameter ... of type string is deprecated` warning
-  (a hard `TypeError` in PHP 9) and return nonsense on non-string input."
+  (a hard `TypeError` in PHP 9) and return nonsense on non-string input.
+
+  `:inline` because this runs on nearly every call into this namespace, and
+  some functions assert twice. As a `defn-` each guard cost a registry lookup
+  before it could look at the value; inlined it is an `is_string` test, and
+  only the failing path resolves a function."
+  {:inline (fn [x] `(let [v# ~x]
+                      (when-not (string? v#) (string-expected v#))))}
   [x]
   (when-not (string? x)
-    (throw (new InvalidArgumentException (str "Expected a string, got " (type x))))))
+    (string-expected x)))
 
 (defn split
   "Splits string on a regular expression, returning a vector of parts."
   {:example "(split \"hello world foo bar\" #\"\\s+\") ; => [\"hello\" \"world\" \"foo\" \"bar\"]"}
-  [s re & [limit]]
-  (assert-string s)
-  (vals (php/preg_split re s (or limit -1))))
+  ;; `Phel/vector` over the `preg_split` result, not `vals`: the result is
+  ;; already a list array, so `vals` walked it once only to hand the same
+  ;; values to the same constructor. `chars` below has always done it directly.
+  ([s re] (assert-string s) (Phel/vector (php/preg_split re s -1)))
+  ([s re limit] (assert-string s) (Phel/vector (php/preg_split re s (or limit -1)))))
 
 (defn chars
   "Returns a vector of characters from string s.
@@ -31,19 +46,27 @@ This is a convenience function for converting strings to character sequences. Pr
 (defn join
   "Returns a string of all elements in coll, separated by an optional separator."
   {:example "(join \", \" [\"apple\" \"banana\" \"cherry\"]) ; => \"apple, banana, cherry\""}
-  [separator & [coll]]
-  (let [[coll separator] (if (nil? coll) [separator ""] [coll separator])]
-    (php/implode separator (to-php-array coll))))
+  ([coll] (php/implode "" (to-php-array coll)))
+  ([separator coll] (php/implode separator (to-php-array coll))))
 
 (defn subs
   "Returns the substring of s from start (inclusive) to end (exclusive)."
   {:example "(subs \"hello world\" 0 5) ; => \"hello\""}
-  [s start & [end]]
-  (let [len (php/mb_strlen s)
-        end (or end len)]
-    (when (or (php/< start 0) (php/< end start) (php/> end len))
-      (throw (new InvalidArgumentException "Invalid start or end index for subs")))
-    (php/mb_substr s start (- end start))))
+  ;; Not `(subs s start (php/mb_strlen s))`: delegating would scan the string
+  ;; once here and again for the bounds check, where the single-argument form
+  ;; used to scan once. `mb_substr` with no length already runs to the end.
+  ([s start]
+   (assert-string s)
+   (when (or (php/< start 0) (php/> start (php/mb_strlen s)))
+     (throw (new InvalidArgumentException "Invalid start or end index for subs")))
+   (php/mb_substr s start))
+  ([s start end]
+   (assert-string s)
+   (let [len (php/mb_strlen s)
+         end (or end len)]
+     (when (or (php/< start 0) (php/< end start) (php/> end len))
+       (throw (new InvalidArgumentException "Invalid start or end index for subs")))
+     (php/mb_substr s start (- end start)))))
 
 (defn reverse
   "Returns s with its characters reversed."
@@ -99,13 +122,13 @@ This is a convenience function for converting strings to character sequences. Pr
   "Removes all trailing newline or return characters from string."
   {:example "(trim-newline \"hello\\n\\n\") ; => \"hello\""}
   [s]
-  (loop [index (php/mb_strlen s)]
-    (if (zero? index)
-      ""
-      (let [ch (php/mb_substr s (dec index) 1)]
-        (if (or (= ch "\n") (= ch "\r"))
-          (recur (dec index))
-          (php/mb_substr s 0 index))))))
+  ;; The guard used to be incidental: `mb_strlen` raised on a non-string before
+  ;; the walk began. `rtrim` would accept one, so state it.
+  (assert-string s)
+  ;; `rtrim` rather than an `mb_substr` walk: `\n` and `\r` are ASCII, and
+  ;; UTF-8 is self-synchronizing, so a trailing 0x0A or 0x0D byte can never be
+  ;; the continuation byte of a multibyte character.
+  (php/rtrim s "\n\r"))
 
 (defn capitalize
   "Converts first character to upper-case and all other characters to lower-case."
@@ -152,15 +175,37 @@ This is a convenience function for converting strings to character sequences. Pr
   (assert-string s)
   (php/preg_replace "/[\s]+$/u" "" s))
 
+;; The ASCII members of the whitespace class `blank?` recognises: space, tab,
+;; newline, vertical tab, form feed, carriage return and the four information
+;; separators. Deliberately without `\0`, which PHP's default trim charlist
+;; does include and which `blank?` must report as non-blank.
+;;
+;; A comment rather than a docstring because `def-` takes `(name value)` only:
+;; a string in the middle position silently becomes the value.
+(def- ascii-blank-chars " \t\n\x0B\f\r\x1C\x1D\x1E\x1F")
+
 (defn blank?
   "True if s is nil, empty, or contains only whitespace. Non-breaking separators (`U+00A0`, `U+2007`, `U+202F`) are not treated as whitespace."
   {:example "(blank? \"   \") ; => true"}
   [s]
+  ;; `string?` first: it is the case that actually occurs, and it is a native
+  ;; `is_string` where `nil?` was a comparison.
+  ;;
+  ;; Every non-ASCII member of the whitespace class (`U+1680`, `U+2000`-`U+2006`,
+  ;; `U+2008`-`U+200A`, `U+2028`, `U+2029`, `U+205F`, `U+3000`) encodes to bytes
+  ;; at or above 0x80 in UTF-8. So the byte `strspn` stops on settles the answer
+  ;; outright when it is ASCII, and only a high byte can still be one of those
+  ;; separators and has to reach the regex. Written out here rather than behind
+  ;; a `defn-` so the common answers cost no call.
   (cond
+    (string? s) (let [ascii-run (php/strspn s ascii-blank-chars)]
+                  (cond
+                    (php/=== ascii-run (php/strlen s))               true
+                    (php/< (php/ord (php/substr s ascii-run 1)) 128) false
+                    :else                                            (php/=== 1 (php/preg_match
+                                                                                 "/^[\\t\\n\\x0B\\f\\r\\x1C-\\x1F \\x{1680}\\x{2000}-\\x{2006}\\x{2008}-\\x{200A}\\x{2028}\\x{2029}\\x{205F}\\x{3000}]*$/u"
+                                                                                 s))))
     (nil? s)    true
-    (string? s) (not= 0 (php/preg_match
-                         "/^[\\t\\n\\x0B\\f\\r\\x1C-\\x1F \\x{1680}\\x{2000}-\\x{2006}\\x{2008}-\\x{200A}\\x{2028}\\x{2029}\\x{205F}\\x{3000}]*$/u"
-                         s))
     :else       (throw (new InvalidArgumentException (str "blank? expects a string or nil, got " (type s))))))
 
 (defn starts-with?
@@ -193,7 +238,11 @@ This is a convenience function for converting strings to character sequences. Pr
   {:example "(contains? \"hello world\" \"lo wo\") ; => true"
    :see-also ["includes?" "starts-with?" "ends-with?"]}
   [s substr]
-  (includes? s substr))
+  ;; Spelled out rather than delegating to `includes?`: the delegation ran
+  ;; `assert-string` on both arguments a second time, and paid a call to do it.
+  (assert-string s)
+  (assert-string substr)
+  (php/str_contains s substr))
 
 (defn re-quote-replacement
   "Escapes special characters in a replacement string for literal use."
@@ -215,44 +264,57 @@ This is a convenience function for converting strings to character sequences. Pr
   "Returns the index of the first occurrence of value in s, or nil if not found. The optional from-index sets where the search begins; a negative from-index counts back from the end of s."
   {:example "(index-of \"hello world\" \"world\") ; => 6"
    :see-also ["last-index-of" "contains?"]}
-  [s value & [from-index]]
-  (let [from-index (or from-index 0)
-        from-index (let [abs (php/abs from-index)
-                         ;; Clamp to a valid mb_strpos offset: (dec (mb_strlen s))
-                         ;; is -1 for an empty string, which would otherwise raise
-                         ;; a ValueError instead of yielding nil.
-                         v   (max 0 (min abs (dec (php/mb_strlen s))))]
-                     (if (< from-index 0)
-                       (* v -1)
-                       v))
-        result     (php/mb_strpos s value from-index)]
-    (if (= result false)
-      nil
-      result)))
+  ;; Offset 0 needs none of the clamping below, and the clamp was the bulk of
+  ;; what a two-argument call cost: `mb_strlen` plus the `max`/`min` pair, to
+  ;; arrive back at 0.
+  ([s value]
+   (assert-string s)
+   (let [result (php/mb_strpos s value 0)]
+     (if (= result false)
+       nil
+       result)))
+  ([s value from-index]
+   (assert-string s)
+   (let [requested (or from-index 0)
+         ;; Clamp to a valid mb_strpos offset: (dec (mb_strlen s)) is -1 for an
+         ;; empty string, which would otherwise raise a ValueError instead of
+         ;; yielding nil.
+         clamped   (max 0 (min (php/abs requested) (dec (php/mb_strlen s))))
+         offset    (if (< requested 0) (* clamped -1) clamped)
+         result    (php/mb_strpos s value offset)]
+     (if (= result false)
+       nil
+       result))))
 
 (defn last-index-of
   "Returns the index of the last occurrence of value in s, or nil if not found. The optional from-index sets the upper bound for the match; a negative from-index counts back from the end of s."
   {:example "(last-index-of \"hello world world\" \"world\") ; => 12"
    :see-also ["index-of" "contains?"]}
-  [s value & [from-index]]
-  (let [len        (php/mb_strlen s)
-        max-index  (dec len)
-        from-index (or from-index max-index)
-        from-index (let [abs (php/abs from-index)
-                         v   (min abs max-index)]
-                     (if (< from-index 0)
-                       (- max-index v)
-                       v))
-        result     (php/mb_strrpos s value 0)]
-    (if (php/=== result false)
-      nil
-      (if (<= result from-index)
-        result
-        (let [sub    (php/mb_substr s 0 (php/+ from-index 1))
-              result (php/mb_strrpos sub value 0)]
-          (if (php/=== result false)
-            nil
-            result))))))
+  ;; Without a from-index the upper bound is the end of the string, so the
+  ;; last match always satisfies it and neither the bound nor the re-search
+  ;; over a prefix is needed.
+  ([s value]
+   (assert-string s)
+   (let [result (php/mb_strrpos s value 0)]
+     (if (php/=== result false)
+       nil
+       result)))
+  ([s value from-index]
+   (assert-string s)
+   (let [max-index (dec (php/mb_strlen s))
+         requested (or from-index max-index)
+         clamped   (min (php/abs requested) max-index)
+         bound     (if (< requested 0) (- max-index clamped) clamped)
+         result    (php/mb_strrpos s value 0)]
+     (if (php/=== result false)
+       nil
+       (if (<= result bound)
+         result
+         (let [prefix        (php/mb_substr s 0 (php/+ bound 1))
+               bounded-match (php/mb_strrpos prefix value 0)]
+           (if (php/=== bounded-match false)
+             nil
+             bounded-match)))))))
 
 (defn split-lines
   "Splits s on \\n or \\r\\n. Trailing empty lines are not returned."
@@ -269,20 +331,17 @@ This is a convenience function for converting strings to character sequences. Pr
 (defn pad-left
   "Returns a string padded on the left side to length len."
   {:example "(pad-left \"hello\" 10) ; => \"     hello\""}
-  [s len & [pad-str]]
-  (assert-string s)
-  (php/str_pad s len (pad-or-space pad-str) php/STR_PAD_LEFT))
+  ([s len] (assert-string s) (php/str_pad s len " " php/STR_PAD_LEFT))
+  ([s len pad-str] (assert-string s) (php/str_pad s len (pad-or-space pad-str) php/STR_PAD_LEFT)))
 
 (defn pad-right
   "Returns a string padded on the right side to length len."
   {:example "(pad-right \"hello\" 10) ; => \"hello     \""}
-  [s len & [pad-str]]
-  (assert-string s)
-  (php/str_pad s len (pad-or-space pad-str) php/STR_PAD_RIGHT))
+  ([s len] (assert-string s) (php/str_pad s len " " php/STR_PAD_RIGHT))
+  ([s len pad-str] (assert-string s) (php/str_pad s len (pad-or-space pad-str) php/STR_PAD_RIGHT)))
 
 (defn pad-both
   "Returns a string padded on both sides to length len."
   {:example "(pad-both \"hello\" 11) ; => \"   hello   \""}
-  [s len & [pad-str]]
-  (assert-string s)
-  (php/str_pad s len (pad-or-space pad-str) php/STR_PAD_BOTH))
+  ([s len] (assert-string s) (php/str_pad s len " " php/STR_PAD_BOTH))
+  ([s len pad-str] (assert-string s) (php/str_pad s len (pad-or-space pad-str) php/STR_PAD_BOTH)))
