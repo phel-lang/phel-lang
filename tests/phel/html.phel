@@ -95,3 +95,17 @@
          (html (when true [:div (for [i :range [0 6]] "x")]))))
   (is (= "<div>xxxxxx</div>"
          (html (when-not false [:div (for [i :range [0 6]] "x")])))))
+
+(deftest test-escape-html-flags
+  ;; The flags are a hoisted constant now, so pin what they mean.
+  ;; ENT_QUOTES covers both quote styles.
+  (is (= "&quot;" (html/escape-html "\"")))
+  (is (= "&#039;" (html/escape-html "'")))
+  (is (= "&lt;div&gt;" (html/escape-html "<div>")))
+  (is (= "&amp;" (html/escape-html "&")))
+  (is (= "" (html/escape-html "")))
+  (is (= "plain" (html/escape-html "plain")))
+  (is (= "héllo" (html/escape-html "héllo")))
+  ;; ENT_SUBSTITUTE: invalid UTF-8 becomes U+FFFD rather than an empty string.
+  (is (= "\u{FFFD}" (html/escape-html (php/chr 255))))
+  (is (not= "" (html/escape-html (str "bad" (php/chr 255))))))
