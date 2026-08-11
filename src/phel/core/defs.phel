@@ -4,6 +4,7 @@
 (use Phel.Lang.Collections.LinkedList.PersistentListInterface)
 (use Phel.Lang.Collections.Map.PersistentMapInterface)
 (use Phel.Lang.Collections.Vector.PersistentVectorInterface)
+(use Phel.Lang.SeqInterface)
 (use Phel.Lang.Symbol)
 
 ;; The macro-definition layer that the rest of the language is built on.
@@ -25,7 +26,16 @@
   (fn [coll]
     (if (php/is_array coll)
       coll
-      (apply php/array coll))))
+      ;; `SeqInterface` declares `toArray`, and every sequential type reaches
+      ;; it: `PersistentVectorInterface` and `PersistentListInterface` both
+      ;; extend it, as do the lazy seqs and `Cons`. Going through `apply`
+      ;; instead spread the collection into a variadic call and rebuilt the
+      ;; array from the iterator. Maps, sets and strings have no `toArray` and
+      ;; keep the old path, which is also the only one that can flatten a map
+      ;; into pairs.
+      (if (php/instanceof coll SeqInterface)
+        (php/-> coll (toArray))
+        (apply php/array coll)))))
 
 (def defn-builder
   {:macro true, :private true}

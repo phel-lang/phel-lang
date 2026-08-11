@@ -117,6 +117,7 @@ Standard library:
 
 Runtime core:
 
+- Build a PHP array in `to-php-array` with `SeqInterface::toArray` instead of spreading the collection through `apply`, which rebuilt it from the iterator: 3.3x on a three-element vector and 8.7x on a hundred-element one, carrying `phel.string/join` 2.2x with it. Maps, sets and strings have no `toArray` and keep the old path, which is also the only one that flattens a map into pairs (#3057)
 - Give `map` and `filter` fixed arities instead of a rest argument plus a count check: 2.7 times faster to call, and 3 times for the transducer arity (#3021)
 - Compare two native ints in `<`, `<=`, `>` and `>=` without the numeric-tower dispatch: 2.5 to 2.7 times faster, down to raw PHP comparison speed (#2984)
 - **BREAKING** `sort-by` now calls its key function once per element instead of twice per comparison, so an *impure* key function runs far fewer times (100 rather than about 1114 when sorting 100 elements). The sorted result is unchanged. Up to 2.2 times faster; recorded in `docs/spec/clojure-divergences.md` since Clojure calls per comparison (#3006)
