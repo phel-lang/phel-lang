@@ -55,7 +55,7 @@
 (defn properties
   "Returns a vector of property maps for `class-or-name`. Each map contains
   `:name`, `:type`, `:static?`, `:readonly?`, and `:visibility`."
-  {:example "(properties \\DateInterval)"}
+  {:example "(properties DateInterval)"}
   [class-or-name]
   (let [rc (reflection-class class-or-name)]
     (vec (for [p :in (.getProperties rc)]
@@ -63,7 +63,7 @@
 
 (defn supers
   "Returns a set of fully qualified parent classes and implemented interfaces for `class-or-name`."
-  {:example "(supers \\RuntimeException)"}
+  {:example "(supers RuntimeException)"}
   [class-or-name]
   (let [rc    (reflection-class class-or-name)
         names (transient (hash-set))
@@ -95,21 +95,21 @@
 
 (defn class-attributes
   "Returns a vector of attribute maps for the class `class-or-name` (string FQN or object). Each map is `{:name <attribute-fqcn> :args {...}}`, where `:args` keys named arguments as keywords and positional arguments by index."
-  {:example "(class-attributes \\App\\Controller\\ProductController)"
+  {:example "(class-attributes App.Controller.ProductController)"
    :see-also ["method-attributes" "property-attributes" "attributes"]}
   [class-or-name]
   (attributes-of (reflection-class class-or-name)))
 
 (defn method-attributes
   "Returns a vector of attribute maps for method `method-name` on `class-or-name`."
-  {:example "(method-attributes \\App\\Foo \"handle\")"
+  {:example "(method-attributes App.Foo \"handle\")"
    :see-also ["class-attributes" "property-attributes"]}
   [class-or-name method-name]
   (attributes-of (.getMethod (reflection-class class-or-name) method-name)))
 
 (defn property-attributes
   "Returns a vector of attribute maps for property `property-name` on `class-or-name`."
-  {:example "(property-attributes \\App\\Foo \"id\")"
+  {:example "(property-attributes App.Foo \"id\")"
    :see-also ["class-attributes" "method-attributes"]}
   [class-or-name property-name]
   (attributes-of (.getProperty (reflection-class class-or-name) property-name)))
@@ -124,7 +124,7 @@
 (defn class-info
   "Returns a map describing `class-or-name` with `:name`, `:methods`,
   `:properties`, `:parents`, and `:interfaces` keys."
-  {:example "(class-info \\DateTime)"
+  {:example "(class-info DateTime)"
    :see-also ["methods" "properties" "supers"]}
   [class-or-name]
   (let [rc     (reflection-class class-or-name)
@@ -154,7 +154,7 @@
 
 (defn keyword->enum
   "Returns the case of the native PHP enum `enum-class` (string FQN) whose name matches keyword `kw`, or nil when no case matches. Inverse of `enum->keyword`."
-  {:example "(keyword->enum \\App\\Status :Active)"
+  {:example "(keyword->enum App.Status :Active)"
    :see-also ["enum->keyword" "enum-values"]}
   [enum-class kw]
   (let [case-name (name kw)]
@@ -164,7 +164,7 @@
 (defn enum-values
   "Returns a vector of keywords, one per case of the native PHP enum
   `enum-class` (string FQN), in declaration order."
-  {:example "(enum-values \\App\\Status)"
+  {:example "(enum-values App.Status)"
    :see-also ["enum->keyword" "keyword->enum"]}
   [enum-class]
   (vec (for [c :in (.cases enum-class)]

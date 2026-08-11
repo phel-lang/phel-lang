@@ -282,7 +282,7 @@ returns 1. If `xs` has one value, returns the reciprocal of x.
    (reduce #(NumericOperations/divide %1 %2) (NumericOperations/divide x y) more)))
 
 (defn quot
-  "Returns the truncated integer quotient of `dividend` / `divisor`. Truncates toward zero. Throws `\\DivisionByZeroError` when `divisor` is zero."
+  "Returns the truncated integer quotient of `dividend` / `divisor`. Truncates toward zero. Throws `DivisionByZeroError` when `divisor` is zero."
   {:example "(quot 7 3) ; => 2\n(quot -7 3) ; => -2"
    :see-also ["rem" "mod" "/"]}
   [dividend divisor]
@@ -767,7 +767,7 @@ returns 1. If `xs` has one value, returns the reciprocal of x.
 
 (defn bigint?
   "Returns true when `x` is a `Phel\\Lang\\BigInt` value."
-  {:example "(bigint? (\\Phel\\Lang\\BigInt/fromInt 1)) ; => true"
+  {:example "(bigint? (Phel.Lang.BigInt/fromInt 1)) ; => true"
    :see-also ["int?" "ratio?" "number?"]}
   [x]
   (php/instanceof x BigInt))

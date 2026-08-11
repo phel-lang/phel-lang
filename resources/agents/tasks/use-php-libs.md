@@ -13,7 +13,7 @@
 | Property | `(.-prop obj)` |
 | Static property | read `Class/$prop`, write `(set! Class/prop v)` |
 | Fn (global) | `(php/strlen s)` |
-| Fn (namespaced) | `(php/Amp\trapSignal xs)` |
+| Fn (namespaced) | `(php/Amp.trapSignal xs)` |
 | Superglobal | `php/$_SERVER`, `php/$_GET`, `php/$GLOBALS`, ... |
 | PHP array indexed | `#php [1 2 3]` |
 | PHP array assoc | `#php {:k "v"}` |
@@ -71,7 +71,7 @@ composer require guzzlehttp/guzzle
 ## Shortcuts
 
 ```phel
-(def trap-signal php/\Amp\trapSignal)
+(def trap-signal php/Amp.trapSignal)
 (trap-signal [php/SIGINT php/SIGTERM])
 ```
 

@@ -24,13 +24,13 @@
 
   A property access (`(.-prop obj)`) assigns the property, as does any other
   place `php/oset` accepts. A **qualified symbol naming a member of a PHP
-  class** (`\\Foo/slot`) assigns that static property. Any other **symbol**
+  class** (`Foo/slot`) assigns that static property. Any other **symbol**
   names a dynamic var and assigns its current thread-local binding, throwing
   when no `binding` frame is active, so it never writes the root by accident;
   `alter-var-root` is the way to change a root.
 
   A macro rather than a function because the place is a location, not a value."
-  {:example "(let [o (new \\ArrayObject)] (set! (.-y o) 2024)) ; => 2024\n(def ^:dynamic *x* 0)\n(binding [*x* 1] (set! *x* 2) *x*) ; => 2"
+  {:example "(let [o (new ArrayObject)] (set! (.-y o) 2024)) ; => 2024\n(def ^:dynamic *x* 0)\n(binding [*x* 1] (set! *x* 2) *x*) ; => 2"
    :see-also ["var-set" "alter-var-root" "aset" "php/oset"]}
   [place value]
   (cond
@@ -62,7 +62,7 @@
   rather than a literal. `target` is either an object or a class-name string
   for a static method. Matches ClojureScript's `js-invoke`; use the dot
   syntax (`(.format d \"Y\")`) whenever the name is known at compile time."
-  {:example "(php-invoke (new \\DateTimeImmutable \"2024-03-10\") \"format\" \"Y\") ; => \"2024\"\n(let [m \"format\"] (php-invoke (new \\DateTimeImmutable \"2024-03-10\") m \"Y\")) ; => \"2024\""
+  {:example "(php-invoke (new DateTimeImmutable \"2024-03-10\") \"format\" \"Y\") ; => \"2024\"\n(let [m \"format\"] (php-invoke (new DateTimeImmutable \"2024-03-10\") m \"Y\")) ; => \"2024\""
    :see-also ["php/callable" "apply"]}
   [target method & args]
   (let [callable (php-indexed-array target method)]
