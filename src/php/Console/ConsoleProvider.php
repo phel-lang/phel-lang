@@ -11,6 +11,7 @@ use Gacela\Framework\Container\Container;
 use Gacela\Framework\ServiceResolver\ServiceMap;
 use Phel\Console\Domain\ConsoleCommandProviderInterface;
 use Phel\Console\Infrastructure\Command\ApiCommands;
+use Phel\Console\Infrastructure\Command\BalanceCommands;
 use Phel\Console\Infrastructure\Command\BuildCommands;
 use Phel\Console\Infrastructure\Command\FormatterCommands;
 use Phel\Console\Infrastructure\Command\FrameworkCommands;
@@ -75,6 +76,7 @@ final class ConsoleProvider extends AbstractProvider
             new FrameworkCommands(),
             new NreplCommands(),
             new LintCommands(),
+            new BalanceCommands(),
             new ProfileCommands(),
             new LspCommands(),
             new WatchCommands(),

@@ -292,7 +292,7 @@
   - `(:or p1 p2 ...)` — matches any alternative (no inner bindings)
 
   A trailing `:else expr` provides the default branch; without it a
-  no-match raises `\\RuntimeException`."
+  no-match raises `RuntimeException`."
   {:doc "Pattern matching over a vector of targets."
    :see-also ["cond" "case" "condp"]
    :example "(match [x y] [0 _] :zero-x [_ 0] :zero-y [a b] [:both a b])"}

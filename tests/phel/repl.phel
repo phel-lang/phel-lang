@@ -233,7 +233,7 @@
         (eval-str (str "(ns " original-ns ")"))))))
 
 (deftest test-eval-capturing-error-case
-  (let [result (eval-capturing "(throw (new \\Exception \"boom\"))")]
+  (let [result (eval-capturing "(throw (new Exception \"boom\"))")]
     (is (= false (get result :success)) "eval-capturing reports failure on error")
     (is (= nil (get result :value)) "eval-capturing has nil value on error")
     (is (string? (get result :error)) "eval-capturing has error message string")
@@ -256,7 +256,7 @@
       "a top-level def still compiles to its definition call"))
 
 (deftest test-compile-str-does-not-evaluate
-  (is (s/contains? (compile-str "(throw (new \\Exception \"compile-str must not run this\"))")
+  (is (s/contains? (compile-str "(throw (new Exception \"compile-str must not run this\"))")
                    "compile-str must not run this")
       "compile-str returns the emitted PHP without executing it"))
 

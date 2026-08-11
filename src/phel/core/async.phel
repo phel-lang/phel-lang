@@ -103,7 +103,7 @@ PHP fibers are cooperative on a single thread, so `pmap` overlaps IO-bound work 
 (defn future-done?
   "Returns `true` if the future is in a final state (completed, failed, or cancelled).
 
-Dispatches on type: for a `\\Phel\\Fiber\\Domain\\Future` (fiber-backed) it calls `isDone`; for any other value it falls back to `realized?`. This lets the same predicate serve both the AMPHP `Future` wrapper and the cooperative fiber future."
+Dispatches on type: for a `Phel.Fiber.Domain.Future` (fiber-backed) it calls `isDone`; for any other value it falls back to `realized?`. This lets the same predicate serve both the AMPHP `Future` wrapper and the cooperative fiber future."
   {:example "(future-done? f)"
    :see-also ["realized?" "future-cancel" "future" "future-fiber"]}
   [f]

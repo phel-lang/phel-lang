@@ -1174,7 +1174,7 @@ With one argument returns an infinite lazy sequence of calls to f."
 
 (defn iterator-seq
   "Returns a lazy sequence over a PHP `Traversable` (Iterator, Generator, IteratorAggregate, ...), pulling one element at a time. Unlike the eager coercion that materialises a `Traversable` via `iterator_to_array`, this streams a large or infinite source (DB cursor, stream reader, paginated API), so `take`/`map`/`filter` only pull what they consume."
-  {:example "(take 3 (iterator-seq (new \\ArrayIterator (php-indexed-array 1 2 3 4 5)))) ; => @[1 2 3]"
+  {:example "(take 3 (iterator-seq (new ArrayIterator (php-indexed-array 1 2 3 4 5)))) ; => @[1 2 3]"
    :see-also ["lazy-seq" "map" "take"]}
   [traversable]
   (LazySeq/fromTraversable (new Hasher) (new Equalizer) traversable))

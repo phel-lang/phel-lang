@@ -77,7 +77,7 @@
 
 (defn mock-throwing
   "Creates a mock that throws an exception when called."
-  {:example "(def my-mock (mock-throwing (new \\RuntimeException \"API unavailable\")))"}
+  {:example "(def my-mock (mock-throwing (new RuntimeException \"API unavailable\")))"}
   [exception]
   (let [call-history (atom [])]
     (register-mock!
