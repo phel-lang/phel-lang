@@ -53,6 +53,23 @@ final readonly class DelimiterScanner
         Token::T_NEWLINE,
     ];
 
+    /**
+     * Reader prefixes that consume the form after them. A closer appended
+     * directly behind one becomes that form, so the file stops parsing even
+     * though the delimiters now count out.
+     */
+    private const array PREFIX_AWAITING_A_FORM = [
+        Token::T_QUOTE,
+        Token::T_QUASIQUOTE,
+        Token::T_UNQUOTE,
+        Token::T_UNQUOTE_SPLICING,
+        Token::T_CARET,
+        Token::T_DEREF,
+        Token::T_VAR_QUOTE,
+        Token::T_COMMENT_MACRO,
+        Token::T_TAGGED_LITERAL,
+    ];
+
     public function __construct(
         private CompilerFacadeInterface $compilerFacade,
     ) {}
@@ -65,6 +82,9 @@ final readonly class DelimiterScanner
         $unexpectedClosers = [];
         $unterminatedStringLine = null;
         $endsInLineComment = false;
+        $danglingPrefixToken = null;
+        /** @var list<int> $topLevelOpenerLines */
+        $topLevelOpenerLines = [];
 
         foreach ($this->compilerFacade->lexString($code, $source) as $token) {
             $type = $token->getType();
@@ -75,6 +95,9 @@ final readonly class DelimiterScanner
 
             if (!in_array($type, self::TRIVIA, true)) {
                 $endsInLineComment = $type === Token::T_COMMENT;
+                $danglingPrefixToken = in_array($type, self::PREFIX_AWAITING_A_FORM, true)
+                    ? $token->getCode()
+                    : null;
             }
 
             if ($unterminatedStringLine === null && $this->isUnterminatedString($token)) {
@@ -82,6 +105,10 @@ final readonly class DelimiterScanner
             }
 
             if (isset(self::CLOSER_TEXT_FOR_OPENER[$type])) {
+                if ($this->columnOf($token) === 0) {
+                    $topLevelOpenerLines[] = $this->lineOf($token);
+                }
+
                 $stack[] = new OpenDelimiter(
                     $token->getCode(),
                     self::CLOSER_TEXT_FOR_OPENER[$type],
@@ -114,7 +141,43 @@ final readonly class DelimiterScanner
             }
         }
 
-        return new BalanceReport($stack, $unexpectedClosers, $unterminatedStringLine, $endsInLineComment);
+        return new BalanceReport(
+            $stack,
+            $unexpectedClosers,
+            $unterminatedStringLine,
+            $this->topLevelFormLineAfter($stack, $topLevelOpenerLines),
+            $danglingPrefixToken,
+            $endsInLineComment,
+        );
+    }
+
+    /**
+     * A form opening at column 0 after the outermost unclosed level means the
+     * author closed nothing and moved on to a new top-level form, so the missing
+     * closer belongs back there and not at the end of the file. Appending at the
+     * end instead produces a file that compiles with everything after the defect
+     * nested inside the open form, which is a silent change of meaning.
+     *
+     * Column 0 is the top-level convention `phel format` already enforces, and
+     * it is read off token positions rather than guessed. It is used only to
+     * refuse: a wrong reading costs a manual fix, never a rewritten program.
+     *
+     * @param list<OpenDelimiter> $stack
+     * @param list<int>           $topLevelOpenerLines
+     */
+    private function topLevelFormLineAfter(array $stack, array $topLevelOpenerLines): ?int
+    {
+        if ($stack === []) {
+            return null;
+        }
+
+        foreach ($topLevelOpenerLines as $line) {
+            if ($line > $stack[0]->line) {
+                return $line;
+            }
+        }
+
+        return null;
     }
 
     /**

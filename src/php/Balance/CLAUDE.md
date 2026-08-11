@@ -61,8 +61,10 @@ that. It also carries no positions.
 
 ## What it refuses to repair
 
-Repair only ever **appends** missing closers, innermost level first. Three cases
-are reported and left untouched, because each has more than one plausible fix:
+Repair only ever **appends** missing closers, innermost level first. Five cases
+are reported and left byte-identical, because each has more than one plausible
+fix. Refusing is the cheap error: it costs a manual fix, where a wrong repair
+costs a rewritten program.
 
 - **Surplus or mismatched closer.** `(foo]` could have meant `(foo)` or `[foo]`.
 - **Unterminated string literal.** The atom rule swallows an unclosed `"`, so in
@@ -73,6 +75,17 @@ are reported and left untouched, because each has more than one plausible fix:
 - **Source that will not lex.** An unterminated `#"regex"`, a bare `#` and the
   removed `#| |#` block comment raise `LexerValueException` rather than lexing to
   something countable. Handle lex failure, not only parse failure.
+- **A new top-level form after the unclosed level.** The dangerous one, because
+  the naive repair *compiles*. Given a missing `)` in `f` followed by a
+  column-0 `(defn g ...)`, appending at the end nests `g` inside `f` as a
+  closure: valid code, different program, reported as a success. Detected as a
+  column-0 opener on a line after the outermost unclosed level, the top-level
+  convention `phel format` already enforces, read off token positions. Used only
+  to refuse, never to place a closer. The message names the line the closer
+  belongs before.
+- **A trailing reader prefix.** `'`, `` ` ``, `~`, `~@`, `^`, `@`, `#'`, `#_`
+  and a tagged literal each read the form after them, so an appended closer
+  becomes that form: `#_)` counts out and does not parse.
 
 ## Where the closers land
 
@@ -81,3 +94,7 @@ have closed it. The exception is a trailing `;` comment: there the closers go on
 their own line, since appended inside the comment they would be text and the
 file still would not parse. `BalanceReport::endsInLineComment` carries that flag
 from the scan.
+
+`isBalanced()` and `isRepairable()` are not opposites. A file can be unbalanced
+and unrepairable at once, which is most of the list above, so never infer one
+from the other.

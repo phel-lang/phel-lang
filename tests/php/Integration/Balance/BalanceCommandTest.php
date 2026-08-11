@@ -105,6 +105,47 @@ final class BalanceCommandTest extends TestCase
         self::assertSame($source, file_get_contents($path));
     }
 
+    /**
+     * Appending at the end of this file compiles, with `g` becoming a closure
+     * inside `f` instead of a top-level definition. Reporting that as a repair
+     * would hand back a program that means something else.
+     */
+    #[PreserveGlobalState(false)]
+    #[RunInSeparateProcess]
+    public function test_it_refuses_to_repair_when_a_new_top_level_form_follows_the_unclosed_level(): void
+    {
+        $this->bootstrap();
+        $source = "(ns midfile)\n\n(defn f [x]\n  (+ x 1)\n\n(defn g [y]\n  (+ y 2))\n\n(println (g 10))\n";
+        $path = $this->writeFile('midfile.phel', $source);
+
+        $tester = new CommandTester(new BalanceCommand());
+        $exit = $tester->execute(['paths' => [$path], '--fix' => true]);
+
+        self::assertSame(1, $exit);
+        self::assertStringContainsString('belongs before line 6', $tester->getDisplay());
+        self::assertSame($source, file_get_contents($path));
+    }
+
+    /**
+     * `#_` reads the form after it, so an appended `)` becomes that form and the
+     * file stops parsing even though the delimiters count out.
+     */
+    #[PreserveGlobalState(false)]
+    #[RunInSeparateProcess]
+    public function test_it_refuses_to_repair_a_file_ending_in_a_reader_prefix(): void
+    {
+        $this->bootstrap();
+        $source = "(defn f [x]\n  (+ x 1)\n#_";
+        $path = $this->writeFile('prefix.phel', $source);
+
+        $tester = new CommandTester(new BalanceCommand());
+        $exit = $tester->execute(['paths' => [$path], '--fix' => true]);
+
+        self::assertSame(1, $exit);
+        self::assertStringContainsString('reads the next form', $tester->getDisplay());
+        self::assertSame($source, file_get_contents($path));
+    }
+
     #[PreserveGlobalState(false)]
     #[RunInSeparateProcess]
     public function test_it_refuses_to_repair_a_mismatched_closer(): void

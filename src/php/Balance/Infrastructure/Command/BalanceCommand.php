@@ -66,9 +66,12 @@ final class BalanceCommand extends Command
 Scans on the lexer's token stream, so a `(` inside a string, a `;` comment,
 a `#"regex"` or a `\(` character literal is not counted.
 
-Only missing closers are repaired, and only by appending them. A surplus or
-mismatched closer (`(foo]`) and an unterminated string are reported and left
-alone: both have more than one plausible fix.
+Only missing closers are repaired, and only by appending them. Anything with
+more than one plausible fix is reported and left untouched: a surplus or
+mismatched closer (`(foo]`), an unterminated string, a file that will not lex,
+a trailing reader prefix such as `#_`, and a missing closer with a new
+top-level form after it, where appending at the end would nest the rest of the
+file inside the open form.
 
 <info>Examples:</info>
   <comment>phel balance src</comment>                Report imbalances, change nothing

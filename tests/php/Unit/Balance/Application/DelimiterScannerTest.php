@@ -5,9 +5,13 @@ declare(strict_types=1);
 namespace PhelTest\Unit\Balance\Application;
 
 use Gacela\Framework\Gacela;
+use Generator;
 use Phel\Balance\Application\DelimiterScanner;
 use Phel\Compiler\CompilerFacade;
+use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
+
+use function sprintf;
 
 final class DelimiterScannerTest extends TestCase
 {
@@ -129,6 +133,69 @@ final class DelimiterScannerTest extends TestCase
         self::assertFalse($report->isRepairable());
         self::assertSame(1, $report->unterminatedStringLine);
         self::assertStringContainsString('unterminated string literal on line 1', (string) $report->unrepairableReason());
+    }
+
+    /**
+     * Appending at the end would compile, with `g` becoming a closure inside
+     * `f` instead of a top-level definition. A silent change of meaning is
+     * worse than the compile error it replaced.
+     */
+    public function test_it_refuses_to_repair_when_a_new_top_level_form_follows_the_unclosed_level(): void
+    {
+        $code = "(ns midfile)\n\n(defn f [x]\n  (+ x 1)\n\n(defn g [y]\n  (+ y 2))\n\n(println (g 10))\n";
+
+        $report = $this->scanner->scan($code, 'test.phel');
+
+        self::assertFalse($report->isRepairable());
+        self::assertSame(6, $report->topLevelFormLineAfterUnclosed);
+        self::assertStringContainsString('belongs before line 6', (string) $report->unrepairableReason());
+    }
+
+    public function test_it_still_repairs_when_the_unclosed_level_is_the_last_top_level_form(): void
+    {
+        $code = "(ns app)\n\n(defn a [x]\n  (+ x 1))\n\n(defn c [z]\n  (str z)\n";
+
+        $report = $this->scanner->scan($code, 'test.phel');
+
+        self::assertTrue($report->isRepairable(), (string) $report->unrepairableReason());
+        self::assertNull($report->topLevelFormLineAfterUnclosed);
+        self::assertSame(')', $report->missingClosers());
+    }
+
+    /**
+     * Each of these reads the form after it, so an appended closer becomes that
+     * form and the file stops parsing even though the delimiters now count out.
+     */
+    #[DataProvider('readerPrefixProvider')]
+    public function test_it_refuses_to_repair_a_file_ending_in_a_reader_prefix(string $prefix): void
+    {
+        $report = $this->scanner->scan("(defn f [x]\n  (+ x 1)\n" . $prefix, 'test.phel');
+
+        self::assertFalse($report->isRepairable(), sprintf('a trailing %s must not be repaired', $prefix));
+        self::assertSame($prefix, $report->danglingPrefixToken);
+        self::assertStringContainsString('reads the next form', (string) $report->unrepairableReason());
+    }
+
+    public static function readerPrefixProvider(): Generator
+    {
+        yield 'quote' => ["'"];
+        yield 'quasiquote' => ['`'];
+        yield 'unquote' => ['~'];
+        yield 'unquote-splicing' => ['~@'];
+        yield 'caret' => ['^'];
+        yield 'deref' => ['@'];
+        yield 'var-quote' => ["#'"];
+        yield 'form-skip' => ['#_'];
+        yield 'tagged literal' => ['#uuid'];
+    }
+
+    public function test_a_reader_prefix_with_its_form_does_not_block_a_repair(): void
+    {
+        $report = $this->scanner->scan("(def x '(1 2\n", 'test.phel');
+
+        self::assertNull($report->danglingPrefixToken, 'the quote already has its form, so appending is safe');
+        self::assertTrue($report->isRepairable());
+        self::assertSame('))', $report->missingClosers());
     }
 
     public function test_it_flags_a_trailing_line_comment(): void
