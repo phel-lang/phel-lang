@@ -23,3 +23,42 @@
     (is (= bytes (b64/decode-url "-vv8_Q==")))
     (is (= bytes (b64/decode-url "-vv8_Q" true)))
     (is (false? (b64/decode-url "-vv8_Q*" true)))))
+
+(def- all-bytes (apply str (map (fn [i] (php/chr i)) (range 0 256))))
+
+(deftest test-url-roundtrip-over-every-byte
+  ;; `encode-url` swaps characters with `strtr` and strips padding with `rtrim`,
+  ;; both of which work on bytes. A NUL or a high byte must survive untouched.
+  (is (= all-bytes (b64/decode-url (b64/encode-url all-bytes))))
+  (is (= "\0" (b64/decode-url (b64/encode-url "\0"))))
+  (is (= "" (b64/decode-url (b64/encode-url "")))))
+
+(deftest test-url-roundtrip-over-every-padding-residue
+  ;; Padding is rebuilt by rounding the length up to a multiple of 4, so every
+  ;; length mod 4 has to come back unchanged.
+  (foreach [n (range 0 41)]
+    (let [input (php/substr all-bytes 200 n)]
+      (is (= input (b64/decode-url (b64/encode-url input)))
+          (str "roundtrip at length " n)))))
+
+(deftest test-encode-url-strips-padding-and-swaps-both-characters
+  (let [encoded (b64/encode-url all-bytes)]
+    (is (false? (php/strpbrk encoded "+/=")) "no +, / or = may survive")
+    (is (php/str_contains encoded "-") "the + replacement must appear")
+    (is (php/str_contains encoded "_") "the / replacement must appear")))
+
+(deftest test-decode-url-tolerates-any-padding-spelling
+  (let [bytes (str (php/chr 250) (php/chr 251) (php/chr 252) (php/chr 253))]
+    (is (= bytes (b64/decode-url "-vv8_Q=")))
+    (is (= bytes (b64/decode-url "-vv8_Q===")))))
+
+(deftest test-decode-explicit-arities
+  ;; `decode` and `decode-url` took `& [strict?]`; the fixed arities must keep
+  ;; both the defaulted and the explicit spelling working.
+  (is (= "hello" (b64/decode "aGVsbG8=")))
+  (is (= "hello" (b64/decode "aGVsbG8=" false)))
+  (is (= "hello" (b64/decode "aGVsbG8=" nil)))
+  (is (false? (b64/decode "aGVsbG8*" true)))
+  (is (= "hello" (b64/decode-url "aGVsbG8")))
+  (is (= "hello" (b64/decode-url "aGVsbG8" false)))
+  (is (= "hello" (b64/decode-url "aGVsbG8" nil))))

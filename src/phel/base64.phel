@@ -1,5 +1,4 @@
-(ns phel.base64
-  (:require phel.string :as s))
+(ns phel.base64)
 
 (defn encode
   "Encodes a string to Base64."
@@ -10,28 +9,28 @@
 (defn decode
   "Decodes a Base64 string. When `strict?` is true, validates that the input contains only characters from the Base64 alphabet and returns false on invalid input (defaults to false)."
   {:example "(decode \"SGVsbG8=\") ; => \"Hello\""}
-  [s & [strict?]]
-  (php/base64_decode s (or strict? false)))
+  ([s] (php/base64_decode s false))
+  ([s strict?] (php/base64_decode s (or strict? false))))
 
 (defn encode-url
   "Encodes a string to URL-safe Base64 (no padding)."
   {:example "(encode-url \"Hello\") ; => \"SGVsbG8\""}
   [s]
-  (-> (encode s)
-      (s/replace "+" "-")
-      (s/replace "/" "_")
-      (s/replace "=" "")))
+  ;; `strtr` swaps the two alphabet bytes in one pass, and `=` is only ever
+  ;; trailing padding in Base64 output, so `rtrim` removing it is exact.
+  ;; `php/base64_encode` rather than `encode`: the wrapper adds nothing here,
+  ;; and its call is most of what the whole function now costs.
+  (php/rtrim (php/strtr (php/base64_encode s) "+/" "-_") "="))
 
 (defn decode-url
   "Decodes a URL-safe Base64 string, adding padding automatically. When
   `strict?` is true, validates that the input contains only valid Base64
   characters (defaults to false)."
   {:example "(decode-url \"SGVsbG8\") ; => \"Hello\""}
-  [s & [strict?]]
-  (let [s   (s/replace s "-" "+")
-        s   (s/replace s "_" "/")
-        len (php/strlen s)
-        rem (php/fmod len 4)
-        pad (php/fmod (- 4 rem) 4)
-        s   (str s (s/repeat "=" pad))]
-    (decode s (or strict? false))))
+  ([s] (decode-url s false))
+  ([s strict?]
+   ;; Round the length up to the next multiple of 4 and let `str_pad` add the
+   ;; `=` run; a length already on the boundary asks for no padding at all.
+   (let [swapped       (php/strtr s "-_" "+/")
+         padded-length (* 4 (php/intdiv (+ (php/strlen swapped) 3) 4))]
+     (php/base64_decode (php/str_pad swapped padded-length "=") (or strict? false)))))

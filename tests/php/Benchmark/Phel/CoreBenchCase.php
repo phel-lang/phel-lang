@@ -57,9 +57,25 @@ abstract class CoreBenchCase
     public function setUp(): void
     {
         Phel::bootstrap(dirname(__DIR__, 4));
-        new RunFacade()->runNamespace('phel.core');
+        $runFacade = new RunFacade();
+        $runFacade->runNamespace('phel.core');
+        foreach ($this->extraNamespaces() as $namespace) {
+            $runFacade->runNamespace($namespace);
+        }
 
         $this->setUpFixtures();
+    }
+
+    /**
+     * Bundled namespaces a subject needs on top of `phel.core`, named one by
+     * one rather than through `loadPhelNamespaces()`: see the note on
+     * {@see self::setUp} for why the whole bundle is too expensive to pull in.
+     *
+     * @return list<string>
+     */
+    protected function extraNamespaces(): array
+    {
+        return [];
     }
 
     /**
@@ -74,9 +90,18 @@ abstract class CoreBenchCase
      */
     final protected function coreFn(string $name): callable
     {
-        $fn = Phel::getDefinition('phel.core', $name);
+        return $this->phelFn('phel.core', $name);
+    }
+
+    /**
+     * The same lookup against any bundled namespace the subject declared in
+     * {@see self::extraNamespaces}.
+     */
+    final protected function phelFn(string $namespace, string $name): callable
+    {
+        $fn = Phel::getDefinition($namespace, $name);
         if (!is_callable($fn)) {
-            throw new RuntimeException(sprintf('phel.core/%s is not callable; is core loaded?', $name));
+            throw new RuntimeException(sprintf('%s/%s is not callable; is the namespace loaded?', $namespace, $name));
         }
 
         return $fn;
