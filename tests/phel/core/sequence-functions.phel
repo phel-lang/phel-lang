@@ -428,6 +428,21 @@
   (is (= (php-indexed-array 3 2 1) (to-php-array [3 2 1])) "to-php-array")
   (is (= (php-indexed-array "a" "b" "c") (to-php-array "abc")) "to-php-array string characters"))
 
+(deftest test-to-php-array-over-every-input-shape
+  ;; Sequential types now go through `SeqInterface::toArray`; everything else
+  ;; keeps the `apply` path. Both must answer what they always did.
+  (is (= (php-indexed-array 1 2 3) (to-php-array '(1 2 3))) "list")
+  (is (= (php-indexed-array) (to-php-array [])) "empty vector")
+  (is (= (php-indexed-array) (to-php-array '())) "empty list")
+  (is (= (php-indexed-array 1 2 3) (to-php-array (subvec [0 1 2 3] 1 4))) "subvector")
+  (is (= (php-indexed-array 1 2 3) (to-php-array (cons 1 '(2 3)))) "cons")
+  (is (= (php-indexed-array 2 3 4) (to-php-array (map inc [1 2 3]))) "lazy seq")
+  (is (= (php-indexed-array 0 1 2) (to-php-array (range 0 3))) "range")
+  (is (= (php-indexed-array 1 2) (to-php-array (php-indexed-array 1 2))) "a PHP array passes through")
+  ;; A map has no `toArray`, and only the `apply` path flattens it to pairs.
+  (is (= 2 (php/count (to-php-array {:a 1, :b 2}))) "map yields one entry per pair")
+  (is (= [:a 1] (php/aget (to-php-array {:a 1}) 0)) "map entries stay key/value vectors"))
+
 (deftest test-sort
   (is (= [] (sort nil)) "sort nil")
   (is (= [1 2 3] (sort [3 2 1])) "sort")

@@ -38,6 +38,15 @@ final class CoreConstructionBench extends CoreBenchCase
     /** @var callable */
     private $str;
 
+    /** @var callable */
+    private $toPhpArray;
+
+    private mixed $smallVector = null;
+
+    private mixed $largeVector = null;
+
+    private mixed $map = null;
+
     /** Typed `mixed` so `str` cannot see a string and skip its conversion. */
     private mixed $a = 'a';
 
@@ -139,9 +148,58 @@ final class CoreConstructionBench extends CoreBenchCase
         }
     }
 
+    /**
+     * `to-php-array` over a sequential collection (#3021 A6). It used to be
+     * `(apply php/array coll)`, which spread the collection into a variadic
+     * call and rebuilt the array from the iterator; `SeqInterface::toArray`
+     * does it directly.
+     *
+     * Two sizes, because the old cost grew with the collection and the new one
+     * barely does: 1.08μs to 0.47μs at three elements, 10.61μs to 1.39μs at a
+     * hundred, against a ~0.18μs empty-closure floor.
+     *
+     * @Revs(1000)
+     */
+    public function bench_to_php_array_small(): void
+    {
+        for ($i = 0; $i < self::INNER; ++$i) {
+            ($this->toPhpArray)($this->smallVector);
+        }
+    }
+
+    /**
+     * Called once per rev rather than folded into the `INNER` loop: the cost
+     * already grows with the input, so the timer is negligible against it.
+     *
+     * @Revs(1000)
+     */
+    public function bench_to_php_array_large(): void
+    {
+        ($this->toPhpArray)($this->largeVector);
+    }
+
+    /**
+     * A map has no `toArray`, so it still goes through `apply`. Paired with the
+     * two above it shows the branch is doing what it claims: this one should
+     * not move.
+     *
+     * @Revs(1000)
+     */
+    public function bench_to_php_array_map(): void
+    {
+        for ($i = 0; $i < self::INNER; ++$i) {
+            ($this->toPhpArray)($this->map);
+        }
+    }
+
     protected function setUpFixtures(): void
     {
         $this->hashSet = $this->coreFn('hash-set');
         $this->str = $this->coreFn('str');
+
+        $this->toPhpArray = $this->coreFn('to-php-array');
+        $this->smallVector = Phel::vector(['a', 'b', 'c']);
+        $this->largeVector = Phel::vector(range(0, 99));
+        $this->map = Phel::map(Phel::keyword('a'), 1, Phel::keyword('b'), 2);
     }
 }
