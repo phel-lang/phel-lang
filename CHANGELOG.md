@@ -106,6 +106,10 @@ All notable changes to this project will be documented in this file.
 - Keep the PHAR within its release size budget by excluding dependency-only Gacela tooling
 - Exclude the release-announcement scripts and `infection.json5` from the PHAR (#2994)
 
+Standard library:
+
+- Rewrite `phel.base64/encode-url` and `decode-url` around one `strtr` instead of a chain of `phel.string/replace` calls, each of which asserts, builds a delimited pattern with `preg_quote` and runs `preg_replace` to swap a single character: 28x and 17x faster. Both, plus `decode`, also take fixed arities in place of `& [strict?]`, which makes `decode` 5.2x faster and means a third argument is now an arity error rather than silently ignored (#3021)
+
 Runtime core:
 
 - Give `map` and `filter` fixed arities instead of a rest argument plus a count check: 2.7 times faster to call, and 3 times for the transducer arity (#3021)
