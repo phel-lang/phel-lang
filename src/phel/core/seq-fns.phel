@@ -1201,7 +1201,10 @@ With one argument returns an infinite lazy sequence of calls to f."
   ;;
   ;; Use LazySeq (not ChunkedSeq) throughout so the head is not pre-realized:
   ;; the result must not satisfy `realized?` until accessed.
-  ([] '())
+  ;; Not `'()`: the zero-argument call has to hand back an unrealized lazy seq
+  ;; too. The old body only reached `'()` when the rest argument was nil, which
+  ;; `(concat)` never produced.
+  ([] (LazySeq/fromGenerator (new Hasher) (new Equalizer) (Seq/concat)))
   ([coll]
    (LazySeq/fromGenerator (new Hasher) (new Equalizer) (Seq/concat coll)))
   ([coll1 coll2]

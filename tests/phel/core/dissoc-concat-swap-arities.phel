@@ -31,7 +31,11 @@
 
 (deftest test-concat-stays-unrealized
   ;; The arities all build a LazySeq rather than a ChunkedSeq, so the head must
-  ;; not be realized until it is accessed.
+  ;; not be realized until it is accessed. This includes the zero-argument call,
+  ;; which the Clojure suite pins and phel's own suite did not.
+  (is (false? (realized? (concat))) "no collections")
+  (is (true? (lazy-seq? (concat))) "no collections is still a lazy seq")
+  (is (false? (realized? (concat [1 2]))) "one collection")
   (is (false? (realized? (concat [1 2] [3 4]))) "two collections")
   (is (false? (realized? (concat [1 2] [3 4] [5 6]))) "three collections")
   (is (false? (realized? (concat [1 2] [3 4] [5 6] [7 8]))) "the variadic tail"))
