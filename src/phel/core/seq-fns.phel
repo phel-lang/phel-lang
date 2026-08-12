@@ -1194,17 +1194,30 @@ With one argument returns an infinite lazy sequence of calls to f."
 (defn concat
   "Concatenates multiple collections into a lazy sequence."
   {:example "(concat [1 2] [3 4]) ; => @[1 2 3 4]"}
-  [& colls]
-  (if (php/=== nil colls)
-    '()
-    ;; Use LazySeq (not ChunkedSeq) so the head is not pre-realized:
-    ;; the result must not satisfy `realized?` until accessed.
-    (LazySeq/fromGenerator
-     (new Hasher)
-     (new Equalizer)
-     (php/call_user_func_array
-      (php-indexed-array "\\Phel\\Lang\\Seq" "concat")
-      (apply php/array colls)))))
+  ;; Fixed arities for the counts that occur. The variadic tail had to build a
+  ;; PHP array of its collections and dispatch through `call_user_func_array`
+  ;; even to join two of them; `Seq/concat` is variadic in PHP, so the fixed
+  ;; arities hand it the collections directly (#2973, #3021).
+  ;;
+  ;; Use LazySeq (not ChunkedSeq) throughout so the head is not pre-realized:
+  ;; the result must not satisfy `realized?` until accessed.
+  ;; Not `'()`: the zero-argument call has to hand back an unrealized lazy seq
+  ;; too. The old body only reached `'()` when the rest argument was nil, which
+  ;; `(concat)` never produced.
+  ([] (LazySeq/fromGenerator (new Hasher) (new Equalizer) (Seq/concat)))
+  ([coll]
+   (LazySeq/fromGenerator (new Hasher) (new Equalizer) (Seq/concat coll)))
+  ([coll1 coll2]
+   (LazySeq/fromGenerator (new Hasher) (new Equalizer) (Seq/concat coll1 coll2)))
+  ([coll1 coll2 coll3]
+   (LazySeq/fromGenerator (new Hasher) (new Equalizer) (Seq/concat coll1 coll2 coll3)))
+  ([coll1 coll2 coll3 & colls]
+   (LazySeq/fromGenerator
+    (new Hasher)
+    (new Equalizer)
+    (php/call_user_func_array
+     (php-indexed-array "\\Phel\\Lang\\Seq" "concat")
+     (apply php/array coll1 coll2 coll3 colls)))))
 
 (defn cat
   "A transducer that concatenates the contents of each input into the reduction."

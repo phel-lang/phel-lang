@@ -78,6 +78,14 @@ final class CoreSeqBench extends CoreBenchCase
     /** @var callable */
     private $distinct;
 
+    /** @var callable */
+    private $concat;
+
+    /** @var callable */
+    private $dissoc;
+
+    private mixed $dissocKey = null;
+
     private mixed $vector = null;
 
     /** @var list<int> */
@@ -419,8 +427,41 @@ final class CoreSeqBench extends CoreBenchCase
         }
     }
 
+    /**
+     * `dissoc`, `concat` and `swap!` took a rest argument for counts that are
+     * almost always one or two (#3021 A4). `concat` is the sharpest: joining
+     * two collections built a PHP array of them and went through
+     * `call_user_func_array`, where `Seq::concat` is variadic in PHP already.
+     *
+     * Floor-subtracted, same process: `concat` 2.22μs to 0.73μs, `dissoc`
+     * 2.27μs to 0.98μs, `swap!` 1.75μs to 0.58μs at one extra argument.
+     *
+     * @Revs(1000)
+     */
+    public function bench_concat_two(): void
+    {
+        for ($i = 0; $i < self::INNER; ++$i) {
+            ($this->concat)($this->vector, $this->vector);
+        }
+    }
+
+    /**
+     * @Revs(1000)
+     */
+    public function bench_dissoc_one_key(): void
+    {
+        for ($i = 0; $i < self::INNER; ++$i) {
+            ($this->dissoc)($this->map, $this->dissocKey);
+        }
+    }
+
     protected function setUpFixtures(): void
     {
+        $this->concat = $this->coreFn('concat');
+        $this->dissoc = $this->coreFn('dissoc');
+        // `$this->map` is the shared two-entry fixture set further down.
+        $this->dissocKey = Phel::keyword('b');
+
         $this->slice = $this->coreFn('slice');
         $this->take = $this->coreFn('take');
         $this->distinct = $this->coreFn('distinct');
