@@ -269,11 +269,15 @@ When `from` is associative, it is treated as a sequence of key-value pairs. Supp
 (defn slice
   "Extracts a slice of `coll` starting at `offset` with optional `length`."
   {:example "(slice [1 2 3 4 5] 1 3) ; => [2 3 4]"}
-  [coll & [offset & [length]]]
-  (cond
-    (php-array? coll) (php/array_slice coll offset length)
-    (php/instanceof coll SliceInterface) (.slice coll offset length)
-    (throw (new InvalidArgumentException "Cannot slice"))))
+  ;; Fixed arities rather than `[coll & [offset & [length]]]`: the nested rest
+  ;; destructure allocated and unpacked twice for arguments the caller passed
+  ;; positionally (#2973, #3021). `take-last` routes through here.
+  ([coll offset] (slice coll offset nil))
+  ([coll offset length]
+   (cond
+     (php-array? coll)                    (php/array_slice coll offset length)
+     (php/instanceof coll SliceInterface) (.slice coll offset length)
+     (throw (new InvalidArgumentException "Cannot slice")))))
 
 ;; Clojure's subvec runs indices through RT.intCast: numbers truncate toward
 ;; zero, NaN counts as 0, ±Inf collapses to int min/max (then fails bounds),
@@ -412,23 +416,23 @@ Creates intermediate maps if they don't exist."
   "Drops the first `n` elements of `coll`. Returns a lazy sequence. When called with n only, returns a transducer."
   {:example "(drop 2 [1 2 3 4 5]) ; => @[3 4 5]"
    :see-also ["take" "drop-last" "transduce"]}
-  [n & args]
-  (case (count args)
-    0 (fn [rf]
-        (let [nv (volatile! n)]
-          (xf-step rf (fn [result input]
-                        (let [n @nv]
-                          (when (php/> n 0) (vreset! nv (php/- n 1)))
-                          (if (php/> n 0) result (rf result input)))))))
-    1 (let [coll (first args)]
-        (if (nil? coll)
-          []
-          (let [n (if (php/< n 0) 0 n)]
-            (if (php/=== n 0)
-              coll
-              (let [result (lazy-seq-from-generator (Seq/drop n coll))]
-                (copy-meta coll (or result [])))))))
-    (throw (new InvalidArgumentException "drop expects 1 or 2 arguments"))))
+  ;; Fixed arities: the rest argument was allocated, counted, then unpacked
+  ;; with `first` to recover what the caller passed positionally (#2973, #3021).
+  ([n]
+   (fn [rf]
+     (let [nv (volatile! n)]
+       (xf-step rf (fn [result input]
+                     (let [n @nv]
+                       (when (php/> n 0) (vreset! nv (php/- n 1)))
+                       (if (php/> n 0) result (rf result input))))))))
+  ([n coll]
+   (if (nil? coll)
+     []
+     (let [n (if (php/< n 0) 0 n)]
+       (if (php/=== n 0)
+         coll
+         (let [result (lazy-seq-from-generator (Seq/drop n coll))]
+           (copy-meta coll (or result []))))))))
 
 (defn drop-last
   "Drops the last `n` elements of `coll`. `n` defaults to `1` when omitted, matching Clojure's `(drop-last coll)` single-arity form. Returns an empty sequence when `coll` is `nil`. Works with any seqable collection including lazy sequences and ranges."
@@ -465,45 +469,45 @@ Creates intermediate maps if they don't exist."
   "Drops all elements at the front of `coll` where `(pred x)` is true. Returns a lazy sequence. When called with pred only, returns a transducer."
   {:example "(drop-while #(< % 5) [1 2 3 4 5 6 3 2 1]) ; => @[5 6 3 2 1]"
    :see-also ["take-while" "drop" "transduce"]}
-  [pred & args]
-  (case (count args)
-    0 (fn [rf]
-        (let [dv (volatile! true)]
-          (xf-step rf (fn [result input]
-                        (if (and @dv (pred input))
-                          result
-                          (do (vreset! dv false) (rf result input)))))))
-    1 (let [coll (first args)]
-        (if (nil? coll)
-          []
-          (let [result (lazy-seq-from-generator (Seq/dropWhile pred coll))]
-            (copy-meta coll (or result [])))))
-    (throw (new InvalidArgumentException "drop-while expects 1 or 2 arguments"))))
+  ;; Fixed arities: the rest argument was allocated, counted, then unpacked
+  ;; with `first` to recover what the caller passed positionally (#2973, #3021).
+  ([pred]
+   (fn [rf]
+     (let [dv (volatile! true)]
+       (xf-step rf (fn [result input]
+                     (if (and @dv (pred input))
+                       result
+                       (do (vreset! dv false) (rf result input))))))))
+  ([pred coll]
+   (if (nil? coll)
+     []
+     (let [result (lazy-seq-from-generator (Seq/dropWhile pred coll))]
+       (copy-meta coll (or result []))))))
 
 (defn take
   "Takes the first `n` elements of `coll`. When called with n only, returns a transducer."
   {:example "(take 2 [1 2 3 4]) ; => @[1 2]"
    :see-also ["drop" "take-while"]}
-  [n & args]
-  (case (count args)
-    0 (fn [rf]
-        (let [nv (volatile! n)]
-          (xf-step rf (fn [result input]
-                        (let [n      @nv
-                              nn     (vreset! nv (php/- n 1))
-                              result (if (php/> n 0) (rf result input) result)]
-                          (if (php/<= nn 0) (ensure-reduced result) result))))))
-    1 (if (int? n)
-        (let [coll (first args)
-              n    (if (php/< n 0) 0 n)]
-          (if (php/=== n 0)
-            []
-            (let [result (lazy-seq-from-generator (Seq/take n coll))]
-              (if (nil? result)
-                []
-                (copy-meta coll result)))))
-        (throw (new InvalidArgumentException (str "take expects an integer count, got " (type n)))))
-    (throw (new InvalidArgumentException "take expects 1 or 2 arguments"))))
+  ;; Fixed arities: the rest argument was allocated, counted, then unpacked
+  ;; with `first` to recover what the caller passed positionally (#2973, #3021).
+  ([n]
+   (fn [rf]
+     (let [nv (volatile! n)]
+       (xf-step rf (fn [result input]
+                     (let [n      @nv
+                           nn     (vreset! nv (php/- n 1))
+                           result (if (php/> n 0) (rf result input) result)]
+                       (if (php/<= nn 0) (ensure-reduced result) result)))))))
+  ([n coll]
+   (if (int? n)
+     (let [n (if (php/< n 0) 0 n)]
+       (if (php/=== n 0)
+         []
+         (let [result (lazy-seq-from-generator (Seq/take n coll))]
+           (if (nil? result)
+             []
+             (copy-meta coll result)))))
+     (throw (new InvalidArgumentException (str "take expects an integer count, got " (type n)))))))
 
 (defn- take-last-buffered
   [n coll]
@@ -530,38 +534,38 @@ Creates intermediate maps if they don't exist."
   "Takes all elements at the front of `coll` where `(pred x)` is true. Returns a lazy sequence. When called with pred only, returns a transducer."
   {:example "(take-while #(< % 5) [1 2 3 4 5 6 3 2 1]) ; => @[1 2 3 4]"
    :see-also ["drop-while" "take" "transduce"]}
-  [pred & args]
-  (case (count args)
-    0 (fn [rf]
-        (xf-step rf (fn [result input]
-                      (if (pred input) (rf result input) (reduced result)))))
-    1 (let [coll (first args)]
-        (if (nil? coll)
-          []
-          (let [result (lazy-seq-from-generator (Seq/takeWhile pred coll))]
-            (copy-meta coll (or result [])))))
-    (throw (new InvalidArgumentException "take-while expects 1 or 2 arguments"))))
+  ;; Fixed arities: the rest argument was allocated, counted, then unpacked
+  ;; with `first` to recover what the caller passed positionally (#2973, #3021).
+  ([pred]
+   (fn [rf]
+     (xf-step rf (fn [result input]
+                   (if (pred input) (rf result input) (reduced result))))))
+  ([pred coll]
+   (if (nil? coll)
+     []
+     (let [result (lazy-seq-from-generator (Seq/takeWhile pred coll))]
+       (copy-meta coll (or result []))))))
 
 (defn take-nth
   "Returns every nth item in `coll`. Returns a lazy sequence. When called with n only, returns a transducer."
   {:example "(take-nth 2 [0 1 2 3 4 5 6 7 8]) ; => @[0 2 4 6 8]"
    :see-also ["take" "filter" "transduce"]}
-  [n & args]
-  (case (count args)
-    0 (fn [rf]
-        (let [iv (volatile! -1)]
-          (xf-step rf (fn [result input]
-                        (let [i (vreset! iv (php/+ @iv 1))]
-                          (if (php/=== 0 (php/% i n))
-                            (rf result input) result))))))
-    1 (let [coll (first args)
-            s    (seq coll)]
-        (cond
-          (nil? s)     []
-          (php/<= n 0) (copy-meta coll (lazy-seq-from-generator (Seq/repeat (first s))))
-          :else        (let [result (lazy-seq-from-generator (Seq/takeNth n coll))]
-                         (copy-meta coll (or result [])))))
-    (throw (new InvalidArgumentException "take-nth expects 1 or 2 arguments"))))
+  ;; Fixed arities: the rest argument was allocated, counted, then unpacked
+  ;; with `first` to recover what the caller passed positionally (#2973, #3021).
+  ([n]
+   (fn [rf]
+     (let [iv (volatile! -1)]
+       (xf-step rf (fn [result input]
+                     (let [i (vreset! iv (php/+ @iv 1))]
+                       (if (php/=== 0 (php/% i n))
+                         (rf result input) result)))))))
+  ([n coll]
+   (let [s (seq coll)]
+     (cond
+       (nil? s)     []
+       (php/<= n 0) (copy-meta coll (lazy-seq-from-generator (Seq/repeat (first s))))
+       :else        (let [result (lazy-seq-from-generator (Seq/takeNth n coll))]
+                      (copy-meta coll (or result [])))))))
 
 (defn filter
   "Returns a lazy sequence of elements where predicate returns true. When called with pred only, returns a transducer."
@@ -605,47 +609,46 @@ Creates intermediate maps if they don't exist."
   "Returns a lazy sequence of elements where predicate returns false. Opposite of filter. When called with pred only, returns a transducer."
   {:example "(remove even? [1 2 3 4 5 6]) ; => @[1 3 5]"
    :see-also ["filter" "transduce"]}
-  [pred & args]
-  (case (count args)
-    0 (filter #(not (pred %)))
-    1 (filter #(not (pred %)) (first args))
-    (throw (new InvalidArgumentException "remove expects 1 or 2 arguments"))))
+  ;; Fixed arities: the rest argument was allocated, counted, then unpacked
+  ;; with `first` to recover what the caller passed positionally (#2973, #3021).
+  ([pred] (filter #(not (pred %))))
+  ([pred coll] (filter #(not (pred %)) coll)))
 
 (defn keep
   "Returns a lazy sequence of non-nil results of applying function to elements. When called with f only, returns a transducer."
   {:example "(keep #(when (even? %) (* % %)) [1 2 3 4 5]) ; => @[4 16]"
    :see-also ["keep-indexed" "filter" "transduce"]}
-  [pred & args]
-  (case (count args)
-    0 (fn [rf]
-        (xf-step rf (fn [result input]
-                      (let [v (pred input)]
-                        (if (nil? v) result (rf result v))))))
-    1 (let [coll (first args)]
-        (if (nil? coll)
-          []
-          (let [result (lazy-seq-from-generator (Seq/keep pred coll))]
-            (copy-meta coll (or result [])))))
-    (throw (new InvalidArgumentException "keep expects 1 or 2 arguments"))))
+  ;; Fixed arities: the rest argument was allocated, counted, then unpacked
+  ;; with `first` to recover what the caller passed positionally (#2973, #3021).
+  ([pred]
+   (fn [rf]
+     (xf-step rf (fn [result input]
+                   (let [v (pred input)]
+                     (if (nil? v) result (rf result v)))))))
+  ([pred coll]
+   (if (nil? coll)
+     []
+     (let [result (lazy-seq-from-generator (Seq/keep pred coll))]
+       (copy-meta coll (or result []))))))
 
 (defn keep-indexed
   "Returns a lazy sequence of non-nil results of `(pred i x)`. When called with f only, returns a transducer."
   {:example "(keep-indexed #(when (even? %1) %2) [\"a\" \"b\" \"c\" \"d\"]) ; => @[\"a\" \"c\"]"
    :see-also ["keep" "map-indexed" "transduce"]}
-  [pred & args]
-  (case (count args)
-    0 (fn [rf]
-        (let [iv (volatile! -1)]
-          (xf-step rf (fn [result input]
-                        (let [i (vreset! iv (php/+ @iv 1))
-                              v (pred i input)]
-                          (if (nil? v) result (rf result v)))))))
-    1 (let [coll (first args)]
-        (if (nil? coll)
-          []
-          (let [result (lazy-seq-from-generator (Seq/keepIndexed pred coll))]
-            (copy-meta coll (or result [])))))
-    (throw (new InvalidArgumentException "keep-indexed expects 1 or 2 arguments"))))
+  ;; Fixed arities: the rest argument was allocated, counted, then unpacked
+  ;; with `first` to recover what the caller passed positionally (#2973, #3021).
+  ([pred]
+   (fn [rf]
+     (let [iv (volatile! -1)]
+       (xf-step rf (fn [result input]
+                     (let [i (vreset! iv (php/+ @iv 1))
+                           v (pred i input)]
+                       (if (nil? v) result (rf result v))))))))
+  ([pred coll]
+   (if (nil? coll)
+     []
+     (let [result (lazy-seq-from-generator (Seq/keepIndexed pred coll))]
+       (copy-meta coll (or result []))))))
 
 (defn- find-entry
   [coll key]
@@ -684,25 +687,25 @@ Creates intermediate maps if they don't exist."
   "Returns a lazy sequence with duplicated values removed in `coll`. When called with no args, returns a transducer."
   {:example "(distinct [1 2 1 3 2 4 3]) ; => @[1 2 3 4]"
    :see-also ["frequencies" "set" "dedupe" "transduce"]}
-  [& args]
-  (case (count args)
-    0 (fn [rf]
-        (let [seen (volatile! (hash-set))]
-          (xf-step rf (fn [result input]
-                        (if (contains? @seen input)
-                          result
-                          (do (vswap! seen conj input) (rf result input)))))))
-    1 (let [coll (first args)]
-        (if (nil? coll)
-          []
-          ;; LazySeq keeps the seq unrealized until accessed; ChunkedSeq
-          ;; would pre-pull 32 unique elements at construction.
-          (let [result (LazySeq/fromGenerator
-                        (new Hasher)
-                        (new Equalizer)
-                        (Seq/distinct coll))]
-            (copy-meta coll result))))
-    (throw (new InvalidArgumentException "distinct expects 0 or 1 arguments"))))
+  ;; Fixed arities: the rest argument was allocated, counted, then unpacked
+  ;; with `first` to recover what the caller passed positionally (#2973, #3021).
+  ([]
+   (fn [rf]
+     (let [seen (volatile! (hash-set))]
+       (xf-step rf (fn [result input]
+                     (if (contains? @seen input)
+                       result
+                       (do (vswap! seen conj input) (rf result input))))))))
+  ([coll]
+   (if (nil? coll)
+     []
+     ;; LazySeq keeps the seq unrealized until accessed; ChunkedSeq
+     ;; would pre-pull 32 unique elements at construction.
+     (let [result (LazySeq/fromGenerator
+                   (new Hasher)
+                   (new Equalizer)
+                   (Seq/distinct coll))]
+       (copy-meta coll result)))))
 
 (defn distinct?
   "Returns true if no two of the arguments are `=`. Requires at least one argument."
@@ -1221,49 +1224,52 @@ With one argument returns an infinite lazy sequence of calls to f."
   concatenated."
   {:example "(mapcat reverse [[1 2] [3 4]]) ; => @[2 1 4 3]\n(mapcat list [:a :b :c] [1 2 3]) ; => @[:a 1 :b 2 :c 3]"
    :see-also ["map" "cat" "transduce"]}
-  [f & args]
-  (case (count args)
-    0 (comp (map f) cat)
-    1 (let [coll (first args)]
-        (if (php/=== nil coll)
-          '()
-          (let [input  (if (map? coll) (pairs coll) coll)
-                result (lazy-seq-from-generator
-                        (Phel.Lang.Seq/mapcat f input))]
-            (if (php/=== nil result)
-              '()
-              (copy-meta coll result)))))
-    (apply concat (apply map f args))))
+  ;; Fixed arities: the rest argument was allocated, counted, then unpacked
+  ;; with `first` to recover what the caller passed positionally (#2973, #3021).
+  ;; The multi-collection tail is a real case rather than an error, so it keeps
+  ;; the rest argument it genuinely needs.
+  ([f] (comp (map f) cat))
+  ([f coll]
+   (if (php/=== nil coll)
+     '()
+     (let [input  (if (map? coll) (pairs coll) coll)
+           result (lazy-seq-from-generator
+                   (Phel.Lang.Seq/mapcat f input))]
+       (if (php/=== nil result)
+         '()
+         (copy-meta coll result)))))
+  ([f coll & colls] (apply concat (apply map f coll colls))))
 
 (defn interpose
   "Returns elements separated by a separator. Returns a lazy sequence. When called with sep only, returns a transducer."
   {:example "(interpose 0 [1 2 3]) ; => @[1 0 2 0 3]"
    :see-also ["transduce"]}
-  [sep & args]
-  (case (count args)
-    0 (fn [rf]
-        (let [started (volatile! false)]
-          (fn [& iargs]
-            (case (count iargs)
-              0 (rf)
-              1 (rf (first iargs))
-              2 (let [result (first iargs) input (second iargs)]
-                  (if @started
-                    (let [sepr (rf result sep)]
-                      (if (reduced? sepr)
-                        (ensure-reduced @sepr)
-                        (rf sepr input)))
-                    (do (vreset! started true) (rf result input))))))))
-    1 (let [coll (first args)]
-        (if (php/=== nil coll)
-          '()
-          (let [seqd   (or (seq coll) coll)
-                result (lazy-seq-from-generator
-                        (Phel.Lang.Seq/interpose sep seqd))]
-            (if (php/=== nil result)
-              '()
-              (copy-meta coll result)))))
-    (throw (new InvalidArgumentException "interpose expects 1 or 2 arguments"))))
+  ;; Fixed arities: the rest argument was allocated, counted, then unpacked
+  ;; with `first` to recover what the caller passed positionally (#2973, #3021).
+  ([sep]
+   (fn [rf]
+     (let [started (volatile! false)]
+       ;; The reducing function is the three-arity transducer protocol, and it
+       ;; runs once per element, so it takes real arities too.
+       (fn
+         ([] (rf))
+         ([result] (rf result))
+         ([result input]
+          (if @started
+            (let [sepr (rf result sep)]
+              (if (reduced? sepr)
+                (ensure-reduced @sepr)
+                (rf sepr input)))
+            (do (vreset! started true) (rf result input))))))))
+  ([sep coll]
+   (if (php/=== nil coll)
+     '()
+     (let [seqd   (or (seq coll) coll)
+           result (lazy-seq-from-generator
+                   (Phel.Lang.Seq/interpose sep seqd))]
+       (if (php/=== nil result)
+         '()
+         (copy-meta coll result))))))
 
 (defn map-indexed
   "Maps a function over a collection with index. Returns a lazy sequence.
@@ -1462,20 +1468,20 @@ If map has duplicated values, some keys will be ignored."
   "Returns a lazy sequence with consecutive duplicate values removed in `coll`. When called with no args, returns a transducer."
   {:example "(dedupe [1 1 2 2 2 3 1 1]) ; => @[1 2 3 1]"
    :see-also ["distinct" "transduce"]}
-  [& args]
-  (case (count args)
-    0 (fn [rf]
-        (let [pv (volatile! :phel/none)]
-          (xf-step rf (fn [result input]
-                        (let [prior @pv]
-                          (vreset! pv input)
-                          (if (= prior input) result (rf result input)))))))
-    1 (let [coll (first args)]
-        (cond
-          (nil? coll)                              []
-          (and (indexed? coll) (= 0 (count coll))) []
-          true                                     (lazy-seq-from-generator (Seq/dedupe coll))))
-    (throw (new InvalidArgumentException "dedupe expects 0 or 1 arguments"))))
+  ;; Fixed arities: the rest argument was allocated, counted, then unpacked
+  ;; with `first` to recover what the caller passed positionally (#2973, #3021).
+  ([]
+   (fn [rf]
+     (let [pv (volatile! :phel/none)]
+       (xf-step rf (fn [result input]
+                     (let [prior @pv]
+                       (vreset! pv input)
+                       (if (= prior input) result (rf result input))))))))
+  ([coll]
+   (cond
+     (nil? coll)                              []
+     (and (indexed? coll) (= 0 (count coll))) []
+     true                                     (lazy-seq-from-generator (Seq/dedupe coll)))))
 
 (defn sequence
   "Applies transducer `xform` to `coll`, returning a vector of results."

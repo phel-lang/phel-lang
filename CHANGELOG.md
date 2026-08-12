@@ -90,6 +90,7 @@ All notable changes to this project will be documented in this file.
 - BC: `get` declares `[ds k]` and `[ds k opt]` instead of `[ds k & [opt]]`; a fourth argument is now an arity error rather than silently ignored (#2960)
 - BC: `(max)` and `(min)` with no arguments are now rejected at compile time (PHEL002) rather than throwing `ArgumentCountError` at runtime, since both declare their arities (#2991)
 - Declaring `bool` on the comparison operators lets the compiler infer more return types than before: a `defn` whose body is `(= x 5)` now emits `: bool`, and one branching on `(= x nil)` to two int literals now emits `: int`. More type information, but visible in generated output (#2979)
+- BC: the twelve seq functions and `slice` declare their arities, so a wrong argument count raises an arity error rather than the hand-written "expects 1 or 2 arguments" message; `(slice coll)` without an offset is now an arity error too (#3065)
 - BC: `reduce` and `into` declare their arities, so a wrong argument count raises an arity error rather than the hand-written "expected 2 or 3 arguments" message (#2975)
 - BC: `get-in` declares `[ds ks]` and `[ds ks opt]` instead of `[ds ks & [opt]]`; a fourth argument is now an arity error rather than silently ignored (#2964)
 - BC: `(arity get)` and `(arity assoc)` now report `0`. Both became multi-arity, and a multi-arity function compiles to one variadic dispatch, which `arity` documents as `0` (#2960 #2962)
@@ -117,6 +118,7 @@ Compiler:
 
 Runtime core:
 
+- Give `take`, `drop`, `take-while`, `drop-while`, `take-nth`, `keep`, `keep-indexed`, `remove`, `mapcat`, `interpose`, `dedupe`, `distinct` and `slice` fixed arities instead of a rest argument plus a `case` over its count, as `map` and `filter` already had. A flat ~1.0us per call: 3.2x to 3.5x on the transducer arities, 3.3x on `slice`, down to 1.03x on `mapcat` where realization dominates (#3065)
 - Build `to-php-array`'s result with `SeqInterface::toArray` instead of spreading through `apply`: 3.3x at three elements, 8.7x at a hundred, carrying `phel.string/join` 2.2x with it (#3057)
 - Give `map` and `filter` fixed arities instead of a rest argument plus a count check: 2.7 times faster to call, and 3 times for the transducer arity (#3021)
 - Compare two native ints in `<`, `<=`, `>` and `>=` without the numeric-tower dispatch: 2.5 to 2.7 times faster, down to raw PHP comparison speed (#2984)
