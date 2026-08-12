@@ -69,6 +69,17 @@ final class CoreSeqBench extends CoreBenchCase
     /** @var callable */
     private $compare;
 
+    /** @var callable */
+    private $slice;
+
+    /** @var callable */
+    private $take;
+
+    /** @var callable */
+    private $distinct;
+
+    private mixed $vector = null;
+
     /** @var list<int> */
     private array $intArray = [];
 
@@ -356,8 +367,65 @@ final class CoreSeqBench extends CoreBenchCase
         }
     }
 
+    /**
+     * `slice` took `[coll & [offset & [length]]]`, a rest destructure nested
+     * twice, and `take-last` routes through it (#3021 A3). Paired with the
+     * `SliceInterface` call the body now reaches directly: 2.46μs to 0.76μs
+     * against a ~0.12μs empty-closure floor.
+     *
+     * @Revs(1000)
+     */
+    public function bench_slice(): void
+    {
+        for ($i = 0; $i < self::INNER; ++$i) {
+            ($this->slice)($this->vector, 1, 5);
+        }
+    }
+
+    /**
+     * @Revs(1000)
+     */
+    public function bench_slice_raw(): void
+    {
+        for ($i = 0; $i < self::INNER; ++$i) {
+            $this->vector->slice(1, 5);
+        }
+    }
+
+    /**
+     * The transducer arity of the twelve functions split in #3021 A2. It is
+     * where the split shows most, because no realization dilutes it: `take`
+     * 0.66μs to 0.21μs, `distinct` 0.62μs to 0.18μs.
+     *
+     * Unpaired: what it measures is the cost of handing back the transducer,
+     * which has no raw-PHP twin.
+     *
+     * @Revs(1000)
+     */
+    public function bench_take_transducer(): void
+    {
+        for ($i = 0; $i < self::INNER; ++$i) {
+            ($this->take)(2);
+        }
+    }
+
+    /**
+     * @Revs(1000)
+     */
+    public function bench_distinct_transducer(): void
+    {
+        for ($i = 0; $i < self::INNER; ++$i) {
+            ($this->distinct)();
+        }
+    }
+
     protected function setUpFixtures(): void
     {
+        $this->slice = $this->coreFn('slice');
+        $this->take = $this->coreFn('take');
+        $this->distinct = $this->coreFn('distinct');
+        $this->vector = Phel::vector(range(0, 19));
+
         $this->sort = $this->coreFn('sort');
         $this->mapFn = $this->coreFn('map');
         $this->filterFn = $this->coreFn('filter');
