@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace PhelTest\Unit\Api\Application;
 
+use Generator;
 use Phel\Api\Application\SymbolExtractor;
 use Phel\Lang\Keyword;
 use Phel\Lang\SourceLocation;
@@ -65,6 +66,29 @@ final class SymbolExtractorTest extends TestCase
 
         self::assertInstanceOf(Definition::class, $definition);
         self::assertTrue($definition->private);
+    }
+
+    public function test_it_extracts_namespace_declaration_location(): void
+    {
+        $namespace = Symbol::create('phel.pprint');
+        $namespace->setStartLocation(new SourceLocation('pprint.phel', 3, 5));
+        $namespace->setEndLocation(new SourceLocation('pprint.phel', 3, 16));
+
+        $form = $this->list([Symbol::create('ns'), $namespace]);
+
+        $facade = $this->createStub(CompilerFacadeInterface::class);
+        $facade->method('readFormsBestEffort')->willReturn((static function () use ($form): Generator {
+            yield $form;
+        })());
+
+        $result = new SymbolExtractor($facade)->extract('(ns phel.pprint)', 'pprint.phel');
+
+        self::assertSame('phel.pprint', $result['namespace']);
+        self::assertNotNull($result['namespaceLocation']);
+        self::assertSame('pprint.phel', $result['namespaceLocation']->uri);
+        self::assertSame(3, $result['namespaceLocation']->line);
+        self::assertSame(5, $result['namespaceLocation']->col);
+        self::assertSame(16, $result['namespaceLocation']->endCol);
     }
 
     public function test_it_extracts_signature_and_namespace(): void

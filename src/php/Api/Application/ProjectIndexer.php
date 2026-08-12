@@ -57,6 +57,10 @@ final readonly class ProjectIndexer implements ProjectIndexerInterface
                     $definitions[$definition->fullName()] = $definition;
                 }
 
+                if ($result['namespace'] !== '' && $result['namespaceLocation'] instanceof Location) {
+                    $references[$result['namespace'] . '/'] = [$result['namespaceLocation']];
+                }
+
                 foreach ($result['references'] as $key => $locations) {
                     if (!isset($references[$key])) {
                         $references[$key] = [];

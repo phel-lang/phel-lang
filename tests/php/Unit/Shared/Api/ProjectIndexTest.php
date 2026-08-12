@@ -26,6 +26,15 @@ final class ProjectIndexTest extends TestCase
         self::assertSame(['user\\foo', 'user\\bar'], $index->namespaces());
     }
 
+    public function test_it_reports_a_namespace_that_has_no_definitions(): void
+    {
+        $location = new Location('empty.phel', 1, 5, 1, 10);
+        $index = new ProjectIndex([], ['user.empty/' => [$location]]);
+
+        self::assertSame(['user.empty'], $index->namespaces());
+        self::assertSame(1, $index->countNamespaces());
+    }
+
     public function test_it_filters_definitions_by_namespace(): void
     {
         $definitions = [

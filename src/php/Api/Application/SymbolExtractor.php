@@ -78,6 +78,7 @@ final readonly class SymbolExtractor
      *
      * @return array{
      *     namespace: string,
+     *     namespaceLocation: Location|null,
      *     definitions: list<Definition>,
      *     references: array<string, list<Location>>,
      * } possibly incomplete; see the class docblock
@@ -85,6 +86,7 @@ final readonly class SymbolExtractor
     public function extract(string $source, string $uri): array
     {
         $namespace = '';
+        $namespaceLocation = null;
         $definitions = [];
         /** @var array<string, list<Location>> $references */
         $references = [];
@@ -92,9 +94,18 @@ final readonly class SymbolExtractor
         try {
             foreach ($this->compilerFacade->readFormsBestEffort($source, $uri) as $form) {
                 if ($namespace === '') {
-                    $maybeNs = $this->tryExtractNamespace($form);
-                    if ($maybeNs !== '') {
-                        $namespace = $maybeNs;
+                    $namespaceSymbol = $this->tryExtractNamespace($form);
+                    if ($namespaceSymbol instanceof Symbol) {
+                        $namespace = $namespaceSymbol->getFullName();
+                        $start = $namespaceSymbol->getStartLocation();
+                        $end = $namespaceSymbol->getEndLocation();
+                        $namespaceLocation = new Location(
+                            $uri,
+                            $start?->getLine() ?? 0,
+                            $start?->getColumn() ?? 0,
+                            $end?->getLine() ?? 0,
+                            $end?->getColumn() ?? 0,
+                        );
                         continue;
                     }
                 }
@@ -112,6 +123,7 @@ final readonly class SymbolExtractor
 
         return [
             'namespace' => $namespace,
+            'namespaceLocation' => $namespaceLocation,
             'definitions' => $definitions,
             'references' => $references,
         ];
@@ -130,27 +142,27 @@ final readonly class SymbolExtractor
         return $this->tryExtractDefinition($form, $namespace, $uri);
     }
 
-    private function tryExtractNamespace(mixed $form): string
+    private function tryExtractNamespace(mixed $form): ?Symbol
     {
         if (!$form instanceof PersistentListInterface || count($form) === 0) {
-            return '';
+            return null;
         }
 
         $first = $form->get(0);
         if (!$first instanceof Symbol || $first->getName() !== Symbol::NAME_NS) {
-            return '';
+            return null;
         }
 
         if (count($form) < 2) {
-            return '';
+            return null;
         }
 
         $name = $form->get(1);
         if (!$name instanceof Symbol) {
-            return '';
+            return null;
         }
 
-        return $name->getFullName();
+        return $name;
     }
 
     private function tryExtractDefinition(mixed $form, string $namespace, string $uri): ?Definition

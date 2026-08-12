@@ -27,6 +27,7 @@ All notable changes to this project will be documented in this file.
 
 ### Fixed
 
+- LSP definition navigation now resolves namespace identifiers to their namespace source files
 - `phel.string/blank?` no longer reports invalid UTF-8 as blank; `preg_match` with `/u` returns `false` on malformed input and that read as a match (#3052)
 - `phel.string/trim-newline` no longer rewrites invalid UTF-8 bytes to `?`; the `mb_substr` walk substituted on them, so trimming could corrupt untouched input (#3050)
 - `(join ", " nil)` returns `""` rather than the separator; a nil collection made the old body swap its two arguments (#3052)

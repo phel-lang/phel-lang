@@ -5,9 +5,12 @@ declare(strict_types=1);
 namespace Phel\Shared\Api;
 
 use function array_filter;
+use function array_keys;
 use function array_unique;
 use function array_values;
 use function count;
+use function str_ends_with;
+use function substr;
 
 /**
  * Immutable symbol table keyed by `namespace/name`.
@@ -23,7 +26,7 @@ final readonly class ProjectIndex
 {
     /**
      * @param array<string, Definition>     $definitions keyed by `namespace/name`
-     * @param array<string, list<Location>> $references  keyed by `namespace/name`
+     * @param array<string, list<Location>> $references  keyed by `namespace/name`; an empty name stores the namespace declaration
      */
     public function __construct(
         public array $definitions,
@@ -38,6 +41,12 @@ final readonly class ProjectIndex
         $namespaces = [];
         foreach ($this->definitions as $def) {
             $namespaces[] = $def->namespace;
+        }
+
+        foreach (array_keys($this->references) as $key) {
+            if (str_ends_with($key, '/')) {
+                $namespaces[] = substr($key, 0, -1);
+            }
         }
 
         return array_values(array_unique($namespaces));
