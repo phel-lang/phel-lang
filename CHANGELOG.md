@@ -27,9 +27,9 @@ All notable changes to this project will be documented in this file.
 
 ### Fixed
 
-- `phel.string/blank?` no longer reports an invalid UTF-8 string as blank. `preg_match` with the `/u` modifier returns `false` on malformed input, and the old body read that as a match, so `(blank? "\xFF")` answered `true` (#3052)
-- `phel.string/trim-newline` no longer rewrites invalid UTF-8 bytes to `?`. It walked the string with `mb_substr`, which substitutes on a byte that is not valid UTF-8, so trimming could corrupt the input it was not asked to touch (#3050)
-- `phel.string/join` with an explicit nil collection returns `""` rather than the separator. `(join ", " nil)` answered `", "`, because a nil collection made the old body swap its two arguments (#3052)
+- `phel.string/blank?` no longer reports invalid UTF-8 as blank; `preg_match` with `/u` returns `false` on malformed input and that read as a match (#3052)
+- `phel.string/trim-newline` no longer rewrites invalid UTF-8 bytes to `?`; the `mb_substr` walk substituted on them, so trimming could corrupt untouched input (#3050)
+- `(join ", " nil)` returns `""` rather than the separator; a nil collection made the old body swap its two arguments (#3052)
 - `with-redefs` is no longer ignored after `phel eval` has loaded a required namespace. Loading a dependency runs under build mode, which also let the emitter pin global call sites into `static` slots, and the pinned artifact was written to the ordinary cache for later `phel test` runs to reuse (#3015)
 - `phel doc` and the API reference report every arity of a `def` over an `fn`. `defn` renders its arities into the docstring and a bare `def` does not, so 23 symbols published no signature at all, `defn` and `defmacro` among them, while `list`, `vector` and `hash-map` published a stale hardcoded one (#3012)
 - `empty?` no longer reports a lazy sequence whose first element is `nil` as empty. `(empty? (lazy-seq [nil]))` answered `true` while `count` answered 1 and `vec` answered `[nil]` (#3025)
@@ -105,26 +105,25 @@ All notable changes to this project will be documented in this file.
 
 ### Performance
 
-- Lower `(not x)` to a native `!` when `x` is already a proven PHP bool, instead of dispatching `phel.core/not`: 3.7 times faster, and in an `if` test the `Truthy` adapter goes too. Only a hard bool guarantee qualifies, never "looks like a predicate", because `(not 0)` is `false` in Phel while `!0` is `true` in PHP (#3021)
-- Keep the PHAR within its release size budget by excluding dependency-only Gacela tooling
-- Exclude the release-announcement scripts and `infection.json5` from the PHAR (#2994)
+Compiler:
 
-Standard library:
-
-- Hoist `phel.html/escape-html`'s `ENT_QUOTES | ENT_SUBSTITUTE` into a `def-` instead of recombining two compile-time constants on every call, where `bit-or`'s own `:inline` also allocated a closure per call: 4.4x on the function, and a whole-document render moves 110.5us to 92.2us, because it escapes every attribute name, attribute value and text node (#3054)
-- Rewrite the hot half of `phel.string`. `assert-string` becomes `:inline`, so a guard is an `is_string` test rather than a registry lookup; `index-of`, `last-index-of`, `subs`, `split`, `join` and the three `pad-*` take fixed arities in place of `& [x]`; `trim-newline` uses `rtrim` instead of walking backwards with `mb_substr`; `blank?` settles any string whose first non-blank byte is ASCII with `strspn` before reaching the unicode regex; `contains?` stops delegating to `includes?`, which ran the guards twice; and `split` builds its vector directly rather than through `vals`. Floor-subtracted, same process: `trim-newline` 8.4x, `last-index-of` 7.3x, `pad-left` 5.0x, `index-of` 4.8x, `join` 3.7x, `subs` 2.9x, `split` 2.2x, `contains?` 2.2x, `split-lines` 2.1x, `starts-with?` and `includes?` 1.8x, `blank?` and `lower-case` 1.6x. `join`'s residual is `to-php-array` (#3050 #3051 #3052)
-- Rewrite `phel.base64/encode-url` and `decode-url` around one `strtr` instead of a chain of `phel.string/replace` calls, each of which asserts, builds a delimited pattern with `preg_quote` and runs `preg_replace` to swap a single character: 28x and 17x faster. Both, plus `decode`, also take fixed arities in place of `& [strict?]`, which makes `decode` 5.2x faster and means a third argument is now an arity error rather than silently ignored (#3021)
+- Lower `(not x)` to a native `!` when `x` is a proven PHP bool: 3.7x, and an `if` test drops the `Truthy` adapter too (#3021)
+- Compile a literal `(list ...)`, `(vector ...)`, `(queue ...)`, `(hash-map ...)` or `(array-map ...)` straight to its `Phel` factory: 2.2 to 3.6 times faster (#3014)
+- Specialize `count` on a map-tagged local to a direct `->count()`, as `empty?` already did (#2985)
+- Infer a primitive tag for `let` bindings whose init is `if`, `do` or a nested `let` (#2987)
+- Carry a collection tag through a `let` rebinding, so `(let [w v] (nth w 0))` emits `$w->get(0)`; a vector destructure's temp reaches `first` directly too (#3021)
+- Let an inferred tag reach a nested `let`, which `if-let`, `when-let` and `binding` all expand to (#3040)
+- Read a class or `array` return type into the binding it initialises, not only a scalar one; nullable, union and intersection returns stay on dispatch (#3021)
 
 Runtime core:
 
-- Build a PHP array in `to-php-array` with `SeqInterface::toArray` instead of spreading the collection through `apply`, which rebuilt it from the iterator: 3.3x on a three-element vector and 8.7x on a hundred-element one, carrying `phel.string/join` 2.2x with it. Maps, sets and strings have no `toArray` and keep the old path, which is also the only one that flattens a map into pairs (#3057)
+- Build `to-php-array`'s result with `SeqInterface::toArray` instead of spreading through `apply`: 3.3x at three elements, 8.7x at a hundred, carrying `phel.string/join` 2.2x with it (#3057)
 - Give `map` and `filter` fixed arities instead of a rest argument plus a count check: 2.7 times faster to call, and 3 times for the transducer arity (#3021)
 - Compare two native ints in `<`, `<=`, `>` and `>=` without the numeric-tower dispatch: 2.5 to 2.7 times faster, down to raw PHP comparison speed (#2984)
 - **BREAKING** `sort-by` now calls its key function once per element instead of twice per comparison, so an *impure* key function runs far fewer times (100 rather than about 1114 when sorting 100 elements). The sorted result is unchanged. Up to 2.2 times faster; recorded in `docs/spec/clojure-divergences.md` since Clojure calls per comparison (#3006)
 - Give `+`, `-`, `*`, `max` and `min` fixed 3 and 4 argument arities: three arguments cost 11 to 12 times less for the operators and 3.5 times less for `max` and `min`, instead of 13 to 17 times more than two (#3017)
 - Give the closures returned by `partial`, `fnil` and `comp` real arities: 30x, 50x and 8x faster to call (#3021)
 - Guard the twelve nil-rejecting arithmetic functions with the fixed-arity macros instead of the variadic helper: `round` and `floor` 25x, `quot`, `rem` and `mod` 14 to 17x, `even?` and `odd?` 6 to 7x (#3018)
-- Compile a literal `(list ...)`, `(vector ...)`, `(queue ...)`, `(hash-map ...)` or `(array-map ...)` straight to its `Phel` factory: 2.2 to 3.6 times faster (#3014)
 - Give `list`, `vector`, `queue`, `hash-map` and `array-map` fixed arities, so the calls the literal lowering cannot reach get faster too: 2.1 to 3.4 times through an alias or `apply`, 1.5 times passed as a value to `map` (#3010)
 - Inline PHP array constructors and use `php-indexed-array` across core and standard libraries (#2941)
 - Speed up `re-find`, `re-matches` and `parse-long` by avoiding full match-map conversion (#2941 #2943)
@@ -137,11 +136,6 @@ Runtime core:
 - Inline the `seq?` check in `seq` and count countable collections without core dispatch (#2963)
 - Give `get-in` fixed arities and test the path with `nil?` rather than `empty?` per step (#2964)
 - Give `str` fixed arities up to three arguments, skipping the array and `implode` (#2974)
-- Specialize `count` on a map-tagged local to a direct `->count()`, as `empty?` already did (#2985)
-- Infer a primitive tag for `let` bindings whose init is `if`, `do` or a nested `let` (#2987)
-- Carry a collection tag through a `let` rebinding: `(let [w v] (nth w 0))` now emits `$w->get(0)` like `(nth v 0)` already did, and the temp a vector destructure binds the collection to reaches `first` as a direct method call (#3021)
-- Let an inferred tag reach a nested `let`, so `(let [n (php/count v)] (let [m n] (+ m 1)))` lowers to a native `+` like the flat `(let [n (php/count v) m n] ...)` already did. `if-let`, `when-let` and `binding` all expand to the nested shape (#3040)
-- Read a class or `array` return type into the binding it initialises, not only a scalar one, so `(let [a (mkvec)] (nth a 0))` over a fn returning a tagged vector emits `$a->get(0)`. Nullable, union and intersection returns stay on dispatch (#3021)
 - Inline the nil guard in `inc` and `dec`, which still called the variadic one (#2989)
 - Give `max` and `min` fixed arities, dropping a lazy sequence built to NaN-check two arguments (#2991)
 - Collect `for` results into a PHP array instead of an atom and a persistent `conj` per element (#2997)
@@ -152,6 +146,17 @@ Runtime core:
 - Declare real arities on `reduce` and `into` instead of a `case` over a rest argument (#2975)
 - Give `+`, `-`, `*` and `/` fixed arities, cutting untagged two-operand arithmetic 7.7x (#2978)
 - Give `=`, `not=`, `identical?`, `<`, `<=`, `>` and `>=` fixed arities and a declared `bool` return (#2979)
+
+Standard library:
+
+- Hoist `phel.html/escape-html`'s flag constant out of the call instead of recombining it per call: 4.4x, and 1.20x on a whole-document render (#3054)
+- Rewrite the hot half of `phel.string`: `assert-string` becomes `:inline`, seven functions take fixed arities in place of `& [x]`, `trim-newline` uses `rtrim`, `blank?` settles ASCII input with `strspn` before the unicode regex, `contains?` stops running its guards twice, and `split` builds its vector directly. 1.6x to 8.4x across fourteen functions (#3050 #3051 #3052)
+- Swap `phel.base64/encode-url` and `decode-url`'s alphabet with one `strtr` instead of a chain of `phel.string/replace` calls: 28x and 17x. All three also take fixed arities in place of `& [strict?]`, making `decode` 5.2x (#3021)
+
+Packaging:
+
+- Keep the PHAR within its release size budget by excluding dependency-only Gacela tooling
+- Exclude the release-announcement scripts and `infection.json5` from the PHAR (#2994)
 
 ### Removed
 
