@@ -1,0 +1,69 @@
+(ns phel-test.core.dissoc-concat-swap-arities
+  (:require phel.test :refer [deftest is]))
+
+;; `dissoc`, `concat` and `swap!` declare fixed arities for the counts that
+;; actually occur, instead of a rest argument the body then unpacks (#3021 A4).
+;; `for`'s `:range` verb splices a literal bound vector into `range` rather than
+;; emitting `apply` (#3021 A5). Every spelling has to keep answering what it did.
+
+(deftest test-dissoc-arities
+  (is (= {:a 1, :b 2} (dissoc {:a 1, :b 2})) "no keys returns ds unchanged")
+  (is (= {:a 1} (dissoc {:a 1, :b 2} :b)) "one key")
+  (is (= {:b 2} (dissoc {:a 1, :b 2, :c 3} :a :c)) "two keys")
+  (is (= {} (dissoc {:a 1, :b 2, :c 3} :a :b :c)) "every key")
+  (is (= {:a 1} (dissoc {:a 1} :missing)) "a key that is not there")
+  (is (nil? (dissoc nil :a)) "nil ds stays nil")
+  (is (nil? (dissoc nil :a :b)) "nil ds with several keys")
+  (is (= {:a 1} (dissoc (dissoc {:a 1, :b 2, :c 3} :b) :c)) "chained"))
+
+(deftest test-concat-arities
+  (is (= [] (vec (concat))) "no collections")
+  (is (= [1 2] (vec (concat [1 2]))) "one collection")
+  (is (= [1 2 3 4] (vec (concat [1 2] [3 4]))) "two collections")
+  (is (= [1 2 3 4 5 6] (vec (concat [1 2] [3 4] [5 6]))) "three collections")
+  (is (= [1 2 3 4 5 6 7 8] (vec (concat [1 2] [3 4] [5 6] [7 8]))) "four collections")
+  (is (= [1 2 3 4 5 6 7 8 9 10] (vec (concat [1 2] [3 4] [5 6] [7 8] [9 10]))) "five collections")
+  (is (= [] (vec (concat nil))) "a nil collection")
+  (is (= [1 2] (vec (concat nil [1 2] nil))) "nils among collections")
+  (is (= [] (vec (concat [] []))) "empty collections")
+  (is (= [1 2 3] (vec (concat (list 1 2) [3]))) "mixed collection types")
+  (is (= [1 2 3] (vec (apply concat [[1 2] [3]]))) "reached through apply"))
+
+(deftest test-concat-stays-unrealized
+  ;; The arities all build a LazySeq rather than a ChunkedSeq, so the head must
+  ;; not be realized until it is accessed.
+  (is (false? (realized? (concat [1 2] [3 4]))) "two collections")
+  (is (false? (realized? (concat [1 2] [3 4] [5 6]))) "three collections")
+  (is (false? (realized? (concat [1 2] [3 4] [5 6] [7 8]))) "the variadic tail"))
+
+(deftest test-swap!-arities
+  (let [a (atom 0)]
+    (is (= 1 (swap! a inc)) "no extra arguments")
+    (is (= 3 (swap! a + 2)) "one extra argument")
+    (is (= 9 (swap! a + 2 4)) "two extra arguments")
+    (is (= 19 (swap! a + 2 4 4)) "three extra arguments")
+    (is (= 39 (swap! a + 2 4 4 10)) "four extra arguments")
+    (is (= 39 @a) "the atom holds the last value")))
+
+(deftest test-swap!-passes-arguments-in-order
+  (let [a (atom "a")]
+    (is (= "abc" (swap! a str "b" "c")) "two extras keep their order")
+    (is (= "abcde" (swap! a str "d" "e")) "and again")
+    (is (= "abcdefgh" (swap! a str "f" "g" "h")) "three extras keep their order")))
+
+(deftest test-range-arities
+  (is (= [0 1 2] (vec (take 3 (range)))) "no arguments is the infinite range")
+  (is (= [0 1 2] (vec (range 3))) "one argument counts from zero")
+  (is (= [2 3 4] (vec (range 2 5))) "two arguments are start and end")
+  (is (= [0 2 4] (vec (range 0 6 2))) "three arguments add a step")
+  (is (= [] (vec (range 0 0))) "an empty range")
+  (is (= [5 4 3] (vec (range 5 2 -1))) "a negative step counts down"))
+
+(deftest test-for-range-literal-and-indirect
+  (is (= [0 1 2] (for [i :range [0 3]] i)) "a literal bound vector")
+  (let [n 3]
+    (is (= [0 1 2] (for [i :range [0 n]] i)) "a literal vector holding a local"))
+  (let [bounds [0 3]]
+    (is (= [0 1 2] (for [i :range bounds] i)) "bounds reached through a local"))
+  (is (= [0 2 4] (for [i :range [0 6 2]] i)) "a step")
+  (is (= [] (for [i :range [0 0]] i)) "an empty range"))

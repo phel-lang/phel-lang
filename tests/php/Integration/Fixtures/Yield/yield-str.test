@@ -10,9 +10,9 @@
     public const BOUND_TO = "user\\yield_generator_str";
 
     public function __invoke() {
-      static $__phel_const_0;
-      return (function() use(&$__phel_const_0) {
-        foreach (\Phel\Lang\Seq::toIterable((\Phel::getDefinition("phel.core", "range"))(...\Phel\Lang\Seq::toApplyArguments(($__phel_const_0 ??= \Phel::vector([0, 3]))))) as $i) {
+      static $__phel_call_0;
+      return (function() use(&$__phel_call_0) {
+        foreach (\Phel\Lang\Seq::toIterable((($__phel_call_0 ??= \Phel::getDefinition("phel.core", "range")) instanceof \Phel\Lang\AbstractFn ? ($__phel_call_0 ??= \Phel::getDefinition("phel.core", "range"))->invokeArity2(0, 3) : ($__phel_call_0 ??= \Phel::getDefinition("phel.core", "range"))->__invoke(0, 3))) as $i) {
           yield $i;
         }
         return null;

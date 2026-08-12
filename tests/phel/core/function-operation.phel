@@ -19,7 +19,10 @@
   (is (= 2 (arity #(+ %1 %2))) "arity of short fn literal"))
 
 (deftest test-arity-variadic
-  (is (= 2 (arity swap!)) "variadic fn reports required parameters before &")
+  ;; `swap!` used to stand here. It became multi-arity in #3065's sibling
+  ;; change and now reports the dispatch arity, like `get` and `assoc` before
+  ;; it; `alter-var-root` is still a plain `[v f & args]`.
+  (is (= 2 (arity alter-var-root)) "variadic fn reports required parameters before &")
   (is (= 0 (arity +)) "fully variadic fn reports zero required parameters")
   (is (= 1 (arity (fn [x & xs] x))) "anonymous variadic fn reports required parameters"))
 
@@ -28,7 +31,11 @@
   ;; so they report the dispatch signature: arity 0 and variadic? true.
   (let [f (fn multi ([x] x) ([x y] y))]
     (is (= 0 (arity f)) "multi-arity fn reports the variadic dispatch arity")
-    (is (true? (variadic? f)) "multi-arity fn reports the variadic dispatch")))
+    (is (true? (variadic? f)) "multi-arity fn reports the variadic dispatch"))
+  (is (= 0 (arity swap!)) "swap! is multi-arity and reports the dispatch arity")
+  (is (= 0 (arity dissoc)) "dissoc is multi-arity and reports the dispatch arity")
+  (is (= 0 (arity concat)) "concat is multi-arity and reports the dispatch arity")
+  (is (= 0 (arity range)) "range is multi-arity and reports the dispatch arity"))
 
 (deftest test-variadic?
   (is (true? (variadic? +)) "+ accepts variadic args")
