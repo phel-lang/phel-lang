@@ -1,0 +1,44 @@
+(ns phel-test.core.tree-seq-walk
+  (:require phel.test :refer [deftest is]))
+
+;; `tree-seq` walks with a PHP-array stack now, and pushes children by index
+;; rather than through core `reverse`. The visit order is the contract, so it
+;; is what these pin: depth-first, parent before children, children left to
+;; right.
+
+(deftest test-documented-example
+  (is (= [[1 [2 3]] 1 [2 3] 2 3] (tree-seq indexed? identity [1 [2 3]]))
+      "the docstring example"))
+
+(deftest test-visit-order-is-depth-first-left-to-right
+  (is (= [[1 2] 1 2] (tree-seq indexed? identity [1 2])) "a flat vector")
+  (is (= [[[1 2] [3 4]] [1 2] 1 2 [3 4] 3 4]
+         (tree-seq indexed? identity [[1 2] [3 4]]))
+      "the first subtree is fully visited before the second")
+  (is (= [[1 [2 [3]]] 1 [2 [3]] 2 [3] 3]
+         (tree-seq indexed? identity [1 [2 [3]]]))
+      "nesting descends before moving on")
+  (is (= [[1 2 3 4 5] 1 2 3 4 5] (tree-seq indexed? identity [1 2 3 4 5]))
+      "five children keep their order"))
+
+(deftest test-edge-shapes
+  (is (= [[]] (tree-seq indexed? identity [])) "an empty branch is still visited")
+  (is (= [1] (tree-seq indexed? identity 1)) "a leaf root")
+  (is (= [[[]] []] (tree-seq indexed? identity [[]])) "a branch holding an empty branch")
+  (is (= ['(1 2) 1 2] (tree-seq indexed? identity '(1 2))) "over a list"))
+
+(deftest test-branch-and-children-are-honoured
+  ;; `branch?` decides what is descended into, `children` decides what comes
+  ;; back; neither is assumed to be `indexed?` / `identity`.
+  (let [tree {:v 1, :kids [{:v 2, :kids []} {:v 3, :kids [{:v 4, :kids []}]}]}
+        nodes (tree-seq (fn [n] (not (empty? (get n :kids))))
+                        (fn [n] (get n :kids))
+                        tree)]
+    (is (= [1 2 3 4] (map (fn [n] (get n :v)) nodes))
+        "a map tree walks parent then children in order")))
+
+(deftest test-flatten-rides-on-tree-seq
+  (is (= [1 2 3 4 5 6] (vec (flatten [[1 2] [3 [4 5]] 6]))) "the docstring example")
+  (is (= [] (vec (flatten []))) "an empty collection")
+  (is (= [1 2 3] (vec (flatten [1 [2] [[3]]]))) "uneven nesting")
+  (is (= [1 2 3 4] (vec (flatten [[[1]] [[2] [3]] 4]))) "deeper nesting"))

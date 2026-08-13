@@ -115,6 +115,7 @@ Compiler:
 
 Runtime core:
 
+- Walk `tree-seq`'s stack with native PHP operations and push children by index instead of building a reversed collection per branch node: 2.1x, carrying `flatten` with it (#3081)
 - Order `sort-by`'s decorated keys with native comparisons when they are all native ints and no comparator was supplied, the fast path `sort` got in #3004: 8.4x over 100 ints, 6.4x over 20, 5.2x for `(sort-by count strings)`. Non-int keys and a supplied comparator keep the general path (#3079)
 - Seed `union`'s result from its first argument instead of re-adding every element of it to a fresh set, and give it fixed arities: `(union big small)` over 200 and 5 elements 63x, `(union s)` 51x, two 20-element sets 3.0x. Non-set iterables are still added element by element, since `union` accepts any iterable and returns a set (#3077)
 - Stop `all?` and `some?` re-testing `empty?` on the collection once per element, by testing the first element directly and walking a seq only for the tail: `every?` over a list 2.1x, `not-any?` 1.5x, `all?` and `every?` over a vector 1.4x, with a short-circuiting call unchanged. `some` keeps its seq walk on purpose (#3074)
