@@ -1,0 +1,58 @@
+(ns phel-test.core.sign-predicates-int-fast-path
+  (:require phel.test :refer [deftest is]))
+
+;; `zero?`, `pos?` and `neg?` answer a native int with a direct PHP comparison.
+;; `pos?` and `neg?` previously reached `>` and `<`, and `zero?` the numeric
+;; tower. Everything that is not a native int still takes the old path, so the
+;; two have to agree on every other shape, and the float zeroes are where they
+;; would most easily diverge.
+
+(deftest test-native-ints
+  (is (true? (zero? 0)) "zero")
+  (is (false? (pos? 0)) "zero is not positive")
+  (is (false? (neg? 0)) "zero is not negative")
+  (is (true? (pos? 1)) "a positive int")
+  (is (false? (neg? 1)) "a positive int is not negative")
+  (is (true? (neg? -1)) "a negative int")
+  (is (false? (pos? -1)) "a negative int is not positive")
+  (is (false? (zero? 1)) "a non-zero int")
+  (is (true? (pos? php/PHP_INT_MAX)) "the largest native int is positive")
+  (is (true? (neg? php/PHP_INT_MIN)) "the smallest native int is negative")
+  (is (false? (zero? php/PHP_INT_MIN)) "the smallest native int is not zero"))
+
+(deftest test-float-zeroes
+  ;; Floats never take the fast path. Negative zero is the case that would
+  ;; expose a fast path applied too eagerly: it is zero, and neither positive
+  ;; nor negative.
+  (is (true? (zero? 0.0)) "positive zero as a float")
+  (is (true? (zero? -0.0)) "negative zero is still zero")
+  (is (false? (pos? -0.0)) "negative zero is not positive")
+  (is (false? (neg? -0.0)) "negative zero is not negative")
+  (is (false? (neg? 0.0)) "positive zero is not negative"))
+
+(deftest test-other-numeric-shapes
+  (is (true? (pos? 1.5)) "a positive float")
+  (is (true? (neg? -1.5)) "a negative float")
+  (is (false? (zero? 1.5)) "a non-zero float")
+  (is (true? (pos? ##Inf)) "infinity is positive")
+  (is (true? (neg? ##-Inf)) "negative infinity is negative")
+  ;; NaN compares false against everything, in all three directions.
+  (is (false? (pos? ##NaN)) "NaN is not positive")
+  (is (false? (neg? ##NaN)) "NaN is not negative")
+  (is (false? (zero? ##NaN)) "NaN is not zero")
+  (is (true? (zero? (bigint "0"))) "a zero BigInt")
+  (is (true? (pos? (bigint "100000000000000000000"))) "a positive BigInt")
+  (is (true? (neg? (bigint "-100000000000000000000"))) "a negative BigInt")
+  (is (true? (pos? (/ 3 4))) "a positive Ratio")
+  (is (true? (neg? (/ -3 4))) "a negative Ratio")
+  (is (true? (zero? (bigdec "0.00"))) "a zero BigDecimal")
+  (is (true? (neg? (bigdec "-1.5"))) "a negative BigDecimal"))
+
+(deftest test-the-three-stay-consistent
+  ;; Exactly one of the three holds for any real number.
+  (foreach [x [0 1 -1 php/PHP_INT_MAX php/PHP_INT_MIN 0.0 -0.0 1.5 -1.5 ##Inf ##-Inf]]
+    (let [hits (count (filter true? [(zero? x) (pos? x) (neg? x)]))]
+      (is (= 1 hits) (str "exactly one of zero?/pos?/neg? holds for " x))))
+  ;; NaN is the exception: none of them holds.
+  (is (= 0 (count (filter true? [(zero? ##NaN) (pos? ##NaN) (neg? ##NaN)])))
+      "none of the three holds for NaN"))

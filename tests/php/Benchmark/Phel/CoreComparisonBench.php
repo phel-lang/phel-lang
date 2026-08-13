@@ -35,6 +35,18 @@ use PhpBench\Benchmark\Metadata\Annotations\Revs;
 final class CoreComparisonBench extends CoreBenchCase
 {
     /** @var callable */
+    private $pos;
+
+    /** @var callable */
+    private $neg;
+
+    /** @var callable */
+    private $zero;
+
+    /** @var callable */
+    private $notEq;
+
+    /** @var callable */
     private $lt;
 
     /** @var callable */
@@ -155,8 +167,57 @@ final class CoreComparisonBench extends CoreBenchCase
         }
     }
 
+    /**
+     * `pos?` and `neg?` reach their answer through `>` and `<`, so a sign test
+     * is two Phel calls. `zero?` is here as the control: it already goes
+     * straight to `NumericOperations`, so it is what the other two can reach.
+     *
+     * @Revs(1000)
+     */
+    public function bench_pos(): void
+    {
+        for ($i = 0; $i < self::INNER; ++$i) {
+            ($this->pos)($i);
+        }
+    }
+
+    /**
+     * @Revs(1000)
+     */
+    public function bench_neg(): void
+    {
+        for ($i = 0; $i < self::INNER; ++$i) {
+            ($this->neg)($i);
+        }
+    }
+
+    /**
+     * @Revs(1000)
+     */
+    public function bench_zero(): void
+    {
+        for ($i = 0; $i < self::INNER; ++$i) {
+            ($this->zero)($i);
+        }
+    }
+
+    /**
+     * @Revs(1000)
+     */
+    public function bench_not_equals(): void
+    {
+        for ($i = 0; $i < self::INNER; ++$i) {
+            ($this->notEq)($i, 1);
+        }
+    }
+
     protected function setUpFixtures(): void
     {
+        $this->pos = $this->coreFn('pos?');
+        $this->neg = $this->coreFn('neg?');
+        $this->zero = $this->coreFn('zero?');
+        $this->notEq = $this->coreFn('not=');
+
         $this->lt = $this->coreFn('<');
         $this->lte = $this->coreFn('<=');
         $this->gt = $this->coreFn('>');
