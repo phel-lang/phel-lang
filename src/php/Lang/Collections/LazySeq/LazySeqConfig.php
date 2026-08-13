@@ -16,6 +16,22 @@ final class LazySeqConfig
     public const int CHUNK_SIZE = 32;
 
     /**
+     * Size of the *first* chunk a lazy sequence realizes.
+     *
+     * `ChunkedSeq::fromGenerator` answers "is this sequence empty?" by
+     * returning null, which means construction has to pull at least one
+     * element. It does not have to pull {@see self::CHUNK_SIZE} of them, and
+     * doing so made construction cost proportional to the whole collection for
+     * anything up to 32 elements, whether or not the caller ever looked past
+     * the first (#3061).
+     *
+     * Chunks double from here up to `CHUNK_SIZE`, so a sequence that is fully
+     * consumed still reaches the batch size it was tuned for, while one that is
+     * abandoned early pays for what it used.
+     */
+    public const int FIRST_CHUNK_SIZE = 4;
+
+    /**
      * Maximum number of elements to display when printing a lazy sequence in the REPL.
      * This prevents accidentally realizing huge or infinite sequences.
      */

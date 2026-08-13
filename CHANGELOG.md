@@ -147,6 +147,7 @@ Runtime core:
 
 Standard library:
 
+- Grow a lazy sequence's chunks from 4 up to the existing 32 instead of realizing 32 on construction. `ChunkedSeq::fromGenerator` reports emptiness by returning nil, so it must pull one element, but it need not pull a full batch: `partition-by` 3.2x, `dedupe` 2.3x, `interleave` 1.44x, `(take 3 …)` 1.32x, with full realization unchanged (#3061)
 - Join `phel.html`'s runtime render with `implode` over a PHP array instead of `apply str` over a lazy sequence: 1.51x on an attribute-heavy element, 1.42x on a five-node document. Only affects documents the `html` macro cannot compile at expansion time, which is any template built from data (#3098)
 - Derive each `[:map ...]` entry's shape once in `phel.schema/validate` instead of twice through two helpers, and index the entry loop rather than walking a seq over a vector: 1.23x on a four-field map, 1.20x on two, scaling with field count (#3096)
 - Escape JUnit XML attributes with one `htmlspecialchars` pass instead of five chained `phel.string/replace` calls: 25x. Invalid UTF-8 now becomes U+FFFD rather than being emitted raw, which was not valid XML (#3094)

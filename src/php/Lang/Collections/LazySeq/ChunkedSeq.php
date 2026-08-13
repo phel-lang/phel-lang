@@ -16,6 +16,7 @@ use Traversable;
 
 use function array_slice;
 use function count;
+use function min;
 
 /**
  * A chunked lazy sequence that realizes elements in batches for better performance.
@@ -58,7 +59,7 @@ final class ChunkedSeq extends AbstractType implements LazySeqInterface, Countab
         HasherInterface $hasher,
         EqualizerInterface $equalizer,
         Generator $generator,
-        int $chunkSize = LazySeqConfig::CHUNK_SIZE,
+        int $chunkSize = LazySeqConfig::FIRST_CHUNK_SIZE,
         ?PersistentMapInterface $meta = null,
     ): ?self {
         $values = [];
@@ -75,8 +76,13 @@ final class ChunkedSeq extends AbstractType implements LazySeqInterface, Countab
 
         $chunk = new Chunk($values);
 
+        // Each chunk is twice the last, capped at the configured batch size. A
+        // sequence that is consumed in full still reaches that size after a few
+        // chunks; one abandoned after a couple of elements never realizes 32.
+        $nextChunkSize = min($chunkSize * 2, LazySeqConfig::CHUNK_SIZE);
+
         $thunk = new MemoizedThunk(
-            static fn(): ?ChunkedSeq => self::fromGenerator($hasher, $equalizer, $generator, $chunkSize),
+            static fn(): ?ChunkedSeq => self::fromGenerator($hasher, $equalizer, $generator, $nextChunkSize),
         );
 
         return new self($hasher, $equalizer, $chunk, $thunk, $meta);

@@ -287,8 +287,11 @@ final class ChunkedSeqTest extends TestCase
 
         $current->first();
 
-        $this->assertGreaterThanOrEqual($chunkSize * 2, $realizationCount, 'Second chunk should be realized');
-        $this->assertLessThanOrEqual($chunkSize * 2 + 2, $realizationCount, 'Should not realize much more than two chunks');
+        // Chunks double up to LazySeqConfig::CHUNK_SIZE, so the second chunk is
+        // twice the first: after walking the first, realization is
+        // $chunkSize + 2 * $chunkSize rather than $chunkSize * 2.
+        $this->assertGreaterThanOrEqual($chunkSize * 3, $realizationCount, 'Second chunk should be realized');
+        $this->assertLessThanOrEqual($chunkSize * 3 + 2, $realizationCount, 'Should not realize much more than two chunks');
     }
 
     public function test_cdr_memoization_prevents_generator_advancement(): void

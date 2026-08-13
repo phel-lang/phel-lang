@@ -513,7 +513,7 @@ final class Phel\Lang\Collections\LazySeq\ChunkedSeq extends Phel\Lang\AbstractT
   public function toArray(): array
   public function withMeta(?Phel\Lang\Collections\Map\PersistentMapInterface $meta): static
   public static function fromArray(Phel\Lang\HasherInterface $hasher, Phel\Lang\EqualizerInterface $equalizer, array $array, int $chunkSize = 32, ?Phel\Lang\Collections\Map\PersistentMapInterface $meta = null): ?Phel\Lang\Collections\LazySeq\ChunkedSeq
-  public static function fromGenerator(Phel\Lang\HasherInterface $hasher, Phel\Lang\EqualizerInterface $equalizer, Generator $generator, int $chunkSize = 32, ?Phel\Lang\Collections\Map\PersistentMapInterface $meta = null): ?Phel\Lang\Collections\LazySeq\ChunkedSeq
+  public static function fromGenerator(Phel\Lang\HasherInterface $hasher, Phel\Lang\EqualizerInterface $equalizer, Generator $generator, int $chunkSize = 4, ?Phel\Lang\Collections\Map\PersistentMapInterface $meta = null): ?Phel\Lang\Collections\LazySeq\ChunkedSeq
 
 final class Phel\Lang\Collections\LazySeq\Cons extends Phel\Lang\AbstractType implements IteratorAggregate, Phel\Lang\SeqInterface
   public function __construct(Phel\Lang\HasherInterface $hasher, Phel\Lang\EqualizerInterface $equalizer, mixed $first, Phel\Lang\Collections\LazySeq\LazySeqInterface $rest, ?Phel\Lang\Collections\Map\PersistentMapInterface $meta = null)
@@ -552,6 +552,7 @@ final class Phel\Lang\Collections\LazySeq\LazySeq extends Phel\Lang\AbstractType
 
 final class Phel\Lang\Collections\LazySeq\LazySeqConfig
   public const int CHUNK_SIZE = 32
+  public const int FIRST_CHUNK_SIZE = 4
   public const int REPL_DISPLAY_LIMIT = 100
 
 final readonly class Phel\Lang\Collections\LazySeq\LazySeqEquality
