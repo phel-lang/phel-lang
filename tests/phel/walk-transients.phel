@@ -1,0 +1,54 @@
+(ns phel-test.walk-transients
+  (:require phel.walk :as w)
+  (:require phel.test :refer [deftest is]))
+
+;; `walk` and the two key-converting helpers build their results through
+;; transients rather than `map` plus `into`. The collection type each branch
+;; returns, and the order it returns things in, are the contract.
+
+(deftest test-walk-preserves-collection-types
+  (is (vector? (w/postwalk identity [1 2 3])) "a vector stays a vector")
+  (is (list? (w/postwalk identity '(1 2 3))) "a list stays a list")
+  (is (map? (w/postwalk identity {:a 1})) "a map stays a map")
+  (is (set? (w/postwalk identity (set [1 2 3]))) "a set stays a set")
+  (is (= "int" (php/get_debug_type (w/postwalk identity 1))) "a scalar is returned as-is")
+  (is (nil? (w/postwalk identity nil)) "nil is returned as-is"))
+
+(deftest test-walk-preserves-order-and-contents
+  (is (= [1 2 3] (w/postwalk identity [1 2 3])) "vector order")
+  (is (= '(1 2 3) (w/postwalk identity '(1 2 3))) "list order")
+  (is (= [2 3 4] (w/postwalk (fn [x] (if (int? x) (inc x) x)) [1 2 3])) "vector values")
+  (is (= '(2 3 4) (w/postwalk (fn [x] (if (int? x) (inc x) x)) '(1 2 3))) "list values")
+  (is (= {:a 1, :b 2} (w/postwalk identity {:a 1, :b 2})) "map contents")
+  (is (= (set [1 2 3]) (w/postwalk identity (set [1 2 3]))) "set contents")
+  (is (= [] (w/postwalk identity [])) "an empty vector")
+  (is (= {} (w/postwalk identity {})) "an empty map"))
+
+(deftest test-walk-recurses
+  (is (= [1 [2 [3]]] (w/postwalk identity [1 [2 [3]]])) "nested vectors")
+  (is (= {:a {:b {:c 1}}} (w/postwalk identity {:a {:b {:c 1}}})) "nested maps")
+  (is (= {:a [1 {:b 2}]} (w/postwalk identity {:a [1 {:b 2}]})) "mixed nesting")
+  (is (= [2 [3 [4]]] (w/postwalk (fn [x] (if (int? x) (inc x) x)) [1 [2 [3]]]))
+      "the function reaches every leaf"))
+
+(deftest test-postwalk-and-prewalk-order
+  (is (= [2 [3 4]] (w/postwalk (fn [x] (if (int? x) (inc x) x)) [1 [2 3]])) "postwalk")
+  (is (= [1 [2 3]] (w/prewalk identity [1 [2 3]])) "prewalk with identity")
+  (is (= [2 [3 4]] (w/prewalk (fn [x] (if (int? x) (inc x) x)) [1 [2 3]])) "prewalk transforms"))
+
+(deftest test-keywordize-and-stringify
+  (is (= {:a 1} (w/keywordize-keys {"a" 1})) "one string key")
+  (is (= {:a {:b 2}} (w/keywordize-keys {"a" {"b" 2}})) "nested string keys")
+  (is (= {:a 1, :b 2} (w/keywordize-keys {"a" 1, "b" 2})) "several keys")
+  (is (= {:a 1} (w/keywordize-keys {:a 1})) "a keyword key is left alone")
+  (is (= {1 :x} (w/keywordize-keys {1 :x})) "a non-string key is left alone")
+  (is (= {} (w/keywordize-keys {})) "an empty map")
+  (is (= {"a" 1} (w/stringify-keys {:a 1})) "one keyword key")
+  (is (= {"a" {"b" 2}} (w/stringify-keys {:a {:b 2}})) "nested keyword keys")
+  (is (= {"a" 1} (w/stringify-keys {"a" 1})) "a string key is left alone")
+  (is (= {:a 1} (w/keywordize-keys (w/stringify-keys {:a 1}))) "the two round-trip"))
+
+(deftest test-replace-helpers-still-work
+  (is (= [:b :c] (w/postwalk-replace {:a :b} [:a :c])) "postwalk-replace")
+  (is (= [:b :c] (w/prewalk-replace {:a :b} [:a :c])) "prewalk-replace")
+  (is (= {:b 1} (w/postwalk-replace {:a :b} {:a 1})) "replacing a map key"))

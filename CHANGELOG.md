@@ -147,6 +147,7 @@ Runtime core:
 
 Standard library:
 
+- Build every `phel.walk` branch through a transient instead of `map` plus `into`, and the same inside `keywordize-keys` and `stringify-keys`: 1.67x to 1.71x. `map` returns a lazy sequence whose first chunk is realized on construction and `into` then walks it again, once per node of the tree (#3087)
 - Hoist `phel.html/escape-html`'s flag constant out of the call instead of recombining it per call: 4.4x, and 1.20x on a whole-document render (#3054)
 - Rewrite the hot half of `phel.string`: `assert-string` becomes `:inline`, seven functions take fixed arities in place of `& [x]`, `trim-newline` uses `rtrim`, `blank?` settles ASCII input with `strspn` before the unicode regex, `contains?` stops running its guards twice, and `split` builds its vector directly. 1.6x to 8.4x across fourteen functions (#3050 #3051 #3052)
 - Swap `phel.base64/encode-url` and `decode-url`'s alphabet with one `strtr` instead of a chain of `phel.string/replace` calls: 28x and 17x. All three also take fixed arities in place of `& [strict?]`, making `decode` 5.2x (#3021)
