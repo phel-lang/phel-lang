@@ -150,6 +150,7 @@ Runtime core:
 
 Standard library:
 
+- Give the reducing function every transducer wraps real arities instead of a rest argument and a `case` on its count, and the same for `completing` and `transduce`. These closures are called once per element reduced, so the rest vector and the dispatch were paid per element: `(transduce (map inc) + 0 v)` over 32 elements drops 79% and the `filter` equivalent 74% (#2973)
 - Realize 4 elements when a lazy sequence is constructed instead of the full batch of 32; every later chunk is still 32. `ChunkedSeq::fromGenerator` reports emptiness by returning nil, so it must pull one element, but it need not pull a whole batch before the caller has asked for anything: constructing a `partition-by` drops 79% and a `dedupe` 71%. A sequence consumed in full pays one extra chunk boundary for it, which is 6-7% on the 32 element collections the benchmarks use and proportionally less above that (#3061)
 - Join `phel.html`'s runtime render with `implode` over a PHP array instead of `apply str` over a lazy sequence: 1.51x on an attribute-heavy element, 1.42x on a five-node document. Only affects documents the `html` macro cannot compile at expansion time, which is any template built from data (#3098)
 - Derive each `[:map ...]` entry's shape once in `phel.schema/validate` instead of twice through two helpers, and index the entry loop rather than walking a seq over a vector: 1.23x on a four-field map, 1.20x on two, scaling with field count (#3096)
