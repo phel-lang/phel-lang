@@ -14,16 +14,37 @@
 ;; Set operation
 ;; -------------
 
+(defn- union-target
+  "A transient set seeded from `coll`. When `coll` is already a set the
+  transient starts from it directly; `union` also accepts any other iterable,
+  and those still have to be added element by element."
+  [coll]
+  (if (set? coll)
+    (transient coll)
+    (let [target (transient (hash-set))]
+      (foreach [v coll] (.add target v))
+      target)))
+
 (defn union
   "Union multiple sets into a new one."
   {:example "(union (hash-set 1 2) (hash-set 2 3)) ; => #{1 2 3}"
    :see-also ["intersection" "difference"]}
-  [& sets]
-  (let [target (transient (hash-set))]
-    (foreach [s sets]
-      (foreach [v s]
-        (.add target v)))
-    (persistent target)))
+  ;; Fixed arities, and the first collection seeds the result rather than being
+  ;; re-added one element at a time. A union of two sets used to add |s1| + |s2|
+  ;; elements to a fresh set; it now adds |s2| to a transient of the first, the
+  ;; way `intersection` and `difference` already worked (#2973, #3021).
+  ([] (hash-set))
+  ([s] (persistent (union-target s)))
+  ([s1 s2]
+   (let [target (union-target s1)]
+     (foreach [v s2] (.add target v))
+     (persistent target)))
+  ([s1 s2 & sets]
+   (let [target (union-target s1)]
+     (foreach [v s2] (.add target v))
+     (foreach [s sets]
+       (foreach [v s] (.add target v)))
+     (persistent target))))
 
 (defn- intersection-pair
   [s1 s2]

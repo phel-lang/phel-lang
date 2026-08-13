@@ -82,6 +82,7 @@ All notable changes to this project will be documented in this file.
 
 ### Changed
 
+- BC: `(arity union)` now reports `0`, having become multi-arity (#3077)
 - **BC** The core functions listed under Performance now declare real arities instead of taking a rest argument. Two consequences. A wrong argument count raises an arity error rather than being silently ignored or reaching a hand-written message, which affects `get`, `get-in`, `reduce`, `into`, `slice`, `range` and the twelve seq functions. And a multi-arity function compiles to one variadic dispatch, so `arity` reports `0` for every one of them, `get`, `assoc`, `dissoc`, `concat`, `swap!`, `swap-vals!`, `range`, `comp`, `repeat`, `repeatedly`, `==`, `merge-with` and `deep-merge` included (#2960 #2962 #2964 #2975 #3065 #3067 #3069)
 - Lower `(or …)` / `(and …)` test chains containing `php/instanceof`, `php/aget` or a quoted literal to native `||` / `&&` instead of an IIFE; `(get <set> k)` is ~24% faster (#3027)
 - Warn for `\` namespace separators without `--warn-deprecations`; other deprecations stay opt-in (#2827)
@@ -114,6 +115,7 @@ Compiler:
 
 Runtime core:
 
+- Seed `union`'s result from its first argument instead of re-adding every element of it to a fresh set, and give it fixed arities: `(union big small)` over 200 and 5 elements 63x, `(union s)` 51x, two 20-element sets 3.0x. Non-set iterables are still added element by element, since `union` accepts any iterable and returns a set (#3077)
 - Stop `all?` and `some?` re-testing `empty?` on the collection once per element, by testing the first element directly and walking a seq only for the tail: `every?` over a list 2.1x, `not-any?` 1.5x, `all?` and `every?` over a vector 1.4x, with a short-circuiting call unchanged. `some` keeps its seq walk on purpose (#3074)
 - Reach a transient map in `get` by its own branch instead of falling through seven predicates to the generic `aget`, and give `assoc!` the fixed three-argument arity `conj!`, `dissoc!` and `disj!` already had: `assoc!` 1.74x, `frequencies` 1.18x, `select-keys` 1.16x. Paid by every `for :reduce` over a transient (#3071)
 - Replace rest-argument dispatch with real arities across `phel.core`. A `defn` that took `[x & args]` and then recovered its arguments with `(case (count args) ...)` allocated the rest argument, counted it, and unpacked it with `first` to get back what the caller passed positionally. Now done for the arithmetic and comparison operators, `str`, `get`, `assoc`, `reduce`, `into`, the five collection constructors, `hash-set`, `map`, `filter` and twelve more seq functions, `slice`, `dissoc`, `concat`, `swap!`, `swap-vals!`, `range`, `comp`, `repeat`, `repeatedly`, `==`, `merge-with` and `deep-merge`. Between 1.03x and 8.4x depending on how much work sits behind the call: the transducer arities and the small constructors gain most, and `mapcat`, where realization dominates, gains almost nothing (#2962 #2974 #2975 #2978 #2979 #2981 #3010 #3017 #3021 #3065 #3067 #3069)

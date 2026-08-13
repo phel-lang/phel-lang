@@ -1,0 +1,48 @@
+(ns phel-test.core.set-union-arities
+  (:require phel.test :refer [deftest is]))
+
+;; `union` grew fixed arities and now seeds the result from its first argument
+;; instead of re-adding every element of it. `intersection` and `difference`
+;; already worked that way. What has to hold: the same set comes back, the
+;; inputs are untouched, and non-set iterables still work.
+
+(deftest test-union-results
+  (is (= (set []) (union)) "no arguments is the empty set")
+  (is (= (set [1 2]) (union (set [1 2]))) "one set")
+  (is (= (set [1 2 3]) (union (set [1 2]) (set [2 3]))) "two overlapping sets")
+  (is (= (set [1 2 3 4]) (union (set [1 2]) (set [3 4]))) "two disjoint sets")
+  (is (= (set [1 2 3 4 5]) (union (set [1 2]) (set [2 3]) (set [4 5]))) "three sets")
+  (is (= (set [1 2 3 4 5 6]) (union (set [1 2]) (set [3]) (set [4]) (set [5 6]))) "four sets")
+  (is (= (set [1 2]) (union (set [1 2]) (set []))) "with an empty set")
+  (is (= (set [1 2]) (union (set []) (set [1 2]))) "an empty set first")
+  (is (= (set [1 2]) (union (set [1 2]) (set [1 2]))) "identical sets"))
+
+(deftest test-union-does-not-mutate-its-arguments
+  ;; The first argument now seeds a transient, so it must not be observable.
+  (let [a (set [1 2 3])
+        b (set [4 5])
+        r (union a b)]
+    (is (= (set [1 2 3 4 5]) r) "the union is correct")
+    (is (= (set [1 2 3]) a) "the first set is unchanged")
+    (is (= 3 (count a)) "the first set kept its size")
+    (is (= (set [4 5]) b) "the second set is unchanged")))
+
+(deftest test-union-accepts-non-set-iterables
+  ;; `union` has always taken any iterable and returned a set; seeding from the
+  ;; first argument must not narrow that.
+  (is (set? (union [1 2] [2 3])) "vectors give a set")
+  (is (= (set [1 2 3]) (union [1 2] [2 3])) "vectors union by value")
+  (is (= (set [1 2]) (union [1 2])) "a single vector")
+  (is (= (set [1 2 3]) (union (set [1 2]) [3])) "a set then a vector")
+  (is (= (set [1 2 3]) (union [1 2] (set [3]))) "a vector then a set")
+  (is (= (set [1 2 3]) (union '(1 2) '(3))) "lists"))
+
+(deftest test-union-of-a-large-set-with-a-small-one
+  ;; The case the seeding is for: the big set is not rebuilt element by element.
+  (let [big   (set (range 0 200))
+        small (set [1 2 500])
+        r     (union big small)]
+    (is (= 201 (count r)) "200 elements plus the one new member")
+    (is (true? (contains? r 500)) "the new member is present")
+    (is (true? (contains? r 0)) "an original member survives")
+    (is (= 200 (count big)) "the big set is unchanged")))
