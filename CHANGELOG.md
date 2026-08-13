@@ -28,6 +28,7 @@ All notable changes to this project will be documented in this file.
 
 ### Fixed
 
+- Stop the `-O2` call inliner splicing away a callee whose parameters carry a `:tag`. The tag is emitted as a PHP parameter type, so inlining dropped both the type enforcement and the native-arithmetic lowering it enables: `(dotted-tag 42)` stopped raising a `TypeError`, and a `^int` multiply promoted to `BigInt` instead of overflowing to float (#3126)
 - Document `~` and `~@` as the unquote and unquote-splicing shorthands in `phel doc`, not `,` and `,@`. Since #2827 `,` is whitespace, so the documented `` `(+ ,@[1 2 3]) `` evaluated to `(phel.core/+ (phel.core/deref [1 2 3]))` rather than the `(phel.core/+ 1 2 3)` the same entry claimed
 - Print a lazy sequence as `(1 2)` rather than `@[1 2]`. `@` is the deref reader macro, so the old form did not round-trip: reading it back produced `(deref [1 2])`. Matches `Cons`, `PersistentList` and Clojure (#3113)
 - Report the pattern by name when `phel.string/split` is given something PCRE rejects, instead of letting `preg_split` return false into `Phel/vector` and surfacing a `TypeError` about a bool. A bare separator such as `" "` is named separately from a delimited but malformed pattern

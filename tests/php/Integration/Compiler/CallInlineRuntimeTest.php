@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace PhelTest\Integration\Compiler;
 
+use Phel\Compiler\Domain\Evaluator\Exceptions\EvaluatedCodeException;
 use Phel\Shared\CompileOptions;
 
 /**
@@ -313,5 +314,45 @@ final class CallInlineRuntimeTest extends AbstractCompilerRuntimeTestCase
         self::assertStringContainsString('polyv', $variadic);
         self::assertSame(6, $this->compilerFacade->eval('(polyv 5)', $options));
         self::assertSame(5, $this->compilerFacade->eval('(polyv 5 6 7)', $options));
+    }
+
+    public function test_a_tagged_parameter_stops_the_inline(): void
+    {
+        // A `:tag` on a parameter is emitted as a PHP parameter type, which
+        // enforces the type on the way in. Splicing the body at the call site
+        // drops the declaration, so the call stops raising (#3126).
+        $options = new CompileOptions()->setOptimizationLevel(2);
+        $this->compilerFacade->eval('(defn tagged-id [^\Phel\Lang\Symbol s] s)', $options);
+
+        // The contract is the enforcement itself: unoptimised, this raises.
+        // While the body was being inlined it quietly returned 42 instead.
+        // The evaluator wraps the TypeError, so match on the message.
+        $this->expectException(EvaluatedCodeException::class);
+        $this->expectExceptionMessageMatches('/must be of type .*Symbol, int given/');
+        $this->compilerFacade->eval('(tagged-id 42)', $options);
+    }
+
+    public function test_a_tagged_int_parameter_keeps_its_arithmetic_semantics(): void
+    {
+        // `^int` makes the emitter treat the parameter as proven, so `*`
+        // lowers to the native operator and overflows to float. Inlined at an
+        // untagged call site the same expression promotes to BigInt instead,
+        // which is a different value (#3126).
+        $options = new CompileOptions()->setOptimizationLevel(2);
+        $this->compilerFacade->eval('(defn tagged-mul [^int a ^int b] (* a b))', $options);
+
+        $result = $this->compilerFacade->eval('(tagged-mul 4000000000 4000000000)', $options);
+
+        self::assertIsFloat($result, 'a tagged int multiply overflows to float, as it does unoptimised');
+    }
+
+    public function test_an_untagged_parameter_still_inlines(): void
+    {
+        $options = new CompileOptions()->setOptimizationLevel(2);
+        $this->compilerFacade->eval('(defn untagged-mul [a b] (* a b))', $options);
+
+        $php = $this->compilerFacade->compile('(let [y 3] (untagged-mul y 2))', $options)->getPhpCode();
+
+        self::assertStringNotContainsString('untagged-mul', $php, 'the guard must not disable inlining generally');
     }
 }
