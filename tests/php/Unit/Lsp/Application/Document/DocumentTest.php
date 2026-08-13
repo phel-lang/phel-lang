@@ -143,13 +143,20 @@ final class DocumentTest extends TestCase
         self::assertSame('my-app', $document->wordAt(['line' => 0, 'character' => 4]));
     }
 
-    public function test_word_at_treats_backslash_as_word_boundary(): void
+    public function test_word_at_keeps_a_backslash_spelled_namespace_whole(): void
     {
         $document = new Document('file:///x.phel', 'phel', 1, 'my-app\\core');
 
-        // The identifier regex stops at backslash, so the cursor near the
-        // start picks up only the first segment.
-        self::assertSame('my-app', $document->wordAt(['line' => 0, 'character' => 3]));
+        self::assertSame('my-app\\core', $document->wordAt(['line' => 0, 'character' => 3]));
+        self::assertSame('my-app\\core', $document->wordAt(['line' => 0, 'character' => 9]));
+    }
+
+    public function test_word_at_keeps_a_backslash_spelled_qualified_symbol_whole(): void
+    {
+        $document = new Document('file:///x.phel', 'phel', 1, '(my-app\\core/greet 1)');
+
+        self::assertSame('my-app\\core/greet', $document->wordAt(['line' => 0, 'character' => 3]));
+        self::assertSame('my-app\\core/greet', $document->wordAt(['line' => 0, 'character' => 15]));
     }
 
     public function test_word_at_whitespace_returns_empty(): void

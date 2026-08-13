@@ -163,6 +163,7 @@ final class Document
 
     private function isIdentChar(string $char): bool
     {
-        return preg_match('/[A-Za-z0-9\-_?!*+<>=\/\.]/', $char) === 1;
+        // `\` is still a namespace separator (ADR 0008), so a word must not stop at it
+        return preg_match('/[A-Za-z0-9\-_?!*+<>=\/\.\\\\]/', $char) === 1;
     }
 }

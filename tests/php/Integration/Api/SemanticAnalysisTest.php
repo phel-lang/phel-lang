@@ -98,6 +98,14 @@ final class SemanticAnalysisTest extends TestCase
 
         self::assertNotContains('fixtures.foo', $index->namespaces());
         self::assertNull($index->namespaceLocation('fixtures\\nope'));
+
+        // SymbolKey::resolve($ns, '') builds "$ns/", so a declaration parked under that
+        // key would come back out of findReferences and reach rename as an editable range
+        foreach (array_keys($index->references) as $key) {
+            self::assertStringEndsNotWith('/', $key);
+        }
+
+        self::assertSame([], $facade->findReferences($index, 'fixtures\\foo', ''));
     }
 
     #[PreserveGlobalState(false)]
