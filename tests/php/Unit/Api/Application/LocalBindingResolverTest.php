@@ -135,6 +135,20 @@ final class LocalBindingResolverTest extends TestCase
         self::assertSame(7, $location->col);
     }
 
+    public function test_a_namespaced_let_head_is_not_a_binding_form(): void
+    {
+        // The compiler dispatches special forms by their full name, so a
+        // qualified my/let is a plain call, not the let special form.
+        $location = $this->resolve(
+            "(my/let [a 1]\n  a)",
+            line: 2,
+            col: 3,
+            word: 'a',
+        );
+
+        self::assertNull($location);
+    }
+
     private function resolve(string $source, int $line, int $col, string $word): ?Location
     {
         return $this->resolver->resolve($source, 'file:///demo.phel', $line, $col, $word);

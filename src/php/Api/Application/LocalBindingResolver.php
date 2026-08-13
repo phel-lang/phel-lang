@@ -82,7 +82,10 @@ final readonly class LocalBindingResolver
             }
 
             $head = count($form) > 0 ? $form->get(0) : null;
-            if ($head instanceof Symbol && in_array($head->getName(), self::BINDING_FORMS, true)) {
+            if ($head instanceof Symbol
+                && $head->getNamespace() === null
+                && in_array($head->getName(), self::BINDING_FORMS, true)
+            ) {
                 return $this->walkBindingForm($form, $line, $col, $word, $scope);
             }
 
