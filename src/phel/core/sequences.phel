@@ -90,10 +90,26 @@
   ;; call, and the variadic form made each one allocate and destructure a rest
   ;; argument before the dispatch below even started.
   ;;
-  ;; The `(let [res (aget ds k)] ...)` shape below repeats rather than being
-  ;; lifted into a helper. Lifting it would put a function call back on the
-  ;; path this ordering exists to shorten.
-  ([ds k] (get ds k nil))
+  ;; The `(let [res (php/aget ds k)] ...)` shape below repeats rather than
+  ;; being lifted into a helper, and reads through `php/aget` rather than core
+  ;; `aget`. Either would put a function call back on the path this ordering
+  ;; exists to shorten; core `aget`'s two-argument arity is that exact `php/aget`.
+  ;;
+  ;; The two-argument call answers maps and vectors without delegating to the
+  ;; three-argument arity at all. With no default, `opt` is nil and `php/aget`
+  ;; already answers nil for an absent key, so the whole `(if (nil? res) opt
+  ;; res)` dance collapses to the read itself. That removes two of the three
+  ;; Phel function calls a `(get m k)` used to make.
+  ([ds k]
+   (cond
+     (php/instanceof ds PersistentMapInterface)
+     (php/aget ds k)
+
+     (php/instanceof ds PersistentVectorInterface)
+     (if (integer? k) (php/aget ds k) nil)
+
+     :else
+     (get ds k nil)))
   ([ds k opt]
    (cond
      ;; Maps and structs first. They were reached last, behind `nil?`,
@@ -102,7 +118,7 @@
      ;; a PersistentMapInterface, so both arrive here with the same answer the
      ;; `:else` branch gave them, from the same `aget`.
      (php/instanceof ds PersistentMapInterface)
-     (let [res (aget ds k)]
+     (let [res (php/aget ds k)]
        (if (nil? res)
          opt
          res))
@@ -112,7 +128,7 @@
      ;; because a BigInt index is still an index.
      (php/instanceof ds PersistentVectorInterface)
      (if (integer? k)
-       (let [res (aget ds k)]
+       (let [res (php/aget ds k)]
          (if (nil? res)
            opt
            res))
@@ -124,7 +140,7 @@
      ;; where the lookup runs once per element. `frequencies`, `group-by`,
      ;; `into` and `zipmap` all pay it.
      (php/instanceof ds TransientMapInterface)
-     (let [res (aget ds k)]
+     (let [res (php/aget ds k)]
        (if (nil? res)
          opt
          res))
@@ -166,7 +182,7 @@
      opt
 
      :else
-     (let [res (aget ds k)]
+     (let [res (php/aget ds k)]
        (if (nil? res)
          opt
          res)))))

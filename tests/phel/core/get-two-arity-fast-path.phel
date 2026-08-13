@@ -1,0 +1,73 @@
+(ns phel-test.core.get-two-arity-fast-path
+  (:require phel.test :refer [deftest is]))
+
+(defstruct pt [x y])
+
+;; `(get ds k)` used to delegate to `(get ds k nil)`, which then read through
+;; core `aget`: three Phel function calls for one map lookup. The two-argument
+;; call now answers maps and vectors itself, which is only correct because with
+;; no default `opt` is nil and an absent key already reads as nil. Everything
+;; below is the proof of that "only correct because", plus the shapes that must
+;; still fall through to the three-argument arity.
+
+(deftest test-get-on-a-map
+  (is (= 1 (get {:a 1} :a)) "a present key")
+  (is (nil? (get {:a 1} :z)) "an absent key is nil")
+  (is (= :DEF (get {:a 1} :z :DEF)) "an absent key takes the default")
+  (is (= 1 (get {:a 1} :a :DEF)) "a default is ignored when the key is present")
+  (is (nil? (get {} :a)) "an empty map")
+  (is (= :DEF (get {} :a :DEF)) "an empty map with a default"))
+
+(deftest test-a-nil-value-reads-as-absent
+  ;; The load-bearing case. A nil *value* is indistinguishable from a missing
+  ;; key here, and that is pre-existing behaviour the fast path must preserve
+  ;; rather than accidentally fix.
+  (is (nil? (get {:b nil} :b)) "a nil value reads as nil")
+  (is (= :DEF (get {:b nil} :b :DEF)) "a nil value takes the default, like an absent key")
+  (is (nil? (get (transient {:b nil}) :b)) "the same on a transient map")
+  (is (= :DEF (get (transient {:b nil}) :b :DEF)) "and with a default")
+  (is (nil? (get [nil] 0)) "a nil element of a vector")
+  (is (= :DEF (get [nil] 0 :DEF)) "a nil element takes the default"))
+
+(deftest test-get-on-a-vector
+  (is (= 10 (get [10 20] 0)) "index zero")
+  (is (= 20 (get [10 20] 1)) "index one")
+  (is (nil? (get [10 20] 9)) "an out-of-range index is nil")
+  (is (= :DEF (get [10 20] 9 :DEF)) "an out-of-range index takes the default")
+  (is (nil? (get [10 20] -1)) "a negative index is nil")
+  ;; A non-integer key must not reach `php/aget`, which would coerce it and
+  ;; leak a PHP warning.
+  (is (nil? (get [10 20] :a)) "a keyword key is nil, not a coerced index")
+  (is (nil? (get [10 20] "0")) "a string key is nil, not a coerced index")
+  (is (= :DEF (get [10 20] :a :DEF)) "a non-integer key takes the default")
+  (is (nil? (get [] 0)) "an empty vector"))
+
+(deftest test-get-on-a-struct
+  ;; A struct is a PersistentMapInterface, so it takes the map fast path.
+  (let [p (pt 1 nil)]
+    (is (= 1 (get p :x)) "a present field")
+    (is (nil? (get p :y)) "a nil field")
+    (is (= :DEF (get p :y :DEF)) "a nil field takes the default")
+    (is (nil? (get p :nope)) "an absent field")))
+
+(deftest test-shapes-that-fall-through-to-the-three-arity
+  ;; None of these is a PersistentMapInterface or PersistentVectorInterface, so
+  ;; each must still reach the longer dispatch and answer what it always did.
+  (is (= 1 (get (transient {:a 1}) :a)) "a transient map")
+  (is (= 10 (get (transient [10 20]) 0)) "a transient vector")
+  (is (= :a (get (set [:a]) :a)) "a set returns the member itself")
+  (is (nil? (get (set [:a]) :z)) "a set misses")
+  (is (= :DEF (get (set [:a]) :z :DEF)) "a set miss takes the default")
+  (is (= 20 (get '(10 20 30) 1)) "a list indexes by position")
+  (is (= 20 (get (map identity [10 20]) 1)) "a lazy sequence indexes by position")
+  (is (nil? (get nil :a)) "nil is not a collection")
+  (is (= :DEF (get nil :a :DEF)) "nil takes the default")
+  (is (= 1 (get (sorted-map :a 1) :a)) "a sorted map"))
+
+(deftest test-get-in-still-walks
+  ;; `get-in` is built on `get`, so it exercises the fast path per level.
+  (is (= 1 (get-in {:a {:b 1}} [:a :b])) "two levels of maps")
+  (is (= 2 (get-in {:a [1 2]} [:a 1])) "a map then a vector")
+  (is (nil? (get-in {:a {:b 1}} [:a :z])) "a missing leaf")
+  (is (= :DEF (get-in {:a {:b 1}} [:a :z] :DEF)) "a missing leaf takes the default")
+  (is (= :DEF (get-in {:a {:b nil}} [:a :b] :DEF)) "a nil leaf takes the default"))
