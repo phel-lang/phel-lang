@@ -159,11 +159,16 @@
   ;; non-numeric argument still raises.
   ([a] (do (num-equals1 a a) true))
   ([a b] (num-equals1 a b))
+  ;; A loop, not `(apply == b more)`: the old body recurred, and a long chain
+  ;; should not turn into one stack frame per argument.
   ([a b & more]
    (if (num-equals1 a b)
-     (if (nil? (next more))
-       (num-equals1 b (first more))
-       (apply == b more))
+     (loop [prev b remaining more]
+       (if (nil? remaining)
+         true
+         (if (num-equals1 prev (first remaining))
+           (recur (first remaining) (next remaining))
+           false)))
      false)))
 
 (defn not

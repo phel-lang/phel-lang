@@ -74,3 +74,9 @@
          (deep-merge {:a {:x 1}} {:a {:y 2}} {:a {:z 3}} {:a {:w 0}}))
       "four arguments")
   (is (= {:a [1 2]} (deep-merge {:a [1]} {:a [2]})) "vectors concatenate"))
+
+(deftest test-==-long-chain-does-not-recurse-per-argument
+  ;; The three-or-more arity loops rather than re-applying itself, so a long
+  ;; chain must not build a stack frame per argument.
+  (is (true? (apply == (repeat 500 1))) "500 equal arguments")
+  (is (false? (apply == (concat (repeat 499 1) [2]))) "500 arguments where the last differs"))
