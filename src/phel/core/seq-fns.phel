@@ -1043,6 +1043,24 @@ Indexed PHP arrays become vectors, associative PHP arrays become maps."
         php/break))
     (php/aget found 0)))
 
+(defn- all-native-strings?
+  "True when every element is a PHP string. `sort` with the default
+  `SORT_REGULAR` then produces exactly the order `compare` produces, because
+  both settle a pair of strings with PHP's `<=>`.
+
+  `SORT_STRING` would be the obvious choice and is wrong: it compares
+  lexicographically, where `<=>` compares two numeric strings numerically.
+  `[\"10\" \"9\" \"2\"]` sorts to `[\"2\" \"9\" \"10\"]` under `compare` and to
+  `[\"10\" \"2\" \"9\"]` under `SORT_STRING`."
+  [php-array]
+  ;; Same shape and same early exit as `all-native-ints?` above.
+  (let [found (php/array true)]
+    (foreach [x php-array]
+      (when-not (php/is_string x)
+        (php/aset found 0 false)
+        php/break))
+    (php/aget found 0)))
+
 (defn- sorted-vector
   [coll comp]
   (let [php-array (to-php-array coll)]
@@ -1060,8 +1078,9 @@ Indexed PHP arrays become vectors, associative PHP arrays become maps."
   ;; fallback to `sorted-vector` would convert a second time, which made every
   ;; non-int sort slower than before the fast path existed.
   (let [php-array (to-php-array coll)]
-    (if (all-native-ints? php-array)
-      (php/sort (php/ref php-array) php/SORT_NUMERIC)
+    (cond
+      (all-native-ints? php-array)    (php/sort (php/ref php-array) php/SORT_NUMERIC)
+      (all-native-strings? php-array) (php/sort (php/ref php-array))
       (php/usort php-array (sort-comparator nil)))
     (copy-meta coll (Phel/vector php-array))))
 

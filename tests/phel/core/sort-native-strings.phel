@@ -1,0 +1,53 @@
+(ns phel-test.core.sort-native-strings
+  (:require phel.test :refer [deftest is]))
+
+;; `sort` with no comparator sorts an all-string collection natively, the way
+;; it already did for an all-int one. The order has to stay exactly what
+;; `compare` produces, and the interesting part is that PHP's `<=>` compares
+;; two numeric strings *numerically*.
+
+(deftest test-numeric-strings-sort-numerically
+  ;; The reason the fast path uses the default SORT_REGULAR and not
+  ;; SORT_STRING. Lexicographically these would be ["1" "10" "100" "2" "9"].
+  (is (= ["1" "2" "9" "10" "100"] (sort ["10" "9" "2" "100" "1"]))
+      "numeric strings order by value, not lexically")
+  ;; "7" and "007" compare equal numerically, so their relative order is
+  ;; whatever PHP's sort leaves; it is the same before and after this change.
+  (is (= ["7" "007" "8" "08"] (sort ["8" "08" "7" "007"]))
+      "leading zeros compare equal and keep PHP's tie order")
+  (is (= ["99" "1e2" "100"] (sort ["1e2" "100" "99"]))
+      "exponent notation is read as a number")
+  (is (= ["-10" "-1" "2"] (sort ["-1" "-10" "2"]))
+      "negative numeric strings"))
+
+(deftest test-plain-strings
+  (is (= ["apple" "banana" "cherry"] (sort ["banana" "apple" "cherry"])) "words")
+  (is (= ["Apple" "Banana" "apple" "banana"] (sort ["apple" "Apple" "banana" "Banana"]))
+      "uppercase sorts before lowercase, as byte order gives")
+  (is (= ["" "" "a"] (sort ["" "a" ""])) "empty strings first")
+  (is (= [" a" "a" "a "] (sort ["a " " a" "a"])) "leading and trailing space")
+  (is (= ["x" "x" "y"] (sort ["y" "x" "x"])) "duplicates are kept")
+  (is (= ["solo"] (sort ["solo"])) "a single element")
+  (is (= [] (sort [])) "an empty collection")
+  (is (= ["1.10" "1.5" "1.9"] (sort ["1.5" "1.10" "1.9"])) "decimal-looking strings"))
+
+(deftest test-collections-that-must-not-take-the-fast-path
+  ;; One non-string is enough to send the whole collection back to `compare`.
+  (is (= [1 2 3] (sort [3 1 2])) "ints still sort")
+  (is (= [0.5 1.5 2.5] (sort [1.5 0.5 2.5])) "floats still sort")
+  (is (= [:a :b :c] (sort [:b :a :c])) "keywords still sort")
+  (is (= [nil nil "a"] (sort [nil "a" nil])) "nil sorts before a string")
+  ;; `compare` refuses incomparable categories; unchanged by the fast path,
+  ;; which only engages when every element is a string.
+  (is (thrown? \InvalidArgumentException (sort ["a" 1 "b"]))
+      "a string mixed with a number is still rejected")
+  (is (= [["a"] ["b"]] (sort [["b"] ["a"]])) "vectors compare element-wise"))
+
+(deftest test-an-explicit-comparator-is-still-honoured
+  ;; The fast path must only apply when no comparator was supplied.
+  (is (= ["c" "b" "a"] (sort (fn [a b] (compare b a)) ["a" "c" "b"]))
+      "a reversing comparator is not bypassed")
+  (is (= ["10" "9" "2"] (sort (fn [a b] (compare b a)) ["2" "10" "9"]))
+      "and applies to numeric strings too")
+  (is (= ["a" "bb" "ccc"] (sort-by count ["ccc" "a" "bb"]))
+      "sort-by is unaffected"))
