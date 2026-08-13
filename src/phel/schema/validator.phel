@@ -184,20 +184,33 @@
   [value entries closed?]
   (if (not (map? value))
     false
-    (let [keys-ok?  (loop [es (seq entries)]
+    ;; Indexed rather than `(seq entries)` plus `first`/`next`: `entries` is
+    ;; the vector `schema-args` returned, so `seq` would build a ChunkedSeq
+    ;; over it (#3061) to walk something already random-access.
+    (let [entry-count (count entries)
+          keys-ok?  (loop [i 0]
                       (cond
-                        (nil? es) true
+                        (php/>= i entry-count) true
                         :else
-                        (let [entry (first es)
-                              k     (get entry 0)
-                              inner (map-entry-schema entry)
-                              opt?  (map-entry-optional? entry)]
+                        ;; The options position and the schema position are
+                        ;; decided by the same test. `map-entry-schema` runs
+                        ;; it, `map-entry-optional?` runs it again through
+                        ;; `map-entry-options`, and each is a separate call.
+                        ;; Once inline is enough, and this is per entry per
+                        ;; validation. The two helpers stay: they are public.
+                        (let [entry     (get entries i)
+                              k         (get entry 0)
+                              has-opts? (and (>= (count entry) 3) (map? (get entry 1)))
+                              inner     (if has-opts? (get entry 2) (get entry 1))
+                              opt?      (if has-opts?
+                                          (true? (get (get entry 1) :optional))
+                                          false)]
                           (cond
                             (not (contains? value k))
-                            (if opt? (recur (next es)) false)
+                            (if opt? (recur (php/+ i 1)) false)
                             (not (valid? inner (get value k)))
                             false
-                            :else                              (recur (next es))))))
+                            :else                              (recur (php/+ i 1))))))
           extra-ok? (if closed?
                       (let [declared (into (hash-set) (map (fn [e] (get e 0)) entries))]
                         (loop [ks (seq (keys value))]

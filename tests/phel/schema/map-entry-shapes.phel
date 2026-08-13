@@ -1,0 +1,45 @@
+(ns phel-test.schema.map-entry-shapes
+  (:require phel.schema :as sc)
+  (:require phel.test :refer [deftest is]))
+
+;; `validate-map` used to ask `map-entry-schema` and `map-entry-optional?` for
+;; each entry, and both re-derived the same "does this entry carry an options
+;; map?" test. That test is inline now, so every entry shape it distinguishes
+;; needs covering: with and without options, optional and required.
+
+(deftest test-entries-without-an-options-map
+  (is (true? (sc/validate [:map [:a :int]] {:a 1})) "one entry, matching")
+  (is (false? (sc/validate [:map [:a :int]] {:a "x"})) "one entry, wrong type")
+  (is (false? (sc/validate [:map [:a :int]] {})) "one entry, missing")
+  (is (true? (sc/validate [:map [:a :int] [:b :string]] {:a 1, :b "x"})) "two entries")
+  (is (false? (sc/validate [:map [:a :int] [:b :string]] {:a 1, :b 2})) "second entry wrong")
+  (is (false? (sc/validate [:map [:a :int] [:b :string]] {:a 1})) "second entry missing"))
+
+(deftest test-entries-with-an-options-map
+  (is (true? (sc/validate [:map [:a {:optional true} :int]] {:a 1})) "optional and present")
+  (is (true? (sc/validate [:map [:a {:optional true} :int]] {})) "optional and absent")
+  (is (false? (sc/validate [:map [:a {:optional true} :int]] {:a "x"})) "optional but wrong type")
+  (is (true? (sc/validate [:map [:a {:optional false} :int]] {:a 1})) "explicitly not optional")
+  (is (false? (sc/validate [:map [:a {:optional false} :int]] {})) "explicitly not optional, absent")
+  ;; An options map with no `:optional` key still shifts the schema position.
+  (is (true? (sc/validate [:map [:a {:title "x"} :int]] {:a 1})) "options without :optional")
+  (is (false? (sc/validate [:map [:a {:title "x"} :int]] {:a "s"})) "options without :optional, wrong type"))
+
+(deftest test-mixed-entry-shapes-in-one-schema
+  (let [s [:map [:a :int] [:b {:optional true} :string] [:c :keyword]]]
+    (is (true? (sc/validate s {:a 1, :b "x", :c :k})) "all present")
+    (is (true? (sc/validate s {:a 1, :c :k})) "optional omitted")
+    (is (false? (sc/validate s {:a 1, :b 2, :c :k})) "optional present but wrong")
+    (is (false? (sc/validate s {:b "x", :c :k})) "required omitted")))
+
+(deftest test-closed-maps
+  (is (true? (sc/validate [:map {:closed true} [:a :int]] {:a 1})) "closed and exact")
+  (is (false? (sc/validate [:map {:closed true} [:a :int]] {:a 1, :b 2})) "closed with an extra key")
+  (is (true? (sc/validate [:map [:a :int]] {:a 1, :b 2})) "open ignores extra keys"))
+
+(deftest test-nested-and-empty-maps
+  (is (true? (sc/validate [:map [:a [:map [:b :int]]]] {:a {:b 1}})) "a nested map schema")
+  (is (false? (sc/validate [:map [:a [:map [:b :int]]]] {:a {:b "x"}})) "nested, wrong type")
+  (is (true? (sc/validate [:map] {})) "an empty schema against an empty map")
+  (is (true? (sc/validate [:map] {:a 1})) "an empty open schema ignores keys")
+  (is (false? (sc/validate [:map [:a :int]] "not a map")) "a non-map value"))
