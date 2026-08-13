@@ -1,0 +1,46 @@
+(ns phel-test.core.distinct-transducer-state
+  (:require phel.test :refer [deftest is]))
+
+;; The `distinct` transducer tracks what it has seen in a transient set rather
+;; than a volatile holding a persistent one. The set is private to one
+;; application of the transducer and is never made persistent, so the change is
+;; invisible from outside; these tests are what says so.
+
+(deftest test-distinct-transducer-removes-duplicates
+  (is (= [1 2 3 4] (transduce (distinct) (completing conj) [] [1 2 1 3 2 4 3])) "duplicates removed, order kept")
+  (is (= [] (transduce (distinct) (completing conj) [] [])) "an empty collection")
+  (is (= [7] (transduce (distinct) (completing conj) [] [7 7 7 7])) "every element the same")
+  (is (= 10 (transduce (distinct) + 0 [1 2 1 3 2 4 3])) "summing the distinct elements"))
+
+(deftest test-values-that-are-falsy-or-look-alike
+  ;; `seen` is consulted with `contains?`, so anything that hashes or compares
+  ;; loosely would show up here. Phel treats 0 and "" as truthy, and nil and
+  ;; false as distinct values.
+  (is (= [nil 1 2] (transduce (distinct) (completing conj) [] [nil 1 nil 2])) "nil is a value, seen once")
+  (is (= [false 1 true] (transduce (distinct) (completing conj) [] [false 1 false true])) "false and true are distinct")
+  (is (= [0 1 ""] (transduce (distinct) (completing conj) [] [0 1 0 ""])) "zero and the empty string are distinct")
+  (is (= [1 "1" :a 'a] (transduce (distinct) (completing conj) [] [1 "1" :a 'a 1]))
+      "an int, its string, a keyword and a symbol are four values"))
+
+(deftest test-collections-compare-by-value
+  (is (= [[1 2] {:a 1} #{1}]
+         (transduce (distinct) (completing conj) [] [[1 2] [1 2] {:a 1} {:a 1} #{1} #{1}]))
+      "equal collections are one value"))
+
+(deftest test-a-transducer-value-can-be-applied-more-than-once
+  ;; Each application builds its own `seen`. If the set leaked between them the
+  ;; second reduction would come back empty.
+  (let [xf (distinct)]
+    (is (= [1 2] (transduce xf (completing conj) [] [1 2 1])) "first application")
+    (is (= [1 2] (transduce xf (completing conj) [] [1 2 1])) "second application starts fresh")))
+
+(deftest test-composed-with-other-transducers
+  (is (= [2 3 4] (transduce (comp (map inc) (distinct)) (completing conj) [] [1 1 2 2 3])) "after map")
+  (is (= [2 4] (transduce (comp (distinct) (filter even?)) (completing conj) [] [1 2 2 4 4 3])) "before filter")
+  ;; `take` returns a `reduced`, which travels back out through the same step.
+  (is (= [5 6] (transduce (comp (distinct) (take 2)) (completing conj) [] [5 5 6 7 8])) "early termination")
+  (is (= [1 2 3] (into [] (distinct) [1 2 1 3])) "through into"))
+
+(deftest test-the-sequence-arity-is-unaffected
+  (is (= [1 2 3] (vec (distinct [1 2 1 3 2]))) "one argument returns a lazy sequence")
+  (is (= [] (vec (distinct nil))) "nil is an empty result"))

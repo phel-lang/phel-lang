@@ -611,6 +611,18 @@ final class CoreSeqBench extends CoreBenchCase
     }
 
     /**
+     * The `distinct` transducer actually stepping. `bench_distinct_transducer`
+     * above builds it and stops, so the `seen` accumulator it maintains per
+     * element was never measured.
+     *
+     * @Revs(1000)
+     */
+    public function bench_transduce_distinct(): void
+    {
+        ($this->transduce)(($this->distinct)(), $this->add, 0, $this->ints);
+    }
+
+    /**
      * `partition-by` and `dedupe` return a sequence built by
      * `lazy-seq-from-generator`, so constructing one realizes a chunk before
      * the caller has asked for a single element. These two subjects measure
