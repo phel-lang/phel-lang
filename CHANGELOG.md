@@ -150,6 +150,7 @@ Runtime core:
 
 Standard library:
 
+- Answer `even?` and `odd?` on a native int with one PHP modulo instead of reaching through `%` and `rem`, and stop `%` forwarding to `rem`: `even?` and `odd?` 5.9x, `%` 1.4x (#2973)
 - Test `reduced?` and the loop guard in `reduce` and `reduce-kv` as the PHP checks they are rather than through a function call, once per element: `reduce` 1.2x, and `transduce` with `map` a further 1.1x on top of #3101 (#2973)
 - Reach a vector `conj` target, persistent or transient, without the `vector-target?` and `transient-vector?` calls: `into` a vector 1.3x, `conj` on a vector 1.2x, a list target 3% slower (#2973)
 - Compare two native ints in `min` and `max` without the NaN guards or the numeric tower: 3.0x on a pair, 2.5x on four arguments (#2973)

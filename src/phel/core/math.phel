@@ -313,7 +313,11 @@ returns 1. If `xs` has one value, returns the reciprocal of x.
   {:example "(% 11 2) ; => 1"
    :see-also ["rem" "quot" "mod"]}
   [dividend divisor]
-  (rem dividend divisor))
+  ;; Spelled out rather than forwarding to `rem`. An alias that calls its
+  ;; target pays a whole Phel call to move two arguments, which measured about
+  ;; a third of what `%` costs (#2973).
+  (assert-non-nil-2 dividend divisor)
+  (NumericOperations/rem dividend divisor))
 
 (defn **
   "Return `a` to the power of `x`."
@@ -393,14 +397,22 @@ returns 1. If `xs` has one value, returns the reciprocal of x.
   {:example "(even? 4) ; => true"
    :see-also ["odd?" "zero?"]}
   [x]
-  (NumericOperations/isZero (% x 2)))
+  ;; A native int answers with one PHP modulo. Otherwise this cost three Phel
+  ;; calls, `even?` to `%` to `rem`, to reach the same question (#2973).
+  (if (php/is_int x)
+    (php/=== 0 (php/% x 2))
+    (NumericOperations/isZero (% x 2))))
 
 (defn odd?
   "Checks if `x` is odd."
   {:example "(odd? 3) ; => true"
    :see-also ["even?" "zero?"]}
   [x]
-  (not (even? x)))
+  ;; Its own fast path rather than negating `even?`: that was a fourth call on
+  ;; top of the three above (#2973).
+  (if (php/is_int x)
+    (php/!== 0 (php/% x 2))
+    (not (even? x))))
 
 (defn zero?
   "Checks if `x` is zero."

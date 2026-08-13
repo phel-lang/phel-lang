@@ -1,0 +1,56 @@
+(ns phel-test.core.even-odd-int-fast-path
+  (:require phel.test :refer [deftest is]))
+
+;; `even?` and `odd?` answer a native int with one PHP modulo instead of
+;; reaching through `%` and `rem` (and, for `odd?`, `even?` on top). `%` no
+;; longer forwards to `rem`. Everything that is not a native int still goes
+;; through the numeric tower, so the two paths have to agree everywhere, and
+;; the sign of PHP's `%` is the part that is easy to get wrong.
+
+(deftest test-even-and-odd-on-native-ints
+  (is (true? (even? 0)) "zero is even")
+  (is (false? (odd? 0)) "zero is not odd")
+  (is (true? (even? 2)) "a positive even")
+  (is (true? (odd? 1)) "a positive odd")
+  (is (false? (even? 7)) "a positive odd is not even")
+  ;; PHP's `%` keeps the sign of the dividend, so a negative odd gives -1 and
+  ;; not 1. A fast path testing `=== 1` rather than `!== 0` would fail here.
+  (is (true? (even? -2)) "a negative even")
+  (is (true? (odd? -1)) "a negative odd")
+  (is (true? (odd? -3)) "another negative odd")
+  (is (false? (even? -3)) "a negative odd is not even")
+  (is (false? (odd? -2)) "a negative even is not odd")
+  (is (true? (even? php/PHP_INT_MIN)) "the smallest native int is even")
+  (is (true? (odd? php/PHP_INT_MAX)) "the largest native int is odd"))
+
+(deftest test-non-native-numbers-still-reach-the-tower
+  (is (true? (even? 4.0)) "an integral float is even")
+  (is (true? (odd? 3.0)) "an integral float is odd")
+  (is (true? (even? -4.0)) "a negative integral float")
+  (is (true? (even? 0.0)) "zero as a float")
+  (is (true? (even? (bigint "100000000000000000000"))) "an even BigInt")
+  (is (true? (odd? (bigint "100000000000000000001"))) "an odd BigInt")
+  (is (true? (even? (bigdec "4.0"))) "an even BigDecimal"))
+
+(deftest test-even-and-odd-stay-complementary
+  ;; Now that `odd?` no longer negates `even?`, nothing structural keeps them
+  ;; opposite; this is what would catch them drifting apart.
+  (foreach [x [0 1 2 -1 -2 -3 7 100 -100 php/PHP_INT_MAX php/PHP_INT_MIN]]
+    (is (not= (even? x) (odd? x)) (str "even? and odd? disagree on " x))))
+
+(deftest test-modulo-matches-rem
+  ;; `%` is documented as an alias for `rem` and now repeats its body rather
+  ;; than calling it, so the two must not drift.
+  (foreach [[a b] [[7 3] [-7 3] [7 -3] [-7 -3] [0 3] [10 5] [1 1]]]
+    (is (= (rem a b) (% a b)) (str "% and rem agree on " a " " b)))
+  (is (= 1 (% 7 3)) "a positive remainder")
+  (is (= -1 (% -7 3)) "the result takes the sign of the dividend")
+  (is (= 0 (% 10 5)) "an exact division"))
+
+(deftest test-nil-is-still-rejected
+  ;; The nil guard lives in the slow path for `even?`/`odd?` and inline in `%`.
+  (is (thrown? \InvalidArgumentException (% nil 3)) "% rejects a nil dividend")
+  (is (thrown? \InvalidArgumentException (% 3 nil)) "% rejects a nil divisor")
+  (is (thrown? \InvalidArgumentException (rem nil 3)) "rem rejects nil")
+  (is (thrown? \InvalidArgumentException (even? nil)) "even? rejects nil")
+  (is (thrown? \InvalidArgumentException (odd? nil)) "odd? rejects nil"))

@@ -35,6 +35,18 @@ use PhpBench\Benchmark\Metadata\Annotations\Revs;
 final class CoreArithmeticBench extends CoreBenchCase
 {
     /** @var callable */
+    private $even;
+
+    /** @var callable */
+    private $odd;
+
+    /** @var callable */
+    private $rem;
+
+    /** @var callable */
+    private $modulo;
+
+    /** @var callable */
     private $inc;
 
     /** @var callable */
@@ -249,8 +261,82 @@ final class CoreArithmeticBench extends CoreBenchCase
         }
     }
 
+    /**
+     * `even?` reaches its answer through `%` and `rem`, and `odd?` through
+     * `even?` on top of that, so a three-call chain answers one modulo. These
+     * subjects are paired against the raw PHP the int case compiles to.
+     *
+     * @Revs(1000)
+     */
+    public function bench_even(): void
+    {
+        for ($i = 0; $i < self::INNER; ++$i) {
+            ($this->even)($i);
+        }
+    }
+
+    /**
+     * @Revs(1000)
+     */
+    public function bench_even_raw(): void
+    {
+        $unused = false;
+        for ($i = 0; $i < self::INNER; ++$i) {
+            $unused = $i % 2 === 0;
+        }
+    }
+
+    /**
+     * @Revs(1000)
+     */
+    public function bench_odd(): void
+    {
+        for ($i = 0; $i < self::INNER; ++$i) {
+            ($this->odd)($i);
+        }
+    }
+
+    /**
+     * @Revs(1000)
+     */
+    public function bench_rem(): void
+    {
+        for ($i = 0; $i < self::INNER; ++$i) {
+            ($this->rem)($i, 3);
+        }
+    }
+
+    /**
+     * `%` is an alias for `rem`. Read against the subject above: the gap is the
+     * forwarding call and nothing else.
+     *
+     * @Revs(1000)
+     */
+    public function bench_modulo(): void
+    {
+        for ($i = 0; $i < self::INNER; ++$i) {
+            ($this->modulo)($i, 3);
+        }
+    }
+
+    /**
+     * @Revs(1000)
+     */
+    public function bench_rem_raw(): void
+    {
+        $unused = 0;
+        for ($i = 0; $i < self::INNER; ++$i) {
+            $unused = $i % 3;
+        }
+    }
+
     protected function setUpFixtures(): void
     {
+        $this->even = $this->coreFn('even?');
+        $this->odd = $this->coreFn('odd?');
+        $this->rem = $this->coreFn('rem');
+        $this->modulo = $this->coreFn('%');
+
         $this->inc = $this->coreFn('inc');
         $this->dec = $this->coreFn('dec');
         $this->max = $this->coreFn('max');
