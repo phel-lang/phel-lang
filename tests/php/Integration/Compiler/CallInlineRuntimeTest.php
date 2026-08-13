@@ -355,4 +355,33 @@ final class CallInlineRuntimeTest extends AbstractCompilerRuntimeTestCase
 
         self::assertStringNotContainsString('untagged-mul', $php, 'the guard must not disable inlining generally');
     }
+
+    public function test_an_argument_with_a_by_reference_interop_call_is_not_inlined(): void
+    {
+        // `preg_match` fills its third parameter by reference. Inlining moves
+        // the call into the callee body, and when that body needs a closure
+        // the capture is by value, so the write is lost (#3126).
+        $options = new CompileOptions()->setOptimizationLevel(2);
+        $this->compilerFacade->eval('(defn is-one? [x] (or (= x 1) (= x 1.0)))', $options);
+
+        $result = $this->compilerFacade->eval(
+            '(let [m (php-indexed-array)]'
+            . ' (if (is-one? (php/preg_match "/(a)(b)/" "ab" m))'
+            . '   (aget m 1)'
+            . '   :no-match))',
+            $options,
+        );
+
+        self::assertSame('a', $result, 'the by-reference capture group survived');
+    }
+
+    public function test_an_argument_without_interop_still_inlines(): void
+    {
+        $options = new CompileOptions()->setOptimizationLevel(2);
+        $this->compilerFacade->eval('(defn plus-two [x] (+ x 2))', $options);
+
+        $php = $this->compilerFacade->compile('(let [y 5] (plus-two y))', $options)->getPhpCode();
+
+        self::assertStringNotContainsString('plus-two', $php, 'the guard must stay scoped to interop arguments');
+    }
 }

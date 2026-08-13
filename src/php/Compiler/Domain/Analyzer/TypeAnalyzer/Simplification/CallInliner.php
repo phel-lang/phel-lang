@@ -167,6 +167,14 @@ final readonly class CallInliner
         // them in its `use(...)` clause. Leaving them off the env would
         // make the closure capture the call-site locals only and read the
         // shadow as an undefined variable (issue #2622).
+        // See containsPhpCall(): an interop call in an argument may write
+        // through a by-reference parameter, which relocating it would lose.
+        foreach ($args as $arg) {
+            if ($this->containsPhpCall($arg)) {
+                return null;
+            }
+        }
+
         $bindings = [];
         $paramMap = [];
         $scopeEnv = $env;
@@ -209,6 +217,94 @@ final readonly class CallInliner
         $letNode = new LetNode($env, $bindings, $folded, false, $callLocation);
 
         return $this->letSimplifier->simplify($letNode);
+    }
+
+    /**
+     * Whether a node contains a call to a PHP function.
+     *
+     * Such a call may write through a by-reference parameter, and the inliner
+     * relocates argument expressions: either substituted into the callee body
+     * or bound ahead of it. When the body needs a `let` in expression context
+     * the emitter wraps it in a closure, and that closure captures call-site
+     * locals **by value**, so the write lands in the copy and is lost (#3126).
+     *
+     * `phel.http/uri-from-string` is the case that found this: it fills an
+     * array through `preg_match`'s third parameter, and inlining the `one?`
+     * around it produced
+     *
+     *     (function() use($url,$matches) { $x = preg_match(…, $matches); … })()
+     *
+     * leaving `$matches` empty outside and silently parsing the URI wrong.
+     *
+     * Whether a given PHP function takes a parameter by reference is not
+     * something the analyser knows, so any interop call in an argument
+     * declines the inline rather than guessing.
+     */
+    private function containsPhpCall(AbstractNode $node): bool
+    {
+        if ($node instanceof CallNode) {
+            if ($node->getFn() instanceof PhpVarNode) {
+                return true;
+            }
+
+            foreach ($node->getArguments() as $arg) {
+                if ($this->containsPhpCall($arg)) {
+                    return true;
+                }
+            }
+
+            return $this->containsPhpCall($node->getFn());
+        }
+
+        if ($node instanceof IfNode) {
+            if ($this->containsPhpCall($node->getTestExpr())) {
+                return true;
+            }
+
+            if ($this->containsPhpCall($node->getThenExpr())) {
+                return true;
+            }
+
+            return $this->containsPhpCall($node->getElseExpr());
+        }
+
+        if ($node instanceof VectorNode) {
+            return $this->anyContainsPhpCall($node->getArgs());
+        }
+
+        if ($node instanceof SetNode) {
+            return $this->anyContainsPhpCall($node->getValues());
+        }
+
+        if ($node instanceof MapNode) {
+            return $this->anyContainsPhpCall($node->getKeyValues());
+        }
+
+        if ($node instanceof LetNode) {
+            if ($this->containsPhpCall($node->getBodyExpr())) {
+                return true;
+            }
+
+            return array_any($node->getBindings(), fn(BindingNode $binding): bool => $this->containsPhpCall($binding->getInitExpr()));
+        }
+
+        if ($node instanceof DoNode) {
+            if ($this->containsPhpCall($node->getRet())) {
+                return true;
+            }
+
+            return $this->anyContainsPhpCall($node->getStmts());
+        }
+
+        return false;
+    }
+
+    /**
+     * @param array<int, AbstractNode> $nodes
+     */
+    private function anyContainsPhpCall(array $nodes): bool
+    {
+        return array_any($nodes, fn(AbstractNode $node): bool => $this->containsPhpCall($node));
     }
 
     /**
