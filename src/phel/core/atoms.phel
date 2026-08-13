@@ -443,8 +443,10 @@ Returns the new value after the swap."
 (defn- xf-step
   "Creates a transducer reducing function that delegates 0/1 arity to rf and calls step-fn for the 2-arity step. Eliminates repeated boilerplate."
   [rf step-fn]
-  (fn [& args]
-    (case (count args)
-      0 (rf)
-      1 (rf (first args))
-      2 (step-fn (first args) (second args)))))
+  ;; Real arities rather than `(case (count args) ...)` over a rest argument:
+  ;; this closure is the reducing function of every transducer, so the rest
+  ;; vector and the count dispatch were paid once per element reduced.
+  (fn
+    ([] (rf))
+    ([result] (rf result))
+    ([result input] (step-fn result input))))

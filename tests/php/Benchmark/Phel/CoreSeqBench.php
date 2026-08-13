@@ -76,6 +76,9 @@ final class CoreSeqBench extends CoreBenchCase
     private $dedupe;
 
     /** @var callable */
+    private $transduce;
+
+    /** @var callable */
     private $slice;
 
     /** @var callable */
@@ -493,6 +496,26 @@ final class CoreSeqBench extends CoreBenchCase
     }
 
     /**
+     * The subjects above hand back a transducer and stop there, so none of
+     * them reaches the reducing function it wraps. This one drives 32 elements
+     * through it, which is where a per-step cost would show up.
+     *
+     * @Revs(1000)
+     */
+    public function bench_transduce_map(): void
+    {
+        ($this->transduce)(($this->mapFn)($this->inc), $this->add, 0, $this->ints);
+    }
+
+    /**
+     * @Revs(1000)
+     */
+    public function bench_transduce_filter(): void
+    {
+        ($this->transduce)(($this->filterFn)($this->isEven), $this->add, 0, $this->ints);
+    }
+
+    /**
      * `partition-by` and `dedupe` return a sequence built by
      * `lazy-seq-from-generator`, so constructing one realizes a chunk before
      * the caller has asked for a single element. These two subjects measure
@@ -534,6 +557,7 @@ final class CoreSeqBench extends CoreBenchCase
     protected function setUpFixtures(): void
     {
         $this->partitionBy = $this->coreFn('partition-by');
+        $this->transduce = $this->coreFn('transduce');
         $this->dedupe = $this->coreFn('dedupe');
 
         $this->numEquals = $this->coreFn('==');

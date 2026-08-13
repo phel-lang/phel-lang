@@ -1,6 +1,5 @@
 (in-ns phel.core)
 
-(use InvalidArgumentException)
 (use Phel)
 (use Phel.Lang.Reduced)
 (use Phel.Lang.Volatile)
@@ -98,13 +97,15 @@
   "Takes a reducing function `f` of 2 args and returns a fn suitable for transduce by adding a 1-arity (completion) that calls `cf` (default: identity)."
   {:example "(transduce (filter even?) (completing conj) [] [1 2 3 4]) ; => [2 4]"
    :see-also ["transduce"]}
-  [f & args]
-  (let [cf (if (empty? args) identity (first args))]
-    (fn [& cargs]
-      (case (count cargs)
-        0 (f)
-        1 (cf (first cargs))
-        2 (f (first cargs) (second cargs))))))
+  ;; Real arities on both the outer function and the closure it returns
+  ;; (#2973). The closure matters most: `transduce` wraps its reducing function
+  ;; in `completing`, so this is called once per element reduced.
+  ([f] (completing f identity))
+  ([f cf]
+   (fn
+     ([] (f))
+     ([result] (cf result))
+     ([result input] (f result input)))))
 
 (defn transduce
   "Reduce with a transformation of `f` (xf). If init is not supplied,
@@ -112,16 +113,15 @@
   that returns the initial value when called with no arguments."
   {:example "(transduce (map inc) + [1 2 3]) ; => 9"
    :see-also ["reduce" "into" "sequence"]}
-  [xform f & args]
-  (case (count args)
-    1 (let [coll (first args)]
-        (transduce xform f (f) coll))
-    2 (let [init (first args)
-            coll (second args)
-            f    (xform (completing f))
-            ret  (reduce f init coll)]
-        (f ret))
-    (throw (new InvalidArgumentException "transduce expects 3 or 4 arguments"))))
+  ;; Real arities rather than `(case (count args) ...)` over a rest argument
+  ;; (#2973): both spellings are exact, so the rest vector only existed to be
+  ;; unpacked again.
+  ([xform f coll]
+   (transduce xform f (f) coll))
+  ([xform f init coll]
+   (let [rf  (xform (completing f))
+         ret (reduce rf init coll)]
+     (rf ret))))
 
 (defn volatile!
   "Creates a volatile mutable reference with initial value `val`. Use for transducer state that needs fast mutation without watches."

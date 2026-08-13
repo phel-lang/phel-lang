@@ -1,0 +1,64 @@
+(ns phel-test.core.transducer-step-arities
+  (:require phel.test :refer [deftest is]))
+
+;; `transduce`, `completing` and the private `xf-step` closure every transducer
+;; wraps all dispatched on a rest argument's count. The closures are the ones
+;; that mattered, being called once per element reduced, and all three arities
+;; they answer have to keep answering the same thing: 0 seeds, 1 completes, 2
+;; steps. Early termination runs through the same closures, so it is pinned
+;; here too.
+
+(deftest test-transduce-both-arities
+  (is (= 9 (transduce (map inc) + [1 2 3])) "three arguments seed with (f)")
+  (is (= 19 (transduce (map inc) + 10 [1 2 3])) "four arguments take an explicit init")
+  (is (= 0 (transduce (map inc) + [])) "an empty collection seeds with (f)")
+  (is (= 10 (transduce (map inc) + 10 [])) "an empty collection keeps the init")
+  (is (= 6 (transduce (filter even?) + [1 2 4])) "a filtering transducer")
+  (is (= [2 4] (transduce (filter even?) (completing conj) [] [1 2 3 4]))
+      "completing supplies the missing arity"))
+
+(deftest test-completing-arities
+  ;; The one-argument form defaults the completion to `identity`; the
+  ;; two-argument form runs `cf` on the final result exactly once.
+  (let [rf (completing +)]
+    (is (= 0 (rf)) "no arguments seeds from the wrapped fn")
+    (is (= 7 (rf 7)) "one argument completes with identity by default")
+    (is (= 5 (rf 2 3)) "two arguments step"))
+  (let [rf (completing + inc)]
+    (is (= 8 (rf 7)) "one argument runs the supplied completion")
+    (is (= 5 (rf 2 3)) "the step is unaffected by the completion"))
+  ;; Note: `transduce` wraps its reducing function in `completing` itself, so a
+  ;; completion supplied by the caller is shadowed by the wrapper's `identity`
+  ;; and `(transduce xf (completing + inc) 0 [1 2])` is 3, not 4. That is
+  ;; unchanged by this rewrite and diverges from Clojure, which does not
+  ;; re-wrap; it is asserted here only through the direct calls above.
+)
+
+(deftest test-transducer-step-answers-every-arity
+  ;; `xf-step` builds the reducing function for map, filter, take, keep,
+  ;; distinct and the rest. Reaching its 0- and 1-arity requires calling the
+  ;; transducer's reducing function directly, which is what transduce does.
+  (let [rf ((map inc) (completing +))]
+    (is (= 0 (rf)) "zero arity delegates to the wrapped fn")
+    (is (= 9 (rf 9)) "one arity completes")
+    (is (= 12 (rf 10 1)) "two arity steps through the transform"))
+  (let [rf ((filter even?) (completing +))]
+    (is (= 10 (rf 10 3)) "a rejected element leaves the result untouched")
+    (is (= 14 (rf 10 4)) "an accepted element steps")))
+
+(deftest test-early-termination-still-propagates
+  ;; `take` returns a `reduced` to stop the reduction. That travels back out
+  ;; through the same closures, so a broken arity would hang or overrun.
+  (is (= 3 (transduce (take 2) + [1 2 3 4 5])) "take stops the reduction early")
+  (is (= [1 2] (transduce (take 2) (completing conj) [] [1 2 3 4 5]))
+      "take collects only what it asked for")
+  (is (= 1 (transduce (take 1) + [1 2 3])) "taking one element")
+  (is (= 0 (transduce (take 0) + [1 2 3])) "taking nothing seeds and completes"))
+
+(deftest test-composed-transducers-still-compose
+  (is (= 6 (transduce (comp (map inc) (filter even?)) + [1 2 3]))
+      "map then filter")
+  (is (= [2 4] (transduce (comp (map inc) (filter even?)) (completing conj) [] [1 2 3]))
+      "the composed chain collects")
+  (is (= 2 (transduce (comp (map inc) (take 1)) + [1 2 3]))
+      "a composed chain still terminates early"))
