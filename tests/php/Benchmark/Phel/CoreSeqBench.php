@@ -82,6 +82,12 @@ final class CoreSeqBench extends CoreBenchCase
     private $vec;
 
     /** @var callable */
+    private $kvs;
+
+    /** @var callable */
+    private $phpToPhel;
+
+    /** @var callable */
     private $zipmap;
 
     /** @var callable */
@@ -675,6 +681,27 @@ final class CoreSeqBench extends CoreBenchCase
     }
 
     /**
+     * `kvs` and the indexed branch of `php->phel` build a vector the same way
+     * `vec` did before #3134: one transient append per element. `php->phel` is
+     * an interop boundary, so it sits on the path of anything decoding PHP
+     * data.
+     *
+     * @Revs(1000)
+     */
+    public function bench_kvs(): void
+    {
+        ($this->kvs)($this->map);
+    }
+
+    /**
+     * @Revs(1000)
+     */
+    public function bench_php_to_phel_indexed(): void
+    {
+        ($this->phpToPhel)($this->intArray);
+    }
+
+    /**
      * `partition-by` and `dedupe` return a sequence built by
      * `lazy-seq-from-generator`, so constructing one realizes a chunk before
      * the caller has asked for a single element. These two subjects measure
@@ -718,6 +745,8 @@ final class CoreSeqBench extends CoreBenchCase
         $this->partitionBy = $this->coreFn('partition-by');
         $this->transduce = $this->coreFn('transduce');
         $this->vec = $this->coreFn('vec');
+        $this->kvs = $this->coreFn('kvs');
+        $this->phpToPhel = $this->coreFn('php->phel');
         $this->zipmap = $this->coreFn('zipmap');
         $this->frequencies = $this->coreFn('frequencies');
         $this->groupBy = $this->coreFn('group-by');
