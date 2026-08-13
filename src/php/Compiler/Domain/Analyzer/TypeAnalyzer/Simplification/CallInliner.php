@@ -27,6 +27,7 @@ use Phel\Lang\Collections\Map\PersistentMapInterface;
 use Phel\Lang\Keyword;
 use Phel\Lang\SourceLocation;
 use Phel\Lang\Symbol;
+use Phel\Shared\TagResolver;
 
 use function array_key_exists;
 use function count;
@@ -119,6 +120,26 @@ final readonly class CallInliner
         }
 
         $params = $fnNode->getParams();
+
+        // A tagged parameter is load-bearing, not decoration. `FnSymbol` emits
+        // it as a PHP parameter type, which does two things the call site
+        // cannot: PHP enforces the type on the way in, and the emitter treats
+        // the parameter as proven so arithmetic on it lowers to native
+        // operators. Splicing the body at the call site drops the declaration
+        // and both go with it (#3126):
+        //
+        //   (defn dotted-tag ^Symbol [^Symbol s] s)
+        //   (dotted-tag 42)      ; raises TypeError, until it is inlined
+        //
+        //   (defn- mul [^int a ^int b] (* a b))
+        //   (mul 4000000000 4000000000)
+        //     ; 1.6E+19, a native overflow to float, until it is inlined and
+        //     ; the untagged call site promotes to BigInt instead
+        foreach ($params as $param) {
+            if (TagResolver::fromMeta($param->getMeta()) !== null) {
+                return null;
+            }
+        }
 
         $body = $fnNode->getBody();
         if (!$body instanceof DoNode || $body->getStmts() !== []) {
