@@ -387,14 +387,26 @@ Without arguments, uses a default cache size of 128 entries."
   {:example "(tree-seq indexed? identity [1 [2 3]]) ; => [[1 [2 3]] 1 [2 3] 2 3]"
    :see-also ["flatten"]}
   [branch? children root]
+  ;; The stack is a PHP array, so its length and its pop are PHP operations.
+  ;; `count` and `pop` are core functions that dispatch over every collection
+  ;; kind to answer for one, and this loop runs them once per node.
   (let [ret (transient [])]
     (loop [stack (php-indexed-array root)]
-      (if (> (count stack) 0)
-        (let [node (pop stack)]
+      (if (php/> (php/count stack) 0)
+        (let [node (php/array_pop (php/ref stack))]
           (.append ret node)
           (when (branch? node)
-            (foreach [child (reverse (children node))]
-              (php/apush stack child)))
+            ;; Children go onto the stack in reverse so they come off in order.
+            ;; Collected into a PHP array and walked backwards rather than run
+            ;; through core `reverse`, which builds a persistent collection per
+            ;; branch node only to iterate it once.
+            (let [kids (php/array)]
+              (foreach [child (children node)]
+                (php/apush kids child))
+              (loop [i (php/- (php/count kids) 1)]
+                (when (php/>= i 0)
+                  (php/apush stack (php/aget kids i))
+                  (recur (php/- i 1))))))
           (recur stack))
         (copy-meta root (persistent ret))))))
 
