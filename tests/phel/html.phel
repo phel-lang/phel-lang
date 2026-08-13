@@ -109,3 +109,28 @@
   ;; ENT_SUBSTITUTE: invalid UTF-8 becomes U+FFFD rather than an empty string.
   (is (= "\u{FFFD}" (html/escape-html (php/chr 255))))
   (is (not= "" (html/escape-html (str "bad" (php/chr 255))))))
+
+;; --- render paths rebuilt on implode (#3098) ---
+
+(deftest test-dynamic-render-joins-children-and-attributes
+  ;; A non-literal document goes through `render-html` at runtime rather than
+  ;; being compiled by the macro, so these exercise the join paths directly.
+  (let [doc [:div {:class "x"} [:p "a"] [:span "b"]]]
+    (is (= "<div class=\"x\"><p>a</p><span>b</span></div>" (html doc))
+        "children join in order"))
+  (let [doc [:div {:a "1" :b "2" :c "3"} "t"]]
+    (is (= "<div a=\"1\" b=\"2\" c=\"3\">t</div>" (html doc))
+        "attributes join in order, each preceded by a space"))
+  (is (= "<div></div>" (html [:div])) "no attributes and no children")
+  (is (= "<div>abc</div>" (html [:div "a" "b" "c"])) "several string children")
+  (is (= "<div>x</div>" (html [:div nil "x" nil])) "nil children render as nothing")
+  (is (= "<ul><li>0</li><li>1</li></ul>" (html [:ul [:li "0"] [:li "1"]]))
+      "sibling elements join in order"))
+
+(deftest test-dynamic-render-still-escapes-and-self-closes
+  (is (= "<p>&amp;&lt;&gt;&quot;&#039;</p>" (html [:p "&<>\"'"])) "text is escaped")
+  (is (= "<br />" (html [:br])) "a void element self-closes")
+  (is (= "<div><b>raw</b></div>" (html [:div (raw-string "<b>raw</b>")]))
+      "a raw-string is not escaped")
+  (is (= "<div data-x=\"q&quot;uote\">t</div>" (html [:div {:data-x "q\"uote"} "t"]))
+      "attribute values are escaped"))

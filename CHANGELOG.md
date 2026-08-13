@@ -147,6 +147,7 @@ Runtime core:
 
 Standard library:
 
+- Join `phel.html`'s runtime render with `implode` over a PHP array instead of `apply str` over a lazy sequence: 1.51x on an attribute-heavy element, 1.42x on a five-node document. Only affects documents the `html` macro cannot compile at expansion time, which is any template built from data (#3098)
 - Derive each `[:map ...]` entry's shape once in `phel.schema/validate` instead of twice through two helpers, and index the entry loop rather than walking a seq over a vector: 1.23x on a four-field map, 1.20x on two, scaling with field count (#3096)
 - Escape JUnit XML attributes with one `htmlspecialchars` pass instead of five chained `phel.string/replace` calls: 25x. Invalid UTF-8 now becomes U+FFFD rather than being emitted raw, which was not valid XML (#3094)
 - Stop `phel.pprint` printing every node twice and allocating a printer per node: leaves are no longer measured, a subtree that fits reuses the string it was measured with, and `Printer/readable` is built once as `phel.edn` already does. 1.60x on a deep structure, 1.48x on a small one (#3092)
