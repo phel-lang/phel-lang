@@ -419,7 +419,11 @@ returns 1. If `xs` has one value, returns the reciprocal of x.
   {:example "(zero? 0) ; => true"
    :see-also ["pos?" "neg?" "one?"]}
   [x]
-  (NumericOperations/isZero x))
+  ;; As `pos?` and `neg?` below: a native int compares against 0 directly
+  ;; rather than through the numeric tower (#2973).
+  (if (php/is_int x)
+    (php/=== 0 x)
+    (NumericOperations/isZero x)))
 
 (defn one?
   "Checks if `x` is one."
@@ -433,14 +437,22 @@ returns 1. If `xs` has one value, returns the reciprocal of x.
   {:example "(pos? 3) ; => true"
    :see-also ["neg?" "zero?"]}
   [x]
-  (> x 0))
+  ;; A native int tests its own sign; otherwise `pos?` paid a second Phel call
+  ;; into `>` to ask it. `zero?` already reached `NumericOperations` directly
+  ;; and cost less than half as much as a result (#2973).
+  (if (php/is_int x)
+    (php/> x 0)
+    (> x 0)))
 
 (defn neg?
   "Checks if `x` is smaller than zero."
   {:example "(neg? -2) ; => true"
    :see-also ["pos?" "zero?"]}
   [x]
-  (< x 0))
+  ;; As `pos?` above.
+  (if (php/is_int x)
+    (php/< x 0)
+    (< x 0)))
 
 (defn nan?
   "Checks if `x` is not a number."
