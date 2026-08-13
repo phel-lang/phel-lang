@@ -118,6 +118,17 @@
            res))
        opt)
 
+     ;; Transient maps third. They are not `PersistentMapInterface`, so before
+     ;; this they fell through every branch to `:else`, seven predicates deep,
+     ;; on a type that only appears inside `for :reduce` loops over transients
+     ;; where the lookup runs once per element. `frequencies`, `group-by`,
+     ;; `into` and `zipmap` all pay it.
+     (php/instanceof ds TransientMapInterface)
+     (let [res (aget ds k)]
+       (if (nil? res)
+         opt
+         res))
+
      (nil? ds)                                                                                                                   opt
      (and (nil? k) (indexed? ds))                                                                                                opt
 
