@@ -150,6 +150,7 @@ Runtime core:
 
 Standard library:
 
+- Answer a transient map in `get`'s two-argument arity as well, not only persistent maps and vectors. `group-by`, `frequencies` and every `for :reduce` accumulating into a transient read a key per element: `group-by` 1.1x (#2973)
 - Answer `zero?`, `pos?` and `neg?` on a native int with a direct PHP comparison rather than through `>`, `<` or the numeric tower: `pos?` and `neg?` 4.2x, `zero?` 1.5x (#2973)
 - Answer `even?` and `odd?` on a native int with one PHP modulo instead of reaching through `%` and `rem`, and stop `%` forwarding to `rem`: `even?` and `odd?` 5.9x, `%` 1.4x (#2973)
 - Test `reduced?` and the loop guard in `reduce` and `reduce-kv` as the PHP checks they are rather than through a function call, once per element: `reduce` 1.2x, and `transduce` with `map` a further 1.1x on top of #3101 (#2973)

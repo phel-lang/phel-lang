@@ -108,6 +108,13 @@
      (php/instanceof ds PersistentVectorInterface)
      (if (integer? k) (php/aget ds k) nil)
 
+     ;; Transient maps too. `group-by`, `frequencies`, `into` a map and every
+     ;; other `for :reduce` that accumulates into one read a key per element,
+     ;; and without this they fall past both branches above into the
+     ;; three-argument arity to be tested a third time.
+     (php/instanceof ds TransientMapInterface)
+     (php/aget ds k)
+
      :else
      (get ds k nil)))
   ([ds k opt]

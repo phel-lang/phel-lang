@@ -50,10 +50,22 @@
     (is (= :DEF (get p :y :DEF)) "a nil field takes the default")
     (is (nil? (get p :nope)) "an absent field")))
 
+(deftest test-transient-map-target
+  ;; A transient map is answered by the two-argument arity too: `group-by`,
+  ;; `frequencies` and every other `for :reduce` accumulating into one read a
+  ;; key per element, and it used to fall past both branches above.
+  (let [tm (transient {:a 1, :b nil})]
+    (is (= 1 (get tm :a)) "a present key")
+    (is (nil? (get tm :missing)) "a missing key")
+    (is (= :DEF (get tm :missing :DEF)) "a missing key takes the default")
+    (is (nil? (get tm :b)) "a nil value reads as nil")
+    (is (= :DEF (get tm :b :DEF)) "a nil value takes the default, as for a persistent map")
+    (is (= 1 (get tm :a :DEF)) "a default is ignored when the key is present")))
+
 (deftest test-shapes-that-fall-through-to-the-three-arity
-  ;; None of these is a PersistentMapInterface or PersistentVectorInterface, so
-  ;; each must still reach the longer dispatch and answer what it always did.
-  (is (= 1 (get (transient {:a 1}) :a)) "a transient map")
+  ;; None of these is a PersistentMapInterface, PersistentVectorInterface or
+  ;; TransientMapInterface, so each must still reach the longer dispatch and
+  ;; answer what it always did.
   (is (= 10 (get (transient [10 20]) 0)) "a transient vector")
   (is (= :a (get (set [:a]) :a)) "a set returns the member itself")
   (is (nil? (get (set [:a]) :z)) "a set misses")
