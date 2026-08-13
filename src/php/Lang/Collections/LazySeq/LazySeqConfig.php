@@ -25,9 +25,9 @@ final class LazySeqConfig
      * anything up to 32 elements, whether or not the caller ever looked past
      * the first (#3061).
      *
-     * Chunks double from here up to `CHUNK_SIZE`, so a sequence that is fully
-     * consumed still reaches the batch size it was tuned for, while one that is
-     * abandoned early pays for what it used.
+     * Every later chunk is a full `CHUNK_SIZE`, so a sequence that is actually
+     * consumed pays one extra chunk boundary and nothing more, while one that is
+     * abandoned after a couple of elements never realizes 32.
      */
     public const int FIRST_CHUNK_SIZE = 4;
 
