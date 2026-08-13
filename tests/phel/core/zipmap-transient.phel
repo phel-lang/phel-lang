@@ -1,0 +1,44 @@
+(ns phel-test.core.zipmap-transient
+  (:require phel.test :refer [deftest is]))
+
+;; `zipmap` builds through a transient rather than accumulating a persistent
+;; map. The result is still a persistent map, and the walk still stops at the
+;; shorter of the two collections, which is what makes an infinite lazy
+;; sequence on either side safe.
+
+(deftest test-pairs-up-to-the-shorter-collection
+  (is (= {:a 1, :b 2, :c 3} (zipmap [:a :b :c] [1 2 3])) "equal lengths")
+  (is (= {:a 1, :b 2} (zipmap [:a :b :c] [1 2])) "more keys than values")
+  (is (= {:a 1, :b 2} (zipmap [:a :b] [1 2 3])) "more values than keys")
+  (is (= {} (zipmap [] [1 2])) "no keys")
+  (is (= {} (zipmap [:a] [])) "no values")
+  (is (= {} (zipmap [] [])) "neither")
+  (is (= {} (zipmap nil [1 2])) "nil keys")
+  (is (= {} (zipmap [:a] nil)) "nil values"))
+
+(deftest test-infinite-sequences-stay-safe
+  ;; The reason the loop is written as a walk rather than a `reduce` over both.
+  (is (= {0 1, 1 2, 2 3} (zipmap (range) [1 2 3])) "an infinite key sequence")
+  (is (= {:a 0, :b 1} (zipmap [:a :b] (range))) "an infinite value sequence")
+  (is (= 5 (count (zipmap (take 5 (range)) (repeat 5 :x)))) "both bounded by take"))
+
+(deftest test-values-and-keys-of-every-shape
+  (is (= {:a 2} (zipmap [:a :a] [1 2])) "a repeated key keeps the last value")
+  (is (= 1 (get (zipmap [nil :a] [1 2]) nil)) "nil is usable as a key")
+  (is (nil? (get (zipmap [:a :b] [nil 2]) :a)) "a nil value is stored")
+  (is (= {:a false} (zipmap [:a] [false])) "a false value is stored")
+  (is (= 4 (count (zipmap [1 "1" :a 'a] [1 2 3 4]))) "an int, a string, a keyword and a symbol are four keys")
+  (is (= :v1 (get (zipmap [[1 2] {:x 1}] [:v1 :v2]) [1 2])) "collections work as keys"))
+
+(deftest test-accepts-any-seqable-source
+  (is (= {:a 1, :b 2} (zipmap '(:a :b) '(1 2))) "lists")
+  (is (= {2 :x, 3 :y} (zipmap (map inc [1 2]) [:x :y])) "a lazy sequence of keys")
+  (is (= 2 (count (zipmap (set [:a :b]) [1 2]))) "a set of keys")
+  (is (= 1 (count (zipmap {:a 1} [:v]))) "a map as the key source"))
+
+(deftest test-the-result-is-a-persistent-map
+  ;; The transient must not escape: the result has to behave like any other map.
+  (let [m (zipmap [:a :b] [1 2])]
+    (is (map? m) "the result is a map")
+    (is (= {:a 1, :b 2, :c 3} (assoc m :c 3)) "it can be assoc'd onto")
+    (is (= {:a 1, :b 2} m) "and the original is unchanged")))
