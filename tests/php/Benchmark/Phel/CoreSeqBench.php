@@ -79,6 +79,9 @@ final class CoreSeqBench extends CoreBenchCase
     private $transduce;
 
     /** @var callable */
+    private $vec;
+
+    /** @var callable */
     private $zipmap;
 
     /** @var callable */
@@ -652,6 +655,26 @@ final class CoreSeqBench extends CoreBenchCase
     }
 
     /**
+     * `vec` and `into []` build a vector from a collection. Both appended
+     * through a transient once per element; the raw pair below is the single
+     * bulk construction the same result can be built with.
+     *
+     * @Revs(1000)
+     */
+    public function bench_vec_from_vector(): void
+    {
+        ($this->vec)($this->ints);
+    }
+
+    /**
+     * @Revs(1000)
+     */
+    public function bench_vec_from_vector_raw(): void
+    {
+        Phel::vector($this->intArray);
+    }
+
+    /**
      * `partition-by` and `dedupe` return a sequence built by
      * `lazy-seq-from-generator`, so constructing one realizes a chunk before
      * the caller has asked for a single element. These two subjects measure
@@ -694,6 +717,7 @@ final class CoreSeqBench extends CoreBenchCase
     {
         $this->partitionBy = $this->coreFn('partition-by');
         $this->transduce = $this->coreFn('transduce');
+        $this->vec = $this->coreFn('vec');
         $this->zipmap = $this->coreFn('zipmap');
         $this->frequencies = $this->coreFn('frequencies');
         $this->groupBy = $this->coreFn('group-by');
