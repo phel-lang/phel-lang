@@ -22,7 +22,7 @@
 
 (def to-php-array
   {:doc "Creates a PHP Array from a sequential data structure."
-   :see-also ["php-array-to-map" "phel->php"]}
+   :see-also ["to-array" "php-array-to-map" "phel->php"]}
   (fn [coll]
     (if (php/is_array coll)
       coll
