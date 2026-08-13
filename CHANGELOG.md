@@ -115,6 +115,7 @@ All notable changes to this project will be documented in this file.
 
 Compiler:
 
+- Answer a map target in `dissoc`'s two-argument arity itself rather than delegating to `dissoc-one`, and reach the map and set branches inside `dissoc-one` by their own `instanceof` instead of through `map-target?` and `set-target?`: 1.14x (#2973)
 - Answer a map target in `assoc`'s three-argument arity itself rather than delegating to `assoc-pair`, and reach the map and vector branches inside `assoc-pair` by their own `instanceof` instead of through `map-target?` and `vector-target?`: `assoc` on a map 1.24x, `into` a map 1.06x (#2973)
 - Recognise `str_contains`, `str_starts_with` and `str_ends_with` as bool-returning, so an `if` over one of them or over `phel.string/includes?`, `starts-with?`, `ends-with?` and `contains?` skips the `Truthy` adapter: 7.3% on the raw interop call, 3 to 4.5% through the wrappers (#2973)
 - Tag the fifteen core predicates that returned an untagged bool (`even?`, `odd?`, `zero?`, `empty?`, `some?`, `map?`, `list?`, `indexed?`, `contains?`, `truthy?`, `nan?`, `infinite?`, `subset?`, `superset?`, `not`) so an `if` over them skips the `Truthy` adapter, and so a function built on one is itself inferred to return `bool`: 1 to 5% per test, plus the return type it propagates (#2973)

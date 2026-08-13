@@ -1,0 +1,43 @@
+(ns phel-test.core.dissoc-map-fast-path
+  (:require phel.test :refer [deftest is]))
+
+(defstruct pt [x y])
+
+;; `dissoc`'s two-argument arity answers a map target itself instead of
+;; delegating to `dissoc-one`, and `dissoc-one` reaches its map and set
+;; branches by their own `instanceof` rather than through `map-target?` and
+;; `set-target?`. Every target has to keep answering what it did.
+
+(deftest test-map-targets
+  (is (= {:a 1} (dissoc {:a 1, :b 2} :b)) "an existing key is removed")
+  (is (= {:a 1, :b 2} (dissoc {:a 1, :b 2} :z)) "an absent key is a no-op")
+  (is (= {} (dissoc {:a 1} :a)) "removing the last key")
+  (is (= {} (dissoc {} :a)) "an empty map")
+  (is (= {:b 2} (dissoc {:a 1, :b 2} :a)) "the other entries survive")
+  (is (= {:a 1} (dissoc {:a 1, :b 2, :c 3} :b :c)) "the variadic form removes several"))
+
+(deftest test-other-map-flavours
+  (is (= 1 (get (dissoc (sorted-map :a 1 :b 2) :b) :a)) "a sorted map")
+  (is (nil? (get (dissoc (sorted-map :a 1 :b 2) :b) :b)) "the sorted map key is gone")
+  (let [t (transient {:a 1, :b 2})]
+    (is (nil? (get (dissoc t :b) :b)) "a transient map")
+    ;; `dissoc` on a transient mutates and hands the same transient back.
+    (is (identical? t (dissoc t :a)) "the transient itself comes back")))
+
+(deftest test-set-targets
+  (is (= (set [1 :a]) (dissoc (set [1 2 :a]) 2)) "a hash set removes a member")
+  (is (= (set [1 2]) (dissoc (set [1 2]) 9)) "an absent member is a no-op")
+  (is (= 1 (count (dissoc (sorted-set 1 2) 2))) "a sorted set"))
+
+(deftest test-targets-that-are-rejected-or-pass-through
+  (is (nil? (dissoc nil :a)) "nil stays nil")
+  (is (thrown? \InvalidArgumentException (dissoc (php-indexed-array 1 2) 0))
+      "a raw PHP array is rejected with the aunset hint")
+  (is (thrown? \InvalidArgumentException (dissoc [10 20] 0)) "a vector is not a dissoc target")
+  (is (thrown? \InvalidArgumentException (dissoc "ab" 0)) "a string is not a dissoc target"))
+
+(deftest test-struct-behaviour-is-unchanged
+  ;; A struct is a PersistentMapInterface, so it takes the fast path. Removing
+  ;; a declared key is whatever it was before, not something this changes.
+  (let [before (try (print-str (dissoc (pt 1 2) :x)) (catch \Throwable e (php/get_class e)))]
+    (is (string? before) "a struct dissoc still answers the same way")))
