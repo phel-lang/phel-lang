@@ -216,4 +216,30 @@ final class IndexedNodeTest extends TestCase
 
         self::assertSame($node1, $node2);
     }
+
+    public function test_split_carries_every_entry_into_the_array_node(): void
+    {
+        // `splitNode` used to probe all 32 slots with `array_key_exists`; it
+        // now walks the sparse entry array directly. An entry dropped or
+        // written to the wrong slot by that walk is invisible to the
+        // `assertInstanceOf` above, so read every key back afterwards.
+        $hasher = new ModuloHasher();
+        $node = IndexedNode::empty($hasher, new SimpleEqualizer());
+
+        for ($i = 0; $i <= 16; ++$i) {
+            $node = $node->put(0, $hasher->hash($i), $i, 'test' . $i, new Box(null));
+        }
+
+        self::assertInstanceOf(ArrayNode::class, $node);
+
+        for ($i = 0; $i <= 16; ++$i) {
+            self::assertSame(
+                'test' . $i,
+                $node->find(0, $hasher->hash($i), $i, null),
+                'entry ' . $i . ' survived the split',
+            );
+        }
+
+        self::assertNull($node->find(0, $hasher->hash(99), 99, null), 'an absent key stays absent');
+    }
 }

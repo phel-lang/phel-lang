@@ -8,7 +8,6 @@ use Phel\Lang\EqualizerInterface;
 use Phel\Lang\HasherInterface;
 use Traversable;
 
-use function array_key_exists;
 use function count;
 
 /**
@@ -273,19 +272,22 @@ final readonly class IndexedNode implements HashMapNodeInterface
         /** @var array<int, ?HashMapNodeInterface<TKey, TValue>> $nodes */
         $nodes = []; // array_fill(0, 32, null);
         $empty = self::empty($this->hasher, $this->equalizer);
+        // Walk the entries this node actually holds rather than probing all 32
+        // slots: `$objects` is sparse and never has more than 16 entries here,
+        // so the slot scan ran twice the iterations and paid an
+        // `array_key_exists` for each. `$idx` is empty by construction, since
+        // `insertNewKey` only reaches this for a key that is not present, so
+        // the entry written above cannot be overwritten by the walk.
         $nodes[$idx] = $empty->put($shift + 5, $hash, $key, $value, $addedLeaf);
-        for ($i = 0; $i < 32; ++$i) {
-            if (array_key_exists($i, $this->objects)) {
-                [$k, $v] = $this->objects[$i];
-                if ($k === null) {
-                    /** @var HashMapNodeInterface<TKey, TValue> $childNode */
-                    $childNode = $v;
-                    $nodes[$i] = $childNode;
-                } else {
-                    /** @var TValue $leafValue */
-                    $leafValue = $v;
-                    $nodes[$i] = $empty->put($shift + 5, $this->hasher->hash($k), $k, $leafValue, $addedLeaf);
-                }
+        foreach ($this->objects as $i => [$k, $v]) {
+            if ($k === null) {
+                /** @var HashMapNodeInterface<TKey, TValue> $childNode */
+                $childNode = $v;
+                $nodes[$i] = $childNode;
+            } else {
+                /** @var TValue $leafValue */
+                $leafValue = $v;
+                $nodes[$i] = $empty->put($shift + 5, $this->hasher->hash($k), $k, $leafValue, $addedLeaf);
             }
         }
 
