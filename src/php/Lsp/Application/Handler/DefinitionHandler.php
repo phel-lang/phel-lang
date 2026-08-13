@@ -9,6 +9,7 @@ use Phel\Lsp\Application\HandlerInterface;
 use Phel\Lsp\Application\Rpc\ParamsExtractor;
 use Phel\Lsp\Application\Session\Session;
 use Phel\Shared\Api\Definition;
+use Phel\Shared\Api\Location;
 use Phel\Shared\Api\ProjectIndex;
 use Phel\Shared\Facade\ApiFacadeInterface;
 
@@ -49,11 +50,16 @@ final readonly class DefinitionHandler implements HandlerInterface
         }
 
         $definition = $this->lookup($context->index, $context->word);
-        if (!$definition instanceof Definition) {
+        if ($definition instanceof Definition) {
+            return $this->locations->fromDefinition($definition);
+        }
+
+        $namespace = $context->index->namespaceLocation($context->word);
+        if (!$namespace instanceof Location) {
             return null;
         }
 
-        return $this->locations->fromDefinition($definition);
+        return $this->locations->fromLocation($namespace);
     }
 
     private function lookup(ProjectIndex $index, string $word): ?Definition

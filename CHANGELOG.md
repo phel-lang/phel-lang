@@ -7,6 +7,7 @@ All notable changes to this project will be documented in this file.
 ### Added
 
 - Add `phel balance [paths]... [--fix]`: reports unbalanced `()`, `[]` and `{}`, and with `--fix` appends the missing closers. Scans the lexer's token stream, so `\(`, a `(` inside a string, a `;` comment or a `#"regex"` is never counted. Only appends, and refuses anything with more than one plausible fix: a surplus or mismatched closer (`(foo]`), an unterminated string, a file that will not lex, a trailing reader prefix such as `#_`, and a missing closer followed by a new top-level form, where appending at the end would nest the rest of the file inside the open form. Detection is the default so an agent post-write hook cannot silently guess wrong (#2827)
+- Add `ProjectIndex::$namespaceLocations` and `ProjectIndex::namespaceLocation()`: the `ns` declaration site of each indexed namespace, keyed by its canonical dotted name. `phel index --output` gains a matching `namespaceLocations` key (#3059)
 - Add editor completion and hover for PHP superglobals (`php/$_SERVER`, ...), in the LSP and in the REPL/nREPL (#3037)
 - `BuildFacade::enterDependencyLoad()`, `leaveDependencyLoad()` and `isLoadingDependencies()`, plus `BuildConstants::LOADING_DEPENDENCIES`. Additive: they mark the region in which an `ns` form loads its requires, so the emitter can decline to pin call sites there (#3015)
 - Add `phel.bench` and the `phel bench` command: `defbench` benchmarks written in Phel, with baseline storage (`--store`), comparison (`--ref`) and a tolerance gate (`--tolerance`) (#3005)
@@ -27,6 +28,8 @@ All notable changes to this project will be documented in this file.
 
 ### Fixed
 
+- Go-to-definition on a namespace inside a `(:require ...)` form now jumps to that namespace's `ns` declaration; before, only the `:refer`red names resolved and the namespace itself returned nothing (#3059)
+- LSP definition, hover, find-references and rename now read a name spelled with the deprecated `\` separator as one word. The word scan stopped at the backslash, so `my-app\core` arrived as `my-app` and `my-app\core/greet` as `core/greet`, and neither matched anything in the index (#3059)
 - `phel.string/blank?` no longer reports invalid UTF-8 as blank; `preg_match` with `/u` returns `false` on malformed input and that read as a match (#3052)
 - `phel.string/trim-newline` no longer rewrites invalid UTF-8 bytes to `?`; the `mb_substr` walk substituted on them, so trimming could corrupt untouched input (#3050)
 - `(join ", " nil)` returns `""` rather than the separator; a nil collection made the old body swap its two arguments (#3052)
