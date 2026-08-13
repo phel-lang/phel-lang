@@ -79,6 +79,9 @@ final class CoreSeqBench extends CoreBenchCase
     private $transduce;
 
     /** @var callable */
+    private $zipmap;
+
+    /** @var callable */
     private $frequencies;
 
     /** @var callable */
@@ -623,6 +626,19 @@ final class CoreSeqBench extends CoreBenchCase
     }
 
     /**
+     * `zipmap` was the one map builder in core still accumulating a persistent
+     * map, so it paid a HAMT path copy per pair where `select-keys`,
+     * `update-keys`, `update-vals` and `rename-keys` all build through a
+     * transient.
+     *
+     * @Revs(1000)
+     */
+    public function bench_zipmap(): void
+    {
+        ($this->zipmap)($this->ints, $this->ints);
+    }
+
+    /**
      * `partition-by` and `dedupe` return a sequence built by
      * `lazy-seq-from-generator`, so constructing one realizes a chunk before
      * the caller has asked for a single element. These two subjects measure
@@ -665,6 +681,7 @@ final class CoreSeqBench extends CoreBenchCase
     {
         $this->partitionBy = $this->coreFn('partition-by');
         $this->transduce = $this->coreFn('transduce');
+        $this->zipmap = $this->coreFn('zipmap');
         $this->frequencies = $this->coreFn('frequencies');
         $this->groupBy = $this->coreFn('group-by');
 
