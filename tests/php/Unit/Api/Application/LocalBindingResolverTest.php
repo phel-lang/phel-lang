@@ -149,6 +149,99 @@ final class LocalBindingResolverTest extends TestCase
         self::assertNull($location);
     }
 
+    public function test_it_resolves_a_loop_body_usage_to_the_loop_binding(): void
+    {
+        $location = $this->resolve(
+            "(loop [x 0]\n  x)",
+            line: 2,
+            col: 3,
+            word: 'x',
+        );
+
+        self::assertInstanceOf(Location::class, $location);
+        self::assertSame(1, $location->line);
+        self::assertSame(8, $location->col);
+    }
+
+    public function test_vector_destructuring_binds_each_name(): void
+    {
+        $location = $this->resolve(
+            "(let [[a b] pair]\n  b)",
+            line: 2,
+            col: 3,
+            word: 'b',
+        );
+
+        self::assertInstanceOf(Location::class, $location);
+        self::assertSame(1, $location->line);
+        self::assertSame(10, $location->col);
+    }
+
+    public function test_map_destructuring_binds_keys_names(): void
+    {
+        $location = $this->resolve(
+            "(let [{:keys [a]} m]\n  a)",
+            line: 2,
+            col: 3,
+            word: 'a',
+        );
+
+        self::assertInstanceOf(Location::class, $location);
+        self::assertSame(1, $location->line);
+        self::assertSame(15, $location->col);
+    }
+
+    public function test_map_destructuring_binds_the_as_name(): void
+    {
+        $location = $this->resolve(
+            "(let [{:as m} x]\n  m)",
+            line: 2,
+            col: 3,
+            word: 'm',
+        );
+
+        self::assertInstanceOf(Location::class, $location);
+        self::assertSame(1, $location->line);
+        self::assertSame(12, $location->col);
+    }
+
+    public function test_a_non_vector_binding_form_degrades_to_no_match(): void
+    {
+        $location = $this->resolve(
+            '(let a b)',
+            line: 1,
+            col: 8,
+            word: 'b',
+        );
+
+        self::assertNull($location);
+    }
+
+    public function test_scope_does_not_leak_across_top_level_forms(): void
+    {
+        // The def name is before the let, so its `a` must not resolve to it.
+        $before = $this->resolve(
+            "(def a 9)\n(let [a 1]\n  a)",
+            line: 1,
+            col: 6,
+            word: 'a',
+        );
+
+        self::assertNull($before);
+
+        // The body usage resolves to the let in its own top-level form.
+        $body = $this->resolve(
+            "(def z 9)\n(let [a 1]\n  (+ a z))",
+            line: 3,
+            col: 6,
+            word: 'a',
+        );
+
+        self::assertInstanceOf(Location::class, $body);
+        self::assertSame(2, $body->line);
+        self::assertSame(7, $body->col);
+    }
+
     private function resolve(string $source, int $line, int $col, string $word): ?Location
     {
         return $this->resolver->resolve($source, 'file:///demo.phel', $line, $col, $word);
