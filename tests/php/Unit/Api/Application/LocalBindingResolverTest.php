@@ -85,6 +85,21 @@ final class LocalBindingResolverTest extends TestCase
         self::assertSame(7, $location->col);
     }
 
+    public function test_a_repeated_name_shadows_an_earlier_binding_after_its_init(): void
+    {
+        $source = "(let [a 1\n      a a]\n  a)";
+
+        $init = $this->resolve($source, line: 2, col: 9, word: 'a');
+        self::assertInstanceOf(Location::class, $init);
+        self::assertSame(1, $init->line);
+        self::assertSame(7, $init->col);
+
+        $body = $this->resolve($source, line: 3, col: 3, word: 'a');
+        self::assertInstanceOf(Location::class, $body);
+        self::assertSame(2, $body->line);
+        self::assertSame(7, $body->col);
+    }
+
     public function test_a_binding_is_not_in_scope_for_its_own_init(): void
     {
         $location = $this->resolve(
@@ -205,6 +220,48 @@ final class LocalBindingResolverTest extends TestCase
         self::assertSame(12, $location->col);
     }
 
+    public function test_map_destructuring_binds_a_name_for_a_direct_key(): void
+    {
+        $location = $this->resolve(
+            "(let [{:name name} person]\n  name)",
+            line: 2,
+            col: 3,
+            word: 'name',
+        );
+
+        self::assertInstanceOf(Location::class, $location);
+        self::assertSame(1, $location->line);
+        self::assertSame(14, $location->col);
+    }
+
+    public function test_nested_destructuring_binds_names_recursively(): void
+    {
+        $location = $this->resolve(
+            "(let [[{:keys [name]}] rows]\n  name)",
+            line: 2,
+            col: 3,
+            word: 'name',
+        );
+
+        self::assertInstanceOf(Location::class, $location);
+        self::assertSame(1, $location->line);
+        self::assertSame(16, $location->col);
+    }
+
+    public function test_vector_rest_destructuring_binds_the_rest_name(): void
+    {
+        $location = $this->resolve(
+            "(let [[head & tail] values]\n  tail)",
+            line: 2,
+            col: 3,
+            word: 'tail',
+        );
+
+        self::assertInstanceOf(Location::class, $location);
+        self::assertSame(1, $location->line);
+        self::assertSame(15, $location->col);
+    }
+
     public function test_a_non_vector_binding_form_degrades_to_no_match(): void
     {
         $location = $this->resolve(
@@ -212,6 +269,18 @@ final class LocalBindingResolverTest extends TestCase
             line: 1,
             col: 8,
             word: 'b',
+        );
+
+        self::assertNull($location);
+    }
+
+    public function test_an_incomplete_buffer_degrades_to_no_match(): void
+    {
+        $location = $this->resolve(
+            "(let [a 1]\n  a",
+            line: 2,
+            col: 3,
+            word: 'a',
         );
 
         self::assertNull($location);

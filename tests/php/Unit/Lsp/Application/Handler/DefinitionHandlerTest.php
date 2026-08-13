@@ -101,6 +101,23 @@ final class DefinitionHandlerTest extends TestCase
         ], $result['range'] ?? null);
     }
 
+    public function test_it_resolves_a_local_binding_before_the_project_index_exists(): void
+    {
+        $session = $this->sessionWith("(let [mysym 123]\n    mysym)");
+
+        $facade = $this->createStub(ApiFacadeInterface::class);
+        $facade->method('resolveLocalBinding')
+            ->willReturn(new Location('file:///project/demo.phel', 1, 7, 1, 12));
+
+        $result = $this->handle($session, line: 1, character: 4, facade: $facade);
+
+        self::assertSame('file:///project/demo.phel', $result['uri'] ?? null);
+        self::assertSame([
+            'start' => ['line' => 0, 'character' => 6],
+            'end' => ['line' => 0, 'character' => 11],
+        ], $result['range'] ?? null);
+    }
+
     public function test_it_falls_back_to_the_project_index_when_there_is_no_local_binding(): void
     {
         $index = new ProjectIndex(
@@ -121,13 +138,15 @@ final class DefinitionHandlerTest extends TestCase
         self::assertSame('file:///project/global.phel', $result['uri'] ?? null);
     }
 
-    private function sessionWith(string $source, ProjectIndex $index): Session
+    private function sessionWith(string $source, ?ProjectIndex $index = null): Session
     {
         $session = new Session(new DocumentStore(), new class() implements NotificationSink {
             public function notify(string $method, array $params): void {}
         });
         $session->documents()->open('file:///project/demo.phel', 'phel', 1, $source);
-        $session->setProjectIndex($index);
+        if ($index instanceof ProjectIndex) {
+            $session->setProjectIndex($index);
+        }
 
         return $session;
     }
