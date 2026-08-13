@@ -231,6 +231,15 @@
     (is (php/preg_match "/first mismatch at index 2/" out)
         "index counts the raw newline as one character")))
 
+(deftest test-string-diff-doubles-backslashes
+  ;; The escaper exists so every character occupies at least one visible column.
+  ;; A single backslash has to render as two, or the caret points at nothing.
+  (let [out (run-default-reporter "a\\b" "a\\c")]
+    (is (php/str_contains out "expected: \"a\\\\b\"")
+        "a literal backslash renders doubled")
+    (is (php/str_contains out "actual:   \"a\\\\c\"")
+        "the actual operand is escaped the same way")))
+
 (deftest test-string-diff-not-rendered-for-non-strings
   (let [out (run-default-reporter 1 2)]
     (is (= 0 (php/preg_match "/String diff/" out))

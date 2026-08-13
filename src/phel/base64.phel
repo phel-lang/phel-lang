@@ -1,5 +1,4 @@
-(ns phel.base64
-  (:require phel.string :as s))
+(ns phel.base64)
 
 (defn encode
   "Encodes a string to Base64."
@@ -20,8 +19,10 @@
   ;; `strtr` swaps the two alphabet bytes in one pass, and `=` is only ever
   ;; trailing padding in Base64 output, so `rtrim` removing it is exact.
   ;; `php/base64_encode` rather than `encode`: the wrapper adds nothing here,
-  ;; and its call is most of what the whole function now costs.
-  (php/rtrim (s/escape (php/base64_encode s) {"+" "-" "/" "_"}) "="))
+  ;; and its call is most of what the whole function now costs. `phel.string/escape`
+  ;; would split the whole payload into per-character strings and map a closure
+  ;; over them to express the same two-byte ASCII swap.
+  (php/rtrim (php/strtr (php/base64_encode s) "+/" "-_") "="))
 
 (defn decode-url
   "Decodes a URL-safe Base64 string, adding padding automatically. When
@@ -32,6 +33,8 @@
   ([s strict?]
    ;; Round the length up to the next multiple of 4 and let `str_pad` add the
    ;; `=` run; a length already on the boundary asks for no padding at all.
-   (let [swapped       (s/escape s {"-" "+" "_" "/"})
-         padded-length (* 4 (php/intdiv (+ (count swapped) 3) 4))]
-     (php/base64_decode (s/pad-right swapped padded-length "=") (or strict? false)))))
+   ;; `strlen` rather than `count`: `str_pad` measures bytes, so a character
+   ;; count would mis-size the target width for any input outside the alphabet.
+   (let [swapped       (php/strtr s "-_" "+/")
+         padded-length (* 4 (php/intdiv (+ (php/strlen swapped) 3) 4))]
+     (php/base64_decode (php/str_pad swapped padded-length "=") (or strict? false)))))

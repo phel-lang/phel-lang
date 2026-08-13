@@ -396,7 +396,10 @@ Useful for building multi-turn conversations."
 (defn- extract-json-from-response
   "Extracts JSON from an AI response, handling markdown code blocks."
   [response]
-  (let [trimmed (s/trim response)]
+  ;; Native `trim`: `phel.string/trim` is a `/u` regex that returns nil on a
+  ;; subject that is not valid UTF-8, and a truncated model stream is exactly
+  ;; the case these functions exist to report as a `RuntimeException`.
+  (let [trimmed (php/trim response)]
     (if (s/starts-with? trimmed "{")
       trimmed
       (let [matches (php-indexed-array)
@@ -411,7 +414,8 @@ Useful for building multi-turn conversations."
 (defn- extract-json-array-from-response
   "Extracts a JSON array from a model response, slicing between the first '[' and the last ']' when the array isn't already at the start."
   [response]
-  (let [trimmed (s/trim response)]
+  ;; Native `trim`, for the same reason as `extract-json-from-response` above.
+  (let [trimmed (php/trim response)]
     (if (s/starts-with? trimmed "[")
       trimmed
       (slice-between trimmed "[" "]" "Could not extract JSON array from AI response: "))))

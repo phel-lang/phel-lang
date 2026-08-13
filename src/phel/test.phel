@@ -585,10 +585,10 @@ Metadata attached to `test-name` is forwarded to the defined function so selecto
   40)
 
 (defn- first-mismatch-index
-  "0-based index of the first differing character between strings `a` and `b`. When one string is a prefix of the other, the mismatch is the length of the shorter one. Returns nil for equal strings.
-
-Uses PHP byte-oriented string functions intentionally: the index is consumed by `php/substr`, and avoiding multibyte counting keeps this diagnostic path fast."
+  "0-based index of the first differing character between strings `a` and `b`. When one string is a prefix of the other, the mismatch is the length of the shorter one. Returns nil for equal strings."
   [a b]
+  ;; Byte-oriented throughout: the index is handed straight to `php/substr`, and
+  ;; multibyte counting would both mix units and slow a diagnostic-only path.
   (let [n (min (php/strlen a) (php/strlen b))]
     (loop [i 0]
       (cond
@@ -603,17 +603,19 @@ Uses PHP byte-oriented string functions intentionally: the index is consumed by 
 (defn- escape-for-string-diff
   "Escapes backslashes, quotes, and control whitespace so every character renders one-or-more visible columns and the caret stays aligned."
   [s]
-  (let [s (s/replace s "\\" "\\\\")
-        s (s/replace s "\n" "\\n")
-        s (s/replace s "\t" "\\t")
-        s (s/replace s "\r" "\\r")]
-    (s/replace s "\"" "\\\"")))
+  ;; Literal `str_replace`, not `phel.string/replace`: the latter is a
+  ;; `preg_replace`, whose replacement string reads `\\` as a single backslash,
+  ;; so the first rule would silently stop doubling anything.
+  (let [s (php/str_replace "\\" "\\\\" s)
+        s (php/str_replace "\n" "\\n" s)
+        s (php/str_replace "\t" "\\t" s)
+        s (php/str_replace "\r" "\\r" s)]
+    (php/str_replace "\"" "\\\"" s)))
 
 (defn- string-diff-window
-  "Renders string `s` windowed from `start` to just past mismatch index `idx` (plus trailing context), quoted and escaped, with `...` markers for clipped ends. Returns [rendered caret-column] where caret-column points at the mismatch within the rendered text.
-
-Byte-oriented PHP lengths and slices are intentional here: they share the same index units and avoid multibyte overhead on the diagnostic path."
+  "Renders string `s` windowed from `start` to just past mismatch index `idx` (plus trailing context), quoted and escaped, with `...` markers for clipped ends. Returns [rendered caret-column] where caret-column points at the mismatch within the rendered text."
   [s start idx]
+  ;; Byte-oriented, to share index units with `first-mismatch-index` above.
   (let [len    (php/strlen s)
         end    (min len (+ idx string-diff-context))
         window (php/substr s start (- end start))

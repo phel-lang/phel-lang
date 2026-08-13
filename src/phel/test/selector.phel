@@ -89,10 +89,10 @@
 ;; ---------------------------------------------------------------------------
 
 (defn- glob->regex
-  "Converts a namespace glob (`phel.http.*`) into an anchored PCRE pattern. `.` is treated literally, `*` matches any run of non-`.` characters, `**` matches anything. The glob is case-sensitive.
-
-Uses byte-oriented PHP length/slicing intentionally: the parser advances indexes consumed by `php/substr`."
+  "Converts a namespace glob (`phel.http.*`) into an anchored PCRE pattern. `.` is treated literally, `*` matches any run of non-`.` characters, `**` matches anything. The glob is case-sensitive."
   [pattern]
+  ;; Byte-oriented length and slicing: the parser advances indexes that
+  ;; `php/substr` consumes.
   (let [len (php/strlen pattern)
         out (atom "")
         i   (atom 0)]
@@ -158,8 +158,10 @@ Uses byte-oriented PHP length/slicing intentionally: the parser advances indexes
 ;; ---------------------------------------------------------------------------
 
 (defn- compile-filter-regex
-  "Wraps a user-supplied regex body in PCRE delimiters when it is not already a `/.../` pattern. Treats bare fragments as substring matchers. Byte-oriented PHP length/slicing is intentional because delimiter positions are passed to `php/substr`."
+  "Wraps a user-supplied regex body in PCRE delimiters when it is not already a `/.../` pattern. Treats bare fragments as substring matchers."
   [pattern]
+  ;; Byte-oriented length and slicing: the delimiter positions are passed to
+  ;; `php/substr`.
   (if (and (string? pattern)
            (> (php/strlen pattern) 1)
            (= (php/substr pattern 0 1) "/")

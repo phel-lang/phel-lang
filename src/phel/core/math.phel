@@ -581,9 +581,10 @@ returns 1. If `xs` has one value, returns the reciprocal of x.
 (defn- clamp-int
   "Truncates a numeric `x` toward zero and range-checks it against `lo..hi`.
    Raises `InvalidArgumentException` when `x` is non-numeric or out of range.
-   `label` names the target type for error messages. Uses native `strval` for
-   these numeric error messages to avoid extra core string dispatch."
+   `label` names the target type for error messages."
   [x lo hi label]
+  ;; Native `strval` on the error path only: the value is already an int there,
+  ;; so core `str` would add a dispatch without changing the rendering.
   (if (number? x)
     (let [truncated (int x)]
       (if (or (php/< truncated lo) (php/> truncated hi))
@@ -607,10 +608,12 @@ returns 1. If `xs` has one value, returns the reciprocal of x.
   (clamp-int x -128 127 "byte"))
 
 (defn char
-  "Coerces `x` to a single-character string representing the given Unicode code point. Accepts a non-negative integer (the code point, converted via `mb_chr`) or a single-character string, which is returned as-is. Phel has no dedicated char type — character literals such as `\\A` are already single-character strings — so the result is always a plain string. Matches Clojure's `char` for `.cljc` interop; raises `InvalidArgumentException` on negative ints, non-single-character strings, and all other inputs. Native `strval` is used only for numeric error formatting."
+  "Coerces `x` to a single-character string representing the given Unicode code point. Accepts a non-negative integer (the code point, converted via `mb_chr`) or a single-character string, which is returned as-is. Phel has no dedicated char type — character literals such as `\\A` are already single-character strings — so the result is always a plain string. Matches Clojure's `char` for `.cljc` interop; raises `InvalidArgumentException` on negative ints, non-single-character strings, and all other inputs."
   {:example "(char 65) ; => \"A\"\n(char 32) ; => \" \"\n(char \\A) ; => \"A\""
    :see-also ["byte" "int?" "string?"]}
   [x]
+  ;; Native `strval` on the error paths only: `x` is already an int there, so
+  ;; core `str` would add a dispatch without changing the rendering.
   (cond
     (int? x)
     (if (php/< x 0)
@@ -918,10 +921,10 @@ returns 1. If `xs` has one value, returns the reciprocal of x.
 
 (defn- decimal-string->rational
   "Parses a decimal or scientific-notation string into a Ratio
-  (auto-collapsed to int / BigInt when integral). The grammar is ASCII-only,
-  so native PHP string operations are appropriate and avoid a phel.string
-  dependency cycle in core."
+  (auto-collapsed to int / BigInt when integral)."
   [s]
+  ;; Native PHP string operations: the grammar is ASCII-only, and phel.string
+  ;; requires phel.core, so it cannot be required from here.
   (let [lower      (php/strtolower s)
         e-pos      (php/strpos lower "e")
         mantissa   (if (php/=== false e-pos) lower (php/substr lower 0 e-pos))

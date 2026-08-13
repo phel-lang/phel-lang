@@ -76,9 +76,12 @@
      (php/is_string x)          (Keyword/create x)
      :else                      nil))
   ([ns nm]
+   ;; `strval` rather than core `str`: the two disagree on booleans and floats
+   ;; (`(str true)` is "true" where `strval` is "1"), so swapping them would
+   ;; rename every keyword built from a non-string part.
    (when-not (php/=== nil nm)
-     (Keyword/createForNamespace (when-not (php/=== nil ns) (str ns))
-                                 (str nm)))))
+     (Keyword/createForNamespace (when-not (php/=== nil ns) (php/strval ns))
+                                 (php/strval nm)))))
 
 (defn- id2 [a b]
   (if (php/instanceof a IdenticalInterface)
