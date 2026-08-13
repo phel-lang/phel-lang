@@ -153,13 +153,18 @@
   `1.0` as equal, matching Clojure's `clojure.core/==`."
   {:see-also ["=" "not=" "<" ">"]
    :example "(== 1 1.0) ; => true"}
-  [a & more]
-  (case (count more)
-    0 (do (num-equals1 a a) true)
-    1 (num-equals1 a (first more))
-    (if (num-equals1 a (first more))
-      (recur (first more) (next more))
-      false)))
+  ;; Fixed arities: the two-argument comparison is the one that happens, and it
+  ;; needed neither the rest argument nor a count to find that out (#2973,
+  ;; #3021). The single-argument arity keeps calling `num-equals1` so a
+  ;; non-numeric argument still raises.
+  ([a] (do (num-equals1 a a) true))
+  ([a b] (num-equals1 a b))
+  ([a b & more]
+   (if (num-equals1 a b)
+     (if (nil? (next more))
+       (num-equals1 b (first more))
+       (apply == b more))
+     false)))
 
 (defn not
   "Returns true if value is falsy (nil or false), false otherwise."

@@ -97,23 +97,22 @@
   "Takes a list of functions and returns a function that is the composition of those functions."
   {:example "((comp inc (fn [x] (* x 2))) 3) ; => 7"
    :see-also ["partial" "juxt" "identity"]}
-  [& fs]
-  (case (count fs)
-    0 identity
-    1 (first fs)
-    ;; Both functions are pulled out of `fs` here rather than inside the
+  ;; Fixed arities on the constructor too: the rest argument was allocated and
+  ;; counted only to be unpacked with `first` and `second` again (#2973, #3021).
+  ([] identity)
+  ([outer] outer)
+  ([outer inner]
+   ;; Both functions are named here rather than inside the
     ;; closure: the previous `#((first fs) (apply (second fs) %&))` re-ran both
     ;; lookups on every call, on top of building a rest vector and going
     ;; through `apply`. Real arities on the closure remove the rest of it
     ;; (#3021).
-    2 (let [outer (first fs)
-            inner (second fs)]
-        (fn
-          ([] (outer (inner)))
-          ([a] (outer (inner a)))
-          ([a b] (outer (inner a b)))
-          ([a b & more] (outer (apply inner a b more)))))
-    (reduce comp fs)))
+   (fn
+     ([] (outer (inner)))
+     ([a] (outer (inner a)))
+     ([a b] (outer (inner a b)))
+     ([a b & more] (outer (apply inner a b more)))))
+  ([outer inner & fs] (reduce comp (comp outer inner) fs)))
 
 (defn- map-entry-source?
   [x]
@@ -1108,11 +1107,10 @@ If no comparator is supplied compare is used."
 With one argument returns an infinite lazy sequence of x."
   {:example "(repeat 3 :a) ; => [:a :a :a]"
    :see-also ["repeatedly" "cycle"]}
-  [a & rest]
-  (case (count rest)
-    0 (lazy-seq-from-generator (Seq/repeat a))
-    1 (for [_ :range [a]] (get rest 0))
-    (throw (new InvalidArgumentException "repeat expects one or two arguments"))))
+  ;; Fixed arities: the rest argument was allocated and counted only to be
+  ;; unpacked with `first` and `second` again (#2973, #3021).
+  ([x] (lazy-seq-from-generator (Seq/repeat x)))
+  ([n x] (for [_ :range [n]] x)))
 
 (defn repeatedly
   "Returns a vector of length n with values produced by repeatedly calling f.
@@ -1120,19 +1118,15 @@ With one argument returns an infinite lazy sequence of x."
 With one argument returns an infinite lazy sequence of calls to f."
   {:example "(repeatedly 3 rand) ; => @[0.234 0.892 0.456] (random values)"
    :see-also ["repeat" "iterate"]}
-  [a & rest]
-  (case (count rest)
-    0 (LazySeq/fromGenerator
-       (new Hasher)
-       (new Equalizer)
-       (Seq/repeatedly a))
-    1 (let [n a
-            f (get rest 0)]
-        (new Phel.Lang.Collections.LazySeq.LazySeq
-             (new Hasher)
-             (new Equalizer)
-             (fn [] (for [_ :range [n]] (f)))))
-    (throw (new InvalidArgumentException "repeatedly expects one or two arguments"))))
+  ;; Fixed arities: the rest argument was allocated and counted only to be
+  ;; unpacked with `first` and `second` again (#2973, #3021).
+  ([f]
+   (LazySeq/fromGenerator (new Hasher) (new Equalizer) (Seq/repeatedly f)))
+  ([n f]
+   (new Phel.Lang.Collections.LazySeq.LazySeq
+        (new Hasher)
+        (new Equalizer)
+        (fn [] (for [_ :range [n]] (f))))))
 
 (defmacro lazy-seq
   "Creates a lazy sequence that evaluates the body only when accessed."

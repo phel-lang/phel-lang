@@ -1,0 +1,76 @@
+(ns phel-test.core.remaining-fixed-arities
+  (:require phel.test :refer [deftest is]))
+
+;; The core functions that still dispatched on a rest argument's count after
+;; #3065 and #3067: `comp`, `repeat`, `repeatedly`, `==`, `swap-vals!`,
+;; `merge-with` and `deep-merge`. Every spelling has to keep answering what it
+;; did, and `==`'s three-or-more arity was rewritten rather than moved, so it
+;; gets the most attention here.
+
+(deftest test-comp-arities
+  (is (= 3 ((comp) 3)) "no functions is identity")
+  (is (= 4 ((comp inc) 3)) "one function is that function")
+  (is (= 5 ((comp inc inc) 3)) "two functions compose right to left")
+  (is (= 6 ((comp inc inc inc) 3)) "three functions")
+  (is (= 7 ((comp inc inc inc inc) 3)) "four functions")
+  (is (= 7 ((comp inc (fn [x] (* x 2))) 3)) "order is outer then inner")
+  (is (= 0 ((comp inc inc) -2)) "negative input")
+  ;; The composed closure has real arities, so each has to reach `inner`.
+  (is (= 7 ((comp inc +) 3 3)) "two arguments reach the inner function")
+  (is (= 10 ((comp inc +) 3 3 3)) "three arguments reach the inner function")
+  (is (= 1 ((comp inc +))) "no arguments reach the inner function"))
+
+(deftest test-repeat-arities
+  (is (= [:a :a :a] (vec (repeat 3 :a))) "count and value")
+  (is (= [] (vec (repeat 0 :a))) "a count of zero")
+  (is (= [:a :a] (vec (take 2 (repeat :a)))) "one argument is the infinite repeat")
+  (is (= [1 1 1 1 1] (vec (take 5 (repeat 1)))) "infinite repeat of a number"))
+
+(deftest test-repeatedly-arities
+  (let [calls (atom 0)
+        f     (fn [] (swap! calls inc))]
+    (is (= [1 2 3] (vec (repeatedly 3 f))) "count and function")
+    (is (= 3 @calls) "called exactly n times"))
+  (let [g (fn [] 7)]
+    (is (= [7 7] (vec (take 2 (repeatedly g)))) "one argument is the infinite repeatedly")
+    (is (= [] (vec (repeatedly 0 g))) "a count of zero")))
+
+(deftest test-==-arities
+  (is (true? (== 1)) "one argument is true for a number")
+  (is (true? (== 1 1.0)) "two arguments compare across int and float")
+  (is (false? (== 1 2)) "two arguments that differ")
+  (is (true? (== 1 1.0 1)) "three arguments all equal")
+  (is (false? (== 1 1.0 2)) "three arguments where the last differs")
+  (is (false? (== 1 2 1)) "three arguments where the middle differs")
+  (is (true? (== 1 1.0 1 1.0)) "four arguments all equal")
+  (is (false? (== 1 1.0 1 2)) "four arguments where the last differs")
+  (is (true? (== 2.0 2 2.0 2 2.0)) "five arguments all equal")
+  (is (false? (== 1 1 1 1 9)) "five arguments where the last differs"))
+
+(deftest test-swap-vals!-arities
+  (let [a (atom 1)]
+    (is (= [1 2] (swap-vals! a inc)) "no extra arguments")
+    (is (= [2 5] (swap-vals! a + 3)) "one extra argument")
+    (is (= [5 12] (swap-vals! a + 3 4)) "two extra arguments")
+    (is (= [12 22] (swap-vals! a + 3 4 3)) "three extra arguments")
+    (is (= 22 @a) "the atom holds the last value"))
+  (let [a (atom "a")]
+    (is (= ["a" "abc"] (swap-vals! a str "b" "c")) "arguments keep their order")))
+
+(deftest test-merge-with-arities
+  (is (= {} (merge-with +)) "no maps")
+  (is (= {:a 1} (merge-with + {:a 1})) "one map")
+  (is (= {:a 11, :b 2} (merge-with + {:a 1, :b 2} {:a 10})) "two maps")
+  (is (= {:a 111, :b 2} (merge-with + {:a 1, :b 2} {:a 10} {:a 100})) "three maps")
+  (is (= {:a 1111} (merge-with + {:a 1} {:a 10} {:a 100} {:a 1000})) "four maps")
+  (is (= {:a 1, :b 2} (merge-with + {:a 1} {:b 2})) "disjoint keys are not combined"))
+
+(deftest test-deep-merge-arities
+  (is (= {} (deep-merge)) "no arguments")
+  (is (= {:a 1} (deep-merge {:a 1})) "one argument")
+  (is (= {:a {:x 1, :y 2}} (deep-merge {:a {:x 1}} {:a {:y 2}})) "two arguments merge nested maps")
+  (is (= {:a {:x 1, :y 2, :z 3}} (deep-merge {:a {:x 1}} {:a {:y 2}} {:a {:z 3}})) "three arguments")
+  (is (= {:a {:w 0, :x 1, :y 2, :z 3}}
+         (deep-merge {:a {:x 1}} {:a {:y 2}} {:a {:z 3}} {:a {:w 0}}))
+      "four arguments")
+  (is (= {:a [1 2]} (deep-merge {:a [1]} {:a [2]})) "vectors concatenate"))

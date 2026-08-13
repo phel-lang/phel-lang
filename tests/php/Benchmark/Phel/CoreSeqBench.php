@@ -84,6 +84,12 @@ final class CoreSeqBench extends CoreBenchCase
     /** @var callable */
     private $dissoc;
 
+    /** @var callable */
+    private $numEquals;
+
+    /** @var callable */
+    private $comp;
+
     private mixed $dissocKey = null;
 
     private mixed $vector = null;
@@ -455,8 +461,36 @@ final class CoreSeqBench extends CoreBenchCase
         }
     }
 
+    /**
+     * The constructors and predicates that still dispatched on a rest
+     * argument's count after #3065 and #3067. `comp` and `repeatedly` are the
+     * sharpest, and `==` is the one on a hot path: floor-subtracted, `==` of
+     * two numbers went 1.56μs to 0.49μs.
+     *
+     * @Revs(1000)
+     */
+    public function bench_num_equals_two(): void
+    {
+        for ($i = 0; $i < self::INNER; ++$i) {
+            ($this->numEquals)(1, 1.0);
+        }
+    }
+
+    /**
+     * @Revs(1000)
+     */
+    public function bench_comp_two(): void
+    {
+        for ($i = 0; $i < self::INNER; ++$i) {
+            ($this->comp)($this->inc, $this->inc);
+        }
+    }
+
     protected function setUpFixtures(): void
     {
+        $this->numEquals = $this->coreFn('==');
+        $this->comp = $this->coreFn('comp');
+
         $this->concat = $this->coreFn('concat');
         $this->dissoc = $this->coreFn('dissoc');
         // `$this->map` is the shared two-entry fixture set further down.
