@@ -377,10 +377,14 @@
     (php/is_array ds)
     (throw (new InvalidArgumentException "Cannot call dissoc on pure PHP arrays. Use (php/aunset ds key)"))
 
-    (map-target? ds)
+    ;; `map-target?` and `set-target?` spelled out: each is an `or` of two
+    ;; `instanceof` and cost a Phel call to answer it (#3105).
+    (or (php/instanceof ds PersistentMapInterface)
+        (php/instanceof ds TransientMapInterface))
     (.remove ds key)
 
-    (set-target? ds)
+    (or (php/instanceof ds PersistentHashSetInterface)
+        (php/instanceof ds TransientHashSetInterface))
     (.remove ds key)
 
     (throw (new InvalidArgumentException
@@ -393,7 +397,13 @@
   ;; needed neither the rest argument nor the loop to find that out (#2973,
   ;; #3021).
   ([ds] ds)
-  ([ds k] (dissoc-one ds k))
+  ([ds k]
+   ;; The map case is answered here rather than through `dissoc-one`, as
+   ;; `assoc` and `conj` already do for theirs (#2973, #3105, #3130).
+   (if (or (php/instanceof ds PersistentMapInterface)
+           (php/instanceof ds TransientMapInterface))
+     (.remove ds k)
+     (dissoc-one ds k)))
   ([ds k & ks]
    (loop [acc       (dissoc-one ds k)
           remaining ks]
