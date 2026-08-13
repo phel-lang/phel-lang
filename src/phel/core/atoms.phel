@@ -92,14 +92,13 @@ With three arguments, and when `variable` is a future or promise, blocks for at 
 Returns the new value after the swap."
   {:example "(def counter (atom 0))"
    :see-also ["atom" "reset!" "deref"]}
-  [variable f & args]
-  (let [current (deref variable)
-        next    (case (count args)
-                  0 (f current)
-                  1 (f current (first args))
-                  2 (f current (first args) (second args))
-                  (apply f current args))]
-    (reset! variable next)))
+  ;; Fixed arities: the rest argument was allocated and counted only to be
+  ;; unpacked with `first` and `second` again (#2973, #3021).
+  ([variable f] (reset! variable (f (deref variable))))
+  ([variable f a] (reset! variable (f (deref variable) a)))
+  ([variable f a b] (reset! variable (f (deref variable) a b)))
+  ([variable f a b & args]
+   (reset! variable (apply f (deref variable) a b args))))
 
 (defn compare-and-set!
   "Atomically sets the value of the atom `variable` to `new-value` if and only if its current value is identical (via `identical?`) to `old-value`. Returns true when the swap happened, false otherwise."
@@ -123,15 +122,27 @@ Returns the new value after the swap."
   "Atomically swaps the value of the atom `variable` to `(apply f current-value args)`. Returns a vector `[old-value new-value]` of the values before and after the swap."
   {:example "(def a (atom 1))\n(swap-vals! a inc) ; => [1 2]"
    :see-also ["swap!" "reset-vals!"]}
-  [variable f & args]
-  (let [old  (deref variable)
-        next (case (count args)
-               0 (f old)
-               1 (f old (first args))
-               2 (f old (first args) (second args))
-               (apply f old args))]
-    (reset! variable next)
-    [old next]))
+  ;; Fixed arities: the rest argument was allocated and counted only to be
+  ;; unpacked with `first` and `second` again (#2973, #3021).
+  ;; Each arity is written out rather than delegating: the old value has to be
+  ;; read before `f` runs, so a shared helper would need either a second
+  ;; `deref` or a closure per call.
+  ([variable f]
+   (let [old (deref variable) next (f old)]
+     (reset! variable next)
+     [old next]))
+  ([variable f a]
+   (let [old (deref variable) next (f old a)]
+     (reset! variable next)
+     [old next]))
+  ([variable f a b]
+   (let [old (deref variable) next (f old a b)]
+     (reset! variable next)
+     [old next]))
+  ([variable f a b & args]
+   (let [old (deref variable) next (apply f old a b args)]
+     (reset! variable next)
+     [old next])))
 
 (defn add-watch
   "Adds a watch function to a variable. The watch fn is called when the variable changes with four arguments: key, ref, old-value, new-value."
@@ -245,13 +256,13 @@ Returns the new value after the swap."
   "Creates a lazy sequence of numbers. With no arguments returns an infinite sequence starting at 0. With one argument returns (0..n). With two (start..end). With three (start..end step). Note: the infinite sequence is bounded by PHP_INT_MAX."
   {:example "(range 5) ; => @[0 1 2 3 4]"
    :see-also ["iterate" "repeat"]}
-  [& args]
-  (case (count args)
-    0 (lazy-seq-from-generator (Seq/infiniteRange))
-    1 (lazy-seq-from-generator (Seq/range 0 (get args 0) 1))
-    2 (lazy-seq-from-generator (Seq/range (get args 0) (get args 1) 1))
-    3 (lazy-seq-from-generator (Seq/range (get args 0) (get args 1) (get args 2)))
-    (throw (new InvalidArgumentException "Range function expects zero to three arguments"))))
+  ;; Fixed arities: the rest argument was allocated and counted only to be
+  ;; unpacked with `get` again (#2973, #3021). `for`'s `:range` verb calls this
+  ;; once per loop, so it is the other half of that verb's cost.
+  ([] (lazy-seq-from-generator (Seq/infiniteRange)))
+  ([end] (lazy-seq-from-generator (Seq/range 0 end 1)))
+  ([start end] (lazy-seq-from-generator (Seq/range start end 1)))
+  ([start end step] (lazy-seq-from-generator (Seq/range start end step))))
 
 (def- for-options (hash-set :reduce))
 
@@ -293,7 +304,12 @@ Returns the new value after the swap."
               rest      (for-builder body head (php/+ i 3))
               value-sym (gensym)]
           (case verb
-            :range `(foreach [~binding (apply range ~object)] ~rest)
+            ;; A literal `[start end]` is known here, so splice it into a
+            ;; direct `range` call rather than emitting `apply` for the loop to
+            ;; pay once on entry (#3021 A5).
+            :range (if (vector? object)
+                     `(foreach [~binding (range ~@object)] ~rest)
+                     `(foreach [~binding (apply range ~object)] ~rest))
             :in    `(foreach [~value-sym ~object] (let [~binding ~value-sym] ~rest))
             :keys  (let [key-sym (gensym)]
                      `(foreach [~key-sym ~value-sym ~object] (let [~binding ~key-sym] ~rest)))

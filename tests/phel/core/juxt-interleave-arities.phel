@@ -1,0 +1,49 @@
+(ns phel-test.core.juxt-interleave-arities
+  (:require phel.test :refer [deftest is]))
+
+;; `juxt` dispatches on its function count once and hands back a closure with
+;; real arities, as `partial` and `fnil` already did. `interleave` grew a
+;; two-collection arity. Both have to keep answering exactly what they did.
+
+(deftest test-juxt-one-function
+  (let [j (juxt inc)]
+    (is (= [6] (j 5)) "one argument")
+    (is (= [3] ((juxt (fn [& xs] (count xs))) :a :b :c)) "three arguments reach the function")
+    (is (= [0] ((juxt (fn [& xs] (count xs))))) "no arguments")))
+
+(deftest test-juxt-two-and-three-functions
+  (is (= [6 4] ((juxt inc dec) 5)) "two functions")
+  (is (= [6 4 10] ((juxt inc dec (fn [x] (* x 2))) 5)) "three functions")
+  (is (= [3 3] ((juxt + +) 1 2)) "two arguments reach both functions")
+  (is (= [6 6] ((juxt + +) 1 2 3)) "three arguments reach both functions")
+  (is (= [10 10] ((juxt + +) 1 2 3 4)) "four arguments reach both functions"))
+
+(deftest test-juxt-four-or-more-functions
+  (is (= [6 4 6 4] ((juxt inc dec inc dec) 5)) "four functions")
+  (is (= [6 4 6 4 6] ((juxt inc dec inc dec inc) 5)) "five functions")
+  (is (= [3 3 3 3] ((juxt + + + +) 1 2)) "four functions with two arguments")
+  (is (= [6 6 6 6 6] ((juxt + + + + +) 1 2 3)) "five functions with three arguments"))
+
+(deftest test-juxt-docstring-example
+  (is (= [11 9 20] ((juxt inc dec (fn [x] (* x 2))) 10)) "the documented example"))
+
+(deftest test-juxt-order-and-result-shape
+  (is (= [1 2 3] ((juxt (fn [_] 1) (fn [_] 2) (fn [_] 3)) :x)) "results keep the function order")
+  (is (vector? ((juxt inc) 1)) "the result is a vector")
+  (is (= [nil] ((juxt (fn [_] nil)) 1)) "a nil result is kept"))
+
+(deftest test-interleave-two-collections
+  (is (= [1 :a 2 :b 3 :c] (vec (interleave [1 2 3] [:a :b :c]))) "equal lengths")
+  (is (= [1 :a 2 :b] (vec (interleave [1 2 3] [:a :b]))) "stops at the shorter")
+  (is (= [1 :a] (vec (interleave [1] [:a :b :c]))) "stops at the shorter, other way round")
+  (is (= [] (vec (interleave [] [:a]))) "an empty collection yields nothing")
+  (is (= [] (vec (interleave [1] []))) "an empty second collection")
+  (is (= [] (vec (interleave nil [1 2]))) "a nil collection yields nothing")
+  (is (= [] (vec (interleave [1 2] nil))) "a nil second collection")
+  (is (= [1 :a 2 :b] (vec (interleave '(1 2) '(:a :b)))) "over lists"))
+
+(deftest test-interleave-other-arities-are-unchanged
+  (is (= [] (vec (interleave))) "no collections")
+  (is (= [1 :a :x 2 :b :y] (vec (interleave [1 2] [:a :b] [:x :y]))) "three collections")
+  (is (= [] (vec (interleave [1 2] nil [3 4]))) "a nil among three")
+  (is (= [1 :a :x 2 :b :y] (vec (interleave [1 2 3] [:a :b] [:x :y]))) "three, stopping at the shortest"))

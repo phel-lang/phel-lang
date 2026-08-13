@@ -118,6 +118,17 @@
            res))
        opt)
 
+     ;; Transient maps third. They are not `PersistentMapInterface`, so before
+     ;; this they fell through every branch to `:else`, seven predicates deep,
+     ;; on a type that only appears inside `for :reduce` loops over transients
+     ;; where the lookup runs once per element. `frequencies`, `group-by`,
+     ;; `into` and `zipmap` all pay it.
+     (php/instanceof ds TransientMapInterface)
+     (let [res (aget ds k)]
+       (if (nil? res)
+         opt
+         res))
+
      (nil? ds)                                                                                                                   opt
      (and (nil? k) (indexed? ds))                                                                                                opt
 
@@ -342,9 +353,14 @@
 (defn dissoc
   "Returns `ds` without the given keys. With no keys returns `ds` unchanged."
   {:example "(dissoc {:a 1 :b 2} :b) ; => {:a 1}\n(dissoc {:a 1 :b 2 :c 3} :a :c) ; => {:b 2}"}
-  [ds & ks]
-  (loop [acc       ds
-         remaining ks]
-    (if (empty? remaining)
-      acc
-      (recur (dissoc-one acc (first remaining)) (next remaining)))))
+  ;; Fixed arities: removing one key is the call that actually happens, and it
+  ;; needed neither the rest argument nor the loop to find that out (#2973,
+  ;; #3021).
+  ([ds] ds)
+  ([ds k] (dissoc-one ds k))
+  ([ds k & ks]
+   (loop [acc       (dissoc-one ds k)
+          remaining ks]
+     (if (empty? remaining)
+       acc
+       (recur (dissoc-one acc (first remaining)) (next remaining))))))

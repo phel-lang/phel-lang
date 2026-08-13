@@ -1,0 +1,62 @@
+(ns phel-test.json.arities
+  (:require phel.json :as j)
+  (:require phel.test :refer [deftest is thrown?]))
+
+;; `encode` and `decode` took `& [{:flags .. :depth ..}]` and validated the
+;; options they had just defaulted themselves. Both spellings have to keep
+;; behaving, and the no-options arity must not have dropped a check that
+;; actually guards something.
+
+(deftest test-encode-without-options
+  (is (= "{\"a\":1}" (j/encode {:a 1})) "a map")
+  (is (= "[1,2,3]" (j/encode [1 2 3])) "a vector")
+  (is (= "42" (j/encode 42)) "an int")
+  (is (= "\"s\"" (j/encode "s")) "a string")
+  (is (= "null" (j/encode nil)) "nil")
+  (is (= "{}" (j/encode {})) "an empty map encodes as an object, not an array")
+  (is (= "[]" (j/encode [])) "an empty vector encodes as an array"))
+
+(deftest test-encode-with-options
+  (is (= "{\"a\":1}" (j/encode {:a 1} {})) "an empty option map")
+  (is (= "{\"a\":1}" (j/encode {:a 1} {:depth 10})) "an explicit depth")
+  (is (= "{\"a\":1}" (j/encode {:a 1} {:flags 0})) "explicit flags")
+  (is (= (j/encode {:a 1}) (j/encode {:a 1} {:flags 0, :depth 512}))
+      "the defaults spelled out match omitting them"))
+
+(deftest test-encode-still-validates
+  (is (thrown? \Exception (j/encode {:a 1} {:flags "x"})) "non-int flags")
+  (is (thrown? \Exception (j/encode {:a 1} {:depth "x"})) "non-int depth")
+  (is (thrown? \Exception (j/encode {:a 1} {:depth 0})) "a depth of zero")
+  (is (thrown? \Exception (j/encode {:a 1} {:depth -1})) "a negative depth"))
+
+(deftest test-decode-without-options
+  (is (= {:a 1} (j/decode "{\"a\":1}")) "an object")
+  (is (= [1 2 3] (j/decode "[1,2,3]")) "an array")
+  (is (= 42 (j/decode "42")) "an int")
+  (is (nil? (j/decode "null")) "null")
+  (is (= {:a {:b 2}} (j/decode "{\"a\":{\"b\":2}}")) "nesting"))
+
+(deftest test-decode-with-options
+  (is (= {:a 1} (j/decode "{\"a\":1}" {})) "an empty option map")
+  (is (= {:a 1} (j/decode "{\"a\":1}" {:depth 10})) "an explicit depth")
+  (is (= (j/decode "{\"a\":1}") (j/decode "{\"a\":1}" {:flags 0, :depth 512}))
+      "the defaults spelled out match omitting them"))
+
+(deftest test-decode-still-validates
+  (is (thrown? \Exception (j/decode 42)) "a non-string input")
+  (is (thrown? \Exception (j/decode 42 {})) "a non-string input with options")
+  (is (thrown? \Exception (j/decode "{}" {:flags "x"})) "non-int flags")
+  (is (thrown? \Exception (j/decode "{}" {:depth 0})) "a depth of zero"))
+
+(deftest test-round-trip
+  (foreach [v [{:a 1} [1 2 3] "s" 42 {:a {:b [1 2]}} []]]
+    (is (= v (j/decode (j/encode v))) (str "round-trips " (j/encode v)))))
+
+(deftest test-empty-object-does-not-round-trip
+  ;; Pre-existing and unrelated to the arity split, recorded so the next reader
+  ;; does not take it for a regression: `php/json_decode` with assoc=true maps
+  ;; both `{}` and `[]` onto the same empty PHP array, so the object/array
+  ;; distinction `encode` preserves is lost on the way back. See #3089.
+  (is (= "{}" (j/encode {})) "an empty map still encodes as an object")
+  (is (= [] (j/decode "{}")) "but decodes back as an empty vector")
+  (is (= (j/decode "[]") (j/decode "{}")) "empty object and empty array decode alike"))

@@ -83,17 +83,16 @@ All notable changes to this project will be documented in this file.
 
 ### Changed
 
+- BC: `(arity juxt)` and `(arity interleave)` now report `0`, both having become multi-arity (#3083)
+- BC: `(arity union)` now reports `0`, having become multi-arity (#3077)
+- **BC** The core functions listed under Performance now declare real arities instead of taking a rest argument. Two consequences. A wrong argument count raises an arity error rather than being silently ignored or reaching a hand-written message, which affects `get`, `get-in`, `reduce`, `into`, `slice`, `range` and the twelve seq functions. And a multi-arity function compiles to one variadic dispatch, so `arity` reports `0` for every one of them, `get`, `assoc`, `dissoc`, `concat`, `swap!`, `swap-vals!`, `range`, `comp`, `repeat`, `repeatedly`, `==`, `merge-with` and `deep-merge` included (#2960 #2962 #2964 #2975 #3065 #3067 #3069)
 - Lower `(or …)` / `(and …)` test chains containing `php/instanceof`, `php/aget` or a quoted literal to native `||` / `&&` instead of an IIFE; `(get <set> k)` is ~24% faster (#3027)
 - Warn for `\` namespace separators without `--warn-deprecations`; other deprecations stay opt-in (#2827)
 - Accept the future PHP class spelling after `\`: dotted or bare, with no leading marker (#2876)
 - Warn when a `def` shadows a loadable PHP class; `\DateTime` still reaches the class (#2876)
 - Suppress deprecation reports for code under `vendor/` (#2827)
-- BC: `get` declares `[ds k]` and `[ds k opt]` instead of `[ds k & [opt]]`; a fourth argument is now an arity error rather than silently ignored (#2960)
 - BC: `(max)` and `(min)` with no arguments are now rejected at compile time (PHEL002) rather than throwing `ArgumentCountError` at runtime, since both declare their arities (#2991)
 - Declaring `bool` on the comparison operators lets the compiler infer more return types than before: a `defn` whose body is `(= x 5)` now emits `: bool`, and one branching on `(= x nil)` to two int literals now emits `: int`. More type information, but visible in generated output (#2979)
-- BC: `reduce` and `into` declare their arities, so a wrong argument count raises an arity error rather than the hand-written "expected 2 or 3 arguments" message (#2975)
-- BC: `get-in` declares `[ds ks]` and `[ds ks opt]` instead of `[ds ks & [opt]]`; a fourth argument is now an arity error rather than silently ignored (#2964)
-- BC: `(arity get)` and `(arity assoc)` now report `0`. Both became multi-arity, and a multi-arity function compiles to one variadic dispatch, which `arity` documents as `0` (#2960 #2962)
 - BC: require `symfony/console` `^7.3|^8.0`
 - BC: require `gacela-project/gacela` `^2.0`
 - BC: expand `ApiFacadeInterface` and add `FormatterFacadeInterface::formatString`
@@ -118,14 +117,19 @@ Compiler:
 
 Runtime core:
 
+- Add a PHP array of ints in `sum` with `array_sum` instead of spreading the collection into the variadic arm of `+`: 27.5x over 200 ints, 17.5x over 20, carrying `mean` 13.9x with it. An overflowing int sum is redone through `+` so it still promotes to BigInt rather than becoming a float (#3085)
+- Give the closure returned by `juxt` real arities, as `partial`, `fnil` and `comp` got in #3026: 4.3x to 5.8x per call for one to three functions, 2.5x through `map`. Give `interleave` a two-collection arity: 13x when a collection is nil, 1.4x on small inputs (#3083)
+- Walk `tree-seq`'s stack with native PHP operations and push children by index instead of building a reversed collection per branch node: 2.1x, carrying `flatten` with it (#3081)
+- Order `sort-by`'s decorated keys with native comparisons when they are all native ints and no comparator was supplied, the fast path `sort` got in #3004: 8.4x over 100 ints, 6.4x over 20, 5.2x for `(sort-by count strings)`. Non-int keys and a supplied comparator keep the general path (#3079)
+- Seed `union`'s result from its first argument instead of re-adding every element of it to a fresh set, and give it fixed arities: `(union big small)` over 200 and 5 elements 63x, `(union s)` 51x, two 20-element sets 3.0x. Non-set iterables are still added element by element, since `union` accepts any iterable and returns a set (#3077)
+- Stop `all?` and `some?` re-testing `empty?` on the collection once per element, by testing the first element directly and walking a seq only for the tail: `every?` over a list 2.1x, `not-any?` 1.5x, `all?` and `every?` over a vector 1.4x, with a short-circuiting call unchanged. `some` keeps its seq walk on purpose (#3074)
+- Reach a transient map in `get` by its own branch instead of falling through seven predicates to the generic `aget`, and give `assoc!` the fixed three-argument arity `conj!`, `dissoc!` and `disj!` already had: `assoc!` 1.74x, `frequencies` 1.18x, `select-keys` 1.16x. Paid by every `for :reduce` over a transient (#3071)
+- Replace rest-argument dispatch with real arities across `phel.core`. A `defn` that took `[x & args]` and then recovered its arguments with `(case (count args) ...)` allocated the rest argument, counted it, and unpacked it with `first` to get back what the caller passed positionally. Now done for the arithmetic and comparison operators, `str`, `get`, `assoc`, `reduce`, `into`, the five collection constructors, `hash-set`, `map`, `filter` and twelve more seq functions, `slice`, `dissoc`, `concat`, `swap!`, `swap-vals!`, `range`, `comp`, `repeat`, `repeatedly`, `==`, `merge-with` and `deep-merge`. Between 1.03x and 8.4x depending on how much work sits behind the call: the transducer arities and the small constructors gain most, and `mapcat`, where realization dominates, gains almost nothing (#2962 #2974 #2975 #2978 #2979 #2981 #3010 #3017 #3021 #3065 #3067 #3069)
 - Build `to-php-array`'s result with `SeqInterface::toArray` instead of spreading through `apply`: 3.3x at three elements, 8.7x at a hundred, carrying `phel.string/join` 2.2x with it (#3057)
-- Give `map` and `filter` fixed arities instead of a rest argument plus a count check: 2.7 times faster to call, and 3 times for the transducer arity (#3021)
 - Compare two native ints in `<`, `<=`, `>` and `>=` without the numeric-tower dispatch: 2.5 to 2.7 times faster, down to raw PHP comparison speed (#2984)
 - **BREAKING** `sort-by` now calls its key function once per element instead of twice per comparison, so an *impure* key function runs far fewer times (100 rather than about 1114 when sorting 100 elements). The sorted result is unchanged. Up to 2.2 times faster; recorded in `docs/spec/clojure-divergences.md` since Clojure calls per comparison (#3006)
-- Give `+`, `-`, `*`, `max` and `min` fixed 3 and 4 argument arities: three arguments cost 11 to 12 times less for the operators and 3.5 times less for `max` and `min`, instead of 13 to 17 times more than two (#3017)
 - Give the closures returned by `partial`, `fnil` and `comp` real arities: 30x, 50x and 8x faster to call (#3021)
 - Guard the twelve nil-rejecting arithmetic functions with the fixed-arity macros instead of the variadic helper: `round` and `floor` 25x, `quot`, `rem` and `mod` 14 to 17x, `even?` and `odd?` 6 to 7x (#3018)
-- Give `list`, `vector`, `queue`, `hash-map` and `array-map` fixed arities, so the calls the literal lowering cannot reach get faster too: 2.1 to 3.4 times through an alias or `apply`, 1.5 times passed as a value to `map` (#3010)
 - Inline PHP array constructors and use `php-indexed-array` across core and standard libraries (#2941)
 - Speed up `re-find`, `re-matches` and `parse-long` by avoiding full match-map conversion (#2941 #2943)
 - Give `aget` a fixed single-index arity and require an index, matching Clojure (#2941)
@@ -133,23 +137,19 @@ Runtime core:
 - Order `int` and `conj` dispatch by how often each case is hit (#2965)
 - Reach maps and vectors first in `get`, and give it fixed `[ds k]` / `[ds k opt]` arities (#2960)
 - Reach collections earlier in `empty?`, and count them without core dispatch (#2961)
-- Give `assoc` a fixed three-argument arity so the common call skips the variadic path (#2962)
 - Inline the `seq?` check in `seq` and count countable collections without core dispatch (#2963)
 - Give `get-in` fixed arities and test the path with `nil?` rather than `empty?` per step (#2964)
-- Give `str` fixed arities up to three arguments, skipping the array and `implode` (#2974)
 - Inline the nil guard in `inc` and `dec`, which still called the variadic one (#2989)
 - Give `max` and `min` fixed arities, dropping a lazy sequence built to NaN-check two arguments (#2991)
 - Collect `for` results into a PHP array instead of an atom and a persistent `conj` per element (#2997)
 - Thread the `for` `:reduce` accumulator through a one-slot PHP array instead of an atom (#2999)
-- Give `hash-set` fixed arities for the small counts, skipping the variadic parameter and `apply` (#2981)
 - Build `interleave`'s seq array in one pass instead of `some`, `map` and `apply` (#2980)
 - Sort an all-int collection natively instead of calling back into Phel per comparison (#3003)
-- Declare real arities on `reduce` and `into` instead of a `case` over a rest argument (#2975)
-- Give `+`, `-`, `*` and `/` fixed arities, cutting untagged two-operand arithmetic 7.7x (#2978)
-- Give `=`, `not=`, `identical?`, `<`, `<=`, `>` and `>=` fixed arities and a declared `bool` return (#2979)
 
 Standard library:
 
+- Give `phel.json/encode` and `decode` fixed arities in place of `& [{:flags .. :depth ..}]`, and stop the no-options call validating the defaults it just supplied: 3.9x encoding a scalar, 1.25x encoding a map, 1.21x decoding (#3090)
+- Build every `phel.walk` branch through a transient instead of `map` plus `into`, and the same inside `keywordize-keys` and `stringify-keys`: 1.67x to 1.71x. `map` returns a lazy sequence whose first chunk is realized on construction and `into` then walks it again, once per node of the tree (#3087)
 - Hoist `phel.html/escape-html`'s flag constant out of the call instead of recombining it per call: 4.4x, and 1.20x on a whole-document render (#3054)
 - Rewrite the hot half of `phel.string`: `assert-string` becomes `:inline`, seven functions take fixed arities in place of `& [x]`, `trim-newline` uses `rtrim`, `blank?` settles ASCII input with `strspn` before the unicode regex, `contains?` stops running its guards twice, and `split` builds its vector directly. 1.6x to 8.4x across fourteen functions (#3050 #3051 #3052)
 - Swap `phel.base64/encode-url` and `decode-url`'s alphabet with one `strtr` instead of a chain of `phel.string/replace` calls: 28x and 17x. All three also take fixed arities in place of `& [strict?]`, making `decode` 5.2x (#3021)

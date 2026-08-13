@@ -23,7 +23,9 @@
     (foreach [k v x]
       (when-not (valid-key? k)
         (throw (new JsonException "Key can only be an integer, float, symbol, keyword or a string.")))
-      (aset arr (encode-key k) (encode-value v)))
+      ;; `php/aset` and not `aset`: the array is a PHP array here by
+       ;; construction, and this runs once per key of every object encoded.
+      (php/aset arr (encode-key k) (encode-value v)))
     arr))
 
 (defn encode-value
@@ -43,14 +45,21 @@
 (defn encode
   "Encodes a Phel value to a JSON string."
   {:example "(encode {:name \"Alice\"}) ; => \"{\\\"name\\\":\\\"Alice\\\"}\""}
-  [value & [{:flags flags, :depth depth}]]
-  (let [flags (or flags 0)
-        depth (or depth 512)]
-    (when (php/is_resource value) (throw (new JsonException "Value can be any type except a resource.")))
-    (when-not (int? flags) (throw (new JsonException "Flags must be an integer.")))
-    (when-not (int? depth) (throw (new JsonException "Depth must be an integer.")))
-    (when-not (> depth 0) (throw (new JsonException "Depth must be greater than zero.")))
-    (php/json_encode (encode-value value) flags depth)))
+  ;; Fixed arities rather than `& [{...}]`, which allocated a rest argument and
+  ;; then destructured a map out of it on every call (#2973, #3021). The
+  ;; no-options arity also skips the three option checks: 0 and 512 are the
+  ;; defaults this function itself supplies, so validating them proves nothing.
+  ([value]
+   (when (php/is_resource value) (throw (new JsonException "Value can be any type except a resource.")))
+   (php/json_encode (encode-value value) 0 512))
+  ([value {:flags flags, :depth depth}]
+   (let [flags (or flags 0)
+         depth (or depth 512)]
+     (when (php/is_resource value) (throw (new JsonException "Value can be any type except a resource.")))
+     (when-not (int? flags) (throw (new JsonException "Flags must be an integer.")))
+     (when-not (int? depth) (throw (new JsonException "Depth must be an integer.")))
+     (when-not (> depth 0) (throw (new JsonException "Depth must be greater than zero.")))
+     (php/json_encode (encode-value value) flags depth))))
 
 (defn decode-value
   "Converts a JSON value to Phel format."
@@ -71,11 +80,15 @@
 (defn decode
   "Decodes a JSON string to a Phel value."
   {:example "(decode \"{\\\"name\\\":\\\"Alice\\\"}\") ; => {:name \"Alice\"}"}
-  [json & [{:flags flags, :depth depth}]]
-  (let [flags (or flags 0)
-        depth (or depth 512)]
-    (when-not (string? json) (throw (new JsonException "Json must be a string.")))
-    (when-not (int? flags) (throw (new JsonException "Flags must be an integer.")))
-    (when-not (int? depth) (throw (new JsonException "Depth must be an integer.")))
-    (when-not (> depth 0) (throw (new JsonException "Depth must be greater than zero.")))
-    (decode-value (php/json_decode json true depth flags))))
+  ;; Same split as `encode`, and for the same reasons.
+  ([json]
+   (when-not (string? json) (throw (new JsonException "Json must be a string.")))
+   (decode-value (php/json_decode json true 512 0)))
+  ([json {:flags flags, :depth depth}]
+   (let [flags (or flags 0)
+         depth (or depth 512)]
+     (when-not (string? json) (throw (new JsonException "Json must be a string.")))
+     (when-not (int? flags) (throw (new JsonException "Flags must be an integer.")))
+     (when-not (int? depth) (throw (new JsonException "Depth must be an integer.")))
+     (when-not (> depth 0) (throw (new JsonException "Depth must be greater than zero.")))
+     (decode-value (php/json_decode json true depth flags)))))

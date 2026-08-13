@@ -14,16 +14,37 @@
 ;; Set operation
 ;; -------------
 
+(defn- union-target
+  "A transient set seeded from `coll`. When `coll` is already a set the
+  transient starts from it directly; `union` also accepts any other iterable,
+  and those still have to be added element by element."
+  [coll]
+  (if (set? coll)
+    (transient coll)
+    (let [target (transient (hash-set))]
+      (foreach [v coll] (.add target v))
+      target)))
+
 (defn union
   "Union multiple sets into a new one."
   {:example "(union (hash-set 1 2) (hash-set 2 3)) ; => #{1 2 3}"
    :see-also ["intersection" "difference"]}
-  [& sets]
-  (let [target (transient (hash-set))]
-    (foreach [s sets]
-      (foreach [v s]
-        (.add target v)))
-    (persistent target)))
+  ;; Fixed arities, and the first collection seeds the result rather than being
+  ;; re-added one element at a time. A union of two sets used to add |s1| + |s2|
+  ;; elements to a fresh set; it now adds |s2| to a transient of the first, the
+  ;; way `intersection` and `difference` already worked (#2973, #3021).
+  ([] (hash-set))
+  ([s] (persistent (union-target s)))
+  ([s1 s2]
+   (let [target (union-target s1)]
+     (foreach [v s2] (.add target v))
+     (persistent target)))
+  ([s1 s2 & sets]
+   (let [target (union-target s1)]
+     (foreach [v s2] (.add target v))
+     (foreach [s sets]
+       (foreach [v s] (.add target v)))
+     (persistent target))))
 
 (defn- intersection-pair
   [s1 s2]
@@ -191,12 +212,40 @@
   "Takes a list of functions and returns a new function that is the juxtaposition of those functions."
   {:example "((juxt inc dec #(* % 2)) 10) ; => [11 9 20]"
    :see-also ["comp" "partial"]}
-  [& fs]
-  (fn [& args]
-    (reduce
-     #(conj %1 (apply %2 args))
-     []
-     fs)))
+  ;; As with `partial` and `fnil`, the returned closure is what runs per call,
+  ;; so it is the thing that must not be variadic. The old single
+  ;; `(fn [& args] (reduce #(conj %1 (apply %2 args)) [] fs))` built a rest
+  ;; vector, ran `reduce` over the function list, and went through `apply` once
+  ;; per function, on every call (#3021). The function count is known here,
+  ;; once, so dispatch on it now and hand back real arities.
+  ([f]
+   (fn
+     ([] [(f)])
+     ([a] [(f a)])
+     ([a b] [(f a b)])
+     ([a b & more] [(apply f a b more)])))
+  ([f g]
+   (fn
+     ([] [(f) (g)])
+     ([a] [(f a) (g a)])
+     ([a b] [(f a b) (g a b)])
+     ([a b & more] [(apply f a b more) (apply g a b more)])))
+  ([f g h]
+   (fn
+     ([] [(f) (g) (h)])
+     ([a] [(f a) (g a) (h a)])
+     ([a b] [(f a b) (g a b) (h a b)])
+     ([a b & more] [(apply f a b more) (apply g a b more) (apply h a b more)])))
+  ([f g h & fs]
+   ;; Four or more keeps the general walk, over the whole function list.
+   ;; `vec` and not the lazy `concat` itself: this is built once, and the
+   ;; closure reduces over it on every call.
+   (let [all (vec (concat [f g h] fs))]
+     (fn [& args]
+       (reduce
+        #(conj %1 (apply %2 args))
+        []
+        all)))))
 
 (defn partial
   "Takes a function `f` and fewer than the normal number of arguments to `f`, and returns a function that takes a variable number of additional arguments. When called, `f` will be invoked with the bound `args` prepended to the additional arguments."
@@ -366,14 +415,26 @@ Without arguments, uses a default cache size of 128 entries."
   {:example "(tree-seq indexed? identity [1 [2 3]]) ; => [[1 [2 3]] 1 [2 3] 2 3]"
    :see-also ["flatten"]}
   [branch? children root]
+  ;; The stack is a PHP array, so its length and its pop are PHP operations.
+  ;; `count` and `pop` are core functions that dispatch over every collection
+  ;; kind to answer for one, and this loop runs them once per node.
   (let [ret (transient [])]
     (loop [stack (php-indexed-array root)]
-      (if (> (count stack) 0)
-        (let [node (pop stack)]
+      (if (php/> (php/count stack) 0)
+        (let [node (php/array_pop (php/ref stack))]
           (.append ret node)
           (when (branch? node)
-            (foreach [child (reverse (children node))]
-              (php/apush stack child)))
+            ;; Children go onto the stack in reverse so they come off in order.
+            ;; Collected into a PHP array and walked backwards rather than run
+            ;; through core `reverse`, which builds a persistent collection per
+            ;; branch node only to iterate it once.
+            (let [kids (php/array)]
+              (foreach [child (children node)]
+                (php/apush kids child))
+              (loop [i (php/- (php/count kids) 1)]
+                (when (php/>= i 0)
+                  (php/apush stack (php/aget kids i))
+                  (recur (php/- i 1))))))
           (recur stack))
         (copy-meta root (persistent ret))))))
 
@@ -397,12 +458,15 @@ Without arguments, uses a default cache size of 128 entries."
   "Merges multiple maps into one new map. If a key appears in more than one collection, the result of `(f current-val next-val)` is used."
   {:example "(merge-with + {:a 1 :b 2} {:a 10}) ; => {:a 11, :b 2}"
    :see-also ["merge" "deep-merge"]}
-  [f & hash-maps]
-  (case (count hash-maps)
-    0 {}
-    1 (first hash-maps)
-    2 (merge-with-2 f (first hash-maps) (second hash-maps))
-    (reduce (partial merge-with f) (first hash-maps) (rest hash-maps))))
+  ;; Fixed arities: the rest argument was allocated and counted only to be
+  ;; unpacked with `first` and `second` again (#2973, #3021).
+  ;; `f` is unused here and in the one-map arity; both are the identity cases
+  ;; the old `case` answered with `{}` and `(first hash-maps)`.
+  ([f] {})
+  ([f m] m)
+  ([f m1 m2] (merge-with-2 f m1 m2))
+  ([f m1 m2 & hash-maps]
+   (reduce (partial merge-with f) (merge-with-2 f m1 m2) hash-maps)))
 
 (declare deep-merge)
 
@@ -419,12 +483,12 @@ Without arguments, uses a default cache size of 128 entries."
   "Recursively merges data structures."
   {:example "(deep-merge {:a {:x 1}} {:a {:y 2}}) ; => {:a {:x 1, :y 2}}"
    :see-also ["merge" "merge-with"]}
-  [& args]
-  (case (count args)
-    0 {}
-    1 (first args)
-    2 (deep-merge-2 (first args) (second args))
-    (reduce deep-merge (first args) (rest args))))
+  ;; Fixed arities: the rest argument was allocated and counted only to be
+  ;; unpacked with `first` and `second` again (#2973, #3021).
+  ([] {})
+  ([m] m)
+  ([m1 m2] (deep-merge-2 m1 m2))
+  ([m1 m2 & args] (reduce deep-merge (deep-merge-2 m1 m2) args)))
 
 ;; --- Map utilities ---
 

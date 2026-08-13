@@ -6,19 +6,29 @@
    :see-also ["postwalk" "prewalk"]
    :example "(walk inc identity [1 2 3]) ; => [2 3 4]"}
   [inner outer form]
+  ;; Each branch builds its result through a transient rather than through
+  ;; `map` and `into`. `map` returns a lazy sequence whose first chunk is
+  ;; realized on construction, and `into` then walks that sequence a second
+  ;; time; the map branch also allocated a `[k v]` vector per pair only for
+  ;; `into` to take it apart again. Walkers recurse, so every one of those is
+  ;; paid once per node of the tree.
   (outer
    (cond
      (list? form)
-     (apply list (map inner form))
+     (apply list (persistent (for [x :in form :reduce [acc (transient [])]]
+                               (conj! acc (inner x)))))
 
      (vector? form)
-     (vec (map inner form))
+     (persistent (for [x :in form :reduce [acc (transient [])]]
+                   (conj! acc (inner x))))
 
      (or (map? form) (struct? form))
-     (into {} (for [[k v] :pairs form] [(inner k) (inner v)]))
+     (persistent (for [[k v] :pairs form :reduce [acc (transient {})]]
+                   (assoc! acc (inner k) (inner v))))
 
      (set? form)
-     (into (hash-set) (map inner form))
+     (persistent (for [x :in form :reduce [acc (transient (hash-set))]]
+                   (conj! acc (inner x))))
 
      form)))
 
@@ -65,9 +75,12 @@
   (postwalk
    (fn [form]
      (if (map? form)
-       (into {}
-             (for [[k v] :pairs form]
-               [(if (string? k) (keyword k) k) v]))
+       ;; Built through a transient for the same reason `walk` is: the pair
+       ;; vector and `into`'s second walk are both avoidable, and this runs
+       ;; once per map in the tree.
+       (persistent
+        (for [[k v] :pairs form :reduce [acc (transient {})]]
+          (assoc! acc (if (string? k) (keyword k) k) v)))
        form))
    m))
 
@@ -80,8 +93,11 @@
   (postwalk
    (fn [form]
      (if (map? form)
-       (into {}
-             (for [[k v] :pairs form]
-               [(if (keyword? k) (name k) k) v]))
+       ;; Built through a transient for the same reason `walk` is: the pair
+       ;; vector and `into`'s second walk are both avoidable, and this runs
+       ;; once per map in the tree.
+       (persistent
+        (for [[k v] :pairs form :reduce [acc (transient {})]]
+          (assoc! acc (if (keyword? k) (name k) k) v)))
        form))
    m))

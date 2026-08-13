@@ -153,13 +153,23 @@
   `1.0` as equal, matching Clojure's `clojure.core/==`."
   {:see-also ["=" "not=" "<" ">"]
    :example "(== 1 1.0) ; => true"}
-  [a & more]
-  (case (count more)
-    0 (do (num-equals1 a a) true)
-    1 (num-equals1 a (first more))
-    (if (num-equals1 a (first more))
-      (recur (first more) (next more))
-      false)))
+  ;; Fixed arities: the two-argument comparison is the one that happens, and it
+  ;; needed neither the rest argument nor a count to find that out (#2973,
+  ;; #3021). The single-argument arity keeps calling `num-equals1` so a
+  ;; non-numeric argument still raises.
+  ([a] (do (num-equals1 a a) true))
+  ([a b] (num-equals1 a b))
+  ;; A loop, not `(apply == b more)`: the old body recurred, and a long chain
+  ;; should not turn into one stack frame per argument.
+  ([a b & more]
+   (if (num-equals1 a b)
+     (loop [prev b remaining more]
+       (if (nil? remaining)
+         true
+         (if (num-equals1 prev (first remaining))
+           (recur (first remaining) (next remaining))
+           false)))
+     false)))
 
 (defn not
   "Returns true if value is falsy (nil or false), false otherwise."
@@ -358,10 +368,25 @@
   "Returns true if predicate is true for every element in collection, false otherwise."
   {:example "(all? even? [2 4 6 8]) ; => true"}
   [pred coll]
-  (cond
-    (empty? coll)       true
-    (pred (first coll)) (recur pred (next coll))
-    false))
+  ;; Walk a seq rather than re-testing `empty?` on the collection each step.
+  ;; The old shape paid three core dispatches per element (`empty?`, `first`,
+  ;; `next`) where `next` already reports exhaustion by returning nil.
+  ;; Test the first element on the collection itself, and only build a seq for
+  ;; the tail. Walking a seq beats re-testing `empty?` per element, but `(seq v)`
+  ;; on a vector builds a ChunkedSeq that eagerly realizes its first chunk
+  ;; (#3061), so paying for one up front would cost a short-circuiting call
+  ;; roughly 5x. This way a predicate that fails on the first element never
+  ;; builds a seq at all, and a full traversal still walks one.
+  (if (empty? coll)
+    true
+    (if (pred (first coll))
+      (loop [s (next coll)]
+        (if (nil? s)
+          true
+          (if (pred (first s))
+            (recur (next s))
+            false)))
+      false)))
 
 (defn every?
   "Returns true if predicate is true for every element in collection, false otherwise. Alias for `all?`."
@@ -385,10 +410,19 @@
   {:example "(some? 1) ; => true\n(some? even? [1 3 5 6 7]) ; => true"}
   ([x] (not (nil? x)))
   ([pred coll]
-   (cond
-     (empty? coll)                 false
-     (truthy? (pred (first coll))) true
-     :else                         (recur pred (next coll)))))
+   ;; Same walk as `all?`: a seq once, then `next` reports exhaustion, rather
+   ;; than an `empty?` dispatch on the collection per element.
+   ;; Same shape as `all?`, and the same reason.
+   (if (empty? coll)
+     false
+     (if (truthy? (pred (first coll)))
+       true
+       (loop [s (next coll)]
+         (if (nil? s)
+           false
+           (if (truthy? (pred (first s)))
+             true
+             (recur (next s)))))))))
 
 (defn not-any?
   "Returns true if `(pred x)` is logical false for every `x` in `coll` or if `coll` is empty. Otherwise returns false."
@@ -401,12 +435,25 @@
   "Returns the first truthy value of applying predicate to elements, or nil if none found."
   {:example "(some #(when (> % 10) %) [5 15 8]) ; => 15"}
   [pred coll]
+  ;; The exhaustion test guards the predicate call instead of running beside it:
+  ;; the old shape computed `res` behind its own `nil?` check and then tested
+  ;; `nil? s` again in the `cond`, twice per element.
+  ;; Deliberately NOT the `all?` shape. `some` already walked a seq, and on a
+  ;; vector the seq walk beats the first-element-then-tail hybrid on a full
+  ;; traversal (measured 1.29x). Testing the head separately would buy a
+  ;; short-circuiting call a lot and cost every exhausting one, and `some`
+  ;; returning nil is as ordinary as `some` finding a hit.
+  ;;
+  ;; What does change: the old body computed the predicate result beside its
+  ;; own `nil?` guard and then tested `nil? s` again in a `cond`, twice per
+  ;; element.
   (loop [s (seq coll)]
-    (let [res (if (nil? s) nil (pred (first s)))]
-      (cond
-        (nil? s)      nil
-        (truthy? res) res
-        :else         (recur (next s))))))
+    (if (nil? s)
+      nil
+      (let [res (pred (first s))]
+        (if (truthy? res)
+          res
+          (recur (next s)))))))
 
 (defn true?
   "Checks if value is exactly true (not just truthy)."
