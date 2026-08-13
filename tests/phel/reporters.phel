@@ -170,6 +170,30 @@
           "failure message escapes angle brackets and ampersands"))
     (php/unlink path)))
 
+(deftest test-junit-xml-reporter-survives-invalid-utf8
+  ;; Escaping is one `htmlspecialchars` pass now. Without ENT_SUBSTITUTE that
+  ;; returns an empty string for malformed input, which would silently drop a
+  ;; whole failure message; with it the byte becomes U+FFFD, which is valid XML
+  ;; where the raw byte the old escape emitted was not.
+  (let [path (str "/tmp/phel-junit-" (php/mt_rand) ".xml")
+        rep  (t/resolve-reporter :junit-xml)
+        _    (t/set-junit-output! path)]
+    (rep {:type :begin-test-run})
+    (rep {:type :begin-test-ns :ns "sample.ns"})
+    (rep {:type :failed :state :failed :test-name "bad-bytes"
+          :message (str "before" (php/chr 255) "after")
+          :form "(= 1 2)"
+          :location {:file "f.phel" :line 1}})
+    (rep {:type :end-test-ns :ns "sample.ns"})
+    (rep {:type :summary :total 1})
+    (t/set-junit-output! nil)
+    (let [xml (php/file_get_contents path)]
+      (is (php/str_contains xml "before") "the text before the bad byte survives")
+      (is (php/str_contains xml "after") "the text after it survives too")
+      (is (php/str_contains xml "bad-bytes") "the testcase is still written")
+      (is (true? (php/mb_check_encoding xml "UTF-8")) "the document is valid UTF-8"))
+    (php/unlink path)))
+
 ;; ---------------------------------------------------------------------------
 ;; Default reporter — legacy dot output plus summary block
 ;; ---------------------------------------------------------------------------
