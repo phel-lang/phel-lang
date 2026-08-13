@@ -1,0 +1,50 @@
+(ns phel-test.core.vec-bulk-construction
+  (:require phel.test :refer [deftest is]))
+
+(defstruct pt [x y])
+
+;; `vec` collects into a PHP array and builds the vector once instead of
+;; appending through a transient per element. Every source shape has to keep
+;; producing the same vector, and the map and struct branch still has to yield
+;; `[key value]` pairs rather than bare values.
+
+(deftest test-sequential-sources
+  (is (= [1 2 3] (vec [1 2 3])) "a vector")
+  (is (= [] (vec [])) "an empty vector")
+  (is (= [1 2 3] (vec '(1 2 3))) "a list")
+  (is (= [] (vec '())) "an empty list")
+  (is (= [2 3 4] (vec (map inc [1 2 3]))) "a lazy sequence")
+  (is (= [] (vec (map inc []))) "an empty lazy sequence")
+  (is (= [0 1 2 3] (vec (take 4 (range)))) "a taken range")
+  (is (= [1 2 3] (vec (concat [1 2] [3]))) "a concatenation")
+  (is (= [1 2 3] (vec (php-indexed-array 1 2 3))) "a PHP array")
+  (is (= [] (vec nil)) "nil is an empty vector"))
+
+(deftest test-associative-sources-yield-pairs
+  (is (= [[:a 1] [:b 2]] (vec {:a 1, :b 2})) "a map yields key-value pairs")
+  (is (= [] (vec {})) "an empty map")
+  (is (= [[:a 1] [:b 2]] (vec (sorted-map :b 2 :a 1))) "a sorted map yields pairs in order")
+  (is (= 2 (count (vec (pt 1 2)))) "a struct yields one pair per field")
+  (is (= [:x 1] (first (vec (pt 1 2)))) "the struct pair is [key value]"))
+
+(deftest test-values-that-could-be-dropped
+  ;; A nil element must survive the collection, not truncate it.
+  (is (= [nil 1 nil] (vec [nil 1 nil])) "nil elements are kept")
+  (is (= 3 (count (vec [nil 1 nil]))) "and counted")
+  (is (= [false 0 ""] (vec [false 0 ""])) "falsy values are kept")
+  (is (= [[1 2] {:a 1}] (vec [[1 2] {:a 1}])) "nested collections are not flattened"))
+
+(deftest test-other-sources
+  (is (= ["a" "b" "c"] (vec "abc")) "a string becomes its characters")
+  (is (= 3 (count (vec (set [3 1 2])))) "a set yields its members")
+  (is (= [1 2 3] (vec (sorted-set 3 1 2))) "a sorted set yields them in order")
+  (is (= [:a 1] (vec (first {:a 1}))) "a MapEntry is already a 2-vector")
+  ;; A transient is not seqable, so `vec` rejects it. Pre-existing behaviour,
+  ;; unchanged here, and pinned so the bulk collection is not blamed for it.
+  (is (thrown? \InvalidArgumentException (vec (transient [1 2]))) "a transient vector is rejected"))
+
+(deftest test-the-result-is-a-persistent-vector
+  (let [v (vec '(1 2))]
+    (is (vector? v) "the result is a vector")
+    (is (= [1 2 3] (conj v 3)) "it can be conj'd onto")
+    (is (= [1 2] v) "and the original is unchanged")))
