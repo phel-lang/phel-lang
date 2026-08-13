@@ -147,6 +147,7 @@ Runtime core:
 
 Standard library:
 
+- Give `phel.json/encode` and `decode` fixed arities in place of `& [{:flags .. :depth ..}]`, and stop the no-options call validating the defaults it just supplied: 3.9x encoding a scalar, 1.25x encoding a map, 1.21x decoding (#3090)
 - Build every `phel.walk` branch through a transient instead of `map` plus `into`, and the same inside `keywordize-keys` and `stringify-keys`: 1.67x to 1.71x. `map` returns a lazy sequence whose first chunk is realized on construction and `into` then walks it again, once per node of the tree (#3087)
 - Hoist `phel.html/escape-html`'s flag constant out of the call instead of recombining it per call: 4.4x, and 1.20x on a whole-document render (#3054)
 - Rewrite the hot half of `phel.string`: `assert-string` becomes `:inline`, seven functions take fixed arities in place of `& [x]`, `trim-newline` uses `rtrim`, `blank?` settles ASCII input with `strspn` before the unicode regex, `contains?` stops running its guards twice, and `split` builds its vector directly. 1.6x to 8.4x across fourteen functions (#3050 #3051 #3052)
