@@ -639,6 +639,19 @@ final class CoreSeqBench extends CoreBenchCase
     }
 
     /**
+     * Counting a lazy sequence. `count` dispatches to `Countable::count()`,
+     * which materialised every element into a PHP array only to measure it.
+     * The vector and map subjects in `CoreDispatchBench` are O(1) reads and so
+     * never reached this path.
+     *
+     * @Revs(1000)
+     */
+    public function bench_count_lazy_seq(): void
+    {
+        ($this->count)(($this->mapFn)($this->inc, $this->ints));
+    }
+
+    /**
      * `partition-by` and `dedupe` return a sequence built by
      * `lazy-seq-from-generator`, so constructing one realizes a chunk before
      * the caller has asked for a single element. These two subjects measure
