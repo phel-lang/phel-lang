@@ -68,11 +68,15 @@
        (f)
        (reduce f (first s) (next s)))))
   ([f init coll]
+   ;; `reduced?` and `not` spelled as the PHP checks they are. Both run once
+   ;; per element, and `reduced?` is `(php/instanceof x Reduced)` behind a
+   ;; function call; `done` only ever holds a bool, so the loop guard does not
+   ;; need Phel truthiness either (#2973).
    (let [acc  (new Volatile init)
          done (new Volatile false)]
-     (dofor [x :in coll :while (not (.deref done))]
+     (dofor [x :in coll :while (php/=== false (.deref done))]
        (let [result (f (.deref acc) x)]
-         (if (reduced? result)
+         (if (php/instanceof result Reduced)
            (do (.reset acc (.deref result))
                (.reset done true))
            (.reset acc result))))
@@ -85,9 +89,10 @@
   [f init coll]
   (let [acc  (new Volatile init)
         done (new Volatile false)]
-    (dofor [[k v] :pairs coll :while (not (.deref done))]
+    ;; Same two inlines as `reduce` above, for the same per-element reason.
+    (dofor [[k v] :pairs coll :while (php/=== false (.deref done))]
       (let [result (f (.deref acc) k v)]
-        (if (reduced? result)
+        (if (php/instanceof result Reduced)
           (do (.reset acc (.deref result))
               (.reset done true))
           (.reset acc result))))
