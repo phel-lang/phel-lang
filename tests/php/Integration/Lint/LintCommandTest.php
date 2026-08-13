@@ -56,6 +56,26 @@ final class LintCommandTest extends TestCase
 
     #[PreserveGlobalState(false)]
     #[RunInSeparateProcess]
+    public function test_it_lints_a_namespace_that_defines_and_calls_an_inline_fn(): void
+    {
+        // #3055: linting analyses without evaluating, so `:inline` metadata is
+        // still the reader's list. Invoking it landed on
+        // `PersistentList::__invoke($index)` and aborted the whole run with an
+        // uncaught TypeError, losing every diagnostic rather than one file.
+        $this->bootstrap();
+
+        $tester = new CommandTester(new LintCommand());
+        $exit = $tester->execute([
+            'paths' => [__DIR__ . '/Fixtures/inline_self_call.phel'],
+            '--format' => 'json',
+            '--no-cache' => true,
+        ]);
+
+        self::assertSame(0, $exit, $tester->getDisplay());
+    }
+
+    #[PreserveGlobalState(false)]
+    #[RunInSeparateProcess]
     public function test_it_fails_with_invocation_error_on_unknown_format(): void
     {
         $this->bootstrap();

@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Phel\Compiler\Domain\Analyzer\TypeAnalyzer\SpecialForm;
 
-use Exception;
+use Closure;
 use Phel;
 use Phel\Compiler\Domain\Analyzer\AnalyzerInterface;
 use Phel\Compiler\Domain\Analyzer\Ast\AbstractNode;
@@ -16,6 +16,7 @@ use Phel\Compiler\Domain\Analyzer\Environment\NodeEnvironmentInterface;
 use Phel\Compiler\Domain\Analyzer\Exceptions\AnalyzerException;
 use Phel\Compiler\Domain\Analyzer\TypeAnalyzer\ConstantFolder;
 use Phel\Compiler\Domain\Analyzer\TypeAnalyzer\Simplification\CallInliner;
+use Phel\Lang\AbstractFn;
 use Phel\Lang\Collections\LinkedList\PersistentListInterface;
 use Phel\Lang\Collections\Map\PersistentMapInterface;
 use Phel\Lang\Collections\Vector\PersistentVectorInterface;
@@ -24,6 +25,7 @@ use Phel\Lang\SourceLocation;
 use Phel\Lang\TypeInterface;
 use Phel\Shared\Printer\Printer;
 use RuntimeException;
+use Throwable;
 
 use function count;
 use function get_debug_type;
@@ -213,17 +215,41 @@ final readonly class InvokeSymbol implements SpecialFormAnalyzerInterface
     {
         $meta = $node->getMeta();
 
-        if (!$meta[Keyword::create('inline')]) {
+        if (!$this->isExpandableFn($meta[Keyword::create('inline')])) {
             return false;
         }
 
         $arityFn = $meta[Keyword::create('inline-arity')];
 
-        if (!is_callable($arityFn)) {
+        if (!$this->isExpandableFn($arityFn)) {
             return true;
         }
 
-        return $arityFn($arity);
+        return (bool) $arityFn($arity);
+    }
+
+    /**
+     * Whether a value read from `:inline` / `:inline-arity` metadata is a
+     * function this analyzer may actually call.
+     *
+     * `is_callable()` is not that question. Phel's data types are invokable by
+     * design: a list, vector, map, set, keyword and symbol all implement
+     * `__invoke`, so every one of them satisfies `is_callable`. Metadata that
+     * has not been evaluated is still the reader's `PersistentList` for the
+     * `(fn ...)` form, and calling it lands on `PersistentList::__invoke($index)`
+     * instead (#3055). For `:inline-arity` that is worse than a crash: the
+     * arity is an int, so the list would accept it and return an element.
+     *
+     * Compiling a namespace evaluates the metadata first, so there the value is
+     * a real `AbstractFn`. Analyzing without evaluating, as `phel lint` does,
+     * leaves it as data, and the call site is expected to fall back to treating
+     * the form as an ordinary function call.
+     *
+     * @psalm-assert-if-true callable $fn
+     */
+    private function isExpandableFn(mixed $fn): bool
+    {
+        return $fn instanceof AbstractFn || $fn instanceof Closure;
     }
 
     /**
@@ -251,14 +277,14 @@ final readonly class InvokeSymbol implements SpecialFormAnalyzerInterface
         $meta = $node->getMeta();
         $fn = $meta[Keyword::create('inline')];
 
-        if (!is_callable($fn)) {
+        if (!$this->isExpandableFn($fn)) {
             throw AnalyzerException::whenExpandingInlineFn($list, $node, new RuntimeException('Inline metadata is not callable.'));
         }
 
         try {
             return $this->callInlineFn($fn, $list, $this->definitionLocation($node));
-        } catch (Exception $exception) {
-            throw AnalyzerException::whenExpandingInlineFn($list, $node, $exception);
+        } catch (Throwable $throwable) {
+            throw AnalyzerException::whenExpandingInlineFn($list, $node, $throwable);
         }
     }
 
@@ -310,8 +336,8 @@ final readonly class InvokeSymbol implements SpecialFormAnalyzerInterface
 
         try {
             return $this->callMacroFn($fn, $list, $env, $this->definitionLocation($macroNode));
-        } catch (Exception $exception) {
-            throw AnalyzerException::whenExpandingMacro($list, $macroNode, $exception);
+        } catch (Throwable $throwable) {
+            throw AnalyzerException::whenExpandingMacro($list, $macroNode, $throwable);
         }
     }
 

@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace Phel\Compiler\Domain\Analyzer\Exceptions;
 
-use Exception;
 use Phel\Compiler\Domain\Analyzer\Ast\GlobalVarNode;
 use Phel\Lang\Collections\LinkedList\PersistentListInterface;
 use Phel\Lang\Collections\Map\PersistentMapInterface;
@@ -13,6 +12,7 @@ use Phel\Lang\TypeInterface;
 use Phel\Shared\Exceptions\AbstractLocatedException;
 use Phel\Shared\Exceptions\ErrorCode;
 use Phel\Shared\Printer\Printer;
+use Throwable;
 
 use function count;
 use function get_debug_type;
@@ -27,7 +27,7 @@ use function sprintf;
  */
 final class AnalyzerException extends AbstractLocatedException
 {
-    public static function withLocation(string $message, TypeInterface $type, ?Exception $nested = null): self
+    public static function withLocation(string $message, TypeInterface $type, ?Throwable $nested = null): self
     {
         return new self(
             $message,
@@ -157,7 +157,7 @@ final class AnalyzerException extends AbstractLocatedException
     public static function whenExpandingInlineFn(
         PersistentListInterface $list,
         GlobalVarNode $node,
-        Exception $exception,
+        Throwable $exception,
     ): self {
         $e = self::withLocation(
             self::formatMacroExpansionError(
@@ -182,7 +182,7 @@ final class AnalyzerException extends AbstractLocatedException
     public static function whenExpandingMacro(
         PersistentListInterface $list,
         GlobalVarNode $node,
-        Exception $exception,
+        Throwable $exception,
     ): self {
         $e = self::withLocation(
             self::formatMacroExpansionError(

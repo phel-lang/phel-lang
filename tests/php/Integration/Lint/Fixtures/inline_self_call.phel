@@ -1,0 +1,18 @@
+(ns lint-fixture.inline-self-call)
+
+;; A namespace that both defines an `:inline` function and calls it. Analyzing
+;; without evaluating leaves the `:inline` metadata as the reader's list, and
+;; the analyzer used to invoke it anyway, landing on `PersistentList::__invoke`
+;; and aborting the whole lint run with an uncaught TypeError (#3055).
+;;
+;; `:inline-arity` is here too: it is handed an int, which a list would accept
+;; and answer with an element rather than crashing.
+
+(defn shout
+  {:inline (fn [s] `(php/strtoupper ~s))
+   :inline-arity (fn [n] (php/=== 1 n))}
+  [s]
+  (php/strtoupper s))
+
+(defn caller [x]
+  (shout x))
