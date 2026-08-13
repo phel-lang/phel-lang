@@ -1,0 +1,41 @@
+(ns phel-test.pprint-shape
+  (:require phel.pprint :as p)
+  (:require phel.test :refer [deftest is]))
+
+;; `pp-str` no longer prints a form to measure it and then prints it again, and
+;; no longer measures leaves at all. The output is the contract, so these pin it
+;; across the cases that decide which branch runs: fits, does not fit, nested,
+;; and each collection kind.
+
+(deftest test-values-that-fit-on-one-line
+  (is (= "42" (p/pprint-str 42)) "an int")
+  (is (= "\"s\"" (p/pprint-str "s")) "a string")
+  (is (= ":k" (p/pprint-str :k)) "a keyword")
+  (is (= "nil" (p/pprint-str nil)) "nil")
+  (is (= "true" (p/pprint-str true)) "a boolean")
+  (is (= "[1 2 3]" (p/pprint-str [1 2 3])) "a short vector")
+  (is (= "(1 2 3)" (p/pprint-str '(1 2 3))) "a short list")
+  (is (= "{:a 1}" (p/pprint-str {:a 1})) "a short map")
+  (is (= "[]" (p/pprint-str [])) "an empty vector")
+  (is (= "{}" (p/pprint-str {})) "an empty map"))
+
+(deftest test-values-that-must-break
+  ;; A width small enough to force the multi-line branch for each kind.
+  (is (= "[1\n 2\n 3]" (p/pprint-str [1 2 3] 2)) "a vector breaks at indent 1")
+  (is (= "(1\n 2\n 3)" (p/pprint-str '(1 2 3) 2)) "a list breaks at indent 1")
+  (is (= "#{1}" (p/pprint-str (set [1]) 80)) "a set that fits stays flat"))
+
+(deftest test-nesting-lays-out-from-the-key
+  (let [out (p/pprint-str {:a [1 2 3], :b {:c 4}} 12)]
+    (is (php/str_contains out ":a") "the first key is present")
+    (is (php/str_contains out ":b") "the second key is present")
+    (is (php/str_contains out "\n") "it broke over lines"))
+  (let [out (p/pprint-str (vec (range 0 40)))]
+    (is (php/str_contains out "\n") "40 elements break")
+    (is (php/str_starts_with out "[") "it still opens with a bracket")
+    (is (php/str_ends_with out "]") "and closes with one")))
+
+(deftest test-width-is-honoured
+  (is (= "[1 2 3]" (p/pprint-str [1 2 3] 72)) "a wide width keeps it flat")
+  (is (php/str_contains (p/pprint-str [1 2 3] 2) "\n") "a narrow width breaks it")
+  (is (= (p/pprint-str [1 2 3]) (p/pprint-str [1 2 3] 72)) "the default width is 72"))
