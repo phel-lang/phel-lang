@@ -79,6 +79,18 @@ final class CoreSeqBench extends CoreBenchCase
     private $transduce;
 
     /** @var callable */
+    private $notEven;
+
+    /** @var callable */
+    private $always;
+
+    /** @var callable */
+    private $someFn;
+
+    /** @var callable */
+    private $everyPred;
+
+    /** @var callable */
     private $slice;
 
     /** @var callable */
@@ -496,6 +508,51 @@ final class CoreSeqBench extends CoreBenchCase
     }
 
     /**
+     * `comp` above measures building the combinator. These four measure
+     * *calling* what a combinator handed back, which is the side that runs
+     * once per element when the result is used as a predicate. The closures
+     * are built once, in `setUpFixtures`, so what is timed is the call.
+     *
+     * @Revs(1000)
+     */
+    public function bench_complement_call(): void
+    {
+        for ($i = 0; $i < self::INNER; ++$i) {
+            ($this->notEven)($i);
+        }
+    }
+
+    /**
+     * @Revs(1000)
+     */
+    public function bench_constantly_call(): void
+    {
+        for ($i = 0; $i < self::INNER; ++$i) {
+            ($this->always)($i);
+        }
+    }
+
+    /**
+     * @Revs(1000)
+     */
+    public function bench_some_fn_call(): void
+    {
+        for ($i = 0; $i < self::INNER; ++$i) {
+            ($this->someFn)($i);
+        }
+    }
+
+    /**
+     * @Revs(1000)
+     */
+    public function bench_every_pred_call(): void
+    {
+        for ($i = 0; $i < self::INNER; ++$i) {
+            ($this->everyPred)($i);
+        }
+    }
+
+    /**
      * The subjects above hand back a transducer and stop there, so none of
      * them reaches the reducing function it wraps. This one drives 32 elements
      * through it, which is where a per-step cost would show up.
@@ -558,6 +615,11 @@ final class CoreSeqBench extends CoreBenchCase
     {
         $this->partitionBy = $this->coreFn('partition-by');
         $this->transduce = $this->coreFn('transduce');
+
+        $this->notEven = ($this->coreFn('complement'))($this->coreFn('even?'));
+        $this->always = ($this->coreFn('constantly'))(42);
+        $this->someFn = ($this->coreFn('some-fn'))($this->coreFn('even?'), $this->coreFn('neg?'));
+        $this->everyPred = ($this->coreFn('every-pred'))($this->coreFn('even?'), $this->coreFn('pos?'));
         $this->dedupe = $this->coreFn('dedupe');
 
         $this->numEquals = $this->coreFn('==');

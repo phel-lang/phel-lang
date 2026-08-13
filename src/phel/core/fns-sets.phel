@@ -157,14 +157,27 @@
   {:example "((constantly 42) 1 2 3) ; => 42"
    :see-also ["identity" "fnil"]}
   [x]
-  (fn [& _] x))
+  ;; The rest vector was built on every call only to be discarded (#2973).
+  (fn
+    ([] x)
+    ([_] x)
+    ([_ _] x)
+    ([_ _ & _] x)))
 
 (defn complement
   "Returns a function that takes the same arguments as `f` and returns the opposite truth value."
   {:example "((complement even?) 3) ; => true"
    :see-also ["not" "some-fn"]}
   [f]
-  #(not (apply f %&)))
+  ;; As with `partial` and `juxt`, the returned closure is what runs per call,
+  ;; and a negated predicate is almost always called with one argument. The
+  ;; `#(not (apply f %&))` spelling built a rest vector and went through
+  ;; `apply` every time (#2973).
+  (fn
+    ([] (not (f)))
+    ([x] (not (f x)))
+    ([x y] (not (f x y)))
+    ([x y & more] (not (apply f x y more)))))
 
 ;; Phel fns compile to invokable objects or plain PHP closures; the
 ;; `__invoke` signature is the single reflection point covering both.
@@ -194,8 +207,15 @@
    (throw (new InvalidArgumentException "some-fn expects at least one predicate")))
   ([p & ps]
    (let [preds (cons p ps)]
-     (fn [& args]
-       (or (some (fn [pred] (some pred args)) preds) false)))))
+     ;; A combined predicate is almost always called with one argument, and
+     ;; that case does not need the rest vector or the inner `some` over it
+     ;; (#2973). The variadic tail keeps the general behaviour.
+     (fn
+       ([] false)
+       ([x] (or (some (fn [pred] (pred x)) preds) false))
+       ([x & more]
+        (let [args (cons x more)]
+          (or (some (fn [pred] (some pred args)) preds) false)))))))
 
 (defn every-pred
   "Takes a variadic set of predicates and returns a function `f` that, when called with any number of arguments, returns `true` if every composing predicate returns a logical true value against every argument, and `false` otherwise. The returned function short-circuits on the first logical false result: arguments after it are not inspected, and predicates after it are not tried. Predicates are consulted in the order supplied; for a given predicate, arguments are consulted left-to-right. With no arguments the returned function returns `true`."
@@ -205,8 +225,15 @@
    (throw (new InvalidArgumentException "every-pred expects at least one predicate")))
   ([p & ps]
    (let [preds (cons p ps)]
-     (fn [& args]
-       (every? (fn [pred] (every? pred args)) preds)))))
+     ;; As in `some-fn`: the one-argument call is the common one and does not
+     ;; need the rest vector or the inner `every?` over it (#2973). The
+     ;; no-argument arity answers `true`, as the docstring says.
+     (fn
+       ([] true)
+       ([x] (every? (fn [pred] (pred x)) preds))
+       ([x & more]
+        (let [args (cons x more)]
+          (every? (fn [pred] (every? pred args)) preds)))))))
 
 (defn juxt
   "Takes a list of functions and returns a new function that is the juxtaposition of those functions."
