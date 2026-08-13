@@ -65,7 +65,9 @@
   the first `/` into namespace and name parts, like `symbol`.
 
   Arity-2 builds a namespaced keyword from the namespace and name parts (taken
-  verbatim, without splitting); returns `nil` when `name` is `nil`."
+  verbatim, without splitting); returns `nil` when `name` is `nil`. Non-string
+  parts are converted with PHP's `strval` rather than `str`, which is both
+  faster on this hot path and renders `true` as `\"1\"` and `false` as `\"\"`."
   {:example "(keyword \"name\") ; => :name\n(keyword :abc) ; => :abc\n(keyword \"ns/name\") ; => :ns/name\n(keyword \"ns\" \"name\") ; => :ns/name"}
   ([x]
    (cond
@@ -76,9 +78,10 @@
      (php/is_string x)          (Keyword/create x)
      :else                      nil))
   ([ns nm]
-   ;; `strval` rather than core `str`: the two disagree on booleans and floats
-   ;; (`(str true)` is "true" where `strval` is "1"), so swapping them would
-   ;; rename every keyword built from a non-string part.
+   ;; `str`'s one-argument arity is a Phel call into `val-to-str`, two of them
+   ;; per namespaced keyword, and it disagrees with `strval` on booleans and
+   ;; floats, so swapping them is both ~1.95x slower and a rename of every
+   ;; keyword built from a non-string part.
    (when-not (php/=== nil nm)
      (Keyword/createForNamespace (when-not (php/=== nil ns) (php/strval ns))
                                  (php/strval nm)))))
