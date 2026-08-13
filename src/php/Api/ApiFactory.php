@@ -11,6 +11,7 @@ use Phel\Api\Application\Analysis\PreloadDependenciesStage;
 use Phel\Api\Application\Analysis\ReadAndAnalyzeStage;
 use Phel\Api\Application\CompletionDocFormatter;
 use Phel\Api\Application\CompletionDocResolver;
+use Phel\Api\Application\LocalBindingResolver;
 use Phel\Api\Application\PhelFnGroupKeyGenerator;
 use Phel\Api\Application\PhelFnNormalizer;
 use Phel\Api\Application\PhelSignatureResolver;
@@ -112,6 +113,13 @@ final class ApiFactory extends AbstractFactory
             $this->getCompilerFacade(),
             $this->createPhelFnNormalizer(),
             new PhpInteropCompleter(),
+        );
+    }
+
+    public function createLocalBindingResolver(): LocalBindingResolver
+    {
+        return new LocalBindingResolver(
+            $this->getCompilerFacade(),
         );
     }
 

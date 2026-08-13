@@ -6,6 +6,7 @@ All notable changes to this project will be documented in this file.
 
 ### Added
 
+- Add LSP go-to-definition for `let`/`loop` locals: navigating from a usage inside the body (or a later binding init) jumps to the binding symbol in the vector, honouring shadowing
 - Add `phel balance [paths]... [--fix]`: reports unbalanced `()`, `[]` and `{}`, and with `--fix` appends the missing closers. Scans the lexer's token stream, so `\(`, a `(` inside a string, a `;` comment or a `#"regex"` is never counted. Only appends, and refuses anything with more than one plausible fix: a surplus or mismatched closer (`(foo]`), an unterminated string, a file that will not lex, a trailing reader prefix such as `#_`, and a missing closer followed by a new top-level form, where appending at the end would nest the rest of the file inside the open form. Detection is the default so an agent post-write hook cannot silently guess wrong (#2827)
 - Add `ProjectIndex::$namespaceLocations` and `ProjectIndex::namespaceLocation()`: the `ns` declaration site of each indexed namespace, keyed by its canonical dotted name. `phel index --output` gains a matching `namespaceLocations` key (#3059)
 - Add editor completion and hover for PHP superglobals (`php/$_SERVER`, ...), in the LSP and in the REPL/nREPL (#3037)

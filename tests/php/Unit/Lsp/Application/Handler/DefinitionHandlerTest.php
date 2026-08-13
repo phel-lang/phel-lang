@@ -76,6 +76,51 @@ final class DefinitionHandlerTest extends TestCase
         self::assertNull($this->handle($session, line: 1, character: 15));
     }
 
+    public function test_it_prefers_a_local_let_binding_over_a_project_definition(): void
+    {
+        $index = new ProjectIndex(
+            ['demo/mysym' => new Definition('demo', 'mysym', '/project/global.phel', 9, 3, Definition::KIND_DEF, [], '', false)],
+            [],
+            [],
+        );
+        $session = $this->sessionWith(
+            "(let [mysym 123]\n    mysym)",
+            $index,
+        );
+
+        $facade = $this->createStub(ApiFacadeInterface::class);
+        $facade->method('resolveLocalBinding')
+            ->willReturn(new Location('file:///project/demo.phel', 1, 7, 1, 12));
+
+        $result = $this->handle($session, line: 1, character: 4, facade: $facade);
+
+        self::assertSame('file:///project/demo.phel', $result['uri'] ?? null);
+        self::assertSame([
+            'start' => ['line' => 0, 'character' => 6],
+            'end' => ['line' => 0, 'character' => 11],
+        ], $result['range'] ?? null);
+    }
+
+    public function test_it_falls_back_to_the_project_index_when_there_is_no_local_binding(): void
+    {
+        $index = new ProjectIndex(
+            ['demo/mysym' => new Definition('demo', 'mysym', '/project/global.phel', 9, 3, Definition::KIND_DEF, [], '', false)],
+            [],
+            [],
+        );
+        $session = $this->sessionWith(
+            "(let [other 123]\n    mysym)",
+            $index,
+        );
+
+        $facade = $this->createStub(ApiFacadeInterface::class);
+        $facade->method('resolveLocalBinding')->willReturn(null);
+
+        $result = $this->handle($session, line: 1, character: 4, facade: $facade);
+
+        self::assertSame('file:///project/global.phel', $result['uri'] ?? null);
+    }
+
     private function sessionWith(string $source, ProjectIndex $index): Session
     {
         $session = new Session(new DocumentStore(), new class() implements NotificationSink {
@@ -90,10 +135,10 @@ final class DefinitionHandlerTest extends TestCase
     /**
      * @return array<string, mixed>|null
      */
-    private function handle(Session $session, int $line, int $character): ?array
+    private function handle(Session $session, int $line, int $character, ?ApiFacadeInterface $facade = null): ?array
     {
         $handler = new DefinitionHandler(
-            $this->createStub(ApiFacadeInterface::class),
+            $facade ?? $this->createStub(ApiFacadeInterface::class),
             new LocationConverter(new PositionConverter(), new UriConverter()),
             new ParamsExtractor(),
             new SymbolResolver(),
