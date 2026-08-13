@@ -1,5 +1,6 @@
 (ns phel.http-client
   (:require phel.http :as http)
+  (:require phel.string :as s)
   (:require phel.json))
 
 ;; -----------
@@ -41,7 +42,7 @@
       (foreach [k v params]
         (aset php-params (key->string k) (str v)))
       (let [query-string (php/http_build_query php-params)
-            separator    (if (php/str_contains url "?") "&" "?")]
+            separator    (if (s/includes? url "?") "&" "?")]
         (str url separator query-string)))))
 
 ;; -----------
@@ -92,7 +93,7 @@
                          [headers body])
         url            (append-query-params url query-params)]
     (transport-result->response
-     (Phel.HttpClient.StreamTransport/send (php/strtoupper (key->string method))
+     (Phel.HttpClient.StreamTransport/send (s/upper-case (key->string method))
                                            url
                                            (build-headers-array headers)
                                            body

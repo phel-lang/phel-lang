@@ -93,7 +93,7 @@
 (deftest test-get-source-code-returns-string-for-known-symbol
   (let [src (get-source-code "phel\\core" "map")]
     (is (string? src) "get-source-code returns a string for a known symbol")
-    (is (> (php/strlen src) 0) "get-source-code returns a non-empty string")
+    (is (> (count src) 0) "get-source-code returns a non-empty string")
     (is (s/contains? src "defn") "source code contains 'defn'")))
 
 (deftest test-get-source-code-returns-nil-for-unknown-symbol

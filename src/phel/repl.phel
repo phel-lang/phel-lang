@@ -11,6 +11,7 @@
   (:use Phel.Lang.FnInterface)
   (:use Phel.Shared.Printer.Printer)
   (:require phel.ai :as ai)
+  (:require phel.string :as s)
   (:require phel.test :as t))
 
 (def- build-facade (new BuildFacade))
@@ -64,7 +65,7 @@
         (eval-file (.getFile dep))))))
 
 (defn- clean-doc [str]
-  (php/trim (php/str_replace (php-indexed-array "```phel\n" "```") "" str)))
+  (s/trim (s/replace (s/replace str "```phel\n" "") "```" "")))
 
 (defn- find-doc [namespace name]
   (let [meta (Phel/getDefinitionMetaData namespace name)]
@@ -96,7 +97,7 @@
 (defn- extract-alias [sym options]
   (if (:as options)
     (:as options)
-    (let [normalized (php/str_replace "\\" "." (name sym))
+    (let [normalized (s/replace (name sym) "\\" ".")
           parts      (php/explode "." normalized)
           last       (php/array_pop parts)]
       (Symbol/create last))))
@@ -107,11 +108,11 @@
 (defn- normalize-ns-str
   "Converts backslashes to dots and remaps clojure.* to phel.* when the target exists."
   [ns-str]
-  (let [ns-str (php/str_replace "\\" "." ns-str)]
-    (if-not (php/str_starts_with ns-str "clojure.")
+  (let [ns-str (s/replace ns-str "\\" ".")]
+    (if-not (s/starts-with? ns-str "clojure.")
       ns-str
-      (let [target (str "phel." (php/substr ns-str 8))
-            munged (php/str_replace "-" "_" target)
+      (let [target (str "phel." (s/subs ns-str 8))
+            munged (s/replace target "-" "_")
             exists (not (php/empty (.getDefinitionInNamespace (Registry/getInstance) munged)))]
         (if exists target ns-str)))))
 
@@ -218,7 +219,7 @@ Compilation happens in expression context, so a bare top-level expression yields
     ;; `x`. It is also required by `setEmitAsExpression`, whose output has no
     ;; trailing `;` and therefore cannot be evaluated as a statement.
     (-> opts (.setEmitOnly true) (.setEmitAsExpression true))
-    (php/trim (-> cf (.compile s opts) (.getPhpCode)))))
+    (s/trim (-> cf (.compile s opts) (.getPhpCode)))))
 
 (defn eval-str
   "Evaluates a string of Phel code and returns the result. If the string contains multiple expressions, returns the result of the last one."
@@ -328,7 +329,7 @@ Returns nil. Prints one name per line, sorted alphabetically."
           (let [decoded (.decodeNs munge fn-name)
                 meta    (Phel/getDefinitionMetaData ns fn-name)]
             (when (and (not (get meta :private))
-                       (php/str_contains decoded search))
+                       (s/includes? decoded search))
               (conj results (str (Munge/displayNs (.decodeNs munge ns))
                                  "/" decoded)))))))
     (sort (persistent results))))
@@ -339,7 +340,7 @@ Returns nil. Prints one name per line, sorted alphabetically."
    :see-also ["apropos" "search-doc" "get-symbol-info"]}
   [search]
   (let [munge        munge-instance
-        search-lower (php/strtolower search)
+        search-lower (s/lower-case search)
         results      (transient [])]
     (foreach [ns (Phel/getNamespaces)]
       (let [defs     (Phel/getDefinitionInNamespace ns)
@@ -351,10 +352,10 @@ Returns nil. Prints one name per line, sorted alphabetically."
                     decoded-name (.decodeNs munge fn-name)
                     decoded-ns   (Munge/displayNs (.decodeNs munge ns))
                     doc          (or (get meta :doc) "")
-                    name-lower   (php/strtolower decoded-name)
-                    doc-lower    (php/strtolower doc)]
-                (when (or (php/str_contains name-lower search-lower)
-                          (php/str_contains doc-lower search-lower))
+                    name-lower   (s/lower-case decoded-name)
+                    doc-lower    (s/lower-case doc)]
+                (when (or (s/includes? name-lower search-lower)
+                          (s/includes? doc-lower search-lower))
                   (conj results {:ns decoded-ns
                                  :name decoded-name
                                  :doc doc
@@ -488,7 +489,7 @@ Returns nil. Prints one name per line, sorted alphabetically."
   {:example "(search-doc \"reduce\")"}
   [search]
   (let [munge        munge-instance
-        search-lower (php/strtolower search)]
+        search-lower (s/lower-case search)]
     (foreach [ns (Phel/getNamespaces)]
       (let [defs     (Phel/getDefinitionInNamespace ns)
             fn-names (php/array_keys defs)]
@@ -496,11 +497,11 @@ Returns nil. Prints one name per line, sorted alphabetically."
           (let [meta (Phel/getDefinitionMetaData ns fn-name)]
             (when meta
               (let [doc          (or (get meta :doc) "")
-                    doc-lower    (php/strtolower doc)
+                    doc-lower    (s/lower-case doc)
                     decoded-name (.decodeNs munge fn-name)
                     decoded-ns   (Munge/displayNs (.decodeNs munge ns))]
                 (when (and (not (get meta :private))
-                           (php/str_contains doc-lower search-lower))
+                           (s/includes? doc-lower search-lower))
                   (println (str "--- " decoded-ns "/" decoded-name " ---"))
                   (println (clean-doc doc))
                   (println))))))))
@@ -549,7 +550,7 @@ Returns nil. Prints one name per line, sorted alphabetically."
   "A namespace is reloadable from the REPL when it is a project namespace,
   i.e. not one of the bundled `phel.*` standard-library modules."
   [ns-name]
-  (not (php/str_starts_with ns-name "phel.")))
+  (not (s/starts-with? ns-name "phel.")))
 
 (defn- reloadable-ns-infos
   "Returns the NamespaceInformation objects for every loaded project

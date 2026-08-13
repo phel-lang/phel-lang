@@ -1,4 +1,5 @@
 (ns phel.pprint
+  (:require phel.string :as s)
   (:use Phel.Shared.Printer.Printer))
 
 (def- *default-width* 72)
@@ -25,7 +26,7 @@
   "Pretty-prints each element of `form` at `inner-indent`, joined by a newline
   and that much padding."
   [form inner-indent width printer]
-  (let [pad   (php/str_repeat " " inner-indent)
+  (let [pad   (s/repeat " " inner-indent)
         parts (for [x :in form] (pp-str x inner-indent width printer))]
     (php/implode (str "\n" pad) (apply php-indexed-array parts))))
 
@@ -33,7 +34,7 @@
   "The same for a map or struct, where each entry is a key, a space, and its
   value laid out from just past the key."
   [form inner-indent width printer]
-  (let [pad   (php/str_repeat " " inner-indent)
+  (let [pad   (s/repeat " " inner-indent)
         pairs (for [[k v] :pairs form]
                 (let [kstr (print-value k)]
                   (str (render-value printer k) " "

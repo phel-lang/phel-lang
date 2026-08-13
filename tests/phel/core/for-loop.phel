@@ -1,4 +1,5 @@
 (ns phel-test.core.for-loop
+  (:require phel.string :as s)
   (:require phel.test :refer [deftest is]))
 
 (deftest test-range
@@ -28,7 +29,7 @@
   (is (= [[1 2] [2 3] [3 4]] (for [x :in [1 2 3] :let [y (inc x)]] [x y])) "for loop (:range :let)")
   (is (= [[1 0] [2 0] [2 1] [3 0] [3 1] [3 2]] (for [x :range [0 4] y :range [0 x]] [x y])) "for loop nested")
   (is (= ["h" "e" "l" "l" "o"] (for [c :in "hello"] c)) "for loop on string")
-  (is (= ["H" "E" "L" "L" "O"] (for [c :in "hello"] (php/strtoupper c))) "for loop on string with transform"))
+  (is (= ["H" "E" "L" "L" "O"] (for [c :in "hello"] (s/upper-case c))) "for loop on string with transform"))
 
 (deftest test-for-loop-big
   (is

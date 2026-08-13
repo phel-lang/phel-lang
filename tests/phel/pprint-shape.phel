@@ -1,6 +1,7 @@
 (ns phel-test.pprint-shape
   (:require phel.pprint :as p)
-  (:require phel.test :refer [deftest is]))
+  (:require phel.test :refer [deftest is])
+  (:require phel.string :as s))
 
 ;; `pp-str` no longer prints a form to measure it and then prints it again, and
 ;; no longer measures leaves at all. The output is the contract, so these pin it
@@ -27,15 +28,15 @@
 
 (deftest test-nesting-lays-out-from-the-key
   (let [out (p/pprint-str {:a [1 2 3], :b {:c 4}} 12)]
-    (is (php/str_contains out ":a") "the first key is present")
-    (is (php/str_contains out ":b") "the second key is present")
-    (is (php/str_contains out "\n") "it broke over lines"))
+    (is (s/includes? out ":a") "the first key is present")
+    (is (s/includes? out ":b") "the second key is present")
+    (is (s/includes? out "\n") "it broke over lines"))
   (let [out (p/pprint-str (vec (range 0 40)))]
-    (is (php/str_contains out "\n") "40 elements break")
-    (is (php/str_starts_with out "[") "it still opens with a bracket")
-    (is (php/str_ends_with out "]") "and closes with one")))
+    (is (s/includes? out "\n") "40 elements break")
+    (is (s/starts-with? out "[") "it still opens with a bracket")
+    (is (s/ends-with? out "]") "and closes with one")))
 
 (deftest test-width-is-honoured
   (is (= "[1 2 3]" (p/pprint-str [1 2 3] 72)) "a wide width keeps it flat")
-  (is (php/str_contains (p/pprint-str [1 2 3] 2) "\n") "a narrow width breaks it")
+  (is (s/includes? (p/pprint-str [1 2 3] 2) "\n") "a narrow width breaks it")
   (is (= (p/pprint-str [1 2 3]) (p/pprint-str [1 2 3] 72)) "the default width is 72"))

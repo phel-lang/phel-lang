@@ -1,4 +1,5 @@
-(ns phel.base64)
+(ns phel.base64
+  (:require phel.string :as s))
 
 (defn encode
   "Encodes a string to Base64."
@@ -20,7 +21,7 @@
   ;; trailing padding in Base64 output, so `rtrim` removing it is exact.
   ;; `php/base64_encode` rather than `encode`: the wrapper adds nothing here,
   ;; and its call is most of what the whole function now costs.
-  (php/rtrim (php/strtr (php/base64_encode s) "+/" "-_") "="))
+  (php/rtrim (s/escape (php/base64_encode s) {"+" "-" "/" "_"}) "="))
 
 (defn decode-url
   "Decodes a URL-safe Base64 string, adding padding automatically. When
@@ -31,6 +32,6 @@
   ([s strict?]
    ;; Round the length up to the next multiple of 4 and let `str_pad` add the
    ;; `=` run; a length already on the boundary asks for no padding at all.
-   (let [swapped       (php/strtr s "-_" "+/")
-         padded-length (* 4 (php/intdiv (+ (php/strlen swapped) 3) 4))]
-     (php/base64_decode (php/str_pad swapped padded-length "=") (or strict? false)))))
+   (let [swapped       (s/escape s {"-" "+" "_" "/"})
+         padded-length (* 4 (php/intdiv (+ (count swapped) 3) 4))]
+     (php/base64_decode (s/pad-right swapped padded-length "=") (or strict? false)))))

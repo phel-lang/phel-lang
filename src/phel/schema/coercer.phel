@@ -1,4 +1,5 @@
 (ns phel.schema.coercer
+  (:require phel.string :as s)
   (:require phel.schema.registry :as reg)
   (:require phel.schema.validator :as v))
 
@@ -48,7 +49,7 @@
   (cond
     (boolean? value) value
     (string? value)
-    (case (php/strtolower value)
+    (case (s/lower-case value)
       "true"  true
       "false" false
       "1"     true

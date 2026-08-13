@@ -1,6 +1,7 @@
 (ns phel-test.reader
   (:require phel.reader :as reader)
-  (:require phel.test :refer [deftest is]))
+  (:require phel.test :refer [deftest is])
+  (:require phel.string :as s))
 
 (defn- datetime? [x]
   (php/instanceof x DateTimeImmutable))
@@ -34,7 +35,7 @@
     (is (contains? (set tags) "uuid"))))
 
 (deftest test-register-tag-roundtrip
-  (reader/register-tag "shout-test" (fn [s] (php/strtoupper s)))
+  (reader/register-tag "shout-test" (fn [s] (s/upper-case s)))
   (is (reader/tag-registered? "shout-test"))
   (reader/unregister-tag "shout-test")
   (is (not (reader/tag-registered? "shout-test"))))

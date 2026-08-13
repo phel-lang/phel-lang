@@ -22,7 +22,7 @@
 ;; ---------------
 
 (defn re-pattern
-  "Returns a PCRE pattern string from `s`. If `s` is already delimited, returns it as-is. Otherwise wraps in `/` delimiters."
+  "Returns a PCRE pattern string from `s`. If `s` is already delimited, returns it as-is. Otherwise wraps in `/` delimiters. Uses byte-oriented PHP length/slicing because the delimiter checks consume byte indexes."
   {:example "(re-pattern \"\\\\d+\") ; => \"/\\\\d+/\""
    :see-also ["re-find" "re-matches" "re-seq"]}
   [s]
@@ -221,6 +221,8 @@
   [path]
   (let [scheme (re-find "/^[a-zA-Z][a-zA-Z0-9+.-]*(?=:\/\/)/" path)]
     (and (some? scheme)
+         ;; phel.string depends on phel.core; keep this core path on the native
+         ;; ASCII operation rather than introducing a cycle.
          (php/in_array (php/strtolower scheme) (php/stream_get_wrappers)))))
 
 (defn- path-status-silenced
@@ -290,7 +292,7 @@ See PHP's [file_put_contents](https://www.php.net/manual/en/function.file-put-co
 
 (defn file-seq
   "Returns a lazy sequence of all files and directories in a directory tree."
-  {:example "(filter #(php/str_ends_with % \".phel\") (file-seq \"src/\")) ; => [\"src/file1.phel\" \"src/file2.phel\" ...]"}
+  {:example "(filter #(s/ends-with? % \".phel\") (file-seq \"src/\")) ; => [\"src/file1.phel\" \"src/file2.phel\" ...]"}
   [path]
   (let [result (lazy-seq-from-generator
                 (php/call_user_func_array

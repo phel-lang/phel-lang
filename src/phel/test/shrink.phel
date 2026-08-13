@@ -21,6 +21,8 @@
 (declare value->rose)
 
 (defn- shrink-string-tree [s]
+  ;; Keep byte-oriented PHP length/slicing paired: `substr` consumes these
+  ;; indexes, and multibyte counting would mix units.
   (let [chars      (into [] (for [i :range [0 (php/strlen s)]]
                               (php/substr s i 1)))
         char-trees (into [] (map r/rose-pure chars))]

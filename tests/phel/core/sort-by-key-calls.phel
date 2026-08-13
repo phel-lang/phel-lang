@@ -1,5 +1,6 @@
 (ns phel-test.core.sort-by-key-calls
-  (:require phel.test :refer [deftest is]))
+  (:require phel.test :refer [deftest is])
+  (:require phel.string :as s))
 
 ;; `sort-by` computes each key once and sorts `[key value]` pairs, rather than
 ;; applying `keyfn` to both arguments inside the comparator (#3006). The sorted
@@ -15,7 +16,7 @@
 
 (defn- sample-strings
   [n]
-  (map (fn [i] (php/str_repeat "a" (php/+ 1 (php/% (php/* i 7) 20)))) (range 0 n)))
+  (map (fn [i] (s/repeat "a" (php/+ 1 (php/% (php/* i 7) 20)))) (range 0 n)))
 
 (deftest test-the-key-function-runs-once-per-element
   (let [[calls keyfn] (counting-keyfn count)

@@ -1,4 +1,5 @@
-(ns phel.test.selector)
+(ns phel.test.selector
+  (:require phel.string :as s))
 
 ;; Pure test-selection helpers used by `phel.test/run-tests` to filter the
 ;; set of test vars that will actually be invoked for a run. All functions
@@ -88,7 +89,9 @@
 ;; ---------------------------------------------------------------------------
 
 (defn- glob->regex
-  "Converts a namespace glob (`phel.http.*`) into an anchored PCRE pattern. `.` is treated literally, `*` matches any run of non-`.` characters, `**` matches anything. The glob is case-sensitive."
+  "Converts a namespace glob (`phel.http.*`) into an anchored PCRE pattern. `.` is treated literally, `*` matches any run of non-`.` characters, `**` matches anything. The glob is case-sensitive.
+
+Uses byte-oriented PHP length/slicing intentionally: the parser advances indexes consumed by `php/substr`."
   [pattern]
   (let [len (php/strlen pattern)
         out (atom "")
@@ -127,7 +130,7 @@
   `phel.test.foo` are interchangeable for glob matching."
   [ns-name]
   (when (not (nil? ns-name))
-    (php/str_replace "\\" "." (str ns-name))))
+    (s/replace (str ns-name) "\\" ".")))
 
 (defn ns-matches?
   "Returns `true` when `ns-name` matches the glob `pattern`. Supports
@@ -155,7 +158,7 @@
 ;; ---------------------------------------------------------------------------
 
 (defn- compile-filter-regex
-  "Wraps a user-supplied regex body in PCRE delimiters when it is not already a `/.../` pattern. Treats bare fragments as substring matchers."
+  "Wraps a user-supplied regex body in PCRE delimiters when it is not already a `/.../` pattern. Treats bare fragments as substring matchers. Byte-oriented PHP length/slicing is intentional because delimiter positions are passed to `php/substr`."
   [pattern]
   (if (and (string? pattern)
            (> (php/strlen pattern) 1)

@@ -1,4 +1,5 @@
 (ns phel.cli
+  (:require phel.string :as s)
   (:use InvalidArgumentException)
   (:use Symfony.Component.Console.Application)
   (:use Symfony.Component.Console.Command.Command)
@@ -496,4 +497,4 @@
             (string? output-or-result) output-or-result
             (map?    output-or-result) (get output-or-result :out)
             true                       (output->string output-or-result))]
-    (if (nil? s) false (php/str_contains s substr))))
+    (if (nil? s) false (s/includes? s substr))))

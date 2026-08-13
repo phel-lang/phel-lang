@@ -581,7 +581,8 @@ returns 1. If `xs` has one value, returns the reciprocal of x.
 (defn- clamp-int
   "Truncates a numeric `x` toward zero and range-checks it against `lo..hi`.
    Raises `InvalidArgumentException` when `x` is non-numeric or out of range.
-   `label` names the target type for error messages."
+   `label` names the target type for error messages. Uses native `strval` for
+   these numeric error messages to avoid extra core string dispatch."
   [x lo hi label]
   (if (number? x)
     (let [truncated (int x)]
@@ -606,7 +607,7 @@ returns 1. If `xs` has one value, returns the reciprocal of x.
   (clamp-int x -128 127 "byte"))
 
 (defn char
-  "Coerces `x` to a single-character string representing the given Unicode code point. Accepts a non-negative integer (the code point, converted via `mb_chr`) or a single-character string, which is returned as-is. Phel has no dedicated char type — character literals such as `\\A` are already single-character strings — so the result is always a plain string. Matches Clojure's `char` for `.cljc` interop; raises `InvalidArgumentException` on negative ints, non-single-character strings, and all other inputs."
+  "Coerces `x` to a single-character string representing the given Unicode code point. Accepts a non-negative integer (the code point, converted via `mb_chr`) or a single-character string, which is returned as-is. Phel has no dedicated char type — character literals such as `\\A` are already single-character strings — so the result is always a plain string. Matches Clojure's `char` for `.cljc` interop; raises `InvalidArgumentException` on negative ints, non-single-character strings, and all other inputs. Native `strval` is used only for numeric error formatting."
   {:example "(char 65) ; => \"A\"\n(char 32) ; => \" \"\n(char \\A) ; => \"A\""
    :see-also ["byte" "int?" "string?"]}
   [x]
@@ -917,7 +918,9 @@ returns 1. If `xs` has one value, returns the reciprocal of x.
 
 (defn- decimal-string->rational
   "Parses a decimal or scientific-notation string into a Ratio
-  (auto-collapsed to int / BigInt when integral)."
+  (auto-collapsed to int / BigInt when integral). The grammar is ASCII-only,
+  so native PHP string operations are appropriate and avoid a phel.string
+  dependency cycle in core."
   [s]
   (let [lower      (php/strtolower s)
         e-pos      (php/strpos lower "e")

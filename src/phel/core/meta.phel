@@ -40,6 +40,8 @@
         (let [ns (.getNamespace quoted-sym)]
           (if ns
             `(Phel/getDefinitionMetaData ~ns ~(.getName quoted-sym))
+            ;; Keep this bootstrap macro on native PHP string replacement:
+            ;; phel.string depends on phel.core and cannot be required here.
             `(Phel/getDefinitionMetaData (php/str_replace "-" "_" *ns*) ~(.getName quoted-sym))))
         `(let [obj-meta ~obj]
            (if (php/instanceof obj-meta Phel.Lang.MetaInterface)

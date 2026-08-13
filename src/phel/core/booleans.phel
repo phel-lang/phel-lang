@@ -77,8 +77,8 @@
      :else                      nil))
   ([ns nm]
    (when-not (php/=== nil nm)
-     (Keyword/createForNamespace (when-not (php/=== nil ns) (php/strval ns))
-                                 (php/strval nm)))))
+     (Keyword/createForNamespace (when-not (php/=== nil ns) (str ns))
+                                 (str nm)))))
 
 (defn- id2 [a b]
   (if (php/instanceof a IdenticalInterface)
