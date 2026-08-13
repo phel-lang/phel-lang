@@ -1,0 +1,48 @@
+(ns phel-test.core.bulk-vector-builders
+  (:require phel.test :refer [deftest is]))
+
+(defstruct pt [x y])
+
+(defn- idx [& xs]
+  (let [a (php/array)]
+    (foreach [x xs] (php/apush a x))
+    a))
+
+;; `kvs` and the indexed branch of `php->phel` collect into a PHP array and
+;; build the vector once, as `vec` does since #3134, instead of appending
+;; through a transient per element. The results must be unchanged, including
+;; the values that a collection walk can silently drop.
+
+(deftest test-kvs-flattens-pairs
+  (is (= [:a 1 :b 2] (kvs {:a 1, :b 2})) "a map flattens to k v k v")
+  (is (= [] (kvs {})) "an empty map")
+  (is (= [:a 1 :b 2] (kvs (sorted-map :b 2 :a 1))) "a sorted map keeps its order")
+  (is (= 4 (count (kvs (pt 1 2)))) "a struct yields two entries flattened")
+  (is (= ["a" 1] (kvs {"a" 1})) "string keys"))
+
+(deftest test-kvs-keeps-values-that-could-be-dropped
+  (is (= [:a nil :b 2] (kvs {:a nil, :b 2})) "a nil value is kept in place")
+  (is (= 4 (count (kvs {:a nil, :b 2}))) "and counted")
+  (is (= [:a [1 2]] (kvs {:a [1 2]})) "a collection value is not flattened"))
+
+(deftest test-php-to-phel-indexed
+  (is (= [1 2 3] (php->phel (idx 1 2 3))) "an indexed PHP array becomes a vector")
+  (is (= [] (php->phel (php/array))) "an empty PHP array")
+  (is (= [nil 1 nil] (php->phel (idx nil 1 nil))) "nil elements survive")
+  (is (= 3 (count (php->phel (idx nil 1 nil)))) "and are counted")
+  (is (= [[1 2] 3] (php->phel (idx (idx 1 2) 3))) "nested arrays convert recursively")
+  (is (= ["a" 1 true] (php->phel (idx "a" 1 true))) "mixed element types"))
+
+(deftest test-php-to-phel-other-shapes-are-unchanged
+  (is (= {"a" 1, "b" 2} (php->phel (php-associative-array "a" 1 "b" 2))) "an associative array becomes a map")
+  (is (= 42 (php->phel 42)) "a scalar passes through")
+  (is (nil? (php->phel nil)) "nil passes through")
+  (is (= "abc" (php->phel "abc")) "a string passes through"))
+
+(deftest test-results-are-persistent-vectors
+  (let [v (kvs {:a 1})]
+    (is (vector? v) "kvs returns a vector")
+    (is (= [:a 1 :b] (conj v :b)) "which can be conj'd onto"))
+  (let [v (php->phel (idx 1 2))]
+    (is (vector? v) "php->phel returns a vector")
+    (is (= [1 2] v) "with the expected contents")))

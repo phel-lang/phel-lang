@@ -905,11 +905,12 @@ Works with vectors, lists, sets, and strings."
   {:example "(kvs {:a 1 :b 2}) ; => [:a 1 :b 2]"
    :see-also ["pairs" "keys" "values"]}
   [coll]
-  (let [res (transient [])]
+  ;; Collected into a PHP array and built once, as `vec` is (#3134).
+  (let [arr (php/array)]
     (foreach [k v coll]
-      (.append res k)
-      (.append res v))
-    (copy-meta coll (persistent res))))
+      (php/apush arr k)
+      (php/apush arr v))
+    (copy-meta coll (Phel/vector arr))))
 
 (defn php-array-to-map
   "Converts a PHP Array to a Phel map."
@@ -972,10 +973,11 @@ Indexed PHP arrays become vectors, associative PHP arrays become maps."
   [x]
   (cond
     (indexed-php-array? x)
-    (let [res (transient [])]
+    ;; Collected into a PHP array and built once, as `vec` is (#3134).
+    (let [arr (php/array)]
       (foreach [v x]
-        (conj res (php->phel v)))
-      (persistent res))
+        (php/apush arr (php->phel v)))
+      (Phel/vector arr))
 
     (php-array? x)
     (let [res (transient {})]
