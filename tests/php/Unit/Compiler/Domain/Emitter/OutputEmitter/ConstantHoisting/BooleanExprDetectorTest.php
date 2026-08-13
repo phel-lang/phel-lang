@@ -11,6 +11,7 @@ use Phel\Compiler\Domain\Analyzer\Ast\LiteralNode;
 use Phel\Compiler\Domain\Analyzer\Ast\PhpVarNode;
 use Phel\Compiler\Domain\Analyzer\Environment\NodeEnvironment;
 use Phel\Compiler\Domain\Emitter\OutputEmitter\Cache\BooleanExprDetector;
+use Phel\Lang\Keyword;
 use Phel\Lang\Symbol;
 use PHPUnit\Framework\TestCase;
 
@@ -99,5 +100,39 @@ final class BooleanExprDetectorTest extends TestCase
             [],
         );
         self::assertFalse(BooleanExprDetector::isBool($call));
+    }
+
+    public function test_global_call_with_bool_return_tag_is_bool(): void
+    {
+        // `FnSymbol` emits a `:tag bool` as a `: bool` return type on every
+        // arity's closure, so PHP enforces it and the value cannot be nil.
+        $call = new CallNode(
+            NodeEnvironment::empty(),
+            new GlobalVarNode(
+                NodeEnvironment::empty(),
+                'phel.core',
+                Symbol::create('<'),
+                Phel::map(Keyword::create('tag'), 'bool'),
+            ),
+            [],
+        );
+        self::assertTrue(BooleanExprDetector::isBool($call));
+    }
+
+    public function test_global_call_with_a_non_bool_return_tag_is_not_bool(): void
+    {
+        foreach (['int', 'string', 'float', 'array', '?bool'] as $tag) {
+            $call = new CallNode(
+                NodeEnvironment::empty(),
+                new GlobalVarNode(
+                    NodeEnvironment::empty(),
+                    'phel.core',
+                    Symbol::create('foo'),
+                    Phel::map(Keyword::create('tag'), $tag),
+                ),
+                [],
+            );
+            self::assertFalse(BooleanExprDetector::isBool($call), $tag . ' must not read as bool');
+        }
     }
 }

@@ -6,9 +6,11 @@ namespace Phel\Compiler\Domain\Emitter\OutputEmitter\Cache;
 
 use Phel\Compiler\Domain\Analyzer\Ast\AbstractNode;
 use Phel\Compiler\Domain\Analyzer\Ast\CallNode;
+use Phel\Compiler\Domain\Analyzer\Ast\GlobalVarNode;
 use Phel\Compiler\Domain\Analyzer\Ast\LiteralNode;
 use Phel\Compiler\Domain\Analyzer\Ast\PhpVarNode;
 use Phel\Compiler\Domain\Emitter\OutputEmitter\CallSpecialization;
+use Phel\Shared\TagResolver;
 
 use function in_array;
 use function is_bool;
@@ -94,6 +96,15 @@ final class BooleanExprDetector
             // Match both bare (`is_int`) and namespaced (`\is_int`) forms.
             $bare = str_starts_with($name, '\\') ? substr($name, 1) : $name;
             return in_array($bare, self::BOOL_PHP_FUNCTIONS, true);
+        }
+
+        // A call to a global whose return `:tag` is `bool`. `FnSymbol` emits
+        // that tag as a `: bool` return type on every arity's closure, so PHP
+        // enforces it on the way out and the value cannot be nil or anything
+        // else. A `defn` whose arities disagree carries no tag at all, so a
+        // partially bool-returning function is never mistaken for a total one.
+        if ($fn instanceof GlobalVarNode && TagResolver::fromMeta($fn->getMeta()) === 'bool') {
+            return true;
         }
 
         // A `CallNode` that the `CallSpecialization` layer lowers to a
