@@ -260,9 +260,11 @@ final readonly class CallInliner
             if ($this->containsPhpCall($node->getTestExpr())) {
                 return true;
             }
+
             if ($this->containsPhpCall($node->getThenExpr())) {
                 return true;
             }
+
             return $this->containsPhpCall($node->getElseExpr());
         }
 
@@ -282,6 +284,7 @@ final readonly class CallInliner
             if ($this->containsPhpCall($node->getBodyExpr())) {
                 return true;
             }
+
             return array_any($node->getBindings(), fn(BindingNode $binding): bool => $this->containsPhpCall($binding->getInitExpr()));
         }
 
@@ -289,6 +292,7 @@ final readonly class CallInliner
             if ($this->containsPhpCall($node->getRet())) {
                 return true;
             }
+
             return $this->anyContainsPhpCall($node->getStmts());
         }
 
