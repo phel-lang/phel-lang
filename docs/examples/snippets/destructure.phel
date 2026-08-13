@@ -6,7 +6,7 @@
 
 (let [[head & tail] [1 2 3 4]]
   (println head)                           ; 1
-  (println tail))                          ; @[2 3 4]
+  (println tail))                          ; (2 3 4)
 
 ;; Map destructuring
 (let [{:keys [name age]} {:name "Alice" :age 30}]

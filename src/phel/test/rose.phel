@@ -67,14 +67,14 @@
 
 (defn rose-children
   "Returns the lazy sequence of immediate child rose trees."
-  {:example "(rose-children (rose-pure 1)) ; => @[]"
+  {:example "(rose-children (rose-pure 1)) ; => ()"
    :see-also ["rose-root" "rose-shrinks"]}
   [t]
   (or (get t :children) (lazy-seq nil)))
 
 (defn rose-shrinks
   "Alias for `rose-children`: the lazy sequence of immediate smaller variants of the current root."
-  {:example "(rose-shrinks (rose-pure 1)) ; => @[]"
+  {:example "(rose-shrinks (rose-pure 1)) ; => ()"
    :see-also ["rose-children"]}
   [t]
   (rose-children t))

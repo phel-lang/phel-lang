@@ -65,7 +65,7 @@
   matching Clojure semantics.
   With multiple collections, applies the function to corresponding elements from each collection,
   stopping when the shortest collection is exhausted."
-  {:example "(map inc [1 2 3]) ; => @[2 3 4]"
+  {:example "(map inc [1 2 3]) ; => (2 3 4)"
    :see-also ["filter" "reduce" "map-indexed" "mapcat" "transduce"]}
   ;; Fixed arities rather than `[f & colls]` plus `(case (count colls) ...)`:
   ;; the rest argument was allocated, counted and then unpacked with `first` to
@@ -434,7 +434,7 @@ Creates intermediate maps if they don't exist."
 
 (defn drop
   "Drops the first `n` elements of `coll`. Returns a lazy sequence. When called with n only, returns a transducer."
-  {:example "(drop 2 [1 2 3 4 5]) ; => @[3 4 5]"
+  {:example "(drop 2 [1 2 3 4 5]) ; => (3 4 5)"
    :see-also ["take" "drop-last" "transduce"]}
   ;; Fixed arities: the rest argument was allocated, counted, then unpacked
   ;; with `first` to recover what the caller passed positionally (#2973, #3021).
@@ -456,7 +456,7 @@ Creates intermediate maps if they don't exist."
 
 (defn drop-last
   "Drops the last `n` elements of `coll`. `n` defaults to `1` when omitted, matching Clojure's `(drop-last coll)` single-arity form. Returns an empty sequence when `coll` is `nil`. Works with any seqable collection including lazy sequences and ranges."
-  {:example "(drop-last [1 2 3 4 5]) ; => @[1 2 3 4]\n(drop-last 2 [1 2 3 4 5]) ; => @[1 2 3]\n(drop-last 5 nil) ; => @[]"
+  {:example "(drop-last [1 2 3 4 5]) ; => (1 2 3 4)\n(drop-last 2 [1 2 3 4 5]) ; => (1 2 3)\n(drop-last 5 nil) ; => ()"
    :see-also ["drop" "butlast"]}
   ([coll] (drop-last 1 coll))
   ([n coll]
@@ -479,7 +479,7 @@ Creates intermediate maps if they don't exist."
 (defn butlast
   "Returns all but the last item in `coll`. Returns `nil` when `coll` is
   `nil` or has fewer than two items."
-  {:example "(butlast [1 2 3 4]) ; => @[1 2 3]\n(butlast [0]) ; => nil"
+  {:example "(butlast [1 2 3 4]) ; => (1 2 3)\n(butlast [0]) ; => nil"
    :see-also ["last" "drop-last"]}
   [coll]
   (when (next coll)
@@ -487,7 +487,7 @@ Creates intermediate maps if they don't exist."
 
 (defn drop-while
   "Drops all elements at the front of `coll` where `(pred x)` is true. Returns a lazy sequence. When called with pred only, returns a transducer."
-  {:example "(drop-while #(< % 5) [1 2 3 4 5 6 3 2 1]) ; => @[5 6 3 2 1]"
+  {:example "(drop-while #(< % 5) [1 2 3 4 5 6 3 2 1]) ; => (5 6 3 2 1)"
    :see-also ["take-while" "drop" "transduce"]}
   ;; Fixed arities: the rest argument was allocated, counted, then unpacked
   ;; with `first` to recover what the caller passed positionally (#2973, #3021).
@@ -506,7 +506,7 @@ Creates intermediate maps if they don't exist."
 
 (defn take
   "Takes the first `n` elements of `coll`. When called with n only, returns a transducer."
-  {:example "(take 2 [1 2 3 4]) ; => @[1 2]"
+  {:example "(take 2 [1 2 3 4]) ; => (1 2)"
    :see-also ["drop" "take-while"]}
   ;; Fixed arities: the rest argument was allocated, counted, then unpacked
   ;; with `first` to recover what the caller passed positionally (#2973, #3021).
@@ -552,7 +552,7 @@ Creates intermediate maps if they don't exist."
 
 (defn take-while
   "Takes all elements at the front of `coll` where `(pred x)` is true. Returns a lazy sequence. When called with pred only, returns a transducer."
-  {:example "(take-while #(< % 5) [1 2 3 4 5 6 3 2 1]) ; => @[1 2 3 4]"
+  {:example "(take-while #(< % 5) [1 2 3 4 5 6 3 2 1]) ; => (1 2 3 4)"
    :see-also ["drop-while" "take" "transduce"]}
   ;; Fixed arities: the rest argument was allocated, counted, then unpacked
   ;; with `first` to recover what the caller passed positionally (#2973, #3021).
@@ -568,7 +568,7 @@ Creates intermediate maps if they don't exist."
 
 (defn take-nth
   "Returns every nth item in `coll`. Returns a lazy sequence. When called with n only, returns a transducer."
-  {:example "(take-nth 2 [0 1 2 3 4 5 6 7 8]) ; => @[0 2 4 6 8]"
+  {:example "(take-nth 2 [0 1 2 3 4 5 6 7 8]) ; => (0 2 4 6 8)"
    :see-also ["take" "filter" "transduce"]}
   ;; Fixed arities: the rest argument was allocated, counted, then unpacked
   ;; with `first` to recover what the caller passed positionally (#2973, #3021).
@@ -589,7 +589,7 @@ Creates intermediate maps if they don't exist."
 
 (defn filter
   "Returns a lazy sequence of elements where predicate returns true. When called with pred only, returns a transducer."
-  {:example "(filter even? [1 2 3 4 5 6]) ; => @[2 4 6]"
+  {:example "(filter even? [1 2 3 4 5 6]) ; => (2 4 6)"
    :see-also ["remove" "keep" "transduce"]}
   ;; Fixed arities rather than `[pred & args]` plus `(case (count args) ...)`:
   ;; the rest argument was allocated, counted and then unpacked with `first` to
@@ -627,7 +627,7 @@ Creates intermediate maps if they don't exist."
 
 (defn remove
   "Returns a lazy sequence of elements where predicate returns false. Opposite of filter. When called with pred only, returns a transducer."
-  {:example "(remove even? [1 2 3 4 5 6]) ; => @[1 3 5]"
+  {:example "(remove even? [1 2 3 4 5 6]) ; => (1 3 5)"
    :see-also ["filter" "transduce"]}
   ;; Fixed arities: the rest argument was allocated, counted, then unpacked
   ;; with `first` to recover what the caller passed positionally (#2973, #3021).
@@ -636,7 +636,7 @@ Creates intermediate maps if they don't exist."
 
 (defn keep
   "Returns a lazy sequence of non-nil results of applying function to elements. When called with f only, returns a transducer."
-  {:example "(keep #(when (even? %) (* % %)) [1 2 3 4 5]) ; => @[4 16]"
+  {:example "(keep #(when (even? %) (* % %)) [1 2 3 4 5]) ; => (4 16)"
    :see-also ["keep-indexed" "filter" "transduce"]}
   ;; Fixed arities: the rest argument was allocated, counted, then unpacked
   ;; with `first` to recover what the caller passed positionally (#2973, #3021).
@@ -653,7 +653,7 @@ Creates intermediate maps if they don't exist."
 
 (defn keep-indexed
   "Returns a lazy sequence of non-nil results of `(pred i x)`. When called with f only, returns a transducer."
-  {:example "(keep-indexed #(when (even? %1) %2) [\"a\" \"b\" \"c\" \"d\"]) ; => @[\"a\" \"c\"]"
+  {:example "(keep-indexed #(when (even? %1) %2) [\"a\" \"b\" \"c\" \"d\"]) ; => (\"a\" \"c\")"
    :see-also ["keep" "map-indexed" "transduce"]}
   ;; Fixed arities: the rest argument was allocated, counted, then unpacked
   ;; with `first` to recover what the caller passed positionally (#2973, #3021).
@@ -705,7 +705,7 @@ Creates intermediate maps if they don't exist."
 
 (defn distinct
   "Returns a lazy sequence with duplicated values removed in `coll`. When called with no args, returns a transducer."
-  {:example "(distinct [1 2 1 3 2 4 3]) ; => @[1 2 3 4]"
+  {:example "(distinct [1 2 1 3 2 4 3]) ; => (1 2 3 4)"
    :see-also ["frequencies" "set" "dedupe" "transduce"]}
   ;; Fixed arities: the rest argument was allocated, counted, then unpacked
   ;; with `first` to recover what the caller passed positionally (#2973, #3021).
@@ -855,7 +855,7 @@ Works with vectors, lists, sets, and strings."
 
 (defn subseq
   "Returns a lazy sequence of the entries of the sorted collection `sc` (map entries for a sorted map, elements for a sorted set) whose keys satisfy the boundary test, in ascending order. With one boundary, use `>` / `>=` to start after or at `bound-key` and `<` / `<=` to stop before or at it. With two boundaries, returns the entries between them, e.g. `(subseq sm >= 2 < 5)`. Boundaries respect the collection's own comparator (`sorted-map-by` / `sorted-set-by`)."
-  {:example "(subseq (sorted-map 1 :a 2 :b 3 :c) >= 2) ; => @[[2 :b] [3 :c]]"
+  {:example "(subseq (sorted-map 1 :a 2 :b 3 :c) >= 2) ; => ([2 :b] [3 :c])"
    :see-also ["rsubseq" "sorted-map" "sorted-set" "take-while" "drop-while"]}
   ([sc test bound-key]
    (assert-sorted-coll "subseq" sc)
@@ -871,7 +871,7 @@ Works with vectors, lists, sets, and strings."
 
 (defn rsubseq
   "Like `subseq`, but returns the matching entries in descending order. With one boundary, use `<` / `<=` to start from the top end and `>` / `>=` to stop; with two boundaries, returns the entries between them in reverse, e.g. `(rsubseq sm >= 2 < 5)`."
-  {:example "(rsubseq (sorted-map 1 :a 2 :b 3 :c) <= 2) ; => @[[2 :b] [1 :a]]"
+  {:example "(rsubseq (sorted-map 1 :a 2 :b 3 :c) <= 2) ; => ([2 :b] [1 :a])"
    :see-also ["subseq" "rseq" "sorted-map" "sorted-set"]}
   ([sc test bound-key]
    (assert-sorted-coll "rsubseq" sc)
@@ -1166,7 +1166,7 @@ With one argument returns an infinite lazy sequence of x."
   "Returns a vector of length n with values produced by repeatedly calling f.
 
 With one argument returns an infinite lazy sequence of calls to f."
-  {:example "(repeatedly 3 rand) ; => @[0.234 0.892 0.456] (random values)"
+  {:example "(repeatedly 3 rand) ; => (0.234 0.892 0.456) (random values)"
    :see-also ["repeat" "iterate"]}
   ;; Fixed arities: the rest argument was allocated and counted only to be
   ;; unpacked with `first` and `second` again (#2973, #3021).
@@ -1180,7 +1180,7 @@ With one argument returns an infinite lazy sequence of calls to f."
 
 (defmacro lazy-seq
   "Creates a lazy sequence that evaluates the body only when accessed."
-  {:example "(lazy-seq (cons 1 (lazy-seq nil))) ; => @[1]"}
+  {:example "(lazy-seq (cons 1 (lazy-seq nil))) ; => (1)"}
   [& body]
   `(new Phel.Lang.Collections.LazySeq.LazySeq
         (new Phel.Lang.Hasher)
@@ -1189,20 +1189,20 @@ With one argument returns an infinite lazy sequence of calls to f."
 
 (defmacro lazy-cat
   "Concatenates collections into a lazy sequence (expands to concat)."
-  {:example "(lazy-cat [1 2] [3 4]) ; => @[1 2 3 4]"}
+  {:example "(lazy-cat [1 2] [3 4]) ; => (1 2 3 4)"}
   [& colls]
   (apply list 'concat colls))
 
 (defn iterate
   "Returns an infinite lazy sequence of x, (f x), (f (f x)), and so on."
-  {:example "(take 5 (iterate inc 0)) ; => @[0 1 2 3 4]"
+  {:example "(take 5 (iterate inc 0)) ; => (0 1 2 3 4)"
    :see-also ["repeatedly" "cycle"]}
   [f x]
   (lazy-seq-from-generator (Seq/iterate f x)))
 
 (defn reductions
   "Returns a lazy sequence of the intermediate values of the reduction (as per reduce) of coll by f, starting with init when supplied."
-  {:example "(reductions + [1 2 3 4]) ; => @[1 3 6 10]\n(reductions + 0 [1 2 3 4]) ; => @[0 1 3 6 10]"
+  {:example "(reductions + [1 2 3 4]) ; => (1 3 6 10)\n(reductions + 0 [1 2 3 4]) ; => (0 1 3 6 10)"
    :see-also ["reduce" "iterate"]}
   ([f coll]
    (lazy-seq
@@ -1221,14 +1221,14 @@ With one argument returns an infinite lazy sequence of calls to f."
 
 (defn iterator-seq
   "Returns a lazy sequence over a PHP `Traversable` (Iterator, Generator, IteratorAggregate, ...), pulling one element at a time. Unlike the eager coercion that materialises a `Traversable` via `iterator_to_array`, this streams a large or infinite source (DB cursor, stream reader, paginated API), so `take`/`map`/`filter` only pull what they consume."
-  {:example "(take 3 (iterator-seq (new ArrayIterator (php-indexed-array 1 2 3 4 5)))) ; => @[1 2 3]"
+  {:example "(take 3 (iterator-seq (new ArrayIterator (php-indexed-array 1 2 3 4 5)))) ; => (1 2 3)"
    :see-also ["lazy-seq" "map" "take"]}
   [traversable]
   (LazySeq/fromTraversable (new Hasher) (new Equalizer) traversable))
 
 (defn cycle
   "Returns an infinite lazy sequence that cycles through the elements of collection. Maps are iterated as `[key value]` pairs."
-  {:example "(take 7 (cycle [1 2 3])) ; => @[1 2 3 1 2 3 1]"
+  {:example "(take 7 (cycle [1 2 3])) ; => (1 2 3 1 2 3 1)"
    :see-also ["iterate" "repeat"]}
   [coll]
   (if (or (php/=== nil coll) (empty? coll))
@@ -1237,7 +1237,7 @@ With one argument returns an infinite lazy sequence of calls to f."
 
 (defn concat
   "Concatenates multiple collections into a lazy sequence."
-  {:example "(concat [1 2] [3 4]) ; => @[1 2 3 4]"}
+  {:example "(concat [1 2] [3 4]) ; => (1 2 3 4)"}
   ;; Fixed arities for the counts that occur. The variadic tail had to build a
   ;; PHP array of its collections and dispatch through `call_user_func_array`
   ;; even to join two of them; `Seq/concat` is variadic in PHP, so the fixed
@@ -1279,7 +1279,7 @@ With one argument returns an infinite lazy sequence of calls to f."
   multiple collections, `f` is called with corresponding elements from each
   (stopping when the shortest is exhausted) and the resulting sequences are
   concatenated."
-  {:example "(mapcat reverse [[1 2] [3 4]]) ; => @[2 1 4 3]\n(mapcat list [:a :b :c] [1 2 3]) ; => @[:a 1 :b 2 :c 3]"
+  {:example "(mapcat reverse [[1 2] [3 4]]) ; => (2 1 4 3)\n(mapcat list [:a :b :c] [1 2 3]) ; => (:a 1 :b 2 :c 3)"
    :see-also ["map" "cat" "transduce"]}
   ;; Fixed arities: the rest argument was allocated, counted, then unpacked
   ;; with `first` to recover what the caller passed positionally (#2973, #3021).
@@ -1299,7 +1299,7 @@ With one argument returns an infinite lazy sequence of calls to f."
 
 (defn interpose
   "Returns elements separated by a separator. Returns a lazy sequence. When called with sep only, returns a transducer."
-  {:example "(interpose 0 [1 2 3]) ; => @[1 0 2 0 3]"
+  {:example "(interpose 0 [1 2 3]) ; => (1 0 2 0 3)"
    :see-also ["transduce"]}
   ;; Fixed arities: the rest argument was allocated, counted, then unpacked
   ;; with `first` to recover what the caller passed positionally (#2973, #3021).
@@ -1332,7 +1332,7 @@ With one argument returns an infinite lazy sequence of calls to f."
   "Maps a function over a collection with index. Returns a lazy sequence.
 
 Applies `f` to each element in `xs`. `f` is a two-argument function where the first argument is the index (0-based) and the second is the element itself. Works with infinite sequences."
-  {:example "(map-indexed vector [:a :b :c]) ; => @[[0 :a] [1 :b] [2 :c]]"}
+  {:example "(map-indexed vector [:a :b :c]) ; => ([0 :a] [1 :b] [2 :c])"}
   [f coll]
   (if (php/=== nil coll)
     '()
@@ -1344,7 +1344,7 @@ Applies `f` to each element in `xs`. `f` is a two-argument function where the fi
 
 (defn interleave
   "Returns a lazy sequence of the first item in each `colls`, then the second item in each, until any one of the collections is exhausted. Any remaining items in the other collections are ignored. Returns an empty sequence when no collections are supplied or when any collection is empty or `nil`. Maps are iterated as `[key value]` pairs."
-  {:example "(interleave [1 2 3] [:a :b :c]) ; => @[1 :a 2 :b 3 :c]\n(interleave [1 2 3] [:a :b]) ; => @[1 :a 2 :b]"}
+  {:example "(interleave [1 2 3] [:a :b :c]) ; => (1 :a 2 :b 3 :c)\n(interleave [1 2 3] [:a :b]) ; => (1 :a 2 :b)"}
   ;; The two-collection call is nearly every call, and it needs none of the
   ;; machinery below: no rest argument, no walk to find a nil, and no
   ;; `call_user_func_array`, since `Seq/interleave` takes the two seqs directly.
@@ -1509,7 +1509,7 @@ If map has duplicated values, some keys will be ignored."
 
 (defn split-at
   "Returns a vector of `[(take n coll) (drop n coll)]`."
-  {:example "(split-at 2 [1 2 3 4 5]) ; => [@[1 2] @[3 4 5]]"
+  {:example "(split-at 2 [1 2 3 4 5]) ; => [(1 2) (3 4 5)]"
    :see-also ["split-with" "take" "drop"]}
   [n coll]
   [(take n coll) (drop n coll)])
@@ -1523,14 +1523,14 @@ If map has duplicated values, some keys will be ignored."
 
 (defn split-with
   "Returns a vector of `[(take-while pred coll) (drop-while pred coll)]`."
-  {:example "(split-with #(< % 4) [1 2 3 4 5 6]) ; => [@[1 2 3] @[4 5 6]]"
+  {:example "(split-with #(< % 4) [1 2 3 4 5 6]) ; => [(1 2 3) (4 5 6)]"
    :see-also ["split-at" "take-while" "drop-while"]}
   [f coll]
   [(take-while f coll) (drop-while f coll)])
 
 (defn partition-by
   "Returns a lazy sequence of partitions. Applies `f` to each value in `coll`, splitting them each time the return value changes."
-  {:example "(partition-by #(< % 3) [1 2 3 4 5 1 2]) ; => @[[1 2] [3 4 5] [1 2]]"
+  {:example "(partition-by #(< % 3) [1 2 3 4 5 1 2]) ; => ([1 2] [3 4 5] [1 2])"
    :see-also ["group-by" "partition"]}
   [f coll]
   (cond
@@ -1540,7 +1540,7 @@ If map has duplicated values, some keys will be ignored."
 
 (defn dedupe
   "Returns a lazy sequence with consecutive duplicate values removed in `coll`. When called with no args, returns a transducer."
-  {:example "(dedupe [1 1 2 2 2 3 1 1]) ; => @[1 2 3 1]"
+  {:example "(dedupe [1 1 2 2 2 3 1 1]) ; => (1 2 3 1)"
    :see-also ["distinct" "transduce"]}
   ;; Fixed arities: the rest argument was allocated, counted, then unpacked
   ;; with `first` to recover what the caller passed positionally (#2973, #3021).
@@ -1581,7 +1581,7 @@ If map has duplicated values, some keys will be ignored."
 
 (defn compact
   "Returns a lazy sequence with specified values removed from `coll`. If no values are specified, removes nil values by default."
-  {:example "(compact [1 nil 2 nil 3]) ; => @[1 2 3]"}
+  {:example "(compact [1 nil 2 nil 3]) ; => (1 2 3)"}
   [coll & values]
   (cond
     (nil? coll)                              []
@@ -1595,7 +1595,7 @@ If map has duplicated values, some keys will be ignored."
   "Partitions `coll` into chunks of `n` elements.
 
   With one collection argument, returns consecutive non-overlapping chunks and drops any incomplete final chunk. `step` (default `n`) is how far to advance between chunks, so a `step` smaller than `n` yields overlapping chunks. With a `pad` collection, a final incomplete chunk is filled from `pad` up to `n` elements (kept even when `pad` runs short); without `pad` the incomplete final chunk is dropped. Each chunk is a vector."
-  {:example "(partition 3 [1 2 3 4 5 6 7]) ; => @[[1 2 3] [4 5 6]]\n(partition 2 1 [1 2 3]) ; => @[[1 2] [2 3]]\n(partition 3 3 [:x] [1 2 3 4]) ; => @[[1 2 3] [4 :x]]"
+  {:example "(partition 3 [1 2 3 4 5 6 7]) ; => ([1 2 3] [4 5 6])\n(partition 2 1 [1 2 3]) ; => ([1 2] [2 3])\n(partition 3 3 [:x] [1 2 3 4]) ; => ([1 2 3] [4 :x])"
    :see-also ["partition-all" "partition-by" "split-at"]}
   ([n coll]
    ;; `Seq/partition` takes exactly these two arguments, so the
@@ -1623,7 +1623,7 @@ If map has duplicated values, some keys will be ignored."
 
 (defn partition-all
   "Partitions collection into chunks of size `n`, including any incomplete trailing chunks. `step` (default `n`) is how far to advance between chunks, so a `step` smaller than `n` yields overlapping chunks. Each chunk is a vector."
-  {:example "(partition-all 3 [1 2 3 4 5 6 7]) ; => @[[1 2 3] [4 5 6] [7]]\n(partition-all 3 2 [0 1 2 3 4]) ; => @[[0 1 2] [2 3 4] [4]]"
+  {:example "(partition-all 3 [1 2 3 4 5 6 7]) ; => ([1 2 3] [4 5 6] [7])\n(partition-all 3 2 [0 1 2 3 4]) ; => ([0 1 2] [2 3 4] [4])"
    :see-also ["partition" "partition-by"]}
   ([n coll]
    (let [result (lazy-seq-from-generator

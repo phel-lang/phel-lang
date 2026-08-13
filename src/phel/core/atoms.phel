@@ -254,7 +254,7 @@ Returns the new value after the swap."
 
 (defn range
   "Creates a lazy sequence of numbers. With no arguments returns an infinite sequence starting at 0. With one argument returns (0..n). With two (start..end). With three (start..end step). Note: the infinite sequence is bounded by PHP_INT_MAX."
-  {:example "(range 5) ; => @[0 1 2 3 4]"
+  {:example "(range 5) ; => (0 1 2 3 4)"
    :see-also ["iterate" "repeat"]}
   ;; Fixed arities: the rest argument was allocated and counted only to be
   ;; unpacked with `get` again (#2973, #3021). `for`'s `:range` verb calls this

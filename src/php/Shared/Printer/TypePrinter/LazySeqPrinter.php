@@ -35,6 +35,11 @@ final readonly class LazySeqPrinter implements TypePrinterInterface
             ++$count;
         }
 
-        return '@[' . implode(' ', $values) . ']';
+        // `(...)`, as `ConsPrinter` and `PersistentListPrinter` already print.
+        // The old `@[...]` did not round-trip: `@` is the deref reader macro,
+        // so reading `@[2 3]` back produced `(deref [2 3])` rather than the
+        // sequence it printed (#3113). Clojure prints the realized view the
+        // same way, and a lazy sequence is a seq, not a vector.
+        return '(' . implode(' ', $values) . ')';
     }
 }

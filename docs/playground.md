@@ -37,7 +37,7 @@ hatch:
 
    ```console
    $ phel eval '(take 20 (slurp "/etc/hosts"))'
-   @["#" "#" "\n" "#" " " "H" "o" "s" "t" ...]
+   ("#" "#" "\n" "#" " " "H" "o" "s" "t" ...)
    ```
 
 ### Why a `--no-interop` flag is not enough
