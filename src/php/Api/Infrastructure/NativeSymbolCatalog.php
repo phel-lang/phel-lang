@@ -472,24 +472,24 @@ All expressions are evaluated and if no exception is thrown the value of the las
         Symbol::NAME_UNQUOTE => [
             'doc' => '```phel
 (unquote my-sym) ; Evaluates to my-sym
-,my-sym          ; Shorthand for (same as above)
+~my-sym          ; Shorthand for (same as above)
 ```
-Values that should be evaluated in a macro are marked with the unquote function. Shortcut: `,`',
+Values that should be evaluated in a macro are marked with the unquote function. Shortcut: `~`',
             'docUrl' => '/documentation/macros/#quasiquote',
             'signatures' => ['(unquote expr)'],
-            'desc' => 'Values that should be evaluated in a macro are marked with the unquote function. Shortcut: ,',
-            'example' => '`(+ 1 ,(+ 2 3)) ; => (phel.core/+ 1 5)',
+            'desc' => 'Values that should be evaluated in a macro are marked with the unquote function. Shortcut: ~',
+            'example' => '`(+ 1 ~(+ 2 3)) ; => (phel.core/+ 1 5)',
         ],
         Symbol::NAME_UNQUOTE_SPLICING => [
             'doc' => '```phel
 (unquote-splicing my-sym) ; Evaluates to my-sym
-,@my-sym                  ; Shorthand for (same as above)
+~@my-sym                  ; Shorthand for (same as above)
 ```
-Values that should be evaluated in a macro are marked with the unquote function. Shortcut: `,@`',
+Values that should be evaluated in a macro are marked with the unquote function. Shortcut: `~@`',
             'docUrl' => '/documentation/macros/#quasiquote',
             'signatures' => ['(unquote-splicing expr)'],
-            'desc' => 'Values that should be evaluated in a macro are marked with the unquote function. Shortcut: ,@',
-            'example' => '`(+ ,@[1 2 3]) ; => (phel.core/+ 1 2 3)',
+            'desc' => 'Values that should be evaluated in a macro are marked with the unquote function. Shortcut: ~@',
+            'example' => '`(+ ~@[1 2 3]) ; => (phel.core/+ 1 2 3)',
         ],
         Symbol::NAME_USE => [
             'doc' => '```phel

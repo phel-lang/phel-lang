@@ -28,6 +28,7 @@ All notable changes to this project will be documented in this file.
 
 ### Fixed
 
+- Document `~` and `~@` as the unquote and unquote-splicing shorthands in `phel doc`, not `,` and `,@`. Since #2827 `,` is whitespace, so the documented `` `(+ ,@[1 2 3]) `` evaluated to `(phel.core/+ (phel.core/deref [1 2 3]))` rather than the `(phel.core/+ 1 2 3)` the same entry claimed
 - Print a lazy sequence as `(1 2)` rather than `@[1 2]`. `@` is the deref reader macro, so the old form did not round-trip: reading it back produced `(deref [1 2])`. Matches `Cons`, `PersistentList` and Clojure (#3113)
 - Report the pattern by name when `phel.string/split` is given something PCRE rejects, instead of letting `preg_split` return false into `Phel/vector` and surfacing a `TypeError` about a bool. A bare separator such as `" "` is named separately from a delimited but malformed pattern
 - Stop `phel lint` aborting the whole run with an uncaught `TypeError` on a namespace that both defines and calls an `:inline` function. Phel data types are invokable, so the `is_callable` guard let the unevaluated metadata through (#3055)
