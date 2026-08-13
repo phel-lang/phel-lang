@@ -1,0 +1,70 @@
+(ns phel-test.core.combinator-closure-arities
+  (:require phel.test :refer [deftest is]))
+
+;; `complement`, `constantly`, `some-fn` and `every-pred` each returned a
+;; closure taking a rest argument. That closure is what runs per call, and for
+;; a predicate that means per element. Giving it real arities has to leave every
+;; arity it used to answer answering the same thing, including the no-argument
+;; and many-argument ends that are easy to drop when writing them out.
+
+(deftest test-complement-arities
+  (is (true? ((complement (fn [] false)))) "no arguments")
+  (is (true? ((complement even?) 3)) "one argument, predicate false")
+  (is (false? ((complement even?) 4)) "one argument, predicate true")
+  (is (true? ((complement =) 1 2)) "two arguments")
+  (is (false? ((complement =) 1 1)) "two arguments, predicate true")
+  (is (false? ((complement =) 1 1 1)) "three arguments")
+  (is (true? ((complement =) 1 1 2)) "three arguments, predicate false")
+  (is (false? ((complement =) 1 1 1 1)) "four arguments")
+  (is (true? ((complement =) 1 1 1 1 2)) "five arguments reach the variadic tail")
+  ;; Phel truthiness: 0 and "" are truthy, only nil and false are not.
+  (is (true? ((complement identity) nil)) "nil is falsy")
+  (is (true? ((complement identity) false)) "false is falsy")
+  (is (false? ((complement identity) 0)) "zero is truthy in Phel")
+  (is (false? ((complement identity) "")) "the empty string is truthy in Phel"))
+
+(deftest test-constantly-arities
+  (let [f (constantly 42)]
+    (is (= 42 (f)) "no arguments")
+    (is (= 42 (f 1)) "one argument")
+    (is (= 42 (f 1 2)) "two arguments")
+    (is (= 42 (f 1 2 3)) "three arguments")
+    (is (= 42 (f 1 2 3 4 5 6)) "six arguments reach the variadic tail"))
+  (is (nil? ((constantly nil) 1)) "a nil constant is returned, not treated as missing")
+  (is (false? ((constantly false))) "a false constant survives"))
+
+(deftest test-some-fn-arities
+  (let [f (some-fn even?)]
+    (is (false? (f)) "no arguments is false")
+    (is (true? (f 2)) "one matching argument")
+    (is (false? (f 3)) "one non-matching argument")
+    (is (true? (f 1 2)) "a later argument matches")
+    (is (false? (f 1 3)) "no argument matches"))
+  (is (true? ((some-fn even? nil?) 1 2)) "the second predicate matches")
+  (is (false? ((some-fn pos? even?) -3 -1)) "neither predicate matches any argument")
+  (is (true? ((some-fn neg?) 1 2 -3)) "three arguments reach the variadic tail")
+  ;; `some-fn` returns the predicate's value, not a coerced boolean, and only
+  ;; falls back to `false` when nothing matched.
+  (is (= :yes ((some-fn (fn [x] (if (pos? x) :yes nil))) 5))
+      "the truthy value is returned as-is")
+  (is (false? ((some-fn (fn [_] nil)) 5)) "no match answers false, not nil"))
+
+(deftest test-every-pred-arities
+  (let [f (every-pred even?)]
+    (is (true? (f)) "no arguments is true")
+    (is (true? (f 2)) "one matching argument")
+    (is (false? (f 3)) "one non-matching argument")
+    (is (true? (f 2 4)) "both arguments match")
+    (is (false? (f 2 3)) "the second argument fails"))
+  (is (true? ((every-pred even? pos?) 2 4 6)) "three arguments reach the variadic tail")
+  (is (false? ((every-pred even? pos?) 2 -4)) "the second predicate fails")
+  (is (true? ((every-pred (fn [x] x)) 0)) "zero is truthy in Phel"))
+
+(deftest test-combinators-still-compose-with-the-sequence-functions
+  ;; The point of the rewrite is the per-element call, so exercise them where
+  ;; that happens.
+  (is (= [1 3 5] (vec (filter (complement even?) [1 2 3 4 5]))) "complement filters")
+  (is (= [2 4] (vec (remove (complement even?) [1 2 3 4]))) "complement inside remove")
+  (is (= [42 42 42] (vec (map (constantly 42) [1 2 3]))) "constantly maps")
+  (is (= [2 -1] (vec (filter (some-fn even? neg?) [1 2 3 -1]))) "some-fn filters")
+  (is (= [2 4] (vec (filter (every-pred even? pos?) [1 2 -2 3 4]))) "every-pred filters"))
