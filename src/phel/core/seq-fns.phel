@@ -1531,10 +1531,10 @@ If map has duplicated values, some keys will be ignored."
   {:example "(partition 3 [1 2 3 4 5 6 7]) ; => @[[1 2 3] [4 5 6]]\n(partition 2 1 [1 2 3]) ; => @[[1 2] [2 3]]\n(partition 3 3 [:x] [1 2 3 4]) ; => @[[1 2 3] [4 :x]]"
    :see-also ["partition-all" "partition-by" "split-at"]}
   ([n coll]
-   (let [result (lazy-seq-from-generator
-                 (php/call_user_func_array
-                  (php-indexed-array "\\Phel\\Lang\\Seq" "partition")
-                  (php-indexed-array n coll)))]
+   ;; `Seq/partition` takes exactly these two arguments, so the
+   ;; `call_user_func_array` over a built PHP array was assembling a call the
+   ;; arity already knows.
+   (let [result (lazy-seq-from-generator (Seq/partition n coll))]
      (if (php/=== nil result)
        '()
        (copy-meta coll result))))
