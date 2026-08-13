@@ -220,13 +220,26 @@ When `from` is associative, it is treated as a sequence of key-value pairs. Supp
     ;; not implement PersistentVectorInterface, so the MapEntry branch below
     ;; still sees every entry. Transients keep their original slot.
     (php/instanceof coll PersistentVectorInterface) (.append coll value)
+    ;; Transient vector second, by its own `instanceof` rather than through
+    ;; `vector-target?`. Every `into` on a vector target reduces `conj` over a
+    ;; transient, so this is the branch that runs per element there, and it used
+    ;; to be reached sixth, behind `vector-target?` calling `transient-vector?`:
+    ;; two function calls to answer one `instanceof`. The persistent half of
+    ;; `vector-target?` is the branch above, so the pair is exhaustive (#2973).
+    (php/instanceof coll TransientVectorInterface)  (.append coll value)
     (php/=== coll nil)                              (list value)
     (php/instanceof coll PersistentListInterface)   (cons value coll)
     (php/instanceof coll LazySeqInterface)          (cons value coll)
     (php/is_array coll)                             (do (php/apush coll value) coll)
-    (vector-target? coll)                           (.append coll value)
-    (set-target? coll)                              (.add coll value)
-    (map-target? coll)                              (conj-map-entry coll value)
+    ;; `set-target?` and `map-target?` spelled out for the same reason: each is
+    ;; an `or` of two `instanceof` and cost a call to answer it.
+    (or (php/instanceof coll PersistentHashSetInterface)
+        (php/instanceof coll TransientHashSetInterface))
+    (.add coll value)
+
+    (or (php/instanceof coll PersistentMapInterface)
+        (php/instanceof coll TransientMapInterface))
+    (conj-map-entry coll value)
     ;; MapEntry degrades to a 3-vector when grown; the result is no longer
     ;; an entry. Matches Clojure's MapEntry under conj.
     (php/instanceof coll MapEntry)
@@ -242,7 +255,15 @@ When `from` is associative, it is treated as a sequence of key-value pairs. Supp
   ([] [])
   ([coll] coll)
   ([coll value]
-   (conj-impl coll value))
+   ;; Appending to a vector, persistent or transient, is answered here rather
+   ;; than through `conj-impl`. `into`, `frequencies`, `group-by` and every
+   ;; `for :reduce` over a transient reduce this arity once per element, and
+   ;; the delegation was a whole function call to reach an `instanceof` the
+   ;; caller could make itself (#2973).
+   (if (or (php/instanceof coll PersistentVectorInterface)
+           (php/instanceof coll TransientVectorInterface))
+     (.append coll value)
+     (conj-impl coll value)))
   ([coll value & more]
    (reduce conj-impl (conj-impl coll value) more)))
 

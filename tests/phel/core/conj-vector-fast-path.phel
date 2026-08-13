@@ -1,0 +1,56 @@
+(ns phel-test.core.conj-vector-fast-path
+  (:require phel.test :refer [deftest is]))
+
+(defstruct pt [x y])
+
+;; `conj` answers a vector target, persistent or transient, in its own
+;; two-argument arity, and `conj-impl` reaches a transient vector by its own
+;; `instanceof` rather than through `vector-target?`. Both changes move which
+;; branch a given collection lands on, so every target type has to keep
+;; answering what it did, and the ones that changed position most (transient
+;; vector, list, lazy seq, PHP array) get the closest attention.
+
+(deftest test-vector-targets
+  (is (= [1 2 3] (conj [1 2] 3)) "a persistent vector appends")
+  (is (= [3] (conj [] 3)) "an empty vector")
+  (is (= [1 2 3 4] (conj [1 2] 3 4)) "two values")
+  (is (= [1 2 nil] (conj [1 2] nil)) "a nil value is appended, not skipped")
+  (is (= [1 2 [3 4]] (conj [1 2] [3 4])) "a vector value nests"))
+
+(deftest test-transient-vector-target
+  ;; The branch every `into`, `frequencies` and `group-by` on a vector runs
+  ;; per element. It moved from sixth position to second.
+  (is (= [1 2 3] (persistent (conj (transient [1 2]) 3))) "a transient vector appends")
+  (is (= [3] (persistent (conj (transient []) 3))) "an empty transient vector")
+  (is (= [1 2 3 4] (persistent (conj (transient [1 2]) 3 4))) "two values")
+  (is (= [1 nil] (persistent (conj (transient [1]) nil))) "a nil value")
+  ;; `conj` on a transient mutates and returns the same transient rather than
+  ;; a fresh collection; losing that would break every `for :reduce` over one.
+  (let [t (transient [1])]
+    (is (identical? t (conj t 2)) "the transient itself comes back")))
+
+(deftest test-list-and-seq-targets
+  (is (= '(3 1 2) (conj '(1 2) 3)) "a list prepends")
+  (is (= '(3) (conj '() 3)) "an empty list")
+  (is (= '(4 3 1 2) (conj '(1 2) 3 4)) "two values prepend in order")
+  (is (= [3 1 2] (vec (conj (map identity [1 2]) 3))) "a lazy sequence prepends")
+  (is (= '(1) (conj nil 1)) "nil becomes a list"))
+
+(deftest test-set-and-map-targets
+  (is (= (set [1 2 3]) (conj (set [1 2]) 3)) "a set adds")
+  (is (= (set [1 2]) (conj (set [1 2]) 2)) "a set ignores a duplicate")
+  (is (= (set [1 2 3]) (persistent (conj (transient (set [1 2])) 3))) "a transient set adds")
+  (is (= {:a 1, :k :v} (conj {:a 1} [:k :v])) "a map takes a pair")
+  (is (= {:a 1, :k :v} (persistent (conj (transient {:a 1}) [:k :v]))) "a transient map takes a pair")
+  (is (= {:a 1, :b 2} (conj (sorted-map :a 1) [:b 2])) "a sorted map takes a pair")
+  (is (= 1 (get (conj (pt 1 2) [:x 1]) :x)) "a struct is a map target"))
+
+(deftest test-other-targets
+  (is (= [1 2 3] (vec (conj (php-indexed-array 1 2) 3))) "a PHP array pushes")
+  ;; A MapEntry grows into a plain 3-vector, matching Clojure.
+  (is (= [:a 1 :extra] (conj (first {:a 1}) :extra)) "a MapEntry degrades to a vector"))
+
+(deftest test-zero-and-one-argument-arities
+  (is (= [] (conj)) "no arguments is an empty vector")
+  (is (= [1 2] (conj [1 2])) "one argument returns the collection")
+  (is (nil? (conj nil)) "one nil argument returns nil"))
