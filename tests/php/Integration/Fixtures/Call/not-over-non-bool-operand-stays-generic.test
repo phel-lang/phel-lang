@@ -1,7 +1,7 @@
 --PHEL--
 (fn [x] (not (php/strlen x)))
 --PHP--
-(function($x) {
+(function($x): bool {
   static $__phel_call_0;
   return ($__phel_call_0 ??= \Phel::getDefinition("phel.core", "not"))->__invoke(strlen($x));
 });

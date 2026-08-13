@@ -5,14 +5,14 @@
 (fn [^\Phel\Lang\Collections\Map\PersistentMapInterface m] (empty? m))
 (fn [^\Phel\Lang\Collections\Vector\PersistentVectorInterface v] (empty? v))
 --PHP--
-(function(array $a) {
+(function(array $a): bool {
   return ($a === []);
-});(function(string $s) {
+});(function(string $s): bool {
   return ($s === '');
-});(function(int $n) {
+});(function(int $n): bool {
   return ($n === 0);
-});(function(\Phel\Lang\Collections\Map\PersistentMapInterface $m) {
+});(function(\Phel\Lang\Collections\Map\PersistentMapInterface $m): bool {
   return ($m->count() === 0);
-});(function(\Phel\Lang\Collections\Vector\PersistentVectorInterface $v) {
+});(function(\Phel\Lang\Collections\Vector\PersistentVectorInterface $v): bool {
   return ($v->count() === 0);
 });

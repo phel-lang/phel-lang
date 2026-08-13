@@ -111,6 +111,7 @@ All notable changes to this project will be documented in this file.
 
 Compiler:
 
+- Tag the fifteen core predicates that returned an untagged bool (`even?`, `odd?`, `zero?`, `empty?`, `some?`, `map?`, `list?`, `indexed?`, `contains?`, `truthy?`, `nan?`, `infinite?`, `subset?`, `superset?`, `not`) so an `if` over them skips the `Truthy` adapter, and so a function built on one is itself inferred to return `bool`: 1 to 5% per test, plus the return type it propagates (#2973)
 - Skip the `Truthy` adapter in an `if` test when the call is to a global whose return `:tag` is `bool`, which covers `<`, `>`, `<=`, `>=`, `=`, `not=`, `nil?` and `pos?` as well as any user `defn ^bool`. A `defn` whose arities disagree carries no tag, so it keeps the adapter (#2973)
 - Lower `(not x)` to a native `!` when `x` is a proven PHP bool: 3.7x, and an `if` test drops the `Truthy` adapter too (#3021)
 - Compile a literal `(list ...)`, `(vector ...)`, `(queue ...)`, `(hash-map ...)` or `(array-map ...)` straight to its `Phel` factory: 2.2 to 3.6 times faster (#3014)

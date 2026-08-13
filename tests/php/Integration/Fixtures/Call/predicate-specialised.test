@@ -10,9 +10,9 @@
   return ($x === true);
 });(function($x): bool {
   return ($x === false);
-});(function($x) {
+});(function($x): bool {
   return (($__truthy = $x) !== null && $__truthy !== false);
-});(function(int $n) {
+});(function(int $n): bool {
   return ($n === 0);
 });(function(int $n): bool {
   return ($n > 0);
