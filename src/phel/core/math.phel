@@ -732,12 +732,41 @@ returns 1. If `xs` has one value, returns the reciprocal of x.
     (throw (new InvalidArgumentException "Max values is bigger than min value")))
   (php/max (php/min v max) min))
 
+(defn- all-native-ints?
+  "True when every element of the PHP array is a native int. Mirrors the
+  namesake in `seq-fns`, which cannot be reached from here: both are private,
+  and this file loads first."
+  [php-array]
+  (let [found (php/array true)]
+    (foreach [x php-array]
+      (when-not (php/is_int x)
+        (php/aset found 0 false)
+        php/break))
+    (php/aget found 0)))
+
 (defn sum
   "Returns the sum of all elements is `xs`."
   {:example "(sum [1 2 3]) ; => 6"
    :see-also ["+" "mean" "median"]}
   [xs]
-  (apply + xs))
+  ;; `array_sum` adds a PHP array of ints in C, where `(apply + xs)` spreads the
+  ;; collection into the variadic arm of `+` and walks it one guarded addition
+  ;; at a time. Narrow to all-native-ints for the reason `sort`'s fast path is
+  ;; (`all-native-ints?` in `seq-fns`): anything else brings BigInt, Ratio, NaN
+  ;; or mixed-type addition, none of which `array_sum` reproduces.
+  ;;
+  ;; `array_sum` returns a float exactly when the int sum overflowed, and Phel's
+  ;; `+` promotes to BigInt there instead, so that case is redone the long way.
+  ;; The fallback spreads `arr` rather than `xs`: the conversion has already
+  ;; happened by then, and re-walking the original collection made a non-int
+  ;; sum measurably slower than before the fast path existed.
+  (let [arr (to-php-array xs)]
+    (if (all-native-ints? arr)
+      (let [total (php/array_sum arr)]
+        (if (php/is_int total)
+          total
+          (apply + arr)))
+      (apply + arr))))
 
 (defn mean
   "Returns the mean of `xs` as a float."
