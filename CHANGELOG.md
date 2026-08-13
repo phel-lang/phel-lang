@@ -147,6 +147,7 @@ Runtime core:
 
 Standard library:
 
+- Escape JUnit XML attributes with one `htmlspecialchars` pass instead of five chained `phel.string/replace` calls: 25x. Invalid UTF-8 now becomes U+FFFD rather than being emitted raw, which was not valid XML (#3094)
 - Stop `phel.pprint` printing every node twice and allocating a printer per node: leaves are no longer measured, a subtree that fits reuses the string it was measured with, and `Printer/readable` is built once as `phel.edn` already does. 1.60x on a deep structure, 1.48x on a small one (#3092)
 - Give `phel.json/encode` and `decode` fixed arities in place of `& [{:flags .. :depth ..}]`, and stop the no-options call validating the defaults it just supplied: 3.9x encoding a scalar, 1.25x encoding a map, 1.21x decoding (#3090)
 - Build every `phel.walk` branch through a transient instead of `map` plus `into`, and the same inside `keywordize-keys` and `stringify-keys`: 1.67x to 1.71x. `map` returns a lazy sequence whose first chunk is realized on construction and `into` then walks it again, once per node of the tree (#3087)

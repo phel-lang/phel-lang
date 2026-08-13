@@ -884,15 +884,21 @@ Metadata attached to `test-name` is forwarded to the defined function so selecto
          :current nil
          :output-path nil}))
 
+;; ENT_XML1 renders a single quote as `&apos;` where the HTML entity tables
+;; give `&#039;`, so these flags produce exactly the five escapes the chain of
+;; `phel.string/replace` calls used to: `&amp; &lt; &gt; &quot; &apos;`.
+;; ENT_SUBSTITUTE replaces an invalid UTF-8 sequence with U+FFFD; without it
+;; `htmlspecialchars` returns an empty string and the whole attribute would
+;; vanish. The old chain passed the raw byte through, which is not valid XML.
+(def- junit-xml-flags (bit-or php/ENT_QUOTES php/ENT_XML1 php/ENT_SUBSTITUTE))
+
 (defn- junit-xml-escape [value]
+  ;; One pass instead of five `phel.string/replace` calls, each of which
+  ;; asserts, builds a delimited pattern with `preg_quote` and runs
+  ;; `preg_replace` to swap a single character. Called once per JUnit XML
+  ;; attribute (#3021 B1).
   (when-not (nil? value)
-    (let [s (if (string? value) value (str value))]
-      (-> s
-          (s/replace "&" "&amp;")
-          (s/replace "<" "&lt;")
-          (s/replace ">" "&gt;")
-          (s/replace "\"" "&quot;")
-          (s/replace "'" "&apos;")))))
+    (php/htmlspecialchars (if (string? value) value (str value)) junit-xml-flags)))
 
 (defn- junit-attr [k v]
   (str (name k) "=\"" (junit-xml-escape v) "\""))
