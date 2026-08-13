@@ -174,7 +174,7 @@
 (defn not
   "Returns true if value is falsy (nil or false), false otherwise."
   {:example "(not nil) ; => true"}
-  [x]
+  ^bool [x]
   (if x false true))
 
 (defn not=
@@ -408,8 +408,8 @@
 (defn some?
   "With 1 arg, returns true if `x` is not nil (Clojure semantics). With 2 args, returns true if `pred` is true for at least one element in `coll`."
   {:example "(some? 1) ; => true\n(some? even? [1 3 5 6 7]) ; => true"}
-  ([x] (not (nil? x)))
-  ([pred coll]
+  (^bool [x] (not (nil? x)))
+  (^bool [pred coll]
    ;; Same walk as `all?`: a seq once, then `next` reports exhaustion, rather
    ;; than an `empty?` dispatch on the collection per element.
    ;; Same shape as `all?`, and the same reason.
@@ -465,7 +465,7 @@
   "Checks if `x` is truthy. Same as `x == true` in PHP."
   {:example "(truthy? 0) ; => true\n(truthy? nil) ; => false"
    :see-also ["true?" "false?" "nil?"]}
-  [x]
+  ^bool [x]
   (Truthy/isTruthy x))
 
 (defn false?
@@ -483,7 +483,7 @@
 (defn contains?
   "Returns true if key is present in collection (checks keys/indices, not values)."
   {:example "(contains? [10 20 30] 1) ; => true"}
-  [coll key]
+  ^bool [coll key]
   (cond
     (nil? coll) false
     (php/instanceof coll ContainsInterface) (.contains coll key)

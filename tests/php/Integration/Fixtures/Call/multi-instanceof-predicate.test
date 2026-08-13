@@ -3,7 +3,7 @@
 (fn [x] (vector? x))
 (fn [x] (seq? x))
 --PHP--
-(function($x) {
+(function($x): bool {
   return (($x instanceof \Phel\Lang\Collections\Map\PersistentMapInterface) && !($x instanceof \Phel\Lang\Collections\Struct\AbstractPersistentStruct));
 });(function($x): bool {
   return (($x instanceof \Phel\Lang\Collections\Vector\PersistentVectorInterface) || ($x instanceof \Phel\Lang\Collections\Map\MapEntry));

@@ -1,7 +1,7 @@
 --PHEL--
 (fn [x] (if (not (php/is_int x)) 1 2))
 --PHP--
-(function($x) {
+(function($x): int {
   return (((!(is_int($x)))) ? 1 : 2);
 
 });

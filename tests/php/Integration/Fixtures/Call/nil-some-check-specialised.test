@@ -5,7 +5,7 @@
 --PHP--
 (function($x): bool {
   return ($x === null);
-});(function($x) {
+});(function($x): bool {
   return ($x !== null);
 });(function(array $a): int {
   return count($a);

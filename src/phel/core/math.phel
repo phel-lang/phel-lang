@@ -396,7 +396,7 @@ returns 1. If `xs` has one value, returns the reciprocal of x.
   "Checks if `x` is even."
   {:example "(even? 4) ; => true"
    :see-also ["odd?" "zero?"]}
-  [x]
+  ^bool [x]
   ;; A native int answers with one PHP modulo. Otherwise this cost three Phel
   ;; calls, `even?` to `%` to `rem`, to reach the same question (#2973).
   (if (php/is_int x)
@@ -407,7 +407,7 @@ returns 1. If `xs` has one value, returns the reciprocal of x.
   "Checks if `x` is odd."
   {:example "(odd? 3) ; => true"
    :see-also ["even?" "zero?"]}
-  [x]
+  ^bool [x]
   ;; Its own fast path rather than negating `even?`: that was a fourth call on
   ;; top of the three above (#2973).
   (if (php/is_int x)
@@ -418,7 +418,7 @@ returns 1. If `xs` has one value, returns the reciprocal of x.
   "Checks if `x` is zero."
   {:example "(zero? 0) ; => true"
    :see-also ["pos?" "neg?" "one?"]}
-  [x]
+  ^bool [x]
   ;; As `pos?` and `neg?` below: a native int compares against 0 directly
   ;; rather than through the numeric tower (#2973).
   (if (php/is_int x)
@@ -458,7 +458,7 @@ returns 1. If `xs` has one value, returns the reciprocal of x.
   "Checks if `x` is not a number."
   {:example "(nan? ##NaN) ; => true"
    :see-also ["NaN?" "inf?"]}
-  [x]
+  ^bool [x]
   (if (nil? x)
     false
     (php/is_nan x)))
@@ -481,7 +481,7 @@ returns 1. If `xs` has one value, returns the reciprocal of x.
   "Checks if `x` is positive or negative infinity. Alias for `inf?`, matching Clojure's `infinite?` naming."
   {:example "(infinite? php/INF) ; => true\n(infinite? 1.0) ; => false"
    :see-also ["inf?" "nan?"]}
-  [x]
+  ^bool [x]
   (inf? x))
 
 (defn abs

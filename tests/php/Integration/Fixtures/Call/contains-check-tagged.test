@@ -3,10 +3,10 @@
 (fn [^\Phel\Lang\Collections\Vector\PersistentVectorInterface v i] (contains? v i))
 (fn [^array a k] (contains? a k))
 --PHP--
-(function(\Phel\Lang\Collections\Map\PersistentMapInterface $m, $k) {
+(function(\Phel\Lang\Collections\Map\PersistentMapInterface $m, $k): bool {
   return ($m->contains($k));
-});(function(\Phel\Lang\Collections\Vector\PersistentVectorInterface $v, $i) {
+});(function(\Phel\Lang\Collections\Vector\PersistentVectorInterface $v, $i): bool {
   return ($v->contains($i));
-});(function(array $a, $k) {
+});(function(array $a, $k): bool {
   return array_key_exists($k, $a);
 });

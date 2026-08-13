@@ -318,7 +318,7 @@
   "Returns true if `x` is a hash map, false otherwise."
   {:example "(map? {:a 1}) ; => true\n(map? [1 2]) ; => false"
    :see-also ["vector?" "set?" "associative?"]}
-  [x]
+  ^bool [x]
   (and (php/instanceof x PersistentMapInterface)
        (not (php/instanceof x AbstractPersistentStruct))))
 
@@ -344,7 +344,7 @@
   "Returns true if `x` is a list, false otherwise. Returns false for the seq view of non-list collections produced by `seq`."
   {:example "(list? '(1 2)) ; => true\n(list? [1 2]) ; => false"
    :see-also ["vector?" "seq?" "sequential?"]}
-  [x]
+  ^bool [x]
   ;; A seq view over a vector or a map is also a `PersistentListInterface`, so
   ;; dropping either half makes `(list? (seq [1 2]))` return true.
   (and (php/instanceof x PersistentListInterface)
@@ -433,7 +433,7 @@ Unlike `seq?`, this predicate is true only for lazy sequences, not for realized 
 A non-countable iterable (an `eduction` pipeline, a PHP generator) is answered by pulling a single element, never by counting it."
   {:example "(empty? []) ; => true\n(empty? [1]) ; => false"
    :see-also ["not-empty" "empty" "count"]}
-  [x]
+  ^bool [x]
   ;; Collections are the common argument and were reached fifth, behind two
   ;; scalar checks. They move up, but only as far as the lazy branches: a
   ;; `LazySeq` *is* `Countable`, so putting the countable branch above it would
@@ -548,7 +548,7 @@ This function is useful for explicitly converting strings to sequences of charac
 
 Indexed sequences include lists, vectors, and indexed PHP arrays."
   {:example "(indexed? [1 2 3]) ; => true"}
-  [x]
+  ^bool [x]
   (or (php/instanceof x PersistentVectorInterface)
       (php/instanceof x PersistentListInterface)
       (indexed-php-array? x)))

@@ -1,6 +1,6 @@
 --PHEL--
 (fn [x] (not (php/is_int x)))
 --PHP--
-(function($x) {
+(function($x): bool {
   return (!(is_int($x)));
 });
