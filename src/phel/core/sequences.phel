@@ -317,10 +317,14 @@
     (php-array? ds)
     (throw (new InvalidArgumentException "Cannot call assoc on pure PHP arrays. Use (aset ds key value)"))
 
-    (map-target? ds)
+    ;; `map-target?` and `vector-target?` spelled out: each is an `or` of two
+    ;; `instanceof` and cost a Phel call to answer it (#3105).
+    (or (php/instanceof ds PersistentMapInterface)
+        (php/instanceof ds TransientMapInterface))
     (.put ds key value)
 
-    (vector-target? ds)
+    (or (php/instanceof ds PersistentVectorInterface)
+        (php/instanceof ds TransientVectorInterface))
     (vector-assoc ds key value)
 
     ;; MapEntry degrades to a 2-vector once mutated, since the result no
@@ -342,7 +346,16 @@
   ;; The three-argument call is nearly every call, and its whole work is one
   ;; `assoc-pair`. On the variadic form it also allocated `more`, counted it,
   ;; bit-tested the count and entered a loop whose first act was `empty?`.
-  ([ds key value] (assoc-pair ds key value))
+  ([ds key value]
+   ;; The map case is answered here rather than through `assoc-pair`. `into` a
+   ;; map, `frequencies`, `group-by`, `zipmap` and every `for :reduce` building
+   ;; a map reduce this arity once per element, and the delegation was a whole
+   ;; function call to reach an `instanceof` the caller could make itself, as
+   ;; `conj` already does for vectors (#2973, #3105).
+   (if (or (php/instanceof ds PersistentMapInterface)
+           (php/instanceof ds TransientMapInterface))
+     (.put ds key value)
+     (assoc-pair ds key value)))
   ([ds key value & more]
    (when (php/!== 0 (php/& (count more) 1))
      (throw (new InvalidArgumentException
