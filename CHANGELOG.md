@@ -150,6 +150,7 @@ Runtime core:
 
 Standard library:
 
+- Test `reduced?` and the loop guard in `reduce` and `reduce-kv` as the PHP checks they are rather than through a function call, once per element: `reduce` 1.2x, and `transduce` with `map` a further 1.1x on top of #3101 (#2973)
 - Reach a vector `conj` target, persistent or transient, without the `vector-target?` and `transient-vector?` calls: `into` a vector 1.3x, `conj` on a vector 1.2x, a list target 3% slower (#2973)
 - Compare two native ints in `min` and `max` without the NaN guards or the numeric tower: 3.0x on a pair, 2.5x on four arguments (#2973)
 - Answer `(get ds k)` on a map or vector in the two-argument arity itself, instead of delegating to the three-argument one and reading through core `aget`: 1.6x on a map, 1.8x on a vector, 1.2x on `get-in` (#2973)
