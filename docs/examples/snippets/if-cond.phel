@@ -14,4 +14,4 @@
     (< n 10)  :small
     :else     :big))
 
-(println (map describe [-3 0 5 99]))       ; @[:negative :zero :small :big]
+(println (map describe [-3 0 5 99]))       ; (:negative :zero :small :big)

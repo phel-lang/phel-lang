@@ -1,0 +1,34 @@
+(ns phel-test.core.lazy-seq-print
+  (:require phel.test :refer [deftest is]))
+
+;; A lazy sequence printed as `@[1 2]` did not round-trip: `@` is the deref
+;; reader macro, so reading it back produced `(deref [1 2])` rather than the
+;; sequence that was printed (#3113). It prints as `(1 2)` now, which is what
+;; `Cons` and `PersistentList` already did and what Clojure prints.
+
+(deftest test-a-lazy-sequence-prints-as-a-seq
+  (is (= "(2 3)" (pr-str (map inc [1 2]))) "map")
+  (is (= "(2 4)" (pr-str (filter even? [1 2 3 4]))) "filter")
+  (is (= "(0 1 2)" (pr-str (take 3 (range)))) "an unbounded range, taken")
+  (is (= "()" (pr-str (map inc []))) "an empty lazy sequence")
+  (is (= "(2 3)" (print-str (map inc [1 2]))) "print-str agrees")
+  (is (= "(2 3)" (str (map inc [1 2]))) "str agrees"))
+
+(deftest test-it-round-trips
+  ;; The point of the change.
+  (is (= [2 3] (vec (read-string (pr-str (map inc [1 2]))))) "printed then read back")
+  (is (= [1 2 3] (vec (read-string (pr-str (take 3 (range 1 9)))))) "a taken range round-trips"))
+
+(deftest test-the-other-collections-are-unchanged
+  (is (= "(1 2)" (pr-str '(1 2))) "a list still prints as a list")
+  (is (= "[1 2]" (pr-str [1 2])) "a vector still prints as a vector")
+  (is (= "{:a 1}" (pr-str {:a 1})) "a map is unchanged")
+  ;; `@` still means deref, on the types that actually support it.
+  (is (= "1" (pr-str @(atom 1))) "an atom derefs"))
+
+(deftest test-nested_lazy_sequences
+  (is (= "[(1 2) (3 4 5)]" (pr-str (split-at 2 [1 2 3 4 5]))) "a vector of two lazy sequences")
+  ;; `partition` yields vectors, not seqs, so only the outer sequence changes
+  ;; here. That inner shape is a separate divergence from Clojure and is not
+  ;; what this change is about.
+  (is (= "([0 1] [2 3])" (pr-str (partition 2 (range 4)))) "a lazy sequence of vectors"))

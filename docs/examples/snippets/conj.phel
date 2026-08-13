@@ -1,8 +1,8 @@
 (ns examples.snippets.conj)
 
 ;; Vectors: append
-(println (conj [1 2 3] 4))                 ; @[1 2 3 4]
-(println (conj [] :a :b))                  ; @[:a :b]
+(println (conj [1 2 3] 4))                 ; (1 2 3 4)
+(println (conj [] :a :b))                  ; (:a :b)
 
 ;; Lists: prepend
 (println (conj '(2 3) 1))                  ; (1 2 3)

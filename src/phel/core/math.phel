@@ -657,7 +657,7 @@ returns 1. If `xs` has one value, returns the reciprocal of x.
 
 (defn random-sample
   "Returns the items of `coll` for which `(rand)` is less than `prob`, so each item is kept independently with probability `prob` (0 keeps nothing, 1 keeps everything). Lazy. Without a collection, returns a transducer."
-  {:example "(random-sample 0.5 (range 10)) ; => @[1 4 5 9]"
+  {:example "(random-sample 0.5 (range 10)) ; => (1 4 5 9)"
    :see-also ["rand" "filter" "shuffle" "rand-nth"]}
   ([prob]
    (filter (fn [_] (< (rand) prob))))

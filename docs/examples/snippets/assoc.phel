@@ -2,7 +2,7 @@
 
 (println (assoc {:a 1} :b 2))              ; {:a 1 :b 2}
 (println (assoc {:a 1 :b 2} :a 99))        ; {:a 99 :b 2}
-(println (assoc [10 20 30] 1 99))          ; @[10 99 30]
+(println (assoc [10 20 30] 1 99))          ; (10 99 30)
 
 ;; Many keys at once
 (println (assoc {} :a 1 :b 2 :c 3))        ; {:a 1 :b 2 :c 3}

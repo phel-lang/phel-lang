@@ -467,7 +467,7 @@ Without arguments, uses a default cache size of 128 entries."
 
 (defn flatten
   "Flattens nested sequential structure into a lazy sequence of all leaf values."
-  {:example "(flatten [[1 2] [3 [4 5]] 6]) ; => @[1 2 3 4 5 6]"}
+  {:example "(flatten [[1 2] [3 [4 5]] 6]) ; => (1 2 3 4 5 6)"}
   [coll]
   (filter
    (complement indexed?)
