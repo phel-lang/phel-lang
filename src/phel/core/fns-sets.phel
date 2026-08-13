@@ -212,12 +212,40 @@
   "Takes a list of functions and returns a new function that is the juxtaposition of those functions."
   {:example "((juxt inc dec #(* % 2)) 10) ; => [11 9 20]"
    :see-also ["comp" "partial"]}
-  [& fs]
-  (fn [& args]
-    (reduce
-     #(conj %1 (apply %2 args))
-     []
-     fs)))
+  ;; As with `partial` and `fnil`, the returned closure is what runs per call,
+  ;; so it is the thing that must not be variadic. The old single
+  ;; `(fn [& args] (reduce #(conj %1 (apply %2 args)) [] fs))` built a rest
+  ;; vector, ran `reduce` over the function list, and went through `apply` once
+  ;; per function, on every call (#3021). The function count is known here,
+  ;; once, so dispatch on it now and hand back real arities.
+  ([f]
+   (fn
+     ([] [(f)])
+     ([a] [(f a)])
+     ([a b] [(f a b)])
+     ([a b & more] [(apply f a b more)])))
+  ([f g]
+   (fn
+     ([] [(f) (g)])
+     ([a] [(f a) (g a)])
+     ([a b] [(f a b) (g a b)])
+     ([a b & more] [(apply f a b more) (apply g a b more)])))
+  ([f g h]
+   (fn
+     ([] [(f) (g) (h)])
+     ([a] [(f a) (g a) (h a)])
+     ([a b] [(f a b) (g a b) (h a b)])
+     ([a b & more] [(apply f a b more) (apply g a b more) (apply h a b more)])))
+  ([f g h & fs]
+   ;; Four or more keeps the general walk, over the whole function list.
+   ;; `vec` and not the lazy `concat` itself: this is built once, and the
+   ;; closure reduces over it on every call.
+   (let [all (vec (concat [f g h] fs))]
+     (fn [& args]
+       (reduce
+        #(conj %1 (apply %2 args))
+        []
+        all)))))
 
 (defn partial
   "Takes a function `f` and fewer than the normal number of arguments to `f`, and returns a function that takes a variable number of additional arguments. When called, `f` will be invoked with the bound `args` prepended to the additional arguments."

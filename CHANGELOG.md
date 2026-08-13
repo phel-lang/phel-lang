@@ -82,6 +82,7 @@ All notable changes to this project will be documented in this file.
 
 ### Changed
 
+- BC: `(arity juxt)` and `(arity interleave)` now report `0`, both having become multi-arity (#3083)
 - BC: `(arity union)` now reports `0`, having become multi-arity (#3077)
 - **BC** The core functions listed under Performance now declare real arities instead of taking a rest argument. Two consequences. A wrong argument count raises an arity error rather than being silently ignored or reaching a hand-written message, which affects `get`, `get-in`, `reduce`, `into`, `slice`, `range` and the twelve seq functions. And a multi-arity function compiles to one variadic dispatch, so `arity` reports `0` for every one of them, `get`, `assoc`, `dissoc`, `concat`, `swap!`, `swap-vals!`, `range`, `comp`, `repeat`, `repeatedly`, `==`, `merge-with` and `deep-merge` included (#2960 #2962 #2964 #2975 #3065 #3067 #3069)
 - Lower `(or …)` / `(and …)` test chains containing `php/instanceof`, `php/aget` or a quoted literal to native `||` / `&&` instead of an IIFE; `(get <set> k)` is ~24% faster (#3027)
@@ -115,6 +116,7 @@ Compiler:
 
 Runtime core:
 
+- Give the closure returned by `juxt` real arities, as `partial`, `fnil` and `comp` got in #3026: 4.3x to 5.8x per call for one to three functions, 2.5x through `map`. Give `interleave` a two-collection arity: 13x when a collection is nil, 1.4x on small inputs (#3083)
 - Walk `tree-seq`'s stack with native PHP operations and push children by index instead of building a reversed collection per branch node: 2.1x, carrying `flatten` with it (#3081)
 - Order `sort-by`'s decorated keys with native comparisons when they are all native ints and no comparator was supplied, the fast path `sort` got in #3004: 8.4x over 100 ints, 6.4x over 20, 5.2x for `(sort-by count strings)`. Non-int keys and a supplied comparator keep the general path (#3079)
 - Seed `union`'s result from its first argument instead of re-adding every element of it to a fresh set, and give it fixed arities: `(union big small)` over 200 and 5 elements 63x, `(union s)` 51x, two 20-element sets 3.0x. Non-set iterables are still added element by element, since `union` accepts any iterable and returns a set (#3077)
