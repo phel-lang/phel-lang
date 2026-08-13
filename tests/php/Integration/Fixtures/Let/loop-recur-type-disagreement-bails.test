@@ -5,7 +5,7 @@
   static $__phel_call_0, $__phel_call_1;
   $i_1 = 0;
   while (true) {
-    if (($__truthy = ($__phel_call_0 ??= \Phel::getDefinition("phel.core", "<"))->__invoke($i_1, $n)) !== null && $__truthy !== false) {
+    if ((($__phel_call_0 ??= \Phel::getDefinition("phel.core", "<"))->__invoke($i_1, $n))) {
       $i_1 = ($__phel_call_1 ??= \Phel::getDefinition("phel.core", "+"))->__invoke($i_1, 1.5);
       continue;
 

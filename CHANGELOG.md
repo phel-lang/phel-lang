@@ -110,6 +110,7 @@ All notable changes to this project will be documented in this file.
 
 Compiler:
 
+- Skip the `Truthy` adapter in an `if` test when the call is to a global whose return `:tag` is `bool`, which covers `<`, `>`, `<=`, `>=`, `=`, `not=`, `nil?` and `pos?` as well as any user `defn ^bool`. A `defn` whose arities disagree carries no tag, so it keeps the adapter (#2973)
 - Lower `(not x)` to a native `!` when `x` is a proven PHP bool: 3.7x, and an `if` test drops the `Truthy` adapter too (#3021)
 - Compile a literal `(list ...)`, `(vector ...)`, `(queue ...)`, `(hash-map ...)` or `(array-map ...)` straight to its `Phel` factory: 2.2 to 3.6 times faster (#3014)
 - Specialize `count` on a map-tagged local to a direct `->count()`, as `empty?` already did (#2985)
