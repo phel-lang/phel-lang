@@ -1,0 +1,65 @@
+(ns phel-test.core.predicate-walk
+  (:require phel.test :refer [deftest is]))
+
+;; `all?`, `some?` and `some` were restructured to test the first element on
+;; the collection and walk a seq only for the tail. Short-circuiting is the
+;; whole point of these, so what has to be pinned is that the predicate is
+;; called exactly as often as before, and no more.
+
+(defn- counting [pred]
+  (let [calls (atom 0)]
+    [calls (fn [x] (swap! calls inc) (pred x))]))
+
+(deftest test-all?-results
+  (is (true? (all? int? [1 2 3])) "all match")
+  (is (false? (all? int? [1 :a 3])) "one does not")
+  (is (true? (all? int? [])) "an empty collection is vacuously true")
+  (is (true? (all? int? nil)) "nil is vacuously true")
+  (is (true? (all? int? '(1 2 3))) "over a list")
+  (is (false? (all? int? '(1 :a))) "over a list that fails")
+  (is (false? (all? int? [:a 1 2])) "fails on the very first element"))
+
+(deftest test-all?-stops-at-the-first-failure
+  (let [[calls pred] (counting int?)]
+    (is (false? (all? pred [:a 1 2 3 4])) "fails immediately")
+    (is (= 1 @calls) "the predicate ran once, not five times"))
+  (let [[calls pred] (counting int?)]
+    (is (false? (all? pred [1 2 :a 3 4])) "fails in the middle")
+    (is (= 3 @calls) "the predicate stopped at the failure"))
+  (let [[calls pred] (counting int?)]
+    (is (true? (all? pred [1 2 3])) "all match")
+    (is (= 3 @calls) "every element was tested exactly once")))
+
+(deftest test-every?-and-not-every?
+  (is (true? (every? int? [1 2 3])) "every? mirrors all?")
+  (is (false? (every? int? [1 :a])) "every? fails with all?")
+  (is (false? (not-every? int? [1 2 3])) "not-every? is the negation")
+  (is (true? (not-every? int? [1 :a])) "not-every? on a failure"))
+
+(deftest test-some?-results-and-short-circuit
+  (is (true? (some? int? [:a 1])) "finds a match")
+  (is (false? (some? int? [:a :b])) "no match")
+  (is (false? (some? int? [])) "an empty collection has no match")
+  (is (false? (some? int? nil)) "nil has no match")
+  (is (true? (some? int? '(:a 1))) "over a list")
+  (let [[calls pred] (counting int?)]
+    (is (true? (some? pred [1 2 3 4 5])) "matches on the first element")
+    (is (= 1 @calls) "the predicate ran once"))
+  (let [[calls pred] (counting int?)]
+    (is (false? (some? pred [:a :b :c])) "no match")
+    (is (= 3 @calls) "every element was tested exactly once")))
+
+(deftest test-some-returns-the-value-and-short-circuits
+  (is (= 1 (some (fn [x] (when (int? x) x)) [:a 1 :b 2])) "returns the first truthy value")
+  (is (nil? (some (fn [_x] nil) [1 2 3])) "nil when nothing matches")
+  (is (nil? (some (fn [_x] nil) [])) "nil over an empty collection")
+  ;; `some` keeps Phel truthiness: 0 and "" are truthy, false and nil are not.
+  (is (= 0 (some (fn [x] x) [nil false 0 1])) "zero counts as a hit")
+  (let [[calls pred] (counting (fn [x] (= x 2)))]
+    (is (true? (some pred [1 2 3 4])) "hits the second element")
+    (is (= 2 @calls) "the predicate stopped at the hit")))
+
+(deftest test-not-any?
+  (is (true? (not-any? int? [:a :b])) "nothing matches")
+  (is (false? (not-any? int? [:a 1])) "something matches")
+  (is (true? (not-any? int? [])) "an empty collection matches nothing"))
