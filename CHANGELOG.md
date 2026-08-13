@@ -28,6 +28,7 @@ All notable changes to this project will be documented in this file.
 
 ### Fixed
 
+- Stop `phel lint` aborting the whole run with an uncaught `TypeError` on a namespace that both defines and calls an `:inline` function. Phel data types are invokable, so the `is_callable` guard let the unevaluated metadata through (#3055)
 - Go-to-definition on a namespace inside a `(:require ...)` form now jumps to that namespace's `ns` declaration; before, only the `:refer`red names resolved and the namespace itself returned nothing (#3059)
 - LSP definition, hover, find-references and rename now read a name spelled with the deprecated `\` separator as one word. The word scan stopped at the backslash, so `my-app\core` arrived as `my-app` and `my-app\core/greet` as `core/greet`, and neither matched anything in the index (#3059)
 - `phel.string/blank?` no longer reports invalid UTF-8 as blank; `preg_match` with `/u` returns `false` on malformed input and that read as a match (#3052)
