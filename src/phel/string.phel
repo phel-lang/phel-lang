@@ -24,14 +24,47 @@
   (when-not (string? x)
     (string-expected x)))
 
+(defn- pattern-error
+  "Diagnoses a `preg_split` failure. Reached only when PCRE has already
+  rejected the pattern, so nothing here runs on a successful split.
+
+  The common mistake is a bare separator such as \" \", which PCRE reads as an
+  empty pattern between two space delimiters; that is worth naming separately
+  from a pattern that is delimited but malformed."
+  [re]
+  (if (or (php/< (php/strlen re) 2)
+          (php/=== false (php/strpos re (php/substr re 0 1) 1)))
+    (throw (new InvalidArgumentException
+                (str "Expected a delimited regular expression, got " (pr-str re)
+                     ". Write a regex literal such as #\"\\s+\", or delimit the pattern "
+                     "yourself, for example \"/ /\". Note that `split` takes a regular "
+                     "expression, while `replace` also accepts a plain literal string.")))
+    (throw (new InvalidArgumentException
+                (str "Invalid regular expression " (pr-str re) ": " (php/preg_last_error_msg))))))
+
 (defn split
   "Splits string on a regular expression, returning a vector of parts."
   {:example "(split \"hello world foo bar\" #\"\\s+\") ; => [\"hello\" \"world\" \"foo\" \"bar\"]"}
   ;; `Phel/vector` over the `preg_split` result, not `vals`: the result is
   ;; already a list array, so `vals` walked it once only to hand the same
   ;; values to the same constructor. `chars` below has always done it directly.
-  ([s re] (assert-string s) (Phel/vector (php/preg_split re s -1)))
-  ([s re limit] (assert-string s) (Phel/vector (php/preg_split re s (or limit -1)))))
+  ;;
+  ;; The failure check is a `let` and an `if` rather than a guard function, so
+  ;; a successful split pays nothing for it. `preg_split` answers false for a
+  ;; pattern PCRE rejects, which `Phel/vector` would otherwise report as a
+  ;; TypeError about receiving a bool.
+  ([s re]
+   (assert-string s)
+   (let [parts (php/preg_split re s -1)]
+     (if (php/=== false parts)
+       (pattern-error re)
+       (Phel/vector parts))))
+  ([s re limit]
+   (assert-string s)
+   (let [parts (php/preg_split re s (or limit -1))]
+     (if (php/=== false parts)
+       (pattern-error re)
+       (Phel/vector parts)))))
 
 (defn chars
   "Returns a vector of characters from string s.

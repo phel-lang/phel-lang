@@ -1,0 +1,46 @@
+(ns phel-test.string.split-pattern-errors
+  (:require phel.test :refer [deftest is])
+  (:require phel.string :as s))
+
+;; `split` takes a regular expression. Given something PCRE rejects it used to
+;; let `preg_split` return false into `Phel/vector`, which reported a TypeError
+;; about receiving a bool, after PHP had already printed a raw warning. Neither
+;; named the pattern. These tests pin the messages, and that every pattern that
+;; worked before still works.
+
+(deftest test-a-bare-separator-is-named-as-the-problem
+  ;; The common mistake: PCRE reads " " as an empty pattern between two space
+  ;; delimiters.
+  (is (thrown? \InvalidArgumentException (s/split "a b c" " ")) "a bare space")
+  (is (thrown? \InvalidArgumentException (s/split "a,b" ",")) "a bare comma")
+  (is (thrown? \InvalidArgumentException (s/split "ab" "")) "an empty pattern")
+  (is (thrown? \InvalidArgumentException (s/split "a b" "/ ")) "a delimiter that never closes"))
+
+(deftest test-a-malformed-pattern-is-reported-separately
+  ;; Delimited, so the guidance above would be wrong; PCRE's own message is
+  ;; the useful one here.
+  (is (thrown? \InvalidArgumentException (s/split "abc" "/[/")) "an unclosed character class"))
+
+(deftest test-every-pattern-that-worked-still-works
+  (is (= ["a" "b" "c"] (s/split "a b  c" #"\s+")) "a regex literal")
+  (is (= ["a" "b" "c"] (s/split "a b c" "/ /")) "a slash-delimited pattern")
+  ;; Any character may delimit a PCRE pattern, not just `/`. This is the case
+  ;; that rules out simply treating a plain string as a literal.
+  (is (= ["a" "b" "c"] (s/split "a1b2c" "#[0-9]#")) "a hash-delimited pattern")
+  (is (= ["a" "b c"] (s/split "a b c" #"\s+" 2)) "a limit")
+  (is (= ["a" "b" "c"] (s/split "a b c" #"\s+" nil)) "a nil limit means no limit")
+  (is (= [""] (s/split "" #"\s+")) "an empty subject")
+  (is (= ["abc"] (s/split "abc" #"\s+")) "a pattern that does not match")
+  (is (= ["a" "b"] (s/split-lines "a\nb")) "split-lines is unaffected"))
+
+(deftest test-the-subject-guard-is-unchanged
+  (is (thrown? \InvalidArgumentException (s/split 42 #"\s+")) "a non-string subject")
+  (is (thrown? \InvalidArgumentException (s/split nil #"\s+")) "a nil subject"))
+
+(deftest test-replace-still-accepts-a-plain-string
+  ;; `replace` and `replace-first` wrap a non-delimited match as a literal.
+  ;; `split` deliberately does not, because a plain string cannot be told
+  ;; apart from a pattern delimited by something other than `/`.
+  (is (= "a_b" (s/replace "a b" " " "_")) "replace takes a literal")
+  (is (= "a_b b" (s/replace-first "a b b" " " "_")) "replace-first takes a literal")
+  (is (= "a_b" (s/replace "a b" #"\s+" "_")) "replace still takes a regex"))
