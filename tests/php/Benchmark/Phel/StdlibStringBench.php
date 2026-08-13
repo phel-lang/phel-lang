@@ -12,6 +12,7 @@ use PhpBench\Benchmark\Metadata\Annotations\Revs;
 
 use function implode;
 use function mb_strpos;
+use function preg_split;
 use function rtrim;
 use function str_pad;
 use function strlen;
@@ -63,9 +64,14 @@ final class StdlibStringBench extends CoreBenchCase
     /** @var callable */
     private $join;
 
+    /** @var callable */
+    private $split;
+
     private string $trailing = '';
 
     private string $haystack = '';
+
+    private string $sentence = '';
 
     private string $notBlank = '';
 
@@ -156,6 +162,26 @@ final class StdlibStringBench extends CoreBenchCase
     }
 
     /**
+     * `split` gained a pattern guard, so it is worth a subject: the guard runs
+     * on every call and the function is used per line or per field in most
+     * text handling.
+     *
+     * @Revs(1000)
+     */
+    public function bench_split(): void
+    {
+        ($this->split)($this->sentence, '/\s+/');
+    }
+
+    /**
+     * @Revs(1000)
+     */
+    public function bench_split_raw(): void
+    {
+        Phel::vector(preg_split('/\s+/', $this->sentence, -1));
+    }
+
+    /**
      * Unlike the pairs above this one does not converge: the residual is
      * `to-php-array`, which is `(apply php/array coll)` (item A6 of #3021) and
      * lives in `phel.core`. The gap is the measurement of that item.
@@ -192,10 +218,12 @@ final class StdlibStringBench extends CoreBenchCase
         $this->blank = $this->phelFn('phel.string', 'blank?');
         $this->padLeft = $this->phelFn('phel.string', 'pad-left');
         $this->join = $this->phelFn('phel.string', 'join');
+        $this->split = $this->phelFn('phel.string', 'split');
 
         $this->trailing = "hello world\n\r\n";
         $this->haystack = 'hello world world';
         $this->notBlank = '  hello  ';
         $this->parts = Phel::vector(['apple', 'banana', 'cherry']);
+        $this->sentence = 'the quick brown fox jumps over the lazy dog again and again';
     }
 }

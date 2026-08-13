@@ -28,6 +28,7 @@ All notable changes to this project will be documented in this file.
 
 ### Fixed
 
+- Report the pattern by name when `phel.string/split` is given something PCRE rejects, instead of letting `preg_split` return false into `Phel/vector` and surfacing a `TypeError` about a bool. A bare separator such as `" "` is named separately from a delimited but malformed pattern
 - Stop `phel lint` aborting the whole run with an uncaught `TypeError` on a namespace that both defines and calls an `:inline` function. Phel data types are invokable, so the `is_callable` guard let the unevaluated metadata through (#3055)
 - Go-to-definition on a namespace inside a `(:require ...)` form now jumps to that namespace's `ns` declaration; before, only the `:refer`red names resolved and the namespace itself returned nothing (#3059)
 - LSP definition, hover, find-references and rename now read a name spelled with the deprecated `\` separator as one word. The word scan stopped at the backslash, so `my-app\core` arrived as `my-app` and `my-app\core/greet` as `core/greet`, and neither matched anything in the index (#3059)
