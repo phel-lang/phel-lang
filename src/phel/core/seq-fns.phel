@@ -711,11 +711,15 @@ Creates intermediate maps if they don't exist."
   ;; with `first` to recover what the caller passed positionally (#2973, #3021).
   ([]
    (fn [rf]
-     (let [seen (volatile! (hash-set))]
+     ;; A transient set, not a volatile holding a persistent one. `seen` is
+     ;; private to this transducer instance and is never handed back, so it
+     ;; never has to become persistent again. The old spelling paid a
+     ;; copy-on-write `conj` plus a `vswap!` per distinct element (#2973).
+     (let [seen (transient (hash-set))]
        (xf-step rf (fn [result input]
-                     (if (contains? @seen input)
+                     (if (contains? seen input)
                        result
-                       (do (vswap! seen conj input) (rf result input))))))))
+                       (do (conj! seen input) (rf result input))))))))
   ([coll]
    (if (nil? coll)
      []

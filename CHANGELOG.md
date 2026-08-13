@@ -156,6 +156,7 @@ Standard library:
 - Answer `zero?`, `pos?` and `neg?` on a native int with a direct PHP comparison rather than through `>`, `<` or the numeric tower: `pos?` and `neg?` 4.2x, `zero?` 1.5x (#2973)
 - Answer `even?` and `odd?` on a native int with one PHP modulo instead of reaching through `%` and `rem`, and stop `%` forwarding to `rem`: `even?` and `odd?` 5.9x, `%` 1.4x (#2973)
 - Test `reduced?` and the loop guard in `reduce` and `reduce-kv` as the PHP checks they are rather than through a function call, once per element: `reduce` 1.2x, and `transduce` with `map` a further 1.1x on top of #3101 (#2973)
+- Track what the `distinct` transducer has seen in a transient set instead of a volatile holding a persistent one, which paid a copy-on-write per distinct element: 1.6x reducing 32 elements through it (#2973)
 - Reach a vector `conj` target, persistent or transient, without the `vector-target?` and `transient-vector?` calls: `into` a vector 1.3x, `conj` on a vector 1.2x, a list target 3% slower (#2973)
 - Compare two native ints in `min` and `max` without the NaN guards or the numeric tower: 3.0x on a pair, 2.5x on four arguments (#2973)
 - Answer `(get ds k)` on a map or vector in the two-argument arity itself, instead of delegating to the three-argument one and reading through core `aget`: 1.6x on a map, 1.8x on a vector, 1.2x on `get-in` (#2973)
