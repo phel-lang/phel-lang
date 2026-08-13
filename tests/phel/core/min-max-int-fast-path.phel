@@ -1,0 +1,57 @@
+(ns phel-test.core.min-max-int-fast-path
+  (:require phel.test :refer [deftest is]))
+
+;; `min` and `max` answer a pair of native ints with one PHP comparison
+;; instead of two `numeric-nan?` calls and a `<`/`>`. Two ints cannot be NaN,
+;; which is the only reason the fast path may skip those checks, so everything
+;; that is *not* two native ints has to keep reaching the numeric tower.
+
+(deftest test-two-native-ints
+  (is (= 2 (max 1 2)) "max of two ints")
+  (is (= 1 (min 1 2)) "min of two ints")
+  (is (= 2 (max 2 1)) "max with the larger first")
+  (is (= 1 (min 2 1)) "min with the smaller first")
+  (is (= 1 (max 1 1)) "max of equal ints")
+  (is (= 1 (min 1 1)) "min of equal ints")
+  (is (= 0 (max -5 0)) "negative and zero")
+  (is (= -5 (min -5 0)) "min of negative and zero")
+  (is (= php/PHP_INT_MAX (max 1 php/PHP_INT_MAX)) "the largest native int")
+  (is (= php/PHP_INT_MIN (min 1 php/PHP_INT_MIN)) "the smallest native int"))
+
+(deftest test-nan-still-propagates
+  ;; NaN is a float, so it never takes the int fast path. If it ever did, these
+  ;; would answer a number instead.
+  (is (nan? (max 1 ##NaN)) "max with NaN second")
+  (is (nan? (max ##NaN 1)) "max with NaN first")
+  (is (nan? (min 1 ##NaN)) "min with NaN second")
+  (is (nan? (min ##NaN 1)) "min with NaN first")
+  (is (nan? (max ##NaN ##NaN)) "both NaN")
+  (is (nan? (max 1 2 ##NaN)) "NaN through the three-argument arity")
+  (is (nan? (min 1 2 3 ##NaN)) "NaN through the four-argument arity")
+  (is (nan? (max 1 2 3 4 ##NaN)) "NaN through the variadic tail"))
+
+(deftest test-mixed-and-non-native-numbers
+  (is (= 2.5 (max 1 2.5)) "int and float")
+  (is (= 1 (min 1 2.5)) "min of int and float")
+  (is (= 2 (max 1.5 2)) "float and int")
+  (is (= ##Inf (max 1 ##Inf)) "infinity")
+  (is (= ##-Inf (min 1 ##-Inf)) "negative infinity")
+  (is (= 1 (max 1 ##-Inf)) "max against negative infinity")
+  (let [big (bigint "99999999999999999999")]
+    (is (= big (max 1 big)) "a BigInt is larger than any native int")
+    (is (= 1 (min 1 big)) "min against a BigInt"))
+  (let [r (/ 3 4)]
+    (is (= 1 (max r 1)) "a Ratio compares against an int")
+    (is (= r (min r 1)) "min against a Ratio")))
+
+(deftest test-more-than-two-arguments
+  (is (= 3 (max 1 2 3)) "three arguments")
+  (is (= 1 (min 1 2 3)) "min of three")
+  (is (= 4 (max 1 2 3 4)) "four arguments")
+  (is (= 1 (min 1 2 3 4)) "min of four")
+  (is (= 9 (max 1 2 3 4 9)) "five arguments reach the variadic tail")
+  (is (= 0 (min 1 2 3 4 0)) "min through the variadic tail")
+  (is (= 7 (max 7)) "one argument")
+  (is (= 7 (min 7)) "one argument for min")
+  (is (= 5 (apply max (range 0 6))) "applied over a collection")
+  (is (= 0 (apply min (range 0 6))) "min applied over a collection"))

@@ -150,6 +150,7 @@ Runtime core:
 
 Standard library:
 
+- Answer `min` and `max` of two native ints with one PHP comparison instead of two `numeric-nan?` calls and a `<`/`>`. Two ints cannot be NaN, so the fast path is sound and everything else still reaches the numeric tower: 3.0x on a pair, 2.4x on three arguments, 2.5x on four (#2973)
 - Answer `(get ds k)` on a map or vector without delegating to the three-argument arity or reading through core `aget`. With no default an absent key already reads as nil, so the lookup collapses to the read itself and drops two of the three Phel calls it used to make: 1.6x on a map, 1.8x on a vector, 1.2x on `get-in` (#2973)
 - Give the closures returned by `complement`, `constantly`, `some-fn` and `every-pred` real arities instead of a rest argument. The returned closure is what runs per call, and for a predicate that means per element: calling a `complement` is 4.4x, a `constantly` 9.5x, a `some-fn` 2.3x and an `every-pred` 2.2x (#2973)
 - Give the reducing function every transducer wraps real arities instead of a rest argument and a `case` on its count, and the same for `completing` and `transduce`. These closures are called once per element reduced, so the rest vector and the dispatch were paid per element: `(transduce (map inc) + 0 v)` over 32 elements drops 79% and the `filter` equivalent 74% (#2973)

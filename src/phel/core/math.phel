@@ -660,11 +660,16 @@ returns 1. If `xs` has one value, returns the reciprocal of x.
   ;; propagation stays in one place (#2991).
   ([x] x)
   ([x y]
-   (cond
-     (numeric-nan? x) ##NaN
-     (numeric-nan? y) ##NaN
-     (< x y)          x
-     :else            y))
+   ;; Two native ints cannot be NaN and do not need the numeric tower, so the
+   ;; common pair answers with one PHP comparison instead of two
+   ;; `numeric-nan?` calls and a `<` (#2973, same narrow fast path as #3030).
+   (if (and (php/is_int x) (php/is_int y))
+     (if (php/< x y) x y)
+     (cond
+       (numeric-nan? x) ##NaN
+       (numeric-nan? y) ##NaN
+       (< x y)          x
+       :else            y)))
   ;; Three and four arguments fold through the pair arity rather than restating
   ;; the NaN rules, exactly as the tail does, so propagation stays in one place
   ;; (#2991). What they avoid is the tail's rest-argument allocation and
@@ -682,11 +687,16 @@ returns 1. If `xs` has one value, returns the reciprocal of x.
   ;; propagation stays in one place (#2991).
   ([x] x)
   ([x y]
-   (cond
-     (numeric-nan? x) ##NaN
-     (numeric-nan? y) ##NaN
-     (> x y)          x
-     :else            y))
+   ;; Two native ints cannot be NaN and do not need the numeric tower, so the
+   ;; common pair answers with one PHP comparison instead of two
+   ;; `numeric-nan?` calls and a `>` (#2973, same narrow fast path as #3030).
+   (if (and (php/is_int x) (php/is_int y))
+     (if (php/> x y) x y)
+     (cond
+       (numeric-nan? x) ##NaN
+       (numeric-nan? y) ##NaN
+       (> x y)          x
+       :else            y)))
   ;; Three and four arguments fold through the pair arity rather than restating
   ;; the NaN rules, exactly as the tail does, so propagation stays in one place
   ;; (#2991). What they avoid is the tail's rest-argument allocation and
