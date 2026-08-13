@@ -7,6 +7,7 @@ namespace Phel\Api\Application;
 use Phel\Lang\Collections\LinkedList\PersistentListInterface;
 use Phel\Lang\Collections\Map\PersistentMapInterface;
 use Phel\Lang\Collections\Vector\PersistentVectorInterface;
+use Phel\Lang\Keyword;
 use Phel\Lang\SourceLocation;
 use Phel\Lang\Symbol;
 use Phel\Shared\Api\Location;
@@ -181,7 +182,8 @@ final readonly class LocalBindingResolver
 
     /**
      * Adds every name a binding pattern introduces. Supports plain symbols and
-     * vector/map destructuring; `&` and `.` are markers, not bindings.
+     * vector/map destructuring; `&` and `.` are markers, not bindings, and the
+     * `:or` defaults map introduces no names (its values are expressions).
      *
      * @param list<Symbol> $scope
      */
@@ -204,7 +206,14 @@ final readonly class LocalBindingResolver
         }
 
         if ($binding instanceof PersistentMapInterface) {
-            foreach ($binding as $value) {
+            foreach ($binding as $key => $value) {
+                // Mirrors MapBindingDeconstructor: the values of `:or` are
+                // default expressions (uses), not binding names. Adding them
+                // would shadow the real binding with a use-site location.
+                if ($key instanceof Keyword && $key->getName() === 'or') {
+                    continue;
+                }
+
                 $this->addBinding($value, $scope);
             }
         }

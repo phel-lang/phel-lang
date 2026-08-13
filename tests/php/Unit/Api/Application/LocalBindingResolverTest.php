@@ -121,6 +121,20 @@ final class LocalBindingResolverTest extends TestCase
         self::assertNull($location);
     }
 
+    public function test_an_or_default_expression_does_not_shadow_the_binding(): void
+    {
+        $location = $this->resolve(
+            "(let [a 1 {:keys [b] :or {b a}} m]\n  a)",
+            line: 2,
+            col: 3,
+            word: 'a',
+        );
+
+        self::assertInstanceOf(Location::class, $location);
+        self::assertSame(1, $location->line);
+        self::assertSame(7, $location->col);
+    }
+
     private function resolve(string $source, int $line, int $col, string $word): ?Location
     {
         return $this->resolver->resolve($source, 'file:///demo.phel', $line, $col, $word);
