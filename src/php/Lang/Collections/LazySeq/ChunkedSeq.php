@@ -58,7 +58,7 @@ final class ChunkedSeq extends AbstractType implements LazySeqInterface, Countab
         HasherInterface $hasher,
         EqualizerInterface $equalizer,
         Generator $generator,
-        int $chunkSize = LazySeqConfig::CHUNK_SIZE,
+        int $chunkSize = LazySeqConfig::FIRST_CHUNK_SIZE,
         ?PersistentMapInterface $meta = null,
     ): ?self {
         $values = [];
@@ -75,8 +75,11 @@ final class ChunkedSeq extends AbstractType implements LazySeqInterface, Countab
 
         $chunk = new Chunk($values);
 
+        // Only the first chunk is small. Anything that asks for a second one is
+        // being consumed rather than probed, so it goes straight to the full
+        // batch size instead of climbing towards it a chunk at a time.
         $thunk = new MemoizedThunk(
-            static fn(): ?ChunkedSeq => self::fromGenerator($hasher, $equalizer, $generator, $chunkSize),
+            static fn(): ?ChunkedSeq => self::fromGenerator($hasher, $equalizer, $generator, LazySeqConfig::CHUNK_SIZE),
         );
 
         return new self($hasher, $equalizer, $chunk, $thunk, $meta);

@@ -70,6 +70,12 @@ final class CoreSeqBench extends CoreBenchCase
     private $compare;
 
     /** @var callable */
+    private $partitionBy;
+
+    /** @var callable */
+    private $dedupe;
+
+    /** @var callable */
     private $slice;
 
     /** @var callable */
@@ -486,8 +492,50 @@ final class CoreSeqBench extends CoreBenchCase
         }
     }
 
+    /**
+     * `partition-by` and `dedupe` return a sequence built by
+     * `lazy-seq-from-generator`, so constructing one realizes a chunk before
+     * the caller has asked for a single element. These two subjects measure
+     * that construction on its own, which is the cost #3061 is about and the
+     * part `FIRST_CHUNK_SIZE` moves; the `_realized` pair below is what pays
+     * for it, one extra chunk boundary on a sequence consumed in full.
+     *
+     * @Revs(1000)
+     */
+    public function bench_partition_by_unrealized(): void
+    {
+        ($this->partitionBy)($this->isEven, $this->ints);
+    }
+
+    /**
+     * @Revs(1000)
+     */
+    public function bench_partition_by_realized(): void
+    {
+        ($this->count)(($this->partitionBy)($this->isEven, $this->ints));
+    }
+
+    /**
+     * @Revs(1000)
+     */
+    public function bench_dedupe_unrealized(): void
+    {
+        ($this->dedupe)($this->ints);
+    }
+
+    /**
+     * @Revs(1000)
+     */
+    public function bench_dedupe_realized(): void
+    {
+        ($this->count)(($this->dedupe)($this->ints));
+    }
+
     protected function setUpFixtures(): void
     {
+        $this->partitionBy = $this->coreFn('partition-by');
+        $this->dedupe = $this->coreFn('dedupe');
+
         $this->numEquals = $this->coreFn('==');
         $this->comp = $this->coreFn('comp');
 
