@@ -109,17 +109,22 @@ Transient collections provide faster performance for multiple sequential updates
    collection. Matches Clojure's `assoc!` semantics."
   {:example "(persistent! (assoc! (transient {}) :a 1 :b 2)) ; => {:a 1, :b 2}"
    :see-also ["assoc" "conj!" "transient" "persistent!"]}
-  [tcoll key value & more]
-  (loop [acc       (assoc-bang-pair tcoll key value)
-         remaining more]
-    (if (empty? remaining)
-      acc
-      (let [next-key   (first remaining)
-            next-value (second remaining)]
-        (if (empty? (rest remaining))
-          (assoc-bang-pair acc next-key nil)
-          (recur (assoc-bang-pair acc next-key next-value)
-                 (rest (rest remaining))))))))
+  ;; Fixed three-argument arity, as `conj!`, `dissoc!` and `disj!` already
+  ;; have. That call is the one every `for :reduce` over a transient makes, once
+  ;; per element, and it was allocating a rest argument and testing it empty to
+  ;; discover there was nothing more to do (#2973, #3021).
+  ([tcoll key value] (assoc-bang-pair tcoll key value))
+  ([tcoll key value & more]
+   (loop [acc       (assoc-bang-pair tcoll key value)
+          remaining more]
+     (if (empty? remaining)
+       acc
+       (let [next-key   (first remaining)
+             next-value (second remaining)]
+         (if (empty? (rest remaining))
+           (assoc-bang-pair acc next-key nil)
+           (recur (assoc-bang-pair acc next-key next-value)
+                  (rest (rest remaining)))))))))
 
 (defn- dissoc-bang-single
   [tcoll key]

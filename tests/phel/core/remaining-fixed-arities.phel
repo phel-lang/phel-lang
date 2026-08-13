@@ -80,3 +80,22 @@
   ;; chain must not build a stack frame per argument.
   (is (true? (apply == (repeat 500 1))) "500 equal arguments")
   (is (false? (apply == (concat (repeat 499 1) [2]))) "500 arguments where the last differs"))
+
+(deftest test-assoc!-arities
+  ;; `assoc!` gained a fixed three-argument arity; the variadic pair-walk has
+  ;; to keep behaving, including the trailing key that associates nil.
+  (is (= {:a 1} (persistent! (assoc! (transient {}) :a 1))) "one pair")
+  (is (= {:a 1, :b 2} (persistent! (assoc! (transient {}) :a 1 :b 2))) "two pairs")
+  (is (= {:a 1, :b 2, :c 3} (persistent! (assoc! (transient {}) :a 1 :b 2 :c 3))) "three pairs")
+  (is (= {:a 1, :b nil} (persistent! (assoc! (transient {}) :a 1 :b))) "a trailing key associates nil")
+  (is (= [9 1 2] (persistent! (assoc! (transient [0 1 2]) 0 9))) "on a transient vector"))
+
+(deftest test-get-on-a-transient-map
+  ;; `get` reaches transient maps by their own branch now rather than falling
+  ;; through to the generic `aget`.
+  (let [tm (transient {:a 1, :b nil})]
+    (is (= 1 (get tm :a)) "a present key")
+    (is (nil? (get tm :missing)) "a missing key without a default")
+    (is (= :fallback (get tm :missing :fallback)) "a missing key with a default")
+    (is (= :fallback (get tm :b :fallback)) "a nil value reads as absent, as for a persistent map")
+    (is (= 1 (get tm :a :fallback)) "a default is ignored when the key is present")))
