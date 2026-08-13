@@ -135,4 +135,34 @@ final class BooleanExprDetectorTest extends TestCase
             self::assertFalse(BooleanExprDetector::isBool($call), $tag . ' must not read as bool');
         }
     }
+
+    public function test_php_string_predicates_are_bool(): void
+    {
+        // `str_contains`, `str_starts_with` and `str_ends_with` return bool but
+        // were missing from the recognised list, so `phel.string/includes?` and
+        // friends kept the truthy adapter in an `if` test.
+        foreach (['str_contains', 'str_ends_with', 'str_starts_with'] as $fn) {
+            $call = new CallNode(
+                NodeEnvironment::empty(),
+                new PhpVarNode(NodeEnvironment::empty(), $fn),
+                [
+                    new LiteralNode(NodeEnvironment::empty(), 'haystack'),
+                    new LiteralNode(NodeEnvironment::empty(), 'needle'),
+                ],
+            );
+            self::assertTrue(BooleanExprDetector::isBool($call), $fn . ' should be bool');
+        }
+    }
+
+    public function test_a_non_bool_php_string_function_is_not_bool(): void
+    {
+        foreach (['str_replace', 'substr', 'strpos', 'implode'] as $fn) {
+            $call = new CallNode(
+                NodeEnvironment::empty(),
+                new PhpVarNode(NodeEnvironment::empty(), $fn),
+                [new LiteralNode(NodeEnvironment::empty(), 'x')],
+            );
+            self::assertFalse(BooleanExprDetector::isBool($call), $fn . ' must not read as bool');
+        }
+    }
 }

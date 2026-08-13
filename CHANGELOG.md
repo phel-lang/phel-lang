@@ -113,6 +113,7 @@ All notable changes to this project will be documented in this file.
 
 Compiler:
 
+- Recognise `str_contains`, `str_starts_with` and `str_ends_with` as bool-returning, so an `if` over one of them or over `phel.string/includes?`, `starts-with?`, `ends-with?` and `contains?` skips the `Truthy` adapter: 7.3% on the raw interop call, 3 to 4.5% through the wrappers (#2973)
 - Tag the fifteen core predicates that returned an untagged bool (`even?`, `odd?`, `zero?`, `empty?`, `some?`, `map?`, `list?`, `indexed?`, `contains?`, `truthy?`, `nan?`, `infinite?`, `subset?`, `superset?`, `not`) so an `if` over them skips the `Truthy` adapter, and so a function built on one is itself inferred to return `bool`: 1 to 5% per test, plus the return type it propagates (#2973)
 - Skip the `Truthy` adapter in an `if` test when the call is to a global whose return `:tag` is `bool`, which covers `<`, `>`, `<=`, `>=`, `=`, `not=`, `nil?` and `pos?` as well as any user `defn ^bool`. A `defn` whose arities disagree carries no tag, so it keeps the adapter (#2973)
 - Lower `(not x)` to a native `!` when `x` is a proven PHP bool: 3.7x, and an `if` test drops the `Truthy` adapter too (#3021)
