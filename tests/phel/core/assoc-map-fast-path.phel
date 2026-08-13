@@ -1,0 +1,41 @@
+(ns phel-test.core.assoc-map-fast-path
+  (:require phel.test :refer [deftest is]))
+
+(defstruct pt [x y])
+
+;; `assoc`'s three-argument arity answers a map target itself instead of
+;; delegating to `assoc-pair`, and `assoc-pair` reaches its map and vector
+;; branches by their own `instanceof` rather than through `map-target?` and
+;; `vector-target?`. Both change which branch a collection lands on, so every
+;; target has to keep answering what it did.
+
+(deftest test-map-targets
+  (is (= {:a 1, :b 2} (assoc {:a 1} :b 2)) "a persistent map")
+  (is (= {:a 9} (assoc {:a 1} :a 9)) "an existing key is replaced")
+  (is (= {:b 2} (assoc {} :b 2)) "an empty map")
+  (is (= {:a nil} (assoc {} :a nil)) "a nil value is stored")
+  (is (nil? (get (assoc {} :a nil) :a)) "and reads back as nil")
+  (is (= 1 (get (assoc {} nil 1) nil)) "nil works as a key")
+  (is (= {:a 1, :b 2, :c 3} (assoc {:a 1} :b 2 :c 3)) "the variadic form still applies pairs in order"))
+
+(deftest test-other-map-flavours
+  (is (= 2 (get (assoc (sorted-map :a 1) :b 2) :b)) "a sorted map")
+  (is (= 9 (get (assoc (pt 1 2) :x 9) :x)) "a struct is a map target")
+  (is (= 2 (get (assoc (pt 1 2) :x 9) :y)) "the struct's other field survives")
+  (let [t (transient {:a 1})]
+    (is (= 2 (get (assoc t :b 2) :b)) "a transient map")
+    ;; `assoc` on a transient mutates and hands the same transient back.
+    (is (identical? t (assoc t :c 3)) "the transient itself comes back")))
+
+(deftest test-vector_targets
+  (is (= [9 20] (assoc [10 20] 0 9)) "an index is replaced")
+  (is (= [10 20 30] (assoc [10 20] 2 30)) "appending at the end")
+  (is (= [10 99] (persistent (assoc (transient [10 20]) 1 99))) "a transient vector")
+  (is (thrown? \InvalidArgumentException (assoc [10 20] :a 1)) "a non-integer index is rejected"))
+
+(deftest test-targets_that_are_not_maps_or_vectors
+  ;; Each of these must still reach the longer dispatch in `assoc-pair`.
+  (is (= {:a 1} (assoc nil :a 1)) "nil creates a fresh map, as in Clojure")
+  (is (thrown? \InvalidArgumentException (assoc (php-indexed-array 1 2) 0 9))
+      "a raw PHP array is rejected with the aset hint")
+  (is (= [:a 9] (assoc (first {:a 1}) 1 9)) "a MapEntry degrades to a vector"))
