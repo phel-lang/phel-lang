@@ -79,6 +79,12 @@ final class CoreSeqBench extends CoreBenchCase
     private $transduce;
 
     /** @var callable */
+    private $frequencies;
+
+    /** @var callable */
+    private $groupBy;
+
+    /** @var callable */
     private $notEven;
 
     /** @var callable */
@@ -130,6 +136,10 @@ final class CoreSeqBench extends CoreBenchCase
     private mixed $emptyVector = null;
 
     private mixed $map = null;
+
+    private mixed $emptyMap = null;
+
+    private mixed $pairs = null;
 
     /**
      * The all-int input, which is the shape `sort` can answer without calling
@@ -553,6 +563,34 @@ final class CoreSeqBench extends CoreBenchCase
     }
 
     /**
+     * `frequencies` and a map-target `into` both reduce `assoc!` over a
+     * transient map once per element, which no subject reached: the `into`
+     * pair above uses a vector target and so goes through `conj` instead.
+     *
+     * @Revs(1000)
+     */
+    public function bench_frequencies(): void
+    {
+        ($this->frequencies)($this->ints);
+    }
+
+    /**
+     * @Revs(1000)
+     */
+    public function bench_into_map(): void
+    {
+        ($this->into)($this->emptyMap, $this->pairs);
+    }
+
+    /**
+     * @Revs(1000)
+     */
+    public function bench_group_by(): void
+    {
+        ($this->groupBy)($this->isEven, $this->ints);
+    }
+
+    /**
      * The subjects above hand back a transducer and stop there, so none of
      * them reaches the reducing function it wraps. This one drives 32 elements
      * through it, which is where a per-step cost would show up.
@@ -615,6 +653,8 @@ final class CoreSeqBench extends CoreBenchCase
     {
         $this->partitionBy = $this->coreFn('partition-by');
         $this->transduce = $this->coreFn('transduce');
+        $this->frequencies = $this->coreFn('frequencies');
+        $this->groupBy = $this->coreFn('group-by');
 
         $this->notEven = ($this->coreFn('complement'))($this->coreFn('even?'));
         $this->always = ($this->coreFn('constantly'))(42);
@@ -663,5 +703,13 @@ final class CoreSeqBench extends CoreBenchCase
         ]);
         $this->emptyVector = Phel::vector([]);
         $this->map = Phel::map(Phel::keyword('a'), 1, Phel::keyword('b'), 2);
+        $this->emptyMap = Phel::map();
+
+        $pairs = [];
+        for ($i = 0; $i < self::SIZE; ++$i) {
+            $pairs[] = Phel::vector([$i, $i * 2]);
+        }
+
+        $this->pairs = Phel::vector($pairs);
     }
 }
