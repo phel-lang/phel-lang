@@ -244,7 +244,7 @@ This is a convenience function for converting strings to character sequences. Pr
 (defn starts-with?
   "True if s starts with substr."
   {:example "(starts-with? \"hello world\" \"hello\") ; => true"}
-  [s substr]
+  ^bool [s substr]
   (assert-string s)
   (assert-string substr)
   (php/str_starts_with s substr))
@@ -252,7 +252,7 @@ This is a convenience function for converting strings to character sequences. Pr
 (defn ends-with?
   "True if s ends with substr."
   {:example "(ends-with? \"hello world\" \"world\") ; => true"}
-  [s substr]
+  ^bool [s substr]
   (assert-string s)
   (assert-string substr)
   (php/str_ends_with s substr))
@@ -261,7 +261,7 @@ This is a convenience function for converting strings to character sequences. Pr
   "True if s includes substr."
   {:example "(includes? \"hello world\" \"world\") ; => true"
    :see-also ["contains?" "starts-with?" "ends-with?" "index-of"]}
-  [s substr]
+  ^bool [s substr]
   (assert-string s)
   (assert-string substr)
   (php/str_contains s substr))
@@ -270,7 +270,7 @@ This is a convenience function for converting strings to character sequences. Pr
   "True if s contains substr. Synonym for `includes?`."
   {:example "(contains? \"hello world\" \"lo wo\") ; => true"
    :see-also ["includes?" "starts-with?" "ends-with?"]}
-  [s substr]
+  ^bool [s substr]
   ;; Spelled out rather than delegating to `includes?`: the delegation ran
   ;; `assert-string` on both arguments a second time, and paid a call to do it.
   (assert-string s)

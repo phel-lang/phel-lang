@@ -73,6 +73,9 @@ final class BooleanExprDetector
         'is_subclass_of',
         'method_exists',
         'property_exists',
+        'str_contains',
+        'str_ends_with',
+        'str_starts_with',
     ];
 
     public static function isBool(AbstractNode $node): bool
