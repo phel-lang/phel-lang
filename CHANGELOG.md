@@ -115,6 +115,7 @@ All notable changes to this project will be documented in this file.
 
 Compiler:
 
+- Sort an all-string collection natively instead of calling back into Phel per comparison, as `sort` already did for an all-int one: 22.7x. The default `SORT_REGULAR` is used and not `SORT_STRING`, because `compare` settles two strings with PHP's `<=>`, which orders numeric strings by value (#2973)
 - Build `kvs` and the indexed branch of `php->phel` the same way as `vec`, collecting into a PHP array and constructing the vector once: `kvs` 1.65x, `php->phel` on an indexed array 1.97x (#2973)
 - Build `vec`'s result by collecting into a PHP array and constructing the vector once, instead of appending through a transient per element: 3.1x over 32 elements and 3.5x over 500, so the gain holds as the collection grows (#2973)
 - Answer a map target in `dissoc`'s two-argument arity itself rather than delegating to `dissoc-one`, and reach the map and set branches inside `dissoc-one` by their own `instanceof` instead of through `map-target?` and `set-target?`: 1.14x (#2973)
