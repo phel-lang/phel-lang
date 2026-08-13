@@ -3,90 +3,68 @@
 
 (def- *default-width* 72)
 
+(def- readable-printer (Printer/readable))
+
 (defn- print-value
-  "Prints a scalar or non-collection value using the standard readable printer."
+  "Prints a scalar or non-collection value using the standard readable printer.
+  The printer is built once: `Printer/readable` allocates, and this is called
+  for every node the walk measures. `phel.edn` hoists the same way."
   [x]
-  (.print (Printer/readable) x))
+  (.print readable-printer x))
 
 (defn- render-value
   "Prints `x` with the given printer (plain or colored)."
   [printer x]
   (.print printer x))
 
+;; `pp-parts` and `pp-pairs` recurse back into `pp-str`, which is defined below
+;; them because it is the entry point the two helpers exist to serve.
+(declare pp-str)
+
+(defn- pp-parts
+  "Pretty-prints each element of `form` at `inner-indent`, joined by a newline
+  and that much padding."
+  [form inner-indent width printer]
+  (let [pad   (php/str_repeat " " inner-indent)
+        parts (for [x :in form] (pp-str x inner-indent width printer))]
+    (php/implode (str "\n" pad) (apply php-indexed-array parts))))
+
+(defn- pp-pairs
+  "The same for a map or struct, where each entry is a key, a space, and its
+  value laid out from just past the key."
+  [form inner-indent width printer]
+  (let [pad   (php/str_repeat " " inner-indent)
+        pairs (for [[k v] :pairs form]
+                (let [kstr (print-value k)]
+                  (str (render-value printer k) " "
+                       (pp-str v (+ inner-indent (count kstr) 1) width printer))))]
+    (php/implode (str "\n" pad) (apply php-indexed-array pairs))))
+
 (defn- pp-str
   "Pretty-prints `form` to a string with the given indent level and max width.
   Width is always measured on the plain readable output; `printer` only affects
   how leaves are rendered (ANSI codes would inflate the measured length)."
   [form indent width printer]
-  (let [t         (type form)
-        available (- width indent)
-        flat      (print-value form)]
-    (cond
-      (= t :vector)
-      (if (<= (count flat) available)
-        (render-value printer form)
-        (let [prefix       "["
-              suffix       "]"
-              inner-indent (+ indent 1)
-              pad          (php/str_repeat " " inner-indent)
-              parts        (for [x :in form] (pp-str x inner-indent width printer))]
-          (str prefix
-               (php/implode (str "\n" pad) (apply php-indexed-array parts))
-               suffix)))
-
-      (= t :list)
-      (if (<= (count flat) available)
-        (render-value printer form)
-        (let [prefix       "("
-              suffix       ")"
-              inner-indent (+ indent 1)
-              pad          (php/str_repeat " " inner-indent)
-              parts        (for [x :in form] (pp-str x inner-indent width printer))]
-          (str prefix
-               (php/implode (str "\n" pad) (apply php-indexed-array parts))
-               suffix)))
-
-      (= t :hash-map)
-      (if (<= (count flat) available)
-        (render-value printer form)
-        (let [prefix       "{"
-              suffix       "}"
-              inner-indent (+ indent 1)
-              pad          (php/str_repeat " " inner-indent)
-              pairs        (for [[k v] :pairs form]
-                             (let [kstr (print-value k)]
-                               (str (render-value printer k) " "
-                                    (pp-str v (+ inner-indent (count kstr) 1) width printer))))
-              joined       (php/implode (str "\n" pad) (apply php-indexed-array pairs))]
-          (str prefix joined suffix)))
-
-      (= t :set)
-      (if (<= (count flat) available)
-        (render-value printer form)
-        (let [prefix       "#{"
-              suffix       "}"
-              inner-indent (+ indent 2)
-              pad          (php/str_repeat " " inner-indent)
-              parts        (for [x :in form] (pp-str x inner-indent width printer))]
-          (str prefix
-               (php/implode (str "\n" pad) (apply php-indexed-array parts))
-               suffix)))
-
-      (= t :struct)
-      (if (<= (count flat) available)
-        (render-value printer form)
-        (let [prefix       "{"
-              suffix       "}"
-              inner-indent (+ indent 1)
-              pad          (php/str_repeat " " inner-indent)
-              pairs        (for [[k v] :pairs form]
-                             (let [kstr (print-value k)]
-                               (str (render-value printer k) " "
-                                    (pp-str v (+ inner-indent (count kstr) 1) width printer))))
-              joined       (php/implode (str "\n" pad) (apply php-indexed-array pairs))]
-          (str prefix joined suffix)))
-
-      (render-value printer form))))
+  (let [t (type form)]
+    (if (not (or (= t :vector) (= t :list) (= t :hash-map) (= t :set) (= t :struct)))
+      ;; Leaves take no measurement. `flat` used to be computed before the
+      ;; dispatch, so every scalar in the tree paid a full print that this
+      ;; branch then threw away.
+      (render-value printer form)
+      (let [flat (print-value form)]
+        (if (<= (count flat) (- width indent))
+          ;; When it fits and the printer is the plain readable one, `flat` is
+          ;; already the answer; it used to be printed a second time. A colored
+          ;; printer renders differently, so that one still prints.
+          (if (identical? printer readable-printer)
+            flat
+            (render-value printer form))
+          (let [inner-indent (if (= t :set) (+ indent 2) (+ indent 1))]
+            (cond
+              (= t :vector) (str "[" (pp-parts form inner-indent width printer) "]")
+              (= t :list)   (str "(" (pp-parts form inner-indent width printer) ")")
+              (= t :set)    (str "#{" (pp-parts form inner-indent width printer) "}")
+              (str "{" (pp-pairs form inner-indent width printer) "}"))))))))
 
 (defn pprint-str
   "Pretty-prints `form` to a string with optional `width` (default 72)."
@@ -95,7 +73,7 @@
    :example "(pprint-str {:a [1 2 3] :b {:c 4 :d 5}})"}
   [form & [width]]
   (let [w (or width *default-width*)]
-    (pp-str form 0 w (Printer/readable))))
+    (pp-str form 0 w readable-printer)))
 
 (defn pprint
   "Pretty-prints `form` to stdout with optional `width` (default 72)."
@@ -123,9 +101,12 @@
    :example "(-> {:a [1 2 3]} inspect (get :a))"}
   [x & [width]]
   (let [w       (or width *default-width*)
+        ;; The hoisted printer rather than a fresh one: it avoids an
+        ;; allocation, and it is the instance `pp-str` recognises to skip
+        ;; reprinting a subtree it has already measured.
         printer (if (color-output?)
                   (Printer/readableWithColor)
-                  (Printer/readable))]
+                  readable-printer)]
     (php/print (pp-str x 0 w printer))
     (php/print "\n")
     x))
