@@ -397,12 +397,15 @@ Without arguments, uses a default cache size of 128 entries."
   "Merges multiple maps into one new map. If a key appears in more than one collection, the result of `(f current-val next-val)` is used."
   {:example "(merge-with + {:a 1 :b 2} {:a 10}) ; => {:a 11, :b 2}"
    :see-also ["merge" "deep-merge"]}
-  [f & hash-maps]
-  (case (count hash-maps)
-    0 {}
-    1 (first hash-maps)
-    2 (merge-with-2 f (first hash-maps) (second hash-maps))
-    (reduce (partial merge-with f) (first hash-maps) (rest hash-maps))))
+  ;; Fixed arities: the rest argument was allocated and counted only to be
+  ;; unpacked with `first` and `second` again (#2973, #3021).
+  ;; `f` is unused here and in the one-map arity; both are the identity cases
+  ;; the old `case` answered with `{}` and `(first hash-maps)`.
+  ([f] {})
+  ([f m] m)
+  ([f m1 m2] (merge-with-2 f m1 m2))
+  ([f m1 m2 & hash-maps]
+   (reduce (partial merge-with f) (merge-with-2 f m1 m2) hash-maps)))
 
 (declare deep-merge)
 
@@ -419,12 +422,12 @@ Without arguments, uses a default cache size of 128 entries."
   "Recursively merges data structures."
   {:example "(deep-merge {:a {:x 1}} {:a {:y 2}}) ; => {:a {:x 1, :y 2}}"
    :see-also ["merge" "merge-with"]}
-  [& args]
-  (case (count args)
-    0 {}
-    1 (first args)
-    2 (deep-merge-2 (first args) (second args))
-    (reduce deep-merge (first args) (rest args))))
+  ;; Fixed arities: the rest argument was allocated and counted only to be
+  ;; unpacked with `first` and `second` again (#2973, #3021).
+  ([] {})
+  ([m] m)
+  ([m1 m2] (deep-merge-2 m1 m2))
+  ([m1 m2 & args] (reduce deep-merge (deep-merge-2 m1 m2) args)))
 
 ;; --- Map utilities ---
 

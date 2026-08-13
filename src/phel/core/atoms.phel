@@ -122,15 +122,27 @@ Returns the new value after the swap."
   "Atomically swaps the value of the atom `variable` to `(apply f current-value args)`. Returns a vector `[old-value new-value]` of the values before and after the swap."
   {:example "(def a (atom 1))\n(swap-vals! a inc) ; => [1 2]"
    :see-also ["swap!" "reset-vals!"]}
-  [variable f & args]
-  (let [old  (deref variable)
-        next (case (count args)
-               0 (f old)
-               1 (f old (first args))
-               2 (f old (first args) (second args))
-               (apply f old args))]
-    (reset! variable next)
-    [old next]))
+  ;; Fixed arities: the rest argument was allocated and counted only to be
+  ;; unpacked with `first` and `second` again (#2973, #3021).
+  ;; Each arity is written out rather than delegating: the old value has to be
+  ;; read before `f` runs, so a shared helper would need either a second
+  ;; `deref` or a closure per call.
+  ([variable f]
+   (let [old (deref variable) next (f old)]
+     (reset! variable next)
+     [old next]))
+  ([variable f a]
+   (let [old (deref variable) next (f old a)]
+     (reset! variable next)
+     [old next]))
+  ([variable f a b]
+   (let [old (deref variable) next (f old a b)]
+     (reset! variable next)
+     [old next]))
+  ([variable f a b & args]
+   (let [old (deref variable) next (apply f old a b args)]
+     (reset! variable next)
+     [old next])))
 
 (defn add-watch
   "Adds a watch function to a variable. The watch fn is called when the variable changes with four arguments: key, ref, old-value, new-value."
