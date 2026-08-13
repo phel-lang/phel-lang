@@ -1,0 +1,54 @@
+(ns phel-test.core.sort-by-int-keys
+  (:require phel.test :refer [deftest is]))
+
+;; `sort-by` orders its decorated `[key value]` pairs with native comparisons
+;; when every key is a native int and no comparator was supplied. The fast path
+;; must produce exactly what the general path produces, ties included, and must
+;; not engage for anything else.
+
+(def- reference-comparator (fn [a b] (compare a b)))
+
+(defn- slow-sort-by
+  "`sort-by` forced onto the general path by handing it a comparator that is
+  not `compare` itself, so the two orders can be diffed."
+  [keyfn coll]
+  (sort-by keyfn reference-comparator coll))
+
+(deftest test-int-keys-match-the-general-path
+  (foreach [coll [[3 1 4 1 5 9 2 6]
+                  []
+                  [1]
+                  [2 2 2]
+                  [-5 3 -1 0]
+                  [1000000 -1000000 0]
+                  (vec (range 0 50))
+                  (vec (map (fn [i] (php/% (* i 17) 30)) (range 0 60)))]]
+    (is (= (slow-sort-by identity coll) (sort-by identity coll))
+        (str "identity keys over " (count coll) " elements"))))
+
+(deftest test-derived-int-keys
+  (let [words ["ccc" "a" "bb" "dddd" "e"]]
+    (is (= (slow-sort-by count words) (sort-by count words)) "count as the key"))
+  (let [maps [{:n 3} {:n 1} {:n 2}]]
+    (is (= [{:n 1} {:n 2} {:n 3}] (sort-by (fn [m] (get m :n)) maps)) "a key read out of a map")))
+
+(deftest test-ties-keep-their-input-order
+  ;; usort is stable as of PHP 8, and the fast path must not change that.
+  (let [pairs [[1 :a] [0 :b] [1 :c] [0 :d] [1 :e]]]
+    (is (= [[0 :b] [0 :d] [1 :a] [1 :c] [1 :e]]
+           (sort-by (fn [p] (get p 0)) pairs))
+        "equal keys stay in the order they arrived")))
+
+(deftest test-non-int-keys-do-not-take-the-fast-path
+  (is (= ["a" "bb" "ccc"] (sort-by identity ["ccc" "a" "bb"])) "string keys")
+  (is (= [1.5 2.5 3.5] (sort-by identity [3.5 1.5 2.5])) "float keys")
+  (is (= [[1] [2] [3]] (sort-by identity [[3] [1] [2]])) "vector keys")
+  ;; One non-int key is enough to disqualify the whole collection.
+  (is (= (slow-sort-by identity [1 2.0 3]) (sort-by identity [1 2.0 3]))
+      "a single float among ints"))
+
+(deftest test-a-supplied-comparator-still-wins
+  (is (= [9 5 4 3 2 1] (sort-by identity (fn [a b] (compare b a)) [3 1 4 9 2 5]))
+      "a reversing comparator is honoured over the fast path")
+  (is (= [1 2 3 4 5 9] (sort-by identity compare [3 1 4 9 2 5]))
+      "passing `compare` explicitly gives the same order as omitting it"))
