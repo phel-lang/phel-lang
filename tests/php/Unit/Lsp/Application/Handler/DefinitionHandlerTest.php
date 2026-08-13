@@ -33,7 +33,8 @@ final class DefinitionHandlerTest extends TestCase
         );
         $session->setProjectIndex(new ProjectIndex(
             [],
-            ['phel.pprint/' => [new Location('/project/pprint.phel', 4, 8, 4, 19)]],
+            [],
+            ['phel.pprint' => new Location('/project/pprint.phel', 4, 8, 4, 19)],
         ));
 
         $handler = new DefinitionHandler(

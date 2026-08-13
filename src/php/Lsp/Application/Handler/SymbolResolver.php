@@ -5,14 +5,10 @@ declare(strict_types=1);
 namespace Phel\Lsp\Application\Handler;
 
 use Phel\Shared\Api\Definition;
-use Phel\Shared\Api\Location;
 use Phel\Shared\Api\ProjectIndex;
 
 use function explode;
 use function str_contains;
-use function str_ends_with;
-use function str_replace;
-use function substr;
 
 /**
  * Shared lookup logic for resolving a word under the cursor against the
@@ -62,33 +58,6 @@ final class SymbolResolver
         foreach ($index->definitions as $def) {
             if ($def->name === $word) {
                 return $def;
-            }
-        }
-
-        return null;
-    }
-
-    /**
-     * Resolve a namespace identifier to the location of its `ns` declaration.
-     * Namespace metadata may use either Phel's dotted spelling or its internal
-     * backslash spelling, so compare a normalised representation.
-     */
-    public function findNamespace(string $word, ProjectIndex $index): ?Location
-    {
-        $direct = $index->references[$word . '/'][0] ?? null;
-        if ($direct instanceof Location) {
-            return $direct;
-        }
-
-        $normalizedWord = str_replace('\\', '.', $word);
-        foreach ($index->references as $key => $locations) {
-            if (!str_ends_with($key, '/')) {
-                continue;
-            }
-
-            $namespace = substr($key, 0, -1);
-            if (str_replace('\\', '.', $namespace) === $normalizedWord) {
-                return $locations[0] ?? null;
             }
         }
 

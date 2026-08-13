@@ -8,6 +8,7 @@ use Phel\Api\Domain\ProjectIndexerInterface;
 use Phel\Shared\Api\Definition;
 use Phel\Shared\Api\Location;
 use Phel\Shared\Api\ProjectIndex;
+use Phel\Shared\Munge;
 
 use function file_get_contents;
 use function is_dir;
@@ -34,6 +35,8 @@ final readonly class ProjectIndexer implements ProjectIndexerInterface
         $definitions = [];
         /** @var array<string, list<Location>> $references */
         $references = [];
+        /** @var array<string, Location> $namespaceLocations */
+        $namespaceLocations = [];
 
         foreach ($srcDirs as $dir) {
             $real = realpath($dir);
@@ -58,7 +61,7 @@ final readonly class ProjectIndexer implements ProjectIndexerInterface
                 }
 
                 if ($result['namespace'] !== '' && $result['namespaceLocation'] instanceof Location) {
-                    $references[$result['namespace'] . '/'] = [$result['namespaceLocation']];
+                    $namespaceLocations[Munge::canonicalNs($result['namespace'])] = $result['namespaceLocation'];
                 }
 
                 foreach ($result['references'] as $key => $locations) {
@@ -73,6 +76,6 @@ final readonly class ProjectIndexer implements ProjectIndexerInterface
             }
         }
 
-        return new ProjectIndex($definitions, $references);
+        return new ProjectIndex($definitions, $references, $namespaceLocations);
     }
 }

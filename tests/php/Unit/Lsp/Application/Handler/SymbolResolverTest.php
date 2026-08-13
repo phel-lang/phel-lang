@@ -6,7 +6,6 @@ namespace PhelTest\Unit\Lsp\Application\Handler;
 
 use Phel\Lsp\Application\Handler\SymbolResolver;
 use Phel\Shared\Api\Definition;
-use Phel\Shared\Api\Location;
 use Phel\Shared\Api\ProjectIndex;
 use PHPUnit\Framework\TestCase;
 
@@ -81,30 +80,5 @@ final class SymbolResolverTest extends TestCase
         $resolver = new SymbolResolver();
 
         self::assertNull($resolver->find('missing', $index));
-    }
-
-    public function test_find_namespace_returns_ns_declaration_location(): void
-    {
-        $location = new Location('/src/pprint.phel', 1, 5, 1, 16);
-        $index = new ProjectIndex([], ['phel.pprint/' => [$location]]);
-        $resolver = new SymbolResolver();
-
-        self::assertSame($location, $resolver->findNamespace('phel.pprint', $index));
-    }
-
-    public function test_find_namespace_normalizes_internal_backslashes(): void
-    {
-        $location = new Location('/src/pprint.phel', 1, 5, 1, 16);
-        $index = new ProjectIndex([], ['phel\\pprint/' => [$location]]);
-        $resolver = new SymbolResolver();
-
-        self::assertSame($location, $resolver->findNamespace('phel.pprint', $index));
-    }
-
-    public function test_find_namespace_returns_null_for_unknown_namespace(): void
-    {
-        $resolver = new SymbolResolver();
-
-        self::assertNull($resolver->findNamespace('missing.namespace', new ProjectIndex([])));
     }
 }

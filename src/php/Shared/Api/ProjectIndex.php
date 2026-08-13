@@ -4,13 +4,14 @@ declare(strict_types=1);
 
 namespace Phel\Shared\Api;
 
+use Phel\Shared\Munge;
+
 use function array_filter;
 use function array_keys;
+use function array_map;
 use function array_unique;
 use function array_values;
 use function count;
-use function str_ends_with;
-use function substr;
 
 /**
  * Immutable symbol table keyed by `namespace/name`.
@@ -25,12 +26,14 @@ use function substr;
 final readonly class ProjectIndex
 {
     /**
-     * @param array<string, Definition>     $definitions keyed by `namespace/name`
-     * @param array<string, list<Location>> $references  keyed by `namespace/name`; an empty name stores the namespace declaration
+     * @param array<string, Definition>     $definitions        keyed by `namespace/name`
+     * @param array<string, list<Location>> $references         keyed by `namespace/name`
+     * @param array<string, Location>       $namespaceLocations `ns` declaration sites, keyed by canonical (dotted) namespace
      */
     public function __construct(
         public array $definitions,
         public array $references = [],
+        public array $namespaceLocations = [],
     ) {}
 
     /**
@@ -39,17 +42,29 @@ final readonly class ProjectIndex
     public function namespaces(): array
     {
         $namespaces = [];
+        $seen = [];
         foreach ($this->definitions as $def) {
             $namespaces[] = $def->namespace;
+            $seen[Munge::canonicalNs($def->namespace)] = true;
         }
 
-        foreach (array_keys($this->references) as $key) {
-            if (str_ends_with($key, '/')) {
-                $namespaces[] = substr($key, 0, -1);
+        foreach (array_keys($this->namespaceLocations) as $namespace) {
+            // keys are canonical, a definition namespace may spell the same one with backslashes
+            if (!isset($seen[$namespace])) {
+                $namespaces[] = $namespace;
             }
         }
 
         return array_values(array_unique($namespaces));
+    }
+
+    /**
+     * Resolve a namespace identifier to the location of its `ns` declaration.
+     * Namespaces reach here in either spelling, so canonicalise before lookup.
+     */
+    public function namespaceLocation(string $namespace): ?Location
+    {
+        return $this->namespaceLocations[Munge::canonicalNs($namespace)] ?? null;
     }
 
     /**
@@ -81,6 +96,7 @@ final readonly class ProjectIndex
      *     definitions: int,
      *     symbols: array<string, SerializedDefinition>,
      *     references: array<string, list<SerializedLocation>>,
+     *     namespaceLocations: array<string, SerializedLocation>,
      * }
      */
     public function toArray(): array
@@ -98,11 +114,17 @@ final readonly class ProjectIndex
             );
         }
 
+        $namespaceLocations = [];
+        foreach ($this->namespaceLocations as $namespace => $location) {
+            $namespaceLocations[$namespace] = $location->toArray();
+        }
+
         return [
             'namespaces' => $this->countNamespaces(),
             'definitions' => $this->countDefinitions(),
             'symbols' => $symbols,
             'references' => $references,
+            'namespaceLocations' => $namespaceLocations,
         ];
     }
 }

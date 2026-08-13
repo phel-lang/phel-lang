@@ -1622,11 +1622,13 @@ final readonly class Phel\Shared\Api\PhelFunction
 
 final readonly class Phel\Shared\Api\ProjectIndex
   public readonly array $definitions
+  public readonly array $namespaceLocations
   public readonly array $references
-  public function __construct(array $definitions, array $references = [])
+  public function __construct(array $definitions, array $references = [], array $namespaceLocations = [])
   public function countDefinitions(): int
   public function countNamespaces(): int
   public function definitionsInNamespace(string $namespace): array
+  public function namespaceLocation(string $namespace): ?Phel\Shared\Api\Location
   public function namespaces(): array
   public function toArray(): array
 

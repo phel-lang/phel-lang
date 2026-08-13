@@ -54,7 +54,7 @@ final readonly class DefinitionHandler implements HandlerInterface
             return $this->locations->fromDefinition($definition);
         }
 
-        $namespace = $this->symbols->findNamespace($context->word, $context->index);
+        $namespace = $context->index->namespaceLocation($context->word);
         if (!$namespace instanceof Location) {
             return null;
         }

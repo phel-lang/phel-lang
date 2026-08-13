@@ -82,6 +82,26 @@ final class SemanticAnalysisTest extends TestCase
 
     #[PreserveGlobalState(false)]
     #[RunInSeparateProcess]
+    public function test_it_indexes_the_ns_declaration_site_of_each_namespace(): void
+    {
+        $this->bootstrap();
+        $facade = new ApiFacade();
+
+        $index = $facade->indexProject([__DIR__ . '/Fixtures']);
+
+        // the fixture declares (ns fixtures\foo), so the source spelling is the backslash one
+        $location = $index->namespaceLocation('fixtures\\foo');
+        self::assertNotNull($location);
+        self::assertStringEndsWith('foo.phel', $location->uri);
+        self::assertSame(1, $location->line);
+        self::assertSame($location, $index->namespaceLocation('fixtures.foo'));
+
+        self::assertNotContains('fixtures.foo', $index->namespaces());
+        self::assertNull($index->namespaceLocation('fixtures\\nope'));
+    }
+
+    #[PreserveGlobalState(false)]
+    #[RunInSeparateProcess]
     public function test_it_finds_references_to_a_symbol_across_files(): void
     {
         $this->bootstrap();
