@@ -1,0 +1,48 @@
+(ns phel-test.core.sum-fast-path
+  (:require phel.test :refer [deftest is]))
+
+;; `sum` adds a PHP array of ints with `array_sum` instead of spreading the
+;; collection into the variadic arm of `+`. The fast path is narrow on purpose,
+;; and the one case it cannot answer is an int sum that overflows, where Phel's
+;; `+` promotes to BigInt and `array_sum` gives a float.
+
+(deftest test-sum-over-int-collections
+  (is (= 6 (sum [1 2 3])) "a vector of ints")
+  (is (= 0 (sum [])) "an empty collection")
+  (is (= 42 (sum [42])) "a single element")
+  (is (= -3 (sum [-5 3 -1])) "negatives")
+  (is (= 0 (sum [0 0 0])) "zeros")
+  (is (= 6 (sum '(1 2 3))) "a list")
+  (is (= 45 (sum (range 0 10))) "a range")
+  (is (= 10 (sum (take 5 (range 0 100)))) "a lazy seq")
+  (is (= 6 (sum (php-indexed-array 1 2 3))) "a PHP array")
+  (is (= 19900 (sum (range 0 200))) "200 elements"))
+
+(deftest test-sum-keeps-int-results-int
+  (is (= "int" (php/get_debug_type (sum [1 2 3]))) "ints sum to an int")
+  (is (= "int" (php/get_debug_type (sum []))) "an empty sum is an int"))
+
+(deftest test-sum-over-non-int-collections
+  (is (= 4.0 (sum [1.5 2.5])) "floats")
+  (is (= 6.5 (sum [1 2.5 3])) "mixed ints and floats")
+  (is (= "float" (php/get_debug_type (sum [1.5 2.5]))) "floats sum to a float")
+  ;; One non-int is enough to leave the fast path.
+  (is (= 3.5 (sum [1 2.5])) "a single float among ints"))
+
+(deftest test-sum-overflow-promotes-like-plus
+  ;; array_sum returns a float exactly when the int sum overflows; `+` promotes
+  ;; to BigInt instead, and `sum` has to keep doing that.
+  (let [maxi (php/constant "PHP_INT_MAX")
+        mini (php/constant "PHP_INT_MIN")]
+    (is (= (+ maxi 0) (sum [maxi 0])) "at the boundary, no overflow")
+    (is (= "int" (php/get_debug_type (sum [maxi 0]))) "and still an int")
+    (is (= (+ maxi 1) (sum [maxi 1])) "past the boundary matches `+`")
+    (is (= (php/get_debug_type (+ maxi 1)) (php/get_debug_type (sum [maxi 1])))
+        "and promotes to the same type `+` promotes to")
+    (is (= (+ mini -1) (sum [mini -1])) "negative overflow matches `+`")))
+
+(deftest test-mean-rides-on-sum
+  (is (= 2.0 (mean [1 2 3])) "ints give a float mean")
+  (is (= 2.0 (mean [1.5 2.5])) "floats")
+  (is (= 4.0 (mean [4])) "a single element")
+  (is (= 99.5 (mean (range 0 200))) "200 elements"))

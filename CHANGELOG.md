@@ -116,6 +116,7 @@ Compiler:
 
 Runtime core:
 
+- Add a PHP array of ints in `sum` with `array_sum` instead of spreading the collection into the variadic arm of `+`: 27.5x over 200 ints, 17.5x over 20, carrying `mean` 13.9x with it. An overflowing int sum is redone through `+` so it still promotes to BigInt rather than becoming a float (#3085)
 - Give the closure returned by `juxt` real arities, as `partial`, `fnil` and `comp` got in #3026: 4.3x to 5.8x per call for one to three functions, 2.5x through `map`. Give `interleave` a two-collection arity: 13x when a collection is nil, 1.4x on small inputs (#3083)
 - Walk `tree-seq`'s stack with native PHP operations and push children by index instead of building a reversed collection per branch node: 2.1x, carrying `flatten` with it (#3081)
 - Order `sort-by`'s decorated keys with native comparisons when they are all native ints and no comparator was supplied, the fast path `sort` got in #3004: 8.4x over 100 ints, 6.4x over 20, 5.2x for `(sort-by count strings)`. Non-int keys and a supplied comparator keep the general path (#3079)
