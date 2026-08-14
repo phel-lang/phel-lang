@@ -597,9 +597,12 @@ final class CoreSeqBench extends CoreBenchCase
     }
 
     /**
-     * `frequencies` and a map-target `into` both reduce `assoc!` over a
-     * transient map once per element, which no subject reached: the `into`
-     * pair above uses a vector target and so goes through `conj` instead.
+     * `frequencies` and a map-target `into` both write a transient map once
+     * per element, which no subject reached: the `into` pair above uses a
+     * vector target and so goes through `conj` instead. `frequencies` now
+     * calls `.find`/`.put` directly rather than `get`/`assoc!`, 97.6μs to
+     * 88.1μs; `into` still goes through `assoc!` and is the control that says
+     * so, having stayed at 105μs across the change.
      *
      * @Revs(1000)
      */
@@ -617,6 +620,10 @@ final class CoreSeqBench extends CoreBenchCase
     }
 
     /**
+     * Two passes over a transient map, one to bucket and one to make each
+     * bucket persistent. Both moved off `get`/`assoc` and `for … :pairs`:
+     * 51.8μs to 34.6μs.
+     *
      * @Revs(1000)
      */
     public function bench_group_by(): void
