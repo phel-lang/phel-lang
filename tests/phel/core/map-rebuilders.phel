@@ -1,0 +1,48 @@
+(ns phel-test.core.map-rebuilders
+  (:require phel.test :refer [deftest is]))
+
+(defstruct pt [x y])
+
+;; `update-vals`, `update-keys` and `rename-keys` walk their input with
+;; `foreach` rather than `for … :pairs`, and write with `.put` on a local
+;; transient. All three still build from an empty map, which is what keeps the
+;; result free of the source's metadata as before.
+
+(deftest test-update-vals
+  (is (= {:a 2, :b 3} (update-vals {:a 1, :b 2} inc)) "every value is mapped")
+  (is (= {} (update-vals {} inc)) "an empty map")
+  (is (= {:a :was-nil} (update-vals {:a nil} (fn [v] (if (nil? v) :was-nil v))))
+      "a nil value reaches the function")
+  (is (= {:a 2, :b 3} (update-vals (sorted-map :b 2 :a 1) inc)) "a sorted map")
+  (is (= 2 (count (update-vals (pt 1 2) inc))) "a struct"))
+
+(deftest test-update-keys
+  (is (= {"a" 1, "b" 2} (update-keys {:a 1, :b 2} name)) "every key is mapped")
+  (is (= {} (update-keys {} name)) "an empty map")
+  ;; Two keys can collapse onto one, which is why this cannot be seeded from
+  ;; the source map: the originals would survive.
+  (is (= 1 (count (update-keys {:a 1, :b 2} (fn [_] :same)))) "colliding keys collapse")
+  (is (= 1 (count (update-keys {:a 1} (fn [_] nil)))) "nil is usable as the new key"))
+
+(deftest test-rename-keys
+  (is (= {:x 1, :y 2, :c 3} (rename-keys {:a 1, :b 2, :c 3} {:a :x, :b :y})) "listed keys are renamed")
+  (is (= {:a 1} (rename-keys {:a 1} {})) "an empty rename map changes nothing")
+  (is (= {} (rename-keys {} {:a :b})) "an empty source")
+  (is (= {:a 1} (rename-keys {:a 1} {:z :q})) "a rename for an absent key is ignored")
+  (is (= 1 (count (rename-keys {:a 1, :b 2} {:a :b}))) "renaming onto an existing key collapses")
+  (is (nil? (get (rename-keys {:a nil} {:a :x}) :x)) "a nil value is carried over"))
+
+(deftest test-metadata-is-not-carried
+  ;; All three have always returned a map without the source's metadata.
+  ;; Seeding the transient from the source would be faster and would change
+  ;; that, so they build from empty.
+  (is (nil? (meta (update-vals (with-meta {:a 1} {:m 1}) inc))) "update-vals drops it")
+  (is (nil? (meta (update-keys (with-meta {:a 1} {:m 1}) name))) "update-keys drops it")
+  (is (nil? (meta (rename-keys (with-meta {:a 1} {:m 1}) {:a :z}))) "rename-keys drops it"))
+
+(deftest test-the-source-is-untouched
+  (let [m {:a 1, :b 2}]
+    (update-vals m inc)
+    (update-keys m name)
+    (rename-keys m {:a :z})
+    (is (= {:a 1, :b 2} m) "the input map is unchanged by any of them")))

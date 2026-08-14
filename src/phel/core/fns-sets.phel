@@ -524,20 +524,30 @@ Without arguments, uses a default cache size of 128 entries."
   {:example "(update-keys {:a 1 :b 2} name) ; => {\"a\" 1, \"b\" 2}"
    :see-also ["update-vals" "keys" "update"]}
   [m f]
-  (persistent
-   (for [[k v] :pairs m
-         :reduce [acc (transient {})]]
-     (assoc! acc (f k) v))))
+  ;; As `update-vals`, but built from empty: `f` may map two keys onto one, so
+  ;; seeding from `m` would leave the originals behind.
+  (let [acc (transient {})]
+    (foreach [k v m]
+      (.put acc (f k) v))
+    (persistent acc)))
 
 (defn update-vals
   "Returns a map with `f` applied to each value."
   {:example "(update-vals {:a 1 :b 2} inc) ; => {:a 2, :b 3}"
    :see-also ["update-keys" "values" "update"]}
   [m f]
-  (persistent
-   (for [[k v] :pairs m
-         :reduce [acc (transient {})]]
-     (assoc! acc k (f v)))))
+  ;; `foreach` and not `for … :pairs`: the destructuring form was the cost
+  ;; here, not the map building, and `.put` because the transient is local and
+  ;; its type is known (#2973).
+  ;;
+  ;; Built from empty rather than seeded from `m`. Seeding is a further 1.6x,
+  ;; because every write would replace an entry instead of inserting one, but a
+  ;; transient carries its source's metadata and would hand it back, where this
+  ;; has always returned a map with none.
+  (let [acc (transient {})]
+    (foreach [k v m]
+      (.put acc k (f v)))
+    (persistent acc)))
 
 (defn map-invert
   "Returns a map with the keys and values of `m` swapped. When several keys share a value, the one visited last in iteration order wins."

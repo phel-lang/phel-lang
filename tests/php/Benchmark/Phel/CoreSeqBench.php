@@ -85,6 +85,15 @@ final class CoreSeqBench extends CoreBenchCase
     private $merge;
 
     /** @var callable */
+    private $updateVals;
+
+    /** @var callable */
+    private $updateKeys;
+
+    /** @var callable */
+    private $renameKeys;
+
+    /** @var callable */
     private $kvs;
 
     /** @var callable */
@@ -721,6 +730,33 @@ final class CoreSeqBench extends CoreBenchCase
     }
 
     /**
+     * The map rebuilders. None had a subject, and all three walked their input
+     * with `for … :pairs`, whose destructuring was most of what they cost.
+     *
+     * @Revs(1000)
+     */
+    public function bench_update_vals(): void
+    {
+        ($this->updateVals)($this->bigMapA, $this->inc);
+    }
+
+    /**
+     * @Revs(1000)
+     */
+    public function bench_update_keys(): void
+    {
+        ($this->updateKeys)($this->bigMapA, $this->identity);
+    }
+
+    /**
+     * @Revs(1000)
+     */
+    public function bench_rename_keys(): void
+    {
+        ($this->renameKeys)($this->bigMapA, $this->emptyMap);
+    }
+
+    /**
      * `partition-by` and `dedupe` return a sequence built by
      * `lazy-seq-from-generator`, so constructing one realizes a chunk before
      * the caller has asked for a single element. These two subjects measure
@@ -765,6 +801,9 @@ final class CoreSeqBench extends CoreBenchCase
         $this->transduce = $this->coreFn('transduce');
         $this->vec = $this->coreFn('vec');
         $this->merge = $this->coreFn('merge');
+        $this->updateVals = $this->coreFn('update-vals');
+        $this->updateKeys = $this->coreFn('update-keys');
+        $this->renameKeys = $this->coreFn('rename-keys');
         $this->kvs = $this->coreFn('kvs');
         $this->phpToPhel = $this->coreFn('php->phel');
         $this->zipmap = $this->coreFn('zipmap');
