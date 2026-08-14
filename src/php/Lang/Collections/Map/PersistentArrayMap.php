@@ -28,7 +28,34 @@ final class PersistentArrayMap extends AbstractPersistentMap
     /** @use TransientMergeStrategyTrait<TKey, TValue> */
     use TransientMergeStrategyTrait;
 
-    public const int MAX_SIZE = 16;
+    /**
+     * The entry count at which a map stops being a flat array and becomes a
+     * hash map.
+     *
+     * An array map finds a key by scanning its entries and calling
+     * `equalsKey()` on each, so a read is O(n) where the hash map it promotes
+     * to is O(1). At the old value of 16 that made a 16-entry map **4.9x
+     * slower to read than a 20-entry one** (4.71us against 0.96us), which is
+     * backwards: crossing the threshold made reads faster, not slower.
+     *
+     * 8 because it is free. Building an 8-entry map is unchanged (34.0us
+     * against 34.1us) and building a 16-entry one is unchanged (70.3us against
+     * 69.9us), while reading the last key of a 12-entry map goes 3.53us to
+     * 1.00us and of a 16-entry map 4.71us to 0.80us.
+     *
+     * Do not lower this further without reading #3172. A value of 4 makes a
+     * three-entry map *literal* containing `nil`, `false` and `0` keys lose
+     * one of them, somewhere above the collection layer (`fromArray` and the
+     * transient both handle those keys correctly at 4 when called directly).
+     * That is unexplained, so 8 is as far as this goes.
+     *
+     * Iteration order is what an array map buys, and is why this is a
+     * threshold rather than a deletion: a map below it iterates in insertion
+     * order. Nothing documents that as a guarantee, `sequential?` says maps
+     * are not sequential, and no test here, in the Phel suite or in the
+     * Clojure suite depends on it between 9 and 16 entries.
+     */
+    public const int MAX_SIZE = 8;
 
     /**
      * @param PersistentMapInterface<mixed, mixed>|null $meta
