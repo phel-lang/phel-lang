@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace PhelTest\Support;
 
 use BackedEnum;
+use Phel\Shared\VersionFinder;
 use RecursiveDirectoryIterator;
 use RecursiveIteratorIterator;
 use ReflectionClass;
@@ -66,6 +67,34 @@ final readonly class PublicApiSurface
      * the base one of its own.
      */
     private const string RUNTIME_CLASS = 'Phel';
+
+    /**
+     * Constant *values* are part of the surface, not just their names: several
+     * are the literal keys Gacela reads out of a project's `phel-config.php`, so
+     * changing one silently changes what an existing config file means.
+     *
+     * @return list<string>
+     */
+    /**
+     * Constants whose *value* moves on a schedule of its own, rendered with a
+     * placeholder instead.
+     *
+     * The snapshot exists to catch a symbol that was removed or narrowed. A
+     * version string moving is neither, but it is a public constant, so every
+     * release used to leave this test failing until somebody ran
+     * `composer api-surface:update`. `tools/release.sh` bumps the constant and
+     * does not regenerate the snapshot, so `main` went red on the release
+     * commit itself: v0.50.0 did exactly that (#3168).
+     *
+     * The symbol stays in the surface, so removing or renaming it is still
+     * caught. Only the literal is elided. Contrast the `phel-config.php` keys
+     * described below, whose values *are* the contract and must stay pinned.
+     *
+     * @var array<string, true>
+     */
+    private const array VOLATILE_CONSTANT_VALUES = [
+        VersionFinder::class . '::LATEST_VERSION' => true,
+    ];
 
     public function __construct(
         private string $repositoryRoot,
@@ -360,13 +389,6 @@ final readonly class PublicApiSurface
         return $lines;
     }
 
-    /**
-     * Constant *values* are part of the surface, not just their names: several
-     * are the literal keys Gacela reads out of a project's `phel-config.php`, so
-     * changing one silently changes what an existing config file means.
-     *
-     * @return list<string>
-     */
     private function renderConstants(ReflectionClass $class): array
     {
         $declaredBy = $this->foldedAncestorsOf($class);
@@ -388,13 +410,16 @@ final readonly class PublicApiSurface
             }
 
             $type = $constant->getType();
+            $qualified = $constant->getDeclaringClass()->getName() . '::' . $constant->getName();
 
             $lines[] = sprintf(
                 '  %s const %s%s = %s',
                 $this->visibilityOf($constant),
                 $type instanceof ReflectionType ? $this->renderType($type) . ' ' : '',
                 $constant->getName(),
-                $this->renderValue($constant->getValue()),
+                isset(self::VOLATILE_CONSTANT_VALUES[$qualified])
+                    ? '<volatile>'
+                    : $this->renderValue($constant->getValue()),
             );
         }
 
