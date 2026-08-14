@@ -2306,7 +2306,7 @@ final class Phel\Shared\TagResolver
   public static function normalizeScalar(mixed $tag): ?string
 
 final class Phel\Shared\VersionFinder
-  public const string LATEST_VERSION = 'v0.49.0'
+  public const string LATEST_VERSION = 'v0.50.0'
   public function __construct(string $tagCommitHash, string $currentCommit, bool $isOfficialRelease = false)
   public function getVersion(): string
 
