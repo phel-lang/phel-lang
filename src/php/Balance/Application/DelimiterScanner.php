@@ -70,6 +70,34 @@ final readonly class DelimiterScanner
         Token::T_TAGGED_LITERAL,
     ];
 
+    /**
+     * Heads that only ever open a definition. One of them on a line after the
+     * outermost unclosed level is the same signal a column-0 opener is, and
+     * survives the indentation a half-written file usually carries.
+     */
+    private const array DEFINITION_HEADS = [
+        'ns',
+        'def',
+        'def-',
+        'defn',
+        'defn-',
+        'defmacro',
+        'defmacro-',
+        'defstruct',
+        'definterface',
+        'defexception',
+        'defprotocol',
+        'defmulti',
+        'defmethod',
+        'defonce',
+        'declare',
+        'deftest',
+        'defbench',
+    ];
+
+    /** An incomplete character literal: the `\` has not read its character yet. */
+    private const string DANGLING_CHAR_LITERAL = '\\';
+
     public function __construct(
         private CompilerFacadeInterface $compilerFacade,
     ) {}
@@ -83,6 +111,8 @@ final readonly class DelimiterScanner
         $unterminatedStringLine = null;
         $endsInLineComment = false;
         $danglingPrefixToken = null;
+        $pendingPrefixColumn = null;
+        $openerAwaitingHead = null;
         /** @var list<int> $topLevelOpenerLines */
         $topLevelOpenerLines = [];
 
@@ -95,9 +125,25 @@ final readonly class DelimiterScanner
 
             if (!in_array($type, self::TRIVIA, true)) {
                 $endsInLineComment = $type === Token::T_COMMENT;
-                $danglingPrefixToken = in_array($type, self::PREFIX_AWAITING_A_FORM, true)
+                $danglingPrefixToken = $this->isPrefixAwaitingAForm($token)
                     ? $token->getCode()
                     : null;
+
+                // A prefix run keeps the column of the token that began it, so
+                // `'(defn ...)` at the margin still reads as a top-level form.
+                if (in_array($type, self::PREFIX_AWAITING_A_FORM, true)) {
+                    $pendingPrefixColumn ??= $this->columnOf($token);
+                } elseif (!isset(self::CLOSER_TEXT_FOR_OPENER[$type])) {
+                    $pendingPrefixColumn = null;
+                }
+
+                if ($openerAwaitingHead !== null) {
+                    if ($type === Token::T_ATOM && in_array($token->getCode(), self::DEFINITION_HEADS, true)) {
+                        $topLevelOpenerLines[] = $openerAwaitingHead;
+                    }
+
+                    $openerAwaitingHead = null;
+                }
             }
 
             if ($unterminatedStringLine === null && $this->isUnterminatedString($token)) {
@@ -105,9 +151,13 @@ final readonly class DelimiterScanner
             }
 
             if (isset(self::CLOSER_TEXT_FOR_OPENER[$type])) {
-                if ($this->columnOf($token) === 0) {
+                if (($pendingPrefixColumn ?? $this->columnOf($token)) === 0) {
                     $topLevelOpenerLines[] = $this->lineOf($token);
+                } else {
+                    $openerAwaitingHead = $this->lineOf($token);
                 }
+
+                $pendingPrefixColumn = null;
 
                 $stack[] = new OpenDelimiter(
                     $token->getCode(),
@@ -159,8 +209,12 @@ final readonly class DelimiterScanner
      * nested inside the open form, which is a silent change of meaning.
      *
      * Column 0 is the top-level convention `phel format` already enforces, and
-     * it is read off token positions rather than guessed. It is used only to
-     * refuse: a wrong reading costs a manual fix, never a rewritten program.
+     * it is read off token positions rather than guessed. A reader prefix keeps
+     * the column of the token that began it, so `'(defn ...)` at the margin
+     * counts, and a definition head counts at any column, because a file with a
+     * missing closer is usually mid-edit and no longer formatted. All three are
+     * used only to refuse: a wrong reading costs a manual fix, never a rewritten
+     * program.
      *
      * @param list<OpenDelimiter> $stack
      * @param list<int>           $topLevelOpenerLines
@@ -178,6 +232,23 @@ final readonly class DelimiterScanner
         }
 
         return null;
+    }
+
+    /**
+     * A lone `\` is a character literal still waiting for its character, so an
+     * appended closer becomes that character: `\)` counts out, closes nothing,
+     * and leaves the file exactly as unbalanced as it started while the run
+     * reports a repair. With no character after it the char rule does not match
+     * and it falls through to the atom rule, the same way an unclosed `"` does.
+     */
+    private function isPrefixAwaitingAForm(Token $token): bool
+    {
+        if (in_array($token->getType(), self::PREFIX_AWAITING_A_FORM, true)) {
+            return true;
+        }
+
+        return $token->getCode() === self::DANGLING_CHAR_LITERAL
+            && in_array($token->getType(), [Token::T_ATOM, Token::T_CHAR], true);
     }
 
     /**
