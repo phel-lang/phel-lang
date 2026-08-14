@@ -482,12 +482,17 @@ Without arguments, uses a default cache size of 128 entries."
   ;; is eager and materialises every node (branches included) into a transient
   ;; vector, then filtered that through a `complement` closure allocated per
   ;; call. So it walked the whole tree at construction despite handing back a
-  ;; lazy sequence. The generator yields leaves on demand. 121.3μs to 24.8μs
+  ;; lazy sequence. The generator yields leaves on demand. 120.5μs to 69.3μs
   ;; over 64 leaves.
-  (LazySeq/fromGenerator
-   (new Hasher)
-   (new Equalizer)
-   (Seq/flatten coll)))
+  ;;
+  ;; `copy-meta` because the old spelling went through `filter`, which carries
+  ;; it, and every other generator-backed seq fn does the same.
+  (copy-meta
+   coll
+   (LazySeq/fromGenerator
+    (new Hasher)
+    (new Equalizer)
+    (Seq/flatten coll))))
 
 (defn- merge-with-2 [f left right]
   ;; `foreach` and not `for … :pairs`, as the map rebuilders in #3140: the

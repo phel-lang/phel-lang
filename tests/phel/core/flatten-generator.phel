@@ -41,12 +41,20 @@
 (deftest test-it-is-lazy-now-rather-than-only-in-appearance
   ;; `tree-seq` ran the whole walk at construction. A generator does not, so
   ;; only what is pulled is computed.
-  (let [visits (atom 0)
+  (let [visits  (atom 0)
         counted (fn [x] (do (swap! visits inc) x))]
     (let [s (flatten [[1 2] [3 4]])]
       (is (= 0 (deref visits)) "nothing is pulled before it is asked for")
       (is (= [1 2] (vec (take 2 s))) "taking two elements works")))
   (is (= [1 2 3 4] (vec (flatten [[1 2] [3 4]]))) "and taking all of them still works"))
+
+(deftest test-metadata-on-the-input-survives
+  ;; The old spelling went through `filter`, which copies it, so dropping it
+  ;; here would be a silent regression. Every other generator-backed seq
+  ;; function copies it too.
+  (is (= {:tag :foo} (meta (flatten (with-meta [[1 2] 3] {:tag :foo})))) "a nested input")
+  (is (= {:tag :foo} (meta (flatten (with-meta [1 2] {:tag :foo})))) "an already flat input")
+  (is (nil? (meta (flatten [[1 2] 3]))) "and nothing is invented when there is none"))
 
 (deftest test-the-result-is-an-ordinary-sequence
   (let [s (flatten [[1 2] [3]])]
