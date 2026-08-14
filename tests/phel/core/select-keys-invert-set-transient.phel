@@ -85,3 +85,16 @@
     (is (= {1 :a} i) "and is unchanged")
     (is (= {:a 1, :z 9} (assoc k :z 9)) "the selection can be assoc'd onto")
     (is (= {:a 1} k) "and is unchanged")))
+
+(deftest test-select-keys-accepts-more-than-maps
+  ;; The transient fast path is guarded on `PersistentMapInterface` because
+  ;; `select-keys` takes anything `contains?` and `get` take, and none of these
+  ;; has `.contains` / `.find`. The Clojure suite's `(select-keys "" [:a])` is
+  ;; what caught this; the rest are the neighbours it implies.
+  (is (= {} (select-keys "" [:a])) "an empty string")
+  (is (= {0 "a", 1 "b"} (select-keys "abc" [0 1])) "a string is indexed by position")
+  (is (= {} (select-keys [] [0])) "an empty vector")
+  (is (= {0 1, 2 3} (select-keys [1 2 3] [0 2])) "a vector")
+  (is (= {} (select-keys [1 2] [9])) "an index that is out of range")
+  (is (= {1 1} (select-keys (set [1 2]) [1])) "a set")
+  (is (= {"x" 1} (select-keys (php-associative-array "x" 1) ["x"])) "a PHP associative array"))
