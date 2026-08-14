@@ -4,6 +4,8 @@ All notable changes to this project will be documented in this file.
 
 ## Unreleased
 
+## [0.50.0](https://github.com/phel-lang/phel-lang/compare/v0.49.0...v0.50.0) - 2026-08-14
+
 ### Added
 
 - Add LSP go-to-definition for lexical locals: a usage jumps to the symbol that bound it in `let`, `loop`, `fn`, `foreach`, `catch`, `if-let`, `when-let`, `if-some`, `when-some` or `when-first`, honouring shadowing, destructuring and progressive binding scope. A name rebound by a form whose shape is not modelled (`defn`, `for`, `dofor`, `binding`) resolves to nothing rather than to an outer binding of the same name (#3131)
