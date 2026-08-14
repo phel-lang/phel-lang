@@ -799,12 +799,17 @@ Creates intermediate maps if they don't exist."
 Works with vectors, lists, sets, and strings."
   {:example "(frequencies [:a :b :a :c :b :a]) ; => {:a 3, :b 2, :c 1}"}
   [coll]
-  (let [result (persistent
-                (for [x :in coll
-                      :reduce [res (transient {})]]
-                  (let [n (get res x 0)]
-                    (assoc! res x (php/+ 1 n)))))]
-    (copy-meta coll result)))
+  ;; `.find` and `.put` straight onto the transient rather than `get` and
+  ;; `assoc!`. Both of those dispatch on the target's type before reaching the
+  ;; same two methods, and this runs the pair once per element: 82.9μs to
+  ;; 71.2μs over 32 distinct keys, 153.8μs to 120.6μs when half of them repeat.
+  ;; `.find` answers nil for an absent key, and a count is never nil, so the
+  ;; `if` cannot confuse "absent" with a stored value.
+  (let [res (transient {})]
+    (foreach [x coll]
+      (let [n (.find res x)]
+        (.put res x (if n (php/+ 1 n) 1))))
+    (copy-meta coll (persistent res))))
 
 (defn keys
   "Returns a sequence of all keys in a map, or `nil` when the map is `nil` or empty."
@@ -1467,18 +1472,27 @@ Applies `f` to each element in `xs`. `f` is a two-argument function where the fi
   {:example "(group-by count [\"a\" \"bb\" \"c\" \"ddd\" \"ee\"]) ; => {1 [\"a\" \"c\"], 2 [\"bb\" \"ee\"], 3 [\"ddd\"]}"
    :see-also ["partition-by" "frequencies"]}
   [f coll]
+  ;; Same as `frequencies`: `.find` and `.put` on the transient instead of
+  ;; `get` and `assoc`, which dispatch on the target before arriving at those
+  ;; methods. With the second pass below that is 46.0μs to 31.0μs over 32
+  ;; elements in two buckets, and 87.4μs to 54.9μs over eight, where the
+  ;; lookup runs more often.
   (let [tmap (persistent
-              (for [x :in coll
-                    :let [k (f x)]
-                    :reduce [res (transient {})]]
-                (let [bucket (get res k)]
-                  (if bucket
-                    (do (conj bucket x) res)
-                    (assoc res k (conj (transient []) x))))))]
-    (persistent
-     (for [[k tv] :pairs tmap
-           :reduce [acc (transient {})]]
-       (assoc acc k (persistent tv))))))
+              (let [res (transient {})]
+                (foreach [x coll]
+                  (let [k      (f x)
+                        bucket (.find res k)]
+                    (if bucket
+                      (conj bucket x)
+                      (.put res k (conj (transient []) x)))))
+                res))]
+    ;; The second pass turns each bucket persistent. `foreach` and `.put`
+    ;; rather than `for … :pairs` and `assoc`, for the same reason as #3140:
+    ;; the pair destructuring was most of the cost of a map rebuild.
+    (let [out (transient {})]
+      (foreach [k tv tmap]
+        (.put out k (persistent tv)))
+      (persistent out))))
 
 (defn zipmap
   "Returns a new map with the keys mapped to the corresponding values.

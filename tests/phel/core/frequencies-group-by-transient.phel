@@ -1,0 +1,82 @@
+(ns phel-test.core.frequencies-group-by-transient
+  (:require phel.test :refer [deftest is]))
+
+;; `frequencies` and `group-by` write their transient accumulator with `.find`
+;; and `.put` instead of `get` and `assoc!`/`assoc`, and walk with `foreach`
+;; rather than `for ... :reduce` / `for ... :pairs`. Both are pure plumbing
+;; changes, so what has to be pinned is everything the plumbing could have
+;; altered: which values can be keys, what happens to an empty or nil input,
+;; and that the transient never escapes.
+;;
+;; `.find` answers nil for a key that is absent, which is the one thing these
+;; rewrites lean on. Any stored value that is itself falsy would be
+;; indistinguishable from absent, so the falsy keys and values below are the
+;; cases that matter most.
+
+(deftest test-frequencies-counts
+  (is (= {} (frequencies [])) "an empty collection")
+  (is (= {:a 1} (frequencies [:a])) "one element")
+  (is (= {:a 3, :b 2, :c 1} (frequencies [:a :b :a :c :b :a])) "the docstring example")
+  (is (= {1 4} (frequencies [1 1 1 1])) "every element the same"))
+
+(deftest test-frequencies-keys-that-are-falsy
+  ;; A count is never nil and never zero, so `.find` returning nil can only
+  ;; mean "not seen yet". These pin that for keys that are themselves falsy.
+  (is (= {nil 2} (frequencies [nil nil])) "nil is a key")
+  (is (= {false 2, true 1} (frequencies [false false true])) "false and true are distinct keys")
+  (is (= {0 3} (frequencies [0 0 0])) "zero is a key")
+  (is (= {"" 2} (frequencies ["" ""])) "the empty string is a key")
+  (is (= {0 2, false 1, nil 1} (frequencies [0 false 0 nil])) "zero, false and nil do not collide"))
+
+(deftest test-frequencies-key-kinds
+  (is (= {1 1, "1" 1, :a 1, 'a 1} (frequencies [1 "1" :a 'a])) "an int, its string, a keyword and a symbol")
+  (is (= {[1 2] 2} (frequencies [[1 2] [1 2]])) "collections compare by value")
+  (is (= {{:a 1} 2} (frequencies [{:a 1} {:a 1}])) "maps as keys")
+  (is (= {1.5 2} (frequencies [1.5 1.5])) "floats"))
+
+(deftest test-frequencies-input-shapes
+  (is (= {1 2, 2 1} (frequencies '(1 2 1))) "a list")
+  (is (= {"a" 2, "b" 2, "c" 1} (frequencies "aabbc")) "a string counts its characters")
+  (is (= {} (frequencies "")) "an empty string")
+  (is (= 3 (count (frequencies (set [1 2 3])))) "a set")
+  (is (= {2 1, 3 1} (frequencies (map inc [1 2]))) "a lazy sequence"))
+
+(deftest test-group-by-buckets
+  (is (= {} (group-by identity [])) "an empty collection")
+  (is (= {1 ["a" "c"], 2 ["bb" "ee"], 3 ["ddd"]} (group-by count ["a" "bb" "c" "ddd" "ee"]))
+      "the docstring example")
+  (is (= {false [1 3 5], true [2 4 6]} (group-by even? [1 2 3 4 5 6])) "a two-bucket split")
+  (is (= {:k [1 2 3]} (group-by (fn [_] :k) [1 2 3])) "one bucket keeps insertion order"))
+
+(deftest test-group-by-keys-that-are-falsy
+  (is (= {nil [1 2]} (group-by (fn [_] nil) [1 2])) "a nil key")
+  (is (= {false [1 2]} (group-by (fn [_] false) [1 2])) "a false key")
+  (is (= {0 [1 2]} (group-by (fn [_] 0) [1 2])) "a zero key")
+  (is (= {"" [1 2]} (group-by (fn [_] "") [1 2])) "an empty-string key")
+  ;; The bucket lookup is `(if bucket ...)`, and a bucket is a transient
+  ;; vector, never nil, so an existing empty bucket cannot read as absent.
+  (is (= {nil [nil nil]} (group-by identity [nil nil])) "nil elements under a nil key")
+  (is (= {false [false], true [true]} (group-by identity [false true])) "false and true elements"))
+
+(deftest test-group-by-result-is-persistent
+  ;; Both passes build transients. Neither may escape.
+  (let [g (group-by even? [1 2 3])]
+    (is (map? g) "the result is a map")
+    (is (vector? (get g true)) "each bucket is a persistent vector")
+    (is (= {false [1 3], true [2 4]} (assoc g true [2 4])) "the map can be assoc'd onto")
+    (is (= {false [1 3], true [2]} g) "and the original is unchanged")
+    (is (= [2 9] (conj (get g true) 9)) "a bucket can be conj'd onto")
+    (is (= [2] (get g true)) "and that bucket is unchanged")))
+
+(deftest test-frequencies-result-is-persistent
+  (let [f (frequencies [1 1 2])]
+    (is (map? f) "the result is a map")
+    (is (= {1 2, 2 1, 3 9} (assoc f 3 9)) "it can be assoc'd onto")
+    (is (= {1 2, 2 1} f) "and the original is unchanged")))
+
+(deftest test-metadata-is-carried
+  ;; `frequencies` copies the source's metadata onto the result; `group-by`
+  ;; does not, and neither behaviour may drift.
+  (let [src (with-meta [1 1 2] {:m 1})]
+    (is (= {:m 1} (meta (frequencies src))) "frequencies copies metadata")
+    (is (nil? (meta (group-by identity src))) "group-by does not")))
