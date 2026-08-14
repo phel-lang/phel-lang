@@ -1,0 +1,58 @@
+(ns phel-test.core.nil-key-iteration
+  (:require phel.test :refer [deftest is]))
+
+;; A hash map keeps its `nil` key outside the trie, in a pair of fields, because
+;; `nil` has no hash path. Its iterator walked only the trie, so a map holding a
+;; `nil` key iterated one entry short of its own `count`: `keys`, `vals`,
+;; `for ... :pairs` and `into` all silently dropped it.
+;;
+;; Only maps large enough to be a hash map were affected, which is why this went
+;; unnoticed. These tests use sizes on both sides of that boundary.
+
+(defn- grow [m n]
+  (reduce (fn [acc i] (assoc acc (keyword (str "k" i)) i)) m (range 0 n)))
+
+(deftest test-a-nil-key-is-iterated-at-every-size
+  (dofor [n :in [0 1 4 7 8 9 12 20]]
+    (let [m (grow {nil :nilval} n)
+          expected (php/+ n 1)]
+      (is (= expected (count m)) (str "count with " n " other entries"))
+      (is (= expected (count (keys m))) (str "keys yields every entry with " n " others"))
+      (is (= expected (count (vals m))) (str "vals yields every entry with " n " others"))
+      (is (= expected (count (for [[k v] :pairs m] k))) (str "pairs yields every entry with " n " others"))
+      (is (= expected (count (into {} m))) (str "into round-trips every entry with " n " others")))))
+
+(deftest test-the-nil-key-itself-is-present
+  (let [m (grow {nil :nilval} 12)]
+    (is (= :nilval (get m nil)) "the value reads back")
+    (is (true? (contains? m nil)) "the key is reported present")
+    (is (true? (some (fn [k] (nil? k)) (keys m))) "nil appears among the keys")
+    (is (true? (some (fn [v] (= v :nilval)) (vals m))) "its value appears among the values")
+    (is (= :nilval (get (into {} m) nil)) "and survives a round trip")))
+
+(deftest test-a-nil-key-alongside-the-other-falsy-keys
+  ;; nil, false and 0 are three distinct Phel keys that collapse to the same
+  ;; PHP array key, so they are the ones a representation change loses.
+  (let [m (grow {nil :n, false :f, 0 :z} 12)]
+    (is (= 15 (count m)) "all three are counted")
+    (is (= 15 (count (keys m))) "all three are iterated")
+    (is (= :n (get m nil)) "nil")
+    (is (= :f (get m false)) "false")
+    (is (= :z (get m 0)) "zero")
+    (is (= 15 (count (into {} m))) "and all three survive a round trip")))
+
+(deftest test-removing-the-nil-key
+  (let [m (grow {nil :nilval} 12)
+        without (dissoc m nil)]
+    (is (= 12 (count without)) "dissoc removes it")
+    (is (= 12 (count (keys without))) "and it stops being iterated")
+    (is (nil? (get without nil)) "and stops being readable")
+    (is (false? (contains? without nil)) "and stops being reported present")))
+
+(deftest test-a-set-holding-nil
+  ;; A set is a map underneath, so it had the same hole.
+  (let [s (reduce (fn [acc i] (conj acc i)) (set [nil]) (range 0 12))]
+    (is (= 13 (count s)) "counted")
+    (is (= 13 (count (vec s))) "iterated")
+    (is (true? (contains? s nil)) "nil is a member")
+    (is (= 13 (count (set (vec s)))) "and survives a round trip")))
