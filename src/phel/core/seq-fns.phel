@@ -1126,30 +1126,48 @@ Indexed PHP arrays become vectors, associative PHP arrays become maps."
         ;; yields its `[key value]` entries, which is what `sort` and `sort-by`
         ;; have always sorted.
         values (to-php-array coll)
-        pairs  (php-indexed-array)]
+        ks     (php/array)
+        vs     (php/array)
+        idx    (php/array)
+        pos    (php/array 0)]
+    ;; One pass, so `keyfn` runs exactly n times whichever sort follows. The
+    ;; position column is filled here too rather than in a second loop; the
+    ;; comparator path ignores it.
     (foreach [v values]
-      (php/apush pairs (php-indexed-array (keyfn v) v)))
-    ;; `usort` is stable as of PHP 8.0, so ties keep their input order, which is
-    ;; what the undecorated result has to preserve.
-    ;; When the derived keys are all native ints and no comparator was
-    ;; supplied, order them with native comparisons rather than calling back
-    ;; into Phel. `usort` still runs a closure per comparison either way, but
-    ;; this one's body is `php/` interop and reaches no registry, where `cmp`
-    ;; is a Phel function wrapping `compare`. Same idea as
-    ;; `sorted-vector-natural`, and the same narrowness: ints only, because a
-    ;; float brings NaN and a mixed pair does not order the way `compare` does.
-    (if (and (identical? comp compare) (all-int-first-elements? pairs))
-      (php/usort pairs (fn [a b]
-                         (let [ka (php/aget a 0)
-                               kb (php/aget b 0)]
-                           (if (php/< ka kb)
-                             -1
-                             (if (php/> ka kb) 1 0)))))
-      (php/usort pairs (fn [a b] (cmp (php/aget a 0) (php/aget b 0)))))
-    (let [result (php-indexed-array)]
-      (foreach [p pairs]
-        (php/apush result (php/aget p 1)))
-      (copy-meta coll (Phel/vector result)))))
+      (php/apush ks (keyfn v))
+      (php/apush vs v)
+      (php/apush idx (php/aget pos 0))
+      (php/aset pos 0 (php/+ 1 (php/aget pos 0))))
+    (if (and (identical? comp compare)
+             (or (all-native-ints? ks) (all-native-strings? ks)))
+      ;; Native sort, no callback at all. `array_multisort` orders `vs` by `ks`
+      ;; without running a comparator, where `usort` runs a closure per
+      ;; comparison even when its body is pure interop.
+      ;;
+      ;; The index column is what keeps it stable. `array_multisort` gives no
+      ;; ordering guarantee for equal keys, and the undecorated result has to
+      ;; preserve input order for ties, so position breaks them.
+      ;;
+      ;; Narrow for the same reason `sorted-vector-natural` is: all ints or all
+      ;; strings, because those are the two cases where PHP's own comparison
+      ;; orders exactly as `compare` does. A float brings NaN and a mixed pair
+      ;; does not.
+      (do
+        (php/array_multisort (php/ref ks) php/SORT_ASC php/SORT_REGULAR
+                             (php/ref idx) php/SORT_ASC php/SORT_REGULAR
+                             (php/ref vs))
+        (copy-meta coll (Phel/vector vs)))
+      ;; Everything else keeps the decorated `usort`, which is stable as of
+      ;; PHP 8.0 so ties keep their input order.
+      (let [pairs (php/array)
+            n     (php/count ks)]
+        (dofor [i :range [0 n]]
+          (php/apush pairs (php-indexed-array (php/aget ks i) (php/aget vs i))))
+        (php/usort pairs (fn [a b] (cmp (php/aget a 0) (php/aget b 0))))
+        (let [result (php/array)]
+          (foreach [p pairs]
+            (php/apush result (php/aget p 1)))
+          (copy-meta coll (Phel/vector result)))))))
 
 (defn sort
   "Returns a sorted vector. If no comparator is supplied compare is used."
