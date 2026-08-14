@@ -1,0 +1,105 @@
+(ns phel-test.core.collection-binding-inference
+  (:require phel.test :refer [deftest is]))
+
+;; A `let` or `loop` binding whose init is a collection literal, or a call to
+;; one of the `phel.core` constructors, is typed with that collection's
+;; interface. The collection specialisations then lower `nth`, `count`, `first`
+;; and `get` on it to a direct method call instead of a registry dispatch.
+;;
+;; The type is observed, not guessed: a literal reaches the inferrer already
+;; built, and `vector`/`list`/`hash-map`/`array-map` each have exactly one
+;; meaning. What these tests pin is that the lowered form still answers what
+;; the generic function answered, including where the two could differ: an
+;; out-of-range index, a missing key, and a `loop` whose `recur` rebinds the
+;; slot to something that is not a collection at all.
+
+(deftest test-vector-access-through-a-typed-binding
+  (is (= 1 (let [v [1 2 3]] (nth v 0))) "nth at the head")
+  (is (= 3 (let [v [1 2 3]] (nth v 2))) "nth at the end")
+  (is (= 3 (let [v [1 2 3]] (count v))) "count")
+  (is (= 1 (let [v [1 2 3]] (first v))) "first")
+  (is (= [2 3] (let [v [1 2 3]] (vec (next v)))) "next")
+  (is (= 0 (let [v []] (count v))) "an empty vector")
+  (is (nil? (let [v []] (first v))) "first of an empty vector"))
+
+(deftest test-vector-access-out-of-range
+  ;; `nth` raises out of range, and the lowered `->get` has to raise something
+  ;; a caller catches the same way. `phel.core/nth` throws SPL's
+  ;; `OutOfBoundsException` from its own body while `->get` throws
+  ;; `IndexOutOfBoundsException`; the latter now extends the former, so one
+  ;; `catch` covers both however the call was compiled.
+  (is (thrown? \OutOfBoundsException (let [v [1 2 3]] (nth v 9))) "past the end raises")
+  (is (thrown? \OutOfBoundsException (let [v []] (nth v 0))) "any index into an empty vector raises")
+  (is (thrown? \OutOfBoundsException (nth [1 2 3] 9)) "and so does the untyped call")
+  (is (= :caught (try (let [v [1 2 3]] (nth v 9)) (catch \OutOfBoundsException e :caught)))
+      "a typed binding is caught as OutOfBoundsException")
+  (is (= :caught (try (nth [1 2 3] 9) (catch \OutOfBoundsException e :caught)))
+      "and so is an untyped one")
+  (is (= :d (let [v [1 2 3]] (nth v 9 :d))) "with a default, no raise")
+  (is (= 1 (let [v [1 2 3]] (nth v 0 :d))) "a default that is not reached"))
+
+(deftest test-map-access-through-a-typed-binding
+  (is (= 1 (let [m {:a 1}] (get m :a))) "a present key")
+  (is (nil? (let [m {:a 1}] (get m :zz))) "an absent key is nil")
+  (is (= :d (let [m {:a 1}] (get m :zz :d))) "an absent key with a default")
+  (is (nil? (let [m {:a nil}] (get m :a))) "a key held with nil reads back nil")
+  (is (= :d (let [m {:a nil}] (get m :a :d))) "and takes the default, as it did before")
+  (is (= 1 (let [m {}] (count (assoc m :a 1)))) "an empty map literal")
+  (is (= false (let [m {:a false}] (get m :a))) "a false value survives"))
+
+(deftest test-the-constructors-type-their-binding-too
+  (is (= 1 (let [v (vector 1 2 3)] (nth v 0))) "vector")
+  (is (= 3 (let [v (vector 1 2 3)] (count v))) "vector count")
+  (is (= 1 (let [m (hash-map :a 1)] (get m :a))) "hash-map")
+  (is (= 1 (let [m (array-map :a 1)] (get m :a))) "array-map")
+  (is (= 1 (let [l (list 1 2 3)] (first l))) "list")
+  (is (= 0 (let [v (vector)] (count v))) "an empty constructor call"))
+
+(deftest test-a-set-literal-binding
+  (is (= 3 (let [s #{1 2 3}] (count s))) "count")
+  (is (true? (let [s #{1 2 3}] (contains? s 2))) "a present member")
+  (is (false? (let [s #{1 2 3}] (contains? s 9))) "an absent member"))
+
+(deftest test-a-literal-with-non-constant-elements
+  ;; Not folded to a constant, so it stays a node. The container's type is
+  ;; fixed either way; only the contents are dynamic.
+  (let [x 2]
+    (is (= 2 (let [v [x]] (nth v 0))) "a vector holding a local")
+    (is (= 1 (let [v [x]] (count v))) "and its count")
+    (is (= 2 (let [m {:a x}] (get m :a))) "a map holding a local")
+    (is (= 3 (let [v [1 x 3]] (nth v 2))) "a partly constant vector")))
+
+(deftest test-a-loop-that-recurs-with-another-type-keeps-working
+  ;; The slot is a vector on entry and something else afterwards, so no tag may
+  ;; survive. If one did, the rebound value would reach a method call it cannot
+  ;; answer.
+  (is (= 0 (loop [v [1 2 3] i 0]
+             (if (php/< i 1) (recur nil (php/+ i 1)) (count v))))
+      "recur with nil")
+  (is (= 42 (loop [v [1 2 3] i 0]
+              (if (php/< i 1) (recur 42 (php/+ i 1)) v)))
+      "recur with an int")
+  (is (= 3 (loop [v [1 2 3] i 0]
+             (if (php/< i 0) (recur nil (php/+ i 1)) (count v))))
+      "a loop whose recur never runs")
+  (is (= 1 (loop [v [1 2 3] i 0]
+             (if (php/< i 1) (recur (vector 9) (php/+ i 1)) (count v))))
+      "recur with the same collection kind"))
+
+(deftest test-a-shadowing-binding-does-not-carry-the-outer-type
+  (is (= 5 (let [v [1 2 3]] (let [v 5] v))) "an inner binding of another type")
+  (is (= 3 (let [v [1 2 3]] (let [w 5] (count v)))) "the outer binding still works")
+  (is (= 2 (let [v [1 2 3]] (let [v [9 9]] (count v)))) "an inner collection shadows the outer"))
+
+(deftest test-a-typed-binding-is-still-an-ordinary-value
+  ;; Nothing may leak: the binding holds the same persistent collection it
+  ;; always did, and every other function must still accept it.
+  (let [v [1 2 3]
+        m {:a 1}]
+    (is (= [1 2 3 4] (conj v 4)) "conj")
+    (is (= [1 2 3] v) "and the original is unchanged")
+    (is (vector? v) "still a vector")
+    (is (= [2 4 6] (vec (map (fn [x] (php/* 2 x)) v))) "map over it")
+    (is (= {:a 1, :b 2} (assoc m :b 2)) "assoc")
+    (is (map? m) "still a map")
+    (is (= "[1 2 3]" (pr-str v)) "prints as before")))

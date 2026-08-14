@@ -4,8 +4,9 @@
       f (fn [matches] matches)])
 --PHP--
 $matches_6 = array();
+/** @var \Phel\Lang\Collections\Vector\PersistentVectorInterface $__phel_1_7 */
 $__phel_1_7 = \Phel::vector([1, 2]);
-$__phel_2_8 = (\Phel::getDefinition("phel.core", "first"))->__invoke($__phel_1_7);
+$__phel_2_8 = ($__phel_1_7->first());
 $__phel_3_9 = (\Phel::getDefinition("phel.core", "next"))->__invoke($__phel_1_7);
 $a_10 = $__phel_2_8;
 $__phel_4_11 = (\Phel::getDefinition("phel.core", "first"))->__invoke($__phel_3_9);

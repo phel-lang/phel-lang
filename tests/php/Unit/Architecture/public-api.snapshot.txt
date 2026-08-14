@@ -434,7 +434,7 @@ interface Phel\Lang\CdrInterface
 interface Phel\Lang\Collections\AsTransientInterface
   public function asTransient()
 
-final class Phel\Lang\Collections\Exceptions\IndexOutOfBoundsException extends Exception
+final class Phel\Lang\Collections\Exceptions\IndexOutOfBoundsException extends OutOfBoundsException
 
 final class Phel\Lang\Collections\Exceptions\MethodNotSupportedException extends Exception
 

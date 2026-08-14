@@ -14,10 +14,16 @@ use Phel\Compiler\Domain\Analyzer\Ast\IfNode;
 use Phel\Compiler\Domain\Analyzer\Ast\LetNode;
 use Phel\Compiler\Domain\Analyzer\Ast\LiteralNode;
 use Phel\Compiler\Domain\Analyzer\Ast\LocalVarNode;
+use Phel\Compiler\Domain\Analyzer\Ast\MapNode;
 use Phel\Compiler\Domain\Analyzer\Ast\PhpVarNode;
 use Phel\Compiler\Domain\Analyzer\Ast\RecurNode;
+use Phel\Compiler\Domain\Analyzer\Ast\SetNode;
+use Phel\Compiler\Domain\Analyzer\Ast\VectorNode;
 use Phel\Compiler\Domain\Analyzer\TypeAnalyzer\PhpFunctionReturnTypes;
+use Phel\Lang\Collections\HashSet\PersistentHashSetInterface;
+use Phel\Lang\Collections\LinkedList\PersistentListInterface;
 use Phel\Lang\Collections\Map\PersistentMapInterface;
+use Phel\Lang\Collections\Vector\PersistentVectorInterface;
 use Phel\Lang\Keyword;
 use Phel\Lang\Symbol;
 use Phel\Shared\CompilerConstants;
@@ -119,6 +125,25 @@ final class BindingTypeInferrer
         'void' => true, 'never' => true, 'null' => true, 'mixed' => true,
         'object' => true, 'iterable' => true, 'callable' => true,
         'self' => true, 'static' => true, 'parent' => true,
+    ];
+
+    /**
+     * `phel.core` constructors whose result type is fixed by the callee alone,
+     * mapped to the interface a binding can dispatch on. Same table
+     * {@see Phel\Compiler\Domain\Emitter\OutputEmitter\ConstructorSpecialization}
+     * lowers on, for the same reason: each of these names has exactly one
+     * meaning, so the type is provable without looking at the arguments.
+     * `queue` is absent: it has no interface, only a concrete
+     * `Phel\Lang\Collections\Queue\PersistentQueue`, and the collection
+     * specialisations dispatch on the interfaces.
+     *
+     * @var array<string, string>
+     */
+    private const array CORE_CONSTRUCTORS = [
+        'vector' => PersistentVectorInterface::class,
+        'list' => PersistentListInterface::class,
+        'hash-map' => PersistentMapInterface::class,
+        'array-map' => PersistentMapInterface::class,
     ];
 
     /** @var array<string, string> */
@@ -297,6 +322,21 @@ final class BindingTypeInferrer
             return $locals[$node->getName()->getName()] ?? $node->getInferredType();
         }
 
+        // A collection literal whose elements are not all constant stays a
+        // node rather than being folded into a `LiteralNode`. The container's
+        // type is fixed either way; only its contents are dynamic.
+        if ($node instanceof VectorNode) {
+            return PersistentVectorInterface::class;
+        }
+
+        if ($node instanceof MapNode) {
+            return PersistentMapInterface::class;
+        }
+
+        if ($node instanceof SetNode) {
+            return PersistentHashSetInterface::class;
+        }
+
         if ($node instanceof CallNode) {
             return $this->callType($node, $locals);
         }
@@ -387,6 +427,10 @@ final class BindingTypeInferrer
                 return $this->numericResultType($node, $locals);
             }
 
+            if (isset(self::CORE_CONSTRUCTORS[$name])) {
+                return self::CORE_CONSTRUCTORS[$name];
+            }
+
             if (in_array($name, self::CORE_INC_DEC_OPS, true)) {
                 $args = $node->getArguments();
                 if (count($args) !== 1) {
@@ -472,6 +516,14 @@ final class BindingTypeInferrer
             is_float($value) => 'float',
             is_bool($value) => 'bool',
             is_string($value) => 'string',
+            // A collection literal reaches here already built: the constant
+            // folder hoists `[1 2 3]` to a `\Phel::vector(...)` evaluated once.
+            // The value in hand *is* the collection, so its interface is not
+            // inferred but observed.
+            $value instanceof PersistentVectorInterface => PersistentVectorInterface::class,
+            $value instanceof PersistentMapInterface => PersistentMapInterface::class,
+            $value instanceof PersistentHashSetInterface => PersistentHashSetInterface::class,
+            $value instanceof PersistentListInterface => PersistentListInterface::class,
             default => null,
         };
     }
