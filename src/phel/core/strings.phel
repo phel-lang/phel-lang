@@ -110,6 +110,12 @@ Throws `InvalidArgumentException` for any other input (including functions, numb
   ;; rest argument, built an intermediate array, pushed into it and called
   ;; `implode`. The concatenation was never the cost. See #2973.
   ;;
+  ;; Four and five are here because the cliff is steep and they are common.
+  ;; `bench_str_four` went from 42.4μs to 10.9μs and `bench_str_five` from
+  ;; 51.8μs to 12.7μs, while `bench_str_three` did not move. Across `src/phel`
+  ;; there are 29 call sites at four arguments and 20 at five, against 18 at
+  ;; six or more, which still take the loop below.
+  ;;
   ;; A call whose arguments are string-typed never arrives here at all:
   ;; `CoreFnCallEmitter::tryEmitStrConcat` lowers it to native `.`. This is the
   ;; untagged path, which is what a value from a parameter or a global reaches.
@@ -117,13 +123,18 @@ Throws `InvalidArgumentException` for any other input (including functions, numb
   (^string [x] (val-to-str x))
   (^string [x y] (php/. (val-to-str x) (val-to-str y)))
   (^string [x y z] (php/. (val-to-str x) (val-to-str y) (val-to-str z)))
-  (^string [x y z & more]
+  (^string [x y z a] (php/. (val-to-str x) (val-to-str y) (val-to-str z) (val-to-str a)))
+  (^string [x y z a b]
+   (php/. (val-to-str x) (val-to-str y) (val-to-str z) (val-to-str a) (val-to-str b)))
+  (^string [x y z a b & more]
    ;; Bootstrap: `php-indexed-array` is defined after `str`.
    (let [parts (php/array)
          cnt   (php/count more)]
      (php/apush parts (val-to-str x))
      (php/apush parts (val-to-str y))
      (php/apush parts (val-to-str z))
+     (php/apush parts (val-to-str a))
+     (php/apush parts (val-to-str b))
      (loop [i 0]
        (if (php/< i cnt)
          (do (php/apush parts (val-to-str (php/aget more i)))
