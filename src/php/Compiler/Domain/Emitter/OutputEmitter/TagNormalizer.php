@@ -43,6 +43,26 @@ final readonly class TagNormalizer
      * or carries no tag. Collapses the "is this argument a tagged local?"
      * guard repeated across the call-site specialisations into one place.
      */
+    /**
+     * The tag of any node the emitter can type, not only a bare variable.
+     *
+     * {@see self::ofLocalVar()} exists because several lowerings emit their
+     * target more than once (`last` on a vector emits it three times), so the
+     * target has to be a side-effect-free variable reference. A lowering that
+     * emits the target exactly once has no such constraint and can accept a
+     * call, which is what lets `(count (mkvec))` specialise and not only
+     * `(let [v (mkvec)] (count v))`. Use this only from those; the audit of
+     * which is which is in the pull request for #3042.
+     */
+    public static function ofNode(?AbstractNode $node): ?string
+    {
+        if (!$node instanceof AbstractNode) {
+            return null;
+        }
+
+        return self::normalise(NumericOperationSpecialization::inferredTypeOfNode($node));
+    }
+
     public static function ofLocalVar(?AbstractNode $node): ?string
     {
         if (!$node instanceof LocalVarNode) {

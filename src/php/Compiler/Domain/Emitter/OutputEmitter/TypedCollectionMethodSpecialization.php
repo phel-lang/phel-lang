@@ -56,7 +56,8 @@ final readonly class TypedCollectionMethodSpecialization
         }
 
         $args = $node->getArguments();
-        $tag = TagNormalizer::ofLocalVar($args[0] ?? null);
+        // `ofNode`: `tryEmitTypedVectorAccessor` emits the target once.
+        $tag = TagNormalizer::ofNode($args[0] ?? null);
 
         // `count` takes a map tag as well. Both interfaces extend `Countable`,
         // and {@see TypedValueSpecialization::emptyCheckFragment} already emits
@@ -163,7 +164,8 @@ final readonly class TypedCollectionMethodSpecialization
             return null;
         }
 
-        $tag = TagNormalizer::ofLocalVar($args[0]);
+        // `ofNode`: `tryEmitTypedSeqAccessor` emits the target once.
+        $tag = TagNormalizer::ofNode($args[0]);
         if ($tag === null || !isset(self::SEQ_TAGS[$tag])) {
             return null;
         }

@@ -1,0 +1,65 @@
+(ns phel-test.core.collection-accessor-on-a-call
+  (:require phel.test :refer [deftest is]))
+
+;; The vector and seq accessor lowerings accept any node the emitter can type,
+;; not only a bare variable, so `(count (mkvec))` specialises the same way
+;; `(let [v (mkvec)] (count v))` does.
+;;
+;; The restriction is still there for the lowerings that need it. `last` on a
+;; typed vector emits its target three times and `second` twice, so those two
+;; keep requiring a variable: emitting a *call* three times would call it three
+;; times. These tests cover both sides, and the side-effect cases are the ones
+;; that would expose a target evaluated more than once.
+
+(defn mkvec [] [10 20 30 40])
+(defn mkseq [] (map identity [10 20 30]))
+
+(deftest test-an-accessor-applied-directly-to-a-call
+  (is (= 4 (count (mkvec))) "count")
+  (is (= 10 (nth (mkvec) 0)) "nth at the head")
+  (is (= 30 (nth (mkvec) 2)) "nth in the middle")
+  (is (= 10 (first (mkvec))) "first")
+  (is (= [20 30 40] (vec (rest (mkvec)))) "rest")
+  (is (= [20 30 40] (vec (next (mkvec)))) "next")
+  (is (= 3 (count (mkseq))) "count over a seq")
+  (is (= 10 (first (mkseq))) "first over a seq"))
+
+(deftest test-the-target-is-evaluated-exactly-once
+  ;; The whole reason the narrow lowerings keep their restriction. A target
+  ;; emitted twice would tick this atom twice.
+  (let [calls (atom 0)]
+    (let [f (fn [] (do (swap! calls inc) [1 2 3]))]
+      (count (f))
+      (is (= 1 (deref calls)) "count evaluates its argument once")
+      (reset! calls 0)
+      (nth (f) 1)
+      (is (= 1 (deref calls)) "nth evaluates its argument once")
+      (reset! calls 0)
+      (first (f))
+      (is (= 1 (deref calls)) "first evaluates its argument once")
+      (reset! calls 0)
+      (last (f))
+      (is (= 1 (deref calls)) "last evaluates its argument once")
+      (reset! calls 0)
+      (second (f))
+      (is (= 1 (deref calls)) "second evaluates its argument once"))))
+
+(deftest test-last-and-second-still-answer-correctly
+  ;; These keep the variable-only gate; they must still be right either way.
+  (is (= 40 (last (mkvec))) "last on a call")
+  (is (= 20 (second (mkvec))) "second on a call")
+  (is (= 40 (let [v (mkvec)] (last v))) "last on a binding")
+  (is (= 20 (let [v (mkvec)] (second v))) "second on a binding")
+  (is (nil? (last [])) "last of an empty vector")
+  (is (nil? (second [1])) "second of a one-element vector"))
+
+(deftest test-accessors-on-a-call-agree-with-the-bound-form
+  (let [v (mkvec)]
+    (is (= (count v) (count (mkvec))) "count")
+    (is (= (nth v 2) (nth (mkvec) 2)) "nth")
+    (is (= (first v) (first (mkvec))) "first")
+    (is (= (vec (rest v)) (vec (rest (mkvec)))) "rest")))
+
+(deftest test-out-of-range-still-raises-through-a-call
+  (is (thrown? \OutOfBoundsException (nth (mkvec) 99)) "past the end")
+  (is (= :d (nth (mkvec) 99 :d)) "unless a default is given"))
