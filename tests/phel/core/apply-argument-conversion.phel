@@ -1,0 +1,74 @@
+(ns phel-test.core.apply-argument-conversion
+  (:require phel.test :refer [deftest is]))
+
+;; `apply` spreads its final argument into positional PHP arguments through
+;; `Seq::toApplyArguments`. A vector now hands over its whole trie in one walk
+;; instead of being stepped through `iterator_to_array` one element at a time.
+;;
+;; The branch is reached by every `apply` in the language, so what has to hold
+;; is that each source kind still spreads to the same arguments in the same
+;; order: a vector, and equally the kinds that deliberately did NOT move (a
+;; list and a set build their own array out of an iterator, so routing them
+;; through the new branch would cost a second pass and buy nothing).
+
+(deftest test-apply-over-a-vector
+  (is (= 6 (apply + [1 2 3])) "three elements")
+  (is (= 0 (apply + [])) "an empty vector")
+  (is (= 1 (apply + [1])) "one element")
+  (is (= 120 (apply * [2 3 4 5])) "past the fixed arities")
+  (is (= 136 (apply + (vec (range 17)))) "past one trie node")
+  (is (= "abc" (apply str ["a" "b" "c"])) "a variadic string fn"))
+
+(deftest test-the-order-of-the-arguments-is-kept
+  ;; A vector spreads left to right. Any reordering inside the walk would be
+  ;; invisible to a commutative fn like `+`, so these use fns that care.
+  (is (= "123" (apply str [1 2 3])) "str concatenates in order")
+  (is (= 1 (apply - [4 3])) "subtraction is not commutative")
+  (is (= [1 2 3] (apply vector [1 2 3])) "rebuilt as a vector")
+  (is (= "0123456789" (apply str (vec (range 10)))) "ten elements in order")
+  (is (= "0123456789101112131415161718" (apply str (vec (range 19))))
+      "and past one trie node"))
+
+(deftest test-elements-that-are-falsy-are-still-passed
+  ;; Nothing in the conversion may drop an element for being falsy, and the
+  ;; count of arguments the callee receives must not change.
+  (is (= 3 (apply (fn [& xs] (count xs)) [nil false 0])) "three falsy arguments")
+  (is (= [nil false 0 ""] (apply vector [nil false 0 ""])) "each one arrives")
+  (is (= 1 (apply (fn [& xs] (count xs)) [nil])) "a single nil")
+  (is (= [nil] (apply vector [nil])) "and it is really nil")
+  (is (= 2 (apply (fn [& xs] (count xs)) [nil nil])) "two nils stay two"))
+
+(deftest test-the-leading-arguments-are-kept
+  ;; `apply` only converts its LAST argument; everything before it is passed
+  ;; through untouched, and the two halves have to join in the right order.
+  (is (= 10 (apply + 1 [2 3 4])) "one leading argument")
+  (is (= 10 (apply + 1 2 [3 4])) "two leading arguments")
+  (is (= 10 (apply + 1 2 3 [4])) "three leading arguments")
+  (is (= 1 (apply + 1 [])) "an empty tail")
+  (is (= "ab" (apply str "a" ["b"])) "order across the join")
+  (is (= [1 2 3] (apply vector 1 [2 3])) "the join is not reordered"))
+
+(deftest test-the-other-source-kinds-are-unchanged
+  (is (= 6 (apply + '(1 2 3))) "a list")
+  (is (= 0 (apply + '())) "an empty list")
+  (is (= 6 (apply + (set [1 2 3]))) "a set")
+  (is (= 6 (apply + (map inc [0 1 2]))) "a lazy sequence")
+  (is (= 6 (apply + (php/array 1 2 3))) "a PHP array")
+  (is (= 0 (apply + nil)) "nil spreads to nothing")
+  (is (= "abc" (apply str "abc")) "a string spreads to its characters"))
+
+(deftest test-a-sub-vector-spreads-its-own-slice
+  ;; A slice shares its parent's trie but must only hand over its own range.
+  (let [v [1 2 3 4 5]]
+    (is (= 9 (apply + (slice v 1 3))) "the middle")
+    (is (= 15 (apply + (slice v 0))) "the whole vector")
+    (is (= 0 (apply + (slice v 0 0))) "an empty slice")
+    (is (= "234" (apply str (slice v 1 3))) "and in order")))
+
+(deftest test-apply-still-answers-arity-errors
+  ;; The conversion decides how many arguments the callee sees, so a wrong
+  ;; count has to keep raising rather than silently passing fewer.
+  (is (thrown? \Throwable (apply (fn [a b] a) [1])) "too few arguments")
+  (is (= 1 (apply (fn [a b] a) [1 2])) "exactly enough")
+  (is (= 1 (apply (fn [a & r] a) [1])) "a variadic fn with only the fixed part")
+  (is (= [2 3] (apply (fn [a & r] r) [1 2 3])) "and its rest argument"))
