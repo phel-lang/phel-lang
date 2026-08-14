@@ -11,6 +11,7 @@ use RegexIterator;
 use UnexpectedValueException;
 
 use function is_array;
+use function str_starts_with;
 
 /**
  * Stateless helper that yields every `.phel` file under a directory tree.
@@ -21,9 +22,11 @@ use function is_array;
 final class PhelFileIterator
 {
     /**
+     * @param list<string> $excludedPrefixes absolute paths whose subtrees are skipped
+     *
      * @return iterable<string>
      */
-    public static function iterate(string $directory): iterable
+    public static function iterate(string $directory, array $excludedPrefixes = []): iterable
     {
         try {
             $dirIterator = new RecursiveDirectoryIterator($directory);
@@ -34,9 +37,28 @@ final class PhelFileIterator
         }
 
         foreach ($regex as $match) {
-            if (is_array($match) && isset($match[0])) {
-                yield ScalarCoercion::toString($match[0]);
+            if (!is_array($match)) {
+                continue;
             }
+
+            if (!isset($match[0])) {
+                continue;
+            }
+
+            $file = ScalarCoercion::toString($match[0]);
+            if (self::isExcluded($file, $excludedPrefixes)) {
+                continue;
+            }
+
+            yield $file;
         }
+    }
+
+    /**
+     * @param list<string> $excludedPrefixes
+     */
+    private static function isExcluded(string $file, array $excludedPrefixes): bool
+    {
+        return array_any($excludedPrefixes, static fn(string $prefix): bool => str_starts_with($file, $prefix));
     }
 }
