@@ -474,12 +474,16 @@ Without arguments, uses a default cache size of 128 entries."
    (rest (tree-seq indexed? identity coll))))
 
 (defn- merge-with-2 [f left right]
-  (persistent
-   (for [[k v] :pairs right
-         :reduce [acc (transient left)]]
-     (if (contains? acc k)
-       (assoc! acc k (f (get acc k) v))
-       (assoc! acc k v)))))
+  ;; `foreach` and not `for … :pairs`, as the map rebuilders in #3140: the
+  ;; destructuring was most of the cost. Seeding from `left` is the merge
+  ;; itself, not an optimisation, so the metadata question that stopped
+  ;; `update-vals` seeding does not arise here.
+  (let [acc (transient left)]
+    (foreach [k v right]
+      (if (contains? acc k)
+        (.put acc k (f (get acc k) v))
+        (.put acc k v)))
+    (persistent acc)))
 
 (defn merge-with
   "Merges multiple maps into one new map. If a key appears in more than one collection, the result of `(f current-val next-val)` is used."
@@ -554,7 +558,9 @@ Without arguments, uses a default cache size of 128 entries."
   {:example "(map-invert {:a 1 :b 2}) ; => {1 :a, 2 :b}"
    :see-also ["update-keys" "update-vals" "select-keys"]}
   [m]
-  (persistent
-   (for [[k v] :pairs m
-         :reduce [acc (transient {})]]
-     (assoc! acc v k))))
+  ;; As above. Built from empty: the values become the keys, so there is
+  ;; nothing to seed from.
+  (let [acc (transient {})]
+    (foreach [k v m]
+      (.put acc v k))
+    (persistent acc)))

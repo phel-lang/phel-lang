@@ -1,0 +1,32 @@
+(ns phel-test.core.merge-with-map-invert
+  (:require phel.test :refer [deftest is]))
+
+;; `merge-with` and `map-invert` walk with `foreach` rather than
+;; `for … :pairs`, as the rebuilders in #3140. `merge-with` still seeds its
+;; transient from the left map, which is the merge itself rather than an
+;; optimisation; `map-invert` builds from empty, since the values become keys.
+
+(deftest test-merge-with
+  (is (= {:a 11, :b 2} (merge-with + {:a 1, :b 2} {:a 10})) "a shared key is combined")
+  (is (= {:a 1, :b 2} (merge-with + {:a 1} {:b 2})) "disjoint keys are not combined")
+  (is (= {:a 6} (merge-with + {:a 1} {:a 2} {:a 3})) "three maps fold left to right")
+  (is (= {:a 1} (merge-with + {:a 1})) "one map")
+  ;; `merge-with` answers `{}` with no maps, where `merge` answers nil.
+  (is (= {} (merge-with +)) "no maps gives an empty map, not nil")
+  (is (= {:a 1} (merge-with + {} {:a 1})) "an empty left")
+  (is (= {:a 1} (merge-with + {:a 1} {})) "an empty right")
+  ;; Argument order reaches the function as (left, right).
+  (is (= {:a "L-R"} (merge-with (fn [a b] (str a "-" b)) {:a "L"} {:a "R"}))
+      "the left value is the first argument")
+  (is (= [nil 1] (get (merge-with (fn [a b] [a b]) {:a nil} {:a 1}) :a))
+      "a nil left value still counts as present")
+  (is (= {:m 1} (meta (merge-with + (with-meta {:a 1} {:m 1}) {:b 2})))
+      "the left map's metadata is kept"))
+
+(deftest test-map-invert
+  (is (= {1 :a, 2 :b} (map-invert {:a 1, :b 2})) "keys and values swap")
+  (is (= {} (map-invert {})) "an empty map")
+  (is (= 1 (count (map-invert {:a 1, :b 1}))) "duplicate values collapse to one key")
+  (is (= :a (get (map-invert {:a nil}) nil)) "nil is usable as the new key")
+  (is (= {:a 1, :b 2} (map-invert (map-invert {:a 1, :b 2}))) "inverting twice round-trips")
+  (is (nil? (meta (map-invert (with-meta {:a 1} {:m 1})))) "the source metadata is not carried"))

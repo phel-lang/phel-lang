@@ -85,6 +85,12 @@ final class CoreSeqBench extends CoreBenchCase
     private $merge;
 
     /** @var callable */
+    private $mergeWith;
+
+    /** @var callable */
+    private $mapInvert;
+
+    /** @var callable */
     private $updateVals;
 
     /** @var callable */
@@ -757,6 +763,24 @@ final class CoreSeqBench extends CoreBenchCase
     }
 
     /**
+     * The last two map builders that walked with `for … :pairs`.
+     *
+     * @Revs(1000)
+     */
+    public function bench_merge_with(): void
+    {
+        ($this->mergeWith)($this->add, $this->bigMapA, $this->bigMapB);
+    }
+
+    /**
+     * @Revs(1000)
+     */
+    public function bench_map_invert(): void
+    {
+        ($this->mapInvert)($this->bigMapA);
+    }
+
+    /**
      * `partition-by` and `dedupe` return a sequence built by
      * `lazy-seq-from-generator`, so constructing one realizes a chunk before
      * the caller has asked for a single element. These two subjects measure
@@ -801,6 +825,8 @@ final class CoreSeqBench extends CoreBenchCase
         $this->transduce = $this->coreFn('transduce');
         $this->vec = $this->coreFn('vec');
         $this->merge = $this->coreFn('merge');
+        $this->mergeWith = $this->coreFn('merge-with');
+        $this->mapInvert = $this->coreFn('map-invert');
         $this->updateVals = $this->coreFn('update-vals');
         $this->updateKeys = $this->coreFn('update-keys');
         $this->renameKeys = $this->coreFn('rename-keys');
