@@ -1,0 +1,55 @@
+(ns phel-test.core.global-return-tag-lowering
+  (:require phel.test :refer [deftest is]))
+
+;; A call to a function whose definition declares a return tag now carries that
+;; tag at the call site, so `(str "<" (tagged x) ">")` lowers to native PHP
+;; concatenation and `(+ (int-fn x) 1)` to a native `+`, the same way a tagged
+;; local already did. The emitted shape is pinned by the fixtures under
+;; `tests/php/Integration/Fixtures/Call/`; what these check is that the lowered
+;; expression still computes what the runtime function computed.
+;;
+;; The values below are the ones where native concatenation and `phel.core/str`
+;; could disagree: `str` routes everything through `val-to-str`, while `.`
+;; applies PHP's own string cast.
+
+(defn- ^string s-tagged [x] (str x))
+(defn- ^int i-tagged [x] (php/intval x))
+(defn- untagged [x] (str x))
+
+(defn- mixed-tags
+  (^string [x] "one")
+  (^int [x y] 2))
+
+(deftest test-a-tagged-return-concatenates-to-the-same-string
+  (is (= "<a>" (str "<" (s-tagged "a") ">")) "a string")
+  (is (= "<>" (str "<" (s-tagged nil) ">")) "nil becomes empty, not the word nil")
+  (is (= "<true>" (str "<" (s-tagged true) ">")) "true")
+  (is (= "<false>" (str "<" (s-tagged false) ">")) "false, not an empty string")
+  (is (= "<0>" (str "<" (s-tagged 0) ">")) "zero")
+  (is (= "<0.0>" (str "<" (s-tagged 0.0) ">")) "a float keeps its .0")
+  (is (= "<:kw>" (str "<" (s-tagged :kw) ">")) "a keyword")
+  (is (= "<[1 2]>" (str "<" (s-tagged [1 2]) ">")) "a vector"))
+
+(deftest test-the-tagged-and-untagged-routes-agree
+  ;; The same values through a function the analyser cannot type, which stays
+  ;; on the runtime `str`. Any divergence in the cast shows up as a mismatch.
+  (dofor [v :in ["a" "" nil true false 0 1 0.0 1.5 :kw [1 2] {:a 1}]]
+    (is (= (str "<" (untagged v) ">") (str "<" (s-tagged v) ">"))
+        (str "tagged and untagged agree on " (pr-str v)))))
+
+(deftest test-more-than-one-tagged-call-in-one-concatenation
+  (is (= "<a|b>" (str "<" (s-tagged "a") "|" (s-tagged "b") ">")) "two calls")
+  (is (= "aXbXc" (str (s-tagged "a") "X" (s-tagged "b") "X" (s-tagged "c"))) "three, no delimiters")
+  (is (= "<<a>>" (str "<" (str "<" (s-tagged "a") ">") ">")) "a nested concatenation"))
+
+(deftest test-a-tagged-int-return-still-adds
+  (is (= 8 (php/+ (i-tagged "7") 1)) "a native addition")
+  (is (= 10 (php/+ (i-tagged "7") (i-tagged "3"))) "both operands tagged")
+  (is (= 7 (php/+ (i-tagged "7") 0)) "adding zero")
+  (is (= -1 (php/+ (i-tagged "-2") 1)) "a negative operand"))
+
+(deftest test-arities-with-different-tags-are-left-alone
+  ;; Nothing may be inferred when the arities disagree about the return type,
+  ;; because the call site picks the arity. Both must still be correct.
+  (is (= "<one>" (str "<" (mixed-tags 1) ">")) "the string arity")
+  (is (= "<2>" (str "<" (mixed-tags 1 2) ">")) "the int arity"))
