@@ -102,9 +102,9 @@ final readonly class SymbolExtractor
                         $namespaceLocation = new Location(
                             $uri,
                             $start?->getLine() ?? 0,
-                            $start?->getColumn() ?? 0,
+                            $this->oneBasedColumn($start),
                             $end?->getLine() ?? 0,
-                            $end?->getColumn() ?? 0,
+                            $this->oneBasedColumn($end),
                         );
                         continue;
                     }
@@ -197,7 +197,7 @@ final readonly class SymbolExtractor
             name: $name->getName(),
             uri: $uri,
             line: $start?->getLine() ?? 0,
-            col: $start?->getColumn() ?? 0,
+            col: $this->oneBasedColumn($start),
             kind: self::DEFINITION_FORMS[$formName],
             signature: $this->extractSignature($form, $formName),
             docstring: $this->extractDocstring($form, $formName),
@@ -394,7 +394,7 @@ final readonly class SymbolExtractor
             $references[$key][] = new Location(
                 uri: $uri,
                 line: $location->getLine(),
-                col: $location->getColumn(),
+                col: $this->oneBasedColumn($location),
             );
 
             return;
@@ -447,5 +447,15 @@ final readonly class SymbolExtractor
     {
         // Ignore purely syntactic markers (`&`, `.`, etc.) that appear in fn params.
         return $name !== '&' && $name !== '.';
+    }
+
+    /**
+     * SourceLocation columns are 0-based; Location and Definition are 1-based,
+     * because PositionConverter subtracts one on the way out to LSP. 0 stays 0
+     * to keep meaning "unknown".
+     */
+    private function oneBasedColumn(?SourceLocation $location): int
+    {
+        return $location instanceof SourceLocation ? $location->getColumn() + 1 : 0;
     }
 }

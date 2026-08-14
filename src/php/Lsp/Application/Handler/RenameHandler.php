@@ -20,6 +20,7 @@ use function strlen;
  * Rename a symbol across the workspace. Uses findReferences for all
  * call-sites plus the definition site itself.
  *
+ * @phpstan-import-type Range from PositionConverter
  * @phpstan-import-type TextEdit from PositionConverter
  *
  * @internal
@@ -82,33 +83,54 @@ final readonly class RenameHandler implements HandlerInterface
         $nameLen = strlen($oldName);
         /** @var array<string, list<TextEdit>> $changes */
         $changes = [];
+        // The definition site is also in its own reference list, and the LSP
+        // spec leaves overlapping edits undefined, so the same span must be
+        // emitted once.
+        $seen = [];
 
         if ($definition instanceof Definition) {
             $uri = $this->uris->toClientUri($definition->uri);
-            $changes[$uri][] = [
-                'range' => $this->positions->toLspRange(
-                    $definition->line,
-                    $definition->col,
-                    $definition->line,
-                    $definition->col + $nameLen,
-                ),
-                'newText' => $newName,
-            ];
+            $range = $this->positions->toLspRange(
+                $definition->line,
+                $definition->col,
+                $definition->line,
+                $definition->col + $nameLen,
+            );
+            $seen[$this->editKey($uri, $range)] = true;
+            $changes[$uri][] = ['range' => $range, 'newText' => $newName];
         }
 
         foreach ($references as $location) {
             $uri = $this->uris->toClientUri($location->uri);
-            $changes[$uri][] = [
-                'range' => $this->positions->toLspRange(
-                    $location->line,
-                    $location->col,
-                    $location->endLine > 0 ? $location->endLine : $location->line,
-                    $location->endCol > 0 ? $location->endCol : $location->col + $nameLen,
-                ),
-                'newText' => $newName,
-            ];
+            $range = $this->positions->toLspRange(
+                $location->line,
+                $location->col,
+                $location->endLine > 0 ? $location->endLine : $location->line,
+                $location->endCol > 0 ? $location->endCol : $location->col + $nameLen,
+            );
+            $key = $this->editKey($uri, $range);
+            if (isset($seen[$key])) {
+                continue;
+            }
+
+            $seen[$key] = true;
+            $changes[$uri][] = ['range' => $range, 'newText' => $newName];
         }
 
         return ['changes' => $changes];
+    }
+
+    /**
+     * @param Range $range
+     */
+    private function editKey(string $uri, array $range): string
+    {
+        return implode(':', [
+            $uri,
+            $range['start']['line'],
+            $range['start']['character'],
+            $range['end']['line'],
+            $range['end']['character'],
+        ]);
     }
 }
