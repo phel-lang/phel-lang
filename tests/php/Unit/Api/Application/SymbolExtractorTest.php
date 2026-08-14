@@ -87,8 +87,9 @@ final class SymbolExtractorTest extends TestCase
         self::assertNotNull($result['namespaceLocation']);
         self::assertSame('pprint.phel', $result['namespaceLocation']->uri);
         self::assertSame(3, $result['namespaceLocation']->line);
-        self::assertSame(5, $result['namespaceLocation']->col);
-        self::assertSame(16, $result['namespaceLocation']->endCol);
+        // SourceLocation columns are 0-based, Location's are 1-based.
+        self::assertSame(6, $result['namespaceLocation']->col);
+        self::assertSame(17, $result['namespaceLocation']->endCol);
     }
 
     public function test_it_extracts_signature_and_namespace(): void
@@ -123,7 +124,7 @@ final class SymbolExtractorTest extends TestCase
 
         self::assertInstanceOf(Definition::class, $definition);
         self::assertSame(7, $definition->line);
-        self::assertSame(3, $definition->col);
+        self::assertSame(4, $definition->col);
     }
 
     public function test_it_records_the_deprecation_reason_from_the_metadata_map(): void
