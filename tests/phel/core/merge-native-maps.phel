@@ -1,0 +1,44 @@
+(ns phel-test.core.merge-native-maps
+  (:require phel.test :refer [deftest is]))
+
+(defstruct pt [x y])
+
+;; Two maps merge through the collection's own `merge`, which bulk-builds the
+;; result through a transient, instead of adding the right map's entries one at
+;; a time with `conj`. Every other shape `merge` accepts keeps its old path.
+
+(deftest test-two-maps
+  (is (= {:a 1, :b 2} (merge {:a 1} {:b 2})) "disjoint keys combine")
+  (is (= {:a 1, :b 3} (merge {:a 1, :b 2} {:b 3})) "the right map wins on a shared key")
+  (is (= {:a 1, :b 2, :c 3} (merge {:a 1} {:b 2} {:c 3})) "three maps fold left to right")
+  (is (= {:a 1} (merge {} {:a 1})) "an empty left")
+  (is (= {:a 1} (merge {:a 1} {})) "an empty right")
+  (is (= {} (merge {} {})) "both empty"))
+
+(deftest test-nil-handling
+  (is (= {:a 1} (merge nil {:a 1})) "a nil left is treated as empty")
+  (is (= {:a 1} (merge {:a 1} nil)) "a nil right leaves the left")
+  (is (nil? (merge nil nil)) "both nil")
+  (is (nil? (merge)) "no arguments")
+  (is (= {:a 1} (merge {:a 1})) "one argument")
+  (is (= {:a 1, :c 3} (merge {:a 1} nil {:c 3})) "a nil in the middle is skipped")
+  ;; A nil *value* is a value, not an absence, so it replaces.
+  (is (nil? (get (merge {:a 1} {:a nil}) :a)) "a nil value overwrites"))
+
+(deftest test-map-flavours-and-metadata
+  (is (= 2 (get (merge (sorted-map :a 1) {:b 2}) :b)) "a sorted map on the left")
+  ;; The result is a hash-map, not a sorted-map. Pre-existing behaviour,
+  ;; unchanged here, and pinned so the native path is not blamed for it.
+  (is (= :hash-map (type (merge (sorted-map :a 1) {:b 2})))
+      "merging a sorted map with a hash map gives a hash map")
+  (is (= 1 (get (merge {:a 1} (sorted-map :b 2)) :a)) "a sorted map on the right")
+  (is (= {:m 1} (meta (merge (with-meta {:a 1} {:m 1}) {:b 2})))
+      "the left map's metadata is kept"))
+
+(deftest test-shapes-that-keep-the-conj-path
+  ;; A struct is a map, so it takes the native path; a vector is not.
+  (is (= 9 (get (merge (pt 1 2) {:x 9}) :x)) "a struct on the left")
+  ;; A vector on the right goes through `conj`, which rejects it: its elements
+  ;; are the entries, and `[[:b 2]]` offers one entry of length 1.
+  (is (thrown? \InvalidArgumentException (merge {:a 1} [[:b 2]]))
+      "a vector on the right still reaches conj and is rejected"))
