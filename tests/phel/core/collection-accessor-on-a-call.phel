@@ -63,3 +63,35 @@
 (deftest test-out-of-range-still-raises-through-a-call
   (is (thrown? \OutOfBoundsException (nth (mkvec) 99)) "past the end")
   (is (= :d (nth (mkvec) 99 :d)) "unless a default is given"))
+
+(defn mkmap [] {:a 1, :b 2})
+
+(deftest test-map-and-value-lowerings-on-a-call
+  ;; `get`, `empty?` and the assoc family emit their target once too, so they
+  ;; take a call the same way the accessors do.
+  (is (= 1 (get (mkmap) :a)) "get a present key")
+  (is (nil? (get (mkmap) :zz)) "get an absent key")
+  (is (= :d (get (mkmap) :zz :d)) "get with a default")
+  (is (false? (empty? (mkvec))) "empty? on a non-empty vector")
+  (is (true? (empty? [])) "empty? on an empty vector")
+  (is (= {:a 1, :b 2, :c 3} (assoc (mkmap) :c 3)) "assoc")
+  (is (= {:a 1} (dissoc (mkmap) :b)) "dissoc")
+  (is (= [10 20 30 40 50] (conj (mkvec) 50)) "conj")
+  (is (= {:a 1, :b 2} (mkmap)) "and the source is untouched"))
+
+(deftest test-these-targets-are-also-evaluated-once
+  (let [calls (atom 0)]
+    (let [m (fn [] (do (swap! calls inc) {:a 1}))]
+      (get (m) :a)
+      (is (= 1 (deref calls)) "get evaluates its target once")
+      (reset! calls 0)
+      (empty? (m))
+      (is (= 1 (deref calls)) "empty? evaluates its target once")
+      (reset! calls 0)
+      (assoc (m) :b 2)
+      (is (= 1 (deref calls)) "assoc evaluates its target once")
+      (reset! calls 0)
+      ;; Kept on the narrow gate: it emits the target twice, so it must not
+      ;; have been widened.
+      (contains? (m) :a)
+      (is (= 1 (deref calls)) "contains? still evaluates its target once"))))

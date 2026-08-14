@@ -100,7 +100,8 @@ final readonly class TypedValueSpecialization
             return null;
         }
 
-        return match (TagNormalizer::ofLocalVar($args[0])) {
+        // `ofNode`: `tryEmitTypedEmptyCheck` emits the target once.
+        return match (TagNormalizer::ofNode($args[0])) {
             'array' => '(%s === [])',
             'string' => "(%s === '')",
             'int' => '(%s === 0)',
