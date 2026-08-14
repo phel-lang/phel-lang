@@ -1,0 +1,62 @@
+(ns phel-test.core.collection-invariants
+  (:require phel.test :refer [deftest is]))
+
+;; Properties that must hold for every map and set at every size, checked
+;; across the boundary where the representation changes (`PersistentArrayMap`
+;; below `MAX_SIZE`, `PersistentHashMap` above it).
+;;
+;; This exists because #3174 was exactly this class of bug and none of the
+;; per-function tests caught it: a hash map holding a `nil` key reported the
+;; right `count` and the right `get`, but iterated one entry short, so `keys`,
+;; `vals`, `for ... :pairs` and `into` all quietly disagreed with `count`.
+;; `(= m (into {} m))` fails on that in one line.
+;;
+;; The seeds are the values that are distinct Phel keys but collapse to the
+;; same PHP array key, which is where a representation change loses one.
+
+(def- seeds [{} {nil :n} {false :f} {0 :z} {"" :e} {nil :n, false :f, 0 :z, "" :e}])
+
+(defn- grow-map [m n]
+  (reduce (fn [acc i] (assoc acc (keyword (str "k" i)) i)) m (range 0 n)))
+
+(defn- grow-set [s n]
+  (reduce (fn [acc i] (conj acc i)) s (range 0 n)))
+
+;; Sizes either side of the array-map threshold, not every size, so the suite
+;; stays fast while still crossing the boundary.
+(def- sizes [0 1 3 4 5 7 8 9 12 20])
+
+(deftest test-a-map-iterates-exactly-its-count
+  (dofor [n :in sizes]
+    (dofor [seed :in seeds]
+      (let [m (grow-map seed n)]
+        (is (= (count m) (count (keys m))) (str "keys agrees with count, n=" n))
+        (is (= (count m) (count (vals m))) (str "vals agrees with count, n=" n))
+        (is (= (count m) (count (for [[k v] :pairs m] k))) (str "pairs agrees with count, n=" n))))))
+
+(deftest test-a-map-round-trips
+  (dofor [n :in sizes]
+    (dofor [seed :in seeds]
+      (let [m (grow-map seed n)]
+        (is (= m (into {} m)) (str "into rebuilds an equal map, n=" n))
+        (is (= m (zipmap (keys m) (vals m))) (str "keys and vals rebuild it, n=" n))
+        (is (= m (merge m m)) (str "merging with itself is itself, n=" n))))))
+
+(deftest test-every-key-a-map-reports-is-really-present
+  (dofor [n :in sizes]
+    (dofor [seed :in seeds]
+      (let [m (grow-map seed n)]
+        (is (every? (fn [k] (contains? m k)) (keys m))
+            (str "contains? agrees with keys, n=" n))
+        (is (= 0 (count (reduce dissoc m (keys m))))
+            (str "dissoc of every reported key empties it, n=" n))))))
+
+(deftest test-a-set-iterates-and-round-trips
+  (dofor [n :in sizes]
+    (dofor [seed :in [(set []) (set [nil]) (set [nil false 0 ""])]]
+      (let [s (grow-set seed n)]
+        (is (= (count s) (count (vec s))) (str "a set iterates its count, n=" n))
+        (is (= s (set (vec s))) (str "a set round-trips, n=" n))
+        (is (= s (union s s)) (str "union with itself is itself, n=" n))
+        (is (= 0 (count (reduce disj s (vec s))))
+            (str "disj of every element empties it, n=" n))))))
