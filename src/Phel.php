@@ -68,13 +68,14 @@ final class Phel extends InternalPhel
      */
     public static function getDefinition(string $ns, string $name): mixed
     {
-        // Hot path: every resolved symbol hits this. Read the process-global
-        // latch first so that when no dynamic binding has ever been
-        // established (the overwhelming common case) we skip the singleton
-        // fetch and the `Fiber::getCurrent()` call inside hasAnyBinding()
-        // entirely. A stale `true` falls through to the full hasAnyBinding()
-        // + hasBinding() check, which correctly returns the registry value.
-        if (DynamicScope::$anyActive) {
+        // Hot path: every resolved symbol hits this. The gate is keyed by
+        // name, not a single process-wide boolean, so a run that binds one
+        // dynamic var does not make every other global read pay the singleton
+        // fetch and the `Fiber::getCurrent()` inside hasAnyBinding(). The map
+        // is a process-global over-approximation of a fiber-local structure,
+        // so it can only over-report; the full check behind it still decides
+        // (#3179).
+        if (DynamicScope::$boundNames !== [] && isset(DynamicScope::$boundNames[$ns . '/' . $name])) {
             $scope = DynamicScope::getInstance();
             if ($scope->hasAnyBinding() && $scope->hasBinding($ns, $name)) {
                 return $scope->getBinding($ns, $name);

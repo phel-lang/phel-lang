@@ -46,6 +46,28 @@ final class DynamicScope
      */
     public static bool $anyActive = false;
 
+    /**
+     * Which `"ns/name"` keys currently have at least one binding frame holding
+     * them, anywhere in the process, as a reference count.
+     *
+     * `$anyActive` is a single sticky boolean, so once anything in the process
+     * binds anything, every global read pays the full fiber-local scope
+     * lookup for the rest of the run: 0.046us for the registry read alone
+     * against 0.153us through the scope check (#3179). Keying the gate by name
+     * means a run that binds `*out*` does not slow down reads of every other
+     * var.
+     *
+     * A process-global count over a fiber-local structure is deliberately an
+     * over-approximation: a key bound only in another fiber still passes the
+     * gate, and the existing `hasAnyBinding()` / `hasBinding()` check behind it
+     * gives the same answer it always did. It can only produce false
+     * positives, never false negatives, which is what makes it a pure
+     * optimisation rather than a semantic change.
+     *
+     * @var array<string, int>
+     */
+    public static array $boundNames = [];
+
     private static ?DynamicScope $instance = null;
 
     /**
@@ -90,6 +112,7 @@ final class DynamicScope
     public function clear(): void
     {
         self::$anyActive = false;
+        self::$boundNames = [];
         $this->mainStack = [];
         $this->mainRecordings = [];
         /** @var WeakMap<Fiber<mixed, mixed, mixed, mixed>, list<array<string, mixed>>> $map */
@@ -171,6 +194,9 @@ final class DynamicScope
         // setBinding only mutates existing frames, recordings are not
         // read-visible, so keying the latch here covers every path.
         self::$anyActive = true;
+        foreach ($frame as $key => $_) {
+            self::$boundNames[$key] = (self::$boundNames[$key] ?? 0) + 1;
+        }
 
         /** @var Fiber<mixed, mixed, mixed, mixed>|null $fiber */
         $fiber = Fiber::getCurrent();
@@ -189,7 +215,7 @@ final class DynamicScope
         /** @var Fiber<mixed, mixed, mixed, mixed>|null $fiber */
         $fiber = Fiber::getCurrent();
         if (!$fiber instanceof Fiber) {
-            array_pop($this->mainStack);
+            $this->releaseNames(array_pop($this->mainStack));
             return;
         }
 
@@ -199,7 +225,7 @@ final class DynamicScope
 
         /** @var list<array<string, mixed>> $stack */
         $stack = $this->fiberStacks[$fiber];
-        array_pop($stack);
+        $this->releaseNames(array_pop($stack));
         if ($stack === []) {
             unset($this->fiberStacks[$fiber]);
         } else {
@@ -418,5 +444,27 @@ final class DynamicScope
         }
 
         return null;
+    }
+
+    /**
+     * Drops one reference for each key of a frame that has just been popped.
+     *
+     * @param array<string, mixed>|null $frame
+     */
+    private function releaseNames(?array $frame): void
+    {
+        if ($frame === null) {
+            return;
+        }
+
+        foreach ($frame as $key => $_) {
+            $remaining = (self::$boundNames[$key] ?? 1) - 1;
+            if ($remaining <= 0) {
+                unset(self::$boundNames[$key]);
+                continue;
+            }
+
+            self::$boundNames[$key] = $remaining;
+        }
     }
 }

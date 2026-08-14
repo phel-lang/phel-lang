@@ -316,4 +316,51 @@ final class DynamicScopeTest extends TestCase
 
         $scope->popFrame();
     }
+
+    public function test_bound_names_tracks_only_what_is_bound(): void
+    {
+        $scope = DynamicScope::getInstance();
+
+        self::assertSame([], DynamicScope::$boundNames, 'nothing is bound to begin with');
+
+        $scope->pushFrame(['a.ns/x' => 1]);
+        self::assertArrayHasKey('a.ns/x', DynamicScope::$boundNames);
+        self::assertArrayNotHasKey(
+            'a.ns/y',
+            DynamicScope::$boundNames,
+            'binding one var must not gate reads of another',
+        );
+
+        $scope->popFrame();
+        self::assertSame([], DynamicScope::$boundNames, 'popping releases the name');
+    }
+
+    public function test_bound_names_is_reference_counted_across_nested_frames(): void
+    {
+        $scope = DynamicScope::getInstance();
+
+        $scope->pushFrame(['a.ns/x' => 1]);
+        $scope->pushFrame(['a.ns/x' => 2]);
+        self::assertSame(2, DynamicScope::$boundNames['a.ns/x']);
+
+        $scope->popFrame();
+        self::assertArrayHasKey(
+            'a.ns/x',
+            DynamicScope::$boundNames,
+            'the outer frame still binds it',
+        );
+
+        $scope->popFrame();
+        self::assertSame([], DynamicScope::$boundNames);
+    }
+
+    public function test_clear_resets_the_bound_names(): void
+    {
+        $scope = DynamicScope::getInstance();
+        $scope->pushFrame(['a.ns/x' => 1]);
+
+        $scope->clear();
+
+        self::assertSame([], DynamicScope::$boundNames);
+    }
 }
