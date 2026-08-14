@@ -21,13 +21,13 @@
 ;; private to this namespace and the expansion lands in the caller's.
 (def- escape-flags (bit-or php/ENT_QUOTES php/ENT_SUBSTITUTE))
 
-(defn escape-html
+(defn ^string escape-html
   "Escapes HTML special characters to prevent XSS."
   {:example "(escape-html \"<div>\") ; => \"&lt;div&gt;\""}
   [s]
   (php/htmlspecialchars s escape-flags))
 
-(defn- to-str [x]
+(defn- ^string to-str [x]
   (cond
     (string? x)  x
     (keyword? x) (name x)
@@ -90,14 +90,14 @@
 
 (declare render-html)
 
-(defn- render-style-table [value]
+(defn- ^string render-style-table [value]
   (let [kvs (for [[k v] :pairs value] (str (escape-html (to-str k)) ":" (escape-html v) ";"))]
     (apply str (sort kvs))))
 
-(defn- render-attr-table [value]
+(defn- ^string render-attr-table [value]
   (escape-html (php/implode " " (to-php-array (for [[k v] :pairs value :when v] (to-str k))))))
 
-(defn- render-attribute-value [name value]
+(defn- ^string render-attribute-value [name value]
   (cond
     (and (= name "style") (map? value))
     (render-style-table value)
@@ -107,7 +107,7 @@
     (escape-html (php/implode " " (to-php-array (map to-str value))))
     (escape-html (to-str value))))
 
-(defn- render-attribute [name value]
+(defn- ^string render-attribute [name value]
   (let [name (to-str name)]
     (cond
       (true? value)
@@ -116,7 +116,7 @@
       ""
       (str " " (escape-html name) "=\""  (render-attribute-value name value) "\""))))
 
-(defn- render-attrs [attrs]
+(defn- ^string render-attrs [attrs]
   ;; Collected into a PHP array and imploded rather than `(apply str (for ...))`.
   ;; The `for` builds a collection, `apply` spreads it into the variadic arm of
   ;; `str`, and the join happens one Phel call at a time; `implode` does the
@@ -148,7 +148,7 @@
         (str "<" tag (render-attrs attrs) ">" (php/implode "" parts) "</" tag ">"))
       (str "<" tag (render-attrs attrs) " />"))))
 
-(defn- render-children
+(defn- ^string render-children
   "Renders each child and joins them. Same reason as `render-attrs`: `map`
   returns a lazy sequence whose first chunk is realized on construction, and
   `apply str` then spreads it through the variadic arm of `str`."
@@ -158,7 +158,7 @@
       (php/apush parts (render-html child)))
     (php/implode "" parts)))
 
-(defn- render-html [element]
+(defn- ^string render-html [element]
   (cond
     (vector? element)         (render-element element)
     (indexed? element)        (render-children element)
@@ -224,13 +224,7 @@
     (cond
       (vector? element)         (compile-element element)
       (keyword? element)        (escape-html (name element))
-      ;; `str`, not the wrapped value itself. Every caller joins these with
-    ;; `php/implode`, which casts with PHP's rules, and a raw string may hold
-    ;; any value: `(raw-string true)` came out as "1" rather than Phel's
-    ;; "true", and `(raw-string false)` as "" rather than "false". Converting
-    ;; here keeps the boundary at Phel's semantics, which is what the earlier
-    ;; `(apply str (map render-html element))` gave for free (#3099).
-    (raw-string? element)     (str (get element :s))
+      (raw-string? element)     (get element :s)
       (string? element)         (escape-html element)
       (indexed? element)        (compile-form element)
       `(render-html ~element))))
