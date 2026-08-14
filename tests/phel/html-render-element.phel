@@ -1,0 +1,95 @@
+(ns phel-test.html-render-element
+  (:require phel.test :refer [deftest is])
+  (:require phel.html :as h))
+
+;; `render-element` no longer routes through `normalize-element`. It reads the
+;; tag and the optional attribute map by index and walks the children in place,
+;; instead of allocating a tuple and a fresh child collection per element, and
+;; the void-tag table became a PHP array keyed by tag name rather than a
+;; `hash-set`. Nothing about the markup may change, so these pin the parts of
+;; the shape that the rewrite could plausibly have moved: where the children
+;; start, what counts as an attribute map, and which tags self-close.
+;;
+;; `html` is a macro that folds a literal element at compile time, so every
+;; case here renders through a var. A literal would test the compile path
+;; instead and never reach `render-element` at all.
+
+(deftest test-where-the-children-start
+  ;; The child index depends on whether element 1 is a map. Off by one either
+  ;; way and the attributes render as text, or the first child disappears.
+  (let [no-attrs [:div "a" "b"]
+        attrs    [:div {:class "c"} "a" "b"]
+        only-map [:div {:class "c"}]
+        bare     [:div]]
+    (is (= "<div>ab</div>" (h/html no-attrs)) "children begin at 1 without a map")
+    (is (= "<div class=\"c\">ab</div>" (h/html attrs)) "children begin at 2 with a map")
+    (is (= "<div class=\"c\"></div>" (h/html only-map)) "a map and no children")
+    (is (= "<div></div>" (h/html bare)) "neither")))
+
+(deftest test-a-map-in-child-position-is-still-attributes
+  ;; Only the map at index 1 is attributes; a later one is content.
+  (let [second-map [:div {:a "1"} {:b "2"}]
+        empty-map  [:div {}]]
+    (is (= "<div a=\"1\">{:b &quot;2&quot;}</div>" (h/html second-map)) "a second map is a child")
+    (is (= "<div></div>" (h/html empty-map)) "an empty attribute map renders no attributes")))
+
+(deftest test-void-tags-self-close
+  ;; The lookup moved from `contains?` on a set to `array_key_exists` on a PHP
+  ;; array. Every tag has to land on the same side of it.
+  (let [br    [:br]
+        img   [:img {:src "a.png"}]
+        kids  [:br "ignored"]
+        div   [:div]
+        brish [:brx]]
+    (is (= "<br />" (h/html br)) "a void tag")
+    (is (= "<img src=\"a.png\" />" (h/html img)) "a void tag with attributes")
+    (is (= "<br />" (h/html kids)) "a void tag drops children")
+    (is (= "<div></div>" (h/html div)) "a container tag")
+    (is (= "<brx></brx>" (h/html brish)) "a tag that merely starts like a void one")))
+
+(deftest test-tag-validation-is-unchanged
+  (let [num   [42 "x"]
+        nada  [nil "x"]
+        mapt  [{} "x"]
+        blank []
+        strt  ["div" "x"]]
+    (is (= "<div>x</div>" (h/html strt)) "a string tag")
+    (is (thrown? \InvalidArgumentException (h/html num)) "a number is not a tag")
+    (is (thrown? \InvalidArgumentException (h/html nada)) "nil is not a tag")
+    (is (thrown? \InvalidArgumentException (h/html mapt)) "a map is not a tag")
+    (is (thrown? \InvalidArgumentException (h/html blank)) "an empty vector has no tag")))
+
+(deftest test-children-of-every-kind-still-render
+  (let [nested [:div [:span "n"] [:em "m"]]
+        deep   [:div [:div [:div "d"]]]
+        mixed  [:div "t" nil 42 :kw]
+        raw    [:div (h/raw-string "<b>r</b>")]
+        lst    [:div '("l1" "l2")]
+        esc    [:div "<script>"]]
+    (is (= "<div><span>n</span><em>m</em></div>" (h/html nested)) "sibling elements")
+    (is (= "<div><div><div>d</div></div></div>" (h/html deep)) "nesting recurses")
+    (is (= "<div>t42:kw</div>" (h/html mixed)) "a nil child renders as nothing")
+    (is (= "<div><b>r</b></div>" (h/html raw)) "a raw string is not escaped")
+    (is (= "<div>l1l2</div>" (h/html lst)) "a list child is rendered as children")
+    (is (= "<div>&lt;script&gt;</div>" (h/html esc)) "a string child is escaped")))
+
+(deftest test-attribute-rendering-is-unchanged
+  (let [style [:div {:style {:color "red", :bg "blue"}}]
+        table [:div {:class {:a true, :b false, :c true}}]
+        idx   [:div {:class ["a" "b" :c]}]
+        yes   [:input {:disabled true}]
+        no    [:input {:disabled false}]
+        void  [:input {:disabled nil}]]
+    (is (= "<div style=\"bg:blue;color:red;\"></div>" (h/html style)) "a style map is sorted")
+    (is (= "<div class=\"a c\"></div>" (h/html table)) "a map value keeps its true keys")
+    (is (= "<div class=\"a b c\"></div>" (h/html idx)) "an indexed value is joined")
+    (is (= "<input disabled=\"disabled\" />" (h/html yes)) "true repeats the name")
+    (is (= "<input />" (h/html no)) "false drops the attribute")
+    (is (= "<input />" (h/html void)) "nil drops the attribute")))
+
+(deftest test-the-compile-path-still-agrees-with-the-render-path
+  ;; `normalize-element` is now used only by the macro. A literal and the same
+  ;; value behind a var have to produce the same markup.
+  (let [el [:div {:class "c"} [:span "a"] "b"]]
+    (is (= (h/html [:div {:class "c"} [:span "a"] "b"]) (h/html el))
+        "literal and var agree")))

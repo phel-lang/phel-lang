@@ -44,6 +44,8 @@ final class StdlibHtmlBench extends CoreBenchCase
 
     private mixed $document = null;
 
+    private mixed $voidDocument = null;
+
     /**
      * @Revs(1000)
      */
@@ -70,13 +72,32 @@ final class StdlibHtmlBench extends CoreBenchCase
      * negligible against it and looping would only lengthen the run.
      *
      * Unpaired on purpose. There is no raw-PHP twin for a whole render; what
-     * this guards is the absolute move, 110.5μs to 92.2μs.
+     * this guards is the absolute number. It fell to 92.2μs when the attribute
+     * join moved to `implode`, and 73.6μs to 51.3μs when `render-element`
+     * stopped routing through `normalize-element`. Absolute figures are only
+     * comparable within one run of this file, not across machines.
      *
      * @Revs(100)
      */
     public function bench_render_document(): void
     {
         ($this->html)($this->document);
+    }
+
+    /**
+     * The document above contains no void element, so it never reaches the
+     * self-closing branch and never pays a void-tag lookup miss on every one
+     * of its tags. This one is all void elements, which is what a form or an
+     * icon list looks like. It gains more than the document above from a
+     * cheaper lookup, 81.2μs to 50.9μs against its 73.6μs to 51.3μs.
+     *
+     * Unpaired, for the same reason as `bench_render_document`.
+     *
+     * @Revs(100)
+     */
+    public function bench_render_void_document(): void
+    {
+        ($this->html)($this->voidDocument);
     }
 
     #[Override]
@@ -111,6 +132,23 @@ final class StdlibHtmlBench extends CoreBenchCase
                 Phel::keyword('span'),
                 Phel::map(Phel::keyword('title'), "t'x"),
                 'more & text',
+            ]),
+        ]);
+
+        $this->voidDocument = Phel::vector([
+            Phel::keyword('form'),
+            Phel::vector([
+                Phel::keyword('input'),
+                Phel::map(Phel::keyword('type'), 'text', Phel::keyword('name'), 'q'),
+            ]),
+            Phel::vector([Phel::keyword('br')]),
+            Phel::vector([
+                Phel::keyword('img'),
+                Phel::map(Phel::keyword('src'), 'a.png', Phel::keyword('alt'), 'a & b'),
+            ]),
+            Phel::vector([
+                Phel::keyword('input'),
+                Phel::map(Phel::keyword('type'), 'submit', Phel::keyword('disabled'), true),
             ]),
         ]);
     }

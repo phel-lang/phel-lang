@@ -115,6 +115,7 @@ All notable changes to this project will be documented in this file.
 
 Compiler:
 
+- Render an element in `phel.html` without normalizing it first: the tag and the optional attribute map are read by index and the children walked in place, instead of allocating a tuple and a fresh child collection per element, and the void-tag table is a PHP array rather than a `hash-set`. A document renders 1.43x faster, one made of void elements 1.60x, and a single `[:span {:class "x"} "0"]` goes from 17.7μs to 9.7μs (#2973)
 - Rebuild collections in `phel.walk` with `foreach` and a single vector construction rather than `for ... :pairs` and per-element appends: `keywordize-keys` 2.4x, `stringify-keys` 2.45x, `postwalk` 2.29x. Both run over a whole decoded tree, so the rebuild happens once per collection in it (#2973)
 - Walk with `foreach` rather than `for ... :pairs` in `merge-with` and `map-invert` too: 2.16x and 1.99x (#2973)
 - Walk the input with `foreach` rather than `for ... :pairs` in `update-vals`, `update-keys` and `rename-keys`, whose destructuring was most of what they cost: 1.9x, 1.9x and 1.76x (#2973)
