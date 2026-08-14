@@ -196,6 +196,14 @@ final class Seq
         return TransformGenerator::reductions($f, $init, $iterable);
     }
 
+    /**
+     * @return Generator<int, mixed>
+     */
+    public static function flatten(mixed $iterable): Generator
+    {
+        return TransformGenerator::flatten($iterable);
+    }
+
     public static function mapIndexed(callable $f, mixed $iterable): Generator
     {
         return TransformGenerator::mapIndexed($f, $iterable);
