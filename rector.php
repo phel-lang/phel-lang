@@ -84,6 +84,15 @@ return RectorConfig::configure()
         SetList::INSTANCEOF,
         LevelSetList::UP_TO_PHP_84,
         PHPUnitSetList::PHPUNIT_CODE_QUALITY,
-        PHPUnitSetList::PHPUNIT_100,
+        // `COMPOSER_BASED`, not a pinned `PHPUNIT_<version>` set. Two reasons.
+        // It reads the PHPUnit version out of `composer.json`, so the set
+        // always matches what the suite actually runs: this was pinned to
+        // `PHPUNIT_100` while the repo requires `^11.0|^12.0|^13.0` and runs
+        // PHPUnit 13, applying the PHPUnit 10 migration rules to a codebase
+        // six majors past them. And the versioned constants are not stable
+        // across `rector-phpunit` releases, so a contributor whose install
+        // resolves a build without them cannot run `composer test-quality` at
+        // all (#3133).
+        PHPUnitSetList::COMPOSER_BASED,
     ])
     ->withImportNames(removeUnusedImports: true);
