@@ -9,6 +9,7 @@ use Phel\Compiler\Application\Lexer;
 use Phel\Compiler\CompilerFactory;
 use Phel\Run\Infrastructure\Command\ReplCommand;
 use Phel\Run\RunProvider;
+use Phel\Shared\VersionFinder;
 use PhelTest\Support\PublicApiSurface;
 use PHPUnit\Framework\TestCase;
 use RecursiveDirectoryIterator;
@@ -99,6 +100,28 @@ final class PublicApiSurfaceTest extends TestCase
                 sprintf('%s is internal but the surface rules select it as public.', $className),
             );
         }
+    }
+
+    /**
+     * The version constant's value is elided, so a release that bumps it does
+     * not leave this snapshot stale. The symbol itself must still be pinned:
+     * removing or renaming it is a breaking change and has to be caught.
+     */
+    public function test_the_version_constant_is_pinned_without_its_value(): void
+    {
+        $snapshot = PublicApiSurface::fromRepositoryRoot(PublicApiSurface::repositoryRoot())->render();
+
+        self::assertStringContainsString(
+            'public const string LATEST_VERSION = <volatile>',
+            $snapshot,
+            'The version constant should appear without its literal value.',
+        );
+
+        self::assertStringNotContainsString(
+            VersionFinder::LATEST_VERSION,
+            $snapshot,
+            'The version string itself must not reach the snapshot, or every release makes it stale.',
+        );
     }
 
     /**
