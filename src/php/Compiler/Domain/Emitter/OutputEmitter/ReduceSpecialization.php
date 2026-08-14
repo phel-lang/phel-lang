@@ -58,7 +58,9 @@ final readonly class ReduceSpecialization
             return null;
         }
 
-        if (TagNormalizer::ofLocalVar($args[2]) !== PersistentVectorInterface::class) {
+        // `ofNode`: `emitLoop` emits the collection once, as the subject of
+        // a single `foreach`.
+        if (TagNormalizer::ofNode($args[2]) !== PersistentVectorInterface::class) {
             return null;
         }
 

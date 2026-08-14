@@ -190,7 +190,9 @@ final readonly class CallSpecialization
             return false;
         }
 
-        return TagNormalizer::ofLocalVar($args[0]) === 'array';
+        // `ofNode`: the php-array get and count lowerings each emit the
+        // target once.
+        return TagNormalizer::ofNode($args[0]) === 'array';
     }
 
     /**
@@ -211,7 +213,9 @@ final readonly class CallSpecialization
             return false;
         }
 
-        return TagNormalizer::ofLocalVar($args[0]) === 'array';
+        // `ofNode`: the php-array get and count lowerings each emit the
+        // target once.
+        return TagNormalizer::ofNode($args[0]) === 'array';
     }
 
     /**
@@ -276,7 +280,8 @@ final readonly class CallSpecialization
             return false;
         }
 
-        return TagNormalizer::ofLocalVar($args[0]) === 'string';
+        // `ofNode`: the typed-string lowering emits the target once.
+        return TagNormalizer::ofNode($args[0]) === 'string';
     }
 
     private static function isStringConcatable(AbstractNode $arg): bool

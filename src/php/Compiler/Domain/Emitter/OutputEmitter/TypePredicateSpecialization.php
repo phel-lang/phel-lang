@@ -87,7 +87,8 @@ final readonly class TypePredicateSpecialization
             return null;
         }
 
-        $tag = TagNormalizer::ofLocalVar($args[0]);
+        // `ofNode`: `tryEmitNumericPredicate` emits the target once.
+        $tag = TagNormalizer::ofNode($args[0]);
         if ($tag !== 'int' && $tag !== 'float') {
             return null;
         }

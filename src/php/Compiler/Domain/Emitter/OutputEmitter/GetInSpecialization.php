@@ -64,7 +64,8 @@ final readonly class GetInSpecialization
             return null;
         }
 
-        $tag = TagNormalizer::ofLocalVar($args[0]);
+        // `ofNode`: `GetInCallEmitter::tryEmit` emits the target once.
+        $tag = TagNormalizer::ofNode($args[0]);
         if ($tag !== PersistentMapInterface::class && $tag !== PersistentVectorInterface::class) {
             return null;
         }

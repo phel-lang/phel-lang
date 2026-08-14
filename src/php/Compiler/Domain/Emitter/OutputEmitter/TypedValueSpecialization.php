@@ -136,7 +136,8 @@ final readonly class TypedValueSpecialization
             return null;
         }
 
-        $tag = TagNormalizer::ofLocalVar($args[0]);
+        // `ofNode`: `tryEmitNamedAccessor` emits the target once.
+        $tag = TagNormalizer::ofNode($args[0]);
         if ($tag !== Keyword::class && $tag !== Symbol::class) {
             return null;
         }

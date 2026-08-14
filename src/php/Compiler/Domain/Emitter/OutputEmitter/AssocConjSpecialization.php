@@ -108,7 +108,8 @@ final readonly class AssocConjSpecialization
             return null;
         }
 
-        if (TagNormalizer::ofLocalVar($args[0]) !== PersistentMapInterface::class) {
+        // `ofNode`: `tryEmitTypedDissocKeys` emits the target once.
+        if (TagNormalizer::ofNode($args[0]) !== PersistentMapInterface::class) {
             return null;
         }
 

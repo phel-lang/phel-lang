@@ -95,3 +95,25 @@
       ;; have been widened.
       (contains? (m) :a)
       (is (= 1 (deref calls)) "contains? still evaluates its target once"))))
+
+(defn mknested [] {:a {:b 1}})
+
+(deftest test-reduce-and-get-in-on-a-call
+  (is (= 100 (reduce (fn [a b] (php/+ a b)) 0 (mkvec))) "reduce over a returned vector")
+  (is (= 0 (reduce (fn [a b] (php/+ a b)) 0 [])) "reduce over an empty vector")
+  (is (= 1 (get-in (mknested) [:a :b])) "get-in through a returned map")
+  (is (nil? (get-in (mknested) [:a :zz])) "a missing leaf is nil")
+  (is (nil? (get-in (mknested) [:zz :b])) "a missing branch is nil")
+  (is (= :d (get-in (mknested) [:zz] :d)) "with a default")
+  (is (= "kw" (name (first [:kw]))) "a named accessor still answers"))
+
+
+(deftest test-reduce-and-get-in-evaluate-their-target-once
+  (let [calls (atom 0)]
+    (let [v (fn [] (do (swap! calls inc) [1 2 3]))
+          m (fn [] (do (swap! calls inc) {:a {:b 1}}))]
+      (reduce (fn [a b] (php/+ a b)) 0 (v))
+      (is (= 1 (deref calls)) "reduce evaluates its collection once")
+      (reset! calls 0)
+      (get-in (m) [:a :b])
+      (is (= 1 (deref calls)) "get-in evaluates its target once"))))
