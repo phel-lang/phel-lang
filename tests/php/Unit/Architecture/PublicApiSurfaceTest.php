@@ -11,10 +11,13 @@ use Phel\Run\Infrastructure\Command\ReplCommand;
 use Phel\Run\RunProvider;
 use PhelTest\Support\PublicApiSurface;
 use PHPUnit\Framework\TestCase;
+use RecursiveDirectoryIterator;
+use RecursiveIteratorIterator;
+use SplFileInfo;
 
-use function dirname;
 use function file_get_contents;
 use function sprintf;
+use function strlen;
 
 /**
  * The backward-compatibility gate for the PHP embedding API.
@@ -61,9 +64,15 @@ final class PublicApiSurfaceTest extends TestCase
     {
         $surface = PublicApiSurface::fromRepositoryRoot(PublicApiSurface::repositoryRoot());
 
-        foreach (glob(PublicApiSurface::repositoryRoot() . '/src/php/*/*Facade.php') ?: [] as $path) {
-            $module = basename(dirname($path));
-            $className = sprintf('Phel\\%s\\%s', $module, basename($path, '.php'));
+        // Recursive, and the class name is built from the whole relative path
+        // rather than `basename(dirname($path))`: Gacela resolves a pillar by
+        // filename suffix at any depth, and a facade one directory deeper has
+        // a longer namespace than its module (#3062).
+        $srcDir = PublicApiSurface::repositoryRoot() . '/src/php';
+
+        foreach ($this->facadeSources($srcDir) as $path) {
+            $relative = substr($path, strlen($srcDir) + 1);
+            $className = 'Phel\\' . str_replace('/', '\\', substr($relative, 0, -4));
 
             self::assertTrue(
                 $surface->isPublicSymbol($className),
@@ -90,5 +99,24 @@ final class PublicApiSurfaceTest extends TestCase
                 sprintf('%s is internal but the surface rules select it as public.', $className),
             );
         }
+    }
+
+    /**
+     * @return list<string>
+     */
+    private function facadeSources(string $srcDir): array
+    {
+        $paths = [];
+
+        /** @var SplFileInfo $file */
+        foreach (new RecursiveIteratorIterator(new RecursiveDirectoryIterator($srcDir)) as $file) {
+            if ($file->isFile() && str_ends_with($file->getFilename(), 'Facade.php')) {
+                $paths[] = $file->getPathname();
+            }
+        }
+
+        sort($paths);
+
+        return $paths;
     }
 }
