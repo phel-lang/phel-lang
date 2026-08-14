@@ -1,0 +1,85 @@
+(ns phel-test.core.lazy-seq-generator-stepping
+  (:require phel.test :refer [deftest is]))
+
+;; `LazySeq::fromGenerator` used to wrap each element twice: its thunk built a
+;; `LazySeq` and called `cons` on it, and `cons` wraps its own result in another
+;; `LazySeq` holding another thunk. It now returns one `Cons` over a lazy tail.
+;;
+;; Every generator-backed sequence in the language walks that path, so what has
+;; to hold is the whole contract: nothing may be pulled before it is asked for,
+;; an infinite source must stay safe, and the elements and their order must not
+;; move. `concat` is the sharpest case because #2191 requires it to stay
+;; unrealized, so it cannot fall back on chunking.
+
+(deftest test-nothing-is-realized-before-it-is-asked-for
+  (is (false? (realized? (concat))) "no collections")
+  (is (false? (realized? (concat [1 2]))) "one collection")
+  (is (false? (realized? (concat [1 2] [3 4]))) "two collections")
+  (is (false? (realized? (concat [1 2] [3 4] [5 6]))) "three collections")
+  (is (false? (realized? (concat [1 2] [3 4] [5 6] [7 8]))) "the variadic tail")
+  (is (true? (lazy-seq? (concat))) "and the empty case is still a lazy seq"))
+
+(deftest test-a-generator-backed-seq-yields-its-elements-in-order
+  (is (= [1 2 3 4] (vec (concat [1 2] [3 4]))) "two collections")
+  (is (= [] (vec (concat))) "nothing at all")
+  (is (= [] (vec (concat [] []))) "two empty collections")
+  (is (= [1] (vec (concat [1] []))) "an empty tail")
+  (is (= [1] (vec (concat [] [1]))) "an empty head")
+  (is (= [1 2 3] (vec (concat (list 1 2) [3]))) "mixed collection types")
+  (is (= [1 2 3 4 5 6] (vec (concat [1 2] [3 4] [5 6]))) "three collections")
+  (is (= [1 2 3 4 5 6 7 8] (vec (concat [1 2] [3 4] [5 6] [7 8]))) "the variadic tail"))
+
+(deftest test-elements-that-are-falsy-survive-the-walk
+  ;; The thunk answers `nil` to mean "the generator is done". A `nil` element
+  ;; must not be able to look like that.
+  (is (= [nil] (vec (concat [nil] []))) "a single nil element")
+  (is (= [nil nil] (vec (concat [nil] [nil]))) "nil on both sides")
+  (is (= [false nil 0 ""] (vec (concat [false nil] [0 ""]))) "every falsy value in order")
+  (is (= 2 (count (concat [nil] [nil]))) "and they are counted")
+  (is (= [1 nil 2] (vec (concat [1 nil] [2]))) "a nil in the middle"))
+
+(deftest test-an-infinite-source-stays-safe
+  (is (= [0 1 2] (vec (take 3 (concat (range) [])))) "an infinite head")
+  (is (= [1 2 0 1] (vec (take 4 (concat [1 2] (range))))) "an infinite tail")
+  (is (= [0 1 2] (vec (take 3 (map identity (range))))) "map over an infinite source")
+  (is (= [0 2 4] (vec (take 3 (filter even? (range))))) "filter over an infinite source")
+  (is (= 0 (first (concat (range) [1]))) "first alone does not run away"))
+
+(deftest test-first-and-rest-step-one-element-at-a-time
+  (let [s (concat [1 2] [3])]
+    (is (= 1 (first s)) "first")
+    (is (= [2 3] (vec (rest s))) "rest")
+    (is (= 2 (first (rest s))) "first of rest")
+    (is (= [3] (vec (rest (rest s)))) "rest of rest")
+    (is (= [] (vec (rest (rest (rest s))))) "past the end is empty")
+    (is (nil? (first (rest (rest (rest s))))) "and first past the end is nil")))
+
+(deftest test-the-same-seq-may-be-walked-more-than-once
+  ;; Each step memoizes, so a second walk must see the same elements rather
+  ;; than a drained generator.
+  (let [s (concat [1 2] [3 4])]
+    (is (= [1 2 3 4] (vec s)) "first walk")
+    (is (= [1 2 3 4] (vec s)) "second walk sees the same elements")
+    (is (= 4 (count s)) "and the count agrees")
+    (is (= 1 (first s)) "and the head is still there")))
+
+(deftest test-metadata-is-carried-where-it-was-before
+  ;; `map` and `filter` copy the source's metadata onto the lazy seq they
+  ;; return; `concat` never has. Rewriting the stepping must not move either.
+  (let [src (with-meta [1 2] {:m 1})]
+    (is (= {:m 1} (meta (map inc src))) "map copies metadata")
+    (is (= {:m 1} (meta (filter even? src))) "filter copies metadata")
+    (is (nil? (meta (concat src [3]))) "concat does not")
+    (is (= [1 2 3] (vec (concat src [3]))) "and the elements are unaffected")))
+
+(deftest test-other-generator-backed-sequences
+  ;; Everything that reaches `fromGenerator`, not only `concat`.
+  (is (= [2 3 4] (vec (map inc [1 2 3]))) "map")
+  (is (= [2 4] (vec (filter even? [1 2 3 4]))) "filter")
+  (is (= [1 3] (vec (remove even? [1 2 3 4]))) "remove")
+  (is (= [1 2] (vec (take 2 [1 2 3]))) "take")
+  (is (= [3] (vec (drop 2 [1 2 3]))) "drop")
+  (is (= [1 2] (vec (take-while (fn [x] (php/< x 3)) [1 2 3 1]))) "take-while")
+  (is (= [3 1] (vec (drop-while (fn [x] (php/< x 3)) [1 2 3 1]))) "drop-while")
+  (is (= [[0 :a] [1 :b]] (vec (map-indexed (fn [i x] [i x]) [:a :b]))) "map-indexed")
+  (is (= [1 1 2 2] (vec (mapcat (fn [x] [x x]) [1 2]))) "mapcat"))

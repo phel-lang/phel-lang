@@ -74,7 +74,14 @@ final class LazySeq extends AbstractType implements LazySeqInterface, Countable,
         $result = new self(
             $hasher,
             $equalizer,
-            static function () use ($generator, $hasher, $equalizer): ?LazySeqInterface {
+            // One `Cons` over a fresh lazy tail, not `new self(...)->cons(...)`.
+            // `cons()` wraps its result in another `LazySeq` holding another
+            // thunk, so that spelling allocated two `LazySeq`s and two closures
+            // per element and put a second thunk call between the caller and
+            // the value. `fromGenerator` does not pull from the generator, so
+            // building the tail here is still lazy. Realizing 64 elements of a
+            // `concat` went from 95.9μs to 61.4μs.
+            static function () use ($generator, $hasher, $equalizer): ?SeqInterface {
                 if (!$generator->valid()) {
                     return null;
                 }
@@ -82,11 +89,12 @@ final class LazySeq extends AbstractType implements LazySeqInterface, Countable,
                 $value = $generator->current();
                 $generator->next();
 
-                return new self(
+                return new Cons(
                     $hasher,
                     $equalizer,
-                    static fn(): LazySeq => self::fromGenerator($hasher, $equalizer, $generator),
-                )->cons($value);
+                    $value,
+                    self::fromGenerator($hasher, $equalizer, $generator),
+                );
             },
             $meta,
         );

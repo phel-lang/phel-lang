@@ -528,6 +528,21 @@ final class CoreSeqBench extends CoreBenchCase
     }
 
     /**
+     * The subject above builds the seq and stops, which for `concat` is a
+     * single object: the cost is all in walking it. `concat` uses a plain
+     * `LazySeq` rather than a `ChunkedSeq`, deliberately, because #2191
+     * requires the result to stay unrealized until accessed, so this is the
+     * per-element path that laziness is paid for on. 103.2μs to 62.0μs when
+     * `fromGenerator` stopped wrapping each element twice.
+     *
+     * @Revs(1000)
+     */
+    public function bench_concat_realized(): void
+    {
+        ($this->count)(($this->concat)($this->vector, $this->vector));
+    }
+
+    /**
      * @Revs(1000)
      */
     public function bench_dissoc_one_key(): void
