@@ -43,11 +43,17 @@ final class PersistentArrayMap extends AbstractPersistentMap
      * 69.9us), while reading the last key of a 12-entry map goes 3.53us to
      * 1.00us and of a 16-entry map 4.71us to 0.80us.
      *
-     * Do not lower this further without reading #3172. A value of 4 makes a
-     * three-entry map *literal* containing `nil`, `false` and `0` keys lose
-     * one of them, somewhere above the collection layer (`fromArray` and the
-     * transient both handle those keys correctly at 4 when called directly).
-     * That is unexplained, so 8 is as far as this goes.
+     * Lowering this further is now a trade rather than a hazard. The reason
+     * it used to be a hazard is fixed: a value of 4 made a three-entry literal
+     * holding `nil`, `false` and `0` keys lose one, because the literal
+     * crossed into the hash representation during compilation and
+     * `PersistentHashMap::getIterator()` skipped the `nil` key, so the
+     * compiler never emitted that pair (#3174).
+     *
+     * With that fixed, 4 is correct and measurably faster to read: a 5-entry
+     * map 2.0x, a 6-entry 2.3x, an 8-entry 2.9x. It costs on the build,
+     * though, 21% for a 5-entry map and 6% for an 8-entry one, which is why
+     * it is not the value here. See #3172 for the numbers and the call.
      *
      * Iteration order is what an array map buys, and is why this is a
      * threshold rather than a deletion: a map below it iterates in insertion
