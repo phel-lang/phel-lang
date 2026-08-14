@@ -104,7 +104,8 @@ interface ApiFacadeInterface
 
     /**
      * Resolve a lexical binding at the given 1-based {line, column} to the
-     * location of the symbol that introduced it (currently `let` / `loop`).
+     * location of the symbol that introduced it, or null when no modelled
+     * binder does.
      */
     public function resolveLocalBinding(string $source, string $uri, int $line, int $col, string $word): ?Location;
 

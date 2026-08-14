@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Phel\Api\Application;
 
+use Phel\Lang\Collections\HashSet\PersistentHashSetInterface;
 use Phel\Lang\Collections\LinkedList\PersistentListInterface;
 use Phel\Lang\Collections\Map\PersistentMapInterface;
 use Phel\Lang\Collections\Vector\PersistentVectorInterface;
@@ -12,32 +13,70 @@ use Phel\Lang\SourceLocation;
 use Phel\Lang\Symbol;
 use Phel\Shared\Api\Location;
 use Phel\Shared\Facade\CompilerFacadeInterface;
-
 use Throwable;
 
 use function count;
 use function in_array;
-use function strlen;
+use function mb_strlen;
+use function str_contains;
 
 /**
  * Resolves the lexical binding a cursor sits on to the symbol that introduced
- * it inside a `let` (or `loop`) binding vector.
+ * it.
  *
- * Mirrors the scope walk of {@see PointCompleter}, but instead of collecting
- * every name in scope it keeps the binding {@see Symbol} (which carries its
- * source location) and only answers when the cursor is exactly on a usage of
- * one of those names. The walk is lexical and best-effort: an unparseable
- * buffer contributes nothing, and a `Throwable` mid-walk degrades to "not a
- * local binding" rather than failing the navigation request.
+ * The walk is lexical, reader-level and best-effort: it runs on raw forms, so
+ * every binder has to be modelled by hand and nothing here is macroexpanded.
+ * An unparseable buffer contributes nothing, and a `Throwable` mid-walk
+ * degrades to "not a local binding" rather than failing the navigation request.
+ *
+ * Its guiding rule is to be right or to be silent: a form whose binding shape
+ * is not modelled ({@see self::BARRIER_FORMS}) still hides the names it
+ * rebinds, so a usage inside it never resolves to an outer binding of the same
+ * name. `null` lets the caller fall back to the project index.
  *
  * @internal
  */
 final readonly class LocalBindingResolver
 {
-    private const array BINDING_FORMS = [
+    /** `(head [pattern init ...] body ...)`, where each init sees the bindings before it. */
+    private const array PAIRWISE_FORMS = [
         Symbol::NAME_LET,
         Symbol::NAME_LOOP,
     ];
+
+    /** `(head [pattern test] body ...)`: macros over a single `let` pair. */
+    private const array SINGLE_BINDING_FORMS = [
+        'if-let',
+        'when-let',
+        'if-some',
+        'when-some',
+        'when-first',
+    ];
+
+    /** Of those, the ones whose trailing `else` expands outside the binding. */
+    private const array ELSE_BRANCH_FORMS = [
+        'if-let',
+        'if-some',
+    ];
+
+    /**
+     * Binders whose shape is not modelled: `for`/`dofor` interleave patterns,
+     * verbs and expressions, `defn` may be multi-arity, and `binding` rebinds
+     * existing dynamic vars rather than introducing locals. Resolving inside
+     * them would risk a confidently wrong jump, so a name they rebind resolves
+     * to nothing at all.
+     */
+    private const array BARRIER_FORMS = [
+        'defn',
+        'defn-',
+        'defmacro',
+        'defmacro-',
+        'for',
+        'dofor',
+        'binding',
+    ];
+
+    private const string REST_MARKER = '&';
 
     public function __construct(
         private CompilerFacadeInterface $compilerFacade,
@@ -49,6 +88,13 @@ final readonly class LocalBindingResolver
      */
     public function resolve(string $source, string $uri, int $line, int $col, string $word): ?Location
     {
+        // Locals are never qualified, and `Symbol::getName()` never contains a
+        // `/`, so a qualified word cannot match one. Bailing here skips the
+        // whole-buffer parse below, which dominates the cost of this call.
+        if (str_contains($word, '/')) {
+            return null;
+        }
+
         try {
             foreach ($this->compilerFacade->readFormsBestEffort($source, $uri) as $form) {
                 $binding = $this->walk($form, $line, $col, $word, []);
@@ -77,29 +123,10 @@ final readonly class LocalBindingResolver
         }
 
         if ($form instanceof PersistentListInterface) {
-            if (!$this->pointInside($form, $line, $col)) {
-                return null;
-            }
-
-            $head = count($form) > 0 ? $form->get(0) : null;
-            if ($head instanceof Symbol
-                && $head->getNamespace() === null
-                && in_array($head->getName(), self::BINDING_FORMS, true)
-            ) {
-                return $this->walkBindingForm($form, $line, $col, $word, $scope);
-            }
-
-            foreach ($form as $child) {
-                $binding = $this->walk($child, $line, $col, $word, $scope);
-                if ($binding instanceof Symbol) {
-                    return $binding;
-                }
-            }
-
-            return null;
+            return $this->walkList($form, $line, $col, $word, $scope);
         }
 
-        if ($form instanceof PersistentVectorInterface) {
+        if ($form instanceof PersistentVectorInterface || $form instanceof PersistentHashSetInterface) {
             foreach ($form as $child) {
                 $binding = $this->walk($child, $line, $col, $word, $scope);
                 if ($binding instanceof Symbol) {
@@ -112,18 +139,71 @@ final readonly class LocalBindingResolver
 
         if ($form instanceof PersistentMapInterface) {
             foreach ($form as $key => $value) {
-                $binding = $this->walk($key, $line, $col, $word, $scope);
-                if ($binding instanceof Symbol) {
-                    return $binding;
-                }
-
-                $binding = $this->walk($value, $line, $col, $word, $scope);
+                $binding = $this->walk($key, $line, $col, $word, $scope)
+                    ?? $this->walk($value, $line, $col, $word, $scope);
                 if ($binding instanceof Symbol) {
                     return $binding;
                 }
             }
 
             return null;
+        }
+
+        return null;
+    }
+
+    /**
+     * @param PersistentListInterface<mixed> $form
+     * @param list<Symbol>                   $scope
+     */
+    private function walkList(PersistentListInterface $form, int $line, int $col, string $word, array $scope): ?Symbol
+    {
+        if (!$this->pointInside($form, $line, $col)) {
+            return null;
+        }
+
+        $head = count($form) > 0 ? $form->get(0) : null;
+        // The compiler dispatches special forms by their full name, so a
+        // qualified `(my/let ...)` is an ordinary call.
+        $name = $head instanceof Symbol && $head->getNamespace() === null
+            ? $head->getName()
+            : null;
+
+        if ($name === Symbol::NAME_QUOTE) {
+            // Quoted forms are inert data: their `let` heads bind nothing.
+            return null;
+        }
+
+        if (in_array($name, self::PAIRWISE_FORMS, true)) {
+            return $this->walkPairwiseForm($form, $line, $col, $word, $scope);
+        }
+
+        if (in_array($name, self::SINGLE_BINDING_FORMS, true)) {
+            return $this->walkSingleBindingForm($form, $line, $col, $word, $scope);
+        }
+
+        if ($name === Symbol::NAME_FN) {
+            return $this->walkParameterForm($form, $line, $col, $word, $scope, trailingInitCount: 0);
+        }
+
+        if ($name === Symbol::NAME_FOREACH) {
+            // The binding vector's last element is the collection expression.
+            return $this->walkParameterForm($form, $line, $col, $word, $scope, trailingInitCount: 1);
+        }
+
+        if ($name === Symbol::NAME_CATCH) {
+            return $this->walkCatchForm($form, $line, $col, $word, $scope);
+        }
+
+        if (in_array($name, self::BARRIER_FORMS, true) && $this->rebinds($form, $word)) {
+            return null;
+        }
+
+        foreach ($form as $child) {
+            $binding = $this->walk($child, $line, $col, $word, $scope);
+            if ($binding instanceof Symbol) {
+                return $binding;
+            }
         }
 
         return null;
@@ -137,44 +217,129 @@ final readonly class LocalBindingResolver
      * @param PersistentListInterface<mixed> $form
      * @param list<Symbol>                   $scope
      */
-    private function walkBindingForm(PersistentListInterface $form, int $line, int $col, string $word, array $scope): ?Symbol
+    private function walkPairwiseForm(PersistentListInterface $form, int $line, int $col, string $word, array $scope): ?Symbol
     {
-        if (count($form) < 2) {
-            return null;
-        }
-
-        $bindingVector = $form->get(1);
+        $bindingVector = count($form) > 1 ? $form->get(1) : null;
         if (!$bindingVector instanceof PersistentVectorInterface) {
-            // Malformed bindings: degrade to walking the tail as ordinary forms.
-            foreach ($form as $index => $child) {
-                if ($index === 0) {
-                    continue;
-                }
-
-                $binding = $this->walk($child, $line, $col, $word, $scope);
-                if ($binding instanceof Symbol) {
-                    return $binding;
-                }
-            }
-
-            return null;
+            return $this->walkTail($form, $line, $col, $word, $scope, from: 1);
         }
 
         $runningScope = $scope;
         $vectorCount = count($bindingVector);
 
         for ($i = 0; $i + 1 < $vectorCount; $i += 2) {
-            $binding = $this->walk($bindingVector->get($i + 1), $line, $col, $word, $runningScope);
+            $binding = $this->walk($bindingVector->get($i + 1), $line, $col, $word, $runningScope)
+                ?? $this->walkPattern($bindingVector->get($i), $line, $col, $word, $runningScope, $runningScope);
             if ($binding instanceof Symbol) {
                 return $binding;
             }
-
-            $this->addBinding($bindingVector->get($i), $runningScope);
         }
 
+        return $this->walkTail($form, $line, $col, $word, $runningScope, from: 2);
+    }
+
+    /**
+     * Walks `(if-let [pattern test] then else?)` and friends. The `if-` variants
+     * expand their `else` outside the binding, so it keeps the outer scope.
+     *
+     * @param PersistentListInterface<mixed> $form
+     * @param list<Symbol>                   $scope
+     */
+    private function walkSingleBindingForm(PersistentListInterface $form, int $line, int $col, string $word, array $scope): ?Symbol
+    {
         $formCount = count($form);
-        for ($i = 2; $i < $formCount; ++$i) {
+        $bindingVector = $formCount > 1 ? $form->get(1) : null;
+        if (!$bindingVector instanceof PersistentVectorInterface || count($bindingVector) !== 2) {
+            return $this->walkTail($form, $line, $col, $word, $scope, from: 1);
+        }
+
+        $runningScope = $scope;
+        $binding = $this->walk($bindingVector->get(1), $line, $col, $word, $scope)
+            ?? $this->walkPattern($bindingVector->get(0), $line, $col, $word, $scope, $runningScope);
+        if ($binding instanceof Symbol) {
+            return $binding;
+        }
+
+        $head = $form->get(0);
+        $bodyEnd = $head instanceof Symbol
+            && in_array($head->getName(), self::ELSE_BRANCH_FORMS, true)
+            && $formCount > 3
+            ? $formCount - 1
+            : $formCount;
+
+        for ($i = 2; $i < $bodyEnd; ++$i) {
             $binding = $this->walk($form->get($i), $line, $col, $word, $runningScope);
+            if ($binding instanceof Symbol) {
+                return $binding;
+            }
+        }
+
+        return $this->walkTail($form, $line, $col, $word, $scope, from: $bodyEnd);
+    }
+
+    /**
+     * Walks `(fn [params ...] body ...)` and `(foreach [k? v coll] body ...)`:
+     * a vector of patterns, optionally closed by `$trailingInitCount` ordinary
+     * expressions that are evaluated in the outer scope.
+     *
+     * @param PersistentListInterface<mixed> $form
+     * @param list<Symbol>                   $scope
+     */
+    private function walkParameterForm(PersistentListInterface $form, int $line, int $col, string $word, array $scope, int $trailingInitCount): ?Symbol
+    {
+        $parameters = count($form) > 1 ? $form->get(1) : null;
+        if (!$parameters instanceof PersistentVectorInterface) {
+            return $this->walkTail($form, $line, $col, $word, $scope, from: 1);
+        }
+
+        $runningScope = $scope;
+        $parameterCount = count($parameters);
+        $patternCount = $parameterCount - $trailingInitCount;
+
+        for ($i = 0; $i < $parameterCount; ++$i) {
+            $binding = $i < $patternCount
+                ? $this->walkPattern($parameters->get($i), $line, $col, $word, $scope, $runningScope)
+                : $this->walk($parameters->get($i), $line, $col, $word, $scope);
+            if ($binding instanceof Symbol) {
+                return $binding;
+            }
+        }
+
+        return $this->walkTail($form, $line, $col, $word, $runningScope, from: 2);
+    }
+
+    /**
+     * Walks `(catch Type exception body ...)`. The type is an ordinary symbol
+     * usage; only the third element binds.
+     *
+     * @param PersistentListInterface<mixed> $form
+     * @param list<Symbol>                   $scope
+     */
+    private function walkCatchForm(PersistentListInterface $form, int $line, int $col, string $word, array $scope): ?Symbol
+    {
+        if (count($form) < 3) {
+            return $this->walkTail($form, $line, $col, $word, $scope, from: 1);
+        }
+
+        $runningScope = $scope;
+        $binding = $this->walk($form->get(1), $line, $col, $word, $scope)
+            ?? $this->walkPattern($form->get(2), $line, $col, $word, $scope, $runningScope);
+        if ($binding instanceof Symbol) {
+            return $binding;
+        }
+
+        return $this->walkTail($form, $line, $col, $word, $runningScope, from: 3);
+    }
+
+    /**
+     * @param PersistentListInterface<mixed> $form
+     * @param list<Symbol>                   $scope
+     */
+    private function walkTail(PersistentListInterface $form, int $line, int $col, string $word, array $scope, int $from): ?Symbol
+    {
+        $formCount = count($form);
+        for ($i = $from; $i < $formCount; ++$i) {
+            $binding = $this->walk($form->get($i), $line, $col, $word, $scope);
             if ($binding instanceof Symbol) {
                 return $binding;
             }
@@ -184,42 +349,147 @@ final readonly class LocalBindingResolver
     }
 
     /**
-     * Adds every name a binding pattern introduces. Supports plain symbols and
-     * vector/map destructuring; `&` and `.` are markers, not bindings, and the
-     * `:or` defaults map introduces no names (its values are expressions).
+     * Walks a binding pattern, collecting every name it introduces into
+     * `$scope` and answering when the cursor sits on one of them, so that
+     * navigating from a declaration lands on itself instead of falling through
+     * to an unrelated global of the same name.
      *
+     * Supports plain symbols and vector/map destructuring. `&` is a rest
+     * marker, not a binding. The values of `:or` are default expressions
+     * evaluated in the enclosing scope, so they are walked as usages.
+     *
+     * @param list<Symbol> $outerScope the scope the pattern's own expressions see
      * @param list<Symbol> $scope
      */
-    private function addBinding(mixed $binding, array &$scope): void
+    private function walkPattern(mixed $pattern, int $line, int $col, string $word, array $outerScope, array &$scope): ?Symbol
     {
-        if ($binding instanceof Symbol) {
-            if (!in_array($binding->getName(), ['&', '.'], true)) {
-                $scope[] = $binding;
+        if ($pattern instanceof Symbol) {
+            if ($pattern->getName() === self::REST_MARKER) {
+                return null;
             }
 
-            return;
+            $scope[] = $pattern;
+
+            return $this->isAt($pattern, $line, $col) && $pattern->getName() === $word
+                ? $pattern
+                : null;
         }
 
-        if ($binding instanceof PersistentVectorInterface) {
-            foreach ($binding as $child) {
-                $this->addBinding($child, $scope);
-            }
-
-            return;
-        }
-
-        if ($binding instanceof PersistentMapInterface) {
-            foreach ($binding as $key => $value) {
-                // Mirrors MapBindingDeconstructor: the values of `:or` are
-                // default expressions (uses), not binding names. Adding them
-                // would shadow the real binding with a use-site location.
-                if ($key instanceof Keyword && $key->getName() === 'or') {
-                    continue;
+        if ($pattern instanceof PersistentVectorInterface) {
+            foreach ($pattern as $child) {
+                $binding = $this->walkPattern($child, $line, $col, $word, $outerScope, $scope);
+                if ($binding instanceof Symbol) {
+                    return $binding;
                 }
+            }
 
-                $this->addBinding($value, $scope);
+            return null;
+        }
+
+        if ($pattern instanceof PersistentMapInterface) {
+            foreach ($pattern as $key => $value) {
+                // Mirrors MapBindingDeconstructor: `:or` maps a binding name to
+                // a default expression, so its keys name nothing and its values
+                // are uses of the enclosing scope, not new bindings.
+                $binding = $key instanceof Keyword && $key->getName() === 'or'
+                    ? $this->walkOrDefaults($value, $line, $col, $word, $outerScope)
+                    : $this->walkPattern($value, $line, $col, $word, $outerScope, $scope);
+                if ($binding instanceof Symbol) {
+                    return $binding;
+                }
             }
         }
+
+        return null;
+    }
+
+    /**
+     * @param list<Symbol> $outerScope
+     */
+    private function walkOrDefaults(mixed $defaults, int $line, int $col, string $word, array $outerScope): ?Symbol
+    {
+        if (!$defaults instanceof PersistentMapInterface) {
+            return null;
+        }
+
+        foreach ($defaults as $default) {
+            $binding = $this->walk($default, $line, $col, $word, $outerScope);
+            if ($binding instanceof Symbol) {
+                return $binding;
+            }
+        }
+
+        return null;
+    }
+
+    /**
+     * Over-approximates the names a {@see self::BARRIER_FORMS} binder
+     * introduces: every symbol in a vector it holds directly, plus the leading
+     * vector of each arity list, which covers multi-arity `defn`.
+     *
+     * @param PersistentListInterface<mixed> $form
+     */
+    private function rebinds(PersistentListInterface $form, string $word): bool
+    {
+        foreach ($form as $child) {
+            if ($child instanceof PersistentListInterface && count($child) > 0) {
+                $child = $child->get(0);
+            }
+
+            if ($child instanceof PersistentVectorInterface && $this->containsName($child, $word)) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /**
+     * @param PersistentVectorInterface<mixed> $vector
+     */
+    private function containsName(PersistentVectorInterface $vector, string $word): bool
+    {
+        foreach ($vector as $element) {
+            if ($element instanceof Symbol && $element->getName() === $word) {
+                return true;
+            }
+
+            if ($element instanceof PersistentVectorInterface && $this->containsName($element, $word)) {
+                return true;
+            }
+
+            if ($element instanceof PersistentMapInterface && $this->mapContainsName($element, $word)) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /**
+     * @param PersistentMapInterface<mixed, mixed> $map
+     */
+    private function mapContainsName(PersistentMapInterface $map, string $word): bool
+    {
+        foreach ($map as $key => $value) {
+            if ($key instanceof Keyword && $key->getName() === 'or') {
+                continue;
+            }
+
+            if ($value instanceof Symbol && $value->getName() === $word) {
+                return true;
+            }
+
+            if ($value instanceof PersistentVectorInterface && $this->containsName($value, $word)) {
+                return true;
+            }
+
+            if ($value instanceof PersistentMapInterface && $this->mapContainsName($value, $word)) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     /**
@@ -247,13 +517,12 @@ final readonly class LocalBindingResolver
             return false;
         }
 
+        // The end column is exclusive, but `Document::wordAt()` still reports
+        // the word when the caret rests just past its last character, so the
+        // comparison has to include it or navigation dies at that caret.
         $cursorCol = $col - 1;
-        $end = $symbol->getEndLocation();
-        $endCol = $end instanceof SourceLocation
-            ? $end->getColumn()
-            : $start->getColumn() + strlen($symbol->getName());
 
-        return $cursorCol >= $start->getColumn() && $cursorCol < $endCol;
+        return $cursorCol >= $start->getColumn() && $cursorCol <= $this->endColumn($symbol, $start);
     }
 
     /**
@@ -296,7 +565,20 @@ final readonly class LocalBindingResolver
             line: $line,
             col: $column + 1,
             endLine: $line,
-            endCol: $column + 1 + strlen($binding->getName()),
+            endCol: ($start instanceof SourceLocation ? $this->endColumn($binding, $start) : $column) + 1,
         );
+    }
+
+    /**
+     * The reader always records an end location; the fallback only covers
+     * synthetic symbols, and counts codepoints because the lexer's columns do.
+     */
+    private function endColumn(Symbol $symbol, SourceLocation $start): int
+    {
+        $end = $symbol->getEndLocation();
+
+        return $end instanceof SourceLocation
+            ? $end->getColumn()
+            : $start->getColumn() + mb_strlen($symbol->getName());
     }
 }

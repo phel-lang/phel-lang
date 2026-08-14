@@ -112,8 +112,11 @@ final class LocalBindingResolverTest extends TestCase
         self::assertNull($location);
     }
 
-    public function test_the_binding_site_itself_is_not_a_usage(): void
+    public function test_the_binding_site_resolves_to_itself(): void
     {
+        // Falling through would hand the request to the project index, which
+        // scans every namespace by bare name and would jump to an unrelated
+        // global of the same name.
         $location = $this->resolve(
             "(let [mysym 123]\n    mysym)",
             line: 1,
@@ -121,7 +124,40 @@ final class LocalBindingResolverTest extends TestCase
             word: 'mysym',
         );
 
-        self::assertNull($location);
+        self::assertInstanceOf(Location::class, $location);
+        self::assertSame(1, $location->line);
+        self::assertSame(7, $location->col);
+        self::assertSame(12, $location->endCol);
+    }
+
+    public function test_a_caret_just_past_the_last_character_still_resolves(): void
+    {
+        // Document::wordAt() reports the word at this caret, so the resolver
+        // has to agree or navigation dies where editors leave the caret.
+        $location = $this->resolve(
+            "(let [mysym 1]\n  mysym)",
+            line: 2,
+            col: 8,
+            word: 'mysym',
+        );
+
+        self::assertInstanceOf(Location::class, $location);
+        self::assertSame(1, $location->line);
+        self::assertSame(7, $location->col);
+    }
+
+    public function test_the_end_column_counts_codepoints_not_bytes(): void
+    {
+        $location = $this->resolve(
+            "(let [café 1]\n  café)",
+            line: 2,
+            col: 3,
+            word: 'café',
+        );
+
+        self::assertInstanceOf(Location::class, $location);
+        self::assertSame(7, $location->col);
+        self::assertSame(11, $location->endCol);
     }
 
     public function test_a_qualified_symbol_does_not_resolve_to_a_local(): void
@@ -309,6 +345,239 @@ final class LocalBindingResolverTest extends TestCase
         self::assertInstanceOf(Location::class, $body);
         self::assertSame(2, $body->line);
         self::assertSame(7, $body->col);
+    }
+
+    public function test_a_usage_inside_a_set_literal_resolves(): void
+    {
+        $location = $this->resolve(
+            "(let [a 1]\n  #{a})",
+            line: 2,
+            col: 5,
+            word: 'a',
+        );
+
+        self::assertInstanceOf(Location::class, $location);
+        self::assertSame(1, $location->line);
+        self::assertSame(7, $location->col);
+    }
+
+    public function test_a_quoted_binding_form_binds_nothing(): void
+    {
+        // Quoted forms are inert data, so neither the quoted `let` nor the
+        // enclosing one may claim the usage.
+        $location = $this->resolve(
+            "(let [a 1]\n  '(let [a 2] a))",
+            line: 2,
+            col: 15,
+            word: 'a',
+        );
+
+        self::assertNull($location);
+    }
+
+    public function test_an_or_default_expression_resolves_to_the_enclosing_binding(): void
+    {
+        $location = $this->resolve(
+            "(let [a 1 {:keys [b] :or {b a}} m]\n  b)",
+            line: 1,
+            col: 29,
+            word: 'a',
+        );
+
+        self::assertInstanceOf(Location::class, $location);
+        self::assertSame(1, $location->line);
+        self::assertSame(7, $location->col);
+    }
+
+    public function test_an_earlier_init_does_not_see_a_later_binding(): void
+    {
+        $location = $this->resolve(
+            "(let [a b\n      b 1]\n  a)",
+            line: 1,
+            col: 9,
+            word: 'b',
+        );
+
+        self::assertNull($location);
+    }
+
+    public function test_a_trailing_unpaired_binding_is_ignored(): void
+    {
+        $location = $this->resolve(
+            "(let [a 1 b]\n  a)",
+            line: 2,
+            col: 3,
+            word: 'a',
+        );
+
+        self::assertInstanceOf(Location::class, $location);
+        self::assertSame(1, $location->line);
+        self::assertSame(7, $location->col);
+    }
+
+    public function test_an_empty_source_resolves_to_nothing(): void
+    {
+        self::assertNull($this->resolve('', line: 1, col: 1, word: 'a'));
+    }
+
+    public function test_a_qualified_word_is_rejected_without_parsing(): void
+    {
+        // Symbol::getName() never contains a `/`, so the whole-buffer parse
+        // this would otherwise pay for can only ever return null.
+        self::assertNull($this->resolve('(let [a 1] a)', line: 1, col: 12, word: 'foo/a'));
+    }
+
+    public function test_if_let_binds_its_then_branch(): void
+    {
+        $location = $this->resolve(
+            "(if-let [a (f)]\n  a\n  a)",
+            line: 2,
+            col: 3,
+            word: 'a',
+        );
+
+        self::assertInstanceOf(Location::class, $location);
+        self::assertSame(1, $location->line);
+        self::assertSame(10, $location->col);
+    }
+
+    public function test_if_let_does_not_bind_its_else_branch(): void
+    {
+        // The macro expands `else` outside the inner let, so the binding is
+        // not in scope there.
+        $location = $this->resolve(
+            "(if-let [a (f)]\n  a\n  a)",
+            line: 3,
+            col: 3,
+            word: 'a',
+        );
+
+        self::assertNull($location);
+    }
+
+    public function test_when_let_binds_its_body(): void
+    {
+        $location = $this->resolve(
+            "(when-let [a (f)]\n  a)",
+            line: 2,
+            col: 3,
+            word: 'a',
+        );
+
+        self::assertInstanceOf(Location::class, $location);
+        self::assertSame(1, $location->line);
+        self::assertSame(12, $location->col);
+    }
+
+    public function test_when_first_binds_its_body(): void
+    {
+        $location = $this->resolve(
+            "(when-first [a xs]\n  a)",
+            line: 2,
+            col: 3,
+            word: 'a',
+        );
+
+        self::assertInstanceOf(Location::class, $location);
+        self::assertSame(1, $location->line);
+        self::assertSame(14, $location->col);
+    }
+
+    public function test_a_fn_parameter_shadows_an_outer_binding(): void
+    {
+        $location = $this->resolve(
+            "(let [a 1]\n  (fn [a] a))",
+            line: 2,
+            col: 11,
+            word: 'a',
+        );
+
+        self::assertInstanceOf(Location::class, $location);
+        self::assertSame(2, $location->line);
+        self::assertSame(8, $location->col);
+    }
+
+    public function test_a_fn_parameter_resolves_without_an_enclosing_let(): void
+    {
+        $location = $this->resolve(
+            "(fn [a]\n  a)",
+            line: 2,
+            col: 3,
+            word: 'a',
+        );
+
+        self::assertInstanceOf(Location::class, $location);
+        self::assertSame(1, $location->line);
+        self::assertSame(6, $location->col);
+    }
+
+    public function test_foreach_binds_its_body_but_not_its_collection(): void
+    {
+        $source = "(let [xs 1]\n  (foreach [a xs] a))";
+
+        $body = $this->resolve($source, line: 2, col: 19, word: 'a');
+        self::assertInstanceOf(Location::class, $body);
+        self::assertSame(2, $body->line);
+        self::assertSame(13, $body->col);
+
+        // The trailing element is the collection expression, so it still sees
+        // the enclosing scope.
+        $collection = $this->resolve($source, line: 2, col: 15, word: 'xs');
+        self::assertInstanceOf(Location::class, $collection);
+        self::assertSame(1, $collection->line);
+        self::assertSame(7, $collection->col);
+    }
+
+    public function test_catch_binds_its_exception(): void
+    {
+        $location = $this->resolve(
+            "(try\n  (catch \\Exception e e))",
+            line: 2,
+            col: 23,
+            word: 'e',
+        );
+
+        self::assertInstanceOf(Location::class, $location);
+        self::assertSame(2, $location->line);
+        self::assertSame(21, $location->col);
+    }
+
+    public function test_a_defn_parameter_hides_an_outer_binding(): void
+    {
+        // defn may be multi-arity, so its parameters are not modelled; the
+        // outer binding must still not be offered in its place.
+        $location = $this->resolve(
+            "(let [a 1]\n  (defn f [a] a))",
+            line: 2,
+            col: 15,
+            word: 'a',
+        );
+
+        self::assertNull($location);
+    }
+
+    public function test_a_for_binding_hides_an_outer_binding(): void
+    {
+        $location = $this->resolve(
+            "(let [a 1]\n  (for [a :in xs] a))",
+            line: 2,
+            col: 19,
+            word: 'a',
+        );
+
+        self::assertNull($location);
+    }
+
+    public function test_a_rebound_dynamic_var_hides_an_outer_binding(): void
+    {
+        $location = $this->resolve(
+            "(let [a 1]\n  (binding [a 2] a))",
+            line: 2,
+            col: 18,
+            word: 'a',
+        );
+
+        self::assertNull($location);
     }
 
     private function resolve(string $source, int $line, int $col, string $word): ?Location
