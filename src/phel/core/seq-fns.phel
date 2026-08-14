@@ -1545,10 +1545,12 @@ If a key appears in more than one collection, later values replace previous ones
   {:example "(rename-keys {:a 1 :b 2 :c 3} {:a :x :b :y}) ; => {:x 1, :y 2, :c 3}"
    :see-also ["select-keys" "keys" "vals"]}
   [m kmap]
-  (persistent
-   (for [[k v] :pairs m
-         :reduce [acc (transient {})]]
-     (assoc! acc (get kmap k k) v))))
+  ;; As `update-keys`: built from empty, because a rename can collapse two keys
+  ;; onto one.
+  (let [acc (transient {})]
+    (foreach [k v m]
+      (.put acc (get kmap k k) v))
+    (persistent acc)))
 
 (defn invert
   "Returns a new map where the keys and values are swapped.
