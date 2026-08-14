@@ -6,6 +6,12 @@ namespace PhelTest\Unit\Compiler\Analyzer\TypeAnalyzer;
 
 use Phel\Compiler\Domain\Analyzer\TypeAnalyzer\PhpFunctionReturnTypes;
 use PHPUnit\Framework\TestCase;
+use ReflectionClassConstant;
+use ReflectionFunction;
+use ReflectionNamedType;
+
+use function count;
+use function function_exists;
 
 /**
  * Guards the table's contract: only functions whose result is exactly one
@@ -85,5 +91,54 @@ final class PhpFunctionReturnTypesTest extends TestCase
     {
         self::assertNull(PhpFunctionReturnTypes::strictReturnTypeOf('some_unlisted_fn'));
         self::assertNull(PhpFunctionReturnTypes::operandReturnTypeOf('some_unlisted_fn'));
+    }
+
+    /**
+     * Every entry checked against PHP itself rather than against a second
+     * hand-written list. The membership rule is "exactly one primitive on
+     * every non-throwing input", and for a built-in that is precisely a
+     * declared, non-nullable, non-union return type, which reflection can
+     * read. This is what catches an entry whose real signature is
+     * `string|false`, the failure mode that took `json_encode`, `hex2bin`
+     * and `str_replace` back out of the table.
+     *
+     * It also caught `log2`, which was listed as `float` and is not a PHP
+     * function at all: PHP has `log10` and `log($x, 2)`.
+     */
+    public function test_every_strict_entry_matches_the_real_php_signature(): void
+    {
+        foreach ($this->strictTable() as $fn => $declared) {
+            self::assertTrue(function_exists($fn), "php/{$fn} is not a PHP function");
+
+            $returnType = new ReflectionFunction($fn)->getReturnType();
+            self::assertInstanceOf(
+                ReflectionNamedType::class,
+                $returnType,
+                "php/{$fn} has no single declared return type",
+            );
+            self::assertFalse($returnType->allowsNull(), "php/{$fn} is nullable");
+            self::assertSame($declared, $returnType->getName(), "php/{$fn} return type");
+        }
+    }
+
+    public function test_the_strict_table_is_not_empty(): void
+    {
+        // Guards the reflection test above against silently passing on an
+        // empty table if the constant is ever renamed.
+        self::assertGreaterThan(100, count($this->strictTable()));
+    }
+
+    /**
+     * @return array<string, string>
+     */
+    private function strictTable(): array
+    {
+        /** @var array<string, string> $table */
+        $table = new ReflectionClassConstant(
+            PhpFunctionReturnTypes::class,
+            'STRICT_RETURN_TYPES',
+        )->getValue();
+
+        return $table;
     }
 }
