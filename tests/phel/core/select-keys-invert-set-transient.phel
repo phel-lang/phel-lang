@@ -1,0 +1,100 @@
+(ns phel-test.core.select-keys-invert-set-transient
+  (:require phel.test :refer [deftest is]))
+
+;; `select-keys`, `invert` and `set` write their transient accumulator with
+;; `.put` / `.add` and read the source with `.contains` / `.find`, instead of
+;; `assoc!`, `conj!`, `contains?` and `get`. Same plumbing change as #3149.
+;;
+;; The one place this could go wrong is `select-keys`: `.find` answers nil both
+;; for an absent key and for a key stored with a nil value, so the membership
+;; test has to stay separate. A key held with nil must still be selected.
+
+(deftest test-select-keys-picks-the-named-keys
+  (is (= {:a 1, :c 3} (select-keys {:a 1, :b 2, :c 3} [:a :c])) "the docstring example")
+  (is (= {} (select-keys {:a 1} [])) "no keys selects nothing")
+  (is (= {} (select-keys {} [:a])) "an empty map")
+  (is (= {} (select-keys {:a 1} [:zz])) "a key that is not there")
+  (is (= {:a 1} (select-keys {:a 1} [:a :a])) "a repeated key is selected once")
+  (is (= {} (select-keys nil [:a])) "nil is an empty map, not an error"))
+
+(deftest test-select-keys-keeps-a-key-whose-value-is-nil
+  ;; The reason `.contains` is still called rather than folding the test into
+  ;; `.find`. Each of these would vanish from the result if it were not.
+  (is (= {:a nil} (select-keys {:a nil} [:a])) "a nil value is selected")
+  (is (contains? (select-keys {:a nil} [:a]) :a) "and the key is really present")
+  (is (= {:a false} (select-keys {:a false} [:a])) "a false value")
+  (is (= {:a 0} (select-keys {:a 0} [:a])) "a zero value")
+  (is (= {:a ""} (select-keys {:a ""} [:a])) "an empty-string value")
+  (is (= {:a nil, :b 1} (select-keys {:a nil, :b 1} [:a :b])) "a nil value beside a real one"))
+
+(deftest test-select-keys-keys-that-are-falsy
+  (is (= {nil 1} (select-keys {nil 1} [nil])) "nil as a key")
+  (is (= {false 1} (select-keys {false 1} [false])) "false as a key")
+  (is (= {0 1} (select-keys {0 1} [0])) "zero as a key"))
+
+(deftest test-select-keys-carries-metadata
+  (let [m (with-meta {:a 1, :b 2} {:mm 1})]
+    (is (= {:mm 1} (meta (select-keys m [:a]))) "the source's metadata is copied")))
+
+(deftest test-invert-swaps-keys-and-values
+  (is (= {1 :a, 2 :b, 3 :c} (invert {:a 1, :b 2, :c 3})) "the docstring example")
+  (is (= {} (invert {})) "an empty map")
+  (is (= {nil :a} (invert {:a nil})) "a nil value becomes a nil key")
+  (is (= {false :a} (invert {:a false})) "a false value becomes a false key")
+  (is (= {1 :b} (invert {:a 1, :b 1})) "a duplicated value keeps the last key visited")
+  (is (= {:a nil} (invert {nil :a})) "a nil key becomes a nil value")
+  (is (= :hash-map (type (invert (sorted-map :a 1)))) "a sorted map inverts to a hash map"))
+
+(deftest test-invert-agrees-with-map-invert
+  ;; They are two names for the same operation and had drifted apart, one
+  ;; rewritten and one not. Nothing may separate them again.
+  (let [ms [{} {:a 1} {:a nil} {:a 1, :b 2} {:a 1, :b 1} {nil 1} {false 1} {0 :z}]]
+    (dofor [m :in ms]
+      (is (= (map-invert m) (invert m)) (str "invert agrees with map-invert on " (pr-str m))))))
+
+(deftest test-set-collects-distinct-elements
+  (is (= #{1 2 3} (set [1 2 3 2 1])) "the docstring example")
+  (is (= #{} (set [])) "an empty collection")
+  (is (= #{} (set nil)) "nil is an empty set")
+  (is (= 1 (count (set [1 1 1]))) "every element the same")
+  (is (= :set (type (set [1 2]))) "the result is a set, not a transient"))
+
+(deftest test-set-elements-that-are-falsy-or-look-alike
+  (is (= 1 (count (set [nil nil]))) "nil is one element")
+  (is (contains? (set [nil]) nil) "and is really in there")
+  (is (= 2 (count (set [false true]))) "false and true are distinct")
+  (is (= 2 (count (set [0 ""]))) "zero and the empty string are distinct")
+  (is (= 4 (count (set [1 "1" :a 'a]))) "an int, its string, a keyword and a symbol")
+  (is (= 1 (count (set [[1 2] [1 2]]))) "collections compare by value"))
+
+(deftest test-set-accepts-any-seqable-source
+  (is (= #{1 2} (set '(1 2 1))) "a list")
+  (is (= 2 (count (set "aab"))) "a string collects its characters")
+  (is (= #{1 2} (set (set [1 2]))) "a set")
+  (is (= #{2 3} (set (map inc [1 2]))) "a lazy sequence")
+  (is (= 1 (count (set {:a 1}))) "a map yields its entries"))
+
+(deftest test-the-results-are-persistent
+  ;; None of the three transients may escape.
+  (let [s (set [1 2])
+        i (invert {:a 1})
+        k (select-keys {:a 1, :b 2} [:a])]
+    (is (= #{1 2 3} (conj s 3)) "the set can be conj'd onto")
+    (is (= #{1 2} s) "and the original is unchanged")
+    (is (= {1 :a, 2 :b} (assoc i 2 :b)) "the inverted map can be assoc'd onto")
+    (is (= {1 :a} i) "and is unchanged")
+    (is (= {:a 1, :z 9} (assoc k :z 9)) "the selection can be assoc'd onto")
+    (is (= {:a 1} k) "and is unchanged")))
+
+(deftest test-select-keys-accepts-more-than-maps
+  ;; The transient fast path is guarded on `PersistentMapInterface` because
+  ;; `select-keys` takes anything `contains?` and `get` take, and none of these
+  ;; has `.contains` / `.find`. The Clojure suite's `(select-keys "" [:a])` is
+  ;; what caught this; the rest are the neighbours it implies.
+  (is (= {} (select-keys "" [:a])) "an empty string")
+  (is (= {0 "a", 1 "b"} (select-keys "abc" [0 1])) "a string is indexed by position")
+  (is (= {} (select-keys [] [0])) "an empty vector")
+  (is (= {0 1, 2 3} (select-keys [1 2 3] [0 2])) "a vector")
+  (is (= {} (select-keys [1 2] [9])) "an index that is out of range")
+  (is (= {1 1} (select-keys (set [1 2]) [1])) "a set")
+  (is (= {"x" 1} (select-keys (php-associative-array "x" 1) ["x"])) "a PHP associative array"))
