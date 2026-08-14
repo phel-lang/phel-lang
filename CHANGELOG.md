@@ -112,6 +112,7 @@ Compiler:
 
 Runtime core:
 
+- Promote a map from the flat array representation to the hash map at 8 entries instead of 16. An array map finds a key by scanning its entries, so a 16-entry map was 4.9x slower to read than a 20-entry one (4.71μs against 0.96μs); reading the last key of a 12-entry map is now 3.5x faster and of a 16-entry map 5.9x. Building is unchanged at both sizes. A map below the threshold still iterates in insertion order (#3172)
 - Reverse and escape a string natively in `phel.string`: `reverse` reversed the split array through a Phel sequence and back (`bench_reverse` 8.7x), and `escape` called a closure per character that invoked the character map itself (`bench_escape` 5.8x) (#2973)
 - Replace rest-argument dispatch with real arities across `phel.core`: the arithmetic and comparison operators, `str`, the collection constructors and accessors, the seq and transducer functions, and the nil-rejecting arithmetic guards. 1.03x to 25x by how much work sits behind the call, `round` and `floor` 25x, `str` at four and five arguments 3.9x and 4.1x (#2941 #2962 #2964 #2974 #2975 #2978 #2979 #2981 #2989 #2991 #3010 #3017 #3018 #3021 #3065 #3067 #3069)
 - Give every closure-returning combinator real arities: `partial` 30x, `fnil` 50x, `constantly` 9.5x, `comp` 8x, `juxt` 4.3 to 5.8x, `complement` 4.4x, `some-fn` 2.3x, `every-pred` 2.2x, plus every transducer's reducing function, `completing` and `transduce` (with `map` 4.8x, with `filter` 3.8x) (#2973 #3021 #3026 #3083)
