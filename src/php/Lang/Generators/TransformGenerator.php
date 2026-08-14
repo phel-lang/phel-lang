@@ -6,6 +6,7 @@ namespace Phel\Lang\Generators;
 
 use Generator;
 use Phel\Lang\Collections\Map\PersistentMapInterface;
+use Phel\Lang\Reduced;
 use Phel\Lang\Truthy;
 use Phel\Lang\TypeFactory;
 
@@ -167,10 +168,77 @@ final class TransformGenerator
      *
      * @return Generator<int, mixed>
      */
+    /**
+     * The intermediate accumulator values of a reduction, `init` first.
+     *
+     * Written here as a generator rather than in Phel, where each element cost
+     * a `lazy-seq` thunk plus `seq`, `first`, `rest`, `cons` and a recursive
+     * call. The sequence stays lazy: a generator yields nothing until pulled,
+     * so `(reductions + (iterate inc 1))` over an infinite source is still
+     * safe and still unrealized.
+     *
+     * A `Reduced` returned by `$f` ends the reduction, and its unwrapped value
+     * is the last element yielded, matching what the recursive spelling did by
+     * re-entering its own `reduced?` guard.
+     *
+     * @param callable(mixed, mixed):mixed $f
+     *
+     * @return Generator<int, mixed>
+     */
+    public static function reductions(callable $f, mixed $init, mixed $iterable): Generator
+    {
+        if ($init instanceof Reduced) {
+            yield $init->deref();
+
+            return;
+        }
+
+        yield $init;
+
+        $acc = $init;
+        foreach (self::entriesOf($iterable) as $value) {
+            $acc = $f($acc, $value);
+
+            if ($acc instanceof Reduced) {
+                yield $acc->deref();
+
+                return;
+            }
+
+            yield $acc;
+        }
+    }
+
     public static function mapIndexed(callable $f, mixed $iterable): Generator
     {
         foreach (SequenceGenerator::indexed($iterable) as [$index, $value]) {
             yield $f($index, $value);
+        }
+    }
+
+    /**
+     * A map is walked as `[key value]` pairs, as {@see self::map()} walks it,
+     * not as bare values: `(reductions + 0 {:a 1})` has to reach `+` with the
+     * entry it always did, which is what makes it raise rather than quietly
+     * summing the values.
+     *
+     * @return Generator<int, mixed>
+     */
+    private static function entriesOf(mixed $iterable): Generator
+    {
+        if ($iterable instanceof PersistentMapInterface) {
+            $typeFactory = TypeFactory::getInstance();
+            foreach ($iterable as $k => $v) {
+                yield $typeFactory->persistentVectorFromArray([$k, $v]);
+            }
+
+            return;
+        }
+
+        // Values, not `yield from`: that would carry the source's keys
+        // through, and this generator is declared with `int` keys.
+        foreach (SequenceGenerator::toIterable($iterable) as $value) {
+            yield $value;
         }
     }
 }

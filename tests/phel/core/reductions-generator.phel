@@ -1,0 +1,52 @@
+(ns phel-test.core.reductions-generator
+  (:require phel.test :refer [deftest is]))
+
+;; `reductions` is built from a PHP generator rather than recursing in Phel.
+;; The sequence it hands back has to behave exactly as the recursive spelling
+;; did: lazy, unrealized until accessed, safe over an infinite source, ending
+;; on a `reduced`, and walking a map as `[key value]` pairs rather than bare
+;; values (which is what makes `(reductions + 0 {:a 1})` raise).
+
+(deftest test-the-values-of-a-reduction
+  (is (= [1 3 6 10] (vec (reductions + [1 2 3 4]))) "the docstring example")
+  (is (= [0 1 3 6 10] (vec (reductions + 0 [1 2 3 4]))) "with an init")
+  (is (= [5] (vec (reductions + [5]))) "one element")
+  (is (= [0] (vec (reductions + []))) "an empty collection uses (f)")
+  (is (= [0] (vec (reductions + 0 []))) "an empty collection keeps the init")
+  (is (= [0] (vec (reductions + 0 nil))) "a nil collection keeps the init")
+  (is (= [[] [1] [1 2]] (vec (reductions conj [] [1 2]))) "a non-numeric reducing function")
+  (is (= 4 (count (reductions + 0 [1 2 3]))) "count realizes it"))
+
+(deftest test-laziness-is-unchanged
+  (is (false? (realized? (reductions + [1 2 3]))) "two arguments")
+  (is (false? (realized? (reductions + 0 [1 2 3]))) "three arguments")
+  (is (false? (realized? (reductions + (iterate inc 1)))) "over an infinite source")
+  (is (= [1 3 6 10 15] (vec (take 5 (reductions + (iterate inc 1))))) "an infinite source is safe")
+  (is (= [0 1 3] (vec (take 3 (reductions + 0 (iterate inc 1))))) "and with an init"))
+
+(deftest test-a-reduced-ends-the-reduction
+  (is (= [0 1 3 6 6]
+         (vec (reductions (fn [a b] (if (php/> a 5) (reduced a) (php/+ a b))) 0 [1 2 3 4 5])))
+      "the unwrapped value is the last element")
+  (is (= [9] (vec (reductions + (reduced 9) [1 2 3]))) "an init that is already reduced")
+  (is (= [0] (vec (reductions (fn [a b] (reduced a)) 0 []))) "never called on an empty collection"))
+
+(deftest test-a-map-is-walked-as-pairs
+  ;; Bare values would make this sum quietly instead of raising, which is the
+  ;; difference the generator has to preserve.
+  (is (thrown? \InvalidArgumentException (vec (reductions + 0 {:a 1})))
+      "a map entry reaches the reducing function, not the value")
+  (is (= [[] [[:a 1]]] (vec (reductions conj [] {:a 1}))) "the entry is a [key value] vector"))
+
+(deftest test-other-source-shapes
+  (is (= [1 3 6] (vec (reductions + '(1 2 3)))) "a list")
+  (is (= [1 3 6] (vec (reductions + (map identity [1 2 3])))) "a lazy sequence")
+  (is (= 3 (count (reductions + 0 (set [1 2])))) "a set")
+  (is (thrown? \InvalidArgumentException (vec (reductions + 0 "ab"))) "a string raises, as before"))
+
+(deftest test-the-result-is-an-ordinary-sequence
+  (let [r (reductions + 0 [1 2 3])]
+    (is (= [0 1 3 6] (vec r)) "first walk")
+    (is (= [0 1 3 6] (vec r)) "walked twice, same elements")
+    (is (= 0 (first r)) "first")
+    (is (= [1 3 6] (vec (rest r))) "rest")))
