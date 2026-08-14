@@ -134,7 +134,8 @@ final readonly class CallSpecialization
             return null;
         }
 
-        return match (TagNormalizer::ofLocalVar($args[0])) {
+        // `ofNode`: `tryEmitTypedGetAccess` emits the target once.
+        return match (TagNormalizer::ofNode($args[0])) {
             PersistentMapInterface::class => 'find',
             default => null,
         };

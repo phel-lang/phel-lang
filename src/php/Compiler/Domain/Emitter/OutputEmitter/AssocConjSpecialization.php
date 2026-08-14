@@ -47,7 +47,8 @@ final readonly class AssocConjSpecialization
         }
 
         $args = $node->getArguments();
-        $tag = TagNormalizer::ofLocalVar($args[0] ?? null);
+        // `ofNode`: `tryEmitTypedAssocConjDissoc` emits the target once.
+        $tag = TagNormalizer::ofNode($args[0] ?? null);
         if ($tag === null) {
             return null;
         }
