@@ -165,4 +165,48 @@ final class BooleanExprDetectorTest extends TestCase
             self::assertFalse(BooleanExprDetector::isBool($call), $fn . ' must not read as bool');
         }
     }
+
+    /**
+     * The detector no longer keeps its own list of bool-returning built-ins;
+     * it asks {@see PhpFunctionReturnTypes}, whose membership rule (exactly
+     * one primitive on every non-throwing input) is the guarantee the truthy
+     * adapter can be skipped on. These were all in that table already and the
+     * hand-written copy had fallen behind it.
+     */
+    public function test_bool_builtins_the_hand_written_list_had_drifted_from(): void
+    {
+        $drifted = [
+            'ctype_alpha', 'ctype_digit', 'ctype_alnum', 'ctype_space',
+            'ctype_upper', 'ctype_lower', 'ctype_punct', 'ctype_xdigit',
+            'is_nan', 'is_infinite', 'is_finite',
+            'class_exists', 'interface_exists', 'enum_exists', 'function_exists',
+            'boolval', 'is_integer', 'is_long', 'is_double',
+        ];
+
+        foreach ($drifted as $fn) {
+            $call = new CallNode(
+                NodeEnvironment::empty(),
+                new PhpVarNode(NodeEnvironment::empty(), $fn),
+                [],
+            );
+            self::assertTrue(BooleanExprDetector::isBool($call), $fn . ' should be bool');
+        }
+    }
+
+    /**
+     * A built-in in the table under another type must not be mistaken for a
+     * bool, which is what a `=== 'bool'` comparison and not a mere lookup
+     * buys.
+     */
+    public function test_a_non_bool_table_entry_is_not_bool(): void
+    {
+        foreach (['strlen', 'implode', 'sqrt', 'htmlspecialchars', 'time'] as $fn) {
+            $call = new CallNode(
+                NodeEnvironment::empty(),
+                new PhpVarNode(NodeEnvironment::empty(), $fn),
+                [],
+            );
+            self::assertFalse(BooleanExprDetector::isBool($call), $fn . ' should not be bool');
+        }
+    }
 }

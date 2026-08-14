@@ -9,6 +9,7 @@ use Phel\Compiler\Domain\Analyzer\Ast\CallNode;
 use Phel\Compiler\Domain\Analyzer\Ast\GlobalVarNode;
 use Phel\Compiler\Domain\Analyzer\Ast\LiteralNode;
 use Phel\Compiler\Domain\Analyzer\Ast\PhpVarNode;
+use Phel\Compiler\Domain\Analyzer\TypeAnalyzer\PhpFunctionReturnTypes;
 use Phel\Compiler\Domain\Emitter\OutputEmitter\CallSpecialization;
 use Phel\Shared\TagResolver;
 
@@ -49,35 +50,6 @@ final class BooleanExprDetector
         'instanceof',
     ];
 
-    /**
-     * PHP built-in callables that always return bool. Restricted to the
-     * common type predicates to keep the recogniser self-evidently safe.
-     */
-    private const array BOOL_PHP_FUNCTIONS = [
-        'array_is_list',
-        'array_key_exists',
-        'in_array',
-        'is_a',
-        'is_array',
-        'is_bool',
-        'is_callable',
-        'is_countable',
-        'is_float',
-        'is_int',
-        'is_iterable',
-        'is_null',
-        'is_numeric',
-        'is_object',
-        'is_resource',
-        'is_string',
-        'is_subclass_of',
-        'method_exists',
-        'property_exists',
-        'str_contains',
-        'str_ends_with',
-        'str_starts_with',
-    ];
-
     public static function isBool(AbstractNode $node): bool
     {
         if ($node instanceof LiteralNode) {
@@ -97,8 +69,13 @@ final class BooleanExprDetector
             }
 
             // Match both bare (`is_int`) and namespaced (`\is_int`) forms.
+            // The set of bool-returning built-ins is not repeated here: it is
+            // whatever {@see PhpFunctionReturnTypes} already vouches for, and
+            // that table's membership rule (exactly one primitive on every
+            // non-throwing input) is precisely the guarantee needed to skip
+            // the adapter. A hand-written copy drifted behind it.
             $bare = str_starts_with($name, '\\') ? substr($name, 1) : $name;
-            return in_array($bare, self::BOOL_PHP_FUNCTIONS, true);
+            return PhpFunctionReturnTypes::strictReturnTypeOf($bare) === 'bool';
         }
 
         // A call to a global whose return `:tag` is `bool`. `FnSymbol` emits
