@@ -1,0 +1,61 @@
+(ns phel-test.string.native-reverse-escape
+  (:require phel.test :refer [deftest is])
+  (:require phel.string :as s))
+
+;; `reverse` reverses the split array natively instead of routing it through a
+;; Phel sequence and back, and `escape` reads its character map once into a PHP
+;; array instead of invoking the map per character.
+;;
+;; Both are multibyte-aware through `mb_str_split`, so the character cases
+;; matter. `escape` also has to keep `or`'s falsy rule: only nil and false fall
+;; back to the original character, and the empty string is truthy in Phel.
+
+(deftest test-reverse
+  (is (= "" (s/reverse "")) "an empty string")
+  (is (= "a" (s/reverse "a")) "one character")
+  (is (= "ba" (s/reverse "ab")) "two characters")
+  (is (= "olleh" (s/reverse "hello")) "a word")
+  (is (= "olléh" (s/reverse "héllo")) "a multibyte character keeps its identity")
+  (is (= "語本日" (s/reverse "日本語")) "an all-multibyte string")
+  (is (= "b\na" (s/reverse "a\nb")) "a newline is an ordinary character")
+  (is (= "  " (s/reverse "  ")) "whitespace")
+  (is (= "hello" (s/reverse (s/reverse "hello"))) "reversing twice is the identity"))
+
+(deftest test-reverse-rejects-a-non-string
+  (is (thrown? \InvalidArgumentException (s/reverse 42)) "an int")
+  (is (thrown? \InvalidArgumentException (s/reverse nil)) "nil"))
+
+(deftest test-escape-maps-characters
+  (is (= "Hello" (s/escape "hello" {"h" "H"})) "one mapping")
+  (is (= "HellO" (s/escape "hello" {"h" "H", "o" "O"})) "two mappings")
+  (is (= "hello" (s/escape "hello" {})) "an empty map changes nothing")
+  (is (= "" (s/escape "" {"a" "b"})) "an empty subject")
+  (is (= "12b" (s/escape "ab" {"a" "12"})) "a mapping may be longer than one character")
+  (is (= "X本" (s/escape "日本" {"日" "X"})) "a multibyte character can be mapped"))
+
+(deftest test-escape-keeps-ors-falsy-rule
+  ;; `(or (cmap ch) ch)` fell back only for nil and false. The empty string is
+  ;; truthy in Phel, so a character mapped to it really does disappear.
+  (is (= "" (s/escape "aaa" {"a" ""})) "mapped to the empty string, which is truthy")
+  (is (= "aaa" (s/escape "aaa" {"a" false})) "mapped to false falls back")
+  (is (= "aaa" (s/escape "aaa" {"a" nil})) "mapped to nil falls back")
+  (is (= "5b" (s/escape "ab" {"a" 5})) "a non-string replacement is used as-is"))
+
+(deftest test-escape-only-matches-whole-characters
+  ;; The walk is per character, so a multi-character key can never match.
+  (is (= "ab" (s/escape "ab" {"ab" "Z"})) "a two-character key does not match")
+  (is (= "ab" (s/escape "ab" {"" "Z"})) "an empty key does not match"))
+
+(deftest test-escape-rejects-a-non-string
+  (is (thrown? \InvalidArgumentException (s/escape 42 {})) "an int subject"))
+
+(deftest test-escape-tolerates-a-map-with-non-string-keys
+  ;; A PHP array cannot be keyed by a `Keyword`, and the per-character lookup
+  ;; could never match a non-string key anyway. Skipping them is what keeps
+  ;; the Clojure suite's mixed map working.
+  (is (= "A_AbC_C" (s/escape "abc" {"a" "A_A", "c" "C_C", 97 1, nil 'junk, :garbage 42.42}))
+      "real entries apply, the junk ones are ignored")
+  (is (= "abc" (s/escape "abc" {97 "X"})) "an int key never matches a character")
+  (is (= "abc" (s/escape "abc" {:a "X"})) "a keyword key never matches")
+  (is (= "abc" (s/escape "abc" {nil "X"})) "a nil key never matches")
+  (is (= "Xa" (s/escape "1a" {"1" "X"})) "a numeric string key still matches its character"))
