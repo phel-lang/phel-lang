@@ -199,6 +199,16 @@
                                "REDIRECT_HTTP_X_FOO_BAR" "prefixed")))
       "header from globals redirect normalization"))
 
+(deftest test-headers-from-server-skips-non-string-keys
+  ;; PHP casts a numeric array key to int, so a caller-supplied server array can
+  ;; hand this function a key that is not a string. It has to be skipped rather
+  ;; than abort the whole extraction.
+  (is (= {:x-foo-bar "FOOBAR"}
+         (h/headers-from-server (php-associative-array
+                                 0 "positional"
+                                 "HTTP_X_FOO_BAR" "FOOBAR")))
+      "an integer server key is skipped, not rejected"))
+
 ;; -------
 ;; Request
 ;; -------
@@ -451,6 +461,26 @@
     ;; form data keeps string keys (php-array-to-map), unlike JSON's keyword keys
     (is (= {"name" "Bob"} (:parsed-body req))
         "form-encoded body still comes from $_POST")))
+
+(deftest test-form-body-with-trailing-nul-content-type
+  ;; The default `trim` charlist includes NUL; a whitespace-class regex does not.
+  ;; A `Content-Type` carrying one still has to match the form media type.
+  (let [server (php/array_merge json-req-server
+                                (php-associative-array
+                                 "CONTENT_TYPE" (str "application/x-www-form-urlencoded" (php/chr 0))))
+        req    (h/request-from-globals-args
+                server (php-indexed-array) (php-associative-array "name" "Bob") (php-indexed-array) (php-indexed-array) "name=Bob")]
+    (is (= {"name" "Bob"} (:parsed-body req))
+        "a NUL-padded form content type still resolves $_POST")))
+
+(deftest test-malformed-utf8-content-type-does-not-throw
+  ;; `Content-Type` is attacker-controlled and need not be valid UTF-8. Parsing
+  ;; must fall through to "no usable body", not raise out of request-from-globals.
+  (let [server (php/array_merge json-req-server
+                                (php-associative-array "CONTENT_TYPE" (str "text/plain" (php/chr 255))))
+        req    (req-with-body server "irrelevant")]
+    (is (nil? (:parsed-body req))
+        "an invalid UTF-8 content type yields no parsed body instead of an error")))
 
 (deftest test-no-body-arg-back-compat
   (is (nil? (:parsed-body (h/request-from-globals-args

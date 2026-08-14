@@ -52,7 +52,14 @@
   (is (= "a/b" (name (keyword nil "a/b"))) "two-arg keyword with nil namespace keeps the name verbatim")
   (is (= "b/c" (name (keyword "a" "b/c"))) "two-arg keyword keeps a slashed name verbatim")
   (is (= "foo" (namespace (keyword (symbol "foo/bar")))) "keyword from symbol keeps the symbol's namespace")
-  (is (= "bar" (name (keyword (symbol "foo/bar")))) "keyword from symbol keeps the symbol's name"))
+  (is (= "bar" (name (keyword (symbol "foo/bar")))) "keyword from symbol keeps the symbol's name")
+  ;; Arity-2 coerces its parts with PHP's `strval`, which disagrees with core
+  ;; `str` on booleans and floats. Pinned because swapping the two silently
+  ;; renames every keyword built from a non-string part.
+  (is (= "1" (name (keyword "ns" true))) "two-arg keyword renders true as 1")
+  (is (= "" (name (keyword "ns" false))) "two-arg keyword renders false as the empty name")
+  (is (= "1" (name (keyword "ns" 1.0))) "two-arg keyword renders an integral float without a decimal point")
+  (is (= "1" (namespace (keyword true "n"))) "two-arg keyword renders a boolean namespace as 1"))
 
 (deftest create-hash-map
   (is (= {:a 1 :b 2} (hash-map :a 1 :b 2)) "construct hash-map"))

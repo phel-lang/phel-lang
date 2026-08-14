@@ -153,7 +153,7 @@
       ;; JSON object keys are always strings, but php/json_decode coerces
       ;; numeric ones to ints; restore the string so a key like "1" decodes
       ;; to the string "1" rather than the int 1.
-      (let [k (if (php/is_int k) (php/strval k) k)]
+      (let [k (if (php/is_int k) (str k) k)]
         (.put acc (decode k opts) (decode v opts))))
     (persistent acc)))
 

@@ -1,5 +1,6 @@
 (ns phel-test.core.math-operation
-  (:require phel.test :refer [deftest is]))
+  (:require phel.test :refer [deftest is])
+  (:require phel.string :as s))
 
 (deftest test-+
   (is (= 0 (+)) "+ zero arguments")
@@ -710,7 +711,7 @@
   ;; PHP_FLOAT_MAX renders as 1.7976931348623157e+308, so (bigint ...) must
   ;; expand to 17 significant digits + trailing zeros, matching the printed
   ;; literal of the same float.
-  (let [expected (bigint (str "17976931348623157" (php/str_repeat "0" 292)))]
+  (let [expected (bigint (str "17976931348623157" (s/repeat "0" 292)))]
     (is (= expected (bigint php/PHP_FLOAT_MAX)) "(bigint PHP_FLOAT_MAX) round-trips through shortest decimal")))
 
 (deftest test-biginteger-alias

@@ -44,7 +44,7 @@
 (deftest test-string-alpha
   (let [vs (g/sample g/string-alpha 50 {:size 8 :seed fixed-seed})]
     (is (every? string? vs))
-    (is (every? (fn [s] (<= (php/strlen s) 8)) vs))))
+    (is (every? (fn [s] (<= (count s) 8)) vs))))
 
 (deftest test-keyword
   (let [vs (g/sample g/keyword 30 {:size 5 :seed fixed-seed})]

@@ -583,6 +583,8 @@ returns 1. If `xs` has one value, returns the reciprocal of x.
    Raises `InvalidArgumentException` when `x` is non-numeric or out of range.
    `label` names the target type for error messages."
   [x lo hi label]
+  ;; Native `strval` on the error path only: the value is already an int there,
+  ;; so core `str` would add a dispatch without changing the rendering.
   (if (number? x)
     (let [truncated (int x)]
       (if (or (php/< truncated lo) (php/> truncated hi))
@@ -610,6 +612,8 @@ returns 1. If `xs` has one value, returns the reciprocal of x.
   {:example "(char 65) ; => \"A\"\n(char 32) ; => \" \"\n(char \\A) ; => \"A\""
    :see-also ["byte" "int?" "string?"]}
   [x]
+  ;; Native `strval` on the error paths only: `x` is already an int there, so
+  ;; core `str` would add a dispatch without changing the rendering.
   (cond
     (int? x)
     (if (php/< x 0)
@@ -919,6 +923,8 @@ returns 1. If `xs` has one value, returns the reciprocal of x.
   "Parses a decimal or scientific-notation string into a Ratio
   (auto-collapsed to int / BigInt when integral)."
   [s]
+  ;; Native PHP string operations: the grammar is ASCII-only, and phel.string
+  ;; requires phel.core, so it cannot be required from here.
   (let [lower      (php/strtolower s)
         e-pos      (php/strpos lower "e")
         mantissa   (if (php/=== false e-pos) lower (php/substr lower 0 e-pos))

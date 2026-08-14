@@ -587,6 +587,8 @@ Metadata attached to `test-name` is forwarded to the defined function so selecto
 (defn- first-mismatch-index
   "0-based index of the first differing character between strings `a` and `b`. When one string is a prefix of the other, the mismatch is the length of the shorter one. Returns nil for equal strings."
   [a b]
+  ;; Byte-oriented throughout: the index is handed straight to `php/substr`, and
+  ;; multibyte counting would both mix units and slow a diagnostic-only path.
   (let [n (min (php/strlen a) (php/strlen b))]
     (loop [i 0]
       (cond
@@ -601,6 +603,9 @@ Metadata attached to `test-name` is forwarded to the defined function so selecto
 (defn- escape-for-string-diff
   "Escapes backslashes, quotes, and control whitespace so every character renders one-or-more visible columns and the caret stays aligned."
   [s]
+  ;; Literal `str_replace`, not `phel.string/replace`: the latter is a
+  ;; `preg_replace`, whose replacement string reads `\\` as a single backslash,
+  ;; so the first rule would silently stop doubling anything.
   (let [s (php/str_replace "\\" "\\\\" s)
         s (php/str_replace "\n" "\\n" s)
         s (php/str_replace "\t" "\\t" s)
@@ -610,6 +615,7 @@ Metadata attached to `test-name` is forwarded to the defined function so selecto
 (defn- string-diff-window
   "Renders string `s` windowed from `start` to just past mismatch index `idx` (plus trailing context), quoted and escaped, with `...` markers for clipped ends. Returns [rendered caret-column] where caret-column points at the mismatch within the rendered text."
   [s start idx]
+  ;; Byte-oriented, to share index units with `first-mismatch-index` above.
   (let [len    (php/strlen s)
         end    (min len (+ idx string-diff-context))
         window (php/substr s start (- end start))
@@ -629,7 +635,7 @@ Metadata attached to `test-name` is forwarded to the defined function so selecto
       (println (str "  String diff (first mismatch at index " idx "):"))
       (println (str "    expected: " exp-line))
       (println (str "    actual:   " act-line))
-      (println (str (php/str_repeat " " (+ 14 caret)) "^")))))
+      (println (str (s/repeat " " (+ 14 caret)) "^")))))
 
 (defn- print-error [data]
   (print-error-headline data)

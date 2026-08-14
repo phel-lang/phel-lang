@@ -87,7 +87,8 @@ Throws `InvalidArgumentException` for any other input (including functions, numb
       (if (php/> x 0) "Infinity" "-Infinity")
       (let [s (php/. "" x)]
         ;; `strpbrk` answers "does it already read as a float" in one scan; a
-        ;; regex would compile a pattern to look for three characters.
+        ;; regex would compile a pattern to look for three characters. Keep
+        ;; the native call: phel.string has no character-set search equivalent.
         (if (php/strpbrk s ".eE")
           s
           (php/. s ".0"))))))

@@ -1,5 +1,6 @@
 (ns phel.router
   (:require phel.http :as h)
+  (:require phel.string :as s)
   (:use Symfony.Component.Routing.Matcher.Dumper.CompiledUrlMatcherDumper)
   (:use Symfony.Component.Routing.Generator.UrlGenerator)
   (:use Symfony.Component.Routing.Generator.CompiledUrlGenerator)
@@ -319,7 +320,7 @@ Because compilation runs during macro expansion, `raw-routes` must be a literal 
         dispatch                                                                                                                                                                                                                                      (compile-dispatch (routes router) middleware)]
     (fn [request]
       (if-let [match (match-by-path router (get-in request [:uri :path]))]
-        (let [method  (-> request :method name php/strtolower keyword)
+        (let [method  (-> request :method name s/lower-case keyword)
               request (assoc-in request [:attributes :match] match)]
           (if-let [[handler route-data] (dispatch-lookup dispatch (:route-name match) method)]
             (or (handler (assoc-in request [:attributes :route-data] route-data))

@@ -1,5 +1,6 @@
 (ns phel.ai
   (:require phel.http-client :as hc)
+  (:require phel.string :as s)
   (:require phel.json)
   (:use RuntimeException))
 
@@ -375,28 +376,31 @@ Useful for building multi-turn conversations."
   "Truncates a string for inclusion in an error message so we don't echo the full model response (which may contain prompt content) into logs."
   [s]
   (let [limit 120
-        len   (php/strlen s)]
+        len   (count s)]
     (if (<= len limit)
       s
-      (str (php/substr s 0 limit) "... (" len " chars total)"))))
+      (str (s/subs s 0 limit) "... (" len " chars total)"))))
 
 (defn- slice-between
   "Returns the substring of `trimmed` spanning the first `open` char to the
   last `close` char (inclusive). Throws `RuntimeException` prefixed with
   `error-prefix` when no balanced pair is found."
   [trimmed open close error-prefix]
-  (let [start (php/strpos trimmed open)
-        end   (php/strrpos trimmed close)]
+  (let [start (s/index-of trimmed open)
+        end   (s/last-index-of trimmed close)]
     (if (and start end (>= end start))
-      (php/substr trimmed start (+ (- end start) 1))
+      (s/subs trimmed start (+ end 1))
       (throw (new RuntimeException
                   (str error-prefix (truncate-for-error trimmed)))))))
 
 (defn- extract-json-from-response
   "Extracts JSON from an AI response, handling markdown code blocks."
   [response]
+  ;; Native `trim`: `phel.string/trim` is a `/u` regex that returns nil on a
+  ;; subject that is not valid UTF-8, and a truncated model stream is exactly
+  ;; the case these functions exist to report as a `RuntimeException`.
   (let [trimmed (php/trim response)]
-    (if (php/str_starts_with trimmed "{")
+    (if (s/starts-with? trimmed "{")
       trimmed
       (let [matches (php-indexed-array)
             found   (php/preg_match "/```(?:json)?\\s*\\n?(\\{[\\s\\S]*?\\})\\s*\\n?```/" trimmed matches)]
@@ -410,8 +414,9 @@ Useful for building multi-turn conversations."
 (defn- extract-json-array-from-response
   "Extracts a JSON array from a model response, slicing between the first '[' and the last ']' when the array isn't already at the start."
   [response]
+  ;; Native `trim`, for the same reason as `extract-json-from-response` above.
   (let [trimmed (php/trim response)]
-    (if (php/str_starts_with trimmed "[")
+    (if (s/starts-with? trimmed "[")
       trimmed
       (slice-between trimmed "[" "]" "Could not extract JSON array from AI response: "))))
 

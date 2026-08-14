@@ -26,6 +26,7 @@
   {:example "(re-pattern \"\\\\d+\") ; => \"/\\\\d+/\""
    :see-also ["re-find" "re-matches" "re-seq"]}
   [s]
+  ;; Byte-oriented length and slicing: the delimiter checks consume byte indexes.
   (let [len (php/strlen s)]
     (if (and (php/>= len 2)
              (= (php/substr s 0 1) (php/substr s -1))
@@ -221,6 +222,8 @@
   [path]
   (let [scheme (re-find "/^[a-zA-Z][a-zA-Z0-9+.-]*(?=:\/\/)/" path)]
     (and (some? scheme)
+         ;; phel.string depends on phel.core; keep this core path on the native
+         ;; ASCII operation rather than introducing a cycle.
          (php/in_array (php/strtolower scheme) (php/stream_get_wrappers)))))
 
 (defn- path-status-silenced

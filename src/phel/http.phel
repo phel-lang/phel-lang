@@ -1,5 +1,6 @@
 (ns phel.http
   (:require phel.json :as json)
+  (:require phel.string :as s)
   (:use InvalidArgumentException)
   (:use Stringable))
 
@@ -164,6 +165,11 @@
   {:example "(headers-from-server) ; => {:host \"example.com\" :content-type \"application/json\"}"
    :see-also ["request-from-globals"]}
   [& [server]]
+  ;; Native PHP string operations throughout: the keys are caller-supplied and
+  ;; PHP casts numeric array keys to int, which the `phel.string` guards reject
+  ;; outright where `strpos` simply reported no match. The names are also ASCII
+  ;; by definition, so `strtr` is exact and does not walk the string per
+  ;; character the way a `phel.string/escape` map would on every header.
   (let [headers (transient {})
         server  (or server php/$_SERVER)]
     (dofor [[k v] :pairs server
@@ -213,6 +219,10 @@
   "Lowercased media type from the `:content-type` header with any parameters
   stripped (`application/json; charset=utf-8` => `application/json`)."
   [headers]
+  ;; Native `trim`/`strtolower`: the header is attacker-controlled and need not
+  ;; be valid UTF-8. `phel.string/trim` is a `/u` regex that returns nil on an
+  ;; invalid subject, and it leaves the NUL that PHP's default charlist strips,
+  ;; either of which would break the exact match in `form-content-type?`.
   (php/strtolower (php/trim (first (php/explode ";" (get headers :content-type "") 2)))))
 
 (defn- form-content-type? [content-type]
@@ -246,7 +256,7 @@
         headers         (headers-from-server server)
         server-protocol (get server "SERVER_PROTOCOL")
         version         (if (string? server-protocol)
-                          (php/str_replace "HTTP/" "" server-protocol)
+                          (s/replace server-protocol "HTTP/" "")
                           "1.1")]
     (request
      method
@@ -263,10 +273,10 @@
 (defn- json-request-body
   "Reads the raw request body from `php://input`, but only when the request declares a JSON content type. Other requests never touch the input stream."
   [server]
-  (let [content-type (php/strtolower (str (or (get server "CONTENT_TYPE")
-                                              (get server "HTTP_CONTENT_TYPE")
-                                              "")))]
-    (when (php/str_contains content-type "application/json")
+  (let [content-type (s/lower-case (str (or (get server "CONTENT_TYPE")
+                                            (get server "HTTP_CONTENT_TYPE")
+                                            "")))]
+    (when (s/includes? content-type "application/json")
       (php/file_get_contents "php://input"))))
 
 (defn request-from-globals
@@ -440,7 +450,7 @@
 
 (defn- assert-no-crlf [value]
   (when (and (string? value)
-             (or (php/str_contains value "\r") (php/str_contains value "\n")))
+             (or (s/includes? value "\r") (s/includes? value "\n")))
     (throw (new InvalidArgumentException "Header must not contain CR or LF characters")))
   value)
 
