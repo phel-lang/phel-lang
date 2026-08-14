@@ -19,12 +19,19 @@
                                (conj! acc (inner x)))))
 
      (vector? form)
-     (persistent (for [x :in form :reduce [acc (transient [])]]
-                   (conj! acc (inner x))))
+     ;; Collected into a PHP array and built once, as `vec` is (#3134).
+     (let [arr (php/array)]
+       (foreach [x form]
+         (php/apush arr (inner x)))
+       (php/:: Phel (vector arr)))
 
      (or (map? form) (struct? form))
-     (persistent (for [[k v] :pairs form :reduce [acc (transient {})]]
-                   (assoc! acc (inner k) (inner v))))
+     ;; `foreach` and not `for … :pairs`: the destructuring was most of the
+     ;; cost (#3140). Built from empty because `inner` may rewrite the keys.
+     (let [acc (transient {})]
+       (foreach [k v form]
+         (.put acc (inner k) (inner v)))
+       (persistent acc))
 
      (set? form)
      (persistent (for [x :in form :reduce [acc (transient (hash-set))]]
@@ -78,9 +85,10 @@
        ;; Built through a transient for the same reason `walk` is: the pair
        ;; vector and `into`'s second walk are both avoidable, and this runs
        ;; once per map in the tree.
-       (persistent
-        (for [[k v] :pairs form :reduce [acc (transient {})]]
-          (assoc! acc (if (string? k) (keyword k) k) v)))
+       (let [acc (transient {})]
+         (foreach [k v form]
+           (.put acc (if (string? k) (keyword k) k) v))
+         (persistent acc))
        form))
    m))
 
@@ -96,8 +104,9 @@
        ;; Built through a transient for the same reason `walk` is: the pair
        ;; vector and `into`'s second walk are both avoidable, and this runs
        ;; once per map in the tree.
-       (persistent
-        (for [[k v] :pairs form :reduce [acc (transient {})]]
-          (assoc! acc (if (keyword? k) (name k) k) v)))
+       (let [acc (transient {})]
+         (foreach [k v form]
+           (.put acc (if (keyword? k) (name k) k) v))
+         (persistent acc))
        form))
    m))

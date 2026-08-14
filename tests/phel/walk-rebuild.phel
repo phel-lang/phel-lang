@@ -1,0 +1,40 @@
+(ns phel-test.walk-rebuild
+  (:require phel.test :refer [deftest is])
+  (:require phel.walk :as w))
+
+(defstruct pt [x y])
+
+;; `phel.walk` rebuilds each collection it visits. The map branches walk with
+;; `foreach` rather than `for … :pairs`, and the vector branch collects into a
+;; PHP array and builds once. Both are shape changes only; every traversal has
+;; to produce what it did.
+
+(deftest test-keywordize-keys
+  (is (= {:a 1, :b 2} (w/keywordize-keys {"a" 1, "b" 2})) "flat string keys")
+  (is (= {:a {:b {:c 1}}} (w/keywordize-keys {"a" {"b" {"c" 1}}})) "nested maps")
+  (is (= {:a [{:b 1}]} (w/keywordize-keys {"a" [{"b" 1}]})) "maps inside a vector")
+  (is (= {} (w/keywordize-keys {})) "an empty map")
+  (is (nil? (get (w/keywordize-keys {"a" nil}) :a)) "a nil value is carried")
+  ;; Only string keys convert; everything else is left alone.
+  (is (= 3 (count (w/keywordize-keys {"a" 1, :b 2, 3 :c}))) "non-string keys are untouched")
+  (is (= [1 2] (w/keywordize-keys [1 2])) "a non-map passes through"))
+
+(deftest test-stringify-keys
+  (is (= {"a" 1, "b" 2} (w/stringify-keys {:a 1, :b 2})) "flat keyword keys")
+  (is (= {"a" {"b" 1}} (w/stringify-keys {:a {:b 1}})) "nested maps")
+  (is (= {"a" {"b" 1}} (w/stringify-keys (w/keywordize-keys {"a" {"b" 1}}))) "round trips"))
+
+(deftest test-postwalk-and-prewalk-preserve-shape
+  (is (= {:a [1 {:b 2}]} (w/postwalk identity {:a [1 {:b 2}]})) "postwalk with identity")
+  (is (= {:a [1 {:b 2}]} (w/prewalk identity {:a [1 {:b 2}]})) "prewalk with identity")
+  (is (= {:a [2 3]} (w/postwalk (fn [x] (if (int? x) (inc x) x)) {:a [1 2]})) "a transform reaches leaves")
+  (is (= [1 [2 [3]]] (w/postwalk identity [1 [2 [3]]])) "nested vectors")
+  (is (= '(1 2 3) (w/postwalk identity '(1 2 3))) "a list")
+  (is (= 3 (count (w/postwalk identity (set [1 2 3])))) "a set")
+  (is (= 2 (count (w/postwalk identity (pt 1 2)))) "a struct"))
+
+(deftest test-values-that-a-rebuild-could-drop
+  (is (= [nil 1 nil] (w/postwalk identity [nil 1 nil])) "nil elements survive")
+  (is (= 3 (count (w/postwalk identity [nil 1 nil]))) "and are counted")
+  (is (= [false 0 ""] (w/postwalk identity [false 0 ""])) "falsy values survive")
+  (is (= {:a {:b {:c {:d [1 2]}}}} (w/postwalk identity {:a {:b {:c {:d [1 2]}}}})) "a deep tree"))

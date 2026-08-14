@@ -115,6 +115,7 @@ All notable changes to this project will be documented in this file.
 
 Compiler:
 
+- Rebuild collections in `phel.walk` with `foreach` and a single vector construction rather than `for ... :pairs` and per-element appends: `keywordize-keys` 2.4x, `stringify-keys` 2.45x, `postwalk` 2.29x. Both run over a whole decoded tree, so the rebuild happens once per collection in it (#2973)
 - Walk with `foreach` rather than `for ... :pairs` in `merge-with` and `map-invert` too: 2.16x and 1.99x (#2973)
 - Walk the input with `foreach` rather than `for ... :pairs` in `update-vals`, `update-keys` and `rename-keys`, whose destructuring was most of what they cost: 1.9x, 1.9x and 1.76x (#2973)
 - Merge two maps through the collection's own bulk `merge` instead of adding the right map's entries one at a time with `conj`: 2.6x on two 32-entry maps (#2973)
