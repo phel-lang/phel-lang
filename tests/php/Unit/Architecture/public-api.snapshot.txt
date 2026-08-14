@@ -997,6 +997,7 @@ final class Phel\Lang\Delay
 final class Phel\Lang\DynamicScope
   public const string MODE_BINDING = 'binding'
   public const string MODE_REDEFS = 'redefs'
+  public static array $boundNames
   public static bool $anyActive
   public function clear(): void
   public function currentRecordingMode(): ?string
