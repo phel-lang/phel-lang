@@ -94,6 +94,7 @@ final class ApiFactory extends AbstractFactory
     {
         return new ProjectIndexer(
             $this->createSymbolExtractor(),
+            $this->getConfig()->excludedIndexDirs(),
         );
     }
 

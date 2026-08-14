@@ -25,8 +25,13 @@ use function realpath;
  */
 final readonly class ProjectIndexer implements ProjectIndexerInterface
 {
+    /**
+     * @param list<string> $excludedDirs directory names, relative to each
+     *                                   indexed root, whose subtrees are skipped
+     */
     public function __construct(
         private SymbolExtractor $extractor,
+        private array $excludedDirs = [],
     ) {}
 
     public function index(array $srcDirs): ProjectIndex
@@ -48,7 +53,7 @@ final readonly class ProjectIndexer implements ProjectIndexerInterface
                 continue;
             }
 
-            foreach (PhelFileIterator::iterate($real) as $file) {
+            foreach (PhelFileIterator::iterate($real, $this->excludedPrefixesFor($real)) as $file) {
                 $contents = @file_get_contents($file);
                 if ($contents === false) {
                     continue;
@@ -77,5 +82,21 @@ final readonly class ProjectIndexer implements ProjectIndexerInterface
         }
 
         return new ProjectIndex($definitions, $references, $namespaceLocations);
+    }
+
+    /**
+     * The excluded directory names resolved against one root, as absolute path
+     * prefixes. A name that does not exist under this root contributes nothing.
+     *
+     * @return list<string>
+     */
+    private function excludedPrefixesFor(string $root): array
+    {
+        $prefixes = [];
+        foreach ($this->excludedDirs as $dir) {
+            $prefixes[] = $root . DIRECTORY_SEPARATOR . $dir . DIRECTORY_SEPARATOR;
+        }
+
+        return $prefixes;
     }
 }
