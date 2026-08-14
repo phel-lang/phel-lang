@@ -73,8 +73,10 @@ final class StdlibHtmlBench extends CoreBenchCase
      *
      * Unpaired on purpose. There is no raw-PHP twin for a whole render; what
      * this guards is the absolute number. It fell to 92.2μs when the attribute
-     * join moved to `implode`, and 73.6μs to 51.3μs when `render-element`
-     * stopped routing through `normalize-element`. Absolute figures are only
+     * join moved to `implode`, 73.6μs to 51.3μs when `render-element` stopped
+     * routing through `normalize-element`, and 44.3μs to 32.1μs once the
+     * string-returning helpers carried a `^string` tag and the attribute
+     * concatenation lowered to native `.`. Absolute figures are only
      * comparable within one run of this file, not across machines.
      *
      * @Revs(100)
@@ -88,8 +90,10 @@ final class StdlibHtmlBench extends CoreBenchCase
      * The document above contains no void element, so it never reaches the
      * self-closing branch and never pays a void-tag lookup miss on every one
      * of its tags. This one is all void elements, which is what a form or an
-     * icon list looks like. It gains more than the document above from a
-     * cheaper lookup, 81.2μs to 50.9μs against its 73.6μs to 51.3μs.
+     * icon list looks like. It gained more than the document above from a
+     * cheaper void-tag lookup, 81.2μs to 50.9μs against its 73.6μs to 51.3μs,
+     * and less from the `^string` tags, 36.1μs to 28.4μs against 44.3μs to
+     * 32.1μs, having fewer text children to concatenate.
      *
      * Unpaired, for the same reason as `bench_render_document`.
      *

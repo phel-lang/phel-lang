@@ -1,0 +1,78 @@
+(ns phel-test.html-string-tags
+  (:require phel.test :refer [deftest is])
+  (:require phel.html :as h))
+
+;; The string-returning helpers in `phel.html` carry a `^string` return tag, so
+;; a call to one counts as a string operand and the `str` calls that build an
+;; attribute lower to native PHP concatenation. The tag also becomes a real
+;; `: string` return type on the generated method.
+;;
+;; `escape-html` is public, so that return type is part of its surface. It has
+;; never declared anything about its argument, and `htmlspecialchars` coerces
+;; what it is given; these pin that a non-string argument still comes back as
+;; the same string it did before, rather than raising on the new return type.
+
+(deftest test-escape-html-still-takes-any-scalar
+  (is (= "a" (h/escape-html "a")) "a string")
+  (is (= "" (h/escape-html "")) "an empty string")
+  (is (= "&lt;&amp;&gt;&quot;&#039;" (h/escape-html "<&>\"'")) "every character the flags act on")
+  (is (= "42" (h/escape-html 42)) "an int")
+  (is (= "0" (h/escape-html 0)) "zero")
+  (is (= "1.5" (h/escape-html 1.5)) "a float")
+  (is (= "1" (h/escape-html true)) "true is PHP's \"1\", not \"true\"")
+  (is (= "" (h/escape-html false)) "false is empty")
+  (is (= "" (h/escape-html nil)) "nil is empty")
+  (is (= ":kw" (h/escape-html :kw)) "a keyword goes through __toString"))
+
+(deftest test-attributes-render-through-the-lowered-concatenation
+  ;; Each of these builds its markup with the `str` calls that now lower.
+  ;; Rendered through a var, since a literal would fold at compile time.
+  (let [plain [:div {:class "c"}]
+        esc   [:div {:x "<&>"}]
+        multi [:div {:a "1", :b "2"}]
+        yes   [:input {:disabled true}]
+        no    [:input {:disabled false}]
+        style [:div {:style {:color "red", :bg "blue"}}]
+        table [:div {:class {:a true, :b false}}]
+        idx   [:div {:class ["a" :b]}]
+        num   [:div {:n 42}]]
+    (is (= "<div class=\"c\"></div>" (h/html plain)) "a plain attribute")
+    (is (= "<div x=\"&lt;&amp;&gt;\"></div>" (h/html esc)) "an escaped value")
+    (is (= "<div a=\"1\" b=\"2\"></div>" (h/html multi)) "two attributes keep their separator")
+    (is (= "<input disabled=\"disabled\" />" (h/html yes)) "a true value repeats the name")
+    (is (= "<input />" (h/html no)) "a false value drops out")
+    (is (= "<div style=\"bg:blue;color:red;\"></div>" (h/html style)) "a style map")
+    (is (= "<div class=\"a\"></div>" (h/html table)) "an attribute table")
+    (is (= "<div class=\"a b\"></div>" (h/html idx)) "an indexed value")
+    (is (= "<div n=\"42\"></div>" (h/html num)) "a non-string value")))
+
+(deftest test-a-raw-string-may-still-hold-a-non-string
+  ;; `render-html` is deliberately *not* tagged: its raw-string branch returns
+  ;; whatever the caller wrapped, which need not be a string. `render-html`
+  ;; converts it with `str` before returning, which is what lets that function
+  ;; carry a `^string` tag of its own without changing any of these.
+  (let [i [:div (h/raw-string 42)]
+        n [:div (h/raw-string nil)]
+        b [:div (h/raw-string true)]
+        f [:div (h/raw-string 1.5)]]
+    (is (= "<div>42</div>" (h/html i)) "an int in a raw string")
+    (is (= "<div></div>" (h/html n)) "nil in a raw string")
+    (is (= "<div>true</div>" (h/html b)) "true keeps Phel's spelling")
+    (is (= "<div>1.5</div>" (h/html f)) "a float")))
+
+(deftest test-a-raw-string-keeps-phels-spelling-not-phps
+  ;; Regression guard for #3099: the children are joined with `php/implode`,
+  ;; which casts with PHP's rules. A raw string may hold any value, so the
+  ;; conversion has to happen in `render-html` before the join.
+  (let [t [:div (h/raw-string true)]
+        f [:div (h/raw-string false)]
+        z [:div (h/raw-string 0.0)]
+        k [:div (h/raw-string :kw)]
+        v [:div (h/raw-string [1 2])]
+        m [:div (h/raw-string {:a 1})]]
+    (is (= "<div>true</div>" (h/html t)) "true is \"true\", not PHP's \"1\"")
+    (is (= "<div>false</div>" (h/html f)) "false is \"false\", not PHP's \"\"")
+    (is (= "<div>0.0</div>" (h/html z)) "a float keeps its .0")
+    (is (= "<div>:kw</div>" (h/html k)) "a keyword")
+    (is (= "<div>[1 2]</div>" (h/html v)) "a vector")
+    (is (= "<div>{:a 1}</div>" (h/html m)) "a map")))
