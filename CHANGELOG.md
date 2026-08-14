@@ -115,6 +115,7 @@ All notable changes to this project will be documented in this file.
 
 Compiler:
 
+- Give `str` fixed four and five argument arities. Both used to fall into the variadic tail, which allocates a rest argument, builds an intermediate array and `implode`s it; the concatenation was never the cost. `bench_str_four` 3.89x, `bench_str_five` 4.09x, and `bench_str_six` 1.34x because the tail now starts from five fixed parameters. `src/phel` alone has 29 call sites at four arguments and 20 at five (#2973)
 - Render an element in `phel.html` without normalizing it first: the tag and the optional attribute map are read by index and the children walked in place, instead of allocating a tuple and a fresh child collection per element, and the void-tag table is a PHP array rather than a `hash-set`. A document renders 1.43x faster, one made of void elements 1.60x, and a single `[:span {:class "x"} "0"]` goes from 17.7μs to 9.7μs (#2973)
 - Rebuild collections in `phel.walk` with `foreach` and a single vector construction rather than `for ... :pairs` and per-element appends: `keywordize-keys` 2.4x, `stringify-keys` 2.45x, `postwalk` 2.29x. Both run over a whole decoded tree, so the rebuild happens once per collection in it (#2973)
 - Walk with `foreach` rather than `for ... :pairs` in `merge-with` and `map-invert` too: 2.16x and 1.99x (#2973)

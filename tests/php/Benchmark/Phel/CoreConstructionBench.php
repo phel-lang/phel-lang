@@ -56,6 +56,10 @@ final class CoreConstructionBench extends CoreBenchCase
 
     private mixed $d = 'd';
 
+    private mixed $e = 'e';
+
+    private mixed $f = 'f';
+
     private mixed $number = 42;
 
     /**
@@ -123,8 +127,11 @@ final class CoreConstructionBench extends CoreBenchCase
     }
 
     /**
-     * The variadic tail: four arguments builds the intermediate array and
-     * `implode`s it, which the three argument arity does not.
+     * Four and five are fixed arities. They were the variadic tail until they
+     * were not: 42.4μs to 10.9μs here, and 51.8μs to 12.7μs for five. The rest
+     * argument and the `implode` were the whole difference, not the
+     * concatenation. `src/phel` has 29 call sites at four arguments and 20 at
+     * five, so these two guard the majority of real calls.
      *
      * @Revs(1000)
      */
@@ -132,6 +139,32 @@ final class CoreConstructionBench extends CoreBenchCase
     {
         for ($i = 0; $i < self::INNER; ++$i) {
             ($this->str)($this->a, $this->b, $this->c, $this->d);
+        }
+    }
+
+    /**
+     * @Revs(1000)
+     */
+    public function bench_str_five(): void
+    {
+        for ($i = 0; $i < self::INNER; ++$i) {
+            ($this->str)($this->a, $this->b, $this->c, $this->d, $this->e);
+        }
+    }
+
+    /**
+     * The variadic tail proper: six arguments still allocates a rest argument,
+     * builds the intermediate array and `implode`s it. It is here so the arm
+     * the fixed arities fall through to keeps a subject of its own, and
+     * because widening them shortened its `more` from three entries to one,
+     * worth 61.2μs to 45.6μs.
+     *
+     * @Revs(1000)
+     */
+    public function bench_str_six(): void
+    {
+        for ($i = 0; $i < self::INNER; ++$i) {
+            ($this->str)($this->a, $this->b, $this->c, $this->d, $this->e, $this->f);
         }
     }
 

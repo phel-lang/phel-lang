@@ -10,8 +10,33 @@
   (is (= "a" (str "a")) "one argument")
   (is (= "ab" (str "a" "b")) "two arguments")
   (is (= "abc" (str "a" "b" "c")) "three arguments")
-  (is (= "abcd" (str "a" "b" "c" "d")) "four arguments crosses into the tail")
-  (is (= "abcde" (str "a" "b" "c" "d" "e")) "five arguments"))
+  (is (= "abcd" (str "a" "b" "c" "d")) "four arguments")
+  (is (= "abcde" (str "a" "b" "c" "d" "e")) "five arguments, the last fixed one")
+  (is (= "abcdef" (str "a" "b" "c" "d" "e" "f")) "six arguments crosses into the tail")
+  (is (= "abcdefg" (str "a" "b" "c" "d" "e" "f" "g")) "seven arguments")
+  (is (= "abcdefghijkl" (str "a" "b" "c" "d" "e" "f" "g" "h" "i" "j" "k" "l")) "well into the tail"))
+
+(deftest test-str-arities-with-values-the-tail-must-convert
+  ;; The fixed arities and the tail each convert their own arguments. A value
+  ;; dropped or converted twice shows up here and not in the all-strings cases
+  ;; above, because every argument kind appears at a different position.
+  (is (= "1truefalse" (str 1 true false)) "three")
+  (is (= "1truefalse" (str 1 true false nil)) "four, with a nil to drop")
+  (is (= "1truefalse2" (str 1 true false nil 2)) "five")
+  (is (= "1truefalse2.5" (str 1 true false nil 2.5)) "five, float last")
+  (is (= "1truefalse2.53" (str 1 true nil false 2.5 3)) "six, the first tail arity")
+  (is (= "0.0truefalse" (str 0.0 true nil false)) "four, float first")
+  (is (= "atruebfalsec0.0d" (str "a" true "b" false "c" 0.0 "d")) "seven, alternating kinds"))
+
+(deftest test-str-applied-rather-than-called
+  ;; `apply` picks the arity at runtime, so it reaches the same arms by a
+  ;; different route than a direct call the analyser can see.
+  (is (= "abcd" (apply str ["a" "b" "c" "d"])) "four")
+  (is (= "abcde" (apply str ["a" "b" "c" "d" "e"])) "five")
+  (is (= "abcdef" (apply str ["a" "b" "c" "d" "e" "f"])) "six")
+  (is (= "abcde" (apply str "a" "b" ["c" "d" "e"])) "leading arguments plus a collection")
+  (is (= "" (apply str [])) "an empty collection")
+  (is (= "0123456789" (apply str (map str (range 0 10)))) "a sequence of ten"))
 
 (deftest test-str-nil-and-booleans
   (is (= "" (str nil)) "nil alone is empty")
