@@ -6,12 +6,14 @@ namespace Phel\Compiler\Domain\Emitter\OutputEmitter;
 
 use Phel\Compiler\Domain\Analyzer\Ast\AbstractNode;
 use Phel\Compiler\Domain\Analyzer\Ast\CallNode;
+use Phel\Compiler\Domain\Analyzer\Ast\GlobalVarNode;
 use Phel\Compiler\Domain\Analyzer\Ast\LiteralNode;
 use Phel\Compiler\Domain\Analyzer\Ast\LocalVarNode;
 use Phel\Compiler\Domain\Analyzer\Ast\PhpVarNode;
 use Phel\Compiler\Domain\Analyzer\TypeAnalyzer\PhpFunctionReturnTypes;
 use Phel\Compiler\Domain\Emitter\OutputEmitter\Cache\BooleanExprDetector;
 use Phel\Lang\Keyword;
+use Phel\Shared\TagResolver;
 
 use function array_all;
 use function array_any;
@@ -391,6 +393,12 @@ final readonly class NumericOperationSpecialization
      *    can. This is the path closing #2175 — real game / raycaster
      *    code reads `(+ ^float angle (php/cos a))`, not
      *    `(+ ^float a ^float b)`.
+     *  - `CallNode` whose `fn` is a `GlobalVarNode` carrying a `:tag`, which
+     *    is the return tag declared on the definition. The emitted PHP
+     *    signature carries that tag as a real return type, so the value is
+     *    already constrained by the engine; `BooleanExprDetector` reads the
+     *    same meta for `^bool`. Without this a `(str "<" (escape-html s) ">")`
+     *    stayed on the runtime `str` even though every operand was a string.
      *
      * Returns `null` when the node carries no usable type, which leaves
      * the call site on the generic runtime dispatch.
@@ -408,6 +416,13 @@ final readonly class NumericOperationSpecialization
         $fn = $arg->getFn();
         if ($fn instanceof PhpVarNode) {
             return PhpFunctionReturnTypes::operandReturnTypeOf($fn->getName());
+        }
+
+        if ($fn instanceof GlobalVarNode) {
+            $tag = TagResolver::fromMeta($fn->getMeta());
+            if ($tag !== null) {
+                return $tag;
+            }
         }
 
         // Nested typed-arith / typed-equality calls keep their numeric tag so
