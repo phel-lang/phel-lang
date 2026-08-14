@@ -64,6 +64,18 @@ final class Seq
             return array_values($value);
         }
 
+        // A vector copies its trie into one array in a single walk, while
+        // `iterator_to_array` resumes a generator once per element: 4.4x the
+        // cost at three elements, 8.5x at sixteen. `apply` over a vector is
+        // the common case, and it used to fall through to `Traversable`.
+        //
+        // Only vectors. The other sequential collections build their `toArray`
+        // out of `iterator_to_array` themselves, so routing them here buys
+        // nothing and costs a second pass (a list measured 0.89x).
+        if ($value instanceof PersistentVectorInterface) {
+            return array_values($value->toArray());
+        }
+
         if ($value instanceof Traversable) {
             return iterator_to_array($value, false);
         }

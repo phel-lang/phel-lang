@@ -4,6 +4,10 @@ All notable changes to this project will be documented in this file.
 
 ## Unreleased
 
+### Changed
+
+- `apply` spreads a vector by copying its trie in one walk instead of stepping it through `iterator_to_array` one element at a time. `(apply + [1 2 3])` is 2.1x faster and `(apply str v)` 1.8x; the conversion itself is 4.4x at three elements and 8.3x at sixteen. Lists, sets, lazy seqs, strings, maps and PHP arrays are unchanged (#3181)
+
 ## [0.50.0](https://github.com/phel-lang/phel-lang/compare/v0.49.0...v0.50.0) - 2026-08-14
 
 ### Added
