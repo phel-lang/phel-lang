@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Phel\Lang\Collections\Map;
 
 use EmptyIterator;
+
 use Phel\Lang\EqualizerInterface;
 use Phel\Lang\HasherInterface;
 use RuntimeException;
@@ -185,15 +186,26 @@ final class PersistentHashMap extends AbstractPersistentMap
     }
 
     /**
-     * @return Traversable<TKey, TValue>
+     * `TKey|null` because `nil` is a legitimate key here and is the one this
+     * iterator used to skip; see below.
+     *
+     * @return Traversable<TKey|null, TValue>
      */
     public function getIterator(): Traversable
     {
-        if ($this->root instanceof HashMapNodeInterface) {
-            return $this->root->getIterator();
+        // The common case returns the trie's own iterator untouched. Wrapping
+        // every map in a generator to prepend a `nil` entry that is almost
+        // never there cost 38% on iterating a small map, which the benchmark
+        // gate caught.
+        if (!$this->hasNull) {
+            if ($this->root instanceof HashMapNodeInterface) {
+                return $this->root->getIterator();
+            }
+
+            return new EmptyIterator();
         }
 
-        return new EmptyIterator();
+        return $this->iterateWithNullKey();
     }
 
     /**
@@ -212,5 +224,23 @@ final class PersistentHashMap extends AbstractPersistentMap
                 $this->meta,
             ),
         );
+    }
+
+    /**
+     * The `nil` key is not stored in the trie: `put()` keeps it in
+     * `$hasNull`/`$nullValue` because `null` has no hash path. It has to be
+     * yielded too, or the map iterates one entry short of its own `count()`
+     * and everything built on iteration silently drops it: `keys`, `vals`,
+     * `for ... :pairs`, and `into`, which loses the entry while copying.
+     *
+     * @return Traversable<TKey|null, TValue>
+     */
+    private function iterateWithNullKey(): Traversable
+    {
+        yield null => $this->nullValue;
+
+        if ($this->root instanceof HashMapNodeInterface) {
+            yield from $this->root->getIterator();
+        }
     }
 }
