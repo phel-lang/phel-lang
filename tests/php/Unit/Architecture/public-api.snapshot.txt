@@ -1092,6 +1092,7 @@ final class Phel\Lang\Generators\SliceGenerator
 
 final class Phel\Lang\Generators\TransformGenerator
   public static function filter(callable $predicate, mixed $iterable): Generator
+  public static function flatten(mixed $iterable): Generator
   public static function keep(callable $f, mixed $iterable): Generator
   public static function keepIndexed(callable $f, mixed $iterable): Generator
   public static function map(callable $f, mixed $iterable): Generator
@@ -1301,6 +1302,7 @@ final class Phel\Lang\Seq
   public static function fileSeq(string $path): Generator
   public static function filter(callable $predicate, mixed $iterable): Generator
   public static function first(iterable $coll): mixed
+  public static function flatten(mixed $iterable): Generator
   public static function infiniteRange(): Generator
   public static function interleave(mixed ...$iterables): Generator
   public static function interpose(mixed $separator, mixed $iterable): Generator

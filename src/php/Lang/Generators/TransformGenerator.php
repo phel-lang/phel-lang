@@ -5,10 +5,14 @@ declare(strict_types=1);
 namespace Phel\Lang\Generators;
 
 use Generator;
+use Phel\Lang\Collections\LinkedList\PersistentListInterface;
 use Phel\Lang\Collections\Map\PersistentMapInterface;
+use Phel\Lang\Collections\Vector\PersistentVectorInterface;
 use Phel\Lang\Reduced;
 use Phel\Lang\Truthy;
 use Phel\Lang\TypeFactory;
+
+use function is_array;
 
 /**
  * Element-wise transformation generators: map, filter, and their variants.
@@ -214,6 +218,67 @@ final class TransformGenerator
         foreach (SequenceGenerator::indexed($iterable) as [$index, $value]) {
             yield $f($index, $value);
         }
+    }
+
+    /**
+     * The leaves of a nested indexed structure, depth first.
+     *
+     * Replaces `(filter (complement indexed?) (rest (tree-seq indexed? identity coll)))`.
+     * `tree-seq` is eager and materialises *every* node, branches included,
+     * into a transient vector before the filter ever runs, so the old spelling
+     * walked the whole tree at construction and paid a `complement` closure
+     * per node on top. This yields only leaves, and yields them on demand.
+     *
+     * "Indexed" is the same set `phel.core/indexed?` answers for: a persistent
+     * vector, a persistent list, or a list-shaped PHP array. A map is a leaf,
+     * as it was before.
+     *
+     * @return Generator<int, mixed>
+     */
+    public static function flatten(mixed $iterable): Generator
+    {
+        // A non-indexed root yields nothing, not itself. The old spelling
+        // dropped the root with `rest`, so `(flatten 5)`, `(flatten nil)` and
+        // `(flatten {:a 1})` are all empty.
+        if (!self::isIndexed($iterable)) {
+            return;
+        }
+
+        yield from self::leavesOf($iterable);
+    }
+
+    /**
+     * `$branch` is always something {@see self::isIndexed()} accepted, so it
+     * is a persistent vector, a persistent list or a list-shaped PHP array,
+     * every one of which is iterable.
+     *
+     * @param iterable<mixed> $branch
+     *
+     * @return Generator<int, mixed>
+     */
+    private static function leavesOf(iterable $branch): Generator
+    {
+        foreach ($branch as $value) {
+            if (self::isIndexed($value)) {
+                yield from self::leavesOf($value);
+
+                continue;
+            }
+
+            yield $value;
+        }
+    }
+
+    /**
+     * @phpstan-assert-if-true iterable<mixed> $value
+     */
+    private static function isIndexed(mixed $value): bool
+    {
+        if ($value instanceof PersistentVectorInterface || $value instanceof PersistentListInterface) {
+            return true;
+        }
+
+        return is_array($value) && ($value === [] || array_is_list($value));
     }
 
     /**

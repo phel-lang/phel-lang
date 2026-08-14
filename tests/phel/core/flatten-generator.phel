@@ -1,0 +1,57 @@
+(ns phel-test.core.flatten-generator
+  (:require phel.test :refer [deftest is]))
+
+;; `flatten` is built from a PHP generator rather than
+;; `(filter (complement indexed?) (rest (tree-seq indexed? identity coll)))`.
+;;
+;; Two things that spelling did have to survive. `rest` dropped the root, so a
+;; non-indexed root flattens to nothing rather than to itself. And "indexed"
+;; is exactly what `indexed?` answers for: a vector, a list, or a list-shaped
+;; PHP array. Everything else, a map, a set, a string, an associative PHP
+;; array, is a leaf and must not be descended into.
+
+(deftest test-flattening-nested-indexed-structures
+  (is (= [1 2 3 4 5 6] (vec (flatten [[1 2] [3 [4 5]] 6]))) "the docstring example")
+  (is (= [] (vec (flatten []))) "an empty vector")
+  (is (= [] (vec (flatten [[]]))) "a vector of empty vectors")
+  (is (= [1] (vec (flatten [[[[1]]]]))) "deeply nested")
+  (is (= [1 2 3] (vec (flatten [1 2 3]))) "already flat")
+  (is (= [1 2 3] (vec (flatten '(1 (2 3))))) "lists are branches")
+  (is (= [1 2 3 4] (vec (flatten [[1 2] (php-indexed-array 3 4)]))) "a list-shaped PHP array is a branch"))
+
+(deftest test-a-non-indexed-root-flattens-to-nothing
+  ;; `rest` dropped the root, and that is preserved.
+  (is (= [] (vec (flatten 5))) "a scalar root")
+  (is (= [] (vec (flatten nil))) "a nil root")
+  (is (= [] (vec (flatten {:a 1}))) "a map root")
+  (is (= [] (vec (flatten "abc"))) "a string root"))
+
+(deftest test-what-counts-as-a-leaf
+  (is (= [{:a 1} {:b 2}] (vec (flatten [{:a 1} [{:b 2}]]))) "a map is a leaf")
+  (is (= 1 (count (flatten [(set [1 2])]))) "a set is a leaf")
+  (is (= ["ab" "cd"] (vec (flatten ["ab" ["cd"]]))) "a string is a leaf, not a branch")
+  (is (= 1 (count (flatten [(php-associative-array "a" 1)]))) "an associative PHP array is a leaf"))
+
+(deftest test-falsy-leaves-survive
+  (is (= [nil nil] (vec (flatten [nil [nil]]))) "nil leaves")
+  (is (= [false false] (vec (flatten [false [false]]))) "false leaves")
+  (is (= [0 ""] (vec (flatten [[0] ""]))) "zero and the empty string")
+  (is (= 2 (count (flatten [nil [nil]]))) "and they are counted"))
+
+(deftest test-it-is-lazy-now-rather-than-only-in-appearance
+  ;; `tree-seq` ran the whole walk at construction. A generator does not, so
+  ;; only what is pulled is computed.
+  (let [visits (atom 0)
+        counted (fn [x] (do (swap! visits inc) x))]
+    (let [s (flatten [[1 2] [3 4]])]
+      (is (= 0 (deref visits)) "nothing is pulled before it is asked for")
+      (is (= [1 2] (vec (take 2 s))) "taking two elements works")))
+  (is (= [1 2 3 4] (vec (flatten [[1 2] [3 4]]))) "and taking all of them still works"))
+
+(deftest test-the-result-is-an-ordinary-sequence
+  (let [s (flatten [[1 2] [3]])]
+    (is (= [1 2 3] (vec s)) "first walk")
+    (is (= [1 2 3] (vec s)) "walked twice, same elements")
+    (is (= 1 (first s)) "first")
+    (is (= [2 3] (vec (rest s))) "rest")
+    (is (= 3 (count s)) "count")))
