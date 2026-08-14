@@ -164,10 +164,14 @@ When `from` is associative, it is treated as a sequence of key-value pairs. Supp
             ;; Fast paths: persistent vector/set/hash-map targets build via transients,
             ;; turning O(N log N) repeated copy-on-write into O(N).
          (vector? to)
-         (persistent
-          (for [value :in entries
-                :reduce [acc (transient to)]]
-            (conj acc value)))
+         ;; Collected into a PHP array seeded from `to` and built once, as
+         ;; `vec` is (#3134). `copy-meta` because the transient this replaces
+         ;; carried `to`'s metadata through `persistent`, where a fresh
+         ;; `Phel/vector` would not.
+         (let [arr (to-php-array to)]
+           (foreach [value entries]
+             (php/apush arr value))
+           (copy-meta to (Phel/vector arr)))
 
          (set? to)
          (persistent

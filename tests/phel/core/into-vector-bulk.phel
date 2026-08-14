@@ -1,0 +1,42 @@
+(ns phel-test.core.into-vector-bulk
+  (:require phel.test :refer [deftest is]))
+
+(defstruct pt [x y])
+
+;; `into` a vector target collects into a PHP array seeded from the target and
+;; builds the result once, as `vec` does since #3134. The transient it replaces
+;; carried the target's metadata through `persistent`, so that has to be copied
+;; explicitly now.
+
+(deftest test-into-an-empty-vector
+  (is (= [1 2 3] (into [] [1 2 3])) "from a vector")
+  (is (= [1 2 3] (into [] '(1 2 3))) "from a list")
+  (is (= [2 3] (into [] (map inc [1 2]))) "from a lazy sequence")
+  (is (= [["a" 1]] (into [] {"a" 1})) "from a map, as key-value pairs")
+  (is (= ["a" "b"] (into [] "ab")) "from a string")
+  (is (= [1 2] (into [] (php-indexed-array 1 2))) "from a PHP array")
+  (is (= [] (into [] [])) "from an empty collection")
+  (is (= [] (into [] nil)) "from nil"))
+
+(deftest test-into-a-seeded-vector
+  (is (= [:a 1 2] (into [:a] [1 2])) "the target's elements come first")
+  (is (= [:a] (into [:a] [])) "an empty source leaves the target")
+  (is (= [:a] (into [:a] nil)) "a nil source leaves the target")
+  (is (= [1 2] (into (into [] [1]) [2])) "chained")
+  (is (= [1 2] (into [1 2])) "the one-argument arity returns the target"))
+
+(deftest test-the-target-keeps-its-metadata
+  ;; The transient round trip preserved this; a fresh vector would not.
+  (is (= {:t 1} (meta (into (with-meta [:a] {:t 1}) [1]))) "a seeded target keeps its meta")
+  (is (= {:m 2} (meta (into (with-meta [] {:m 2}) [1]))) "an empty target keeps its meta"))
+
+(deftest test-values-that-could-be-dropped
+  (is (= [nil 1 nil] (into [] [nil 1 nil])) "nil elements survive")
+  (is (= 3 (count (into [] [nil 1 nil]))) "and are counted")
+  (is (= [false 0 ""] (into [] [false 0 ""])) "falsy values survive")
+  (is (= [[1 2] {:a 1}] (into [] [[1 2] {:a 1}])) "nested collections are not flattened"))
+
+(deftest test-other-targets-are-unaffected
+  (is (= {:a 1, :b 2} (into {:a 1} [[:b 2]])) "a map target still builds through its own branch")
+  (is (= 3 (count (into (set [1]) [2 3]))) "a set target")
+  (is (= [:a 1 2] (persistent (into (transient [:a]) [1 2]))) "a transient vector target"))
