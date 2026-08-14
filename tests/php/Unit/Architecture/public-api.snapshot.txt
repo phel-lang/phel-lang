@@ -1097,6 +1097,7 @@ final class Phel\Lang\Generators\TransformGenerator
   public static function map(callable $f, mixed $iterable): Generator
   public static function mapIndexed(callable $f, mixed $iterable): Generator
   public static function mapcat(callable $f, mixed $iterable): Generator
+  public static function reductions(callable $f, mixed $init, mixed $iterable): Generator
 
 interface Phel\Lang\HashableInterface
   public function hash(): int
@@ -1316,6 +1317,7 @@ final class Phel\Lang\Seq
   public static function partitionBy(callable $f, mixed $iterable): Generator
   public static function range(float|int $start, float|int $end, float|int $step): Generator
   public static function readFileChunks(string $filename, int $chunkSize = 8192): Generator
+  public static function reductions(callable $f, mixed $init, mixed $iterable): Generator
   public static function repeat(mixed $value): Generator
   public static function repeatedly(callable $f): Generator
   public static function take(int $n, mixed $iterable): Generator
