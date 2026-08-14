@@ -96,9 +96,12 @@ final class StdlibWalkBench extends CoreBenchCase
         }
 
         $this->stringKeyed = Phel::map(
-            'a', Phel::map(...$inner),
-            'b', Phel::vector($rows),
-            'c', 'leaf',
+            'a',
+            Phel::map(...$inner),
+            'b',
+            Phel::vector($rows),
+            'c',
+            'leaf',
         );
 
         $this->keywordKeyed = ($this->keywordizeKeys)($this->stringKeyed);
