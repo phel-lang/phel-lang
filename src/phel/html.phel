@@ -162,7 +162,13 @@
   (cond
     (vector? element)         (render-element element)
     (indexed? element)        (render-children element)
-    (raw-string? element)     (get element :s)
+    ;; `str`, not the wrapped value itself. Every caller joins these with
+    ;; `php/implode`, which casts with PHP's rules, and a raw string may hold
+    ;; any value: `(raw-string true)` came out as "1" rather than Phel's
+    ;; "true", and `(raw-string false)` as "" rather than "false". Converting
+    ;; here keeps the boundary at Phel's semantics, which is what the earlier
+    ;; `(apply str (map render-html element))` gave for free (#3099).
+    (raw-string? element)     (str (get element :s))
     (string? element)         (escape-html element)
     (nil? element)            ""
     (escape-html (str element))))
@@ -218,7 +224,13 @@
     (cond
       (vector? element)         (compile-element element)
       (keyword? element)        (escape-html (name element))
-      (raw-string? element)     (get element :s)
+      ;; `str`, not the wrapped value itself. Every caller joins these with
+    ;; `php/implode`, which casts with PHP's rules, and a raw string may hold
+    ;; any value: `(raw-string true)` came out as "1" rather than Phel's
+    ;; "true", and `(raw-string false)` as "" rather than "false". Converting
+    ;; here keeps the boundary at Phel's semantics, which is what the earlier
+    ;; `(apply str (map render-html element))` gave for free (#3099).
+    (raw-string? element)     (str (get element :s))
       (string? element)         (escape-html element)
       (indexed? element)        (compile-form element)
       `(render-html ~element))))
