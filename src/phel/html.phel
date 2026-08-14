@@ -130,8 +130,8 @@
   "Renders an Element.
 
   Deliberately does not go through `normalize-element`. That returns a tuple
-  and, for the children, a fresh collection built with `apply list` — both
-  allocated once per element and both discarded immediately. Reading the tag
+  and, for the children, a fresh collection built with `apply list`. Both are
+  allocated once per element and discarded immediately. Reading the tag
   and attributes by index and walking the children in place took a single
   `[:span {:class \"x\"} \"0\"]` from 17.7μs to 9.7μs."
   [element]
