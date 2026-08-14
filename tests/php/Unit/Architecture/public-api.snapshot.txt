@@ -61,6 +61,7 @@ final class Phel\Api\ApiFacade extends Gacela\Framework\AbstractFacade implement
   public function phpInteropSignatureAt(string $source, int $line, int $col): ?array
   public function replComplete(string $input): array
   public function replCompleteWithTypes(string $input): array
+  public function resolveLocalBinding(string $source, string $uri, int $line, int $col, string $word): ?Phel\Shared\Api\Location
   public function resolveSymbol(Phel\Shared\Api\ProjectIndex $index, string $namespace, string $symbol): ?Phel\Shared\Api\Definition
 
 final class Phel\Balance\BalanceFacade extends Gacela\Framework\AbstractFacade
@@ -1816,6 +1817,7 @@ interface Phel\Shared\Facade\ApiFacadeInterface
   public function phpInteropSignatureAt(string $source, int $line, int $col): ?array
   public function replComplete(string $input): array
   public function replCompleteWithTypes(string $input): array
+  public function resolveLocalBinding(string $source, string $uri, int $line, int $col, string $word): ?Phel\Shared\Api\Location
   public function resolveSymbol(Phel\Shared\Api\ProjectIndex $index, string $namespace, string $symbol): ?Phel\Shared\Api\Definition
 
 interface Phel\Shared\Facade\BuildFacadeInterface

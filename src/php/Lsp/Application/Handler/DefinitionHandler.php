@@ -44,9 +44,14 @@ final readonly class DefinitionHandler implements HandlerInterface
      */
     public function handle(array $params, Session $session): ?array
     {
-        $context = CursorContext::resolve($params, $session, $this->params);
+        $context = CursorContext::resolve($params, $session, $this->params, requireIndex: false);
         if (!$context instanceof CursorContext) {
             return null;
+        }
+
+        $local = $this->resolveLocal($context);
+        if ($local instanceof Location) {
+            return $this->locations->fromLocation($local);
         }
 
         $definition = $this->lookup($context->index, $context->word);
@@ -60,6 +65,19 @@ final readonly class DefinitionHandler implements HandlerInterface
         }
 
         return $this->locations->fromLocation($namespace);
+    }
+
+    private function resolveLocal(CursorContext $context): ?Location
+    {
+        [$line, $col] = $context->document->oneBasedLineCol($context->position);
+
+        return $this->apiFacade->resolveLocalBinding(
+            $context->document->text,
+            $context->document->uri,
+            $line,
+            $col,
+            $context->word,
+        );
     }
 
     private function lookup(ProjectIndex $index, string $word): ?Definition

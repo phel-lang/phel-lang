@@ -14,6 +14,7 @@ REPL autocompletion, function introspection/docs, and user-code semantic analysi
 | `extractDefinitions(string source, string uri)` | Definitions from one source |
 | `indexProject(list<string> srcDirs): ProjectIndex` | Build project symbol index |
 | `resolveSymbol(ProjectIndex, ns, symbol): ?Definition` | Jump-to-def |
+| `resolveLocalBinding(source, uri, line, col, word): ?Location` | Resolve a lexical local usage to its binding site; `null` when no modelled binder introduces it |
 | `findReferences(ProjectIndex, ns, symbol)` | Find-references |
 | `completeAtPoint(source, line, col, ProjectIndex)` | Completion at cursor; returns PHP-interop completions in a `php/`-interop position, else Phel completions |
 | `phpInteropHoverAt(source, line, col): ?string` | Reflected hover markdown for PHP interop |

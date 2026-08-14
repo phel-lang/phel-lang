@@ -130,6 +130,13 @@ final class ApiFacade extends AbstractFacade implements ApiFacadeInterface
             ->completeAtPoint($source, $line, $col, $index);
     }
 
+    public function resolveLocalBinding(string $source, string $uri, int $line, int $col, string $word): ?Location
+    {
+        return $this->getFactory()
+            ->createLocalBindingResolver()
+            ->resolve($source, $uri, $line, $col, $word);
+    }
+
     public function createApiDaemon(): ApiDaemon
     {
         return $this->getFactory()->createApiDaemon($this);

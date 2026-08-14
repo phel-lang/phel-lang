@@ -103,6 +103,13 @@ interface ApiFacadeInterface
     public function completeAtPoint(string $source, int $line, int $col, ProjectIndex $index): array;
 
     /**
+     * Resolve a lexical binding at the given 1-based {line, column} to the
+     * location of the symbol that introduced it, or null when no modelled
+     * binder does.
+     */
+    public function resolveLocalBinding(string $source, string $uri, int $line, int $col, string $word): ?Location;
+
+    /**
      * Markdown hover for the PHP-interop symbol under the cursor (method,
      * static member, global function, class), or null when not applicable.
      */
