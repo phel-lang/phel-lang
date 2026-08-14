@@ -77,15 +77,26 @@ costs a rewritten program.
   something countable. Handle lex failure, not only parse failure.
 - **A new top-level form after the unclosed level.** The dangerous one, because
   the naive repair *compiles*. Given a missing `)` in `f` followed by a
-  column-0 `(defn g ...)`, appending at the end nests `g` inside `f` as a
-  closure: valid code, different program, reported as a success. Detected as a
-  column-0 opener on a line after the outermost unclosed level, the top-level
-  convention `phel format` already enforces, read off token positions. Used only
-  to refuse, never to place a closer. The message names the line the closer
-  belongs before.
+  `(defn g ...)`, appending at the end nests `g` inside `f` as a closure: valid
+  code, different program, reported as a success, and it lints clean. Three
+  readings mark such a form, all off token positions and all used only to
+  refuse, never to place a closer:
+  - an opener at **column 0**, the convention `phel format` enforces;
+  - an opener whose **reader prefix** started at column 0, so `'(defn g ...)`
+    counts even though its `(` sits at column 1;
+  - an opener at **any column** followed by a definition head (`ns`, `def`,
+    `defn`, `defmacro`, `deftest`, ...), because a file missing a closer is
+    usually mid-edit and no longer formatted. An ordinary call at an indent is
+    not marked: that is exactly what the unclosed level is still collecting.
+
+  The message names the line the closer belongs before.
 - **A trailing reader prefix.** `'`, `` ` ``, `~`, `~@`, `^`, `@`, `#'`, `#_`
   and a tagged literal each read the form after them, so an appended closer
-  becomes that form: `#_)` counts out and does not parse.
+  becomes that form: `#_)` counts out and does not parse. A lone trailing `\`
+  joins them: with no character after it the char rule does not match and it
+  falls through to the atom rule, and an appended `)` becomes its character, so
+  `\)` counts out, closes nothing, and leaves the file as unbalanced as it
+  started while the run reports a repair.
 
 ## Where the closers land
 

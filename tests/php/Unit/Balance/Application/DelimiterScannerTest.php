@@ -151,6 +151,66 @@ final class DelimiterScannerTest extends TestCase
         self::assertStringContainsString('belongs before line 6', (string) $report->unrepairableReason());
     }
 
+    /**
+     * A file with a missing closer is usually mid-edit, so the follow-up form
+     * is often still indented. The column-0 reading alone repaired these and
+     * nested the definition inside the unclosed one, which lints clean.
+     */
+    public function test_it_refuses_when_an_indented_definition_follows_the_unclosed_level(): void
+    {
+        $code = "(ns midfile)\n\n(defn f [x]\n  (+ x 1)\n\n  (defn g [y] y)\n";
+
+        $report = $this->scanner->scan($code, 'test.phel');
+
+        self::assertFalse($report->isRepairable());
+        self::assertSame(6, $report->topLevelFormLineAfterUnclosed);
+    }
+
+    public function test_it_refuses_when_a_reader_prefixed_definition_follows_the_unclosed_level(): void
+    {
+        // The `'` sits at column 0, so its `(` is at column 1.
+        $code = "(ns midfile)\n\n(defn f [x]\n  (+ x 1)\n\n'(defn g [y] y)\n";
+
+        $report = $this->scanner->scan($code, 'test.phel');
+
+        self::assertFalse($report->isRepairable());
+        self::assertSame(6, $report->topLevelFormLineAfterUnclosed);
+    }
+
+    public function test_an_indented_call_is_not_a_new_top_level_form(): void
+    {
+        // Only a definition head reads as top-level at an indent; an ordinary
+        // call is exactly what the unclosed level is still collecting.
+        $code = "(ns app)\n\n(defn a [x]\n  (+ x 1)\n  (str x)\n";
+
+        $report = $this->scanner->scan($code, 'test.phel');
+
+        self::assertTrue($report->isRepairable(), (string) $report->unrepairableReason());
+        self::assertNull($report->topLevelFormLineAfterUnclosed);
+        self::assertSame(')', $report->missingClosers());
+    }
+
+    /**
+     * With no character after it the char rule does not match, so the `\` falls
+     * through to the atom rule. An appended `)` becomes its character: the file
+     * stays unbalanced while the run reports a repair.
+     */
+    public function test_it_refuses_a_trailing_character_literal_prefix(): void
+    {
+        $report = $this->scanner->scan("(ns t)\n\n(def c \\\n", 'test.phel');
+
+        self::assertFalse($report->isRepairable());
+        self::assertSame('\\', $report->danglingPrefixToken);
+    }
+
+    public function test_a_complete_character_literal_does_not_block_a_repair(): void
+    {
+        $report = $this->scanner->scan("(ns t)\n\n(def c \\a\n", 'test.phel');
+
+        self::assertNull($report->danglingPrefixToken);
+        self::assertTrue($report->isRepairable(), (string) $report->unrepairableReason());
+    }
+
     public function test_it_still_repairs_when_the_unclosed_level_is_the_last_top_level_form(): void
     {
         $code = "(ns app)\n\n(defn a [x]\n  (+ x 1))\n\n(defn c [z]\n  (str z)\n";
