@@ -169,6 +169,17 @@ final class CoreSeqBench extends CoreBenchCase
 
     private mixed $emptyMap = null;
 
+    /** @var callable */
+    private $invert;
+
+    /** @var callable */
+    private $selectKeys;
+
+    /** @var callable */
+    private $setFn;
+
+    private mixed $bigMapAKeys = null;
+
     private mixed $bigMapA = null;
 
     private mixed $bigMapB = null;
@@ -788,6 +799,43 @@ final class CoreSeqBench extends CoreBenchCase
     }
 
     /**
+     * `invert` and `map-invert` are two names for the same operation.
+     * `map-invert` was moved onto `foreach` and `.put` and `invert` was
+     * missed, which is exactly the drift a subject next to its twin makes
+     * visible: it was 51.6μs against 19.7μs in-language before they were
+     * brought back together.
+     *
+     * @Revs(1000)
+     */
+    public function bench_invert(): void
+    {
+        ($this->invert)($this->bigMapA);
+    }
+
+    /**
+     * Two lookups on the source per key, not one: a key held with a `nil`
+     * value has to stay selected, so the membership test cannot be folded
+     * into the read. Both now go straight to the map's own methods.
+     *
+     * @Revs(1000)
+     */
+    public function bench_select_keys(): void
+    {
+        ($this->selectKeys)($this->bigMapA, $this->bigMapAKeys);
+    }
+
+    /**
+     * The transient-set counterpart of the map subjects above: `.add` rather
+     * than `conj!`, which dispatches on the target first.
+     *
+     * @Revs(1000)
+     */
+    public function bench_set(): void
+    {
+        ($this->setFn)($this->ints);
+    }
+
+    /**
      * `partition-by` and `dedupe` return a sequence built by
      * `lazy-seq-from-generator`, so constructing one realizes a chunk before
      * the caller has asked for a single element. These two subjects measure
@@ -842,6 +890,9 @@ final class CoreSeqBench extends CoreBenchCase
         $this->zipmap = $this->coreFn('zipmap');
         $this->frequencies = $this->coreFn('frequencies');
         $this->groupBy = $this->coreFn('group-by');
+        $this->invert = $this->coreFn('invert');
+        $this->selectKeys = $this->coreFn('select-keys');
+        $this->setFn = $this->coreFn('set');
 
         $this->notEven = ($this->coreFn('complement'))($this->coreFn('even?'));
         $this->always = ($this->coreFn('constantly'))(42);
@@ -902,6 +953,14 @@ final class CoreSeqBench extends CoreBenchCase
         }
 
         $this->bigMapA = Phel::map(...$kvA);
+        // Every key of `bigMapA`, so `select-keys` takes the all-hit path
+        // rather than measuring misses.
+        $keys = [];
+        for ($i = 0; $i < self::SIZE; ++$i) {
+            $keys[] = Phel::keyword('a' . $i);
+        }
+
+        $this->bigMapAKeys = Phel::vector($keys);
         $this->bigMapB = Phel::map(...$kvB);
 
         $pairs = [];
