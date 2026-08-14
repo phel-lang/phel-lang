@@ -7,7 +7,7 @@
   new class() extends \Phel\Lang\AbstractFn {
     public const BOUND_TO = "user\\x";
 
-    public function __invoke() {
+    public function __invoke(): \Phel\Lang\Collections\Map\PersistentMapInterface {
       static $__phel_const_0;
       return ($__phel_const_0 ??= \Phel::map(
         \Phel\Lang\Keyword::create("a"), 1,
@@ -20,6 +20,7 @@
     \Phel::location("ConstantHoisting/map-in-fn-body.test", 1, 27),
     "min-arity", 0,
     "is-variadic", false,
-    "arglists", "[]"
+    "arglists", "[]",
+    \Phel\Lang\Keyword::create("tag"), "\\Phel\\Lang\\Collections\\Map\\PersistentMapInterface"
   )
 );

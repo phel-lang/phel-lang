@@ -2,7 +2,7 @@
 (fn [^\Phel\Lang\Collections\Map\PersistentMapInterface m]
   [(dissoc m :a) (dissoc m :a :b) (dissoc m :a :b :c)])
 --PHP--
-(function(\Phel\Lang\Collections\Map\PersistentMapInterface $m) {
+(function(\Phel\Lang\Collections\Map\PersistentMapInterface $m): \Phel\Lang\Collections\Vector\PersistentVectorInterface {
   static $__phel_const_0, $__phel_const_1, $__phel_const_2;
   return \Phel::vector([($m->remove(($__phel_const_0 ??= \Phel\Lang\Keyword::create("a")))), ($m->remove(($__phel_const_0 ??= \Phel\Lang\Keyword::create("a")))->remove(($__phel_const_1 ??= \Phel\Lang\Keyword::create("b")))), ($m->remove(($__phel_const_0 ??= \Phel\Lang\Keyword::create("a")))->remove(($__phel_const_1 ??= \Phel\Lang\Keyword::create("b")))->remove(($__phel_const_2 ??= \Phel\Lang\Keyword::create("c"))))]);
 });

@@ -13,12 +13,19 @@ use Phel\Compiler\Domain\Analyzer\Ast\IfNode;
 use Phel\Compiler\Domain\Analyzer\Ast\LetNode;
 use Phel\Compiler\Domain\Analyzer\Ast\LiteralNode;
 use Phel\Compiler\Domain\Analyzer\Ast\LocalVarNode;
+use Phel\Compiler\Domain\Analyzer\Ast\MapNode;
 use Phel\Compiler\Domain\Analyzer\Ast\PhpVarNode;
 use Phel\Compiler\Domain\Analyzer\Ast\RecurNode;
+use Phel\Compiler\Domain\Analyzer\Ast\SetNode;
 use Phel\Compiler\Domain\Analyzer\Ast\ThrowNode;
+use Phel\Compiler\Domain\Analyzer\Ast\VectorNode;
 use Phel\Compiler\Domain\Analyzer\TypeAnalyzer\PhpFunctionReturnTypes;
+use Phel\Lang\Collections\HashSet\PersistentHashSetInterface;
+use Phel\Lang\Collections\LinkedList\PersistentListInterface;
 use Phel\Lang\Collections\Map\PersistentMapInterface;
+use Phel\Lang\Collections\Vector\PersistentVectorInterface;
 use Phel\Lang\Symbol;
+use Phel\Shared\CompilerConstants;
 use Phel\Shared\TagResolver;
 
 use function array_map;
@@ -64,6 +71,36 @@ final class ReturnTypeInferrer
     private const array NUMERIC_OPS = [
         '+' => true, '-' => true, '*' => true, '/' => true, '%' => true,
         '**' => true, '<<' => true, '>>' => true, '|' => true, '&' => true, '^' => true,
+    ];
+
+    /**
+     * Rooted, with a leading backslash. A generated file declares its own
+     * `namespace`, and an unrooted `Phel\Lang\...` in a return type resolves
+     * against it: PHP then raises
+     * `Return value must be of type <ns>\Phel\Lang\...`. Same reason
+     * {@see TagResolver::rootClassReferences()} roots a dotted
+     * tag; these carry no dot, so they must arrive rooted.
+     */
+    private const string ROOTED_PERSISTENTVECTORINTERFACE = '\\' . PersistentVectorInterface::class;
+
+    private const string ROOTED_PERSISTENTMAPINTERFACE = '\\' . PersistentMapInterface::class;
+
+    private const string ROOTED_PERSISTENTHASHSETINTERFACE = '\\' . PersistentHashSetInterface::class;
+
+    private const string ROOTED_PERSISTENTLISTINTERFACE = '\\' . PersistentListInterface::class;
+
+    /**
+     * Same table {@see BindingTypeInferrer}
+     * and `ConstructorSpecialization` use: each name has exactly one meaning,
+     * so a tail call to one fixes the return type without reading arguments.
+     *
+     * @var array<string, string>
+     */
+    private const array CORE_CONSTRUCTORS = [
+        'vector' => self::ROOTED_PERSISTENTVECTORINTERFACE,
+        'list' => self::ROOTED_PERSISTENTLISTINTERFACE,
+        'hash-map' => self::ROOTED_PERSISTENTMAPINTERFACE,
+        'array-map' => self::ROOTED_PERSISTENTMAPINTERFACE,
     ];
 
     /**
@@ -149,6 +186,11 @@ final class ReturnTypeInferrer
             $node instanceof LetNode => $this->inferLet($node, $locals),
             $node instanceof CallNode => $this->inferCall($node, $locals),
             $node instanceof LiteralNode => $this->inferLiteral($node),
+            // A literal the constant folder left as a node, because some
+            // element is not constant. The container's type is fixed anyway.
+            $node instanceof VectorNode => $this->publish(self::ROOTED_PERSISTENTVECTORINTERFACE),
+            $node instanceof MapNode => $this->publish(self::ROOTED_PERSISTENTMAPINTERFACE),
+            $node instanceof SetNode => $this->publish(self::ROOTED_PERSISTENTHASHSETINTERFACE),
             $node instanceof LocalVarNode => $this->inferLocalVar($node, $locals),
             $node instanceof RecurNode => $this->inferRecur($node, $locals),
             $node instanceof ThrowNode => self::BOTTOM,
@@ -340,6 +382,13 @@ final class ReturnTypeInferrer
      */
     private function inferGlobalCall(GlobalVarNode $fn): ?string
     {
+        if ($fn->getNamespace() === CompilerConstants::PHEL_CORE_NAMESPACE) {
+            $constructed = self::CORE_CONSTRUCTORS[$fn->getName()->getName()] ?? null;
+            if ($constructed !== null) {
+                return $this->publish($constructed);
+            }
+        }
+
         if ($this->selfNamespace !== null
             && $this->selfName !== null
             && $fn->getNamespace() === $this->selfNamespace
@@ -394,6 +443,13 @@ final class ReturnTypeInferrer
             is_float($value) => 'float',
             is_bool($value) => 'bool',
             is_string($value) => 'string',
+            // As in `BindingTypeInferrer`: a collection literal arrives here
+            // already built, so the interface is read off the value rather
+            // than inferred. A function whose tail is one provably returns it.
+            $value instanceof PersistentVectorInterface => self::ROOTED_PERSISTENTVECTORINTERFACE,
+            $value instanceof PersistentMapInterface => self::ROOTED_PERSISTENTMAPINTERFACE,
+            $value instanceof PersistentHashSetInterface => self::ROOTED_PERSISTENTHASHSETINTERFACE,
+            $value instanceof PersistentListInterface => self::ROOTED_PERSISTENTLISTINTERFACE,
             default => null,
         };
     }
