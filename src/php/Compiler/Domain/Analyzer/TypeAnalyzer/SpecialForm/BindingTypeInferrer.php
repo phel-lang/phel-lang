@@ -128,6 +128,22 @@ final class BindingTypeInferrer
     ];
 
     /**
+     * Rooted, with a leading backslash. A generated file declares its own
+     * `namespace`, and an unrooted `Phel\Lang\...` in a return type resolves
+     * against it: PHP then raises
+     * `Return value must be of type <ns>\Phel\Lang\...`. Same reason
+     * {@see TagResolver::rootClassReferences()} roots a dotted
+     * tag; these carry no dot, so they must arrive rooted.
+     */
+    private const string ROOTED_PERSISTENTVECTORINTERFACE = '\\' . PersistentVectorInterface::class;
+
+    private const string ROOTED_PERSISTENTMAPINTERFACE = '\\' . PersistentMapInterface::class;
+
+    private const string ROOTED_PERSISTENTHASHSETINTERFACE = '\\' . PersistentHashSetInterface::class;
+
+    private const string ROOTED_PERSISTENTLISTINTERFACE = '\\' . PersistentListInterface::class;
+
+    /**
      * `phel.core` constructors whose result type is fixed by the callee alone,
      * mapped to the interface a binding can dispatch on. Same table
      * {@see Phel\Compiler\Domain\Emitter\OutputEmitter\ConstructorSpecialization}
@@ -140,10 +156,10 @@ final class BindingTypeInferrer
      * @var array<string, string>
      */
     private const array CORE_CONSTRUCTORS = [
-        'vector' => PersistentVectorInterface::class,
-        'list' => PersistentListInterface::class,
-        'hash-map' => PersistentMapInterface::class,
-        'array-map' => PersistentMapInterface::class,
+        'vector' => self::ROOTED_PERSISTENTVECTORINTERFACE,
+        'list' => self::ROOTED_PERSISTENTLISTINTERFACE,
+        'hash-map' => self::ROOTED_PERSISTENTMAPINTERFACE,
+        'array-map' => self::ROOTED_PERSISTENTMAPINTERFACE,
     ];
 
     /** @var array<string, string> */
@@ -326,15 +342,15 @@ final class BindingTypeInferrer
         // node rather than being folded into a `LiteralNode`. The container's
         // type is fixed either way; only its contents are dynamic.
         if ($node instanceof VectorNode) {
-            return PersistentVectorInterface::class;
+            return self::ROOTED_PERSISTENTVECTORINTERFACE;
         }
 
         if ($node instanceof MapNode) {
-            return PersistentMapInterface::class;
+            return self::ROOTED_PERSISTENTMAPINTERFACE;
         }
 
         if ($node instanceof SetNode) {
-            return PersistentHashSetInterface::class;
+            return self::ROOTED_PERSISTENTHASHSETINTERFACE;
         }
 
         if ($node instanceof CallNode) {
@@ -520,10 +536,10 @@ final class BindingTypeInferrer
             // folder hoists `[1 2 3]` to a `\Phel::vector(...)` evaluated once.
             // The value in hand *is* the collection, so its interface is not
             // inferred but observed.
-            $value instanceof PersistentVectorInterface => PersistentVectorInterface::class,
-            $value instanceof PersistentMapInterface => PersistentMapInterface::class,
-            $value instanceof PersistentHashSetInterface => PersistentHashSetInterface::class,
-            $value instanceof PersistentListInterface => PersistentListInterface::class,
+            $value instanceof PersistentVectorInterface => self::ROOTED_PERSISTENTVECTORINTERFACE,
+            $value instanceof PersistentMapInterface => self::ROOTED_PERSISTENTMAPINTERFACE,
+            $value instanceof PersistentHashSetInterface => self::ROOTED_PERSISTENTHASHSETINTERFACE,
+            $value instanceof PersistentListInterface => self::ROOTED_PERSISTENTLISTINTERFACE,
             default => null,
         };
     }

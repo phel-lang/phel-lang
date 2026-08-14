@@ -1,7 +1,7 @@
 --PHEL--
 (fn [^"\Phel\Lang\Collections\Vector\PersistentVectorInterface" v] (let [[a b] v] [a b]))
 --PHP--
-(function(\Phel\Lang\Collections\Vector\PersistentVectorInterface $v) {
+(function(\Phel\Lang\Collections\Vector\PersistentVectorInterface $v): \Phel\Lang\Collections\Vector\PersistentVectorInterface {
   static $__phel_call_0, $__phel_call_1, $__phel_call_2;
   /** @var \Phel\Lang\Collections\Vector\PersistentVectorInterface $__phel_1_6 */
   $__phel_1_6 = $v;

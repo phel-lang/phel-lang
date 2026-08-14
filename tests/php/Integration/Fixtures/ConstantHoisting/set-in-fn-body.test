@@ -7,7 +7,7 @@
   new class() extends \Phel\Lang\AbstractFn {
     public const BOUND_TO = "user\\x";
 
-    public function __invoke() {
+    public function __invoke(): \Phel\Lang\Collections\HashSet\PersistentHashSetInterface {
       static $__phel_const_0;
       return ($__phel_const_0 ??= \Phel::set([1, 2, 3]));
     }
@@ -17,6 +17,7 @@
     \Phel::location("ConstantHoisting/set-in-fn-body.test", 1, 24),
     "min-arity", 0,
     "is-variadic", false,
-    "arglists", "[]"
+    "arglists", "[]",
+    \Phel\Lang\Keyword::create("tag"), "\\Phel\\Lang\\Collections\\HashSet\\PersistentHashSetInterface"
   )
 );

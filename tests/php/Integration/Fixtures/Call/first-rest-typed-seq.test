@@ -1,6 +1,6 @@
 --PHEL--
 (fn [^"\Phel\Lang\SeqInterface" s] [(first s) (rest s)])
 --PHP--
-(function(\Phel\Lang\SeqInterface $s) {
+(function(\Phel\Lang\SeqInterface $s): \Phel\Lang\Collections\Vector\PersistentVectorInterface {
   return \Phel::vector([($s->first()), ($s->rest())]);
 });

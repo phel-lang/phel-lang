@@ -1,0 +1,59 @@
+(ns phel-test.core.collection-return-inference
+  (:require phel.test :refer [deftest is]))
+
+;; A function whose tail is a collection literal, or a call to one of the
+;; `phel.core` constructors, declares that collection's interface as its return
+;; type. A caller's binding then picks the type up and the collection
+;; specialisations fire on it, which is what #3042 called C1.
+;;
+;; The return type is a real PHP type on the generated method, so it is
+;; enforced at runtime: anything these functions can return has to satisfy it,
+;; on every branch and after any rebinding.
+
+(defn- vec-tail [] [1 2 3])
+(defn- vec-ctor [] (vector 1 2 3))
+(defn- map-tail [] {:a 1})
+(defn- map-ctor [] (hash-map :a 1))
+(defn- list-ctor [] (list 1 2 3))
+(defn- set-tail [] #{1 2})
+(defn- vec-dynamic [x] [x x])
+(defn- branchy [b] (if b [1 2] [3 4]))
+(defn- mixed-branches [b] (if b [1 2] 42))
+(defn- via-let [] (let [v [1 2 3]] v))
+
+(deftest test-a-collection-returning-fn-still-returns-it
+  (is (= [1 2 3] (vec-tail)) "a vector literal tail")
+  (is (= [1 2 3] (vec-ctor)) "a vector constructor tail")
+  (is (= {:a 1} (map-tail)) "a map literal tail")
+  (is (= {:a 1} (map-ctor)) "a map constructor tail")
+  (is (= [1 2 3] (vec (list-ctor))) "a list constructor tail")
+  (is (= 2 (count (set-tail))) "a set literal tail")
+  (is (= [7 7] (vec-dynamic 7)) "a literal built from an argument")
+  (is (= [1 2 3] (via-let)) "a tail that is a let returning the binding"))
+
+(deftest test-every-branch-satisfies-the-declared-return-type
+  ;; If only one arm were consulted the other would raise a TypeError.
+  (is (= [1 2] (branchy true)) "the then arm")
+  (is (= [3 4] (branchy false)) "the else arm")
+  ;; Arms that disagree must leave the function untyped rather than pick one.
+  (is (= [1 2] (mixed-branches true)) "a disagreeing then arm")
+  (is (= 42 (mixed-branches false)) "a disagreeing else arm"))
+
+(deftest test-a-caller-binding-picks-the-type-up
+  (is (= 1 (let [v (vec-tail)] (nth v 0))) "nth through a returned vector")
+  (is (= 3 (let [v (vec-tail)] (count v))) "count")
+  (is (= 1 (let [v (vec-tail)] (first v))) "first")
+  (is (= 1 (let [m (map-tail)] (get m :a))) "get through a returned map")
+  (is (nil? (let [m (map-tail)] (get m :zz))) "an absent key is still nil")
+  (is (= 1 (let [v (vec-ctor)] (nth v 0))) "through a constructor tail")
+  (is (thrown? \OutOfBoundsException (let [v (vec-tail)] (nth v 9))) "out of range still raises"))
+
+(deftest test-the-returned-collection-is-an-ordinary-value
+  (let [v (vec-tail)
+        m (map-tail)]
+    (is (vector? v) "still a vector")
+    (is (map? m) "still a map")
+    (is (= [1 2 3 4] (conj v 4)) "conj works")
+    (is (= [1 2 3] v) "and does not mutate")
+    (is (= {:a 1, :b 2} (assoc m :b 2)) "assoc works")
+    (is (= "[1 2 3]" (pr-str v)) "prints as before")))
