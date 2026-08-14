@@ -13,8 +13,12 @@
 ;; text node, so this is on the hot path of rendering anything at all.
 ;;
 ;; An `:inline` on `escape-html` itself would fold the flags into the call site
-;; and remove this read too, worth another 1.8x, but `phel lint` crashes on any
-;; `:inline` whose namespace also calls it: see #3055.
+;; and remove this read too. #3055, which used to block that, is fixed, but the
+;; inline is still not worth writing: it is 1.5x on `escape-html` alone (0.41μs
+;; against 0.27μs for the bare `htmlspecialchars`) and `escape-html` accounts
+;; for roughly 2.5% of rendering an element, so it does not show up in a render.
+;; An expansion would also have to spell the flags out, since `escape-flags` is
+;; private to this namespace and the expansion lands in the caller's.
 (def- escape-flags (bit-or php/ENT_QUOTES php/ENT_SUBSTITUTE))
 
 (defn escape-html
@@ -30,27 +34,55 @@
     (nil? x)     ""
     (str x)))
 
-(def- void-tags (hash-set
-                 "area" "base" "br" "col" "command" "embed"
-                 "hr" "img" "input" "keygen" "link" "meta" "param"
-                 "source" "track" "wbr"))
+;; A PHP array used as a set, rather than a `hash-set`. The lookup runs once per
+;; element rendered, and `contains?` on a persistent set costs 1.87μs against
+;; 0.19μs for `array_key_exists` on the same 16 entries: the hashing, the node
+;; walk and the Phel call are all overhead for what is a fixed table of ASCII
+;; tag names. Keys are alphabetic, so PHP's numeric-string key cast cannot
+;; apply.
+(def- void-tags
+  (let [tags (php/array)]
+    (foreach [tag ["area" "base" "br" "col" "command" "embed"
+                   "hr" "img" "input" "keygen" "link" "meta" "param"
+                   "source" "track" "wbr"]]
+      (php/aset tags tag true))
+    tags))
 
 (defn- container-tag? [tag]
   ;; Void elements (br, img, input, ...) are always self-closing per the HTML
   ;; spec: they never render a closing tag or children, even if children were
   ;; mistakenly supplied.
-  (not (contains? void-tags tag)))
+  (php/! (php/array_key_exists tag void-tags)))
 
-(defn- normalize-element [[tag & content]]
-  (do
-    (when-not (or (keyword? tag) (string? tag))
-      (throw (new InvalidArgumentException (str tag " is not a valid element name."))))
-    (let [tag         (to-str tag)
-          elem        (first content)
-          map-attrs   (if (map? elem) elem {})
-          content     (if (map? elem) (next content) content)
-          content-arr (if (nil? content) nil (apply list content))]
-      [tag map-attrs content-arr])))
+(defn- element-tag
+  "Validates the head of an element vector and returns it as a string."
+  [tag]
+  (when-not (or (keyword? tag) (string? tag))
+    (throw (new InvalidArgumentException (str tag " is not a valid element name."))))
+  (to-str tag))
+
+;; An element is a vector, at both call sites: `render-html` and `compile-seq`
+;; each reach here only under a `vector?` test. So the head and the optional
+;; attribute map are read by index instead of through a `[tag & content]`
+;; destructure, which allocates a rest sequence, and `first`/`next` over it.
+(defn- element-attrs? [element]
+  (map? (get element 1)))
+
+(defn- element-attrs [element]
+  (let [elem (get element 1)]
+    (if (map? elem) elem {})))
+
+(defn- content-start [element]
+  (if (element-attrs? element) 2 1))
+
+(defn- normalize-element [element]
+  ;; Used by the compile path only; `render-element` reads the same three
+  ;; pieces without materializing this tuple or a child collection.
+  (let [start (content-start element)
+        n     (count element)]
+    [(element-tag (get element 0))
+     (element-attrs element)
+     (if (php/< start n) (slice element start) nil)]))
 
 ;;---------------
 ;; Render element
@@ -95,14 +127,25 @@
     (php/implode "" parts)))
 
 (defn- render-element
-  "Renders an Element."
+  "Renders an Element.
+
+  Deliberately does not go through `normalize-element`. That returns a tuple
+  and, for the children, a fresh collection built with `apply list`. Both are
+  allocated once per element and discarded immediately. Reading the tag
+  and attributes by index and walking the children in place took a single
+  `[:span {:class \"x\"} \"0\"]` from 17.7μs to 9.7μs."
   [element]
-  (let [[tag attrs content] (normalize-element element)]
+  (let [tag   (element-tag (get element 0))
+        attrs (element-attrs element)]
     (if (container-tag? tag)
-      (str
-       "<" tag (render-attrs attrs) ">"
-       (render-html content)
-       "</" tag ">")
+      (let [start (content-start element)
+            n     (count element)
+            parts (php/array)]
+        (loop [i start]
+          (when (php/< i n)
+            (php/apush parts (render-html (get element i)))
+            (recur (php/+ i 1))))
+        (str "<" tag (render-attrs attrs) ">" (php/implode "" parts) "</" tag ">"))
       (str "<" tag (render-attrs attrs) " />"))))
 
 (defn- render-children
