@@ -72,7 +72,7 @@ final class abc extends \Phel\Lang\Collections\Struct\AbstractPersistentStruct {
   new class() extends \Phel\Lang\AbstractFn {
     public const BOUND_TO = "hello_world\\abc?";
 
-    public function __invoke($x) {
+    public function __invoke($x): bool {
       return is_a($x, "hello_world\\abc");
     }
   },
@@ -82,6 +82,7 @@ final class abc extends \Phel\Lang\Collections\Struct\AbstractPersistentStruct {
     \Phel\Lang\Keyword::create("doc"), "```phel\n(abc? x)\n```\nChecks if `x` is an instance of the abc struct.",
     "min-arity", 1,
     "is-variadic", false,
-    "arglists", "[x]"
+    "arglists", "[x]",
+    \Phel\Lang\Keyword::create("tag"), "bool"
   )
 );
