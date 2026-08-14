@@ -82,6 +82,9 @@ final class CoreSeqBench extends CoreBenchCase
     private $vec;
 
     /** @var callable */
+    private $merge;
+
+    /** @var callable */
     private $kvs;
 
     /** @var callable */
@@ -150,6 +153,10 @@ final class CoreSeqBench extends CoreBenchCase
     private mixed $map = null;
 
     private mixed $emptyMap = null;
+
+    private mixed $bigMapA = null;
+
+    private mixed $bigMapB = null;
 
     private mixed $pairs = null;
 
@@ -702,6 +709,18 @@ final class CoreSeqBench extends CoreBenchCase
     }
 
     /**
+     * `merge` had no subject, which is why it went unnoticed that merging two
+     * maps added the right one's entries through `conj`, one Phel call each,
+     * rather than using the collection's own bulk merge.
+     *
+     * @Revs(1000)
+     */
+    public function bench_merge_two_maps(): void
+    {
+        ($this->merge)($this->bigMapA, $this->bigMapB);
+    }
+
+    /**
      * `partition-by` and `dedupe` return a sequence built by
      * `lazy-seq-from-generator`, so constructing one realizes a chunk before
      * the caller has asked for a single element. These two subjects measure
@@ -745,6 +764,7 @@ final class CoreSeqBench extends CoreBenchCase
         $this->partitionBy = $this->coreFn('partition-by');
         $this->transduce = $this->coreFn('transduce');
         $this->vec = $this->coreFn('vec');
+        $this->merge = $this->coreFn('merge');
         $this->kvs = $this->coreFn('kvs');
         $this->phpToPhel = $this->coreFn('php->phel');
         $this->zipmap = $this->coreFn('zipmap');
@@ -799,6 +819,18 @@ final class CoreSeqBench extends CoreBenchCase
         $this->emptyVector = Phel::vector([]);
         $this->map = Phel::map(Phel::keyword('a'), 1, Phel::keyword('b'), 2);
         $this->emptyMap = Phel::map();
+
+        $kvA = [];
+        $kvB = [];
+        for ($i = 0; $i < self::SIZE; ++$i) {
+            $kvA[] = Phel::keyword('a' . $i);
+            $kvA[] = $i;
+            $kvB[] = Phel::keyword('b' . $i);
+            $kvB[] = $i;
+        }
+
+        $this->bigMapA = Phel::map(...$kvA);
+        $this->bigMapB = Phel::map(...$kvB);
 
         $pairs = [];
         for ($i = 0; $i < self::SIZE; ++$i) {

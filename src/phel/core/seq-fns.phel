@@ -1511,6 +1511,10 @@ Stops when the shorter of `keys` or `vals` is exhausted. Works safely with infin
   (cond
     (nil? left)  (when-not (nil? right) (conj {} right))
     (nil? right) (if (map? left) left (conj left right))
+    ;; Two maps merge through the collection's own `merge`, which bulk-builds
+    ;; the result through a transient. `conj` reaches the same result by adding
+    ;; the right map's entries one at a time, each a Phel call (#2973).
+    (and (map? left) (map? right)) (.merge left right)
     :else        (conj left right)))
 
 (defn merge
