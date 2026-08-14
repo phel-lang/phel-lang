@@ -123,6 +123,7 @@ All notable changes to this project will be documented in this file.
 
 Compiler:
 
+- Write `into`'s set and map targets through `.add` and `.put` on the transient they already build, rather than `conj` and `assoc`. `bench_into_set` 1.23x, `bench_into_map` 1.14x; the map target gains less because a HAMT insertion dominates what is left (#2973)
 - Build `flatten` from a PHP generator instead of `(filter (complement indexed?) (rest (tree-seq indexed? identity coll)))`. `tree-seq` is eager and materialised every node, branches included, into a transient vector, so `flatten` walked the whole tree at construction despite handing back a lazy sequence. Constructing one is now 38.0μs to 0.63μs, `(take 3 (flatten ...))` 47.6μs to 7.5μs, and realizing 64 leaves 120.5μs to 69.3μs (#2973)
 - Apply the remaining single-use lowerings to any typed target: `reduce` over a vector 1.93x, `get-in` 2.79x, plus `dissoc` with literal keys, the named accessors (`name`/`namespace`), the numeric type predicates and the `php/array` and string gates. Only three lowerings still require a bare variable, and each emits its target more than once: `last` (three times), `second` and `contains?` (twice) (#3042)
 - Apply the `get`, `empty?` and `assoc`/`conj`/`dissoc` lowerings to any target the emitter can type as well, on the same rule: each emits its target once. `(get (mkmap) :a)` 1.78x, `(empty? (mkvec))` 1.47x, `(assoc (mkmap) :c 3)` 1.41x. `contains?` is deliberately excluded, emitting its target twice (#3042)

@@ -1,0 +1,63 @@
+(ns phel-test.core.into-transient-methods
+  (:require phel.test :refer [deftest is]))
+
+;; `into`'s set and map targets write through `.add` and `.put` on the
+;; transient they already build, rather than `conj` and `assoc`, which dispatch
+;; on the target first. Same change as #3149 and #3150.
+;;
+;; The pair validation is what could drift: a map target still has to reject
+;; anything that is not a two-element indexed entry, with the same message, and
+;; the other target kinds still take the generic path.
+
+(deftest test-a-map-target
+  (is (= {1 2} (into {} [[1 2]])) "one pair")
+  (is (= {1 2, 3 4} (into {} [[1 2] [3 4]])) "two pairs")
+  (is (= {} (into {} [])) "nothing to add")
+  (is (= {:z 9, 1 2} (into {:z 9} [[1 2]])) "the target is seeded from")
+  (is (= {1 2} (into {} '([1 2]))) "a list of pairs")
+  (is (= {:a 1} (into {} {:a 1})) "a map source is a sequence of pairs"))
+
+(deftest test-map-entries-with-falsy-parts
+  (is (= 1 (get (into {} [[nil 1]]) nil)) "a nil key")
+  (is (= 1 (get (into {} [[false 1]]) false)) "a false key")
+  (is (nil? (get (into {} [[1 nil]]) 1)) "a nil value")
+  (is (true? (contains? (into {} [[1 nil]]) 1)) "and the key is really present")
+  (is (= {0 0} (into {} [[0 0]])) "zero on both sides"))
+
+(deftest test-a-map-target-rejects-a-non-pair
+  (is (thrown? \InvalidArgumentException (into {} [1 2])) "a bare value is not a pair")
+  (is (thrown? \InvalidArgumentException (into {} [[1 2 3]])) "three elements is not a pair")
+  (is (thrown? \InvalidArgumentException (into {} [[1]])) "one element is not a pair"))
+
+(deftest test-a-set-target
+  (is (= #{1 2} (into (set []) [1 2])) "two elements")
+  (is (= #{1 2} (into (set []) [1 1 2])) "duplicates collapse")
+  (is (= #{} (into (set []) [])) "nothing to add")
+  (is (= #{9 1} (into (set [9]) [1])) "the target is seeded from")
+  (is (= 1 (count (into (set []) [nil nil]))) "nil is one element")
+  (is (= 2 (count (into (set []) [false true]))) "false and true are distinct")
+  (is (= 2 (count (into (set []) "ab"))) "a string source"))
+
+(deftest test-the-other-targets-still-work
+  (is (= [1 2] (into [] [1 2])) "a vector target")
+  (is (= [1 2 3] (into [1] [2 3])) "a seeded vector target")
+  (is (= [1 2] (persistent (into (transient []) [1 2]))) "a transient vector target")
+  (is (= #{1 2} (persistent (into (transient (set [])) [1 2 1]))) "a transient set target")
+  (is (= {} (into {} nil)) "a nil source returns the target"))
+
+(deftest test-metadata-and-type-are-unchanged
+  (is (= {:m 1} (meta (into (with-meta {} {:m 1}) [[1 2]]))) "a map target keeps its metadata")
+  (is (= {:m 1} (meta (into (with-meta (set []) {:m 1}) [1]))) "a set target keeps its metadata")
+  (is (= :set (type (into (set []) [1]))) "a set target stays a set")
+  (is (= :hash-map (type (into {} [[1 2]]))) "a map target stays a map")
+  ;; Pre-existing and unchanged by this: a sorted map's transient is a hash
+  ;; map, so `into` degrades it. Recorded rather than asserted as desirable.
+  (is (= :hash-map (type (into (sorted-map) [[1 2]]))) "a sorted map target degrades to a hash map"))
+
+(deftest test-the-transients-do-not-escape
+  (let [m (into {} [[1 2]])
+        s (into (set []) [1])]
+    (is (= {1 2, 3 4} (assoc m 3 4)) "the map can be assoc'd onto")
+    (is (= {1 2} m) "and is unchanged")
+    (is (= #{1 2} (conj s 2)) "the set can be conj'd onto")
+    (is (= #{1} s) "and is unchanged")))
