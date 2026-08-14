@@ -115,6 +115,7 @@ All notable changes to this project will be documented in this file.
 
 Compiler:
 
+- Walk with `foreach` rather than `for ... :pairs` in `merge-with` and `map-invert` too: 2.16x and 1.99x (#2973)
 - Walk the input with `foreach` rather than `for ... :pairs` in `update-vals`, `update-keys` and `rename-keys`, whose destructuring was most of what they cost: 1.9x, 1.9x and 1.76x (#2973)
 - Merge two maps through the collection's own bulk `merge` instead of adding the right map's entries one at a time with `conj`: 2.6x on two 32-entry maps (#2973)
 - Order `sort-by` natively with `array_multisort` when the keys are all native ints or all native strings and no comparator other than `compare` was given, instead of running a closure per comparison: 2.1x on int keys and 13.7x on string keys, which had no fast path at all. A position column keeps ties in input order (#2973)
