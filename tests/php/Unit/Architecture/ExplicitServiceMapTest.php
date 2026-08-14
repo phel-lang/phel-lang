@@ -12,12 +12,14 @@ use Gacela\Framework\ServiceResolver\ServiceMap;
 use Generator;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
+use RecursiveDirectoryIterator;
+use RecursiveIteratorIterator;
 use ReflectionClass;
+use SplFileInfo;
 
 use function basename;
 use function class_exists;
 use function dirname;
-use function glob;
 use function is_subclass_of;
 use function strlen;
 use function substr;
@@ -62,7 +64,7 @@ final class ExplicitServiceMapTest extends TestCase
         ];
 
         foreach ($pillars as [$pattern, $parentClass, $method, $suffix, $targetSuffix]) {
-            foreach (glob($srcDir . '/*/' . $pattern) ?: [] as $path) {
+            foreach (self::sourcesMatching($srcDir, $pattern) as $path) {
                 $relative = substr($path, strlen($srcDir) + 1);
                 $className = 'Phel\\' . substr($relative, 0, -4);
                 $className = str_replace('/', '\\', $className);
@@ -79,5 +81,29 @@ final class ExplicitServiceMapTest extends TestCase
                 yield basename($path, '.php') => [$className, $method, $expectedClass];
             }
         }
+    }
+
+    /**
+     * Every file under `$srcDir` whose name matches `$pattern`, at any depth.
+     * Gacela 2.0 resolves a pillar by filename suffix wherever it sits, so a
+     * glob rooted at the module directory is narrower than the framework and
+     * would leave a nested pillar unchecked (#3062).
+     *
+     * @return list<string>
+     */
+    private static function sourcesMatching(string $srcDir, string $pattern): array
+    {
+        $paths = [];
+
+        /** @var SplFileInfo $file */
+        foreach (new RecursiveIteratorIterator(new RecursiveDirectoryIterator($srcDir)) as $file) {
+            if ($file->isFile() && fnmatch($pattern, $file->getFilename())) {
+                $paths[] = $file->getPathname();
+            }
+        }
+
+        sort($paths);
+
+        return $paths;
     }
 }
