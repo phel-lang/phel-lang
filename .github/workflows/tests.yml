@@ -71,6 +71,30 @@ jobs:
       - name: Run tests to the core library
         run: php -d memory_limit=256M ./bin/phel test ${{ matrix.exclude-tags }}
 
+  # `optimizationLevel` defaults to 0, so without this job nothing in CI ever
+  # runs `CallInliner` or `TailCallRewriter`. That is how -O2 came to fail five
+  # core tests on main while every check stayed green (#3126). The level is a
+  # documented, reachable configuration, so it gets a suite.
+  #
+  # One job, one PHP version: this guards the optimiser, not the platform
+  # matrix, and the same tests already run at -O0 above.
+  core-tests-optimised:
+    name: Core tests at -O2
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v6
+      - uses: ./.github/actions/setup-phel
+        with:
+          php-version: '8.4'
+
+      - name: Run the core library compiled at optimizationLevel 2
+        env:
+          PHEL_OPTIMIZATION_LEVEL: '2'
+        run: |
+          rm -rf ./.phel/cache
+          php -d memory_limit=256M ./bin/phel test
+
   # Windows is the "Best effort" tier in docs/stability.md: bugs are accepted and
   # fixed, but a Windows-only failure does not block a release, so this job reports
   # without gating. Promoting it to blocking means deleting `continue-on-error`,

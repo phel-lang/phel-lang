@@ -158,7 +158,10 @@
 ;; Integration Tests
 ;; -----------
 
-(defn fetch-user [http-client id]
+;; `^:redef` keeps the call going through the global instead of being
+;; inlined at `-O2`, which is what `with-redefs` needs in order to be seen.
+;; Without it these tests pass at the default level and fail at `-O2` (#3126).
+(defn ^:redef fetch-user [http-client id]
   "Simulates fetching a user via HTTP"
   (http-client (str "/users/" id)))
 
@@ -275,7 +278,7 @@
 ;; Real-world Example Tests
 ;; -----------
 
-(defn send-email [email-service to subject body]
+(defn ^:redef send-email [email-service to subject body]
   "Simulates sending an email"
   (email-service to subject body))
 
@@ -291,7 +294,7 @@
       (is (called-with? mock-email "user@example.com" "Welcome!" "Thanks for signing up")
           "sends correct email"))))
 
-(defn fetch-from-api [url]
+(defn ^:redef fetch-from-api [url]
   "Simulates API call"
   {:url url :status 200})
 
@@ -326,7 +329,7 @@
 ;; Interop/External Function Mocking Tests
 ;; -----------
 
-(defn call-external-service [http-fn endpoint]
+(defn ^:redef call-external-service [http-fn endpoint]
   "Simulates calling an external service (could be PHP, Clojure, or any foreign function)"
   (http-fn endpoint))
 

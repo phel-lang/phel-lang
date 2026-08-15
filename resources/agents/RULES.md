@@ -37,6 +37,7 @@ Use these when appropriate; stable and tested.
 | Return inference | Tagged params + tail primitive op (`(php/+ ...)` -> `int`, `(php/. ...)` -> `string`, comparisons -> `bool`) infers return; `if` / `let` / `loop` propagate. Explicit `:tag` always wins | main |
 | `^:async` defn | `(defn ^:async fetch [url] (await (http-get url)))`; body wrapped in `async`, returns `Amp\Future` | main |
 | `^:memoize` / `^{:memoize-lru N}` | `(defn ^{:memoize-lru 32} fib [^int n] ...)`; opt-in caching by arg vector, LRU bound optional | main |
+| `^:redef` defn | `(defn ^:redef fetch [url] ...)`; opts out of inlining at `optimizationLevel` 2 so `with-redefs` and `phel.mock` still intercept the call | main |
 
 `:tag` reader shorthands:
 
