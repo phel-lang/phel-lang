@@ -97,6 +97,15 @@ final readonly class CallInliner
             return null;
         }
 
+        // Inlining splices the callee's body at the call site, so there is no
+        // longer a global read for `with-redefs` or `phel.mock` to intercept.
+        // That is inherent to direct linking rather than a defect in it, and
+        // Clojure answers the same tension the same way: `^:redef` opts a
+        // definition out, and the call keeps going through the var (#3126).
+        if ($this->isRedefinable($f->getMeta())) {
+            return null;
+        }
+
         // The side-table holds single-arity (`FnNode`) and multi-arity
         // (`MultiFnNode`) defs; `arityFor` resolves the fixed arity whose
         // parameter count matches the call (#2218), or `null` when the
@@ -393,6 +402,20 @@ final readonly class CallInliner
         }
 
         return $count;
+    }
+
+    /**
+     * A definition that asks to stay interceptable.
+     *
+     * The call site keeps reading the global, so rebinding its root with
+     * `with-redefs` or `phel.mock` is still observed after the optimiser has
+     * run. It costs the inlining, which is the point.
+     *
+     * @param PersistentMapInterface<mixed, mixed> $meta
+     */
+    private function isRedefinable(PersistentMapInterface $meta): bool
+    {
+        return (bool) $meta[Keyword::create('redef')];
     }
 
     /**

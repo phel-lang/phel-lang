@@ -4,6 +4,11 @@ All notable changes to this project will be documented in this file.
 
 ## Unreleased
 
+### Added
+
+- `^:redef` metadata on a `defn` opts it out of inlining at `optimizationLevel` 2, so `with-redefs` and `phel.mock` still intercept the call. Inlining splices the callee's body into the caller, which leaves no global read to intercept; this is the same tension Clojure's direct linking has, answered the same way (#3126)
+- A `Core tests at -O2` CI job. `optimizationLevel` defaults to 0, so nothing in CI exercised `CallInliner` or `TailCallRewriter`, which is how the level came to fail five core tests while every check stayed green. The repository's `phel-config.php` reads `PHEL_OPTIMIZATION_LEVEL`, so a local repro is `PHEL_OPTIMIZATION_LEVEL=2 ./bin/phel test` (#3126)
+
 ### Changed
 
 - `atom` and `symbol` have fixed arities for the shapes callers actually use. `(atom v)` is 6.1x faster: it used to allocate a rest argument and `apply` `hash-map` over it on every creation just to find there were no options. `symbol` is 1.9x to 2.3x faster; it used `[name-or-ns & [name]]`, which built a rest argument and destructured one value back out of it. Both are behaviour-preserving, including `symbol` going on ignoring a third argument. `atom` with options is 3% slower, from the extra arity dispatch (#2973)
