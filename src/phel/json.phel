@@ -25,7 +25,7 @@
       (when-not (valid-key? k)
         (throw (new JsonException "Key can only be an integer, float, symbol, keyword or a string.")))
       ;; `php/aset` and not `aset`: the array is a PHP array here by
-       ;; construction, and this runs once per key of every object encoded.
+      ;; construction, and this runs once per key of every object encoded.
       (php/aset arr (encode-key k) (encode-value v)))
     arr))
 
@@ -36,7 +36,8 @@
   [x]
   (cond
     ;; An empty map must encode as a JSON object `{}`, not the `[]` an empty
-    ;; php/array would produce; a stdClass forces object encoding.
+    ;; php/array would produce; a stdClass forces object encoding. It is the
+    ;; same type `decode-value` reads an object back from, at the other end.
     (and (map? x) (empty? x)) (new \stdClass)
     (php/is_iterable x)       (encode-value-iterable x)
     (symbol? x)               (name x)
