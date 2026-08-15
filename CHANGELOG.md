@@ -4,6 +4,10 @@ All notable changes to this project will be documented in this file.
 
 ## Unreleased
 
+### Fixed
+
+- `phel.json/decode` reads with `assoc = false`, so a JSON object stays a map instead of collapsing to a vector. `{}` now round-trips (`(= {} (decode (encode {})))`), a nested `{}` keeps its shape at any depth, and an object whose keys are all numeric (`{"0":"a"}`) decodes as `{:0 "a"}` rather than `["a"]`. `decode-value` still turns a PHP associative array into a map for callers that reach for it directly (#3089)
+
 ### Changed
 
 - `apply` spreads a vector in one walk instead of stepping it element by element: `(apply + [1 2 3])` is 2.1x faster. Other source kinds are unchanged (#3181)

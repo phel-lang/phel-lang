@@ -49,14 +49,17 @@
   (is (thrown? \Exception (j/decode "{}" {:depth 0})) "a depth of zero"))
 
 (deftest test-round-trip
-  (foreach [v [{:a 1} [1 2 3] "s" 42 {:a {:b [1 2]}} []]]
+  (foreach [v [{:a 1} [1 2 3] "s" 42 {:a {:b [1 2]}} [] {} {:a {}} {:a []} [{} []]]]
     (is (= v (j/decode (j/encode v))) (str "round-trips " (j/encode v)))))
 
-(deftest test-empty-object-does-not-round-trip
-  ;; Pre-existing and unrelated to the arity split, recorded so the next reader
-  ;; does not take it for a regression: `php/json_decode` with assoc=true maps
-  ;; both `{}` and `[]` onto the same empty PHP array, so the object/array
-  ;; distinction `encode` preserves is lost on the way back. See #3089.
-  (is (= "{}" (j/encode {})) "an empty map still encodes as an object")
-  (is (= [] (j/decode "{}")) "but decodes back as an empty vector")
-  (is (= (j/decode "[]") (j/decode "{}")) "empty object and empty array decode alike"))
+(deftest test-an-empty-object-round-trips
+  ;; `php/json_decode` with assoc=true maps both `{}` and `[]` onto the same
+  ;; empty PHP array, which lost the object/array distinction `encode` goes out
+  ;; of its way to preserve. `decode` reads with assoc=false now, so a JSON
+  ;; object arrives as a `stdClass` and stays a map. See #3089.
+  (is (= "{}" (j/encode {})) "an empty map encodes as an object")
+  (is (= {} (j/decode "{}")) "and decodes back as an empty map")
+  (is (= [] (j/decode "[]")) "an empty array still decodes as an empty vector")
+  (is (not= (j/decode "[]") (j/decode "{}")) "the two are no longer the same value")
+  (is (map? (j/decode "{}")) "the empty object is a map")
+  (is (vector? (j/decode "[]")) "the empty array is a vector"))

@@ -43,3 +43,32 @@
   ;; php/json_decode coerces numeric object keys to ints; they must still
   ;; become keywords, not collapse to a single nil key.
   (is (= {:1 "one" :2 "two"} (json/decode "{\"1\":\"one\",\"2\":\"two\"}"))))
+
+(deftest test-json-objects-stay-maps-at-every-depth
+  ;; `decode` reads with assoc=false, so an object arrives as a `stdClass` and
+  ;; an array as a PHP array. Under assoc=true both collapsed to a PHP array
+  ;; and anything that looked indexed came back a vector (#3089).
+  (is (= {} (json/decode "{}")) "an empty object")
+  (is (= [] (json/decode "[]")) "an empty array")
+  (is (= {:a {}} (json/decode "{\"a\":{}}")) "an empty object nested in an object")
+  (is (= {:a []} (json/decode "{\"a\":[]}")) "an empty array nested in an object")
+  (is (= [{} []] (json/decode "[{},[]]")) "both nested in an array")
+  (is (= {:a {:b [1 {}]}} (json/decode "{\"a\":{\"b\":[1,{}]}}")) "three levels down")
+  (is (map? (get (json/decode "{\"a\":{}}") :a)) "the nested empty object is a map")
+  (is (vector? (get (json/decode "{\"a\":[]}") :a)) "the nested empty array is a vector"))
+
+(deftest test-an-object-with-only-numeric-keys-is-still-an-object
+  ;; Under assoc=true these decoded to a vector, because the PHP array they
+  ;; landed in looked indexed. JSON says object, so the result is a map.
+  (is (= {:0 "a"} (json/decode "{\"0\":\"a\"}")) "one zero-based numeric key")
+  (is (= {:0 "a", :1 "b"} (json/decode "{\"0\":\"a\",\"1\":\"b\"}")) "consecutive numeric keys")
+  (is (map? (json/decode "{\"0\":\"a\"}")) "the result is a map, not a vector")
+  (is (= ["a"] (json/decode "[\"a\"]")) "and the array spelling is still a vector"))
+
+(deftest test-decode-value-still-accepts-a-php-associative-array
+  ;; `decode-value` is public and reachable without `decode`, so the PHP-array
+  ;; branch stays for a caller that hands it one directly.
+  (is (= {:a 1} (json/decode-value (php-associative-array "a" 1))) "an associative array is a map")
+  (is (= [1 2 3] (json/decode-value [1 2 3])) "a vector is unchanged")
+  (is (= 5 (json/decode-value 5)) "a scalar is unchanged")
+  (is (nil? (json/decode-value nil)) "nil is unchanged"))
