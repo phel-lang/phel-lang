@@ -7,6 +7,7 @@
   [v]
   (or (int? v) (float? v) (symbol? v) (keyword? v) (string? v)))
 
+(declare decode-value)
 (declare encode-value)
 
 (defn- encode-key
@@ -24,7 +25,7 @@
       (when-not (valid-key? k)
         (throw (new JsonException "Key can only be an integer, float, symbol, keyword or a string.")))
       ;; `php/aset` and not `aset`: the array is a PHP array here by
-       ;; construction, and this runs once per key of every object encoded.
+      ;; construction, and this runs once per key of every object encoded.
       (php/aset arr (encode-key k) (encode-value v)))
     arr))
 
@@ -35,7 +36,8 @@
   [x]
   (cond
     ;; An empty map must encode as a JSON object `{}`, not the `[]` an empty
-    ;; php/array would produce; a stdClass forces object encoding.
+    ;; php/array would produce; a stdClass forces object encoding. It is the
+    ;; same type `decode-value` reads an object back from, at the other end.
     (and (map? x) (empty? x)) (new \stdClass)
     (php/is_iterable x)       (encode-value-iterable x)
     (symbol? x)               (name x)
@@ -61,21 +63,35 @@
      (when-not (> depth 0) (throw (new JsonException "Depth must be greater than zero.")))
      (php/json_encode (encode-value value) flags depth))))
 
+(defn- json-object-to-map
+  "Builds a map from the key/value pairs of a decoded JSON object.
+
+  JSON object keys are strings, but a PHP array coerces numeric ones to ints,
+  so both `php/json_decode` and `php/get_object_vars` can hand back an int
+  here; stringify first so `(keyword k)` never collapses them to a single nil
+  key."
+  [pairs]
+  (let [hashmap (transient {})]
+    (foreach [k v pairs]
+      (.put hashmap (keyword (str k)) (decode-value v)))
+    (persistent hashmap)))
+
 (defn decode-value
   "Converts a JSON value to Phel format."
   {:example "(decode-value [1 2 3]) ; => [1 2 3]"
    :see-also ["decode" "encode-value"]}
   [x]
   (cond
-    (indexed? x)   (for [v :in x] (decode-value v))
-    (php-array? x) (let [hashmap (transient {})]
-                     (foreach [k v x]
-                       ;; JSON object keys are strings, but php/json_decode coerces
-                       ;; numeric keys to ints; stringify first so `(keyword k)`
-                       ;; never collapses them to a single nil key.
-                       (.put hashmap (keyword (str k)) (decode-value v)))
-                     (persistent hashmap))
-    true           x))
+    ;; `decode` reads with assoc=false, so a JSON object arrives as a
+    ;; `stdClass`. That is the only place it is still distinguishable from a
+    ;; JSON array: assoc=true maps `{}` and `[]` onto the same empty PHP array
+    ;; and the object reads back as a vector (#3089).
+    (php/instanceof x \stdClass) (json-object-to-map (php/get_object_vars x))
+    (indexed? x)                 (for [v :in x] (decode-value v))
+    ;; A PHP associative array still decodes as a map, for a caller that
+    ;; reaches for `decode-value` on its own rather than through `decode`.
+    (php-array? x)               (json-object-to-map x)
+    true                         x))
 
 (defn decode
   "Decodes a JSON string to a Phel value."
@@ -83,7 +99,7 @@
   ;; Same split as `encode`, and for the same reasons.
   ([json]
    (when-not (string? json) (throw (new JsonException "Json must be a string.")))
-   (decode-value (php/json_decode json true 512 0)))
+   (decode-value (php/json_decode json false 512 0)))
   ([json {:flags flags, :depth depth}]
    (let [flags (or flags 0)
          depth (or depth 512)]
@@ -91,4 +107,4 @@
      (when-not (int? flags) (throw (new JsonException "Flags must be an integer.")))
      (when-not (int? depth) (throw (new JsonException "Depth must be an integer.")))
      (when-not (> depth 0) (throw (new JsonException "Depth must be greater than zero.")))
-     (decode-value (php/json_decode json true depth flags)))))
+     (decode-value (php/json_decode json false depth flags)))))
