@@ -27,13 +27,17 @@ Atoms provide a way to manage mutable state. Use `reset!` to set a new value and
 Optional `:meta` and `:validator` keyword arguments may follow the value in any order. The validator is applied to the initial value when set."
   {:example "(def counter (atom 0))\n(atom 0 :meta {:tag :counter} :validator number?)"
    :see-also ["reset!" "deref" "swap!" "set-validator!"]}
-  [value & opts]
-  (let [pairs (apply hash-map opts)
-        m     (get pairs :meta)
-        vf    (get pairs :validator)
-        v     (Phel/atom value m)]
-    (when vf (.setValidator v vf))
-    v))
+  ;; Fixed arity for the plain `(atom v)`, which is nearly every call. The
+  ;; variadic form allocated `opts`, then `apply`-ed `hash-map` over it and read
+  ;; two keys back out, all to discover there were no options. See #2973.
+  ([value] (Phel/atom value nil))
+  ([value & opts]
+   (let [pairs (apply hash-map opts)
+         m     (get pairs :meta)
+         vf    (get pairs :validator)
+         v     (Phel/atom value m)]
+     (when vf (.setValidator v vf))
+     v)))
 
 (defn atom?
   "Returns true if the given value is an atom."

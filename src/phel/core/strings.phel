@@ -50,26 +50,37 @@ With one argument, creates a symbol without namespace. Accepts a string, a keywo
 
 Throws `InvalidArgumentException` for any other input (including functions, numbers, and collections)."
   {:example "(symbol \"foo\") ; => foo\n(symbol :abc) ; => abc\n(symbol nil \"foo\") ; => foo\n(symbol #'phel.core/+) ; => phel.core/+"}
-  [name-or-ns & [name]]
-  (if name
-    (do
-      (assert-symbol-name "name" name)
-      (if (php/=== nil name-or-ns)
-        (Symbol/create (to-symbol-part name))
-        (do
-          (assert-symbol-name "namespace" name-or-ns)
-          (Symbol/createForNamespace
-           (to-symbol-part name-or-ns)
-           (to-symbol-part name)))))
-    (if (php/instanceof name-or-ns Symbol)
-      name-or-ns
-      (if (php/instanceof name-or-ns PhelVar)
-        (Symbol/createForNamespace
-         (.decodeNs symbol-munge (.getNamespace name-or-ns))
-         (.getName name-or-ns))
-        (do
-          (assert-symbol-name "name-or-ns" name-or-ns)
-          (Symbol/create (to-symbol-part name-or-ns)))))))
+  ;; Fixed arities rather than `[name-or-ns & [name]]`, which allocated a rest
+  ;; argument and then destructured a single value back out of it: the costliest
+  ;; of the variadic shapes measured in #2973. The variadic tail is kept only so
+  ;; that a third argument goes on being ignored rather than becoming an arity
+  ;; error, which would be a source-compatibility break and is a decision for
+  ;; its own change, not for a speedup.
+  ([name-or-ns]
+   (if (php/instanceof name-or-ns Symbol)
+     name-or-ns
+     (if (php/instanceof name-or-ns PhelVar)
+       (Symbol/createForNamespace
+        (.decodeNs symbol-munge (.getNamespace name-or-ns))
+        (.getName name-or-ns))
+       (do
+         (assert-symbol-name "name-or-ns" name-or-ns)
+         (Symbol/create (to-symbol-part name-or-ns))))))
+  ([name-or-ns name]
+   ;; `(symbol ns nil)` still means "no name", as it did when `name` simply
+   ;; failed to arrive.
+   (if name
+     (do
+       (assert-symbol-name "name" name)
+       (if (php/=== nil name-or-ns)
+         (Symbol/create (to-symbol-part name))
+         (do
+           (assert-symbol-name "namespace" name-or-ns)
+           (Symbol/createForNamespace
+            (to-symbol-part name-or-ns)
+            (to-symbol-part name)))))
+     (symbol name-or-ns)))
+  ([name-or-ns name & ignored] (symbol name-or-ns name)))
 
 (defn gensym
   "Generates a new unique symbol."

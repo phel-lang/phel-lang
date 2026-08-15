@@ -4,6 +4,10 @@ All notable changes to this project will be documented in this file.
 
 ## Unreleased
 
+### Changed
+
+- `atom` and `symbol` have fixed arities for the shapes callers actually use. `(atom v)` is 6.1x faster: it used to allocate a rest argument and `apply` `hash-map` over it on every creation just to find there were no options. `symbol` is 1.9x to 2.3x faster; it used `[name-or-ns & [name]]`, which built a rest argument and destructured one value back out of it. Both are behaviour-preserving, including `symbol` going on ignoring a third argument. `atom` with options is 3% slower, from the extra arity dispatch (#2973)
+
 ### Fixed
 
 - `phel.json/decode` reads with `assoc = false`, so a JSON object stays a map instead of collapsing to a vector. `{}` now round-trips (`(= {} (decode (encode {})))`), a nested `{}` keeps its shape at any depth, and an object whose keys are all numeric (`{"0":"a"}`) decodes as `{:0 "a"}` rather than `["a"]`. `decode-value` still turns a PHP associative array into a map for callers that reach for it directly (#3089)
