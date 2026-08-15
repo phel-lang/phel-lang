@@ -10,8 +10,8 @@ use PhpBench\Benchmark\Metadata\Annotations\Revs;
 
 /**
  * The `phel.core` functions that build a value from loose arguments and were
- * given fixed arities for the small counts: `hash-set` (#3001) and `str`
- * (#2976).
+ * given fixed arities for the small counts: `hash-set` (#3001), `str` (#2976),
+ * and `atom` and `symbol` (#2973).
  *
  * Both were optimised by removing the rest argument from the counts that
  * actually occur, so each is measured at a count inside the fixed arities and
@@ -40,6 +40,14 @@ final class CoreConstructionBench extends CoreBenchCase
 
     /** @var callable */
     private $toPhpArray;
+
+    /** @var callable */
+    private $atom;
+
+    /** @var callable */
+    private $symbol;
+
+    private mixed $metaKeyword = null;
 
     private mixed $smallVector = null;
 
@@ -225,10 +233,64 @@ final class CoreConstructionBench extends CoreBenchCase
         }
     }
 
+    /**
+     * `(atom v)`, which is nearly every `atom` call. It used to allocate a rest
+     * argument and `apply` `hash-map` over it to discover there were no
+     * options.
+     *
+     * @Revs(1000)
+     */
+    public function bench_atom_plain(): void
+    {
+        for ($i = 0; $i < self::INNER; ++$i) {
+            ($this->atom)(1);
+        }
+    }
+
+    /**
+     * The options path, still variadic. Paired with the one above so a change
+     * that only moves the fast arity is told apart from one that moves both.
+     *
+     * @Revs(1000)
+     */
+    public function bench_atom_with_options(): void
+    {
+        for ($i = 0; $i < self::INNER; ++$i) {
+            ($this->atom)(1, $this->metaKeyword, $this->map);
+        }
+    }
+
+    /**
+     * `symbol` used `[name-or-ns & [name]]`, the costliest variadic shape
+     * measured in #2973: a rest argument built and then destructured back into
+     * one value.
+     *
+     * @Revs(1000)
+     */
+    public function bench_symbol_one_argument(): void
+    {
+        for ($i = 0; $i < self::INNER; ++$i) {
+            ($this->symbol)('foo');
+        }
+    }
+
+    /**
+     * @Revs(1000)
+     */
+    public function bench_symbol_two_arguments(): void
+    {
+        for ($i = 0; $i < self::INNER; ++$i) {
+            ($this->symbol)('a', 'b');
+        }
+    }
+
     protected function setUpFixtures(): void
     {
         $this->hashSet = $this->coreFn('hash-set');
         $this->str = $this->coreFn('str');
+        $this->atom = $this->coreFn('atom');
+        $this->symbol = $this->coreFn('symbol');
+        $this->metaKeyword = Phel::keyword('meta');
 
         $this->toPhpArray = $this->coreFn('to-php-array');
         $this->smallVector = Phel::vector(['a', 'b', 'c']);

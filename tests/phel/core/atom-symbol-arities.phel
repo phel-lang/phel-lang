@@ -1,0 +1,70 @@
+(ns phel-test.core.atom-symbol-arities
+  (:require phel.test :refer [deftest is thrown?]))
+
+;; `atom` and `symbol` grew fixed arities for the shapes callers actually use.
+;; `atom` allocated a rest argument and `apply`-ed `hash-map` over it on every
+;; creation, even `(atom 0)`; `symbol` used `[name-or-ns & [name]]`, the
+;; costliest variadic shape measured in #2973, destructuring one value back
+;; out of a rest argument it had just built.
+;;
+;; Both are behaviour-preserving. `symbol` keeps a variadic tail purely so a
+;; third argument goes on being ignored: turning that into an arity error would
+;; be a source-compatibility break, and it is not this change to make.
+
+(deftest test-atom-with-no-options
+  (is (= 5 (deref (atom 5))) "the value is held")
+  (is (nil? (meta (atom 5))) "no metadata")
+  (is (atom? (atom 5)) "it is an atom")
+  (is (nil? (deref (atom nil))) "a nil value")
+  (is (= false (deref (atom false))) "a false value")
+  (is (= [] (deref (atom []))) "a collection value"))
+
+(deftest test-atom-with-options-is-unchanged
+  (is (= {:t 1} (meta (atom 5 :meta {:t 1}))) "meta")
+  (is (= 5 (deref (atom 5 :meta {:t 1}))) "and the value survives it")
+  (is (= 5 (deref (atom 5 :validator int?))) "validator accepts the initial value")
+  (is (= {:t 1} (meta (atom 5 :validator int? :meta {:t 1}))) "both, validator first")
+  (is (= {:t 1} (meta (atom 5 :meta {:t 1} :validator int?))) "both, meta first")
+  (is (thrown? \Throwable (atom "x" :validator int?)) "a rejected initial value throws"))
+
+(deftest test-an-atom-still-mutates
+  (let [a (atom 1)]
+    (swap! a inc)
+    (is (= 2 (deref a)) "swap!")
+    (reset! a 9)
+    (is (= 9 (deref a)) "reset!")))
+
+(deftest test-symbol-with-one-argument
+  (is (= 'foo (symbol "foo")) "from a string")
+  (is (= 'abc (symbol :abc)) "from a keyword")
+  (is (= 'q (symbol 'q)) "from a symbol")
+  (is (= 'phel.core/+ (symbol #'phel.core/+)) "from a var, fully qualified")
+  (is (nil? (namespace (symbol "foo"))) "no namespace")
+  (is (thrown? \InvalidArgumentException (symbol 1)) "an int is rejected")
+  (is (thrown? \InvalidArgumentException (symbol [])) "a collection is rejected"))
+
+(deftest test-symbol-with-two-arguments
+  (is (= 'a/b (symbol "a" "b")) "namespace and name")
+  (is (= "a" (namespace (symbol "a" "b"))) "the namespace is kept")
+  (is (= "b" (name (symbol "a" "b"))) "and the name")
+  (is (= 'foo (symbol nil "foo")) "a nil namespace yields a bare symbol")
+  (is (nil? (namespace (symbol nil "foo"))) "and really has no namespace"))
+
+(deftest test-symbol-with-a-nil-name-falls-back-to-one-argument
+  ;; `(symbol x nil)` used to reach the one-argument branch because `name`
+  ;; simply never arrived. It still does.
+  (is (= 'a (symbol "a" nil)) "a string")
+  (is (= 'q (symbol 'q nil)) "a symbol passes through")
+  (is (= 'abc (symbol :abc nil)) "a keyword"))
+
+(deftest test-symbol-still-ignores-extra-arguments
+  ;; Not endorsed, just unchanged. The fixed arities exist for speed, and
+  ;; removing a callable arity is a separate decision.
+  (is (= 'a/b (symbol "a" "b" "c")) "a third argument is dropped")
+  (is (= 'a/b (symbol "a" "b" "c" "d")) "and so is a fourth")
+  (is (= 'foo (symbol nil "foo" "x")) "including on the nil-namespace path"))
+
+(deftest test-a-symbol-argument-is-returned-as-is
+  (let [s 'x]
+    (is (= s (symbol s)) "the same symbol")
+    (is (identical? s (symbol s)) "and the same instance, not a copy")))
