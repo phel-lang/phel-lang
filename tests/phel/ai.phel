@@ -810,7 +810,7 @@
       (let [original @ai/config]
         (ai/configure {:provider :openai :api-key "k"})
         (let [index (ai/build-index ["hello" "world"])
-              items (to-php-array index)]
+              items (to-array index)]
           (is (= 2 (count index)) "builds two index entries")
           (is (= "hello" (get (aget items 0) :text)) "first text preserved")
           (is (= [0.1 0.9] (get (aget items 0) :embedding)) "first embedding attached"))
