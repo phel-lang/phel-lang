@@ -509,17 +509,35 @@ Without arguments, uses a default cache size of 128 entries."
     (new Equalizer)
     (Seq/flatten coll))))
 
-(defn- merge-with-2 [f left right]
-  ;; `foreach` and not `for … :pairs`, as the map rebuilders in #3140: the
-  ;; destructuring was most of the cost. Seeding from `left` is the merge
-  ;; itself, not an optimisation, so the metadata question that stopped
-  ;; `update-vals` seeding does not arise here.
+(defn- merge-with-into-array
+  "A PHP array has no transient, so seeding one failed with \"Call to a member
+  function asTransient() on array\" (#3114). PHP array assignment copies, which
+  gives the same fresh-result guarantee a transient does, and writing through
+  `aset` keeps the array type the caller passed in."
+  [f left right]
+  (let [acc left]
+    (foreach [k v right]
+      (aset acc k (if (php/array_key_exists k acc) (f (aget acc k) v) v)))
+    acc))
+
+(defn- merge-with-into-transient
+  [f left right]
   (let [acc (transient left)]
     (foreach [k v right]
       (if (contains? acc k)
         (.put acc k (f (get acc k) v))
         (.put acc k v)))
     (persistent acc)))
+
+(defn- merge-with-2 [f left right]
+  ;; `foreach` and not `for … :pairs`, as the map rebuilders in #3140: the
+  ;; destructuring was most of the cost. Seeding from `left` is the merge
+  ;; itself, not an optimisation, so the metadata question that stopped
+  ;; `update-vals` seeding does not arise here.
+  ;;
+  (if (php/is_array left)
+    (merge-with-into-array f left right)
+    (merge-with-into-transient f left right)))
 
 (defn merge-with
   "Merges multiple maps into one new map. If a key appears in more than one collection, the result of `(f current-val next-val)` is used."

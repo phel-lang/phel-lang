@@ -22,6 +22,7 @@ All notable changes to this project will be documented in this file.
 
 ### Fixed
 
+- `merge` and `conj` treat an associative PHP array as the map-like value the rest of core already reads it as, instead of appending at the next integer index. `(merge #php {"a" 1} #php {"b" 2})` returns `#php {"a" 1 "b" 2}` rather than putting the right operand at key `0`, and `(merge arr nil)` no longer appends `nil`. The left operand's type is preserved, matching `into`. Indexed PHP arrays still append, and conj-ing a value that is not a `[key value]` pair or an associative collection onto an associative array now throws, as it does for a map. `merge-with` no longer crashes with "Call to a member function asTransient() on array" when given one (#3114)
 - `phel.json/decode` reads with `assoc = false`, so a JSON object stays a map instead of collapsing to a vector. `{}` now round-trips (`(= {} (decode (encode {})))`), a nested `{}` keeps its shape at any depth, and an object whose keys are all numeric (`{"0":"a"}`) decodes as `{:0 "a"}` rather than `["a"]`. `decode-value` still turns a PHP associative array into a map for callers that reach for it directly (#3089)
 
 ### Changed
