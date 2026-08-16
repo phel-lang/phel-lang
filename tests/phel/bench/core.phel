@@ -56,5 +56,15 @@
 (defbench bench-str-three
   (str "a" "b" "c"))
 
+;; Reading a global, which every resolved symbol in compiled Phel does through
+;; `\Phel::getDefinition` (#3179). Four reads per rev so the read dominates the
+;; arithmetic around it; `def-` rather than a local, because a local is a plain
+;; PHP variable and would measure nothing.
+(def- answer 42)
+
+(defbench bench-global-var-read
+  {:revs 1000}
+  (+ answer answer answer answer))
+
 (defbench bench-hash-set-three
   (hash-set :a :b :c))
