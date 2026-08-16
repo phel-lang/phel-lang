@@ -1,4 +1,4 @@
 --PHEL--
 (bit-not 1)
 --PHP--
-(\Phel::getDefinition("phel.core", "assert-non-nil"))->__invoke(1);
+(\Phel\Lang\Registry::readRoot("phel.core", "assert-non-nil"))->__invoke(1);

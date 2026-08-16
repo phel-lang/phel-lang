@@ -22,4 +22,4 @@
     "arglists", "[x flag]"
   )
 );
-(\Phel::getDefinition("user", "mixed"))->__invoke("x", false);
+(\Phel\Lang\Registry::readRoot("user", "mixed"))->__invoke("x", false);

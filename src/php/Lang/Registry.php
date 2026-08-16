@@ -146,6 +146,27 @@ final class Registry
         return $this->definitions[$ns][$name] ?? null;
     }
 
+    /**
+     * The root value of a definition, read in one static hop.
+     *
+     * This is what compiled code calls for a var that cannot be dynamically
+     * bound, so it is one of the most-executed methods in a Phel program:
+     * `\Phel::getDefinition()` reaches the same array after a facade call and
+     * a dynamic-scope gate that only a `^:dynamic` var can ever trip, and
+     * skipping both is 2.4x faster idle and 3.4x faster while any `binding`
+     * frame is open (#3179).
+     *
+     * `with-redefs`, `phel.mock` and `dotrace` swap the root through
+     * `addDefinition`, so a root read still observes every one of them.
+     *
+     * Do NOT rename: `GlobalVarEmitter` bakes this FQN into generated PHP, and
+     * cached `.phel` artifacts keep calling it by that name.
+     */
+    public static function readRoot(string $ns, string $name): mixed
+    {
+        return self::getInstance()->definitions[$ns][$name] ?? null;
+    }
+
     public function &getDefinitionReference(string $ns, string $name): mixed
     {
         if (isset($this->definitions[$ns][$name])) {

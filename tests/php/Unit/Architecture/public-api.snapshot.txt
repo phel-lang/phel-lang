@@ -1288,6 +1288,7 @@ final class Phel\Lang\Registry
   public function restore(array $snapshot): void
   public function snapshot(): array
   public static function getInstance(): Phel\Lang\Registry
+  public static function readRoot(string $ns, string $name): mixed
 
 interface Phel\Lang\RestInterface
   public function rest()

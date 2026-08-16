@@ -8,6 +8,7 @@ use Phel;
 use Phel\Build\BuildFacade;
 use Phel\Compiler\CompilerFacade;
 use Phel\Compiler\Infrastructure\GlobalEnvironmentSingleton;
+use Phel\Lang\Registry;
 use Phel\Lang\Symbol;
 use Phel\Shared\CompileOptions;
 use PHPUnit\Framework\TestCase;
@@ -54,11 +55,15 @@ final class CallSiteCacheTest extends TestCase
         BuildFacade::disableBuildMode();
         $output = $this->compileSnippet('(fn [x] [(+ x 1) (+ x 2)])');
 
-        $phel = '\\' . Phel::class;
+        $registry = '\\' . Registry::class;
 
         self::assertStringNotContainsString('$__phel_call_', $output);
-        self::assertStringContainsString('(' . $phel . '::getDefinition("phel.core", "+"))->__invoke($x, 1)', $output);
-        self::assertStringContainsString('(' . $phel . '::getDefinition("phel.core", "+"))->__invoke($x, 2)', $output);
+        // Uncached, so each call reads the definition afresh and a REPL
+        // redefine wins. `+` carries no `^:dynamic`/`^:redef`, so the read is
+        // the registry root (#3179); what matters here is that it is a read
+        // per call rather than a pinned slot.
+        self::assertStringContainsString('(' . $registry . '::readRoot("phel.core", "+"))->__invoke($x, 1)', $output);
+        self::assertStringContainsString('(' . $registry . '::readRoot("phel.core", "+"))->__invoke($x, 2)', $output);
     }
 
     public function test_call_method_dispatch_targets_only_known_fn_defs(): void
@@ -67,13 +72,13 @@ final class CallSiteCacheTest extends TestCase
         $output = $this->compileSnippet('(def k :a) (k {:a 1})');
         BuildFacade::disableBuildMode();
 
-        $phel = '\\' . Phel::class;
+        $registry = '\\' . Registry::class;
 
         // `k` resolves to a Keyword (callable via __invoke), but the
         // analyzer has no `arglists` meta for it, so we keep the legacy
         // magic-dispatch form rather than risk `->__invoke` on a non-AbstractFn.
-        self::assertStringContainsString('(' . $phel . '::getDefinition("user", "k"))(', $output);
-        self::assertStringNotContainsString('(' . $phel . '::getDefinition("user", "k"))->__invoke', $output);
+        self::assertStringContainsString('(' . $registry . '::readRoot("user", "k"))(', $output);
+        self::assertStringNotContainsString('(' . $registry . '::readRoot("user", "k"))->__invoke', $output);
     }
 
     private function compileSnippet(string $phel): string

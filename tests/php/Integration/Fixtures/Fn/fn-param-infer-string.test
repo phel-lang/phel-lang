@@ -22,4 +22,4 @@
     \Phel\Lang\Keyword::create("tag"), "string"
   )
 );
-(\Phel::getDefinition("user", "greet"))->__invoke("world");
+(\Phel\Lang\Registry::readRoot("user", "greet"))->__invoke("world");

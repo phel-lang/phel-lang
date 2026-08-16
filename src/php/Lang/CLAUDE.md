@@ -51,7 +51,7 @@ Shared behaviour traits: `MetaTrait` (`getMeta`/`withMeta`), `HashCombinerTrait`
 
 | Class | Notes |
 |-------|-------|
-| `Registry` | Singleton managing definitions by namespace (values + metadata) |
+| `Registry` | Singleton managing definitions by namespace (values + metadata). `readRoot(ns, name)` is the static one-hop read compiled code performs for a var that is not `^:dynamic`/`^:redef`: `\Phel::getDefinition()` reaches the same array behind a dynamic-scope gate only a `^:dynamic` var can trip (#3179). Do NOT rename `readRoot` — `GlobalVarEmitter` bakes its FQN into generated PHP and cached artifacts keep calling it |
 | `TypeFactory` | Singleton creating persistent collections; provides `Hasher`/`Equalizer` singletons |
 | `Seq` | Static utility for sequence ops. Mostly thin delegates to `Generators/`, plus the two single-pull probes `isEmpty()` / `first()` that answer `empty?` / `first` for a source with no size or indexed access of its own |
 | `TagRegistry` | Reader literal tag-handler dispatch (`TagHandlers/`: `#inst`, `#uuid`, regex) |
