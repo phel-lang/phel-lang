@@ -18,6 +18,7 @@ use Phel\Lang\Collections\Vector\PersistentVector;
 use Phel\Lang\Collections\Vector\PersistentVectorInterface;
 
 use function count;
+use function intdiv;
 
 final class TypeFactory
 {
@@ -59,7 +60,12 @@ final class TypeFactory
      */
     public function persistentMapFromArray(array $kvs = []): PersistentMapInterface
     {
-        if (count($kvs) <= PersistentArrayMap::MAX_SIZE) {
+        // `$kvs` is flat (`[k1, v1, k2, v2, ...]`) and `MAX_SIZE` counts
+        // entries, so comparing the two directly promoted a literal at half
+        // the constant while every growing path promoted at the constant: the
+        // same six-entry map read 3.4x slower when built with `assoc` than
+        // when written as `{...}` (#3172).
+        if (intdiv(count($kvs), 2) <= PersistentArrayMap::MAX_SIZE) {
             return PersistentArrayMap::fromArray($this->hasher, $this->equalizer, $kvs);
         }
 

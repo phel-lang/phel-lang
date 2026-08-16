@@ -721,7 +721,7 @@ final readonly class Phel\Lang\Collections\Map\MapEntry implements Countable, It
   public static function create(mixed $key, mixed $value): Phel\Lang\Collections\Map\MapEntry
 
 final class Phel\Lang\Collections\Map\PersistentArrayMap extends Phel\Lang\Collections\Map\AbstractPersistentMap
-  public const int MAX_SIZE = 8
+  public const int MAX_SIZE = 4
   public function __construct(Phel\Lang\HasherInterface $hasher, Phel\Lang\EqualizerInterface $equalizer, ?Phel\Lang\Collections\Map\PersistentMapInterface $meta, array $array)
   public function asTransient(): Phel\Lang\Collections\Map\TransientMapWrapper
   public function contains($key): bool

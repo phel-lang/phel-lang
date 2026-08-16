@@ -1,8 +1,9 @@
 (ns phel-test.core.small-map-lookup
   (:require phel.test :refer [deftest is]))
 
-;; `PersistentArrayMap::MAX_SIZE` dropped from 16 to 8, so a map of 9 to 16
-;; entries is now a hash map rather than a flat array scanned per lookup.
+;; `PersistentArrayMap::MAX_SIZE` is 4: a map above it is a hash map rather
+;; than a flat array scanned per lookup. It was 16, then 8 (#3173), and 4 once
+;; every construction path agreed on where the threshold sits (#3172).
 ;;
 ;; Nothing about the map's behaviour may change with it. These walk the sizes
 ;; either side of the threshold and check that every key is still there, still
@@ -13,7 +14,7 @@
   (zipmap (map (fn [i] (keyword (str "k" i))) (range 0 n)) (range 0 n)))
 
 (deftest test-every-size-across-the-threshold-round-trips
-  (dofor [n :in [0 1 2 7 8 9 15 16 17 32]]
+  (dofor [n :in [0 1 2 3 4 5 7 8 9 15 16 17 32]]
     (let [m (mk n)]
       (is (= n (count m)) (str n " entries are counted"))
       (is (= (vec (range 0 n)) (vec (sort (vals m)))) (str n " entries keep their values"))
@@ -23,7 +24,7 @@
 (deftest test-falsy-keys-survive-at-every-size
   ;; nil, false and 0 are distinct Phel keys but the same PHP array key, so a
   ;; representation change is where they would collide.
-  (dofor [pad :in [0 6 8 12 20]]
+  (dofor [pad :in [0 1 2 3 6 8 12 20]]
     (let [base {nil :n, false :f, 0 :z}
           m (reduce (fn [acc i] (assoc acc (keyword (str "p" i)) i)) base (range 0 pad))]
       (is (= 3 (count (select-keys m [nil false 0]))) (str "all three survive with " pad " other entries"))
@@ -33,12 +34,12 @@
       (is (true? (contains? m nil)) "nil is really present"))))
 
 (deftest test-updates-across-the-threshold
-  (let [m (mk 8)
+  (let [m (mk 4)
         grown (assoc m :extra 99)]
-    (is (= 9 (count grown)) "growing past the threshold keeps every entry")
+    (is (= 5 (count grown)) "growing past the threshold keeps every entry")
     (is (= 99 (get grown :extra)) "the new key reads back")
     (is (= 0 (get grown :k0)) "an old key still reads back")
-    (is (= 8 (count m)) "and the original is unchanged"))
+    (is (= 4 (count m)) "and the original is unchanged"))
   (let [m (mk 12)
         shrunk (dissoc m :k0)]
     (is (= 11 (count shrunk)) "shrinking below it keeps the rest")
@@ -46,9 +47,9 @@
     (is (= 11 (get shrunk :k11)) "the others read back")))
 
 (deftest test-equality-does-not-depend-on-representation
-  ;; A 9-entry map is a hash map and a 9-entry one built by growing an 8-entry
+  ;; A 5-entry map is a hash map and a 5-entry one built by growing a 4-entry
   ;; array map is too, but equality must not care either way.
-  (let [built (mk 9)
-        grown (assoc (mk 8) :k8 8)]
+  (let [built (mk 5)
+        grown (assoc (mk 4) :k4 4)]
     (is (= built grown) "same entries compare equal")
     (is (= (pr-str (sort (keys built))) (pr-str (sort (keys grown)))) "and hold the same keys")))
