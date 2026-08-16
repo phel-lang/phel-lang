@@ -328,24 +328,42 @@ final class MapBindingDeconstructor implements BindingDeconstructorInterface
         DeprecationWarnings::warnOnceAtOrigin(
             $location,
             'map-destructure-key-first|' . $written,
-            static fn(string $file, int $line): string => $ambiguous
-                ? sprintf(
-                    'Ambiguous map destructuring pair %s at %s:%d: both sides are binding forms, '
-                    . 'so it is read key-first (the lookup key is what the left side evaluates to). '
-                    . 'Clojure-order pairs are read binding-first, and this shape will follow at the '
-                    . 'next major; write the lookup key as a keyword or string to keep it unambiguous.',
-                    $written,
-                    $file,
-                    $line,
-                )
-                : sprintf(
-                    'Key-first map destructuring pair %s at %s:%d is deprecated; write it '
-                    . 'binding-first, as %s. The key-first order will be removed in a future release.',
-                    $written,
-                    $file,
-                    $line,
-                    $flipped,
-                ),
+            fn(string $file, int $line): string => $ambiguous
+                ? $this->ambiguousPairMessage($written, $file, $line)
+                : $this->keyFirstPairMessage($written, $flipped, $file, $line),
+        );
+    }
+
+    /**
+     * The pair has a replacement spelling, so the notice names it.
+     */
+    private function keyFirstPairMessage(string $written, string $flipped, string $file, int $line): string
+    {
+        return sprintf(
+            'Key-first map destructuring pair %s at %s:%d is deprecated; write it binding-first, '
+            . 'as %s. The key-first order will be removed in a future release.',
+            $written,
+            $file,
+            $line,
+            $flipped,
+        );
+    }
+
+    /**
+     * Both sides bind, so there is no mechanical replacement to suggest: the
+     * flip would change which side is the lookup key. The notice says what the
+     * pair means today and what to write instead.
+     */
+    private function ambiguousPairMessage(string $written, string $file, int $line): string
+    {
+        return sprintf(
+            'Ambiguous map destructuring pair %s at %s:%d: both sides are binding forms, so it is '
+            . 'read key-first and the lookup key is what the left side evaluates to. Binding-first '
+            . 'is how every other pair is read, and this shape will follow at the next major; write '
+            . 'the lookup key as a keyword or a string to keep it unambiguous.',
+            $written,
+            $file,
+            $line,
         );
     }
 
