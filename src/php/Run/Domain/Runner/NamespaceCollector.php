@@ -49,10 +49,39 @@ final readonly class NamespaceCollector
             throw CannotFindAnyTestsException::inPaths($paths);
         }
 
+        // An explicit path may live outside every configured directory. The
+        // walk indexes only those directories, so it can neither find such a
+        // file nor follow what it requires: seeding its namespace alone
+        // dequeued a name with no index entry and dropped its dependencies on
+        // the floor. Seeding the dependencies it declares makes the walk load
+        // them in order, and the file itself is appended after them (#3187).
+        $seeds = array_values(array_unique([
+            ...$userNamespaces,
+            ...$this->declaredDependencies($pathInfos),
+            ...$this->bundledNamespaces($allInfos),
+        ]));
+
+        $dependencies = $this->buildFacade->getDependenciesForNamespace($allDirs, $seeds);
+
+        return $this->appendUnresolvedPathInfos($pathInfos, $dependencies);
+    }
+
+    /**
+     * Every bundled `phel.*` namespace the scan found under a source or vendor
+     * root. All of them are seeded, so a test can reach any bundled module
+     * without requiring it explicitly.
+     *
+     * @param list<NamespaceInformation> $allInfos
+     *
+     * @return list<string>
+     */
+    private function bundledNamespaces(array $allInfos): array
+    {
         $bundledRoots = $this->resolveRoots([
             ...$this->commandFacade->getSourceDirectories(),
             ...$this->commandFacade->getVendorSourceDirectories(),
         ]);
+
         $bundled = [];
         foreach ($allInfos as $info) {
             $ns = $info->getNamespace();
@@ -67,21 +96,7 @@ final readonly class NamespaceCollector
             $bundled[$ns] = true;
         }
 
-        // An explicit path may live outside every configured directory. The
-        // walk indexes only those directories, so it can neither find such a
-        // file nor follow what it requires: seeding its namespace alone
-        // dequeued a name with no index entry and dropped its dependencies on
-        // the floor. Seeding the dependencies it declares makes the walk load
-        // them in order, and the file itself is appended after them (#3187).
-        $seeds = array_values(array_unique([
-            ...$userNamespaces,
-            ...$this->declaredDependencies($pathInfos),
-            ...array_keys($bundled),
-        ]));
-
-        $dependencies = $this->buildFacade->getDependenciesForNamespace($allDirs, $seeds);
-
-        return $this->appendUnresolvedPathInfos($pathInfos, $dependencies);
+        return array_keys($bundled);
     }
 
     /**
