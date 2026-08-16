@@ -82,6 +82,23 @@ Same for `recur` args vs binding tags and tail literal vs declared return tag. S
 
 `^?int` parses as a symbol named `?int`, not a nullable-int tag.
 
+## 9. A `php/` call is not always a missing wrapper
+
+Prefer the core fn when one exists, but a raw `php/` call in `phel.core` is
+sometimes the *correct* spelling because the semantics differ, exactly as
+Clojure's own core keeps `(.length s)` and `Math/floor` where a wrapper would
+lie:
+
+```phel
+(int 1e30)                 ; throws, like Clojure's (int 1e30)
+(php/intval 1e30)          ; coerces to garbage; only right when you want lossy
+(phel.string/replace s "." "-") ; regex, like clojure.string/replace
+(php/str_replace "." "-" s)     ; literal, and much faster for a literal
+```
+
+Reach for the wrapper first; keep the `php/` call when its behaviour is the
+one you actually need. See #2941.
+
 ## See also
 
 - [`RULES.md`](../RULES.md) for the one-liner rule each gotcha references.
