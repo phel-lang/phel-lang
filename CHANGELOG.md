@@ -7,12 +7,17 @@ All notable changes to this project will be documented in this file.
 ### Added
 
 - `^:redef` metadata on a `defn` opts it out of inlining at `optimizationLevel` 2, so `with-redefs` and `phel.mock` still intercept the call. Inlining splices the callee's body into the caller, which leaves no global read to intercept; this is the same tension Clojure's direct linking has, answered the same way (#3126)
+- Map destructuring reads Clojure's binding-first order: `(let [{{:keys [c]} :inner} {:inner {:c 42}}] c)` evaluates to `42` where it used to fail with `Cannot destructure Phel\Lang\Keyword`. Each non-directive pair is decided by which side can be bound, so `{local :key}`, `{[x y] :point}` and `{n "name"}` all work alongside the existing key-first spelling; `:keys`, `:strs`, `:syms`, `:as` and `:or` are written the same way in both and are unchanged. A pair where neither side binds anything (`{:a :b}`) is now rejected with a message showing both spellings instead of failing further down (#3115)
 - A `Core tests at -O2` CI job. `optimizationLevel` defaults to 0, so nothing in CI exercised `CallInliner` or `TailCallRewriter`, which is how the level came to fail five core tests while every check stayed green. The repository's `phel-config.php` reads `PHEL_OPTIMIZATION_LEVEL`, so a local repro is `PHEL_OPTIMIZATION_LEVEL=2 ./bin/phel test` (#3126)
 
 ### Changed
 
 - `CallInliner` inlines a call in return position at `optimizationLevel` 2. Every `fn` body opens a recur frame, and the tail-slot guard tested for the frame's presence, so it declined the most common shape there is: `(defn c [x] (add1 x))` never inlined while `(defn c [x] [(add1 x)])` did. The guard now also requires `RecurFrame::isActive()`, set when a `recur` actually targets the frame, which is what "the tail slot of a `loop`" always meant. A two-hop call chain in return position is 3.1x faster. One consequence, inherent to direct linking: a call site that inlines is no longer there to intercept, so `dotrace`, `with-redefs` and `phel.mock` need `^:redef` on the callee more often at `-O2` than they did (#3125)
 - `atom` and `symbol` have fixed arities for the shapes callers actually use. `(atom v)` is 6.1x faster: it used to allocate a rest argument and `apply` `hash-map` over it on every creation just to find there were no options. `symbol` is 1.9x to 2.3x faster; it used `[name-or-ns & [name]]`, which built a rest argument and destructured one value back out of it. Both are behaviour-preserving, including `symbol` going on ignoring a third argument. `atom` with options is 3% slower, from the extra arity dispatch (#2973)
+
+### Deprecated
+
+- Key-first map destructuring pairs (`{:key local}`). They keep working unchanged; `--warn-deprecations` reports each one with the binding-first spelling that replaces it, and the order will be removed in a future release. An ambiguous pair whose two sides both bind (`{k v}`, where the left side is evaluated as the lookup key) keeps its current meaning and warns that it will follow at the next major (#3115)
 
 ### Fixed
 

@@ -13,6 +13,19 @@
   (is (= 3 (let [{:keys [a b]} {:a 1 :b 2}] (+ a b))) "destructure hash map with :keys")
   (is (= {:a 1 :b 2} (let [{:keys [a b] :as user} {:a 1 :b 2}] user)) "destructure hash map with :keys and :as"))
 
+(deftest destructure-hash-map-clojure-order
+  (is (= 3 (let [{a :a b :b} {:a 1 :b 2}] (+ a b))) "binding first, as Clojure writes it")
+  (is (= 42 (let [{{:keys [c]} :inner} {:inner {:c 42}}] c)) "nested map pattern")
+  (is (= 3 (let [{[a1 a2] :a} {:a [1 2]}] (+ a1 a2))) "nested vector pattern")
+  (is (= "Alice" (let [{n "name"} {"name" "Alice"}] n)) "string lookup key")
+  (is (= 42 (let [{b :b :or {b 42}} {:a 1}] b)) ":or default for an absent key")
+  (is (= {:a 1} (let [{a :a :as m} {:a 1}] m)) ":as alongside a binding-first pair")
+  (is (= 3 (let [{a :a :keys [b]} {:a 1 :b 2}] (+ a b))) "mixed with a :keys directive"))
+
+(deftest destructure-hash-map-ambiguous-pair-stays-key-first
+  ;; Both sides bind, so the left one is still evaluated as the lookup key.
+  (is (= 1 (let [k :a] (let [{k v} {:a 1}] v))) "symbol key is evaluated"))
+
 (deftest destructure-hash-map-or-defaults
   ;; :or with :keys — default applied when key is absent
   (is (= 42 (let [{:keys [a b] :or {b 42}} {:a 1}] b))
