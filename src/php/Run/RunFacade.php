@@ -13,6 +13,8 @@ use Phel\Run\Application\Test\Coverage\CoverageReport;
 use Phel\Run\Application\Test\Coverage\PerTestCoverageReport;
 use Phel\Run\Application\Test\CpuCountDetector;
 use Phel\Run\Application\Test\ParallelTestOrchestrator;
+use Phel\Run\Domain\Test\ChangedFilesUnavailableException;
+use Phel\Run\Domain\Test\ChangeSelection;
 use Phel\Shared\CompileOptions;
 use Phel\Shared\Eval\EvalResult;
 use Phel\Shared\Exceptions\CompilerException;
@@ -202,6 +204,22 @@ final class RunFacade extends AbstractFacade implements RunFacadeInterface
     public function createCpuCountDetector(): CpuCountDetector
     {
         return $this->getFactory()->createCpuCountDetector();
+    }
+
+    /**
+     * The `.phel` files changed since `$ref` (null: uncommitted changes, or
+     * the changes since the merge base with the default branch when clean)
+     * and the test namespaces among `$infos` they can affect.
+     *
+     * @param list<NamespaceInformation> $infos
+     *
+     * @throws ChangedFilesUnavailableException when not in a git repository
+     */
+    public function selectChangedTests(?string $ref, array $infos, string $projectDir): ChangeSelection
+    {
+        return $this->getFactory()
+            ->createChangedTestSelector()
+            ->select($ref, $infos, $projectDir);
     }
 
     /**

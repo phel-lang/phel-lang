@@ -167,10 +167,10 @@ parameters:
         -
             identifier: gacela.facadeInterfaceDrift
             path: src/php/Run/RunFacade.php
-            # 7 + `buildPerTestCoverageReport()` (#3207): like the other
-            # coverage methods it returns a Run-internal report type, which
-            # the Shared contract must not name.
-            count: 8
+            # 7 + `buildPerTestCoverageReport()` (#3207) + `selectChangedTests()`
+            # (#3210): like the other coverage methods they return Run-internal
+            # types, which the Shared contract must not name.
+            count: 9
         # LazySeq::cdr() checks instanceof SeqInterface for runtime safety
         # even though PHPDoc inference says the type is already narrowed.
         -

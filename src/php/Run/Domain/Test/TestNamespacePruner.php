@@ -42,6 +42,43 @@ final readonly class TestNamespacePruner
 
         $regexes = array_map($this->globToRegex(...), $patterns);
 
+        return $this->keepWithDependencies(
+            $infos,
+            fn(string $ns): bool => $this->matchesAny($ns, $regexes),
+        );
+    }
+
+    /**
+     * Keeps exactly the named user namespaces (plus bundled `phel.*` and the
+     * dependency closure), for a caller that already knows which namespaces
+     * it wants, such as `--changed`.
+     *
+     * @param list<NamespaceInformation> $infos
+     * @param list<string>               $namespaces
+     *
+     * @return list<NamespaceInformation>
+     */
+    public function pruneTo(array $infos, array $namespaces): array
+    {
+        $wanted = [];
+        foreach ($namespaces as $namespace) {
+            $wanted[$namespace] = true;
+        }
+
+        return $this->keepWithDependencies(
+            $infos,
+            static fn(string $ns): bool => isset($wanted[$ns]),
+        );
+    }
+
+    /**
+     * @param list<NamespaceInformation> $infos
+     * @param callable(string): bool     $isSelected
+     *
+     * @return list<NamespaceInformation>
+     */
+    private function keepWithDependencies(array $infos, callable $isSelected): array
+    {
         $byName = [];
         foreach ($infos as $info) {
             $byName[$info->getNamespace()] = $info;
@@ -50,7 +87,7 @@ final readonly class TestNamespacePruner
         $keep = [];
         foreach ($infos as $info) {
             $ns = $info->getNamespace();
-            if (str_starts_with($ns, 'phel.') || $this->matchesAny($ns, $regexes)) {
+            if (str_starts_with($ns, 'phel.') || $isSelected($ns)) {
                 $keep[$ns] = true;
             }
         }
