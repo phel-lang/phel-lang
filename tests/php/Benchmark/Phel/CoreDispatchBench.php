@@ -55,6 +55,12 @@ final class CoreDispatchBench extends CoreBenchCase
     private $assoc;
 
     /** @var callable */
+    private $update;
+
+    /** @var callable */
+    private $inc;
+
+    /** @var callable */
     private $getIn;
 
     /** @var callable */
@@ -151,6 +157,33 @@ final class CoreDispatchBench extends CoreBenchCase
     {
         for ($i = 0; $i < self::INNER; ++$i) {
             $this->map->put($this->keyC, 3);
+        }
+    }
+
+    /**
+     * `(update m k f)` with no extra arguments, which is nearly every call. It
+     * used to build a rest argument and go through `apply` regardless; the
+     * fixed arities match Clojure's (#2973).
+     *
+     * @Revs(1000)
+     */
+    public function bench_update_map(): void
+    {
+        for ($i = 0; $i < self::INNER; ++$i) {
+            ($this->update)($this->map, $this->keyA, $this->inc);
+        }
+    }
+
+    /**
+     * The same through the raw operations `update` composes: a read, the
+     * function, a write. The ratio is the dispatch and arity cost.
+     *
+     * @Revs(1000)
+     */
+    public function bench_update_map_raw(): void
+    {
+        for ($i = 0; $i < self::INNER; ++$i) {
+            $this->map->put($this->keyA, ($this->inc)($this->map->find($this->keyA)));
         }
     }
 
@@ -303,6 +336,8 @@ final class CoreDispatchBench extends CoreBenchCase
     {
         $this->get = $this->coreFn('get');
         $this->assoc = $this->coreFn('assoc');
+        $this->update = $this->coreFn('update');
+        $this->inc = $this->coreFn('inc');
         $this->getIn = $this->coreFn('get-in');
         $this->isEmpty = $this->coreFn('empty?');
         $this->seq = $this->coreFn('seq');
