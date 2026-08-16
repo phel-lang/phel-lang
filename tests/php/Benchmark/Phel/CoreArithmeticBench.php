@@ -64,6 +64,12 @@ final class CoreArithmeticBench extends CoreBenchCase
     /** @var callable */
     private $multiply;
 
+    /** @var callable */
+    private $bitAnd;
+
+    /** @var callable */
+    private $bitAndNot;
+
     /** Typed `mixed` so the raw pairs are real work rather than a foldable literal. */
     private mixed $a = 7;
 
@@ -330,8 +336,63 @@ final class CoreArithmeticBench extends CoreBenchCase
         }
     }
 
+    /**
+     * The runtime body of `bit-and`, which only `apply` and higher-order use
+     * reach: a direct call expands through `:inline` to `php/&` and would
+     * measure nothing. Calling the resolved fn from PHP is that runtime path.
+     * It used to build a rest argument, `concat` it, walk it for nil and reduce
+     * with a closure on every call (#2973).
+     *
+     * @Revs(1000)
+     */
+    public function bench_bit_and_two(): void
+    {
+        for ($i = 0; $i < self::INNER; ++$i) {
+            ($this->bitAnd)(12, 10);
+        }
+    }
+
+    /**
+     * The variadic tail, so a change that only moves the fixed arities is told
+     * apart from one that moves both.
+     *
+     * @Revs(1000)
+     */
+    public function bench_bit_and_four(): void
+    {
+        for ($i = 0; $i < self::INNER; ++$i) {
+            ($this->bitAnd)(15, 7, 3, 1);
+        }
+    }
+
+    /**
+     * `bit-and-not` has no `:inline`, so even a direct call from Phel reaches
+     * this body; the two-argument shape is the one that matters.
+     *
+     * @Revs(1000)
+     */
+    public function bench_bit_and_not_two(): void
+    {
+        for ($i = 0; $i < self::INNER; ++$i) {
+            ($this->bitAndNot)(255, 15);
+        }
+    }
+
+    /**
+     * @Revs(1000)
+     */
+    public function bench_bit_and_raw(): void
+    {
+        $unused = 0;
+        for ($i = 0; $i < self::INNER; ++$i) {
+            $unused = 12 & 10;
+        }
+    }
+
     protected function setUpFixtures(): void
     {
+        $this->bitAnd = $this->coreFn('bit-and');
+        $this->bitAndNot = $this->coreFn('bit-and-not');
         $this->even = $this->coreFn('even?');
         $this->odd = $this->coreFn('odd?');
         $this->rem = $this->coreFn('rem');
