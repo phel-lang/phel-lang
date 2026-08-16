@@ -1,0 +1,10 @@
+(ns app-bench.probe
+  (:require phel.test :refer [deftest is])
+  (:require app.core :as c))
+
+;; A top-level call into the required namespace: this is what runs before the
+;; require was loaded when the cached artifact is evaluated in the wrong order.
+(c/seed! 1)
+
+(deftest probe
+  (is (= 20 (c/seed! 2))))
