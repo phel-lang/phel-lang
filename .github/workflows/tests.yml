@@ -182,8 +182,12 @@ jobs:
           git checkout --quiet "$head_sha" -- tests/php/Benchmark phpbench.json
           vendor/bin/phpbench run --iterations=5 --warmup=2 --tag=baseline --store --progress=none --report=aggregate
 
-      # The tolerance is widened from the 17% in phpbench.json, and the iteration
-      # count raised, because a shared runner is not a benchmarking machine.
+      # The iteration count is raised because a shared runner is not a
+      # benchmarking machine. The tolerance itself lives in `phpbench.json`
+      # (25%), not on this command line: a `--assert` flag here overrides every
+      # subject-level `@Assert`, so a benchmark that deliberately moved could
+      # not carry its own budget and would report as a regression forever
+      # (#3172).
       #
       # `phpbench.json` asserts on `time.avg` while the aggregate report prints
       # `mode`, so a table that looks clean says nothing about the assertion: this
@@ -201,8 +205,7 @@ jobs:
           vendor/bin/phpbench run \
             --iterations=5 --warmup=2 \
             --ref=baseline \
-            --report=aggregate \
-            --assert='mode(variant.time.avg) <= mode(baseline.time.avg) +/- 25%'
+            --report=aggregate
 
   bash-tests:
     name: Bash tests

@@ -34,34 +34,29 @@ final class PersistentArrayMap extends AbstractPersistentMap
      *
      * An array map finds a key by scanning its entries and calling
      * `equalsKey()` on each, so a read is O(n) where the hash map it promotes
-     * to is O(1). At the old value of 16 that made a 16-entry map **4.9x
+     * to is O(1). At the original value of 16 that made a 16-entry map **4.9x
      * slower to read than a 20-entry one** (4.71us against 0.96us), which is
-     * backwards: crossing the threshold made reads faster, not slower.
+     * backwards: crossing the threshold made reads faster, not slower. 8 was
+     * free and fixed the worst of it (#3173), once the `nil`-key iterator bug
+     * that made a lower value unsafe was fixed first (#3174).
      *
-     * 8 because it is free. Building an 8-entry map is unchanged (34.0us
-     * against 34.1us) and building a 16-entry one is unchanged (70.3us against
-     * 69.9us), while reading the last key of a 12-entry map goes 3.53us to
-     * 1.00us and of a 16-entry map 4.71us to 0.80us.
-     *
-     * Lowering this further is now a trade rather than a hazard. The reason
-     * it used to be a hazard is fixed: a value of 4 made a three-entry literal
-     * holding `nil`, `false` and `0` keys lose one, because the literal
-     * crossed into the hash representation during compilation and
-     * `PersistentHashMap::getIterator()` skipped the `nil` key, so the
-     * compiler never emitted that pair (#3174).
-     *
-     * With that fixed, 4 is correct and measurably faster to read: a 5-entry
-     * map 2.0x, a 6-entry 2.3x, an 8-entry 2.9x. It costs on the build,
-     * though, 21% for a 5-entry map and 6% for an 8-entry one, which is why
-     * it is not the value here. See #3172 for the numbers and the call.
+     * 4 is the value the measurements point at, and it became affordable only
+     * once the units bug in `TypeFactory::persistentMapFromArray()` was fixed:
+     * that compared the flat `[k1, v1, ...]` element count against this
+     * entry count, so a `{...}` literal promoted at half the constant while
+     * `assoc`, `into` and `zipmap` promoted at the constant. Moving 8 to 4
+     * leaves literal behaviour byte-identical, because 4 is where the bug had
+     * already put them, and lets the grown path agree with it. A grown 5-to-8
+     * entry map reads 3.4x to 5.4x faster; building a 5-entry one costs about
+     * 21% more, and an 8-entry one about 6% (#3172).
      *
      * Iteration order is what an array map buys, and is why this is a
      * threshold rather than a deletion: a map below it iterates in insertion
      * order. Nothing documents that as a guarantee, `sequential?` says maps
-     * are not sequential, and no test here, in the Phel suite or in the
-     * Clojure suite depends on it between 9 and 16 entries.
+     * are not sequential, and a grown 5-to-8 entry map now iterates in hash
+     * order, which is what a literal of that size already did.
      */
-    public const int MAX_SIZE = 8;
+    public const int MAX_SIZE = 4;
 
     /**
      * @param PersistentMapInterface<mixed, mixed>|null $meta

@@ -10,6 +10,7 @@ use Phel\Lang\Equalizer;
 use Phel\Lang\Hasher;
 use Phel\Lang\Keyword;
 use Phel\Lang\TypeFactory;
+use PhpBench\Benchmark\Metadata\Annotations\Assert;
 use PhpBench\Benchmark\Metadata\Annotations\BeforeMethods;
 use PhpBench\Benchmark\Metadata\Annotations\Iterations;
 use PhpBench\Benchmark\Metadata\Annotations\ParamProviders;
@@ -103,6 +104,12 @@ final class PersistentArrayMapBench
      * The write side, so a threshold change that speeds reads up is not
      * reported without what it costs to build.
      *
+     * Asserted against an absolute budget rather than the baseline: #3172 moved
+     * the promotion this subject pays for from the ninth entry to the fifth, so
+     * comparing against a baseline from before that reports the intended change
+     * as a regression forever. The budget still fails on a real one — it is
+     * roughly 3x the level the change left it at, on CI's slower runner.
+     *
      * @BeforeMethods("setUpMaps")
      *
      * @ParamProviders("provideSizes")
@@ -110,6 +117,8 @@ final class PersistentArrayMapBench
      * @Revs(1000)
      *
      * @Iterations(10)
+     *
+     * @Assert("mode(variant.time.avg) < 20 microseconds")
      */
     public function bench_put_into_grown_map(): void
     {
@@ -120,6 +129,11 @@ final class PersistentArrayMapBench
      * Full traversal, which is the other half of what the representation
      * decides: an array map walks a flat array, a hash map descends the trie.
      *
+     * Absolute budget, for the reason given on the subject above: #3172 made a
+     * grown five-to-eight entry map walk the hash representation, which costs
+     * about 3x and is the documented price of reads getting 3.4x to 5.5x
+     * faster. A literal of that size already paid it.
+     *
      * @BeforeMethods("setUpMaps")
      *
      * @ParamProviders("provideSizes")
@@ -127,6 +141,8 @@ final class PersistentArrayMapBench
      * @Revs(1000)
      *
      * @Iterations(10)
+     *
+     * @Assert("mode(variant.time.avg) < 6 microseconds")
      */
     public function bench_iterate_grown_map(): void
     {

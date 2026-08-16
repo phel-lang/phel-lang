@@ -8,7 +8,7 @@
     "runner.progress": "dots",
     "runner.file_pattern": "*Bench.php",
     "runner.assert": [
-        "mode(variant.time.avg) <= mode(baseline.time.avg) +/- 17%"
+        "mode(variant.time.avg) <= mode(baseline.time.avg) +/- 25%"
     ],
     "report.generators": {
         "all": {
