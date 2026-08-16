@@ -10,6 +10,7 @@ use Gacela\Framework\ServiceResolverAwareTrait;
 use Phel\Run\Application\Test\Coverage\CoverageDriver;
 use Phel\Run\Application\Test\Coverage\CoverageReport;
 use Phel\Run\Application\Test\Coverage\HtmlCoverageRenderer;
+use Phel\Run\Application\Test\SharedNamespaces;
 use Phel\Run\Domain\Test\TestCommandOptions;
 use Phel\Run\Domain\Test\TestNamespacePruner;
 use Phel\Run\RunFacade;
@@ -25,6 +26,8 @@ use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
 use Throwable;
 
+use function array_filter;
+use function array_values;
 use function count;
 use function file_put_contents;
 use function is_array;
@@ -205,18 +208,6 @@ HELP)
             $nsPatterns = (array) $input->getOption(TestCommandOptionParser::OPT_NS);
             $namespacesInformation = new TestNamespacePruner()->prune($namespacesInformation, $nsPatterns);
 
-            [$filteredNamespaces, $compileErrors] = $this->loadTestNamespaces(
-                $namespacesInformation,
-                $failFast,
-                $feedback,
-            );
-
-            $this->reportCompileErrors($output, $compileErrors);
-
-            if ($filteredNamespaces === []) {
-                return ($compileErrors === []) ? self::SUCCESS : self::FAILURE;
-            }
-
             $coverageRequested = $input->getOption(self::OPT_COVERAGE) !== false;
             $coverageDriver = null;
             if ($coverageRequested) {
@@ -245,9 +236,26 @@ HELP)
             }
 
             if ($workerCount !== null) {
+                // The workers evaluate the leaves (the test files) themselves,
+                // each along the load order the parent ships in its frame.
+                // Only what two workers could compile at the same time, i.e.
+                // every namespace another one requires, is evaluated here
+                // first, so a cold cache is warmed once instead of raced (#3203).
+                [$sharedNamespaces, $compileErrors] = $this->loadTestNamespaces(
+                    SharedNamespaces::of($namespacesInformation),
+                    $failFast,
+                    $feedback,
+                );
+                $this->reportCompileErrors($output, $compileErrors);
+
+                $namespacesToRun = $this->withoutPhpUnitFixtures($namespacesInformation);
+                if ($namespacesToRun === []) {
+                    return ($compileErrors === []) ? self::SUCCESS : self::FAILURE;
+                }
+
                 $success = $this->getFacade()
                     ->createParallelTestOrchestrator()
-                    ->run($filteredNamespaces, $options, $workerCount, $output);
+                    ->run($namespacesToRun, $options, $workerCount, $output);
 
                 $output->writeln(new ResourceUsageFormatter()->resourceUsageSinceStartOfRequest());
 
@@ -256,6 +264,18 @@ HELP)
                 }
 
                 return $success ? self::SUCCESS : self::FAILURE;
+            }
+
+            [$filteredNamespaces, $compileErrors] = $this->loadTestNamespaces(
+                $namespacesInformation,
+                $failFast,
+                $feedback,
+            );
+
+            $this->reportCompileErrors($output, $compileErrors);
+
+            if ($filteredNamespaces === []) {
+                return ($compileErrors === []) ? self::SUCCESS : self::FAILURE;
             }
 
             $phelCode = $this->generatePhelTestCodeFromOptions($options, $filteredNamespaces);
@@ -434,12 +454,7 @@ HELP)
         $compileErrors = [];
         foreach ($namespacesInformation as $info) {
             $feedback->advance($info->getNamespace());
-            // These fixtures are PHPUnit-only; evaluating them as Phel namespaces is wrong.
-            if (str_contains($info->getFile(), 'tests/php/Integration/')) {
-                continue;
-            }
-
-            if (str_contains($info->getFile(), 'tests/php/Benchmark/')) {
+            if (self::isPhpUnitFixture($info)) {
                 continue;
             }
 
@@ -461,6 +476,28 @@ HELP)
         $feedback->finishLoading();
 
         return [$filteredNamespaces, $compileErrors];
+    }
+
+    /**
+     * @param list<NamespaceInformation> $namespacesInformation
+     *
+     * @return list<NamespaceInformation>
+     */
+    private function withoutPhpUnitFixtures(array $namespacesInformation): array
+    {
+        return array_values(array_filter(
+            $namespacesInformation,
+            static fn(NamespaceInformation $info): bool => !self::isPhpUnitFixture($info),
+        ));
+    }
+
+    /**
+     * These fixtures are PHPUnit-only; evaluating them as Phel namespaces is wrong.
+     */
+    private static function isPhpUnitFixture(NamespaceInformation $info): bool
+    {
+        return str_contains($info->getFile(), 'tests/php/Integration/')
+            || str_contains($info->getFile(), 'tests/php/Benchmark/');
     }
 
     /**

@@ -12,6 +12,7 @@ use Phel\Run\Application\Test\WorkerFrame;
 use Phel\Run\Application\Test\WorkRequest;
 use Phel\Run\RunFacade;
 use Phel\Shared\CompileOptions;
+use Phel\Shared\Exceptions\CompilerException;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
@@ -37,7 +38,12 @@ use function str_replace;
  *
  *   parent -> worker (one per namespace):
  *     {"index": 17, "ns": "phel.http.test",
- *      "file": "/abs/path/...", "options": "{:filter nil ...}"}
+ *      "file": "/abs/path/...", "options": "{:filter nil ...}",
+ *      "load-order": [{"ns": "phel.core", "file": "..."}, ...]}
+ *
+ * The parent resolves every namespace's dependency closure once and ships
+ * it as `load-order`; the worker only evaluates entries it has not seen,
+ * and never runs a dependency walk of its own (#3203).
  *
  *   worker -> parent (one per work frame):
  *     {"index": 17, "ns": "...", "ok": true,
@@ -76,10 +82,12 @@ final class TestWorkerCommand extends Command
         }
 
         try {
-            // Bootstrap: load phel.core and every bundled phel.* module
-            // so `(phel.test/run-tests ...)` resolves without per-call requires.
-            $this->getFacade()->loadPhelNamespaces();
-
+            // No bootstrap load here on purpose: every work frame carries the
+            // ordered load list (phel.core, the bundled phel.* modules, the
+            // namespace's requires), and the worker evaluates each file once.
+            // The REPL-style `loadPhelNamespaces()` used before walked the whole
+            // project tree from cwd on every worker start, and eight of those
+            // walks racing in the kernel cost more than the tests (#3203).
             while (true) {
                 $frame = WorkerFrame::readBlocking($stdin);
                 if ($frame === null) {
@@ -105,11 +113,26 @@ final class TestWorkerCommand extends Command
 
         ob_start();
         try {
-            $this->preloadDependencies($request->file);
+            $this->preloadDependencies($request);
             $resultJson = $this->runTestsForNamespace($request);
             $captured = (string) ob_get_clean();
 
             return $request->baseResponse() + $this->parseResult($resultJson, $captured);
+        } catch (CompilerException $compilerException) {
+            // A file that does not compile fails the same way on every
+            // worker; report it as a failed namespace, not a retryable
+            // worker error, so the orchestrator does not spawn fresh
+            // workers only to hit it twice more.
+            $captured = (string) ob_get_clean();
+
+            return $request->baseResponse() + [
+                FrameKey::OK => false,
+                FrameKey::OUTPUT => $captured . "\n"
+                    . sprintf('<error>Failed to compile %s: %s</error>', $request->ns, $compilerException->getMessage())
+                    . "\n",
+                FrameKey::FAILED_TESTS => [],
+                FrameKey::ERROR => null,
+            ];
         } catch (Throwable $throwable) {
             $captured = (string) ob_get_clean();
 
@@ -124,27 +147,26 @@ final class TestWorkerCommand extends Command
         }
     }
 
-    private function preloadDependencies(string $file): void
+    /**
+     * Evaluate, in the parent's order, every file of the request's load
+     * order this worker has not evaluated yet. The worker is long-lived,
+     * so each dependency file is evaluated once across all frames.
+     */
+    private function preloadDependencies(WorkRequest $request): void
     {
-        if ($file === '') {
-            return;
-        }
-
-        foreach ($this->getFacade()->getDependenciesFromPaths([$file]) as $info) {
-            // The worker is long-lived: eval each dependency file once across all frames.
-            $depFile = $info->getFile();
-            if (isset($this->preloadedFiles[$depFile])) {
+        foreach ($request->loadOrder as ['ns' => $ns, 'file' => $file]) {
+            if (isset($this->preloadedFiles[$file])) {
                 continue;
             }
 
             // Skip already-loaded bundled ns: re-evaluating one re-nulls its forward-declared defs under a PHAR (#2672).
-            if (Registry::getInstance()->hasNamespace(str_replace('-', '_', $info->getNamespace()))) {
-                $this->preloadedFiles[$depFile] = true;
+            if (Registry::getInstance()->hasNamespace(str_replace('-', '_', $ns))) {
+                $this->preloadedFiles[$file] = true;
                 continue;
             }
 
-            $this->getFacade()->evalFile($info);
-            $this->preloadedFiles[$depFile] = true;
+            $this->getFacade()->evalFile($this->getFacade()->getNamespaceFromFile($file));
+            $this->preloadedFiles[$file] = true;
         }
     }
 

@@ -1,0 +1,6 @@
+(ns fixture.alpha-test
+  (:require phel.test :refer [deftest is])
+  (:require fixture.shared :as shared))
+
+(deftest alpha-uses-shared
+  (is (= 4 (shared/twice 2))))

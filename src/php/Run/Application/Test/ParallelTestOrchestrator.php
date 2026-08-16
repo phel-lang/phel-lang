@@ -76,6 +76,7 @@ final readonly class ParallelTestOrchestrator
 
         $effectiveWorkerCount = max(1, min($workerCount, $total));
         $optionsPhel = $this->preparePhelOptionsForWorker($options);
+        $loadOrders = new LoadOrderResolver($namespaces);
 
         $output->writeln(sprintf(
             'Running %d namespace(s) across %d parallel worker(s)...',
@@ -88,7 +89,7 @@ final readonly class ParallelTestOrchestrator
 
         $startedAt = microtime(true);
         try {
-            $retried = $this->runDispatchLoop($workers, $namespaces, $optionsPhel, $buffer);
+            $retried = $this->runDispatchLoop($workers, $namespaces, $loadOrders, $optionsPhel, $buffer);
         } finally {
             foreach ($workers as $worker) {
                 $worker->terminate();
@@ -164,6 +165,7 @@ final readonly class ParallelTestOrchestrator
     private function runDispatchLoop(
         array &$workers,
         array $namespaces,
+        LoadOrderResolver $loadOrders,
         string $optionsPhel,
         OrderedResultBuffer $buffer,
     ): int {
@@ -177,7 +179,7 @@ final readonly class ParallelTestOrchestrator
                 break;
             }
 
-            $this->dispatch($worker, $namespaces[$nextToDispatch], $nextToDispatch, $optionsPhel);
+            $this->dispatch($worker, $namespaces[$nextToDispatch], $nextToDispatch, $loadOrders, $optionsPhel);
             ++$nextToDispatch;
         }
 
@@ -200,14 +202,14 @@ final readonly class ParallelTestOrchestrator
                     --$retriesLeft[$result->index];
                     $retriedIndexes[$result->index] = true;
                     $worker = $this->replaceWithFreshWorker($workers, $worker);
-                    $this->dispatch($worker, $namespaces[$result->index], $result->index, $optionsPhel);
+                    $this->dispatch($worker, $namespaces[$result->index], $result->index, $loadOrders, $optionsPhel);
                     continue;
                 }
 
                 $buffer->record($result);
 
                 if ($nextToDispatch < $total) {
-                    $this->dispatch($worker, $namespaces[$nextToDispatch], $nextToDispatch, $optionsPhel);
+                    $this->dispatch($worker, $namespaces[$nextToDispatch], $nextToDispatch, $loadOrders, $optionsPhel);
                     ++$nextToDispatch;
                 }
             }
@@ -325,13 +327,19 @@ final readonly class ParallelTestOrchestrator
         return $fresh;
     }
 
-    private function dispatch(TestWorkerHandle $worker, NamespaceInformation $info, int $index, string $optionsPhel): void
-    {
+    private function dispatch(
+        TestWorkerHandle $worker,
+        NamespaceInformation $info,
+        int $index,
+        LoadOrderResolver $loadOrders,
+        string $optionsPhel,
+    ): void {
         $frame = WorkerFrame::encode([
             FrameKey::INDEX => $index,
             FrameKey::NS => $info->getNamespace(),
             FrameKey::FILE => $info->getFile(),
             FrameKey::OPTIONS => $optionsPhel,
+            FrameKey::LOAD_ORDER => $loadOrders->loadOrderFor($info),
         ]);
         $worker->assign($index, $info->getNamespace(), $frame);
     }
