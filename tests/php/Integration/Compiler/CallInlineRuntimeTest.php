@@ -356,6 +356,54 @@ final class CallInlineRuntimeTest extends AbstractCompilerRuntimeTestCase
         self::assertStringNotContainsString('untagged-mul', $php, 'the guard must not disable inlining generally');
     }
 
+    public function test_a_call_in_return_position_is_inlined(): void
+    {
+        // A single-expression `defn` body *is* return position, and every `fn`
+        // body opens a recur frame, so the tail-slot guard used to decline the
+        // most common shape there is (#3125).
+        $options = new CompileOptions()->setOptimizationLevel(2);
+        $this->compilerFacade->eval('(defn ret-add1 [x] (+ x 1))', $options);
+
+        // `compile` registers the definition in the analyzer environment but
+        // never runs it, so the runtime half needs a name of its own.
+        $php = $this->compilerFacade->compile('(defn ret-caller [x] (ret-add1 x))', $options)->getPhpCode();
+        self::assertStringNotContainsString('ret-add1', $php, 'the callee dispatch should be gone');
+
+        $this->compilerFacade->eval('(defn ret-caller-run [x] (ret-add1 x))', $options);
+        self::assertSame(6, $this->compilerFacade->eval('(ret-caller-run 5)', $options));
+    }
+
+    public function test_a_call_in_the_tail_slot_of_a_loop_keeps_dispatching(): void
+    {
+        // The `recur` marks the loop's frame active, so the call sharing that
+        // tail slot is left alone and tail-call semantics stay untouched.
+        $options = new CompileOptions()->setOptimizationLevel(2);
+        $this->compilerFacade->eval('(defn loop-add1 [x] (+ x 1))', $options);
+
+        $body = '[n] (loop [i 0] (if (< i n) (recur (inc i)) (loop-add1 i)))';
+        $php = $this->compilerFacade->compile('(defn in-loop ' . $body . ')', $options)->getPhpCode();
+        self::assertStringContainsString('loop-add1', $php, 'the loop tail slot must keep dispatching');
+
+        $this->compilerFacade->eval('(defn in-loop-run ' . $body . ')', $options);
+        self::assertSame(6, $this->compilerFacade->eval('(in-loop-run 5)', $options));
+    }
+
+    public function test_a_self_tail_call_still_becomes_a_loop_after_a_sibling_inline(): void
+    {
+        // The other half of the guard: with an inlinable call spliced into one
+        // branch, `TailCallRewriter` must still recognise the self tail call in
+        // the other. The depth is what proves it — a real recursion at 50k
+        // frames blows the default PHP stack.
+        $options = new CompileOptions()->setOptimizationLevel(2);
+        $this->compilerFacade->eval('(defn tail-add1 [x] (+ x 1))', $options);
+        $this->compilerFacade->eval(
+            '(defn tail-down [n] (if (zero? n) (tail-add1 0) (tail-down (dec n))))',
+            $options,
+        );
+
+        self::assertSame(1, $this->compilerFacade->eval('(tail-down 50000)', $options));
+    }
+
     public function test_an_argument_with_a_by_reference_interop_call_is_not_inlined(): void
     {
         // `preg_match` fills its third parameter by reference. Inlining moves

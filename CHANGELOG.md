@@ -11,6 +11,7 @@ All notable changes to this project will be documented in this file.
 
 ### Changed
 
+- `CallInliner` inlines a call in return position at `optimizationLevel` 2. Every `fn` body opens a recur frame, and the tail-slot guard tested for the frame's presence, so it declined the most common shape there is: `(defn c [x] (add1 x))` never inlined while `(defn c [x] [(add1 x)])` did. The guard now also requires `RecurFrame::isActive()`, set when a `recur` actually targets the frame, which is what "the tail slot of a `loop`" always meant. A two-hop call chain in return position is 3.1x faster. One consequence, inherent to direct linking: a call site that inlines is no longer there to intercept, so `dotrace`, `with-redefs` and `phel.mock` need `^:redef` on the callee more often at `-O2` than they did (#3125)
 - `atom` and `symbol` have fixed arities for the shapes callers actually use. `(atom v)` is 6.1x faster: it used to allocate a rest argument and `apply` `hash-map` over it on every creation just to find there were no options. `symbol` is 1.9x to 2.3x faster; it used `[name-or-ns & [name]]`, which built a rest argument and destructured one value back out of it. Both are behaviour-preserving, including `symbol` going on ignoring a third argument. `atom` with options is 3% slower, from the extra arity dispatch (#2973)
 
 ### Fixed
