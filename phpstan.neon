@@ -113,22 +113,6 @@ parameters:
         #    than shrinking an anonymous total.
         -
             identifier: gacela.crossModuleWithoutFacade
-            path: src/php/Api/Application/Analysis/ReadAndAnalyzeStage.php
-            count: 1
-        -
-            identifier: gacela.crossModuleWithoutFacade
-            path: src/php/Build/Application/FileEvaluator.php
-            count: 1
-        -
-            identifier: gacela.crossModuleWithoutFacade
-            path: src/php/Build/Application/NamespaceExtractor.php
-            count: 1
-        -
-            identifier: gacela.crossModuleWithoutFacade
-            path: src/php/Console/Application/WarnDeprecationsFlag.php
-            count: 1
-        -
-            identifier: gacela.crossModuleWithoutFacade
             path: src/php/Run/Application/FileRunner.php
             count: 1
         - identifier: trait.unused

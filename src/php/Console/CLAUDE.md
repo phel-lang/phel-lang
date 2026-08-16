@@ -14,6 +14,7 @@ CLI entry point: bootstraps Symfony Console, lazily registers every module's com
 | Provider key | Facade | Used for |
 |--------------|--------|----------|
 | `FilesystemFacadeInterface::class` | Filesystem | `clearAll()` cleanup after each run |
+| `CompilerFacadeInterface::class` | Compiler | `enableDeprecationWarnings()` when `--warn-deprecations` was passed (#3048) |
 
 `FilesystemFacadeInterface::class` is the only injected facade dependency, but it is not the only edge. As the CLI entry point, `ConsoleFactory` also imports the command classes of thirteen modules (Api, Balance, Build, Compiler, Filesystem, Formatter, Interop, Lint, Lsp, Nrepl, Profile, Run, Watch) to register them with Symfony Console.
 
@@ -28,7 +29,7 @@ That makes Console the graph's sink: it depends on nearly everything and **nothi
 | `Infrastructure/Command/*Commands.php` | One `ConsoleCommandProviderInterface` impl per module |
 | `Domain/ConsoleCommandProviderInterface.php` | `lazyCommands(): list<LazyCommand>` |
 | `Application/ArgvInputSanitizer.php` | Normalizes argv; splits script options from command args via `--` |
-| `Application/WarnDeprecationsFlag.php` | `applyAndStrip()` consumes deprecation flags from argv |
+| `Application/WarnDeprecationsFlag.php` | `strip()` removes the deprecation flag from argv; `ConsoleBootstrap` compares the two lists and asks the Compiler facade to turn the switch on |
 
 ## CLI Commands (lazy)
 

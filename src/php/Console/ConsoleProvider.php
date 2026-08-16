@@ -9,6 +9,7 @@ use Gacela\Framework\AbstractProvider;
 use Gacela\Framework\Attribute\Provides;
 use Gacela\Framework\Container\Container;
 use Gacela\Framework\ServiceResolver\ServiceMap;
+use Phel\Compiler\CompilerFacade;
 use Phel\Console\Domain\ConsoleCommandProviderInterface;
 use Phel\Console\Infrastructure\Command\ApiCommands;
 use Phel\Console\Infrastructure\Command\BalanceCommands;
@@ -24,6 +25,7 @@ use Phel\Console\Infrastructure\Command\RunCommands;
 use Phel\Console\Infrastructure\Command\WatchCommands;
 use Phel\Filesystem\FilesystemFacade;
 use Phel\Filesystem\FilesystemFacadeInterface;
+use Phel\Shared\Facade\CompilerFacadeInterface;
 use Symfony\Component\Console\Command\LazyCommand;
 
 /**
@@ -38,6 +40,12 @@ final class ConsoleProvider extends AbstractProvider
     public function filesystemFacade(Container $container): FilesystemFacadeInterface
     {
         return $container->getLocator()->getRequired(FilesystemFacade::class);
+    }
+
+    #[Provides(CompilerFacadeInterface::class)]
+    public function compilerFacade(Container $container): CompilerFacadeInterface
+    {
+        return $container->getLocator()->getRequired(CompilerFacade::class);
     }
 
     /**

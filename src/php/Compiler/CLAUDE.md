@@ -11,6 +11,7 @@ Core compilation pipeline: Phel source → tokens → AST → analyzed nodes →
 | Pipeline | `lexString → TokenStream`, `parseNext → ?NodeInterface`, `parseAll → FileNode`, `read → ReaderResult`, `analyze(mixed, NodeEnvironmentInterface) → AbstractNode` |
 | Tooling | `readFormsBestEffort(code, source) → Generator` of top-level forms; never throws (parse failure ends the stream, read failure skips the form). For linting/indexing/completion over a buffer mid-edit; `Application/BestEffortFormReader` |
 | Macros | `macroexpand1`, `macroexpand` |
+| Analyzer environment | `emptyNodeEnvironment` (a fresh `NodeEnvironment` for callers outside the module), `enableDeprecationWarnings` |
 | Environment | `initializeGlobalEnvironment`, `resetGlobalEnvironment`, `isGlobalEnvironmentInitialized`, `getGlobalEnvironment`, `initializeNewGlobalEnvironment`, `setGlobalEnvironment` |
 | Namespace state | `getNamespaceEnvironmentData`, `restoreNamespaceEnvironmentData` |
 | Debugging | `enableDebugLineTap`, `disableDebugLineTap` |

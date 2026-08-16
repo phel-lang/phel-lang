@@ -108,7 +108,9 @@ final class Phel\Compiler\CompilerFacade extends Gacela\Framework\AbstractFacade
   public function compileForCache(string $phelCode, Phel\Shared\CompileOptions $compileOptions = object(Phel\Shared\CompileOptions)): Phel\Compiler\Domain\Emitter\EmitterResult
   public function compileForm(Phel\Lang\TypeInterface|bool|float|int|null|string $form, Phel\Shared\CompileOptions $compileOptions = object(Phel\Shared\CompileOptions)): Phel\Compiler\Domain\Emitter\EmitterResult
   public function disableDebugLineTap(): void
+  public function emptyNodeEnvironment(): Phel\Compiler\Domain\Analyzer\Environment\NodeEnvironmentInterface
   public function enableDebugLineTap(?string $phelFileFilter = null, string $logPath = './phel-debug.log'): void
+  public function enableDeprecationWarnings(): void
   public function encodeNs(string $namespace): string
   public function eval(string $phelCode, Phel\Shared\CompileOptions $compileOptions = object(Phel\Shared\CompileOptions)): mixed
   public function evalForm(mixed $form, Phel\Shared\CompileOptions $compileOptions = object(Phel\Shared\CompileOptions)): mixed
@@ -1854,7 +1856,9 @@ interface Phel\Shared\Facade\CompilerFacadeInterface
   public function compile(string $phelCode, Phel\Shared\CompileOptions $compileOptions): Phel\Compiler\Domain\Emitter\EmitterResult
   public function compileForCache(string $phelCode, Phel\Shared\CompileOptions $compileOptions): Phel\Compiler\Domain\Emitter\EmitterResult
   public function disableDebugLineTap(): void
+  public function emptyNodeEnvironment(): Phel\Compiler\Domain\Analyzer\Environment\NodeEnvironmentInterface
   public function enableDebugLineTap(?string $phelFileFilter = null, string $logPath = './phel-debug.log'): void
+  public function enableDeprecationWarnings(): void
   public function encodeNs(string $namespace): string
   public function eval(string $phelCode, Phel\Shared\CompileOptions $compileOptions): mixed
   public function evalForm(mixed $form, Phel\Shared\CompileOptions $compileOptions): mixed
