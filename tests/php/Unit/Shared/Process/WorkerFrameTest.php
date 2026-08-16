@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace PhelTest\Unit\Run\Application\Test;
+namespace PhelTest\Unit\Shared\Process;
 
-use Phel\Run\Application\Test\WorkerFrame;
+use Phel\Shared\Process\WorkerFrame;
 use PHPUnit\Framework\TestCase;
 
 use function fclose;

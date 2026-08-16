@@ -6,6 +6,7 @@ namespace Phel\Run\Application\Test;
 
 use Phel\Run\Domain\Test\TestCommandOptions;
 use Phel\Shared\NamespaceInformation;
+use Phel\Shared\Process\WorkerFrame;
 use Symfony\Component\Console\Output\OutputInterface;
 
 use function array_unique;

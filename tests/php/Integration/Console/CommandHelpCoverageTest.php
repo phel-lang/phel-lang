@@ -22,7 +22,7 @@ final class CommandHelpCoverageTest extends TestCase
 {
     /** @var list<string> Symfony/Gacela built-ins and hidden helpers. */
     private const array SKIP = [
-        'help', 'list', 'completion', '_test-worker', '_complete',
+        'help', 'list', 'completion', '_test-worker', '_mutate-worker', '_complete',
         'cache:warm', 'debug:container', 'debug:dependencies', 'debug:modules',
         'list:modules', 'profile:report', 'validate:config',
     ];

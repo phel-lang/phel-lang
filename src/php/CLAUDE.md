@@ -26,7 +26,7 @@ Keeping non-facade edges out of the docs is how the graph erodes quietly, so the
 
 - **`Shared/Facade/`** (dependency inversion): Api, Build, Command, Compiler, Console, Formatter, Interop, Run.
 - **Module root**: Fiber, Filesystem (`FiberFacadeInterface`, `FilesystemFacadeInterface`).
-- **No interface — extend `AbstractFacade`**: Balance, Lint, Lsp, Nrepl, Profile, Watch.
+- **No interface — extend `AbstractFacade`**: Balance, Lint, Lsp, Mutate, Nrepl, Profile, Watch.
 
 Rules:
 
@@ -55,6 +55,7 @@ Rules:
 | Lang | Runtime types, persistent collections (leaf, no Gacela) |
 | Lint | Read-only semantic linter |
 | Lsp | LSP v3.17 server over stdio |
+| Mutate | Mutation testing for Phel code (`phel mutate`): CST mutators, a worker subprocess that redefines one `defn` per mutant and runs the tests |
 | Nrepl | nREPL server (bencode over TCP) |
 | Profile | Instrumentation profiler (`phel profile`) |
 | Run | Execution, REPL, test runner, CLI commands |

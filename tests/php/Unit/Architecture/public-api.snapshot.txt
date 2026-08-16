@@ -1511,6 +1511,12 @@ final class Phel\Lint\LintFacade extends Gacela\Framework\AbstractFacade
 final class Phel\Lsp\LspFacade extends Gacela\Framework\AbstractFacade
   public function createServer($output): Phel\Lsp\Application\Rpc\LspServer
 
+final class Phel\Mutate\MutateFacade extends Gacela\Framework\AbstractFacade
+  public function createWorkerSession(): Phel\Mutate\Application\MutantWorkerSession
+  public function generate(Phel\Mutate\Domain\MutationPlan $plan, Phel\Mutate\Domain\MutateOptions $options): array
+  public function plan(Phel\Mutate\Domain\MutateOptions $options): Phel\Mutate\Domain\MutationPlan
+  public function run(Phel\Mutate\Domain\MutationPlan $plan, Phel\Mutate\Domain\MutateOptions $options, array $mutants, ?Closure $onResult = null): Phel\Mutate\Domain\MutationReport
+
 final class Phel\Nrepl\NreplFacade extends Gacela\Framework\AbstractFacade
   public function createSocketServer(int $port, string $host, ?callable $logger = null): Phel\Nrepl\Infrastructure\NreplSocketServer
   public function loadPhelNamespaces(): void
@@ -2271,6 +2277,12 @@ final class Phel\Shared\Printer\TypePrinter\UUIDPrinter implements Phel\Shared\P
 final class Phel\Shared\Printer\TypePrinter\VarPrinter implements Phel\Shared\Printer\TypePrinter\TypePrinterInterface
   public function __construct(bool $withColor = false)
   public function print(mixed $form): string
+
+final class Phel\Shared\Process\WorkerFrame
+  public static function decodeBody(string $body): array
+  public static function encode(array $payload): string
+  public static function headerSize(): int
+  public static function readBlocking($stream): ?array
 
 final class Phel\Shared\ProjectRootResolver
   public static function resolveFromCwd(string $cwd): string

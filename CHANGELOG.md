@@ -8,10 +8,12 @@ All notable changes to this project will be documented in this file.
 
 #### PHP API
 
+- `Phel\Shared\Process\WorkerFrame`, the length-prefixed JSON framing the `phel test --parallel` workers speak, moved from `Phel\Run\Application\Test` (where it was `@internal`) so `phel mutate`'s worker can share it. `Phel\Mutate\MutateFacade` is the new module's facade (#3208)
 - `BuildFacadeInterface::flushCompiledCodeCache()` and `RunFacadeInterface::flushCompiledCodeCache()`: write the compiled-code cache index to disk now instead of at process shutdown. `phel test --parallel` calls it after evaluating the shared namespaces, so the workers find them in the cache instead of each recompiling the same files at once, which is a race the analyzer does not survive on a cold cache (a namespace was retried on a fresh worker) (#3203)
 
 #### Testing
 
+- `phel mutate [paths] [--tests=<paths>] [--only=<ids>] [--min-msi=N] [--reporter=text|json] [-o file] [--timeout-factor=N]`: mutation testing for Phel code. Every `defn` under the paths (default: the project source dirs) is changed one small mistake at a time on the parse tree, so the only textual difference from the original is the mutation; a worker subprocess redefines the function in its namespace, runs the project tests, and restores it. Eleven mutators (`arith`, `compare`, `equality`, `logic`, `cond-branch`, `literal-bool`, `literal-num`, `literal-str`, `seq-op`, `return-nil`, `body-drop`); survivors are listed with file, line, mutator and change; a mutant that loops forever is a timeout (counts as killed) and one that crashes the worker is killed, both without ending the run; a red baseline refuses to mutate; `--min-msi` gates the exit code. No PHP dependency added (#3208)
 - `phel test --coverage=per-test`: JSON with the `.phel` lines each test executed (`tests`) and the tests behind each line (`lines`), the input for test impact analysis and mutation testing. On this repository it costs no more than `--coverage` (26s against 28s with xdebug). `phel.test` now emits `:begin-test` and `:end-test` events around every test (the end event carries `:duration-ms`), and `phel.test/*event-hook*` observes every event of a run next to the configured reporters, which is how the PHP runner attributes coverage without replacing them (#3207)
 
 #### Language

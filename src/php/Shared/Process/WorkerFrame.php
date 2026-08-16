@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Phel\Run\Application\Test;
+namespace Phel\Shared\Process;
 
 use JsonException;
 use RuntimeException;
@@ -22,8 +22,9 @@ use const JSON_UNESCAPED_UNICODE;
 use const STR_PAD_LEFT;
 
 /**
- * Length-prefixed JSON framing used between TestCommand (parent) and
- * the long-lived `_test-worker` subprocesses.
+ * Length-prefixed JSON framing between a parent process and a long-lived
+ * worker subprocess: `phel test --parallel` (`_test-worker`) and
+ * `phel mutate` (`_mutate-worker`) speak it over stdin/stdout.
  *
  * Wire format per frame:
  *
@@ -32,8 +33,6 @@ use const STR_PAD_LEFT;
  * where the hex digits encode the byte length of the JSON payload. The
  * trailing newline after the header keeps frames human-readable when
  * pipes are tee'd to a log.
- *
- * @internal
  */
 final class WorkerFrame
 {
