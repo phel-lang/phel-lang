@@ -67,13 +67,19 @@
     :voyageai "VOYAGE_API_KEY"
     "ANTHROPIC_API_KEY"))
 
+(defn- present-key
+  "The key when it is a non-blank string, otherwise nil. `ANTHROPIC_API_KEY=` in a shell reads as an empty string, and an empty key is a missing key, not one to send."
+  [key]
+  (when (and (string? key) (not (s/blank? key)))
+    key))
+
 (defn- resolve-api-key
   "Resolves the API key from config or environment variables. Supports :anthropic, :openai, and :voyageai providers."
   [cfg]
   (let [provider (get cfg :provider)
         env-var  (provider-env-var provider)]
-    (or (get cfg :api-key)
-        (php/getenv env-var)
+    (or (present-key (get cfg :api-key))
+        (present-key (php/getenv env-var))
         (throw (new RuntimeException
                     (str "No API key configured for provider " provider
                          ". Use (ai/configure {:api-key \"...\"}) or set "
@@ -154,12 +160,17 @@
   [status]
   (or (= 429 status) (and (>= status 500) (< status 600))))
 
+(def ^:dynamic *sleep-fn*
+  {:doc "Retry backoff seam: called with the delay in milliseconds before each retry. Rebind with `binding` in tests so a retry does not really sleep. Tagged `^:dynamic` like `*http-post*`."
+   :example "(binding [*sleep-fn* (fn [ms] nil)] ...)"}
+  (fn [ms] (php/usleep (php/intval (* ms 1000)))))
+
 (defn- backoff-sleep
-  "Sleeps using exponential backoff. attempt is 0-based."
+  "Waits before retry `attempt` (0-based) with exponential backoff: 500ms, 1000ms, 2000ms, ..."
   [attempt]
   (let [base-ms  500
         delay-ms (* base-ms (php/pow 2 attempt))]
-    (php/usleep (php/intval (* delay-ms 1000)))))
+    (*sleep-fn* delay-ms)))
 
 (defn- post-with-retry
   "Posts with retry on 429 / 5xx up to max-retries."
