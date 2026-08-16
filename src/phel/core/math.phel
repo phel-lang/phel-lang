@@ -70,30 +70,60 @@
   {:inline (fn [x y & args] `(do (assert-non-nil ~x ~y ~@args) (php/& ~x ~y ~@args)))
    :example "(bit-and 12 10) ; => 8"
    :see-also ["bit-or" "bit-xor" "bit-not"]}
-  [x y & args]
-  (let [all (concat [x y] args)]
-    (assert-non-nil-coll all)
-    (reduce #(php/& %1 %2) all)))
+  ;; Fixed arities for the two- and three-argument calls. Direct calls expand
+  ;; through `:inline` and never reach this body, but `apply` and every
+  ;; higher-order use (`(reduce bit-and 0 xs)`) do, and those built a rest
+  ;; argument, `concat`ed it and reduced with a closure per call (#2973).
+  ([x y]
+   (assert-non-nil-2 x y)
+   (php/& x y))
+  ([x y z]
+   (assert-non-nil-3 x y z)
+   (php/& (php/& x y) z))
+  ([x y z & args]
+   (let [all (concat [x y z] args)]
+     (assert-non-nil-coll all)
+     (reduce #(php/& %1 %2) all))))
 
 (defn bit-or
   "Bitwise or."
   {:inline (fn [x y & args] `(do (assert-non-nil ~x ~y ~@args) (php/| ~x ~y ~@args)))
    :example "(bit-or 12 10) ; => 14"
    :see-also ["bit-and" "bit-xor" "bit-not"]}
-  [x y & args]
-  (let [all (concat [x y] args)]
-    (assert-non-nil-coll all)
-    (reduce #(php/| %1 %2) all)))
+  ;; Fixed arities for the two- and three-argument calls. Direct calls expand
+  ;; through `:inline` and never reach this body, but `apply` and every
+  ;; higher-order use (`(reduce bit-or 0 xs)`) do, and those built a rest
+  ;; argument, `concat`ed it and reduced with a closure per call (#2973).
+  ([x y]
+   (assert-non-nil-2 x y)
+   (php/| x y))
+  ([x y z]
+   (assert-non-nil-3 x y z)
+   (php/| (php/| x y) z))
+  ([x y z & args]
+   (let [all (concat [x y z] args)]
+     (assert-non-nil-coll all)
+     (reduce #(php/| %1 %2) all))))
 
 (defn bit-xor
   "Bitwise xor."
   {:inline (fn [x y & args] `(do (assert-non-nil ~x ~y ~@args) (php/^ ~x ~y ~@args)))
    :example "(bit-xor 12 10) ; => 6"
    :see-also ["bit-and" "bit-or" "bit-not"]}
-  [x y & args]
-  (let [all (concat [x y] args)]
-    (assert-non-nil-coll all)
-    (reduce #(php/^ %1 %2) all)))
+  ;; Fixed arities for the two- and three-argument calls. Direct calls expand
+  ;; through `:inline` and never reach this body, but `apply` and every
+  ;; higher-order use (`(reduce bit-xor 0 xs)`) do, and those built a rest
+  ;; argument, `concat`ed it and reduced with a closure per call (#2973).
+  ([x y]
+   (assert-non-nil-2 x y)
+   (php/^ x y))
+  ([x y z]
+   (assert-non-nil-3 x y z)
+   (php/^ (php/^ x y) z))
+  ([x y z & args]
+   (let [all (concat [x y z] args)]
+     (assert-non-nil-coll all)
+     (reduce #(php/^ %1 %2) all))))
 
 (defn bit-not
   "Bitwise complement."
@@ -138,10 +168,19 @@
   "Bitwise `and` with the complement of each subsequent argument: `(bit-and-not x y)` is `x & ~y`. Additional arguments are folded in left to right, clearing every bit that is set in any of them."
   {:example "(bit-and-not 0xFF 0x0F) ; => 240"
    :see-also ["bit-and" "bit-not" "bit-or"]}
-  [x y & args]
-  (let [all (concat [x y] args)]
-    (assert-non-nil-coll all)
-    (reduce (fn [acc v] (php/& acc (php/~ v))) x (rest all))))
+  ;; Fixed arities, as its siblings: `bit-and-not` has no `:inline`, so every
+  ;; direct call reached a rest argument, a `concat` and a closure-driven
+  ;; `reduce`, even for two arguments (#2973).
+  ([x y]
+   (assert-non-nil-2 x y)
+   (php/& x (php/~ y)))
+  ([x y z]
+   (assert-non-nil-3 x y z)
+   (php/& (php/& x (php/~ y)) (php/~ z)))
+  ([x y z & args]
+   (let [all (concat [x y z] args)]
+     (assert-non-nil-coll all)
+     (reduce (fn [acc v] (php/& acc (php/~ v))) x (rest all)))))
 
 (defn bit-set
   "Returns the integer `x` with the bit at index `n` (0-based, least significant first) set to 1."

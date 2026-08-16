@@ -1,0 +1,49 @@
+(ns phel-test.core.bitwise-arities
+  (:require phel.test :refer [deftest is thrown?]))
+
+;; `bit-and`, `bit-or`, `bit-xor` and `bit-and-not` grew fixed two- and
+;; three-argument arities. A direct call to the first three expands through
+;; `:inline` and never reached the runtime body, but `apply` and every
+;; higher-order use did, and that body built a rest argument, `concat`ed it,
+;; walked it for nil and reduced with a closure on every call. `bit-and-not`
+;; has no `:inline`, so even a direct call paid all of that.
+;;
+;; The runtime body is only reachable through `apply` and higher-order use, so
+;; that is how these tests call it: a bare `(bit-and 12 10)` would test the
+;; inline expansion instead.
+
+(deftest test-apply-reaches-every-arity
+  (is (= 8 (apply bit-and [12 10])) "bit-and, two")
+  (is (= 8 (apply bit-and [12 10 8])) "bit-and, three")
+  (is (= 1 (apply bit-and [15 7 3 1])) "bit-and, variadic tail")
+  (is (= 14 (apply bit-or [12 10])) "bit-or, two")
+  (is (= 15 (apply bit-or [12 10 1])) "bit-or, three")
+  (is (= 15 (apply bit-or [8 4 2 1])) "bit-or, variadic tail")
+  (is (= 6 (apply bit-xor [12 10])) "bit-xor, two")
+  (is (= 0 (apply bit-xor [12 10 6])) "bit-xor, three")
+  (is (= 15 (apply bit-xor [1 2 4 8])) "bit-xor, variadic tail"))
+
+(deftest test-bit-and-not-arities
+  (is (= 240 (bit-and-not 0xFF 0x0F)) "two arguments")
+  (is (= 192 (bit-and-not 0xFF 0x0F 0x30)) "three arguments")
+  (is (= 248 (bit-and-not 0xFF 1 2 4)) "variadic tail")
+  (is (= 240 (apply bit-and-not [0xFF 0x0F])) "through apply")
+  (is (= 0 (bit-and-not 0x0F 0x0F)) "clearing every bit")
+  (is (= 0xFF (bit-and-not 0xFF 0)) "clearing nothing"))
+
+(deftest test-higher-order-use
+  (is (= 7 (reduce bit-or 0 [1 2 4])) "reduce bit-or")
+  (is (= 1 (reduce bit-and 15 [3 5])) "reduce bit-and")
+  (is (= [8 14 6] (map (fn [f] (f 12 10)) [bit-and bit-or bit-xor])) "as values"))
+
+(deftest test-nil-is-rejected-on-every-arity
+  (is (thrown? InvalidArgumentException (apply bit-and [nil 1])) "bit-and, two")
+  (is (thrown? InvalidArgumentException (apply bit-and [1 2 nil])) "bit-and, three")
+  (is (thrown? InvalidArgumentException (apply bit-and [1 2 3 nil])) "bit-and, variadic tail")
+  (is (thrown? InvalidArgumentException (apply bit-or [nil 1])) "bit-or, two")
+  (is (thrown? InvalidArgumentException (apply bit-or [1 nil 3])) "bit-or, three")
+  (is (thrown? InvalidArgumentException (apply bit-xor [1 nil])) "bit-xor, two")
+  (is (thrown? InvalidArgumentException (apply bit-xor [1 2 3 4 nil])) "bit-xor, variadic tail")
+  (is (thrown? InvalidArgumentException (bit-and-not 1 nil)) "bit-and-not, two")
+  (is (thrown? InvalidArgumentException (bit-and-not 1 2 nil)) "bit-and-not, three")
+  (is (thrown? InvalidArgumentException (bit-and-not 1 2 3 nil)) "bit-and-not, variadic tail"))
