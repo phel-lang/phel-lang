@@ -453,8 +453,26 @@ Creates intermediate maps if they don't exist."
   "Updates a value in a datastructure by applying `f` to the current value."
   {:example "(update {:count 5} :count inc) ; => {:count 6}"
    :see-also ["update-in" "assoc"]}
-  [ds k f & args]
-  (assoc ds k (apply f (get ds k) args)))
+  ;; Clojure's arities exactly (`[m k f]` through `[m k f x y z]`, then
+  ;; variadic). Every call used to build a rest argument and go through
+  ;; `apply`, even the plain `(update m :k inc)` that is nearly all of them
+  ;; (#2973). The current value is bound first, as `update-in` does, so a
+  ;; by-reference `f` sees a variable rather than a temporary.
+  ([ds k f]
+   (let [current (get ds k)]
+     (assoc ds k (f current))))
+  ([ds k f x]
+   (let [current (get ds k)]
+     (assoc ds k (f current x))))
+  ([ds k f x y]
+   (let [current (get ds k)]
+     (assoc ds k (f current x y))))
+  ([ds k f x y z]
+   (let [current (get ds k)]
+     (assoc ds k (f current x y z))))
+  ([ds k f x y z & more]
+   (let [current (get ds k)]
+     (assoc ds k (apply f current x y z more)))))
 
 (defn update-in
   "Updates a value in a nested data structure by applying `f` to the value at path."

@@ -1,0 +1,36 @@
+(ns phel-test.core.update-arities
+  (:require phel.test :refer [deftest is]))
+
+;; `update` grew Clojure's fixed arities: `[m k f]` through `[m k f x y z]`,
+;; then variadic. Every call used to build a rest argument and go through
+;; `apply`, even the plain `(update m :k inc)` that is nearly all of them.
+;; `update` had no direct tests before this, so these also cover the basics.
+
+(deftest test-update-arities
+  (is (= {:c 6} (update {:c 5} :c inc)) "no extra argument")
+  (is (= {:c 6} (update {:c 5} :c + 1)) "one extra argument")
+  (is (= {:c 8} (update {:c 5} :c + 1 2)) "two extra arguments")
+  (is (= {:c 11} (update {:c 5} :c + 1 2 3)) "three extra arguments")
+  (is (= {:c 15} (update {:c 5} :c + 1 2 3 4)) "four, the variadic tail")
+  (is (= {:c 20} (update {:c 5} :c + 1 2 3 4 5)) "five, further into the tail"))
+
+(deftest test-update-on-a-missing-key
+  ;; `f` receives nil, as in Clojure; `fnil` is the idiom for a default.
+  (is (= {:c 1} (update {} :c (fnil inc 0))) "fnil supplies the default")
+  (is (= {:a 1 :c true} (update {:a 1} :c nil?)) "f sees nil for an absent key")
+  (is (= {:c 1} (update nil :c (constantly 1))) "a nil map behaves as an empty one"))
+
+(deftest test-update-on-other-associatives
+  (is (= [1 20 3] (update [1 2 3] 1 * 10)) "a vector by index")
+  (is (= {:a {:b 2}} (update {:a {:b 1}} :a assoc :b 2)) "f may replace with a different shape"))
+
+(deftest test-update-does-not-mutate
+  (let [m {:c 5}
+        r (update m :c inc)]
+    (is (= {:c 6} r) "the result is updated")
+    (is (= {:c 5} m) "the source is unchanged")))
+
+(deftest test-apply-reaches-every-arity
+  (is (= {:c 6} (apply update [{:c 5} :c inc])) "apply, no extras")
+  (is (= {:c 8} (apply update [{:c 5} :c + 1 2])) "apply, two extras")
+  (is (= {:c 20} (apply update [{:c 5} :c + 1 2 3 4 5])) "apply into the variadic tail"))
