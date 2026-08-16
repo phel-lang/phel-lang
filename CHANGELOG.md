@@ -10,6 +10,10 @@ All notable changes to this project will be documented in this file.
 
 - `BuildFacadeInterface::flushCompiledCodeCache()` and `RunFacadeInterface::flushCompiledCodeCache()`: write the compiled-code cache index to disk now instead of at process shutdown. `phel test --parallel` calls it after evaluating the shared namespaces, so the workers find them in the cache instead of each recompiling the same files at once, which is a race the analyzer does not survive on a cold cache (a namespace was retried on a fresh worker) (#3203)
 
+#### Testing
+
+- `phel test --coverage=per-test`: JSON with the `.phel` lines each test executed (`tests`) and the tests behind each line (`lines`), the input for test impact analysis and mutation testing. On this repository it costs no more than `--coverage` (26s against 28s with xdebug). `phel.test` now emits `:begin-test` and `:end-test` events around every test (the end event carries `:duration-ms`), and `phel.test/*event-hook*` observes every event of a run next to the configured reporters, which is how the PHP runner attributes coverage without replacing them (#3207)
+
 #### Language
 
 - Binding-first map destructuring, as in Clojure: `{local :key}`, `{[x y] :point}`, `{n "name"}` and nested `{{:keys [c]} :inner}` work next to the existing key-first spelling. `:keys`, `:strs`, `:syms`, `:as` and `:or` are unchanged. A pair where neither side binds (`{:a :b}`) is rejected with a message showing both spellings (#3115)

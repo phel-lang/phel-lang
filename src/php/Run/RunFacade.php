@@ -10,6 +10,7 @@ use Gacela\Framework\ServiceResolver\ServiceMap;
 use Phel\Lang\Collections\Map\PersistentMapInterface;
 use Phel\Run\Application\Test\Coverage\CoverageDriver;
 use Phel\Run\Application\Test\Coverage\CoverageReport;
+use Phel\Run\Application\Test\Coverage\PerTestCoverageReport;
 use Phel\Run\Application\Test\CpuCountDetector;
 use Phel\Run\Application\Test\ParallelTestOrchestrator;
 use Phel\Shared\CompileOptions;
@@ -244,5 +245,18 @@ final class RunFacade extends AbstractFacade implements RunFacadeInterface
         return $this->getFactory()
             ->createCoverageAggregator($driverName)
             ->aggregate($rawCoverage);
+    }
+
+    /**
+     * Attribute the PHP lines each test executed to `.phel` lines: which
+     * lines each test covers and which tests cover each line.
+     *
+     * @param array<string, array<string, list<int>>> $hitLinesByTest testId => compiledPhpFile => PHP lines with hits
+     */
+    public function buildPerTestCoverageReport(array $hitLinesByTest, string $driverName): PerTestCoverageReport
+    {
+        return $this->getFactory()
+            ->createCoverageAggregator($driverName)
+            ->attribute($hitLinesByTest);
     }
 }

@@ -81,6 +81,36 @@ final class CoverageAggregatorTest extends TestCase
         self::assertSame([], $report->files());
     }
 
+    public function test_attributes_phel_lines_to_the_tests_that_hit_them(): void
+    {
+        // calc.php lines 10,11 map to calc.phel:2 (add); 12,13 to calc.phel:3 (unused);
+        // a vendor file is mapped too and must be dropped.
+        $commandFacade = $this->commandFacade([
+            '/cache/calc.php' => ['filename' => $this->calcPhel, 'lines' => [10 => 2, 11 => 2, 12 => 3, 13 => 3]],
+            '/cache/lib.php' => ['filename' => $this->vendorPhel, 'lines' => [5 => 1]],
+        ]);
+
+        $report = new CoverageAggregator($commandFacade, [$this->projectDir], 'xdebug')->attribute([
+            'app.calc-test/add-works' => ['/cache/calc.php' => [10, 11], '/cache/lib.php' => [5]],
+            'app.calc-test/unused-works' => ['/cache/calc.php' => [12]],
+            'app.calc-test/touches-nothing' => ['/cache/lib.php' => [5]],
+        ]);
+
+        self::assertSame('xdebug', $report->driverName());
+        self::assertSame(
+            [
+                'app.calc-test/add-works' => [$this->calcPhel => [2]],
+                'app.calc-test/touches-nothing' => [],
+                'app.calc-test/unused-works' => [$this->calcPhel => [3]],
+            ],
+            $report->linesByTest(),
+        );
+        self::assertSame(
+            [$this->calcPhel => [2 => ['app.calc-test/add-works'], 3 => ['app.calc-test/unused-works']]],
+            $report->testsByLine(),
+        );
+    }
+
     /**
      * @param array<string, array{filename: string, lines: array<int, int>}> $maps
      */

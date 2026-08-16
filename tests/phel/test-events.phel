@@ -1,0 +1,34 @@
+(ns phel-test.test-events
+  (:require phel.test :as t :refer [deftest is])
+  (:require phel-test.fixtures.run-harness :as h :refer [events-of])
+  (:require phel-test.fixtures.tagged-tests))
+
+;; `run-tests` brackets every test with a `:begin-test` / `:end-test`
+;; event, and `*event-hook*` observes every event of a run next to the
+;; configured reporters. Both are what a host (the PHP runner attributing
+;; coverage per test) builds on.
+
+(def- fixture-ns 'phel-test.fixtures.tagged-tests)
+
+(deftest test-every-test-is-bracketed-by-begin-and-end-events
+  (let [{:events events} (h/snapshot-run fixture-ns {:reporters []})
+        begins           (events-of events :begin-test)
+        ends             (events-of events :end-test)]
+    (is (= 3 (count begins)) "one :begin-test per fixture test")
+    (is (= 3 (count ends)) "one :end-test per fixture test")
+    (is (= (map :test-name begins) (map :test-name ends)) "begin and end name the same tests, in order")
+    (is (every? (fn [e] (= "phel-test.fixtures.tagged-tests" (:ns e))) begins) "events carry the namespace")
+    (is (every? (fn [e] (number? (:duration-ms e))) ends) "the end event carries the duration")))
+
+(deftest test-begin-test-precedes-the-tests-assertions
+  (let [{:events events}       (h/snapshot-run fixture-ns {:reporters []})
+        before-first-assertion (take-while (fn [e] (not (contains? e :state))) events)]
+    (is (some (fn [e] (= :begin-test (:type e))) before-first-assertion)
+        ":begin-test arrives before the first assertion of the run")))
+
+(deftest test-the-event-hook-sees-every-event-without-replacing-the-reporters
+  (let [seen             (atom [])
+        {:events events} (binding [t/*event-hook* (fn [e] (swap! seen conj (:type e)))]
+                           (h/snapshot-run fixture-ns {:reporters []}))]
+    (is (= (map :type events) @seen) "the hook receives the same events the reporters do, in order")
+    (is (some (fn [type] (= :end-test type)) @seen) "including the per-test lifecycle events")))

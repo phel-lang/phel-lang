@@ -7,6 +7,8 @@ namespace PhelTest\Integration\Run\Command\Test\TestCommandCoverage;
 use Override;
 use PHPUnit\Framework\TestCase;
 
+use function array_intersect;
+use function array_keys;
 use function bin2hex;
 use function dirname;
 use function escapeshellarg;
@@ -15,12 +17,16 @@ use function file_get_contents;
 use function file_put_contents;
 use function glob;
 use function implode;
+use function json_decode;
 use function mkdir;
 use function random_bytes;
+use function realpath;
 use function simplexml_load_string;
 use function sprintf;
 use function str_contains;
 use function sys_get_temp_dir;
+
+use const JSON_THROW_ON_ERROR;
 
 /**
  * End-to-end coverage of `phel test --coverage`. The actual collection needs a
@@ -126,6 +132,50 @@ final class TestCommandCoverageTest extends TestCase
         self::assertNotFalse($filePages);
         self::assertCount(1, $filePages);
         self::assertStringContainsString('class="covered"', (string) file_get_contents($filePages[0]));
+    }
+
+    public function test_per_test_coverage_attributes_each_line_to_the_test_that_ran_it(): void
+    {
+        // A second function and a second test, so attribution has something
+        // to tell apart: `add` is only ever called by `add-works`, `mul` only
+        // by `mul-works`, and `unused-fn` by nobody.
+        file_put_contents(
+            $this->projectDir . '/src/calc.phel',
+            "(ns app.calc)\n\n(defn add [a b]\n  (+ a b))\n\n(defn mul [a b]\n  (* a b))\n\n(defn unused-fn [x]\n  (* x 100))\n",
+        );
+        file_put_contents(
+            $this->projectDir . '/tests/calc_test.phel',
+            "(ns app.calc-test\n  (:require phel.test :refer [deftest is])\n  (:require app.calc))\n"
+            . "(deftest add-works\n  (is (= 3 (app.calc/add 1 2))))\n"
+            . "(deftest mul-works\n  (is (= 6 (app.calc/mul 2 3))))\n",
+        );
+        $jsonPath = $this->projectDir . '/per-test.json';
+
+        [$exitCode, $output] = $this->runPhelTest(['--coverage=per-test', '--coverage-output=' . $jsonPath]);
+
+        $this->skipIfNoDriver($output);
+        self::assertSame(0, $exitCode, $output);
+        self::assertFileExists($jsonPath);
+        $json = (string) file_get_contents($jsonPath);
+        $this->skipIfNothingWasInstrumented($json);
+
+        $decoded = json_decode($json, true, 512, JSON_THROW_ON_ERROR);
+        self::assertIsArray($decoded);
+        self::assertSame(['driver', 'tests', 'lines'], array_keys($decoded));
+        self::assertIsArray($decoded['tests']);
+        self::assertIsArray($decoded['lines']);
+
+        $calc = realpath($this->projectDir . '/src/calc.phel');
+        self::assertIsString($calc);
+        $addLines = $decoded['tests']['app.calc-test/add-works'][$calc] ?? [];
+        $mulLines = $decoded['tests']['app.calc-test/mul-works'][$calc] ?? [];
+        self::assertNotSame([], $addLines, 'add-works executed lines of calc.phel: ' . $json);
+        self::assertNotSame([], $mulLines, 'mul-works executed lines of calc.phel: ' . $json);
+        self::assertSame([], array_intersect($addLines, $mulLines), 'the two tests touch disjoint functions');
+
+        foreach ($addLines as $line) {
+            self::assertSame(['app.calc-test/add-works'], $decoded['lines'][$calc][(string) $line] ?? null);
+        }
     }
 
     private function skipIfNoDriver(string $output): void
