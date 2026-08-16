@@ -101,7 +101,10 @@
 ;; dotrace
 ;; -------
 
-(defn- plain-add [a b] (+ a b))
+;; `^:redef` keeps the call reading the global instead of being inlined at
+;; `-O2`, which is what `dotrace` needs in order to intercept it. Same reason
+;; the `with-redefs` targets in mock.phel carry it (#3126, #3125).
+(defn- ^:redef plain-add [a b] (+ a b))
 
 (deftest test-dotrace-traces-within-body-only
   (let [[result lines] (capture-trace (fn [] (dotrace [plain-add] (plain-add 1 2))))]

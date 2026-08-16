@@ -120,9 +120,19 @@ final readonly class CallInliner
             return null;
         }
 
-        // Stay out of the tail slot of an enclosing `loop`/`recur` frame
-        // so we never disturb tail-call semantics.
-        if ($env->getCurrentRecurFrame() instanceof RecurFrame
+        // Stay out of the tail slot of an enclosing `loop`/`recur` frame so we
+        // never disturb tail-call semantics.
+        //
+        // The frame has to be *active*, not merely present. Every `fn` body
+        // opens a recur frame because every `fn` body may contain `recur`, so
+        // testing for the frame alone declined every call in return position in
+        // any function, which is the single most common shape there is:
+        // `(defn c [x] (add1 x))` never inlined while `(defn c [x] [(add1 x)])`
+        // did. `isActive()` is set when a `recur` actually targets the frame,
+        // which is what the paragraph above means (#3125).
+        $recurFrame = $env->getCurrentRecurFrame();
+        if ($recurFrame instanceof RecurFrame
+            && $recurFrame->isActive()
             && $env->isContext(NodeEnvironment::CONTEXT_RETURN)
         ) {
             return null;

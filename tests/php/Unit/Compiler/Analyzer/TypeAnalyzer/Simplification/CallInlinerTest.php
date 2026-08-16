@@ -16,9 +16,11 @@ use Phel\Compiler\Domain\Analyzer\Ast\LetNode;
 use Phel\Compiler\Domain\Analyzer\Ast\LiteralNode;
 use Phel\Compiler\Domain\Analyzer\Ast\LocalVarNode;
 use Phel\Compiler\Domain\Analyzer\Ast\MultiFnNode;
+use Phel\Compiler\Domain\Analyzer\Ast\RecurFrame;
 use Phel\Compiler\Domain\Analyzer\Ast\VectorNode;
 use Phel\Compiler\Domain\Analyzer\Environment\GlobalEnvironment;
 use Phel\Compiler\Domain\Analyzer\Environment\NodeEnvironment;
+use Phel\Compiler\Domain\Analyzer\Environment\NodeEnvironmentInterface;
 use Phel\Compiler\Domain\Analyzer\TypeAnalyzer\Simplification\CallInliner;
 use Phel\Lang\Collections\Map\PersistentMapInterface;
 use Phel\Lang\Keyword;
@@ -93,6 +95,58 @@ final class CallInlinerTest extends TestCase
         $this->seedDefn('my-loop', ['x'], $this->plusBody('x', 1), recurs: true);
 
         self::assertNull($this->inline('my-loop', [new LiteralNode($this->env, 5)]));
+    }
+
+    public function test_inlines_a_call_in_return_position(): void
+    {
+        // Every `fn` body opens a recur frame, and a single-expression body is
+        // return position, so gating on the frame's mere presence declined the
+        // most common shape there is: `(defn c [x] (my-inc x))` (#3125).
+        $this->seedDefn('my-inc', ['x'], $this->plusBody('x', 1));
+
+        $env = NodeEnvironment::empty()
+            ->withReturnContext()
+            ->withAddedRecurFrame(new RecurFrame([Symbol::create('x')]));
+
+        $result = $this->inline('my-inc', [new LiteralNode($env, 5)], env: $env);
+
+        self::assertInstanceOf(LiteralNode::class, $result);
+        self::assertSame(6, $result->getValue());
+    }
+
+    public function test_declines_in_the_tail_slot_of_an_active_recur_frame(): void
+    {
+        // A frame goes active once a `recur` targets it, which is the tail slot
+        // the guard is actually about.
+        $this->seedDefn('my-inc', ['x'], $this->plusBody('x', 1));
+
+        $frame = new RecurFrame([Symbol::create('i')]);
+        $frame->setIsActive(true);
+
+        $env = NodeEnvironment::empty()
+            ->withReturnContext()
+            ->withAddedRecurFrame($frame);
+
+        self::assertNull($this->inline('my-inc', [new LiteralNode($env, 5)], env: $env));
+    }
+
+    public function test_inlines_outside_the_tail_slot_of_an_active_recur_frame(): void
+    {
+        // Same active frame, but the call is an argument rather than the tail
+        // expression: nothing about `recur` is at stake.
+        $this->seedDefn('my-inc', ['x'], $this->plusBody('x', 1));
+
+        $frame = new RecurFrame([Symbol::create('i')]);
+        $frame->setIsActive(true);
+
+        $env = NodeEnvironment::empty()
+            ->withExpressionContext()
+            ->withAddedRecurFrame($frame);
+
+        $result = $this->inline('my-inc', [new LiteralNode($env, 5)], env: $env);
+
+        self::assertInstanceOf(LiteralNode::class, $result);
+        self::assertSame(6, $result->getValue());
     }
 
     public function test_declines_on_arity_mismatch(): void
@@ -320,11 +374,16 @@ final class CallInlinerTest extends TestCase
     /**
      * @param list<AbstractNode> $args
      */
-    private function inline(string $name, array $args, ?PersistentMapInterface $meta = null): ?AbstractNode
-    {
-        $f = new GlobalVarNode($this->env, 'user', Symbol::create($name), $meta ?? Phel::map());
+    private function inline(
+        string $name,
+        array $args,
+        ?PersistentMapInterface $meta = null,
+        ?NodeEnvironmentInterface $env = null,
+    ): ?AbstractNode {
+        $env ??= $this->env;
+        $f = new GlobalVarNode($env, 'user', Symbol::create($name), $meta ?? Phel::map());
 
-        return $this->inliner->tryInline($f, $args, $this->env, $this->analyzer);
+        return $this->inliner->tryInline($f, $args, $env, $this->analyzer);
     }
 
     private function plusBody(string $param, int $addend): DoNode
