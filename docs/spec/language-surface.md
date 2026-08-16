@@ -183,10 +183,15 @@ declared prefix casing to autoload the class first. The destination at the next
 major is this dotted spelling without a leading `\`; see
 [ADR 0015](../adr/0015-a-php-class-is-named-with-dots.md).
 
-At host-symbol fallback an existing PHP class, interface, trait or enum takes
-precedence over the global-constant reading of the same bare name. `php/NAME`
-bypasses the fallback and stays the explicit constant escape hatch. Phel locals
-and definitions still resolve first.
+At host-symbol fallback a bare all-caps name reads by position: the global
+constant in value position (`PHP_EOL`), the class as a member target, a
+constructor argument or a callable (`(WP_CLI/log "x")`, `(php/new PDO dsn)`,
+`(php/callable PDO getAvailableDrivers)`). Nothing is probed, so the emitted PHP
+does not depend on what the compiling process had autoloaded; see
+[ADR 0016](../adr/0016-a-bare-all-caps-host-name-reads-by-position.md). `php/NAME`
+keeps the constant reading everywhere, `\NAME` / `(:use NAME)` / `NAME/class`
+spell the class in value position, and Phel locals and definitions still resolve
+first.
 
 In value position a qualified member is a class constant unless the class has no
 constant of that name and does have a public static method, decided by reflection

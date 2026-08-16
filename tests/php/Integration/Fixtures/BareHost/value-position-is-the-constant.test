@@ -1,0 +1,36 @@
+--PHEL--
+(ns test)
+
+(defn probe [] WP_CLI_FIXTURE)
+--PHP--
+namespace test;
+require_once __DIR__ . '/phel/core.php';
+\Phel::addDefinition(
+  "phel.core",
+  "*file*",
+  "BareHost/value-position-is-the-constant.test"
+);
+\Phel::addDefinition(
+  "phel.core",
+  "*ns*",
+  "test"
+);
+\Phel::addDefinition(
+  "test",
+  "probe",
+  new class() extends \Phel\Lang\AbstractFn {
+    public const BOUND_TO = "test\\probe";
+
+    public function __invoke() {
+      return WP_CLI_FIXTURE;
+    }
+  },
+  \Phel::locationMeta(
+    \Phel::location("BareHost/value-position-is-the-constant.test", 3, 0),
+    \Phel::location("BareHost/value-position-is-the-constant.test", 3, 30),
+    \Phel\Lang\Keyword::create("doc"), "```phel\n(probe)\n```\n",
+    "min-arity", 0,
+    "is-variadic", false,
+    "arglists", "[]"
+  )
+);

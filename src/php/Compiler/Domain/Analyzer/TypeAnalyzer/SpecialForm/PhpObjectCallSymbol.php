@@ -9,6 +9,7 @@ use Phel\Compiler\Domain\Analyzer\Ast\MethodCallNode;
 use Phel\Compiler\Domain\Analyzer\Ast\PhpClassNameNode;
 use Phel\Compiler\Domain\Analyzer\Ast\PhpObjectCallNode;
 use Phel\Compiler\Domain\Analyzer\Ast\PropertyOrConstantAccessNode;
+use Phel\Compiler\Domain\Analyzer\BareHostClass;
 use Phel\Compiler\Domain\Analyzer\Environment\NodeEnvironmentInterface;
 use Phel\Compiler\Domain\Analyzer\Exceptions\AnalyzerException;
 use Phel\Lang\Collections\LinkedList\PersistentListInterface;
@@ -41,10 +42,13 @@ final readonly class PhpObjectCallSymbol implements SpecialFormAnalyzerInterface
             throw AnalyzerException::withLocation("At least two arguments are expected for '" . $fnName, $list);
         }
 
-        $targetExpr = $this->analyzer->analyze(
-            $list->get(1),
-            $env->withExpressionContext()->withDisallowRecurFrame(),
-        );
+        $targetEnv = $env->withExpressionContext()->withDisallowRecurFrame();
+        $target = $list->get(1);
+        $targetExpr = $this->analyzer->analyze($target, $targetEnv);
+
+        // A member target names a class by position; see BareHostClass (#3064).
+        $targetExpr = BareHostClass::reread($target, $targetExpr, $targetEnv) ?? $targetExpr;
+
         $counter = count($list);
 
         for ($i = 2; $i < $counter; ++$i) {
