@@ -130,8 +130,8 @@ final class PersistentArrayMapBench
      */
     public function bench_iterate_grown_map(): void
     {
-        foreach ($this->grownMap as $key => $value) {
-            // Traversal is the measurement; the pair is deliberately unused.
+        foreach ($this->grownMap as $value) {
+            // Traversal is the measurement; the value is deliberately unused.
         }
     }
 
