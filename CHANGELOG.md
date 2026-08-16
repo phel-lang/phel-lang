@@ -6,6 +6,10 @@ All notable changes to this project will be documented in this file.
 
 ### Added
 
+#### PHP API
+
+- `BuildFacadeInterface::flushCompiledCodeCache()` and `RunFacadeInterface::flushCompiledCodeCache()`: write the compiled-code cache index to disk now instead of at process shutdown. `phel test --parallel` calls it after evaluating the shared namespaces, so the workers find them in the cache instead of each recompiling the same files at once, which is a race the analyzer does not survive on a cold cache (a namespace was retried on a fresh worker) (#3203)
+
 #### Language
 
 - Binding-first map destructuring, as in Clojure: `{local :key}`, `{[x y] :point}`, `{n "name"}` and nested `{{:keys [c]} :inner}` work next to the existing key-first spelling. `:keys`, `:strs`, `:syms`, `:as` and `:or` are unchanged. A pair where neither side binds (`{:a :b}`) is rejected with a message showing both spellings (#3115)

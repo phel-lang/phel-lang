@@ -162,6 +162,11 @@ final class BuildFacade extends AbstractFacade implements BuildFacadeInterface
             ->evalFile($src);
     }
 
+    public function flushCompiledCodeCache(): void
+    {
+        $this->getFactory()->flushCompiledCodeCache();
+    }
+
     /**
      * @return list<CompiledFile>
      */

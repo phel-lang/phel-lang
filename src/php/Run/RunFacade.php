@@ -68,6 +68,13 @@ final class RunFacade extends AbstractFacade implements RunFacadeInterface
             ->evalFile($info->getFile());
     }
 
+    public function flushCompiledCodeCache(): void
+    {
+        $this->getFactory()
+            ->getBuildFacade()
+            ->flushCompiledCodeCache();
+    }
+
     public function eval(string $phelCode, CompileOptions $compileOptions = new CompileOptions()): mixed
     {
         return $this->getFactory()

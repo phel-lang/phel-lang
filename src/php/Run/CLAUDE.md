@@ -6,7 +6,7 @@ Runtime execution: runs Phel namespaces/files, REPL, evaluation, test runner, an
 
 | Group | Methods |
 |-------|---------|
-| Execution | `runNamespace(string)`, `runFile(string)`, `evalFile(NamespaceInformation)`, `eval(string, CompileOptions): mixed`, `structuredEval(string, CompileOptions): EvalResult` (never throws), `loadPhelNamespaces(?string)` (core + startup file) |
+| Execution | `runNamespace(string)`, `runFile(string)`, `evalFile(NamespaceInformation)`, `eval(string, CompileOptions): mixed`, `structuredEval(string, CompileOptions): EvalResult` (never throws), `loadPhelNamespaces(?string)` (core + startup file), `flushCompiledCodeCache()` (index to disk before spawning workers) |
 | Namespaces | `getNamespaceFromFile`, `getDependenciesForNamespace` (topologically sorted), `getDependenciesFromPaths` |
 | Query | `getAllPhelDirectories`, `getLoadedNamespaces`, `getAllNamespaces` (distinct sorted ns across source/test/vendor; via `ProjectNamespaceLister`; powers `phel run`/`phel test` shell completion), `getVersion`, `autoDetectEntryPoint` (prefers `main.phel`, falls back to `core.phel`) |
 | Debugging | `enableDebugLineTap(?string $phelFileFilter, string $logPath)`, `disableDebugLineTap`, `breakpoint(PersistentMapInterface): void` (interactive `(break)` sub-REPL; blocks until resume) |
