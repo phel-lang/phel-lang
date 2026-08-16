@@ -1,0 +1,79 @@
+(ns phel-test.core.merge-php-arrays
+  (:require phel.test :refer [deftest is thrown?]))
+
+;; `merge` is repeated `conj`, and `conj` treated every PHP array as a push
+;; target, so an associative array on the left had the whole right operand
+;; appended at integer key 0 (#3114). The rest of core already reads an
+;; associative PHP array as map-like: `php->phel` turns it into a map, `into`
+;; merges into it by key, and `get`/`keys`/`count` all answer associatively.
+;; What has to hold: associative arrays merge by key, indexed ones still
+;; append, and neither operand is mutated.
+
+(defn- assoc-array
+  ([] (php-associative-array))
+  ([k v] (php-associative-array k v))
+  ([k1 v1 k2 v2] (php-associative-array k1 v1 k2 v2)))
+
+(deftest test-merge-associative-php-arrays
+  (let [merged (merge (assoc-array "a" 1) (assoc-array "b" 2))]
+    (is (= 1 (get merged "a")) "the left key survives")
+    (is (= 2 (get merged "b")) "the right key is merged in, not appended")
+    (is (= ["a" "b"] (keys merged)) "no integer key was introduced")
+    (is (= :php/array (type merged)) "the left operand's type is preserved")))
+
+(deftest test-merge-right-operand-wins-on-a-shared-key
+  (is (= 2 (get (merge (assoc-array "a" 1) (assoc-array "a" 2)) "a"))
+      "the later value replaces the earlier one")
+  (is (= 9 (get (merge (assoc-array "a" 1) (assoc-array "b" 2) (assoc-array "a" 9)) "a"))
+      "three-way fold, last one wins"))
+
+(deftest test-merge-with-nil
+  (let [merged (merge (assoc-array "a" 1) nil)]
+    (is (= 1 (get merged "a")) "the array survives")
+    (is (= ["a"] (keys merged)) "nil is not appended at key 0"))
+  (is (= {"b" 2} (merge nil (php-associative-array "b" 2)))
+      "a nil left still seeds a Phel map"))
+
+(deftest test-merge-across-the-boundary
+  (is (= {:a 1 "b" 2} (merge {:a 1} (php-associative-array "b" 2)))
+      "an array on the right of a map already worked")
+  (let [merged (merge (assoc-array "a" 1) {"b" 2})]
+    (is (= 2 (get merged "b")) "a string-keyed Phel map merges into an array")
+    (is (= :php/array (type merged)) "and the array type is kept")))
+
+(deftest test-indexed-php-arrays-still-append
+  (is (= [1 2 3] (php->phel (merge (php-indexed-array 1 2) 3)))
+      "an indexed array appends, as a vector does")
+  (is (= [nil] (php->phel (merge (php-indexed-array) nil)))
+      "an empty array counts as indexed, so nil is appended as it always was")
+  (is (= [nil {} 1 {:a "c"}] (merge [] nil {} 1 {:a "c"}))
+      "the documented vector fold is unchanged"))
+
+(deftest test-conj-on-an-associative-php-array
+  (let [conjed (conj (assoc-array "a" 1) ["b" 2])]
+    (is (= 2 (get conjed "b")) "a [key value] pair is assigned")
+    (is (= ["a" "b"] (keys conjed)) "and not appended"))
+  (is (thrown? \InvalidArgumentException (conj (php-associative-array "a" 1) 3))
+      "a non-entry value is rejected, as it is for a map"))
+
+(deftest test-operands-are-not-mutated
+  (let [left   (php-associative-array "a" 1)
+        right  (php-associative-array "b" 2)
+        merged (merge left right)]
+    (is (= 2 (get merged "b")) "the merge is correct")
+    (is (= ["a"] (keys left)) "the left array is untouched")
+    (is (= ["b"] (keys right)) "the right array is untouched")))
+
+(deftest test-merge-with-on-php-arrays
+  ;; `merge-with` seeded a transient from its left operand, which a PHP array
+  ;; cannot provide: it crashed with "Call to a member function asTransient()".
+  (let [merged (merge-with + (assoc-array "a" 1 "b" 2) (assoc-array "a" 10 "c" 3))]
+    (is (= 11 (get merged "a")) "the shared key is combined")
+    (is (= 2 (get merged "b")) "a left-only key survives")
+    (is (= 3 (get merged "c")) "a right-only key is added")
+    (is (= :php/array (type merged)) "the array type is kept"))
+  (is (= 6 (get (merge-with + (php-associative-array "a" 1) {"a" 5}) "a"))
+      "a Phel map on the right combines too")
+  (let [left (php-associative-array "a" 1)]
+    (merge-with + left (php-associative-array "a" 2))
+    (is (= 1 (get left "a")) "the left array is not mutated")))

@@ -255,7 +255,18 @@ When `from` is associative, it is treated as a sequence of key-value pairs. Supp
     (php/=== coll nil)                              (list value)
     (php/instanceof coll PersistentListInterface)   (cons value coll)
     (php/instanceof coll LazySeqInterface)          (cons value coll)
-    (php/is_array coll)                             (do (php/apush coll value) coll)
+    ;; A PHP array is a push target only when it is a list. An associative one
+    ;; is the map-like shape the rest of core already reads associatively
+    ;; (`php->phel`, `into`, `get`, `keys`, `count`), so it takes the map path
+    ;; and merges by key instead of appending the whole right operand at the
+    ;; next integer index (#3114). An empty array counts as indexed, which is
+    ;; what `(merge [] {:b 2})` relies on. The test is spelled out rather than
+    ;; calling `indexed-php-array?`, which would repeat the `is_array` above
+    ;; and add a call to this branch (#2973).
+    (php/is_array coll)
+    (if (or (php/empty coll) (php/array_is_list coll))
+      (do (php/apush coll value) coll)
+      (conj-map-entry coll value))
     ;; `set-target?` and `map-target?` spelled out for the same reason: each is
     ;; an `or` of two `instanceof` and cost a call to answer it.
     (or (php/instanceof coll PersistentHashSetInterface)
@@ -1553,18 +1564,20 @@ Stops when the shorter of `keys` or `vals` is exhausted. Works safely with infin
 (defn- merge-right
   [left right]
   (cond
-    (nil? left)  (when-not (nil? right) (conj {} right))
-    (nil? right) (if (map? left) left (conj left right))
+    (nil? left)                    (when-not (nil? right) (conj {} right))
+    (nil? right)                   (if (map? left) left (conj left right))
     ;; Two maps merge through the collection's own `merge`, which bulk-builds
     ;; the result through a transient. `conj` reaches the same result by adding
     ;; the right map's entries one at a time, each a Phel call (#2973).
     (and (map? left) (map? right)) (.merge left right)
-    :else        (conj left right)))
+    :else                          (conj left right)))
 
 (defn merge
   "Merges multiple maps into one new map.
 
-If a key appears in more than one collection, later values replace previous ones."
+If a key appears in more than one collection, later values replace previous ones.
+
+An associative PHP array merges by key and keeps its type; an indexed one is appended to, the way a vector is."
   {:example "(merge {:a 1 :b 2} {:b 3 :c 4}) ; => {:a 1, :b 3, :c 4}"}
   ([] nil)
   ([map] map)

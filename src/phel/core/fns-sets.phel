@@ -499,12 +499,22 @@ Without arguments, uses a default cache size of 128 entries."
   ;; destructuring was most of the cost. Seeding from `left` is the merge
   ;; itself, not an optimisation, so the metadata question that stopped
   ;; `update-vals` seeding does not arise here.
-  (let [acc (transient left)]
-    (foreach [k v right]
-      (if (contains? acc k)
-        (.put acc k (f (get acc k) v))
-        (.put acc k v)))
-    (persistent acc)))
+  ;;
+  ;; A PHP array has no transient, so seeding one used to fail with "Call to a
+  ;; member function asTransient() on array" (#3114). PHP array assignment
+  ;; copies, which gives the same fresh-result guarantee a transient does, and
+  ;; writing through `aset` keeps the array the caller passed in.
+  (if (php/is_array left)
+    (let [acc left]
+      (foreach [k v right]
+        (aset acc k (if (php/array_key_exists k acc) (f (aget acc k) v) v)))
+      acc)
+    (let [acc (transient left)]
+      (foreach [k v right]
+        (if (contains? acc k)
+          (.put acc k (f (get acc k) v))
+          (.put acc k v)))
+      (persistent acc))))
 
 (defn merge-with
   "Merges multiple maps into one new map. If a key appears in more than one collection, the result of `(f current-val next-val)` is used."
