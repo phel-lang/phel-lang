@@ -43,7 +43,8 @@ final readonly class NamespaceCollector
         // single filesystem traversal.
         $allInfos = $this->buildFacade->getNamespaceFromDirectories($allDirs);
 
-        $userNamespaces = $this->resolveUserNamespaces($paths, $allInfos);
+        $pathInfos = $this->resolvePathInfos($paths);
+        $userNamespaces = $this->resolveUserNamespaces($pathInfos, $allInfos);
         if ($userNamespaces === []) {
             throw CannotFindAnyTestsException::inPaths($paths);
         }
@@ -66,37 +67,80 @@ final readonly class NamespaceCollector
             $bundled[$ns] = true;
         }
 
+        // An explicit path may live outside every configured directory. The
+        // walk indexes only those directories, so it can neither find such a
+        // file nor follow what it requires: seeding its namespace alone
+        // dequeued a name with no index entry and dropped its dependencies on
+        // the floor. Seeding the dependencies it declares makes the walk load
+        // them in order, and the file itself is appended after them (#3187).
         $seeds = array_values(array_unique([
             ...$userNamespaces,
+            ...$this->declaredDependencies($pathInfos),
             ...array_keys($bundled),
         ]));
 
         $dependencies = $this->buildFacade->getDependenciesForNamespace($allDirs, $seeds);
 
-        return $this->appendUnresolvedPathInfos($paths, $dependencies);
+        return $this->appendUnresolvedPathInfos($pathInfos, $dependencies);
+    }
+
+    /**
+     * The namespace information of every explicit path, read once and shared
+     * by the seeding, the dependency seeding and the final append.
+     *
+     * @param list<string> $paths
+     *
+     * @return list<NamespaceInformation>
+     */
+    private function resolvePathInfos(array $paths): array
+    {
+        return array_map(
+            $this->buildFacade->getNamespaceFromFile(...),
+            $paths,
+        );
+    }
+
+    /**
+     * What the explicit paths `(:require ...)`, so the walk resolves and
+     * orders them even when the requiring file is not under any configured
+     * directory. Bundled `phel.*` requires resolve through the same walk.
+     *
+     * @param list<NamespaceInformation> $pathInfos
+     *
+     * @return list<string>
+     */
+    private function declaredDependencies(array $pathInfos): array
+    {
+        $dependencies = [];
+        foreach ($pathInfos as $info) {
+            foreach ($info->getDependencies() as $dependency) {
+                $dependencies[] = $dependency;
+            }
+        }
+
+        return $dependencies;
     }
 
     /**
      * Explicit paths may live outside every configured directory. The
      * dependency walk can only map namespaces back to files inside those
      * directories, so such files would be silently dropped from the run.
-     * Append their own namespace information instead; their bundled phel.*
-     * dependencies are already part of the walk result via the seeds.
+     * Append their own namespace information after everything they depend
+     * on, which the walk has already placed via the seeds.
      *
-     * @param list<string>               $paths
+     * @param list<NamespaceInformation> $pathInfos
      * @param list<NamespaceInformation> $dependencies
      *
      * @return list<NamespaceInformation>
      */
-    private function appendUnresolvedPathInfos(array $paths, array $dependencies): array
+    private function appendUnresolvedPathInfos(array $pathInfos, array $dependencies): array
     {
         $resolved = [];
         foreach ($dependencies as $info) {
             $resolved[$info->getNamespace()] = true;
         }
 
-        foreach ($paths as $path) {
-            $info = $this->buildFacade->getNamespaceFromFile($path);
+        foreach ($pathInfos as $info) {
             if (isset($resolved[$info->getNamespace()])) {
                 continue;
             }
@@ -109,20 +153,17 @@ final readonly class NamespaceCollector
     }
 
     /**
-     * @param list<string>               $paths
+     * @param list<NamespaceInformation> $pathInfos
      * @param list<NamespaceInformation> $allInfos
      *
      * @return list<string>
      */
-    private function resolveUserNamespaces(array $paths, array $allInfos): array
+    private function resolveUserNamespaces(array $pathInfos, array $allInfos): array
     {
-        if ($paths !== []) {
+        if ($pathInfos !== []) {
             return array_map(
-                fn(string $filename): string => $this
-                    ->buildFacade
-                    ->getNamespaceFromFile($filename)
-                    ->getNamespace(),
-                $paths,
+                static fn(NamespaceInformation $info): string => $info->getNamespace(),
+                $pathInfos,
             );
         }
 

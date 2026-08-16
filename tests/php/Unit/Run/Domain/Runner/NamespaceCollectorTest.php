@@ -70,6 +70,48 @@ final class NamespaceCollectorTest extends TestCase
         self::assertSame([$outOfTree], $result);
     }
 
+    /**
+     * A file outside every configured directory that requires a project
+     * namespace: the walk cannot index the file, so seeding only its own
+     * namespace dropped what it requires. On a warm run the cached artifact
+     * then ran before its dependency was loaded, and the run alternated between
+     * passing and failing (#3187).
+     */
+    public function test_seeds_the_dependencies_declared_by_a_path_outside_the_configured_dirs(): void
+    {
+        $buildFacade = $this->createMock(BuildFacadeInterface::class);
+        $commandFacade = $this->createStub(CommandFacadeInterface::class);
+
+        $commandFacade->method('getSourceDirectories')->willReturn(['/src']);
+        $commandFacade->method('getVendorSourceDirectories')->willReturn(['/vendor']);
+        $commandFacade->method('getTestDirectories')->willReturn(['/tests']);
+
+        $outOfTree = new NamespaceInformation('/bench/probe.phel', 'app-bench.probe', ['phel.test', 'app.core']);
+        $appCore = new NamespaceInformation('/src/app/core.phel', 'app.core', []);
+
+        $buildFacade->method('getNamespaceFromFile')->willReturn($outOfTree);
+        $buildFacade->method('getNamespaceFromDirectories')->willReturn([$appCore]);
+
+        $captured = [];
+        $buildFacade
+            ->expects(self::once())
+            ->method('getDependenciesForNamespace')
+            ->with(self::anything(), self::callback(
+                static function (array $namespaces) use (&$captured): bool {
+                    $captured = $namespaces;
+                    return true;
+                },
+            ))
+            ->willReturn([$appCore]);
+
+        $result = new NamespaceCollector($buildFacade, $commandFacade)
+            ->getDependenciesFromPaths(['/bench/probe.phel']);
+
+        self::assertContains('app.core', $captured, 'the required project namespace is seeded into the walk');
+        self::assertContains('phel.test', $captured, 'and so is the bundled one it requires');
+        self::assertSame([$appCore, $outOfTree], $result, 'the dependency loads before the file that requires it');
+    }
+
     public function test_does_not_duplicate_namespace_info_resolved_by_dependency_walk(): void
     {
         $buildFacade = $this->createStub(BuildFacadeInterface::class);

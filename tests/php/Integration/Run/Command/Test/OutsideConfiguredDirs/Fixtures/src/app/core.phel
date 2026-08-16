@@ -1,0 +1,3 @@
+(ns app.core)
+
+(defn seed! [n] (* n 10))
