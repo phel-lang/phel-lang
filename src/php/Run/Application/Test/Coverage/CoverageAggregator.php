@@ -46,16 +46,12 @@ final readonly class CoverageAggregator
         $perPhelFile = [];
 
         foreach ($rawCoverage as $phpFile => $hits) {
-            $map = $this->commandFacade->getCompiledFileLineMap($phpFile);
+            $map = $this->projectLineMap($phpFile, $normalizedDirs);
+            if ($map === null) {
+                continue;
+            }
+
             $phelFile = $map['filename'];
-            if ($phelFile === '') {
-                continue;
-            }
-
-            if (!$this->isProjectFile($phelFile, $normalizedDirs)) {
-                continue;
-            }
-
             foreach ($map['lines'] as $phpLine => $phelLine) {
                 $covered = ($hits[$phpLine] ?? 0) > 0;
                 $existing = $perPhelFile[$phelFile][$phelLine] ?? false;
