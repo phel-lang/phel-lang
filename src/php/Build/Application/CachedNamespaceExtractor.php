@@ -246,16 +246,7 @@ final class CachedNamespaceExtractor implements NamespaceExtractorInterface
     {
         $files = [];
 
-        foreach ($directories as $directory) {
-            $realpath = $this->resolvePath($directory);
-            if ($realpath === null) {
-                continue;
-            }
-
-            if (!is_dir($realpath)) {
-                continue;
-            }
-
+        foreach ($this->existingDirectories($directories) as $realpath) {
             try {
                 foreach ($this->phelFileIterator($realpath) as $file) {
                     if (!is_array($file)) {
