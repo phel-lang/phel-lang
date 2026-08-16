@@ -1411,10 +1411,26 @@ Metadata attached to `test-name` is forwarded to the defined function so selecto
             (println (str "  " (format-duration (:duration-ms t))
                           "  " (:ns t) "/" (:test-name t)))))))))
 
+;; How many `run-tests` calls are active. A nested call (a test that runs a
+;; suite of its own, as the framework's self-tests do) must not leave the
+;; outer run without the timings and failed tests it had recorded so far.
+(def- run-depth (atom 0))
+
 (defn- reset-run-state! []
   (reset! stats initial-stats)
   (reset! timings [])
   (reset! failed-tests []))
+
+(defn- outer-run-state
+  "The per-run state a nested `run-tests` has to hand back when it returns, or nil at the top level, where the state stays readable after the run (`get-failed-tests`)."
+  []
+  (when (pos? (deref run-depth))
+    {:timings (deref timings), :failed-tests (deref failed-tests)}))
+
+(defn- restore-outer-run-state! [outer]
+  (when outer
+    (reset! timings (:timings outer))
+    (reset! failed-tests (:failed-tests outer))))
 
 (defn- announce-seed!
   "Prints `Seed: <n>` once at the start of a randomized run so failures can be reproduced with `--seed=<n>`."
@@ -1445,12 +1461,18 @@ Metadata attached to `test-name` is forwarded to the defined function so selecto
   per namespace)."
   {:example "(run-tests {} 'my-app\\test)"}
   [options & namespaces]
-  (let [options (assoc options :seed-resolved (resolve-seed options))]
+  (let [options (assoc options :seed-resolved (resolve-seed options))
+        outer   (outer-run-state)]
+    (swap! run-depth inc)
     (configure-run! options)
     (reset-run-state!)
-    (if (:list-only options)
-      (list-tests! options namespaces)
-      (execute-run! options namespaces))))
+    (try
+      (if (:list-only options)
+        (list-tests! options namespaces)
+        (execute-run! options namespaces))
+      (finally
+        (swap! run-depth dec)
+        (restore-outer-run-state! outer)))))
 
 (defn reset-stats
   "Resets the test statistics to their initial state. Call this before running a new batch of tests to get fresh results."
