@@ -154,6 +154,16 @@ final class BuildFactory extends AbstractFactory
         return $this->getProvidedDependency(CommandFacadeInterface::class);
     }
 
+    /**
+     * The index only flushes at shutdown ({@see Infrastructure\Cache\DeferredFlushTrait}); a parent
+     * about to hand work to subprocesses flushes it early so they see its
+     * entries. Same singleton the evaluator writes through, so nothing is lost.
+     */
+    public function flushCompiledCodeCache(): void
+    {
+        $this->createCompiledCodeCache()?->save();
+    }
+
     private function createSecondaryFileHarvester(): SecondaryFileHarvester
     {
         // Always present: with the compiled-code cache off it falls back to the

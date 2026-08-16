@@ -59,6 +59,13 @@ interface BuildFacadeInterface
     public function evalFile(string $src): CompiledFile;
 
     /**
+     * Writes the compiled-code cache index to disk now instead of at process
+     * shutdown, so a subprocess spawned afterwards finds what this process
+     * has compiled so far. No-op when nothing is pending or the cache is off.
+     */
+    public function flushCompiledCodeCache(): void;
+
+    /**
      * Returns the module's health check for diagnostics (`phel doctor`).
      */
     public function getHealthCheck(): ModuleHealthCheckInterface;

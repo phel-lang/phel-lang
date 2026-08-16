@@ -57,6 +57,12 @@ interface RunFacadeInterface
     public function evalFile(NamespaceInformation $info): void;
 
     /**
+     * Writes the compiled-code cache index to disk now, so a subprocess
+     * spawned afterwards finds what this process has evaluated so far.
+     */
+    public function flushCompiledCodeCache(): void;
+
+    /**
      * @param list<string> $paths
      *
      * @return list<NamespaceInformation>

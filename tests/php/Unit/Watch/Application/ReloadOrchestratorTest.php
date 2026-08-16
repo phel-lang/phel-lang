@@ -238,6 +238,8 @@ final readonly class FakeBuildFacade implements BuildFacadeInterface
         throw new RuntimeException('not implemented');
     }
 
+    public function flushCompiledCodeCache(): void {}
+
     public function compileProject(BuildOptions $options): array
     {
         return [];
@@ -274,6 +276,8 @@ final class FakeRunFacade implements RunFacadeInterface
             throw new RuntimeException('boom');
         }
     }
+
+    public function flushCompiledCodeCache(): void {}
 
     public function structuredEval(string $phelCode, CompileOptions $compileOptions): EvalResult
     {

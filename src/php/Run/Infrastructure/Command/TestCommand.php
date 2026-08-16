@@ -247,6 +247,9 @@ HELP)
                     $feedback,
                 );
                 $this->reportCompileErrors($output, $compileErrors);
+                // The cache index only reaches disk at shutdown; the workers
+                // need it now, or they recompile the shared prefix themselves.
+                $this->getFacade()->flushCompiledCodeCache();
 
                 $namespacesToRun = $this->withoutPhpUnitFixtures($namespacesInformation);
                 if ($namespacesToRun === []) {

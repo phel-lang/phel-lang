@@ -72,6 +72,7 @@ final class Phel\Build\BuildFacade extends Gacela\Framework\AbstractFacade imple
   public function compileFile(string $src, string $dest): Phel\Shared\CompiledFile
   public function compileProject(Phel\Build\Domain\Compile\BuildOptions $options): array
   public function evalFile(string $src): Phel\Shared\CompiledFile
+  public function flushCompiledCodeCache(): void
   public function getDependenciesForNamespace(array $directories, array $ns): array
   public function getHealthCheck(): Gacela\Framework\Health\ModuleHealthCheckInterface
   public function getNamespaceFromDirectories(array $directories): array
@@ -1530,6 +1531,7 @@ final class Phel\Run\RunFacade extends Gacela\Framework\AbstractFacade implement
   public function enableDebugLineTap(?string $phelFileFilter = null, string $logPath = './phel-debug.log'): void
   public function eval(string $phelCode, Phel\Shared\CompileOptions $compileOptions = object(Phel\Shared\CompileOptions)): mixed
   public function evalFile(Phel\Shared\NamespaceInformation $info): void
+  public function flushCompiledCodeCache(): void
   public function getAllNamespaces(): array
   public function getAllPhelDirectories(): array
   public function getDependenciesForNamespace(array $directories, array $ns): array
@@ -1831,6 +1833,7 @@ interface Phel\Shared\Facade\ApiFacadeInterface
 interface Phel\Shared\Facade\BuildFacadeInterface
   public function compileFile(string $src, string $dest): Phel\Shared\CompiledFile
   public function evalFile(string $src): Phel\Shared\CompiledFile
+  public function flushCompiledCodeCache(): void
   public function getDependenciesForNamespace(array $directories, array $ns): array
   public function getHealthCheck(): Gacela\Framework\Health\ModuleHealthCheckInterface
   public function getNamespaceFromDirectories(array $directories): array
@@ -1896,6 +1899,7 @@ interface Phel\Shared\Facade\RunFacadeInterface
   public function breakpoint(Phel\Lang\Collections\Map\PersistentMapInterface $locals): void
   public function eval(string $phelCode, Phel\Shared\CompileOptions $compileOptions): mixed
   public function evalFile(Phel\Shared\NamespaceInformation $info): void
+  public function flushCompiledCodeCache(): void
   public function getAllNamespaces(): array
   public function getAllPhelDirectories(): array
   public function getDependenciesForNamespace(array $directories, array $ns): array
