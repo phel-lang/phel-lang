@@ -1,0 +1,15 @@
+(ns phel-test.fixtures.nested-runner
+  (:require phel.test :as t :refer [deftest is]))
+
+;; Fixture namespace consumed by `tests/phel/slowest-nested-run.phel`.
+;;
+;; Its single test drives `phel.test/run-tests` from inside a running
+;; suite, the way the framework's own self-tests do. The outer run's
+;; per-test timings and failed-test list must survive that nested call.
+
+(deftest fixture-runs-a-nested-suite
+  (let [inner (t/with-isolated-reporters []
+                (t/with-isolated-stats
+                  (with-output-buffer
+                    (t/run-tests {:reporters []} 'phel-test.fixtures.tagged-tests))))]
+    (is (= 3 (get-in inner [:counts :pass])) "the nested run saw the tagged fixture tests")))

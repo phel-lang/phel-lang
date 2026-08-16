@@ -1,0 +1,29 @@
+(ns phel-test.slowest-nested-run
+  (:require phel.test :as t :refer [deftest is])
+  (:require phel.string :as s)
+  (:require phel-test.fixtures.tagged-tests)
+  (:require phel-test.fixtures.nested-runner))
+
+;; `--slowest` used to report only the tests that ran *after* the last
+;; nested `run-tests`: every `run-tests` call reset the global timings
+;; atom, including a nested one, so the outer run lost what it had
+;; recorded so far. Run the tagged fixture (3 tests) first, then the
+;; fixture whose test performs a nested run (1 test), and ask the outer
+;; run for its slowest list: it must hold all 4.
+
+(defn- outer-run-output []
+  (t/with-isolated-reporters []
+    (with-output-buffer
+      (t/with-isolated-stats
+        (t/run-tests {:reporters [] :slowest 10}
+                     'phel-test.fixtures.tagged-tests
+                     'phel-test.fixtures.nested-runner)))))
+
+(deftest test-a-nested-run-tests-keeps-the-outer-timings
+  (let [output (outer-run-output)]
+    (is (s/contains? output "Slowest 4 test(s):")
+        (str "the outer run reports every test it timed, got:\n" output))
+    (is (s/contains? output "phel-test.fixtures.tagged-tests/fixture-unit-passes")
+        "a test timed before the nested run is still listed")
+    (is (s/contains? output "phel-test.fixtures.nested-runner/fixture-runs-a-nested-suite")
+        "the test that ran the nested suite is listed too")))
