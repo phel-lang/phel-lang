@@ -21,6 +21,9 @@ final class FrameKey
 
     public const string OPTIONS = 'options';
 
+    /** Ordered `{ns, file}` entries the worker evaluates before running the namespace. */
+    public const string LOAD_ORDER = 'load-order';
+
     public const string TYPE = 'type';
 
     public const string OK = 'ok';

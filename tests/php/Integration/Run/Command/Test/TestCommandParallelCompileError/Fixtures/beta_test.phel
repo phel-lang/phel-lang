@@ -1,0 +1,6 @@
+(ns fixture.beta-test
+  (:require phel.test :refer [deftest is])
+  (:require fixture.shared :as shared))
+
+(deftest beta-uses-shared
+  (is (= 6 (shared/twice 3))))

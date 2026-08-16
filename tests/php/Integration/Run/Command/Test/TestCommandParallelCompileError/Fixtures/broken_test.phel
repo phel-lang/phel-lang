@@ -1,0 +1,5 @@
+(ns fixture.broken-test
+  (:require phel.test :refer [deftest is]))
+
+(deftest broken
+  (is (= 1 (this-function-does-not-exist 1))))
