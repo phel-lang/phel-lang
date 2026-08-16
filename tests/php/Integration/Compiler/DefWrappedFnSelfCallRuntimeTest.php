@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace PhelTest\Integration\Compiler;
 
-use Phel;
+use Phel\Lang\Registry;
 use Phel\Shared\CompileOptions;
 
 /**
@@ -44,6 +44,6 @@ final class DefWrappedFnSelfCallRuntimeTest extends AbstractCompilerRuntimeTestC
         )->getPhpCode();
 
         self::assertStringNotContainsString('$this(', $compiled);
-        self::assertStringContainsString(Phel::class . '::getDefinition("user", "wrapped-loop")', $compiled);
+        self::assertStringContainsString(Registry::class . '::readRoot("user", "wrapped-loop")', $compiled);
     }
 }

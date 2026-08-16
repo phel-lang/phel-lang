@@ -1,4 +1,4 @@
 --PHEL--
 `(let [x# #?(:phel 1 :default 2)] x#)
 --PHP--
-(\Phel::getDefinition("phel.core", "list"))(...\Phel\Lang\Seq::toApplyArguments((\Phel::getDefinition("phel.core", "concat"))->__invoke(\Phel::list([(\Phel\Lang\Symbol::create("let"))]), \Phel::list([(\Phel::getDefinition("phel.core", "vector"))(...\Phel\Lang\Seq::toApplyArguments((\Phel::getDefinition("phel.core", "concat"))->__invoke(\Phel::list([(\Phel\Lang\Symbol::create("x__1"))]), \Phel::list([1]))))]), \Phel::list([(\Phel\Lang\Symbol::create("x__1"))]))));
+(\Phel\Lang\Registry::readRoot("phel.core", "list"))(...\Phel\Lang\Seq::toApplyArguments((\Phel\Lang\Registry::readRoot("phel.core", "concat"))->__invoke(\Phel::list([(\Phel\Lang\Symbol::create("let"))]), \Phel::list([(\Phel\Lang\Registry::readRoot("phel.core", "vector"))(...\Phel\Lang\Seq::toApplyArguments((\Phel\Lang\Registry::readRoot("phel.core", "concat"))->__invoke(\Phel::list([(\Phel\Lang\Symbol::create("x__1"))]), \Phel::list([1]))))]), \Phel::list([(\Phel\Lang\Symbol::create("x__1"))]))));

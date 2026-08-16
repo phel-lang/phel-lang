@@ -1,4 +1,4 @@
 --PHEL--
 `(list ~'a 1)
 --PHP--
-(\Phel::getDefinition("phel.core", "list"))(...\Phel\Lang\Seq::toApplyArguments((\Phel::getDefinition("phel.core", "concat"))->__invoke(\Phel::list([(\Phel\Lang\Symbol::create("phel.core/list"))]), \Phel::list([(\Phel\Lang\Symbol::create("a"))]), \Phel::list([1]))));
+(\Phel\Lang\Registry::readRoot("phel.core", "list"))(...\Phel\Lang\Seq::toApplyArguments((\Phel\Lang\Registry::readRoot("phel.core", "concat"))->__invoke(\Phel::list([(\Phel\Lang\Symbol::create("phel.core/list"))]), \Phel::list([(\Phel\Lang\Symbol::create("a"))]), \Phel::list([1]))));

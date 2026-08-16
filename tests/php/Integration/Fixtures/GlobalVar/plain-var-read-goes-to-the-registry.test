@@ -1,0 +1,43 @@
+--PHEL--
+(ns test)
+
+(def plain 1)
+(defn probe [] plain)
+--PHP--
+namespace test;
+require_once __DIR__ . '/phel/core.php';
+\Phel::addDefinition(
+  "phel.core",
+  "*file*",
+  "GlobalVar/plain-var-read-goes-to-the-registry.test"
+);
+\Phel::addDefinition(
+  "phel.core",
+  "*ns*",
+  "test"
+);
+\Phel::addDefinition(
+  "test",
+  "plain",
+  1,
+  \Phel::locationMeta(\Phel::location("GlobalVar/plain-var-read-goes-to-the-registry.test", 3, 0), \Phel::location("GlobalVar/plain-var-read-goes-to-the-registry.test", 3, 13))
+);
+\Phel::addDefinition(
+  "test",
+  "probe",
+  new class() extends \Phel\Lang\AbstractFn {
+    public const BOUND_TO = "test\\probe";
+
+    public function __invoke() {
+      return \Phel\Lang\Registry::readRoot("test", "plain");
+    }
+  },
+  \Phel::locationMeta(
+    \Phel::location("GlobalVar/plain-var-read-goes-to-the-registry.test", 4, 0),
+    \Phel::location("GlobalVar/plain-var-read-goes-to-the-registry.test", 4, 21),
+    \Phel\Lang\Keyword::create("doc"), "```phel\n(probe)\n```\n",
+    "min-arity", 0,
+    "is-variadic", false,
+    "arglists", "[]"
+  )
+);

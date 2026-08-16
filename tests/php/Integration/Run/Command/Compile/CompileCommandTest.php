@@ -27,7 +27,7 @@ final class CompileCommandTest extends AbstractTestCommand
         self::assertStringContainsString('(2 + 3)', $tester->getDisplay());
     }
 
-    public function test_compile_known_core_call_uses_get_definition(): void
+    public function test_compile_known_core_call_reads_the_registry(): void
     {
         // Pre-fold path: a non-foldable arg keeps the runtime call shape so
         // the compile output still demonstrates the registry-cached form.
@@ -38,7 +38,9 @@ final class CompileCommandTest extends AbstractTestCommand
         $tester->execute(['source' => '(+ (php/getenv "HOME") 2)']);
 
         $tester->assertCommandIsSuccessful();
-        self::assertStringContainsString(\Phel::class . '::getDefinition("phel.core", "+"))->__invoke(', $tester->getDisplay());
+        // `+` is not `^:dynamic`, so the read goes to the registry root
+        // rather than through the dynamic-scope gate (#3179).
+        self::assertStringContainsString('::readRoot("phel.core", "+"))->__invoke(', $tester->getDisplay());
     }
 
     public function test_compile_folds_pure_arithmetic_to_literal(): void

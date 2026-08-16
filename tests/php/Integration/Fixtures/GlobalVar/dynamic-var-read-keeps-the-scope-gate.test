@@ -1,0 +1,47 @@
+--PHEL--
+(ns test)
+
+(def ^:dynamic *dyn* 1)
+(defn probe [] *dyn*)
+--PHP--
+namespace test;
+require_once __DIR__ . '/phel/core.php';
+\Phel::addDefinition(
+  "phel.core",
+  "*file*",
+  "GlobalVar/dynamic-var-read-keeps-the-scope-gate.test"
+);
+\Phel::addDefinition(
+  "phel.core",
+  "*ns*",
+  "test"
+);
+\Phel::addDefinition(
+  "test",
+  "*dyn*",
+  1,
+  \Phel::locationMeta(
+    \Phel::location("GlobalVar/dynamic-var-read-keeps-the-scope-gate.test", 3, 0),
+    \Phel::location("GlobalVar/dynamic-var-read-keeps-the-scope-gate.test", 3, 23),
+    \Phel\Lang\Keyword::create("dynamic"), true
+  )
+);
+\Phel::addDefinition(
+  "test",
+  "probe",
+  new class() extends \Phel\Lang\AbstractFn {
+    public const BOUND_TO = "test\\probe";
+
+    public function __invoke() {
+      return \Phel::getDefinition("test", "*dyn*");
+    }
+  },
+  \Phel::locationMeta(
+    \Phel::location("GlobalVar/dynamic-var-read-keeps-the-scope-gate.test", 4, 0),
+    \Phel::location("GlobalVar/dynamic-var-read-keeps-the-scope-gate.test", 4, 21),
+    \Phel\Lang\Keyword::create("doc"), "```phel\n(probe)\n```\n",
+    "min-arity", 0,
+    "is-variadic", false,
+    "arglists", "[]"
+  )
+);

@@ -3,7 +3,7 @@
 --PHP--
 (function(\Phel\Lang\Collections\Vector\PersistentVectorInterface $v) {
   return (function() use($v) {
-    $reduce_fn_1 = \Phel::getDefinition("phel.core", "+");
+    $reduce_fn_1 = \Phel\Lang\Registry::readRoot("phel.core", "+");
     $reduce_acc_2 = 0;
     foreach ($v as $reduce_item_3) {
       $reduce_step_4 = ($reduce_fn_1)($reduce_acc_2, $reduce_item_3);

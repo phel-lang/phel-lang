@@ -22,4 +22,4 @@
     "arglists", "[a b c]"
   )
 );
-(\Phel::getDefinition("user", "add3"))->__invoke(1, 2, 3);
+(\Phel\Lang\Registry::readRoot("user", "add3"))->__invoke(1, 2, 3);

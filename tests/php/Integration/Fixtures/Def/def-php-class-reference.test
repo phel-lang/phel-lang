@@ -9,4 +9,4 @@ PHPChildT
   \RecursiveArrayIterator::class,
   \Phel::locationMeta(\Phel::location("Def/def-php-class-reference.test", 2, 0), \Phel::location("Def/def-php-class-reference.test", 2, 38))
 );
-\Phel::getDefinition("user", "PHPChildT");
+\Phel\Lang\Registry::readRoot("user", "PHPChildT");

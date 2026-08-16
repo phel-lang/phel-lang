@@ -22,4 +22,4 @@
     \Phel\Lang\Keyword::create("tag"), "int"
   )
 );
-(\Phel::getDefinition("user", "add1"))->__invoke(42);
+(\Phel\Lang\Registry::readRoot("user", "add1"))->__invoke(42);

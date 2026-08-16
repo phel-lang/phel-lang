@@ -27,6 +27,43 @@ final class RegistryTest extends TestCase
         $this->registry->restore($this->registrySnapshot);
     }
 
+    /**
+     * The read compiled code performs for a var that cannot be dynamically
+     * bound (#3179). It has to answer exactly what `getDefinition` does, since
+     * the emitter chooses between them per var.
+     */
+    public function test_read_root_answers_the_definition(): void
+    {
+        $this->registry->addDefinition('ns', 'answer', 42);
+
+        self::assertSame(42, Registry::readRoot('ns', 'answer'));
+        self::assertSame($this->registry->getDefinition('ns', 'answer'), Registry::readRoot('ns', 'answer'));
+    }
+
+    public function test_read_root_is_null_for_an_unknown_definition(): void
+    {
+        self::assertNull(Registry::readRoot('ns', 'missing'));
+        self::assertNull(Registry::readRoot('no-such-ns', 'missing'));
+    }
+
+    public function test_read_root_sees_a_redefined_root(): void
+    {
+        // `with-redefs`, `phel.mock` and `dotrace` all swap the root through
+        // `addDefinition`, so a root read observes every one of them.
+        $this->registry->addDefinition('ns', 'swapped', 'original');
+        $this->registry->addDefinition('ns', 'swapped', 'replaced');
+
+        self::assertSame('replaced', Registry::readRoot('ns', 'swapped'));
+    }
+
+    public function test_read_root_is_null_after_clear(): void
+    {
+        $this->registry->addDefinition('ns', 'gone', 1);
+        $this->registry->clear();
+
+        self::assertNull(Registry::readRoot('ns', 'gone'));
+    }
+
     public function test_null_when_non_existing_definition_by_value(): void
     {
         $actual = $this->registry->getDefinition('ns', 'non-existing');

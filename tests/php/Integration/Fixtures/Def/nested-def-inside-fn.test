@@ -16,7 +16,7 @@
         ($__phel_const_0 ??= \Phel::locationMeta(\Phel::location("Def/nested-def-inside-fn.test", 1, 14), \Phel::location("Def/nested-def-inside-fn.test", 1, 23)))
       );
 
-      return \Phel::getDefinition("user", "x");
+      return \Phel\Lang\Registry::readRoot("user", "x");
     }
   },
   \Phel::locationMeta(

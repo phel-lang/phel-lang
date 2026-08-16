@@ -21,4 +21,4 @@
     "arglists", "[x]"
   )
 );
-(\Phel::getDefinition("user", "x"))->__invoke(1);
+(\Phel\Lang\Registry::readRoot("user", "x"))->__invoke(1);
