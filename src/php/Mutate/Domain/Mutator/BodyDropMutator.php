@@ -9,7 +9,6 @@ use Phel\Shared\Parser\Node\ListNode;
 use Phel\Shared\Parser\Node\NodeInterface;
 use Phel\Shared\Parser\Node\StringNode;
 use Phel\Shared\Parser\Node\Token;
-use Phel\Shared\Parser\Node\TriviaNodeInterface;
 
 use function array_slice;
 use function count;
@@ -64,7 +63,7 @@ final class BodyDropMutator implements MutatorInterface
         }
 
         $children = $parent->getChildren();
-        $significant = $this->significantIndices($children);
+        $significant = Nodes::significantIndices($children);
         if ($significant === []) {
             return [];
         }
@@ -72,7 +71,7 @@ final class BodyDropMutator implements MutatorInterface
         $head = $children[$significant[0]];
 
         // One arity of a multi-arity definition: `([params] body…)`.
-        if ($this->isParamsVector($head)) {
+        if (Nodes::isVector($head)) {
             return array_slice($significant, 1);
         }
 
@@ -106,7 +105,7 @@ final class BodyDropMutator implements MutatorInterface
         }
 
         ++$position; // the parameter vector
-        if (!isset($significant[$position]) || !$this->isParamsVector($children[$significant[$position]])) {
+        if (!isset($significant[$position]) || !Nodes::isVector($children[$significant[$position]])) {
             return [];
         }
 
@@ -121,27 +120,5 @@ final class BodyDropMutator implements MutatorInterface
     {
         return $node instanceof StringNode
             || ($node instanceof ListNode && $node->getTokenType() === Token::T_OPEN_BRACE);
-    }
-
-    private function isParamsVector(NodeInterface $node): bool
-    {
-        return $node instanceof ListNode && $node->getTokenType() === Token::T_OPEN_BRACKET;
-    }
-
-    /**
-     * @param list<NodeInterface> $children
-     *
-     * @return list<int>
-     */
-    private function significantIndices(array $children): array
-    {
-        $indices = [];
-        foreach ($children as $index => $child) {
-            if (!$child instanceof TriviaNodeInterface) {
-                $indices[] = $index;
-            }
-        }
-
-        return $indices;
     }
 }

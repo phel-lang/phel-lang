@@ -6,11 +6,13 @@ namespace Phel\Mutate\Domain\Mutator;
 
 use Phel\Lang\Symbol;
 use Phel\Shared\Parser\Node\BooleanNode;
+use Phel\Shared\Parser\Node\ListNode;
 use Phel\Shared\Parser\Node\NilNode;
 use Phel\Shared\Parser\Node\NodeInterface;
 use Phel\Shared\Parser\Node\NumberNode;
 use Phel\Shared\Parser\Node\StringNode;
 use Phel\Shared\Parser\Node\SymbolNode;
+use Phel\Shared\Parser\Node\Token;
 use Phel\Shared\Parser\Node\TriviaNodeInterface;
 
 use function array_slice;
@@ -83,6 +85,49 @@ final class Nodes
         }
 
         return [...array_slice($children, 0, $from), ...array_slice($children, $index + 1)];
+    }
+
+    /**
+     * Indexes of the non-trivia children, in order.
+     *
+     * @param list<NodeInterface> $children
+     *
+     * @return list<int>
+     */
+    public static function significantIndices(array $children): array
+    {
+        $indices = [];
+        foreach ($children as $index => $child) {
+            if (!$child instanceof TriviaNodeInterface) {
+                $indices[] = $index;
+            }
+        }
+
+        return $indices;
+    }
+
+    /**
+     * Index of the first non-trivia child at or after `$from`; one past the
+     * end when there is none.
+     *
+     * @param list<NodeInterface> $children
+     */
+    public static function firstSignificantIndex(array $children, int $from = 0): int
+    {
+        $index = $from;
+        while (isset($children[$index]) && $children[$index] instanceof TriviaNodeInterface) {
+            ++$index;
+        }
+
+        return $index;
+    }
+
+    /**
+     * A `[...]` vector node, the shape of a parameter list.
+     */
+    public static function isVector(NodeInterface $node): bool
+    {
+        return $node instanceof ListNode && $node->getTokenType() === Token::T_OPEN_BRACKET;
     }
 
     /**

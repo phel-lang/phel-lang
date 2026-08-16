@@ -9,8 +9,8 @@ use Phel\Shared\Parser\Node\ListNode;
 use Phel\Shared\Parser\Node\NilNode;
 use Phel\Shared\Parser\Node\NodeInterface;
 use Phel\Shared\Parser\Node\Token;
-use Phel\Shared\Parser\Node\TriviaNodeInterface;
 
+use function count;
 use function in_array;
 
 /**
@@ -59,32 +59,14 @@ final class ReturnNilMutator implements MutatorInterface
             return false;
         }
 
-        $head = $this->firstSignificant($parent->getChildren());
+        $children = $parent->getChildren();
+        $head = $children[Nodes::firstSignificantIndex($children)] ?? null;
         if (!$head instanceof NodeInterface) {
             return false;
         }
 
         return in_array(Nodes::symbolName($head), self::DEFINITION_HEADS, true)
-            || $this->isParamsVector($head);
-    }
-
-    private function isParamsVector(NodeInterface $node): bool
-    {
-        return $node instanceof ListNode && $node->getTokenType() === Token::T_OPEN_BRACKET;
-    }
-
-    /**
-     * @param list<NodeInterface> $children
-     */
-    private function firstSignificant(array $children): ?NodeInterface
-    {
-        foreach ($children as $child) {
-            if (!$child instanceof TriviaNodeInterface) {
-                return $child;
-            }
-        }
-
-        return null;
+            || Nodes::isVector($head);
     }
 
     /**
@@ -95,13 +77,8 @@ final class ReturnNilMutator implements MutatorInterface
      */
     private function lastSignificantIndex(array $children): int
     {
-        $last = -1;
-        foreach ($children as $index => $child) {
-            if (!$child instanceof TriviaNodeInterface) {
-                $last = $index;
-            }
-        }
+        $indices = Nodes::significantIndices($children);
 
-        return $last;
+        return $indices === [] ? -1 : $indices[count($indices) - 1];
     }
 }

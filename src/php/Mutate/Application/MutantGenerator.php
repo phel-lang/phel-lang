@@ -140,9 +140,11 @@ final readonly class MutantGenerator
             if (!$form instanceof ListNode) {
                 continue;
             }
+
             if (!in_array($this->headOf($form), self::NAMESPACE_HEADS, true)) {
                 continue;
             }
+
             $significant = $this->significantChildren($form);
             $nameNode = $significant[1] ?? null;
             if ($nameNode instanceof QuoteNode) {
@@ -211,7 +213,7 @@ final readonly class MutantGenerator
 
             if ($child instanceof ListNode && $child->getTokenType() === Token::T_OPEN_PARENTHESIS) {
                 $arityChildren = $child->getChildren();
-                $firstSignificant = $this->firstSignificantIndex($arityChildren, 0);
+                $firstSignificant = Nodes::firstSignificantIndex($arityChildren, 0);
                 foreach ($this->bodySites($child, $firstSignificant + 1) as $site) {
                     $sites[] = $site;
                 }
@@ -229,9 +231,9 @@ final readonly class MutantGenerator
      */
     private function bodyStartIndex(array $children): int
     {
-        $index = $this->firstSignificantIndex($children, 0); // head
-        $index = $this->firstSignificantIndex($children, $index + 1); // name
-        $index = $this->firstSignificantIndex($children, $index + 1);
+        $index = Nodes::firstSignificantIndex($children, 0); // head
+        $index = Nodes::firstSignificantIndex($children, $index + 1); // name
+        $index = Nodes::firstSignificantIndex($children, $index + 1);
 
         while (isset($children[$index])) {
             $node = $children[$index];
@@ -241,7 +243,7 @@ final readonly class MutantGenerator
                 break;
             }
 
-            $index = $this->firstSignificantIndex($children, $index + 1);
+            $index = Nodes::firstSignificantIndex($children, $index + 1);
         }
 
         return $index;
@@ -306,19 +308,6 @@ final readonly class MutantGenerator
         }
 
         return $this->bodySites($node, 0);
-    }
-
-    /**
-     * @param list<NodeInterface> $children
-     */
-    private function firstSignificantIndex(array $children, int $from): int
-    {
-        $index = $from;
-        while (isset($children[$index]) && $children[$index] instanceof TriviaNodeInterface) {
-            ++$index;
-        }
-
-        return $index;
     }
 
     /**

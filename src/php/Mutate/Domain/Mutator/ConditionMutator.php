@@ -8,7 +8,6 @@ use Phel\Shared\Parser\Node\InnerNodeInterface;
 use Phel\Shared\Parser\Node\ListNode;
 use Phel\Shared\Parser\Node\NodeInterface;
 use Phel\Shared\Parser\Node\Token;
-use Phel\Shared\Parser\Node\TriviaNodeInterface;
 use Phel\Shared\Parser\Node\WhitespaceNode;
 
 use function in_array;
@@ -39,12 +38,12 @@ final class ConditionMutator implements MutatorInterface
         }
 
         $children = $child->getChildren();
-        $headIndex = $this->significantIndex($children, 0);
+        $headIndex = Nodes::firstSignificantIndex($children, 0);
         if (!isset($children[$headIndex]) || !in_array(Nodes::symbolName($children[$headIndex]), self::HEADS, true)) {
             return [];
         }
 
-        $testIndex = $this->significantIndex($children, $headIndex + 1);
+        $testIndex = Nodes::firstSignificantIndex($children, $headIndex + 1);
         if (!isset($children[$testIndex])) {
             return [];
         }
@@ -97,24 +96,8 @@ final class ConditionMutator implements MutatorInterface
         }
 
         $children = $test->getChildren();
-        $headIndex = $this->significantIndex($children, 0);
+        $headIndex = Nodes::firstSignificantIndex($children, 0);
 
         return isset($children[$headIndex]) && Nodes::symbolName($children[$headIndex]) === self::NOT;
-    }
-
-    /**
-     * Index of the first non-trivia child at or after `$from`; one past the
-     * end when there is none.
-     *
-     * @param list<NodeInterface> $children
-     */
-    private function significantIndex(array $children, int $from): int
-    {
-        $index = $from;
-        while (isset($children[$index]) && $children[$index] instanceof TriviaNodeInterface) {
-            ++$index;
-        }
-
-        return $index;
     }
 }
