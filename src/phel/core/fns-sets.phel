@@ -69,8 +69,13 @@
   "Intersect multiple sets into a new one."
   {:example "(intersection (hash-set 1 2 3) (hash-set 2 3 4)) ; => #{2 3}"
    :see-also ["union" "difference"]}
-  [set & sets]
-  (reduce intersection-pair set sets))
+  ;; Fixed arities rather than `[set & sets]`, which built a rest argument and
+  ;; reduced over it on every call, including the two-set call that is nearly
+  ;; all of them (#2973). The one-set arity returns its argument as it stands,
+  ;; which is what reducing over an empty rest did.
+  ([s] s)
+  ([s1 s2] (intersection-pair s1 s2))
+  ([s1 s2 & sets] (reduce intersection-pair (intersection-pair s1 s2) sets)))
 
 (defn- difference-pair
   [s1 s2]
@@ -90,15 +95,25 @@
   "Difference between multiple sets into a new one."
   {:example "(difference (hash-set 1 2 3) (hash-set 2)) ; => #{1 3}"
    :see-also ["union" "intersection"]}
-  [set & sets]
-  (reduce difference-pair set sets))
+  ;; Fixed arities, for the reason given on `intersection` (#2973).
+  ([s] s)
+  ([s1 s2] (difference-pair s1 s2))
+  ([s1 s2 & sets] (reduce difference-pair (difference-pair s1 s2) sets)))
+
+(defn- symmetric-difference-pair
+  [s1 s2]
+  (union (difference-pair s1 s2) (difference-pair s2 s1)))
 
 (defn symmetric-difference
   "Symmetric difference between multiple sets into a new one."
   {:example "(symmetric-difference (hash-set 1 2) (hash-set 2 3)) ; => #{1 3}"
    :see-also ["difference" "union"]}
-  [set & sets]
-  (reduce #(union (difference %1 %2) (difference %2 %1)) set sets))
+  ;; Fixed arities, for the reason given on `intersection` (#2973). Naming the
+  ;; pair function also stops the two-set call allocating a closure it then
+  ;; hands to `reduce` once.
+  ([s] s)
+  ([s1 s2] (symmetric-difference-pair s1 s2))
+  ([s1 s2 & sets] (reduce symmetric-difference-pair (symmetric-difference-pair s1 s2) sets)))
 
 (defn subset?
   "Returns true if `s1` is a subset of `s2`, i.e. every element in `s1` is also in `s2`."

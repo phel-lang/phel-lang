@@ -1,0 +1,64 @@
+(ns phel-test.core.set-difference-arities
+  (:require phel.test :refer [deftest is thrown?]))
+
+;; `intersection`, `difference` and `symmetric-difference` grew fixed arities.
+;; They each used to build a rest argument and `reduce` over it on every call,
+;; including the two-set call that is nearly all of them. What has to hold: the
+;; same results for every argument count, the one-argument call still returning
+;; its argument as it stands, the inputs untouched, and `apply` still reaching
+;; the variadic tail.
+
+(deftest test-intersection-arities
+  (is (= (set [2 3]) (intersection (set [1 2 3]) (set [2 3 4]))) "two sets")
+  (is (= (set [3]) (intersection (set [1 2 3]) (set [2 3]) (set [3 4]))) "three sets")
+  (is (= (set []) (intersection (set [1 2]) (set [3 4]))) "disjoint sets")
+  (is (= (set []) (intersection (set [1 2]) (set []))) "with an empty set")
+  (is (= (set [1 2]) (intersection (set [1 2]) (set [1 2]))) "identical sets")
+  (is (= (set [4]) (intersection (set [1 2 3 4]) (set [2 3 4]) (set [3 4]) (set [4 5]))) "four sets"))
+
+(deftest test-difference-arities
+  (is (= (set [1 3]) (difference (set [1 2 3]) (set [2]))) "two sets")
+  (is (= (set [3]) (difference (set [1 2 3]) (set [1]) (set [2]))) "three sets")
+  (is (= (set [1 2]) (difference (set [1 2]) (set [3 4]))) "nothing in common")
+  (is (= (set []) (difference (set [1 2]) (set [1 2]))) "identical sets")
+  (is (= (set [1]) (difference (set [1 2 3 4]) (set [2]) (set [3]) (set [4]))) "four sets"))
+
+(deftest test-symmetric-difference-arities
+  (is (= (set [1 3]) (symmetric-difference (set [1 2]) (set [2 3]))) "two sets")
+  (is (= (set [1 4]) (symmetric-difference (set [1 2]) (set [2 3]) (set [3 4]))) "three sets, folded pairwise")
+  (is (= (set [1 2 3 4]) (symmetric-difference (set [1 2]) (set [3 4]))) "disjoint sets")
+  (is (= (set []) (symmetric-difference (set [1 2]) (set [1 2]))) "identical sets")
+  (is (= (set [1 2]) (symmetric-difference (set [1 2]) (set []))) "with an empty set"))
+
+(deftest test-one-argument-returns-it-unchanged
+  ;; Reducing over an empty rest returned the argument itself, so the fixed
+  ;; one-argument arity has to do the same, including for a non-set.
+  (let [s (set [1 2 3])]
+    (is (= s (intersection s)) "intersection of one set")
+    (is (= s (difference s)) "difference of one set")
+    (is (= s (symmetric-difference s)) "symmetric-difference of one set")
+    (is (= [1 2] (difference [1 2])) "a vector passes straight through")))
+
+(deftest test-inputs-are-not-mutated
+  (let [a (set [1 2 3])
+        b (set [2 3 4])]
+    (is (= (set [2 3]) (intersection a b)) "the intersection is correct")
+    (is (= (set [1 2 3]) a) "the first set is unchanged")
+    (is (= (set [2 3 4]) b) "the second set is unchanged")
+    (is (= (set [1]) (difference a b)) "the difference is correct")
+    (is (= (set [1 2 3]) a) "the first set survives difference too")
+    (is (= (set [1 4]) (symmetric-difference a b)) "the symmetric difference is correct")
+    (is (= (set [2 3 4]) b) "the second set survives symmetric-difference too")))
+
+(deftest test-apply-reaches-every-arity
+  (is (= (set [2 3]) (apply intersection [(set [1 2 3]) (set [2 3 4])])) "apply with two sets")
+  (is (= (set [3]) (apply intersection [(set [1 2 3]) (set [2 3]) (set [3 4])])) "apply into the variadic tail")
+  (is (= (set [1 3]) (apply difference [(set [1 2 3]) (set [2])])) "apply difference")
+  (is (= (set [3]) (apply difference [(set [1 2 3]) (set [1]) (set [2])])) "apply difference, variadic tail")
+  (is (= (set [1 3]) (apply symmetric-difference [(set [1 2]) (set [2 3])])) "apply symmetric-difference"))
+
+(deftest test-no-argument-call-is-still-an-error
+  ;; None of the three ever had a zero-argument arity, unlike `union`.
+  (is (thrown? \Exception (apply intersection [])) "intersection needs an argument")
+  (is (thrown? \Exception (apply difference [])) "difference needs an argument")
+  (is (thrown? \Exception (apply symmetric-difference [])) "symmetric-difference needs an argument"))
