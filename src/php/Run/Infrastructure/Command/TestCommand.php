@@ -10,6 +10,7 @@ use Gacela\Framework\ServiceResolverAwareTrait;
 use Phel\Run\Application\Test\Coverage\CoverageDriver;
 use Phel\Run\Application\Test\Coverage\CoverageReport;
 use Phel\Run\Application\Test\Coverage\HtmlCoverageRenderer;
+use Phel\Run\Application\Test\Coverage\PerTestCoverageCollector;
 use Phel\Run\Application\Test\SharedNamespaces;
 use Phel\Run\Domain\Test\TestCommandOptions;
 use Phel\Run\Domain\Test\TestNamespacePruner;
@@ -178,9 +179,9 @@ HELP)
                 self::OPT_COVERAGE,
                 null,
                 InputOption::VALUE_OPTIONAL,
-                'Collect line coverage (via pcov or xdebug) mapped back to .phel sources. Value is the format: "text" (default), "clover", or "html". "html" writes a static report to var/coverage/ (override with "html:<dir>").',
+                'Collect line coverage (via pcov or xdebug) mapped back to .phel sources. Value is the format: "text" (default), "clover", "html", or "per-test". "html" writes a static report to var/coverage/ (override with "html:<dir>"). "per-test" writes JSON with the lines each test executed and the tests behind each line.',
                 false,
-                ['text', 'clover', 'html'],
+                ['text', 'clover', 'html', 'per-test'],
             )->addOption(
                 self::OPT_COVERAGE_OUTPUT,
                 null,
@@ -283,14 +284,31 @@ HELP)
 
             $phelCode = $this->generatePhelTestCodeFromOptions($options, $filteredNamespaces);
             $compileOptions = new CompileOptions()->setIsEnabledSourceMaps(false);
+            $coverageFormat = ScalarCoercion::toString($input->getOption(self::OPT_COVERAGE));
 
-            $coverageDriver?->start();
+            // Per-test attribution starts and stops the driver around every
+            // test through the `phel.test` event hook, so it must own the
+            // driver: a run-wide start would be cut short by the first stop.
+            $perTestCoverage = null;
+            if ($coverageDriver instanceof CoverageDriver && $this->isPerTestCoverage($coverageFormat)) {
+                $perTestCoverage = PerTestCoverageCollector::forDriver($coverageDriver);
+                $perTestCoverage->install();
+            } else {
+                $coverageDriver?->start();
+            }
+
             $result = $this->getFacade()->eval($phelCode, $compileOptions);
-            if ($coverageDriver instanceof CoverageDriver) {
+            if ($perTestCoverage instanceof PerTestCoverageCollector) {
+                $this->writeReport(
+                    $output,
+                    $this->getFacade()->buildPerTestCoverageReport($perTestCoverage->hitLinesByTest(), $perTestCoverage->driverName())->toJson(),
+                    $input->getOption(self::OPT_COVERAGE_OUTPUT),
+                );
+            } elseif ($coverageDriver instanceof CoverageDriver) {
                 $this->renderCoverage(
                     $output,
                     $this->getFacade()->buildCoverageReport($coverageDriver->stop(), $coverageDriver->name()),
-                    ScalarCoercion::toString($input->getOption(self::OPT_COVERAGE)),
+                    $coverageFormat,
                     $input->getOption(self::OPT_COVERAGE_OUTPUT),
                 );
             }
@@ -402,10 +420,24 @@ HELP)
             return;
         }
 
-        $content = $format === 'clover'
-            ? $report->toClover(time())
-            : $report->toText();
+        $this->writeReport(
+            $output,
+            $format === 'clover' ? $report->toClover(time()) : $report->toText(),
+            $outputPath,
+        );
+    }
 
+    private function isPerTestCoverage(string $format): bool
+    {
+        return strtolower($format) === 'per-test';
+    }
+
+    /**
+     * Writes a rendered coverage report to `$outputPath` when one was given,
+     * otherwise to the console.
+     */
+    private function writeReport(OutputInterface $output, string $content, mixed $outputPath): void
+    {
         if (is_string($outputPath) && $outputPath !== '') {
             if (@file_put_contents($outputPath, $content) === false) {
                 $output->writeln(sprintf('<error>Cannot write coverage report to %s</error>', $outputPath));

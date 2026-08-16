@@ -1524,6 +1524,7 @@ final class Phel\Run\RunFacade extends Gacela\Framework\AbstractFacade implement
   public function autoDetectEntryPoint(): ?string
   public function breakpoint(Phel\Lang\Collections\Map\PersistentMapInterface $locals): void
   public function buildCoverageReport(array $rawCoverage, string $driverName): Phel\Run\Application\Test\Coverage\CoverageReport
+  public function buildPerTestCoverageReport(array $hitLinesByTest, string $driverName): Phel\Run\Application\Test\Coverage\PerTestCoverageReport
   public function createCpuCountDetector(): Phel\Run\Application\Test\CpuCountDetector
   public function createParallelTestOrchestrator(): Phel\Run\Application\Test\ParallelTestOrchestrator
   public function detectCoverageDriver(): ?Phel\Run\Application\Test\Coverage\CoverageDriver

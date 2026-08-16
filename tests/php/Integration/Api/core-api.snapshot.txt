@@ -922,6 +922,7 @@ phel.test.shrink/args->rose  (args->rose args)
 phel.test.shrink/shrink  (shrink pred tree)
 phel.test.shrink/shrink-args  (shrink-args property args)
 phel.test.shrink/value->rose  (value->rose v)
+phel.test/*event-hook*  <value>
 phel.test/*testing-contexts*  <value>
 phel.test/add-reporter!  (add-reporter! reporter-fn)
 phel.test/are  (are argv expr & args)

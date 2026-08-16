@@ -109,13 +109,22 @@
                  s
                  (update s :failed conj data)))))))
 
+(def ^:dynamic *event-hook*
+  {:doc "Observer for every reporter event of a run, called after the configured reporters with the same event map; nil by default. Lets a host observe a run without replacing its reporters: the PHP test runner installs one to attribute coverage per test through the `:begin-test` and `:end-test` events."
+   :example "(binding [*event-hook* (fn [event] (when (= :end-test (:type event)) (println (:test-name event))))]\n  (run-tests {} 'my-app.test))"
+   :see-also ["report" "set-reporters!" "add-reporter!"]}
+  nil)
+
 (defn- fan-out! [event]
   (dofor [reporter :in (deref *reporters*)]
-    (reporter event)))
+    (reporter event))
+  (when-let [hook *event-hook*]
+    (hook event)))
 
 ;; `report` is the public multimethod dispatched on the event `:type`.
 ;; Built-in event types include:
 ;;   :pass, :failed, :error — assertion outcomes emitted by `is`
+;;   :begin-test, :end-test — lifecycle events around each test
 ;;   :begin-test-ns, :end-test-ns — lifecycle events around each namespace run
 ;;   :begin-test-run, :summary — lifecycle events around the whole run
 ;;
@@ -125,8 +134,8 @@
 (defmulti report
   "Records a test-framework event and dispatches it to the active
   reporters. `data` must contain a `:type` key (`:pass`, `:failed`,
-  `:error`, `:begin-test-ns`, `:end-test-ns`, `:begin-test-run`,
-  `:summary`, or a user-defined event). The default methods for
+  `:error`, `:begin-test`, `:end-test`, `:begin-test-ns`, `:end-test-ns`,
+  `:begin-test-run`, `:summary`, or a user-defined event). The default methods for
   assertion outcomes update the internal stats and invoke every
   registered reporter. Other event types flow straight through to the
   reporter set. Extend by registering
@@ -172,8 +181,8 @@
 
 ;; Lifecycle events that flow straight through to every registered
 ;; reporter without touching the stats atom.
-(dofor [event-type :in [:begin-test-ns :end-test-ns :begin-test-run
-                        :summary :defspec-failed]]
+(dofor [event-type :in [:begin-test :end-test :begin-test-ns :end-test-ns
+                        :begin-test-run :summary :defspec-failed]]
   (swap! report-methods assoc event-type fan-out!))
 
 (defmethod report :skipped [data]
@@ -1274,15 +1283,17 @@ Metadata attached to `test-name` is forwarded to the defined function so selecto
    (vec (filter (visible-test-pred options ns) (find-test-vars ns)))))
 
 (defn- run-one-test! [options ns each-wrap {:fn f, :meta m}]
-  (let [test-name      (:test-name m)
-        track-slowest? (pos? (or (:slowest options) 0))
-        t0             (when track-slowest? (php/microtime true))
-        c0             (failure-count)]
-    (each-wrap f)
-    (when track-slowest?
-      (record-test-time! ns test-name (* 1000.0 (- (php/microtime true) t0))))
-    (when (> (failure-count) c0)
-      (swap! failed-tests conj (str ns "/" test-name)))))
+  (let [test-name (:test-name m)
+        c0        (failure-count)]
+    (report {:type :begin-test, :ns ns, :test-name test-name})
+    (let [t0          (php/microtime true)
+          _           (each-wrap f)
+          duration-ms (* 1000.0 (- (php/microtime true) t0))]
+      (when (pos? (or (:slowest options) 0))
+        (record-test-time! ns test-name duration-ms))
+      (when (> (failure-count) c0)
+        (swap! failed-tests conj (str ns "/" test-name)))
+      (report {:type :end-test, :ns ns, :test-name test-name, :duration-ms duration-ms}))))
 
 (defn- repeat-count
   "Returns the validated `:repeat` count from `options`, defaulting to 1."
