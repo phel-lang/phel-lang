@@ -133,6 +133,32 @@ therefore needs a non-public primitive to take that over first.
 
 Tracked in [#2888](https://github.com/phel-lang/phel-lang/issues/2888).
 
+## `to-php-array`
+
+`to-array` is the Clojure-aligned spelling, and it already existed as an alias
+of `to-php-array`. The names have swapped roles: `to-array` holds the
+conversion and `to-php-array` is the deprecated alias, to be removed at the
+next major.
+
+```phel
+(to-php-array coll)                   (to-array coll)
+```
+
+Behaviour is identical for every input, `nil` included, which both spellings
+answer with an empty PHP array.
+
+Both give an **indexed** array. A map becomes an indexed array of `[key value]`
+pairs, not an associative array, and that has not changed either:
+
+```phel
+(to-array {:a 1})                     ; => [[:a 1]]
+(phel->php {:a 1})                    ; => ["a" => 1]
+```
+
+`phel->php` is the conversion that produces an associative array, recursively.
+
+Tracked in [#3076](https://github.com/phel-lang/phel-lang/issues/3076).
+
 ## Deprecating your own definitions
 
 The mechanism is not phel-specific. Any `def`/`defn` carrying

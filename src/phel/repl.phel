@@ -735,9 +735,9 @@ Returns nil. Prints one name per line, sorted alphabetically."
         public-names (sort (keys publics))
         alias-lines  (for [[alias-name target-ns] :pairs aliases]
                        (str "  " alias-name " -> " target-ns))
-        fn-summary   (php/implode ", " (to-php-array (take 50 public-names)))]
+        fn-summary   (php/implode ", " (to-array (take 50 public-names)))]
     (str "Current namespace: " ns "\n"
-         "Aliases:\n" (php/implode "\n" (to-php-array alias-lines)) "\n"
+         "Aliases:\n" (php/implode "\n" (to-array alias-lines)) "\n"
          "Available functions (first 50): " fn-summary)))
 
 (defn- build-symbol-context
@@ -851,7 +851,7 @@ Options are passed through to `ai/embed`."
                       :doc doc
                       :text (str fn-name ": " doc)})
         texts      (map #(get % :text) entries)
-        embeddings (ai/embed (to-php-array texts) opts)]
+        embeddings (ai/embed (to-array texts) opts)]
     (map (fn [entry embedding]
            (assoc entry :embedding embedding))
          entries embeddings)))

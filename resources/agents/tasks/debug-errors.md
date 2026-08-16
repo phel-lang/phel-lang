@@ -61,7 +61,7 @@ Use `some->`:
 
 ```phel
 (php/array_merge #php {:a 1} #php {:b 2})        ; OK
-(php/array_merge (to-php-array {:a 1}) ...)    ; OK
+(php/array_merge (phel->php {:a 1}) ...)       ; OK
 (php-array-to-map arr)                         ; reverse
 ```
 

@@ -508,7 +508,7 @@ This function is useful for explicitly converting strings to sequences of charac
    :see-also ["count"]}
   [coll]
   ;; Most of what this function costs is the conversion at the bottom, not the
-  ;; dispatch: on a vector, `to-php-array` plus `seqList` is the bulk of it and
+  ;; dispatch: on a vector, `to-array` plus `seqList` is the bulk of it and
   ;; no ordering changes that. What the dispatch can stop paying for is the
   ;; `seq?` call and core `count`, which is what the two changes below remove.
   (cond
@@ -536,7 +536,7 @@ This function is useful for explicitly converting strings to sequences of charac
     (seq-list coll)
 
     true
-    (seq-list (to-php-array coll))))
+    (seq-list (to-array coll))))
 
 (defn- indexed-php-array?
   [x]

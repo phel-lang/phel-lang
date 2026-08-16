@@ -39,7 +39,7 @@ final class CoreConstructionBench extends CoreBenchCase
     private $str;
 
     /** @var callable */
-    private $toPhpArray;
+    private $toArray;
 
     /** @var callable */
     private $atom;
@@ -190,7 +190,7 @@ final class CoreConstructionBench extends CoreBenchCase
     }
 
     /**
-     * `to-php-array` over a sequential collection (#3021 A6). It used to be
+     * `to-array` over a sequential collection (#3021 A6). It used to be
      * `(apply php/array coll)`, which spread the collection into a variadic
      * call and rebuilt the array from the iterator; `SeqInterface::toArray`
      * does it directly.
@@ -199,12 +199,16 @@ final class CoreConstructionBench extends CoreBenchCase
      * barely does: 1.08μs to 0.47μs at three elements, 10.61μs to 1.39μs at a
      * hundred, against a ~0.18μs empty-closure floor.
      *
+     * The subject keeps its `to_php_array` name after the function was renamed
+     * (#3076): the benchmark gate compares subjects by name against a stored
+     * baseline, and renaming one drops it to "new subject, nothing to compare".
+     *
      * @Revs(1000)
      */
     public function bench_to_php_array_small(): void
     {
         for ($i = 0; $i < self::INNER; ++$i) {
-            ($this->toPhpArray)($this->smallVector);
+            ($this->toArray)($this->smallVector);
         }
     }
 
@@ -216,7 +220,7 @@ final class CoreConstructionBench extends CoreBenchCase
      */
     public function bench_to_php_array_large(): void
     {
-        ($this->toPhpArray)($this->largeVector);
+        ($this->toArray)($this->largeVector);
     }
 
     /**
@@ -229,7 +233,7 @@ final class CoreConstructionBench extends CoreBenchCase
     public function bench_to_php_array_map(): void
     {
         for ($i = 0; $i < self::INNER; ++$i) {
-            ($this->toPhpArray)($this->map);
+            ($this->toArray)($this->map);
         }
     }
 
@@ -292,7 +296,7 @@ final class CoreConstructionBench extends CoreBenchCase
         $this->symbol = $this->coreFn('symbol');
         $this->metaKeyword = Phel::keyword('meta');
 
-        $this->toPhpArray = $this->coreFn('to-php-array');
+        $this->toArray = $this->coreFn('to-array');
         $this->smallVector = Phel::vector(['a', 'b', 'c']);
         $this->largeVector = Phel::vector(range(0, 99));
         $this->map = Phel::map(Phel::keyword('a'), 1, Phel::keyword('b'), 2);

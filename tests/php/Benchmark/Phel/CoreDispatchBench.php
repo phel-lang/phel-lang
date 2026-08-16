@@ -197,7 +197,7 @@ final class CoreDispatchBench extends CoreBenchCase
     /**
      * A floor, not a target, and the only pair here that is not like for like.
      *
-     * `seq` on a vector falls through to `(seq-list (to-php-array coll))`, so
+     * `seq` on a vector falls through to `(seq-list (to-array coll))`, so
      * it materialises a *list*. No single native call does that, and the gap
      * between this subject and `bench_seq_vector` is mostly `Phel::seqList`
      * building the result, which is the value `seq` exists to return rather

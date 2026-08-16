@@ -55,10 +55,10 @@
   {:example "(await-all [(async 1) (async 2)])"
    :see-also ["await" "await-any" "pmap"]}
   [futures]
-  (let [php-futures (to-php-array (map unwrap-future futures))
+  (let [php-futures (to-array (map unwrap-future futures))
         ;; `Amp\\Future\\await` preserves the original integer keys but
         ;; fills the result array in *completion* order, so we re-read by
-        ;; index (0..n-1, contiguous from `to-php-array`) to restore the
+        ;; index (0..n-1, contiguous from `to-array`) to restore the
         ;; caller's input order — `pmap` and `.cljc` parity rely on it.
         results     (php/amp\future\await php-futures)]
     (for [i :in (range (php/count results))]
@@ -69,7 +69,7 @@
   {:example "(await-any [(async 1) (async 2)])"
    :see-also ["await" "await-all"]}
   [futures]
-  (let [php-futures (to-php-array (map unwrap-future futures))]
+  (let [php-futures (to-array (map unwrap-future futures))]
     (php/amp\future\awaitfirst php-futures)))
 
 (defn pmap
