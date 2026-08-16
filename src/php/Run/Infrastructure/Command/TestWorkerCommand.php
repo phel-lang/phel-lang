@@ -6,7 +6,6 @@ namespace Phel\Run\Infrastructure\Command;
 
 use Gacela\Framework\ServiceResolver\ServiceMap;
 use Gacela\Framework\ServiceResolverAwareTrait;
-use Phel\Lang\Registry;
 use Phel\Run\Application\Test\FrameKey;
 use Phel\Run\Application\Test\WorkerFrame;
 use Phel\Run\Application\Test\WorkRequest;
@@ -28,7 +27,6 @@ use function is_string;
 use function ob_get_clean;
 use function ob_start;
 use function sprintf;
-use function str_replace;
 
 /**
  * Hidden subcommand: parallel-test worker. One process per pool slot,
@@ -150,21 +148,17 @@ final class TestWorkerCommand extends Command
     /**
      * Evaluate, in the parent's order, every file of the request's load
      * order this worker has not evaluated yet. The worker is long-lived,
-     * so each dependency file is evaluated once across all frames.
+     * so each file is evaluated once across all frames.
      */
     private function preloadDependencies(WorkRequest $request): void
     {
-        foreach ($request->loadOrder as ['ns' => $ns, 'file' => $file]) {
+        foreach ($request->loadOrder as ['file' => $file]) {
             if (isset($this->preloadedFiles[$file])) {
                 continue;
             }
 
-            // Skip already-loaded bundled ns: re-evaluating one re-nulls its forward-declared defs under a PHAR (#2672).
-            if (Registry::getInstance()->hasNamespace(str_replace('-', '_', $ns))) {
-                $this->preloadedFiles[$file] = true;
-                continue;
-            }
-
+            // Once per file, never again: under a PHAR, re-evaluating a
+            // precompiled bundled primary re-nulls its forward-declared defs (#2672).
             $this->getFacade()->evalFile($this->getFacade()->getNamespaceFromFile($file));
             $this->preloadedFiles[$file] = true;
         }

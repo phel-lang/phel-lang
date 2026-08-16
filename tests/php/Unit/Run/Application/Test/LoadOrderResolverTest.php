@@ -62,24 +62,6 @@ final class LoadOrderResolverTest extends TestCase
         );
     }
 
-    public function test_every_file_of_a_namespace_split_across_in_ns_files_is_included(): void
-    {
-        $core = new NamespaceInformation('/core.phel', 'phel.core', []);
-        $corePart = new NamespaceInformation('/core/part.phel', 'phel.core', [], false);
-        $test = new NamespaceInformation('/t.phel', 'app.t', ['phel.core']);
-
-        $resolver = new LoadOrderResolver([$core, $corePart, $test]);
-
-        self::assertSame(
-            [
-                ['ns' => 'phel.core', 'file' => '/core.phel'],
-                ['ns' => 'phel.core', 'file' => '/core/part.phel'],
-                ['ns' => 'app.t', 'file' => '/t.phel'],
-            ],
-            $resolver->loadOrderFor($test),
-        );
-    }
-
     public function test_an_unknown_dependency_is_ignored_and_a_cycle_terminates(): void
     {
         $a = new NamespaceInformation('/a.phel', 'app.a', ['app.b', 'vendor.missing']);

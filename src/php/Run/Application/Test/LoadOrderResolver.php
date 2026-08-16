@@ -7,6 +7,7 @@ namespace Phel\Run\Application\Test;
 use Phel\Shared\NamespaceInformation;
 
 use function array_key_exists;
+use function array_keys;
 use function array_pop;
 use function str_starts_with;
 
@@ -16,7 +17,7 @@ use function str_starts_with;
  * namespace's transitive `(:require ...)` closure plus every bundled
  * `phel.*` namespace, restricted to the namespaces the parent already
  * resolved, in the parent's global dependency order, ending with the
- * namespace's own file(s).
+ * namespace's own file.
  *
  * Bundled namespaces ride along unconditionally for the same reason the
  * serial runner seeds them all (`NamespaceCollector`): a test may reach
@@ -39,21 +40,22 @@ final class LoadOrderResolver
     /** Mirrors `BundledNamespaces::BUNDLED_NAMESPACE_PREFIX`; bundled modules are seeded for every namespace. */
     private const string BUNDLED_NAMESPACE_PREFIX = 'phel.';
 
-    /** @var array<string, list<int>> namespace => indexes into the ordered list */
-    private array $indexesByNamespace = [];
+    /** @var array<string, NamespaceInformation> namespace => its primary definition */
+    private array $byNamespace = [];
 
     /** @var array<string, list<LoadEntry>> memoized answers per namespace */
     private array $cache = [];
 
     /**
      * @param list<NamespaceInformation> $ordered every namespace of the run,
-     *                                            dependencies before dependents
+     *                                            dependencies before dependents,
+     *                                            one primary definition each
      */
     public function __construct(
         private readonly array $ordered,
     ) {
-        foreach ($ordered as $index => $info) {
-            $this->indexesByNamespace[$info->getNamespace()][] = $index;
+        foreach ($ordered as $info) {
+            $this->byNamespace[$info->getNamespace()] = $info;
         }
     }
 
@@ -91,7 +93,7 @@ final class LoadOrderResolver
     {
         $seen = [$root => true];
         $stack = [$root];
-        foreach ($this->indexesByNamespace as $ns => $_) {
+        foreach (array_keys($this->byNamespace) as $ns) {
             if (str_starts_with($ns, self::BUNDLED_NAMESPACE_PREFIX)) {
                 $seen[$ns] = true;
                 $stack[] = $ns;
@@ -100,19 +102,22 @@ final class LoadOrderResolver
 
         while ($stack !== []) {
             $current = array_pop($stack);
-            foreach ($this->indexesByNamespace[$current] ?? [] as $index) {
-                foreach ($this->ordered[$index]->getDependencies() as $dependency) {
-                    if (isset($seen[$dependency])) {
-                        continue;
-                    }
+            $info = $this->byNamespace[$current] ?? null;
+            if (!$info instanceof NamespaceInformation) {
+                continue;
+            }
 
-                    if (!isset($this->indexesByNamespace[$dependency])) {
-                        continue;
-                    }
-
-                    $seen[$dependency] = true;
-                    $stack[] = $dependency;
+            foreach ($info->getDependencies() as $dependency) {
+                if (isset($seen[$dependency])) {
+                    continue;
                 }
+
+                if (!isset($this->byNamespace[$dependency])) {
+                    continue;
+                }
+
+                $seen[$dependency] = true;
+                $stack[] = $dependency;
             }
         }
 

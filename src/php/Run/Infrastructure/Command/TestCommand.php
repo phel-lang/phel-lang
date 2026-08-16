@@ -241,7 +241,7 @@ HELP)
                 // Only what two workers could compile at the same time, i.e.
                 // every namespace another one requires, is evaluated here
                 // first, so a cold cache is warmed once instead of raced (#3203).
-                [$sharedNamespaces, $compileErrors] = $this->loadTestNamespaces(
+                [, $compileErrors] = $this->loadTestNamespaces(
                     SharedNamespaces::of($namespacesInformation),
                     $failFast,
                     $feedback,

@@ -31,15 +31,6 @@ final class SharedNamespacesTest extends TestCase
         self::assertSame([], SharedNamespaces::of([$lone]));
     }
 
-    public function test_every_file_of_a_required_namespace_is_kept(): void
-    {
-        $core = new NamespaceInformation('/core.phel', 'phel.core', []);
-        $corePart = new NamespaceInformation('/core/part.phel', 'phel.core', [], false);
-        $test = new NamespaceInformation('/t.phel', 'app.t', ['phel.core']);
-
-        self::assertSame([$core, $corePart], SharedNamespaces::of([$core, $corePart, $test]));
-    }
-
     public function test_a_dependency_outside_the_list_does_not_matter(): void
     {
         $test = new NamespaceInformation('/t.phel', 'app.t', ['vendor.missing']);
