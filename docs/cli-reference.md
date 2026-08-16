@@ -31,6 +31,7 @@ enables tab-completion (setup in the [README](../README.md)).
 | `init` | Initialize a new Phel project (config, main namespace, test, .gitignore) |
 | `lint` | Run the semantic linter on Phel files or directories (no rewrite) |
 | `lsp` | Start the Phel Language Server (LSP v3.17 over stdio) |
+| `mutate` | Mutation testing: mutate every `defn` under the given paths and list the mutants the test suite does not catch (`--min-msi` gates) |
 | `nrepl` | Start an nREPL server for editor tooling (bencode over TCP) |
 | `ns` `loaded-ns` | List all loaded namespaces, or inspect one |
 | `profile` | Profile a script: per-fn call counts/timings + compile-phase costs |

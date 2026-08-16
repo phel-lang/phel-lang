@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Phel\Run\Application\Test;
 
+use Phel\Shared\Process\WorkerFrame;
 use RuntimeException;
 
 use function fclose;
