@@ -72,14 +72,22 @@
 ;; --- API key resolution ---
 
 (deftest test-missing-api-key-throws
-  (let [original @ai/config]
+  (let [original  @ai/config
+        transport (mock-fn (fn [_ _] (throw (new RuntimeException "no HTTP call is expected without a key"))))]
     (ai/configure {:api-key nil})
     (let [saved-key (php/getenv "ANTHROPIC_API_KEY")]
+      ;; `KEY=` leaves the variable set to an empty string, which is how a
+      ;; shell usually "unsets" it; the resolver must treat that as missing
+      ;; instead of sending an empty key over the wire.
       (php/putenv "ANTHROPIC_API_KEY=")
-      (is (thrown? RuntimeException (ai/complete "test"))
-          "missing API key throws RuntimeException")
-      (when saved-key
-        (php/putenv (str "ANTHROPIC_API_KEY=" saved-key))))
+      (binding [ai/*http-post* transport]
+        (is (thrown-with-msg? RuntimeException "No API key configured for provider :anthropic. Use (ai/configure {:api-key \"...\"}) or set ANTHROPIC_API_KEY env var."
+                              (ai/complete "test"))
+            "missing API key throws before any HTTP call")
+        (is (= 0 (call-count transport)) "no request leaves the process"))
+      (if saved-key
+        (php/putenv (str "ANTHROPIC_API_KEY=" saved-key))
+        (php/putenv "ANTHROPIC_API_KEY")))
     (reset! ai/config original)))
 
 ;; --- Response extraction ---
@@ -706,34 +714,49 @@
 
 ;; --- Retry / backoff ---
 
+;; A retry really sleeps through `*sleep-fn*`; the tests record the delays
+;; instead, so the schedule is asserted rather than waited for.
+
+(defn- recording-sleep [delays]
+  (fn [ms] (swap! delays conj ms)))
+
 (deftest test-retry-recovers-from-429
-  (let [n    (atom 0)
-        fake (mock-fn (fn [_ _]
-                        (swap! n + 1)
-                        (if (= @n 1)
-                          (status-response 429 {:error "rate limited"})
-                          (ok-response {:content [{:type "text" :text "ok"}]}))))]
-    (binding [ai/*http-post* fake]
+  (let [n      (atom 0)
+        delays (atom [])
+        fake   (mock-fn (fn [_ _]
+                          (swap! n + 1)
+                          (if (= @n 1)
+                            (status-response 429 {:error "rate limited"})
+                            (ok-response {:content [{:type "text" :text "ok"}]}))))]
+    (binding [ai/*http-post* fake
+              ai/*sleep-fn*  (recording-sleep delays)]
       (is (= "ok" (ai/complete "hi" {:api-key "k" :max-retries 2})) "recovers after 429")
-      (is (= 2 (call-count fake)) "makes exactly 2 calls"))))
+      (is (= 2 (call-count fake)) "makes exactly 2 calls")
+      (is (= [500] @delays) "waits once, 500ms, before the single retry"))))
 
 (deftest test-retry-recovers-from-500
-  (let [n    (atom 0)
-        fake (mock-fn (fn [_ _]
-                        (swap! n + 1)
-                        (if (<= @n 2)
-                          (status-response 503 {:error "unavailable"})
-                          (ok-response {:content [{:type "text" :text "ok"}]}))))]
-    (binding [ai/*http-post* fake]
+  (let [n      (atom 0)
+        delays (atom [])
+        fake   (mock-fn (fn [_ _]
+                          (swap! n + 1)
+                          (if (<= @n 2)
+                            (status-response 503 {:error "unavailable"})
+                            (ok-response {:content [{:type "text" :text "ok"}]}))))]
+    (binding [ai/*http-post* fake
+              ai/*sleep-fn*  (recording-sleep delays)]
       (is (= "ok" (ai/complete "hi" {:api-key "k" :max-retries 3})) "recovers after 503")
-      (is (= 3 (call-count fake)) "makes exactly 3 calls"))))
+      (is (= 3 (call-count fake)) "makes exactly 3 calls")
+      (is (= [500 1000] @delays) "backs off exponentially between retries"))))
 
 (deftest test-retry-gives-up-after-max-retries
-  (let [fake (mock-fn (fn [_ _] (status-response 500 {:error "boom"})))]
-    (binding [ai/*http-post* fake]
+  (let [delays (atom [])
+        fake   (mock-fn (fn [_ _] (status-response 500 {:error "boom"})))]
+    (binding [ai/*http-post* fake
+              ai/*sleep-fn*  (recording-sleep delays)]
       (is (thrown? RuntimeException (ai/complete "hi" {:api-key "k" :max-retries 1}))
           "throws after exhausting retries")
-      (is (= 2 (call-count fake)) "calls = initial + max-retries"))))
+      (is (= 2 (call-count fake)) "calls = initial + max-retries")
+      (is (= [500] @delays) "sleeps once per retry, never after the last attempt"))))
 
 (deftest test-retry-does-not-retry-on-4xx-other-than-429
   (let [fake (mock-fn (fn [_ _] (status-response 401 {:error {:message "bad key"}})))]

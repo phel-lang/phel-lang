@@ -15,6 +15,10 @@ All notable changes to this project will be documented in this file.
 - Binding-first map destructuring, as in Clojure: `{local :key}`, `{[x y] :point}`, `{n "name"}` and nested `{{:keys [c]} :inner}` work next to the existing key-first spelling. `:keys`, `:strs`, `:syms`, `:as` and `:or` are unchanged. A pair where neither side binds (`{:a :b}`) is rejected with a message showing both spellings (#3115)
 - `^:redef` on a `defn` keeps it out of `-O2` inlining, so `with-redefs`, `phel.mock` and `dotrace` still intercept the call (#3126)
 
+#### Library
+
+- `phel.ai/*sleep-fn*`, the retry backoff seam next to `*http-post*`: rebind it in tests so a 429/5xx retry records its delay instead of sleeping. The repository's own retry tests slept ~3s of a ~4.9s `phel test` pass; `composer test-core` goes from ~5.6s to ~3.1s serial. A blank `ANTHROPIC_API_KEY=` (or `OPENAI_API_KEY=`, `VOYAGE_API_KEY=`) now reads as a missing key, which throws before any request, instead of being sent as an empty key (#3204)
+
 #### CI
 
 - `Core tests at -O2` job; nothing exercised `CallInliner` or `TailCallRewriter` before. Local repro: `PHEL_OPTIMIZATION_LEVEL=2 ./bin/phel test` (#3126)

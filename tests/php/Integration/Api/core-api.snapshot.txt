@@ -8,6 +8,7 @@
 # as surely as one that disappears, so both are visible here.
 
 phel.ai/*http-post*  <value>
+phel.ai/*sleep-fn*  (*sleep-fn* ms)
 phel.ai/build-index  (build-index texts & [opts])
 phel.ai/chat  (chat messages & [{:keys [system], :as opts}])
 phel.ai/chat-with-history  (chat-with-history history user-message & [opts])
