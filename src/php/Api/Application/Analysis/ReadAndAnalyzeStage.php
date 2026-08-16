@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace Phel\Api\Application\Analysis;
 
 use Phel\Api\Domain\AnalysisStageInterface;
-use Phel\Compiler\Domain\Analyzer\Environment\NodeEnvironment;
 use Phel\Compiler\Domain\Analyzer\Exceptions\AnalyzerException;
 use Phel\Compiler\Domain\Reader\Exceptions\ReaderException;
 use Phel\Lang\TypeInterface;
@@ -69,7 +68,7 @@ final readonly class ReadAndAnalyzeStage implements AnalysisStageInterface
                 $ast = $readerResult->getAst();
                 $this->compilerFacade->analyze(
                     $ast,
-                    NodeEnvironment::empty()->withReturnContext(),
+                    $this->compilerFacade->emptyNodeEnvironment()->withReturnContext(),
                 );
             } catch (ReaderException $e) {
                 $diagnostics[] = $this->diagnosticFromLocation(

@@ -47,7 +47,12 @@ final class ConsoleBootstrap extends Application
             ->createArgvInputSanitizer()
             ->sanitize(ScalarCoercion::toStringList($_SERVER['argv'] ?? null));
 
-        $sanitizedArgs = WarnDeprecationsFlag::applyAndStrip($sanitizedArgs);
+        $strippedArgs = WarnDeprecationsFlag::strip($sanitizedArgs);
+        if ($strippedArgs !== $sanitizedArgs) {
+            $this->getFactory()->getCompilerFacade()->enableDeprecationWarnings();
+        }
+
+        $sanitizedArgs = $strippedArgs;
 
         $this->setDefaultCommand('repl');
 

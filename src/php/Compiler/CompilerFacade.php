@@ -265,4 +265,16 @@ final class CompilerFacade extends AbstractFacade implements CompilerFacadeInter
             ->createNamespaceEnvironmentSerializer()
             ->restore($namespace, $envData);
     }
+
+    public function emptyNodeEnvironment(): NodeEnvironmentInterface
+    {
+        return $this->getFactory()
+            ->createEmptyNodeEnvironment();
+    }
+
+    public function enableDeprecationWarnings(): void
+    {
+        $this->getFactory()
+            ->enableDeprecationWarnings();
+    }
 }

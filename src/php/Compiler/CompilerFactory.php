@@ -20,6 +20,8 @@ use Phel\Compiler\Application\Parser;
 use Phel\Compiler\Application\Reader;
 use Phel\Compiler\Domain\Analyzer\AnalyzerInterface;
 use Phel\Compiler\Domain\Analyzer\Environment\GlobalEnvironmentInterface;
+use Phel\Compiler\Domain\Analyzer\Environment\NodeEnvironment;
+use Phel\Compiler\Domain\Analyzer\Environment\NodeEnvironmentInterface;
 use Phel\Compiler\Domain\Cache\ReaderResultCacheInterface;
 use Phel\Compiler\Domain\Compiler\CodeCompilerInterface;
 use Phel\Compiler\Domain\Compiler\EvalCompilerInterface;
@@ -207,6 +209,25 @@ final class CompilerFactory extends AbstractFactory
         return new DebugLineTapController();
     }
 
+    /**
+     * The environment an analyzer call starts from when the caller has no
+     * enclosing one. Built here so consumers outside the module never import
+     * `Compiler\Domain\Analyzer\Environment` (#3048).
+     */
+    public function createEmptyNodeEnvironment(): NodeEnvironmentInterface
+    {
+        return NodeEnvironment::empty();
+    }
+
+    /**
+     * Also reached from the CLI flag, through the facade: the switch is
+     * process-wide, and this module owns it (#3048).
+     */
+    public function enableDeprecationWarnings(): void
+    {
+        DeprecationWarnings::enable();
+    }
+
     private function createReaderResultCache(): ReaderResultCacheInterface
     {
         if (!$this->getConfig()->isIntermediateCacheEnabled()) {
@@ -263,6 +284,6 @@ final class CompilerFactory extends AbstractFactory
             return;
         }
 
-        DeprecationWarnings::enable();
+        $this->enableDeprecationWarnings();
     }
 }

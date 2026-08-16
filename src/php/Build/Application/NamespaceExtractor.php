@@ -12,7 +12,6 @@ use Phel\Build\Domain\Extractor\NamespaceSorterInterface;
 use Phel\Build\Domain\IO\FileContentsIoInterface;
 use Phel\Compiler\Domain\Analyzer\Ast\InNsNode;
 use Phel\Compiler\Domain\Analyzer\Ast\NsNode;
-use Phel\Compiler\Domain\Analyzer\Environment\NodeEnvironment;
 use Phel\Compiler\Domain\Lexer\Exceptions\LexerValueException;
 use Phel\Compiler\Domain\Parser\Exceptions\AbstractParserException;
 use Phel\Compiler\Domain\Reader\Exceptions\ReaderException;
@@ -80,7 +79,7 @@ final readonly class NamespaceExtractor implements NamespaceExtractorInterface
             $readerResult = $this->compilerFacade->read($parseTree);
             /** @var bool|float|int|string|TypeInterface|null $ast */
             $ast = $readerResult->getAst();
-            $node = $this->compilerFacade->analyze($ast, NodeEnvironment::empty());
+            $node = $this->compilerFacade->analyze($ast, $this->compilerFacade->emptyNodeEnvironment());
 
             if ($node instanceof NsNode) {
                 $realFile = realpath($path);

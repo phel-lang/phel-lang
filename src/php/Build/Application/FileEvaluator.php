@@ -11,7 +11,6 @@ use Phel\Build\Domain\Cache\DependencyTrackerInterface;
 use Phel\Build\Domain\Compile\CompiledSecondaryStore;
 use Phel\Build\Domain\Extractor\FirstFormExtractor;
 use Phel\Build\Domain\Extractor\NamespaceExtractorInterface;
-use Phel\Compiler\Domain\Analyzer\Environment\NodeEnvironment;
 use Phel\Lang\TypeInterface;
 use Phel\Shared\CompiledFile;
 use Phel\Shared\CompiledSourceHash;
@@ -246,7 +245,7 @@ final class FileEvaluator
                 $ast = $readerResult->getAst();
                 $this->compilerFacade->analyze(
                     $ast,
-                    NodeEnvironment::empty(),
+                    $this->compilerFacade->emptyNodeEnvironment(),
                 );
 
                 break;

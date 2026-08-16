@@ -206,4 +206,22 @@ interface CompilerFacadeInterface
      * @param SerializedNamespaceEnvironment $envData
      */
     public function restoreNamespaceEnvironmentData(string $namespace, array $envData): void;
+
+    /**
+     * A fresh analyzer environment, for callers that hand a form to
+     * {@see self::analyze()} without one of their own.
+     *
+     * The environment is a compiler-internal type, so building it means
+     * importing `Compiler\Domain` from outside the module. Consumers ask for
+     * one here instead (#3048).
+     */
+    public function emptyNodeEnvironment(): NodeEnvironmentInterface;
+
+    /**
+     * Turns the compiler's deprecation notices on for the rest of the process.
+     *
+     * The switch itself lives in `Compiler\Domain\Deprecation`; this is how a
+     * CLI flag reaches it without importing it (#3048).
+     */
+    public function enableDeprecationWarnings(): void;
 }

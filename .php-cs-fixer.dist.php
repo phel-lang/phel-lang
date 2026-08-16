@@ -80,6 +80,12 @@ return (new Config())
             'imports_order' => ['class', 'function', 'const'],
             'sort_algorithm' => 'alpha',
         ],
+        // @PER-CS3.0 takes this from @PSR12 with `group_to_single_imports`
+        // off, which leaves `use Ns\{A, B};` standing. The architecture tests
+        // read imports with line-based regexes, and a group-use hides every
+        // name after the brace from them, so the module boundaries would stop
+        // being enforced without anything failing (#3048).
+        'single_import_per_statement' => ['group_to_single_imports' => true],
 
         // ------------------------------------------------------------------
         // Arrays & list syntax

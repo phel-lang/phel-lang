@@ -11,6 +11,7 @@ use Phel\Console\Application\ArgvInputSanitizer;
 use Phel\Console\Infrastructure\Command\LazyCommandLoader;
 use Phel\Console\Infrastructure\ConsoleBootstrap;
 use Phel\Filesystem\FilesystemFacadeInterface;
+use Phel\Shared\Facade\CompilerFacadeInterface;
 use Phel\Shared\VersionResolver;
 use Symfony\Component\Console\Command\LazyCommand;
 use Symfony\Component\Console\CommandLoader\CommandLoaderInterface;
@@ -48,6 +49,15 @@ final class ConsoleFactory extends AbstractFactory
     public function getFilesystemFacade(): FilesystemFacadeInterface
     {
         return $this->getProvidedDependency(FilesystemFacadeInterface::class);
+    }
+
+    /**
+     * Only `--warn-deprecations` needs it: the flag is stripped here and the
+     * switch it controls belongs to the compiler (#3048).
+     */
+    public function getCompilerFacade(): CompilerFacadeInterface
+    {
+        return $this->getProvidedDependency(CompilerFacadeInterface::class);
     }
 
     public function createVersionResolver(): VersionResolver
