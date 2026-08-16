@@ -48,11 +48,12 @@ PHP interop returns raw PHP arrays, not Phel collections. Convert:
 
 ```phel
 (vec (php/explode "," "a,b,c"))   ; PHP array  → Phel vector
-(to-php-array ["a" "b" "c"])      ; Phel vec   → PHP indexed array
+(to-array ["a" "b" "c"])          ; Phel vec   → PHP indexed array
+(phel->php {:a 1})                ; Phel map   → PHP assoc array
 (php-array-to-map arr)            ; PHP assoc  → Phel map
 ```
 
-`to-list` and `to-vec` don't exist. Use `vec` / `to-php-array`.
+`to-list` and `to-vec` don't exist. Use `vec` / `to-array`.
 
 ## 6. Record fields use `get`, not `.-prop`
 

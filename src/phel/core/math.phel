@@ -798,7 +798,7 @@ returns 1. If `xs` has one value, returns the reciprocal of x.
   ;; The fallback spreads `arr` rather than `xs`: the conversion has already
   ;; happened by then, and re-walking the original collection made a non-int
   ;; sum measurably slower than before the fast path existed.
-  (let [arr (to-php-array xs)]
+  (let [arr (to-array xs)]
     (if (all-native-ints? arr)
       (let [total (php/array_sum arr)]
         (if (php/is_int total)
@@ -818,7 +818,7 @@ returns 1. If `xs` has one value, returns the reciprocal of x.
   {:example "(median [3 1 2]) ; => 2\n(median [1 2 3 4]) ; => 2.5"
    :see-also ["mean" "sum"]}
   [xs]
-  (let [arr (to-php-array xs)
+  (let [arr (to-array xs)
         cnt (count arr)]
     (when (zero? cnt)
       (throw (new InvalidArgumentException "Cannot compute median of empty sequence")))

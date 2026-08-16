@@ -63,7 +63,7 @@
   array (accessible via `aget`/`aset`) since PHP has no typed
   array distinction."
   {:example "(object-array 3) ; => <PHP-Array [nil, nil, nil]>\n(object-array [1 2 3]) ; => <PHP-Array [1, 2, 3]>"
-   :see-also ["php-indexed-array" "to-php-array"]}
+   :see-also ["php-indexed-array" "to-array"]}
   [size-or-seq]
   (if (php/is_int size-or-seq)
     (if (php/< size-or-seq 0)
@@ -71,16 +71,10 @@
       (if (php/=== 0 size-or-seq)
         (php/array)
         (php/array_fill 0 size-or-seq nil)))
-    (to-php-array size-or-seq)))
+    (to-array size-or-seq)))
 
-(defn to-array
-  "Returns a PHP array containing the elements of `coll`. Accepts any collection (vector, list, set, map, PHP array) or `nil`, which yields an empty PHP array. Matches Clojure's `to-array` for `.cljc` interop — in Phel the result is a plain PHP array since PHP has no `Object[]`."
-  {:example "(to-array [1 2 3]) ; => <PHP-Array [1, 2, 3]>\n(to-array nil) ; => <PHP-Array []>"
-   :see-also ["to-php-array" "object-array"]}
-  [coll]
-  (if (php/=== coll nil)
-    (php/array)
-    (to-php-array coll)))
+;; `to-array` itself lives in `defs.phel`: `defexception`'s expansion needs it,
+;; and that file loads first (#3076).
 
 (defn into-array
   "Returns a PHP array containing the elements of `aseq`. Accepts any
@@ -121,7 +115,7 @@
 
 (defn- typed-array-coerce-seq
   [coerce-fn size seq-src]
-  (let [src (to-php-array seq-src)
+  (let [src (to-array seq-src)
         n   (php/count src)
         len (if (php/=== nil size)
               n

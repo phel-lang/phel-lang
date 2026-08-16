@@ -18,6 +18,7 @@ All notable changes to this project will be documented in this file.
 
 ### Deprecated
 
+- `to-php-array` in favour of `to-array`, the Clojure-aligned name that already existed as its alias. Behaviour is identical for every input, `nil` included, which both answer with an empty PHP array; `--warn-deprecations` reports each call site with the replacement, and the alias will be removed at the next major. `to-array` yields an **indexed** array, so a map becomes an array of `[key value]` pairs, exactly as `to-php-array` did; `phel->php` remains the conversion that produces an associative array. The bundled agent docs claimed `to-php-array` produced an associative array from a map, which it never did, and now point at `phel->php` (#3076)
 - Key-first map destructuring pairs (`{:key local}`). They keep working unchanged; `--warn-deprecations` reports each one with the binding-first spelling that replaces it, and the order will be removed in a future release. An ambiguous pair whose two sides both bind (`{k v}`, where the left side is evaluated as the lookup key) keeps its current meaning and warns that it will follow at the next major (#3115)
 
 ### Fixed

@@ -20,22 +20,44 @@
 ;; Basic macros
 ;; ------------
 
-(def to-php-array
-  {:doc "Creates a PHP Array from a sequential data structure."
-   :see-also ["to-array" "php-array-to-map" "phel->php"]}
+(def to-array
+  {:doc "Returns a PHP array containing the elements of `coll`. Accepts any collection (vector, list, set, map, PHP array) or `nil`, which yields an empty PHP array. A map yields an indexed array of `[key value]` pairs; `phel->php` is the conversion that yields an associative array. Matches Clojure's `to-array` for `.cljc` interop — in Phel the result is a plain PHP array since PHP has no `Object[]`."
+   :example "(to-array [1 2 3]) ; => <PHP-Array [1, 2, 3]>\n(to-array nil) ; => <PHP-Array []>"
+   :see-also ["php-array-to-map" "phel->php" "object-array"]}
   (fn [coll]
-    (if (php/is_array coll)
-      coll
-      ;; `SeqInterface` declares `toArray`, and every sequential type reaches
-      ;; it: `PersistentVectorInterface` and `PersistentListInterface` both
-      ;; extend it, as do the lazy seqs and `Cons`. Going through `apply`
-      ;; instead spread the collection into a variadic call and rebuilt the
-      ;; array from the iterator. Maps, sets and strings have no `toArray` and
-      ;; keep the old path, which is also the only one that can flatten a map
-      ;; into pairs.
-      (if (php/instanceof coll SeqInterface)
-        (.toArray coll)
-        (apply php/array coll)))))
+    (if (php/=== coll nil)
+      (php/array)
+      (if (php/is_array coll)
+        coll
+        ;; `SeqInterface` declares `toArray`, and every sequential type reaches
+        ;; it: `PersistentVectorInterface` and `PersistentListInterface` both
+        ;; extend it, as do the lazy seqs and `Cons`. Going through `apply`
+        ;; instead spread the collection into a variadic call and rebuilt the
+        ;; array from the iterator. Maps, sets and strings have no `toArray` and
+        ;; keep the old path, which is also the only one that can flatten a map
+        ;; into pairs.
+        (if (php/instanceof coll SeqInterface)
+          (.toArray coll)
+          (apply php/array coll))))))
+
+;; The two names have always been the same conversion: `to-array` was defined
+;; as `(if (nil? coll) (php/array) (to-php-array coll))`, and `to-php-array`
+;; reached `(apply php/array nil)`, which is also an empty array. `to-array` is
+;; the Clojure-aligned spelling, so it holds the body and this name stays as an
+;; alias until the next major (#3076).
+(def to-php-array
+  {:doc "Deprecated alias of `to-array`."
+   :deprecated "0.51.0"
+   :superseded-by "to-array"
+   ;; A `def` of an existing fn carries no arglist of its own, and the API
+   ;; surface snapshot would record the alias as `<value>`, which reads as a
+   ;; function that stopped being callable. It is spelled out so `phel doc` and
+   ;; the snapshot keep showing the signature until the alias goes. The key is
+   ;; the string `"arglists"`, which is what the analyzer writes and what
+   ;; `PhelFnNormalizer` reads.
+   "arglists" "[coll]"
+   :see-also ["to-array" "php-array-to-map" "phel->php"]}
+  to-array)
 
 (def defn-builder
   {:macro true, :private true}

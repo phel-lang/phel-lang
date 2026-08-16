@@ -215,7 +215,7 @@ final class StdlibStringBench extends CoreBenchCase
 
     /**
      * Unlike the pairs above this one does not converge: the residual is
-     * `to-php-array`, which is `(apply php/array coll)` (item A6 of #3021) and
+     * `to-array`, which is `(apply php/array coll)` (item A6 of #3021) and
      * lives in `phel.core`. The gap is the measurement of that item.
      *
      * @Revs(1000)

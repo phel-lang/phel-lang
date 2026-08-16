@@ -182,7 +182,7 @@ When `from` is associative, it is treated as a sequence of key-value pairs. Supp
          ;; `vec` is (#3134). `copy-meta` because the transient this replaces
          ;; carried `to`'s metadata through `persistent`, where a fresh
          ;; `Phel/vector` would not.
-         (let [arr (to-php-array to)]
+         (let [arr (to-array to)]
            (foreach [value entries]
              (php/apush arr value))
            (copy-meta to (Phel/vector arr)))
@@ -805,7 +805,7 @@ Creates intermediate maps if they don't exist."
   [coll]
   (let [arr    (if (string? coll)
                  (php/mb_str_split coll)
-                 (to-php-array coll))
+                 (to-array coll))
         result (Phel/vector (php/array_reverse arr))]
     (copy-meta coll result)))
 
@@ -959,7 +959,7 @@ Works with vectors, lists, sets, and strings."
 (defn php-array-to-map
   "Converts a PHP Array to a Phel map."
   {:example "(php-array-to-map (php-associative-array \"a\" 1 \"b\" 2)) ; => {\"a\" 1, \"b\" 2}"
-   :see-also ["to-php-array" "php->phel"]}
+   :see-also ["to-array" "php->phel"]}
   [arr]
   (let [res (transient {})]
     (foreach [k v arr]
@@ -1107,7 +1107,7 @@ Indexed PHP arrays become vectors, associative PHP arrays become maps."
 
 (defn- sorted-vector
   [coll comp]
-  (let [php-array (to-php-array coll)]
+  (let [php-array (to-array coll)]
     (php/usort php-array comp)
     (copy-meta coll (Phel/vector php-array))))
 
@@ -1121,7 +1121,7 @@ Indexed PHP arrays become vectors, associative PHP arrays become maps."
   ;; The array is converted once and reused by both branches. Delegating the
   ;; fallback to `sorted-vector` would convert a second time, which made every
   ;; non-int sort slower than before the fast path existed.
-  (let [php-array (to-php-array coll)]
+  (let [php-array (to-array coll)]
     (cond
       (all-native-ints? php-array)    (php/sort (php/ref php-array) php/SORT_NUMERIC)
       (all-native-strings? php-array) (php/sort (php/ref php-array))
@@ -1160,12 +1160,12 @@ Indexed PHP arrays become vectors, associative PHP arrays become maps."
   the transform buys."
   [keyfn coll comp]
   (let [cmp    (sort-comparator comp)
-        ;; `to-php-array` and not `foreach` over `coll` directly: it is the
+        ;; `to-array` and not `foreach` over `coll` directly: it is the
         ;; conversion `sorted-vector` used, and it is what decides what an
         ;; element *is*. Iterating a map yields its values, while converting one
         ;; yields its `[key value]` entries, which is what `sort` and `sort-by`
         ;; have always sorted.
-        values (to-php-array coll)
+        values (to-array coll)
         ks     (php/array)
         vs     (php/array)
         idx    (php/array)
@@ -1237,7 +1237,7 @@ If no comparator is supplied compare is used."
   "Returns a random permutation of coll."
   {:example "(shuffle [1 2 3 4 5]) ; => [2 3 5 1 4]"}
   [coll]
-  (let [php-array (to-php-array coll)]
+  (let [php-array (to-array coll)]
     (php/shuffle php-array)
     (copy-meta coll (Phel/vector php-array))))
 

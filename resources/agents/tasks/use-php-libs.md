@@ -55,7 +55,7 @@ composer require guzzlehttp/guzzle
 
 (defn query-all [pdo sql params]
   (let [stmt (.prepare pdo sql)]
-    (.execute stmt (to-php-array params))
+    (.execute stmt (to-array params))
     (map php-array-to-map (.fetchAll stmt PDO/FETCH_ASSOC))))
 ```
 
@@ -63,8 +63,9 @@ composer require guzzlehttp/guzzle
 
 | Direction | Call |
 |-----------|------|
-| Phel map → PHP assoc | `(to-php-array {:a 1})` |
-| Phel vec → PHP indexed | `(to-php-array [1 2])` |
+| Phel map → PHP assoc | `(phel->php {:a 1})` |
+| Phel vec → PHP indexed | `(to-array [1 2])` |
+| Phel map → `[k v]` pairs | `(to-array {:a 1})` |
 | Keyword → string | `(name :foo)` |
 | PHP assoc → Phel map | `(php-array-to-map arr)` |
 
@@ -77,7 +78,7 @@ composer require guzzlehttp/guzzle
 
 ## Gotchas
 
-- Convert maps for PHP libs; use `#php {}` or `to-php-array`.
+- Convert maps for PHP libs; use `#php {}` or `phel->php`.
 - Method chain: `(-> obj (.a) (.b))`, not `(-> obj .a .b)`.
 - `php/new`, `php/->` and `php/::` are deprecated; the spellings above are the only ones to write.
 - Static constants need `:use` or full path.

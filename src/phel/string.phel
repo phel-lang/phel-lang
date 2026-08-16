@@ -79,8 +79,8 @@ This is a convenience function for converting strings to character sequences. Pr
 (defn join
   "Returns a string of all elements in coll, separated by an optional separator."
   {:example "(join \", \" [\"apple\" \"banana\" \"cherry\"]) ; => \"apple, banana, cherry\""}
-  ([coll] (php/implode "" (to-php-array coll)))
-  ([separator coll] (php/implode separator (to-php-array coll))))
+  ([coll] (php/implode "" (to-array coll)))
+  ([separator coll] (php/implode separator (to-array coll))))
 
 (defn subs
   "Returns the substring of s from start (inclusive) to end (exclusive)."

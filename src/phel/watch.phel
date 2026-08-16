@@ -41,5 +41,5 @@
       (aset phpOpts "poll" (get opts :poll)))
     (when (and opts (get opts :debounce))
       (aset phpOpts "debounce" (get opts :debounce)))
-    (.watch facade (to-php-array paths) phpOpts)
+    (.watch facade (to-array paths) phpOpts)
     nil))

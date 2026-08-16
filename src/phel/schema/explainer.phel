@@ -260,5 +260,5 @@
     (let [header (str "Schema " (print-str (get result :schema))
                       " failed for value " (print-str (get result :value)))
           lines  (into [] (map format-error (get result :errors)))
-          body   (php/implode "\n" (to-php-array lines))]
+          body   (php/implode "\n" (to-array lines))]
       (str header "\n" body))))

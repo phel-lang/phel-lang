@@ -95,7 +95,7 @@
     (apply str (sort kvs))))
 
 (defn- ^string render-attr-table [value]
-  (escape-html (php/implode " " (to-php-array (for [[k v] :pairs value :when v] (to-str k))))))
+  (escape-html (php/implode " " (to-array (for [[k v] :pairs value :when v] (to-str k))))))
 
 (defn- ^string render-attribute-value [name value]
   (cond
@@ -104,7 +104,7 @@
     (map? value)
     (render-attr-table value)
     (indexed? value)
-    (escape-html (php/implode " " (to-php-array (map to-str value))))
+    (escape-html (php/implode " " (to-array (map to-str value))))
     (escape-html (to-str value))))
 
 (defn- ^string render-attribute [name value]

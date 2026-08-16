@@ -341,7 +341,7 @@ Useful for building multi-turn conversations."
   [schema]
   (let [lines (for [[k v] :pairs schema]
                 (str "  \"" (name k) "\": " (if (string? v) v (str v))))]
-    (str "{\n" (php/implode ",\n" (to-php-array lines)) "\n}")))
+    (str "{\n" (php/implode ",\n" (to-array lines)) "\n}")))
 
 (defn- schema-prop-spec
   "Resolves a schema field value into a JSON Schema property spec."

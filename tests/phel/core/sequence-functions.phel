@@ -424,24 +424,35 @@
   (is (= [:a 1 :b 2 :c 3] (kvs {:a 1 :b 2 :c 3})) "kvs of maps")
   (is (= [0 3 1 2 2 1] (kvs [3 2 1])) "kvs of vector"))
 
-(deftest test-to-php-array
-  (is (= (php-indexed-array 3 2 1) (to-php-array [3 2 1])) "to-php-array")
-  (is (= (php-indexed-array "a" "b" "c") (to-php-array "abc")) "to-php-array string characters"))
+(deftest test-to-array
+  (is (= (php-indexed-array 3 2 1) (to-array [3 2 1])) "to-array")
+  (is (= (php-indexed-array "a" "b" "c") (to-array "abc")) "to-array string characters"))
 
-(deftest test-to-php-array-over-every-input-shape
+(deftest test-to-array-over-every-input-shape
   ;; Sequential types now go through `SeqInterface::toArray`; everything else
   ;; keeps the `apply` path. Both must answer what they always did.
-  (is (= (php-indexed-array 1 2 3) (to-php-array '(1 2 3))) "list")
-  (is (= (php-indexed-array) (to-php-array [])) "empty vector")
-  (is (= (php-indexed-array) (to-php-array '())) "empty list")
-  (is (= (php-indexed-array 1 2 3) (to-php-array (subvec [0 1 2 3] 1 4))) "subvector")
-  (is (= (php-indexed-array 1 2 3) (to-php-array (cons 1 '(2 3)))) "cons")
-  (is (= (php-indexed-array 2 3 4) (to-php-array (map inc [1 2 3]))) "lazy seq")
-  (is (= (php-indexed-array 0 1 2) (to-php-array (range 0 3))) "range")
-  (is (= (php-indexed-array 1 2) (to-php-array (php-indexed-array 1 2))) "a PHP array passes through")
+  (is (= (php-indexed-array 1 2 3) (to-array '(1 2 3))) "list")
+  (is (= (php-indexed-array) (to-array [])) "empty vector")
+  (is (= (php-indexed-array) (to-array '())) "empty list")
+  (is (= (php-indexed-array 1 2 3) (to-array (subvec [0 1 2 3] 1 4))) "subvector")
+  (is (= (php-indexed-array 1 2 3) (to-array (cons 1 '(2 3)))) "cons")
+  (is (= (php-indexed-array 2 3 4) (to-array (map inc [1 2 3]))) "lazy seq")
+  (is (= (php-indexed-array 0 1 2) (to-array (range 0 3))) "range")
+  (is (= (php-indexed-array 1 2) (to-array (php-indexed-array 1 2))) "a PHP array passes through")
   ;; A map has no `toArray`, and only the `apply` path flattens it to pairs.
-  (is (= 2 (php/count (to-php-array {:a 1, :b 2}))) "map yields one entry per pair")
-  (is (= [:a 1] (php/aget (to-php-array {:a 1}) 0)) "map entries stay key/value vectors"))
+  (is (= 2 (php/count (to-array {:a 1, :b 2}))) "map yields one entry per pair")
+  (is (= [:a 1] (php/aget (to-array {:a 1}) 0)) "map entries stay key/value vectors")
+  (is (= (php-indexed-array) (to-array nil)) "nil yields an empty array"))
+
+(deftest test-to-php-array-is-a-deprecated-alias
+  ;; The old name keeps working until the next major, and answers identically
+  ;; on every input shape (#3076).
+  (is (= (to-array [1 2]) (to-php-array [1 2])) "vector")
+  (is (= (to-array nil) (to-php-array nil)) "nil")
+  ;; Through `php->phel`, because `=` compares the objects inside a PHP array
+  ;; by identity, so two equal arrays of pair vectors are not `=`.
+  (is (= (php->phel (to-array {:a 1})) (php->phel (to-php-array {:a 1}))) "map")
+  (is (= (to-array "ab") (to-php-array "ab")) "string"))
 
 (deftest test-sort
   (is (= [] (sort nil)) "sort nil")
