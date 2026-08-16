@@ -92,6 +92,7 @@ final class CachedNamespaceExtractor implements NamespaceExtractorInterface
         // walk entirely.
         $persisted = $this->scanIndexCache->get($cacheKey);
         if ($persisted instanceof ScanIndexEntry
+            && $persisted->covers($this->existingDirectories($directories))
             && $persisted->isValid(fn(string $dir): int => $this->countPhelFiles($dir))
         ) {
             return $this->directoriesScanCache[$cacheKey] = $persisted->infos;
@@ -129,16 +130,7 @@ final class CachedNamespaceExtractor implements NamespaceExtractorInterface
     private function perDirFingerprint(array $directories): array
     {
         $perDir = [];
-        foreach ($directories as $directory) {
-            $realpath = $this->resolvePath($directory);
-            if ($realpath === null) {
-                continue;
-            }
-
-            if (!is_dir($realpath)) {
-                continue;
-            }
-
+        foreach ($this->existingDirectories($directories) as $realpath) {
             $mtime = @filemtime($realpath);
             if ($mtime === false) {
                 continue;
@@ -151,6 +143,30 @@ final class CachedNamespaceExtractor implements NamespaceExtractorInterface
         }
 
         return $perDir;
+    }
+
+    /**
+     * The resolved paths of the requested directories that exist right now.
+     * A configured directory that does not exist yet (a project whose
+     * `tests/` is created after the first `phel` command ran) is left out
+     * of the fingerprint, so its later appearance is detected by comparing
+     * this list against the fingerprint's keys rather than by an mtime.
+     *
+     * @param list<string> $directories
+     *
+     * @return list<string>
+     */
+    private function existingDirectories(array $directories): array
+    {
+        $existing = [];
+        foreach ($directories as $directory) {
+            $realpath = $this->resolvePath($directory);
+            if ($realpath !== null && is_dir($realpath)) {
+                $existing[] = $realpath;
+            }
+        }
+
+        return $existing;
     }
 
     /**
@@ -230,16 +246,7 @@ final class CachedNamespaceExtractor implements NamespaceExtractorInterface
     {
         $files = [];
 
-        foreach ($directories as $directory) {
-            $realpath = $this->resolvePath($directory);
-            if ($realpath === null) {
-                continue;
-            }
-
-            if (!is_dir($realpath)) {
-                continue;
-            }
-
+        foreach ($this->existingDirectories($directories) as $realpath) {
             try {
                 foreach ($this->phelFileIterator($realpath) as $file) {
                     if (!is_array($file)) {

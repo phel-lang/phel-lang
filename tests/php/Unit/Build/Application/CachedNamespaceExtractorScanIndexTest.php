@@ -23,7 +23,10 @@ final class CachedNamespaceExtractorScanIndexTest extends TestCase
 
     protected function setUp(): void
     {
-        $this->dir = sys_get_temp_dir() . '/phel-scan-index-test-' . uniqid();
+        // realpath: on macOS the temp dir is a symlink, and a path that does
+        // not exist yet cannot be resolved, so a scan key would otherwise
+        // differ between "before the directory existed" and "after".
+        $this->dir = realpath(sys_get_temp_dir()) . '/phel-scan-index-test-' . uniqid();
         mkdir($this->dir, 0777, true);
         $this->cacheFile = $this->dir . '/.cache/scan-index.php';
     }
@@ -165,6 +168,56 @@ final class CachedNamespaceExtractorScanIndexTest extends TestCase
             ['app\\lib'],
             array_map(static fn(NamespaceInformation $i): string => $i->getNamespace(), $warmB),
         );
+    }
+
+    public function test_a_configured_directory_created_after_the_scan_invalidates_the_index(): void
+    {
+        // Sibling roots, so a change under one is invisible to the other's
+        // fingerprint: exactly the layout of `src-dirs` next to `test-dirs`.
+        $src = $this->dir . '/src';
+        $tests = $this->dir . '/tests';
+        mkdir($src, 0777, true);
+        file_put_contents($src . '/main.phel', '(ns app\\main)');
+
+        $callCount = 0;
+        $coldCache = new PhpScanIndexCache($this->cacheFile);
+        $cold = $this->makeExtractor($coldCache, $callCount)->getNamespacesFromDirectories([$src, $tests]);
+        $coldCache->save();
+        self::assertSame(['app\\main'], array_map(static fn(NamespaceInformation $i): string => $i->getNamespace(), $cold));
+
+        // The test directory did not exist at scan time; it does now, with a file.
+        mkdir($tests, 0777, true);
+        file_put_contents($tests . '/main_test.phel', '(ns app\\main-test)');
+
+        $callCount = 0;
+        $warm = $this->makeExtractor(new PhpScanIndexCache($this->cacheFile), $callCount)
+            ->getNamespacesFromDirectories([$src, $tests]);
+
+        self::assertGreaterThan(0, $callCount, 'A directory that appeared after the scan must force a re-walk.');
+        self::assertContains(
+            'app\\main-test',
+            array_map(static fn(NamespaceInformation $i): string => $i->getNamespace(), $warm),
+        );
+    }
+
+    public function test_a_still_missing_directory_keeps_the_index_valid(): void
+    {
+        $src = $this->dir . '/src';
+        $missing = $this->dir . '/never-created';
+        mkdir($src, 0777, true);
+        file_put_contents($src . '/main.phel', '(ns app\\main)');
+
+        $callCount = 0;
+        $coldCache = new PhpScanIndexCache($this->cacheFile);
+        $this->makeExtractor($coldCache, $callCount)->getNamespacesFromDirectories([$src, $missing]);
+        $coldCache->save();
+
+        $callCount = 0;
+        $warm = $this->makeExtractor(new PhpScanIndexCache($this->cacheFile), $callCount)
+            ->getNamespacesFromDirectories([$src, $missing]);
+
+        self::assertSame(0, $callCount, 'A directory that is still absent changes nothing; the index must be served.');
+        self::assertSame(['app\\main'], array_map(static fn(NamespaceInformation $i): string => $i->getNamespace(), $warm));
     }
 
     private function writePhel(string $name, string $content): void
