@@ -46,7 +46,9 @@ Clojure-style interop spellings are sugar, expanded to `php/*` forms before anal
 
 `Domain/Analyzer/QualifiedMemberSyntax` is the single statement of *how a class member is spelled* (namespace reads as a class reference, name starts like a PHP member). Call position, value position and `phel.core/set!` all decide with it, so `(\Foo/m 1)`, `\Foo/CONST` and `(set! \Foo/slot v)` cannot disagree; `set!` re-spells it in Phel because the stdlib cannot import `@internal` compiler classes. Purely lexical: `PhpClassLike` answers existence.
 
-Bare host symbols have one separate collision rule, in `SymbolResolver::resolveBareHostSymbol()`: an existing PHP class/interface/trait/enum wins over a same-named global constant, including all-caps classes such as `PDO`; `php/NAME` is the explicit constant escape hatch. `Domain/Analyzer/PhpClassLike` is the single class-like existence predicate (also used by `UseAliasRegistrar`). Keep it autoloading, otherwise the same source changes meaning according to which earlier form happened to load the class.
+Bare host symbols read by **position**, never by probing the class table (ADR 0016, #3064). `SymbolResolver::resolveBareHostSymbol()` reads an all-caps name as the global constant; `Domain/Analyzer/BareHostClass` re-reads that node as a class wherever only a class can stand (member target in `PhpObjectCallSymbol`, `PhpNewSymbol`, `PhpCallableSymbol`), so `(WP_CLI/log "x")` emits `\WP_CLI::log("x")` whether or not the class is loadable here. `php/NAME` keeps the constant reading in every position. Probing used to decide it, which made the emitted PHP depend on what the compiling process had autoloaded, and the compiled-code cache then froze whichever ran first.
+
+`Domain/Analyzer/PhpClassLike` is the single class-like existence predicate. It still answers for `:use` alias targets (compile-time asserted, loud when wrong), for lowercase-initial bare names (`stdClass`, where the alternative is an unresolved-symbol error rather than a second reading), and for `Environment/AmbiguousBareHostWarner`, which warns when value position reads a constant that a loadable class shadows.
 
 ### Simplification pass
 

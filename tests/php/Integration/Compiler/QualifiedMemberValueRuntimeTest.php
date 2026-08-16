@@ -161,9 +161,15 @@ final class QualifiedMemberValueRuntimeTest extends AbstractCompilerRuntimeTestC
         self::assertSame('fixture', $dot);
     }
 
-    public function test_a_class_wins_over_a_same_named_global_constant(): void
+    /**
+     * The constant wins in value position, whether or not a class of that name
+     * is loadable, so the same source compiles to the same PHP everywhere
+     * (#3064). The class is reachable by three spellings; `php/NAME` remains
+     * the explicit constant.
+     */
+    public function test_the_constant_wins_in_value_position(): void
     {
-        $class = $this->compilerFacade->eval(
+        $bare = $this->compilerFacade->eval(
             '(identity ' . self::HOST_COLLISION . ')',
             new CompileOptions(),
         );
@@ -171,9 +177,14 @@ final class QualifiedMemberValueRuntimeTest extends AbstractCompilerRuntimeTestC
             'php/' . self::HOST_COLLISION,
             new CompileOptions(),
         );
+        $class = $this->compilerFacade->eval(
+            '(identity \\' . self::HOST_COLLISION . ')',
+            new CompileOptions(),
+        );
 
-        self::assertSame(self::HOST_COLLISION, $class);
+        self::assertSame(self::HOST_CONSTANT_VALUE, $bare);
         self::assertSame(self::HOST_CONSTANT_VALUE, $constant);
+        self::assertSame(self::HOST_COLLISION, $class);
     }
 
     public function test_pdo_class_constants_need_no_leading_backslash(): void

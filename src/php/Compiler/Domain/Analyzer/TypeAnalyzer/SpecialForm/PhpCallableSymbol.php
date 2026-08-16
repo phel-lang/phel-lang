@@ -7,6 +7,7 @@ namespace Phel\Compiler\Domain\Analyzer\TypeAnalyzer\SpecialForm;
 use Phel\Compiler\Domain\Analyzer\AnalyzerInterface;
 use Phel\Compiler\Domain\Analyzer\Ast\PhpCallableNode;
 use Phel\Compiler\Domain\Analyzer\Ast\PhpClassNameNode;
+use Phel\Compiler\Domain\Analyzer\BareHostClass;
 use Phel\Compiler\Domain\Analyzer\Environment\NodeEnvironmentInterface;
 use Phel\Compiler\Domain\Analyzer\Exceptions\AnalyzerException;
 use Phel\Lang\Collections\LinkedList\PersistentListInterface;
@@ -121,6 +122,13 @@ final readonly class PhpCallableSymbol implements SpecialFormAnalyzerInterface
         }
 
         $resolved = $this->analyzer->resolve($target, $exprEnv);
+
+        // `(php/callable PDO getAvailableDrivers)` names a class by position
+        // (#3064).
+        $bareClass = BareHostClass::reread($target, $resolved, $exprEnv);
+        if ($bareClass instanceof PhpClassNameNode) {
+            return $bareClass;
+        }
 
         return $resolved instanceof PhpClassNameNode ? $resolved : null;
     }

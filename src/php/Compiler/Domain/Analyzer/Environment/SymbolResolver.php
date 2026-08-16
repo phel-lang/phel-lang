@@ -44,6 +44,7 @@ final readonly class SymbolResolver
         private MagicConstantResolver $magicConstantResolver,
         private ?BackslashSeparatorDeprecator $backslashDeprecator = null,
         private ?DeprecatedDefinitionWarner $deprecatedDefinitionWarner = null,
+        private AmbiguousBareHostWarner $ambiguousBareHostWarner = new AmbiguousBareHostWarner(),
     ) {}
 
     public function resolve(Symbol $name, NodeEnvironmentInterface $env): ?AbstractNode
@@ -107,25 +108,32 @@ final readonly class SymbolResolver
     }
 
     /**
-     * Host fallback for a bare name Phel itself could not resolve, in the order
-     * that decides a collision: an existing PHP class-like wins over the
-     * global-constant reading of the same all-caps name (`PDO` is the common
-     * case). Running last means locals and definitions keep winning, and
-     * `php/NAME` bypasses this resolver entirely, so it stays the explicit
-     * escape hatch for a shadowed global constant.
+     * Host fallback for a bare name Phel itself could not resolve. Running last
+     * means locals and definitions keep winning, and `php/NAME` bypasses this
+     * resolver entirely, so it stays the explicit escape hatch.
+     *
+     * An all-caps name reads as the global constant, always. It used to read as
+     * a class whenever one happened to be loadable, which made the emitted PHP
+     * depend on what the compiling process had autoloaded: the same source
+     * compiled to a direct `\WP_CLI::log()` under WP-CLI and to a dynamic call
+     * through an undefined constant everywhere else, and the compiled-code
+     * cache then froze whichever ran first (#3064). Class position says so
+     * lexically instead; see {@see BareHostClass}.
      */
     private function resolveBareHostSymbol(Symbol $name, NodeEnvironmentInterface $env): ?AbstractNode
     {
         $strName = $name->getName();
 
+        if ($this->looksLikePhpConstantName($strName)) {
+            $this->ambiguousBareHostWarner->maybeWarn($name);
+
+            return new PhpVarNode($env, $strName, $name->getStartLocation());
+        }
+
         if ($this->looksLikeBareClassName($strName)) {
             $fqn = Symbol::create('\\' . $strName)->copyLocationFrom($name);
 
             return new PhpClassNameNode($env, $fqn, $name->getStartLocation());
-        }
-
-        if ($this->looksLikePhpConstantName($strName)) {
-            return new PhpVarNode($env, $strName, $name->getStartLocation());
         }
 
         return null;
@@ -220,11 +228,14 @@ final readonly class SymbolResolver
 
     /**
      * Accept bare uppercase identifiers as root-namespace PHP class FQN
-     * aliases, so `Exception` resolves the same as `\Exception`. Also accepts
-     * existing PHP class-like names regardless of casing, so all-caps `PDO`
-     * and lowercase `stdClass` both match. {@see PhpClassLike} autoloads for
-     * that check on purpose: resolution must not depend on whether some
-     * earlier form happened to load the class first.
+     * aliases, so `Exception` resolves the same as `\Exception`.
+     *
+     * The second branch probes {@see PhpClassLike}, and by the time it runs an
+     * all-caps name has already been read as a constant, so what reaches it is
+     * a lowercase-initial name (`stdClass`). There the alternative to the class
+     * is not another reading but an unresolved-symbol error, so the probe
+     * decides between "works" and "fails loudly" rather than between two
+     * different meanings (#3064).
      */
     private function looksLikeBareClassName(string $name): bool
     {

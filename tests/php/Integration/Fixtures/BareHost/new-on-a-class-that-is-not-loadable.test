@@ -1,0 +1,36 @@
+--PHEL--
+(ns test)
+
+(defn probe [] (php/new WP_CLI_FIXTURE))
+--PHP--
+namespace test;
+require_once __DIR__ . '/phel/core.php';
+\Phel::addDefinition(
+  "phel.core",
+  "*file*",
+  "BareHost/new-on-a-class-that-is-not-loadable.test"
+);
+\Phel::addDefinition(
+  "phel.core",
+  "*ns*",
+  "test"
+);
+\Phel::addDefinition(
+  "test",
+  "probe",
+  new class() extends \Phel\Lang\AbstractFn {
+    public const BOUND_TO = "test\\probe";
+
+    public function __invoke() {
+      return (new \WP_CLI_FIXTURE());
+    }
+  },
+  \Phel::locationMeta(
+    \Phel::location("BareHost/new-on-a-class-that-is-not-loadable.test", 3, 0),
+    \Phel::location("BareHost/new-on-a-class-that-is-not-loadable.test", 3, 40),
+    \Phel\Lang\Keyword::create("doc"), "```phel\n(probe)\n```\n",
+    "min-arity", 0,
+    "is-variadic", false,
+    "arglists", "[]"
+  )
+);

@@ -472,12 +472,18 @@ final class SymbolResolverTest extends TestCase
         );
     }
 
-    public function test_existing_all_caps_class_wins_over_a_same_named_global_constant(): void
+    /**
+     * Value position reads the constant even where a class of the same name is
+     * loadable. The class used to win, which made the emitted PHP depend on
+     * what the compiling process had autoloaded (#3064); class position says
+     * "class" lexically instead, and `BareHostClass` reads it there.
+     */
+    public function test_all_caps_reads_as_a_constant_even_when_a_class_exists(): void
     {
         $nodeEnv = NodeEnvironment::empty();
 
         self::assertEquals(
-            new PhpClassNameNode($nodeEnv, Symbol::create('\\' . self::HOST_COLLISION)),
+            new PhpVarNode($nodeEnv, self::HOST_COLLISION),
             $this->resolver->resolve(Symbol::create(self::HOST_COLLISION), $nodeEnv),
         );
     }

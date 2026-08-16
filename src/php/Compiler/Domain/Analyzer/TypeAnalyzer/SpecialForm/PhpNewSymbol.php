@@ -7,6 +7,7 @@ namespace Phel\Compiler\Domain\Analyzer\TypeAnalyzer\SpecialForm;
 use Phel\Compiler\Domain\Analyzer\Ast\AbstractNode;
 use Phel\Compiler\Domain\Analyzer\Ast\PhpClassNameNode;
 use Phel\Compiler\Domain\Analyzer\Ast\PhpNewNode;
+use Phel\Compiler\Domain\Analyzer\BareHostClass;
 use Phel\Compiler\Domain\Analyzer\Environment\NodeEnvironmentInterface;
 use Phel\Compiler\Domain\Analyzer\Exceptions\AnalyzerException;
 use Phel\Compiler\Domain\Analyzer\TypeAnalyzer\WithAnalyzerTrait;
@@ -59,6 +60,14 @@ final class PhpNewSymbol implements SpecialFormAnalyzerInterface
         }
 
         $resolvedClassExpr = $this->analyzer->resolve($classExpr, $env);
+
+        // `(php/new PDO ...)` names a class by position, whether or not one is
+        // loadable here (#3064).
+        $bareClass = BareHostClass::reread($classExpr, $resolvedClassExpr, $env);
+        if ($bareClass instanceof PhpClassNameNode) {
+            return $bareClass;
+        }
+
         if ($resolvedClassExpr instanceof AbstractNode) {
             return $resolvedClassExpr;
         }
