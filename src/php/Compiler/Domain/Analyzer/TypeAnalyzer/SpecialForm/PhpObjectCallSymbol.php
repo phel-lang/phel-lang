@@ -46,10 +46,7 @@ final readonly class PhpObjectCallSymbol implements SpecialFormAnalyzerInterface
         $target = $list->get(1);
         $targetExpr = $this->analyzer->analyze($target, $targetEnv);
 
-        // `(WP_CLI/log "x")` and `(.-ATTR PDO)` name a class by position, so a
-        // bare all-caps target is one whether or not it can be loaded here
-        // (#3064). `php/NAME` keeps the constant reading for a target held in
-        // a constant.
+        // A member target names a class by position; see BareHostClass (#3064).
         $targetExpr = BareHostClass::reread($target, $targetExpr, $targetEnv) ?? $targetExpr;
 
         $counter = count($list);

@@ -123,8 +123,7 @@ final readonly class PhpCallableSymbol implements SpecialFormAnalyzerInterface
 
         $resolved = $this->analyzer->resolve($target, $exprEnv);
 
-        // `(php/callable PDO getAvailableDrivers)` names a class by position
-        // (#3064).
+        // A callable target names a class by position; see BareHostClass (#3064).
         $bareClass = BareHostClass::reread($target, $resolved, $exprEnv);
         if ($bareClass instanceof PhpClassNameNode) {
             return $bareClass;
