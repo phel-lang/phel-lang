@@ -158,6 +158,7 @@ Detectors detect and nothing else — they hold no flag, no dedup table, and no 
 | `Domain/Reader/QuasiquoteTransformer` | `$` auto-gensym |
 | `Domain/Analyzer/Environment/BackslashSeparatorDeprecator` | `\` namespace separator |
 | `Domain/Analyzer/Environment/DeprecatedDefinitionWarner` | any resolved definition whose meta carries `:deprecated` (`:superseded-by` names the replacement); works for project code too |
+| `.../SpecialForm/Binding/Deconstructor/MapBindingDeconstructor` | a map-destructuring pair still written key-first (`{:key local}`), and the ambiguous pair whose both sides bind (`{k v}`), which keeps its key-first meaning until the next major (#3115) |
 | `Domain/Deprecation/SupersededFormDeprecator` | a list head that is `php/new`, `php/->`, `php/::` or `set-var` — special forms Phel already says the Clojure way (#2877, #2888). Runs in `AnalyzePersistentList::analyze()` **before** the shorthand expansions, which rewrite `(.m obj)` into `(php/-> obj (m))`; after them every shorthand would warn. It also ignores an unlocated head, which is how `QualifiedMemberExpander`'s synthesized `php/::` form stays quiet |
 
 - Never suppress a notice with `@`: that hides it unconditionally, so a `--warn-deprecations` run prints nothing. Call `warn()` / `warnForSource()` / `warnOnceForSource()` / `warnSyntax()` instead.

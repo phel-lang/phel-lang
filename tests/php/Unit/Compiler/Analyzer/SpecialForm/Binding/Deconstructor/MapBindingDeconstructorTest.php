@@ -9,12 +9,17 @@ use Phel\Compiler\Domain\Analyzer\Exceptions\AnalyzerException;
 use Phel\Compiler\Domain\Analyzer\TypeAnalyzer\SpecialForm\Binding\BindingValidatorInterface;
 use Phel\Compiler\Domain\Analyzer\TypeAnalyzer\SpecialForm\Binding\Deconstructor;
 use Phel\Compiler\Domain\Analyzer\TypeAnalyzer\SpecialForm\Binding\Deconstructor\MapBindingDeconstructor;
+use Phel\Lang\Collections\Map\PersistentMapInterface;
 use Phel\Lang\Keyword;
+use Phel\Lang\SourceLocation;
 use Phel\Lang\Symbol;
+use PhelTest\Support\CapturesDeprecationsTrait;
 use PHPUnit\Framework\TestCase;
 
 final class MapBindingDeconstructorTest extends TestCase
 {
+    use CapturesDeprecationsTrait;
+
     private MapBindingDeconstructor $deconstructor;
 
     protected function setUp(): void
@@ -26,6 +31,11 @@ final class MapBindingDeconstructorTest extends TestCase
                 $this->createStub(BindingValidatorInterface::class),
             ),
         );
+    }
+
+    protected function tearDown(): void
+    {
+        $this->stopCapturingDeprecations();
     }
 
     public function test_deconstruct_table(): void
@@ -526,42 +536,159 @@ final class MapBindingDeconstructorTest extends TestCase
         ], $bindings);
     }
 
-    public function test_reversed_pair_suggests_did_you_mean(): void
+    public function test_binding_first_pair_reads_the_keyword_as_the_lookup_key(): void
     {
-        // Clojure-style {local :keyword} should surface a targeted suggestion
-        // rather than the opaque "Cannot destructure Phel\\Lang\\Keyword".
+        // Clojure order: (let [{tops :tops} x]) binds `tops` from key :tops,
+        // which used to be rejected outright (#3115).
         $binding = Phel::map(
             Symbol::create('tops'),
             Keyword::create('tops'),
-        );
-
-        $this->expectException(AnalyzerException::class);
-        $this->expectExceptionMessage(
-            'Cannot destructure: expected map destructure pattern {:keyword local}, '
-            . "got reversed pair starting with symbol 'tops'.",
         );
 
         $bindings = [];
         $this->deconstructor->deconstruct($bindings, $binding, Symbol::create('x'));
+
+        self::assertEquals([
+            [Symbol::create('__phel_1'), Symbol::create('x')],
+            [
+                Symbol::create('__phel_2'),
+                Phel::list([
+                    Symbol::create(Symbol::NAME_PHP_ARRAY_GET),
+                    Symbol::create('__phel_1'),
+                    Keyword::create('tops'),
+                ]),
+            ],
+            [Symbol::create('tops'), Symbol::create('__phel_2')],
+        ], $bindings);
     }
 
-    public function test_reversed_pair_message_renders_flipped_pair(): void
+    public function test_binding_first_pair_reads_a_string_as_the_lookup_key(): void
     {
+        // (let [{n "name"} x]) — the same order with a string key.
+        $binding = Phel::map(Symbol::create('n'), 'name');
+
+        $bindings = [];
+        $this->deconstructor->deconstruct($bindings, $binding, Symbol::create('x'));
+
+        self::assertEquals([
+            [Symbol::create('__phel_1'), Symbol::create('x')],
+            [
+                Symbol::create('__phel_2'),
+                Phel::list([
+                    Symbol::create(Symbol::NAME_PHP_ARRAY_GET),
+                    Symbol::create('__phel_1'),
+                    'name',
+                ]),
+            ],
+            [Symbol::create('n'), Symbol::create('__phel_2')],
+        ], $bindings);
+    }
+
+    public function test_binding_first_pair_binds_a_nested_map_pattern(): void
+    {
+        // (let [{{:keys [c]} :inner} x]) — the shape reported in #3115.
         $binding = Phel::map(
-            Symbol::create('tops'),
-            Keyword::create('tops'),
+            Phel::map(Keyword::create('keys'), Phel::vector([Symbol::create('c')])),
+            Keyword::create('inner'),
         );
+
+        $bindings = [];
+        $this->deconstructor->deconstruct($bindings, $binding, Symbol::create('x'));
+
+        // The inner pattern destructures the value read at :inner, so `c` ends
+        // up bound and the lookup chain runs :inner then :c.
+        self::assertSame('c', $bindings[array_key_last($bindings)][0]->getName());
+        self::assertEquals(
+            Phel::list([
+                Symbol::create(Symbol::NAME_PHP_ARRAY_GET),
+                Symbol::create('__phel_1'),
+                Keyword::create('inner'),
+            ]),
+            $bindings[1][1],
+        );
+    }
+
+    public function test_ambiguous_pair_keeps_the_key_first_meaning(): void
+    {
+        // (let [{k v} x]) — both sides bind, so the lookup key stays whatever
+        // `k` evaluates to, as it did before Clojure order was accepted.
+        $binding = Phel::map(Symbol::create('k'), Symbol::create('v'));
+
+        $bindings = [];
+        $this->deconstructor->deconstruct($bindings, $binding, Symbol::create('x'));
+
+        self::assertEquals(
+            Phel::list([
+                Symbol::create(Symbol::NAME_PHP_ARRAY_GET),
+                Symbol::create('__phel_1'),
+                Symbol::create('k'),
+            ]),
+            $bindings[1][1],
+        );
+        self::assertEquals([Symbol::create('v'), Symbol::create('__phel_2')], $bindings[2]);
+    }
+
+    public function test_key_first_pair_reports_the_binding_first_spelling(): void
+    {
+        $this->startCapturingDeprecations();
+
+        $bindings = [];
+        $this->deconstructor->deconstruct(
+            $bindings,
+            $this->located(Phel::map(Keyword::create('name'), Symbol::create('n'))),
+            Symbol::create('x'),
+        );
+
+        $captured = $this->capturedDeprecations();
+        self::assertCount(1, $captured);
+        self::assertStringContainsString('{:name n}', $captured[0]);
+        self::assertStringContainsString('{n :name}', $captured[0]);
+        self::assertStringContainsString('/app/user.phel:7', $captured[0]);
+    }
+
+    public function test_ambiguous_pair_reports_that_it_stays_key_first(): void
+    {
+        $this->startCapturingDeprecations();
+
+        $bindings = [];
+        $this->deconstructor->deconstruct(
+            $bindings,
+            $this->located(Phel::map(Symbol::create('k'), Symbol::create('v'))),
+            Symbol::create('x'),
+        );
+
+        $captured = $this->capturedDeprecations();
+        self::assertCount(1, $captured);
+        self::assertStringContainsString('Ambiguous map destructuring pair {k v}', $captured[0]);
+    }
+
+    public function test_binding_first_pair_reports_nothing(): void
+    {
+        $this->startCapturingDeprecations();
+
+        $bindings = [];
+        $this->deconstructor->deconstruct(
+            $bindings,
+            $this->located(Phel::map(Symbol::create('n'), Keyword::create('name'))),
+            Symbol::create('x'),
+        );
+
+        self::assertSame([], $this->capturedDeprecations());
+    }
+
+    public function test_pair_that_binds_nothing_is_rejected_with_both_spellings(): void
+    {
+        // (let [{:a :b} x]) — a keyword cannot be bound either way round.
+        $binding = Phel::map(Keyword::create('a'), Keyword::create('b'));
 
         try {
             $bindings = [];
             $this->deconstructor->deconstruct($bindings, $binding, Symbol::create('x'));
             self::fail('Expected AnalyzerException');
         } catch (AnalyzerException $analyzerException) {
-            self::assertStringContainsString('{:tops tops}', $analyzerException->getMessage());
-            self::assertStringContainsString(
-                "Phel's destructure order is :keyword first, then local",
-                $analyzerException->getMessage(),
-            );
+            self::assertStringContainsString('{:a :b} binds anything', $analyzerException->getMessage());
+            self::assertStringContainsString('{local :key}', $analyzerException->getMessage());
+            self::assertStringContainsString('{:key local}', $analyzerException->getMessage());
         }
     }
 
@@ -606,5 +733,18 @@ final class MapBindingDeconstructorTest extends TestCase
 
         $bindings = [];
         $this->deconstructor->deconstruct($bindings, $binding, Symbol::create('x'));
+    }
+
+    /**
+     * A deprecation is only reported against a form that knows where it was
+     * written, and only when that file is the user's own.
+     *
+     * @param PersistentMapInterface<mixed, mixed> $binding
+     *
+     * @return PersistentMapInterface<mixed, mixed>
+     */
+    private function located(PersistentMapInterface $binding): PersistentMapInterface
+    {
+        return $binding->setStartLocation(new SourceLocation('/app/user.phel', 7, 3));
     }
 }

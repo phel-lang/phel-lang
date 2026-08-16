@@ -1,0 +1,32 @@
+--PHEL--
+(ns test)
+
+(let [{n :name {:keys [city]} :address} {:name "Alice" :address {:city "Berlin"}}]
+  [n city])
+--PHP--
+namespace test;
+require_once __DIR__ . '/phel/core.php';
+\Phel::addDefinition(
+  "phel.core",
+  "*file*",
+  "Let/let-destructure-map-clojure-order.test"
+);
+\Phel::addDefinition(
+  "phel.core",
+  "*ns*",
+  "test"
+);
+/** @var \Phel\Lang\Collections\Map\PersistentMapInterface $__phel_1_6 */
+$__phel_1_6 = \Phel::map(
+  \Phel\Lang\Keyword::create("name"), "Alice",
+  \Phel\Lang\Keyword::create("address"), \Phel::map(
+    \Phel\Lang\Keyword::create("city"), "Berlin"
+  )
+);
+$__phel_2_7 = (($__phel_1_6)[(\Phel\Lang\Keyword::create("name"))] ?? null);
+$n_8 = $__phel_2_7;
+$__phel_3_9 = (($__phel_1_6)[(\Phel\Lang\Keyword::create("address"))] ?? null);
+$__phel_4_10 = $__phel_3_9;
+$__phel_5_11 = (($__phel_4_10)[(\Phel\Lang\Keyword::create("city"))] ?? null);
+$city_12 = $__phel_5_11;
+\Phel::vector([$n_8, $city_12]);
