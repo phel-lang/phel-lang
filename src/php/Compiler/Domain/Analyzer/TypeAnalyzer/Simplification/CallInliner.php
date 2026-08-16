@@ -93,81 +93,144 @@ final readonly class CallInliner
             return null;
         }
 
-        if ($this->isMemoisedOrAsync($f->getMeta())) {
+        if ($this->isMemoisedOrAsync($f->getMeta()) || $this->isRedefinable($f->getMeta())) {
             return null;
         }
 
-        // Inlining splices the callee's body at the call site, so there is no
-        // longer a global read for `with-redefs` or `phel.mock` to intercept.
-        // That is inherent to direct linking rather than a defect in it, and
-        // Clojure answers the same tension the same way: `^:redef` opts a
-        // definition out, and the call keeps going through the var (#3126).
-        if ($this->isRedefinable($f->getMeta())) {
+        $fnNode = $this->spliceableArity($f, $args, $analyzer);
+        if (!$fnNode instanceof FnNode) {
             return null;
         }
 
-        // The side-table holds single-arity (`FnNode`) and multi-arity
-        // (`MultiFnNode`) defs; `arityFor` resolves the fixed arity whose
-        // parameter count matches the call (#2218), or `null` when the
-        // callee is unknown, not a `defn`, or only matches a variadic
-        // arity.
+        if ($this->isInActiveRecurTailSlot($env)) {
+            return null;
+        }
+
+        $params = $fnNode->getParams();
+        if ($this->hasTaggedParam($params)) {
+            return null;
+        }
+
+        $ret = $this->spliceableRet($fnNode, $f);
+        if (!$ret instanceof AbstractNode) {
+            return null;
+        }
+
+        // See containsPhpCall(): an interop call in an argument may write
+        // through a by-reference parameter, which relocating it would lose.
+        if ($this->anyContainsPhpCall($args)) {
+            return null;
+        }
+
+        $bound = $this->bindArguments($params, $args, $ret, $env, $callLocation);
+
+        // The body of a binding-wrapping `let` emits under the let body's
+        // context (return when the call site is an expression, so the
+        // generated IIFE returns the value); the unwrapped splice keeps
+        // the call site's own context byte-for-byte.
+        $bodyContext = ($bound->bindings !== [] && $env->isContext(NodeEnvironment::CONTEXT_EXPRESSION))
+            ? NodeEnvironment::CONTEXT_RETURN
+            : $env->getContext();
+
+        // `rebase` can still abort (returning `null`) if the body holds a
+        // node type outside the whitelist or a non-parameter local.
+        $inlined = $this->rebase($ret, new RebaseContext($bound->scopeEnv, $bodyContext, $callLocation, $bound->paramMap, true));
+        if (!$inlined instanceof AbstractNode) {
+            return null;
+        }
+
+        $folded = $this->fold($inlined);
+        if ($bound->bindings === []) {
+            return $folded;
+        }
+
+        $letNode = new LetNode($env, $bound->bindings, $folded, false, $callLocation);
+
+        return $this->letSimplifier->simplify($letNode);
+    }
+
+    /**
+     * The fixed arity a spliceable callee offers for this call, or `null` when
+     * the call must keep dispatching.
+     *
+     * The side-table holds single-arity (`FnNode`) and multi-arity
+     * (`MultiFnNode`) defs; `arityFor` resolves the fixed arity whose parameter
+     * count matches the call (#2218), or `null` when the callee is unknown, not
+     * a `defn`, or only matches a variadic arity. An arity containing `recur`
+     * is a loop rather than an expression, so it is never spliced.
+     *
+     * @param list<AbstractNode> $args
+     */
+    private function spliceableArity(GlobalVarNode $f, array $args, AnalyzerInterface $analyzer): ?FnNode
+    {
         $fnNode = $analyzer->getDefFnNode($f->getNamespace(), $f->getName())?->arityFor(count($args));
         if (!$fnNode instanceof FnNode) {
             return null;
         }
 
-        if ($fnNode->getRecurs()) {
-            return null;
-        }
+        return $fnNode->getRecurs() ? null : $fnNode;
+    }
 
-        // Stay out of the tail slot of an enclosing `loop`/`recur` frame so we
-        // never disturb tail-call semantics.
-        //
-        // The frame has to be *active*, not merely present. Every `fn` body
-        // opens a recur frame because every `fn` body may contain `recur`, so
-        // testing for the frame alone declined every call in return position in
-        // any function, which is the single most common shape there is:
-        // `(defn c [x] (add1 x))` never inlined while `(defn c [x] [(add1 x)])`
-        // did. `isActive()` is set when a `recur` actually targets the frame,
-        // which is what the paragraph above means (#3125).
+    /**
+     * Whether the call occupies the tail slot of an enclosing `loop`/`recur`
+     * frame, where splicing could disturb tail-call semantics.
+     *
+     * The frame has to be *active*, not merely present. Every `fn` body opens a
+     * recur frame because every `fn` body may contain `recur`, so testing for
+     * the frame alone declined every call in return position in any function,
+     * which is the single most common shape there is: `(defn c [x] (add1 x))`
+     * never inlined while `(defn c [x] [(add1 x)])` did. `isActive()` is set
+     * when a `recur` actually targets the frame, which is what the sentence
+     * above means (#3125).
+     */
+    private function isInActiveRecurTailSlot(NodeEnvironmentInterface $env): bool
+    {
         $recurFrame = $env->getCurrentRecurFrame();
-        if ($recurFrame instanceof RecurFrame
+
+        return $recurFrame instanceof RecurFrame
             && $recurFrame->isActive()
-            && $env->isContext(NodeEnvironment::CONTEXT_RETURN)
-        ) {
-            return null;
-        }
+            && $env->isContext(NodeEnvironment::CONTEXT_RETURN);
+    }
 
-        $params = $fnNode->getParams();
+    /**
+     * A tagged parameter is load-bearing, not decoration. `FnSymbol` emits it
+     * as a PHP parameter type, which does two things the call site cannot: PHP
+     * enforces the type on the way in, and the emitter treats the parameter as
+     * proven so arithmetic on it lowers to native operators. Splicing the body
+     * at the call site drops the declaration and both go with it (#3126):
+     *
+     *   (defn dotted-tag ^Symbol [^Symbol s] s)
+     *   (dotted-tag 42)      ; raises TypeError, until it is inlined
+     *
+     *   (defn- mul [^int a ^int b] (* a b))
+     *   (mul 4000000000 4000000000)
+     *     ; 1.6E+19, a native overflow to float, until it is inlined and
+     *     ; the untagged call site promotes to BigInt instead
+     *
+     * @param list<Symbol> $params
+     */
+    private function hasTaggedParam(array $params): bool
+    {
+        return array_any($params, static fn(Symbol $param): bool => TagResolver::fromMeta($param->getMeta()) !== null);
+    }
 
-        // A tagged parameter is load-bearing, not decoration. `FnSymbol` emits
-        // it as a PHP parameter type, which does two things the call site
-        // cannot: PHP enforces the type on the way in, and the emitter treats
-        // the parameter as proven so arithmetic on it lowers to native
-        // operators. Splicing the body at the call site drops the declaration
-        // and both go with it (#3126):
-        //
-        //   (defn dotted-tag ^Symbol [^Symbol s] s)
-        //   (dotted-tag 42)      ; raises TypeError, until it is inlined
-        //
-        //   (defn- mul [^int a ^int b] (* a b))
-        //   (mul 4000000000 4000000000)
-        //     ; 1.6E+19, a native overflow to float, until it is inlined and
-        //     ; the untagged call site promotes to BigInt instead
-        foreach ($params as $param) {
-            if (TagResolver::fromMeta($param->getMeta()) !== null) {
-                return null;
-            }
-        }
-
+    /**
+     * The single expression the callee body reduces to, or `null` when the body
+     * cannot be spliced.
+     *
+     * The body must be one pure expression: a `DoNode` with no leading
+     * statements, whose return expression is structurally pure. A `^:pure`
+     * callee asserts its own body is side-effect-free, so the annotation is
+     * trusted instead. Either way the rebaser still aborts on any unsupported
+     * node type.
+     */
+    private function spliceableRet(FnNode $fnNode, GlobalVarNode $f): ?AbstractNode
+    {
         $body = $fnNode->getBody();
         if (!$body instanceof DoNode || $body->getStmts() !== []) {
             return null;
         }
 
-        // A `^:pure` callee asserts its own body is side-effect-free, so we
-        // trust the annotation instead of structurally proving the body
-        // pure. The rebaser still aborts on any unsupported node type.
         $ret = $body->getRet();
         if (!$this->purity->isPureAnnotated($f->getMeta())
             && !$this->purity->isPure($ret)
@@ -175,28 +238,37 @@ final readonly class CallInliner
             return null;
         }
 
-        // Pure args substitute straight into the body (folding-friendly);
-        // impure or pure-but-multi-use args bind to a fresh gensym `let`
-        // so they evaluate exactly once, left to right.
-        //
-        // Each binding's shadow is also registered as a local on the env
-        // threaded into the body rebase: those shadows are assigned ahead
-        // of the body, so any nested node that emits a closure (a `let`
-        // in expression context, an `or`/`and`/`cond` IIFE) must capture
-        // them in its `use(...)` clause. Leaving them off the env would
-        // make the closure capture the call-site locals only and read the
-        // shadow as an undefined variable (issue #2622).
-        // See containsPhpCall(): an interop call in an argument may write
-        // through a by-reference parameter, which relocating it would lose.
-        foreach ($args as $arg) {
-            if ($this->containsPhpCall($arg)) {
-                return null;
-            }
-        }
+        return $ret;
+    }
 
+    /**
+     * Matches each argument to the parameter it fills.
+     *
+     * Pure args substitute straight into the body (folding-friendly); impure or
+     * pure-but-multi-use args bind to a fresh gensym `let` so they evaluate
+     * exactly once, left to right (#2215).
+     *
+     * Each binding's shadow is also registered as a local on the env threaded
+     * into the body rebase: those shadows are assigned ahead of the body, so
+     * any nested node that emits a closure (a `let` in expression context, an
+     * `or`/`and`/`cond` IIFE) must capture them in its `use(...)` clause.
+     * Leaving them off the env would make the closure capture the call-site
+     * locals only and read the shadow as an undefined variable (#2622).
+     *
+     * @param list<Symbol>       $params
+     * @param list<AbstractNode> $args
+     */
+    private function bindArguments(
+        array $params,
+        array $args,
+        AbstractNode $ret,
+        NodeEnvironmentInterface $env,
+        ?SourceLocation $callLocation,
+    ): ArgumentBindings {
         $bindings = [];
         $paramMap = [];
         $scopeEnv = $env;
+
         foreach ($params as $i => $param) {
             $arg = $args[$i];
             $name = $param->getName();
@@ -213,29 +285,7 @@ final readonly class CallInliner
             $paramMap[$name] = $arg;
         }
 
-        // The body of a binding-wrapping `let` emits under the let body's
-        // context (return when the call site is an expression, so the
-        // generated IIFE returns the value); the unwrapped splice keeps
-        // the call site's own context byte-for-byte.
-        $bodyContext = ($bindings !== [] && $env->isContext(NodeEnvironment::CONTEXT_EXPRESSION))
-            ? NodeEnvironment::CONTEXT_RETURN
-            : $env->getContext();
-
-        // `rebase` can still abort (returning `null`) if the body holds a
-        // node type outside the whitelist or a non-parameter local.
-        $inlined = $this->rebase($ret, new RebaseContext($scopeEnv, $bodyContext, $callLocation, $paramMap, true));
-        if (!$inlined instanceof AbstractNode) {
-            return null;
-        }
-
-        $folded = $this->fold($inlined);
-        if ($bindings === []) {
-            return $folded;
-        }
-
-        $letNode = new LetNode($env, $bindings, $folded, false, $callLocation);
-
-        return $this->letSimplifier->simplify($letNode);
+        return new ArgumentBindings($bindings, $paramMap, $scopeEnv);
     }
 
     /**
@@ -420,6 +470,10 @@ final readonly class CallInliner
      * The call site keeps reading the global, so rebinding its root with
      * `with-redefs` or `phel.mock` is still observed after the optimiser has
      * run. It costs the inlining, which is the point.
+     *
+     * Splicing a body leaves no global read to intercept, which is inherent to
+     * direct linking rather than a defect in it; Clojure answers the same
+     * tension the same way (#3126).
      *
      * @param PersistentMapInterface<mixed, mixed> $meta
      */
