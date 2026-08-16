@@ -136,7 +136,8 @@ final class TestCommandChangedTest extends TestCase
     {
         $this->gitInitAndCommit();
         file_put_contents($this->projectDir . '/src/app/util.phel', "(ns app.util)\n\n(defn twice [x] (+ x x))\n");
-        $this->git('add -A && git commit -q -m "change util"');
+        $this->git('add -A');
+        $this->git('commit -q -m "change util"');
 
         [$exitCode, $output] = $this->runPhelTest(['--changed=HEAD~1', '--list']);
 
@@ -154,12 +155,23 @@ final class TestCommandChangedTest extends TestCase
 
     private function gitInitAndCommit(): void
     {
-        $this->git('init -q && git -c user.email=t@t -c user.name=t add -A && git -c user.email=t@t -c user.name=t commit -q -m init');
+        $this->git('init -q');
+        $this->git('add -A');
+        $this->git('commit -q -m init');
     }
 
+    /**
+     * Every git call carries its own identity and ignores the developer's
+     * global config, so the test behaves the same on a CI runner with no
+     * `user.email` and on a machine with commit signing turned on.
+     */
     private function git(string $arguments): void
     {
-        exec(sprintf('cd %s && git -c user.email=t@t -c user.name=t %s 2>&1', escapeshellarg($this->projectDir), $arguments), $output, $status);
+        exec(sprintf(
+            'cd %s && GIT_CONFIG_GLOBAL=/dev/null GIT_CONFIG_SYSTEM=/dev/null git -c user.email=t@t -c user.name=t -c commit.gpgsign=false %s 2>&1',
+            escapeshellarg($this->projectDir),
+            $arguments,
+        ), $output, $status);
         self::assertSame(0, $status, 'git ' . $arguments . ': ' . implode("\n", $output));
     }
 
