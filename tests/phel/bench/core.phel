@@ -45,6 +45,14 @@
 (defbench bench-get-in
   (get-in nested [:a :b :c]))
 
+;; A six-entry map built by growing, which is where the representation a map
+;; ends up with is decided (#3172). `bench-get-in` reads two-entry maps and
+;; never reaches that size.
+(def- grown-map (zipmap [:k0 :k1 :k2 :k3 :k4 :k5] [0 1 2 3 4 5]))
+
+(defbench bench-get-grown-map
+  (get grown-map :k5))
+
 (defbench bench-str-three
   (str "a" "b" "c"))
 
