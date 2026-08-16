@@ -54,6 +54,20 @@ final readonly class ScanIndexEntry
     ) {}
 
     /**
+     * Whether every directory in `$existingDirectories` was fingerprinted
+     * when this entry was written. A directory that did not exist at scan
+     * time has no fingerprint, so {@see isValid()} alone would never notice
+     * it appearing (#3205); the caller passes the requested directories that
+     * exist now, and one without a fingerprint means the tree has grown.
+     *
+     * @param list<string> $existingDirectories resolved paths
+     */
+    public function covers(array $existingDirectories): bool
+    {
+        return array_all($existingDirectories, fn(string $dir): bool => isset($this->perDir[$dir]));
+    }
+
+    /**
      * @param callable(string): int $fileCountOf returns the current phel-file count for a resolved dir
      */
     public function isValid(callable $fileCountOf): bool
