@@ -19,7 +19,8 @@ use function is_string;
  * written or version-mismatched index degrades to "empty" rather than
  * surfacing malformed data.
  *
- * @phpstan-type CacheEntry array{namespace: string, source_hash: string, compiled_path: string, last_accessed: int}
+ * @phpstan-type DeprecationRecord array{message: string, announced: bool}
+ * @phpstan-type CacheEntry array{namespace: string, source_hash: string, compiled_path: string, last_accessed: int, deprecations: list<DeprecationRecord>}
  *
  * @internal
  */
@@ -31,7 +32,7 @@ final readonly class CacheIndexFile
     // #2729 cross-fn `:tag` inference) leaves stale compiled files that a same-version cache would
     // keep serving. Bumping here rejects the whole index once, forcing a cold recompile.
     // Decoupled from the Phel version for cache stability across minor releases.
-    private const string INDEX_FORMAT_VERSION = '1.5';
+    private const string INDEX_FORMAT_VERSION = '1.6';
 
     public function __construct(
         private CacheDirectory $directory,
@@ -200,10 +201,30 @@ final readonly class CacheIndexFile
                     'source_hash' => $entryData['source_hash'],
                     'compiled_path' => $entryData['compiled_path'],
                     'last_accessed' => $entryData['last_accessed'] ?? time(),
+                    'deprecations' => $this->deprecationRecords($entryData['deprecations'] ?? null),
                 ];
             }
         }
 
         return $entries;
+    }
+
+    /**
+     * @return list<DeprecationRecord>
+     */
+    private function deprecationRecords(mixed $raw): array
+    {
+        if (!is_array($raw)) {
+            return [];
+        }
+
+        $records = [];
+        foreach ($raw as $record) {
+            if (is_array($record) && isset($record['message']) && is_string($record['message'])) {
+                $records[] = ['message' => $record['message'], 'announced' => (bool) ($record['announced'] ?? false)];
+            }
+        }
+
+        return $records;
     }
 }

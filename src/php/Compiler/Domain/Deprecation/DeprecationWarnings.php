@@ -7,6 +7,7 @@ namespace Phel\Compiler\Domain\Deprecation;
 use Phel\Compiler\Domain\Diagnostic\ErrorNotice;
 use Phel\Lang\SourceLocation;
 
+use function array_pop;
 use function dirname;
 use function in_array;
 use function sprintf;
@@ -28,9 +29,15 @@ use const E_USER_DEPRECATED;
  * would hide it unconditionally, so a `--warn-deprecations` run would
  * print nothing and the deprecation could never be acted on.
  *
- * This class owns the four concerns a detector would otherwise re-implement:
+ * This class owns the five concerns a detector would otherwise re-implement:
  * the enabled flag, the bundled-stdlib suppression, the per-`(file, subject)`
- * dedup, and the syntax message shape. Detectors only detect.
+ * dedup, the syntax message shape, and the recording that lets the
+ * compiled-code cache replay a compile's notices on a warm run. Detectors
+ * only detect, and they ask {@see isDetecting()} rather than
+ * {@see isEnabled()}: a notice has to be found while the flag is off for a
+ * later `--warn-deprecations` run served from the cache to see it (#3222).
+ *
+ * @phpstan-type DeprecationRecord array{message: string, announced: bool}
  *
  * @internal
  */
@@ -44,9 +51,68 @@ final class DeprecationWarnings
     /** @var array<string, string> */
     private static array $normalizedPaths = [];
 
+    /**
+     * One frame per compile being recorded, innermost last. A notice goes to
+     * the innermost frame; a nested compile (a dependency evaluated while a
+     * macro expands) does not leak its notices into the outer source.
+     *
+     * @var list<list<DeprecationRecord>>
+     */
+    private static array $recording = [];
+
     public static function isEnabled(): bool
     {
         return self::$enabled ??= self::readEnvFlag();
+    }
+
+    /**
+     * Whether a detector should look at all: the flag is on, or a compile is
+     * being recorded for the cache. Detection is cheap; what stays opt-in is
+     * raising the notice.
+     */
+    public static function isDetecting(): bool
+    {
+        if (self::isEnabled()) {
+            return true;
+        }
+
+        return self::$recording !== [];
+    }
+
+    /**
+     * Start keeping every notice a compile finds, raised or not, so the
+     * compiled-code cache can store them next to the entry and a later warm
+     * run reports what the cold one did (#3222). Frames nest.
+     */
+    public static function startRecording(): void
+    {
+        self::$recording[] = [];
+    }
+
+    /**
+     * @return list<DeprecationRecord>
+     */
+    public static function stopRecording(): array
+    {
+        $frame = array_pop(self::$recording);
+
+        return $frame ?? [];
+    }
+
+    /**
+     * Raise notices recorded by an earlier compile of the same source, each
+     * by its own rule: an announced one always, the others when the flag is
+     * on. Called on a compiled-code cache hit.
+     *
+     * @param list<DeprecationRecord> $records
+     */
+    public static function replay(array $records): void
+    {
+        foreach ($records as $record) {
+            if ($record['announced'] || self::isEnabled()) {
+                self::raise($record['message']);
+            }
+        }
     }
 
     public static function enable(): void
@@ -69,6 +135,7 @@ final class DeprecationWarnings
         self::$enabled = null;
         self::$seen = [];
         self::$normalizedPaths = [];
+        self::$recording = [];
     }
 
     /**
@@ -136,11 +203,11 @@ final class DeprecationWarnings
      */
     public static function warn(string $message): void
     {
-        if (!self::isEnabled()) {
+        if (!self::isDetecting()) {
             return;
         }
 
-        self::raise($message);
+        self::emit($message, announced: false);
     }
 
     /**
@@ -149,11 +216,11 @@ final class DeprecationWarnings
      */
     public static function warnForSource(string $sourceFile, string $message): void
     {
-        if (!self::isEnabledForSource($sourceFile)) {
+        if (!self::isDetecting() || !self::isReportableSource($sourceFile)) {
             return;
         }
 
-        self::raise($message);
+        self::emit($message, announced: false);
     }
 
     /**
@@ -168,7 +235,7 @@ final class DeprecationWarnings
      */
     public static function warnOnceForSource(string $sourceFile, string $subject, string $message): void
     {
-        if (!self::isEnabledForSource($sourceFile)) {
+        if (!self::isDetecting() || !self::isReportableSource($sourceFile)) {
             return;
         }
 
@@ -178,7 +245,7 @@ final class DeprecationWarnings
         }
 
         self::$seen[$key] = true;
-        self::raise($message);
+        self::emit($message, announced: false);
     }
 
     /**
@@ -300,7 +367,7 @@ final class DeprecationWarnings
         $reportAt = $location->getExpansionOrigin() ?? $location;
         $sourceFile = $reportAt->getFile();
 
-        if (!$announced && !self::isEnabled()) {
+        if (!$announced && !self::isDetecting()) {
             return;
         }
 
@@ -314,7 +381,26 @@ final class DeprecationWarnings
         }
 
         self::$seen[$key] = true;
-        self::raise($buildMessage($sourceFile, $reportAt->getLine()) . self::expansionSuffix($location));
+        self::emit($buildMessage($sourceFile, $reportAt->getLine()) . self::expansionSuffix($location), $announced);
+    }
+
+    /**
+     * Record the notice for the compile in progress, then raise it if the
+     * rule for this kind says so: announced always, the rest only with the
+     * flag on. Every gate above ends here, so recording and raising can
+     * never disagree about what a notice is.
+     */
+    private static function emit(string $message, bool $announced): void
+    {
+        if (self::$recording !== []) {
+            $frame = array_pop(self::$recording);
+            $frame[] = ['message' => $message, 'announced' => $announced];
+            self::$recording[] = $frame;
+        }
+
+        if ($announced || self::isEnabled()) {
+            self::raise($message);
+        }
     }
 
     private static function raise(string $message): void

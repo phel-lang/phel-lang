@@ -228,6 +228,14 @@ final class CompilerFactory extends AbstractFactory
         DeprecationWarnings::enable();
     }
 
+    /**
+     * @param list<array{message: string, announced: bool}> $records
+     */
+    public function replayDeprecations(array $records): void
+    {
+        DeprecationWarnings::replay($records);
+    }
+
     private function createReaderResultCache(): ReaderResultCacheInterface
     {
         if (!$this->getConfig()->isIntermediateCacheEnabled()) {
