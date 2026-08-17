@@ -9,13 +9,18 @@ use Phel\Mutate\Domain\MutationPlan;
 use Phel\Shared\Facade\CommandFacadeInterface;
 use Phel\Shared\Facade\RunFacadeInterface;
 use Phel\Shared\NamespaceInformation;
+use Phel\Shared\Process\GitChangedFiles;
+use Phel\Shared\Process\GitUnavailableException;
 use Phel\Shared\ScalarCoercion;
 use RecursiveDirectoryIterator;
 use RecursiveIteratorIterator;
 use RegexIterator;
 use UnexpectedValueException;
 
+use function array_filter;
 use function array_keys;
+use function array_values;
+use function getcwd;
 use function is_array;
 use function is_dir;
 use function is_file;
@@ -36,13 +41,20 @@ final readonly class MutationPlanner
     public function __construct(
         private RunFacadeInterface $runFacade,
         private CommandFacadeInterface $commandFacade,
+        private GitChangedFiles $changedFiles,
     ) {}
 
+    /**
+     * @throws GitUnavailableException with `changed`, outside a git repository
+     */
     public function plan(MutateOptions $options): MutationPlan
     {
         $sourceFiles = $this->collectPhelFiles(
             $options->paths === [] ? $this->commandFacade->getProjectSourceDirectories() : $options->paths,
         );
+        if ($options->changed) {
+            $sourceFiles = $this->onlyChanged($sourceFiles, $options->changedRef);
+        }
 
         // Test namespaces first (with their whole dependency closure, which
         // usually already contains the sources), then whatever mutated file
@@ -103,6 +115,27 @@ final readonly class MutationPlanner
         }
 
         return $namespaces;
+    }
+
+    /**
+     * `--changed`: the source files git reports as changed, so only the
+     * definitions someone touched are mutated. File-level on purpose: a
+     * changed line invalidates what its whole definition does, and the
+     * definition is the unit a mutant redefines anyway.
+     *
+     * @param list<string> $sourceFiles
+     *
+     * @return list<string>
+     */
+    private function onlyChanged(array $sourceFiles, ?string $ref): array
+    {
+        $changed = [];
+        foreach ($this->changedFiles->changedFiles($ref, getcwd() ?: '.') as $file) {
+            $real = realpath($file);
+            $changed[$real === false ? $file : $real] = true;
+        }
+
+        return array_values(array_filter($sourceFiles, static fn(string $file): bool => isset($changed[$file])));
     }
 
     /**

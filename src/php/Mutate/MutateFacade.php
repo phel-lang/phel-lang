@@ -56,6 +56,14 @@ final class MutateFacade extends AbstractFacade
     }
 
     /**
+     * How many workers `--parallel=auto` means on this machine.
+     */
+    public function detectWorkerCount(): int
+    {
+        return $this->getFactory()->createCpuCountDetector()->detect();
+    }
+
+    /**
      * The worker side of the protocol, for `phel _mutate-worker`.
      */
     public function createWorkerSession(): MutantWorkerSession

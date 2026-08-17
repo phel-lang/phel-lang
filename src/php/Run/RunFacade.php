@@ -11,15 +11,15 @@ use Phel\Lang\Collections\Map\PersistentMapInterface;
 use Phel\Run\Application\Test\Coverage\CoverageDriver;
 use Phel\Run\Application\Test\Coverage\CoverageReport;
 use Phel\Run\Application\Test\Coverage\PerTestCoverageReport;
-use Phel\Run\Application\Test\CpuCountDetector;
 use Phel\Run\Application\Test\ParallelTestOrchestrator;
-use Phel\Run\Domain\Test\ChangedFilesUnavailableException;
 use Phel\Run\Domain\Test\ChangeSelection;
 use Phel\Shared\CompileOptions;
 use Phel\Shared\Eval\EvalResult;
 use Phel\Shared\Exceptions\CompilerException;
 use Phel\Shared\Facade\RunFacadeInterface;
 use Phel\Shared\NamespaceInformation;
+use Phel\Shared\Process\CpuCountDetector;
+use Phel\Shared\Process\GitUnavailableException;
 use Symfony\Component\Console\Output\OutputInterface;
 use Throwable;
 
@@ -213,7 +213,7 @@ final class RunFacade extends AbstractFacade implements RunFacadeInterface
      *
      * @param list<NamespaceInformation> $infos
      *
-     * @throws ChangedFilesUnavailableException when not in a git repository
+     * @throws GitUnavailableException when not in a git repository
      */
     public function selectChangedTests(?string $ref, array $infos, string $projectDir): ChangeSelection
     {
@@ -263,6 +263,21 @@ final class RunFacade extends AbstractFacade implements RunFacadeInterface
         return $this->getFactory()
             ->createCoverageAggregator($driverName)
             ->aggregate($rawCoverage);
+    }
+
+    public function beginPerTestCoverage(): ?string
+    {
+        return $this->getFactory()->createPerTestCoverageSession()->begin();
+    }
+
+    public function perTestCoverageByLine(): array
+    {
+        return $this->getFactory()->createPerTestCoverageSession()->testsByLine();
+    }
+
+    public function endPerTestCoverage(): void
+    {
+        $this->getFactory()->createPerTestCoverageSession()->end();
     }
 
     /**

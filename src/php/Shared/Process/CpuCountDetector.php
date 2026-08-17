@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Phel\Run\Application\Test;
+namespace Phel\Shared\Process;
 
 use function fgets;
 use function file_exists;
@@ -18,7 +18,8 @@ use function preg_match_all;
 use function trim;
 
 /**
- * Cross-platform detector for "how many parallel test workers should we spawn?".
+ * Cross-platform detector for "how many worker subprocesses should we spawn?",
+ * used by `phel test --parallel` and `phel mutate --parallel`.
  *
  * Fallback chain:
  *   1. Env var PHEL_TEST_WORKERS (if a positive integer)
@@ -34,8 +35,6 @@ use function trim;
  *
  * An explicit `PHEL_TEST_WORKERS` env var always overrides both paths
  * and ignores the cap.
- *
- * @internal
  */
 final class CpuCountDetector
 {

@@ -5,11 +5,11 @@ declare(strict_types=1);
 namespace Phel\Run\Application\Test;
 
 use Phel\Run\Domain\Test\AffectedTestNamespaces;
-use Phel\Run\Domain\Test\ChangedFilesFinderInterface;
 use Phel\Run\Domain\Test\ChangeSelection;
 use Phel\Shared\Facade\BuildFacadeInterface;
 use Phel\Shared\Facade\CommandFacadeInterface;
 use Phel\Shared\NamespaceInformation;
+use Phel\Shared\Process\GitChangedFiles;
 use Throwable;
 
 use function is_file;
@@ -26,7 +26,7 @@ use function str_ends_with;
 final readonly class ChangedTestSelector
 {
     public function __construct(
-        private ChangedFilesFinderInterface $changedFiles,
+        private GitChangedFiles $changedFiles,
         private AffectedTestNamespaces $affected,
         private BuildFacadeInterface $buildFacade,
         private CommandFacadeInterface $commandFacade,

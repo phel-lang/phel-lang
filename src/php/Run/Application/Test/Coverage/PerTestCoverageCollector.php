@@ -23,9 +23,9 @@ use function is_string;
  */
 final class PerTestCoverageCollector
 {
-    private const string PHEL_TEST_NAMESPACE = 'phel.test';
+    public const string PHEL_TEST_NAMESPACE = 'phel.test';
 
-    private const string EVENT_HOOK_VAR = '*event-hook*';
+    public const string EVENT_HOOK_VAR = '*event-hook*';
 
     /** @var array<string, array<string, list<int>>> testId => compiledPhpFile => PHP lines with hits */
     private array $hitLinesByTest = [];

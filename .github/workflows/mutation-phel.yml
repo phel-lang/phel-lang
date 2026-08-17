@@ -1,0 +1,101 @@
+# Mutation testing over the Phel core library itself: `phel mutate` changes every
+# `defn` in `src/phel/core` one small mistake at a time and runs the tests that
+# reach it. A survivor is a core function whose behaviour the suite does not pin.
+#
+# The sibling `mutation.yml` does the same for the PHP runtime with Infection.
+# Both are weekly rather than per pull request: a run is minutes, and "this test
+# asserts nothing" is not a finding that needs to block a merge the hour it appears.
+
+name: Mutation (Phel core)
+
+on:
+  schedule:
+    - cron: '0 5 * * 1'
+  pull_request:
+    paths:
+      - '.github/workflows/mutation-phel.yml'
+  workflow_dispatch:
+    inputs:
+      min-msi:
+        description: 'Override the MSI floor for this run'
+        required: false
+        default: ''
+      paths:
+        description: 'What to mutate (default: src/phel/core)'
+        required: false
+        default: 'src/phel/core'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: mutation-phel-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.ref != 'refs/heads/main' }}
+
+jobs:
+  mutate:
+    name: Mutation testing (phel.core)
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    env:
+      # Ratchets, like the Infection floors: raise them when a run clears them
+      # comfortably, never lower one to turn a red build green. The covered MSI
+      # (over the mutants some test reaches) is what the quality of the existing
+      # tests is; the overall MSI also counts what nothing tests yet.
+      # Measured at MSI 82.6% / covered MSI 87.7% (2380 mutants, 1949 killed,
+      # 276 survived, 138 not covered, 17 timeouts) on the run that first
+      # completed, 8 workers, 8.4 minutes. A few points of room for the timing
+      # noise that timeouts carry.
+      MIN_MSI: '78'
+      MIN_COVERED_MSI: '84'
+    steps:
+      - uses: actions/checkout@v6
+
+      # xdebug in coverage mode: per-test attribution is what keeps the run to
+      # minutes, since a mutant then runs only the tests that reach its definition.
+      - uses: ./.github/actions/setup-phel
+        with:
+          coverage: xdebug
+
+      - name: Warm the compiled-code cache
+        run: ./bin/phel test --ns 'nothing.matches' > /dev/null || true
+
+      - name: Run phel mutate
+        env:
+          XDEBUG_MODE: coverage
+        run: |
+          mkdir -p data
+          ./bin/phel mutate ${{ github.event.inputs.paths || 'src/phel/core' }} \
+            --parallel=auto \
+            --min-msi="${{ github.event.inputs.min-msi || env.MIN_MSI }}" \
+            --min-covered-msi="$MIN_COVERED_MSI" \
+            --reporter=json \
+            -o data/mutation-phel.json | tee data/mutation-phel.log
+
+      - name: Publish the mutation summary
+        if: always()
+        run: |
+          {
+            echo '### Mutation testing (phel.core)'
+            echo
+            echo '```'
+            grep -E '^(Mutants|MSI|Coverage)' data/mutation-phel.log 2>/dev/null || echo 'No summary produced.'
+            echo '```'
+            echo
+            echo '<details><summary>Survivors</summary>'
+            echo
+            echo '```'
+            sed -n '/^Survived:/,/^$/p' data/mutation-phel.log 2>/dev/null | head -200
+            echo '```'
+            echo '</details>'
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Upload the full report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: mutation-phel-report
+          path: |
+            data/mutation-phel.json
+            data/mutation-phel.log
+          if-no-files-found: ignore
