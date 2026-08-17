@@ -74,6 +74,19 @@ XDEBUG_MODE=coverage ./vendor/bin/phel mutate --parallel=auto --changed   # cove
 | `(thrown-with-msg? Class "msg" body)` | message match |
 | `(output? "text" body)` | stdout match |
 
+## Skip and focus
+
+```phel
+(deftest ^{:skip "needs the redis service"} talks-to-redis ...)   ; listed and counted as skipped, never run
+(deftest ^:skip flaky ...)                                         ; bare flag, reason :metadata
+(deftest needs-network
+  (when-not (online?) (skip! "no network"))                        ; skips at run time, keeps earlier assertions
+  (is ...))
+(deftest ^:focus only-this ...)   ; the run narrows to focused tests and says "Focused run: N test(s), M ignored"
+```
+
+`skip!` goes in the test body, not inside `is`. A `^:focus` left in fails the run when `CI` is set or with `--fail-on-focus`; remove it before pushing.
+
 ## Fixtures
 
 ```phel

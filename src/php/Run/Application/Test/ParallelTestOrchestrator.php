@@ -68,11 +68,11 @@ final readonly class ParallelTestOrchestrator
      * @param list<NamespaceInformation> $namespaces
      * @param array<string, mixed>       $options
      */
-    public function run(array $namespaces, array $options, int $workerCount, OutputInterface $output): bool
+    public function run(array $namespaces, array $options, int $workerCount, OutputInterface $output): ParallelRunOutcome
     {
         $total = count($namespaces);
         if ($total === 0) {
-            return true;
+            return new ParallelRunOutcome(true, false);
         }
 
         $effectiveWorkerCount = max(1, min($workerCount, $total));
@@ -101,7 +101,7 @@ final readonly class ParallelTestOrchestrator
         $this->persistLastFailed($options, $buffer->allFailedTests());
         $this->printSummary($output, $buffer->totals(), $total, $effectiveWorkerCount, microtime(true) - $startedAt, $retried);
 
-        return $buffer->overallOk();
+        return new ParallelRunOutcome($buffer->overallOk(), $buffer->anyFocused());
     }
 
     private function printSummary(

@@ -34,6 +34,7 @@ final readonly class WorkerResult
         public array $failedTests,
         public Counts $counts,
         public ?string $error = null,
+        public bool $focused = false,
     ) {}
 
     /**
@@ -57,6 +58,7 @@ final readonly class WorkerResult
             self::extractStringList($frame[FrameKey::FAILED_TESTS] ?? null),
             Counts::fromArray($rawCounts),
             is_string($error) ? $error : null,
+            (bool) ($frame[FrameKey::FOCUSED] ?? false),
         );
     }
 

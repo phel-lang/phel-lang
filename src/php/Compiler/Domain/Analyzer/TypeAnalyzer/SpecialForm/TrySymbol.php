@@ -7,6 +7,8 @@ namespace Phel\Compiler\Domain\Analyzer\TypeAnalyzer\SpecialForm;
 use Phel;
 use Phel\Compiler\Domain\Analyzer\Ast\AbstractNode;
 use Phel\Compiler\Domain\Analyzer\Ast\CatchNode;
+use Phel\Compiler\Domain\Analyzer\Ast\GlobalVarNode;
+use Phel\Compiler\Domain\Analyzer\Ast\PhpClassNameNode;
 use Phel\Compiler\Domain\Analyzer\Ast\TryNode;
 use Phel\Compiler\Domain\Analyzer\Environment\NodeEnvironment;
 use Phel\Compiler\Domain\Analyzer\Environment\NodeEnvironmentInterface;
@@ -14,6 +16,11 @@ use Phel\Compiler\Domain\Analyzer\Exceptions\AnalyzerException;
 use Phel\Compiler\Domain\Analyzer\TypeAnalyzer\WithAnalyzerTrait;
 use Phel\Lang\Collections\LinkedList\PersistentListInterface;
 use Phel\Lang\Symbol;
+use Phel\Shared\Munge;
+use Throwable;
+
+use function class_exists;
+use function is_subclass_of;
 
 /**
  * (try body (catch Type e handler) (finally cleanup)).
@@ -248,7 +255,31 @@ final class TrySymbol implements SpecialFormAnalyzerInterface
             throw AnalyzerException::withLocation('Can not resolve type ' . $type->getName(), $catch);
         }
 
+        // `(defexception Name)` defines a class and a constructor fn of the same
+        // name, so a bare `Name` resolves to the fn; in catch position only the
+        // class makes sense, and a var read there is a PHP syntax error.
+        if ($resolvedType instanceof GlobalVarNode) {
+            $className = $this->exceptionClassOf($resolvedType);
+            if ($className !== null) {
+                $fqn = Symbol::create('\\' . $className)->copyLocationFrom($type);
+
+                return new PhpClassNameNode($env, $fqn, $type->getStartLocation());
+            }
+        }
+
         return $resolvedType;
+    }
+
+    /**
+     * The exception class a `defexception` of this var's name defined in this
+     * var's namespace, or null when there is none.
+     */
+    private function exceptionClassOf(GlobalVarNode $var): ?string
+    {
+        $munge = new Munge();
+        $className = $munge->encodePhpNs($var->getNamespace()) . '\\' . $munge->encode($var->getName()->getName());
+
+        return class_exists($className) && is_subclass_of($className, Throwable::class) ? $className : null;
     }
 
     /**

@@ -42,6 +42,8 @@ final class OrderedResultBuffer
 
     private bool $overallOk = true;
 
+    private bool $anyFocused = false;
+
     /** @var list<string> */
     private array $allFailedTests = [];
 
@@ -67,6 +69,10 @@ final class OrderedResultBuffer
             $this->overallOk = false;
         }
 
+        if ($result->focused) {
+            $this->anyFocused = true;
+        }
+
         foreach ($result->failedTests as $name) {
             $this->allFailedTests[] = $name;
         }
@@ -83,6 +89,15 @@ final class OrderedResultBuffer
     public function overallOk(): bool
     {
         return $this->overallOk;
+    }
+
+    /**
+     * Whether any namespace's run was narrowed by a `^:focus` test. Focus
+     * is decided per work frame, i.e. per namespace, in a parallel run.
+     */
+    public function anyFocused(): bool
+    {
+        return $this->anyFocused;
     }
 
     /**

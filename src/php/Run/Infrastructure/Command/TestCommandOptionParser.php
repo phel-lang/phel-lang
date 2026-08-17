@@ -69,6 +69,8 @@ final readonly class TestCommandOptionParser
 
     public const string OPT_CHANGED = 'changed';
 
+    public const string OPT_FAIL_ON_FOCUS = 'fail-on-focus';
+
     private const string LAST_FAILED_FILENAME = 'last-failed.txt';
 
     /**

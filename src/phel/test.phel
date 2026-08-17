@@ -182,7 +182,7 @@
 ;; Lifecycle events that flow straight through to every registered
 ;; reporter without touching the stats atom.
 (dofor [event-type :in [:begin-test :end-test :begin-test-ns :end-test-ns
-                        :begin-test-run :summary :defspec-failed]]
+                        :begin-test-run :summary :defspec-failed :focused-run]]
   (swap! report-methods assoc event-type fan-out!))
 
 (defmethod report :skipped [data]
@@ -726,6 +726,16 @@ Metadata attached to `test-name` is forwarded to the defined function so selecto
 (defn- assertion-event? [event]
   (contains? event :state))
 
+(defn- reason-label
+  "A skip reason as text: a keyword's name, a string as it is."
+  [reason]
+  (if (keyword? reason) (name reason) (str reason)))
+
+(defn- focused-run-notice
+  "The one line every reporter prints when a run is narrowed to `^:focus` tests."
+  [event]
+  (str "Focused run: " (:focused event) " test(s), " (:ignored event) " ignored"))
+
 (defn- print-failures-block [failures]
   (when-not (empty? failures)
     (println)
@@ -769,6 +779,9 @@ Metadata attached to `test-name` is forwarded to the defined function so selecto
       (= type :summary)
       (print-summary-block event)
 
+      (= type :focused-run)
+      (println (focused-run-notice event))
+
       (pos? (php/ob_get_level))
       nil
 
@@ -797,7 +810,10 @@ Metadata attached to `test-name` is forwarded to the defined function so selecto
 
       (= type :skipped)
       (let [tname (or (:test-name event) "")]
-        (println "↷" (str tname " (skipped)")))
+        (println "↷" (str tname " (skipped: " (reason-label (:reason event)) ")")))
+
+      (= type :focused-run)
+      (println (focused-run-notice event))
 
       (= type :summary)
       (print-summary-block event))))
@@ -819,6 +835,9 @@ Metadata attached to `test-name` is forwarded to the defined function so selecto
 
       (= type :skipped)
       (print "S")
+
+      (= type :focused-run)
+      (println (focused-run-notice event))
 
       (= type :summary)
       (do
@@ -883,8 +902,15 @@ Metadata attached to `test-name` is forwarded to the defined function so selecto
             (println (str "not ok " n " - " desc))
             (println (tap-failure-yaml event)))))
 
+      (= type :skipped)
+      (let [n (swap! tap-counter inc)]
+        (println (str "ok " n " - " (or (:test-name event) "test") " # SKIP " (reason-label (:reason event)))))
+
+      (= type :focused-run)
+      (println (str "# " (focused-run-notice event)))
+
       (= type :summary)
-      (println (str "1.." (:total event))))))
+      (println (str "1.." (+ (:total event) (or (:skipped event) 0)))))))
 
 ;; -----------------
 ;; JUnit-XML reporter
@@ -934,8 +960,9 @@ Metadata attached to `test-name` is forwarded to the defined function so selecto
 (defn- junit-testcase-body [event]
   (let [state (get event :state (:type event))]
     (cond
-      (= state :error)  (junit-nested-element "error"   event)
-      (= state :failed) (junit-nested-element "failure" event))))
+      (= state :error)   (junit-nested-element "error"   event)
+      (= state :failed)  (junit-nested-element "failure" event)
+      (= state :skipped) (str "<skipped message=\"" (junit-xml-escape (reason-label (:reason event))) "\"/>"))))
 
 (defn- junit-build-testcase [event]
   (let [tname   (or (:test-name event) "assertion")
@@ -955,12 +982,13 @@ Metadata attached to `test-name` is forwarded to the defined function so selecto
 
 (defn- junit-render [state]
   (let [suites (get state :testsuites)
-        parts  (for [{:name ns-name, :tests t, :failures f, :errors e, :time tm, :cases cases} :in suites]
+        parts  (for [{:name ns-name, :tests t, :failures f, :errors e, :skipped sk, :time tm, :cases cases} :in suites]
                  (str "<testsuite "
                       (junit-attr :name ns-name) " "
                       (junit-attr :tests t) " "
                       (junit-attr :failures f) " "
                       (junit-attr :errors e) " "
+                      (junit-attr :skipped (or sk 0)) " "
                       (junit-attr :time tm) ">"
                       (s/join "" cases)
                       "</testsuite>"))]
@@ -969,6 +997,7 @@ Metadata attached to `test-name` is forwarded to the defined function so selecto
          (junit-attr :tests (:tests state)) " "
          (junit-attr :failures (:failures state)) " "
          (junit-attr :errors (:errors state)) " "
+         (junit-attr :skipped (or (:skipped state) 0)) " "
          (junit-attr :time (:time state)) ">"
          (s/join "" parts)
          "</testsuites>")))
@@ -996,13 +1025,15 @@ Metadata attached to `test-name` is forwarded to the defined function so selecto
       (assoc :current (assoc empty-junit-suite :name ns-name))))
 
 (defn- bump-junit-counters
-  "Increments `:tests`, plus `:failures`/`:errors` based on the event's
-  `:state`. Used to aggregate both the per-suite and per-run totals."
+  "Increments `:tests`, plus `:failures`/`:errors`/`:skipped` based on the
+  event's `:state` (a skip event has none: its `:type` is the state). Used
+  to aggregate both the per-suite and per-run totals."
   [m event]
-  (let [state (get event :state)]
+  (let [state (get event :state (:type event))]
     (cond-> (update m :tests inc)
-            (= :failed state) (update :failures inc)
-            (= :error state)  (update :errors inc))))
+            (= :failed state)  (update :failures inc)
+            (= :error state)   (update :errors inc)
+            (= :skipped state) (update :skipped (fn [n] (inc (or n 0)))))))
 
 (defn- junit-ensure-current
   "Ensures `state` has a `:current` suite; lazily initialised from the event's `:ns` when a testcase arrives outside a `begin-test-ns`."
@@ -1044,7 +1075,7 @@ Metadata attached to `test-name` is forwarded to the defined function so selecto
       (= type :end-test-ns)
       (swap! junit-state junit-finalize-current)
 
-      (assertion-event? event)
+      (or (assertion-event? event) (= type :skipped))
       (swap! junit-state junit-record-case event)
 
       (= type :summary)
@@ -1190,8 +1221,11 @@ Metadata attached to `test-name` is forwarded to the defined function so selecto
   [ns]
   (let [munge    (new Munge)
         munge-ns (.encodeRegistryKey munge ns)]
+    ;; Read through the var, not the raw definition, so metadata altered at
+    ;; run time (`alter-meta!`, a `^:focus` or `^:skip` set programmatically)
+    ;; is honoured too.
     (vec (for [fn-name :keys (Phel/getDefinitionInNamespace munge-ns)
-               :let [meta (Phel/getDefinitionMetaData munge-ns fn-name)]
+               :let [meta (php/-> (Phel/getVar munge-ns fn-name) (meta))]
                :when (:test meta)]
            {:fn   (Phel/getDefinition munge-ns fn-name)
             :meta meta}))))
@@ -1203,13 +1237,25 @@ Metadata attached to `test-name` is forwarded to the defined function so selecto
    :exclude     (:exclude options)
    :ns-patterns (:ns-patterns options)})
 
+(defn- metadata-skip-reason
+  "The reason a test's own metadata gives for not running: the string of
+  `^{:skip \"reason\"}`, `:metadata` for a bare `^:skip`, nil when the test
+  does not skip itself."
+  [m]
+  (let [skip (:skip m)]
+    (cond
+      (string? skip) skip
+      (true? skip)   :metadata
+      :else          nil)))
+
 (defn- skip-reason
   "Returns `:selector` when the test is excluded by a tag or namespace
-  selector, or `nil` when it should run. Name-based filters
-  (`:filter` / `:filters`) are applied upstream as discovery filters and
-  never reach this function."
+  selector, the test's own `:skip` reason when it carries one, or `nil`
+  when it should run. Name-based filters (`:filter` / `:filters`) are
+  applied upstream as discovery filters and never reach this function."
   [sel-opts ns-name m]
-  (when (not (selector/keep-test? sel-opts ns-name m))
+  (if (selector/keep-test? sel-opts ns-name m)
+    (metadata-skip-reason m)
     :selector))
 
 (defn- partition-tests
@@ -1243,17 +1289,60 @@ Metadata attached to `test-name` is forwarded to the defined function so selecto
       (empty? only-tests)
       (some (fn [t] (= t (str ns "/" test-name))) only-tests)))
 
+;; Set for the run when at least one selected test carries `^:focus`: from
+;; then on only focused tests are visible. Per run, like the stats.
+(def- focus-mode (atom false))
+
+(defn focused-run?
+  "Whether the current (or last) `run-tests` call was narrowed to `^:focus`
+  tests. A host can turn that into a failure in CI, where a focus left in
+  by mistake would otherwise pass a run that tested almost nothing."
+  {:example "(focused-run?) ; => false"
+   :see-also ["run-tests"]}
+  []
+  (deref focus-mode))
+
 (defn- visible-test-pred
-  "Returns the predicate that decides whether a discovered test passes the discovery filters (`:filter`, `:filters`, `:only-tests`)."
+  "Returns the predicate that decides whether a discovered test passes the discovery filters (`:filter`, `:filters`, `:only-tests`) and, in a focused run, carries `^:focus`."
   [options ns]
   (let [filter-value    (:filter options)
         filter-patterns (:filters options)
-        only-tests      (:only-tests options)]
+        only-tests      (:only-tests options)
+        focused?        (deref focus-mode)]
     (fn [{:meta m}]
       (let [tname (:test-name m)]
         (and (legacy-filter-matches? filter-value tname)
              (selector/matches-filter? filter-patterns tname)
-             (only-tests-matches? only-tests ns tname))))))
+             (only-tests-matches? only-tests ns tname)
+             (or (not focused?) (true? (:focus m))))))))
+
+(defn- focus-scan
+  "Counts, over every namespace of the run, the tests that pass the
+  discovery filters and the selectors, and how many of them carry
+  `^:focus`. Runs before the focus mode is decided, so it sees them all."
+  [options namespaces]
+  (let [sel-opts (selector-options options)]
+    (reduce
+     (fn [acc namespace]
+       (let [ns-name  (name namespace)
+             visible  (filter (visible-test-pred options ns-name) (find-test-vars ns-name))
+             selected (filter (fn [{:meta m}] (selector/keep-test? sel-opts ns-name m)) visible)
+             focused  (filter (fn [{:meta m}] (true? (:focus m))) selected)]
+         (-> acc
+             (update :selected + (count selected))
+             (update :focused + (count focused)))))
+     {:selected 0, :focused 0}
+     namespaces)))
+
+(defn- enter-focus-mode!
+  "Decides whether this run is focused: it is when at least one selected
+  test carries `^:focus`. Announces it through the reporters, so the
+  narrowing is never silent."
+  [options namespaces]
+  (let [{:selected selected, :focused focused} (focus-scan options namespaces)]
+    (when (pos? focused)
+      (reset! focus-mode true)
+      (report {:type :focused-run, :focused focused, :ignored (- selected focused)}))))
 
 (defn- failure-count []
   (let [{:failed f, :error e} (get (deref stats) :counts)]
@@ -1282,12 +1371,33 @@ Metadata attached to `test-name` is forwarded to the defined function so selecto
    options
    (vec (filter (visible-test-pred options ns) (find-test-vars ns)))))
 
+(defn skip!
+  "Stops the current test here and reports it as skipped with `reason`;
+  assertions made before the call are kept. For conditions only known at
+  run time (a missing extension, no network); a condition known when the
+  test is written belongs in `^{:skip \"reason\"}` on the `deftest`. Call
+  it from the test body, not inside `is`, which catches everything a form
+  throws and would report it as an error."
+  {:example "(deftest needs-redis (when-not (redis-up?) (skip! \"no redis\")) (is ...))"
+   :see-also ["deftest" "is"]}
+  [& [reason]]
+  (throw (php/new \Phel\Lang\SkipTestException (or reason "skipped"))))
+
+(defn- run-body!
+  "Runs one test body through its fixtures. A `skip!` unwinds to here and
+  becomes a `:skipped` event with the reason; anything else propagates."
+  [ns test-name each-wrap f]
+  (try
+    (each-wrap f)
+    (catch \Phel\Lang\SkipTestException e
+      (report {:type :skipped, :ns ns, :test-name test-name, :reason (php/-> e (getMessage))}))))
+
 (defn- run-one-test! [options ns each-wrap {:fn f, :meta m}]
   (let [test-name (:test-name m)
         c0        (failure-count)]
     (report {:type :begin-test, :ns ns, :test-name test-name})
     (let [t0          (php/microtime true)
-          _           (each-wrap f)
+          _           (run-body! ns test-name each-wrap f)
           duration-ms (* 1000.0 (- (php/microtime true) t0))]
       (when (pos? (or (:slowest options) 0))
         (record-test-time! ns test-name duration-ms))
@@ -1381,13 +1491,14 @@ Metadata attached to `test-name` is forwarded to the defined function so selecto
              tags      (or (:tags m) [])
              tag-str   (if (empty? tags) "" (str " [" (s/join "," (map name tags)) "]"))]
          (if skip
-           (println (str "- " ns-name "/" test-name tag-str " (skipped: " (name skip) ")"))
+           (println (str "- " ns-name "/" test-name tag-str " (skipped: " (reason-label skip) ")"))
            (println (str "+ " ns-name "/" test-name tag-str)))
          (if skip count (inc count))))
      0
      (visible-tests-for-ns options ns-name))))
 
 (defn- list-tests! [options namespaces]
+  (enter-focus-mode! options namespaces)
   (println "Discovered tests:")
   (let [total (reduce
                (fn [acc namespace]
@@ -1430,18 +1541,20 @@ Metadata attached to `test-name` is forwarded to the defined function so selecto
 (defn- reset-run-state! []
   (reset! stats initial-stats)
   (reset! timings [])
-  (reset! failed-tests []))
+  (reset! failed-tests [])
+  (reset! focus-mode false))
 
 (defn- outer-run-state
   "The per-run state a nested `run-tests` has to hand back when it returns, or nil at the top level, where the state stays readable after the run (`get-failed-tests`)."
   []
   (when (pos? (deref run-depth))
-    {:timings (deref timings), :failed-tests (deref failed-tests)}))
+    {:timings (deref timings), :failed-tests (deref failed-tests), :focus-mode (deref focus-mode)}))
 
 (defn- restore-outer-run-state! [outer]
   (when outer
     (reset! timings (:timings outer))
-    (reset! failed-tests (:failed-tests outer))))
+    (reset! failed-tests (:failed-tests outer))
+    (reset! focus-mode (:focus-mode outer))))
 
 (defn- announce-seed!
   "Prints `Seed: <n>` once at the start of a randomized run so failures can be reproduced with `--seed=<n>`."
@@ -1452,6 +1565,7 @@ Metadata attached to `test-name` is forwarded to the defined function so selecto
 (defn- execute-run! [options namespaces]
   (announce-seed! options)
   (fan-out! {:type :begin-test-run})
+  (enter-focus-mode! options namespaces)
   (dofor [namespace :in namespaces
           :when (not (should-stop?))]
     (run-one-ns! options namespace))

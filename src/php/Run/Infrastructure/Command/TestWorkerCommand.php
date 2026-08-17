@@ -170,6 +170,7 @@ final class TestWorkerCommand extends Command
             "(do (phel.test/run-tests %s '%s) "
             . '(phel.json/encode {"ok" (phel.test/successful?) '
             . '"failed-tests" (phel.test/get-failed-tests) '
+            . '"focused" (phel.test/focused-run?) '
             . '"counts" (get (phel.test/get-stats) :counts)}))',
             $request->options,
             $request->ns,
@@ -182,7 +183,7 @@ final class TestWorkerCommand extends Command
     }
 
     /**
-     * @return array{ok: bool, output: string, failed-tests: list<string>, counts: array<string, int>, error: null}
+     * @return array{ok: bool, output: string, failed-tests: list<string>, focused: bool, counts: array<string, int>, error: null}
      */
     private function parseResult(mixed $resultJson, string $captured): array
     {
@@ -193,6 +194,7 @@ final class TestWorkerCommand extends Command
             FrameKey::OK => $ok,
             FrameKey::OUTPUT => $captured,
             FrameKey::FAILED_TESTS => $this->extractFailedTests($parsed),
+            FrameKey::FOCUSED => is_array($parsed) && (bool) ($parsed['focused'] ?? false),
             FrameKey::COUNTS => $this->extractCounts($parsed),
             FrameKey::ERROR => null,
         ];

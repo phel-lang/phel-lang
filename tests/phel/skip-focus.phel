@@ -1,0 +1,67 @@
+(ns phel-test.skip-focus
+  (:require phel.test :as t :refer [deftest is])
+  (:require phel-test.fixtures.run-harness :as h :refer [events-of passing-count])
+  (:require phel-test.fixtures.skip-focus-tests))
+
+;; `^:skip` / `^{:skip "reason"}` on a deftest, `(skip! reason)` inside a
+;; test body, and `^:focus` narrowing a run to the focused tests. The
+;; fixture namespace is run nested through the run harness, so the outer
+;; suite's stats and reporters are untouched.
+
+(def- fixture-ns 'phel-test.fixtures.skip-focus-tests)
+
+(defn- names-of [events type]
+  (map :test-name (events-of events type)))
+
+(defn- skip-reasons [events]
+  (into {} (map (fn [e] [(:test-name e) (:reason e)]) (events-of events :skipped))))
+
+(deftest test-metadata-skips-are-reported-with-their-reason-and-never-run
+  (let [{:events events :stats stats} (h/snapshot-run fixture-ns {:reporters []})
+        reasons                       (skip-reasons events)]
+    (is (= "flaky on CI" (get reasons "skipped-with-reason")) "a string reason travels with the event")
+    (is (= :metadata (get reasons "skipped-bare")) "a bare ^:skip reports :metadata")
+    (is (= 3 (get-in stats [:counts :skipped])) "two metadata skips and one runtime skip")
+    (is (= 0 (get-in stats [:counts :failed])) "the skipped bodies never ran")
+    (is (= ["plain-a" "plain-b" "skips-at-runtime"] (vec (names-of events :begin-test))) "metadata skips are not started at all")))
+
+(deftest test-skip-bang-keeps-earlier-assertions-and-stops-the-body
+  (let [{:events events :stats stats} (h/snapshot-run fixture-ns {:reporters []})
+        reasons                       (skip-reasons events)]
+    (is (= "no network here" (get reasons "skips-at-runtime")) "the runtime reason travels with the event")
+    (is (= 3 (passing-count events)) "plain-a, plain-b and the assertion made before skip! all count")
+    (is (= 0 (get-in stats [:counts :failed])) "the assertion after skip! never ran")))
+
+(deftest test-list-shows-the-skip-reason
+  (let [output (with-output-buffer
+                 (t/with-isolated-reporters []
+                   (t/with-isolated-stats
+                     (t/run-tests {:reporters [] :list-only true} fixture-ns))))]
+    (is (php/str_contains output "skipped-with-reason (skipped: flaky on CI)") (str "reason listed, got:\n" output))
+    (is (php/str_contains output "skipped-bare (skipped: metadata)") "bare skip listed")))
+
+(deftest test-a-focused-test-narrows-the-run-to-itself-and-announces-it
+  (let [v (var phel-test.fixtures.skip-focus-tests/plain-b)]
+    (alter-meta! v assoc :focus true)
+    (try
+      (let [{:events events} (h/snapshot-run fixture-ns {:reporters []})
+            focus            (first (events-of events :focused-run))]
+        (is (= ["plain-b"] (vec (names-of events :begin-test))) "only the focused test runs")
+        (is (= [] (vec (events-of events :skipped))) "the tests focus set aside are not reported as skipped")
+        (is (some? focus) "the run announces that it is focused")
+        (is (= 1 (:focused focus)) "one focused test")
+        (is (= 4 (:ignored focus)) "four tests set aside, the metadata-skipped ones included"))
+      (finally
+        (alter-meta! v dissoc :focus)))))
+
+(deftest test-focus-composes-with-selectors
+  (let [v (var phel-test.fixtures.skip-focus-tests/plain-b)]
+    (alter-meta! v assoc :focus true)
+    (try
+      (let [{:events events} (h/snapshot-run fixture-ns {:reporters [] :filters ["plain-a"]})]
+        ;; The name filter keeps plain-a only; plain-b is focused but not
+        ;; selected, so the run is not a focused run and plain-a runs.
+        (is (= ["plain-a"] (vec (names-of events :begin-test))) "selectors narrow first, focus narrows within")
+        (is (= [] (vec (events-of events :focused-run))) "no focused test among the selected ones, no announcement"))
+      (finally
+        (alter-meta! v dissoc :focus)))))
