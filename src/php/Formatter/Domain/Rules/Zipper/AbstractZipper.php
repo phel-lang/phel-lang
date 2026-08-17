@@ -25,8 +25,9 @@ use function count;
  * not two "left" and "right" arrays. Moving sideways is then a new location
  * over the same array, O(1), where copying the two halves made a walk along
  * n siblings cost O(n^2): a generated data file with one 16 000-element
- * literal took 28 s to format (#3218). Only an edit copies the list, once,
- * and the parent is rebuilt once on the way {@see self::up()}.
+ * literal took 28 s to format (#3218). Only an edit copies the list (PHP
+ * arrays: O(n) per insert or removal), and the parent is rebuilt once on
+ * the way {@see self::up()}.
  *
  * Edits (replace/insert/remove) set the {@see self::$hasChanged} flag on the
  * location. When {@see self::up()} is called on a changed location,
