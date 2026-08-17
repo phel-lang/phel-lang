@@ -11,6 +11,7 @@ use Phel\Mutate\Application\MutantWorker;
 use Phel\Mutate\Application\MutantWorkerSession;
 use Phel\Mutate\Application\MutationPlanner;
 use Phel\Mutate\Application\MutationRunner;
+use Phel\Mutate\Application\ProjectWarmer;
 use Phel\Mutate\Domain\MutateOptions;
 use Phel\Mutate\Domain\MutationPlan;
 use Phel\Mutate\Domain\Mutator\MutatorRegistry;
@@ -18,6 +19,8 @@ use Phel\Mutate\Infrastructure\Command\MutateWorkerCommand;
 use Phel\Shared\Facade\CommandFacadeInterface;
 use Phel\Shared\Facade\CompilerFacadeInterface;
 use Phel\Shared\Facade\RunFacadeInterface;
+use Phel\Shared\Process\CpuCountDetector;
+use Phel\Shared\Process\GitChangedFiles;
 use Phel\Shared\ScalarCoercion;
 
 use function is_array;
@@ -34,7 +37,12 @@ final class MutateFactory extends AbstractFactory
 {
     public function createMutationPlanner(): MutationPlanner
     {
-        return new MutationPlanner($this->getRunFacade(), $this->getCommandFacade());
+        return new MutationPlanner($this->getRunFacade(), $this->getCommandFacade(), new GitChangedFiles());
+    }
+
+    public function createCpuCountDetector(): CpuCountDetector
+    {
+        return new CpuCountDetector();
     }
 
     public function createMutantGenerator(MutateOptions $options): MutantGenerator
@@ -51,7 +59,13 @@ final class MutateFactory extends AbstractFactory
             $plan->loadOrder,
             $plan->testNamespaces,
             $options->timeoutFactor,
+            $options->workers,
         );
+    }
+
+    public function createProjectWarmer(): ProjectWarmer
+    {
+        return new ProjectWarmer($this->getRunFacade());
     }
 
     public function createWorkerSession(): MutantWorkerSession

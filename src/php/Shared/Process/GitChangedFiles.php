@@ -2,10 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Phel\Run\Infrastructure\Git;
-
-use Phel\Run\Domain\Test\ChangedFilesFinderInterface;
-use Phel\Run\Domain\Test\ChangedFilesUnavailableException;
+namespace Phel\Shared\Process;
 
 use function array_merge;
 use function array_unique;
@@ -16,16 +13,24 @@ use function sprintf;
 use function trim;
 
 /**
- * Asks git which files changed. Every call shells out to the `git` on
- * `PATH` inside the project directory; nothing is cached, a `--changed`
- * run asks once.
- *
- * @internal
+ * Asks git which files changed, for `phel test --changed` and `phel mutate
+ * --changed`. Every call shells out to the `git` on `PATH` inside the
+ * project directory; nothing is cached, a run asks once.
  */
-final class GitChangedFiles implements ChangedFilesFinderInterface
+final class GitChangedFiles
 {
     private const array DEFAULT_BRANCH_CANDIDATES = ['origin/HEAD', 'origin/main', 'main', 'origin/master', 'master'];
 
+    /**
+     * Absolute paths of the files changed since `$ref` (a commit, branch or
+     * tag), or, with a null `$ref`, the uncommitted changes against `HEAD`,
+     * falling back to the changes since the merge base with the default
+     * branch when the working tree is clean. Untracked files count.
+     *
+     * @throws GitUnavailableException when the directory is not in a git repository or git cannot be run
+     *
+     * @return list<string>
+     */
     public function changedFiles(?string $ref, string $projectDir): array
     {
         $root = $this->repositoryRoot($projectDir);
@@ -48,7 +53,7 @@ final class GitChangedFiles implements ChangedFilesFinderInterface
     {
         [$status, $lines] = $this->git($projectDir, 'rev-parse --show-toplevel');
         if ($status !== 0 || $lines === []) {
-            throw new ChangedFilesUnavailableException(sprintf(
+            throw new GitUnavailableException(sprintf(
                 '--changed needs a git repository around %s and `git` on the PATH.',
                 $projectDir,
             ));
@@ -68,7 +73,7 @@ final class GitChangedFiles implements ChangedFilesFinderInterface
     {
         [$status, $changed] = $this->git($root, 'diff --name-only ' . escapeshellarg($ref) . ' --');
         if ($status !== 0) {
-            throw new ChangedFilesUnavailableException(sprintf('git does not know the ref "%s".', $ref));
+            throw new GitUnavailableException(sprintf('git does not know the ref "%s".', $ref));
         }
 
         [, $untracked] = $this->git($root, 'ls-files --others --exclude-standard');

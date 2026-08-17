@@ -25,7 +25,8 @@ use Phel\Run\Application\StructuredEvaluator;
 use Phel\Run\Application\Test\ChangedTestSelector;
 use Phel\Run\Application\Test\Coverage\CoverageAggregator;
 use Phel\Run\Application\Test\Coverage\CoverageDriver;
-use Phel\Run\Application\Test\CpuCountDetector;
+use Phel\Run\Application\Test\Coverage\PerTestCoverageReport;
+use Phel\Run\Application\Test\Coverage\PerTestCoverageSession;
 use Phel\Run\Application\Test\ParallelTestOrchestrator;
 use Phel\Run\Application\Test\TestWatchLoop;
 use Phel\Run\Application\Test\TestWatchRunner;
@@ -40,7 +41,6 @@ use Phel\Run\Domain\Runner\NamespaceCollector;
 use Phel\Run\Domain\Runner\NamespaceRunnerInterface;
 use Phel\Run\Domain\StdinReaderInterface;
 use Phel\Run\Domain\Test\AffectedTestNamespaces;
-use Phel\Run\Infrastructure\Git\GitChangedFiles;
 use Phel\Run\Infrastructure\PhpStdinReader;
 use Phel\Shared\ColorStyleInterface;
 use Phel\Shared\Facade\ApiFacadeInterface;
@@ -51,6 +51,8 @@ use Phel\Shared\NoColor;
 use Phel\Shared\Performance\OpcacheWorkerFlags;
 use Phel\Shared\Printer\Printer;
 use Phel\Shared\Printer\PrinterInterface;
+use Phel\Shared\Process\CpuCountDetector;
+use Phel\Shared\Process\GitChangedFiles;
 use Phel\Shared\ScalarCoercion;
 use Phel\Shared\VersionResolver;
 
@@ -83,6 +85,16 @@ class RunFactory extends AbstractFactory
     public function createCoverageDriver(): ?CoverageDriver
     {
         return CoverageDriver::detect();
+    }
+
+    public function createPerTestCoverageSession(): PerTestCoverageSession
+    {
+        return new PerTestCoverageSession(
+            fn(): ?CoverageDriver => $this->createCoverageDriver(),
+            fn(array $hitLinesByTest, string $driverName): PerTestCoverageReport => $this
+                ->createCoverageAggregator($driverName)
+                ->attribute($hitLinesByTest),
+        );
     }
 
     public function createCoverageAggregator(string $driverName): CoverageAggregator

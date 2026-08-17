@@ -1513,9 +1513,11 @@ final class Phel\Lsp\LspFacade extends Gacela\Framework\AbstractFacade
 
 final class Phel\Mutate\MutateFacade extends Gacela\Framework\AbstractFacade
   public function createWorkerSession(): Phel\Mutate\Application\MutantWorkerSession
+  public function detectWorkerCount(): int
   public function generate(Phel\Mutate\Domain\MutationPlan $plan, Phel\Mutate\Domain\MutateOptions $options): array
   public function plan(Phel\Mutate\Domain\MutateOptions $options): Phel\Mutate\Domain\MutationPlan
   public function run(Phel\Mutate\Domain\MutationPlan $plan, Phel\Mutate\Domain\MutateOptions $options, array $mutants, ?Closure $onResult = null): Phel\Mutate\Domain\MutationReport
+  public function warm(Phel\Mutate\Domain\MutationPlan $plan): void
 
 final class Phel\Nrepl\NreplFacade extends Gacela\Framework\AbstractFacade
   public function createSocketServer(int $port, string $host, ?callable $logger = null): Phel\Nrepl\Infrastructure\NreplSocketServer
@@ -1528,14 +1530,16 @@ final class Phel\Profile\ProfileFacade extends Gacela\Framework\AbstractFacade
 
 final class Phel\Run\RunFacade extends Gacela\Framework\AbstractFacade implements Phel\Shared\Facade\RunFacadeInterface
   public function autoDetectEntryPoint(): ?string
+  public function beginPerTestCoverage(): ?string
   public function breakpoint(Phel\Lang\Collections\Map\PersistentMapInterface $locals): void
   public function buildCoverageReport(array $rawCoverage, string $driverName): Phel\Run\Application\Test\Coverage\CoverageReport
   public function buildPerTestCoverageReport(array $hitLinesByTest, string $driverName): Phel\Run\Application\Test\Coverage\PerTestCoverageReport
-  public function createCpuCountDetector(): Phel\Run\Application\Test\CpuCountDetector
+  public function createCpuCountDetector(): Phel\Shared\Process\CpuCountDetector
   public function createParallelTestOrchestrator(): Phel\Run\Application\Test\ParallelTestOrchestrator
   public function detectCoverageDriver(): ?Phel\Run\Application\Test\Coverage\CoverageDriver
   public function disableDebugLineTap(): void
   public function enableDebugLineTap(?string $phelFileFilter = null, string $logPath = './phel-debug.log'): void
+  public function endPerTestCoverage(): void
   public function eval(string $phelCode, Phel\Shared\CompileOptions $compileOptions = object(Phel\Shared\CompileOptions)): mixed
   public function evalFile(Phel\Shared\NamespaceInformation $info): void
   public function flushCompiledCodeCache(): void
@@ -1548,6 +1552,7 @@ final class Phel\Run\RunFacade extends Gacela\Framework\AbstractFacade implement
   public function getNamespaceFromFile(string $fileOrPath): Phel\Shared\NamespaceInformation
   public function getVersion(): string
   public function loadPhelNamespaces(?string $replStartupFile = null): void
+  public function perTestCoverageByLine(): array
   public function runFile(string $filename): void
   public function runNamespace(string $namespace): void
   public function runTestWatchLoop(callable $runTests, Symfony\Component\Console\Output\OutputInterface $output): int
@@ -1904,7 +1909,9 @@ interface Phel\Shared\Facade\InteropFacadeInterface
 
 interface Phel\Shared\Facade\RunFacadeInterface
   public function autoDetectEntryPoint(): ?string
+  public function beginPerTestCoverage(): ?string
   public function breakpoint(Phel\Lang\Collections\Map\PersistentMapInterface $locals): void
+  public function endPerTestCoverage(): void
   public function eval(string $phelCode, Phel\Shared\CompileOptions $compileOptions): mixed
   public function evalFile(Phel\Shared\NamespaceInformation $info): void
   public function flushCompiledCodeCache(): void
@@ -1917,6 +1924,7 @@ interface Phel\Shared\Facade\RunFacadeInterface
   public function getNamespaceFromFile(string $fileOrPath): Phel\Shared\NamespaceInformation
   public function getVersion(): string
   public function loadPhelNamespaces(?string $replStartupFile = null): void
+  public function perTestCoverageByLine(): array
   public function runFile(string $filename): void
   public function runNamespace(string $namespace): void
   public function structuredEval(string $phelCode, Phel\Shared\CompileOptions $compileOptions): Phel\Shared\Eval\EvalResult
@@ -2278,6 +2286,16 @@ final class Phel\Shared\Printer\TypePrinter\UUIDPrinter implements Phel\Shared\P
 final class Phel\Shared\Printer\TypePrinter\VarPrinter implements Phel\Shared\Printer\TypePrinter\TypePrinterInterface
   public function __construct(bool $withColor = false)
   public function print(mixed $form): string
+
+final class Phel\Shared\Process\CpuCountDetector
+  public const int DEFAULT_CAP = 8
+  public function detect(): int
+  public function detectMax(): int
+
+final class Phel\Shared\Process\GitChangedFiles
+  public function changedFiles(?string $ref, string $projectDir): array
+
+final class Phel\Shared\Process\GitUnavailableException extends RuntimeException
 
 final class Phel\Shared\Process\WorkerFrame
   public static function decodeBody(string $body): array

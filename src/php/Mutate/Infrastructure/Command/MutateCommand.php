@@ -16,6 +16,7 @@ use Phel\Mutate\Domain\MutationReport;
 use Phel\Mutate\MutateConfig;
 use Phel\Mutate\MutateFacade;
 use Phel\Mutate\MutateFactory;
+use Phel\Shared\Process\GitUnavailableException;
 use Phel\Shared\ScalarCoercion;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputArgument;
@@ -31,7 +32,9 @@ use function explode;
 use function file_put_contents;
 use function is_numeric;
 use function is_string;
+use function microtime;
 use function sprintf;
+use function strtolower;
 use function trim;
 
 /**
@@ -68,11 +71,17 @@ final class MutateCommand extends Command
 
     private const string OPT_MIN_MSI = 'min-msi';
 
+    private const string OPT_MIN_COVERED_MSI = 'min-covered-msi';
+
     private const string OPT_REPORTER = 'reporter';
 
     private const string OPT_OUTPUT = 'output';
 
     private const string OPT_TIMEOUT_FACTOR = 'timeout-factor';
+
+    private const string OPT_PARALLEL = 'parallel';
+
+    private const string OPT_CHANGED = 'changed';
 
     private const string REPORTER_TEXT = 'text';
 
@@ -91,9 +100,12 @@ final class MutateCommand extends Command
             ->addOption(self::OPT_TESTS, null, InputOption::VALUE_REQUIRED | InputOption::VALUE_IS_ARRAY, 'Test files or directories to run against every mutant. Repeatable. Default: the project test dirs.')
             ->addOption(self::OPT_ONLY, null, InputOption::VALUE_REQUIRED, 'Comma-separated mutator ids to use, e.g. "arith,compare". Default: all.')
             ->addOption(self::OPT_MIN_MSI, null, InputOption::VALUE_REQUIRED, 'Fail (exit 1) when the mutation score indicator is below this percentage.')
+            ->addOption(self::OPT_MIN_COVERED_MSI, null, InputOption::VALUE_REQUIRED, 'Fail (exit 1) when the covered MSI (over the mutants some test reaches) is below this percentage.')
             ->addOption(self::OPT_REPORTER, null, InputOption::VALUE_REQUIRED, 'Report format: "text" (default) or "json".', self::REPORTER_TEXT, [self::REPORTER_TEXT, self::REPORTER_JSON])
             ->addOption(self::OPT_OUTPUT, 'o', InputOption::VALUE_REQUIRED, 'Write the report to a file instead of stdout.')
             ->addOption(self::OPT_TIMEOUT_FACTOR, null, InputOption::VALUE_REQUIRED, 'A mutant whose test run takes longer than this many times the baseline is a timeout (counts as killed). Never below 1 second.', '3')
+            ->addOption(self::OPT_PARALLEL, null, InputOption::VALUE_REQUIRED, 'Worker subprocesses to run mutants on: an integer, or "auto" (CPU count, capped at 8).', '1', ['auto'])
+            ->addOption(self::OPT_CHANGED, null, InputOption::VALUE_OPTIONAL, 'Mutate only the source files git reports as changed: uncommitted changes (or the changes since the merge base with the default branch when clean), or `git diff <ref>` with a value.', false)
             ->setHelp(<<<'HELP'
 Runs the unmutated suite once (it must be green), then evaluates every mutant in a
 worker subprocess: the mutated definition replaces the original, the tests run, and
@@ -105,6 +117,8 @@ Examples:
   phel mutate src/app/calc.phel            One file
   phel mutate --only=arith,compare         Two mutators
   phel mutate --min-msi=80 --reporter=json -o var/mutation.json
+  phel mutate --parallel=auto              One worker per CPU (capped at 8)
+  phel mutate --changed                    Only the source files with uncommitted changes
 HELP);
     }
 
@@ -121,20 +135,25 @@ HELP);
         try {
             $plan = $this->getFacade()->plan($options);
             $mutants = $this->getFacade()->generate($plan, $options);
-        } catch (InvalidArgumentException $invalidArgumentException) {
-            $output->writeln('<error>' . $invalidArgumentException->getMessage() . '</error>');
+        } catch (InvalidArgumentException|GitUnavailableException $exception) {
+            $output->writeln('<error>' . $exception->getMessage() . '</error>');
 
             return self::EXIT_INVOCATION_ERROR;
         }
 
         $output->writeln(sprintf(
-            'Mutating %d file(s), %d mutant(s), testing with %d namespace(s)...',
+            'Mutating %d file(s), %d mutant(s), testing with %d namespace(s) on %d worker(s)...',
             count($plan->sourceFiles),
             count($mutants),
             count($plan->testNamespaces),
+            $options->workers,
         ));
 
         try {
+            $startedAt = microtime(true);
+            $this->getFacade()->warm($plan);
+            $output->writeln(sprintf('Loaded %d file(s) in %.1fs; starting %d worker(s)...', count($plan->loadOrder), microtime(true) - $startedAt, $options->workers));
+
             $report = $this->getFacade()->run($plan, $options, $mutants, static function (MutantResult $result) use ($output): void {
                 $output->write(self::marker($result));
             });
@@ -149,8 +168,16 @@ HELP);
         $output->writeln('');
         $this->writeReport($output, $report, $input);
 
-        if (!$report->meetsMinimum($options->minMsi)) {
-            $output->writeln(sprintf('<error>MSI %.1f%% is below the required %.1f%%.</error>', $report->msi(), (float) $options->minMsi));
+        if (!$report->meetsMinimum($options->minMsi, $options->minCoveredMsi)) {
+            $output->writeln(sprintf(
+                '<error>MSI %.1f%% (covered %.1f%%) is below the required %s.</error>',
+                $report->msi(),
+                $report->coveredMsi(),
+                implode(' / ', array_filter([
+                    $options->minMsi === null ? null : sprintf('MSI %.1f%%', $options->minMsi),
+                    $options->minCoveredMsi === null ? null : sprintf('covered MSI %.1f%%', $options->minCoveredMsi),
+                ])),
+            ));
 
             return self::FAILURE;
         }
@@ -170,6 +197,11 @@ HELP);
             throw new InvalidArgumentException('--min-msi must be a number between 0 and 100.');
         }
 
+        $minCoveredMsi = $input->getOption(self::OPT_MIN_COVERED_MSI);
+        if ($minCoveredMsi !== null && !is_numeric($minCoveredMsi)) {
+            throw new InvalidArgumentException('--min-covered-msi must be a number between 0 and 100.');
+        }
+
         $factor = $input->getOption(self::OPT_TIMEOUT_FACTOR);
         if (!is_numeric($factor) || (float) $factor <= 0) {
             throw new InvalidArgumentException('--timeout-factor must be a positive number.');
@@ -179,6 +211,7 @@ HELP);
         $paths = (array) $input->getArgument(self::ARG_PATHS);
         /** @var list<string> $tests */
         $tests = (array) $input->getOption(self::OPT_TESTS);
+        $changed = $input->getOption(self::OPT_CHANGED);
 
         return new MutateOptions(
             $paths,
@@ -186,7 +219,25 @@ HELP);
             $mutators,
             (float) $factor,
             $minMsi === null ? null : (float) $minMsi,
+            $minCoveredMsi === null ? null : (float) $minCoveredMsi,
+            $this->parseWorkers($input),
+            $changed !== false,
+            is_string($changed) && $changed !== '' ? $changed : null,
         );
+    }
+
+    private function parseWorkers(InputInterface $input): int
+    {
+        $raw = $input->getOption(self::OPT_PARALLEL);
+        if (is_string($raw) && strtolower($raw) === 'auto') {
+            return $this->getFacade()->detectWorkerCount();
+        }
+
+        if (!is_numeric($raw) || (int) $raw < 1) {
+            throw new InvalidArgumentException('--parallel must be an integer >= 1 or "auto".');
+        }
+
+        return (int) $raw;
     }
 
     private function writeReport(OutputInterface $output, MutationReport $report, InputInterface $input): void
@@ -219,6 +270,7 @@ HELP);
             MutantVerdict::Survived => 'S',
             MutantVerdict::Error => 'E',
             MutantVerdict::Timeout => 'T',
+            MutantVerdict::NotCovered => 'N',
         };
     }
 }

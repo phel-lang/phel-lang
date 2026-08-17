@@ -8,6 +8,7 @@ use Gacela\Framework\ServiceResolver\ServiceMap;
 use Gacela\Framework\ServiceResolverAwareTrait;
 use Phel\Mutate\Application\MutantWorkerSession;
 use Phel\Mutate\Application\MutationRunner;
+use Phel\Mutate\Domain\TestsByLine;
 use Phel\Mutate\MutateConfig;
 use Phel\Mutate\MutateFacade;
 use Phel\Mutate\MutateFactory;
@@ -21,6 +22,7 @@ use Throwable;
 use function fclose;
 use function fopen;
 use function fwrite;
+use function is_array;
 
 /**
  * Hidden subcommand: the `phel mutate` worker. Lives for the whole run and
@@ -90,16 +92,44 @@ final class MutateWorkerCommand extends Command
             return match (ScalarCoercion::toString($frame['type'] ?? null)) {
                 MutationRunner::TYPE_LOAD => $this->load($session, $frame),
                 MutationRunner::TYPE_BASELINE => ['ok' => true] + $session->baseline(),
+                MutationRunner::TYPE_COVERAGE => $this->adoptCoverage($session, $frame),
                 MutationRunner::TYPE_MUTANT => ['ok' => true] + $session->mutant(
                     ScalarCoercion::toString($frame['ns'] ?? null),
                     ScalarCoercion::toString($frame['code'] ?? null),
                     ScalarCoercion::toString($frame['restore'] ?? null),
+                    ScalarCoercion::toString($frame['file'] ?? null),
+                    $this->lineRange($frame['lines'] ?? null),
                 ),
                 default => ['ok' => false, 'error' => 'unknown frame type'],
             };
         } catch (Throwable $throwable) {
             return ['ok' => false, 'error' => $throwable->getMessage()];
         }
+    }
+
+    /**
+     * @param array<string, mixed> $frame
+     *
+     * @return array<string, mixed>
+     */
+    private function adoptCoverage(MutantWorkerSession $session, array $frame): array
+    {
+        $raw = $frame['testsByLine'] ?? null;
+        $session->adoptCoverage(is_array($raw) ? TestsByLine::fromWire($raw) : []);
+
+        return ['ok' => true];
+    }
+
+    /**
+     * @return array{0: int, 1: int}|null
+     */
+    private function lineRange(mixed $raw): ?array
+    {
+        if (!is_array($raw) || !isset($raw[0], $raw[1])) {
+            return null;
+        }
+
+        return [ScalarCoercion::toInt($raw[0]), ScalarCoercion::toInt($raw[1])];
     }
 
     /**

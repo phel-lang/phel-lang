@@ -63,6 +63,30 @@ interface RunFacadeInterface
     public function flushCompiledCodeCache(): void;
 
     /**
+     * Starts attributing coverage to each test of the `phel.test` runs that
+     * follow (through the `phel.test/*event-hook*`), when a coverage driver
+     * (pcov, or xdebug in coverage mode) is available. Returns the driver
+     * name, or null when none is available and nothing was started.
+     * `phel.test` must be loaded.
+     */
+    public function beginPerTestCoverage(): ?string;
+
+    /**
+     * Which tests executed each project `.phel` line so far:
+     * `file => line => list of "ns/test-name"`. Empty when nothing was
+     * attributed.
+     *
+     * @return array<string, array<int, list<string>>>
+     */
+    public function perTestCoverageByLine(): array;
+
+    /**
+     * Stops attributing; the hook is removed and the test runs pay no
+     * coverage cost any more.
+     */
+    public function endPerTestCoverage(): void;
+
+    /**
      * @param list<string> $paths
      *
      * @return list<NamespaceInformation>

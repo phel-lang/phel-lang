@@ -12,13 +12,13 @@ use Phel\Run\Application\Test\Coverage\CoverageReport;
 use Phel\Run\Application\Test\Coverage\HtmlCoverageRenderer;
 use Phel\Run\Application\Test\Coverage\PerTestCoverageCollector;
 use Phel\Run\Application\Test\SharedNamespaces;
-use Phel\Run\Domain\Test\ChangedFilesUnavailableException;
 use Phel\Run\Domain\Test\TestCommandOptions;
 use Phel\Run\Domain\Test\TestNamespacePruner;
 use Phel\Run\RunFacade;
 use Phel\Shared\CompileOptions;
 use Phel\Shared\Exceptions\CompilerException;
 use Phel\Shared\NamespaceInformation;
+use Phel\Shared\Process\GitUnavailableException;
 use Phel\Shared\ResourceUsageFormatter;
 use Phel\Shared\ScalarCoercion;
 use Symfony\Component\Console\Command\Command;
@@ -351,7 +351,7 @@ HELP)
             }
 
             return $successful ? self::SUCCESS : self::FAILURE;
-        } catch (ChangedFilesUnavailableException $e) {
+        } catch (GitUnavailableException $e) {
             $output->writeln('<error>' . $e->getMessage() . '</error>');
         } catch (CompilerException $e) {
             $this->getFacade()->writeLocatedException($output, $e);

@@ -45,6 +45,19 @@ final readonly class Mutant
     }
 
     /**
+     * First and last line of the whole definition in the file. Coverage is
+     * matched against the definition, not the single mutated line: a test
+     * that runs the function is what can catch the mutant, and the source
+     * map may put a body form on the `defn` line.
+     *
+     * @return array{0: int, 1: int}
+     */
+    public function lineRange(): array
+    {
+        return [$this->formLine, $this->formLine + count(explode("\n", $this->originalForm)) - 1];
+    }
+
+    /**
      * The changed lines of the definition, `-` original and `+` mutated,
      * with their line numbers in the file. A mutation touches one node, so
      * the lines that differ are the run between the first and the last

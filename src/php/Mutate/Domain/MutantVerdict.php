@@ -28,4 +28,9 @@ enum MutantVerdict: string
      * The tests did not finish within the budget; treated as noticed.
      */
     case Timeout = 'timeout';
+
+    /**
+     * No test executes the definition; nothing was run.
+     */
+    case NotCovered = 'not-covered';
 }

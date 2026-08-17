@@ -24,11 +24,13 @@ use function substr;
 use function usleep;
 
 /**
- * One `phel _mutate-worker` subprocess seen from the parent: send a frame,
- * wait for the answer up to a deadline. The subprocess exists so that a
- * mutant which never terminates or crashes the interpreter costs one
- * worker, not the run; {@see request()} reports both as `null` and the
- * caller checks {@see isAlive()} to tell them apart.
+ * One `phel _mutate-worker` subprocess seen from the parent. Frames go out
+ * with {@see send()} and answers come back through {@see tryReceive()},
+ * so a pool can keep several workers busy from one loop; {@see request()}
+ * is the blocking pair for the load and baseline steps. The subprocess
+ * exists so that a mutant which never terminates or crashes the
+ * interpreter costs one worker, not the run; a silent worker is told apart
+ * from a dead one with {@see isDead()}.
  *
  * @internal
  */
@@ -46,6 +48,9 @@ final class MutantWorker
     private readonly mixed $stderr;
 
     private string $readBuffer = '';
+
+    /** Wall-clock deadline of the frame in flight, null when idle. */
+    private ?float $deadline = null;
 
     /**
      * @param closed-resource|resource $process
@@ -90,29 +95,68 @@ final class MutantWorker
      */
     public function request(array $frame, float $timeoutSeconds): ?array
     {
-        $this->writeAll(WorkerFrame::encode($frame));
+        $this->send($frame, $timeoutSeconds);
 
-        $deadline = microtime(true) + $timeoutSeconds;
         while (true) {
-            $answer = $this->tryReadFrame();
+            $answer = $this->tryReceive();
             if ($answer !== null) {
                 return $answer;
             }
 
-            if (!$this->isAlive() && $this->tryReadFrame() === null) {
+            if ($this->isDead() || $this->isOverdue()) {
+                $this->deadline = null;
+
                 return null;
             }
 
-            if (microtime(true) >= $deadline) {
-                return null;
-            }
-
-            $reads = [$this->stdout];
-            $writes = null;
-            $exceptions = null;
-            /** @psalm-suppress InvalidArgument */
-            @stream_select($reads, $writes, $exceptions, 0, self::SELECT_TIMEOUT_MICROS);
+            $this->waitForOutput();
         }
+    }
+
+    /**
+     * Send `$frame` without waiting; the answer arrives through
+     * {@see tryReceive()} and the worker is overdue once `$timeoutSeconds`
+     * pass without one.
+     *
+     * @param array<string, mixed> $frame
+     */
+    public function send(array $frame, float $timeoutSeconds): void
+    {
+        $this->deadline = microtime(true) + $timeoutSeconds;
+        $this->writeAll(WorkerFrame::encode($frame));
+    }
+
+    /**
+     * The next complete answer, or null when none is buffered yet.
+     *
+     * @return array<string, mixed>|null
+     */
+    public function tryReceive(): ?array
+    {
+        $answer = $this->tryReadFrame();
+        if ($answer !== null) {
+            $this->deadline = null;
+        }
+
+        return $answer;
+    }
+
+    public function isBusy(): bool
+    {
+        return $this->deadline !== null;
+    }
+
+    public function isOverdue(): bool
+    {
+        return $this->deadline !== null && microtime(true) >= $this->deadline;
+    }
+
+    /**
+     * Dead and with nothing left to read: a crash, not a slow answer.
+     */
+    public function isDead(): bool
+    {
+        return !$this->isAlive() && $this->tryReadFrame() === null;
     }
 
     public function isAlive(): bool
@@ -124,6 +168,18 @@ final class MutantWorker
         $status = @proc_get_status($this->process);
 
         return $status['running'];
+    }
+
+    /**
+     * Block for at most one poll interval until this worker has output.
+     */
+    public function waitForOutput(): void
+    {
+        $reads = [$this->stdout];
+        $writes = null;
+        $exceptions = null;
+        /** @psalm-suppress InvalidArgument */
+        @stream_select($reads, $writes, $exceptions, 0, self::SELECT_TIMEOUT_MICROS);
     }
 
     public function readStderr(): string

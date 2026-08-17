@@ -5,10 +5,10 @@ declare(strict_types=1);
 namespace PhelTest\Unit\Run\Infrastructure\Command;
 
 use InvalidArgumentException;
-use Phel\Run\Application\Test\CpuCountDetector;
 use Phel\Run\Domain\Test\TestCommandOptions;
 use Phel\Run\Infrastructure\Command\TestCommand;
 use Phel\Run\Infrastructure\Command\TestCommandOptionParser;
+use Phel\Shared\Process\CpuCountDetector;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\Console\Input\ArrayInput;
 use Symfony\Component\Console\Output\NullOutput;

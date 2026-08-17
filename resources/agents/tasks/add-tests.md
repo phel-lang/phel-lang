@@ -59,6 +59,7 @@ Namespace: `tests.<name>-test`.
 ./vendor/bin/phel test --coverage                       # .phel line coverage (pcov or XDEBUG_MODE=coverage)
 ./vendor/bin/phel test --coverage=per-test --coverage-output=var/coverage/per-test.json  # which tests cover which lines
 ./vendor/bin/phel mutate [src/app/calc.phel] [--min-msi=80]   # mutation testing: lists the mutants the suite misses
+XDEBUG_MODE=coverage ./vendor/bin/phel mutate --parallel=auto --changed   # coverage-guided, one worker per CPU, only changed files
 ```
 
 ## Assertion forms (inside `is`)

@@ -279,6 +279,18 @@ final class FakeRunFacade implements RunFacadeInterface
 
     public function flushCompiledCodeCache(): void {}
 
+    public function beginPerTestCoverage(): ?string
+    {
+        return null;
+    }
+
+    public function perTestCoverageByLine(): array
+    {
+        return [];
+    }
+
+    public function endPerTestCoverage(): void {}
+
     public function structuredEval(string $phelCode, CompileOptions $compileOptions): EvalResult
     {
         return EvalResult::success(null);
