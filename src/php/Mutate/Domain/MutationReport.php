@@ -96,7 +96,7 @@ final readonly class MutationReport
             $this->count(MutantVerdict::Error),
             $this->count(MutantVerdict::Timeout),
         );
-        $lines[] = sprintf('MSI: %.1f%%  Covered MSI: %.1f%%', $this->msi(), $this->coveredMsi());
+        $lines[] = sprintf('MSI: %.1f%%  Covered MSI: %.1f%%  Baseline: %.1fs', $this->msi(), $this->coveredMsi(), $this->baselineSeconds);
         $lines[] = $this->coverageDriver === ''
             ? 'Coverage: none (every mutant ran the whole suite)'
             : sprintf('Coverage: %s (each mutant ran only the tests that reach its definition)', $this->coverageDriver);

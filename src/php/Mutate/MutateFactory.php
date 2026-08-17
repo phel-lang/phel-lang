@@ -11,6 +11,7 @@ use Phel\Mutate\Application\MutantWorker;
 use Phel\Mutate\Application\MutantWorkerSession;
 use Phel\Mutate\Application\MutationPlanner;
 use Phel\Mutate\Application\MutationRunner;
+use Phel\Mutate\Application\ProjectWarmer;
 use Phel\Mutate\Domain\MutateOptions;
 use Phel\Mutate\Domain\MutationPlan;
 use Phel\Mutate\Domain\Mutator\MutatorRegistry;
@@ -60,6 +61,11 @@ final class MutateFactory extends AbstractFactory
             $options->timeoutFactor,
             $options->workers,
         );
+    }
+
+    public function createProjectWarmer(): ProjectWarmer
+    {
+        return new ProjectWarmer($this->getRunFacade());
     }
 
     public function createWorkerSession(): MutantWorkerSession

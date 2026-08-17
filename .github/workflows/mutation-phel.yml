@@ -57,9 +57,6 @@ jobs:
         with:
           coverage: xdebug
 
-      - name: Warm the compiled-code cache
-        run: ./bin/phel test --ns 'nothing.matches' > /dev/null || true
-
       - name: Run phel mutate
         env:
           XDEBUG_MODE: coverage

@@ -12,6 +12,7 @@ project, with no PHP dependency added.
 |--------|---------|
 | `plan(MutateOptions)` | `MutationPlan`: source files to mutate, worker load order, test namespaces |
 | `generate(MutationPlan, MutateOptions)` | `list<Mutant>` from the selected mutators |
+| `warm(MutationPlan)` | compiles the load order once in the parent and flushes the cache index, so workers never race a cold cache |
 | `run(MutationPlan, MutateOptions, list<Mutant>, ?Closure $onResult)` | `MutationReport`; throws `BaselineFailedException` (red suite) or `WorkerFailedException` (worker could not load) |
 | `detectWorkerCount()` | what `--parallel=auto` means here (`Shared\Process\CpuCountDetector`, capped at 8) |
 | `createWorkerSession()` | `MutantWorkerSession`, the worker side of the protocol for `phel _mutate-worker` |
@@ -34,6 +35,7 @@ No module imports `Mutate`; `Console` only wraps its commands. No
 - `Domain/`: `Mutant` (file, ns, definition, line, form line, mutator, description, original + mutated form, `diff()`, `lineRange()`), `MutantVerdict` (`killed | survived | error | timeout | not-covered`), `MutantResult`, `MutationReport` (totals, MSI + covered MSI, coverage driver, `toText()`, `toJson()`), `MutateOptions`, `MutationPlan`, `TestsByLine` (the attribution as it travels over the wire), exceptions.
 - `Application/MutantGenerator`: walks the CST; sites are every non-trivia child of every list inside a definition body; each mutant is one `replaceChildren()` in place, `getCode()` of the whole top-level form, then the original children back.
 - `Application/MutationPlanner`: options + project config to `MutationPlan`; `--changed` keeps only the source files `Shared\Process\GitChangedFiles` reports (file-level: a changed line invalidates what its whole definition does, and the definition is what a mutant redefines).
+- `Application/ProjectWarmer` (parent): `evalFile` of the whole load order + `flushCompiledCodeCache()` before any worker spawns.
 - `Application/MutationRunner` (parent): a pool of `MutantWorker`s (`phel _mutate-worker` subprocesses, `WorkerFrame` over stdin/stdout, `send()` / `tryReceive()` with a deadline). All workers load and baseline at once, then mutants are handed out as workers come free; the first worker's baseline is authoritative.
 - `Application/MutantWorkerSession` (worker): `load()` evaluates the files and switches on `*interactive-mode*`; `baseline()` runs the suite under `beginPerTestCoverage()` when a driver is available and keeps `file => line => tests`; `mutant()` = pick the tests whose coverage reaches the definition's line range (`not-covered` when none, run everything when no attribution), `setNs` + eval mutated form, `run-tests` with `:only-tests`, eval original form.
 - `Infrastructure/Command/`: `MutateCommand` (`mutate`), `MutateWorkerCommand` (`_mutate-worker`, hidden).

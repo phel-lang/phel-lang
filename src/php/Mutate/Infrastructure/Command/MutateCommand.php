@@ -32,6 +32,7 @@ use function explode;
 use function file_put_contents;
 use function is_numeric;
 use function is_string;
+use function microtime;
 use function sprintf;
 use function strtolower;
 use function trim;
@@ -149,6 +150,10 @@ HELP);
         ));
 
         try {
+            $startedAt = microtime(true);
+            $this->getFacade()->warm($plan);
+            $output->writeln(sprintf('Loaded %d file(s) in %.1fs; starting %d worker(s)...', count($plan->loadOrder), microtime(true) - $startedAt, $options->workers));
+
             $report = $this->getFacade()->run($plan, $options, $mutants, static function (MutantResult $result) use ($output): void {
                 $output->write(self::marker($result));
             });

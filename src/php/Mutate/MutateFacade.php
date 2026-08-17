@@ -42,6 +42,16 @@ final class MutateFacade extends AbstractFacade
     }
 
     /**
+     * Compiles the plan's load order once and flushes the cache index, so the
+     * workers spawned afterwards find everything compiled instead of racing
+     * each other on a cold cache.
+     */
+    public function warm(MutationPlan $plan): void
+    {
+        $this->getFactory()->createProjectWarmer()->warm($plan->loadOrder);
+    }
+
+    /**
      * Runs the baseline and every mutant in a worker subprocess.
      *
      * @param list<Mutant>                     $mutants

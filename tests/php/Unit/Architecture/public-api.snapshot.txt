@@ -1517,6 +1517,7 @@ final class Phel\Mutate\MutateFacade extends Gacela\Framework\AbstractFacade
   public function generate(Phel\Mutate\Domain\MutationPlan $plan, Phel\Mutate\Domain\MutateOptions $options): array
   public function plan(Phel\Mutate\Domain\MutateOptions $options): Phel\Mutate\Domain\MutationPlan
   public function run(Phel\Mutate\Domain\MutationPlan $plan, Phel\Mutate\Domain\MutateOptions $options, array $mutants, ?Closure $onResult = null): Phel\Mutate\Domain\MutationReport
+  public function warm(Phel\Mutate\Domain\MutationPlan $plan): void
 
 final class Phel\Nrepl\NreplFacade extends Gacela\Framework\AbstractFacade
   public function createSocketServer(int $port, string $host, ?callable $logger = null): Phel\Nrepl\Infrastructure\NreplSocketServer
