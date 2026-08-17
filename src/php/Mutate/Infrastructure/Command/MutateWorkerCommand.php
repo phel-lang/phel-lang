@@ -8,6 +8,7 @@ use Gacela\Framework\ServiceResolver\ServiceMap;
 use Gacela\Framework\ServiceResolverAwareTrait;
 use Phel\Mutate\Application\MutantWorkerSession;
 use Phel\Mutate\Application\MutationRunner;
+use Phel\Mutate\Domain\TestsByLine;
 use Phel\Mutate\MutateConfig;
 use Phel\Mutate\MutateFacade;
 use Phel\Mutate\MutateFactory;
@@ -22,7 +23,6 @@ use function fclose;
 use function fopen;
 use function fwrite;
 use function is_array;
-use function is_string;
 
 /**
  * Hidden subcommand: the `phel mutate` worker. Lives for the whole run and
@@ -115,24 +115,7 @@ final class MutateWorkerCommand extends Command
     private function adoptCoverage(MutantWorkerSession $session, array $frame): array
     {
         $raw = $frame['testsByLine'] ?? null;
-        $testsByLine = [];
-        if (is_array($raw)) {
-            foreach ($raw as $file => $lines) {
-                if (!is_string($file)) {
-                    continue;
-                }
-
-                if (!is_array($lines)) {
-                    continue;
-                }
-
-                foreach ($lines as $line => $tests) {
-                    $testsByLine[$file][(int) $line] = ScalarCoercion::toStringList($tests);
-                }
-            }
-        }
-
-        $session->adoptCoverage($testsByLine);
+        $session->adoptCoverage(is_array($raw) ? TestsByLine::fromWire($raw) : []);
 
         return ['ok' => true];
     }

@@ -11,6 +11,7 @@ use Phel\Mutate\Domain\Mutant;
 use Phel\Mutate\Domain\MutantResult;
 use Phel\Mutate\Domain\MutantVerdict;
 use Phel\Mutate\Domain\MutationReport;
+use Phel\Mutate\Domain\TestsByLine;
 use Phel\Shared\ScalarCoercion;
 
 use function array_key_exists;
@@ -353,39 +354,8 @@ final class MutationRunner
             $this->baselineSeconds = ScalarCoercion::toFloat($baseline['seconds'] ?? null);
             $this->coverageDriver = ScalarCoercion::toString($baseline['coverage'] ?? null);
             $testsByLine = $baseline['testsByLine'] ?? null;
-            $this->testsByLine = $this->coverageDriver !== '' && is_array($testsByLine) ? $this->testsByLine($testsByLine) : null;
+            $this->testsByLine = $this->coverageDriver !== '' && is_array($testsByLine) ? TestsByLine::fromWire($testsByLine) : null;
         }
-    }
-
-    /**
-     * The attribution as it came back over JSON: files to lines to test ids.
-     *
-     * @param array<mixed, mixed> $raw
-     *
-     * @return array<string, array<int, list<string>>>
-     */
-    private function testsByLine(array $raw): array
-    {
-        $out = [];
-        foreach ($raw as $file => $lines) {
-            if (!is_string($file)) {
-                continue;
-            }
-
-            if (!is_array($lines)) {
-                continue;
-            }
-
-            foreach ($lines as $line => $tests) {
-                if (!is_array($tests)) {
-                    continue;
-                }
-
-                $out[$file][(int) $line] = ScalarCoercion::toStringList($tests);
-            }
-        }
-
-        return $out;
     }
 
     /**
