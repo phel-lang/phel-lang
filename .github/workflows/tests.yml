@@ -69,7 +69,7 @@ jobs:
           php-version: ${{ matrix.php }}
 
       - name: Run tests to the core library
-        run: php -d memory_limit=256M ./bin/phel test ${{ matrix.exclude-tags }}
+        run: php ./bin/phel test ${{ matrix.exclude-tags }}
 
   # `optimizationLevel` defaults to 0, so without this job nothing in CI ever
   # runs `CallInliner` or `TailCallRewriter`. That is how -O2 came to fail five
@@ -93,7 +93,7 @@ jobs:
           PHEL_OPTIMIZATION_LEVEL: '2'
         run: |
           rm -rf ./.phel/cache
-          php -d memory_limit=256M ./bin/phel test
+          php ./bin/phel test
 
   # Windows is the "Best effort" tier in docs/stability.md: bugs are accepted and
   # fixed, but a Windows-only failure does not block a release, so this job reports
@@ -130,7 +130,7 @@ jobs:
       - name: Run tests to the core library
         id: core
         continue-on-error: true
-        run: php -d memory_limit=256M bin/phel test
+        run: php bin/phel test
 
       - name: Report the outcome
         run: |

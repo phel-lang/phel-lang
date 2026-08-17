@@ -3,7 +3,11 @@
 
 declare(strict_types=1);
 
-// Raise memory limit for compiler/tokenizer workloads (mirrors composer bin behavior).
+// Lift the memory limit for compiler workloads (mirrors composer bin behavior).
+// Unconditional on purpose: a `-d memory_limit=…` or php.ini ceiling is
+// overridden too, so a compile never dies on a limit tuned for web requests
+// (a cold `phel test` here peaks near 1 GB, a warm one under 250 MB). A
+// memory_limit flag on a `phel` invocation therefore does nothing.
 if (function_exists('ini_set')) {
     @ini_set('memory_limit', '-1');
 }
