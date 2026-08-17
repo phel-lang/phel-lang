@@ -116,7 +116,14 @@ phel completion zsh       # (optional) enable tab-completion
 ```sh
 phel test --watch         # re-run tests on change
 phel watch                # hot-reload namespaces instead
+phel format --dry-run     # check formatting; --exclude='src/*_data.phel' skips generated files
 ```
+
+`phel format` walks `format-dirs`; a glob passed as `--exclude` (repeatable) or
+listed under the `format-exclude` config key is skipped, matched against each
+path as found and relative to the working directory, with `*` spanning
+directories. Use it for baked data files and vendored trees that live beside
+their consumers.
 
 Both reuse the compiled-code cache, so a one-file edit recompiles only the
 affected namespaces. `phel repl` (or `phel nrepl` from your editor) for

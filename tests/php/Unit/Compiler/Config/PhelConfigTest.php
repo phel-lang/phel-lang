@@ -37,6 +37,7 @@ final class PhelConfigTest extends TestCase
             PhelConfig::KEEP_GENERATED_TEMP_FILES => false,
             PhelConfig::TEMP_DIR => sys_get_temp_dir() . '/phel/tmp',
             PhelConfig::FORMAT_DIRS => ['src', 'tests'],
+            PhelConfig::FORMAT_EXCLUDE => [],
             PhelConfig::APP_MODULE_PATHS => [],
             PhelConfig::ASSERTS_ENABLED => true,
             PhelConfig::WARN_DEPRECATIONS => false,
@@ -223,6 +224,7 @@ final class PhelConfigTest extends TestCase
             ->withKeepGeneratedTempFiles(true)
             ->withTempDir('/tmp/custom')
             ->withFormatDirs(['src', 'tests', 'phel'])
+            ->withFormatExclude(['src/*_data.phel'])
             ->withEnableAsserts(false)
             ->withWarnDeprecations(true)
             ->withCacheDir('.cache')
@@ -249,6 +251,7 @@ final class PhelConfigTest extends TestCase
             PhelConfig::KEEP_GENERATED_TEMP_FILES => true,
             PhelConfig::TEMP_DIR => '/tmp/custom',
             PhelConfig::FORMAT_DIRS => ['src', 'tests', 'phel'],
+            PhelConfig::FORMAT_EXCLUDE => ['src/*_data.phel'],
             PhelConfig::APP_MODULE_PATHS => [],
             PhelConfig::ASSERTS_ENABLED => false,
             PhelConfig::WARN_DEPRECATIONS => true,

@@ -6,7 +6,7 @@ Code formatter for `phel format`: lex/parse Phel source to a parse tree, apply o
 
 | Method | Notes |
 |--------|-------|
-| `format(array $paths, OutputInterface $output, bool $dryRun = false): FormatResult` | Discovers `.phel` files under `$paths` and formats each one. |
+| `format(array $paths, OutputInterface $output, bool $dryRun = false, array $exclude = []): FormatResult` | Discovers `.phel` files under `$paths` and formats each one; a file matching an `$exclude` glob (`Domain/ExcludePatterns`: `fnmatch` against the path as found and relative to cwd, `*` spans directories) is skipped and lands in neither result list, named under `-v`. |
 | `formatString(string $source, string $uri = FormatterInterface::DEFAULT_SOURCE): string` | Formats in memory; no filesystem access. |
 
 ### `FormatResult` contract
@@ -25,7 +25,7 @@ Each path lands in at most one bucket; an already-formatted file appears in neit
 
 - `CompilerFacadeInterface::class` — lex + parse to parse tree (`lexString`, `parseAll`).
 - `CommandFacadeInterface::class` — CLI output.
-- Config — `FormatterConfig.getFormatDirs()` reads `PhelConfig::FORMAT_DIRS`, defaults to `['src', 'tests']`.
+- Config — `FormatterConfig.getFormatDirs()` reads `PhelConfig::FORMAT_DIRS`, defaults to `['src', 'tests']`; `getFormatExclude()` reads `PhelConfig::FORMAT_EXCLUDE` (default none), which `FormatCommand` unions with `--exclude`.
 
 Both getters return the Shared contract, never a concrete facade, and `SatelliteFactoryFacadeInjectionTest` pins the return types. The residual `Formatter -> Compiler` imports are exception types named in `@throws` (`LexerValueException`, `AbstractParserException`), not behaviour.
 
@@ -57,6 +57,7 @@ Symbol lists live as `FormatterFactory` constants; `createIndentRule()` instanti
 | `Application/Formatter.php` | Runs the rule pipeline over one source string |
 | `Application/PathsFormatter.php` | Discovers files, formats each, reports changes |
 | `Application/PhelPathFilter.php` | Recursively finds `.phel` files (impl of `PathFilterInterface`) |
+| `Domain/ExcludePatterns.php` | The globs `phel format` skips (`--exclude` + `format-exclude`) |
 | `Domain/Rules/` | Rule classes + `IndentRule` |
 | `Domain/Rules/Indenter/` | `BlockIndenter`, `InnerIndenter`, `LineIndenter`, `ListIndenter`; `FormSymbolMatcherTrait` reads a location's head symbol and matches it against the indenter's symbol |
 | `Domain/Rules/Pair/PairAligner.php` | Backing logic for `AlignPairsRule` |

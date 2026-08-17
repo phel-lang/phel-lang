@@ -14,6 +14,8 @@ use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
 
+use function array_unique;
+use function array_values;
 use function count;
 use function sprintf;
 
@@ -29,6 +31,8 @@ final class FormatCommand extends Command
 {
     use ServiceResolverAwareTrait;
 
+    private const string OPT_EXCLUDE = 'exclude';
+
     protected function configure(): void
     {
         $this->setName('format')
@@ -39,6 +43,7 @@ Reformats `.phel` files in place (defaults to the project's format dirs).
 <info>Examples:</info>
   <comment>phel format</comment>                Format all configured directories
   <comment>phel format src/main.phel --dry-run</comment>   Preview changes only
+  <comment>phel format --exclude='src/*_data.phel'</comment>   Leave generated data files alone
 HELP)
             ->setAliases(['fmt'])
             ->addArgument(
@@ -52,6 +57,12 @@ HELP)
                 null,
                 InputOption::VALUE_NONE,
                 'Report files that would be reformatted without modifying them. Exits non-zero when any file would change.',
+            )
+            ->addOption(
+                self::OPT_EXCLUDE,
+                null,
+                InputOption::VALUE_REQUIRED | InputOption::VALUE_IS_ARRAY,
+                'Skip files matching this glob (fnmatch; `*` spans directories), matched against the path as found and relative to the working directory. Repeatable; unioned with the `format-exclude` config key.',
             );
     }
 
@@ -60,8 +71,11 @@ HELP)
         /** @var list<string> $paths */
         $paths = $input->getArgument('paths');
         $dryRun = (bool) $input->getOption('dry-run');
+        /** @var list<string> $excludeOption */
+        $excludeOption = (array) $input->getOption(self::OPT_EXCLUDE);
+        $exclude = array_values(array_unique([...$this->getConfig()->getFormatExclude(), ...$excludeOption]));
 
-        $result = $this->getFacade()->format($paths, $output, $dryRun);
+        $result = $this->getFacade()->format($paths, $output, $dryRun, $exclude);
 
         if ($result->hasChanges()) {
             $output->writeln($dryRun ? 'Would reformat:' : 'Formatted files:');

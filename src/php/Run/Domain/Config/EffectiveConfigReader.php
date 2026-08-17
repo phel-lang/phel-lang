@@ -47,6 +47,7 @@ final class EffectiveConfigReader
         PhelConfig::KEEP_GENERATED_TEMP_FILES,
         PhelConfig::TEMP_DIR,
         PhelConfig::FORMAT_DIRS,
+        PhelConfig::FORMAT_EXCLUDE,
         PhelConfig::ASSERTS_ENABLED,
         PhelConfig::WARN_DEPRECATIONS,
         PhelConfig::ENABLE_NAMESPACE_CACHE,

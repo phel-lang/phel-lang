@@ -166,6 +166,7 @@ final readonly class Phel\Config\PhelConfig implements JsonSerializable
   public const string ERROR_LOG_FILE = 'error-log-file'
   public const string EXPORT_CONFIG = 'export'
   public const string FORMAT_DIRS = 'format-dirs'
+  public const string FORMAT_EXCLUDE = 'format-exclude'
   public const string IGNORE_WHEN_BUILDING = 'ignore-when-building'
   public const string KEEP_GENERATED_TEMP_FILES = 'keep-generated-temp-files'
   public const string NO_CACHE_WHEN_BUILDING = 'no-cache-when-building'
@@ -181,6 +182,7 @@ final readonly class Phel\Config\PhelConfig implements JsonSerializable
   public readonly Phel\Config\PhelExportConfig $exportConfig
   public readonly array $appModulePaths
   public readonly array $formatDirs
+  public readonly array $formatExclude
   public readonly array $ignoreWhenBuilding
   public readonly array $noCacheWhenBuilding
   public readonly array $srcDirs
@@ -198,13 +200,14 @@ final readonly class Phel\Config\PhelConfig implements JsonSerializable
   public readonly string $phelDir
   public readonly string $tempDir
   public readonly string $vendorDir
-  public function __construct(array $srcDirs = ['src'], array $testDirs = ['tests'], string $vendorDir = 'vendor', string $errorLogFile = '.phel/error.log', Phel\Config\PhelExportConfig $exportConfig = object(Phel\Config\PhelExportConfig), Phel\Config\PhelBuildConfig $buildConfig = object(Phel\Config\PhelBuildConfig), array $ignoreWhenBuilding = [], array $noCacheWhenBuilding = [], bool $keepGeneratedTempFiles = false, ?string $tempDir = null, string $cacheDir = '.phel/cache', array $formatDirs = ['src', 'tests'], array $appModulePaths = [], bool $enableAsserts = true, bool $warnDeprecations = false, bool $enableNamespaceCache = true, bool $enableCompiledCodeCache = true, bool $enableIntermediateCache = false, string $phelDir = '', int $optimizationLevel = 0, bool $stripSymbolMeta = false)
+  public function __construct(array $srcDirs = ['src'], array $testDirs = ['tests'], string $vendorDir = 'vendor', string $errorLogFile = '.phel/error.log', Phel\Config\PhelExportConfig $exportConfig = object(Phel\Config\PhelExportConfig), Phel\Config\PhelBuildConfig $buildConfig = object(Phel\Config\PhelBuildConfig), array $ignoreWhenBuilding = [], array $noCacheWhenBuilding = [], bool $keepGeneratedTempFiles = false, ?string $tempDir = null, string $cacheDir = '.phel/cache', array $formatDirs = ['src', 'tests'], array $formatExclude = [], array $appModulePaths = [], bool $enableAsserts = true, bool $warnDeprecations = false, bool $enableNamespaceCache = true, bool $enableCompiledCodeCache = true, bool $enableIntermediateCache = false, string $phelDir = '', int $optimizationLevel = 0, bool $stripSymbolMeta = false)
   public function getAppModulePaths(): array
   public function getBuildConfig(): Phel\Config\PhelBuildConfig
   public function getCacheDir(): string
   public function getErrorLogFile(): string
   public function getExportConfig(): Phel\Config\PhelExportConfig
   public function getFormatDirs(): array
+  public function getFormatExclude(): array
   public function getIgnoreWhenBuilding(): array
   public function getKeepGeneratedTempFiles(): bool
   public function getNoCacheWhenBuilding(): array
@@ -235,6 +238,7 @@ final readonly class Phel\Config\PhelConfig implements JsonSerializable
   public function withExportNamespacePrefix(string $prefix): Phel\Config\PhelConfig
   public function withExportTargetDirectory(string $dir): Phel\Config\PhelConfig
   public function withFormatDirs(array $list): Phel\Config\PhelConfig
+  public function withFormatExclude(array $patterns): Phel\Config\PhelConfig
   public function withIgnoreWhenBuilding(array $list): Phel\Config\PhelConfig
   public function withKeepGeneratedTempFiles(bool $flag = true): Phel\Config\PhelConfig
   public function withLayout(Phel\Config\ProjectLayout $layout): Phel\Config\PhelConfig
@@ -313,7 +317,7 @@ interface Phel\Filesystem\FilesystemFacadeInterface
   public function getTempDir(): string
 
 final class Phel\Formatter\FormatterFacade extends Gacela\Framework\AbstractFacade implements Phel\Shared\Facade\FormatterFacadeInterface
-  public function format(array $paths, Symfony\Component\Console\Output\OutputInterface $output, bool $dryRun = false): Phel\Shared\Formatter\FormatResult
+  public function format(array $paths, Symfony\Component\Console\Output\OutputInterface $output, bool $dryRun = false, array $exclude = []): Phel\Shared\Formatter\FormatResult
   public function formatString(string $source, string $uri = 'string'): string
 
 final class Phel\Interop\InteropFacade extends Gacela\Framework\AbstractFacade implements Phel\Shared\Facade\InteropFacadeInterface
@@ -1905,7 +1909,7 @@ interface Phel\Shared\Facade\ConsoleFacadeInterface
   public function runConsole(): void
 
 interface Phel\Shared\Facade\FormatterFacadeInterface
-  public function format(array $paths, Symfony\Component\Console\Output\OutputInterface $output, bool $dryRun = false): Phel\Shared\Formatter\FormatResult
+  public function format(array $paths, Symfony\Component\Console\Output\OutputInterface $output, bool $dryRun = false, array $exclude = []): Phel\Shared\Formatter\FormatResult
   public function formatString(string $source, string $uri = 'string'): string
 
 interface Phel\Shared\Facade\InteropFacadeInterface

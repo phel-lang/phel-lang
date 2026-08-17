@@ -19,12 +19,13 @@ final class FormatterFacade extends AbstractFacade implements FormatterFacadeInt
 {
     /**
      * @param list<string> $paths
+     * @param list<string> $exclude
      */
-    public function format(array $paths, OutputInterface $output, bool $dryRun = false): FormatResult
+    public function format(array $paths, OutputInterface $output, bool $dryRun = false, array $exclude = []): FormatResult
     {
         return $this->getFactory()
             ->createPathsFormatter()
-            ->format($paths, $output, $dryRun);
+            ->format($paths, $output, $dryRun, $exclude);
     }
 
     /**

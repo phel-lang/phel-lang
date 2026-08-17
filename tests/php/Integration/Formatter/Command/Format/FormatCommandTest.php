@@ -117,6 +117,41 @@ TXT;
     }
 
     /**
+     * A generated file beside its consumers is left alone by `--exclude` or the
+     * `format-exclude` config key (#3233); the two are unioned.
+     */
+    public function test_exclude_option_and_config_key_skip_matching_files(): void
+    {
+        $dir = sys_get_temp_dir() . '/phel-format-exclude-' . uniqid();
+        mkdir($dir . '/gen', 0o755, true);
+        $badFormat = "(ns probe.a)\n(defn  f  []\n1)\n";
+        file_put_contents($dir . '/a.phel', $badFormat);
+        file_put_contents($dir . '/gen/table_data.phel', $badFormat);
+        file_put_contents($dir . '/vendored.phel', $badFormat);
+
+        Gacela::bootstrap(__DIR__, static function (GacelaConfig $config): void {
+            $config->addAppConfigKeyValue(PhelConfig::FORMAT_EXCLUDE, ['*/vendored.phel']);
+        });
+
+        try {
+            $tester = $this->createCommandTester();
+            $exitCode = $tester->execute(['paths' => [$dir], '--dry-run' => true, '--exclude' => ['*/gen/*']]);
+
+            self::assertSame(Command::FAILURE, $exitCode, $tester->getDisplay());
+            self::assertStringContainsString($dir . '/a.phel', $tester->getDisplay(), 'the plain file still needs formatting');
+            self::assertStringNotContainsString('table_data.phel', $tester->getDisplay(), '--exclude skips the generated file');
+            self::assertStringNotContainsString('vendored.phel', $tester->getDisplay(), 'format-exclude skips the vendored file');
+            self::assertStringContainsString('1 file(s) need reformatting.', $tester->getDisplay());
+        } finally {
+            unlink($dir . '/a.phel');
+            unlink($dir . '/gen/table_data.phel');
+            unlink($dir . '/vendored.phel');
+            rmdir($dir . '/gen');
+            rmdir($dir);
+        }
+    }
+
+    /**
      * The fixture is unparsable on purpose, so it must not live inside the
      * repository: `phel format` walks `tests/` and would trip over it.
      */
