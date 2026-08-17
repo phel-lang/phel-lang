@@ -21,7 +21,7 @@ final class ParseTreeZipper extends AbstractZipper
 {
     public static function createRoot(NodeInterface $root): self
     {
-        return new self($root, null, [], [], false, false);
+        return new self($root, null, [], 0, false, false);
     }
 
     /**
@@ -122,17 +122,16 @@ final class ParseTreeZipper extends AbstractZipper
     /**
      * @param NodeInterface                  $node
      * @param ?AbstractZipper<NodeInterface> $parent
-     * @param list<NodeInterface>            $leftSiblings
-     * @param list<NodeInterface>            $rightSiblings
+     * @param list<NodeInterface>            $siblings
      */
     protected function createNewInstance(
         $node,
         ?AbstractZipper $parent,
-        array $leftSiblings,
-        array $rightSiblings,
+        array $siblings,
+        int $index,
         bool $hasChanged,
         bool $isEnd,
     ): static {
-        return new self($node, $parent, $leftSiblings, $rightSiblings, $hasChanged, $isEnd);
+        return new self($node, $parent, $siblings, $index, $hasChanged, $isEnd);
     }
 }

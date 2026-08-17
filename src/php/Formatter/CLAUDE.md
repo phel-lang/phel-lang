@@ -68,3 +68,4 @@ Symbol lists live as `FormatterFactory` constants; `createIndentRule()` instanti
 
 - Rules traverse/transform the parse tree via the zipper (`ParseTreeZipper`); add new rules as `RuleInterface` impls and wire them into `createFormatter()` in pipeline order.
 - Adding/changing an indenter means editing the `INNER_INDENT_SYMBOLS` / `BLOCK_INDENT_SYMBOLS` constants in `FormatterFactory` — `createIndentRule()` builds them automatically.
+- `AbstractZipper` holds a location as the parent's whole child list plus an index, so `left`/`right`/`leftMost`/`rightMost`/`next` are O(1) and a walk over a literal of n elements is O(n); the two-halves representation made it O(n^2) and a 16 000-element literal took 28 s (#3218). `insertLeft`/`insertRight`/`remove` still copy the sibling list (PHP arrays), so a rule that edits once per line inside one huge literal is O(elements x lines): fine for real files, but do not add per-element edits to a rule walk.

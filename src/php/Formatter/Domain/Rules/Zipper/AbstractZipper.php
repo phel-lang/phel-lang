@@ -7,16 +7,27 @@ namespace Phel\Formatter\Domain\Rules\Zipper;
 use Phel\Shared\Parser\Node\NodeInterface;
 use RuntimeException;
 
+use function array_slice;
+use function array_splice;
 use function assert;
+use function count;
 
 /**
  * Functional zipper for navigating and editing an immutable parse tree.
  *
  * A zipper represents a "location": the focused {@see self::$node} plus enough
- * context (its $parent, and the $leftSiblings/$rightSiblings around it) to walk
- * in any direction and rebuild the whole tree. Movement methods
- * (left/right/up/down/next/prev) return a *new* location rather than mutating
- * in place, so traversal is side-effect free.
+ * context (its $parent, and the $siblings around it) to walk in any direction
+ * and rebuild the whole tree. Movement methods (left/right/up/down/next/prev)
+ * return a *new* location rather than mutating in place, so traversal is
+ * side-effect free.
+ *
+ * A location holds the parent's whole child list and its own $index in it,
+ * not two "left" and "right" arrays. Moving sideways is then a new location
+ * over the same array, O(1), where copying the two halves made a walk along
+ * n siblings cost O(n^2): a generated data file with one 16 000-element
+ * literal took 28 s to format (#3218). Only an edit copies the list (PHP
+ * arrays: O(n) per insert or removal), and the parent is rebuilt once on
+ * the way {@see self::up()}.
  *
  * Edits (replace/insert/remove) set the {@see self::$hasChanged} flag on the
  * location. When {@see self::up()} is called on a changed location,
@@ -36,14 +47,13 @@ abstract class AbstractZipper
     /**
      * @param T                  $node
      * @param ?AbstractZipper<T> $parent
-     * @param list<T>            $leftSiblings
-     * @param list<T>            $rightSiblings
+     * @param list<T>            $siblings every child of the parent, this node included at $index (empty for the root)
      */
     final public function __construct(
         protected mixed $node,
         protected ?self $parent,
-        protected array $leftSiblings = [],
-        protected array $rightSiblings = [],
+        protected array $siblings = [],
+        protected int $index = 0,
         protected bool $hasChanged = false,
         protected bool $isEnd = false,
     ) {}
@@ -103,35 +113,12 @@ abstract class AbstractZipper
             throw ZipperException::cannotGoLeftOnTheLeftmostNode();
         }
 
-        $leftSiblings = $this->leftSiblings;
-        /** @var int $lastIndex */
-        $lastIndex = array_key_last($leftSiblings);
-        /** @var T $left */
-        $left = $leftSiblings[$lastIndex];
-        unset($leftSiblings[$lastIndex]);
-        $leftSiblings = array_values($leftSiblings);
-
-        /** @var static<T> $newInstance */
-        $newInstance = $this->createNewInstance(
-            $left,
-            $this->parent,
-            $leftSiblings,
-            [$this->node, ...$this->rightSiblings],
-            $this->hasChanged,
-            false,
-        );
-
-        return $newInstance;
+        return $this->sibling($this->index - 1);
     }
 
     public function leftMost(): static
     {
-        $loc = $this;
-        while (!$loc->isFirst()) {
-            $loc = $loc->left();
-        }
-
-        return $loc;
+        return $this->isFirst() ? $this : $this->sibling(0);
     }
 
     /**
@@ -139,7 +126,7 @@ abstract class AbstractZipper
      */
     public function lefts(): array
     {
-        return $this->leftSiblings;
+        return array_slice($this->siblings, 0, $this->index);
     }
 
     public function right(): static
@@ -152,31 +139,12 @@ abstract class AbstractZipper
             throw ZipperException::cannotGoRightOnLastNode();
         }
 
-        $rightSiblings = $this->rightSiblings;
-        $right = array_shift($rightSiblings);
-
-        if ($right === null) {
-            throw new RuntimeException('Unable to move right: missing sibling.');
-        }
-
-        return $this->createNewInstance(
-            $right,
-            $this->parent,
-            [...$this->leftSiblings, $this->node],
-            $rightSiblings,
-            $this->hasChanged,
-            false,
-        );
+        return $this->sibling($this->index + 1);
     }
 
     public function rightMost(): static
     {
-        $loc = $this;
-        while (!$loc->isLast()) {
-            $loc = $loc->right();
-        }
-
-        return $loc;
+        return $this->isLast() ? $this : $this->sibling(count($this->siblings) - 1);
     }
 
     /**
@@ -184,7 +152,7 @@ abstract class AbstractZipper
      */
     public function rights(): array
     {
-        return $this->rightSiblings;
+        return array_slice($this->siblings, $this->index + 1);
     }
 
     public function up(): static
@@ -231,16 +199,7 @@ abstract class AbstractZipper
             throw ZipperException::cannotGoDownOnNodeWithZeroChildren();
         }
 
-        $leftChild = array_shift($children);
-
-        return $this->createNewInstance(
-            $leftChild,
-            $this,
-            [],
-            $children,
-            false,
-            false,
-        );
+        return $this->createNewInstance($children[0], $this, $children, 0, false, false);
     }
 
     public function next(): static
@@ -295,7 +254,8 @@ abstract class AbstractZipper
         }
 
         $this->hasChanged = true;
-        $this->leftSiblings = [...$this->leftSiblings, $node];
+        array_splice($this->siblings, $this->index, 0, [$node]);
+        ++$this->index;
 
         return $this;
     }
@@ -312,7 +272,7 @@ abstract class AbstractZipper
         }
 
         $this->hasChanged = true;
-        $this->rightSiblings = [$node, ...$this->rightSiblings];
+        array_splice($this->siblings, $this->index + 1, 0, [$node]);
 
         return $this;
     }
@@ -383,33 +343,68 @@ abstract class AbstractZipper
 
     public function isFirst(): bool
     {
-        return $this->leftSiblings === [];
+        return $this->index === 0;
     }
 
     public function isLast(): bool
     {
-        return $this->rightSiblings === [];
+        return $this->index >= count($this->siblings) - 1;
     }
 
     /**
      * @param T                  $node
      * @param ?AbstractZipper<T> $parent
-     * @param list<T>            $leftSiblings
-     * @param list<T>            $rightSiblings
+     * @param list<T>            $siblings
      */
     abstract protected function createNewInstance(
         mixed $node,
         ?self $parent,
-        array $leftSiblings,
-        array $rightSiblings,
+        array $siblings,
+        int $index,
         bool $hasChanged,
         bool $isEnd,
     ): static;
 
     /**
+     * The location of the sibling at `$index`, carrying this location's edits.
+     *
+     * @return static<T>
+     */
+    private function sibling(int $index): static
+    {
+        $siblings = $this->siblingsWithNode();
+
+        /** @var static<T> $newInstance */
+        $newInstance = $this->createNewInstance($siblings[$index], $this->parent, $siblings, $index, $this->hasChanged, false);
+
+        return $newInstance;
+    }
+
+    /**
+     * The sibling list with the focused node written back into its slot.
+     * {@see self::replace()} only swaps {@see self::$node}, so a replaced
+     * node reaches the list here, once, the first time something reads it;
+     * every other read is the identity check alone.
+     *
+     * @return list<T>
+     */
+    private function siblingsWithNode(): array
+    {
+        if ($this->siblings === [] || $this->siblings[$this->index] === $this->node) {
+            return $this->siblings;
+        }
+
+        return [
+            ...array_slice($this->siblings, 0, $this->index),
+            $this->node,
+            ...array_slice($this->siblings, $this->index + 1),
+        ];
+    }
+
+    /**
      * Rebuilds the parent node from the current (changed) siblings and
      * returns a new zipper positioned at that parent, preserving the
-     * parent's own lefts/rights/end state and marking the result as changed.
+     * parent's own siblings/end state and marking the result as changed.
      *
      * @return static<T>
      */
@@ -417,17 +412,14 @@ abstract class AbstractZipper
     {
         assert($this->parent instanceof self);
 
-        $newParent = $this->makeNode(
-            $this->parent->getNode(),
-            [...$this->leftSiblings, $this->node, ...$this->rightSiblings],
-        );
+        $newParent = $this->makeNode($this->parent->getNode(), $this->siblingsWithNode());
 
         /** @var static<T> $newInstance */
         $newInstance = $this->createNewInstance(
             $newParent,
             $this->parent->parent,
-            $this->parent->lefts(),
-            $this->parent->rights(),
+            $this->parent->siblings,
+            $this->parent->index,
             true,
             $this->parent->isEnd(),
         );
@@ -462,7 +454,7 @@ abstract class AbstractZipper
 
     /**
      * Handles removal when the current location is not the first child:
-     * pops the last left sibling to become the new location and then
+     * the previous sibling becomes the new location and the walk then
      * descends to the rightmost leaf under that subtree.
      *
      * @return static<T>
@@ -471,20 +463,14 @@ abstract class AbstractZipper
     {
         assert($this->parent instanceof self);
 
-        $leftSiblings = $this->leftSiblings;
-        $left = array_pop($leftSiblings);
-        if ($left === null) {
+        $siblings = $this->siblings;
+        array_splice($siblings, $this->index, 1);
+        $index = $this->index - 1;
+        if (!isset($siblings[$index])) {
             throw new RuntimeException('Unable to remove node: missing left sibling.');
         }
 
-        $loc = $this->createNewInstance(
-            $left,
-            $this->parent,
-            $leftSiblings,
-            $this->rightSiblings,
-            true,
-            false,
-        );
+        $loc = $this->createNewInstance($siblings[$index], $this->parent, $siblings, $index, true, false);
         while ($loc->isBranch() && $loc->hasChildren()) {
             $loc = $loc->down()->rightMost();
         }
@@ -506,10 +492,10 @@ abstract class AbstractZipper
 
         /** @var static<T> $newInstance */
         $newInstance = $this->createNewInstance(
-            $this->makeNode($this->parent->getNode(), $this->rightSiblings),
+            $this->makeNode($this->parent->getNode(), $this->rights()),
             $this->parent->parent,
-            $this->parent->lefts(),
-            $this->parent->rights(),
+            $this->parent->siblings,
+            $this->parent->index,
             true,
             $this->parent->isEnd(),
         );
