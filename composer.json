@@ -119,8 +119,8 @@
         "test-integration:serial": "./vendor/bin/phpunit --testsuite=integration",
         "test-agents": "./tools/validate-agents.sh",
         "test-tools": "./tools/bashunit tools/*-test.sh --simple",
-        "test-core": "php -d memory_limit=256M ./bin/phel test",
-        "test-core:parallel": "php -d memory_limit=256M ./bin/phel test --parallel=auto",
+        "test-core": "php ./bin/phel test",
+        "test-core:parallel": "php ./bin/phel test --parallel=auto",
         "test-quality": [
             "@csrun",
             "@psalm",
