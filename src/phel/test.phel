@@ -1160,7 +1160,7 @@ Metadata attached to `test-name` is forwarded to the defined function so selecto
   [event]
   (let [details (->> (s/split-lines (with-output-buffer (print-failure-or-error-details event)))
                      (map s/trim)
-                     (filter (fn [line] (not (s/blank? line)))))
+                     (remove s/blank?))
         lines   (if (:message event) (cons (:message event) details) details)]
     (s/join "\n" lines)))
 
@@ -1175,7 +1175,10 @@ Metadata attached to `test-name` is forwarded to the defined function so selecto
                         (s/join ","))]
     (str "::error " properties "::" (github-escape-message (github-body event)))))
 
-(defn- github-summary-line [event]
+(defn- github-summary-line
+  ;; Word for word what `Phel\Run\Application\Test\GithubStepSummary` writes
+  ;; for a parallel run, where the parent holds the totals.
+  [event]
   (let [skipped (or (:skipped event) 0)]
     (str "phel test: " (:pass event) " passed, " (:failed event) " failed, " (:error event) " errors"
          (when (pos? skipped) (str ", " skipped " skipped"))
