@@ -211,51 +211,92 @@
          :line (.getLine loc)
          :column (.getColumn loc)}))))
 
+;; Runtime side of the built-in `is` arms. Each arm expands into one call to
+;; one of these instead of an inline report map, so a compiled `(is ...)` is
+;; a few lines of PHP rather than a few kilobytes (#3212, cold `phel test` is
+;; compile time). The event map each helper reports is the one the inline
+;; version built, key for key, so reporters and `*event-hook*` see no change.
+
+(defn- outcome [ok]
+  (if ok :pass :failed))
+
+(defn- report-predicate! [ok type message loc pred value form result]
+  (report {:type type
+           :message message
+           :location loc
+           :pred pred
+           :value value
+           :form form
+           :result result
+           :state (outcome ok)}))
+
+(defn- report-binary! [ok message loc pred expected actual form result]
+  (report {:message message
+           :location loc
+           :pred pred
+           :expected expected
+           :actual actual
+           :form form
+           :result result
+           :type :binary
+           :state (outcome ok)}))
+
+(defn- report-thrown! [ok loc form exception-name message]
+  (report {:type :thrown
+           :location loc
+           :form form
+           :exception-symbol exception-name
+           :message message
+           :state (outcome ok)}))
+
+(defn- report-thrown-with-msg! [ok loc form exception-name expected-message message actual-message]
+  (report {:type :thrown-with-msg
+           :form form
+           :location loc
+           :exception-symbol exception-name
+           :expected-message expected-message
+           :message message
+           :state (outcome ok)
+           :actual-message actual-message}))
+
+(defn- report-any! [ok message loc form]
+  (report {:type :any
+           :message message
+           :location loc
+           :form form
+           :result ok
+           :state (outcome ok)}))
+
+(defn- report-error! [e loc message form]
+  (report {:type :error
+           :state :error
+           :location loc
+           :message message
+           :form form
+           :exception e}))
+
+(defn- negate-when [negated result-form]
+  (if negated `(not ~result-form) result-form))
+
 (defn- assert-predicate [form message negated]
-  (let [pred            (first form)
-        value           (second form)
-        value-evaluated (gensym)
-        type            (if negated :predicate-not :predicate)
-        loc             (location form)
-        result          (gensym)
-        report-data     (gensym)]
-    `(let [~value-evaluated ~value
-           ~result          (~pred ~value-evaluated)
-           ~result          (if ~negated (not ~result) ~result)
-           ~report-data     {:type ~type
-                             :message ~message
-                             :location ~loc
-                             :pred '~pred
-                             :value '~value
-                             :form '~form
-                             :result ~value-evaluated}]
-       (if ~result
-         (report (assoc ~report-data :state :pass))
-         (report (assoc ~report-data :state :failed))))))
+  (let [pred  (first form)
+        value (second form)
+        v     (gensym)]
+    `(let [~v ~value]
+       (report-predicate! ~(negate-when negated `(~pred ~v))
+                          ~(if negated :predicate-not :predicate)
+                          ~message ~(location form) '~pred '~value '~form ~v))))
 
 (defn- assert-binary [form message negated]
-  (let [pred               (first form)
-        expected           (second form)
-        actual             (second (next form))
-        loc                (location form)
-        expected-evaluated (gensym)
-        actual-evaluated   (gensym)
-        result             (gensym)
-        report-data        (gensym)]
-    `(let [~expected-evaluated ~expected
-           ~actual-evaluated   ~actual
-           ~result             (~pred ~expected-evaluated ~actual-evaluated)
-           ~result             (if ~negated (not ~result) ~result)
-           ~report-data        {:message ~message
-                                :location ~loc
-                                :pred '~pred
-                                :expected ~expected-evaluated
-                                :actual '~actual
-                                :form '~form
-                                :result ~actual-evaluated}]
-       (if ~result
-         (report (merge ~report-data {:type :binary :state :pass}))
-         (report (merge ~report-data {:type :binary :state :failed}))))))
+  (let [pred     (first form)
+        expected (second form)
+        actual   (second (next form))
+        e        (gensym)
+        a        (gensym)]
+    `(let [~e ~expected
+           ~a ~actual]
+       (report-binary! ~(negate-when negated `(~pred ~e ~a))
+                       ~message ~(location form) '~pred ~e '~actual '~form ~a))))
 
 (defn- assert-output [form message]
   (let [expected (second form)
@@ -272,55 +313,29 @@
         exception-symbol (if single-arg? 'Throwable (second form))
         body             (if single-arg? (next form) (nnext form))
         loc              (location form)
-        report-data      (gensym)
-        e                (gensym)]
-    `(let [~report-data {:type :thrown
-                         :location ~loc
-                         :form '~form
-                         :exception-symbol ~(str exception-symbol)
-                         :message ~message}]
-       (try
-         ~@body
-         (report (assoc ~report-data :state :failed))
-         (catch ~exception-symbol ~e
-           (report (assoc ~report-data :state :pass)))))))
+        exception-name   (str exception-symbol)]
+    `(try
+       ~@body
+       (report-thrown! false ~loc '~form ~exception-name ~message)
+       (catch ~exception-symbol e#
+         (report-thrown! true ~loc '~form ~exception-name ~message)))))
 
 (defn- assert-thrown-with-msg [form message]
   (let [exception-symbol (second form)
         expected-message (second (next form))
         body             (next (nnext form))
         loc              (location form)
-        actual-message   (gensym)
-        report-data      (gensym)
-        e                (gensym)]
-    `(let [~report-data {:type :thrown-with-msg
-                         :form '~form
-                         :location ~loc
-                         :exception-symbol ~(str exception-symbol)
-                         :expected-message ~expected-message
-                         :message ~message}]
+        exception-name   (str exception-symbol)]
+    `(let [expected# ~expected-message]
        (try
          ~@body
-         (report (merge ~report-data {:state :failed :actual-message nil}))
-         (catch ~exception-symbol ~e
-           (let [~actual-message (.getMessage ~e)]
-             (if (= ~expected-message ~actual-message)
-               (report (merge ~report-data {:state :pass :actual-message ~actual-message}))
-               (report (merge ~report-data {:state :failed :actual-message ~actual-message})))))))))
+         (report-thrown-with-msg! false ~loc '~form ~exception-name expected# ~message nil)
+         (catch ~exception-symbol e#
+           (let [actual# (.getMessage e#)]
+             (report-thrown-with-msg! (= expected# actual#) ~loc '~form ~exception-name expected# ~message actual#)))))))
 
 (defn- assert-any [form message]
-  (let [loc         (location form)
-        result      (gensym)
-        report-data (gensym)]
-    `(let [~result      ~form
-           ~report-data {:type :any
-                         :message ~message
-                         :location ~loc
-                         :form '~form
-                         :result ~result}]
-       (if ~result
-         (report (assoc ~report-data :state :pass))
-         (report (assoc ~report-data :state :failed))))))
+  `(report-any! ~form ~message ~(location form) '~form))
 
 (defmulti assert-expr
   "Public extension point for the `is` macro: an open multimethod dispatched on
@@ -376,15 +391,9 @@
   "Asserts that an expression is true."
   {:example "(is (= 4 (+ 2 2)))"}
   [form & [message]]
-  (let [loc (location form) e (gensym)]
-    `(try ~(assert-expr message form)
-          (catch Throwable ~e
-            (report {:type :error
-                     :state :error
-                     :location ~loc
-                     :message ~message
-                     :form '~form
-                     :exception ~e})))))
+  `(try ~(assert-expr message form)
+        (catch Throwable e#
+          (report-error! e# ~(location form) ~message '~form))))
 
 ;; --------------
 ;; Defining tests
