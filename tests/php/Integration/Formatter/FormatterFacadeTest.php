@@ -11,6 +11,8 @@ use Phel\Phel;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 
+use function sprintf;
+
 final class FormatterFacadeTest extends TestCase
 {
     private FormatterFactory $formatterFactory;
@@ -650,6 +652,32 @@ final class FormatterFacadeTest extends TestCase
 
         self::assertStringEndsWith("\n", $formatted);
         self::assertStringEndsNotWith("\n\n", $formatted);
+    }
+
+    /**
+     * A generated data file: one literal with thousands of elements over many
+     * lines. Formatting it must be a walk, not a quadratic re-copy of the
+     * sibling list at every step (#3218: 486 KB of sprite data took 95 s).
+     * The bound is loose on purpose; the quadratic version took seconds
+     * for this input, the linear one takes tens of milliseconds.
+     */
+    public function test_a_wide_generated_literal_formats_in_linear_time(): void
+    {
+        $numbers = array_map(static fn(int $i): int => $i % 256, range(0, 3999));
+        $lines = [];
+        foreach (array_chunk($numbers, 16) as $chunk) {
+            $lines[] = '   ' . implode(' ', $chunk);
+        }
+
+        $source = "(ns probe.table)\n\n(def data\n  [" . ltrim(implode("\n", $lines)) . "])\n";
+        $formatter = $this->formatterFactory->createFormatter();
+
+        $started = hrtime(true);
+        $formatted = $formatter->format($source);
+        $seconds = (hrtime(true) - $started) / 1e9;
+
+        self::assertSame($source, $formatted, 'an already formatted table is left alone');
+        self::assertLessThan(2.0, $seconds, sprintf('formatting 4000 elements over 250 lines took %.2fs', $seconds));
     }
 
     public static function providerRemoveTrailingWhitespaceRule(): Generator

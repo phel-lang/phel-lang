@@ -19,7 +19,7 @@ final class ArrayZipper extends AbstractZipper
      */
     public static function createRoot(array $root): self
     {
-        return new self($root, null, [], [], false, false);
+        return new self($root, null, [], 0, false, false);
     }
 
     public function isBranch(): bool
@@ -55,17 +55,16 @@ final class ArrayZipper extends AbstractZipper
     /**
      * @param list<int|list<int>>        $node
      * @param ?AbstractZipper<list<int>> $parent
-     * @param list<int|list<int>>        $leftSiblings
-     * @param list<int|list<int>>        $rightSiblings
+     * @param list<int|list<int>>        $siblings
      */
     protected function createNewInstance(
         $node,
         ?AbstractZipper $parent,
-        array $leftSiblings,
-        array $rightSiblings,
+        array $siblings,
+        int $index,
         bool $hasChanged,
         bool $isEnd,
     ): static {
-        return new self($node, $parent, $leftSiblings, $rightSiblings, $hasChanged, $isEnd);
+        return new self($node, $parent, $siblings, $index, $hasChanged, $isEnd);
     }
 }
