@@ -37,6 +37,10 @@ All notable changes to this project will be documented in this file.
 
 ### Changed
 
+#### Testing
+
+- The built-in `is` arms compile to one call of a `phel.test` runtime helper instead of an inline report map: `(is (= 1 1))` is 1.2 KB of PHP instead of 3.7 KB and compiles in 0.9 ms instead of 2 ms, so a cold `phel test` on this repository goes from ~50 s to ~39 s of compile time (peak memory 1.4 GB to 1.0 GB). The event maps reporters and `*event-hook*` receive are unchanged; `assert-expr` methods and `do-report` are untouched (#3212)
+
 #### Compiler
 
 - A global read of a non-`^:dynamic` var compiles to `\Phel\Lang\Registry::readRoot(...)` instead of `\Phel::getDefinition(...)`: 1.6x faster with nothing bound, 1.9x inside a `binding` frame (the steady state of `phel test`). `^:dynamic` and `^:redef` vars keep the full path; a var later redefined `^:dynamic` in the same process needs one of those tags for already-compiled readers to see its bindings (#3179)

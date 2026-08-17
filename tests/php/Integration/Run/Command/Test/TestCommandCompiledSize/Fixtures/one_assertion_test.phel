@@ -1,0 +1,5 @@
+(ns app.one-assertion-test
+  (:require phel.test :refer [deftest is]))
+
+(deftest one-assertion
+  (is (= 1 1)))

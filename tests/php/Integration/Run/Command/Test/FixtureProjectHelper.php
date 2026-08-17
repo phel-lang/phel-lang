@@ -79,6 +79,21 @@ final readonly class FixtureProjectHelper
     }
 
     /**
+     * The PHP `phel test` compiled and cached for `$namespace`, with the
+     * temp project path blanked out so sizes do not depend on where the
+     * project happened to be materialised.
+     */
+    public function compiledCodeOf(string $namespace): string
+    {
+        $matches = glob($this->projectDir . '/.phel/cache/compiled/' . $namespace . '__*.php') ?: [];
+        if ($matches === []) {
+            throw new RuntimeException('No compiled cache entry for ' . $namespace);
+        }
+
+        return str_replace($this->projectDir, '', (string) file_get_contents($matches[0]));
+    }
+
+    /**
      * @param list<string> $arguments
      *
      * @return array{0: int, 1: string} exit code and combined output
