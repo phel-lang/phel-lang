@@ -55,6 +55,7 @@ Namespace: `tests.<name>-test`.
 ./vendor/bin/phel test --filter=test-add     # by name substring
 ./vendor/bin/phel test --testdox
 ./vendor/bin/phel test --fail-fast
+./vendor/bin/phel test --reporter=github            # GitHub Actions annotations (auto-added on a runner: GITHUB_ACTIONS=true)
 ./vendor/bin/phel test --changed                        # only the tests affected by uncommitted changes (--changed=main: since main)
 ./vendor/bin/phel test --coverage                       # .phel line coverage (pcov or XDEBUG_MODE=coverage)
 ./vendor/bin/phel test --coverage=per-test --coverage-output=var/coverage/per-test.json  # which tests cover which lines

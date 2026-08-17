@@ -655,17 +655,17 @@ Metadata attached to `test-name` is forwarded to the defined function so selecto
       (println (str "    actual:   " act-line))
       (println (str (s/repeat " " (+ 14 caret)) "^")))))
 
+(defn- print-error-details [{:exception exception, :form form}]
+  (print-label "              Form" form)
+  (println "             threw:" (php/get_class exception))
+  (when-let [exception-message (ex-message exception)]
+    (println "      with message:" exception-message))
+  (when (deref print-stack-trace?)
+    (.printStackTrace (.getExceptionPrinter (new CommandFacade)) exception)))
+
 (defn- print-error [data]
   (print-error-headline data)
-  (let [{:exception exception, :form form} data
-        command-facade                     (new CommandFacade)
-        printer                            (.getExceptionPrinter command-facade)]
-    (print-label "              Form" form)
-    (println "             threw:" (php/get_class exception))
-    (when-let [exception-message (ex-message exception)]
-      (println "      with message:" exception-message))
-    (when (deref print-stack-trace?)
-      (.printStackTrace printer exception))))
+  (print-error-details data))
 
 (defn- print-predicate-failure [{:pred pred, :value value, :result result}]
   (print-form-evaluated "                 Form" value
@@ -714,8 +714,7 @@ Metadata attached to `test-name` is forwarded to the defined function so selecto
   (print-label "          Form" form)
   (print-label "  evaluated to" result "(which is not truthy)"))
 
-(defn- print-failure [data]
-  (print-failure-headline data)
+(defn- print-failure-details [data]
   (case (get data :type)
     :predicate       (print-predicate-failure data)
     :predicate-not   (print-predicate-not-failure data)
@@ -725,10 +724,21 @@ Metadata attached to `test-name` is forwarded to the defined function so selecto
     :thrown-with-msg (print-thrown-with-msg-failure data)
     :any             (print-any-failure data)))
 
+(defn- print-failure [data]
+  (print-failure-headline data)
+  (print-failure-details data))
+
 (defn- print-failure-or-error [data]
   (case (get data :state)
     :error  (print-error data)
     :failed (print-failure data)))
+
+(defn- print-failure-or-error-details
+  "The lines below the headline: what the default reporter prints under `FAIL`/`ERROR`."
+  [data]
+  (case (get data :state)
+    :error  (print-error-details data)
+    :failed (print-failure-details data)))
 
 (def- default-line-count (atom 0))
 
@@ -1097,6 +1107,114 @@ Metadata attached to `test-name` is forwarded to the defined function so selecto
   [path]
   (swap! junit-state assoc :output-path path))
 
+;; ------------------------
+;; GitHub Actions reporter
+;; ------------------------
+
+;; Workflow commands (`::error ...`, `::group::`) as GitHub Actions reads them
+;; off stdout, so a failing assertion becomes an inline annotation on the pull
+;; request diff. Percent-encoding per the workflow-command rules: `%`, `\r`
+;; and `\n` everywhere, plus `:` and `,` inside a property value.
+
+(def- github-message-escapes #php{"%" "%25" "\r" "%0D" "\n" "%0A"})
+(def- github-property-escapes #php{"%" "%25" "\r" "%0D" "\n" "%0A" ":" "%3A" "," "%2C"})
+
+(defn- github-escape-message [text]
+  (php/strtr (str text) github-message-escapes))
+
+(defn- github-escape-property [text]
+  (php/strtr (str text) github-property-escapes))
+
+(defn- github-relative-file
+  "The path GitHub matches against the checkout: relative to the working directory when the file sits under it."
+  [file]
+  (let [root (str (php/getcwd) "/")]
+    (if (s/starts-with? file root)
+      (php/substr file (php/strlen root))
+      file)))
+
+;; The namespace being run and whether its `::group::` is open. A group opens
+;; at the first test-level event, so a namespace that runs no test (a loaded
+;; dependency, a namespace `--filter` emptied) leaves no empty group behind.
+(def- github-group (atom {:ns nil, :open false}))
+
+(defn- github-open-group! []
+  (let [{:ns ns, :open open} (deref github-group)]
+    (when (and ns (not open))
+      (swap! github-group assoc :open true)
+      (println (str "::group::" ns)))))
+
+(defn- github-close-group! []
+  (when (:open (deref github-group))
+    (println "::endgroup::"))
+  (reset! github-group {:ns nil, :open false}))
+
+(defn- github-title [event]
+  (let [ns    (:ns (deref github-group))
+        tname (or (:test-name event) "assertion")]
+    (str (if (= :error (:state event)) "ERROR " "FAIL ")
+         (if ns (str ns "/" tname) tname))))
+
+(defn- github-body
+  "The user's message first, then the same detail lines the default reporter prints, one per line."
+  [event]
+  (let [details (->> (s/split-lines (with-output-buffer (print-failure-or-error-details event)))
+                     (map s/trim)
+                     (remove s/blank?))
+        lines   (if (:message event) (cons (:message event) details) details)]
+    (s/join "\n" lines)))
+
+(defn- github-annotation [event]
+  (let [loc        (:location event)
+        properties (->> [(when-let [file (and loc (get loc :file))]
+                           (str "file=" (github-escape-property (github-relative-file file))))
+                         (when-let [line (and loc (get loc :line))]
+                           (str "line=" line))
+                         (str "title=" (github-escape-property (github-title event)))]
+                        (filter some?)
+                        (s/join ","))]
+    (str "::error " properties "::" (github-escape-message (github-body event)))))
+
+(defn- github-summary-line
+  ;; Word for word what `Phel\Run\Application\Test\GithubStepSummary` writes
+  ;; for a parallel run, where the parent holds the totals.
+  [event]
+  (let [skipped (or (:skipped event) 0)]
+    (str "phel test: " (:pass event) " passed, " (:failed event) " failed, " (:error event) " errors"
+         (when (pos? skipped) (str ", " skipped " skipped"))
+         " (" (:total event) " total)")))
+
+(defn- github-reporter
+  "GitHub Actions workflow commands (`--reporter=github`): every failed or errored assertion is an `::error` annotation carrying file, line and the test name; each namespace that runs a test is a `::group::`; a focused run is a `::warning`; the summary is appended to the file `$GITHUB_STEP_SUMMARY` names, when it is set. Selected automatically next to the default reporter when `GITHUB_ACTIONS` is `true` and no `--reporter` was given."
+  [event]
+  (let [type (:type event)]
+    (cond
+      (= type :begin-test-run)
+      (reset! github-group {:ns nil, :open false})
+
+      (= type :begin-test-ns)
+      (reset! github-group {:ns (:ns event), :open false})
+
+      (= type :end-test-ns)
+      (github-close-group!)
+
+      (or (= type :begin-test) (= type :skipped))
+      (github-open-group!)
+
+      (assertion-event? event)
+      (do
+        (github-open-group!)
+        (when (not= :pass (:state event))
+          (println (github-annotation event))))
+
+      (= type :focused-run)
+      (println (str "::warning::" (focused-run-notice event)))
+
+      (= type :summary)
+      (let [path (php/getenv "GITHUB_STEP_SUMMARY")]
+        (when (and (string? path) (not (s/blank? path)))
+          (php/file_put_contents path (str (github-summary-line event) "\n") php/FILE_APPEND))))))
+
 ;; ---------------------
 ;; Reporter resolution
 ;; ---------------------
@@ -1106,7 +1224,8 @@ Metadata attached to `test-name` is forwarded to the defined function so selecto
    :dot      dot-reporter
    :testdox  testdox-reporter
    :tap      tap-reporter
-   :junit-xml junit-reporter})
+   :junit-xml junit-reporter
+   :github   github-reporter})
 
 (def- custom-reporters (atom {}))
 

@@ -146,7 +146,7 @@ final class TestCommandOptionsWiringTest extends TestCase
         $tester = new CommandCompletionTester(new TestCommand());
 
         self::assertSame(
-            ['default', 'testdox', 'dot', 'tap', 'junit-xml'],
+            ['default', 'testdox', 'dot', 'tap', 'junit-xml', 'github'],
             $tester->complete(['--reporter', '']),
         );
     }

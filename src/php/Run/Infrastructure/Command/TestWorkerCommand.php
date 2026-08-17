@@ -26,6 +26,7 @@ use function is_numeric;
 use function is_string;
 use function ob_get_clean;
 use function ob_start;
+use function putenv;
 use function sprintf;
 
 /**
@@ -78,6 +79,11 @@ final class TestWorkerCommand extends Command
         if ($stdin === false || $stdout === false) {
             return self::FAILURE;
         }
+
+        // The `github` reporter appends the run summary to the file this
+        // variable names; a worker only ever sees one namespace, so the parent
+        // writes the totals once (`GithubStepSummary`) and the workers must not.
+        putenv('GITHUB_STEP_SUMMARY');
 
         try {
             // No bootstrap load here on purpose: every work frame carries the

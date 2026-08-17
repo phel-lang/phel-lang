@@ -15,6 +15,7 @@ use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 
 use function getcwd;
+use function getenv;
 use function in_array;
 use function is_numeric;
 use function is_string;
@@ -93,7 +94,7 @@ final readonly class TestCommandOptionParser
             TestCommandOptions::TESTDOX => (bool) $input->getOption(self::OPT_TESTDOX),
             TestCommandOptions::FAIL_FAST => (bool) $input->getOption(self::OPT_FAIL_FAST),
             TestCommandOptions::STACK_TRACE => (bool) $input->getOption(self::OPT_STACK_TRACE),
-            TestCommandOptions::REPORTERS => (array) $input->getOption(self::OPT_REPORTER),
+            TestCommandOptions::REPORTERS => $this->reporters($input),
             TestCommandOptions::JUNIT_OUTPUT => is_string($output) ? $output : null,
             TestCommandOptions::INCLUDE => (array) $input->getOption(self::OPT_INCLUDE),
             TestCommandOptions::EXCLUDE => (array) $input->getOption(self::OPT_EXCLUDE),
@@ -158,6 +159,26 @@ final readonly class TestCommandOptionParser
         }
 
         return $value === 1 ? null : $value;
+    }
+
+    /**
+     * The reporters `phel.test` will run. On a GitHub Actions runner the
+     * `github` reporter (inline annotations, step summary) joins the one the
+     * run would have used anyway; an explicit `--reporter` is taken as is.
+     *
+     * @return list<string>
+     */
+    private function reporters(InputInterface $input): array
+    {
+        /** @var list<string> $explicit */
+        $explicit = (array) $input->getOption(self::OPT_REPORTER);
+        if ($explicit !== [] || getenv('GITHUB_ACTIONS') !== 'true') {
+            return $explicit;
+        }
+
+        $base = (bool) $input->getOption(self::OPT_TESTDOX) ? 'testdox' : 'default';
+
+        return [$base, 'github'];
     }
 
     private function parallelDisabledReason(InputInterface $input): ?string
