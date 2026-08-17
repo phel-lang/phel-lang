@@ -67,6 +67,8 @@ final readonly class TestCommandOptionParser
 
     public const string OPT_WATCH = 'watch';
 
+    public const string OPT_CHANGED = 'changed';
+
     private const string LAST_FAILED_FILENAME = 'last-failed.txt';
 
     /**

@@ -22,6 +22,7 @@ use Phel\Run\Application\NamespacesLoader;
 use Phel\Run\Application\ProjectNamespaceLister;
 use Phel\Run\Application\ReplHistoryPathResolver;
 use Phel\Run\Application\StructuredEvaluator;
+use Phel\Run\Application\Test\ChangedTestSelector;
 use Phel\Run\Application\Test\Coverage\CoverageAggregator;
 use Phel\Run\Application\Test\Coverage\CoverageDriver;
 use Phel\Run\Application\Test\CpuCountDetector;
@@ -38,6 +39,8 @@ use Phel\Run\Domain\Repl\ReplPrompt;
 use Phel\Run\Domain\Runner\NamespaceCollector;
 use Phel\Run\Domain\Runner\NamespaceRunnerInterface;
 use Phel\Run\Domain\StdinReaderInterface;
+use Phel\Run\Domain\Test\AffectedTestNamespaces;
+use Phel\Run\Infrastructure\Git\GitChangedFiles;
 use Phel\Run\Infrastructure\PhpStdinReader;
 use Phel\Shared\ColorStyleInterface;
 use Phel\Shared\Facade\ApiFacadeInterface;
@@ -295,6 +298,16 @@ class RunFactory extends AbstractFactory
             PHP_BINARY,
             $this->resolvePhelBinaryPath(),
             $this->resolveOpcacheWorkerFlags(),
+        );
+    }
+
+    public function createChangedTestSelector(): ChangedTestSelector
+    {
+        return new ChangedTestSelector(
+            new GitChangedFiles(),
+            new AffectedTestNamespaces(),
+            $this->getBuildFacade(),
+            $this->getCommandFacade(),
         );
     }
 

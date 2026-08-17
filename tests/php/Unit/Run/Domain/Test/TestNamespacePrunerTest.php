@@ -123,6 +123,24 @@ final class TestNamespacePrunerTest extends TestCase
         self::assertSame(['phel.core', 'phel.test'], $names);
     }
 
+    public function test_prune_to_keeps_the_named_namespaces_their_dependencies_and_the_bundled_ones(): void
+    {
+        $infos = [
+            new NamespaceInformation('/core.phel', 'phel.core', []),
+            new NamespaceInformation('/util.phel', 'app.util', ['phel.core']),
+            new NamespaceInformation('/calc.phel', 'app.calc', ['app.util']),
+            new NamespaceInformation('/calc_test.phel', 'app.calc-test', ['app.calc']),
+            new NamespaceInformation('/other_test.phel', 'app.other-test', ['phel.core']),
+        ];
+
+        $kept = new TestNamespacePruner()->pruneTo($infos, ['app.calc-test']);
+
+        self::assertSame(
+            ['phel.core', 'app.util', 'app.calc', 'app.calc-test'],
+            array_map(static fn(NamespaceInformation $i): string => $i->getNamespace(), $kept),
+        );
+    }
+
     /**
      * @param list<string> $deps
      */

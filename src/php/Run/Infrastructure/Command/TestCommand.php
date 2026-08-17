@@ -12,6 +12,7 @@ use Phel\Run\Application\Test\Coverage\CoverageReport;
 use Phel\Run\Application\Test\Coverage\HtmlCoverageRenderer;
 use Phel\Run\Application\Test\Coverage\PerTestCoverageCollector;
 use Phel\Run\Application\Test\SharedNamespaces;
+use Phel\Run\Domain\Test\ChangedFilesUnavailableException;
 use Phel\Run\Domain\Test\TestCommandOptions;
 use Phel\Run\Domain\Test\TestNamespacePruner;
 use Phel\Run\RunFacade;
@@ -31,6 +32,7 @@ use function array_filter;
 use function array_values;
 use function count;
 use function file_put_contents;
+use function getcwd;
 use function is_array;
 use function is_dir;
 use function is_string;
@@ -176,6 +178,12 @@ HELP)
                 InputOption::VALUE_NONE,
                 'Re-run the selected tests whenever a .phel file (or phel-config.php) under the project source/test directories changes. Press Ctrl+C to stop.',
             )->addOption(
+                TestCommandOptionParser::OPT_CHANGED,
+                null,
+                InputOption::VALUE_OPTIONAL,
+                'Run only the test namespaces affected by changed files: the tests of the changed namespaces and of everything that requires them. Without a value: the uncommitted changes, or the changes since the merge base with the default branch when the tree is clean. With a value: `git diff <ref>`. Untracked files count.',
+                false,
+            )->addOption(
                 self::OPT_COVERAGE,
                 null,
                 InputOption::VALUE_OPTIONAL,
@@ -208,6 +216,14 @@ HELP)
             /** @var list<string> $nsPatterns */
             $nsPatterns = (array) $input->getOption(TestCommandOptionParser::OPT_NS);
             $namespacesInformation = new TestNamespacePruner()->prune($namespacesInformation, $nsPatterns);
+
+            $changed = $input->getOption(TestCommandOptionParser::OPT_CHANGED);
+            if ($changed !== false) {
+                $namespacesInformation = $this->pruneToChanged($output, $namespacesInformation, $changed);
+                if ($namespacesInformation === []) {
+                    return self::SUCCESS;
+                }
+            }
 
             $coverageRequested = $input->getOption(self::OPT_COVERAGE) !== false;
             $coverageDriver = null;
@@ -335,6 +351,8 @@ HELP)
             }
 
             return $successful ? self::SUCCESS : self::FAILURE;
+        } catch (ChangedFilesUnavailableException $e) {
+            $output->writeln('<error>' . $e->getMessage() . '</error>');
         } catch (CompilerException $e) {
             $this->getFacade()->writeLocatedException($output, $e);
         } catch (Throwable $e) {
@@ -342,6 +360,36 @@ HELP)
         }
 
         return self::FAILURE;
+    }
+
+    /**
+     * `--changed[=<ref>]`: keeps only the test namespaces the changed files
+     * can affect (and their dependency closure). Says what it selected, and
+     * says so plainly when that is nothing, so a run that tests nothing is
+     * never mistaken for a run that passed everything.
+     *
+     * @param list<NamespaceInformation> $namespacesInformation
+     *
+     * @return list<NamespaceInformation> empty when nothing is affected
+     */
+    private function pruneToChanged(OutputInterface $output, array $namespacesInformation, mixed $changed): array
+    {
+        $ref = is_string($changed) && $changed !== '' ? $changed : null;
+        $selection = $this->getFacade()->selectChangedTests($ref, $namespacesInformation, getcwd() ?: '.');
+
+        $output->writeln(sprintf(
+            'Changed: %d file(s), affected: %d test namespace(s)',
+            count($selection->changedFiles),
+            count($selection->testNamespaces),
+        ));
+
+        if ($selection->testNamespaces === []) {
+            $output->writeln('<comment>No test namespace is affected by the changed files; nothing to run.</comment>');
+
+            return [];
+        }
+
+        return new TestNamespacePruner()->pruneTo($namespacesInformation, $selection->testNamespaces);
     }
 
     /**
