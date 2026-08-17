@@ -435,11 +435,17 @@ final readonly class InvokeSymbol implements SpecialFormAnalyzerInterface
             $result[] = $this->enrichLocation($item, $parent, $origin);
         }
 
-        return $this->enrichLocationForAbstractType(
-            Phel::list($result)->withMeta($list->getMeta()),
-            $parent,
-            $origin,
-        );
+        // The rebuilt list must keep the position of the one it replaces:
+        // locations are not metadata, so `withMeta` alone would hand back a
+        // list with none and the stamping below would then put the call site
+        // on a form the user wrote (every `is` in a `deftest` reported the
+        // `deftest` line, #3228).
+        $rebuilt = Phel::list($result)
+            ->withMeta($list->getMeta())
+            ->setStartLocation($list->getStartLocation())
+            ->setEndLocation($list->getEndLocation());
+
+        return $this->enrichLocationForAbstractType($rebuilt, $parent, $origin);
     }
 
     /**
