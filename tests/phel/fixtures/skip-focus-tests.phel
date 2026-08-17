@@ -1,0 +1,26 @@
+(ns phel-test.fixtures.skip-focus-tests
+  (:require phel.test :as t :refer [deftest is]))
+
+;; Fixture namespace consumed by `tests/phel/skip-focus.phel`.
+;;
+;; Two plain tests, two tests skipped from their metadata (a reason and a
+;; bare flag), and one that skips itself at run time after a first
+;; assertion. The skipped bodies assert `false`: should the skip ever stop
+;; working, the surrounding suite goes red instead of quietly passing.
+
+(deftest plain-a
+  (is (= 1 1) "plain-a assertion"))
+
+(deftest plain-b
+  (is (= 2 2) "plain-b assertion"))
+
+(deftest ^{:skip "flaky on CI"} skipped-with-reason
+  (is false "must never run"))
+
+(deftest ^:skip skipped-bare
+  (is false "must never run"))
+
+(deftest skips-at-runtime
+  (is (= 3 3) "kept: made before skip!")
+  (t/skip! "no network here")
+  (is false "must never run"))

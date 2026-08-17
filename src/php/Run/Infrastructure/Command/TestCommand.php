@@ -33,6 +33,7 @@ use function array_values;
 use function count;
 use function file_put_contents;
 use function getcwd;
+use function getenv;
 use function is_array;
 use function is_dir;
 use function is_string;
@@ -178,6 +179,11 @@ HELP)
                 InputOption::VALUE_NONE,
                 'Re-run the selected tests whenever a .phel file (or phel-config.php) under the project source/test directories changes. Press Ctrl+C to stop.',
             )->addOption(
+                TestCommandOptionParser::OPT_FAIL_ON_FOCUS,
+                null,
+                InputOption::VALUE_NONE,
+                'Exit non-zero when the run was narrowed by a ^:focus test (always the case when the CI environment variable is set).',
+            )->addOption(
                 TestCommandOptionParser::OPT_CHANGED,
                 null,
                 InputOption::VALUE_OPTIONAL,
@@ -273,17 +279,17 @@ HELP)
                     return ($compileErrors === []) ? self::SUCCESS : self::FAILURE;
                 }
 
-                $success = $this->getFacade()
+                $outcome = $this->getFacade()
                     ->createParallelTestOrchestrator()
                     ->run($namespacesToRun, $options, $workerCount, $output);
 
                 $output->writeln(new ResourceUsageFormatter()->resourceUsageSinceStartOfRequest());
 
-                if ($compileErrors !== []) {
+                if ($compileErrors !== [] || ($outcome->focused && $this->failsOnFocus($input, $output))) {
                     return self::FAILURE;
                 }
 
-                return $success ? self::SUCCESS : self::FAILURE;
+                return $outcome->ok ? self::SUCCESS : self::FAILURE;
             }
 
             [$filteredNamespaces, $compileErrors] = $this->loadTestNamespaces(
@@ -336,17 +342,23 @@ HELP)
             }
 
             // `eval` returns the value of the generated test form, a Phel
-            // vector `[successful? total]` (ArrayAccess), or a plain array.
+            // vector `[successful? total focused?]` (ArrayAccess), or a plain array.
             $successful = false;
             $total = 0;
+            $focused = false;
             if (is_array($result) || $result instanceof ArrayAccess) {
                 $successful = (bool) ($result[0] ?? false);
                 $total = ScalarCoercion::toInt($result[1] ?? null);
+                $focused = (bool) ($result[2] ?? false);
             }
 
             if ($this->isNoMatchWithSelectors($total, $options, $paths)) {
                 $output->writeln('<error>No tests matched the given paths or selectors.</error>');
 
+                return self::FAILURE;
+            }
+
+            if ($focused && $this->failsOnFocus($input, $output)) {
                 return self::FAILURE;
             }
 
@@ -360,6 +372,25 @@ HELP)
         }
 
         return self::FAILURE;
+    }
+
+    /**
+     * A `^:focus` left in narrows the run to a few tests while everything
+     * looks green. On a CI runner (`CI` set) or with `--fail-on-focus` that
+     * is a failure, so it cannot slip through a merge; locally it is the
+     * intended way to iterate and stays a notice.
+     */
+    private function failsOnFocus(InputInterface $input, OutputInterface $output): bool
+    {
+        $ci = getenv('CI');
+        $onCi = is_string($ci) && $ci !== '' && $ci !== '0' && strtolower($ci) !== 'false';
+        if (!$onCi && !(bool) $input->getOption(TestCommandOptionParser::OPT_FAIL_ON_FOCUS)) {
+            return false;
+        }
+
+        $output->writeln('<error>The run was narrowed by ^:focus; failing because ' . ($onCi ? 'CI is set' : '--fail-on-focus was given') . '. Remove the focus metadata to run everything.</error>');
+
+        return true;
     }
 
     /**
@@ -614,7 +645,7 @@ HELP)
     private function generatePhelTestCodeFromOptions(array $options, array $namespacesInformation): string
     {
         return sprintf(
-            '(do (phel.test/run-tests %s %s) [(phel.test/successful?) (get (get (phel.test/get-stats) :counts) :total)])',
+            '(do (phel.test/run-tests %s %s) [(phel.test/successful?) (get (get (phel.test/get-stats) :counts) :total) (phel.test/focused-run?)])',
             TestCommandOptions::fromArray($options)->asPhelHashMap(),
             $this->namespacesAsString($namespacesInformation),
         );

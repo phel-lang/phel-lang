@@ -32,6 +32,9 @@ final class FrameKey
 
     public const string FAILED_TESTS = 'failed-tests';
 
+    /** Whether the namespace's run was narrowed by a `^:focus` test. */
+    public const string FOCUSED = 'focused';
+
     public const string ERROR = 'error';
 
     public const string COUNTS = 'counts';

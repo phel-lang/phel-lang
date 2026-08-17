@@ -119,6 +119,26 @@
     (is (php/preg_match "/^1\\.\\.2$/m" out)
         "emits 1..N plan after summary")))
 
+(deftest test-tap-reporter-marks-a-skipped-test-and-counts-it-in-the-plan
+  (let [rep (t/resolve-reporter :tap)
+        out (with-output-buffer
+              (rep {:type :begin-test-run})
+              (rep {:type :pass :state :pass :test-name "a" :message "ok"})
+              (rep {:type :skipped :test-name "b" :reason "no network"})
+              (rep {:type :skipped :test-name "c" :reason :metadata})
+              (rep {:type :summary :total 1 :skipped 2}))]
+    (is (php/preg_match "/^ok 2 - b # SKIP no network$/m" out) "a string reason follows # SKIP")
+    (is (php/preg_match "/^ok 3 - c # SKIP metadata$/m" out) "a keyword reason is spelled by name")
+    (is (php/preg_match "/^1\\.\\.3$/m" out) "the plan counts assertions and skips")))
+
+(deftest test-reporters-announce-a-focused-run
+  (let [event {:type :focused-run :focused 1 :ignored 4}]
+    (dofor [reporter-name :in [:default :testdox :dot]]
+      (let [out (with-output-buffer ((t/resolve-reporter reporter-name) event))]
+        (is (php/str_contains out "Focused run: 1 test(s), 4 ignored") (str (name reporter-name) " prints the focus notice"))))
+    (is (php/str_contains (with-output-buffer ((t/resolve-reporter :tap) event)) "# Focused run: 1 test(s), 4 ignored")
+        "tap prints it as a comment")))
+
 ;; ---------------------------------------------------------------------------
 ;; JUnit-XML reporter — <testsuites>/<testsuite>/<testcase>
 ;; ---------------------------------------------------------------------------
@@ -148,6 +168,26 @@
           "failing testcase present")
       (is (php/preg_match "/<failure /" xml)
           "failing testcase has <failure> child"))
+    (php/unlink path)))
+
+(deftest test-junit-xml-reporter-renders-a-skipped-test
+  (let [path (str "/tmp/phel-junit-" (php/mt_rand) ".xml")
+        rep  (t/resolve-reporter :junit-xml)
+        _    (t/set-junit-output! path)]
+    (rep {:type :begin-test-run})
+    (rep {:type :begin-test-ns :ns "sample.ns"})
+    (rep {:type :pass :state :pass :test-name "t1" :message "ok" :location {:file "a.phel" :line 1}})
+    (rep {:type :skipped :ns "sample.ns" :test-name "t2" :reason "flaky on CI"})
+    (rep {:type :end-test-ns :ns "sample.ns"})
+    (rep {:type :summary :total 1 :pass 1 :failed 0 :error 0 :skipped 1})
+    (t/set-junit-output! nil)
+    (let [xml (php/file_get_contents path)]
+      (is (php/preg_match "/<testsuites tests=\"2\" failures=\"0\" errors=\"0\" skipped=\"1\"/" xml)
+          "the root counts the skipped test")
+      (is (php/preg_match "/<testsuite name=\"sample.ns\" tests=\"2\" failures=\"0\" errors=\"0\" skipped=\"1\"/" xml)
+          "the suite counts it too")
+      (is (php/preg_match "/<testcase name=\"t2\"[^>]*><skipped message=\"flaky on CI\"\\/><\\/testcase>/" xml)
+          "the testcase carries <skipped message=...>"))
     (php/unlink path)))
 
 (deftest test-junit-xml-reporter-escapes-xml-special-characters

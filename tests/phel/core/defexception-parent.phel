@@ -28,3 +28,12 @@
 (deftest dotted-namespaced-parent
   (is (instance? PhelTest.Support.Fixtures.PhpInterop.ExtendableException (DottedParent "x"))
       "a dotted class path resolves like it does everywhere else"))
+
+(deftest own-type-is-catchable-by-its-bare-name
+  ;; `defexception` also defines a constructor fn of the same name; in
+  ;; catch position the class is meant, not the fn.
+  (is (= "caught: boom"
+         (try
+           (throw (Plain "boom"))
+           (catch Plain e (str "caught: " (.getMessage e)))))
+      "a bare defexception name in catch names the class"))

@@ -1336,6 +1336,8 @@ final class Phel\Lang\Seq
 interface Phel\Lang\SeqInterface implements Phel\Lang\CdrInterface, Phel\Lang\FirstInterface, Phel\Lang\RestInterface
   public function toArray(): array
 
+final class Phel\Lang\SkipTestException extends RuntimeException
+
 interface Phel\Lang\SliceInterface
   public function slice(int $offset = 0, ?int $length = null)
 
