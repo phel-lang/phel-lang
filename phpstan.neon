@@ -53,6 +53,38 @@ services:
                 - Phel\Lang
                 - Phel\Config
 
+    # Every pillar accessor carries `#[ServiceMap]` (the `@method` docblock stays
+    # for IDEs); the docblock fallback is what gacela 3.0 removes, so a class
+    # that forgets the attribute fails here rather than at the upgrade.
+    -
+        class: Gacela\PHPStan\Rules\ServiceMapMissingRule
+        tags: [phpstan.rules.rule]
+
+    # The other half of the check above (gacela 2.4): a boundary crossed
+    # through a *typed receiver* rather than a name written at the call site,
+    # which is how it happens once dependencies arrive through Providers. The
+    # five receivers below are what `CompilerFacadeInterface` itself hands
+    # back (`getGlobalEnvironment()`, `emptyNodeEnvironment()`, `read()`,
+    # `compile*()`, `analyze()`), so calling a method on them is using the
+    # facade's answer, not reaching past the facade. Anything else from another
+    # module's `Domain`/`Application` is reported.
+    -
+        class: Gacela\PHPStan\Rules\CrossModuleMethodCallRule
+        tags: [phpstan.rules.rule]
+        arguments:
+            rootNamespace: Phel
+            modulePathSegments: 1
+            sharedNamespaces:
+                - Phel\Shared
+                - Phel\Lang
+                - Phel\Config
+            ignoreReceivers:
+                - Phel\Compiler\Domain\Analyzer\Environment\GlobalEnvironmentInterface
+                - Phel\Compiler\Domain\Analyzer\Environment\NodeEnvironmentInterface
+                - Phel\Compiler\Domain\Analyzer\Ast\AbstractNode
+                - Phel\Compiler\Domain\Parser\ReadModel\ReaderResult
+                - Phel\Compiler\Domain\Emitter\EmitterResult
+
 parameters:
     level: 9
     parallel:
@@ -79,34 +111,11 @@ parameters:
             count: 28
         # 2. `FilesystemFacadeInterface` lives in `Phel\Filesystem\` while every
         #    other cross-module facade contract lives in `Phel\Shared\Facade\`.
-        #    Referencing it *is* going through a facade; the rule cannot tell,
-        #    because the namespace is not a declared shared kernel. Moving it to
-        #    Shared is the real fix and is a BREAKING change to the public
-        #    surface frozen in #2870, so it waits for the next major.
-        -
-            identifier: gacela.crossModuleWithoutFacade
-            path: src/php/Compiler/CompilerFactory.php
-            count: 1
-        -
-            identifier: gacela.crossModuleWithoutFacade
-            path: src/php/Compiler/CompilerProvider.php
-            count: 1
-        -
-            identifier: gacela.crossModuleWithoutFacade
-            path: src/php/Console/ConsoleFactory.php
-            count: 1
-        -
-            identifier: gacela.crossModuleWithoutFacade
-            path: src/php/Console/ConsoleProvider.php
-            count: 1
-        -
-            identifier: gacela.crossModuleWithoutFacade
-            path: src/php/Run/RunFactory.php
-            count: 1
-        -
-            identifier: gacela.crossModuleWithoutFacade
-            path: src/php/Run/RunProvider.php
-            count: 1
+        #    Referencing it *is* going through a facade, and since gacela 2.4
+        #    the interface says so itself with `#[PublicApi]`, so the six
+        #    Factory/Provider references are no longer pinned here. Moving it
+        #    to Shared is still a BREAKING change to the surface frozen in
+        #    #2870 and waits for the next major.
         # 3. Genuine reaches into another module's `Domain`, which the rule is
         #    exactly right about. Each is one class and each is worth fixing on
         #    its own; pinned individually so a fix removes its own entry rather
@@ -119,13 +128,6 @@ parameters:
         -
             identifier: while.alwaysTrue
             reportUnmatched: false
-        # enableBuildMode/disableBuildMode must stay static: they are emitted
-        # as `\Phel\Build\BuildFacade::enableBuildMode();` into compiled PHP
-        # by NsEmitter / LoadEmitter and fire twice per `(load ...)`, so the
-        # instance `getFactory()` delegation pattern does not apply here.
-        -
-            identifier: gacela.facadeOnlyDelegates
-            path: src/php/Build/BuildFacade.php
         # A `Shared\Facade\*FacadeInterface` is the *cross-module* contract, not
         # a mirror of the facade. `Shared/CLAUDE.md` says to keep its imports
         # minimal, and every method below is called only from inside its own
@@ -151,11 +153,13 @@ parameters:
         -
             identifier: gacela.facadeInterfaceDrift
             path: src/php/Build/BuildFacade.php
-            # 8 + the three `*loading-dependencies*` statics (#3015). They are
-            # emitted into compiled PHP by NsEmitter exactly as the BuildMode
-            # trio is, so they have to be public static and cannot go on the
-            # cross-module contract.
-            count: 11
+            # The BuildMode trio and the three `*loading-dependencies*` statics
+            # (#3015) are emitted into compiled PHP by NsEmitter / LoadEmitter,
+            # so they are public static and cannot go on the cross-module
+            # contract; gacela 2.4 no longer counts static methods for either
+            # `facadeOnlyDelegates` or `facadeInterfaceDrift`, which is why the
+            # count dropped from 11 to 5 with no interface change.
+            count: 5
         -
             identifier: gacela.facadeInterfaceDrift
             path: src/php/Compiler/CompilerFacade.php

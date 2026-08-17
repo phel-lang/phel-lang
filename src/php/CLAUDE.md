@@ -25,7 +25,7 @@ Keeping non-facade edges out of the docs is how the graph erodes quietly, so the
 ### Where the FacadeInterface lives
 
 - **`Shared/Facade/`** (dependency inversion): Api, Build, Command, Compiler, Console, Formatter, Interop, Run.
-- **Module root**: Fiber, Filesystem (`FiberFacadeInterface`, `FilesystemFacadeInterface`).
+- **Module root**: Fiber, Filesystem (`FiberFacadeInterface`, `FilesystemFacadeInterface`). `FilesystemFacadeInterface` carries gacela's `#[PublicApi]`, so referencing it from another module's Factory/Provider is not a `crossModuleWithoutFacade` finding; moving it to Shared waits for the next major (#2870).
 - **No interface — extend `AbstractFacade`**: Balance, Lint, Lsp, Mutate, Nrepl, Profile, Watch.
 
 Rules:
@@ -33,7 +33,7 @@ Rules:
 - Cross-module access goes through facades only; inject `*FacadeInterface`, never a concrete facade. Exactly one exception survives (`LspFactory::getLintFacade()`), because Lint has no contract yet; `SatelliteFactoryFacadeInjectionTest` fails on a second. `*Provider` methods may name concrete facades only in their bodies because Gacela's locator resolves by class; the provided binding id should still be the consumer-facing contract whenever one exists.
 - A Factory may only `new` classes from its own module or `Phel\Shared`; cross-module instances come via the injected Facade.
 - New modules add their `FacadeInterface` to `Shared/Facade/` when another module injects them. `Balance` has none because nothing does: `Console` wraps its command, it never injects the facade.
-- `module-rules.json` at the repo root is the machine-readable half of the boundaries stated in prose here and in the per-module CLAUDE.md files: nothing imports `Console`, `Filesystem` and `Fiber` are leaves, `Compiler` reaches only `Filesystem` outside the shared kernel, `Command` reaches only `Compiler`. Both analysers read it (`DeclaredModuleDependencyRule` in `phpstan.neon`, `<moduleRules>` in `psalm.xml`), so a new import that breaks one of those sentences fails the build instead of contradicting a paragraph. Add a rule only once it already holds; `Lang`, `Shared` and `Config` cannot be governed, being declared shared kernels.
+- `module-rules.json` at the repo root is the machine-readable half of the boundaries stated in prose here and in the per-module CLAUDE.md files: nothing imports `Console`, `Filesystem` and `Fiber` are leaves, `Compiler` reaches only `Filesystem` outside the shared kernel, `Command` reaches only `Compiler`. Both analysers read it (`DeclaredModuleDependencyRule` in `phpstan.neon`, `<moduleRules>` in `psalm.xml`), and `tests/php/Unit/Architecture/ModuleRulesTest` judges the same file with gacela's `ModuleAssertions`, so a new import that breaks one of those sentences fails the build instead of contradicting a paragraph. `phpstan.neon` also runs gacela's `CrossModuleViaFacadeRule` and `CrossModuleMethodCallRule` (the latter with the five compiler types `CompilerFacadeInterface` returns as `ignoreReceivers`) and `ServiceMapMissingRule`. Add a rule only once it already holds; `Lang`, `Shared` and `Config` cannot be governed, being declared shared kernels.
 - The module graph has exactly four cyclic pairs (`Api <-> Run`, `Compiler <-> Shared`, `Lang <-> Shared`, `Phel <-> Run`), each documented in the owning module's CLAUDE.md and pinned by `tests/php/Unit/Architecture/ModuleDependencyCycleTest.php`. `Api <-> Run` is the only mutual Gacela provider pair. Adding a fifth needs a written rationale, not just a green build.
 
 ## Module Map

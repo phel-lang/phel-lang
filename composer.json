@@ -34,7 +34,7 @@
         "brianium/paratest": "^7",
         "ergebnis/composer-normalize": "^2.50",
         "friendsofphp/php-cs-fixer": "^3.94",
-        "infection/infection": "^0.34",
+        "infection/infection": "^0.35",
         "phpbench/phpbench": "^1.6",
         "phpstan/phpstan": "^2.1",
         "phpstan/phpstan-deprecation-rules": "^2.0",

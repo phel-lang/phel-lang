@@ -90,11 +90,6 @@
                 <file name="src/php/Run/RunFacade.php" />
             </errorLevel>
         </PluginIssue>
-        <PluginIssue name="GacelaFacadeOnlyDelegates">
-            <errorLevel type="suppress">
-                <file name="src/php/Build/BuildFacade.php" />
-            </errorLevel>
-        </PluginIssue>
         <PluginIssue name="GacelaSuffixExtends">
             <errorLevel type="suppress">
                 <file name="src/php/Compiler/Domain/Analyzer/SymbolSuggestionProvider.php" />
