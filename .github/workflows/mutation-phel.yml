@@ -36,16 +36,19 @@ jobs:
   mutate:
     name: Mutation testing (phel.core)
     runs-on: ubuntu-latest
-    timeout-minutes: 60
+    # The first CI run took 59 minutes on the 4-core runner (2380 mutants,
+    # xdebug); a weekly job can afford twice that before it is a problem.
+    timeout-minutes: 120
     env:
       # Ratchets, like the Infection floors: raise them when a run clears them
       # comfortably, never lower one to turn a red build green. The covered MSI
       # (over the mutants some test reaches) is what the quality of the existing
       # tests is; the overall MSI also counts what nothing tests yet.
-      # Measured at MSI 82.6% / covered MSI 87.7% (2380 mutants, 1949 killed,
-      # 276 survived, 138 not covered, 17 timeouts) on the run that first
-      # completed, 8 workers, 8.4 minutes. A few points of room for the timing
-      # noise that timeouts carry.
+      # Measured at MSI 82.6% / covered MSI 87.7% locally (2380 mutants, 1949
+      # killed, 276 survived, 138 not covered, 17 timeouts, 8 workers, 8.4
+      # minutes) and MSI 85.0% / covered MSI 90.3% on the first CI run (4
+      # workers, 59 minutes). A few points of room for the timing noise that
+      # timeouts carry.
       MIN_MSI: '78'
       MIN_COVERED_MSI: '84'
     steps:
