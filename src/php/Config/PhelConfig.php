@@ -45,6 +45,8 @@ final readonly class PhelConfig implements JsonSerializable
 
     public const string FORMAT_DIRS = 'format-dirs';
 
+    public const string FORMAT_EXCLUDE = 'format-exclude';
+
     public const string APP_MODULE_PATHS = 'app-module-paths';
 
     public const string ASSERTS_ENABLED = 'asserts-enabled';
@@ -82,6 +84,7 @@ final readonly class PhelConfig implements JsonSerializable
      * @param list<string> $ignoreWhenBuilding
      * @param list<string> $noCacheWhenBuilding
      * @param list<string> $formatDirs
+     * @param list<string> $formatExclude
      * @param list<string> $appModulePaths
      */
     public function __construct(
@@ -97,6 +100,7 @@ final readonly class PhelConfig implements JsonSerializable
         ?string $tempDir = null,
         string $cacheDir = self::DEFAULT_CACHE_DIR,
         public array $formatDirs = ['src', 'tests'],
+        public array $formatExclude = [],
         public array $appModulePaths = [],
         public bool $enableAsserts = true,
         public bool $warnDeprecations = false,
@@ -209,6 +213,14 @@ final readonly class PhelConfig implements JsonSerializable
     public function getFormatDirs(): array
     {
         return $this->formatDirs;
+    }
+
+    /**
+     * @return list<string>
+     */
+    public function getFormatExclude(): array
+    {
+        return $this->formatExclude;
     }
 
     /**
@@ -488,6 +500,19 @@ final readonly class PhelConfig implements JsonSerializable
     }
 
     /**
+     * Globs `phel format` skips, matched against each discovered path as given
+     * and relative to the working directory (`*` spans directories, as in
+     * `phel lint`): generated data files, vendored trees. Unioned with
+     * `--exclude`. Default: none.
+     *
+     * @param list<string> $patterns
+     */
+    public function withFormatExclude(array $patterns): self
+    {
+        return $this->with(['formatExclude' => $patterns]);
+    }
+
+    /**
      * Directories Gacela scans for app modules (facades, factories, providers).
      *
      * Default `[]` keeps Gacela's own default: walk the whole project root.
@@ -621,6 +646,7 @@ final readonly class PhelConfig implements JsonSerializable
             self::KEEP_GENERATED_TEMP_FILES => $this->keepGeneratedTempFiles,
             self::TEMP_DIR => $this->tempDir,
             self::FORMAT_DIRS => $this->formatDirs,
+            self::FORMAT_EXCLUDE => $this->formatExclude,
             self::APP_MODULE_PATHS => $this->appModulePaths,
             self::ASSERTS_ENABLED => $this->enableAsserts,
             self::WARN_DEPRECATIONS => $this->warnDeprecations,
@@ -658,6 +684,7 @@ final readonly class PhelConfig implements JsonSerializable
      *     tempDir?: string,
      *     cacheDir?: string,
      *     formatDirs?: list<string>,
+     *     formatExclude?: list<string>,
      *     appModulePaths?: list<string>,
      *     enableAsserts?: bool,
      *     warnDeprecations?: bool,
@@ -684,6 +711,7 @@ final readonly class PhelConfig implements JsonSerializable
             tempDir: $overrides['tempDir'] ?? $this->tempDir,
             cacheDir: $overrides['cacheDir'] ?? $this->cacheDir,
             formatDirs: $overrides['formatDirs'] ?? $this->formatDirs,
+            formatExclude: $overrides['formatExclude'] ?? $this->formatExclude,
             appModulePaths: $overrides['appModulePaths'] ?? $this->appModulePaths,
             enableAsserts: $overrides['enableAsserts'] ?? $this->enableAsserts,
             warnDeprecations: $overrides['warnDeprecations'] ?? $this->warnDeprecations,

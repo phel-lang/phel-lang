@@ -34,4 +34,22 @@ final class FormatterConfig extends AbstractConfig
             $formatDirs,
         ));
     }
+
+    /**
+     * Globs the `format-exclude` config key names; see `PhelConfig::withFormatExclude()`.
+     *
+     * @return list<string>
+     */
+    public function getFormatExclude(): array
+    {
+        $patterns = $this->get(PhelConfig::FORMAT_EXCLUDE, []);
+        if (!is_array($patterns)) {
+            return [];
+        }
+
+        return array_values(array_map(
+            static fn(mixed $pattern): string => ScalarCoercion::toString($pattern),
+            $patterns,
+        ));
+    }
 }

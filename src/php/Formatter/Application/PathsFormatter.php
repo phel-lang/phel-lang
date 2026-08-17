@@ -7,6 +7,7 @@ namespace Phel\Formatter\Application;
 use Phel\Compiler\Domain\Lexer\Exceptions\LexerValueException;
 use Phel\Compiler\Domain\Parser\Exceptions\AbstractParserException;
 use Phel\Formatter\Domain\Exception\FilePathException;
+use Phel\Formatter\Domain\ExcludePatterns;
 use Phel\Formatter\Domain\FormatterInterface;
 use Phel\Formatter\Domain\IO\ValidatedFileIoInterface;
 use Phel\Formatter\Domain\PathFilterInterface;
@@ -47,14 +48,27 @@ final readonly class PathsFormatter
      * that only printed the errors and returned success made `phel format
      * --dry-run` usable as a green CI gate over unparsable sources.
      *
+     * A path matching one of `$exclude` (see {@see ExcludePatterns}) is
+     * skipped before it is read and lands in neither bucket; `-v` names it.
+     *
      * @param list<string> $paths
+     * @param list<string> $exclude
      */
-    public function format(array $paths, OutputInterface $output, bool $dryRun = false): FormatResult
+    public function format(array $paths, OutputInterface $output, bool $dryRun = false, array $exclude = []): FormatResult
     {
         $formattedFilePaths = [];
         $failedFilePaths = [];
+        $excluded = ExcludePatterns::fromWorkingDirectory($exclude);
 
         foreach ($this->pathFilter->filterPaths($paths) as $path) {
+            if ($excluded->matches($path)) {
+                if ($output->isVerbose()) {
+                    $output->writeln('Excluded: ' . $path);
+                }
+
+                continue;
+            }
+
             try {
                 $wasFormatted = $this->formatFile($path, $dryRun);
                 if ($wasFormatted) {

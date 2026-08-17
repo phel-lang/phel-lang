@@ -16,6 +16,7 @@ use Symfony\Component\Console\Output\BufferedOutput;
 use Symfony\Component\Console\Output\OutputInterface;
 use Throwable;
 
+use function getcwd;
 use function sprintf;
 
 final class PathsFormatterTest extends TestCase
@@ -78,6 +79,57 @@ final class PathsFormatterTest extends TestCase
             $this->pathFilter(['a.phel']),
             $io,
         )->format(['ignored'], new BufferedOutput());
+    }
+
+    /**
+     * A generated data file or a vendored tree beside its consumers can be
+     * left alone (#3233): patterns are `fnmatch`ed against the path as
+     * discovered and against its form relative to the working directory, and
+     * `*` spans directories, as in `phel lint`'s exclude.
+     */
+    public function test_excluded_paths_are_skipped_and_land_in_no_bucket(): void
+    {
+        $io = $this->fileIo(['src/a.phel' => '(a)', 'src/gen/table_data.phel' => '(t)', 'src/b.phel' => '(b)']);
+
+        $result = new PathsFormatter(
+            $this->commandFacade(),
+            $this->formatterThrowing(null, null),
+            $this->pathFilter(['src/a.phel', 'src/gen/table_data.phel', 'src/b.phel']),
+            $io,
+        )->format(['src'], new BufferedOutput(), false, ['src/*_data.phel']);
+
+        self::assertSame(['src/a.phel', 'src/b.phel'], $result->changedPaths());
+        self::assertSame([], $result->failedPaths());
+    }
+
+    public function test_an_absolute_discovered_path_matches_a_pattern_relative_to_the_working_directory(): void
+    {
+        $absolute = getcwd() . '/src/gen/table_data.phel';
+        $io = $this->fileIo([$absolute => '(t)']);
+
+        $result = new PathsFormatter(
+            $this->commandFacade(),
+            $this->formatterThrowing(null, null),
+            $this->pathFilter([$absolute]),
+            $io,
+        )->format([$absolute], new BufferedOutput(), false, ['src/gen/*']);
+
+        self::assertSame([], $result->changedPaths());
+    }
+
+    public function test_an_excluded_file_is_named_under_verbose_output(): void
+    {
+        $io = $this->fileIo(['src/gen/table_data.phel' => '(t)']);
+        $output = new BufferedOutput(OutputInterface::VERBOSITY_VERBOSE);
+
+        new PathsFormatter(
+            $this->commandFacade(),
+            $this->formatterThrowing(null, null),
+            $this->pathFilter(['src/gen/table_data.phel']),
+            $io,
+        )->format(['src/gen/table_data.phel'], $output, false, ['*_data.phel']);
+
+        self::assertStringContainsString('Excluded: src/gen/table_data.phel', $output->fetch());
     }
 
     /**

@@ -70,7 +70,7 @@ See [`tasks/common-gotchas.md`](tasks/common-gotchas.md) for details. Quick summ
 | Test | `./vendor/bin/phel test [path]` |
 | Build | `./vendor/bin/phel build` |
 | Doc | `./vendor/bin/phel doc <fn>` |
-| Format | `./vendor/bin/phel format <file>` |
+| Format | `./vendor/bin/phel format <file>` (`--dry-run` to check; `--exclude='<glob>'` or `format-exclude` config skips generated files) |
 | Fix parens | `./vendor/bin/phel balance <file> --fix` |
 | Profile | `./vendor/bin/phel profile <path> [--format=text\|json\|both] [--output=<file>]` |
 | Install skill | `./vendor/bin/phel agent-install <platform>\|--all` |

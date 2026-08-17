@@ -173,6 +173,7 @@ final class ConfigDiagnostics
             PhelConfig::SRC_DIRS,
             PhelConfig::TEST_DIRS,
             PhelConfig::FORMAT_DIRS,
+            PhelConfig::FORMAT_EXCLUDE,
             PhelConfig::IGNORE_WHEN_BUILDING,
             PhelConfig::NO_CACHE_WHEN_BUILDING,
         ];

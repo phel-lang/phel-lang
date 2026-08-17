@@ -32,6 +32,10 @@ All notable changes to this project will be documented in this file.
 
 - `phel.ai/*sleep-fn*`, the retry backoff seam next to `*http-post*`: rebind it in tests so a 429/5xx retry records its delay instead of sleeping. The repository's own retry tests slept ~3s of a ~4.9s `phel test` pass; `composer test-core` goes from ~5.6s to ~3.1s serial. A blank `ANTHROPIC_API_KEY=` (or `OPENAI_API_KEY=`, `VOYAGE_API_KEY=`) now reads as a missing key, which throws before any request, instead of being sent as an empty key (#3204)
 
+#### CLI
+
+- `phel format --exclude=<glob>` (repeatable) and the `format-exclude` config key (`PhelConfig::withFormatExclude([...])`), unioned: a discovered `.phel` file matching a glob is left alone and reported in neither list, `-v` names it. Globs are `fnmatch`ed against the path as found and relative to the working directory, `*` spans directories as in `phel lint`. For generated data files and vendored trees that live beside their consumers (#3233)
+
 #### CI
 
 - `Core tests at -O2` job; nothing exercised `CallInliner` or `TailCallRewriter` before. Local repro: `PHEL_OPTIMIZATION_LEVEL=2 ./bin/phel test` (#3126)
