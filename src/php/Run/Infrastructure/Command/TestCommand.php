@@ -107,9 +107,9 @@ HELP)
                 TestCommandOptionParser::OPT_REPORTER,
                 null,
                 InputOption::VALUE_REQUIRED | InputOption::VALUE_IS_ARRAY,
-                'Reporter to emit test events through. Repeatable. Built-ins: default, testdox, dot, tap, junit-xml.',
+                'Reporter to emit test events through. Repeatable. Built-ins: default, testdox, dot, tap, junit-xml, github (workflow-command annotations; added next to the default one when GITHUB_ACTIONS is set).',
                 [],
-                ['default', 'testdox', 'dot', 'tap', 'junit-xml'],
+                ['default', 'testdox', 'dot', 'tap', 'junit-xml', 'github'],
             )->addOption(
                 TestCommandOptionParser::OPT_OUTPUT,
                 'o',

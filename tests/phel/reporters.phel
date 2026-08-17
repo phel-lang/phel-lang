@@ -537,6 +537,109 @@
     (php/unlink path)))
 
 ;; ---------------------------------------------------------------------------
+;; GitHub Actions reporter — workflow commands, one annotation per failure
+;; ---------------------------------------------------------------------------
+
+(defn- github-location [relative-file line]
+  {:file (str (php/getcwd) "/" relative-file) :line line :column 2})
+
+(deftest test-github-reporter-annotates-a-failure-with-file-line-and-title
+  (let [rep (t/resolve-reporter :github)
+        out (with-output-buffer
+              (rep {:type :begin-test-run})
+              (rep {:type :begin-test-ns :ns "dx.lib-test"})
+              (rep {:type :pass :state :pass :test-name "clamp-low"})
+              (rep {:type :binary :state :failed :test-name "clamp-mid"
+                    :pred '= :expected 5 :actual '(clamp 1 10 12) :result 6
+                    :form '(= 5 (clamp 1 10 12))
+                    :location (github-location "tests/dx/lib_test.phel" 12)})
+              (rep {:type :end-test-ns :ns "dx.lib-test"}))]
+    (is (= (str "::group::dx.lib-test\n"
+                "::error file=tests/dx/lib_test.phel,line=12,title=FAIL dx.lib-test/clamp-mid"
+                "::Form: (clamp 1 10 12)%0Aevaluated to: 6%0Abut is not: = to 5\n"
+                "::endgroup::\n")
+           out)
+        "a passing assertion prints nothing; a failure is one ::error line inside the namespace group")))
+
+(deftest test-github-reporter-groups-only-namespaces-that-run-a-test
+  (let [rep (t/resolve-reporter :github)
+        out (with-output-buffer
+              (rep {:type :begin-test-run})
+              (rep {:type :begin-test-ns :ns "app.core"})
+              (rep {:type :end-test-ns :ns "app.core"})
+              (rep {:type :begin-test-ns :ns "app.core-test"})
+              (rep {:type :begin-test :ns "app.core-test" :test-name "t"})
+              (rep {:type :pass :state :pass :test-name "t"})
+              (rep {:type :end-test :ns "app.core-test" :test-name "t"})
+              (rep {:type :end-test-ns :ns "app.core-test"}))]
+    (is (= "::group::app.core-test\n::endgroup::\n" out)
+        "a loaded namespace that runs no test leaves no empty group")))
+
+(deftest test-github-reporter-escapes-the-message-and-the-title
+  (let [rep (t/resolve-reporter :github)
+        out (with-output-buffer
+              (rep {:type :begin-test-ns :ns "dx.lib-test"})
+              (rep {:type :any :state :failed :test-name "ratio:a,b"
+                    :message "100% sure\nsecond line" :form 'x :result nil
+                    :location (github-location "tests/dx/lib_test.phel" 3)}))]
+    (is (php/str_contains out "title=FAIL dx.lib-test/ratio%3Aa%2Cb::")
+        "`:` and `,` in a property value are percent-encoded")
+    (is (php/str_contains out "::100%25 sure%0Asecond line%0AForm: x%0Aevaluated to: nil (which is not truthy)\n")
+        "`%` and newlines in the message are percent-encoded; the message comes before the details")))
+
+(deftest test-github-reporter-annotates-an-error-with-the-exception
+  (let [rep (t/resolve-reporter :github)
+        out (with-output-buffer
+              (rep {:type :begin-test-ns :ns "dx.lib-test"})
+              (rep {:type :error :state :error :test-name "boom" :form '(f)
+                    :exception (new RuntimeException "kaboom")
+                    :location (github-location "src/dx/lib.phel" 40)}))]
+    (is (= "::group::dx.lib-test\n::error file=src/dx/lib.phel,line=40,title=ERROR dx.lib-test/boom::Form: (f)%0Athrew: RuntimeException%0Awith message: kaboom\n"
+           out))))
+
+(deftest test-github-reporter-without-a-location-or-namespace-still-annotates
+  (let [rep (t/resolve-reporter :github)
+        out (with-output-buffer
+              (rep {:type :begin-test-run})
+              (rep {:type :any :state :failed :test-name "loose" :form 'x :result false}))]
+    (is (= "::error title=FAIL loose::Form: x%0Aevaluated to: false (which is not truthy)\n" out)
+        "no file/line properties when the event carries no location; the title is the bare test name")))
+
+(deftest test-github-reporter-warns-about-a-focused-run
+  (let [rep (t/resolve-reporter :github)
+        out (with-output-buffer (rep {:type :focused-run :focused 1 :ignored 4}))]
+    (is (= "::warning::Focused run: 1 test(s), 4 ignored\n" out))))
+
+(deftest test-github-reporter-appends-the-summary-to-the-step-summary-file
+  (let [path (str (php/sys_get_temp_dir) "/phel-step-summary-" (php/mt_rand) ".md")
+        rep  (t/resolve-reporter :github)]
+    (php/putenv (str "GITHUB_STEP_SUMMARY=" path))
+    (let [out (with-output-buffer
+                (rep {:type :summary :total 12 :pass 10 :failed 1 :error 1 :skipped 2 :failures []}))]
+      (php/putenv "GITHUB_STEP_SUMMARY")
+      (is (= "" out) "the summary goes to the file, not to stdout")
+      (is (= "phel test: 10 passed, 1 failed, 1 errors, 2 skipped (12 total)\n" (php/file_get_contents path)))
+      (php/unlink path))))
+
+(deftest test-github-reporter-summary-without-the-step-summary-file-prints-nothing
+  (php/putenv "GITHUB_STEP_SUMMARY")
+  (let [rep (t/resolve-reporter :github)
+        out (with-output-buffer (rep {:type :summary :total 1 :pass 1 :failed 0 :error 0 :failures []}))]
+    (is (= "" out))))
+
+(deftest test-github-reporter-reports-a-real-failing-assertion-against-its-file
+  (let [rep (t/resolve-reporter :github)
+        out (with-output-buffer
+              (t/with-isolated-reporters [rep]
+                (t/with-isolated-stats
+                  (is (= 1 2) "real failure"))))]
+    (is (php/preg_match (str "/^::error file=tests\\/phel\\/reporters\\.phel,line=[1-9][0-9]*,"
+                             "title=FAIL test-github-reporter-reports-a-real-failing-assertion-against-its-file"
+                             "::real failure%0AForm: 2%0Aevaluated to: 2%0Abut is not: = to 1\n$/")
+                        out)
+        (str "file is relative to the working directory and the line is the assertion's own, got: " out))))
+
+;; ---------------------------------------------------------------------------
 ;; resolve-reporters-option — unknown reporter throws
 ;; ---------------------------------------------------------------------------
 

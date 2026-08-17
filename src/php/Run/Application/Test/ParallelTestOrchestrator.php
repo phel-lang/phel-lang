@@ -15,6 +15,8 @@ use function count;
 use function dirname;
 use function file_put_contents;
 use function implode;
+use function in_array;
+use function is_array;
 use function is_dir;
 use function is_string;
 use function max;
@@ -100,6 +102,9 @@ final readonly class ParallelTestOrchestrator
         $buffer->finishProgress();
         $this->persistLastFailed($options, $buffer->allFailedTests());
         $this->printSummary($output, $buffer->totals(), $total, $effectiveWorkerCount, microtime(true) - $startedAt, $retried);
+        if ($this->usesGithubReporter($options)) {
+            GithubStepSummary::append($buffer->totals());
+        }
 
         return new ParallelRunOutcome($buffer->overallOk(), $buffer->anyFocused());
     }
@@ -132,6 +137,16 @@ final readonly class ParallelTestOrchestrator
             $workerCount,
             $wallSeconds,
         ));
+    }
+
+    /**
+     * @param array<string, mixed> $options
+     */
+    private function usesGithubReporter(array $options): bool
+    {
+        $reporters = $options[TestCommandOptions::REPORTERS] ?? [];
+
+        return is_array($reporters) && in_array('github', $reporters, true);
     }
 
     /**

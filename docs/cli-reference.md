@@ -129,6 +129,16 @@ phel build                # compile the project to PHP in the output dir
 phel doctor               # verify runtime + OPcache cold-start setup
 ```
 
+### Tests on GitHub Actions
+
+`phel test` adds the `github` reporter next to the default one whenever
+`GITHUB_ACTIONS` is `true` and no `--reporter` was given: every failed or
+errored assertion becomes an inline `::error file=...,line=...` annotation on
+the pull request diff, each namespace is a collapsible `::group::`, a run
+narrowed by `^:focus` is a `::warning`, and the counts are appended to the job's
+step summary (`$GITHUB_STEP_SUMMARY`). `--reporter=github` selects it anywhere;
+an explicit `--reporter` list is never extended.
+
 ## Discoverability
 
 - `phel <command> --help` — description, options, and at least one example.
