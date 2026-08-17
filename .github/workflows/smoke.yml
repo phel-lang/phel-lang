@@ -70,7 +70,12 @@ jobs:
           test -x build/out/phel.phar
           size=$(wc -c < build/out/phel.phar | tr -d ' ')
           echo "PHAR size: $size bytes"
-          test "$size" -lt 2621440  # 2.5 MiB budget (~250 KiB of headroom over the current ~2.25 MiB compressed phar; still catches vendor/pollution-scale bloat)
+          # 3 MiB budget: ~400 KiB of headroom over the ~2.6 MiB compressed phar
+          # after gacela 2.4 (events, package discovery, config dimensions are
+          # runtime code the PHAR has to carry; its analysers, scaffolding and
+          # graph tooling are excluded in build/build-phar.php). Still catches
+          # vendor/pollution-scale bloat.
+          test "$size" -lt 3145728
 
       - name: Run the end-to-end PHAR test suite against the freshly built phar
         # PharExecutionTest skips itself unless build/out/phel.phar exists, so it

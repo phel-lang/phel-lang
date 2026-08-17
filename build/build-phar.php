@@ -77,6 +77,13 @@ final class PharBuilder
         '/vendor/gacela-project/container/src/Container/Console' => true,
         '/vendor/gacela-project/gacela/bin' => true,
         '/vendor/gacela-project/gacela/src/Console/Infrastructure/Template' => true,
+        // Only the module-graph tooling and the two analyser hosts read the
+        // shared analysers, and none of the gacela commands `phel` registers
+        // (`FrameworkCommands`, `CacheClearCommand`) is one of them.
+        '/vendor/gacela-project/gacela/src/StaticAnalysis' => true,
+        '/vendor/gacela-project/gacela/src/Console/Domain/DtoGenerate' => true,
+        '/vendor/gacela-project/gacela/src/Console/Domain/ServiceMapMigration' => true,
+        '/vendor/gacela-project/gacela/src/Console/Testing' => true,
         '/vendor/gacela-project/gacela/src/Framework/Testing' => true,
         '/vendor/gacela-project/gacela/src/PHPStan' => true,
         '/vendor/gacela-project/gacela/src/Psalm' => true,
@@ -86,10 +93,22 @@ final class PharBuilder
         '/vendor/gacela-project/gacela/allowed-module-cycles.json' => true,
         '/vendor/gacela-project/gacela/gacela.php' => true,
         '/vendor/gacela-project/gacela/phpstan-gacela.neon' => true,
+        // Gacela commands `phel` does not register (see `FrameworkCommands`):
+        // scaffolding, doctor, graph, events, migration and generation tools
+        // for a project's own gacela.php, none of which a PHAR user reaches.
+        '/vendor/gacela-project/gacela/src/Console/Infrastructure/Command/DebugConfigCommand.php' => true,
+        '/vendor/gacela-project/gacela/src/Console/Infrastructure/Command/DebugEventsCommand.php' => true,
+        '/vendor/gacela-project/gacela/src/Console/Infrastructure/Command/DebugGraphCommand.php' => true,
+        '/vendor/gacela-project/gacela/src/Console/Infrastructure/Command/DebugModuleCommand.php' => true,
+        '/vendor/gacela-project/gacela/src/Console/Infrastructure/Command/DebugProvidesCommand.php' => true,
         '/vendor/gacela-project/gacela/src/Console/Infrastructure/Command/DoctorCommand.php' => true,
+        '/vendor/gacela-project/gacela/src/Console/Infrastructure/Command/DtoGenerateCommand.php' => true,
+        '/vendor/gacela-project/gacela/src/Console/Infrastructure/Command/IdeMetaCommand.php' => true,
         '/vendor/gacela-project/gacela/src/Console/Infrastructure/Command/InitCommand.php' => true,
         '/vendor/gacela-project/gacela/src/Console/Infrastructure/Command/MakeFileCommand.php' => true,
         '/vendor/gacela-project/gacela/src/Console/Infrastructure/Command/MakeModuleCommand.php' => true,
+        '/vendor/gacela-project/gacela/src/Console/Infrastructure/Command/MigrateServiceMapCommand.php' => true,
+        '/vendor/gacela-project/gacela/src/Console/Infrastructure/Command/StubsPublishCommand.php' => true,
     ];
 
     private array $excludeFiles = [
