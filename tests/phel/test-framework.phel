@@ -159,6 +159,18 @@
                           (with-output-buffer (is (= 1 2)))))]
     (is (= 1 (:failed counts)) "= on unequal values records a failure")))
 
+;; The failure event's :location is the assertion's own line, not the line of
+;; the deftest (or of any other macro) it sits in. Two failing assertions on
+;; consecutive lines therefore report consecutive lines (#3228).
+(deftest test-is-failure-location-is-the-assertion-line
+  (let [failed (:failed (with-isolated-stats
+                          (with-output-buffer
+                            (is (= 1 2))
+                            (is (= 3 4)))))
+        lines  (map (fn [ev] (:line (:location ev))) failed)]
+    (is (= 2 (count failed)))
+    (is (= 1 (- (second lines) (first lines))) (str "reported lines: " lines))))
+
 ;; ---------------------------------------------------------------------------
 ;; :default — unary predicate (2-element list)
 ;; ---------------------------------------------------------------------------

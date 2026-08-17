@@ -18,6 +18,7 @@ use Phel\Compiler\Domain\Analyzer\Environment\NodeEnvironment;
 use Phel\Compiler\Domain\Analyzer\Exceptions\AnalyzerException;
 use Phel\Compiler\Domain\Analyzer\TypeAnalyzer\SpecialForm\InvokeSymbol;
 use Phel\Lang\Keyword;
+use Phel\Lang\SourceLocation;
 use Phel\Lang\Symbol;
 use Phel\Shared\Munge;
 use PHPUnit\Framework\TestCase;
@@ -268,6 +269,30 @@ final class InvokeSymbolTest extends TestCase
             ),
             $node,
         );
+    }
+
+    /**
+     * A list the user wrote and passed to a macro keeps its own position when
+     * the expansion hands it back; only forms the expansion synthesised are
+     * stamped with the call site. Every `is` inside a `deftest` used to
+     * report the `deftest` line because of this (#3228).
+     */
+    public function test_macro_expansion_keeps_the_location_of_a_list_argument(): void
+    {
+        $argument = Phel::list([Symbol::create('quote'), Phel::list([1, 2])])
+            ->setStartLocation(new SourceLocation('t.phel', 7, 4))
+            ->setEndLocation(new SourceLocation('t.phel', 7, 16));
+        $call = Phel::list([Symbol::createForNamespace('user', 'my-macro'), $argument])
+            ->setStartLocation(new SourceLocation('t.phel', 4, 0))
+            ->setEndLocation(new SourceLocation('t.phel', 8, 1));
+
+        $node = new InvokeSymbol($this->analyzer)->analyze($call, NodeEnvironment::empty());
+
+        $start = $node->getStartSourceLocation();
+        self::assertInstanceOf(SourceLocation::class, $start);
+        self::assertSame(7, $start->getLine());
+        self::assertSame(4, $start->getColumn());
+        self::assertNull($start->getExpansionOrigin(), 'a form the user wrote is not an expansion product');
     }
 
     public function test_macro_expand_failure(): void
