@@ -11,6 +11,7 @@ use Phel\Compiler\Domain\Analyzer\Exceptions\AnalyzerException;
 use Phel\Compiler\Domain\Cache\CachedReaderResult;
 use Phel\Compiler\Domain\Cache\ReaderResultCacheInterface;
 use Phel\Compiler\Domain\Compiler\CodeCompilerInterface;
+use Phel\Compiler\Domain\Deprecation\DeprecationWarnings;
 use Phel\Compiler\Domain\Emitter\EmitterResult;
 use Phel\Compiler\Domain\Emitter\FileEmitterInterface;
 use Phel\Compiler\Domain\Emitter\StatementEmitterInterface;
@@ -60,6 +61,37 @@ final readonly class CodeCompiler implements CodeCompilerInterface
      */
     public function compileString(string $phelCode, CompileOptions $compileOptions): EmitterResult
     {
+        // Every deprecation this compile finds travels with the result, so
+        // the compiled-code cache can replay it on a warm run (#3222).
+        DeprecationWarnings::startRecording();
+        try {
+            $result = $this->doCompileString($phelCode, $compileOptions);
+        } finally {
+            $deprecations = DeprecationWarnings::stopRecording();
+        }
+
+        return $result->withDeprecations($deprecations);
+    }
+
+    public function compileForm(
+        float|bool|int|string|TypeInterface|null $form,
+        CompileOptions $compileOptions,
+    ): EmitterResult {
+        $this->analyzer->setOptimizationLevel($compileOptions->getOptimizationLevel());
+        $this->fileEmitter->startFile($compileOptions->getSource());
+        $node = $this->analyzer->analyze($form, NodeEnvironment::empty());
+        $this->emitNode($node, $compileOptions);
+        return $this->fileEmitter->endFile($compileOptions->isSourceMapsEnabled());
+    }
+
+    /**
+     * @throws CompilerException
+     * @throws CompiledCodeIsMalformedException
+     * @throws FileException
+     * @throws LexerValueException
+     */
+    private function doCompileString(string $phelCode, CompileOptions $compileOptions): EmitterResult
+    {
         $hook = Registry::$profilerHook;
         $source = $compileOptions->getSource();
         $optimizationLevel = $compileOptions->getOptimizationLevel();
@@ -101,17 +133,6 @@ final readonly class CodeCompiler implements CodeCompilerInterface
 
         $this->readerResultCache->save($phelCode, $optimizationLevel, $entries);
 
-        return $this->fileEmitter->endFile($compileOptions->isSourceMapsEnabled());
-    }
-
-    public function compileForm(
-        float|bool|int|string|TypeInterface|null $form,
-        CompileOptions $compileOptions,
-    ): EmitterResult {
-        $this->analyzer->setOptimizationLevel($compileOptions->getOptimizationLevel());
-        $this->fileEmitter->startFile($compileOptions->getSource());
-        $node = $this->analyzer->analyze($form, NodeEnvironment::empty());
-        $this->emitNode($node, $compileOptions);
         return $this->fileEmitter->endFile($compileOptions->isSourceMapsEnabled());
     }
 

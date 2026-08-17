@@ -70,7 +70,7 @@ final class SupersededFormDeprecator
      */
     public function maybeWarn(PersistentListInterface $list): void
     {
-        if (!DeprecationWarnings::isEnabled()) {
+        if (!DeprecationWarnings::isDetecting()) {
             return;
         }
 

@@ -277,4 +277,10 @@ final class CompilerFacade extends AbstractFacade implements CompilerFacadeInter
         $this->getFactory()
             ->enableDeprecationWarnings();
     }
+
+    public function replayDeprecations(array $records): void
+    {
+        $this->getFactory()
+            ->replayDeprecations($records);
+    }
 }

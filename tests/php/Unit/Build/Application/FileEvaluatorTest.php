@@ -274,6 +274,58 @@ final class FileEvaluatorTest extends TestCase
         self::assertStringContainsString($compiledCode, (string) file_get_contents($cachedPath));
     }
 
+    /**
+     * A deprecation is found while a namespace compiles, and a warm cache
+     * used to serve the namespace without ever mentioning it again (#3222).
+     * The compile's notices are stored with the entry and replayed on a hit.
+     */
+    public function test_eval_file_stores_the_deprecations_the_compile_found(): void
+    {
+        $sourceFile = $this->tempDir . '/test.phel';
+        $sourceCode = '(ns test\\namespace)';
+        file_put_contents($sourceFile, $sourceCode);
+        $namespace = 'test\\namespace';
+        $records = [['message' => 'php/new is deprecated', 'announced' => false]];
+
+        $cache = new CompiledCodeCache($this->tempDir . '/cache');
+
+        $compilerFacade = $this->createStub(CompilerFacadeInterface::class);
+        $compilerFacade->method('compileForCache')
+            ->willReturn(new EmitterResult(false, '$result = 1;', '', '', $records));
+
+        $namespaceExtractor = $this->createStub(NamespaceExtractorInterface::class);
+        $namespaceExtractor->method('getNamespaceFromFile')->willReturn(
+            new NamespaceInformation($sourceFile, $namespace, ['phel.core']),
+        );
+
+        new FileEvaluator($compilerFacade, $namespaceExtractor, $cache)->evalFile($sourceFile);
+
+        self::assertSame($records, $cache->getDeprecations($sourceFile));
+    }
+
+    public function test_eval_file_replays_the_deprecations_stored_with_a_cache_hit(): void
+    {
+        $sourceFile = $this->tempDir . '/test.phel';
+        $sourceCode = '(ns test\\namespace)';
+        file_put_contents($sourceFile, $sourceCode);
+        $namespace = 'test\\namespace';
+        $records = [['message' => 'php/new is deprecated', 'announced' => false]];
+
+        $cache = new CompiledCodeCache($this->tempDir . '/cache');
+        $cache->put($sourceFile, $namespace, md5($sourceCode), '$result = 42;', $records);
+
+        $compilerFacade = $this->createMock(CompilerFacadeInterface::class);
+        $compilerFacade->expects($this->never())->method('compileForCache');
+        $compilerFacade->expects($this->once())->method('replayDeprecations')->with($records);
+
+        $namespaceExtractor = $this->createStub(NamespaceExtractorInterface::class);
+        $namespaceExtractor->method('getNamespaceFromFile')->willReturn(
+            new NamespaceInformation($sourceFile, $namespace, ['phel.core']),
+        );
+
+        new FileEvaluator($compilerFacade, $namespaceExtractor, $cache)->evalFile($sourceFile);
+    }
+
     public function test_eval_file_caches_code_with_inline_source_map(): void
     {
         $sourceFile = $this->tempDir . '/test.phel';

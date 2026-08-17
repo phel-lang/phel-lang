@@ -112,6 +112,11 @@ final class FileEvaluator
                     /** @psalm-suppress UnresolvableInclude */
                     require $cachedPath;
 
+                    // What the cold compile of this source said is said again:
+                    // a deprecation is found while compiling, and a warm cache
+                    // used to hide every one of them (#3222).
+                    $this->compilerFacade->replayDeprecations($this->compiledCodeCache->getDeprecations($src));
+
                     return new CompiledFile($src, $cachedPath, $namespace);
                 } catch (ParseError) {
                     $this->compiledCodeCache->invalidate($src);
@@ -143,7 +148,7 @@ final class FileEvaluator
                 ->setOptimizationLevel($this->optimizationLevel);
 
             $result = $this->compilerFacade->compileForCache($code, $options);
-            $this->compiledCodeCache->put($src, $namespace, $sourceHash, $result->getCodeWithSourceMap());
+            $this->compiledCodeCache->put($src, $namespace, $sourceHash, $result->getCodeWithSourceMap(), $result->getDeprecations());
 
             $envData = $this->compilerFacade->getNamespaceEnvironmentData($namespace);
             $this->compiledCodeCache->putEnvironment($namespace, $envData);

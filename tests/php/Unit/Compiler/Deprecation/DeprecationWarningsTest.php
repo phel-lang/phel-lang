@@ -137,6 +137,91 @@ final class DeprecationWarningsTest extends TestCase
         }));
     }
 
+    /**
+     * A notice found while a compile is being recorded is kept whether or not
+     * the flag is on, so a cached compile can report it later (#3222); it is
+     * raised now only when the flag is on.
+     */
+    public function test_recording_keeps_a_notice_the_flag_would_have_dropped(): void
+    {
+        DeprecationWarnings::disable();
+        DeprecationWarnings::startRecording();
+
+        $raised = $this->capture(static function (): void {
+            DeprecationWarnings::warn('plain');
+            DeprecationWarnings::warnOnceForSource('/app/user.phel', 'subject', 'once');
+            DeprecationWarnings::warnOnceForSource('/app/user.phel', 'subject', 'twice');
+        });
+
+        self::assertSame([], $raised, 'the flag is off, nothing is raised');
+        self::assertSame(
+            [
+                ['message' => 'plain', 'announced' => false],
+                ['message' => 'once', 'announced' => false],
+            ],
+            DeprecationWarnings::stopRecording(),
+        );
+    }
+
+    public function test_recording_and_raising_see_the_same_notices_when_the_flag_is_on(): void
+    {
+        DeprecationWarnings::enable();
+        DeprecationWarnings::startRecording();
+
+        $raised = $this->capture(static function (): void {
+            DeprecationWarnings::warn('surfaced');
+        });
+
+        self::assertSame(['surfaced'], $raised);
+        self::assertSame([['message' => 'surfaced', 'announced' => false]], DeprecationWarnings::stopRecording());
+    }
+
+    public function test_recording_marks_an_announced_notice_and_nests(): void
+    {
+        DeprecationWarnings::disable();
+        $location = new SourceLocation('/app/outer.phel', 3, 1);
+
+        DeprecationWarnings::startRecording();
+        DeprecationWarnings::warn('outer');
+        DeprecationWarnings::startRecording();
+        $this->capture(static function () use ($location): void {
+            DeprecationWarnings::announceOnceAtOrigin($location, 'sep', static fn(string $file, int $line): string => sprintf('%s:%d announced', $file, $line));
+        });
+        $inner = DeprecationWarnings::stopRecording();
+        $outer = DeprecationWarnings::stopRecording();
+
+        self::assertSame([['message' => '/app/outer.phel:3 announced', 'announced' => true]], $inner);
+        self::assertSame([['message' => 'outer', 'announced' => false]], $outer, 'a nested compile records into its own frame');
+    }
+
+    public function test_recording_still_skips_the_stdlib_and_dependencies(): void
+    {
+        DeprecationWarnings::disable();
+        DeprecationWarnings::startRecording();
+        DeprecationWarnings::warnForSource(dirname(__DIR__, 5) . '/src/phel/walk.phel', 'stdlib');
+        DeprecationWarnings::warnForSource('/app/vendor/acme/lib/src/thing.phel', 'vendor');
+
+        self::assertSame([], DeprecationWarnings::stopRecording());
+    }
+
+    public function test_replay_raises_recorded_notices_by_their_own_rule(): void
+    {
+        $recorded = [
+            ['message' => 'gated', 'announced' => false],
+            ['message' => 'announced anyway', 'announced' => true],
+        ];
+
+        DeprecationWarnings::disable();
+        self::assertSame(['announced anyway'], $this->capture(static function () use ($recorded): void {
+            DeprecationWarnings::replay($recorded);
+        }));
+
+        DeprecationWarnings::enable();
+        self::assertSame(['gated', 'announced anyway'], $this->capture(static function () use ($recorded): void {
+            DeprecationWarnings::replay($recorded);
+        }));
+    }
+
     public function test_reset_clears_the_dedup_table(): void
     {
         DeprecationWarnings::enable();

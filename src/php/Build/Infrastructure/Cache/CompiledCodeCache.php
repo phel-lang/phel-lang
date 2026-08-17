@@ -27,6 +27,7 @@ use const TOKEN_PARSE;
  * files, and {@see CacheDirectory} owns the directory layout.
  *
  * @phpstan-import-type CacheEntry from CacheIndexFile
+ * @phpstan-import-type DeprecationRecord from CacheIndexFile
  *
  * @internal
  */
@@ -132,9 +133,12 @@ final class CompiledCodeCache implements CompiledCodeCacheInterface
     }
 
     /**
-     * Caches compiled PHP code for a source file.
+     * Caches compiled PHP code for a source file, with the deprecation
+     * notices its compile found so a hit can replay them (#3222).
+     *
+     * @param list<DeprecationRecord> $deprecations
      */
-    public function put(string $sourcePath, string $namespace, string $sourceHash, string $phpCode): void
+    public function put(string $sourcePath, string $namespace, string $sourceHash, string $phpCode, array $deprecations = []): void
     {
         $this->loadEntries();
         $this->directory->ensure();
@@ -155,6 +159,7 @@ final class CompiledCodeCache implements CompiledCodeCacheInterface
             'source_hash' => $sourceHash,
             'compiled_path' => $compiledPath,
             'last_accessed' => time(),
+            'deprecations' => $deprecations,
         ];
         $this->touchedThisProcess[$sourcePath] = true;
         unset($this->tombstones[$sourcePath]);
@@ -165,6 +170,13 @@ final class CompiledCodeCache implements CompiledCodeCacheInterface
         if (function_exists('opcache_compile_file')) {
             @opcache_compile_file($compiledPath);
         }
+    }
+
+    public function getDeprecations(string $sourcePath): array
+    {
+        $this->loadEntries();
+
+        return $this->entries[$sourcePath]['deprecations'] ?? [];
     }
 
     /**

@@ -56,7 +56,7 @@ final class DeprecatedDefinitionWarner
      */
     public function maybeWarn(string $ns, Symbol $name, PersistentMapInterface $definitionMeta): void
     {
-        if (!DeprecationWarnings::isEnabled()) {
+        if (!DeprecationWarnings::isDetecting()) {
             return;
         }
 

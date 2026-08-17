@@ -26,7 +26,18 @@ interface CompiledCodeCacheInterface
      */
     public function has(string $sourcePath): bool;
 
-    public function put(string $sourcePath, string $namespace, string $sourceHash, string $phpCode): void;
+    /**
+     * @param list<array{message: string, announced: bool}> $deprecations the notices compiling this source found (#3222)
+     */
+    public function put(string $sourcePath, string $namespace, string $sourceHash, string $phpCode, array $deprecations = []): void;
+
+    /**
+     * The deprecation notices recorded when the entry for this source was
+     * compiled, for a hit to replay; empty when there is no entry.
+     *
+     * @return list<array{message: string, announced: bool}>
+     */
+    public function getDeprecations(string $sourcePath): array;
 
     public function getCompiledPath(string $sourcePath, string $namespace): string;
 

@@ -224,4 +224,14 @@ interface CompilerFacadeInterface
      * CLI flag reaches it without importing it (#3048).
      */
     public function enableDeprecationWarnings(): void;
+
+    /**
+     * Raise the deprecation notices an earlier compile of a source recorded
+     * (`EmitterResult::getDeprecations()`), each by its own rule: an announced
+     * one always, the rest only when the notices are enabled. This is how a
+     * compiled-code cache hit reports what the cold compile did (#3222).
+     *
+     * @param list<array{message: string, announced: bool}> $records
+     */
+    public function replayDeprecations(array $records): void;
 }
