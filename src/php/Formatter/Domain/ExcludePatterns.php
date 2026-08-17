@@ -45,11 +45,6 @@ final readonly class ExcludePatterns
         return new self($patterns, is_string($cwd) ? $cwd : '');
     }
 
-    public function isEmpty(): bool
-    {
-        return $this->patterns === [];
-    }
-
     public function matches(string $path): bool
     {
         if ($this->patterns === []) {
