@@ -238,6 +238,13 @@ class Phel
             // and still serves reads from a pre-warmed cache dir.
             $config->enableFileCache(self::FILE_CACHE_DIR);
 
+            // Phel registers no Gacela event listener, so the dispatch
+            // machinery on the class-resolution hot path is skipped entirely
+            // (gacela's production checklist, step 5). A host that wants the
+            // events back can pass its own dispatcher through
+            // `GacelaConfig::setEventDispatcher()`, which takes precedence.
+            $config->disableEventListeners();
+
             // If we have auto-detected config (no phel-config.php exists), use it
             $autoConfig = self::getAutoDetectedConfig();
             if ($autoConfig instanceof PhelConfig) {
