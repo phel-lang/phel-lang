@@ -11,6 +11,7 @@ use Phel\Balance\Application\DelimiterRepairer;
 use Phel\Balance\Application\DelimiterScanner;
 use Phel\Balance\Application\PathsBalancer;
 use Phel\Balance\Application\PhelFileCollector;
+use Phel\Balance\Application\RepairSearch;
 use Phel\Balance\Application\RepairValidator;
 use Phel\Balance\Application\UnexpectedCloserRepairer;
 use Phel\Balance\Domain\FileCollectorInterface;
@@ -29,14 +30,18 @@ final class BalanceFactory extends AbstractFactory
 {
     public function createPathsBalancer(): PathsBalancer
     {
+        $scanner = $this->createDelimiterScanner();
+        $validator = new RepairValidator($this->getCompilerFacade(), $scanner);
+
         return new PathsBalancer(
             $this->createPhelFileCollector(),
-            $this->createDelimiterScanner(),
+            $scanner,
             $this->createDelimiterRepairer(),
             $this->createFileIo(),
             new BoundaryRepairer(),
             new UnexpectedCloserRepairer(),
-            new RepairValidator($this->getCompilerFacade(), $this->createDelimiterScanner()),
+            $validator,
+            new RepairSearch($this->getCompilerFacade(), $scanner, $validator),
         );
     }
 

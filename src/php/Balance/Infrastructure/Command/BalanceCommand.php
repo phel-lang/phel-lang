@@ -13,6 +13,7 @@ use Phel\Balance\Domain\BalanceOutcome;
 use Phel\Balance\Domain\BalanceReport;
 use Phel\Balance\Domain\Exception\BalanceSourceException;
 use Phel\Balance\Domain\FileOutcome;
+use Phel\Balance\Domain\RepairPlan;
 use Phel\Balance\Domain\RepairStrategy;
 use Phel\Shared\ExistingPaths;
 use Symfony\Component\Console\Command\Command;
@@ -72,10 +73,13 @@ a `#"regex"` or a `\(` character literal is not counted.
 
 The default repair strategy only appends missing closers. With `--repair=boundary`,
 missing closers can be inserted before a detected new top-level form. With
-`--repair=delete-unexpected`, one validated surplus closer can be deleted.
-Anything ambiguous is reported and left untouched: a mismatched closer such
-as `(foo]`, an unterminated string, a file that will not lex, a trailing reader
-prefix such as `#_`, and a missing closer with a new
+`--repair=delete-unexpected`, one validated surplus closer can be deleted. With
+`--repair=search`, a bounded three-edit search reconciles mismatched, surplus and
+missing closers, keeping a repair only when it is the unique cheapest candidate
+that re-lexes, parses and re-scans balanced.
+Anything ambiguous is reported and left untouched: a mismatched closer with no
+disambiguating context such as `(foo]`, an unterminated string, a file that will
+not lex, a trailing reader prefix such as `#_`, and a missing closer with a new
 top-level form after it, where appending at the end would nest the rest of the
 file inside the open form.
 
@@ -99,7 +103,7 @@ HELP)
                 self::OPT_REPAIR,
                 null,
                 InputOption::VALUE_REQUIRED,
-                'Repair strategy: append, boundary or delete-unexpected.',
+                'Repair strategy: append, boundary, delete-unexpected or search.',
                 RepairStrategy::Append->value,
             );
     }
@@ -113,7 +117,7 @@ HELP)
         $strategy = RepairStrategy::tryFrom(is_string($repairOption) ? $repairOption : '');
 
         if ($strategy === null || (!$fix && $strategy !== RepairStrategy::Append)) {
-            $output->writeln('<error>--repair requires --fix and must be append, boundary or delete-unexpected.</error>');
+            $output->writeln('<error>--repair requires --fix and must be append, boundary, delete-unexpected or search.</error>');
 
             return self::EXIT_INVOCATION_ERROR;
         }
@@ -173,19 +177,21 @@ HELP)
 
         foreach ($outcomes as $outcome) {
             $report = $outcome->report;
-            if (!$report instanceof BalanceReport) {
-                continue;
+            if ($report instanceof BalanceReport) {
+                foreach ($report->unclosed as $open) {
+                    $output->writeln(sprintf(
+                        "  %s:%d:%d: unclosed '%s', needs '%s'",
+                        $outcome->path,
+                        $open->line,
+                        $open->column,
+                        $open->openerText,
+                        $open->closerText,
+                    ));
+                }
             }
 
-            foreach ($report->unclosed as $open) {
-                $output->writeln(sprintf(
-                    "  %s:%d:%d: unclosed '%s', needs '%s'",
-                    $outcome->path,
-                    $open->line,
-                    $open->column,
-                    $open->openerText,
-                    $open->closerText,
-                ));
+            if ($output->isVerbose()) {
+                $this->reportPlan($output, $outcome, $heading);
             }
         }
     }
@@ -203,6 +209,31 @@ HELP)
 
         foreach ($outcomes as $outcome) {
             $output->writeln(sprintf('  %s: %s', $outcome->path, $outcome->reason ?? 'unknown reason'));
+
+            if ($output->isVerbose()) {
+                $this->reportPlan($output, $outcome, 'Cannot repair automatically');
+            }
+        }
+    }
+
+    private function reportPlan(OutputInterface $output, FileOutcome $outcome, string $heading): void
+    {
+        $plan = $outcome->plan;
+        if (!$plan instanceof RepairPlan) {
+            return;
+        }
+
+        $output->writeln('  strategy: search');
+        $candidates = $plan->candidates;
+        $output->writeln(sprintf('  candidates: %d', count($candidates)));
+        foreach ($candidates as $i => $candidate) {
+            $output->writeln(sprintf('  candidate %d: cost %d', $i + 1, $candidate->cost()));
+            $output->writeln($candidate->describe());
+            $output->writeln(sprintf('    parser validation: %s', $candidate->parserValid ? 'passed' : 'failed'));
+        }
+
+        if ($plan->refusalReason !== null) {
+            $output->writeln(sprintf('  refused: %s', $plan->refusalReason));
         }
     }
 
