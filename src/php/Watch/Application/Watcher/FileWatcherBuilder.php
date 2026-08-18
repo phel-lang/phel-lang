@@ -42,6 +42,10 @@ final readonly class FileWatcherBuilder
             return $this->inotify();
         }
 
+        if ($preferred !== null) {
+            return $this->polling();
+        }
+
         // Auto-detect by OS.
         $os = strtolower(substr(PHP_OS_FAMILY, 0, 10));
         if ($os === 'linux' && InotifyWatcher::isAvailable()) {

@@ -20,5 +20,6 @@ final readonly class UnexpectedCloser
         public ?OpenDelimiter $openDelimiter,
         public int $line,
         public int $column,
+        public int $offset = 0,
     ) {}
 }

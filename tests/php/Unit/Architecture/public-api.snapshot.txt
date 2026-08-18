@@ -65,7 +65,7 @@ final class Phel\Api\ApiFacade extends Gacela\Framework\AbstractFacade implement
   public function resolveSymbol(Phel\Shared\Api\ProjectIndex $index, string $namespace, string $symbol): ?Phel\Shared\Api\Definition
 
 final class Phel\Balance\BalanceFacade extends Gacela\Framework\AbstractFacade
-  public function balance(array $paths, bool $fix = false): Phel\Balance\Domain\BalanceResult
+  public function balance(array $paths, bool $fix = false, Phel\Balance\Domain\RepairStrategy $strategy = Phel\Balance\Domain\RepairStrategy::Append): Phel\Balance\Domain\BalanceResult
 
 final class Phel\Build\BuildFacade extends Gacela\Framework\AbstractFacade implements Phel\Shared\Facade\BuildFacadeInterface
   public function clearCache(): array

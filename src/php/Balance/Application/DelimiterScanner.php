@@ -13,6 +13,7 @@ use Phel\Shared\Parser\Node\Token;
 use function array_pop;
 use function in_array;
 use function str_starts_with;
+use function strlen;
 
 /**
  * Tracks nesting on the lexer's token stream.
@@ -113,8 +114,10 @@ final readonly class DelimiterScanner
         $danglingPrefixToken = null;
         $pendingPrefixColumn = null;
         $openerAwaitingHead = null;
-        /** @var list<int> $topLevelOpenerLines */
-        $topLevelOpenerLines = [];
+        $openerAwaitingHeadOffset = null;
+        /** @var list<array{line: int, offset: int}> $topLevelOpeners */
+        $topLevelOpeners = [];
+        $offset = 0;
 
         foreach ($this->compilerFacade->lexString($code, $source) as $token) {
             $type = $token->getType();
@@ -122,6 +125,9 @@ final readonly class DelimiterScanner
             if ($type === Token::T_EOF) {
                 break;
             }
+
+            $tokenOffset = $offset;
+            $offset += strlen($token->getCode());
 
             if (!in_array($type, self::TRIVIA, true)) {
                 $endsInLineComment = $type === Token::T_COMMENT;
@@ -139,10 +145,11 @@ final readonly class DelimiterScanner
 
                 if ($openerAwaitingHead !== null) {
                     if ($type === Token::T_ATOM && in_array($token->getCode(), self::DEFINITION_HEADS, true)) {
-                        $topLevelOpenerLines[] = $openerAwaitingHead;
+                        $topLevelOpeners[] = ['line' => $openerAwaitingHead, 'offset' => $openerAwaitingHeadOffset ?? $tokenOffset];
                     }
 
                     $openerAwaitingHead = null;
+                    $openerAwaitingHeadOffset = null;
                 }
             }
 
@@ -152,9 +159,10 @@ final readonly class DelimiterScanner
 
             if (isset(self::CLOSER_TEXT_FOR_OPENER[$type])) {
                 if (($pendingPrefixColumn ?? $this->columnOf($token)) === 0) {
-                    $topLevelOpenerLines[] = $this->lineOf($token);
+                    $topLevelOpeners[] = ['line' => $this->lineOf($token), 'offset' => $tokenOffset];
                 } else {
                     $openerAwaitingHead = $this->lineOf($token);
+                    $openerAwaitingHeadOffset = $tokenOffset;
                 }
 
                 $pendingPrefixColumn = null;
@@ -164,8 +172,8 @@ final readonly class DelimiterScanner
                     self::CLOSER_TEXT_FOR_OPENER[$type],
                     $this->lineOf($token),
                     $this->columnOf($token),
+                    $tokenOffset,
                 );
-
                 continue;
             }
 
@@ -177,7 +185,7 @@ final readonly class DelimiterScanner
             $open = array_pop($stack);
 
             if (!$open instanceof OpenDelimiter) {
-                $unexpectedClosers[] = new UnexpectedCloser($closerText, null, $this->lineOf($token), $this->columnOf($token));
+                $unexpectedClosers[] = new UnexpectedCloser($closerText, null, $this->lineOf($token), $this->columnOf($token), $tokenOffset);
 
                 continue;
             }
@@ -187,17 +195,20 @@ final readonly class DelimiterScanner
                 // `(foo)` or `[foo]`, and picking one rewrites intent. Push the
                 // level back so the levels outside it still reconcile.
                 $stack[] = $open;
-                $unexpectedClosers[] = new UnexpectedCloser($closerText, $open, $this->lineOf($token), $this->columnOf($token));
+                $unexpectedClosers[] = new UnexpectedCloser($closerText, $open, $this->lineOf($token), $this->columnOf($token), $tokenOffset);
             }
         }
+
+        $boundary = $this->topLevelFormAfter($stack, $topLevelOpeners);
 
         return new BalanceReport(
             $stack,
             $unexpectedClosers,
             $unterminatedStringLine,
-            $this->topLevelFormLineAfter($stack, $topLevelOpenerLines),
+            $boundary['line'] ?? null,
             $danglingPrefixToken,
             $endsInLineComment,
+            $boundary['offset'] ?? null,
         );
     }
 
@@ -216,18 +227,20 @@ final readonly class DelimiterScanner
      * used only to refuse: a wrong reading costs a manual fix, never a rewritten
      * program.
      *
-     * @param list<OpenDelimiter> $stack
-     * @param list<int>           $topLevelOpenerLines
+     * @param list<OpenDelimiter>                 $stack
+     * @param list<array{line: int, offset: int}> $topLevelOpeners
+     *
+     * @return array{line: int, offset: int}|null
      */
-    private function topLevelFormLineAfter(array $stack, array $topLevelOpenerLines): ?int
+    private function topLevelFormAfter(array $stack, array $topLevelOpeners): ?array
     {
         if ($stack === []) {
             return null;
         }
 
-        foreach ($topLevelOpenerLines as $line) {
-            if ($line > $stack[0]->line) {
-                return $line;
+        foreach ($topLevelOpeners as $boundary) {
+            if ($boundary['line'] > $stack[0]->line) {
+                return $boundary;
             }
         }
 

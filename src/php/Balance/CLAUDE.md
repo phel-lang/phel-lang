@@ -12,7 +12,7 @@ intersection and belongs to neither.
 
 | Method | Returns |
 |--------|---------|
-| `balance(list<string> $paths, bool $fix = false)` | `BalanceResult`; throws `BalanceSourceException` when a listed directory cannot be walked |
+| `balance(list<string> $paths, bool $fix = false, RepairStrategy $strategy = Append)` | `BalanceResult`; throws `BalanceSourceException` when a listed directory cannot be walked |
 
 ## Dependencies
 
@@ -27,7 +27,13 @@ It has no `Phel\Shared\Facade` contract, matching `Lint`, `Lsp`, `Nrepl`,
 
 ## CLI
 
-`./bin/phel balance [paths]... [--fix]`
+`./bin/phel balance [paths]... [--fix] [--repair=append|boundary|delete-unexpected]`
+
+The default `append` strategy preserves the original append-only behavior.
+`boundary` inserts missing closers before a detected new top-level form, and
+`delete-unexpected` removes one surplus closer. Both extended strategies
+require `--fix` and validate the candidate through lexing, parsing and a second
+balance scan before writing.
 
 Exit codes: `0` all balanced, or `--fix` repaired everything it found; `1` an
 imbalance remains; `2` invocation error (no readable path, unwalkable dir).
@@ -61,12 +67,12 @@ that. It also carries no positions.
 
 ## What it refuses to repair
 
-Repair only ever **appends** missing closers, innermost level first. Five cases
+The default repair strategy only ever **appends** missing closers, innermost level first. Extended strategies remain deliberately narrow: they insert at a detected sibling boundary or delete one surplus closer. Five cases
 are reported and left byte-identical, because each has more than one plausible
 fix. Refusing is the cheap error: it costs a manual fix, where a wrong repair
 costs a rewritten program.
 
-- **Surplus or mismatched closer.** `(foo]` could have meant `(foo)` or `[foo]`.
+- **Mismatched closer.** `(foo]` could have meant `(foo)` or `[foo]`.
 - **Unterminated string literal.** The atom rule swallows an unclosed `"`, so in
   `(println "hi) (there` the `)` the author meant as string content lexes as a
   real closer. The imbalance the stack reports is a phantom, and appending to it

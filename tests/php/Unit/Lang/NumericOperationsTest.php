@@ -292,7 +292,7 @@ final class NumericOperationsTest extends TestCase
         $result = NumericOperations::abs(PHP_INT_MIN);
 
         self::assertInstanceOf(BigInt::class, $result);
-        self::assertSame(bcmul((string) PHP_INT_MIN, '-1'), (string) $result);
+        self::assertSame('9223372036854775808', (string) $result);
     }
 
     public function test_rem_int(): void
@@ -319,7 +319,7 @@ final class NumericOperationsTest extends TestCase
         $result = NumericOperations::add(PHP_INT_MAX, 1);
 
         self::assertInstanceOf(BigInt::class, $result);
-        self::assertSame(bcadd((string) PHP_INT_MAX, '1'), (string) $result);
+        self::assertSame('9223372036854775808', (string) $result);
     }
 
     public function test_add_int_int_negative_overflow_promotes_to_bigint(): void
@@ -327,7 +327,7 @@ final class NumericOperationsTest extends TestCase
         $result = NumericOperations::add(PHP_INT_MIN, -1);
 
         self::assertInstanceOf(BigInt::class, $result);
-        self::assertSame(bcadd((string) PHP_INT_MIN, '-1'), (string) $result);
+        self::assertSame('-9223372036854775809', (string) $result);
     }
 
     public function test_subtract_int_int_overflow_promotes_to_bigint(): void
@@ -335,7 +335,7 @@ final class NumericOperationsTest extends TestCase
         $result = NumericOperations::subtract(PHP_INT_MIN, 1);
 
         self::assertInstanceOf(BigInt::class, $result);
-        self::assertSame(bcsub((string) PHP_INT_MIN, '1'), (string) $result);
+        self::assertSame('-9223372036854775809', (string) $result);
     }
 
     public function test_subtract_int_int_positive_overflow_promotes_to_bigint(): void
@@ -343,7 +343,7 @@ final class NumericOperationsTest extends TestCase
         $result = NumericOperations::subtract(PHP_INT_MAX, -1);
 
         self::assertInstanceOf(BigInt::class, $result);
-        self::assertSame(bcsub((string) PHP_INT_MAX, '-1'), (string) $result);
+        self::assertSame('9223372036854775808', (string) $result);
     }
 
     public function test_multiply_int_int_overflow_promotes_to_bigint(): void
@@ -360,7 +360,7 @@ final class NumericOperationsTest extends TestCase
         $result = NumericOperations::multiply(PHP_INT_MIN, -1);
 
         self::assertInstanceOf(BigInt::class, $result);
-        self::assertSame(bcmul((string) PHP_INT_MIN, '-1'), (string) $result);
+        self::assertSame('9223372036854775808', (string) $result);
     }
 
     public function test_multiply_int_int_within_range_stays_int(): void
@@ -376,7 +376,7 @@ final class NumericOperationsTest extends TestCase
         $result = NumericOperations::multiply(PHP_INT_MIN, 2);
 
         self::assertInstanceOf(BigInt::class, $result);
-        self::assertSame(bcmul((string) PHP_INT_MIN, '2'), (string) $result);
+        self::assertSame('-18446744073709551616', (string) $result);
     }
 
     public function test_power_int_int_overflow_promotes_to_bigint(): void
