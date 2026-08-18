@@ -39,7 +39,8 @@ final readonly class BalanceReport
     {
         return $this->unclosed === []
             && $this->unexpectedClosers === []
-            && $this->unterminatedStringLine === null;
+            && $this->unterminatedStringLine === null
+            && $this->danglingPrefixToken === null;
     }
 
     /**
