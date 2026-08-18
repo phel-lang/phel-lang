@@ -6,6 +6,11 @@ namespace Phel\Balance\Application;
 
 use Phel\Balance\Domain\BalanceReport;
 
+use function str_contains;
+use function strrpos;
+use function substr;
+use function trim;
+
 /**
  * @internal
  */
@@ -21,9 +26,13 @@ final readonly class BoundaryRepairer
         $lineStart = strrpos(substr($code, 0, $offset), "\n");
         $lineStart = $lineStart === false ? 0 : $lineStart + 1;
 
-        $insertion = $lineStart;
         $newline = str_contains(substr($code, 0, $offset), "\r\n") ? "\r\n" : "\n";
-        $previousLine = '';
+
+        // Walk back over blank lines to the preceding non-blank line. `$lineEnd`
+        // ends up at the LF that terminates that line (the CR, if any, sits at
+        // `$lineEnd - 1`), and `$insertion` at the end of its content.
+        $insertion = $lineStart;
+        $precedingLineNewline = null;
         $cursor = $lineStart;
         while ($cursor > 0) {
             $lineEnd = $cursor - 1;
@@ -36,16 +45,23 @@ final readonly class BoundaryRepairer
                 $insertion = $lineEnd > 0 && $code[$lineEnd - 1] === "\r"
                     ? $lineEnd - 1
                     : $lineEnd;
-                $previousLine = $line;
+                $precedingLineNewline = $lineEnd;
                 break;
             }
 
             $cursor = $previousLineStart;
         }
 
-        if (str_contains($previousLine, ';')) {
-            $insertion = $lineStart;
-            $text = $report->missingClosers() . $newline;
+        if ($report->precedingLineIsComment && $precedingLineNewline !== null) {
+            // The preceding line ends in a real `;` comment, so the closers go on
+            // their own line after it rather than inside the comment text. Insert
+            // past the comment line's newline; a following blank line's line
+            // break terminates the closer line, otherwise we add one.
+            $insertion = $precedingLineNewline + 1;
+            $after = substr($code, $insertion, 1);
+            $text = $after === "\n" || $after === "\r"
+                ? $report->missingClosers()
+                : $report->missingClosers() . $newline;
         } else {
             $text = $report->missingClosers();
         }

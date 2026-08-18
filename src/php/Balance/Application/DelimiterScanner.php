@@ -115,7 +115,10 @@ final readonly class DelimiterScanner
         $pendingPrefixColumn = null;
         $openerAwaitingHead = null;
         $openerAwaitingHeadOffset = null;
-        /** @var list<array{line: int, offset: int}> $topLevelOpeners */
+        $openerAwaitingHeadPrecedingIsComment = false;
+        $lastRealTokenType = null;
+        $precedingRealTokenType = null;
+        /** @var list<array{line: int, offset: int, precedingIsComment: bool}> $topLevelOpeners */
         $topLevelOpeners = [];
         $offset = 0;
 
@@ -130,6 +133,7 @@ final readonly class DelimiterScanner
             $offset += strlen($token->getCode());
 
             if (!in_array($type, self::TRIVIA, true)) {
+                $precedingRealTokenType = $lastRealTokenType;
                 $endsInLineComment = $type === Token::T_COMMENT;
                 $danglingPrefixToken = $this->isPrefixAwaitingAForm($token)
                     ? $token->getCode()
@@ -145,12 +149,15 @@ final readonly class DelimiterScanner
 
                 if ($openerAwaitingHead !== null) {
                     if ($type === Token::T_ATOM && in_array($token->getCode(), self::DEFINITION_HEADS, true)) {
-                        $topLevelOpeners[] = ['line' => $openerAwaitingHead, 'offset' => $openerAwaitingHeadOffset ?? $tokenOffset];
+                        $topLevelOpeners[] = ['line' => $openerAwaitingHead, 'offset' => $openerAwaitingHeadOffset ?? $tokenOffset, 'precedingIsComment' => $openerAwaitingHeadPrecedingIsComment];
                     }
 
                     $openerAwaitingHead = null;
                     $openerAwaitingHeadOffset = null;
+                    $openerAwaitingHeadPrecedingIsComment = false;
                 }
+
+                $lastRealTokenType = $type;
             }
 
             if ($unterminatedStringLine === null && $this->isUnterminatedString($token)) {
@@ -158,11 +165,13 @@ final readonly class DelimiterScanner
             }
 
             if (isset(self::CLOSER_TEXT_FOR_OPENER[$type])) {
+                $precedingIsComment = $precedingRealTokenType === Token::T_COMMENT;
                 if (($pendingPrefixColumn ?? $this->columnOf($token)) === 0) {
-                    $topLevelOpeners[] = ['line' => $this->lineOf($token), 'offset' => $tokenOffset];
+                    $topLevelOpeners[] = ['line' => $this->lineOf($token), 'offset' => $tokenOffset, 'precedingIsComment' => $precedingIsComment];
                 } else {
                     $openerAwaitingHead = $this->lineOf($token);
                     $openerAwaitingHeadOffset = $tokenOffset;
+                    $openerAwaitingHeadPrecedingIsComment = $precedingIsComment;
                 }
 
                 $pendingPrefixColumn = null;
@@ -209,6 +218,7 @@ final readonly class DelimiterScanner
             $danglingPrefixToken,
             $endsInLineComment,
             $boundary['offset'] ?? null,
+            $boundary['precedingIsComment'] ?? false,
         );
     }
 
@@ -227,10 +237,10 @@ final readonly class DelimiterScanner
      * used only to refuse: a wrong reading costs a manual fix, never a rewritten
      * program.
      *
-     * @param list<OpenDelimiter>                 $stack
-     * @param list<array{line: int, offset: int}> $topLevelOpeners
+     * @param list<OpenDelimiter>                                           $stack
+     * @param list<array{line: int, offset: int, precedingIsComment: bool}> $topLevelOpeners
      *
-     * @return array{line: int, offset: int}|null
+     * @return array{line: int, offset: int, precedingIsComment: bool}|null
      */
     private function topLevelFormAfter(array $stack, array $topLevelOpeners): ?array
     {
