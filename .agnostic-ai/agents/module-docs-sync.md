@@ -6,6 +6,13 @@ model:
   codex: gpt-5.4-mini
 memory: project
 tools: [Read, Write, Edit, Glob, Grep]
+x-codex:
+    model_reasoning_effort: medium
+    name: module_docs_sync
+    nickname_candidates:
+        - Docs
+        - Sync
+        - Notes
 ---
 
 # Module Docs Sync

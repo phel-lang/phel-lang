@@ -6,6 +6,13 @@ model:
   codex: gpt-5.5
 maxTurns: 25
 tools: [Read, Write, Edit, Glob, Grep, Bash]
+x-codex:
+    model_reasoning_effort: medium
+    name: tdd_coach
+    nickname_candidates:
+        - Coach
+        - RedGreen
+        - Cycle
 ---
 
 # TDD Coach

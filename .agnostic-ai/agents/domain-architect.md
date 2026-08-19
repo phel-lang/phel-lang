@@ -6,6 +6,13 @@ model:
   codex: gpt-5.6-sol
 memory: project
 tools: [Read, Glob, Grep]
+x-codex:
+    model_reasoning_effort: high
+    name: domain_architect
+    nickname_candidates:
+        - Architect
+        - Boundary
+        - Graph
 ---
 
 # Domain Architect
