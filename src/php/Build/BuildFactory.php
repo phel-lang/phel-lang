@@ -32,6 +32,7 @@ use Phel\Build\Domain\Extractor\TopologicalNamespaceSorter;
 use Phel\Build\Domain\IO\FileContentsIoInterface;
 use Phel\Build\Infrastructure\Cache\CompiledCodeCache;
 use Phel\Build\Infrastructure\Cache\DependencyTracker;
+use Phel\Build\Infrastructure\Cache\EnvCacheFingerprint;
 use Phel\Build\Infrastructure\Cache\PhpNamespaceCache;
 use Phel\Build\Infrastructure\Cache\PhpScanIndexCache;
 use Phel\Build\Infrastructure\IO\SystemFileIo;
@@ -47,6 +48,8 @@ use Phel\Shared\VersionFinder;
 #[ServiceMap(method: 'getConfig', className: BuildConfig::class)]
 final class BuildFactory extends AbstractFactory
 {
+    private ?string $cacheEnvFingerprint = null;
+
     public function createProjectCompiler(): ProjectCompiler
     {
         return new ProjectCompiler(
@@ -57,6 +60,7 @@ final class BuildFactory extends AbstractFactory
             $this->createMainPhpEntryPointFile(),
             $this->getConfig(),
             $this->createSecondaryFileHarvester(),
+            $this->cacheEnvFingerprint(),
         );
     }
 
@@ -94,6 +98,7 @@ final class BuildFactory extends AbstractFactory
                 $this->createDependencyTracker(),
                 $this->getConfig()->getOptimizationLevel(),
                 $this->createCompiledSecondaryStore(),
+                $this->cacheEnvFingerprint(),
             ),
         );
     }
@@ -175,6 +180,7 @@ final class BuildFactory extends AbstractFactory
             $this->createCompiledCodeCache(),
             $this->getConfig()->getOptimizationLevel(),
             $this->getConfig()->shouldStripSymbolMeta(),
+            $this->cacheEnvFingerprint(),
         );
     }
 
@@ -186,6 +192,18 @@ final class BuildFactory extends AbstractFactory
             CompiledSecondaryStore::class,
             static fn(): CompiledSecondaryStore => new CompiledSecondaryStore(),
         );
+    }
+
+    /**
+     * One derivation for every cache-key site: the evaluator writes entries and
+     * the harvester reads them back, and a drift between the two silently drops
+     * every `(load ...)` secondary from the build. Memoized because the two are
+     * constructed at different moments, and a `putenv` in between would be
+     * exactly that drift.
+     */
+    private function cacheEnvFingerprint(): string
+    {
+        return $this->cacheEnvFingerprint ??= EnvCacheFingerprint::of($this->getConfig()->getCacheEnvVars());
     }
 
     private function createCompiledCodeCache(): ?CompiledCodeCache

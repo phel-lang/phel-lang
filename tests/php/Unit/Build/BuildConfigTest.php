@@ -122,6 +122,33 @@ final class BuildConfigTest extends TestCase
         self::assertSame(0, new BuildConfig()->getOptimizationLevel());
     }
 
+    public function test_cache_env_vars_default_to_none(): void
+    {
+        Gacela::bootstrap(__DIR__, static function (GacelaConfig $config): void {});
+
+        self::assertSame([], new BuildConfig()->getCacheEnvVars());
+    }
+
+    public function test_cache_env_vars_read_from_config(): void
+    {
+        Gacela::bootstrap(__DIR__, static function (GacelaConfig $config): void {
+            $config->addAppConfigKeyValue(PhelConfig::CACHE_ENV_VARS, ['MY_MODE', 'BUILD_TARGET']);
+        });
+
+        self::assertSame(['MY_MODE', 'BUILD_TARGET'], new BuildConfig()->getCacheEnvVars());
+    }
+
+    public function test_a_non_list_cache_env_vars_value_reads_as_none(): void
+    {
+        // A bare string where a list belongs must not reach the fingerprint as
+        // one variable named after the whole value.
+        Gacela::bootstrap(__DIR__, static function (GacelaConfig $config): void {
+            $config->addAppConfigKeyValue(PhelConfig::CACHE_ENV_VARS, 'MY_MODE');
+        });
+
+        self::assertSame([], new BuildConfig()->getCacheEnvVars());
+    }
+
     private function bootstrapWithOptimizationLevel(int $level): void
     {
         Gacela::bootstrap(__DIR__, static function (GacelaConfig $config) use ($level): void {

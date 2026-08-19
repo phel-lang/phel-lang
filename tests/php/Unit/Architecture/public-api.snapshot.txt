@@ -160,6 +160,7 @@ final readonly class Phel\Config\PhelConfig implements JsonSerializable
   public const string ASSERTS_ENABLED = 'asserts-enabled'
   public const string BUILD_CONFIG = 'out'
   public const string CACHE_DIR = 'cache-dir'
+  public const string CACHE_ENV_VARS = 'cache-env-vars'
   public const string ENABLE_COMPILED_CODE_CACHE = 'enable-compiled-code-cache'
   public const string ENABLE_INTERMEDIATE_CACHE = 'enable-intermediate-cache'
   public const string ENABLE_NAMESPACE_CACHE = 'enable-namespace-cache'
@@ -181,6 +182,7 @@ final readonly class Phel\Config\PhelConfig implements JsonSerializable
   public readonly Phel\Config\PhelBuildConfig $buildConfig
   public readonly Phel\Config\PhelExportConfig $exportConfig
   public readonly array $appModulePaths
+  public readonly array $cacheEnvVars
   public readonly array $formatDirs
   public readonly array $formatExclude
   public readonly array $ignoreWhenBuilding
@@ -200,10 +202,11 @@ final readonly class Phel\Config\PhelConfig implements JsonSerializable
   public readonly string $phelDir
   public readonly string $tempDir
   public readonly string $vendorDir
-  public function __construct(array $srcDirs = ['src'], array $testDirs = ['tests'], string $vendorDir = 'vendor', string $errorLogFile = '.phel/error.log', Phel\Config\PhelExportConfig $exportConfig = object(Phel\Config\PhelExportConfig), Phel\Config\PhelBuildConfig $buildConfig = object(Phel\Config\PhelBuildConfig), array $ignoreWhenBuilding = [], array $noCacheWhenBuilding = [], bool $keepGeneratedTempFiles = false, ?string $tempDir = null, string $cacheDir = '.phel/cache', array $formatDirs = ['src', 'tests'], array $formatExclude = [], array $appModulePaths = [], bool $enableAsserts = true, bool $warnDeprecations = false, bool $enableNamespaceCache = true, bool $enableCompiledCodeCache = true, bool $enableIntermediateCache = false, string $phelDir = '', int $optimizationLevel = 0, bool $stripSymbolMeta = false)
+  public function __construct(array $srcDirs = ['src'], array $testDirs = ['tests'], string $vendorDir = 'vendor', string $errorLogFile = '.phel/error.log', Phel\Config\PhelExportConfig $exportConfig = object(Phel\Config\PhelExportConfig), Phel\Config\PhelBuildConfig $buildConfig = object(Phel\Config\PhelBuildConfig), array $ignoreWhenBuilding = [], array $noCacheWhenBuilding = [], bool $keepGeneratedTempFiles = false, ?string $tempDir = null, string $cacheDir = '.phel/cache', array $formatDirs = ['src', 'tests'], array $formatExclude = [], array $appModulePaths = [], bool $enableAsserts = true, bool $warnDeprecations = false, bool $enableNamespaceCache = true, bool $enableCompiledCodeCache = true, bool $enableIntermediateCache = false, string $phelDir = '', int $optimizationLevel = 0, bool $stripSymbolMeta = false, array $cacheEnvVars = [])
   public function getAppModulePaths(): array
   public function getBuildConfig(): Phel\Config\PhelBuildConfig
   public function getCacheDir(): string
+  public function getCacheEnvVars(): array
   public function getErrorLogFile(): string
   public function getExportConfig(): Phel\Config\PhelExportConfig
   public function getFormatDirs(): array
@@ -228,6 +231,7 @@ final readonly class Phel\Config\PhelConfig implements JsonSerializable
   public function withBuildConfig(Phel\Config\PhelBuildConfig|callable $buildConfig): Phel\Config\PhelConfig
   public function withBuildDestDir(string $dir): Phel\Config\PhelConfig
   public function withCacheDir(string $dir): Phel\Config\PhelConfig
+  public function withCacheEnvVars(array $names): Phel\Config\PhelConfig
   public function withEnableAsserts(bool $flag = true): Phel\Config\PhelConfig
   public function withEnableCompiledCodeCache(bool $flag = true): Phel\Config\PhelConfig
   public function withEnableIntermediateCache(bool $flag = true): Phel\Config\PhelConfig
@@ -1715,7 +1719,7 @@ final readonly class Phel\Shared\CompiledFile
   public function isCached(): bool
 
 final class Phel\Shared\CompiledSourceHash
-  public static function of(string $code, int $optimizationLevel): string
+  public static function of(string $code, int $optimizationLevel, string $envFingerprint = ''): string
 
 interface Phel\Shared\CompilerConstants
   public const string DEFAULT_SOURCE = 'string'

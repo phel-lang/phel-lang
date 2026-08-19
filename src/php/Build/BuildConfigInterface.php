@@ -24,4 +24,9 @@ interface BuildConfigInterface
     public function getOptimizationLevel(): int;
 
     public function shouldStripSymbolMeta(): bool;
+
+    /**
+     * @return list<string>
+     */
+    public function getCacheEnvVars(): array;
 }

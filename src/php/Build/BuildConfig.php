@@ -64,6 +64,14 @@ final class BuildConfig extends AbstractConfig implements BuildConfigInterface
         return (bool) $this->get(PhelConfig::STRIP_SYMBOL_META, false);
     }
 
+    /**
+     * @return list<string>
+     */
+    public function getCacheEnvVars(): array
+    {
+        return ScalarCoercion::toStringList($this->get(PhelConfig::CACHE_ENV_VARS, []));
+    }
+
     public function isNamespaceCacheEnabled(): bool
     {
         return (bool) $this->get(PhelConfig::ENABLE_NAMESPACE_CACHE, true);

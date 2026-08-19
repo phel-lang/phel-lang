@@ -79,7 +79,9 @@ $emit   = $facade->compile('(print "hi")', new CompileOptions());
 
 **Introspect a namespace at runtime.** `ApiFacade`: symbol search, doc, `:see-also`, source locations. `Lang\Registry` is the store but private.
 
-**Cache invalidation.** Keyed by source hash + Phel version. Phel bump busts automatically. Local generated-code change: `phel cache:clear` or `rm -rf .phel/cache/`.
+**Cache invalidation.** Keyed by source hash + optimization level + Phel version, plus the declared `cache-env-vars`. Phel bump busts automatically. Local generated-code change: `phel cache:clear` or `rm -rf .phel/cache/`.
+
+**A macro that reads the environment.** Macro expansion runs at compile time, so `(php/getenv "MY_MODE")` inside a macro bakes the current value into the emitted PHP. The key knows nothing about it, so a later run with another value gets the old expansion. Name the variable in `cache-env-vars` (`PhelConfig::withCacheEnvVars(['MY_MODE'])`) and the flip becomes a miss; only the hash of the value is stored. It is one fingerprint for the whole project, so alternating between values recompiles everything each way: a `cache-dir` per value keeps both warm.
 
 ## Bug hunting
 
