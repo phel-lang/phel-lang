@@ -84,6 +84,7 @@ Both are injected as their Shared `*FacadeInterface`. One non-facade edge: **Con
 - One fingerprint covers the whole project, so flipping a declared value invalidates every entry; the compiled file is overwritten in place (`CachePathResolver::compiledPath()` keys the filename on namespace + source *path*), so nothing is orphaned. A config that alternates between values wants a `cache-dir` per value instead.
 - Declaring nothing leaves the hash byte-identical to before, so existing caches stay warm. No `INDEX_FORMAT_VERSION` bump: the entry shape is unchanged and a differing fingerprint already misses.
 - `ProjectCompiler` records the fingerprint in `<out>/.phel-cache-env-fingerprint` and force-recompiles when it changes, next to the optimization-level and strip markers. Not optional: `phel build`'s incremental check is mtime-only, so the reuse path `require_once`s the previous primary, whose build-mode `(load ...)` then asks the compiled-code cache for a secondary that the new fingerprint no longer keys — the secondary recompiles standalone against a half-registered registry and the build dies with `Cannot resolve symbol 'map'`. An empty fingerprint leaves no marker.
+- Not covered: the precompiled-sibling fast path. A `BuiltFilePreamble`-marked `.php` next to a source skips the cache and the fingerprint both, so a bundle built under one environment keeps its expansion until the sibling itself is rebuilt. Same for `Lint`'s diagnostic cache, whose key is source + rules.
 
 ### strip-symbol-meta
 

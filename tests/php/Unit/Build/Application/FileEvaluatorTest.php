@@ -848,45 +848,55 @@ final class FileEvaluatorTest extends TestCase
         $sourceFile = $this->tempDir . '/test.phel';
         $sourceCode = '(ns test\\namespace)';
         file_put_contents($sourceFile, $sourceCode);
-        $cacheDir = $this->tempDir . '/cache';
         $namespace = 'test\\namespace';
-
-        // Written while `MY_MODE=a` expanded the macros; the run below sees
-        // another value, so the entry must not satisfy it (#3236).
-        $cache = new CompiledCodeCache($cacheDir);
-        $cache->put($sourceFile, $namespace, md5($sourceCode . '|Efingerprint-a'), '$modeA = true;');
-
-        $compilerFacade = $this->createMock(CompilerFacadeInterface::class);
-        $compilerFacade->expects($this->once())
-            ->method('compileForCache')
-            ->willReturn(new EmitterResult(false, '$modeB = true;', '', ''));
 
         $namespaceExtractor = $this->createStub(NamespaceExtractorInterface::class);
         $namespaceExtractor->method('getNamespaceFromFile')->willReturn(
             new NamespaceInformation($sourceFile, $namespace, ['phel.core']),
         );
 
-        $evaluator = new FileEvaluator(
-            $compilerFacade,
+        $cache = new CompiledCodeCache($this->tempDir . '/cache');
+
+        // First run: the macros expanded under whatever `MY_MODE=a` meant.
+        $firstFacade = $this->createMock(CompilerFacadeInterface::class);
+        $firstFacade->expects($this->once())
+            ->method('compileForCache')
+            ->willReturn(new EmitterResult(false, '$modeA = true;', '', ''));
+
+        new FileEvaluator(
+            $firstFacade,
             $namespaceExtractor,
             $cache,
-            cacheEnvFingerprint: 'fingerprint-b',
-        );
-        $evaluator->evalFile($sourceFile);
+            cacheEnvFingerprint: 'fingerprint-a',
+        )->evalFile($sourceFile);
 
-        // The freshly stored entry serves the next run under the same fingerprint.
+        // Same source, another value behind the same macros: the entry the
+        // first run wrote must not satisfy this one (#3236).
         FileEvaluator::resetState();
         $secondFacade = $this->createMock(CompilerFacadeInterface::class);
-        $secondFacade->expects($this->never())->method('compileForCache');
-        $secondFacade->expects($this->never())->method('eval');
+        $secondFacade->expects($this->once())
+            ->method('compileForCache')
+            ->willReturn(new EmitterResult(false, '$modeB = true;', '', ''));
 
-        $secondEvaluator = new FileEvaluator(
+        new FileEvaluator(
             $secondFacade,
             $namespaceExtractor,
             $cache,
             cacheEnvFingerprint: 'fingerprint-b',
-        );
-        $result = $secondEvaluator->evalFile($sourceFile);
+        )->evalFile($sourceFile);
+
+        // A repeat under the same value is served from the cache again.
+        FileEvaluator::resetState();
+        $thirdFacade = $this->createMock(CompilerFacadeInterface::class);
+        $thirdFacade->expects($this->never())->method('compileForCache');
+        $thirdFacade->expects($this->never())->method('eval');
+
+        $result = new FileEvaluator(
+            $thirdFacade,
+            $namespaceExtractor,
+            $cache,
+            cacheEnvFingerprint: 'fingerprint-b',
+        )->evalFile($sourceFile);
 
         self::assertSame($namespace, $result->getNamespace());
     }
