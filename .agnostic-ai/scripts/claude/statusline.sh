@@ -4,26 +4,40 @@
 
 input=$(cat)
 
-# Parse all values in single jq call for performance
-eval $(echo "$input" | jq -r '
-  @sh "dir=\(.workspace.current_dir // .cwd // "unknown")",
-  @sh "cumulative_input=\(.context_window.total_input_tokens // 0)",
-  @sh "cumulative_output=\(.context_window.total_output_tokens // 0)",
-  @sh "context_pct=\(.context_window.used_percentage // 0)",
-  @sh "model=\(.model.display_name // "Claude")",
-  @sh "cost=\(.cost.total_cost_usd // 0)",
-  @sh "five_hour_pct=\(.rate_limits.five_hour.used_percentage // "")",
-  @sh "seven_day_pct=\(.rate_limits.seven_day.used_percentage // "")"
-')
+# Parse all values in one jq call for performance and predictable quoting.
+{
+  IFS= read -r dir
+  IFS= read -r cumulative_input
+  IFS= read -r cumulative_output
+  IFS= read -r context_pct
+  IFS= read -r model
+  IFS= read -r cost
+  IFS= read -r five_hour_pct
+  IFS= read -r seven_day_pct
+} < <(
+  printf '%s' "$input" | jq -r '[
+    .workspace.current_dir // .cwd // "unknown",
+    .context_window.total_input_tokens // 0,
+    .context_window.total_output_tokens // 0,
+    .context_window.used_percentage // 0,
+    .model.display_name // "Claude",
+    .cost.total_cost_usd // 0,
+    .rate_limits.five_hour.used_percentage // "",
+    .rate_limits.seven_day.used_percentage // ""
+  ][]'
+)
 session_total=$((cumulative_input + cumulative_output))
 
 # Format numbers with K/M suffix
 format_tokens() {
   local n=$1
+  local scaled
   if [ "$n" -ge 1000000 ]; then
-    printf "%.1fM" $(echo "scale=1; $n/1000000" | bc)
+    scaled=$(printf 'scale=1; %s/1000000\n' "$n" | bc)
+    printf "%.1fM" "$scaled"
   elif [ "$n" -ge 1000 ]; then
-    printf "%.0fK" $(echo "scale=1; $n/1000" | bc)
+    scaled=$(printf 'scale=1; %s/1000\n' "$n" | bc)
+    printf "%.0fK" "$scaled"
   else
     printf "%d" "$n"
   fi
@@ -52,7 +66,7 @@ printf '  \033[90m%s\033[0m' "$model"
 printf '  \033[32m$%.2f\033[0m' "$cost"
 
 # Tokens
-printf '  \033[35m%s\033[0m' "$(format_tokens $session_total)"
+printf '  \033[35m%s\033[0m' "$(format_tokens "$session_total")"
 
 # Context % - color based on usage (cyan < 70%, yellow 70-85%, red > 85%)
 context_int=${context_pct%.*}

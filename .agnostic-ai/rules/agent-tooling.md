@@ -1,5 +1,7 @@
 ---
 name: agent-tooling
+description: Ownership boundaries for repository and downstream agent files.
+globs: .agnostic-ai/**,.codex/**,.claude/**,resources/agents/**
 ---
 
 Repo-maintenance agent files are adapter-native:

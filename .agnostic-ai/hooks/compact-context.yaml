@@ -1,0 +1,5 @@
+name: compact-context
+description: Restore essential Phel context after conversation compaction.
+event: SessionStart
+matcher: compact
+command: 'sh -c ''r=$(git rev-parse --path-format=absolute --git-common-dir 2>/dev/null) || exit 0; s="$(dirname "$r")/.claude/hooks/compact-context.sh"; [ -x "$s" ] || exit 0; exec "$s"'''

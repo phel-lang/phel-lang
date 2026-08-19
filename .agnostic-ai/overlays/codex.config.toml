@@ -13,7 +13,7 @@ the canonical module-level docs even when using Codex.
 """
 
 [features]
-codex_hooks = true
+hooks = true
 multi_agent = true
 
 [agents]

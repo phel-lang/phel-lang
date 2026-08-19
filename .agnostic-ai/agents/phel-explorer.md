@@ -4,6 +4,12 @@ name: phel-explorer
 model:
   claude: haiku
   codex: o4-mini
+allowed_tools:
+  - Read
+  - Glob
+  - Grep
+  - Bash(wc:*)
+  - Bash(ls:*)
 x-codex:
     model_reasoning_effort: medium
     name: phel_explorer

@@ -1,0 +1,10 @@
+name: format-codex
+description: Format PHP and Phel files changed through Codex patches.
+event: PostToolUse
+matcher: apply_patch
+target: codex
+command:
+  - 'sh -c ''r=$(git rev-parse --path-format=absolute --git-common-dir 2>/dev/null) || exit 0; s="$(dirname "$r")/.codex/hooks/format-php-codex.sh"; [ -x "$s" ] || exit 0; exec "$s"'''
+  - 'sh -c ''r=$(git rev-parse --path-format=absolute --git-common-dir 2>/dev/null) || exit 0; s="$(dirname "$r")/.codex/hooks/format-phel-codex.sh"; [ -x "$s" ] || exit 0; exec "$s"'''
+timeout: 30
+statusMessage: Formatting touched files

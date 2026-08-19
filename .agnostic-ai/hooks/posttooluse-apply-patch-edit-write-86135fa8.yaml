@@ -1,8 +1,0 @@
-command:
-    - 'sh -c ''r=$(git rev-parse --path-format=absolute --git-common-dir 2>/dev/null) || exit 0; s="$(dirname "$r")/.claude/hooks/format-php.sh"; [ -x "$s" ] || exit 0; exec "$s"'''
-    - 'sh -c ''r=$(git rev-parse --path-format=absolute --git-common-dir 2>/dev/null) || exit 0; s="$(dirname "$r")/.claude/hooks/format-phel.sh"; [ -x "$s" ] || exit 0; exec "$s"'''
-event: PostToolUse
-matcher: apply_patch|Edit|Write
-name: posttooluse-apply-patch-edit-write-86135fa8
-statusMessage: Formatting touched files
-timeout: 30

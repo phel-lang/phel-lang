@@ -4,6 +4,11 @@ name: phel-reviewer
 model:
   claude: sonnet
   codex: o3
+allowed_tools:
+  - Read
+  - Glob
+  - Grep
+  - Bash(git diff:*)
 x-codex:
     model_reasoning_effort: high
     name: phel_reviewer
