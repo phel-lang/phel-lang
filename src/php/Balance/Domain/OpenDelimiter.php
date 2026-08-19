@@ -19,5 +19,6 @@ final readonly class OpenDelimiter
         public string $closerText,
         public int $line,
         public int $column,
+        public int $offset = 0,
     ) {}
 }

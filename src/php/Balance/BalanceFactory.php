@@ -6,10 +6,14 @@ namespace Phel\Balance;
 
 use Gacela\Framework\AbstractFactory;
 use Gacela\Framework\ServiceResolver\ServiceMap;
+use Phel\Balance\Application\BoundaryRepairer;
 use Phel\Balance\Application\DelimiterRepairer;
 use Phel\Balance\Application\DelimiterScanner;
 use Phel\Balance\Application\PathsBalancer;
 use Phel\Balance\Application\PhelFileCollector;
+use Phel\Balance\Application\RepairSearch;
+use Phel\Balance\Application\RepairValidator;
+use Phel\Balance\Application\UnexpectedCloserRepairer;
 use Phel\Balance\Domain\FileCollectorInterface;
 use Phel\Balance\Domain\FileIoInterface;
 use Phel\Balance\Infrastructure\IO\SystemFileIo;
@@ -26,11 +30,18 @@ final class BalanceFactory extends AbstractFactory
 {
     public function createPathsBalancer(): PathsBalancer
     {
+        $scanner = $this->createDelimiterScanner();
+        $validator = new RepairValidator($this->getCompilerFacade(), $scanner);
+
         return new PathsBalancer(
             $this->createPhelFileCollector(),
-            $this->createDelimiterScanner(),
+            $scanner,
             $this->createDelimiterRepairer(),
             $this->createFileIo(),
+            new BoundaryRepairer(),
+            new UnexpectedCloserRepairer(),
+            $validator,
+            new RepairSearch($this->getCompilerFacade(), $scanner, $validator),
         );
     }
 

@@ -16,13 +16,16 @@ use function sprintf;
 final readonly class BalanceReport
 {
     /**
-     * @param list<OpenDelimiter>    $unclosed                      outermost first
+     * @param list<OpenDelimiter>    $unclosed                        outermost first
      * @param list<UnexpectedCloser> $unexpectedClosers
-     * @param int|null               $unterminatedStringLine        line of the first unterminated string literal
-     * @param int|null               $topLevelFormLineAfterUnclosed line of the first column-0 opener that starts
-     *                                                              after the outermost unclosed level
-     * @param string|null            $danglingPrefixToken           trailing reader prefix awaiting a datum
-     * @param bool                   $endsInLineComment             whether the last real token is a `;` comment
+     * @param int|null               $unterminatedStringLine          line of the first unterminated string literal
+     * @param int|null               $topLevelFormLineAfterUnclosed   line of the first column-0 opener that starts
+     *                                                                after the outermost unclosed level
+     * @param string|null            $danglingPrefixToken             trailing reader prefix awaiting a datum
+     * @param bool                   $endsInLineComment               whether the last real token is a `;` comment
+     * @param int|null               $topLevelFormOffsetAfterUnclosed byte offset of the boundary
+     * @param bool                   $precedingLineIsComment          whether the last real token before the
+     *                                                                boundary is a `;` comment
      */
     public function __construct(
         public array $unclosed,
@@ -31,13 +34,16 @@ final readonly class BalanceReport
         public ?int $topLevelFormLineAfterUnclosed,
         public ?string $danglingPrefixToken,
         public bool $endsInLineComment,
+        public ?int $topLevelFormOffsetAfterUnclosed = null,
+        public bool $precedingLineIsComment = false,
     ) {}
 
     public function isBalanced(): bool
     {
         return $this->unclosed === []
             && $this->unexpectedClosers === []
-            && $this->unterminatedStringLine === null;
+            && $this->unterminatedStringLine === null
+            && $this->danglingPrefixToken === null;
     }
 
     /**

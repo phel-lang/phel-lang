@@ -14,6 +14,7 @@ final readonly class FileOutcome
         public BalanceOutcome $outcome,
         public ?BalanceReport $report = null,
         public ?string $reason = null,
+        public ?RepairPlan $plan = null,
     ) {}
 
     public static function balanced(string $path, BalanceReport $report): self
@@ -21,9 +22,9 @@ final readonly class FileOutcome
         return new self($path, BalanceOutcome::Balanced, $report);
     }
 
-    public static function repaired(string $path, BalanceReport $report): self
+    public static function repaired(string $path, BalanceReport $report, ?RepairPlan $plan = null): self
     {
-        return new self($path, BalanceOutcome::Repaired, $report);
+        return new self($path, BalanceOutcome::Repaired, $report, null, $plan);
     }
 
     public static function needsRepair(string $path, BalanceReport $report): self
@@ -31,8 +32,8 @@ final readonly class FileOutcome
         return new self($path, BalanceOutcome::NeedsRepair, $report);
     }
 
-    public static function unrepairable(string $path, string $reason, ?BalanceReport $report = null): self
+    public static function unrepairable(string $path, string $reason, ?BalanceReport $report = null, ?RepairPlan $plan = null): self
     {
-        return new self($path, BalanceOutcome::Unrepairable, $report, $reason);
+        return new self($path, BalanceOutcome::Unrepairable, $report, $reason, $plan);
     }
 }

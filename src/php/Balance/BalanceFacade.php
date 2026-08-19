@@ -8,6 +8,7 @@ use Gacela\Framework\AbstractFacade;
 use Gacela\Framework\ServiceResolver\ServiceMap;
 use Phel\Balance\Domain\BalanceResult;
 use Phel\Balance\Domain\Exception\BalanceSourceException;
+use Phel\Balance\Domain\RepairStrategy;
 
 /**
  * @extends AbstractFacade<BalanceFactory>
@@ -24,10 +25,10 @@ final class BalanceFacade extends AbstractFacade
      *
      * @throws BalanceSourceException when a listed directory cannot be walked
      */
-    public function balance(array $paths, bool $fix = false): BalanceResult
+    public function balance(array $paths, bool $fix = false, RepairStrategy $strategy = RepairStrategy::Append): BalanceResult
     {
         return $this->getFactory()
             ->createPathsBalancer()
-            ->balance($paths, $fix);
+            ->balance($paths, $fix, $strategy);
     }
 }
