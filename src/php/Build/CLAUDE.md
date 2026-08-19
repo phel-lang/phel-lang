@@ -45,6 +45,7 @@ Both are injected as their Shared `*FacadeInterface`. One non-facade edge: **Con
 | `Domain/Compile/SymbolMetaStripper` | Token-based removal of `\Phel::locationMeta(...)` args from build output when `strip-symbol-meta` is on (write-path only; evaluation keeps full meta) |
 | `Domain/Compile/CompiledSecondaryStore` | In-memory hand-off of build-time-compiled secondaries from `FileEvaluator` to `SecondaryFileHarvester` when the compiled-code cache is off |
 | `Infrastructure/Cache/CompiledCodeCache` | Compiled-code cache policy orchestrator |
+| `Infrastructure/Cache/EnvCacheFingerprint` | Hash of the declared `cache-env-vars`, mixed into the compiled-code cache key |
 | `Infrastructure/Cache/PhpScanIndexCache` | Persisted dir-scan index |
 | `Domain/Cache/NullScanIndexCache` | No-op scan index (Null Object; in `Domain` so `Application` never imports outward) |
 | `Infrastructure/Cache/PhpNamespaceCache` / `NullNamespaceCache` | Namespace-extraction cache |
@@ -56,7 +57,7 @@ Both are injected as their Shared `*FacadeInterface`. One non-facade edge: **Con
 
 ### Caching (two levels: namespace extraction + compiled code, each optional)
 
-- **Compiled-code cache** (`CompiledCodeCache`) is the policy orchestrator; delegates to `CacheDirectory` (layout), `CacheIndexFile` (index load/save/merge), `NamespaceEnvironmentStore` (env data), `CachePathResolver`, `AtomicFileWriter`.
+- **Compiled-code cache** (`CompiledCodeCache`) keys entries by `CompiledSourceHash::of(source, optimizationLevel, envFingerprint)` under an index stamped with the Phel version; it is the policy orchestrator and delegates to `CacheDirectory` (layout), `CacheIndexFile` (index load/save/merge), `NamespaceEnvironmentStore` (env data), `CachePathResolver`, `AtomicFileWriter`.
 - A cache entry carries the deprecation notices its compile found (`EmitterResult::getDeprecations()`, stored as `deprecations` in the index entry, `INDEX_FORMAT_VERSION` 1.6); `FileEvaluator` hands them to `CompilerFacadeInterface::replayDeprecations()` on every hit, so `--warn-deprecations` reports the same on a warm cache as on a cold one (#3222). Never key the cache on the flag instead: a repeat flagged run would then be silent again.
 - `put`/`invalidate` only mutate the in-memory index + mark it dirty; the index flushes to disk **exactly once per process at shutdown** via `register_shutdown_function` (`DeferredFlushTrait`), so cold-build index I/O is O(N) not O(N²). Flush goes through `CacheIndexFile::save()` (atomic-write + `flock` + read-merge-from-disk), so concurrent `phel test` workers merge without lost entries.
 - Compiled `.php` files are still written eagerly by `AtomicFileWriter`, so a crash before shutdown costs at most a recompile (lost index entry), never corruption. `clear()` writes the empty index eagerly + resets the dirty flag.
@@ -75,6 +76,14 @@ Both are injected as their Shared `*FacadeInterface`. One non-facade edge: **Con
 
 - `BuildConfig::getOptimizationLevel()` (key `PhelConfig::OPTIMIZATION_LEVEL`) injected into `FileCompiler` (constructor default; per-call override wins, used by `phel build -O`) and `FileEvaluator` (also mixed into the compiled-code cache hash when > 0).
 - `ProjectCompiler` records the level in `<out>/.phel-optimization-level` (`OPTIMIZATION_LEVEL_FILE`) and force-recompiles when it changes, because the incremental cache is mtime-only; level 0 leaves no marker.
+
+### cache-env-vars
+
+- `PhelConfig::withCacheEnvVars(['MY_MODE'])` (key `cache-env-vars`, default none) names the environment variables that take part in the compiled-code cache key. `EnvCacheFingerprint::of()` hashes name + `md5(value)` pairs over the sorted, deduplicated names (unset reads as `-`, distinct from empty) and `BuildFactory::cacheEnvFingerprint()` injects the result into `FileEvaluator` (writer) and `SecondaryFileHarvester` (reader), both of which mix it into `CompiledSourceHash::of()`. Values are hashed, never stored, so a secret is safe to declare.
+- Why it is needed: macro expansion happens at compile time, so `(php/getenv "MY_MODE")` inside a macro bakes the value into the emitted PHP while the key sees only source. A changed variable used to serve the previous expansion (#3236).
+- One fingerprint covers the whole project, so flipping a declared value invalidates every entry; the compiled file is overwritten in place (`CachePathResolver::compiledPath()` keys the filename on namespace + source *path*), so nothing is orphaned. A config that alternates between values wants a `cache-dir` per value instead.
+- Declaring nothing leaves the hash byte-identical to before, so existing caches stay warm. No `INDEX_FORMAT_VERSION` bump: the entry shape is unchanged and a differing fingerprint already misses.
+- `ProjectCompiler` records the fingerprint in `<out>/.phel-cache-env-fingerprint` and force-recompiles when it changes, next to the optimization-level and strip markers. Not optional: `phel build`'s incremental check is mtime-only, so the reuse path `require_once`s the previous primary, whose build-mode `(load ...)` then asks the compiled-code cache for a secondary that the new fingerprint no longer keys — the secondary recompiles standalone against a half-registered registry and the build dies with `Cannot resolve symbol 'map'`. An empty fingerprint leaves no marker.
 
 ### strip-symbol-meta
 

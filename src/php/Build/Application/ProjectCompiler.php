@@ -44,6 +44,16 @@ final readonly class ProjectCompiler
      */
     private const string STRIP_SYMBOL_META_FILE = '.phel-strip-symbol-meta';
 
+    /**
+     * Marker file recording the fingerprint of the declared `cache-env-vars`
+     * of the last build. Reusing a target by mtime alone would ship the macro
+     * expansion of the previous environment (#3236) — and worse, the reused
+     * primary `(load ...)`s a secondary that the compiled-code cache no longer
+     * has under the new fingerprint, which recompiles it standalone against a
+     * half-registered registry and fails the build.
+     */
+    private const string CACHE_ENV_FINGERPRINT_FILE = '.phel-cache-env-fingerprint';
+
     private CompiledTargetPathResolver $targetPathResolver;
 
     public function __construct(
@@ -54,6 +64,7 @@ final readonly class ProjectCompiler
         private EntryPointPhpFileInterface $entryPointPhpFile,
         private BuildConfigInterface $config,
         private SecondaryFileHarvester $secondaryFileHarvester,
+        private string $cacheEnvFingerprint = '',
     ) {
         $this->targetPathResolver = new CompiledTargetPathResolver($compilerFacade);
     }
@@ -92,8 +103,9 @@ final readonly class ProjectCompiler
 
         $optimizationLevel = $buildOptions->getOptimizationLevel() ?? $this->config->getOptimizationLevel();
         $stripSymbolMeta = $this->config->shouldStripSymbolMeta();
-        $optimizationLevelChanged = $this->storedOptimizationLevel($dest) !== $optimizationLevel
-            || $this->storedStripSymbolMeta($dest) !== $stripSymbolMeta;
+        $buildSettingsChanged = $this->storedOptimizationLevel($dest) !== $optimizationLevel
+            || $this->storedStripSymbolMeta($dest) !== $stripSymbolMeta
+            || $this->storedCacheEnvFingerprint($dest) !== $this->cacheEnvFingerprint;
 
         $namespaceInformation = $this->namespaceExtractor->getNamespacesFromDirectories($srcDirectories);
         /** @var list<CompiledFile> $result */
@@ -122,7 +134,7 @@ final readonly class ProjectCompiler
                 throw new RuntimeException(sprintf('Directory "%s" was not created', $targetDir));
             }
 
-            if (!$optimizationLevelChanged
+            if (!$buildSettingsChanged
                 && !$this->dependsOnRecompiled($info, $recompiledNamespaces)
                 && $this->canUseCache($buildOptions, $targetFile, $info)
             ) {
@@ -160,6 +172,7 @@ final readonly class ProjectCompiler
 
         $this->storeOptimizationLevel($dest, $optimizationLevel);
         $this->storeStripSymbolMeta($dest, $stripSymbolMeta);
+        $this->storeCacheEnvFingerprint($dest);
         $this->harvestSecondaries($namespaceInformation, $dest, $srcDirectories);
 
         if ($this->config->shouldCreateEntryPointPhpFile()) {
@@ -245,6 +258,24 @@ final readonly class ProjectCompiler
     {
         // No marker for default builds, mirroring the optimization-level file.
         $this->storeMarker($dest, self::STRIP_SYMBOL_META_FILE, $strip ? '1' : null);
+    }
+
+    private function storedCacheEnvFingerprint(string $dest): string
+    {
+        $file = $dest . '/' . self::CACHE_ENV_FINGERPRINT_FILE;
+
+        return is_file($file) ? (string) file_get_contents($file) : '';
+    }
+
+    private function storeCacheEnvFingerprint(string $dest): void
+    {
+        // A project declaring nothing leaves no marker, so its output tree is
+        // byte-identical to one built before the option existed.
+        $this->storeMarker(
+            $dest,
+            self::CACHE_ENV_FINGERPRINT_FILE,
+            $this->cacheEnvFingerprint === '' ? null : $this->cacheEnvFingerprint,
+        );
     }
 
     /**

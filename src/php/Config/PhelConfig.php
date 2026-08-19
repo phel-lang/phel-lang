@@ -61,6 +61,8 @@ final readonly class PhelConfig implements JsonSerializable
 
     public const string CACHE_DIR = 'cache-dir';
 
+    public const string CACHE_ENV_VARS = 'cache-env-vars';
+
     public const string PHEL_DIR = 'phel-dir';
 
     public const string OPTIMIZATION_LEVEL = 'optimization-level';
@@ -86,6 +88,7 @@ final readonly class PhelConfig implements JsonSerializable
      * @param list<string> $formatDirs
      * @param list<string> $formatExclude
      * @param list<string> $appModulePaths
+     * @param list<string> $cacheEnvVars
      */
     public function __construct(
         public array $srcDirs = self::DEFAULT_SRC_DIRS,
@@ -110,6 +113,7 @@ final readonly class PhelConfig implements JsonSerializable
         public string $phelDir = '',
         public int $optimizationLevel = 0,
         public bool $stripSymbolMeta = false,
+        public array $cacheEnvVars = [],
     ) {
         $this->tempDir = $tempDir === null
             ? sys_get_temp_dir() . self::PHEL_TEMP_SUBDIR . '/tmp'
@@ -269,6 +273,14 @@ final readonly class PhelConfig implements JsonSerializable
     public function getOptimizationLevel(): int
     {
         return $this->optimizationLevel;
+    }
+
+    /**
+     * @return list<string>
+     */
+    public function getCacheEnvVars(): array
+    {
+        return $this->cacheEnvVars;
     }
 
     /**
@@ -620,6 +632,26 @@ final readonly class PhelConfig implements JsonSerializable
     }
 
     /**
+     * Environment variables that take part in the compiled-code cache key.
+     *
+     * The cache is keyed by source content, so a macro that reads
+     * `(php/getenv "MY_MODE")` bakes the current value into the PHP it emits
+     * and a later run with another value is served the previous expansion.
+     * Naming the variable here makes that flip a cache miss. Values are only
+     * hashed, never stored, so a secret can be declared safely.
+     *
+     * Every declared variable feeds one fingerprint shared by all entries, so
+     * flipping a value recompiles the whole project; a config that alternates
+     * between values is better off with a `cache-dir` per value. Default: none.
+     *
+     * @param list<string> $names
+     */
+    public function withCacheEnvVars(array $names): self
+    {
+        return $this->with(['cacheEnvVars' => $names]);
+    }
+
+    /**
      * Validate the configuration and return any errors found.
      *
      * @return list<string> List of validation errors (empty if valid)
@@ -657,6 +689,7 @@ final readonly class PhelConfig implements JsonSerializable
             self::PHEL_DIR => $this->phelDir,
             self::OPTIMIZATION_LEVEL => $this->optimizationLevel,
             self::STRIP_SYMBOL_META => $this->stripSymbolMeta,
+            self::CACHE_ENV_VARS => $this->cacheEnvVars,
         ];
     }
 
@@ -694,6 +727,7 @@ final readonly class PhelConfig implements JsonSerializable
      *     phelDir?: string,
      *     optimizationLevel?: int,
      *     stripSymbolMeta?: bool,
+     *     cacheEnvVars?: list<string>,
      * } $overrides
      */
     private function with(array $overrides): self
@@ -721,6 +755,7 @@ final readonly class PhelConfig implements JsonSerializable
             phelDir: $overrides['phelDir'] ?? $this->phelDir,
             optimizationLevel: $overrides['optimizationLevel'] ?? $this->optimizationLevel,
             stripSymbolMeta: $overrides['stripSymbolMeta'] ?? $this->stripSymbolMeta,
+            cacheEnvVars: $overrides['cacheEnvVars'] ?? $this->cacheEnvVars,
         );
     }
 

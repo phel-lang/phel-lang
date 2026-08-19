@@ -51,6 +51,7 @@ final class FileEvaluator
         private readonly ?DependencyTrackerInterface $dependencyTracker = null,
         private readonly int $optimizationLevel = CompileOptions::DEFAULT_OPTIMIZATION_LEVEL,
         private readonly ?CompiledSecondaryStore $compiledSecondaryStore = null,
+        private readonly string $cacheEnvFingerprint = '',
     ) {}
 
     /**
@@ -188,7 +189,7 @@ final class FileEvaluator
 
     private function sourceHash(string $code): string
     {
-        return CompiledSourceHash::of($code, $this->optimizationLevel);
+        return CompiledSourceHash::of($code, $this->optimizationLevel, $this->cacheEnvFingerprint);
     }
 
     /**

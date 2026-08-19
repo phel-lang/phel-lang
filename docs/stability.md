@@ -204,7 +204,8 @@ Not under semver, and not before `1.0`:
 - The exact PHP source the emitter produces. Only its *behaviour* is promised;
   the test suite pins the text so changes are reviewed, not forbidden.
 - Compiler diagnostic wording and error-output shape.
-- The `.phel/cache/` file format. Keyed by source hash plus Phel version, so a
+- The `.phel/cache/` file format. Keyed by source hash plus optimization level,
+  Phel version and the fingerprint of the declared `cache-env-vars`, so a
   version bump invalidates it by design.
 - Anything under `tests/`, `tools/`, `build/` or `resources/`.
 - The nREPL and LSP wire protocols beyond the upstream specifications.

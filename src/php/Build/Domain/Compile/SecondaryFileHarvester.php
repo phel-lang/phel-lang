@@ -46,6 +46,7 @@ final readonly class SecondaryFileHarvester
         private ?CompiledCodeCacheInterface $compiledCodeCache = null,
         private int $optimizationLevel = 0,
         private bool $stripSymbolMeta = false,
+        private string $cacheEnvFingerprint = '',
     ) {}
 
     /**
@@ -86,7 +87,7 @@ final readonly class SecondaryFileHarvester
             // misses every secondary and ships a broken artifact (the #2449 mode).
             $cachedPath = $this->compiledCodeCache->get(
                 $sourceFile,
-                CompiledSourceHash::of($sourceCode, $this->optimizationLevel),
+                CompiledSourceHash::of($sourceCode, $this->optimizationLevel, $this->cacheEnvFingerprint),
             );
             if ($cachedPath !== null) {
                 return $this->fileIo->getContents($cachedPath);

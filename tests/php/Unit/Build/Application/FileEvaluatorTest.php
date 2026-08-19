@@ -843,6 +843,83 @@ final class FileEvaluatorTest extends TestCase
         $evaluator->evalFile($sourceFile);
     }
 
+    public function test_changing_the_declared_env_fingerprint_invalidates_cached_code(): void
+    {
+        $sourceFile = $this->tempDir . '/test.phel';
+        $sourceCode = '(ns test\\namespace)';
+        file_put_contents($sourceFile, $sourceCode);
+        $cacheDir = $this->tempDir . '/cache';
+        $namespace = 'test\\namespace';
+
+        // Written while `MY_MODE=a` expanded the macros; the run below sees
+        // another value, so the entry must not satisfy it (#3236).
+        $cache = new CompiledCodeCache($cacheDir);
+        $cache->put($sourceFile, $namespace, md5($sourceCode . '|Efingerprint-a'), '$modeA = true;');
+
+        $compilerFacade = $this->createMock(CompilerFacadeInterface::class);
+        $compilerFacade->expects($this->once())
+            ->method('compileForCache')
+            ->willReturn(new EmitterResult(false, '$modeB = true;', '', ''));
+
+        $namespaceExtractor = $this->createStub(NamespaceExtractorInterface::class);
+        $namespaceExtractor->method('getNamespaceFromFile')->willReturn(
+            new NamespaceInformation($sourceFile, $namespace, ['phel.core']),
+        );
+
+        $evaluator = new FileEvaluator(
+            $compilerFacade,
+            $namespaceExtractor,
+            $cache,
+            cacheEnvFingerprint: 'fingerprint-b',
+        );
+        $evaluator->evalFile($sourceFile);
+
+        // The freshly stored entry serves the next run under the same fingerprint.
+        FileEvaluator::resetState();
+        $secondFacade = $this->createMock(CompilerFacadeInterface::class);
+        $secondFacade->expects($this->never())->method('compileForCache');
+        $secondFacade->expects($this->never())->method('eval');
+
+        $secondEvaluator = new FileEvaluator(
+            $secondFacade,
+            $namespaceExtractor,
+            $cache,
+            cacheEnvFingerprint: 'fingerprint-b',
+        );
+        $result = $secondEvaluator->evalFile($sourceFile);
+
+        self::assertSame($namespace, $result->getNamespace());
+    }
+
+    public function test_no_declared_env_vars_keeps_plain_source_hash(): void
+    {
+        $sourceFile = $this->tempDir . '/test.phel';
+        $sourceCode = '(ns test\\namespace)';
+        file_put_contents($sourceFile, $sourceCode);
+        $cacheDir = $this->tempDir . '/cache';
+        $namespace = 'test\\namespace';
+
+        $cache = new CompiledCodeCache($cacheDir);
+        $cache->put($sourceFile, $namespace, md5($sourceCode), '$plain = true;');
+
+        $compilerFacade = $this->createMock(CompilerFacadeInterface::class);
+        $compilerFacade->expects($this->never())->method('compileForCache');
+        $compilerFacade->expects($this->never())->method('eval');
+
+        $namespaceExtractor = $this->createStub(NamespaceExtractorInterface::class);
+        $namespaceExtractor->method('getNamespaceFromFile')->willReturn(
+            new NamespaceInformation($sourceFile, $namespace, ['phel.core']),
+        );
+
+        $evaluator = new FileEvaluator(
+            $compilerFacade,
+            $namespaceExtractor,
+            $cache,
+            cacheEnvFingerprint: '',
+        );
+        $evaluator->evalFile($sourceFile);
+    }
+
     /**
      * Writes a precompiled `.php` sibling that registers one def via
      * `\Phel::addDefinition`, mirroring the shape the PHAR bundles.

@@ -48,6 +48,7 @@ final class PhelConfigTest extends TestCase
             PhelConfig::PHEL_DIR => '',
             PhelConfig::OPTIMIZATION_LEVEL => 0,
             PhelConfig::STRIP_SYMBOL_META => false,
+            PhelConfig::CACHE_ENV_VARS => [],
         ];
 
         self::assertSame($expected, $config->jsonSerialize());
@@ -228,6 +229,7 @@ final class PhelConfigTest extends TestCase
             ->withEnableAsserts(false)
             ->withWarnDeprecations(true)
             ->withCacheDir('.cache')
+            ->withCacheEnvVars(['MY_MODE'])
             ->withOptimizationLevel(2);
 
         $expected = [
@@ -262,6 +264,7 @@ final class PhelConfigTest extends TestCase
             PhelConfig::PHEL_DIR => '',
             PhelConfig::OPTIMIZATION_LEVEL => 2,
             PhelConfig::STRIP_SYMBOL_META => false,
+            PhelConfig::CACHE_ENV_VARS => ['MY_MODE'],
         ];
 
         self::assertSame($expected, $config->jsonSerialize());
