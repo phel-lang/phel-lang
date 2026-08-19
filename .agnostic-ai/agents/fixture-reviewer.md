@@ -3,15 +3,16 @@ name: fixture-reviewer
 description: Audits .test integration fixtures under tests/php/Integration/Fixtures for drift against the current compiler output. Use after lexer, parser, analyzer, or emitter changes.
 model:
   claude: sonnet
-  codex: o4-mini
+  codex: gpt-5.5
 maxTurns: 15
-allowed_tools:
-  - Read
-  - Glob
-  - Grep
-  - Bash(./vendor/bin/phpunit *)
-  - Bash(git diff *)
-  - Bash(git log *)
+tools: [Read, Glob, Grep, Bash]
+x-codex:
+    model_reasoning_effort: medium
+    name: fixture_reviewer
+    nickname_candidates:
+        - Fixture
+        - Snapshot
+        - Drift
 ---
 
 # Fixture Reviewer

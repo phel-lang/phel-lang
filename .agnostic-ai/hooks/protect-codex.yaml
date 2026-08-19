@@ -1,0 +1,8 @@
+name: protect-codex
+description: Block Codex patches to protected repository files.
+event: PreToolUse
+matcher: Bash|apply_patch|Edit|Write
+target: codex
+command: 'sh -c ''r=$(git rev-parse --path-format=absolute --git-common-dir 2>/dev/null) || exit 0; s="$(dirname "$r")/.codex/hooks/protect-files-codex.sh"; [ -x "$s" ] || exit 0; exec "$s"'''
+timeout: 5
+statusMessage: Checking protected files

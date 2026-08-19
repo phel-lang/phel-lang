@@ -3,14 +3,16 @@ name: module-docs-sync
 description: Audits and updates CLAUDE.md files in src/php/ modules to match the actual code. Use after large refactors, new modules, or periodic maintenance.
 model:
   claude: haiku
-  codex: o4-mini
+  codex: gpt-5.4-mini
 memory: project
-allowed_tools:
-  - Read
-  - Glob
-  - Grep
-  - Edit
-  - Write
+tools: [Read, Write, Edit, Glob, Grep]
+x-codex:
+    model_reasoning_effort: medium
+    name: module_docs_sync
+    nickname_candidates:
+        - Docs
+        - Sync
+        - Notes
 ---
 
 # Module Docs Sync

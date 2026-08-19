@@ -30,7 +30,7 @@ jobs:
       - name: Install agnostic-ai
         run: |
           set -euo pipefail
-          version="v0.25.0"
+          version="v0.49.0"
           curl -sSfL -o agnostic-ai.tar.gz \
             "https://github.com/Chemaclass/agnostic-ai/releases/download/${version}/agnostic-ai_linux_amd64.tar.gz"
           tar -xzf agnostic-ai.tar.gz agnostic-ai

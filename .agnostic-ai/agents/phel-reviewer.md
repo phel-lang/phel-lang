@@ -3,7 +3,8 @@ description: Phel code reviewer focused on correctness, behavior regressions, ar
 name: phel-reviewer
 model:
   claude: sonnet
-  codex: o3
+  codex: gpt-5.6-sol
+tools: [Read, Glob, Grep, Bash]
 x-codex:
     model_reasoning_effort: high
     name: phel_reviewer

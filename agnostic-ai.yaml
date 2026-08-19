@@ -6,10 +6,12 @@ sources:
   skills: .agnostic-ai/skills
   rules: .agnostic-ai/rules
   hooks: .agnostic-ai/hooks
-  commands: .agnostic-ai/commands
 
 targets:
   - claude
   - codex
 
-on-unsupported: silent
+on-unsupported: error
+
+sync:
+  collision-policy: fail
