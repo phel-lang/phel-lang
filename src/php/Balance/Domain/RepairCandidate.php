@@ -16,9 +16,11 @@ use function sprintf;
  */
 final readonly class RepairCandidate
 {
-    public const COST_INSERT = 1;
-    public const COST_REPLACE = 3;
-    public const COST_DELETE = 4;
+    public const int COST_INSERT = 1;
+
+    public const int COST_REPLACE = 3;
+
+    public const int COST_DELETE = 4;
 
     /**
      * @param list<RepairEdit> $edits offsets are byte offsets into {@see $original}

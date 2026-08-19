@@ -48,10 +48,8 @@ final readonly class RepairPlan
      */
     public static function sortByCost(array $candidates): array
     {
-        usort($candidates, static function (RepairCandidate $a, RepairCandidate $b): int {
-            return $a->cost() <=> $b->cost()
-                ?: count($a->edits) <=> count($b->edits);
-        });
+        usort($candidates, static fn(RepairCandidate $a, RepairCandidate $b): int => $a->cost() <=> $b->cost()
+            ?: count($a->edits) <=> count($b->edits));
 
         return $candidates;
     }

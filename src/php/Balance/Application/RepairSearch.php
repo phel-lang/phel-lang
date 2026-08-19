@@ -108,10 +108,12 @@ final readonly class RepairSearch
             if (!$candidate->isValid()) {
                 continue;
             }
+
             $hash = $candidate->repaired;
             if (isset($seen[$hash])) {
                 continue;
             }
+
             $seen[$hash] = true;
             $valid[] = $candidate;
         }
@@ -150,11 +152,12 @@ final readonly class RepairSearch
             if ($editCount > self::EDIT_CAP) {
                 $prunedByCap = true;
             }
+
             return;
         }
 
         if ($index >= count($tokens)) {
-            $this->finalize($code, $pre, $report, $stack, $edits, $invalid, $candidates, $prunedByCap);
+            $this->finalize($code, $report, $stack, $edits, $invalid, $candidates, $prunedByCap);
             return;
         }
 
@@ -167,7 +170,7 @@ final readonly class RepairSearch
         // level (which would move its children's close lines past the boundary).
         if ($report->topLevelFormOffsetAfterUnclosed !== null
             && $token['offset'] >= $report->topLevelFormOffsetAfterUnclosed) {
-            $this->finalize($code, $pre, $report, $stack, $edits, $invalid, $candidates, $prunedByCap);
+            $this->finalize($code, $report, $stack, $edits, $invalid, $candidates, $prunedByCap);
             return;
         }
 
@@ -211,6 +214,7 @@ final readonly class RepairSearch
             if ($pre->hadSurplus) {
                 $this->branchDelete($code, $tokens, $pre, $report, $index, $stack, $edits, $editCount, $invalid, $candidates, $token, $ambiguous, $prunedByCap);
             }
+
             return;
         }
 
@@ -238,7 +242,7 @@ final readonly class RepairSearch
      * @param list<RepairEdit>      $edits
      * @param list<RepairCandidate> $candidates
      */
-    private function finalize(string $code, PrePass $pre, BalanceReport $report, array $stack, array $edits, bool $invalid, array &$candidates, bool &$prunedByCap): void
+    private function finalize(string $code, BalanceReport $report, array $stack, array $edits, bool $invalid, array &$candidates, bool &$prunedByCap): void
     {
         if ($invalid) {
             return;
@@ -450,6 +454,7 @@ final readonly class RepairSearch
     {
         $lineStart = strrpos(substr($code, 0, $offset), "\n");
         $lineStart = $lineStart === false ? 0 : $lineStart + 1;
+
         $cursor = $lineStart;
         while ($cursor > 0) {
             $lineEnd = $cursor - 1;
@@ -461,6 +466,7 @@ final readonly class RepairSearch
                     ? $lineEnd - 1
                     : $lineEnd;
             }
+
             $cursor = $previousLineStart;
         }
 
@@ -476,6 +482,7 @@ final readonly class RepairSearch
             if ($next === false) {
                 return strlen($code);
             }
+
             $pos = $next + 1;
             ++$current;
         }
@@ -515,6 +522,7 @@ final readonly class RepairSearch
             if ($type === Token::T_EOF) {
                 break;
             }
+
             $tokens[] = [
                 'type' => $type,
                 'code' => $token->getCode(),
@@ -541,14 +549,17 @@ final readonly class RepairSearch
                 $stack[] = ['closerText' => self::CLOSER_TEXT_FOR_OPENER[$type]];
                 continue;
             }
+
             if (!isset(self::TEXT_FOR_CLOSER[$type])) {
                 continue;
             }
+
             $closerText = self::TEXT_FOR_CLOSER[$type];
             if ($stack === []) {
                 $hadSurplus = true;
                 continue;
             }
+
             $top = $stack[array_key_last($stack)];
             if ($top['closerText'] === $closerText) {
                 array_pop($stack);

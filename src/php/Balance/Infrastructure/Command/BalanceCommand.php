@@ -191,7 +191,7 @@ HELP)
             }
 
             if ($output->isVerbose()) {
-                $this->reportPlan($output, $outcome, $heading);
+                $this->reportPlan($output, $outcome);
             }
         }
     }
@@ -211,12 +211,12 @@ HELP)
             $output->writeln(sprintf('  %s: %s', $outcome->path, $outcome->reason ?? 'unknown reason'));
 
             if ($output->isVerbose()) {
-                $this->reportPlan($output, $outcome, 'Cannot repair automatically');
+                $this->reportPlan($output, $outcome);
             }
         }
     }
 
-    private function reportPlan(OutputInterface $output, FileOutcome $outcome, string $heading): void
+    private function reportPlan(OutputInterface $output, FileOutcome $outcome): void
     {
         $plan = $outcome->plan;
         if (!$plan instanceof RepairPlan) {

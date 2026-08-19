@@ -100,15 +100,20 @@ final readonly class PathsBalancer
             return FileOutcome::needsRepair($path, $report);
         }
 
-        $candidate = match ($strategy) {
-            RepairStrategy::Append => $this->repairer->repair($code, $report),
-            RepairStrategy::Boundary => $this->boundaryRepairer?->repair($code, $report),
-            RepairStrategy::DeleteUnexpected => $this->unexpectedCloserRepairer?->repair($code, $report),
-            RepairStrategy::Search => $this->repairSearchCandidate($code, $path, $report),
-        };
-
         if ($strategy === RepairStrategy::Search) {
-            return $this->applySearchOutcome($path, $report, $candidate);
+            return $this->applySearchOutcome(
+                $path,
+                $report,
+                $this->repairSearchCandidate($code, $path, $report),
+            );
+        }
+
+        if ($strategy === RepairStrategy::Append) {
+            $candidate = $this->repairer->repair($code, $report);
+        } elseif ($strategy === RepairStrategy::Boundary) {
+            $candidate = $this->boundaryRepairer?->repair($code, $report);
+        } else {
+            $candidate = $this->unexpectedCloserRepairer?->repair($code, $report);
         }
 
         if ($candidate === null || ($this->validator instanceof RepairValidator && !$this->validator->isValid($candidate, $path))) {
