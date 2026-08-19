@@ -3,19 +3,9 @@ name: tdd-coach
 description: Guides test-driven development with red-green-refactor discipline. Use when implementing features or fixes with TDD.
 model:
   claude: sonnet
-  codex: o4-mini
+  codex: gpt-5.5
 maxTurns: 25
-allowed_tools:
-  - Read
-  - Edit
-  - Write
-  - Glob
-  - Grep
-  - Bash(./vendor/bin/phpunit:*)
-  - Bash(./bin/phel test:*)
-  - Bash(composer test-compiler:*)
-  - Bash(composer test-core:*)
-  - Bash(composer fix:*)
+tools: [Read, Write, Edit, Glob, Grep, Bash]
 ---
 
 # TDD Coach

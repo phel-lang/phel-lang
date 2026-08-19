@@ -1,7 +1,7 @@
 name: protect-claude
 description: Block Claude Code edits to protected repository files.
 event: PreToolUse
-matcher: Bash|Edit|Write
+matcher: Edit|Write
 target: claude
 command: 'sh -c ''r=$(git rev-parse --path-format=absolute --git-common-dir 2>/dev/null) || exit 0; s="$(dirname "$r")/.claude/hooks/protect-files.sh"; [ -x "$s" ] || exit 0; exec "$s"'''
 timeout: 5

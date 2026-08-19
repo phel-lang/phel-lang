@@ -1,13 +1,9 @@
 ---
-allowed_tools:
-    - Read
-    - Edit
-    - Bash(git log:*)
-    - Bash(git describe:*)
+tools: [Read, Edit, Bash]
 description: Maintains CHANGELOG.md by analyzing commits since last release. Use when updating changelog, preparing releases, or reviewing what changed.
 model:
   claude: haiku
-  codex: o4-mini
+  codex: gpt-5.4-mini
 name: changelog-keeper
 x-codex:
     model_reasoning_effort: medium

@@ -3,13 +3,8 @@ description: Read-only Phel repository explorer for finding files, usages, modul
 name: phel-explorer
 model:
   claude: haiku
-  codex: o4-mini
-allowed_tools:
-  - Read
-  - Glob
-  - Grep
-  - Bash(wc:*)
-  - Bash(ls:*)
+  codex: gpt-5.4-mini
+tools: [Read, Glob, Grep, Bash]
 x-codex:
     model_reasoning_effort: medium
     name: phel_explorer

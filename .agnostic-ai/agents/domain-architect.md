@@ -3,37 +3,28 @@ name: domain-architect
 description: Expert on Phel's modular architecture. Use for architecture reviews, module boundary decisions, placing new features, or dependency analysis.
 model:
   claude: opus
-  codex: o3
+  codex: gpt-5.6-sol
 memory: project
-allowed_tools:
-  - Read
-  - Glob
-  - Grep
+tools: [Read, Glob, Grep]
 ---
 
 # Domain Architect
 
 Modular architecture expert for the Phel compiler and runtime. Maintains clean module boundaries and prevents architectural erosion.
 
-## Module Map (src/php/)
+## Read these first, never from memory
 
-| Module | Responsibility | Dependencies |
-|--------|---------------|-------------|
-| `Lang/` | Runtime types: Symbol, Keyword, PhelArray, Table, Set, Struct | None (foundational) |
-| `Compiler/` | Lexer → Parser → Analyzer → Emitter (Phel to PHP) | Lang |
-| `Shared/Printer/` | Value to string representation (sub-module under `Shared/`) | Lang |
-| `Formatter/` | Code formatting | Compiler (parser) |
-| `Run/` | Script execution, test runner, REPL | Compiler, Lang |
-| `Command/` | CLI commands (Symfony Console) | Run, Compiler |
-| `Console/` | Console application bootstrap | Command |
-| `Build/` | Build/compile workflows | Compiler, Run |
-| `Api/` | Facade for external consumers | Compiler, Run |
-| `Interop/` | PHP interop layer | Lang, Compiler |
-| `Config/` | Configuration management | Shared |
-| `Filesystem/` | File system abstraction | Shared |
-| `Shared/` | Cross-cutting utilities | None |
+The module map lives in `src/php/CLAUDE.md` (21 modules, their roles, and where each
+`FacadeInterface` lives) and each module's own `src/php/<Module>/CLAUDE.md`. The
+machine-readable half is `module-rules.json` at the repo root, which PHPStan, Psalm and
+`tests/php/Unit/Architecture/ModuleRulesTest` all judge against. Quote those, never a
+remembered table: the module list grows and an out-of-date map is worse than none.
 
-**Wiring**: Gacela provides module Facades and dependency providers. Each module exposes a `Facade` as its public API; `Factory`, `Config`, `Provider`, and service resolver accessors are internal wiring. Providers use Gacela 2.0 `#[Provides(...)]`, keyed by Shared facade contracts when available. Internal classes must not cross module boundaries.
+**Wiring**: Gacela 2.0. Each module exposes a `Facade` as its public API; `Factory`,
+`Config`, `Provider` and the service-resolver accessors are internal wiring. Pillars
+resolve by filename suffix and declare inherited services with `#[ServiceMap]`; Providers
+expose cross-module services with `#[Provides(...)]`, keyed by the Shared facade contract
+the consumer asks for.
 
 ## Rules
 

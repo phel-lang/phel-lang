@@ -6,6 +6,7 @@ FILE=$(echo "$INPUT" | jq -r '.tool_input.file_path // empty')
 if [[ "$FILE" == *.php ]]; then
     PROJECT_DIR="${CLAUDE_PROJECT_DIR:-$(pwd)}"
     cd "$PROJECT_DIR" 2>/dev/null || exit 0
+    [[ -x ./vendor/bin/php-cs-fixer ]] || exit 0
     ./vendor/bin/php-cs-fixer fix --quiet "$FILE" 2>/dev/null
 fi
 exit 0
