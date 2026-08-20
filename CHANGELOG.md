@@ -6,55 +6,58 @@ All notable changes to this project will be documented in this file.
 
 ### Added
 
-- `phel mutate [paths]`: mutation testing for Phel code. Every `defn` under the paths (default: the project source dirs) is changed one small mistake at a time on the parse tree, and a worker subprocess redefines it in its namespace, runs the project tests, then restores it. Eleven mutators (`arith`, `compare`, `equality`, `logic`, `cond-branch`, `literal-bool`, `literal-num`, `literal-str`, `seq-op`, `return-nil`, `body-drop`); survivors are listed with file, line, mutator and change. `--parallel=N|auto` pools workers, `--changed[=<ref>]` mutates only what git reports as changed, `--min-msi` and `--min-covered-msi` gate the exit code, next to `--tests`, `--only`, `--reporter=text|json`, `-o` and `--timeout-factor`. With xdebug in coverage mode or pcov, a mutant runs only the tests that reach its definition, and a definition no test reaches is `not-covered` without running anything. A red baseline refuses to mutate; a mutant that loops forever or crashes its worker counts as killed, without ending the run. A weekly `Mutation (Phel core)` workflow covers `src/phel/core`. No PHP dependency added (#3208 #3209)
-- `phel test --changed[=<ref>]`: run only the tests of the changed namespaces and of everything that transitively requires them. Without a value it takes the uncommitted changes, untracked files included, or the changes since the merge base with the default branch when the tree is clean; with a value, `git diff <ref>`. It says what it selected (`Changed: 3 file(s), affected: 7 test namespace(s)`), composes with `--include/--exclude/--ns/--filter/--list`, and a change nothing requires exits 0 with a notice. Outside a git repository it is an error (#3210)
-- `^{:skip "reason"}` and `^:skip` on a `deftest`: listed and counted as skipped with the reason, never run. `(phel.test/skip! "reason")` skips at run time and keeps the assertions made before it. `^:focus` narrows the run to the focused tests and prints `Focused run: N test(s), M ignored`; a focus left in fails `phel test` under `CI` or with `--fail-on-focus`, serial and parallel alike. All five built-in reporters render the reason (`# SKIP` in TAP, `<skipped message>` and a `skipped` count in JUnit). Discovery reads metadata through the var, so a tag set with `alter-meta!` is honoured (#3211)
-- `phel test --reporter=github`: GitHub Actions workflow commands. A failing or erroring assertion becomes an inline `::error file=...,line=...,title=FAIL ns/test::...` annotation on the pull request diff carrying the usual detail block, each namespace that runs a test is a collapsible `::group::`, a run narrowed by `^:focus` is a `::warning`, and the counts are appended to `GITHUB_STEP_SUMMARY`. Added next to the default (or `--testdox`) reporter when `GITHUB_ACTIONS` is `true` and no `--reporter` was given; `--parallel` keeps the annotations and writes the summary once (#3214)
-- `phel test --coverage=per-test`: JSON with the `.phel` lines each test executed (`tests`) and the tests behind each line (`lines`), the input for test impact analysis and mutation testing. It costs no more than `--coverage` (26s against 28s with xdebug). `phel.test` now emits `:begin-test` and `:end-test` around every test (the end event carries `:duration-ms`), and `phel.test/*event-hook*` observes every event of a run next to the configured reporters (#3207)
-- `phel format --exclude=<glob>` (repeatable) and the `format-exclude` config key (`PhelConfig::withFormatExclude([...])`), unioned: a matching `.phel` file is left alone and reported in neither list, `-v` names it. Globs are `fnmatch`ed against the path as found, relative to the working directory, and `*` spans directories as in `phel lint`. For generated data files and vendored trees that live beside their consumers (#3233)
-- `PhelConfig::withCacheEnvVars(['MY_MODE'])` (config key `cache-env-vars`): the environment variables that take part in the compiled-code cache key. `(php/getenv "MY_MODE")` inside a macro bakes the current value into the emitted PHP, while the key saw only the source, so a later run with another value was served the first expansion. Declaring the variable makes that flip a cache miss; only a hash of the value is stored, never the value. One fingerprint covers the project, so a `cache-dir` per configuration is still the way to keep several warm. `Phel\Shared\CompiledSourceHash::of()` takes it as an optional third argument, so existing caches stay warm (#3236)
-- Binding-first map destructuring, as in Clojure: `{local :key}`, `{[x y] :point}`, `{n "name"}` and nested `{{:keys [c]} :inner}` work next to the existing key-first spelling. `:keys`, `:strs`, `:syms`, `:as` and `:or` are unchanged. A pair where neither side binds (`{:a :b}`) is rejected with a message showing both spellings (#3115)
-- `(catch Name e ...)` names the class a `(defexception Name)` in the same namespace defined. The bare name resolved to the constructor fn `defexception` also defines, and a var read in catch position was a PHP syntax error (#3211)
-- `^:redef` on a `defn` keeps it out of `-O2` inlining, so `with-redefs`, `phel.mock` and `dotrace` still intercept the call (#3126)
-- `phel.ai/*sleep-fn*`, the retry backoff seam next to `*http-post*`: rebind it in tests so a 429/5xx retry records its delay instead of sleeping. `composer test-core` goes from ~5.6s to ~3.1s serial. A blank `ANTHROPIC_API_KEY=` (or `OPENAI_API_KEY=`, `VOYAGE_API_KEY=`) now reads as a missing key and throws before any request, instead of being sent as an empty key (#3204)
-- `Phel\Mutate\MutateFacade`, the new module's facade, and `Phel\Shared\Process\WorkerFrame`, the length-prefixed JSON the `phel test --parallel` workers speak. `WorkerFrame` moved from `Phel\Run\Application\Test`, where it was `@internal`, so `phel mutate`'s worker can share it (#3208)
-- `Phel\Shared\Process\CpuCountDetector` and `Phel\Shared\Process\GitChangedFiles` with `GitUnavailableException`, shared by `phel test` and `phel mutate`. `CpuCountDetector` moved from `Phel\Run\Application\Test`, so `RunFacade::createCpuCountDetector()` now returns the `Shared` class (#3209)
-- `RunFacadeInterface::beginPerTestCoverage()`, `perTestCoverageByLine()` and `endPerTestCoverage()`: per-test coverage attribution for hosts that run `phel.test` themselves (#3209)
-- `BuildFacadeInterface::flushCompiledCodeCache()` and `RunFacadeInterface::flushCompiledCodeCache()`: write the compiled-code cache index to disk now instead of at process shutdown. `phel test --parallel` calls it after evaluating the shared namespaces, so the workers read them from the cache instead of racing to recompile the same files, a race the analyzer does not survive on a cold cache (#3203)
-- `Phel\Lang\SkipTestException`, what `phel.test/skip!` throws to end a test as skipped (#3211)
-- `Core tests at -O2` job; nothing exercised `CallInliner` or `TailCallRewriter` before. Local repro: `PHEL_OPTIMIZATION_LEVEL=2 ./bin/phel test` (#3126)
+- Add `phel mutate` with 11 mutators, parallel and changed-file modes, coverage selection, and MSI gates. (#3208 #3209)
+- Add `phel test --changed[=<ref>]` to run tests affected by Git changes. (#3210)
+- Add skipped and focused tests through metadata, `skip!`, `--fail-on-focus`, and reporter support. (#3211)
+- Add `phel test --reporter=github` with annotations, groups, warnings, and job summaries. (#3214)
+- Add per-test coverage JSON, lifecycle events, and `phel.test/*event-hook*`. (#3207 #3209)
+- Add repeatable `phel format --exclude=<glob>` and the `format-exclude` config key. (#3233)
+- Add `cache-env-vars` to include selected environment values in compiled-code cache keys. (#3236)
+- Add Clojure-style binding-first map destructuring, including nested bindings. (#3115)
+- Resolve bare local `defexception` names in `catch`. (#3211)
+- Add `^:redef` to prevent `-O2` inlining where calls must remain interceptable. (#3126)
+- Add `phel.ai/*sleep-fn*` as a bindable retry backoff seam. (#3204)
+- Add public APIs for per-test coverage and immediate compiled-code cache flushing. (#3203 #3209)
 
 ### Changed
 
-- The built-in `is` arms compile to one call of a `phel.test` runtime helper instead of an inline report map. `(is (= 1 1))` is 1.2 KB of PHP instead of 3.7 KB and compiles in 0.9 ms instead of 2 ms, so a cold `phel test` here goes from ~50s to ~39s of compile time and 1.4 GB of peak memory to 1.0 GB. The event maps reporters and `*event-hook*` receive are unchanged (#3212)
-- A global read of a non-`^:dynamic` var compiles to `\Phel\Lang\Registry::readRoot(...)` instead of `\Phel::getDefinition(...)`: 1.6x faster with nothing bound, 1.9x inside a `binding` frame. `^:dynamic` and `^:redef` vars keep the full path; a var later redefined `^:dynamic` in the same process needs one of those tags for already-compiled readers to see its bindings (#3179)
-- `-O2` inlines a call in return position; `(defn c [x] (add1 x))` never inlined while `(defn c [x] [(add1 x)])` did. A two-hop call chain in return position is 3.1x faster. An inlined site cannot be intercepted: tag the callee `^:redef` where `dotrace`, `with-redefs` or `phel.mock` must see it (#3125)
-- A bare all-caps PHP name resolves by position, not by which classes the compiling process happened to autoload: in value position it is the constant (`PHP_EOL`), as a member target, constructor or callable it is the class (`(WP_CLI/log "x")`, `(php/new PDO dsn)`). A loadable class in value position warns with the spellings that reach it (`\PDO`, `(:use PDO)`, `PDO/class`); `php/NAME` stays the constant. See [ADR 0016](docs/adr/0016-a-bare-all-caps-host-name-reads-by-position.md) (#3064)
-- `CompilerFacadeInterface` gains `emptyNodeEnvironment()` and `enableDeprecationWarnings()`; Api, Build and Console no longer import from the compiler's `Domain`. `WarnDeprecationsFlag::applyAndStrip()` is now `strip()` and only filters argv (#3048)
-- Every map construction path promotes to a hash map at the same size; literals promoted at half the size of `assoc`, `into` and `zipmap`, so the same six-entry map read 3.4x slower when grown. Literals are unchanged. A grown five-to-eight entry map reads 4.1x to 5.5x faster (missing key 5.5x to 8.4x) and iterates 3.0x to 3.4x slower, as a literal of that size already did (#3172)
-- `apply` spreads a vector in one walk: `(apply + [1 2 3])` is 2.1x faster (#3181)
-- Fixed arities replace the rest argument and `apply` in hot core functions, behaviour unchanged (#2973):
-  - `update` has Clojure's `[m k f]` through `[m k f x y z]`: `(update m :k inc)` 1.31x faster, `(update m :k + 1)` 1.57x
-  - `bit-and`, `bit-or`, `bit-xor`, `bit-and-not` take two or three arguments directly: `(apply bit-and [12 10])` 14x, `(bit-and-not 255 15)` 22x, `(reduce bit-or 0 flags)` 14x
-  - `intersection`, `difference`, `symmetric-difference` on two sets: 1.21x, 1.22x, 1.30x
-  - `(atom v)` 6.1x, `symbol` 1.9x to 2.3x; `atom` with options is 3% slower
+- Resolve bare all-caps PHP names by position instead of autoload state. See [ADR 0016](docs/adr/0016-a-bare-all-caps-host-name-reads-by-position.md). (#3064)
+- Expose compiler environment and deprecation controls through `CompilerFacadeInterface`. (#3048)
+
+### Performance
+
+Compile-time folding / hoisting:
+
+- Compile `is` arms through one runtime helper, reducing generated size, compile time, and memory. (#3212)
+- Inline `-O2` calls in return position; use `^:redef` where interception is required. (#3125)
+
+Dispatch / call sites:
+
+- Read non-dynamic globals directly from the registry, up to 1.9x faster. (#3179)
+- Spread vectors in `apply` in one pass, 2.1x faster for `(apply + [1 2 3])`. (#3181)
+- Use fixed arities in hot core functions, up to 22x faster without behavior changes. (#2973)
+
+Runtime data structures:
+
+- Promote every map construction path at the same size, making grown map reads up to 5.5x faster. (#3172)
 
 ### Deprecated
 
-- `to-php-array` in favour of `to-array`, its existing Clojure-aligned alias with identical behaviour; removed at the next major. Both yield an **indexed** array (a map becomes `[key value]` pairs); `phel->php` is the associative conversion, and the agent docs now say so (#3076)
-- Key-first map destructuring pairs (`{:key local}`). They keep working; `--warn-deprecations` reports each with the binding-first spelling. An ambiguous pair where both sides bind (`{k v}`) keeps its meaning and warns it will follow at the next major (#3115)
+- Deprecate `to-php-array`; use its Clojure-aligned alias `to-array`. (#3076)
+- Deprecate key-first map destructuring (`{:key local}`); use binding-first (`{local :key}`). (#3115)
 
 ### Fixed
 
-- `phel test --parallel` beats the serial run. The parent evaluated every namespace before dispatching, and each worker walked the whole project tree from cwd, so eight of those walks racing in the kernel cost more than the tests: 8 workers took 5.8s wall and 21s of system time against 5.6s serial, and a cold cache 63s against 49s. The parent now evaluates only the namespaces another one requires, so a cold cache is warmed once and never raced, ships each frame's load order (requires plus every bundled `phel.*`, dependencies first), and the worker evaluates each file once without walking dependencies. Without the sleeping `phel-test.ai` namespace, 4 workers run the suite in 1.2s against 2.7s serial and 2.3s before; a cold `--parallel=auto` takes 17s. A file that does not compile is reported once by the worker that hit it instead of being retried on two fresh workers (#3203)
-- `phel format` is linear in the number of elements of a collection literal. Every step of the formatter's zipper copied the sibling arrays, so a literal of n elements cost O(n^2) per rule: 16 000 numbers on one line took 28.5s to check and a 486 KB generated sprite file 95s. A location now holds the parent's child list and an index, so a step is O(1) and the same probes take 0.29s and about 1.5s. Output is byte-identical (#3218)
-- `--warn-deprecations` (and `PHEL_WARN_DEPRECATIONS`) reports the same deprecations on a warm compiled-code cache as on a cold one. A cached namespace was served without recompiling, so a check run after a plain `phel test` reported nothing. The notices a compile finds are now recorded whether or not the flag is on, stored with the cache entry, and raised again on every hit; same for the always-on `\` separator announcement. The cache index format is bumped, so the first run after upgrading recompiles once. `CompilerFacadeInterface::replayDeprecations()` and `EmitterResult::getDeprecations()` are the seams (#3222)
-- A failing `is` reports its own line. A macro expansion rebuilt every list it contained without its source position and then stamped the macro call site onto it, so an assertion on line 7 of a `deftest` reported `fail_test.phel:4`. Lists a macro was given keep the position they were read at; only forms the expansion synthesised are stamped (#3228)
-- `phel test --slowest` and `--last-failed` keep what the run recorded before a test itself called `phel.test/run-tests`. Every `run-tests` reset the global timings and failed-test list, a nested call included, so `--slowest=99999` listed 70 of 3009 tests here. A nested run now hands the outer run's state back when it returns; at the top level nothing changes (#3206)
-- The scan-index cache notices a configured directory that did not exist when the index was written. `perDirFingerprint` skipped a missing directory and validation only re-checked recorded ones, so a project that ran any `phel` command before creating `tests/` (or `src/`) kept getting `Cannot find any tests in :` until `.phel/cache` was deleted (#3205)
-- `phel test` and `phel bench` on a file outside `src-dirs`/`test-dirs` load its requires before the file. The dependency walk dropped them, so a warm run died at the first cross-namespace call and runs alternated between passing and failing (#3187)
-- `merge` and `conj` treat an associative PHP array as map-like: `(merge #php {"a" 1} #php {"b" 2})` returns `#php {"a" 1 "b" 2}` instead of putting the right operand at key `0`, `(merge arr nil)` no longer appends `nil`, and `merge-with` no longer crashes on one. Indexed PHP arrays still append; conj-ing a non-pair onto an associative array throws, as it does for a map (#3114)
-- `phel.json/decode` keeps a JSON object as a map instead of collapsing it to a vector: `{}` round-trips at any depth and `{"0":"a"}` decodes as `{:0 "a"}`. `decode-value` still turns a PHP associative array into a map (#3089)
+- Avoid redundant project walks and cache races in `phel test --parallel`, making parallel runs faster. (#3203)
+- Format collection literals in linear time with byte-identical output. (#3218)
+- Replay deprecation warnings from warm compiled-code caches. (#3222)
+- Preserve assertion source locations through macro expansion. (#3228)
+- Preserve outer `--slowest` and `--last-failed` state across nested test runs. (#3206)
+- Invalidate the scan-index cache when a configured source or test directory appears. (#3205)
+- Load dependencies for test and benchmark files outside configured source directories. (#3187)
+- Treat associative PHP arrays as maps in `merge`, `merge-with`, and `conj`. (#3114)
+- Preserve JSON objects as maps during `phel.json/decode`, including empty objects. (#3089)
+- Reject blank AI provider API keys before making a request. (#3204)
 
 ## [0.50.0](https://github.com/phel-lang/phel-lang/compare/v0.49.0...v0.50.0) - 2026-08-14
 
