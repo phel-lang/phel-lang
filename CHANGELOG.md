@@ -18,6 +18,7 @@ All notable changes to this project will be documented in this file.
 - Add `^:redef` to prevent `-O2` inlining where calls must remain interceptable. (#3126)
 - Add `phel.ai/*sleep-fn*` as a bindable retry backoff seam. (#3204)
 - Add public APIs for per-test coverage and immediate compiled-code cache flushing. (#3203 #3209)
+- Add CSS-style id and class shorthand to `phel.html` element tags. (#3240)
 
 ### Changed
 

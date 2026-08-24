@@ -48,7 +48,7 @@ final class Lexer implements LexerInterface
         '(#\()', // hash fn (index: 19)
         '("(?:[^"\\\\]++|\\\\.)*+")', // String (index: 20)
         '(\\\\(?:space|newline|tab|formfeed|backspace|return|u[0-9a-fA-F]{4}|o[0-7]{1,3}|[^\s])(?![A-Za-z0-9_\-\\\\]))', // Character literal (index: 21 = T_CHAR) - Clojure-style \a, \A, \1, \space, \newline, \uNNNN, \oNNN, \(, \), etc. Must precede the atom rule so it wins on unambiguous cases; falls through to atom when followed by identifier continuation or another backslash (preserving FQN parsing for \Phel\Lang\Symbol).
-        "([^\(\)\[\]\{\},`@ \n\r\t\#]+\#?)", // Atom (index: 22), trailing # allowed for gensym syntax (e.g. foo#); leading ' is claimed by the quote rule above so only mid/trailing ' reaches here (e.g. a', foo'')
+        "(:[^\(\)\[\]\{\},`@ \n\r\t\#]+\#[^\(\)\[\]\{\},`@ \n\r\t\#]+|[^\(\)\[\]\{\},`@ \n\r\t\#]+\#?)", // Atom (index: 22), HTML shorthand keywords may contain one interior # (e.g. :div#app.main); trailing # remains available for gensym syntax (e.g. foo#); leading ' is claimed by the quote rule above so only mid/trailing ' reaches here (e.g. a', foo'')
         '(@)', // deref (index: 23)
         '(#"(?:[^"\\\\]++|\\\\.)*+")', // regex literal (index: 24)
         '(#\?\()', // reader conditional (index: 25 = T_READER_COND)
