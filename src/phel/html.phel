@@ -72,16 +72,57 @@
   (let [elem (get element 1)]
     (if (map? elem) elem {})))
 
+(defn- parse-tag [tag]
+  (let [tag         (element-tag tag)
+        id-index    (php/strpos tag "#")
+        id-index    (when (and (not (php/=== false id-index)) (pos? id-index)) id-index)
+        class-index (php/strpos tag ".")
+        class-index (when (and (not (php/=== false class-index)) (pos? class-index)) class-index)]
+    [(cond
+       id-index    (php/substr tag 0 id-index)
+       class-index (php/substr tag 0 class-index)
+       :else       tag)
+     (when id-index
+       (if class-index
+         (php/substr tag (inc id-index) (- class-index (inc id-index)))
+         (php/substr tag (inc id-index))))
+     (when class-index
+       (php/str_replace "." " " (php/substr tag (inc class-index))))]))
+
+(defn- class-value-to-str [value]
+  (cond
+    (map? value)
+    (php/implode " " (to-array (for [[k v] :pairs value :when v] (to-str k))))
+    (indexed? value)
+    (php/implode " " (to-array (map to-str value)))
+    (to-str value)))
+
+(defn- merge-tag-attrs [attrs id classes]
+  (let [attrs (if classes
+                (assoc attrs :class
+                       (if-let [explicit-classes (get attrs :class)]
+                         (str classes " " (class-value-to-str explicit-classes))
+                         classes))
+                attrs)]
+    (if id
+      (assoc attrs :id (or (get attrs :id) id))
+      attrs)))
+
+(defn- normalize-tag [tag attrs]
+  (let [[tag id classes] (parse-tag tag)]
+    [tag (merge-tag-attrs attrs id classes)]))
+
 (defn- content-start [element]
   (if (element-attrs? element) 2 1))
 
 (defn- normalize-element [element]
   ;; Used by the compile path only; `render-element` reads the same three
   ;; pieces without materializing this tuple or a child collection.
-  (let [start (content-start element)
-        n     (count element)]
-    [(element-tag (get element 0))
-     (element-attrs element)
+  (let [start       (content-start element)
+        n           (count element)
+        [tag attrs] (normalize-tag (get element 0) (element-attrs element))]
+    [tag
+     attrs
      (if (php/< start n) (slice element start) nil)]))
 
 ;;---------------
@@ -135,8 +176,7 @@
   and attributes by index and walking the children in place took a single
   `[:span {:class \"x\"} \"0\"]` from 17.7μs to 9.7μs."
   [element]
-  (let [tag   (element-tag (get element 0))
-        attrs (element-attrs element)]
+  (let [[tag attrs] (normalize-tag (get element 0) (element-attrs element))]
     (if (container-tag? tag)
       (let [start (content-start element)
             n     (count element)
@@ -235,9 +275,10 @@
 (defmacro html
   "Compiles nested Phel vectors to HTML strings at compile-time. A vector
   `[tag attrs? children*]` becomes an element; `tag` is a keyword or string,
-  the optional `attrs` is a map, and children are strings, keywords, raw
-  strings, or nested vectors. Special list forms `for`, `if`, `when`, and
-  `when-not` are supported for dynamic content."
+  and may include CSS-style id and class shorthand such as
+  `:div#app.main.selected`. The optional `attrs` is a map, and children are
+  strings, keywords, raw strings, or nested vectors. Special list forms `for`,
+  `if`, `when`, and `when-not` are supported for dynamic content."
   {:example "(html [:div \"Hello\"]) ; => \"<div>Hello</div>\""
    :see-also ["raw-string" "doctype"]}
   [& content]

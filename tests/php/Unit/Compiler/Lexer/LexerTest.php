@@ -324,6 +324,15 @@ final class LexerTest extends TestCase
         self::assertSame(Token::T_EOF, $tokens[1]->getType());
     }
 
+    public function test_html_shorthand_keyword_with_hash_is_single_token(): void
+    {
+        $tokens = $this->lex(':div#element-id.class1.class2');
+
+        self::assertSame(Token::T_ATOM, $tokens[0]->getType());
+        self::assertSame(':div#element-id.class1.class2', $tokens[0]->getCode());
+        self::assertSame(Token::T_EOF, $tokens[1]->getType());
+    }
+
     public function test_atom_with_trailing_hash_followed_by_reader_conditional(): void
     {
         $tokens = $this->lex('report-success# #?(:phel 1 :default 2)');

@@ -61,6 +61,25 @@
   (is (= "<div class=\"a b\"></div>" (html [:div {:class [:a "b"]}])))
   (is (= "<div class=\"a\"></div>" (html [:div {:class {:a true :b false}}]))))
 
+(deftest tag-id-and-class-shorthand
+  (is (= "<div id=\"element-id\"></div>" (html [:div#element-id])))
+  (is (= "<div class=\"class1 class2\"></div>" (html [:div.class1.class2])))
+  (is (= "<div class=\"class1 class2\" id=\"element-id\"></div>"
+         (html [:div#element-id.class1.class2])))
+
+  ;; A value in a binding takes the runtime render path instead of the macro's
+  ;; compile path. Both paths must normalize the shorthand identically.
+  (let [with-id      [:div#element-id]
+        with-classes [:div.class1.class2]
+        with-both    [:div#element-id.class1.class2]]
+    (is (= "<div id=\"element-id\"></div>" (html with-id)))
+    (is (= "<div class=\"class1 class2\"></div>" (html with-classes)))
+    (is (= "<div class=\"class1 class2\" id=\"element-id\"></div>" (html with-both))))
+
+  (is (= "<div id=\"explicit-id\" class=\"short explicit selected\"></div>"
+         (html [:div#short-id.short {:id "explicit-id" :class [:explicit :selected]}]))
+      "explicit ids win and explicit classes follow shorthand classes"))
+
 (deftest css-styles
   (is (=
        "<div style=\"background:green;color:red;\">bar</div>"
