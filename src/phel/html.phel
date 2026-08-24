@@ -97,15 +97,23 @@
     (php/implode " " (to-array (map to-str value)))
     (to-str value)))
 
+(defn- attr-key [attrs keyword-key string-key]
+  (cond
+    (contains? attrs keyword-key) keyword-key
+    (contains? attrs string-key)  string-key
+    keyword-key))
+
 (defn- merge-tag-attrs [attrs id classes]
-  (let [attrs (if classes
-                (assoc attrs :class
-                       (if-let [explicit-classes (get attrs :class)]
-                         (str classes " " (class-value-to-str explicit-classes))
-                         classes))
-                attrs)]
+  (let [class-key (attr-key attrs :class "class")
+        id-key    (attr-key attrs :id "id")
+        attrs     (if classes
+                    (assoc attrs class-key
+                           (if-let [explicit-classes (get attrs class-key)]
+                             (str classes " " (class-value-to-str explicit-classes))
+                             classes))
+                    attrs)]
     (if id
-      (assoc attrs :id (or (get attrs :id) id))
+      (assoc attrs id-key (or (get attrs id-key) id))
       attrs)))
 
 (defn- normalize-tag [tag attrs]

@@ -78,7 +78,10 @@
 
   (is (= "<div id=\"explicit-id\" class=\"short explicit selected\"></div>"
          (html [:div#short-id.short {:id "explicit-id" :class [:explicit :selected]}]))
-      "explicit ids win and explicit classes follow shorthand classes"))
+      "explicit ids win and explicit classes follow shorthand classes")
+  (is (= "<div id=\"explicit-id\" class=\"short explicit\"></div>"
+         (html [:div#short-id.short {"id" "explicit-id" "class" "explicit"}]))
+      "string attribute keys merge without duplicate id or class attributes"))
 
 (deftest css-styles
   (is (=
