@@ -121,15 +121,15 @@
 (defn- normalize-element [element]
   ;; Used by the compile path only; `render-element` reads the same three
   ;; pieces without materializing this tuple or a child collection.
-  (let [start      (content-start element)
-        n          (count element)
-        tag        (element-tag (get element 0))
-        attrs      (element-attrs element)
-        parsed-tag (when-not (php/=== false (php/strpbrk tag "#.")) (parse-tag tag))
-        attrs      (if parsed-tag
-                     (merge-tag-attrs attrs (get parsed-tag 1) (get parsed-tag 2))
-                     attrs)
-        tag        (if parsed-tag (get parsed-tag 0) tag)]
+  (let [start       (content-start element)
+        n           (count element)
+        tag         (element-tag (get element 0))
+        attrs       (element-attrs element)
+        parsed-tag  (when-not (php/=== false (php/strpbrk tag "#.")) (parse-tag tag))
+        attrs       (if parsed-tag
+                      (merge-tag-attrs attrs (get parsed-tag 1) (get parsed-tag 2))
+                      attrs)
+        ^string tag (if parsed-tag (get parsed-tag 0) tag)]
     [tag
      attrs
      (if (php/< start n) (slice element start) nil)]))
@@ -185,13 +185,13 @@
   and attributes by index and walking the children in place took a single
   `[:span {:class \"x\"} \"0\"]` from 17.7μs to 9.7μs."
   [element]
-  (let [tag        (element-tag (get element 0))
-        attrs      (element-attrs element)
-        parsed-tag (when-not (php/=== false (php/strpbrk tag "#.")) (parse-tag tag))
-        attrs      (if parsed-tag
-                     (merge-tag-attrs attrs (get parsed-tag 1) (get parsed-tag 2))
-                     attrs)
-        tag        (if parsed-tag (get parsed-tag 0) tag)]
+  (let [tag         (element-tag (get element 0))
+        attrs       (element-attrs element)
+        parsed-tag  (when-not (php/=== false (php/strpbrk tag "#.")) (parse-tag tag))
+        attrs       (if parsed-tag
+                      (merge-tag-attrs attrs (get parsed-tag 1) (get parsed-tag 2))
+                      attrs)
+        ^string tag (if parsed-tag (get parsed-tag 0) tag)]
     (if (container-tag? tag)
       (let [start (content-start element)
             n     (count element)
