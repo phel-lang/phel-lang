@@ -1,3 +1,4 @@
+*.phel linguist-language=clojure
 /.claude                export-ignore
 /.codex                 export-ignore
 /.github                export-ignore
