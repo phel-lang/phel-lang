@@ -35,6 +35,9 @@ use function is_int;
  */
 final class NumericOperations
 {
+    /**
+     * @return BigDecimal|BigInt|float|int|Ratio
+     */
     public static function add(mixed $a, mixed $b): mixed
     {
         // Fast path for the overwhelmingly common case: two native ints.
@@ -75,6 +78,9 @@ final class NumericOperations
         return NumericCoercion::collapseBigInt(NumericCoercion::toBigInt($a)->add(NumericCoercion::toBigInt($b)));
     }
 
+    /**
+     * @return BigDecimal|BigInt|float|int|Ratio
+     */
     public static function subtract(mixed $a, mixed $b): mixed
     {
         if (is_int($a) && is_int($b)) {
@@ -108,6 +114,9 @@ final class NumericOperations
         return NumericCoercion::collapseBigInt(NumericCoercion::toBigInt($a)->subtract(NumericCoercion::toBigInt($b)));
     }
 
+    /**
+     * @return BigDecimal|BigInt|float|int|Ratio
+     */
     public static function multiply(mixed $a, mixed $b): mixed
     {
         if (is_int($a) && is_int($b)) {
@@ -143,6 +152,8 @@ final class NumericOperations
     /**
      * Division with rational promotion: int/int with non-zero remainder
      * returns a {@see Ratio} rather than a float.
+     *
+     * @return BigDecimal|BigInt|float|int|Ratio
      */
     public static function divide(mixed $a, mixed $b): mixed
     {
@@ -193,6 +204,9 @@ final class NumericOperations
         return Ratio::create(NumericCoercion::toBigInt($a), NumericCoercion::toBigInt($b));
     }
 
+    /**
+     * @return BigDecimal|BigInt|float|int|Ratio
+     */
     public static function negate(mixed $a): mixed
     {
         NumericCoercion::ensureNumeric($a);
@@ -287,6 +301,9 @@ final class NumericOperations
         return $a === 0 || $a === 0.0;
     }
 
+    /**
+     * @return BigDecimal|BigInt|float|int|Ratio
+     */
     public static function abs(mixed $a): mixed
     {
         NumericCoercion::ensureNumeric($a);
@@ -312,6 +329,9 @@ final class NumericOperations
         return abs($a);
     }
 
+    /**
+     * @return BigInt|float|int|Ratio
+     */
     public static function power(mixed $base, mixed $exp): mixed
     {
         NumericCoercion::ensureNumeric($base);
@@ -342,6 +362,8 @@ final class NumericOperations
 
     /**
      * Truncated integer quotient. Float operands keep PHP's `intdiv` semantics.
+     *
+     * @return BigDecimal|BigInt|float|int
      */
     public static function quot(mixed $a, mixed $b): mixed
     {
@@ -384,6 +406,8 @@ final class NumericOperations
 
     /**
      * Truncated remainder: matches PHP's `%`, sign follows dividend.
+     *
+     * @return BigDecimal|BigInt|float|int|Ratio
      */
     public static function rem(mixed $a, mixed $b): mixed
     {
@@ -430,6 +454,8 @@ final class NumericOperations
     /**
      * Floor-modulo: result has the same sign as the divisor, matching
      * Phel's prior `mod` semantics.
+     *
+     * @return BigDecimal|BigInt|float|int|Ratio
      */
     public static function mod(mixed $a, mixed $b): mixed
     {
@@ -484,7 +510,7 @@ final class NumericOperations
         return BigDecimal::fromBigInt($aLifted->divide($bLifted));
     }
 
-    private static function rationalPower(Ratio $base, int $exponent): mixed
+    private static function rationalPower(Ratio $base, int $exponent): int|float|BigInt|Ratio
     {
         if ($exponent === 0) {
             return 1;

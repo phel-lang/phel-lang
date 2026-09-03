@@ -4,10 +4,14 @@ declare(strict_types=1);
 
 namespace Phel\Build\Domain\Cache;
 
+use Phel\Shared\Facade\CompilerFacadeInterface;
+
 /**
  * Contract for the compiled-code cache. Lives in Domain so Application
  * collaborators (FileEvaluator, SecondaryFileHarvester, DependencyTracker)
  * can depend on the abstraction instead of the Infrastructure concrete.
+ *
+ * @phpstan-import-type SerializedNamespaceEnvironment from CompilerFacadeInterface
  *
  * @internal
  */
@@ -42,12 +46,12 @@ interface CompiledCodeCacheInterface
     public function getCompiledPath(string $sourcePath, string $namespace): string;
 
     /**
-     * @return array<string, mixed>|null
+     * @return SerializedNamespaceEnvironment|null
      */
     public function getEnvironment(string $namespace): ?array;
 
     /**
-     * @param array<string, mixed> $envData
+     * @param SerializedNamespaceEnvironment $envData
      */
     public function putEnvironment(string $namespace, array $envData): void;
 

@@ -61,6 +61,8 @@ final class PartitionGenerator
     }
 
     /**
+     * @param callable(mixed):mixed $f
+     *
      * @return Generator<int, PersistentVectorInterface<mixed>>
      */
     public static function partitionBy(callable $f, mixed $iterable): Generator

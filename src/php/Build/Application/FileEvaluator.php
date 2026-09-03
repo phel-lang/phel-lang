@@ -101,7 +101,6 @@ final class FileEvaluator
                         $envData = $this->compiledCodeCache->getEnvironment($namespace);
 
                         if ($envData !== null) {
-                            /** @var SerializedNamespaceEnvironment $envData */
                             $this->compilerFacade->restoreNamespaceEnvironmentData($namespace, $envData);
                         } else {
                             $this->analyzeNsForm($code, $src);
