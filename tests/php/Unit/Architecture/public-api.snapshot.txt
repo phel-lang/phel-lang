@@ -1725,6 +1725,9 @@ interface Phel\Shared\CompilerConstants
   public const string DEFAULT_SOURCE = 'string'
   public const string PHEL_CORE_NAMESPACE = 'phel.core'
 
+final class Phel\Shared\DeprecationResolver
+  public static function reasonFromMeta(?Phel\Lang\Collections\Map\PersistentMapInterface $meta): string
+
 final readonly class Phel\Shared\Eval\EvalError
   public readonly ?int $column
   public readonly ?int $endColumn
@@ -2309,11 +2312,24 @@ final class Phel\Shared\Process\GitChangedFiles
 
 final class Phel\Shared\Process\GitUnavailableException extends RuntimeException
 
+final class Phel\Shared\Process\PhelBinaryLocator
+  public static function locate(): string
+
 final class Phel\Shared\Process\WorkerFrame
   public static function decodeBody(string $body): array
   public static function encode(array $payload): string
   public static function headerSize(): int
   public static function readBlocking($stream): ?array
+
+final class Phel\Shared\Process\WorkerProcess
+  public function isAlive(): bool
+  public function readStderr(): string
+  public function stdoutHandle()
+  public function terminate(int $signal = 15): void
+  public function tryReadFrame(): ?array
+  public function waitForOutput(int $timeoutMicros): void
+  public function write(string $data): void
+  public static function open(array $command, string $writeFailureMessage): ?Phel\Shared\Process\WorkerProcess
 
 final class Phel\Shared\ProjectRootResolver
   public static function resolveFromCwd(string $cwd): string
