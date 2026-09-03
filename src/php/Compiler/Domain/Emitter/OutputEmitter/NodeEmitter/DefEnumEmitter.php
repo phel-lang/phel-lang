@@ -8,8 +8,6 @@ use Phel\Compiler\Domain\Analyzer\Ast\AbstractNode;
 use Phel\Compiler\Domain\Analyzer\Ast\DefEnumNode;
 use Phel\Compiler\Domain\Emitter\OutputEmitter\NodeEmitterInterface;
 use Phel\Compiler\Domain\Emitter\OutputEmitterInterface;
-use Phel\Lang\Collections\Map\PersistentMapInterface;
-use Phel\Lang\SourceLocation;
 use Phel\Shared\PhpAttributeRenderer;
 
 use function assert;
@@ -33,48 +31,15 @@ final readonly class DefEnumEmitter implements NodeEmitterInterface
     {
         assert($node instanceof DefEnumNode);
 
-        if ($this->shouldEmitViaEval()) {
-            $this->emitViaEval($node);
-        } else {
-            $this->emitInline($node);
-        }
-    }
-
-    private function emitViaEval(DefEnumNode $node): void
-    {
-        $ns = $this->outputEmitter->mungeEncodePhpNs($node->getNamespace());
-        $fqcn = $ns . '\\' . $this->outputEmitter->mungeEncode($node->getName()->getName());
-
-        ob_start();
-        $this->emitEnumBody($node);
-        $enumBody = (string) ob_get_clean();
-
-        $this->outputEmitter->emitLine("if (!enum_exists('" . $fqcn . "')) {", $node->getStartSourceLocation());
-        $this->outputEmitter->increaseIndentLevel();
-
-        $evalCode = 'namespace ' . $ns . ";\n" . $enumBody;
-        $this->outputEmitter->emitLine(
-            'eval(' . var_export($evalCode, true) . ');',
+        $this->emitGuardedTypeDeclaration(
+            $node->getNamespace(),
+            $node->getName()->getName(),
+            'enum_exists',
             $node->getStartSourceLocation(),
+            function () use ($node): void {
+                $this->emitEnumBody($node);
+            },
         );
-
-        $this->outputEmitter->decreaseIndentLevel();
-        $this->outputEmitter->emitLine('}', $node->getStartSourceLocation());
-    }
-
-    /**
-     * In file/cache mode the NsEmitter already declared the namespace at the
-     * top of the file, so the enum is emitted inline.
-     */
-    private function emitInline(DefEnumNode $node): void
-    {
-        $fqcn = $this->outputEmitter->mungeEncodePhpNs($node->getNamespace())
-            . '\\' . $this->outputEmitter->mungeEncode($node->getName()->getName());
-        $this->outputEmitter->emitLine("if (!enum_exists('" . $fqcn . "')) {", $node->getStartSourceLocation());
-
-        $this->emitEnumBody($node);
-
-        $this->outputEmitter->emitLine('}', $node->getStartSourceLocation());
     }
 
     private function emitEnumBody(DefEnumNode $node): void
@@ -137,19 +102,6 @@ final readonly class DefEnumEmitter implements NodeEmitterInterface
                 $this->emitAttributes($method->getName()->getMeta(), $node->getStartSourceLocation());
                 $this->methodEmitter->emit($method->getName()->getName(), $method->getFnNode());
             }
-        }
-    }
-
-    /**
-     * Emits one `#[...]` line per `:php/attr` spec carried by the enum name
-     * meta, at the current indentation, before the enum declaration.
-     *
-     * @param PersistentMapInterface<mixed, mixed>|null $meta
-     */
-    private function emitAttributes(?PersistentMapInterface $meta, ?SourceLocation $sourceLocation): void
-    {
-        foreach ($this->phpAttributeLines($this->attributeRenderer, $meta) as $attribute) {
-            $this->outputEmitter->emitLine($attribute, $sourceLocation);
         }
     }
 }
