@@ -6,6 +6,7 @@ namespace Phel\Compiler\Domain\Deprecation;
 
 use Phel\Compiler\Domain\Diagnostic\ErrorNotice;
 use Phel\Lang\SourceLocation;
+use Phel\Shared\Facade\CompilerFacadeInterface;
 
 use function array_pop;
 use function dirname;
@@ -37,7 +38,7 @@ use const E_USER_DEPRECATED;
  * {@see isEnabled()}: a notice has to be found while the flag is off for a
  * later `--warn-deprecations` run served from the cache to see it (#3222).
  *
- * @phpstan-type DeprecationRecord array{message: string, announced: bool}
+ * @phpstan-import-type DeprecationRecord from CompilerFacadeInterface
  *
  * @internal
  */

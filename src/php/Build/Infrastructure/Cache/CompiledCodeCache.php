@@ -7,6 +7,7 @@ namespace Phel\Build\Infrastructure\Cache;
 use Gacela\Framework\Cache\FileCache;
 use ParseError;
 use Phel\Build\Domain\Cache\CompiledCodeCacheInterface;
+use Phel\Shared\Facade\CompilerFacadeInterface;
 
 use function count;
 use function function_exists;
@@ -27,7 +28,7 @@ use const TOKEN_PARSE;
  * files, and {@see CacheDirectory} owns the directory layout.
  *
  * @phpstan-import-type CacheEntry from CacheIndexFile
- * @phpstan-import-type DeprecationRecord from CacheIndexFile
+ * @phpstan-import-type DeprecationRecord from CompilerFacadeInterface
  *
  * @internal
  */
