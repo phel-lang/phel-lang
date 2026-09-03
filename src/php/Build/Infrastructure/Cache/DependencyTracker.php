@@ -58,11 +58,11 @@ final readonly class DependencyTracker implements DependencyTrackerInterface
             $this->cache->put($nsKey, $namespace);
         }
 
-        // File belongs to its namespace
         try {
             $this->cache->dependsOn($fileKey, $nsKey);
         } catch (CycleDetectedException) {
-            // Edge already exists or would create cycle — skip
+            // Only a cycle throws here; a duplicate edge is a no-op. The
+            // topological sorter already resolves cycles at compile time.
         }
 
         foreach ($dependencies as $dep) {
@@ -74,8 +74,8 @@ final readonly class DependencyTracker implements DependencyTrackerInterface
             try {
                 $this->cache->dependsOn($fileKey, $depKey);
             } catch (CycleDetectedException) {
-                // Skip circular dependencies — the topological sorter
-                // already handles these at compile time.
+                // Only a cycle throws here, and it is already resolved at
+                // compile time by the topological sorter.
             }
         }
     }

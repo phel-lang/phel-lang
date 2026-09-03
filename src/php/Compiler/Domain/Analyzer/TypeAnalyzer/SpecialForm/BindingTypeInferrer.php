@@ -478,7 +478,7 @@ final class BindingTypeInferrer
             return null;
         }
 
-        $tag = $this->tagFromMeta($fn->getMeta());
+        $tag = TagResolver::fromMeta($fn->getMeta());
         return $this->isBindableReturnTag($tag) ? $tag : null;
     }
 
@@ -572,15 +572,7 @@ final class BindingTypeInferrer
 
     private function declaredTag(Symbol $symbol): ?string
     {
-        return $this->tagFromMeta($symbol->getMeta());
-    }
-
-    /**
-     * @param ?PersistentMapInterface<mixed, mixed> $meta
-     */
-    private function tagFromMeta(?PersistentMapInterface $meta): ?string
-    {
-        return TagResolver::fromMeta($meta);
+        return TagResolver::fromMeta($symbol->getMeta());
     }
 
     /**

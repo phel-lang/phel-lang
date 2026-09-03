@@ -13,6 +13,7 @@ use Phel\Lang\Symbol;
 use Phel\Lang\TypeInterface;
 use Phel\Shared\Api\Definition;
 use Phel\Shared\Api\Location;
+use Phel\Shared\DeprecationResolver;
 use Phel\Shared\Facade\CompilerFacadeInterface;
 
 use Throwable;
@@ -217,7 +218,7 @@ final readonly class SymbolExtractor
      */
     private function extractDeprecation(PersistentListInterface $form, Symbol $name): string
     {
-        $fromName = $this->deprecationValue($name->getMeta());
+        $fromName = DeprecationResolver::reasonFromMeta($name->getMeta());
         if ($fromName !== '') {
             return $fromName;
         }
@@ -233,30 +234,13 @@ final readonly class SymbolExtractor
                 continue;
             }
 
-            $fromMap = $this->deprecationValue($child);
+            $fromMap = DeprecationResolver::reasonFromMeta($child);
             if ($fromMap !== '') {
                 return $fromMap;
             }
         }
 
         return '';
-    }
-
-    /**
-     * @param PersistentMapInterface<mixed, mixed>|null $meta
-     */
-    private function deprecationValue(?PersistentMapInterface $meta): string
-    {
-        if (!$meta instanceof PersistentMapInterface) {
-            return '';
-        }
-
-        $value = $meta->find(Keyword::create('deprecated'));
-        if (is_string($value) && $value !== '') {
-            return $value;
-        }
-
-        return $value === true ? 'deprecated' : '';
     }
 
     /**
@@ -272,7 +256,6 @@ final readonly class SymbolExtractor
 
         $arities = [];
         $counter = count($form);
-        // Scan for either a vector (single arity) or nested lists (multi-arity)
         for ($i = 2; $i < $counter; ++$i) {
             $child = $form->get($i);
             if ($child instanceof PersistentVectorInterface) {

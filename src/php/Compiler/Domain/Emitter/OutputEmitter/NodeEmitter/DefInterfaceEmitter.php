@@ -10,8 +10,6 @@ use Phel\Compiler\Domain\Analyzer\Ast\DefInterfaceNode;
 use Phel\Compiler\Domain\Analyzer\Ast\PhpClassConst;
 use Phel\Compiler\Domain\Emitter\OutputEmitter\NodeEmitterInterface;
 use Phel\Compiler\Domain\Emitter\OutputEmitterInterface;
-use Phel\Lang\Collections\Map\PersistentMapInterface;
-use Phel\Lang\SourceLocation;
 use Phel\Shared\PhpAttributeRenderer;
 
 use function assert;
@@ -34,53 +32,15 @@ final readonly class DefInterfaceEmitter implements NodeEmitterInterface
     {
         assert($node instanceof DefInterfaceNode);
 
-        if ($this->shouldEmitViaEval()) {
-            $this->emitViaEval($node);
-        } else {
-            $this->emitInline($node);
-        }
-    }
-
-    /**
-     * Captures the interface body at compile time and emits it as an
-     * `eval()` call guarded by `interface_exists`. Needed both in
-     * statement mode and when we are inside another class's method body
-     * (where PHP rejects nested declarations).
-     */
-    private function emitViaEval(DefInterfaceNode $node): void
-    {
-        $ns = $this->outputEmitter->mungeEncodePhpNs($node->getNamespace());
-        $fqcn = $ns . '\\' . $this->outputEmitter->mungeEncode($node->getName()->getName());
-
-        ob_start();
-        $this->emitInterfaceBody($node);
-        $interfaceBody = (string) ob_get_clean();
-
-        $this->outputEmitter->emitLine("if (!interface_exists('" . $fqcn . "')) {", $node->getStartSourceLocation());
-        $this->outputEmitter->increaseIndentLevel();
-
-        $evalCode = 'namespace ' . $ns . ";\n" . $interfaceBody;
-        $this->outputEmitter->emitLine(
-            'eval(' . var_export($evalCode, true) . ');',
+        $this->emitGuardedTypeDeclaration(
+            $node->getNamespace(),
+            $node->getName()->getName(),
+            'interface_exists',
             $node->getStartSourceLocation(),
+            function () use ($node): void {
+                $this->emitInterfaceBody($node);
+            },
         );
-
-        $this->outputEmitter->decreaseIndentLevel();
-        $this->outputEmitter->emitLine('}', $node->getStartSourceLocation());
-    }
-
-    /**
-     * In file/cache mode the NsEmitter already declared the namespace.
-     */
-    private function emitInline(DefInterfaceNode $node): void
-    {
-        $fqcn = $this->outputEmitter->mungeEncodePhpNs($node->getNamespace())
-            . '\\' . $this->outputEmitter->mungeEncode($node->getName()->getName());
-        $this->outputEmitter->emitLine("if (!interface_exists('" . $fqcn . "')) {", $node->getStartSourceLocation());
-
-        $this->emitInterfaceBody($node);
-
-        $this->outputEmitter->emitLine('}', $node->getStartSourceLocation());
     }
 
     private function emitInterfaceBody(DefInterfaceNode $node): void
@@ -139,7 +99,7 @@ final readonly class DefInterfaceEmitter implements NodeEmitterInterface
         $this->outputEmitter->emitStr('(', $sourceLocation);
 
         foreach ($method->getArgumentsWithoutFirst() as $i => $argument) {
-            foreach ($this->phpAttributeLines($this->attributeRenderer, $argument->getMeta()) as $attribute) {
+            foreach ($this->phpAttributeLines($argument->getMeta()) as $attribute) {
                 $this->outputEmitter->emitStr($attribute . ' ', $sourceLocation);
             }
 
@@ -163,28 +123,5 @@ final readonly class DefInterfaceEmitter implements NodeEmitterInterface
         }
 
         $this->outputEmitter->emitLine(';');
-    }
-
-    /**
-     * @param PersistentMapInterface<mixed, mixed>|null $meta
-     */
-    private function emitAttributes(?PersistentMapInterface $meta, ?SourceLocation $sourceLocation): void
-    {
-        foreach ($this->phpAttributeLines($this->attributeRenderer, $meta) as $attribute) {
-            $this->outputEmitter->emitLine($attribute, $sourceLocation);
-        }
-    }
-
-    /**
-     * Emits the `:php/doc` PHPDoc block carried by the symbol meta, before the
-     * annotated construct (above any attributes).
-     *
-     * @param PersistentMapInterface<mixed, mixed>|null $meta
-     */
-    private function emitDocBlock(?PersistentMapInterface $meta, ?SourceLocation $sourceLocation): void
-    {
-        foreach ($this->phpDocLines($meta) as $line) {
-            $this->outputEmitter->emitLine($line, $sourceLocation);
-        }
     }
 }

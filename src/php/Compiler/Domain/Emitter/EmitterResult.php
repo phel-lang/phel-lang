@@ -4,11 +4,11 @@ declare(strict_types=1);
 
 namespace Phel\Compiler\Domain\Emitter;
 
-use Phel\Compiler\Domain\Deprecation\DeprecationWarnings;
+use Phel\Shared\Facade\CompilerFacadeInterface;
 use Phel\Shared\SourceMap\InlineSourceMapComments;
 
 /**
- * @phpstan-import-type DeprecationRecord from DeprecationWarnings
+ * @phpstan-import-type DeprecationRecord from CompilerFacadeInterface
  *
  * @internal
  */

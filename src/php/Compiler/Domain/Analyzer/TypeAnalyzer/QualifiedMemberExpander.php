@@ -14,7 +14,6 @@ use Phel\Lang\Symbol;
 use ReflectionClass;
 
 use function class_exists;
-use function enum_exists;
 use function interface_exists;
 use function strlen;
 use function substr;
@@ -108,7 +107,7 @@ final readonly class QualifiedMemberExpander
         }
 
         $className = $classNode->getAbsolutePhpName();
-        if (!class_exists($className) && !interface_exists($className) && !enum_exists($className)) {
+        if (!class_exists($className) && !interface_exists($className)) {
             return false;
         }
 

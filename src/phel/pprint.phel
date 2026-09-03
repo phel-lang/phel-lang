@@ -91,7 +91,6 @@
   []
   (and (zero? (php/ob_get_level))
        (php/defined "STDOUT")
-       (php/function_exists "stream_isatty")
        (php/stream_isatty php/STDOUT)))
 
 (defn inspect

@@ -12,6 +12,7 @@ use Phel\Run\Application\Test\Coverage\CoverageReport;
 use Phel\Run\Application\Test\Coverage\HtmlCoverageRenderer;
 use Phel\Run\Application\Test\Coverage\PerTestCoverageCollector;
 use Phel\Run\Application\Test\SharedNamespaces;
+use Phel\Run\Domain\QuotedNamespaceList;
 use Phel\Run\Domain\Test\TestCommandOptions;
 use Phel\Run\Domain\Test\TestNamespacePruner;
 use Phel\Run\RunFacade;
@@ -647,20 +648,7 @@ HELP)
         return sprintf(
             '(do (phel.test/run-tests %s %s) [(phel.test/successful?) (get (get (phel.test/get-stats) :counts) :total) (phel.test/focused-run?)])',
             TestCommandOptions::fromArray($options)->asPhelHashMap(),
-            $this->namespacesAsString($namespacesInformation),
+            QuotedNamespaceList::of($namespacesInformation),
         );
-    }
-
-    /**
-     * @param list<NamespaceInformation> $namespacesInfo
-     */
-    private function namespacesAsString(array $namespacesInfo): string
-    {
-        $namespaces = [];
-        foreach ($namespacesInfo as $info) {
-            $namespaces[] = "'" . $info->getNamespace();
-        }
-
-        return implode(' ', $namespaces);
     }
 }

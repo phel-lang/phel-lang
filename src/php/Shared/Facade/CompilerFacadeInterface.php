@@ -26,12 +26,18 @@ use Phel\Shared\Parser\Node\FileNode;
 use Phel\Shared\Parser\Node\NodeInterface;
 
 /**
+ * `DeprecationRecord` is declared here rather than beside either producer: the
+ * compiler records it (`EmitterResult::getDeprecations()`) and Build's cache
+ * index stores and replays it, and neither module may import the other's
+ * `Domain`. Same reason `SerializedNamespaceEnvironment` lives here.
+ *
  * @phpstan-type SerializedSymbol array{ns: ?string, name: string}
  * @phpstan-type SerializedNamespaceEnvironment array{
  *     refers: array<string, SerializedSymbol>,
  *     require_aliases: array<string, SerializedSymbol>,
  *     use_aliases: array<string, SerializedSymbol>,
  * }
+ * @phpstan-type DeprecationRecord array{message: string, announced: bool}
  */
 interface CompilerFacadeInterface
 {
@@ -44,9 +50,6 @@ interface CompilerFacadeInterface
      * Evaluates all expression in the given phel code. Returns the result
      * of the last expression.
      *
-     * @param string         $phelCode       The phel code that should be evaluated
-     * @param CompileOptions $compileOptions The compile options
-     *
      * @throws CompilerException|UnfinishedParserException
      *
      * @return mixed The result of the executed code
@@ -57,9 +60,6 @@ interface CompilerFacadeInterface
      * Evaluates a Phel form. Non-Phel objects (e.g. closures) are returned
      * as-is, matching Clojure's self-evaluating semantics.
      *
-     * @param mixed          $form           The phel form to evaluate
-     * @param CompileOptions $compileOptions The compile options
-     *
      * @throws CompilerException
      *
      * @return mixed The evaluated result
@@ -68,9 +68,6 @@ interface CompilerFacadeInterface
 
     /**
      * Compiles the given phel code to PHP code.
-     *
-     * @param string         $phelCode       The phel code that should be compiled
-     * @param CompileOptions $compileOptions The compilation options
      *
      * @throws CompilerException
      * @throws CompiledCodeIsMalformedException
@@ -81,9 +78,6 @@ interface CompilerFacadeInterface
     /**
      * Compiles the given phel code to PHP code suitable for caching.
      * Uses statement emit mode (no require_once statements for dependencies).
-     *
-     * @param string         $phelCode       The phel code that should be compiled
-     * @param CompileOptions $compileOptions The compilation options
      *
      * @throws CompilerException
      * @throws CompiledCodeIsMalformedException
@@ -138,9 +132,6 @@ interface CompilerFacadeInterface
      */
     public function initializeGlobalEnvironment(): void;
 
-    /**
-     * Resets the GlobalEnvironment to an uninitialized state.
-     */
     public function resetGlobalEnvironment(): void;
 
     /**

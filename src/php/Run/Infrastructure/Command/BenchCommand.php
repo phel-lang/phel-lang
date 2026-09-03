@@ -6,6 +6,7 @@ namespace Phel\Run\Infrastructure\Command;
 
 use Gacela\Framework\ServiceResolver\ServiceMap;
 use Gacela\Framework\ServiceResolverAwareTrait;
+use Phel\Run\Domain\QuotedNamespaceList;
 use Phel\Run\RunFacade;
 use Phel\Shared\CompileOptions;
 use Phel\Shared\Exceptions\CompilerException;
@@ -158,7 +159,7 @@ final class BenchCommand extends Command
         return sprintf(
             '(phel.bench/run-benchmarks %s %s)',
             $this->optionsAsPhelHashMap($input),
-            $this->namespacesAsString($namespaces),
+            QuotedNamespaceList::of($namespaces),
         );
     }
 
@@ -191,18 +192,5 @@ final class BenchCommand extends Command
         }
 
         return '{' . implode(' ', $entries) . '}';
-    }
-
-    /**
-     * @param list<NamespaceInformation> $namespaces
-     */
-    private function namespacesAsString(array $namespaces): string
-    {
-        $quoted = [];
-        foreach ($namespaces as $info) {
-            $quoted[] = "'" . $info->getNamespace();
-        }
-
-        return implode(' ', $quoted);
     }
 }

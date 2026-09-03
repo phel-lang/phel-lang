@@ -41,7 +41,6 @@ final class ReaderTest extends TestCase
 
     public static function setUpBeforeClass(): void
     {
-        // Reset global environment and initalize a new empty environment.
         // We initialize the environment here because we don't want to let
         // others define the environment for us.
         GlobalEnvironmentSingleton::reset();

@@ -10,7 +10,6 @@ use Phel\Compiler\Domain\Emitter\OutputEmitter\NodeEmitterInterface;
 use Phel\Compiler\Domain\Emitter\OutputEmitterInterface;
 use Phel\Lang\Collections\Map\PersistentMapInterface;
 use Phel\Lang\Keyword;
-use Phel\Lang\SourceLocation;
 use Phel\Lang\Symbol;
 use Phel\Shared\PhpAttributeRenderer;
 
@@ -36,66 +35,15 @@ final readonly class DefStructEmitter implements NodeEmitterInterface
     {
         assert($node instanceof DefStructNode);
 
-        if ($this->shouldEmitViaEval()) {
-            $this->emitViaEval($node);
-        } else {
-            $this->emitInline($node);
-        }
-    }
-
-    /**
-     * Captures the class body at compile time and emits it as an `eval()`
-     * call guarded by `class_exists`. Works anywhere in the emitted PHP,
-     * because `eval` starts a fresh top-level scope.
-     */
-    private function emitViaEval(DefStructNode $node): void
-    {
-        $ns = $this->outputEmitter->mungeEncodePhpNs($node->getNamespace());
-        $fqcn = $this->buildFqcn($node);
-
-        ob_start();
-        $this->emitClassBody($node);
-        $classBody = (string) ob_get_clean();
-
-        $this->outputEmitter->emitLine("if (!class_exists('" . $fqcn . "')) {", $node->getStartSourceLocation());
-        $this->outputEmitter->increaseIndentLevel();
-
-        $evalCode = 'namespace ' . $ns . ";\n" . $classBody;
-        $this->outputEmitter->emitLine(
-            'eval(' . var_export($evalCode, true) . ');',
+        $this->emitGuardedTypeDeclaration(
+            $node->getNamespace(),
+            $node->getName()->getName(),
+            'class_exists',
             $node->getStartSourceLocation(),
+            function () use ($node): void {
+                $this->emitClassBody($node);
+            },
         );
-
-        $this->outputEmitter->decreaseIndentLevel();
-        $this->outputEmitter->emitLine('}', $node->getStartSourceLocation());
-    }
-
-    /**
-     * In file/cache mode the NsEmitter already declared the namespace at the
-     * top of the file, so the class is emitted inline without its own
-     * namespace statement.
-     */
-    private function emitInline(DefStructNode $node): void
-    {
-        $this->emitClassExistsGuard($node);
-        $this->emitClassBody($node);
-        $this->outputEmitter->emitLine('}', $node->getStartSourceLocation());
-    }
-
-    private function emitClassExistsGuard(DefStructNode $node): void
-    {
-        $fqcn = $this->buildFqcn($node);
-        $this->outputEmitter->emitLine("if (!class_exists('" . $fqcn . "')) {", $node->getStartSourceLocation());
-    }
-
-    /**
-     * Builds the fully qualified PHP class name for the generated struct,
-     * encoding both the namespace and the class name through the munger.
-     */
-    private function buildFqcn(DefStructNode $node): string
-    {
-        return $this->outputEmitter->mungeEncodePhpNs($node->getNamespace())
-            . '\\' . $this->outputEmitter->mungeEncode($node->getName()->getName());
     }
 
     private function emitClassBody(DefStructNode $node): void
@@ -249,32 +197,6 @@ final readonly class DefStructEmitter implements NodeEmitterInterface
         }
 
         $this->outputEmitter->emitLine();
-    }
-
-    /**
-     * Emits one `#[...]` line per `:php/attr` spec carried by the symbol meta,
-     * at the current indentation, before the annotated construct.
-     *
-     * @param PersistentMapInterface<mixed, mixed>|null $meta
-     */
-    private function emitAttributes(?PersistentMapInterface $meta, ?SourceLocation $sourceLocation): void
-    {
-        foreach ($this->phpAttributeLines($this->attributeRenderer, $meta) as $attribute) {
-            $this->outputEmitter->emitLine($attribute, $sourceLocation);
-        }
-    }
-
-    /**
-     * Emits the `:php/doc` PHPDoc block carried by the symbol meta, before the
-     * annotated construct (above any attributes).
-     *
-     * @param PersistentMapInterface<mixed, mixed>|null $meta
-     */
-    private function emitDocBlock(?PersistentMapInterface $meta, ?SourceLocation $sourceLocation): void
-    {
-        foreach ($this->phpDocLines($meta) as $line) {
-            $this->outputEmitter->emitLine($line, $sourceLocation);
-        }
     }
 
     private function emitConstructor(DefStructNode $node): void

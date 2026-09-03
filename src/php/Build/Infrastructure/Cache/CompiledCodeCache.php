@@ -7,6 +7,7 @@ namespace Phel\Build\Infrastructure\Cache;
 use Gacela\Framework\Cache\FileCache;
 use ParseError;
 use Phel\Build\Domain\Cache\CompiledCodeCacheInterface;
+use Phel\Shared\Facade\CompilerFacadeInterface;
 
 use function count;
 use function function_exists;
@@ -27,7 +28,8 @@ use const TOKEN_PARSE;
  * files, and {@see CacheDirectory} owns the directory layout.
  *
  * @phpstan-import-type CacheEntry from CacheIndexFile
- * @phpstan-import-type DeprecationRecord from CacheIndexFile
+ * @phpstan-import-type SerializedNamespaceEnvironment from CompilerFacadeInterface
+ * @phpstan-import-type DeprecationRecord from CompilerFacadeInterface
  *
  * @internal
  */
@@ -198,7 +200,7 @@ final class CompiledCodeCache implements CompiledCodeCacheInterface
     }
 
     /**
-     * @param array<string, mixed> $envData
+     * @param SerializedNamespaceEnvironment $envData
      */
     public function putEnvironment(string $namespace, array $envData): void
     {
@@ -206,7 +208,7 @@ final class CompiledCodeCache implements CompiledCodeCacheInterface
     }
 
     /**
-     * @return array<string, mixed>|null
+     * @return SerializedNamespaceEnvironment|null
      */
     public function getEnvironment(string $namespace): ?array
     {

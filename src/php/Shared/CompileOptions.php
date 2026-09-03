@@ -13,7 +13,7 @@ namespace Phel\Shared;
  */
 final class CompileOptions
 {
-    public const string DEFAULT_SOURCE = 'string';
+    public const string DEFAULT_SOURCE = CompilerConstants::DEFAULT_SOURCE;
 
     public const int DEFAULT_STARTING_LINE = 1;
 

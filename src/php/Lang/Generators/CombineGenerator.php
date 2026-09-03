@@ -156,7 +156,7 @@ final class CombineGenerator
      *
      * @param Iterator<mixed, mixed>[] $iterators
      *
-     * @return array<mixed>
+     * @return list<mixed>
      */
     private static function extractCurrentValues(array &$iterators): array
     {

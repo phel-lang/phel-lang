@@ -18,7 +18,7 @@ use Symfony\Component\Console\Output\OutputInterface;
  */
 final readonly class TestWatchLoop
 {
-    public const int POLL_INTERVAL_MS = 500;
+    private const int POLL_INTERVAL_MS = 500;
 
     /** @var Closure(int):void milliseconds */
     private Closure $sleep;

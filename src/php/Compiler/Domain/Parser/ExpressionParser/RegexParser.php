@@ -17,7 +17,6 @@ final class RegexParser
 {
     public function parse(Token $token): StringNode
     {
-        // Strip #" prefix and " suffix, unescape quotes only
         $raw = substr($token->getCode(), 2, -1);
         $pattern = str_replace('\\"', '"', $raw);
 

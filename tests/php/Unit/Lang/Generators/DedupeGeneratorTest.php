@@ -39,7 +39,6 @@ final class DedupeGeneratorTest extends TestCase
 
     public function test_compact_strict_type_comparison_null_vs_empty_string(): void
     {
-        // null and '' should be treated as distinct values
         $result = DedupeGenerator::compact([null, '', 'data', null], null);
 
         self::assertSame(['', 'data'], iterator_to_array($result, false));
@@ -47,7 +46,6 @@ final class DedupeGeneratorTest extends TestCase
 
     public function test_compact_strict_type_comparison_zero_int_vs_string(): void
     {
-        // 0 (int) and '0' (string) should be treated as distinct
         $result = DedupeGenerator::compact([0, '0', 1, '1'], 0);
 
         self::assertSame(['0', 1, '1'], iterator_to_array($result, false));
@@ -55,7 +53,6 @@ final class DedupeGeneratorTest extends TestCase
 
     public function test_compact_strict_type_comparison_false_vs_zero(): void
     {
-        // false and 0 should be treated as distinct
         $result = DedupeGenerator::compact([false, 0, true, 1], false);
 
         self::assertSame([0, true, 1], iterator_to_array($result, false));
@@ -63,7 +60,6 @@ final class DedupeGeneratorTest extends TestCase
 
     public function test_compact_strict_type_comparison_true_vs_one(): void
     {
-        // true and 1 should be treated as distinct
         $result = DedupeGenerator::compact([true, 1, false, 0], true);
 
         self::assertSame([1, false, 0], iterator_to_array($result, false));
@@ -71,7 +67,6 @@ final class DedupeGeneratorTest extends TestCase
 
     public function test_compact_preserves_all_falsy_types_when_removing_only_null(): void
     {
-        // When removing only null, all other falsy values should be preserved
         $result = DedupeGenerator::compact([null, '', 0, false, '0', [], null], null);
 
         self::assertSame(['', 0, false, '0', []], iterator_to_array($result, false));
@@ -93,7 +88,6 @@ final class DedupeGeneratorTest extends TestCase
 
     public function test_compact_single_value_optimization_with_objects(): void
     {
-        // Test single-value path with object
         $obj1 = (object) ['id' => 1];
         $obj2 = (object) ['id' => 2];
         $obj3 = (object) ['id' => 3];
@@ -108,7 +102,6 @@ final class DedupeGeneratorTest extends TestCase
 
     public function test_compact_multiple_values_with_mixed_scalars_and_objects(): void
     {
-        // Test hash lookup path with mixed types
         $obj1 = (object) ['id' => 1];
         $obj2 = (object) ['id' => 2];
 
@@ -125,7 +118,6 @@ final class DedupeGeneratorTest extends TestCase
 
     public function test_compact_multiple_objects_removal(): void
     {
-        // Test multiple object removals
         $obj1 = (object) ['id' => 1];
         $obj2 = (object) ['id' => 2];
         $obj3 = (object) ['id' => 3];
@@ -143,7 +135,6 @@ final class DedupeGeneratorTest extends TestCase
 
     public function test_compact_arrays_as_values(): void
     {
-        // Test that arrays are correctly handled as scalars
         $arr1 = [1, 2];
         $arr2 = [3, 4];
         $arr3 = [5, 6];
@@ -162,7 +153,6 @@ final class DedupeGeneratorTest extends TestCase
     public function test_compact_negative_zero_vs_positive_zero(): void
     {
         // PHP treats -0.0 and 0.0 as equal with ===, but var_export shows the difference
-        // This test verifies our implementation handles edge cases correctly
         $result = DedupeGenerator::compact([0, 0.0, -0.0, 1], 0);
 
         // 0 (int) should be removed, but 0.0 and -0.0 (floats) should remain
@@ -172,7 +162,6 @@ final class DedupeGeneratorTest extends TestCase
 
     public function test_compact_empty_array_vs_false_vs_zero(): void
     {
-        // Test distinction between empty array, false, and 0
         $result = DedupeGenerator::compact(
             [[], false, 0, '', null, 1],
             [],

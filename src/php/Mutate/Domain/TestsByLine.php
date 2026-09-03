@@ -20,7 +20,7 @@ use function is_string;
 final class TestsByLine
 {
     /**
-     * @param array<mixed, mixed> $raw
+     * @param array<array-key, mixed> $raw
      *
      * @return array<string, array<int, list<string>>>
      */

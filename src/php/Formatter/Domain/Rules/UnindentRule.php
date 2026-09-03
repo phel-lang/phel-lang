@@ -21,6 +21,8 @@ use Phel\Shared\Parser\Node\NodeInterface;
  */
 final class UnindentRule implements RuleInterface
 {
+    use TriviaScanTrait;
+
     public function transform(NodeInterface $node): NodeInterface
     {
         return $this->unident(ParseTreeZipper::createRoot($node));
@@ -47,22 +49,6 @@ final class UnindentRule implements RuleInterface
     private function shouldUnindent(ParseTreeZipper $form): bool
     {
         return $this->isIndention($form) && !$this->isNextComment($form);
-    }
-
-    private function skipWhitespace(ParseTreeZipper $form): ParseTreeZipper
-    {
-        $node = $form;
-        while ($node->isWhitespace()) {
-            /** @var ParseTreeZipper $node */
-            $node = $node->next();
-        }
-
-        return $node;
-    }
-
-    private function isNextComment(ParseTreeZipper $form): bool
-    {
-        return $this->skipWhitespace($form->next())->isComment();
     }
 
     private function isIndention(ParseTreeZipper $form): bool

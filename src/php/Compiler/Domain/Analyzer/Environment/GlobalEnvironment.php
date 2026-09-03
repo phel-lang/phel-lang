@@ -223,7 +223,6 @@ final class GlobalEnvironment implements GlobalEnvironmentInterface
 
     /**
      * @param string $inNamespace The namespace in which the alias exist
-     * @param Symbol $alias       The alias name
      * @param Symbol $fullName    The namespace that will be resolved
      */
     public function addUseAlias(string $inNamespace, Symbol $alias, Symbol $fullName): void
@@ -233,7 +232,6 @@ final class GlobalEnvironment implements GlobalEnvironmentInterface
 
     /**
      * @param string $inNamespace The namespace in which the alias should exist
-     * @param Symbol $alias       The alias name
      */
     public function hasUseAlias(string $inNamespace, Symbol $alias): bool
     {

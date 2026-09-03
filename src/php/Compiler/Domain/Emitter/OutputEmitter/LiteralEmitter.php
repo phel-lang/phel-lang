@@ -305,7 +305,7 @@ final readonly class LiteralEmitter
     }
 
     /**
-     * @param array<mixed, mixed> $x
+     * @param array<array-key, mixed> $x
      */
     private function emitArray(array $x): void
     {

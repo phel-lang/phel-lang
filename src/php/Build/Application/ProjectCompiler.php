@@ -138,7 +138,6 @@ final readonly class ProjectCompiler
                 && !$this->dependsOnRecompiled($info, $recompiledNamespaces)
                 && $this->canUseCache($buildOptions, $targetFile, $info)
             ) {
-                // Load cached file to register definitions and execute top-level expressions
                 BuildFacade::enableBuildMode();
                 ob_start();
                 try {

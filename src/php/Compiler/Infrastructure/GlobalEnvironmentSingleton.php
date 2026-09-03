@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace Phel\Compiler\Infrastructure;
 
 use Phel;
-use Phel\Compiler\Domain\Analyzer\Environment\GlobalEnvironment;
 use Phel\Compiler\Domain\Analyzer\Environment\GlobalEnvironmentInterface;
 use Phel\Compiler\Domain\Analyzer\Environment\GlobalEnvironmentRegistry;
 use Phel\Compiler\Domain\Analyzer\Exceptions\GlobalEnvironmentAlreadyInitializedException;
@@ -44,15 +43,7 @@ final class GlobalEnvironmentSingleton
      */
     public static function getInstance(): GlobalEnvironmentInterface
     {
-        $existing = GlobalEnvironmentRegistry::get();
-        if ($existing instanceof GlobalEnvironmentInterface) {
-            return $existing;
-        }
-
-        $env = new GlobalEnvironment();
-        GlobalEnvironmentRegistry::set($env);
-
-        return $env;
+        return GlobalEnvironmentRegistry::getOrCreate();
     }
 
     /**
@@ -64,10 +55,7 @@ final class GlobalEnvironmentSingleton
             throw new GlobalEnvironmentAlreadyInitializedException();
         }
 
-        $env = new GlobalEnvironment();
-        GlobalEnvironmentRegistry::set($env);
-
-        return $env;
+        return GlobalEnvironmentRegistry::createFresh();
     }
 
     /**
@@ -77,10 +65,8 @@ final class GlobalEnvironmentSingleton
     {
         Phel::clear();
         RequireEvaluator::clearCache();
-        $env = new GlobalEnvironment();
-        GlobalEnvironmentRegistry::set($env);
 
-        return $env;
+        return GlobalEnvironmentRegistry::createFresh();
     }
 
     /**

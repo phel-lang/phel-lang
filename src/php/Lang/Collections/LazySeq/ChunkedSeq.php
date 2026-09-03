@@ -63,7 +63,6 @@ final class ChunkedSeq extends AbstractType implements LazySeqInterface, Countab
     ): ?self {
         $values = [];
 
-        // Realize a chunk
         while ($generator->valid() && count($values) < $chunkSize) {
             $values[] = $generator->current();
             $generator->next();
@@ -106,11 +105,9 @@ final class ChunkedSeq extends AbstractType implements LazySeqInterface, Countab
             return null;
         }
 
-        // Take the first chunk
         $chunkValues = array_slice($array, 0, $chunkSize);
         $chunk = new Chunk($chunkValues);
 
-        // Remaining elements
         $remaining = array_slice($array, $chunkSize);
 
         $thunk = $remaining === []
@@ -142,7 +139,6 @@ final class ChunkedSeq extends AbstractType implements LazySeqInterface, Countab
     public function cdr(): self|LazySeqInterface|LazySeq|null
     {
         if ($this->chunk->count() > 1) {
-            // Still have elements in current chunk
             return new self(
                 $this->hasher,
                 $this->equalizer,
@@ -160,7 +156,6 @@ final class ChunkedSeq extends AbstractType implements LazySeqInterface, Countab
         // Invoke the memoized thunk (safe to call multiple times)
         $result = $this->thunk->invoke();
 
-        // If result is a LazySeq, return it; otherwise wrap it
         if ($result instanceof LazySeqInterface) {
             return $result;
         }
@@ -206,7 +201,6 @@ final class ChunkedSeq extends AbstractType implements LazySeqInterface, Countab
      */
     public function cons($x): self
     {
-        // Prepend to the current chunk
         $newValues = array_merge([$x], $this->chunk->toArray());
         $newChunk = new Chunk($newValues);
 
@@ -241,7 +235,6 @@ final class ChunkedSeq extends AbstractType implements LazySeqInterface, Countab
         // Iteratively process chunks to avoid deep recursion. `$current` only
         // ever advances to another `self`; every other tail shape breaks below.
         while (true) {
-            // Yield elements from current chunk
             foreach ($current->chunk->toArray() as $value) {
                 yield $value;
             }
@@ -254,11 +247,9 @@ final class ChunkedSeq extends AbstractType implements LazySeqInterface, Countab
             // Invoke the memoized thunk (safe to call multiple times)
             $rest = $current->thunk->invoke();
 
-            // Continue if rest is a ChunkedSeq
             if ($rest instanceof self) {
                 $current = $rest;
             } elseif ($rest !== null && is_iterable($rest)) {
-                // Handle other iterables
                 foreach ($rest as $value) {
                     yield $value;
                 }

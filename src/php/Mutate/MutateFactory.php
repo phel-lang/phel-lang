@@ -21,9 +21,7 @@ use Phel\Shared\Facade\CompilerFacadeInterface;
 use Phel\Shared\Facade\RunFacadeInterface;
 use Phel\Shared\Process\CpuCountDetector;
 use Phel\Shared\Process\GitChangedFiles;
-use Phel\Shared\ScalarCoercion;
-
-use function is_array;
+use Phel\Shared\Process\PhelBinaryLocator;
 
 use const PHP_BINARY;
 
@@ -52,7 +50,7 @@ final class MutateFactory extends AbstractFactory
 
     public function createMutationRunner(MutationPlan $plan, MutateOptions $options): MutationRunner
     {
-        $command = [PHP_BINARY, $this->resolvePhelBinaryPath(), MutateWorkerCommand::COMMAND_NAME];
+        $command = [PHP_BINARY, PhelBinaryLocator::locate(), MutateWorkerCommand::COMMAND_NAME];
 
         return new MutationRunner(
             static fn(): MutantWorker => MutantWorker::spawn($command),
@@ -88,20 +86,4 @@ final class MutateFactory extends AbstractFactory
         return $this->getProvidedDependency(CommandFacadeInterface::class);
     }
 
-    /**
-     * The `phel` entry point of the current process, so the worker runs the
-     * same code and the same project configuration as its parent.
-     */
-    private function resolvePhelBinaryPath(): string
-    {
-        $script = ScalarCoercion::toString($_SERVER['SCRIPT_FILENAME'] ?? null);
-        if ($script !== '') {
-            return $script;
-        }
-
-        $argv = $_SERVER['argv'] ?? null;
-        $firstArg = is_array($argv) ? ScalarCoercion::toString($argv[0] ?? null) : '';
-
-        return $firstArg !== '' ? $firstArg : __DIR__ . '/../../../bin/phel';
-    }
 }

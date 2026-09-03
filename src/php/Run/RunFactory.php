@@ -53,11 +53,10 @@ use Phel\Shared\Printer\Printer;
 use Phel\Shared\Printer\PrinterInterface;
 use Phel\Shared\Process\CpuCountDetector;
 use Phel\Shared\Process\GitChangedFiles;
-use Phel\Shared\ScalarCoercion;
+use Phel\Shared\Process\PhelBinaryLocator;
 use Phel\Shared\VersionResolver;
 
 use function extension_loaded;
-use function is_array;
 use function is_dir;
 use function mkdir;
 
@@ -308,7 +307,7 @@ class RunFactory extends AbstractFactory
     {
         return new ParallelTestOrchestrator(
             PHP_BINARY,
-            $this->resolvePhelBinaryPath(),
+            PhelBinaryLocator::locate(),
             $this->resolveOpcacheWorkerFlags(),
         );
     }
@@ -361,19 +360,4 @@ class RunFactory extends AbstractFactory
         return OpcacheWorkerFlags::forFileCache(true, $cacheDir);
     }
 
-    private function resolvePhelBinaryPath(): string
-    {
-        $script = ScalarCoercion::toString($_SERVER['SCRIPT_FILENAME'] ?? null);
-        if ($script !== '') {
-            return $script;
-        }
-
-        $argv = $_SERVER['argv'] ?? null;
-        $firstArg = is_array($argv) ? ScalarCoercion::toString($argv[0] ?? null) : '';
-        if ($firstArg !== '') {
-            return $firstArg;
-        }
-
-        return __DIR__ . '/../../../bin/phel';
-    }
 }

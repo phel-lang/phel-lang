@@ -11,10 +11,5 @@ use Phel\Lang\TypeInterface;
  */
 interface QuasiquoteTransformerInterface
 {
-    /**
-     * @param bool|float|int|string|TypeInterface|null $form The form to quasiqoute
-     *
-     * @return bool|float|int|string|TypeInterface|null
-     */
-    public function transform($form);
+    public function transform(TypeInterface|string|float|int|bool|null $form): TypeInterface|string|float|int|bool|null;
 }

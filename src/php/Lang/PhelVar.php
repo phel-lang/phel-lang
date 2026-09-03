@@ -171,6 +171,8 @@ final readonly class PhelVar implements EqualsInterface, FnInterface, HashableIn
      * new value. Metadata attached to the definition is preserved. Watch
      * functions registered via {@see self::addWatch()} are notified after
      * the slot has been updated.
+     *
+     * @param callable(mixed, mixed...):mixed $f
      */
     public function alterRoot(callable $f, mixed ...$args): mixed
     {
