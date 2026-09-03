@@ -46,7 +46,7 @@ final class PhpVarNode extends AbstractNode
         '>>',
     ];
 
-    public const array CALLABLE_KEYWORDS = [
+    private const array CALLABLE_KEYWORDS = [
         'array',
         'die',
         'empty',

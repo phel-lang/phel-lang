@@ -125,9 +125,6 @@ parameters:
             path: src/php/Run/Application/FileRunner.php
             count: 1
         - identifier: trait.unused
-        -
-            identifier: while.alwaysTrue
-            reportUnmatched: false
         # A `Shared\Facade\*FacadeInterface` is the *cross-module* contract, not
         # a mirror of the facade. `Shared/CLAUDE.md` says to keep its imports
         # minimal, and every method below is called only from inside its own
