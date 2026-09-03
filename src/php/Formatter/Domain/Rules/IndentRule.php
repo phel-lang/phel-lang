@@ -20,6 +20,8 @@ use Phel\Shared\Parser\Node\WhitespaceNode;
  */
 final readonly class IndentRule implements RuleInterface
 {
+    use TriviaScanTrait;
+
     private const int INDENT_WIDTH = 2;
 
     private ListIndenter $listIndenter;
@@ -58,21 +60,6 @@ final readonly class IndentRule implements RuleInterface
     {
         return $form->isLineBreak()
             && !$this->isNextComment($form);
-    }
-
-    private function isNextComment(ParseTreeZipper $form): bool
-    {
-        return $this->skipWhitespace($form->next())->isComment();
-    }
-
-    private function skipWhitespace(ParseTreeZipper $form): ParseTreeZipper
-    {
-        $node = $form;
-        while ($node->isWhitespace()) {
-            $node = $node->next();
-        }
-
-        return $node;
     }
 
     private function indentLine(ParseTreeZipper $form): ParseTreeZipper
