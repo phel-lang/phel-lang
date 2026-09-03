@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Phel\Api\Application;
 
+use Closure;
 use Phel\Api\Domain\PhelFnGroupKeyGeneratorInterface;
 use Phel\Api\Domain\PhelFnLoaderInterface;
 use Phel\Api\Domain\PhelFnNormalizerInterface;
@@ -165,7 +166,10 @@ final readonly class PhelFnNormalizer implements PhelFnNormalizerInterface
         return $pos === false ? $fnName : substr($fnName, $pos + 1);
     }
 
-    private function sortingPhelFunctionsCallback(): callable
+    /**
+     * @return Closure(PhelFunction, PhelFunction): int
+     */
+    private function sortingPhelFunctionsCallback(): Closure
     {
         return static fn(PhelFunction $a, PhelFunction $b): int => (($a->namespace <=> $b->namespace) !== 0)
             ? $a->namespace <=> $b->namespace

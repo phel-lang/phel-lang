@@ -178,6 +178,8 @@ final class Seq
     }
 
     /**
+     * @param callable(mixed):mixed $f
+     *
      * @return Generator<int, mixed>
      */
     public static function mapcat(callable $f, mixed $iterable): Generator
@@ -383,6 +385,8 @@ final class Seq
     }
 
     /**
+     * @param callable(mixed):mixed $f
+     *
      * @return Generator<int, PersistentVectorInterface<mixed>>
      */
     public static function partitionBy(callable $f, mixed $iterable): Generator

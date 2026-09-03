@@ -154,7 +154,7 @@ final readonly class FnSymbol implements SpecialFormAnalyzerInterface
         NodeEnvironmentInterface $env,
         ?Symbol $name = null,
     ): FnNode {
-        $this->verifyArguments($list);
+        $paramVector = $this->verifyArguments($list);
 
         $fnSymbolTuple = FnSymbolTuple::createWithTuple($list);
         $recurFrame = new RecurFrame($fnSymbolTuple->params());
@@ -166,7 +166,7 @@ final readonly class FnSymbol implements SpecialFormAnalyzerInterface
         $effectiveName = $this->resolveEffectiveName($name, $fnSymbolTuple->params());
 
         $body = $this->analyzeBody($fnSymbolTuple, $recurFrame, $env, $effectiveName);
-        $declaredReturnType = $this->extractReturnType($list->get(1));
+        $declaredReturnType = $this->extractReturnType($paramVector);
         if ($declaredReturnType !== null) {
             $tailType = TagCompatibility::tailLiteralType($body);
             if ($tailType !== null && !TagCompatibility::accepts($declaredReturnType, $tailType)) {
@@ -254,12 +254,11 @@ final readonly class FnSymbol implements SpecialFormAnalyzerInterface
         return [$ns, $name];
     }
 
-    private function extractReturnType(mixed $paramVector): ?string
+    /**
+     * @param PersistentVectorInterface<mixed> $paramVector
+     */
+    private function extractReturnType(PersistentVectorInterface $paramVector): ?string
     {
-        if (!$paramVector instanceof PersistentVectorInterface) {
-            return null;
-        }
-
         return TagResolver::fromMeta($paramVector->getMeta());
     }
 
@@ -283,16 +282,21 @@ final readonly class FnSymbol implements SpecialFormAnalyzerInterface
 
     /**
      * @param PersistentListInterface<mixed> $list
+     *
+     * @return PersistentVectorInterface<mixed>
      */
-    private function verifyArguments(PersistentListInterface $list): void
+    private function verifyArguments(PersistentListInterface $list): PersistentVectorInterface
     {
         if (count($list) < 2) {
             throw AnalyzerException::withLocation("'fn requires at least one argument", $list);
         }
 
-        if (!($list->get(1) instanceof PersistentVectorInterface)) {
+        $paramVector = $list->get(1);
+        if (!$paramVector instanceof PersistentVectorInterface) {
             throw AnalyzerException::withLocation("Second argument of 'fn must be a vector", $list);
         }
+
+        return $paramVector;
     }
 
     private function analyzeBody(

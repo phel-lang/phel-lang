@@ -35,11 +35,9 @@ final readonly class QuasiquoteTransformer implements QuasiquoteTransformerInter
     ) {}
 
     /**
-     * @param bool|float|int|string|TypeInterface|null $form The form to quasiqoute
-     *
      * @throws SpliceNotInListException
      */
-    public function transform($form): TypeInterface|string|float|int|bool|null
+    public function transform(TypeInterface|string|float|int|bool|null $form): TypeInterface|string|float|int|bool|null
     {
         $context = new GensymContext();
 

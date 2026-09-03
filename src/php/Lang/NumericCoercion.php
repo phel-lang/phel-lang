@@ -138,6 +138,9 @@ final class NumericCoercion
         );
     }
 
+    /**
+     * @return BigInt|int
+     */
     public static function truncateToInt(mixed $value): mixed
     {
         if (is_int($value) || $value instanceof BigInt) {

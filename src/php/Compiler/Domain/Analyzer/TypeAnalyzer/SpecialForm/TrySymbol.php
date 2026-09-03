@@ -80,10 +80,9 @@ final class TrySymbol implements SpecialFormAnalyzerInterface
         for (; $forms instanceof PersistentListInterface; $forms = $forms->cdr()) {
             $form = $forms->first();
 
-            if ($this->isCatchForm($form)) {
-                /** @var PersistentListInterface<mixed> $form */
+            if ($form instanceof PersistentListInterface && $this->isCatchForm($form)) {
                 $state = $this->handleCatchForm($state, $form, $catches, $list);
-            } elseif ($this->isFinallyForm($form)) {
+            } elseif ($form instanceof PersistentListInterface && $this->isFinallyForm($form)) {
                 $state = $this->handleFinallyForm($state, $form, $finally, $list);
             } else {
                 $this->handleBodyForm($state, $form, $body, $list);
@@ -97,16 +96,20 @@ final class TrySymbol implements SpecialFormAnalyzerInterface
         ];
     }
 
-    private function isCatchForm(mixed $form): bool
+    /**
+     * @param PersistentListInterface<mixed> $form
+     */
+    private function isCatchForm(PersistentListInterface $form): bool
     {
-        return $form instanceof PersistentListInterface
-            && $this->isSymWithName($form->get(0), 'catch');
+        return $this->isSymWithName($form->get(0), 'catch');
     }
 
-    private function isFinallyForm(mixed $form): bool
+    /**
+     * @param PersistentListInterface<mixed> $form
+     */
+    private function isFinallyForm(PersistentListInterface $form): bool
     {
-        return $form instanceof PersistentListInterface
-            && $this->isSymWithName($form->get(0), 'finally');
+        return $this->isSymWithName($form->get(0), 'finally');
     }
 
     /**
@@ -116,7 +119,7 @@ final class TrySymbol implements SpecialFormAnalyzerInterface
      *
      * @param-out non-empty-list<PersistentListInterface<mixed>> $catches
      */
-    private function handleCatchForm(string $state, mixed $form, array &$catches, PersistentListInterface $list): string
+    private function handleCatchForm(string $state, PersistentListInterface $form, array &$catches, PersistentListInterface $list): string
     {
         if ($state === self::STATE_DONE) {
             throw AnalyzerException::withLocation("Unexpected form after 'finally", $list);
@@ -127,18 +130,18 @@ final class TrySymbol implements SpecialFormAnalyzerInterface
     }
 
     /**
+     * @param PersistentListInterface<mixed>      $form
      * @param PersistentListInterface<mixed>|null $finally
      * @param PersistentListInterface<mixed>      $list
      *
      * @param-out PersistentListInterface<mixed> $finally
      */
-    private function handleFinallyForm(string $state, mixed $form, ?PersistentListInterface &$finally, PersistentListInterface $list): string
+    private function handleFinallyForm(string $state, PersistentListInterface $form, ?PersistentListInterface &$finally, PersistentListInterface $list): string
     {
         if ($state === self::STATE_DONE) {
             throw AnalyzerException::withLocation("Unexpected form after 'finally", $list);
         }
 
-        /** @var PersistentListInterface<mixed> $form */
         $finally = $form;
         return self::STATE_DONE;
     }

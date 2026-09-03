@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace Phel\Build\Infrastructure\Cache;
 
+use Phel\Shared\Facade\CompilerFacadeInterface;
+
 use function array_key_exists;
 use function var_export;
 
@@ -16,6 +18,8 @@ use function var_export;
  * `(load ...)` chain for one namespace would otherwise re-`require` (and,
  * without opcache, re-parse) the same env file once per secondary.
  *
+ * @phpstan-import-type SerializedNamespaceEnvironment from CompilerFacadeInterface
+ *
  * @internal
  */
 final class NamespaceEnvironmentStore
@@ -24,7 +28,7 @@ final class NamespaceEnvironmentStore
      * In-memory memo of per-namespace environment data, keyed by env-file
      * path. Mutable across calls, so the class is not `readonly`.
      *
-     * @var array<string, array<string, mixed>|null>
+     * @var array<string, SerializedNamespaceEnvironment|null>
      */
     private array $memo = [];
 
@@ -40,7 +44,7 @@ final class NamespaceEnvironmentStore
     }
 
     /**
-     * @param array<string, mixed> $envData
+     * @param SerializedNamespaceEnvironment $envData
      */
     public function put(string $namespace, array $envData): void
     {
@@ -54,7 +58,7 @@ final class NamespaceEnvironmentStore
     }
 
     /**
-     * @return array<string, mixed>|null
+     * @return SerializedNamespaceEnvironment|null
      */
     public function get(string $namespace): ?array
     {
@@ -68,7 +72,8 @@ final class NamespaceEnvironmentStore
             return $this->memo[$envPath] = null;
         }
 
-        /** @var array<string, mixed>|null $data */
+        // The env file is written by put() above, never by a user.
+        /** @var SerializedNamespaceEnvironment|null $data */
         $data = require $envPath;
 
         return $this->memo[$envPath] = $data;

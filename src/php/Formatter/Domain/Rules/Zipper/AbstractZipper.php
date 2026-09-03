@@ -173,9 +173,7 @@ abstract class AbstractZipper
     }
 
     /**
-     * @return mixed
-     *
-     * @psalm-return T
+     * @return T
      */
     public function root()
     {

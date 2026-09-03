@@ -82,7 +82,7 @@ final class BreakSymbol implements SpecialFormAnalyzerInterface
      *
      * @param PersistentListInterface<mixed> $list
      *
-     * @return list<mixed>
+     * @return list<string|Symbol>
      */
     private function localsKeyValues(PersistentListInterface $list, NodeEnvironmentInterface $env): array
     {
