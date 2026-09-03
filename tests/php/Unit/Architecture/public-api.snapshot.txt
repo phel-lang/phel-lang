@@ -2321,16 +2321,6 @@ final class Phel\Shared\Process\WorkerFrame
   public static function headerSize(): int
   public static function readBlocking($stream): ?array
 
-final class Phel\Shared\Process\WorkerProcess
-  public function isAlive(): bool
-  public function readStderr(): string
-  public function stdoutHandle()
-  public function terminate(int $signal = 15): void
-  public function tryReadFrame(): ?array
-  public function waitForOutput(int $timeoutMicros): void
-  public function write(string $data): void
-  public static function open(array $command, string $writeFailureMessage): ?Phel\Shared\Process\WorkerProcess
-
 final class Phel\Shared\ProjectRootResolver
   public static function resolveFromCwd(string $cwd): string
 

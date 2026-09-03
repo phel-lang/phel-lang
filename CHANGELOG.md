@@ -19,7 +19,7 @@ All notable changes to this project will be documented in this file.
 - Add `phel.ai/*sleep-fn*` as a bindable retry backoff seam. (#3204)
 - Add public APIs for per-test coverage and immediate compiled-code cache flushing. (#3203 #3209)
 - Add CSS-style id and class shorthand to `phel.html` element tags. (#3240)
-- Add `Shared\Process\WorkerProcess`, `Shared\Process\PhelBinaryLocator` and `Shared\DeprecationResolver`, the shared halves of plumbing that Run, Mutate, Api and Lint each carried a copy of.
+- Add `Shared\Process\PhelBinaryLocator` and `Shared\DeprecationResolver`, the shared halves of plumbing that Run, Mutate, Api and Lint each carried a copy of.
 
 ### Changed
 

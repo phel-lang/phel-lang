@@ -5,10 +5,23 @@ declare(strict_types=1);
 namespace Phel\Mutate\Application;
 
 use Phel\Shared\Process\WorkerFrame;
-use Phel\Shared\Process\WorkerProcess;
 use RuntimeException;
 
+use function fclose;
+use function fread;
+use function fwrite;
+use function hexdec;
+use function is_resource;
 use function microtime;
+use function proc_close;
+use function proc_get_status;
+use function proc_open;
+use function proc_terminate;
+use function stream_select;
+use function stream_set_blocking;
+use function strlen;
+use function substr;
+use function usleep;
 
 /**
  * One `phel _mutate-worker` subprocess seen from the parent. Frames go out
@@ -25,24 +38,50 @@ final class MutantWorker
 {
     private const int SELECT_TIMEOUT_MICROS = 100_000;
 
+    /** @var closed-resource|resource */
+    private readonly mixed $stdin;
+
+    /** @var closed-resource|resource */
+    private readonly mixed $stdout;
+
+    /** @var closed-resource|resource */
+    private readonly mixed $stderr;
+
+    private string $readBuffer = '';
+
     /** Wall-clock deadline of the frame in flight, null when idle. */
     private ?float $deadline = null;
 
-    private function __construct(
-        private readonly WorkerProcess $process,
-    ) {}
+    /**
+     * @param closed-resource|resource $process
+     * @param array<int, resource>     $pipes
+     */
+    private function __construct(private readonly mixed $process, array $pipes)
+    {
+        $this->stdin = $pipes[0];
+        $this->stdout = $pipes[1];
+        $this->stderr = $pipes[2];
+        stream_set_blocking($this->stdout, false);
+        stream_set_blocking($this->stderr, false);
+    }
 
     /**
      * @param list<string> $command the full argv, interpreter first
      */
     public static function spawn(array $command): self
     {
-        $process = WorkerProcess::open($command, 'Failed to write to the mutation worker.');
-        if (!$process instanceof WorkerProcess) {
+        $pipes = [];
+        $process = @proc_open(
+            $command,
+            [0 => ['pipe', 'r'], 1 => ['pipe', 'w'], 2 => ['pipe', 'w']],
+            $pipes,
+        );
+
+        if (!is_resource($process)) {
             throw new RuntimeException('Failed to spawn the Phel mutation worker.');
         }
 
-        return new self($process);
+        return new self($process, $pipes);
     }
 
     /**
@@ -84,7 +123,7 @@ final class MutantWorker
     public function send(array $frame, float $timeoutSeconds): void
     {
         $this->deadline = microtime(true) + $timeoutSeconds;
-        $this->process->write(WorkerFrame::encode($frame));
+        $this->writeAll(WorkerFrame::encode($frame));
     }
 
     /**
@@ -94,7 +133,7 @@ final class MutantWorker
      */
     public function tryReceive(): ?array
     {
-        $answer = $this->process->tryReadFrame();
+        $answer = $this->tryReadFrame();
         if ($answer !== null) {
             $this->deadline = null;
         }
@@ -117,12 +156,18 @@ final class MutantWorker
      */
     public function isDead(): bool
     {
-        return !$this->isAlive() && $this->process->tryReadFrame() === null;
+        return !$this->isAlive() && $this->tryReadFrame() === null;
     }
 
     public function isAlive(): bool
     {
-        return $this->process->isAlive();
+        if (!is_resource($this->process)) {
+            return false;
+        }
+
+        $status = @proc_get_status($this->process);
+
+        return $status['running'];
     }
 
     /**
@@ -130,16 +175,94 @@ final class MutantWorker
      */
     public function waitForOutput(): void
     {
-        $this->process->waitForOutput(self::SELECT_TIMEOUT_MICROS);
+        $reads = [$this->stdout];
+        $writes = null;
+        $exceptions = null;
+        /** @psalm-suppress InvalidArgument */
+        @stream_select($reads, $writes, $exceptions, 0, self::SELECT_TIMEOUT_MICROS);
     }
 
     public function readStderr(): string
     {
-        return $this->process->readStderr();
+        $out = '';
+        while (true) {
+            /** @psalm-suppress PossiblyInvalidArgument */
+            $chunk = @fread($this->stderr, 8192);
+            if ($chunk === false || $chunk === '') {
+                break;
+            }
+
+            $out .= $chunk;
+        }
+
+        return $out;
     }
 
     public function terminate(): void
     {
-        $this->process->terminate(9);
+        if (is_resource($this->stdin)) {
+            /** @psalm-suppress InaccessibleProperty */
+            @fclose($this->stdin);
+        }
+
+        if (is_resource($this->process)) {
+            $deadline = microtime(true) + 0.2;
+            while (microtime(true) < $deadline && $this->isAlive()) {
+                usleep(10_000);
+            }
+
+            if ($this->isAlive()) {
+                @proc_terminate($this->process, 9);
+            }
+
+            @proc_close($this->process);
+        }
+
+        foreach ([$this->stdout, $this->stderr] as $pipe) {
+            if (is_resource($pipe)) {
+                @fclose($pipe);
+            }
+        }
+    }
+
+    /**
+     * @return array<string, mixed>|null
+     */
+    private function tryReadFrame(): ?array
+    {
+        /** @psalm-suppress PossiblyInvalidArgument */
+        $chunk = @fread($this->stdout, 65_536);
+        if ($chunk !== false && $chunk !== '') {
+            $this->readBuffer .= $chunk;
+        }
+
+        $headerSize = WorkerFrame::headerSize();
+        if (strlen($this->readBuffer) < $headerSize) {
+            return null;
+        }
+
+        $length = (int) hexdec(substr($this->readBuffer, 0, $headerSize - 1));
+        $total = $headerSize + $length;
+        if (strlen($this->readBuffer) < $total) {
+            return null;
+        }
+
+        $body = substr($this->readBuffer, $headerSize, $length);
+        $this->readBuffer = substr($this->readBuffer, $total);
+
+        return WorkerFrame::decodeBody($body);
+    }
+
+    private function writeAll(string $data): void
+    {
+        while ($data !== '') {
+            /** @psalm-suppress PossiblyInvalidArgument */
+            $written = @fwrite($this->stdin, $data);
+            if ($written === false || $written === 0) {
+                throw new RuntimeException('Failed to write to the mutation worker.');
+            }
+
+            $data = substr($data, $written);
+        }
     }
 }

@@ -359,4 +359,5 @@ class RunFactory extends AbstractFactory
 
         return OpcacheWorkerFlags::forFileCache(true, $cacheDir);
     }
+
 }

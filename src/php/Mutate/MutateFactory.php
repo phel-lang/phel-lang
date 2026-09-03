@@ -85,4 +85,5 @@ final class MutateFactory extends AbstractFactory
     {
         return $this->getProvidedDependency(CommandFacadeInterface::class);
     }
+
 }
