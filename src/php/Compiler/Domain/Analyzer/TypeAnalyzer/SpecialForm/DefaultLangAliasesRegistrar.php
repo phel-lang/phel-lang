@@ -42,7 +42,7 @@ use Phel\Lang\Volatile;
 final class DefaultLangAliasesRegistrar
 {
     /** @var array<string, string> */
-    public const array DEFAULT_USE_ALIASES = [
+    private const array DEFAULT_USE_ALIASES = [
         // Sequence types
         'LazySeq' => LazySeqInterface::class,
         'Cons' => Cons::class,

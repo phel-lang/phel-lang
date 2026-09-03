@@ -14,9 +14,9 @@ use Phel\Shared\Api\Diagnostic;
  */
 final class LintConfig extends AbstractConfig
 {
-    public const string DEFAULT_CONFIG_FILENAME = 'phel-lint.phel';
-
     public const string CACHE_SUBPATH = 'lint-cache';
+
+    private const string DEFAULT_CONFIG_FILENAME = 'phel-lint.phel';
 
     /**
      * Default severities for every rule shipped in v1. Rules not listed

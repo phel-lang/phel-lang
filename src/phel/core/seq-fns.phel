@@ -1150,17 +1150,6 @@ Indexed PHP arrays become vectors, associative PHP arrays become maps."
   [coll comp]
   (sorted-vector coll (sort-comparator comp)))
 
-(defn- all-int-first-elements?
-  "True when every `[key value]` pair carries a native int key. Mirrors
-  `all-native-ints?`, over the decorated pairs rather than the elements."
-  [pairs]
-  (let [found (php/array true)]
-    (foreach [p pairs]
-      (when-not (php/is_int (php/aget p 0))
-        (php/aset found 0 false)
-        php/break))
-    (php/aget found 0)))
-
 (defn- sort-by-with
   "Decorate, sort, undecorate. Building the comparator as
   `#(cmp (keyfn %1) (keyfn %2))` runs `keyfn` twice per comparison, so O(n log n)

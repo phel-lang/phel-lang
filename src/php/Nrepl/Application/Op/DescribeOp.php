@@ -16,7 +16,7 @@ use Phel\Shared\Facade\RunFacadeInterface;
  */
 final readonly class DescribeOp implements OpHandlerInterface
 {
-    public const string NREPL_VERSION = '0.1.0';
+    private const string NREPL_VERSION = '0.1.0';
 
     public function __construct(
         private OpDispatcher $dispatcher,
