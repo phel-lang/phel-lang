@@ -26,7 +26,14 @@ require_once __DIR__ . '/../vendor/autoload.php';
         $base = DIRECTORY_SEPARATOR . 'tmp';
     }
 
-    $workerTmp = rtrim($base, '/\\') . DIRECTORY_SEPARATOR . 'phel-test-worker-' . $token;
+    // TEST_TOKEN alone is not unique: paratest numbers workers 1, 2, 3 from
+    // scratch in every run, so two checkouts of this repo running the suite at
+    // once on one machine share a base TMPDIR, collide on the same worker
+    // directory and delete each other's fixtures through the shutdown hook
+    // below. The checkout hash keeps concurrent runs in separate namespaces.
+    $checkout = substr(hash('xxh128', \dirname(__DIR__)), 0, 8);
+
+    $workerTmp = rtrim($base, '/\\') . DIRECTORY_SEPARATOR . 'phel-test-worker-' . $checkout . '-' . $token;
     if (!is_dir($workerTmp)) {
         @mkdir($workerTmp, 0o777, true);
     }
