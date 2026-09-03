@@ -53,8 +53,6 @@ final class ReplCompleter implements ReplCompleterInterface
     /**
      * Complete input from either PHP or Phel context.
      *
-     * @param string $input the input string for which to find completions
-     *
      * @return list<string> a list of autocompletion suggestions
      */
     public function complete(string $input): array

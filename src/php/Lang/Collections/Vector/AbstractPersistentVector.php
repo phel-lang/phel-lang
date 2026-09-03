@@ -126,7 +126,7 @@ abstract class AbstractPersistentVector extends AbstractType implements Persiste
             return $other->equals($this);
         }
 
-        // Also accept objects with toArray() method (like lazy sequences)
+        // Duck-typed array-like objects; a lazy sequence already returned above.
         if (is_object($other) && method_exists($other, 'toArray')) {
             $thisArray = $this->toArray();
             $otherArray = $other->toArray();

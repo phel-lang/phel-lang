@@ -58,7 +58,6 @@ final readonly class DependencyTracker implements DependencyTrackerInterface
             $this->cache->put($nsKey, $namespace);
         }
 
-        // File belongs to its namespace
         try {
             $this->cache->dependsOn($fileKey, $nsKey);
         } catch (CycleDetectedException) {

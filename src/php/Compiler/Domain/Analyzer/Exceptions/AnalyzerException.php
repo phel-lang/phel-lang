@@ -298,7 +298,6 @@ final class AnalyzerException extends AbstractLocatedException
     {
         $type = get_debug_type($value);
 
-        // Strip Phel\Lang\ prefix for cleaner display
         if (str_starts_with($type, 'Phel\\Lang\\')) {
             return substr($type, 10);
         }

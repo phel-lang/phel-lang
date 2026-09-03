@@ -44,22 +44,18 @@ final class ArgvInputSanitizer
         $argc = count($argv);
         $result = [$argv[0], 'run'];
 
-        // Cursor starts after "run"
         $i = 2;
 
-        // Collect known run-options
         while ($i < $argc && in_array($argv[$i], self::RUN_OPTIONS, true)) {
             $result[] = $argv[$i];
             ++$i;
         }
 
-        // The next token (if any) is the command to run
         if ($i < $argc) {
             $result[] = $argv[$i];
             ++$i;
         }
 
-        // Any remaining tokens are passed through after a "--" separator
         if ($i < $argc) {
             $result[] = '--';
             /** @var list<string> $rest */

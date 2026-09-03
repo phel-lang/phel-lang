@@ -100,7 +100,6 @@ HELP)
             /** @var string|null $path */
             $path = $input->getArgument('path');
 
-            // Auto-detect entry point if no path provided
             if ($path === null || $path === '') {
                 $path = $this->getFacade()->autoDetectEntryPoint();
                 if ($path === null) {

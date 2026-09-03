@@ -30,7 +30,6 @@ final class TransientVector implements TransientVectorInterface, Stringable
 
     /**
      * @param int                                       $count The number of elements inside this vector
-     * @param int                                       $shift The shift value
      * @param array<int, mixed>                         $root  The root node (holds child nodes or, at the leaf level, values)
      * @param T[]                                       $tail  The tail of the vector. This is an optimization
      * @param PersistentMapInterface<mixed, mixed>|null $meta  Metadata of the vector this transient was

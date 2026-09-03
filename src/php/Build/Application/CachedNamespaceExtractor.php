@@ -264,7 +264,6 @@ final class CachedNamespaceExtractor implements NamespaceExtractorInterface
                     }
                 }
             } catch (UnexpectedValueException) {
-                // Skip directories that cannot be read
                 continue;
             }
         }
@@ -316,12 +315,11 @@ final class CachedNamespaceExtractor implements NamespaceExtractorInterface
 
     private function resolvePath(string $path): ?string
     {
-        // Support PHAR paths
+        // realpath() cannot resolve a phar:// stream path, so hand it back unchanged.
         if (str_starts_with($path, 'phar://')) {
             return $path;
         }
 
-        // Normal file system
         $real = realpath($path);
         return $real !== false ? $real : null;
     }

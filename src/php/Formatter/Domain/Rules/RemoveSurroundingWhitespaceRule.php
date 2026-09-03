@@ -45,7 +45,7 @@ final readonly class RemoveSurroundingWhitespaceRule implements RuleInterface
             !$loc->isTop()
             && $this->isTop($loc->up())
             && $loc->isWhitespaceOrNewline()
-            && ($loc->isFirst() || $this->isRestWhitespace($loc)) //$loc->isLast())
+            && ($loc->isFirst() || $this->isRestWhitespace($loc))
         );
     }
 

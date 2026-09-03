@@ -174,7 +174,6 @@ final class ZipperTest extends TestCase
         self::assertNotTrue($next->isEnd());
         self::assertSame(5, $next->getNode());
 
-        // Now we are in the end and we go back
         $prev = $next->prev();
         self::assertSame(4, $prev->getNode());
         $prev = $prev->prev();

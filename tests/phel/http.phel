@@ -318,9 +318,8 @@
 ;; Response
 ;; --------
 
-;; TODO: Headers cannot be tested at this point
-;; because the test script already has send some output
-;; and new headers cannot be send anymore.
+;; Headers are untestable here: the test script has already sent output,
+;; so no further header can be set.
 
 (deftest test-response
   (is (=
