@@ -10,11 +10,7 @@ namespace Phel\Run\Domain\Init;
 final class NamespaceNormalizer
 {
     /**
-     * Convert a project name to a valid Phel namespace.
-     *
-     * - Removes all non-alphanumeric characters (hyphens, underscores, etc.)
-     * - Converts to lowercase for consistency
-     * - Appends `.main` as the entry module (matches the generated `main.phel`)
+     * The `.main` suffix matches the `main.phel` entry module the scaffolder writes.
      */
     public function normalize(string $projectName): string
     {

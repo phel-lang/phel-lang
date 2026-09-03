@@ -272,7 +272,6 @@ final readonly class SymbolExtractor
 
         $arities = [];
         $counter = count($form);
-        // Scan for either a vector (single arity) or nested lists (multi-arity)
         for ($i = 2; $i < $counter; ++$i) {
             $child = $form->get($i);
             if ($child instanceof PersistentVectorInterface) {

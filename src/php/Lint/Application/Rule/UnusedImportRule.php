@@ -96,7 +96,6 @@ final readonly class UnusedImportRule implements LintRuleInterface
             }
 
             $alias = null;
-            // Look ahead for `:as Alias`.
             if ($i + 2 < $size) {
                 $maybeKey = $clause->get($i + 1);
                 if ($maybeKey instanceof Keyword && $maybeKey->getName() === 'as') {

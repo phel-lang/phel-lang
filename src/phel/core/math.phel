@@ -809,18 +809,6 @@ returns 1. If `xs` has one value, returns the reciprocal of x.
     (throw (new InvalidArgumentException "Max values is bigger than min value")))
   (php/max (php/min v max) min))
 
-(defn- all-native-ints?
-  "True when every element of the PHP array is a native int. Mirrors the
-  namesake in `seq-fns`, which cannot be reached from here: both are private,
-  and this file loads first."
-  [php-array]
-  (let [found (php/array true)]
-    (foreach [x php-array]
-      (when-not (php/is_int x)
-        (php/aset found 0 false)
-        php/break))
-    (php/aget found 0)))
-
 (defn sum
   "Returns the sum of all elements is `xs`."
   {:example "(sum [1 2 3]) ; => 6"

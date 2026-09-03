@@ -84,11 +84,9 @@ final class ChunkedSeqTest extends TestCase
 
     public function test_cdr_moves_to_next_chunk_when_current_exhausted(): void
     {
-        // Create sequence with multiple chunks
         $array = range(1, 65); // Will create at least 3 chunks with size 32
         $chunkedSeq = ChunkedSeq::fromArray($this->hasher, $this->equalizer, $array, 32);
 
-        // Move through first chunk
         $current = $chunkedSeq;
         for ($i = 0; $i < 31; ++$i) {
             $current = $current->rest();
@@ -96,7 +94,6 @@ final class ChunkedSeqTest extends TestCase
 
         $this->assertSame(32, $current->first(), 'Should be at element 32');
 
-        // Move to next element (which should be in next chunk)
         $next = $current->rest();
         $this->assertSame(33, $next->first(), 'Should move to next chunk');
     }
@@ -263,7 +260,6 @@ final class ChunkedSeqTest extends TestCase
         $realizationCount = 0;
         $chunkSize = 10;
 
-        // Create a generator that tracks realizations
         $generator = (static function () use (&$realizationCount): Generator {
             for ($i = 0; $i < 100; ++$i) {
                 ++$realizationCount;
@@ -273,13 +269,11 @@ final class ChunkedSeqTest extends TestCase
 
         $chunkedSeq = ChunkedSeq::fromGenerator($this->hasher, $this->equalizer, $generator, $chunkSize);
 
-        // Accessing first element should realize first chunk
         $chunkedSeq->first();
         // Note: fromGenerator needs to call valid() which may advance the generator by 1
         $this->assertGreaterThanOrEqual($chunkSize, $realizationCount, 'First chunk should be realized');
         $this->assertLessThanOrEqual($chunkSize + 1, $realizationCount, 'Should not realize much more than first chunk');
 
-        // Accessing element in second chunk
         $current = $chunkedSeq;
         for ($i = 0; $i < $chunkSize; ++$i) {
             $current = $current->rest();
@@ -345,7 +339,6 @@ final class ChunkedSeqTest extends TestCase
 
         $chunkedSeq = ChunkedSeq::fromGenerator($this->hasher, $this->equalizer, $generator, 3);
 
-        // First iteration
         $result1 = [];
         foreach ($chunkedSeq as $value) {
             $result1[] = $value;
@@ -353,7 +346,6 @@ final class ChunkedSeqTest extends TestCase
 
         $countAfterFirst = $realizationCount;
 
-        // Second iteration on the SAME instance
         $result2 = [];
         foreach ($chunkedSeq as $value) {
             $result2[] = $value;
@@ -365,8 +357,7 @@ final class ChunkedSeqTest extends TestCase
         $this->assertSame([1, 2, 3, 4, 5, 6, 7, 8, 9, 10], $result1);
         $this->assertSame([1, 2, 3, 4, 5, 6, 7, 8, 9, 10], $result2);
 
-        // The generator should not be advanced again on the second iteration
-        // (memoization should prevent re-invocation)
+        // Memoization keeps the second pass from re-invoking the generator.
         $this->assertSame($countAfterFirst, $countAfterSecond, 'Generator should not be invoked again');
     }
 

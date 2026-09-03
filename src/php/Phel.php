@@ -68,17 +68,12 @@ class Phel
         $GLOBALS['__phel_argv'] = $argv;
     }
 
-    /**
-     * Get the current program (script path or namespace).
-     */
     public static function getProgram(): string
     {
         return ScalarCoercion::toString($GLOBALS['__phel_program'] ?? null);
     }
 
     /**
-     * Get user arguments (without script name).
-     *
      * @return list<string>
      */
     public static function getArgv(): array
@@ -99,7 +94,6 @@ class Phel
             $projectRootDir = self::resolvePharProjectRoot();
         }
 
-        // Zero-config support: auto-detect project structure if no config file exists
         $configPath = $projectRootDir . '/' . self::PHEL_CONFIG_FILE_NAME;
         if (!file_exists($configPath)) {
             self::$autoDetectedConfig = self::detectProjectStructure($projectRootDir);
@@ -135,7 +129,6 @@ class Phel
         $hasTests = in_array('tests', $topLevel, true);
         $hasVendor = in_array('vendor', $topLevel, true);
 
-        // Check for nested layout (src/phel, tests/phel) only if parent exists
         $hasSrcPhel = $hasSrc && is_dir($projectRootDir . '/src/phel');
         $hasTestsPhel = $hasTests && is_dir($projectRootDir . '/tests/phel');
 
@@ -245,10 +238,8 @@ class Phel
             // `GacelaConfig::setEventDispatcher()`, which takes precedence.
             $config->disableEventListeners();
 
-            // If we have auto-detected config (no phel-config.php exists), use it
             $autoConfig = self::getAutoDetectedConfig();
             if ($autoConfig instanceof PhelConfig) {
-                // Register the auto-detected config as inline config
                 $config->addAppConfigKeyValues($autoConfig->jsonSerialize());
             } else {
                 // Normal config file loading. The strict reader rejects a
@@ -431,7 +422,6 @@ class Phel
             return $root;
         }
 
-        // Check PHAR's directory
         $pharDir = dirname(Phar::running(false));
         if (file_exists($pharDir . '/' . self::PHEL_CONFIG_FILE_NAME)) {
             return $pharDir;

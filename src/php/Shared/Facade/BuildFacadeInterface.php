@@ -13,8 +13,6 @@ interface BuildFacadeInterface
     /**
      * Extracts the namespace from a given file. It expects that the
      * first statement in the file is the 'ns statement.
-     *
-     * @param string $filename The path to the file
      */
     public function getNamespaceFromFile(string $filename): NamespaceInformation;
 
@@ -45,16 +43,11 @@ interface BuildFacadeInterface
 
     /**
      * Compiles a phel file and saves it to the give destination.
-     *
-     * @param string $src  The source file
-     * @param string $dest The destination
      */
     public function compileFile(string $src, string $dest): CompiledFile;
 
     /**
      * Same as `compileFile`. However, the generated code is not written to a destination.
-     *
-     * @param string $src The source file
      */
     public function evalFile(string $src): CompiledFile;
 

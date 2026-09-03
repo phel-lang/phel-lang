@@ -38,12 +38,6 @@ final readonly class TagNormalizer
     }
 
     /**
-     * The normalised inferred type tag of a node when it is a
-     * `LocalVarNode`, or `null` when the node is absent, not a local var,
-     * or carries no tag. Collapses the "is this argument a tagged local?"
-     * guard repeated across the call-site specialisations into one place.
-     */
-    /**
      * The tag of any node the emitter can type, not only a bare variable.
      *
      * {@see self::ofLocalVar()} exists because several lowerings emit their
@@ -63,6 +57,12 @@ final readonly class TagNormalizer
         return self::normalise(NumericOperationSpecialization::inferredTypeOfNode($node));
     }
 
+    /**
+     * The normalised inferred type tag of a node when it is a
+     * `LocalVarNode`, or `null` when the node is absent, not a local var,
+     * or carries no tag. Collapses the "is this argument a tagged local?"
+     * guard repeated across the call-site specialisations into one place.
+     */
     public static function ofLocalVar(?AbstractNode $node): ?string
     {
         if (!$node instanceof LocalVarNode) {

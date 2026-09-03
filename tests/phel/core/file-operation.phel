@@ -48,7 +48,6 @@
     (php/unlink target-file)))
 
 (deftest test-slurp-relative-path
-  ;; Test that relative file paths still work
   (let [target-directory (str (php/sys_get_temp_dir))
         target-file      (str target-directory php/DIRECTORY_SEPARATOR "test-slurp-relative.txt")
         test-content     "Relative path test"]

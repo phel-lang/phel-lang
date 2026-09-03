@@ -20,11 +20,7 @@ final class ResponseBuilder
 
     public const int METHOD_NOT_FOUND = -32601;
 
-    public const int INVALID_PARAMS = -32602;
-
     public const int INTERNAL_ERROR = -32603;
-
-    public const int SERVER_NOT_INITIALIZED = -32002;
 
     /**
      * @return array{jsonrpc: string, id: mixed, result: mixed}

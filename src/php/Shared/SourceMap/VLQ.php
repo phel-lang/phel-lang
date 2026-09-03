@@ -64,8 +64,6 @@ final class VLQ
     /**
      * Decodes a VLQ-Based-64 encoded string and return an array of numbers.
      *
-     * @param string $string The encoded string
-     *
      * @return list<int>
      */
     public function decode(string $string): array
@@ -124,8 +122,6 @@ final class VLQ
 
     /**
      * Encodes a number to a VLQ-base64 encoded string.
-     *
-     * @param int $num The number to encode
      */
     public function encodeInteger(int $num): string
     {

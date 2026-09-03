@@ -44,9 +44,6 @@ interface CompilerFacadeInterface
      * Evaluates all expression in the given phel code. Returns the result
      * of the last expression.
      *
-     * @param string         $phelCode       The phel code that should be evaluated
-     * @param CompileOptions $compileOptions The compile options
-     *
      * @throws CompilerException|UnfinishedParserException
      *
      * @return mixed The result of the executed code
@@ -57,9 +54,6 @@ interface CompilerFacadeInterface
      * Evaluates a Phel form. Non-Phel objects (e.g. closures) are returned
      * as-is, matching Clojure's self-evaluating semantics.
      *
-     * @param mixed          $form           The phel form to evaluate
-     * @param CompileOptions $compileOptions The compile options
-     *
      * @throws CompilerException
      *
      * @return mixed The evaluated result
@@ -68,9 +62,6 @@ interface CompilerFacadeInterface
 
     /**
      * Compiles the given phel code to PHP code.
-     *
-     * @param string         $phelCode       The phel code that should be compiled
-     * @param CompileOptions $compileOptions The compilation options
      *
      * @throws CompilerException
      * @throws CompiledCodeIsMalformedException
@@ -81,9 +72,6 @@ interface CompilerFacadeInterface
     /**
      * Compiles the given phel code to PHP code suitable for caching.
      * Uses statement emit mode (no require_once statements for dependencies).
-     *
-     * @param string         $phelCode       The phel code that should be compiled
-     * @param CompileOptions $compileOptions The compilation options
      *
      * @throws CompilerException
      * @throws CompiledCodeIsMalformedException
@@ -138,9 +126,6 @@ interface CompilerFacadeInterface
      */
     public function initializeGlobalEnvironment(): void;
 
-    /**
-     * Resets the GlobalEnvironment to an uninitialized state.
-     */
     public function resetGlobalEnvironment(): void;
 
     /**

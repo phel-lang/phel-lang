@@ -57,7 +57,6 @@ final class DoSymbol implements SpecialFormAnalyzerInterface
             $stmts[] = $this->analyzer->analyze($forms->first(), $envStmt);
         }
 
-        // If we don't have any statement, evaluate the nil statement
         if ($stmts === []) {
             $stmts[] = $this->analyzer->analyze(null, $env);
         }

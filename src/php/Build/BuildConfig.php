@@ -43,7 +43,6 @@ final class BuildConfig extends AbstractConfig implements BuildConfigInterface
         $out = (array) $this->get('out', []);
         $config = PhelBuildConfig::fromArray($out);
 
-        // Auto-detect namespace from core.phel if not explicitly configured
         if ($config->getMainPhelNamespace() === '') {
             $detected = $this->autoDetectMainNamespace();
             if ($detected !== '') {
@@ -141,7 +140,6 @@ final class BuildConfig extends AbstractConfig implements BuildConfigInterface
             return '';
         }
 
-        // Match (ns namespace-name) at the start of the file
         if (preg_match('/^\s*\(ns\s+([^\s\)]+)/', $content, $matches)) {
             return $matches[1];
         }

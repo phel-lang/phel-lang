@@ -160,7 +160,6 @@ final class LazySeq extends AbstractType implements LazySeqInterface, Countable,
             return $result;
         }
 
-        // Convert to array for other iterables
         $array = [];
         foreach ($iterable as $item) {
             $array[] = $item;

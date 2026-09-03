@@ -49,7 +49,6 @@ final class FileEvaluatorTest extends TestCase
         $namespace = 'test\\namespace';
         $sourceHash = md5('(ns test\\namespace)');
 
-        // Set up cache with valid entry
         $cache = new CompiledCodeCache($cacheDir);
         $cache->put($sourceFile, $namespace, $sourceHash, '$result = 42;');
 
@@ -267,7 +266,6 @@ final class FileEvaluatorTest extends TestCase
         $evaluator = new FileEvaluator($compilerFacade, $namespaceExtractor, $cache);
         $evaluator->evalFile($sourceFile);
 
-        // Verify cache now has the entry
         $cachedPath = $cache->get($sourceFile, $sourceHash);
         self::assertNotNull($cachedPath);
         self::assertFileExists($cachedPath);
@@ -392,12 +390,10 @@ final class FileEvaluatorTest extends TestCase
         $newCode = '(ns test\\namespace) (def x 1)';
         $oldHash = md5($oldCode);
 
-        // Put old version in cache
         file_put_contents($sourceFile, $oldCode);
         $cache = new CompiledCodeCache($cacheDir);
         $cache->put($sourceFile, $namespace, $oldHash, '$old = true;');
 
-        // Update source file
         file_put_contents($sourceFile, $newCode);
 
         // Compiler should be called because hash changed

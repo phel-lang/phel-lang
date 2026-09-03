@@ -185,12 +185,11 @@ final readonly class NamespaceExtractor implements NamespaceExtractorInterface
 
     private function resolvePath(string $path): ?string
     {
-        // Support PHAR paths
+        // realpath() cannot resolve a phar:// stream path, so hand it back unchanged.
         if (str_starts_with($path, 'phar://')) {
             return $path;
         }
 
-        // Normal file system
         $real = realpath($path);
         return $real !== false ? $real : null;
     }

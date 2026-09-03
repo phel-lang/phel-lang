@@ -168,7 +168,6 @@ else
     fi
 fi
 
-# Validate vendor directory
 if [[ ! -d "./vendor" ]]; then
     error "Vendor directory not found after dependency installation"
 fi
@@ -188,15 +187,12 @@ fi
 
 popd >/dev/null
 
-# Move PHAR to output directory
 mv "$WORK_DIR/phel.phar" "$PHAR_FILE"
 rm -rf "$WORK_DIR"
 
-# Validate created PHAR
 if [[ ! -x "$PHAR_FILE" ]]; then
     error "PHAR file is not executable"
 fi
 
-# Print final location
 echo ""
 echo "📍  Final Location:   $PHAR_FILE"

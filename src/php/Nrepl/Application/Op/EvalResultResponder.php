@@ -141,7 +141,7 @@ final readonly class EvalResultResponder
         ];
 
         if ($fileName === null) {
-            // Preserve the existing `root-ex` field that EvalOp emitted.
+            // Only the file-less frame carries root-ex; load-file names the file in `err` instead.
             $body['root-ex'] = $exClass;
         }
 
