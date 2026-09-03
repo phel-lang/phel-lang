@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace Phel\Compiler\Application;
 
 use Phel;
-use Phel\Compiler\Domain\Analyzer\Environment\GlobalEnvironment;
 use Phel\Compiler\Domain\Analyzer\Environment\GlobalEnvironmentInterface;
 use Phel\Compiler\Domain\Analyzer\Environment\GlobalEnvironmentManagerInterface;
 use Phel\Compiler\Domain\Analyzer\Environment\GlobalEnvironmentRegistry;
@@ -38,25 +37,15 @@ final class GlobalEnvironmentManager implements GlobalEnvironmentManagerInterfac
 
     public function getInstance(): GlobalEnvironmentInterface
     {
-        $existing = GlobalEnvironmentRegistry::get();
-        if ($existing instanceof GlobalEnvironmentInterface) {
-            return $existing;
-        }
-
-        $env = new GlobalEnvironment();
-        GlobalEnvironmentRegistry::set($env);
-
-        return $env;
+        return GlobalEnvironmentRegistry::getOrCreate();
     }
 
     public function initializeNew(): GlobalEnvironmentInterface
     {
         Phel::clear();
         RequireEvaluator::clearCache();
-        $env = new GlobalEnvironment();
-        GlobalEnvironmentRegistry::set($env);
 
-        return $env;
+        return GlobalEnvironmentRegistry::createFresh();
     }
 
     public function setInstance(GlobalEnvironmentInterface $env): void

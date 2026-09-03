@@ -7,6 +7,7 @@ namespace Phel\Shared;
 use Phel\Lang\Collections\Map\PersistentMapInterface;
 use Phel\Lang\Collections\Vector\PersistentVectorInterface;
 use Phel\Lang\Keyword;
+use Phel\Lang\Seq;
 
 use function implode;
 use function is_bool;
@@ -53,7 +54,7 @@ final class PhpAttributeRenderer
         // A single spec is a vector whose first element is the attribute-name
         // keyword (`[:ORM/Column {:length 255}]`); a list of specs has vectors
         // as its elements (`[[:ORM/Id] [:ORM/Column]]`).
-        if ($this->firstElement($specs) instanceof Keyword) {
+        if (Seq::first($specs) instanceof Keyword) {
             $line = $this->renderSpec($specs);
 
             return $line === null ? [] : [$line];
@@ -68,18 +69,6 @@ final class PhpAttributeRenderer
         }
 
         return $lines;
-    }
-
-    /**
-     * @param PersistentVectorInterface<mixed> $vector
-     */
-    private function firstElement(PersistentVectorInterface $vector): mixed
-    {
-        foreach ($vector as $element) {
-            return $element;
-        }
-
-        return null;
     }
 
     private function renderSpec(mixed $spec): ?string

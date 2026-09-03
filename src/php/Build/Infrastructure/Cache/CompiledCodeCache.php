@@ -29,7 +29,7 @@ use const TOKEN_PARSE;
  *
  * @phpstan-import-type CacheEntry from CacheIndexFile
  * @phpstan-import-type SerializedNamespaceEnvironment from CompilerFacadeInterface
- * @phpstan-import-type DeprecationRecord from CacheIndexFile
+ * @phpstan-import-type DeprecationRecord from CompilerFacadeInterface
  *
  * @internal
  */

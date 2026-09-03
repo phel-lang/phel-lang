@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace Phel\Build\Infrastructure\Cache;
 
+use Phel\Shared\Facade\CompilerFacadeInterface;
+
 use function function_exists;
 use function is_array;
 use function is_string;
@@ -19,7 +21,8 @@ use function is_string;
  * written or version-mismatched index degrades to "empty" rather than
  * surfacing malformed data.
  *
- * @phpstan-type DeprecationRecord array{message: string, announced: bool}
+ * @phpstan-import-type DeprecationRecord from CompilerFacadeInterface
+ *
  * @phpstan-type CacheEntry array{namespace: string, source_hash: string, compiled_path: string, last_accessed: int, deprecations: list<DeprecationRecord>}
  *
  * @internal

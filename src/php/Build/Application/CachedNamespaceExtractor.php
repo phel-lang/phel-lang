@@ -15,6 +15,7 @@ use Phel\Build\Domain\Extractor\ExtractorException;
 use Phel\Build\Domain\Extractor\NamespaceExtractorInterface;
 use Phel\Build\Domain\Extractor\NamespaceFileGrouper;
 use Phel\Build\Domain\Extractor\NamespaceSorterInterface;
+use Phel\Build\Domain\Extractor\SourcePathResolver;
 use Phel\Shared\NamespaceInformation;
 use RecursiveCallbackFilterIterator;
 use RecursiveDirectoryIterator;
@@ -55,7 +56,7 @@ final class CachedNamespaceExtractor implements NamespaceExtractorInterface
 
     public function getNamespaceFromFile(string $path): NamespaceInformation
     {
-        $realPath = $this->resolvePath($path);
+        $realPath = SourcePathResolver::resolve($path);
         if ($realPath === null) {
             return $this->innerExtractor->getNamespaceFromFile($path);
         }
@@ -160,7 +161,7 @@ final class CachedNamespaceExtractor implements NamespaceExtractorInterface
     {
         $existing = [];
         foreach ($directories as $directory) {
-            $realpath = $this->resolvePath($directory);
+            $realpath = SourcePathResolver::resolve($directory);
             if ($realpath !== null && is_dir($realpath)) {
                 $existing[] = $realpath;
             }
@@ -208,7 +209,7 @@ final class CachedNamespaceExtractor implements NamespaceExtractorInterface
     {
         $resolved = [];
         foreach ($directories as $directory) {
-            $real = $this->resolvePath($directory);
+            $real = SourcePathResolver::resolve($directory);
             $resolved[] = $real ?? $directory;
         }
 
@@ -258,7 +259,7 @@ final class CachedNamespaceExtractor implements NamespaceExtractorInterface
                         continue;
                     }
 
-                    $resolvedFile = $this->resolvePath($file[0]);
+                    $resolvedFile = SourcePathResolver::resolve($file[0]);
                     if ($resolvedFile !== null) {
                         $files[] = $resolvedFile;
                     }
@@ -311,16 +312,5 @@ final class CachedNamespaceExtractor implements NamespaceExtractorInterface
             '/^.+\.(phel|cljc)$/i',
             RegexIterator::GET_MATCH,
         );
-    }
-
-    private function resolvePath(string $path): ?string
-    {
-        // realpath() cannot resolve a phar:// stream path, so hand it back unchanged.
-        if (str_starts_with($path, 'phar://')) {
-            return $path;
-        }
-
-        $real = realpath($path);
-        return $real !== false ? $real : null;
     }
 }

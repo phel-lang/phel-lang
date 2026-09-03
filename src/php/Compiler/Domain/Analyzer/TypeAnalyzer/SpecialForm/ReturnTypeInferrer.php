@@ -397,7 +397,7 @@ final class ReturnTypeInferrer
             return null;
         }
 
-        $tag = $this->tagFromMeta($fn->getMeta());
+        $tag = TagResolver::fromMeta($fn->getMeta());
         return $tag === null ? null : $this->publish($tag);
     }
 
@@ -456,16 +456,7 @@ final class ReturnTypeInferrer
 
     private function extractTag(Symbol $param): ?string
     {
-        $meta = $param->getMeta();
-        return $meta instanceof PersistentMapInterface ? $this->tagFromMeta($meta) : null;
-    }
-
-    /**
-     * @param PersistentMapInterface<mixed, mixed> $meta
-     */
-    private function tagFromMeta(PersistentMapInterface $meta): ?string
-    {
-        return TagResolver::fromMeta($meta);
+        return TagResolver::fromMeta($param->getMeta());
     }
 
     private function bindingName(BindingNode $binding): string

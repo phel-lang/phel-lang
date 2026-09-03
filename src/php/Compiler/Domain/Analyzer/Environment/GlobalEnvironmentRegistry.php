@@ -33,4 +33,27 @@ final class GlobalEnvironmentRegistry
     {
         return self::$instance instanceof GlobalEnvironmentInterface;
     }
+
+    /**
+     * The environment in the slot, filling it with a fresh one when empty.
+     */
+    public static function getOrCreate(): GlobalEnvironmentInterface
+    {
+        $existing = self::$instance;
+        if ($existing instanceof GlobalEnvironmentInterface) {
+            return $existing;
+        }
+
+        return self::createFresh();
+    }
+
+    /**
+     * Replaces whatever is in the slot with a fresh environment. Callers own
+     * the side effects that go with a reset (registry clearing, cache
+     * eviction); this only swaps the slot.
+     */
+    public static function createFresh(): GlobalEnvironmentInterface
+    {
+        return self::$instance = new GlobalEnvironment();
+    }
 }

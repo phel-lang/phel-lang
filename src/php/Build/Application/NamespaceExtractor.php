@@ -9,6 +9,7 @@ use Phel\Build\Domain\Extractor\ExtractorException;
 use Phel\Build\Domain\Extractor\NamespaceExtractorInterface;
 use Phel\Build\Domain\Extractor\NamespaceFileGrouper;
 use Phel\Build\Domain\Extractor\NamespaceSorterInterface;
+use Phel\Build\Domain\Extractor\SourcePathResolver;
 use Phel\Build\Domain\IO\FileContentsIoInterface;
 use Phel\Compiler\Domain\Analyzer\Ast\InNsNode;
 use Phel\Compiler\Domain\Analyzer\Ast\NsNode;
@@ -139,7 +140,7 @@ final readonly class NamespaceExtractor implements NamespaceExtractorInterface
      */
     private function findAllNs(string $directory): array
     {
-        $realpath = $this->resolvePath($directory);
+        $realpath = SourcePathResolver::resolve($directory);
         if ($realpath === null) {
             return [];
         }
@@ -181,16 +182,5 @@ final readonly class NamespaceExtractor implements NamespaceExtractorInterface
         }
 
         return $result;
-    }
-
-    private function resolvePath(string $path): ?string
-    {
-        // realpath() cannot resolve a phar:// stream path, so hand it back unchanged.
-        if (str_starts_with($path, 'phar://')) {
-            return $path;
-        }
-
-        $real = realpath($path);
-        return $real !== false ? $real : null;
     }
 }

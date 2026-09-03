@@ -26,12 +26,18 @@ use Phel\Shared\Parser\Node\FileNode;
 use Phel\Shared\Parser\Node\NodeInterface;
 
 /**
+ * `DeprecationRecord` is declared here rather than beside either producer: the
+ * compiler records it (`EmitterResult::getDeprecations()`) and Build's cache
+ * index stores and replays it, and neither module may import the other's
+ * `Domain`. Same reason `SerializedNamespaceEnvironment` lives here.
+ *
  * @phpstan-type SerializedSymbol array{ns: ?string, name: string}
  * @phpstan-type SerializedNamespaceEnvironment array{
  *     refers: array<string, SerializedSymbol>,
  *     require_aliases: array<string, SerializedSymbol>,
  *     use_aliases: array<string, SerializedSymbol>,
  * }
+ * @phpstan-type DeprecationRecord array{message: string, announced: bool}
  */
 interface CompilerFacadeInterface
 {

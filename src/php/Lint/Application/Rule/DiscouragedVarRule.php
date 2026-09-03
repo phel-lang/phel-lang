@@ -7,16 +7,15 @@ namespace Phel\Lint\Application\Rule;
 use Phel\Lang\Collections\LinkedList\PersistentListInterface;
 use Phel\Lang\Collections\Map\PersistentMapInterface;
 use Phel\Lang\Collections\Vector\PersistentVectorInterface;
-use Phel\Lang\Keyword;
 use Phel\Lang\Symbol;
 use Phel\Lint\Application\Config\RuleRegistry;
 use Phel\Lint\Domain\FileAnalysis;
 use Phel\Lint\Domain\LintRuleInterface;
 use Phel\Shared\Api\Diagnostic;
+use Phel\Shared\DeprecationResolver;
 
 use function count;
 use function in_array;
-use function is_string;
 use function sprintf;
 
 /**
@@ -170,7 +169,7 @@ final readonly class DiscouragedVarRule implements LintRuleInterface
             return;
         }
 
-        $reason = $this->deprecationReason($ident->getMeta());
+        $reason = DeprecationResolver::reasonFromMeta($ident->getMeta());
         $size = count($form);
         for ($i = 2; $i < $size && $reason === ''; ++$i) {
             $meta = $form->get($i);
@@ -179,29 +178,12 @@ final readonly class DiscouragedVarRule implements LintRuleInterface
             }
 
             if ($meta instanceof PersistentMapInterface) {
-                $reason = $this->deprecationReason($meta);
+                $reason = DeprecationResolver::reasonFromMeta($meta);
             }
         }
 
         if ($reason !== '') {
             $map[$ident->getName()] = sprintf('deprecated: %s', $reason);
         }
-    }
-
-    /**
-     * @param PersistentMapInterface<mixed, mixed>|null $meta
-     */
-    private function deprecationReason(?PersistentMapInterface $meta): string
-    {
-        if (!$meta instanceof PersistentMapInterface) {
-            return '';
-        }
-
-        $value = $meta->find(Keyword::create('deprecated'));
-        if (is_string($value) && $value !== '') {
-            return $value;
-        }
-
-        return $value === true ? 'deprecated' : '';
     }
 }

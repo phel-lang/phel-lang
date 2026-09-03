@@ -4,10 +4,12 @@ declare(strict_types=1);
 
 namespace Phel\Compiler\Domain\Emitter\OutputEmitter\NodeEmitter;
 
+use Phel\Compiler\Domain\Emitter\OutputEmitterInterface;
 use Phel\Lang\Collections\LinkedList\PersistentListInterface;
 use Phel\Lang\Collections\Map\PersistentMapInterface;
 use Phel\Lang\Collections\Vector\PersistentVectorInterface;
 use Phel\Lang\Keyword;
+use Phel\Lang\SourceLocation;
 use Phel\Lang\Symbol;
 use Phel\Shared\PhpAttributeRenderer;
 use Phel\Shared\TagResolver;
@@ -20,6 +22,12 @@ use function is_string;
  * Shared reading of PHP-interop metadata off a Phel symbol: the `:tag` type
  * hint and the `:php/attr` attribute specs. Used by the emitters that generate
  * PHP classes/interfaces from Phel forms (`defstruct`, `definterface`).
+ *
+ * Using emitters must expose the `$outputEmitter` and `$attributeRenderer`
+ * properties (as every generating node emitter already does).
+ *
+ * @property-read OutputEmitterInterface $outputEmitter
+ * @property-read PhpAttributeRenderer   $attributeRenderer
  *
  * @internal
  */
@@ -90,13 +98,13 @@ trait PhpAttributeEmitterTrait
      *
      * @return list<string>
      */
-    private function phpAttributeLines(PhpAttributeRenderer $renderer, ?PersistentMapInterface $meta): array
+    private function phpAttributeLines(?PersistentMapInterface $meta): array
     {
         if (!$meta instanceof PersistentMapInterface) {
             return [];
         }
 
-        $lines = $renderer->render($meta->find(Keyword::create('attr', 'php')));
+        $lines = $this->attributeRenderer->render($meta->find(Keyword::create('attr', 'php')));
 
         if ($meta->find(Keyword::create('override', 'php')) === true) {
             array_unshift($lines, '#[\Override]');
@@ -153,5 +161,31 @@ trait PhpAttributeEmitterTrait
         }
 
         return $lines;
+    }
+
+    /**
+     * Emits one `#[...]` line per `:php/attr` spec carried by the symbol meta,
+     * at the current indentation, before the annotated construct.
+     *
+     * @param PersistentMapInterface<mixed, mixed>|null $meta
+     */
+    private function emitAttributes(?PersistentMapInterface $meta, ?SourceLocation $sourceLocation): void
+    {
+        foreach ($this->phpAttributeLines($meta) as $attribute) {
+            $this->outputEmitter->emitLine($attribute, $sourceLocation);
+        }
+    }
+
+    /**
+     * Emits the `:php/doc` PHPDoc block carried by the symbol meta, before the
+     * annotated construct (above any attributes).
+     *
+     * @param PersistentMapInterface<mixed, mixed>|null $meta
+     */
+    private function emitDocBlock(?PersistentMapInterface $meta, ?SourceLocation $sourceLocation): void
+    {
+        foreach ($this->phpDocLines($meta) as $line) {
+            $this->outputEmitter->emitLine($line, $sourceLocation);
+        }
     }
 }
