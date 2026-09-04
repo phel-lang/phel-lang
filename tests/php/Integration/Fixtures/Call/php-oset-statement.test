@@ -6,6 +6,6 @@
   "user",
   "o",
   (new \stdClass()),
-  \Phel::locationMeta(\Phel::location("Call/php-oset-statement.test", 1, 0), \Phel::location("Call/php-oset-statement.test", 1, 27))
+  static fn() => \Phel::locationMeta(\Phel::location("Call/php-oset-statement.test", 1, 0), \Phel::location("Call/php-oset-statement.test", 1, 27))
 );
 \Phel\Lang\Registry::readRoot("user", "o")->name = "test";

@@ -12,7 +12,7 @@
       return ($x + 1);
     }
   },
-  \Phel::locationMeta(
+  static fn() => \Phel::locationMeta(
     \Phel::location("Fn/fn-param-infer-numeric.test", 1, 0),
     \Phel::location("Fn/fn-param-infer-numeric.test", 1, 27),
     \Phel\Lang\Keyword::create("doc"), "```phel\n(add1 x)\n```\n",

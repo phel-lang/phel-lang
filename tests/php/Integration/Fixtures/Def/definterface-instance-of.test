@@ -41,7 +41,7 @@ interface IPlayer {
 
     }
   },
-  \Phel::locationMeta(
+  static fn() => \Phel::locationMeta(
     \Phel::location("Def/definterface-instance-of.test", 3, 0),
     \Phel::location("Def/definterface-instance-of.test", 5, 31),
     \Phel\Lang\Keyword::create("doc"), "```phel\n(choose p)\n```\nChoose docs",
@@ -69,7 +69,7 @@ interface IPlayer {
 
     }
   },
-  \Phel::locationMeta(
+  static fn() => \Phel::locationMeta(
     \Phel::location("Def/definterface-instance-of.test", 3, 0),
     \Phel::location("Def/definterface-instance-of.test", 5, 31),
     \Phel\Lang\Keyword::create("doc"), "```phel\n(update-strategy p me you)\n```\n",

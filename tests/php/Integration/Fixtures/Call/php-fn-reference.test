@@ -13,7 +13,7 @@
       return ($f)(...\Phel\Lang\Seq::toApplyArguments($xs));
     }
   },
-  \Phel::locationMeta(
+  static fn() => \Phel::locationMeta(
     \Phel::location("Call/php-fn-reference.test", 1, 0),
     \Phel::location("Call/php-fn-reference.test", 1, 44),
     "min-arity", 2,

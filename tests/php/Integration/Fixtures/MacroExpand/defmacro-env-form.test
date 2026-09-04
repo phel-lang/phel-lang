@@ -13,7 +13,7 @@
 
     }
   },
-  \Phel::locationMeta(
+  static fn() => \Phel::locationMeta(
     \Phel::location("MacroExpand/defmacro-env-form.test", 1, 0),
     \Phel::location("MacroExpand/defmacro-env-form.test", 1, 52),
     \Phel\Lang\Keyword::create("macro"), true,

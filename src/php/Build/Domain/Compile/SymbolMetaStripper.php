@@ -67,6 +67,8 @@ final readonly class SymbolMetaStripper
             ++$j;
         }
 
+        $j = self::skipThunkPrefix($tokens, $tokenCount, $j);
+
         if (
             $j + 3 >= $tokenCount
             || !is_array($tokens[$j]) || $tokens[$j][1] !== '\Phel'
@@ -90,5 +92,50 @@ final readonly class SymbolMetaStripper
         }
 
         return null;
+    }
+
+    /**
+     * The meta argument is emitted as `static fn() => \Phel::locationMeta(…)`
+     * so loading a namespace does not build a map per definition (DefEmitter).
+     * Skipping the prefix lets the same matcher recognise both that form and
+     * the bare call an older artifact carries.
+     *
+     * @param list<array{int, string, int}|string> $tokens
+     */
+    private static function skipThunkPrefix(array $tokens, int $tokenCount, int $index): int
+    {
+        $expected = [T_STATIC, T_FN];
+        $j = $index;
+
+        foreach ($expected as $tokenType) {
+            if ($j >= $tokenCount || !is_array($tokens[$j]) || $tokens[$j][0] !== $tokenType) {
+                return $index;
+            }
+
+            ++$j;
+            while ($j < $tokenCount && is_array($tokens[$j]) && $tokens[$j][0] === T_WHITESPACE) {
+                ++$j;
+            }
+        }
+
+        if ($j + 1 >= $tokenCount || $tokens[$j] !== '(' || $tokens[$j + 1] !== ')') {
+            return $index;
+        }
+
+        $j += 2;
+        while ($j < $tokenCount && is_array($tokens[$j]) && $tokens[$j][0] === T_WHITESPACE) {
+            ++$j;
+        }
+
+        if ($j >= $tokenCount || !is_array($tokens[$j]) || $tokens[$j][0] !== T_DOUBLE_ARROW) {
+            return $index;
+        }
+
+        ++$j;
+        while ($j < $tokenCount && is_array($tokens[$j]) && $tokens[$j][0] === T_WHITESPACE) {
+            ++$j;
+        }
+
+        return $j;
     }
 }

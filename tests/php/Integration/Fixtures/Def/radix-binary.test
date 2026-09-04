@@ -5,5 +5,5 @@
   "user",
   "x",
   15,
-  \Phel::locationMeta(\Phel::location("Def/radix-binary.test", 1, 0), \Phel::location("Def/radix-binary.test", 1, 14))
+  static fn() => \Phel::locationMeta(\Phel::location("Def/radix-binary.test", 1, 0), \Phel::location("Def/radix-binary.test", 1, 14))
 );

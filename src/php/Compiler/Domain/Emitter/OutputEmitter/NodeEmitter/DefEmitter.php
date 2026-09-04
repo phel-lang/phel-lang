@@ -71,6 +71,13 @@ final class DefEmitter implements NodeEmitterInterface
         $this->outputEmitter->emitNode($node->getInit());
         if ($node->getMeta()->getKeyValues() !== []) {
             $this->outputEmitter->emitLine(',');
+            // Deferred, not because the map is large but because there are so
+            // many of them: loading a namespace builds one per definition, and
+            // the readers (`phel doc`, `(meta …)`, the LSP, and the analyzer
+            // asking about `:macro` or `:inline`) touch a small fraction of
+            // them. `Registry::getDefinitionMetaData()` forces the closure on
+            // first read and replaces it with the map.
+            $this->outputEmitter->emitStr('static fn() => ', $node->getStartSourceLocation());
             $this->outputEmitter->emitNode($node->getMeta());
         }
 

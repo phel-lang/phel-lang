@@ -5,5 +5,5 @@
   "user",
   "x",
   "A",
-  \Phel::locationMeta(\Phel::location("Def/char-literal-octal.test", 1, 0), \Phel::location("Def/char-literal-octal.test", 1, 13))
+  static fn() => \Phel::locationMeta(\Phel::location("Def/char-literal-octal.test", 1, 0), \Phel::location("Def/char-literal-octal.test", 1, 13))
 );

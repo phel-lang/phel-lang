@@ -13,7 +13,7 @@
 
     }
   },
-  \Phel::locationMeta(
+  static fn() => \Phel::locationMeta(
     \Phel::location("Fn/defn-infer-phel-core-eq-nil-param-stays-untagged.test", 1, 0),
     \Phel::location("Fn/defn-infer-phel-core-eq-nil-param-stays-untagged.test", 1, 39),
     \Phel\Lang\Keyword::create("doc"), "```phel\n(nil-check x)\n```\n",

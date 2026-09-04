@@ -16,5 +16,5 @@
       (3 + 3);
     }
   })(),
-  \Phel::locationMeta(\Phel::location("Try/try-catch-finally-expr-throw.test", 1, 0), \Phel::location("Try/try-catch-finally-expr-throw.test", 4, 27))
+  static fn() => \Phel::locationMeta(\Phel::location("Try/try-catch-finally-expr-throw.test", 1, 0), \Phel::location("Try/try-catch-finally-expr-throw.test", 4, 27))
 );

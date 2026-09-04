@@ -5,5 +5,5 @@
   "user",
   "x",
   \Phel\Lang\BigDecimal::fromString("1.5"),
-  \Phel::locationMeta(\Phel::location("Def/bigdec-literal.test", 1, 0), \Phel::location("Def/bigdec-literal.test", 1, 12))
+  static fn() => \Phel::locationMeta(\Phel::location("Def/bigdec-literal.test", 1, 0), \Phel::location("Def/bigdec-literal.test", 1, 12))
 );

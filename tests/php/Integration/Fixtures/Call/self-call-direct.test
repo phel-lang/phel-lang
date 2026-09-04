@@ -11,7 +11,7 @@
       return $this($n);
     }
   },
-  \Phel::locationMeta(
+  static fn() => \Phel::locationMeta(
     \Phel::location("Call/self-call-direct.test", 1, 0),
     \Phel::location("Call/self-call-direct.test", 1, 22),
     \Phel\Lang\Keyword::create("doc"), "```phel\n(rec n)\n```\n",
