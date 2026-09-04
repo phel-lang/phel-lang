@@ -25,20 +25,28 @@
   "Pretty-prints each element of `form` at `inner-indent`, joined by a newline
   and that much padding."
   [form inner-indent width printer]
+  ;; Collected into a PHP array and imploded rather than spread through
+  ;; `apply`: the `for` built a transient vector only for `apply` to flatten
+  ;; it back into call arguments. Same shape `render-attrs` fixed in `html`.
   (let [pad   (php/str_repeat " " inner-indent)
-        parts (for [x :in form] (pp-str x inner-indent width printer))]
-    (php/implode (str "\n" pad) (apply php-indexed-array parts))))
+        parts (php/array)]
+    (foreach [x form]
+      (php/apush parts (pp-str x inner-indent width printer)))
+    (php/implode (str "\n" pad) parts)))
 
 (defn- pp-pairs
   "The same for a map or struct, where each entry is a key, a space, and its
   value laid out from just past the key."
   [form inner-indent width printer]
+  ;; `foreach` and not `for … :pairs`, for the same two reasons as
+  ;; `pp-parts`: no spread through `apply`, and no destructuring per entry.
   (let [pad   (php/str_repeat " " inner-indent)
-        pairs (for [[k v] :pairs form]
-                (let [kstr (print-value k)]
-                  (str (render-value printer k) " "
-                       (pp-str v (+ inner-indent (count kstr) 1) width printer))))]
-    (php/implode (str "\n" pad) (apply php-indexed-array pairs))))
+        pairs (php/array)]
+    (foreach [k v form]
+      (let [kstr (print-value k)]
+        (php/apush pairs (str (render-value printer k) " "
+                              (pp-str v (+ inner-indent (count kstr) 1) width printer)))))
+    (php/implode (str "\n" pad) pairs)))
 
 (defn- pp-str
   "Pretty-prints `form` to a string with the given indent level and max width.
