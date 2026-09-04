@@ -45,6 +45,13 @@ final class Equalizer implements EqualizerInterface
 
     public function equalsKey(mixed $a, mixed $b): bool
     {
+        // Identity is `equals()`'s own first test, and it answers most key
+        // comparisons in a trie descent or an array-map scan, so testing it
+        // here saves the call rather than adding a check.
+        if ($a === $b) {
+            return true;
+        }
+
         if ($this->equals($a, $b)) {
             return true;
         }

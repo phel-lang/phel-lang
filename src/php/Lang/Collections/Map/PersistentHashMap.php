@@ -109,7 +109,9 @@ final class PersistentHashMap extends AbstractPersistentMap
             return false;
         }
 
-        return $this->root->find(0, $this->hasher->hash($key), $key, self::getNotFound()) !== self::getNotFound();
+        $notFound = self::getNotFound();
+
+        return $this->root->find(0, $this->hasher->hash($key), $key, $notFound) !== $notFound;
     }
 
     /**
