@@ -38,6 +38,8 @@ Dispatch / call sites:
 - Read non-dynamic globals directly from the registry, up to 1.9x faster. (#3179)
 - Spread vectors in `apply` in one pass, 2.1x faster for `(apply + [1 2 3])`. (#3181)
 - Use fixed arities in hot core functions, up to 22x faster without behavior changes. (#2973)
+- Write `into`'s targets through transient methods, and reverse and escape natively in `phel.string`. (#2973)
+- Skip Gacela's event dispatch when no listener is registered; a host that wants the events sets `GacelaConfig::setEventDispatcher()`.
 
 Runtime data structures:
 
@@ -59,6 +61,8 @@ Runtime data structures:
 - Invalidate the scan-index cache when a configured source or test directory appears. (#3205)
 - Load dependencies for test and benchmark files outside configured source directories. (#3187)
 - Treat associative PHP arrays as maps in `merge`, `merge-with`, and `conj`. (#3114)
+- Iterate a hash map's `nil` key, which `keys`, `vals`, `for ... :pairs` and `into` dropped while `count` still counted it. (#3172)
+- Skip the build output directory when indexing, so navigation prefers a source over its copy in `out/`. (#3155)
 - Preserve JSON objects as maps during `phel.json/decode`, including empty objects. (#3089)
 - Reject blank AI provider API keys before making a request. (#3204)
 
