@@ -5,5 +5,5 @@
   "user",
   "baz",
   null,
-  \Phel::locationMeta(\Phel::location("Def/def-no-value.test", 1, 0), \Phel::location("Def/def-no-value.test", 1, 9))
+  static fn() => \Phel::locationMeta(\Phel::location("Def/def-no-value.test", 1, 0), \Phel::location("Def/def-no-value.test", 1, 9))
 );

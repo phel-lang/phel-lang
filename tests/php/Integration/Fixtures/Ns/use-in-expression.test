@@ -5,5 +5,5 @@
   "user",
   "u",
   null,
-  \Phel::locationMeta(\Phel::location("Ns/use-in-expression.test", 1, 0), \Phel::location("Ns/use-in-expression.test", 1, 32))
+  static fn() => \Phel::locationMeta(\Phel::location("Ns/use-in-expression.test", 1, 0), \Phel::location("Ns/use-in-expression.test", 1, 32))
 );

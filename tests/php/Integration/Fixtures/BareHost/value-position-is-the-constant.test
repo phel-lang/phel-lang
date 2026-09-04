@@ -25,7 +25,7 @@ require_once __DIR__ . '/phel/core.php';
       return WP_CLI_FIXTURE;
     }
   },
-  \Phel::locationMeta(
+  static fn() => \Phel::locationMeta(
     \Phel::location("BareHost/value-position-is-the-constant.test", 3, 0),
     \Phel::location("BareHost/value-position-is-the-constant.test", 3, 30),
     \Phel\Lang\Keyword::create("doc"), "```phel\n(probe)\n```\n",

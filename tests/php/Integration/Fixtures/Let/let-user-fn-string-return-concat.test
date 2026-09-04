@@ -12,7 +12,7 @@
       return ("hi " . $name);
     }
   },
-  \Phel::locationMeta(
+  static fn() => \Phel::locationMeta(
     \Phel::location("Let/let-user-fn-string-return-concat.test", 1, 0),
     \Phel::location("Let/let-user-fn-string-return-concat.test", 1, 54),
     \Phel\Lang\Keyword::create("doc"), "```phel\n(make-greeting name)\n```\n",
@@ -35,7 +35,7 @@
       return ($g_1 . $g_1);
     }
   },
-  \Phel::locationMeta(
+  static fn() => \Phel::locationMeta(
     \Phel::location("Let/let-user-fn-string-return-concat.test", 2, 0),
     \Phel::location("Let/let-user-fn-string-return-concat.test", 2, 74),
     \Phel\Lang\Keyword::create("doc"), "```phel\n(greet-twice name)\n```\n",

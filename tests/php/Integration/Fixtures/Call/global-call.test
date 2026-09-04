@@ -13,7 +13,7 @@
       return 1;
     }
   },
-  \Phel::locationMeta(
+  static fn() => \Phel::locationMeta(
     \Phel::location("Call/global-call.test", 1, 0),
     \Phel::location("Call/global-call.test", 1, 18),
     "min-arity", 1,

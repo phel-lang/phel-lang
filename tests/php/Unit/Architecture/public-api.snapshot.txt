@@ -1282,7 +1282,7 @@ final readonly class Phel\Lang\Reduced
 
 final class Phel\Lang\Registry
   public static ?Phel\Lang\ProfilerHookInterface $profilerHook
-  public function addDefinition(string $ns, string $name, mixed $value, ?Phel\Lang\Collections\Map\PersistentMapInterface $metaData = null): Phel\Lang\PhelVar
+  public function addDefinition(string $ns, string $name, mixed $value, Closure|Phel\Lang\Collections\Map\PersistentMapInterface|null $metaData = null): Phel\Lang\PhelVar
   public function clear(): void
   public function getDefinition(string $ns, string $name): mixed
   public function getDefinitionInNamespace(string $ns): array

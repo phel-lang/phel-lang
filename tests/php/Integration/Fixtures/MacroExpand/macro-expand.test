@@ -17,7 +17,7 @@
       ]);
     }
   },
-  \Phel::locationMeta(
+  static fn() => \Phel::locationMeta(
     \Phel::location("MacroExpand/macro-expand.test", 1, 0),
     \Phel::location("MacroExpand/macro-expand.test", 1, 38),
     \Phel\Lang\Keyword::create("macro"), true,

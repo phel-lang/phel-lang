@@ -5,5 +5,5 @@
   "user",
   "x",
   INF,
-  \Phel::locationMeta(\Phel::location("Def/symbolic-number-inf.test", 1, 0), \Phel::location("Def/symbolic-number-inf.test", 1, 13))
+  static fn() => \Phel::locationMeta(\Phel::location("Def/symbolic-number-inf.test", 1, 0), \Phel::location("Def/symbolic-number-inf.test", 1, 13))
 );

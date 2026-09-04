@@ -5,5 +5,5 @@
   "user",
   "x",
   \Phel\Lang\BigInt::fromString("9223372036854775808"),
-  \Phel::locationMeta(\Phel::location("Def/bigint-literal-oversize.test", 1, 0), \Phel::location("Def/bigint-literal-oversize.test", 1, 28))
+  static fn() => \Phel::locationMeta(\Phel::location("Def/bigint-literal-oversize.test", 1, 0), \Phel::location("Def/bigint-literal-oversize.test", 1, 28))
 );

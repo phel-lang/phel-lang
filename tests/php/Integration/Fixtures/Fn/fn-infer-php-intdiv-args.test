@@ -11,7 +11,7 @@
       return intdiv($a, $b);
     }
   },
-  \Phel::locationMeta(
+  static fn() => \Phel::locationMeta(
     \Phel::location("Fn/fn-infer-php-intdiv-args.test", 1, 0),
     \Phel::location("Fn/fn-infer-php-intdiv-args.test", 1, 33),
     \Phel\Lang\Keyword::create("doc"), "```phel\n(div a b)\n```\n",

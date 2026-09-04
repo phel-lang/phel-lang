@@ -5,5 +5,5 @@
   "user",
   "x",
   -123,
-  \Phel::locationMeta(\Phel::location("Def/bigint-literal-negative.test", 1, 0), \Phel::location("Def/bigint-literal-negative.test", 1, 13))
+  static fn() => \Phel::locationMeta(\Phel::location("Def/bigint-literal-negative.test", 1, 0), \Phel::location("Def/bigint-literal-negative.test", 1, 13))
 );

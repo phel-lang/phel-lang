@@ -12,7 +12,7 @@
       return ($__phel_const_0 ??= \Phel::set([1, 2, 3]));
     }
   },
-  \Phel::locationMeta(
+  static fn() => \Phel::locationMeta(
     \Phel::location("ConstantHoisting/set-in-fn-body.test", 1, 0),
     \Phel::location("ConstantHoisting/set-in-fn-body.test", 1, 24),
     "min-arity", 0,

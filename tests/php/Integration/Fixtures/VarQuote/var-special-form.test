@@ -6,6 +6,6 @@
   "user",
   "x",
   1,
-  \Phel::locationMeta(\Phel::location("VarQuote/var-special-form.test", 1, 0), \Phel::location("VarQuote/var-special-form.test", 1, 9))
+  static fn() => \Phel::locationMeta(\Phel::location("VarQuote/var-special-form.test", 1, 0), \Phel::location("VarQuote/var-special-form.test", 1, 9))
 );
 \Phel\Lang\Registry::getInstance()->getVar("user", "x");

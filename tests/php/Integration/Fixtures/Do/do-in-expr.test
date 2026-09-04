@@ -8,5 +8,5 @@
     (1 + 2);
     return (3 + 4);
   })(),
-  \Phel::locationMeta(\Phel::location("Do/do-in-expr.test", 1, 0), \Phel::location("Do/do-in-expr.test", 1, 36))
+  static fn() => \Phel::locationMeta(\Phel::location("Do/do-in-expr.test", 1, 0), \Phel::location("Do/do-in-expr.test", 1, 36))
 );

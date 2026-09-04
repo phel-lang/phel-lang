@@ -7,17 +7,17 @@
   "user",
   "xs",
   \Phel::list([1, 2, 3]),
-  \Phel::locationMeta(\Phel::location("Call/core-constructor-lowering.test", 1, 0), \Phel::location("Call/core-constructor-lowering.test", 1, 21))
+  static fn() => \Phel::locationMeta(\Phel::location("Call/core-constructor-lowering.test", 1, 0), \Phel::location("Call/core-constructor-lowering.test", 1, 21))
 );
 \Phel::addDefinition(
   "user",
   "m",
   \Phel::map([\Phel\Lang\Keyword::create("a"), 1]),
-  \Phel::locationMeta(\Phel::location("Call/core-constructor-lowering.test", 2, 0), \Phel::location("Call/core-constructor-lowering.test", 2, 23))
+  static fn() => \Phel::locationMeta(\Phel::location("Call/core-constructor-lowering.test", 2, 0), \Phel::location("Call/core-constructor-lowering.test", 2, 23))
 );
 \Phel::addDefinition(
   "user",
   "v",
   \Phel::vector([]),
-  \Phel::locationMeta(\Phel::location("Call/core-constructor-lowering.test", 3, 0), \Phel::location("Call/core-constructor-lowering.test", 3, 16))
+  static fn() => \Phel::locationMeta(\Phel::location("Call/core-constructor-lowering.test", 3, 0), \Phel::location("Call/core-constructor-lowering.test", 3, 16))
 );

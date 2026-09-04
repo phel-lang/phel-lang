@@ -11,7 +11,7 @@
       return random_int(0, ($x + $y));
     }
   },
-  \Phel::locationMeta(
+  static fn() => \Phel::locationMeta(
     \Phel::location("Fn/fn-infer-core-plus-int-stable.test", 1, 0),
     \Phel::location("Fn/fn-infer-core-plus-int-stable.test", 1, 48),
     \Phel\Lang\Keyword::create("doc"), "```phel\n(add-pair x y)\n```\n",

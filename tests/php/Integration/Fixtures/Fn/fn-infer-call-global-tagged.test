@@ -12,7 +12,7 @@
       return ($a + $b);
     }
   },
-  \Phel::locationMeta(
+  static fn() => \Phel::locationMeta(
     \Phel::location("Fn/fn-infer-call-global-tagged.test", 1, 0),
     \Phel::location("Fn/fn-infer-call-global-tagged.test", 1, 43),
     \Phel\Lang\Keyword::create("tag"), "int",

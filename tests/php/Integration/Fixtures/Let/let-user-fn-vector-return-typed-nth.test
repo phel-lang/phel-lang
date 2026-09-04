@@ -12,7 +12,7 @@
       return \Phel::vector([1, 2, 3]);
     }
   },
-  \Phel::locationMeta(
+  static fn() => \Phel::locationMeta(
     \Phel::location("Let/let-user-fn-vector-return-typed-nth.test", 1, 0),
     \Phel::location("Let/let-user-fn-vector-return-typed-nth.test", 1, 89),
     \Phel\Lang\Keyword::create("tag"), "\\Phel\\Lang\\Collections\\Vector\\PersistentVectorInterface",
@@ -35,7 +35,7 @@
       return ($a_1->get(0));
     }
   },
-  \Phel::locationMeta(
+  static fn() => \Phel::locationMeta(
     \Phel::location("Let/let-user-fn-vector-return-typed-nth.test", 2, 0),
     \Phel::location("Let/let-user-fn-vector-return-typed-nth.test", 2, 44),
     \Phel\Lang\Keyword::create("doc"), "```phel\n(use-it)\n```\n",

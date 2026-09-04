@@ -6,6 +6,6 @@
   "user",
   "a",
   (new \stdClass()),
-  \Phel::locationMeta(\Phel::location("PhpObjectSet/set-class-property.test", 1, 0), \Phel::location("PhpObjectSet/set-class-property.test", 1, 27))
+  static fn() => \Phel::locationMeta(\Phel::location("PhpObjectSet/set-class-property.test", 1, 0), \Phel::location("PhpObjectSet/set-class-property.test", 1, 27))
 );
 \Phel\Lang\Registry::readRoot("user", "a")->name = "test";

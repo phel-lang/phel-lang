@@ -17,7 +17,7 @@
       return null;
     }
   },
-  \Phel::locationMeta(
+  static fn() => \Phel::locationMeta(
     \Phel::location("Foreach/foreach-expr.test", 1, 0),
     \Phel::location("Foreach/foreach-expr.test", 3, 18),
     "min-arity", 0,

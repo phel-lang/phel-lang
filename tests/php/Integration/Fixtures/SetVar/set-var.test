@@ -6,7 +6,7 @@
   "user",
   "x",
   1,
-  \Phel::locationMeta(\Phel::location("SetVar/set-var.test", 1, 0), \Phel::location("SetVar/set-var.test", 1, 9))
+  static fn() => \Phel::locationMeta(\Phel::location("SetVar/set-var.test", 1, 0), \Phel::location("SetVar/set-var.test", 1, 9))
 );
 \Phel::setVar(
   "user",
