@@ -19,6 +19,7 @@ All notable changes to this project will be documented in this file.
 
 ### Changed
 
+- `Registry::addDefinition()` also accepts a `Closure` returning the metadata map. Widening a parameter is not breaking, and the eager form still works, so an artifact compiled earlier stays loadable.
 - Resolve bare all-caps PHP names by position instead of autoload state. See [ADR 0016](docs/adr/0016-a-bare-all-caps-host-name-reads-by-position.md). (#3064)
 - Expose compiler environment and deprecation controls through `CompilerFacadeInterface`. (#3048)
 
@@ -29,7 +30,7 @@ All notable changes to this project will be documented in this file.
 - **Runtime**: stop repeating work already done in `contains?`, map lookups and realized lazy sequences (up to 22% faster); promote every map construction path at the same size, making grown map reads up to 5.5x faster (#3172); read non-dynamic globals straight from the registry, 1.9x (#3179); spread vectors into `apply` in one pass, 2.1x (#3181); give hot core functions fixed arities, up to 22x (#2973).
 - **Standard library**: build the walked list and the `pprint` joins once instead of through a spread (57% and 23% faster); write `into`'s targets through transient methods and reverse and escape natively in `phel.string` (#2973).
 - **Test framework**: record an assertion against one rebuild of the counts map instead of two nested walks, halving the per-assertion bookkeeping.
-- **Boot**: skip Gacela's event dispatch when no listener is registered; a host that wants the events sets `GacelaConfig::setEventDispatcher()`.
+- **Boot**: carry a definition's metadata as a thunk forced on first read, so loading a namespace no longer builds a map per definition (loading `phel.core` 20% faster, 22MB to 20MB peak); skip Gacela's event dispatch when no listener is registered, and let a host that wants the events set `GacelaConfig::setEventDispatcher()`.
 
 ### Deprecated
 
