@@ -75,6 +75,44 @@ Each top-level form compiles + evaluates before the next is analysed, so both st
 
 Changing a signature requires auditing `Compiler/Domain/Emitter/OutputEmitter/NodeEmitter/*Emitter.php`.
 
+## What embedding costs
+
+A PHP application that calls Phel pays on three lines, and only the third is
+per call. One snapshot, PHP 8.4 on macOS, warm `.phel/cache`, calling
+`phel.core/str`:
+
+| | no opcache | opcache file cache |
+|---|---|---|
+| `vendor/autoload.php` | 11ms | 8ms |
+| `Phel::bootstrap()` | 5ms | 4ms |
+| load `phel.core` | 491ms | 37ms |
+| **first call reachable after** | **508ms** | **49ms** |
+| peak memory | 48MB | 28MB |
+| per call after that | 0.2µs | 0.2µs |
+
+The shape matters more than the figures. The boundary is free, the load is
+everything, and opcache is worth more than an order of magnitude on it, which
+is why [`phel doctor`](../cli-reference.md) checks for it. A host that boots
+per request (PHP-FPM) pays the whole column; a worker runtime pays it once.
+
+Reproduce with any namespace of your own:
+
+```php
+require 'vendor/autoload.php';
+Phel\Phel::bootstrap(__DIR__);
+$t = hrtime(true);
+new Phel\Run\RunFacade()->runNamespace('phel.core');
+printf("%.1f ms, %.1f MB\n", (hrtime(true) - $t) / 1e6, memory_get_peak_usage(true) / 1048576);
+```
+
+Two of the three lines are gated: `Run/ReplBootBench` guards namespace
+loading, `Interop/ExportedCallBench` guards the per-call boundary. Bootstrap
+is not gated, because it memoizes and cannot be re-entered in one process
+([benchmarks.md](benchmarks.md)).
+
+Deployment shapes for each, worker runtimes included:
+<https://phel-lang.org/documentation/deployment/>.
+
 ## Reader tags (`#tag`)
 
 `Lang/TagHandlers/` implementations registered in `Lang/TagRegistry.php`. Built-ins: `#inst` (`InstTagHandler`), `#regex` (`RegexTagHandler`), `#uuid` (`UUIDTagHandler`). The `#php` tag is handled directly in the reader, not via `TagRegistry`. Add custom tags: `TagRegistry::register('mything', new MyHandler())`.
