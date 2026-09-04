@@ -444,9 +444,14 @@ Returns `opt` (default nil) when a key is missing mid-traversal. When the path i
 Creates intermediate maps if they don't exist."
   {:example "(assoc-in {:a {:b 1}} [:a :c] 2) ; => {:a {:b 1, :c 2}}"
    :see-also ["get-in" "update-in" "dissoc-in"]}
+  ;; The `{}` default is built only when the path continues into a missing
+  ;; level. `(get ds k {})` allocated one per step and discarded it whenever
+  ;; the key was there. The two agree on a stored `nil`, which `get` already
+  ;; answers with the default.
   [ds [k & ks] v]
   (if-not (nil? ks)
-    (assoc ds k (assoc-in (get ds k {}) ks v))
+    (let [sub (get ds k)]
+      (assoc ds k (assoc-in (if (nil? sub) {} sub) ks v)))
     (assoc ds k v)))
 
 (defn update
@@ -478,11 +483,23 @@ Creates intermediate maps if they don't exist."
   "Updates a value in a nested data structure by applying `f` to the value at path."
   {:example "(update-in {:a {:b 5}} [:a :b] inc) ; => {:a {:b 6}}"
    :see-also ["get-in" "assoc-in" "update"]}
-  [ds [k & ks] f & args]
-  (if ks
-    (assoc ds k (apply update-in (get ds k {}) ks f args))
-    (let [current (get ds k)] ; Extract value first for possible call-by-reference
-      (assoc ds k (apply f current args)))))
+  ;; Fixed arity for the no-extra-argument shape, which is nearly every call:
+  ;; `(update-in m [:a :b] inc)` built a rest vector and spread it back
+  ;; through `apply` at every level. `update` got the same treatment in
+  ;; #2973. The `{}` default follows `assoc-in`, built only when the path
+  ;; continues into a missing level.
+  ([ds [k & ks] f]
+   (if ks
+     (let [sub (get ds k)]
+       (assoc ds k (update-in (if (nil? sub) {} sub) ks f)))
+     (let [current (get ds k)] ; Extract value first for possible call-by-reference
+       (assoc ds k (f current)))))
+  ([ds [k & ks] f & args]
+   (if ks
+     (let [sub (get ds k)]
+       (assoc ds k (apply update-in (if (nil? sub) {} sub) ks f args)))
+     (let [current (get ds k)]
+       (assoc ds k (apply f current args))))))
 
 (defn dissoc-in
   "Dissociates a value from a nested data structure at the given path."
@@ -679,15 +696,38 @@ Creates intermediate maps if they don't exist."
   "Returns a vector consisting of the result of applying `f` to the set of first items of each coll, followed by applying `f` to the set of second items in each coll, until any one of the colls is exhausted. Like `map`, but eager and returns a vector rather than a lazy sequence."
   {:example "(mapv inc [1 2 3]) ; => [2 3 4]"
    :see-also ["map" "filterv" "vec"]}
-  [f coll & colls]
-  (vec (apply map f coll colls)))
+  ;; The single-collection arity, which is nearly every call, applies `f`
+  ;; while collecting into a PHP array and builds the vector once, the way
+  ;; `vec` does (#2973, #3134). Going through `map` first built a lazy
+  ;; sequence, a `Cons` and a generator step per element for `vec` to walk
+  ;; and discard. Maps and structs keep the shared path: `map` hands `f` a
+  ;; `[k v]` pair there, and a `foreach` over one would not.
+  ([f coll]
+   (cond
+     (php/=== nil coll) []
+     (or (map? coll) (struct? coll)) (vec (map f coll))
+     (let [arr (php/array)]
+       (foreach [x coll]
+         (php/apush arr (f x)))
+       (Phel/vector arr))))
+  ([f coll & colls]
+   (vec (apply map f coll colls))))
 
 (defn filterv
   "Returns a vector of the items in `coll` for which `(pred item)` returns a logical true value. Like `filter`, but eager and returns a vector rather than a lazy sequence."
   {:example "(filterv even? [1 2 3 4 5 6]) ; => [2 4 6]"
    :see-also ["filter" "mapv" "remove" "vec"]}
+  ;; Same shape as `mapv`: collect and build once instead of realizing a
+  ;; lazy sequence for `vec` to tear down.
   [pred coll]
-  (vec (filter pred coll)))
+  (cond
+    (php/=== nil coll) []
+    (or (map? coll) (struct? coll)) (vec (filter pred coll))
+    (let [arr (php/array)]
+      (foreach [x coll]
+        (when (pred x)
+          (php/apush arr x)))
+      (Phel/vector arr))))
 
 (defn remove
   "Returns a lazy sequence of elements where predicate returns false. Opposite of filter. When called with pred only, returns a transducer."

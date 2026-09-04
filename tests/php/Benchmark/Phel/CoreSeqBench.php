@@ -31,6 +31,22 @@ final class CoreSeqBench extends CoreBenchCase
     private const int SIZE = 32;
 
     /** @var callable */
+    private $mapv;
+
+    /** @var callable */
+    private $filterv;
+
+    /** @var callable */
+    private $updateIn;
+
+    /** @var callable */
+    private $assocIn;
+
+    private mixed $nestedMap = null;
+
+    private mixed $path = null;
+
+    /** @var callable */
     private $sort;
 
     /** @var callable */
@@ -931,8 +947,73 @@ final class CoreSeqBench extends CoreBenchCase
         ($this->count)(($this->dedupe)($this->ints));
     }
 
+    /**
+     * The eager vector builders, paired with the lazy pipeline they used to
+     * run through. `mapv` is `(vec (map f coll))` by definition, so the raw
+     * subject is exactly the work the fast path avoids.
+     *
+     * @Revs(1000)
+     */
+    public function bench_mapv(): void
+    {
+        ($this->mapv)($this->inc, $this->ints);
+    }
+
+    /**
+     * @Revs(1000)
+     */
+    public function bench_mapv_raw(): void
+    {
+        ($this->vec)(($this->mapFn)($this->inc, $this->ints));
+    }
+
+    /**
+     * @Revs(1000)
+     */
+    public function bench_filterv(): void
+    {
+        ($this->filterv)($this->isEven, $this->ints);
+    }
+
+    /**
+     * @Revs(1000)
+     */
+    public function bench_filterv_raw(): void
+    {
+        ($this->vec)(($this->filterFn)($this->isEven, $this->ints));
+    }
+
+    /**
+     * A two-level `update-in` with no extra arguments, the shape that used to
+     * build a rest vector and spread it back through `apply` at every level.
+     *
+     * @Revs(1000)
+     */
+    public function bench_update_in(): void
+    {
+        ($this->updateIn)($this->nestedMap, $this->path, $this->inc);
+    }
+
+    /**
+     * @Revs(1000)
+     */
+    public function bench_assoc_in(): void
+    {
+        ($this->assocIn)($this->nestedMap, $this->path, 1);
+    }
+
     protected function setUpFixtures(): void
     {
+        $this->mapv = $this->coreFn('mapv');
+        $this->filterv = $this->coreFn('filterv');
+        $this->updateIn = $this->coreFn('update-in');
+        $this->assocIn = $this->coreFn('assoc-in');
+        $this->nestedMap = Phel::map(
+            Phel::keyword('a'),
+            Phel::map(Phel::keyword('b'), 1),
+        );
+        $this->path = Phel::vector([Phel::keyword('a'), Phel::keyword('b')]);
+
         $this->partitionBy = $this->coreFn('partition-by');
         $this->transduce = $this->coreFn('transduce');
         $this->vec = $this->coreFn('vec');
