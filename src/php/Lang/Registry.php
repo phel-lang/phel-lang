@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Phel\Lang;
 
+use Closure;
 use Phel\Lang\Collections\Map\PersistentMapInterface;
 use RuntimeException;
 
@@ -78,9 +79,16 @@ final class Registry
      * is an `AbstractFn`, the stored value is the profiling wrapper, not the
      * original function. Also clears the dynamic-flag cache for the slot.
      *
-     * @param PersistentMapInterface<mixed, mixed>|null $metaData
+     * `$metaData` may arrive as a `Closure` returning the map instead of the
+     * map itself. Compiled code emits that form: building a definition's meta
+     * costs three persistent maps, and loading a namespace pays it for every
+     * definition while almost nothing reads it. The closure is forced, and
+     * replaced by its result, on the first read in {@see self::getDefinitionMetaData}.
+     * The eager form still works, so an artifact compiled before this stays loadable.
+     *
+     * @param Closure():(PersistentMapInterface<mixed, mixed>|null)|PersistentMapInterface<mixed, mixed>|null $metaData
      */
-    public function addDefinition(string $ns, string $name, mixed $value, ?PersistentMapInterface $metaData = null): PhelVar
+    public function addDefinition(string $ns, string $name, mixed $value, Closure|PersistentMapInterface|null $metaData = null): PhelVar
     {
         if (self::$profilerHook instanceof ProfilerHookInterface && $value instanceof AbstractFn) {
             $value = self::$profilerHook->wrapFn($value);
@@ -189,9 +197,17 @@ final class Registry
             return null;
         }
 
+        $meta = $this->definitionsMetaData[$ns][$name] ?? null;
+
+        if ($meta instanceof Closure) {
+            /** @var PersistentMapInterface<mixed, mixed>|null $forced */
+            $forced = $meta();
+            $this->definitionsMetaData[$ns][$name] = $forced;
+            $meta = $forced;
+        }
+
         /** @var PersistentMapInterface<mixed, mixed>|null $meta */
-        $meta = $this->definitionsMetaData[$ns][$name] ?? TypeFactory::getInstance()->persistentMapFromArray([]);
-        return $meta;
+        return $meta ?? TypeFactory::getInstance()->persistentMapFromArray([]);
     }
 
     /**

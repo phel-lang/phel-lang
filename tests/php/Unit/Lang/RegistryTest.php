@@ -4,8 +4,11 @@ declare(strict_types=1);
 
 namespace PhelTest\Unit\Lang;
 
+use Phel\Lang\Collections\Map\PersistentMapInterface;
+use Phel\Lang\Keyword;
 use Phel\Lang\PhelVar;
 use Phel\Lang\Registry;
+use Phel\Lang\TypeFactory;
 use PHPUnit\Framework\TestCase;
 
 final class RegistryTest extends TestCase
@@ -38,6 +41,43 @@ final class RegistryTest extends TestCase
 
         self::assertSame(42, Registry::readRoot('ns', 'answer'));
         self::assertSame($this->registry->getDefinition('ns', 'answer'), Registry::readRoot('ns', 'answer'));
+    }
+
+    /**
+     * Compiled code hands the meta over as a closure, so a namespace load does
+     * not build a map per definition. The registry has to force it on the
+     * first read, and only once.
+     */
+    public function test_meta_data_closure_is_forced_once_on_read(): void
+    {
+        $calls = 0;
+        $meta = TypeFactory::getInstance()->persistentMapFromKVs(Keyword::create('doc'), 'hi');
+
+        $this->registry->addDefinition('ns', 'lazy', 1, static function () use ($meta, &$calls): PersistentMapInterface {
+            ++$calls;
+            return $meta;
+        });
+
+        self::assertSame(0, $calls, 'adding a definition must not build its meta');
+
+        self::assertSame($meta, $this->registry->getDefinitionMetaData('ns', 'lazy'));
+        self::assertSame(1, $calls);
+
+        self::assertSame($meta, $this->registry->getDefinitionMetaData('ns', 'lazy'));
+        self::assertSame(1, $calls, 'the forced map replaces the closure');
+    }
+
+    /**
+     * An artifact compiled before the closure form still passes the map
+     * itself, and stays loadable.
+     */
+    public function test_meta_data_still_accepts_an_eager_map(): void
+    {
+        $meta = TypeFactory::getInstance()->persistentMapFromKVs(Keyword::create('doc'), 'hi');
+
+        $this->registry->addDefinition('ns', 'eager', 1, $meta);
+
+        self::assertSame($meta, $this->registry->getDefinitionMetaData('ns', 'eager'));
     }
 
     public function test_read_root_is_null_for_an_unknown_definition(): void
