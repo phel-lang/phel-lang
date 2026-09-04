@@ -5,5 +5,5 @@
   "user",
   "x",
   42,
-  \Phel::locationMeta(\Phel::location("Def/tagged-literal-in-reader-conditional.test", 1, 0), \Phel::location("Def/tagged-literal-in-reader-conditional.test", 1, 54))
+  static fn() => \Phel::locationMeta(\Phel::location("Def/tagged-literal-in-reader-conditional.test", 1, 0), \Phel::location("Def/tagged-literal-in-reader-conditional.test", 1, 54))
 );

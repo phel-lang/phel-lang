@@ -10,5 +10,5 @@
     ($__phel_1_2)[("b")] = 2;
     return $__phel_1_2;
   })(),
-  \Phel::locationMeta(\Phel::location("Def/hash-php-map-literal.test", 1, 0), \Phel::location("Def/hash-php-map-literal.test", 1, 26))
+  static fn() => \Phel::locationMeta(\Phel::location("Def/hash-php-map-literal.test", 1, 0), \Phel::location("Def/hash-php-map-literal.test", 1, 26))
 );

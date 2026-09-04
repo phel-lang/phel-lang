@@ -11,7 +11,7 @@
       return ($a . random_int(0, $a));
     }
   },
-  \Phel::locationMeta(
+  static fn() => \Phel::locationMeta(
     \Phel::location("Fn/fn-infer-expected-type-bails-on-disagreement.test", 1, 0),
     \Phel::location("Fn/fn-infer-expected-type-bails-on-disagreement.test", 1, 47),
     \Phel\Lang\Keyword::create("doc"), "```phel\n(weird a)\n```\n",

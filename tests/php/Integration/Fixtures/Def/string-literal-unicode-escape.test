@@ -5,5 +5,5 @@
   "user",
   "x",
   " ",
-  \Phel::locationMeta(\Phel::location("Def/string-literal-unicode-escape.test", 1, 0), \Phel::location("Def/string-literal-unicode-escape.test", 1, 16))
+  static fn() => \Phel::locationMeta(\Phel::location("Def/string-literal-unicode-escape.test", 1, 0), \Phel::location("Def/string-literal-unicode-escape.test", 1, 16))
 );

@@ -11,7 +11,7 @@
       return $x;
     }
   },
-  \Phel::locationMeta(
+  static fn() => \Phel::locationMeta(
     \Phel::location("Def/defn-meta.test", 1, 0),
     \Phel::location("Def/defn-meta.test", 1, 36),
     \Phel\Lang\Keyword::create("export"), true,

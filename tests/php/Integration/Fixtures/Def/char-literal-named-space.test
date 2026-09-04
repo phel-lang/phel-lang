@@ -5,5 +5,5 @@
   "user",
   "x",
   " ",
-  \Phel::locationMeta(\Phel::location("Def/char-literal-named-space.test", 1, 0), \Phel::location("Def/char-literal-named-space.test", 1, 14))
+  static fn() => \Phel::locationMeta(\Phel::location("Def/char-literal-named-space.test", 1, 0), \Phel::location("Def/char-literal-named-space.test", 1, 14))
 );

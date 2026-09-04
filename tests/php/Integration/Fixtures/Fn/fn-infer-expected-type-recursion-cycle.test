@@ -11,7 +11,7 @@
       return random_int(0, $this(($n - 1)));
     }
   },
-  \Phel::locationMeta(
+  static fn() => \Phel::locationMeta(
     \Phel::location("Fn/fn-infer-expected-type-recursion-cycle.test", 1, 0),
     \Phel::location("Fn/fn-infer-expected-type-recursion-cycle.test", 1, 51),
     \Phel\Lang\Keyword::create("doc"), "```phel\n(rec n)\n```\n",

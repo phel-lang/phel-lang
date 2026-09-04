@@ -11,5 +11,5 @@
     $y_2 = 2;
     return ($x_1 + $y_2);
   })(),
-  \Phel::locationMeta(\Phel::location("Let/let-expr.test", 1, 0), \Phel::location("Let/let-expr.test", 1, 35))
+  static fn() => \Phel::locationMeta(\Phel::location("Let/let-expr.test", 1, 0), \Phel::location("Let/let-expr.test", 1, 35))
 );

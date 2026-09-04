@@ -12,7 +12,7 @@
       return ($n + 1);
     }
   },
-  \Phel::locationMeta(
+  static fn() => \Phel::locationMeta(
     \Phel::location("Let/let-user-fn-int-return-native-add.test", 1, 0),
     \Phel::location("Let/let-user-fn-int-return-native-add.test", 1, 33),
     \Phel\Lang\Keyword::create("doc"), "```phel\n(tally n)\n```\n",
@@ -35,7 +35,7 @@
       return ($t_1 + 5);
     }
   },
-  \Phel::locationMeta(
+  static fn() => \Phel::locationMeta(
     \Phel::location("Let/let-user-fn-int-return-native-add.test", 2, 0),
     \Phel::location("Let/let-user-fn-int-return-native-add.test", 2, 53),
     \Phel\Lang\Keyword::create("doc"), "```phel\n(use-tally n)\n```\n",

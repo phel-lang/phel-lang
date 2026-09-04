@@ -5,5 +5,5 @@
   "user",
   "x",
   "Ω",
-  \Phel::locationMeta(\Phel::location("Def/char-literal-unicode.test", 1, 0), \Phel::location("Def/char-literal-unicode.test", 1, 14))
+  static fn() => \Phel::locationMeta(\Phel::location("Def/char-literal-unicode.test", 1, 0), \Phel::location("Def/char-literal-unicode.test", 1, 14))
 );

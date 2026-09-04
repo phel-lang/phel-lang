@@ -12,7 +12,7 @@
 
     }
   },
-  \Phel::locationMeta(
+  static fn() => \Phel::locationMeta(
     \Phel::location("Call/self-call-with-if.test", 1, 0),
     \Phel::location("Call/self-call-with-if.test", 1, 52),
     \Phel\Lang\Keyword::create("doc"), "```phel\n(rec n)\n```\n",

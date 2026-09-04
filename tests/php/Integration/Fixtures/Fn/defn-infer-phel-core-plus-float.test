@@ -11,7 +11,7 @@
       return ($a + 1.1);
     }
   },
-  \Phel::locationMeta(
+  static fn() => \Phel::locationMeta(
     \Phel::location("Fn/defn-infer-phel-core-plus-float.test", 1, 0),
     \Phel::location("Fn/defn-infer-phel-core-plus-float.test", 1, 37),
     \Phel\Lang\Keyword::create("doc"), "```phel\n(inc-by-one-tenth a)\n```\n",

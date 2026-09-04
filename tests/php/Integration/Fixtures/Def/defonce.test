@@ -6,6 +6,6 @@ if (!\Phel::isDefined("user", "counter")) {
     "user",
     "counter",
     0,
-    \Phel::locationMeta(\Phel::location("Def/defonce.test", 1, 0), \Phel::location("Def/defonce.test", 1, 19))
+    static fn() => \Phel::locationMeta(\Phel::location("Def/defonce.test", 1, 0), \Phel::location("Def/defonce.test", 1, 19))
   );
 }

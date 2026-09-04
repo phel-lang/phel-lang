@@ -35,7 +35,7 @@
       return ($this->fn1)($a1, $a2);
     }
   },
-  \Phel::locationMeta(
+  static fn() => \Phel::locationMeta(
     \Phel::location("Call/str-concat-mixed-arity-tags-bail.test", 1, 0),
     \Phel::location("Call/str-concat-mixed-arity-tags-bail.test", 1, 46),
     \Phel\Lang\Keyword::create("doc"), "```phel\n(mixed x)\n(mixed x y)\n```\n",
@@ -56,7 +56,7 @@
       return ($__phel_call_0 ??= \Phel::getDefinition("phel.core", "str"))->__invoke("<", (($__phel_call_1 ??= \Phel::getDefinition("user", "mixed")) instanceof \Phel\Lang\AbstractFn ? ($__phel_call_1 ??= \Phel::getDefinition("user", "mixed"))->invokeArity2($x, $y) : ($__phel_call_1 ??= \Phel::getDefinition("user", "mixed"))->__invoke($x, $y)), ">");
     }
   },
-  \Phel::locationMeta(
+  static fn() => \Phel::locationMeta(
     \Phel::location("Call/str-concat-mixed-arity-tags-bail.test", 2, 0),
     \Phel::location("Call/str-concat-mixed-arity-tags-bail.test", 2, 43),
     \Phel\Lang\Keyword::create("doc"), "```phel\n(wrap x y)\n```\n",

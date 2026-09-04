@@ -11,7 +11,7 @@
       return random_int(0, ($hi - $lo));
     }
   },
-  \Phel::locationMeta(
+  static fn() => \Phel::locationMeta(
     \Phel::location("Fn/fn-infer-expected-type-numeric.test", 1, 0),
     \Phel::location("Fn/fn-infer-expected-type-numeric.test", 1, 54),
     \Phel\Lang\Keyword::create("doc"), "```phel\n(rrange lo hi)\n```\n",

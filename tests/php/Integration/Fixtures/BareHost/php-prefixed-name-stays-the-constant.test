@@ -29,7 +29,7 @@ require_once __DIR__ . '/phel/core.php';
       return new $target_1();
     }
   },
-  \Phel::locationMeta(
+  static fn() => \Phel::locationMeta(
     \Phel::location("BareHost/php-prefixed-name-stays-the-constant.test", 3, 0),
     \Phel::location("BareHost/php-prefixed-name-stays-the-constant.test", 3, 44),
     \Phel\Lang\Keyword::create("doc"), "```phel\n(probe)\n```\n",

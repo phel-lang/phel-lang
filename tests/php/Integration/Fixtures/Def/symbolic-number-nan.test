@@ -5,5 +5,5 @@
   "user",
   "x",
   NAN,
-  \Phel::locationMeta(\Phel::location("Def/symbolic-number-nan.test", 1, 0), \Phel::location("Def/symbolic-number-nan.test", 1, 13))
+  static fn() => \Phel::locationMeta(\Phel::location("Def/symbolic-number-nan.test", 1, 0), \Phel::location("Def/symbolic-number-nan.test", 1, 13))
 );
