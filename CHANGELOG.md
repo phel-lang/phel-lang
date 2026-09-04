@@ -44,6 +44,7 @@ Dispatch / call sites:
 Runtime data structures:
 
 - Promote every map construction path at the same size, making grown map reads up to 5.5x faster. (#3172)
+- Answer `contains?`, map lookups and realized lazy sequences without repeating work already done, up to 22% faster.
 
 ### Deprecated
 
