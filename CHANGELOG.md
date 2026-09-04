@@ -30,6 +30,9 @@ All notable changes to this project will be documented in this file.
 
 Compile-time folding / hoisting:
 
+- Emit each form once under `phel compile --emit-only`, 24% faster, with byte-identical output.
+- Reuse the lists a macro expansion leaves unchanged instead of rebuilding them, 5% faster analysis of macro-heavy source.
+- Resolve a call's `phel.core` identity once per node instead of once per specialisation probe, 4% faster emission.
 - Compile `is` arms through one runtime helper, reducing generated size, compile time, and memory. (#3212)
 - Inline `-O2` calls in return position; use `^:redef` where interception is required. (#3125)
 

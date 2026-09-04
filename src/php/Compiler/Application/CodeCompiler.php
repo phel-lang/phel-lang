@@ -228,19 +228,30 @@ final readonly class CodeCompiler implements CodeCompilerInterface
      */
     private function emitNode(AbstractNode $node, CompileOptions $compileOptions): void
     {
+        $genCounterBefore = Symbol::genCounter();
         $this->fileEmitter->emitNode($node);
-
-        $phpCode = $this->statementEmitter
-            ->emitNode($node, $compileOptions->isSourceMapsEnabled())
-            ->getCodeWithSourceMap();
 
         if ($compileOptions->isEmitOnly()) {
             // `phel compile` advertises "Does not evaluate"; skipping the
             // evaluator preserves the dry-run contract. Same-snippet
             // defmacros will not be available to later forms in this
             // mode, which is the documented trade-off.
+            //
+            // The statement emission is skipped with it: its only consumer is
+            // the evaluator, so in this mode it emitted a whole second copy of
+            // every form to throw away. What it did leave behind is the gensym
+            // ids it consumed, and the next form's temporaries are numbered
+            // after those, so the counter is advanced by the same delta the
+            // file pass just used. Both passes walk the same nodes through the
+            // same emitters here, so the deltas match; measuring rather than
+            // assuming the delta keeps that true if they ever stop matching.
+            Symbol::advanceGenCounter(Symbol::genCounter() - $genCounterBefore);
             return;
         }
+
+        $phpCode = $this->statementEmitter
+            ->emitNode($node, $compileOptions->isSourceMapsEnabled())
+            ->getCodeWithSourceMap();
 
         $this->evaluator->eval($phpCode);
     }
