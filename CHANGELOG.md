@@ -36,6 +36,10 @@ Compile-time folding / hoisting:
 - Compile `is` arms through one runtime helper, reducing generated size, compile time, and memory. (#3212)
 - Inline `-O2` calls in return position; use `^:redef` where interception is required. (#3125)
 
+Test framework:
+
+- Record an assertion against one rebuild of the counts map instead of two nested walks, halving the per-assertion bookkeeping.
+
 Dispatch / call sites:
 
 - Read non-dynamic globals directly from the registry, up to 1.9x faster. (#3179)
