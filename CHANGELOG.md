@@ -50,6 +50,7 @@ Runtime data structures:
 
 ### Fixed
 
+- Name the namespace and the fix when an exported wrapper cannot resolve its definition, instead of failing with `Value of type null is not callable`. (#3244)
 - Avoid redundant project walks and cache races in `phel test --parallel`, making parallel runs faster. (#3203)
 - Format collection literals in linear time with byte-identical output. (#3218)
 - Replay deprecation warnings from warm compiled-code caches. (#3222)
