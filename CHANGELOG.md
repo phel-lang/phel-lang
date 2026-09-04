@@ -6,20 +6,16 @@ All notable changes to this project will be documented in this file.
 
 ### Added
 
-- Add `phel mutate` with 11 mutators, parallel and changed-file modes, coverage selection, and MSI gates. (#3208 #3209)
-- Add `phel test --changed[=<ref>]` to run tests affected by Git changes. (#3210)
-- Add skipped and focused tests through metadata, `skip!`, `--fail-on-focus`, and reporter support. (#3211)
-- Add `phel test --reporter=github` with annotations, groups, warnings, and job summaries. (#3214)
-- Add per-test coverage JSON, lifecycle events, and `phel.test/*event-hook*`. (#3207 #3209)
-- Add repeatable `phel format --exclude=<glob>` and the `format-exclude` config key. (#3233)
-- Add `cache-env-vars` to include selected environment values in compiled-code cache keys. (#3236)
-- Add Clojure-style binding-first map destructuring, including nested bindings. (#3115)
-- Resolve bare local `defexception` names in `catch`. (#3211)
-- Add `^:redef` to prevent `-O2` inlining where calls must remain interceptable. (#3126)
-- Add `phel.ai/*sleep-fn*` as a bindable retry backoff seam. (#3204)
-- Add public APIs for per-test coverage and immediate compiled-code cache flushing. (#3203 #3209)
-- Add CSS-style id and class shorthand to `phel.html` element tags. (#3240)
-- Add `Shared\Process\PhelBinaryLocator` and `Shared\DeprecationResolver`, the shared halves of plumbing that Run, Mutate, Api and Lint each carried a copy of. (#3243)
+- `phel mutate`: mutation testing for Phel with 11 mutators, parallel and changed-file modes, coverage selection, and MSI gates. (#3208 #3209)
+- `phel test` gains `--changed[=<ref>]`, `--reporter=github`, per-test coverage JSON, `^:skip` / `^:focus` / `skip!` with `--fail-on-focus`, and `phel.test/*event-hook*`. (#3207 #3209 #3210 #3211 #3214)
+- `phel format --exclude=<glob>` and the matching `format-exclude` config key. (#3233)
+- `cache-env-vars`: environment values that take part in the compiled-code cache key. (#3236)
+- Clojure-style binding-first map destructuring, nested bindings included. (#3115)
+- `^:redef`, which keeps a call interceptable where `-O2` would inline it. (#3126)
+- CSS-style id and class shorthand in `phel.html` element tags. (#3240)
+- `phel.ai/*sleep-fn*`, a bindable retry backoff seam. (#3204)
+- A bare local `defexception` name now resolves in `catch`. (#3211)
+- Public API: `Shared\Process\PhelBinaryLocator`, `Shared\DeprecationResolver`, per-test coverage, and immediate compiled-code cache flushing. (#3203 #3209 #3243)
 
 ### Changed
 
@@ -28,50 +24,32 @@ All notable changes to this project will be documented in this file.
 
 ### Performance
 
-Compile-time folding / hoisting:
-
-- Emit each form once under `phel compile --emit-only`, 24% faster, with byte-identical output.
-- Reuse the lists a macro expansion leaves unchanged instead of rebuilding them, 5% faster analysis of macro-heavy source.
-- Resolve a call's `phel.core` identity once per node instead of once per specialisation probe, 4% faster emission.
-- Compile `is` arms through one runtime helper, reducing generated size, compile time, and memory. (#3212)
-- Inline `-O2` calls in return position; use `^:redef` where interception is required. (#3125)
-
-Test framework:
-
-- Record an assertion against one rebuild of the counts map instead of two nested walks, halving the per-assertion bookkeeping.
-
-Dispatch / call sites:
-
-- Read non-dynamic globals directly from the registry, up to 1.9x faster. (#3179)
-- Spread vectors in `apply` in one pass, 2.1x faster for `(apply + [1 2 3])`. (#3181)
-- Use fixed arities in hot core functions, up to 22x faster without behavior changes. (#2973)
-- Write `into`'s targets through transient methods, and reverse and escape natively in `phel.string`. (#2973)
-- Skip Gacela's event dispatch when no listener is registered; a host that wants the events sets `GacelaConfig::setEventDispatcher()`.
-
-Runtime data structures:
-
-- Promote every map construction path at the same size, making grown map reads up to 5.5x faster. (#3172)
-- Answer `contains?`, map lookups and realized lazy sequences without repeating work already done, up to 22% faster.
+- **Compiler**: emit each form once under `phel compile --emit-only` (24% faster, byte-identical output); reuse the lists a macro expansion leaves unchanged (5% faster analysis); resolve a call's `phel.core` identity once per node rather than once per specialisation probe (4% faster emission).
+- **Compiler**: compile `is` arms through one runtime helper, cutting generated size, compile time and memory (#3212); inline `-O2` calls in return position (#3125).
+- **Runtime**: stop repeating work already done in `contains?`, map lookups and realized lazy sequences (up to 22% faster); promote every map construction path at the same size, making grown map reads up to 5.5x faster (#3172); read non-dynamic globals straight from the registry, 1.9x (#3179); spread vectors into `apply` in one pass, 2.1x (#3181); give hot core functions fixed arities, up to 22x (#2973).
+- **Standard library**: build the walked list and the `pprint` joins once instead of through a spread (57% and 23% faster); write `into`'s targets through transient methods and reverse and escape natively in `phel.string` (#2973).
+- **Test framework**: record an assertion against one rebuild of the counts map instead of two nested walks, halving the per-assertion bookkeeping.
+- **Boot**: skip Gacela's event dispatch when no listener is registered; a host that wants the events sets `GacelaConfig::setEventDispatcher()`.
 
 ### Deprecated
 
-- Deprecate `to-php-array`; use its Clojure-aligned alias `to-array`. (#3076)
-- Deprecate key-first map destructuring (`{:key local}`); use binding-first (`{local :key}`). (#3115)
+- `to-php-array`; use its Clojure-aligned alias `to-array`. (#3076)
+- Key-first map destructuring (`{:key local}`); use binding-first (`{local :key}`). (#3115)
 
 ### Fixed
 
 - Name the namespace and the fix when an exported wrapper cannot resolve its definition, instead of failing with `Value of type null is not callable`. (#3244)
-- Avoid redundant project walks and cache races in `phel test --parallel`, making parallel runs faster. (#3203)
-- Format collection literals in linear time with byte-identical output. (#3218)
-- Replay deprecation warnings from warm compiled-code caches. (#3222)
+- Iterate a hash map's `nil` key, which `keys`, `vals`, `for ... :pairs` and `into` dropped while `count` still counted it. (#3172)
+- Treat associative PHP arrays as maps in `merge`, `merge-with`, and `conj`. (#3114)
+- Preserve JSON objects as maps during `phel.json/decode`, including empty objects. (#3089)
 - Preserve assertion source locations through macro expansion. (#3228)
 - Preserve outer `--slowest` and `--last-failed` state across nested test runs. (#3206)
+- Avoid redundant project walks and cache races in `phel test --parallel`. (#3203)
 - Invalidate the scan-index cache when a configured source or test directory appears. (#3205)
 - Load dependencies for test and benchmark files outside configured source directories. (#3187)
-- Treat associative PHP arrays as maps in `merge`, `merge-with`, and `conj`. (#3114)
-- Iterate a hash map's `nil` key, which `keys`, `vals`, `for ... :pairs` and `into` dropped while `count` still counted it. (#3172)
 - Skip the build output directory when indexing, so navigation prefers a source over its copy in `out/`. (#3155)
-- Preserve JSON objects as maps during `phel.json/decode`, including empty objects. (#3089)
+- Format collection literals in linear time with byte-identical output. (#3218)
+- Replay deprecation warnings from warm compiled-code caches. (#3222)
 - Reject blank AI provider API keys before making a request. (#3204)
 
 ## [0.50.0](https://github.com/phel-lang/phel-lang/compare/v0.49.0...v0.50.0) - 2026-08-14

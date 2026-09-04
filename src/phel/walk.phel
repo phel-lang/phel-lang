@@ -15,8 +15,13 @@
   (outer
    (cond
      (list? form)
-     (apply list (persistent (for [x :in form :reduce [acc (transient [])]]
-                               (conj! acc (inner x)))))
+     ;; Collected into a PHP array and built once, as the vector branch is.
+     ;; Building a transient vector, persisting it, and spreading it through
+     ;; `apply` put five intermediates between the walk and the list.
+     (let [arr (php/array)]
+       (foreach [x form]
+         (php/apush arr (inner x)))
+       (php/:: Phel (list arr)))
 
      (vector? form)
      ;; Collected into a PHP array and built once, as `vec` is (#3134).
