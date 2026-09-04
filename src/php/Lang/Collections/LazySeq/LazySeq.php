@@ -468,6 +468,14 @@ final class LazySeq extends AbstractType implements LazySeqInterface, Countable,
      */
     private function isEmptySeq(mixed $seq): bool
     {
+        // A `Cons` carries a mandatory `first`, so it is non-empty by
+        // construction. Without this it falls to `Seq::isEmpty()` below, which
+        // answers the same question by building a generator and advancing it
+        // once, per element of every realized lazy seq.
+        if ($seq instanceof Cons) {
+            return false;
+        }
+
         if ($seq instanceof Countable && !$seq instanceof LazySeqInterface) {
             return count($seq) === 0;
         }
