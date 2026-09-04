@@ -45,6 +45,8 @@ final class StdlibWalkBench extends CoreBenchCase
 
     private mixed $keywordKeyed = null;
 
+    private mixed $nestedList = null;
+
     /**
      * @Revs(1000)
      */
@@ -69,6 +71,18 @@ final class StdlibWalkBench extends CoreBenchCase
     public function bench_postwalk_identity(): void
     {
         ($this->postwalk)($this->identity, $this->stringKeyed);
+    }
+
+    /**
+     * The list branch, which the map-and-vector fixture above never reaches.
+     * A walked list was rebuilt through a transient vector, a persistent one
+     * and an `apply` spread; the other branches build once.
+     *
+     * @Revs(1000)
+     */
+    public function bench_postwalk_list(): void
+    {
+        ($this->postwalk)($this->identity, $this->nestedList);
     }
 
     #[Override]
@@ -105,5 +119,12 @@ final class StdlibWalkBench extends CoreBenchCase
         );
 
         $this->keywordKeyed = ($this->keywordizeKeys)($this->stringKeyed);
+
+        $leaves = [];
+        for ($i = 0; $i < self::WIDTH; ++$i) {
+            $leaves[] = Phel::list([$i, 'n' . $i]);
+        }
+
+        $this->nestedList = Phel::list($leaves);
     }
 }
