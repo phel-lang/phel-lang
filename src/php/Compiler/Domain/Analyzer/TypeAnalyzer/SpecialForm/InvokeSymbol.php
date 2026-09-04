@@ -431,8 +431,26 @@ final readonly class InvokeSymbol implements SpecialFormAnalyzerInterface
         SourceLocation $origin,
     ): TypeInterface {
         $result = [];
+        $changed = false;
         foreach ($list->getIterator() as $item) {
-            $result[] = $this->enrichLocation($item, $parent, $origin);
+            $enriched = $this->enrichLocation($item, $parent, $origin);
+            if ($enriched !== $item) {
+                $changed = true;
+            }
+
+            $result[] = $enriched;
+        }
+
+        // A list whose children all came back identical, and which already
+        // carries both of its own locations, rebuilds into a copy of itself:
+        // same elements, same meta, same positions, and the stamping below
+        // then finds nothing to stamp. Most of a macro expansion is that
+        // case, and each rebuild allocates a list and a meta wrapper for it.
+        if (!$changed
+            && $list->getStartLocation() instanceof SourceLocation
+            && $list->getEndLocation() instanceof SourceLocation
+        ) {
+            return $list;
         }
 
         // The rebuilt list must keep the position of the one it replaces:
