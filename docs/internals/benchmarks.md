@@ -4,11 +4,17 @@ This page is the PHPBench suite, which measures the compiler and the runtime.
 To benchmark **Phel code**, use `defbench` and `phel bench`, documented in
 [Benchmarking](../benchmarking.md).
 
-[PHPBench](https://phpbench.readthedocs.io/) (in `require-dev`) measures four
+[PHPBench](https://phpbench.readthedocs.io/) (in `require-dev`) measures five
 areas: CLI commands (`phel run`, `phel test` end to end), persistent collections
 (vector and hash-map hot ops), core bootstrap (loading and executing
-`phel.core`, tracking compiler startup), and the dispatch cost of the hot
-`phel.core` functions themselves (`Phel/Core*Bench`).
+`phel.core`, tracking compiler startup), the dispatch cost of the hot
+`phel.core` functions themselves (`Phel/Core*Bench`), and the boundary a PHP
+host calls Phel across (`Interop/ExportedCallBench`).
+
+`Phel::bootstrap()` is not a subject anywhere, and cannot be: it memoizes, so
+only the first call in a process pays, while the CI job runs with `--warmup=2`.
+The load term that dominates a cold host is gated by `Run/ReplBootBench`
+instead, which re-enters cleanly.
 
 ## What the core subjects are for
 
