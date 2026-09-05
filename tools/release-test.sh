@@ -72,6 +72,21 @@ function test_validate_semver_invalid_empty() {
 # Version Comparison Tests
 # =============================================================================
 
+function test_format_release_notes_maps_performance() {
+    local result
+    result=$(format_release_notes "### Performance")
+    assert_same "## ⚡ Performance" "$result"
+}
+
+function test_map_to_github_username_is_case_insensitive() {
+    assert_same "Chemaclass" "$(map_to_github_username 'chemaclass')"
+    assert_same "Chemaclass" "$(map_to_github_username 'Chemaclass')"
+}
+
+function test_map_to_github_username_keeps_an_unknown_name() {
+    assert_same "SomeoneElse" "$(map_to_github_username 'Someone Else')"
+}
+
 function test_validate_semver_valid_prerelease() {
     assert_successful_code "validate_semver '1.0.0-rc1'"
 }
