@@ -1,4 +1,8 @@
-# Upgrading from 0.49 to 1.0
+# Upgrading to 1.0
+
+Applies to any `0.49` or later release. The filename says `0.49` because that is
+where the deprecation notices this guide walks you through began; everything
+listed here also holds if you are on `0.50` or on the last minor before `1.0`.
 
 `1.0.0` is a stability commitment, not a feature release: what arrives is a
 promise that what exists stops moving. See
