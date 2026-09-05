@@ -19,21 +19,47 @@ All notable changes to this project will be documented in this file.
 
 ### Changed
 
-- Render the changelog's `### Performance` section in the GitHub release notes, and stop listing the same contributor twice when their commits carry different capitalisation.
+- Render the changelog's `### Performance` section in the GitHub release notes, and stop listing the same contributor twice when their commits carry different capitalisation. (#3258)
 - `tools/release.sh` accepts a pre-release version (`1.0.0-rc1`): it leaves `## Unreleased` in place and publishes the GitHub release as a pre-release. (#3253)
 - Document the two release-time documentation steps no tooling performs, and mark the paragraph in the stability policy that flips at a major. (#3254)
-- `Registry::addDefinition()` also accepts a `Closure` returning the metadata map. Widening a parameter is not breaking, and the eager form still works, so an artifact compiled earlier stays loadable.
+- `Registry::addDefinition()` also accepts a `Closure` returning the metadata map. Widening a parameter is not breaking, and the eager form still works, so an artifact compiled earlier stays loadable. (#3250)
 - Resolve bare all-caps PHP names by position instead of autoload state. See [ADR 0016](docs/adr/0016-a-bare-all-caps-host-name-reads-by-position.md). (#3064)
 - Expose compiler environment and deprecation controls through `CompilerFacadeInterface`. (#3048)
 
 ### Performance
 
-- **Compiler**: evaluate the emission already produced instead of emitting every form a second time, 18% faster to compile and evaluate; emit each form once under `phel compile --emit-only` (24% faster, byte-identical output); reuse the lists a macro expansion leaves unchanged (5% faster analysis); resolve a call's `phel.core` identity once per node rather than once per specialisation probe (4% faster emission).
-- **Compiler**: compile `is` arms through one runtime helper, cutting generated size, compile time and memory (#3212); inline `-O2` calls in return position (#3125).
-- **Runtime**: stop repeating work already done in `contains?`, map lookups and realized lazy sequences (up to 22% faster); promote every map construction path at the same size, making grown map reads up to 5.5x faster (#3172); read non-dynamic globals straight from the registry, 1.9x (#3179); spread vectors into `apply` in one pass, 2.1x (#3181); give hot core functions fixed arities, up to 22x (#2973).
-- **Standard library**: build `mapv` and `filterv` directly instead of through a lazy sequence `vec` then tears down (3.5x and 2.8x), and give `update-in` the fixed arities `update` has (32% faster, and `assoc-in` 27%); build the walked list and the `pprint` joins once instead of through a spread (57% and 23% faster); write `into`'s targets through transient methods and reverse and escape natively in `phel.string` (#2973).
-- **Test framework**: record an assertion against one rebuild of the counts map instead of two nested walks, halving the per-assertion bookkeeping.
-- **Boot**: carry a definition's metadata as a thunk forced on first read, so loading a namespace no longer builds a map per definition (loading `phel.core` 20% faster, 22MB to 20MB peak); skip Gacela's event dispatch when no listener is registered, and let a host that wants the events set `GacelaConfig::setEventDispatcher()`.
+Compiler:
+
+- Evaluate the emission already produced instead of emitting every form a second time: 18% faster to compile and evaluate. (#3249 #3257)
+- Emit each form once under `phel compile --emit-only`: 24% faster, byte-identical output. (#3246)
+- Reuse the lists a macro expansion leaves unchanged: 5% faster analysis of macro-heavy source. (#3246)
+- Resolve a call's `phel.core` identity once per node rather than once per specialisation probe: 4% faster emission. (#3246)
+- Compile `is` arms through one runtime helper, cutting generated size, compile time and memory. (#3212)
+- Inline `-O2` calls in return position. (#3125)
+
+Runtime:
+
+- Answer `contains?`, map lookups and realized lazy sequences without repeating work already done: up to 22% faster. (#3245)
+- Promote every map construction path at the same size, making grown map reads up to 5.5x faster. (#3172)
+- Read non-dynamic globals straight from the registry: 1.9x. (#3179)
+- Spread vectors into `apply` in one pass: 2.1x. (#3181)
+- Give hot core functions fixed arities: up to 22x. (#2973)
+
+Standard library:
+
+- Build `mapv` and `filterv` directly instead of through a lazy sequence `vec` then tears down: 3.5x and 2.8x. (#3251)
+- Give `update-in` the fixed arities `update` has: 32% faster, and `assoc-in` 27%. (#3251)
+- Build the walked list and the `pprint` joins once instead of through a spread: 57% and 23% faster. (#3248)
+- Write `into`'s targets through transient methods, and reverse and escape natively in `phel.string`. (#2973)
+
+Test framework:
+
+- Record an assertion against one rebuild of the counts map instead of two nested walks, halving the per-assertion bookkeeping. (#3247)
+
+Boot:
+
+- Carry a definition's metadata as a thunk forced on first read, so loading a namespace no longer builds a map per definition: `phel.core` loads 20% faster, peak memory 22MB to 20MB. (#3250)
+- Skip Gacela's event dispatch when no listener is registered; a host that wants the events sets `GacelaConfig::setEventDispatcher()`.
 
 ### Deprecated
 
