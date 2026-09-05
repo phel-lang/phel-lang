@@ -4,6 +4,8 @@ All notable changes to this project will be documented in this file.
 
 ## Unreleased
 
+## [0.51.0](https://github.com/phel-lang/phel-lang/compare/v0.50.0...v0.51.0) - 2026-09-05
+
 ### Added
 
 - `phel mutate`: mutation testing for Phel with 11 mutators, parallel and changed-file modes, coverage selection, and MSI gates. (#3208 #3209)
