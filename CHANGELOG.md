@@ -20,6 +20,7 @@ All notable changes to this project will be documented in this file.
 ### Changed
 
 - `tools/release.sh` accepts a pre-release version (`1.0.0-rc1`): it leaves `## Unreleased` in place and publishes the GitHub release as a pre-release. (#3253)
+- Document the two release-time documentation steps no tooling performs, and mark the paragraph in the stability policy that flips at a major. (#3254)
 - `Registry::addDefinition()` also accepts a `Closure` returning the metadata map. Widening a parameter is not breaking, and the eager form still works, so an artifact compiled earlier stays loadable.
 - Resolve bare all-caps PHP names by position instead of autoload state. See [ADR 0016](docs/adr/0016-a-bare-all-caps-host-name-reads-by-position.md). (#3064)
 - Expose compiler environment and deprecation controls through `CompilerFacadeInterface`. (#3048)

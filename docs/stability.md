@@ -3,6 +3,7 @@
 **Normative.** What a Phel version number promises, which symbols it covers, and
 how those are allowed to change.
 
+<!-- RELEASE-STEP(1.0.0): delete the paragraph below; from 1.0.0 these promises are in force, not a target. -->
 Until `1.0.0` ships this describes the *target*: what `1.x` will guarantee, with
 the enforceable parts already gated in CI. `0.x` remains free to break, and the
 changelog marks every such change **BREAKING**.

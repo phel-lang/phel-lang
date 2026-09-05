@@ -19,4 +19,15 @@ Hand-rolling misses steps (`resources/agents/VERSION`), uses the wrong commit me
 - Name is short (1-3 words), content-themed: `--name "Life, PHP & Everything"`. Omit for AI-suggested names.
 - **`--dry-run` first** — previews everything, restores files, no side effects.
 - The real run pushes to `main` and publishes a public release: outward + irreversible. Get explicit human go first.
+- A pre-release version (`1.0.0-rc1`) is accepted: the script leaves `## Unreleased` in place and publishes to GitHub as a pre-release.
 - Full guide: `.github/RELEASE.md`.
+
+## What the script does NOT do at a major
+
+Two normative documents describe the pre-1.0 world and no tooling updates them.
+Before tagging `X.0.0`, do both by hand:
+
+- `docs/stability.md`: delete the paragraph marked `RELEASE-STEP(1.0.0)`. Until then the page reads as a *target*; from the major it is in force.
+- `docs/migration/upgrade-0.49-to-1.0.md`: check the range it claims to cover still matches the releases that exist.
+
+Grep for `RELEASE-STEP(` to find every marker.

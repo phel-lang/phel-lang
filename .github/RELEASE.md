@@ -54,7 +54,8 @@ Before releasing, ensure you have:
 
 ### What the Script Does
 
-1. Validates version format (X.Y.Z) and ensures new > current
+1. Validates version format (`X.Y.Z`, or `X.Y.Z-rc1` for a pre-release) and
+   ensures new > current
 2. Runs pre-flight checks (gh CLI, on `main`, in sync with `origin/main`, clean
    tree, `## Unreleased` still populated, tag absent, network)
 3. Updates `LATEST_VERSION` in [VersionFinder.php](../src/php/Shared/VersionFinder.php)
@@ -68,6 +69,24 @@ Before releasing, ensure you have:
 9. Pushes commit and tag to `main`
 10. Creates the GitHub release with notes, contributors and the PHAR attached,
     which fires `announce-release.yml`
+
+A pre-release (`tools/release.sh 1.0.0-rc1`) differs in three ways: step 4 is
+skipped so `## Unreleased` stays where it is, the notes come from that section
+as it stands, and step 10 publishes with `--prerelease`.
+
+---
+
+## What the script does not do at a major
+
+Two normative documents describe the pre-1.0 world, and no tooling updates them.
+Before tagging `X.0.0`, do both by hand:
+
+| Document | Step |
+|---|---|
+| [docs/stability.md](../docs/stability.md) | Delete the paragraph marked `RELEASE-STEP(1.0.0)`. Until the major it reads as a *target*; from the major the promises are in force. |
+| [docs/migration/upgrade-0.49-to-1.0.md](../docs/migration/upgrade-0.49-to-1.0.md) | Check the release range it claims to cover still matches the releases that exist. |
+
+`grep -rn 'RELEASE-STEP(' docs/` finds every marker.
 
 ---
 
