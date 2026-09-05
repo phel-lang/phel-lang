@@ -309,6 +309,7 @@ format_release_notes() {
         -e 's/^### Changed$/## ⚖️ Changed/' \
         -e 's/^### Fixed$/## 🐛 Fixed/' \
         -e 's/^### Deprecated$/## ⚠️ Deprecated/' \
+        -e 's/^### Performance$/## ⚡ Performance/' \
         -e 's/^### Removed$/## 🗑️ Removed/' \
         -e 's/^### Security$/## 🔒 Security/'
 }
@@ -461,10 +462,15 @@ git_push() {
 # =============================================================================
 map_to_github_username() {
     local name="$1"
-    # Map known contributors to their GitHub usernames
-    case "$name" in
-        "Jose M. Valera Reales"|"JesusValera"|"Jesus Valera") echo "JesusValeraDev" ;;
-        "Chema"|"Jose Maria Valera Reales"|"Chemaclass") echo "Chemaclass" ;;
+    # Matched case-insensitively: the same person authors commits as both
+    # `Chemaclass` and `chemaclass`, and the `sort -u` downstream is
+    # case-sensitive, so an unmapped spelling shows up as a second contributor.
+    local key
+    key=$(printf '%s' "$name" | tr '[:upper:]' '[:lower:]')
+
+    case "$key" in
+        "jose m. valera reales"|"jesusvalera"|"jesus valera") echo "JesusValeraDev" ;;
+        "chema"|"jose maria valera reales"|"chemaclass") echo "Chemaclass" ;;
         *) echo "$name" | sed 's/ //g' ;;  # Remove spaces for unknown names
     esac
 }
