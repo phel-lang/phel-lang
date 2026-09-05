@@ -114,6 +114,21 @@ final class MacroExpansionCompileBench
     }
 
     /**
+     * The whole path a `phel build` takes: compile and evaluate. Unlike
+     * `bench_compile_emit_only` this reaches the evaluator, which is where a
+     * form's emission is consumed, so it is the subject that sees whether the
+     * second emission of each form is still being paid for.
+     *
+     * @Revs(20)
+     *
+     * @Iterations(5)
+     */
+    public function bench_compile_and_eval(): void
+    {
+        $this->compilerFacade->compile($this->fixtureSource, new CompileOptions());
+    }
+
+    /**
      * Builds `FORM_COUNT` functions whose bodies are nested macro calls:
      * threading, conditionals, binding conditionals and a comprehension, each
      * expanding into several synthesised lists. The shape is fixed, so the

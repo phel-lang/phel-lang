@@ -229,7 +229,7 @@ final readonly class CodeCompiler implements CodeCompilerInterface
     private function emitNode(AbstractNode $node, CompileOptions $compileOptions): void
     {
         $genCounterBefore = Symbol::genCounter();
-        $this->fileEmitter->emitNode($node);
+        $captured = $this->fileEmitter->emitNodeCapturing($node, $compileOptions->isSourceMapsEnabled());
 
         if ($compileOptions->isEmitOnly()) {
             // `phel compile` advertises "Does not evaluate"; skipping the
@@ -246,6 +246,19 @@ final readonly class CodeCompiler implements CodeCompilerInterface
             // same emitters here, so the deltas match; measuring rather than
             // assuming the delta keeps that true if they ever stop matching.
             Symbol::advanceGenCounter(Symbol::genCounter() - $genCounterBefore);
+            return;
+        }
+
+        if ($captured instanceof EmitterResult) {
+            // The file emission never asked a mode question whose answer
+            // differs under statement mode, so it is the same bytes the
+            // statement emitter would have produced. Evaluate those instead of
+            // producing them a second time. The gensym counter is advanced by
+            // the delta the skipped pass would have consumed, for the reason
+            // given above.
+            Symbol::advanceGenCounter(Symbol::genCounter() - $genCounterBefore);
+            $this->evaluator->eval($captured->getCodeWithSourceMap());
+
             return;
         }
 
