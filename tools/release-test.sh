@@ -72,6 +72,70 @@ function test_validate_semver_invalid_empty() {
 # Version Comparison Tests
 # =============================================================================
 
+function test_validate_semver_valid_prerelease() {
+    assert_successful_code "validate_semver '1.0.0-rc1'"
+}
+
+function test_validate_semver_valid_prerelease_dotted() {
+    assert_successful_code "validate_semver '1.0.0-rc.2'"
+}
+
+function test_validate_semver_invalid_empty_prerelease() {
+    local result=0
+    validate_semver '1.0.0-' || result=$?
+    assert_equals "1" "$result"
+}
+
+function test_validate_semver_invalid_build_metadata() {
+    local result=0
+    validate_semver '1.0.0+build.1' || result=$?
+    assert_equals "1" "$result"
+}
+
+function test_is_prerelease_true() {
+    assert_successful_code "is_prerelease '1.0.0-rc1'"
+}
+
+function test_is_prerelease_false() {
+    local result=0
+    is_prerelease '1.0.0' || result=$?
+    assert_equals "1" "$result"
+}
+
+function test_version_core_strips_the_suffix() {
+    assert_equals "1.0.0" "$(version_core '1.0.0-rc1')"
+}
+
+function test_version_prerelease_is_empty_for_a_release() {
+    assert_equals "" "$(version_prerelease '1.0.0')"
+}
+
+function test_version_gt_prerelease_beats_older_release() {
+    assert_successful_code "version_gt '1.0.0-rc1' '0.50.0'"
+}
+
+function test_version_gt_release_beats_its_own_prerelease() {
+    assert_successful_code "version_gt '1.0.0' '1.0.0-rc1'"
+}
+
+function test_version_gt_prerelease_does_not_beat_its_release() {
+    local result=0
+    version_gt '1.0.0-rc1' '1.0.0' || result=$?
+    assert_equals "1" "$result"
+}
+
+function test_version_gt_later_rc_beats_earlier_rc() {
+    assert_successful_code "version_gt '1.0.0-rc2' '1.0.0-rc1'"
+}
+
+function test_version_gt_numeric_prerelease_compares_numerically() {
+    assert_successful_code "version_gt '1.0.0-rc.10' '1.0.0-rc.9'"
+}
+
+function test_version_gt_longer_prerelease_outranks_its_prefix() {
+    assert_successful_code "version_gt '1.0.0-rc.1' '1.0.0-rc'"
+}
+
 function test_version_gt_greater() {
     assert_successful_code "version_gt '1.1.0' '1.0.0'"
 }
@@ -234,6 +298,34 @@ EOF
     local result
     result=$(get_current_version "$version_file")
     assert_equals "1.2.3" "$result"
+}
+
+function test_get_current_version_reads_back_a_prerelease() {
+    local version_file="$TEMP_DIR/VersionFinder.php"
+    cat > "$version_file" << 'EOF'
+<?php
+final class VersionFinder {
+    public const string LATEST_VERSION = 'v1.0.0-rc1';
+}
+EOF
+
+    local result
+    result=$(get_current_version "$version_file")
+    assert_equals "1.0.0-rc1" "$result"
+}
+
+function test_update_version_finder_replaces_a_prerelease() {
+    local version_file="$TEMP_DIR/VersionFinder.php"
+    cat > "$version_file" << 'EOF'
+<?php
+final class VersionFinder {
+    public const string LATEST_VERSION = 'v1.0.0-rc1';
+}
+EOF
+
+    update_version_finder "1.0.0" "$version_file"
+
+    assert_equals "1.0.0" "$(get_current_version "$version_file")"
 }
 
 function test_get_current_version_missing_file() {
@@ -445,6 +537,56 @@ function test_update_agents_version_creates_file() {
 
     assert_file_exists "$agents_version_file"
     assert_equals "0.29.0" "$(cat "$agents_version_file")"
+}
+
+function test_build_release_notes_body_reads_unreleased_for_a_prerelease() {
+    local changelog_file="$TEMP_DIR/CHANGELOG.md"
+    cat > "$changelog_file" << 'EOF'
+# Changelog
+
+## Unreleased
+
+### Added
+- New feature
+EOF
+
+    local result
+    result=$(build_release_notes_body "1.0.0-rc1" "$changelog_file" "### Added
+- New feature")
+
+    assert_same "## 🎉 Added
+- New feature" "$result"
+}
+
+function test_build_release_notes_body_falls_back_when_empty() {
+    local changelog_file="$TEMP_DIR/CHANGELOG.md"
+    printf '# Changelog
+' > "$changelog_file"
+
+    assert_same "Release v1.0.0-rc1" "$(build_release_notes_body '1.0.0-rc1' "$changelog_file" '')"
+}
+
+function test_update_changelog_leaves_unreleased_for_a_prerelease() {
+    local changelog_file="$TEMP_DIR/CHANGELOG.md"
+    cat > "$changelog_file" << 'EOF'
+# Changelog
+
+## Unreleased
+
+### Added
+- New feature
+
+## [0.50.0](https://github.com/phel-lang/phel-lang/compare/v0.49.0...v0.50.0) - 2026-08-14
+
+### Fixed
+- Old fix
+EOF
+    local before
+    before=$(cat "$changelog_file")
+
+    update_changelog "1.0.0-rc1" "$changelog_file" "0.50.0"
+
+    assert_equals "$before" "$(cat "$changelog_file")"
 }
 
 function test_update_changelog() {
