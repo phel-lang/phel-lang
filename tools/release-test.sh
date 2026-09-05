@@ -539,6 +539,33 @@ function test_update_agents_version_creates_file() {
     assert_equals "0.29.0" "$(cat "$agents_version_file")"
 }
 
+function test_build_release_notes_body_reads_unreleased_for_a_prerelease() {
+    local changelog_file="$TEMP_DIR/CHANGELOG.md"
+    cat > "$changelog_file" << 'EOF'
+# Changelog
+
+## Unreleased
+
+### Added
+- New feature
+EOF
+
+    local result
+    result=$(build_release_notes_body "1.0.0-rc1" "$changelog_file" "### Added
+- New feature")
+
+    assert_same "## 🎉 Added
+- New feature" "$result"
+}
+
+function test_build_release_notes_body_falls_back_when_empty() {
+    local changelog_file="$TEMP_DIR/CHANGELOG.md"
+    printf '# Changelog
+' > "$changelog_file"
+
+    assert_same "Release v1.0.0-rc1" "$(build_release_notes_body '1.0.0-rc1' "$changelog_file" '')"
+}
+
 function test_update_changelog_leaves_unreleased_for_a_prerelease() {
     local changelog_file="$TEMP_DIR/CHANGELOG.md"
     cat > "$changelog_file" << 'EOF'

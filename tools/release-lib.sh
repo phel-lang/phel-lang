@@ -269,6 +269,26 @@ update_changelog() {
     mv "$changelog_file.tmp" "$changelog_file"
 }
 
+# The notes body for a version, wherever it is being rendered: a pre-release
+# reads `## Unreleased` (which it left in place), a release reads its own
+# heading. Shared so the dry-run preview and the real publish cannot drift.
+build_release_notes_body() {
+    local version="$1"
+    local changelog_file="$2"
+    local unreleased_content="${3:-}"
+
+    local notes
+    if is_prerelease "$version"; then
+        notes=$(format_release_notes "$unreleased_content")
+    else
+        notes=$(extract_release_notes "$version" "$changelog_file" 2>/dev/null || true)
+    fi
+
+    [[ -z "$notes" ]] && notes="Release v$version"
+
+    echo "$notes"
+}
+
 extract_release_notes() {
     local version="$1"
     local changelog_file="$2"
@@ -476,14 +496,7 @@ create_github_release() {
     local unreleased_content="${8:-}"
 
     local release_notes
-    if is_prerelease "$version"; then
-        # No version heading exists for a pre-release, because the changelog
-        # was left untouched: its notes are `## Unreleased` as it stands.
-        release_notes=$(format_release_notes "$unreleased_content")
-    else
-        release_notes=$(extract_release_notes "$version" "$changelog_file")
-    fi
-    [[ -z "$release_notes" ]] && release_notes="Release v$version"
+    release_notes=$(build_release_notes_body "$version" "$changelog_file" "$unreleased_content")
 
     # Generate TL;DR if Claude is available and we have unreleased content
     local tldr=""

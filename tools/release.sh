@@ -270,11 +270,7 @@ main() {
         fi
 
         local notes
-        if is_prerelease "$NEW_VERSION"; then
-            notes=$(format_release_notes "$unreleased_content")
-        else
-            notes=$(extract_release_notes "$NEW_VERSION" "$CHANGELOG_FILE" 2>/dev/null || echo "Release v$NEW_VERSION")
-        fi
+        notes=$(build_release_notes_body "$NEW_VERSION" "$CHANGELOG_FILE" "$unreleased_content")
         local contributors
         contributors=$(get_contributors "$current_version" "$REPO_ROOT")
 
