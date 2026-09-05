@@ -40,18 +40,80 @@ log_err() {
 # =============================================================================
 # Version Functions
 # =============================================================================
+# `X.Y.Z`, optionally with a pre-release suffix (`1.0.0-rc1`, `1.0.0-rc.2`).
+# Build metadata (`+build`) is deliberately not accepted: nothing here produces
+# it, and a tag carrying one would not round-trip through `git tag -l`.
 validate_semver() {
     local version="$1"
-    [[ "$version" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]
+    [[ "$version" =~ ^[0-9]+\.[0-9]+\.[0-9]+(-[0-9A-Za-z-]+(\.[0-9A-Za-z-]+)*)?$ ]]
+}
+
+# True when the version carries a pre-release suffix.
+is_prerelease() {
+    [[ "$1" == *-* ]]
+}
+
+# `1.0.0-rc1` -> `1.0.0`
+version_core() {
+    echo "${1%%-*}"
+}
+
+# `1.0.0-rc1` -> `rc1`; empty for a final release.
+version_prerelease() {
+    local version="$1"
+    if [[ "$version" == *-* ]]; then
+        echo "${version#*-}"
+    else
+        echo ""
+    fi
+}
+
+# Compare two dot-separated pre-release identifier lists. Returns 0 if $1 > $2.
+# Semver 11.4: numeric identifiers compare numerically, everything else
+# lexically, and a longer list outranks a shorter one that is its prefix.
+prerelease_gt() {
+    local IFS='.'
+    read -ra A <<< "$1"
+    read -ra B <<< "$2"
+
+    local len=${#A[@]}
+    (( ${#B[@]} > len )) && len=${#B[@]}
+
+    local i
+    for (( i = 0; i < len; i++ )); do
+        local a="${A[$i]-}"
+        local b="${B[$i]-}"
+
+        [[ -z "$a" && -z "$b" ]] && continue
+        [[ -z "$a" ]] && return 1
+        [[ -z "$b" ]] && return 0
+
+        if [[ "$a" =~ ^[0-9]+$ && "$b" =~ ^[0-9]+$ ]]; then
+            (( a > b )) && return 0
+            (( a < b )) && return 1
+        else
+            [[ "$a" > "$b" ]] && return 0
+            [[ "$a" < "$b" ]] && return 1
+        fi
+    done
+
+    return 1
 }
 
 # Compare two semver strings. Returns 0 if $1 > $2
 version_gt() {
     local v1="$1"
     local v2="$2"
+
+    local core1 core2 pre1 pre2
+    core1=$(version_core "$v1")
+    core2=$(version_core "$v2")
+    pre1=$(version_prerelease "$v1")
+    pre2=$(version_prerelease "$v2")
+
     local IFS='.'
-    read -ra V1 <<< "$v1"
-    read -ra V2 <<< "$v2"
+    read -ra V1 <<< "$core1"
+    read -ra V2 <<< "$core2"
 
     for i in 0 1 2; do
         local n1="${V1[$i]:-0}"
@@ -62,7 +124,14 @@ version_gt() {
             return 1
         fi
     done
-    return 1
+
+    # Same core: a release outranks its own pre-releases (semver 11.3), so
+    # `1.0.0` > `1.0.0-rc1` and `1.0.0-rc2` > `1.0.0-rc1`.
+    [[ -z "$pre1" && -z "$pre2" ]] && return 1
+    [[ -z "$pre1" ]] && return 0
+    [[ -z "$pre2" ]] && return 1
+
+    prerelease_gt "$pre1" "$pre2"
 }
 
 get_latest_tag_version() {
@@ -90,7 +159,10 @@ get_current_version() {
     fi
 
     local version
-    version=$(sed -nE "s/.*LATEST_VERSION = 'v([0-9]+\.[0-9]+\.[0-9]+)'.*/\1/p" "$version_file" 2>/dev/null || true)
+    # The pre-release suffix has to be part of the capture: after cutting
+    # `1.0.0-rc1`, this file holds it, and the next run reads it back as the
+    # current version.
+    version=$(sed -nE "s/.*LATEST_VERSION = 'v([0-9]+\.[0-9]+\.[0-9]+(-[0-9A-Za-z.-]+)?)'.*/\1/p" "$version_file" 2>/dev/null || true)
 
     if [[ -z "$version" ]]; then
         log_err "Could not extract version from VersionFinder.php"
@@ -166,7 +238,7 @@ update_version_finder() {
     local version="$1"
     local version_file="$2"
     # Use -E for extended regex, compatible with both macOS and Linux
-    sed -i.bak -E "s/LATEST_VERSION = 'v[0-9]+\.[0-9]+\.[0-9]+'/LATEST_VERSION = 'v$version'/" "$version_file"
+    sed -i.bak -E "s/LATEST_VERSION = 'v[0-9]+\.[0-9]+\.[0-9]+(-[0-9A-Za-z.-]+)?'/LATEST_VERSION = 'v$version'/" "$version_file"
     rm -f "$version_file.bak"
 }
 
@@ -180,6 +252,14 @@ update_changelog() {
     local version="$1"
     local changelog_file="$2"
     local current_version="$3"
+
+    # A pre-release leaves `## Unreleased` exactly where it is. Consuming it
+    # would hand the release candidate the notes the final release is meant to
+    # ship with, and there is no way back short of editing the file by hand.
+    if is_prerelease "$version"; then
+        return 0
+    fi
+
     local current_date
     current_date=$(date +%Y-%m-%d)
 
@@ -187,6 +267,26 @@ update_changelog() {
     # Use awk for cross-platform newline insertion
     awk -v new="$new_heading" '/^## Unreleased$/{print; print ""; print new; next}1' "$changelog_file" > "$changelog_file.tmp"
     mv "$changelog_file.tmp" "$changelog_file"
+}
+
+# The notes body for a version, wherever it is being rendered: a pre-release
+# reads `## Unreleased` (which it left in place), a release reads its own
+# heading. Shared so the dry-run preview and the real publish cannot drift.
+build_release_notes_body() {
+    local version="$1"
+    local changelog_file="$2"
+    local unreleased_content="${3:-}"
+
+    local notes
+    if is_prerelease "$version"; then
+        notes=$(format_release_notes "$unreleased_content")
+    else
+        notes=$(extract_release_notes "$version" "$changelog_file" 2>/dev/null || true)
+    fi
+
+    [[ -z "$notes" ]] && notes="Release v$version"
+
+    echo "$notes"
 }
 
 extract_release_notes() {
@@ -396,8 +496,7 @@ create_github_release() {
     local unreleased_content="${8:-}"
 
     local release_notes
-    release_notes=$(extract_release_notes "$version" "$changelog_file")
-    [[ -z "$release_notes" ]] && release_notes="Release v$version"
+    release_notes=$(build_release_notes_body "$version" "$changelog_file" "$unreleased_content")
 
     # Generate TL;DR if Claude is available and we have unreleased content
     local tldr=""
@@ -431,6 +530,10 @@ $contributors
 
     # Tag uses v prefix, title does not
     local gh_cmd="gh release create v$version --repo $REPO_NAME --title \"$title\" --notes-file -"
+    if is_prerelease "$version"; then
+        gh_cmd="$gh_cmd --prerelease"
+    fi
+
     if [[ "$skip_phar" -eq 0 ]] && [[ -f "$phar_output" ]]; then
         gh_cmd="$gh_cmd \"$phar_output\""
     fi
@@ -455,7 +558,10 @@ USAGE:
     release.sh [OPTIONS] [VERSION]
 
 ARGUMENTS:
-    VERSION         Semantic version number (e.g., 0.29.0)
+    VERSION         Semantic version number (e.g., 0.29.0), optionally with a
+                    pre-release suffix (e.g., 1.0.0-rc1). A pre-release leaves
+                    ## Unreleased in the changelog and is published to GitHub
+                    as a pre-release.
                     If omitted, auto-increments minor version from latest tag
 
 OPTIONS:

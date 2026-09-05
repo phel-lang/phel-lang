@@ -139,10 +139,14 @@ main() {
     # Validate version
     log "${BOLD}Validating version${NC}"
     if ! validate_semver "$NEW_VERSION"; then
-        log_err "Invalid version format: $NEW_VERSION (expected X.Y.Z)"
+        log_err "Invalid version format: $NEW_VERSION (expected X.Y.Z or X.Y.Z-rc1)"
         exit 1
     fi
-    log_ok "Version format valid: $NEW_VERSION"
+    if is_prerelease "$NEW_VERSION"; then
+        log_ok "Version format valid: $NEW_VERSION (pre-release)"
+    else
+        log_ok "Version format valid: $NEW_VERSION"
+    fi
 
     # Get current version
     local current_version
@@ -186,13 +190,18 @@ main() {
     update_version_finder "$NEW_VERSION" "$VERSION_FILE"
     update_changelog "$NEW_VERSION" "$CHANGELOG_FILE" "$current_version"
     update_agents_version "$NEW_VERSION" "$AGENTS_VERSION_FILE"
+    local changelog_note="Updated CHANGELOG.md"
+    if is_prerelease "$NEW_VERSION"; then
+        changelog_note="Left CHANGELOG.md untouched (pre-release keeps ## Unreleased)"
+    fi
+
     if [[ $DRY_RUN -eq 1 ]]; then
         log "[DRY-RUN] Updated VersionFinder.php to v$NEW_VERSION"
-        log "[DRY-RUN] Updated CHANGELOG.md"
+        log "[DRY-RUN] $changelog_note"
         log "[DRY-RUN] Updated resources/agents/VERSION to $NEW_VERSION"
     else
         log_ok "Updated VersionFinder.php"
-        log_ok "Updated CHANGELOG.md"
+        log_ok "$changelog_note"
         log_ok "Updated resources/agents/VERSION"
     fi
 
@@ -247,7 +256,11 @@ main() {
     if [[ $DRY_RUN -eq 1 ]]; then
         local title="$NEW_VERSION"
         [[ -n "$RELEASE_NAME" ]] && title="$NEW_VERSION - $RELEASE_NAME"
-        log "[DRY-RUN] Would: create GitHub release \"$title\" (tag: v$NEW_VERSION)"
+        if is_prerelease "$NEW_VERSION"; then
+            log "[DRY-RUN] Would: create GitHub pre-release \"$title\" (tag: v$NEW_VERSION)"
+        else
+            log "[DRY-RUN] Would: create GitHub release \"$title\" (tag: v$NEW_VERSION)"
+        fi
 
         # Generate TL;DR if Claude is available (using pre-captured unreleased_content)
         local tldr=""
@@ -257,7 +270,7 @@ main() {
         fi
 
         local notes
-        notes=$(extract_release_notes "$NEW_VERSION" "$CHANGELOG_FILE" 2>/dev/null || echo "Release v$NEW_VERSION")
+        notes=$(build_release_notes_body "$NEW_VERSION" "$CHANGELOG_FILE" "$unreleased_content")
         local contributors
         contributors=$(get_contributors "$current_version" "$REPO_ROOT")
 
