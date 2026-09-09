@@ -539,7 +539,7 @@ final class LexerTest extends TestCase
     public function test_var_quote_prefix_does_not_match_comment_rule(): void
     {
         // Regression: before the fix, `#'bar)` was eaten by the comment rule
-        // up to EOL, which broke `(var? #'bar)` with "Unterminated list (EOF)".
+        // up to EOL, which broke `(var? #'bar)` with an unterminated-list error.
         $tokens = $this->lex("(var? #'bar)");
 
         self::assertSame(Token::T_OPEN_PARENTHESIS, $tokens[0]->getType());
