@@ -16,6 +16,7 @@ use Phel\Shared\ScalarCoercion;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
+use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
 
 /**
@@ -60,6 +61,11 @@ HELP)
                 'expression',
                 InputArgument::OPTIONAL,
                 'The Phel expression to evaluate. Use "-" to read from stdin.',
+            )->addOption(
+                StackTraceOption::NAME,
+                null,
+                InputOption::VALUE_NONE,
+                StackTraceOption::DESCRIPTION,
             );
     }
 
@@ -79,7 +85,7 @@ HELP)
         try {
             $result = $this->getFactory()
                 ->createEvalExecutor()
-                ->execute($expression);
+                ->execute($expression, StackTraceOption::isEnabled($input));
         } finally {
             Phel::addDefinition(CompilerConstants::PHEL_CORE_NAMESPACE, ReplConstants::INTERACTIVE_MODE, false);
         }

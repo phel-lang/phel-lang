@@ -6,6 +6,7 @@ namespace PhelTest\Integration\Run\Command\Eval;
 
 use Phel\Phel;
 use Phel\Run\Infrastructure\Command\EvalCommand;
+use Phel\Run\Infrastructure\Command\StackTraceOption;
 use Phel\Run\Infrastructure\PhpStdinReader;
 use PhelTest\Integration\Run\Command\AbstractTestCommand;
 use PHPUnit\Framework\Attributes\DataProvider;
@@ -13,6 +14,8 @@ use Symfony\Component\Console\Input\InputInterface;
 
 final class EvalCommandTest extends AbstractTestCommand
 {
+    private const string THROWING_EXPRESSION = '(php/throw (php/new \RuntimeException "boom from eval"))';
+
     public static function setUpBeforeClass(): void
     {
         Phel::bootstrap(__DIR__);
@@ -138,15 +141,53 @@ final class EvalCommandTest extends AbstractTestCommand
         self::assertSame(0, $exitCode);
     }
 
+    public function test_runtime_error_collapses_internal_frames_and_names_the_flag(): void
+    {
+        $output = $this->captureEvalOutput(self::THROWING_EXPRESSION);
+
+        self::assertStringContainsString('boom from eval', $output);
+        self::assertMatchesRegularExpression(
+            '~\.\.\. \d+ internal frames? \(--stack-trace to show, full trace in \S*error\.log\)~',
+            $output,
+        );
+        self::assertStringNotContainsString('EvalCommand.php', $output);
+    }
+
+    public function test_stack_trace_option_prints_the_frames_the_default_collapses(): void
+    {
+        $output = $this->captureEvalOutput(self::THROWING_EXPRESSION, stackTrace: true);
+
+        self::assertStringContainsString('boom from eval', $output);
+        self::assertStringContainsString('EvalCommand.php', $output);
+        self::assertStringNotContainsString('internal frame', $output);
+    }
+
+    private function captureEvalOutput(string $expression, bool $stackTrace = false): string
+    {
+        ob_start();
+        $exitCode = $this->createEvalCommand()->run(
+            $this->stubInput($expression, $stackTrace),
+            $this->stubOutput(),
+        );
+        $output = ob_get_clean() ?: '';
+
+        self::assertSame(1, $exitCode, $output);
+
+        return $output;
+    }
+
     private function createEvalCommand(): EvalCommand
     {
         return new EvalCommand();
     }
 
-    private function stubInput(string $expression): InputInterface
+    private function stubInput(string $expression, bool $stackTrace = false): InputInterface
     {
         $input = $this->createStub(InputInterface::class);
         $input->method('getArgument')->willReturn($expression);
+        $input->method('getOption')->willReturnCallback(
+            static fn(string $name): bool => $name === StackTraceOption::NAME && $stackTrace,
+        );
 
         return $input;
     }

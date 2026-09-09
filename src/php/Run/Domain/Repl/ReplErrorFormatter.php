@@ -10,12 +10,10 @@ use Phel\Shared\Exceptions\ExceptionPrinterInterface;
 use Phel\Shared\Exceptions\Hint\ExceptionHintResolver;
 use Throwable;
 
-use function explode;
 use function implode;
-use function preg_match;
 use function preg_replace;
+use function rtrim;
 use function sprintf;
-use function str_contains;
 use function trim;
 
 use const PHP_EOL;
@@ -25,42 +23,26 @@ use const PHP_EOL;
  */
 final readonly class ReplErrorFormatter
 {
-    /**
-     * Stack-frame paths belonging to the compiler, runtime, build, and CLI
-     * infrastructure that are filtered out of REPL error traces to keep them
-     * user-focused. When adding a new compiler/framework module, append its
-     * path here so its frames stay hidden.
-     */
-    private const array INTERNAL_FRAME_PATHS = [
-        '/phel-lang/src/php/Compiler/',
-        '/phel-lang/src/php/Run/',
-        '/phel-lang/src/php/Build/',
-        '/phel-lang/src/php/Command/',
-        '/phel-lang/src/php/Console/',
-        '/vendor/symfony/console/',
-        '/phel-lang/bin/phel',
-    ];
-
     public function __construct(
         private ExceptionHintResolver $hintResolver,
         private ExceptionPrinterInterface $exceptionPrinter,
         private ColorStyleInterface $style,
     ) {}
 
-    public function format(Throwable $e): ReplFormattedError
+    public function format(Throwable $e, bool $showInternalFrames = false): ReplFormattedError
     {
         $cause = $this->unwrap($e);
 
         return new ReplFormattedError(
             $this->buildHeadline($cause),
             $this->hintResolver->hintFor($cause),
-            $this->filterTrace($this->exceptionPrinter->getStackTraceString($e)),
+            rtrim($this->exceptionPrinter->getUserFacingTraceString($cause, $showInternalFrames)),
         );
     }
 
-    public function render(Throwable $e): string
+    public function render(Throwable $e, bool $showInternalFrames = false): string
     {
-        $formatted = $this->format($e);
+        $formatted = $this->format($e, $showInternalFrames);
         $parts = [$formatted->headline];
 
         if ($formatted->hint !== null) {
@@ -105,87 +87,6 @@ final readonly class ReplErrorFormatter
         );
 
         return trim($cleaned ?? $message);
-    }
-
-    private function filterTrace(string $trace): string
-    {
-        $lines = explode(PHP_EOL, $trace);
-        $kept = [];
-        $dropped = 0;
-        $sawFrame = false;
-        $keepingCurrentFrame = false;
-
-        foreach ($lines as $line) {
-            $isFrame = preg_match('/^#\d+\s/', $line) === 1;
-
-            if (!$sawFrame && !$isFrame) {
-                continue;
-            }
-
-            if ($isFrame) {
-                $sawFrame = true;
-
-                if ($this->isInternalFrame($line)) {
-                    ++$dropped;
-                    $keepingCurrentFrame = false;
-                    continue;
-                }
-
-                $keepingCurrentFrame = true;
-                $kept[] = $this->compactPhelFrame($line);
-                continue;
-            }
-
-            if ($keepingCurrentFrame) {
-                $kept[] = $line;
-            }
-        }
-
-        if ($dropped > 0) {
-            $kept[] = sprintf('  ... %d internal frame%s hidden', $dropped, $dropped === 1 ? '' : 's');
-        }
-
-        return implode(PHP_EOL, $kept);
-    }
-
-    private function isInternalFrame(string $line): bool
-    {
-        // Phel fn frames are rendered as `#N <file>:<line> (gen: <php-file>:<line>) : (...)`.
-        // The generated-code path often points into the compiler (eval'd code),
-        // so they must never be classified as internal.
-        if ($this->isPhelFrame($line)) {
-            return false;
-        }
-
-        return array_any(self::INTERNAL_FRAME_PATHS, static fn(string $needle): bool => str_contains($line, $needle));
-    }
-
-    private function isPhelFrame(string $line): bool
-    {
-        return str_contains($line, ' (gen: ');
-    }
-
-    /**
-     * Strips the generated-code location from a Phel fn frame. Fns defined at
-     * the REPL prompt live in eval'd code with no stable source file, so their
-     * location is replaced by `repl`; fns loaded from files keep their mapped
-     * `.phel` location.
-     */
-    private function compactPhelFrame(string $line): string
-    {
-        if (!$this->isPhelFrame($line)) {
-            return $line;
-        }
-
-        if (str_contains($line, "eval()'d code")) {
-            $compacted = preg_replace('/^#(\d+) .* : (\(.*\))$/', '#$1 repl : $2', $line);
-
-            return $compacted ?? $line;
-        }
-
-        $compacted = preg_replace('/ \(gen: .*\) : \(/', ' : (', $line);
-
-        return $compacted ?? $line;
     }
 
     private function shortClassName(string $fqcn): string

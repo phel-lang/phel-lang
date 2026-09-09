@@ -20,14 +20,10 @@ use const PHP_EOL;
  */
 trait ReplOutputTrait
 {
-    public function writeStackTrace(Throwable $e): void
+    public function writeReplError(Throwable $e, bool $showInternalFrames = false): void
     {
-        $this->writeln($this->commandFacade->getStackTraceString($e));
-    }
-
-    public function writeReplError(Throwable $e): void
-    {
-        $this->writeln($this->errorFormatter->render($e));
+        $this->writeln($this->errorFormatter->render($e, $showInternalFrames));
+        $this->commandFacade->logStackTrace($e);
     }
 
     public function writeLocatedException(AbstractLocatedException $e, CodeSnippet $codeSnippet): void

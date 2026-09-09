@@ -21,6 +21,7 @@ use Throwable;
 
 use function is_string;
 use function sprintf;
+use function str_contains;
 use function strlen;
 
 use const PHP_EOL;
@@ -41,6 +42,7 @@ final readonly class TextExceptionPrinter implements ExceptionPrinterInterface
         private MungeInterface $munge,
         private FilePositionExtractorInterface $filePositionExtractor,
         private ErrorLogInterface $errorLog,
+        private string $collapsedTraceHint,
     ) {}
 
     /**
@@ -132,15 +134,24 @@ final readonly class TextExceptionPrinter implements ExceptionPrinterInterface
     }
 
     /**
-     * Renders only the frames that originate in Phel code, each mapped back to
-     * its `.phel` source location. Runs of PHP-native frames (vendor, runtime
-     * internals) are collapsed into a dimmed `... N internal frame(s)` marker;
-     * the full unfiltered trace is always available in the error log.
+     * The one trace filter behind `phel run`, `phel eval` and the REPL.
+     *
+     * By default only the frames that originate in Phel code are rendered,
+     * each mapped back to its `.phel` source location, and runs of PHP-native
+     * frames (vendor, runtime internals) are collapsed into a
+     * `... N internal frames` marker that names the way out. With
+     * `$showInternalFrames` every frame is rendered, which is what
+     * `--stack-trace` asks for.
      */
-    public function getUserFacingTraceString(Throwable $e): string
+    public function getUserFacingTraceString(Throwable $e, bool $showInternalFrames = false): string
     {
+        if ($showInternalFrames) {
+            return $this->renderTrace($e);
+        }
+
         $str = '';
         $hidden = 0;
+        $hintShown = false;
 
         foreach ($e->getTrace() as $i => $frame) {
             $fnName = $this->phelFnName($frame['class'] ?? null);
@@ -150,26 +161,51 @@ final readonly class TextExceptionPrinter implements ExceptionPrinterInterface
                 continue;
             }
 
-            $str .= $this->hiddenFramesMarker($hidden);
+            $str .= $this->hiddenFramesMarker($hidden, $hintShown);
+            $hintShown = $hintShown || $hidden > 0;
             $hidden = 0;
 
             $file = $frame['file'] ?? 'unknown_file';
             $line = $frame['line'] ?? 0;
             $argString = $this->exceptionArgsPrinter->parseArgsAsString($frame['args'] ?? []);
-            $pos = $this->filePositionExtractor->getOriginal($file, $line);
-            $str .= sprintf('#%d %s:%d : (%s%s)', $i, $pos->filename(), $pos->line(), $fnName, $argString) . PHP_EOL;
+            $str .= sprintf('#%d %s : (%s%s)', $i, $this->frameLocation($file, $line), $fnName, $argString) . PHP_EOL;
         }
 
-        return $str . $this->hiddenFramesMarker($hidden);
+        return $str . $this->hiddenFramesMarker($hidden, $hintShown);
     }
 
-    private function hiddenFramesMarker(int $hidden): string
+    /**
+     * Fns defined at the REPL prompt or by `phel eval` live in eval'd code with
+     * no stable source file, so their location reads `repl` rather than the
+     * evaluator's own path.
+     */
+    private function frameLocation(string $file, int $line): string
+    {
+        $pos = $this->filePositionExtractor->getOriginal($file, $line);
+
+        if (str_contains($pos->filename(), "eval()'d code")) {
+            return 'repl';
+        }
+
+        return sprintf('%s:%d', $pos->filename(), $pos->line());
+    }
+
+    /**
+     * The hint rides on the first marker only: a trace with several collapsed
+     * runs would otherwise repeat the same sentence on every one of them.
+     */
+    private function hiddenFramesMarker(int $hidden, bool $hintShown): string
     {
         if ($hidden === 0) {
             return '';
         }
 
-        return sprintf('   ... %d internal frame%s', $hidden, $hidden === 1 ? '' : 's') . PHP_EOL;
+        $marker = sprintf('   ... %d internal frame%s', $hidden, $hidden === 1 ? '' : 's');
+        if (!$hintShown && $this->collapsedTraceHint !== '') {
+            $marker .= sprintf(' (%s)', $this->collapsedTraceHint);
+        }
+
+        return $marker . PHP_EOL;
     }
 
     /**

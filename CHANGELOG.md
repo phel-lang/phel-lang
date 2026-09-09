@@ -4,6 +4,10 @@ All notable changes to this project will be documented in this file.
 
 ## Unreleased
 
+### Added
+
+- `--stack-trace` on `phel run`, `phel eval` and `phel repl`, and a collapse marker that names both the flag and the error log holding the full trace. (#3261)
+
 ### Fixed
 
 - REPL: `(exit)` and `(quit)` end the session like `exit` and `quit`, `(exit <code>)` sets the exit status, and the banner names the call form. (#3272)

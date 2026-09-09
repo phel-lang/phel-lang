@@ -14,7 +14,7 @@ use Throwable;
  */
 interface CommandExceptionWriterInterface
 {
-    public function writeStackTrace(OutputInterface $output, Throwable $e): void;
+    public function writeStackTrace(OutputInterface $output, Throwable $e, bool $showInternalFrames = false): void;
 
     public function writeLocatedException(
         OutputInterface $output,
@@ -25,4 +25,6 @@ interface CommandExceptionWriterInterface
     public function getExceptionString(AbstractLocatedException $e, CodeSnippet $codeSnippet): string;
 
     public function getStackTraceString(Throwable $e): string;
+
+    public function logStackTrace(Throwable $e): void;
 }

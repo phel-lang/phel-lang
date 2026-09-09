@@ -22,11 +22,17 @@ interface CommandFacadeInterface
         CodeSnippet $snippet,
     ): void;
 
-    public function writeStackTrace(OutputInterface $output, Throwable $e): void;
+    public function writeStackTrace(OutputInterface $output, Throwable $e, bool $showInternalFrames = false): void;
 
     public function getExceptionString(AbstractLocatedException $e, CodeSnippet $codeSnippet): string;
 
     public function getStackTraceString(Throwable $e): string;
+
+    /**
+     * Appends the full, unfiltered trace to the error log the collapsed-trace
+     * marker points at.
+     */
+    public function logStackTrace(Throwable $e): void;
 
     public function getExceptionPrinter(): ExceptionPrinterInterface;
 

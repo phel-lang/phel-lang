@@ -235,6 +235,42 @@ final class CommandExceptionWriterTest extends TestCase
         self::assertStringContainsString('... 4 internal frames', $text);
     }
 
+    public function test_stack_trace_flag_reaches_the_shared_filter(): void
+    {
+        $extractor = $this->createStub(FilePositionExtractorInterface::class);
+        $extractor->method('getOriginal')->willReturn(new FilePosition('/proj/src/main.phel', 3));
+
+        $printer = $this->createMock(ExceptionPrinterInterface::class);
+        $printer->expects(self::once())
+            ->method('getUserFacingTraceString')
+            ->with(self::anything(), true)
+            ->willReturn("#0 /vendor/symfony/console/Command.php(284): run()\n");
+
+        $writer = $this->createWriter($extractor, $printer);
+
+        $output = new BufferedOutput();
+        $writer->writeStackTrace($output, $this->errorAt('boom', '/proj/src/main.phel', 3), showInternalFrames: true);
+
+        self::assertStringContainsString('#0 /vendor/symfony/console/Command.php(284)', $output->fetch());
+    }
+
+    public function test_logs_the_full_trace_even_when_nothing_is_written_to_the_console(): void
+    {
+        $printer = $this->createStub(ExceptionPrinterInterface::class);
+        $printer->method('getStackTraceString')->willReturn('FULL TRACE');
+
+        $errorLog = $this->createMock(ErrorLogInterface::class);
+        $errorLog->expects(self::once())->method('writeln')->with('FULL TRACE');
+
+        $writer = $this->createWriter(
+            $this->createStub(FilePositionExtractorInterface::class),
+            $printer,
+            errorLog: $errorLog,
+        );
+
+        $writer->logStackTrace(new RuntimeException('boom'));
+    }
+
     public function test_located_exception_emits_hint_for_unresolved_symbol(): void
     {
         $printer = $this->createStub(ExceptionPrinterInterface::class);
@@ -288,10 +324,11 @@ final class CommandExceptionWriterTest extends TestCase
         FilePositionExtractorInterface $filePositionExtractor,
         ?ExceptionPrinterInterface $exceptionPrinter = null,
         ?ExceptionHintResolver $hintResolver = null,
+        ?ErrorLogInterface $errorLog = null,
     ): CommandExceptionWriter {
         return new CommandExceptionWriter(
             $exceptionPrinter ?? $this->createStub(ExceptionPrinterInterface::class),
-            $this->createStub(ErrorLogInterface::class),
+            $errorLog ?? $this->createStub(ErrorLogInterface::class),
             $filePositionExtractor,
             'stale compiled output? try `rm -rf out /var/state/cache` and rebuild.',
             $hintResolver ?? new ExceptionHintResolver([]),

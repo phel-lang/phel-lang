@@ -103,7 +103,7 @@ HELP)
                 TestCommandOptionParser::OPT_STACK_TRACE,
                 null,
                 InputOption::VALUE_NONE,
-                'Print the full PHP stack trace for each errored test.',
+                StackTraceOption::DESCRIPTION,
             )->addOption(
                 TestCommandOptionParser::OPT_REPORTER,
                 null,
@@ -369,7 +369,7 @@ HELP)
         } catch (CompilerException $e) {
             $this->getFacade()->writeLocatedException($output, $e);
         } catch (Throwable $e) {
-            $this->getFacade()->writeStackTrace($output, $e);
+            $this->getFacade()->writeStackTrace($output, $e, StackTraceOption::isEnabled($input));
         }
 
         return self::FAILURE;

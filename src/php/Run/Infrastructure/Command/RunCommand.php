@@ -69,6 +69,11 @@ HELP)
                 InputOption::VALUE_NONE,
                 'Clears OPCache before running',
             )->addOption(
+                StackTraceOption::NAME,
+                null,
+                InputOption::VALUE_NONE,
+                StackTraceOption::DESCRIPTION,
+            )->addOption(
                 'debug',
                 null,
                 InputOption::VALUE_OPTIONAL,
@@ -140,7 +145,7 @@ HELP)
         } catch (CompilerException $e) {
             $this->getFacade()->writeLocatedException($output, $e);
         } catch (Throwable $e) {
-            $this->getFacade()->writeStackTrace($output, $e);
+            $this->getFacade()->writeStackTrace($output, $e, StackTraceOption::isEnabled($input));
         } finally {
             $this->getFacade()->disableDebugLineTap();
         }
