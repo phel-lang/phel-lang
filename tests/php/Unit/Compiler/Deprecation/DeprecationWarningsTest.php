@@ -131,7 +131,7 @@ final class DeprecationWarningsTest extends TestCase
     {
         DeprecationWarnings::enable();
 
-        $spelled = __DIR__ . '/../Deprecation/' . basename(__FILE__);
+        $spelled = $this->thisFileSpelledIndirectly();
 
         self::assertSame(['first'], $this->capture(static function () use ($spelled): void {
             DeprecationWarnings::warnOnceForSource(__FILE__, 'dep\\main', 'first');
@@ -144,7 +144,7 @@ final class DeprecationWarningsTest extends TestCase
         // The same `ns` symbol reaches the analyzer twice, once from the
         // namespace scan and once from the compile, each naming the file its
         // own way (#3262).
-        $spelled = __DIR__ . '/../Deprecation/' . basename(__FILE__);
+        $spelled = $this->thisFileSpelledIndirectly();
 
         self::assertSame(['announced'], $this->capture(static function () use ($spelled): void {
             $build = static fn(): string => 'announced';
@@ -451,20 +451,14 @@ final class DeprecationWarningsTest extends TestCase
     {
         DeprecationWarnings::enable();
 
-        $previousLog = (string) ini_get('log_errors');
-        ini_set('log_errors', '0');
-
-        try {
-            self::assertSame('', $this->captureStdoutWithPhpDefaultHandler(
-                static function (): void {
-                    DeprecationWarnings::warn('silenced deprecation');
-                },
-                displayErrors: '0',
-            ));
-        } finally {
-            ini_set('log_errors', $previousLog);
-        }
-
+        // The helper already turns `log_errors` off, so with the display off
+        // too PHP has nowhere left to put this notice and neither has Phel.
+        self::assertSame('', $this->captureStdoutWithPhpDefaultHandler(
+            static function (): void {
+                DeprecationWarnings::warn('silenced deprecation');
+            },
+            displayErrors: '0',
+        ));
         self::assertSame('', $this->writtenToStderr());
     }
 
@@ -530,6 +524,15 @@ final class DeprecationWarningsTest extends TestCase
         }
 
         return $captured;
+    }
+
+    /**
+     * This file's path with a redundant hop through its own directory, so it
+     * is a different string that `realpath` resolves to the same file.
+     */
+    private function thisFileSpelledIndirectly(): string
+    {
+        return __DIR__ . '/../Deprecation/' . basename(__FILE__);
     }
 
     private function writtenToStderr(): string

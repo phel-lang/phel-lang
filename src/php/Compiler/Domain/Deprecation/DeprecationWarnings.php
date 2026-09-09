@@ -427,12 +427,14 @@ final class DeprecationWarnings
         }
 
         $frame = array_pop(self::$recording);
+        $alreadyRecorded = $dedupKey !== null && isset($frame['seen'][$dedupKey]);
 
-        if ($dedupKey === null) {
+        if (!$alreadyRecorded) {
             $frame['records'][] = ['message' => $message, 'announced' => $announced];
-        } elseif (!isset($frame['seen'][$dedupKey])) {
-            $frame['records'][] = ['message' => $message, 'announced' => $announced];
-            $frame['seen'][$dedupKey] = true;
+
+            if ($dedupKey !== null) {
+                $frame['seen'][$dedupKey] = true;
+            }
         }
 
         self::$recording[] = $frame;

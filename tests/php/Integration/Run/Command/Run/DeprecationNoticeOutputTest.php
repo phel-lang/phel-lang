@@ -50,7 +50,6 @@ final class DeprecationNoticeOutputTest extends TestCase
             . "use Phel\\Config\\PhelConfig;\n\n"
             . "return new PhelConfig()->withSrcDirs(['src'])->withVendorDir('');\n",
         );
-
     }
 
     protected function tearDown(): void
@@ -60,7 +59,7 @@ final class DeprecationNoticeOutputTest extends TestCase
 
     public function test_one_deprecated_separator_prints_one_notice_naming_the_users_file(): void
     {
-        $this->writeSource('main.phel', "(ns dep\\main)\n(println \"hi\")\n");
+        $this->writeSeparatorNs();
 
         [$exitCode, $stdout, $stderr] = $this->runPhel(['run', 'src/main.phel']);
 
@@ -77,10 +76,11 @@ final class DeprecationNoticeOutputTest extends TestCase
 
     public function test_the_notice_names_no_phel_internal_file_and_no_synthetic_source(): void
     {
-        $this->writeSource('main.phel', "(ns dep\\main)\n(println \"hi\")\n");
+        $this->writeSeparatorNs();
 
         [, , $stderr] = $this->runPhel(['run', 'src/main.phel']);
 
+        self::assertStringStartsWith('deprecated: ', trim($stderr));
         self::assertCount(1, explode("\n", trim($stderr)));
         self::assertStringNotContainsString('ErrorNotice.php', $stderr);
         self::assertStringNotContainsString('string:1', $stderr);
@@ -107,6 +107,11 @@ final class DeprecationNoticeOutputTest extends TestCase
         self::assertCount(1, explode("\n", trim($stderr)));
         self::assertStringStartsWith('deprecated: Using "php/new"', trim($stderr));
         self::assertStringContainsString('/src/superseded.phel:2:', $stderr);
+    }
+
+    private function writeSeparatorNs(): void
+    {
+        $this->writeSource('main.phel', "(ns dep\\main)\n(println \"hi\")\n");
     }
 
     private function writeSuperseded(): void

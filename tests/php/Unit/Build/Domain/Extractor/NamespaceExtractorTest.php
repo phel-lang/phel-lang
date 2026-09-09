@@ -30,6 +30,11 @@ final class NamespaceExtractorTest extends TestCase
         Phel::bootstrap(__DIR__);
     }
 
+    protected function tearDown(): void
+    {
+        $this->stopCapturingDeprecations();
+    }
+
     public function test_get_namespace_from_file(): void
     {
         $fileContent = '(ns get\\ns\\from\\file)';
@@ -312,7 +317,6 @@ final class NamespaceExtractorTest extends TestCase
         }
 
         $captured = $this->capturedDeprecations();
-        $this->stopCapturingDeprecations();
 
         self::assertCount(1, $captured);
         self::assertStringContainsString($filePath . ':1', $captured[0]);

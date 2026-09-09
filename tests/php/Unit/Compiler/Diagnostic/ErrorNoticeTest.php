@@ -86,15 +86,12 @@ final class ErrorNoticeTest extends TestCase
 
     public function test_stays_silent_when_error_reporting_masks_the_level(): void
     {
-        $previous = error_reporting(E_ALL & ~E_USER_DEPRECATED);
-
-        try {
-            $this->withPhpDefaultHandler(static function (): void {
+        $this->withPhpDefaultHandler(
+            static function (): void {
                 ErrorNotice::raise('a deprecation', E_USER_DEPRECATED);
-            }, widenErrorReporting: false);
-        } finally {
-            error_reporting($previous);
-        }
+            },
+            errorReporting: E_ALL & ~E_USER_DEPRECATED,
+        );
 
         self::assertSame('', $this->written());
     }
@@ -123,18 +120,16 @@ final class ErrorNoticeTest extends TestCase
      * set aside, and `error_reporting` widened because PHPUnit masks
      * `E_USER_DEPRECATED` out.
      */
-    private function withPhpDefaultHandler(callable $fn, bool $widenErrorReporting = true): void
+    private function withPhpDefaultHandler(callable $fn, int $errorReporting = E_ALL): void
     {
-        $previousReporting = $widenErrorReporting ? error_reporting(E_ALL) : null;
+        $previousReporting = error_reporting($errorReporting);
         set_error_handler(null);
 
         try {
             $fn();
         } finally {
             restore_error_handler();
-            if ($previousReporting !== null) {
-                error_reporting($previousReporting);
-            }
+            error_reporting($previousReporting);
         }
     }
 
