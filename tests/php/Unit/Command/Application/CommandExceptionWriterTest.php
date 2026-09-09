@@ -101,6 +101,9 @@ final class CommandExceptionWriterTest extends TestCase
 
         self::assertStringContainsString('at /proj/src/app/main.phel:2', $text);
         self::assertStringNotContainsString('sequences.phel', $text);
+        // A compiled path pairing the user's position with the core throw site
+        // would name the cache artifact here.
+        self::assertStringNotContainsString(self::CACHE_DIR, $text);
     }
 
     public function test_never_names_the_compiled_cache_in_user_facing_output(): void
