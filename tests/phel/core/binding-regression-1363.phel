@@ -7,7 +7,7 @@
 ;;   1. A `SliceGenerator::toIterable` type error when `(is (binding ...))` was
 ;;      expanded by the `is` macro. Should compile cleanly now that `is` routes
 ;;      known structured forms (including `binding`) through `assert-any`.
-;;   2. An "Unterminated list (BRACKETS)" reader error on a splicing reader
+;;   2. A mismatched-closer reader error on a splicing reader
 ;;      conditional whose `:default` branch contained nested brackets. Should
 ;;      parse cleanly because the selected branch wins and unselected branches
 ;;      are discarded.

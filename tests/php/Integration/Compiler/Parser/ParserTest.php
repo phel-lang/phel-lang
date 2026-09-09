@@ -504,21 +504,21 @@ final class ParserTest extends TestCase
     public function test_read_unbalanced_closed_paren(): void
     {
         $this->expectException(AbstractParserException::class);
-        $this->expectExceptionMessage('Unterminated list');
+        $this->expectExceptionMessage("Unexpected ')': there is no open form to close.");
         $this->parse(')');
     }
 
     public function test_read_unbalanced_open_paren(): void
     {
         $this->expectException(AbstractParserException::class);
-        $this->expectExceptionMessage('Unterminated list');
+        $this->expectExceptionMessage("Unterminated list starting at line 1. Did you forget a closing ')'?");
         $this->parse('(');
     }
 
     public function test_read_unbalanced_open_brace(): void
     {
         $this->expectException(AbstractParserException::class);
-        $this->expectExceptionMessage('Unterminated list');
+        $this->expectExceptionMessage("Unterminated map starting at line 1. Did you forget a closing '}'?");
         $this->parse('{');
     }
 
