@@ -6,6 +6,7 @@ namespace PhelTest\Unit\Command\Domain\Exceptions;
 
 use Generator;
 use Phel\Command\Domain\Exceptions\ExceptionArgsPrinter;
+use Phel\Shared\Printer\Printer;
 use Phel\Shared\Printer\PrinterInterface;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
@@ -26,6 +27,13 @@ final class ExceptionArgsPrinterTest extends TestCase
         $longArg = str_repeat('x', 250);
         $actual = $argsPrinter->parseArgsAsString([$longArg]);
         self::assertSame(' ' . str_repeat('x', 200) . '...', $actual);
+    }
+
+    public function test_parse_args_as_string_renders_a_host_object_as_one_arg(): void
+    {
+        $argsPrinter = new ExceptionArgsPrinter(Printer::readable());
+        $actual = $argsPrinter->parseArgsAsString([new stdClass(), 1]);
+        self::assertSame(' #<stdClass> 1', $actual);
     }
 
     #[DataProvider('providerBuildPhpArgsString')]
