@@ -95,6 +95,11 @@ final class BuildConfig extends AbstractConfig implements BuildConfigInterface
         );
     }
 
+    public function getOpcacheDir(): string
+    {
+        return PhelProjectDirectory::opcachePath($this->getAppRootDir());
+    }
+
     public function getNamespaceCacheFile(): string
     {
         return $this->getCacheDir() . '/namespace-cache.php';
