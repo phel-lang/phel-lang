@@ -6,6 +6,7 @@ All notable changes to this project will be documented in this file.
 
 ### Fixed
 
+- `phel test --parallel`: the parent warms every bundled namespace before dispatching, and a namespace is re-run on a fresh worker only when the worker itself failed, never for a compile error or a failing test. (#3271)
 - REPL: `(exit)` and `(quit)` end the session like `exit` and `quit`, `(exit <code>)` sets the exit status, and the banner names the call form. (#3272)
 - `phel test`: the `Form:` line of a failed assertion prints the asserted source form instead of repeating the evaluated value. (#3263)
 - Parser: an unterminated list, vector, map, set or string now names the line it was opened on, carries an error code, and puts the caret on the opening delimiter. (#3259)

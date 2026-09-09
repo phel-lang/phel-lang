@@ -60,6 +60,15 @@ final class LoadOrderResolver
     }
 
     /**
+     * Every work frame carries the bundled modules, so two workers reach
+     * them at the same time whatever the run requires.
+     */
+    public static function isBundled(string $ns): bool
+    {
+        return str_starts_with($ns, self::BUNDLED_NAMESPACE_PREFIX);
+    }
+
+    /**
      * @return list<LoadEntry>
      */
     public function loadOrderFor(NamespaceInformation $target): array
@@ -94,7 +103,7 @@ final class LoadOrderResolver
         $seen = [$root => true];
         $stack = [$root];
         foreach (array_keys($this->byNamespace) as $ns) {
-            if (str_starts_with($ns, self::BUNDLED_NAMESPACE_PREFIX)) {
+            if (self::isBundled($ns)) {
                 $seen[$ns] = true;
                 $stack[] = $ns;
             }

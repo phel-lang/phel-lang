@@ -263,8 +263,9 @@ HELP)
                 // The workers evaluate the leaves (the test files) themselves,
                 // each along the load order the parent ships in its frame.
                 // Only what two workers could compile at the same time, i.e.
-                // every namespace another one requires, is evaluated here
-                // first, so a cold cache is warmed once instead of raced (#3203).
+                // every namespace another one requires and every bundled
+                // module, is evaluated here first, so a cold cache is warmed
+                // once instead of raced (#3203).
                 [, $compileErrors] = $this->loadTestNamespaces(
                     SharedNamespaces::of($namespacesInformation),
                     $failFast,

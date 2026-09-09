@@ -35,7 +35,8 @@ final class FrameKey
     /** Whether the namespace's run was narrowed by a `^:focus` test. */
     public const string FOCUSED = 'focused';
 
-    public const string ERROR = 'error';
+    /** How the namespace ended in the worker; see {@see WorkerOutcome}. */
+    public const string OUTCOME = 'outcome';
 
     public const string COUNTS = 'counts';
 
