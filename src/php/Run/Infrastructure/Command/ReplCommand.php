@@ -54,6 +54,10 @@ final class ReplCommand extends Command
 
     private const string EXIT_REPL = 'exit';
 
+    // Matched here rather than defined in phel\core: the surface frozen by
+    // docs/spec/language-surface.md has no `exit`. `(exit 2)` exits with status 2.
+    private const string EXIT_PATTERN = '/^(?:exit|quit|\(\s*(?:exit|quit)(?:\s+(\d+))?\s*\))$/';
+
     private InputResult $previousResult;
 
     private readonly ReplCommandIoInterface $io;
@@ -118,7 +122,7 @@ HELP);
             sprintf('Welcome to the Phel Repl (%s)', $this->getFacade()->getVersion()),
         ));
 
-        $this->io->writeln('Type "exit" or press Ctrl-D to exit.');
+        $this->io->writeln('Type (exit) or press Ctrl-D to exit.');
 
         try {
             Phel::setupRuntimeArgs('repl', []);
@@ -132,9 +136,7 @@ HELP);
             $this->history = $history;
             $history->register();
 
-            $this->loopReadLineAndAnalyze();
-
-            return self::SUCCESS;
+            return $this->loopReadLineAndAnalyze();
         } catch (Throwable $throwable) {
             $this->io->writeStackTrace($throwable);
             return self::FAILURE;
@@ -164,14 +166,17 @@ HELP);
         $this->getFacade()->eval('(add-tap phel.repl/print-tap)', new CompileOptions());
     }
 
-    private function loopReadLineAndAnalyze(): void
+    private function loopReadLineAndAnalyze(): int
     {
+        $status = self::SUCCESS;
+
         while (true) {
             try {
                 $this->addLineFromPromptToBuffer();
                 $this->checkExitInputBuffer();
                 $this->analyzeInputBuffer();
-            } catch (ExitException) {
+            } catch (ExitException $exitException) {
+                $status = $exitException->status();
                 break;
             } catch (Throwable $e) {
                 $this->inputBuffer = [];
@@ -180,6 +185,8 @@ HELP);
         }
 
         $this->io->writeln($this->style->yellow('Bye!'));
+
+        return $status;
     }
 
     private function addLineFromPromptToBuffer(): void
@@ -217,10 +224,10 @@ HELP);
      */
     private function checkExitInputBuffer(): void
     {
-        $firstInput = $this->inputBuffer[0] ?? '';
+        $firstInput = trim($this->inputBuffer[0] ?? '');
 
-        if ($firstInput === self::EXIT_REPL) {
-            throw ExitException::fromRepl();
+        if (preg_match(self::EXIT_PATTERN, $firstInput, $matches) === 1) {
+            throw ExitException::fromRepl(isset($matches[1]) ? (int) $matches[1] : 0);
         }
     }
 
