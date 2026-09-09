@@ -72,9 +72,17 @@ final readonly class MutationReport
      * The same score over the mutants some test actually reaches: detected
      * over detected plus survived. Equal to {@see msi()} when no coverage
      * attribution ran.
+     *
+     * A run that reached nothing scores 0, not 100: no signal is not a
+     * perfect score, and `--min-covered-msi` must never pass on zero work
+     * (#3270).
      */
     public function coveredMsi(): float
     {
+        if ($this->reachedNothing()) {
+            return 0.0;
+        }
+
         return $this->percentage($this->detected(), $this->detected() + $this->count(MutantVerdict::Survived));
     }
 
@@ -100,6 +108,10 @@ final readonly class MutationReport
         $lines[] = $this->coverageDriver === ''
             ? 'Coverage: none (every mutant ran the whole suite)'
             : sprintf('Coverage: %s (each mutant ran only the tests that reach its definition)', $this->coverageDriver);
+
+        if ($this->coverageDriver !== '' && $this->reachedNothing()) {
+            $lines[] = sprintf('Warning: %s reached no mutant at all, so no test ran and nothing was measured.', $this->coverageDriver);
+        }
 
         $survived = $this->of(MutantVerdict::Survived);
         if ($survived !== []) {
@@ -166,6 +178,18 @@ final readonly class MutationReport
             ],
             JSON_THROW_ON_ERROR | JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES,
         ) . "\n";
+    }
+
+    /**
+     * Nothing detected, nothing survived, and at least one mutant went
+     * unreached. Mutants that failed to compile are ignored, so one `Error`
+     * among them does not hide the state.
+     */
+    private function reachedNothing(): bool
+    {
+        return $this->detected() === 0
+            && $this->count(MutantVerdict::Survived) === 0
+            && $this->count(MutantVerdict::NotCovered) > 0;
     }
 
     private function detected(): int

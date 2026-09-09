@@ -11,6 +11,7 @@ use Phel\Compiler\Domain\Analyzer\Ast\GlobalVarNode;
 use Phel\Compiler\Domain\Analyzer\Exceptions\DuplicateDefinitionException;
 use Phel\Lang\Collections\Map\PersistentMapInterface;
 use Phel\Lang\Keyword;
+use Phel\Lang\SourceLocation;
 use Phel\Lang\Symbol;
 use Phel\Shared\BuildConstants;
 use Phel\Shared\CompilerConstants;
@@ -27,6 +28,15 @@ final class GlobalEnvironment implements GlobalEnvironmentInterface
 
     /** @var array<string, array<string, bool>> */
     private array $definitions = [];
+
+    /**
+     * Where each definition was first seen, so a redefinition can name the
+     * site it collides with. Kept beside `definitions` rather than inside it:
+     * a symbol reaching `def` without a location still has to register.
+     *
+     * @var array<string, array<string, SourceLocation>>
+     */
+    private array $definitionLocations = [];
 
     /**
      * Compile-time metadata stash for definitions analyzed in the
@@ -133,10 +143,19 @@ final class GlobalEnvironment implements GlobalEnvironmentInterface
                 return;
             }
 
-            throw DuplicateDefinitionException::forSymbol($namespace, $name);
+            throw DuplicateDefinitionException::forSymbol(
+                $namespace,
+                $name,
+                $this->definitionLocations[$namespace][$name->getName()] ?? null,
+            );
         }
 
         $this->definitions[$namespace][$name->getName()] = true;
+
+        $startLocation = $name->getStartLocation();
+        if ($startLocation instanceof SourceLocation) {
+            $this->definitionLocations[$namespace][$name->getName()] = $startLocation;
+        }
     }
 
     /**

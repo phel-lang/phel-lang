@@ -7,7 +7,6 @@ namespace Phel\Compiler\Application;
 use Phel\Compiler\Domain\Analyzer\AnalyzerInterface;
 use Phel\Compiler\Domain\Analyzer\Ast\AbstractNode;
 use Phel\Compiler\Domain\Analyzer\Environment\NodeEnvironment;
-use Phel\Compiler\Domain\Analyzer\Exceptions\AnalyzerException;
 use Phel\Compiler\Domain\Compiler\EvalCompilerInterface;
 use Phel\Compiler\Domain\Emitter\StatementEmitterInterface;
 use Phel\Compiler\Domain\Evaluator\EvaluatorInterface;
@@ -20,6 +19,7 @@ use Phel\Compiler\Domain\Reader\Exceptions\ReaderException;
 use Phel\Compiler\Domain\Reader\ReaderInterface;
 use Phel\Lang\TypeInterface;
 use Phel\Shared\CompileOptions;
+use Phel\Shared\Exceptions\AbstractLocatedException;
 use Phel\Shared\Exceptions\CompiledCodeIsMalformedException;
 use Phel\Shared\Exceptions\CompilerException;
 use Phel\Shared\Exceptions\FileException;
@@ -101,8 +101,8 @@ final readonly class EvalCompiler implements EvalCompilerInterface
                 $readerResult->getAst(),
                 NodeEnvironment::empty()->withReturnContext(),
             );
-        } catch (AnalyzerException $analyzerException) {
-            throw new CompilerException($analyzerException, $readerResult->getCodeSnippet());
+        } catch (AbstractLocatedException $locatedException) {
+            throw new CompilerException($locatedException, $readerResult->getCodeSnippet());
         }
     }
 

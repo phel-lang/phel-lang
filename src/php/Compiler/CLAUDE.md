@@ -187,6 +187,10 @@ Process-wide singleton in `Domain/Analyzer/Environment/GlobalEnvironmentRegistry
 - `GlobalEnvironmentManager` (Application) and `GlobalEnvironmentSingleton` (Infrastructure) both read/write the same slot.
 - `GlobalEnvironmentSingleton` is retained as ABI shim; emitter writes literal `\Phel\Compiler\Infrastructure\GlobalEnvironmentSingleton::getInstance()` calls into generated PHP (baked into cached `.phel` files — see rename constraint above).
 
+### Duplicate-definition reporting
+
+`definitionLocations` remembers where each name was first defined, so `DuplicateDefinitionException` carries the redefinition's own location, `ErrorCode::DUPLICATE_DEFINITION` and a `first defined at …` note instead of welding the file and line into its message (#3267). It reaches the printer with the failing form's snippet because `CodeCompiler`/`EvalCompiler` wrap every `AbstractLocatedException` from analysis, not only `AnalyzerException` (which is `final`, so no analyzer error can inherit it).
+
 ## Namespace Encoding
 
 Owned by `Phel\Shared\Munge` (see `src/php/Shared/CLAUDE.md`). Two encoders at different boundaries:
