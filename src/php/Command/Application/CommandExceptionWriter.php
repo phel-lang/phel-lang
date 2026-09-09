@@ -112,8 +112,8 @@ final readonly class CommandExceptionWriter implements CommandExceptionWriterInt
     }
 
     /**
-     * Renders a user-facing error, mapping the compiled PHP file/line back to its
-     * original Phel source via the source map when available.
+     * Renders a user-facing error at its anchor frame, mapping the compiled PHP
+     * file/line back to its original Phel source via the source map when available.
      *
      * When the source map resolves to a different file, the original location is
      * shown alongside the compiled one. Otherwise only the raw location is shown,
