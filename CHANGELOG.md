@@ -7,6 +7,7 @@ All notable changes to this project will be documented in this file.
 ### Fixed
 
 - REPL: `(exit)` and `(quit)` end the session like `exit` and `quit`, `(exit <code>)` sets the exit status, and the banner names the call form. (#3272)
+- A compiler deprecation prints one stderr line naming the user's file, instead of four PHP-rendered lines naming an internal Phel class. (#3262)
 
 ## [0.51.0](https://github.com/phel-lang/phel-lang/compare/v0.50.0...v0.51.0) - 2026-09-05
 

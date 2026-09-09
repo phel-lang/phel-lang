@@ -57,7 +57,11 @@ final class DeprecationWarnings
      * the innermost frame; a nested compile (a dependency evaluated while a
      * macro expands) does not leak its notices into the outer source.
      *
-     * @var list<list<DeprecationRecord>>
+     * Each frame carries its own dedup table, separate from the process-wide
+     * `$seen`: what the user has already been told and what one compile found
+     * are different questions once a cache replays the second.
+     *
+     * @var list<array{records: list<DeprecationRecord>, seen: array<string, true>}>
      */
     private static array $recording = [];
 
@@ -87,7 +91,7 @@ final class DeprecationWarnings
      */
     public static function startRecording(): void
     {
-        self::$recording[] = [];
+        self::$recording[] = ['records' => [], 'seen' => []];
     }
 
     /**
@@ -97,7 +101,7 @@ final class DeprecationWarnings
     {
         $frame = array_pop(self::$recording);
 
-        return $frame ?? [];
+        return $frame['records'] ?? [];
     }
 
     /**
@@ -240,13 +244,7 @@ final class DeprecationWarnings
             return;
         }
 
-        $key = $sourceFile . '|' . $subject;
-        if (isset(self::$seen[$key])) {
-            return;
-        }
-
-        self::$seen[$key] = true;
-        self::emit($message, announced: false);
+        self::emit($message, announced: false, dedupKey: self::dedupKey($sourceFile, $subject));
     }
 
     /**
@@ -376,13 +374,23 @@ final class DeprecationWarnings
             return;
         }
 
-        $key = $sourceFile . '|' . $subject;
-        if (isset(self::$seen[$key])) {
-            return;
-        }
+        self::emit(
+            $buildMessage($sourceFile, $reportAt->getLine()) . self::expansionSuffix($location),
+            $announced,
+            self::dedupKey($sourceFile, $subject),
+        );
+    }
 
-        self::$seen[$key] = true;
-        self::emit($buildMessage($sourceFile, $reportAt->getLine()) . self::expansionSuffix($location), $announced);
+    /**
+     * The dedup identity of a notice. The path is canonicalised because one
+     * file reaches the analyzer under more than one spelling: the namespace
+     * scan names it as the user typed it and the compile names it absolute,
+     * and an uncanonicalised key reported the same symbol once per spelling
+     * (#3262).
+     */
+    private static function dedupKey(string $sourceFile, string $subject): string
+    {
+        return self::normalizePath($sourceFile) . '|' . $subject;
     }
 
     /**
@@ -390,18 +398,44 @@ final class DeprecationWarnings
      * rule for this kind says so: announced always, the rest only with the
      * flag on. Every gate above ends here, so recording and raising can
      * never disagree about what a notice is.
+     *
+     * A deduplicated notice is still recorded once for the compile that found
+     * it: the process has already told the user, but a warm run served from
+     * the cache has told them nothing yet (#3222).
      */
-    private static function emit(string $message, bool $announced): void
+    private static function emit(string $message, bool $announced, ?string $dedupKey = null): void
     {
-        if (self::$recording !== []) {
-            $frame = array_pop(self::$recording);
-            $frame[] = ['message' => $message, 'announced' => $announced];
-            self::$recording[] = $frame;
+        self::record($message, $announced, $dedupKey);
+
+        if ($dedupKey !== null) {
+            if (isset(self::$seen[$dedupKey])) {
+                return;
+            }
+
+            self::$seen[$dedupKey] = true;
         }
 
         if ($announced || self::isEnabled()) {
             self::raise($message);
         }
+    }
+
+    private static function record(string $message, bool $announced, ?string $dedupKey): void
+    {
+        if (self::$recording === []) {
+            return;
+        }
+
+        $frame = array_pop(self::$recording);
+
+        if ($dedupKey === null) {
+            $frame['records'][] = ['message' => $message, 'announced' => $announced];
+        } elseif (!isset($frame['seen'][$dedupKey])) {
+            $frame['records'][] = ['message' => $message, 'announced' => $announced];
+            $frame['seen'][$dedupKey] = true;
+        }
+
+        self::$recording[] = $frame;
     }
 
     private static function raise(string $message): void
