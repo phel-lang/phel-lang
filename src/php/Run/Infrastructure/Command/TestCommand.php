@@ -486,6 +486,16 @@ HELP)
         string $format,
         mixed $outputPath,
     ): void {
+        // pcov collects only under `pcov.directory`, which defaults to a directory
+        // of the project; Phel executes its compiled PHP from the system temp
+        // directory, so the default silently yields an empty report (#3270).
+        if ($report->files() === [] && $report->driverName() === CoverageDriver::PCOV) {
+            $output->writeln(
+                '<comment>pcov instruments only files under pcov.directory, and Phel runs its compiled '
+                . 'PHP from the system temp directory. Re-run with `php -d pcov.directory=/ ...` to collect it.</comment>',
+            );
+        }
+
         // "html:<dir>" carries the report directory in the format value itself.
         $colonPos = strpos($format, ':');
         $formatSuffix = $colonPos === false ? '' : substr($format, $colonPos + 1);

@@ -72,10 +72,19 @@ final readonly class MutationReport
      * The same score over the mutants some test actually reaches: detected
      * over detected plus survived. Equal to {@see msi()} when no coverage
      * attribution ran.
+     *
+     * A run that reached nothing scores 0, not 100: no signal is not a
+     * perfect score, and `--min-covered-msi` must never pass on zero work
+     * (#3270).
      */
     public function coveredMsi(): float
     {
-        return $this->percentage($this->detected(), $this->detected() + $this->count(MutantVerdict::Survived));
+        $scored = $this->detected() + $this->count(MutantVerdict::Survived);
+        if ($scored === 0) {
+            return $this->count(MutantVerdict::NotCovered) === 0 ? 100.0 : 0.0;
+        }
+
+        return $this->percentage($this->detected(), $scored);
     }
 
     public function meetsMinimum(?float $minMsi, ?float $minCoveredMsi = null): bool
@@ -100,6 +109,10 @@ final readonly class MutationReport
         $lines[] = $this->coverageDriver === ''
             ? 'Coverage: none (every mutant ran the whole suite)'
             : sprintf('Coverage: %s (each mutant ran only the tests that reach its definition)', $this->coverageDriver);
+
+        if ($this->reachedNothing()) {
+            $lines[] = sprintf('Warning: %s reached no mutant at all, so no test ran and nothing was measured.', $this->coverageDriver);
+        }
 
         $survived = $this->of(MutantVerdict::Survived);
         if ($survived !== []) {
@@ -166,6 +179,18 @@ final readonly class MutationReport
             ],
             JSON_THROW_ON_ERROR | JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES,
         ) . "\n";
+    }
+
+    /**
+     * A driver attributed tests to lines and still every mutant came back
+     * unreached: far more often a driver that cannot see the compiled code
+     * than a project with no tests at all.
+     */
+    private function reachedNothing(): bool
+    {
+        return $this->coverageDriver !== ''
+            && $this->total() > 0
+            && $this->count(MutantVerdict::NotCovered) === $this->total();
     }
 
     private function detected(): int

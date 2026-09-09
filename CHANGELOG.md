@@ -7,6 +7,7 @@ All notable changes to this project will be documented in this file.
 ### Fixed
 
 - REPL: `(exit)` and `(quit)` end the session like `exit` and `quit`, `(exit <code>)` sets the exit status, and the banner names the call form. (#3272)
+- `phel mutate` and `phel test --coverage` collect coverage under pcov instead of reporting nothing, and a run that reached no mutant scores 0 rather than passing `--min-covered-msi`. (#3270)
 
 ## [0.51.0](https://github.com/phel-lang/phel-lang/compare/v0.50.0...v0.51.0) - 2026-09-05
 
