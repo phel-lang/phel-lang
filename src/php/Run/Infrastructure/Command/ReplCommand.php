@@ -26,7 +26,6 @@ use Phel\Shared\Printer\PrinterInterface;
 use Phel\Shared\ReplConstants;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
-use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
 use Throwable;
 
@@ -112,13 +111,9 @@ Starts an interactive Phel REPL with history, completion, and *1/*2/*3/*e.
 
 <info>Example:</info>
   <comment>phel repl</comment>
-HELP)
-            ->addOption(
-                StackTraceOption::NAME,
-                null,
-                InputOption::VALUE_NONE,
-                StackTraceOption::DESCRIPTION,
-            );
+HELP);
+
+        StackTraceOption::addTo($this);
     }
 
     protected function execute(InputInterface $input, OutputInterface $output): int

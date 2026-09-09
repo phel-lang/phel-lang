@@ -23,6 +23,8 @@ trait ReplOutputTrait
     public function writeReplError(Throwable $e, bool $showInternalFrames = false): void
     {
         $this->writeln($this->errorFormatter->render($e, $showInternalFrames));
+        // The collapse marker points at the error log, so the REPL has to fill
+        // it the way `phel run` does; it never wrote there before.
         $this->commandFacade->logStackTrace($e);
     }
 

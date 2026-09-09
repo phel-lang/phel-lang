@@ -69,17 +69,14 @@ HELP)
                 InputOption::VALUE_NONE,
                 'Clears OPCache before running',
             )->addOption(
-                StackTraceOption::NAME,
-                null,
-                InputOption::VALUE_NONE,
-                StackTraceOption::DESCRIPTION,
-            )->addOption(
                 'debug',
                 null,
                 InputOption::VALUE_OPTIONAL,
                 'Enable line-by-line debug tracing to ./phel-debug.log (optional: Phel file filter using --debug="core")',
                 false,
             );
+
+        StackTraceOption::addTo($this);
     }
 
     protected function execute(InputInterface $input, OutputInterface $output): int

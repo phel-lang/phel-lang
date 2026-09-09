@@ -19,6 +19,13 @@ use function trim;
 use const PHP_EOL;
 
 /**
+ * Shapes the error report a user reads at the prompt: headline, hint, trace.
+ *
+ * The trace itself comes from {@see ExceptionPrinterInterface::getUserFacingTraceString()},
+ * the single filter `phel run` uses too. This class used to keep its own copy,
+ * a denylist of source paths that only matched a `vendor/phel-lang/phel-lang`
+ * layout and let every other checkout's compiler frames through.
+ *
  * @internal
  */
 final readonly class ReplErrorFormatter

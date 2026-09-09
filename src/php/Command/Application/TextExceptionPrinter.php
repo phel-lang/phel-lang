@@ -161,9 +161,10 @@ final readonly class TextExceptionPrinter implements ExceptionPrinterInterface
                 continue;
             }
 
-            $str .= $this->hiddenFramesMarker($hidden, $hintShown);
-            $hintShown = $hintShown || $hidden > 0;
+            $marker = $this->hiddenFramesMarker($hidden, $hintShown);
+            $hintShown = $hintShown || $marker !== '';
             $hidden = 0;
+            $str .= $marker;
 
             $file = $frame['file'] ?? 'unknown_file';
             $line = $frame['line'] ?? 0;
@@ -201,11 +202,10 @@ final readonly class TextExceptionPrinter implements ExceptionPrinterInterface
         }
 
         $marker = sprintf('   ... %d internal frame%s', $hidden, $hidden === 1 ? '' : 's');
-        if (!$hintShown && $this->collapsedTraceHint !== '') {
-            $marker .= sprintf(' (%s)', $this->collapsedTraceHint);
-        }
 
-        return $marker . PHP_EOL;
+        return $hintShown
+            ? $marker . PHP_EOL
+            : sprintf('%s (%s)', $marker, $this->collapsedTraceHint) . PHP_EOL;
     }
 
     /**

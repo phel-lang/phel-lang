@@ -149,6 +149,22 @@ MSG;
         self::assertStringNotContainsString('#0', $trace);
     }
 
+    public function test_a_frame_from_evaluated_code_reads_as_repl(): void
+    {
+        $exception = $this->throwFromNestedPhelFns();
+
+        $evaluatedCode = $this->createStub(FilePositionExtractorInterface::class);
+        $evaluatedCode->method('getOriginal')->willReturn(
+            new FilePosition("/repo/src/php/Compiler/Domain/Evaluator/InMemoryEvaluator.php(26) : eval()'d code", 30),
+        );
+
+        $trace = $this->createPrinter($this->stubMunge(), $evaluatedCode)
+            ->getUserFacingTraceString($exception);
+
+        self::assertStringContainsString('#0 repl : (app\\main\\inner', $trace);
+        self::assertStringNotContainsString('InMemoryEvaluator', $trace);
+    }
+
     /**
      * A trace shaped `Phel fn -> PHP native -> Phel fn -> test runner`, so it
      * carries two separate runs of collapsible frames.
@@ -165,9 +181,9 @@ MSG;
         };
 
         $outer = new readonly class($inner) implements FnInterface {
-            public function __construct(private FnInterface $inner) {}
-
             public const string BOUND_TO = 'app\\main\\outer';
+
+            public function __construct(private FnInterface $inner) {}
 
             public function __invoke(): array
             {
