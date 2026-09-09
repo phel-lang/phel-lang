@@ -1676,6 +1676,9 @@ interface Phel\Shared\BuildConstants
   public const string BUILD_MODE = '*build-mode*'
   public const string LOADING_DEPENDENCIES = '*loading-dependencies*'
 
+final class Phel\Shared\ByteSize
+  public static function format(int $bytes): string
+
 final class Phel\Shared\ColorStyle implements Phel\Shared\ColorStyleInterface
   public function blue(string $str): string
   public function color(string $str, ?string $color = null): string
@@ -2155,6 +2158,25 @@ final readonly class Phel\Shared\Performance\OpcacheAdvice
 final class Phel\Shared\Performance\OpcacheAdvisor
   public function advise(bool $opcacheLoaded, bool $enableCli, bool $fileCacheConfigured, ?string $iniTemplatePath = null): Phel\Shared\Performance\OpcacheAdvice
 
+final readonly class Phel\Shared\Performance\OpcacheFileCache
+  public const string BIN_SUFFIX = '.bin'
+  public function __construct(string $directory)
+  public function binPath(string $systemId, string $sourcePath): string
+  public function detectSystemId(string $compiledFile): string
+  public function entries(): array
+  public function exists(): bool
+  public function foreignEntries(string $systemId): array
+  public function path(): string
+  public function sizeInBytes(): int
+  public function sourcePathOfBin(string $systemId, string $binPath): string
+  public function subtreePath(string $systemId, string $sourcePath): string
+
+final readonly class Phel\Shared\Performance\OpcacheFileCachePruner
+  public function __construct(Phel\Shared\Performance\OpcacheFileCache $fileCache)
+  public function clearContents(): bool
+  public function pruneForeignSystemIds(string $currentSystemId): array
+  public function pruneOrphanedBins(string $systemId, string $sourceRoot): array
+
 final class Phel\Shared\Performance\OpcacheReexec
   public const string REEXEC_DONE_ENV = 'PHEL_OPCACHE_REEXEC_DONE'
   public static function decide(bool $opcacheLoaded, bool $fileCacheConfigured, bool $optedOut, bool $pcntlAvailable, string $fileCacheDir, bool $reexecAlreadyDone = false): Phel\Shared\Performance\OpcacheReexecDecision
@@ -2178,7 +2200,9 @@ final class Phel\Shared\PhelProjectDirectory
   public const string CACHE_DIR_ENV = 'PHEL_CACHE_DIR'
   public const string DIRECTORY_NAME = '.phel'
   public const string DIR_ENV = 'PHEL_DIR'
+  public const string OPCACHE_DIRECTORY_NAME = 'opcache'
   public static function ensure(string $projectRoot): string
+  public static function opcachePath(string $projectRoot): string
   public static function path(string $projectRoot, string $subpath = '', string $configuredDir = ''): string
   public static function resolve(string $projectRoot, string $configPath, string $configuredDir = ''): string
   public static function resolveCacheDir(string $projectRoot, string $configuredCacheDir, string $configuredDir = ''): string

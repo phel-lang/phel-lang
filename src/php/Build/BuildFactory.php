@@ -137,6 +137,7 @@ final class BuildFactory extends AbstractFactory
         return new CacheClearer(
             $this->getConfig()->getTempDir(),
             $this->getConfig()->getCacheDir(),
+            $this->getConfig()->getOpcacheDir(),
         );
     }
 

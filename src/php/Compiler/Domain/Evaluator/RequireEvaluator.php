@@ -10,7 +10,6 @@ use Phel\Filesystem\FilesystemFacadeInterface;
 use Phel\Shared\Exceptions\CompiledCodeIsMalformedException;
 use Phel\Shared\Exceptions\FileException;
 
-use function function_exists;
 use function md5;
 use function md5_file;
 use function sprintf;
@@ -112,7 +111,12 @@ final class RequireEvaluator implements EvaluatorInterface
     }
 
     /**
-     * Writes the PHP code to file, registers it, and compiles if possible.
+     * Writes the PHP code to file and registers it for cleanup.
+     *
+     * Nothing pre-compiles the file into OPcache: the caller `require`s it on
+     * the very next line, and the file is deleted at the end of the run, so a
+     * `.bin` for it could only ever become unreachable weight in the file
+     * cache (#3268).
      *
      * @throws FileException
      */
@@ -123,9 +127,5 @@ final class RequireEvaluator implements EvaluatorInterface
         }
 
         $this->filesystemFacade->addFile($filename);
-
-        if (function_exists('opcache_compile_file')) {
-            @opcache_compile_file($filename);
-        }
     }
 }
