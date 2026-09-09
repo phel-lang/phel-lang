@@ -18,6 +18,7 @@ All notable changes to this project will be documented in this file.
 - A compiler deprecation prints one stderr line naming the user's file, instead of four PHP-rendered lines naming an internal Phel class. (#3262)
 - `<phel-dir>/opcache` no longer grows without bound: `phel cache:clear` empties it, every run prunes dead system-id subtrees and orphaned `.bin` files, and `phel doctor` reports its size. (#3268)
 - `phel mutate` and `phel test --coverage` collect coverage under pcov instead of reporting nothing, and a run that reached no mutant scores 0 rather than passing `--min-covered-msi`. (#3270)
+- Analyzer: redefining a symbol now prints the snippet, the caret, the `PHEL004` code and the line where the symbol was first defined, instead of one line followed by 31 internal frames. (#3267)
 
 ## [0.51.0](https://github.com/phel-lang/phel-lang/compare/v0.50.0...v0.51.0) - 2026-09-05
 

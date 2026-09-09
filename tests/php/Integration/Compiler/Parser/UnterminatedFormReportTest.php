@@ -4,17 +4,12 @@ declare(strict_types=1);
 
 namespace PhelTest\Integration\Compiler\Parser;
 
-use Phel\Command\Application\TextExceptionPrinter;
-use Phel\Command\Domain\ErrorLogInterface;
-use Phel\Command\Domain\Exceptions\ExceptionArgsPrinterInterface;
-use Phel\Command\Domain\Exceptions\Extractor\FilePositionExtractorInterface;
 use Phel\Compiler\Application\Lexer;
 use Phel\Compiler\Application\Parser;
 use Phel\Compiler\Domain\Analyzer\Environment\GlobalEnvironment;
 use Phel\Compiler\Domain\Parser\Exceptions\AbstractParserException;
 use Phel\Compiler\Domain\Parser\ExpressionParserFactory;
-use Phel\Shared\ColorStyleInterface;
-use Phel\Shared\MungeInterface;
+use PhelTest\Support\RendersExceptionReportTrait;
 use PHPUnit\Framework\TestCase;
 
 /**
@@ -23,6 +18,8 @@ use PHPUnit\Framework\TestCase;
  */
 final class UnterminatedFormReportTest extends TestCase
 {
+    use RendersExceptionReportTrait;
+
     private const string SOURCE = 'broken.phel';
 
     public function test_a_missing_closing_paren_names_the_line_it_was_opened_on(): void
@@ -134,25 +131,9 @@ final class UnterminatedFormReportTest extends TestCase
         try {
             $parser->parseAll(new Lexer()->lexString($phelCode, self::SOURCE));
         } catch (AbstractParserException $parserException) {
-            return $this->exceptionPrinter()->getExceptionString($parserException, $parserException->getCodeSnippet());
+            return $this->exceptionReport($parserException, $parserException->getCodeSnippet());
         }
 
         self::fail('Expected the parser to reject: ' . $phelCode);
-    }
-
-    private function exceptionPrinter(): TextExceptionPrinter
-    {
-        $colorStyle = $this->createStub(ColorStyleInterface::class);
-        $colorStyle->method('blue')->willReturnCallback(static fn(string $msg): string => $msg);
-        $colorStyle->method('red')->willReturnCallback(static fn(string $msg): string => $msg);
-
-        return new TextExceptionPrinter(
-            $this->createStub(ExceptionArgsPrinterInterface::class),
-            $colorStyle,
-            $this->createStub(MungeInterface::class),
-            $this->createStub(FilePositionExtractorInterface::class),
-            $this->createStub(ErrorLogInterface::class),
-            '--stack-trace to show, full trace in .phel/error.log',
-        );
     }
 }
