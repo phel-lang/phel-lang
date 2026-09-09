@@ -14,9 +14,10 @@ use Symfony\Component\Console\Output\OutputInterface;
 use Throwable;
 
 /**
- * Delegates exception rendering to the {@see ExceptionPrinterInterface} and persists the
- * full stack trace via the {@see ErrorLogInterface}, unwrapping compiled PHP locations
- * back to the originating Phel source for user-facing errors.
+ * Where a command's error text goes: the runtime error report from the
+ * {@see RuntimeErrorReportFormatter} and the located-exception render from the
+ * {@see ExceptionPrinterInterface} to the console, the full stack trace to the
+ * {@see ErrorLogInterface}.
  *
  * @internal
  */

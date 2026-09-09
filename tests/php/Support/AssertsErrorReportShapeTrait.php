@@ -51,7 +51,14 @@ trait AssertsErrorReportShapeTrait
         $previousRank = 0;
 
         foreach ($lines as $index => $line) {
-            $section = $index === 0 ? 'message' : self::errorReportSection($line);
+            $section = self::errorReportSection($line);
+
+            // An exception message is free-form and may run over several
+            // lines, so everything above the `at` line belongs to it.
+            if ($section === null && $counts['at'] === 0) {
+                $section = 'message';
+            }
+
             Assert::assertNotNull($section, sprintf("Line %d belongs to no section:\n%s\n\n%s", $index, $line, $report));
 
             $rank = (int) array_search($section, self::ERROR_REPORT_ORDER, true);
@@ -65,6 +72,7 @@ trait AssertsErrorReportShapeTrait
             ++$counts[$section];
         }
 
+        Assert::assertGreaterThanOrEqual(1, $counts['message'], sprintf("The report opens on a message:\n\n%s", $report));
         Assert::assertSame(1, $counts['at'], sprintf("Exactly one `at` line is expected:\n\n%s", $report));
         Assert::assertLessThanOrEqual(1, $counts['data'], sprintf("At most one `data:` line is expected:\n\n%s", $report));
         Assert::assertLessThanOrEqual(

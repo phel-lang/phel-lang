@@ -8,6 +8,7 @@ use Phel\Command\Application\RuntimeErrorReportFormatter;
 use Phel\Command\Domain\Exceptions\Extractor\FilePositionExtractorInterface;
 use Phel\Command\Domain\Exceptions\Extractor\ReadModel\FilePosition;
 use Phel\Command\Domain\Exceptions\InternalPathDetector;
+use Phel\Compiler\Domain\Evaluator\Exceptions\EvaluatedCodeException;
 use Phel\Lang\ExceptionInfo;
 use Phel\Lang\Keyword;
 use Phel\Lang\TypeFactory;
@@ -138,6 +139,24 @@ final class RuntimeErrorReportFormatterTest extends TestCase
         self::assertStringNotContainsString('rm -rf out', $report);
     }
 
+    public function test_falls_back_to_the_throw_site_when_no_phel_frame_exists(): void
+    {
+        // Nothing in the trace belongs to the user, so the report keeps its `at`
+        // line rather than dropping a section, and names the only location it
+        // has. The stale-output hint stays off: Phel's own PHP is no rebuild.
+        $throwSite = self::PHEL_SRC_DIR . '/php/Lang/NumericCoercion.php';
+
+        $extractor = $this->createStub(FilePositionExtractorInterface::class);
+        $extractor->method('getOriginal')->willReturnCallback(
+            static fn(string $file, int $line): FilePosition => new FilePosition($file, $line),
+        );
+
+        $report = $this->createFormatter($extractor)->format($this->errorAt('boom', $throwSite, 40));
+
+        self::assertStringContainsString('at ' . $throwSite . ':40', $report);
+        self::assertStringNotContainsString('rm -rf out', $report);
+    }
+
     public function test_anchors_on_the_prompt_for_code_typed_at_the_repl(): void
     {
         // Nothing the user typed at the prompt has a file to open, so the `at`
@@ -170,6 +189,40 @@ final class RuntimeErrorReportFormatterTest extends TestCase
 
         self::assertStringContainsString('boom', $report);
         self::assertStringContainsString('data: {:user-id 42}', $report);
+    }
+
+    public function test_an_ex_info_carrying_a_cause_is_reported_over_its_cause(): void
+    {
+        // `(ex-info msg data cause)` fills the previous slot the compiled-code
+        // wrappers use, so unwrapping it reported the cause's message under the
+        // `ex-info`'s own data map.
+        $extractor = $this->createStub(FilePositionExtractorInterface::class);
+        $extractor->method('getOriginal')->willReturn(new FilePosition('/proj/src/app/main.phel', 2));
+
+        $data = TypeFactory::getInstance()->persistentMapFromKVs(Keyword::create('user-id'), 42);
+        $exInfo = new ExceptionInfo('charging failed', $data, new RuntimeException('connection reset'));
+
+        $report = $this->createFormatter($extractor)->format($exInfo);
+
+        self::assertStringStartsWith('charging failed', $report);
+        self::assertStringContainsString('data: {:user-id 42}', $report);
+        self::assertStringNotContainsString('connection reset', $report);
+    }
+
+    public function test_unwraps_an_evaluated_code_exception_so_the_wrapper_never_shows(): void
+    {
+        $extractor = $this->createStub(FilePositionExtractorInterface::class);
+        $extractor->method('getOriginal')->willReturn(new FilePosition('/proj/src/app/main.phel', 2));
+
+        $wrapped = EvaluatedCodeException::fromThrowableAndCompiledCode(
+            new RuntimeException('boom from the prompt'),
+            "// some.phel\n",
+        );
+
+        $report = $this->createFormatter($extractor)->format($wrapped);
+
+        self::assertStringStartsWith('boom from the prompt', $report);
+        self::assertStringNotContainsString('EvaluatedCodeException', $report);
     }
 
     public function test_omits_the_data_line_for_an_ex_info_without_data(): void

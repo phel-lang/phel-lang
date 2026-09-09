@@ -29,13 +29,13 @@ final class CommandExceptionWriterTest extends TestCase
         $printer->method('getUserFacingTraceString')
             ->willReturn("#0 /proj/src/main.phel:6 : (app\\main\\level3 1)\n");
 
-        $writer = $this->createWriter($printer);
-        $error = $this->errorAt('boom', '/proj/src/main.phel', 3);
-
         $output = new BufferedOutput();
-        $writer->writeStackTrace($output, $error);
+        $this->createWriter($printer)->writeStackTrace($output, $this->errorAt('boom', '/proj/src/main.phel', 3));
 
-        self::assertSame($writer->getRuntimeErrorReport($error) . PHP_EOL, $output->fetch());
+        self::assertSame(
+            "boom\n  at /proj/src/main.phel:3\n#0 /proj/src/main.phel:6 : (app\\main\\level3 1)\n",
+            $output->fetch(),
+        );
     }
 
     public function test_stack_trace_flag_reaches_the_report(): void

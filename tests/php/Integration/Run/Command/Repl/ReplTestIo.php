@@ -44,6 +44,12 @@ final class ReplTestIo implements ReplCommandIoInterface
 
     private readonly CommandFacadeInterface $commandFacade;
 
+    /**
+     * @param ExceptionPrinterInterface $exceptionPrinter renders located
+     *                                                    exceptions; the caller passes a no-color one, which the
+     *                                                    `.test` transcripts depend on. Runtime errors go through
+     *                                                    the facade below instead, and are plain text already.
+     */
     public function __construct(
         private readonly ExceptionPrinterInterface $exceptionPrinter,
     ) {

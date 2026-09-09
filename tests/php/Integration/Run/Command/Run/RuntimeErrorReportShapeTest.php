@@ -4,15 +4,10 @@ declare(strict_types=1);
 
 namespace PhelTest\Integration\Run\Command\Run;
 
-use Phel\Run\Infrastructure\Command\RunCommand;
-use Phel\Run\Infrastructure\Command\StackTraceOption;
 use PhelTest\Integration\Run\Command\AbstractTestCommand;
 use PhelTest\Support\AssertsErrorReportShapeTrait;
 use PHPUnit\Framework\Attributes\DataProvider;
-use Symfony\Component\Console\Input\InputInterface;
 
-use function ob_get_clean;
-use function ob_start;
 use function preg_quote;
 
 /**
@@ -22,6 +17,7 @@ use function preg_quote;
 final class RuntimeErrorReportShapeTest extends AbstractTestCommand
 {
     use AssertsErrorReportShapeTrait;
+    use CapturesRunCommandOutputTrait;
 
     /**
      * @return iterable<string, array{0: string, 1: string}>
@@ -62,38 +58,5 @@ final class RuntimeErrorReportShapeTest extends AbstractTestCommand
         self::assertStringContainsString($message, $output);
         self::assertStringNotContainsString('internal frame', $output);
         self::assertErrorReportShape($output);
-    }
-
-    private function captureRunOutput(string $path, bool $stackTrace = false): string
-    {
-        ob_start();
-        $this->createRunCommand()->run(
-            $this->stubInput($path, $stackTrace),
-            $this->stubOutput(),
-        );
-
-        return ob_get_clean() ?: '';
-    }
-
-    private function createRunCommand(): RunCommand
-    {
-        return new RunCommand();
-    }
-
-    private function stubInput(string $path, bool $stackTrace): InputInterface
-    {
-        $input = $this->createStub(InputInterface::class);
-        $input->method('getArgument')->willReturnCallback(
-            static fn(string $name): string|array => match ($name) {
-                'path' => $path,
-                'argv' => [],
-                default => '',
-            },
-        );
-        $input->method('getOption')->willReturnCallback(
-            static fn(string $name): bool => $name === StackTraceOption::NAME && $stackTrace,
-        );
-
-        return $input;
     }
 }

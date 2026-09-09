@@ -56,7 +56,7 @@ final readonly class RuntimeErrorReportFormatter
 
     public function format(Throwable $e, bool $showInternalFrames = false): string
     {
-        $cause = $e->getPrevious() ?? $e;
+        $cause = $this->rootCause($e);
         $anchor = $this->anchorFrame($cause);
 
         $sections = [
@@ -80,6 +80,21 @@ final readonly class RuntimeErrorReportFormatter
         }
 
         return implode(PHP_EOL, $sections);
+    }
+
+    /**
+     * The exception the report is about. A compiled-code wrapper carries the
+     * real one in its previous slot, but `(ex-info msg data cause)` puts the
+     * cause there too, and unwrapping that one would report the cause under
+     * the `ex-info`'s own data map.
+     */
+    private function rootCause(Throwable $e): Throwable
+    {
+        if ($e instanceof ExceptionInfo) {
+            return $e;
+        }
+
+        return $e->getPrevious() ?? $e;
     }
 
     private function messageLine(Throwable $cause): string
