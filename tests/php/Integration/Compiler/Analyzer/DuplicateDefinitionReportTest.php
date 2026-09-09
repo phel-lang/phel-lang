@@ -4,15 +4,10 @@ declare(strict_types=1);
 
 namespace PhelTest\Integration\Compiler\Analyzer;
 
-use Phel\Command\Application\TextExceptionPrinter;
-use Phel\Command\Domain\ErrorLogInterface;
-use Phel\Command\Domain\Exceptions\ExceptionArgsPrinterInterface;
-use Phel\Command\Domain\Exceptions\Extractor\FilePositionExtractorInterface;
-use Phel\Shared\ColorStyleInterface;
 use Phel\Shared\CompileOptions;
 use Phel\Shared\Exceptions\CompilerException;
-use Phel\Shared\MungeInterface;
 use PhelTest\Integration\Compiler\AbstractCompilerRuntimeTestCase;
+use PhelTest\Support\RendersExceptionReportTrait;
 
 /**
  * Pins what a redefinition actually prints: the error code, the wording, the
@@ -20,6 +15,8 @@ use PhelTest\Integration\Compiler\AbstractCompilerRuntimeTestCase;
  */
 final class DuplicateDefinitionReportTest extends AbstractCompilerRuntimeTestCase
 {
+    use RendersExceptionReportTrait;
+
     private const string SOURCE = 'duplicate.phel';
 
     public function test_a_redefinition_names_the_code_the_caret_and_the_first_definition(): void
@@ -40,7 +37,7 @@ final class DuplicateDefinitionReportTest extends AbstractCompilerRuntimeTestCas
         self::assertSame($expected, $this->report($phelCode));
     }
 
-    public function test_a_redefinition_of_a_def_reports_the_def_name(): void
+    public function test_a_redefinition_of_a_def_underlines_the_whole_name(): void
     {
         $expected = <<<'REPORT'
             [PHEL004] Symbol 'answer' is already bound in namespace 'repro.c'
@@ -63,27 +60,12 @@ final class DuplicateDefinitionReportTest extends AbstractCompilerRuntimeTestCas
         try {
             $this->compilerFacade->compile($phelCode, new CompileOptions()->setSource(self::SOURCE));
         } catch (CompilerException $compilerException) {
-            return $this->exceptionPrinter()->getExceptionString(
+            return $this->exceptionReport(
                 $compilerException->getNestedException(),
                 $compilerException->getCodeSnippet(),
             );
         }
 
         self::fail('Expected the compiler to reject: ' . $phelCode);
-    }
-
-    private function exceptionPrinter(): TextExceptionPrinter
-    {
-        $colorStyle = $this->createStub(ColorStyleInterface::class);
-        $colorStyle->method('blue')->willReturnCallback(static fn(string $msg): string => $msg);
-        $colorStyle->method('red')->willReturnCallback(static fn(string $msg): string => $msg);
-
-        return new TextExceptionPrinter(
-            $this->createStub(ExceptionArgsPrinterInterface::class),
-            $colorStyle,
-            $this->createStub(MungeInterface::class),
-            $this->createStub(FilePositionExtractorInterface::class),
-            $this->createStub(ErrorLogInterface::class),
-        );
     }
 }

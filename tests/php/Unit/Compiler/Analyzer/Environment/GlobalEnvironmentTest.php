@@ -462,6 +462,7 @@ final class GlobalEnvironmentTest extends TestCase
         $env = new GlobalEnvironment();
         $firstDefinition = Symbol::create('x');
         $firstDefinition->setStartLocation(new SourceLocation(__FILE__, 1, 0));
+
         $redefinition = Symbol::create('x');
         $redefinition->setStartLocation(new SourceLocation(__FILE__, 7, 4));
         $redefinition->setEndLocation(new SourceLocation(__FILE__, 7, 5));

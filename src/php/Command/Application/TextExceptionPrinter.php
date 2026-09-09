@@ -51,6 +51,10 @@ final readonly class TextExceptionPrinter implements ExceptionPrinterInterface
      * by adding the snippet's first line. A caret pointer is appended only when the
      * error spans a single line and that line matches the one currently being
      * printed; multi-line errors are not underlined.
+     *
+     * An error carrying a related location (`first defined at …`) closes the report
+     * with it, below the snippet, because it names a second place in the source
+     * rather than the position the caret sits on.
      */
     public function getExceptionString(AbstractLocatedException $e, CodeSnippet $codeSnippet): string
     {

@@ -4,13 +4,14 @@ declare(strict_types=1);
 
 namespace PhelTest\Unit\Architecture;
 
+use Phel\Shared\Exceptions\AbstractLocatedException;
 use PHPUnit\Framework\TestCase;
 
 use function count;
 use function sprintf;
 
 /**
- * Only an {@see \Phel\Shared\Exceptions\AbstractLocatedException} reaches the
+ * Only an {@see AbstractLocatedException} reaches the
  * printer with a snippet, a caret and an error code. An analyzer error that
  * extends a plain exception instead prints one line and a wall of internal
  * frames, which is what #3267 fixed for a duplicate definition. The rest of
@@ -21,6 +22,8 @@ final class LocatedAnalyzerExceptionTest extends TestCase
     use ScansPhpSourcesTrait;
 
     private const string EXCEPTIONS_DIR = 'src/php/Compiler/Domain/Analyzer/Exceptions';
+
+    private const string EXCEPTIONS_NAMESPACE = 'Phel\\Compiler\\Domain\\Analyzer\\Exceptions\\';
 
     /**
      * Analyzer exceptions that are deliberately not located, with the reason.
@@ -35,12 +38,16 @@ final class LocatedAnalyzerExceptionTest extends TestCase
     {
         $unlocated = [];
 
-        foreach ($this->phpFilesIn(self::EXCEPTIONS_DIR) as $relative => $contents) {
+        foreach (array_keys($this->phpFilesIn(self::EXCEPTIONS_DIR)) as $relative) {
             if (isset(self::UNLOCATED[$relative])) {
                 continue;
             }
 
-            if (str_contains($contents, 'extends AbstractLocatedException')) {
+            $exceptionClass = self::EXCEPTIONS_NAMESPACE . str_replace(['/', '.php'], ['\\', ''], $relative);
+
+            // By class rather than by `extends` line, so an exception reaching
+            // the base through an intermediate one still counts as located.
+            if (is_subclass_of($exceptionClass, AbstractLocatedException::class)) {
                 continue;
             }
 
