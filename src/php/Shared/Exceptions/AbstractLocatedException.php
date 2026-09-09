@@ -12,6 +12,8 @@ abstract class AbstractLocatedException extends RuntimeException
 {
     private ?ErrorCode $errorCode = null;
 
+    private ?string $relatedLocationNote = null;
+
     public function __construct(
         string $message,
         private readonly ?SourceLocation $startLocation = null,
@@ -37,6 +39,16 @@ abstract class AbstractLocatedException extends RuntimeException
     }
 
     /**
+     * A second source position worth naming next to the error, already
+     * formatted for the reader (e.g. `first defined at foo.phel:2`). The
+     * printer renders it under the code snippet.
+     */
+    public function getRelatedLocationNote(): ?string
+    {
+        return $this->relatedLocationNote;
+    }
+
+    /**
      * Attaches a standardized error identifier to this exception. Subclasses
      * call this (typically from their constructor) to tag the located error
      * with its PHELxxx {@see ErrorCode} for reporting.
@@ -44,5 +56,10 @@ abstract class AbstractLocatedException extends RuntimeException
     protected function setErrorCode(ErrorCode $errorCode): void
     {
         $this->errorCode = $errorCode;
+    }
+
+    protected function setRelatedLocationNote(string $relatedLocationNote): void
+    {
+        $this->relatedLocationNote = $relatedLocationNote;
     }
 }

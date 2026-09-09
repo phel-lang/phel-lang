@@ -1762,9 +1762,11 @@ final readonly class Phel\Shared\Eval\StackFrame
 
 abstract class Phel\Shared\Exceptions\AbstractLocatedException extends RuntimeException
   protected function setErrorCode(Phel\Shared\Exceptions\ErrorCode $errorCode): void
+  protected function setRelatedLocationNote(string $relatedLocationNote): void
   public function __construct(string $message, ?Phel\Lang\SourceLocation $startLocation = null, ?Phel\Lang\SourceLocation $endLocation = null, ?Throwable $nestedException = null)
   public function getEndLocation(): ?Phel\Lang\SourceLocation
   public function getErrorCode(): ?Phel\Shared\Exceptions\ErrorCode
+  public function getRelatedLocationNote(): ?string
   public function getStartLocation(): ?Phel\Lang\SourceLocation
 
 final class Phel\Shared\Exceptions\CompiledCodeIsMalformedException extends RuntimeException
@@ -1778,7 +1780,7 @@ final class Phel\Shared\Exceptions\CompilerException extends RuntimeException
 enum Phel\Shared\Exceptions\ErrorCode: string
   case ARITY_ERROR = 'PHEL002'
   case BINDING_ERROR = 'PHEL008'
-  case DEF_NOT_ALLOWED = 'PHEL004'
+  case DUPLICATE_DEFINITION = 'PHEL004'
   case INLINE_EXPANSION_ERROR = 'PHEL006'
   case INTERFACE_ERROR = 'PHEL009'
   case INVALID_CHARACTER = 'PHEL300'

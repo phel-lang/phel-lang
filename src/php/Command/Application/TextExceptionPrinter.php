@@ -90,6 +90,11 @@ final readonly class TextExceptionPrinter implements ExceptionPrinterInterface
             $str .= $this->underliningErrorPointer($endLineLength, $errorStartLocation, $errorEndLocation);
         }
 
+        $relatedLocationNote = $e->getRelatedLocationNote();
+        if ($relatedLocationNote !== null) {
+            $str .= PHP_EOL . '  ' . $relatedLocationNote . PHP_EOL;
+        }
+
         return $str;
     }
 
