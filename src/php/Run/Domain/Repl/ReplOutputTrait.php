@@ -21,8 +21,7 @@ trait ReplOutputTrait
 {
     public function writeReplError(Throwable $e, bool $showInternalFrames = false): void
     {
-        // The very report `phel run` prints: the prompt used to shape its own,
-        // and the two never agreed on a single failure (#3264).
+        // The very report `phel run` prints, not a second one shaped here (#3264).
         $this->writeln($this->commandFacade->getRuntimeErrorReport($e, $showInternalFrames));
         // The collapse marker points at the error log, so the REPL has to fill
         // it the way `phel run` does; it never wrote there before.

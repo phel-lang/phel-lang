@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Phel\Command\Application;
 
+use Phel\Command\Domain\Exceptions\AnchorFrame;
 use Phel\Command\Domain\Exceptions\EvaluatedCodeLocation;
 use Phel\Command\Domain\Exceptions\Extractor\FilePositionExtractorInterface;
 use Phel\Command\Domain\Exceptions\Extractor\ReadModel\FilePosition;
@@ -104,26 +105,28 @@ final readonly class RuntimeErrorReportFormatter
      * internal artifact (the eval temp file, the compiled cache), which means
      * nothing to a Phel user. A persistent build artifact under `out/` still
      * names its compiled file, which is what diagnosing a stale build needs.
-     *
-     * @param array{FilePosition, string, int} $anchor
      */
-    private function anchorLine(array $anchor): string
+    private function anchorLine(AnchorFrame $anchor): string
     {
-        [$position, $file, $line] = $anchor;
-
-        if (EvaluatedCodeLocation::matches($position->filename())) {
+        if ($anchor->isReplInput()) {
             return '  at ' . EvaluatedCodeLocation::LABEL;
         }
 
-        if ($position->filename() === $file) {
-            return sprintf('  at %s:%d', $file, $line);
+        if (!$anchor->isMapped()) {
+            return sprintf('  at %s:%d', $anchor->compiledFile, $anchor->compiledLine);
         }
 
-        if ($this->internalPathDetector->isInternalArtifact($file)) {
-            return sprintf('  at %s:%d', $position->filename(), $position->line());
+        if ($this->internalPathDetector->isInternalArtifact($anchor->compiledFile)) {
+            return sprintf('  at %s:%d', $anchor->position->filename(), $anchor->position->line());
         }
 
-        return sprintf('  at %s:%d (compiled: %s:%d)', $position->filename(), $position->line(), $file, $line);
+        return sprintf(
+            '  at %s:%d (compiled: %s:%d)',
+            $anchor->position->filename(),
+            $anchor->position->line(),
+            $anchor->compiledFile,
+            $anchor->compiledLine,
+        );
     }
 
     /**
@@ -133,18 +136,15 @@ final readonly class RuntimeErrorReportFormatter
      * library names the caller rather than the core source, which is no place
      * for the user to act on (#3260). With no frame of the user's own, the
      * innermost Phel frame stands in, and the throw site is the last resort.
-     *
-     * @return array{FilePosition, string, int} the resolved position, plus the
-     *                                          compiled file and line it came from
      */
-    private function anchorFrame(Throwable $cause): array
+    private function anchorFrame(Throwable $cause): AnchorFrame
     {
         $file = $cause->getFile();
         $line = $cause->getLine();
         $position = $this->filePositionExtractor->getOriginal($file, $line);
 
         if (!$this->isInternalPosition($position)) {
-            return [$position, $file, $line];
+            return new AnchorFrame($position, $file, $line);
         }
 
         $innermostPhelFrame = null;
@@ -159,15 +159,15 @@ final readonly class RuntimeErrorReportFormatter
             $framePosition = $this->filePositionExtractor->getOriginal($frameFile, $frameLine);
 
             if ($this->isUserCode($framePosition)) {
-                return [$framePosition, $frameFile, $frameLine];
+                return new AnchorFrame($framePosition, $frameFile, $frameLine);
             }
 
-            if ($innermostPhelFrame === null && str_ends_with($framePosition->filename(), '.phel')) {
-                $innermostPhelFrame = [$framePosition, $frameFile, $frameLine];
+            if (!$innermostPhelFrame instanceof AnchorFrame && str_ends_with($framePosition->filename(), '.phel')) {
+                $innermostPhelFrame = new AnchorFrame($framePosition, $frameFile, $frameLine);
             }
         }
 
-        return $innermostPhelFrame ?? [$position, $file, $line];
+        return $innermostPhelFrame ?? new AnchorFrame($position, $file, $line);
     }
 
     /**
@@ -207,20 +207,17 @@ final readonly class RuntimeErrorReportFormatter
      * An actionable hint (undefined symbol, wrong arity, not callable, ...)
      * when one applies, and otherwise the stale-output recovery hint when the
      * report anchors on generated PHP with no Phel source left to map it back.
-     *
-     * @param array{FilePosition, string, int} $anchor
      */
-    private function hint(Throwable $e, array $anchor): ?string
+    private function hint(Throwable $e, AnchorFrame $anchor): ?string
     {
         $hint = $this->hintResolver->hintFor($e);
         if ($hint !== null) {
             return $hint;
         }
 
-        [$position, $file] = $anchor;
-        $isUnmappedGeneratedPhp = $position->filename() === $file
-            && str_ends_with($file, '.php')
-            && !$this->isInternalPosition($position);
+        $isUnmappedGeneratedPhp = !$anchor->isMapped()
+            && str_ends_with($anchor->compiledFile, '.php')
+            && !$this->isInternalPosition($anchor->position);
 
         return $isUnmappedGeneratedPhp ? $this->staleOutputHint : null;
     }

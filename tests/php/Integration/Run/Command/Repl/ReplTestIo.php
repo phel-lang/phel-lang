@@ -46,11 +46,10 @@ final class ReplTestIo implements ReplCommandIoInterface
 
     public function __construct(
         private readonly ExceptionPrinterInterface $exceptionPrinter,
-        ?CommandFacadeInterface $commandFacade = null,
     ) {
-        // The real facade, so the transcript carries the very report the user
+        // The real facade, so the transcript carries the very report a user
         // reads; only the error-log write of the production IO is left out.
-        $this->commandFacade = $commandFacade ?? new CommandFacade();
+        $this->commandFacade = new CommandFacade();
     }
 
     public function readHistory(): void {}

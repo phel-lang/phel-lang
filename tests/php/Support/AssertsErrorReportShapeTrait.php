@@ -41,6 +41,9 @@ trait AssertsErrorReportShapeTrait
     /** The order the sections are allowed to appear in. */
     private const array ERROR_REPORT_ORDER = ['message', 'at', 'data', 'frame', 'collapsed', 'hint'];
 
+    /** What every line a REPL session echoes back starts with. */
+    private const string REPL_PROMPT_PREFIX = 'user:';
+
     protected static function assertErrorReportShape(string $report): void
     {
         $lines = preg_split('~\R~', trim($report)) ?: [];
@@ -76,12 +79,12 @@ trait AssertsErrorReportShapeTrait
      * Cuts the report out of a REPL transcript, which wraps it in the prompt
      * lines the session echoes back.
      */
-    protected static function errorReportFromReplTranscript(string $transcript, string $promptPrefix = 'user:'): string
+    protected static function errorReportFromReplTranscript(string $transcript): string
     {
         $report = [];
 
         foreach (preg_split('~\R~', trim($transcript)) ?: [] as $line) {
-            if (!str_starts_with($line, $promptPrefix)) {
+            if (!str_starts_with($line, self::REPL_PROMPT_PREFIX)) {
                 $report[] = $line;
                 continue;
             }
