@@ -6,6 +6,7 @@ namespace PhelTest\Unit\Command\Application;
 
 use Phel\Command\Application\TextExceptionPrinter;
 use Phel\Command\Domain\ErrorLogInterface;
+use Phel\Command\Domain\Exceptions\ExceptionArgsPrinter;
 use Phel\Command\Domain\Exceptions\ExceptionArgsPrinterInterface;
 use Phel\Command\Domain\Exceptions\Extractor\FilePositionExtractorInterface;
 use Phel\Command\Domain\Exceptions\Extractor\ReadModel\FilePosition;
@@ -17,9 +18,13 @@ use Phel\Lang\SourceLocation;
 use Phel\Shared\ColorStyleInterface;
 use Phel\Shared\MungeInterface;
 use Phel\Shared\Parser\ReadModel\CodeSnippet;
+use Phel\Shared\Printer\Printer;
 use PHPUnit\Framework\TestCase;
 use RuntimeException;
+use stdClass;
 use TypeError;
+
+use function ini_get;
 
 final class TextExceptionPrinterTest extends TestCase
 {
@@ -101,6 +106,41 @@ MSG;
         self::assertStringContainsString('#0 /proj/src/main.phel:42 : (app\\main\\level3', $trace);
         self::assertMatchesRegularExpression('/\.\.\. \d+ internal frames?/', $trace);
         self::assertStringNotContainsString('PHPUnit', $trace);
+    }
+
+    public function test_user_facing_trace_renders_a_host_object_as_a_single_argument(): void
+    {
+        $fn = new class() implements FnInterface {
+            public const string BOUND_TO = 'app\\main\\print_joined';
+
+            public function __invoke(mixed $arg): never
+            {
+                throw new RuntimeException('boom');
+            }
+        };
+
+        $ignoreArgs = (string) ini_get('zend.exception_ignore_args');
+        // PHP records no trace arguments while this is on, and the arguments are what this test reads.
+        ini_set('zend.exception_ignore_args', '0');
+
+        try {
+            $fn(new stdClass());
+            self::fail('Expected exception');
+        } catch (RuntimeException $runtimeException) {
+            $exception = $runtimeException;
+        } finally {
+            ini_set('zend.exception_ignore_args', $ignoreArgs);
+        }
+
+        $exceptionPrinter = $this->createPrinter(
+            $this->stubMunge(),
+            $this->stubFilePositionExtractor(),
+            new ExceptionArgsPrinter(Printer::readable()),
+        );
+
+        $trace = $exceptionPrinter->getUserFacingTraceString($exception);
+
+        self::assertStringContainsString('#0 /proj/src/main.phel:42 : (app\\main\\print_joined #<stdClass>)', $trace);
     }
 
     public function test_collapse_marker_names_the_flag_and_the_log_once_per_trace(): void
@@ -218,9 +258,10 @@ MSG;
     private function createPrinter(
         ?MungeInterface $munge = null,
         ?FilePositionExtractorInterface $filePositionExtractor = null,
+        ?ExceptionArgsPrinterInterface $exceptionArgsPrinter = null,
     ): TextExceptionPrinter {
         return new TextExceptionPrinter(
-            $this->createStub(ExceptionArgsPrinterInterface::class),
+            $exceptionArgsPrinter ?? $this->createStub(ExceptionArgsPrinterInterface::class),
             $this->stubColorStyle(),
             $munge ?? $this->createStub(MungeInterface::class),
             $filePositionExtractor ?? $this->createStub(FilePositionExtractorInterface::class),
