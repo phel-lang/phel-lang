@@ -58,7 +58,7 @@ final class EvalCommandTest extends AbstractTestCommand
 
     public function test_eval_resolves_bare_stdclass(): void
     {
-        $this->expectOutputRegex('/Printer cannot print this type: .*stdClass/');
+        $this->expectOutputRegex('/#<.*stdClass>/');
 
         $exitCode = $this->createEvalCommand()->run(
             $this->stubInput('(new stdClass)'),
