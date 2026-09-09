@@ -3,7 +3,7 @@ user:1> (php/+ 1
 ....:3> 2
 ....:4>
 ....:5> ]
-Unterminated list (BRACKETS)
+[PHEL100] Expected ')' to close the list opened at line 1, found ']'.
 in string:5
 
 1| (php/+ 1

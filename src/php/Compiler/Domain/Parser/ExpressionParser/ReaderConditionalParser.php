@@ -8,6 +8,7 @@ use Phel\Compiler\Domain\Lexer\TokenStream;
 use Phel\Compiler\Domain\Parser\Exceptions\UnexpectedParserException;
 use Phel\Compiler\Domain\Parser\Exceptions\UnfinishedParserException;
 use Phel\Compiler\Domain\Parser\ParserInterface;
+use Phel\Shared\Exceptions\ErrorCode;
 use Phel\Shared\Parser\Node\CommentNode;
 use Phel\Shared\Parser\Node\KeywordNode;
 use Phel\Shared\Parser\Node\ListNode;
@@ -113,7 +114,12 @@ final readonly class ReaderConditionalParser
 
         // Consume the closing paren — throw if the stream is exhausted or missing ')'
         if (!$tokenStream->valid() || $tokenStream->current()->getType() !== Token::T_CLOSE_PARENTHESIS) {
-            throw UnfinishedParserException::forSnippet($tokenStream->getCodeSnippet(), $openToken, $unterminatedMessage);
+            throw UnfinishedParserException::forSnippet(
+                $tokenStream->getCodeSnippet(),
+                $openToken,
+                $unterminatedMessage,
+                ErrorCode::UNTERMINATED_LIST,
+            );
         }
 
         $tokenStream->next();
@@ -132,7 +138,11 @@ final readonly class ReaderConditionalParser
     private function readNonTriviaExpression(TokenStream $tokenStream): ?NodeInterface
     {
         while ($tokenStream->valid()) {
-            if ($tokenStream->current()->getType() === Token::T_CLOSE_PARENTHESIS) {
+            $tokenType = $tokenStream->current()->getType();
+
+            // End of file stops the scan here so `resolveBranch` can name the
+            // reader conditional; reading on would report the enclosing form.
+            if ($tokenType === Token::T_CLOSE_PARENTHESIS || $tokenType === Token::T_EOF) {
                 return null;
             }
 
