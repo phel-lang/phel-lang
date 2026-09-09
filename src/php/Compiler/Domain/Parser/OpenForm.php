@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace Phel\Compiler\Domain\Parser;
 
-use Phel\Lang\SourceLocation;
 use Phel\Shared\Exceptions\ErrorCode;
 use Phel\Shared\Parser\Node\Token;
 
@@ -60,11 +59,6 @@ final readonly class OpenForm
         return $this->openToken;
     }
 
-    public function getStartLocation(): SourceLocation
-    {
-        return $this->openToken->getStartLocation();
-    }
-
     public function getErrorCode(): ErrorCode
     {
         return self::ERROR_CODE_FOR_OPENER[$this->openToken->getType()] ?? ErrorCode::UNTERMINATED_LIST;
@@ -80,7 +74,7 @@ final readonly class OpenForm
         return sprintf(
             "Unterminated %s starting at line %d. Did you forget a closing '%s'?",
             $this->formName(),
-            $this->getStartLocation()->getLine(),
+            $this->line(),
             $this->getCloserText(),
         );
     }
@@ -91,7 +85,7 @@ final readonly class OpenForm
             "Expected '%s' to close the %s opened at line %d, found '%s'.",
             $this->getCloserText(),
             $this->formName(),
-            $this->getStartLocation()->getLine(),
+            $this->line(),
             $foundCloserText,
         );
     }
@@ -99,5 +93,10 @@ final readonly class OpenForm
     private function formName(): string
     {
         return self::FORM_NAME_FOR_OPENER[$this->openToken->getType()] ?? 'list';
+    }
+
+    private function line(): int
+    {
+        return $this->openToken->getStartLocation()->getLine();
     }
 }

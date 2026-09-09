@@ -48,6 +48,8 @@ use function str_starts_with;
  */
 final readonly class Parser implements ParserInterface
 {
+    private const string END_OF_FILE_MESSAGE = 'Unexpected end of file: a form was expected.';
+
     /** @var array<int, true> */
     private const array TOKENS_THAT_SHOULD_STREAM_NEXT = [
         Token::T_WHITESPACE => true,
@@ -215,7 +217,7 @@ final readonly class Parser implements ParserInterface
                 Token::T_SYMBOLIC_NUMBER => $this->parseSymbolicNumberNode($token),
                 Token::T_TAGGED_LITERAL => $this->parseTaggedLiteralNode($tokenStream, $token),
                 Token::T_EOF => throw $this->createEndOfFileException($tokenStream, $token),
-                default => throw $this->createUnexceptedParserException($tokenStream, $token, 'Unhandled syntax token: ' . $token->getCode()),
+                default => throw $this->createUnexpectedParserException($tokenStream, $token, 'Unhandled syntax token: ' . $token->getCode()),
             };
         }
 
@@ -227,19 +229,14 @@ final readonly class Parser implements ParserInterface
 
         if (!$openForm instanceof OpenForm) {
             throw new UnfinishedParserException(
-                'Unexpected end of input: a form was expected.',
+                self::END_OF_FILE_MESSAGE,
                 $snippet,
                 $snippet->getStartLocation(),
                 $snippet->getEndLocation(),
             );
         }
 
-        throw UnfinishedParserException::forSnippet(
-            $snippet,
-            $openForm->getOpenToken(),
-            $openForm->unterminatedMessage(),
-            $openForm->getErrorCode(),
-        );
+        throw $this->createUnterminatedFormException($tokenStream, $openForm);
     }
 
     private function shouldTokenStreamGoNext(int $tokenType): bool
@@ -262,7 +259,7 @@ final readonly class Parser implements ParserInterface
         // unclosed `"` falls through to it instead of failing to lex. No valid
         // Phel atom starts with a quote, which makes the leading `"` exact.
         if (str_starts_with($token->getCode(), '"')) {
-            throw $this->createUnexceptedParserException(
+            throw $this->createUnexpectedParserException(
                 $tokenStream,
                 $token,
                 sprintf(
@@ -276,7 +273,7 @@ final readonly class Parser implements ParserInterface
         try {
             return $this->atomParser->parse($token);
         } catch (KeywordParserException $keywordParserException) {
-            throw $this->createUnexceptedParserException(
+            throw $this->createUnexpectedParserException(
                 $tokenStream,
                 $token,
                 $keywordParserException->getMessage(),
@@ -350,7 +347,7 @@ final readonly class Parser implements ParserInterface
                 ->createStringParser()
                 ->parse($token);
         } catch (StringParserException $stringParserException) {
-            throw $this->createUnexceptedParserException(
+            throw $this->createUnexpectedParserException(
                 $tokenStream,
                 $token,
                 $stringParserException->getMessage(),
@@ -374,7 +371,7 @@ final readonly class Parser implements ParserInterface
             ->parse($token);
     }
 
-    private function createUnexceptedParserException(
+    private function createUnexpectedParserException(
         TokenStream $tokenStream,
         Token $currentToken,
         string $message,
@@ -400,7 +397,7 @@ final readonly class Parser implements ParserInterface
         $closerText = $closerToken->getCode();
 
         if (!$openForm instanceof OpenForm) {
-            return $this->createUnexceptedParserException(
+            return $this->createUnexpectedParserException(
                 $tokenStream,
                 $closerToken,
                 sprintf("Unexpected '%s': there is no open form to close.", $closerText),
@@ -411,7 +408,7 @@ final readonly class Parser implements ParserInterface
         // The closer matches the open form, so a reader prefix (`'`, `^`, `#_`,
         // `#tag`) swallowed it while still waiting for its own form.
         if ($openForm->getCloserText() === $closerText) {
-            return $this->createUnexceptedParserException(
+            return $this->createUnexpectedParserException(
                 $tokenStream,
                 $closerToken,
                 sprintf("Expected a form before '%s'.", $closerText),
@@ -419,7 +416,7 @@ final readonly class Parser implements ParserInterface
             );
         }
 
-        return $this->createUnexceptedParserException(
+        return $this->createUnexpectedParserException(
             $tokenStream,
             $closerToken,
             $openForm->mismatchedCloserMessage($closerText),
@@ -435,11 +432,16 @@ final readonly class Parser implements ParserInterface
             return UnfinishedParserException::forSnippet(
                 $tokenStream->getCodeSnippet(),
                 $eofToken,
-                'Unexpected end of file: a form was expected.',
+                self::END_OF_FILE_MESSAGE,
                 ErrorCode::UNEXPECTED_TOKEN,
             );
         }
 
+        return $this->createUnterminatedFormException($tokenStream, $openForm);
+    }
+
+    private function createUnterminatedFormException(TokenStream $tokenStream, OpenForm $openForm): UnfinishedParserException
+    {
         return UnfinishedParserException::forSnippet(
             $tokenStream->getCodeSnippet(),
             $openForm->getOpenToken(),
