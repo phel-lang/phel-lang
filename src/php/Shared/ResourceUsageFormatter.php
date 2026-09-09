@@ -13,12 +13,6 @@ use function sprintf;
 
 final class ResourceUsageFormatter
 {
-    private const array SIZES = [
-        'GB' => 1073741824,
-        'MB' => 1048576,
-        'KB' => 1024,
-    ];
-
     public function resourceUsageSinceStartOfRequest(): string
     {
         if (!isset($_SERVER['REQUEST_TIME_FLOAT'])) {
@@ -32,7 +26,7 @@ final class ResourceUsageFormatter
         return sprintf(
             'Time: %s, Memory: %s',
             $this->formatDuration($seconds),
-            $this->formatBytes(memory_get_peak_usage(true)),
+            ByteSize::format(memory_get_peak_usage(true)),
         );
     }
 
@@ -57,16 +51,5 @@ final class ResourceUsageFormatter
         }
 
         return $result;
-    }
-
-    private function formatBytes(int $bytes): string
-    {
-        foreach (self::SIZES as $unit => $value) {
-            if ($bytes >= $value) {
-                return sprintf('%.2f %s', $bytes / $value, $unit);
-            }
-        }
-
-        return $bytes . ' byte' . ($bytes !== 1 ? 's' : '');
     }
 }
