@@ -11,8 +11,23 @@ use RuntimeException;
  */
 final class ExitException extends RuntimeException
 {
-    public static function fromRepl(): self
+    private function __construct(
+        string $message,
+        private readonly int $status,
+    ) {
+        parent::__construct($message);
+    }
+
+    public static function fromRepl(int $status = 0): self
     {
-        return new self('Exit from REPL!');
+        return new self('Exit from REPL!', $status);
+    }
+
+    /**
+     * The status the process should leave with, so `(exit 2)` can mean 2.
+     */
+    public function status(): int
+    {
+        return $this->status;
     }
 }

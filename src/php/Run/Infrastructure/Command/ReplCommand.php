@@ -54,6 +54,21 @@ final class ReplCommand extends Command
 
     private const string EXIT_REPL = 'exit';
 
+    /**
+     * The forms that end the session.
+     *
+     * The banner tells the user to type `(exit)`, and a Lisp user reaches for
+     * the call form whatever the banner says, so both `exit`/`quit` and
+     * `(exit)`/`(quit)` are accepted. `(exit 2)` carries its argument out as
+     * the process status, which is the only thing the call form can do that
+     * the bare word cannot.
+     *
+     * This lives at the REPL command layer on purpose: `exit` is not a
+     * definition in `phel\core`, and `docs/spec/language-surface.md` freezes
+     * that surface for 1.x.
+     */
+    private const string EXIT_PATTERN = '/^(?:exit|quit|\(\s*(?:exit|quit)(?:\s+(\d+))?\s*\))$/';
+
     private InputResult $previousResult;
 
     private readonly ReplCommandIoInterface $io;
@@ -118,7 +133,7 @@ HELP);
             sprintf('Welcome to the Phel Repl (%s)', $this->getFacade()->getVersion()),
         ));
 
-        $this->io->writeln('Type "exit" or press Ctrl-D to exit.');
+        $this->io->writeln('Type (exit) or press Ctrl-D to exit.');
 
         try {
             Phel::setupRuntimeArgs('repl', []);
@@ -132,9 +147,9 @@ HELP);
             $this->history = $history;
             $history->register();
 
-            $this->loopReadLineAndAnalyze();
+            $status = $this->loopReadLineAndAnalyze();
 
-            return self::SUCCESS;
+            return $status;
         } catch (Throwable $throwable) {
             $this->io->writeStackTrace($throwable);
             return self::FAILURE;
@@ -164,14 +179,17 @@ HELP);
         $this->getFacade()->eval('(add-tap phel.repl/print-tap)', new CompileOptions());
     }
 
-    private function loopReadLineAndAnalyze(): void
+    private function loopReadLineAndAnalyze(): int
     {
+        $status = self::SUCCESS;
+
         while (true) {
             try {
                 $this->addLineFromPromptToBuffer();
                 $this->checkExitInputBuffer();
                 $this->analyzeInputBuffer();
-            } catch (ExitException) {
+            } catch (ExitException $exitException) {
+                $status = $exitException->status();
                 break;
             } catch (Throwable $e) {
                 $this->inputBuffer = [];
@@ -180,6 +198,8 @@ HELP);
         }
 
         $this->io->writeln($this->style->yellow('Bye!'));
+
+        return $status;
     }
 
     private function addLineFromPromptToBuffer(): void
@@ -217,10 +237,10 @@ HELP);
      */
     private function checkExitInputBuffer(): void
     {
-        $firstInput = $this->inputBuffer[0] ?? '';
+        $firstInput = trim($this->inputBuffer[0] ?? '');
 
-        if ($firstInput === self::EXIT_REPL) {
-            throw ExitException::fromRepl();
+        if (preg_match(self::EXIT_PATTERN, $firstInput, $matches) === 1) {
+            throw ExitException::fromRepl(isset($matches[1]) ? (int) $matches[1] : 0);
         }
     }
 
