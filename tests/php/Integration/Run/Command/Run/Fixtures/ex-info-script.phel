@@ -1,0 +1,3 @@
+(ns ex-info-script)
+
+(throw (ex-info "boom" {:user-id 42 :op :charge}))
