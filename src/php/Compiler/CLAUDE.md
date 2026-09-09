@@ -33,6 +33,12 @@ Lexer (source → `TokenStream`) → Parser (→ `FileNode` parse tree) → Read
 - Lexer `Token` and parse-tree nodes live in `Phel\Shared\Parser\Node`; `ExpressionParserFactory` produces them (sub-parsers in `Domain/Parser/ExpressionParser/`).
 - The `#php` reader tag expands vectors to indexed PHP arrays and maps to associative PHP arrays; literal keyword map keys become strings at read time.
 
+### Unterminated-form reporting
+
+`Application/Parser` stacks the delimiter of every form it is currently inside. A closer or an end-of-file token reaches `readExpression` only when the innermost open form did not consume it, and `Domain/Parser/OpenForm` turns that stacked opener into the message, the `ErrorCode` (`UNTERMINATED_LIST` / `_VECTOR` / `_MAP` / `_TABLE`, the last one for `#{}`) and the location the caret sits on: the opening delimiter, never the position where the stream ran out. `ListParser` keeps its own throw for a stream that ends without the lexer's `T_EOF`.
+
+An unclosed `"` never fails to lex, because the atom rule swallows it (`Balance` counts on that, see `src/php/Balance/CLAUDE.md`), so `Parser::parseAtomNode` reads the leading quote and raises `UNTERMINATED_STRING` from there rather than from the lexer.
+
 ### Interop shorthand expansion
 
 Clojure-style interop spellings are sugar, expanded to `php/*` forms before analysis, never registered as special forms (`LanguageSurfaceSpecTest` fails on a spec table row with no dispatch entry):
