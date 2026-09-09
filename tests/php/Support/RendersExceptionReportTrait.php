@@ -36,6 +36,7 @@ trait RendersExceptionReportTrait
             $this->createStub(MungeInterface::class),
             $this->createStub(FilePositionExtractorInterface::class),
             $this->createStub(ErrorLogInterface::class),
+            '--stack-trace to show, full trace in .phel/error.log',
         );
 
         return $exceptionPrinter->getExceptionString($e, $codeSnippet);

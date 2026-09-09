@@ -61,6 +61,8 @@ HELP)
                 InputArgument::OPTIONAL,
                 'The Phel expression to evaluate. Use "-" to read from stdin.',
             );
+
+        StackTraceOption::addTo($this);
     }
 
     protected function execute(InputInterface $input, OutputInterface $output): int
@@ -79,7 +81,7 @@ HELP)
         try {
             $result = $this->getFactory()
                 ->createEvalExecutor()
-                ->execute($expression);
+                ->execute($expression, StackTraceOption::isEnabled($input));
         } finally {
             Phel::addDefinition(CompilerConstants::PHEL_CORE_NAMESPACE, ReplConstants::INTERACTIVE_MODE, false);
         }

@@ -88,14 +88,9 @@ final class ReplTestIo implements ReplCommandIoInterface
         return null;
     }
 
-    public function writeStackTrace(Throwable $e): void
+    public function writeReplError(Throwable $e, bool $showInternalFrames = false): void
     {
-        $this->write($this->exceptionPrinter->getStackTraceString($e));
-    }
-
-    public function writeReplError(Throwable $e): void
-    {
-        $this->write($this->errorFormatter->render($e));
+        $this->write($this->errorFormatter->render($e, $showInternalFrames));
     }
 
     public function writeLocatedException(AbstractLocatedException $e, CodeSnippet $codeSnippet): void

@@ -23,6 +23,8 @@ use TypeError;
 
 final class TextExceptionPrinterTest extends TestCase
 {
+    private const string COLLAPSED_TRACE_HINT = '--stack-trace to show, full trace in .phel/error.log';
+
     public function test_renders_phel_source_location_for_evaluated_code_exception(): void
     {
         $original = new class('boom') extends TypeError {
@@ -35,13 +37,7 @@ final class TextExceptionPrinterTest extends TestCase
         $compiledCode = "// my-file.phel\n// ;;AAAA\nphp_body();";
         $exception = EvaluatedCodeException::fromThrowableAndCompiledCode($original, $compiledCode);
 
-        $exceptionPrinter = new TextExceptionPrinter(
-            $this->createStub(ExceptionArgsPrinterInterface::class),
-            $this->stubColorStyle(),
-            $this->createStub(MungeInterface::class),
-            $this->createStub(FilePositionExtractorInterface::class),
-            $this->createStub(ErrorLogInterface::class),
-        );
+        $exceptionPrinter = $this->createPrinter();
 
         $output = $exceptionPrinter->getStackTraceString($exception);
 
@@ -75,13 +71,7 @@ in example-file.phel:1
 
 MSG;
 
-        $exceptionPrinter = new TextExceptionPrinter(
-            $this->createStub(ExceptionArgsPrinterInterface::class),
-            $this->stubColorStyle(),
-            $this->createStub(MungeInterface::class),
-            $this->createStub(FilePositionExtractorInterface::class),
-            $this->createStub(ErrorLogInterface::class),
-        );
+        $exceptionPrinter = $this->createPrinter();
 
         self::assertSame($expectedOutput, $exceptionPrinter->getExceptionString($exception, $codeSnippet));
     }
@@ -104,19 +94,7 @@ MSG;
             $exception = $runtimeException;
         }
 
-        $munge = $this->createStub(MungeInterface::class);
-        $munge->method('decodeNs')->willReturnCallback(static fn(string $s): string => $s);
-
-        $filePositionExtractor = $this->createStub(FilePositionExtractorInterface::class);
-        $filePositionExtractor->method('getOriginal')->willReturn(new FilePosition('/proj/src/main.phel', 42));
-
-        $exceptionPrinter = new TextExceptionPrinter(
-            $this->createStub(ExceptionArgsPrinterInterface::class),
-            $this->stubColorStyle(),
-            $munge,
-            $filePositionExtractor,
-            $this->createStub(ErrorLogInterface::class),
-        );
+        $exceptionPrinter = $this->createPrinter($this->stubMunge(), $this->stubFilePositionExtractor());
 
         $trace = $exceptionPrinter->getUserFacingTraceString($exception);
 
@@ -125,20 +103,130 @@ MSG;
         self::assertStringNotContainsString('PHPUnit', $trace);
     }
 
+    public function test_collapse_marker_names_the_flag_and_the_log_once_per_trace(): void
+    {
+        $exception = $this->throwFromNestedPhelFns();
+
+        $trace = $this->createPrinter($this->stubMunge(), $this->stubFilePositionExtractor())
+            ->getUserFacingTraceString($exception);
+
+        self::assertSame(
+            1,
+            substr_count($trace, self::COLLAPSED_TRACE_HINT),
+            "The hint rides on the first marker only:\n" . $trace,
+        );
+        self::assertGreaterThan(1, substr_count($trace, 'internal frame'), $trace);
+        self::assertStringContainsString(
+            '... 1 internal frame (' . self::COLLAPSED_TRACE_HINT . ')',
+            $trace,
+        );
+    }
+
+    public function test_stack_trace_flag_renders_the_frames_the_default_collapses(): void
+    {
+        $exception = $this->throwFromNestedPhelFns();
+        $exceptionPrinter = $this->createPrinter($this->stubMunge(), $this->stubFilePositionExtractor());
+
+        $collapsed = $exceptionPrinter->getUserFacingTraceString($exception);
+        $full = $exceptionPrinter->getUserFacingTraceString($exception, showInternalFrames: true);
+
+        self::assertStringNotContainsString('array_map', $collapsed);
+        self::assertStringContainsString('array_map', $full);
+        self::assertStringNotContainsString('internal frame', $full);
+        self::assertStringNotContainsString(self::COLLAPSED_TRACE_HINT, $full);
+    }
+
     public function test_user_facing_trace_is_empty_when_no_phel_frames_present(): void
     {
-        $exceptionPrinter = new TextExceptionPrinter(
-            $this->createStub(ExceptionArgsPrinterInterface::class),
-            $this->stubColorStyle(),
-            $this->createStub(MungeInterface::class),
-            $this->createStub(FilePositionExtractorInterface::class),
-            $this->createStub(ErrorLogInterface::class),
-        );
+        $exceptionPrinter = $this->createPrinter();
 
         $trace = $exceptionPrinter->getUserFacingTraceString(new RuntimeException('plain php'));
 
-        self::assertMatchesRegularExpression('/^(\s*\.\.\. \d+ internal frames?\n?)?$/', $trace);
+        self::assertMatchesRegularExpression(
+            '/^(\s*\.\.\. \d+ internal frames?( \(.+\))?\n?)?$/',
+            $trace,
+        );
         self::assertStringNotContainsString('#0', $trace);
+    }
+
+    public function test_a_frame_from_evaluated_code_reads_as_repl(): void
+    {
+        $exception = $this->throwFromNestedPhelFns();
+
+        $evaluatedCode = $this->createStub(FilePositionExtractorInterface::class);
+        $evaluatedCode->method('getOriginal')->willReturn(
+            new FilePosition("/repo/src/php/Compiler/Domain/Evaluator/InMemoryEvaluator.php(26) : eval()'d code", 30),
+        );
+
+        $trace = $this->createPrinter($this->stubMunge(), $evaluatedCode)
+            ->getUserFacingTraceString($exception);
+
+        self::assertStringContainsString('#0 repl : (app\\main\\inner', $trace);
+        self::assertStringNotContainsString('InMemoryEvaluator', $trace);
+    }
+
+    /**
+     * A trace shaped `Phel fn -> PHP native -> Phel fn -> test runner`, so it
+     * carries two separate runs of collapsible frames.
+     */
+    private function throwFromNestedPhelFns(): RuntimeException
+    {
+        $inner = new class() implements FnInterface {
+            public const string BOUND_TO = 'app\\main\\inner';
+
+            public function __invoke(int $x): never
+            {
+                throw new RuntimeException('boom ' . $x);
+            }
+        };
+
+        $outer = new readonly class($inner) implements FnInterface {
+            public const string BOUND_TO = 'app\\main\\outer';
+
+            public function __construct(private FnInterface $inner) {}
+
+            public function __invoke(): array
+            {
+                return array_map($this->inner, [1]);
+            }
+        };
+
+        try {
+            $outer();
+            self::fail('Expected exception');
+        } catch (RuntimeException $runtimeException) {
+            return $runtimeException;
+        }
+    }
+
+    private function stubMunge(): MungeInterface
+    {
+        $munge = $this->createStub(MungeInterface::class);
+        $munge->method('decodeNs')->willReturnCallback(static fn(string $s): string => $s);
+
+        return $munge;
+    }
+
+    private function stubFilePositionExtractor(): FilePositionExtractorInterface
+    {
+        $filePositionExtractor = $this->createStub(FilePositionExtractorInterface::class);
+        $filePositionExtractor->method('getOriginal')->willReturn(new FilePosition('/proj/src/main.phel', 42));
+
+        return $filePositionExtractor;
+    }
+
+    private function createPrinter(
+        ?MungeInterface $munge = null,
+        ?FilePositionExtractorInterface $filePositionExtractor = null,
+    ): TextExceptionPrinter {
+        return new TextExceptionPrinter(
+            $this->createStub(ExceptionArgsPrinterInterface::class),
+            $this->stubColorStyle(),
+            $munge ?? $this->createStub(MungeInterface::class),
+            $filePositionExtractor ?? $this->createStub(FilePositionExtractorInterface::class),
+            $this->createStub(ErrorLogInterface::class),
+            self::COLLAPSED_TRACE_HINT,
+        );
     }
 
     private function stubColorStyle(): ColorStyleInterface

@@ -60,7 +60,7 @@ final class TestCommandOptionsWiringTest extends TestCase
 
         self::assertFalse($option->isValueRequired(), 'stack-trace is a flag');
         self::assertFalse($option->getDefault(), 'stack-trace defaults to false');
-        self::assertStringContainsString('stack trace', strtolower($option->getDescription()));
+        self::assertStringContainsString('stack frame', strtolower($option->getDescription()));
     }
 
     public function test_it_declares_list_flag(): void

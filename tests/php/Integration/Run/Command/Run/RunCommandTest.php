@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace PhelTest\Integration\Run\Command\Run;
 
 use Phel\Run\Infrastructure\Command\RunCommand;
+use Phel\Run\Infrastructure\Command\StackTraceOption;
 use PhelTest\Integration\Run\Command\AbstractTestCommand;
 use Symfony\Component\Console\Input\InputInterface;
 
@@ -231,6 +232,31 @@ final class RunCommandTest extends AbstractTestCommand
         self::assertMatchesRegularExpression('~#\d+ .*\.phel:\d+ : \(test\\\\error-lib\\\\boom-fn~', $output);
     }
 
+    public function test_collapse_marker_names_the_flag_and_the_error_log(): void
+    {
+        $output = $this->captureRunOutput(
+            __DIR__ . '/Fixtures/error-trace-script.phel',
+        );
+
+        self::assertMatchesRegularExpression(
+            '~\.\.\. \d+ internal frames? \(--stack-trace to show, full trace in \S*error\.log\)~',
+            $output,
+        );
+    }
+
+    public function test_stack_trace_option_prints_the_frames_the_default_collapses(): void
+    {
+        $scriptPath = __DIR__ . '/Fixtures/error-trace-script.phel';
+
+        $collapsed = $this->captureRunOutput($scriptPath);
+        $expanded = $this->captureRunOutput($scriptPath, stackTrace: true);
+
+        self::assertStringNotContainsString('RunCommand.php', $collapsed);
+        self::assertStringContainsString('RunCommand.php', $expanded);
+        self::assertStringNotContainsString('internal frame', $expanded);
+        self::assertStringContainsString('boom from error-lib', $expanded);
+    }
+
     public function test_macro_expansion_error_includes_definition_location(): void
     {
         // Written to its own temp directory rather than next to this file: a
@@ -264,11 +290,11 @@ PHEL);
         self::assertMatchesRegularExpression('~Defined: .*macro-error-script\.phel:3~', $output);
     }
 
-    private function captureRunOutput(string $path, array $argv = []): string
+    private function captureRunOutput(string $path, array $argv = [], bool $stackTrace = false): string
     {
         ob_start();
         $this->createRunCommand()->run(
-            $this->stubInput($path, $argv),
+            $this->stubInput($path, $argv, $stackTrace),
             $this->stubOutput(),
         );
 
@@ -280,7 +306,7 @@ PHEL);
         return new RunCommand();
     }
 
-    private function stubInput(string $path, array $argv = []): InputInterface
+    private function stubInput(string $path, array $argv = [], bool $stackTrace = false): InputInterface
     {
         $input = $this->createStub(InputInterface::class);
         $input->method('getArgument')->willReturnCallback(
@@ -290,7 +316,9 @@ PHEL);
                 default => '',
             },
         );
-        $input->method('getOption')->willReturn(false);
+        $input->method('getOption')->willReturnCallback(
+            static fn(string $name): bool => $name === StackTraceOption::NAME && $stackTrace,
+        );
 
         return $input;
     }

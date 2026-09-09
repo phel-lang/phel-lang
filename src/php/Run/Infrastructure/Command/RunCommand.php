@@ -75,6 +75,8 @@ HELP)
                 'Enable line-by-line debug tracing to ./phel-debug.log (optional: Phel file filter using --debug="core")',
                 false,
             );
+
+        StackTraceOption::addTo($this);
     }
 
     protected function execute(InputInterface $input, OutputInterface $output): int
@@ -140,7 +142,7 @@ HELP)
         } catch (CompilerException $e) {
             $this->getFacade()->writeLocatedException($output, $e);
         } catch (Throwable $e) {
-            $this->getFacade()->writeStackTrace($output, $e);
+            $this->getFacade()->writeStackTrace($output, $e, StackTraceOption::isEnabled($input));
         } finally {
             $this->getFacade()->disableDebugLineTap();
         }
