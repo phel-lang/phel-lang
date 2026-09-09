@@ -8,10 +8,13 @@ use Gacela\Framework\Bootstrap\GacelaConfig;
 use Gacela\Framework\Gacela;
 use Phel\Command\CommandFactory;
 use Phel\Config\PhelConfig;
+use PhelTest\Support\RemoveDirTrait;
 use PHPUnit\Framework\TestCase;
 use RuntimeException;
 
 use function file_get_contents;
+use function getenv;
+use function putenv;
 use function sys_get_temp_dir;
 use function uniqid;
 
@@ -19,6 +22,8 @@ use const DIRECTORY_SEPARATOR;
 
 final class CommandFactoryTest extends TestCase
 {
+    use RemoveDirTrait;
+
     private string $tmpDir;
 
     private string $errorLogFile;
@@ -48,7 +53,7 @@ final class CommandFactoryTest extends TestCase
             putenv('NO_COLOR=' . $this->previousNoColor);
         }
 
-        $this->removeRecursively($this->tmpDir);
+        $this->removeDir($this->tmpDir);
     }
 
     public function test_the_error_log_stays_plain_text_when_the_terminal_is_coloured(): void
@@ -62,31 +67,5 @@ final class CommandFactoryTest extends TestCase
             '~^\[\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}[+-]\d{2}:\d{2}\] \S~',
             $contents,
         );
-    }
-
-    private function removeRecursively(string $path): void
-    {
-        if (!file_exists($path)) {
-            return;
-        }
-
-        if (is_file($path)) {
-            unlink($path);
-            return;
-        }
-
-        foreach (scandir($path) ?: [] as $entry) {
-            if ($entry === '.') {
-                continue;
-            }
-
-            if ($entry === '..') {
-                continue;
-            }
-
-            $this->removeRecursively($path . DIRECTORY_SEPARATOR . $entry);
-        }
-
-        rmdir($path);
     }
 }

@@ -19,9 +19,9 @@ use function sprintf;
  */
 final readonly class ErrorLog implements ErrorLogInterface
 {
-    public const int DEFAULT_MAX_BYTES = 1_048_576;
+    private const int DEFAULT_MAX_BYTES = 1_048_576;
 
-    public const string PREVIOUS_GENERATION_SUFFIX = '.1';
+    private const string PREVIOUS_GENERATION_SUFFIX = '.1';
 
     /** Everything `ColorStyle` and the printers emit is an SGR sequence. */
     private const string SGR_ESCAPE_PATTERN = '/\e\[[0-9;]*m/';

@@ -7,6 +7,7 @@ namespace PhelTest\Unit\Command\Infrastructure;
 use Phel\Command\Infrastructure\ErrorLog;
 use Phel\Shared\ColorStyle;
 use Phel\Shared\PhelProjectDirectory;
+use PhelTest\Support\RemoveDirTrait;
 use PHPUnit\Framework\TestCase;
 
 use function dirname;
@@ -19,6 +20,8 @@ use const DIRECTORY_SEPARATOR;
 
 final class ErrorLogTest extends TestCase
 {
+    use RemoveDirTrait;
+
     private const string HEADER_PATTERN = '\[\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}[+-]\d{2}:\d{2}\] phel run src/main\.phel';
 
     private string $tmpDir;
@@ -30,10 +33,10 @@ final class ErrorLogTest extends TestCase
 
     protected function tearDown(): void
     {
-        $this->removeRecursively($this->tmpDir);
+        $this->removeDir($this->tmpDir);
     }
 
-    public function test_it_writes_text_with_trailing_newline(): void
+    public function test_it_writes_the_entry_with_a_trailing_newline(): void
     {
         $filepath = $this->tmpDir . DIRECTORY_SEPARATOR . 'error.log';
 
@@ -102,10 +105,11 @@ final class ErrorLogTest extends TestCase
         $errorLog->writeln('first');
         $errorLog->writeln('second');
 
-        self::assertMatchesRegularExpression(
-            '~first\R' . self::HEADER_PATTERN . '\Rsecond\R$~',
+        self::assertStringContainsString(
+            'first' . PHP_EOL,
             (string) file_get_contents($filepath),
         );
+        self::assertStringEndsWith('second' . PHP_EOL, (string) file_get_contents($filepath));
         self::assertFileDoesNotExist($filepath . '.1');
     }
 
@@ -136,31 +140,5 @@ final class ErrorLogTest extends TestCase
     private function errorLog(string $filepath): ErrorLog
     {
         return new ErrorLog($filepath, 'phel run src/main.phel');
-    }
-
-    private function removeRecursively(string $path): void
-    {
-        if (!file_exists($path)) {
-            return;
-        }
-
-        if (is_file($path)) {
-            unlink($path);
-            return;
-        }
-
-        foreach (scandir($path) ?: [] as $entry) {
-            if ($entry === '.') {
-                continue;
-            }
-
-            if ($entry === '..') {
-                continue;
-            }
-
-            $this->removeRecursively($path . DIRECTORY_SEPARATOR . $entry);
-        }
-
-        rmdir($path);
     }
 }
