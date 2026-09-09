@@ -65,7 +65,9 @@ final readonly class CacheClearer
                 continue;
             }
 
-            if ($file->isDir()) {
+            // A symlinked directory is yielded but never descended into, so it
+            // has to be unlinked: rmdir cannot remove a link.
+            if ($file->isDir() && !$file->isLink()) {
                 @rmdir($file->getPathname());
             } else {
                 FileCache::delete($file->getPathname());

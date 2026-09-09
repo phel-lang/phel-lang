@@ -98,6 +98,8 @@ final readonly class OpcacheFileCache
 
     /**
      * Absolute paths of the top-level entries that belong to another system id.
+     * An empty `$systemId` matches every entry, so nothing reads as foreign:
+     * a caller that could not detect the current id prunes nothing.
      *
      * @return list<string>
      */
