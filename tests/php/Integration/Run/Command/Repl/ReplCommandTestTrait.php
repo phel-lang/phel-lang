@@ -29,6 +29,8 @@ use PHPUnit\Framework\TestCase;
  */
 trait ReplCommandTestTrait
 {
+    private const string COLLAPSED_TRACE_HINT = '--stack-trace to show, full trace in .phel/error.log';
+
     private function createReplTestIo(): ReplTestIo
     {
         $exceptionPrinter = new TextExceptionPrinter(
@@ -37,6 +39,7 @@ trait ReplCommandTestTrait
             new Munge(),
             new FilePositionExtractor(new SourceMapExtractor()),
             $this->createStub(ErrorLogInterface::class),
+            self::COLLAPSED_TRACE_HINT,
         );
 
         return new ReplTestIo($exceptionPrinter);

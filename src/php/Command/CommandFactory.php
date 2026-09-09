@@ -75,6 +75,7 @@ final class CommandFactory extends AbstractFactory
             new Munge(),
             $this->createFilePositionExtractor(),
             new ErrorLog($this->getConfig()->getErrorLogFile()),
+            $this->getConfig()->getCollapsedTraceHint(),
         );
     }
 

@@ -99,9 +99,10 @@ final class Phel\Command\CommandFacade extends Gacela\Framework\AbstractFacade i
   public function getStackTraceString(Throwable $e): string
   public function getTestDirectories(): array
   public function getVendorSourceDirectories(): array
+  public function logStackTrace(Throwable $e): void
   public function readPhelConfig(string $absolutePath): array
   public function writeLocatedException(Symfony\Component\Console\Output\OutputInterface $output, Phel\Shared\Exceptions\AbstractLocatedException $locatedException, Phel\Shared\Parser\ReadModel\CodeSnippet $snippet): void
-  public function writeStackTrace(Symfony\Component\Console\Output\OutputInterface $output, Throwable $e): void
+  public function writeStackTrace(Symfony\Component\Console\Output\OutputInterface $output, Throwable $e, bool $showInternalFrames = false): void
 
 final class Phel\Compiler\CompilerFacade extends Gacela\Framework\AbstractFacade implements Phel\Shared\Facade\CompilerFacadeInterface
   public function analyze(Phel\Lang\TypeInterface|bool|float|int|null|string $x, Phel\Compiler\Domain\Analyzer\Environment\NodeEnvironmentInterface $env): Phel\Compiler\Domain\Analyzer\Ast\AbstractNode
@@ -1570,7 +1571,7 @@ final class Phel\Run\RunFacade extends Gacela\Framework\AbstractFacade implement
   public function selectChangedTests(?string $ref, array $infos, string $projectDir): Phel\Run\Domain\Test\ChangeSelection
   public function structuredEval(string $phelCode, Phel\Shared\CompileOptions $compileOptions = object(Phel\Shared\CompileOptions)): Phel\Shared\Eval\EvalResult
   public function writeLocatedException(Symfony\Component\Console\Output\OutputInterface $output, Phel\Shared\Exceptions\CompilerException $e): void
-  public function writeStackTrace(Symfony\Component\Console\Output\OutputInterface $output, Throwable $e): void
+  public function writeStackTrace(Symfony\Component\Console\Output\OutputInterface $output, Throwable $e, bool $showInternalFrames = false): void
 
 final readonly class Phel\Shared\Api\Completion
   public const string KIND_GLOBAL = 'global'
@@ -1812,7 +1813,7 @@ enum Phel\Shared\Exceptions\ErrorCode: string
 interface Phel\Shared\Exceptions\ExceptionPrinterInterface
   public function getExceptionString(Phel\Shared\Exceptions\AbstractLocatedException $e, Phel\Shared\Parser\ReadModel\CodeSnippet $codeSnippet): string
   public function getStackTraceString(Throwable $e): string
-  public function getUserFacingTraceString(Throwable $e): string
+  public function getUserFacingTraceString(Throwable $e, bool $showInternalFrames = false): string
   public function printStackTrace(Throwable $e): void
 
 final class Phel\Shared\Exceptions\FileException extends RuntimeException
@@ -1881,9 +1882,10 @@ interface Phel\Shared\Facade\CommandFacadeInterface
   public function getStackTraceString(Throwable $e): string
   public function getTestDirectories(): array
   public function getVendorSourceDirectories(): array
+  public function logStackTrace(Throwable $e): void
   public function readPhelConfig(string $absolutePath): array
   public function writeLocatedException(Symfony\Component\Console\Output\OutputInterface $output, Phel\Shared\Exceptions\AbstractLocatedException $locatedException, Phel\Shared\Parser\ReadModel\CodeSnippet $snippet): void
-  public function writeStackTrace(Symfony\Component\Console\Output\OutputInterface $output, Throwable $e): void
+  public function writeStackTrace(Symfony\Component\Console\Output\OutputInterface $output, Throwable $e, bool $showInternalFrames = false): void
 
 interface Phel\Shared\Facade\CompilerFacadeInterface
   public function analyze(Phel\Lang\TypeInterface|bool|float|int|null|string $x, Phel\Compiler\Domain\Analyzer\Environment\NodeEnvironmentInterface $env): Phel\Compiler\Domain\Analyzer\Ast\AbstractNode
@@ -1947,7 +1949,7 @@ interface Phel\Shared\Facade\RunFacadeInterface
   public function runNamespace(string $namespace): void
   public function structuredEval(string $phelCode, Phel\Shared\CompileOptions $compileOptions): Phel\Shared\Eval\EvalResult
   public function writeLocatedException(Symfony\Component\Console\Output\OutputInterface $output, Phel\Shared\Exceptions\CompilerException $e): void
-  public function writeStackTrace(Symfony\Component\Console\Output\OutputInterface $output, Throwable $e): void
+  public function writeStackTrace(Symfony\Component\Console\Output\OutputInterface $output, Throwable $e, bool $showInternalFrames = false): void
 
 final readonly class Phel\Shared\Formatter\FormatResult
   public function __construct(array $changedPaths = [], array $failedPaths = [])

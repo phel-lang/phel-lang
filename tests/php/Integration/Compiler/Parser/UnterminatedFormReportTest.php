@@ -152,6 +152,7 @@ final class UnterminatedFormReportTest extends TestCase
             $this->createStub(MungeInterface::class),
             $this->createStub(FilePositionExtractorInterface::class),
             $this->createStub(ErrorLogInterface::class),
+            '--stack-trace to show, full trace in .phel/error.log',
         );
     }
 }

@@ -96,6 +96,31 @@ final class ReplCommandTest extends AbstractTestCommand
         self::assertSame(trim($expectedOutput), trim($replOutput));
     }
 
+    #[RunInSeparateProcess]
+    #[PreserveGlobalState(false)]
+    public function test_runtime_error_collapses_internal_frames_and_names_the_flag(): void
+    {
+        $output = $this->runReplWithError(stackTrace: false);
+
+        self::assertStringContainsString('OutOfBoundsException', $output);
+        self::assertMatchesRegularExpression(
+            '~\.\.\. \d+ internal frames? \(--stack-trace to show, full trace in \S*error\.log\)~',
+            $output,
+        );
+        self::assertStringNotContainsString('ReplCommand.php', $output);
+    }
+
+    #[RunInSeparateProcess]
+    #[PreserveGlobalState(false)]
+    public function test_stack_trace_option_prints_the_frames_the_repl_collapses(): void
+    {
+        $output = $this->runReplWithError(stackTrace: true);
+
+        self::assertStringContainsString('OutOfBoundsException', $output);
+        self::assertStringContainsString('ReplCommand.php', $output);
+        self::assertStringNotContainsString('internal frame', $output);
+    }
+
     public static function providerIntegration(): Generator
     {
         return self::buildDataProviderFromDirectory(realpath(__DIR__ . '/Fixtures'));
@@ -127,6 +152,23 @@ final class ReplCommandTest extends AbstractTestCommand
                 ...self::getInputs($fileContent),
             ];
         }
+    }
+
+    private function runReplWithError(bool $stackTrace): string
+    {
+        $io = $this->createReplTestIo();
+        $io->setInputs(
+            new InputLine('user:1> ', '(nth [1 2] 9)'),
+            new InputLine('user:2> ', '<CTRL-D>'),
+        );
+        $this->prepareRunFactory($io);
+
+        $input = $this->createStub(InputInterface::class);
+        $input->method('getOption')->willReturn($stackTrace);
+
+        $this->createReplCommandWithCoreLib()->run($input, $this->createStub(OutputInterface::class));
+
+        return $io->getOutputString();
     }
 
     private function createReplCommand(): ReplCommand

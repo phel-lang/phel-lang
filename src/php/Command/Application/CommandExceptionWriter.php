@@ -42,7 +42,7 @@ final readonly class CommandExceptionWriter implements CommandExceptionWriterInt
         private PrinterInterface $printer,
     ) {}
 
-    public function writeStackTrace(OutputInterface $output, Throwable $e): void
+    public function writeStackTrace(OutputInterface $output, Throwable $e, bool $showInternalFrames = false): void
     {
         $cause = $e->getPrevious() ?? $e;
 
@@ -57,13 +57,13 @@ final readonly class CommandExceptionWriter implements CommandExceptionWriterInt
 
         $this->writeExceptionData($output, $e);
 
-        $trace = $this->exceptionPrinter->getUserFacingTraceString($cause);
+        $trace = $this->exceptionPrinter->getUserFacingTraceString($cause, $showInternalFrames);
         if ($trace !== '') {
             $output->writeln(rtrim($trace));
         }
 
         $this->writeHint($output, $e);
-        $this->errorLog->writeln($this->getStackTraceString($e));
+        $this->logStackTrace($e);
     }
 
     public function writeLocatedException(
@@ -83,6 +83,15 @@ final readonly class CommandExceptionWriter implements CommandExceptionWriterInt
     public function getStackTraceString(Throwable $e): string
     {
         return $this->exceptionPrinter->getStackTraceString($e);
+    }
+
+    /**
+     * The collapsed-trace marker promises the log holds the whole trace, so
+     * every reporting path has to feed it, not only `writeStackTrace()`.
+     */
+    public function logStackTrace(Throwable $e): void
+    {
+        $this->errorLog->writeln($this->getStackTraceString($e));
     }
 
     /**

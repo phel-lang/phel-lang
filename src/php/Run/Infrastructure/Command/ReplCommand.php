@@ -79,6 +79,8 @@ final class ReplCommand extends Command
 
     private int $lineNumber = 1;
 
+    private bool $showInternalFrames = false;
+
     public function __construct()
     {
         parent::__construct('repl');
@@ -110,10 +112,13 @@ Starts an interactive Phel REPL with history, completion, and *1/*2/*3/*e.
 <info>Example:</info>
   <comment>phel repl</comment>
 HELP);
+
+        StackTraceOption::addTo($this);
     }
 
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
+        $this->showInternalFrames = StackTraceOption::isEnabled($input);
         $this->replStartupFile = $this->getReplStartupFile();
 
         $this->io->readHistory();
@@ -138,7 +143,7 @@ HELP);
 
             return $this->loopReadLineAndAnalyze();
         } catch (Throwable $throwable) {
-            $this->io->writeStackTrace($throwable);
+            $this->io->writeReplError($throwable, $this->showInternalFrames);
             return self::FAILURE;
         } finally {
             Phel::addDefinition(CompilerConstants::PHEL_CORE_NAMESPACE, ReplConstants::REPL_MODE, false);
@@ -180,7 +185,7 @@ HELP);
                 break;
             } catch (Throwable $e) {
                 $this->inputBuffer = [];
-                $this->io->writeReplError($e);
+                $this->io->writeReplError($e, $this->showInternalFrames);
             }
         }
 
@@ -281,7 +286,7 @@ HELP);
             $this->inputBuffer = [];
         } catch (Throwable $e) {
             $this->history?->recordException($e);
-            $this->io->writeReplError($e);
+            $this->io->writeReplError($e, $this->showInternalFrames);
             $this->addHistory($fullInput);
             $this->inputBuffer = [];
         }

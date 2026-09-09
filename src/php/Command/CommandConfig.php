@@ -14,6 +14,7 @@ use Phel\Shared\ScalarCoercion;
 use function dirname;
 use function is_array;
 use function sprintf;
+use function strlen;
 
 /**
  * @internal
@@ -93,6 +94,20 @@ final class CommandConfig extends AbstractConfig
     }
 
     /**
+     * The way out of a collapsed trace, appended to the `... N internal frames`
+     * marker: the flag that expands it, and the log that always holds the full
+     * one. Built from the configured log path so it names the project's real
+     * layout (`withErrorLogFile()`, `withPhelDir()`).
+     */
+    public function getCollapsedTraceHint(): string
+    {
+        return sprintf(
+            '--stack-trace to show, full trace in %s',
+            $this->getErrorLogFileForDisplay(),
+        );
+    }
+
+    /**
      * Recipe for clearing build state when compiled output is corrupted.
      * Uses the configured output and state directories so the hint reflects
      * the project's actual layout (`withBuildDestDir()`, `withCacheDir()`,
@@ -110,5 +125,19 @@ final class CommandConfig extends AbstractConfig
             rtrim($outputDir, '/'),
             rtrim($this->getCacheDir(), '/'),
         );
+    }
+
+    /**
+     * The log path shortened to how the user would type it, so a one-line
+     * marker does not carry an absolute path across the terminal.
+     */
+    private function getErrorLogFileForDisplay(): string
+    {
+        $file = $this->getErrorLogFile();
+        $root = rtrim($this->getAppRootDir(), '/\\') . DIRECTORY_SEPARATOR;
+
+        return str_starts_with($file, $root)
+            ? substr($file, strlen($root))
+            : $file;
     }
 }
