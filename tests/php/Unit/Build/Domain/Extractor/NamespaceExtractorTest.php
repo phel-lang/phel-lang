@@ -14,6 +14,7 @@ use Phel\Compiler\CompilerFacade;
 use Phel\Compiler\Domain\Lexer\Exceptions\LexerValueException;
 use Phel\Phel;
 use Phel\Shared\NamespaceInformation;
+use PhelTest\Support\CapturesDeprecationsTrait;
 use PHPUnit\Framework\TestCase;
 use RuntimeException;
 
@@ -22,9 +23,16 @@ use function sprintf;
 
 final class NamespaceExtractorTest extends TestCase
 {
+    use CapturesDeprecationsTrait;
+
     public static function setUpBeforeClass(): void
     {
         Phel::bootstrap(__DIR__);
+    }
+
+    protected function tearDown(): void
+    {
+        $this->stopCapturingDeprecations();
     }
 
     public function test_get_namespace_from_file(): void
@@ -294,6 +302,25 @@ final class NamespaceExtractorTest extends TestCase
         );
 
         self::assertSame(['vanishing.kept'], $namespaces);
+    }
+
+    public function test_a_deprecation_found_while_extracting_names_the_file(): void
+    {
+        $this->startCapturingDeprecations();
+        $filePath = tempnam(sys_get_temp_dir(), self::class);
+        file_put_contents($filePath, '(ns extracted\\ns)');
+
+        try {
+            $this->newExtractor()->getNamespaceFromFile($filePath);
+        } finally {
+            unlink($filePath);
+        }
+
+        $captured = $this->capturedDeprecations();
+
+        self::assertCount(1, $captured);
+        self::assertStringContainsString($filePath . ':1', $captured[0]);
+        self::assertStringNotContainsString('string:1', $captured[0]);
     }
 
     private function newExtractor(): NamespaceExtractor

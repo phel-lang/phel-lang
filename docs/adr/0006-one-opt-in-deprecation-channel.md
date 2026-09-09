@@ -1,12 +1,17 @@
 # ADR 0006: One opt-in channel for compiler deprecations
 
 - **Status**: Accepted, amended by [0014](0014-announce-the-separator-deprecation.md)
+  and [0017](0017-a-diagnostic-renders-itself-on-stderr.md)
   (recorded retroactively; shaped by #2783 and #2827)
 - **Date**: 2026-07-29
 - **Amended by**: [0014](0014-announce-the-separator-deprecation.md) — the `\`
   separator announces whether or not the flag is set, so "off by default" now has
   exactly one exception. Everything else here holds, and 0014's first-party
   scoping is the precondition this record named.
+- **Amended by**: [0017](0017-a-diagnostic-renders-itself-on-stderr.md) —
+  `ErrorNotice::raise()` writes the notice to stderr itself instead of letting
+  PHP render a `trigger_error()`, so decision point 2 below names a mechanism
+  that only a userland error handler still reaches.
 
 ## Context
 
