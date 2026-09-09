@@ -8,103 +8,35 @@ use Error;
 use Phel\Compiler\Domain\Evaluator\Exceptions\EvaluatedCodeException;
 use Phel\Run\Domain\Repl\ReplErrorFormatter;
 use Phel\Shared\ColorStyle;
-use Phel\Shared\Exceptions\AbstractLocatedException;
-use Phel\Shared\Exceptions\ExceptionPrinterInterface;
 use Phel\Shared\Exceptions\Hint\ExceptionHintResolver;
 use Phel\Shared\Exceptions\Hint\NotCallableHint;
-use Phel\Shared\Parser\ReadModel\CodeSnippet;
 use PHPUnit\Framework\TestCase;
 use RuntimeException;
-use Throwable;
 
 final class ReplErrorFormatterTest extends TestCase
 {
-    public function test_filters_internal_compiler_frames(): void
+    public function test_trace_is_the_shared_user_facing_one(): void
     {
-        $trace = implode(PHP_EOL, [
-            'Error: boom',
-            'in string:1 (gen: ...)',
-            '',
-            '#0 /repo/phel-lang/src/php/Compiler/Domain/Evaluator/InMemoryEvaluator.php(26): eval()',
-            '#1 /repo/phel-lang/src/php/Run/Infrastructure/Command/ReplCommand.php(214): Foo->bar()',
-            '#2 /home/user/code/myproject.phel(3): user_call()',
-        ]);
+        $trace = "#0 /proj/src/main.phel:6 : (app\\main\\level3 3)\n   ... 4 internal frames (--stack-trace to show, full trace in .phel/error.log)\n";
 
-        $formatter = $this->buildFormatter($trace);
-        $result = $formatter->format(new RuntimeException('boom'));
+        $result = $this->buildFormatter($trace)->format(new RuntimeException('boom'));
 
-        self::assertStringContainsString('myproject.phel', $result->trace);
-        self::assertStringNotContainsString('InMemoryEvaluator', $result->trace);
-        self::assertStringNotContainsString('ReplCommand.php', $result->trace);
-        self::assertStringContainsString('2 internal frames hidden', $result->trace);
+        self::assertSame(rtrim($trace), $result->trace);
     }
 
-    public function test_drops_prefix_lines_before_first_frame(): void
+    public function test_collapses_internal_frames_unless_the_stack_trace_flag_is_set(): void
     {
-        $trace = implode(PHP_EOL, [
-            'Error: original message',
-            'in string:5 (gen: /tmp/eval.php:3)',
-            '',
-            '#0 /home/user/code/myproject.phel(3): user_call()',
-        ]);
+        $printer = $this->stubPrinter('');
+        $formatter = new ReplErrorFormatter(
+            new ExceptionHintResolver([]),
+            $printer,
+            ColorStyle::noStyles(),
+        );
 
-        $formatter = $this->buildFormatter($trace);
-        $result = $formatter->format(new RuntimeException('original message'));
+        $formatter->format(new RuntimeException('boom'));
+        $formatter->format(new RuntimeException('boom'), true);
 
-        self::assertStringNotContainsString('Error: original message', $result->trace);
-        self::assertStringNotContainsString('in string:5', $result->trace);
-        self::assertStringContainsString('#0 /home/user/code/myproject.phel', $result->trace);
-    }
-
-    public function test_filters_symfony_console_and_bin_phel_frames(): void
-    {
-        $trace = implode(PHP_EOL, [
-            '#0 /home/runner/work/phel-lang/phel-lang/vendor/symfony/console/Application.php(195): Foo->run()',
-            '#1 /home/runner/work/phel-lang/phel-lang/bin/phel(97): Bar->call()',
-            '#2 /home/user/code/myproject.phel(3): user_call()',
-        ]);
-
-        $formatter = $this->buildFormatter($trace);
-        $result = $formatter->format(new RuntimeException('boom'));
-
-        self::assertStringNotContainsString('symfony/console', $result->trace);
-        self::assertStringNotContainsString('bin/phel', $result->trace);
-        self::assertStringContainsString('myproject.phel', $result->trace);
-        self::assertStringContainsString('2 internal frames hidden', $result->trace);
-    }
-
-    public function test_keeps_phel_fn_frames_even_when_gen_path_is_internal(): void
-    {
-        $trace = implode(PHP_EOL, [
-            "#0 /repo/phel-lang/src/php/Compiler/Domain/Evaluator/InMemoryEvaluator.php(26) : eval()'d code:30 (gen: /repo/phel-lang/src/php/Compiler/Domain/Evaluator/InMemoryEvaluator.php(26) : eval()'d code:30) : (user\\f3)",
-            '#1 /repo/phel-lang/src/php/Compiler/Application/EvalCompiler.php(116): Foo->bar()',
-        ]);
-
-        $formatter = $this->buildFormatter($trace);
-        $result = $formatter->format(new RuntimeException('boom'));
-
-        self::assertStringContainsString('(user\\f3)', $result->trace);
-        self::assertStringContainsString('1 internal frame hidden', $result->trace);
-    }
-
-    public function test_compacts_eval_code_frames_to_repl_location(): void
-    {
-        $trace = "#0 /repo/src/php/Compiler/Domain/Evaluator/InMemoryEvaluator.php(26) : eval()'d code:30 (gen: /repo/src/php/Compiler/Domain/Evaluator/InMemoryEvaluator.php(26) : eval()'d code:30) : (user\\f3)";
-
-        $formatter = $this->buildFormatter($trace);
-        $result = $formatter->format(new RuntimeException('boom'));
-
-        self::assertSame('#0 repl : (user\\f3)', $result->trace);
-    }
-
-    public function test_strips_generated_location_from_mapped_phel_frames(): void
-    {
-        $trace = '#0 /proj/src/main.phel:6 (gen: /tmp/phel/__phel_abc.php:23) : (app\\main\\level3 3)';
-
-        $formatter = $this->buildFormatter($trace);
-        $result = $formatter->format(new RuntimeException('boom'));
-
-        self::assertSame('#0 /proj/src/main.phel:6 : (app\\main\\level3 3)', $result->trace);
+        self::assertSame([false, true], $printer->showInternalFrames);
     }
 
     public function test_unwraps_evaluated_code_exception_for_headline_and_hint(): void
@@ -202,27 +134,8 @@ final class ReplErrorFormatterTest extends TestCase
         );
     }
 
-    private function stubPrinter(string $trace): ExceptionPrinterInterface
+    private function stubPrinter(string $trace): RecordingExceptionPrinter
     {
-        return new readonly class($trace) implements ExceptionPrinterInterface {
-            public function __construct(private string $trace) {}
-
-            public function getStackTraceString(Throwable $e): string
-            {
-                return $this->trace;
-            }
-
-            public function printStackTrace(Throwable $e): void {}
-
-            public function getUserFacingTraceString(Throwable $e): string
-            {
-                return '';
-            }
-
-            public function getExceptionString(AbstractLocatedException $e, CodeSnippet $codeSnippet): string
-            {
-                return '';
-            }
-        };
+        return new RecordingExceptionPrinter($trace);
     }
 }

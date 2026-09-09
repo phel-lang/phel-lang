@@ -20,14 +20,12 @@ use const PHP_EOL;
  */
 trait ReplOutputTrait
 {
-    public function writeStackTrace(Throwable $e): void
+    public function writeReplError(Throwable $e, bool $showInternalFrames = false): void
     {
-        $this->writeln($this->commandFacade->getStackTraceString($e));
-    }
-
-    public function writeReplError(Throwable $e): void
-    {
-        $this->writeln($this->errorFormatter->render($e));
+        $this->writeln($this->errorFormatter->render($e, $showInternalFrames));
+        // The collapse marker points at the error log, so the REPL has to fill
+        // it the way `phel run` does; it never wrote there before.
+        $this->commandFacade->logStackTrace($e);
     }
 
     public function writeLocatedException(AbstractLocatedException $e, CodeSnippet $codeSnippet): void

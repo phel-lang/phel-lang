@@ -31,7 +31,7 @@ final readonly class EvalExecutor
         private int $optimizationLevel = CompileOptions::DEFAULT_OPTIMIZATION_LEVEL,
     ) {}
 
-    public function execute(string $input): bool
+    public function execute(string $input, bool $showInternalFrames = false): bool
     {
         if ($input === '') {
             return true;
@@ -74,7 +74,7 @@ final readonly class EvalExecutor
 
             return false;
         } catch (Throwable $e) {
-            $this->io->writeStackTrace($e);
+            $this->io->writeReplError($e, $showInternalFrames);
 
             return false;
         }

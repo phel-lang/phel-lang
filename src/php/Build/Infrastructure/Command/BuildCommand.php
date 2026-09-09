@@ -12,6 +12,7 @@ use Phel\Build\Domain\Compile\BuildReport;
 use Phel\Build\Domain\Compile\PhaseTimingReport;
 use Phel\Build\Infrastructure\Timing\PhaseTimingProfilerHook;
 use Phel\Lang\Registry;
+use Phel\Shared\ByteSize;
 use Phel\Shared\CompiledFile;
 use Phel\Shared\Exceptions\CompilerException;
 use Phel\Shared\ResourceUsageFormatter;
@@ -164,7 +165,7 @@ HELP)
             $output->writeln(sprintf(
                 '  %-40s %9s  %s',
                 $entry->namespace,
-                $this->formatBytes($entry->bytes),
+                ByteSize::format($entry->bytes),
                 $entry->cached ? '(cached)' : '(fresh)',
             ));
         }
@@ -175,23 +176,10 @@ HELP)
             $report->namespaceCount(),
             $report->freshCount(),
             $report->cachedCount(),
-            $this->formatBytes($report->totalBytes()),
+            ByteSize::format($report->totalBytes()),
             $report->durationMs(),
             $this->getFacade()->getOutputDirectory(),
         ));
-    }
-
-    private function formatBytes(int $bytes): string
-    {
-        if ($bytes >= 1_048_576) {
-            return sprintf('%.2f MB', $bytes / 1_048_576);
-        }
-
-        if ($bytes >= 1024) {
-            return sprintf('%.2f KB', $bytes / 1024);
-        }
-
-        return $bytes . ' B';
     }
 
     private function getBuildOptions(InputInterface $input): BuildOptions

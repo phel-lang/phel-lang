@@ -19,9 +19,12 @@ interface ReplCommandIoInterface
 
     public function readline(?string $prompt = null): ?string;
 
-    public function writeStackTrace(Throwable $e): void;
-
-    public function writeReplError(Throwable $e): void;
+    /**
+     * Renders the error report a user reads at the prompt: headline, hint, and
+     * a trace whose internal frames are collapsed unless `--stack-trace` asks
+     * for them.
+     */
+    public function writeReplError(Throwable $e, bool $showInternalFrames = false): void;
 
     public function writeLocatedException(AbstractLocatedException $e, CodeSnippet $codeSnippet): void;
 

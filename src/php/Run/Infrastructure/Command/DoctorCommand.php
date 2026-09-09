@@ -11,12 +11,17 @@ use Gacela\Framework\ServiceResolverAwareTrait;
 use Phar;
 use Phel\Run\Domain\Config\ConfigDiagnostics;
 use Phel\Run\Domain\Config\EffectiveConfigReader;
+use Phel\Run\Domain\Config\EffectiveConfigResult;
 use Phel\Run\RunFacade;
+use Phel\Shared\ByteSize;
 use Phel\Shared\Performance\OpcacheAdvisor;
+use Phel\Shared\Performance\OpcacheFileCache;
+use Phel\Shared\PhelProjectDirectory;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 
+use function count;
 use function dirname;
 use function extension_loaded;
 use function ini_get;
@@ -48,10 +53,13 @@ HELP);
 
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
+        $effectiveConfig = new EffectiveConfigReader()->read();
+
         $systemOk = $this->checkSystemRequirements($output);
         $modulesOk = $this->checkModuleHealth($output);
-        $configOk = $this->checkConfiguration($output);
+        $configOk = $this->checkConfiguration($output, $effectiveConfig);
         $this->checkPerformance($output);
+        $this->checkStorage($output, $effectiveConfig->projectRoot);
 
         if ($systemOk && $modulesOk && $configOk) {
             $output->writeln('<info>Your system meets all requirements.</info>');
@@ -110,12 +118,11 @@ HELP);
      * Reports problems with the effective project configuration. Errors fail
      * the check (and so the command); warnings are surfaced as tips.
      */
-    private function checkConfiguration(OutputInterface $output): bool
+    private function checkConfiguration(OutputInterface $output, EffectiveConfigResult $effective): bool
     {
         $output->writeln('');
         $output->writeln('Checking configuration:');
 
-        $effective = new EffectiveConfigReader()->read();
         $issues = new ConfigDiagnostics()->analyze($effective->values, $effective->projectRoot);
 
         if ($issues === []) {
@@ -158,6 +165,48 @@ HELP);
         foreach ($advice->messages as $message) {
             $output->writeln(sprintf(' - OPcache CLI caching: <comment>TIP</comment> %s', $message));
         }
+    }
+
+    /**
+     * Reports the OPcache file cache Phel writes under the project state
+     * directory. It is invisible to every other command and is normally the
+     * largest thing there, so `doctor` names its size and how much of it a
+     * retired system id has made unreadable (#3268).
+     */
+    private function checkStorage(OutputInterface $output, string $projectRoot): void
+    {
+        $output->writeln('');
+        $output->writeln('Checking storage:');
+
+        $fileCache = new OpcacheFileCache(PhelProjectDirectory::opcachePath($projectRoot));
+        if (!$fileCache->exists()) {
+            $output->writeln(' - OPcache file cache: <info>OK</info> not created yet');
+
+            return;
+        }
+
+        $output->writeln(sprintf(
+            ' - OPcache file cache: %s in %s',
+            ByteSize::format($fileCache->sizeInBytes()),
+            $fileCache->path(),
+        ));
+
+        // __FILE__ is compiled by the process asking, so its own .bin names the
+        // system id in force; an empty answer means the file cache is off here.
+        $systemId = $fileCache->detectSystemId(__FILE__);
+        $subtreeCount = count($fileCache->entries());
+
+        if ($systemId === '') {
+            $output->writeln(sprintf(' - Subtrees: %d (current system id unknown)', $subtreeCount));
+        } else {
+            $output->writeln(sprintf(
+                ' - Unreadable subtrees: %d of %d (a PHP or ini change retires a system id)',
+                count($fileCache->foreignEntries($systemId)),
+                $subtreeCount,
+            ));
+        }
+
+        $output->writeln(' - Reclaim it with <comment>phel cache:clear</comment>');
     }
 
     /**

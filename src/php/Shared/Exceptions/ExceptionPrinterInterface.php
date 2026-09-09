@@ -22,7 +22,11 @@ interface ExceptionPrinterInterface
 
     /**
      * Trace limited to frames originating in Phel code, mapped back to their
-     * `.phel` source locations; PHP-native frames are collapsed.
+     * `.phel` source locations; PHP-native frames are collapsed into a marker
+     * naming the flag that expands them.
+     *
+     * `$showInternalFrames` is what `--stack-trace` turns on: every frame is
+     * rendered, nothing is collapsed.
      */
-    public function getUserFacingTraceString(Throwable $e): string;
+    public function getUserFacingTraceString(Throwable $e, bool $showInternalFrames = false): string;
 }

@@ -15,6 +15,7 @@ muscle memory transfers between commands. New commands MUST follow these.
 | Preview without writing | `--dry-run` | — | Boolean; print intended actions only. |
 | Overwrite existing files | `--force` | — | Boolean. |
 | Optimization level | `--optimization-level` | `-O` | `build` only; `compile` reads the configured level and has no override flag. |
+| Expand a collapsed trace | `--stack-trace` | — | Boolean. Declared once in `StackTraceOption`; `run`, `eval`, `repl` and `test` all reuse its name and description. |
 
 Global flags (`--help/-h`, `--quiet/-q`, `--verbose/-v`, `--version/-V`,
 `--no-interaction/-n`, `--ansi/--no-ansi`) come from Symfony Console; never

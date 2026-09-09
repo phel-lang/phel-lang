@@ -100,11 +100,6 @@ HELP)
                 InputOption::VALUE_NONE,
                 'Stop running tests after the first failure or error.',
             )->addOption(
-                TestCommandOptionParser::OPT_STACK_TRACE,
-                null,
-                InputOption::VALUE_NONE,
-                'Print the full PHP stack trace for each errored test.',
-            )->addOption(
                 TestCommandOptionParser::OPT_REPORTER,
                 null,
                 InputOption::VALUE_REQUIRED | InputOption::VALUE_IS_ARRAY,
@@ -203,6 +198,8 @@ HELP)
                 InputOption::VALUE_REQUIRED,
                 'Write the coverage report to a file instead of stdout (use with --coverage=clover for CI). With --coverage=html the value is the report directory.',
             );
+
+        StackTraceOption::addTo($this);
     }
 
     protected function execute(InputInterface $input, OutputInterface $output): int
@@ -370,7 +367,7 @@ HELP)
         } catch (CompilerException $e) {
             $this->getFacade()->writeLocatedException($output, $e);
         } catch (Throwable $e) {
-            $this->getFacade()->writeStackTrace($output, $e);
+            $this->getFacade()->writeStackTrace($output, $e, StackTraceOption::isEnabled($input));
         }
 
         return self::FAILURE;
@@ -487,6 +484,16 @@ HELP)
         string $format,
         mixed $outputPath,
     ): void {
+        // pcov collects only under `pcov.directory`, which defaults to a directory
+        // of the project; Phel executes its compiled PHP from the system temp
+        // directory, so the default silently yields an empty report (#3270).
+        if ($report->files() === [] && $report->driverName() === CoverageDriver::PCOV) {
+            $output->writeln(
+                '<comment>pcov instruments only files under pcov.directory, and Phel runs its compiled '
+                . 'PHP from the system temp directory. Re-run with `php -d pcov.directory=/ ...` to collect it.</comment>',
+            );
+        }
+
         // "html:<dir>" carries the report directory in the format value itself.
         $colonPos = strpos($format, ':');
         $formatSuffix = $colonPos === false ? '' : substr($format, $colonPos + 1);

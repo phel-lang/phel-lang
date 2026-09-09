@@ -130,11 +130,11 @@ final class RunFacade extends AbstractFacade implements RunFacadeInterface
             );
     }
 
-    public function writeStackTrace(OutputInterface $output, Throwable $e): void
+    public function writeStackTrace(OutputInterface $output, Throwable $e, bool $showInternalFrames = false): void
     {
         $this->getFactory()
             ->getCommandFacade()
-            ->writeStackTrace($output, $e);
+            ->writeStackTrace($output, $e, $showInternalFrames);
     }
 
     public function getAllPhelDirectories(): array

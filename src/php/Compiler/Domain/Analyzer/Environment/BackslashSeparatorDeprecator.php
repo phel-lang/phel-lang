@@ -104,8 +104,8 @@ final class BackslashSeparatorDeprecator
     private function buildMessage(string $original, string $file, int $line): string
     {
         return sprintf(
-            "Backslash ('\\') namespace separator in symbol '%s' at %s:%d is deprecated; "
-            . "use dot ('.') instead — e.g. '%s'. "
+            "Backslash ('\\') namespace separator in symbol '%s' at %s:%d; "
+            . "use dot ('.') instead, e.g. '%s'. "
             . 'The backslash form will be removed in a future release.',
             $original,
             $file,

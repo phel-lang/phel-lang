@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace Phel\Build\Application;
 
 use Gacela\Framework\Cache\FileCache;
+use Phel\Shared\Performance\OpcacheFileCache;
+use Phel\Shared\Performance\OpcacheFileCachePruner;
 use RecursiveDirectoryIterator;
 use RecursiveIteratorIterator;
 use SplFileInfo;
@@ -19,6 +21,7 @@ final readonly class CacheClearer
     public function __construct(
         private string $tempDir,
         private string $cacheDir,
+        private string $opcacheDir,
     ) {}
 
     /**
@@ -34,6 +37,13 @@ final readonly class CacheClearer
 
         if ($this->deleteDirectory($this->cacheDir)) {
             $clearedPaths[] = $this->cacheDir;
+        }
+
+        // Emptied in place, never removed: PHP aborts at startup when
+        // opcache.file_cache points at a path that does not exist (#3268).
+        $opcachePruner = new OpcacheFileCachePruner(new OpcacheFileCache($this->opcacheDir));
+        if ($opcachePruner->clearContents()) {
+            $clearedPaths[] = $this->opcacheDir;
         }
 
         return $clearedPaths;
@@ -55,7 +65,9 @@ final readonly class CacheClearer
                 continue;
             }
 
-            if ($file->isDir()) {
+            // A symlinked directory is yielded but never descended into, so it
+            // has to be unlinked: rmdir cannot remove a link.
+            if ($file->isDir() && !$file->isLink()) {
                 @rmdir($file->getPathname());
             } else {
                 FileCache::delete($file->getPathname());

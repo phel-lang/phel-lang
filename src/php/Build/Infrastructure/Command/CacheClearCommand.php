@@ -26,9 +26,13 @@ final class CacheClearCommand extends Command
     protected function configure(): void
     {
         $this->setName('cache:clear')
-            ->setDescription('Clear the temp and cache directories')
+            ->setDescription('Clear the temp, cache and OPcache directories')
             ->setHelp(<<<'HELP'
-Removes compiled-code, namespace, and temp caches; the next run rebuilds them.
+Removes compiled-code, namespace, and temp caches, and empties the OPcache file
+cache under the project state directory; the next run rebuilds them.
+
+The OPcache directory is emptied in place rather than removed, because PHP
+aborts at startup when opcache.file_cache points at a path that is missing.
 
 <info>Example:</info>
   <comment>phel cache:clear</comment>

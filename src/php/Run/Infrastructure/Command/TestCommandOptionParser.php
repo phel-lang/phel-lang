@@ -40,7 +40,7 @@ final readonly class TestCommandOptionParser
 
     public const string OPT_FAIL_FAST = 'fail-fast';
 
-    public const string OPT_STACK_TRACE = 'stack-trace';
+    public const string OPT_STACK_TRACE = StackTraceOption::NAME;
 
     public const string OPT_REPORTER = 'reporter';
 

@@ -16,6 +16,8 @@ use Phel\Config\ConfigLoadException;
 use Phel\Console\ConsoleFacade;
 use Phel\Shared\PhelProjectDirectory;
 use Phel\Shared\ProjectRootResolver;
+use Phel\Shared\Performance\OpcacheFileCache;
+use Phel\Shared\Performance\OpcacheFileCachePruner;
 use Phel\Shared\Performance\OpcacheReexec;
 use Phel\Shared\Performance\ProcessCommandLine;
 use Phel\Shared\Performance\UserIniFlags;
@@ -23,13 +25,14 @@ use Phel\Shared\Performance\UserIniFlags;
 /**
  * Replace the current process with one that has an on-disk OPcache file cache,
  * when it is safe and beneficial. The file_cache dir lives at `<PHEL_DIR>/opcache`,
- * a sibling of the compiled-code cache so `phel clear-cache` never wipes it (PHP
- * aborts at startup if the path is missing). A re-exec-done breadcrumb in the
- * environment stops the re-exec'd child from looping.
+ * a sibling of the compiled-code cache; `phel cache:clear` empties it but never
+ * removes it, because PHP aborts at startup if the path is missing. A
+ * re-exec-done breadcrumb in the environment stops the re-exec'd child from
+ * looping.
  */
 function maybeReexecWithOpcacheFileCache(string $appRootDir): void
 {
-    $fileCacheDir = PhelProjectDirectory::path($appRootDir, 'opcache');
+    $fileCacheDir = PhelProjectDirectory::opcachePath($appRootDir);
     if (!is_dir($fileCacheDir) && !@mkdir($fileCacheDir, 0o755, true) && !is_dir($fileCacheDir)) {
         return;
     }
@@ -81,6 +84,40 @@ function maybeReexecWithOpcacheFileCache(string $appRootDir): void
 
     // If pcntl_exec returns at all it failed; fall through and run in-process.
     @pcntl_exec(PHP_BINARY, $args);
+}
+
+/**
+ * Reclaim the OPcache file cache Phel owns, so `<PHEL_DIR>/opcache` stops
+ * growing without bound (#3268). Two kinds of dead weight go: subtrees left by
+ * a PHP build or ini set whose system id can never recur, and `.bin` files for
+ * eval temp files the run that wrote them already deleted.
+ *
+ * Only the re-exec'd child runs it: there `<PHEL_DIR>/opcache` is the active
+ * `opcache.file_cache`, so the current system id can be read off the `.bin` of
+ * this very script. Best-effort: a failure must never stop a command.
+ */
+function pruneOpcacheFileCache(string $appRootDir): void
+{
+    if (getenv(OpcacheReexec::REEXEC_DONE_ENV) === false) {
+        return;
+    }
+
+    $fileCache = new OpcacheFileCache(PhelProjectDirectory::opcachePath($appRootDir));
+    $systemId = $fileCache->detectSystemId(__FILE__);
+    if ($systemId === '') {
+        return;
+    }
+
+    $pruner = new OpcacheFileCachePruner($fileCache);
+    $pruner->pruneForeignSystemIds($systemId);
+
+    // Scoped to the system temp root because that is where the compiler's eval
+    // temp files land; walking the whole subtree on every start would charge
+    // the compiled-code cache a stat per entry for nothing.
+    $tempRoot = realpath(sys_get_temp_dir());
+    if ($tempRoot !== false) {
+        $pruner->pruneOrphanedBins($systemId, $tempRoot);
+    }
 }
 
 // NOTE: When packaged as a PHAR, the stub requires the PHAR's vendor/autoload.php first.
@@ -151,6 +188,7 @@ function maybeReexecWithOpcacheFileCache(string $appRootDir): void
     // stdin/stdout/stderr + TTY, and signals, so the interactive REPL and exit
     // codes survive transparently. Best-effort — any miss just runs in-process.
     maybeReexecWithOpcacheFileCache($appRootDir);
+    pruneOpcacheFileCache($appRootDir);
 
     // Phel classes are available either via the PHAR autoloader (in PHAR mode)
     // or the host Composer autoloader (source mode).

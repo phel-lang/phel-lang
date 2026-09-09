@@ -39,8 +39,57 @@ final class MutationReportTest extends TestCase
         $withCoverage = new MutationReport([], 0.1, 'pcov');
 
         self::assertSame(100.0, $none->msi());
+        self::assertSame(100.0, $none->coveredMsi());
         self::assertStringContainsString('Coverage: none (every mutant ran the whole suite)', $none->toText());
         self::assertStringContainsString('Coverage: pcov (each mutant ran only the tests that reach its definition)', $withCoverage->toText());
+        self::assertStringNotContainsString('Warning:', $withCoverage->toText());
+    }
+
+    public function test_a_run_that_reached_no_mutant_scores_zero_and_fails_every_floor(): void
+    {
+        $report = new MutationReport([
+            $this->outcome(MutantVerdict::NotCovered),
+            $this->outcome(MutantVerdict::NotCovered),
+            $this->outcome(MutantVerdict::NotCovered),
+        ], 0.0, 'pcov');
+
+        self::assertSame(0.0, $report->msi());
+        self::assertSame(0.0, $report->coveredMsi());
+        self::assertFalse($report->meetsMinimum(null, 84.0));
+        self::assertFalse($report->meetsMinimum(78.0, 84.0));
+        self::assertStringContainsString(
+            'Warning: pcov reached no mutant at all, so no test ran and nothing was measured.',
+            $report->toText(),
+        );
+    }
+
+    public function test_a_mutant_that_did_not_compile_does_not_hide_a_run_that_reached_nothing(): void
+    {
+        $report = new MutationReport([
+            $this->outcome(MutantVerdict::NotCovered),
+            $this->outcome(MutantVerdict::Error),
+        ], 0.0, 'pcov');
+
+        self::assertSame(0.0, $report->coveredMsi());
+        self::assertFalse($report->meetsMinimum(null, 84.0));
+        self::assertStringContainsString('Warning: pcov reached no mutant at all', $report->toText());
+    }
+
+    public function test_a_single_killed_mutant_among_uncovered_ones_still_scores_the_covered_half(): void
+    {
+        $report = new MutationReport([
+            $this->outcome(MutantVerdict::Killed),
+            $this->outcome(MutantVerdict::NotCovered),
+            $this->outcome(MutantVerdict::NotCovered),
+            $this->outcome(MutantVerdict::NotCovered),
+        ], 0.0, 'pcov');
+
+        // One mutant was reached and it died: the covered half is perfect even
+        // though three quarters of the run went unreached.
+        self::assertSame(25.0, $report->msi());
+        self::assertSame(100.0, $report->coveredMsi());
+        self::assertTrue($report->meetsMinimum(null, 84.0));
+        self::assertStringNotContainsString('Warning:', $report->toText());
     }
 
     public function test_the_text_report_lists_survivors_and_uncovered_mutants_by_location(): void
