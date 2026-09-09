@@ -7,6 +7,7 @@ namespace Phel\Run\Infrastructure\Command;
 use Gacela\Framework\ServiceResolver\ServiceMap;
 use Gacela\Framework\ServiceResolverAwareTrait;
 use Phel\Run\Application\Test\FrameKey;
+use Phel\Run\Application\Test\WorkerOutcome;
 use Phel\Run\Application\Test\WorkRequest;
 use Phel\Run\RunFacade;
 use Phel\Shared\CompileOptions;
@@ -47,7 +48,10 @@ use function sprintf;
  *   worker -> parent (one per work frame):
  *     {"index": 17, "ns": "...", "ok": true,
  *      "output": "...captured stdout...",
- *      "failed-tests": [...], "error": null}
+ *      "failed-tests": [...], "outcome": "verdict"}
+ *
+ * `outcome` says whether the namespace or the worker is what failed, so
+ * the parent retries only what a fresh worker can answer differently.
  *
  * Worker exits 0 when stdin closes (parent closes the pipe on shutdown).
  *
@@ -135,7 +139,7 @@ final class TestWorkerCommand extends Command
                     . sprintf('<error>Failed to compile %s: %s</error>', $request->ns, $compilerException->getMessage())
                     . "\n",
                 FrameKey::FAILED_TESTS => [],
-                FrameKey::ERROR => null,
+                FrameKey::OUTCOME => WorkerOutcome::CompileError->value,
             ];
         } catch (Throwable $throwable) {
             $captured = (string) ob_get_clean();
@@ -146,7 +150,7 @@ final class TestWorkerCommand extends Command
                     . sprintf('<error>Failed running %s: %s</error>', $request->ns, $throwable->getMessage())
                     . "\n",
                 FrameKey::FAILED_TESTS => [],
-                FrameKey::ERROR => $throwable->getMessage(),
+                FrameKey::OUTCOME => WorkerOutcome::WorkerError->value,
             ];
         }
     }
@@ -189,7 +193,7 @@ final class TestWorkerCommand extends Command
     }
 
     /**
-     * @return array{ok: bool, output: string, failed-tests: list<string>, focused: bool, counts: array<string, int>, error: null}
+     * @return array{ok: bool, output: string, failed-tests: list<string>, focused: bool, counts: array<string, int>, outcome: string}
      */
     private function parseResult(mixed $resultJson, string $captured): array
     {
@@ -202,7 +206,7 @@ final class TestWorkerCommand extends Command
             FrameKey::FAILED_TESTS => $this->extractFailedTests($parsed),
             FrameKey::FOCUSED => is_array($parsed) && (bool) ($parsed['focused'] ?? false),
             FrameKey::COUNTS => $this->extractCounts($parsed),
-            FrameKey::ERROR => null,
+            FrameKey::OUTCOME => WorkerOutcome::Verdict->value,
         ];
     }
 
