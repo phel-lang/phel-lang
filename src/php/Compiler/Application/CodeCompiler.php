@@ -7,7 +7,6 @@ namespace Phel\Compiler\Application;
 use Phel\Compiler\Domain\Analyzer\AnalyzerInterface;
 use Phel\Compiler\Domain\Analyzer\Ast\AbstractNode;
 use Phel\Compiler\Domain\Analyzer\Environment\NodeEnvironment;
-use Phel\Compiler\Domain\Analyzer\Exceptions\AnalyzerException;
 use Phel\Compiler\Domain\Cache\CachedReaderResult;
 use Phel\Compiler\Domain\Cache\ReaderResultCacheInterface;
 use Phel\Compiler\Domain\Compiler\CodeCompilerInterface;
@@ -29,6 +28,7 @@ use Phel\Lang\Registry;
 use Phel\Lang\Symbol;
 use Phel\Lang\TypeInterface;
 use Phel\Shared\CompileOptions;
+use Phel\Shared\Exceptions\AbstractLocatedException;
 use Phel\Shared\Exceptions\CompiledCodeIsMalformedException;
 use Phel\Shared\Exceptions\CompilerException;
 use Phel\Shared\Exceptions\FileException;
@@ -217,8 +217,8 @@ final readonly class CodeCompiler implements CodeCompilerInterface
 
         try {
             return $this->analyzer->analyze($readerResult->getAst(), $env);
-        } catch (AnalyzerException $analyzerException) {
-            throw new CompilerException($analyzerException, $readerResult->getCodeSnippet());
+        } catch (AbstractLocatedException $locatedException) {
+            throw new CompilerException($locatedException, $readerResult->getCodeSnippet());
         }
     }
 

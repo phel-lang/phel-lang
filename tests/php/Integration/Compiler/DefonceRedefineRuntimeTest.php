@@ -7,6 +7,7 @@ namespace PhelTest\Integration\Compiler;
 use Phel;
 use Phel\Compiler\Domain\Analyzer\Exceptions\DuplicateDefinitionException;
 use Phel\Shared\CompileOptions;
+use Phel\Shared\Exceptions\CompilerException;
 
 final class DefonceRedefineRuntimeTest extends AbstractCompilerRuntimeTestCase
 {
@@ -22,12 +23,20 @@ final class DefonceRedefineRuntimeTest extends AbstractCompilerRuntimeTestCase
 
     public function test_def_after_def_still_throws(): void
     {
-        $this->expectException(DuplicateDefinitionException::class);
-        $this->expectExceptionMessage('Symbol def-target is already bound in namespace user');
+        try {
+            $this->compilerFacade->compile(
+                '(def def-target 1) (def def-target 2)',
+                new CompileOptions(),
+            );
+            self::fail('Expected the redefinition of def-target to be rejected');
+        } catch (CompilerException $compilerException) {
+            $nestedException = $compilerException->getNestedException();
 
-        $this->compilerFacade->compile(
-            '(def def-target 1) (def def-target 2)',
-            new CompileOptions(),
-        );
+            self::assertInstanceOf(DuplicateDefinitionException::class, $nestedException);
+            self::assertSame(
+                "Symbol 'def-target' is already bound in namespace 'user'",
+                $nestedException->getMessage(),
+            );
+        }
     }
 }

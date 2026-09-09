@@ -53,6 +53,10 @@ final readonly class TextExceptionPrinter implements ExceptionPrinterInterface
      * by adding the snippet's first line. A caret pointer is appended only when the
      * error spans a single line and that line matches the one currently being
      * printed; multi-line errors are not underlined.
+     *
+     * An error carrying a related location (`first defined at …`) closes the report
+     * with it, below the snippet, because it names a second place in the source
+     * rather than the position the caret sits on.
      */
     public function getExceptionString(AbstractLocatedException $e, CodeSnippet $codeSnippet): string
     {
@@ -90,6 +94,11 @@ final readonly class TextExceptionPrinter implements ExceptionPrinterInterface
             }
 
             $str .= $this->underliningErrorPointer($endLineLength, $errorStartLocation, $errorEndLocation);
+        }
+
+        $relatedLocationNote = $e->getRelatedLocationNote();
+        if ($relatedLocationNote !== null) {
+            $str .= PHP_EOL . '  ' . $relatedLocationNote . PHP_EOL;
         }
 
         return $str;

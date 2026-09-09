@@ -6,29 +6,36 @@ namespace Phel\Compiler\Domain\Analyzer\Exceptions;
 
 use Phel\Lang\SourceLocation;
 use Phel\Lang\Symbol;
-use RuntimeException;
+use Phel\Shared\Exceptions\AbstractLocatedException;
+use Phel\Shared\Exceptions\ErrorCode;
 
 use function sprintf;
 
 /**
  * @internal
  */
-final class DuplicateDefinitionException extends RuntimeException
+final class DuplicateDefinitionException extends AbstractLocatedException
 {
-    public static function forSymbol(string $namespace, Symbol $name): self
-    {
-        $location = $name->getStartLocation();
-        $fileAndLine = '';
+    public static function forSymbol(
+        string $namespace,
+        Symbol $name,
+        ?SourceLocation $firstDefinitionLocation = null,
+    ): self {
+        $e = new self(
+            sprintf("Symbol '%s' is already bound in namespace '%s'", $name->getName(), $namespace),
+            $name->getStartLocation(),
+            $name->getEndLocation(),
+        );
+        $e->setErrorCode(ErrorCode::DUPLICATE_DEFINITION);
 
-        if ($location instanceof SourceLocation) {
-            $fileAndLine = sprintf(' in %s:%d', $location->getFile(), $location->getLine());
+        if ($firstDefinitionLocation instanceof SourceLocation) {
+            $e->setRelatedLocationNote(sprintf(
+                'first defined at %s:%d',
+                $firstDefinitionLocation->getFile(),
+                $firstDefinitionLocation->getLine(),
+            ));
         }
 
-        return new self(sprintf(
-            'Symbol %s is already bound in namespace %s%s',
-            $name->getName(),
-            $namespace,
-            $fileAndLine,
-        ));
+        return $e;
     }
 }
