@@ -266,6 +266,51 @@
         "error output renders empty strings with quotes")))
 
 ;; ---------------------------------------------------------------------------
+;; Default reporter: the Form line carries the asserted source form
+;; ---------------------------------------------------------------------------
+
+(defn- default-reporter-failure-output
+  "The default reporter's output for one real failing assertion, `assert-thunk`
+  wrapping the `is` form under test so the reported event carries a genuine
+  source form and location."
+  [assert-thunk]
+  (let [rep (t/resolve-reporter :default)]
+    (with-output-buffer
+      (t/with-isolated-reporters [rep]
+        (t/with-isolated-stats
+          (rep {:type :begin-test-run})
+          (assert-thunk)
+          (rep (summary-of-current-stats)))))))
+
+(deftest test-default-reporter-binary-failure-shows-the-asserted-form
+  (let [out (default-reporter-failure-output (fn [] (is (= 1 2))))]
+    (is (php/str_contains out "Form: (= 1 2)")
+        (str "the Form line carries the whole asserted form, got: " out))
+    (is (php/str_contains out "evaluated to: 2")
+        "the evaluated-to line still carries the computed value")))
+
+(deftest test-default-reporter-binary-not-failure-shows-the-asserted-form
+  (let [out (default-reporter-failure-output (fn [] (is (not (= 2 2)))))]
+    (is (php/str_contains out "Form: (= 2 2)")
+        (str "the Form line carries the negated form, got: " out))
+    (is (php/str_contains out "evaluated to: 2")
+        "the evaluated-to line still carries the computed value")))
+
+(deftest test-default-reporter-predicate-failure-shows-the-asserted-form
+  (let [out (default-reporter-failure-output (fn [] (is (pos? -3))))]
+    (is (php/str_contains out "Form: (pos? -3)")
+        (str "the Form line carries the predicate call, got: " out))
+    (is (php/str_contains out "evaluated to: -3")
+        "the evaluated-to line still carries the computed value")))
+
+(deftest test-default-reporter-predicate-not-failure-shows-the-asserted-form
+  (let [out (default-reporter-failure-output (fn [] (is (not (pos? 3)))))]
+    (is (php/str_contains out "Form: (pos? 3)")
+        (str "the Form line carries the negated predicate call, got: " out))
+    (is (php/str_contains out "evaluated to: 3")
+        "the evaluated-to line still carries the computed value")))
+
+;; ---------------------------------------------------------------------------
 ;; Default reporter — thrown-with-msg failure formatting
 ;; ---------------------------------------------------------------------------
 
@@ -556,7 +601,7 @@
               (rep {:type :end-test-ns :ns "dx.lib-test"}))]
     (is (= (str "::group::dx.lib-test\n"
                 "::error file=tests/dx/lib_test.phel,line=12,title=FAIL dx.lib-test/clamp-mid"
-                "::Form: (clamp 1 10 12)%0Aevaluated to: 6%0Abut is not: = to 5\n"
+                "::Form: (= 5 (clamp 1 10 12))%0Aevaluated to: 6%0Abut is not: = to 5\n"
                 "::endgroup::\n")
            out)
         "a passing assertion prints nothing; a failure is one ::error line inside the namespace group")))
@@ -633,10 +678,11 @@
               (t/with-isolated-reporters [rep]
                 (t/with-isolated-stats
                   (is (= 1 2) "real failure"))))]
-    (is (php/preg_match (str "/^::error file=tests\\/phel\\/reporters\\.phel,line=[1-9][0-9]*,"
-                             "title=FAIL test-github-reporter-reports-a-real-failing-assertion-against-its-file"
-                             "::real failure%0AForm: 2%0Aevaluated to: 2%0Abut is not: = to 1\n$/")
-                        out)
+    ;; `=` and not truthiness: a non-matching `preg_match` returns 0, which is truthy in Phel.
+    (is (= 1 (php/preg_match (str "/^::error file=tests\\/phel\\/reporters\\.phel,line=[1-9][0-9]*,"
+                                  "title=FAIL test-github-reporter-reports-a-real-failing-assertion-against-its-file"
+                                  "::real failure%0AForm: \\(= 1 2\\)%0Aevaluated to: 2%0Abut is not: = to 1\n$/")
+                             out))
         (str "file is relative to the working directory and the line is the assertion's own, got: " out))))
 
 ;; ---------------------------------------------------------------------------
