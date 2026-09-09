@@ -34,16 +34,6 @@ final readonly class WorkerResult
     ) {}
 
     /**
-     * Whether re-running this namespace on a fresh worker can change the
-     * answer. Only a worker-level fault qualifies; a compile error and a
-     * failing test are verdicts about the source.
-     */
-    public function isRetryable(): bool
-    {
-        return $this->outcome->isRetryable();
-    }
-
-    /**
      * @param array<string, mixed> $frame
      */
     public static function fromFrame(array $frame): self
@@ -81,6 +71,16 @@ final readonly class WorkerResult
             new Counts(error: 1, total: 1),
             WorkerOutcome::WorkerDied,
         );
+    }
+
+    /**
+     * Whether re-running this namespace on a fresh worker can change the
+     * answer. Only a worker-level fault qualifies; a compile error and a
+     * failing test are verdicts about the source.
+     */
+    public function isRetryable(): bool
+    {
+        return $this->outcome->isRetryable();
     }
 
     /**

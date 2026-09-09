@@ -21,6 +21,9 @@ use function count;
  */
 final class RetryBudget
 {
+    /** How often one namespace may be re-run before the worker fault is surfaced. */
+    private const int MAX_RETRIES_PER_NAMESPACE = 2;
+
     /** @var array<int, int> namespace index => retries still available */
     private array $remaining;
 
@@ -30,7 +33,7 @@ final class RetryBudget
     /** @var array<int, true> namespace indexes a retry rescued */
     private array $recovered = [];
 
-    public function __construct(int $namespaceCount, int $maxRetriesPerNamespace)
+    public function __construct(int $namespaceCount, int $maxRetriesPerNamespace = self::MAX_RETRIES_PER_NAMESPACE)
     {
         $this->remaining = array_fill(0, $namespaceCount, $maxRetriesPerNamespace);
     }
@@ -53,15 +56,9 @@ final class RetryBudget
      */
     public function recordFinal(WorkerResult $result): void
     {
-        if (!$result->ok) {
-            return;
+        if ($result->ok && isset($this->retried[$result->index])) {
+            $this->recovered[$result->index] = true;
         }
-
-        if (!isset($this->retried[$result->index])) {
-            return;
-        }
-
-        $this->recovered[$result->index] = true;
     }
 
     public function recoveredCount(): int

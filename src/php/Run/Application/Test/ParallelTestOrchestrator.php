@@ -48,13 +48,6 @@ final readonly class ParallelTestOrchestrator
     private const int SELECT_TIMEOUT_MICROS = 100_000;
 
     /**
-     * How often {@see RetryBudget} may re-run one namespace on a fresh worker
-     * before surfacing the worker fault, so a flaky race can't red a whole
-     * parallel run. (#2672)
-     */
-    private const int MAX_RETRIES_PER_NAMESPACE = 2;
-
-    /**
      * @param list<string> $opcacheFlags `-d` flags so every worker shares one
      *                                   OPcache file cache; empty when OPcache
      *                                   is unavailable
@@ -188,7 +181,7 @@ final readonly class ParallelTestOrchestrator
     ): int {
         $total = count($namespaces);
         $nextToDispatch = 0;
-        $budget = new RetryBudget($total, self::MAX_RETRIES_PER_NAMESPACE);
+        $budget = new RetryBudget($total);
 
         foreach ($workers as $worker) {
             if ($nextToDispatch >= $total) {
