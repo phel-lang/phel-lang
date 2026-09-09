@@ -21,8 +21,7 @@ AST walker, no Phel bytecode.
 - Emitted PHP calls `\Phel::*` (`src/Phel.php`) for definition registration and
   literal construction.
 - `Domain/Evaluator/RequireEvaluator` writes to a temp file named by the code's
-  MD5, calls `opcache_compile_file()` when available, `require`s it. Repeat code
-  hits a process-local cache, then the file.
+  MD5 and `require`s it. Repeat code hits a process-local cache, then the file.
 - `InMemoryEvaluator` (`eval()`) takes the interactive path, where a temp file per
   form buys nothing: `CompilerFacade::eval()`/`evalForm()` reach it, and through
   them the REPL, `phel eval`, the test runner and the breakpoint debugger.

@@ -17,13 +17,13 @@ enables tab-completion (setup in the [README](../README.md)).
 | `balance` | Report unbalanced `()`, `[]`, `{}` in Phel files; append the missing closers with `--fix` |
 | `bench` | Run the `defbench` benchmarks (all of them, or the files/namespaces you pass) |
 | `build` `b` | Build the current project: compile every namespace to PHP in the output dir |
-| `cache:clear` | Clear the temp and cache directories |
+| `cache:clear` | Clear the temp and cache directories, and empty the OPcache file cache |
 | `cache:warm` | Pre-resolve all module classes and warm the cache for production |
 | `completion` | Dump the shell completion script for bash, zsh, or fish |
 | `compile` | Compile a Phel snippet/file/stdin and print the emitted PHP — does not evaluate |
 | `config` | Show the effective Phel configuration and where it comes from |
 | `doc` | Display the docs for any/all Phel functions |
-| `doctor` | Check system requirements (PHP, extensions, OPcache cold-start) for the Phel CLI |
+| `doctor` | Check system requirements (PHP, extensions, OPcache cold-start, cache size) for the Phel CLI |
 | `eval` `e` | Evaluate a Phel expression (or stdin) and print the result |
 | `export` | Export all definitions tagged `{:export true}` as PHP classes |
 | `format` `fmt` | Format the given files (defaults to the configured format dirs) |
