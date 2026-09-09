@@ -63,6 +63,18 @@ final class MutationReportTest extends TestCase
         );
     }
 
+    public function test_a_mutant_that_did_not_compile_does_not_hide_a_run_that_reached_nothing(): void
+    {
+        $report = new MutationReport([
+            $this->outcome(MutantVerdict::NotCovered),
+            $this->outcome(MutantVerdict::Error),
+        ], 0.0, 'pcov');
+
+        self::assertSame(0.0, $report->coveredMsi());
+        self::assertFalse($report->meetsMinimum(null, 84.0));
+        self::assertStringContainsString('Warning: pcov reached no mutant at all', $report->toText());
+    }
+
     public function test_a_single_killed_mutant_among_uncovered_ones_still_scores_the_covered_half(): void
     {
         $report = new MutationReport([

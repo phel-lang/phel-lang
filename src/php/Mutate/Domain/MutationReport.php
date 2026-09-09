@@ -79,12 +79,11 @@ final readonly class MutationReport
      */
     public function coveredMsi(): float
     {
-        $scored = $this->detected() + $this->count(MutantVerdict::Survived);
-        if ($scored === 0) {
-            return $this->count(MutantVerdict::NotCovered) === 0 ? 100.0 : 0.0;
+        if ($this->reachedNothing()) {
+            return 0.0;
         }
 
-        return $this->percentage($this->detected(), $scored);
+        return $this->percentage($this->detected(), $this->detected() + $this->count(MutantVerdict::Survived));
     }
 
     public function meetsMinimum(?float $minMsi, ?float $minCoveredMsi = null): bool
@@ -110,7 +109,7 @@ final readonly class MutationReport
             ? 'Coverage: none (every mutant ran the whole suite)'
             : sprintf('Coverage: %s (each mutant ran only the tests that reach its definition)', $this->coverageDriver);
 
-        if ($this->reachedNothing()) {
+        if ($this->coverageDriver !== '' && $this->reachedNothing()) {
             $lines[] = sprintf('Warning: %s reached no mutant at all, so no test ran and nothing was measured.', $this->coverageDriver);
         }
 
@@ -182,15 +181,15 @@ final readonly class MutationReport
     }
 
     /**
-     * A driver attributed tests to lines and still every mutant came back
-     * unreached: far more often a driver that cannot see the compiled code
-     * than a project with no tests at all.
+     * Nothing detected, nothing survived, and at least one mutant went
+     * unreached. Mutants that failed to compile are ignored, so one `Error`
+     * among them does not hide the state.
      */
     private function reachedNothing(): bool
     {
-        return $this->coverageDriver !== ''
-            && $this->total() > 0
-            && $this->count(MutantVerdict::NotCovered) === $this->total();
+        return $this->detected() === 0
+            && $this->count(MutantVerdict::Survived) === 0
+            && $this->count(MutantVerdict::NotCovered) > 0;
     }
 
     private function detected(): int
