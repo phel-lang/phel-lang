@@ -13,14 +13,15 @@ use Phel\Compiler\Domain\Analyzer\Ast\PhpClassNameNode;
 use Phel\Compiler\Domain\Analyzer\Ast\PhpVarNode;
 use Phel\Compiler\Domain\Analyzer\Environment\GlobalEnvironment;
 use Phel\Compiler\Domain\Analyzer\Environment\NodeEnvironment;
+use Phel\Compiler\Domain\Analyzer\Exceptions\DuplicateDefinitionException;
 use Phel\Lang\Collections\Map\PersistentMapInterface;
 use Phel\Lang\Keyword;
 use Phel\Lang\SourceLocation;
 use Phel\Lang\Symbol;
 use Phel\Shared\CompilerConstants;
+use Phel\Shared\Exceptions\ErrorCode;
 use Phel\Shared\ReplConstants;
 use PHPUnit\Framework\TestCase;
-use RuntimeException;
 
 final class GlobalEnvironmentTest extends TestCase
 {
@@ -456,19 +457,48 @@ final class GlobalEnvironmentTest extends TestCase
         self::assertNull($env->getDefinition('foo-bar', Symbol::create('other')));
     }
 
-    public function test_add_duplicate_definition_throws_exception(): void
+    public function test_add_duplicate_definition_points_at_the_redefinition_and_names_the_first_one(): void
+    {
+        $env = new GlobalEnvironment();
+        $firstDefinition = Symbol::create('x');
+        $firstDefinition->setStartLocation(new SourceLocation(__FILE__, 1, 0));
+
+        $redefinition = Symbol::create('x');
+        $redefinition->setStartLocation(new SourceLocation(__FILE__, 7, 4));
+        $redefinition->setEndLocation(new SourceLocation(__FILE__, 7, 5));
+
+        $env->addDefinition('foo', $firstDefinition);
+        Phel::addDefinition('foo', 'x', 1);
+
+        try {
+            $env->addDefinition('foo', $redefinition);
+            self::fail('Expected the redefinition of foo/x to be rejected');
+        } catch (DuplicateDefinitionException $duplicateDefinitionException) {
+            self::assertSame("Symbol 'x' is already bound in namespace 'foo'", $duplicateDefinitionException->getMessage());
+            self::assertSame(ErrorCode::DUPLICATE_DEFINITION, $duplicateDefinitionException->getErrorCode());
+            self::assertSame(7, $duplicateDefinitionException->getStartLocation()?->getLine());
+            self::assertSame(7, $duplicateDefinitionException->getEndLocation()?->getLine());
+            self::assertSame(
+                'first defined at ' . __FILE__ . ':1',
+                $duplicateDefinitionException->getRelatedLocationNote(),
+            );
+        }
+    }
+
+    public function test_add_duplicate_definition_of_an_unlocated_symbol_names_no_first_definition(): void
     {
         $env = new GlobalEnvironment();
         $sym = Symbol::create('x');
-        $sym->setStartLocation(new SourceLocation(__FILE__, 1, 0));
 
         $env->addDefinition('foo', $sym);
         Phel::addDefinition('foo', 'x', 1);
 
-        $this->expectException(RuntimeException::class);
-        $this->expectExceptionMessage('Symbol x is already bound in namespace foo in ' . __FILE__ . ':1');
-
-        $env->addDefinition('foo', $sym);
+        try {
+            $env->addDefinition('foo', $sym);
+            self::fail('Expected the redefinition of foo/x to be rejected');
+        } catch (DuplicateDefinitionException $duplicateDefinitionException) {
+            self::assertNull($duplicateDefinitionException->getRelatedLocationNote());
+        }
     }
 
     /**
@@ -505,8 +535,8 @@ final class GlobalEnvironmentTest extends TestCase
         Phel::addDefinition('foo', 'x', 1);
         Phel::addDefinition(CompilerConstants::PHEL_CORE_NAMESPACE, ReplConstants::REPL_MODE, true);
 
-        $this->expectException(RuntimeException::class);
-        $this->expectExceptionMessage('Symbol x is already bound in namespace foo');
+        $this->expectException(DuplicateDefinitionException::class);
+        $this->expectExceptionMessage("Symbol 'x' is already bound in namespace 'foo'");
 
         $env->addDefinition('foo', $sym);
     }
@@ -537,8 +567,8 @@ final class GlobalEnvironmentTest extends TestCase
         $env->enterAnalysisMode();
         $env->leaveAnalysisMode();
 
-        $this->expectException(RuntimeException::class);
-        $this->expectExceptionMessage('Symbol x is already bound in namespace foo');
+        $this->expectException(DuplicateDefinitionException::class);
+        $this->expectExceptionMessage("Symbol 'x' is already bound in namespace 'foo'");
 
         $env->addDefinition('foo', $sym);
     }
