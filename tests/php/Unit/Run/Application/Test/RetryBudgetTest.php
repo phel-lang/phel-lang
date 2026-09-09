@@ -16,14 +16,14 @@ final class RetryBudgetTest extends TestCase
     {
         $budget = new RetryBudget(3, 2);
 
-        self::assertFalse($budget->allows(self::workerResult(1, WorkerOutcome::CompileError, ok: false)));
+        self::assertFalse($budget->allows($this->workerResult(1, WorkerOutcome::CompileError, ok: false)));
     }
 
     public function test_a_failing_test_run_is_never_retried(): void
     {
         $budget = new RetryBudget(3, 2);
 
-        self::assertFalse($budget->allows(self::workerResult(1, WorkerOutcome::Verdict, ok: false)));
+        self::assertFalse($budget->allows($this->workerResult(1, WorkerOutcome::Verdict, ok: false)));
     }
 
     public function test_a_worker_that_died_without_a_verdict_is_retried(): void
@@ -36,7 +36,7 @@ final class RetryBudgetTest extends TestCase
     public function test_a_worker_fault_is_retried_until_the_budget_runs_out(): void
     {
         $budget = new RetryBudget(3, 2);
-        $faulted = self::workerResult(1, WorkerOutcome::WorkerError, ok: false);
+        $faulted = $this->workerResult(1, WorkerOutcome::WorkerError, ok: false);
 
         self::assertTrue($budget->allows($faulted));
         $budget->consume(1);
@@ -51,15 +51,15 @@ final class RetryBudgetTest extends TestCase
         $budget = new RetryBudget(3, 1);
         $budget->consume(1);
 
-        self::assertFalse($budget->allows(self::workerResult(1, WorkerOutcome::WorkerError, ok: false)));
-        self::assertTrue($budget->allows(self::workerResult(2, WorkerOutcome::WorkerError, ok: false)));
+        self::assertFalse($budget->allows($this->workerResult(1, WorkerOutcome::WorkerError, ok: false)));
+        self::assertTrue($budget->allows($this->workerResult(2, WorkerOutcome::WorkerError, ok: false)));
     }
 
     public function test_counts_only_the_namespaces_a_retry_rescued(): void
     {
         $budget = new RetryBudget(3, 2);
         $budget->consume(1);
-        $budget->recordFinal(self::workerResult(1, WorkerOutcome::Verdict, ok: true));
+        $budget->recordFinal($this->workerResult(1, WorkerOutcome::Verdict, ok: true));
 
         self::assertSame(1, $budget->recoveredCount());
     }
@@ -68,7 +68,7 @@ final class RetryBudgetTest extends TestCase
     {
         $budget = new RetryBudget(3, 2);
         $budget->consume(1);
-        $budget->recordFinal(self::workerResult(1, WorkerOutcome::WorkerError, ok: false));
+        $budget->recordFinal($this->workerResult(1, WorkerOutcome::WorkerError, ok: false));
 
         self::assertSame(0, $budget->recoveredCount());
     }
@@ -76,12 +76,12 @@ final class RetryBudgetTest extends TestCase
     public function test_a_namespace_that_passed_first_time_recovered_nothing(): void
     {
         $budget = new RetryBudget(3, 2);
-        $budget->recordFinal(self::workerResult(1, WorkerOutcome::Verdict, ok: true));
+        $budget->recordFinal($this->workerResult(1, WorkerOutcome::Verdict, ok: true));
 
         self::assertSame(0, $budget->recoveredCount());
     }
 
-    private static function workerResult(int $index, WorkerOutcome $outcome, bool $ok): WorkerResult
+    private function workerResult(int $index, WorkerOutcome $outcome, bool $ok): WorkerResult
     {
         return new WorkerResult($index, 'app.a-test', $ok, '', [], new Counts(), $outcome);
     }
