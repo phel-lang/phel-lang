@@ -54,19 +54,8 @@ final class ReplCommand extends Command
 
     private const string EXIT_REPL = 'exit';
 
-    /**
-     * The forms that end the session.
-     *
-     * The banner tells the user to type `(exit)`, and a Lisp user reaches for
-     * the call form whatever the banner says, so both `exit`/`quit` and
-     * `(exit)`/`(quit)` are accepted. `(exit 2)` carries its argument out as
-     * the process status, which is the only thing the call form can do that
-     * the bare word cannot.
-     *
-     * This lives at the REPL command layer on purpose: `exit` is not a
-     * definition in `phel\core`, and `docs/spec/language-surface.md` freezes
-     * that surface for 1.x.
-     */
+    // Matched here rather than defined in phel\core: the surface frozen by
+    // docs/spec/language-surface.md has no `exit`. `(exit 2)` exits with status 2.
     private const string EXIT_PATTERN = '/^(?:exit|quit|\(\s*(?:exit|quit)(?:\s+(\d+))?\s*\))$/';
 
     private InputResult $previousResult;

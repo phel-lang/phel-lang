@@ -13,11 +13,6 @@ use Symfony\Component\Console\Output\OutputInterface;
 
 use function str_contains;
 
-/**
- * The banner tells the user how to leave, and a Lisp user reaches for the call
- * form whatever the banner says. Both have to work, and the banner has to name
- * a form the session actually accepts.
- */
 final class ReplExitTest extends AbstractTestCommand
 {
     use ReplCommandTestTrait;
@@ -94,14 +89,11 @@ final class ReplExitTest extends AbstractTestCommand
      */
     public static function provideIsOrdinaryCode(): Iterator
     {
-        // A symbol that merely starts with exit is not the command.
         yield ['(exit-code)'];
         yield ['exits'];
-        // The word inside a string or an argument list is not the command.
         yield ['(println "exit")'];
         yield ['(map exit xs)'];
-        // A call form the command does not define stays a normal form, so
-        // it fails as such rather than silently ending the session.
+        // Unrecognised arguments stay a form, so they fail as one instead of ending the session.
         yield ['(exit x)'];
         yield ['(exit 2 3)'];
     }
@@ -122,8 +114,7 @@ final class ReplExitTest extends AbstractTestCommand
             $this->createStub(OutputInterface::class),
         );
 
-        // It reached the second line to leave, so the first did not end the
-        // session; whether it evaluated or errored is not this test's business.
+        // Reaching the second prompt proves the first line did not end the session.
         self::assertSame(0, $exitCode);
         self::assertStringContainsString('user:2> exit', $io->getOutputString());
     }

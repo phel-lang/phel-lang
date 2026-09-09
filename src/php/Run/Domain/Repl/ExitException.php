@@ -23,9 +23,6 @@ final class ExitException extends RuntimeException
         return new self('Exit from REPL!', $status);
     }
 
-    /**
-     * The status the process should leave with, so `(exit 2)` can mean 2.
-     */
     public function status(): int
     {
         return $this->status;
