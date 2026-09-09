@@ -33,11 +33,19 @@ final class ErrorCodeTest extends TestCase
 
     public function test_reader_error_codes_start_with_200_299(): void
     {
-        self::assertSame('PHEL200', ErrorCode::INVALID_QUOTE->value);
+        self::assertSame('PHEL202', ErrorCode::INVALID_SPLICE->value);
+        self::assertSame('PHEL210', ErrorCode::READER_ERROR->value);
     }
 
     public function test_lexer_error_codes_start_with_300_399(): void
     {
-        self::assertSame('PHEL300', ErrorCode::INVALID_CHARACTER->value);
+        self::assertSame('PHEL301', ErrorCode::UNTERMINATED_STRING->value);
+        self::assertSame('PHEL310', ErrorCode::LEXER_ERROR->value);
+    }
+
+    public function test_runtime_error_codes_start_with_400_499(): void
+    {
+        self::assertSame('PHEL400', ErrorCode::RUNTIME_NOT_CALLABLE->value);
+        self::assertSame('PHEL404', ErrorCode::DIVISION_BY_ZERO->value);
     }
 }

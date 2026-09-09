@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace PhelTest\Unit\Run\Application;
 
+use DivisionByZeroError;
 use ParseError;
 use Phel\Compiler\Domain\Analyzer\Environment\GlobalEnvironmentInterface;
 use Phel\Compiler\Domain\Analyzer\Exceptions\AnalyzerException;
@@ -139,7 +140,20 @@ final class StructuredEvaluatorTest extends TestCase
         self::assertSame('RuntimeException', $result->error->exceptionClass);
         self::assertSame('division by zero', $result->error->message);
         self::assertSame('runtime', $result->error->phase);
+        self::assertNull($result->error->errorCode, 'A plain RuntimeException names no PHEL code');
         self::assertSame('', $result->output);
+    }
+
+    public function test_a_recognised_runtime_error_carries_its_code(): void
+    {
+        $facade = $this->compilerFacadeMock();
+        $facade->method('eval')->willThrowException(new DivisionByZeroError('Division by zero'));
+
+        $result = $this->eval($facade, '(/ 1 0)');
+
+        self::assertNotNull($result->error);
+        self::assertSame('PHEL404', $result->error->errorCode);
+        self::assertSame('runtime', $result->error->phase);
     }
 
     public function test_eval_captures_output_on_failure(): void

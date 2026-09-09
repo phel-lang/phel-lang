@@ -6,6 +6,7 @@ namespace Phel\Compiler\Domain\Reader\Exceptions;
 
 use Phel\Lang\SourceLocation;
 use Phel\Shared\Exceptions\AbstractLocatedException;
+use Phel\Shared\Exceptions\ErrorCode;
 use Phel\Shared\Parser\Node\NodeInterface;
 use Phel\Shared\Parser\ReadModel\CodeSnippet;
 use Throwable;
@@ -35,6 +36,7 @@ final class ReaderException extends AbstractLocatedException
         NodeInterface $root,
         string $message,
         ?Throwable $nestedException = null,
+        ?ErrorCode $errorCode = null,
     ): self {
         $codeSnippet = new CodeSnippet(
             $root->getStartLocation(),
@@ -42,13 +44,19 @@ final class ReaderException extends AbstractLocatedException
             $root->getCode(),
         );
 
-        return new self(
+        $e = new self(
             $message,
             $node->getStartLocation(),
             $node->getEndLocation(),
             $codeSnippet,
             $nestedException,
         );
+
+        if ($errorCode instanceof ErrorCode) {
+            $e->setErrorCode($errorCode);
+        }
+
+        return $e;
     }
 
     public function getCodeSnippet(): CodeSnippet

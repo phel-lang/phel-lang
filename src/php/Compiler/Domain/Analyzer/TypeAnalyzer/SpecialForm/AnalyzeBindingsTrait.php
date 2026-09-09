@@ -9,6 +9,7 @@ use Phel\Compiler\Domain\Analyzer\Environment\NodeEnvironmentInterface;
 use Phel\Compiler\Domain\Analyzer\Exceptions\AnalyzerException;
 use Phel\Lang\Collections\Vector\PersistentVectorInterface;
 use Phel\Lang\Symbol;
+use Phel\Shared\Exceptions\ErrorCode;
 
 use function count;
 use function gettype;
@@ -37,7 +38,7 @@ trait AnalyzeBindingsTrait
         for ($i = 0; $i < $vectorCount; $i += 2) {
             $sym = $vector->get($i);
             if (!($sym instanceof Symbol)) {
-                throw AnalyzerException::withLocation('Binding name must be a symbol, got: ' . gettype($sym), $vector);
+                throw AnalyzerException::withLocation('Binding name must be a symbol, got: ' . gettype($sym), $vector, errorCode: ErrorCode::BINDING_ERROR);
             }
 
             $shadowSym = Symbol::gen($sym->getName() . '_')->copyLocationFrom($sym);

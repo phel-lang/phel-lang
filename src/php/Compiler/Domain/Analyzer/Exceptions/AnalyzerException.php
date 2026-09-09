@@ -27,14 +27,24 @@ use function sprintf;
  */
 final class AnalyzerException extends AbstractLocatedException
 {
-    public static function withLocation(string $message, TypeInterface $type, ?Throwable $nested = null): self
-    {
-        return new self(
+    public static function withLocation(
+        string $message,
+        TypeInterface $type,
+        ?Throwable $nested = null,
+        ?ErrorCode $errorCode = null,
+    ): self {
+        $e = new self(
             $message,
             $type->getStartLocation(),
             $type->getEndLocation(),
             $nested,
         );
+
+        if ($errorCode instanceof ErrorCode) {
+            $e->setErrorCode($errorCode);
+        }
+
+        return $e;
     }
 
     /**

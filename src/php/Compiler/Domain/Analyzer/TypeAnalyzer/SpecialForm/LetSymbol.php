@@ -16,6 +16,7 @@ use Phel\Compiler\Domain\Analyzer\TypeAnalyzer\SpecialForm\Binding\Deconstructor
 use Phel\Lang\Collections\LinkedList\PersistentListInterface;
 use Phel\Lang\Collections\Vector\PersistentVectorInterface;
 use Phel\Lang\Symbol;
+use Phel\Shared\Exceptions\ErrorCode;
 
 use function count;
 
@@ -52,11 +53,11 @@ final readonly class LetSymbol implements SpecialFormAnalyzerInterface
         }
 
         if (!($list->get(1) instanceof PersistentVectorInterface)) {
-            throw AnalyzerException::withLocation('Binding parameter must be a vector', $list);
+            throw AnalyzerException::withLocation('Binding parameter must be a vector', $list, errorCode: ErrorCode::BINDING_ERROR);
         }
 
         if (!(count($list->get(1)) % 2 === 0)) {
-            throw AnalyzerException::withLocation('Bindings must be a even number of parameters', $list);
+            throw AnalyzerException::withLocation('Bindings must be a even number of parameters', $list, errorCode: ErrorCode::BINDING_ERROR);
         }
 
         $bindings = $this->deconstructor->deconstruct($list->get(1));

@@ -12,6 +12,7 @@ use Phel\Compiler\Domain\Analyzer\Exceptions\AnalyzerException;
 use Phel\Compiler\Domain\Analyzer\TypeAnalyzer\WithAnalyzerTrait;
 use Phel\Lang\Collections\LinkedList\PersistentListInterface;
 use Phel\Lang\Symbol;
+use Phel\Shared\Exceptions\ErrorCode;
 
 use function count;
 use function sprintf;
@@ -30,7 +31,7 @@ final class RecurSymbol implements SpecialFormAnalyzerInterface
     public function analyze(PersistentListInterface $list, NodeEnvironmentInterface $env): RecurNode
     {
         if (!$this->isValidRecurTuple($list)) {
-            throw AnalyzerException::withLocation("This is not a 'recur.", $list);
+            throw AnalyzerException::withLocation("This is not a 'recur.", $list, errorCode: ErrorCode::RECUR_ERROR);
         }
 
         $currentFrame = $env->getCurrentRecurFrame();
@@ -39,7 +40,7 @@ final class RecurSymbol implements SpecialFormAnalyzerInterface
             $msg = "Can't call 'recur here. See more: https://phel-lang.org/blog/loop-and-recur";
             /** @var Symbol $recurSymbol */
             $recurSymbol = $list->get(0);
-            throw AnalyzerException::withLocation($msg, $recurSymbol);
+            throw AnalyzerException::withLocation($msg, $recurSymbol, errorCode: ErrorCode::RECUR_ERROR);
         }
 
         if (count($list) - 1 !== count($currentFrame->getParams())) {
@@ -47,6 +48,7 @@ final class RecurSymbol implements SpecialFormAnalyzerInterface
                 "Wrong number of arguments for 'recur. Expected: "
                 . count($currentFrame->getParams()) . ' args, got: ' . (count($list) - 1),
                 $list,
+                errorCode: ErrorCode::RECUR_ERROR,
             );
         }
 
@@ -112,6 +114,7 @@ final class RecurSymbol implements SpecialFormAnalyzerInterface
                     "'recur arg #" . ($i + 1) . sprintf(" has type '%s' but param '", $literalType)
                     . $param->getName() . sprintf("' is tagged '%s'", $tag),
                     $list,
+                    errorCode: ErrorCode::RECUR_ERROR,
                 );
             }
         }
