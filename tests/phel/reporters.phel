@@ -270,9 +270,8 @@
 ;; ---------------------------------------------------------------------------
 
 (defn- default-reporter-failure-output
-  "The default reporter's output for one real failing assertion, `assert-thunk`
-  wrapping the `is` form under test so the reported event carries a genuine
-  source form and location."
+  "The default reporter's output for the one real failing assertion in
+  `assert-thunk`, so the rendered event carries a genuine source form."
   [assert-thunk]
   (let [rep (t/resolve-reporter :default)]
     (with-output-buffer

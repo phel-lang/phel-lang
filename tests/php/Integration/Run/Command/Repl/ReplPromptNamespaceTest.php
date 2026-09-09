@@ -138,8 +138,9 @@ final class ReplPromptNamespaceTest extends AbstractTestCommand
         // The test runner prints via php/print; ReplTestIo drains that into its
         // transcript, so the reported form shows up in getOutputString().
         $output = $io->getOutputString();
-        self::assertStringContainsString('Form: ""', $output);
-        self::assertStringNotContainsString('Form: ' . PHP_EOL, $output);
+        self::assertStringContainsString('Form: (= 0 "")', $output);
+        self::assertStringContainsString('evaluated to: ""', $output);
+        self::assertStringNotContainsString('evaluated to: ' . PHP_EOL, $output);
     }
 
 }
