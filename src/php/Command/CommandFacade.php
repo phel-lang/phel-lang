@@ -38,6 +38,13 @@ final class CommandFacade extends AbstractFacade implements CommandFacadeInterfa
             ->writeStackTrace($output, $e, $showInternalFrames);
     }
 
+    public function getRuntimeErrorReport(Throwable $e, bool $showInternalFrames = false): string
+    {
+        return $this->getFactory()
+            ->createCommandExceptionWriter()
+            ->getRuntimeErrorReport($e, $showInternalFrames);
+    }
+
     public function getExceptionString(AbstractLocatedException $e, CodeSnippet $codeSnippet): string
     {
         return $this->getFactory()

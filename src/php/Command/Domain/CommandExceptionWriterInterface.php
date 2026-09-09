@@ -16,6 +16,8 @@ interface CommandExceptionWriterInterface
 {
     public function writeStackTrace(OutputInterface $output, Throwable $e, bool $showInternalFrames = false): void;
 
+    public function getRuntimeErrorReport(Throwable $e, bool $showInternalFrames = false): string;
+
     public function writeLocatedException(
         OutputInterface $output,
         AbstractLocatedException $e,

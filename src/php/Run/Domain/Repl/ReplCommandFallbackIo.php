@@ -18,7 +18,6 @@ final readonly class ReplCommandFallbackIo implements ReplCommandIoInterface
 
     public function __construct(
         private CommandFacadeInterface $commandFacade,
-        private ReplErrorFormatter $errorFormatter,
     ) {}
 
     public function readHistory(): void {}

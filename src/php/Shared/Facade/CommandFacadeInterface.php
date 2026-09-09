@@ -24,6 +24,12 @@ interface CommandFacadeInterface
 
     public function writeStackTrace(OutputInterface $output, Throwable $e, bool $showInternalFrames = false): void;
 
+    /**
+     * The report `writeStackTrace()` writes, for callers that own where the
+     * text goes (the REPL and `phel eval` print to their own stream).
+     */
+    public function getRuntimeErrorReport(Throwable $e, bool $showInternalFrames = false): string;
+
     public function getExceptionString(AbstractLocatedException $e, CodeSnippet $codeSnippet): string;
 
     public function getStackTraceString(Throwable $e): string;

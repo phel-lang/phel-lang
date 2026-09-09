@@ -143,22 +143,24 @@ MSG;
         self::assertStringContainsString('#0 /proj/src/main.phel:42 : (app\\main\\print_joined #<stdClass>)', $trace);
     }
 
-    public function test_collapse_marker_names_the_flag_and_the_log_once_per_trace(): void
+    public function test_every_hidden_frame_lands_in_one_trailing_marker(): void
     {
         $exception = $this->throwFromNestedPhelFns();
 
         $trace = $this->createPrinter($this->stubMunge(), $this->stubFilePositionExtractor())
             ->getUserFacingTraceString($exception);
 
+        $lines = explode(PHP_EOL, rtrim($trace));
+
         self::assertSame(
             1,
-            substr_count($trace, self::COLLAPSED_TRACE_HINT),
-            "The hint rides on the first marker only:\n" . $trace,
+            substr_count($trace, 'internal frame'),
+            "Internal frames belong in a single marker:\n" . $trace,
         );
-        self::assertGreaterThan(1, substr_count($trace, 'internal frame'), $trace);
-        self::assertStringContainsString(
-            '... 1 internal frame (' . self::COLLAPSED_TRACE_HINT . ')',
-            $trace,
+        self::assertMatchesRegularExpression(
+            '/^   \.\.\. \d+ internal frames \(' . preg_quote(self::COLLAPSED_TRACE_HINT, '/') . '\)$/',
+            end($lines),
+            "The marker closes the trace and names the way out:\n" . $trace,
         );
     }
 
