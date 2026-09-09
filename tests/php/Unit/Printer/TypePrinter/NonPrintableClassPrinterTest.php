@@ -21,14 +21,35 @@ final class NonPrintableClassPrinterTest extends TestCase
 
     public static function providerPrint(): Generator
     {
-        yield 'cannot print ArrayObject' => [
+        yield 'ArrayObject' => [
             new ArrayObject(),
-            'Printer cannot print this type: ArrayObject',
+            '#<ArrayObject>',
         ];
 
-        yield 'cannot print stdClass' => [
+        yield 'stdClass' => [
             new stdClass(),
-            'Printer cannot print this type: stdClass',
+            '#<stdClass>',
         ];
+
+        yield 'namespaced class' => [
+            new NonPrintableClassPrinter(),
+            '#<Phel\Shared\Printer\TypePrinter\NonPrintableClassPrinter>',
+        ];
+    }
+
+    public function test_print_is_one_token_naming_the_class(): void
+    {
+        $printed = new NonPrintableClassPrinter()->print(new ArrayObject());
+
+        self::assertStringNotContainsString(' ', $printed);
+        self::assertStringContainsString(ArrayObject::class, $printed);
+    }
+
+    public function test_print_with_color_stays_one_token(): void
+    {
+        $printed = new NonPrintableClassPrinter(withColor: true)->print(new stdClass());
+
+        self::assertStringNotContainsString(' ', $printed);
+        self::assertStringContainsString('#<stdClass>', $printed);
     }
 }

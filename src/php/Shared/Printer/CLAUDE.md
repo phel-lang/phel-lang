@@ -24,11 +24,12 @@ Converts Phel/PHP values into string representations. Stateless strategy pattern
 ## Non-obvious renderings
 
 - `BigDecimalPrinter` appends `M` for reader round-trip; `UUIDPrinter` → `#uuid "..."`; `VarPrinter` → `#'ns/name`; `PersistentQueuePrinter` → `<-(...)-<` to show FIFO direction.
-- Plain-object fallback order: `__toString` → `ToStringPrinter`; anonymous class → `AnonymousClassPrinter`; else `NonPrintableClassPrinter`. Scalars in non-readable mode fall to `ObjectPrinter`/`ResourcePrinter`.
+- Plain-object fallback order: `__toString` → `ToStringPrinter`; anonymous class → `AnonymousClassPrinter`; else `NonPrintableClassPrinter` → `#<Fully\Qualified\Class>`. Scalars in non-readable mode fall to `ObjectPrinter`/`ResourcePrinter`.
 
 ## Key Constraints
 
 - Recursive printers (collections, struct, atom, array) receive `$this` Printer and re-enter dispatch for children — never construct a fresh `Printer`.
 - `createScalarTypePrinter` throws `RuntimeException` for an unprintable type in readable mode; missing object cases fall through `match` to `NonPrintableClassPrinter`.
 - Each printer owns its own color output (gated by `$withColor`); there is no central color pass.
+- `NonPrintableClassPrinter` renders one whitespace-free token on purpose: `ExceptionArgsPrinter` joins the arguments of a stack-trace frame with spaces, so a multi-word rendering reads as several arguments (#3265).
 - Extend only by adding a `TypePrinter` strategy + a branch in `Printer`; `Printer` is `final readonly` — do not subclass.
