@@ -13,6 +13,7 @@ use Phel\Command\Application\TextExceptionPrinter;
 use Phel\Command\Domain\CommandExceptionWriterInterface;
 use Phel\Command\Domain\Exceptions\ExceptionArgsPrinter;
 use Phel\Command\Domain\Exceptions\Extractor\FilePositionExtractor;
+use Phel\Command\Domain\Exceptions\InternalPathDetector;
 use Phel\Command\Domain\Finder\DirectoryFinderInterface;
 use Phel\Command\Domain\Finder\VendorDirectoriesFinderInterface;
 use Phel\Command\Infrastructure\ComposerVendorDirectoriesFinder;
@@ -44,6 +45,8 @@ final class CommandFactory extends AbstractFactory
             $this->createFilePositionExtractor(),
             $this->getConfig()->getStaleOutputHint(),
             $this->createExceptionHintResolver(),
+            $this->createInternalPathDetector(),
+            Printer::readable(),
         );
     }
 
@@ -95,6 +98,14 @@ final class CommandFactory extends AbstractFactory
         $reader = $this->getProvidedDependency(CommandProvider::PHP_CONFIG_READER);
 
         return $reader;
+    }
+
+    private function createInternalPathDetector(): InternalPathDetector
+    {
+        return new InternalPathDetector(
+            $this->getConfig()->getPhelInternalSrcDir(),
+            $this->getConfig()->getCacheDir(),
+        );
     }
 
     private function createComposerVendorDirectoriesFinder(): VendorDirectoriesFinderInterface

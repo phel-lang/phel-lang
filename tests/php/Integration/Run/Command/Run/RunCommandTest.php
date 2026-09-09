@@ -192,6 +192,33 @@ final class RunCommandTest extends AbstractTestCommand
         self::assertMatchesRegularExpression('~\.\.\. \d+ internal frames?~', $output);
     }
 
+    public function test_core_library_error_points_at_the_user_call_site(): void
+    {
+        $output = $this->captureRunOutput(
+            __DIR__ . '/Fixtures/core-error-script.phel',
+        );
+
+        self::assertStringContainsString('Vector index 5 out of bounds', $output);
+        // `nth` raises inside `phel\core`, which the user cannot act on: the
+        // `at` line names their own call site instead (#3260).
+        self::assertMatchesRegularExpression('~at .*core-error-script\.phel:4~', $output);
+        self::assertDoesNotMatchRegularExpression('~at .*sequences\.phel~', $output);
+        self::assertStringNotContainsString('cache/compiled', $output);
+        self::assertStringNotContainsString('compiled:', $output);
+    }
+
+    public function test_uncaught_ex_info_prints_its_data(): void
+    {
+        $output = $this->captureRunOutput(
+            __DIR__ . '/Fixtures/ex-info-script.phel',
+        );
+
+        self::assertStringContainsString('boom', $output);
+        self::assertStringContainsString('data: {:user-id 42, :op :charge}', $output);
+        self::assertMatchesRegularExpression('~at .*ex-info-script\.phel:3~', $output);
+        self::assertDoesNotMatchRegularExpression('~at .*exceptions\.phel~', $output);
+    }
+
     public function test_runtime_error_maps_phel_frames_on_repeated_run(): void
     {
         $scriptPath = __DIR__ . '/Fixtures/error-trace-script.phel';

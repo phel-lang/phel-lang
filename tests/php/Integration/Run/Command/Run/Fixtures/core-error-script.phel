@@ -1,0 +1,6 @@
+(ns core-error-script)
+
+(defn read-fifth [xs]
+  (nth xs 5))
+
+(read-fifth [])
