@@ -29,7 +29,7 @@ final class ExceptionArgsPrinterTest extends TestCase
         self::assertSame(' ' . str_repeat('x', 200) . '...', $actual);
     }
 
-    public function test_parse_args_as_string_renders_a_host_object_as_one_arg(): void
+    public function test_parse_args_as_string_renders_a_host_object_as_a_single_argument(): void
     {
         $argsPrinter = new ExceptionArgsPrinter(Printer::readable());
         $actual = $argsPrinter->parseArgsAsString([new stdClass(), 1]);

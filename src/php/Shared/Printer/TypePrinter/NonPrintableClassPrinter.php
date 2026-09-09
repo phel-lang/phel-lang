@@ -7,9 +7,8 @@ namespace Phel\Shared\Printer\TypePrinter;
 use function sprintf;
 
 /**
- * Fallback for a host object with no printer of its own. The marker stays a
- * single token because callers splice it into argument lists, such as the
- * frames of a stack trace.
+ * Fallback for a host object with no printer of its own. The marker holds no
+ * space because callers splice it into lists, such as a stack-trace frame.
  *
  * @implements TypePrinterInterface<object>
  */

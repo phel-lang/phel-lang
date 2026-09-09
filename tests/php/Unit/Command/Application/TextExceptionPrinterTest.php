@@ -124,7 +124,7 @@ MSG;
         self::assertStringNotContainsString('PHPUnit', $trace);
     }
 
-    public function test_user_facing_trace_renders_a_host_object_argument_as_one_arg(): void
+    public function test_user_facing_trace_renders_a_host_object_as_a_single_argument(): void
     {
         $fn = new class() implements FnInterface {
             public const string BOUND_TO = 'app\\main\\print_joined';
@@ -135,8 +135,8 @@ MSG;
             }
         };
 
-        // PHP omits trace arguments while this is on, and the arguments are what this test reads.
         $ignoreArgs = (string) ini_get('zend.exception_ignore_args');
+        // PHP records no trace arguments while this is on, and the arguments are what this test reads.
         ini_set('zend.exception_ignore_args', '0');
 
         try {
