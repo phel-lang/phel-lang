@@ -26,6 +26,7 @@ use function sprintf;
 use function str_contains;
 use function sys_get_temp_dir;
 
+use const DIRECTORY_SEPARATOR;
 use const JSON_THROW_ON_ERROR;
 
 /**
@@ -79,7 +80,6 @@ final class TestCommandCoverageTest extends TestCase
     {
         [, $output] = $this->runPhelTest(['--coverage']);
         $this->skipIfNoDriver($output);
-        $this->skipIfNothingWasInstrumented($output);
 
         self::assertStringContainsString('Coverage', $output);
         self::assertStringContainsString('calc.phel', $output);
@@ -94,7 +94,6 @@ final class TestCommandCoverageTest extends TestCase
         $this->skipIfNoDriver($output);
 
         self::assertFileExists($cloverPath);
-        $this->skipIfNothingWasInstrumented((string) file_get_contents($cloverPath));
 
         $xml = simplexml_load_string((string) file_get_contents($cloverPath));
         self::assertNotFalse($xml, 'clover output is well-formed XML');
@@ -111,7 +110,6 @@ final class TestCommandCoverageTest extends TestCase
         self::assertFileExists($indexPath);
 
         $index = (string) file_get_contents($indexPath);
-        $this->skipIfNothingWasInstrumented($index);
 
         self::assertStringContainsString('calc.phel', $index);
         self::assertMatchesRegularExpression('/\d+\.\d%/', $index);
@@ -125,9 +123,6 @@ final class TestCommandCoverageTest extends TestCase
         $this->skipIfNoDriver($output);
 
         self::assertFileExists($this->projectDir . '/report/cov/index.html');
-        $this->skipIfNothingWasInstrumented(
-            (string) file_get_contents($this->projectDir . '/report/cov/index.html'),
-        );
         $filePages = glob($this->projectDir . '/report/cov/calc.phel.*.html');
         self::assertNotFalse($filePages);
         self::assertCount(1, $filePages);
@@ -157,7 +152,6 @@ final class TestCommandCoverageTest extends TestCase
         self::assertSame(0, $exitCode, $output);
         self::assertFileExists($jsonPath);
         $json = (string) file_get_contents($jsonPath);
-        $this->skipIfNothingWasInstrumented($json);
 
         $decoded = json_decode($json, true, 512, JSON_THROW_ON_ERROR);
         self::assertIsArray($decoded);
@@ -187,34 +181,6 @@ final class TestCommandCoverageTest extends TestCase
     }
 
     /**
-     * A driver that instruments nothing produces an *empty* report rather than an
-     * error, and every assertion then fails for a reason that has nothing to do
-     * with what is under test.
-     *
-     * This is the state under pcov: the nested `phel test --coverage` reports
-     * `statements="0"` and no source files, even with `pcov.directory` pointed at
-     * the fixture. Until CI enabled pcov nothing ever reached this branch, because
-     * without a driver the run skipped one step earlier, so it is an unproven path
-     * rather than a regression. Skipping with the reason keeps that visible instead
-     * of turning it into four confusing assertion failures.
-     *
-     * @param string $report the coverage artefact to judge: console output, clover XML or HTML
-     */
-    private function skipIfNothingWasInstrumented(string $report): void
-    {
-        $empty = str_contains($report, 'No project source files were executed')
-            || str_contains($report, 'statements="0"')
-            || !str_contains($report, 'calc.phel');
-
-        if ($empty) {
-            self::markTestSkipped(
-                'The coverage driver instrumented no Phel sources, so the report is empty. '
-                . 'Reproduces under pcov; see https://github.com/phel-lang/phel-lang/issues/2859.',
-            );
-        }
-    }
-
-    /**
      * @param list<string> $arguments
      *
      * @return array{0: int, 1: string}
@@ -226,14 +192,13 @@ final class TestCommandCoverageTest extends TestCase
             $args .= ' ' . escapeshellarg($argument);
         }
 
-        // pcov only instruments files under `pcov.directory`, which defaults to a
-        // path derived from the parent process. The fixture project lives in the
-        // system temp directory, so without this the subprocess collects nothing
-        // and reports an empty report instead of failing. Harmless under xdebug,
-        // and harmless when pcov is not installed at all.
+        // pcov instruments only files under `pcov.directory`. Phel runs its
+        // compiled PHP from the system temp directory, not from the fixture, so
+        // the root is the only prefix that reaches it (#3270). Harmless under
+        // xdebug, and harmless when pcov is not installed at all.
         $cmd = 'cd ' . escapeshellarg($this->projectDir)
             . ' && php -d memory_limit=256M'
-            . ' -d pcov.directory=' . escapeshellarg($this->projectDir)
+            . ' -d pcov.directory=' . escapeshellarg(DIRECTORY_SEPARATOR)
             . ' ' . escapeshellarg($this->repoRoot . '/bin/phel')
             . ' test' . $args . ' 2>&1';
 

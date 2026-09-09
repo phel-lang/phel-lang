@@ -11,6 +11,7 @@ use Phel\Mutate\Application\MutantWorker;
 use Phel\Mutate\Application\MutantWorkerSession;
 use Phel\Mutate\Application\MutationPlanner;
 use Phel\Mutate\Application\MutationRunner;
+use Phel\Mutate\Application\PcovScopeWidener;
 use Phel\Mutate\Application\ProjectWarmer;
 use Phel\Mutate\Domain\MutateOptions;
 use Phel\Mutate\Domain\MutationPlan;
@@ -50,7 +51,12 @@ final class MutateFactory extends AbstractFactory
 
     public function createMutationRunner(MutationPlan $plan, MutateOptions $options): MutationRunner
     {
-        $command = [PHP_BINARY, PhelBinaryLocator::locate(), MutateWorkerCommand::COMMAND_NAME];
+        $command = [
+            PHP_BINARY,
+            ...PcovScopeWidener::detect()->iniArguments(),
+            PhelBinaryLocator::locate(),
+            MutateWorkerCommand::COMMAND_NAME,
+        ];
 
         return new MutationRunner(
             static fn(): MutantWorker => MutantWorker::spawn($command),
