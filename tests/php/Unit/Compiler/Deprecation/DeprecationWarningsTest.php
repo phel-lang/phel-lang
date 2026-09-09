@@ -5,23 +5,37 @@ declare(strict_types=1);
 namespace PhelTest\Unit\Compiler\Deprecation;
 
 use Phel\Compiler\Domain\Deprecation\DeprecationWarnings;
+use Phel\Compiler\Domain\Diagnostic\ErrorNotice;
 use Phel\Lang\SourceLocation;
 use PHPUnit\Framework\TestCase;
 
 use function dirname;
+use function fopen;
 use function ini_get;
 use function restore_error_handler;
+use function rewind;
 
 use function set_error_handler;
 
 use function sprintf;
+use function stream_get_contents;
 
 use const E_USER_DEPRECATED;
 
 final class DeprecationWarningsTest extends TestCase
 {
+    /** @var resource */
+    private $stderrStream;
+
+    protected function setUp(): void
+    {
+        $this->stderrStream = fopen('php://memory', 'w+');
+        ErrorNotice::writeTo($this->stderrStream);
+    }
+
     protected function tearDown(): void
     {
+        ErrorNotice::reset();
         DeprecationWarnings::reset();
     }
 
@@ -110,6 +124,32 @@ final class DeprecationWarningsTest extends TestCase
         self::assertSame(['first'], $this->capture(static function (): void {
             DeprecationWarnings::warnOnceForSource('/app/user.phel', 'phel.core/set-meta!', 'first');
             DeprecationWarnings::warnOnceForSource('/app/user.phel', 'phel.core/set-meta!', 'second');
+        }));
+    }
+
+    public function test_warn_once_reports_a_subject_only_once_across_two_spellings_of_one_file(): void
+    {
+        DeprecationWarnings::enable();
+
+        $spelled = $this->thisFileSpelledIndirectly();
+
+        self::assertSame(['first'], $this->capture(static function () use ($spelled): void {
+            DeprecationWarnings::warnOnceForSource(__FILE__, 'dep\\main', 'first');
+            DeprecationWarnings::warnOnceForSource($spelled, 'dep\\main', 'second');
+        }));
+    }
+
+    public function test_announce_once_reports_a_subject_only_once_across_two_spellings_of_one_file(): void
+    {
+        // The same `ns` symbol reaches the analyzer twice, once from the
+        // namespace scan and once from the compile, each naming the file its
+        // own way (#3262).
+        $spelled = $this->thisFileSpelledIndirectly();
+
+        self::assertSame(['announced'], $this->capture(static function () use ($spelled): void {
+            $build = static fn(): string => 'announced';
+            DeprecationWarnings::announceOnceAtOrigin(new SourceLocation(__FILE__, 1, 1), 'dep\\main', $build);
+            DeprecationWarnings::announceOnceAtOrigin(new SourceLocation($spelled, 1, 1), 'dep\\main', $build);
         }));
     }
 
@@ -404,20 +444,22 @@ final class DeprecationWarningsTest extends TestCase
         self::assertSame('', $this->captureStdoutWithPhpDefaultHandler(static function (): void {
             DeprecationWarnings::warn('buffered deprecation');
         }));
+        self::assertSame("deprecated: buffered deprecation\n", $this->writtenToStderr());
     }
 
-    public function test_notice_display_stays_silent_when_the_user_turned_display_errors_off(): void
+    public function test_notice_stays_silent_when_the_user_turned_every_output_channel_off(): void
     {
         DeprecationWarnings::enable();
 
-        // Redirecting to stderr must not *enable* a display the user disabled,
-        // so nothing reaches either channel here.
+        // The helper already turns `log_errors` off, so with the display off
+        // too PHP has nowhere left to put this notice and neither has Phel.
         self::assertSame('', $this->captureStdoutWithPhpDefaultHandler(
             static function (): void {
                 DeprecationWarnings::warn('silenced deprecation');
             },
             displayErrors: '0',
         ));
+        self::assertSame('', $this->writtenToStderr());
     }
 
     public function test_the_stderr_redirect_is_scoped_to_the_notice(): void
@@ -482,6 +524,22 @@ final class DeprecationWarningsTest extends TestCase
         }
 
         return $captured;
+    }
+
+    /**
+     * This file's path with a redundant hop through its own directory, so it
+     * is a different string that `realpath` resolves to the same file.
+     */
+    private function thisFileSpelledIndirectly(): string
+    {
+        return __DIR__ . '/../Deprecation/' . basename(__FILE__);
+    }
+
+    private function writtenToStderr(): string
+    {
+        rewind($this->stderrStream);
+
+        return (string) stream_get_contents($this->stderrStream);
     }
 
     /**

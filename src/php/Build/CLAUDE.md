@@ -12,7 +12,7 @@ Compiles Phel projects to PHP: namespace extraction, dependency ordering, and ca
 | `evalFile(src)` | Same as `compileFile` but skips writing output |
 | `flushCompiledCodeCache()` | Writes the compiled-code cache index to disk now (it otherwise flushes once at shutdown); a parent about to spawn workers calls it so they find what it compiled |
 | `compileProject(BuildOptions)` | Returns `CompiledFile[]` |
-| `clearCache()` | Returns `string[]` paths cleared from temp/cache dirs |
+| `clearCache()` | Returns `string[]` paths cleared from the temp, cache and OPcache dirs |
 | `getHealthCheck()` | Cache, output, source dir checks |
 | `enableBuildMode()` / `disableBuildMode()` / `isBuildMode()` | Static; toggles `*build-mode*` via direct `Registry` write (avoids `Phel::__callStatic` on the hot `(load ...)` path) |
 | `writeLocatedException` / `writeStackTrace` / `getOutputDirectory` | Delegate to Command facade |
@@ -37,7 +37,7 @@ Both are injected as their Shared `*FacadeInterface`. One non-facade edge: **Con
 | `Application/FileCompiler` | Compile single file to PHP |
 | `Application/DependenciesForNamespace` | Per-process memoized dependency resolution |
 | `Application/CachedNamespaceExtractor` | Skips dir walk via scan index |
-| `Application/CacheClearer` | Clears `<cacheDir>` |
+| `Application/CacheClearer` | Clears `<tempDir>` + `<cacheDir>`; empties `<phelDir>/opcache` in place |
 | `Domain/Extractor/TopologicalNamespaceSorter` | Dependency-order compilation |
 | `Domain/Compile/BuildReport` + `BuildReportEntry` | `--report` VO (`toArray()`); command renders it |
 | `Domain/Compile/PhaseTimingReport` | `--timing` per-phase wall-clock report |
@@ -65,6 +65,13 @@ Both are injected as their Shared `*FacadeInterface`. One non-facade edge: **Con
 - **Scan-index cache** (`PhpScanIndexCache`, `<cacheDir>/scan-index.php`, impl `ScanIndexCacheInterface`; `NullScanIndexCache` when disabled) lets `CachedNamespaceExtractor` skip the `RecursiveDirectoryIterator` walk across processes. Keyed by resolved dir-set; validated by per-directory `mtime` + phel-file count (catches same-second add/remove) AND per-file `mtime` in each `ScanIndexEntry` (catches in-place edits) AND `ScanIndexEntry::covers()` against the requested directories that exist now (a configured directory absent at scan time has no fingerprint, so its later appearance can only be caught this way, #3205) — never serves stale ns/dependency info. Mirrors `PhpNamespaceCache` (var_export + flock + disk-merge + shutdown flush). Injected via `BuildFactory::createScanIndexCache()`; path from `BuildConfig::getScanIndexCacheFile()`; cleared by `CacheClearer`.
 - **Both `LockedPhpCacheWriter` caches prune unreachable entries in `save()`**, after the disk merge and before the write. Unreachable means the anchor path is *gone* (`ScanIndexEntry::isReachable()` probes the `perDir` keys; `PhpNamespaceCache` probes the file key), not merely out of date: a changed `mtime` still resolves to a reachable key that the next scan overwrites, whereas a removed directory can never produce its key again. Without this the merge inherits every dead entry from every previous run, and the cache grows forever. The path that forced it is `Api\Infrastructure\PhelFunctionRuntimeLoader`, which scans a unique `.phel_temp_<uniqid>` directory per `phel doc` / LSP hover / REPL completion and removes it in a `finally` that runs *before* the shutdown flush, so each call was appending ~156 KB of permanently dead index (#3007). Prune at save, never at load: reads already reject dead entries via `isValid()`, so load-time pruning would buy no correctness while charging a `stat` per entry to every process start, read-only runs included.
 - `DependenciesForNamespace` memoizes per `(dirs, seeds)` within a process so the three root callers (`FileRunner`, `DataReadersLoader`, `NamespaceLoader`) don't each re-derive.
+
+### OPcache file cache
+
+- `bin/phel` re-execs itself with `opcache.file_cache=<phel-dir>/opcache` (path from `PhelProjectDirectory::opcachePath()`, which ignores the configured `phel-dir` because the CLI resolves it before any config is loaded). Nothing used to prune that directory and `cache:clear` could not reach it, so it grew without bound: 702 MB against a 45 MB compiled-code cache on this repo, 580 MB of it under system ids no PHP on the machine can read any more (#3268).
+- `CacheClearer` now empties it, **in place**: the directory itself stays, because PHP aborts at startup when `opcache.file_cache` points at a missing path. That is why it goes through `OpcacheFileCachePruner::clearContents()` and not `deleteDirectory()`.
+- `bin/phel` also prunes on start, in the re-exec'd child only: foreign system-id subtrees, plus orphaned `.bin` files below the system temp root (where the compiler's eval temp files land). The current system id comes from probing (`OpcacheFileCache::detectSystemId()` reads it off the `.bin` of the running script), because the id mixes the PHP version, the Zend build id and opcache directives, none of which userland can reproduce.
+- A `.bin` for a deleted file cannot be dropped through `opcache_invalidate()`: under `opcache.file_cache_only=1`, which is what the CLI runs, the call returns before it reaches the file cache. Deleting the `.bin` is the only way.
 
 ### Compilation order & invalidation
 

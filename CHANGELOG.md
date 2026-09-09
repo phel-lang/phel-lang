@@ -6,6 +6,7 @@ All notable changes to this project will be documented in this file.
 
 ### Added
 
+- Public API: `Shared\ByteSize`, `Shared\Performance\OpcacheFileCache`, `Shared\Performance\OpcacheFileCachePruner`, and `PhelProjectDirectory::opcachePath()`. (#3268)
 - `--stack-trace` on `phel run`, `phel eval` and `phel repl`, and a collapse marker that names both the flag and the error log holding the full trace. (#3261)
 
 ### Fixed
@@ -14,6 +15,8 @@ All notable changes to this project will be documented in this file.
 - `phel test`: the `Form:` line of a failed assertion prints the asserted source form instead of repeating the evaluated value. (#3263)
 - Parser: an unterminated list, vector, map, set or string now names the line it was opened on, carries an error code, and puts the caret on the opening delimiter. (#3259)
 - A runtime error raised inside the core library points its `at` line at the user's own call site, never at the compiled-cache artifact, and an uncaught `ex-info` prints its data map. (#3260)
+- A compiler deprecation prints one stderr line naming the user's file, instead of four PHP-rendered lines naming an internal Phel class. (#3262)
+- `<phel-dir>/opcache` no longer grows without bound: `phel cache:clear` empties it, every run prunes dead system-id subtrees and orphaned `.bin` files, and `phel doctor` reports its size. (#3268)
 
 ## [0.51.0](https://github.com/phel-lang/phel-lang/compare/v0.50.0...v0.51.0) - 2026-09-05
 

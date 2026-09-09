@@ -68,7 +68,10 @@ final readonly class NamespaceExtractor implements NamespaceExtractorInterface
         }
 
         try {
-            $tokenStream = $this->compilerFacade->lexString($content);
+            // Named, not lexed as an anonymous string: a deprecation the `ns`
+            // form carries is reported at this location, and the default
+            // `string` source gave the user a place they cannot open (#3262).
+            $tokenStream = $this->compilerFacade->lexString($content, $path);
             do {
                 $parseTree = $this->compilerFacade->parseNext($tokenStream);
             } while ($parseTree instanceof TriviaNodeInterface);

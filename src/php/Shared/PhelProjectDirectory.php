@@ -28,6 +28,8 @@ final class PhelProjectDirectory
 
     public const string CACHE_DIR_ENV = 'PHEL_CACHE_DIR';
 
+    public const string OPCACHE_DIRECTORY_NAME = 'opcache';
+
     private const string GITIGNORE_FILENAME = '.gitignore';
 
     private const string GITIGNORE_CONTENT = "# Created automatically by Phel.\n*\n";
@@ -65,6 +67,19 @@ final class PhelProjectDirectory
         return $subpath === ''
             ? $base
             : $base . DIRECTORY_SEPARATOR . ltrim($subpath, '/\\');
+    }
+
+    /**
+     * Absolute path to the OPcache file cache that `bin/phel` points
+     * `opcache.file_cache` at.
+     *
+     * Deliberately ignores `PhelConfig::withPhelDir()`: the CLI resolves this
+     * path before any config is loaded, so only `PHEL_DIR` can move it, and a
+     * caller reading the config would clear a directory nothing writes to.
+     */
+    public static function opcachePath(string $projectRoot): string
+    {
+        return self::path($projectRoot, self::OPCACHE_DIRECTORY_NAME);
     }
 
     /**
