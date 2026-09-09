@@ -31,11 +31,11 @@ final class CommandFacade extends AbstractFacade implements CommandFacadeInterfa
             ->writeLocatedException($output, $locatedException, $snippet);
     }
 
-    public function writeStackTrace(OutputInterface $output, Throwable $e): void
+    public function writeStackTrace(OutputInterface $output, Throwable $e, bool $showInternalFrames = false): void
     {
         $this->getFactory()
             ->createCommandExceptionWriter()
-            ->writeStackTrace($output, $e);
+            ->writeStackTrace($output, $e, $showInternalFrames);
     }
 
     public function getExceptionString(AbstractLocatedException $e, CodeSnippet $codeSnippet): string
@@ -43,6 +43,13 @@ final class CommandFacade extends AbstractFacade implements CommandFacadeInterfa
         return $this->getFactory()
             ->createCommandExceptionWriter()
             ->getExceptionString($e, $codeSnippet);
+    }
+
+    public function logStackTrace(Throwable $e): void
+    {
+        $this->getFactory()
+            ->createCommandExceptionWriter()
+            ->logStackTrace($e);
     }
 
     public function getStackTraceString(Throwable $e): string

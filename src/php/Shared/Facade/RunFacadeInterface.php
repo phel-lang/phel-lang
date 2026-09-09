@@ -105,7 +105,7 @@ interface RunFacadeInterface
 
     public function writeLocatedException(OutputInterface $output, CompilerException $e): void;
 
-    public function writeStackTrace(OutputInterface $output, Throwable $e): void;
+    public function writeStackTrace(OutputInterface $output, Throwable $e, bool $showInternalFrames = false): void;
 
     /**
      * @return list<string>

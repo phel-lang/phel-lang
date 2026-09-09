@@ -7,6 +7,7 @@ All notable changes to this project will be documented in this file.
 ### Added
 
 - Public API: `Shared\ByteSize`, `Shared\Performance\OpcacheFileCache`, `Shared\Performance\OpcacheFileCachePruner`, and `PhelProjectDirectory::opcachePath()`. (#3268)
+- `--stack-trace` on `phel run`, `phel eval` and `phel repl`, and a collapse marker that names both the flag and the error log holding the full trace. (#3261)
 
 ### Fixed
 
