@@ -37,4 +37,14 @@ final class SharedNamespacesTest extends TestCase
 
         self::assertSame([], SharedNamespaces::of([$test]));
     }
+
+    public function test_a_bundled_module_nobody_requires_is_still_shared(): void
+    {
+        // Every work frame carries the bundled modules, so leaving one out of
+        // the warm-up hands two workers the same cold compile (#3271).
+        $json = new NamespaceInformation('/json.phel', 'phel.json', []);
+        $test = new NamespaceInformation('/a_test.phel', 'app.a-test', []);
+
+        self::assertSame([$json], SharedNamespaces::of([$json, $test]));
+    }
 }

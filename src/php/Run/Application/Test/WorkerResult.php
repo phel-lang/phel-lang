@@ -21,10 +21,6 @@ final readonly class WorkerResult
 {
     /**
      * @param list<string> $failedTests
-     * @param ?string      $error       non-null only when the worker threw while
-     *                                  loading/running the namespace (a transient,
-     *                                  retryable failure) — distinct from a genuine
-     *                                  test failure, which leaves this null
      */
     public function __construct(
         public int $index,
@@ -33,7 +29,7 @@ final readonly class WorkerResult
         public string $output,
         public array $failedTests,
         public Counts $counts,
-        public ?string $error = null,
+        public WorkerOutcome $outcome = WorkerOutcome::Verdict,
         public bool $focused = false,
     ) {}
 
@@ -47,8 +43,6 @@ final readonly class WorkerResult
             $rawCounts = [];
         }
 
-        $error = $frame[FrameKey::ERROR] ?? null;
-
         /** @var array<string, mixed> $rawCounts */
         return new self(
             ScalarCoercion::toInt($frame[FrameKey::INDEX] ?? null, -1),
@@ -57,7 +51,7 @@ final readonly class WorkerResult
             ScalarCoercion::toString($frame[FrameKey::OUTPUT] ?? null),
             self::extractStringList($frame[FrameKey::FAILED_TESTS] ?? null),
             Counts::fromArray($rawCounts),
-            is_string($error) ? $error : null,
+            WorkerOutcome::fromFrameValue($frame[FrameKey::OUTCOME] ?? null),
             (bool) ($frame[FrameKey::FOCUSED] ?? false),
         );
     }
@@ -75,8 +69,18 @@ final readonly class WorkerResult
             sprintf("Worker died while running %s.\n%s", $ns, $stderr),
             [],
             new Counts(error: 1, total: 1),
-            sprintf('Worker died while running %s.', $ns),
+            WorkerOutcome::WorkerDied,
         );
+    }
+
+    /**
+     * Whether re-running this namespace on a fresh worker can change the
+     * answer. Only a worker-level fault qualifies; a compile error and a
+     * failing test are verdicts about the source.
+     */
+    public function isRetryable(): bool
+    {
+        return $this->outcome->isRetryable();
     }
 
     /**

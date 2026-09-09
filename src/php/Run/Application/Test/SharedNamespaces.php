@@ -10,18 +10,21 @@ use function array_filter;
 use function array_values;
 
 /**
- * The namespaces of a run that at least one other namespace of the run
- * requires. The parallel runner evaluates exactly these in the parent
- * before dispatching, so a cold cache is warmed once for everything two
- * workers could otherwise compile at the same time; the leaves (the test
- * files themselves) go straight to the workers, each to exactly one.
+ * The namespaces of a run that more than one worker loads: the ones at
+ * least one other namespace requires, plus the bundled `phel.*` modules
+ * {@see LoadOrderResolver} puts in every work frame. The parallel runner
+ * evaluates exactly these in the parent before dispatching, so a cold
+ * cache is warmed once for everything two workers could otherwise compile
+ * at the same time; the leaves (the test files themselves) go straight to
+ * the workers, each to exactly one.
  *
  * Two processes compiling the same namespace cold is not safe: `(load
  * ...)` secondaries and the per-namespace analyzer environment reach the
  * shared cache mid-compile, and the second process picks up a partial
- * picture (`Cannot resolve symbol 'defn-'`, "Macro ... is not callable").
- * Warming the shared prefix serially is what made the old parent-side
- * full pre-load work; this keeps that guarantee at a fraction of the cost.
+ * picture (`Cannot resolve symbol 'defn-'`, "Macro ... is not callable",
+ * a PHP syntax error from a half-written artifact). Warming the shared
+ * prefix serially is what made the old parent-side full pre-load work;
+ * this keeps that guarantee at a fraction of the cost.
  *
  * @internal
  */
@@ -43,7 +46,8 @@ final class SharedNamespaces
 
         return array_values(array_filter(
             $ordered,
-            static fn(NamespaceInformation $info): bool => isset($required[$info->getNamespace()]),
+            static fn(NamespaceInformation $info): bool => isset($required[$info->getNamespace()])
+                || LoadOrderResolver::isBundled($info->getNamespace()),
         ));
     }
 }

@@ -48,14 +48,6 @@ final readonly class ParallelTestOrchestrator
     private const int SELECT_TIMEOUT_MICROS = 100_000;
 
     /**
-     * A worker occasionally fails a namespace with a transient runtime error
-     * (a rare load race) rather than a genuine test failure. Re-run such a
-     * namespace on a fresh worker up to this many times before surfacing the
-     * error, so a flaky race can't red a whole parallel run. (#2672)
-     */
-    private const int MAX_RETRIES_PER_NAMESPACE = 2;
-
-    /**
      * @param list<string> $opcacheFlags `-d` flags so every worker shares one
      *                                   OPcache file cache; empty when OPcache
      *                                   is unavailable
@@ -92,7 +84,7 @@ final readonly class ParallelTestOrchestrator
 
         $startedAt = microtime(true);
         try {
-            $retried = $this->runDispatchLoop($workers, $namespaces, $loadOrders, $optionsPhel, $buffer);
+            $recoveredByRetry = $this->runDispatchLoop($workers, $namespaces, $loadOrders, $optionsPhel, $buffer);
         } finally {
             foreach ($workers as $worker) {
                 $worker->terminate();
@@ -101,7 +93,7 @@ final readonly class ParallelTestOrchestrator
 
         $buffer->finishProgress();
         $this->persistLastFailed($options, $buffer->allFailedTests());
-        $this->printSummary($output, $buffer->totals(), $total, $effectiveWorkerCount, microtime(true) - $startedAt, $retried);
+        $this->printSummary($output, $buffer->totals(), $total, $effectiveWorkerCount, microtime(true) - $startedAt, $recoveredByRetry);
         if ($this->usesGithubReporter($options)) {
             GithubStepSummary::append($buffer->totals());
         }
@@ -115,7 +107,7 @@ final readonly class ParallelTestOrchestrator
         int $namespacesRun,
         int $workerCount,
         float $wallSeconds,
-        int $retried,
+        int $recoveredByRetry,
     ): void {
         $output->writeln('');
         $output->writeln(sprintf('Passed:  %d', $totals->pass));
@@ -126,8 +118,8 @@ final readonly class ParallelTestOrchestrator
         }
 
         $output->writeln(sprintf('Total:   %d', $totals->total));
-        if ($retried > 0) {
-            $output->writeln(sprintf('Retried: %d namespace(s) after a transient worker error', $retried));
+        if ($recoveredByRetry > 0) {
+            $output->writeln(sprintf('Retried: %d namespace(s) after a transient worker error', $recoveredByRetry));
         }
 
         $output->writeln('');
@@ -177,6 +169,8 @@ final readonly class ParallelTestOrchestrator
     /**
      * @param array<int, TestWorkerHandle> $workers
      * @param list<NamespaceInformation>   $namespaces
+     *
+     * @return int how many namespaces a retry rescued
      */
     private function runDispatchLoop(
         array &$workers,
@@ -187,8 +181,7 @@ final readonly class ParallelTestOrchestrator
     ): int {
         $total = count($namespaces);
         $nextToDispatch = 0;
-        $retriedIndexes = [];
-        $retriesLeft = array_fill(0, $total, self::MAX_RETRIES_PER_NAMESPACE);
+        $budget = new RetryBudget($total);
 
         foreach ($workers as $worker) {
             if ($nextToDispatch >= $total) {
@@ -202,7 +195,7 @@ final readonly class ParallelTestOrchestrator
         while (!$buffer->isComplete()) {
             $busyByStream = $this->mapBusyWorkersByStream($workers);
             if ($busyByStream === []) {
-                return count($retriedIndexes);
+                return $budget->recoveredCount();
             }
 
             foreach ($this->waitForReadyWorkers($busyByStream) as $worker) {
@@ -211,17 +204,17 @@ final readonly class ParallelTestOrchestrator
                     continue;
                 }
 
-                // A thrown worker error (not a genuine test failure) is most
-                // likely a transient race; re-run the namespace on a FRESH
-                // worker, since this one's process may be left in a bad state.
-                if ($result->error !== null && ($retriesLeft[$result->index] ?? 0) > 0) {
-                    --$retriesLeft[$result->index];
-                    $retriedIndexes[$result->index] = true;
+                // The worker, not the namespace, is what failed here; re-run
+                // it on a FRESH worker, since this one's process may be left
+                // in a bad state.
+                if ($budget->allows($result)) {
+                    $budget->consume($result->index);
                     $worker = $this->replaceWithFreshWorker($workers, $worker);
                     $this->dispatch($worker, $namespaces[$result->index], $result->index, $loadOrders, $optionsPhel);
                     continue;
                 }
 
+                $budget->recordFinal($result);
                 $buffer->record($result);
 
                 if ($nextToDispatch < $total) {
@@ -231,7 +224,7 @@ final readonly class ParallelTestOrchestrator
             }
         }
 
-        return count($retriedIndexes);
+        return $budget->recoveredCount();
     }
 
     /**
