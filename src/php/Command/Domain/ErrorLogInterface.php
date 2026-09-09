@@ -9,5 +9,9 @@ namespace Phel\Command\Domain;
  */
 interface ErrorLogInterface
 {
+    /**
+     * Appends one entry, headed by a timestamp and the command line, with
+     * terminal escapes removed.
+     */
     public function writeln(string $text): void;
 }

@@ -20,6 +20,7 @@ All notable changes to this project will be documented in this file.
 - `phel mutate` and `phel test --coverage` collect coverage under pcov instead of reporting nothing, and a run that reached no mutant scores 0 rather than passing `--min-covered-msi`. (#3270)
 - Analyzer: redefining a symbol now prints the snippet, the caret, the `PHEL004` code and the line where the symbol was first defined, instead of one line followed by 31 internal frames. (#3267)
 - Printer: a host object with no printer of its own renders as `#<Class>`, so a stack-trace frame no longer shows a sentence where one argument belongs. (#3265)
+- The error log is plain text, opens every entry with a timestamp and the command that produced it, and rotates at 1 MiB into `error.log.1` instead of growing without bound with ANSI escapes in it. (#3269)
 
 ## [0.51.0](https://github.com/phel-lang/phel-lang/compare/v0.50.0...v0.51.0) - 2026-09-05
 
