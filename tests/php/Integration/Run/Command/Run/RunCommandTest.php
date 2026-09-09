@@ -185,9 +185,10 @@ final class RunCommandTest extends AbstractTestCommand
             __DIR__ . '/Fixtures/runtime-lib-error-script.phel',
         );
 
-        // The error originates inside the runtime lib (core `+`), yet the user
-        // still needs the message plus the Phel call sites from the filtered trace.
+        // The error originates inside the runtime lib (core `+`), which used to
+        // cost the report its `at` line and leave the message alone (#3264).
         self::assertStringContainsString('Expected a number, got string', $output);
+        self::assertMatchesRegularExpression('~at .*runtime-lib-error-script\.phel:4~', $output);
         self::assertMatchesRegularExpression('~#\d+ .*\.phel:\d+ : \(test\\\\runtime-lib-error-script\\\\add-boom~', $output);
         self::assertMatchesRegularExpression('~#\d+ .*\.phel:\d+ : \(test\\\\runtime-lib-error-script\\\\caller~', $output);
         self::assertMatchesRegularExpression('~\.\.\. \d+ internal frames?~', $output);

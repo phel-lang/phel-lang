@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Phel\Command\Application;
 
 use Phel\Command\Domain\ErrorLogInterface;
+use Phel\Command\Domain\Exceptions\EvaluatedCodeLocation;
 use Phel\Command\Domain\Exceptions\ExceptionArgsPrinterInterface;
 use Phel\Command\Domain\Exceptions\Extractor\FilePositionExtractorInterface;
 use Phel\Compiler\Domain\Evaluator\Exceptions\EvaluatedCodeException;
@@ -21,7 +22,6 @@ use Throwable;
 
 use function is_string;
 use function sprintf;
-use function str_contains;
 use function strlen;
 
 use const PHP_EOL;
@@ -137,8 +137,8 @@ final readonly class TextExceptionPrinter implements ExceptionPrinterInterface
      * The one trace filter behind `phel run`, `phel eval` and the REPL.
      *
      * By default only the frames that originate in Phel code are rendered,
-     * each mapped back to its `.phel` source location, and runs of PHP-native
-     * frames (vendor, runtime internals) are collapsed into a
+     * each mapped back to its `.phel` source location, and the PHP-native ones
+     * (vendor, runtime internals) are counted into a single trailing
      * `... N internal frames` marker that names the way out. With
      * `$showInternalFrames` every frame is rendered, which is what
      * `--stack-trace` asks for.
@@ -151,7 +151,6 @@ final readonly class TextExceptionPrinter implements ExceptionPrinterInterface
 
         $str = '';
         $hidden = 0;
-        $hintShown = false;
 
         foreach ($e->getTrace() as $i => $frame) {
             $fnName = $this->phelFnName($frame['class'] ?? null);
@@ -161,18 +160,13 @@ final readonly class TextExceptionPrinter implements ExceptionPrinterInterface
                 continue;
             }
 
-            $marker = $this->hiddenFramesMarker($hidden, $hintShown);
-            $hintShown = $hintShown || $marker !== '';
-            $hidden = 0;
-            $str .= $marker;
-
             $file = $frame['file'] ?? 'unknown_file';
             $line = $frame['line'] ?? 0;
             $argString = $this->exceptionArgsPrinter->parseArgsAsString($frame['args'] ?? []);
             $str .= sprintf('#%d %s : (%s%s)', $i, $this->frameLocation($file, $line), $fnName, $argString) . PHP_EOL;
         }
 
-        return $str . $this->hiddenFramesMarker($hidden, $hintShown);
+        return $str . $this->hiddenFramesMarker($hidden);
     }
 
     /**
@@ -184,28 +178,30 @@ final readonly class TextExceptionPrinter implements ExceptionPrinterInterface
     {
         $pos = $this->filePositionExtractor->getOriginal($file, $line);
 
-        if (str_contains($pos->filename(), "eval()'d code")) {
-            return 'repl';
+        if (EvaluatedCodeLocation::matches($pos->filename())) {
+            return EvaluatedCodeLocation::LABEL;
         }
 
         return sprintf('%s:%d', $pos->filename(), $pos->line());
     }
 
     /**
-     * The hint rides on the first marker only: a trace with several collapsed
-     * runs would otherwise repeat the same sentence on every one of them.
+     * One marker per report, after the frames it hides: interleaving a marker
+     * per collapsed run buried the first user frame under an opening count and
+     * repeated the way out on every run of them (#3264).
      */
-    private function hiddenFramesMarker(int $hidden, bool $hintShown): string
+    private function hiddenFramesMarker(int $hidden): string
     {
         if ($hidden === 0) {
             return '';
         }
 
-        $marker = sprintf('   ... %d internal frame%s', $hidden, $hidden === 1 ? '' : 's');
-
-        return $hintShown
-            ? $marker . PHP_EOL
-            : sprintf('%s (%s)', $marker, $this->collapsedTraceHint) . PHP_EOL;
+        return sprintf(
+            '   ... %d internal frame%s (%s)',
+            $hidden,
+            $hidden === 1 ? '' : 's',
+            $this->collapsedTraceHint,
+        ) . PHP_EOL;
     }
 
     /**

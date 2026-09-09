@@ -13,8 +13,7 @@ use const PHP_EOL;
 /**
  * Shared output half of {@see ReplCommandIoInterface}: error rendering and
  * plain stdout writing. Composing classes must provide the private
- * `$commandFacade` ({@see \Phel\Shared\Facade\CommandFacadeInterface}) and
- * `$errorFormatter` ({@see ReplErrorFormatter}) properties.
+ * `$commandFacade` ({@see \Phel\Shared\Facade\CommandFacadeInterface}) property.
  *
  * @internal
  */
@@ -22,7 +21,9 @@ trait ReplOutputTrait
 {
     public function writeReplError(Throwable $e, bool $showInternalFrames = false): void
     {
-        $this->writeln($this->errorFormatter->render($e, $showInternalFrames));
+        // The very report `phel run` prints: the prompt used to shape its own,
+        // and the two never agreed on a single failure (#3264).
+        $this->writeln($this->commandFacade->getRuntimeErrorReport($e, $showInternalFrames));
         // The collapse marker points at the error log, so the REPL has to fill
         // it the way `phel run` does; it never wrote there before.
         $this->commandFacade->logStackTrace($e);

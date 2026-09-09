@@ -34,7 +34,6 @@ use Phel\Run\Application\Test\WatchFileScanner;
 use Phel\Run\Domain\Repl\ReplCommandFallbackIo;
 use Phel\Run\Domain\Repl\ReplCommandIoInterface;
 use Phel\Run\Domain\Repl\ReplCommandSystemIo;
-use Phel\Run\Domain\Repl\ReplErrorFormatter;
 use Phel\Run\Domain\Repl\ReplHistory;
 use Phel\Run\Domain\Repl\ReplPrompt;
 use Phel\Run\Domain\Runner\NamespaceCollector;
@@ -169,28 +168,15 @@ class RunFactory extends AbstractFactory
                 $this->createReplHistoryPathResolver()->resolve(),
                 $this->getCommandFacade(),
                 $this->getApiFacade(),
-                $this->createReplErrorFormatter(),
             );
         }
 
-        return new ReplCommandFallbackIo(
-            $this->getCommandFacade(),
-            $this->createReplErrorFormatter(),
-        );
+        return new ReplCommandFallbackIo($this->getCommandFacade());
     }
 
     public function createReplHistoryPathResolver(): ReplHistoryPathResolver
     {
         return new ReplHistoryPathResolver($this->getConfig()->getAppRootDir());
-    }
-
-    public function createReplErrorFormatter(): ReplErrorFormatter
-    {
-        return new ReplErrorFormatter(
-            $this->getCommandFacade()->getExceptionHintResolver(),
-            $this->getCommandFacade()->getExceptionPrinter(),
-            $this->createColorStyle(),
-        );
     }
 
     public function createReplHistory(): ReplHistory

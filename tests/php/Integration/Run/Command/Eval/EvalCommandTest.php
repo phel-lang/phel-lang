@@ -9,11 +9,14 @@ use Phel\Run\Infrastructure\Command\EvalCommand;
 use Phel\Run\Infrastructure\Command\StackTraceOption;
 use Phel\Run\Infrastructure\PhpStdinReader;
 use PhelTest\Integration\Run\Command\AbstractTestCommand;
+use PhelTest\Support\AssertsErrorReportShapeTrait;
 use PHPUnit\Framework\Attributes\DataProvider;
 use Symfony\Component\Console\Input\InputInterface;
 
 final class EvalCommandTest extends AbstractTestCommand
 {
+    use AssertsErrorReportShapeTrait;
+
     private const string THROWING_EXPRESSION = '(php/throw (php/new \RuntimeException "boom from eval"))';
 
     public static function setUpBeforeClass(): void
@@ -151,6 +154,17 @@ final class EvalCommandTest extends AbstractTestCommand
             $output,
         );
         self::assertStringNotContainsString('EvalCommand.php', $output);
+    }
+
+    public function test_runtime_error_reports_the_shape_phel_run_reports(): void
+    {
+        $output = $this->captureEvalOutput(self::THROWING_EXPRESSION);
+
+        self::assertErrorReportShape($output);
+        // Nothing typed at the prompt has a file to open, so `at` names the
+        // prompt rather than the evaluator's own temp path.
+        self::assertStringContainsString('  at repl', $output);
+        self::assertStringNotContainsString('RuntimeException:', $output);
     }
 
     public function test_stack_trace_option_prints_the_frames_the_default_collapses(): void

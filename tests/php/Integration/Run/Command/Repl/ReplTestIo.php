@@ -4,15 +4,11 @@ declare(strict_types=1);
 
 namespace PhelTest\Integration\Run\Command\Repl;
 
+use Phel\Command\CommandFacade;
 use Phel\Run\Domain\Repl\ReplCommandIoInterface;
-use Phel\Run\Domain\Repl\ReplErrorFormatter;
-use Phel\Shared\ColorStyle;
 use Phel\Shared\Exceptions\AbstractLocatedException;
 use Phel\Shared\Exceptions\ExceptionPrinterInterface;
-use Phel\Shared\Exceptions\Hint\ArgumentCountHint;
-use Phel\Shared\Exceptions\Hint\ExceptionHintResolver;
-use Phel\Shared\Exceptions\Hint\NotCallableHint;
-use Phel\Shared\Exceptions\Hint\UndefinedSymbolHint;
+use Phel\Shared\Facade\CommandFacadeInterface;
 use Phel\Shared\Parser\ReadModel\CodeSnippet;
 use Throwable;
 
@@ -46,21 +42,15 @@ final class ReplTestIo implements ReplCommandIoInterface
      */
     private int $captureLevel = 0;
 
-    private readonly ReplErrorFormatter $errorFormatter;
+    private readonly CommandFacadeInterface $commandFacade;
 
     public function __construct(
         private readonly ExceptionPrinterInterface $exceptionPrinter,
-        ?ReplErrorFormatter $errorFormatter = null,
+        ?CommandFacadeInterface $commandFacade = null,
     ) {
-        $this->errorFormatter = $errorFormatter ?? new ReplErrorFormatter(
-            new ExceptionHintResolver([
-                new NotCallableHint(),
-                new ArgumentCountHint(),
-                new UndefinedSymbolHint(),
-            ]),
-            $exceptionPrinter,
-            ColorStyle::noStyles(),
-        );
+        // The real facade, so the transcript carries the very report the user
+        // reads; only the error-log write of the production IO is left out.
+        $this->commandFacade = $commandFacade ?? new CommandFacade();
     }
 
     public function readHistory(): void {}
@@ -90,7 +80,7 @@ final class ReplTestIo implements ReplCommandIoInterface
 
     public function writeReplError(Throwable $e, bool $showInternalFrames = false): void
     {
-        $this->write($this->errorFormatter->render($e, $showInternalFrames));
+        $this->writeln($this->commandFacade->getRuntimeErrorReport($e, $showInternalFrames));
     }
 
     public function writeLocatedException(AbstractLocatedException $e, CodeSnippet $codeSnippet): void
