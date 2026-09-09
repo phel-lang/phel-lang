@@ -497,7 +497,7 @@ Metadata attached to `test-name` is forwarded to the defined function so selecto
   (apply println (str label ":") (readable-str value) extras))
 
 (defn- print-form-evaluated
-  "Prints the `Form: ... / evaluated to: ...` pair shared by every failure printer that reports a single value and its computed result."
+  "Prints the `Form: ... / evaluated to: ...` pair shared by every failure printer: the asserted source form above the value it computed."
   [label-form form label-eval result]
   (print-label label-form form)
   (print-label label-eval result))
@@ -673,18 +673,18 @@ Metadata attached to `test-name` is forwarded to the defined function so selecto
   (print-error-headline data)
   (print-error-details data))
 
-(defn- print-predicate-failure [{:pred pred, :value value, :result result}]
-  (print-form-evaluated "                 Form" value
+(defn- print-predicate-failure [{:pred pred, :form form, :result result}]
+  (print-form-evaluated "                 Form" form
                         "         evaluated to" result)
   (print-label "  but doesn't satisfy" pred))
 
-(defn- print-predicate-not-failure [{:pred pred, :value value, :result result}]
-  (print-form-evaluated "              Form" value
+(defn- print-predicate-not-failure [{:pred pred, :form form, :result result}]
+  (print-form-evaluated "              Form" form
                         "      evaluated to" result)
   (print-label "  but does satisfy" pred " (it shouldn't)"))
 
-(defn- print-binary-failure [{:pred pred, :expected expected, :actual actual, :result result}]
-  (print-form-evaluated "          Form" actual
+(defn- print-binary-failure [{:pred pred, :expected expected, :form form, :result result}]
+  (print-form-evaluated "          Form" form
                         "  evaluated to" result)
   (print-label "    but is not" pred "to" (readable-str expected))
   (when (= pred '=)
@@ -693,8 +693,8 @@ Metadata attached to `test-name` is forwarded to the defined function so selecto
     (when (and (string? expected) (string? result))
       (print-string-diff expected result))))
 
-(defn- print-binary-not-failure [{:pred pred, :expected expected, :actual actual, :result result}]
-  (print-form-evaluated "          Form" actual
+(defn- print-binary-not-failure [{:pred pred, :expected expected, :form form, :result result}]
+  (print-form-evaluated "          Form" form
                         "  evaluated to" result)
   (print-label "        but is" pred "to" (readable-str expected) "(it shouldn't be)")
   (when (and (= pred 'not=)

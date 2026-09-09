@@ -35,6 +35,7 @@ Directory getters are `#[Cacheable]`.
 | `Application/CommandExceptionWriter` | writes located exceptions + stack traces; appends hints |
 | `Application/TextExceptionPrinter` | syntax-highlighted render with source pointers |
 | `Domain/Exceptions/Extractor/FilePositionExtractor` | builds the compiled→Phel line map |
+| `Domain/Exceptions/InternalPathDetector` | tells Phel's own source and compiled artifacts from the user's project |
 | `Infrastructure/SourceMapExtractor` | maps compiled PHP back to Phel source locations |
 | `Infrastructure/ComposerVendorDirectoriesFinder` | enumerates vendor source dirs |
 | `Infrastructure/ErrorLog` | full-trace sink |
@@ -45,5 +46,7 @@ Directory getters are `#[Cacheable]`.
 - `FilePositionExtractor::getFileLineMap()` (via `getCompiledFileLineMap`) is used by `phel test --coverage` to enumerate coverable Phel lines — keep its return shape (`[phpLine => phelLine]` + filename) stable.
 - `TextExceptionPrinter::getUserFacingTraceString()` keeps only Phel fn frames (mapped to `.phel:line`) and collapses PHP-native runs; the full trace still goes to the error log.
 - `CommandExceptionWriter` appends an actionable hint (from `ExceptionHintResolver`) after BOTH located-exception and stack-trace output, so failing `phel run`/`test`/`eval` get the same guidance as the REPL.
+- `CommandExceptionWriter` anchors the `at` line on the throw site only when it belongs to the user's project; an error raised inside `phel\core` walks out to the innermost user `.phel` frame instead, and the compiled path is printed only for a persistent build artifact, never for the eval temp file or the compiled cache (`InternalPathDetector`). The stdlib frames stay in the numbered trace.
+- `CommandExceptionWriter` prints the data map of an uncaught `ex-info` on its own `data:` line.
 - Hints are pure utilities in `Phel\Shared\Exceptions\Hint\`. Register new ones in `CommandFactory::createExceptionHints()` (currently `NotCallableHint`, `ArgumentCountHint`, `UndefinedSymbolHint`).
-- Config carries a stale-output-recovery hint for corrupted build state (`CommandConfig::getStaleOutputHint()`).
+- Config carries a stale-output-recovery hint for corrupted build state (`CommandConfig::getStaleOutputHint()`), built on `getCacheDir()`, which shares `PhelProjectDirectory::resolveCacheDir()` with the build and compiler configs.
