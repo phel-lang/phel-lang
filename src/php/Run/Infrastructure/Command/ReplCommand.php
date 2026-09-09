@@ -147,9 +147,7 @@ HELP);
             $this->history = $history;
             $history->register();
 
-            $status = $this->loopReadLineAndAnalyze();
-
-            return $status;
+            return $this->loopReadLineAndAnalyze();
         } catch (Throwable $throwable) {
             $this->io->writeStackTrace($throwable);
             return self::FAILURE;

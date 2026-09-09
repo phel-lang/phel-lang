@@ -4,8 +4,10 @@ declare(strict_types=1);
 
 namespace PhelTest\Integration\Run\Command\Repl;
 
+use Iterator;
 use Phel\Run\Infrastructure\Command\ReplCommand;
 use PhelTest\Integration\Run\Command\AbstractTestCommand;
+use PHPUnit\Framework\Attributes\DataProvider;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 
@@ -21,23 +23,19 @@ final class ReplExitTest extends AbstractTestCommand
     use ReplCommandTestTrait;
 
     /**
-     * @return list<array{string}>
+     * @return Iterator<int<0, max>, array{string}>
      */
-    public static function provideEndsTheSession(): array
+    public static function provideEndsTheSession(): Iterator
     {
-        return [
-            ['exit'],
-            ['quit'],
-            ['(exit)'],
-            ['(quit)'],
-            ['  (exit)  '],
-            ['( exit )'],
-        ];
+        yield ['exit'];
+        yield ['quit'];
+        yield ['(exit)'];
+        yield ['(quit)'];
+        yield ['  (exit)  '];
+        yield ['( exit )'];
     }
 
-    /**
-     * @dataProvider provideEndsTheSession
-     */
+    #[DataProvider('provideEndsTheSession')]
     public function test_ends_the_session_with_status_zero(string $input): void
     {
         $io = $this->createReplTestIo();
@@ -67,6 +65,7 @@ final class ReplExitTest extends AbstractTestCommand
         );
 
         self::assertSame(2, $exitCode);
+        self::assertContains('Bye!', $io->getOutputLines());
     }
 
     public function test_the_banner_names_a_form_the_session_accepts(): void
@@ -81,40 +80,33 @@ final class ReplExitTest extends AbstractTestCommand
             $this->createStub(OutputInterface::class),
         );
 
-        $banner = null;
-        foreach ($io->getOutputLines() as $line) {
-            if (str_contains($line, 'press Ctrl-D to exit')) {
-                $banner = $line;
-                break;
-            }
-        }
+        $banner = array_find(
+            $io->getOutputLines(),
+            static fn(string $line): bool => str_contains($line, 'press Ctrl-D to exit'),
+        );
 
         self::assertNotNull($banner, 'the repl printed no exit banner');
         self::assertStringContainsString('(exit)', $banner);
     }
 
     /**
-     * @return list<array{string}>
+     * @return Iterator<int<0, max>, array{string}>
      */
-    public static function provideIsOrdinaryCode(): array
+    public static function provideIsOrdinaryCode(): Iterator
     {
-        return [
-            // A symbol that merely starts with exit is not the command.
-            ['(exit-code)'],
-            ['exits'],
-            // The word inside a string or an argument list is not the command.
-            ['(println "exit")'],
-            ['(map exit xs)'],
-            // A call form the command does not define stays a normal form, so
-            // it fails as such rather than silently ending the session.
-            ['(exit x)'],
-            ['(exit 2 3)'],
-        ];
+        // A symbol that merely starts with exit is not the command.
+        yield ['(exit-code)'];
+        yield ['exits'];
+        // The word inside a string or an argument list is not the command.
+        yield ['(println "exit")'];
+        yield ['(map exit xs)'];
+        // A call form the command does not define stays a normal form, so
+        // it fails as such rather than silently ending the session.
+        yield ['(exit x)'];
+        yield ['(exit 2 3)'];
     }
 
-    /**
-     * @dataProvider provideIsOrdinaryCode
-     */
+    #[DataProvider('provideIsOrdinaryCode')]
     public function test_leaves_ordinary_code_alone(string $input): void
     {
         $io = $this->createReplTestIo();
