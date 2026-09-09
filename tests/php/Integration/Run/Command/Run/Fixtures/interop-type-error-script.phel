@@ -1,0 +1,6 @@
+(ns interop-type-error-script)
+
+(defn repeat-it [options]
+  (php/str_repeat "ab" (get options :times)))
+
+(repeat-it {:times "twice"})

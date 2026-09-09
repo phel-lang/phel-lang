@@ -1,0 +1,8 @@
+(ns not-callable-script)
+
+(def not-a-fn 5)
+
+(defn call-it [x]
+  (not-a-fn x))
+
+(call-it 1)

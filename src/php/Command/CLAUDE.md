@@ -7,8 +7,9 @@ Error reporting, exception formatting, and directory discovery for CLI commands.
 | Method | Returns |
 |--------|---------|
 | `writeLocatedException(output, e, snippet)` | renders a located exception + hint |
-| `writeStackTrace(output, e, showInternalFrames)` | console trace (collapsed, or every frame with `--stack-trace`) + full trace to error log |
-| `logStackTrace(e)` | full trace to the error log only, for callers that render the console report themselves (REPL, `eval`) |
+| `writeStackTrace(output, e, showInternalFrames)` | the runtime error report to the console + full trace to error log |
+| `getRuntimeErrorReport(e, showInternalFrames)` | the same report as a string, for callers that own where the text goes (REPL, `eval`) |
+| `logStackTrace(e)` | full trace to the error log only, for those same callers |
 | `getExceptionString(e, snippet)` / `getStackTraceString(e)` | same as above as strings |
 | `getExceptionPrinter()` | `ExceptionPrinterInterface` |
 | `getExceptionHintResolver()` | shared `Phel\Shared\Exceptions\Hint\ExceptionHintResolver` |
@@ -33,10 +34,12 @@ Directory getters are `#[Cacheable]`.
 | Path | Role |
 |------|------|
 | `Application/DirectoryFinder` | resolves paths, handles PHAR archives, caches results |
-| `Application/CommandExceptionWriter` | writes located exceptions + stack traces; appends hints |
+| `Application/CommandExceptionWriter` | writes located exceptions + runtime error reports; appends hints |
+| `Application/RuntimeErrorReportFormatter` | assembles the one runtime error report every command prints |
 | `Application/TextExceptionPrinter` | syntax-highlighted render with source pointers |
 | `Domain/Exceptions/Extractor/FilePositionExtractor` | builds the compiled→Phel line map |
 | `Domain/Exceptions/InternalPathDetector` | tells Phel's own source and compiled artifacts from the user's project |
+| `Domain/Exceptions/EvaluatedCodeLocation` | tells a frame of eval'd code from a file, and names it `repl` |
 | `Infrastructure/SourceMapExtractor` | maps compiled PHP back to Phel source locations |
 | `Infrastructure/ComposerVendorDirectoriesFinder` | enumerates vendor source dirs |
 | `Infrastructure/ErrorLog` | plain-text full-trace sink: strips ANSI escapes, heads every entry with `[<timestamp>] <command line>`, rotates at 1 MiB into `<log>.1` (one previous generation) |
@@ -45,11 +48,12 @@ Directory getters are `#[Cacheable]`.
 
 - `SourceMapExtractor` reads inline `// ` / `// ;;` header comments (eval temp files) OR sibling `<file>.map` + `<file>.phel` artifacts (built output).
 - `FilePositionExtractor::getFileLineMap()` (via `getCompiledFileLineMap`) is used by `phel test --coverage` to enumerate coverable Phel lines — keep its return shape (`[phpLine => phelLine]` + filename) stable.
-- `TextExceptionPrinter::getUserFacingTraceString()` is the ONE trace filter behind `phel run`, `phel eval` and the REPL. It keeps only Phel fn frames (mapped to `.phel:line`, or `repl` for eval'd code) and collapses PHP-native runs; `$showInternalFrames` (what `--stack-trace` sets) renders every frame instead. The full trace still goes to the error log.
-- The collapse marker carries `CommandConfig::getCollapsedTraceHint()` (`--stack-trace to show, full trace in <log>`) on the FIRST collapsed run only, so a trace with several runs does not repeat the sentence.
-- `CommandExceptionWriter` appends an actionable hint (from `ExceptionHintResolver`) after BOTH located-exception and stack-trace output, so failing `phel run`/`test`/`eval` get the same guidance as the REPL.
-- `CommandExceptionWriter` anchors the `at` line on the throw site only when it belongs to the user's project; an error raised inside `phel\core` walks out to the innermost user `.phel` frame instead, and the compiled path is printed only for a persistent build artifact, never for the eval temp file or the compiled cache (`InternalPathDetector`). The stdlib frames stay in the numbered trace.
-- `CommandExceptionWriter` prints the data map of an uncaught `ex-info` on its own `data:` line.
+- `RuntimeErrorReportFormatter` is the ONE report an uncaught runtime error gets from `phel run`, `phel eval` and the REPL, in this order and no other: message, `at`, `data:`, frames, collapse marker, `hint:`. `phel run` writes it through `writeStackTrace()`, the prompt through `getRuntimeErrorReport()`. Three commands used to print three layouts of the same failure (#3264).
+- `TextExceptionPrinter::getUserFacingTraceString()` is the ONE trace filter feeding that report. It keeps only Phel fn frames (mapped to `.phel:line`, or `repl` for eval'd code) and counts the PHP-native ones into a SINGLE trailing marker; `$showInternalFrames` (what `--stack-trace` sets) renders every frame instead. The full trace still goes to the error log.
+- The collapse marker carries `CommandConfig::getCollapsedTraceHint()` (`--stack-trace to show, full trace in <log>`). One marker per report, so the sentence cannot repeat and no report opens on a frame count.
+- The report ends on one `hint:` line: an actionable hint from `ExceptionHintResolver` when one matches, otherwise the stale-output hint when it anchors on generated PHP with no Phel source left to map it back. `writeLocatedException()` appends the same `hint:` line, so a failing compile reads like a failing run.
+- The `at` line anchors on the throw site only when it belongs to the user; an error raised inside `phel\core` walks out to the innermost user `.phel` frame, or to `repl` for what was typed at the prompt, falls back to the innermost Phel frame when the user has none, and to the throw site when there is no Phel frame at all. The compiled path is printed only for a persistent build artifact, never for the eval temp file or the compiled cache (`InternalPathDetector`). The stdlib frames stay in the numbered trace.
+- The data map of an uncaught `ex-info` goes on its own `data:` line.
 - Hints are pure utilities in `Phel\Shared\Exceptions\Hint\`. Register new ones in `CommandFactory::createExceptionHints()` (currently `NotCallableHint`, `ArgumentCountHint`, `UndefinedSymbolHint`).
 - Every path that reports an error feeds the log: `writeStackTrace()` directly, the REPL and `eval` through `logStackTrace()`. Skipping it makes the collapse marker point at a log that does not have the trace.
 - Every writer goes through `ErrorLog::writeln()`, which owns the file's shape, so a new log writer never strips colour or separates entries itself. Build it with `CommandFactory::createErrorLog()`.

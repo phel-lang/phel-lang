@@ -11,6 +11,7 @@ use Override;
 use Phel\Config\PhelConfig;
 use Phel\Run\Infrastructure\Command\ReplCommand;
 use PhelTest\Integration\Run\Command\AbstractTestCommand;
+use PhelTest\Support\AssertsErrorReportShapeTrait;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\Attributes\PreserveGlobalState;
 use PHPUnit\Framework\Attributes\RunInSeparateProcess;
@@ -22,6 +23,7 @@ use Symfony\Component\Console\Output\OutputInterface;
 
 final class ReplCommandTest extends AbstractTestCommand
 {
+    use AssertsErrorReportShapeTrait;
     use ReplCommandTestTrait;
 
     private string $previousCwd = '';
@@ -102,7 +104,7 @@ final class ReplCommandTest extends AbstractTestCommand
     {
         $output = $this->runReplWithError(stackTrace: false);
 
-        self::assertStringContainsString('OutOfBoundsException', $output);
+        self::assertStringContainsString('Vector index 9 out of bounds', $output);
         self::assertMatchesRegularExpression(
             '~\.\.\. \d+ internal frames? \(--stack-trace to show, full trace in \S*error\.log\)~',
             $output,
@@ -112,11 +114,25 @@ final class ReplCommandTest extends AbstractTestCommand
 
     #[RunInSeparateProcess]
     #[PreserveGlobalState(false)]
+    public function test_runtime_error_reports_the_shape_phel_run_reports(): void
+    {
+        $report = self::errorReportFromReplTranscript($this->runReplWithError(stackTrace: false));
+
+        self::assertErrorReportShape($report);
+        // The prompt used to open with the exception class and print no
+        // location at all, which is neither what `phel run` does (#3264).
+        self::assertStringStartsWith('Vector index 9 out of bounds', $report);
+        self::assertStringContainsString('  at repl', $report);
+        self::assertStringNotContainsString('OutOfBoundsException', $report);
+    }
+
+    #[RunInSeparateProcess]
+    #[PreserveGlobalState(false)]
     public function test_stack_trace_option_prints_the_frames_the_repl_collapses(): void
     {
         $output = $this->runReplWithError(stackTrace: true);
 
-        self::assertStringContainsString('OutOfBoundsException', $output);
+        self::assertStringContainsString('Vector index 9 out of bounds', $output);
         self::assertStringContainsString('ReplCommand.php', $output);
         self::assertStringNotContainsString('internal frame', $output);
     }

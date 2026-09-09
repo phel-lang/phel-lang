@@ -95,6 +95,7 @@ final class Phel\Command\CommandFacade extends Gacela\Framework\AbstractFacade i
   public function getExceptionString(Phel\Shared\Exceptions\AbstractLocatedException $e, Phel\Shared\Parser\ReadModel\CodeSnippet $codeSnippet): string
   public function getOutputDirectory(): string
   public function getProjectSourceDirectories(): array
+  public function getRuntimeErrorReport(Throwable $e, bool $showInternalFrames = false): string
   public function getSourceDirectories(): array
   public function getStackTraceString(Throwable $e): string
   public function getTestDirectories(): array
@@ -1880,6 +1881,7 @@ interface Phel\Shared\Facade\CommandFacadeInterface
   public function getExceptionString(Phel\Shared\Exceptions\AbstractLocatedException $e, Phel\Shared\Parser\ReadModel\CodeSnippet $codeSnippet): string
   public function getOutputDirectory(): string
   public function getProjectSourceDirectories(): array
+  public function getRuntimeErrorReport(Throwable $e, bool $showInternalFrames = false): string
   public function getSourceDirectories(): array
   public function getStackTraceString(Throwable $e): string
   public function getTestDirectories(): array

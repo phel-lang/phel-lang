@@ -9,6 +9,7 @@ use Gacela\Framework\Config\ConfigReader\PhpConfigReader;
 use Gacela\Framework\ServiceResolver\ServiceMap;
 use Phel\Command\Application\CommandExceptionWriter;
 use Phel\Command\Application\DirectoryFinder;
+use Phel\Command\Application\RuntimeErrorReportFormatter;
 use Phel\Command\Application\TextExceptionPrinter;
 use Phel\Command\Domain\CommandExceptionWriterInterface;
 use Phel\Command\Domain\ErrorLogInterface;
@@ -47,11 +48,20 @@ final class CommandFactory extends AbstractFactory
         return new CommandExceptionWriter(
             $this->createExceptionPrinter(),
             $this->createErrorLog(),
-            $this->createFilePositionExtractor(),
-            $this->getConfig()->getStaleOutputHint(),
             $this->createExceptionHintResolver(),
+            $this->createRuntimeErrorReportFormatter(),
+        );
+    }
+
+    public function createRuntimeErrorReportFormatter(): RuntimeErrorReportFormatter
+    {
+        return new RuntimeErrorReportFormatter(
+            $this->createExceptionPrinter(),
+            $this->createFilePositionExtractor(),
             $this->createInternalPathDetector(),
+            $this->createExceptionHintResolver(),
             Printer::readable(),
+            $this->getConfig()->getStaleOutputHint(),
         );
     }
 
