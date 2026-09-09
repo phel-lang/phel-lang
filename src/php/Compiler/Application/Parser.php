@@ -16,7 +16,9 @@ use Phel\Compiler\Domain\Parser\ExpressionParser\MetaParser;
 use Phel\Compiler\Domain\Parser\ExpressionParser\QuoteParser;
 use Phel\Compiler\Domain\Parser\ExpressionParser\ReaderConditionalParser;
 use Phel\Compiler\Domain\Parser\ExpressionParserFactoryInterface;
+use Phel\Compiler\Domain\Parser\OpenForm;
 use Phel\Compiler\Domain\Parser\ParserInterface;
+use Phel\Shared\Exceptions\ErrorCode;
 use Phel\Shared\Parser\Node\AbstractAtomNode;
 use Phel\Shared\Parser\Node\CommaNode;
 use Phel\Shared\Parser\Node\CommentMacroNode;
@@ -37,6 +39,9 @@ use Phel\Shared\Parser\Node\WhitespaceNode;
 
 use SplStack;
 use Throwable;
+
+use function sprintf;
+use function str_starts_with;
 
 /**
  * @internal
@@ -64,6 +69,16 @@ final readonly class Parser implements ParserInterface
     private SplStack $quasiquoteStack;
 
     /**
+     * The delimiters of the forms currently being read, innermost last. A
+     * missing closer surfaces somewhere else entirely (at the end of the file,
+     * or at the wrong closer), and only this tells the report which line was
+     * left open and which bracket is owed.
+     *
+     * @var SplStack<Token>
+     */
+    private SplStack $openForms;
+
+    /**
      * The `Parser`-dependent sub-parsers each close over this `Parser`
      * (or its fixed `$globalEnvironment`), both constant for the parser's
      * lifetime, so they are built once here instead of being allocated
@@ -85,6 +100,7 @@ final readonly class Parser implements ParserInterface
         GlobalEnvironmentInterface $globalEnvironment,
     ) {
         $this->quasiquoteStack = new SplStack();
+        $this->openForms = new SplStack();
         $this->atomParser = $parserFactory->createAtomParser($globalEnvironment);
         $this->listParser = $parserFactory->createListParser($this);
         $this->quoteParser = $parserFactory->createQuoteParser($this);
@@ -183,13 +199,13 @@ final readonly class Parser implements ParserInterface
                 Token::T_CHAR => $this->parseCharNode($token),
                 Token::T_REGEX => $this->parseRegexNode($token),
                 Token::T_HASH_FN,
-                Token::T_OPEN_PARENTHESIS => $this->parseFnListNode($token, $tokenStream),
-                Token::T_OPEN_BRACKET => $this->parseArrayListNode($token, $tokenStream),
-                Token::T_OPEN_BRACE => $this->parseMapListNode($token, $tokenStream),
-                Token::T_HASH_OPEN_BRACE => $this->parseSetListNode($token, $tokenStream),
+                Token::T_OPEN_PARENTHESIS => $this->parseListNode($token, $tokenStream, Token::T_CLOSE_PARENTHESIS),
+                Token::T_OPEN_BRACKET => $this->parseListNode($token, $tokenStream, Token::T_CLOSE_BRACKET),
+                Token::T_OPEN_BRACE,
+                Token::T_HASH_OPEN_BRACE => $this->parseListNode($token, $tokenStream, Token::T_CLOSE_BRACE),
                 Token::T_CLOSE_PARENTHESIS,
                 Token::T_CLOSE_BRACKET,
-                Token::T_CLOSE_BRACE => throw $this->createUnexceptedParserException($tokenStream, $token, 'Unterminated list (BRACKETS)'),
+                Token::T_CLOSE_BRACE => throw $this->createUnexpectedCloserException($tokenStream, $token),
                 Token::T_QUOTE,
                 Token::T_DEREF,
                 Token::T_VAR_QUOTE => $this->parseQuoteNode($token, $tokenStream),
@@ -198,18 +214,31 @@ final readonly class Parser implements ParserInterface
                 Token::T_READER_COND_SPLICING => $this->parseReaderCondSplicingNode($tokenStream, $token),
                 Token::T_SYMBOLIC_NUMBER => $this->parseSymbolicNumberNode($token),
                 Token::T_TAGGED_LITERAL => $this->parseTaggedLiteralNode($tokenStream, $token),
-                Token::T_EOF => throw $this->createUnfinishedParserException($tokenStream, $token, 'Unterminated list (EOF)'),
+                Token::T_EOF => throw $this->createEndOfFileException($tokenStream, $token),
                 default => throw $this->createUnexceptedParserException($tokenStream, $token, 'Unhandled syntax token: ' . $token->getCode()),
             };
         }
 
-        // Throw exception differently because we may have not $token
+        // A stream that stops without the terminating T_EOF the lexer appends
+        // leaves no token to anchor on, so the open form is the only location
+        // left to report.
+        $openForm = $this->innermostOpenForm();
         $snippet = $tokenStream->getCodeSnippet();
-        throw new UnfinishedParserException(
-            'Unterminated list',
+
+        if (!$openForm instanceof OpenForm) {
+            throw new UnfinishedParserException(
+                'Unexpected end of input: a form was expected.',
+                $snippet,
+                $snippet->getStartLocation(),
+                $snippet->getEndLocation(),
+            );
+        }
+
+        throw UnfinishedParserException::forSnippet(
             $snippet,
-            $snippet->getStartLocation(),
-            $snippet->getEndLocation(),
+            $openForm->getOpenToken(),
+            $openForm->unterminatedMessage(),
+            $openForm->getErrorCode(),
         );
     }
 
@@ -229,6 +258,21 @@ final readonly class Parser implements ParserInterface
      */
     private function parseAtomNode(Token $token, TokenStream $tokenStream): AbstractAtomNode
     {
+        // The lexer's atom rule excludes only bracket and hash bytes, so an
+        // unclosed `"` falls through to it instead of failing to lex. No valid
+        // Phel atom starts with a quote, which makes the leading `"` exact.
+        if (str_starts_with($token->getCode(), '"')) {
+            throw $this->createUnexceptedParserException(
+                $tokenStream,
+                $token,
+                sprintf(
+                    'Unterminated string starting at line %d. Did you forget a closing \'"\'?',
+                    $token->getStartLocation()->getLine(),
+                ),
+                ErrorCode::UNTERMINATED_STRING,
+            );
+        }
+
         try {
             return $this->atomParser->parse($token);
         } catch (KeywordParserException $keywordParserException) {
@@ -236,6 +280,7 @@ final readonly class Parser implements ParserInterface
                 $tokenStream,
                 $token,
                 $keywordParserException->getMessage(),
+                null,
                 $keywordParserException,
             );
         }
@@ -309,6 +354,7 @@ final readonly class Parser implements ParserInterface
                 $tokenStream,
                 $token,
                 $stringParserException->getMessage(),
+                null,
                 $stringParserException,
             );
         }
@@ -332,50 +378,97 @@ final readonly class Parser implements ParserInterface
         TokenStream $tokenStream,
         Token $currentToken,
         string $message,
+        ?ErrorCode $errorCode = null,
         ?Throwable $nestedException = null,
     ): UnexpectedParserException {
         return UnexpectedParserException::forSnippet(
             $tokenStream->getCodeSnippet(),
             $currentToken,
             $message,
-            null,
+            $errorCode,
             $nestedException,
         );
     }
 
-    private function createUnfinishedParserException(TokenStream $tokenStream, Token $currentToken, string $message): UnfinishedParserException
+    /**
+     * A closer reaches here only when the innermost open form did not consume
+     * it, which leaves three different faults to tell apart.
+     */
+    private function createUnexpectedCloserException(TokenStream $tokenStream, Token $closerToken): UnexpectedParserException
     {
-        return UnfinishedParserException::forSnippet($tokenStream->getCodeSnippet(), $currentToken, $message);
+        $openForm = $this->innermostOpenForm();
+        $closerText = $closerToken->getCode();
+
+        if (!$openForm instanceof OpenForm) {
+            return $this->createUnexceptedParserException(
+                $tokenStream,
+                $closerToken,
+                sprintf("Unexpected '%s': there is no open form to close.", $closerText),
+                ErrorCode::UNEXPECTED_TOKEN,
+            );
+        }
+
+        // The closer matches the open form, so a reader prefix (`'`, `^`, `#_`,
+        // `#tag`) swallowed it while still waiting for its own form.
+        if ($openForm->getCloserText() === $closerText) {
+            return $this->createUnexceptedParserException(
+                $tokenStream,
+                $closerToken,
+                sprintf("Expected a form before '%s'.", $closerText),
+                ErrorCode::UNEXPECTED_TOKEN,
+            );
+        }
+
+        return $this->createUnexceptedParserException(
+            $tokenStream,
+            $closerToken,
+            $openForm->mismatchedCloserMessage($closerText),
+            $openForm->getErrorCode(),
+        );
+    }
+
+    private function createEndOfFileException(TokenStream $tokenStream, Token $eofToken): UnfinishedParserException
+    {
+        $openForm = $this->innermostOpenForm();
+
+        if (!$openForm instanceof OpenForm) {
+            return UnfinishedParserException::forSnippet(
+                $tokenStream->getCodeSnippet(),
+                $eofToken,
+                'Unexpected end of file: a form was expected.',
+                ErrorCode::UNEXPECTED_TOKEN,
+            );
+        }
+
+        return UnfinishedParserException::forSnippet(
+            $tokenStream->getCodeSnippet(),
+            $openForm->getOpenToken(),
+            $openForm->unterminatedMessage(),
+            $openForm->getErrorCode(),
+        );
+    }
+
+    private function innermostOpenForm(): ?OpenForm
+    {
+        if ($this->openForms->isEmpty()) {
+            return null;
+        }
+
+        return new OpenForm($this->openForms->top());
     }
 
     /**
      * @throws UnfinishedParserException
      */
-    private function parseFnListNode(Token $token, TokenStream $tokenStream): ListNode
+    private function parseListNode(Token $openToken, TokenStream $tokenStream, int $endTokenType): ListNode
     {
-        return $this->listParser
-            ->parse($tokenStream, Token::T_CLOSE_PARENTHESIS, $token->getType());
-    }
+        $this->openForms->push($openToken);
 
-    /**
-     * @throws UnfinishedParserException
-     */
-    private function parseArrayListNode(Token $token, TokenStream $tokenStream): ListNode
-    {
-        return $this->listParser
-            ->parse($tokenStream, Token::T_CLOSE_BRACKET, $token->getType());
-    }
-
-    private function parseMapListNode(Token $token, TokenStream $tokenStream): ListNode
-    {
-        return $this->listParser
-            ->parse($tokenStream, Token::T_CLOSE_BRACE, $token->getType());
-    }
-
-    private function parseSetListNode(Token $token, TokenStream $tokenStream): ListNode
-    {
-        return $this->listParser
-            ->parse($tokenStream, Token::T_CLOSE_BRACE, $token->getType());
+        try {
+            return $this->listParser->parse($tokenStream, $endTokenType, $openToken->getType());
+        } finally {
+            $this->openForms->pop();
+        }
     }
 
     private function parseQuoteNode(Token $token, TokenStream $tokenStream): QuoteNode

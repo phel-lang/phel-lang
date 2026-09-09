@@ -39,7 +39,8 @@ final class ListParserTest extends TestCase
 ';
 
         $this->expectException(UnfinishedParserException::class);
-        $this->expectExceptionMessageMatches('/Unterminated list/');
+        // The innermost unclosed form, on line 2, is where the next ')' goes.
+        $this->expectExceptionMessage("Unterminated list starting at line 2. Did you forget a closing ')'?");
 
         $lexer = new Lexer();
         $tokenStream = $lexer->lexString($code, 'test.phel');
@@ -51,7 +52,7 @@ final class ListParserTest extends TestCase
         $code = '[1 2 3';
 
         $this->expectException(UnfinishedParserException::class);
-        $this->expectExceptionMessageMatches('/Unterminated list/');
+        $this->expectExceptionMessage("Unterminated vector starting at line 1. Did you forget a closing ']'?");
 
         $lexer = new Lexer();
         $tokenStream = $lexer->lexString($code, 'test.phel');
@@ -63,7 +64,7 @@ final class ListParserTest extends TestCase
         $code = '{:a 1 :b 2';
 
         $this->expectException(UnfinishedParserException::class);
-        $this->expectExceptionMessageMatches('/Unterminated list/');
+        $this->expectExceptionMessage("Unterminated map starting at line 1. Did you forget a closing '}'?");
 
         $lexer = new Lexer();
         $tokenStream = $lexer->lexString($code, 'test.phel');
