@@ -47,7 +47,19 @@ final class TestCommandParallelCompileErrorTest extends TestCase
             substr_count($output, 'Failed to compile fixture.broken-test'),
             'a compile error is deterministic and must not be retried on fresh workers: ' . $output,
         );
-        self::assertStringNotContainsString('Retried:', $output);
+        // Deliberately not asserting that the summary has no `Retried:` line.
+        // That line counts namespaces a retry *rescued*, and a compile error
+        // can never be one: it is never `ok`, so `RetryBudget::recordFinal()`
+        // never records it. What the line does report is an unrelated
+        // namespace hitting the load race the retry exists to absorb (#2672),
+        // which is a property of the machine, not of this fixture. Asserting
+        // its absence made a green run depend on a loaded runner staying
+        // quiet, and it did not: the same assertion failed on `main` at
+        // e8b5a882a, the commit that introduced it, and again on the next
+        // pull request. Both were macOS, and both still had the count above
+        // at 1. The count is the guard #3271 asked for, and
+        // `RetryBudgetTest::test_a_namespace_that_does_not_compile_is_never_retried()`
+        // pins the same rule where it cannot flake.
         self::assertMatchesRegularExpression('/Passed:\s+2/', $output);
         self::assertMatchesRegularExpression('/Failed:\s+0/', $output);
     }
