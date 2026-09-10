@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Phel\Compiler\Domain\Parser;
 
+use Phel\Compiler\Domain\Lexer\Exceptions\LexerValueException;
 use Phel\Compiler\Domain\Lexer\TokenStream;
 use Phel\Compiler\Domain\Parser\Exceptions\UnexpectedParserException;
 use Phel\Compiler\Domain\Parser\Exceptions\UnfinishedParserException;
@@ -16,6 +17,10 @@ use Phel\Shared\Parser\Node\NodeInterface;
 interface ParserInterface
 {
     /**
+     * The token stream is lazy, so the lexer runs inside this call and its
+     * error surfaces from here.
+     *
+     * @throws LexerValueException
      * @throws UnexpectedParserException
      * @throws UnfinishedParserException
      */

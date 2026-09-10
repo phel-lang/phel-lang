@@ -224,7 +224,7 @@ final class ErrorCodeCatalog
             new ErrorCodeExplanation(
                 code: ErrorCode::LEXER_ERROR,
                 title: 'Lexer error',
-                summary: 'No token rule matches the source at that position. A bare `#` is the usual cause: every `#` form needs the character that follows it. Editor diagnostics report it under this code; the terminal prints the raw lexer message.',
+                summary: 'No token rule matches the source at that position. A bare `#` is the usual cause: every `#` form needs the character that follows it.',
                 example: '(inc #)',
                 fix: 'Delete the stray character, or complete the reader form it starts.',
             ),

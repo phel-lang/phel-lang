@@ -9,7 +9,9 @@ use Phel\Formatter\Application\PathsFormatter;
 use Phel\Formatter\Domain\FormatterInterface;
 use Phel\Formatter\Domain\IO\ValidatedFileIoInterface;
 use Phel\Formatter\Domain\PathFilterInterface;
+use Phel\Lang\SourceLocation;
 use Phel\Shared\Facade\CommandFacadeInterface;
+use Phel\Shared\Parser\ReadModel\CodeSnippet;
 use PHPUnit\Framework\TestCase;
 use RuntimeException;
 use Symfony\Component\Console\Output\BufferedOutput;
@@ -24,7 +26,7 @@ final class PathsFormatterTest extends TestCase
     public function test_lexer_failure_on_one_file_does_not_abort_the_batch(): void
     {
         $io = $this->fileIo(['a.phel' => '(a', 'b.phel' => '(b)']);
-        $formatter = $this->formatterThrowing('a.phel', new LexerValueException('bad token'));
+        $formatter = $this->formatterThrowing('a.phel', $this->lexerException());
 
         $output = new BufferedOutput();
         $result = new PathsFormatter(
@@ -35,13 +37,13 @@ final class PathsFormatterTest extends TestCase
         )->format(['ignored'], $output);
 
         self::assertSame(['b.phel'], $result->changedPaths());
-        self::assertStringContainsString('bad token', $output->fetch());
+        self::assertStringContainsString("Cannot lex '#'", $output->fetch());
     }
 
     public function test_unformattable_file_is_reported_as_failed(): void
     {
         $io = $this->fileIo(['a.phel' => '(a', 'b.phel' => '(b)']);
-        $formatter = $this->formatterThrowing('a.phel', new LexerValueException('bad token'));
+        $formatter = $this->formatterThrowing('a.phel', $this->lexerException());
 
         $result = new PathsFormatter(
             $this->commandFacade(),
@@ -158,6 +160,22 @@ final class PathsFormatterTest extends TestCase
      * Formats by appending a newline (so every file counts as "changed"),
      * except for $failingPath which raises $exception.
      */
+    /**
+     * The real one, built the way the lexer builds it, so the test exercises
+     * the located shape the formatter now renders rather than a bare message.
+     */
+    private function lexerException(): LexerValueException
+    {
+        $start = new SourceLocation('a.phel', 1, 2);
+
+        return LexerValueException::unexpectedLexerState(
+            '#',
+            new CodeSnippet($start, new SourceLocation('a.phel', 1, 3), '(a #'),
+            $start,
+            new SourceLocation('a.phel', 1, 3),
+        );
+    }
+
     private function formatterThrowing(?string $failingPath, ?LexerValueException $exception): FormatterInterface
     {
         return new readonly class($failingPath, $exception) implements FormatterInterface {
@@ -199,6 +217,12 @@ final class PathsFormatterTest extends TestCase
     {
         $facade = $this->createStub(CommandFacadeInterface::class);
         $facade->method('writeStackTrace')
+            ->willReturnCallback(static function (OutputInterface $output, Throwable $e): void {
+                $output->writeln($e->getMessage());
+            });
+        // A lexer error is a located error now, so the formatter reports it
+        // through the same call a parser error goes through (#3289).
+        $facade->method('writeLocatedException')
             ->willReturnCallback(static function (OutputInterface $output, Throwable $e): void {
                 $output->writeln($e->getMessage());
             });

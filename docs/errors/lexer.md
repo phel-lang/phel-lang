@@ -26,7 +26,7 @@ A `"` opens a string that no later `"` closes. The lexer hands the rest to the a
 
 Enum case: `ErrorCode::LEXER_ERROR`
 
-No token rule matches the source at that position. A bare `#` is the usual cause: every `#` form needs the character that follows it. Editor diagnostics report it under this code; the terminal prints the raw lexer message.
+No token rule matches the source at that position. A bare `#` is the usual cause: every `#` form needs the character that follows it.
 
 ```phel
 (inc #)

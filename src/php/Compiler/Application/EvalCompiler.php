@@ -72,7 +72,7 @@ final readonly class EvalCompiler implements EvalCompilerInterface
 
                     $result = $this->evalNode($node, $compileOptions);
                 }
-            } catch (AbstractParserException|ReaderException $e) {
+            } catch (AbstractParserException|LexerValueException|ReaderException $e) {
                 throw new CompilerException($e, $e->getCodeSnippet());
             }
         }
