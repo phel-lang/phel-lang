@@ -30,10 +30,17 @@ final readonly class BestEffortFormReader
     ) {}
 
     /**
-     * @return Generator<int, bool|float|int|string|TypeInterface|null>
+     * The generator's return value says whether anything was dropped, so a
+     * caller can tell a buffer with nothing to report from one nobody could
+     * read. `phel lint` called a file that does not even lex clean without it
+     * (#3292). Read it with `Generator::getReturn()` once the loop ends.
+     *
+     * @return Generator<int, bool|float|int|string|TypeInterface|null, mixed, bool>
      */
     public function readForms(string $code, string $source): Generator
     {
+        $droppedSomething = false;
+
         try {
             $tokenStream = $this->lexer->lexString($code, $source);
 
@@ -41,11 +48,11 @@ final readonly class BestEffortFormReader
                 try {
                     $parseTree = $this->parser->parseNext($tokenStream);
                 } catch (AbstractParserException) {
-                    return;
+                    return true;
                 }
 
                 if (!$parseTree instanceof NodeInterface) {
-                    return;
+                    return $droppedSomething;
                 }
 
                 if ($parseTree instanceof TriviaNodeInterface) {
@@ -55,6 +62,7 @@ final readonly class BestEffortFormReader
                 try {
                     $readerResult = $this->reader->read($parseTree);
                 } catch (ReaderException) {
+                    $droppedSomething = true;
                     continue;
                 }
 
@@ -66,6 +74,7 @@ final readonly class BestEffortFormReader
             }
         } catch (Throwable) {
             // Best-effort: the caller keeps whatever it consumed so far.
+            return true;
         }
     }
 }

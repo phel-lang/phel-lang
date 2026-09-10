@@ -76,14 +76,23 @@ final readonly class LintRunner
 
             $analysis = new FileAnalysis(
                 uri: $file,
-                namespace: $read['namespace'],
+                namespace: $read->namespace,
                 source: $source,
-                forms: $read['forms'],
+                forms: $read->forms,
                 projectIndex: $projectIndex,
                 semanticDiagnostics: $semantic,
             );
 
             $fileDiagnostics = $this->pipeline->run($analysis, $settings);
+
+            // A file that stopped reading was never fully seen, so no rule can
+            // have an opinion about the part that is missing. The analyzer
+            // already worded why it stopped, with a code and a location, and
+            // that is the one thing worth saying about the file. Without it
+            // the run reports the file as clean and exits 0 (#3292).
+            if ($read->failed) {
+                $fileDiagnostics = [...$semantic, ...$fileDiagnostics];
+            }
 
             // A rule crash is a fact about the linter, not about the file, and
             // fixing it changes neither the file hash nor the rule fingerprint.

@@ -1,0 +1,4 @@
+(ns unlexable)
+
+(def a 1)
+(inc #)
