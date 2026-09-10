@@ -1,3 +1,3 @@
 (ns test-ns\failing)
 
-(throw (php/new \Exception "This file should be ignore at compile time"))
+(throw (new \Exception "This file should be ignore at compile time"))
