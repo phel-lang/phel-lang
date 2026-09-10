@@ -55,6 +55,7 @@ Shared behaviour traits: `MetaTrait` (`getMeta`/`withMeta`), `HashCombinerTrait`
 | `TypeFactory` | Singleton creating persistent collections; provides `Hasher`/`Equalizer` singletons |
 | `Seq` | Static utility for sequence ops. Mostly thin delegates to `Generators/`, plus the two single-pull probes `isEmpty()` / `first()` that answer `empty?` / `first` for a source with no size or indexed access of its own |
 | `TagRegistry` | Reader literal tag-handler dispatch (`TagHandlers/`: `#inst`, `#uuid`, regex) |
+| `PhelType` | `nameOf(mixed): string`, the PHP mirror of `phel.core/type` (`nil`, `boolean`, `vector`, `hash-map`, ...). Anything on the PHP side that words a type for a user reads it from here, never from `get_debug_type()`, which names the implementation and changes a map's name at eight entries. Branch order matches `predicates.phel` exactly; `tests/phel/core/phel-type-parity.phel` pins the two together (#3290) |
 | `LoadClasspath` | Static accessor for the `(load ...)` classpath, stored in `Registry` under `phel.core/*load-classpath*`. Lives here (not Compiler) because its state is a `Registry` slot; FQN baked into generated PHP by `LoadEmitter`. Do NOT rename |
 | `\Phel` (`src/Phel.php`, NOT a Lang class) | Thin root facade proxying static calls to the `Registry` singleton via `__callStatic`. Api/Interop use it for ns/definition lookups (`getNamespaces`, `getDefinition`, `getDefinitionMetaData`). Lang's own code must NOT call it (leaf → root cycle); use `Registry`/`TypeFactory` directly |
 

@@ -47,7 +47,7 @@ final class TrySymbolTest extends TestCase
     public function test_a_catch_with_no_arguments_reports_the_analyzer_error(): void
     {
         $this->expectException(AnalyzerException::class);
-        $this->expectExceptionMessage("First argument of 'catch must be a Symbol, got null");
+        $this->expectExceptionMessage("First argument of 'catch must be a Symbol, got nil");
 
         $list = Phel::list([
             Symbol::create(Symbol::NAME_TRY),
@@ -60,7 +60,7 @@ final class TrySymbolTest extends TestCase
     public function test_a_catch_with_only_a_type_reports_the_analyzer_error(): void
     {
         $this->expectException(AnalyzerException::class);
-        $this->expectExceptionMessage("Second argument of 'catch must be a Symbol, got null");
+        $this->expectExceptionMessage("Second argument of 'catch must be a Symbol, got nil");
 
         $list = Phel::list([
             Symbol::create(Symbol::NAME_TRY),

@@ -8,6 +8,7 @@ use Phel\Compiler\Domain\Analyzer\Ast\GlobalVarNode;
 use Phel\Lang\Collections\LinkedList\PersistentListInterface;
 use Phel\Lang\Collections\Map\PersistentMapInterface;
 use Phel\Lang\Keyword;
+use Phel\Lang\PhelType;
 use Phel\Lang\TypeInterface;
 use Phel\Shared\Exceptions\AbstractLocatedException;
 use Phel\Shared\Exceptions\ErrorCode;
@@ -298,22 +299,17 @@ final class AnalyzerException extends AbstractLocatedException
     }
 
     /**
-     * Formats a type name for display in error messages.
-     * Strips namespace prefixes for Phel types to make messages more readable.
+     * Names the value the way the language names it, so a message agrees with
+     * what `(type value)` returns for the same value. A host object is the one
+     * place the class beats the Phel answer: `php/object` says nothing a reader
+     * can act on, and the class name says which object arrived.
      */
     private static function formatTypeName(mixed $value): string
     {
-        $type = get_debug_type($value);
+        $type = PhelType::nameOf($value);
 
-        if (str_starts_with($type, 'Phel\\Lang\\')) {
-            return substr($type, 10);
-        }
-
-        // Strip Phel\Lang\Collections\ prefix
-        if (str_starts_with($type, 'Phel\\Lang\\Collections\\')) {
-            $parts = explode('\\', $type);
-
-            return end($parts);
+        if ($type === 'php/object' || $type === PhelType::UNKNOWN) {
+            return get_debug_type($value);
         }
 
         return $type;

@@ -12,6 +12,7 @@ All notable changes to this project will be documented in this file.
 - `phel explain <code>` prints what an error code means, the smallest program that raises it and the fix. The same text is generated into `docs/errors/`, one page per code range. (#3266)
 - A runtime error carries an error code: `PHEL400` not callable, `PHEL401` arity, `PHEL402` type, `PHEL403` out of bounds, `PHEL404` division by zero. Every uncaught runtime failure used to print a bare message. (#3266)
 - **BREAKING (PHP API)**: `ErrorCode::INVALID_QUOTE`, `ErrorCode::INVALID_UNQUOTE` and `ErrorCode::INVALID_CHARACTER` are removed. They named errors Phel does not raise. (#3266)
+- Public API: `Phel\Lang\PhelType`, the PHP mirror of `phel.core/type`, so anything wording a type for a user agrees with the language. (#3290)
 
 ### Fixed
 
@@ -30,6 +31,7 @@ All notable changes to this project will be documented in this file.
 - The error log is plain text, opens every entry with a timestamp and the command that produced it, and rotates at 1 MiB into `error.log.1` instead of growing without bound with ANSI escapes in it. (#3269)
 - Analyzer, reader and parser errors that had a code defined but never printed it now print it: `PHEL008` bindings, `PHEL009` interfaces, `PHEL010` `recur`, `PHEL202` splice. (#3266)
 - A `definterface` method with no argument vector, and a `catch` with no type or binding, report the analyzer error naming the form instead of an out-of-bounds error raised inside `PersistentList`. (#3266)
+- Analyzer messages name the Phel type, not the PHP one: `nil` instead of `null`, `boolean` instead of `bool`, `vector` and `hash-map` instead of `Collections\Vector\PersistentVector` and `Collections\Map\PersistentArrayMap`. A hash map no longer changes what it is called at eight entries. (#3290)
 
 ## [0.51.0](https://github.com/phel-lang/phel-lang/compare/v0.50.0...v0.51.0) - 2026-09-05
 

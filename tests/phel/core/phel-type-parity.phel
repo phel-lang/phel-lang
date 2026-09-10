@@ -1,0 +1,52 @@
+(ns phel-test.core.phel-type-parity
+  (:require phel.test :refer [deftest is])
+  (:use Phel.Lang.PhelType))
+
+;; `PhelType::nameOf()` is the PHP mirror of `type`: anything on the PHP side
+;; that words a type for a user reads it from there, so an error message says
+;; `nil` where the user wrote `nil`. Two definitions of one mapping drift, and
+;; the drift is invisible until somebody reads a wrong message. This pins them
+;; together.
+
+(defstruct a-struct [x])
+
+(def- a-var 1)
+
+(defn- php-name [x]
+  (keyword (PhelType/nameOf x)))
+
+(defn- values []
+  [[1 2]
+   '(1 2)
+   {:a 1}
+   ;; Above the array-map threshold, so the hash-map implementation is covered
+   ;; too and the answer must not change with the size.
+   (apply hash-map (mapcat (fn [n] [(keyword (str "k" n)) n]) (range 0 12)))
+   (first {:a 1})
+   #{1 2}
+   :keyword
+   'symbol
+   (atom 1)
+   1
+   1.5
+   "string"
+   nil
+   true
+   false
+   (fn [n] (inc n))
+   (php/array 1 2)
+   (queue 1 2)
+   (var a-var)
+   (bigint "10")
+   (bigdec "1.5")
+   (rationalize 0.5)
+   (random-uuid)
+   (class (php/new \stdClass))
+   (php/new \stdClass)
+   (a-struct 1)
+   (php/fopen "php://memory" "r")])
+
+(deftest test-php-mirror-agrees-with-type
+  (foreach [value (values)]
+    (is (= (type value) (php-name value))
+        (str "PhelType/nameOf disagrees with type for " (print-str value)))))
