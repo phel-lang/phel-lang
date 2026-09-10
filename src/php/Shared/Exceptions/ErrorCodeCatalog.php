@@ -126,9 +126,9 @@ final class ErrorCodeCatalog
             new ErrorCodeExplanation(
                 code: ErrorCode::INVALID_SPECIAL_FORM,
                 title: 'Invalid special form',
-                summary: 'The fallback code for an analyzer error that carries no more specific one. Editor diagnostics report it under this code; the terminal prints the same message with no code in front.',
-                example: '(let [1 2] 3)',
-                fix: 'Read the message: it names the form and the value it rejected.',
+                summary: 'The fallback code for an analyzer error that carries no more specific one, such as a special form given the wrong number of arguments. Editor diagnostics report it under this code; the terminal prints the same message with no code in front.',
+                example: '(if)',
+                fix: 'Read the message: it names the form and what it expected there.',
             ),
             new ErrorCodeExplanation(
                 code: ErrorCode::BINDING_ERROR,
