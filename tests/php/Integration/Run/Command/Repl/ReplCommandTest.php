@@ -121,7 +121,7 @@ final class ReplCommandTest extends AbstractTestCommand
         self::assertErrorReportShape($report);
         // The prompt used to open with the exception class and print no
         // location at all, which is neither what `phel run` does (#3264).
-        self::assertStringStartsWith('Vector index 9 out of bounds', $report);
+        self::assertStringStartsWith('[PHEL403] Vector index 9 out of bounds', $report);
         self::assertStringContainsString('  at repl', $report);
         self::assertStringNotContainsString('OutOfBoundsException', $report);
     }

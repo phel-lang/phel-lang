@@ -104,11 +104,11 @@ parameters:
         #
         # 1. The console is the composition root. Registering every module's
         #    commands is the one job it has, so naming their classes is not a
-        #    boundary violation. 28 of the 39 (`MutateCommands` adds two, #3208).
+        #    boundary violation. 29 of the 40 (`MutateCommands` adds two, #3208).
         -
             identifier: gacela.crossModuleWithoutFacade
             path: src/php/Console/Infrastructure/Command/*Commands.php
-            count: 28
+            count: 29
         # 2. `FilesystemFacadeInterface` lives in `Phel\Filesystem\` while every
         #    other cross-module facade contract lives in `Phel\Shared\Facade\`.
         #    Referencing it *is* going through a facade, and since gacela 2.4

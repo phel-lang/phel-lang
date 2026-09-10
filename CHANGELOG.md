@@ -9,6 +9,9 @@ All notable changes to this project will be documented in this file.
 - Public API: `Shared\ByteSize`, `Shared\Performance\OpcacheFileCache`, `Shared\Performance\OpcacheFileCachePruner`, and `PhelProjectDirectory::opcachePath()`. (#3268)
 - `--stack-trace` on `phel run`, `phel eval` and `phel repl`, and a collapse marker that names both the flag and the error log holding the full trace. (#3261)
 - **BREAKING (PHP API, implementers only)**: `CommandFacadeInterface::getRuntimeErrorReport()`, the runtime error report as a string, for hosts that own where the text goes. (#3264)
+- `phel explain <code>` prints what an error code means, the smallest program that raises it and the fix. The same text is generated into `docs/errors/`, one page per code range. (#3266)
+- A runtime error carries an error code: `PHEL400` not callable, `PHEL401` arity, `PHEL402` type, `PHEL403` out of bounds, `PHEL404` division by zero. Every uncaught runtime failure used to print a bare message. (#3266)
+- **BREAKING (PHP API)**: `ErrorCode::INVALID_QUOTE`, `ErrorCode::INVALID_UNQUOTE` and `ErrorCode::INVALID_CHARACTER` are removed. They named errors Phel does not raise. (#3266)
 
 ### Fixed
 
@@ -25,6 +28,8 @@ All notable changes to this project will be documented in this file.
 - `phel test --parallel`: the parent warms every bundled namespace before dispatching, and a namespace is re-run on a fresh worker only when the worker itself failed, never for a compile error or a failing test. (#3271)
 - An uncaught runtime error reads the same from `phel run`, `phel eval` and the REPL: message, `at` line, user-visible frames, one collapsed marker, and a hint when one matches. The prompt no longer opens on the exception class, and prints the report uncoloured like the other two. (#3264)
 - The error log is plain text, opens every entry with a timestamp and the command that produced it, and rotates at 1 MiB into `error.log.1` instead of growing without bound with ANSI escapes in it. (#3269)
+- Analyzer, reader and parser errors that had a code defined but never printed it now print it: `PHEL008` bindings, `PHEL009` interfaces, `PHEL010` `recur`, `PHEL202` splice. (#3266)
+- A `definterface` method with no argument vector, and a `catch` with no type or binding, report the analyzer error naming the form instead of an out-of-bounds error raised inside `PersistentList`. (#3266)
 
 ## [0.51.0](https://github.com/phel-lang/phel-lang/compare/v0.50.0...v0.51.0) - 2026-09-05
 

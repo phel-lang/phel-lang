@@ -13,6 +13,7 @@ use Phel\Shared\Eval\EvalResult;
 use Phel\Shared\Eval\StackFrame;
 use Phel\Shared\Exceptions\CompiledCodeIsMalformedException;
 use Phel\Shared\Exceptions\CompilerException;
+use Phel\Shared\Exceptions\RuntimeErrorCodeResolver;
 use Phel\Shared\Facade\CompilerFacadeInterface;
 use Throwable;
 
@@ -95,7 +96,7 @@ final readonly class StructuredEvaluator
         return new EvalError(
             exceptionClass: array_reverse(explode('\\', $t::class))[0],
             message: $t->getMessage(),
-            errorCode: null,
+            errorCode: RuntimeErrorCodeResolver::codeFor($t)?->value,
             file: $t->getFile(),
             line: $t->getLine(),
             column: null,

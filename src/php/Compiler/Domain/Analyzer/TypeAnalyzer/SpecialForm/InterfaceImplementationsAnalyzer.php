@@ -12,6 +12,7 @@ use Phel\Compiler\Domain\Analyzer\Environment\NodeEnvironmentInterface;
 use Phel\Compiler\Domain\Analyzer\Exceptions\AnalyzerException;
 use Phel\Lang\Collections\LinkedList\PersistentListInterface;
 use Phel\Lang\Symbol;
+use Phel\Shared\Exceptions\ErrorCode;
 use Phel\Shared\MungeInterface;
 
 use function class_exists;
@@ -68,12 +69,12 @@ final readonly class InterfaceImplementationsAnalyzer
             }
 
             if (!$first instanceof Symbol) {
-                throw AnalyzerException::withLocation(sprintf('Expected a interface name in %s', $context), $list);
+                throw AnalyzerException::withLocation(sprintf('Expected a interface name in %s', $context), $list, errorCode: ErrorCode::INTERFACE_ERROR);
             }
 
             $classNode = $this->analyzer->resolve($first, $env);
             if (!$classNode instanceof PhpClassNameNode) {
-                throw AnalyzerException::withLocation('Can not resolve interface ' . $first->getFullName(), $list);
+                throw AnalyzerException::withLocation('Can not resolve interface ' . $first->getFullName(), $list, errorCode: ErrorCode::INTERFACE_ERROR);
             }
 
             $absoluteInterfaceName = $classNode->getAbsolutePhpName();
@@ -84,19 +85,19 @@ final readonly class InterfaceImplementationsAnalyzer
             for ($i = 0; $i < $countExpectedMethods; ++$i) {
                 $forms = $forms->cdr();
                 if (!$forms instanceof PersistentListInterface) {
-                    throw AnalyzerException::withLocation('Missing method for interface ' . $absoluteInterfaceName . ' in ' . $context, $list);
+                    throw AnalyzerException::withLocation('Missing method for interface ' . $absoluteInterfaceName . ' in ' . $context, $list, errorCode: ErrorCode::INTERFACE_ERROR);
                 }
 
                 $method = $forms->first();
                 if (!$method instanceof PersistentListInterface) {
-                    throw AnalyzerException::withLocation('Missing method for interface ' . $absoluteInterfaceName . ' in ' . $context, $list);
+                    throw AnalyzerException::withLocation('Missing method for interface ' . $absoluteInterfaceName . ' in ' . $context, $list, errorCode: ErrorCode::INTERFACE_ERROR);
                 }
 
                 $methods[] = $this->analyzeInterfaceMethod($method, $env, $expectedMethodIndex);
             }
 
             if (count($methods) !== $countExpectedMethods) {
-                throw AnalyzerException::withLocation('Missing method for interface ' . $absoluteInterfaceName . ' in ' . $context, $list);
+                throw AnalyzerException::withLocation('Missing method for interface ' . $absoluteInterfaceName . ' in ' . $context, $list, errorCode: ErrorCode::INTERFACE_ERROR);
             }
 
             $interfaces[] = new DefStructInterface(
@@ -140,6 +141,7 @@ final readonly class InterfaceImplementationsAnalyzer
                 throw AnalyzerException::withLocation(
                     'Can not resolve interface ' . $interfaceSymbol->getFullName(),
                     $list,
+                    errorCode: ErrorCode::INTERFACE_ERROR,
                 );
             }
 
@@ -153,7 +155,7 @@ final readonly class InterfaceImplementationsAnalyzer
 
         $reflectionClass = $classNode->getReflectionClass();
         if (!$reflectionClass->isInterface()) {
-            throw AnalyzerException::withLocation('Given interface ' . $interfaceSymbol->getFullName() . ' is not an interface', $list);
+            throw AnalyzerException::withLocation('Given interface ' . $interfaceSymbol->getFullName() . ' is not an interface', $list, errorCode: ErrorCode::INTERFACE_ERROR);
         }
 
         $index = [];
@@ -181,7 +183,7 @@ final readonly class InterfaceImplementationsAnalyzer
         $mungedMethodName = $this->munge->encode($methodName->getName());
 
         if (!isset($expectedMethodIndex[$mungedMethodName])) {
-            throw AnalyzerException::withLocation("The interface doesn't support this method: " . $methodName->getName(), $list);
+            throw AnalyzerException::withLocation("The interface doesn't support this method: " . $methodName->getName(), $list, errorCode: ErrorCode::INTERFACE_ERROR);
         }
 
         return $this->methodBodyAnalyzer->analyze($list, $env);

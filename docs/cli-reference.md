@@ -25,6 +25,7 @@ enables tab-completion (setup in the [README](../README.md)).
 | `doc` | Display the docs for any/all Phel functions |
 | `doctor` | Check system requirements (PHP, extensions, OPcache cold-start, cache size) for the Phel CLI |
 | `eval` `e` | Evaluate a Phel expression (or stdin) and print the result |
+| `explain` | Explain a Phel error code: what it means, a minimal example, the fix. No argument lists every code |
 | `export` | Export all definitions tagged `{:export true}` as PHP classes |
 | `format` `fmt` | Format the given files (defaults to the configured format dirs) |
 | `index` | Build a project-level symbol index across source directories |
@@ -66,6 +67,20 @@ Pick by what you want back:
 
 `eval` is a developer tool with full host access, not a sandbox. On using it as a
 playground primitive, and why that needs isolation: [playground.md](playground.md).
+
+## Error codes
+
+A compile or runtime failure prints a `[PHELxxx]` code in front of its message.
+`phel explain` turns that code back into prose:
+
+```sh
+phel explain PHEL001      # what it means, a minimal example, the fix
+phel explain 1            # same code: the prefix and leading zeroes are optional
+phel explain              # every code, one line each
+```
+
+An unknown code exits 1. The text comes from the same catalog the pages under
+`docs/errors/` are generated from, so the terminal and the docs cannot drift.
 
 ## Errors from a built app
 

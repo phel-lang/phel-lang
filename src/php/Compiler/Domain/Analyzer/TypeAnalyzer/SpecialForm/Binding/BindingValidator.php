@@ -9,6 +9,7 @@ use Phel\Lang\Collections\Map\PersistentMapInterface;
 use Phel\Lang\Collections\Vector\PersistentVectorInterface;
 use Phel\Lang\Symbol;
 use Phel\Lang\TypeInterface;
+use Phel\Shared\Exceptions\ErrorCode;
 
 /**
  * @internal
@@ -34,10 +35,10 @@ final class BindingValidator implements BindingValidatorInterface
         $type = get_debug_type($form);
 
         if ($form instanceof TypeInterface) {
-            throw AnalyzerException::withLocation('Cannot destructure ' . $type, $form);
+            throw AnalyzerException::withLocation('Cannot destructure ' . $type, $form, errorCode: ErrorCode::BINDING_ERROR);
         }
 
-        throw new AnalyzerException('Cannot destructure ' . $type);
+        throw AnalyzerException::withoutLocation('Cannot destructure ' . $type, ErrorCode::BINDING_ERROR);
     }
 
     /**
@@ -61,6 +62,7 @@ final class BindingValidator implements BindingValidatorInterface
             "Can't bind qualified name: " . $form->getFullName()
             . '. Use a bare name, or `' . $form->getName() . '#` for an auto-gensym inside a quasiquote.',
             $form,
+            errorCode: ErrorCode::BINDING_ERROR,
         );
     }
 

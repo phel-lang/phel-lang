@@ -15,6 +15,7 @@ use Phel\Compiler\Domain\Analyzer\TypeAnalyzer\SpecialForm\Binding\BindingValida
 use Phel\Lang\Collections\LinkedList\PersistentListInterface;
 use Phel\Lang\Collections\Vector\PersistentVectorInterface;
 use Phel\Lang\Symbol;
+use Phel\Shared\Exceptions\ErrorCode;
 
 use function count;
 
@@ -52,12 +53,12 @@ final readonly class LoopSymbol implements SpecialFormAnalyzerInterface
 
         $loopBindings = $list->get(1);
         if (!($loopBindings instanceof PersistentVectorInterface)) {
-            throw AnalyzerException::withLocation('Binding parameter must be a vector.', $list);
+            throw AnalyzerException::withLocation('Binding parameter must be a vector.', $list, errorCode: ErrorCode::BINDING_ERROR);
         }
 
         $loopBindingsCount = count($loopBindings);
         if ($loopBindingsCount % 2 !== 0) {
-            throw AnalyzerException::withLocation('Bindings must be a even number of parameters', $list);
+            throw AnalyzerException::withLocation('Bindings must be a even number of parameters', $list, errorCode: ErrorCode::BINDING_ERROR);
         }
 
         $preInits = [];

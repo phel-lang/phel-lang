@@ -42,8 +42,9 @@ The `Phel` import closes the `Phel <-> Run` cycle: the composition root wires `R
 
 ## Structure
 
-- `Infrastructure/Command/`: 11 user-facing Symfony commands (incl. `config` — dumps effective merged config, and `bench` — runs `defbench` benchmarks) + 1 hidden `_test-worker` (`TestWorkerCommand`).
+- `Infrastructure/Command/`: 12 user-facing Symfony commands (incl. `config` — dumps effective merged config, `bench` — runs `defbench` benchmarks, and `explain` — prints one error code) + 1 hidden `_test-worker` (`TestWorkerCommand`).
 - `DoctorCommand` reads the effective config once and hands it to both the configuration and the storage check. The storage check names the size of `<phel-dir>/opcache` and how many of its subtrees a retired system id made unreadable, because no other command reports that directory and it is normally the largest thing under the state dir (#3268).
+- `ExplainCommand` (`phel explain PHEL001`) renders one `Phel\Shared\Exceptions\ErrorCodeExplanation` and nothing else. `ErrorCodeCatalog` owns the prose and the input normalisation (case, `PHEL` prefix, leading zeroes), and the pages under `docs/errors/` render the same values, so a wording change belongs in the catalog, never here. No argument lists every entry; an unknown code exits 1.
 - `Application/Test/Coverage/`: `CoverageDriver`, `CoverageAggregator`, `CoverageReport`, `CoverageFile`, `HtmlCoverageRenderer`, `PerTestCoverageCollector` (the `phel.test/*event-hook*`), `PerTestCoverageReport`.
 - `Runtime/PhelSourceLoader`: cached-PHP boot entry.
 

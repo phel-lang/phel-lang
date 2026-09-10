@@ -39,6 +39,37 @@ final class TrySymbolTest extends TestCase
         $this->analyze($list);
     }
 
+    /**
+     * A `catch` with nothing after it used to read past the end of the list, so
+     * a malformed form reported as an out-of-bounds error from `PersistentList`
+     * rather than as the analyzer error naming the form.
+     */
+    public function test_a_catch_with_no_arguments_reports_the_analyzer_error(): void
+    {
+        $this->expectException(AnalyzerException::class);
+        $this->expectExceptionMessage("First argument of 'catch must be a Symbol, got null");
+
+        $list = Phel::list([
+            Symbol::create(Symbol::NAME_TRY),
+            Phel::list([Symbol::create('catch')]),
+        ]);
+
+        $this->analyze($list);
+    }
+
+    public function test_a_catch_with_only_a_type_reports_the_analyzer_error(): void
+    {
+        $this->expectException(AnalyzerException::class);
+        $this->expectExceptionMessage("Second argument of 'catch must be a Symbol, got null");
+
+        $list = Phel::list([
+            Symbol::create(Symbol::NAME_TRY),
+            Phel::list([Symbol::create('catch'), Symbol::create('\Throwable')]),
+        ]);
+
+        $this->analyze($list);
+    }
+
     public function test_requires_symbol_as_second_argument_of_catch(): void
     {
         $this->expectException(AnalyzerException::class);

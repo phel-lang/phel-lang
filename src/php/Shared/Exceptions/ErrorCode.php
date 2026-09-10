@@ -5,14 +5,15 @@ declare(strict_types=1);
 namespace Phel\Shared\Exceptions;
 
 /**
- * Error codes for Phel compiler errors.
- * These codes can be used for documentation lookup.
+ * Error codes for Phel compiler and runtime errors.
+ * These codes are documented under docs/errors/ and printed by phel explain.
  *
  * Code ranges:
  * - PHEL001-099: Analyzer errors (undefined symbol, arity, type errors)
  * - PHEL100-199: Parser errors (unterminated, unexpected token)
  * - PHEL200-299: Reader errors (quote, splice issues)
  * - PHEL300-399: Lexer errors (invalid characters, unterminated strings)
+ * - PHEL400-499: Runtime errors (not callable, arity, type, bounds, division by zero)
  */
 enum ErrorCode: string
 {
@@ -38,13 +39,17 @@ enum ErrorCode: string
     case PARSER_ERROR = 'PHEL120';
 
     // Reader errors (PHEL200-299)
-    case INVALID_QUOTE = 'PHEL200';
-    case INVALID_UNQUOTE = 'PHEL201';
     case INVALID_SPLICE = 'PHEL202';
     case READER_ERROR = 'PHEL210';
 
     // Lexer errors (PHEL300-399)
-    case INVALID_CHARACTER = 'PHEL300';
     case UNTERMINATED_STRING = 'PHEL301';
     case LEXER_ERROR = 'PHEL310';
+
+    // Runtime errors (PHEL400-499)
+    case RUNTIME_NOT_CALLABLE = 'PHEL400';
+    case RUNTIME_ARITY_ERROR = 'PHEL401';
+    case RUNTIME_TYPE_ERROR = 'PHEL402';
+    case INDEX_OUT_OF_BOUNDS = 'PHEL403';
+    case DIVISION_BY_ZERO = 'PHEL404';
 }

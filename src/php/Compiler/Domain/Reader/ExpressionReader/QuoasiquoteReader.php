@@ -9,6 +9,7 @@ use Phel\Compiler\Domain\Reader\Exceptions\SpliceNotInListException;
 use Phel\Compiler\Domain\Reader\QuasiquoteTransformerInterface;
 use Phel\Compiler\Domain\Reader\ReaderInterface;
 use Phel\Lang\TypeInterface;
+use Phel\Shared\Exceptions\ErrorCode;
 use Phel\Shared\Parser\Node\NodeInterface;
 use Phel\Shared\Parser\Node\QuoteNode;
 
@@ -24,13 +25,23 @@ final readonly class QuoasiquoteReader
 
     /**
      * @throws ReaderException
-     * @throws SpliceNotInListException
      */
     public function read(QuoteNode $node, NodeInterface $root): float|bool|int|string|TypeInterface|null
     {
         /** @var bool|float|int|string|TypeInterface|null $expression */
         $expression = $this->reader->readExpression($node->getExpression(), $root);
-        $result = $this->quasiquoteTransformer->transform($expression);
+
+        try {
+            $result = $this->quasiquoteTransformer->transform($expression);
+        } catch (SpliceNotInListException $spliceNotInListException) {
+            throw ReaderException::forNode(
+                $node->getExpression(),
+                $root,
+                'Unquote-splicing (~@) is only valid inside a collection within a quasiquote',
+                $spliceNotInListException,
+                ErrorCode::INVALID_SPLICE,
+            );
+        }
 
         if ($result instanceof TypeInterface) {
             return $result

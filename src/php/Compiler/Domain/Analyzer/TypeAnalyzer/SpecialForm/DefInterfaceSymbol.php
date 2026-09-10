@@ -14,6 +14,7 @@ use Phel\Lang\Collections\LinkedList\PersistentListInterface;
 use Phel\Lang\Collections\Vector\PersistentVectorInterface;
 use Phel\Lang\Keyword;
 use Phel\Lang\Symbol;
+use Phel\Shared\Exceptions\ErrorCode;
 
 use function array_map;
 use function count;
@@ -94,7 +95,7 @@ final class DefInterfaceSymbol implements SpecialFormAnalyzerInterface
             }
 
             if (!$first instanceof PersistentListInterface) {
-                throw AnalyzerException::withLocation('Methods in definterface must be lists', $list);
+                throw AnalyzerException::withLocation('Methods in definterface must be lists', $list, errorCode: ErrorCode::INTERFACE_ERROR);
             }
 
             if ($inConstBlock) {
@@ -121,16 +122,16 @@ final class DefInterfaceSymbol implements SpecialFormAnalyzerInterface
     {
         $name = $const->get(0);
         if (!$name instanceof Symbol) {
-            throw AnalyzerException::withLocation('A :php/const name must be a symbol', $const);
+            throw AnalyzerException::withLocation('A :php/const name must be a symbol', $const, errorCode: ErrorCode::INTERFACE_ERROR);
         }
 
         if (count($const) !== 2) {
-            throw AnalyzerException::withLocation('A :php/const must be (NAME value)', $const);
+            throw AnalyzerException::withLocation('A :php/const must be (NAME value)', $const, errorCode: ErrorCode::INTERFACE_ERROR);
         }
 
         $value = $const->get(1);
         if (!is_int($value) && !is_float($value) && !is_string($value) && !is_bool($value) && $value !== null) {
-            throw AnalyzerException::withLocation('A :php/const value must be an int, float, string, bool or nil', $const);
+            throw AnalyzerException::withLocation('A :php/const value must be an int, float, string, bool or nil', $const, errorCode: ErrorCode::INTERFACE_ERROR);
         }
 
         return new PhpClassConst($name, $value);
@@ -143,25 +144,27 @@ final class DefInterfaceSymbol implements SpecialFormAnalyzerInterface
     {
         $name = $method->get(0);
         if (!$name instanceof Symbol) {
-            throw AnalyzerException::withLocation('Method names must be symbols', $method);
+            throw AnalyzerException::withLocation('Method names must be symbols', $method, errorCode: ErrorCode::INTERFACE_ERROR);
         }
 
-        $arguments = $method->get(1);
+        // Read the count first: `get()` on a short list throws an out-of-bounds
+        // error the user cannot act on, instead of naming the method form.
+        $arguments = count($method) > 1 ? $method->get(1) : null;
         if (!$arguments instanceof PersistentVectorInterface) {
-            throw AnalyzerException::withLocation('Method arguments must be vectors', $method);
+            throw AnalyzerException::withLocation('Method arguments must be vectors', $method, errorCode: ErrorCode::INTERFACE_ERROR);
         }
 
         $argumentSymbols = [];
         foreach ($arguments as $argument) {
             if (!$argument instanceof Symbol) {
-                throw AnalyzerException::withLocation('A method argument must be symbol', $arguments);
+                throw AnalyzerException::withLocation('A method argument must be symbol', $arguments, errorCode: ErrorCode::INTERFACE_ERROR);
             }
 
             $argumentSymbols[] = $argument;
         }
 
         if (count($method) > 2 && !is_string($method->get(2))) {
-            throw AnalyzerException::withLocation('Method comments must be strings', $method);
+            throw AnalyzerException::withLocation('Method comments must be strings', $method, errorCode: ErrorCode::INTERFACE_ERROR);
         }
 
         return new DefInterfaceMethod(
