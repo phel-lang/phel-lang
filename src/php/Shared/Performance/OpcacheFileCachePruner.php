@@ -8,6 +8,7 @@ use FilesystemIterator;
 use RecursiveDirectoryIterator;
 use RecursiveIteratorIterator;
 use SplFileInfo;
+use UnexpectedValueException;
 
 use function file_exists;
 use function is_dir;
@@ -134,15 +135,28 @@ final readonly class OpcacheFileCachePruner
      * `RecursiveDirectoryIterator` does not descend into symlinked directories
      * unless asked to, which is what keeps a deletion inside this tree.
      *
+     * A directory that disappears while the walk runs is not an error: the
+     * cache is shared, so a second `phel` process pruning the same tree, or a
+     * `cache:clear` next to a test run, removes entries under this one's feet.
+     * `CATCH_GET_CHILD` absorbs that for a subdirectory and the catch does it
+     * for the root. Without them the walk throws `UnexpectedValueException`,
+     * which nothing along `bin/phel` handles, so pruning a cache someone else
+     * is also pruning killed the command outright.
+     *
      * @return iterable<SplFileInfo>
      */
     private function walk(string $directory): iterable
     {
-        /** @var iterable<SplFileInfo> $iterator */
-        $iterator = new RecursiveIteratorIterator(
-            new RecursiveDirectoryIterator($directory, FilesystemIterator::SKIP_DOTS),
-            RecursiveIteratorIterator::CHILD_FIRST,
-        );
+        try {
+            /** @var iterable<SplFileInfo> $iterator */
+            $iterator = new RecursiveIteratorIterator(
+                new RecursiveDirectoryIterator($directory, FilesystemIterator::SKIP_DOTS),
+                RecursiveIteratorIterator::CHILD_FIRST,
+                RecursiveIteratorIterator::CATCH_GET_CHILD,
+            );
+        } catch (UnexpectedValueException) {
+            return [];
+        }
 
         return $iterator;
     }
