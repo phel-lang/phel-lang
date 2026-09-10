@@ -11,6 +11,7 @@ modules, deployment) live on **[phel-lang.org](https://phel-lang.org/documentati
 - [Architecture decisions](adr/README.md): why the repository is shaped the way it
   is, one record per decision, including the ones that look like oversights
 - [CLI Reference & DX Guide](cli-reference.md): every command, the dev loop, and compile vs eval vs run vs build
+- [Error codes](errors/README.md): every `PHEL...` code Phel prints, what it means, and what to change
 - [Project Layout](project-layout.md): the `.phel/` directory and runtime state
 - [Benchmarking](benchmarking.md): `defbench` and `phel bench` for Phel code, PHPBench for the compiler and runtime
 - [Internals](internals/README.md): architecture, compiler phases, AST, emitter,

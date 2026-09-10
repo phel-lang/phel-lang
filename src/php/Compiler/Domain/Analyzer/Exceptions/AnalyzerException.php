@@ -48,6 +48,19 @@ final class AnalyzerException extends AbstractLocatedException
     }
 
     /**
+     * The same error raised on a form that carries no source location, a bare
+     * scalar in a binding vector for one. The code is what the reader is left
+     * with, so it still has to be set.
+     */
+    public static function withoutLocation(string $message, ErrorCode $errorCode): self
+    {
+        $e = new self($message);
+        $e->setErrorCode($errorCode);
+
+        return $e;
+    }
+
+    /**
      * @param array<string> $suggestions Similar symbol names for "did you mean?" hint
      */
     public static function cannotResolveSymbol(string $symbolName, TypeInterface $type, array $suggestions = []): self
@@ -58,10 +71,7 @@ final class AnalyzerException extends AbstractLocatedException
             $message .= sprintf('. Did you mean %s?', self::formatSuggestions($suggestions));
         }
 
-        $e = self::withLocation($message, $type);
-        $e->setErrorCode(ErrorCode::UNDEFINED_SYMBOL);
-
-        return $e;
+        return self::withLocation($message, $type, errorCode: ErrorCode::UNDEFINED_SYMBOL);
     }
 
     /**
@@ -81,13 +91,11 @@ final class AnalyzerException extends AbstractLocatedException
 
         $actualType = self::formatTypeName($actualValue);
 
-        $e = self::withLocation(
+        return self::withLocation(
             sprintf('%s, got %s', $context . ' must be a ' . $expectedList, $actualType),
             $location,
+            errorCode: ErrorCode::TYPE_ERROR,
         );
-        $e->setErrorCode(ErrorCode::TYPE_ERROR);
-
-        return $e;
     }
 
     public static function notCallable(
@@ -102,10 +110,7 @@ final class AnalyzerException extends AbstractLocatedException
             $message .= ' ' . $hint;
         }
 
-        $e = self::withLocation($message, $location);
-        $e->setErrorCode(ErrorCode::NOT_CALLABLE);
-
-        return $e;
+        return self::withLocation($message, $location, errorCode: ErrorCode::NOT_CALLABLE);
     }
 
     /**
@@ -121,7 +126,7 @@ final class AnalyzerException extends AbstractLocatedException
         $gotCount = count($list->rest());
         $fnName = sprintf('%s\\%s', $f->getNamespace(), $f->getName()->getName());
 
-        $e = self::withLocation(
+        return self::withLocation(
             sprintf(
                 'Wrong number of arguments to function "%s". Got: %d. Expected: %s',
                 $fnName,
@@ -129,10 +134,8 @@ final class AnalyzerException extends AbstractLocatedException
                 self::formatExpectedArity($minArity, $isVariadic, $maxArity),
             ),
             $list,
+            errorCode: ErrorCode::ARITY_ERROR,
         );
-        $e->setErrorCode(ErrorCode::ARITY_ERROR);
-
-        return $e;
     }
 
     /**
@@ -147,7 +150,7 @@ final class AnalyzerException extends AbstractLocatedException
         $gotCount = count($list->rest());
         $fnName = sprintf('%s\\%s', $f->getNamespace(), $f->getName()->getName());
 
-        $e = self::withLocation(
+        return self::withLocation(
             sprintf(
                 'Wrong number of arguments to function "%s". Got: %d. Expected: %s',
                 $fnName,
@@ -155,10 +158,8 @@ final class AnalyzerException extends AbstractLocatedException
                 self::formatExpectedArity($minArity, false, $maxArity),
             ),
             $list,
+            errorCode: ErrorCode::ARITY_ERROR,
         );
-        $e->setErrorCode(ErrorCode::ARITY_ERROR);
-
-        return $e;
     }
 
     /**
@@ -169,7 +170,7 @@ final class AnalyzerException extends AbstractLocatedException
         GlobalVarNode $node,
         Throwable $exception,
     ): self {
-        $e = self::withLocation(
+        throw self::withLocation(
             self::formatMacroExpansionError(
                 'inline function',
                 $node->getNamespace(),
@@ -180,10 +181,8 @@ final class AnalyzerException extends AbstractLocatedException
             ),
             $list,
             $exception,
+            ErrorCode::INLINE_EXPANSION_ERROR,
         );
-        $e->setErrorCode(ErrorCode::INLINE_EXPANSION_ERROR);
-
-        throw $e;
     }
 
     /**
@@ -194,7 +193,7 @@ final class AnalyzerException extends AbstractLocatedException
         GlobalVarNode $node,
         Throwable $exception,
     ): self {
-        $e = self::withLocation(
+        throw self::withLocation(
             self::formatMacroExpansionError(
                 'macro',
                 $node->getNamespace(),
@@ -205,10 +204,8 @@ final class AnalyzerException extends AbstractLocatedException
             ),
             $list,
             $exception,
+            ErrorCode::MACRO_EXPANSION_ERROR,
         );
-        $e->setErrorCode(ErrorCode::MACRO_EXPANSION_ERROR);
-
-        throw $e;
     }
 
     private static function formatExpectedArity(int $minArity, bool $isVariadic, ?int $maxArity): string

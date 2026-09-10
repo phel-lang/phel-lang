@@ -10,8 +10,11 @@ use Phel\Command\Domain\Exceptions\Extractor\FilePositionExtractorInterface;
 use Phel\Command\Domain\Exceptions\Extractor\ReadModel\FilePosition;
 use Phel\Command\Domain\Exceptions\InternalPathDetector;
 use Phel\Lang\ExceptionInfo;
+use Phel\Shared\Exceptions\AbstractLocatedException;
+use Phel\Shared\Exceptions\ErrorCode;
 use Phel\Shared\Exceptions\ExceptionPrinterInterface;
 use Phel\Shared\Exceptions\Hint\ExceptionHintResolver;
+use Phel\Shared\Exceptions\RuntimeErrorCodeResolver;
 use Phel\Shared\Printer\PrinterInterface;
 use Throwable;
 
@@ -30,7 +33,7 @@ use const PHP_EOL;
  * The one report every uncaught runtime error gets, whichever command reports
  * it (`phel run`, `phel eval`, the REPL):
  *
- *     <message>
+ *     [<error code>] <message>
  *       at <the innermost frame of the user's own code>
  *       data: <the map of an uncaught ex-info>
  *     <the user-visible frames>
@@ -101,14 +104,29 @@ final readonly class RuntimeErrorReportFormatter
     {
         $message = $cause->getMessage();
         if ($message === '') {
-            return '*no message*';
+            return $this->errorCodePrefix($cause) . '*no message*';
         }
 
         // PHP names the evaluator's temp path and an eval line number in the
         // messages it raises itself, neither of which the user can open.
         $cleaned = preg_replace('/ in [^\s]+\(\d+\)\s*:\s*eval\(\)\'d code on line \d+/', '', $message);
 
-        return trim($cleaned ?? $message);
+        return $this->errorCodePrefix($cause) . trim($cleaned ?? $message);
+    }
+
+    /**
+     * The searchable identifier the message opens with, so a runtime failure
+     * carries the same `[PHELxxx]` a compile error does and `phel explain`
+     * has something to look up. An exception Phel does not recognise, a user's
+     * own `ex-info` included, stays uncoded rather than being mislabelled.
+     */
+    private function errorCodePrefix(Throwable $cause): string
+    {
+        $code = $cause instanceof AbstractLocatedException
+            ? $cause->getErrorCode()
+            : RuntimeErrorCodeResolver::codeFor($cause);
+
+        return $code instanceof ErrorCode ? sprintf('[%s] ', $code->value) : '';
     }
 
     /**

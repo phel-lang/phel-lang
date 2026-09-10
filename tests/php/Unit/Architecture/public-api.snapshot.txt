@@ -1785,20 +1785,22 @@ final class Phel\Shared\Exceptions\CompilerException extends RuntimeException
 enum Phel\Shared\Exceptions\ErrorCode: string
   case ARITY_ERROR = 'PHEL002'
   case BINDING_ERROR = 'PHEL008'
+  case DIVISION_BY_ZERO = 'PHEL404'
   case DUPLICATE_DEFINITION = 'PHEL004'
+  case INDEX_OUT_OF_BOUNDS = 'PHEL403'
   case INLINE_EXPANSION_ERROR = 'PHEL006'
   case INTERFACE_ERROR = 'PHEL009'
-  case INVALID_CHARACTER = 'PHEL300'
-  case INVALID_QUOTE = 'PHEL200'
   case INVALID_SPECIAL_FORM = 'PHEL007'
   case INVALID_SPLICE = 'PHEL202'
-  case INVALID_UNQUOTE = 'PHEL201'
   case LEXER_ERROR = 'PHEL310'
   case MACRO_EXPANSION_ERROR = 'PHEL005'
   case NOT_CALLABLE = 'PHEL011'
   case PARSER_ERROR = 'PHEL120'
   case READER_ERROR = 'PHEL210'
   case RECUR_ERROR = 'PHEL010'
+  case RUNTIME_ARITY_ERROR = 'PHEL401'
+  case RUNTIME_NOT_CALLABLE = 'PHEL400'
+  case RUNTIME_TYPE_ERROR = 'PHEL402'
   case TYPE_ERROR = 'PHEL003'
   case UNDEFINED_SYMBOL = 'PHEL001'
   case UNEXPECTED_TOKEN = 'PHEL110'
@@ -1812,6 +1814,19 @@ enum Phel\Shared\Exceptions\ErrorCode: string
   public static function cases(): array
   public static function from(int|string $value): static
   public static function tryFrom(int|string $value): ?static
+
+final class Phel\Shared\Exceptions\ErrorCodeCatalog
+  public static function all(): array
+  public static function explain(Phel\Shared\Exceptions\ErrorCode $code): Phel\Shared\Exceptions\ErrorCodeExplanation
+  public static function find(string $input): ?Phel\Shared\Exceptions\ErrorCodeExplanation
+
+final readonly class Phel\Shared\Exceptions\ErrorCodeExplanation
+  public readonly Phel\Shared\Exceptions\ErrorCode $code
+  public readonly string $example
+  public readonly string $fix
+  public readonly string $summary
+  public readonly string $title
+  public function __construct(Phel\Shared\Exceptions\ErrorCode $code, string $title, string $summary, string $example, string $fix)
 
 interface Phel\Shared\Exceptions\ExceptionPrinterInterface
   public function getExceptionString(Phel\Shared\Exceptions\AbstractLocatedException $e, Phel\Shared\Parser\ReadModel\CodeSnippet $codeSnippet): string
@@ -1843,6 +1858,9 @@ final class Phel\Shared\Exceptions\Hint\NotCallableHint implements Phel\Shared\E
 final class Phel\Shared\Exceptions\Hint\UndefinedSymbolHint implements Phel\Shared\Exceptions\Hint\ExceptionHintInterface
   public function appliesTo(Throwable $e): bool
   public function hint(Throwable $e): string
+
+final readonly class Phel\Shared\Exceptions\RuntimeErrorCodeResolver
+  public static function codeFor(Throwable $e): ?Phel\Shared\Exceptions\ErrorCode
 
 final class Phel\Shared\ExistingPaths
   public static function filter(array $paths): array

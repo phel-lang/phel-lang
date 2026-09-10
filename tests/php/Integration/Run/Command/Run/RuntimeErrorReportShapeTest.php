@@ -59,4 +59,39 @@ final class RuntimeErrorReportShapeTest extends AbstractTestCommand
         self::assertStringNotContainsString('internal frame', $output);
         self::assertErrorReportShape($output);
     }
+
+    /**
+     * @return iterable<string, array{0: string, 1: string}>
+     */
+    public static function codedRuntimeErrorProvider(): iterable
+    {
+        yield 'not callable' => ['not-callable-script.phel', 'PHEL400'];
+        yield 'interop type error' => ['interop-type-error-script.phel', 'PHEL402'];
+        yield 'bounds' => ['core-error-script.phel', 'PHEL403'];
+        yield 'division by zero' => ['division-by-zero-script.phel', 'PHEL404'];
+    }
+
+    /**
+     * A runtime failure carries the same searchable `[PHELxxx]` a compile error
+     * does, so `phel explain` has something to look up (#3266).
+     */
+    #[DataProvider('codedRuntimeErrorProvider')]
+    public function test_a_recognised_runtime_error_opens_with_its_code(string $fixture, string $code): void
+    {
+        $output = $this->captureRunOutput(__DIR__ . '/Fixtures/' . $fixture);
+
+        self::assertMatchesRegularExpression('~^\[' . $code . '\] \S~m', $output);
+    }
+
+    /**
+     * An exception Phel does not recognise stays uncoded rather than being
+     * labelled with a code that does not describe it.
+     */
+    public function test_an_uncaught_ex_info_carries_no_code(): void
+    {
+        $output = $this->captureRunOutput(__DIR__ . '/Fixtures/ex-info-script.phel');
+
+        self::assertStringContainsString('boom', $output);
+        self::assertDoesNotMatchRegularExpression('~\[PHEL\d{3}\]~', $output);
+    }
 }

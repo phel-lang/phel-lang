@@ -11,6 +11,7 @@ use Phel\Run\Infrastructure\Command\CompileCommand;
 use Phel\Run\Infrastructure\Command\ConfigCommand;
 use Phel\Run\Infrastructure\Command\DoctorCommand;
 use Phel\Run\Infrastructure\Command\EvalCommand;
+use Phel\Run\Infrastructure\Command\ExplainCommand;
 use Phel\Run\Infrastructure\Command\InitCommand;
 use Phel\Run\Infrastructure\Command\NsCommand;
 use Phel\Run\Infrastructure\Command\ReplCommand;
@@ -39,6 +40,7 @@ final class RunCommands implements ConsoleCommandProviderInterface
             new LazyCommand(TestWorkerCommand::COMMAND_NAME, [], 'Internal: parallel test worker. Not for direct use.', true, static fn(): TestWorkerCommand => new TestWorkerCommand()),
             new LazyCommand('doctor', [], 'Check system requirements for running the Phel CLI', false, static fn(): DoctorCommand => new DoctorCommand()),
             new LazyCommand('config', [], 'Show the effective Phel configuration and where it comes from', false, static fn(): ConfigCommand => new ConfigCommand()),
+            new LazyCommand(ExplainCommand::COMMAND_NAME, [], ExplainCommand::DESCRIPTION, false, static fn(): ExplainCommand => new ExplainCommand()),
         ];
     }
 }

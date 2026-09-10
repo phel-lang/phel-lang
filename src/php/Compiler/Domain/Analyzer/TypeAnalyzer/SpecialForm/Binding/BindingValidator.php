@@ -38,7 +38,7 @@ final class BindingValidator implements BindingValidatorInterface
             throw AnalyzerException::withLocation('Cannot destructure ' . $type, $form, errorCode: ErrorCode::BINDING_ERROR);
         }
 
-        throw new AnalyzerException('Cannot destructure ' . $type);
+        throw AnalyzerException::withoutLocation('Cannot destructure ' . $type, ErrorCode::BINDING_ERROR);
     }
 
     /**
