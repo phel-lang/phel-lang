@@ -1,5 +1,5 @@
 --PHEL--
-(php/-> (php/new \SimpleXMLElement "<root><user id='1'><data><name>John</name></data></user></root>") user data name)
+(.-name (.-data (.-user (new \SimpleXMLElement "<root><user id='1'><data><name>John</name></data></user></root>"))))
 --PHP--
 $target_1 = (function() {
   $target_2 = (function() {

@@ -11,7 +11,7 @@
   (foo [this] v)
   (bar [this a b] (+ a b v))
   MySecondInterface
-  (foobar [this] (php/-> this (foo))))
+  (foobar [this] (.foo this)))
 --PHP--
 if (!interface_exists('user\MyFirstInterface')) {
 interface MyFirstInterface {

@@ -1,7 +1,7 @@
 --PHEL--
 (ns test)
 
-(defn probe [] (php/new php/WP_CLI_FIXTURE))
+(defn probe [] (new php/WP_CLI_FIXTURE))
 --PHP--
 namespace test;
 require_once __DIR__ . '/phel/core.php';
@@ -24,14 +24,14 @@ require_once __DIR__ . '/phel/core.php';
     public function __invoke() {
       $target_1 = WP_CLI_FIXTURE;
       if (!is_string($target_1) && !is_object($target_1)) {
-      throw new \InvalidArgumentException(sprintf("php/new expects a class name or object, %s given (%s)", get_debug_type($target_1), var_export($target_1, true)));
+      throw new \InvalidArgumentException(sprintf("new expects a class name or object, %s given (%s)", get_debug_type($target_1), var_export($target_1, true)));
       }
       return new $target_1();
     }
   },
   static fn() => \Phel::locationMeta(
     \Phel::location("BareHost/php-prefixed-name-stays-the-constant.test", 3, 0),
-    \Phel::location("BareHost/php-prefixed-name-stays-the-constant.test", 3, 44),
+    \Phel::location("BareHost/php-prefixed-name-stays-the-constant.test", 3, 40),
     \Phel\Lang\Keyword::create("doc"), "```phel\n(probe)\n```\n",
     "min-arity", 0,
     "is-variadic", false,

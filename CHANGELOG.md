@@ -6,6 +6,8 @@ All notable changes to this project will be documented in this file.
 
 ### Added
 
+- **BREAKING**: `php/new`, `php/->`, `php/::` and `set-var` are rejected as source. They stay the compiler's own target, so `(new \C 1)`, `(.m obj)`, `(\C/m)` and `binding` are unaffected; what goes is the ability to write the target directly. `PHEL012` names the replacement. The rest of `php/*` is untouched. (#2859, ADR 0018)
+- Public API: `ErrorCode::SUPERSEDED_FORM` (`PHEL012`). (#2859)
 - Public API: `Shared\ByteSize`, `Shared\Performance\OpcacheFileCache`, `Shared\Performance\OpcacheFileCachePruner`, and `PhelProjectDirectory::opcachePath()`. (#3268)
 - `--stack-trace` on `phel run`, `phel eval` and `phel repl`, and a collapse marker that names both the flag and the error log holding the full trace. (#3261)
 - **BREAKING (PHP API, implementers only)**: `CommandFacadeInterface::getRuntimeErrorReport()`, the runtime error report as a string, for hosts that own where the text goes. (#3264)

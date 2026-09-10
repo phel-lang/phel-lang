@@ -1,5 +1,5 @@
 --PHEL--
-(defenum* Level :low 1 :high 10 :php (doubled [this] (php/* 2 (php/-> this value))))
+(defenum* Level :low 1 :high 10 :php (doubled [this] (php/* 2 (.-value this))))
 --PHP--
 if (!enum_exists('user\Level')) {
 enum Level: int {

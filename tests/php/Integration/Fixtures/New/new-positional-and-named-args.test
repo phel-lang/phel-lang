@@ -1,4 +1,4 @@
 --PHEL--
-(php/new \DateTime "now" :& :timezone nil)
+(new \DateTime "now" :& :timezone nil)
 --PHP--
 (new \DateTime("now", timezone: null));

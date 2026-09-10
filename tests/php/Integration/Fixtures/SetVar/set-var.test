@@ -1,15 +1,28 @@
 --PHEL--
-(def x 1)
-(set-var x 2)
+(def ^:dynamic x 1)
+(binding [x 2] x)
 --PHP--
 \Phel::addDefinition(
   "user",
   "x",
   1,
-  static fn() => \Phel::locationMeta(\Phel::location("SetVar/set-var.test", 1, 0), \Phel::location("SetVar/set-var.test", 1, 9))
+  static fn() => \Phel::locationMeta(
+    \Phel::location("SetVar/set-var.test", 1, 0),
+    \Phel::location("SetVar/set-var.test", 1, 19),
+    \Phel\Lang\Keyword::create("dynamic"), true
+  )
 );
-\Phel::setVar(
-  "user",
-  "x",
-  2
-);
+(\Phel::openBindingFrame());
+try {
+  \Phel::setVar(
+    "user",
+    "x",
+    2
+  );
+
+  (\Phel::commitAndRunBindingFrame((function() {
+    return \Phel::getDefinition("user", "x");
+  })));
+} finally {
+  (\Phel::abortBindingFrameIfOpen());
+}

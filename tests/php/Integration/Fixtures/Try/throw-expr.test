@@ -1,5 +1,5 @@
 --PHEL--
-(def x (fn [] (let [e (throw (php/new \Exception))] e)))
+(def x (fn [] (let [e (throw (new \Exception))] e)))
 --PHP--
 \Phel::addDefinition(
   "user",
@@ -16,7 +16,7 @@
   },
   static fn() => \Phel::locationMeta(
     \Phel::location("Try/throw-expr.test", 1, 0),
-    \Phel::location("Try/throw-expr.test", 1, 56),
+    \Phel::location("Try/throw-expr.test", 1, 52),
     "min-arity", 0,
     "is-variadic", false,
     "arglists", "[]"

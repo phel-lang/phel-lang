@@ -19,7 +19,7 @@ final class ReplBareStdClassTest extends AbstractTestCommand
     {
         $io = $this->createReplTestIo();
         $io->setInputs(
-            new InputLine('user:1> ', '(php/new stdClass)'),
+            new InputLine('user:1> ', '(new stdClass)'),
             new InputLine('user:2> ', '(new stdClass)'),
             new InputLine('user:3> ', 'exit'),
         );

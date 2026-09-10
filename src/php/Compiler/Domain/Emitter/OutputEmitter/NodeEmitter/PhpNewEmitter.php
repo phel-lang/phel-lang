@@ -111,7 +111,7 @@ final class PhpNewEmitter implements NodeEmitterInterface
                 );
                 $this->outputEmitter->emitLine();
                 $this->outputEmitter->emitStr(
-                    'throw new \InvalidArgumentException(sprintf("php/new expects a class name or object, %s given (%s)", get_debug_type(' . $targetVar . '), var_export(' . $targetVar . ', true)));',
+                    'throw new \InvalidArgumentException(sprintf("new expects a class name or object, %s given (%s)", get_debug_type(' . $targetVar . '), var_export(' . $targetVar . ', true)));',
                     $node->getStartSourceLocation(),
                 );
                 $this->outputEmitter->emitLine();

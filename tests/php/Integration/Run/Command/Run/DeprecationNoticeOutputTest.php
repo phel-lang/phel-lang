@@ -105,8 +105,8 @@ final class DeprecationNoticeOutputTest extends TestCase
 
         self::assertSame(0, $exitCode, $stderr);
         self::assertCount(1, explode("\n", trim($stderr)));
-        self::assertStringStartsWith('deprecated: Using "php/new"', trim($stderr));
-        self::assertStringContainsString('/src/superseded.phel:2:', $stderr);
+        self::assertStringStartsWith("deprecated: Definition 'phel.core/to-php-array'", trim($stderr));
+        self::assertStringContainsString('/src/superseded.phel:2', $stderr);
     }
 
     private function writeSeparatorNs(): void
@@ -114,9 +114,13 @@ final class DeprecationNoticeOutputTest extends TestCase
         $this->writeSource('main.phel', "(ns dep\\main)\n(println \"hi\")\n");
     }
 
+    /**
+     * A deprecated *definition*, which is what the opt-in channel still carries:
+     * the four superseded syntax forms became hard errors at 1.0.0 (#2877).
+     */
     private function writeSuperseded(): void
     {
-        $this->writeSource('superseded.phel', "(ns dep.superseded)\n(php/new \\DateTimeImmutable)\n(println \"hi\")\n");
+        $this->writeSource('superseded.phel', "(ns dep.superseded)\n(to-php-array [1 2])\n(println \"hi\")\n");
     }
 
     /**

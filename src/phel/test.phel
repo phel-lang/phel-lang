@@ -1359,7 +1359,7 @@ Metadata attached to `test-name` is forwarded to the defined function so selecto
     ;; run time (`alter-meta!`, a `^:focus` or `^:skip` set programmatically)
     ;; is honoured too.
     (vec (for [fn-name :keys (Phel/getDefinitionInNamespace munge-ns)
-               :let [meta (php/-> (Phel/getVar munge-ns fn-name) (meta))]
+               :let [meta (.meta (Phel/getVar munge-ns fn-name))]
                :when (:test meta)]
            {:fn   (Phel/getDefinition munge-ns fn-name)
             :meta meta}))))
@@ -1515,7 +1515,7 @@ Metadata attached to `test-name` is forwarded to the defined function so selecto
   {:example "(deftest needs-redis (when-not (redis-up?) (skip! \"no redis\")) (is ...))"
    :see-also ["deftest" "is"]}
   [& [reason]]
-  (throw (php/new \Phel\Lang\SkipTestException (or reason "skipped"))))
+  (throw (new Phel.Lang.SkipTestException (or reason "skipped"))))
 
 (defn- run-body!
   "Runs one test body through its fixtures. A `skip!` unwinds to here and
@@ -1524,7 +1524,7 @@ Metadata attached to `test-name` is forwarded to the defined function so selecto
   (try
     (each-wrap f)
     (catch \Phel\Lang\SkipTestException e
-      (report {:type :skipped, :ns ns, :test-name test-name, :reason (php/-> e (getMessage))}))))
+      (report {:type :skipped, :ns ns, :test-name test-name, :reason (.getMessage e)}))))
 
 (defn- run-one-test! [options ns each-wrap {:fn f, :meta m}]
   (let [test-name (:test-name m)
