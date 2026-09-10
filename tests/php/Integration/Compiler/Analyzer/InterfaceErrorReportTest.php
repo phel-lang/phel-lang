@@ -49,6 +49,26 @@ final class InterfaceErrorReportTest extends AbstractCompilerRuntimeTestCase
         self::assertSame($expected, $this->report($phelCode));
     }
 
+    /**
+     * `(bar)` has no argument vector. Reading position 1 off the list threw an
+     * out-of-bounds error from `PersistentList` before the shape check could
+     * run, so a malformed method form reported as `[PHEL403] Index out of
+     * bounds` at a Phel runtime class, with no snippet and no caret.
+     */
+    public function test_a_method_form_with_no_argument_vector_names_the_code(): void
+    {
+        $expected = <<<'REPORT'
+            [PHEL009] Method arguments must be vectors
+            in interface.phel:1
+
+            1| (definterface Shape (draw))
+                                   ^^^^^^
+
+            REPORT;
+
+        self::assertSame($expected, $this->report('(definterface Shape (draw))'));
+    }
+
     private function report(string $phelCode): string
     {
         try {

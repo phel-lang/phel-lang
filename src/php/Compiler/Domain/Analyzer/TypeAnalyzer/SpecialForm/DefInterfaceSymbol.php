@@ -147,7 +147,9 @@ final class DefInterfaceSymbol implements SpecialFormAnalyzerInterface
             throw AnalyzerException::withLocation('Method names must be symbols', $method, errorCode: ErrorCode::INTERFACE_ERROR);
         }
 
-        $arguments = $method->get(1);
+        // Read the count first: `get()` on a short list throws an out-of-bounds
+        // error the user cannot act on, instead of naming the method form.
+        $arguments = count($method) > 1 ? $method->get(1) : null;
         if (!$arguments instanceof PersistentVectorInterface) {
             throw AnalyzerException::withLocation('Method arguments must be vectors', $method, errorCode: ErrorCode::INTERFACE_ERROR);
         }

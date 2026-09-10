@@ -20,6 +20,7 @@ use Phel\Shared\Munge;
 use Throwable;
 
 use function class_exists;
+use function count;
 use function is_subclass_of;
 
 /**
@@ -214,12 +215,12 @@ final class TrySymbol implements SpecialFormAnalyzerInterface
      */
     private function analyzeSingleCatch(PersistentListInterface $catch, NodeEnvironmentInterface $env, string $catchContext): CatchNode
     {
-        $type = $catch->get(1);
-        $name = $catch->get(2);
+        // Read the count first: `get()` past the end throws an out-of-bounds
+        // error the user cannot act on, instead of naming the catch form.
+        $type = count($catch) > 1 ? $catch->get(1) : null;
+        $name = count($catch) > 2 ? $catch->get(2) : null;
 
         $this->validateCatchArguments($type, $name, $catch);
-        /** @var Symbol $type */
-        /** @var Symbol $name */
 
         $resolvedType = $this->resolveCatchType($type, $env, $catch);
         $catchBody = $this->analyzeCatchBody($catch, $name, $env, $catchContext);
@@ -235,6 +236,12 @@ final class TrySymbol implements SpecialFormAnalyzerInterface
 
     /**
      * @param PersistentListInterface<mixed> $catch
+     *
+     * @psalm-assert Symbol $type
+     * @psalm-assert Symbol $name
+     *
+     * @phpstan-assert Symbol $type
+     * @phpstan-assert Symbol $name
      */
     private function validateCatchArguments(mixed $type, mixed $name, PersistentListInterface $catch): void
     {

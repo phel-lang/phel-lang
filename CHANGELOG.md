@@ -28,6 +28,7 @@ All notable changes to this project will be documented in this file.
 - An uncaught runtime error reads the same from `phel run`, `phel eval` and the REPL: message, `at` line, user-visible frames, one collapsed marker, and a hint when one matches. The prompt no longer opens on the exception class, and prints the report uncoloured like the other two. (#3264)
 - The error log is plain text, opens every entry with a timestamp and the command that produced it, and rotates at 1 MiB into `error.log.1` instead of growing without bound with ANSI escapes in it. (#3269)
 - Analyzer, reader and parser errors that had a code defined but never printed it now print it: `PHEL008` bindings, `PHEL009` interfaces, `PHEL010` `recur`, `PHEL202` splice. (#3266)
+- A `definterface` method with no argument vector, and a `catch` with no type or binding, report the analyzer error naming the form instead of an out-of-bounds error raised inside `PersistentList`. (#3266)
 
 ## [0.51.0](https://github.com/phel-lang/phel-lang/compare/v0.50.0...v0.51.0) - 2026-09-05
 
