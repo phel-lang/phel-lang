@@ -74,10 +74,10 @@ final readonly class PathsFormatter
                 if ($wasFormatted) {
                     $formattedFilePaths[] = $path;
                 }
-            } catch (AbstractParserException $e) {
+            } catch (AbstractParserException|LexerValueException $e) {
                 $this->commandFacade->writeLocatedException($output, $e, $e->getCodeSnippet());
                 $failedFilePaths[] = $path;
-            } catch (FilePathException|LexerValueException|ZipperException $e) {
+            } catch (FilePathException|ZipperException $e) {
                 $this->commandFacade->writeStackTrace($output, $e);
                 $failedFilePaths[] = $path;
             }

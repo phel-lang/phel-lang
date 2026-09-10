@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Phel\Compiler\Application;
 
 use Phel\Compiler\Domain\Analyzer\Environment\GlobalEnvironmentInterface;
+use Phel\Compiler\Domain\Lexer\Exceptions\LexerValueException;
 use Phel\Compiler\Domain\Lexer\TokenStream;
 use Phel\Compiler\Domain\Parser\Exceptions\KeywordParserException;
 use Phel\Compiler\Domain\Parser\Exceptions\StringParserException;
@@ -114,8 +115,12 @@ final readonly class Parser implements ParserInterface
      * Reads the next expression from the token stream.
      * If the token stream reaches the end, null is returned.
      *
+     * The token stream is lazy, so the lexer runs inside this call and its
+     * error surfaces from here.
+     *
      * @param TokenStream $tokenStream The token stream to read
      *
+     * @throws LexerValueException
      * @throws UnexpectedParserException
      * @throws UnfinishedParserException
      */

@@ -4,17 +4,51 @@ declare(strict_types=1);
 
 namespace Phel\Compiler\Domain\Lexer\Exceptions;
 
-use RuntimeException;
+use Phel\Lang\SourceLocation;
+use Phel\Shared\Exceptions\AbstractLocatedException;
+use Phel\Shared\Exceptions\ErrorCode;
+use Phel\Shared\Parser\ReadModel\CodeSnippet;
 
 use function sprintf;
 
 /**
+ * A located error, like every other compile error, so `phel run`, `phel eval`
+ * and the REPL report it the way they report a parser or a reader error:
+ * `[PHEL310]`, the user's file and line, the offending line, and a caret under
+ * the character the lexer stopped on. It used to be a bare `RuntimeException`,
+ * which left the CLI dumping the exception class and pointing its `at` line at
+ * this file (#3289).
+ *
  * @internal
  */
-final class LexerValueException extends RuntimeException
+final class LexerValueException extends AbstractLocatedException
 {
-    public static function unexpectedLexerState(string $file, int $line, int $column): self
+    private function __construct(
+        string $message,
+        private readonly CodeSnippet $codeSnippet,
+        SourceLocation $startLocation,
+        SourceLocation $endLocation,
+    ) {
+        parent::__construct($message, $startLocation, $endLocation);
+        $this->setErrorCode(ErrorCode::LEXER_ERROR);
+    }
+
+    public static function unexpectedLexerState(
+        string $character,
+        CodeSnippet $codeSnippet,
+        SourceLocation $startLocation,
+        SourceLocation $endLocation,
+    ): self {
+        return new self(
+            sprintf("Cannot lex '%s': no token starts with it.", $character),
+            $codeSnippet,
+            $startLocation,
+            $endLocation,
+        );
+    }
+
+    public function getCodeSnippet(): CodeSnippet
     {
-        return new self(sprintf('Cannot lex string after at column %d in %s:%d', $column, $file, $line));
+        return $this->codeSnippet;
     }
 }

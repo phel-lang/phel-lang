@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Phel\Compiler\Application;
 
+use Phel\Compiler\Domain\Lexer\Exceptions\LexerValueException;
 use Phel\Compiler\Domain\Lexer\TokenStream;
 use Phel\Shared\Parser\Node\Token;
 
@@ -18,31 +19,39 @@ final readonly class ParenthesesChecker
         $brackets = 0;
         $braces = 0;
 
-        foreach ($tokenStream as $token) {
-            switch ($token->getType()) {
-                case Token::T_OPEN_PARENTHESIS:
-                case Token::T_HASH_FN:
-                case Token::T_READER_COND:
-                case Token::T_READER_COND_SPLICING:
-                    ++$parens;
-                    break;
-                case Token::T_CLOSE_PARENTHESIS:
-                    --$parens;
-                    break;
-                case Token::T_OPEN_BRACKET:
-                    ++$brackets;
-                    break;
-                case Token::T_CLOSE_BRACKET:
-                    --$brackets;
-                    break;
-                case Token::T_OPEN_BRACE:
-                case Token::T_HASH_OPEN_BRACE:
-                    ++$braces;
-                    break;
-                case Token::T_CLOSE_BRACE:
-                    --$braces;
-                    break;
+        try {
+            foreach ($tokenStream as $token) {
+                switch ($token->getType()) {
+                    case Token::T_OPEN_PARENTHESIS:
+                    case Token::T_HASH_FN:
+                    case Token::T_READER_COND:
+                    case Token::T_READER_COND_SPLICING:
+                        ++$parens;
+                        break;
+                    case Token::T_CLOSE_PARENTHESIS:
+                        --$parens;
+                        break;
+                    case Token::T_OPEN_BRACKET:
+                        ++$brackets;
+                        break;
+                    case Token::T_CLOSE_BRACKET:
+                        --$brackets;
+                        break;
+                    case Token::T_OPEN_BRACE:
+                    case Token::T_HASH_OPEN_BRACE:
+                        ++$braces;
+                        break;
+                    case Token::T_CLOSE_BRACE:
+                        --$braces;
+                        break;
+                }
             }
+        } catch (LexerValueException) {
+            // Input that does not lex has no delimiter count to report, and
+            // the same reasoning as below applies: report it as ready so the
+            // compile path raises the located lexer error, with its snippet
+            // and caret, instead of a bare "Unbalanced parentheses." (#3289).
+            return true;
         }
 
         // A closer with no matching opener can never be repaired by appending

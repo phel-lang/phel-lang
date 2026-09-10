@@ -8,6 +8,7 @@ use Phel\Api\Domain\AnalysisStageInterface;
 use Phel\Compiler\Domain\Lexer\Exceptions\LexerValueException;
 use Phel\Compiler\Domain\Parser\Exceptions\AbstractParserException;
 use Phel\Shared\Api\Diagnostic;
+use Phel\Shared\Exceptions\AbstractLocatedException;
 use Phel\Shared\Exceptions\ErrorCode;
 use Phel\Shared\Facade\CompilerFacadeInterface;
 use Phel\Shared\Parser\Node\NodeInterface;
@@ -52,16 +53,7 @@ final readonly class LexAndParseStage implements AnalysisStageInterface
                 $parseTrees[] = $parseTree;
             }
         } catch (LexerValueException $lexerValueException) {
-            $diagnostics[] = new Diagnostic(
-                code: ErrorCode::LEXER_ERROR->value,
-                severity: Diagnostic::SEVERITY_ERROR,
-                message: $lexerValueException->getMessage(),
-                uri: $uri,
-                startLine: 1,
-                startCol: 1,
-                endLine: 1,
-                endCol: 1,
-            );
+            $diagnostics[] = $this->locatedDiagnostic($lexerValueException, ErrorCode::LEXER_ERROR, $uri);
         }
 
         $context['parseTrees'] = $parseTrees;
@@ -71,11 +63,24 @@ final readonly class LexAndParseStage implements AnalysisStageInterface
 
     private function parseErrorDiagnostic(AbstractParserException $e, string $uri): Diagnostic
     {
+        return $this->locatedDiagnostic($e, ErrorCode::PARSER_ERROR, $uri);
+    }
+
+    /**
+     * Both phases raise a located exception, so an editor gets the same span
+     * from either. The lexer error used to be hardcoded to 1:1 because its
+     * exception carried no location at all (#3289).
+     */
+    private function locatedDiagnostic(
+        AbstractLocatedException $e,
+        ErrorCode $fallbackCode,
+        string $uri,
+    ): Diagnostic {
         $start = $e->getStartLocation();
         $end = $e->getEndLocation();
 
         return new Diagnostic(
-            code: ($e->getErrorCode() ?? ErrorCode::PARSER_ERROR)->value,
+            code: ($e->getErrorCode() ?? $fallbackCode)->value,
             severity: Diagnostic::SEVERITY_ERROR,
             message: $e->getMessage(),
             uri: $uri,

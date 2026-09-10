@@ -126,7 +126,7 @@ final readonly class CodeCompiler implements CodeCompilerInterface
                 $readerResult = $this->timed($hook, 'read', $source, fn(): ReaderResult => $this->reader->read($parseTree));
                 $entries[] = new CachedReaderResult($readerResult, Symbol::genCounter() - $genBefore);
                 $this->analyzeAndEmit($readerResult, $compileOptions, $hook, $source);
-            } catch (AbstractParserException|ReaderException $e) {
+            } catch (AbstractParserException|LexerValueException|ReaderException $e) {
                 throw new CompilerException($e, $e->getCodeSnippet());
             }
         }

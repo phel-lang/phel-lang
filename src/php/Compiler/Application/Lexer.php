@@ -10,10 +10,16 @@ use Phel\Compiler\Domain\Lexer\LexerInterface;
 use Phel\Compiler\Domain\Lexer\TokenStream;
 use Phel\Lang\SourceLocation;
 use Phel\Shared\Parser\Node\Token;
+use Phel\Shared\Parser\ReadModel\CodeSnippet;
 
 use function count;
 use function mb_strlen;
+use function preg_match;
+use function rtrim;
 use function strlen;
+use function strpos;
+use function strrpos;
+use function substr;
 
 /**
  * @internal
@@ -113,11 +119,63 @@ final class Lexer implements LexerInterface
 
                 $startLocation = $endLocation;
             } else {
-                throw LexerValueException::unexpectedLexerState($source, $this->line, $this->column);
+                throw $this->unexpectedState($code, $source);
             }
         }
 
         yield new Token(Token::T_EOF, '', $startLocation, $startLocation);
+    }
+
+    /**
+     * The report a lexer error gets is the report every other compile error
+     * gets: the offending line as the snippet, and a caret one character wide
+     * under the byte the lexer stopped on.
+     */
+    private function unexpectedState(string $code, string $source): LexerValueException
+    {
+        $start = $this->createSourceLocation($source);
+        $end = new SourceLocation($start->getFile(), $start->getLine(), $start->getColumn() + 1);
+
+        return LexerValueException::unexpectedLexerState(
+            $this->characterAtCursor($code),
+            $this->currentLineSnippet($code, $source),
+            $start,
+            $end,
+        );
+    }
+
+    /**
+     * One code point, not one byte, so a multibyte character is named whole
+     * rather than as the first byte of itself.
+     */
+    private function characterAtCursor(string $code): string
+    {
+        $rest = substr($code, $this->cursor);
+        if ($rest === '') {
+            return '';
+        }
+
+        return preg_match('/^./us', $rest, $matches) === 1 ? $matches[0] : $rest[0];
+    }
+
+    private function currentLineSnippet(string $code, string $source): CodeSnippet
+    {
+        $lastNewLine = strrpos(substr($code, 0, $this->cursor), "\n");
+        $lineStart = $lastNewLine === false ? 0 : $lastNewLine + 1;
+
+        $nextNewLine = strpos($code, "\n", $lineStart);
+        $line = $nextNewLine === false
+            ? substr($code, $lineStart)
+            : substr($code, $lineStart, $nextNewLine - $lineStart);
+        $line = rtrim($line, "\r");
+
+        $length = $this->isAscii ? strlen($line) : mb_strlen($line, 'UTF-8');
+
+        return new CodeSnippet(
+            new SourceLocation($source, $this->line, 0),
+            new SourceLocation($source, $this->line, $length),
+            $line,
+        );
     }
 
     private function moveCursor(string $str): void
