@@ -23,6 +23,7 @@ All notable changes to this project will be documented in this file.
 - Printer: a host object with no printer of its own renders as `#<Class>`, so a stack-trace frame no longer shows a sentence where one argument belongs. (#3265)
 - `phel test --parallel`: the parent warms every bundled namespace before dispatching, and a namespace is re-run on a fresh worker only when the worker itself failed, never for a compile error or a failing test. (#3271)
 - An uncaught runtime error reads the same from `phel run`, `phel eval` and the REPL: message, `at` line, user-visible frames, one collapsed marker, and a hint when one matches. The prompt no longer opens on the exception class, and prints the report uncoloured like the other two. (#3264)
+- The error log is plain text, opens every entry with a timestamp and the command that produced it, and rotates at 1 MiB into `error.log.1` instead of growing without bound with ANSI escapes in it. (#3269)
 
 ## [0.51.0](https://github.com/phel-lang/phel-lang/compare/v0.50.0...v0.51.0) - 2026-09-05
 

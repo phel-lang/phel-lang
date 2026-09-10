@@ -42,7 +42,7 @@ Directory getters are `#[Cacheable]`.
 | `Domain/Exceptions/EvaluatedCodeLocation` | tells a frame of eval'd code from a file, and names it `repl` |
 | `Infrastructure/SourceMapExtractor` | maps compiled PHP back to Phel source locations |
 | `Infrastructure/ComposerVendorDirectoriesFinder` | enumerates vendor source dirs |
-| `Infrastructure/ErrorLog` | full-trace sink |
+| `Infrastructure/ErrorLog` | plain-text full-trace sink: strips ANSI escapes, heads every entry with `[<timestamp>] <command line>`, rotates at 1 MiB into `<log>.1` (one previous generation) |
 
 ## Key Constraints
 
@@ -56,4 +56,5 @@ Directory getters are `#[Cacheable]`.
 - The data map of an uncaught `ex-info` goes on its own `data:` line.
 - Hints are pure utilities in `Phel\Shared\Exceptions\Hint\`. Register new ones in `CommandFactory::createExceptionHints()` (currently `NotCallableHint`, `ArgumentCountHint`, `UndefinedSymbolHint`).
 - Every path that reports an error feeds the log: `writeStackTrace()` directly, the REPL and `eval` through `logStackTrace()`. Skipping it makes the collapse marker point at a log that does not have the trace.
+- Every writer goes through `ErrorLog::writeln()`, which owns the file's shape, so a new log writer never strips colour or separates entries itself. Build it with `CommandFactory::createErrorLog()`.
 - Config carries a stale-output-recovery hint for corrupted build state (`CommandConfig::getStaleOutputHint()`), built on `getCacheDir()`, which shares `PhelProjectDirectory::resolveCacheDir()` with the build and compiler configs.

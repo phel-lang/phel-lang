@@ -10,7 +10,7 @@ self-seeded `.phel/.gitignore` (`*`).
 | `.phel/lint-cache/index.json`   | Lint             | Per-file diagnostic cache            |
 | `.phel/last-failed.txt`         | Test runner      | Backing file for `phel test --last-failed` |
 | `.phel/repl-history`            | REPL             | Readline history |
-| `.phel/error.log`               | Runtime          | Error log (was `/tmp/phel-error.log`) |
+| `.phel/error.log`               | Runtime          | Error log, plain text; rotates at 1 MiB into `.phel/error.log.1` |
 | `out/`                          | Build            | Compiled PHP entry points (build artifacts; lifecycle differs) |
 
 - `out/`: gitignore in source repos; commit only when shipping the compiled PHP.
