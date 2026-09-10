@@ -53,7 +53,7 @@ final class QualifiedMemberValueRuntimeTest extends AbstractCompilerRuntimeTestC
     {
         $result = $this->compilerFacade->eval(
             sprintf(
-                '(to-php-array (map %s/.label [(php/new %s 1) (php/new %s 2)]))',
+                '(to-php-array (map %s/.label [(new %s 1) (new %s 2)]))',
                 self::FIXTURE,
                 self::FIXTURE,
                 self::FIXTURE,
@@ -67,7 +67,7 @@ final class QualifiedMemberValueRuntimeTest extends AbstractCompilerRuntimeTestC
     public function test_an_instance_method_value_forwards_extra_arguments(): void
     {
         $result = $this->compilerFacade->eval(
-            sprintf('(let [f %s/.repeatLabel] (f (php/new %s 1) 2))', self::FIXTURE, self::FIXTURE),
+            sprintf('(let [f %s/.repeatLabel] (f (new %s 1) 2))', self::FIXTURE, self::FIXTURE),
             new CompileOptions(),
         );
 
@@ -87,7 +87,7 @@ final class QualifiedMemberValueRuntimeTest extends AbstractCompilerRuntimeTestC
     public function test_the_shadowed_static_method_stays_reachable_in_call_position(): void
     {
         $result = $this->compilerFacade->eval(
-            sprintf('(php/-> (%s/new 7) id)', self::FIXTURE),
+            sprintf('(.-id (%s/new 7))', self::FIXTURE),
             new CompileOptions(),
         );
 
@@ -141,7 +141,7 @@ final class QualifiedMemberValueRuntimeTest extends AbstractCompilerRuntimeTestC
         $this->expectExceptionMessage("'\$foo' names a static property, which only a class can hold");
 
         $this->compilerFacade->eval(
-            '(let [o (php/new \\stdClass)] (php/-> o $foo))',
+            '(let [o (new \\stdClass)] (.-$foo o))',
             new CompileOptions(),
         );
     }

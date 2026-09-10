@@ -29,6 +29,7 @@ enum ErrorCode: string
     case INTERFACE_ERROR = 'PHEL009';
     case RECUR_ERROR = 'PHEL010';
     case NOT_CALLABLE = 'PHEL011';
+    case SUPERSEDED_FORM = 'PHEL012';
 
     // Parser errors (PHEL100-199)
     case UNTERMINATED_LIST = 'PHEL100';

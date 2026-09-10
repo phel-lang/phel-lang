@@ -13,25 +13,22 @@ use Phel\Compiler\Domain\Deprecation\DeprecationWarnings;
 use Phel\Compiler\Infrastructure\GlobalEnvironmentSingleton;
 use Phel\Lang\Symbol;
 use Phel\Shared\CompileOptions;
+use Phel\Shared\Exceptions\CompilerException;
+use Phel\Shared\Exceptions\ErrorCode;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 
-use function restore_error_handler;
-use function set_error_handler;
-
-use const E_USER_DEPRECATED;
-
 /**
- * `php/new`, `php/->` and `php/::` are deprecated as source, but they are also
- * what the Clojure-style shorthand *compiles to*: the analyzer rewrites
- * `(.m obj)` into `(php/-> obj (m))` before dispatch. A detector placed after
- * that rewrite would warn about every shorthand in the language, so the
- * shorthand staying silent is the property worth pinning (#2877).
+ * `php/new`, `php/->` and `php/::` are rejected as source from 1.0.0, but they
+ * are also what the Clojure-style shorthand *compiles to*: the analyzer
+ * rewrites `(.m obj)` into `(php/-> obj (m))` before dispatch. A check placed
+ * after that rewrite would reject every shorthand in the language, so the
+ * shorthand still compiling is the property worth pinning (#2877).
  *
  * `set-var` has the same shape one level up: `binding` and `with-redefs`
- * expand into it, so the two macros must stay silent too (#2888).
+ * expand into it, so the two macros must keep compiling too (#2888).
  */
-final class SupersededFormDeprecationTest extends TestCase
+final class SupersededFormRejectionTest extends TestCase
 {
     private static GlobalEnvironmentInterface $globalEnv;
 
@@ -88,34 +85,35 @@ final class SupersededFormDeprecationTest extends TestCase
     }
 
     #[DataProvider('provideShorthand')]
-    public function test_the_clojure_shorthand_does_not_warn_about_what_it_expands_to(
-        string $phelCode,
-        string $shorthand,
-    ): void {
-        self::assertSame(
-            [],
-            $this->compileCapturingDeprecations($phelCode),
-            $shorthand . ' must not warn about the php/* form it expands to.',
-        );
+    public function test_the_clojure_shorthand_still_compiles(string $phelCode, string $shorthand): void
+    {
+        $this->compile($phelCode);
+
+        self::assertTrue(true, $shorthand . ' must keep compiling to the php/* form it expands to.');
     }
 
     #[DataProvider('provideSupersededForm')]
-    public function test_a_superseded_form_written_directly_warns(string $phelCode, string $form): void
+    public function test_a_superseded_form_written_directly_is_rejected(string $phelCode, string $form): void
     {
-        $warnings = $this->compileCapturingDeprecations($phelCode);
+        try {
+            $this->compile($phelCode);
+        } catch (CompilerException $compilerException) {
+            self::assertStringContainsString($form, $compilerException->getNestedException()->getMessage());
+            self::assertSame(ErrorCode::SUPERSEDED_FORM, $compilerException->getNestedException()->getErrorCode());
+            return;
+        }
 
-        self::assertCount(1, $warnings);
-        self::assertStringContainsString($form, $warnings[0]);
+        self::fail($form . ' was accepted as source');
     }
 
-    public function test_set_var_written_directly_warns(): void
+    public function test_set_var_written_directly_is_rejected(): void
     {
         $this->compilerFacade->eval('(def ^:dynamic *probe* 1)', new CompileOptions()->setSource('/app/user.phel'));
 
-        $warnings = $this->compileCapturingDeprecations('(set-var *probe* 2)');
+        $this->expectException(CompilerException::class);
+        $this->expectExceptionMessage('alter-var-root');
 
-        self::assertCount(1, $warnings);
-        self::assertStringContainsString('alter-var-root', $warnings[0]);
+        $this->compile('(set-var *probe* 2)');
     }
 
     /**
@@ -123,12 +121,14 @@ final class SupersededFormDeprecationTest extends TestCase
      * whole macro is built out of the deprecated form. The notice belongs to
      * `src/phel/core/io.phel`, which the stdlib suppression drops.
      */
-    public function test_binding_and_with_redefs_stay_silent(): void
+    public function test_binding_and_with_redefs_still_compile(): void
     {
         $this->compilerFacade->eval('(def ^:dynamic *frame* 1)', new CompileOptions()->setSource('/app/user.phel'));
 
-        self::assertSame([], $this->compileCapturingDeprecations('(binding [*frame* 2] *frame*)'));
-        self::assertSame([], $this->compileCapturingDeprecations('(with-redefs [*frame* 3] *frame*)'));
+        $this->compile('(binding [*frame* 2] *frame*)');
+        $this->compile('(with-redefs [*frame* 3] *frame*)');
+
+        $this->expectNotToPerformAssertions();
     }
 
     /**
@@ -136,33 +136,17 @@ final class SupersededFormDeprecationTest extends TestCase
      * the PHP object. Those wrappers are written in `protocols.phel`, so a
      * user's `definterface` must not inherit a notice from them.
      */
-    public function test_definterface_stays_silent(): void
+    public function test_definterface_still_compiles(): void
     {
-        self::assertSame(
-            [],
-            $this->compileCapturingDeprecations('(definterface Greeter (greet [this name]))'),
-        );
+        $this->compile('(definterface Greeter (greet [this name]))');
+
+        $this->expectNotToPerformAssertions();
     }
 
-    /**
-     * @return list<string>
-     */
-    private function compileCapturingDeprecations(string $phelCode): array
+    private function compile(string $phelCode): void
     {
-        $warnings = [];
-        set_error_handler(static function (int $errno, string $errstr) use (&$warnings): bool {
-            $warnings[] = $errstr;
-            return true;
-        }, E_USER_DEPRECATED);
-
-        try {
-            $this->compilerFacade
-                ->compile($phelCode, new CompileOptions()->setSource('/app/user.phel'))
-                ->getPhpCode();
-        } finally {
-            restore_error_handler();
-        }
-
-        return $warnings;
+        $this->compilerFacade
+            ->compile($phelCode, new CompileOptions()->setSource('/app/user.phel'))
+            ->getPhpCode();
     }
 }

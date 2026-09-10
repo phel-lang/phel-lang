@@ -194,7 +194,12 @@ final readonly class FnPrePostConditionRewriter
         ])->copyLocationFrom($formForMessage);
 
         $exception = Phel::list([
-            Symbol::create('php/new')->copyLocationFrom($formForMessage),
+            // The head stays unlocated on purpose: a located `php/new` head is
+            // one the user wrote, and `SupersededFormRejector` rejects those.
+            // The list keeps the location, so the report still points at the
+            // condition. The sibling heads above are unlocated for the same
+            // reason.
+            Symbol::create('php/new'),
             RuntimeException::class,
             $message,
         ])->copyLocationFrom($formForMessage);

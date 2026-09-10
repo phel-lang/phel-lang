@@ -103,16 +103,18 @@ from the compiler. A form added or removed in the analyzer fails the build until
 this page is updated, which is when somebody decides whether the change is
 allowed inside the major.
 
-### Deprecated inside 1.x
+### Rejected as source from 1.0.0
 
-Four forms above are frozen but superseded. They keep working for every `1.x`,
-warn under `--warn-deprecations`, and are the candidates for removal at the next
-major. One rule puts them here:
+Four forms above are the compiler's own target and are no longer accepted in
+source. Writing one is an error (`PHEL012`), with no flag to turn it off. They
+cannot be deleted: `(new \C 1)` becomes `(php/new \C 1)` and `(binding …)`
+expands to `set-var`, so what goes is the ability to write them, not the forms
+themselves (ADR 0007, ADR 0018). One rule puts them here:
 
 > **`php/` means host access. It is never a second spelling for something Phel
 > already says the Clojure way.**
 
-| Deprecated | Write instead |
+| Rejected | Write instead |
 |---|---|
 | `php/new` | `(new Foo arg)` or `(Foo. arg)` |
 | `php/->` | `(.method obj arg)` and `(.-field obj)` |
@@ -143,7 +145,7 @@ and `with-redefs` expand into it, because an emitted `set-var` inside an open
 frame is what records a rebinding. Removing the public form needs a non-public
 primitive to take that job.
 
-`LanguageSurfaceSpecTest` checks this table against `SupersededFormDeprecator`
+`LanguageSurfaceSpecTest` checks this table against `SupersededFormRejector`
 too, so the page and the compiler cannot disagree about which forms warn.
 Rationale: [ADR 0007](../adr/0007-clojure-style-interop-is-the-source-spelling.md).
 
@@ -154,7 +156,7 @@ expands to a `php/*` entry above before analysis, which is why they are absent
 from the table.
 
 **The shorthand is the only spelling.** The `php/*` forms it expands to are the
-compilation target and are deprecated as source. A method or class name computed
+compilation target and are rejected as source. A method or class name computed
 at expansion time is reached by building the head symbol,
 `(symbol (str "." name))` or `(symbol "Foo" name)`, not by falling back to
 `php/->`. Full guide: <https://phel-lang.org/documentation/php-interop/>.

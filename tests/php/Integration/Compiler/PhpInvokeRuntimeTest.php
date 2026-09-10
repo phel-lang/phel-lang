@@ -13,7 +13,7 @@ final class PhpInvokeRuntimeTest extends AbstractCompilerRuntimeTestCase
     public function test_it_calls_a_method_whose_name_is_a_runtime_value(): void
     {
         $result = $this->compilerFacade->eval(
-            '(let [m "format"] (php-invoke (php/new \\DateTimeImmutable "2024-03-10") m "Y"))',
+            '(let [m "format"] (php-invoke (new \\DateTimeImmutable "2024-03-10") m "Y"))',
             new CompileOptions(),
         );
 
@@ -37,7 +37,7 @@ final class PhpInvokeRuntimeTest extends AbstractCompilerRuntimeTestCase
         $this->expectExceptionMessage('Call to undefined method DateTimeImmutable::nope()');
 
         $this->compilerFacade->eval(
-            '(php-invoke (php/new \\DateTimeImmutable "2024-03-10") "nope")',
+            '(php-invoke (new \\DateTimeImmutable "2024-03-10") "nope")',
             new CompileOptions(),
         );
     }

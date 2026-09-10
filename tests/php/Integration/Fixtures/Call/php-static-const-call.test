@@ -1,4 +1,4 @@
 --PHEL--
-(php/:: \DateTimeImmutable ATOM)
+\DateTimeImmutable/ATOM
 --PHP--
 (\DateTimeImmutable::ATOM);

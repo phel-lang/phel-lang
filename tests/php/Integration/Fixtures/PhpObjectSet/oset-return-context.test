@@ -1,5 +1,5 @@
 --PHEL--
-(fn [] (php/oset (php/-> (php/new \stdClass) name) "test"))
+(fn [] (php/oset (.-name (new \stdClass)) "test"))
 --PHP--
 (function() {
   $target_1 = (new \stdClass());

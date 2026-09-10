@@ -159,6 +159,13 @@ final class ErrorCodeCatalog
                 fix: 'Drop the parentheses, or put a function at the head of the list.',
             ),
             new ErrorCodeExplanation(
+                code: ErrorCode::SUPERSEDED_FORM,
+                title: 'Superseded form',
+                summary: "A form Phel already says another way, kept as the compiler's own target but no longer accepted in source. `php/new`, `php/->` and `php/::` name what `new`, `.method` and `Class/member` say, and `set-var` is what `alter-var-root` does.",
+                example: '(php/new \\DateTime)',
+                fix: 'Use the replacement the message names. The full table is in docs/migration/deprecated-surface.md.',
+            ),
+            new ErrorCodeExplanation(
                 code: ErrorCode::UNTERMINATED_LIST,
                 title: 'Unterminated list',
                 summary: 'The parser reached the end of the file with a `(` still open. The reported line is where the list was opened, not where the file ran out.',

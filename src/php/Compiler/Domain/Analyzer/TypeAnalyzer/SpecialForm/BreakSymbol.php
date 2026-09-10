@@ -69,7 +69,10 @@ final class BreakSymbol implements SpecialFormAnalyzerInterface
         ])->copyLocationFrom($list);
 
         return Phel::list([
-            Symbol::create(Symbol::NAME_PHP_OBJECT_STATIC_CALL)->copyLocationFrom($list),
+            // Unlocated head: a located one is a form the user wrote, which
+            // `SupersededFormRejector` rejects. The list keeps the location,
+            // so a failure still points at the `(break)`.
+            Symbol::create(Symbol::NAME_PHP_OBJECT_STATIC_CALL),
             Symbol::create('\\Phel')->copyLocationFrom($list),
             $breakpointCall,
         ])->copyLocationFrom($list);
