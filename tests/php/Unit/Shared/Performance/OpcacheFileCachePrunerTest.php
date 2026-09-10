@@ -10,9 +10,11 @@ use PhelTest\Support\RemoveDirTrait;
 use PHPUnit\Framework\TestCase;
 
 use function bin2hex;
+use function chmod;
 use function dirname;
 use function file_put_contents;
 use function is_dir;
+use function is_readable;
 use function mkdir;
 use function random_bytes;
 use function symlink;
@@ -137,6 +139,63 @@ final class OpcacheFileCachePrunerTest extends TestCase
         $pruner = new OpcacheFileCachePruner(new OpcacheFileCache($this->root . '/absent'));
 
         self::assertFalse($pruner->clearContents());
+    }
+
+    /**
+     * The cache is shared, so a second `phel` process pruning the same tree
+     * removes entries under this one's feet. The walk used to throw
+     * `UnexpectedValueException` at the subdirectory it could no longer open,
+     * and nothing along `bin/phel` handles it, so the command died with a fatal
+     * error mid-prune (#3280). An unreadable subdirectory raises it the same way
+     * a vanished one does, and is the half a test can force.
+     */
+    public function test_a_subdirectory_it_cannot_open_does_not_abort_the_prune(): void
+    {
+        $this->plantBin(self::FOREIGN_ID, '/opt/app/bin/phel');
+        $this->plantBin(self::FOREIGN_ID, '/opt/other/bin/phel');
+
+        $sealed = $this->cacheDir . '/' . self::FOREIGN_ID . '/opt/app';
+        chmod($sealed, 0o000);
+        if (is_readable($sealed)) {
+            chmod($sealed, 0o755);
+            self::markTestSkipped('This user can read a directory with no permissions.');
+        }
+
+        try {
+            $removed = new OpcacheFileCachePruner($this->fileCache)->pruneForeignSystemIds(self::CURRENT_ID);
+        } finally {
+            chmod($sealed, 0o755);
+        }
+
+        self::assertSame([$this->cacheDir . '/' . self::FOREIGN_ID], $removed);
+        // The half it could reach is gone; the sealed half is left where it is.
+        self::assertFileDoesNotExist($this->cacheDir . '/' . self::FOREIGN_ID . '/opt/other/bin/phel.bin');
+    }
+
+    /**
+     * The same race one level up: the entry the walk starts at is the one it
+     * cannot open. `CATCH_GET_CHILD` only covers the descent, so the root needs
+     * its own guard.
+     */
+    public function test_an_entry_it_cannot_open_at_all_does_not_abort_the_prune(): void
+    {
+        $this->plantBin(self::FOREIGN_ID, '/opt/app/bin/phel');
+
+        $sealed = $this->cacheDir . '/' . self::FOREIGN_ID;
+        chmod($sealed, 0o000);
+        if (is_readable($sealed)) {
+            chmod($sealed, 0o755);
+            self::markTestSkipped('This user can read a directory with no permissions.');
+        }
+
+        try {
+            $removed = new OpcacheFileCachePruner($this->fileCache)->pruneForeignSystemIds(self::CURRENT_ID);
+        } finally {
+            chmod($sealed, 0o755);
+        }
+
+        self::assertSame([$sealed], $removed);
+        self::assertDirectoryExists($sealed);
     }
 
     private function plantBin(string $entry, string $sourcePath): void
