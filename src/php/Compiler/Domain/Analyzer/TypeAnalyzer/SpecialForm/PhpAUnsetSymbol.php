@@ -20,10 +20,13 @@ use Phel\Lang\Collections\LinkedList\PersistentListInterface;
  */
 final class PhpAUnsetSymbol implements SpecialFormAnalyzerInterface
 {
+    use AssertsFormArityTrait;
     use WithAnalyzerTrait;
 
     public function analyze(PersistentListInterface $list, NodeEnvironmentInterface $env): PhpArrayUnsetNode
     {
+        $this->assertArityAtLeast($list, 3, '(php/aunset array key)');
+
         if (!$env->isContext(NodeEnvironment::CONTEXT_STATEMENT)) {
             throw AnalyzerException::withLocation("'php/unset can only be called as Statement and not as Expression", $list);
         }

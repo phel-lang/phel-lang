@@ -9,6 +9,7 @@ use Phel\Lang\Collections\LinkedList\PersistentListInterface;
 use Phel\Lang\Collections\Map\PersistentMapInterface;
 use Phel\Lang\Keyword;
 use Phel\Lang\PhelType;
+use Phel\Lang\Symbol;
 use Phel\Lang\TypeInterface;
 use Phel\Shared\Exceptions\AbstractLocatedException;
 use Phel\Shared\Exceptions\ErrorCode;
@@ -46,6 +47,29 @@ final class AnalyzerException extends AbstractLocatedException
         }
 
         return $e;
+    }
+
+    /**
+     * A special form given too few arguments. It names the form and the shape
+     * it wanted, because "wrong number of arguments" without the shape sends
+     * the reader to the documentation for something they nearly wrote.
+     *
+     * Reading an argument before checking the count let the list's own
+     * out-of-bounds error reach the user instead, under a runtime code, with
+     * no snippet and no caret (#3297).
+     *
+     * @param PersistentListInterface<mixed> $list
+     */
+    public static function wrongArity(PersistentListInterface $list, string $usage): self
+    {
+        $first = $list->first();
+        $name = $first instanceof Symbol ? $first->getFullName() : 'form';
+
+        return self::withLocation(
+            sprintf("Wrong number of arguments for '%s. Usage: %s", $name, $usage),
+            $list,
+            errorCode: ErrorCode::ARITY_ERROR,
+        );
     }
 
     /**

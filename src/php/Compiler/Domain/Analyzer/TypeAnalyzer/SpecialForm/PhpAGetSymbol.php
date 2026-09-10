@@ -18,10 +18,13 @@ use Phel\Lang\Collections\LinkedList\PersistentListInterface;
  */
 final class PhpAGetSymbol implements SpecialFormAnalyzerInterface
 {
+    use AssertsFormArityTrait;
     use WithAnalyzerTrait;
 
     public function analyze(PersistentListInterface $list, NodeEnvironmentInterface $env): PhpArrayGetNode
     {
+        $this->assertArityAtLeast($list, 3, '(php/aget array key)');
+
         return new PhpArrayGetNode(
             $env,
             $this->analyzer->analyze($list->get(1), $env->withExpressionContext()),

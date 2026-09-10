@@ -34,6 +34,7 @@ use function substr;
  */
 final class NsSymbol implements SpecialFormAnalyzerInterface
 {
+    use AssertsFormArityTrait;
     use WithAnalyzerTrait;
 
     private const string INVALID_NAMESPACE_MESSAGE = <<<'TXT'
@@ -46,6 +47,8 @@ TXT;
 
     public function analyze(PersistentListInterface $list, NodeEnvironmentInterface $env): NsNode
     {
+        $this->assertArityAtLeast($list, 2, '(ns name)');
+
         $nsSymbol = $list->get(1);
         if (!($nsSymbol instanceof Symbol)) {
             throw AnalyzerException::wrongArgumentType("First argument of 'ns", 'Symbol', $nsSymbol, $list);
