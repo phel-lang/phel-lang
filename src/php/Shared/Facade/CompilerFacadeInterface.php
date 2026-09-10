@@ -111,7 +111,11 @@ interface CompilerFacadeInterface
      * that need the failures reported must drive {@see self::lexString()},
      * {@see self::parseNext()} and {@see self::read()} themselves.
      *
-     * @return Generator<int, bool|float|int|string|TypeInterface|null>
+     * `Generator::getReturn()` is `true` when something was dropped, so a
+     * caller can tell a buffer with nothing to report from one nobody could
+     * read (#3292).
+     *
+     * @return Generator<int, bool|float|int|string|TypeInterface|null, mixed, bool>
      */
     public function readFormsBestEffort(string $code, string $source = CompilerConstants::DEFAULT_SOURCE): Generator;
 

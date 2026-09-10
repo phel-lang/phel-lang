@@ -158,6 +158,9 @@ final class CompilerFacade extends AbstractFacade implements CompilerFacadeInter
             ->read($parseTree);
     }
 
+    /**
+     * @return Generator<int, bool|float|int|string|TypeInterface|null, mixed, bool>
+     */
     public function readFormsBestEffort(
         string $code,
         string $source = Lexer::DEFAULT_SOURCE,

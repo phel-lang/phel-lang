@@ -7,6 +7,7 @@ namespace Phel\Lint\Application;
 use Phel\Lang\Collections\LinkedList\PersistentListInterface;
 use Phel\Lang\Symbol;
 use Phel\Lang\TypeInterface;
+use Phel\Lint\Domain\SourceRead;
 use Phel\Shared\Facade\CompilerFacadeInterface;
 
 use Throwable;
@@ -18,6 +19,10 @@ use function count;
  * ready for rule inspection. Never throws: best-effort only, so rules can
  * still operate on partial input when later forms are broken.
  *
+ * It does report that it stopped early, though. Swallowing the failure
+ * silently made `phel lint` call a file that does not even lex clean, and
+ * exit 0 (#3292).
+ *
  * @internal
  */
 final readonly class SourceReader
@@ -26,20 +31,17 @@ final readonly class SourceReader
         private CompilerFacadeInterface $compilerFacade,
     ) {}
 
-    /**
-     * @return array{
-     *     namespace: string,
-     *     forms: list<bool|float|int|string|TypeInterface|null>,
-     * }
-     */
-    public function read(string $source, string $uri): array
+    public function read(string $source, string $uri): SourceRead
     {
         /** @var list<bool|float|int|string|TypeInterface|null> $forms */
         $forms = [];
         $namespace = '';
+        $failed = false;
 
         try {
-            foreach ($this->compilerFacade->readFormsBestEffort($source, $uri) as $form) {
+            $read = $this->compilerFacade->readFormsBestEffort($source, $uri);
+
+            foreach ($read as $form) {
                 if ($namespace === '') {
                     $found = $this->maybeNamespace($form);
                     if ($found !== '') {
@@ -49,14 +51,14 @@ final readonly class SourceReader
 
                 $forms[] = $form;
             }
+
+            $failed = $read->getReturn();
         } catch (Throwable) {
-            // Best-effort: return what we managed to read.
+            // Best-effort: keep what we managed to read, and say we stopped.
+            $failed = true;
         }
 
-        return [
-            'namespace' => $namespace,
-            'forms' => $forms,
-        ];
+        return new SourceRead($namespace, $forms, $failed);
     }
 
     private function maybeNamespace(mixed $form): string

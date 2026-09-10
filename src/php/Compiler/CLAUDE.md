@@ -9,7 +9,7 @@ Core compilation pipeline: Phel source → tokens → AST → analyzed nodes →
 | Compilation | `compile`, `compileForCache`, `compileForm` (return `EmitterResult`) |
 | Evaluation | `eval(string, CompileOptions)`, `evalForm(mixed, CompileOptions)` |
 | Pipeline | `lexString → TokenStream`, `parseNext → ?NodeInterface`, `parseAll → FileNode`, `read → ReaderResult`, `analyze(mixed, NodeEnvironmentInterface) → AbstractNode` |
-| Tooling | `readFormsBestEffort(code, source) → Generator` of top-level forms; never throws (parse failure ends the stream, read failure skips the form). For linting/indexing/completion over a buffer mid-edit; `Application/BestEffortFormReader` |
+| Tooling | `readFormsBestEffort(code, source) → Generator` of top-level forms; never throws (parse failure ends the stream, read failure skips the form). `Generator::getReturn()` is `true` when something was dropped, which is how a caller tells a buffer with nothing to report from one nobody could read (#3292). For linting/indexing/completion over a buffer mid-edit; `Application/BestEffortFormReader` |
 | Macros | `macroexpand1`, `macroexpand` |
 | Analyzer environment | `emptyNodeEnvironment` (a fresh `NodeEnvironment` for callers outside the module), `enableDeprecationWarnings` |
 | Environment | `initializeGlobalEnvironment`, `resetGlobalEnvironment`, `isGlobalEnvironmentInitialized`, `getGlobalEnvironment`, `initializeNewGlobalEnvironment`, `setGlobalEnvironment` |

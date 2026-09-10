@@ -33,6 +33,7 @@ All notable changes to this project will be documented in this file.
 - A `definterface` method with no argument vector, and a `catch` with no type or binding, report the analyzer error naming the form instead of an out-of-bounds error raised inside `PersistentList`. (#3266)
 - Analyzer messages name the Phel type, not the PHP one: `nil` instead of `null`, `boolean` instead of `bool`, `vector` and `hash-map` instead of `Collections\Vector\PersistentVector` and `Collections\Map\PersistentArrayMap`. A hash map no longer changes what it is called at eight entries. (#3290)
 - A lexer error reports like every other compile error: `PHEL310`, the user's file and line, the offending line and a caret under the character it stopped on. `phel run`, `phel eval`, the REPL and `phel format` all used to print the exception class and point at an internal Phel file, and `phel analyze` reported every lexer error at line 1, column 1. (#3289)
+- `phel lint` reports a file that does not lex or parse, with the code and location the analyzer already had, and exits 1. It used to print "No lint issues found." and exit 0, so a gate built on it passed source that cannot compile. (#3292)
 
 ## [0.51.0](https://github.com/phel-lang/phel-lang/compare/v0.50.0...v0.51.0) - 2026-09-05
 
