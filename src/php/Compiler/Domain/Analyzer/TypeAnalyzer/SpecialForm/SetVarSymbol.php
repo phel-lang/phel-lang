@@ -20,10 +20,13 @@ use Phel\Lang\Symbol;
  */
 final class SetVarSymbol implements SpecialFormAnalyzerInterface
 {
+    use AssertsFormArityTrait;
     use WithAnalyzerTrait;
 
     public function analyze(PersistentListInterface $list, NodeEnvironmentInterface $env): SetVarNode
     {
+        $this->assertArityAtLeast($list, 3, '(set-var name value)');
+
         $nameSymbol = $list->get(1);
         if (!($nameSymbol instanceof Symbol)) {
             throw AnalyzerException::wrongArgumentType("First argument of 'def", 'Symbol', $nameSymbol, $list);

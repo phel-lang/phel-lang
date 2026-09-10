@@ -32,6 +32,7 @@ use function is_string;
  */
 final class DefInterfaceSymbol implements SpecialFormAnalyzerInterface
 {
+    use AssertsFormArityTrait;
     use WithAnalyzerTrait;
 
     /**
@@ -39,6 +40,8 @@ final class DefInterfaceSymbol implements SpecialFormAnalyzerInterface
      */
     public function analyze(PersistentListInterface $list, NodeEnvironmentInterface $env): DefInterfaceNode
     {
+        $this->assertArityAtLeast($list, 2, '(definterface name (method [this]) ...)');
+
         $interfaceSymbol = $list->get(1);
         if (!($interfaceSymbol instanceof Symbol)) {
             throw AnalyzerException::wrongArgumentType("First argument of 'definterface", 'Symbol', $interfaceSymbol, $list);

@@ -18,10 +18,13 @@ use Phel\Lang\Collections\LinkedList\PersistentListInterface;
  */
 final class PhpAPushSymbol implements SpecialFormAnalyzerInterface
 {
+    use AssertsFormArityTrait;
     use WithAnalyzerTrait;
 
     public function analyze(PersistentListInterface $list, NodeEnvironmentInterface $env): PhpArrayPushNode
     {
+        $this->assertArityAtLeast($list, 3, '(php/apush array value)');
+
         return new PhpArrayPushNode(
             $env,
             $this->analyzer->analyze($list->get(1), $env->withExpressionContext()->withUseGlobalReference(true)),

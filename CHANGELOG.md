@@ -16,6 +16,7 @@ All notable changes to this project will be documented in this file.
 
 ### Fixed
 
+- A special form given too few arguments names the form and the shape it wanted, with a snippet and a caret. Twelve of them read past the end of their own list first, so the user got `[PHEL403] Index out of bounds` raised inside `PersistentList`, a runtime code for a compile-time problem, and four raised a bare `AssertionError` that vanished under `zend.assertions=-1`. (#3297)
 - REPL: `(exit)` and `(quit)` end the session like `exit` and `quit`, `(exit <code>)` sets the exit status, and the banner names the call form. (#3272)
 - `phel test`: the `Form:` line of a failed assertion prints the asserted source form instead of repeating the evaluated value. (#3263)
 - Parser: an unterminated list, vector, map, set or string now names the line it was opened on, carries an error code, and puts the caret on the opening delimiter. (#3259)

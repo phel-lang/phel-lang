@@ -16,10 +16,13 @@ use Phel\Lang\Collections\LinkedList\PersistentListInterface;
  */
 final class PhpOSetSymbol implements SpecialFormAnalyzerInterface
 {
+    use AssertsFormArityTrait;
     use WithAnalyzerTrait;
 
     public function analyze(PersistentListInterface $list, NodeEnvironmentInterface $env): PhpObjectSetNode
     {
+        $this->assertArityAtLeast($list, 3, '(php/oset (php/-> object property) value)');
+
         $left = $this->analyzer->analyze($list->get(1), $env->withExpressionContext());
         $right = $this->analyzer->analyze($list->get(2), $env->withExpressionContext());
 

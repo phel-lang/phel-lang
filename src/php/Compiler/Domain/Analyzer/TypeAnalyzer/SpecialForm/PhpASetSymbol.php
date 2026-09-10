@@ -18,10 +18,13 @@ use Phel\Lang\Collections\LinkedList\PersistentListInterface;
  */
 final class PhpASetSymbol implements SpecialFormAnalyzerInterface
 {
+    use AssertsFormArityTrait;
     use WithAnalyzerTrait;
 
     public function analyze(PersistentListInterface $list, NodeEnvironmentInterface $env): PhpArraySetNode
     {
+        $this->assertArityAtLeast($list, 4, '(php/aset array key value)');
+
         return new PhpArraySetNode(
             $env,
             $this->analyzer->analyze($list->get(1), $env->withExpressionContext()->withUseGlobalReference(true)),

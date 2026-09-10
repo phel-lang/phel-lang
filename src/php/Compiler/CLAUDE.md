@@ -76,6 +76,8 @@ Opt-in, off by default (`CompilerConfig::isIntermediateCacheEnabled()`). Wired o
 
 ## Key Constraints
 
+- Every special-form analyzer checks its argument count before reading an argument, via `AssertsFormArityTrait::assertArityAtLeast()`. `PersistentListInterface::get()` throws past the end, and that exception is about a list rather than about the form the user wrote: it reached them as `[PHEL403] Index out of bounds`, a runtime code, with no snippet. `SpecialFormArityTest` walks the `AnalyzePersistentList` registry and fails when a form raises anything but an `AnalyzerException` (#3297).
+
 - Never bypass a phase; each consumes only output of the previous.
 - Analyzer nodes must carry `NodeEnvironment` with correct context.
 - Emitter must handle every node type; missing cases throw, not silently skip.
