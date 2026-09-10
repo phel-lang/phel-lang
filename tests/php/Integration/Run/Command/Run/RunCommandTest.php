@@ -4,13 +4,12 @@ declare(strict_types=1);
 
 namespace PhelTest\Integration\Run\Command\Run;
 
-use Phel\Run\Infrastructure\Command\RunCommand;
-use Phel\Run\Infrastructure\Command\StackTraceOption;
 use PhelTest\Integration\Run\Command\AbstractTestCommand;
-use Symfony\Component\Console\Input\InputInterface;
 
 final class RunCommandTest extends AbstractTestCommand
 {
+    use CapturesRunCommandOutputTrait;
+
     public function test_file_not_found(): void
     {
         $this->expectOutputRegex('~Namespace "non-existing-file.phel" not found~');
@@ -185,9 +184,10 @@ final class RunCommandTest extends AbstractTestCommand
             __DIR__ . '/Fixtures/runtime-lib-error-script.phel',
         );
 
-        // The error originates inside the runtime lib (core `+`), yet the user
-        // still needs the message plus the Phel call sites from the filtered trace.
+        // The error originates inside the runtime lib (core `+`), which used to
+        // cost the report its `at` line and leave the message alone (#3264).
         self::assertStringContainsString('Expected a number, got string', $output);
+        self::assertMatchesRegularExpression('~at .*runtime-lib-error-script\.phel:4~', $output);
         self::assertMatchesRegularExpression('~#\d+ .*\.phel:\d+ : \(test\\\\runtime-lib-error-script\\\\add-boom~', $output);
         self::assertMatchesRegularExpression('~#\d+ .*\.phel:\d+ : \(test\\\\runtime-lib-error-script\\\\caller~', $output);
         self::assertMatchesRegularExpression('~\.\.\. \d+ internal frames?~', $output);
@@ -288,38 +288,5 @@ PHEL);
         self::assertStringContainsString('Expanding: (broken-macro 1)', $output);
         self::assertStringContainsString('Cause: macro exploded', $output);
         self::assertMatchesRegularExpression('~Defined: .*macro-error-script\.phel:3~', $output);
-    }
-
-    private function captureRunOutput(string $path, array $argv = [], bool $stackTrace = false): string
-    {
-        ob_start();
-        $this->createRunCommand()->run(
-            $this->stubInput($path, $argv, $stackTrace),
-            $this->stubOutput(),
-        );
-
-        return ob_get_clean() ?: '';
-    }
-
-    private function createRunCommand(): RunCommand
-    {
-        return new RunCommand();
-    }
-
-    private function stubInput(string $path, array $argv = [], bool $stackTrace = false): InputInterface
-    {
-        $input = $this->createStub(InputInterface::class);
-        $input->method('getArgument')->willReturnCallback(
-            static fn(string $name): string|array => match ($name) {
-                'path' => $path,
-                'argv' => $argv,
-                default => '',
-            },
-        );
-        $input->method('getOption')->willReturnCallback(
-            static fn(string $name): bool => $name === StackTraceOption::NAME && $stackTrace,
-        );
-
-        return $input;
     }
 }

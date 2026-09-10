@@ -9,8 +9,10 @@ use Gacela\Framework\Config\ConfigReader\PhpConfigReader;
 use Gacela\Framework\ServiceResolver\ServiceMap;
 use Phel\Command\Application\CommandExceptionWriter;
 use Phel\Command\Application\DirectoryFinder;
+use Phel\Command\Application\RuntimeErrorReportFormatter;
 use Phel\Command\Application\TextExceptionPrinter;
 use Phel\Command\Domain\CommandExceptionWriterInterface;
+use Phel\Command\Domain\ErrorLogInterface;
 use Phel\Command\Domain\Exceptions\ExceptionArgsPrinter;
 use Phel\Command\Domain\Exceptions\Extractor\FilePositionExtractor;
 use Phel\Command\Domain\Exceptions\InternalPathDetector;
@@ -28,6 +30,10 @@ use Phel\Shared\Exceptions\Hint\UndefinedSymbolHint;
 use Phel\Shared\Munge;
 use Phel\Shared\NoColor;
 use Phel\Shared\Printer\Printer;
+use Phel\Shared\ScalarCoercion;
+
+use function basename;
+use function implode;
 
 /**
  * @extends AbstractFactory<CommandConfig>
@@ -41,12 +47,21 @@ final class CommandFactory extends AbstractFactory
     {
         return new CommandExceptionWriter(
             $this->createExceptionPrinter(),
-            new ErrorLog($this->getConfig()->getErrorLogFile()),
-            $this->createFilePositionExtractor(),
-            $this->getConfig()->getStaleOutputHint(),
+            $this->createErrorLog(),
             $this->createExceptionHintResolver(),
+            $this->createRuntimeErrorReportFormatter(),
+        );
+    }
+
+    public function createRuntimeErrorReportFormatter(): RuntimeErrorReportFormatter
+    {
+        return new RuntimeErrorReportFormatter(
+            $this->createExceptionPrinter(),
+            $this->createFilePositionExtractor(),
             $this->createInternalPathDetector(),
+            $this->createExceptionHintResolver(),
             Printer::readable(),
+            $this->getConfig()->getStaleOutputHint(),
         );
     }
 
@@ -74,8 +89,16 @@ final class CommandFactory extends AbstractFactory
             NoColor::style(),
             new Munge(),
             $this->createFilePositionExtractor(),
-            new ErrorLog($this->getConfig()->getErrorLogFile()),
+            $this->createErrorLog(),
             $this->getConfig()->getCollapsedTraceHint(),
+        );
+    }
+
+    public function createErrorLog(): ErrorLogInterface
+    {
+        return new ErrorLog(
+            $this->getConfig()->getErrorLogFile(),
+            $this->currentCommandLine(),
         );
     }
 
@@ -99,6 +122,22 @@ final class CommandFactory extends AbstractFactory
         $reader = $this->getProvidedDependency(CommandProvider::PHP_CONFIG_READER);
 
         return $reader;
+    }
+
+    /**
+     * Names the run that produced a log entry. `basename()` so `bin/phel`,
+     * `vendor/bin/phel` and a global install all read as `phel`.
+     */
+    private function currentCommandLine(): string
+    {
+        $argv = ScalarCoercion::toStringList($_SERVER['argv'] ?? null);
+        if ($argv === []) {
+            return PHP_SAPI;
+        }
+
+        $argv[0] = basename($argv[0]);
+
+        return implode(' ', $argv);
     }
 
     private function createInternalPathDetector(): InternalPathDetector

@@ -21,7 +21,6 @@ final readonly class ReplCommandSystemIo implements ReplCommandIoInterface
         private string $historyFile,
         private CommandFacadeInterface $commandFacade,
         private ApiFacadeInterface $apiFacade,
-        private ReplErrorFormatter $errorFormatter,
     ) {
         readline_completion_function(
             $this->completeWithInlineDoc(...),
