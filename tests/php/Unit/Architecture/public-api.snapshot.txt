@@ -1197,6 +1197,10 @@ final class Phel\Lang\NumericOperations
   public static function rem(mixed $a, mixed $b): mixed
   public static function subtract(mixed $a, mixed $b): mixed
 
+final readonly class Phel\Lang\PhelType
+  public const string UNKNOWN = 'unknown'
+  public static function nameOf(mixed $value): string
+
 final readonly class Phel\Lang\PhelVar implements Phel\Lang\EqualsInterface, Phel\Lang\FnInterface, Phel\Lang\HashableInterface, Phel\Lang\MetaInterface
   public function __construct(string $namespace, string $name)
   public function __invoke(mixed ...$args): mixed
