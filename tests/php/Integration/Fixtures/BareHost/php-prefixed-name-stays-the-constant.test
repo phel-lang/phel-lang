@@ -24,7 +24,7 @@ require_once __DIR__ . '/phel/core.php';
     public function __invoke() {
       $target_1 = WP_CLI_FIXTURE;
       if (!is_string($target_1) && !is_object($target_1)) {
-      throw new \InvalidArgumentException(sprintf("php/new expects a class name or object, %s given (%s)", get_debug_type($target_1), var_export($target_1, true)));
+      throw new \InvalidArgumentException(sprintf("new expects a class name or object, %s given (%s)", get_debug_type($target_1), var_export($target_1, true)));
       }
       return new $target_1();
     }
