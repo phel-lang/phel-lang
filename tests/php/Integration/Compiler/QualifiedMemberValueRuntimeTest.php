@@ -146,6 +146,22 @@ final class QualifiedMemberValueRuntimeTest extends AbstractCompilerRuntimeTestC
         );
     }
 
+    /**
+     * The shorthand has to reach the same diagnostic the `php/->` spelling
+     * reaches. Stopping at the shorthand predicate left the writer with
+     * "Cannot resolve symbol '.-$foo'", which names nothing they can act on.
+     */
+    public function test_a_sigil_on_the_property_shorthand_fails_with_the_same_message(): void
+    {
+        $this->expectException(CompilerException::class);
+        $this->expectExceptionMessage("'\$foo' names a static property, which only a class can hold");
+
+        $this->compilerFacade->eval(
+            '(let [o (new \\stdClass)] (.-$foo o))',
+            new CompileOptions(),
+        );
+    }
+
     public function test_an_all_caps_class_works_in_both_static_constant_spellings(): void
     {
         $qualified = $this->compilerFacade->eval(

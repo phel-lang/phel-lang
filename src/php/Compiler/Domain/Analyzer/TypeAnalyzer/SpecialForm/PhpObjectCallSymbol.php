@@ -144,9 +144,8 @@ final readonly class PhpObjectCallSymbol implements SpecialFormAnalyzerInterface
 
         throw AnalyzerException::withLocation(
             sprintf(
-                "'%s' names a static property, which only a class can hold: write \\Foo/%s or (php/:: \\Foo %s). "
+                "'%s' names a static property, which only a class can hold: write \\Foo/%s. "
                 . 'An instance member and a method name carry no sigil.',
-                $name,
                 $name,
                 $name,
             ),

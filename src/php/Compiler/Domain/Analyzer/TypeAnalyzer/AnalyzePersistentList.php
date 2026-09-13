@@ -307,7 +307,12 @@ final class AnalyzePersistentList
             return false;
         }
 
-        return QualifiedMemberSyntax::isIdentifierStartChar($name[2]);
+        // A `$` is accepted here so `(.-$foo o)` reaches the analyzer, which
+        // tells the writer that a sigil names a static property. Stopping at
+        // this predicate would only say "cannot resolve symbol '.-$foo'".
+        return $name[2] === '$'
+            ? $len > 3 && QualifiedMemberSyntax::isIdentifierStartChar($name[3])
+            : QualifiedMemberSyntax::isIdentifierStartChar($name[2]);
     }
 
     private function createSymbolAnalyzerByName(string $symbolName): SpecialFormAnalyzerInterface
