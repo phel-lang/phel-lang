@@ -56,7 +56,7 @@ use Phel\Compiler\Domain\Analyzer\TypeAnalyzer\SpecialForm\ThrowSymbol;
 use Phel\Compiler\Domain\Analyzer\TypeAnalyzer\SpecialForm\TrySymbol;
 use Phel\Compiler\Domain\Analyzer\TypeAnalyzer\SpecialForm\UseSymbol;
 use Phel\Compiler\Domain\Analyzer\TypeAnalyzer\SpecialForm\VarSymbol;
-use Phel\Compiler\Domain\Deprecation\SupersededFormRejector;
+use Phel\Compiler\Domain\Deprecation\SupersededFormDeprecator;
 use Phel\Lang\Collections\LinkedList\PersistentListInterface;
 use Phel\Lang\Symbol;
 use Phel\Shared\Exceptions\AbstractLocatedException;
@@ -84,7 +84,7 @@ final class AnalyzePersistentList
         private readonly AnalyzerInterface $analyzer,
         private readonly bool $assertsEnabled,
         private readonly MungeInterface $munge = new Munge(),
-        private readonly SupersededFormRejector $supersededFormRejector = new SupersededFormRejector(),
+        private readonly SupersededFormDeprecator $supersededFormDeprecator = new SupersededFormDeprecator(),
     ) {}
 
     /**
@@ -102,8 +102,8 @@ final class AnalyzePersistentList
         }
 
         // Before the expansions: they rewrite `(.m obj)` into `(php/-> obj (m))`,
-        // so a check running after them would reject every shorthand.
-        $this->supersededFormRejector->rejectIfWritten($list);
+        // so a detector running after them would warn about every shorthand.
+        $this->supersededFormDeprecator->maybeWarn($list);
 
         $list = $this->expandConstructorShorthand($list, $env);
         $list = $this->expandMemberAccessShorthand($list);
@@ -308,9 +308,8 @@ final class AnalyzePersistentList
         }
 
         // A `$` is accepted here so `(.-$foo o)` reaches the analyzer, which
-        // tells the writer that a sigil names a static property. Rejecting it
-        // at this predicate would only say "cannot resolve symbol '.-$foo'"
-        // (#2877).
+        // tells the writer that a sigil names a static property. Stopping at
+        // this predicate would only say "cannot resolve symbol '.-$foo'".
         return $name[2] === '$'
             ? $len > 3 && QualifiedMemberSyntax::isIdentifierStartChar($name[3])
             : QualifiedMemberSyntax::isIdentifierStartChar($name[2]);
