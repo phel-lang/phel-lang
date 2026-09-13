@@ -6,13 +6,12 @@ namespace Phel\Compiler\Domain\Deprecation;
 
 use Phel\Compiler\Domain\Analyzer\Exceptions\AnalyzerException;
 use Phel\Lang\Collections\LinkedList\PersistentListInterface;
-use Phel\Lang\SourceLocation;
 use Phel\Lang\Symbol;
 
 use function array_keys;
 
 /**
- * Detects a list head that is a special form Phel already says another way.
+ * Rejects a special form Phel already says another way, written in source.
  *
  * `php/` marks host access: reaching a PHP function, a PHP array, or a PHP
  * reference, none of which Phel has a word for. It is not a second spelling
@@ -23,18 +22,24 @@ use function array_keys;
  * (https://github.com/phel-lang/phel-lang/issues/2877,
  * https://github.com/phel-lang/phel-lang/issues/2888).
  *
- * Deprecated through 1.x's predecessors and rejected as source from 1.0.0.
- * They remain the compiler's own target: `(new \C 1)` becomes `(php/new \C 1)`
- * and `(binding …)` expands to `set-var`, so the forms cannot be deleted
- * (ADR 0007). What goes is the user's ability to write them, which is why the
- * check below turns on whether the head carries a source location.
+ * The forms stay: they remain the compiler's own target, because `(new \C 1)`
+ * becomes `(php/new \C 1)` and `(binding …)` expands to `set-var` (ADR 0007).
+ * What goes is the user's ability to *write* them.
  *
- * Rejection is unconditional, unlike the deprecation notice it replaces: there
- * is no flag to turn it off, and only the bundled stdlib is exempt.
+ * That distinction is why this runs in the reader rather than the analyzer.
+ * The reader turns typed characters into forms, so everything it produces was
+ * typed by somebody; macro output is built during analysis and never passes
+ * through here. Placing the check in the analyzer meant guessing which of two
+ * forms a human wrote, and every available signal was wrong somewhere: a path
+ * check on the expansion origin fails inside a PHAR, where the bundled stdlib
+ * lives under `phar://`, and treating an absent location as compiler-generated
+ * fails under nested expansion, where the outer expansion stamps a location
+ * onto the inner macro's freshly built head.
  *
- * Must run on the list as written, before the analyzer desugars `(.m obj)`
- * into `(php/-> obj (m))`, or every shorthand would warn about the form it
- * expands to.
+ * A quasiquote is already lowered when this runs, so a macro template reads as
+ * `(apply list (concat (list (quote php/new)) …))`: the name survives as
+ * quoted data, never as a list head, and a template keeps compiling. A plain
+ * `quote` is skipped outright, because `'(php/new \C)` is data.
  *
  * @internal
  */
@@ -72,43 +77,44 @@ final class SupersededFormRejector
     }
 
     /**
-     * @param PersistentListInterface<mixed> $list
+     * @throws AnalyzerException
+     */
+    public function rejectIfWritten(mixed $form): void
+    {
+        if ($form instanceof PersistentListInterface) {
+            $head = $form->first();
+
+            if ($head instanceof Symbol) {
+                if ($head->getFullName() === Symbol::NAME_QUOTE) {
+                    return;
+                }
+
+                $this->rejectHead($form, $head->getFullName());
+            }
+        }
+
+        if (is_iterable($form)) {
+            foreach ($form as $key => $value) {
+                $this->rejectIfWritten($key);
+                $this->rejectIfWritten($value);
+            }
+        }
+    }
+
+    /**
+     * @param PersistentListInterface<mixed> $form
      *
      * @throws AnalyzerException
      */
-    public function rejectIfWritten(PersistentListInterface $list): void
+    private function rejectHead(PersistentListInterface $form, string $name): void
     {
-        $head = $list->first();
-        if (!$head instanceof Symbol) {
-            return;
-        }
-
-        // An unlocated head is one the analyzer synthesized rather than one
-        // anybody wrote: `QualifiedMemberExpander` turning `\C/CONST` into a
-        // `php/::` form is the case that matters.
-        $location = $head->getStartLocation();
-        if (!$location instanceof SourceLocation) {
-            return;
-        }
-
-        $superseded = self::SUPERSEDED[$head->getFullName()] ?? null;
+        $superseded = self::SUPERSEDED[$name] ?? null;
         if ($superseded === null) {
-            return;
-        }
-
-        // A macro-expanded form is located at the call site and carries the
-        // place it was *written* as its expansion origin. That origin is the
-        // question here: `binding` builds `(set-var v e)` and `set!` builds a
-        // `php/::`, both written in `src/phel`, and both must keep working
-        // when a user calls the macro. A macro of the user's own that emits
-        // one of these is theirs to fix, and its origin says so.
-        $origin = $location->getExpansionOrigin() ?? $location;
-        if (DeprecationWarnings::isBundledStdlibSource($origin->getFile())) {
             return;
         }
 
         [$purpose, $replacement] = $superseded;
 
-        throw AnalyzerException::supersededForm($list, $head->getFullName(), $purpose, $replacement);
+        throw AnalyzerException::supersededForm($form, $name, $purpose, $replacement);
     }
 }

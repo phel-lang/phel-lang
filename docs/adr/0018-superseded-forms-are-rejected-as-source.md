@@ -1,7 +1,7 @@
 # ADR 0018: A superseded form is rejected as source and kept as the target
 
 - **Status**: Accepted
-- **Date**: 2026-09-10
+- **Date**: 2026-09-11
 - **Amends**: [ADR 0007](0007-clojure-style-interop-is-the-source-spelling.md)
 
 ## Context
@@ -28,15 +28,22 @@ it off. Nothing about the emitted code changes, and every capability stays
 reachable: #2881, #2883 and #2887 closed the gaps in the Clojure-style
 spellings before this became possible.
 
-What separates the two roles is **where the head symbol was written**:
+What separates the two roles is **the compiler phase that produced the form**.
+The check runs in the reader, on each top-level form as it is read, and not in
+the analyzer:
 
-- No location: the analyzer synthesized it. `QualifiedMemberExpander` builds a
-  `php/::` this way, and `BreakSymbol` and `FnPrePostConditionRewriter` build
-  their heads unlocated for exactly this reason.
-- A location whose expansion origin is the bundled stdlib: a stdlib macro wrote
-  it. `binding` emits `set-var`, `set!` emits a `php/::`.
-- Anything else: somebody wrote it, including a macro of the user's own, which
-  is theirs to fix.
+- The reader turns typed characters into forms, so everything it produces was
+  typed by somebody.
+- Macro output is built during analysis and never passes through the reader.
+- A quasiquote is already lowered when the check runs, so a macro template reads
+  as `(apply list (concat (list (quote php/new)) …))`. The name survives as
+  quoted data, never as a list head, and a template keeps compiling. This is
+  what lets `binding` emit `set-var` and `set!` emit a `php/::`.
+- A plain `quote` is skipped outright, because `'(php/new \C)` is data.
+
+A user's own macro that emits one of these keeps working for the same reason a
+stdlib one does. The user writes the replacement in new source; a template that
+still names the old form compiles until they get to it.
 
 `php/` at large is untouched. It marks host access, which is what the rule in
 ADR 0007 protects: `php/aget`, `php/aset`, `php/apush`, `php/aunset`, their
@@ -64,8 +71,8 @@ ADR 0007 protects: `php/aget`, `php/aset`, `php/apush`, `php/aunset`, their
 
 ## Enforcement
 
-- `SupersededFormRejectorTest` covers each role: written, synthesized, expanded
-  from a stdlib macro, expanded from a user macro.
+- `SupersededFormRejectorTest` covers the walk: each of the four heads, a head
+  nested inside a larger form, a quoted subtree, and a `php/*` form that stays.
 - `SupersededFormRejectionTest` compiles every Clojure-style shorthand and each
   rejected form, so the shorthand cannot start failing and the form cannot start
   being accepted.
@@ -80,6 +87,15 @@ ADR 0007 protects: `php/aget`, `php/aset`, `php/apush`, `php/aunset`, their
   the compilation target.
 - **Reject in user code but exempt `vendor/`.** A dependency would keep a
   spelling the application cannot use, and the form would not really be gone.
+- **Decide in the analyzer, from the head symbol's location.** Tried first, and
+  it fails in two directions. Treating an expansion origin under `src/phel` as
+  compiler-generated breaks inside a PHAR, where the bundled stdlib lives under
+  `phar://…/src/phel` and the path test returns false, so every `deftest` in a
+  scaffolded project stops compiling. Treating an absent location as
+  compiler-generated breaks under nested expansion: `deftest` expands to
+  `binding`, which builds `set-var`, and the outer expansion stamps a location
+  onto the freshly built head. Both signals are guesses about who wrote a form;
+  the reader knows.
 
 ## See also
 

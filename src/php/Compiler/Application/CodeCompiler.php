@@ -11,6 +11,7 @@ use Phel\Compiler\Domain\Cache\CachedReaderResult;
 use Phel\Compiler\Domain\Cache\ReaderResultCacheInterface;
 use Phel\Compiler\Domain\Compiler\CodeCompilerInterface;
 use Phel\Compiler\Domain\Deprecation\DeprecationWarnings;
+use Phel\Compiler\Domain\Deprecation\SupersededFormRejector;
 use Phel\Compiler\Domain\Emitter\EmitterResult;
 use Phel\Compiler\Domain\Emitter\FileEmitterInterface;
 use Phel\Compiler\Domain\Emitter\StatementEmitterInterface;
@@ -51,6 +52,7 @@ final readonly class CodeCompiler implements CodeCompilerInterface
         private FileEmitterInterface $fileEmitter,
         private EvaluatorInterface $evaluator,
         private ReaderResultCacheInterface $readerResultCache,
+        private SupersededFormRejector $supersededFormRejector = new SupersededFormRejector(),
     ) {}
 
     /**
@@ -124,6 +126,7 @@ final readonly class CodeCompiler implements CodeCompilerInterface
 
                 $genBefore = Symbol::genCounter();
                 $readerResult = $this->timed($hook, 'read', $source, fn(): ReaderResult => $this->reader->read($parseTree));
+                $this->rejectSupersededForms($readerResult);
                 $entries[] = new CachedReaderResult($readerResult, Symbol::genCounter() - $genBefore);
                 $this->analyzeAndEmit($readerResult, $compileOptions, $hook, $source);
             } catch (AbstractParserException|LexerValueException|ReaderException $e) {
@@ -203,6 +206,22 @@ final readonly class CodeCompiler implements CodeCompilerInterface
         $hook->recordPhase($phase, $source, (hrtime(true) - $start) / 1_000_000);
 
         return $result;
+    }
+
+    /**
+     * Runs on the cold path only. A warm reader-result hit was written by a
+     * compile that already passed this check, and the cache key carries the
+     * Phel version, so a cache from before the rule cannot be replayed.
+     *
+     * @throws CompilerException
+     */
+    private function rejectSupersededForms(ReaderResult $readerResult): void
+    {
+        try {
+            $this->supersededFormRejector->rejectIfWritten($readerResult->getAst());
+        } catch (AbstractLocatedException $locatedException) {
+            throw new CompilerException($locatedException, $readerResult->getCodeSnippet());
+        }
     }
 
     /**

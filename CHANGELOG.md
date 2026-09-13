@@ -6,8 +6,6 @@ All notable changes to this project will be documented in this file.
 
 ### Added
 
-- **BREAKING**: `php/new`, `php/->`, `php/::` and `set-var` are rejected as source. They stay the compiler's own target, so `(new \C 1)`, `(.m obj)`, `(\C/m)` and `binding` are unaffected; what goes is the ability to write the target directly. `PHEL012` names the replacement. The rest of `php/*` is untouched. (#2859, ADR 0018)
-- Public API: `ErrorCode::SUPERSEDED_FORM` (`PHEL012`). (#2859)
 - Public API: `Shared\ByteSize`, `Shared\Performance\OpcacheFileCache`, `Shared\Performance\OpcacheFileCachePruner`, and `PhelProjectDirectory::opcachePath()`. (#3268)
 - `--stack-trace` on `phel run`, `phel eval` and `phel repl`, and a collapse marker that names both the flag and the error log holding the full trace. (#3261)
 - **BREAKING (PHP API, implementers only)**: `CommandFacadeInterface::getRuntimeErrorReport()`, the runtime error report as a string, for hosts that own where the text goes. (#3264)
@@ -15,6 +13,8 @@ All notable changes to this project will be documented in this file.
 - A runtime error carries an error code: `PHEL400` not callable, `PHEL401` arity, `PHEL402` type, `PHEL403` out of bounds, `PHEL404` division by zero. Every uncaught runtime failure used to print a bare message. (#3266)
 - **BREAKING (PHP API)**: `ErrorCode::INVALID_QUOTE`, `ErrorCode::INVALID_UNQUOTE` and `ErrorCode::INVALID_CHARACTER` are removed. They named errors Phel does not raise. (#3266)
 - Public API: `Phel\Lang\PhelType`, the PHP mirror of `phel.core/type`, so anything wording a type for a user agrees with the language. (#3290)
+- **BREAKING**: `php/new`, `php/->`, `php/::` and `set-var` are rejected as source, with error code `PHEL012`. Write `(new \Foo arg)`, `(.method obj arg)` / `(.-field obj)`, `(\Foo/method arg)` / `\Foo/CONST`, and `(alter-var-root (var v) f)` instead. All four stay as the compiler's own emission target, so nothing about the generated PHP changes and every capability is still reachable. The check runs in the reader, so a macro template that names one of them keeps expanding. `php/*` at large is untouched: it remains the way to reach PHP directly. (#2859, ADR 0018)
+- Public API: `ErrorCode::SUPERSEDED_FORM` (`PHEL012`). (#2859)
 
 ### Fixed
 
