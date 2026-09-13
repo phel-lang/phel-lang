@@ -2,7 +2,7 @@
 (ns test\abc
   (:use \DateTimeImmutable))
 
-(php/new DateTimeImmutable "2020-03-22")
+(new DateTimeImmutable "2020-03-22")
 --PHP--
 namespace test\abc;
 require_once __DIR__ . '/../phel/core.php';

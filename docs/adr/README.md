@@ -18,7 +18,7 @@ stale exactly that way. See [Editing](#editing).
 | [0004](0004-accept-four-module-cycles.md) | Accept four module cycles and pin them | Accepted |
 | [0005](0005-public-php-api-by-rule-and-snapshot.md) | Define the public PHP API by rule, gate it by snapshot | Accepted |
 | [0006](0006-one-opt-in-deprecation-channel.md) | One opt-in channel for compiler deprecations | Amended by 0014, 0017 |
-| [0007](0007-clojure-style-interop-is-the-source-spelling.md) | Clojure-style interop is the source spelling | Accepted |
+| [0007](0007-clojure-style-interop-is-the-source-spelling.md) | Clojure-style interop is the source spelling | Amended by 0018 |
 | [0008](0008-dot-namespace-separator.md) | The namespace separator is `.`, and `\` still parses | Accepted |
 | [0009](0009-stdlib-in-phel-precompiled-in-the-phar.md) | Write the standard library in Phel, ship it precompiled | Accepted |
 | [0010](0010-static-analysis-covers-src-only.md) | Static analysis covers `src/` only | Accepted |
@@ -29,6 +29,7 @@ stale exactly that way. See [Editing](#editing).
 | [0015](0015-a-php-class-is-named-with-dots.md) | A PHP class is named with dots and no leading marker | Accepted |
 | [0016](0016-a-bare-all-caps-host-name-reads-by-position.md) | A bare all-caps host name reads by position, not by probing | Accepted |
 | [0017](0017-a-diagnostic-renders-itself-on-stderr.md) | A compiler diagnostic renders itself on stderr | Accepted |
+| [0018](0018-superseded-forms-are-rejected-as-source.md) | A superseded form is rejected as source and kept as the target | Accepted |
 
 Statuses: **Proposed**, **Accepted**, **Amended by NNNN** (in force, narrowed by a
 later record), **Superseded by NNNN**, **Deprecated** (in force, being unwound).

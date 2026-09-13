@@ -1,11 +1,11 @@
 --PHEL--
-(def a (php/new \stdClass))
-(php/oset (php/-> a name) "test")
+(def a (new \stdClass))
+(php/oset (.-name a) "test")
 --PHP--
 \Phel::addDefinition(
   "user",
   "a",
   (new \stdClass()),
-  static fn() => \Phel::locationMeta(\Phel::location("PhpObjectSet/set-class-property.test", 1, 0), \Phel::location("PhpObjectSet/set-class-property.test", 1, 27))
+  static fn() => \Phel::locationMeta(\Phel::location("PhpObjectSet/set-class-property.test", 1, 0), \Phel::location("PhpObjectSet/set-class-property.test", 1, 23))
 );
 \Phel\Lang\Registry::readRoot("user", "a")->name = "test";

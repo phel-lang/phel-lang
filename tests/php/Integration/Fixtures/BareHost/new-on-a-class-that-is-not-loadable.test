@@ -1,7 +1,7 @@
 --PHEL--
 (ns test)
 
-(defn probe [] (php/new WP_CLI_FIXTURE))
+(defn probe [] (new WP_CLI_FIXTURE))
 --PHP--
 namespace test;
 require_once __DIR__ . '/phel/core.php';
@@ -27,7 +27,7 @@ require_once __DIR__ . '/phel/core.php';
   },
   static fn() => \Phel::locationMeta(
     \Phel::location("BareHost/new-on-a-class-that-is-not-loadable.test", 3, 0),
-    \Phel::location("BareHost/new-on-a-class-that-is-not-loadable.test", 3, 40),
+    \Phel::location("BareHost/new-on-a-class-that-is-not-loadable.test", 3, 36),
     \Phel\Lang\Keyword::create("doc"), "```phel\n(probe)\n```\n",
     "min-arity", 0,
     "is-variadic", false,

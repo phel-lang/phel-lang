@@ -1,7 +1,7 @@
 --PHEL--
 (use RecursiveArrayIterator)
 (let [PHPChildT RecursiveArrayIterator]
-  (php/instanceof (php/new PHPChildT (php/array)) PHPChildT))
+  (php/instanceof (new PHPChildT (php/array)) PHPChildT))
 --PHP--
 $PHPChildT_1 = \RecursiveArrayIterator::class;
 (function() use($PHPChildT_1) {

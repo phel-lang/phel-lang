@@ -40,8 +40,9 @@ Write the Clojure-style spelling:
 
 Each desugars to a `php/*` special form (`php/new`, `php/->`, `php/::`) before
 analysis. That layer is the compilation target and came first, which is why older
-code uses it, but it is **deprecated as source**: every position it once had to
-itself now has a shorthand ([ADR 0007](adr/0007-clojure-style-interop-is-the-source-spelling.md)).
+code uses it, but it is **rejected as source**: every position it once had to
+itself now has a shorthand ([ADR 0007](adr/0007-clojure-style-interop-is-the-source-spelling.md),
+[ADR 0018](adr/0018-superseded-forms-are-rejected-as-source.md)).
 
 Expansion table including `C/m` and `C/.m` in value position:
 [the language surface spec](spec/language-surface.md#interop-shorthands). Full

@@ -3,7 +3,7 @@
 ;; `(new C ...)`, `(.method obj ...)` and `(C/staticMethod ...)` are the
 ;; spellings to reach for. Each desugars to a `php/*` special form (`php/new`,
 ;; `php/->`, `php/::`) before analysis, so the two are the same program — but the
-;; `php/*` layer is the compilation target only, and deprecated as source.
+;; `php/*` layer is the compilation target only, and rejected as source.
 ;;
 ;; Full guide: https://phel-lang.org/documentation/php-interop/
 

@@ -1,5 +1,5 @@
 --PHEL--
-(.modify (php/new \DateTimeImmutable) "9 msec")
+(.modify (new \DateTimeImmutable) "9 msec")
 --PHP--
 $target_1 = (new \DateTimeImmutable());
 $target_1->modify("9 msec");

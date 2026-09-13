@@ -7,7 +7,7 @@ Single source for every skill adapter.
 1. Verify fn names with `(doc <fn>)` or grep `src/phel/core/`. No invention.
 2. Collections immutable. `(conj v x)` returns new; rebind with `def`/`let`, or use `atom`.
 3. Top-level side effects break `phel build`. Guard with `(when-not *build-mode* ...)`.
-4. PHP interop: `(new Class args)`, `(.method obj args)`, `(.-prop obj)`, `(Class/method args)`, `Class/CONST`. A static property reads as `Class/$prop` and assigns as `(set! Class/prop v)`; the sigil belongs to the read only. Host functions keep the prefix: `(php/strlen s)`. `php/new`, `php/->` and `php/::` are deprecated.
+4. PHP interop: `(new Class args)`, `(.method obj args)`, `(.-prop obj)`, `(Class/method args)`, `Class/CONST`. A static property reads as `Class/$prop` and assigns as `(set! Class/prop v)`; the sigil belongs to the read only. Host functions keep the prefix: `(php/strlen s)`. `php/new`, `php/->` and `php/::` are rejected as source.
 5. Threading: `->` first-arg, `->>` last-arg, `some->` / `some->>` nil-safe, `cond->` conditional.
 6. Only `false` and `nil` are falsy. `0`, `""`, `[]` truthy.
 7. Namespaces need ≥ 2 segments. Prefer `.` separator (`app.main`); `\` still parses but is deprecated. File path matches ns under src dir.

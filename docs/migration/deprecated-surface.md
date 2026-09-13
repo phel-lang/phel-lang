@@ -1,6 +1,7 @@
 # Migration: The Currently Deprecated Surface
 
-Everything below still works today. Everything below is scheduled for removal in
+Everything below still works today, except the four forms rejected as source at
+`1.0.0`, which are marked as such. Everything below is scheduled for removal in
 a future major release. This page is the single map of that surface: what the
 item is, what replaces it, and the mechanical before/after.
 
@@ -67,8 +68,11 @@ Full detail, including what is and is not detected today, is in
 `php/` marks host access: reaching a PHP function, a PHP array or a PHP
 reference, none of which Phel has a word for. It is not a second spelling for
 something Phel already says the Clojure way. These three were the second
-spelling, so they are deprecated and the Clojure-style form is now the only
-one. Everything on the right has worked for a long time; what changed is that
+spelling, so from `1.0.0` writing one is an error (`PHEL012`) and the
+Clojure-style form is the only one. They stay the compiler's own target, so
+nothing about the emitted code changes: `(new \C 1)` still becomes
+`(php/new \C 1)` internally (ADR 0018).
+Everything on the right has worked for a long time; what changed is that
 the last positions needing a `php/*` fallback were closed
 ([#2881](https://github.com/phel-lang/phel-lang/issues/2881),
 [#2883](https://github.com/phel-lang/phel-lang/issues/2883),
@@ -116,7 +120,7 @@ Tracked in [#2877](https://github.com/phel-lang/phel-lang/issues/2877).
 
 `set-var` writes a var's **root**, which Clojure calls `alter-var-root`. Its
 name reads like Clojure's `set!`, which does the opposite (it assigns the
-current thread-local binding and throws when there is none) — and since
+current thread-local binding and throws when there is none), and since
 [#2905](https://github.com/phel-lang/phel-lang/pull/2905) Phel has that `set!`
 too, so the misleading name now sits next to the thing it is mistaken for.
 
@@ -128,8 +132,10 @@ too, so the misleading name now sits next to the thing it is mistaken for.
 `constantly`. To assign only the current `binding` frame, that is `(set! *x* 3)`.
 
 `binding` and `with-redefs` still expand into `set-var`: an emitted `set-var`
-inside an open frame is what records the rebinding. Removing the public form
-therefore needs a non-public primitive to take that over first.
+inside an open frame is what records the rebinding. That is why `set-var` is
+rejected as *source* from `1.0.0` rather than removed. A `set-var` written in a
+file is an error (`PHEL012`); one a stdlib macro expands into keeps working, and
+the two are told apart by where the head was written (ADR 0018).
 
 Tracked in [#2888](https://github.com/phel-lang/phel-lang/issues/2888).
 

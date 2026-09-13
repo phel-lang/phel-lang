@@ -21,14 +21,14 @@
      (let [arr (php/array)]
        (foreach [x form]
          (php/apush arr (inner x)))
-       (php/:: Phel (list arr)))
+       (Phel/list arr))
 
      (vector? form)
      ;; Collected into a PHP array and built once, as `vec` is (#3134).
      (let [arr (php/array)]
        (foreach [x form]
          (php/apush arr (inner x)))
-       (php/:: Phel (vector arr)))
+       (Phel/vector arr))
 
      (or (map? form) (struct? form))
      ;; `foreach` and not `for … :pairs`: the destructuring was most of the

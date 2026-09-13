@@ -12,7 +12,7 @@ failed before the program ran.
 
 | Range | Page | Codes |
 |---|---|---|
-| PHEL000-099 | [Analyzer errors](analyzer.md) | 11 |
+| PHEL000-099 | [Analyzer errors](analyzer.md) | 12 |
 | PHEL100-199 | [Parser errors](parser.md) | 6 |
 | PHEL200-299 | [Reader errors](reader.md) | 2 |
 | PHEL300-399 | [Lexer errors](lexer.md) | 2 |
@@ -33,6 +33,7 @@ failed before the program ran.
 | [PHEL009](analyzer.md#phel009-invalid-interface-implementation) | Invalid interface implementation | `INTERFACE_ERROR` | Analyzer |
 | [PHEL010](analyzer.md#phel010-invalid-recur) | Invalid recur | `RECUR_ERROR` | Analyzer |
 | [PHEL011](analyzer.md#phel011-value-in-call-position-is-not-callable) | Value in call position is not callable | `NOT_CALLABLE` | Analyzer |
+| [PHEL012](analyzer.md#phel012-superseded-form) | Superseded form | `SUPERSEDED_FORM` | Analyzer |
 | [PHEL100](parser.md#phel100-unterminated-list) | Unterminated list | `UNTERMINATED_LIST` | Parser |
 | [PHEL101](parser.md#phel101-unterminated-vector) | Unterminated vector | `UNTERMINATED_VECTOR` | Parser |
 | [PHEL102](parser.md#phel102-unterminated-map) | Unterminated map | `UNTERMINATED_MAP` | Parser |

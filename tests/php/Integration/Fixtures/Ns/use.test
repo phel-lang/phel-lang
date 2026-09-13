@@ -2,8 +2,8 @@
 (ns test
   (:use DateTimeImmutable DateTime :as D))
 
-(php/new DateTimeImmutable)
-(php/new D)
+(new DateTimeImmutable)
+(new D)
 --PHP--
 namespace test;
 require_once __DIR__ . '/phel/core.php';

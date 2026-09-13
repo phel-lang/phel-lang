@@ -41,8 +41,8 @@
    (bigdec "1.5")
    (rationalize 0.5)
    (random-uuid)
-   (class (php/new \stdClass))
-   (php/new \stdClass)
+   (class (new \stdClass))
+   (new \stdClass)
    (a-struct 1)
    (php/fopen "php://memory" "r")])
 

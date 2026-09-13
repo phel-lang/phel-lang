@@ -1,5 +1,5 @@
 --PHEL--
-(php/-> (php/new \DateTimeImmutable) (modify "+1 day") (format "Y-m-d"))
+(.format (.modify (new \DateTimeImmutable) "+1 day") "Y-m-d")
 --PHP--
 $target_1 = (function() {
   $target_2 = (new \DateTimeImmutable());

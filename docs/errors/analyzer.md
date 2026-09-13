@@ -18,6 +18,7 @@ The analyzer walks the parsed forms and resolves every symbol, arity and binding
 | [PHEL009](#phel009-invalid-interface-implementation) | Invalid interface implementation |
 | [PHEL010](#phel010-invalid-recur) | Invalid recur |
 | [PHEL011](#phel011-value-in-call-position-is-not-callable) | Value in call position is not callable |
+| [PHEL012](#phel012-superseded-form) | Superseded form |
 
 ## PHEL001: Undefined symbol
 
@@ -154,6 +155,18 @@ A literal number, string, boolean or `nil` sits at the head of a list. The analy
 ```
 
 **Fix:** Drop the parentheses, or put a function at the head of the list.
+
+## PHEL012: Superseded form
+
+Enum case: `ErrorCode::SUPERSEDED_FORM`
+
+A form Phel already says another way, kept as the compiler's own target but no longer accepted in source. `php/new`, `php/->` and `php/::` name what `new`, `.method` and `Class/member` say, and `set-var` is what `alter-var-root` does.
+
+```phel
+(php/new \DateTime)
+```
+
+**Fix:** Use the replacement the message names. The full table is in docs/migration/deprecated-surface.md.
 
 ---
 

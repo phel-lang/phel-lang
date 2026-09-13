@@ -17,7 +17,7 @@ final class EvalCommandTest extends AbstractTestCommand
 {
     use AssertsErrorReportShapeTrait;
 
-    private const string THROWING_EXPRESSION = '(php/throw (php/new \RuntimeException "boom from eval"))';
+    private const string THROWING_EXPRESSION = '(php/throw (new \RuntimeException "boom from eval"))';
 
     public static function setUpBeforeClass(): void
     {

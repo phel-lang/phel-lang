@@ -57,7 +57,7 @@ final class ExceptionHandlerTest extends TestCase
             (ns app.main)
 
             (defn- boom []
-              (throw (php/new \RuntimeException "boom")))
+              (throw (new \RuntimeException "boom")))
 
             (when-not *build-mode* (boom))
             PHEL);

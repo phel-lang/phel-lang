@@ -1,5 +1,5 @@
 --PHEL--
-(.getTimestamp (php/new \DateTimeImmutable))
+(.getTimestamp (new \DateTimeImmutable))
 --PHP--
 $target_1 = (new \DateTimeImmutable());
 $target_1->getTimestamp();

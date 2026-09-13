@@ -1,5 +1,5 @@
 --PHEL--
-(.-y (php/new \DateInterval "PT30S"))
+(.-y (new \DateInterval "PT30S"))
 --PHP--
 $target_1 = (new \DateInterval("PT30S"));
 $target_1->y;

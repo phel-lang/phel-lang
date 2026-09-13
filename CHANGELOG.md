@@ -10,10 +10,11 @@ All notable changes to this project will be documented in this file.
 - Runtime errors carry a code: `PHEL400` not callable, `PHEL401` arity, `PHEL402` type, `PHEL403` out of bounds, `PHEL404` division by zero. (#3266)
 - `--stack-trace` on `phel run`, `phel eval` and `phel repl`. The collapse marker names the flag and the error log. (#3261)
 - **BREAKING (PHP API, implementers only)**: `CommandFacadeInterface::getRuntimeErrorReport()` returns the runtime error report as a string, for hosts that print it themselves. (#3264)
-- Public API: `Phel\Lang\PhelType`, `Shared\ByteSize`, `Shared\Performance\OpcacheFileCache`, `Shared\Performance\OpcacheFileCachePruner` and `PhelProjectDirectory::opcachePath()`. (#3268 #3290)
+- Public API: `Phel\Lang\PhelType`, `Shared\ByteSize`, `Shared\Performance\OpcacheFileCache`, `Shared\Performance\OpcacheFileCachePruner`, `PhelProjectDirectory::opcachePath()` and `ErrorCode::SUPERSEDED_FORM`. (#2859 #3268 #3290)
 
 ### Removed
 
+- **BREAKING**: `php/new`, `php/->`, `php/::` and `set-var` as source. Writing one is a `PHEL012` error. Use `(new \Foo arg)`, `(.method obj arg)` / `(.-field obj)`, `(\Foo/method arg)` / `\Foo/CONST`, and `(alter-var-root (var v) f)`. The compiler still emits all four, so generated PHP does not change, and macros that expand to them keep working. The rest of `php/*` stays. (#2859, ADR 0018)
 - **BREAKING (PHP API)**: `ErrorCode::INVALID_QUOTE`, `ErrorCode::INVALID_UNQUOTE` and `ErrorCode::INVALID_CHARACTER`. Phel never raised them. (#3266)
 
 ### Fixed

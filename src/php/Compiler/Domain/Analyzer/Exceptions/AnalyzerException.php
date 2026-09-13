@@ -50,6 +50,27 @@ final class AnalyzerException extends AbstractLocatedException
     }
 
     /**
+     * A form Phel already says another way, written in source. It stays the
+     * compiler's own target, so the message is about the spelling rather than
+     * the capability: everything these four did is still reachable (#2877,
+     * #2888, ADR 0007).
+     *
+     * @param PersistentListInterface<mixed> $list
+     */
+    public static function supersededForm(
+        PersistentListInterface $list,
+        string $name,
+        string $purpose,
+        string $replacement,
+    ): self {
+        return self::withLocation(
+            sprintf('"%s" is no longer valid source for %s. Use %s instead.', $name, $purpose, $replacement),
+            $list,
+            errorCode: ErrorCode::SUPERSEDED_FORM,
+        );
+    }
+
+    /**
      * A special form given too few arguments. It names the form and the shape
      * it wanted, because "wrong number of arguments" without the shape sends
      * the reader to the documentation for something they nearly wrote.

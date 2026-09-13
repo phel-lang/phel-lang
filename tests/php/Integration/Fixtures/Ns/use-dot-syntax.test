@@ -2,8 +2,8 @@
 (ns test
   (:use Phel.Lang.SourceLocation Phel.Lang.Atom :as V))
 
-(php/new SourceLocation "f" 1 1)
-(php/new V nil 42)
+(new SourceLocation "f" 1 1)
+(new V nil 42)
 --PHP--
 namespace test;
 require_once __DIR__ . '/phel/core.php';

@@ -21,5 +21,5 @@ Security fixes are applied to the latest release only. We recommend always runni
 Phel compiles to PHP and runs in the PHP runtime. Security considerations include:
 
 - **Compiler output**: Phel-generated PHP should not introduce vulnerabilities beyond what equivalent hand-written PHP would
-- **`php/` interop**: PHP interop (`php/new`, `php/->`, `php/::`) gives full access to PHP — this is by design, not a vulnerability
+- **PHP interop**: `(new Class ...)`, `(.method object ...)`, `(Class/method ...)` and the remaining `php/*` forms give full access to PHP — this is by design, not a vulnerability. The compiler still uses `php/new`, `php/->` and `php/::` internally, but rejects them in source
 - **Dependencies**: We track CVEs in our Composer dependencies via Dependabot

@@ -29,7 +29,7 @@ use function sys_get_temp_dir;
  */
 final class TestCommandDeprecationsWarmCacheTest extends TestCase
 {
-    private const string NOTICE = 'Using "php/new" for constructing a PHP object is deprecated';
+    private const string NOTICE = "Definition 'phel.core/to-php-array' used at";
 
     private string $projectDir;
 
@@ -54,7 +54,7 @@ final class TestCommandDeprecationsWarmCacheTest extends TestCase
         file_put_contents(
             $this->projectDir . '/tests/probe_test.phel',
             "(ns app.probe-test\n  (:require phel.test :refer [deftest is]))\n\n"
-            . "(deftest test-probe\n  (is (php/instanceof (php/new \\stdClass) \\stdClass)))\n",
+            . "(deftest test-probe\n  (is (= 2 (php/count (to-php-array [1 2])))))\n",
         );
     }
 

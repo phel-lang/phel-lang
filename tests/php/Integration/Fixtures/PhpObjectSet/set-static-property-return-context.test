@@ -1,5 +1,5 @@
 --PHEL--
-(fn [] (php/oset (php/:: \DateTime slot) "x"))
+(fn [] (php/oset \DateTime/slot "x"))
 --PHP--
 (function() {
   \DateTime::$slot = "x";

@@ -6,7 +6,7 @@ namespace PhelTest\Unit\Architecture;
 
 use Phel\Compiler\Domain\Analyzer\AnalyzerInterface;
 use Phel\Compiler\Domain\Analyzer\TypeAnalyzer\AnalyzePersistentList;
-use Phel\Compiler\Domain\Deprecation\SupersededFormDeprecator;
+use Phel\Compiler\Domain\Deprecation\SupersededFormRejector;
 use PHPUnit\Framework\TestCase;
 
 use function dirname;
@@ -40,17 +40,17 @@ final class LanguageSurfaceSpecTest extends TestCase
         );
     }
 
-    public function test_the_spec_lists_exactly_the_forms_that_warn_as_deprecated(): void
+    public function test_the_spec_lists_exactly_the_forms_that_are_rejected(): void
     {
-        $documented = $this->deprecatedFormsDocumentedInTheSpec();
-        $warning = SupersededFormDeprecator::supersededFormNames();
-        sort($warning);
+        $documented = $this->rejectedFormsDocumentedInTheSpec();
+        $rejected = SupersededFormRejector::supersededFormNames();
+        sort($rejected);
 
         self::assertSame(
-            $warning,
+            $rejected,
             $documented,
-            "docs/spec/language-surface.md no longer matches SupersededFormDeprecator.\n"
-            . 'Update the "Deprecated inside 1.x" table in section 2.',
+            "docs/spec/language-surface.md no longer matches SupersededFormRejector.\n"
+            . 'Update the "Rejected as source from 1.0.0" table in section 2.',
         );
     }
 
@@ -73,16 +73,16 @@ final class LanguageSurfaceSpecTest extends TestCase
     }
 
     /**
-     * The first column of the "Deprecated inside 1.x" table, scoped to that
+     * The first column of the "Rejected as source from 1.0.0" table, scoped to that
      * subsection so the closed-list table above it cannot leak in.
      *
      * @return list<string>
      */
-    private function deprecatedFormsDocumentedInTheSpec(): array
+    private function rejectedFormsDocumentedInTheSpec(): array
     {
         $spec = (string) file_get_contents(dirname(__DIR__, 4) . '/docs/spec/language-surface.md');
 
-        preg_match('/^### Deprecated inside 1\.x$(.*?)^### /ms', $spec, $section);
+        preg_match('/^### Rejected as source from 1\.0\.0$(.*?)^### /ms', $spec, $section);
         preg_match_all('/^\| `([^`]+)` \| /m', $section[1] ?? '', $matches);
 
         $forms = $matches[1];

@@ -272,7 +272,7 @@ final class RunCommandTest extends AbstractTestCommand
 (ns test\macro-error-script)
 
 (defmacro broken-macro [x]
-  (throw (php/new \RuntimeException "macro exploded")))
+  (throw (new \RuntimeException "macro exploded")))
 
 (broken-macro 1)
 PHEL);

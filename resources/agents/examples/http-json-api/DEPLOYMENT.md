@@ -102,8 +102,8 @@ safe for code (definitions don't change at runtime), but be careful with:
 
 - **Mutable globals/atoms** defined at the top level — they keep their value
   across requests; reset per-request state yourself.
-- **Dynamic vars** (`set-var`, `binding`) — always restore them in a `finally`
-  so a request cannot leak bound values into the next.
+- **Dynamic vars** (`binding`, `with-redefs`) — keep request-local rebinding
+  inside their scope so a request cannot leak bound values into the next.
 - **Request data** — never stash it in a top-level `def`; pass it through the
   handler chain.
 

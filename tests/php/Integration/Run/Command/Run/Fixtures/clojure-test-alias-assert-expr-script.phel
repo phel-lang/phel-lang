@@ -18,6 +18,6 @@
                        :actual e#})
          e#))))
 
-(t/is (p/thrown? (throw (php/new \RuntimeException "boom"))))
+(t/is (p/thrown? (throw (new \RuntimeException "boom"))))
 
 (println "clojure-test-alias-ok")

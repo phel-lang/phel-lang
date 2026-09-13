@@ -1,5 +1,5 @@
 --PHEL--
-(php/-> (php/new \SimpleXMLElement "<root><user id='1'/></root>") user (count))
+(.count (.-user (new \SimpleXMLElement "<root><user id='1'/></root>")))
 --PHP--
 $target_1 = (function() {
   $target_2 = (new \SimpleXMLElement("<root><user id='1'/></root>"));

@@ -1,5 +1,5 @@
 --PHEL--
-(let [x 1 o (php/new \ArrayObject)] (php/-> o (offsetSet 0 (php/ref x))))
+(let [x 1 o (new \ArrayObject)] (.offsetSet o 0 (php/ref x)))
 --PHP--
 /** @var int $x_1 */
 $x_1 = 1;

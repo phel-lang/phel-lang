@@ -132,7 +132,7 @@ final readonly class QualifiedMemberExpander
     {
         return Phel::list([
             // Deliberately unlocated: nobody wrote this head, and `php/::` is
-            // deprecated as source, so locating it would report `\C/CONST` as a
+            // rejected as source, so locating it would report `\C/CONST` as a
             // use of the form it expands to. The list keeps the position that
             // error reporting needs.
             Symbol::create($head),
