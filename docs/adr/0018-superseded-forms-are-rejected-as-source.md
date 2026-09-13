@@ -73,9 +73,9 @@ ADR 0007 protects: `php/aget`, `php/aset`, `php/apush`, `php/aunset`, their
 
 - `SupersededFormRejectorTest` covers the walk: each of the four heads, a head
   nested inside a larger form, a quoted subtree, and a `php/*` form that stays.
-- `SupersededFormRejectionTest` compiles every Clojure-style shorthand and each
-  rejected form, so the shorthand cannot start failing and the form cannot start
-  being accepted.
+- `SupersededFormRejectionTest` compiles every Clojure-style shorthand and both
+  compiles and evaluates each rejected form, so neither public execution path can
+  accept one.
 - `LanguageSurfaceSpecTest` pins the spec's table against
   `SupersededFormRejector::supersededFormNames()`.
 
