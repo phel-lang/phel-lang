@@ -6,36 +6,46 @@ All notable changes to this project will be documented in this file.
 
 ### Added
 
-- Public API: `Shared\ByteSize`, `Shared\Performance\OpcacheFileCache`, `Shared\Performance\OpcacheFileCachePruner`, and `PhelProjectDirectory::opcachePath()`. (#3268)
-- `--stack-trace` on `phel run`, `phel eval` and `phel repl`, and a collapse marker that names both the flag and the error log holding the full trace. (#3261)
-- **BREAKING (PHP API, implementers only)**: `CommandFacadeInterface::getRuntimeErrorReport()`, the runtime error report as a string, for hosts that own where the text goes. (#3264)
-- `phel explain <code>` prints what an error code means, the smallest program that raises it and the fix. The same text is generated into `docs/errors/`, one page per code range. (#3266)
-- A runtime error carries an error code: `PHEL400` not callable, `PHEL401` arity, `PHEL402` type, `PHEL403` out of bounds, `PHEL404` division by zero. Every uncaught runtime failure used to print a bare message. (#3266)
-- **BREAKING (PHP API)**: `ErrorCode::INVALID_QUOTE`, `ErrorCode::INVALID_UNQUOTE` and `ErrorCode::INVALID_CHARACTER` are removed. They named errors Phel does not raise. (#3266)
-- Public API: `Phel\Lang\PhelType`, the PHP mirror of `phel.core/type`, so anything wording a type for a user agrees with the language. (#3290)
+- `phel explain <code>` prints what an error code means, the smallest program that raises it, and the fix. The same text lives in `docs/errors/`. (#3266)
+- Runtime errors carry a code: `PHEL400` not callable, `PHEL401` arity, `PHEL402` type, `PHEL403` out of bounds, `PHEL404` division by zero. (#3266)
+- `--stack-trace` on `phel run`, `phel eval` and `phel repl`. The collapse marker names the flag and the error log. (#3261)
+- **BREAKING (PHP API, implementers only)**: `CommandFacadeInterface::getRuntimeErrorReport()` returns the runtime error report as a string, for hosts that print it themselves. (#3264)
+- Public API: `Phel\Lang\PhelType`, `Shared\ByteSize`, `Shared\Performance\OpcacheFileCache`, `Shared\Performance\OpcacheFileCachePruner` and `PhelProjectDirectory::opcachePath()`. (#3268 #3290)
+
+### Removed
+
+- **BREAKING (PHP API)**: `ErrorCode::INVALID_QUOTE`, `ErrorCode::INVALID_UNQUOTE` and `ErrorCode::INVALID_CHARACTER`. Phel never raised them. (#3266)
 
 ### Fixed
 
-- `(.-$foo o)` names the sigil rule instead of failing with `Cannot resolve symbol '.-$foo'`. The diagnostics that point at a spelling now name the Clojure-style one: the sigil message drops its `(php/:: \Foo $prop)` alternative, and a dynamic `new` on a non-class says `new expects a class name or object`. (#3300)
-- A special form given too few arguments names the form and the shape it wanted, with a snippet and a caret. Twelve of them read past the end of their own list first, so the user got `[PHEL403] Index out of bounds` raised inside `PersistentList`, a runtime code for a compile-time problem, and four raised a bare `AssertionError` that vanished under `zend.assertions=-1`. (#3297)
-- REPL: `(exit)` and `(quit)` end the session like `exit` and `quit`, `(exit <code>)` sets the exit status, and the banner names the call form. (#3272)
-- `phel test`: the `Form:` line of a failed assertion prints the asserted source form instead of repeating the evaluated value. (#3263)
-- Parser: an unterminated list, vector, map, set or string now names the line it was opened on, carries an error code, and puts the caret on the opening delimiter. (#3259)
-- A runtime error raised inside the core library points its `at` line at the user's own call site, never at the compiled-cache artifact, and an uncaught `ex-info` prints its data map. (#3260)
-- A compiler deprecation prints one stderr line naming the user's file, instead of four PHP-rendered lines naming an internal Phel class. (#3262)
-- `<phel-dir>/opcache` no longer grows without bound: `phel cache:clear` empties it, every run prunes dead system-id subtrees and orphaned `.bin` files, and `phel doctor` reports its size. (#3268)
-- `phel mutate` and `phel test --coverage` collect coverage under pcov instead of reporting nothing, and a run that reached no mutant scores 0 rather than passing `--min-covered-msi`. (#3270)
-- Pruning the OPcache file cache no longer dies with a fatal `UnexpectedValueException` when a second process removes a subdirectory under it, which took down whatever command was running. (#3280)
-- Analyzer: redefining a symbol now prints the snippet, the caret, the `PHEL004` code and the line where the symbol was first defined, instead of one line followed by 31 internal frames. (#3267)
-- Printer: a host object with no printer of its own renders as `#<Class>`, so a stack-trace frame no longer shows a sentence where one argument belongs. (#3265)
-- `phel test --parallel`: the parent warms every bundled namespace before dispatching, and a namespace is re-run on a fresh worker only when the worker itself failed, never for a compile error or a failing test. (#3271)
-- An uncaught runtime error reads the same from `phel run`, `phel eval` and the REPL: message, `at` line, user-visible frames, one collapsed marker, and a hint when one matches. The prompt no longer opens on the exception class, and prints the report uncoloured like the other two. (#3264)
-- The error log is plain text, opens every entry with a timestamp and the command that produced it, and rotates at 1 MiB into `error.log.1` instead of growing without bound with ANSI escapes in it. (#3269)
-- Analyzer, reader and parser errors that had a code defined but never printed it now print it: `PHEL008` bindings, `PHEL009` interfaces, `PHEL010` `recur`, `PHEL202` splice. (#3266)
-- A `definterface` method with no argument vector, and a `catch` with no type or binding, report the analyzer error naming the form instead of an out-of-bounds error raised inside `PersistentList`. (#3266)
-- Analyzer messages name the Phel type, not the PHP one: `nil` instead of `null`, `boolean` instead of `bool`, `vector` and `hash-map` instead of `Collections\Vector\PersistentVector` and `Collections\Map\PersistentArrayMap`. A hash map no longer changes what it is called at eight entries. (#3290)
-- A lexer error reports like every other compile error: `PHEL310`, the user's file and line, the offending line and a caret under the character it stopped on. `phel run`, `phel eval`, the REPL and `phel format` all used to print the exception class and point at an internal Phel file, and `phel analyze` reported every lexer error at line 1, column 1. (#3289)
-- `phel lint` reports a file that does not lex or parse, with the code and location the analyzer already had, and exits 1. It used to print "No lint issues found." and exit 0, so a gate built on it passed source that cannot compile. (#3292)
+Compile errors:
+
+- Every compile error reports the same way: code, file and line, snippet, caret. Lexer errors (`PHEL310`), unclosed delimiters and redefined symbols (`PHEL004`) used to print the exception class, an internal file, or 31 frames. An unclosed delimiter names the line it opened on, a redefinition the line of the first one. (#3259 #3267 #3289)
+- Errors that had a code but never printed it now do: `PHEL008` bindings, `PHEL009` interfaces, `PHEL010` `recur`, `PHEL202` splice. (#3266)
+- A special form with too few arguments names the form and the shape it wants. It used to raise `[PHEL403] Index out of bounds` from inside `PersistentList`, or a bare `AssertionError` that `zend.assertions=-1` hid. Same fix for a `definterface` method with no argument vector and a `catch` with no type or binding. (#3266 #3297)
+- Analyzer messages name Phel types: `nil`, not `null`. `vector`, not `Collections\Vector\PersistentVector`. (#3290)
+- `(.-$foo o)` explains the sigil rule instead of `Cannot resolve symbol '.-$foo'`. Diagnostics suggest the Clojure-style spelling, never `php/::` or `php/new`. (#3300)
+- A compiler deprecation prints one stderr line naming the user's file. (#3262)
+
+Runtime errors:
+
+- An uncaught runtime error reads the same in `phel run`, `phel eval` and the REPL: message, `at` line, user frames, one collapse marker, a hint when one matches. (#3264)
+- An error raised inside the core library points its `at` line at the user's call, not the compiled cache. An uncaught `ex-info` prints its data map. (#3260)
+- A host object with no printer of its own prints as `#<Class>`, so a stack-trace frame no longer shows a sentence where an argument belongs. (#3265)
+- The error log is plain text. Each entry opens with a timestamp and the command, and the file rotates at 1 MiB into `error.log.1`. (#3269)
+
+Tooling:
+
+- `phel lint` reports a file that does not lex or parse and exits 1. It used to print "No lint issues found." and exit 0. (#3292)
+- `phel test`: the `Form:` line of a failed assertion shows the source form, not the evaluated value. (#3263)
+- `phel test --parallel` warms the bundled namespaces first. It re-runs a namespace only when its worker died, never for a compile error or a failing test. (#3271)
+- `phel mutate` and `phel test --coverage` collect coverage under pcov. A run that reaches no mutant scores 0 and fails `--min-covered-msi`. (#3270)
+- REPL: `(exit)` and `(quit)` end the session, and `(exit <code>)` sets the exit status. (#3272)
+
+OPcache file cache:
+
+- `<phel-dir>/opcache` stops growing without bound. `phel cache:clear` empties it, every run prunes stale system-id directories and orphaned `.bin` files, and `phel doctor` reports its size. (#3268)
+- Pruning no longer dies with `UnexpectedValueException` when another process removes a subdirectory mid-prune. (#3280)
 
 ## [0.51.0](https://github.com/phel-lang/phel-lang/compare/v0.50.0...v0.51.0) - 2026-09-05
 
