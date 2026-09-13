@@ -41,7 +41,7 @@ Each handler returns one `AbstractNode`. Every node maps 1:1 to an `*Emitter.php
 | `foreach` | `NAME_FOREACH` | `ForeachSymbol` | `ForeachNode` | Side-effect iteration; `nil` result. |
 | `try` / `catch` / `finally` | `NAME_TRY` | `TrySymbol` | `TryNode`, `CatchNode` | `catch`/`finally` only inside `try`. |
 | `throw` | `NAME_THROW` | `ThrowSymbol` | `ThrowNode` | Any `Throwable`. |
-| `set-var` | `NAME_SET_VAR` | `SetVarSymbol` | `SetVarNode` | Rare; prefer `swap!`. |
+| `set-var` | `NAME_SET_VAR` | `SetVarSymbol` | `SetVarNode` | Compiler target; rejected in source. |
 
 ## Namespacing
 
@@ -66,10 +66,10 @@ Trailing `*` means not user-facing. Macros `defstruct`, `definterface`, `defexce
 
 ## PHP interop
 
-`php/new`, `php/->` and `php/::` are deprecated **as source** but still exist as the
+`php/new`, `php/->` and `php/::` are rejected **as source** but still exist as the
 compilation target the Clojure-style shorthand expands into, so they keep their
-analyzers and emitters. `SupersededFormRejector` warns on a *written* one, which is
-why it runs on the list before `AnalyzePersistentList` desugars.
+analyzers and emitters. `SupersededFormRejector` rejects a *written* one, which is
+why it runs after reading and before `AnalyzePersistentList` desugars.
 
 | Form | Const | Emits |
 |------|-------|-------|

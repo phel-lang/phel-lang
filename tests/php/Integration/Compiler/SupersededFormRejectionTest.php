@@ -82,6 +82,7 @@ final class SupersededFormRejectionTest extends TestCase
         yield 'php/new' => ['(php/new \DateTime "2024-03-10")', '"php/new"'];
         yield 'php/->' => ['(let [d (new \DateTime)] (php/-> d (format "Y")))', '"php/->"'];
         yield 'php/::' => ['(php/:: \DateTime (createFromFormat "Y-m-d" "2024-03-10"))', '"php/::"'];
+        yield 'set-var' => ['(set-var *probe* 2)', '"set-var"'];
     }
 
     #[DataProvider('provideShorthand')]
@@ -106,10 +107,22 @@ final class SupersededFormRejectionTest extends TestCase
         self::fail($form . ' was accepted as source');
     }
 
-    public function test_set_var_written_directly_is_rejected(): void
+    #[DataProvider('provideSupersededForm')]
+    public function test_a_superseded_form_cannot_bypass_rejection_through_eval(string $phelCode, string $form): void
     {
-        $this->compilerFacade->eval('(def ^:dynamic *probe* 1)', new CompileOptions()->setSource('/app/user.phel'));
+        try {
+            $this->compilerFacade->eval($phelCode, new CompileOptions()->setSource('/app/user.phel'));
+        } catch (CompilerException $compilerException) {
+            self::assertStringContainsString($form, $compilerException->getNestedException()->getMessage());
+            self::assertSame(ErrorCode::SUPERSEDED_FORM, $compilerException->getNestedException()->getErrorCode());
+            return;
+        }
 
+        self::fail($form . ' was accepted by eval');
+    }
+
+    public function test_set_var_rejection_names_the_replacement(): void
+    {
         $this->expectException(CompilerException::class);
         $this->expectExceptionMessage('alter-var-root');
 
@@ -118,8 +131,8 @@ final class SupersededFormRejectionTest extends TestCase
 
     /**
      * `binding` opens a frame and then emits one `set-var` per pair, so the
-     * whole macro is built out of the deprecated form. The notice belongs to
-     * `src/phel/core/io.phel`, which the stdlib suppression drops.
+     * whole macro is built out of the rejected source form. Reader-phase
+     * rejection must not see that analyzer-produced target.
      */
     public function test_binding_and_with_redefs_still_compile(): void
     {
@@ -141,6 +154,21 @@ final class SupersededFormRejectionTest extends TestCase
         $this->compile('(definterface Greeter (greet [this name]))');
 
         $this->expectNotToPerformAssertions();
+    }
+
+    public function test_a_user_macro_can_still_emit_a_superseded_form_during_eval(): void
+    {
+        $result = $this->compilerFacade->eval(
+            <<<'PHEL'
+                (defmacro set-root-from-macro! [v e] `(set-var ~v ~e))
+                (def ^:dynamic *macro-probe* 1)
+                (set-root-from-macro! *macro-probe* 2)
+                *macro-probe*
+                PHEL,
+            new CompileOptions()->setSource('/app/user.phel'),
+        );
+
+        self::assertSame(2, $result);
     }
 
     private function compile(string $phelCode): void

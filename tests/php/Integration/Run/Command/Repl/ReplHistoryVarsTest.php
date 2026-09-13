@@ -91,8 +91,8 @@ final class ReplHistoryVarsTest extends AbstractTestCommand
     {
         $io = $this->createReplTestIo();
         $io->setInputs(
-            new InputLine('user:1> ', '(php/throw (php/new \\RuntimeException "boom"))'),
-            new InputLine('user:2> ', '(php/-> *e (getMessage))'),
+            new InputLine('user:1> ', '(php/throw (new \\RuntimeException "boom"))'),
+            new InputLine('user:2> ', '(.getMessage *e)'),
             new InputLine('user:3> ', 'exit'),
         );
         $this->prepareRunFactory($io);

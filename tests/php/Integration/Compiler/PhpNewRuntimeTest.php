@@ -15,7 +15,7 @@ final class PhpNewRuntimeTest extends AbstractCompilerRuntimeTestCase
         $this->expectExceptionMessage('new expects a class name or object, int given (1)');
 
         $this->compilerFacade->eval(
-            '(php/new 1)',
+            '(new 1)',
             new CompileOptions(),
         );
     }
@@ -26,7 +26,7 @@ final class PhpNewRuntimeTest extends AbstractCompilerRuntimeTestCase
         $this->expectExceptionMessage('new expects a class name or object, int given (42)');
 
         $this->compilerFacade->eval(
-            '(let [x 42] (php/new x))',
+            '(let [x 42] (new x))',
             new CompileOptions(),
         );
     }

@@ -11,8 +11,8 @@ Read the record **before** proposing to straighten out something that looks wron
 Each of these looks like an oversight and was argued once:
 
 - four accepted module cycles (ADR 0004), not zero
-- `php/new` / `php/->` / `php/::` are deprecated as source yet remain the
-  compilation target the shorthand expands into (ADR 0007)
+- `php/new` / `php/->` / `php/::` are rejected as source yet remain the
+  compilation target the shorthand expands into (ADR 0007, amended by ADR 0018)
 - `\` still parses as a namespace separator alongside `.` (ADR 0008)
 - a static property reads as `Foo/$prop` and assigns as `(set! Foo/prop v)`,
   sigil on one side only (ADR 0013)

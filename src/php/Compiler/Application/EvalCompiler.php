@@ -8,6 +8,7 @@ use Phel\Compiler\Domain\Analyzer\AnalyzerInterface;
 use Phel\Compiler\Domain\Analyzer\Ast\AbstractNode;
 use Phel\Compiler\Domain\Analyzer\Environment\NodeEnvironment;
 use Phel\Compiler\Domain\Compiler\EvalCompilerInterface;
+use Phel\Compiler\Domain\Deprecation\SupersededFormRejector;
 use Phel\Compiler\Domain\Emitter\StatementEmitterInterface;
 use Phel\Compiler\Domain\Evaluator\EvaluatorInterface;
 use Phel\Compiler\Domain\Lexer\Exceptions\LexerValueException;
@@ -40,6 +41,7 @@ final readonly class EvalCompiler implements EvalCompilerInterface
         private AnalyzerInterface $analyzer,
         private StatementEmitterInterface $emitter,
         private EvaluatorInterface $evaluator,
+        private SupersededFormRejector $supersededFormRejector = new SupersededFormRejector(),
     ) {}
 
     /**
@@ -68,6 +70,7 @@ final readonly class EvalCompiler implements EvalCompilerInterface
 
                 if (!$parseTree instanceof TriviaNodeInterface) {
                     $readerResult = $this->reader->read($parseTree);
+                    $this->rejectSupersededForms($readerResult);
                     $node = $this->analyze($readerResult);
 
                     $result = $this->evalNode($node, $compileOptions);
@@ -89,6 +92,18 @@ final readonly class EvalCompiler implements EvalCompilerInterface
         $this->analyzer->setOptimizationLevel($compileOptions->getOptimizationLevel());
         $node = $this->analyzer->analyze($form, NodeEnvironment::empty()->withReturnContext());
         return $this->evalNode($node, $compileOptions);
+    }
+
+    /**
+     * @throws CompilerException
+     */
+    private function rejectSupersededForms(ReaderResult $readerResult): void
+    {
+        try {
+            $this->supersededFormRejector->rejectIfWritten($readerResult->getAst());
+        } catch (AbstractLocatedException $locatedException) {
+            throw new CompilerException($locatedException, $readerResult->getCodeSnippet());
+        }
     }
 
     /**

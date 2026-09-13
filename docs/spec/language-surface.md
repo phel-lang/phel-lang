@@ -146,7 +146,7 @@ frame is what records a rebinding. Removing the public form needs a non-public
 primitive to take that job.
 
 `LanguageSurfaceSpecTest` checks this table against `SupersededFormRejector`
-too, so the page and the compiler cannot disagree about which forms warn.
+too, so the page and the compiler cannot disagree about which forms are rejected.
 Rationale: [ADR 0007](../adr/0007-clojure-style-interop-is-the-source-spelling.md).
 
 ### Interop shorthands

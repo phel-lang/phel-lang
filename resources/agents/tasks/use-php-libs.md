@@ -80,7 +80,7 @@ composer require guzzlehttp/guzzle
 
 - Convert maps for PHP libs; use `#php {}` or `phel->php`.
 - Method chain: `(-> obj (.a) (.b))`, not `(-> obj .a .b)`.
-- `php/new`, `php/->` and `php/::` are deprecated; the spellings above are the only ones to write.
+- `php/new`, `php/->` and `php/::` are rejected as source; the spellings above are the only ones to write.
 - Static constants need `:use` or full path.
 - PHP warnings don't throw; `(php/error_get_last)` to check.
 - Hot loops: prefer `php/array_map` over round-tripping.
