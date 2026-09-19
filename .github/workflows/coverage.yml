@@ -40,7 +40,9 @@ jobs:
   coverage:
     name: Coverage
     runs-on: ubuntu-latest
-    timeout-minutes: 30
+    # The full unit+integration suite under pcov does not finish in 30;
+    # that wall was cancelling the run before the floor check could run.
+    timeout-minutes: 60
     env:
       # A ratchet: raise it when the real figure clears it comfortably, never
       # lower it to turn a red build green.
