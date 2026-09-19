@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace PhelTest\Unit\Compiler\Parser\ExpressionParser;
 
+use Phel\Compiler\Domain\Parser\Exceptions\StringParserException;
 use Phel\Compiler\Domain\Parser\ExpressionParser\CharParser;
 use Phel\Lang\SourceLocation;
 use Phel\Shared\Parser\Node\StringNode;
@@ -130,6 +131,27 @@ final class CharParserTest extends TestCase
     public function test_parse_semicolon(): void
     {
         self::assertSame(';', $this->parse('\\;')->getValue());
+    }
+
+    public function test_parse_octal_highest_byte(): void
+    {
+        self::assertSame("\xFF", $this->parse('\\o377')->getValue());
+    }
+
+    public function test_parse_octal_above_a_byte_is_rejected(): void
+    {
+        $this->expectException(StringParserException::class);
+        $this->expectExceptionMessage('Octal escape sequence out of range: \\o400 is above \\o377.');
+
+        $this->parse('\\o400');
+    }
+
+    public function test_parse_octal_max_three_digits_is_rejected(): void
+    {
+        // 0777 is 511. chr() used to wrap it to 255, silently yielding \o377.
+        $this->expectException(StringParserException::class);
+
+        $this->parse('\\o777');
     }
 
     private function parse(string $raw): StringNode

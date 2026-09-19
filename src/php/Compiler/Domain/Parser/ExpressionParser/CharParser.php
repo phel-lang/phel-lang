@@ -4,12 +4,14 @@ declare(strict_types=1);
 
 namespace Phel\Compiler\Domain\Parser\ExpressionParser;
 
+use Phel\Compiler\Domain\Parser\Exceptions\StringParserException;
 use Phel\Shared\Parser\Node\StringNode;
 use Phel\Shared\Parser\Node\Token;
 
 use function chr;
 use function hexdec;
 use function octdec;
+use function sprintf;
 use function strlen;
 use function substr;
 
@@ -20,13 +22,17 @@ use function substr;
  * Unicode escapes).
  *
  * Assumes the token source matches the lexer's char-literal rule: that is,
- * `\<named>`, `\u<4 hex>`, `\o<1-3 octal>`, or `\<single char>`. The lexer is
- * the single source of validation; this parser only decodes.
+ * `\<named>`, `\u<4 hex>`, `\o<1-3 octal>`, or `\<single char>`. The lexer
+ * handles shape; this parser decodes and additionally rejects an octal escape
+ * whose value is not a byte, which the lexer's 1-3 digit rule cannot express.
  *
  * @internal
  */
 final class CharParser
 {
+    /** The widest value chr() accepts; see StringParser::MAX_BYTE. */
+    private const int MAX_BYTE = 0xFF;
+
     private const array NAMED_CHARS = [
         '\\space' => ' ',
         '\\newline' => "\n",
@@ -36,6 +42,9 @@ final class CharParser
         '\\return' => "\r",
     ];
 
+    /**
+     * @throws StringParserException
+     */
     public function parse(Token $token): StringNode
     {
         return new StringNode(
@@ -59,8 +68,18 @@ final class CharParser
         }
 
         // Octal escape: \oNNN (1-3 octal digits, validated by the lexer).
+        // The lexer's 1-3 digit rule admits \o400 through \o777, which are not
+        // bytes; chr() would silently wrap them with % 256.
         if (strlen($raw) >= 3 && $raw[1] === 'o' && preg_match('/^[0-7]{1,3}$/', substr($raw, 2)) === 1) {
-            return chr((int) octdec(substr($raw, 2)));
+            $octal = (int) octdec(substr($raw, 2));
+
+            if ($octal > self::MAX_BYTE) {
+                throw new StringParserException(
+                    sprintf('Octal escape sequence out of range: \\o%s is above \\o377.', substr($raw, 2)),
+                );
+            }
+
+            return chr($octal);
         }
 
         // Single-character literal: the char immediately following the backslash.
@@ -74,15 +93,16 @@ final class CharParser
     private function codepointToUtf8(int $codepoint): string
     {
         if ($codepoint <= 0x7F) {
-            return chr($codepoint);
+            return chr($codepoint & self::MAX_BYTE);
         }
 
         if ($codepoint <= 0x7FF) {
-            return chr(($codepoint >> 6) + 0xC0) . chr(($codepoint & 0x3F) + 0x80);
+            return chr((($codepoint >> 6) + 0xC0) & self::MAX_BYTE)
+                . chr((($codepoint & 0x3F) + 0x80) & self::MAX_BYTE);
         }
 
-        return chr(($codepoint >> 12) + 0xE0)
-            . chr((($codepoint >> 6) & 0x3F) + 0x80)
-            . chr(($codepoint & 0x3F) + 0x80);
+        return chr((($codepoint >> 12) + 0xE0) & self::MAX_BYTE)
+            . chr(((($codepoint >> 6) & 0x3F) + 0x80) & self::MAX_BYTE)
+            . chr((($codepoint & 0x3F) + 0x80) & self::MAX_BYTE);
     }
 }
