@@ -8,6 +8,6 @@ name: build-test-and-development-commands
 - `composer test-compiler`: PHPUnit suites (`unit`, `integration`).
 - `composer test-core`: exercises Phel core tests via `bin/phel test`.
 - `composer fix`: auto-fix code style (chains Rector and CS Fixer).
-- `composer phpstan` / `composer psalm`: static analysis tuned for PHP 8.4.
+- `composer phpstan` / `composer psalm`: static analysis tuned for PHP 8.5.
 - `composer phpbench`: run benchmarks; `composer phpbench-base` (baseline), `composer phpbench-ref` (compare).
 - `./build/phar.sh`: creates `build/out/phel.phar` for distribution testing.

@@ -22,7 +22,7 @@
     ],
     "homepage": "https://phel-lang.org/",
     "require": {
-        "php": ">=8.4",
+        "php": ">=8.5",
         "amphp/amp": "^3.1",
         "gacela-project/gacela": "^2.0",
         "symfony/console": "^7.3|^8.0",
@@ -66,7 +66,7 @@
             "infection/extension-installer": true
         },
         "platform": {
-            "php": "8.4.6"
+            "php": "8.5.0"
         },
         "sort-packages": true
     },

@@ -2,7 +2,7 @@
   "name": "phel-examples/todo-app",
   "description": "Minimal Phel HTTP todo API",
   "require": {
-    "php": "^8.4",
+    "php": "^8.5",
     "phel-lang/phel-lang": "*"
   }
 }

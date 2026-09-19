@@ -24,6 +24,9 @@ final class StringParser
      */
     private const int MAX_BYTE = 0xFF;
 
+    /** The widest codepoint UTF-8 encodes in four bytes. */
+    private const int MAX_CODEPOINT = 0x1FFFFF;
+
     private const int BRACED_UNICODE_ESCAPE_MATCH = 2;
 
     private const int FIXED_UNICODE_ESCAPE_MATCH = 3;
@@ -90,7 +93,7 @@ final class StringParser
 
         $octal = (int) octdec($sequence);
 
-        if ($octal > self::MAX_BYTE) {
+        if ($octal < 0 || $octal > self::MAX_BYTE) {
             throw new StringParserException(
                 sprintf('Octal escape sequence out of range: \\%s is above \\377.', $sequence),
             );
@@ -116,31 +119,31 @@ final class StringParser
     }
 
     /**
+     * Checking the whole domain up front, rather than falling through to a
+     * throw, is what lets each branch below stay provably inside chr()'s
+     * byte range.
+     *
      * @throws StringParserException
      */
     private function codePointToUtf8(int $num): string
     {
+        if ($num < 0 || $num > self::MAX_CODEPOINT) {
+            throw new StringParserException('Invalid UTF-8 codepoint escape sequence: Codepoint too large');
+        }
+
         if ($num <= 0x7F) {
-            return chr($num & self::MAX_BYTE);
+            return chr($num);
         }
 
         if ($num <= 0x7FF) {
-            return chr((($num >> 6) + 0xC0) & self::MAX_BYTE) . chr((($num & 0x3F) + 0x80) & self::MAX_BYTE);
+            return chr(($num >> 6) + 0xC0) . chr(($num & 0x3F) + 0x80);
         }
 
         if ($num <= 0xFFFF) {
-            return chr((($num >> 12) + 0xE0) & self::MAX_BYTE)
-                . chr(((($num >> 6) & 0x3F) + 0x80) & self::MAX_BYTE)
-                . chr((($num & 0x3F) + 0x80) & self::MAX_BYTE);
+            return chr(($num >> 12) + 0xE0) . chr((($num >> 6) & 0x3F) + 0x80) . chr(($num & 0x3F) + 0x80);
         }
 
-        if ($num <= 0x1FFFFF) {
-            return chr((($num >> 18) + 0xF0) & self::MAX_BYTE)
-                . chr(((($num >> 12) & 0x3F) + 0x80) & self::MAX_BYTE)
-                . chr(((($num >> 6) & 0x3F) + 0x80) & self::MAX_BYTE)
-                . chr((($num & 0x3F) + 0x80) & self::MAX_BYTE);
-        }
-
-        throw new StringParserException('Invalid UTF-8 codepoint escape sequence: Codepoint too large');
+        return chr(($num >> 18) + 0xF0) . chr((($num >> 12) & 0x3F) + 0x80)
+            . chr((($num >> 6) & 0x3F) + 0x80) . chr(($num & 0x3F) + 0x80);
     }
 }

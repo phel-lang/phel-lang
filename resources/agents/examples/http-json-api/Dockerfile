@@ -5,7 +5,7 @@
 # so the compiler never runs on a request.
 
 # --- Build stage -----------------------------------------------------------
-FROM php:8.4-cli AS build
+FROM php:8.5-cli AS build
 
 COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
 
@@ -16,7 +16,7 @@ RUN composer install --no-dev --optimize-autoloader --no-interaction \
     && ./vendor/bin/phel build --report
 
 # --- Runtime stage ---------------------------------------------------------
-FROM php:8.4-cli AS runtime
+FROM php:8.5-cli AS runtime
 
 # Opcache for the compiled output (immutable image: skip timestamp checks).
 RUN docker-php-ext-install opcache

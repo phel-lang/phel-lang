@@ -71,14 +71,14 @@ Running compiler and runtime client-side via
 entirely: the browser tab is the sandbox. Language-side blockers checked:
 
 - **No hard PHP extension dependencies.** `composer.json` `require` is
-  `php >=8.4`, `amphp/amp`, `gacela-project/gacela`, `symfony/console`,
+  `php >=8.5`, `amphp/amp`, `gacela-project/gacela`, `symfony/console`,
   `symfony/routing`, all pure PHP. The only `ext-*` entry (`ext-readline`) is
   `require-dev` and used solely by the interactive REPL.
 - **Eval uses `eval()`, not `proc_open`.** `proc_open`/`pcntl`/`posix`/Fibers
   appear only in the parallel test runner, nREPL server, watcher and async paths,
   none on the compile-and-eval path.
 
-Open items a PoC must verify: that php-wasm's bundled PHP satisfies `>=8.4`; the
+Open items a PoC must verify: that php-wasm's bundled PHP satisfies `>=8.5`; the
 payload size once compiler plus core `.phel` are bundled, and cold-start compile
 time in the browser; that amp, gacela and symfony load cleanly under php-wasm's
 filesystem shim.

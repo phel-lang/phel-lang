@@ -26,7 +26,7 @@ Namespaces: 37 (37 fresh, 0 cached) | Total: 1.75 MB | Time: 240.3 ms | Output: 
 
 A built app needs only:
 
-- PHP 8.4+
+- PHP 8.5+
 - `phel-lang/phel-lang` (a normal `require`, not `require-dev`) — it provides
   the runtime (persistent data types, the `\Phel` bootstrap, core library)
 - your `vendor/` installed with `--no-dev`
