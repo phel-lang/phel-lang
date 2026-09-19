@@ -4,6 +4,8 @@ All notable changes to this project will be documented in this file.
 
 ## Unreleased
 
+## [0.52.0](https://github.com/phel-lang/phel-lang/compare/v0.51.0...v0.52.0) - 2026-09-19
+
 ### Added
 
 - `phel explain <code>` prints what an error code means, the smallest program that raises it, and the fix. The same text lives in `docs/errors/`. (#3266)
