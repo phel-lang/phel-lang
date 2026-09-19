@@ -6,6 +6,7 @@ namespace Phel\Lang\Collections\HashSet;
 
 use Countable;
 use IteratorAggregate;
+use NoDiscard;
 use Phel\Lang\Collections\AsTransientInterface;
 use Phel\Lang\ConcatInterface;
 use Phel\Lang\ContainsInterface;
@@ -27,6 +28,7 @@ interface PersistentHashSetInterface extends TypeInterface, Countable, IteratorA
      *
      * @return self<TValue>
      */
+    #[NoDiscard('the result is a new collection, the receiver is unchanged')]
     public function add(mixed $value): self;
 
     /**
@@ -34,6 +36,7 @@ interface PersistentHashSetInterface extends TypeInterface, Countable, IteratorA
      *
      * @return self<TValue>
      */
+    #[NoDiscard('the result is a new collection, the receiver is unchanged')]
     public function remove(mixed $value): self;
 
     /**
