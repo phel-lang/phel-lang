@@ -2,7 +2,7 @@
 
 Applies to any `0.49` or later release. The filename says `0.49` because that is
 where the deprecation notices this guide walks you through began; everything
-listed here also holds if you are on `0.50` or on the last minor before `1.0`.
+listed here also holds on any later `0.x`, up to the last minor before `1.0`.
 
 `1.0.0` is a stability commitment, not a feature release: what arrives is a
 promise that what exists stops moving. See
@@ -25,8 +25,8 @@ return PhelConfig::forProject()->withWarnDeprecations(true);
 ```
 
 Uses inside Phel's own stdlib are suppressed, so the output lists only code you
-own. **A clean run on 0.49 means the upgrade is a version bump.** Notices go to
-stderr and cannot break a build.
+own. **A clean run on your current `0.x` means the upgrade is a version
+bump.** Notices go to stderr and cannot break a build.
 
 ## Step 2: reader syntax
 
