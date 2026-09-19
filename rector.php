@@ -5,6 +5,7 @@ declare(strict_types=1);
 use Rector\CodingStyle\Rector\String_\UseClassKeywordForClassNameResolutionRector;
 use Rector\Config\RectorConfig;
 use Rector\DeadCode\Rector\Cast\RecastingRemovalRector;
+use Rector\DeadCode\Rector\Expression\RemoveDeadStmtRector;
 use Rector\DeadCode\Rector\ClassMethod\RemoveUselessUnionReturnDocblockRector;
 use Rector\Php84\Rector\Foreach_\ForeachToArrayAllRector;
 use Rector\PHPUnit\CodeQuality\Rector\Class_\PreferPHPUnitThisCallRector;
@@ -33,6 +34,13 @@ return RectorConfig::configure()
         // drop the reference because arrow functions capture by value.
         ForeachToArrayAllRector::class => [
             __DIR__ . '/src/php/Compiler/Domain/Analyzer/Ast/Reference/LocalVarReferences.php',
+        ],
+        // Rector 2.6 does not know PHP 8.5's `(void)` cast and treats it as a
+        // dead statement, so it strips the very thing that tells `#[NoDiscard]`
+        // the discard is deliberate. Removing it costs 11x on these subjects,
+        // because every call then emits a warning. See #3303.
+        RemoveDeadStmtRector::class => [
+            __DIR__ . '/tests/php/Benchmark/Phel/CoreDispatchBench.php',
         ],
         // `ob_get_clean()` returns `string|false`; Rector 2.5 narrows it to
         // `string` inside these catch blocks and strips the cast, which Psalm
