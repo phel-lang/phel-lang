@@ -50,7 +50,7 @@ final class LanguageSurfaceSpecTest extends TestCase
             $rejected,
             $documented,
             "docs/spec/language-surface.md no longer matches SupersededFormRejector.\n"
-            . 'Update the "Rejected as source from 1.0.0" table in section 2.',
+            . 'Update the "Rejected as source from <version>" table in section 2.',
         );
     }
 
@@ -73,8 +73,12 @@ final class LanguageSurfaceSpecTest extends TestCase
     }
 
     /**
-     * The first column of the "Rejected as source from 1.0.0" table, scoped to that
-     * subsection so the closed-list table above it cannot leak in.
+     * The first column of the "Rejected as source from <version>" table, scoped
+     * to that subsection so the closed-list table above it cannot leak in.
+     *
+     * The version in the heading is matched loosely on purpose: pinning it meant
+     * that correcting the version silently emptied this list instead of failing
+     * loudly, which is the opposite of what the guard is for.
      *
      * @return list<string>
      */
@@ -82,7 +86,13 @@ final class LanguageSurfaceSpecTest extends TestCase
     {
         $spec = (string) file_get_contents(dirname(__DIR__, 4) . '/docs/spec/language-surface.md');
 
-        preg_match('/^### Rejected as source from 1\.0\.0$(.*?)^### /ms', $spec, $section);
+        preg_match('/^### Rejected as source from [0-9]+\.[0-9]+\.[0-9]+$(.*?)^### /ms', $spec, $section);
+
+        self::assertArrayHasKey(
+            1,
+            $section,
+            'docs/spec/language-surface.md has no "### Rejected as source from <version>" heading.',
+        );
         preg_match_all('/^\| `([^`]+)` \| /m', $section[1] ?? '', $matches);
 
         $forms = $matches[1];
