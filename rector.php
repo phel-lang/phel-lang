@@ -37,10 +37,13 @@ return RectorConfig::configure()
         ],
         // Rector 2.6 does not know PHP 8.5's `(void)` cast and treats it as a
         // dead statement, so it strips the very thing that tells `#[NoDiscard]`
-        // the discard is deliberate. Removing it costs 11x on these subjects,
-        // because every call then emits a warning. See #3303.
+        // the discard is deliberate. Removing it costs 11x on the subject,
+        // because every call then emits a warning. Scoped to the whole
+        // benchmark tree: a subject that measures one operation on a fixed
+        // receiver always discards, so this is not a one file exception.
+        // See #3303.
         RemoveDeadStmtRector::class => [
-            __DIR__ . '/tests/php/Benchmark/Phel/CoreDispatchBench.php',
+            __DIR__ . '/tests/php/Benchmark',
         ],
         // `ob_get_clean()` returns `string|false`; Rector 2.5 narrows it to
         // `string` inside these catch blocks and strips the cast, which Psalm

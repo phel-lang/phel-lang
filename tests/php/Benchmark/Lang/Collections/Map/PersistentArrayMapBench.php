@@ -122,7 +122,7 @@ final class PersistentArrayMapBench
      */
     public function bench_put_into_grown_map(): void
     {
-        $this->grownMap->put($this->absentKey, 1);
+        (void) $this->grownMap->put($this->absentKey, 1);
     }
 
     /**
