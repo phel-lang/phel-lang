@@ -4,6 +4,10 @@ All notable changes to this project will be documented in this file.
 
 ## Unreleased
 
+### Changed
+
+- **BREAKING**: PHP 8.5 is now the minimum supported version. `docs/stability.md` makes raising a minimum breaking and major only once `1.x` starts, so the floor moves now rather than waiting for `2.0.0`. (#3302)
+
 ### Fixed
 
 - **BREAKING**: an octal escape above `\377` is rejected instead of silently wrapping. `"\400"` used to compile to NUL and `"\777"` to `\377`, because the value reached `chr()` above 255 and PHP applied `% 256`. Both string and char literals now report the range, and a char-literal error carries file, line, snippet and caret like every other compile error. Clojure rejects octal above `\0377` too. (#3301)

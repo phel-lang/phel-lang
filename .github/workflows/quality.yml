@@ -23,7 +23,7 @@ jobs:
 
       - uses: shivammathur/setup-php@v2
         with:
-          php-version: 8.4
+          php-version: 8.5
           coverage: none
           tools: composer
 
@@ -68,7 +68,7 @@ jobs:
       - uses: ./.github/actions/setup-phel
 
       - name: Run Psalm on internal code
-        run: ./vendor/bin/psalm --config=psalm.xml --no-progress --shepherd --show-info=false --stats --php-version=8.4
+        run: ./vendor/bin/psalm --config=psalm.xml --no-progress --shepherd --show-info=false --stats --php-version=8.5
 
       - name: Run PHPStan (level 9) on internal code
         run: ./vendor/bin/phpstan --memory-limit=516M --debug -vvv

@@ -24,7 +24,7 @@ For a deeper architecture overview, see [AGENTS.md](../AGENTS.md).
 
 ## Quick Start
 
-Requires **PHP 8.4+** and **Composer**.
+Requires **PHP 8.5+** and **Composer**.
 
 ```bash
 composer install
@@ -134,7 +134,7 @@ Issues labeled [`good first issue`](https://github.com/phel-lang/phel-lang/issue
 
 ## Troubleshooting
 
-**`composer test` fails after fresh clone?** Check PHP 8.4+ (`php -v`) and run `composer install` again.
+**`composer test` fails after fresh clone?** Check PHP 8.5+ (`php -v`) and run `composer install` again.
 
 **Tests pass locally but CI fails?** CI runs the full suite — make sure you ran `composer test`, not a subset.
 

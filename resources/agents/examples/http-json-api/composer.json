@@ -2,7 +2,7 @@
   "name": "phel-examples/http-json-api",
   "description": "Minimal Phel JSON API",
   "require": {
-    "php": "^8.4",
+    "php": "^8.5",
     "phel-lang/phel-lang": "*"
   }
 }

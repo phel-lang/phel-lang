@@ -165,7 +165,7 @@ entry point, so they follow the code rather than an intention.
 
 ## PHP support policy
 
-- `1.x` requires **PHP >= 8.4**. Raising the minimum is breaking, major only.
+- `1.x` requires **PHP >= 8.5**. Raising the minimum is breaking, major only.
 - Every PHP minor from the minimum to the newest stable runs the full compiler
   and core suites in CI, added within one Phel minor of its release.
 - Support for a PHP minor is never dropped inside a major, including after it

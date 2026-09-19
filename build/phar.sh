@@ -79,9 +79,9 @@ check_file "$BUILD_SCRIPT"
 check_dir "$REPO_ROOT"
 
 # Validate PHP version against the project minimum declared in composer.json
-php_version=$(php -r 'echo version_compare(PHP_VERSION, "8.4", ">=") ? "OK" : "FAIL";')
+php_version=$(php -r 'echo version_compare(PHP_VERSION, "8.5", ">=") ? "OK" : "FAIL";')
 if [[ "$php_version" != "OK" ]]; then
-    error "PHP 8.4 or higher is required"
+    error "PHP 8.5 or higher is required"
 fi
 
 # ============================================================================
