@@ -24,7 +24,7 @@ Two promises, held for all of `1.x`:
 - the `\` namespace separator (ADR 0014, ADR 0015). Its notice prints without `--warn-deprecations`, because a warning nobody is shown does not keep the "one full minor of notice" promise.
 - `to-php-array`. `to-array` is the canonical spelling (#3191).
 
-Upgrading from `0.49` or later: [docs/migration/upgrade-0.49-to-1.0.md](docs/migration/upgrade-0.49-to-1.0.md).
+Upgrading from `0.51.0`, or from any release back to `0.49`: [docs/migration/upgrade-0.49-to-1.0.md](docs/migration/upgrade-0.49-to-1.0.md).
 Stated non-goals for `1.0`: STM, refs and agents, `core.async`, a self-hosted compiler, and any new reader syntax.
 
 ### Added
