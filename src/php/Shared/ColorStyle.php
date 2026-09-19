@@ -60,6 +60,12 @@ final class ColorStyle implements ColorStyleInterface
 
     public function color(string $str, ?string $color = null): string
     {
+        // Not just a guard for the default: `??` still evaluates the offset,
+        // and PHP 8.5 deprecates using null as an array offset.
+        if ($color === null) {
+            return $str;
+        }
+
         return sprintf($this->styles[$color] ?? '%s', $str);
     }
 }

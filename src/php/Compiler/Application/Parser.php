@@ -203,7 +203,7 @@ final readonly class Parser implements ParserInterface
                 Token::T_COMMENT => CommentNode::createWithToken($token),
                 Token::T_ATOM => $this->parseAtomNode($token, $tokenStream),
                 Token::T_STRING => $this->parseStringNode($token, $tokenStream),
-                Token::T_CHAR => $this->parseCharNode($token),
+                Token::T_CHAR => $this->parseCharNode($token, $tokenStream),
                 Token::T_REGEX => $this->parseRegexNode($token),
                 Token::T_HASH_FN,
                 Token::T_OPEN_PARENTHESIS => $this->parseListNode($token, $tokenStream, Token::T_CLOSE_PARENTHESIS),
@@ -362,11 +362,21 @@ final readonly class Parser implements ParserInterface
         }
     }
 
-    private function parseCharNode(Token $token): StringNode
+    private function parseCharNode(Token $token, TokenStream $tokenStream): StringNode
     {
-        return $this->parserFactory
-            ->createCharParser()
-            ->parse($token);
+        try {
+            return $this->parserFactory
+                ->createCharParser()
+                ->parse($token);
+        } catch (StringParserException $stringParserException) {
+            throw $this->createUnexpectedParserException(
+                $tokenStream,
+                $token,
+                $stringParserException->getMessage(),
+                null,
+                $stringParserException,
+            );
+        }
     }
 
     private function parseRegexNode(Token $token): StringNode
