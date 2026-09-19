@@ -7,12 +7,14 @@ namespace Phel\Lang\Collections\LazySeq;
 use Countable;
 use Generator;
 use IteratorAggregate;
+use NoDiscard;
 use Phel\Lang\AbstractType;
 use Phel\Lang\Collections\Exceptions\NotASeqException;
 use Phel\Lang\Collections\Map\PersistentMapInterface;
 use Phel\Lang\EqualizerInterface;
 use Phel\Lang\HasherInterface;
 use Phel\Lang\Seq;
+
 use Phel\Lang\SeqInterface;
 
 use Traversable;
@@ -239,6 +241,7 @@ final class LazySeq extends AbstractType implements LazySeqInterface, Countable,
      *
      * @return LazySeqInterface<T>|null
      */
+    #[NoDiscard('the result is a new collection, the receiver is unchanged')]
     public function cdr(): LazySeqInterface|self|null
     {
         $seq = $this->realizeSeq();
@@ -279,6 +282,7 @@ final class LazySeq extends AbstractType implements LazySeqInterface, Countable,
     /**
      * @return LazySeqInterface<T>
      */
+    #[NoDiscard('the result is a new collection, the receiver is unchanged')]
     public function rest(): self|LazySeqInterface
     {
         return $this->cdr() ?? self::empty($this->hasher, $this->equalizer);
@@ -289,6 +293,7 @@ final class LazySeq extends AbstractType implements LazySeqInterface, Countable,
      *
      * @return self<T>
      */
+    #[NoDiscard('the result is a new collection, the receiver is unchanged')]
     public function cons($x): self
     {
         $hasher = $this->hasher;
@@ -420,6 +425,7 @@ final class LazySeq extends AbstractType implements LazySeqInterface, Countable,
     /**
      * @param PersistentMapInterface<mixed, mixed>|null $meta
      */
+    #[NoDiscard('the result is a new collection, the receiver is unchanged')]
     public function withMeta(?PersistentMapInterface $meta): static
     {
         $clone = clone $this;

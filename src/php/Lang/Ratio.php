@@ -5,7 +5,9 @@ declare(strict_types=1);
 namespace Phel\Lang;
 
 use DivisionByZeroError;
+use NoDiscard;
 use Phel\Lang\Collections\Map\PersistentMapInterface;
+
 use Stringable;
 
 use function is_int;
@@ -199,6 +201,7 @@ final readonly class Ratio implements Stringable, TypeInterface
     /**
      * @param PersistentMapInterface<mixed, mixed>|null $meta
      */
+    #[NoDiscard('the result is a new collection, the receiver is unchanged')]
     public function withMeta(?PersistentMapInterface $meta): static
     {
         return new self(

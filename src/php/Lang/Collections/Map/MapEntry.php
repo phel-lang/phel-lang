@@ -6,6 +6,7 @@ namespace Phel\Lang\Collections\Map;
 
 use Countable;
 use IteratorAggregate;
+use NoDiscard;
 use Phel\Lang\CdrInterface;
 use Phel\Lang\Collections\Vector\PersistentVectorInterface;
 use Phel\Lang\CopyLocationFromTrait;
@@ -15,6 +16,7 @@ use Phel\Lang\SourceLocation;
 use Phel\Lang\TypeFactory;
 use Phel\Lang\TypeInterface;
 use Stringable;
+
 use Traversable;
 
 use function get_debug_type;
@@ -97,6 +99,7 @@ final readonly class MapEntry implements TypeInterface, Stringable, Countable, I
     /**
      * @return PersistentVectorInterface<mixed>
      */
+    #[NoDiscard('the result is a new collection, the receiver is unchanged')]
     public function cdr(): PersistentVectorInterface
     {
         return TypeFactory::getInstance()->persistentVectorFromArray([$this->value]);
@@ -135,6 +138,7 @@ final readonly class MapEntry implements TypeInterface, Stringable, Countable, I
     /**
      * @param PersistentMapInterface<mixed, mixed>|null $meta
      */
+    #[NoDiscard('the result is a new collection, the receiver is unchanged')]
     public function withMeta(?PersistentMapInterface $meta): static
     {
         return new self($this->key, $this->value, $meta, $this->startLocation, $this->endLocation);

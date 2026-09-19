@@ -4,7 +4,9 @@ declare(strict_types=1);
 
 namespace Phel\Lang;
 
+use NoDiscard;
 use Phel\Lang\Collections\Map\PersistentMapInterface;
+
 use RuntimeException;
 
 use function get_debug_type;
@@ -91,6 +93,7 @@ final readonly class PhelVar implements EqualsInterface, FnInterface, HashableIn
     /**
      * @param PersistentMapInterface<mixed, mixed>|null $meta
      */
+    #[NoDiscard('the result is a new collection, the receiver is unchanged')]
     public function withMeta(?PersistentMapInterface $meta): static
     {
         return $this;

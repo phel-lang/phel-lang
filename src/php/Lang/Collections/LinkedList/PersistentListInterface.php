@@ -7,6 +7,7 @@ namespace Phel\Lang\Collections\LinkedList;
 use ArrayAccess;
 use Countable;
 use IteratorAggregate;
+use NoDiscard;
 use Phel\Lang\Collections\Exceptions\IndexOutOfBoundsException;
 use Phel\Lang\ConcatInterface;
 use Phel\Lang\ConsInterface;
@@ -34,6 +35,7 @@ interface PersistentListInterface extends TypeInterface, SeqInterface, IteratorA
      *
      * @return PersistentListInterface<TValue>
      */
+    #[NoDiscard('the result is a new collection, the receiver is unchanged')]
     public function prepend(mixed $value): self;
 
     /**
@@ -46,6 +48,7 @@ interface PersistentListInterface extends TypeInterface, SeqInterface, IteratorA
     /**
      * @return PersistentListInterface<TValue>
      */
+    #[NoDiscard('the result is a new collection, the receiver is unchanged')]
     public function pop(): self;
 
     /**

@@ -6,6 +6,7 @@ namespace Phel\Lang\Collections\LinkedList;
 
 use EmptyIterator;
 use Exception;
+use NoDiscard;
 use Phel\Lang\AbstractType;
 use Phel\Lang\Collections\Exceptions\IndexOutOfBoundsException;
 use Phel\Lang\Collections\Map\PersistentMapInterface;
@@ -45,6 +46,7 @@ final class EmptyList extends AbstractType implements PersistentListInterface
     /**
      * @param PersistentMapInterface<mixed, mixed>|null $meta
      */
+    #[NoDiscard('the result is a new collection, the receiver is unchanged')]
     public function withMeta(?PersistentMapInterface $meta): static
     {
         /** @var self<T> $result */
@@ -63,6 +65,7 @@ final class EmptyList extends AbstractType implements PersistentListInterface
      *
      * @return PersistentListInterface<T>
      */
+    #[NoDiscard('the result is a new collection, the receiver is unchanged')]
     public function prepend($value): PersistentListInterface
     {
         return new PersistentList($this->hasher, $this->equalizer, $this->meta, $value, $this, 1, $this->isList);
@@ -71,6 +74,7 @@ final class EmptyList extends AbstractType implements PersistentListInterface
     /**
      * @return PersistentListInterface<T>
      */
+    #[NoDiscard('the result is a new collection, the receiver is unchanged')]
     public function pop(): PersistentListInterface
     {
         throw new RuntimeException('Cannot pop empty list');
@@ -130,11 +134,13 @@ final class EmptyList extends AbstractType implements PersistentListInterface
     /**
      * @return self<T>
      */
+    #[NoDiscard('the result is a new collection, the receiver is unchanged')]
     public function rest(): self
     {
         return $this;
     }
 
+    #[NoDiscard('the result is a new collection, the receiver is unchanged')]
     public function cdr(): null
     {
         return null;
@@ -155,6 +161,7 @@ final class EmptyList extends AbstractType implements PersistentListInterface
      *
      * @return PersistentListInterface<T>
      */
+    #[NoDiscard('the result is a new collection, the receiver is unchanged')]
     public function concat($xs): PersistentListInterface
     {
         /** @var PersistentListInterface<T> $result */
@@ -166,6 +173,7 @@ final class EmptyList extends AbstractType implements PersistentListInterface
     /**
      * @return PersistentListInterface<T>
      */
+    #[NoDiscard('the result is a new collection, the receiver is unchanged')]
     public function cons(mixed $x): PersistentListInterface
     {
         return $this->prepend($x);

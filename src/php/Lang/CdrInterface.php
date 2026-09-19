@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace Phel\Lang;
 
+use NoDiscard;
+
 /**
  * @template T of CdrInterface
  */
@@ -14,5 +16,6 @@ interface CdrInterface
      *
      * @return T|null
      */
+    #[NoDiscard('the result is a new collection, the receiver is unchanged')]
     public function cdr();
 }
