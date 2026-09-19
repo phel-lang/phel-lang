@@ -1,7 +1,7 @@
 # Migration: The Currently Deprecated Surface
 
-Everything below still works today, except the four forms rejected as source at
-`1.0.0`, which are marked as such. Everything below is scheduled for removal in
+Everything below still works today, except the four forms rejected as source in
+`0.52.0`, which are marked as such. Everything below is scheduled for removal in
 a future major release. This page is the single map of that surface: what the
 item is, what replaces it, and the mechanical before/after.
 
@@ -68,7 +68,7 @@ Full detail, including what is and is not detected today, is in
 `php/` marks host access: reaching a PHP function, a PHP array or a PHP
 reference, none of which Phel has a word for. It is not a second spelling for
 something Phel already says the Clojure way. These three were the second
-spelling, so from `1.0.0` writing one is an error (`PHEL012`) and the
+spelling, so from `0.52.0` writing one is an error (`PHEL012`) and the
 Clojure-style form is the only one. They stay the compiler's own target, so
 nothing about the emitted code changes: `(new \C 1)` still becomes
 `(php/new \C 1)` internally (ADR 0018).
@@ -133,7 +133,7 @@ too, so the misleading name now sits next to the thing it is mistaken for.
 
 `binding` and `with-redefs` still expand into `set-var`: an emitted `set-var`
 inside an open frame is what records the rebinding. That is why `set-var` is
-rejected as *source* from `1.0.0` rather than removed. A `set-var` written in a
+rejected as *source* from `0.52.0` rather than removed. A `set-var` written in a
 file is an error (`PHEL012`); one a stdlib macro expands into keeps working, and
 the two are told apart by where the head was written (ADR 0018).
 
