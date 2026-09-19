@@ -156,7 +156,7 @@ final class CoreDispatchBench extends CoreBenchCase
     public function bench_assoc_map_raw(): void
     {
         for ($i = 0; $i < self::INNER; ++$i) {
-            $this->map->put($this->keyC, 3);
+            (void) $this->map->put($this->keyC, 3);
         }
     }
 
@@ -183,7 +183,7 @@ final class CoreDispatchBench extends CoreBenchCase
     public function bench_update_map_raw(): void
     {
         for ($i = 0; $i < self::INNER; ++$i) {
-            $this->map->put($this->keyA, ($this->inc)($this->map->find($this->keyA)));
+            (void) $this->map->put($this->keyA, ($this->inc)($this->map->find($this->keyA)));
         }
     }
 
@@ -264,7 +264,7 @@ final class CoreDispatchBench extends CoreBenchCase
     public function bench_conj_vector_raw(): void
     {
         for ($i = 0; $i < self::INNER; ++$i) {
-            $this->vector->append(9);
+            (void) $this->vector->append(9);
         }
     }
 

@@ -4,6 +4,10 @@ All notable changes to this project will be documented in this file.
 
 ## Unreleased
 
+### Added
+
+- The persistent collection builders that return a copy are marked `#[NoDiscard]`, so `(php/-> m (put k v))` in a discarded position now prints a warning instead of doing nothing silently. Cast to `(void)` to keep the old behaviour deliberately. Transients and `MetaTrait::withMeta` are excluded, because they mutate in place and returning the receiver is the point. (#3303)
+
 ### Changed
 
 - **BREAKING**: PHP 8.5 is now the minimum supported version. `docs/stability.md` makes raising a minimum breaking and major only once `1.x` starts, so the floor moves now rather than waiting for `2.0.0`. (#3302)

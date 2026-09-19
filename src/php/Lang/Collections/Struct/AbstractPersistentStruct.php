@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Phel\Lang\Collections\Struct;
 
 use InvalidArgumentException;
+use NoDiscard;
 use Override;
 use Phel\Lang\Collections\Exceptions\MethodNotSupportedException;
 use Phel\Lang\Collections\Map\AbstractPersistentMap;
@@ -14,6 +15,7 @@ use Phel\Lang\NamedInterface;
 use Phel\Lang\TypeFactory;
 use Phel\Shared\Munge;
 use Phel\Shared\MungeInterface;
+
 use Traversable;
 
 use function count;
@@ -45,6 +47,7 @@ abstract class AbstractPersistentStruct extends AbstractPersistentMap
     /**
      * @param PersistentMapInterface<mixed, mixed>|null $meta
      */
+    #[NoDiscard('the result is a new collection, the receiver is unchanged')]
     public function withMeta(?PersistentMapInterface $meta): static
     {
         $newInstance = clone $this;
@@ -57,6 +60,7 @@ abstract class AbstractPersistentStruct extends AbstractPersistentMap
         return in_array($key->getName(), static::ALLOWED_KEYS, true);
     }
 
+    #[NoDiscard('the result is a new collection, the receiver is unchanged')]
     public function put($key, $value): PersistentMapInterface
     {
         $stringKey = $this->validateKey($key);
@@ -66,6 +70,7 @@ abstract class AbstractPersistentStruct extends AbstractPersistentMap
         return $newInstance;
     }
 
+    #[NoDiscard('the result is a new collection, the receiver is unchanged')]
     public function remove($key): PersistentMapInterface
     {
         if (!$this->contains($key)) {

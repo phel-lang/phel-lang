@@ -6,7 +6,9 @@ namespace Phel\Lang;
 
 use ArithmeticError;
 use InvalidArgumentException;
+use NoDiscard;
 use OverflowException;
+
 use Phel\Lang\Collections\Map\PersistentMapInterface;
 
 use Stringable;
@@ -281,6 +283,7 @@ final readonly class BigDecimal implements TypeInterface, Stringable
     /**
      * @param PersistentMapInterface<mixed, mixed>|null $meta
      */
+    #[NoDiscard('the result is a new collection, the receiver is unchanged')]
     public function withMeta(?PersistentMapInterface $meta): static
     {
         return new self($this->mantissa, $this->scale, $meta, $this->startLocation, $this->endLocation);
