@@ -60,7 +60,9 @@ jobs:
 
       - name: Run the compiler suites with coverage
         run: |
-          php -d memory_limit=2G vendor/bin/phpunit \
+          # 2G started OOMing in PcovDriver as the suites grew; the runner
+          # has 16G and this job is the only thing on it.
+          php -d memory_limit=6G vendor/bin/phpunit \
             --testsuite=unit,integration \
             --coverage-clover=data/clover.xml \
             --do-not-cache-result
