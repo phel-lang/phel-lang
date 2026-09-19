@@ -4,6 +4,29 @@ All notable changes to this project will be documented in this file.
 
 ## Unreleased
 
+`1.0.0` is a stability commitment, not a feature release: what arrives is a
+promise that what exists stops moving.
+
+Two promises, held for all of `1.x`:
+
+1. **Language stability.** Phel source that compiles on `1.0.0` compiles on every later `1.x`. Reader syntax, special forms and the public `phel.*` core API do not break inside the major. Frozen surface: [docs/spec/language-surface.md](docs/spec/language-surface.md).
+2. **Embedding stability.** The PHP surface listed in [docs/stability.md](docs/stability.md) follows semver, so a project wiring Phel into its own tooling can take `1.x` updates without reading a diff. Everything else under `src/php/` carries `@internal` and may change in any release, including a patch.
+
+**Removed before `1.0`.** These are gone, and the compiler reports them:
+
+- reader syntax `#| |#`, bare `#` comments, `|()` short fns, `,` / `,@` unquote and `foo$` auto-gensym (#2864)
+- `^:reference`, `set-meta!` and `phel.test/print-summary` (#2863)
+- CLI `index --out` and `config --json`, and the legacy REPL history migration (#2862)
+- `php/new`, `php/->`, `php/::` and `set-var` **as source** (#3299). The compiler still emits all four, so generated PHP is unchanged and macros expanding to them keep working.
+
+**Deprecated but supported through all of `1.x`.** These still work; removal is for the next major at the earliest:
+
+- the `\` namespace separator (ADR 0014, ADR 0015). Its notice prints without `--warn-deprecations`, because a warning nobody is shown does not keep the "one full minor of notice" promise.
+- `to-php-array`. `to-array` is the canonical spelling (#3191).
+
+Upgrading from `0.49` or later: [docs/migration/upgrade-0.49-to-1.0.md](docs/migration/upgrade-0.49-to-1.0.md).
+Stated non-goals for `1.0`: STM, refs and agents, `core.async`, a self-hosted compiler, and any new reader syntax.
+
 ### Added
 
 - `phel explain <code>` prints what an error code means, the smallest program that raises it, and the fix. The same text lives in `docs/errors/`. (#3266)
