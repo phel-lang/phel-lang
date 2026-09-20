@@ -7,6 +7,7 @@ namespace PhelTest\Benchmark\Lang\Collections\Vector;
 use Phel\Lang\Collections\Vector\TransientVector;
 use Phel\Lang\Equalizer;
 use Phel\Lang\Hasher;
+use PhpBench\Benchmark\Metadata\Annotations\Assert;
 use PhpBench\Benchmark\Metadata\Annotations\BeforeMethods;
 use PhpBench\Benchmark\Metadata\Annotations\Iterations;
 use PhpBench\Benchmark\Metadata\Annotations\ParamProviders;
@@ -40,6 +41,18 @@ final class TransientVectorBench
     private int $updateIndex = 0;
 
     /**
+     * Absolute rather than relative, because this subject is the least
+     * comparable one in the suite: it appends 1000 times from the starting
+     * size, so `boundary` crosses the HAMT depth boundary while the structure
+     * grows, and the per-call figure lands under a microsecond. At that scale
+     * the relative gate compares two numbers whose difference is smaller than
+     * the drift between the baseline half of the CI job and the head half,
+     * which made it report a 2x regression against code it had not touched
+     * three runs running (#3312).
+     *
+     * 2 microseconds is roughly five times the slowest set on a quiet machine,
+     * so it still catches a real regression while ignoring the noise.
+     *
      * @BeforeMethods("setUpVector")
      *
      * @ParamProviders("provideSizes")
@@ -47,6 +60,8 @@ final class TransientVectorBench
      * @Revs(1000)
      *
      * @Iterations(10)
+     *
+     * @Assert("mode(variant.time.avg) < 2 microseconds")
      */
     public function bench_append(): void
     {
