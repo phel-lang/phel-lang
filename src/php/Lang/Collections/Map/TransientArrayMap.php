@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Phel\Lang\Collections\Map;
 
+use NoDiscard;
 use Phel\Lang\Collections\Exceptions\MethodNotSupportedException;
 use Phel\Lang\EqualizerInterface;
 use Phel\Lang\HasherInterface;
@@ -58,6 +59,7 @@ final class TransientArrayMap implements TransientMapInterface
      *
      * @return TransientMapInterface<TKey, TValue>
      */
+    #[NoDiscard('this transient may upgrade to a hash map past MAX_SIZE, so use the returned transient')]
     public function put($key, $value): TransientMapInterface
     {
         $index = $this->findIndex($key);

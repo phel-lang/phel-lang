@@ -138,7 +138,7 @@ final class ChunkedSeq extends AbstractType implements LazySeqInterface, Countab
     /**
      * @return LazySeqInterface<T>|null
      */
-    #[NoDiscard('the result is a new collection, the receiver is unchanged')]
+    #[NoDiscard('the result is a new instance, the receiver is unchanged')]
     public function cdr(): self|LazySeqInterface|LazySeq|null
     {
         if ($this->chunk->count() > 1) {
@@ -192,7 +192,7 @@ final class ChunkedSeq extends AbstractType implements LazySeqInterface, Countab
     /**
      * @return LazySeqInterface<T>
      */
-    #[NoDiscard('the result is a new collection, the receiver is unchanged')]
+    #[NoDiscard('the result is a new instance, the receiver is unchanged')]
     public function rest(): LazySeqInterface
     {
         return $this->cdr() ?? LazySeq::empty($this->hasher, $this->equalizer);
@@ -203,7 +203,7 @@ final class ChunkedSeq extends AbstractType implements LazySeqInterface, Countab
      *
      * @return self<T>
      */
-    #[NoDiscard('the result is a new collection, the receiver is unchanged')]
+    #[NoDiscard('the result is a new instance, the receiver is unchanged')]
     public function cons($x): self
     {
         $newValues = array_merge([$x], $this->chunk->toArray());
@@ -277,7 +277,7 @@ final class ChunkedSeq extends AbstractType implements LazySeqInterface, Countab
     /**
      * @param PersistentMapInterface<mixed, mixed>|null $meta
      */
-    #[NoDiscard('the result is a new collection, the receiver is unchanged')]
+    #[NoDiscard('the result is a new instance, the receiver is unchanged')]
     public function withMeta(?PersistentMapInterface $meta): static
     {
         return new self($this->hasher, $this->equalizer, $this->chunk, $this->thunk, $meta);

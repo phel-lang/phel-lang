@@ -93,7 +93,7 @@ final class PersistentSortedMap extends AbstractPersistentMap
     /**
      * @param PersistentMapInterface<mixed, mixed>|null $meta
      */
-    #[NoDiscard('the result is a new collection, the receiver is unchanged')]
+    #[NoDiscard('the result is a new instance, the receiver is unchanged')]
     public function withMeta(?PersistentMapInterface $meta): static
     {
         /** @var static $result */
@@ -107,7 +107,7 @@ final class PersistentSortedMap extends AbstractPersistentMap
         return SortedArrayHelper::binarySearch($this->array, $key, $this->effectiveComparator) >= 0;
     }
 
-    #[NoDiscard('the result is a new collection, the receiver is unchanged')]
+    #[NoDiscard('the result is a new instance, the receiver is unchanged')]
     public function put($key, $value): PersistentMapInterface
     {
         $idx = SortedArrayHelper::binarySearch($this->array, $key, $this->effectiveComparator);
@@ -141,7 +141,7 @@ final class PersistentSortedMap extends AbstractPersistentMap
      *
      * @return self<TKey, TValue>
      */
-    #[NoDiscard('the result is a new collection, the receiver is unchanged')]
+    #[NoDiscard('the result is a new instance, the receiver is unchanged')]
     public function remove($key): self
     {
         $idx = SortedArrayHelper::binarySearch($this->array, $key, $this->effectiveComparator);

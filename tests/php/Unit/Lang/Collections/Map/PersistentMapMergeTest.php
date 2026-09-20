@@ -78,8 +78,9 @@ final class PersistentMapMergeTest extends TestCase
         $a = $left->put(1, 'a');
         $b = $right->put(2, 'b');
 
-        $a->merge($b);
+        $merged = $a->merge($b);
 
+        self::assertCount(2, $merged, 'the merge itself must produce both entries');
         self::assertCount(1, $a);
         self::assertNull($a->find(2));
         self::assertCount(1, $b);

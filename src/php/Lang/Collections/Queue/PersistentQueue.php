@@ -91,7 +91,7 @@ final class PersistentQueue extends AbstractType implements TypeInterface, Count
     /**
      * @param PersistentMapInterface<mixed, mixed>|null $meta
      */
-    #[NoDiscard('the result is a new collection, the receiver is unchanged')]
+    #[NoDiscard('the result is a new instance, the receiver is unchanged')]
     public function withMeta(?PersistentMapInterface $meta): static
     {
         return new self($this->hasher, $this->equalizer, $meta, $this->front, $this->rear, $this->count);
@@ -100,7 +100,7 @@ final class PersistentQueue extends AbstractType implements TypeInterface, Count
     /**
      * Pushes `$x` onto the back of the queue.
      */
-    #[NoDiscard('the result is a new collection, the receiver is unchanged')]
+    #[NoDiscard('the result is a new instance, the receiver is unchanged')]
     public function push(mixed $x): self
     {
         if ($this->count === 0) {
@@ -128,7 +128,7 @@ final class PersistentQueue extends AbstractType implements TypeInterface, Count
      * Alias for `push`. Lets `(conj queue x)` append at the back, matching
      * Clojure's queue semantics.
      */
-    #[NoDiscard('the result is a new collection, the receiver is unchanged')]
+    #[NoDiscard('the result is a new instance, the receiver is unchanged')]
     public function cons(mixed $x): self
     {
         return $this->push($x);
@@ -138,7 +138,7 @@ final class PersistentQueue extends AbstractType implements TypeInterface, Count
      * Removes the front element. Throws `UnderflowException` when the
      * queue is empty.
      */
-    #[NoDiscard('the result is a new collection, the receiver is unchanged')]
+    #[NoDiscard('the result is a new instance, the receiver is unchanged')]
     public function pop(): self
     {
         if ($this->count === 0) {
@@ -182,7 +182,7 @@ final class PersistentQueue extends AbstractType implements TypeInterface, Count
         return $this->front->first();
     }
 
-    #[NoDiscard('the result is a new collection, the receiver is unchanged')]
+    #[NoDiscard('the result is a new instance, the receiver is unchanged')]
     public function cdr(): ?self
     {
         return $this->count <= 1 ? null : $this->pop();

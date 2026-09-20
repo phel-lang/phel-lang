@@ -19,6 +19,6 @@ interface SliceInterface
      *
      * @return T
      */
-    #[NoDiscard('the result is a new collection, the receiver is unchanged')]
+    #[NoDiscard('the result is a new instance, the receiver is unchanged')]
     public function slice(int $offset = 0, ?int $length = null);
 }

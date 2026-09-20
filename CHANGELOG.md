@@ -6,7 +6,7 @@ All notable changes to this project will be documented in this file.
 
 ### Added
 
-- The persistent collection builders that return a copy are marked `#[NoDiscard]`, so `(php/-> m (put k v))` in a discarded position now prints a warning instead of doing nothing silently. Cast to `(void)` to keep the old behaviour deliberately. Transients and `MetaTrait::withMeta` are excluded, because they mutate in place and returning the receiver is the point. (#3303)
+- The collection builders that return a copy are marked `#[NoDiscard]`, so discarding one now prints a warning instead of doing nothing silently. That covers a direct `(.put m k v)` and an inlined core call such as `(conj v x)` or `(assoc m :b 2)` in non-tail position, where the analyzer emits the method directly. Cast to `(void)` where the discard is deliberate. Transients and `MetaTrait::withMeta` are excluded, because they mutate in place and returning the receiver is the point; the exception is `TransientArrayMap::put`, which upgrades to a hash map past `MAX_SIZE` and so returns a different transient. (#3303)
 
 ### Changed
 

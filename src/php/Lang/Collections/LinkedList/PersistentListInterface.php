@@ -35,7 +35,7 @@ interface PersistentListInterface extends TypeInterface, SeqInterface, IteratorA
      *
      * @return PersistentListInterface<TValue>
      */
-    #[NoDiscard('the result is a new collection, the receiver is unchanged')]
+    #[NoDiscard('the result is a new instance, the receiver is unchanged')]
     public function prepend(mixed $value): self;
 
     /**
@@ -48,7 +48,7 @@ interface PersistentListInterface extends TypeInterface, SeqInterface, IteratorA
     /**
      * @return PersistentListInterface<TValue>
      */
-    #[NoDiscard('the result is a new collection, the receiver is unchanged')]
+    #[NoDiscard('the result is a new instance, the receiver is unchanged')]
     public function pop(): self;
 
     /**

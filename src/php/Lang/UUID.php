@@ -141,7 +141,7 @@ final readonly class UUID implements TypeInterface, Stringable
     /**
      * @param PersistentMapInterface<mixed, mixed>|null $meta
      */
-    #[NoDiscard('the result is a new collection, the receiver is unchanged')]
+    #[NoDiscard('the result is a new instance, the receiver is unchanged')]
     public function withMeta(?PersistentMapInterface $meta): static
     {
         return new self($this->value, $meta, $this->startLocation, $this->endLocation);

@@ -241,7 +241,7 @@ final class LazySeq extends AbstractType implements LazySeqInterface, Countable,
      *
      * @return LazySeqInterface<T>|null
      */
-    #[NoDiscard('the result is a new collection, the receiver is unchanged')]
+    #[NoDiscard('the result is a new instance, the receiver is unchanged')]
     public function cdr(): LazySeqInterface|self|null
     {
         $seq = $this->realizeSeq();
@@ -282,7 +282,7 @@ final class LazySeq extends AbstractType implements LazySeqInterface, Countable,
     /**
      * @return LazySeqInterface<T>
      */
-    #[NoDiscard('the result is a new collection, the receiver is unchanged')]
+    #[NoDiscard('the result is a new instance, the receiver is unchanged')]
     public function rest(): self|LazySeqInterface
     {
         return $this->cdr() ?? self::empty($this->hasher, $this->equalizer);
@@ -293,7 +293,7 @@ final class LazySeq extends AbstractType implements LazySeqInterface, Countable,
      *
      * @return self<T>
      */
-    #[NoDiscard('the result is a new collection, the receiver is unchanged')]
+    #[NoDiscard('the result is a new instance, the receiver is unchanged')]
     public function cons($x): self
     {
         $hasher = $this->hasher;
@@ -425,7 +425,7 @@ final class LazySeq extends AbstractType implements LazySeqInterface, Countable,
     /**
      * @param PersistentMapInterface<mixed, mixed>|null $meta
      */
-    #[NoDiscard('the result is a new collection, the receiver is unchanged')]
+    #[NoDiscard('the result is a new instance, the receiver is unchanged')]
     public function withMeta(?PersistentMapInterface $meta): static
     {
         $clone = clone $this;

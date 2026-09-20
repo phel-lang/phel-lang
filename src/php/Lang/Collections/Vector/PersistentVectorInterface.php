@@ -46,7 +46,7 @@ interface PersistentVectorInterface extends TypeInterface, SeqInterface, Iterato
      *
      * @return self<T>
      */
-    #[NoDiscard('the result is a new collection, the receiver is unchanged')]
+    #[NoDiscard('the result is a new instance, the receiver is unchanged')]
     public function append(mixed $value): self;
 
     /**
@@ -54,7 +54,7 @@ interface PersistentVectorInterface extends TypeInterface, SeqInterface, Iterato
      *
      * @return self<T>
      */
-    #[NoDiscard('the result is a new collection, the receiver is unchanged')]
+    #[NoDiscard('the result is a new instance, the receiver is unchanged')]
     public function update(int $i, mixed $value): self;
 
     /**
@@ -62,6 +62,6 @@ interface PersistentVectorInterface extends TypeInterface, SeqInterface, Iterato
      */
     public function get(int $i);
 
-    #[NoDiscard('the result is a new collection, the receiver is unchanged')]
+    #[NoDiscard('the result is a new instance, the receiver is unchanged')]
     public function pop(): self;
 }

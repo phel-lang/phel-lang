@@ -32,7 +32,7 @@ final class EmptyListTest extends TestCase
         $this->expectException(RuntimeException::class);
 
         $list = new EmptyList(new ModuloHasher(), new SimpleEqualizer(), null);
-        $list->pop();
+        (void) $list->pop();
     }
 
     public function test_count(): void

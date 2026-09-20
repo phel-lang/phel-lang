@@ -109,7 +109,7 @@ final class PersistentArrayMap extends AbstractPersistentMap
     /**
      * @param PersistentMapInterface<mixed, mixed>|null $meta
      */
-    #[NoDiscard('the result is a new collection, the receiver is unchanged')]
+    #[NoDiscard('the result is a new instance, the receiver is unchanged')]
     public function withMeta(?PersistentMapInterface $meta): static
     {
         /** @var static $result */
@@ -123,7 +123,7 @@ final class PersistentArrayMap extends AbstractPersistentMap
         return $this->findIndex($key) !== false;
     }
 
-    #[NoDiscard('the result is a new collection, the receiver is unchanged')]
+    #[NoDiscard('the result is a new instance, the receiver is unchanged')]
     public function put($key, $value): PersistentMapInterface
     {
         $index = $this->findIndex($key);
@@ -158,7 +158,7 @@ final class PersistentArrayMap extends AbstractPersistentMap
      *
      * @return self<TKey, TValue>
      */
-    #[NoDiscard('the result is a new collection, the receiver is unchanged')]
+    #[NoDiscard('the result is a new instance, the receiver is unchanged')]
     public function remove($key): self
     {
         $index = $this->findIndex($key);

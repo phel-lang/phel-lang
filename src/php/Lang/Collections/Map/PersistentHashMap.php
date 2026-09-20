@@ -96,7 +96,7 @@ final class PersistentHashMap extends AbstractPersistentMap
     /**
      * @param PersistentMapInterface<mixed, mixed>|null $meta
      */
-    #[NoDiscard('the result is a new collection, the receiver is unchanged')]
+    #[NoDiscard('the result is a new instance, the receiver is unchanged')]
     public function withMeta(?PersistentMapInterface $meta): static
     {
         return new self($this->hasher, $this->equalizer, $meta, $this->count, $this->root, $this->hasNull, $this->nullValue);
@@ -123,7 +123,7 @@ final class PersistentHashMap extends AbstractPersistentMap
      *
      * @return self<TKey, TValue>
      */
-    #[NoDiscard('the result is a new collection, the receiver is unchanged')]
+    #[NoDiscard('the result is a new instance, the receiver is unchanged')]
     public function put($key, $value): self
     {
         if ($key === null) {
@@ -150,7 +150,7 @@ final class PersistentHashMap extends AbstractPersistentMap
      *
      * @return self<TKey, TValue>
      */
-    #[NoDiscard('the result is a new collection, the receiver is unchanged')]
+    #[NoDiscard('the result is a new instance, the receiver is unchanged')]
     public function remove($key): self
     {
         if ($key === null) {

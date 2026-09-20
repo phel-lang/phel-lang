@@ -30,7 +30,7 @@ interface PersistentMapInterface extends TypeInterface, Countable, IteratorAggre
      *
      * @return self<TKey, TValue>
      */
-    #[NoDiscard('the result is a new collection, the receiver is unchanged')]
+    #[NoDiscard('the result is a new instance, the receiver is unchanged')]
     public function put(mixed $key, mixed $value): self;
 
     /**
@@ -38,7 +38,7 @@ interface PersistentMapInterface extends TypeInterface, Countable, IteratorAggre
      *
      * @return self<TKey, TValue>
      */
-    #[NoDiscard('the result is a new collection, the receiver is unchanged')]
+    #[NoDiscard('the result is a new instance, the receiver is unchanged')]
     public function remove(mixed $key): self;
 
     /**
@@ -53,6 +53,6 @@ interface PersistentMapInterface extends TypeInterface, Countable, IteratorAggre
      *
      * @return self<TKey, TValue>
      */
-    #[NoDiscard('the result is a new collection, the receiver is unchanged')]
+    #[NoDiscard('the result is a new instance, the receiver is unchanged')]
     public function merge(self $other): self;
 }

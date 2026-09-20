@@ -64,7 +64,7 @@ abstract class AbstractPersistentVector extends AbstractType implements Persiste
     /**
      * @return PersistentVectorInterface<T>
      */
-    #[NoDiscard('the result is a new collection, the receiver is unchanged')]
+    #[NoDiscard('the result is a new instance, the receiver is unchanged')]
     public function rest()
     {
         $cdr = $this->cdr();
@@ -177,7 +177,7 @@ abstract class AbstractPersistentVector extends AbstractType implements Persiste
     /**
      * @return PersistentVectorInterface<T>
      */
-    #[NoDiscard('the result is a new collection, the receiver is unchanged')]
+    #[NoDiscard('the result is a new instance, the receiver is unchanged')]
     public function push(mixed $x): PersistentVectorInterface
     {
         return $this->append($x);
@@ -190,7 +190,7 @@ abstract class AbstractPersistentVector extends AbstractType implements Persiste
      *
      * @return PersistentVectorInterface<T>
      */
-    #[NoDiscard('the result is a new collection, the receiver is unchanged')]
+    #[NoDiscard('the result is a new instance, the receiver is unchanged')]
     public function concat($xs)
     {
         if ($this instanceof PersistentVector) {
@@ -221,7 +221,7 @@ abstract class AbstractPersistentVector extends AbstractType implements Persiste
     /**
      * @return PersistentVectorInterface<T>
      */
-    #[NoDiscard('the result is a new collection, the receiver is unchanged')]
+    #[NoDiscard('the result is a new instance, the receiver is unchanged')]
     public function slice(int $offset = 0, ?int $length = null): PersistentVectorInterface
     {
         $count = $this->count();

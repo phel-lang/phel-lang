@@ -99,7 +99,7 @@ final readonly class MapEntry implements TypeInterface, Stringable, Countable, I
     /**
      * @return PersistentVectorInterface<mixed>
      */
-    #[NoDiscard('the result is a new collection, the receiver is unchanged')]
+    #[NoDiscard('the result is a new instance, the receiver is unchanged')]
     public function cdr(): PersistentVectorInterface
     {
         return TypeFactory::getInstance()->persistentVectorFromArray([$this->value]);
@@ -138,7 +138,7 @@ final readonly class MapEntry implements TypeInterface, Stringable, Countable, I
     /**
      * @param PersistentMapInterface<mixed, mixed>|null $meta
      */
-    #[NoDiscard('the result is a new collection, the receiver is unchanged')]
+    #[NoDiscard('the result is a new instance, the receiver is unchanged')]
     public function withMeta(?PersistentMapInterface $meta): static
     {
         return new self($this->key, $this->value, $meta, $this->startLocation, $this->endLocation);

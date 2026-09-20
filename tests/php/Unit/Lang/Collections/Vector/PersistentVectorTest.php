@@ -83,7 +83,7 @@ final class PersistentVectorTest extends TestCase
         $this->expectException(IndexOutOfBoundsException::class);
         $v = PersistentVector::empty(new ModuloHasher(), new SimpleEqualizer());
 
-        $v->update(1, 10);
+        (void) $v->update(1, 10);
     }
 
     public function test_update_append(): void
@@ -131,7 +131,7 @@ final class PersistentVectorTest extends TestCase
         $this->expectException(RuntimeException::class);
         $vEmpty = PersistentVector::empty(new ModuloHasher(), new SimpleEqualizer());
 
-        $vEmpty->pop();
+        (void) $vEmpty->pop();
     }
 
     public function test_pop_on_one_element_vector(): void

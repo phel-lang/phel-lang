@@ -73,7 +73,7 @@ final class SubVectorTest extends TestCase
         $subVector = PersistentVector::fromArray(new ModuloHasher(), new SimpleEqualizer(), [1, 2, 3, 4])
             ->slice(1, 2);
 
-        $subVector->update(3, 10);
+        (void) $subVector->update(3, 10);
     }
 
     public function test_update_as_append(): void

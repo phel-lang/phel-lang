@@ -98,7 +98,7 @@ final class PersistentList extends AbstractType implements PersistentListInterfa
     /**
      * @param PersistentMapInterface<mixed, mixed>|null $meta
      */
-    #[NoDiscard('the result is a new collection, the receiver is unchanged')]
+    #[NoDiscard('the result is a new instance, the receiver is unchanged')]
     public function withMeta(?PersistentMapInterface $meta): static
     {
         return new self($this->hasher, $this->equalizer, $meta, $this->first, $this->rest, $this->count, $this->isList);
@@ -114,7 +114,7 @@ final class PersistentList extends AbstractType implements PersistentListInterfa
      *
      * @return PersistentListInterface<T>
      */
-    #[NoDiscard('the result is a new collection, the receiver is unchanged')]
+    #[NoDiscard('the result is a new instance, the receiver is unchanged')]
     public function prepend($value): PersistentListInterface
     {
         return new self($this->hasher, $this->equalizer, $this->meta, $value, $this, $this->count + 1, $this->isList);
@@ -123,7 +123,7 @@ final class PersistentList extends AbstractType implements PersistentListInterfa
     /**
      * @return PersistentListInterface<T>
      */
-    #[NoDiscard('the result is a new collection, the receiver is unchanged')]
+    #[NoDiscard('the result is a new instance, the receiver is unchanged')]
     public function pop(): PersistentListInterface
     {
         return $this->rest;
@@ -216,7 +216,7 @@ final class PersistentList extends AbstractType implements PersistentListInterfa
     /**
      * @return PersistentListInterface<T>
      */
-    #[NoDiscard('the result is a new collection, the receiver is unchanged')]
+    #[NoDiscard('the result is a new instance, the receiver is unchanged')]
     public function rest()
     {
         return $this->rest;
@@ -225,7 +225,7 @@ final class PersistentList extends AbstractType implements PersistentListInterfa
     /**
      * @return PersistentListInterface<T>|null
      */
-    #[NoDiscard('the result is a new collection, the receiver is unchanged')]
+    #[NoDiscard('the result is a new instance, the receiver is unchanged')]
     public function cdr()
     {
         if ($this->count === 1) {
@@ -250,7 +250,7 @@ final class PersistentList extends AbstractType implements PersistentListInterfa
      *
      * @return PersistentListInterface<T>
      */
-    #[NoDiscard('the result is a new collection, the receiver is unchanged')]
+    #[NoDiscard('the result is a new instance, the receiver is unchanged')]
     public function concat($xs): PersistentListInterface
     {
         /** @var PersistentListInterface<T> $result */
@@ -262,7 +262,7 @@ final class PersistentList extends AbstractType implements PersistentListInterfa
     /**
      * @return PersistentListInterface<T>
      */
-    #[NoDiscard('the result is a new collection, the receiver is unchanged')]
+    #[NoDiscard('the result is a new instance, the receiver is unchanged')]
     public function cons(mixed $x): PersistentListInterface
     {
         return $this->prepend($x);

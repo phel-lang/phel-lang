@@ -96,7 +96,7 @@ final class PersistentVector extends AbstractPersistentVector
     /**
      * @param PersistentMapInterface<mixed, mixed>|null $meta
      */
-    #[NoDiscard('the result is a new collection, the receiver is unchanged')]
+    #[NoDiscard('the result is a new instance, the receiver is unchanged')]
     public function withMeta(?PersistentMapInterface $meta): static
     {
         return new self($this->hasher, $this->equalizer, $meta, $this->count, $this->shift, $this->root, $this->tail);
@@ -122,7 +122,7 @@ final class PersistentVector extends AbstractPersistentVector
      *
      * @return self<T>
      */
-    #[NoDiscard('the result is a new collection, the receiver is unchanged')]
+    #[NoDiscard('the result is a new instance, the receiver is unchanged')]
     public function append($value): self
     {
         if ($this->tailSize < self::BRANCH_FACTOR) {
@@ -176,7 +176,7 @@ final class PersistentVector extends AbstractPersistentVector
      *
      * @return self<T>
      */
-    #[NoDiscard('the result is a new collection, the receiver is unchanged')]
+    #[NoDiscard('the result is a new instance, the receiver is unchanged')]
     public function update(int $i, $value): self
     {
         if ($i >= 0 && $i < $this->count) {
@@ -263,7 +263,7 @@ final class PersistentVector extends AbstractPersistentVector
      *
      * @return self<T>
      */
-    #[NoDiscard('the result is a new collection, the receiver is unchanged')]
+    #[NoDiscard('the result is a new instance, the receiver is unchanged')]
     public function pop(): self
     {
         if ($this->count === 0) {
@@ -349,7 +349,7 @@ final class PersistentVector extends AbstractPersistentVector
     /**
      * @return SubVector<T>|null
      */
-    #[NoDiscard('the result is a new collection, the receiver is unchanged')]
+    #[NoDiscard('the result is a new instance, the receiver is unchanged')]
     public function cdr(): ?SubVector
     {
         if ($this->count <= 1) {
@@ -378,7 +378,7 @@ final class PersistentVector extends AbstractPersistentVector
     /**
      * @return PersistentVectorInterface<T>
      */
-    #[NoDiscard('the result is a new collection, the receiver is unchanged')]
+    #[NoDiscard('the result is a new instance, the receiver is unchanged')]
     public function cons(mixed $x): PersistentVectorInterface
     {
         /** @var TransientVector<T> $transient */

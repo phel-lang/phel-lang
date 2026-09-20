@@ -44,6 +44,7 @@ return RectorConfig::configure()
         // See #3303.
         RemoveDeadStmtRector::class => [
             __DIR__ . '/tests/php/Benchmark',
+            __DIR__ . '/tests/php/Unit/Lang/Collections',
         ],
         // `ob_get_clean()` returns `string|false`; Rector 2.5 narrows it to
         // `string` inside these catch blocks and strips the cast, which Psalm
