@@ -86,12 +86,18 @@ final class LanguageSurfaceSpecTest extends TestCase
     {
         $spec = (string) file_get_contents(dirname(__DIR__, 4) . '/docs/spec/language-surface.md');
 
-        preg_match('/^### Rejected as source from [0-9]+\.[0-9]+\.[0-9]+$(.*?)^### /ms', $spec, $section);
+        preg_match(
+            '/^### Rejected as source from [0-9]+\.[0-9]+\.[0-9]+$(.*?)(?=^#{2,3} |\z)/ms',
+            $spec,
+            $section,
+        );
 
         self::assertArrayHasKey(
             1,
             $section,
-            'docs/spec/language-surface.md has no "### Rejected as source from <version>" heading.',
+            'docs/spec/language-surface.md has no readable "### Rejected as source from <version>" '
+            . 'section. Either the heading is missing or renamed, or the section is not terminated '
+            . 'by a following heading or end of file.',
         );
         preg_match_all('/^\| `([^`]+)` \| /m', $section[1] ?? '', $matches);
 
