@@ -4,11 +4,11 @@ declare(strict_types=1);
 
 namespace PhelTest\Unit\Lint\Application\Rule;
 
-use Phel\Lint\Application\Config\RuleRegistry;
 use Phel\Lint\Application\Rule\DiscouragedVarRule;
 use Phel\Lint\Domain\FileAnalysis;
 use Phel\Shared\Api\Definition;
 use Phel\Shared\Api\ProjectIndex;
+use Phel\Shared\LintRuleCodes;
 use PHPUnit\Framework\Attributes\PreserveGlobalState;
 use PHPUnit\Framework\Attributes\RunInSeparateProcess;
 
@@ -28,7 +28,7 @@ PHEL;
         $diagnostics = $rule->apply($analysis);
 
         self::assertCount(1, $diagnostics);
-        self::assertSame(RuleRegistry::DISCOURAGED_VAR, $diagnostics[0]->code);
+        self::assertSame(LintRuleCodes::DISCOURAGED_VAR, $diagnostics[0]->code);
         self::assertStringContainsString('use new-thing', $diagnostics[0]->message);
     }
 

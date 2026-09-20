@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace Phel\Lint\Application;
 
 use Phel\Lint\Application\Cache\LintCache;
-use Phel\Lint\Application\Config\RuleRegistry;
 use Phel\Lint\Application\Config\RuleSettings;
 use Phel\Lint\Domain\Exception\LintSourceException;
 use Phel\Lint\Domain\FileAnalysis;
@@ -13,6 +12,7 @@ use Phel\Lint\Transfer\LintResult;
 use Phel\Shared\Api\Diagnostic;
 use Phel\Shared\Api\ProjectIndex;
 use Phel\Shared\Facade\ApiFacadeInterface;
+use Phel\Shared\LintRuleCodes;
 
 use function array_any;
 use function file_get_contents;
@@ -119,7 +119,7 @@ final readonly class LintRunner
     {
         return array_any(
             $diagnostics,
-            static fn(Diagnostic $diagnostic): bool => $diagnostic->code === RuleRegistry::INTERNAL_ERROR,
+            static fn(Diagnostic $diagnostic): bool => $diagnostic->code === LintRuleCodes::INTERNAL_ERROR,
         );
     }
 

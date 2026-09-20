@@ -9,9 +9,9 @@ use Phel\Lang\Collections\Vector\PersistentVectorInterface;
 use Phel\Lang\Keyword;
 use Phel\Lang\Symbol;
 use Phel\Lang\TypeInterface;
-use Phel\Lint\Application\Config\RuleRegistry;
 use Phel\Lint\Domain\FileAnalysis;
 use Phel\Lint\Domain\LintRuleInterface;
+use Phel\Shared\LintRuleCodes;
 
 use function count;
 use function sprintf;
@@ -28,7 +28,7 @@ final readonly class UnusedRequireRule implements LintRuleInterface
 {
     public function code(): string
     {
-        return RuleRegistry::UNUSED_REQUIRE;
+        return LintRuleCodes::UNUSED_REQUIRE;
     }
 
     public function apply(FileAnalysis $analysis): array

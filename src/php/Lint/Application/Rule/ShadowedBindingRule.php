@@ -8,11 +8,11 @@ use Phel\Lang\Collections\LinkedList\PersistentListInterface;
 use Phel\Lang\Collections\Map\PersistentMapInterface;
 use Phel\Lang\Collections\Vector\PersistentVectorInterface;
 use Phel\Lang\Symbol;
-use Phel\Lint\Application\Config\RuleRegistry;
 use Phel\Lint\Domain\FileAnalysis;
 use Phel\Lint\Domain\LintRuleInterface;
 use Phel\Shared\Api\Diagnostic;
 use Phel\Shared\Binding\IterationHead;
+use Phel\Shared\LintRuleCodes;
 
 use function count;
 use function in_array;
@@ -33,7 +33,7 @@ final readonly class ShadowedBindingRule implements LintRuleInterface
 
     public function code(): string
     {
-        return RuleRegistry::SHADOWED_BINDING;
+        return LintRuleCodes::SHADOWED_BINDING;
     }
 
     public function apply(FileAnalysis $analysis): array

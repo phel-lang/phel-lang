@@ -4,11 +4,11 @@ declare(strict_types=1);
 
 namespace Phel\Lint\Application\Rule;
 
-use Phel\Lint\Application\Config\RuleRegistry;
 use Phel\Lint\Domain\FileAnalysis;
 use Phel\Lint\Domain\LintRuleInterface;
 use Phel\Shared\Api\Diagnostic;
 use Phel\Shared\Facade\CompilerFacadeInterface;
+use Phel\Shared\LintRuleCodes;
 use Phel\Shared\Parser\Node\Token;
 use Throwable;
 
@@ -35,7 +35,7 @@ final readonly class CommentStyleRule implements LintRuleInterface
 
     public function code(): string
     {
-        return RuleRegistry::COMMENT_STYLE;
+        return LintRuleCodes::COMMENT_STYLE;
     }
 
     public function apply(FileAnalysis $analysis): array

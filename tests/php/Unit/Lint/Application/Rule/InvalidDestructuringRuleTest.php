@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace PhelTest\Unit\Lint\Application\Rule;
 
-use Phel\Lint\Application\Config\RuleRegistry;
 use Phel\Lint\Application\Rule\InvalidDestructuringRule;
+use Phel\Shared\LintRuleCodes;
 use PHPUnit\Framework\Attributes\PreserveGlobalState;
 use PHPUnit\Framework\Attributes\RunInSeparateProcess;
 
@@ -21,7 +21,7 @@ final class InvalidDestructuringRuleTest extends RuleTestCase
         $diagnostics = $rule->apply($analysis);
 
         self::assertCount(1, $diagnostics);
-        self::assertSame(RuleRegistry::INVALID_DESTRUCTURING, $diagnostics[0]->code);
+        self::assertSame(LintRuleCodes::INVALID_DESTRUCTURING, $diagnostics[0]->code);
     }
 
     #[PreserveGlobalState(false)]
@@ -96,7 +96,7 @@ final class InvalidDestructuringRuleTest extends RuleTestCase
         $diagnostics = $rule->apply($analysis);
 
         self::assertCount(1, $diagnostics);
-        self::assertSame(RuleRegistry::INVALID_DESTRUCTURING, $diagnostics[0]->code);
+        self::assertSame(LintRuleCodes::INVALID_DESTRUCTURING, $diagnostics[0]->code);
     }
 
     #[PreserveGlobalState(false)]

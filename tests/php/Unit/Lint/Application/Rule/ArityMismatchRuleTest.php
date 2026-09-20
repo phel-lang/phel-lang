@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace PhelTest\Unit\Lint\Application\Rule;
 
-use Phel\Lint\Application\Config\RuleRegistry;
 use Phel\Lint\Application\Rule\ArityMismatchRule;
+use Phel\Shared\LintRuleCodes;
 use PHPUnit\Framework\Attributes\PreserveGlobalState;
 use PHPUnit\Framework\Attributes\RunInSeparateProcess;
 
@@ -28,7 +28,7 @@ PHEL;
         $diagnostics = $rule->apply($analysis);
 
         self::assertNotEmpty($diagnostics);
-        self::assertSame(RuleRegistry::ARITY_MISMATCH, $diagnostics[0]->code);
+        self::assertSame(LintRuleCodes::ARITY_MISMATCH, $diagnostics[0]->code);
     }
 
     #[PreserveGlobalState(false)]

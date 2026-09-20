@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace PhelTest\Unit\Lint\Application\Rule;
 
-use Phel\Lint\Application\Config\RuleRegistry;
 use Phel\Lint\Application\Rule\ShadowedBindingRule;
+use Phel\Shared\LintRuleCodes;
 use PHPUnit\Framework\Attributes\PreserveGlobalState;
 use PHPUnit\Framework\Attributes\RunInSeparateProcess;
 
@@ -21,7 +21,7 @@ final class ShadowedBindingRuleTest extends RuleTestCase
         $diagnostics = $rule->apply($analysis);
 
         self::assertCount(1, $diagnostics);
-        self::assertSame(RuleRegistry::SHADOWED_BINDING, $diagnostics[0]->code);
+        self::assertSame(LintRuleCodes::SHADOWED_BINDING, $diagnostics[0]->code);
     }
 
     #[PreserveGlobalState(false)]

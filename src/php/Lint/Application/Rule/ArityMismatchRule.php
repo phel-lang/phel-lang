@@ -8,11 +8,11 @@ use Phel\Lang\Collections\LinkedList\PersistentListInterface;
 use Phel\Lang\Collections\Map\PersistentMapInterface;
 use Phel\Lang\Collections\Vector\PersistentVectorInterface;
 use Phel\Lang\Symbol;
-use Phel\Lint\Application\Config\RuleRegistry;
 use Phel\Lint\Domain\FileAnalysis;
 use Phel\Lint\Domain\LintRuleInterface;
 use Phel\Shared\Api\Diagnostic;
 use Phel\Shared\Exceptions\ErrorCode;
+use Phel\Shared\LintRuleCodes;
 
 use function count;
 use function in_array;
@@ -38,7 +38,7 @@ final readonly class ArityMismatchRule implements LintRuleInterface
 {
     public function code(): string
     {
-        return RuleRegistry::ARITY_MISMATCH;
+        return LintRuleCodes::ARITY_MISMATCH;
     }
 
     public function apply(FileAnalysis $analysis): array

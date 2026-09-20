@@ -9,7 +9,6 @@ use Phel\Api\ApiFacade;
 use Phel\Compiler\CompilerFacade;
 use Phel\Compiler\Infrastructure\GlobalEnvironmentSingleton;
 use Phel\Lang\Symbol;
-use Phel\Lint\Application\Config\RuleRegistry;
 use Phel\Lint\Application\Config\RuleSettings;
 use Phel\Lint\Application\FileCollector;
 use Phel\Lint\Application\LintRunner;
@@ -18,6 +17,7 @@ use Phel\Lint\Application\RulePipeline;
 use Phel\Lint\Application\SourceReader;
 use Phel\Lint\Transfer\LintResult;
 use Phel\Shared\Api\Diagnostic;
+use Phel\Shared\LintRuleCodes;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\Attributes\PreserveGlobalState;
 use PHPUnit\Framework\Attributes\RunInSeparateProcess;
@@ -96,7 +96,7 @@ final class LintSyntaxErrorTest extends TestCase
         self::assertIsString($path);
 
         return $runner->run([$path], new RuleSettings([
-            RuleRegistry::COMMENT_STYLE => Diagnostic::SEVERITY_WARNING,
+            LintRuleCodes::COMMENT_STYLE => Diagnostic::SEVERITY_WARNING,
         ]));
     }
 }

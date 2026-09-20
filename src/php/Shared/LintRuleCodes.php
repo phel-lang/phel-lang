@@ -2,15 +2,25 @@
 
 declare(strict_types=1);
 
-namespace Phel\Lint\Application\Config;
+namespace Phel\Shared;
 
 /**
- * Stable list of all lint rule codes shipped in v1. Centralised so every
- * consumer (defaults, config loader, formatters, tests) shares one vocabulary.
+ * The lint rule codes, and part of the public API.
  *
- * @internal
+ * `phel lint --format=json` writes these strings into its `code` field, so they
+ * are a contract with whatever reads that output, not an implementation detail.
+ * Editor integrations already match on them. Renaming one is a breaking change.
+ *
+ * Living under `Phel\Shared` is what makes that promise: rule 4 of the public
+ * API in `docs/stability.md` covers the whole namespace, and
+ * `PublicApiSurfaceTest` gates it, so a rename fails CI instead of silently
+ * breaking a consumer.
+ *
+ * @see Exceptions\ErrorCode for the PHEL0xx and PHEL4xx codes,
+ *      which are public for the same reason: `phel explain <code>` tells people
+ *      to type them.
  */
-final class RuleRegistry
+final class LintRuleCodes
 {
     public const string UNRESOLVED_SYMBOL = 'phel/unresolved-symbol';
 
