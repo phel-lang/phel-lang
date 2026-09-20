@@ -10,6 +10,7 @@ use Phel\Build\BuildFacade;
 use Phel\Compiler\CompilerFacade;
 use Phel\Compiler\Domain\Analyzer\Environment\GlobalEnvironmentInterface;
 use Phel\Compiler\Infrastructure\GlobalEnvironmentSingleton;
+use Phel\Lang\Registry;
 use Phel\Lang\Symbol;
 use Phel\Shared\CompileOptions;
 use PHPUnit\Framework\Attributes\DataProvider;
@@ -39,6 +40,21 @@ final class IntegrationTest extends TestCase
     protected function setUp(): void
     {
         $this->compilerFacade = new CompilerFacade();
+
+        // Every fixture compiles into `user`, and a `def` from one is still
+        // registered when the next runs, so the order decides the output.
+        // SetVar/set-var.test defines `^:dynamic x`; after it, a read of `x` in
+        // Def/nested-def-inside-fn.test sees a bindable var and compiles to
+        // `\Phel::getDefinition` rather than `Registry::readRoot`, because
+        // GlobalVarEmitter keeps the scope gate only for bindable vars.
+        //
+        // paratest hides this by running the fixtures in separate workers. The
+        // coverage job runs unit and integration in one process with
+        // executionOrder="random", which is where it surfaced.
+        //
+        // Only `user` is cleared: `phel.core` is compiled once in
+        // setUpBeforeClass and every fixture needs it.
+        Registry::getInstance()->removeNamespace('user');
     }
 
     #[DataProvider('providerIntegration')]
