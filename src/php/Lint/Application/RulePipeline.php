@@ -4,12 +4,12 @@ declare(strict_types=1);
 
 namespace Phel\Lint\Application;
 
-use Phel\Lint\Application\Config\RuleRegistry;
 use Phel\Lint\Application\Config\RuleSettings;
 use Phel\Lint\Domain\Exception\LintRuleException;
 use Phel\Lint\Domain\FileAnalysis;
 use Phel\Lint\Domain\LintRuleInterface;
 use Phel\Shared\Api\Diagnostic;
+use Phel\Shared\LintRuleCodes;
 
 use Throwable;
 
@@ -93,7 +93,7 @@ final readonly class RulePipeline
     private function internalError(string $ruleCode, string $uri, Throwable $throwable): Diagnostic
     {
         return new Diagnostic(
-            code: RuleRegistry::INTERNAL_ERROR,
+            code: LintRuleCodes::INTERNAL_ERROR,
             severity: Diagnostic::SEVERITY_ERROR,
             message: LintRuleException::ruleCrashed($ruleCode, $throwable)->getMessage(),
             uri: $uri,

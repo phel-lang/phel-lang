@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace PhelTest\Unit\Lint\Application\Rule;
 
-use Phel\Lint\Application\Config\RuleRegistry;
 use Phel\Lint\Application\Rule\UnusedRequireRule;
+use Phel\Shared\LintRuleCodes;
 use PHPUnit\Framework\Attributes\PreserveGlobalState;
 use PHPUnit\Framework\Attributes\RunInSeparateProcess;
 
@@ -27,7 +27,7 @@ PHEL;
         $diagnostics = $rule->apply($analysis);
 
         self::assertNotEmpty($diagnostics);
-        self::assertSame(RuleRegistry::UNUSED_REQUIRE, $diagnostics[0]->code);
+        self::assertSame(LintRuleCodes::UNUSED_REQUIRE, $diagnostics[0]->code);
     }
 
     #[PreserveGlobalState(false)]

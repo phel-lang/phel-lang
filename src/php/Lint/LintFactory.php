@@ -8,7 +8,6 @@ use Gacela\Framework\AbstractFactory;
 use Gacela\Framework\ServiceResolver\ServiceMap;
 use Phel\Lint\Application\Cache\LintCache;
 use Phel\Lint\Application\Config\ConfigLoader;
-use Phel\Lint\Application\Config\RuleRegistry;
 use Phel\Lint\Application\Config\RuleSettings;
 use Phel\Lint\Application\FileCollector;
 use Phel\Lint\Application\Formatter\FormatterRegistry;
@@ -35,6 +34,7 @@ use Phel\Shared\Facade\ApiFacadeInterface;
 use Phel\Shared\Facade\CommandFacadeInterface;
 use Phel\Shared\Facade\CompilerFacadeInterface;
 use Phel\Shared\Facade\RunFacadeInterface;
+use Phel\Shared\LintRuleCodes;
 
 use function implode;
 use function md5;
@@ -147,7 +147,7 @@ final class LintFactory extends AbstractFactory
      */
     private function ruleFingerprint(RuleSettings $settings): string
     {
-        $codes = RuleRegistry::allCodes();
+        $codes = LintRuleCodes::allCodes();
         sort($codes);
 
         return md5(implode('|', $codes) . '|' . $settings->fingerprint());

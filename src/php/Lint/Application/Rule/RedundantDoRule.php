@@ -6,10 +6,10 @@ namespace Phel\Lint\Application\Rule;
 
 use Phel\Lang\Collections\LinkedList\PersistentListInterface;
 use Phel\Lang\Symbol;
-use Phel\Lint\Application\Config\RuleRegistry;
 use Phel\Lint\Domain\FileAnalysis;
 use Phel\Lint\Domain\LintRuleInterface;
 use Phel\Shared\Api\Diagnostic;
+use Phel\Shared\LintRuleCodes;
 
 use function count;
 
@@ -26,7 +26,7 @@ final readonly class RedundantDoRule implements LintRuleInterface
 {
     public function code(): string
     {
-        return RuleRegistry::REDUNDANT_DO;
+        return LintRuleCodes::REDUNDANT_DO;
     }
 
     public function apply(FileAnalysis $analysis): array

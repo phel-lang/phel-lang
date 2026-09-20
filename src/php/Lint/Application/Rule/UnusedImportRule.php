@@ -8,9 +8,9 @@ use Phel\Lang\Collections\LinkedList\PersistentListInterface;
 use Phel\Lang\Keyword;
 use Phel\Lang\Symbol;
 use Phel\Lang\TypeInterface;
-use Phel\Lint\Application\Config\RuleRegistry;
 use Phel\Lint\Domain\FileAnalysis;
 use Phel\Lint\Domain\LintRuleInterface;
+use Phel\Shared\LintRuleCodes;
 
 use function count;
 use function sprintf;
@@ -27,7 +27,7 @@ final readonly class UnusedImportRule implements LintRuleInterface
 {
     public function code(): string
     {
-        return RuleRegistry::UNUSED_IMPORT;
+        return LintRuleCodes::UNUSED_IMPORT;
     }
 
     public function apply(FileAnalysis $analysis): array

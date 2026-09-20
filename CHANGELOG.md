@@ -4,6 +4,10 @@ All notable changes to this project will be documented in this file.
 
 ## Unreleased
 
+### Changed
+
+- **BREAKING (PHP API)**: the lint rule codes move from `Phel\Lint\Application\Config\RuleRegistry` to `Phel\Shared\LintRuleCodes`, which makes them public API. `phel lint --format=json` already wrote them into its `code` field, so they were a contract with whatever reads that output while the class holding them was marked `@internal`. The strings themselves do not change, so a consumer matching on `phel/unused-require` keeps working; renaming one is now a breaking change and the public API snapshot enforces it. `Phel\Shared\Exceptions\ErrorCode` was already public and is now documented as such. (#3309)
+
 ### Added
 
 - The collection builders that return a copy are marked `#[NoDiscard]`, so discarding one now prints a warning instead of doing nothing silently. That covers a direct `(.put m k v)` and an inlined core call such as `(conj v x)` or `(assoc m :b 2)` in non-tail position, where the analyzer emits the method directly. Cast to `(void)` where the discard is deliberate. Transients and `MetaTrait::withMeta` are excluded, because they mutate in place and returning the receiver is the point; the exception is `TransientArrayMap::put`, which upgrades to a hash map past `MAX_SIZE` and so returns a different transient. (#3303)

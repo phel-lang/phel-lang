@@ -9,11 +9,11 @@ use Phel\Lang\Collections\Vector\PersistentVectorInterface;
 use Phel\Lang\Keyword;
 use Phel\Lang\Symbol;
 use Phel\Lang\TypeInterface;
-use Phel\Lint\Application\Config\RuleRegistry;
 use Phel\Lint\Domain\FileAnalysis;
 use Phel\Lint\Domain\LintRuleInterface;
 use Phel\Shared\Api\Diagnostic;
 use Phel\Shared\Exceptions\ErrorCode;
+use Phel\Shared\LintRuleCodes;
 
 use function count;
 use function explode;
@@ -36,7 +36,7 @@ final readonly class UnresolvedSymbolRule implements LintRuleInterface
 {
     public function code(): string
     {
-        return RuleRegistry::UNRESOLVED_SYMBOL;
+        return LintRuleCodes::UNRESOLVED_SYMBOL;
     }
 
     public function apply(FileAnalysis $analysis): array

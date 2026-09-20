@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace PhelTest\Unit\Lint\Application;
 
-use Phel\Lint\Application\Config\RuleRegistry;
 use Phel\Lint\Application\Config\RuleSettings;
 use Phel\Lint\Application\RulePipeline;
 use Phel\Lint\Domain\FileAnalysis;
@@ -12,6 +11,7 @@ use Phel\Lint\Domain\LintRuleInterface;
 use Phel\Lint\Transfer\LintResult;
 use Phel\Shared\Api\Diagnostic;
 use Phel\Shared\Api\ProjectIndex;
+use Phel\Shared\LintRuleCodes;
 use PHPUnit\Framework\TestCase;
 use RuntimeException;
 
@@ -60,7 +60,7 @@ final class RulePipelineTest extends TestCase
 
         $internal = $this->onlyInternalError($result);
 
-        self::assertSame(RuleRegistry::INTERNAL_ERROR, $internal->code);
+        self::assertSame(LintRuleCodes::INTERNAL_ERROR, $internal->code);
         self::assertStringContainsString("Lint rule 'phel/bad' crashed", $internal->message);
         self::assertStringContainsString('RuntimeException: boom', $internal->message);
     }
@@ -90,7 +90,7 @@ final class RulePipelineTest extends TestCase
         $codes = array_map(static fn(Diagnostic $d): string => $d->code, $result);
 
         self::assertContains('phel/good', $codes);
-        self::assertContains(RuleRegistry::INTERNAL_ERROR, $codes);
+        self::assertContains(LintRuleCodes::INTERNAL_ERROR, $codes);
     }
 
     /**
@@ -160,7 +160,7 @@ final class RulePipelineTest extends TestCase
     {
         $internal = array_values(array_filter(
             $result,
-            static fn(Diagnostic $d): bool => $d->code === RuleRegistry::INTERNAL_ERROR,
+            static fn(Diagnostic $d): bool => $d->code === LintRuleCodes::INTERNAL_ERROR,
         ));
 
         self::assertCount(1, $internal);

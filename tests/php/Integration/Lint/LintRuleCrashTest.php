@@ -10,7 +10,6 @@ use Phel\Compiler\CompilerFacade;
 use Phel\Compiler\Infrastructure\GlobalEnvironmentSingleton;
 use Phel\Lang\Symbol;
 use Phel\Lint\Application\Cache\LintCache;
-use Phel\Lint\Application\Config\RuleRegistry;
 use Phel\Lint\Application\Config\RuleSettings;
 use Phel\Lint\Application\FileCollector;
 use Phel\Lint\Application\LintRunner;
@@ -21,6 +20,7 @@ use Phel\Lint\Domain\FileAnalysis;
 use Phel\Lint\Domain\LintRuleInterface;
 use Phel\Lint\Transfer\LintResult;
 use Phel\Shared\Api\Diagnostic;
+use Phel\Shared\LintRuleCodes;
 use PHPUnit\Framework\Attributes\PreserveGlobalState;
 use PHPUnit\Framework\Attributes\RunInSeparateProcess;
 use PHPUnit\Framework\TestCase;
@@ -48,7 +48,7 @@ final class LintRuleCrashTest extends TestCase
         $result = new LintResult($this->lintFixture()->diagnostics);
 
         $codes = array_map(static fn(Diagnostic $d): string => $d->code, $result->diagnostics);
-        self::assertContains(RuleRegistry::INTERNAL_ERROR, $codes);
+        self::assertContains(LintRuleCodes::INTERNAL_ERROR, $codes);
 
         self::assertTrue(
             $result->hasErrors(),
@@ -64,7 +64,7 @@ final class LintRuleCrashTest extends TestCase
 
         $message = '';
         foreach ($result->diagnostics as $diagnostic) {
-            if ($diagnostic->code === RuleRegistry::INTERNAL_ERROR) {
+            if ($diagnostic->code === LintRuleCodes::INTERNAL_ERROR) {
                 $message = $diagnostic->message;
             }
         }
@@ -87,7 +87,7 @@ final class LintRuleCrashTest extends TestCase
             $this->lintFixture()->diagnostics,
         );
 
-        self::assertContains(RuleRegistry::COMMENT_STYLE, $codes);
+        self::assertContains(LintRuleCodes::COMMENT_STYLE, $codes);
     }
 
     /**
@@ -142,8 +142,8 @@ final class LintRuleCrashTest extends TestCase
         );
 
         return $runner->run([$this->fixture()], new RuleSettings([
-            RuleRegistry::DUPLICATE_DEF => Diagnostic::SEVERITY_ERROR,
-            RuleRegistry::COMMENT_STYLE => Diagnostic::SEVERITY_WARNING,
+            LintRuleCodes::DUPLICATE_DEF => Diagnostic::SEVERITY_ERROR,
+            LintRuleCodes::COMMENT_STYLE => Diagnostic::SEVERITY_WARNING,
         ]));
     }
 
@@ -164,7 +164,7 @@ final class LintRuleCrashTest extends TestCase
         return new class() implements LintRuleInterface {
             public function code(): string
             {
-                return RuleRegistry::DUPLICATE_DEF;
+                return LintRuleCodes::DUPLICATE_DEF;
             }
 
             public function apply(FileAnalysis $analysis): array

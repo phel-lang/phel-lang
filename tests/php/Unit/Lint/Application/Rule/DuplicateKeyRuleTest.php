@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace PhelTest\Unit\Lint\Application\Rule;
 
-use Phel\Lint\Application\Config\RuleRegistry;
 use Phel\Lint\Application\Rule\DuplicateKeyRule;
+use Phel\Shared\LintRuleCodes;
 use PHPUnit\Framework\Attributes\PreserveGlobalState;
 use PHPUnit\Framework\Attributes\RunInSeparateProcess;
 
@@ -21,7 +21,7 @@ final class DuplicateKeyRuleTest extends RuleTestCase
         $diagnostics = $rule->apply($analysis);
 
         self::assertNotEmpty($diagnostics);
-        self::assertSame(RuleRegistry::DUPLICATE_KEY, $diagnostics[0]->code);
+        self::assertSame(LintRuleCodes::DUPLICATE_KEY, $diagnostics[0]->code);
         self::assertStringContainsString(':a', $diagnostics[0]->message);
     }
 

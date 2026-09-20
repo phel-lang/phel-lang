@@ -1995,6 +1995,22 @@ final readonly class Phel\Shared\Interop\Wrapper
   public function compiledPhp(): string
   public function relativeFilenamePath(): string
 
+final class Phel\Shared\LintRuleCodes
+  public const string ARITY_MISMATCH = 'phel/arity-mismatch'
+  public const string COMMENT_STYLE = 'phel/comment-style'
+  public const string DISCOURAGED_VAR = 'phel/discouraged-var'
+  public const string DUPLICATE_DEF = 'phel/duplicate-def'
+  public const string DUPLICATE_KEY = 'phel/duplicate-key'
+  public const string INTERNAL_ERROR = 'phel/internal-error'
+  public const string INVALID_DESTRUCTURING = 'phel/invalid-destructuring'
+  public const string REDUNDANT_DO = 'phel/redundant-do'
+  public const string SHADOWED_BINDING = 'phel/shadowed-binding'
+  public const string UNRESOLVED_SYMBOL = 'phel/unresolved-symbol'
+  public const string UNUSED_BINDING = 'phel/unused-binding'
+  public const string UNUSED_IMPORT = 'phel/unused-import'
+  public const string UNUSED_REQUIRE = 'phel/unused-require'
+  public static function allCodes(): array
+
 final readonly class Phel\Shared\Munge implements Phel\Shared\MungeInterface
   public function __construct(array $mapping = ['-' => '_', '.' => '_DOT_', ':' => '_COLON_', '+' => '_PLUS_', '>' => '_GT_', '<' => '_LT_', '=' => '_EQ_', '~' => '_TILDE_', '!' => '_BANG_', '@' => '_CIRCA_', '#' => '_SHARP_', '\'' => '_SINGLEQUOTE_', '"' => '_DOUBLEQUOTE_', '%' => '_PERCENT_', '^' => '_CARET_', '&' => '_AMPERSAND_', '*' => '_STAR_', '|' => '_BAR_', '{' => '_LBRACE_', '}' => '_RBRACE_', '[' => '_LBRACK_', ']' => '_RBRACK_', '/' => '_SLASH_', '\\' => '_BSLASH_', '?' => '_QMARK_', '$' => '_DOLLAR_'], array $nsMapping = ['-' => '_'])
   public function decodeNs(string $str): string

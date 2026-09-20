@@ -50,6 +50,24 @@ contracts those facades speak in (`Shared`), and the object a project's
 Why the rules take this shape:
 [ADR 0005](adr/0005-public-php-api-by-rule-and-snapshot.md).
 
+### Diagnostic codes
+
+The identifiers a program can match on are public, because they exist to be
+matched on by a program:
+
+| Surface | Where | Shape |
+|---|---|---|
+| Lint rule codes | `Phel\Shared\LintRuleCodes` | `phel/unused-require`, `phel/arity-mismatch`, ... |
+| Compile and runtime codes | `Phel\Shared\Exceptions\ErrorCode` | `PHEL012`, `PHEL401`, ... |
+
+`phel lint --format=json` writes a rule code into its `code` field, and
+`phel explain <code>` asks people to type an error code. Both are contracts with
+something other than a human reader, so renaming or removing one is a breaking
+change and needs a major. Both namespaces are covered by rule 4 above and pinned
+by `PublicApiSurfaceTest`, so a rename fails CI rather than an editor.
+
+What is *not* promised is the message text beside the code. Match on the code.
+
 ### Internal by construction
 
 Internal even when a public class returns it:
@@ -204,7 +222,8 @@ Not under semver, and not before `1.0`:
 
 - The exact PHP source the emitter produces. Only its *behaviour* is promised;
   the test suite pins the text so changes are reviewed, not forbidden.
-- Compiler diagnostic wording and error-output shape.
+- Compiler diagnostic *wording*, and the layout of human-facing error output.
+  The machine-readable parts are covered: see "Diagnostic codes" below.
 - The `.phel/cache/` file format. Keyed by source hash plus optimization level,
   Phel version and the fingerprint of the declared `cache-env-vars`, so a
   version bump invalidates it by design.

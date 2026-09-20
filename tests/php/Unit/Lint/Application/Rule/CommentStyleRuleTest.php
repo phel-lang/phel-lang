@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace PhelTest\Unit\Lint\Application\Rule;
 
-use Phel\Lint\Application\Config\RuleRegistry;
 use Phel\Lint\Application\Rule\CommentStyleRule;
+use Phel\Shared\LintRuleCodes;
 use PHPUnit\Framework\Attributes\PreserveGlobalState;
 use PHPUnit\Framework\Attributes\RunInSeparateProcess;
 
@@ -21,7 +21,7 @@ final class CommentStyleRuleTest extends RuleTestCase
         $diagnostics = $rule->apply($analysis);
 
         self::assertCount(1, $diagnostics);
-        self::assertSame(RuleRegistry::COMMENT_STYLE, $diagnostics[0]->code);
+        self::assertSame(LintRuleCodes::COMMENT_STYLE, $diagnostics[0]->code);
         self::assertStringContainsString(';;', $diagnostics[0]->message);
         self::assertSame(1, $diagnostics[0]->startLine);
     }
