@@ -5,12 +5,14 @@ declare(strict_types=1);
 namespace Phel\Lang\Collections\SortedMap;
 
 use Closure;
+use NoDiscard;
 use Phel\Lang\Collections\Map\AbstractPersistentMap;
 use Phel\Lang\Collections\Map\PersistentMapInterface;
 use Phel\Lang\Collections\Map\TransientMapWrapper;
 use Phel\Lang\EqualizerInterface;
 use Phel\Lang\HasherInterface;
 use RuntimeException;
+
 use Traversable;
 
 use function count;
@@ -91,6 +93,7 @@ final class PersistentSortedMap extends AbstractPersistentMap
     /**
      * @param PersistentMapInterface<mixed, mixed>|null $meta
      */
+    #[NoDiscard('the result is a new instance, the receiver is unchanged')]
     public function withMeta(?PersistentMapInterface $meta): static
     {
         /** @var static $result */
@@ -104,6 +107,7 @@ final class PersistentSortedMap extends AbstractPersistentMap
         return SortedArrayHelper::binarySearch($this->array, $key, $this->effectiveComparator) >= 0;
     }
 
+    #[NoDiscard('the result is a new instance, the receiver is unchanged')]
     public function put($key, $value): PersistentMapInterface
     {
         $idx = SortedArrayHelper::binarySearch($this->array, $key, $this->effectiveComparator);
@@ -137,6 +141,7 @@ final class PersistentSortedMap extends AbstractPersistentMap
      *
      * @return self<TKey, TValue>
      */
+    #[NoDiscard('the result is a new instance, the receiver is unchanged')]
     public function remove($key): self
     {
         $idx = SortedArrayHelper::binarySearch($this->array, $key, $this->effectiveComparator);

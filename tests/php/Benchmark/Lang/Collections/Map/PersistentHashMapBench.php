@@ -47,7 +47,7 @@ final class PersistentHashMapBench
      */
     public function bench_put(): void
     {
-        $this->map->put($this->nextKey, $this->nextKey);
+        (void) $this->map->put($this->nextKey, $this->nextKey);
     }
 
     /**
@@ -89,7 +89,7 @@ final class PersistentHashMapBench
      */
     public function bench_remove(): void
     {
-        $this->map->remove($this->queryKey);
+        (void) $this->map->remove($this->queryKey);
     }
 
     /**
@@ -122,7 +122,7 @@ final class PersistentHashMapBench
      */
     public function bench_remove_absent(): void
     {
-        $this->map->remove($this->absentKey);
+        (void) $this->map->remove($this->absentKey);
     }
 
     /**

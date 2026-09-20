@@ -59,7 +59,7 @@ final class PersistentQueueTest extends TestCase
     public function test_pop_on_empty_throws(): void
     {
         $this->expectException(UnderflowException::class);
-        PersistentQueue::empty($this->hasher, $this->equalizer)->pop();
+        (void) PersistentQueue::empty($this->hasher, $this->equalizer)->pop();
     }
 
     public function test_pop_handles_rear_to_front_rebalance(): void

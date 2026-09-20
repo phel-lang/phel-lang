@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace Phel\Lang;
 
+use NoDiscard;
+
 /**
  * @template T of RestInterface
  */
@@ -14,5 +16,6 @@ interface RestInterface
      *
      * @return T
      */
+    #[NoDiscard('the result is a new instance, the receiver is unchanged')]
     public function rest();
 }

@@ -4,9 +4,11 @@ declare(strict_types=1);
 
 namespace Phel\Lang\Collections\HashSet;
 
+use NoDiscard;
 use Phel\Lang\AbstractType;
 use Phel\Lang\Collections\Map\PersistentMapInterface;
 use Phel\Lang\HasherInterface;
+
 use Traversable;
 
 use function is_float;
@@ -139,6 +141,7 @@ abstract class AbstractPersistentSet extends AbstractType implements PersistentH
      *
      * @return PersistentHashSetInterface<TValue>
      */
+    #[NoDiscard('the result is a new instance, the receiver is unchanged')]
     public function concat($xs): PersistentHashSetInterface
     {
         $set = $this->asTransient();

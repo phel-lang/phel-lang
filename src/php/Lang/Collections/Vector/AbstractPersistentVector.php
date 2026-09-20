@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Phel\Lang\Collections\Vector;
 
 use InvalidArgumentException;
+use NoDiscard;
 use Phel\Lang\AbstractType;
 use Phel\Lang\Collections\Exceptions\IndexOutOfBoundsException;
 use Phel\Lang\Collections\Exceptions\MethodNotSupportedException;
@@ -13,6 +14,7 @@ use Phel\Lang\Collections\Map\MapEntry;
 use Phel\Lang\Collections\Map\PersistentMapInterface;
 use Phel\Lang\EqualizerInterface;
 use Phel\Lang\HasherInterface;
+
 use Phel\Lang\IteratorUnwrapper;
 
 use function count;
@@ -62,6 +64,7 @@ abstract class AbstractPersistentVector extends AbstractType implements Persiste
     /**
      * @return PersistentVectorInterface<T>
      */
+    #[NoDiscard('the result is a new instance, the receiver is unchanged')]
     public function rest()
     {
         $cdr = $this->cdr();
@@ -174,6 +177,7 @@ abstract class AbstractPersistentVector extends AbstractType implements Persiste
     /**
      * @return PersistentVectorInterface<T>
      */
+    #[NoDiscard('the result is a new instance, the receiver is unchanged')]
     public function push(mixed $x): PersistentVectorInterface
     {
         return $this->append($x);
@@ -186,6 +190,7 @@ abstract class AbstractPersistentVector extends AbstractType implements Persiste
      *
      * @return PersistentVectorInterface<T>
      */
+    #[NoDiscard('the result is a new instance, the receiver is unchanged')]
     public function concat($xs)
     {
         if ($this instanceof PersistentVector) {
@@ -216,6 +221,7 @@ abstract class AbstractPersistentVector extends AbstractType implements Persiste
     /**
      * @return PersistentVectorInterface<T>
      */
+    #[NoDiscard('the result is a new instance, the receiver is unchanged')]
     public function slice(int $offset = 0, ?int $length = null): PersistentVectorInterface
     {
         $count = $this->count();

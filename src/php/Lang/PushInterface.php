@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace Phel\Lang;
 
+use NoDiscard;
+
 /**
  * @template TSelf of PushInterface
  */
@@ -14,5 +16,6 @@ interface PushInterface
      *
      * @return TSelf
      */
+    #[NoDiscard('the result is a new instance, the receiver is unchanged')]
     public function push(mixed $x);
 }

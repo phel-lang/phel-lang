@@ -4,9 +4,11 @@ declare(strict_types=1);
 
 namespace Phel\Lang\Collections\Map;
 
+use NoDiscard;
 use Phel\Lang\AbstractType;
 use Phel\Lang\Collections\Exceptions\MethodNotSupportedException;
 use Phel\Lang\EqualizerInterface;
+
 use Phel\Lang\HasherInterface;
 
 use function is_float;
@@ -106,6 +108,7 @@ abstract class AbstractPersistentMap extends AbstractType implements PersistentM
      *
      * @return PersistentMapInterface<TKey, TValue>
      */
+    #[NoDiscard('the result is a new instance, the receiver is unchanged')]
     public function merge(PersistentMapInterface $other): PersistentMapInterface
     {
         $result = $this;

@@ -5,7 +5,9 @@ declare(strict_types=1);
 namespace Phel\Lang;
 
 use InvalidArgumentException;
+use NoDiscard;
 use Phel\Lang\Collections\Map\PersistentMapInterface;
+
 use Stringable;
 
 use function class_exists;
@@ -114,6 +116,7 @@ final readonly class PhpClass implements TypeInterface, Stringable
     /**
      * @param PersistentMapInterface<mixed, mixed>|null $meta
      */
+    #[NoDiscard('the result is a new instance, the receiver is unchanged')]
     public function withMeta(?PersistentMapInterface $meta): static
     {
         return new self($this->fqn, $meta, $this->startLocation, $this->endLocation);

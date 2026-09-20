@@ -7,6 +7,7 @@ namespace Phel\Lang\Collections\Vector;
 use ArrayAccess;
 use Countable;
 use IteratorAggregate;
+use NoDiscard;
 use Phel\Lang\Collections\AsTransientInterface;
 use Phel\Lang\ConcatInterface;
 use Phel\Lang\ConsInterface;
@@ -45,6 +46,7 @@ interface PersistentVectorInterface extends TypeInterface, SeqInterface, Iterato
      *
      * @return self<T>
      */
+    #[NoDiscard('the result is a new instance, the receiver is unchanged')]
     public function append(mixed $value): self;
 
     /**
@@ -52,6 +54,7 @@ interface PersistentVectorInterface extends TypeInterface, SeqInterface, Iterato
      *
      * @return self<T>
      */
+    #[NoDiscard('the result is a new instance, the receiver is unchanged')]
     public function update(int $i, mixed $value): self;
 
     /**
@@ -59,5 +62,6 @@ interface PersistentVectorInterface extends TypeInterface, SeqInterface, Iterato
      */
     public function get(int $i);
 
+    #[NoDiscard('the result is a new instance, the receiver is unchanged')]
     public function pop(): self;
 }

@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Phel\Lang\Collections\LazySeq;
 
 use IteratorAggregate;
+use NoDiscard;
 use Phel\Lang\AbstractType;
 use Phel\Lang\Collections\Map\PersistentMapInterface;
 use Phel\Lang\EqualizerInterface;
@@ -53,6 +54,7 @@ final class Cons extends AbstractType implements SeqInterface, IteratorAggregate
     /**
      * @return LazySeqInterface<T>
      */
+    #[NoDiscard('the result is a new instance, the receiver is unchanged')]
     public function cdr(): LazySeqInterface
     {
         return $this->rest;
@@ -61,6 +63,7 @@ final class Cons extends AbstractType implements SeqInterface, IteratorAggregate
     /**
      * @return LazySeqInterface<T>
      */
+    #[NoDiscard('the result is a new instance, the receiver is unchanged')]
     public function rest(): LazySeqInterface
     {
         return $this->rest;
@@ -148,6 +151,7 @@ final class Cons extends AbstractType implements SeqInterface, IteratorAggregate
     /**
      * @param PersistentMapInterface<mixed, mixed>|null $meta
      */
+    #[NoDiscard('the result is a new instance, the receiver is unchanged')]
     public function withMeta(?PersistentMapInterface $meta): static
     {
         $clone = clone $this;

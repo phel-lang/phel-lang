@@ -61,7 +61,7 @@ final class PersistentVectorBench
      */
     public function bench_append(): void
     {
-        $this->vector->append($this->nextValue);
+        (void) $this->vector->append($this->nextValue);
     }
 
     /**
@@ -75,7 +75,7 @@ final class PersistentVectorBench
      */
     public function bench_update(): void
     {
-        $this->vector->update($this->updateIndex, 'new-value');
+        (void) $this->vector->update($this->updateIndex, 'new-value');
     }
 
     /**

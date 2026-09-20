@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Phel\Lang\Collections\SortedSet;
 
 use Closure;
+use NoDiscard;
 use Phel\Lang\Collections\HashSet\AbstractPersistentSet;
 use Phel\Lang\Collections\HashSet\PersistentHashSetInterface;
 use Phel\Lang\Collections\Map\PersistentMapInterface;
@@ -22,6 +23,7 @@ final class PersistentSortedSet extends AbstractPersistentSet
     /**
      * @param PersistentMapInterface<mixed, mixed>|null $meta
      */
+    #[NoDiscard('the result is a new instance, the receiver is unchanged')]
     public function withMeta(?PersistentMapInterface $meta): static
     {
         return new self($this->hasher, $meta, $this->map);
@@ -30,6 +32,7 @@ final class PersistentSortedSet extends AbstractPersistentSet
     /**
      * @param TValue $value
      */
+    #[NoDiscard('the result is a new instance, the receiver is unchanged')]
     public function add($value): PersistentHashSetInterface
     {
         $newMap = $this->map->put($value, $value);
@@ -44,6 +47,7 @@ final class PersistentSortedSet extends AbstractPersistentSet
     /**
      * @param TValue $value
      */
+    #[NoDiscard('the result is a new instance, the receiver is unchanged')]
     public function remove($value): PersistentHashSetInterface
     {
         $newMap = $this->map->remove($value);

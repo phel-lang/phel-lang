@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace Phel\Lang;
 
+use NoDiscard;
+
 /**
  * @template T of SliceInterface
  */
@@ -17,5 +19,6 @@ interface SliceInterface
      *
      * @return T
      */
+    #[NoDiscard('the result is a new instance, the receiver is unchanged')]
     public function slice(int $offset = 0, ?int $length = null);
 }

@@ -26,7 +26,7 @@ final class StructTest extends TestCase
     {
         $this->expectException(InvalidArgumentException::class);
         $s = FakeStruct::fromKVs(Keyword::create('a'), 1, Keyword::create('b'), 2);
-        $s->put(Keyword::create('c'), 2);
+        (void) $s->put(Keyword::create('c'), 2);
     }
 
     public function test_offset_exists(): void

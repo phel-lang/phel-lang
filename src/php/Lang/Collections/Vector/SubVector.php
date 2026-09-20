@@ -4,11 +4,13 @@ declare(strict_types=1);
 
 namespace Phel\Lang\Collections\Vector;
 
+use NoDiscard;
 use Phel\Lang\Collections\Exceptions\IndexOutOfBoundsException;
 use Phel\Lang\Collections\Exceptions\MethodNotSupportedException;
 use Phel\Lang\Collections\Map\PersistentMapInterface;
 use Phel\Lang\EqualizerInterface;
 use Phel\Lang\HasherInterface;
+
 use Traversable;
 
 use function sprintf;
@@ -43,6 +45,7 @@ final class SubVector extends AbstractPersistentVector
     /**
      * @return self<T>|null
      */
+    #[NoDiscard('the result is a new instance, the receiver is unchanged')]
     public function cdr(): ?self
     {
         if ($this->start + 1 < $this->end) {
@@ -68,6 +71,7 @@ final class SubVector extends AbstractPersistentVector
     /**
      * @param PersistentMapInterface<mixed, mixed>|null $meta
      */
+    #[NoDiscard('the result is a new instance, the receiver is unchanged')]
     public function withMeta(?PersistentMapInterface $meta): static
     {
         return new self($this->hasher, $this->equalizer, $meta, $this->vector, $this->start, $this->end);
@@ -88,6 +92,7 @@ final class SubVector extends AbstractPersistentVector
      *
      * @return PersistentVectorInterface<T>
      */
+    #[NoDiscard('the result is a new instance, the receiver is unchanged')]
     public function append($value): PersistentVectorInterface
     {
         return new self($this->hasher, $this->equalizer, $this->meta, $this->vector->update($this->end, $value), $this->start, $this->end + 1);
@@ -98,6 +103,7 @@ final class SubVector extends AbstractPersistentVector
      *
      * @return PersistentVectorInterface<T>
      */
+    #[NoDiscard('the result is a new instance, the receiver is unchanged')]
     public function update(int $i, $value): PersistentVectorInterface
     {
         if ($this->start + $i > $this->end) {
@@ -127,6 +133,7 @@ final class SubVector extends AbstractPersistentVector
     /**
      * @return PersistentVectorInterface<T>
      */
+    #[NoDiscard('the result is a new instance, the receiver is unchanged')]
     public function pop(): PersistentVectorInterface
     {
         if ($this->end - 1 <= $this->start) {
@@ -146,6 +153,7 @@ final class SubVector extends AbstractPersistentVector
     /**
      * @return PersistentVectorInterface<T>
      */
+    #[NoDiscard('the result is a new instance, the receiver is unchanged')]
     public function cons(mixed $x): PersistentVectorInterface
     {
         /** @var PersistentVectorInterface<T> $result */

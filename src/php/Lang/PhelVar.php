@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Phel\Lang;
 
 use Phel\Lang\Collections\Map\PersistentMapInterface;
+
 use RuntimeException;
 
 use function get_debug_type;
@@ -91,6 +92,8 @@ final readonly class PhelVar implements EqualsInterface, FnInterface, HashableIn
     /**
      * @param PersistentMapInterface<mixed, mixed>|null $meta
      */
+    // No NoDiscard here: this override returns $this rather than a copy, so a
+    // discarded call is not a lost write. Same reasoning as MetaTrait.
     public function withMeta(?PersistentMapInterface $meta): static
     {
         return $this;

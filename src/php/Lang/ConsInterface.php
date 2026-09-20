@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace Phel\Lang;
 
+use NoDiscard;
+
 /**
  * @template T of ConsInterface
  */
@@ -14,5 +16,6 @@ interface ConsInterface
      *
      * @return T
      */
+    #[NoDiscard('the result is a new instance, the receiver is unchanged')]
     public function cons(mixed $x);
 }

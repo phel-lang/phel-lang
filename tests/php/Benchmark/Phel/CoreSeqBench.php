@@ -499,7 +499,7 @@ final class CoreSeqBench extends CoreBenchCase
     public function bench_slice_raw(): void
     {
         for ($i = 0; $i < self::INNER; ++$i) {
-            $this->vector->slice(1, 5);
+            (void) $this->vector->slice(1, 5);
         }
     }
 

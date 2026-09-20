@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace Phel\Lang\Collections\Map;
 
+use NoDiscard;
+
 /**
  * Bulk-builds a merge through a transient instead of folding with `put()`,
  * so a merge allocates one persistent map rather than one per entry.
@@ -23,6 +25,7 @@ trait TransientMergeStrategyTrait
      *
      * @return PersistentMapInterface<TKey, TValue>
      */
+    #[NoDiscard('the result is a new instance, the receiver is unchanged')]
     public function merge(PersistentMapInterface $other): PersistentMapInterface
     {
         $transient = $this->asTransient();
