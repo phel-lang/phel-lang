@@ -99,7 +99,7 @@ ADR 0007 protects: `php/aget`, `php/aset`, `php/apush`, `php/aunset`, their
 
 ## See also
 
-[Language surface spec](../spec/language-surface.md#rejected-as-source-from-100) ·
+[Language surface spec](../spec/language-surface.md#rejected-as-source-from-0520) ·
 [Deprecated surface](../migration/deprecated-surface.md) ·
 [ADR 0006](0006-one-opt-in-deprecation-channel.md) ·
 [ADR 0007](0007-clojure-style-interop-is-the-source-spelling.md) ·

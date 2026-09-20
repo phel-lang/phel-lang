@@ -103,7 +103,7 @@ from the compiler. A form added or removed in the analyzer fails the build until
 this page is updated, which is when somebody decides whether the change is
 allowed inside the major.
 
-### Rejected as source from 1.0.0
+### Rejected as source from 0.52.0
 
 Four forms above are the compiler's own target and are no longer accepted in
 source. Writing one is an error (`PHEL012`), with no flag to turn it off. They
