@@ -81,9 +81,10 @@ final readonly class PhelVar implements EqualsInterface, FnInterface, HashableIn
      */
     public function getMeta(): ?PersistentMapInterface
     {
-        [$hasAttachedMeta, $attachedMeta] = $this->attachedMeta($this);
-        return $hasAttachedMeta
-            ? $attachedMeta
+        $attachedMeta = $this->attachedMetaStore();
+
+        return $attachedMeta->offsetExists($this)
+            ? $attachedMeta[$this]
             : $this->meta();
     }
 
@@ -94,7 +95,7 @@ final readonly class PhelVar implements EqualsInterface, FnInterface, HashableIn
     public function withMeta(?PersistentMapInterface $meta): static
     {
         $copy = clone $this;
-        $this->attachedMeta($copy, $meta, true);
+        $this->attachedMetaStore()[$copy] = $meta;
 
         return $copy;
     }
@@ -240,35 +241,20 @@ final readonly class PhelVar implements EqualsInterface, FnInterface, HashableIn
     }
 
     /**
-     * @param PersistentMapInterface<mixed, mixed>|null $meta
-     *
-     * @return array{bool, ?PersistentMapInterface<mixed, mixed>}
+     * @return WeakMap<self, ?PersistentMapInterface<mixed, mixed>>
      */
-    private function attachedMeta(self $var, ?PersistentMapInterface $meta = null, bool $write = false): array
+    private function attachedMetaStore(): WeakMap
     {
         /** @var WeakMap<self, ?PersistentMapInterface<mixed, mixed>>|null $attachedMeta */
         static $attachedMeta;
-        $attachedMeta ??= $this->newAttachedMetaStore();
 
-        if ($write) {
-            $attachedMeta[$var] = $meta;
+        if (!$attachedMeta instanceof WeakMap) {
+            /** @var WeakMap<self, ?PersistentMapInterface<mixed, mixed>> $newAttachedMeta */
+            $newAttachedMeta = new WeakMap();
+            $attachedMeta = $newAttachedMeta;
         }
 
-        return [
-            $attachedMeta->offsetExists($var),
-            $attachedMeta[$var] ?? null,
-        ];
-    }
-
-    /**
-     * @return WeakMap<self, ?PersistentMapInterface<mixed, mixed>>
-     */
-    private function newAttachedMetaStore(): WeakMap
-    {
-        /** @var WeakMap<self, ?PersistentMapInterface<mixed, mixed>> $store */
-        $store = new WeakMap();
-
-        return $store;
+        return $attachedMeta;
     }
 
     private function notifyWatches(mixed $oldValue, mixed $newValue): void
