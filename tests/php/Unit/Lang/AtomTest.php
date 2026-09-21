@@ -5,8 +5,10 @@ declare(strict_types=1);
 namespace PhelTest\Unit\Lang;
 
 use InvalidArgumentException;
+use Phel;
 use Phel\Lang\Atom;
 use Phel\Lang\Collections\Vector\PersistentVector;
+use Phel\Lang\Keyword;
 use Phel\Lang\TypeFactory;
 use PHPUnit\Framework\TestCase;
 
@@ -45,6 +47,31 @@ final class AtomTest extends TestCase
 
         $this->assertSame(2, $v->set(2));
         $this->assertTrue($called);
+    }
+
+    public function test_alter_meta_mutates_the_atom_metadata(): void
+    {
+        $meta = Phel::map(Keyword::create('tag'), 'counter');
+        $atom = new Atom($meta, 1);
+
+        $result = $atom->alterMeta(
+            static fn($current) => $current->put(Keyword::create('unit'), 'ms'),
+        );
+
+        self::assertSame($result, $atom->getMeta());
+        self::assertSame('counter', $result[Keyword::create('tag')]);
+        self::assertSame('ms', $result[Keyword::create('unit')]);
+    }
+
+    public function test_reset_meta_mutates_the_atom_metadata(): void
+    {
+        $atom = new Atom(Phel::map(Keyword::create('tag'), 'counter'), 1);
+        $meta = Phel::map(Keyword::create('tag'), 'other');
+
+        $result = $atom->resetMeta($meta);
+
+        self::assertSame($meta, $result);
+        self::assertSame($meta, $atom->getMeta());
     }
 
     public function test_set_throws_when_validator_rejects(): void

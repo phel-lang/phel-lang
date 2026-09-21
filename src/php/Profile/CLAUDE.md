@@ -42,7 +42,7 @@ Instrumentation profiler for `phel profile`. Reports per-fn call counts, self/to
 
 ## Key Constraints
 
-- `ProfilingFn extends AbstractFn` so downstream `instanceof` checks succeed; constructor copies inner meta (`withMeta($inner->getMeta())`) so `getMeta()`/`withMeta()` work via `MetaTrait`.
+- `ProfilingFn extends AbstractFn` so downstream `instanceof` checks succeed; `ProfilerSession::wrapFn()` attaches the inner fn's metadata to the new proxy through copying `withMeta()` before returning it.
 - Fn name comes from the inner fn's `BOUND_TO` class constant (via reflection); falls back to `<anonymous>`.
 - Self-recursive calls are emitted as `$this(...)`, not a registry lookup, so they bypass the proxy and stay untimed — outer entry counted, recursion depth not. This is a compiler emit detail (commit bee78ffe), not a constraint of `ProfilingFn`.
 - Self time: `ProfilerSession` maintains a per-call stack and subtracts each child's inclusive time from its parent's self-time. Unmatched `exit()` on an empty stack is silently ignored.

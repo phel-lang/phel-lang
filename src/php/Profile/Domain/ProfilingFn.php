@@ -32,7 +32,6 @@ final class ProfilingFn extends AbstractFn
             ? $reflection->getConstant('BOUND_TO')
             : null;
         $this->boundTo = is_string($constant) && $constant !== '' ? $constant : '<anonymous>';
-        $this->withMeta($inner->getMeta());
     }
 
     public function __invoke(mixed ...$args): mixed

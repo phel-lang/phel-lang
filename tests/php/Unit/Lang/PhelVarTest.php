@@ -78,6 +78,20 @@ final class PhelVarTest extends TestCase
         self::assertNotNull($var->meta());
     }
 
+    public function test_with_meta_returns_a_handle_local_copy(): void
+    {
+        $canonical = Phel::map(Phel::keyword('doc'), 'canonical');
+        $attached = Phel::map(Phel::keyword('doc'), 'attached');
+        $var = $this->registry->addDefinition('user', 'x', 1, $canonical);
+
+        $copy = $var->withMeta($attached);
+
+        self::assertNotSame($var, $copy);
+        self::assertSame($canonical, $var->getMeta());
+        self::assertSame($attached, $copy->getMeta());
+        self::assertSame($canonical, $copy->meta());
+    }
+
     public function test_alter_root_replaces_value_and_returns_new(): void
     {
         $var = $this->registry->addDefinition('user', 'counter', 1);

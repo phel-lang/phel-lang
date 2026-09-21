@@ -358,12 +358,14 @@ abstract class Phel\Lang\AbstractType implements Phel\Lang\TypeInterface, String
 final class Phel\Lang\Atom extends Phel\Lang\AbstractType
   public function __construct(?Phel\Lang\Collections\Map\PersistentMapInterface $meta, mixed $value)
   public function addWatch(string $key, callable $fn): void
+  public function alterMeta(callable $f, mixed ...$args): ?Phel\Lang\Collections\Map\PersistentMapInterface
   public function deref()
   public function equals(mixed $other): bool
   public function getMeta(): ?Phel\Lang\Collections\Map\PersistentMapInterface
   public function getValidator(): ?callable
   public function hash(): int
   public function removeWatch(string $key): void
+  public function resetMeta(?Phel\Lang\Collections\Map\PersistentMapInterface $meta): ?Phel\Lang\Collections\Map\PersistentMapInterface
   public function set(mixed $value): mixed
   public function setValidator(?callable $fn): void
   public function withMeta(?Phel\Lang\Collections\Map\PersistentMapInterface $meta): static

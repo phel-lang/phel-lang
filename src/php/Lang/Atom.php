@@ -63,6 +63,28 @@ final class Atom extends AbstractType
     }
 
     /**
+     * @param callable(PersistentMapInterface<mixed, mixed>|null, mixed...): (PersistentMapInterface<mixed, mixed>|null) $f
+     *
+     * @return PersistentMapInterface<mixed, mixed>|null
+     */
+    public function alterMeta(callable $f, mixed ...$args): ?PersistentMapInterface
+    {
+        $this->meta = $f($this->meta, ...$args);
+
+        return $this->meta;
+    }
+
+    /**
+     * @param PersistentMapInterface<mixed, mixed>|null $meta
+     *
+     * @return PersistentMapInterface<mixed, mixed>|null
+     */
+    public function resetMeta(?PersistentMapInterface $meta): ?PersistentMapInterface
+    {
+        return $this->meta = $meta;
+    }
+
+    /**
      * @param callable(Keyword, self<T>, T, T): void $fn called after every successful
      *                                                   {@see self::set()} with the watch key,
      *                                                   this atom, the old and the new value

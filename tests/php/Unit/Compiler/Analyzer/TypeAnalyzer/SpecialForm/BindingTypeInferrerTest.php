@@ -44,9 +44,15 @@ final class BindingTypeInferrerTest extends TestCase
     public function test_int_literal_grafts_int_on_symbol_and_shadow(): void
     {
         $binding = $this->letBinding('n', new LiteralNode($this->env, 7));
+        $originalSymbol = $binding->getSymbol();
+        $originalShadow = $binding->getShadow();
 
         new BindingTypeInferrer()->graftLetBindings([$binding]);
 
+        self::assertNotSame($originalSymbol, $binding->getSymbol());
+        self::assertNotSame($originalShadow, $binding->getShadow());
+        self::assertNull($this->tagOf($originalSymbol));
+        self::assertNull($this->tagOf($originalShadow));
         self::assertSame('int', $this->tagOf($binding->getSymbol()));
         self::assertSame(
             'int',
@@ -66,6 +72,23 @@ final class BindingTypeInferrerTest extends TestCase
         self::assertSame('float', $this->tagOf($float->getSymbol()));
         self::assertSame('bool', $this->tagOf($bool->getSymbol()));
         self::assertSame('string', $this->tagOf($string->getSymbol()));
+    }
+
+    public function test_late_loop_tag_reaches_an_already_analyzed_shadow_reference(): void
+    {
+        $binding = $this->letBinding('n', new LiteralNode($this->env, 7));
+        $originalShadow = $binding->getShadow();
+        $bodyEnv = $this->env->withLocalAndShadow($binding->getSymbol(), $originalShadow);
+        $reference = new LocalVarNode($bodyEnv, $originalShadow);
+
+        new BindingTypeInferrer()->graftLoopBindings(
+            [$binding],
+            new LiteralNode($bodyEnv, null),
+        );
+
+        self::assertNull($this->tagOf($originalShadow));
+        self::assertSame('int', $reference->getInferredType());
+        self::assertSame('int', $this->tagOf($binding->getShadow()));
     }
 
     public function test_user_written_tag_wins_over_inferred(): void

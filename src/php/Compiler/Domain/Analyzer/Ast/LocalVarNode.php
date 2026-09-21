@@ -53,10 +53,16 @@ final class LocalVarNode extends AbstractNode
             return $ownTag;
         }
 
+        $publishedType = $this->getEnv()->inferredTypeOf($this->name);
+        if ($publishedType !== null) {
+            return $publishedType;
+        }
+
         $name = $this->name->getName();
         foreach ($this->getEnv()->getLocals() as $local) {
             if ($local->getName() === $name) {
-                return $this->tagOf($local->getMeta());
+                return $this->tagOf($local->getMeta())
+                    ?? $this->getEnv()->inferredTypeOf($local);
             }
         }
 

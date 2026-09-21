@@ -4,7 +4,9 @@ declare(strict_types=1);
 
 namespace PhelTest\Unit\Profile;
 
+use Phel;
 use Phel\Lang\AbstractFn;
+use Phel\Lang\Keyword;
 use Phel\Profile\Domain\ProfilerSession;
 use PHPUnit\Framework\TestCase;
 
@@ -88,5 +90,21 @@ final class ProfilerSessionTest extends TestCase
         $rewrapped = $session->wrapFn($wrapped);
 
         self::assertSame($wrapped, $rewrapped);
+    }
+
+    public function test_wrap_fn_copies_the_inner_metadata(): void
+    {
+        $session = new ProfilerSession();
+        $meta = Phel::map(Keyword::create('doc'), 'profiled');
+        $fn = (new class() extends AbstractFn {
+            public function __invoke(mixed ...$args): mixed
+            {
+                return null;
+            }
+        })->withMeta($meta);
+
+        $wrapped = $session->wrapFn($fn);
+
+        self::assertSame($meta, $wrapped->getMeta());
     }
 }

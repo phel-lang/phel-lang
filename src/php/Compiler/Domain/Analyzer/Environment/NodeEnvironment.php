@@ -6,6 +6,7 @@ namespace Phel\Compiler\Domain\Analyzer\Environment;
 
 use Phel\Compiler\Domain\Analyzer\Ast\RecurFrame;
 use Phel\Lang\Symbol;
+use WeakMap;
 
 use function array_key_exists;
 use function count;
@@ -47,12 +48,16 @@ final class NodeEnvironment implements NodeEnvironmentInterface
      */
     private array $shadowedReverse;
 
+    /** @var WeakMap<Symbol, string> */
+    private WeakMap $inferredTypes;
+
     /**
-     * @param array<int, Symbol>     $locals      A list of local symbols
-     * @param string                 $context     The current context (Expression, Statement or Return)
-     * @param array<string, Symbol>  $shadowed    A mapping list of local variables to shadowed names
-     * @param array<RecurFrame|null> $recurFrames A list of RecurFrame
-     * @param string                 $boundTo     A variable this is bound to
+     * @param array<int, Symbol>           $locals        A list of local symbols
+     * @param string                       $context       The current context (Expression, Statement or Return)
+     * @param array<string, Symbol>        $shadowed      A mapping list of local variables to shadowed names
+     * @param array<RecurFrame|null>       $recurFrames   A list of RecurFrame
+     * @param string                       $boundTo       A variable this is bound to
+     * @param WeakMap<Symbol, string>|null $inferredTypes
      */
     public function __construct(
         private array $locals,
@@ -60,9 +65,17 @@ final class NodeEnvironment implements NodeEnvironmentInterface
         private array $shadowed,
         private array $recurFrames,
         private string $boundTo = '',
+        ?WeakMap $inferredTypes = null,
     ) {
         $this->localsByName = $this->indexLocalsByName($locals);
         $this->shadowedReverse = $this->indexShadowedReverse($shadowed);
+        if ($inferredTypes instanceof WeakMap) {
+            $this->inferredTypes = $inferredTypes;
+        } else {
+            /** @var WeakMap<Symbol, string> $newInferredTypes */
+            $newInferredTypes = new WeakMap();
+            $this->inferredTypes = $newInferredTypes;
+        }
     }
 
     public static function empty(): NodeEnvironmentInterface
@@ -114,6 +127,16 @@ final class NodeEnvironment implements NodeEnvironmentInterface
         }
 
         return $this->localsByName[$originalName] ?? null;
+    }
+
+    public function publishInferredType(Symbol $symbol, string $type): void
+    {
+        $this->inferredTypes[$symbol] = $type;
+    }
+
+    public function inferredTypeOf(Symbol $symbol): ?string
+    {
+        return $this->inferredTypes[$symbol] ?? null;
     }
 
     public function isContext(string $context): bool

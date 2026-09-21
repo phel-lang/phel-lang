@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Phel\Lang;
 
+use NoDiscard;
 use Phel\Lang\Collections\Map\PersistentMapInterface;
 
 trait MetaTrait
@@ -20,16 +21,14 @@ trait MetaTrait
     }
 
     /**
-     * Mutates `$meta` in place and returns the same instance rather than a
-     * fresh copy. Callers that need value-immutability (e.g. when the receiver
-     * is interned or shared) must clone before calling, or a type using this
-     * trait must override this method.
-     *
      * @param PersistentMapInterface<mixed, mixed>|null $meta
      */
+    #[NoDiscard('the result is a new instance, the receiver is unchanged')]
     public function withMeta(?PersistentMapInterface $meta): static
     {
-        $this->meta = $meta;
-        return $this;
+        $copy = clone $this;
+        $copy->meta = $meta;
+
+        return $copy;
     }
 }

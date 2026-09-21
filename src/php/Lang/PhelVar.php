@@ -4,9 +4,11 @@ declare(strict_types=1);
 
 namespace Phel\Lang;
 
+use NoDiscard;
 use Phel\Lang\Collections\Map\PersistentMapInterface;
 
 use RuntimeException;
+use WeakMap;
 
 use function get_debug_type;
 use function is_callable;
@@ -79,24 +81,22 @@ final readonly class PhelVar implements EqualsInterface, FnInterface, HashableIn
      */
     public function getMeta(): ?PersistentMapInterface
     {
-        return $this->meta();
+        [$hasAttachedMeta, $attachedMeta] = $this->attachedMeta($this);
+        return $hasAttachedMeta
+            ? $attachedMeta
+            : $this->meta();
     }
 
     /**
-     * Vars are global handles to a single registry slot, so attaching
-     * different metadata per handle is meaningless: the call returns the
-     * receiver unchanged. Use `alter-meta!` / `reset-meta!` to mutate the
-     * canonical per-var metadata, or redefine the var to rotate the
-     * metadata attached to the underlying definition.
-     */
-    /**
      * @param PersistentMapInterface<mixed, mixed>|null $meta
      */
-    // No NoDiscard here: this override returns $this rather than a copy, so a
-    // discarded call is not a lost write. Same reasoning as MetaTrait.
+    #[NoDiscard('the result is a new instance, the receiver is unchanged')]
     public function withMeta(?PersistentMapInterface $meta): static
     {
-        return $this;
+        $copy = clone $this;
+        $this->attachedMeta($copy, $meta, true);
+
+        return $copy;
     }
 
     public function getFullName(): string
@@ -237,6 +237,38 @@ final readonly class PhelVar implements EqualsInterface, FnInterface, HashableIn
     public function hash(): int
     {
         return crc32($this->getFullName());
+    }
+
+    /**
+     * @param PersistentMapInterface<mixed, mixed>|null $meta
+     *
+     * @return array{bool, ?PersistentMapInterface<mixed, mixed>}
+     */
+    private function attachedMeta(self $var, ?PersistentMapInterface $meta = null, bool $write = false): array
+    {
+        /** @var WeakMap<self, ?PersistentMapInterface<mixed, mixed>>|null $attachedMeta */
+        static $attachedMeta;
+        $attachedMeta ??= $this->newAttachedMetaStore();
+
+        if ($write) {
+            $attachedMeta[$var] = $meta;
+        }
+
+        return [
+            $attachedMeta->offsetExists($var),
+            $attachedMeta[$var] ?? null,
+        ];
+    }
+
+    /**
+     * @return WeakMap<self, ?PersistentMapInterface<mixed, mixed>>
+     */
+    private function newAttachedMetaStore(): WeakMap
+    {
+        /** @var WeakMap<self, ?PersistentMapInterface<mixed, mixed>> $store */
+        $store = new WeakMap();
+
+        return $store;
     }
 
     private function notifyWatches(mixed $oldValue, mixed $newValue): void
