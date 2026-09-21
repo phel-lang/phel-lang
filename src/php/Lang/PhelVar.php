@@ -82,9 +82,10 @@ final readonly class PhelVar implements EqualsInterface, FnInterface, HashableIn
     public function getMeta(): ?PersistentMapInterface
     {
         $attachedMeta = $this->attachedMetaStore();
+        $entry = $attachedMeta[$this] ?? null;
 
-        return $attachedMeta->offsetExists($this)
-            ? $attachedMeta[$this]
+        return $entry !== null
+            ? $entry['meta']
             : $this->meta();
     }
 
@@ -95,7 +96,7 @@ final readonly class PhelVar implements EqualsInterface, FnInterface, HashableIn
     public function withMeta(?PersistentMapInterface $meta): static
     {
         $copy = clone $this;
-        $this->attachedMetaStore()[$copy] = $meta;
+        $this->attachedMetaStore()[$copy] = ['meta' => $meta];
 
         return $copy;
     }
@@ -241,15 +242,15 @@ final readonly class PhelVar implements EqualsInterface, FnInterface, HashableIn
     }
 
     /**
-     * @return WeakMap<self, ?PersistentMapInterface<mixed, mixed>>
+     * @return WeakMap<self, array{meta: ?PersistentMapInterface<mixed, mixed>}>
      */
     private function attachedMetaStore(): WeakMap
     {
-        /** @var WeakMap<self, ?PersistentMapInterface<mixed, mixed>>|null $attachedMeta */
+        /** @var WeakMap<self, array{meta: ?PersistentMapInterface<mixed, mixed>}>|null $attachedMeta */
         static $attachedMeta;
 
         if (!$attachedMeta instanceof WeakMap) {
-            /** @var WeakMap<self, ?PersistentMapInterface<mixed, mixed>> $newAttachedMeta */
+            /** @var WeakMap<self, array{meta: ?PersistentMapInterface<mixed, mixed>}> $newAttachedMeta */
             $newAttachedMeta = new WeakMap();
             $attachedMeta = $newAttachedMeta;
         }

@@ -92,6 +92,18 @@ final class PhelVarTest extends TestCase
         self::assertSame($canonical, $copy->meta());
     }
 
+    public function test_with_meta_can_clear_metadata_on_the_copy(): void
+    {
+        $canonical = Phel::map(Phel::keyword('doc'), 'canonical');
+        $var = $this->registry->addDefinition('user', 'x', 1, $canonical);
+
+        $copy = $var->withMeta(null);
+
+        self::assertSame($canonical, $var->getMeta());
+        self::assertNull($copy->getMeta());
+        self::assertSame($canonical, $copy->meta());
+    }
+
     public function test_alter_root_replaces_value_and_returns_new(): void
     {
         $var = $this->registry->addDefinition('user', 'counter', 1);
