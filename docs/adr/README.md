@@ -30,6 +30,7 @@ stale exactly that way. See [Editing](#editing).
 | [0016](0016-a-bare-all-caps-host-name-reads-by-position.md) | A bare all-caps host name reads by position, not by probing | Accepted |
 | [0017](0017-a-diagnostic-renders-itself-on-stderr.md) | A compiler diagnostic renders itself on stderr | Accepted |
 | [0018](0018-superseded-forms-are-rejected-as-source.md) | A superseded form is rejected as source and kept as the target | Accepted |
+| [0019](0019-with-meta-returns-a-copy.md) | `withMeta` returns a copy | Accepted |
 
 Statuses: **Proposed**, **Accepted**, **Amended by NNNN** (in force, narrowed by a
 later record), **Superseded by NNNN**, **Deprecated** (in force, being unwound).

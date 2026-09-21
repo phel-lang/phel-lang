@@ -25,7 +25,7 @@ final class FnNode extends AbstractNode implements FnNodeInterface
      */
     public function __construct(
         NodeEnvironmentInterface $env,
-        private readonly array $params,
+        private array $params,
         private readonly AbstractNode $body,
         private readonly array $uses,
         private readonly bool $isVariadic,
@@ -92,6 +92,16 @@ final class FnNode extends AbstractNode implements FnNodeInterface
     public function getParams(): array
     {
         return $this->params;
+    }
+
+    public function replaceParam(Symbol $original, Symbol $replacement): void
+    {
+        foreach ($this->params as $index => $param) {
+            if ($param === $original) {
+                $this->params[$index] = $replacement;
+                return;
+            }
+        }
     }
 
     public function getBody(): AbstractNode

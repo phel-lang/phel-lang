@@ -51,7 +51,7 @@ final class ProfilerSession implements ProfilerHookInterface
             return $fn;
         }
 
-        return new ProfilingFn($fn, $this);
+        return new ProfilingFn($fn, $this)->withMeta($fn->getMeta());
     }
 
     /**

@@ -209,9 +209,9 @@ final class BindingTypeInferrer
      * disagreement or unknown arm the binding is left untyped, so the body
      * never sees an over-narrow tag.
      *
-     * MUST run after the loop body is analyzed — the `recur` nodes live in
-     * the body — but the in-place graft is still visible to the body's
-     * already-built {@see LocalVarNode}s at emit time.
+     * MUST run after the loop body is analyzed because the `recur` nodes live
+     * there. The copied symbol replaces the binding's symbol for emission; an
+     * environment fact publishes the type to already-built local references.
      *
      * @param list<BindingNode> $bindings
      */
@@ -560,14 +560,18 @@ final class BindingTypeInferrer
         // Stamp an inferred tag on the binding symbol for the emitter's
         // `/** @var T */` doctag; a user-written tag is already there.
         if ($declared === null) {
-            $this->putTag($binding->getSymbol(), $tag);
+            $symbol = $binding->getSymbol();
+            $binding->getEnv()->publishInferredType($symbol, $tag);
+            $binding->replaceSymbol($this->withTag($symbol, $tag));
         }
 
         // Mirror onto the shadow — the unique instance a reference resolves to
         // (LetEmitter names the variable after it). Binding the tag there lets
         // `LocalVarNode::getInferredType` read it exactly, so a name reused in a
         // nested scope no longer inherits the outer binding's tag.
-        $this->putTag($binding->getShadow(), $tag);
+        $shadow = $binding->getShadow();
+        $binding->getEnv()->publishInferredType($shadow, $tag);
+        $binding->replaceShadow($this->withTag($shadow, $tag));
     }
 
     private function declaredTag(Symbol $symbol): ?string
@@ -599,9 +603,10 @@ final class BindingTypeInferrer
         return [$ns, $name];
     }
 
-    private function putTag(Symbol $symbol, string $type): void
+    private function withTag(Symbol $symbol, string $type): Symbol
     {
         $merged = ($symbol->getMeta() ?? Phel::map())->put(Keyword::create('tag'), Symbol::create($type));
-        $symbol->withMeta($merged);
+
+        return $symbol->withMeta($merged);
     }
 }

@@ -96,17 +96,27 @@ final class NoDiscardTest extends TestCase
         self::assertCount(1, $this->warnings);
     }
 
-    public function test_a_mutating_with_meta_does_not_warn(): void
+    public function test_with_meta_copies_a_symbol_and_leaves_the_receiver_unchanged(): void
     {
-        // MetaTrait::withMeta() assigns and returns $this, so discarding it is
-        // correct. Symbol uses the trait; the persistent collections override it
-        // with a copy. Same method name, two contracts, so only the copying
-        // implementations carry the attribute.
+        $symbol = Symbol::create('foo');
+        $meta = TypeFactory::getInstance()->persistentMapFromArray([]);
+
+        $tagged = $symbol->withMeta($meta);
+
+        self::assertNotSame($symbol, $tagged);
+        self::assertNull($symbol->getMeta());
+        self::assertSame($meta, $tagged->getMeta());
+        self::assertSame([], $this->warnings);
+    }
+
+    public function test_discarding_meta_trait_with_meta_warns(): void
+    {
         $symbol = Symbol::create('foo');
 
         $symbol->withMeta(TypeFactory::getInstance()->persistentMapFromArray([]));
 
-        self::assertSame([], $this->warnings);
+        self::assertCount(1, $this->warnings);
+        self::assertNull($symbol->getMeta());
     }
 
     public function test_a_transient_put_is_not_annotated(): void

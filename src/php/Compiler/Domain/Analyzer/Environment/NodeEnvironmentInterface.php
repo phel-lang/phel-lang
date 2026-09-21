@@ -36,6 +36,10 @@ interface NodeEnvironmentInterface extends ContextualEnvironmentInterface
      */
     public function findLocalByShadowedName(string $shadowedName): ?Symbol;
 
+    public function publishInferredType(Symbol $symbol, string $type): void;
+
+    public function inferredTypeOf(Symbol $symbol): ?string;
+
     /**
      * @param array<int, Symbol> $locals
      */

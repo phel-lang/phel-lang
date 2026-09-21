@@ -12,7 +12,7 @@ No Gacela pattern: foundational leaf module; all types used directly by other mo
 |------|-------|
 | `Symbol` | Names with optional namespace; special constants for language forms (`def`, `fn`, `if`, ...) |
 | `Keyword` | Interned pool keyed by (ns, name) so identical keywords share an instance; `create(string)` splits the name on the first `/` like `Symbol::create`, `createForNamespace` is verbatim; callable via `FnInterface` to access map values |
-| `Atom` | Mutable box with watches, validators, `deref` (Clojure-aligned; formerly `Variable`). Compares by identity (`===`), never by dereferenced value |
+| `Atom` | Mutable box with watches, validators, `deref`, and explicit `alterMeta`/`resetMeta` operations (Clojure-aligned; formerly `Variable`). `withMeta` still returns a copy. Compares by identity (`===`), never by dereferenced value |
 | `BigInt` | Arbitrary-precision signed integer (base-10^9 + sign). Owns sign/metadata/signed semantics; delegates sign-agnostic digit-array kernels to `BigIntMagnitude` (stateless pure fns on `list<int>`) |
 | `Ratio` | Exact rational `n/d`, always normalized (denom > 0, gcd=1). `create($num, $den)` auto-collapses to `int`/`BigInt` if integral |
 | `BigDecimal` | Arbitrary-precision signed decimal (mantissa * 10^-scale). Equality by value via `compareTo` (1.20M = 1.2M); `divideExact` extends scale to 100 digits. `__toString` omits `M` suffix; REPL appends `M` for round-trip. Literals: `1.5M`, `1.5e3M` |
@@ -23,7 +23,7 @@ No Gacela pattern: foundational leaf module; all types used directly by other mo
 
 | Type | Notes |
 |------|-------|
-| `PhelVar` | First-class handle to global `def`: `deref`, `meta`, `alterRoot`, watches, `alterMeta`/`resetMeta`, cached `isDynamic`; callable via `__invoke` to current root. Produced by `Registry::addDefinition`/`getVar` and `(var sym)` |
+| `PhelVar` | First-class handle to global `def`: `deref`, `meta`, `alterRoot`, watches, `alterMeta`/`resetMeta`, cached `isDynamic`; callable via `__invoke` to current root. `withMeta` returns a handle-local copy while `meta()` and the mutation methods keep addressing canonical per-var state. Produced by `Registry::addDefinition`/`getVar` and `(var sym)` |
 | `PhelVarStateRegistry` | Singleton side table for per-var watches, metadata, dynamic-flag cache keyed by `(ns, name)`. Lets `PhelVar` stay `readonly` while `alter-meta!`/`add-watch` mutate canonical state. Clear `isDynamic` cache via `invalidateDynamicCache(ns, name)` on metadata change (`alter-meta!`/`reset-meta!`/re-`def`) — done here, NOT in `PhelVar` |
 
 ## Lazy / Mutable / Control
@@ -45,7 +45,7 @@ No Gacela pattern: foundational leaf module; all types used directly by other mo
 
 Other utilities: `DynamicScope` (dynamic bindings), `Truthy`, `TypeStringifier`, `Hasher`/`Equalizer` (collection hashing/equality).
 
-Shared behaviour traits: `MetaTrait` (`getMeta`/`withMeta`), `HashCombinerTrait`, `CopyLocationFromTrait` (the `SourceLocationInterface::copyLocationFrom()` default; declares `setStartLocation`/`setEndLocation` abstract, so each type keeps its own copy-vs-mutate strategy).
+Shared behaviour traits: `MetaTrait` (`getMeta`/copying `withMeta`), `HashCombinerTrait`, `CopyLocationFromTrait` (the `SourceLocationInterface::copyLocationFrom()` default; declares `setStartLocation`/`setEndLocation` abstract, so each type keeps its own copy-vs-mutate strategy).
 
 ## Runtime Infrastructure
 
@@ -99,4 +99,5 @@ Shared behaviour traits: `MetaTrait` (`getMeta`/`withMeta`), `HashCombinerTrait`
 - `Registry` keys are dot-separated: `phel.core`, `my-app.lib` (after `-` → `_` munge). Compiler feeds through `Munge::encodeRegistryKey`.
 - `Symbol::getFullName` returns dot form; symbols with a PHP class FQN namespace (leading `\`) keep the backslash for static-method shorthand.
 - Source locations preserved via `SourceLocationInterface` for error reporting.
+- `MetaInterface::withMeta()` always returns a copy and leaves its receiver unchanged. Every implementation carries `#[NoDiscard]`.
 - Numeric/value types (`BigInt`, `Ratio`, `BigDecimal`, `UUID`, `PhpClass`) are `final readonly` `TypeInterface` implementations with no I/O or static state.

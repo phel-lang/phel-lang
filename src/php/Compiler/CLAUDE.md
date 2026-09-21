@@ -90,6 +90,8 @@ Opt-in, off by default (`CompilerConfig::isIntermediateCacheEnabled()`). Wired o
 
 Analyzer tracks param/return types via `ParamTypeInferrer` and `ReturnTypeInferrer`, grafting `:tag` meta onto binding symbols. Contract: propagate only analyzer-published types, never fabricate.
 
+Inferred tags replace AST symbols with metadata-bearing copies. `NodeEnvironment` clones share an object-keyed inferred-type table so a late result, such as a loop fixpoint or inferred defn parameter, still reaches local-reference nodes analyzed before the copy existed. Do not restore in-place `Symbol::withMeta()` mutation.
+
 Two halves, by family:
 
 - **Eligibility** — `*Specialization` classes in `Domain/Emitter/OutputEmitter/`: `NumericOperationSpecialization`, `TypePredicateSpecialization`, `TypedValueSpecialization`, `TypedCollectionMethodSpecialization`, `AssocConjSpecialization`, `GetInSpecialization`, `AtomMethodSpecialization`, `NilAndBooleanCheckSpecialization`, `ReduceSpecialization`, `ConstructorSpecialization`. `CallSpecialization` aggregates them.

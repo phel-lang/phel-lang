@@ -452,9 +452,10 @@ final readonly class DefSymbol implements SpecialFormAnalyzerInterface
      * compiled PHP signature. User tags win: a Symbol that already
      * carries `:tag` is left alone.
      *
-     * Mutates the param Symbols held by `FnNode::$params` in place via
-     * `Symbol::withMeta`. The variadic tail and any leading macro
-     * implicit params are excluded.
+     * Replaces inferred param Symbols in `FnNode::$params` with tagged copies.
+     * The variadic tail and any leading macro implicit params are excluded.
+     * An environment fact makes the inferred type visible to local references
+     * that were built while analyzing the body before inference completed.
      *
      * This is also where the fn's single return-type inference walk runs:
      * `FnSymbol::analyzeSingle` defers it (see
@@ -498,7 +499,8 @@ final readonly class DefSymbol implements SpecialFormAnalyzerInterface
 
                 $merged = ($existing ?? Phel::map())
                     ->put(Keyword::create('tag'), Symbol::create($tag));
-                $param->withMeta($merged);
+                $fnNode->getEnv()->publishInferredType($param, $tag);
+                $fnNode->replaceParam($param, $param->withMeta($merged));
             }
         }
 

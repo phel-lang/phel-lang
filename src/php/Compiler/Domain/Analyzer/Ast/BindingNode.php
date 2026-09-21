@@ -15,8 +15,8 @@ final class BindingNode extends AbstractNode
 {
     public function __construct(
         NodeEnvironmentInterface $env,
-        private readonly Symbol $symbol,
-        private readonly Symbol $shadow,
+        private Symbol $symbol,
+        private Symbol $shadow,
         private readonly AbstractNode $initExpr,
         ?SourceLocation $sourceLocation = null,
     ) {
@@ -36,5 +36,15 @@ final class BindingNode extends AbstractNode
     public function getShadow(): Symbol
     {
         return $this->shadow;
+    }
+
+    public function replaceSymbol(Symbol $symbol): void
+    {
+        $this->symbol = $symbol;
+    }
+
+    public function replaceShadow(Symbol $shadow): void
+    {
+        $this->shadow = $shadow;
     }
 }
