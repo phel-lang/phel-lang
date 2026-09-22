@@ -2433,8 +2433,10 @@ final class Phel\Shared\SourceMap\VLQ
   public function encodeIntegers(array $numbers): string
 
 final class Phel\Shared\TagResolver
+  public const array COLLECTION_ALIASES = ['map' => 'Phel\\Lang\\Collections\\Map\\PersistentMapInterface', 'vector' => 'Phel\\Lang\\Collections\\Vector\\PersistentVectorInterface', 'set' => 'Phel\\Lang\\Collections\\HashSet\\PersistentHashSetInterface', 'list' => 'Phel\\Lang\\Collections\\LinkedList\\PersistentListInterface']
   public static function fromMeta(?Phel\Lang\Collections\Map\PersistentMapInterface $meta): ?string
   public static function normalizeScalar(mixed $tag): ?string
+  public static function setUseAliasResolver(?Closure $resolver): void
 
 final class Phel\Shared\VersionFinder
   public const string LATEST_VERSION = <volatile>

@@ -1,0 +1,19 @@
+--PHEL--
+(ns user (:use Phel.Lang.Symbol))
+(fn [^Symbol s] s)
+--PHP--
+namespace user;
+require_once __DIR__ . '/phel/core.php';
+\Phel::addDefinition(
+  "phel.core",
+  "*file*",
+  "Call/tag-use-alias.test"
+);
+\Phel::addDefinition(
+  "phel.core",
+  "*ns*",
+  "user"
+);
+(function(\Phel\Lang\Symbol $s): \Phel\Lang\Symbol {
+  return $s;
+});

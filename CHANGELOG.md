@@ -11,6 +11,7 @@ All notable changes to this project will be documented in this file.
 
 ### Added
 
+- Short tags for the collection interfaces: `^map`, `^vector`, `^set` and `^list` resolve to the persistent interface classes, so `(defn f [^map m] (:k m))` gets the `->find` lowering without spelling out `Phel.Lang.Collections.Map.PersistentMapInterface`. A bare class name the namespace imported with `:use` resolves through the same table (`(:use Phel.Lang.Symbol)` then `^Symbol s`); before, it reached the generated PHP unqualified and failed at call time. `?map` and `map|null` work the same, and an explicit import wins over a collection alias of the same spelling. (#3319)
 - The collection builders that return a copy are marked `#[NoDiscard]`, so discarding one now prints a warning instead of doing nothing silently. That covers a direct `(.put m k v)` and an inlined core call such as `(conj v x)` or `(assoc m :b 2)` in non-tail position, where the analyzer emits the method directly. Cast to `(void)` where the discard is deliberate. Transients are excluded because they mutate in place and returning the receiver is the point; the exception is `TransientArrayMap::put`, which upgrades to a hash map past `MAX_SIZE` and so returns a different transient. (#3303)
 
 ### Changed

@@ -12,11 +12,11 @@ use Phel\Compiler\Domain\Emitter\OutputEmitter\NodeEmitterInterface;
 use Phel\Lang\Collections\Map\PersistentMapInterface;
 use Phel\Lang\Keyword;
 use Phel\Lang\Symbol;
+use Phel\Shared\TagResolver;
 
 use function assert;
 use function count;
 use function in_array;
-use function is_string;
 use function ltrim;
 
 /**
@@ -198,12 +198,8 @@ final class LetEmitter implements NodeEmitterInterface
             return null;
         }
 
-        $tag = $meta->find(Keyword::create('tag'));
-        if ($tag instanceof Symbol) {
-            $tag = $tag->getName();
-        }
-
-        if (!is_string($tag) || $tag === '') {
+        $tag = TagResolver::normalizeScalar($meta->find(Keyword::create('tag')));
+        if ($tag === null) {
             return null;
         }
 

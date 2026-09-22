@@ -16,6 +16,7 @@ use Phel\Lang\Symbol;
 use Phel\Shared\BuildConstants;
 use Phel\Shared\CompilerConstants;
 use Phel\Shared\ReplConstants;
+use Phel\Shared\TagResolver;
 
 use function array_key_exists;
 
@@ -110,6 +111,7 @@ final class GlobalEnvironment implements GlobalEnvironmentInterface
             DeprecatedDefinitionWarner::getInstance(),
         );
         $this->addInternalBuildModeDefinition();
+        TagResolver::setUseAliasResolver(fn(string $alias): ?string => $this->resolveUseAliasForTag($alias));
     }
 
     public function getNs(): string
@@ -411,6 +413,17 @@ final class GlobalEnvironment implements GlobalEnvironmentInterface
         }
 
         return array_keys($symbols);
+    }
+
+    /**
+     * A `:tag` written as a bare imported class name (`(:use Phel.Lang.Symbol)`
+     * then `^Symbol s`) resolves through the current namespace's `:use`
+     * table, the same way the head of a call does. Before this hook the bare
+     * name reached the generated PHP unqualified and failed at call time.
+     */
+    private function resolveUseAliasForTag(string $alias): ?string
+    {
+        return ($this->useAliases[$this->ns][$alias] ?? null)?->getName();
     }
 
     /**

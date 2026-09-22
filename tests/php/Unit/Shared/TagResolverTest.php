@@ -4,7 +4,10 @@ declare(strict_types=1);
 
 namespace PhelTest\Unit\Shared;
 
+use Phel\Lang\Collections\HashSet\PersistentHashSetInterface;
+use Phel\Lang\Collections\LinkedList\PersistentListInterface;
 use Phel\Lang\Collections\Map\PersistentMapInterface;
+use Phel\Lang\Collections\Vector\PersistentVectorInterface;
 use Phel\Lang\Keyword;
 use Phel\Lang\Symbol;
 use Phel\Lang\TypeFactory;
@@ -13,6 +16,11 @@ use PHPUnit\Framework\TestCase;
 
 final class TagResolverTest extends TestCase
 {
+    protected function tearDown(): void
+    {
+        TagResolver::setUseAliasResolver(null);
+    }
+
     public function test_from_meta_null_meta_is_null(): void
     {
         self::assertNull(TagResolver::fromMeta(null));
@@ -96,6 +104,65 @@ final class TagResolverTest extends TestCase
         $rooted = '\\' . Symbol::class;
 
         self::assertSame($rooted, TagResolver::normalizeScalar($rooted));
+    }
+
+    public function test_collection_aliases_resolve_to_the_rooted_interfaces(): void
+    {
+        self::assertSame('\\' . PersistentMapInterface::class, TagResolver::normalizeScalar(Symbol::create('map')));
+        self::assertSame('\\' . PersistentVectorInterface::class, TagResolver::normalizeScalar('vector'));
+        self::assertSame('\\' . PersistentHashSetInterface::class, TagResolver::normalizeScalar('set'));
+        self::assertSame('\\' . PersistentListInterface::class, TagResolver::normalizeScalar('list'));
+    }
+
+    public function test_collection_alias_keeps_its_nullable_marker(): void
+    {
+        self::assertSame('?\\' . PersistentMapInterface::class, TagResolver::normalizeScalar('?map'));
+    }
+
+    public function test_collection_alias_applies_per_member_of_a_composite(): void
+    {
+        self::assertSame(
+            '\\' . PersistentMapInterface::class . '|null',
+            TagResolver::normalizeScalar('map|null'),
+        );
+        self::assertSame(
+            '\\' . PersistentVectorInterface::class . '|\\My\\Ns\\Thing',
+            TagResolver::normalizeScalar('vector|My.Ns.Thing'),
+        );
+    }
+
+    public function test_scalar_and_unknown_bare_tags_are_untouched(): void
+    {
+        self::assertSame('int', TagResolver::normalizeScalar('int'));
+        self::assertSame('array', TagResolver::normalizeScalar('array'));
+        self::assertSame('DateTime', TagResolver::normalizeScalar('DateTime'));
+    }
+
+    public function test_a_use_alias_resolves_a_bare_class_name(): void
+    {
+        TagResolver::setUseAliasResolver(
+            static fn(string $alias): ?string => $alias === 'Thing' ? '\\My\\Ns\\Thing' : null,
+        );
+
+        self::assertSame('\\My\\Ns\\Thing', TagResolver::normalizeScalar(Symbol::create('Thing')));
+        self::assertSame('?\\My\\Ns\\Thing', TagResolver::normalizeScalar('?Thing'));
+        self::assertSame('DateTime', TagResolver::normalizeScalar('DateTime'), 'a name the namespace never imported stays as written');
+    }
+
+    public function test_a_use_alias_wins_over_a_collection_alias(): void
+    {
+        TagResolver::setUseAliasResolver(static fn(string $alias): ?string => $alias === 'map' ? '\\My\\Map' : null);
+
+        self::assertSame('\\My\\Map', TagResolver::normalizeScalar('map'));
+        self::assertSame('\\' . PersistentVectorInterface::class, TagResolver::normalizeScalar('vector'));
+    }
+
+    public function test_a_qualified_tag_bypasses_the_use_alias_resolver(): void
+    {
+        TagResolver::setUseAliasResolver(static fn(string $alias): string => '\\Wrong\\Answer');
+
+        self::assertSame('\\' . Symbol::class, TagResolver::normalizeScalar('Phel.Lang.Symbol'));
+        self::assertSame('\\Already\\Rooted', TagResolver::normalizeScalar('\\Already\\Rooted'));
     }
 
     private function tagMeta(mixed $value): PersistentMapInterface
