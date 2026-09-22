@@ -7,6 +7,7 @@ namespace Phel\Lang\Collections\Vector;
 use NoDiscard;
 use Phel\Lang\Collections\Exceptions\IndexOutOfBoundsException;
 use Phel\Lang\Collections\Map\PersistentMapInterface;
+use Phel\Lang\Collections\ValueIdentity;
 use Phel\Lang\EqualizerInterface;
 use Phel\Lang\HasherInterface;
 use RuntimeException;
@@ -171,6 +172,10 @@ final class PersistentVector extends AbstractPersistentVector
      * replace with the new value. We then return the new vector with the modified path.
      * (Source: https://hypirion.com/musings/understanding-persistent-vector-pt-1)
      *
+     * Writing the value an index already holds returns the vector itself, see
+     * {@see ValueIdentity}. The inline `===` in front of it keeps the ordinary
+     * write, a different value, from paying for the call.
+     *
      * @param int $i     the index in the vector
      * @param T   $value The new value
      *
@@ -181,6 +186,11 @@ final class PersistentVector extends AbstractPersistentVector
     {
         if ($i >= 0 && $i < $this->count) {
             if ($i >= $this->tailOffset()) {
+                $current = $this->tail[$i & self::INDEX_MASK];
+                if ($current === $value && ValueIdentity::isSame($current, $value)) {
+                    return $this;
+                }
+
                 $newTail = $this->tail;
                 $newTail[$i & self::INDEX_MASK] = $value;
 
@@ -195,8 +205,11 @@ final class PersistentVector extends AbstractPersistentVector
                 );
             }
 
-            /** @var array<int, array<mixed>> $updatedRoot */
+            /** @var array<int, array<mixed>>|null $updatedRoot */
             $updatedRoot = $this->doUpdate($this->shift, $this->root, $i, $value);
+            if ($updatedRoot === null) {
+                return $this;
+            }
 
             return new self(
                 $this->hasher,
@@ -445,18 +458,29 @@ final class PersistentVector extends AbstractPersistentVector
      * @param array<int, mixed> $node
      * @param T                 $value
      *
-     * @return array<int, mixed>
+     * @return array<int, mixed>|null the copied path, or null when the leaf
+     *                                already holds `$value` and nothing needs copying
      */
-    private function doUpdate(int $level, array $node, int $i, mixed $value): array
+    private function doUpdate(int $level, array $node, int $i, mixed $value): ?array
     {
         $ret = $node;
         if ($level === 0) {
+            $current = $node[$i & self::INDEX_MASK];
+            if ($current === $value && ValueIdentity::isSame($current, $value)) {
+                return null;
+            }
+
             $ret[$i & self::INDEX_MASK] = $value;
         } else {
             $subIndex = ($i >> $level) & self::INDEX_MASK;
             /** @var array<int, mixed> $childNode */
             $childNode = $node[$subIndex];
-            $ret[$subIndex] = $this->doUpdate($level - self::SHIFT, $childNode, $i, $value);
+            $child = $this->doUpdate($level - self::SHIFT, $childNode, $i, $value);
+            if ($child === null) {
+                return null;
+            }
+
+            $ret[$subIndex] = $child;
         }
 
         return $ret;

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Phel\Lang\Collections\Map;
 
+use Phel\Lang\Collections\ValueIdentity;
 use Phel\Lang\EqualizerInterface;
 use Phel\Lang\HasherInterface;
 use Traversable;
@@ -42,7 +43,7 @@ final class HashCollisionNode implements HashMapNodeInterface
             $index = $this->findIndex($key);
             if ($index !== -1) {
                 $existingPair = array_slice($this->objects, $index, 2);
-                if ($this->equalizer->equals($existingPair[1] ?? null, $value)) {
+                if (ValueIdentity::isSame($existingPair[1] ?? null, $value)) {
                     return $this;
                 }
 

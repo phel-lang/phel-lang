@@ -9,6 +9,7 @@ use Phel\Lang\Collections\Exceptions\MethodNotSupportedException;
 use Phel\Lang\Collections\Map\PersistentMapInterface;
 use Phel\Lang\Collections\Map\TransientMapInterface;
 use Phel\Lang\Collections\TransientStateTrait;
+use Phel\Lang\Collections\ValueIdentity;
 use Phel\Lang\EqualizerInterface;
 use Phel\Lang\HasherInterface;
 
@@ -64,7 +65,7 @@ final class TransientSortedMap implements TransientMapInterface
         $idx = SortedArrayHelper::binarySearch($this->array, $key, $this->effectiveComparator);
 
         if ($idx >= 0) {
-            if ($this->equalizer->equals($this->array[$idx + 1], $value)) {
+            if (ValueIdentity::isSame($this->array[$idx + 1], $value)) {
                 return $this;
             }
 
