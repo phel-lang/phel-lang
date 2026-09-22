@@ -278,7 +278,8 @@ final readonly class CallEmitter implements NodeEmitterInterface
      * `(assoc m k1 v1 k2 v2 …)` with every pair written at the call site
      * becomes one three-argument step per pair, `assoc(assoc(m, k1, v1), k2,
      * v2)`, which skips the rest argument, the parity check and the
-     * `assoc-pair` loop of the variadic arity (#3317).
+     * `assoc-pair` loop of the variadic arity (#3317). `assoc!` splits the
+     * same way (#3318).
      *
      * Every argument is still evaluated once and left to right. Each step
      * runs before the next pair is evaluated rather than after all of them,

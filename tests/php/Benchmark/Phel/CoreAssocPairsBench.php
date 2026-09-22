@@ -17,6 +17,8 @@ use function sprintf;
 /**
  * A multi-key `assoc` written out at the call site, which the emitter lowers
  * to one three-argument step per pair rather than the variadic arity (#3317).
+ * A multi-key `assoc!` on a transient is lowered the same way (#3318); its
+ * subjects open and close the transient too, the round trip a caller pays.
  *
  * The lowering lives in the emitted code, not in `phel.core/assoc`, so each
  * subject compiles a Phel `fn` around the call once, in `setUpFixtures`, and
@@ -38,6 +40,9 @@ final class CoreAssocPairsBench extends CoreBenchCase
 
     /** @var callable */
     private $assocTwenty;
+
+    /** @var callable */
+    private $assocBangTwenty;
 
     private mixed $map = null;
 
@@ -85,6 +90,27 @@ final class CoreAssocPairsBench extends CoreBenchCase
         }
     }
 
+    /**
+     * @Revs(1000)
+     */
+    public function bench_assoc_bang_twenty_pairs(): void
+    {
+        ($this->assocBangTwenty)($this->map);
+    }
+
+    /**
+     * @Revs(1000)
+     */
+    public function bench_assoc_bang_twenty_pairs_raw(): void
+    {
+        $transient = $this->map->asTransient();
+        for ($i = 0; $i < self::PAIRS; ++$i) {
+            $transient->put($this->keys[$i], $i);
+        }
+
+        (void) $transient->persistent();
+    }
+
     protected function setUpFixtures(): void
     {
         $entries = [];
@@ -103,6 +129,7 @@ final class CoreAssocPairsBench extends CoreBenchCase
 
         $this->assocThree = $this->compileFn('(fn [m] (assoc m :k0 0 :k1 1 :k2 2))');
         $this->assocTwenty = $this->compileFn(sprintf('(fn [m] (assoc m%s))', $pairs));
+        $this->assocBangTwenty = $this->compileFn(sprintf('(fn [m] (persistent! (assoc! (transient m)%s)))', $pairs));
     }
 
     private function compileFn(string $phelCode): callable

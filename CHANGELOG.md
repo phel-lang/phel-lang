@@ -20,6 +20,7 @@ All notable changes to this project will be documented in this file.
 ### Performance
 
 - Compile a multi-key `(assoc m k1 v1 k2 v2 ...)` to one three-argument step per pair instead of the variadic arity: 3.4x faster for three pairs on a 90-key map, 3.7x for twenty. A typed map or vector target chains `->put()` / `->update()` directly. `apply` and a dangling key keep the runtime call. (#3317)
+- Compile a multi-key `(assoc! t k1 v1 k2 v2 ...)` the same way: 3.4x faster for twenty pairs on a 90-key map, where it used to be 2.9x slower than chaining single `assoc!` calls. The `transient` docstring now says when a transient pays off: on a map, opening and closing one costs about what eight writes save, so below that a multi-key `assoc` is as fast or faster. (#3318)
 
 ### Fixed
 

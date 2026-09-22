@@ -44,6 +44,8 @@ Immutable. "Modify" returns a new value with structural sharing.
 | Struct | `AbstractPersistentStruct`: fixed-key map, subclassed by `defstruct` |
 
 Transients for bulk building: `transient`, mutate, `persistent!`. Never let a transient escape its scope.
+A transient map put does the same trie walk as a persistent one (no edit tokens), so it saves only the map wrapper per write.
+Opening and closing costs about what eight writes save; for fewer, a multi-key `assoc` is as fast or faster.
 
 `TypeFactory` (singleton): `persistentVectorFromArray()`, `persistentMapFromKVs()`, `persistentHashSetFromArray()`. Compiler emits via `\Phel::vector(...)`, `\Phel::map(...)`, `\Phel::set(...)`.
 

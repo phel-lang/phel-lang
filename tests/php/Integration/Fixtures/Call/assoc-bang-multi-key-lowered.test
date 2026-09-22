@@ -1,0 +1,7 @@
+--PHEL--
+(fn [t x] (assoc! t :a 1 :b x))
+--PHP--
+(function($t, $x) {
+  static $__phel_const_0, $__phel_const_1, $__phel_call_0;
+  return (($__phel_call_0 ??= \Phel::getDefinition("phel.core", "assoc!")) instanceof \Phel\Lang\AbstractFn ? ($__phel_call_0 ??= \Phel::getDefinition("phel.core", "assoc!"))->invokeArity3(($__phel_call_0 ??= \Phel::getDefinition("phel.core", "assoc!"))->invokeArity3($t, ($__phel_const_0 ??= \Phel\Lang\Keyword::create("a")), 1), ($__phel_const_1 ??= \Phel\Lang\Keyword::create("b")), $x) : ($__phel_call_0 ??= \Phel::getDefinition("phel.core", "assoc!"))->__invoke($t, ($__phel_const_0 ??= \Phel\Lang\Keyword::create("a")), 1, ($__phel_const_1 ??= \Phel\Lang\Keyword::create("b")), $x));
+});
