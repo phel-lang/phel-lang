@@ -82,6 +82,7 @@ final readonly class CallSpecialization
             || TypedCollectionMethodSpecialization::isTypedVectorAccessor($node)
             || TypedCollectionMethodSpecialization::isTypedSeqAccessor($node)
             || AssocConjSpecialization::isTypedDissocKeys($node)
+            || AssocConjSpecialization::isTypedAssocPairs($node)
             || AssocConjSpecialization::isTypedAssocConjDissoc($node)
             || AssocConjSpecialization::isAssocConjChain($node)
             || NumericOperationSpecialization::isNotEqPeephole($node)

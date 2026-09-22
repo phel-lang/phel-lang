@@ -19,3 +19,57 @@
 (deftest test-assoc-odd-extra-arguments-throw
   (is (thrown? Throwable (assoc {:a 1} :b 2 :c)) "a dangling key throws")
   (is (thrown? Throwable (assoc {:a 1} :b 2 :c 3 :d)) "a dangling key after two pairs throws"))
+
+;; A multi-key `assoc` written out at the call site compiles to one
+;; fixed-arity step per pair (#3317). These pin that it still means the
+;; variadic call.
+
+(deftest test-assoc-literal-pairs-evaluate-left-to-right-once
+  (let [log    (atom [])
+        note   (fn [x] (swap! log conj x) x)
+        result (assoc (note {}) (note :a) (note 1) (note :b) (note 2) (note :c) (note 3))]
+    (is (= {:a 1 :b 2 :c 3} result))
+    (is (= [{} :a 1 :b 2 :c 3] (deref log)) "target once, then every key and value in order")))
+
+(deftest test-assoc-literal-pairs-on-nil-and-vectors
+  (is (= {:a 1 :b 2} (assoc nil :a 1 :b 2)) "nil target becomes a map")
+  (is (= [:x :y 3] (assoc [1 2 3] 0 :x 1 :y)) "vector indexes are replaced")
+  (is (= [1 2 :z] (assoc [1 2] 2 :y 2 :z)) "a later pair sees the vector the earlier one grew"))
+
+(deftest test-assoc-literal-pairs-keep-metadata
+  (let [m (with-meta {:a 1} {:tag :kept})]
+    (is (= {:tag :kept} (meta (assoc m :b 2 :c 3))))))
+
+(defstruct point [x y])
+
+(deftest test-assoc-literal-pairs-on-a-struct-target
+  (let [p (assoc (point 1 2) :x 9 :y 8)]
+    (is (= 9 (get p :x)))
+    (is (= 8 (get p :y)))
+    (is (thrown? Throwable (assoc (point 1 2) :x 9 :z 7)) "a key the struct lacks still throws")))
+
+(deftest test-assoc-literal-pairs-reject-what-assoc-rejects
+  (is (thrown? Throwable (assoc "str" :a 1 :b 2)) "a string target still throws")
+  (is (thrown? Throwable (assoc (list 1) :a 1 :b 2)) "a list target still throws"))
+
+(defn- assoc-typed-map
+  [^\Phel\Lang\Collections\Map\PersistentMapInterface m]
+  (assoc m :b 2 :c 3))
+
+(defn- assoc-typed-vector
+  [^\Phel\Lang\Collections\Vector\PersistentVectorInterface v]
+  (assoc v 2 :y 0 :z))
+
+(deftest test-assoc-literal-pairs-on-typed-targets
+  (let [m (with-meta {:a 1} {:tag :kept})]
+    (is (= {:a 1 :b 2 :c 3} (assoc-typed-map m)))
+    (is (= {:tag :kept} (meta (assoc-typed-map m))) "the typed chain keeps metadata"))
+  (is (= [:z 2 :y] (assoc-typed-vector [1 2])) "the typed chain grows then replaces"))
+
+(deftest test-assoc-through-apply-keeps-the-runtime-path
+  (is (= {:a 1 :b 2 :c 3} (apply assoc {} [:a 1 :b 2 :c 3])))
+  (is (thrown? Throwable (apply assoc {} [:a 1 :b]))))
+
+(deftest test-locally-bound-assoc-is-called-as-written
+  (let [assoc (fn [& args] (count args))]
+    (is (= 5 (assoc {} :a 1 :b 2)) "the local receives every argument")))
