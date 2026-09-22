@@ -20,7 +20,7 @@
 
 Opening and closing a transient has a fixed cost that only enough writes pay back. On a map that is about eight: below it, one multi-key `assoc` is as fast or faster. Use `persistent!` to convert back."
   {:example "(def t (transient []))"
-   :see-also ["persistent"]}
+   :see-also ["persistent!" "persistent" "assoc!"]}
   [coll]
   (.asTransient coll))
 

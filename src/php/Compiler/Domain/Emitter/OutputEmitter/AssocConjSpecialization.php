@@ -129,8 +129,9 @@ final readonly class AssocConjSpecialization
      * step per pair. Both return the collection the next pair is applied to,
      * `assoc!` the same transient it was handed (#3318). A dangling key keeps
      * the runtime call, which owns what it means: an error for `assoc`, a
-     * `nil` value for `assoc!`. `apply` and a locally bound `assoc` never
-     * reach here: neither puts the core fn in call-head position.
+     * `nil` value for `assoc!`. `apply` and a locally bound `assoc` or
+     * `assoc!` never reach here: neither puts the core fn in call-head
+     * position.
      *
      * @return list<list<AbstractNode>>|null the `[k, v]` argument groups in
      *                                       source order, or null when the
