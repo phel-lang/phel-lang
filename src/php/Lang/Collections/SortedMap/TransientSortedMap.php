@@ -65,6 +65,8 @@ final class TransientSortedMap implements TransientMapInterface
         $idx = SortedArrayHelper::binarySearch($this->array, $key, $this->effectiveComparator);
 
         if ($idx >= 0) {
+            // Not writing keeps `$array` shared with the map this transient was
+            // opened from: the first write, even of the same value, copies all of it.
             if (ValueIdentity::isSame($this->array[$idx + 1], $value)) {
                 return $this;
             }

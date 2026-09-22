@@ -65,6 +65,8 @@ final class TransientArrayMap implements TransientMapInterface
     {
         $index = $this->findIndex($key);
 
+        // Not writing keeps `$array` shared with the map this transient was
+        // opened from: the first write, even of the same value, copies all of it.
         if ($index !== false && ValueIdentity::isSame($this->array[$index + 1], $value)) {
             return $this;
         }

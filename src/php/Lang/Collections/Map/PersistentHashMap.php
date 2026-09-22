@@ -5,8 +5,8 @@ declare(strict_types=1);
 namespace Phel\Lang\Collections\Map;
 
 use EmptyIterator;
-use NoDiscard;
 
+use NoDiscard;
 use Phel\Lang\Collections\ValueIdentity;
 use Phel\Lang\EqualizerInterface;
 use Phel\Lang\HasherInterface;
