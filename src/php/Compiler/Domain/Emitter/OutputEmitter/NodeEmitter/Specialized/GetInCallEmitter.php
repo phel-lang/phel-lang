@@ -26,13 +26,13 @@ final readonly class GetInCallEmitter implements SpecializedCallEmitterInterface
 
     public function tryEmit(CallNode $node): bool
     {
-        $keys = GetInSpecialization::literalPathKeys($node);
+        $keys = GetInSpecialization::subscriptChainKeys($node);
         if ($keys !== null) {
             $this->emitSubscriptChain($node, $keys);
             return true;
         }
 
-        $keys = GetInSpecialization::literalPathLookupKeys($node);
+        $keys = GetInSpecialization::literalPathKeys($node);
         if ($keys === null) {
             return false;
         }

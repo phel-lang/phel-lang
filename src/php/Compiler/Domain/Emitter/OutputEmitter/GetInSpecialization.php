@@ -36,7 +36,7 @@ final readonly class GetInSpecialization
 
     public static function isLiteralPathGetIn(CallNode $node): bool
     {
-        return self::literalPathLookupKeys($node) !== null;
+        return self::literalPathKeys($node) !== null;
     }
 
     /**
@@ -50,7 +50,7 @@ final readonly class GetInSpecialization
      *
      * @return list<AbstractNode>|null
      */
-    public static function literalPathLookupKeys(CallNode $node): ?array
+    public static function literalPathKeys(CallNode $node): ?array
     {
         if (!PhelCoreCall::is($node, 'get-in')) {
             return null;
@@ -75,7 +75,7 @@ final readonly class GetInSpecialization
      * call the emitter can unroll into a subscript chain, or `null` when the
      * call takes {@see \Phel\Lang\GetIn::path()} or the runtime call.
      *
-     * Eligibility, on top of {@see self::literalPathLookupKeys()}:
+     * Eligibility, on top of {@see self::literalPathKeys()}:
      *  - two args only (`nil` is the only default the null-coalescing chain
      *    can express);
      *  - the target is a `LocalVarNode` tagged `PersistentMapInterface` or
@@ -84,9 +84,9 @@ final readonly class GetInSpecialization
      *
      * @return list<AbstractNode>|null
      */
-    public static function literalPathKeys(CallNode $node): ?array
+    public static function subscriptChainKeys(CallNode $node): ?array
     {
-        $keys = self::literalPathLookupKeys($node);
+        $keys = self::literalPathKeys($node);
         if ($keys === null || $keys === [] || count($node->getArguments()) !== 2) {
             return null;
         }

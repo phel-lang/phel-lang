@@ -28,8 +28,8 @@ final class GetInSpecializationTest extends TestCase
         $keys = [$this->literal('a'), $this->literal('b')];
         $node = $this->coreCall('get-in', [$this->local('m'), $this->path($keys)]);
 
-        self::assertSame($keys, GetInSpecialization::literalPathLookupKeys($node));
-        self::assertNull(GetInSpecialization::literalPathKeys($node), 'no subscript chain without a tag');
+        self::assertSame($keys, GetInSpecialization::literalPathKeys($node));
+        self::assertNull(GetInSpecialization::subscriptChainKeys($node), 'no subscript chain without a tag');
         self::assertTrue(CallSpecialization::isSpecialized($node));
     }
 
@@ -37,14 +37,14 @@ final class GetInSpecializationTest extends TestCase
     {
         $node = $this->coreCall('get-in', [$this->local('m'), $this->path([$this->literal('a')]), $this->literal('nf')]);
 
-        self::assertNotNull(GetInSpecialization::literalPathLookupKeys($node));
+        self::assertNotNull(GetInSpecialization::literalPathKeys($node));
     }
 
     public function test_an_empty_literal_path_is_lowered(): void
     {
         $node = $this->coreCall('get-in', [$this->local('m'), $this->path([])]);
 
-        self::assertSame([], GetInSpecialization::literalPathLookupKeys($node));
+        self::assertSame([], GetInSpecialization::literalPathKeys($node));
     }
 
     public function test_a_tagged_target_keeps_the_subscript_chain(): void
@@ -52,14 +52,14 @@ final class GetInSpecializationTest extends TestCase
         $keys = [$this->literal('a')];
         $node = $this->coreCall('get-in', [$this->localWithTag('m', PersistentMapInterface::class), $this->path($keys)]);
 
-        self::assertSame($keys, GetInSpecialization::literalPathKeys($node));
+        self::assertSame($keys, GetInSpecialization::subscriptChainKeys($node));
     }
 
     public function test_a_path_that_is_not_a_vector_literal_keeps_the_runtime_call(): void
     {
         $node = $this->coreCall('get-in', [$this->local('m'), $this->local('p')]);
 
-        self::assertNull(GetInSpecialization::literalPathLookupKeys($node));
+        self::assertNull(GetInSpecialization::literalPathKeys($node));
         self::assertFalse(CallSpecialization::isSpecialized($node));
     }
 
@@ -73,15 +73,15 @@ final class GetInSpecializationTest extends TestCase
         $path = new VectorNode($env, [$this->literal('a')], null, new MapNode($env, []));
         $node = $this->coreCall('get-in', [$this->local('m'), $path]);
 
-        self::assertNull(GetInSpecialization::literalPathLookupKeys($node));
+        self::assertNull(GetInSpecialization::literalPathKeys($node));
     }
 
     public function test_wrong_arity_keeps_the_runtime_call(): void
     {
         $path = $this->path([$this->literal('a')]);
 
-        self::assertNull(GetInSpecialization::literalPathLookupKeys($this->coreCall('get-in', [$this->local('m')])));
-        self::assertNull(GetInSpecialization::literalPathLookupKeys(
+        self::assertNull(GetInSpecialization::literalPathKeys($this->coreCall('get-in', [$this->local('m')])));
+        self::assertNull(GetInSpecialization::literalPathKeys(
             $this->coreCall('get-in', [$this->local('m'), $path, $this->literal(1), $this->literal(2)]),
         ));
     }
@@ -94,14 +94,14 @@ final class GetInSpecializationTest extends TestCase
             $this->path([$this->literal('a')]),
         ]);
 
-        self::assertNull(GetInSpecialization::literalPathLookupKeys($node));
+        self::assertNull(GetInSpecialization::literalPathKeys($node));
     }
 
     public function test_another_core_fn_is_not_lowered(): void
     {
         $node = $this->coreCall('get', [$this->local('m'), $this->path([$this->literal('a')])]);
 
-        self::assertNull(GetInSpecialization::literalPathLookupKeys($node));
+        self::assertNull(GetInSpecialization::literalPathKeys($node));
     }
 
     /**

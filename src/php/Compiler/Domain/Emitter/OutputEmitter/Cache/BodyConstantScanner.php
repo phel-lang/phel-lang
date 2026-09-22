@@ -107,7 +107,7 @@ final readonly class BodyConstantScanner
      */
     private function scanLiteralPathGetIn(CallNode $node, ConstantScope $scope, bool $cacheCalls): bool
     {
-        $keys = GetInSpecialization::literalPathLookupKeys($node);
+        $keys = GetInSpecialization::literalPathKeys($node);
         if ($keys === null) {
             return false;
         }
@@ -116,7 +116,7 @@ final readonly class BodyConstantScanner
         $this->walk($args[0], $scope, $cacheCalls);
 
         $path = $args[1];
-        if (GetInSpecialization::literalPathKeys($node) === null
+        if (GetInSpecialization::subscriptChainKeys($node) === null
             && $path instanceof VectorNode
             && $this->isCacheableCollection($path)
         ) {
