@@ -44,6 +44,28 @@ final class ConstantScopeTest extends TestCase
         self::assertSame(1, $scope->count());
     }
 
+    /**
+     * A literal-path `get-in` hoists its keys as a PHP array (#3320). A vector
+     * literal with the same elements holds a `PersistentVector`, so the two
+     * must never share a slot, while two equal paths still do.
+     */
+    public function test_php_array_reservation_never_shares_a_vector_slot(): void
+    {
+        $scope = new ConstantScope();
+        $env = NodeEnvironment::empty();
+        $vector = new VectorNode($env, [new LiteralNode($env, Keyword::create('a'))]);
+        $path = new VectorNode($env, [new LiteralNode($env, Keyword::create('a'))]);
+        $samePath = new VectorNode($env, [new LiteralNode($env, Keyword::create('a'))]);
+
+        $vectorSlot = $scope->reserve($vector);
+        $pathSlot = $scope->reserveAsPhpArray($path);
+
+        self::assertNotSame($vectorSlot, $pathSlot);
+        self::assertSame($pathSlot, $scope->reserveAsPhpArray($samePath));
+        self::assertSame($pathSlot, $scope->lookup($samePath));
+        self::assertSame(2, $scope->count());
+    }
+
     public function test_lookup_returns_null_for_unknown_node(): void
     {
         $scope = new ConstantScope();

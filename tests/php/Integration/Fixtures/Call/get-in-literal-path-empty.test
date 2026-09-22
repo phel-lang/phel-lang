@@ -1,0 +1,6 @@
+--PHEL--
+(fn [m] (get-in m []))
+--PHP--
+(function($m) {
+  return \Phel\Lang\GetIn::path($m, []);
+});

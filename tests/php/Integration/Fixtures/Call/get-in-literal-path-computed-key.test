@@ -1,0 +1,7 @@
+--PHEL--
+(fn [m k] (get-in m [:a k]))
+--PHP--
+(function($m, $k) {
+  static $__phel_const_0;
+  return \Phel\Lang\GetIn::path($m, [($__phel_const_0 ??= \Phel\Lang\Keyword::create("a")), $k]);
+});

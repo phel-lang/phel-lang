@@ -95,6 +95,30 @@ final class ConstantScope
         return $this->constSlots[$node];
     }
 
+    /**
+     * Reserves a slot for the PHP array of a vector literal's elements, which
+     * is what a literal-path `get-in` passes to `GetIn::path` in place of the
+     * vector (#3320). It dedups by value only against other PHP-array
+     * reservations: a vector literal with the same elements holds a
+     * `PersistentVector`, and sharing its slot would hand one to the other.
+     */
+    public function reserveAsPhpArray(VectorNode $node): int
+    {
+        if ($this->constSlots->offsetExists($node)) {
+            /** @var int $existing */
+            $existing = $this->constSlots[$node];
+            return $existing;
+        }
+
+        $valueKey = $this->collectionValueKey('php-array', $node->getArgs());
+        $slot = $valueKey !== null
+            ? $this->valueSlots[$valueKey] ??= $this->nextConstId++
+            : $this->nextConstId++;
+        $this->constSlots[$node] = $slot;
+
+        return $slot;
+    }
+
     public function lookup(AbstractNode $node): ?int
     {
         if (!$this->constSlots->offsetExists($node)) {
