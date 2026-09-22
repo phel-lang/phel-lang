@@ -1,0 +1,98 @@
+(ns phel-test.core.get-in-literal-path
+  (:require phel.test :refer [deftest is]))
+
+;; A literal path on an untagged target compiles to `\Phel\Lang\GetIn::path`
+;; rather than a call to `phel.core/get-in` (#3320). Each case below asks both:
+;; the literal spelling takes the lowering, the same path read from a local
+;; keeps the runtime call, and the two must agree.
+
+(defstruct point [x y])
+
+(defn- rt
+  ([ds ks] (get-in ds ks))
+  ([ds ks nf] (get-in ds ks nf)))
+
+(deftest test-maps
+  (let [m {:a {:b {:c 42}}}]
+    (is (= 42 (get-in m [:a :b :c])) "three levels")
+    (is (= (rt m [:a :b :c]) (get-in m [:a :b :c])) "three levels match the runtime")
+    (is (nil? (get-in m [:a :zz :c])) "an intermediate miss")
+    (is (= :nf (get-in m [:a :zz :c] :nf)) "an intermediate miss takes the default")
+    (is (= :nf (get-in m [:zz] :nf)) "a top-level miss takes the default")))
+
+(deftest test-stored-nil-and-false
+  (is (= :nf (get-in {:a nil} [:a] :nf)) "a stored nil is a miss")
+  (is (= (rt {:a nil} [:a] :nf) (get-in {:a nil} [:a] :nf)) "stored nil matches the runtime")
+  (is (= :nf (get-in {:a {:b nil}} [:a :b] :nf)) "a stored nil at the leaf is a miss")
+  (is (false? (get-in {:a false} [:a] :nf)) "a stored false is a value")
+  (is (= :nf (get-in {:a nil} [:a :b] :nf)) "a stored nil mid-path takes the default"))
+
+(deftest test-nil-target
+  (is (nil? (get-in nil [:a :b])) "nil target")
+  (is (= :nf (get-in nil [:a] :nf)) "nil target takes the default")
+  (is (= (rt nil [:a] :nf) (get-in nil [:a] :nf)) "nil target matches the runtime"))
+
+(deftest test-empty-path
+  (is (= {:a 1} (get-in {:a 1} [])) "an empty path returns the target")
+  (is (nil? (get-in nil [] :nf)) "an empty path returns a nil target, not the default")
+  (is (= (rt nil [] :nf) (get-in nil [] :nf)) "empty path matches the runtime"))
+
+(deftest test-vectors
+  (let [v [[10 20] [30 40]]]
+    (is (= 40 (get-in v [1 1])) "integer keys")
+    (is (= :nf (get-in v [5] :nf)) "out of bounds")
+    (is (= :nf (get-in v [:a] :nf)) "a keyword on a vector is a miss")
+    (is (= (rt v ["0"] :nf) (get-in v ["0"] :nf)) "a string index matches the runtime")
+    (is (= 20 (get-in {:xs v} [:xs 0 1])) "map then vector")))
+
+(deftest test-structs
+  (let [p (point 1 {:z 3})]
+    (is (= 1 (get-in p [:x])) "a struct field")
+    (is (= 3 (get-in p [:y :z])) "through a struct field")
+    (is (= :nf (get-in p [:w] :nf)) "an absent struct key")))
+
+(deftest test-other-traversables
+  (is (= :b (get-in #{:a :b} [:b])) "a set")
+  (is (= (rt '(1 2 3) [1]) (get-in '(1 2 3) [1])) "a list")
+  (is (= "b" (get-in "abc" [1])) "a string")
+  (is (= 2 (get-in (php-indexed-array 1 2) [1])) "a php array")
+  (is (= (rt (map inc [1 2]) [0]) (get-in (map inc [1 2]) [0])) "a lazy seq"))
+
+(deftest test-non-traversables
+  (is (= :nf (get-in {:a 1} [:a :b] :nf)) "a number mid-path")
+  (is (= :nf (get-in {:a :kw} [:a :b] :nf)) "a keyword mid-path")
+  (let [t (transient {:a 1})]
+    (is (= (rt t [:a] :nf) (get-in t [:a] :nf)) "a transient map is not traversed")
+    (is (= :nf (get-in t [:a] :nf)) "a transient map takes the default")))
+
+(deftest test-evaluation-order-and-count
+  (let [log (atom [])
+        note (fn [x v] (swap! log conj x) v)]
+    (is (= :nf (get-in (note :ds {:a {}}) [(note :k1 :a) (note :k2 :b)] (note :nf :nf))))
+    (is (= [:ds :k1 :k2 :nf] @log) "target, keys and default each run once, left to right")))
+
+(deftest test-the-default-is-evaluated-on-a-hit
+  (let [calls (atom 0)]
+    (is (= 1 (get-in {:a 1} [:a] (do (swap! calls inc) :nf))))
+    (is (= 1 @calls) "the default runs even when unused, as a call argument does")))
+
+(deftest test-computed-keys
+  (let [k :b]
+    (is (= 42 (get-in {:a {:b 42}} [:a k])) "a local key")
+    (is (= 42 (get-in {:a {:b 42}} [:a (keyword "b")])) "a computed key")))
+
+(deftest test-long-path
+  (let [m {:a {:b {:c {:d {:e {:f {:g {:h {:i {:j {:k {:l 1}}}}}}}}}}}}]
+    (is (= 1 (get-in m [:a :b :c :d :e :f :g :h :i :j :k :l])) "twelve keys")
+    (is (= 1 (-> m (get-in [:a] {}) (get-in [:b] {}) (get-in [:c] {}) (get-in [:d] {})
+                 (get-in [:e] {}) (get-in [:f] {}) (get-in [:g] {}) (get-in [:h] {})
+                 (get-in [:i] {}) (get-in [:j] {}) (get-in [:k] {}) (get-in [:l] {})))
+        "twelve nested calls")))
+
+(deftest test-apply-and-higher-order-keep-the-runtime
+  (is (= 42 (apply get-in [{:a {:b 42}} [:a :b]])) "apply")
+  (is (= [1 2] (map #(get-in % [:a]) [{:a 1} {:a 2}])) "inside a fn"))
+
+(deftest test-a-local-get-in-is-called
+  (let [get-in (fn [& _] :local)]
+    (is (= :local (get-in {:a 1} [:a])) "a local named get-in shadows the core fn")))

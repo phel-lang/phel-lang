@@ -1,0 +1,32 @@
+--PHEL--
+(fn [m] (apply get-in m [[:a]]))
+(fn [m] (get-in m '[:a :b]))
+(fn [m] (get-in m ^:foo [:a]))
+(fn [m] (let [get-in (fn [x ks] x)] (get-in m [:a])))
+--PHP--
+(function($m) {
+  static $__phel_const_0;
+  return (\Phel\Lang\Registry::readRoot("phel.core", "get-in"))->__invoke($m, \Phel::vector([\Phel\Lang\Keyword::create("a")]));
+});(function($m) {
+  static $__phel_call_0;
+  return (($__phel_call_0 ??= \Phel::getDefinition("phel.core", "get-in")) instanceof \Phel\Lang\AbstractFn ? ($__phel_call_0 ??= \Phel::getDefinition("phel.core", "get-in"))->invokeArity2($m, \Phel::vector([
+    \Phel\Lang\Keyword::create("a"),
+    \Phel\Lang\Keyword::create("b")
+  ])) : ($__phel_call_0 ??= \Phel::getDefinition("phel.core", "get-in"))->__invoke($m, \Phel::vector([
+    \Phel\Lang\Keyword::create("a"),
+    \Phel\Lang\Keyword::create("b")
+  ])));
+});(function($m) {
+  static $__phel_const_0, $__phel_call_0;
+  return (($__phel_call_0 ??= \Phel::getDefinition("phel.core", "get-in")) instanceof \Phel\Lang\AbstractFn ? ($__phel_call_0 ??= \Phel::getDefinition("phel.core", "get-in"))->invokeArity2($m, ($__phel_const_0 ??= \Phel::vector([\Phel\Lang\Keyword::create("a")])->withMeta(\Phel::map(
+    \Phel\Lang\Keyword::create("foo"), true
+  )))) : ($__phel_call_0 ??= \Phel::getDefinition("phel.core", "get-in"))->__invoke($m, ($__phel_const_0 ??= \Phel::vector([\Phel\Lang\Keyword::create("a")])->withMeta(\Phel::map(
+    \Phel\Lang\Keyword::create("foo"), true
+  )))));
+});(function($m) {
+  static $__phel_const_0;
+  $get_in_1 = (function($x, $ks) use($m) {
+    return $x;
+  });
+  return ($get_in_1)($m, ($__phel_const_0 ??= \Phel::vector([\Phel\Lang\Keyword::create("a")])));
+});

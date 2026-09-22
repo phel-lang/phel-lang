@@ -61,22 +61,8 @@ final readonly class BodyConstantScanner
             return;
         }
 
-        // A specialised `(get-in coll [k1 k2 …])` emits its literal path
-        // elements inline (each subscript key) and never the path vector
-        // itself, so reserving a slot for the whole vector would leave an
-        // orphan `$__phel_const_N`. Walk the target and the individual path
-        // keys instead — the keys still hoist as cacheable keyword/collection
-        // literals where eligible.
-        if ($node instanceof CallNode) {
-            $getInKeys = GetInSpecialization::literalPathKeys($node);
-            if ($getInKeys !== null) {
-                $this->walk($node->getArguments()[0], $scope, $cacheCalls);
-                foreach ($getInKeys as $key) {
-                    $this->walk($key, $scope, $cacheCalls);
-                }
-
-                return;
-            }
+        if ($node instanceof CallNode && $this->scanLiteralPathGetIn($node, $scope, $cacheCalls)) {
+            return;
         }
 
         if ($this->isCacheableCollection($node) || $this->isCacheableKeyword($node)) {
@@ -109,6 +95,43 @@ final readonly class BodyConstantScanner
         foreach ($this->children($node) as $child) {
             $this->walk($child, $scope, $cacheCalls);
         }
+    }
+
+    /**
+     * A specialised `(get-in coll [k1 k2 …])` never emits its path vector.
+     * On a tagged target the keys become subscripts, so each key is scanned
+     * on its own and still hoists where eligible. On any other target the
+     * keys become the PHP array handed to `GetIn::path`, which is hoisted
+     * whole when every key is a literal, under a slot of its own: a vector
+     * literal with the same elements must not share it (#3320).
+     */
+    private function scanLiteralPathGetIn(CallNode $node, ConstantScope $scope, bool $cacheCalls): bool
+    {
+        $keys = GetInSpecialization::literalPathLookupKeys($node);
+        if ($keys === null) {
+            return false;
+        }
+
+        $args = $node->getArguments();
+        $this->walk($args[0], $scope, $cacheCalls);
+
+        $path = $args[1];
+        if (GetInSpecialization::literalPathKeys($node) === null
+            && $path instanceof VectorNode
+            && $this->isCacheableCollection($path)
+        ) {
+            $scope->reserveAsPhpArray($path);
+        } else {
+            foreach ($keys as $key) {
+                $this->walk($key, $scope, $cacheCalls);
+            }
+        }
+
+        if (isset($args[2])) {
+            $this->walk($args[2], $scope, $cacheCalls);
+        }
+
+        return true;
     }
 
     /**
