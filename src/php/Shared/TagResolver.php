@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Phel\Shared;
 
 use Closure;
+use Phel\Lang\Atom;
 use Phel\Lang\Collections\HashSet\PersistentHashSetInterface;
 use Phel\Lang\Collections\LinkedList\PersistentListInterface;
 use Phel\Lang\Collections\Map\PersistentMapInterface;
@@ -29,7 +30,7 @@ use function trim;
  * unions/intersections), yields `null`. An empty result means "no tag".
  *
  * Two spellings save writing a class name out. `map`, `vector`, `set` and
- * `list` name the persistent collection interfaces ({@see COLLECTION_ALIASES}),
+ * `list` name the persistent collection interfaces ({@see TYPE_ALIASES}),
  * and a bare name the current namespace imported with `:use` resolves through
  * that table ({@see setUseAliasResolver()}), so `(:use Phel.Lang.Symbol)` lets
  * a param read `^Symbol s`. Both keep a `?` prefix and apply per member of a
@@ -38,15 +39,20 @@ use function trim;
 final class TagResolver
 {
     /**
-     * Short tags for the collection interfaces. They resolve to the rooted
-     * class the call-site specialisations compare against, so `^map m` gets
-     * the same `->find` lowering as the full interface name.
+     * Lower-case tags for Phel's own value types, each backed by one fixed
+     * class. They resolve to the rooted class the call-site specialisations
+     * compare against, so `^map m` gets the same `->find` lowering as the
+     * full interface name. A host class is spelled the way its calls are:
+     * dotted, or bare after a `:use` import.
      */
-    public const array COLLECTION_ALIASES = [
+    public const array TYPE_ALIASES = [
         'map' => PersistentMapInterface::class,
         'vector' => PersistentVectorInterface::class,
         'set' => PersistentHashSetInterface::class,
         'list' => PersistentListInterface::class,
+        'keyword' => Keyword::class,
+        'symbol' => Symbol::class,
+        'atom' => Atom::class,
     ];
 
     /** @var (Closure(string): ?string)|null */
@@ -116,7 +122,7 @@ final class TagResolver
         $resolved = self::$useAliasResolver instanceof Closure
             ? (self::$useAliasResolver)($name)
             : null;
-        $resolved ??= self::COLLECTION_ALIASES[$name] ?? null;
+        $resolved ??= self::TYPE_ALIASES[$name] ?? null;
         if ($resolved === null) {
             return $part;
         }

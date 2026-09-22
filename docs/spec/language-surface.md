@@ -203,6 +203,44 @@ property is the one member the bare name cannot reach: PHP files constants and
 static properties separately, so `C/$prop` carries the sigil and needs no
 reflection.
 
+### Type tags
+
+A `^tag` on a param, a `let` or `loop` binding, or the arg vector of a `defn`
+(the return type) is analyzer metadata, not a special form. It becomes the PHP
+parameter or return type in the generated code, and it is what lets the emitter
+lower a call on that local: `(:k m)` on a `^map` local is a direct `->find`,
+`(count v)` on a `^vector` local a direct `->count()`, arithmetic on `^int` and
+`^float` locals native operators.
+
+A tag is spelled one of three ways. A dot or a backslash makes it a literal class name; otherwise a lower-case name is a Phel type or PHP scalar and a `CamelCase` name is an import:
+
+| Spelling | Means | Example |
+|---|---|---|
+| lower-case, in the table below or a PHP scalar | a Phel value type, or a PHP scalar type | `^map m`, `^int n`, `^?string s` |
+| bare `CamelCase`, imported with `:use` | that class, through the namespace's `:use` table | `(:use Doctrine.ORM.EntityManager)` then `^EntityManager em` |
+| dotted or rooted | that class, taken as written | `^Doctrine.ORM.EntityManager em`, `^\DateTime d` |
+
+The `:use` lookup is the one the head of a call uses, so `(:use X.Y :as Z)`
+makes `^Z` the tag, exactly as `(Z/m ...)` is the call. A `?` prefix and `|` or
+`&` members compose with all three: `^?map`, `map|null`, `Foo&Bar`. An explicit
+import always wins over a value-type alias of the same spelling.
+
+Value-type aliases, each backed by one fixed class:
+
+| Tag | Class |
+|---|---|
+| `map` | `Phel\Lang\Collections\Map\PersistentMapInterface` |
+| `vector` | `Phel\Lang\Collections\Vector\PersistentVectorInterface` |
+| `set` | `Phel\Lang\Collections\HashSet\PersistentHashSetInterface` |
+| `list` | `Phel\Lang\Collections\LinkedList\PersistentListInterface` |
+| `keyword` | `Phel\Lang\Keyword` |
+| `symbol` | `Phel\Lang\Symbol` |
+| `atom` | `Phel\Lang\Atom` |
+
+A bare `CamelCase` name the namespace never imported is emitted as written, so
+in a file compiled into `user` it names `user\DateTime` and fails at call time.
+Import it or write it dotted.
+
 ## 3. The standard library
 
 Every public definition in a `phel.*` namespace is frozen: it keeps its name and

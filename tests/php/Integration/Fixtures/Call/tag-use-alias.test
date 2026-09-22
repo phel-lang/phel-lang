@@ -1,6 +1,6 @@
 --PHEL--
-(ns user (:use Phel.Lang.Symbol))
-(fn [^Symbol s] s)
+(ns user (:use DateTimeImmutable :as Moment))
+(fn [^Moment d] d)
 --PHP--
 namespace user;
 require_once __DIR__ . '/phel/core.php';
@@ -14,6 +14,6 @@ require_once __DIR__ . '/phel/core.php';
   "*ns*",
   "user"
 );
-(function(\Phel\Lang\Symbol $s): \Phel\Lang\Symbol {
-  return $s;
+(function(\DateTimeImmutable $d): \DateTimeImmutable {
+  return $d;
 });

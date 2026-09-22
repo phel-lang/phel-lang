@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace PhelTest\Unit\Shared;
 
+use Phel\Lang\Atom;
 use Phel\Lang\Collections\HashSet\PersistentHashSetInterface;
 use Phel\Lang\Collections\LinkedList\PersistentListInterface;
 use Phel\Lang\Collections\Map\PersistentMapInterface;
@@ -112,6 +113,13 @@ final class TagResolverTest extends TestCase
         self::assertSame('\\' . PersistentVectorInterface::class, TagResolver::normalizeScalar('vector'));
         self::assertSame('\\' . PersistentHashSetInterface::class, TagResolver::normalizeScalar('set'));
         self::assertSame('\\' . PersistentListInterface::class, TagResolver::normalizeScalar('list'));
+    }
+
+    public function test_value_type_aliases_resolve_to_their_classes(): void
+    {
+        self::assertSame('\\' . Keyword::class, TagResolver::normalizeScalar('keyword'));
+        self::assertSame('\\' . Symbol::class, TagResolver::normalizeScalar(Symbol::create('symbol')));
+        self::assertSame('\\' . Atom::class, TagResolver::normalizeScalar('atom'));
     }
 
     public function test_collection_alias_keeps_its_nullable_marker(): void

@@ -2,6 +2,7 @@
 (fn [^map m] (:a m))
 (fn [^vector v] (count v))
 (fn [^?map m] (empty? m))
+(fn [^symbol s] s)
 --PHP--
 (function(\Phel\Lang\Collections\Map\PersistentMapInterface $m) {
   static $__phel_const_0;
@@ -11,4 +12,6 @@
 });(function(?\Phel\Lang\Collections\Map\PersistentMapInterface $m): bool {
   static $__phel_call_0;
   return ($__phel_call_0 ??= \Phel::getDefinition("phel.core", "empty?"))->__invoke($m);
+});(function(\Phel\Lang\Symbol $s): \Phel\Lang\Symbol {
+  return $s;
 });
