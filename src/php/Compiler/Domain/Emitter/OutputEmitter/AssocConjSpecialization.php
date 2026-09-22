@@ -123,21 +123,24 @@ final readonly class AssocConjSpecialization
     }
 
     /**
-     * `(assoc coll k1 v1 k2 v2 …)` with two or more pairs and no dangling
-     * key: the call site states every pair, so the runtime's rest argument,
-     * parity check and `assoc-pair` loop can become one fixed-arity step per
-     * pair. A dangling key keeps the runtime call, which owns that error.
-     * `apply` and a locally bound `assoc` never reach here: neither puts
-     * `phel.core/assoc` in call-head position.
+     * `(assoc coll k1 v1 k2 v2 …)` or `(assoc! tcoll k1 v1 k2 v2 …)` with two
+     * or more pairs and no dangling key: the call site states every pair, so
+     * the runtime's rest argument and pair loop can become one fixed-arity
+     * step per pair. Both return the collection the next pair is applied to,
+     * `assoc!` the same transient it was handed (#3318). A dangling key keeps
+     * the runtime call, which owns what it means: an error for `assoc`, a
+     * `nil` value for `assoc!`. `apply` and a locally bound `assoc` never
+     * reach here: neither puts the core fn in call-head position.
      *
      * @return list<list<AbstractNode>>|null the `[k, v]` argument groups in
      *                                       source order, or null when the
      *                                       call is not a literal multi-key
-     *                                       `assoc`
+     *                                       `assoc` / `assoc!`
      */
     public static function literalAssocPairs(CallNode $node): ?array
     {
-        if (!PhelCoreCall::is($node, 'assoc')) {
+        $name = PhelCoreCall::nameOf($node);
+        if ($name !== 'assoc' && $name !== 'assoc!') {
             return null;
         }
 
@@ -156,12 +159,17 @@ final readonly class AssocConjSpecialization
      * chains the same method the single-pair arity lowers to, one call per
      * pair, as the typed `dissoc` does with `->remove()`. Each step returns a
      * new persistent collection, so the chain folds the pairs left to right
-     * the way the runtime loop does.
+     * the way the runtime loop does. `assoc!` never qualifies: on a
+     * persistent target it throws, which a `->put()` chain would not.
      *
      * @return array{method: 'put'|'update', groups: list<list<AbstractNode>>}|null
      */
     public static function typedAssocPairs(CallNode $node): ?array
     {
+        if (!PhelCoreCall::is($node, 'assoc')) {
+            return null;
+        }
+
         $groups = self::literalAssocPairs($node);
         if ($groups === null) {
             return null;

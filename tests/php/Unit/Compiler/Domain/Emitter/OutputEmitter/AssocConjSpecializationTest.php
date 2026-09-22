@@ -230,6 +230,45 @@ final class AssocConjSpecializationTest extends TestCase
         self::assertNull(AssocConjSpecialization::typedAssocPairs($node));
     }
 
+    public function test_literal_assoc_bang_pairs_groups_every_pair(): void
+    {
+        $env = $this->env();
+        $k1 = new LiteralNode($env, 'a');
+        $v1 = new LiteralNode($env, 1);
+        $k2 = new LiteralNode($env, 'b');
+        $v2 = new LiteralNode($env, 2);
+        $node = $this->coreCall('assoc!', [new LocalVarNode($env, Symbol::create('t')), $k1, $v1, $k2, $v2]);
+
+        self::assertSame([[$k1, $v1], [$k2, $v2]], AssocConjSpecialization::literalAssocPairs($node));
+    }
+
+    public function test_dangling_key_assoc_bang_has_no_literal_pairs(): void
+    {
+        $env = $this->env();
+        $node = $this->coreCall('assoc!', [
+            new LocalVarNode($env, Symbol::create('t')),
+            new LiteralNode($env, 'a'),
+            new LiteralNode($env, 1),
+            new LiteralNode($env, 'b'),
+        ]);
+
+        self::assertNull(AssocConjSpecialization::literalAssocPairs($node));
+    }
+
+    public function test_multi_key_assoc_bang_on_typed_map_is_not_typed(): void
+    {
+        $env = $this->env();
+        $node = $this->coreCall('assoc!', [
+            $this->localWithTag('m', PersistentMapInterface::class),
+            new LiteralNode($env, 'a'),
+            new LiteralNode($env, 1),
+            new LiteralNode($env, 'b'),
+            new LiteralNode($env, 2),
+        ]);
+
+        self::assertNull(AssocConjSpecialization::typedAssocPairs($node));
+    }
+
     /**
      * @param list<AbstractNode> $args
      */
