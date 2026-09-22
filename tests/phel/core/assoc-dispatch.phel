@@ -52,6 +52,20 @@
   (is (thrown? Throwable (assoc "str" :a 1 :b 2)) "a string target still throws")
   (is (thrown? Throwable (assoc (list 1) :a 1 :b 2)) "a list target still throws"))
 
+(defn- assoc-typed-map
+  [^\Phel\Lang\Collections\Map\PersistentMapInterface m]
+  (assoc m :b 2 :c 3))
+
+(defn- assoc-typed-vector
+  [^\Phel\Lang\Collections\Vector\PersistentVectorInterface v]
+  (assoc v 2 :y 0 :z))
+
+(deftest test-assoc-literal-pairs-on-typed-targets
+  (let [m (with-meta {:a 1} {:tag :kept})]
+    (is (= {:a 1 :b 2 :c 3} (assoc-typed-map m)))
+    (is (= {:tag :kept} (meta (assoc-typed-map m))) "the typed chain keeps metadata"))
+  (is (= [:z 2 :y] (assoc-typed-vector [1 2])) "the typed chain grows then replaces"))
+
 (deftest test-assoc-through-apply-keeps-the-runtime-path
   (is (= {:a 1 :b 2 :c 3} (apply assoc {} [:a 1 :b 2 :c 3])))
   (is (thrown? Throwable (apply assoc {} [:a 1 :b]))))
