@@ -31,7 +31,8 @@ use const NAN;
  * Each flavour is a closure building a collection that holds `$stored` under
  * the returned key, so every scenario runs against every storage shape: the
  * flat array map, the trie (including the `nil` slot and a hash collision
- * node), the sorted map, a struct, and both halves of a vector.
+ * node), the sorted map, a struct, both halves of a vector, and the
+ * sub vector that `rest` and `subvec` return.
  */
 final class PutUnchangedValueTest extends TestCase
 {
@@ -86,6 +87,11 @@ final class PutUnchangedValueTest extends TestCase
         yield 'vector root' => [static fn(mixed $stored): array => [
             $factory->persistentVectorFromArray([...range(0, 4), $stored, ...range(6, 99)]),
             5,
+        ]];
+
+        yield 'sub vector' => [static fn(mixed $stored): array => [
+            $factory->persistentVectorFromArray([9, 0, $stored, 2])->cdr(),
+            1,
         ]];
     }
 

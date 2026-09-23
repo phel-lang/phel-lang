@@ -21,7 +21,9 @@
     (let [s (sorted-map :a 1)] (is (identical? s (assoc s :a 1)) "a sorted map"))
     (let [p (pt 1 2)] (is (identical? p (assoc p :x 1)) "a struct"))
     (is (identical? v (assoc v 99 99)) "a vector tail")
-    (is (identical? v (assoc v 5 5)) "a vector root")))
+    (is (identical? v (assoc v 5 5)) "a vector root")
+    (let [r (rest [1 2 3])] (is (identical? r (assoc r 0 (first r))) "the rest of a vector"))
+    (let [s (subvec v 10 20)] (is (identical? s (assoc s 3 13)) "a subvec"))))
 
 (deftest test-a-changed-value-returns-a-copy
   (let [m {:a 1}]
