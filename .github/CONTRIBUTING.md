@@ -118,7 +118,18 @@ chore: bump phpstan to v2
 
 ## Changelog
 
-For user-facing changes (`feat:`, `fix:`), update `CHANGELOG.md` under `## Unreleased` with [Keep a Changelog](https://keepachangelog.com/) subsections: `Added`, `Changed`, `Fixed`, `Removed`. Add sub-headings (e.g. `#### Core Language`, `#### REPL & Tooling`) when multiple areas are affected.
+For user-facing changes (`feat:`, `fix:`), update `CHANGELOG.md` under `## Unreleased`. Sections come in this order, each once: `Changed`, `Added`, `Removed`, `Performance`, `Fixed`. Write short entries that say what the user sees, merge bullets about the same change, and end with the refs: `(#1234)`. Full style: [`.agnostic-ai/rules/changelog.md`](../.agnostic-ai/rules/changelog.md).
+
+## AI Tooling
+
+[.agnostic-ai/](../.agnostic-ai/) is the single source for the agent config used on this repository. [agnostic-ai](https://github.com/Chemaclass/agnostic-ai) generates Claude Code (`.claude/`, `CLAUDE.md`) and Codex (`.codex/`, `.agents/`, `AGENTS.md`) from it. The generated files are gitignored, so run `sync` after cloning and after every spec change.
+
+```bash
+brew install Chemaclass/tap/agnostic-ai   # or: go install github.com/chemaclass/agnostic-ai/cmd/agnostic-ai@latest
+agnostic-ai sync
+```
+
+Edit the specs under `.agnostic-ai/`, never the generated files. Add a target (Gemini, Cursor, ...) under `targets:` in `agnostic-ai.yaml`. CI validates the specs on every PR that touches them.
 
 ## Where to Start
 
