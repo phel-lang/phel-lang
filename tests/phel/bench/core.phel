@@ -68,3 +68,28 @@
 
 (defbench bench-hash-set-three
   (hash-set :a :b :c))
+
+;; Mapping and filtering four maps into a vector, spelled the eager way and the
+;; transducer way (#3323). `filterv` over `mapv` is the baseline the transducer
+;; subjects are read against; each of them builds its pipeline inside the rev,
+;; as user code writing `(into [] (comp ...) coll)` inline does.
+(def- entities [{:hp 3 :alive true} {:hp 1 :alive false}
+                {:hp 5 :alive true} {:hp 2 :alive true}])
+
+(defn- heal [e] (assoc e :hp (inc (get e :hp))))
+
+(defbench bench-filterv-mapv
+  {:revs 1000}
+  (filterv :alive (mapv heal entities)))
+
+(defbench bench-into-map-xform
+  {:revs 1000}
+  (into [] (map heal) entities))
+
+(defbench bench-into-comp-xform
+  {:revs 1000}
+  (into [] (comp (map heal) (filter :alive)) entities))
+
+(defbench bench-transduce-conj
+  {:revs 1000}
+  (transduce (comp (map heal) (filter :alive)) conj [] entities))
