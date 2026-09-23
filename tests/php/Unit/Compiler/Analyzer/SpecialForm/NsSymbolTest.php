@@ -49,7 +49,7 @@ final class NsSymbolTest extends TestCase
     public function test_first_argument_must_be_symbol(): void
     {
         $this->expectException(AnalyzerException::class);
-        $this->expectExceptionMessage("First argument of 'ns must be a Symbol, got string");
+        $this->expectExceptionMessageIsOrContains("First argument of 'ns must be a Symbol, got string");
 
         $list = Phel::list([
             Symbol::create(Symbol::NAME_NS),
@@ -62,7 +62,7 @@ final class NsSymbolTest extends TestCase
     public function test_invalid_namespace(): void
     {
         $this->expectException(AnalyzerException::class);
-        $this->expectExceptionMessage('Invalid namespace.');
+        $this->expectExceptionMessageIsOrContains('Invalid namespace.');
 
         $list = Phel::list([
             Symbol::create(Symbol::NAME_NS),
@@ -118,7 +118,7 @@ final class NsSymbolTest extends TestCase
     public function test_import_must_be_list(): void
     {
         $this->expectException(AnalyzerException::class);
-        $this->expectExceptionMessage("Import in 'ns must be Lists.");
+        $this->expectExceptionMessageIsOrContains("Import in 'ns must be Lists.");
 
         $list = Phel::list([
             Symbol::create(Symbol::NAME_NS),
@@ -132,7 +132,7 @@ final class NsSymbolTest extends TestCase
     public function test_use_first_argument_must_be_symbol(): void
     {
         $this->expectException(AnalyzerException::class);
-        $this->expectExceptionMessage('First argument in :use must be a symbol.');
+        $this->expectExceptionMessageIsOrContains('First argument in :use must be a symbol.');
 
         $list = Phel::list([
             Symbol::create(Symbol::NAME_NS),
@@ -149,7 +149,7 @@ final class NsSymbolTest extends TestCase
     public function test_use_import_must_exist(): void
     {
         $this->expectException(AnalyzerException::class);
-        $this->expectExceptionMessage('Cannot import unknown PHP symbol \\Missing\\NsUseClass.');
+        $this->expectExceptionMessageIsOrContains('Cannot import unknown PHP symbol \\Missing\\NsUseClass.');
 
         $list = Phel::list([
             Symbol::create(Symbol::NAME_NS),
@@ -166,7 +166,7 @@ final class NsSymbolTest extends TestCase
     public function test_use_alias_must_be_symbol(): void
     {
         $this->expectException(AnalyzerException::class);
-        $this->expectExceptionMessage('Alias must be a Symbol, got string');
+        $this->expectExceptionMessageIsOrContains('Alias must be a Symbol, got string');
 
         $list = Phel::list([
             Symbol::create(Symbol::NAME_NS),
@@ -227,7 +227,7 @@ final class NsSymbolTest extends TestCase
     public function test_require_first_argument_must_be_symbol(): void
     {
         $this->expectException(AnalyzerException::class);
-        $this->expectExceptionMessage('First argument in :require must be a symbol or vector.');
+        $this->expectExceptionMessageIsOrContains('First argument in :require must be a symbol or vector.');
 
         $list = Phel::list([
             Symbol::create(Symbol::NAME_NS),
@@ -438,7 +438,7 @@ final class NsSymbolTest extends TestCase
     public function test_require_vector_first_element_must_be_symbol(): void
     {
         $this->expectException(AnalyzerException::class);
-        $this->expectExceptionMessage('First element of :require vector must be a symbol.');
+        $this->expectExceptionMessageIsOrContains('First element of :require vector must be a symbol.');
 
         $list = Phel::list([
             Symbol::create(Symbol::NAME_NS),
@@ -457,7 +457,7 @@ final class NsSymbolTest extends TestCase
     public function test_require_alias_must_be_symbol(): void
     {
         $this->expectException(AnalyzerException::class);
-        $this->expectExceptionMessage('Alias must be a Symbol, got string');
+        $this->expectExceptionMessageIsOrContains('Alias must be a Symbol, got string');
 
         $list = Phel::list([
             Symbol::create(Symbol::NAME_NS),
@@ -476,7 +476,7 @@ final class NsSymbolTest extends TestCase
     public function test_require_refer_must_be_vector(): void
     {
         $this->expectException(AnalyzerException::class);
-        $this->expectExceptionMessage('Refer must be a vector');
+        $this->expectExceptionMessageIsOrContains('Refer must be a vector');
 
         $list = Phel::list([
             Symbol::create(Symbol::NAME_NS),
@@ -495,7 +495,7 @@ final class NsSymbolTest extends TestCase
     public function test_require_refer_elements_must_be_symbol(): void
     {
         $this->expectException(AnalyzerException::class);
-        $this->expectExceptionMessage('Each refer element must be a Symbol, got string');
+        $this->expectExceptionMessageIsOrContains('Each refer element must be a Symbol, got string');
 
         $list = Phel::list([
             Symbol::create(Symbol::NAME_NS),
@@ -514,7 +514,7 @@ final class NsSymbolTest extends TestCase
     public function test_require_file_first_argument_must_be_string(): void
     {
         $this->expectException(AnalyzerException::class);
-        $this->expectExceptionMessage('First argument in :require-file must be a string.');
+        $this->expectExceptionMessageIsOrContains('First argument in :require-file must be a string.');
 
         $list = Phel::list([
             Symbol::create(Symbol::NAME_NS),
@@ -598,7 +598,7 @@ final class NsSymbolTest extends TestCase
     public function test_dot_namespace_with_empty_part_is_still_rejected(): void
     {
         $this->expectException(AnalyzerException::class);
-        $this->expectExceptionMessage('Invalid namespace.');
+        $this->expectExceptionMessageIsOrContains('Invalid namespace.');
 
         $list = Phel::list([
             Symbol::create(Symbol::NAME_NS),
@@ -623,7 +623,7 @@ final class NsSymbolTest extends TestCase
     public function test_dot_namespace_with_invalid_character_part_is_still_rejected(): void
     {
         $this->expectException(AnalyzerException::class);
-        $this->expectExceptionMessage('Invalid namespace.');
+        $this->expectExceptionMessageIsOrContains('Invalid namespace.');
 
         $list = Phel::list([
             Symbol::create(Symbol::NAME_NS),

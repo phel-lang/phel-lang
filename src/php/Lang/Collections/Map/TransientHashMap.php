@@ -92,6 +92,7 @@ final class TransientHashMap implements TransientMapInterface
         }
 
         $addedLeaf = new Box(false);
+        /** @var HashMapNodeInterface<TKey, TValue> $newRoot */
         $newRoot = $this->root ?? IndexedNode::empty($this->hasher, $this->equalizer);
         $newRoot = $newRoot->put(0, $this->hasher->hash($key), $key, $value, $addedLeaf);
 

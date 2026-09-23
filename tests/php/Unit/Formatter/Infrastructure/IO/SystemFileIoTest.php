@@ -50,7 +50,7 @@ final class SystemFileIoTest extends TestCase
         }
 
         $this->expectException(RuntimeException::class);
-        $this->expectExceptionMessage('Unable to write file');
+        $this->expectExceptionMessageIsOrContains('Unable to write file');
 
         new SystemFileIo()->putContents($this->baseDir . '/out.phel', '(ns out)');
     }

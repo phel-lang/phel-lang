@@ -117,9 +117,7 @@ final class AndOrShortCircuitLowerer
         }
 
         $rest = self::collect($continuation, $shape);
-        if ($rest === null) {
-            $rest = [$continuation];
-        }
+        $rest ??= [$continuation];
 
         return [$binding->getInitExpr(), ...$rest];
     }

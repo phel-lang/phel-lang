@@ -33,7 +33,7 @@ final class BreakSymbolTest extends TestCase
     public function test_wrong_symbol_name(): void
     {
         $this->expectException(AbstractLocatedException::class);
-        $this->expectExceptionMessage("This is not a 'break.");
+        $this->expectExceptionMessageIsOrContains("This is not a 'break.");
 
         $list = Phel::list([Symbol::create('unknown')]);
         new BreakSymbol($this->analyzer)->analyze($list, NodeEnvironment::empty());
@@ -42,7 +42,7 @@ final class BreakSymbolTest extends TestCase
     public function test_takes_no_arguments(): void
     {
         $this->expectException(AnalyzerException::class);
-        $this->expectExceptionMessage("'break takes no arguments");
+        $this->expectExceptionMessageIsOrContains("'break takes no arguments");
 
         $list = Phel::list([
             Symbol::create(Symbol::NAME_BREAK),

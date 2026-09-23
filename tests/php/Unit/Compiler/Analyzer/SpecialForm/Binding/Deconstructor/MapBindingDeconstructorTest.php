@@ -701,7 +701,7 @@ final class MapBindingDeconstructorTest extends TestCase
         );
 
         $this->expectException(AnalyzerException::class);
-        $this->expectExceptionMessage('`{:keys [...]}` expects a vector of symbols');
+        $this->expectExceptionMessageIsOrContains('`{:keys [...]}` expects a vector of symbols');
 
         $bindings = [];
         $this->deconstructor->deconstruct($bindings, $binding, Symbol::create('x'));
@@ -715,7 +715,7 @@ final class MapBindingDeconstructorTest extends TestCase
         );
 
         $this->expectException(AnalyzerException::class);
-        $this->expectExceptionMessage('`{:strs [...]}` expects a vector of symbols');
+        $this->expectExceptionMessageIsOrContains('`{:strs [...]}` expects a vector of symbols');
 
         $bindings = [];
         $this->deconstructor->deconstruct($bindings, $binding, Symbol::create('x'));
@@ -729,7 +729,7 @@ final class MapBindingDeconstructorTest extends TestCase
         );
 
         $this->expectException(AnalyzerException::class);
-        $this->expectExceptionMessage('`{:syms [...]}` expects a vector of symbols');
+        $this->expectExceptionMessageIsOrContains('`{:syms [...]}` expects a vector of symbols');
 
         $bindings = [];
         $this->deconstructor->deconstruct($bindings, $binding, Symbol::create('x'));

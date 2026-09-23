@@ -35,7 +35,7 @@ final class LoadSymbolTest extends TestCase
     public function test_requires_at_least_one_argument(): void
     {
         $this->expectException(AnalyzerException::class);
-        $this->expectExceptionMessage("'load requires exactly 1 argument (the file path)");
+        $this->expectExceptionMessageIsOrContains("'load requires exactly 1 argument (the file path)");
 
         $this->analyze($this->makeList([]));
     }
@@ -43,7 +43,7 @@ final class LoadSymbolTest extends TestCase
     public function test_requires_at_most_one_argument(): void
     {
         $this->expectException(AnalyzerException::class);
-        $this->expectExceptionMessage("'load requires exactly 1 argument, got 2");
+        $this->expectExceptionMessageIsOrContains("'load requires exactly 1 argument, got 2");
 
         $this->analyze($this->makeList(['util', 'helper']));
     }
@@ -52,7 +52,7 @@ final class LoadSymbolTest extends TestCase
     public function test_rejects_non_string_arguments(mixed $invalidArg, string $expectedType): void
     {
         $this->expectException(AnalyzerException::class);
-        $this->expectExceptionMessage("First argument of 'load must be a string, got: " . $expectedType);
+        $this->expectExceptionMessageIsOrContains("First argument of 'load must be a string, got: " . $expectedType);
 
         $this->analyze($this->makeList([$invalidArg]));
     }
@@ -114,7 +114,7 @@ final class LoadSymbolTest extends TestCase
         $this->analyzer->setNamespace('test\\ns');
 
         $this->expectException(AnalyzerException::class);
-        $this->expectExceptionMessage($expectedMessage);
+        $this->expectExceptionMessageIsOrContains($expectedMessage);
 
         $this->analyze($this->makeList([$pathArg]));
     }

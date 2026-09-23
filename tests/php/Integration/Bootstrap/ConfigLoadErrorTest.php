@@ -51,7 +51,7 @@ final class ConfigLoadErrorTest extends TestCase
         file_put_contents($this->dir . '/phel-config.php', "<?php\n\nreturn 'not a config';\n");
 
         $this->expectException(ConfigLoadException::class);
-        $this->expectExceptionMessage('phel-config.php');
+        $this->expectExceptionMessageIsOrContains('phel-config.php');
 
         Phel::bootstrap($this->dir);
     }
@@ -65,7 +65,7 @@ final class ConfigLoadErrorTest extends TestCase
         file_put_contents($this->dir . '/phel-config.php', "<?php\n\nreturn null;\n");
 
         $this->expectException(ConfigLoadException::class);
-        $this->expectExceptionMessage('phel-config.php');
+        $this->expectExceptionMessageIsOrContains('phel-config.php');
 
         Phel::bootstrap($this->dir);
     }
@@ -92,7 +92,7 @@ final class ConfigLoadErrorTest extends TestCase
         );
 
         $this->expectException(ConfigLoadException::class);
-        $this->expectExceptionMessage('phel-config.php');
+        $this->expectExceptionMessageIsOrContains('phel-config.php');
 
         Phel::bootstrap($this->dir);
     }
@@ -109,7 +109,7 @@ final class ConfigLoadErrorTest extends TestCase
         );
 
         $this->expectException(ConfigLoadException::class);
-        $this->expectExceptionMessage('phel-config.php');
+        $this->expectExceptionMessageIsOrContains('phel-config.php');
 
         Phel::bootstrap($this->dir);
     }

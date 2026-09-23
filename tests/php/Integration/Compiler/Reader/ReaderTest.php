@@ -674,14 +674,14 @@ final class ReaderTest extends TestCase
     public function test_vector_meta(): void
     {
         $this->expectException(ReaderException::class);
-        $this->expectExceptionMessage('Metadata must be a Symbol, String, Keyword or Map');
+        $this->expectExceptionMessageIsOrContains('Metadata must be a Symbol, String, Keyword or Map');
         $this->read('^[:a] test');
     }
 
     public function test_meta_on_string(): void
     {
         $this->expectException(ReaderException::class);
-        $this->expectExceptionMessage('Metadata can only applied to classes that implement MetaInterface');
+        $this->expectExceptionMessageIsOrContains('Metadata can only applied to classes that implement MetaInterface');
         $this->read('^a "test"');
     }
 
@@ -1238,7 +1238,7 @@ final class ReaderTest extends TestCase
     public function test_uuid_tagged_literal_rejects_invalid_format(): void
     {
         $this->expectException(ReaderException::class);
-        $this->expectExceptionMessage('is not a canonical UUID string');
+        $this->expectExceptionMessageIsOrContains('is not a canonical UUID string');
         $this->read('#uuid "not-a-uuid"');
     }
 
@@ -1257,14 +1257,14 @@ final class ReaderTest extends TestCase
     public function test_uuid_tagged_literal_requires_string_form(): void
     {
         $this->expectException(ReaderException::class);
-        $this->expectExceptionMessage('#uuid expects a string literal');
+        $this->expectExceptionMessageIsOrContains('#uuid expects a string literal');
         $this->read('#uuid 42');
     }
 
     public function test_unknown_tagged_literal_throws(): void
     {
         $this->expectException(ReaderException::class);
-        $this->expectExceptionMessage("Unknown tagged literal '#something'");
+        $this->expectExceptionMessageIsOrContains("Unknown tagged literal '#something'");
         $this->read('#something "x"');
     }
 
@@ -1294,7 +1294,7 @@ final class ReaderTest extends TestCase
     public function test_php_tagged_literal_rejects_non_collection_form(): void
     {
         $this->expectException(ReaderException::class);
-        $this->expectExceptionMessage('#php expects a vector literal');
+        $this->expectExceptionMessageIsOrContains('#php expects a vector literal');
         $this->read('#php 42');
     }
 
@@ -1323,7 +1323,7 @@ final class ReaderTest extends TestCase
         BuiltinTagHandlers::registerAll(TagRegistry::getInstance());
 
         $this->expectException(ReaderException::class);
-        $this->expectExceptionMessage('is not a valid ISO 8601');
+        $this->expectExceptionMessageIsOrContains('is not a valid ISO 8601');
         $this->read('#inst "bad-date"');
     }
 
@@ -1339,7 +1339,7 @@ final class ReaderTest extends TestCase
         BuiltinTagHandlers::registerAll(TagRegistry::getInstance());
 
         $this->expectException(ReaderException::class);
-        $this->expectExceptionMessage('#regex expects a string literal');
+        $this->expectExceptionMessageIsOrContains('#regex expects a string literal');
         $this->read('#regex 42');
     }
 
@@ -1350,7 +1350,7 @@ final class ReaderTest extends TestCase
         BuiltinTagHandlers::registerAll($registry);
 
         $this->expectException(ReaderException::class);
-        $this->expectExceptionMessage('Registered tags: #inst, #php, #regex, #uuid');
+        $this->expectExceptionMessageIsOrContains('Registered tags: #inst, #php, #regex, #uuid');
         $this->read('#xyz "x"');
     }
 
@@ -1377,7 +1377,7 @@ final class ReaderTest extends TestCase
 
         try {
             $this->expectException(ReaderException::class);
-            $this->expectExceptionMessage("Tagged-literal handler for '#boom' threw an error: kaboom");
+            $this->expectExceptionMessageIsOrContains("Tagged-literal handler for '#boom' threw an error: kaboom");
             $this->read('#boom "ignored"');
         } finally {
             $registry->unregister('boom');
@@ -1391,7 +1391,7 @@ final class ReaderTest extends TestCase
         BuiltinTagHandlers::registerAll($registry);
 
         $this->expectException(ReaderException::class);
-        $this->expectExceptionMessage('Use `(register-tag "xyz" f)` to register a handler');
+        $this->expectExceptionMessageIsOrContains('Use `(register-tag "xyz" f)` to register a handler');
         $this->read('#xyz "x"');
     }
 

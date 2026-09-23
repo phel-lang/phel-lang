@@ -175,9 +175,7 @@ final class Cons extends AbstractType implements SeqInterface, IteratorAggregate
 
     public function hash(): int
     {
-        if ($this->hashCache === null) {
-            $this->hashCache = $this->hasher->orderedHash($this);
-        }
+        $this->hashCache ??= $this->hasher->orderedHash($this);
 
         return $this->hashCache;
     }

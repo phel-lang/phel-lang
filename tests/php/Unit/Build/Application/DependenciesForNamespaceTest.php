@@ -91,7 +91,7 @@ final class DependenciesForNamespaceTest extends TestCase
         $this->expectException(ExtractorException::class);
         // The requiring namespace is reported in canonical dot form, whichever
         // separator its `(ns ...)` used.
-        $this->expectExceptionMessage("Cannot find namespace 'some.missing.ns' required by 'app.main'");
+        $this->expectExceptionMessageIsOrContains("Cannot find namespace 'some.missing.ns' required by 'app.main'");
 
         $deps->getDependenciesForNamespace(['/src'], ['app\\main']);
     }

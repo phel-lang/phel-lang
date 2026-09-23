@@ -496,7 +496,7 @@ final class LazySeqTest extends TestCase
         $lazySeq = new LazySeq($this->hasher, $this->equalizer, static fn(): int => 5);
 
         $this->expectException(NotASeqException::class);
-        $this->expectExceptionMessage("Don't know how to create a seq from: int");
+        $this->expectExceptionMessageIsOrContains("Don't know how to create a seq from: int");
 
         $lazySeq->first();
     }

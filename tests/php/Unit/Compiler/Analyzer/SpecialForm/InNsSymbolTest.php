@@ -44,7 +44,7 @@ final class InNsSymbolTest extends TestCase
     public function test_requires_at_least_one_argument(): void
     {
         $this->expectException(AnalyzerException::class);
-        $this->expectExceptionMessage("'in-ns requires exactly 1 argument (the namespace)");
+        $this->expectExceptionMessageIsOrContains("'in-ns requires exactly 1 argument (the namespace)");
 
         $list = Phel::list([
             Symbol::create(Symbol::NAME_IN_NS),
@@ -57,7 +57,7 @@ final class InNsSymbolTest extends TestCase
     public function test_requires_at_most_one_argument(): void
     {
         $this->expectException(AnalyzerException::class);
-        $this->expectExceptionMessage("'in-ns requires exactly 1 argument, got 2");
+        $this->expectExceptionMessageIsOrContains("'in-ns requires exactly 1 argument, got 2");
 
         $list = Phel::list([
             Symbol::create(Symbol::NAME_IN_NS),
@@ -71,7 +71,7 @@ final class InNsSymbolTest extends TestCase
     public function test_first_argument_must_be_symbol_or_string(): void
     {
         $this->expectException(AnalyzerException::class);
-        $this->expectExceptionMessage("First argument of 'in-ns must be a Symbol or String, got: int");
+        $this->expectExceptionMessageIsOrContains("First argument of 'in-ns must be a Symbol or String, got: int");
 
         $list = Phel::list([
             Symbol::create(Symbol::NAME_IN_NS),
@@ -84,7 +84,7 @@ final class InNsSymbolTest extends TestCase
     public function test_rejects_empty_namespace(): void
     {
         $this->expectException(AnalyzerException::class);
-        $this->expectExceptionMessage('Namespace cannot be empty');
+        $this->expectExceptionMessageIsOrContains('Namespace cannot be empty');
 
         $list = Phel::list([
             Symbol::create(Symbol::NAME_IN_NS),
@@ -97,7 +97,7 @@ final class InNsSymbolTest extends TestCase
     public function test_rejects_whitespace_only_namespace(): void
     {
         $this->expectException(AnalyzerException::class);
-        $this->expectExceptionMessage('Namespace cannot be empty');
+        $this->expectExceptionMessageIsOrContains('Namespace cannot be empty');
 
         $list = Phel::list([
             Symbol::create(Symbol::NAME_IN_NS),

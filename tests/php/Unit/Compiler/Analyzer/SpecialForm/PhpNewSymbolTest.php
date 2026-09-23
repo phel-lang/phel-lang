@@ -63,7 +63,7 @@ final class PhpNewSymbolTest extends TestCase
     public function test_missing_value_for_named_arg_throws(): void
     {
         $this->expectException(AbstractLocatedException::class);
-        $this->expectExceptionMessage("Missing value for named argument ':timezone'");
+        $this->expectExceptionMessageIsOrContains("Missing value for named argument ':timezone'");
 
         $list = Phel::list([
             Symbol::create(Symbol::NAME_PHP_NEW),
@@ -78,7 +78,7 @@ final class PhpNewSymbolTest extends TestCase
     public function test_non_keyword_after_marker_throws(): void
     {
         $this->expectException(AbstractLocatedException::class);
-        $this->expectExceptionMessage('must be :key value pairs');
+        $this->expectExceptionMessageIsOrContains('must be :key value pairs');
 
         $list = Phel::list([
             Symbol::create(Symbol::NAME_PHP_NEW),
@@ -94,7 +94,7 @@ final class PhpNewSymbolTest extends TestCase
     public function test_empty_after_marker_throws(): void
     {
         $this->expectException(AbstractLocatedException::class);
-        $this->expectExceptionMessage('must be followed by :key value pairs');
+        $this->expectExceptionMessageIsOrContains('must be followed by :key value pairs');
 
         $list = Phel::list([
             Symbol::create(Symbol::NAME_PHP_NEW),

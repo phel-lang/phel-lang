@@ -35,7 +35,7 @@ final class RegexTagHandlerTest extends TestCase
     public function test_it_rejects_non_string(): void
     {
         $this->expectException(TagHandlerException::class);
-        $this->expectExceptionMessage('#regex expects a string literal');
+        $this->expectExceptionMessageIsOrContains('#regex expects a string literal');
 
         ($this->handler)(1);
     }

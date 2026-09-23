@@ -41,7 +41,7 @@ final class JsonRpcFramingTest extends TestCase
         rewind($stream);
 
         $this->expectException(RuntimeException::class);
-        $this->expectExceptionMessage('Invalid JSON payload received by daemon');
+        $this->expectExceptionMessageIsOrContains('Invalid JSON payload received by daemon');
 
         try {
             $framing->readMessage($stream);

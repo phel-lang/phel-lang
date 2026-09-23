@@ -195,7 +195,14 @@ final class ChunkedSeq extends AbstractType implements LazySeqInterface, Countab
     #[NoDiscard('the result is a new instance, the receiver is unchanged')]
     public function rest(): LazySeqInterface
     {
-        return $this->cdr() ?? LazySeq::empty($this->hasher, $this->equalizer);
+        $cdr = $this->cdr();
+        if ($cdr instanceof LazySeqInterface) {
+            return $cdr;
+        }
+
+        /** @var LazySeq<T> $empty */
+        $empty = LazySeq::empty($this->hasher, $this->equalizer);
+        return $empty;
     }
 
     /**

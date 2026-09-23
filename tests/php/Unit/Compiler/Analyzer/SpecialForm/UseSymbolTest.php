@@ -33,7 +33,7 @@ final class UseSymbolTest extends TestCase
     public function test_requires_at_least_one_argument(): void
     {
         $this->expectException(AnalyzerException::class);
-        $this->expectExceptionMessage("'use requires at least one argument");
+        $this->expectExceptionMessageIsOrContains("'use requires at least one argument");
 
         $list = Phel::list([Symbol::create(Symbol::NAME_USE)]);
         $this->analyze($list);
@@ -89,7 +89,7 @@ final class UseSymbolTest extends TestCase
     public function test_rejects_non_symbol_import(): void
     {
         $this->expectException(AnalyzerException::class);
-        $this->expectExceptionMessage('First argument in use must be a symbol.');
+        $this->expectExceptionMessageIsOrContains('First argument in use must be a symbol.');
 
         $list = Phel::list([
             Symbol::create(Symbol::NAME_USE),
@@ -102,7 +102,7 @@ final class UseSymbolTest extends TestCase
     public function test_rejects_unknown_import(): void
     {
         $this->expectException(AnalyzerException::class);
-        $this->expectExceptionMessage('Cannot import unknown PHP symbol \\Missing\\UseClass.');
+        $this->expectExceptionMessageIsOrContains('Cannot import unknown PHP symbol \\Missing\\UseClass.');
 
         $list = Phel::list([
             Symbol::create(Symbol::NAME_USE),

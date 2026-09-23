@@ -31,7 +31,7 @@ final class SupersededFormRejectorTest extends TestCase
     public function test_every_superseded_head_is_rejected(string $name): void
     {
         $this->expectException(AnalyzerException::class);
-        $this->expectExceptionMessage(sprintf('"%s" is no longer valid source for', $name));
+        $this->expectExceptionMessageIsOrContains(sprintf('"%s" is no longer valid source for', $name));
 
         new SupersededFormRejector()->rejectIfWritten(
             Phel::list([Symbol::create($name), Symbol::create('x')]),

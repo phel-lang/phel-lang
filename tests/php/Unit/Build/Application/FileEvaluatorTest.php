@@ -461,7 +461,7 @@ final class FileEvaluatorTest extends TestCase
         $evaluator = new FileEvaluator($compilerFacade, $namespaceExtractor, $cache);
 
         $this->expectException(RuntimeException::class);
-        $this->expectExceptionMessage('User code error');
+        $this->expectExceptionMessageIsOrContains('User code error');
 
         $evaluator->evalFile($sourceFile);
     }

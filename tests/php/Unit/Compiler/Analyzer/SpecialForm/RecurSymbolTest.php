@@ -35,7 +35,7 @@ final class RecurSymbolTest extends TestCase
     public function test_wrong_symbol_name(): void
     {
         $this->expectException(AnalyzerException::class);
-        $this->expectExceptionMessage("This is not a 'recur.");
+        $this->expectExceptionMessageIsOrContains("This is not a 'recur.");
 
         $list = Phel::list([Symbol::create('unknown')]);
         $env = NodeEnvironment::empty();
@@ -46,7 +46,7 @@ final class RecurSymbolTest extends TestCase
     public function test_missing_frame(): void
     {
         $this->expectException(AnalyzerException::class);
-        $this->expectExceptionMessage("Can't call 'recur here");
+        $this->expectExceptionMessageIsOrContains("Can't call 'recur here");
 
         $list = Phel::list([Symbol::create(Symbol::NAME_RECUR)]);
         $env = NodeEnvironment::empty();
@@ -57,7 +57,7 @@ final class RecurSymbolTest extends TestCase
     public function test_wrong_number_of_arguments_for_single_param(): void
     {
         $this->expectException(AnalyzerException::class);
-        $this->expectExceptionMessage("Wrong number of arguments for 'recur. Expected: 1 args, got: 0");
+        $this->expectExceptionMessageIsOrContains("Wrong number of arguments for 'recur. Expected: 1 args, got: 0");
 
         $list = Phel::list([
             Symbol::create(Symbol::NAME_FN),
@@ -74,7 +74,7 @@ final class RecurSymbolTest extends TestCase
     public function test_wrong_number_of_arguments_for_two_params(): void
     {
         $this->expectException(AnalyzerException::class);
-        $this->expectExceptionMessage("Wrong number of arguments for 'recur. Expected: 2 args, got: 1");
+        $this->expectExceptionMessageIsOrContains("Wrong number of arguments for 'recur. Expected: 2 args, got: 1");
 
         $list = Phel::list([
             Symbol::create(Symbol::NAME_FN),

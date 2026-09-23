@@ -141,7 +141,7 @@ final class CharParserTest extends TestCase
     public function test_parse_octal_above_a_byte_is_rejected(): void
     {
         $this->expectException(StringParserException::class);
-        $this->expectExceptionMessage('Octal escape sequence out of range: \\o400 is above \\o377.');
+        $this->expectExceptionMessageIsOrContains('Octal escape sequence out of range: \\o400 is above \\o377.');
 
         $this->parse('\\o400');
     }

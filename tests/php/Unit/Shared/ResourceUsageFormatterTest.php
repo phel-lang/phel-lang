@@ -38,7 +38,7 @@ final class ResourceUsageFormatterTest extends TestCase
         unset($_SERVER['REQUEST_TIME_FLOAT']);
 
         $this->expectException(RuntimeException::class);
-        $this->expectExceptionMessage('REQUEST_TIME_FLOAT');
+        $this->expectExceptionMessageIsOrContains('REQUEST_TIME_FLOAT');
 
         $this->formatter->resourceUsageSinceStartOfRequest();
     }

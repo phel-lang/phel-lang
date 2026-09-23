@@ -73,7 +73,7 @@ final class PathsFormatterTest extends TestCase
         };
 
         $this->expectException(RuntimeException::class);
-        $this->expectExceptionMessage('Unable to write file "a.phel".');
+        $this->expectExceptionMessageIsOrContains('Unable to write file "a.phel".');
 
         new PathsFormatter(
             $this->commandFacade(),

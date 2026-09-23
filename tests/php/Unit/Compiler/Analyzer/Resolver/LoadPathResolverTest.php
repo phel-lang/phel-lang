@@ -62,7 +62,7 @@ final class LoadPathResolverTest extends TestCase
     public function test_it_rejects_relative_path_without_caller_namespace(): void
     {
         $this->expectException(InvalidArgumentException::class);
-        $this->expectExceptionMessage('no caller namespace available');
+        $this->expectExceptionMessageIsOrContains('no caller namespace available');
 
         $this->resolver->resolve(null, 'helper');
     }
@@ -71,7 +71,7 @@ final class LoadPathResolverTest extends TestCase
     public function test_it_rejects_invalid_paths(string $pathArg, string $expectedMessage): void
     {
         $this->expectException(InvalidArgumentException::class);
-        $this->expectExceptionMessage($expectedMessage);
+        $this->expectExceptionMessageIsOrContains($expectedMessage);
 
         $this->resolver->resolve('any\\ns', $pathArg);
     }

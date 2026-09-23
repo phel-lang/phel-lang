@@ -208,11 +208,13 @@ final class LazySeq extends AbstractType implements LazySeqInterface, Countable,
      * Returns a realized empty `LazySeq` whose thunk yields `null`. Used
      * as a sentinel tail when no further elements remain.
      *
-     * @return self<mixed>
+     * @return self<T>
      */
     public static function empty(HasherInterface $hasher, EqualizerInterface $equalizer): self
     {
-        return new self($hasher, $equalizer, static fn(): null => null);
+        /** @var self<T> $empty */
+        $empty = new self($hasher, $equalizer, static fn(): null => null);
+        return $empty;
     }
 
     public function isRealized(): bool

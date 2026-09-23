@@ -31,7 +31,7 @@ final class DefStructSymbolTest extends TestCase
     public function test_with_wrong_number_of_arguments(): void
     {
         $this->expectException(AbstractLocatedException::class);
-        $this->expectExceptionMessage("At least two arguments are required for 'defstruct. Got 1");
+        $this->expectExceptionMessageIsOrContains("At least two arguments are required for 'defstruct. Got 1");
 
         $list = Phel::list([
             Symbol::create(Symbol::NAME_DEF_STRUCT),
@@ -43,7 +43,7 @@ final class DefStructSymbolTest extends TestCase
     public function test_first_arg_is_not_symbol(): void
     {
         $this->expectException(AbstractLocatedException::class);
-        $this->expectExceptionMessage("First argument of 'defstruct must be a Symbol, got string");
+        $this->expectExceptionMessageIsOrContains("First argument of 'defstruct must be a Symbol, got string");
 
         $list = Phel::list([
             Symbol::create(Symbol::NAME_DEF_STRUCT),
@@ -57,7 +57,7 @@ final class DefStructSymbolTest extends TestCase
     public function test_second_arg_is_not_vector(): void
     {
         $this->expectException(AbstractLocatedException::class);
-        $this->expectExceptionMessage("Second argument of 'defstruct must be a Vector, got string");
+        $this->expectExceptionMessageIsOrContains("Second argument of 'defstruct must be a Vector, got string");
 
         $list = Phel::list([
             Symbol::create(Symbol::NAME_DEF_STRUCT),
@@ -71,7 +71,7 @@ final class DefStructSymbolTest extends TestCase
     public function test_vector_elems_are_not_symbols(): void
     {
         $this->expectException(AbstractLocatedException::class);
-        $this->expectExceptionMessage('Defstruct field elements must be Symbols.');
+        $this->expectExceptionMessageIsOrContains('Defstruct field elements must be Symbols.');
 
         $list = Phel::list([
             Symbol::create(Symbol::NAME_DEF_STRUCT),

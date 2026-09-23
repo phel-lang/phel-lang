@@ -156,6 +156,8 @@ final class ArrayNode implements HashMapNodeInterface, Countable
 
     /**
      * @return HashMapNodeInterface<TKey, TValue>
+     *
+     * @psalm-suppress InvalidArgument, IncompatibleTypeParameters a child node matches both arms of IndexedNode's `HashMapNodeInterface<TKey, TValue>|TValue` element, so psalm cannot bind TValue (PHPStan can)
      */
     private function pack(int $index): HashMapNodeInterface
     {
@@ -173,14 +175,7 @@ final class ArrayNode implements HashMapNodeInterface, Countable
             $objects[$i] = [null, $node];
         }
 
-        /**
-         * @var IndexedNode<TKey, TValue> $result
-         *
-         * @psalm-suppress InvalidArgument $objects holds [key, value] and
-         * [null, childNode] pairs by trie construction; psalm cannot reconcile
-         * the HashMapNodeInterface<TKey, TValue>|TValue element union with IndexedNode's
-         * own template parameters (a generic-variance limitation PHPStan accepts).
-         */
+        /** @var IndexedNode<TKey, TValue> $result */
         $result = new IndexedNode($this->hasher, $this->equalizer, $objects);
         return $result;
     }

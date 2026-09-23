@@ -55,9 +55,7 @@ final class PhpSymbolCatalog
      */
     public function functions(): array
     {
-        if ($this->functions === null) {
-            $this->functions = get_defined_functions()['internal'];
-        }
+        $this->functions ??= get_defined_functions()['internal'];
 
         return $this->functions;
     }
@@ -67,9 +65,7 @@ final class PhpSymbolCatalog
      */
     public function classes(): array
     {
-        if ($this->classes === null) {
-            $this->classes = get_declared_classes();
-        }
+        $this->classes ??= get_declared_classes();
 
         return $this->classes;
     }

@@ -118,7 +118,7 @@ final class InvokeSymbolTest extends TestCase
     public function test_integer_literal_in_call_position_raises_phel011(): void
     {
         $this->expectException(AnalyzerException::class);
-        $this->expectExceptionMessage('Value 42 of type int is not callable.');
+        $this->expectExceptionMessageIsOrContains('Value 42 of type int is not callable.');
 
         new InvokeSymbol($this->analyzer)->analyze(Phel::list([42]), NodeEnvironment::empty());
     }
@@ -126,7 +126,7 @@ final class InvokeSymbolTest extends TestCase
     public function test_string_literal_in_call_position_raises_phel011(): void
     {
         $this->expectException(AnalyzerException::class);
-        $this->expectExceptionMessage('Value "foo" of type string is not callable.');
+        $this->expectExceptionMessageIsOrContains('Value "foo" of type string is not callable.');
 
         new InvokeSymbol($this->analyzer)->analyze(Phel::list(['foo']), NodeEnvironment::empty());
     }
@@ -134,7 +134,7 @@ final class InvokeSymbolTest extends TestCase
     public function test_nil_in_call_position_raises_phel011(): void
     {
         $this->expectException(AnalyzerException::class);
-        $this->expectExceptionMessage('Value nil of type null is not callable.');
+        $this->expectExceptionMessageIsOrContains('Value nil of type null is not callable.');
 
         new InvokeSymbol($this->analyzer)->analyze(Phel::list([null]), NodeEnvironment::empty());
     }
@@ -142,7 +142,7 @@ final class InvokeSymbolTest extends TestCase
     public function test_not_enough_args_provided_then_error(): void
     {
         $this->expectException(AnalyzerException::class);
-        $this->expectExceptionMessage('Wrong number of arguments to function "user\\my-global-fn". Got: 1. Expected: 2');
+        $this->expectExceptionMessageIsOrContains('Wrong number of arguments to function "user\\my-global-fn". Got: 1. Expected: 2');
 
         $list = Phel::list([
             Symbol::createForNamespace('user', 'my-global-fn'),
@@ -155,7 +155,7 @@ final class InvokeSymbolTest extends TestCase
     public function test_variadic_function_error_message(): void
     {
         $this->expectException(AnalyzerException::class);
-        $this->expectExceptionMessage('Wrong number of arguments to function "user\\my-variadic-fn". Got: 0. Expected: at least 1');
+        $this->expectExceptionMessageIsOrContains('Wrong number of arguments to function "user\\my-variadic-fn". Got: 0. Expected: at least 1');
 
         $list = Phel::list([
             Symbol::createForNamespace('user', 'my-variadic-fn'),
@@ -167,7 +167,7 @@ final class InvokeSymbolTest extends TestCase
     public function test_bounded_function_too_few_args(): void
     {
         $this->expectException(AnalyzerException::class);
-        $this->expectExceptionMessage('Wrong number of arguments to function "user\\my-bounded-fn". Got: 0. Expected: 1 or 2');
+        $this->expectExceptionMessageIsOrContains('Wrong number of arguments to function "user\\my-bounded-fn". Got: 0. Expected: 1 or 2');
 
         $list = Phel::list([
             Symbol::createForNamespace('user', 'my-bounded-fn'),
@@ -179,7 +179,7 @@ final class InvokeSymbolTest extends TestCase
     public function test_bounded_function_too_many_args(): void
     {
         $this->expectException(AnalyzerException::class);
-        $this->expectExceptionMessage('Wrong number of arguments to function "user\\my-bounded-fn". Got: 3. Expected: 1 or 2');
+        $this->expectExceptionMessageIsOrContains('Wrong number of arguments to function "user\\my-bounded-fn". Got: 3. Expected: 1 or 2');
 
         $list = Phel::list([
             Symbol::createForNamespace('user', 'my-bounded-fn'),
@@ -316,7 +316,7 @@ final class InvokeSymbolTest extends TestCase
     public function test_macro_undefined_macro(): void
     {
         $this->expectException(AnalyzerException::class);
-        $this->expectExceptionMessage("Cannot resolve symbol 'user/my-undefined-macro'");
+        $this->expectExceptionMessageIsOrContains("Cannot resolve symbol 'user/my-undefined-macro'");
 
         $list = Phel::list([
             Symbol::createForNamespace('user', 'my-undefined-macro'),

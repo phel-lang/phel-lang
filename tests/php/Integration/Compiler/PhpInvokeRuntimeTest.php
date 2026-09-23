@@ -34,7 +34,7 @@ final class PhpInvokeRuntimeTest extends AbstractCompilerRuntimeTestCase
     public function test_an_undefined_method_reports_the_same_wording_as_a_literal_call(): void
     {
         $this->expectException(EvaluatedCodeException::class);
-        $this->expectExceptionMessage('Call to undefined method DateTimeImmutable::nope()');
+        $this->expectExceptionMessageIsOrContains('Call to undefined method DateTimeImmutable::nope()');
 
         $this->compilerFacade->eval(
             '(php-invoke (new \\DateTimeImmutable "2024-03-10") "nope")',

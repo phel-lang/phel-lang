@@ -52,9 +52,7 @@ final readonly class MultiFnAsClassEmitter implements NodeEmitterInterface
         foreach ($fnNodes as $fnNode) {
             foreach ($fnNode->getUses() as $use) {
                 $name = $use->getName();
-                if (!isset($byName[$name])) {
-                    $byName[$name] = $use;
-                }
+                $byName[$name] ??= $use;
             }
         }
 

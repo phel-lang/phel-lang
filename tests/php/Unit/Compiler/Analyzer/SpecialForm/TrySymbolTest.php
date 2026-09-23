@@ -23,7 +23,7 @@ final class TrySymbolTest extends TestCase
     public function test_requires_symbol_as_first_argument_of_catch(): void
     {
         $this->expectException(AnalyzerException::class);
-        $this->expectExceptionMessage("First argument of 'catch must be a Symbol, got string");
+        $this->expectExceptionMessageIsOrContains("First argument of 'catch must be a Symbol, got string");
 
         $list = Phel::list([
             Symbol::create(Symbol::NAME_TRY),
@@ -47,7 +47,7 @@ final class TrySymbolTest extends TestCase
     public function test_a_catch_with_no_arguments_reports_the_analyzer_error(): void
     {
         $this->expectException(AnalyzerException::class);
-        $this->expectExceptionMessage("First argument of 'catch must be a Symbol, got nil");
+        $this->expectExceptionMessageIsOrContains("First argument of 'catch must be a Symbol, got nil");
 
         $list = Phel::list([
             Symbol::create(Symbol::NAME_TRY),
@@ -60,7 +60,7 @@ final class TrySymbolTest extends TestCase
     public function test_a_catch_with_only_a_type_reports_the_analyzer_error(): void
     {
         $this->expectException(AnalyzerException::class);
-        $this->expectExceptionMessage("Second argument of 'catch must be a Symbol, got nil");
+        $this->expectExceptionMessageIsOrContains("Second argument of 'catch must be a Symbol, got nil");
 
         $list = Phel::list([
             Symbol::create(Symbol::NAME_TRY),
@@ -73,7 +73,7 @@ final class TrySymbolTest extends TestCase
     public function test_requires_symbol_as_second_argument_of_catch(): void
     {
         $this->expectException(AnalyzerException::class);
-        $this->expectExceptionMessage("Second argument of 'catch must be a Symbol, got string");
+        $this->expectExceptionMessageIsOrContains("Second argument of 'catch must be a Symbol, got string");
 
         $list = Phel::list([
             Symbol::create(Symbol::NAME_TRY),
@@ -92,7 +92,7 @@ final class TrySymbolTest extends TestCase
     public function test_invalid_try_form_in_catches_section(): void
     {
         $this->expectException(AnalyzerException::class);
-        $this->expectExceptionMessage("Invalid 'try form");
+        $this->expectExceptionMessageIsOrContains("Invalid 'try form");
 
         $list = Phel::list([
             Symbol::create(Symbol::NAME_TRY),
@@ -112,7 +112,7 @@ final class TrySymbolTest extends TestCase
     public function test_unexpected_form_after_finally(): void
     {
         $this->expectException(AnalyzerException::class);
-        $this->expectExceptionMessage("Unexpected form after 'finally");
+        $this->expectExceptionMessageIsOrContains("Unexpected form after 'finally");
 
         $list = Phel::list([
             Symbol::create(Symbol::NAME_TRY),

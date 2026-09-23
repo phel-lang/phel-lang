@@ -230,7 +230,7 @@ final class TransientVectorTest extends TestCase
         $v->persistent();
 
         $this->expectException(RuntimeException::class);
-        $this->expectExceptionMessage('Transient used after persistent! call');
+        $this->expectExceptionMessageIsOrContains('Transient used after persistent! call');
         $v->append(4);
     }
 
@@ -258,7 +258,7 @@ final class TransientVectorTest extends TestCase
         $v->persistent();
 
         $this->expectException(RuntimeException::class);
-        $this->expectExceptionMessage('Transient used after persistent! call');
+        $this->expectExceptionMessageIsOrContains('Transient used after persistent! call');
         $v->persistent();
     }
 }

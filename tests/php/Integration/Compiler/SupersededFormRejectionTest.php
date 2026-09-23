@@ -124,7 +124,7 @@ final class SupersededFormRejectionTest extends TestCase
     public function test_set_var_rejection_names_the_replacement(): void
     {
         $this->expectException(CompilerException::class);
-        $this->expectExceptionMessage('alter-var-root');
+        $this->expectExceptionMessageIsOrContains('alter-var-root');
 
         $this->compile('(set-var *probe* 2)');
     }

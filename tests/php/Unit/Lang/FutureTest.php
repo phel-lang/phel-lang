@@ -46,7 +46,7 @@ final class FutureTest extends TestCase
         );
 
         $this->expectException(RuntimeException::class);
-        $this->expectExceptionMessage('boom');
+        $this->expectExceptionMessageIsOrContains('boom');
 
         $phelFuture->deref();
     }

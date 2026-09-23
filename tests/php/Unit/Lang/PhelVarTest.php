@@ -59,7 +59,7 @@ final class PhelVarTest extends TestCase
         $this->registry->removeNamespace('user');
 
         $this->expectException(RuntimeException::class);
-        $this->expectExceptionMessage("Cannot deref var #'user/x");
+        $this->expectExceptionMessageIsOrContains("Cannot deref var #'user/x");
         $var->deref();
     }
 
@@ -139,7 +139,7 @@ final class PhelVarTest extends TestCase
         $this->registry->removeNamespace('user');
 
         $this->expectException(RuntimeException::class);
-        $this->expectExceptionMessage("Cannot alter-var-root on #'user/x");
+        $this->expectExceptionMessageIsOrContains("Cannot alter-var-root on #'user/x");
         $var->alterRoot(static fn(int $n): int => $n + 1);
     }
 
@@ -195,7 +195,7 @@ final class PhelVarTest extends TestCase
         $var = $this->registry->addDefinition('user', 'data', 42);
 
         $this->expectException(RuntimeException::class);
-        $this->expectExceptionMessage("Cannot invoke #'user/data: root value is not callable (got int)");
+        $this->expectExceptionMessageIsOrContains("Cannot invoke #'user/data: root value is not callable (got int)");
         $var(1);
     }
 

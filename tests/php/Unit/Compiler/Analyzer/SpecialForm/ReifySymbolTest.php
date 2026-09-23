@@ -28,7 +28,7 @@ final class ReifySymbolTest extends TestCase
     public function test_with_no_methods(): void
     {
         $this->expectException(AbstractLocatedException::class);
-        $this->expectExceptionMessage("At least one method is required for 'reify*");
+        $this->expectExceptionMessageIsOrContains("At least one method is required for 'reify*");
 
         $list = Phel::list([
             Symbol::create(Symbol::NAME_REIFY),
@@ -40,7 +40,7 @@ final class ReifySymbolTest extends TestCase
     public function test_method_not_a_list(): void
     {
         $this->expectException(AbstractLocatedException::class);
-        $this->expectExceptionMessage('Each reify* method must be a list');
+        $this->expectExceptionMessageIsOrContains('Each reify* method must be a list');
 
         $list = Phel::list([
             Symbol::create(Symbol::NAME_REIFY),
@@ -53,7 +53,7 @@ final class ReifySymbolTest extends TestCase
     public function test_method_name_not_symbol(): void
     {
         $this->expectException(AbstractLocatedException::class);
-        $this->expectExceptionMessage('Method name must be a Symbol');
+        $this->expectExceptionMessageIsOrContains('Method name must be a Symbol');
 
         $list = Phel::list([
             Symbol::create(Symbol::NAME_REIFY),
@@ -66,7 +66,7 @@ final class ReifySymbolTest extends TestCase
     public function test_method_args_not_vector(): void
     {
         $this->expectException(AbstractLocatedException::class);
-        $this->expectExceptionMessage('Method arguments must be a vector');
+        $this->expectExceptionMessageIsOrContains('Method arguments must be a vector');
 
         $list = Phel::list([
             Symbol::create(Symbol::NAME_REIFY),
@@ -79,7 +79,7 @@ final class ReifySymbolTest extends TestCase
     public function test_method_missing_this_arg(): void
     {
         $this->expectException(AbstractLocatedException::class);
-        $this->expectExceptionMessage('Method must have at least one argument (this)');
+        $this->expectExceptionMessageIsOrContains('Method must have at least one argument (this)');
 
         $list = Phel::list([
             Symbol::create(Symbol::NAME_REIFY),

@@ -37,7 +37,7 @@ final class LoopSymbolTest extends TestCase
     public function test_wrong_symbol_name(): void
     {
         $this->expectException(AnalyzerException::class);
-        $this->expectExceptionMessage("This is not a 'loop.");
+        $this->expectExceptionMessageIsOrContains("This is not a 'loop.");
 
         $list = Phel::list([Symbol::create('unknown')]);
         $env = NodeEnvironment::empty();
@@ -48,7 +48,7 @@ final class LoopSymbolTest extends TestCase
     public function test_wrong_number_of_arguments(): void
     {
         $this->expectException(AnalyzerException::class);
-        $this->expectExceptionMessage("At least two arguments are required for 'loop.");
+        $this->expectExceptionMessageIsOrContains("At least two arguments are required for 'loop.");
 
         $list = Phel::list([Symbol::create('loop')]);
         $env = NodeEnvironment::empty();
@@ -59,7 +59,7 @@ final class LoopSymbolTest extends TestCase
     public function test_wrong_binding_parameter(): void
     {
         $this->expectException(AnalyzerException::class);
-        $this->expectExceptionMessage('Binding parameter must be a vector');
+        $this->expectExceptionMessageIsOrContains('Binding parameter must be a vector');
 
         $list = Phel::list([Symbol::create('loop'), 12]);
         $env = NodeEnvironment::empty();
@@ -70,7 +70,7 @@ final class LoopSymbolTest extends TestCase
     public function test_uneven_bindings(): void
     {
         $this->expectException(AnalyzerException::class);
-        $this->expectExceptionMessage('Bindings must be a even number of parameters');
+        $this->expectExceptionMessageIsOrContains('Bindings must be a even number of parameters');
 
         $list = Phel::list([
             Symbol::create('loop'),

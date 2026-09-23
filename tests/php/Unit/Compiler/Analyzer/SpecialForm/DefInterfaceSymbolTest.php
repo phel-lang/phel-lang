@@ -45,7 +45,7 @@ final class DefInterfaceSymbolTest extends TestCase
     public function test_constant_name_must_be_a_symbol(): void
     {
         $this->expectException(AbstractLocatedException::class);
-        $this->expectExceptionMessage('A :php/const name must be a symbol');
+        $this->expectExceptionMessageIsOrContains('A :php/const name must be a symbol');
 
         $this->analyze(Phel::list([
             Symbol::create(Symbol::NAME_DEF_INTERFACE),
@@ -58,7 +58,7 @@ final class DefInterfaceSymbolTest extends TestCase
     public function test_constant_must_be_name_value_pair(): void
     {
         $this->expectException(AbstractLocatedException::class);
-        $this->expectExceptionMessage('A :php/const must be (NAME value)');
+        $this->expectExceptionMessageIsOrContains('A :php/const must be (NAME value)');
 
         $this->analyze(Phel::list([
             Symbol::create(Symbol::NAME_DEF_INTERFACE),
@@ -71,7 +71,7 @@ final class DefInterfaceSymbolTest extends TestCase
     public function test_constant_value_must_be_scalar(): void
     {
         $this->expectException(AbstractLocatedException::class);
-        $this->expectExceptionMessage('A :php/const value must be an int, float, string, bool or nil');
+        $this->expectExceptionMessageIsOrContains('A :php/const value must be an int, float, string, bool or nil');
 
         $this->analyze(Phel::list([
             Symbol::create(Symbol::NAME_DEF_INTERFACE),

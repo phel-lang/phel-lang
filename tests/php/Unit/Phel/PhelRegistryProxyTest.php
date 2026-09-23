@@ -28,7 +28,7 @@ final class PhelRegistryProxyTest extends TestCase
     public function test_throws_exception_when_method_does_not_exist(): void
     {
         $this->expectException(BadMethodCallException::class);
-        $this->expectExceptionMessage('Method "nonExistingMethod" does not exist');
+        $this->expectExceptionMessageIsOrContains('Method "nonExistingMethod" does not exist');
 
         Phel::nonExistingMethod();
     }

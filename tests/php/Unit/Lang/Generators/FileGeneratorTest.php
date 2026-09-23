@@ -41,7 +41,7 @@ final class FileGeneratorTest extends TestCase
     public function test_file_lines_rejects_missing_file(): void
     {
         $this->expectException(InvalidArgumentException::class);
-        $this->expectExceptionMessage('Argument filename should be a valid path to a file: ');
+        $this->expectExceptionMessageIsOrContains('Argument filename should be a valid path to a file: ');
 
         iterator_to_array(FileGenerator::fileLines($this->file . '-missing'), false);
     }
@@ -59,7 +59,7 @@ final class FileGeneratorTest extends TestCase
     public function test_read_file_chunks_rejects_non_positive_chunk_size(): void
     {
         $this->expectException(InvalidArgumentException::class);
-        $this->expectExceptionMessage('Chunk size must be positive, got: 0');
+        $this->expectExceptionMessageIsOrContains('Chunk size must be positive, got: 0');
 
         iterator_to_array(FileGenerator::readFileChunks($this->file, 0), false);
     }
@@ -67,7 +67,7 @@ final class FileGeneratorTest extends TestCase
     public function test_read_file_chunks_rejects_missing_file(): void
     {
         $this->expectException(InvalidArgumentException::class);
-        $this->expectExceptionMessage('Argument filename should be a valid path to a file: ');
+        $this->expectExceptionMessageIsOrContains('Argument filename should be a valid path to a file: ');
 
         iterator_to_array(FileGenerator::readFileChunks($this->file . '-missing'), false);
     }
@@ -88,7 +88,7 @@ final class FileGeneratorTest extends TestCase
     public function test_csv_lines_rejects_missing_file(): void
     {
         $this->expectException(InvalidArgumentException::class);
-        $this->expectExceptionMessage('Argument filename should be a valid path to a file: ');
+        $this->expectExceptionMessageIsOrContains('Argument filename should be a valid path to a file: ');
 
         iterator_to_array(FileGenerator::csvLines($this->file . '-missing'), false);
     }
@@ -101,7 +101,7 @@ final class FileGeneratorTest extends TestCase
     public function test_file_seq_rejects_missing_path(): void
     {
         $this->expectException(InvalidArgumentException::class);
-        $this->expectExceptionMessage('Path does not exist: ');
+        $this->expectExceptionMessageIsOrContains('Path does not exist: ');
 
         iterator_to_array(FileGenerator::fileSeq($this->file . '-missing'), false);
     }

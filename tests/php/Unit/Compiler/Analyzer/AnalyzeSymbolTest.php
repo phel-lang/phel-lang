@@ -81,7 +81,7 @@ final class AnalyzeSymbolTest extends TestCase
     public function test_undefined_global_var(): void
     {
         $this->expectException(AnalyzerException::class);
-        $this->expectExceptionMessage("Cannot resolve symbol 'a'");
+        $this->expectExceptionMessageIsOrContains("Cannot resolve symbol 'a'");
 
         $env = NodeEnvironment::empty();
         $this->symbolAnalyzer->analyze(Symbol::create('a'), $env);
@@ -141,7 +141,7 @@ final class AnalyzeSymbolTest extends TestCase
         $symbolAnalyzer = new AnalyzeSymbol(new Analyzer($globalEnv));
 
         $this->expectException(AnalyzerException::class);
-        $this->expectExceptionMessage("Cannot resolve symbol 'prnt'. Did you mean 'print'?");
+        $this->expectExceptionMessageIsOrContains("Cannot resolve symbol 'prnt'. Did you mean 'print'?");
 
         $env = NodeEnvironment::empty();
         $symbolAnalyzer->analyze(Symbol::create('prnt'), $env);
@@ -156,7 +156,7 @@ final class AnalyzeSymbolTest extends TestCase
         $symbolAnalyzer = new AnalyzeSymbol(new Analyzer($globalEnv));
 
         $this->expectException(AnalyzerException::class);
-        $this->expectExceptionMessage("Cannot resolve symbol 'zzzzzzzzzzz'");
+        $this->expectExceptionMessageIsOrContains("Cannot resolve symbol 'zzzzzzzzzzz'");
 
         $env = NodeEnvironment::empty();
         $symbolAnalyzer->analyze(Symbol::create('zzzzzzzzzzz'), $env);
@@ -177,7 +177,7 @@ final class AnalyzeSymbolTest extends TestCase
     public function test_lowercase_namespace_does_not_expand_to_static_call(): void
     {
         $this->expectException(AnalyzerException::class);
-        $this->expectExceptionMessage("Cannot resolve symbol 'foo/bar'");
+        $this->expectExceptionMessageIsOrContains("Cannot resolve symbol 'foo/bar'");
 
         $env = NodeEnvironment::empty();
         $this->symbolAnalyzer->analyze(Symbol::createForNamespace('foo', 'bar'), $env);

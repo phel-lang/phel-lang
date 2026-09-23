@@ -22,7 +22,7 @@ final class AbstractStringTagHandlerTest extends TestCase
         $handler = $this->uppercaseHandler();
 
         $this->expectException(TagHandlerException::class);
-        $this->expectExceptionMessage('#shout expects a string literal (e.g. #shout "hi").');
+        $this->expectExceptionMessageIsOrContains('#shout expects a string literal (e.g. #shout "hi").');
 
         $handler(42);
     }
@@ -47,7 +47,7 @@ final class AbstractStringTagHandlerTest extends TestCase
         };
 
         $this->expectException(TagHandlerException::class);
-        $this->expectExceptionMessage('#quiet expects a string literal.');
+        $this->expectExceptionMessageIsOrContains('#quiet expects a string literal.');
 
         $handler(1);
     }

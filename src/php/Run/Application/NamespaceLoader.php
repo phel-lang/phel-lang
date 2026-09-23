@@ -39,9 +39,7 @@ final class NamespaceLoader
 
     public function loadPhelNamespaces(?string $replStartupFile = null): void
     {
-        if ($replStartupFile === null) {
-            $replStartupFile = $this->defaultReplStartupFile;
-        }
+        $replStartupFile ??= $this->defaultReplStartupFile;
 
         if (!file_exists($replStartupFile)) {
             return;

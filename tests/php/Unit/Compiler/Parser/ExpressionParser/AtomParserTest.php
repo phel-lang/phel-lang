@@ -193,7 +193,7 @@ final class AtomParserTest extends TestCase
     public function test_parse_keyword_with_unknown_alias_throws(): void
     {
         $this->expectException(KeywordParserException::class);
-        $this->expectExceptionMessage("Can not resolve alias 'missing' in keyword: ::missing/foo");
+        $this->expectExceptionMessageIsOrContains("Can not resolve alias 'missing' in keyword: ::missing/foo");
 
         $env = new GlobalEnvironment();
         $env->setNs('user');
@@ -896,7 +896,7 @@ final class AtomParserTest extends TestCase
     public function test_parse_ratio_literal_zero_denominator_throws(): void
     {
         $this->expectException(ZeroDenominatorRatioParserException::class);
-        $this->expectExceptionMessage('Ratio literal denominator cannot be zero: 1/0');
+        $this->expectExceptionMessageIsOrContains('Ratio literal denominator cannot be zero: 1/0');
 
         $parser = new AtomParser(new GlobalEnvironment());
         $start = new SourceLocation('string', 0, 0);
@@ -907,7 +907,7 @@ final class AtomParserTest extends TestCase
     public function test_parse_ratio_literal_zero_over_zero_throws(): void
     {
         $this->expectException(ZeroDenominatorRatioParserException::class);
-        $this->expectExceptionMessage('Ratio literal denominator cannot be zero: 0/0');
+        $this->expectExceptionMessageIsOrContains('Ratio literal denominator cannot be zero: 0/0');
 
         $parser = new AtomParser(new GlobalEnvironment());
         $start = new SourceLocation('string', 0, 0);

@@ -22,7 +22,6 @@ use function array_values;
 use function count;
 use function end;
 use function in_array;
-use function is_null;
 use function str_starts_with;
 use function strlen;
 use function substr;
@@ -303,9 +302,7 @@ final class OutputEmitter implements OutputEmitterInterface
         bool $asReference = false,
         bool $isVariadic = false,
     ): void {
-        if (is_null($loc)) {
-            $loc = $symbol->getStartLocation();
-        }
+        $loc ??= $symbol->getStartLocation();
 
         $refPrefix = $asReference ? '&' : '';
         $variadicPrefix = $isVariadic ? '...' : '';

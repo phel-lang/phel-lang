@@ -52,7 +52,7 @@ final class StrictPhpConfigReaderTest extends TestCase
         file_put_contents($this->path, "<?php\nreturn null;\n");
 
         $this->expectException(RuntimeException::class);
-        $this->expectExceptionMessage('must return an array or a JsonSerializable');
+        $this->expectExceptionMessageIsOrContains('must return an array or a JsonSerializable');
 
         new StrictPhpConfigReader()->read($this->path);
     }
@@ -62,7 +62,7 @@ final class StrictPhpConfigReaderTest extends TestCase
         file_put_contents($this->path, "<?php\nreturn 'nope';\n");
 
         $this->expectException(RuntimeException::class);
-        $this->expectExceptionMessage('must return an array or a JsonSerializable');
+        $this->expectExceptionMessageIsOrContains('must return an array or a JsonSerializable');
 
         new StrictPhpConfigReader()->read($this->path);
     }
@@ -92,7 +92,7 @@ final class StrictPhpConfigReaderTest extends TestCase
         }
 
         $this->expectException(RuntimeException::class);
-        $this->expectExceptionMessage('boom');
+        $this->expectExceptionMessageIsOrContains('boom');
 
         $reader->read($this->path);
     }

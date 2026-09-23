@@ -67,7 +67,7 @@ final class PhpCallableSymbolTest extends TestCase
     public function test_too_few_arguments(): void
     {
         $this->expectException(AbstractLocatedException::class);
-        $this->expectExceptionMessage("One or two arguments are expected for 'php/callable'");
+        $this->expectExceptionMessageIsOrContains("One or two arguments are expected for 'php/callable'");
 
         $this->analyze([Symbol::create(Symbol::NAME_PHP_CALLABLE)]);
     }
@@ -75,7 +75,7 @@ final class PhpCallableSymbolTest extends TestCase
     public function test_too_many_arguments(): void
     {
         $this->expectException(AbstractLocatedException::class);
-        $this->expectExceptionMessage("One or two arguments are expected for 'php/callable'");
+        $this->expectExceptionMessageIsOrContains("One or two arguments are expected for 'php/callable'");
 
         $this->analyze([
             Symbol::create(Symbol::NAME_PHP_CALLABLE),
@@ -88,7 +88,7 @@ final class PhpCallableSymbolTest extends TestCase
     public function test_free_function_must_be_symbol(): void
     {
         $this->expectException(AbstractLocatedException::class);
-        $this->expectExceptionMessage("First argument of 'php/callable' must be a Symbol");
+        $this->expectExceptionMessageIsOrContains("First argument of 'php/callable' must be a Symbol");
 
         $this->analyze([
             Symbol::create(Symbol::NAME_PHP_CALLABLE),
@@ -99,7 +99,7 @@ final class PhpCallableSymbolTest extends TestCase
     public function test_method_argument_must_be_symbol(): void
     {
         $this->expectException(AbstractLocatedException::class);
-        $this->expectExceptionMessage("Method argument of 'php/callable' must be a Symbol");
+        $this->expectExceptionMessageIsOrContains("Method argument of 'php/callable' must be a Symbol");
 
         $this->analyze([
             Symbol::create(Symbol::NAME_PHP_CALLABLE),

@@ -118,9 +118,7 @@ final class ProfilerSession implements ProfilerHookInterface
         // Bind a reference to the bucket so the four hot-path mutations
         // touch a single hash slot instead of re-resolving `$name` each
         // time. Tight inner loops compound these lookups quickly.
-        if (!isset($this->fnStats[$name])) {
-            $this->fnStats[$name] = ['calls' => 0, 'totalNs' => 0, 'selfNs' => 0, 'maxNs' => 0];
-        }
+        $this->fnStats[$name] ??= ['calls' => 0, 'totalNs' => 0, 'selfNs' => 0, 'maxNs' => 0];
 
         /** @psalm-suppress UnsupportedPropertyReferenceUsage */
         $stat = &$this->fnStats[$name];

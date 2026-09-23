@@ -122,7 +122,7 @@ final class RegistryTest extends TestCase
 
     public function test_error_when_non_existing_definition_by_reference(): void
     {
-        $this->expectExceptionMessage('Definition "ns/non-existing" not found');
+        $this->expectExceptionMessageIsOrContains('Definition "ns/non-existing" not found');
 
         $this->registry->getDefinitionReference('ns', 'non-existing');
     }

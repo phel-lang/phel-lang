@@ -219,9 +219,7 @@ final class NodeEnvironment implements NodeEnvironmentInterface
         // matters in the (gensym-impossible) event that two locals share a
         // shadow name — there the first wins, matching the rebuild.
         $shadowName = $shadow->getName();
-        if (!isset($reverse[$shadowName])) {
-            $reverse[$shadowName] = $name;
-        }
+        $reverse[$shadowName] ??= $name;
 
         $result->shadowed = $shadowed;
         $result->shadowedReverse = $reverse;
@@ -388,9 +386,7 @@ final class NodeEnvironment implements NodeEnvironmentInterface
         $index = [];
         foreach ($locals as $local) {
             $name = $local->getName();
-            if (!isset($index[$name])) {
-                $index[$name] = $local;
-            }
+            $index[$name] ??= $local;
         }
 
         return $index;
@@ -406,9 +402,7 @@ final class NodeEnvironment implements NodeEnvironmentInterface
         $reverse = [];
         foreach ($shadowed as $originalName => $shadowSymbol) {
             $shadowName = $shadowSymbol->getName();
-            if (!isset($reverse[$shadowName])) {
-                $reverse[$shadowName] = $originalName;
-            }
+            $reverse[$shadowName] ??= $originalName;
         }
 
         return $reverse;

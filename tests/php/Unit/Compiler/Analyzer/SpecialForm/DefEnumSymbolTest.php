@@ -33,7 +33,7 @@ final class DefEnumSymbolTest extends TestCase
     public function test_with_no_arguments(): void
     {
         $this->expectException(AbstractLocatedException::class);
-        $this->expectExceptionMessage("At least one argument is required for 'defenum");
+        $this->expectExceptionMessageIsOrContains("At least one argument is required for 'defenum");
 
         $list = Phel::list([Symbol::create(Symbol::NAME_DEF_ENUM)]);
 
@@ -43,7 +43,7 @@ final class DefEnumSymbolTest extends TestCase
     public function test_first_arg_is_not_symbol(): void
     {
         $this->expectException(AbstractLocatedException::class);
-        $this->expectExceptionMessage("First argument of 'defenum must be a Symbol");
+        $this->expectExceptionMessageIsOrContains("First argument of 'defenum must be a Symbol");
 
         $list = Phel::list([Symbol::create(Symbol::NAME_DEF_ENUM), 'no-symbol']);
 
@@ -53,7 +53,7 @@ final class DefEnumSymbolTest extends TestCase
     public function test_requires_at_least_one_case(): void
     {
         $this->expectException(AbstractLocatedException::class);
-        $this->expectExceptionMessage("'defenum requires at least one case");
+        $this->expectExceptionMessageIsOrContains("'defenum requires at least one case");
 
         $list = Phel::list([Symbol::create(Symbol::NAME_DEF_ENUM), Symbol::create('Empty')]);
 
@@ -63,7 +63,7 @@ final class DefEnumSymbolTest extends TestCase
     public function test_non_case_non_implementation_form_is_rejected(): void
     {
         $this->expectException(AbstractLocatedException::class);
-        $this->expectExceptionMessage('Expected a interface name in defenum');
+        $this->expectExceptionMessageIsOrContains('Expected a interface name in defenum');
 
         // `:a 1` is a backed case; the trailing string is neither a `:php`
         // marker nor an interface symbol, so it is an invalid implementation.
@@ -80,7 +80,7 @@ final class DefEnumSymbolTest extends TestCase
     public function test_mixed_value_types_are_rejected(): void
     {
         $this->expectException(AbstractLocatedException::class);
-        $this->expectExceptionMessage('Enum case values must be all int or all string');
+        $this->expectExceptionMessageIsOrContains('Enum case values must be all int or all string');
 
         $list = Phel::list([
             Symbol::create(Symbol::NAME_DEF_ENUM),
@@ -95,7 +95,7 @@ final class DefEnumSymbolTest extends TestCase
     public function test_partial_values_are_rejected(): void
     {
         $this->expectException(AbstractLocatedException::class);
-        $this->expectExceptionMessage('Enum cases must either all have a value or none');
+        $this->expectExceptionMessageIsOrContains('Enum cases must either all have a value or none');
 
         $list = Phel::list([
             Symbol::create(Symbol::NAME_DEF_ENUM),
