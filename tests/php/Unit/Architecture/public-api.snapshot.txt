@@ -298,25 +298,13 @@ final class Phel\Console\ConsoleFacade extends Gacela\Framework\AbstractFacade i
   public function getVersion(): string
   public function runConsole(): void
 
-final class Phel\Fiber\FiberFacade extends Gacela\Framework\AbstractFacade implements Phel\Fiber\FiberFacadeInterface
+final class Phel\Fiber\FiberFacade extends Gacela\Framework\AbstractFacade
   public function await(Phel\Fiber\Domain\Awaitable $awaitable, ?int $timeoutMs = null): mixed
   public function createPromise(): Phel\Fiber\Domain\Promise
   public function future(callable $body): Phel\Fiber\Domain\Future
   public function scheduler(): Phel\Fiber\Domain\Scheduler
 
-interface Phel\Fiber\FiberFacadeInterface
-  public function await(Phel\Fiber\Domain\Awaitable $awaitable, ?int $timeoutMs = null): mixed
-  public function createPromise(): Phel\Fiber\Domain\Promise
-  public function future(callable $body): Phel\Fiber\Domain\Future
-  public function scheduler(): Phel\Fiber\Domain\Scheduler
-
-final class Phel\Filesystem\FilesystemFacade extends Gacela\Framework\AbstractFacade implements Phel\Filesystem\FilesystemFacadeInterface
-  public function addFile(string $file): void
-  public function clearAll(): void
-  public function getHealthCheck(): Gacela\Framework\Health\ModuleHealthCheckInterface
-  public function getTempDir(): string
-
-interface Phel\Filesystem\FilesystemFacadeInterface
+final class Phel\Filesystem\FilesystemFacade extends Gacela\Framework\AbstractFacade implements Phel\Shared\Facade\FilesystemFacadeInterface
   public function addFile(string $file): void
   public function clearAll(): void
   public function getHealthCheck(): Gacela\Framework\Health\ModuleHealthCheckInterface
@@ -1954,6 +1942,12 @@ interface Phel\Shared\Facade\CompilerFacadeInterface
 interface Phel\Shared\Facade\ConsoleFacadeInterface
   public function getVersion(): string
   public function runConsole(): void
+
+interface Phel\Shared\Facade\FilesystemFacadeInterface
+  public function addFile(string $file): void
+  public function clearAll(): void
+  public function getHealthCheck(): Gacela\Framework\Health\ModuleHealthCheckInterface
+  public function getTempDir(): string
 
 interface Phel\Shared\Facade\FormatterFacadeInterface
   public function format(array $paths, Symfony\Component\Console\Output\OutputInterface $output, bool $dryRun = false, array $exclude = []): Phel\Shared\Formatter\FormatResult

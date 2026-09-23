@@ -181,7 +181,7 @@ final readonly class PublicApiSurface
     }
 
     /**
-     * `Phel\Compiler\CompilerFacade` and `Phel\Fiber\FiberFacadeInterface`, but
+     * `Phel\Compiler\CompilerFacade`, but
      * not `Phel\Run\Infrastructure\Command\SomethingFacade`: a facade is public
      * only when it sits directly under its module root and is named after it.
      */

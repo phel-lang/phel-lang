@@ -79,15 +79,19 @@ mkdir -p .phel && mv .phel-repl-history .phel/repl-history
 
 ## Step 6: if you embed Phel in PHP
 
-Two changes for code calling Phel's PHP classes directly, both shipped in 0.49
-and marked **BREAKING** in the changelog:
+Changes for code calling Phel's PHP classes directly, each marked **BREAKING**
+in the changelog:
 
-- The five transfers named by `ApiFacadeInterface` moved from `Phel\Api\Transfer\`
+- In 0.49, the five transfers named by `ApiFacadeInterface` moved from `Phel\Api\Transfer\`
   to `Phel\Shared\Api\` (`Diagnostic`, `ProjectIndex`, `Definition`, `Location`,
   `Completion`). Shapes unchanged.
-- The four unrelated `FileIoInterface` interfaces were renamed after what each
+- In 0.49, the four unrelated `FileIoInterface` interfaces were renamed after what each
   does: `DirectoryWritabilityCheckerInterface`, `FileContentsIoInterface`,
   `ValidatedFileIoInterface`, `FileWriterInterface`.
+- In 0.53, `Phel\Filesystem\FilesystemFacadeInterface` moved to
+  `Phel\Shared\Facade\FilesystemFacadeInterface`, next to every other facade
+  contract. `Phel\Fiber\FiberFacadeInterface` is gone: type-hint
+  `Phel\Fiber\FiberFacade` instead.
 
 From 1.0 on such changes need a major, and everything outside the
 [public surface](../stability.md#public-php-api) carries `@internal`, so an IDE
