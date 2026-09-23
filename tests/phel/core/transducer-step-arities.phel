@@ -62,3 +62,21 @@
       "the composed chain collects")
   (is (= 2 (transduce (comp (map inc) (take 1)) + [1 2 3]))
       "a composed chain still terminates early"))
+
+(deftest test-into-with-a-transducer
+  ;; `into` reduces through `(xf conj)` directly rather than through
+  ;; `transduce` and `completing` (#3323), so the seed, the early stop and the
+  ;; completion step all have to arrive the same way they did.
+  (is (= [2 4] (into [] (comp (map inc) (filter even?)) [1 2 3 4]))
+      "map then filter into a vector")
+  (is (= [0 1] (into [] (take 2) (range))) "take stops an infinite source")
+  (is (= [2 3] (into [] (comp (map inc) (take 2)) [1 2 3 4]))
+      "a composed chain stops early")
+  (is (= [0 1 2] (into [0] (take 2) [1 2 3])) "the seed vector is kept")
+  (is (= [] (into [] (take 0) [1 2 3])) "taking nothing returns the seed")
+  (is (= [1 2 3] (into [] (dedupe) [1 1 2 3 3])) "a stateful transducer")
+  (is (= {1 2 2 3} (into {} (map (fn [x] [x (inc x)])) [1 2]))
+      "entries into a map")
+  (is (= '(3 2) (into '() (map inc) [1 2])) "a list target prepends")
+  (is (= {:k 1} (meta (into (with-meta [] {:k 1}) (map inc) [1])))
+      "the target's metadata survives"))

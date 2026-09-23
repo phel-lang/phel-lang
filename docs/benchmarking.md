@@ -82,6 +82,60 @@ percentage makes `phel bench` exit non-zero, which is what a CI job needs.
 A benchmark with no entry in the baseline reports `new` and can never fail the
 run; adding one would otherwise break the first build that contains it.
 
+## Comparing against a git ref
+
+A stored baseline was measured on a machine that has changed since. A laptop
+warms up within one sitting: the same commit can read 4.65 ms, 5.09 ms and
+6.91 ms in a row, so a baseline stored ten minutes earlier can report a 20%
+regression on unchanged code. `--ab` removes that bias by measuring both sides
+in the same sitting, interleaved:
+
+```sh
+phel bench --ab=main --pairs=5 --filter=step
+```
+
+Side A is the ref (`main` here), side B is your working tree, uncommitted
+changes included. The command runs A, then B, once per pair (`--pairs`, default
+5), each as its own `phel bench` process with the same `--filter`, `--revs`,
+`--iterations` and `--warmup`. Side A runs from a temporary `git worktree` under
+the system temp dir, which is removed when the run ends, fails or is
+interrupted. Your working tree is never checked out or stashed. Run it from the
+repository root.
+
+```
+benchmark                          a-mean   b-mean  delta signs
+my-app.bench/bench-step           4.912μs  4.103μs -16.47%   5/5
+my-app.bench/bench-render         1.207ms  1.215ms  +0.62%   3/5 noise
+```
+
+`delta` is the mean of the per-pair deltas, `(B - A) / A`. `signs` counts the
+pairs that moved in the direction of that mean. When they do not all agree the
+row says `noise`: a warming machine moves both sides of a pair together, so a
+consistent sign across pairs is the signal, and a mean that one pair set is
+not. With `--tolerance=10` the command exits non-zero only when a benchmark is
+slower by more than 10% in every pair.
+
+Side A needs its own `vendor/`. When `composer.lock` is the same at both refs,
+the installed packages are reused through symlinks, while `vendor/composer/` and
+`vendor/autoload.php` are copied so the autoloader resolves your own classes to
+the worktree rather than to your working tree. When the lock files differ, the
+command runs `composer install --no-dev` in the worktree and says so.
+
+A benchmark file that does not exist at the ref, typically one added together
+with the change it measures, runs from the working tree on both sides.
+
+Which one to use:
+
+- `--ab` answers "is my change faster or slower than `main`?" on one machine,
+  in one sitting. Use it for a perf claim.
+- `--ref` compares against numbers stored earlier. Use it when the other side
+  cannot be rebuilt from git, or when a CI job stores the baseline itself.
+
+`--ab` cannot be combined with `--store` or `--ref`: its results are a
+comparison, not a baseline. Without the `pcntl` extension (Windows) an
+interrupted run cannot clean up; remove the worktree it printed with
+`git worktree remove --force <path>`.
+
 ## Benchmarking the compiler and runtime
 
 `tests/php/Benchmark/` holds the PHPBench suite. Its `Phel/Core*Bench` classes

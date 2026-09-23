@@ -74,12 +74,15 @@
    ;; need Phel truthiness either (#2973).
    (let [acc  (new Volatile init)
          done (new Volatile false)]
+     ;; One `.reset` around the branch rather than one in each arm: the emitter
+     ;; wrapped the else arm's `(.reset acc result)` in a closure it built and
+     ;; called on every element (#3323).
      (dofor [x :in coll :while (php/=== false (.deref done))]
        (let [result (f (.deref acc) x)]
-         (if (php/instanceof result Reduced)
-           (do (.reset acc (.deref result))
-               (.reset done true))
-           (.reset acc result))))
+         (.reset acc (if (php/instanceof result Reduced)
+                       (do (.reset done true)
+                           (.deref result))
+                       result))))
      (.deref acc))))
 
 (defn reduce-kv

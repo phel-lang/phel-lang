@@ -49,8 +49,8 @@
 ;;   - Function composition: `comp`.
 ;;   - PHP/Phel bridge helpers: `php-array-to-map`, `phel->php`, `php->phel`,
 ;;     `contains-value?`.
-;; Loaded after `core/transducers` because `into` routes through
-;; `transduce` when given a transducer xform.
+;; Loaded after `core/transducers` because `into` reduces through `reduce`
+;; when given a transducer xform.
 
 ;; ------------------
 ;; Sequence functions
@@ -235,7 +235,11 @@ When `from` is associative, it is treated as a sequence of key-value pairs. Supp
          (throw (new InvalidArgumentException
                      (php/. "Cannot convert into type " (type to))))))))
   ([to xf from]
-   (transduce xf conj to from)))
+   ;; `transduce` without its `completing` wrapper: `conj` already answers the
+   ;; 0- and 1-arity that `completing` would add, so the wrapper only cost a
+   ;; closure per call and a dispatch per element (#3323).
+   (let [rf (xf conj)]
+     (rf (reduce rf to from)))))
 (defn- conj-impl
   [coll value]
   (cond
