@@ -7,6 +7,9 @@ namespace Phel\Run;
 use Gacela\Framework\AbstractFactory;
 use Gacela\Framework\Health\ModuleHealthCheckInterface;
 use Gacela\Framework\ServiceResolver\ServiceMap;
+use Phel\Run\Application\Bench\AbBenchRunner;
+use Phel\Run\Application\Bench\ChildProcess;
+use Phel\Run\Application\Bench\WorktreeVendor;
 use Phel\Run\Application\BreakpointDebugger;
 use Phel\Run\Application\BundledNamespaceDetector;
 use Phel\Run\Application\BundledNamespaces;
@@ -30,6 +33,7 @@ use Phel\Run\Application\Test\ParallelTestOrchestrator;
 use Phel\Run\Application\Test\TestWatchLoop;
 use Phel\Run\Application\Test\TestWatchRunner;
 use Phel\Run\Application\Test\WatchFileScanner;
+use Phel\Run\Domain\Bench\AbReport;
 use Phel\Run\Domain\Repl\ReplCommandFallbackIo;
 use Phel\Run\Domain\Repl\ReplCommandIoInterface;
 use Phel\Run\Domain\Repl\ReplCommandSystemIo;
@@ -311,6 +315,17 @@ class RunFactory extends AbstractFactory
     public function createCpuCountDetector(): CpuCountDetector
     {
         return new CpuCountDetector();
+    }
+
+    public function createAbBenchRunner(): AbBenchRunner
+    {
+        $process = new ChildProcess();
+
+        return new AbBenchRunner(
+            $process,
+            new WorktreeVendor($process),
+            new AbReport(),
+        );
     }
 
     public function createTestWatchRunner(): TestWatchRunner
