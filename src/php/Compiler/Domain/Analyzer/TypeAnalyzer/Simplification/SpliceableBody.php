@@ -133,24 +133,22 @@ final readonly class SpliceableBody
      * Spliced, a `let` binding and the variable an `if` test or an inline
      * `truthy?` is stored in (`$__truthy`, `$__or` for `and` and `or`) live
      * in the caller's frame until it returns, after `assoc`: a destructor
-     * would run later, and a target's `assoc` could see the object alive.
-     * Only user code can build such an object, so a Phel fn or keyword call
-     * counts as one unless the fn declares a scalar return type. The param
-     * is not a concern: the runtime `update` binds the current value too,
-     * and holds it through its `assoc` as well.
+     * would run later, and a target's `assoc` could see the object alive
+     * through a destructor or a `WeakReference`. A Phel fn or keyword call
+     * counts as one unless the fn declares a scalar return type, and so does
+     * any collection, fn or object literal. The param is not a concern: the
+     * runtime `update` binds the current value too, and holds it through its
+     * `assoc` as well.
      */
     private function mayBeFreshObject(AbstractNode $node): bool
     {
         return match (true) {
-            $node instanceof LiteralNode,
-            $node instanceof QuoteNode,
             $node instanceof LocalVarNode,
-            $node instanceof GlobalVarNode,
-            $node instanceof FnNode,
-            $node instanceof MultiFnNode => false,
-            $node instanceof VectorNode => $this->any($node->getArgs()),
-            $node instanceof MapNode => $this->any($node->getKeyValues()),
-            $node instanceof SetNode => $this->any($node->getValues()),
+            $node instanceof GlobalVarNode => false,
+            // A keyword is interned. Any other object literal may be built
+            // where it stands, as a collection or fn literal always is.
+            $node instanceof LiteralNode,
+            $node instanceof QuoteNode => is_object($node->getValue()) && !$node->getValue() instanceof Keyword,
             $node instanceof PhpArrayGetNode => $this->mayBeFreshObject($node->getArrayExpr()),
             $node instanceof IfNode => $this->any([$node->getThenExpr(), $node->getElseExpr()]),
             $node instanceof DoNode => $this->mayBeFreshObject($node->getRet()),

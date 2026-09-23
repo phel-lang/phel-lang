@@ -35,7 +35,9 @@ final class UpdateLiteralFnLoweringTest extends AbstractCompilerRuntimeTestCase
     public static function setUpBeforeClass(): void
     {
         parent::setUpBeforeClass();
-        new CompilerFacade()->eval(sprintf('(defn make-probe [] (new %s))', self::phelClassName(LifetimeProbe::class)), new CompileOptions());
+        $probe = self::phelClassName(LifetimeProbe::class);
+        new CompilerFacade()->eval(sprintf('(defn make-probe [] (new %s))', $probe), new CompileOptions());
+        new CompilerFacade()->eval(sprintf('(defn watch [x] (%s/watch x))', $probe), new CompileOptions());
     }
 
     public function test_threaded_updates_grow_the_emitted_code_linearly(): void
@@ -303,6 +305,10 @@ final class UpdateLiteralFnLoweringTest extends AbstractCompilerRuntimeTestCase
         yield 'truthy? on a fresh object' => ['(let [x (truthy? (make-probe))] v)'];
         yield 'truthy? on a fresh object in statement position' => ['(truthy? (make-probe)) v'];
         yield 'a fresh object inside a vector' => ['(let [p [(make-probe)]] (php/is_null p)) v'];
+        yield 'a vector literal' => ['(let [tmp [v]] (watch tmp)) v'];
+        yield 'a map literal' => ['(let [tmp {:a v}] (watch tmp)) v'];
+        yield 'a set literal' => ['(let [tmp #{v}] (watch tmp)) v'];
+        yield 'a fn literal' => ['(let [tmp (fn [] 1)] (watch tmp)) v'];
     }
 
     public function test_an_expression_position_update_leaves_no_temporaries_in_the_frame(): void

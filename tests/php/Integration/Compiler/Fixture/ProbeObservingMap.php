@@ -9,8 +9,8 @@ use Phel\Lang\Collections\Map\TransientMapInterface;
 use RuntimeException;
 
 /**
- * An associative target whose `put` records how many {@see LifetimeProbe}
- * instances were alive when it ran.
+ * An associative target whose `put` records what
+ * {@see LifetimeProbe::alive()} counted when it ran.
  *
  * @implements TransientMapInterface<mixed, mixed>
  */
@@ -20,7 +20,7 @@ final class ProbeObservingMap implements TransientMapInterface
 
     public function put(mixed $key, mixed $value): self
     {
-        $this->aliveAtPut = LifetimeProbe::$alive;
+        $this->aliveAtPut = LifetimeProbe::alive();
 
         return $this;
     }
