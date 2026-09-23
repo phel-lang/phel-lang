@@ -299,6 +299,9 @@ final class UpdateLiteralFnLoweringTest extends AbstractCompilerRuntimeTestCase
         yield 'an if test in the value' => ['(if (make-probe) v v)'];
         yield 'an and value' => ['(and (make-probe) v)'];
         yield 'an or test' => ['(if (or (make-probe) v) v v)'];
+        yield 'the last operand of an or test' => ['(if (or v (make-probe)) v v)'];
+        yield 'truthy? on a fresh object' => ['(let [x (truthy? (make-probe))] v)'];
+        yield 'truthy? on a fresh object in statement position' => ['(truthy? (make-probe)) v'];
         yield 'a fresh object inside a vector' => ['(let [p [(make-probe)]] (php/is_null p)) v'];
     }
 

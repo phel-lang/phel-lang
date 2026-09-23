@@ -23,6 +23,7 @@ use Phel\Compiler\Domain\Analyzer\Ast\PhpVarNode;
 use Phel\Compiler\Domain\Analyzer\Ast\QuoteNode;
 use Phel\Compiler\Domain\Analyzer\Ast\SetNode;
 use Phel\Compiler\Domain\Analyzer\Ast\VectorNode;
+use Phel\Compiler\Domain\Emitter\OutputEmitter\NilAndBooleanCheckSpecialization;
 use Phel\Lang\Keyword;
 use ReflectionException;
 use ReflectionFunction;
@@ -59,9 +60,10 @@ use function str_replace;
  *   {@see self::PURE_PHP_FUNCTIONS}, a keyword, or a global Phel fn with no
  *   `^:by-ref` param that is neither `^:dynamic` nor `^:redef`.
  *
- * A `let` binding or `if` test whose value may be an object the body built
- * keeps the closure too: the closure let go of it before `assoc` ran, and
- * the caller's frame holds it until after ({@see self::mayBeFreshObject()}).
+ * A `let` binding, `if` test or `truthy?` argument whose value may be an
+ * object the body built keeps the closure too: the closure let go of it
+ * before `assoc` ran, and the caller's frame holds it until after
+ * ({@see self::mayBeFreshObject()}).
  *
  * Anything else, including every other PHP function, method calls,
  * `php/new`, the `php/aset` family, `php/ref`, `try`, `loop`, `foreach` and
@@ -106,9 +108,21 @@ final readonly class SpliceableBody
             $node instanceof LetNode => !$node->isLoop()
                 && !array_any($this->initExprs($node), $this->mayBeFreshObject(...))
                 && $this->all([...$this->initExprs($node), $node->getBodyExpr()]),
-            $node instanceof CallNode => $this->isSafeCallee($node->getFn()) && $this->all($node->getArguments()),
+            $node instanceof CallNode => $this->isSafeCallee($node->getFn())
+                && !$this->storesAFreshObject($node)
+                && $this->all($node->getArguments()),
             default => false,
         };
+    }
+
+    /**
+     * `(truthy? x)` is emitted inline and stores `x` in `$__truthy` as an
+     * `if` test does, so its argument takes the same check.
+     */
+    private function storesAFreshObject(CallNode $node): bool
+    {
+        return NilAndBooleanCheckSpecialization::isTruthyCheck($node)
+            && $this->any($node->getArguments());
     }
 
     /**
@@ -116,14 +130,14 @@ final readonly class SpliceableBody
      * outside it holds, which a variable of the body keeps alive.
      *
      * The closure released its locals when it returned, before `assoc` ran.
-     * Spliced, a `let` binding and the variable an `if` test is stored in
-     * (`$__truthy`, `$__or` for `and` and `or`) live in the caller's frame
-     * until it returns, after `assoc`: a destructor would run later, and a
-     * target's `assoc` could see the object alive. Only user code can build
-     * such an object, so a Phel fn or keyword call counts as one unless the
-     * fn declares a scalar return type. The param is not a concern: the
-     * runtime `update` binds the current value too, and holds it through
-     * its `assoc` as well.
+     * Spliced, a `let` binding and the variable an `if` test or an inline
+     * `truthy?` is stored in (`$__truthy`, `$__or` for `and` and `or`) live
+     * in the caller's frame until it returns, after `assoc`: a destructor
+     * would run later, and a target's `assoc` could see the object alive.
+     * Only user code can build such an object, so a Phel fn or keyword call
+     * counts as one unless the fn declares a scalar return type. The param
+     * is not a concern: the runtime `update` binds the current value too,
+     * and holds it through its `assoc` as well.
      */
     private function mayBeFreshObject(AbstractNode $node): bool
     {
