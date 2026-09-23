@@ -56,13 +56,12 @@ Each installed file routes the agent to `.agents/index.md` for task recipes: sca
 
 ## Repository maintenance adapters
 
-The repo also contains AI tool config for maintaining phel-lang itself. Keep these separate from the downstream `resources/agents/` package:
+The repo also contains AI tool config for maintaining phel-lang itself. Keep it separate from the downstream `resources/agents/` package:
 
 | Path | Audience |
 |------|----------|
-| `AGENTS.md` | Shared repository policy for Codex, Aider, and generic AGENTS.md-aware tools. |
-| `.codex/` | Codex-native config, hooks, exec rules, and custom subagents. |
-| `.claude/` | Claude Code-native settings, hooks, skills, agents, and scoped rules. |
+| `.agnostic-ai/` | Source for the repository's agent config: rules, skills, agents, hooks. Setup: [CONTRIBUTING.md](../.github/CONTRIBUTING.md#ai-tooling). |
+| `AGENTS.md`, `.codex/`, `.claude/`, `CLAUDE.md` | Generated from `.agnostic-ai/` by `agnostic-ai sync`. Gitignored; never edit them. |
 | `resources/agents/` | Assets shipped to users building their own Phel projects. |
 
 ## Feedback

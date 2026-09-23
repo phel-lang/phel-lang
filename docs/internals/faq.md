@@ -57,7 +57,7 @@ $emit   = $facade->compile('(print "hi")', new CompileOptions());
 
 **`NodeEnvironment` context.** `Expression`, `Statement`, `Return`. Analyzer picks by position (function body's last form: `Return`; `if` branch in expression position: `Expression`). Wrong PHP output is usually a wrong context, not an emitter bug. Helpers: `withReturnContext()`, `withStatementContext()`, `withExpressionContext()`.
 
-**Broken integration fixture.** Update only if new PHP is intentional. Verify by hand first. The `fixture-reviewer` agent (`.claude/agents/`) audits drift.
+**Broken integration fixture.** Update only if new PHP is intentional. Verify by hand first. The `fixture-reviewer` agent (`.agnostic-ai/agents/fixture-reviewer.md`) audits drift.
 
 **Run one test.**
 
