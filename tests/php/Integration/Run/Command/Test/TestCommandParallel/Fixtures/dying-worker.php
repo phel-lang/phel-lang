@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 // Stand-in for `bin/phel _test-worker`: exits without answering when handed
 // `app.dies-test`, prints a fatal error to stdout and exits on `app.fatal-test`,
-// writes to stdout outside a frame and hangs on `app.garbage-test`, and answers
+// writes to stdout outside a frame and hangs on the `$stray` namespaces, and answers
 // every other namespace with a pass.
 
 $readExactly = static function (int $length): ?string {
@@ -32,8 +32,13 @@ while (($header = $readExactly(9)) !== null) {
         exit(255);
     }
 
-    if ($request['ns'] === 'app.garbage-test') {
-        fwrite(STDOUT, "stray output that is not a frame\n");
+    $stray = [
+        'app.garbage-test' => "stray output that is not a frame\n",
+        'app.stray-byte-test' => 'x',
+        'app.stray-hex-test' => "12345678\n",
+    ];
+    if (isset($stray[$request['ns']])) {
+        fwrite(STDOUT, $stray[$request['ns']]);
         sleep(30);
     }
 

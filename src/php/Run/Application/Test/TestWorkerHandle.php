@@ -13,6 +13,7 @@ use function fwrite;
 use function hexdec;
 use function implode;
 use function is_resource;
+use function microtime;
 use function preg_match;
 use function proc_close;
 use function proc_get_status;
@@ -44,6 +45,15 @@ final class TestWorkerHandle
      */
     private const int STDERR_BYTES_PER_DRAIN = 65_536;
 
+    /** No frame is this large; a header claiming more is stray output. */
+    private const int MAX_FRAME_BYTES = 268_435_456;
+
+    /**
+     * A worker writes each frame in one call, so a partial frame that gets
+     * no new byte for this long is stray output, not a slow write.
+     */
+    private const float PARTIAL_FRAME_STALL_SECONDS = 30.0;
+
     /** @var closed-resource|resource */
     private readonly mixed $stdin;
 
@@ -70,6 +80,8 @@ final class TestWorkerHandle
 
     /** Set once stdout carried bytes that are not a frame; reading stops there. */
     private bool $corruptStdout = false;
+
+    private float $lastStdoutAt = 0.0;
 
     /**
      * @param closed-resource|resource $process
@@ -249,7 +261,8 @@ final class TestWorkerHandle
      */
     public function hasCorruptStdout(): bool
     {
-        return $this->corruptStdout;
+        return $this->corruptStdout
+            || ($this->readBuffer !== '' && microtime(true) - $this->lastStdoutAt > self::PARTIAL_FRAME_STALL_SECONDS);
     }
 
     public function closeStdin(): void
@@ -299,6 +312,7 @@ final class TestWorkerHandle
         }
 
         $this->readBuffer .= $chunk;
+        $this->lastStdoutAt = microtime(true);
     }
 
     /**
@@ -306,18 +320,29 @@ final class TestWorkerHandle
      */
     private function extractFrame(): ?array
     {
-        $headerSize = WorkerFrame::headerSize();
-        if ($this->corruptStdout || strlen($this->readBuffer) < $headerSize) {
+        if ($this->corruptStdout || $this->readBuffer === '') {
             return null;
         }
 
+        // Check the header byte by byte as it arrives, so stray output shorter
+        // than a header is caught too, not left waiting for more bytes.
+        $headerSize = WorkerFrame::headerSize();
         $header = substr($this->readBuffer, 0, $headerSize);
-        if (preg_match('/^[0-9a-f]{' . ($headerSize - 1) . '}\n$/', $header) !== 1) {
+        if (preg_match('/^[0-9a-f]{0,' . ($headerSize - 1) . '}$|^[0-9a-f]{' . ($headerSize - 1) . '}\n$/', $header) !== 1) {
             $this->corruptStdout = true;
             return null;
         }
 
+        if (strlen($header) < $headerSize) {
+            return null;
+        }
+
         $length = (int) hexdec(substr($header, 0, $headerSize - 1));
+        if ($length > self::MAX_FRAME_BYTES) {
+            $this->corruptStdout = true;
+            return null;
+        }
+
         $total = $headerSize + $length;
         if (strlen($this->readBuffer) < $total) {
             return null;

@@ -6,6 +6,7 @@ namespace PhelTest\Integration\Run\Command\Test\TestCommandParallel;
 
 use Phel\Run\Application\Test\ParallelTestOrchestrator;
 use Phel\Shared\NamespaceInformation;
+use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\Console\Output\BufferedOutput;
 
@@ -90,14 +91,15 @@ final class ParallelTestOrchestratorStderrTest extends TestCase
      * A live worker that writes outside the frame protocol can never be read
      * again; it is replaced instead of waited on forever.
      */
-    public function test_a_live_worker_writing_outside_a_frame_is_replaced(): void
+    #[DataProvider('provideStrayStdout')]
+    public function test_a_live_worker_writing_outside_a_frame_is_replaced(string $ns, string $stray): void
     {
         $orchestrator = new ParallelTestOrchestrator(PHP_BINARY, __DIR__ . '/Fixtures/dying-worker.php');
         $output = new BufferedOutput();
 
         $outcome = $orchestrator->run(
             [
-                new NamespaceInformation('/app/garbage.phel', 'app.garbage-test', []),
+                new NamespaceInformation('/app/stray.phel', $ns, []),
                 new NamespaceInformation('/app/ok.phel', 'app.ok-test', []),
             ],
             [],
@@ -108,7 +110,17 @@ final class ParallelTestOrchestratorStderrTest extends TestCase
         $report = $output->fetch();
         self::assertFalse($outcome->ok, $report);
         self::assertStringContainsString('wrote output outside the frame protocol', $report);
-        self::assertStringContainsString('stray output that is not a frame', $report);
+        self::assertStringContainsString('stdout: ' . $stray, $report);
         self::assertMatchesRegularExpression('/Passed:\s+1/', $report);
+    }
+
+    /**
+     * @return iterable<string, array{string, string}>
+     */
+    public static function provideStrayStdout(): iterable
+    {
+        yield 'a line of text' => ['app.garbage-test', 'stray output that is not a frame'];
+        yield 'fewer bytes than a header' => ['app.stray-byte-test', 'x'];
+        yield 'a header claiming an impossible length' => ['app.stray-hex-test', '12345678'];
     }
 }
