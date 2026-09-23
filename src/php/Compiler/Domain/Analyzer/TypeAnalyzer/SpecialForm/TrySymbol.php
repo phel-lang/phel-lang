@@ -312,7 +312,8 @@ final class TrySymbol implements SpecialFormAnalyzerInterface
             Phel::list($exprs),
             $env->withContext($catchContext)
                 ->withMergedLocals([$name])
-                ->withDisallowRecurFrame(),
+                ->withDisallowRecurFrame()
+                ->withinTry(true),
         );
     }
 
@@ -327,7 +328,7 @@ final class TrySymbol implements SpecialFormAnalyzerInterface
 
         return $this->analyzer->analyze(
             Phel::list([Symbol::create(Symbol::NAME_DO), ...$body]),
-            $env->withContext($bodyContext)->withDisallowRecurFrame(),
+            $env->withContext($bodyContext)->withDisallowRecurFrame()->withinTry($hasCatchOrFinally || $env->isWithinTry()),
         );
     }
 

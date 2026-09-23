@@ -1,0 +1,154 @@
+(ns phel-test.core.update-literal-fn
+  (:require phel.test :refer [deftest is thrown?]))
+
+;; At optimization level 2 an `update` whose function is a literal one-arity
+;; `fn` compiles to a read, the fn body and one `assoc`, with no closure and no
+;; call to `phel.core/update` (#3322). These cases pin the semantics the
+;; lowering must keep, at whatever level the suite compiles; the literal
+;; spelling is checked against the same fn handed to `update` through `rt`.
+;; `UpdateLiteralFnLoweringTest` runs them at level 2 against level 0, and
+;; checks `with-redefs` at level 0: level 2 links `update` directly, as it
+;; does any inlined call.
+
+(defstruct point [x y])
+
+(defn- rt [& args] (apply update args))
+
+(deftest test-maps
+  (is (= {:a 2} (update {:a 1} :a (fn [v] (php/+ v 1)))) "an existing key")
+  (is (= (rt {:a 1} :a (fn [v] (php/+ v 1))) (update {:a 1} :a (fn [v] (php/+ v 1)))) "matches the runtime")
+  (is (= {:a 1 :b true} (update {:a 1} :b (fn [v] (nil? v)))) "an absent key reads nil")
+  (is (= {:a 5} (update {:a 1} :a (fn [_] 5))) "an unused param")
+  (is (= {:a nil} (update {:a 1} :a (fn [v]))) "an empty body writes nil"))
+
+(deftest test-nil-target
+  (is (= {:a 1} (update nil :a (fn [v] (if (nil? v) 1 v)))) "a nil target becomes a map")
+  (is (= (rt nil :a (fn [v] (if (nil? v) 1 v))) (update nil :a (fn [v] (if (nil? v) 1 v)))) "matches the runtime"))
+
+(deftest test-vectors
+  (is (= [1 20 3] (update [1 2 3] 1 (fn [v] (php/* v 10)))) "by index")
+  (is (= [1 2 3 true] (update [1 2 3] 3 (fn [v] (nil? v)))) "the end index appends")
+  (is (= (rt [1 2 3] 3 (fn [v] (nil? v))) (update [1 2 3] 3 (fn [v] (nil? v)))) "the end index matches the runtime")
+  (is (thrown? \Throwable (update [1 2 3] 7 (fn [v] v))) "past the end throws")
+  (is (thrown? \Throwable (rt [1 2 3] 7 (fn [v] v))) "past the end throws at runtime too"))
+
+(deftest test-structs
+  (let [p (point 1 2)]
+    (is (= (point 11 2) (update p :x (fn [v] (php/+ v 10)))) "a struct field")
+    (is (thrown? \Throwable (update p :z (fn [v] v))) "a key outside the struct throws")
+    (is (thrown? \Throwable (rt p :z (fn [v] v))) "a key outside the struct throws at runtime too")))
+
+(deftest test-transients
+  (is (= {:a 2} (persistent (update (transient {:a 1}) :a (fn [v] (php/+ v 1))))) "a transient target")
+  (is (= (persistent (rt (transient {:a 1}) :a (fn [v] (php/+ v 1))))
+         (persistent (update (transient {:a 1}) :a (fn [v] (php/+ v 1))))) "matches the runtime"))
+
+(deftest test-metadata
+  (let [m (with-meta {:a 1} {:tag-me true})]
+    (is (= {:tag-me true} (meta (update m :a (fn [v] (php/+ v 1))))) "metadata survives")
+    (is (= (meta (rt m :a (fn [v] (php/+ v 1)))) (meta (update m :a (fn [v] (php/+ v 1))))) "matches the runtime")))
+
+(deftest test-extra-arguments
+  (is (= {:a 2} (update {:a 1} :a (fn [v x] (php/+ v x)) 1)) "one")
+  (is (= {:a 4} (update {:a 1} :a (fn [v x y] (php/+ v x y)) 1 2)) "two")
+  (is (= {:a 7} (update {:a 1} :a (fn [v x y z] (php/+ v x y z)) 1 2 3)) "three")
+  (is (= {:a 11} (update {:a 1} :a (fn [v w x y z] (php/+ v w x y z)) 1 2 3 4)) "four, past the fixed arities")
+  (is (= (rt {:a 1} :a (fn [v w x y z] (php/+ v w x y z)) 1 2 3 4)
+         (update {:a 1} :a (fn [v w x y z] (php/+ v w x y z)) 1 2 3 4)) "four matches the runtime")
+  (let [x 100]
+    (is (= {:a [1 2 100]} (update {:a 1} :a (fn [v x y] [v x y]) 2 x)) "an extra arg reads the outer local a param shadows")))
+
+(deftest test-evaluation-order
+  (let [log (atom [])
+        step (fn [tag v] (swap! log conj tag) v)
+        run (fn [upd]
+              (reset! log [])
+              [(upd) (deref log)])]
+    (is (= [{:a 3} [:m :k :x :body]]
+           (run (fn [] (update (step :m {:a 1}) (step :k :a) (fn [v x] (step :body (php/+ v x))) (step :x 2)))))
+        "target, key and extra args once each, in order, before the body")
+    (is (= (run (fn [] (rt (step :m {:a 1}) (step :k :a) (fn [v x] (step :body (php/+ v x))) (step :x 2))))
+           (run (fn [] (update (step :m {:a 1}) (step :k :a) (fn [v x] (step :body (php/+ v x))) (step :x 2)))))
+        "matches the runtime")))
+
+(deftest test-destructuring
+  (is (= {:p 3} (update {:p [1 2]} :p (fn [[a b]] (php/+ a b)))) "a vector pattern")
+  (is (= {:p 3} (update {:p {:a 1 :b 2}} :p (fn [{:keys [a b]}] (php/+ a b)))) "a map pattern")
+  (is (= {:p [2 3]} (update {:p [1 2 3]} :p (fn [[_ & more]] (vec more)))) "a rest inside a pattern"))
+
+(deftest test-shapes-that-keep-the-runtime-call
+  (is (= {:a [1 2 3]} (update {:a 1} :a (fn [v & xs] (vec (cons v xs))) 2 3)) "a rest param")
+  (is (= {:a 2} (update {:a 1} :a (fn ([v] (php/+ v 1)) ([v x] (php/+ v x))))) "several arities")
+  (is (= {:a 10} (update {:a 1} :a (fn [v] (if (php/< v 10) (recur (php/+ v 1)) v)))) "recur targets the fn")
+  (is (= {:a 2} (update {:a 1} :a (fn self [v] (if (php/< v 2) (self (php/+ v 1)) v)))) "a named fn")
+  (is (= {:a 2} (update {:a 1} :a (fn [v] {:pre [(int? v)]} (php/+ v 1)))) "a pre condition")
+  (is (= {:a 2} (update {:a 1} :a (fn [^int v] (php/+ v 1)))) "a tagged param")
+  (is (thrown? \Throwable (update {:a 1} :a (fn [v x] v))) "an arity mismatch still throws")
+  (let [update (fn [m k f] :local)]
+    (is (= :local (update {:a 1} :a (fn [v] v))) "a local update")))
+
+(deftest test-hygiene
+  (let [v 100]
+    (is (= [{:a 2} 100] [(update {:a 1} :a (fn [v] (php/+ v 1))) v]) "the param shadows an outer local only inside the body"))
+  (let [m {:a 1 :b 2}]
+    (is (= {:a 2 :b 2} (update m :a (fn [v] (count m)))) "the body reads the target local")
+    (is (= {:a 2 :b 2} (update m :a (fn [m] (php/+ m 1)))) "a param named after the target"))
+  (let [f (update {:a 1} :a (fn [v] (fn [] v)))]
+    (is (= 1 ((get f :a))) "a nested fn captures the param"))
+  (is (= {:a 2} (update {:a 1} :a (fn [get] (php/+ get 1)))) "a param named get")
+  (is (= {:a 2} (update {:a 1} :a (fn [assoc] (php/+ assoc 1)))) "a param named assoc")
+  (let [get (fn [& _] :local-get)
+        assoc (fn [& _] :local-assoc)]
+    (is (= {:a 2} (update {:a 1} :a (fn [v] (php/+ v 1)))) "locals named get and assoc")))
+
+(deftest test-outer-locals-stay-unwritten
+  ;; The fn body used to run in a closure that captured outer locals by value.
+  (let [arr (php-indexed-array 1 2 3)]
+    (update {:a 1} :a (fn [v] (php/aset arr 0 99) v))
+    (is (= 1 (php/aget arr 0)) "php/aset on a captured array"))
+  (let [arr (php-indexed-array 3 1 2)]
+    (update {:a 1} :a (fn [v] (php/sort arr) v))
+    (is (= 3 (php/aget arr 0)) "a by-reference php function on a captured array"))
+  (let [flag 1]
+    (is (= [{:a 99} 1] [(update {:a 1} :a (fn [v] (php/= flag 99))) flag]) "php/= on a captured local"))
+  (let [flag 1 other 2]
+    (is (= [{:a 2} 1] [(update {:a 1} :a (fn [v] (php/=& flag other))) flag]) "php/=& on a captured local"))
+  (let [arr (php-indexed-array (php-indexed-array 1 2))]
+    (update {:a 1} :a (fn [v] (php/aset-in arr [0 0] 99) v))
+    (is (= 1 (php/aget-in arr [0 0])) "php/aset-in on a captured array")))
+
+(deftest test-condition-maps
+  (is (= {:a nil} (update {:a 1} :a (fn [v] {:pre [(int? v)]}))) "a lone pre map is a condition, not the value")
+  (is (= (rt {:a 1} :a (fn [v] {:pre [(int? v)]})) (update {:a 1} :a (fn [v] {:pre [(int? v)]}))) "a lone pre map matches the runtime")
+  (is (= {:a nil} (update {:a 1} :a (fn [v] {:post [true]}))) "a lone post map is a condition")
+  (is (thrown? \Throwable (update {:a "x"} :a (fn [v] {:pre [(int? v)]}))) "a lone pre map still asserts")
+  (is (= {:a {:b 1}} (update {:a 1} :a (fn [v] {:b v}))) "a map without conditions is the value"))
+(deftest test-contexts
+  (is (= [{:a 2}] [(update {:a 1} :a (fn [v] (php/+ v 1)))]) "expression")
+  (is (= "{:a 2}" (str (update {:a 1} :a (fn [v] (php/+ v 1))))) "an argument")
+  (is (= {:a 2} (let [r (update {:a 1} :a (fn [v] (php/+ v 1)))] r)) "a binding init")
+  (is (= {:a 5}
+         (loop [m {:a 0} i 0]
+           (if (php/< i 5)
+             (recur (update m :a (fn [v] (php/+ v 1))) (php/+ i 1))
+             m)))
+      "a recur argument")
+  (let [log (atom [])]
+    (do (update {:a 1} :a (fn [v] (swap! log conj v) v)) nil)
+    (is (= [1] (deref log)) "statement position still runs the body"))
+  (is (= {:a 3} (update {:a 1} :a (fn [v] (swap! (atom 0) inc) (php/+ v 2)))) "several body forms")
+  (is (= {:a 2} (update {:a 1} :a #(php/+ % 1))) "a short fn"))
+
+(deftest test-nesting
+  (is (= {:a 2 :b 1} (-> {:a 1 :b 2} (update :a (fn [v] (php/+ v 1))) (update :b (fn [v] (php/- v 1))))) "threaded")
+  (is (= {:a {:b 2}} (update {:a {:b 1}} :a (fn [v] (update v :b (fn [v] (php/+ v 1)))))) "an update inside the body")
+  (is (= {:a {:b 2}} (update {:a {:b 1}} :a (fn [inner] (update inner :b (fn [x] (php/+ x 1)))))) "an update inside the body, distinct names")
+  (is (= {:a 1 :b 1 :c 1 :d 1 :e 1 :f 1}
+         (-> {}
+             (update :a (fn [v] (if v (php/+ v 1) 1)))
+             (update :b (fn [v] (if v (php/+ v 1) 1)))
+             (update :c (fn [v] (if v (php/+ v 1) 1)))
+             (update :d (fn [v] (if v (php/+ v 1) 1)))
+             (update :e (fn [v] (if v (php/+ v 1) 1)))
+             (update :f (fn [v] (if v (php/+ v 1) 1)))))
+      "six deep"))

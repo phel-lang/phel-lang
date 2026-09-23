@@ -90,6 +90,15 @@ interface NodeEnvironmentInterface extends ContextualEnvironmentInterface
 
     public function isReturnInferenceDeferred(): bool;
 
+    /**
+     * Inside a `try` body or `catch` of the current PHP frame, where a
+     * `return` does not end the frame: a `catch` or `finally` still runs in
+     * it and sees its variables. A fn body starts a frame of its own.
+     */
+    public function withinTry(bool $withinTry): self;
+
+    public function isWithinTry(): bool;
+
     public function useGlobalReference(): bool;
 
     public function withReturnContext(): self;

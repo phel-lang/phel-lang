@@ -103,6 +103,7 @@ final readonly class TailCallRewriter
                 $this->walk($node->getBodyExpr(), $tail, $recurFrame, $selfNs, $selfName, $paramCount, $rewrote),
                 $node->isLoop(),
                 $node->getStartSourceLocation(),
+                $node->getCallerBindingCount(),
             );
         }
 

@@ -1,0 +1,28 @@
+--PHEL--
+(fn [m p v] (assoc-in m p v))
+(fn [m p f] (update-in m p f))
+(fn [m v] (apply assoc-in m [[:a] v]))
+(fn [m v] (assoc-in m ^:foo [:a] v))
+(fn [m v] (let [assoc-in (fn [x ks v] x)] (assoc-in m [:a] v)))
+--PHP--
+(function($m, $p, $v) {
+  static $__phel_call_0;
+  return ($__phel_call_0 ??= \Phel::getDefinition("phel.core", "assoc-in"))->__invoke($m, $p, $v);
+});(function($m, $p, $f) {
+  static $__phel_call_0;
+  return ($__phel_call_0 ??= \Phel::getDefinition("phel.core", "update-in"))->__invoke($m, $p, $f);
+});(function($m, $v) {
+  static $__phel_const_0;
+  return (\Phel\Lang\Registry::readRoot("phel.core", "assoc-in"))->__invoke($m, ($__phel_const_0 ??= \Phel::vector([\Phel\Lang\Keyword::create("a")])), $v);
+});(function($m, $v) {
+  static $__phel_const_0, $__phel_call_0;
+  return ($__phel_call_0 ??= \Phel::getDefinition("phel.core", "assoc-in"))->__invoke($m, ($__phel_const_0 ??= \Phel::vector([\Phel\Lang\Keyword::create("a")])->withMeta(\Phel::map(
+    \Phel\Lang\Keyword::create("foo"), true
+  ))), $v);
+});(function($m, $v) {
+  static $__phel_const_0;
+  $assoc_in_1 = (function($x, $ks, $v) use($m) {
+    return $x;
+  });
+  return ($assoc_in_1)($m, ($__phel_const_0 ??= \Phel::vector([\Phel\Lang\Keyword::create("a")])), $v);
+});
