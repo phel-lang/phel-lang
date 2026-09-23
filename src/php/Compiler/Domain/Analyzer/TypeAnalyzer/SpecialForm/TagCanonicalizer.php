@@ -4,7 +4,9 @@ declare(strict_types=1);
 
 namespace Phel\Compiler\Domain\Analyzer\TypeAnalyzer\SpecialForm;
 
+use Phel;
 use Phel\Compiler\Domain\Analyzer\AnalyzerInterface;
+use Phel\Lang\Collections\LinkedList\PersistentListInterface;
 use Phel\Lang\Collections\Map\PersistentMapInterface;
 use Phel\Lang\Collections\Vector\PersistentVectorInterface;
 use Phel\Lang\Keyword;
@@ -90,10 +92,21 @@ final class TagCanonicalizer
 
     /**
      * A symbol tag stays a symbol and a string tag a string, so the meta
-     * keeps its shape. A composite (list or vector) tag is left alone.
+     * keeps its shape. A composite tag (a list is a union, a vector an
+     * intersection) keeps its collection type and has each member rewritten:
+     * the emitter joins those members as written, so an import left bare
+     * would name a class in the generated file's own namespace.
      */
     private static function tag(mixed $tag, AnalyzerInterface $analyzer): mixed
     {
+        if ($tag instanceof PersistentListInterface) {
+            return self::unionTag($tag, $analyzer);
+        }
+
+        if ($tag instanceof PersistentVectorInterface) {
+            return self::intersectionTag($tag, $analyzer);
+        }
+
         $name = $tag instanceof Symbol ? $tag->getName() : $tag;
         if (!is_string($name) || $name === '') {
             return $tag;
@@ -107,6 +120,53 @@ final class TagCanonicalizer
         return $tag instanceof Symbol
             ? Symbol::create($expanded)->copyLocationFrom($tag)
             : $expanded;
+    }
+
+    /**
+     * @param PersistentListInterface<mixed> $tag
+     *
+     * @return PersistentListInterface<mixed>
+     */
+    private static function unionTag(PersistentListInterface $tag, AnalyzerInterface $analyzer): PersistentListInterface
+    {
+        $members = $tag->toArray();
+        $changed = false;
+        foreach ($members as $i => $member) {
+            $canonical = self::tag($member, $analyzer);
+            if ($canonical !== $member) {
+                $members[$i] = $canonical;
+                $changed = true;
+            }
+        }
+
+        if (!$changed) {
+            return $tag;
+        }
+
+        return Phel::list($members)
+            ->withMeta($tag->getMeta())
+            ->copyLocationFrom($tag);
+    }
+
+    /**
+     * @param PersistentVectorInterface<mixed> $tag
+     *
+     * @return PersistentVectorInterface<mixed>
+     */
+    private static function intersectionTag(PersistentVectorInterface $tag, AnalyzerInterface $analyzer): PersistentVectorInterface
+    {
+        $result = $tag;
+        for ($i = 0, $n = count($tag); $i < $n; ++$i) {
+            $member = $tag->get($i);
+            $canonical = self::tag($member, $analyzer);
+            if ($canonical !== $member) {
+                $result = $result->update($i, $canonical);
+            }
+        }
+
+        return $result === $tag
+            ? $tag
+            : $result->withMeta($tag->getMeta())->copyLocationFrom($tag);
     }
 
     /**

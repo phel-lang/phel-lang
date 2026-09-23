@@ -98,4 +98,37 @@ final class TagImportOwnerNamespaceTest extends AbstractCompilerRuntimeTestCase
         self::assertSame('\DateTimeImmutable', $meta->find(Keyword::create('tag')));
         self::assertInstanceOf(DateTimeImmutable::class, $this->compilerFacade->eval('(tag-owner.reeval/again)'));
     }
+
+    public function test_union_and_intersection_members_resolve_their_imports(): void
+    {
+        $this->compilerFacade->eval(
+            '(ns tag-owner.composite
+               (:use DateTimeImmutable :as Moment)
+               (:use ArrayAccess :as Access)
+               (:use Countable :as Sized))',
+        );
+        $source = '(definterface Holder
+                     (held [this ^{:tag (Moment null)} at])
+                     (sized [this ^{:tag [Access Sized]} b]))
+                   (defstruct Box [^{:tag (Moment null)} at ^{:tag [Access Sized]} items]
+                     Holder
+                     (held [this at] at)
+                     (sized [this b] (php/count b)))';
+
+        $php = $this->compilerFacade->compile($source)->getPhpCode();
+
+        self::assertStringContainsString('public function held(\DateTimeImmutable|null $at);', $php);
+        self::assertStringContainsString('public function sized(\ArrayAccess&\Countable $b);', $php);
+        self::assertStringContainsString('protected \DateTimeImmutable|null $at;', $php);
+        self::assertStringContainsString('protected \ArrayAccess&\Countable $items;', $php);
+
+        $this->compilerFacade->eval($source);
+        $this->compilerFacade->eval('(def box (Box nil (ArrayObject. (php/array 1 2))))');
+
+        self::assertInstanceOf(
+            DateTimeImmutable::class,
+            $this->compilerFacade->eval('(.held box (DateTimeImmutable. "2020-01-01"))'),
+        );
+        self::assertSame(3, $this->compilerFacade->eval('(.sized box (ArrayObject. (php/array 1 2 3)))'));
+    }
 }
