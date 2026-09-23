@@ -1,5 +1,6 @@
 (ns phel-test.fixtures.nested-runner
-  (:require phel.test :as t :refer [deftest is]))
+  (:require phel.test :as t :refer [deftest is])
+  (:require phel-test.fixtures.tagged-tests))
 
 ;; Fixture namespace consumed by `tests/phel/slowest-nested-run.phel`.
 ;;
