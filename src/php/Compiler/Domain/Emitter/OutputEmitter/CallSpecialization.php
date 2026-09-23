@@ -64,6 +64,7 @@ final readonly class CallSpecialization
             || TypedValueSpecialization::isKeywordFind($node)
             || self::isTypedGetAccess($node)
             || GetInSpecialization::isLiteralPathGetIn($node)
+            || AssocInSpecialization::isLiteralPathAssocIn($node)
             || self::isTypedPhpArrayGet($node)
             || self::isTypedPhpArrayCount($node)
             || self::isTypedStringCount($node)

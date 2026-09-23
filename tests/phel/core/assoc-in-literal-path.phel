@@ -1,0 +1,119 @@
+(ns phel-test.core.assoc-in-literal-path
+  (:require phel.test :refer [deftest is]))
+
+;; A literal path compiles `assoc-in` / `update-in` to `\Phel\Lang\AssocIn`
+;; rather than a call to the core fn (#3328). Each case below asks both: the
+;; literal spelling takes the lowering, the same path read from a local keeps
+;; the runtime call, and the two must agree, errors included.
+
+(defstruct point [x y])
+
+(defn- rt-assoc-in [ds ks v] (assoc-in ds ks v))
+
+(defn- rt-update-in [ds ks f & args] (apply update-in ds ks f args))
+
+(defn- outcome [thunk]
+  (try
+    [:ok (thunk)]
+    (catch \Throwable e [:threw (php/get_class e) (.getMessage e)])))
+
+(deftest test-maps
+  (let [m {:a {:b 1} :z 0}]
+    (is (= {:a {:b 2} :z 0} (assoc-in m [:a :b] 2)) "two levels")
+    (is (= (rt-assoc-in m [:a :b] 2) (assoc-in m [:a :b] 2)) "two levels match the runtime")
+    (is (= {:a {:b 1 :c 3} :z 0} (assoc-in m [:a :c] 3)) "a new leaf key")
+    (is (= {:a {:b {:c 1}}} (assoc-in {} [:a :b :c] 1)) "three levels from empty")
+    (is (= {:a 5} (assoc-in {:a 1} [:a] 5)) "one level")))
+
+(deftest test-nil-target
+  (is (= {:a {:b 1}} (assoc-in nil [:a :b] 1)) "nil target becomes a map")
+  (is (= (rt-assoc-in nil [:a :b] 1) (assoc-in nil [:a :b] 1)) "nil target matches the runtime")
+  (is (= {:a 1} (update-in nil [:a] (fnil inc 0))) "update-in on nil")
+  (is (= (rt-update-in nil [:a :b] (fnil inc 0)) (update-in nil [:a :b] (fnil inc 0))) "update-in on nil matches the runtime"))
+
+(deftest test-missing-intermediate-key
+  (is (= {:a 1 :x {:y 2}} (assoc-in {:a 1} [:x :y] 2)) "a missing level becomes a map")
+  (is (= {:a {:b 2}} (assoc-in {:a nil} [:a :b] 2)) "a stored nil level becomes a map")
+  (is (= (rt-assoc-in {:a nil} [:a :b] 2) (assoc-in {:a nil} [:a :b] 2)) "stored nil matches the runtime")
+  (is (= {:x {:y 1}} (update-in {} [:x :y] (fnil inc 0))) "update-in creates the level"))
+
+(deftest test-vectors
+  (let [v [{:a 1} {:a 2}]]
+    (is (= [{:a 1} {:a 9}] (assoc-in v [1 :a] 9)) "an index then a key")
+    (is (= {:xs [10 99]} (assoc-in {:xs [10 20]} [:xs 1] 99)) "a key then an index")
+    (is (= [1 2 3] (assoc-in [1 2] [2] 3)) "an index at count appends")
+    (is (= (rt-assoc-in [1 2] [2] 3) (assoc-in [1 2] [2] 3)) "appending matches the runtime")
+    (is (= {:v [{:a 1} {:b 2}]} (assoc-in {:v [{:a 1}]} [:v 1 :b] 2)) "a new level appended at count")
+    (is (= (outcome #(rt-assoc-in [1 2] [5] 3)) (outcome #(assoc-in [1 2] [5] 3)))
+        "an index past count throws as the runtime does")
+    (is (= (outcome #(rt-assoc-in {:v [1]} [:v 3 :x] 1)) (outcome #(assoc-in {:v [1]} [:v 3 :x] 1)))
+        "a nested index past count throws as the runtime does")
+    (is (= (outcome #(rt-assoc-in [1 2] ["0"] 3)) (outcome #(assoc-in [1 2] ["0"] 3)))
+        "a non-integer index throws as the runtime does")
+    (is (= :threw (first (outcome #(assoc-in [1 2] [5] 3)))) "past count does throw")))
+
+(deftest test-structs
+  (let [p (point 1 {:z 3})]
+    (is (= (point 9 {:z 3}) (assoc-in p [:x] 9)) "a struct field")
+    (is (= (point 1 {:z 4}) (assoc-in p [:y :z] 4)) "through a struct field")
+    (is (= (point 1 {:z 4}) (update-in p [:y :z] inc)) "update-in through a struct field")
+    (is (= (outcome #(rt-assoc-in p [:w] 1)) (outcome #(assoc-in p [:w] 1)))
+        "an unknown struct key answers as the runtime does")))
+
+(deftest test-transients
+  (is (= (outcome #(persistent! (rt-assoc-in (transient {:a {}}) [:a :b] 1)))
+         (outcome #(persistent! (assoc-in (transient {:a {}}) [:a :b] 1))))
+      "a transient map target answers as the runtime does")
+  (is (= (outcome #(persistent! (rt-assoc-in (transient [{}]) [0 :b] 1)))
+         (outcome #(persistent! (assoc-in (transient [{}]) [0 :b] 1))))
+      "a transient vector target answers as the runtime does")
+  (is (= (outcome #(persistent! (get (rt-assoc-in {:a (transient {})} [:a :b] 1) :a)))
+         (outcome #(persistent! (get (assoc-in {:a (transient {})} [:a :b] 1) :a))))
+      "a transient level answers as the runtime does")
+  (is (= (outcome #(persistent! (rt-update-in (transient {:a 1}) [:a] inc)))
+         (outcome #(persistent! (update-in (transient {:a 1}) [:a] inc))))
+      "update-in on a transient answers as the runtime does"))
+
+(deftest test-other-levels-fail-as-the-runtime
+  (is (= (outcome #(rt-assoc-in {:a '(1 2)} [:a 0] 9)) (outcome #(assoc-in {:a '(1 2)} [:a 0] 9))) "a list level")
+  (is (= (outcome #(rt-assoc-in {:a 1} [:a :b] 9)) (outcome #(assoc-in {:a 1} [:a :b] 9))) "a number level")
+  (is (= (outcome #(rt-assoc-in #{:a} [:a] 9)) (outcome #(assoc-in #{:a} [:a] 9))) "a set target"))
+
+(deftest test-empty-path
+  (is (= (rt-assoc-in {:a 1} [] 2) (assoc-in {:a 1} [] 2)) "assoc-in writes under a nil key as the runtime does")
+  (is (= (rt-update-in {:a 1} [] vector) (update-in {:a 1} [] vector)) "update-in writes under a nil key as the runtime does"))
+
+(deftest test-update-in-extra-args
+  (let [m {:a {:b 1}}]
+    (is (= {:a {:b 2}} (update-in m [:a :b] inc)) "no extra argument")
+    (is (= {:a {:b 11}} (update-in m [:a :b] + 10)) "one extra argument")
+    (is (= {:a {:b 31}} (update-in m [:a :b] + 10 20)) "two extra arguments")
+    (is (= {:a {:b 61}} (update-in m [:a :b] + 10 20 30)) "three extra arguments")
+    (is (= (rt-update-in m [:a :b] + 10 20 30) (update-in m [:a :b] + 10 20 30)) "three extra arguments match the runtime")
+    (is (= {:a {:b [1 :x :y]}} (update-in m [:a :b] vector :x :y)) "extra arguments follow the current value")))
+
+(deftest test-by-reference-f
+  (is (= (rt-update-in {:a (php/array 1)} [:a] (fn [^:by-ref x] (php/array_push x 2) x))
+         (update-in {:a (php/array 1)} [:a] (fn [^:by-ref x] (php/array_push x 2) x)))
+      "a by-reference f sees the current value as a variable")
+  (is (= (rt-update-in {:a (php/array 1)} [:a] (fn [^:by-ref x y] (php/array_push x y) x) 5)
+         (update-in {:a (php/array 1)} [:a] (fn [^:by-ref x y] (php/array_push x y) x) 5))
+      "a by-reference f with an extra argument"))
+
+(deftest test-evaluation-order-and-count
+  (let [log  (atom [])
+        note (fn [x v] (swap! log conj x) v)]
+    (assoc-in (note :ds {}) [(note :k1 :a) (note :k2 :b)] (note :v 1))
+    (is (= [:ds :k1 :k2 :v] @log) "assoc-in: target, keys and value each run once, left to right"))
+  (let [log  (atom [])
+        note (fn [x v] (swap! log conj x) v)]
+    (update-in (note :ds {}) [(note :k1 :a)] (note :f (fn [v x] (swap! log conj :call) x)) (note :x 1))
+    (is (= [:ds :k1 :f :x :call] @log) "update-in: f runs once, after every argument")))
+
+(deftest test-apply-and-locals-keep-the-runtime
+  (is (= {:a {:b 1}} (apply assoc-in [{} [:a :b] 1])) "apply assoc-in")
+  (is (= {:a 2} (apply update-in [{:a 1} [:a] inc])) "apply update-in")
+  (let [assoc-in  (fn [& _] :local)
+        update-in (fn [& _] :local)]
+    (is (= :local (assoc-in {} [:a] 1)) "a local named assoc-in shadows the core fn")
+    (is (= :local (update-in {} [:a] inc)) "a local named update-in shadows the core fn")))

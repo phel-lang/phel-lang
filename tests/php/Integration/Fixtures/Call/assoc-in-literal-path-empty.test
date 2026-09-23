@@ -1,0 +1,6 @@
+--PHEL--
+(fn [m v] (assoc-in m [] v))
+--PHP--
+(function($m, $v) {
+  return \Phel\Lang\AssocIn::path($m, [], $v);
+});

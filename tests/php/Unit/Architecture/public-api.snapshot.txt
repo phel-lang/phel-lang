@@ -343,6 +343,10 @@ abstract class Phel\Lang\AbstractType implements Phel\Lang\TypeInterface, String
   public function setEndLocation(?Phel\Lang\SourceLocation $endLocation): static
   public function setStartLocation(?Phel\Lang\SourceLocation $startLocation): static
 
+final class Phel\Lang\AssocIn
+  public static function path(mixed $ds, array $keys, mixed $value): mixed
+  public static function update(mixed $ds, array $keys, mixed $f, mixed ...$args): mixed
+
 final class Phel\Lang\Atom extends Phel\Lang\AbstractType
   public function __construct(?Phel\Lang\Collections\Map\PersistentMapInterface $meta, mixed $value)
   public function addWatch(string $key, callable $fn): void

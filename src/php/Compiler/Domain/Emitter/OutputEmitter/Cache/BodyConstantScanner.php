@@ -31,11 +31,14 @@ use Phel\Compiler\Domain\Analyzer\Ast\SetVarNode;
 use Phel\Compiler\Domain\Analyzer\Ast\ThrowNode;
 use Phel\Compiler\Domain\Analyzer\Ast\TryNode;
 use Phel\Compiler\Domain\Analyzer\Ast\VectorNode;
+use Phel\Compiler\Domain\Emitter\OutputEmitter\AssocInSpecialization;
 use Phel\Compiler\Domain\Emitter\OutputEmitter\CallSpecialization;
 use Phel\Compiler\Domain\Emitter\OutputEmitter\GetInSpecialization;
 use Phel\Compiler\Domain\Emitter\OutputEmitter\GlobalCallTarget;
 use Phel\Compiler\Domain\Emitter\OutputEmitter\NodeEmitter\IfChainMatchLowerer;
 use Phel\Lang\Keyword;
+
+use function array_slice;
 
 /**
  * Walks a fn body looking for *outermost* pure collection literals plus
@@ -61,7 +64,7 @@ final readonly class BodyConstantScanner
             return;
         }
 
-        if ($node instanceof CallNode && $this->scanLiteralPathGetIn($node, $scope, $cacheCalls)) {
+        if ($node instanceof CallNode && $this->scanLiteralPathCall($node, $scope, $cacheCalls)) {
             return;
         }
 
@@ -98,16 +101,17 @@ final readonly class BodyConstantScanner
     }
 
     /**
-     * A specialised `(get-in coll [k1 k2 …])` never emits its path vector.
-     * On a tagged target the keys become subscripts, so each key is scanned
-     * on its own and still hoists where eligible. On any other target the
-     * keys become the PHP array handed to `GetIn::path`, which is hoisted
-     * whole when every key is a literal, under a slot of its own: a vector
-     * literal with the same elements must not share it (#3320).
+     * A specialised `(get-in coll [k1 k2 …])`, `assoc-in` or `update-in`
+     * never emits its path vector. On a tagged `get-in` target the keys
+     * become subscripts, so each key is scanned on its own and still hoists
+     * where eligible. Otherwise the keys become the PHP array handed to
+     * `GetIn::path` or `AssocIn`, which is hoisted whole when every key is a
+     * literal, under a slot of its own: a vector literal with the same
+     * elements must not share it (#3320, #3328).
      */
-    private function scanLiteralPathGetIn(CallNode $node, ConstantScope $scope, bool $cacheCalls): bool
+    private function scanLiteralPathCall(CallNode $node, ConstantScope $scope, bool $cacheCalls): bool
     {
-        $keys = GetInSpecialization::literalPathKeys($node);
+        $keys = GetInSpecialization::literalPathKeys($node) ?? AssocInSpecialization::literalPathKeys($node);
         if ($keys === null) {
             return false;
         }
@@ -127,8 +131,8 @@ final readonly class BodyConstantScanner
             }
         }
 
-        if (isset($args[2])) {
-            $this->walk($args[2], $scope, $cacheCalls);
+        foreach (array_slice($args, 2) as $arg) {
+            $this->walk($arg, $scope, $cacheCalls);
         }
 
         return true;
