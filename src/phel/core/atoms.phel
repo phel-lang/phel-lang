@@ -442,13 +442,15 @@ Returns the new value after the swap."
   [x]
   x)
 
-(defn- xf-step
-  "Creates a transducer reducing function that delegates 0/1 arity to rf and calls step-fn for the 2-arity step. Eliminates repeated boilerplate."
+(defmacro- xf-step
+  "Expands `(xf-step rf (fn [result input] body))` to a transducer reducing function that delegates its 0/1 arity to `rf` and runs `body` as its 2-arity step."
   [rf step-fn]
-  ;; Real arities rather than `(case (count args) ...)` over a rest argument:
-  ;; this closure is the reducing function of every transducer, so the rest
-  ;; vector and the count dispatch were paid once per element reduced.
-  (fn
-    ([] (rf))
-    ([result] (rf result))
-    ([result input] (step-fn result input))))
+  ;; A macro so the step body becomes the 2-arity itself: as a function this
+  ;; built a second closure per transducer and paid an extra call per element
+  ;; (#3323).
+  (when-not (and (list? step-fn) (= 'fn (first step-fn)) (vector? (second step-fn)) (= 2 (count (second step-fn))))
+    (throw (new InvalidArgumentException "xf-step expects a literal (fn [result input] ...) step")))
+  `(fn
+     ([] (~rf))
+     ([result#] (~rf result#))
+     (~(second step-fn) ~@(nnext step-fn))))
