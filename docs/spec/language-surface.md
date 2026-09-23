@@ -237,6 +237,13 @@ Value-type aliases, each backed by one fixed class:
 | `symbol` | `Phel\Lang\Symbol` |
 | `atom` | `Phel\Lang\Atom` |
 
+Default-imported Phel classes resolve as tags too. Every namespace opened with
+`ns` or `in-ns` starts with a curated set of `Phel\Lang` classes already
+imported, the `Interface` suffix dropped, so `^PersistentVector v` names
+`Phel\Lang\Collections\Vector\PersistentVectorInterface` and `^Keyword k` names
+`Phel\Lang\Keyword` with no `:use`. A `:use` of the same short name replaces the
+default.
+
 A bare `CamelCase` name the namespace never imported is emitted as written, so
 in a file compiled into `user` it names `user\DateTime` and fails at call time.
 Import it or write it dotted.
