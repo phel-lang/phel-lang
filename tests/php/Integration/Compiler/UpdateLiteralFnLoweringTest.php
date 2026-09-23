@@ -58,13 +58,15 @@ final class UpdateLiteralFnLoweringTest extends AbstractCompilerRuntimeTestCase
     {
         yield 'return position' => ['(fn [m] (update m :k (fn [v] (php/+ v 1))))'];
         yield 'expression position' => ['(fn [m] [(update m :k (fn [v] (php/+ v 1)))])'];
-        yield 'extra arguments' => ['(fn [m a b] (update m :k (fn [v x y] [v x y]) a b))'];
-        yield 'past the fixed arities' => ['(fn [m] (update m :k (fn [v a b c d] [v a b c d]) 1 2 3 4))'];
+        yield 'extra arguments' => ['(fn [m a b] (update m :k (fn [v x y] (php/+ v x y)) a b))'];
+        yield 'past the fixed arities' => ['(fn [m] (update m :k (fn [v a b c d] (php/+ v a b c d)) 1 2 3 4))'];
         yield 'a destructured param' => ['(fn [m] (update m :k (fn [[v w]] [w v])))'];
         yield 'several body forms' => ['(fn [m] (update m :k (fn [v] (println v) v)))'];
         yield 'a nested fn capturing the param' => ['(fn [m] (update m :k (fn [v] (fn [] v))))'];
-        yield 'a condition map' => ['(fn [m] (update m :k (fn [v] {:pre [v]} v)))'];
-        yield 'a lone pre map' => ['(fn [m] (update m :k (fn [v] {:pre [(int? v)]})))'];
+        yield 'php/max and an or' => ['(fn [m dt] (update m :t (fn [s] (php/max 0.0 (php/- (or s 0.0) dt)))))'];
+        yield 'a keyword lookup' => ['(fn [m] (update m :k (fn [v] (:n v))))'];
+        yield 'a global fn' => ['(fn [m] (update m :k (fn [v] (inc v))))'];
+        yield 'a let and an if' => ['(fn [m] (update m :k (fn [v] (let [w (php/* v 2)] (if (php/> w 3) w 0)))))'];
         yield 'a map without conditions as the value' => ['(fn [m] (update m :k (fn [v] {:b v})))'];
     }
 
@@ -98,6 +100,17 @@ final class UpdateLiteralFnLoweringTest extends AbstractCompilerRuntimeTestCase
         yield 'an outer local passed to a method' => ['(fn [m o arr] (update m :k (fn [v] (.fill o arr) v)))'];
         yield 'php/= on an outer local' => ['(fn [m flag] [(update m :k (fn [v] (php/= flag 99))) flag])'];
         yield 'php/=& on an outer local' => ['(fn [m flag other] [(update m :k (fn [v] (php/=& flag other))) flag])'];
+        yield 'a condition map, whose assertion throws' => ['(fn [m] (update m :k (fn [v] {:pre [v]} v)))'];
+        yield 'a lone pre map' => ['(fn [m] (update m :k (fn [v] {:pre [(int? v)]})))'];
+        yield 'a class return tag' => ['(fn [m] (update m :k (fn ^DateTimeInterface [v] v)))'];
+        yield 'func_get_args' => ['(fn [m] (update m :k (fn [v] (php/func_get_args))))'];
+        yield 'extract' => ['(fn [m] (update m :k (fn [v] (php/extract (php-associative-array "v" 2)) v)))'];
+        yield 'compact' => ['(fn [m flag] (update m :k (fn [v] (php/compact "flag"))))'];
+        yield 'a php function outside the allowlist' => ['(fn [m] (update m :k (fn [v] (php/str_repeat v 2))))'];
+        yield 'a method call' => ['(fn [m o] (update m :k (fn [v] (.format o v))))'];
+        yield 'a call through a local' => ['(fn [m f] (update m :k (fn [v] (f v))))'];
+        yield 'a loop' => ['(fn [m] (update m :k (fn [v] (loop [i 0] (if (php/< i v) (recur (php/+ i 1)) i)))))'];
+        yield 'try' => ['(fn [m] (update m :k (fn [v] (try v (catch \\Exception e 0)))))'];
         yield 'php/ref' => ['(fn [m arr] (update m :k (fn [v] (php/preg_match "/a/" v (php/ref arr)))))'];
         yield 'yield' => ['(fn [m] (update m :k (fn [v] (php/yield v))))'];
     }
@@ -154,6 +167,31 @@ final class UpdateLiteralFnLoweringTest extends AbstractCompilerRuntimeTestCase
         yield 'a let value' => ['(update {:a 1} :a (fn [v] (let [w (php/* v 2)] (php/+ w 1))))'];
         yield 'a value from a loop' => ['(update {:a 3} :a (fn [v] (loop [i 0 acc 0] (if (php/< i v) (recur (php/+ i 1) (php/+ acc i)) acc))))'];
         yield 'a try value' => ['(update {:a 1} :a (fn [v] (try (php/+ v 1) (catch \\Exception e 0))))'];
+    }
+
+    public function test_a_class_return_tag_still_rejects_at_both_levels(): void
+    {
+        $phel = '(update {:a 1} :a (fn ^DateTimeInterface [v] v))';
+
+        self::assertStringStartsWith('threw ', $this->evalAt($phel, 0));
+        self::assertSame($this->evalAt($phel, 0), $this->evalAt($phel, 2));
+    }
+
+    public function test_a_by_ref_global_fn_still_writes_only_the_closure_copy(): void
+    {
+        $this->compilerFacade->eval('(defn mutate! [^:by-ref arr] (php/aset arr 0 99))', new CompileOptions());
+        $phel = '(let [arr (php-indexed-array 1)] (update {:a 1} :a (fn [v] (mutate! arr) v)) (php/aget arr 0))';
+
+        self::assertSame('1', $this->evalAt($phel, 0));
+        self::assertSame('1', $this->evalAt($phel, 2));
+        self::assertStringContainsString('"update"', $this->compileInBuildMode('(fn [m arr] (update m :k (fn [v] (mutate! arr) v)))'));
+    }
+
+    public function test_func_get_args_still_sees_the_fn_frame(): void
+    {
+        $phel = '(let [x 5] (update {:a 1} :a (fn [v] (vec (php/func_get_args)))))';
+
+        self::assertSame($this->evalAt($phel, 0), $this->evalAt($phel, 2));
     }
 
     public function test_a_macro_in_the_body_sees_the_same_env_at_both_levels(): void
