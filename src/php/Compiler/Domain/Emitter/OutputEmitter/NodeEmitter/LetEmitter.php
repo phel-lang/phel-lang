@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace Phel\Compiler\Domain\Emitter\OutputEmitter\NodeEmitter;
 
 use Phel\Compiler\Domain\Analyzer\Ast\AbstractNode;
+use Phel\Compiler\Domain\Analyzer\Ast\CallNode;
+use Phel\Compiler\Domain\Analyzer\Ast\DoNode;
 use Phel\Compiler\Domain\Analyzer\Ast\LetNode;
 use Phel\Compiler\Domain\Analyzer\Environment\NodeEnvironment;
 use Phel\Compiler\Domain\Emitter\OutputEmitter\ByRefLocalCollector;
@@ -39,6 +41,10 @@ final class LetEmitter implements NodeEmitterInterface
         }
 
         if ($this->tryEmitAsShortCircuit($node)) {
+            return;
+        }
+
+        if ($this->tryEmitInlineInExpression($node)) {
             return;
         }
 
@@ -140,6 +146,54 @@ final class LetEmitter implements NodeEmitterInterface
         }
 
         return false;
+    }
+
+    /**
+     * Emit a flagged `let` in expression position as one PHP expression, each
+     * binding an assignment chained ahead of the body, instead of an IIFE:
+     *
+     *     ((null !== ($a = <init>) || true) && … ? <body> : null)
+     *
+     * Every link is true, so each init runs once, in order, then the body.
+     * Only a producer that knows the bindings may leak into the enclosing PHP
+     * scope sets the flag ({@see LetNode::isInlineInExpression()}), and only a
+     * body that is a single call is spliced: a call in return position emits
+     * as `return <expr>;`, which strips to the bare expression.
+     */
+    private function tryEmitInlineInExpression(LetNode $node): bool
+    {
+        $env = $node->getEnv();
+        if (!$node->isInlineInExpression() || $node->isLoop() || !$env->isContext(NodeEnvironment::CONTEXT_EXPRESSION)) {
+            return false;
+        }
+
+        $body = $node->getBodyExpr();
+        $ret = $body instanceof DoNode && $body->getStmts() === [] ? $body->getRet() : $body;
+        if (!$ret instanceof CallNode || $node->getBindings() === []) {
+            return false;
+        }
+
+        $loc = $node->getStartSourceLocation();
+        $this->outputEmitter->emitContextPrefix($env, $loc);
+        $this->outputEmitter->emitStr('(', $loc);
+        foreach ($node->getBindings() as $i => $bindingNode) {
+            if ($i > 0) {
+                $this->outputEmitter->emitStr(' && ', $loc);
+            }
+
+            $this->outputEmitter->emitStr('(null !== (', $loc);
+            $this->outputEmitter->emitPhpVariable($bindingNode->getShadow(), $bindingNode->getStartSourceLocation());
+            $this->outputEmitter->emitStr(' = ', $loc);
+            $this->outputEmitter->emitNode($bindingNode->getInitExpr());
+            $this->outputEmitter->emitStr(') || true)', $loc);
+        }
+
+        $this->outputEmitter->emitStr(' ? ', $loc);
+        $this->outputEmitter->emitStr($this->outputEmitter->captureNodeAsExpression($ret), $ret->getStartSourceLocation());
+        $this->outputEmitter->emitStr(' : null)', $loc);
+        $this->outputEmitter->emitContextSuffix($env, $loc);
+
+        return true;
     }
 
     /**

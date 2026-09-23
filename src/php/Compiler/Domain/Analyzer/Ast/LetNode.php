@@ -21,8 +21,28 @@ final class LetNode extends AbstractNode
         private readonly AbstractNode $bodyExpr,
         private readonly bool $isLoop,
         ?SourceLocation $sourceLocation = null,
+        private readonly bool $inlineInExpression = false,
     ) {
         parent::__construct($env, $sourceLocation);
+    }
+
+    /**
+     * A copy whose bindings, in expression position, emit as assignments
+     * inside the expression rather than inside an IIFE. Only a producer that
+     * knows the bindings may land in the enclosing PHP scope sets it; see
+     * {@see \Phel\Compiler\Domain\Analyzer\TypeAnalyzer\Simplification\UpdateLiteralFnLowering}.
+     * A pass that rebuilds the node drops the flag, which only costs the IIFE.
+     */
+    public function withInlineInExpression(): self
+    {
+        return new self(
+            $this->getEnv(),
+            $this->bindings,
+            $this->bodyExpr,
+            $this->isLoop,
+            $this->getStartSourceLocation(),
+            true,
+        );
     }
 
     /**
@@ -41,5 +61,10 @@ final class LetNode extends AbstractNode
     public function isLoop(): bool
     {
         return $this->isLoop;
+    }
+
+    public function isInlineInExpression(): bool
+    {
+        return $this->inlineInExpression;
     }
 }

@@ -1,0 +1,14 @@
+--PHEL--
+(fn [m a b] (update m :k (fn [v x y] (php/+ v x y)) a b))
+--PHP--
+(function($m, $a, $b) {
+  static $__phel_const_0, $__phel_call_0, $__phel_call_1;
+  $ds_1_5 = $m;
+  $k_2_6 = ($__phel_const_0 ??= \Phel\Lang\Keyword::create("k"));
+  $x_3_7 = $a;
+  $x_4_8 = $b;
+  $v_9 = (($__phel_call_0 ??= \Phel::getDefinition("phel.core", "get")) instanceof \Phel\Lang\AbstractFn ? ($__phel_call_0 ??= \Phel::getDefinition("phel.core", "get"))->invokeArity2($ds_1_5, $k_2_6) : ($__phel_call_0 ??= \Phel::getDefinition("phel.core", "get"))->__invoke($ds_1_5, $k_2_6));
+  $x_10 = $x_3_7;
+  $y_11 = $x_4_8;
+  return ($__phel_call_1 ??= \Phel::getDefinition("phel.core", "assoc"))->__invoke($ds_1_5, $k_2_6, ($v_9 + $x_10 + $y_11));
+});

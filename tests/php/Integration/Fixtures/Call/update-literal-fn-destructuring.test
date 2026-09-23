@@ -1,0 +1,16 @@
+--PHEL--
+(fn [m] (update m :p (fn [[x y]] (php/+ x y))))
+--PHP--
+(function($m) {
+  static $__phel_const_0, $__phel_call_0, $__phel_call_1, $__phel_call_2, $__phel_call_3, $__phel_call_4, $__phel_call_5;
+  $ds_1_8 = $m;
+  $k_2_9 = ($__phel_const_0 ??= \Phel\Lang\Keyword::create("p"));
+  $__phel_3_10 = (($__phel_call_0 ??= \Phel::getDefinition("phel.core", "get")) instanceof \Phel\Lang\AbstractFn ? ($__phel_call_0 ??= \Phel::getDefinition("phel.core", "get"))->invokeArity2($ds_1_8, $k_2_9) : ($__phel_call_0 ??= \Phel::getDefinition("phel.core", "get"))->__invoke($ds_1_8, $k_2_9));
+  $__phel_4_11 = ($__phel_call_1 ??= \Phel::getDefinition("phel.core", "first"))->__invoke($__phel_3_10);
+  $__phel_5_12 = ($__phel_call_2 ??= \Phel::getDefinition("phel.core", "next"))->__invoke($__phel_3_10);
+  $x_13 = $__phel_4_11;
+  $__phel_6_14 = ($__phel_call_3 ??= \Phel::getDefinition("phel.core", "first"))->__invoke($__phel_5_12);
+  $__phel_7_15 = ($__phel_call_4 ??= \Phel::getDefinition("phel.core", "next"))->__invoke($__phel_5_12);
+  $y_16 = $__phel_6_14;
+  return ($__phel_call_5 ??= \Phel::getDefinition("phel.core", "assoc"))->__invoke($ds_1_8, $k_2_9, ($x_13 + $y_16));
+});
