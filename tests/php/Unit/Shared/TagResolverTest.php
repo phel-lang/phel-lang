@@ -17,11 +17,6 @@ use PHPUnit\Framework\TestCase;
 
 final class TagResolverTest extends TestCase
 {
-    protected function tearDown(): void
-    {
-        TagResolver::setUseAliasResolver(null);
-    }
-
     public function test_from_meta_null_meta_is_null(): void
     {
         self::assertNull(TagResolver::fromMeta(null));
@@ -146,31 +141,35 @@ final class TagResolverTest extends TestCase
         self::assertSame('DateTime', TagResolver::normalizeScalar('DateTime'));
     }
 
-    public function test_a_use_alias_resolves_a_bare_class_name(): void
+    public function test_imports_resolve_a_bare_class_name(): void
     {
-        TagResolver::setUseAliasResolver(
-            static fn(string $alias): ?string => $alias === 'Thing' ? '\\My\\Ns\\Thing' : null,
-        );
+        $imports = ['Thing' => 'My\\Ns\\Thing'];
 
-        self::assertSame('\\My\\Ns\\Thing', TagResolver::normalizeScalar(Symbol::create('Thing')));
-        self::assertSame('?\\My\\Ns\\Thing', TagResolver::normalizeScalar('?Thing'));
-        self::assertSame('DateTime', TagResolver::normalizeScalar('DateTime'), 'a name the namespace never imported stays as written');
+        self::assertSame('\\My\\Ns\\Thing', TagResolver::expandImports('Thing', $imports));
+        self::assertSame('?\\My\\Ns\\Thing', TagResolver::expandImports('?Thing', $imports));
+        self::assertSame('\\My\\Ns\\Thing|null', TagResolver::expandImports('Thing|null', $imports));
+        self::assertSame('DateTime', TagResolver::expandImports('DateTime', $imports), 'a name the namespace never imported stays as written');
     }
 
-    public function test_a_use_alias_wins_over_a_collection_alias(): void
+    public function test_an_import_wins_over_a_collection_alias(): void
     {
-        TagResolver::setUseAliasResolver(static fn(string $alias): ?string => $alias === 'map' ? '\\My\\Map' : null);
+        $tag = TagResolver::expandImports('map', ['map' => '\\My\\Map']);
 
-        self::assertSame('\\My\\Map', TagResolver::normalizeScalar('map'));
+        self::assertSame('\\My\\Map', TagResolver::normalizeScalar($tag));
         self::assertSame('\\' . PersistentVectorInterface::class, TagResolver::normalizeScalar('vector'));
     }
 
-    public function test_a_qualified_tag_bypasses_the_use_alias_resolver(): void
+    public function test_a_qualified_tag_bypasses_the_imports(): void
     {
-        TagResolver::setUseAliasResolver(static fn(string $alias): string => '\\Wrong\\Answer');
+        $imports = ['Symbol' => '\\Wrong\\Answer', 'Rooted' => '\\Wrong\\Answer'];
 
-        self::assertSame('\\' . Symbol::class, TagResolver::normalizeScalar('Phel.Lang.Symbol'));
-        self::assertSame('\\Already\\Rooted', TagResolver::normalizeScalar('\\Already\\Rooted'));
+        self::assertSame('Phel.Lang.Symbol', TagResolver::expandImports('Phel.Lang.Symbol', $imports));
+        self::assertSame('\\Already\\Rooted', TagResolver::expandImports('\\Already\\Rooted', $imports));
+    }
+
+    public function test_resolution_reads_no_imports_of_its_own(): void
+    {
+        self::assertSame('Moment', TagResolver::normalizeScalar('Moment'));
     }
 
     private function tagMeta(mixed $value): PersistentMapInterface
