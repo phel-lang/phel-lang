@@ -108,7 +108,7 @@ final class UpdateLiteralFnLoweringTest extends AbstractCompilerRuntimeTestCase
         yield 'a nested fn, whose captures name the param' => ['(fn [m] (update m :k (fn [v] (fn [] v))))'];
         yield 'an inferred return type' => ['(fn [m] (update m :k (fn [v] {:b v})))'];
         yield 'several body forms in expression position' => ['(fn [m] [(update m :k (fn [v] (str v) v))])'];
-        yield 'a collection with metadata' => ['(fn [m] (update m :k (fn [v] (identity ^{:m v} [v]))))'];
+        yield 'a collection with metadata' => ['(fn [m] (update m :k (fn [v] (php/count ^{:m v} [v]))))'];
         yield 'expression position' => ['(fn [m] [(update m :k (fn [v] (php/+ v 1)))])'];
         yield 'a call through a local' => ['(fn [m f] (update m :k (fn [v] (f v))))'];
         yield 'a loop' => ['(fn [m] (update m :k (fn [v] (loop [i 0] (if (php/< i v) (recur (php/+ i 1)) i)))))'];
@@ -246,9 +246,13 @@ final class UpdateLiteralFnLoweringTest extends AbstractCompilerRuntimeTestCase
 
     public static function providerMetadata(): iterable
     {
-        yield 'an extra arg whose metadata assigns a captured local' => ['((fn [] (let [x 1] [(update {:a 0} :a (fn [v y] x) (identity ^{:touch (php/= x 2)} [])) x])))'];
+        // No core fn wraps the literals: at -O2 the call inliner may splice
+        // `identity` and bind its argument in an IIFE, which moves the
+        // metadata's assignment out of the caller's frame on its own,
+        // whether `update` lowers or not.
+        yield 'an extra arg whose metadata assigns a captured local' => ['((fn [] (let [x 1] (update {:a 0} :a (fn [v y] x) ^{:touch (php/= x 2)} []))))'];
         yield 'body metadata reading the param' => ['(update {:a 1} :a (fn [v] (meta ^{:m v} [v])))'];
-        yield 'body metadata assigning a captured local' => ['((fn [] (let [x 1] [(update {:a 0} :a (fn [v] (identity ^{:m (php/= x 2)} [v]))) x])))'];
+        yield 'body metadata assigning a captured local' => ['((fn [] (let [x 1] [(update {:a 0} :a (fn [v] (php/count ^{:m (php/= x 2)} [v]))) x])))'];
     }
 
     public function test_the_spliced_body_does_not_type_the_enclosing_params(): void
