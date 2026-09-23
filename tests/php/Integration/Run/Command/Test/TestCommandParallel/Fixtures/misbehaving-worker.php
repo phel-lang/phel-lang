@@ -2,10 +2,12 @@
 
 declare(strict_types=1);
 
-// Stand-in for `bin/phel _test-worker`: exits without answering when handed
-// `app.dies-test`, prints a fatal error to stdout and exits on `app.fatal-test`,
-// writes to stdout outside a frame and hangs on `app.stray-test`, and answers
-// every other namespace with a pass.
+// Stand-in for `bin/phel _test-worker` that answers every namespace with a
+// pass, except:
+// - `app.noisy-test` first writes far more to stderr than a pipe holds, with a
+//   deadline, so a parent that never drains stderr gets a failure, not a hang;
+// - `app.fatal-test` prints a fatal error to stdout and exits;
+// - `app.stray-test` writes to stdout outside a frame and hangs.
 
 $readExactly = static function (int $length): ?string {
     $data = '';
@@ -21,10 +23,21 @@ $readExactly = static function (int $length): ?string {
     return $data;
 };
 
+stream_set_blocking(STDERR, false);
+
 while (($header = $readExactly(9)) !== null) {
     $request = json_decode((string) $readExactly((int) hexdec(substr($header, 0, 8))), true);
-    if ($request['ns'] === 'app.dies-test') {
-        exit(3);
+    $ok = true;
+
+    if ($request['ns'] === 'app.noisy-test') {
+        $pending = str_repeat("deprecated: noise\n", 15_000);
+        $deadline = microtime(true) + 5.0;
+        while ($pending !== '' && microtime(true) < $deadline) {
+            $written = fwrite(STDERR, $pending);
+            $written > 0 ? $pending = substr($pending, $written) : usleep(1_000);
+        }
+
+        $ok = $pending === '';
     }
 
     if ($request['ns'] === 'app.fatal-test') {
@@ -40,8 +53,8 @@ while (($header = $readExactly(9)) !== null) {
     $body = json_encode([
         'index' => $request['index'],
         'ns' => $request['ns'],
-        'ok' => true,
-        'output' => '',
+        'ok' => $ok,
+        'output' => $ok ? '' : 'stderr stayed full: the parent never drained it',
         'failed-tests' => [],
         'counts' => ['pass' => 1, 'total' => 1],
         'outcome' => 'verdict',

@@ -65,20 +65,6 @@ final class TestWorkerHandleTest extends TestCase
         self::assertSame('killed by signal 9', $worker->exitStatus());
     }
 
-    public function test_a_worker_flooding_stderr_runs_to_the_end_while_it_is_drained(): void
-    {
-        // Far past any pipe buffer: undrained, the write blocks forever.
-        $worker = $this->startWorker('fwrite(STDERR, str_repeat("x", 1_048_576) . "last line"); exit(0);');
-
-        for ($i = 0; $i < 500 && $worker->isAlive(); ++$i) {
-            $worker->drainStderr();
-            usleep(10_000);
-        }
-
-        self::assertSame('exit code 0', $worker->exitStatus(), 'the worker blocked writing to stderr');
-        self::assertStringEndsWith('last line', $worker->crashReport());
-    }
-
     private function startWorker(string $code): TestWorkerHandle
     {
         $pipes = [];

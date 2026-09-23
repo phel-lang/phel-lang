@@ -12,6 +12,7 @@ use function fread;
 use function fwrite;
 use function implode;
 use function is_resource;
+use function preg_match;
 use function proc_close;
 use function proc_get_status;
 use function proc_open;
@@ -283,6 +284,11 @@ final class TestWorkerHandle
     {
         $headerSize = WorkerFrame::headerSize();
         if ($this->corruptStdout || strlen($this->readBuffer) < $headerSize) {
+            return null;
+        }
+
+        if (preg_match(sprintf('/^[0-9a-f]{%d}\n/', $headerSize - 1), $this->readBuffer) !== 1) {
+            $this->corruptStdout = true;
             return null;
         }
 
