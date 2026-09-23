@@ -23,12 +23,16 @@ use Phel\Compiler\Domain\Analyzer\Ast\PhpVarNode;
 use Phel\Compiler\Domain\Analyzer\Ast\QuoteNode;
 use Phel\Compiler\Domain\Analyzer\Ast\SetNode;
 use Phel\Compiler\Domain\Analyzer\Ast\VectorNode;
+use Phel\Compiler\Domain\Emitter\OutputEmitter\NilAndBooleanCheckSpecialization;
 use Phel\Lang\Keyword;
 use ReflectionException;
 use ReflectionFunction;
 use ReflectionFunctionAbstract;
 use ReflectionMethod;
+use ReflectionNamedType;
 use ReflectionParameter;
+use ReflectionType;
+use ReflectionUnionType;
 
 use function array_all;
 use function array_any;
@@ -56,6 +60,11 @@ use function str_replace;
  *   {@see self::PURE_PHP_FUNCTIONS}, a keyword, or a global Phel fn with no
  *   `^:by-ref` param that is neither `^:dynamic` nor `^:redef`.
  *
+ * A `let` binding, `if` test or `truthy?` argument whose value may be an
+ * object the body built keeps the closure too: the closure let go of it
+ * before `assoc` ran, and the caller's frame holds it until after
+ * ({@see self::mayBeFreshObject()}).
+ *
  * Anything else, including every other PHP function, method calls,
  * `php/new`, the `php/aset` family, `php/ref`, `try`, `loop`, `foreach` and
  * calls through a local, keeps the closure.
@@ -76,6 +85,8 @@ final readonly class SpliceableBody
 
     private const array WRITING_OPERATORS = ['=', '=&'];
 
+    private const array SCALAR_TYPES = ['int', 'float', 'string', 'bool', 'true', 'false', 'null', 'void'];
+
     public function isSpliceable(AbstractNode $node): bool
     {
         return match (true) {
@@ -91,13 +102,79 @@ final readonly class SpliceableBody
             $node instanceof MapNode => !$node->getLiteralMeta() instanceof MapNode && $this->all($node->getKeyValues()),
             $node instanceof SetNode => !$node->getMeta() instanceof MapNode && $this->all($node->getValues()),
             $node instanceof PhpArrayGetNode => $this->all([$node->getArrayExpr(), ...$node->getAccessExprs()]),
-            $node instanceof IfNode => $this->all([$node->getTestExpr(), $node->getThenExpr(), $node->getElseExpr()]),
+            $node instanceof IfNode => !$this->mayBeFreshObject($node->getTestExpr())
+                && $this->all([$node->getTestExpr(), $node->getThenExpr(), $node->getElseExpr()]),
             $node instanceof DoNode => $this->all([...$node->getStmts(), $node->getRet()]),
             $node instanceof LetNode => !$node->isLoop()
-                && $this->all([...array_map(static fn(BindingNode $b): AbstractNode => $b->getInitExpr(), $node->getBindings()), $node->getBodyExpr()]),
-            $node instanceof CallNode => $this->isSafeCallee($node->getFn()) && $this->all($node->getArguments()),
+                && !array_any($this->initExprs($node), $this->mayBeFreshObject(...))
+                && $this->all([...$this->initExprs($node), $node->getBodyExpr()]),
+            $node instanceof CallNode => $this->isSafeCallee($node->getFn())
+                && !$this->storesAFreshObject($node)
+                && $this->all($node->getArguments()),
             default => false,
         };
+    }
+
+    /**
+     * `(truthy? x)` is emitted inline and stores `x` in `$__truthy` as an
+     * `if` test does, so its argument takes the same check.
+     */
+    private function storesAFreshObject(CallNode $node): bool
+    {
+        return NilAndBooleanCheckSpecialization::isTruthyCheck($node)
+            && $this->any($node->getArguments());
+    }
+
+    /**
+     * Whether the value may be an object the body created and nothing
+     * outside it holds, which a variable of the body keeps alive.
+     *
+     * The closure released its locals when it returned, before `assoc` ran.
+     * Spliced, a `let` binding and the variable an `if` test or an inline
+     * `truthy?` is stored in (`$__truthy`, `$__or` for `and` and `or`) live
+     * in the caller's frame until it returns, after `assoc`: a destructor
+     * would run later, and a target's `assoc` could see the object alive
+     * through a destructor or a `WeakReference`. A Phel fn or keyword call
+     * counts as one unless the fn declares a scalar return type, and so does
+     * any collection, fn or object literal. The param is not a concern: the
+     * runtime `update` binds the current value too, and holds it through its
+     * `assoc` as well.
+     */
+    private function mayBeFreshObject(AbstractNode $node): bool
+    {
+        return match (true) {
+            $node instanceof LocalVarNode,
+            $node instanceof GlobalVarNode => false,
+            // A keyword is interned. Any other object literal may be built
+            // where it stands, as a collection or fn literal always is.
+            $node instanceof LiteralNode,
+            $node instanceof QuoteNode => is_object($node->getValue()) && !$node->getValue() instanceof Keyword,
+            $node instanceof PhpArrayGetNode => $this->mayBeFreshObject($node->getArrayExpr()),
+            $node instanceof IfNode => $this->any([$node->getThenExpr(), $node->getElseExpr()]),
+            $node instanceof DoNode => $this->mayBeFreshObject($node->getRet()),
+            $node instanceof LetNode => $this->mayBeFreshObject($node->getBodyExpr()),
+            // `max` and `min` answer one of their arguments, and `+` joins
+            // two arrays, so the operands decide.
+            $node instanceof CallNode && $node->getFn() instanceof PhpVarNode => $this->any($node->getArguments()),
+            $node instanceof CallNode && $node->getFn() instanceof GlobalVarNode => !$this->returnsAScalar($node->getFn()),
+            default => true,
+        };
+    }
+
+    /**
+     * @return list<AbstractNode>
+     */
+    private function initExprs(LetNode $node): array
+    {
+        return array_map(static fn(BindingNode $b): AbstractNode => $b->getInitExpr(), $node->getBindings());
+    }
+
+    /**
+     * @param array<int, AbstractNode> $nodes
+     */
+    private function any(array $nodes): bool
+    {
+        return array_any($nodes, $this->mayBeFreshObject(...));
     }
 
     /**
@@ -142,20 +219,44 @@ final readonly class SpliceableBody
      */
     private function takesAReference(GlobalVarNode $fn): bool
     {
+        $reflection = $this->reflect($fn);
+
+        return !$reflection instanceof ReflectionFunctionAbstract || $this->anyByReference($reflection);
+    }
+
+    /**
+     * PHP enforces a declared return type, so a scalar one proves the call
+     * answers no object. A global that is not defined yet proves nothing.
+     */
+    private function returnsAScalar(GlobalVarNode $fn): bool
+    {
+        $type = $this->reflect($fn)?->getReturnType();
+        $types = match (true) {
+            $type instanceof ReflectionNamedType => [$type],
+            $type instanceof ReflectionUnionType => $type->getTypes(),
+            default => [],
+        };
+
+        return $types !== [] && array_all(
+            $types,
+            static fn(ReflectionType $t): bool => $t instanceof ReflectionNamedType && in_array($t->getName(), self::SCALAR_TYPES, true),
+        );
+    }
+
+    private function reflect(GlobalVarNode $fn): ?ReflectionFunctionAbstract
+    {
         $value = Phel::getDefinition(str_replace('-', '_', $fn->getNamespace()), $fn->getName()->getName());
         if (!is_object($value)) {
-            return true;
+            return null;
         }
 
         try {
-            $reflection = $value instanceof Closure
+            return $value instanceof Closure
                 ? new ReflectionFunction($value)
                 : new ReflectionMethod($value, '__invoke');
         } catch (ReflectionException) {
-            return true;
+            return null;
         }
-
-        return $this->anyByReference($reflection);
     }
 
     private function anyByReference(ReflectionFunctionAbstract $reflection): bool
