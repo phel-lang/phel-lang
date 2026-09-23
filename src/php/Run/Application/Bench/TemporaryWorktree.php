@@ -12,7 +12,6 @@ use function mkdir;
 use function random_bytes;
 use function realpath;
 use function rmdir;
-use function rtrim;
 use function scandir;
 use function sprintf;
 use function str_starts_with;
@@ -37,15 +36,18 @@ final class TemporaryWorktree
     private function __construct(
         private readonly ChildProcess $process,
         private readonly string $repositoryRoot,
-        private readonly string $prefix,
         private readonly string $root,
         public readonly string $commit,
     ) {}
 
     /**
-     * @throws AbBenchException when `$projectDir` is not in a git repository or `$ref` names no commit
+     * Resolves the ref and picks the temp path without creating anything, so
+     * a caller holding the result can clean up whatever {@see add()} got to
+     * before a signal arrived.
+     *
+     * @throws AbBenchException when `$projectDir` is not a git repository root or `$ref` names no commit
      */
-    public static function create(ChildProcess $process, string $projectDir, string $ref): self
+    public static function forRef(ChildProcess $process, string $projectDir, string $ref): self
     {
         [$status, $toplevel] = $process->capture(['git', 'rev-parse', '--show-toplevel'], $projectDir);
         if ($status !== 0 || trim($toplevel) === '') {
@@ -53,7 +55,9 @@ final class TemporaryWorktree
         }
 
         $repositoryRoot = realpath(trim($toplevel)) ?: trim($toplevel);
-        [, $prefix] = $process->capture(['git', 'rev-parse', '--show-prefix'], $projectDir);
+        if ($repositoryRoot !== $projectDir) {
+            throw new AbBenchException(sprintf('Run phel bench --ab from the repository root, %s.', $repositoryRoot));
+        }
 
         // A leading dash would reach git as an option rather than a ref.
         [$status, $commit] = str_starts_with($ref, '-')
@@ -63,24 +67,27 @@ final class TemporaryWorktree
             throw new AbBenchException(sprintf('git does not know the ref "%s".', $ref));
         }
 
-        $root = sys_get_temp_dir() . '/phel-bench-ab-' . bin2hex(random_bytes(6));
-        if (!@mkdir($root, 0o755, true) && !is_dir($root)) {
-            throw new AbBenchException('Cannot create the temporary directory ' . $root);
+        $tempDir = realpath(sys_get_temp_dir()) ?: sys_get_temp_dir();
+
+        return new self($process, $repositoryRoot, $tempDir . '/phel-bench-ab-' . bin2hex(random_bytes(6)), trim($commit));
+    }
+
+    /**
+     * @throws AbBenchException
+     */
+    public function add(string $ref): void
+    {
+        if (!@mkdir($this->root, 0o755, true) && !is_dir($this->root)) {
+            throw new AbBenchException('Cannot create the temporary directory ' . $this->root);
         }
 
-        $worktree = new self($process, $repositoryRoot, rtrim(trim($prefix), '/'), realpath($root) ?: $root, trim($commit));
-
-        [$status, , $stderr] = $process->capture(
-            ['git', 'worktree', 'add', '--detach', '--quiet', $worktree->treePath(), $worktree->commit],
-            $repositoryRoot,
+        [$status, , $stderr] = $this->process->capture(
+            ['git', 'worktree', 'add', '--detach', '--quiet', $this->treePath(), $this->commit],
+            $this->repositoryRoot,
         );
         if ($status !== 0) {
-            $worktree->remove();
-
             throw new AbBenchException(sprintf('Cannot create a worktree at "%s": %s', $ref, trim($stderr)));
         }
-
-        return $worktree;
     }
 
     /**
@@ -94,14 +101,6 @@ final class TemporaryWorktree
     public function treePath(): string
     {
         return $this->root . '/tree';
-    }
-
-    /**
-     * Side A's counterpart of the directory the command runs in.
-     */
-    public function projectDir(): string
-    {
-        return $this->prefix === '' ? $this->treePath() : $this->treePath() . '/' . $this->prefix;
     }
 
     /**
@@ -122,9 +121,8 @@ final class TemporaryWorktree
     /**
      * The file's content at the ref, or null when it does not exist there.
      */
-    public function contentAtRef(string $relativeToProject): ?string
+    public function contentAtRef(string $path): ?string
     {
-        $path = $this->prefix === '' ? $relativeToProject : $this->prefix . '/' . $relativeToProject;
         [$status, $content] = $this->process->capture(['git', 'show', $this->commit . ':' . $path], $this->repositoryRoot);
 
         return $status === 0 ? $content : null;
@@ -135,8 +133,6 @@ final class TemporaryWorktree
         if ($this->removed) {
             return;
         }
-
-        $this->removed = true;
 
         if (file_exists($this->treePath())) {
             // Twice: once for local changes, once more for a locked worktree.
@@ -152,6 +148,8 @@ final class TemporaryWorktree
         }
 
         $this->removeRecursively($this->root);
+        // Set last: a signal arriving mid-removal runs the whole removal again.
+        $this->removed = true;
     }
 
     /**

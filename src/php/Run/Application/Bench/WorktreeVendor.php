@@ -44,7 +44,7 @@ final readonly class WorktreeVendor
     public function prepare(string $projectDir, TemporaryWorktree $worktree, string $ref, OutputInterface $output): void
     {
         $vendor = realpath($projectDir . '/vendor');
-        $target = $worktree->projectDir() . '/vendor';
+        $target = $worktree->treePath() . '/vendor';
         if ($vendor === false || !is_dir($vendor) || file_exists($target)) {
             return;
         }
@@ -60,7 +60,7 @@ final readonly class WorktreeVendor
         $output->writeln(sprintf('composer.lock differs at %s: running composer install --no-dev in the worktree.', $ref));
         [$status, , $stderr] = $this->process->capture(
             ['composer', 'install', '--no-dev', '--quiet', '--no-interaction'],
-            $worktree->projectDir(),
+            $worktree->treePath(),
         );
         if ($status !== 0) {
             throw new AbBenchException(sprintf('composer install failed in the worktree of %s: %s', $ref, trim($stderr)));

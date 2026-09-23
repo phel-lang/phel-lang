@@ -168,6 +168,17 @@ final class BenchAbCommandTest extends TestCase
         self::assertSame(1, $this->worktreeCount());
     }
 
+    public function test_it_must_run_from_the_repository_root(): void
+    {
+        $this->commit(self::FAST_SPEED, self::BENCH);
+
+        [$exitCode, $output] = $this->runPhel(['bench', '--ab=HEAD'], '/bench');
+
+        self::assertSame(1, $exitCode, $output);
+        self::assertStringContainsString('Run phel bench --ab from the repository root', $output);
+        self::assertSame(1, $this->worktreeCount());
+    }
+
     /**
      * @param list<string> $arguments
      */
@@ -232,11 +243,11 @@ final class BenchAbCommandTest extends TestCase
      *
      * @return array{0: int, 1: string}
      */
-    private function runPhel(array $arguments): array
+    private function runPhel(array $arguments, string $subdirectory = ''): array
     {
         $command = sprintf(
             'cd %s && php %s %s 2>&1',
-            escapeshellarg($this->projectDir),
+            escapeshellarg($this->projectDir . $subdirectory),
             escapeshellarg($this->repoRoot . '/bin/phel'),
             implode(' ', array_map(escapeshellarg(...), $arguments)),
         );

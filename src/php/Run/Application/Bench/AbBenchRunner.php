@@ -52,10 +52,11 @@ final class AbBenchRunner
     {
         $projectDir = realpath($projectDir) ?: $projectDir;
         $binary = realpath($binary) ?: $binary;
-        $worktree = TemporaryWorktree::create($this->process, $projectDir, $options->ref);
+        $worktree = TemporaryWorktree::forRef($this->process, $projectDir, $options->ref);
         $this->worktree = $worktree;
 
         try {
+            $worktree->add($options->ref);
             $output->writeln(sprintf(
                 'A: %s (%s), in %s',
                 $options->ref,
@@ -74,7 +75,7 @@ final class AbBenchRunner
             for ($pair = 1; $pair <= $options->pairs; ++$pair) {
                 $output->writeln(sprintf('pair %d/%d', $pair, $options->pairs));
                 $comparison->addPair(
-                    $this->runSide('A', $pair, $sideA, $worktree->projectDir(), $worktree),
+                    $this->runSide('A', $pair, $sideA, $worktree->treePath(), $worktree),
                     $this->runSide('B', $pair, $sideB, $projectDir, $worktree),
                 );
             }

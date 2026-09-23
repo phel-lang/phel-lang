@@ -99,7 +99,8 @@ changes included. The command runs A, then B, once per pair (`--pairs`, default
 5), each as its own `phel bench` process with the same `--filter`, `--revs`,
 `--iterations` and `--warmup`. Side A runs from a temporary `git worktree` under
 the system temp dir, which is removed when the run ends, fails or is
-interrupted. Your working tree is never checked out or stashed.
+interrupted. Your working tree is never checked out or stashed. Run it from the
+repository root.
 
 ```
 benchmark                          a-mean   b-mean  delta signs
