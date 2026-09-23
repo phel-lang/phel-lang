@@ -9,12 +9,16 @@ use PHPUnit\Framework\TestCase;
 
 final class OpcacheWorkerFlagsTest extends TestCase
 {
-    public function test_returns_enable_cli_and_file_cache_flags_when_opcache_is_loaded(): void
+    public function test_returns_enable_cli_file_cache_and_jit_off_flags_when_opcache_is_loaded(): void
     {
         $flags = OpcacheWorkerFlags::forFileCache(true, '/var/phel/opcache-workers');
 
         self::assertSame(
-            ['-d', 'opcache.enable_cli=1', '-d', 'opcache.file_cache=/var/phel/opcache-workers'],
+            [
+                '-d', 'opcache.enable_cli=1',
+                '-d', 'opcache.file_cache=/var/phel/opcache-workers',
+                '-d', 'opcache.jit=disable',
+            ],
             $flags,
         );
     }
