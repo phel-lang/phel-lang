@@ -26,7 +26,8 @@ use const NAN;
  * copy (#3321), on every persistent collection with keyed writes. "Already
  * holds" means identical (`===`) and not merely `=`: a value that is equal but
  * distinguishable, a signed zero or a `BigInt` over an `int` or a vector
- * carrying different metadata, is still written.
+ * carrying different metadata, is still written. So is any PHP array, since
+ * `===` walks arrays rather than comparing them by identity.
  *
  * Each flavour is a closure building a collection that holds `$stored` under
  * the returned key, so every scenario runs against every storage shape: the
@@ -236,6 +237,78 @@ final class PutUnchangedValueTest extends TestCase
         self::assertCount($count, $transient);
         self::assertSame(-INF, fdiv(1.0, $transient->find($key)));
         self::assertSame(-INF, fdiv(1.0, $transient->persistent()->find($key)));
+    }
+
+    #[DataProvider('provideFlavours')]
+    public function test_a_recursive_array_over_an_equal_recursive_array_is_written(Closure $holding): void
+    {
+        [$stored, $new] = self::recursiveArrays();
+        [$coll, $key] = $holding($stored);
+
+        $result = $this->put($coll, $key, $new);
+
+        self::assertNotSame($coll, $result);
+        self::assertSame('new', $this->find($result, $key)[2]);
+        self::assertSame('stored', $this->find($coll, $key)[2]);
+    }
+
+    #[DataProvider('provideFlavours')]
+    public function test_an_array_holding_other_references_to_equal_values_is_written(Closure $holding): void
+    {
+        $x = 1;
+        $y = 1;
+        [$coll, $key] = $holding([&$x]);
+
+        $result = $this->put($coll, $key, [&$y]);
+        ++$y;
+
+        self::assertNotSame($coll, $result);
+        self::assertSame(2, $this->find($result, $key)[0]);
+        self::assertSame(1, $this->find($coll, $key)[0]);
+    }
+
+    #[DataProvider('provideTransientFlavours')]
+    public function test_a_transient_writes_a_recursive_array_over_an_equal_one(Closure $holding): void
+    {
+        [$stored, $new] = self::recursiveArrays();
+        /** @var TransientMapInterface<mixed, mixed> $transient */
+        [$transient, $key] = $holding($stored);
+
+        $transient = $transient->put($key, $new);
+
+        self::assertSame('new', $transient->find($key)[2]);
+    }
+
+    #[DataProvider('provideTransientFlavours')]
+    public function test_a_transient_writes_an_array_holding_other_references(Closure $holding): void
+    {
+        $x = 1;
+        $y = 1;
+        /** @var TransientMapInterface<mixed, mixed> $transient */
+        [$transient, $key] = $holding([&$x]);
+
+        $transient = $transient->put($key, [&$y]);
+        ++$y;
+
+        self::assertSame(2, $transient->find($key)[0]);
+    }
+
+    /**
+     * Two distinct arrays that `===` cannot compare: both recurse at index 1,
+     * before the marker at index 2 that tells them apart.
+     *
+     * @return array{0: array<int, mixed>, 1: array<int, mixed>}
+     */
+    private static function recursiveArrays(): array
+    {
+        $stored = [1];
+        $stored[] = &$stored;
+        $stored[] = 'stored';
+        $new = [1];
+        $new[] = &$new;
+        $new[] = 'new';
+
+        return [$stored, $new];
     }
 
     private function put(mixed $coll, mixed $key, mixed $value): mixed

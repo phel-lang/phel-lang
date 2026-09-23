@@ -16,6 +16,7 @@ use Traversable;
 
 use function array_slice;
 use function count;
+use function is_array;
 use function sprintf;
 
 /**
@@ -174,7 +175,9 @@ final class PersistentVector extends AbstractPersistentVector
      *
      * Writing the value an index already holds returns the vector itself, see
      * {@see ValueIdentity}. The inline `===` in front of it keeps the ordinary
-     * write, a different value, from paying for the call.
+     * write, a different value, from paying for the call, and the `is_array`
+     * before that keeps `===` off arrays, which it walks instead of comparing
+     * by identity (it throws on two recursive ones).
      *
      * @param int $i     the index in the vector
      * @param T   $value The new value
@@ -187,7 +190,7 @@ final class PersistentVector extends AbstractPersistentVector
         if ($i >= 0 && $i < $this->count) {
             if ($i >= $this->tailOffset()) {
                 $current = $this->tail[$i & self::INDEX_MASK];
-                if ($current === $value && ValueIdentity::isSame($current, $value)) {
+                if (!is_array($value) && $current === $value && ValueIdentity::isSame($current, $value)) {
                     return $this;
                 }
 
@@ -466,7 +469,7 @@ final class PersistentVector extends AbstractPersistentVector
         $ret = $node;
         if ($level === 0) {
             $current = $node[$i & self::INDEX_MASK];
-            if ($current === $value && ValueIdentity::isSame($current, $value)) {
+            if (!is_array($value) && $current === $value && ValueIdentity::isSame($current, $value)) {
                 return null;
             }
 

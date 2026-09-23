@@ -31,7 +31,6 @@ final class ValueIdentityTest extends TestCase
         yield 'keyword' => [Keyword::create('k'), Keyword::create('k')];
         yield 'same object' => [$object, $object];
         yield 'same vector' => [$vector, $vector];
-        yield 'equal php arrays' => [[1, 2], [1, 2]];
     }
 
     public static function provideDifferentValues(): iterable
@@ -50,6 +49,10 @@ final class ValueIdentityTest extends TestCase
             $factory->persistentVectorFromArray([1, 2]),
             $factory->persistentVectorFromArray([1, 2]),
         ];
+        yield 'equal php arrays' => [[1, 2], [1, 2]];
+        yield 'the same php array' => [$array = [1, 2], $array];
+        yield 'php array over a scalar' => [1, [1]];
+        yield 'scalar over a php array' => [[1], 1];
     }
 
     #[DataProvider('provideSameValues')]
@@ -62,5 +65,23 @@ final class ValueIdentityTest extends TestCase
     public function test_distinguishable_values_are_not_the_same(mixed $stored, mixed $new): void
     {
         self::assertFalse(ValueIdentity::isSame($stored, $new));
+    }
+
+    public function test_distinct_recursive_arrays_are_not_the_same_and_do_not_throw(): void
+    {
+        $stored = [1];
+        $stored[] = &$stored;
+        $new = [1];
+        $new[] = &$new;
+
+        self::assertFalse(ValueIdentity::isSame($stored, $new));
+    }
+
+    public function test_arrays_holding_distinct_references_to_equal_values_are_not_the_same(): void
+    {
+        $x = 1;
+        $y = 1;
+
+        self::assertFalse(ValueIdentity::isSame([&$x], [&$y]));
     }
 }
