@@ -21,6 +21,7 @@ use Phel\Lang\SourceLocation;
 use Phel\Lang\Symbol;
 use Phel\Shared\TagResolver;
 
+use function array_all;
 use function array_slice;
 use function count;
 
@@ -39,9 +40,10 @@ use function count;
  * It works on the call as analysed: the fn was analysed once, in its own
  * environment, so macros in the body saw the `&env` they always saw, the
  * params stay untyped as a closure's are, and declining costs nothing but
- * building the ordinary call. The params keep their names and become the
- * `let` bindings, so a param named like a local of the enclosing scope
- * declines rather than clobber that PHP variable.
+ * building the ordinary call. The params become `let` bindings under fresh
+ * PHP names ({@see ParamRenamer}), so nothing under a source name is left in
+ * the caller's frame, and extra arguments must be on the same allowlist as
+ * the body, since the closure captured the enclosing locals before they ran.
  *
  * A `let` in expression position normally emits as an IIFE, which would cost
  * what the closure cost. The lowered one is flagged to emit its bindings as
@@ -98,32 +100,39 @@ final readonly class UpdateLiteralFnLowering
 
         $fn = $args[2];
         $extraArgs = array_slice($args, 3);
-        if (!$fn instanceof FnNode || !$this->isSpliceable($fn, count($extraArgs), $env)) {
+        if (!$fn instanceof FnNode || !$this->isSpliceable($fn, $extraArgs)) {
             return null;
         }
 
         return $this->lower($args[0], $args[1], $fn, $extraArgs, $env, $analyzer, $location);
     }
 
-    private function isSpliceable(FnNode $fn, int $extraArgCount, NodeEnvironmentInterface $env): bool
+    /**
+     * @param list<AbstractNode> $extraArgs
+     */
+    private function isSpliceable(FnNode $fn, array $extraArgs): bool
     {
         if ($fn->isVariadic()
             || $fn->getRecurs()
             || $fn->getName() instanceof Symbol
-            || count($fn->getParams()) !== $extraArgCount + 1
+            || count($fn->getParams()) !== count($extraArgs) + 1
             || $this->hasDeclaredReturnType($fn)
         ) {
             return false;
         }
 
-        $enclosing = $this->enclosingNames($env);
         foreach ($fn->getParams() as $param) {
-            if (isset($enclosing[$param->getName()]) || TagResolver::fromMeta($param->getMeta()) !== null) {
+            if (TagResolver::fromMeta($param->getMeta()) !== null) {
                 return false;
             }
         }
 
-        return $this->spliceableBody->isSpliceable($fn->getBody());
+        // The closure captured the enclosing locals before the extra
+        // arguments ran; spliced, the body reads them after. That only
+        // differs when an argument can change one, which nothing on the
+        // allowlist can.
+        return $this->spliceableBody->isSpliceable($fn->getBody())
+            && array_all($extraArgs, $this->spliceableBody->isSpliceable(...));
     }
 
     /**
@@ -141,27 +150,6 @@ final readonly class UpdateLiteralFnLowering
     }
 
     /**
-     * Every PHP variable name the enclosing scope may hold: each visible
-     * local and the shadow it emits as. A param reusing one would overwrite
-     * it, where the closure had its own.
-     *
-     * @return array<string, true>
-     */
-    private function enclosingNames(NodeEnvironmentInterface $env): array
-    {
-        $names = [];
-        foreach ($env->getLocals() as $local) {
-            $names[$local->getName()] = true;
-            $shadow = $env->getShadowed($local);
-            if ($shadow instanceof Symbol) {
-                $names[$shadow->getName()] = true;
-            }
-        }
-
-        return $names;
-    }
-
-    /**
      * @param list<AbstractNode> $extraArgs
      */
     private function lower(
@@ -172,7 +160,20 @@ final readonly class UpdateLiteralFnLowering
         NodeEnvironmentInterface $env,
         AnalyzerInterface $analyzer,
         ?SourceLocation $location,
-    ): LetNode {
+    ): ?LetNode {
+        // Each param gets a fresh PHP name, as a `let` binding would, so no
+        // variable under its source name is left in the caller's frame.
+        $params = $fn->getParams();
+        $fresh = [];
+        foreach ($params as $param) {
+            $fresh[$param->getName()] = Symbol::gen($param->getName() . '_');
+        }
+
+        $body = new ParamRenamer($fresh)->rename($fn->getBody());
+        if (!$body instanceof AbstractNode) {
+            return null;
+        }
+
         $expressionEnv = $env->withExpressionContext();
         $targetSym = Symbol::gen('ds_');
         $keySym = Symbol::gen('k_');
@@ -189,22 +190,20 @@ final readonly class UpdateLiteralFnLowering
             $bindings[] = new BindingNode($env, $extraSym, $extraSym, $arg, $location);
         }
 
-        $params = $fn->getParams();
         $read = new CallNode(
             $expressionEnv,
             $this->coreFn('get', $expressionEnv, $analyzer),
             [new LocalVarNode($expressionEnv, $targetSym, $location), new LocalVarNode($expressionEnv, $keySym, $location)],
             $location,
         );
-        $bindings[] = new BindingNode($env, $params[0], $params[0], $read, $location);
+        $bindings[] = new BindingNode($env, $params[0], $fresh[$params[0]->getName()], $read, $location);
         foreach ($extraSyms as $i => $extraSym) {
             $param = $params[$i + 1];
-            $bindings[] = new BindingNode($env, $param, $param, new LocalVarNode($expressionEnv, $extraSym, $location), $location);
+            $bindings[] = new BindingNode($env, $param, $fresh[$param->getName()], new LocalVarNode($expressionEnv, $extraSym, $location), $location);
         }
 
         // The body was analysed as the fn's return value; its leading forms
         // stay statements, and only the value moves into the `assoc`.
-        $body = $fn->getBody();
         $statements = $body instanceof DoNode ? $body->getStmts() : [];
         $value = $body instanceof DoNode ? $body->getRet() : $body;
 

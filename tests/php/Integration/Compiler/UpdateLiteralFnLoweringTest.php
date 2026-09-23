@@ -62,7 +62,6 @@ final class UpdateLiteralFnLoweringTest extends AbstractCompilerRuntimeTestCase
         yield 'past the fixed arities' => ['(fn [m] (update m :k (fn [v a b c d] (php/+ v a b c d)) 1 2 3 4))'];
         yield 'a destructured param' => ['(fn [m] (update m :k (fn [[v w]] [w v])))'];
         yield 'several body forms' => ['(fn [m] (update m :k (fn [v] (println v) v)))'];
-        yield 'a nested fn capturing the param' => ['(fn [m] (update m :k (fn [v] (fn [] v))))'];
         yield 'php/max and an or' => ['(fn [m dt] (update m :t (fn [s] (php/max 0.0 (php/- (or s 0.0) dt)))))'];
         yield 'a keyword lookup' => ['(fn [m] (update m :k (fn [v] (:n v))))'];
         yield 'a global fn' => ['(fn [m] (update m :k (fn [v] (inc v))))'];
@@ -108,6 +107,7 @@ final class UpdateLiteralFnLoweringTest extends AbstractCompilerRuntimeTestCase
         yield 'compact' => ['(fn [m flag] (update m :k (fn [v] (php/compact "flag"))))'];
         yield 'a php function outside the allowlist' => ['(fn [m] (update m :k (fn [v] (php/str_repeat v 2))))'];
         yield 'a method call' => ['(fn [m o] (update m :k (fn [v] (.format o v))))'];
+        yield 'a nested fn, whose captures name the param' => ['(fn [m] (update m :k (fn [v] (fn [] v))))'];
         yield 'a call through a local' => ['(fn [m f] (update m :k (fn [v] (f v))))'];
         yield 'a loop' => ['(fn [m] (update m :k (fn [v] (loop [i 0] (if (php/< i v) (recur (php/+ i 1)) i)))))'];
         yield 'try' => ['(fn [m] (update m :k (fn [v] (try v (catch \\Exception e 0)))))'];
@@ -192,6 +192,26 @@ final class UpdateLiteralFnLoweringTest extends AbstractCompilerRuntimeTestCase
         $phel = '(let [x 5] (update {:a 1} :a (fn [v] (vec (php/func_get_args)))))';
 
         self::assertSame($this->evalAt($phel, 0), $this->evalAt($phel, 2));
+    }
+
+    public function test_the_body_captures_locals_before_the_extra_args_run(): void
+    {
+        $phel = '(let [x 1] [(update {:a 0} :a (fn [v y] x) (php/= x 2)) x])';
+
+        self::assertSame($this->evalAt($phel, 0), $this->evalAt($phel, 2));
+        self::assertStringContainsString('"update"', $this->compileInBuildMode('(fn [x] [(update {:a 0} :a (fn [v y] x) (php/= x 2)) x])'));
+    }
+
+    #[DataProvider('providerFrameProbes')]
+    public function test_no_source_named_variable_is_left_in_the_frame(string $phel): void
+    {
+        self::assertSame($this->evalAt($phel, 0), $this->evalAt($phel, 2));
+    }
+
+    public static function providerFrameProbes(): iterable
+    {
+        yield 'expression position' => ['((fn [] [(update {:a 1} :a (fn [v] v)) (php/array_key_exists "v" (php/get_defined_vars))]))'];
+        yield 'a binding init with an extra arg' => ['((fn [] (let [r (update {:a 1} :a (fn [v w] (php/+ v w)) 2)] [r (php/array_key_exists "w" (php/get_defined_vars))])))'];
     }
 
     public function test_a_macro_in_the_body_sees_the_same_env_at_both_levels(): void
