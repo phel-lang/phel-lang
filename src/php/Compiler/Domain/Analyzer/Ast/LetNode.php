@@ -21,19 +21,20 @@ final class LetNode extends AbstractNode
         private readonly AbstractNode $bodyExpr,
         private readonly bool $isLoop,
         ?SourceLocation $sourceLocation = null,
-        private readonly bool $inlineInExpression = false,
+        private readonly ?int $callerBindingCount = null,
     ) {
         parent::__construct($env, $sourceLocation);
     }
 
     /**
-     * A copy whose bindings, in expression position, emit as assignments
-     * inside the expression rather than inside an IIFE. Only a producer that
-     * knows the bindings may land in the enclosing PHP scope sets it; see
-     * {@see \Phel\Compiler\Domain\Analyzer\TypeAnalyzer\Simplification\UpdateLiteralFnLowering}.
-     * A pass that rebuilds the node drops the flag, which only costs the IIFE.
+     * A copy marking where a spliced fn body starts: the first `$count`
+     * bindings are the caller's code, and every later binding and the body
+     * came from a literal `fn` spliced in place of a closure
+     * ({@see \Phel\Compiler\Domain\Analyzer\TypeAnalyzer\Simplification\UpdateLiteralFnLowering}).
+     * A walker that stops at a fn body, as param type inference does, stops
+     * there too. A pass that rebuilds the node must carry the mark, or decline.
      */
-    public function withInlineInExpression(): self
+    public function withSplicedFnBodyAfter(int $count): self
     {
         return new self(
             $this->getEnv(),
@@ -41,7 +42,7 @@ final class LetNode extends AbstractNode
             $this->bodyExpr,
             $this->isLoop,
             $this->getStartSourceLocation(),
-            true,
+            $count,
         );
     }
 
@@ -63,8 +64,12 @@ final class LetNode extends AbstractNode
         return $this->isLoop;
     }
 
-    public function isInlineInExpression(): bool
+    /**
+     * How many leading bindings are the caller's own code, or `null` when
+     * nothing in this `let` was spliced from a fn body.
+     */
+    public function getCallerBindingCount(): ?int
     {
-        return $this->inlineInExpression;
+        return $this->callerBindingCount;
     }
 }

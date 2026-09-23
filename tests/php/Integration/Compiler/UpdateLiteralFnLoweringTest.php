@@ -57,7 +57,6 @@ final class UpdateLiteralFnLoweringTest extends AbstractCompilerRuntimeTestCase
     public static function providerLoweredShapes(): iterable
     {
         yield 'return position' => ['(fn [m] (update m :k (fn [v] (php/+ v 1))))'];
-        yield 'expression position' => ['(fn [m] [(update m :k (fn [v] (php/+ v 1)))])'];
         yield 'extra arguments' => ['(fn [m a b] (update m :k (fn [v x y] (php/+ v x y)) a b))'];
         yield 'past the fixed arities' => ['(fn [m] (update m :k (fn [v a b c d] (php/+ v a b c d)) 1 2 3 4))'];
         yield 'a destructured param' => ['(fn [m] (update m :k (fn [[v w]] (php/- w v))))'];
@@ -110,6 +109,7 @@ final class UpdateLiteralFnLoweringTest extends AbstractCompilerRuntimeTestCase
         yield 'an inferred return type' => ['(fn [m] (update m :k (fn [v] {:b v})))'];
         yield 'several body forms in expression position' => ['(fn [m] [(update m :k (fn [v] (str v) v))])'];
         yield 'a collection with metadata' => ['(fn [m] (update m :k (fn [v] (identity ^{:m v} [v]))))'];
+        yield 'expression position' => ['(fn [m] [(update m :k (fn [v] (php/+ v 1)))])'];
         yield 'a call through a local' => ['(fn [m f] (update m :k (fn [v] (f v))))'];
         yield 'a loop' => ['(fn [m] (update m :k (fn [v] (loop [i 0] (if (php/< i v) (recur (php/+ i 1)) i)))))'];
         yield 'try' => ['(fn [m] (update m :k (fn [v] (try v (catch \\Exception e 0)))))'];
@@ -249,6 +249,29 @@ final class UpdateLiteralFnLoweringTest extends AbstractCompilerRuntimeTestCase
         yield 'an extra arg whose metadata assigns a captured local' => ['((fn [] (let [x 1] [(update {:a 0} :a (fn [v y] x) (identity ^{:touch (php/= x 2)} [])) x])))'];
         yield 'body metadata reading the param' => ['(update {:a 1} :a (fn [v] (meta ^{:m v} [v])))'];
         yield 'body metadata assigning a captured local' => ['((fn [] (let [x 1] [(update {:a 0} :a (fn [v] (identity ^{:m (php/= x 2)} [v]))) x])))'];
+    }
+
+    public function test_the_spliced_body_does_not_type_the_enclosing_params(): void
+    {
+        $defn = '(defn typed-probe [x] (update {:a 1} :a (fn [v] (let [ignored (php/. x "!")] v))))';
+        $this->compilerFacade->eval($defn, new CompileOptions()->setOptimizationLevel(2));
+
+        self::assertSame('{:a 1}', $this->evalAt('(typed-probe 42)', 2));
+        self::assertStringNotContainsString('string $x', $this->compileInBuildMode($defn));
+    }
+
+    public function test_an_expression_position_update_leaves_no_temporaries_in_the_frame(): void
+    {
+        $phel = '((fn [m] (let [r [(update m :a (fn [v] (php/+ v 1)))]] [r (php/count (php/get_defined_vars))])) {:a 1})';
+
+        self::assertSame($this->evalAt($phel, 0), $this->evalAt($phel, 2));
+    }
+
+    public function test_an_update_in_a_try_body_keeps_the_closure(): void
+    {
+        $phel = '(fn [m] (try (update m :a (fn [v] (php/+ v 1))) (catch \\Exception e (php/get_defined_vars))))';
+
+        self::assertStringContainsString('"update"', $this->compileInBuildMode($phel));
     }
 
     #[DataProvider('providerFrameProbes')]

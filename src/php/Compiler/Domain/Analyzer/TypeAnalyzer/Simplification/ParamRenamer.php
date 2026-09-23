@@ -34,7 +34,8 @@ use function count;
  * `get_defined_vars` could find them; a `let` would have left a fresh name
  * there instead. So every reference to a param becomes a reference to its
  * fresh name, and every environment that still sees the param maps it to
- * that name, which is what an IIFE's `use(...)` clause reads.
+ * that name, which is what an IIFE's `use(...)` clause reads (the body's
+ * value may be re-homed into one, {@see ExpressionContextRebuilder}).
  *
  * Only the node types {@see SpliceableBody} accepts are rebuilt. A nested
  * `fn` is not: its body and its capture list name the param, and rewriting
@@ -141,7 +142,7 @@ final readonly class ParamRenamer
             return null;
         }
 
-        return new LetNode($env, $bindings, $body, false, $node->getStartSourceLocation(), $node->isInlineInExpression());
+        return new LetNode($env, $bindings, $body, false, $node->getStartSourceLocation(), $node->getCallerBindingCount());
     }
 
     /**

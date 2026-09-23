@@ -44,14 +44,16 @@ use function count;
  * the caller's frame, and extra arguments must be on the same allowlist as
  * the body, since the closure captured the enclosing locals before they ran.
  *
- * A `let` in expression position normally emits as an IIFE, which would cost
- * what the closure cost. The lowered one is flagged to emit its bindings as
- * assignments inside the expression instead ({@see LetNode::isInlineInExpression()}).
+ * The bindings land in the caller's PHP frame, so it lowers only in return
+ * position outside a `try`, where that frame ends at once. The `let` marks
+ * where the spliced body starts ({@see LetNode::withSplicedFnBodyAfter()}),
+ * so param type inference of the enclosing fn skips it as it skips a fn.
  *
  * It is direct linking, so it runs only at optimization level 2 and never
  * on a `:redef` `update`, like {@see CallInliner}.
  *
- * Shapes that keep the runtime call: a call in statement position, a fn
+ * Shapes that keep the runtime call: a call in expression or statement
+ * position or in a `try`, a fn
  * value, several arities, a rest param, a named fn, a param count the call
  * does not fill, a tagged param or any return type, declared or inferred
  * (the closure declares it, and PHP enforces and coerces it), `recur` aimed at the fn, and a body with any node outside
@@ -91,9 +93,13 @@ final readonly class UpdateLiteralFnLowering
             return null;
         }
 
-        // A discarded result gains nothing, and a typed `->put()` in
-        // statement position trips the `#[\NoDiscard]` on it.
-        if ($env->isContext(NodeEnvironment::CONTEXT_STATEMENT) || count($args) < 3) {
+        // The bindings land in the caller's PHP frame, so only where that
+        // frame ends right after: a `return` outside any `try`, whose `catch`
+        // or `finally` would still run in it. In expression position they
+        // would stay visible to the rest of the frame (`get_defined_vars`)
+        // and keep the target alive; in statement position the result is
+        // discarded anyway.
+        if (!$env->isContext(NodeEnvironment::CONTEXT_RETURN) || $env->isWithinTry() || count($args) < 3) {
             return null;
         }
 
@@ -163,13 +169,6 @@ final readonly class UpdateLiteralFnLowering
         // stay statements, and only the value moves into the `assoc`.
         $statements = $body instanceof DoNode ? $body->getStmts() : [];
 
-        // In expression position only a statement-free `let` emits inline;
-        // with statements it becomes an IIFE, which would move the target
-        // and the key out of the caller's frame.
-        if ($statements !== [] && $env->isContext(NodeEnvironment::CONTEXT_EXPRESSION)) {
-            return null;
-        }
-
         $expressionEnv = $env->withExpressionContext();
         $targetSym = Symbol::gen('ds_');
         $keySym = Symbol::gen('k_');
@@ -212,11 +211,8 @@ final readonly class UpdateLiteralFnLowering
             $location,
         );
 
-        $let = new LetNode($env, $bindings, new DoNode($bodyEnv, $statements, $write, $location), false, $location);
-
-        return $env->isContext(NodeEnvironment::CONTEXT_EXPRESSION)
-            ? $let->withInlineInExpression()
-            : $let;
+        return new LetNode($env, $bindings, new DoNode($bodyEnv, $statements, $write, $location), false, $location)
+            ->withSplicedFnBodyAfter(2 + count($extraArgs));
     }
 
     private function coreFn(string $name, NodeEnvironmentInterface $env, AnalyzerInterface $analyzer): AbstractNode

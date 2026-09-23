@@ -589,7 +589,9 @@ final readonly class CallInliner
      */
     private function rebaseLet(LetNode $node, RebaseContext $ctx): ?AbstractNode
     {
-        if ($node->isLoop()) {
+        // A spliced fn body (#3322) is scoped like a fn; moving it into
+        // another fn would hand its ops to that fn's param inference.
+        if ($node->isLoop() || $node->getCallerBindingCount() !== null) {
             return null;
         }
 

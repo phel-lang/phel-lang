@@ -32,6 +32,9 @@ final class NodeEnvironment implements NodeEnvironmentInterface
      */
     private bool $returnInferenceDeferred = false;
 
+    /** See {@see NodeEnvironmentInterface::withinTry()}. */
+    private bool $withinTry = false;
+
     /**
      * Derived index of $locals keyed by name (first occurrence wins), kept in
      * sync with $locals so lookups are O(1) instead of a linear scan.
@@ -337,6 +340,23 @@ final class NodeEnvironment implements NodeEnvironmentInterface
     public function isReturnInferenceDeferred(): bool
     {
         return $this->returnInferenceDeferred;
+    }
+
+    public function withinTry(bool $withinTry): NodeEnvironmentInterface
+    {
+        if ($this->withinTry === $withinTry) {
+            return $this;
+        }
+
+        $result = clone $this;
+        $result->withinTry = $withinTry;
+
+        return $result;
+    }
+
+    public function isWithinTry(): bool
+    {
+        return $this->withinTry;
     }
 
     public function getCurrentRecurFrame(): ?RecurFrame

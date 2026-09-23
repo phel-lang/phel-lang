@@ -150,11 +150,21 @@ final class ParamTypeInferrer
         }
 
         if ($node instanceof LetNode) {
-            foreach ($node->getBindings() as $binding) {
+            // Past the caller's bindings sits a spliced fn body, which owns
+            // its params as a closure does (see above).
+            $callerBindings = $node->getCallerBindingCount();
+            foreach ($node->getBindings() as $i => $binding) {
+                if ($callerBindings !== null && $i >= $callerBindings) {
+                    return;
+                }
+
                 $this->walk($binding->getInitExpr());
             }
 
-            $this->walk($node->getBodyExpr(), $expected);
+            if ($callerBindings === null) {
+                $this->walk($node->getBodyExpr(), $expected);
+            }
+
             return;
         }
 
