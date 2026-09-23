@@ -80,7 +80,7 @@ Shared behaviour traits: `MetaTrait` (`getMeta`/copying `withMeta`), `HashCombin
 | `Struct/` | `AbstractPersistentStruct` |
 | `Generators/` | Sequence generators |
 
-- `ValueIdentity::isSame()` is the unchanged-value test behind every keyed write (map `put`, vector `update`, struct `put`) that hands back the receiver. It is identity with a signed zero counted as a change, never `=`: an equal but distinguishable value (`-0.0`, a `BigInt`, a vector with other metadata) must still be written (#3321).
+- `ValueIdentity::isSame()` is the unchanged-value test behind every keyed write (map `put`, vector `update`, struct `put`) that hands back the receiver. It is identity with a signed zero counted as a change, never `=`: an equal but distinguishable value (`-0.0`, a `BigInt`, a vector with other metadata) must still be written (#3321). A PHP array is never the same: `===` walks arrays, so it throws on recursive ones and misses references. An inline `===` in front of the call, as `PersistentVector` keeps for speed, must be guarded by `is_array` first.
 - `MapEntry`: equal by value to a 2-element vector (both directions); `first()` = key, `cdr()` = 1-vector with value.
 - Transients: `TransientVector`, `TransientMapWrapper`, `TransientHashMap`/`TransientArrayMap`/`TransientSortedMap`, `TransientHashSet`/`TransientSortedSet`. `TransientStateTrait` (`persistent()` invalidates; mutators call `ensureTransientActive()`) is applied exactly once per reachable transient, at the object Phel code actually holds:
   - `TransientVector` uses it directly — `PersistentVector::asTransient()` returns it unwrapped.
