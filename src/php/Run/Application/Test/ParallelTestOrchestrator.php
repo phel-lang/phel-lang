@@ -304,7 +304,8 @@ final readonly class ParallelTestOrchestrator
                 : WorkerResult::fromCrash(
                     $index,
                     $worker->assignedNamespace() ?? '<unknown>',
-                    $worker->readStderrNonBlocking(),
+                    $worker->crashReport(),
+                    $worker->exitStatus(),
                 );
             $worker->clearAssignment();
             return $result;

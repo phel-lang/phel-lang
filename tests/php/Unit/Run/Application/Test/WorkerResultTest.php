@@ -72,6 +72,16 @@ final class WorkerResultTest extends TestCase
         self::assertTrue($result->isRetryable(), 'a crashed worker never reported a verdict');
     }
 
+    public function test_from_crash_names_how_the_worker_ended(): void
+    {
+        $result = WorkerResult::fromCrash(0, 'phel.json', 'stdout: PHP Fatal error: boom', 'exit code 255');
+
+        self::assertStringContainsString(
+            "Worker died while running phel.json (exit code 255).\nstdout: PHP Fatal error: boom",
+            $result->output,
+        );
+    }
+
     public function test_a_thrown_worker_error_can_be_retried(): void
     {
         $result = WorkerResult::fromFrame([

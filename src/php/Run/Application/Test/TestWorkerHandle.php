@@ -10,13 +10,16 @@ use RuntimeException;
 use function fclose;
 use function fread;
 use function fwrite;
+use function implode;
 use function is_resource;
 use function proc_close;
 use function proc_get_status;
 use function proc_open;
 use function proc_terminate;
+use function sprintf;
 use function stream_set_blocking;
 use function strlen;
+use function trim;
 use function usleep;
 
 /**
@@ -43,6 +46,12 @@ final class TestWorkerHandle
     private ?int $assignedIndex = null;
 
     private ?string $assignedNamespace = null;
+
+    /**
+     * How the process ended, captured the first time it is seen dead:
+     * `proc_get_status()` reports the real exit code only once.
+     */
+    private ?string $exitStatus = null;
 
     /**
      * @param closed-resource|resource $process
@@ -114,7 +123,41 @@ final class TestWorkerHandle
         }
 
         $status = @proc_get_status($this->process);
+        if (!$status['running'] && $this->exitStatus === null) {
+            $this->exitStatus = $status['signaled']
+                ? sprintf('killed by signal %d', $status['termsig'])
+                : sprintf('exit code %d', $status['exitcode']);
+        }
+
         return $status['running'];
+    }
+
+    /**
+     * Everything a dead worker left behind, so a crash report says why it
+     * died. A PHP fatal error is printed to stdout, not stderr, and often
+     * from inside the worker's output buffer, so the unframed stdout tail
+     * matters as much as stderr.
+     */
+    public function crashReport(): string
+    {
+        $this->pumpReadBuffer();
+        $parts = [];
+        $stdout = trim($this->readBuffer);
+        if ($stdout !== '') {
+            $parts[] = 'stdout: ' . $stdout;
+        }
+
+        $stderr = trim($this->readStderrNonBlocking());
+        if ($stderr !== '') {
+            $parts[] = 'stderr: ' . $stderr;
+        }
+
+        return implode("\n", $parts);
+    }
+
+    public function exitStatus(): string
+    {
+        return $this->exitStatus ?? 'exit status unknown';
     }
 
     public function assign(int $index, string $namespace, string $frame): void
