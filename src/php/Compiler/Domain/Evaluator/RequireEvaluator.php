@@ -6,9 +6,9 @@ namespace Phel\Compiler\Domain\Evaluator;
 
 use ParseError;
 use Phel\Compiler\Infrastructure\Service\DebugLineTap;
-use Phel\Filesystem\FilesystemFacadeInterface;
 use Phel\Shared\Exceptions\CompiledCodeIsMalformedException;
 use Phel\Shared\Exceptions\FileException;
+use Phel\Shared\Facade\FilesystemFacadeInterface;
 
 use function md5;
 use function md5_file;

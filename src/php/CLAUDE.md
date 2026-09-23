@@ -24,9 +24,8 @@ Keeping non-facade edges out of the docs is how the graph erodes quietly, so the
 
 ### Where the FacadeInterface lives
 
-- **`Shared/Facade/`** (dependency inversion): Api, Build, Command, Compiler, Console, Formatter, Interop, Run.
-- **Module root**: Fiber, Filesystem (`FiberFacadeInterface`, `FilesystemFacadeInterface`). `FilesystemFacadeInterface` carries gacela's `#[PublicApi]`, so referencing it from another module's Factory/Provider is not a `crossModuleWithoutFacade` finding; moving it to Shared waits for the next major (#2870).
-- **No interface — extend `AbstractFacade`**: Balance, Lint, Lsp, Mutate, Nrepl, Profile, Watch.
+- **`Shared/Facade/`** (dependency inversion): Api, Build, Command, Compiler, Console, Filesystem, Formatter, Interop, Run.
+- **No interface — extend `AbstractFacade`**: Balance, Fiber, Lint, Lsp, Mutate, Nrepl, Profile, Watch. `phel.core` builds `FiberFacade` directly; no module injects it.
 
 Rules:
 
