@@ -63,6 +63,8 @@ final class UpdateLiteralFnLoweringTest extends AbstractCompilerRuntimeTestCase
         yield 'a destructured param' => ['(fn [m] (update m :k (fn [[v w]] [w v])))'];
         yield 'several body forms' => ['(fn [m] (update m :k (fn [v] (println v) v)))'];
         yield 'a nested fn capturing the param' => ['(fn [m] (update m :k (fn [v] (fn [] v))))'];
+        yield 'a condition map' => ['(fn [m] (update m :k (fn [v] {:pre [v]} v)))'];
+        yield 'a lone pre map' => ['(fn [m] (update m :k (fn [v] {:pre [(int? v)]})))'];
         yield 'a map without conditions as the value' => ['(fn [m] (update m :k (fn [v] {:b v})))'];
     }
 
@@ -86,9 +88,6 @@ final class UpdateLiteralFnLoweringTest extends AbstractCompilerRuntimeTestCase
         yield 'several arities' => ['(fn [m] (update m :k (fn ([v] v) ([v x] x))))'];
         yield 'recur' => ['(fn [m] (update m :k (fn [v] (if v (recur nil) 1))))'];
         yield 'a named fn' => ['(fn [m] (update m :k (fn self [v] v)))'];
-        yield 'a condition map' => ['(fn [m] (update m :k (fn [v] {:pre [v]} v)))'];
-        yield 'a lone pre map' => ['(fn [m] (update m :k (fn [v] {:pre [(int? v)]})))'];
-        yield 'a lone post map' => ['(fn [m] (update m :k (fn [v] {:post [true]})))'];
         yield 'a tagged param' => ['(fn [m] (update m :k (fn [^int v] v)))'];
         yield 'a tagged return' => ['(fn [m] (update m :k (fn ^int [v] v)))'];
         yield 'a param count the call does not fill' => ['(fn [m] (update m :k (fn [v x] v)))'];
@@ -144,6 +143,35 @@ final class UpdateLiteralFnLoweringTest extends AbstractCompilerRuntimeTestCase
         yield 'nested in the body' => ['[(update {:a {:b 1}} :a (fn [v] (update v :b (fn [v] (php/+ v 1)))))]'];
         yield 'a recur argument' => ['(loop [m {:a 0} i 0] (if (php/< i 5) (recur (update m :a (fn [v] (php/+ v 1))) (php/+ i 1)) m))'];
         yield 'a short fn' => ['(update {:a 1} :a #(php/+ % 1))'];
+        yield '* overflows the value param' => ['(update {:a 4000000000} :a (fn [v] (* v v)))'];
+        yield '+ overflows the value param' => ['(update {:a 9223372036854775807} :a (fn [v] (+ v 1)))'];
+        yield '- overflows the value param' => ['(update {:a -9223372036854775807} :a (fn [v] (- v 10)))'];
+        yield '* overflows an extra arg' => ['(update {:a 0} :a (fn [v x] (* x x)) 4000000000)'];
+        yield '+ overflows an extra arg' => ['(update {:a 1} :a (fn [v x] (+ v x)) 9223372036854775807)'];
+        yield '- overflows an extra arg' => ['(update {:a 0} :a (fn [v x] (- v x x)) 9223372036854775807)'];
+        yield 'an if value' => ['(update {:a 1} :a (fn [v] (if (php/> v 0) (php/+ v 1) 0)))'];
+        yield 'an or value' => ['(update {} :a (fn [v] (or v 0)))'];
+        yield 'a let value' => ['(update {:a 1} :a (fn [v] (let [w (php/* v 2)] (php/+ w 1))))'];
+        yield 'a value from a loop' => ['(update {:a 3} :a (fn [v] (loop [i 0 acc 0] (if (php/< i v) (recur (php/+ i 1) (php/+ acc i)) acc))))'];
+        yield 'a try value' => ['(update {:a 1} :a (fn [v] (try (php/+ v 1) (catch \\Exception e 0))))'];
+    }
+
+    public function test_a_macro_in_the_body_sees_the_same_env_at_both_levels(): void
+    {
+        $this->compilerFacade->eval('(defmacro env-keys [] `(quote ~(sort (map str (keys &env)))))', new CompileOptions());
+        $phel = '(let [outer 1] (update {:a outer} :a (fn [v] (env-keys))))';
+
+        self::assertSame($this->evalAt($phel, 0), $this->evalAt($phel, 2));
+    }
+
+    public function test_a_macro_in_a_declined_body_expands_once(): void
+    {
+        $this->compilerFacade->eval('(def expansions (atom 0))', new CompileOptions());
+        $this->compilerFacade->eval('(defmacro counted [x] (swap! expansions inc) x)', new CompileOptions());
+
+        $this->evalAt('(let [arr (php-indexed-array 1)] (update {:a 1} :a (fn [v] (php/aset arr 0 (counted v)) v)))', 2);
+
+        self::assertSame(1, $this->compilerFacade->eval('(deref expansions)', new CompileOptions()));
     }
 
     public function test_with_redefs_still_reaches_a_redefined_update(): void

@@ -6,7 +6,9 @@
 ;; call to `phel.core/update` (#3322). These cases pin the semantics the
 ;; lowering must keep, at whatever level the suite compiles; the literal
 ;; spelling is checked against the same fn handed to `update` through `rt`.
-;; `UpdateLiteralFnLoweringTest` runs them at level 2 against level 0.
+;; `UpdateLiteralFnLoweringTest` runs them at level 2 against level 0, and
+;; checks `with-redefs` at level 0: level 2 links `update` directly, as it
+;; does any inlined call.
 
 (defstruct point [x y])
 
@@ -121,17 +123,6 @@
   (is (= {:a nil} (update {:a 1} :a (fn [v] {:post [true]}))) "a lone post map is a condition")
   (is (thrown? \Throwable (update {:a "x"} :a (fn [v] {:pre [(int? v)]}))) "a lone pre map still asserts")
   (is (= {:a {:b 1}} (update {:a 1} :a (fn [v] {:b v}))) "a map without conditions is the value"))
-
-(deftest test-with-redefs
-  ;; Only the probe key is intercepted: `phel.test` itself calls `update`.
-  (let [original update
-        result (with-redefs [update (fn [& args]
-                                      (if (= :probe (second args))
-                                        :redefined
-                                        (apply original args)))]
-                 (update {:probe 1} :probe (fn [v] (php/+ v 1))))]
-    (is (= :redefined result) "a redefined update is called")))
-
 (deftest test-contexts
   (is (= [{:a 2}] [(update {:a 1} :a (fn [v] (php/+ v 1)))]) "expression")
   (is (= "{:a 2}" (str (update {:a 1} :a (fn [v] (php/+ v 1))))) "an argument")

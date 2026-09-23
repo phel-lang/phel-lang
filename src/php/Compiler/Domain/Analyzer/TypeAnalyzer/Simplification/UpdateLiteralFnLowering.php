@@ -4,24 +4,26 @@ declare(strict_types=1);
 
 namespace Phel\Compiler\Domain\Analyzer\TypeAnalyzer\Simplification;
 
-use Phel;
 use Phel\Compiler\Domain\Analyzer\AnalyzerInterface;
 use Phel\Compiler\Domain\Analyzer\Ast\AbstractNode;
+use Phel\Compiler\Domain\Analyzer\Ast\BindingNode;
+use Phel\Compiler\Domain\Analyzer\Ast\CallNode;
+use Phel\Compiler\Domain\Analyzer\Ast\DoNode;
+use Phel\Compiler\Domain\Analyzer\Ast\FnNode;
 use Phel\Compiler\Domain\Analyzer\Ast\GlobalVarNode;
 use Phel\Compiler\Domain\Analyzer\Ast\LetNode;
+use Phel\Compiler\Domain\Analyzer\Ast\LocalVarNode;
 use Phel\Compiler\Domain\Analyzer\Environment\NodeEnvironment;
 use Phel\Compiler\Domain\Analyzer\Environment\NodeEnvironmentInterface;
-use Phel\Lang\Collections\HashSet\PersistentHashSetInterface;
-use Phel\Lang\Collections\LinkedList\PersistentListInterface;
-use Phel\Lang\Collections\Map\PersistentMapInterface;
-use Phel\Lang\Collections\Vector\PersistentVectorInterface;
 use Phel\Lang\Keyword;
+use Phel\Lang\SourceLocation;
 use Phel\Lang\Symbol;
 use Phel\Shared\TagResolver;
 
-use function array_any;
 use function array_slice;
 use function count;
+use function ctype_lower;
+use function ltrim;
 
 /**
  * Lowers `(update m k (fn [v x ...] body) x ...)` with a literal one-arity
@@ -33,10 +35,14 @@ use function count;
  *
  * No closure is built and nothing dispatches through `phel.core/update`.
  * Target, key and extra arguments evaluate once each and in source order,
- * then the read, then the body, as they did. The params become `let`
- * bindings, so the analyzer gives them the fn's scoping for free: fresh
- * shadows, a nested `fn` capturing one, a param shadowing an outer local,
- * and destructuring, which `let` and `fn` share.
+ * then the read, then the body, as they did.
+ *
+ * It works on the call as analysed: the fn was analysed once, in its own
+ * environment, so macros in the body saw the `&env` they always saw, the
+ * params stay untyped as a closure's are, and declining costs nothing but
+ * building the ordinary call. The params keep their names and become the
+ * `let` bindings, so a param named like a local of the enclosing scope
+ * declines rather than clobber that PHP variable.
  *
  * A `let` in expression position normally emits as an IIFE, which would cost
  * what the closure cost. The lowered one is flagged to emit its bindings as
@@ -45,12 +51,12 @@ use function count;
  * It is direct linking, so it runs only at optimization level 2 and never
  * on a `:redef` `update`, like {@see CallInliner}.
  *
- * Shapes that keep the runtime call: a call in statement position, anything but a single-arity `fn` with a
- * param vector, a rest param, a param count that does not match the extra
- * arguments, a named fn, a tagged param or return, a `{:pre :post}` map, a
- * body mentioning `recur` (it would target the fn), and a body that could
- * write to a local of the enclosing scope, which the closure only ever saw a
- * copy of ({@see ClosureBarrierDetector}).
+ * Shapes that keep the runtime call: a call in statement position, a fn
+ * value, several arities, a rest param, a named fn, a param count the call
+ * does not fill, a tagged param or a scalar return type (PHP enforces and
+ * coerces both), `recur` aimed at the fn, and a body that could write to a
+ * local of the enclosing scope, which the closure only ever saw a copy of
+ * ({@see ClosureBarrierDetector}).
  *
  * @internal
  */
@@ -60,20 +66,20 @@ final readonly class UpdateLiteralFnLowering
 
     private const string UPDATE = 'update';
 
-    private const string REST_MARKER = '&';
-
     public function __construct(
         private ClosureBarrierDetector $barrierDetector = new ClosureBarrierDetector(),
+        private ExpressionContextRebuilder $rebuilder = new ExpressionContextRebuilder(),
     ) {}
 
     /**
-     * @param PersistentListInterface<mixed> $list the whole `(update ...)` form
+     * @param list<AbstractNode> $args analysed arguments of the `update` call
      */
     public function tryLower(
         GlobalVarNode $f,
-        PersistentListInterface $list,
+        array $args,
         NodeEnvironmentInterface $env,
         AnalyzerInterface $analyzer,
+        ?SourceLocation $location,
     ): ?AbstractNode {
         if ($f->getNamespace() !== self::CORE_NS || $f->getName()->getName() !== self::UPDATE) {
             return null;
@@ -88,226 +94,140 @@ final readonly class UpdateLiteralFnLowering
 
         // A discarded result gains nothing, and a typed `->put()` in
         // statement position trips the `#[\NoDiscard]` on it.
-        if ($env->isContext(NodeEnvironment::CONTEXT_STATEMENT)) {
+        if ($env->isContext(NodeEnvironment::CONTEXT_STATEMENT) || count($args) < 3) {
             return null;
         }
 
-        $letForm = $this->loweredForm($list);
-        if (!$letForm instanceof PersistentListInterface) {
+        $fn = $args[2];
+        $extraArgs = array_slice($args, 3);
+        if (!$fn instanceof FnNode || !$this->isSpliceable($fn, count($extraArgs), $env)) {
             return null;
         }
 
-        // Whether the body writes an enclosing local shows only after macro
-        // expansion. When it does, the caller analyses the call again the
-        // usual way; that second pass is limited to such bodies.
-        $node = $analyzer->analyze($letForm, $env);
-        if ($this->barrierDetector->needsClosure($node, $env)) {
-            return null;
-        }
-
-        if ($node instanceof LetNode && !$node->isLoop() && $env->isContext(NodeEnvironment::CONTEXT_EXPRESSION)) {
-            return $node->withInlineInExpression();
-        }
-
-        return $node;
+        return $this->lower($args[0], $args[1], $fn, $extraArgs, $env, $analyzer, $location);
     }
 
-    /**
-     * @param PersistentListInterface<mixed> $list
-     *
-     * @return PersistentListInterface<mixed>|null
-     */
-    private function loweredForm(PersistentListInterface $list): ?PersistentListInterface
+    private function isSpliceable(FnNode $fn, int $extraArgCount, NodeEnvironmentInterface $env): bool
     {
-        if (count($list) < 4) {
-            return null;
-        }
-
-        $fnForm = $list->get(3);
-        if (!$fnForm instanceof PersistentListInterface) {
-            return null;
-        }
-
-        $params = $this->singleArityParams($fnForm);
-        if (!$params instanceof PersistentVectorInterface) {
-            return null;
-        }
-
-        $extraArgs = array_slice($list->toArray(), 4);
-        if (!$this->isSpliceableParamVector($params, count($extraArgs))) {
-            return null;
-        }
-
-        $body = array_slice($fnForm->toArray(), 2);
-        if ($this->hasConditionMap($body) || array_any($body, $this->mentionsRecur(...))) {
-            return null;
-        }
-
-        $target = $this->gensym('ds_', $list);
-        $key = $this->gensym('k_', $list);
-
-        $bindings = [$target, $list->get(1), $key, $list->get(2)];
-        $extraShadows = [];
-        foreach ($extraArgs as $arg) {
-            $shadow = $this->gensym('x_', $list);
-            $extraShadows[] = $shadow;
-            $bindings[] = $shadow;
-            $bindings[] = $arg;
-        }
-
-        $paramForms = $params->toArray();
-        $bindings[] = $paramForms[0];
-        $bindings[] = $this->coreCall('get', [$target, $key], $list);
-        foreach ($extraShadows as $i => $shadow) {
-            $bindings[] = $paramForms[$i + 1];
-            $bindings[] = $shadow;
-        }
-
-        // Leading body forms stay statements of the `let`; only the last one
-        // is the value `assoc` writes, as it was the value the fn returned.
-        $value = $body === [] ? null : $body[count($body) - 1];
-        $statements = array_slice($body, 0, -1);
-
-        return Phel::list([
-            Symbol::create(Symbol::NAME_LET)->copyLocationFrom($list),
-            Phel::vector($bindings)->copyLocationFrom($list),
-            ...$statements,
-            $this->coreCall('assoc', [$target, $key, $value], $list),
-        ])->copyLocationFrom($list);
-    }
-
-    /**
-     * The param vector of a `(fn [params] body...)` form, or `null` for any
-     * other form, a named fn or a multi-arity one.
-     *
-     * @param PersistentListInterface<mixed> $form
-     *
-     * @return PersistentVectorInterface<mixed>|null
-     */
-    private function singleArityParams(PersistentListInterface $form): ?PersistentVectorInterface
-    {
-        if (count($form) < 2) {
-            return null;
-        }
-
-        $head = $form->get(0);
-        $params = $form->get(1);
-
-        return $head instanceof Symbol
-            && $head->getFullName() === Symbol::NAME_FN
-            && $params instanceof PersistentVectorInterface
-            ? $params
-            : null;
-    }
-
-    /**
-     * A tag is load-bearing on a fn: on a param it becomes a PHP parameter
-     * type, on the vector a return type, and PHP enforces both. A `let`
-     * binding would drop the check, so a tagged fn keeps its closure.
-     *
-     * @param PersistentVectorInterface<mixed> $params
-     */
-    private function isSpliceableParamVector(PersistentVectorInterface $params, int $extraArgCount): bool
-    {
-        if (count($params) !== $extraArgCount + 1 || TagResolver::fromMeta($params->getMeta()) !== null) {
+        if ($fn->isVariadic()
+            || $fn->getRecurs()
+            || $fn->getName() instanceof Symbol
+            || count($fn->getParams()) !== $extraArgCount + 1
+            || $this->hasScalarReturnType($fn)
+        ) {
             return false;
         }
 
-        $names = [];
-        foreach ($params as $param) {
-            if ($param instanceof Symbol) {
-                if ($param->getName() === self::REST_MARKER || isset($names[$param->getName()])) {
-                    return false;
-                }
-
-                if (TagResolver::fromMeta($param->getMeta()) !== null) {
-                    return false;
-                }
-
-                $names[$param->getName()] = true;
-                continue;
-            }
-
-            // A destructuring pattern binds the same way under `let`.
-            if (!$param instanceof PersistentVectorInterface && !$param instanceof PersistentMapInterface) {
+        $enclosing = $this->enclosingNames($env);
+        foreach ($fn->getParams() as $param) {
+            if (isset($enclosing[$param->getName()]) || TagResolver::fromMeta($param->getMeta()) !== null) {
                 return false;
             }
         }
 
-        return true;
+        return !$this->barrierDetector->needsClosure($fn->getBody(), $env);
     }
 
     /**
-     * A leading map holding `:pre` or `:post` is a condition map for `fn`,
-     * even as the only form, when the fn returns nil. Under `let` it would be
-     * the value, so any such map keeps the closure.
+     * The closure declares its return type, and PHP coerces a scalar one:
+     * an `int` return turns `2.5` into `2`. A class type only rejects.
+     */
+    private function hasScalarReturnType(FnNode $fn): bool
+    {
+        $type = $fn->getReturnType();
+
+        return $type !== null && ctype_lower(ltrim($type, '?\\')[0] ?? '');
+    }
+
+    /**
+     * Every PHP variable name the enclosing scope may hold: each visible
+     * local and the shadow it emits as. A param reusing one would overwrite
+     * it, where the closure had its own.
      *
-     * @param list<mixed> $body
+     * @return array<string, true>
      */
-    private function hasConditionMap(array $body): bool
+    private function enclosingNames(NodeEnvironmentInterface $env): array
     {
-        $first = $body[0] ?? null;
-
-        return $first instanceof PersistentMapInterface
-            && ($first->contains(Keyword::create('pre')) || $first->contains(Keyword::create('post')));
-    }
-
-    /**
-     * Any `recur` in the body, including one a nested `loop` owns: telling
-     * them apart needs the analyzer, and bailing costs only the lowering.
-     */
-    private function mentionsRecur(mixed $form): bool
-    {
-        if ($form instanceof Symbol) {
-            return $form->getName() === Symbol::NAME_RECUR;
-        }
-
-        if ($form instanceof PersistentMapInterface) {
-            foreach ($form as $key => $value) {
-                if ($this->mentionsRecur($key) || $this->mentionsRecur($value)) {
-                    return true;
-                }
-            }
-
-            return false;
-        }
-
-        if ($form instanceof PersistentListInterface
-            || $form instanceof PersistentVectorInterface
-            || $form instanceof PersistentHashSetInterface
-        ) {
-            foreach ($form as $child) {
-                if ($this->mentionsRecur($child)) {
-                    return true;
-                }
+        $names = [];
+        foreach ($env->getLocals() as $local) {
+            $names[$local->getName()] = true;
+            $shadow = $env->getShadowed($local);
+            if ($shadow instanceof Symbol) {
+                $names[$shadow->getName()] = true;
             }
         }
 
-        return false;
+        return $names;
     }
 
     /**
-     * @param PersistentListInterface<mixed> $list
+     * @param list<AbstractNode> $extraArgs
      */
-    private function gensym(string $prefix, PersistentListInterface $list): Symbol
-    {
-        return Symbol::gen($prefix)->copyLocationFrom($list);
+    private function lower(
+        AbstractNode $target,
+        AbstractNode $key,
+        FnNode $fn,
+        array $extraArgs,
+        NodeEnvironmentInterface $env,
+        AnalyzerInterface $analyzer,
+        ?SourceLocation $location,
+    ): LetNode {
+        $expressionEnv = $env->withExpressionContext();
+        $targetSym = Symbol::gen('ds_');
+        $keySym = Symbol::gen('k_');
+
+        $bindings = [
+            new BindingNode($env, $targetSym, $targetSym, $target, $location),
+            new BindingNode($env, $keySym, $keySym, $key, $location),
+        ];
+
+        $extraSyms = [];
+        foreach ($extraArgs as $arg) {
+            $extraSym = Symbol::gen('x_');
+            $extraSyms[] = $extraSym;
+            $bindings[] = new BindingNode($env, $extraSym, $extraSym, $arg, $location);
+        }
+
+        $params = $fn->getParams();
+        $read = new CallNode(
+            $expressionEnv,
+            $this->coreFn('get', $expressionEnv, $analyzer),
+            [new LocalVarNode($expressionEnv, $targetSym, $location), new LocalVarNode($expressionEnv, $keySym, $location)],
+            $location,
+        );
+        $bindings[] = new BindingNode($env, $params[0], $params[0], $read, $location);
+        foreach ($extraSyms as $i => $extraSym) {
+            $param = $params[$i + 1];
+            $bindings[] = new BindingNode($env, $param, $param, new LocalVarNode($expressionEnv, $extraSym, $location), $location);
+        }
+
+        // The body was analysed as the fn's return value; its leading forms
+        // stay statements, and only the value moves into the `assoc`.
+        $body = $fn->getBody();
+        $statements = $body instanceof DoNode ? $body->getStmts() : [];
+        $value = $body instanceof DoNode ? $body->getRet() : $body;
+
+        $bodyEnv = $env->withReturnContext();
+        $write = new CallNode(
+            $bodyEnv,
+            $this->coreFn('assoc', $expressionEnv, $analyzer),
+            [
+                new LocalVarNode($expressionEnv, $targetSym, $location),
+                new LocalVarNode($expressionEnv, $keySym, $location),
+                $this->rebuilder->rebuild($value),
+            ],
+            $location,
+        );
+
+        $let = new LetNode($env, $bindings, new DoNode($bodyEnv, $statements, $write, $location), false, $location);
+
+        return $env->isContext(NodeEnvironment::CONTEXT_EXPRESSION)
+            ? $let->withInlineInExpression()
+            : $let;
     }
 
-    /**
-     * Qualified, so neither a param nor a local named `get` or `assoc`
-     * captures it: a qualified symbol never resolves to a local.
-     *
-     * @param list<mixed>                    $args
-     * @param PersistentListInterface<mixed> $list
-     *
-     * @return PersistentListInterface<mixed>
-     */
-    private function coreCall(string $name, array $args, PersistentListInterface $list): PersistentListInterface
+    private function coreFn(string $name, NodeEnvironmentInterface $env, AnalyzerInterface $analyzer): AbstractNode
     {
-        return Phel::list([
-            Symbol::createForNamespace(self::CORE_NS, $name)->copyLocationFrom($list),
-            ...$args,
-        ])->copyLocationFrom($list);
+        return $analyzer->analyze(Symbol::createForNamespace(self::CORE_NS, $name), $env);
     }
 }

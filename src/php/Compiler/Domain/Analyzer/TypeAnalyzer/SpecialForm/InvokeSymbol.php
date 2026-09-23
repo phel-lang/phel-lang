@@ -79,11 +79,6 @@ final readonly class InvokeSymbol implements SpecialFormAnalyzerInterface
 
         if ($f instanceof GlobalVarNode) {
             $this->validateEnoughArgsProvided($f, $list);
-
-            $lowered = $this->updateLowering->tryLower($f, $list, $env, $this->analyzer);
-            if ($lowered instanceof AbstractNode) {
-                return $lowered;
-            }
         }
 
         $this->rejectNonCallableLiteral($f, $list);
@@ -94,6 +89,11 @@ final readonly class InvokeSymbol implements SpecialFormAnalyzerInterface
 
         if ($f instanceof GlobalVarNode) {
             $this->verifyArgsAgainstParamTags($f, $args, $list);
+
+            $lowered = $this->updateLowering->tryLower($f, $args, $env, $this->analyzer, $list->getStartLocation());
+            if ($lowered instanceof AbstractNode) {
+                return $lowered;
+            }
 
             // Skip the inliner call on the default path; it only does
             // work at optimization level >= 2.
