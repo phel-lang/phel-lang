@@ -81,9 +81,7 @@ final class TransientHashMap implements TransientMapInterface
     public function put($key, $value): self
     {
         if ($key === null) {
-            if (!$this->equalizer->equals($value, $this->nullValue)) {
-                $this->nullValue = $value;
-            }
+            $this->nullValue = $value;
 
             if (!$this->hasNull) {
                 ++$this->count;

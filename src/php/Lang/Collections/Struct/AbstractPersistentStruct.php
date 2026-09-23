@@ -10,6 +10,7 @@ use Override;
 use Phel\Lang\Collections\Exceptions\MethodNotSupportedException;
 use Phel\Lang\Collections\Map\AbstractPersistentMap;
 use Phel\Lang\Collections\Map\PersistentMapInterface;
+use Phel\Lang\Collections\ValueIdentity;
 use Phel\Lang\Keyword;
 use Phel\Lang\NamedInterface;
 use Phel\Lang\TypeFactory;
@@ -64,6 +65,10 @@ abstract class AbstractPersistentStruct extends AbstractPersistentMap
     public function put($key, $value): PersistentMapInterface
     {
         $stringKey = $this->validateKey($key);
+
+        if (ValueIdentity::isSame($this->{$stringKey}, $value)) {
+            return $this;
+        }
 
         $newInstance = clone $this;
         $newInstance->{$stringKey} = $value;

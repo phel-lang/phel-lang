@@ -898,6 +898,9 @@ abstract class Phel\Lang\Collections\Struct\AbstractPersistentStruct extends Phe
   public function remove($key): Phel\Lang\Collections\Map\PersistentMapInterface
   public function withMeta(?Phel\Lang\Collections\Map\PersistentMapInterface $meta): static
 
+final class Phel\Lang\Collections\ValueIdentity
+  public static function isSame(mixed $stored, mixed $new): bool
+
 abstract class Phel\Lang\Collections\Vector\AbstractPersistentVector extends Phel\Lang\AbstractType implements Phel\Lang\Collections\Vector\PersistentVectorInterface
   protected ?Phel\Lang\Collections\Map\PersistentMapInterface $meta
   protected Phel\Lang\EqualizerInterface $equalizer

@@ -115,7 +115,12 @@ final class SubVector extends AbstractPersistentVector
             return $this->append($value);
         }
 
-        return new self($this->hasher, $this->equalizer, $this->meta, $this->vector->update($this->start + $i, $value), $this->start, $this->end);
+        $updated = $this->vector->update($this->start + $i, $value);
+        if ($updated === $this->vector) {
+            return $this;
+        }
+
+        return new self($this->hasher, $this->equalizer, $this->meta, $updated, $this->start, $this->end);
     }
 
     /**

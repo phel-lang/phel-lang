@@ -7,6 +7,7 @@ namespace Phel\Lang\Collections\Map;
 use EmptyIterator;
 
 use NoDiscard;
+use Phel\Lang\Collections\ValueIdentity;
 use Phel\Lang\EqualizerInterface;
 use Phel\Lang\HasherInterface;
 use RuntimeException;
@@ -127,7 +128,7 @@ final class PersistentHashMap extends AbstractPersistentMap
     public function put($key, $value): self
     {
         if ($key === null) {
-            if ($this->hasNull && $this->equalizer->equals($value, $this->nullValue)) {
+            if ($this->hasNull && ValueIdentity::isSame($this->nullValue, $value)) {
                 return $this;
             }
 

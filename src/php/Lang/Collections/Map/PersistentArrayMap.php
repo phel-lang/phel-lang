@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Phel\Lang\Collections\Map;
 
 use NoDiscard;
+use Phel\Lang\Collections\ValueIdentity;
 use Phel\Lang\EqualizerInterface;
 use Phel\Lang\HasherInterface;
 use RuntimeException;
@@ -128,7 +129,7 @@ final class PersistentArrayMap extends AbstractPersistentMap
     {
         $index = $this->findIndex($key);
 
-        if ($index !== false && $this->equalizer->equals($this->array[$index + 1], $value)) {
+        if ($index !== false && ValueIdentity::isSame($this->array[$index + 1], $value)) {
             return $this;
         }
 
