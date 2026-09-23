@@ -4,11 +4,22 @@ declare(strict_types=1);
 
 namespace Phel\Shared;
 
+use Closure;
+use Phel\Lang\Atom;
+use Phel\Lang\Collections\HashSet\PersistentHashSetInterface;
+use Phel\Lang\Collections\LinkedList\PersistentListInterface;
 use Phel\Lang\Collections\Map\PersistentMapInterface;
+use Phel\Lang\Collections\Vector\PersistentVectorInterface;
 use Phel\Lang\Keyword;
 use Phel\Lang\Symbol;
 
 use function is_string;
+use function ltrim;
+use function preg_replace_callback;
+use function str_contains;
+use function str_starts_with;
+use function substr;
+use function trim;
 
 /**
  * Resolves a Phel `:tag` metadata value into a scalar PHP type string.
@@ -17,9 +28,49 @@ use function is_string;
  * verbatim (`?int`, `self`, `int|null`); anything else, including a composite
  * list/vector tag (only the attribute/type emitter renders those into
  * unions/intersections), yields `null`. An empty result means "no tag".
+ *
+ * Two spellings save writing a class name out. `map`, `vector`, `set` and
+ * `list` name the persistent collection interfaces ({@see TYPE_ALIASES}),
+ * and a bare name the current namespace imported with `:use` resolves through
+ * that table ({@see setUseAliasResolver()}), so `(:use Phel.Lang.Symbol)` lets
+ * a param read `^Symbol s`. Both keep a `?` prefix and apply per member of a
+ * union or intersection. A dotted or backslashed name is taken as written.
  */
 final class TagResolver
 {
+    /**
+     * Lower-case tags for Phel's own value types, each backed by one fixed
+     * class. They resolve to the rooted class the call-site specialisations
+     * compare against, so `^map m` gets the same `->find` lowering as the
+     * full interface name. A host class is spelled the way its calls are:
+     * dotted, or bare after a `:use` import.
+     */
+    public const array TYPE_ALIASES = [
+        'map' => PersistentMapInterface::class,
+        'vector' => PersistentVectorInterface::class,
+        'set' => PersistentHashSetInterface::class,
+        'list' => PersistentListInterface::class,
+        'keyword' => Keyword::class,
+        'symbol' => Symbol::class,
+        'atom' => Atom::class,
+    ];
+
+    /** @var (Closure(string): ?string)|null */
+    private static ?Closure $useAliasResolver = null;
+
+    /**
+     * Install the lookup that answers "which class did the current namespace
+     * import under this bare name". The analyser's global environment sets
+     * it from its `:use` table; `null` removes it. An explicit import wins
+     * over a collection alias of the same spelling.
+     *
+     * @param (Closure(string): ?string)|null $resolver
+     */
+    public static function setUseAliasResolver(?Closure $resolver): void
+    {
+        self::$useAliasResolver = $resolver;
+    }
+
     /**
      * @param PersistentMapInterface<mixed, mixed>|null $meta
      */
@@ -42,7 +93,41 @@ final class TagResolver
             return null;
         }
 
-        return self::rootClassReferences($tag);
+        return self::rootClassReferences(self::expandAliases($tag));
+    }
+
+    /**
+     * Replace every alias member of `$tag` (a bare `map`, or a name the
+     * namespace imported) with its rooted class, leaving scalar types and
+     * anything already qualified alone.
+     */
+    private static function expandAliases(string $tag): string
+    {
+        return preg_replace_callback(
+            '/[^|&]+/',
+            static fn(array $matches): string => self::expandAlias($matches[0]),
+            $tag,
+        ) ?? $tag;
+    }
+
+    private static function expandAlias(string $part): string
+    {
+        $trimmed = trim($part);
+        $nullable = str_starts_with($trimmed, '?');
+        $name = $nullable ? substr($trimmed, 1) : $trimmed;
+        if ($name === '' || str_contains($name, '.') || str_contains($name, '\\')) {
+            return $part;
+        }
+
+        $resolved = self::$useAliasResolver instanceof Closure
+            ? (self::$useAliasResolver)($name)
+            : null;
+        $resolved ??= self::TYPE_ALIASES[$name] ?? null;
+        if ($resolved === null) {
+            return $part;
+        }
+
+        return ($nullable ? '?' : '') . '\\' . ltrim($resolved, '\\');
     }
 
     /**

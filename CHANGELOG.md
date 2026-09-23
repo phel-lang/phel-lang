@@ -11,6 +11,7 @@ All notable changes to this project will be documented in this file.
 
 ### Added
 
+- Lower-case tags for Phel's own value types: `^map`, `^vector`, `^set`, `^list`, `^keyword`, `^symbol` and `^atom` resolve to their classes, so `(defn f [^map m] (:k m))` gets the `->find` lowering without spelling out `Phel.Lang.Collections.Map.PersistentMapInterface`. A host class is tagged the way it is called: dotted, or bare after a `:use` import (`(:use Doctrine.ORM.EntityManager)` then `^EntityManager em`, an `:as` alias included); before, a bare imported name reached the generated PHP unqualified and failed at call time. `?map` and `map|null` compose, and an explicit import wins over a value-type alias of the same spelling. The three spellings are written up under "Type tags" in `docs/spec/language-surface.md`. (#3319)
 - The collection builders that return a copy are marked `#[NoDiscard]`, so discarding one now prints a warning instead of doing nothing silently. That covers a direct `(.put m k v)` and an inlined core call such as `(conj v x)` or `(assoc m :b 2)` in non-tail position, where the analyzer emits the method directly. Cast to `(void)` where the discard is deliberate. Transients are excluded because they mutate in place and returning the receiver is the point; the exception is `TransientArrayMap::put`, which upgrades to a hash map past `MAX_SIZE` and so returns a different transient. (#3303)
 
 ### Changed

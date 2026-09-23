@@ -4,6 +4,11 @@
 (defn ^int square [^int x] (* x x))
 (println (square 5))                       ; 25
 
+;; ^map, ^vector, ^set and ^list name the persistent collection interfaces;
+;; a keyword read on a ^map param compiles to a direct ->find call.
+(defn first-name [^map person] (:first-name person))
+(println (first-name {:first-name "Ada"}))  ; Ada
+
 ;; Multi-arity
 (defn greet
   ([] (greet "stranger"))

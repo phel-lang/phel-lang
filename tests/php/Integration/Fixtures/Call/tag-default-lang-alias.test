@@ -1,0 +1,19 @@
+--PHEL--
+(ns user)
+(fn [^PersistentVector v ^Keyword k] (count v))
+--PHP--
+namespace user;
+require_once __DIR__ . '/phel/core.php';
+\Phel::addDefinition(
+  "phel.core",
+  "*file*",
+  "Call/tag-default-lang-alias.test"
+);
+\Phel::addDefinition(
+  "phel.core",
+  "*ns*",
+  "user"
+);
+(function(\Phel\Lang\Collections\Vector\PersistentVectorInterface $v, \Phel\Lang\Keyword $k): int {
+  return ($v->count());
+});
