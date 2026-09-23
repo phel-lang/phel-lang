@@ -1,13 +1,17 @@
 ---
 name: build-test-and-development-commands
+description: Composer and CLI commands for building, testing and fixing.
 ---
 
-- `composer install`: sync PHP dependencies; required before running any tooling.
-- `composer test`: full quality gate (static analysis, compiler tests, core tests); mirrors CI.
-- `composer test-quality`: static analysis only (cs-fixer, psalm, phpstan, rector).
-- `composer test-compiler`: PHPUnit suites (`unit`, `integration`).
-- `composer test-core`: exercises Phel core tests via `bin/phel test`.
-- `composer fix`: auto-fix code style (chains Rector and CS Fixer).
-- `composer phpstan` / `composer psalm`: static analysis tuned for PHP 8.5.
-- `composer phpbench`: run benchmarks; `composer phpbench-base` (baseline), `composer phpbench-ref` (compare).
-- `./build/phar.sh`: creates `build/out/phel.phar` for distribution testing.
+# Commands
+
+- `composer install`: required before any tooling.
+- `composer test`: full gate (`test-quality`, `test-compiler`, `test-core`); mirrors CI. Prefix `COMPOSER_PROCESS_TIMEOUT=0`, or composer aborts it at 300s.
+- `composer test-quality`: cs-fixer dry run, psalm, phpstan, rector, config validation.
+- `composer test-compiler`: PHPUnit `unit` suite, then the `integration` suite through paratest. `composer test-unit` / `composer test-integration` run one of them.
+- `composer test-core`: Phel tests via `bin/phel test`. `composer test-core:parallel` runs them in workers.
+- `composer fix`: rector, then cs-fixer.
+- Focused runs: `./vendor/bin/phpunit --filter=<Class or method>`, `./bin/phel test tests/phel/<file>`.
+- `./build/phar.sh`: builds `build/out/phel.phar`.
+
+Run focused tests while working. Run `composer test` once, when the change is complete. The pre-commit hook (`tools/git-hooks/init.sh`) runs `composer test-all` when PHP or Phel files are staged.

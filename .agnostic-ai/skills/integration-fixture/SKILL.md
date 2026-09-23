@@ -2,12 +2,13 @@
 description: Create or validate a `.test` integration fixture under tests/php/Integration/Fixtures
 argument-hint: "[category] [name]"
 disable-model-invocation: true
-allowed-tools: "Read, Write, Edit, Glob, Bash(ls *), Bash(./vendor/bin/phpunit *)"
+x-claude:
+  allowed-tools: "Read, Write, Edit, Glob, Bash(ls *), Bash(./vendor/bin/phpunit *)"
 ---
 
 # Integration Fixture
 
-Scaffolds a new `.test` fixture in the two-section `--PHEL--` / `--PHP--` format defined in `.claude/rules/integration-tests.md`.
+Scaffolds a new `.test` fixture in the two-section `--PHEL--` / `--PHP--` format defined in `.agnostic-ai/rules/integration-tests.md`.
 
 ## Context
 
@@ -22,19 +23,14 @@ Scaffolds a new `.test` fixture in the two-section `--PHEL--` / `--PHP--` format
 
 2. **Ask the user for the Phel input** (one form or a small block).
 
-3. **Compile it locally to capture the expected PHP output**:
-   ```bash
-   ./vendor/bin/phpunit --testsuite=integration --filter=<related>
-   ```
-   Or use the compiler Facade directly via a throwaway script if needed — do NOT hand-write PHP output; it must match byte-for-byte including source locations.
-
-4. **Write the fixture** as `tests/php/Integration/Fixtures/<Category>/<name>.test`:
+3. **Write the fixture** as `tests/php/Integration/Fixtures/<Category>/<name>.test` with the Phel input and an empty `--PHP--` section:
    ```
    --PHEL--
    <phel source>
    --PHP--
-   <exact compiled output>
    ```
+
+4. **Capture the output**: run `./vendor/bin/phpunit --filter=IntegrationTest`, copy the actual PHP from the failure diff into `--PHP--`, and check it is the output you intended. Never hand-write it: it must match byte for byte, source locations included.
 
 5. **Run the integration suite filtered to the new file** to confirm it passes:
    ```bash

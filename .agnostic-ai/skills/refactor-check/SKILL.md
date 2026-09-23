@@ -3,7 +3,8 @@ description: Analyze code for SOLID violations, clean code issues, and architect
 argument-hint: "[file-or-directory]"
 context: fork
 agent: Explore
-allowed-tools: "Read, Glob, Grep"
+x-claude:
+  allowed-tools: "Read, Glob, Grep"
 ---
 
 # Refactor Check

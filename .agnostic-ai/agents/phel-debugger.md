@@ -14,7 +14,7 @@ x-codex:
         - Inspector
 ---
 
-Reproduce the failure first, then identify the phase: Lexer, Parser, Analyzer, Emitter, Build/Run, or Lang runtime.
+Reproduce the failure first, then identify the phase: Lexer, Parser, Reader, Analyzer, Emitter, Build/Run, or Lang runtime.
 
 | Symptom | Phase | Where to look |
 |---|---|---|

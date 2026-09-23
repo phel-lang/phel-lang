@@ -24,6 +24,12 @@ Every public function should have metadata:
 - `;;` for standalone line comments, `;` for inline comments after code
 - `#_` to comment out the next form
 
+## Tests
+
+- A test file under `tests/phel/<path>.phel` declares `(ns phel-test.<path> (:require phel.test :refer [deftest is]))`.
+- Fixture namespaces under `tests/phel/fixtures/` are also run on their own by `phel test --parallel`, so each one requires every namespace it uses.
+- Run one file with `./bin/phel test tests/phel/<file>`. Evaluate a form with `./bin/phel eval '<form>'`.
+
 ## Semantics
 
 - Follow Clojure-aligned semantics where possible
@@ -31,15 +37,9 @@ Every public function should have metadata:
 - Use `defstruct` for data types, not PHP classes
 - Prefer `php-indexed-array` / `php-associative-array` over direct `php/array` construction. Raw construction is reserved for core bootstrap code that loads before `core/arrays`, the constructor implementations themselves, and measured higher-order paths where applying the wrapper would add runtime cost.
 
-## Macros
-
-Editing a `defmacro` body or `` ` `` quasiquote? Load the macro-hygiene rule
-(`.agnostic-ai/rules/macro-hygiene.md`, mirrored into each adapter directory)
-first: local `let` names can silently shadow globals.
-
 ## Formatting
 
-`*.phel` files auto-formatted by `.claude/hooks/format-phel.sh` after Edit/Write (runs `./bin/phel format <file>`). No manual run needed. Check without writing: `./bin/phel format --dry-run <file>`.
+The post-edit hook runs `./bin/phel format` on every edited `*.phel` file. Check without writing: `./bin/phel format --dry-run <file>`.
 
 ## Commas
 

@@ -2,7 +2,7 @@ commit_attribution = ""
 model_reasoning_effort = "medium"
 
 developer_instructions = """
-This is the Phel language repository. Treat AGENTS.md as the source of truth for repository policy.
+This is the Phel language repository. Treat AGENTS.md as the source of truth for repository policy. It is generated from .agnostic-ai/: change policy there and run `agnostic-ai sync`, never edit AGENTS.md.
 
 Use .codex/ for Codex-native mechanics only. Do not move Claude Code settings into .codex/.
 The resources/agents/ tree is the downstream Phel user package installed into user projects as .agents/.

@@ -1,3 +1,8 @@
+---
+name: releases
+description: How a Phel release is cut, and what needs a human go.
+---
+
 # Releases
 
 **ALWAYS cut a release with `tools/release.sh` (or the `/release` skill, which wraps it). Never hand-edit version/changelog/tag manually.**
@@ -17,7 +22,7 @@ Hand-rolling misses steps (`resources/agents/VERSION`), uses the wrong commit me
 
 - Leave the CHANGELOG `## Unreleased` populated; the script moves it. Never pre-convert it to a versioned heading.
 - Name is short (1-3 words), content-themed: `--name "Life, PHP & Everything"`. Omit for AI-suggested names.
-- **`--dry-run` first** — previews everything, restores files, no side effects.
+- **`--dry-run` first**: it previews everything, restores files, and has no side effects.
 - The real run pushes to `main` and publishes a public release: outward + irreversible. Get explicit human go first.
 - A pre-release version (`1.0.0-rc1`) is accepted: the script leaves `## Unreleased` in place and publishes to GitHub as a pre-release.
 - Full guide: `.github/RELEASE.md`.

@@ -2,7 +2,8 @@
 description: Run tests with smart filtering by scope, class, or file path
 argument-hint: "[scope-or-filter]"
 disable-model-invocation: true
-allowed-tools: "Bash(composer *), Bash(./vendor/bin/phpunit *), Bash(./bin/phel *)"
+x-claude:
+  allowed-tools: "Bash(composer *), Bash(./vendor/bin/phpunit *), Bash(./bin/phel *)"
 ---
 
 # Quick Test Runner
@@ -15,8 +16,8 @@ Run the **minimum** scope for the changed files. Prefer narrow over broad.
 |--------------------------|-----------------------------------------------|------------------------------------|
 | `src/php/**`             | `composer test-compiler`                      | PHPUnit unit + integration         |
 | `src/phel/**`            | `composer test-core`                          | Phel core tests                    |
-| `src/php/Compiler/**`    | `composer test-compiler`                      | Full compiler suite                |
 | Single PHP module        | `./vendor/bin/phpunit --filter=ModuleName`    | Fastest for focused work           |
+| Integration fixtures     | `composer test-integration`                   | Paratest, integration suite only   |
 | Single Phel file         | `./bin/phel test tests/phel/<file>`           | Target a specific test             |
 | Any `.php` style change  | `composer test-quality`                       | Static analysis only               |
 | Mixed PHP + Phel         | `composer test`                               | Run everything                     |
@@ -28,6 +29,7 @@ composer test              # All tests (quality + compiler + core)
 composer test-quality      # Static analysis: cs-fixer, psalm, phpstan, rector
 composer test-compiler     # PHPUnit unit + integration tests
 composer test-core         # Phel core tests (./bin/phel test)
+composer test-core:parallel # Phel core tests in workers
 composer fix               # Auto-fix: rector + cs-fixer
 ```
 
@@ -35,7 +37,7 @@ composer fix               # Auto-fix: rector + cs-fixer
 
 1. If `$ARGUMENTS` is empty or `all`:
    ```bash
-   composer test
+   COMPOSER_PROCESS_TIMEOUT=0 composer test
    ```
 
 2. If `$ARGUMENTS` is a known scope:

@@ -2,7 +2,8 @@
 description: Scaffold a new Gacela module under src/php/ with Facade, Provider, and CLAUDE.md
 argument-hint: "<ModuleName>"
 disable-model-invocation: true
-allowed-tools: "Read, Write, Edit, Glob, Bash(ls *), Bash(composer *)"
+x-claude:
+  allowed-tools: "Read, Write, Edit, Glob, Bash(ls *), Bash(composer *)"
 ---
 
 # New Gacela Module
@@ -27,7 +28,7 @@ Scaffolds a new module under `src/php/<ModuleName>/` following the project Gacel
    ```
    <ModuleName>Facade.php          # final class extending \Gacela\Framework\AbstractFacade
    <ModuleName>Factory.php         # final class extending AbstractFactory (only if module needs internal wiring)
-   <ModuleName>Provider.php           # only if the module depends on another module's Facade
+   <ModuleName>Provider.php        # only if the module depends on another module's Facade
    Domain/                         # pure business logic (no framework deps)
    Infrastructure/                 # adapters, CLI commands, IO
    CLAUDE.md                       # one-line purpose, Gacela pattern, public API, deps, structure, constraints
@@ -40,34 +41,7 @@ Scaffolds a new module under `src/php/<ModuleName>/` following the project Gacel
    - Factory: `#[ServiceMap(method: 'getConfig', className: <ModuleName>Config::class)]`
    - Provider: the same `getConfig` mapping; use `AbstractConfig::class` only when the module intentionally has no custom Config
 
-6. **CLAUDE.md template** (keep scannable — no prose):
-   ```markdown
-   # <ModuleName>
-
-   <one-line purpose>
-
-   ## Gacela pattern
-
-   Facade → Factory → Domain
-
-   ## Public API
-
-   - `<ModuleName>Facade::method()` — <one line>
-
-   ## Dependencies
-
-   - `<OtherFacadeInterface>::class` (via Provider)
-
-   ## Structure
-
-   <ModuleName>/
-     Domain/
-     Infrastructure/
-
-   ## Constraints
-
-   - <key invariant or rule>
-   ```
+6. **CLAUDE.md**: follow `src/php/CLAUDE.md` (shared conventions) and the section order of the reference module: one-line purpose, Gacela pattern, public API, dependencies, structure, key constraints. Document only what the code does not say.
 
 7. **Do not** register the module anywhere — Gacela auto-discovers via PSR-4.
 
@@ -82,4 +56,4 @@ Scaffolds a new module under `src/php/<ModuleName>/` following the project Gacel
 - Do not rely on Gacela's deprecated source/docblock service-resolution fallback; every inherited pillar accessor has an explicit `#[ServiceMap]`.
 - Provider entries use Gacela 2.0 `#[Provides(...)]`; key facade dependencies by the consumer-facing interface when one exists.
 - Mark classes `final` unless inheritance is explicitly justified.
-- Use `readonly` properties where possible (per `.claude/rules/php.md`).
+- Use `readonly` properties where possible (per `.agnostic-ai/rules/php.md`).

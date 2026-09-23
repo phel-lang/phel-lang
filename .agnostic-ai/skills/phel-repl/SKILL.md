@@ -2,7 +2,8 @@
 description: Evaluate Phel expressions to verify behavior. Use when you need to test Phel code interactively.
 argument-hint: "<phel expression>"
 disable-model-invocation: true
-allowed-tools: "Bash(./bin/phel *), Bash(echo *), Bash(timeout *)"
+x-claude:
+  allowed-tools: "Bash(./bin/phel *), Bash(echo *), Bash(printf *)"
 ---
 
 # Phel REPL
@@ -15,18 +16,18 @@ Evaluate Phel expressions to verify behavior without writing test files.
 
 2. Evaluate it using the Phel CLI `eval` command:
    ```bash
-   timeout 10 ./bin/phel eval '$ARGUMENTS'
+   ./bin/phel eval '$ARGUMENTS'
    ```
 
    Or read the expression from stdin with `-`:
    ```bash
-   echo '$ARGUMENTS' | timeout 10 ./bin/phel eval -
+   echo '$ARGUMENTS' | ./bin/phel eval -
    ```
 
    For multi-form snippets that need a namespace, write a temp file:
    ```bash
-   echo '(ns repl-test) $ARGUMENTS' > /tmp/phel-repl-test.phel
-   timeout 10 ./bin/phel run /tmp/phel-repl-test.phel
+   printf '%s\n' '(ns repl-test)' '$ARGUMENTS' > "${TMPDIR:-/tmp}/phel-repl-test.phel"
+   ./bin/phel run "${TMPDIR:-/tmp}/phel-repl-test.phel"
    ```
 
 3. Report the result. If there's an error, explain what went wrong.

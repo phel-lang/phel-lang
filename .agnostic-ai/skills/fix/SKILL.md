@@ -2,7 +2,8 @@
 description: Auto-fix all code quality issues with rector, cs-fixer, and phpstan
 argument-hint: "[file-path]"
 disable-model-invocation: true
-allowed-tools: "Read, Edit, Bash(composer *), Bash(./vendor/bin/*)"
+x-claude:
+  allowed-tools: "Read, Edit, Bash(composer *), Bash(./vendor/bin/*)"
 ---
 
 # Fix All Code Quality Issues

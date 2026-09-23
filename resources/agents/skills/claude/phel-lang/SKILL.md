@@ -1,6 +1,6 @@
 ---
 name: phel-lang
-description: Building applications WITH Phel (Lisp that compiles to PHP). Triggers on .phel files, phel-config.php, phel CLI commands (init, run, repl, test, build), or requests to build a Phel app. Skip when working on the Phel compiler internals (use compiler-guide or phel-patterns instead).
+description: Building applications WITH Phel (Lisp that compiles to PHP). Triggers on .phel files, phel-config.php, phel CLI commands (init, run, repl, test, build), or requests to build a Phel app. Skip when working on the Phel compiler itself.
 ---
 
 # Phel

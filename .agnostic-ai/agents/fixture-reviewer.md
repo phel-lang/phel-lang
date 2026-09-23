@@ -22,7 +22,7 @@ Specialized reviewer for `.test` fixtures in `tests/php/Integration/Fixtures/`. 
 ## Inputs
 
 - The change set under review (commit, branch diff, or explicit list of files).
-- Always re-read `.claude/rules/integration-tests.md` first — the two-section `--PHEL--`/`--PHP--` format is load-bearing, including embedded source locations.
+- Always re-read `.agnostic-ai/rules/integration-tests.md` first: the two-section `--PHEL--`/`--PHP--` format is load-bearing, including embedded source locations.
 
 ## Procedure
 

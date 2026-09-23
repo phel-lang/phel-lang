@@ -7,7 +7,8 @@ globs: src/php/**,tests/php/**
 
 ## Code Style
 
-- PER 3.0 enforced by php-cs-fixer + rector (auto-formats via PostToolUse hook — no manual run needed)
+- PER 3.0, enforced by php-cs-fixer and rector. The post-edit hook runs cs-fixer on every edited PHP file.
+- The hook deletes an unused `use`. Add an import in the same edit as its first usage.
 - PHPStan level 9 (max), Psalm level 1
 - Prefer `final` classes unless inheritance is explicitly needed
 - Use `readonly` properties where possible
@@ -43,5 +44,6 @@ Quick smell test: if a factory has `use Phel\<OtherModule>\Application\…;` or 
 
 ## Testing
 
-- Test method names use snake_case: `test_it_does_something()`
-- PHPUnit with `--testsuite=unit,integration`
+- Test method names use snake_case: `test_it_does_something()`.
+- Use attributes (`#[DataProvider('name')]`, `#[Test]`). PHPUnit 12 ignores docblock annotations, so a `@dataProvider` test runs without data.
+- Suites: `unit`, `integration`.

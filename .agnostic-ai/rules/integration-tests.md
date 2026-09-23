@@ -55,6 +55,8 @@ user:1> (php/+ 1 1)
 ## Running
 
 ```bash
-composer test-compiler --testsuite=integration
+composer test-integration                                  # paratest, whole suite
 ./vendor/bin/phpunit --testsuite=integration --filter=ClassName
 ```
+
+Never hand-write the `--PHP--` section. Leave it empty, run `./vendor/bin/phpunit --filter=IntegrationTest`, and copy the actual output from the failure diff, then check it is the output you intended.

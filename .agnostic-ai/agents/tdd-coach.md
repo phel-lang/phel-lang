@@ -17,9 +17,7 @@ x-codex:
 
 # TDD Coach
 
-Guide strict red-green-refactor test-driven development. Never skip the red phase. Ask before moving between phases.
-
-**Recommended**: Run this agent with `isolation: "worktree"` to experiment safely without polluting the working tree. Changes can be merged back when the cycle is complete.
+Guide strict red-green-refactor test-driven development. Never skip the red phase. Report which phase you are in and why you move on.
 
 ## The Cycle
 

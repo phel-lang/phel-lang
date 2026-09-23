@@ -39,7 +39,7 @@ Read both the issue body **and every comment** as requirements input. Maintainer
 
 ### Phase 2: Plan
 
-4. **Enter Plan Mode** to design the implementation:
+4. **Plan** the implementation (in plan mode when run interactively; inside `/gh-issues`, plan and proceed):
    - Explore the codebase to understand affected areas
    - Identify files that need changes
    - Consider the module architecture (Gacela facades, module boundaries)
@@ -53,14 +53,14 @@ Read both the issue body **and every comment** as requirements input. Maintainer
 
 ### Phase 3: Implement
 
-6. **After plan approval**, implement following TDD:
+6. **Implement** following TDD:
    - Write failing tests first
    - Implement minimum code to pass
    - Refactor while keeping tests green
 
-7. **Run full test suite**:
+7. **Run the full suite once**, after focused tests pass:
    ```bash
-   composer test
+   COMPOSER_PROCESS_TIMEOUT=0 composer test
    ```
    Fix ALL errors before proceeding.
 
@@ -81,7 +81,8 @@ Read both the issue body **and every comment** as requirements input. Maintainer
     - duplication introduced by the new code (extract or reuse)
     - dead branches, unused params, leftover debug
     - naming drift vs. surrounding module conventions
-    - violations of `.claude/rules/php.md`, `modules.md`, `compiler.md`
+    - violations of `.agnostic-ai/rules/php.md`, `modules.md`, `compiler.md`
+    - speculative guards: keep only fixes for failures you observed or can reach
     - over-engineering: speculative abstractions, premature interfaces
 
     Apply fixes. Re-run `composer test`. Commit as a separate `ref(...)` commit — must be the final commit on the branch before PR:
@@ -118,7 +119,7 @@ Read both the issue body **and every comment** as requirements input. Maintainer
 - [ ] Issue fetched and understood
 - [ ] Self-assigned
 - [ ] Branch created from fresh `origin/main`
-- [ ] Plan created and approved
+- [ ] Plan created
 - [ ] Tests written first (TDD)
 - [ ] Implementation complete
 - [ ] `composer test` passes

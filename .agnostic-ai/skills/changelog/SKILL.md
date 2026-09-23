@@ -2,7 +2,8 @@
 description: Update CHANGELOG.md unreleased section from recent commits or manual entry; follows the changelog rule
 argument-hint: "[entry text | --optimize]"
 disable-model-invocation: true
-allowed-tools: "Read, Edit, Bash(git *)"
+x-claude:
+  allowed-tools: "Read, Edit, Bash(git *)"
 ---
 
 # Update Changelog

@@ -2,7 +2,8 @@
 description: Auto-fix, lint, test, and commit changes with a conventional commit message
 argument-hint: "[optional commit message]"
 disable-model-invocation: true
-allowed-tools: "Read, Edit, Bash(composer *), Bash(./vendor/bin/*), Bash(./bin/phel *), Bash(git *)"
+x-claude:
+  allowed-tools: "Read, Edit, Bash(composer *), Bash(./vendor/bin/*), Bash(./bin/phel *), Bash(git *)"
 ---
 
 # Commit
@@ -45,25 +46,25 @@ Run each step in order. Stop and fix issues before continuing.
 
 If any step fails, fix the issue and re-run from that step. Do NOT proceed to commit with failures.
 
-> Note: The pre-commit hook runs `composer test-all` on commit. These gates catch issues early to avoid a slow hook failure.
+The pre-commit hook runs `composer test-all` when PHP or Phel files are staged. These gates fail faster.
 
 ### Phase 3: Commit
 
-6. **Stage files** — add specific changed files by name (never `git add -A`).
+6. **Stage files**: add specific changed files by name (never `git add -A`).
 
 7. **Draft commit message** using conventional commit format:
    - If `$ARGUMENTS` is provided, use it as the commit message
    - Otherwise, analyze the staged diff and generate one
-   - Prefixes: `feat:`, `fix:`, `ref:`, `chore:`, `docs:`, `test:`
+   - Prefixes: `feat:`, `fix:`, `ref:`, `perf:`, `chore:`, `docs:`, `test:`
    - Add `(<scope>)` when changes are scoped to a single module
    - **NEVER mention AI tooling in the message**
-   - **NEVER include emojis in the subject or body.** PR titles on GitHub may keep the emoji prefix required by `.github/PULL_REQUEST_TEMPLATE.md`, but strip it from the commit subject before merging — GitHub squash-merges copy the PR title verbatim, so emoji in the PR title leaks into history unless removed
+   - **NEVER include emojis.** A squash merge copies the PR title into history, so strip any emoji from the PR title before merging
 
-8. **Commit**:
+8. **CHANGELOG check**: for a user-facing `feat:`, `fix:` or `perf:`, `CHANGELOG.md` must have its entry under `## Unreleased`, per `.agnostic-ai/rules/changelog.md`. Add it before committing.
+
+9. **Commit**:
    ```bash
    git commit -m "<message>"
    ```
-
-9. **CHANGELOG check** — if the commit prefix is `feat:` or `fix:`, verify that `CHANGELOG.md` has been updated under `## Unreleased`. If not, warn the user before committing.
 
 10. Report: commit hash, message, and files included.

@@ -2,7 +2,8 @@
 description: Run performance benchmarks, create baselines, and compare results
 argument-hint: "[run|baseline|compare|filter]"
 disable-model-invocation: true
-allowed-tools: "Read, Bash(composer *), Bash(./vendor/bin/phpbench *)"
+x-claude:
+  allowed-tools: "Read, Bash(composer *), Bash(./vendor/bin/phpbench *), Bash(./bin/phel *)"
 ---
 
 # Benchmark Runner
@@ -36,7 +37,9 @@ allowed-tools: "Read, Bash(composer *), Bash(./vendor/bin/phpbench *)"
    ./vendor/bin/phpbench run --filter="$ARGUMENTS" --report=aggregate --ansi
    ```
 
-5. Report results focusing on:
+5. For Phel code (`defbench`), use `./bin/phel bench`. To compare the working tree against a git ref, use `./bin/phel bench --ab=<ref> --pairs=N`. See `docs/benchmarking.md`.
+
+6. Report results focusing on:
    - Mean execution time and memory usage
    - Regressions vs improvements (when comparing)
    - Which benchmark classes were affected
