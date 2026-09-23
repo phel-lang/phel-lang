@@ -8,6 +8,7 @@ use Phel;
 use Phel\Build\BuildFacade;
 use Phel\Lang\Keyword;
 use Phel\Run\RunFacade;
+use Phel\Shared\CompileOptions;
 use PhpBench\Benchmark\Metadata\Annotations\BeforeMethods;
 use PhpBench\Benchmark\Metadata\Annotations\Revs;
 use RuntimeException;
@@ -25,7 +26,9 @@ use function sprintf;
  * The lowering lives in the emitted code, so each subject compiles a Phel
  * `fn` around the call once, in `setUpFixtures`, and measures calling it, as
  * {@see CoreAssocPairsBench} does. It compiles in build mode, so the runtime
- * call it replaces keeps its call-site slot and arity shortcut.
+ * call it replaces keeps its call-site slot and arity shortcut, and at
+ * optimization level 2, the only level that splices the body: the lowering
+ * is direct linking, which `with-redefs` could not intercept.
  *
  * {@see CoreBenchCase} for the conventions every subject here follows.
  *
@@ -140,7 +143,7 @@ final class CoreUpdateLiteralFnBench extends CoreBenchCase
     {
         BuildFacade::enableBuildMode();
         try {
-            $fn = new RunFacade()->eval($phelCode);
+            $fn = new RunFacade()->eval($phelCode, new CompileOptions()->setOptimizationLevel(2));
         } finally {
             BuildFacade::disableBuildMode();
         }

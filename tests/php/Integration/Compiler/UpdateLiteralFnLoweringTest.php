@@ -5,7 +5,10 @@ declare(strict_types=1);
 namespace PhelTest\Integration\Compiler;
 
 use Phel\Build\BuildFacade;
+use Phel\Shared\CompileOptions;
+use Phel\Shared\Printer\Printer;
 use PHPUnit\Framework\Attributes\DataProvider;
+use Throwable;
 
 use function range;
 use function sprintf;
@@ -18,6 +21,10 @@ use function strlen;
  * once, so nesting must grow the emitted code linearly, both threaded through
  * the target and nested inside the body. A shape that repeats its arguments
  * in both arms of a ternary doubles per level instead.
+ *
+ * Splicing is direct linking, so it only runs at optimization level 2: every
+ * compile here asks for it, and each runtime case is checked against the
+ * same source compiled at the default level, where `update` is called.
  */
 final class UpdateLiteralFnLoweringTest extends AbstractCompilerRuntimeTestCase
 {
@@ -56,6 +63,14 @@ final class UpdateLiteralFnLoweringTest extends AbstractCompilerRuntimeTestCase
         yield 'a destructured param' => ['(fn [m] (update m :k (fn [[v w]] [w v])))'];
         yield 'several body forms' => ['(fn [m] (update m :k (fn [v] (println v) v)))'];
         yield 'a nested fn capturing the param' => ['(fn [m] (update m :k (fn [v] (fn [] v))))'];
+        yield 'a map without conditions as the value' => ['(fn [m] (update m :k (fn [v] {:b v})))'];
+    }
+
+    public function test_the_default_level_keeps_the_runtime_call(): void
+    {
+        $php = $this->compileInBuildMode('(fn [m] (update m :k (fn [v] (php/+ v 1))))', new CompileOptions());
+
+        self::assertStringContainsString('"update"', $php);
     }
 
     #[DataProvider('providerRuntimeShapes')]
@@ -72,6 +87,8 @@ final class UpdateLiteralFnLoweringTest extends AbstractCompilerRuntimeTestCase
         yield 'recur' => ['(fn [m] (update m :k (fn [v] (if v (recur nil) 1))))'];
         yield 'a named fn' => ['(fn [m] (update m :k (fn self [v] v)))'];
         yield 'a condition map' => ['(fn [m] (update m :k (fn [v] {:pre [v]} v)))'];
+        yield 'a lone pre map' => ['(fn [m] (update m :k (fn [v] {:pre [(int? v)]})))'];
+        yield 'a lone post map' => ['(fn [m] (update m :k (fn [v] {:post [true]})))'];
         yield 'a tagged param' => ['(fn [m] (update m :k (fn [^int v] v)))'];
         yield 'a tagged return' => ['(fn [m] (update m :k (fn ^int [v] v)))'];
         yield 'a param count the call does not fill' => ['(fn [m] (update m :k (fn [v x] v)))'];
@@ -82,6 +99,53 @@ final class UpdateLiteralFnLoweringTest extends AbstractCompilerRuntimeTestCase
         yield 'an outer local passed to a method' => ['(fn [m o arr] (update m :k (fn [v] (.fill o arr) v)))'];
         yield 'php/ref' => ['(fn [m arr] (update m :k (fn [v] (php/preg_match "/a/" v (php/ref arr)))))'];
         yield 'yield' => ['(fn [m] (update m :k (fn [v] (php/yield v))))'];
+    }
+
+    #[DataProvider('providerRuntimeCases')]
+    public function test_the_lowered_call_answers_what_the_runtime_call_answers(string $phel): void
+    {
+        $lowered = $this->evalAt($phel, 2);
+        $runtime = $this->evalAt($phel, 0);
+
+        self::assertSame($runtime, $lowered);
+    }
+
+    public static function providerRuntimeCases(): iterable
+    {
+        yield 'an existing key' => ['(update {:a 1} :a (fn [v] (php/+ v 1)))'];
+        yield 'an absent key' => ['(update {:a 1} :b (fn [v] (nil? v)))'];
+        yield 'an empty body' => ['(update {:a 1} :a (fn [v]))'];
+        yield 'a nil target' => ['(update nil :a (fn [v] (if (nil? v) 1 v)))'];
+        yield 'a vector index' => ['(update [1 2 3] 1 (fn [v] (php/* v 10)))'];
+        yield 'the end index appends' => ['(update [1 2 3] 3 (fn [v] (nil? v)))'];
+        yield 'past the end' => ['(update [1 2 3] 7 (fn [v] v))'];
+        yield 'a transient' => ['(persistent (update (transient {:a 1}) :a (fn [v] (php/+ v 1))))'];
+        yield 'metadata' => ['(meta (update (with-meta {:a 1} {:m true}) :a (fn [v] (php/+ v 1))))'];
+        yield 'extra arguments' => ['(update {:a 1} :a (fn [v w x y z] [v w x y z]) 1 2 3 4)'];
+        yield 'an extra arg reads the outer local a param shadows' => ['(let [x 100] (update {:a 1} :a (fn [v x y] [v x y]) 2 x))'];
+        yield 'evaluation order' => ['(let [log (atom []) step (fn [t v] (swap! log conj t) v)] [(update (step :m {:a 1}) (step :k :a) (fn [v x] (step :body (php/+ v x))) (step :x 2)) (deref log)])'];
+        yield 'a vector pattern' => ['(update {:p [1 2]} :p (fn [[a b]] (php/+ a b)))'];
+        yield 'a map pattern' => ['(update {:p {:a 1 :b 2}} :p (fn [{:keys [a b]}] (php/+ a b)))'];
+        yield 'the param shadows an outer local' => ['(let [v 100] [(update {:a 1} :a (fn [v] (php/+ v 1))) v])'];
+        yield 'the body reads the target' => ['(let [m {:a 1 :b 2}] (update m :a (fn [v] (count m))))'];
+        yield 'a nested fn captures the param' => ['((get (update {:a 1} :a (fn [v] (fn [] v))) :a))'];
+        yield 'params named get and assoc' => ['(update {:a 1} :a (fn [get] (let [assoc get] (php/+ assoc 1))))'];
+        yield 'a lone pre map' => ['(update {:a 1} :a (fn [v] {:pre [(int? v)]}))'];
+        yield 'a map value' => ['(update {:a 1} :a (fn [v] {:b v}))'];
+        yield 'aset on a captured array' => ['(let [arr (php-indexed-array 1 2)] (update {:a 1} :a (fn [v] (php/aset arr 0 99) v)) (php/aget arr 0))'];
+        yield 'aset-in on a captured array' => ['(let [arr (php-indexed-array (php-indexed-array 1 2))] (update {:a 1} :a (fn [v] (php/aset-in arr [0 0] 99) v)) (php/aget-in arr [0 0]))'];
+        yield 'sort on a captured array' => ['(let [arr (php-indexed-array 3 1 2)] (update {:a 1} :a (fn [v] (php/sort arr) v)) (php/aget arr 0))'];
+        yield 'threaded' => ['[(-> {:a 1 :b 2} (update :a (fn [v] (php/+ v 1))) (update :b (fn [v] (php/- v 1))))]'];
+        yield 'nested in the body' => ['[(update {:a {:b 1}} :a (fn [v] (update v :b (fn [v] (php/+ v 1)))))]'];
+        yield 'a recur argument' => ['(loop [m {:a 0} i 0] (if (php/< i 5) (recur (update m :a (fn [v] (php/+ v 1))) (php/+ i 1)) m))'];
+        yield 'a short fn' => ['(update {:a 1} :a #(php/+ % 1))'];
+    }
+
+    public function test_with_redefs_still_reaches_a_redefined_update(): void
+    {
+        $phel = '(let [orig update] (with-redefs [update (fn [& args] (if (= :probe (second args)) :redefined (apply orig args)))] (update {:probe 1} :probe (fn [v] (php/+ v 1)))))';
+
+        self::assertSame(':redefined', $this->evalAt($phel, 0));
     }
 
     public function test_a_local_named_update_keeps_its_own_call(): void
@@ -110,13 +174,29 @@ final class UpdateLiteralFnLoweringTest extends AbstractCompilerRuntimeTestCase
         return $this->compileInBuildMode(sprintf('(fn [m] [(update m :k (fn [v] %s(php/+ v 1)%s))])', $open, $close));
     }
 
-    private function compileInBuildMode(string $phel): string
+    private function compileInBuildMode(string $phel, ?CompileOptions $options = null): string
     {
         BuildFacade::enableBuildMode();
         try {
-            return $this->compilerFacade->compile($phel)->getPhpCode();
+            return $this->compilerFacade
+                ->compile($phel, $options ?? new CompileOptions()->setOptimizationLevel(2))
+                ->getPhpCode();
         } finally {
             BuildFacade::disableBuildMode();
         }
+    }
+
+    /**
+     * The printed result, or the class of what it threw.
+     */
+    private function evalAt(string $phel, int $level): string
+    {
+        try {
+            $result = $this->compilerFacade->eval($phel, new CompileOptions()->setOptimizationLevel($level));
+        } catch (Throwable $throwable) {
+            return 'threw ' . $throwable::class;
+        }
+
+        return Printer::readable()->print($result);
     }
 }

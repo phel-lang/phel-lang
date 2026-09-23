@@ -1,11 +1,12 @@
 (ns phel-test.core.update-literal-fn
   (:require phel.test :refer [deftest is thrown?]))
 
-;; An `update` whose function is a literal one-arity `fn` compiles to a read,
-;; the fn body and one `assoc`, with no closure and no call to `phel.core/update`
-;; (#3322). Each case below asks both: the literal spelling takes the lowering,
-;; the same fn handed to `update` through `rt` keeps the runtime call, and the
-;; two must agree.
+;; At optimization level 2 an `update` whose function is a literal one-arity
+;; `fn` compiles to a read, the fn body and one `assoc`, with no closure and no
+;; call to `phel.core/update` (#3322). These cases pin the semantics the
+;; lowering must keep, at whatever level the suite compiles; the literal
+;; spelling is checked against the same fn handed to `update` through `rt`.
+;; `UpdateLiteralFnLoweringTest` runs them at level 2 against level 0.
 
 (defstruct point [x y])
 
@@ -105,7 +106,27 @@
     (is (= 1 (php/aget arr 0)) "php/aset on a captured array"))
   (let [arr (php-indexed-array 3 1 2)]
     (update {:a 1} :a (fn [v] (php/sort arr) v))
-    (is (= 3 (php/aget arr 0)) "a by-reference php function on a captured array")))
+    (is (= 3 (php/aget arr 0)) "a by-reference php function on a captured array"))
+  (let [arr (php-indexed-array (php-indexed-array 1 2))]
+    (update {:a 1} :a (fn [v] (php/aset-in arr [0 0] 99) v))
+    (is (= 1 (php/aget-in arr [0 0])) "php/aset-in on a captured array")))
+
+(deftest test-condition-maps
+  (is (= {:a nil} (update {:a 1} :a (fn [v] {:pre [(int? v)]}))) "a lone pre map is a condition, not the value")
+  (is (= (rt {:a 1} :a (fn [v] {:pre [(int? v)]})) (update {:a 1} :a (fn [v] {:pre [(int? v)]}))) "a lone pre map matches the runtime")
+  (is (= {:a nil} (update {:a 1} :a (fn [v] {:post [true]}))) "a lone post map is a condition")
+  (is (thrown? \Throwable (update {:a "x"} :a (fn [v] {:pre [(int? v)]}))) "a lone pre map still asserts")
+  (is (= {:a {:b 1}} (update {:a 1} :a (fn [v] {:b v}))) "a map without conditions is the value"))
+
+(deftest test-with-redefs
+  ;; Only the probe key is intercepted: `phel.test` itself calls `update`.
+  (let [original update
+        result (with-redefs [update (fn [& args]
+                                      (if (= :probe (second args))
+                                        :redefined
+                                        (apply original args)))]
+                 (update {:probe 1} :probe (fn [v] (php/+ v 1))))]
+    (is (= :redefined result) "a redefined update is called")))
 
 (deftest test-contexts
   (is (= [{:a 2}] [(update {:a 1} :a (fn [v] (php/+ v 1)))]) "expression")

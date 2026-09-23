@@ -42,6 +42,9 @@ use function count;
  * what the closure cost. The lowered one is flagged to emit its bindings as
  * assignments inside the expression instead ({@see LetNode::isInlineInExpression()}).
  *
+ * It is direct linking, so it runs only at optimization level 2 and never
+ * on a `:redef` `update`, like {@see CallInliner}.
+ *
  * Shapes that keep the runtime call: a call in statement position, anything but a single-arity `fn` with a
  * param vector, a rest param, a param count that does not match the extra
  * arguments, a named fn, a tagged param or return, a `{:pre :post}` map, a
@@ -73,6 +76,13 @@ final readonly class UpdateLiteralFnLowering
         AnalyzerInterface $analyzer,
     ): ?AbstractNode {
         if ($f->getNamespace() !== self::CORE_NS || $f->getName()->getName() !== self::UPDATE) {
+            return null;
+        }
+
+        // Splicing leaves no read of `update` for `with-redefs` or
+        // `phel.mock` to intercept, so it is direct linking and takes the
+        // same gates as {@see CallInliner}: level 2, and never on `:redef`.
+        if ($analyzer->getOptimizationLevel() < 2 || (bool) $f->getMeta()[Keyword::create('redef')]) {
             return null;
         }
 
