@@ -6,11 +6,16 @@ namespace Phel\Run\Infrastructure\Command;
 
 use Gacela\Framework\ServiceResolver\ServiceMap;
 use Gacela\Framework\ServiceResolverAwareTrait;
+use Override;
+use Phel\Run\Application\Bench\AbBenchException;
+use Phel\Run\Application\Bench\AbBenchRunner;
+use Phel\Run\Domain\Bench\AbBenchOptions;
 use Phel\Run\Domain\QuotedNamespaceList;
 use Phel\Run\RunFacade;
 use Phel\Shared\CompileOptions;
 use Phel\Shared\Exceptions\CompilerException;
 use Phel\Shared\NamespaceInformation;
+use Phel\Shared\Process\PhelBinaryLocator;
 use Phel\Shared\ScalarCoercion;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputArgument;
@@ -19,7 +24,12 @@ use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
 use Throwable;
 
+use function ctype_digit;
+use function defined;
+use function function_exists;
+use function getcwd;
 use function implode;
+use function is_numeric;
 use function is_string;
 use function json_encode;
 use function ob_end_clean;
@@ -61,6 +71,35 @@ final class BenchCommand extends Command
 
     private const string OPT_TOLERANCE = 'tolerance';
 
+    private const string OPT_AB = 'ab';
+
+    private const string OPT_PAIRS = 'pairs';
+
+    private const int DEFAULT_PAIRS = 5;
+
+    private ?AbBenchRunner $abRunner = null;
+
+    /**
+     * @return list<int>
+     */
+    #[Override]
+    public function getSubscribedSignals(): array
+    {
+        return defined('SIGINT') && function_exists('pcntl_signal') ? [SIGINT, SIGTERM] : [];
+    }
+
+    /**
+     * Without the pcntl extension no handler runs, and an interrupted A/B
+     * run leaves its worktree behind.
+     */
+    #[Override]
+    public function handleSignal(int $signal, int|false $previousExitCode = 0): int|false
+    {
+        $this->abRunner?->abort();
+
+        return 128 + $signal;
+    }
+
     protected function configure(): void
     {
         $this->setName(self::COMMAND_NAME)
@@ -83,6 +122,17 @@ final class BenchCommand extends Command
                 With <info>--tolerance</info> the command exits non-zero when a benchmark is slower than its
                 baseline by more than that percentage. A benchmark missing from the baseline
                 reports "new" and can never fail the run.
+
+                A baseline stored ten minutes ago was measured on a colder machine. To compare
+                against a git ref instead, run both sides interleaved, A then B, once per pair:
+
+                  <info>phel bench --ab=main --pairs=5 --filter=step</info>
+
+                Side A runs from a temporary git worktree of the ref, which is removed afterwards;
+                side B is the working tree. Each row reports the mean of the per-pair deltas and
+                how many pairs agree on the sign, and says "noise" when they do not all agree.
+                With <info>--tolerance</info> the command exits non-zero only when a benchmark is slower
+                by more than that percentage in every pair.
                 HELP)
             ->addArgument(self::ARG_PATHS, InputArgument::IS_ARRAY, 'The file paths that you want to benchmark')
             ->addOption(self::OPT_FILTER, 'f', InputOption::VALUE_REQUIRED, 'Only run benchmarks whose name contains this substring')
@@ -91,11 +141,17 @@ final class BenchCommand extends Command
             ->addOption(self::OPT_WARMUP, null, InputOption::VALUE_REQUIRED, 'Unmeasured iterations run before measuring')
             ->addOption(self::OPT_STORE, null, InputOption::VALUE_REQUIRED, 'Write the results to this file as a baseline')
             ->addOption(self::OPT_REF, null, InputOption::VALUE_REQUIRED, 'Compare the results against the baseline stored in this file')
-            ->addOption(self::OPT_TOLERANCE, null, InputOption::VALUE_REQUIRED, 'Fail when a benchmark is slower than its baseline by more than this percentage');
+            ->addOption(self::OPT_TOLERANCE, null, InputOption::VALUE_REQUIRED, 'Fail when a benchmark is slower than its baseline by more than this percentage')
+            ->addOption(self::OPT_AB, null, InputOption::VALUE_REQUIRED, 'Compare the working tree against this git ref, interleaved, in a temporary worktree')
+            ->addOption(self::OPT_PAIRS, null, InputOption::VALUE_REQUIRED, 'A/B pairs to run with --ab', (string) self::DEFAULT_PAIRS);
     }
 
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
+        if ($input->getOption(self::OPT_AB) !== null || $input->getParameterOption('--' . self::OPT_PAIRS, null, true) !== null) {
+            return $this->executeAb($input, $output);
+        }
+
         try {
             /** @var list<string> $paths */
             $paths = (array) $input->getArgument(self::ARG_PATHS);
@@ -120,6 +176,76 @@ final class BenchCommand extends Command
         }
 
         return self::FAILURE;
+    }
+
+    private function executeAb(InputInterface $input, OutputInterface $output): int
+    {
+        $options = $this->abOptions($input);
+        if (is_string($options)) {
+            $output->writeln('<error>' . $options . '</error>');
+
+            return self::INVALID;
+        }
+
+        $this->abRunner = $this->getFacade()->createAbBenchRunner();
+
+        try {
+            $withinTolerance = $this->abRunner->run($options, getcwd() ?: '.', PhelBinaryLocator::locate(), $output);
+
+            return $withinTolerance ? self::SUCCESS : self::FAILURE;
+        } catch (AbBenchException $e) {
+            $output->writeln('<error>' . $e->getMessage() . '</error>');
+
+            return self::FAILURE;
+        } finally {
+            $this->abRunner = null;
+        }
+    }
+
+    /**
+     * @return AbBenchOptions|string the options, or why they are not valid
+     */
+    private function abOptions(InputInterface $input): AbBenchOptions|string
+    {
+        $ref = $input->getOption(self::OPT_AB);
+        if (!is_string($ref) || $ref === '') {
+            return '--pairs only applies together with --ab=<git-ref>.';
+        }
+
+        foreach ([self::OPT_STORE, self::OPT_REF] as $option) {
+            if ($input->getOption($option) !== null) {
+                return sprintf('--ab cannot be combined with --%s: an A/B run is not stored or compared against a baseline.', $option);
+            }
+        }
+
+        $pairs = ScalarCoercion::toString($input->getOption(self::OPT_PAIRS));
+        if (!ctype_digit($pairs) || (int) $pairs < 1) {
+            return sprintf('--pairs must be a whole number of at least 1, got "%s".', $pairs);
+        }
+
+        $tolerance = $input->getOption(self::OPT_TOLERANCE);
+        if ($tolerance !== null && !is_numeric($tolerance)) {
+            return sprintf('--tolerance must be a number, got "%s".', ScalarCoercion::toString($tolerance));
+        }
+
+        $benchArguments = [];
+        foreach ([self::OPT_FILTER, self::OPT_REVS, self::OPT_ITERATIONS, self::OPT_WARMUP] as $option) {
+            $value = $input->getOption($option);
+            if ($value !== null) {
+                $benchArguments[] = sprintf('--%s=%s', $option, ScalarCoercion::toString($value));
+            }
+        }
+
+        /** @var list<string> $paths */
+        $paths = (array) $input->getArgument(self::ARG_PATHS);
+
+        return new AbBenchOptions(
+            $ref,
+            (int) $pairs,
+            $paths,
+            $benchArguments,
+            $tolerance === null ? null : (float) $tolerance,
+        );
     }
 
     /**

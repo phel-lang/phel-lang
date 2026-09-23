@@ -8,6 +8,7 @@ use Gacela\Framework\AbstractFacade;
 use Gacela\Framework\Health\ModuleHealthCheckInterface;
 use Gacela\Framework\ServiceResolver\ServiceMap;
 use Phel\Lang\Collections\Map\PersistentMapInterface;
+use Phel\Run\Application\Bench\AbBenchRunner;
 use Phel\Run\Application\Test\Coverage\CoverageDriver;
 use Phel\Run\Application\Test\Coverage\CoverageReport;
 use Phel\Run\Application\Test\Coverage\PerTestCoverageReport;
@@ -204,6 +205,15 @@ final class RunFacade extends AbstractFacade implements RunFacadeInterface
     public function createCpuCountDetector(): CpuCountDetector
     {
         return $this->getFactory()->createCpuCountDetector();
+    }
+
+    /**
+     * Runs `phel bench --ab`: the benchmarks of a git ref against those of
+     * the working tree, interleaved.
+     */
+    public function createAbBenchRunner(): AbBenchRunner
+    {
+        return $this->getFactory()->createAbBenchRunner();
     }
 
     /**
