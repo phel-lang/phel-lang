@@ -193,6 +193,10 @@ final readonly class ParallelTestOrchestrator
         }
 
         while (!$buffer->isComplete()) {
+            foreach ($workers as $worker) {
+                $worker->drainStderr();
+            }
+
             $busyByStream = $this->mapBusyWorkersByStream($workers);
             if ($busyByStream === []) {
                 return $budget->recoveredCount();

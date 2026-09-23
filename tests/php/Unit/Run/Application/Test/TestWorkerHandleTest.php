@@ -9,6 +9,7 @@ use PHPUnit\Framework\TestCase;
 
 use function function_exists;
 use function proc_open;
+use function strlen;
 use function usleep;
 
 final class TestWorkerHandleTest extends TestCase
@@ -67,6 +68,26 @@ final class TestWorkerHandleTest extends TestCase
 
         self::assertSame('killed by signal 9', $worker->exitStatus());
         self::assertSame('', $worker->crashReport());
+    }
+
+    public function test_a_worker_that_floods_stderr_runs_to_the_end_while_it_is_drained(): void
+    {
+        // Far past any pipe buffer: undrained, the write blocks forever.
+        $worker = $this->startWorker('fwrite(STDERR, str_repeat("x", 1_048_576) . "last line"); exit(0);');
+
+        for ($i = 0; $i < 500 && $worker->isAlive(); ++$i) {
+            $worker->drainStderr();
+            usleep(10_000);
+        }
+
+        $alive = $worker->isAlive();
+        $report = $worker->crashReport();
+        $worker->terminate();
+
+        self::assertFalse($alive, 'the worker blocked writing to stderr');
+        self::assertSame('exit code 0', $worker->exitStatus());
+        self::assertStringEndsWith('last line', $report, 'the report keeps the newest output');
+        self::assertLessThan(20_000, strlen($report), 'the kept stderr is bounded');
     }
 
     private function startWorker(string $code): TestWorkerHandle

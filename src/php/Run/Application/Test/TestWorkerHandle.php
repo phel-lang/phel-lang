@@ -19,6 +19,7 @@ use function proc_terminate;
 use function sprintf;
 use function stream_set_blocking;
 use function strlen;
+use function substr;
 use function trim;
 use function usleep;
 
@@ -32,6 +33,8 @@ use function usleep;
  */
 final class TestWorkerHandle
 {
+    private const int STDERR_TAIL_BYTES = 16_384;
+
     /** @var closed-resource|resource */
     private readonly mixed $stdin;
 
@@ -52,6 +55,9 @@ final class TestWorkerHandle
      * `proc_get_status()` reports the real exit code only once.
      */
     private ?string $exitStatus = null;
+
+    /** The most recent stderr output, kept for a crash report. */
+    private string $stderrTail = '';
 
     /**
      * @param closed-resource|resource $process
@@ -141,13 +147,15 @@ final class TestWorkerHandle
     public function crashReport(): string
     {
         $this->pumpReadBuffer();
+        $this->drainStderr();
+
         $parts = [];
         $stdout = trim($this->readBuffer);
         if ($stdout !== '') {
             $parts[] = 'stdout: ' . $stdout;
         }
 
-        $stderr = trim($this->readStderrNonBlocking());
+        $stderr = trim($this->stderrTail);
         if ($stderr !== '') {
             $parts[] = 'stderr: ' . $stderr;
         }
@@ -196,20 +204,19 @@ final class TestWorkerHandle
         return $this->extractFrame();
     }
 
-    public function readStderrNonBlocking(): string
+    /**
+     * Empty the stderr pipe into a bounded tail. Nothing else reads it while
+     * the worker lives, and a worker that fills the pipe buffer blocks on its
+     * next write and never answers.
+     */
+    public function drainStderr(): void
     {
-        $out = '';
-        while (true) {
-            /** @psalm-suppress PossiblyInvalidArgument */
-            $chunk = @fread($this->stderr, 8192);
-            if ($chunk === false || $chunk === '') {
-                break;
-            }
-
-            $out .= $chunk;
+        $chunk = $this->readStderrNonBlocking();
+        if ($chunk === '') {
+            return;
         }
 
-        return $out;
+        $this->stderrTail = substr($this->stderrTail . $chunk, -self::STDERR_TAIL_BYTES);
     }
 
     public function closeStdin(): void
@@ -248,6 +255,22 @@ final class TestWorkerHandle
                 @fclose($pipe);
             }
         }
+    }
+
+    private function readStderrNonBlocking(): string
+    {
+        $out = '';
+        while (true) {
+            /** @psalm-suppress PossiblyInvalidArgument */
+            $chunk = @fread($this->stderr, 8192);
+            if ($chunk === false || $chunk === '') {
+                break;
+            }
+
+            $out .= $chunk;
+        }
+
+        return $out;
     }
 
     private function pumpReadBuffer(): void
