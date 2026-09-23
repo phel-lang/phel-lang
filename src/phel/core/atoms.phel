@@ -448,7 +448,7 @@ Returns the new value after the swap."
   ;; A macro so the step body becomes the 2-arity itself: as a function this
   ;; built a second closure per transducer and paid an extra call per element
   ;; (#3323).
-  (when-not (and (list? step-fn) (= 'fn (first step-fn)) (vector? (second step-fn)))
+  (when-not (and (list? step-fn) (= 'fn (first step-fn)) (vector? (second step-fn)) (= 2 (count (second step-fn))))
     (throw (new InvalidArgumentException "xf-step expects a literal (fn [result input] ...) step")))
   `(fn
      ([] (~rf))
