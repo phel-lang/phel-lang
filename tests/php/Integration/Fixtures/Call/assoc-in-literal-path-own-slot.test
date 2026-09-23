@@ -1,0 +1,7 @@
+--PHEL--
+(fn [m] [(get-in m [:a]) (assoc-in m [:a] 1) [:a]])
+--PHP--
+(function($m): \Phel\Lang\Collections\Vector\PersistentVectorInterface {
+  static $__phel_const_0, $__phel_const_1;
+  return \Phel::vector([\Phel\Lang\GetIn::path($m, ($__phel_const_0 ??= [\Phel\Lang\Keyword::create("a")])), \Phel\Lang\AssocIn::path($m, ($__phel_const_0 ??= [\Phel\Lang\Keyword::create("a")]), 1), ($__phel_const_1 ??= \Phel::vector([\Phel\Lang\Keyword::create("a")]))]);
+});

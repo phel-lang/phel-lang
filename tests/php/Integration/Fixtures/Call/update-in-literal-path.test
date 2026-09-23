@@ -1,0 +1,11 @@
+--PHEL--
+(fn [m f] (update-in m [:a :b] f))
+(fn [m f x y z] (update-in m [:a :b] f x y z))
+--PHP--
+(function($m, $f) {
+  static $__phel_const_0;
+  return \Phel\Lang\AssocIn::update($m, ($__phel_const_0 ??= [\Phel\Lang\Keyword::create("a"), \Phel\Lang\Keyword::create("b")]), $f);
+});(function($m, $f, $x, $y, $z) {
+  static $__phel_const_0;
+  return \Phel\Lang\AssocIn::update($m, ($__phel_const_0 ??= [\Phel\Lang\Keyword::create("a"), \Phel\Lang\Keyword::create("b")]), $f, $x, $y, $z);
+});
