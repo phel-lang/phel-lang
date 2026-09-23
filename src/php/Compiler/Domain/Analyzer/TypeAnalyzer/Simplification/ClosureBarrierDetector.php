@@ -10,6 +10,7 @@ use Phel\Compiler\Domain\Analyzer\Ast\FnNode;
 use Phel\Compiler\Domain\Analyzer\Ast\LocalVarNode;
 use Phel\Compiler\Domain\Analyzer\Ast\MethodCallNode;
 use Phel\Compiler\Domain\Analyzer\Ast\MultiFnNode;
+use Phel\Compiler\Domain\Analyzer\Ast\PhpArrayGetNode;
 use Phel\Compiler\Domain\Analyzer\Ast\PhpArrayPushNode;
 use Phel\Compiler\Domain\Analyzer\Ast\PhpArraySetNode;
 use Phel\Compiler\Domain\Analyzer\Ast\PhpArrayUnsetNode;
@@ -33,9 +34,10 @@ use function array_any;
  * A closure captures the enclosing locals by value. A PHP array local it
  * writes to, through `php/aset` and friends, `php/ref`, or a PHP function
  * or method taking the argument by reference (`sort`, `preg_match`), was a
- * copy; spliced, the write lands on the caller's variable. Which PHP
- * functions take a reference is not known here, so any local handed straight
- * to one counts. A `php/yield` would turn the enclosing function into a
+ * copy; spliced, the write lands on the caller's variable. An array write
+ * whose target mentions an enclosing local anywhere counts. Which PHP
+ * functions take a reference is not known here, so any argument that is an
+ * enclosing local, or an offset into one (`$arr[0]`), counts. A `php/yield` would turn the enclosing function into a
  * generator.
  *
  * Nested closures are not walked: they capture by value either way. A node
@@ -91,7 +93,7 @@ final readonly class ClosureBarrierDetector
     private function writesThroughArgument(AbstractNode $node, array $enclosing): bool
     {
         if ($node instanceof PhpArraySetNode || $node instanceof PhpArrayPushNode || $node instanceof PhpArrayUnsetNode) {
-            return $this->isEnclosingLocal($node->getArrayExpr(), $enclosing);
+            return $this->mentionsEnclosingLocal($node->getArrayExpr(), $enclosing);
         }
 
         if ($node instanceof CallNode) {
@@ -119,10 +121,43 @@ final readonly class ClosureBarrierDetector
         return array_any(
             $args,
             fn(AbstractNode $arg): bool => $this->isEnclosingLocal(
-                $arg instanceof PhpNamedArgNode ? $arg->getValueExpr() : $arg,
+                $this->lvalueRoot($arg instanceof PhpNamedArgNode ? $arg->getValueExpr() : $arg),
                 $enclosing,
             ),
         );
+    }
+
+    /**
+     * The variable an argument would be written through if taken by
+     * reference: `$arr[0][1]` writes `$arr`. Anything else is a temporary.
+     */
+    private function lvalueRoot(AbstractNode $node): AbstractNode
+    {
+        while ($node instanceof PhpArrayGetNode) {
+            $node = $node->getArrayExpr();
+        }
+
+        return $node;
+    }
+
+    /**
+     * The target of an array write, whatever wraps it: any enclosing local
+     * in it keeps the closure.
+     *
+     * @param array<string, true> $enclosing
+     */
+    private function mentionsEnclosingLocal(AbstractNode $node, array $enclosing): bool
+    {
+        if ($this->isEnclosingLocal($node, $enclosing)) {
+            return true;
+        }
+
+        $children = NodeChildren::of($node);
+        if ($children === null) {
+            return true;
+        }
+
+        return array_any($children, fn(AbstractNode $child): bool => $this->mentionsEnclosingLocal($child, $enclosing));
     }
 
     /**

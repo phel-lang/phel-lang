@@ -15,6 +15,7 @@ use Phel\Lang\Collections\HashSet\PersistentHashSetInterface;
 use Phel\Lang\Collections\LinkedList\PersistentListInterface;
 use Phel\Lang\Collections\Map\PersistentMapInterface;
 use Phel\Lang\Collections\Vector\PersistentVectorInterface;
+use Phel\Lang\Keyword;
 use Phel\Lang\Symbol;
 use Phel\Shared\TagResolver;
 
@@ -227,11 +228,18 @@ final readonly class UpdateLiteralFnLowering
     }
 
     /**
+     * A leading map holding `:pre` or `:post` is a condition map for `fn`,
+     * even as the only form, when the fn returns nil. Under `let` it would be
+     * the value, so any such map keeps the closure.
+     *
      * @param list<mixed> $body
      */
     private function hasConditionMap(array $body): bool
     {
-        return count($body) > 1 && $body[0] instanceof PersistentMapInterface;
+        $first = $body[0] ?? null;
+
+        return $first instanceof PersistentMapInterface
+            && ($first->contains(Keyword::create('pre')) || $first->contains(Keyword::create('post')));
     }
 
     /**
