@@ -159,6 +159,17 @@ final readonly class UpdateLiteralFnLowering
             return null;
         }
 
+        // The body was analysed as the fn's return value; its leading forms
+        // stay statements, and only the value moves into the `assoc`.
+        $statements = $body instanceof DoNode ? $body->getStmts() : [];
+
+        // In expression position only a statement-free `let` emits inline;
+        // with statements it becomes an IIFE, which would move the target
+        // and the key out of the caller's frame.
+        if ($statements !== [] && $env->isContext(NodeEnvironment::CONTEXT_EXPRESSION)) {
+            return null;
+        }
+
         $expressionEnv = $env->withExpressionContext();
         $targetSym = Symbol::gen('ds_');
         $keySym = Symbol::gen('k_');
@@ -187,9 +198,6 @@ final readonly class UpdateLiteralFnLowering
             $bindings[] = new BindingNode($env, $param, $fresh[$param->getName()], new LocalVarNode($expressionEnv, $extraSym, $location), $location);
         }
 
-        // The body was analysed as the fn's return value; its leading forms
-        // stay statements, and only the value moves into the `assoc`.
-        $statements = $body instanceof DoNode ? $body->getStmts() : [];
         $value = $body instanceof DoNode ? $body->getRet() : $body;
 
         $bodyEnv = $env->withReturnContext();

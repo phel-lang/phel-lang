@@ -108,6 +108,7 @@ final class UpdateLiteralFnLoweringTest extends AbstractCompilerRuntimeTestCase
         yield 'a method call' => ['(fn [m o] (update m :k (fn [v] (.format o v))))'];
         yield 'a nested fn, whose captures name the param' => ['(fn [m] (update m :k (fn [v] (fn [] v))))'];
         yield 'an inferred return type' => ['(fn [m] (update m :k (fn [v] {:b v})))'];
+        yield 'several body forms in expression position' => ['(fn [m] [(update m :k (fn [v] (str v) v))])'];
         yield 'a call through a local' => ['(fn [m f] (update m :k (fn [v] (f v))))'];
         yield 'a loop' => ['(fn [m] (update m :k (fn [v] (loop [i 0] (if (php/< i v) (recur (php/+ i 1)) i)))))'];
         yield 'try' => ['(fn [m] (update m :k (fn [v] (try v (catch \\Exception e 0)))))'];
@@ -219,6 +220,21 @@ final class UpdateLiteralFnLoweringTest extends AbstractCompilerRuntimeTestCase
 
         self::assertSame($this->evalAt($phel, 0), $this->evalAt($phel, 2));
         self::assertStringContainsString('"update"', $this->compileInBuildMode('(fn [x] [(update {:a 0} :a (fn [v y] x) (php/= x 2)) x])'));
+    }
+
+    #[DataProvider('providerCallerWrites')]
+    public function test_target_and_key_still_run_in_the_caller_frame(string $phel): void
+    {
+        self::assertSame($this->evalAt($phel, 0), $this->evalAt($phel, 2));
+    }
+
+    public static function providerCallerWrites(): iterable
+    {
+        yield 'target, several body forms' => ['((fn [] (let [x nil] [(update (php/= x {:a 0}) :a (fn [v] (str v) v)) x])))'];
+        yield 'target, one body form' => ['((fn [] (let [x nil] [(update (php/= x {:a 0}) :a (fn [v] v)) x])))'];
+        yield 'key, several body forms' => ['((fn [] (let [x nil] [(update {:a 0} (php/= x :a) (fn [v] (str v) v)) x])))'];
+        yield 'key, one body form' => ['((fn [] (let [x nil] [(update {:a 0} (php/= x :a) (fn [v] v)) x])))'];
+        yield 'target in return position, several body forms' => ['((fn [] (let [x nil] (let [r (update (php/= x {:a 0}) :a (fn [v] (str v) v))] [r x]))))'];
     }
 
     #[DataProvider('providerFrameProbes')]
