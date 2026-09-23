@@ -47,8 +47,6 @@ final readonly class ParallelTestOrchestrator
      */
     private const int SELECT_TIMEOUT_MICROS = 100_000;
 
-    private const float CORRUPT_STDOUT_EXIT_GRACE_SECONDS = 0.5;
-
     /**
      * @param list<string> $opcacheFlags `-d` flags so every worker shares one
      *                                   OPcache file cache; empty when OPcache
@@ -312,11 +310,7 @@ final readonly class ParallelTestOrchestrator
             return WorkerResult::fromFrame($frame);
         }
 
-        if ($worker->hasCorruptStdout()) {
-            // Stray stdout is usually a fatal error on its way out: give the
-            // process a moment so the report carries its exit code.
-            $worker->waitForExit(self::CORRUPT_STDOUT_EXIT_GRACE_SECONDS);
-        } elseif ($worker->isAlive()) {
+        if ($worker->isAlive() && !$worker->hasCorruptStdout()) {
             return null;
         }
 
@@ -327,7 +321,7 @@ final readonly class ParallelTestOrchestrator
                 $index,
                 $worker->assignedNamespace() ?? '<unknown>',
                 $worker->crashReport(),
-                $worker->isAlive() ? 'wrote output outside the frame protocol' : $worker->exitStatus(),
+                $worker->exitStatus(),
             );
         $worker->clearAssignment();
         return $result;

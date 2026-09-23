@@ -58,8 +58,7 @@ final readonly class WorkerResult
 
     /**
      * Synthetic result for a worker that died before responding. Output
-     * carries how the process ended and whatever it left on its pipes, so
-     * the user can see why.
+     * carries how it ended and what it left on its pipes.
      */
     public static function fromCrash(int $index, string $ns, string $report, string $exitStatus = ''): self
     {
@@ -67,12 +66,7 @@ final readonly class WorkerResult
             $index,
             $ns,
             false,
-            sprintf(
-                "Worker died while running %s%s.\n%s",
-                $ns,
-                $exitStatus === '' ? '' : ' (' . $exitStatus . ')',
-                $report,
-            ),
+            sprintf("Worker died while running %s%s.\n%s", $ns, $exitStatus === '' ? '' : ' (' . $exitStatus . ')', $report),
             [],
             new Counts(error: 1, total: 1),
             WorkerOutcome::WorkerDied,

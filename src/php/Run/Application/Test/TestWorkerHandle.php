@@ -10,11 +10,8 @@ use RuntimeException;
 use function fclose;
 use function fread;
 use function fwrite;
-use function hexdec;
 use function implode;
 use function is_resource;
-use function microtime;
-use function preg_match;
 use function proc_close;
 use function proc_get_status;
 use function proc_open;
@@ -36,22 +33,7 @@ use function usleep;
  */
 final class TestWorkerHandle
 {
-    private const int OUTPUT_TAIL_BYTES = 16_384;
-
-    /**
-     * Most stderr bytes one drain takes, so a worker writing without pause
-     * cannot hold the dispatch loop or grow the parent's memory; the pipe
-     * buffers the rest until the next pass.
-     */
-    private const int STDERR_BYTES_PER_DRAIN = 65_536;
-
-    /** No frame is this large; a header claiming more is stray output. */
-    private const int MAX_FRAME_BYTES = 268_435_456;
-
-    /** How long a worker gets to exit on SIGTERM before it is killed. */
-    private const float TERMINATE_GRACE_SECONDS = 1.0;
-
-    private const int SIGKILL = 9;
+    private const int CRASH_REPORT_TAIL_BYTES = 16_384;
 
     /** @var closed-resource|resource */
     private readonly mixed $stdin;
@@ -68,16 +50,12 @@ final class TestWorkerHandle
 
     private ?string $assignedNamespace = null;
 
-    /**
-     * How the process ended, captured the first time it is seen dead:
-     * `proc_get_status()` reports the real exit code only once.
-     */
+    /** Captured on first sight: `proc_get_status()` reports the exit code only once. */
     private ?string $exitStatus = null;
 
-    /** The most recent stderr output, kept for a crash report. */
     private string $stderrTail = '';
 
-    /** Set once stdout carried bytes that are not a frame; reading stops there. */
+    /** Stdout carried bytes that are not a frame; the stream cannot be read again. */
     private bool $corruptStdout = false;
 
     /**
@@ -159,11 +137,23 @@ final class TestWorkerHandle
         return $status['running'];
     }
 
+    public function exitStatus(): string
+    {
+        if ($this->exitStatus !== null) {
+            return $this->exitStatus;
+        }
+
+        return $this->corruptStdout ? 'wrote output outside the frame protocol' : 'exit status unknown';
+    }
+
+    public function hasCorruptStdout(): bool
+    {
+        return $this->corruptStdout;
+    }
+
     /**
-     * Everything a dead worker left behind, so a crash report says why it
-     * died. A PHP fatal error is printed to stdout, not stderr, and often
-     * from inside the worker's output buffer, so the unframed stdout tail
-     * matters as much as stderr.
+     * What the worker left on its pipes. A PHP fatal error goes to stdout, so
+     * the unframed stdout matters as much as stderr.
      */
     public function crashReport(): string
     {
@@ -171,7 +161,7 @@ final class TestWorkerHandle
         $this->drainStderr();
 
         $parts = [];
-        $stdout = trim(substr($this->readBuffer, -self::OUTPUT_TAIL_BYTES));
+        $stdout = trim(substr($this->readBuffer, -self::CRASH_REPORT_TAIL_BYTES));
         if ($stdout !== '') {
             $parts[] = 'stdout: ' . $stdout;
         }
@@ -182,28 +172,6 @@ final class TestWorkerHandle
         }
 
         return implode("\n", $parts);
-    }
-
-    /**
-     * @return bool whether the process has exited
-     */
-    public function waitForExit(float $seconds): bool
-    {
-        $deadline = microtime(true) + $seconds;
-        while ($this->isAlive()) {
-            if (microtime(true) >= $deadline) {
-                return false;
-            }
-
-            usleep(10_000);
-        }
-
-        return true;
-    }
-
-    public function exitStatus(): string
-    {
-        return $this->exitStatus ?? 'exit status unknown';
     }
 
     public function assign(int $index, string $namespace, string $frame): void
@@ -243,31 +211,20 @@ final class TestWorkerHandle
     }
 
     /**
-     * Empty the stderr pipe into a bounded tail. Nothing else reads it while
-     * the worker lives, and a worker that fills the pipe buffer blocks on its
-     * next write and never answers.
+     * Called on every dispatch pass: a worker that fills the stderr pipe
+     * blocks on its next write and never answers.
      */
     public function drainStderr(): void
     {
-        for ($read = 0; $read < self::STDERR_BYTES_PER_DRAIN; $read += strlen($chunk)) {
+        while (true) {
             /** @psalm-suppress PossiblyInvalidArgument */
             $chunk = @fread($this->stderr, 8192);
             if ($chunk === false || $chunk === '') {
                 return;
             }
 
-            $this->stderrTail = substr($this->stderrTail . $chunk, -self::OUTPUT_TAIL_BYTES);
+            $this->stderrTail = substr($this->stderrTail . $chunk, -self::CRASH_REPORT_TAIL_BYTES);
         }
-    }
-
-    /**
-     * Whether the worker wrote to stdout outside the frame protocol, such as
-     * a PHP fatal error flushed from its output buffer. The stream cannot be
-     * resynchronised, so the worker is as good as dead.
-     */
-    public function hasCorruptStdout(): bool
-    {
-        return $this->corruptStdout;
     }
 
     public function closeStdin(): void
@@ -282,24 +239,29 @@ final class TestWorkerHandle
     {
         $this->closeStdin();
 
-        // A worker that ignores SIGTERM would make proc_close() wait forever,
-        // so it is killed once the grace runs out.
-        if (is_resource($this->process) && !$this->waitForExit(0.2)) {
-            @proc_terminate($this->process);
-            if (!$this->waitForExit(self::TERMINATE_GRACE_SECONDS)) {
-                @proc_terminate($this->process, self::SIGKILL);
-                $this->waitForExit(self::TERMINATE_GRACE_SECONDS);
+        if (is_resource($this->process)) {
+            $deadline = microtime(true) + 0.2;
+            while (microtime(true) < $deadline) {
+                $status = @proc_get_status($this->process);
+                if (!$status['running']) {
+                    break;
+                }
+
+                usleep(10_000);
             }
+
+            $status = @proc_get_status($this->process);
+            if ($status['running']) {
+                @proc_terminate($this->process);
+            }
+
+            @proc_close($this->process);
         }
 
         foreach ([$this->stdout, $this->stderr] as $pipe) {
             if (is_resource($pipe)) {
                 @fclose($pipe);
             }
-        }
-
-        if (is_resource($this->process)) {
-            @proc_close($this->process);
         }
     }
 
@@ -319,30 +281,12 @@ final class TestWorkerHandle
      */
     private function extractFrame(): ?array
     {
-        if ($this->corruptStdout || $this->readBuffer === '') {
-            return null;
-        }
-
-        // Check the header byte by byte as it arrives, so stray output shorter
-        // than a header is caught too, not left waiting for more bytes.
         $headerSize = WorkerFrame::headerSize();
-        $hexDigits = $headerSize - 1;
-        $header = substr($this->readBuffer, 0, $headerSize);
-        if (preg_match(sprintf('/^[0-9a-f]{0,%1$d}$|^[0-9a-f]{%1$d}\n$/', $hexDigits), $header) !== 1) {
-            $this->corruptStdout = true;
+        if ($this->corruptStdout || strlen($this->readBuffer) < $headerSize) {
             return null;
         }
 
-        if (strlen($header) < $headerSize) {
-            return null;
-        }
-
-        $length = (int) hexdec(substr($header, 0, $hexDigits));
-        if ($length > self::MAX_FRAME_BYTES) {
-            $this->corruptStdout = true;
-            return null;
-        }
-
+        $length = (int) hexdec(substr($this->readBuffer, 0, $headerSize - 1));
         $total = $headerSize + $length;
         if (strlen($this->readBuffer) < $total) {
             return null;
