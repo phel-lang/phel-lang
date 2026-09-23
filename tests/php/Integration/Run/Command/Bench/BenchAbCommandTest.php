@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace PhelTest\Integration\Run\Command\Bench;
 
 use Override;
+use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 use RuntimeException;
 
@@ -170,7 +171,7 @@ final class BenchAbCommandTest extends TestCase
     /**
      * @param list<string> $arguments
      */
-    #[\PHPUnit\Framework\Attributes\DataProvider('invalidOptions')]
+    #[DataProvider('invalidOptions')]
     public function test_it_rejects_invalid_options(array $arguments, string $message): void
     {
         [$exitCode, $output] = $this->runPhel(['bench', ...$arguments]);

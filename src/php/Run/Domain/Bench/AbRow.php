@@ -49,8 +49,8 @@ final readonly class AbRow
 
         return new self(
             $name,
-            $count === 0 ? 0.0 : $sumA / $count,
-            $count === 0 ? 0.0 : $sumB / $count,
+            $count === 0 ? 0.0 : $sumA / (float) $count,
+            $count === 0 ? 0.0 : $sumB / (float) $count,
             $deltas,
         );
     }
@@ -62,7 +62,7 @@ final readonly class AbRow
 
     public function meanDeltaPercent(): float
     {
-        return $this->deltas === [] ? 0.0 : array_sum($this->deltas) / count($this->deltas);
+        return $this->deltas === [] ? 0.0 : array_sum($this->deltas) / (float) count($this->deltas);
     }
 
     /**
@@ -96,12 +96,6 @@ final readonly class AbRow
             return false;
         }
 
-        foreach ($this->deltas as $delta) {
-            if ($delta <= $tolerance) {
-                return false;
-            }
-        }
-
-        return true;
+        return array_all($this->deltas, static fn($delta): bool => $delta > $tolerance);
     }
 }

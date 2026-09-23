@@ -93,7 +93,7 @@ final class BenchCommand extends Command
      * run leaves its worktree behind.
      */
     #[Override]
-    public function handleSignal(int $signal, int|false $previousExitCode = 0): int|false
+    public function handleSignal(int $signal, int|false $previousExitCode = 0): int
     {
         $this->abRunner?->abort();
 
@@ -193,8 +193,8 @@ final class BenchCommand extends Command
             $withinTolerance = $this->abRunner->run($options, getcwd() ?: '.', PhelBinaryLocator::locate(), $output);
 
             return $withinTolerance ? self::SUCCESS : self::FAILURE;
-        } catch (AbBenchException $e) {
-            $output->writeln('<error>' . $e->getMessage() . '</error>');
+        } catch (AbBenchException $abBenchException) {
+            $output->writeln('<error>' . $abBenchException->getMessage() . '</error>');
 
             return self::FAILURE;
         } finally {

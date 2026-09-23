@@ -89,10 +89,10 @@ final class AbReport
         }
 
         if ($nanoseconds < 1_000_000) {
-            return number_format($nanoseconds / 1000, 3) . 'μs';
+            return number_format($nanoseconds / 1000.0, 3) . 'μs';
         }
 
-        return number_format($nanoseconds / 1_000_000, 3) . 'ms';
+        return number_format($nanoseconds / 1_000_000.0, 3) . 'ms';
     }
 
     private function percent(float $value): string

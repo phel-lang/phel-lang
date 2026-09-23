@@ -60,14 +60,20 @@ final class ChildProcess
      */
     public function runLogged(array $command, string $cwd, ?array $env, string $logFile): int
     {
+        $log = @fopen($logFile, 'w');
+        if ($log === false) {
+            throw new AbBenchException(sprintf('Cannot write `%s`.', $logFile));
+        }
+
         $pipes = [];
         $process = @proc_open(
             $command,
-            [0 => ['pipe', 'r'], 1 => ['file', $logFile, 'w'], 2 => ['redirect', 1]],
+            [0 => ['pipe', 'r'], 1 => $log, 2 => $log],
             $pipes,
             $cwd,
             $env,
         );
+        fclose($log);
         if (!is_resource($process)) {
             throw new AbBenchException(sprintf('Cannot run `%s`.', $command[0] ?? ''));
         }
