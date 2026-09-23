@@ -312,14 +312,12 @@ final readonly class ParallelTestOrchestrator
             return WorkerResult::fromFrame($frame);
         }
 
-        if (!$worker->hasCorruptStdout()) {
-            if ($worker->isAlive()) {
-                return null;
-            }
-        } else {
+        if ($worker->hasCorruptStdout()) {
             // Stray stdout is usually a fatal error on its way out: give the
             // process a moment so the report carries its exit code.
             $worker->waitForExit(self::CORRUPT_STDOUT_EXIT_GRACE_SECONDS);
+        } elseif ($worker->isAlive()) {
+            return null;
         }
 
         $index = $worker->assignedIndex();

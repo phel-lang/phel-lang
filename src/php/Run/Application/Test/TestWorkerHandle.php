@@ -48,13 +48,6 @@ final class TestWorkerHandle
     /** No frame is this large; a header claiming more is stray output. */
     private const int MAX_FRAME_BYTES = 268_435_456;
 
-    /**
-     * A worker writes each frame in one call, so a frame still incomplete
-     * this long after its first byte is stray output, not a slow write.
-     * Measured from the first byte: later bytes do not extend it.
-     */
-    private const float PARTIAL_FRAME_DEADLINE_SECONDS = 30.0;
-
     /** How long a worker gets to exit on SIGTERM before it is killed. */
     private const float TERMINATE_GRACE_SECONDS = 1.0;
 
@@ -87,18 +80,12 @@ final class TestWorkerHandle
     /** Set once stdout carried bytes that are not a frame; reading stops there. */
     private bool $corruptStdout = false;
 
-    /** When the bytes now in the read buffer started arriving; null when it is empty. */
-    private ?float $partialFrameSince = null;
-
     /**
      * @param closed-resource|resource $process
      * @param array<int, resource>     $pipes
      */
-    public function __construct(
-        private readonly mixed $process,
-        array $pipes,
-        private readonly float $partialFrameDeadlineSeconds = self::PARTIAL_FRAME_DEADLINE_SECONDS,
-    ) {
+    public function __construct(private readonly mixed $process, array $pipes)
+    {
         $this->stdin = $pipes[0];
         $this->stdout = $pipes[1];
         $this->stderr = $pipes[2];
@@ -280,9 +267,7 @@ final class TestWorkerHandle
      */
     public function hasCorruptStdout(): bool
     {
-        return $this->corruptStdout
-            || ($this->partialFrameSince !== null
-                && microtime(true) - $this->partialFrameSince > $this->partialFrameDeadlineSeconds);
+        return $this->corruptStdout;
     }
 
     public function closeStdin(): void
@@ -326,10 +311,6 @@ final class TestWorkerHandle
             return;
         }
 
-        if ($this->readBuffer === '') {
-            $this->partialFrameSince = microtime(true);
-        }
-
         $this->readBuffer .= $chunk;
     }
 
@@ -345,8 +326,9 @@ final class TestWorkerHandle
         // Check the header byte by byte as it arrives, so stray output shorter
         // than a header is caught too, not left waiting for more bytes.
         $headerSize = WorkerFrame::headerSize();
+        $hexDigits = $headerSize - 1;
         $header = substr($this->readBuffer, 0, $headerSize);
-        if (preg_match('/^[0-9a-f]{0,' . ($headerSize - 1) . '}$|^[0-9a-f]{' . ($headerSize - 1) . '}\n$/', $header) !== 1) {
+        if (preg_match(sprintf('/^[0-9a-f]{0,%1$d}$|^[0-9a-f]{%1$d}\n$/', $hexDigits), $header) !== 1) {
             $this->corruptStdout = true;
             return null;
         }
@@ -355,7 +337,7 @@ final class TestWorkerHandle
             return null;
         }
 
-        $length = (int) hexdec(substr($header, 0, $headerSize - 1));
+        $length = (int) hexdec(substr($header, 0, $hexDigits));
         if ($length > self::MAX_FRAME_BYTES) {
             $this->corruptStdout = true;
             return null;
@@ -375,7 +357,6 @@ final class TestWorkerHandle
         }
 
         $this->readBuffer = substr($this->readBuffer, $total);
-        $this->partialFrameSince = $this->readBuffer === '' ? null : microtime(true);
 
         return $frame;
     }

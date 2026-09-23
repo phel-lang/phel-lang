@@ -105,26 +105,6 @@ final class TestWorkerHandleTest extends TestCase
         self::assertLessThan(1.0, $elapsed, 'a drain kept reading while the worker kept writing');
     }
 
-    public function test_a_frame_trickled_byte_by_byte_still_hits_its_deadline(): void
-    {
-        // A valid header, then one body byte every 50 ms: each byte arrives
-        // well inside the deadline, but the frame never completes.
-        $worker = $this->startWorker(
-            'fwrite(STDOUT, "00001000\n"); while (true) { fwrite(STDOUT, "x"); usleep(50_000); }',
-            partialFrameDeadlineSeconds: 0.5,
-        );
-
-        for ($i = 0; $i < 300 && !$worker->hasCorruptStdout(); ++$i) {
-            self::assertNull($worker->tryReadFrame());
-            usleep(10_000);
-        }
-
-        $corrupt = $worker->hasCorruptStdout();
-        $worker->terminate();
-
-        self::assertTrue($corrupt, 'the trickle kept postponing the deadline');
-    }
-
     public function test_terminate_kills_a_worker_that_ignores_sigterm(): void
     {
         if (!extension_loaded('pcntl')) {
@@ -143,7 +123,7 @@ final class TestWorkerHandleTest extends TestCase
         self::assertSame('killed by signal 9', $worker->exitStatus());
     }
 
-    private function startWorker(string $code, float $partialFrameDeadlineSeconds = 30.0): TestWorkerHandle
+    private function startWorker(string $code): TestWorkerHandle
     {
         $pipes = [];
         $process = proc_open(
@@ -153,7 +133,7 @@ final class TestWorkerHandleTest extends TestCase
         );
         self::assertIsResource($process);
 
-        return new TestWorkerHandle($process, $pipes, $partialFrameDeadlineSeconds);
+        return new TestWorkerHandle($process, $pipes);
     }
 
     private function waitUntilDead(TestWorkerHandle $worker): void
