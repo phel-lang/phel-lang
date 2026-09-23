@@ -66,7 +66,7 @@ Read both the issue body **and every comment** as requirements input. Maintainer
 
 ### Phase 4: Ship
 
-8. **Update CHANGELOG.md** — add entry under `## Unreleased`
+8. **Update CHANGELOG.md**: add or merge the entry under `## Unreleased` per `.agnostic-ai/rules/changelog.md`
 
 9. **Commit changes**:
    ```bash

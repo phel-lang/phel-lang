@@ -1,5 +1,5 @@
 ---
-description: Update CHANGELOG.md unreleased section from recent commits or manual entry; enforces simple, optimized notes
+description: Update CHANGELOG.md unreleased section from recent commits or manual entry; follows the changelog rule
 argument-hint: "[entry text | --optimize]"
 disable-model-invocation: true
 allowed-tools: "Read, Edit, Bash(git *)"
@@ -17,36 +17,9 @@ allowed-tools: "Read, Edit, Bash(git *)"
 
 2. Mode select:
    - `$ARGUMENTS` empty → draft entries from commits since last tag.
-   - `$ARGUMENTS == --optimize` → rewrite `## Unreleased` in place per style rules below. No new entries.
+   - `$ARGUMENTS == --optimize` → rewrite `## Unreleased` in place. No new entries.
    - Otherwise → treat `$ARGUMENTS` as entry text; place under correct category.
 
-3. Categories:
-   - `### Added` — new functionality (`feat:`)
-   - `### Performance` — perf wins (`perf:`)
-   - `### Changed` — behavior changes (`ref:`, BC)
-   - `### Fixed` — bug fixes (`fix:`)
-   - `### Removed` — removed features
+3. Follow `.agnostic-ai/rules/changelog.md` (section order, entry style, grouping) on every write. On `--optimize`, apply all of it to the whole `## Unreleased`: merge duplicate headings and sibling bullets, fold fixes to unreleased features into their bullet, trim internals.
 
-4. Style rules (apply on every write, enforce on `--optimize`):
-   - Imperative mood: "Add" not "Added"
-   - Code in backticks: `` `(fn arg)` ``
-   - Cap ~120 chars per entry; split or move detail to PR body if longer
-   - PR ref at end: `(#NNNN)`. Multiple PRs same bullet → `(#A #B #C)`
-   - Drop filler ("now", "improved", "new") and marketing voice ("blazing", "powerful")
-   - Lead with what changed, not why. Why → PR body.
-   - Skip non-user-facing commits (`chore:`, CI internals, test-only refactors)
-   - Prefix BC with `BC:` or **BREAKING**
-
-5. Performance section clustering (always on):
-   Group bullets under sub-labels matching the change locus. Example labels (use what fits):
-   - `Dispatch / call sites:`
-   - `Compile-time folding / hoisting:`
-   - `Type-driven call specialisation:`
-   - `Runtime data structures:`
-   - `Emit size:`
-
-6. Combine sibling entries:
-   - N PRs touching same subsystem → 1 bullet, list PR refs at end.
-   - Same verb + same target across categories → merge.
-
-7. Edit `CHANGELOG.md`. Present draft before writing when generating from commits or running `--optimize`.
+4. Edit `CHANGELOG.md`. Present the draft before writing when generating from commits or running `--optimize`.

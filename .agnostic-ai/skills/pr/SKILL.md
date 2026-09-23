@@ -14,7 +14,7 @@ allowed-tools: "Read, Edit, Bash(git *), Bash(gh *)"
 
 ## Instructions
 
-1. **Check CHANGELOG.md** — if it wasn't updated for these changes, update it now and commit:
+1. **Check CHANGELOG.md**: if it wasn't updated for these changes, update it per `.agnostic-ai/rules/changelog.md` and commit:
    ```bash
    git add CHANGELOG.md && git commit -m "chore: update changelog"
    ```
