@@ -9,7 +9,6 @@ use Phel\Compiler\Domain\Analyzer\Environment\GlobalEnvironmentInterface;
 use Phel\Compiler\Domain\Analyzer\Environment\GlobalEnvironmentManagerInterface;
 use Phel\Compiler\Domain\Analyzer\Environment\GlobalEnvironmentRegistry;
 use Phel\Compiler\Domain\Evaluator\RequireEvaluator;
-use Phel\Shared\TagResolver;
 
 /**
  * @internal
@@ -29,7 +28,6 @@ final class GlobalEnvironmentManager implements GlobalEnvironmentManagerInterfac
     public function reset(): void
     {
         GlobalEnvironmentRegistry::set(null);
-        TagResolver::setUseAliasResolver(null);
     }
 
     public function isInitialized(): bool

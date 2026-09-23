@@ -45,6 +45,13 @@ interface AnalyzerInterface
      */
     public function getRefers(string $ns): array;
 
+    /**
+     * The `:use` table of `$ns`, keyed by the imported short name.
+     *
+     * @return array<string, Symbol>
+     */
+    public function getUseAliases(string $ns): array;
+
     public function addDefinition(string $ns, Symbol $symbol, bool $allowRedefinition = false): void;
 
     /**

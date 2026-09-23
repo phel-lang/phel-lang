@@ -86,6 +86,9 @@ final readonly class DefSymbol implements SpecialFormAnalyzerInterface
         $this->analyzer->addDefinition($namespace, $nameSymbol, $this->defonce);
 
         [$metaMap, $init] = $this->createMetaMapAndInit($list);
+        // Stored as the rooted class so a caller in another namespace reads
+        // the type this one imported, not its own `:use` table's.
+        $metaMap = TagCanonicalizer::meta($metaMap, $this->analyzer);
 
         $rewriter = new MacroFormRewriter();
         $isMacro = $metaMap[Keyword::create('macro')] === true;

@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace Phel\Shared;
 
-use Closure;
 use Phel\Lang\Atom;
 use Phel\Lang\Collections\HashSet\PersistentHashSetInterface;
 use Phel\Lang\Collections\LinkedList\PersistentListInterface;
@@ -31,9 +30,11 @@ use function trim;
  *
  * Two spellings save writing a class name out. `map`, `vector`, `set` and
  * `list` name the persistent collection interfaces ({@see TYPE_ALIASES}),
- * and a bare name the current namespace imported with `:use` resolves through
- * that table ({@see setUseAliasResolver()}), so `(:use Phel.Lang.Symbol)` lets
- * a param read `^Symbol s`. Both keep a `?` prefix and apply per member of a
+ * and a bare name a namespace imported with `:use` resolves through that
+ * table ({@see expandImports()}), so `(:use DateTimeImmutable :as Moment)`
+ * lets a param read `^Moment m`. The import step runs in the analyser, which
+ * knows the owning namespace, and stores the rooted class back on the tag, so
+ * this class holds no state. Both keep a `?` prefix and apply per member of a
  * union or intersection. A dotted or backslashed name is taken as written.
  */
 final class TagResolver
@@ -54,22 +55,6 @@ final class TagResolver
         'symbol' => Symbol::class,
         'atom' => Atom::class,
     ];
-
-    /** @var (Closure(string): ?string)|null */
-    private static ?Closure $useAliasResolver = null;
-
-    /**
-     * Install the lookup that answers "which class did the current namespace
-     * import under this bare name". The analyser's global environment sets
-     * it from its `:use` table; `null` removes it. An explicit import wins
-     * over a collection alias of the same spelling.
-     *
-     * @param (Closure(string): ?string)|null $resolver
-     */
-    public static function setUseAliasResolver(?Closure $resolver): void
-    {
-        self::$useAliasResolver = $resolver;
-    }
 
     /**
      * @param PersistentMapInterface<mixed, mixed>|null $meta
@@ -93,24 +78,44 @@ final class TagResolver
             return null;
         }
 
-        return self::rootClassReferences(self::expandAliases($tag));
+        return self::rootClassReferences(self::expandAliases($tag, self::TYPE_ALIASES));
     }
 
     /**
-     * Replace every alias member of `$tag` (a bare `map`, or a name the
-     * namespace imported) with its rooted class, leaving scalar types and
-     * anything already qualified alone.
+     * Replace every member of `$tag` that `$imports` names (a bare alias
+     * mapped to its class, as a namespace's `:use` table does) with the
+     * rooted class, leaving scalar types, unknown names and anything already
+     * qualified alone. The analyser calls this where a tag is declared, so
+     * the definition carries the class its own namespace meant; nothing
+     * reads a tag later against whichever namespace happens to be active.
+     *
+     * @param array<string, string> $imports
      */
-    private static function expandAliases(string $tag): string
+    public static function expandImports(string $tag, array $imports): string
+    {
+        if ($imports === []) {
+            return $tag;
+        }
+
+        return self::expandAliases($tag, $imports);
+    }
+
+    /**
+     * @param array<string, string> $aliases
+     */
+    private static function expandAliases(string $tag, array $aliases): string
     {
         return preg_replace_callback(
             '/[^|&]+/',
-            static fn(array $matches): string => self::expandAlias($matches[0]),
+            static fn(array $matches): string => self::expandAlias($matches[0], $aliases),
             $tag,
         ) ?? $tag;
     }
 
-    private static function expandAlias(string $part): string
+    /**
+     * @param array<string, string> $aliases
+     */
+    private static function expandAlias(string $part, array $aliases): string
     {
         $trimmed = trim($part);
         $nullable = str_starts_with($trimmed, '?');
@@ -119,10 +124,7 @@ final class TagResolver
             return $part;
         }
 
-        $resolved = self::$useAliasResolver instanceof Closure
-            ? (self::$useAliasResolver)($name)
-            : null;
-        $resolved ??= self::TYPE_ALIASES[$name] ?? null;
+        $resolved = $aliases[$name] ?? null;
         if ($resolved === null) {
             return $part;
         }

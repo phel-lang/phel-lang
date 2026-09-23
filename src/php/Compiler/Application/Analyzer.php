@@ -114,6 +114,11 @@ final class Analyzer implements AnalyzerInterface
         return $this->globalEnvironment->getRefers($ns);
     }
 
+    public function getUseAliases(string $ns): array
+    {
+        return $this->globalEnvironment->getUseAliases($ns);
+    }
+
     public function addDefinition(string $ns, Symbol $symbol, bool $allowRedefinition = false): void
     {
         $this->globalEnvironment->addDefinition($ns, $symbol, $allowRedefinition);
