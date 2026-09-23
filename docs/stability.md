@@ -31,7 +31,7 @@ including a patch.
 |---|------|----------|
 | 1 | The `\Phel` runtime class | `Phel::vector()`, `Phel::bootstrap()` |
 | 2 | `Phel\<Module>\<Module>Facade` | `Phel\Compiler\CompilerFacade` |
-| 3 | `Phel\<Module>\<Module>FacadeInterface` | `Phel\Fiber\FiberFacadeInterface` |
+| 3 | `Phel\<Module>\<Module>FacadeInterface` | None since 0.53.0: every contract lives under `Phel\Shared\Facade\` |
 | 4 | Everything under `Phel\Shared\` | `Phel\Shared\Facade\CompilerFacadeInterface`, `Phel\Shared\CompileOptions` |
 | 5 | Everything under `Phel\Lang\` | `Phel\Lang\Symbol`, `Phel\Lang\Collections\Map\PersistentMapInterface` |
 | 6 | Everything under `Phel\Config\` | `Phel\Config\PhelConfig`, `Phel\Config\ProjectLayout` |

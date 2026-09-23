@@ -24,7 +24,7 @@ use Phel\Fiber\Domain\Scheduler;
  * @extends AbstractFacade<FiberFactory>
  */
 #[ServiceMap(method: 'getFactory', className: FiberFactory::class)]
-final class FiberFacade extends AbstractFacade implements FiberFacadeInterface
+final class FiberFacade extends AbstractFacade
 {
     public function createPromise(): Promise
     {

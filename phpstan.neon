@@ -109,14 +109,7 @@ parameters:
             identifier: gacela.crossModuleWithoutFacade
             path: src/php/Console/Infrastructure/Command/*Commands.php
             count: 29
-        # 2. `FilesystemFacadeInterface` lives in `Phel\Filesystem\` while every
-        #    other cross-module facade contract lives in `Phel\Shared\Facade\`.
-        #    Referencing it *is* going through a facade, and since gacela 2.4
-        #    the interface says so itself with `#[PublicApi]`, so the six
-        #    Factory/Provider references are no longer pinned here. Moving it
-        #    to Shared is still a BREAKING change to the surface frozen in
-        #    #2870 and waits for the next major.
-        # 3. Genuine reaches into another module's `Domain`, which the rule is
+        # 2. Genuine reaches into another module's `Domain`, which the rule is
         #    exactly right about. Each is one class and each is worth fixing on
         #    its own; pinned individually so a fix removes its own entry rather
         #    than shrinking an anonymous total.

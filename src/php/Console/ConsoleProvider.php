@@ -25,8 +25,8 @@ use Phel\Console\Infrastructure\Command\ProfileCommands;
 use Phel\Console\Infrastructure\Command\RunCommands;
 use Phel\Console\Infrastructure\Command\WatchCommands;
 use Phel\Filesystem\FilesystemFacade;
-use Phel\Filesystem\FilesystemFacadeInterface;
 use Phel\Shared\Facade\CompilerFacadeInterface;
+use Phel\Shared\Facade\FilesystemFacadeInterface;
 use Symfony\Component\Console\Command\LazyCommand;
 
 /**
