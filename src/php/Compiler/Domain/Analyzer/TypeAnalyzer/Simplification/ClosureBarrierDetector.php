@@ -25,20 +25,21 @@ use Phel\Compiler\Domain\Analyzer\Environment\NodeEnvironmentInterface;
 use Phel\Compiler\Domain\Emitter\OutputEmitter\NodeChildren;
 
 use function array_any;
+use function array_slice;
 
 /**
  * Whether code that ran inside a closure would behave differently spliced
  * into the enclosing PHP scope, which {@see UpdateLiteralFnLowering} does to
  * a literal `fn` body.
  *
- * A closure captures the enclosing locals by value. A PHP array local it
- * writes to, through `php/aset` and friends, `php/ref`, or a PHP function
- * or method taking the argument by reference (`sort`, `preg_match`), was a
- * copy; spliced, the write lands on the caller's variable. An array write
- * whose target mentions an enclosing local anywhere counts. Which PHP
- * functions take a reference is not known here, so any argument that is an
- * enclosing local, or an offset into one (`$arr[0]`), counts. A `php/yield` would turn the enclosing function into a
- * generator.
+ * A closure captures the enclosing locals by value, so its writes to them
+ * were to a copy; spliced, they land on the caller's variables. A write is:
+ * `php/=` or `php/=&` on an enclosing local or an offset into one; an array
+ * write (`php/aset` and friends) whose target mentions one anywhere;
+ * `php/ref`; and an enclosing local, or an offset into one (`$arr[0]`),
+ * handed to a PHP function or method, since which of those take a reference
+ * (`sort`, `preg_match`) is not known here. A `php/yield` would turn the
+ * enclosing function into a generator.
  *
  * Nested closures are not walked: they capture by value either way. A node
  * type {@see NodeChildren} does not know is answered `true`, so a new node
@@ -98,7 +99,21 @@ final readonly class ClosureBarrierDetector
 
         if ($node instanceof CallNode) {
             $fn = $node->getFn();
-            if (!$fn instanceof PhpVarNode || $fn->isInfix()) {
+            if (!$fn instanceof PhpVarNode) {
+                return false;
+            }
+
+            // `php/=` writes its first operand; `php/=&` also ties it to the
+            // second, so a later write through either reaches the other.
+            if ($fn->getName() === '=') {
+                return $this->anyEnclosingLocal(array_slice($node->getArguments(), 0, 1), $enclosing);
+            }
+
+            if ($fn->getName() === '=&') {
+                return $this->anyEnclosingLocal($node->getArguments(), $enclosing);
+            }
+
+            if ($fn->isInfix()) {
                 return false;
             }
 

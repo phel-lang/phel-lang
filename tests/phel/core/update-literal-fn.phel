@@ -107,6 +107,10 @@
   (let [arr (php-indexed-array 3 1 2)]
     (update {:a 1} :a (fn [v] (php/sort arr) v))
     (is (= 3 (php/aget arr 0)) "a by-reference php function on a captured array"))
+  (let [flag 1]
+    (is (= [{:a 99} 1] [(update {:a 1} :a (fn [v] (php/= flag 99))) flag]) "php/= on a captured local"))
+  (let [flag 1 other 2]
+    (is (= [{:a 2} 1] [(update {:a 1} :a (fn [v] (php/=& flag other))) flag]) "php/=& on a captured local"))
   (let [arr (php-indexed-array (php-indexed-array 1 2))]
     (update {:a 1} :a (fn [v] (php/aset-in arr [0 0] 99) v))
     (is (= 1 (php/aget-in arr [0 0])) "php/aset-in on a captured array")))

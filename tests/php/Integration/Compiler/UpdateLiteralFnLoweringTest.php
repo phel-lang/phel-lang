@@ -97,6 +97,8 @@ final class UpdateLiteralFnLoweringTest extends AbstractCompilerRuntimeTestCase
         yield 'php/aset on an outer local' => ['(fn [m arr] (update m :k (fn [v] (php/aset arr 0 v) v)))'];
         yield 'an outer local passed to php' => ['(fn [m arr] (update m :k (fn [v] (php/sort arr) v)))'];
         yield 'an outer local passed to a method' => ['(fn [m o arr] (update m :k (fn [v] (.fill o arr) v)))'];
+        yield 'php/= on an outer local' => ['(fn [m flag] [(update m :k (fn [v] (php/= flag 99))) flag])'];
+        yield 'php/=& on an outer local' => ['(fn [m flag other] [(update m :k (fn [v] (php/=& flag other))) flag])'];
         yield 'php/ref' => ['(fn [m arr] (update m :k (fn [v] (php/preg_match "/a/" v (php/ref arr)))))'];
         yield 'yield' => ['(fn [m] (update m :k (fn [v] (php/yield v))))'];
     }
@@ -134,6 +136,9 @@ final class UpdateLiteralFnLoweringTest extends AbstractCompilerRuntimeTestCase
         yield 'a map value' => ['(update {:a 1} :a (fn [v] {:b v}))'];
         yield 'aset on a captured array' => ['(let [arr (php-indexed-array 1 2)] (update {:a 1} :a (fn [v] (php/aset arr 0 99) v)) (php/aget arr 0))'];
         yield 'aset-in on a captured array' => ['(let [arr (php-indexed-array (php-indexed-array 1 2))] (update {:a 1} :a (fn [v] (php/aset-in arr [0 0] 99) v)) (php/aget-in arr [0 0]))'];
+        yield 'php/= on a captured local' => ['(let [flag 1] [(update {:a 1} :a (fn [v] (php/= flag 99))) flag])'];
+        yield 'php/=& on a captured local' => ['(let [flag 1 other 2] [(update {:a 1} :a (fn [v] (php/=& flag other))) flag])'];
+        yield 'php/= on an offset of a captured array' => ['(let [arr (php-indexed-array 1 2)] (update {:a 1} :a (fn [v] (php/= (php/aget arr 0) 99))) (php/aget arr 0))'];
         yield 'sort on a captured array' => ['(let [arr (php-indexed-array 3 1 2)] (update {:a 1} :a (fn [v] (php/sort arr) v)) (php/aget arr 0))'];
         yield 'threaded' => ['[(-> {:a 1 :b 2} (update :a (fn [v] (php/+ v 1))) (update :b (fn [v] (php/- v 1))))]'];
         yield 'nested in the body' => ['[(update {:a {:b 1}} :a (fn [v] (update v :b (fn [v] (php/+ v 1)))))]'];

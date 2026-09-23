@@ -67,6 +67,34 @@ final class ClosureBarrierDetectorTest extends TestCase
         self::assertFalse($this->needsClosure($this->phpCall('max', $arg)));
     }
 
+    public function test_an_assignment_to_an_enclosing_local(): void
+    {
+        $node = new CallNode($this->env, new PhpVarNode($this->env, '='), [$this->local('arr'), new LiteralNode($this->env, 99)]);
+
+        self::assertTrue($this->needsClosure($node));
+    }
+
+    public function test_a_reference_assignment_from_an_enclosing_local(): void
+    {
+        $node = new CallNode($this->env, new PhpVarNode($this->env, '=&'), [$this->local('own'), $this->local('arr')]);
+
+        self::assertTrue($this->needsClosure($node));
+    }
+
+    public function test_an_assignment_to_an_offset_of_an_enclosing_local(): void
+    {
+        $node = new CallNode($this->env, new PhpVarNode($this->env, '='), [$this->aget($this->local('arr')), new LiteralNode($this->env, 99)]);
+
+        self::assertTrue($this->needsClosure($node));
+    }
+
+    public function test_an_assignment_to_a_body_local(): void
+    {
+        $node = new CallNode($this->env, new PhpVarNode($this->env, '='), [$this->local('own'), new LiteralNode($this->env, 99)]);
+
+        self::assertFalse($this->needsClosure($node));
+    }
+
     public function test_an_enclosing_local_passed_to_an_operator(): void
     {
         $node = new CallNode($this->env, new PhpVarNode($this->env, '+'), [$this->local('arr'), new LiteralNode($this->env, 1)]);
