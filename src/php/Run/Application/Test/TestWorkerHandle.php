@@ -49,10 +49,16 @@ final class TestWorkerHandle
     private const int MAX_FRAME_BYTES = 268_435_456;
 
     /**
-     * A worker writes each frame in one call, so a partial frame that gets
-     * no new byte for this long is stray output, not a slow write.
+     * A worker writes each frame in one call, so a frame still incomplete
+     * this long after its first byte is stray output, not a slow write.
+     * Measured from the first byte: later bytes do not extend it.
      */
-    private const float PARTIAL_FRAME_STALL_SECONDS = 30.0;
+    private const float PARTIAL_FRAME_DEADLINE_SECONDS = 30.0;
+
+    /** How long a worker gets to exit on SIGTERM before it is killed. */
+    private const float TERMINATE_GRACE_SECONDS = 1.0;
+
+    private const int SIGKILL = 9;
 
     /** @var closed-resource|resource */
     private readonly mixed $stdin;
@@ -81,14 +87,18 @@ final class TestWorkerHandle
     /** Set once stdout carried bytes that are not a frame; reading stops there. */
     private bool $corruptStdout = false;
 
-    private float $lastStdoutAt = 0.0;
+    /** When the bytes now in the read buffer started arriving; null when it is empty. */
+    private ?float $partialFrameSince = null;
 
     /**
      * @param closed-resource|resource $process
      * @param array<int, resource>     $pipes
      */
-    public function __construct(private readonly mixed $process, array $pipes)
-    {
+    public function __construct(
+        private readonly mixed $process,
+        array $pipes,
+        private readonly float $partialFrameDeadlineSeconds = self::PARTIAL_FRAME_DEADLINE_SECONDS,
+    ) {
         $this->stdin = $pipes[0];
         $this->stdout = $pipes[1];
         $this->stderr = $pipes[2];
@@ -187,12 +197,21 @@ final class TestWorkerHandle
         return implode("\n", $parts);
     }
 
-    public function waitForExit(float $seconds): void
+    /**
+     * @return bool whether the process has exited
+     */
+    public function waitForExit(float $seconds): bool
     {
         $deadline = microtime(true) + $seconds;
-        while ($this->isAlive() && microtime(true) < $deadline) {
+        while ($this->isAlive()) {
+            if (microtime(true) >= $deadline) {
+                return false;
+            }
+
             usleep(10_000);
         }
+
+        return true;
     }
 
     public function exitStatus(): string
@@ -262,7 +281,8 @@ final class TestWorkerHandle
     public function hasCorruptStdout(): bool
     {
         return $this->corruptStdout
-            || ($this->readBuffer !== '' && microtime(true) - $this->lastStdoutAt > self::PARTIAL_FRAME_STALL_SECONDS);
+            || ($this->partialFrameSince !== null
+                && microtime(true) - $this->partialFrameSince > $this->partialFrameDeadlineSeconds);
     }
 
     public function closeStdin(): void
@@ -277,29 +297,24 @@ final class TestWorkerHandle
     {
         $this->closeStdin();
 
-        if (is_resource($this->process)) {
-            $deadline = microtime(true) + 0.2;
-            while (microtime(true) < $deadline) {
-                $status = @proc_get_status($this->process);
-                if (!$status['running']) {
-                    break;
-                }
-
-                usleep(10_000);
+        // A worker that ignores SIGTERM would make proc_close() wait forever,
+        // so it is killed once the grace runs out.
+        if (is_resource($this->process) && !$this->waitForExit(0.2)) {
+            @proc_terminate($this->process);
+            if (!$this->waitForExit(self::TERMINATE_GRACE_SECONDS)) {
+                @proc_terminate($this->process, self::SIGKILL);
+                $this->waitForExit(self::TERMINATE_GRACE_SECONDS);
             }
-
-            $status = @proc_get_status($this->process);
-            if ($status['running']) {
-                @proc_terminate($this->process);
-            }
-
-            @proc_close($this->process);
         }
 
         foreach ([$this->stdout, $this->stderr] as $pipe) {
             if (is_resource($pipe)) {
                 @fclose($pipe);
             }
+        }
+
+        if (is_resource($this->process)) {
+            @proc_close($this->process);
         }
     }
 
@@ -311,8 +326,11 @@ final class TestWorkerHandle
             return;
         }
 
+        if ($this->readBuffer === '') {
+            $this->partialFrameSince = microtime(true);
+        }
+
         $this->readBuffer .= $chunk;
-        $this->lastStdoutAt = microtime(true);
     }
 
     /**
@@ -357,6 +375,7 @@ final class TestWorkerHandle
         }
 
         $this->readBuffer = substr($this->readBuffer, $total);
+        $this->partialFrameSince = $this->readBuffer === '' ? null : microtime(true);
 
         return $frame;
     }
