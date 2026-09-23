@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Phel\Lang\Collections\Map;
 
+use Phel\Lang\Collections\ValueIdentity;
 use Phel\Lang\EqualizerInterface;
 use Phel\Lang\HasherInterface;
 use Traversable;
@@ -210,7 +211,7 @@ final readonly class IndexedNode implements HashMapNodeInterface
      */
     private function updateKey(int $index, mixed $currentValue, mixed $newValue): HashMapNodeInterface
     {
-        if ($this->equalizer->equals($newValue, $currentValue)) {
+        if (ValueIdentity::isSame($currentValue, $newValue)) {
             return $this;
         }
 

@@ -6,6 +6,7 @@ namespace Phel\Lang\Collections\Map;
 
 use NoDiscard;
 use Phel\Lang\Collections\Exceptions\MethodNotSupportedException;
+use Phel\Lang\Collections\ValueIdentity;
 use Phel\Lang\EqualizerInterface;
 use Phel\Lang\HasherInterface;
 
@@ -64,7 +65,9 @@ final class TransientArrayMap implements TransientMapInterface
     {
         $index = $this->findIndex($key);
 
-        if ($index !== false && $this->equalizer->equals($this->array[$index + 1], $value)) {
+        // Not writing keeps `$array` shared with the map this transient was
+        // opened from: the first write, even of the same value, copies all of it.
+        if ($index !== false && ValueIdentity::isSame($this->array[$index + 1], $value)) {
             return $this;
         }
 

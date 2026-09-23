@@ -9,6 +9,7 @@ use NoDiscard;
 use Phel\Lang\Collections\Map\AbstractPersistentMap;
 use Phel\Lang\Collections\Map\PersistentMapInterface;
 use Phel\Lang\Collections\Map\TransientMapWrapper;
+use Phel\Lang\Collections\ValueIdentity;
 use Phel\Lang\EqualizerInterface;
 use Phel\Lang\HasherInterface;
 use RuntimeException;
@@ -113,7 +114,7 @@ final class PersistentSortedMap extends AbstractPersistentMap
         $idx = SortedArrayHelper::binarySearch($this->array, $key, $this->effectiveComparator);
 
         if ($idx >= 0) {
-            if ($this->equalizer->equals($this->array[$idx + 1], $value)) {
+            if (ValueIdentity::isSame($this->array[$idx + 1], $value)) {
                 return $this;
             }
 

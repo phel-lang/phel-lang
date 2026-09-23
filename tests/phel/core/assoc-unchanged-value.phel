@@ -1,0 +1,59 @@
+(ns phel-test.core.assoc-unchanged-value
+  (:require phel.test :refer [deftest is]))
+
+(defstruct pt [x y])
+
+;; Writing the value a key already holds hands the collection itself back
+;; instead of a copy (#3321). "Already holds" is identity, not `=`: an equal
+;; but distinguishable value is still written.
+
+(def big-map (into {} (map (fn [i] [(keyword (str "k" i)) i]) (range 90))))
+
+(deftest test-an-identical-value-returns-the-collection
+  (let [small {:a 1 :b :x}
+        big (assoc big-map :k :v)
+        v (vec (range 100))]
+    (is (identical? small (assoc small :a 1)) "an array map")
+    (is (identical? big (assoc big :k :v)) "a hash map")
+    (is (identical? big (assoc big :k0 0 :k1 1)) "every pair of the variadic form")
+    (let [with-nil (assoc big nil 1)]
+      (is (identical? with-nil (assoc with-nil nil 1)) "the nil key"))
+    (let [s (sorted-map :a 1)] (is (identical? s (assoc s :a 1)) "a sorted map"))
+    (let [p (pt 1 2)] (is (identical? p (assoc p :x 1)) "a struct"))
+    (is (identical? v (assoc v 99 99)) "a vector tail")
+    (is (identical? v (assoc v 5 5)) "a vector root")
+    (let [r (rest [1 2 3])] (is (identical? r (assoc r 0 (first r))) "the rest of a vector"))
+    (let [s (subvec v 10 20)] (is (identical? s (assoc s 3 13)) "a subvec"))))
+
+(deftest test-a-changed-value-returns-a-copy
+  (let [m {:a 1}]
+    (is (not (identical? m (assoc m :a 2))))
+    (is (= {:a 2} (assoc m :a 2)))
+    (is (= {:a 1} m) "the receiver is untouched")))
+
+(deftest test-a-noop-update-returns-the-collection
+  (let [m (assoc big-map :k 1)
+        v [1 2 3]]
+    (is (identical? m (update m :k identity)))
+    (is (identical? m (update-in m [:k] identity)))
+    (is (identical? v (update v 1 identity)))
+    (is (= 2 (get (update m :k inc) :k)) "a real update still writes")))
+
+(deftest test-a-signed-zero-is-written
+  (is (= ##-Inf (/ 1 (get (assoc {:t 0.0} :t -0.0) :t))) "negative over positive")
+  (is (= ##Inf (/ 1 (get (assoc {:t -0.0} :t 0.0) :t))) "positive over negative")
+  (is (= ##-Inf (/ 1 (get (assoc (assoc big-map :t 0.0) :t -0.0) :t))) "in a hash map")
+  (is (= ##-Inf (/ 1 (get (assoc [0.0] 0 -0.0) 0))) "in a vector")
+  (is (= ##-Inf (/ 1 (get (persistent! (assoc! (transient {:t 0.0}) :t -0.0)) :t))) "through a transient"))
+
+(deftest test-nan-is-written
+  (let [m {:n ##NaN}
+        m2 (assoc m :n ##NaN)]
+    (is (not (identical? m m2)))
+    (is (nan? (get m2 :n)))))
+
+(deftest test-an-equal-value-with-other-metadata-is-written
+  (let [m {:v [1 2]}
+        tagged (with-meta [1 2] {:tag :new})]
+    (is (= {:tag :new} (meta (get (assoc m :v tagged) :v))))
+    (is (= m (assoc m :v tagged)) "equality is unaffected")))
