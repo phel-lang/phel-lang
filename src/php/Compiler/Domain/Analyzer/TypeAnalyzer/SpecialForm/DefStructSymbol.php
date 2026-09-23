@@ -86,7 +86,7 @@ final readonly class DefStructSymbol implements SpecialFormAnalyzerInterface
                 throw AnalyzerException::withLocation('Defstruct field elements must be Symbols.', $vector);
             }
 
-            $params[] = $element;
+            $params[] = TagCanonicalizer::symbol($element, $this->analyzer);
         }
 
         return $params;

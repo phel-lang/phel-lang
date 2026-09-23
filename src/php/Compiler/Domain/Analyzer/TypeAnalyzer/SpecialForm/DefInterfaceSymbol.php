@@ -137,7 +137,7 @@ final class DefInterfaceSymbol implements SpecialFormAnalyzerInterface
             throw AnalyzerException::withLocation('A :php/const value must be an int, float, string, bool or nil', $const, errorCode: ErrorCode::INTERFACE_ERROR);
         }
 
-        return new PhpClassConst($name, $value);
+        return new PhpClassConst(TagCanonicalizer::symbol($name, $this->analyzer), $value);
     }
 
     /**
@@ -163,7 +163,7 @@ final class DefInterfaceSymbol implements SpecialFormAnalyzerInterface
                 throw AnalyzerException::withLocation('A method argument must be symbol', $arguments, errorCode: ErrorCode::INTERFACE_ERROR);
             }
 
-            $argumentSymbols[] = $argument;
+            $argumentSymbols[] = TagCanonicalizer::symbol($argument, $this->analyzer);
         }
 
         if (count($method) > 2 && !is_string($method->get(2))) {
@@ -171,7 +171,7 @@ final class DefInterfaceSymbol implements SpecialFormAnalyzerInterface
         }
 
         return new DefInterfaceMethod(
-            $name,
+            TagCanonicalizer::symbol($name, $this->analyzer),
             $argumentSymbols,
         );
     }

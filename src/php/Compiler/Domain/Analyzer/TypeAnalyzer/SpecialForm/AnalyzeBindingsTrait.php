@@ -41,6 +41,7 @@ trait AnalyzeBindingsTrait
                 throw AnalyzerException::withLocation('Binding name must be a symbol, got: ' . gettype($sym), $vector, errorCode: ErrorCode::BINDING_ERROR);
             }
 
+            $sym = TagCanonicalizer::symbol($sym, $this->analyzer);
             $shadowSym = Symbol::gen($sym->getName() . '_')->copyLocationFrom($sym);
             $init = $vector->get($i + 1);
 

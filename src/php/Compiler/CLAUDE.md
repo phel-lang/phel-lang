@@ -91,6 +91,8 @@ Opt-in, off by default (`CompilerConfig::isIntermediateCacheEnabled()`). Wired o
 
 Analyzer tracks param/return types via `ParamTypeInferrer` and `ReturnTypeInferrer`, grafting `:tag` meta onto binding symbols. Contract: propagate only analyzer-published types, never fabricate.
 
+A tag naming a `:use` import is canonicalized where it is declared: `TagCanonicalizer` rewrites it to the rooted class in `FnSymbol` (params + arg-vector return tag), `AnalyzeBindingsTrait` (`let`/`loop`), `DefSymbol` (def meta), `ForeachSymbol`, `DefStructSymbol` and `DefInterfaceSymbol`, against the analyser's current namespace. List (union) and vector (intersection) tags have each member rewritten, keeping the collection type, since `PhpAttributeEmitterTrait` joins them verbatim. Everything downstream (inferrers, emitters, a caller in another namespace reading `:tag` off a `GlobalVarNode`, an inlined body) reads the stored class through the stateless `Shared\TagResolver`, never the active namespace's `:use` table. A new form that binds a tagged symbol must call it too, or its imported tags are emitted unqualified.
+
 Inferred tags replace AST symbols with metadata-bearing copies. `NodeEnvironment` clones share an object-keyed inferred-type table so a late result, such as a loop fixpoint or inferred defn parameter, still reaches local-reference nodes analyzed before the copy existed. Do not restore in-place `Symbol::withMeta()` mutation.
 
 Two halves, by family:

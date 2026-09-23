@@ -97,7 +97,7 @@ final class ForeachSymbol implements SpecialFormAnalyzerInterface
     private function buildForeachTupleWhen2Args(PersistentVectorInterface $foreachTuple, NodeEnvironmentInterface $env): ForeachSymbolTuple
     {
         $lets = [];
-        $valueSymbol = $foreachTuple->get(0);
+        $valueSymbol = $this->canonicalizeTag($foreachTuple->get(0));
 
         if (!($valueSymbol instanceof Symbol)) {
             $tmpSym = Symbol::gen();
@@ -121,8 +121,8 @@ final class ForeachSymbol implements SpecialFormAnalyzerInterface
     private function buildForeachTupleWhen3Args(PersistentVectorInterface $foreachTuple, NodeEnvironmentInterface $env): ForeachSymbolTuple
     {
         $lets = [];
-        $keySymbol = $foreachTuple->get(0);
-        $valueSymbol = $foreachTuple->get(1);
+        $keySymbol = $this->canonicalizeTag($foreachTuple->get(0));
+        $valueSymbol = $this->canonicalizeTag($foreachTuple->get(1));
 
         if (!($keySymbol instanceof Symbol)) {
             $tmpSym = Symbol::gen();
@@ -173,5 +173,12 @@ final class ForeachSymbol implements SpecialFormAnalyzerInterface
             Symbol::create(Symbol::NAME_DO),
             ...$bodys,
         ]);
+    }
+
+    private function canonicalizeTag(mixed $binding): mixed
+    {
+        return $binding instanceof Symbol
+            ? TagCanonicalizer::symbol($binding, $this->analyzer)
+            : $binding;
     }
 }

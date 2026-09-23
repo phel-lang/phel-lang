@@ -225,6 +225,11 @@ makes `^Z` the tag, exactly as `(Z/m ...)` is the call. A `?` prefix and `|` or
 `&` members compose with all three: `^?map`, `map|null`, `Foo&Bar`. An explicit
 import always wins over a value-type alias of the same spelling.
 
+An import is resolved in the namespace that declares the tag, and the definition
+keeps the rooted class: `(meta #'make)` shows `:tag "\\DateTimeImmutable"`, not
+`Moment`. A caller in another namespace that imports a different class under the
+same short name still sees the class the definition meant.
+
 Value-type aliases, each backed by one fixed class:
 
 | Tag | Class |

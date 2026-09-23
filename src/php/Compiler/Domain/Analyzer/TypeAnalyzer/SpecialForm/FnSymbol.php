@@ -154,6 +154,7 @@ final readonly class FnSymbol implements SpecialFormAnalyzerInterface
         NodeEnvironmentInterface $env,
         ?Symbol $name = null,
     ): FnNode {
+        $list = $this->canonicalizeTags($list);
         $paramVector = $this->verifyArguments($list);
 
         $fnSymbolTuple = FnSymbolTuple::createWithTuple($list);
@@ -252,6 +253,30 @@ final readonly class FnSymbol implements SpecialFormAnalyzerInterface
         }
 
         return [$ns, $name];
+    }
+
+    /**
+     * Resolves the params' and return tag's `:use` imports against this
+     * namespace before anything reads them ({@see TagCanonicalizer}).
+     *
+     * @param PersistentListInterface<mixed> $list
+     *
+     * @return PersistentListInterface<mixed>
+     */
+    private function canonicalizeTags(PersistentListInterface $list): PersistentListInterface
+    {
+        $paramVector = $this->verifyArguments($list);
+        $canonical = TagCanonicalizer::paramVector($paramVector, $this->analyzer);
+        if ($canonical === $paramVector) {
+            return $list;
+        }
+
+        $elements = $list->toArray();
+        $elements[1] = $canonical;
+
+        return Phel::list($elements)
+            ->copyLocationFrom($list)
+            ->withMeta($list->getMeta());
     }
 
     /**
