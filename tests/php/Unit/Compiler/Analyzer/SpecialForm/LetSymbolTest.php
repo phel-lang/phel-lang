@@ -31,7 +31,7 @@ final class LetSymbolTest extends TestCase
     public function test_wrong_symbol_name(): void
     {
         $this->expectException(AnalyzerException::class);
-        $this->expectExceptionMessageIsOrContains("This is not a 'let.");
+        $this->expectExceptionMessage("This is not a 'let.");
 
         $list = Phel::list([Symbol::create('unknown')]);
         $env = NodeEnvironment::empty();
@@ -44,7 +44,7 @@ final class LetSymbolTest extends TestCase
     public function test_wrong_arguments(): void
     {
         $this->expectException(AnalyzerException::class);
-        $this->expectExceptionMessageIsOrContains("At least two arguments are required for 'let");
+        $this->expectExceptionMessage("At least two arguments are required for 'let");
 
         $list = Phel::list([Symbol::create('let')]);
         $env = NodeEnvironment::empty();
@@ -55,7 +55,7 @@ final class LetSymbolTest extends TestCase
     public function test_wrong_second_argument(): void
     {
         $this->expectException(AnalyzerException::class);
-        $this->expectExceptionMessageIsOrContains('Binding parameter must be a vector');
+        $this->expectExceptionMessage('Binding parameter must be a vector');
 
         $list = Phel::list([Symbol::create('let'), 12]);
         $env = NodeEnvironment::empty();
@@ -66,7 +66,7 @@ final class LetSymbolTest extends TestCase
     public function test_uneven_bindings(): void
     {
         $this->expectException(AnalyzerException::class);
-        $this->expectExceptionMessageIsOrContains('Bindings must be a even number of parameters');
+        $this->expectExceptionMessage('Bindings must be a even number of parameters');
 
         $list = Phel::list([
             Symbol::create('let'),

@@ -51,7 +51,7 @@ final class InstTagHandlerTest extends TestCase
     public function test_it_rejects_non_string(): void
     {
         $this->expectException(TagHandlerException::class);
-        $this->expectExceptionMessageIsOrContains('#inst expects a string literal');
+        $this->expectExceptionMessage('#inst expects a string literal');
 
         ($this->handler)(42);
     }
@@ -59,7 +59,7 @@ final class InstTagHandlerTest extends TestCase
     public function test_it_rejects_invalid_format(): void
     {
         $this->expectException(TagHandlerException::class);
-        $this->expectExceptionMessageIsOrContains('is not a valid ISO 8601');
+        $this->expectExceptionMessage('is not a valid ISO 8601');
 
         ($this->handler)('bad-date');
     }
@@ -67,7 +67,7 @@ final class InstTagHandlerTest extends TestCase
     public function test_it_rejects_date_only_value(): void
     {
         $this->expectException(TagHandlerException::class);
-        $this->expectExceptionMessageIsOrContains('is not a valid ISO 8601');
+        $this->expectExceptionMessage('is not a valid ISO 8601');
 
         ($this->handler)('2026-04-20');
     }

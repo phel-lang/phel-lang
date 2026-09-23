@@ -36,7 +36,7 @@ final class SystemFileIoTest extends TestCase
 
         try {
             $this->expectException(RuntimeException::class);
-            $this->expectExceptionMessageIsOrContains(sprintf('Unable to read file "%s".', $missing));
+            $this->expectExceptionMessage(sprintf('Unable to read file "%s".', $missing));
 
             $io->getContents($missing);
         } finally {

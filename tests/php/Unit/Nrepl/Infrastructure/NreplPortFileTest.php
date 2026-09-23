@@ -92,7 +92,7 @@ final class NreplPortFileTest extends TestCase
         $portFile = new NreplPortFile($this->dir . DIRECTORY_SEPARATOR . 'missing');
 
         $this->expectException(RuntimeException::class);
-        $this->expectExceptionMessageIsOrContains('Cannot write .nrepl-port');
+        $this->expectExceptionMessage('Cannot write .nrepl-port');
 
         $portFile->write(7888);
     }

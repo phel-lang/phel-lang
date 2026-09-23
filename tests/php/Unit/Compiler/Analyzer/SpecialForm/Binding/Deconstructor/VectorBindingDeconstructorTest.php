@@ -228,7 +228,7 @@ final class VectorBindingDeconstructorTest extends TestCase
         ]);
 
         $this->expectException(AbstractLocatedException::class);
-        $this->expectExceptionMessageIsOrContains('only one symbol can follow the & parameter');
+        $this->expectExceptionMessage('only one symbol can follow the & parameter');
 
         $bindings = [];
         $this->deconstructor->deconstruct($bindings, $binding, $value);

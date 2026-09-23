@@ -89,7 +89,7 @@ final class AtomTest extends TestCase
         $v->setValidator(static fn($value): bool => $value > 0);
 
         $this->expectException(InvalidArgumentException::class);
-        $this->expectExceptionMessageIsOrContains('Atom validator rejected the value: -1');
+        $this->expectExceptionMessage('Atom validator rejected the value: -1');
         $v->set(-1);
     }
 
@@ -104,7 +104,7 @@ final class AtomTest extends TestCase
         $v->setValidator(static fn($value): bool => is_int($value));
 
         $this->expectException(InvalidArgumentException::class);
-        $this->expectExceptionMessageIsOrContains('Atom validator rejected the value: #object[' . PersistentVector::class . ']');
+        $this->expectExceptionMessage('Atom validator rejected the value: #object[' . PersistentVector::class . ']');
         $v->set(TypeFactory::getInstance()->persistentVectorFromArray([1, 2, 3]));
     }
 
@@ -127,7 +127,7 @@ final class AtomTest extends TestCase
         $v = new Atom(null, -5);
 
         $this->expectException(InvalidArgumentException::class);
-        $this->expectExceptionMessageIsOrContains('Atom validator rejected the value: -5');
+        $this->expectExceptionMessage('Atom validator rejected the value: -5');
         $v->setValidator(static fn($value): bool => $value > 0);
     }
 

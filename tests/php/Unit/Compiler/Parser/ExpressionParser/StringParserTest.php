@@ -28,7 +28,7 @@ final class StringParserTest extends TestCase
     public function test_parse_octal_above_a_byte_is_rejected(): void
     {
         $this->expectException(StringParserException::class);
-        $this->expectExceptionMessageIsOrContains('Octal escape sequence out of range: \400 is above \377.');
+        $this->expectExceptionMessage('Octal escape sequence out of range: \400 is above \377.');
 
         $this->parse('"\400"');
     }

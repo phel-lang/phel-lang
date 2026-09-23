@@ -36,7 +36,7 @@ final class FutureTest extends TestCase
         });
 
         $this->expectException(RuntimeException::class);
-        $this->expectExceptionMessageIsOrContains('boom');
+        $this->expectExceptionMessage('boom');
         $future->deref();
     }
 
@@ -160,7 +160,7 @@ final class FutureTest extends TestCase
         $this->scheduler->runUntilIdle();
 
         $this->expectException(RuntimeException::class);
-        $this->expectExceptionMessageIsOrContains('late boom');
+        $this->expectExceptionMessage('late boom');
         $future->derefWithTimeout(100, ':never');
     }
 

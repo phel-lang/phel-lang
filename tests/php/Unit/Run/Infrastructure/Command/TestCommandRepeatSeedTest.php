@@ -32,7 +32,7 @@ final class TestCommandRepeatSeedTest extends TestCase
     public function test_repeat_zero_throws(): void
     {
         $this->expectException(InvalidArgumentException::class);
-        $this->expectExceptionMessageIsOrContains('--repeat must be a positive integer');
+        $this->expectExceptionMessage('--repeat must be a positive integer');
 
         $this->collectAndPrint(['--repeat' => '0']);
     }
@@ -47,7 +47,7 @@ final class TestCommandRepeatSeedTest extends TestCase
     public function test_repeat_non_numeric_throws(): void
     {
         $this->expectException(InvalidArgumentException::class);
-        $this->expectExceptionMessageIsOrContains('--repeat must be a positive integer, got abc');
+        $this->expectExceptionMessage('--repeat must be a positive integer, got abc');
 
         $this->collectAndPrint(['--repeat' => 'abc']);
     }
@@ -69,7 +69,7 @@ final class TestCommandRepeatSeedTest extends TestCase
     public function test_seed_non_numeric_throws(): void
     {
         $this->expectException(InvalidArgumentException::class);
-        $this->expectExceptionMessageIsOrContains('--seed must be an integer');
+        $this->expectExceptionMessage('--seed must be an integer');
 
         $this->collectAndPrint(['--seed' => 'abc']);
     }
@@ -108,7 +108,7 @@ final class TestCommandRepeatSeedTest extends TestCase
     public function test_parallel_below_one_names_the_offending_value(): void
     {
         $this->expectException(InvalidArgumentException::class);
-        $this->expectExceptionMessageIsOrContains('--parallel must be >= 1, got 0.');
+        $this->expectExceptionMessage('--parallel must be >= 1, got 0.');
 
         $this->decideParallelism('0');
     }
@@ -116,7 +116,7 @@ final class TestCommandRepeatSeedTest extends TestCase
     public function test_parallel_negative_names_the_offending_value(): void
     {
         $this->expectException(InvalidArgumentException::class);
-        $this->expectExceptionMessageIsOrContains('--parallel must be >= 1, got -3.');
+        $this->expectExceptionMessage('--parallel must be >= 1, got -3.');
 
         $this->decideParallelism('-3');
     }
@@ -124,7 +124,7 @@ final class TestCommandRepeatSeedTest extends TestCase
     public function test_parallel_non_numeric_names_the_offending_value(): void
     {
         $this->expectException(InvalidArgumentException::class);
-        $this->expectExceptionMessageIsOrContains('--parallel must be an integer >= 1, "auto", or "max", got nope.');
+        $this->expectExceptionMessage('--parallel must be an integer >= 1, "auto", or "max", got nope.');
 
         $this->decideParallelism('nope');
     }

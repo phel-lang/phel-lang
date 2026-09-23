@@ -504,21 +504,21 @@ final class ParserTest extends TestCase
     public function test_read_unbalanced_closed_paren(): void
     {
         $this->expectException(AbstractParserException::class);
-        $this->expectExceptionMessageIsOrContains("Unexpected ')': there is no open form to close.");
+        $this->expectExceptionMessage("Unexpected ')': there is no open form to close.");
         $this->parse(')');
     }
 
     public function test_read_unbalanced_open_paren(): void
     {
         $this->expectException(AbstractParserException::class);
-        $this->expectExceptionMessageIsOrContains("Unterminated list starting at line 1. Did you forget a closing ')'?");
+        $this->expectExceptionMessage("Unterminated list starting at line 1. Did you forget a closing ')'?");
         $this->parse('(');
     }
 
     public function test_read_unbalanced_open_brace(): void
     {
         $this->expectException(AbstractParserException::class);
-        $this->expectExceptionMessageIsOrContains("Unterminated map starting at line 1. Did you forget a closing '}'?");
+        $this->expectExceptionMessage("Unterminated map starting at line 1. Did you forget a closing '}'?");
         $this->parse('{');
     }
 
@@ -744,7 +744,7 @@ final class ParserTest extends TestCase
     public function test_reader_conditional_splicing_at_top_level_throws(): void
     {
         $this->expectException(UnexpectedParserException::class);
-        $this->expectExceptionMessageIsOrContains('not allowed at the top level');
+        $this->expectExceptionMessage('not allowed at the top level');
 
         $this->parse('#?@(:phel [1 2])');
     }

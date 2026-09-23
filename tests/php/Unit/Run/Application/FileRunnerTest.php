@@ -344,7 +344,7 @@ final class FileRunnerTest extends TestCase
         $commandFacade->method('getVendorSourceDirectories')->willReturn([]);
 
         $this->expectException(ExtractorException::class);
-        $this->expectExceptionMessageIsOrContains("Cannot find namespace 'some.missing.ns' required by 'demo'");
+        $this->expectExceptionMessage("Cannot find namespace 'some.missing.ns' required by 'demo'");
 
         $this->createFileRunner($buildFacade, $commandFacade)->run($script);
     }
@@ -377,7 +377,7 @@ final class FileRunnerTest extends TestCase
         $commandFacade->method('getVendorSourceDirectories')->willReturn([]);
 
         $this->expectException(ExtractorException::class);
-        $this->expectExceptionMessageIsOrContains('Cannot parse file: ' . $helper);
+        $this->expectExceptionMessage('Cannot parse file: ' . $helper);
 
         $this->createFileRunner($buildFacade, $commandFacade)->run($script);
     }

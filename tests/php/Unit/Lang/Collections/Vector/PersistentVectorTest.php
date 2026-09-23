@@ -341,7 +341,7 @@ final class PersistentVectorTest extends TestCase
         $vector = PersistentVector::fromArray(new ModuloHasher(), new SimpleEqualizer(), [1, 2, 3]);
 
         $this->expectException(InvalidArgumentException::class);
-        $this->expectExceptionMessageIsOrContains('Vector cannot be indexed with nil');
+        $this->expectExceptionMessage('Vector cannot be indexed with nil');
 
         $vector(null);
     }

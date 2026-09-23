@@ -29,7 +29,7 @@ final class UUIDTagHandlerTest extends TestCase
     public function test_it_rejects_invalid_format(): void
     {
         $this->expectException(TagHandlerException::class);
-        $this->expectExceptionMessageIsOrContains('is not a canonical UUID string');
+        $this->expectExceptionMessage('is not a canonical UUID string');
 
         ($this->handler)('not-a-uuid');
     }
@@ -37,7 +37,7 @@ final class UUIDTagHandlerTest extends TestCase
     public function test_it_rejects_non_string(): void
     {
         $this->expectException(TagHandlerException::class);
-        $this->expectExceptionMessageIsOrContains('#uuid expects a string literal');
+        $this->expectExceptionMessage('#uuid expects a string literal');
 
         ($this->handler)(42);
     }

@@ -30,7 +30,7 @@ final class PhpObjectCallSymbolTest extends TestCase
     public function test_list_without_argument(): void
     {
         $this->expectException(AbstractLocatedException::class);
-        $this->expectExceptionMessageIsOrContains("At least two arguments are expected for 'php/::");
+        $this->expectExceptionMessage("At least two arguments are expected for 'php/::");
 
         $list = Phel::list([
             Symbol::create(Symbol::NAME_PHP_OBJECT_STATIC_CALL),
@@ -44,7 +44,7 @@ final class PhpObjectCallSymbolTest extends TestCase
     public function test_list_with_wrong_symbol(): void
     {
         $this->expectException(AbstractLocatedException::class);
-        $this->expectExceptionMessageIsOrContains("Argument 2 of 'php/->' must be a List or a Symbol");
+        $this->expectExceptionMessage("Argument 2 of 'php/->' must be a List or a Symbol");
 
         $list = Phel::list([
             Symbol::create(Symbol::NAME_PHP_OBJECT_CALL),
@@ -120,7 +120,7 @@ final class PhpObjectCallSymbolTest extends TestCase
     public function test_sigil_on_an_instance_member_is_rejected(): void
     {
         $this->expectException(AbstractLocatedException::class);
-        $this->expectExceptionMessageIsOrContains("'\$foo' names a static property, which only a class can hold");
+        $this->expectExceptionMessage("'\$foo' names a static property, which only a class can hold");
 
         $list = Phel::list([
             Symbol::create(Symbol::NAME_PHP_OBJECT_CALL),
@@ -135,7 +135,7 @@ final class PhpObjectCallSymbolTest extends TestCase
     public function test_sigil_on_a_method_name_is_rejected(): void
     {
         $this->expectException(AbstractLocatedException::class);
-        $this->expectExceptionMessageIsOrContains("'\$foo' names a static property, which only a class can hold");
+        $this->expectExceptionMessage("'\$foo' names a static property, which only a class can hold");
 
         $list = Phel::list([
             Symbol::create(Symbol::NAME_PHP_OBJECT_STATIC_CALL),

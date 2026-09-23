@@ -142,7 +142,7 @@ final class QualifiedMemberValueRuntimeTest extends AbstractCompilerRuntimeTestC
     public function test_a_sigil_on_the_property_shorthand_fails_with_the_specific_message(): void
     {
         $this->expectException(CompilerException::class);
-        $this->expectExceptionMessageIsOrContains("'\$foo' names a static property, which only a class can hold");
+        $this->expectExceptionMessage("'\$foo' names a static property, which only a class can hold");
 
         $this->compilerFacade->eval(
             '(let [o (new \\stdClass)] (.-$foo o))',

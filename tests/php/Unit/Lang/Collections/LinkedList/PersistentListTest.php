@@ -106,7 +106,7 @@ final class PersistentListTest extends TestCase
         $list = PersistentList::fromArray(new ModuloHasher(), new SimpleEqualizer(), ['foo', 'bar']);
 
         $this->expectException(InvalidArgumentException::class);
-        $this->expectExceptionMessageIsOrContains('List cannot be indexed with nil');
+        $this->expectExceptionMessage('List cannot be indexed with nil');
 
         $list(null);
     }

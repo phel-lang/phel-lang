@@ -25,7 +25,7 @@ final class IfSymbolTest extends TestCase
     public function test_requires_at_least_two_or_three_args(PersistentListInterface $list): void
     {
         $this->expectException(AbstractLocatedException::class);
-        $this->expectExceptionMessageIsOrContains("'if requires two or three arguments");
+        $this->expectExceptionMessage("'if requires two or three arguments");
 
         $this->analyze($list);
     }

@@ -44,7 +44,7 @@ final class FnSymbolTest extends TestCase
     public function test_requires_at_least_one_arg(): void
     {
         $this->expectException(AbstractLocatedException::class);
-        $this->expectExceptionMessageIsOrContains("'fn requires at least one argument");
+        $this->expectExceptionMessage("'fn requires at least one argument");
 
         $list = Phel::list([
             Symbol::create(Symbol::NAME_FN),
@@ -56,7 +56,7 @@ final class FnSymbolTest extends TestCase
     public function test_second_arg_must_be_a_vector(): void
     {
         $this->expectException(AbstractLocatedException::class);
-        $this->expectExceptionMessageIsOrContains("Second argument of 'fn must be a vector");
+        $this->expectExceptionMessage("Second argument of 'fn must be a vector");
 
         // This is the same as: (fn 42) — a leading non-Symbol, non-vector,
         // non-list form should still be rejected. (A leading Symbol would be
@@ -89,7 +89,7 @@ final class FnSymbolTest extends TestCase
     {
         if ($error) {
             $this->expectException(AbstractLocatedException::class);
-            $this->expectExceptionMessageIsOrContains('Variable names must start with a letter or underscore: ' . $paramName);
+            $this->expectExceptionMessage('Variable names must start with a letter or underscore: ' . $paramName);
         }
 
         // This is the same as: (fn [paramName])
@@ -162,7 +162,7 @@ final class FnSymbolTest extends TestCase
     public function test_only_one_symbol_can_follow_the_ampersand_parameter(): void
     {
         $this->expectException(AbstractLocatedException::class);
-        $this->expectExceptionMessageIsOrContains('Unsupported parameter form, only one symbol can follow the & parameter');
+        $this->expectExceptionMessage('Unsupported parameter form, only one symbol can follow the & parameter');
 
         // This is the same as: (fn [& param-1 param-2])
         $list = Phel::list([
@@ -279,7 +279,7 @@ final class FnSymbolTest extends TestCase
     public function test_variadic_overload_must_be_last(): void
     {
         $this->expectException(AbstractLocatedException::class);
-        $this->expectExceptionMessageIsOrContains('Variadic overload must be the last one');
+        $this->expectExceptionMessage('Variadic overload must be the last one');
 
         $list = Phel::list([
             Symbol::create(Symbol::NAME_FN),

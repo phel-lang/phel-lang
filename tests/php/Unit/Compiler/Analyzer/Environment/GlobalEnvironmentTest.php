@@ -536,7 +536,7 @@ final class GlobalEnvironmentTest extends TestCase
         Phel::addDefinition(CompilerConstants::PHEL_CORE_NAMESPACE, ReplConstants::REPL_MODE, true);
 
         $this->expectException(DuplicateDefinitionException::class);
-        $this->expectExceptionMessageIsOrContains("Symbol 'x' is already bound in namespace 'foo'");
+        $this->expectExceptionMessage("Symbol 'x' is already bound in namespace 'foo'");
 
         $env->addDefinition('foo', $sym);
     }
@@ -568,7 +568,7 @@ final class GlobalEnvironmentTest extends TestCase
         $env->leaveAnalysisMode();
 
         $this->expectException(DuplicateDefinitionException::class);
-        $this->expectExceptionMessageIsOrContains("Symbol 'x' is already bound in namespace 'foo'");
+        $this->expectExceptionMessage("Symbol 'x' is already bound in namespace 'foo'");
 
         $env->addDefinition('foo', $sym);
     }

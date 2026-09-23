@@ -94,7 +94,7 @@ final class MessageReaderTest extends TestCase
         $reader = new MessageReader();
 
         $this->expectException(RuntimeException::class);
-        $this->expectExceptionMessageIsOrContains('LSP header block exceeded maximum size.');
+        $this->expectExceptionMessage('LSP header block exceeded maximum size.');
         $reader->read($stream);
     }
 

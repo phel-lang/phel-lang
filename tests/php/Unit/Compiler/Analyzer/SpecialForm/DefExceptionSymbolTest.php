@@ -28,7 +28,7 @@ final class DefExceptionSymbolTest extends TestCase
     public function test_with_wrong_number_of_arguments(): void
     {
         $this->expectException(AbstractLocatedException::class);
-        $this->expectExceptionMessageIsOrContains("One or two arguments are required for 'defexception");
+        $this->expectExceptionMessage("One or two arguments are required for 'defexception");
 
         $list = Phel::list([
             Symbol::create(Symbol::NAME_DEF_EXCEPTION),
@@ -66,7 +66,7 @@ final class DefExceptionSymbolTest extends TestCase
     public function test_first_arg_is_not_symbol(): void
     {
         $this->expectException(AbstractLocatedException::class);
-        $this->expectExceptionMessageIsOrContains("First argument of 'defexception must be a Symbol, got string");
+        $this->expectExceptionMessage("First argument of 'defexception must be a Symbol, got string");
 
         $list = Phel::list([
             Symbol::create(Symbol::NAME_DEF_EXCEPTION),

@@ -73,7 +73,7 @@ final class FileCollectorTest extends TestCase
         }
 
         $this->expectException(LintSourceException::class);
-        $this->expectExceptionMessageIsOrContains('Cannot read directory to lint: ');
+        $this->expectExceptionMessage('Cannot read directory to lint: ');
         $this->expectExceptionMessageMatches('#locked$#');
 
         new FileCollector()->collect([$dir]);

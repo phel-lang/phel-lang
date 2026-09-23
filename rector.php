@@ -10,6 +10,7 @@ use Rector\DeadCode\Rector\ClassMethod\RemoveUselessUnionReturnDocblockRector;
 use Rector\Php84\Rector\Foreach_\ForeachToArrayAllRector;
 use Rector\PHPUnit\CodeQuality\Rector\Class_\PreferPHPUnitThisCallRector;
 use Rector\PHPUnit\Set\PHPUnitSetList;
+use Rector\Renaming\Rector\MethodCall\RenameMethodRector;
 use Rector\Privatization\Rector\Property\PrivatizeFinalClassPropertyRector;
 use Rector\Set\ValueObject\LevelSetList;
 use Rector\Set\ValueObject\SetList;
@@ -45,6 +46,13 @@ return RectorConfig::configure()
         RemoveDeadStmtRector::class => [
             __DIR__ . '/tests/php/Benchmark',
             __DIR__ . '/tests/php/Unit/Lang/Collections',
+        ],
+        // COMPOSER_BASED renames `expectExceptionMessage()` to
+        // `expectExceptionMessageIsOrContains()` once PHPUnit 13.2 is installed,
+        // but the symfony/console 7.3 compat job in tests.yml resolves PHPUnit 12,
+        // which lacks the new method. Drop this with console 7.3 support.
+        RenameMethodRector::class => [
+            __DIR__ . '/tests/php',
         ],
         // `ob_get_clean()` returns `string|false`; Rector 2.5 narrows it to
         // `string` inside these catch blocks and strips the cast, which Psalm

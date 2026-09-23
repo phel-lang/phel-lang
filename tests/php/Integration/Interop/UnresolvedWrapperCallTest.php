@@ -38,7 +38,7 @@ final class UnresolvedWrapperCallTest extends TestCase
     public function test_it_names_the_namespace_the_host_never_loaded(): void
     {
         $this->expectException(ExportedDefinitionNotFoundException::class);
-        $this->expectExceptionMessageIsOrContains('the namespace "my-app.billing" is not loaded in this process');
+        $this->expectExceptionMessage('the namespace "my-app.billing" is not loaded in this process');
 
         $this->wrapper->intoUnloadedNamespace();
     }
@@ -46,7 +46,7 @@ final class UnresolvedWrapperCallTest extends TestCase
     public function test_it_points_at_a_stale_wrapper_when_the_namespace_is_loaded(): void
     {
         $this->expectException(ExportedDefinitionNotFoundException::class);
-        $this->expectExceptionMessageIsOrContains('re-run "phel export"');
+        $this->expectExceptionMessage('re-run "phel export"');
 
         $this->wrapper->intoMissingDefinition();
     }

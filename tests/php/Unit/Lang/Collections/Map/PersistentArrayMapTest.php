@@ -23,7 +23,7 @@ final class PersistentArrayMapTest extends AbstractPersistentMapContractTestCase
         $this->expectException(RuntimeException::class);
         // The message names the offending count: "odd number of elements" is
         // the whole diagnosis, so a bare "invalid argument" would not do.
-        $this->expectExceptionMessageIsOrContains('An even number of elements must be provided to build a map, got 1');
+        $this->expectExceptionMessage('An even number of elements must be provided to build a map, got 1');
         PersistentArrayMap::fromArray(new ModuloHasher(), new SimpleEqualizer(), ['test']);
     }
 

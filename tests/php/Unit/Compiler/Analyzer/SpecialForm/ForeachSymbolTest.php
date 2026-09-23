@@ -25,7 +25,7 @@ final class ForeachSymbolTest extends TestCase
     public function test_requires_at_least_two_arg(): void
     {
         $this->expectException(AbstractLocatedException::class);
-        $this->expectExceptionMessageIsOrContains("At least two arguments are required for 'foreach");
+        $this->expectExceptionMessage("At least two arguments are required for 'foreach");
 
         // (foreach)
         $list = Phel::list([
@@ -38,7 +38,7 @@ final class ForeachSymbolTest extends TestCase
     public function test_first_arg_must_be_a_vector(): void
     {
         $this->expectException(AbstractLocatedException::class);
-        $this->expectExceptionMessageIsOrContains("First argument of 'foreach must be a vector.");
+        $this->expectExceptionMessage("First argument of 'foreach must be a vector.");
 
         // (foreach x)
         $list = Phel::list([
@@ -52,7 +52,7 @@ final class ForeachSymbolTest extends TestCase
     public function test_arg_for_vector_can_not_be1(): void
     {
         $this->expectException(AbstractLocatedException::class);
-        $this->expectExceptionMessageIsOrContains("Vector of 'foreach must have exactly two or three elements.");
+        $this->expectExceptionMessage("Vector of 'foreach must have exactly two or three elements.");
 
         // (foreach [x])
         $list = Phel::list([
@@ -161,7 +161,7 @@ final class ForeachSymbolTest extends TestCase
     public function test_arg_for_vector_can_not_be4(): void
     {
         $this->expectException(AbstractLocatedException::class);
-        $this->expectExceptionMessageIsOrContains("Vector of 'foreach must have exactly two or three elements.");
+        $this->expectExceptionMessage("Vector of 'foreach must have exactly two or three elements.");
 
         // (foreach [x y z {}])
         $list = Phel::list([

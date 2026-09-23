@@ -53,7 +53,7 @@ final class RequireNamespaceTest extends TestCase
         }
 
         $this->expectException(RuntimeException::class);
-        $this->expectExceptionMessageIsOrContains("Could not locate namespace 'nonexistent.foo'");
+        $this->expectExceptionMessage("Could not locate namespace 'nonexistent.foo'");
 
         $facade = new CompilerFacade();
         $facade->eval('(phel\\repl/require nonexistent\\foo)', new CompileOptions());

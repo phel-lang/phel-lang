@@ -54,7 +54,7 @@ final class PhpArrayConstructorInlineTest extends AbstractCompilerRuntimeTestCas
         self::assertStringContainsString('"php-associative-array"', $php);
 
         $this->expectException(EvaluatedCodeException::class);
-        $this->expectExceptionMessageIsOrContains(
+        $this->expectExceptionMessage(
             "An even number of parameters must be provided for 'php-associative-array'",
         );
 

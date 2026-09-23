@@ -55,7 +55,7 @@ final class ProjectTemplateScaffolderTest extends TestCase
     public function test_files_throws_for_unknown_template(): void
     {
         $this->expectException(RuntimeException::class);
-        $this->expectExceptionMessageIsOrContains('Unknown template "ghost"');
+        $this->expectExceptionMessage('Unknown template "ghost"');
 
         $this->scaffolder->files('ghost', 'my-app');
     }

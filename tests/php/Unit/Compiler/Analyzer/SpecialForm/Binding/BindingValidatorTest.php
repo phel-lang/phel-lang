@@ -24,35 +24,35 @@ final class BindingValidatorTest extends TestCase
 
     public function test_integer_type(): void
     {
-        $this->expectExceptionMessageIsOrContains('Cannot destructure int');
+        $this->expectExceptionMessage('Cannot destructure int');
 
         $this->validator->assertSupportedBinding(1);
     }
 
     public function test_float_type(): void
     {
-        $this->expectExceptionMessageIsOrContains('Cannot destructure float');
+        $this->expectExceptionMessage('Cannot destructure float');
 
         $this->validator->assertSupportedBinding(1.99);
     }
 
     public function test_string_type(): void
     {
-        $this->expectExceptionMessageIsOrContains('Cannot destructure string');
+        $this->expectExceptionMessage('Cannot destructure string');
 
         $this->validator->assertSupportedBinding('');
     }
 
     public function test_keyword_type(): void
     {
-        $this->expectExceptionMessageIsOrContains('Cannot destructure Phel\Lang\Keyword');
+        $this->expectExceptionMessage('Cannot destructure Phel\Lang\Keyword');
 
         $this->validator->assertSupportedBinding(Keyword::create('any'));
     }
 
     public function test_qualified_symbol_binding_is_rejected(): void
     {
-        $this->expectExceptionMessageIsOrContains("Can't bind qualified name: phel.core/count");
+        $this->expectExceptionMessage("Can't bind qualified name: phel.core/count");
 
         $this->validator->assertSupportedBinding(Symbol::createForNamespace('phel.core', 'count'));
     }

@@ -24,7 +24,7 @@ final class TempDirFinderTest extends TestCase
         $finder = new TempDirFinder($fileIo, $dir);
 
         $this->expectException(FileException::class);
-        $this->expectExceptionMessageIsOrContains('Directory is not writable: ' . $dir);
+        $this->expectExceptionMessage('Directory is not writable: ' . $dir);
 
         try {
             $finder->getOrCreateTempDir();

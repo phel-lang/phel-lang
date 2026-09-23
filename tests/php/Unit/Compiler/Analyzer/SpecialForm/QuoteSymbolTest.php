@@ -16,7 +16,7 @@ final class QuoteSymbolTest extends TestCase
     public function test_list_with_wrong_symbol(): void
     {
         $this->expectException(AbstractLocatedException::class);
-        $this->expectExceptionMessageIsOrContains("This is not a 'quote.");
+        $this->expectExceptionMessage("This is not a 'quote.");
 
         $list = Phel::list(['any symbol', 'any text']);
         new QuoteSymbol()->analyze($list, NodeEnvironment::empty());
@@ -25,7 +25,7 @@ final class QuoteSymbolTest extends TestCase
     public function test_list_without_argument(): void
     {
         $this->expectException(AbstractLocatedException::class);
-        $this->expectExceptionMessageIsOrContains("Exactly one argument is required for 'quote");
+        $this->expectExceptionMessage("Exactly one argument is required for 'quote");
 
         $list = Phel::list([Symbol::create(Symbol::NAME_QUOTE)]);
         new QuoteSymbol()->analyze($list, NodeEnvironment::empty());

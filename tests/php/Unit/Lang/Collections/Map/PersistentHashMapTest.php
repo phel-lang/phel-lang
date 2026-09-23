@@ -23,7 +23,7 @@ final class PersistentHashMapTest extends AbstractPersistentMapContractTestCase
     public function test_can_not_create_from_array_with_uneven_values(): void
     {
         $this->expectException(RuntimeException::class);
-        $this->expectExceptionMessageIsOrContains('An even number of elements must be provided to build a map, got 3');
+        $this->expectExceptionMessage('An even number of elements must be provided to build a map, got 3');
         PersistentHashMap::fromArray(new ModuloHasher(), new SimpleEqualizer(), ['a', 1, 'b']);
     }
 

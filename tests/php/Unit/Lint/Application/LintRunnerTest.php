@@ -52,7 +52,7 @@ final class LintRunnerTest extends TestCase
 
         $this->expectException(LintSourceException::class);
         // FileCollector realpath()s its input, so only the tail is asserted.
-        $this->expectExceptionMessageIsOrContains('Cannot read file to lint: ');
+        $this->expectExceptionMessage('Cannot read file to lint: ');
         $this->expectExceptionMessageMatches('#unreadable\.phel$#');
 
         $this->runner()->run([$file], new RuleSettings([]));

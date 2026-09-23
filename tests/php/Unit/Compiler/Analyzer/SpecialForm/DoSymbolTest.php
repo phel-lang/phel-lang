@@ -27,7 +27,7 @@ final class DoSymbolTest extends TestCase
     public function test_wrong_symbol_name(): void
     {
         $this->expectException(AbstractLocatedException::class);
-        $this->expectExceptionMessageIsOrContains("This is not a 'do.");
+        $this->expectExceptionMessage("This is not a 'do.");
 
         $list = Phel::list([Symbol::create('unknown')]);
         $env = NodeEnvironment::empty();

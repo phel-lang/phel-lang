@@ -42,7 +42,7 @@ final class FormatterRegistryTest extends TestCase
         $registry->register(new JsonFormatter());
 
         $this->expectException(InvalidArgumentException::class);
-        $this->expectExceptionMessageIsOrContains('Unknown lint formatter: nope. Known: human, json.');
+        $this->expectExceptionMessage('Unknown lint formatter: nope. Known: human, json.');
         $registry->get('nope');
     }
 
