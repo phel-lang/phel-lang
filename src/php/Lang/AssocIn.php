@@ -71,7 +71,10 @@ final class AssocIn
     }
 
     /**
+     * `$f` stays natively `mixed` so a non-callable fails with the runtime's own error.
+     *
      * @param list<mixed> $keys
+     * @param callable    $f
      */
     public static function update(mixed $ds, array $keys, mixed $f, mixed ...$args): mixed
     {
