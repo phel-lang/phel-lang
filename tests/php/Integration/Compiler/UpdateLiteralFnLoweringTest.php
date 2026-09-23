@@ -5,14 +5,18 @@ declare(strict_types=1);
 namespace PhelTest\Integration\Compiler;
 
 use Phel\Build\BuildFacade;
+use Phel\Compiler\CompilerFacade;
 use Phel\Shared\CompileOptions;
 use Phel\Shared\Printer\Printer;
+use PhelTest\Integration\Compiler\Fixture\LifetimeProbe;
+use PhelTest\Integration\Compiler\Fixture\ProbeObservingMap;
 use PHPUnit\Framework\Attributes\DataProvider;
 use Throwable;
 
 use function range;
 use function sprintf;
 use function str_repeat;
+use function str_replace;
 use function strlen;
 
 /**
@@ -28,6 +32,14 @@ use function strlen;
  */
 final class UpdateLiteralFnLoweringTest extends AbstractCompilerRuntimeTestCase
 {
+    public static function setUpBeforeClass(): void
+    {
+        parent::setUpBeforeClass();
+        $probe = self::phelClassName(LifetimeProbe::class);
+        new CompilerFacade()->eval(sprintf('(defn make-probe [] (new %s))', $probe), new CompileOptions());
+        new CompilerFacade()->eval(sprintf('(defn watch [x] (%s/watch x))', $probe), new CompileOptions());
+    }
+
     public function test_threaded_updates_grow_the_emitted_code_linearly(): void
     {
         $eight = strlen($this->compileThreaded(8));
@@ -59,12 +71,13 @@ final class UpdateLiteralFnLoweringTest extends AbstractCompilerRuntimeTestCase
         yield 'return position' => ['(fn [m] (update m :k (fn [v] (php/+ v 1))))'];
         yield 'extra arguments' => ['(fn [m a b] (update m :k (fn [v x y] (php/+ v x y)) a b))'];
         yield 'past the fixed arities' => ['(fn [m] (update m :k (fn [v a b c d] (php/+ v a b c d)) 1 2 3 4))'];
-        yield 'a destructured param' => ['(fn [m] (update m :k (fn [[v w]] (php/- w v))))'];
         yield 'several body forms' => ['(fn [m] (update m :k (fn [v] (println v) v)))'];
         yield 'php/max and an or' => ['(fn [m dt] (update m :t (fn [s] (php/max 0.0 (php/- (or s 0.0) dt)))))'];
         yield 'a keyword lookup' => ['(fn [m] (update m :k (fn [v] (:n v))))'];
         yield 'a global fn' => ['(fn [m] (update m :k (fn [v] (inc v))))'];
         yield 'a let and an if' => ['(fn [m] (update m :k (fn [v] (let [w (php/* v 2)] (if (php/> w 3) w 0)))))'];
+        yield 'an if on a scalar-typed global fn' => ['(fn [m] (update m :k (fn [v] (if (nil? v) 0 v))))'];
+        yield 'a let bound to a scalar-typed global fn' => ['(fn [m] (update m :k (fn [v] (let [n (count v)] (if (php/> n 1) v n)))))'];
     }
 
     public function test_the_default_level_keeps_the_runtime_call(): void
@@ -115,6 +128,7 @@ final class UpdateLiteralFnLoweringTest extends AbstractCompilerRuntimeTestCase
         yield 'try' => ['(fn [m] (update m :k (fn [v] (try v (catch \\Exception e 0)))))'];
         yield 'php/ref' => ['(fn [m arr] (update m :k (fn [v] (php/preg_match "/a/" v (php/ref arr)))))'];
         yield 'yield' => ['(fn [m] (update m :k (fn [v] (php/yield v))))'];
+        yield 'a destructured param, bound from a lookup' => ['(fn [m] (update m :k (fn [[v w]] (php/- w v))))'];
     }
 
     #[DataProvider('providerRuntimeCases')]
@@ -264,6 +278,39 @@ final class UpdateLiteralFnLoweringTest extends AbstractCompilerRuntimeTestCase
         self::assertStringNotContainsString('string $x', $this->compileInBuildMode($defn));
     }
 
+    #[DataProvider('providerBodyLocalLifetimes')]
+    public function test_a_body_local_is_released_before_the_assoc(string $body): void
+    {
+        $phel = sprintf(
+            '(let [run (fn [t] (update t :a (fn [v] %s)))] (.-aliveAtPut (run (new %s))))',
+            $body,
+            self::phelClassName(ProbeObservingMap::class),
+        );
+
+        self::assertSame('0', $this->evalAt($phel, 0));
+        self::assertSame('0', $this->evalAt($phel, 2));
+        self::assertStringContainsString('"update"', $this->compileInBuildMode(sprintf('(fn [t] (update t :a (fn [v] %s)))', $body)));
+    }
+
+    public static function providerBodyLocalLifetimes(): iterable
+    {
+        yield 'a let in statement position' => ['(let [p (make-probe)] (php/is_null p)) v'];
+        yield 'an alias of a fresh object' => ['(let [p (make-probe) q p] (php/is_null q)) v'];
+        yield 'a let value' => ['(let [p (make-probe)] (if p v v))'];
+        yield 'an if test in statement position' => ['(if (make-probe) 1 2) v'];
+        yield 'an if test in the value' => ['(if (make-probe) v v)'];
+        yield 'an and value' => ['(and (make-probe) v)'];
+        yield 'an or test' => ['(if (or (make-probe) v) v v)'];
+        yield 'the last operand of an or test' => ['(if (or v (make-probe)) v v)'];
+        yield 'truthy? on a fresh object' => ['(let [x (truthy? (make-probe))] v)'];
+        yield 'truthy? on a fresh object in statement position' => ['(truthy? (make-probe)) v'];
+        yield 'a fresh object inside a vector' => ['(let [p [(make-probe)]] (php/is_null p)) v'];
+        yield 'a vector literal' => ['(let [tmp [v]] (watch tmp)) v'];
+        yield 'a map literal' => ['(let [tmp {:a v}] (watch tmp)) v'];
+        yield 'a set literal' => ['(let [tmp #{v}] (watch tmp)) v'];
+        yield 'a fn literal' => ['(let [tmp (fn [] 1)] (watch tmp)) v'];
+    }
+
     public function test_an_expression_position_update_leaves_no_temporaries_in_the_frame(): void
     {
         $phel = '((fn [m] (let [r [(update m :a (fn [v] (php/+ v 1)))]] [r (php/count (php/get_defined_vars))])) {:a 1})';
@@ -321,6 +368,11 @@ final class UpdateLiteralFnLoweringTest extends AbstractCompilerRuntimeTestCase
 
         self::assertStringContainsString('($update_', $php);
         self::assertStringNotContainsString('"assoc"', $php);
+    }
+
+    private static function phelClassName(string $class): string
+    {
+        return str_replace('\\', '.', $class);
     }
 
     private function compileThreaded(int $depth): string
