@@ -9,7 +9,7 @@ use Gacela\Framework\Attribute\Provides;
 use Gacela\Framework\Container\Container;
 use Gacela\Framework\ServiceResolver\ServiceMap;
 use Phel\Filesystem\FilesystemFacade;
-use Phel\Filesystem\FilesystemFacadeInterface;
+use Phel\Shared\Facade\FilesystemFacadeInterface;
 
 /**
  * @internal
