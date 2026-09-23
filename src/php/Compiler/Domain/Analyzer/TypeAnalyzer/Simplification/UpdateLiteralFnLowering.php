@@ -15,7 +15,6 @@ use Phel\Compiler\Domain\Analyzer\Ast\LetNode;
 use Phel\Compiler\Domain\Analyzer\Ast\LocalVarNode;
 use Phel\Compiler\Domain\Analyzer\Environment\NodeEnvironment;
 use Phel\Compiler\Domain\Analyzer\Environment\NodeEnvironmentInterface;
-use Phel\Compiler\Domain\Analyzer\TypeAnalyzer\SpecialForm\ReturnTypeInferrer;
 use Phel\Lang\Keyword;
 use Phel\Lang\SourceLocation;
 use Phel\Lang\Symbol;
@@ -54,8 +53,8 @@ use function count;
  *
  * Shapes that keep the runtime call: a call in statement position, a fn
  * value, several arities, a rest param, a named fn, a param count the call
- * does not fill, a tagged param or a return tag (PHP enforces and
- * coerces both), `recur` aimed at the fn, and a body with any node outside
+ * does not fill, a tagged param or any return type, declared or inferred
+ * (the closure declares it, and PHP enforces and coerces it), `recur` aimed at the fn, and a body with any node outside
  * the frame-independent allowlist of {@see SpliceableBody}.
  *
  * @internal
@@ -116,7 +115,7 @@ final readonly class UpdateLiteralFnLowering
             || $fn->getRecurs()
             || $fn->getName() instanceof Symbol
             || count($fn->getParams()) !== count($extraArgs) + 1
-            || $this->hasDeclaredReturnType($fn)
+            || $fn->getReturnType() !== null
         ) {
             return false;
         }
@@ -133,20 +132,6 @@ final readonly class UpdateLiteralFnLowering
         // allowlist can.
         return $this->spliceableBody->isSpliceable($fn->getBody())
             && array_all($extraArgs, $this->spliceableBody->isSpliceable(...));
-    }
-
-    /**
-     * A return tag compiles to a PHP return type, which PHP enforces and, for
-     * a scalar, coerces. The fn also carries the type the body was inferred
-     * to return; that one only restates what the body does, so a type the
-     * inferrer reproduces is not a tag and does not decline.
-     */
-    private function hasDeclaredReturnType(FnNode $fn): bool
-    {
-        $type = $fn->getReturnType();
-
-        return $type !== null
-            && $type !== new ReturnTypeInferrer()->infer($fn->getBody(), $fn->getParams(), $fn->isVariadic());
     }
 
     /**

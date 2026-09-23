@@ -60,13 +60,12 @@ final class UpdateLiteralFnLoweringTest extends AbstractCompilerRuntimeTestCase
         yield 'expression position' => ['(fn [m] [(update m :k (fn [v] (php/+ v 1)))])'];
         yield 'extra arguments' => ['(fn [m a b] (update m :k (fn [v x y] (php/+ v x y)) a b))'];
         yield 'past the fixed arities' => ['(fn [m] (update m :k (fn [v a b c d] (php/+ v a b c d)) 1 2 3 4))'];
-        yield 'a destructured param' => ['(fn [m] (update m :k (fn [[v w]] [w v])))'];
+        yield 'a destructured param' => ['(fn [m] (update m :k (fn [[v w]] (php/- w v))))'];
         yield 'several body forms' => ['(fn [m] (update m :k (fn [v] (println v) v)))'];
         yield 'php/max and an or' => ['(fn [m dt] (update m :t (fn [s] (php/max 0.0 (php/- (or s 0.0) dt)))))'];
         yield 'a keyword lookup' => ['(fn [m] (update m :k (fn [v] (:n v))))'];
         yield 'a global fn' => ['(fn [m] (update m :k (fn [v] (inc v))))'];
         yield 'a let and an if' => ['(fn [m] (update m :k (fn [v] (let [w (php/* v 2)] (if (php/> w 3) w 0)))))'];
-        yield 'a map without conditions as the value' => ['(fn [m] (update m :k (fn [v] {:b v})))'];
     }
 
     public function test_the_default_level_keeps_the_runtime_call(): void
@@ -108,6 +107,7 @@ final class UpdateLiteralFnLoweringTest extends AbstractCompilerRuntimeTestCase
         yield 'a php function outside the allowlist' => ['(fn [m] (update m :k (fn [v] (php/str_repeat v 2))))'];
         yield 'a method call' => ['(fn [m o] (update m :k (fn [v] (.format o v))))'];
         yield 'a nested fn, whose captures name the param' => ['(fn [m] (update m :k (fn [v] (fn [] v))))'];
+        yield 'an inferred return type' => ['(fn [m] (update m :k (fn [v] {:b v})))'];
         yield 'a call through a local' => ['(fn [m f] (update m :k (fn [v] (f v))))'];
         yield 'a loop' => ['(fn [m] (update m :k (fn [v] (loop [i 0] (if (php/< i v) (recur (php/+ i 1)) i)))))'];
         yield 'try' => ['(fn [m] (update m :k (fn [v] (try v (catch \\Exception e 0)))))'];
@@ -185,6 +185,25 @@ final class UpdateLiteralFnLoweringTest extends AbstractCompilerRuntimeTestCase
         self::assertSame('1', $this->evalAt($phel, 0));
         self::assertSame('1', $this->evalAt($phel, 2));
         self::assertStringContainsString('"update"', $this->compileInBuildMode('(fn [m arr] (update m :k (fn [v] (mutate! arr) v)))'));
+    }
+
+    public function test_an_inferred_return_type_still_rejects_an_overflow(): void
+    {
+        $phel = '(update {:a 1} :a (fn [v] (let [x 9223372036854775807] (php/+ x 1))))';
+
+        self::assertSame($this->evalAt($phel, 0), $this->evalAt($phel, 2));
+    }
+
+    public function test_a_dynamic_global_rebound_to_a_by_ref_fn_writes_only_the_closure_copy(): void
+    {
+        // An impure body, or the call inliner would splice `touch` away first.
+        $this->compilerFacade->eval('(defn ^:dynamic touch [arr] (php/print ""))', new CompileOptions());
+        $this->compilerFacade->eval('(defn touch-by-ref [^:by-ref arr] (php/aset arr 0 99))', new CompileOptions());
+
+        $phel = '(let [arr (php-indexed-array 1)] (binding [touch touch-by-ref] (update {:a 1} :a (fn [v] (touch arr) v))) (php/aget arr 0))';
+
+        self::assertSame($this->evalAt($phel, 0), $this->evalAt($phel, 2));
+        self::assertStringContainsString('"update"', $this->compileInBuildMode('(fn [m arr] (update m :k (fn [v] (touch arr) v)))'));
     }
 
     public function test_func_get_args_still_sees_the_fn_frame(): void

@@ -54,7 +54,7 @@ use function str_replace;
  *   either way, so its body is not walked;
  * - calls whose callee is a PHP operator other than `=` and `=&`, one of
  *   {@see self::PURE_PHP_FUNCTIONS}, a keyword, or a global Phel fn with no
- *   `^:by-ref` param.
+ *   `^:by-ref` param that is neither `^:dynamic` nor `^:redef`.
  *
  * Anything else, including every other PHP function, method calls,
  * `php/new`, the `php/aset` family, `php/ref`, `try`, `loop`, `foreach` and
@@ -118,7 +118,19 @@ final readonly class SpliceableBody
             return $fn->getValue() instanceof Keyword;
         }
 
-        return $fn instanceof GlobalVarNode && !$this->takesAReference($fn);
+        return $fn instanceof GlobalVarNode && !$this->isRebindable($fn) && !$this->takesAReference($fn);
+    }
+
+    /**
+     * A `^:dynamic` or `^:redef` global may be a different fn by the time
+     * the call runs (`binding`, `with-redefs`), so the one reflected here
+     * proves nothing about it.
+     */
+    private function isRebindable(GlobalVarNode $fn): bool
+    {
+        $meta = $fn->getMeta();
+
+        return (bool) $meta[Keyword::create('dynamic')] || (bool) $meta[Keyword::create('redef')];
     }
 
     /**

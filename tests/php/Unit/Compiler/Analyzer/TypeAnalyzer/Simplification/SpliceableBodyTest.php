@@ -72,6 +72,8 @@ final class SpliceableBodyTest extends TestCase
         yield 'php/ref' => [new PhpRefNode(self::$env, self::local('arr'))];
         yield 'a call through a local' => [self::call(self::local('f'), self::local('v'))];
         yield 'an undefined global' => [self::call(new GlobalVarNode(self::$env, 'user', Symbol::create('not-defined-yet'), Phel::map()), self::local('v'))];
+        yield 'a dynamic global' => [self::call(new GlobalVarNode(self::$env, 'phel.core', Symbol::create('inc'), Phel::map(Keyword::create('dynamic'), true)), self::local('v'))];
+        yield 'a redef global' => [self::call(new GlobalVarNode(self::$env, 'phel.core', Symbol::create('inc'), Phel::map(Keyword::create('redef'), true)), self::local('v'))];
         yield 'a pure call around an unsafe argument' => [self::call(self::php('max'), self::call(self::php('func_get_args')))];
     }
 
