@@ -10,8 +10,10 @@ use RuntimeException;
 use function fclose;
 use function fread;
 use function fwrite;
+use function hexdec;
 use function implode;
 use function is_resource;
+use function preg_match;
 use function proc_close;
 use function proc_get_status;
 use function proc_open;
@@ -34,6 +36,13 @@ use function usleep;
 final class TestWorkerHandle
 {
     private const int OUTPUT_TAIL_BYTES = 16_384;
+
+    /**
+     * Most stderr bytes one drain takes, so a worker writing without pause
+     * cannot hold the dispatch loop or grow the parent's memory; the pipe
+     * buffers the rest until the next pass.
+     */
+    private const int STDERR_BYTES_PER_DRAIN = 65_536;
 
     /** @var closed-resource|resource */
     private readonly mixed $stdin;
@@ -58,6 +67,9 @@ final class TestWorkerHandle
 
     /** The most recent stderr output, kept for a crash report. */
     private string $stderrTail = '';
+
+    /** Set once stdout carried bytes that are not a frame; reading stops there. */
+    private bool $corruptStdout = false;
 
     /**
      * @param closed-resource|resource $process
@@ -163,6 +175,14 @@ final class TestWorkerHandle
         return implode("\n", $parts);
     }
 
+    public function waitForExit(float $seconds): void
+    {
+        $deadline = microtime(true) + $seconds;
+        while ($this->isAlive() && microtime(true) < $deadline) {
+            usleep(10_000);
+        }
+    }
+
     public function exitStatus(): string
     {
         return $this->exitStatus ?? 'exit status unknown';
@@ -211,12 +231,25 @@ final class TestWorkerHandle
      */
     public function drainStderr(): void
     {
-        $chunk = $this->readStderrNonBlocking();
-        if ($chunk === '') {
-            return;
-        }
+        for ($read = 0; $read < self::STDERR_BYTES_PER_DRAIN; $read += strlen($chunk)) {
+            /** @psalm-suppress PossiblyInvalidArgument */
+            $chunk = @fread($this->stderr, 8192);
+            if ($chunk === false || $chunk === '') {
+                return;
+            }
 
-        $this->stderrTail = substr($this->stderrTail . $chunk, -self::OUTPUT_TAIL_BYTES);
+            $this->stderrTail = substr($this->stderrTail . $chunk, -self::OUTPUT_TAIL_BYTES);
+        }
+    }
+
+    /**
+     * Whether the worker wrote to stdout outside the frame protocol, such as
+     * a PHP fatal error flushed from its output buffer. The stream cannot be
+     * resynchronised, so the worker is as good as dead.
+     */
+    public function hasCorruptStdout(): bool
+    {
+        return $this->corruptStdout;
     }
 
     public function closeStdin(): void
@@ -257,22 +290,6 @@ final class TestWorkerHandle
         }
     }
 
-    private function readStderrNonBlocking(): string
-    {
-        $out = '';
-        while (true) {
-            /** @psalm-suppress PossiblyInvalidArgument */
-            $chunk = @fread($this->stderr, 8192);
-            if ($chunk === false || $chunk === '') {
-                break;
-            }
-
-            $out .= $chunk;
-        }
-
-        return $out;
-    }
-
     private function pumpReadBuffer(): void
     {
         /** @psalm-suppress PossiblyInvalidArgument */
@@ -290,20 +307,33 @@ final class TestWorkerHandle
     private function extractFrame(): ?array
     {
         $headerSize = WorkerFrame::headerSize();
-        if (strlen($this->readBuffer) < $headerSize) {
+        if ($this->corruptStdout || strlen($this->readBuffer) < $headerSize) {
             return null;
         }
 
-        $length = (int) hexdec(substr($this->readBuffer, 0, $headerSize - 1));
+        $header = substr($this->readBuffer, 0, $headerSize);
+        if (preg_match('/^[0-9a-f]{' . ($headerSize - 1) . '}\n$/', $header) !== 1) {
+            $this->corruptStdout = true;
+            return null;
+        }
+
+        $length = (int) hexdec(substr($header, 0, $headerSize - 1));
         $total = $headerSize + $length;
         if (strlen($this->readBuffer) < $total) {
             return null;
         }
 
-        $body = substr($this->readBuffer, $headerSize, $length);
+        try {
+            $frame = WorkerFrame::decodeBody(substr($this->readBuffer, $headerSize, $length));
+        } catch (RuntimeException) {
+            // Keep the bytes: they are what the crash report shows.
+            $this->corruptStdout = true;
+            return null;
+        }
+
         $this->readBuffer = substr($this->readBuffer, $total);
 
-        return WorkerFrame::decodeBody($body);
+        return $frame;
     }
 
     private function writeAll(string $data): void

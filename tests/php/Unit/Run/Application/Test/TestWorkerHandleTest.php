@@ -8,6 +8,7 @@ use Phel\Run\Application\Test\TestWorkerHandle;
 use PHPUnit\Framework\TestCase;
 
 use function function_exists;
+use function microtime;
 use function proc_open;
 use function strlen;
 use function usleep;
@@ -88,6 +89,19 @@ final class TestWorkerHandleTest extends TestCase
         self::assertSame('exit code 0', $worker->exitStatus());
         self::assertStringEndsWith('last line', $report, 'the report keeps the newest output');
         self::assertLessThan(20_000, strlen($report), 'the kept stderr is bounded');
+    }
+
+    public function test_one_drain_returns_against_a_worker_that_never_stops_writing(): void
+    {
+        $worker = $this->startWorker('$s = str_repeat("x", 8192); while (true) { fwrite(STDERR, $s); }');
+        usleep(100_000);
+
+        $started = microtime(true);
+        $worker->drainStderr();
+        $elapsed = microtime(true) - $started;
+        $worker->terminate();
+
+        self::assertLessThan(1.0, $elapsed, 'a drain kept reading while the worker kept writing');
     }
 
     private function startWorker(string $code): TestWorkerHandle

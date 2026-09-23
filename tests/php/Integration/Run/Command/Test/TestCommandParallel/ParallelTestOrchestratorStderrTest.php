@@ -58,4 +58,57 @@ final class ParallelTestOrchestratorStderrTest extends TestCase
         self::assertFalse($outcome->ok, $report);
         self::assertStringContainsString('exit code 3', $report);
     }
+
+    /**
+     * A PHP fatal error lands on the worker's stdout, where the parent expects
+     * a frame. It must become a crash report, not an exception that aborts the
+     * run before the rest of the queue is run.
+     */
+    public function test_a_fatal_error_on_stdout_is_reported_as_a_crash(): void
+    {
+        $orchestrator = new ParallelTestOrchestrator(PHP_BINARY, __DIR__ . '/Fixtures/dying-worker.php');
+        $output = new BufferedOutput();
+
+        $outcome = $orchestrator->run(
+            [
+                new NamespaceInformation('/app/fatal.phel', 'app.fatal-test', []),
+                new NamespaceInformation('/app/ok.phel', 'app.ok-test', []),
+            ],
+            [],
+            1,
+            $output,
+        );
+
+        $report = $output->fetch();
+        self::assertFalse($outcome->ok, $report);
+        self::assertStringContainsString('Worker died while running app.fatal-test (exit code 255)', $report);
+        self::assertStringContainsString('PHP Fatal error:  Allowed memory size exhausted', $report);
+        self::assertMatchesRegularExpression('/Passed:\s+1/', $report);
+    }
+
+    /**
+     * A live worker that writes outside the frame protocol can never be read
+     * again; it is replaced instead of waited on forever.
+     */
+    public function test_a_live_worker_writing_outside_a_frame_is_replaced(): void
+    {
+        $orchestrator = new ParallelTestOrchestrator(PHP_BINARY, __DIR__ . '/Fixtures/dying-worker.php');
+        $output = new BufferedOutput();
+
+        $outcome = $orchestrator->run(
+            [
+                new NamespaceInformation('/app/garbage.phel', 'app.garbage-test', []),
+                new NamespaceInformation('/app/ok.phel', 'app.ok-test', []),
+            ],
+            [],
+            1,
+            $output,
+        );
+
+        $report = $output->fetch();
+        self::assertFalse($outcome->ok, $report);
+        self::assertStringContainsString('wrote output outside the frame protocol', $report);
+        self::assertStringContainsString('stray output that is not a frame', $report);
+        self::assertMatchesRegularExpression('/Passed:\s+1/', $report);
+    }
 }

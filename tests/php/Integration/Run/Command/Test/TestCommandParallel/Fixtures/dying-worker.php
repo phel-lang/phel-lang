@@ -3,7 +3,9 @@
 declare(strict_types=1);
 
 // Stand-in for `bin/phel _test-worker`: exits without answering when handed
-// `app.dies-test`, and answers every other namespace with a pass.
+// `app.dies-test`, prints a fatal error to stdout and exits on `app.fatal-test`,
+// writes to stdout outside a frame and hangs on `app.garbage-test`, and answers
+// every other namespace with a pass.
 
 $readExactly = static function (int $length): ?string {
     $data = '';
@@ -23,6 +25,16 @@ while (($header = $readExactly(9)) !== null) {
     $request = json_decode((string) $readExactly((int) hexdec(substr($header, 0, 8))), true);
     if ($request['ns'] === 'app.dies-test') {
         exit(3);
+    }
+
+    if ($request['ns'] === 'app.fatal-test') {
+        fwrite(STDOUT, "PHP Fatal error:  Allowed memory size exhausted in /app/fatal.phel\n");
+        exit(255);
+    }
+
+    if ($request['ns'] === 'app.garbage-test') {
+        fwrite(STDOUT, "stray output that is not a frame\n");
+        sleep(30);
     }
 
     $body = json_encode([
