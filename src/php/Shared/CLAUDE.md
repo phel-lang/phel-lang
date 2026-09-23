@@ -4,7 +4,7 @@ Leaf contract layer: facade interfaces, constants, cross-module value objects, a
 
 ## Facade Interfaces (`Facade/`)
 
-Cross-module facade contracts: Compiler, Build, Run, Command, Console, Formatter, Interop, Api. Modules inject these (`*FacadeInterface`), never concrete facades — enables dependency inversion. Add a new interface here when another module starts consuming it; keep its imports minimal.
+Cross-module facade contracts: Compiler, Build, Run, Command, Console, Filesystem, Formatter, Interop, Api. Modules inject these (`*FacadeInterface`), never concrete facades — enables dependency inversion. Add a new interface here when another module starts consuming it; keep its imports minimal.
 
 ## Compiler Back-Edge (accepted cycle)
 

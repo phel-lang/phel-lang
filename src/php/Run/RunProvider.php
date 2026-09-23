@@ -13,11 +13,11 @@ use Phel\Build\BuildFacade;
 use Phel\Command\CommandFacade;
 use Phel\Compiler\CompilerFacade;
 use Phel\Filesystem\FilesystemFacade;
-use Phel\Filesystem\FilesystemFacadeInterface;
 use Phel\Shared\Facade\ApiFacadeInterface;
 use Phel\Shared\Facade\BuildFacadeInterface;
 use Phel\Shared\Facade\CommandFacadeInterface;
 use Phel\Shared\Facade\CompilerFacadeInterface;
+use Phel\Shared\Facade\FilesystemFacadeInterface;
 
 /**
  * @internal
