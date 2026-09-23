@@ -109,6 +109,7 @@ final class UpdateLiteralFnLoweringTest extends AbstractCompilerRuntimeTestCase
         yield 'a nested fn, whose captures name the param' => ['(fn [m] (update m :k (fn [v] (fn [] v))))'];
         yield 'an inferred return type' => ['(fn [m] (update m :k (fn [v] {:b v})))'];
         yield 'several body forms in expression position' => ['(fn [m] [(update m :k (fn [v] (str v) v))])'];
+        yield 'a collection with metadata' => ['(fn [m] (update m :k (fn [v] (identity ^{:m v} [v]))))'];
         yield 'a call through a local' => ['(fn [m f] (update m :k (fn [v] (f v))))'];
         yield 'a loop' => ['(fn [m] (update m :k (fn [v] (loop [i 0] (if (php/< i v) (recur (php/+ i 1)) i)))))'];
         yield 'try' => ['(fn [m] (update m :k (fn [v] (try v (catch \\Exception e 0)))))'];
@@ -235,6 +236,19 @@ final class UpdateLiteralFnLoweringTest extends AbstractCompilerRuntimeTestCase
         yield 'key, several body forms' => ['((fn [] (let [x nil] [(update {:a 0} (php/= x :a) (fn [v] (str v) v)) x])))'];
         yield 'key, one body form' => ['((fn [] (let [x nil] [(update {:a 0} (php/= x :a) (fn [v] v)) x])))'];
         yield 'target in return position, several body forms' => ['((fn [] (let [x nil] (let [r (update (php/= x {:a 0}) :a (fn [v] (str v) v))] [r x]))))'];
+    }
+
+    #[DataProvider('providerMetadata')]
+    public function test_collection_metadata_keeps_the_closure(string $phel): void
+    {
+        self::assertSame($this->evalAt($phel, 0), $this->evalAt($phel, 2));
+    }
+
+    public static function providerMetadata(): iterable
+    {
+        yield 'an extra arg whose metadata assigns a captured local' => ['((fn [] (let [x 1] [(update {:a 0} :a (fn [v y] x) (identity ^{:touch (php/= x 2)} [])) x])))'];
+        yield 'body metadata reading the param' => ['(update {:a 1} :a (fn [v] (meta ^{:m v} [v])))'];
+        yield 'body metadata assigning a captured local' => ['((fn [] (let [x 1] [(update {:a 0} :a (fn [v] (identity ^{:m (php/= x 2)} [v]))) x])))'];
     }
 
     #[DataProvider('providerFrameProbes')]

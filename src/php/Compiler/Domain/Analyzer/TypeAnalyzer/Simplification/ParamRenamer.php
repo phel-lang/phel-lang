@@ -71,9 +71,11 @@ final readonly class ParamRenamer
             $node instanceof GlobalVarNode => new GlobalVarNode($env, $node->getNamespace(), $node->getName(), $node->getMeta(), $loc),
             $node instanceof PhpVarNode => new PhpVarNode($env, $node->getName(), $loc),
             $node instanceof CallNode => $this->call($node, $env),
-            $node instanceof VectorNode => $this->each($node->getArgs(), static fn(array $args): VectorNode => new VectorNode($env, $args, $loc, $node->getMeta())),
-            $node instanceof MapNode => $this->each($node->getKeyValues(), static fn(array $kvs): MapNode => new MapNode($env, $kvs, $loc, $node->getLiteralMeta())),
-            $node instanceof SetNode => $this->each($node->getValues(), static fn(array $values): SetNode => new SetNode($env, $values, $loc, $node->getMeta())),
+            // Reader metadata is not renamed; {@see SpliceableBody} already
+            // turns such a collection away.
+            $node instanceof VectorNode && !$node->getMeta() instanceof MapNode => $this->each($node->getArgs(), static fn(array $args): VectorNode => new VectorNode($env, $args, $loc)),
+            $node instanceof MapNode && !$node->getLiteralMeta() instanceof MapNode => $this->each($node->getKeyValues(), static fn(array $kvs): MapNode => new MapNode($env, $kvs, $loc)),
+            $node instanceof SetNode && !$node->getMeta() instanceof MapNode => $this->each($node->getValues(), static fn(array $values): SetNode => new SetNode($env, $values, $loc)),
             $node instanceof PhpArrayGetNode => $this->each(
                 [$node->getArrayExpr(), ...$node->getAccessExprs()],
                 static fn(array $parts): PhpArrayGetNode => new PhpArrayGetNode($env, $parts[0], array_slice($parts, 1), $loc),

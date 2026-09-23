@@ -47,7 +47,7 @@ use function str_replace;
  * `compact`) could tell the two apart. The shapes here can do none of that:
  *
  * - literals, quoted forms, local and global reads;
- * - vector, map and set literals, `php/aget`;
+ * - vector, map and set literals without reader metadata, `php/aget`;
  * - `if`, `do` and `let` (not `loop`), which `and`, `or`, `when` and `cond`
  *   expand to;
  * - a nested `fn`, which runs in a frame of its own and captures by value
@@ -85,9 +85,11 @@ final readonly class SpliceableBody
             $node instanceof GlobalVarNode,
             $node instanceof FnNode,
             $node instanceof MultiFnNode => true,
-            $node instanceof VectorNode => $this->all($node->getArgs()),
-            $node instanceof MapNode => $this->all($node->getKeyValues()),
-            $node instanceof SetNode => $this->all($node->getValues()),
+            // Reader metadata on a collection literal is evaluated too, and
+            // nothing here walks it.
+            $node instanceof VectorNode => !$node->getMeta() instanceof MapNode && $this->all($node->getArgs()),
+            $node instanceof MapNode => !$node->getLiteralMeta() instanceof MapNode && $this->all($node->getKeyValues()),
+            $node instanceof SetNode => !$node->getMeta() instanceof MapNode && $this->all($node->getValues()),
             $node instanceof PhpArrayGetNode => $this->all([$node->getArrayExpr(), ...$node->getAccessExprs()]),
             $node instanceof IfNode => $this->all([$node->getTestExpr(), $node->getThenExpr(), $node->getElseExpr()]),
             $node instanceof DoNode => $this->all([...$node->getStmts(), $node->getRet()]),
