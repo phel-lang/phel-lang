@@ -206,11 +206,10 @@ rm -f ~/.zcompdump*                                  # force compinit to rebuild
 - [Getting Started](https://phel-lang.org/documentation/getting-started/): install, REPL, first script (5 min)
 - [CLI Reference & DX Guide](docs/cli-reference.md): every command, the dev loop, compile vs eval vs run vs build
 - [phel-lang.org](https://phel-lang.org/documentation/): full documentation, tutorials, exercises, blog
-- [Contributor docs](docs/README.md): repository internals, agent tooling, project layout
+- [Contributor docs](docs/README.md): repository internals, architecture, project layout
 - [Architecture decisions](docs/adr/README.md): why the repository is shaped the way it is
 - [Packagist](https://packagist.org/packages/phel-lang/phel-lang)
 - [CONTRIBUTING.md](.github/CONTRIBUTING.md): setup and workflow
-- [AGENTS.md](AGENTS.md): architecture and review expectations
 
 ## AI Coding Agents
 
@@ -221,7 +220,3 @@ Skill files for Claude Code, Cursor, Codex, Gemini, Copilot, Aider: [resources/a
 ./vendor/bin/phel agent-install --auto       # only agents detected in this project
 ./vendor/bin/phel agent-install --all        # every supported platform
 ```
-
-### Repo-level AI tooling
-
-The agent config for working on this repository lives in [.agnostic-ai/](.agnostic-ai/). Setup: [CONTRIBUTING.md](.github/CONTRIBUTING.md#ai-tooling).

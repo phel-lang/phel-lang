@@ -20,7 +20,7 @@ docs/         → Guides, examples, internals
 
 Compiler pipeline: Lexer → Parser → Reader → Analyzer → Emitter. Each `src/php/` module exposes a Facade as its public API.
 
-For a deeper architecture overview, see [AGENTS.md](../AGENTS.md).
+For a deeper architecture overview, see [docs/internals/architecture.md](../docs/internals/architecture.md).
 
 ## Quick Start
 
