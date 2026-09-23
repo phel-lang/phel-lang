@@ -272,6 +272,7 @@ final readonly class IndexedNode implements HashMapNodeInterface
     {
         /** @var array<int, ?HashMapNodeInterface<TKey, TValue>> $nodes */
         $nodes = []; // array_fill(0, 32, null);
+        /** @var self<TKey, TValue> $empty */
         $empty = self::empty($this->hasher, $this->equalizer);
         // Walk the entries this node actually holds rather than probing all 32
         // slots: `$objects` is sparse and never has more than 16 entries here,
@@ -292,12 +293,6 @@ final readonly class IndexedNode implements HashMapNodeInterface
             }
         }
 
-        /**
-         * @psalm-suppress InvalidArgument $nodes is a list of child nodes built
-         * from this node's entries; psalm cannot reconcile the resolved element
-         * type with ArrayNode's own template parameters (a generic-variance
-         * limitation PHPStan accepts).
-         */
         return new ArrayNode($this->hasher, $this->equalizer, count($this->objects) + 1, $nodes);
     }
 

@@ -60,7 +60,7 @@ final class SortedArrayHelper
     public static function resolveComparator(?callable $comparator): Closure
     {
         if ($comparator === null) {
-            return self::$defaultComparator ??= static fn(mixed $a, mixed $b): int => self::defaultCompare($a, $b);
+            return self::$defaultComparator ??= self::defaultCompare(...);
         }
 
         return $comparator instanceof Closure ? $comparator : Closure::fromCallable($comparator);

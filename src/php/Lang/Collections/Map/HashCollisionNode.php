@@ -58,18 +58,7 @@ final class HashCollisionNode implements HashMapNodeInterface
             return $added;
         }
 
-        /** @var array<int, array{0: TKey|null, 1: HashMapNodeInterface<TKey, TValue>|TValue}> $childObjects */
-        $childObjects = [$this->mask($this->hash, $shift) => [null, $this]];
-        /**
-         * @var IndexedNode<TKey, TValue> $node
-         *
-         * @psalm-suppress InvalidArgument $childObjects holds a [null, childNode]
-         * pair by trie construction; psalm cannot reconcile the
-         * HashMapNodeInterface<TKey, TValue>|TValue element union with IndexedNode's own
-         * template parameters (a generic-variance limitation PHPStan accepts).
-         */
-        $node = new IndexedNode($this->hasher, $this->equalizer, $childObjects);
-        return $node->put($shift, $hash, $key, $value, $addedLeaf);
+        return $this->nestUnder($shift)->put($shift, $hash, $key, $value, $addedLeaf);
     }
 
     /**
@@ -128,6 +117,22 @@ final class HashCollisionNode implements HashMapNodeInterface
         /** @var HashCollisionNodeIterator<TKey, TValue> $iterator */
         $iterator = new HashCollisionNodeIterator($entries);
         return $iterator;
+    }
+
+    /**
+     * This node as the only child of an indexed node, so a key with another hash can sit beside it.
+     *
+     * @return IndexedNode<TKey, TValue>
+     *
+     * @psalm-suppress InvalidArgument, IncompatibleTypeParameters a child node matches both arms of IndexedNode's `HashMapNodeInterface<TKey, TValue>|TValue` element, so psalm cannot bind TValue (PHPStan can)
+     */
+    private function nestUnder(int $shift): IndexedNode
+    {
+        /** @var array<int, array{0: TKey|null, 1: HashMapNodeInterface<TKey, TValue>|TValue}> $childObjects */
+        $childObjects = [$this->mask($this->hash, $shift) => [null, $this]];
+        /** @var IndexedNode<TKey, TValue> $node */
+        $node = new IndexedNode($this->hasher, $this->equalizer, $childObjects);
+        return $node;
     }
 
     /**

@@ -310,9 +310,7 @@ final class PersistentVector extends AbstractPersistentVector
 
         $newRoot = $this->popTail($this->shift, $this->root);
         $newShift = $this->shift;
-        if ($newRoot === null) {
-            $newRoot = [];
-        }
+        $newRoot ??= [];
 
         if ($this->shift > self::SHIFT && $newRoot[1] === null) {
             $newRoot = $newRoot[0];

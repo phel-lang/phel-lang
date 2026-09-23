@@ -68,8 +68,13 @@ abstract class AbstractPersistentVector extends AbstractType implements Persiste
     public function rest()
     {
         $cdr = $this->cdr();
+        if ($cdr !== null) {
+            return $cdr;
+        }
 
-        return $cdr ?? PersistentVector::empty($this->hasher, $this->equalizer);
+        /** @var PersistentVector<T> $empty */
+        $empty = PersistentVector::empty($this->hasher, $this->equalizer);
+        return $empty;
     }
 
     /**
@@ -228,9 +233,7 @@ abstract class AbstractPersistentVector extends AbstractType implements Persiste
 
         $normalizedOffset = $offset < 0 ? $count + $offset : $offset;
         $normalizedLength = $length && $length < 0 ? $count + $length : $length;
-        if ($normalizedLength === null) {
-            $normalizedLength = $count;
-        }
+        $normalizedLength ??= $count;
 
         $start = max(0, $normalizedOffset);
         $end = min($start + $normalizedLength, $count);

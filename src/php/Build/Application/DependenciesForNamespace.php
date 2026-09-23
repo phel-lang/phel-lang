@@ -16,7 +16,6 @@ use SplQueue;
 use function array_key_exists;
 use function array_map;
 use function in_array;
-use function is_string;
 use function str_starts_with;
 use function strlen;
 use function substr;
@@ -74,6 +73,7 @@ final class DependenciesForNamespace
         $namespaceInformation = $this->namespaceExtractor->getNamespacesFromDirectories($directories);
 
         $index = [];
+        /** @var SplQueue<string> $queue */
         $queue = new SplQueue();
         $seenInQueue = [];
         foreach ($namespaceInformation as $info) {
@@ -95,10 +95,6 @@ final class DependenciesForNamespace
         $requiredNamespaces = [];
         while (!$queue->isEmpty()) {
             $currentNs = $queue->dequeue();
-            if (!is_string($currentNs)) {
-                continue;
-            }
-
             if (!array_key_exists($currentNs, $requiredNamespaces)
                 && array_key_exists($currentNs, $index)
             ) {

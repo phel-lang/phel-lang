@@ -70,9 +70,7 @@ final readonly class ProjectIndexer implements ProjectIndexerInterface
                 }
 
                 foreach ($result['references'] as $key => $locations) {
-                    if (!isset($references[$key])) {
-                        $references[$key] = [];
-                    }
+                    $references[$key] ??= [];
 
                     foreach ($locations as $location) {
                         $references[$key][] = $location;
