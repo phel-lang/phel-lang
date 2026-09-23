@@ -108,8 +108,7 @@ final readonly class UpdateLiteralFnLowering
      */
     private function loweredForm(PersistentListInterface $list): ?PersistentListInterface
     {
-        $count = count($list);
-        if ($count < 4) {
+        if (count($list) < 4) {
             return null;
         }
 
