@@ -33,7 +33,7 @@ use function usleep;
  */
 final class TestWorkerHandle
 {
-    private const int STDERR_TAIL_BYTES = 16_384;
+    private const int OUTPUT_TAIL_BYTES = 16_384;
 
     /** @var closed-resource|resource */
     private readonly mixed $stdin;
@@ -150,7 +150,7 @@ final class TestWorkerHandle
         $this->drainStderr();
 
         $parts = [];
-        $stdout = trim($this->readBuffer);
+        $stdout = trim(substr($this->readBuffer, -self::OUTPUT_TAIL_BYTES));
         if ($stdout !== '') {
             $parts[] = 'stdout: ' . $stdout;
         }
@@ -216,7 +216,7 @@ final class TestWorkerHandle
             return;
         }
 
-        $this->stderrTail = substr($this->stderrTail . $chunk, -self::STDERR_TAIL_BYTES);
+        $this->stderrTail = substr($this->stderrTail . $chunk, -self::OUTPUT_TAIL_BYTES);
     }
 
     public function closeStdin(): void

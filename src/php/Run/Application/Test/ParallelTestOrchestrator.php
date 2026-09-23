@@ -222,6 +222,10 @@ final readonly class ParallelTestOrchestrator
                 $buffer->record($result);
 
                 if ($nextToDispatch < $total) {
+                    if ($result->isRetryable()) {
+                        $worker = $this->replaceWithFreshWorker($workers, $worker);
+                    }
+
                     $this->dispatch($worker, $namespaces[$nextToDispatch], $nextToDispatch, $loadOrders, $optionsPhel);
                     ++$nextToDispatch;
                 }

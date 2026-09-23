@@ -34,4 +34,28 @@ final class ParallelTestOrchestratorStderrTest extends TestCase
 
         self::assertTrue($outcome->ok, $output->fetch());
     }
+
+    /**
+     * A namespace that kills its worker on every retry must not take the
+     * queue down with it: the next namespace goes to a fresh worker.
+     */
+    public function test_a_namespace_that_exhausts_its_retries_leaves_the_queue_running(): void
+    {
+        $orchestrator = new ParallelTestOrchestrator(PHP_BINARY, __DIR__ . '/Fixtures/dying-worker.php');
+        $output = new BufferedOutput();
+
+        $outcome = $orchestrator->run(
+            [
+                new NamespaceInformation('/app/dies.phel', 'app.dies-test', []),
+                new NamespaceInformation('/app/ok.phel', 'app.ok-test', []),
+            ],
+            [],
+            1,
+            $output,
+        );
+
+        $report = $output->fetch();
+        self::assertFalse($outcome->ok, $report);
+        self::assertStringContainsString('exit code 3', $report);
+    }
 }
