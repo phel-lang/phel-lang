@@ -354,7 +354,9 @@ final readonly class FnSymbol implements SpecialFormAnalyzerInterface
             // The deferral applies only to this fn's own return type; nested
             // fns inside the body have no grafting step, so they must keep
             // inferring their return type inline.
-            ->withReturnInferenceDeferred(false);
+            ->withReturnInferenceDeferred(false)
+            // A fn body is a PHP frame of its own.
+            ->withinTry(false);
 
         return $this->analyzer->analyze($body, $bodyEnv);
     }

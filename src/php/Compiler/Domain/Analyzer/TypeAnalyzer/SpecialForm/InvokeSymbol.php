@@ -16,6 +16,7 @@ use Phel\Compiler\Domain\Analyzer\Environment\NodeEnvironmentInterface;
 use Phel\Compiler\Domain\Analyzer\Exceptions\AnalyzerException;
 use Phel\Compiler\Domain\Analyzer\TypeAnalyzer\ConstantFolder;
 use Phel\Compiler\Domain\Analyzer\TypeAnalyzer\Simplification\CallInliner;
+use Phel\Compiler\Domain\Analyzer\TypeAnalyzer\Simplification\UpdateLiteralFnLowering;
 use Phel\Lang\AbstractFn;
 use Phel\Lang\Collections\LinkedList\PersistentListInterface;
 use Phel\Lang\Collections\Map\PersistentMapInterface;
@@ -53,6 +54,7 @@ final readonly class InvokeSymbol implements SpecialFormAnalyzerInterface
         private AnalyzerInterface $analyzer,
         ?CallInliner $callInliner = null,
         private ConstantFolder $constantFolder = new ConstantFolder(),
+        private UpdateLiteralFnLowering $updateLowering = new UpdateLiteralFnLowering(),
     ) {
         $this->callInliner = $callInliner ?? new CallInliner();
     }
@@ -87,6 +89,11 @@ final readonly class InvokeSymbol implements SpecialFormAnalyzerInterface
 
         if ($f instanceof GlobalVarNode) {
             $this->verifyArgsAgainstParamTags($f, $args, $list);
+
+            $lowered = $this->updateLowering->tryLower($f, $args, $env, $this->analyzer, $list->getStartLocation());
+            if ($lowered instanceof AbstractNode) {
+                return $lowered;
+            }
 
             // Skip the inliner call on the default path; it only does
             // work at optimization level >= 2.

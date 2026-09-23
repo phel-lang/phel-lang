@@ -61,10 +61,10 @@ jobs:
           coverage: pcov
 
       - name: Run the compiler suites with coverage
+        # The memory ceiling comes from phpunit.xml.dist: PHPUnit applies its
+        # <php> block over `php -d memory_limit`, so a flag here does nothing.
         run: |
-          # 2G started OOMing in PcovDriver as the suites grew; the runner
-          # has 16G and this job is the only thing on it.
-          php -d memory_limit=6G vendor/bin/phpunit \
+          vendor/bin/phpunit \
             --testsuite=unit,integration \
             --coverage-clover=data/clover.xml \
             --do-not-cache-result

@@ -1,0 +1,7 @@
+--PHEL--
+(fn [m k v] (assoc-in m [:a k] v))
+--PHP--
+(function($m, $k, $v) {
+  static $__phel_const_0;
+  return \Phel\Lang\AssocIn::path($m, [($__phel_const_0 ??= \Phel\Lang\Keyword::create("a")), $k], $v);
+});

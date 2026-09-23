@@ -7,6 +7,7 @@ namespace Phel\Filesystem;
 use Gacela\Framework\AbstractFacade;
 use Gacela\Framework\Health\ModuleHealthCheckInterface;
 use Gacela\Framework\ServiceResolver\ServiceMap;
+use Phel\Shared\Facade\FilesystemFacadeInterface;
 
 /**
  * @extends AbstractFacade<FilesystemFactory>

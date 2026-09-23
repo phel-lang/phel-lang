@@ -2,7 +2,7 @@
 
 Temp dir management and compiled-artifact cleanup tracking.
 
-## Public API (`FilesystemFacadeInterface`, at module root)
+## Public API (`Shared\Facade\FilesystemFacadeInterface`)
 
 | Method | Returns | Notes |
 |---|---|---|

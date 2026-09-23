@@ -42,7 +42,9 @@ final readonly class LetSimplifier
 
     public function simplify(LetNode $node): AbstractNode
     {
-        if ($node->isLoop()) {
+        // Dropping a binding of a spliced fn body (#3322) would shift where
+        // its caller-owned bindings end.
+        if ($node->isLoop() || $node->getCallerBindingCount() !== null) {
             return $node;
         }
 
