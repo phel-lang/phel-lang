@@ -34,4 +34,9 @@ final class OpcacheWorkerFlagsTest extends TestCase
         // PHP abort at startup; degrade to plain workers instead.
         self::assertSame([], OpcacheWorkerFlags::forFileCache(true, ''));
     }
+
+    public function test_jit_off_is_its_own_flag_pair_for_workers_without_a_file_cache(): void
+    {
+        self::assertSame(['-d', 'opcache.jit=disable'], OpcacheWorkerFlags::jitOff());
+    }
 }

@@ -340,7 +340,7 @@ class RunFactory extends AbstractFactory
         // `phel clear-cache` and keeps paying off across runs.
         $cacheDir = $this->getFilesystemFacade()->getTempDir() . '/opcache-workers';
         if (!is_dir($cacheDir) && !@mkdir($cacheDir, 0777, true) && !is_dir($cacheDir)) {
-            return [];
+            return OpcacheWorkerFlags::jitOff();
         }
 
         return OpcacheWorkerFlags::forFileCache(true, $cacheDir);

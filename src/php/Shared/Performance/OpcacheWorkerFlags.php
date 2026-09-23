@@ -24,6 +24,21 @@ namespace Phel\Shared\Performance;
 final class OpcacheWorkerFlags
 {
     /**
+     * With the JIT on, OPcache writes nothing to the file cache, so the pool
+     * would share nothing. Workers were also the only Phel processes running
+     * the JIT (the re-exec sets file_cache_only, which has none), and they
+     * alone died with SIGBUS on the arm64 macOS CI runners, whose php.ini
+     * turns it on (#3334). A worker spawned without the file cache still
+     * gets these, since a CLI OPcache set up in php.ini can carry a JIT too.
+     *
+     * @return list<string>
+     */
+    public static function jitOff(): array
+    {
+        return ['-d', 'opcache.jit=disable'];
+    }
+
+    /**
      * @return list<string> `-d` flag pairs, or an empty list to spawn plain workers
      */
     public static function forFileCache(bool $opcacheLoaded, string $fileCacheDir): array
@@ -35,12 +50,7 @@ final class OpcacheWorkerFlags
         return [
             '-d', 'opcache.enable_cli=1',
             '-d', 'opcache.file_cache=' . $fileCacheDir,
-            // With the JIT on, OPcache writes nothing to the file cache, so
-            // the pool would share nothing. Workers were also the only Phel
-            // processes running the JIT (the re-exec sets file_cache_only,
-            // which has none), and they alone died with SIGBUS on the arm64
-            // macOS CI runners, whose php.ini turns it on (#3334).
-            '-d', 'opcache.jit=disable',
+            ...self::jitOff(),
         ];
     }
 }

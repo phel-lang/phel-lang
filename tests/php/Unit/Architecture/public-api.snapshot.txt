@@ -2238,6 +2238,7 @@ final readonly class Phel\Shared\Performance\OpcacheReexecDecision
 
 final class Phel\Shared\Performance\OpcacheWorkerFlags
   public static function forFileCache(bool $opcacheLoaded, string $fileCacheDir): array
+  public static function jitOff(): array
 
 final class Phel\Shared\Performance\ProcessCommandLine
   public static function current(): array

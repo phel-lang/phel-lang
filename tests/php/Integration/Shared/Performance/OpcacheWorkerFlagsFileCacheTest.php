@@ -41,6 +41,7 @@ final class OpcacheWorkerFlagsFileCacheTest extends TestCase
 
         $this->dir = realpath(sys_get_temp_dir()) . '/phel-worker-flags-' . bin2hex(random_bytes(6));
         mkdir($this->dir . '/cache', 0o777, true);
+        mkdir($this->dir . '/probe', 0o777, true);
     }
 
     protected function tearDown(): void
@@ -62,23 +63,37 @@ final class OpcacheWorkerFlagsFileCacheTest extends TestCase
         // OPcache skips a file changed within `opcache.file_update_protection`.
         touch($script, time() - 60);
 
-        $inherited = ['-d', 'opcache.jit=1235', '-d', 'opcache.jit_buffer_size=64M'];
-        $flags = OpcacheWorkerFlags::forFileCache(true, $this->dir . '/cache');
-        $cmd = [PHP_BINARY, ...$inherited, ...$flags, $script];
+        // Some OPcache builds persist nothing even with the JIT off; there is
+        // nothing to guard on those.
+        $this->runPhp(['-d', 'opcache.enable_cli=1', '-d', 'opcache.file_cache=' . $this->dir . '/probe', '-d', 'opcache.jit=disable'], $script);
+        if ($this->binFiles('/probe') === []) {
+            self::markTestSkipped('This OPcache build writes no file cache even with the JIT off.');
+        }
 
+        $inherited = ['-d', 'opcache.jit=1235', '-d', 'opcache.jit_buffer_size=64M'];
+        $this->runPhp([...$inherited, ...OpcacheWorkerFlags::forFileCache(true, $this->dir . '/cache')], $script);
+
+        self::assertNotSame([], $this->binFiles('/cache'), 'the worker wrote nothing to the OPcache file cache');
+    }
+
+    /**
+     * @param list<string> $iniFlags
+     */
+    private function runPhp(array $iniFlags, string $script): void
+    {
+        $cmd = [PHP_BINARY, ...$iniFlags, $script];
         exec(implode(' ', array_map(escapeshellarg(...), $cmd)) . ' 2>&1', $output, $status);
 
         self::assertSame(0, $status, implode("\n", $output));
-        self::assertNotSame([], $this->binFiles(), 'the worker wrote nothing to the OPcache file cache');
     }
 
     /**
      * @return list<string>
      */
-    private function binFiles(): array
+    private function binFiles(string $subdir): array
     {
         $files = [];
-        $iterator = new RecursiveIteratorIterator(new RecursiveDirectoryIterator($this->dir . '/cache', RecursiveDirectoryIterator::SKIP_DOTS));
+        $iterator = new RecursiveIteratorIterator(new RecursiveDirectoryIterator($this->dir . $subdir, RecursiveDirectoryIterator::SKIP_DOTS));
         foreach (iterator_to_array($iterator) as $file) {
             if (str_ends_with($file->getPathname(), '.bin')) {
                 $files[] = $file->getPathname();
