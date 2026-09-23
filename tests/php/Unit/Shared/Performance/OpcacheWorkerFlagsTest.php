@@ -14,7 +14,11 @@ final class OpcacheWorkerFlagsTest extends TestCase
         $flags = OpcacheWorkerFlags::forFileCache(true, '/var/phel/opcache-workers');
 
         self::assertSame(
-            ['-d', 'opcache.enable_cli=1', '-d', 'opcache.file_cache=/var/phel/opcache-workers'],
+            [
+                '-d', 'opcache.enable_cli=1',
+                '-d', 'opcache.file_cache=/var/phel/opcache-workers',
+                '-d', 'opcache.jit=disable',
+            ],
             $flags,
         );
     }

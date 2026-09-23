@@ -193,6 +193,10 @@ final readonly class ParallelTestOrchestrator
         }
 
         while (!$buffer->isComplete()) {
+            foreach ($workers as $worker) {
+                $worker->drainStderr();
+            }
+
             $busyByStream = $this->mapBusyWorkersByStream($workers);
             if ($busyByStream === []) {
                 return $budget->recoveredCount();
@@ -218,6 +222,10 @@ final readonly class ParallelTestOrchestrator
                 $buffer->record($result);
 
                 if ($nextToDispatch < $total) {
+                    if ($result->isRetryable()) {
+                        $worker = $this->replaceWithFreshWorker($workers, $worker);
+                    }
+
                     $this->dispatch($worker, $namespaces[$nextToDispatch], $nextToDispatch, $loadOrders, $optionsPhel);
                     ++$nextToDispatch;
                 }
@@ -292,25 +300,31 @@ final readonly class ParallelTestOrchestrator
     private function consumeWorker(TestWorkerHandle $worker): ?WorkerResult
     {
         $frame = $worker->tryReadFrame();
+        if ($frame === null && !$worker->isAlive()) {
+            // The last frame can land between the read and the exit.
+            $frame = $worker->tryReadFrame();
+        }
+
         if ($frame !== null) {
             $worker->clearAssignment();
             return WorkerResult::fromFrame($frame);
         }
 
-        if (!$worker->isAlive() && $worker->tryReadFrame() === null) {
-            $index = $worker->assignedIndex();
-            $result = $index === null
-                ? null
-                : WorkerResult::fromCrash(
-                    $index,
-                    $worker->assignedNamespace() ?? '<unknown>',
-                    $worker->readStderrNonBlocking(),
-                );
-            $worker->clearAssignment();
-            return $result;
+        if ($worker->isAlive() && !$worker->hasCorruptStdout()) {
+            return null;
         }
 
-        return null;
+        $index = $worker->assignedIndex();
+        $result = $index === null
+            ? null
+            : WorkerResult::fromCrash(
+                $index,
+                $worker->assignedNamespace() ?? '<unknown>',
+                $worker->crashReport(),
+                $worker->exitStatus(),
+            );
+        $worker->clearAssignment();
+        return $result;
     }
 
     /**

@@ -10,7 +10,9 @@ namespace Phel\Shared\Performance;
  *
  * Parallel test workers each `require` the same compiled `.php` stdlib; with CLI
  * OPcache off (the default) every worker re-parses them. Pointing the pool at one
- * file cache lets worker N reuse what worker 1 compiled.
+ * file cache lets worker N reuse what worker 1 compiled. The JIT is turned off:
+ * with it on OPcache writes no file cache, and a php.ini that enables it would
+ * reach every worker once `opcache.enable_cli` is set.
  *
  * Pure: callers pass OPcache availability and the resolved cache dir so it stays
  * trivially testable. Returns no flags (plain workers) when OPcache is absent or
@@ -28,6 +30,10 @@ final class OpcacheWorkerFlags
             return [];
         }
 
-        return ['-d', 'opcache.enable_cli=1', '-d', 'opcache.file_cache=' . $fileCacheDir];
+        return [
+            '-d', 'opcache.enable_cli=1',
+            '-d', 'opcache.file_cache=' . $fileCacheDir,
+            '-d', 'opcache.jit=disable',
+        ];
     }
 }

@@ -26,6 +26,7 @@ final class OpcacheReexecTest extends TestCase
             [
                 '-d', 'opcache.enable_cli=1',
                 '-d', 'opcache.file_cache=/var/phel/opcache',
+                '-d', 'opcache.jit=disable',
                 '-d', 'opcache.file_cache_only=1',
             ],
             $decision->flags,
