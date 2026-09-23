@@ -26,7 +26,8 @@ use const NAN;
  * copy (#3321), on every persistent collection with keyed writes. "Already
  * holds" means identical (`===`) and not merely `=`: a value that is equal but
  * distinguishable, a signed zero or a `BigInt` over an `int` or a vector
- * carrying different metadata, is still written.
+ * carrying different metadata, is still written. So is any PHP array, since
+ * `===` walks arrays rather than comparing them by identity.
  *
  * Each flavour is a closure building a collection that holds `$stored` under
  * the returned key, so every scenario runs against every storage shape: the
