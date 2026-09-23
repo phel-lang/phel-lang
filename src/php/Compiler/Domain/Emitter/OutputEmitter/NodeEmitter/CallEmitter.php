@@ -11,6 +11,7 @@ use Phel\Compiler\Domain\Analyzer\Ast\GlobalVarNode;
 use Phel\Compiler\Domain\Analyzer\Ast\LocalVarNode;
 use Phel\Compiler\Domain\Analyzer\Ast\PhpClassNameNode;
 use Phel\Compiler\Domain\Analyzer\Ast\PhpVarNode;
+use Phel\Compiler\Domain\Emitter\OutputEmitter\AssocConjSpecialization;
 use Phel\Compiler\Domain\Emitter\OutputEmitter\CallSpecialization;
 use Phel\Compiler\Domain\Emitter\OutputEmitter\GlobalCallTarget;
 use Phel\Compiler\Domain\Emitter\OutputEmitter\NodeEmitter\Specialized\AssocConjCallEmitter;
@@ -189,6 +190,10 @@ final readonly class CallEmitter implements NodeEmitterInterface
         $useCallMethod = !$this->isSelfCall($node)
             && (GlobalCallTarget::isGlobalFnCall($node) || CallSpecialization::isTypedAFnLocal($node));
 
+        if ($useCallMethod && $this->tryEmitAssocPairsShortcut($node)) {
+            return;
+        }
+
         if ($useCallMethod && $this->isMultiArityArityShortcut($node)) {
             $this->emitArityShortcut($node);
             return;
@@ -267,6 +272,66 @@ final readonly class CallEmitter implements NodeEmitterInterface
         $this->outputEmitter->emitStr('->__invoke(', $loc);
         $this->outputEmitter->emitArgList($node->getArguments(), $loc);
         $this->outputEmitter->emitStr('))', $loc);
+    }
+
+    /**
+     * `(assoc m k1 v1 k2 v2 …)` with every pair written at the call site
+     * becomes one three-argument step per pair, `assoc(assoc(m, k1, v1), k2,
+     * v2)`, which skips the rest argument, the parity check and the
+     * `assoc-pair` loop of the variadic arity (#3317). `assoc!` splits the
+     * same way (#3318).
+     *
+     * Every argument is still evaluated once and left to right. Each step
+     * runs before the next pair is evaluated rather than after all of them,
+     * which only shows when a step throws on a target `assoc` rejects.
+     */
+    private function tryEmitAssocPairsShortcut(CallNode $node): bool
+    {
+        $pairs = AssocConjSpecialization::literalAssocPairs($node);
+        if ($pairs === null) {
+            return false;
+        }
+
+        if ($this->outputEmitter->callSlotFor($node) === null) {
+            $this->emitAssocPairSteps($node, $pairs, '__invoke');
+            return true;
+        }
+
+        // With a slot, the steps go through `invokeArity3` behind the same
+        // `instanceof` guard as {@see self::emitArityShortcut()}, which keeps
+        // the variadic call for an `assoc` redefined to a plain closure.
+        $loc = $node->getStartSourceLocation();
+        $this->outputEmitter->emitStr('(', $loc);
+        $this->emitDynamicFunctionName($node);
+        $this->outputEmitter->emitStr(' instanceof \\Phel\\Lang\\AbstractFn ? ', $loc);
+        $this->emitAssocPairSteps($node, $pairs, 'invokeArity3');
+        $this->outputEmitter->emitStr(' : ', $loc);
+        $this->emitDynamicFunctionName($node);
+        $this->emitCallMethodArguments($node);
+        $this->outputEmitter->emitStr(')', $loc);
+
+        return true;
+    }
+
+    /**
+     * @param list<list<AbstractNode>> $pairs
+     */
+    private function emitAssocPairSteps(CallNode $node, array $pairs, string $method): void
+    {
+        $loc = $node->getStartSourceLocation();
+
+        for ($i = count($pairs); $i > 0; --$i) {
+            $this->emitDynamicFunctionName($node);
+            $this->outputEmitter->emitStr('->' . $method . '(', $loc);
+        }
+
+        $this->outputEmitter->emitNode($node->getArguments()[0]);
+
+        foreach ($pairs as $pair) {
+            $this->outputEmitter->emitStr(', ', $loc);
+            $this->outputEmitter->emitArgList($pair, $loc);
+            $this->outputEmitter->emitStr(')', $loc);
+        }
     }
 
     private function emitPhpFunctionName(PhpVarNode $fnNode): void

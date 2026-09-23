@@ -18,6 +18,12 @@ All notable changes to this project will be documented in this file.
 
 - **BREAKING**: PHP 8.5 is now the minimum supported version. `docs/stability.md` makes raising a minimum breaking and major only once `1.x` starts, so the floor moves now rather than waiting for `2.0.0`. (#3302)
 
+### Performance
+
+- Compile a multi-key `(assoc m k1 v1 k2 v2 ...)` to one three-argument step per pair instead of the variadic arity: 3.4x faster for three pairs on a 90-key map, 3.7x for twenty. A typed map or vector target chains `->put()` / `->update()` directly. `apply` and a dangling key keep the runtime call. (#3317)
+- Compile a multi-key `(assoc! t k1 v1 k2 v2 ...)` the same way: 3.4x faster for twenty pairs on a 90-key map, where it used to be 2.9x slower than chaining single `assoc!` calls. The `transient` docstring now says when a transient pays off: on a map, opening and closing one costs about what eight writes save, so below that a multi-key `assoc` is as fast or faster. (#3318)
+- Compile `(get-in m [k1 k2 ...])` with a literal path to one `\Phel\Lang\GetIn::path` call when `m` has no collection tag, which is most application code: 2.9x faster for two keys on a 9-key map, 4.5x for eight keys with a default. Results are unchanged, including the default for a stored `nil`, a non-traversable level and an empty path. A path from a variable, `apply` and a local `get-in` keep the runtime call. `Phel\Lang\GetIn` is new public PHP API, since compiled code calls it. (#3320)
+
 ### Fixed
 
 - **BREAKING**: an octal escape above `\377` is rejected instead of silently wrapping. `"\400"` used to compile to NUL and `"\777"` to `\377`, because the value reached `chr()` above 255 and PHP applied `% 256`. Both string and char literals now report the range, and a char-literal error carries file, line, snippet and caret like every other compile error. Clojure rejects octal above `\0377` too. (#3301)

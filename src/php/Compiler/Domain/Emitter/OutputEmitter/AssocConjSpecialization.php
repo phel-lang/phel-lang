@@ -10,6 +10,7 @@ use Phel\Compiler\Domain\Analyzer\Ast\LocalVarNode;
 use Phel\Lang\Collections\Map\PersistentMapInterface;
 use Phel\Lang\Collections\Vector\PersistentVectorInterface;
 
+use function array_chunk;
 use function array_slice;
 use function array_unshift;
 use function count;
@@ -35,9 +36,9 @@ final readonly class AssocConjSpecialization
      *  - `PersistentMapInterface`  → `put` / `remove`
      *  - `PersistentVectorInterface` → `update` / `append`
      *
-     * Variadic `dissoc` is handled by {@see self::typedDissocKeys()};
-     * variadic `assoc` / `conj` need a runtime loop and are not specialised
-     * here.
+     * Variadic `dissoc` is handled by {@see self::typedDissocKeys()} and
+     * multi-key `assoc` by {@see self::typedAssocPairs()}; variadic `conj`
+     * needs a runtime loop and is not specialised here.
      */
     public static function typedAssocConjDissocMethod(CallNode $node): ?string
     {
@@ -119,6 +120,79 @@ final readonly class AssocConjSpecialization
     public static function isTypedDissocKeys(CallNode $node): bool
     {
         return self::typedDissocKeys($node) !== null;
+    }
+
+    /**
+     * `(assoc coll k1 v1 k2 v2 …)` or `(assoc! tcoll k1 v1 k2 v2 …)` with two
+     * or more pairs and no dangling key: the call site states every pair, so
+     * the runtime's rest argument and pair loop can become one fixed-arity
+     * step per pair. Both return the collection the next pair is applied to,
+     * `assoc!` the same transient it was handed (#3318). A dangling key keeps
+     * the runtime call, which owns what it means: an error for `assoc`, a
+     * `nil` value for `assoc!`. `apply` and a locally bound `assoc` or
+     * `assoc!` never reach here: neither puts the core fn in call-head
+     * position.
+     *
+     * @return list<list<AbstractNode>>|null the `[k, v]` argument groups in
+     *                                       source order, or null when the
+     *                                       call is not a literal multi-key
+     *                                       `assoc` / `assoc!`
+     */
+    public static function literalAssocPairs(CallNode $node): ?array
+    {
+        $name = PhelCoreCall::nameOf($node);
+        if ($name !== 'assoc' && $name !== 'assoc!') {
+            return null;
+        }
+
+        $args = $node->getArguments();
+        $argCount = count($args);
+        if ($argCount < 5 || $argCount % 2 === 0) {
+            return null;
+        }
+
+        return array_chunk(array_slice($args, 1), 2);
+    }
+
+    /**
+     * A literal multi-key `assoc` (see {@see self::literalAssocPairs()}) on a
+     * target tagged `PersistentMapInterface` or `PersistentVectorInterface`
+     * chains the same method the single-pair arity lowers to, one call per
+     * pair, as the typed `dissoc` does with `->remove()`. Each step returns a
+     * new persistent collection, so the chain folds the pairs left to right
+     * the way the runtime loop does. `assoc!` never qualifies: on a
+     * persistent target it throws, which a `->put()` chain would not.
+     *
+     * @return array{method: 'put'|'update', groups: list<list<AbstractNode>>}|null
+     */
+    public static function typedAssocPairs(CallNode $node): ?array
+    {
+        if (!PhelCoreCall::is($node, 'assoc')) {
+            return null;
+        }
+
+        $groups = self::literalAssocPairs($node);
+        if ($groups === null) {
+            return null;
+        }
+
+        // `ofNode`: `tryEmitTypedAssocPairs` emits the target once.
+        $method = match (TagNormalizer::ofNode($node->getArguments()[0])) {
+            PersistentMapInterface::class => 'put',
+            PersistentVectorInterface::class => 'update',
+            default => null,
+        };
+
+        if ($method === null) {
+            return null;
+        }
+
+        return ['method' => $method, 'groups' => $groups];
+    }
+
+    public static function isTypedAssocPairs(CallNode $node): bool
+    {
+        return self::typedAssocPairs($node) !== null;
     }
 
     /**

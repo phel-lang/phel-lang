@@ -13,8 +13,10 @@ use function array_slice;
 /**
  * Specialisations gated by {@see AssocConjSpecialization}: a transient-backed
  * chain of `(assoc m k v)` / `(conj v x)` calls, the variadic
- * `(dissoc m k1 k2 …)` lowered to a `->remove()` chain, and the single-step
- * `(assoc ...)` / `(conj ...)` / `(push ...)` on a typed persistent target.
+ * `(dissoc m k1 k2 …)` lowered to a `->remove()` chain, the multi-key
+ * `(assoc m k1 v1 k2 v2 …)` lowered to a `->put()` / `->update()` chain,
+ * and the single-step `(assoc ...)` / `(conj ...)` / `(push ...)` on a typed
+ * persistent target.
  *
  * @internal
  */
@@ -31,6 +33,10 @@ final readonly class AssocConjCallEmitter implements SpecializedCallEmitterInter
         }
 
         if ($this->tryEmitTypedDissocKeys($node)) {
+            return true;
+        }
+
+        if ($this->tryEmitTypedAssocPairs($node)) {
             return true;
         }
 
@@ -61,6 +67,32 @@ final readonly class AssocConjCallEmitter implements SpecializedCallEmitterInter
         foreach ($keys as $key) {
             $this->outputEmitter->emitStr('->remove(', $loc);
             $this->outputEmitter->emitNode($key);
+            $this->outputEmitter->emitStr(')', $loc);
+        }
+
+        $this->outputEmitter->emitStr(')', $loc);
+        return true;
+    }
+
+    /**
+     * Specialise `(assoc m k1 v1 k2 v2 …)` on a typed map or vector target to
+     * a chain of `->put($k, $v)` / `->update($i, $x)` calls, one per pair in
+     * source order, the multi-key twin of {@see self::tryEmitTypedDissocKeys()}.
+     */
+    private function tryEmitTypedAssocPairs(CallNode $node): bool
+    {
+        $typed = AssocConjSpecialization::typedAssocPairs($node);
+        if ($typed === null) {
+            return false;
+        }
+
+        $loc = $node->getStartSourceLocation();
+        $this->outputEmitter->emitStr('(', $loc);
+        $this->outputEmitter->emitNode($node->getArguments()[0]);
+
+        foreach ($typed['groups'] as $group) {
+            $this->outputEmitter->emitStr('->' . $typed['method'] . '(', $loc);
+            $this->outputEmitter->emitArgList($group, $loc);
             $this->outputEmitter->emitStr(')', $loc);
         }
 

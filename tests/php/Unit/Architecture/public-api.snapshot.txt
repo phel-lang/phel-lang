@@ -1117,6 +1117,9 @@ final class Phel\Lang\Generators\TransformGenerator
   public static function mapcat(callable $f, mixed $iterable): Generator
   public static function reductions(callable $f, mixed $init, mixed $iterable): Generator
 
+final class Phel\Lang\GetIn
+  public static function path(mixed $ds, array $keys, mixed $notFound = null): mixed
+
 interface Phel\Lang\HashableInterface
   public function hash(): int
 

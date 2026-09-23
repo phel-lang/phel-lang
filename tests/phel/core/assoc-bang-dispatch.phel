@@ -1,0 +1,96 @@
+(ns phel-test.core.assoc-bang-dispatch
+  (:require phel.test :refer [deftest is thrown? thrown-with-msg?]))
+
+;; Pins `assoc!` across the shapes #3318 touched: the three-argument arity
+;; answers a transient map itself, and a multi-key `assoc!` written out at the
+;; call site compiles to one fixed-arity step per pair. Each must still mean
+;; the variadic call.
+
+(defn- big-map
+  "Past `PersistentArrayMap::MAX_SIZE`, so `transient` picks the hash store."
+  []
+  (apply hash-map (flatten (for [i :range [0 40]] [(keyword (str "k" i)) i]))))
+
+(deftest test-assoc-bang-three-args
+  (is (= {:a 1 :b 2} (persistent! (assoc! (transient {:a 1}) :b 2))) "array-backed map")
+  (is (= 99 (get (persistent! (assoc! (transient (big-map)) :k0 99)) :k0)) "hash-backed map")
+  (is (= [9 2] (persistent! (assoc! (transient [1 2]) 0 9))) "vector index is replaced")
+  (is (= [1 2 3] (persistent! (assoc! (transient [1 2]) 2 3))) "vector grows at its end"))
+
+(deftest test-assoc-bang-chain-through-thread
+  (is (= {:a 1 :b 2 :c 3}
+         (persistent! (-> (transient {}) (assoc! :a 1) (assoc! :b 2) (assoc! :c 3))))))
+
+(deftest test-assoc-bang-literal-pairs
+  (is (= {:a 1 :b 2 :c 3} (persistent! (assoc! (transient {}) :a 1 :b 2 :c 3))))
+  (is (= {:a 3} (persistent! (assoc! (transient {}) :a 1 :a 2 :a 3))) "later pairs win")
+  (is (= [:x :y 3] (persistent! (assoc! (transient [1 2 3]) 0 :x 1 :y))) "vector indexes")
+  (is (= [1 2 :z] (persistent! (assoc! (transient [1 2]) 2 :y 2 :z)))
+      "a later pair sees the vector the earlier one grew"))
+
+(deftest test-assoc-bang-dangling-key-associates-nil
+  (is (= {:a 1 :b nil} (persistent! (assoc! (transient {}) :a 1 :b))))
+  (is (= {:a 1 :b 2 :c nil} (persistent! (assoc! (transient {}) :a 1 :b 2 :c)))))
+
+(deftest test-assoc-bang-literal-pairs-evaluate-left-to-right-once
+  (let [log    (atom [])
+        note   (fn [x] (swap! log conj x) x)
+        t      (transient {})
+        result (assoc! (note t) (note :a) (note 1) (note :b) (note 2) (note :c) (note 3))]
+    (is (= {:a 1 :b 2 :c 3} (persistent! result)))
+    (is (= [t :a 1 :b 2 :c 3] (deref log)) "target once, then every key and value in order")))
+
+(deftest test-assoc-bang-literal-pairs-return-the-same-transient
+  (let [t (transient {})]
+    (is (identical? t (assoc! t :a 1 :b 2)))))
+
+(deftest test-assoc-bang-round-trip-keeps-metadata
+  (let [m (with-meta {:a 1} {:tag :kept})
+        b (with-meta (big-map) {:tag :big})]
+    (is (= {:tag :kept} (meta (persistent! (assoc! (transient m) :b 2 :c 3)))))
+    (is (= {:tag :big} (meta (persistent! (assoc! (transient b) :x 1 :y 2)))))))
+
+(deftest test-assoc-bang-literal-pairs-after-persistent-throw
+  (let [tm (transient {:a 1})
+        th (transient (big-map))
+        tv (transient [1 2])]
+    (persistent! tm)
+    (persistent! th)
+    (persistent! tv)
+    (is (thrown-with-msg? RuntimeException "Transient used after persistent! call"
+                          (assoc! tm :b 2 :c 3)))
+    (is (thrown-with-msg? RuntimeException "Transient used after persistent! call"
+                          (assoc! th :b 2 :c 3)))
+    (is (thrown? RuntimeException (assoc! tv 0 :x 1 :y)))))
+
+(defstruct point [x y])
+
+(deftest test-assoc-bang-rejects-non-transients
+  (is (thrown-with-msg? InvalidArgumentException "assoc! expects a transient map or transient vector, got :nil"
+                        (assoc! nil :a 1)))
+  (is (thrown? InvalidArgumentException (assoc! nil :a 1 :b 2)) "nil, multi-key")
+  (is (thrown? InvalidArgumentException (assoc! {:a 1} :b 2)) "a persistent map")
+  (is (thrown? InvalidArgumentException (assoc! {:a 1} :b 2 :c 3)) "a persistent map, multi-key")
+  (is (thrown? InvalidArgumentException (assoc! [1] 0 2 0 3)) "a persistent vector, multi-key")
+  (is (thrown? InvalidArgumentException (assoc! (point 1 2) :x 9 :y 8)) "a struct"))
+
+(defn- assoc-bang-typed-map
+  [^\Phel\Lang\Collections\Map\PersistentMapInterface m]
+  (assoc! m :b 2 :c 3))
+
+(deftest test-assoc-bang-on-a-persistent-typed-local-still-throws
+  (is (thrown? InvalidArgumentException (assoc-bang-typed-map {:a 1}))
+      "a persistent tag never lowers `assoc!` to `->put`"))
+
+(deftest test-assoc-bang-through-apply-keeps-the-runtime-path
+  (is (= {:a 1 :b 2 :c 3} (persistent! (apply assoc! (transient {}) [:a 1 :b 2 :c 3]))))
+  (is (= {:a 1 :b nil} (persistent! (apply assoc! (transient {}) [:a 1 :b])))))
+
+(deftest test-locally-bound-assoc-bang-is-called-as-written
+  (let [assoc! (fn [& args] (count args))]
+    (is (= 5 (assoc! (transient {}) :a 1 :b 2)) "the local receives every argument")))
+
+(deftest test-persistent-bang-and-persistent-agree
+  (is (= {:a 1} (persistent! (transient {:a 1}))))
+  (is (= [1 2] (persistent (transient [1 2]))))
+  (is (thrown? Throwable (persistent! {:a 1})) "a persistent collection is not a transient"))

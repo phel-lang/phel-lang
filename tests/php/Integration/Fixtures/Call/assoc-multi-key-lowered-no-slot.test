@@ -1,0 +1,4 @@
+--PHEL--
+(assoc {} :a 1 :b 2 :c 3)
+--PHP--
+(\Phel\Lang\Registry::readRoot("phel.core", "assoc"))->__invoke((\Phel\Lang\Registry::readRoot("phel.core", "assoc"))->__invoke((\Phel\Lang\Registry::readRoot("phel.core", "assoc"))->__invoke(\Phel::map(), \Phel\Lang\Keyword::create("a"), 1), \Phel\Lang\Keyword::create("b"), 2), \Phel\Lang\Keyword::create("c"), 3);
