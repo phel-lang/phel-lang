@@ -4,6 +4,8 @@ All notable changes to this project will be documented in this file.
 
 ## Unreleased
 
+## [0.53.0](https://github.com/phel-lang/phel-lang/compare/v0.52.0...v0.53.0) - 2026-09-24
+
 ### Changed
 
 - **BREAKING**: PHP 8.5 is the minimum. The floor moves now: once `1.x` starts, raising it needs a major. (#3302)
