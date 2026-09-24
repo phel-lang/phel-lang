@@ -42,6 +42,11 @@ require_once __DIR__ . '/../vendor/autoload.php';
     $_ENV['TMPDIR'] = $workerTmp;
     $_SERVER['TMPDIR'] = $workerTmp;
 
+    // A build cache per worker for tests that opt in through
+    // PhelTest\Support\SharedStdlibCache: their `bin/phel` subprocesses then
+    // compile the bundled stdlib once per worker instead of once each.
+    putenv('PHEL_TEST_SHARED_CACHE_DIR=' . $workerTmp . DIRECTORY_SEPARATOR . 'phel-cache');
+
     register_shutdown_function(static function () use ($workerTmp): void {
         removeDirectory($workerTmp);
     });

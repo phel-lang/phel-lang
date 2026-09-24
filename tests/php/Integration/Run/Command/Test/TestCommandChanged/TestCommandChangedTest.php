@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace PhelTest\Integration\Run\Command\Test\TestCommandChanged;
 
 use Override;
+use PhelTest\Support\SharedStdlibCache;
 use PHPUnit\Framework\TestCase;
 
 use function bin2hex;
@@ -189,7 +190,8 @@ final class TestCommandChangedTest extends TestCase
 
         // Never let the developer's own git config (signing, hooks) leak in.
         $cmd = 'cd ' . escapeshellarg($this->projectDir)
-            . ' && GIT_CONFIG_GLOBAL=/dev/null GIT_CONFIG_SYSTEM=/dev/null php ' . escapeshellarg($this->repoRoot . '/bin/phel')
+            . ' && GIT_CONFIG_GLOBAL=/dev/null GIT_CONFIG_SYSTEM=/dev/null ' . SharedStdlibCache::envPrefix()
+            . 'php ' . escapeshellarg($this->repoRoot . '/bin/phel')
             . ' test' . $args . ' 2>&1';
 
         exec($cmd, $output, $exitCode);
