@@ -139,8 +139,10 @@ final class BenchAbCommandTest extends TestCase
 
         self::assertSame(0, $exitCode, $output);
         // The committed class sleeps and the working tree's does not: every
-        // pair must be faster. The same side measured twice would read as noise.
-        self::assertMatchesRegularExpression('#fixture\.speed/bench-speed\s+\S+\s+\S+\s+-9\d\.\d\d%\s+2/2$#m', $output);
+        // pair must be faster. The same side measured twice would read as noise,
+        // near 0%. Demanding -90% or more made the test fail on a loaded machine
+        // (-82% seen), so any drop past half is enough to tell the sides apart.
+        self::assertMatchesRegularExpression('#fixture\.speed/bench-speed\s+\S+\s+\S+\s+-[5-9]\d\.\d\d%\s+2/2$#m', $output);
         $this->assertWorktreeIsGone($output);
     }
 

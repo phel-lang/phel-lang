@@ -28,8 +28,8 @@ Available `composer` scripts:
 composer test              # All tests (quality + compiler + core)
 composer test-quality      # Static analysis: cs-fixer, psalm, phpstan, rector
 composer test-compiler     # PHPUnit unit + integration tests
-composer test-core         # Phel core tests (./bin/phel test)
-composer test-core:parallel # Phel core tests in workers
+composer test-core          # Phel core tests, in workers
+composer test-core:serial   # Phel core tests in one process
 composer fix               # Auto-fix: rector + cs-fixer
 ```
 
