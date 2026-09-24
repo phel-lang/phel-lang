@@ -152,3 +152,26 @@ function test_checked_out_branch_cannot_change_the_hook_that_runs() {
 
     assert_file_not_exists "$TEMP_DIR/pwned"
 }
+
+function test_untracked_spec_file_blocks_the_sync() {
+    echo "local" > "$TEMP_DIR/work/.agnostic-ai/rules/untracked.md"
+    _commit_in "$TEMP_DIR/origin" .agnostic-ai/rules/a.md "more"
+
+    git -C "$TEMP_DIR/work" pull -q --no-rebase >/dev/null 2>&1
+
+    assert_equals "0" "$(_sync_count)"
+}
+
+function test_modified_spec_file_blocks_the_sync() {
+    echo "b" > "$TEMP_DIR/origin/.agnostic-ai/rules/b.md"
+    git -C "$TEMP_DIR/origin" add -A
+    git -C "$TEMP_DIR/origin" commit -q -m "add b"
+    git -C "$TEMP_DIR/work" pull -q --no-rebase >/dev/null 2>&1
+    : > "$TEMP_DIR/sync.log"
+    echo "local edit" >> "$TEMP_DIR/work/.agnostic-ai/rules/b.md"
+    _commit_in "$TEMP_DIR/origin" .agnostic-ai/rules/a.md "more"
+
+    git -C "$TEMP_DIR/work" pull -q --no-rebase >/dev/null 2>&1
+
+    assert_equals "0" "$(_sync_count)"
+}
