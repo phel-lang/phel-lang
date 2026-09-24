@@ -23,6 +23,10 @@ command -v agnostic-ai >/dev/null 2>&1 || exit 0
 state="$(git rev-parse --git-path agnostic-ai-synced)"
 specs="$(git rev-parse -q --verify HEAD:.agnostic-ai 2>/dev/null) $(git rev-parse -q --verify HEAD:agnostic-ai.yaml 2>/dev/null)"
 [ "$(cat "$state" 2>/dev/null)" = "$specs" ] && exit 0
+# Other specs are checked out, so the record no longer describes the output:
+# a manual sync on this branch, or a sync that fails halfway, may change it.
+# Forget it now; only a successful sync below writes it again.
+rm -f "$state"
 
 inputs=(.agnostic-ai agnostic-ai.yaml agnostic-ai.local.yaml .agnostic-ai.local)
 if git rev-parse -q --verify origin/main >/dev/null \

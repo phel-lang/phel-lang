@@ -310,3 +310,26 @@ function test_init_keeps_a_symlink_into_another_checkout() {
 
     assert_equals "$TEMP_DIR/elsewhere/tools/git-hooks/post-merge.sh" "$(readlink "$hooks/post-merge")"
 }
+
+function test_returning_to_main_after_a_manual_sync_elsewhere_resyncs() {
+    _git checkout -q -b feature
+    _commit_in "$TEMP_DIR/work" .agnostic-ai/rules/a.md "more"
+    _git checkout -q main
+    _git checkout -q feature
+    agnostic-ai sync
+    : > "$TEMP_DIR/sync.log"
+
+    _git checkout -q main
+
+    assert_equals "1" "$(_sync_count)"
+}
+
+function test_a_failed_sync_is_retried() {
+    printf '#!/usr/bin/env bash\necho "$*" >> "%s/sync.log"\nexit 1\n' "$TEMP_DIR" > "$TEMP_DIR/bin/agnostic-ai"
+    _commit_in "$TEMP_DIR/origin" .agnostic-ai/rules/a.md "more"
+    _git pull -q --no-rebase
+
+    _git checkout -q -b retry
+
+    assert_equals "2" "$(_sync_count)"
+}
