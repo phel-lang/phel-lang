@@ -1,7 +1,8 @@
 #!/usr/bin/env bash
 
 # Bashunit tests for tools/git-hooks: the agent-config resync must run after
-# every way a pull or a branch switch can bring in spec changes, and only then.
+# every way a pull or a branch switch can bring in reviewed spec changes, only
+# then, and never run code taken from the branch that was just checked out.
 # Run with: tools/bashunit tools/git-hooks-test.sh
 
 set -euo pipefail
@@ -122,4 +123,32 @@ function test_missing_agnostic_ai_never_fails_the_pull() {
     git -C "$TEMP_DIR/work" pull -q --no-rebase >/dev/null 2>&1 || rc=$?
 
     assert_equals "0" "$rc"
+}
+
+function test_branch_with_unreviewed_specs_does_not_sync() {
+    git -C "$TEMP_DIR/work" checkout -q -b other
+    _commit_in "$TEMP_DIR/work" .agnostic-ai/rules/a.md "more"
+    git -C "$TEMP_DIR/work" checkout -q main
+    : > "$TEMP_DIR/sync.log"
+
+    git -C "$TEMP_DIR/work" checkout -q other
+
+    assert_equals "0" "$(_sync_count)"
+}
+
+function test_checked_out_branch_cannot_change_the_hook_that_runs() {
+    git -C "$TEMP_DIR/work" checkout -q -b evil
+    local hook
+    for hook in post-checkout post-merge post-rewrite sync-agent-config; do
+        printf '#!/bin/bash\ntouch "%s/pwned"\n' "$TEMP_DIR" > "$TEMP_DIR/work/tools/git-hooks/$hook.sh"
+    done
+    echo "more" >> "$TEMP_DIR/work/.agnostic-ai/rules/a.md"
+    git -C "$TEMP_DIR/work" add -A
+    git -C "$TEMP_DIR/work" commit -q -m "evil hooks"
+    git -C "$TEMP_DIR/work" checkout -q main
+
+    git -C "$TEMP_DIR/work" checkout -q evil
+    git -C "$TEMP_DIR/work" checkout -q main
+
+    assert_file_not_exists "$TEMP_DIR/pwned"
 }

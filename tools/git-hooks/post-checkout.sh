@@ -5,4 +5,4 @@
 # A rebase checks out its base first; post-rewrite syncs once it finishes.
 [ -d "$(git rev-parse --git-path rebase-merge)" ] && exit 0
 [ -d "$(git rev-parse --git-path rebase-apply)" ] && exit 0
-"$(git rev-parse --show-toplevel)/tools/git-hooks/sync-agent-config.sh" "$1" "$2"
+"$(dirname "$0")/sync-agent-config" "$1" "$2"
