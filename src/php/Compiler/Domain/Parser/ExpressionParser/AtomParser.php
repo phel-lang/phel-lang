@@ -287,9 +287,9 @@ final readonly class AtomParser
         for ($i = 0; $i < $length; ++$i) {
             $char = $digits[$i];
             if ($char >= '0' && $char <= '9') {
-                $digitValue = ord($char) - ord('0');
+                $digitValue = ord($char[0]) - ord('0');
             } elseif ($char >= 'a' && $char <= 'z') {
-                $digitValue = ord($char) - ord('a') + 10;
+                $digitValue = ord($char[0]) - ord('a') + 10;
             } else {
                 return false;
             }

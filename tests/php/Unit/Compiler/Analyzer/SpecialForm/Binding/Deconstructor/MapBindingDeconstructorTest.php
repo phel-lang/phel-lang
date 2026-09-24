@@ -597,7 +597,7 @@ final class MapBindingDeconstructorTest extends TestCase
 
         // The inner pattern destructures the value read at :inner, so `c` ends
         // up bound and the lookup chain runs :inner then :c.
-        self::assertSame('c', $bindings[array_key_last($bindings)][0]->getName());
+        self::assertSame('c', array_last($bindings)[0]->getName());
         self::assertEquals(
             Phel::list([
                 Symbol::create(Symbol::NAME_PHP_ARRAY_GET),
