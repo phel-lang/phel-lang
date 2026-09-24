@@ -26,11 +26,11 @@ Integration test fixtures use a two-section format separated by markers:
 
 ## Conventions
 
-- One fixture per behavior — name files descriptively: `fn-variadic.test`, `try-one-catch.test`
+- One fixture per behavior. Name files descriptively: `fn-variadic.test`, `try-one-catch.test`
 - Fixtures live in `tests/php/Integration/Fixtures/<Category>/`
 - Categories mirror language constructs: `Def/`, `Fn/`, `Let/`, `Try/`, `Call/`, etc.
 - PHP output uses `\Phel::` static helpers (`addDefinition`, `map`, `keyword`, `vector`, etc.)
-- Source locations are embedded in metadata — update line/column if you change the Phel input
+- Source locations are embedded in metadata: update line/column if you change the Phel input
 
 ## REPL Fixtures
 

@@ -14,9 +14,9 @@ Process every open GitHub issue that is **unassigned** or **assigned to the curr
 
 ## Args
 
-- `--limit N` — process at most N issues this run (default: all).
-- `--label foo` — only issues carrying label `foo`.
-- `--dry-run` — list issues that would be processed; do not invoke `/gh-issue`.
+- `--limit N`: process at most N issues this run (default: all).
+- `--label foo`: only issues carrying label `foo`.
+- `--dry-run`: list issues that would be processed; do not invoke `/gh-issue`.
 
 Strip leading `#` if user passes `#123` style.
 

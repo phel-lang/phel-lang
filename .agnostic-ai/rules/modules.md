@@ -26,4 +26,4 @@ If so, update that module's `src/php/<Module>/CLAUDE.md` to match.
 
 ## Format
 
-Keep the existing structure: one-line purpose, Gacela pattern, public API, dependencies, structure tree, key constraints. Be concise — agents need scannable facts, not prose.
+Keep the existing structure: one-line purpose, Gacela pattern, public API, dependencies, structure tree, key constraints. Be concise. Agents need scannable facts, not prose.
