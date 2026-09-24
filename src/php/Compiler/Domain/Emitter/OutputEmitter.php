@@ -20,7 +20,6 @@ use Phel\Shared\Printer\PrinterInterface;
 use function array_pop;
 use function array_values;
 use function count;
-use function end;
 use function in_array;
 use function str_starts_with;
 use function strlen;
@@ -81,11 +80,7 @@ final class OutputEmitter implements OutputEmitterInterface
 
     public function currentConstantScope(): ?ConstantScope
     {
-        if ($this->constantScopes === []) {
-            return null;
-        }
-
-        return end($this->constantScopes);
+        return array_last($this->constantScopes);
     }
 
     /**

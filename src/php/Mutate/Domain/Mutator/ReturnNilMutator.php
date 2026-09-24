@@ -10,7 +10,6 @@ use Phel\Shared\Parser\Node\NilNode;
 use Phel\Shared\Parser\Node\NodeInterface;
 use Phel\Shared\Parser\Node\Token;
 
-use function count;
 use function in_array;
 
 /**
@@ -77,8 +76,6 @@ final class ReturnNilMutator implements MutatorInterface
      */
     private function lastSignificantIndex(array $children): int
     {
-        $indices = Nodes::significantIndices($children);
-
-        return $indices === [] ? -1 : $indices[count($indices) - 1];
+        return array_last(Nodes::significantIndices($children)) ?? -1;
     }
 }

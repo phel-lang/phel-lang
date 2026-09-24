@@ -14,7 +14,6 @@ use Phel\Lang\Collections\LinkedList\PersistentListInterface;
 use Phel\Lang\Symbol;
 
 use function array_slice;
-use function count;
 
 /**
  * (do expr1 expr2 ...).
@@ -64,7 +63,7 @@ final class DoSymbol implements SpecialFormAnalyzerInterface
         $node = new DoNode(
             $env,
             array_slice($stmts, 0, -1),
-            $stmts[count($stmts) - 1],
+            array_last($stmts),
             $list->getStartLocation(),
         );
 

@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace Phel\Shared\Performance;
 
-use function count;
 use function function_exists;
 use function is_array;
 use function is_resource;
@@ -60,7 +59,7 @@ final class ProcessCommandLine
         // The buffer is NUL-terminated, so the split leaves one trailing empty
         // entry. Only that last one is padding: an empty arg in the middle is a
         // real (quoted-empty) argument.
-        if ($args[count($args) - 1] === '') {
+        if (array_last($args) === '') {
             array_pop($args);
         }
 

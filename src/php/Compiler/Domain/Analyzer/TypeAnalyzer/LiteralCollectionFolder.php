@@ -239,7 +239,7 @@ final readonly class LiteralCollectionFolder
             return new LiteralNode($node->getEnv(), null, $node->getStartSourceLocation());
         }
 
-        $pick = $fnName === 'first' ? $elements[0] : $elements[count($elements) - 1];
+        $pick = $fnName === 'first' ? $elements[0] : array_last($elements);
         assert($pick instanceof LiteralNode);
 
         return new LiteralNode($node->getEnv(), $pick->getValue(), $node->getStartSourceLocation());

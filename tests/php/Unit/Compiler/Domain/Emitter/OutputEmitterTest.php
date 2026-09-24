@@ -7,6 +7,7 @@ namespace PhelTest\Unit\Compiler\Domain\Emitter;
 use Phel\Compiler\CompilerFactory;
 use Phel\Compiler\Domain\Analyzer\Ast\LiteralNode;
 use Phel\Compiler\Domain\Analyzer\Environment\NodeEnvironment;
+use Phel\Compiler\Domain\Emitter\OutputEmitter\Cache\ConstantScope;
 use Phel\Compiler\Domain\Emitter\OutputEmitterInterface;
 use PHPUnit\Framework\TestCase;
 
@@ -17,6 +18,24 @@ final class OutputEmitterTest extends TestCase
     protected function setUp(): void
     {
         $this->outputEmitter = new CompilerFactory()->createOutputEmitter();
+    }
+
+    public function test_current_constant_scope_is_null_without_scopes(): void
+    {
+        self::assertNull($this->outputEmitter->currentConstantScope());
+    }
+
+    public function test_current_constant_scope_is_the_innermost_scope(): void
+    {
+        $outer = new ConstantScope();
+        $inner = new ConstantScope();
+
+        $this->outputEmitter->pushConstantScope($outer);
+        $this->outputEmitter->pushConstantScope($inner);
+        self::assertSame($inner, $this->outputEmitter->currentConstantScope());
+
+        $this->outputEmitter->popConstantScope();
+        self::assertSame($outer, $this->outputEmitter->currentConstantScope());
     }
 
     public function test_capture_strips_return_prefix_from_return_context_node(): void

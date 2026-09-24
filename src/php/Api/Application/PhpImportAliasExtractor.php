@@ -90,7 +90,7 @@ final class PhpImportAliasExtractor
 
         $segments = explode('\\', $fqn);
 
-        return [end($segments), $i];
+        return [array_last($segments), $i];
     }
 
     private function normalize(string $name): string

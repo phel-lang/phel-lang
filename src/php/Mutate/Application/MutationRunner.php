@@ -293,6 +293,10 @@ final class MutationRunner
      */
     private function awaitAll(array $workers, array $frame): array
     {
+        if ($workers === []) {
+            return [];
+        }
+
         foreach ($workers as $worker) {
             $worker->send($frame, self::LOAD_TIMEOUT_SECONDS);
         }
@@ -323,7 +327,7 @@ final class MutationRunner
             }
 
             if (!$progressed) {
-                $workers[array_key_first($workers)]->waitForOutput();
+                array_first($workers)->waitForOutput();
             }
         }
 

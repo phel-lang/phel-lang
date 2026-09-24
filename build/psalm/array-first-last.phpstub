@@ -1,0 +1,27 @@
+<?php
+
+// Psalm 6.18 types PHP 8.5's array_first()/array_last() as `mixed`
+// (CallMap_85, no return type provider), which turns every converted site
+// into a silent `mixed` hole behind the global Mixed* suppressions.
+// `T|null` keeps the element type flowing. A conditional
+// `($array is non-empty-array ? T : null)` does not work: Psalm picks the
+// `null` branch whenever the array is not known to be non-empty.
+// Delete this file once Psalm ships a provider for both functions.
+
+/**
+ * @template T
+ *
+ * @param array<array-key, T> $array
+ *
+ * @return ($array is non-empty-array ? T : T|null)
+ */
+function array_first(array $array): mixed {}
+
+/**
+ * @template T
+ *
+ * @param array<array-key, T> $array
+ *
+ * @return ($array is non-empty-array ? T : T|null)
+ */
+function array_last(array $array): mixed {}

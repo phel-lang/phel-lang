@@ -151,7 +151,7 @@ final class DynamicScope
             return null;
         }
 
-        return $recordings[count($recordings) - 1]['mode'];
+        return array_last($recordings)['mode'];
     }
 
     public function recordDynamic(string $ns, string $name, mixed $value): void

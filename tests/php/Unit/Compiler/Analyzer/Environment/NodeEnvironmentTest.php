@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace PhelTest\Unit\Compiler\Analyzer\Environment;
 
+use Phel\Compiler\Domain\Analyzer\Ast\RecurFrame;
 use Phel\Compiler\Domain\Analyzer\Environment\NodeEnvironment;
 use Phel\Compiler\Domain\Analyzer\Environment\NodeEnvironmentInterface;
 use Phel\Lang\Symbol;
@@ -16,6 +17,22 @@ final class NodeEnvironmentTest extends TestCase
         $env = NodeEnvironment::empty();
 
         self::assertFalse($env->hasLocal(Symbol::create('a')));
+    }
+
+    public function test_current_recur_frame_is_null_without_frames(): void
+    {
+        self::assertNull(NodeEnvironment::empty()->getCurrentRecurFrame());
+    }
+
+    public function test_current_recur_frame_is_the_innermost_frame(): void
+    {
+        $outer = new RecurFrame([Symbol::create('a')]);
+        $inner = new RecurFrame([Symbol::create('b')]);
+
+        $env = NodeEnvironment::empty()->withAddedRecurFrame($outer)->withAddedRecurFrame($inner);
+
+        self::assertSame($inner, $env->getCurrentRecurFrame());
+        self::assertNull($env->withDisallowRecurFrame()->getCurrentRecurFrame());
     }
 
     public function test_with_locals_indexes_lookups(): void

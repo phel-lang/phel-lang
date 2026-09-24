@@ -14,7 +14,6 @@ use Phel\Compiler\Domain\Analyzer\Ast\Reference\LocalVarReferences;
 use function array_fill_keys;
 use function array_reverse;
 use function array_slice;
-use function count;
 
 /**
  * Two-fold rewrite of `let` after analysis:
@@ -141,7 +140,8 @@ final readonly class LetSimplifier
     private function inlineSingleTailUse(LetNode $node): AbstractNode
     {
         $bindings = $node->getBindings();
-        if ($bindings === []) {
+        $lastBinding = array_last($bindings);
+        if ($lastBinding === null) {
             return $node;
         }
 
@@ -155,7 +155,6 @@ final readonly class LetSimplifier
             return $node;
         }
 
-        $lastBinding = $bindings[count($bindings) - 1];
         if ($lastBinding->getShadow()->getName() !== $tail->getName()->getName()) {
             return $node;
         }

@@ -126,11 +126,7 @@ final class ApplyEmitter implements NodeEmitterInterface
         }
 
         $arguments = $node->getArguments();
-        if ($arguments === []) {
-            return false;
-        }
-
-        $lastArg = $arguments[count($arguments) - 1];
+        $lastArg = array_last($arguments);
         if (!$lastArg instanceof VectorNode) {
             return false;
         }

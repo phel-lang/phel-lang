@@ -16,6 +16,12 @@
         </ignoreFiles>
     </projectFiles>
 
+    <!-- PHP 8.5's array_first()/array_last() carry no element type in
+         Psalm's call map; the stub restores it. See the file header. -->
+    <stubs>
+        <file name="build/psalm/array-first-last.phpstub" />
+    </stubs>
+
     <plugins>
         <pluginClass class="Psalm\PhpUnitPlugin\Plugin"/>
         <!-- Types `getFacade()`/`getFactory()`/`getConfig()` from the

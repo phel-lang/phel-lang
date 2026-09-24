@@ -7,7 +7,7 @@ namespace Phel\Shared\Parser\Node;
 use Phel\Lang\SourceLocation;
 
 use function array_slice;
-use function count;
+use function assert;
 
 final class MetaNode implements InnerNodeInterface
 {
@@ -77,6 +77,11 @@ final class MetaNode implements InnerNodeInterface
 
     public function getObjectNode(): NodeInterface
     {
-        return $this->children[count($this->children) - 1];
+        // The parser reads until it hits a non-trivia form, so the object is
+        // always there and always last.
+        $object = array_last($this->children);
+        assert($object instanceof NodeInterface);
+
+        return $object;
     }
 }

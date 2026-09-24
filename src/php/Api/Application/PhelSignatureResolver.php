@@ -47,7 +47,7 @@ final readonly class PhelSignatureResolver
         }
 
         [$tokens, $endsOpen] = $this->tokenizer->topLevel(
-            substr($before, $open[count($open) - 1] + 1),
+            substr($before, array_last($open) + 1),
             balanceCollectionLiterals: true,
         );
         if ($tokens === []) {
