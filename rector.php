@@ -102,11 +102,7 @@ return RectorConfig::configure()
         SetList::TYPE_DECLARATION,
         SetList::EARLY_RETURN,
         SetList::INSTANCEOF,
-        // Deliberately one minor behind the composer floor. While Rector is not
-        // asked to rewrite to 8.5, `composer fix` cannot inject 8.5-only syntax,
-        // so the PHP minimum could still be lowered without needing a major.
-        // Moving this to UP_TO_PHP_85 is what closes that door. See #3305.
-        LevelSetList::UP_TO_PHP_84,
+        LevelSetList::UP_TO_PHP_85,
         PHPUnitSetList::PHPUNIT_CODE_QUALITY,
         // `COMPOSER_BASED`, not a pinned `PHPUNIT_<version>` set. Two reasons.
         // It reads the PHPUnit version out of `composer.json`, so the set
