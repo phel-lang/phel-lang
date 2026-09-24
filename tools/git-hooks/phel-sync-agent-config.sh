@@ -15,6 +15,8 @@
 # branch forked) and have no local changes. Otherwise it prints how to sync by hand. An ignored local
 # layer (agnostic-ai.local.yaml, .agnostic-ai.local/) is the developer's own
 # config and trusted like ~/.gitconfig; a branch that tracks one is not.
+# Git does not bring changes to an ignored local layer, so this hook does not
+# watch it: whoever edits their own layer runs agnostic-ai sync.
 # A hook never fails the git command that ran it.
 
 command -v agnostic-ai >/dev/null 2>&1 || exit 0
