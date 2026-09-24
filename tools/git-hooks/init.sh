@@ -6,6 +6,8 @@ function setup_git_hooks()
 {
   echo "Initialising git hooks..."
   ln -sf "$PWD/tools/git-hooks/pre-commit.sh" "$PWD/.git/hooks/pre-commit"
+  ln -sf "$PWD/tools/git-hooks/post-merge.sh" "$PWD/.git/hooks/post-merge"
+  ln -sf "$PWD/tools/git-hooks/post-checkout.sh" "$PWD/.git/hooks/post-checkout"
   echo "Done"
 }
 

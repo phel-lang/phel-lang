@@ -19,6 +19,8 @@ change to this directory if a new hook is added.
 | File | Hook | What it does |
 |---|---|---|
 | [`pre-commit.sh`](pre-commit.sh) | `pre-commit` | Runs `composer test-all` when the staged diff includes `.php` or `.phel` files. Skips when only docs/config changed — so commits to `.md`, `composer.json`, CI files, etc. stay fast. |
+| [`post-merge.sh`](post-merge.sh) | `post-merge` | Runs `agnostic-ai sync` when a pull changed `.agnostic-ai/` or `agnostic-ai.yaml`, so the gitignored `.claude/`, `.codex/` and `AGENTS.md` never lag behind the specs. No-op when `agnostic-ai` is not installed. |
+| [`post-checkout.sh`](post-checkout.sh) | `post-checkout` | The same on a branch switch. |
 | [`init.sh`](init.sh) | — | Installer. Symlinks every hook above into `.git/hooks/`. |
 
 ## Skipping a hook
