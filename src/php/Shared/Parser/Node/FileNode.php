@@ -6,8 +6,6 @@ namespace Phel\Shared\Parser\Node;
 
 use Phel\Lang\SourceLocation;
 
-use function count;
-
 final class FileNode implements InnerNodeInterface
 {
     /**
@@ -26,7 +24,7 @@ final class FileNode implements InnerNodeInterface
     {
         if ($children !== []) {
             $startLocation = $children[0]->getStartLocation();
-            $endLocation = $children[count($children) - 1]->getEndLocation();
+            $endLocation = array_last($children)->getEndLocation();
         } else {
             $startLocation = new SourceLocation('', 0, 0);
             $endLocation = new SourceLocation('', 0, 0);

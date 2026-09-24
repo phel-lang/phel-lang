@@ -23,7 +23,7 @@ use Phel\Compiler\Domain\Analyzer\Environment\NodeEnvironmentInterface;
 use Phel\Lang\Symbol;
 
 use function array_slice;
-use function count;
+use function assert;
 
 /**
  * Gives the params of a spliced fn body fresh PHP names
@@ -87,7 +87,12 @@ final readonly class ParamRenamer
             ),
             $node instanceof DoNode => $this->each(
                 [...$node->getStmts(), $node->getRet()],
-                static fn(array $parts): DoNode => new DoNode($env, array_slice($parts, 0, -1), $parts[count($parts) - 1], $loc),
+                static function (array $parts) use ($env, $loc): DoNode {
+                    $ret = array_pop($parts);
+                    assert($ret instanceof AbstractNode);
+
+                    return new DoNode($env, $parts, $ret, $loc);
+                },
             ),
             $node instanceof LetNode && !$node->isLoop() => $this->let($node, $env),
             default => null,

@@ -9,7 +9,6 @@ use Phel\Lang\Symbol;
 use WeakMap;
 
 use function array_key_exists;
-use function count;
 
 /**
  * @internal
@@ -359,11 +358,7 @@ final class NodeEnvironment implements NodeEnvironmentInterface
 
     public function getCurrentRecurFrame(): ?RecurFrame
     {
-        if ($this->recurFrames === []) {
-            return null;
-        }
-
-        return $this->recurFrames[count($this->recurFrames) - 1];
+        return array_last($this->recurFrames);
     }
 
     public function getBoundTo(): string

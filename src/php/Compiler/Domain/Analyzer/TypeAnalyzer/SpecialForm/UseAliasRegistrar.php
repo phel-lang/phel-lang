@@ -152,6 +152,6 @@ final readonly class UseAliasRegistrar
 
         $parts = explode('\\', $symbol->getName());
 
-        return Symbol::create($parts[count($parts) - 1]);
+        return Symbol::create(array_last($parts));
     }
 }

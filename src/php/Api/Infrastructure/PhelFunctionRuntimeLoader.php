@@ -159,7 +159,7 @@ final readonly class PhelFunctionRuntimeLoader
             }
         }
 
-        throw new RuntimeException(sprintf('Unable to create temporary directory at "%s%s".', end($baseDirs), $suffix));
+        throw new RuntimeException(sprintf('Unable to create temporary directory at "%s%s".', array_last($baseDirs), $suffix));
     }
 
     private function currentWorkingDir(): string

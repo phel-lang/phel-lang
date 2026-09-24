@@ -233,7 +233,7 @@ final class BigIntMagnitude
      */
     public static function trim(array $magnitude): array
     {
-        while ($magnitude !== [] && $magnitude[count($magnitude) - 1] === 0) {
+        while (array_last($magnitude) === 0) {
             array_pop($magnitude);
         }
 

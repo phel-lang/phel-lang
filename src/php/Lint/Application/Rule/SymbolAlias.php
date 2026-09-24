@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace Phel\Lint\Application\Rule;
 
-use function count;
-use function preg_split;
+use function explode;
+use function str_replace;
 
 /**
  * Resolves the implicit alias a `(:use ...)` / `(:require ...)` entry binds
@@ -22,11 +22,6 @@ final class SymbolAlias
 {
     public static function lastSegment(string $name): string
     {
-        $parts = preg_split('/[.\\\\]/', $name);
-        if ($parts === false) {
-            return $name;
-        }
-
-        return $parts[count($parts) - 1];
+        return array_last(explode('.', str_replace('\\', '.', $name)));
     }
 }

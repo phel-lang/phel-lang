@@ -11,7 +11,6 @@ use Phel\Shared\Parser\Node\Token;
 use Phel\Shared\Parser\ReadModel\CodeSnippet;
 use RuntimeException;
 
-use function count;
 use function in_array;
 
 /**
@@ -111,8 +110,8 @@ final class TokenStream implements Iterator
             $tokens = $this->readTokens;
         }
 
-        $first = $tokens[0] ?? null;
-        $last = $tokens[count($tokens) - 1] ?? null;
+        $first = array_first($tokens);
+        $last = array_last($tokens);
 
         if (!$first instanceof Token || !$last instanceof Token) {
             return new CodeSnippet(SourceLocation::unknown(), SourceLocation::unknown(), '');
