@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
 
 # Bashunit tests for tools/git-hooks: the agent-config resync must run after
-# every way a pull or a branch switch can bring in reviewed spec changes, only
-# then, and never run code taken from the branch that was just checked out.
+# every way a pull, a rebase or a branch switch can bring in reviewed spec
+# changes, only then, and never run code taken from a checked-out branch.
 # Run with: tools/bashunit tools/git-hooks-test.sh
 
 set -euo pipefail
@@ -37,6 +37,9 @@ STUB
     _make_origin
     git clone -q "$TEMP_DIR/origin" "$TEMP_DIR/work"
     (cd "$TEMP_DIR/work" && ./tools/git-hooks/init.sh >/dev/null)
+    # First run catches the fresh clone up; the tests start from a synced state.
+    (cd "$TEMP_DIR/work" && .git/hooks/sync-agent-config >/dev/null 2>&1)
+    : > "$TEMP_DIR/sync.log"
 }
 
 function tear_down() {
@@ -71,37 +74,65 @@ function _sync_count() {
     wc -l < "$TEMP_DIR/sync.log" | tr -d ' '
 }
 
+function _git() {
+    git -C "$TEMP_DIR/work" "$@" >/dev/null 2>&1
+}
+
+function _forget_last_sync() {
+    rm -f "$(git -C "$TEMP_DIR/work" rev-parse --absolute-git-dir)/agnostic-ai-synced"
+}
+
+# --- when it syncs -----------------------------------------------------------
+
 function test_merge_pull_with_spec_change_syncs() {
     _commit_in "$TEMP_DIR/origin" .agnostic-ai/rules/a.md "more"
 
-    git -C "$TEMP_DIR/work" pull -q --no-rebase >/dev/null 2>&1
+    _git pull -q --no-rebase
 
     assert_equals "1" "$(_sync_count)"
 }
 
-function test_rebase_pull_with_spec_change_syncs() {
+function test_rebase_pull_with_spec_change_syncs_once() {
     _commit_in "$TEMP_DIR/work" code.txt "local"
     _commit_in "$TEMP_DIR/origin" .agnostic-ai/rules/a.md "more"
 
-    git -C "$TEMP_DIR/work" pull -q --rebase >/dev/null 2>&1
+    _git pull -q --rebase
 
     assert_equals "1" "$(_sync_count)"
 }
+
+function test_switching_to_a_branch_with_newer_reviewed_specs_syncs() {
+    _commit_in "$TEMP_DIR/origin" .agnostic-ai/rules/a.md "more"
+    _git fetch -q
+
+    _git checkout -q -b fresh origin/main
+
+    assert_equals "1" "$(_sync_count)"
+}
+
+function test_fresh_install_catches_up_stale_output() {
+    _forget_last_sync
+
+    _git checkout -q -b any
+
+    assert_equals "1" "$(_sync_count)"
+}
+
+# --- when it does not --------------------------------------------------------
 
 function test_pull_without_spec_change_does_not_sync() {
     _commit_in "$TEMP_DIR/origin" code.txt "more"
 
-    git -C "$TEMP_DIR/work" pull -q --no-rebase >/dev/null 2>&1
+    _git pull -q --no-rebase
 
     assert_equals "0" "$(_sync_count)"
 }
 
-function test_branch_switch_across_spec_change_syncs() {
-    git -C "$TEMP_DIR/work" checkout -q -b other
-    _commit_in "$TEMP_DIR/work" .agnostic-ai/rules/a.md "more"
-    : > "$TEMP_DIR/sync.log"
+function test_already_synced_specs_do_not_sync_again() {
+    _commit_in "$TEMP_DIR/origin" .agnostic-ai/rules/a.md "more"
+    _git pull -q --no-rebase
 
-    git -C "$TEMP_DIR/work" checkout -q main
+    _git checkout -q -b same-specs
 
     assert_equals "1" "$(_sync_count)"
 }
@@ -109,7 +140,7 @@ function test_branch_switch_across_spec_change_syncs() {
 function test_amend_does_not_sync() {
     _commit_in "$TEMP_DIR/work" .agnostic-ai/rules/a.md "more"
 
-    git -C "$TEMP_DIR/work" commit -q --amend -m "amended"
+    _git commit -q --amend -m "amended"
 
     assert_equals "0" "$(_sync_count)"
 }
@@ -125,30 +156,32 @@ function test_missing_agnostic_ai_never_fails_the_pull() {
     assert_equals "0" "$rc"
 }
 
+# --- trust -------------------------------------------------------------------
+
 function test_branch_with_unreviewed_specs_does_not_sync() {
-    git -C "$TEMP_DIR/work" checkout -q -b other
+    _git checkout -q -b other
     _commit_in "$TEMP_DIR/work" .agnostic-ai/rules/a.md "more"
-    git -C "$TEMP_DIR/work" checkout -q main
+    _git checkout -q main
     : > "$TEMP_DIR/sync.log"
 
-    git -C "$TEMP_DIR/work" checkout -q other
+    _git checkout -q other
 
     assert_equals "0" "$(_sync_count)"
 }
 
 function test_checked_out_branch_cannot_change_the_hook_that_runs() {
-    git -C "$TEMP_DIR/work" checkout -q -b evil
+    _git checkout -q -b evil
     local hook
     for hook in post-checkout post-merge post-rewrite sync-agent-config; do
         printf '#!/bin/bash\ntouch "%s/pwned"\n' "$TEMP_DIR" > "$TEMP_DIR/work/tools/git-hooks/$hook.sh"
     done
     echo "more" >> "$TEMP_DIR/work/.agnostic-ai/rules/a.md"
-    git -C "$TEMP_DIR/work" add -A
-    git -C "$TEMP_DIR/work" commit -q -m "evil hooks"
-    git -C "$TEMP_DIR/work" checkout -q main
+    _git add -A
+    _git commit -q -m "evil hooks"
+    _git checkout -q main
 
-    git -C "$TEMP_DIR/work" checkout -q evil
-    git -C "$TEMP_DIR/work" checkout -q main
+    _git checkout -q evil
+    _git checkout -q main
 
     assert_file_not_exists "$TEMP_DIR/pwned"
 }
@@ -157,56 +190,53 @@ function test_untracked_spec_file_blocks_the_sync() {
     echo "local" > "$TEMP_DIR/work/.agnostic-ai/rules/untracked.md"
     _commit_in "$TEMP_DIR/origin" .agnostic-ai/rules/a.md "more"
 
-    git -C "$TEMP_DIR/work" pull -q --no-rebase >/dev/null 2>&1
+    _git pull -q --no-rebase
 
     assert_equals "0" "$(_sync_count)"
 }
 
 function test_modified_spec_file_blocks_the_sync() {
-    echo "b" > "$TEMP_DIR/origin/.agnostic-ai/rules/b.md"
-    git -C "$TEMP_DIR/origin" add -A
-    git -C "$TEMP_DIR/origin" commit -q -m "add b"
-    git -C "$TEMP_DIR/work" pull -q --no-rebase >/dev/null 2>&1
-    : > "$TEMP_DIR/sync.log"
-    echo "local edit" >> "$TEMP_DIR/work/.agnostic-ai/rules/b.md"
-    _commit_in "$TEMP_DIR/origin" .agnostic-ai/rules/a.md "more"
+    echo "local edit" >> "$TEMP_DIR/work/.agnostic-ai/rules/a.md"
+    _forget_last_sync
 
-    git -C "$TEMP_DIR/work" pull -q --no-rebase >/dev/null 2>&1
+    _git checkout -q -b elsewhere
 
     assert_equals "0" "$(_sync_count)"
 }
 
 function test_branch_tracking_a_local_layer_blocks_the_sync() {
-    git -C "$TEMP_DIR/work" checkout -q -b spec-change
-    _commit_in "$TEMP_DIR/work" .agnostic-ai/rules/a.md "more"
-    git -C "$TEMP_DIR/work" checkout -q main
-    git -C "$TEMP_DIR/work" checkout -q -b with-local
+    _git checkout -q -b with-local
     echo "overlay: evil" > "$TEMP_DIR/work/agnostic-ai.local.yaml"
-    git -C "$TEMP_DIR/work" add -f agnostic-ai.local.yaml
-    git -C "$TEMP_DIR/work" commit -q -m "track a local layer"
-    git -C "$TEMP_DIR/work" checkout -q spec-change
+    _git add -f agnostic-ai.local.yaml
+    _git commit -q -m "track a local layer"
+    _git checkout -q main
+    _forget_last_sync
     : > "$TEMP_DIR/sync.log"
 
-    git -C "$TEMP_DIR/work" checkout -q with-local
+    _git checkout -q with-local
 
     assert_equals "0" "$(_sync_count)"
 }
 
-function test_init_leaves_a_foreign_hook_alone() {
-    local hook="$TEMP_DIR/work/.git/hooks/post-merge"
-    rm -f "$hook"
-    printf '#!/bin/bash\necho lfs\n' > "$hook"
+# --- installer ---------------------------------------------------------------
+
+function test_init_leaves_foreign_hooks_alone() {
+    local hooks="$TEMP_DIR/work/.git/hooks"
+    rm -f "$hooks/post-merge" "$hooks/pre-commit"
+    printf '#!/bin/bash\necho lfs\n' > "$hooks/post-merge"
+    printf '#!/bin/bash\necho lint\n' > "$hooks/pre-commit"
 
     (cd "$TEMP_DIR/work" && ./tools/git-hooks/init.sh >/dev/null 2>&1)
 
-    assert_equals "echo lfs" "$(tail -1 "$hook")"
+    assert_equals "echo lfs" "$(tail -1 "$hooks/post-merge")"
+    assert_equals "echo lint" "$(tail -1 "$hooks/pre-commit")"
 }
 
 function test_init_is_idempotent_for_its_own_hooks() {
     (cd "$TEMP_DIR/work" && ./tools/git-hooks/init.sh >/dev/null 2>&1)
     _commit_in "$TEMP_DIR/origin" .agnostic-ai/rules/a.md "more"
 
-    git -C "$TEMP_DIR/work" pull -q --no-rebase >/dev/null 2>&1
+    _git pull -q --no-rebase
 
     assert_equals "1" "$(_sync_count)"
 }

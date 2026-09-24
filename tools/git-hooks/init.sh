@@ -8,11 +8,16 @@ function setup_git_hooks()
   local hooks
   hooks="$(git rev-parse --git-path hooks)"
   mkdir -p "$hooks"
-  ln -sf "$PWD/tools/git-hooks/pre-commit.sh" "$hooks/pre-commit"
+  local target="$hooks/pre-commit"
+  if [ -e "$target" ] && ! { [ -L "$target" ] && [[ "$(readlink "$target")" == */tools/git-hooks/* ]]; }; then
+    echo "Skipping pre-commit: $target exists and was not installed by this script. Merge it by hand." >&2
+  else
+    ln -sf "$PWD/tools/git-hooks/pre-commit.sh" "$target"
+  fi
   # Copies, not symlinks: these run on checkout and pull, so the code they run
   # must not come from whatever branch was just checked out. Re-run init.sh to
   # pick up a change to them.
-  local hook target
+  local hook
   for hook in post-merge post-checkout post-rewrite sync-agent-config; do
     target="$hooks/$hook"
     # Replace only what this script installed: a symlink into tools/git-hooks

@@ -14,8 +14,9 @@ From the repo root:
 This symlinks `pre-commit` and copies the other hooks into `.git/hooks/`.
 The post-* hooks run on checkout and pull, so they are copies: a branch you
 check out cannot change what they run. Re-run `init.sh` after a change to this
-directory. `init.sh` replaces only hooks it installed itself; a hook from another
-tool (Git LFS, a hook manager) is left alone with a warning, to merge by hand.
+directory. `init.sh` replaces only hooks it installed itself, `pre-commit` included; a hook
+from another tool (Git LFS, a hook manager) is left alone with a warning, to
+merge by hand.
 
 ## Hooks
 
@@ -25,7 +26,7 @@ tool (Git LFS, a hook manager) is left alone with a warning, to merge by hand.
 | [`post-merge.sh`](post-merge.sh) | `post-merge` | Runs `agnostic-ai sync` when a pull changed `.agnostic-ai/` or `agnostic-ai.yaml`, so the gitignored `.claude/`, `.codex/` and `AGENTS.md` never lag behind the specs. |
 | [`post-checkout.sh`](post-checkout.sh) | `post-checkout` | The same on a branch switch. |
 | [`post-rewrite.sh`](post-rewrite.sh) | `post-rewrite` | The same after `git pull --rebase` or `git rebase`, which never run `post-merge`. |
-| [`sync-agent-config.sh`](sync-agent-config.sh) | (helper) | Shared by the three hooks above. Syncs only when the specs match `origin/main` and have no local changes, since sync emits hooks the next agent session runs; on any other branch it prints a notice instead. Never fails the git command, and does nothing without `agnostic-ai`. |
+| [`sync-agent-config.sh`](sync-agent-config.sh) | (helper) | Shared by the three hooks above. Syncs when HEAD's specs differ from the ones it last synced in this worktree (recorded in `.git/agnostic-ai-synced`), so the first run after install also catches up stale output. Syncs on its own only when the specs match `origin/main` and have no local changes, since sync emits hooks the next agent session runs; otherwise it prints a notice. Never fails the git command, and does nothing without `agnostic-ai`. |
 | [`init.sh`](init.sh) | — | Installer. Symlinks `pre-commit`, copies the rest into `.git/hooks/`. |
 
 ## Skipping a hook

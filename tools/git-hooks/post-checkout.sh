@@ -3,7 +3,4 @@
 
 # $3 is 1 for a branch switch, 0 for a file checkout.
 [ "${3:-0}" = "1" ] || exit 0
-# A rebase checks out its base first; post-rewrite syncs once it finishes.
-[ -d "$(git rev-parse --git-path rebase-merge)" ] && exit 0
-[ -d "$(git rev-parse --git-path rebase-apply)" ] && exit 0
-"$(dirname "$0")/sync-agent-config" "$1" "$2"
+"$(dirname "$0")/sync-agent-config"
