@@ -38,7 +38,7 @@ STUB
     git clone -q "$TEMP_DIR/origin" "$TEMP_DIR/work"
     (cd "$TEMP_DIR/work" && ./tools/git-hooks/init.sh >/dev/null)
     # First run catches the fresh clone up; the tests start from a synced state.
-    (cd "$TEMP_DIR/work" && .git/hooks/sync-agent-config >/dev/null 2>&1)
+    (cd "$TEMP_DIR/work" && .git/hooks/phel-sync-agent-config >/dev/null 2>&1)
     : > "$TEMP_DIR/sync.log"
 }
 
@@ -172,7 +172,7 @@ function test_branch_with_unreviewed_specs_does_not_sync() {
 function test_checked_out_branch_cannot_change_the_hook_that_runs() {
     _git checkout -q -b evil
     local hook
-    for hook in post-checkout post-merge post-rewrite sync-agent-config; do
+    for hook in post-checkout post-merge post-rewrite phel-sync-agent-config; do
         printf '#!/bin/bash\ntouch "%s/pwned"\n' "$TEMP_DIR" > "$TEMP_DIR/work/tools/git-hooks/$hook.sh"
     done
     echo "more" >> "$TEMP_DIR/work/.agnostic-ai/rules/a.md"
@@ -239,4 +239,18 @@ function test_init_is_idempotent_for_its_own_hooks() {
     _git pull -q --no-rebase
 
     assert_equals "1" "$(_sync_count)"
+}
+
+function test_init_never_wires_hooks_to_a_foreign_helper() {
+    local hooks="$TEMP_DIR/work/.git/hooks"
+    rm -f "$hooks/post-merge" "$hooks/post-checkout" "$hooks/post-rewrite" "$hooks/phel-sync-agent-config"
+    printf '#!/bin/bash\ntouch "%s/pwned"\n' "$TEMP_DIR" > "$hooks/phel-sync-agent-config"
+    chmod +x "$hooks/phel-sync-agent-config"
+
+    (cd "$TEMP_DIR/work" && ./tools/git-hooks/init.sh >/dev/null 2>&1)
+    _commit_in "$TEMP_DIR/origin" .agnostic-ai/rules/a.md "more"
+    _git pull -q --no-rebase
+
+    assert_file_not_exists "$hooks/post-merge"
+    assert_file_not_exists "$TEMP_DIR/pwned"
 }

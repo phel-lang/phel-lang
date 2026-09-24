@@ -3,4 +3,4 @@
 
 # $3 is 1 for a branch switch, 0 for a file checkout.
 [ "${3:-0}" = "1" ] || exit 0
-"$(dirname "$0")/sync-agent-config"
+"$(dirname "$0")/phel-sync-agent-config"
