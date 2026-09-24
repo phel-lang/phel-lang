@@ -6,46 +6,46 @@ All notable changes to this project will be documented in this file.
 
 ### Changed
 
-- **BREAKING**: PHP 8.5 is the minimum supported version. Raising the floor is breaking once `1.x` starts, so it moves now. (#3302)
-- **BREAKING (PHP API)**: `FilesystemFacadeInterface` moves from `Phel\Filesystem` to `Phel\Shared\Facade`, next to the other cross-module facade contracts. `Phel\Fiber\FiberFacadeInterface` is removed: type-hint `Phel\Fiber\FiberFacade` instead. (#2859)
-- **BREAKING (PHP API)**: `MetaInterface::withMeta()` always returns a copy and leaves the receiver unchanged. Symbols, keywords, atoms and functions are no longer mutated in place. Every implementation is `#[NoDiscard]`, so keep the returned value. Change atom metadata with `Atom::alterMeta()` and `Atom::resetMeta()`. (#3311, ADR 0019)
-- **BREAKING (PHP API)**: lint rule codes move from the internal `RuleRegistry` to the public `Phel\Shared\LintRuleCodes`. The strings do not change, so matching `phel/unused-require` in `phel lint --format=json` output keeps working. Renaming a code is now a breaking change. `Phel\Shared\Exceptions\ErrorCode` is documented as public. (#3309)
+- **BREAKING**: PHP 8.5 is the minimum. The floor moves now: once `1.x` starts, raising it needs a major. (#3302)
+- **BREAKING (PHP API)**: `FilesystemFacadeInterface` moves from `Phel\Filesystem` to `Phel\Shared\Facade`. `Phel\Fiber\FiberFacadeInterface` is gone: type-hint `Phel\Fiber\FiberFacade` instead. (#2859)
+- **BREAKING (PHP API)**: `MetaInterface::withMeta()` always returns a copy. Symbols, keywords, atoms and functions are no longer changed in place, so keep the returned value. For atoms, use `Atom::alterMeta()` and `Atom::resetMeta()`. (#3311, ADR 0019)
+- **BREAKING (PHP API)**: lint rule codes move to the public `Phel\Shared\LintRuleCodes`. The strings stay the same, so `phel lint --format=json` consumers keep working. Renaming a code is now a breaking change. `Phel\Shared\Exceptions\ErrorCode` is public too. (#3309)
 
 ### Added
 
-- Type tags for Phel's value types: `^map`, `^vector`, `^set`, `^list`, `^keyword`, `^symbol` and `^atom`. `(defn f [^map m] (:k m))` gets the `->find` lowering without the full interface name. `?map` and `map|null` work too. See "Type tags" in `docs/spec/language-surface.md`. (#3319)
-- Collection methods that return a copy are `#[NoDiscard]`. Discarding `(.put m k v)`, or an inlined `(conj v x)` / `(assoc m :b 2)` in non-tail position, now warns instead of doing nothing. Cast to `(void)` when it is deliberate. Transients are exempt, except `TransientArrayMap::put`, which can return a new transient. (#3303)
-- `phel bench --ab=<git-ref> --pairs=N` compares the working tree against a git ref, A then B once per pair, with the same bench options. Each row shows the mean per-pair delta and says `noise` when the pairs disagree on the sign. `--tolerance` fails only when a benchmark is slower by more than the tolerance in every pair. The temporary worktree is always removed, and the working tree is never touched. See `docs/benchmarking.md`. (#3324)
+- Short type tags for Phel values: `^map`, `^vector`, `^set`, `^list`, `^keyword`, `^symbol` and `^atom`. `?map` and `map|null` work too. `(defn f [^map m] (:k m))` gets the fast `->find` lookup without the full interface name. See "Type tags" in `docs/spec/language-surface.md`. (#3319)
+- Collection methods that return a copy are `#[NoDiscard]`. Dropping the result of `(.put m k v)`, or of an inlined `(conj v x)` / `(assoc m :b 2)` outside tail position, now warns instead of doing nothing. Cast to `(void)` when it is deliberate. Transients are exempt, except `TransientArrayMap::put`, which can return a new transient. (#3303)
+- `phel bench --ab=<git-ref> --pairs=N` compares the working tree with a git ref, one A/B run per pair. Each row shows the mean delta, or `noise` when the pairs disagree on the sign. `--tolerance` fails only when every pair is slower by more than the tolerance. The working tree is never touched. See `docs/benchmarking.md`. (#3324)
+- Public PHP API, since compiled code calls it: `Phel\Lang\GetIn`, `Phel\Lang\AssocIn` and `Phel\Lang\Collections\ValueIdentity`. (#3320 #3321 #3328)
 
 ### Performance
 
-Literal call shapes compile to direct code. Results are unchanged. A path or key list from a variable, `apply`, or a local binding that shadows the core fn keeps the runtime call.
+Literal call shapes compile to direct code, with the same results. A key list from a variable, `apply`, or a local that shadows the core fn keeps the runtime call.
 
-- Multi-key `(assoc m k1 v1 k2 v2 ...)`: one step per pair, 3.4x to 3.7x faster. `(assoc! t ...)` the same: 3.4x faster, where it was 2.9x slower than chained single calls. The `transient` docstring now says when a transient pays off: about eight writes on a map. (#3317 #3318)
-- `(get-in m [k1 k2 ...])` on an untagged target: one `Phel\Lang\GetIn::path` call, 2.9x faster for two keys, 4.5x for eight with a default. (#3320)
-- `(assoc-in m [...] v)` and `(update-in m [...] f & args)`: one `Phel\Lang\AssocIn` call, 1.9x to 2.5x faster, 2.8x for `update-in` with extra arguments. (#3328)
-- At optimization level 2, `(update m k (fn [v] ...))` in tail position inlines a simple literal fn: no closure, about 9% faster on a 90-key map. Off at the default level and for a `:redef` `update`. A body that could tell it runs in the caller's frame, including one that may hold an object it built, keeps the runtime call. (#3322)
-- `Phel\Lang\GetIn` and `Phel\Lang\AssocIn` are public PHP API, since compiled code calls them.
+- `(assoc m k1 v1 k2 v2 ...)`: one step per pair, 3.4x to 3.7x faster. `(assoc! t ...)` is 3.4x faster. The `transient` docstring now says when a transient pays off: about eight writes on a map. (#3317 #3318)
+- `(get-in m [k1 k2 ...])`: 2.9x faster for two keys, 4.5x for eight keys with a default. (#3320)
+- `(assoc-in m [...] v)` and `(update-in m [...] f & args)`: 1.9x to 2.8x faster. (#3328)
+- At optimization level 2, `(update m k (fn [v] ...))` in tail position inlines a simple literal fn: no closure, about 9% faster on a 90-key map. Off at the default level, for a `:redef` `update`, and for a body that could notice it runs in the caller's frame. (#3322)
 
 Runtime:
 
-- `assoc` of the value an index already holds returns the vector itself: 2.4x faster on a 100-element vector. Same for `rest` / `subvec` vectors and structs. A new value costs about 3% more on a vector and 5% less on a hash map. `Phel\Lang\Collections\ValueIdentity` is public PHP API. (#3321)
-- `into` with a transducer reduces through `(xf conj)` directly, core transducers build one function instead of two, and `reduce` stops building a closure per element. `(into [] (comp (map f) (filter :alive)) coll)` drops from 14.2μs to 11.8μs, `(reduce + 0 v)` over 32 ints from 9.6μs to 6.8μs. One change, toward Clojure: a custom transducer that calls its reducing fn with extra arguments reaches `conj`'s variadic arity instead of throwing. (#3323)
+- `assoc` of the value an index already holds returns the same vector: 2.4x faster on 100 elements. Same for `rest` / `subvec` vectors and structs. A new value costs about 3% more on a vector and 5% less on a hash map. (#3321)
+- `into` with a transducer, the core transducers and `reduce` build fewer closures. `(into [] (comp (map f) (filter :alive)) coll)` drops from 14.2μs to 11.8μs, `(reduce + 0 v)` over 32 ints from 9.6μs to 6.8μs. One change, toward Clojure: a custom transducer that calls its reducing fn with extra arguments reaches `conj`'s variadic arity instead of throwing. (#3323)
 
 ### Fixed
 
 Compiler:
 
-- **BREAKING**: an octal escape above `\377` is a compile error instead of wrapping silently (`"\400"` compiled to NUL). Char-literal errors now show file, line, snippet and caret. Clojure rejects it too. (#3301)
-- A bare tag after a `:use` import, `:as` alias included, resolves to the imported class. It used to reach the generated PHP unqualified and fail at call time. The tag resolves in the namespace that declares it, so a caller mapping the same alias to another class no longer infers the wrong return type and throws `TypeError`. Union and intersection tags on `defstruct` and `definterface` resolve the same way. (#3319)
+- **BREAKING**: an octal escape above `\377` is a compile error. It used to wrap silently: `"\400"` compiled to NUL. Clojure rejects it too. Char-literal errors now show file, line, snippet and caret. (#3301)
+- A bare tag after a `:use` import, `:as` alias included, resolves to the imported class. It used to reach the generated PHP unqualified and fail at call time. The tag resolves where it is declared, so a caller mapping the same alias to another class no longer infers the wrong type and throws `TypeError`. Union and intersection tags on `defstruct` and `definterface` resolve the same way. (#3319)
 
 Collections:
 
-- `assoc` on a map keeps a new value that is `=` to the stored one but distinguishable from it: `-0.0` over `0.0`, a `BigInt` over an equal `int`, a vector with new metadata. The unchanged-value check compares by identity, as Clojure does. A PHP array always counts as a change, so two recursive arrays no longer throw `Nesting level too deep`. Applies to every map flavour, transients, structs and vectors. (#3321)
+- `assoc` on a map keeps a new value that is `=` to the stored one but not identical: `-0.0` over `0.0`, a `BigInt` over an equal `int`, a vector with new metadata. The unchanged check compares by identity, as Clojure does. A PHP array always counts as a change, so two recursive arrays no longer throw `Nesting level too deep`. Applies to every map type, transients, structs and vectors. (#3321)
 
 Tooling:
 
-- `phel test --parallel` workers run with the OPcache JIT off. A php.ini that enables the JIT, as on every GitHub runner, crashed workers with SIGBUS on arm64 macOS and stopped them sharing compiled code. A dead worker is reported with its exit code or signal and its output. Also fixed: a large stderr write no longer hangs the run, stray output is reported as a crash, and a namespace that kills its worker on every retry no longer takes the rest of the queue down. (#3334)
+- `phel test --parallel` workers run with the OPcache JIT off. A php.ini that enables the JIT, as on every GitHub runner, crashed workers with SIGBUS on arm64 macOS. A dead worker now reports its exit code or signal and its output. Also fixed: a large stderr write no longer hangs the run, stray output counts as a crash, and a namespace that kills its worker on every retry no longer stops the rest of the queue. (#3334)
 
 ## [0.52.0](https://github.com/phel-lang/phel-lang/compare/v0.51.0...v0.52.0) - 2026-09-19
 
