@@ -333,3 +333,31 @@ function test_a_failed_sync_is_retried() {
 
     assert_equals "2" "$(_sync_count)"
 }
+
+function test_unchanged_feature_branch_stays_trusted_after_main_moves_on() {
+    _git checkout -q -b old-feature
+    _commit_in "$TEMP_DIR/work" code.txt "feature work"
+    _git checkout -q main
+    _commit_in "$TEMP_DIR/origin" .agnostic-ai/rules/a.md "more"
+    _git pull -q --no-rebase
+    : > "$TEMP_DIR/sync.log"
+
+    _git checkout -q old-feature
+
+    assert_equals "1" "$(_sync_count)"
+}
+
+function test_returning_to_main_after_syncing_a_tracked_local_layer_resyncs() {
+    _git checkout -q -b with-local
+    echo "overlay: branch" > "$TEMP_DIR/work/agnostic-ai.local.yaml"
+    _git add -f agnostic-ai.local.yaml
+    _git commit -q -m "track a local layer"
+    agnostic-ai sync
+    _git checkout -q main
+    _git checkout -q with-local
+    : > "$TEMP_DIR/sync.log"
+
+    _git checkout -q main
+
+    assert_equals "1" "$(_sync_count)"
+}

@@ -28,7 +28,7 @@ every repository on the machine.
 | [`post-merge.sh`](post-merge.sh) | `post-merge` | Runs `agnostic-ai sync` when a pull changed `.agnostic-ai/` or `agnostic-ai.yaml`, so the gitignored `.claude/`, `.codex/` and `AGENTS.md` never lag behind the specs. |
 | [`post-checkout.sh`](post-checkout.sh) | `post-checkout` | The same on a branch switch. |
 | [`post-rewrite.sh`](post-rewrite.sh) | `post-rewrite` | The same after `git pull --rebase` or `git rebase`, which never run `post-merge`. |
-| [`phel-sync-agent-config.sh`](phel-sync-agent-config.sh) | (helper) | Shared by the three hooks above. Syncs when HEAD's specs differ from the ones it last synced in this worktree (recorded in `.git/agnostic-ai-synced`), so the first run after install also catches up stale output. Syncs on its own only when the specs match `origin/main` and have no local changes, since sync emits hooks the next agent session runs; otherwise it prints a notice. Never fails the git command, and does nothing without `agnostic-ai`. |
+| [`phel-sync-agent-config.sh`](phel-sync-agent-config.sh) | (helper) | Shared by the three hooks above. Syncs when HEAD's specs differ from the ones it last synced in this worktree (recorded in `.git/agnostic-ai-synced`), so the first run after install also catches up stale output. Syncs on its own only when the specs are reviewed (on `origin/main`, at its tip or where the branch forked) and have no local changes, since sync emits hooks the next agent session runs; otherwise it prints a notice. Never fails the git command, and does nothing without `agnostic-ai`. |
 | [`init.sh`](init.sh) | — | Installer. Symlinks `pre-commit`, copies the rest into `.git/hooks/`. |
 
 ## Skipping a hook
