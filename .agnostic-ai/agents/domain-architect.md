@@ -35,12 +35,12 @@ the consumer asks for.
 
 ## Rules
 
-1. **Lang is foundational** — zero dependencies on other modules
-2. **No new circular dependencies** — four accepted cycles are pinned by ADR/tests; additions need written rationale
-3. **Compiler phases are sequential** — Lexer → Parser → Analyzer → Emitter, never bypass
-4. **Shared stays thin** — genuinely cross-cutting only
-5. **Facades for external access** — consumers use `Api/` or CLI, not internals
-6. **One responsibility per module** — split if doing two unrelated things
+1. **Lang is foundational**: zero dependencies on other modules
+2. **No new circular dependencies**: four accepted cycles are pinned by ADR/tests; additions need written rationale
+3. **Compiler phases are sequential**: Lexer → Parser → Analyzer → Emitter, never bypass
+4. **Shared stays thin**: genuinely cross-cutting only
+5. **Facades for external access**: consumers use `Api/` or CLI, not internals
+6. **One responsibility per module**: split if doing two unrelated things
 
 ## Red Flags
 

@@ -5,18 +5,18 @@ globs: src/phel/**,tests/phel/**
 
 # Macro Hygiene
 
-Phel macros non-hygienic. `let`/`binding` names in macro body silently shadow homonymous globals when unquoted in `` ` ``. No error — wrong expansion.
+Phel macros non-hygienic. `let`/`binding` names in macro body silently shadow homonymous globals when unquoted in `` ` ``. No error. The expansion is wrong.
 
 ## 1. Local names must not collide with referenced globals
 
 Canonical bug (`defn-builder`, fixed in `c1aec277`):
 
 ```phel
-;; bad — local `memoize-lru` shadows global `memoize-lru` fn
+;; bad: local `memoize-lru` shadows global `memoize-lru` fn
 (let [memoize-lru (php/aget meta :memoize-lru)]
   `(def ~name ~meta (memoize-lru (fn ~@fdecl) ~memoize-lru)))
 
-;; good — role suffix avoids shadow
+;; good: role suffix avoids shadow
 (let [memoize-lru-arg (php/aget meta :memoize-lru)]
   `(def ~name ~meta (memoize-lru (fn ~@fdecl) ~memoize-lru-arg)))
 ```
@@ -26,7 +26,7 @@ Convention: suffix macro-local bindings with role (`-arg`, `-flag`, `-val`, `-sy
 ## 2. New symbols introduced into expansion need auto-gensym
 
 ```phel
-`(let [acc 0] ~@body)    ; bad — captures user's `acc`
+`(let [acc 0] ~@body)    ; bad: captures user's `acc`
 `(let [acc# 0] ~@body)   ; good
 ```
 

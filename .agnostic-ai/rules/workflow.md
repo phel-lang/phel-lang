@@ -12,3 +12,4 @@ description: Commit, changelog, pull request, and public writing requirements.
 - Link related issues with `Closes #X` when the pull request resolves them.
 - When adding changes to an open pull request, create a new commit. Do not amend or force push unless requested.
 - Write public GitHub comments in the maintainer's voice. Do not mention AI or LLM tooling.
+- Cut releases only with `tools/release.sh` (the `/release` skill wraps it), `--dry-run` first. The real run pushes to `main` and publishes, so get an explicit human go first. Details: `.agnostic-ai/rules/releases.md`.

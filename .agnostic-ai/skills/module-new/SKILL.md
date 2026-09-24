@@ -43,7 +43,7 @@ Scaffolds a new module under `src/php/<ModuleName>/` following the project Gacel
 
 6. **CLAUDE.md**: follow `src/php/CLAUDE.md` (shared conventions) and the section order of the reference module: one-line purpose, Gacela pattern, public API, dependencies, structure, key constraints. Document only what the code does not say.
 
-7. **Do not** register the module anywhere — Gacela auto-discovers via PSR-4.
+7. **Do not** register the module anywhere: Gacela auto-discovers via PSR-4.
 
 8. **Run static analysis** on the new files only:
    ```bash
@@ -52,7 +52,7 @@ Scaffolds a new module under `src/php/<ModuleName>/` following the project Gacel
 
 ## Constraints
 
-- No classes instantiated across module boundaries — always go through another module's Facade.
+- No classes instantiated across module boundaries: always go through another module's Facade.
 - Do not rely on Gacela's deprecated source/docblock service-resolution fallback; every inherited pillar accessor has an explicit `#[ServiceMap]`.
 - Provider entries use Gacela 2.0 `#[Provides(...)]`; key facade dependencies by the consumer-facing interface when one exists.
 - Mark classes `final` unless inheritance is explicitly justified.

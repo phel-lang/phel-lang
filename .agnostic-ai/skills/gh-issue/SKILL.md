@@ -85,7 +85,7 @@ Read both the issue body **and every comment** as requirements input. Maintainer
     - speculative guards: keep only fixes for failures you observed or can reach
     - over-engineering: speculative abstractions, premature interfaces
 
-    Apply fixes. Re-run `composer test`. Commit as a separate `ref(...)` commit — must be the final commit on the branch before PR:
+    Apply fixes. Re-run `composer test`. Commit as a separate `ref(...)` commit. It must be the final commit on the branch before PR:
     ```bash
     git commit -m "ref(<scope>): polish <area> after #<issue-number>
 

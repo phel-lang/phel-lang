@@ -14,9 +14,9 @@ globs: src/phel/**,tests/phel/**
 ## Docstrings
 
 Every public function should have metadata:
-- `:doc` — description of what the function does
-- `:see-also` — related functions (as strings): `["map" "filter"]`
-- `:example` — inline usage example
+- `:doc`: description of what the function does
+- `:see-also`: related functions as strings, e.g. `["map" "filter"]`
+- `:example`: inline usage example
 
 ## Comments
 
@@ -43,10 +43,10 @@ The post-edit hook runs `./bin/phel format` on every edited `*.phel` file. Check
 
 ## Commas
 
-Commas are optional whitespace — match Clojure:
+Commas are optional whitespace. Match Clojure:
 
 - Use them **between key/value pairs of a single-line map** to group visually: `{:a 1, :b 2}`.
 - Multi-line maps: no commas (the newline separates pairs).
 - Not in vectors, lists, or function calls.
 - `,` is whitespace everywhere, quasiquote included. `~` is unquote and `~@` unquote-splicing.
-- `phel format` preserves commas but never inserts them (like cljfmt) — they are author's choice.
+- `phel format` preserves commas but never inserts them (like cljfmt): they are author's choice.

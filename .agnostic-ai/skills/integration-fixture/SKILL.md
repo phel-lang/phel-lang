@@ -37,10 +37,10 @@ Scaffolds a new `.test` fixture in the two-section `--PHEL--` / `--PHP--` format
    ./vendor/bin/phpunit --testsuite=integration --filter=<Category>
    ```
 
-6. If the fixture fails, do NOT edit the expected PHP to match. Instead, report the diff — a failing fixture usually means a compiler regression or the input is not idiomatic.
+6. If the fixture fails, do NOT edit the expected PHP to match. Instead, report the diff: a failing fixture usually means a compiler regression or the input is not idiomatic.
 
 ## Constraints
 
-- One fixture per behavior — never bundle unrelated cases.
-- Source locations in the PHP output embed line/column metadata — any edit to the Phel input means regenerating the PHP section.
+- One fixture per behavior: never bundle unrelated cases.
+- Source locations in the PHP output embed line/column metadata: any edit to the Phel input means regenerating the PHP section.
 - PHP output uses `\Phel::` static helpers (`addDefinition`, `map`, `keyword`, `vector`, etc.). Never `use` statements inside fixtures.

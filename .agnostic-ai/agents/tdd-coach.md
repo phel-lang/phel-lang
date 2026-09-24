@@ -29,9 +29,9 @@ REFACTOR → Improve code, keep tests green
 
 ## Rules
 
-- **No production code without a failing test** — if you can't write a test, you don't understand the requirement
-- **Baby steps** — each test adds ONE behavior, small incremental changes
-- **Tests are documentation** — names describe behavior, tests show usage
+- **No production code without a failing test**: if you can't write a test, you don't understand the requirement
+- **Baby steps**: each test adds ONE behavior, small incremental changes
+- **Tests are documentation**: names describe behavior, tests show usage
 
 ## PHP Tests (tests/php/)
 

@@ -23,13 +23,13 @@ Audits every `src/php/<Module>/CLAUDE.md` file against the actual module code an
 
 For each module directory in `src/php/`:
 
-1. **CLAUDE.md exists** — if not, create one following the standard format
-2. **Purpose line** — still accurate?
-3. **Gacela pattern** — Facade, Factory, Config, Provider class names match actual files
-4. **Public API** — every public method on the Facade is listed; removed methods are gone
-5. **Dependencies** — `#[Provides(...)]` keys and factory `getProvidedDependency(...)` calls match what's actually injected
-6. **Structure tree** — subdirectories and key classes match reality
-7. **Key constraints** — still accurate, no stale references
+1. **CLAUDE.md exists**: if not, create one following the standard format
+2. **Purpose line**: still accurate?
+3. **Gacela pattern**: Facade, Factory, Config, Provider class names match actual files
+4. **Public API**: every public method on the Facade is listed; removed methods are gone
+5. **Dependencies**: `#[Provides(...)]` keys and factory `getProvidedDependency(...)` calls match what's actually injected
+6. **Structure tree**: subdirectories and key classes match reality
+7. **Key constraints**: still accurate, no stale references
 
 ## How to check
 
@@ -41,8 +41,8 @@ For each module directory in `src/php/`:
 ## Output format
 
 For each module, report one of:
-- **OK** — no changes needed
-- **Updated** — list what changed
+- **OK**: no changes needed
+- **Updated**: list what changed
 
 ## Standard CLAUDE.md format
 
@@ -63,4 +63,4 @@ One-line purpose.
 ## Key Constraints
 ```
 
-Keep content concise and scannable. No prose paragraphs — use lists, tables, and code blocks.
+Keep content concise and scannable. No prose paragraphs: use lists, tables, and code blocks.

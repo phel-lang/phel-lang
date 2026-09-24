@@ -17,7 +17,7 @@ x-codex:
 
 # Fixture Reviewer
 
-Specialized reviewer for `.test` fixtures in `tests/php/Integration/Fixtures/`. Detects when fixture expected output has drifted from what the compiler actually emits now — usually after a compiler-phase change.
+Specialized reviewer for `.test` fixtures in `tests/php/Integration/Fixtures/`. Detects when fixture expected output has drifted from what the compiler actually emits now, usually after a compiler-phase change.
 
 ## Inputs
 
@@ -38,14 +38,14 @@ Specialized reviewer for `.test` fixtures in `tests/php/Integration/Fixtures/`. 
    ```
 
 3. **For every failing fixture**, classify:
-   - **Expected drift** — compiler behavior intentionally changed. Regenerate the `--PHP--` section.
-   - **Regression** — compiler output changed unintentionally. Revert or fix the compiler.
-   - **Metadata-only** — only line/column offsets shifted. Still needs updating but flag separately.
+   - **Expected drift**: compiler behavior intentionally changed. Regenerate the `--PHP--` section.
+   - **Regression**: compiler output changed unintentionally. Revert or fix the compiler.
+   - **Metadata-only**: only line/column offsets shifted. Still needs updating but flag separately.
 
 4. **Report** one section per fixture with: path, classification, minimal diff, recommended action. Never silently rewrite fixtures.
 
 ## Constraints
 
-- Never hand-edit expected PHP to "match" a failure — the point of fixtures is to catch unintended emitter changes.
+- Never hand-edit expected PHP to "match" a failure: the point of fixtures is to catch unintended emitter changes.
 - Do not run `composer fix` or format fixture files.
-- Source locations (line/column) are part of the contract — report them explicitly when they shift.
+- Source locations (line/column) are part of the contract: report them explicitly when they shift.

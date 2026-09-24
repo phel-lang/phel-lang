@@ -31,9 +31,9 @@ x-claude:
      gh issue view <number> --json title -q '.title'
      ```
    - PR title format: `<type>(<scope>): <short description>` (conventional commit style, under 70 chars)
-   - Derive the type from the branch prefix (`feat/` → feat, `fix/` → fix, `docs/` → docs)
+   - Derive the type from the branch prefix (`feat/`, `fix/`, `ref/`, `perf/`, `docs/`, `test/`, `chore/`)
 
-4. **Read `.github/PULL_REQUEST_TEMPLATE.md`** and use its **exact section headers** (including emojis) for the PR body. Do NOT hardcode headers — always read the template file first.
+4. **Read `.github/PULL_REQUEST_TEMPLATE.md`** and use its **exact section headers** (including emojis) for the PR body. Do not hardcode headers: read the template file first.
 
 5. **Create PR** using the headers from the template:
    ```bash
@@ -45,13 +45,14 @@ x-claude:
    )"
    ```
 
-   **Labels:** Pick the single most relevant from:
-   - `bug` — branch starts with `fix/`
-   - `enhancement` — branch starts with `feat/`
-   - `documentation` — branch starts with `docs/`
-   - `refactoring` — code restructuring with no behavior change
-   - `pure testing` — only test changes
-   - `dependencies` — dependency updates
+   **Labels:** pick the single most relevant. These exist; `gh pr create` aborts on an unknown label:
+   - `bug`: `fix/`
+   - `enhancement`: `feat/`
+   - `documentation`: `docs/`
+   - `refactor`: no behavior change
+   - `perf`: performance
+   - `testing`: test-only changes
+   - `dependencies`: dependency updates
 
    **Body guidelines:**
    - Focus on *what* and *why*, not implementation details
