@@ -50,26 +50,26 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ ubuntu-latest ]
+        os: [ ubuntu-latest, macos-latest ]
         php: [ '8.5' ]
-        include:
-          - os: macos-latest
-            php: '8.5'
-            # Three core tests assert concurrency by wall clock. On the macOS
-            # runner a slow scheduler tick is indistinguishable from work that
-            # did not run concurrently, so they fail intermittently there and
-            # would make a supported platform permanently red for a reason that
-            # is not a Phel bug. Linux still runs them, so a genuine loss of
-            # concurrency is still caught.
-            exclude-tags: '--exclude=timing-sensitive'
     steps:
       - uses: actions/checkout@v6
       - uses: ./.github/actions/setup-phel
         with:
           php-version: ${{ matrix.php }}
 
+      # A cold run compiles every namespace; workers share that work, which is
+      # 5x faster than one process. Three tests assert concurrency by wall
+      # clock and would race the other workers, so they run on their own below.
       - name: Run tests to the core library
-        run: php ./bin/phel test ${{ matrix.exclude-tags }}
+        run: php ./bin/phel test --parallel=auto --exclude=timing-sensitive
+
+      # Linux only: on the macOS runner a slow scheduler tick is
+      # indistinguishable from work that did not run concurrently, so these
+      # fail there intermittently for a reason that is not a Phel bug.
+      - name: Run the wall-clock concurrency tests alone
+        if: matrix.os == 'ubuntu-latest'
+        run: php ./bin/phel test --include=timing-sensitive
 
   # `optimizationLevel` defaults to 0, so without this job nothing in CI ever
   # runs `CallInliner` or `TailCallRewriter`. That is how -O2 came to fail five
@@ -93,7 +93,8 @@ jobs:
           PHEL_OPTIMIZATION_LEVEL: '2'
         run: |
           rm -rf ./.phel/cache
-          php ./bin/phel test
+          php ./bin/phel test --parallel=auto --exclude=timing-sensitive
+          php ./bin/phel test --include=timing-sensitive
 
   # Windows is the "Best effort" tier in docs/stability.md: bugs are accepted and
   # fixed, but a Windows-only failure does not block a release, so this job reports
