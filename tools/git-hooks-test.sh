@@ -56,6 +56,7 @@ function _make_origin() {
     mkdir -p "$origin/.agnostic-ai/rules" "$origin/tools"
     cp -R "$HOOKS_SRC" "$origin/tools/git-hooks"
     echo "rule" > "$origin/.agnostic-ai/rules/a.md"
+    echo "version: 1" > "$origin/agnostic-ai.yaml"
     echo "code" > "$origin/code.txt"
     git -C "$origin" init -q
     git -C "$origin" add -A
@@ -253,4 +254,37 @@ function test_init_never_wires_hooks_to_a_foreign_helper() {
 
     assert_file_not_exists "$hooks/post-merge"
     assert_file_not_exists "$TEMP_DIR/pwned"
+}
+
+function test_init_refuses_a_shared_hooks_path() {
+    local shared="$TEMP_DIR/shared-hooks"
+    mkdir -p "$shared"
+    git config --global core.hooksPath "$shared"
+
+    local rc=0
+    (cd "$TEMP_DIR/work" && ./tools/git-hooks/init.sh >/dev/null 2>&1) || rc=$?
+
+    assert_equals "1" "$rc"
+    assert_empty "$(ls -A "$shared")"
+}
+
+function test_helper_ignores_a_repository_without_agnostic_ai() {
+    local other="$TEMP_DIR/unrelated"
+    git init -q "$other"
+    echo "x" > "$other/file"
+    git -C "$other" add -A
+    git -C "$other" commit -q -m "init"
+
+    (cd "$other" && "$TEMP_DIR/work/.git/hooks/phel-sync-agent-config" >/dev/null 2>&1)
+
+    assert_equals "0" "$(_sync_count)"
+}
+
+function test_init_accepts_a_hooks_path_pointing_at_its_own_hooks() {
+    git -C "$TEMP_DIR/work" config core.hooksPath "$TEMP_DIR/work/.git/hooks"
+
+    local rc=0
+    (cd "$TEMP_DIR/work" && ./tools/git-hooks/init.sh >/dev/null 2>&1) || rc=$?
+
+    assert_equals "0" "$rc"
 }

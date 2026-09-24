@@ -23,9 +23,16 @@ function install_owned_copy()
 function setup_git_hooks()
 {
   echo "Initialising git hooks..."
-  local hooks
-  hooks="$(git rev-parse --git-path hooks)"
+  # Only ever this repository's own hooks directory. A core.hooksPath may be
+  # shared by every repository on the machine, so installing there is refused.
+  local hooks configured
+  hooks="$(cd "$(git rev-parse --git-common-dir)" && pwd -P)/hooks"
   mkdir -p "$hooks"
+  configured="$(git config --get core.hooksPath || true)"
+  if [ -n "$configured" ] && [ "$(cd "$configured" 2>/dev/null && pwd -P)" != "$hooks" ]; then
+    echo "core.hooksPath is set to $configured: not installing. Call tools/git-hooks/*.sh from your own hooks instead." >&2
+    return 1
+  fi
   local target="$hooks/pre-commit"
   if [ -e "$target" ] && ! { [ -L "$target" ] && [[ "$(readlink "$target")" == */tools/git-hooks/* ]]; }; then
     echo "Skipping pre-commit: $target exists and was not installed by this script. Merge it by hand." >&2

@@ -18,6 +18,7 @@
 # A hook never fails the git command that ran it.
 
 command -v agnostic-ai >/dev/null 2>&1 || exit 0
+[ -f "$(git rev-parse --show-toplevel 2>/dev/null)/agnostic-ai.yaml" ] || exit 0
 
 state="$(git rev-parse --git-path agnostic-ai-synced)"
 specs="$(git rev-parse -q --verify HEAD:.agnostic-ai 2>/dev/null) $(git rev-parse -q --verify HEAD:agnostic-ai.yaml 2>/dev/null)"
