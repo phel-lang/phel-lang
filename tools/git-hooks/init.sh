@@ -3,14 +3,14 @@
 set -e
 
 # Copies tools/git-hooks/<name>.sh to <hooks>/<name>. Replaces only what this
-# script installed: a symlink into tools/git-hooks (older installs) or a copy
-# carrying the marker. Returns 1 and leaves any other file alone.
+# script installed: a symlink to this checkout's copy (older installs) or a
+# copy carrying the marker. Returns 1 and leaves any other file alone.
 function install_owned_copy()
 {
   local hooks="$1" name="$2"
   local target="$hooks/$name"
   if [ -e "$target" ] || [ -L "$target" ]; then
-    if ! { [ -L "$target" ] && [[ "$(readlink "$target")" == */tools/git-hooks/* ]]; } \
+    if ! { [ -L "$target" ] && [ "$(readlink "$target")" = "$PWD/tools/git-hooks/$name.sh" ]; } \
       && ! grep -q '^# phel-lang git hook' "$target" 2>/dev/null; then
       echo "Skipping $name: $target exists and was not installed by this script. Merge it by hand." >&2
       return 1
@@ -34,7 +34,7 @@ function setup_git_hooks()
     return 1
   fi
   local target="$hooks/pre-commit"
-  if [ -e "$target" ] && ! { [ -L "$target" ] && [[ "$(readlink "$target")" == */tools/git-hooks/* ]]; }; then
+  if { [ -e "$target" ] || [ -L "$target" ]; } && ! { [ -L "$target" ] && [ "$(readlink "$target")" = "$PWD/tools/git-hooks/pre-commit.sh" ]; }; then
     echo "Skipping pre-commit: $target exists and was not installed by this script. Merge it by hand." >&2
   else
     ln -sf "$PWD/tools/git-hooks/pre-commit.sh" "$target"

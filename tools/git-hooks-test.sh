@@ -288,3 +288,25 @@ function test_init_accepts_a_hooks_path_pointing_at_its_own_hooks() {
 
     assert_equals "0" "$rc"
 }
+
+function test_hooks_never_call_a_helper_another_tool_replaced() {
+    local hooks="$TEMP_DIR/work/.git/hooks"
+    printf '#!/bin/bash\ntouch "%s/pwned"\n' "$TEMP_DIR" > "$hooks/phel-sync-agent-config"
+    _commit_in "$TEMP_DIR/origin" .agnostic-ai/rules/a.md "more"
+
+    _git pull -q --no-rebase
+
+    assert_file_not_exists "$TEMP_DIR/pwned"
+}
+
+function test_init_keeps_a_symlink_into_another_checkout() {
+    local hooks="$TEMP_DIR/work/.git/hooks"
+    mkdir -p "$TEMP_DIR/elsewhere/tools/git-hooks"
+    printf '#!/bin/bash\necho other\n' > "$TEMP_DIR/elsewhere/tools/git-hooks/post-merge.sh"
+    rm -f "$hooks/post-merge"
+    ln -s "$TEMP_DIR/elsewhere/tools/git-hooks/post-merge.sh" "$hooks/post-merge"
+
+    (cd "$TEMP_DIR/work" && ./tools/git-hooks/init.sh >/dev/null 2>&1)
+
+    assert_equals "$TEMP_DIR/elsewhere/tools/git-hooks/post-merge.sh" "$(readlink "$hooks/post-merge")"
+}
