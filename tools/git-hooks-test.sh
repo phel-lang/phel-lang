@@ -175,3 +175,38 @@ function test_modified_spec_file_blocks_the_sync() {
 
     assert_equals "0" "$(_sync_count)"
 }
+
+function test_branch_tracking_a_local_layer_blocks_the_sync() {
+    git -C "$TEMP_DIR/work" checkout -q -b spec-change
+    _commit_in "$TEMP_DIR/work" .agnostic-ai/rules/a.md "more"
+    git -C "$TEMP_DIR/work" checkout -q main
+    git -C "$TEMP_DIR/work" checkout -q -b with-local
+    echo "overlay: evil" > "$TEMP_DIR/work/agnostic-ai.local.yaml"
+    git -C "$TEMP_DIR/work" add -f agnostic-ai.local.yaml
+    git -C "$TEMP_DIR/work" commit -q -m "track a local layer"
+    git -C "$TEMP_DIR/work" checkout -q spec-change
+    : > "$TEMP_DIR/sync.log"
+
+    git -C "$TEMP_DIR/work" checkout -q with-local
+
+    assert_equals "0" "$(_sync_count)"
+}
+
+function test_init_leaves_a_foreign_hook_alone() {
+    local hook="$TEMP_DIR/work/.git/hooks/post-merge"
+    rm -f "$hook"
+    printf '#!/bin/bash\necho lfs\n' > "$hook"
+
+    (cd "$TEMP_DIR/work" && ./tools/git-hooks/init.sh >/dev/null 2>&1)
+
+    assert_equals "echo lfs" "$(tail -1 "$hook")"
+}
+
+function test_init_is_idempotent_for_its_own_hooks() {
+    (cd "$TEMP_DIR/work" && ./tools/git-hooks/init.sh >/dev/null 2>&1)
+    _commit_in "$TEMP_DIR/origin" .agnostic-ai/rules/a.md "more"
+
+    git -C "$TEMP_DIR/work" pull -q --no-rebase >/dev/null 2>&1
+
+    assert_equals "1" "$(_sync_count)"
+}

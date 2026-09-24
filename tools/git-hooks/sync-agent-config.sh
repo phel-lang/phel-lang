@@ -1,4 +1,5 @@
 #!/bin/bash
+# phel-lang git hook (installed by tools/git-hooks/init.sh)
 
 # Shared by post-merge, post-checkout and post-rewrite. init.sh copies it into
 # .git/hooks/ next to them, so a checked-out branch cannot change what runs.
@@ -20,9 +21,12 @@ git diff --name-only "$1" "$2" 2>/dev/null | grep -Eq "$specs" || exit 0
 
 # Sync reads the working tree, so it must hold exactly the reviewed specs:
 # HEAD matches origin/main, and nothing is staged, modified or untracked.
+# The local layers count too when a branch tracks them. An ignored local
+# layer is the developer's own config and is trusted like ~/.gitconfig.
+inputs=(.agnostic-ai agnostic-ai.yaml agnostic-ai.local.yaml .agnostic-ai.local)
 if git rev-parse --verify -q origin/main >/dev/null \
-  && git diff --quiet origin/main HEAD -- .agnostic-ai agnostic-ai.yaml 2>/dev/null \
-  && [ -z "$(git status --porcelain --untracked-files=all -- .agnostic-ai agnostic-ai.yaml 2>/dev/null)" ]; then
+  && git diff --quiet origin/main HEAD -- "${inputs[@]}" 2>/dev/null \
+  && [ -z "$(git status --porcelain --untracked-files=all -- "${inputs[@]}" 2>/dev/null)" ]; then
   echo "agnostic-ai specs changed: running agnostic-ai sync"
   agnostic-ai sync -q || echo "agnostic-ai sync failed; run it by hand" >&2
 else

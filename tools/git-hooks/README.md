@@ -14,7 +14,8 @@ From the repo root:
 This symlinks `pre-commit` and copies the other hooks into `.git/hooks/`.
 The post-* hooks run on checkout and pull, so they are copies: a branch you
 check out cannot change what they run. Re-run `init.sh` after a change to this
-directory.
+directory. `init.sh` replaces only hooks it installed itself; a hook from another
+tool (Git LFS, a hook manager) is left alone with a warning, to merge by hand.
 
 ## Hooks
 

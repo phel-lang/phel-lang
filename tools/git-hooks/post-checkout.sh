@@ -1,4 +1,5 @@
 #!/bin/bash
+# phel-lang git hook (installed by tools/git-hooks/init.sh)
 
 # $3 is 1 for a branch switch, 0 for a file checkout.
 [ "${3:-0}" = "1" ] || exit 0
