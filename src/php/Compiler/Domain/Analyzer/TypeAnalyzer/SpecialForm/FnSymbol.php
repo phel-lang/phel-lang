@@ -68,9 +68,10 @@ final readonly class FnSymbol implements SpecialFormAnalyzerInterface
         // Multi-arity defs do not get the deferred-then-grafted single walk
         // (`DefSymbol::graftInferredParamTags` only runs for single-arity
         // FnNodes), so each child must keep inferring its return type inline.
-        // Children always splice into `$this->fnN = ...;` constructor
-        // assignments, so they must be analyzed in expression context —
-        // inheriting a return context would emit `= return (function...)`.
+        // Children compile to methods of the multi-arity class
+        // (`MultiFnAsClassEmitter`), never in the parent's own position, so
+        // they are analyzed in expression context rather than inheriting a
+        // return context meant for the parent.
         $childEnv = $env->withReturnInferenceDeferred(false)->withExpressionContext();
 
         $fnNodes = [];
