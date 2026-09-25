@@ -119,6 +119,22 @@ final class ConstantScope
         return $slot;
     }
 
+    /**
+     * Reserves the value slot of a keyword that has no node of its own: an
+     * arm key or arm value of a `case` / `cond` lowered to a PHP `match`,
+     * which the emitter writes from the analysed value. It is the slot a
+     * `:k` literal node of the same value gets, so both share it.
+     */
+    public function reserveKeyword(Keyword $keyword): int
+    {
+        return $this->valueSlots[$this->keywordValueKey($keyword)] ??= $this->nextConstId++;
+    }
+
+    public function lookupKeyword(Keyword $keyword): ?int
+    {
+        return $this->valueSlots[$this->keywordValueKey($keyword)] ?? null;
+    }
+
     public function lookup(AbstractNode $node): ?int
     {
         if (!$this->constSlots->offsetExists($node)) {
@@ -192,10 +208,7 @@ final class ConstantScope
         $value = $node->getValue();
 
         if ($value instanceof Keyword) {
-            $namespace = $value->getNamespace();
-            return $namespace !== null
-                ? 'kw:' . $namespace . '/' . $value->getName()
-                : 'kw:' . $value->getName();
+            return $this->keywordValueKey($value);
         }
 
         if (is_string($value)) {
@@ -227,6 +240,15 @@ final class ConstantScope
         }
 
         return null;
+    }
+
+    private function keywordValueKey(Keyword $keyword): string
+    {
+        $namespace = $keyword->getNamespace();
+
+        return $namespace !== null
+            ? 'kw:' . $namespace . '/' . $keyword->getName()
+            : 'kw:' . $keyword->getName();
     }
 
     /**

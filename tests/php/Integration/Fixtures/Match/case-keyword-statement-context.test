@@ -1,0 +1,32 @@
+--PHEL--
+(fn [x] (do (case x :a :foo :b :bar :baz) (php/print "done")))
+(fn [x] (if x {:a 1} :k) (php/print "d"))
+--PHP--
+(function($x) {
+  static $__phel_call_0, $__phel_call_1;
+  $__phel_1_2 = $x;
+  if (($__truthy = ($__phel_call_0 ??= \Phel::getDefinition("phel.core", "equals1"))->__invoke($__phel_1_2, \Phel\Lang\Keyword::create("a"))) !== null && $__truthy !== false) {
+
+  } else {
+    $__phel_3_4 = $__phel_1_2;
+    if (($__truthy = ($__phel_call_1 ??= \Phel::getDefinition("phel.core", "equals1"))->__invoke($__phel_3_4, \Phel\Lang\Keyword::create("b"))) !== null && $__truthy !== false) {
+
+    } else {
+
+    }
+
+  }
+
+  return print("done");
+});(function($x) {
+  static $__phel_const_0;
+  if ($x !== null && $x !== false) {
+    ($__phel_const_0 ??= \Phel::map(
+      \Phel\Lang\Keyword::create("a"), 1
+    ));
+  } else {
+
+  }
+
+  return print("d");
+});
