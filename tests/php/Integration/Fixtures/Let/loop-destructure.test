@@ -21,18 +21,19 @@ require_once __DIR__ . '/phel/core.php';
 $__phel_1_2 = \Phel::vector([1, 2, 3, 4]);
 $sum_3 = 0;
 while (true) {
-  $__phel_4_8 = $__phel_1_2;
-  $__phel_5_9 = (\Phel\Lang\Registry::readRoot("phel.core", "first"))->__invoke($__phel_4_8);
-  $__phel_6_10 = (\Phel\Lang\Registry::readRoot("phel.core", "next"))->__invoke($__phel_4_8);
-  $x_11 = $__phel_5_9;
-  $__phel_7_12 = $__phel_6_10;
-  $xs_13 = $__phel_7_12;
-  if ($x_11 !== null && $x_11 !== false) {
-    if ((($x_11 == null))) {
+  $__phel_4_9 = $__phel_1_2;
+  $__phel_5_10 = ($__phel_4_9 instanceof \Phel\Lang\Collections\Vector\PersistentVectorInterface);
+  $__phel_6_11 = ((($__phel_5_10 === true)) ? (($__phel_4_9)[(0)] ?? null) : (\Phel\Lang\Registry::readRoot("phel.core", "first"))->__invoke($__phel_4_9));
+  $__phel_7_12 = ((($__phel_5_10 === true)) ? null : (\Phel\Lang\Registry::readRoot("phel.core", "next"))->__invoke($__phel_4_9));
+  $x_13 = $__phel_6_11;
+  $__phel_8_14 = ((($__phel_5_10 === true)) ? (is_string($__phel_4_9) ? $__phel_4_9::cdr() : $__phel_4_9->cdr()) : $__phel_7_12);
+  $xs_15 = $__phel_8_14;
+  if ($x_13 !== null && $x_13 !== false) {
+    if ((($x_13 == null))) {
       $sum_3;
     } else {
-      $__phel_1_2 = $xs_13;
-      $sum_3 = ($sum_3 + $x_11);
+      $__phel_1_2 = $xs_15;
+      $sum_3 = ($sum_3 + $x_13);
       continue;
 
     }

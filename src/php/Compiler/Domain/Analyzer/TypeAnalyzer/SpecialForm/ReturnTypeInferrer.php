@@ -24,6 +24,7 @@ use Phel\Lang\Collections\HashSet\PersistentHashSetInterface;
 use Phel\Lang\Collections\LinkedList\PersistentListInterface;
 use Phel\Lang\Collections\Map\PersistentMapInterface;
 use Phel\Lang\Collections\Vector\PersistentVectorInterface;
+use Phel\Lang\Keyword;
 use Phel\Lang\Symbol;
 use Phel\Shared\CompilerConstants;
 use Phel\Shared\TagResolver;
@@ -53,6 +54,15 @@ use function is_string;
  */
 final class ReturnTypeInferrer
 {
+    /**
+     * Metadata key on a binding symbol the compiler synthesised as plumbing,
+     * such as the vector test and indexed reads of a sequential pattern
+     * (#3356). Its init is not the user's code, so an operator in it never
+     * trips `sawOperator`, and the local stays untyped so a later read of it
+     * does not either. Only mark a binding whose init holds no user form.
+     */
+    public const string SYNTHETIC_BINDING = 'phel/synthetic-binding';
+
     /**
      * Sentinel for nodes that do not produce a runtime value (`recur`,
      * `throw`). Used to merge `if` branches where one side is bottom
@@ -257,6 +267,10 @@ final class ReturnTypeInferrer
         foreach ($bindings as $i => $binding) {
             $name = $this->bindingName($binding);
             $names[$i] = $name;
+            if ($this->isSynthetic($binding)) {
+                continue;
+            }
+
             $type = $this->inferNode($binding->getInitExpr(), $locals);
             if ($type !== null && $type !== self::BOTTOM) {
                 $locals[$name] = $type;
@@ -457,6 +471,14 @@ final class ReturnTypeInferrer
     private function extractTag(Symbol $param): ?string
     {
         return TagResolver::fromMeta($param->getMeta());
+    }
+
+    private function isSynthetic(BindingNode $binding): bool
+    {
+        $meta = $binding->getSymbol()->getMeta();
+
+        return $meta instanceof PersistentMapInterface
+            && $meta->find(Keyword::create(self::SYNTHETIC_BINDING)) === true;
     }
 
     private function bindingName(BindingNode $binding): string
