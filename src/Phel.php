@@ -93,7 +93,10 @@ final class Phel extends InternalPhel
      * {@see ForeignFn} around anything else, so the site can call
      * `invokeArityN` without an `instanceof` guard (#3354). A missing
      * definition stays `null`, which leaves the slot's `??=` free to look it
-     * up again on the next call.
+     * up again on the next call. So does a var defined as `nil`: that is what
+     * `(declare f)` stores, and wrapping it would pin a throwing adapter in the
+     * slot for good, even after `f` is defined. Calling it fails with PHP's
+     * own error on `null`.
      *
      * Emitted by `CallEmitter`; renaming it breaks compiled artifacts.
      */
