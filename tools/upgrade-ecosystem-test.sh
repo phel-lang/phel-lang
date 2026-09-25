@@ -343,3 +343,15 @@ function test_repo_slug_keeps_dots_inside_the_name() {
 function test_repo_slug_is_empty_for_a_non_github_remote() {
     assert_empty "$(repo_slug_from_url '/srv/git/phel-log.git')"
 }
+
+function test_repo_slug_from_ssh_url_with_port() {
+    assert_equals "phel-lang/phel-log" "$(repo_slug_from_url 'ssh://git@github.com:22/phel-lang/phel-log.git')"
+}
+
+function test_repo_slug_rejects_a_lookalike_host() {
+    assert_empty "$(repo_slug_from_url 'https://notgithub.com/phel-lang/phel-log.git')"
+}
+
+function test_repo_slug_rejects_github_com_inside_the_path() {
+    assert_empty "$(repo_slug_from_url 'https://mirror.example/github.com/phel-lang/phel-log.git')"
+}

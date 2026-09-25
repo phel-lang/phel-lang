@@ -428,18 +428,20 @@ process_repo() {
     return
   fi
 
+  # Resolve where the PR goes before touching the remote: a push whose PR
+  # cannot be opened leaves a half-done branch behind.
+  local SLUG
+  SLUG="$(repo_slug_from_url "$(git -C "$REPO_PATH" remote get-url origin 2>/dev/null)")"
+  if [[ -z "$SLUG" ]]; then
+    write_result "$name" PR_FAIL $(( $(date +%s) - T0 )) "origin is not a github.com URL; nothing committed or pushed"
+    return
+  fi
+
   log "$pfx committing + pushing + opening PR ..."
   { echo; echo "## wrapper: git commit + push + gh pr create"; } >>"$LOG_FILE"
   if git -C "$REPO_PATH" add -A >>"$LOG_FILE" 2>&1 \
      && git -C "$REPO_PATH" commit -m "$COMMIT_MSG" >>"$LOG_FILE" 2>&1 \
      && git -C "$REPO_PATH" push -u origin "$BRANCH" >>"$LOG_FILE" 2>&1; then
-
-    local SLUG
-    SLUG="$(repo_slug_from_url "$(git -C "$REPO_PATH" remote get-url origin 2>/dev/null)")"
-    if [[ -z "$SLUG" ]]; then
-      write_result "$name" PR_FAIL $(( $(date +%s) - T0 )) "commit+push OK, origin is not a GitHub URL"
-      return
-    fi
 
     local PR_BODY="Automated bump of \`phel-lang/phel-lang\` to ${VERSION} via build/upgrade-ecosystem.sh from the phel-lang repo. Tests passed locally before push."
     local PR_URL=""

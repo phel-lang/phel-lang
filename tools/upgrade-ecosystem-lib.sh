@@ -69,11 +69,16 @@ composer_phel_constraint() {
 #   https://github.com/phel-lang/phel-log.git    -> phel-lang/phel-log
 #   https://github.com/phel-lang/phel-log        -> phel-lang/phel-log
 #   ssh://git@github.com/phel-lang/phel-log.git  -> phel-lang/phel-log
+#   ssh://git@github.com:22/phel-lang/phel-log   -> phel-lang/phel-log
+#   https://notgithub.com/phel-lang/phel-log     -> (empty)
 #   /some/local/path                             -> (empty)
+# The host must be exactly github.com, so a lookalike or mirror URL never
+# sends the PR to an unrelated repository.
 repo_slug_from_url() {
   local url="$1"
-  if [[ "$url" =~ github\.com[:/]([^/]+)/([^/]+)$ ]]; then
-    printf '%s/%s' "${BASH_REMATCH[1]}" "${BASH_REMATCH[2]%.git}"
+  local re='^(git@github\.com:|ssh://git@github\.com(:[0-9]+)?/|https://github\.com/)([A-Za-z0-9_.-]+)/([A-Za-z0-9_.-]+)$'
+  if [[ "$url" =~ $re ]]; then
+    printf '%s/%s' "${BASH_REMATCH[3]}" "${BASH_REMATCH[4]%.git}"
   fi
 }
 
