@@ -4,14 +4,16 @@ declare(strict_types=1);
 
 namespace Phel\Compiler\Domain\Emitter\OutputEmitter\NodeEmitter\Specialized;
 
+use Phel\Compiler\Domain\Analyzer\Ast\AbstractNode;
 use Phel\Compiler\Domain\Analyzer\Ast\CallNode;
+use Phel\Compiler\Domain\Analyzer\Ast\LocalVarNode;
 use Phel\Compiler\Domain\Emitter\OutputEmitter\NilAndBooleanCheckSpecialization;
 use Phel\Compiler\Domain\Emitter\OutputEmitterInterface;
 
 /**
  * Specialisations gated by {@see NilAndBooleanCheckSpecialization}:
- * `(nil? x)`, `(some? x)`, `(true? x)`, `(false? x)`, and `(truthy? x)`,
- * each inlined to the native identity check, bypassing the registry lookup
+ * `(nil? x)`, `(some? x)`, `(true? x)`, `(false? x)`, `(truthy? x)` and
+ * `(not x)`, each inlined to the native identity check, bypassing the registry lookup
  * and the `id` adapter.
  *
  * @internal
@@ -33,7 +35,39 @@ final readonly class NilBooleanCallEmitter implements SpecializedCallEmitterInte
             return true;
         }
 
+        if ($this->tryEmitFalsyCheck($node)) {
+            return true;
+        }
+
         return $this->tryEmitTruthyCheck($node);
+    }
+
+    /**
+     * `(not x)` inlined as the Phel-falsy probe. A local is read twice as
+     * it is; any other operand is evaluated once into `$__truthy`, the same
+     * temporary `(truthy? x)` uses.
+     */
+    private function tryEmitFalsyCheck(CallNode $node): bool
+    {
+        $operand = NilAndBooleanCheckSpecialization::falsyCheckOperand($node);
+        if (!$operand instanceof AbstractNode) {
+            return false;
+        }
+
+        $loc = $node->getStartSourceLocation();
+        if ($operand instanceof LocalVarNode) {
+            $this->outputEmitter->emitStr('(', $loc);
+            $this->outputEmitter->emitNode($operand);
+            $this->outputEmitter->emitStr(' === null || ', $loc);
+            $this->outputEmitter->emitNode($operand);
+            $this->outputEmitter->emitStr(' === false)', $loc);
+            return true;
+        }
+
+        $this->outputEmitter->emitStr('(($__truthy = ', $loc);
+        $this->outputEmitter->emitNode($operand);
+        $this->outputEmitter->emitStr(') === null || $__truthy === false)', $loc);
+        return true;
     }
 
     /**

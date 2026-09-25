@@ -41,6 +41,7 @@ final readonly class CallSpecialization
             || NilAndBooleanCheckSpecialization::isTrueCheck($node)
             || NilAndBooleanCheckSpecialization::isFalseCheck($node)
             || NilAndBooleanCheckSpecialization::isTruthyCheck($node)
+            || NilAndBooleanCheckSpecialization::isFalsyCheck($node)
             || TypePredicateSpecialization::isTypePredicate($node)
             || TypedValueSpecialization::isEmptyCheck($node)
             || TypedValueSpecialization::isContainsCheck($node)
@@ -74,6 +75,7 @@ final readonly class CallSpecialization
             || NilAndBooleanCheckSpecialization::isTrueCheck($node)
             || NilAndBooleanCheckSpecialization::isFalseCheck($node)
             || NilAndBooleanCheckSpecialization::isTruthyCheck($node)
+            || NilAndBooleanCheckSpecialization::isFalsyCheck($node)
             || TypePredicateSpecialization::isNumericPredicate($node) !== null
             || TypePredicateSpecialization::isTypePredicate($node)
             || TypedValueSpecialization::isNamedAccessor($node)

@@ -1,0 +1,28 @@
+--PHEL--
+(fn [^bool y] (if y :a :b))
+(fn [x] (let [b (php/is_int x)] (if b :a :b)))
+(fn [x] (let [^bool b x] (if b :a :b)))
+(fn [x] (let [b x] (if b :a :b)))
+--PHP--
+(function(bool $y) {
+  static $__phel_const_0, $__phel_const_1;
+  return (($y) ? ($__phel_const_0 ??= \Phel\Lang\Keyword::create("a")) : ($__phel_const_1 ??= \Phel\Lang\Keyword::create("b")));
+
+});(function($x) {
+  static $__phel_const_0, $__phel_const_1;
+  /** @var bool $b_1 */
+  $b_1 = is_int($x);
+  return ($b_1 !== null && $b_1 !== false ? ($__phel_const_0 ??= \Phel\Lang\Keyword::create("a")) : ($__phel_const_1 ??= \Phel\Lang\Keyword::create("b")));
+
+});(function($x) {
+  static $__phel_const_0, $__phel_const_1;
+  /** @var bool $b_2 */
+  $b_2 = $x;
+  return ($b_2 !== null && $b_2 !== false ? ($__phel_const_0 ??= \Phel\Lang\Keyword::create("a")) : ($__phel_const_1 ??= \Phel\Lang\Keyword::create("b")));
+
+});(function($x) {
+  static $__phel_const_0, $__phel_const_1;
+  $b_3 = $x;
+  return ($b_3 !== null && $b_3 !== false ? ($__phel_const_0 ??= \Phel\Lang\Keyword::create("a")) : ($__phel_const_1 ??= \Phel\Lang\Keyword::create("b")));
+
+});

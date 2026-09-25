@@ -1,0 +1,18 @@
+--PHEL--
+(fn [x] (not x))
+(fn [x] (not (seq x)))
+(fn [x] (if (not x) :a :b))
+(fn [x] (not (not x)))
+--PHP--
+(function($x): bool {
+  return ($x === null || $x === false);
+});(function($x): bool {
+  static $__phel_call_0;
+  return (($__truthy = ($__phel_call_0 ??= \Phel::getDefinition("phel.core", "seq"))->__invoke($x)) === null || $__truthy === false);
+});(function($x) {
+  static $__phel_const_0, $__phel_const_1;
+  return ((($x === null || $x === false)) ? ($__phel_const_0 ??= \Phel\Lang\Keyword::create("a")) : ($__phel_const_1 ??= \Phel\Lang\Keyword::create("b")));
+
+});(function($x): bool {
+  return (!(($x === null || $x === false)));
+});
