@@ -2,6 +2,6 @@
 (fn [x] (if x 1 2))
 --PHP--
 (function($x) {
-  return (($__truthy = $x) !== null && $__truthy !== false ? 1 : 2);
+  return ($x !== null && $x !== false ? 1 : 2);
 
 });
