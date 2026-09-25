@@ -421,3 +421,17 @@ function test_script_skips_an_origin_that_pushes_elsewhere() {
     assert_file_not_exists "$TEMP_DIR/claude-ran"
     unset GIT_CONFIG_GLOBAL GIT_CONFIG_NOSYSTEM
 }
+
+function test_script_direct_push_accepts_a_non_github_origin() {
+    git init -q --bare "$TEMP_DIR/elsewhere.git"
+    _make_eco_repo "$TEMP_DIR/elsewhere.git"
+    git -C "$TEMP_DIR/eco/demo" push -q origin main 2>/dev/null
+    git -C "$TEMP_DIR/eco/demo" remote set-head origin main 2>/dev/null
+
+    local out
+    out="$("$SCRIPT" --root="$TEMP_DIR/eco" --only=demo --version=0.53.0 --yes --direct-push 2>&1 || true)"
+
+    assert_not_contains "origin is not a github.com URL" "$out"
+    assert_file_exists "$TEMP_DIR/claude-ran"
+    unset GIT_CONFIG_GLOBAL GIT_CONFIG_NOSYSTEM
+}

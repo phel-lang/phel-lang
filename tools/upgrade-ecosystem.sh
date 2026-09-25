@@ -329,22 +329,25 @@ process_repo() {
     write_result "$name" SKIPPED 0 "not a git repo"; return
   fi
 
-  # Where the PR goes, settled before anything is touched. The default branch
-  # is pulled from origin's fetch URL and the branch is pushed to its push
-  # URL(s), so origin must have exactly one push URL, on github.com, naming
-  # the same repository it fetches from. Anything else is refused, not guessed.
+  # Where the push goes, settled before anything is touched. `git push`
+  # sends the branch to every push URL, so origin must have exactly one.
   local SLUG="" FETCH_SLUG push_urls
   push_urls="$(git -C "$REPO_PATH" remote get-url --push --all origin 2>/dev/null)"
   if [[ -z "$push_urls" || "$push_urls" == *$'\n'* ]]; then
     write_result "$name" SKIPPED 0 "origin needs exactly one push URL"; return
   fi
-  SLUG="$(repo_slug_from_url "$push_urls")"
-  FETCH_SLUG="$(repo_slug_from_url "$(git -C "$REPO_PATH" remote get-url origin 2>/dev/null)")"
-  if [[ -z "$SLUG" ]]; then
-    write_result "$name" SKIPPED 0 "origin is not a github.com URL"; return
-  fi
-  if [[ "$SLUG" != "$FETCH_SLUG" ]]; then
-    write_result "$name" SKIPPED 0 "origin fetches ${FETCH_SLUG:-a non-GitHub URL} but pushes to $SLUG"; return
+  # A PR also needs a github.com repository that is the one the default
+  # branch was pulled from, or its base could be a stale fork branch.
+  # --direct-push opens no PR, so it skips this.
+  if (( ! DIRECT_PUSH )); then
+    SLUG="$(repo_slug_from_url "$push_urls")"
+    FETCH_SLUG="$(repo_slug_from_url "$(git -C "$REPO_PATH" remote get-url origin 2>/dev/null)")"
+    if [[ -z "$SLUG" ]]; then
+      write_result "$name" SKIPPED 0 "origin is not a github.com URL"; return
+    fi
+    if [[ "$SLUG" != "$FETCH_SLUG" ]]; then
+      write_result "$name" SKIPPED 0 "origin fetches ${FETCH_SLUG:-a non-GitHub URL} but pushes to $SLUG"; return
+    fi
   fi
 
   DEFAULT_BRANCH="$(git -C "$REPO_PATH" symbolic-ref --short refs/remotes/origin/HEAD 2>/dev/null | sed 's@^origin/@@')"
