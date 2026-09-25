@@ -15,7 +15,8 @@ use function sprintf;
 
 /**
  * `for`, whose collect path (#2998) and `:reduce` path (#3000) were both
- * rewritten with no benchmark guarding either.
+ * rewritten with no benchmark guarding either, and `case` over keywords,
+ * whose arm keys are hoisted out of the `match` it lowers to.
  *
  * `for` is a macro, so there is nothing to resolve out of the registry: the
  * optimisation lives in the code it expands to. Each subject therefore compiles
@@ -45,6 +46,9 @@ final class CoreMacroBench extends CoreBenchCase
 
     /** @var callable */
     private $range;
+
+    /** @var callable */
+    private $caseKeyword;
 
     /** @var list<int> */
     private array $intArray = [];
@@ -122,6 +126,18 @@ final class CoreMacroBench extends CoreBenchCase
         ($this->range)(self::SIZE);
     }
 
+    /**
+     * A `case` on keywords that lands on its last arm, so the `match` it
+     * lowers to compares against every key first. Each key used to be
+     * interned again on every dispatch.
+     *
+     * @Revs(1000)
+     */
+    public function bench_case_keyword_last_arm(): void
+    {
+        ($this->caseKeyword)(self::SIZE);
+    }
+
     protected function setUpFixtures(): void
     {
         for ($i = 0; $i < self::SIZE; ++$i) {
@@ -134,6 +150,11 @@ final class CoreMacroBench extends CoreBenchCase
         $this->reduceSum = $this->compileFn('(fn [coll] (for [x :in coll :reduce [acc 0]] (+ acc x)))');
         $this->collectFiltered = $this->compileFn('(fn [coll] (for [x :in coll :when (even? x)] x))');
         $this->range = $this->compileFn('(fn [n] (for [x :range [0 n]] x))');
+        $this->caseKeyword = $this->compileFn(
+            '(fn [n] (let [k (keyword "e")]'
+            . ' (loop [i 0 acc 0] (if (php/< i n)'
+            . ' (recur (php/+ i 1) (php/+ acc (case k :a 1 :b 2 :c 3 :d 4 :e 5 0))) acc))))',
+        );
     }
 
     private function compileFn(string $phelCode): callable
