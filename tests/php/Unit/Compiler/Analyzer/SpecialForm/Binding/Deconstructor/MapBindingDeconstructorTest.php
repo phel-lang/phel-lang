@@ -14,6 +14,7 @@ use Phel\Lang\Keyword;
 use Phel\Lang\SourceLocation;
 use Phel\Lang\Symbol;
 use PhelTest\Support\CapturesDeprecationsTrait;
+use PhelTest\Unit\Compiler\Analyzer\SpecialForm\Binding\SequentialBindingForms;
 use PHPUnit\Framework\TestCase;
 
 final class MapBindingDeconstructorTest extends TestCase
@@ -85,9 +86,10 @@ final class MapBindingDeconstructorTest extends TestCase
         //       __phel 2 (get __phel_1 :key)
         //       __phel_3 __phel_2
         //       __phel_3 __phel_2
-        //       __phel_4 (first __phel_3)
-        //       __phel_5 (next __phel_3)
-        //       a __phel_4])
+        //       __phel_4 (php/instanceof __phel_3 PersistentVectorInterface)
+        //       __phel_5 (if (php/=== __phel_4 true) (php/aget __phel_3 0) (first __phel_3))
+        //       __phel_6 (if (php/=== __phel_4 true) nil (next __phel_3))
+        //       a __phel_5])
 
         $key = Keyword::create('key');
         $bindTo = Symbol::create('a');
@@ -117,26 +119,25 @@ final class MapBindingDeconstructorTest extends TestCase
                 Symbol::create('__phel_3'),
                 Symbol::create('__phel_2'),
             ],
-            // __phel_4 (first __phel_3)
+            // __phel_4 (php/instanceof __phel_3 PersistentVectorInterface)
             [
-                Symbol::create('__phel_4'),
-                Phel::list([
-                    Symbol::create('first'),
-                    Symbol::create('__phel_3'),
-                ]),
+                SequentialBindingForms::synthetic('__phel_4'),
+                SequentialBindingForms::isVector('__phel_3'),
             ],
-            // __phel_5 (next __phel_3)
+            // __phel_5 (if (php/=== __phel_4 true) (php/aget __phel_3 0) (first __phel_3))
             [
-                Symbol::create('__phel_5'),
-                Phel::list([
-                    Symbol::create('next'),
-                    Symbol::create('__phel_3'),
-                ]),
+                SequentialBindingForms::synthetic('__phel_5'),
+                SequentialBindingForms::positional('__phel_4', '__phel_3', '__phel_3', 0),
             ],
-            // a __phel_4
+            // __phel_6 (if (php/=== __phel_4 true) nil (next __phel_3))
+            [
+                SequentialBindingForms::synthetic('__phel_6'),
+                SequentialBindingForms::step('__phel_4', '__phel_3', '__phel_3'),
+            ],
+            // a __phel_5
             [
                 $bindTo,
-                Symbol::create('__phel_4'),
+                SequentialBindingForms::synthetic('__phel_5'),
             ],
         ], $bindings);
     }
