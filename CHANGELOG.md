@@ -6,10 +6,11 @@ All notable changes to this project will be documented in this file.
 
 ### Added
 
-- Public PHP API, since compiled code calls it: `Phel\Lang\Destructure`. (#3356)
+- Public PHP API, since compiled code calls it: `Phel\Lang\Destructure`, `\Phel::fnSlot()` and `Phel\Lang\ForeignFn`. (#3354 #3356)
 
 ### Performance
 
+- In a build, a call to a multi-arity fn at one of its fixed arities goes straight to that arity, now also when the fn has a variadic arity, as `+`, `<`, `str` and `conj` do: `(+ acc x)` in a loop is 1.6x faster. Nested calls such as `(-> m (get :a {}) (get :b {}))` compile to code that grows linearly with the nesting; it used to double at every level. (#3354)
 - A multi-arity fn built at runtime, such as the value `comp` or `partial` returns, no longer allocates a closure per arity: `(comp f g)` created and called is 2.3x faster and peak memory in that loop drops from 125MB to 20MB. The arity a call site knows is reached in one call. (#3355)
 - Sequential destructuring reads a vector by index: `(let [[a b] v] ...)` is 3.2x faster on a vector, and `[x & xs]` in a `loop` over a vector about 9% faster. Lists, lazy and infinite seqs, sets, maps, strings and `nil` keep the `first`/`next` walk and give the same results. (#3356)
 - `(not x)` on a value of any type compiles to an inline nil/false check instead of a call: 2.6x faster in a loop. An `if` over a `^bool` fn param skips the truthiness check (1.9x faster), and one over any other local checks it without a temporary (1.4x). (#3352 #3353)

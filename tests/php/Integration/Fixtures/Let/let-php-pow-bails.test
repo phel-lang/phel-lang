@@ -4,5 +4,5 @@
 (function(int $x) {
   static $__phel_call_0;
   $p_1 = pow($x, 2);
-  return ($__phel_call_0 ??= \Phel::getDefinition("phel.core", "+"))->__invoke($p_1, 1);
+  return ($__phel_call_0 ??= \Phel::fnSlot("phel.core", "+"))->invokeArity2($p_1, 1);
 });

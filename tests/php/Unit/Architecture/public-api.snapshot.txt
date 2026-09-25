@@ -14,6 +14,7 @@ final class Phel extends Phel\Phel
   public static function commitAndRunBindingFrame(Closure $body): mixed
   public static function configFn(array $appModulePaths = []): callable
   public static function detectProjectStructure(string $projectRootDir): Phel\Config\PhelConfig
+  public static function fnSlot(string $ns, string $name): ?Phel\Lang\AbstractFn
   public static function getArgv(): array
   public static function getAutoDetectedConfig(): ?Phel\Config\PhelConfig
   public static function getDefinition(string $ns, string $name): mixed
@@ -1053,6 +1054,10 @@ interface Phel\Lang\FirstInterface
   public function first()
 
 interface Phel\Lang\FnInterface
+
+final class Phel\Lang\ForeignFn extends Phel\Lang\AbstractFn
+  public function __construct(mixed $fn)
+  public function __invoke(mixed ...$args): mixed
 
 final class Phel\Lang\Future
   public function __construct(Amp\Future $future, Amp\DeferredCancellation $cancellation)

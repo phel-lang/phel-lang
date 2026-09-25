@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use Phel\Lang\AbstractFn;
 use Phel\Lang\Atom;
 use Phel\Lang\Collections\HashSet\PersistentHashSetInterface;
 use Phel\Lang\Collections\LinkedList\PersistentListInterface;
@@ -9,6 +10,7 @@ use Phel\Lang\Collections\Map\PersistentMapInterface;
 use Phel\Lang\Collections\Queue\PersistentQueue;
 use Phel\Lang\Collections\Vector\PersistentVectorInterface;
 use Phel\Lang\DynamicScope;
+use Phel\Lang\ForeignFn;
 use Phel\Lang\Keyword;
 use Phel\Lang\PhelVarStateRegistry;
 use Phel\Lang\Registry;
@@ -83,6 +85,26 @@ final class Phel extends InternalPhel
         }
 
         return Registry::getInstance()->getDefinition($ns, $name);
+    }
+
+    /**
+     * The value a build-mode call slot holds for a call site that dispatches
+     * on a fixed arity: the definition itself when it is an `AbstractFn`, a
+     * {@see ForeignFn} around anything else, so the site can call
+     * `invokeArityN` without an `instanceof` guard (#3354). A missing
+     * definition stays `null`, which leaves the slot's `??=` free to look it
+     * up again on the next call.
+     *
+     * Emitted by `CallEmitter`; renaming it breaks compiled artifacts.
+     */
+    public static function fnSlot(string $ns, string $name): ?AbstractFn
+    {
+        $definition = self::getDefinition($ns, $name);
+        if ($definition instanceof AbstractFn || $definition === null) {
+            return $definition;
+        }
+
+        return new ForeignFn($definition);
     }
 
     /**

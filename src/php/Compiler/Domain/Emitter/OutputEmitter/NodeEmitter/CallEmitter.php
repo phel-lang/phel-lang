@@ -13,6 +13,7 @@ use Phel\Compiler\Domain\Analyzer\Ast\PhpClassNameNode;
 use Phel\Compiler\Domain\Analyzer\Ast\PhpVarNode;
 use Phel\Compiler\Domain\Emitter\OutputEmitter\AssocConjSpecialization;
 use Phel\Compiler\Domain\Emitter\OutputEmitter\CallSpecialization;
+use Phel\Compiler\Domain\Emitter\OutputEmitter\FixedAritySlots;
 use Phel\Compiler\Domain\Emitter\OutputEmitter\GlobalCallTarget;
 use Phel\Compiler\Domain\Emitter\OutputEmitter\NodeEmitter\Specialized\AssocConjCallEmitter;
 use Phel\Compiler\Domain\Emitter\OutputEmitter\NodeEmitter\Specialized\AssocInCallEmitter;
@@ -212,11 +213,17 @@ final readonly class CallEmitter implements NodeEmitterInterface
 
     /**
      * A call is eligible for the fixed-arity shortcut when the callee is a
-     * multi-arity global fn (its def stamped a `max-arity`) and the argument
-     * count has a dedicated `invokeArityN` slot. Only multi-arity targets are
-     * shortcut: their `__invoke` packs `...$args` and re-indexes `$args[N]`,
-     * which the per-arity methods skip. Single-arity fns already emit a lean
-     * positional `__invoke`, so shortcutting them would only add overhead.
+     * multi-arity global fn and the argument count has a dedicated
+     * `invokeArityN` slot. Only multi-arity targets are shortcut: their
+     * `__invoke` packs `...$args` and re-indexes `$args[N]`, which the
+     * per-arity methods skip. Single-arity fns already emit a lean positional
+     * `__invoke`, so shortcutting them would only add overhead.
+     *
+     * A multi-arity def stamps a `max-arity` key, `nil` when one arity is
+     * variadic. For a variadic one, the call count must hit one of its fixed
+     * arities, or the inherited `invokeArityN` would only bounce back into
+     * `__invoke`; {@see FixedAritySlots} answers that from the definition
+     * the compiling process already holds.
      */
     private function isMultiArityArityShortcut(CallNode $node): bool
     {
@@ -226,7 +233,7 @@ final readonly class CallEmitter implements NodeEmitterInterface
         }
 
         $argCount = count($node->getArguments());
-        if ($argCount < 1 || $argCount > AbstractFn::MAX_ARITY_SLOT) {
+        if ($argCount > AbstractFn::MAX_ARITY_SLOT) {
             return false;
         }
 
@@ -239,41 +246,39 @@ final readonly class CallEmitter implements NodeEmitterInterface
         }
 
         $meta = $fn->getMeta();
-        if ($meta->find('max-arity') !== null) {
+        $maxArity = Keyword::create('max-arity');
+        if (!$meta->contains('max-arity') && !$meta->contains($maxArity)) {
+            return false;
+        }
+
+        if (($meta->find('max-arity') ?? $meta->find($maxArity)) !== null) {
             return true;
         }
 
-        return $meta->find(Keyword::create('max-arity')) !== null;
+        return FixedAritySlots::declares(
+            $this->outputEmitter->mungeEncodeRegistryKey($fn->getNamespace()),
+            $fn->getName()->getName(),
+            $argCount,
+        );
     }
 
     /**
-     * Emits `(<callee> instanceof AbstractFn ? <callee>->invokeArityN(args) :
-     * <callee>->__invoke(args))`. The ternary only evaluates the taken branch,
-     * so repeating the arguments across both arms never double-evaluates a
-     * side-effecting argument. The callee is re-emitted per arm, which is
-     * idempotent here: a global call is a `($__phel_call_N ??= …)` slot (the
-     * `??=` runs the lookup once) and a typed local is a plain variable read.
-     * The `instanceof` guard keeps the current `__invoke` behaviour when a
-     * global was redefined to a plain closure, which has no `invokeArityN`.
+     * Emits `($__phel_call_N ??= \\Phel::fnSlot(ns, name))->invokeArityN(args)`.
+     * The slot holds an `AbstractFn` whatever the global is (a closure it was
+     * redefined to comes wrapped), so the call needs no guard and the callee
+     * and the arguments are written once. They used to be written in both
+     * arms of an `instanceof` ternary, which doubled the code at every nested
+     * level (#3354).
      */
     private function emitArityShortcut(CallNode $node): void
     {
         $loc = $node->getStartSourceLocation();
         $arity = count($node->getArguments());
 
-        $this->outputEmitter->emitStr('(', $loc);
-        $this->emitDynamicFunctionName($node);
-        $this->outputEmitter->emitStr(' instanceof \\Phel\\Lang\\AbstractFn ? ', $loc);
-
-        $this->emitDynamicFunctionName($node);
+        $this->emitFnSlotCallee($node);
         $this->outputEmitter->emitStr('->invokeArity' . $arity . '(', $loc);
         $this->outputEmitter->emitArgList($node->getArguments(), $loc);
-        $this->outputEmitter->emitStr(') : ', $loc);
-
-        $this->emitDynamicFunctionName($node);
-        $this->outputEmitter->emitStr('->__invoke(', $loc);
-        $this->outputEmitter->emitArgList($node->getArguments(), $loc);
-        $this->outputEmitter->emitStr('))', $loc);
+        $this->outputEmitter->emitStr(')', $loc);
     }
 
     /**
@@ -299,18 +304,10 @@ final readonly class CallEmitter implements NodeEmitterInterface
             return true;
         }
 
-        // With a slot, the steps go through `invokeArity3` behind the same
-        // `instanceof` guard as {@see self::emitArityShortcut()}, which keeps
-        // the variadic call for an `assoc` redefined to a plain closure.
-        $loc = $node->getStartSourceLocation();
-        $this->outputEmitter->emitStr('(', $loc);
-        $this->emitDynamicFunctionName($node);
-        $this->outputEmitter->emitStr(' instanceof \\Phel\\Lang\\AbstractFn ? ', $loc);
-        $this->emitAssocPairSteps($node, $pairs, 'invokeArity3');
-        $this->outputEmitter->emitStr(' : ', $loc);
-        $this->emitDynamicFunctionName($node);
-        $this->emitCallMethodArguments($node);
-        $this->outputEmitter->emitStr(')', $loc);
+        // With a slot, the steps go through `invokeArity3` on the
+        // `AbstractFn` the slot holds, as {@see self::emitArityShortcut()}
+        // does.
+        $this->emitAssocPairSteps($node, $pairs, 'invokeArity3', true);
 
         return true;
     }
@@ -318,12 +315,17 @@ final readonly class CallEmitter implements NodeEmitterInterface
     /**
      * @param list<list<AbstractNode>> $pairs
      */
-    private function emitAssocPairSteps(CallNode $node, array $pairs, string $method): void
+    private function emitAssocPairSteps(CallNode $node, array $pairs, string $method, bool $viaFnSlot = false): void
     {
         $loc = $node->getStartSourceLocation();
 
         for ($i = count($pairs); $i > 0; --$i) {
-            $this->emitDynamicFunctionName($node);
+            if ($viaFnSlot) {
+                $this->emitFnSlotCallee($node);
+            } else {
+                $this->emitDynamicFunctionName($node);
+            }
+
             $this->outputEmitter->emitStr('->' . $method . '(', $loc);
         }
 
@@ -398,6 +400,26 @@ final readonly class CallEmitter implements NodeEmitterInterface
         $this->outputEmitter->emitStr(
             '($__phel_call_' . $slot . ' ??= \\' . Phel::class . '::getDefinition("' . $ns . '", "' . $name . '"))',
             $loc,
+        );
+    }
+
+    /**
+     * The build-mode slot of a fixed-arity call site, filled through
+     * `\\Phel::fnSlot()` so it always holds an `AbstractFn`. Only called when
+     * the call has a slot and a global callee.
+     */
+    private function emitFnSlotCallee(CallNode $node): void
+    {
+        $fn = $node->getFn();
+        $slot = $this->outputEmitter->callSlotFor($node);
+        assert($fn instanceof GlobalVarNode && $slot !== null);
+
+        $ns = PhpStringEscape::doubleQuoted($this->outputEmitter->mungeEncodeRegistryKey($fn->getNamespace()));
+        $name = PhpStringEscape::doubleQuoted($fn->getName()->getName());
+
+        $this->outputEmitter->emitStr(
+            '($__phel_call_' . $slot . ' ??= \\' . Phel::class . '::fnSlot("' . $ns . '", "' . $name . '"))',
+            $node->getStartSourceLocation(),
         );
     }
 
