@@ -329,6 +329,24 @@ process_repo() {
     write_result "$name" SKIPPED 0 "not a git repo"; return
   fi
 
+  # Where the PR goes, settled before anything is touched. The default branch
+  # is pulled from origin's fetch URL and the branch is pushed to its push
+  # URL(s), so origin must have exactly one push URL, on github.com, naming
+  # the same repository it fetches from. Anything else is refused, not guessed.
+  local SLUG="" FETCH_SLUG push_urls
+  push_urls="$(git -C "$REPO_PATH" remote get-url --push --all origin 2>/dev/null)"
+  if [[ -z "$push_urls" || "$push_urls" == *$'\n'* ]]; then
+    write_result "$name" SKIPPED 0 "origin needs exactly one push URL"; return
+  fi
+  SLUG="$(repo_slug_from_url "$push_urls")"
+  FETCH_SLUG="$(repo_slug_from_url "$(git -C "$REPO_PATH" remote get-url origin 2>/dev/null)")"
+  if [[ -z "$SLUG" ]]; then
+    write_result "$name" SKIPPED 0 "origin is not a github.com URL"; return
+  fi
+  if [[ "$SLUG" != "$FETCH_SLUG" ]]; then
+    write_result "$name" SKIPPED 0 "origin fetches ${FETCH_SLUG:-a non-GitHub URL} but pushes to $SLUG"; return
+  fi
+
   DEFAULT_BRANCH="$(git -C "$REPO_PATH" symbolic-ref --short refs/remotes/origin/HEAD 2>/dev/null | sed 's@^origin/@@')"
   [[ -n "$DEFAULT_BRANCH" ]] || DEFAULT_BRANCH="main"
   CURRENT_BRANCH="$(git -C "$REPO_PATH" rev-parse --abbrev-ref HEAD)"
@@ -425,24 +443,6 @@ process_repo() {
     else
       write_result "$name" GIT_FAIL $(( $(date +%s) - T0 )) "commit or push to $DEFAULT_BRANCH failed"
     fi
-    return
-  fi
-
-  # Resolve where the PR goes before touching the remote: a push whose PR
-  # cannot be opened leaves a half-done branch behind.
-  local SLUG
-  # The default branch was pulled from origin's fetch URL and the branch is
-  # pushed to its push URL. Both must be the same repository, or the PR base
-  # could be a stale fork branch; that setup is refused, not guessed at.
-  local FETCH_SLUG
-  SLUG="$(repo_slug_from_url "$(git -C "$REPO_PATH" remote get-url --push origin 2>/dev/null)")"
-  FETCH_SLUG="$(repo_slug_from_url "$(git -C "$REPO_PATH" remote get-url origin 2>/dev/null)")"
-  if [[ -z "$SLUG" ]]; then
-    write_result "$name" PR_FAIL $(( $(date +%s) - T0 )) "origin is not a github.com URL; nothing committed or pushed"
-    return
-  fi
-  if [[ "$SLUG" != "$FETCH_SLUG" ]]; then
-    write_result "$name" PR_FAIL $(( $(date +%s) - T0 )) "origin fetches $FETCH_SLUG but pushes to $SLUG; nothing committed or pushed"
     return
   fi
 
