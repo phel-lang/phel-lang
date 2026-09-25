@@ -20,7 +20,7 @@
   return print("done");
 });(function($x) {
   static $__phel_const_0;
-  if (($__truthy = $x) !== null && $__truthy !== false) {
+  if ($x !== null && $x !== false) {
     ($__phel_const_0 ??= \Phel::map(
       \Phel\Lang\Keyword::create("a"), 1
     ));
