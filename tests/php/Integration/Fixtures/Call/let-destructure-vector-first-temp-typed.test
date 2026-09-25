@@ -3,13 +3,14 @@
 --PHP--
 (function(\Phel\Lang\Collections\Vector\PersistentVectorInterface $v): \Phel\Lang\Collections\Vector\PersistentVectorInterface {
   static $__phel_call_0, $__phel_call_1, $__phel_call_2;
-  /** @var \Phel\Lang\Collections\Vector\PersistentVectorInterface $__phel_1_6 */
-  $__phel_1_6 = $v;
-  $__phel_2_7 = ($__phel_1_6->first());
-  $__phel_3_8 = ($__phel_call_0 ??= \Phel::getDefinition("phel.core", "next"))->__invoke($__phel_1_6);
-  $a_9 = $__phel_2_7;
-  $__phel_4_10 = ($__phel_call_1 ??= \Phel::getDefinition("phel.core", "first"))->__invoke($__phel_3_8);
-  $__phel_5_11 = ($__phel_call_2 ??= \Phel::getDefinition("phel.core", "next"))->__invoke($__phel_3_8);
-  $b_12 = $__phel_4_10;
-  return \Phel::vector([$a_9, $b_12]);
+  /** @var \Phel\Lang\Collections\Vector\PersistentVectorInterface $__phel_1_7 */
+  $__phel_1_7 = $v;
+  $__phel_2_8 = ($__phel_1_7 instanceof \Phel\Lang\Collections\Vector\PersistentVectorInterface);
+  $__phel_3_9 = ((($__phel_2_8 === true)) ? (($__phel_1_7)[(0)] ?? null) : ($__phel_1_7->first()));
+  $__phel_4_10 = ((($__phel_2_8 === true)) ? null : ($__phel_call_0 ??= \Phel::getDefinition("phel.core", "next"))->__invoke($__phel_1_7));
+  $a_11 = $__phel_3_9;
+  $__phel_5_12 = ((($__phel_2_8 === true)) ? (($__phel_1_7)[(1)] ?? null) : ($__phel_call_1 ??= \Phel::getDefinition("phel.core", "first"))->__invoke($__phel_4_10));
+  $__phel_6_13 = ((($__phel_2_8 === true)) ? null : ($__phel_call_2 ??= \Phel::getDefinition("phel.core", "next"))->__invoke($__phel_4_10));
+  $b_14 = $__phel_5_12;
+  return \Phel::vector([$a_11, $b_14]);
 });

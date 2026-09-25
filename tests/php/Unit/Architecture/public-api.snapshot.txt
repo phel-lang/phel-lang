@@ -1005,6 +1005,9 @@ final class Phel\Lang\Delay
   public function deref(): mixed
   public function isRealized(): bool
 
+final class Phel\Lang\Destructure
+  public static function nthNext(Phel\Lang\Collections\Vector\PersistentVectorInterface $vector, int $n): mixed
+
 final class Phel\Lang\DynamicScope
   public const string MODE_BINDING = 'binding'
   public const string MODE_REDEFS = 'redefs'

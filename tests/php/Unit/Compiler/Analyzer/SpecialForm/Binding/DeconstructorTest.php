@@ -39,13 +39,15 @@ final class DeconstructorTest extends TestCase
         //                                  [b] [20]])
         // This will be destructured to this:
         // (let [__phel_1 [10]
-        //       __phel_2 (first __phel_1)
-        //       __phel_3 (next __phel_1)
-        //       a __phel_2
-        //       __phel_4 [20]
-        //       __phel_5 (first __phel_4)
-        //       __phel_6 (next __phel_4)
-        //       b __phel_5])
+        //       __phel_2 (php/instanceof __phel_1 PersistentVectorInterface)
+        //       __phel_3 (if (php/=== __phel_2 true) (php/aget __phel_1 0) (first __phel_1))
+        //       __phel_4 (if (php/=== __phel_2 true) nil (next __phel_1))
+        //       a __phel_3
+        //       __phel_5 [20]
+        //       __phel_6 (php/instanceof __phel_5 PersistentVectorInterface)
+        //       __phel_7 (if (php/=== __phel_6 true) (php/aget __phel_5 0) (first __phel_5))
+        //       __phel_8 (if (php/=== __phel_6 true) nil (next __phel_5))
+        //       b __phel_7])
         $list = Phel::vector([
             Phel::vector([Symbol::create('a')]),
             Phel::vector([10]),
@@ -61,44 +63,40 @@ final class DeconstructorTest extends TestCase
                 Phel::vector([10]),
             ],
             [
-                Symbol::create('__phel_2'),
-                Phel::list([
-                    Symbol::create('first'),
-                    Symbol::create('__phel_1'),
-                ]),
+                SequentialBindingForms::synthetic('__phel_2'),
+                SequentialBindingForms::isVector('__phel_1'),
             ],
             [
-                Symbol::create('__phel_3'),
-                Phel::list([
-                    Symbol::create('next'),
-                    Symbol::create('__phel_1'),
-                ]),
+                SequentialBindingForms::synthetic('__phel_3'),
+                SequentialBindingForms::positional('__phel_2', '__phel_1', '__phel_1', 0),
+            ],
+            [
+                SequentialBindingForms::synthetic('__phel_4'),
+                SequentialBindingForms::step('__phel_2', '__phel_1', '__phel_1'),
             ],
             [
                 Symbol::create('a'),
-                Symbol::create('__phel_2'),
+                SequentialBindingForms::synthetic('__phel_3'),
             ],
             [
-                Symbol::create('__phel_4'),
+                Symbol::create('__phel_5'),
                 Phel::vector([20]),
             ],
             [
-                Symbol::create('__phel_5'),
-                Phel::list([
-                    Symbol::create('first'),
-                    Symbol::create('__phel_4'),
-                ]),
+                SequentialBindingForms::synthetic('__phel_6'),
+                SequentialBindingForms::isVector('__phel_5'),
             ],
             [
-                Symbol::create('__phel_6'),
-                Phel::list([
-                    Symbol::create('next'),
-                    Symbol::create('__phel_4'),
-                ]),
+                SequentialBindingForms::synthetic('__phel_7'),
+                SequentialBindingForms::positional('__phel_6', '__phel_5', '__phel_5', 0),
+            ],
+            [
+                SequentialBindingForms::synthetic('__phel_8'),
+                SequentialBindingForms::step('__phel_6', '__phel_5', '__phel_5'),
             ],
             [
                 Symbol::create('b'),
-                Symbol::create('__phel_5'),
+                SequentialBindingForms::synthetic('__phel_7'),
             ],
         ], $bindings);
     }
