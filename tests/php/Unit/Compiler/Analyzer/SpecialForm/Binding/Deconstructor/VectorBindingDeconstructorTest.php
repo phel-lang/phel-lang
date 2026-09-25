@@ -8,17 +8,16 @@ use Phel;
 use Phel\Compiler\Domain\Analyzer\TypeAnalyzer\SpecialForm\Binding\BindingValidatorInterface;
 use Phel\Compiler\Domain\Analyzer\TypeAnalyzer\SpecialForm\Binding\Deconstructor;
 use Phel\Compiler\Domain\Analyzer\TypeAnalyzer\SpecialForm\Binding\Deconstructor\VectorBindingDeconstructor;
+use Phel\Compiler\Domain\Analyzer\TypeAnalyzer\SpecialForm\ReturnTypeInferrer;
+use Phel\Lang\Keyword;
 use Phel\Lang\Symbol;
 use Phel\Shared\Exceptions\AbstractLocatedException;
+use PhelTest\Unit\Compiler\Analyzer\SpecialForm\Binding\SequentialBindingForms;
 use PHPUnit\Framework\TestCase;
 
 final class VectorBindingDeconstructorTest extends TestCase
 {
     private const string REST_SYMBOL = VectorBindingDeconstructor::REST_SYMBOL_NAME;
-
-    private const string FIRST_SYMBOL = VectorBindingDeconstructor::FIRST_SYMBOL_NAME;
-
-    private const string NEXT_SYMBOL = VectorBindingDeconstructor::NEXT_SYMBOL_NAME;
 
     private VectorBindingDeconstructor $deconstructor;
 
@@ -57,9 +56,10 @@ final class VectorBindingDeconstructorTest extends TestCase
         // Test for binding like this (let [[a] x])
         // This will be destructured to this:
         // (let [__phel_1 x
-        //       __phel_2 (first __phel_1)
-        //       __phel_3 (next __phel_1)
-        //       a __phel_2])
+        //       __phel_2 (php/instanceof __phel_1 PersistentVectorInterface)
+        //       __phel_3 (if (php/=== __phel_2 true) (php/aget __phel_1 0) (first __phel_1))
+        //       __phel_4 (if (php/=== __phel_2 true) nil (next __phel_1))
+        //       a __phel_3])
 
         $bindTo = Symbol::create('a');
         $value = Symbol::create('x');
@@ -74,22 +74,20 @@ final class VectorBindingDeconstructorTest extends TestCase
                 $value,
             ],
             [
-                Symbol::create('__phel_2'),
-                Phel::list([
-                    Symbol::create(self::FIRST_SYMBOL),
-                    Symbol::create('__phel_1'),
-                ]),
+                SequentialBindingForms::synthetic('__phel_2'),
+                SequentialBindingForms::isVector('__phel_1'),
             ],
             [
-                Symbol::create('__phel_3'),
-                Phel::list([
-                    Symbol::create(self::NEXT_SYMBOL),
-                    Symbol::create('__phel_1'),
-                ]),
+                SequentialBindingForms::synthetic('__phel_3'),
+                SequentialBindingForms::positional('__phel_2', '__phel_1', '__phel_1', 0),
+            ],
+            [
+                SequentialBindingForms::synthetic('__phel_4'),
+                SequentialBindingForms::step('__phel_2', '__phel_1', '__phel_1'),
             ],
             [
                 $bindTo,
-                Symbol::create('__phel_2'),
+                SequentialBindingForms::synthetic('__phel_3'),
             ],
         ], $bindings);
     }
@@ -99,12 +97,13 @@ final class VectorBindingDeconstructorTest extends TestCase
         // Test for binding like this (let [[a b] x])
         // This will be destructured to this:
         // (let [__phel_1 x
-        //       __phel_2 (first __phel_1)
-        //       __phel_3 (next __phel_1)
-        //       a __phel_2
-        //       __phel_4 (first __phel_3)
-        //       __phel_5 (next __phel_3)
-        //       b __phel_4])
+        //       __phel_2 (php/instanceof __phel_1 PersistentVectorInterface)
+        //       __phel_3 (if (php/=== __phel_2 true) (php/aget __phel_1 0) (first __phel_1))
+        //       __phel_4 (if (php/=== __phel_2 true) nil (next __phel_1))
+        //       a __phel_3
+        //       __phel_5 (if (php/=== __phel_2 true) (php/aget __phel_1 1) (first __phel_4))
+        //       __phel_6 (if (php/=== __phel_2 true) nil (next __phel_4))
+        //       b __phel_5])
         $bindings = [];
 
         $bindToA = Symbol::create('a');
@@ -120,40 +119,32 @@ final class VectorBindingDeconstructorTest extends TestCase
                 $value,
             ],
             [
-                Symbol::create('__phel_2'),
-                Phel::list([
-                    Symbol::create(self::FIRST_SYMBOL),
-                    Symbol::create('__phel_1'),
-                ]),
+                SequentialBindingForms::synthetic('__phel_2'),
+                SequentialBindingForms::isVector('__phel_1'),
             ],
             [
-                Symbol::create('__phel_3'),
-                Phel::list([
-                    Symbol::create(self::NEXT_SYMBOL),
-                    Symbol::create('__phel_1'),
-                ]),
+                SequentialBindingForms::synthetic('__phel_3'),
+                SequentialBindingForms::positional('__phel_2', '__phel_1', '__phel_1', 0),
+            ],
+            [
+                SequentialBindingForms::synthetic('__phel_4'),
+                SequentialBindingForms::step('__phel_2', '__phel_1', '__phel_1'),
             ],
             [
                 $bindToA,
-                Symbol::create('__phel_2'),
+                SequentialBindingForms::synthetic('__phel_3'),
             ],
             [
-                Symbol::create('__phel_4'),
-                Phel::list([
-                    Symbol::create(self::FIRST_SYMBOL),
-                    Symbol::create('__phel_3'),
-                ]),
+                SequentialBindingForms::synthetic('__phel_5'),
+                SequentialBindingForms::positional('__phel_2', '__phel_1', '__phel_4', 1),
             ],
             [
-                Symbol::create('__phel_5'),
-                Phel::list([
-                    Symbol::create(self::NEXT_SYMBOL),
-                    Symbol::create('__phel_3'),
-                ]),
+                SequentialBindingForms::synthetic('__phel_6'),
+                SequentialBindingForms::step('__phel_2', '__phel_1', '__phel_4'),
             ],
             [
                 $bindToB,
-                Symbol::create('__phel_4'),
+                SequentialBindingForms::synthetic('__phel_5'),
             ],
         ], $bindings);
     }
@@ -163,11 +154,12 @@ final class VectorBindingDeconstructorTest extends TestCase
         // Test for binding like this (let [[a & b] x])
         // This will be destructured to this:
         // (let [__phel_1 x
-        //       __phel_2 (first __phel_1)
-        //       __phel_3 (next __phel_1)
-        //       a __phel_2
-        //       __phel_4 __phel_3
-        //       b __phel_4])
+        //       __phel_2 (php/instanceof __phel_1 PersistentVectorInterface)
+        //       __phel_3 (if (php/=== __phel_2 true) (php/aget __phel_1 0) (first __phel_1))
+        //       __phel_4 (if (php/=== __phel_2 true) nil (next __phel_1))
+        //       a __phel_3
+        //       __phel_5 (if (php/=== __phel_2 true) (.cdr __phel_1) __phel_4)
+        //       b __phel_5])
 
         $bindToA = Symbol::create('a');
         $bindToB = Symbol::create('b');
@@ -187,32 +179,93 @@ final class VectorBindingDeconstructorTest extends TestCase
                 $value,
             ],
             [
-                Symbol::create('__phel_2'),
-                Phel::list([
-                    Symbol::create(self::FIRST_SYMBOL),
-                    Symbol::create('__phel_1'),
-                ]),
+                SequentialBindingForms::synthetic('__phel_2'),
+                SequentialBindingForms::isVector('__phel_1'),
             ],
             [
-                Symbol::create('__phel_3'),
-                Phel::list([
-                    Symbol::create(self::NEXT_SYMBOL),
-                    Symbol::create('__phel_1'),
-                ]),
+                SequentialBindingForms::synthetic('__phel_3'),
+                SequentialBindingForms::positional('__phel_2', '__phel_1', '__phel_1', 0),
+            ],
+            [
+                SequentialBindingForms::synthetic('__phel_4'),
+                SequentialBindingForms::step('__phel_2', '__phel_1', '__phel_1'),
             ],
             [
                 $bindToA,
-                Symbol::create('__phel_2'),
+                SequentialBindingForms::synthetic('__phel_3'),
             ],
             [
-                Symbol::create('__phel_4'),
-                Symbol::create('__phel_3'),
+                SequentialBindingForms::synthetic('__phel_5'),
+                SequentialBindingForms::rest('__phel_2', '__phel_1', '__phel_4', 1),
             ],
             [
                 $bindToB,
-                Symbol::create('__phel_4'),
+                SequentialBindingForms::synthetic('__phel_5'),
             ],
         ], $bindings);
+    }
+
+    public function test_bare_rest_binds_the_value_without_a_guard(): void
+    {
+        // (let [[& r] x]) => (let [__phel_1 x  __phel_2 __phel_1  r __phel_2])
+        $bindTo = Symbol::create('r');
+        $value = Symbol::create('x');
+        $binding = Phel::vector([Symbol::create(self::REST_SYMBOL), $bindTo]);
+
+        $bindings = [];
+        $this->deconstructor->deconstruct($bindings, $binding, $value);
+
+        self::assertEquals([
+            [Symbol::create('__phel_1'), $value],
+            [Symbol::create('__phel_2'), Symbol::create('__phel_1')],
+            [$bindTo, Symbol::create('__phel_2')],
+        ], $bindings);
+    }
+
+    public function test_rest_after_two_positions_steps_the_vector_twice(): void
+    {
+        // (let [[a b & r] x]): the tail is `nthNext` 2 of the vector, or the
+        // walk left by the second `next`.
+        $binding = Phel::vector([
+            Symbol::create('a'),
+            Symbol::create('b'),
+            Symbol::create(self::REST_SYMBOL),
+            Symbol::create('r'),
+        ]);
+
+        $bindings = [];
+        $this->deconstructor->deconstruct($bindings, $binding, Symbol::create('x'));
+
+        self::assertEquals(
+            [SequentialBindingForms::synthetic('__phel_7'), SequentialBindingForms::rest('__phel_2', '__phel_1', '__phel_6', 2)],
+            $bindings[8],
+        );
+    }
+
+    public function test_the_vector_test_is_bound_once_per_pattern(): void
+    {
+        $binding = Phel::vector([Symbol::create('a'), Symbol::create('b'), Symbol::create('c')]);
+
+        $bindings = [];
+        $this->deconstructor->deconstruct($bindings, $binding, Symbol::create('x'));
+
+        $vectorTests = array_filter(
+            $bindings,
+            static fn(array $b): bool => $b[1] == SequentialBindingForms::isVector('__phel_1'),
+        );
+        self::assertCount(1, $vectorTests);
+    }
+
+    public function test_the_vector_test_is_marked_as_compiler_plumbing(): void
+    {
+        // Its `php/instanceof` must not count as the user's operator when
+        // `ReturnTypeInferrer` decides whether to publish a return type.
+        $bindings = [];
+        $this->deconstructor->deconstruct($bindings, Phel::vector([Symbol::create('a')]), Symbol::create('x'));
+
+        $meta = $bindings[1][0]->getMeta();
+        self::assertNotNull($meta);
+        self::assertTrue($meta->find(Keyword::create(ReturnTypeInferrer::SYNTHETIC_BINDING)));
     }
 
     public function test_exception_when_multiple_rest_symbol(): void
