@@ -4,6 +4,10 @@ All notable changes to this project will be documented in this file.
 
 ## Unreleased
 
+### Performance
+
+- `case` and `cond` over keywords look each keyword up once per fn instead of on every dispatch: a five-arm keyword `case` is 10x faster. (#3360)
+
 ## [0.53.0](https://github.com/phel-lang/phel-lang/compare/v0.52.0...v0.53.0) - 2026-09-24
 
 ### Changed

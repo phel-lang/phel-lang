@@ -74,15 +74,22 @@ final readonly class BodyConstantScanner
         }
 
         // When a `LetNode` / `IfNode` will be lowered to a PHP `match`,
-        // its cond-test calls and arm-key literals are consumed by the
-        // lowerer (the arms are emitted via `emitLiteral`, never going
-        // through the per-fn cache). Reserving slots for them would
-        // leave orphan `$__phel_call_N` / `$__phel_const_N` declarations
-        // in the generated PHP — kept invisible by the runtime, but
-        // bloat in bytecode and OPcache.
-        $matchInit = $this->matchLoweredInit($node);
-        if ($matchInit instanceof AbstractNode) {
-            $this->walk($matchInit, $scope, $cacheCalls);
+        // its cond-test calls and arm literals are consumed by the lowerer
+        // (the arms are emitted from the analysed values, not from nodes).
+        // Walking them would leave orphan `$__phel_call_N` /
+        // `$__phel_const_N` declarations in the generated PHP. A keyword
+        // arm value still gets a slot, reserved by value: PHP evaluates the
+        // arm keys of a `match` in order until one matches, so an inline
+        // `Keyword::create()` would re-intern every missed key per dispatch.
+        $shape = $this->matchLoweredShape($node);
+        if ($shape !== null) {
+            $this->walk($shape['init'], $scope, $cacheCalls);
+            foreach ($shape['arms'] as $arm) {
+                $this->reserveKeywordValue($arm['key'], $scope);
+                $this->reserveKeywordValue($arm['expr'], $scope);
+            }
+
+            $this->reserveKeywordValue($shape['fallback'], $scope);
             return;
         }
 
@@ -139,26 +146,31 @@ final readonly class BodyConstantScanner
     }
 
     /**
-     * If `$node` will be lowered to a PHP `match` by
-     * `\Phel\Compiler\Domain\Emitter\OutputEmitter\NodeEmitter\IfChainMatchLowerer`,
-     * return the only sub-expression that still flows through the
-     * normal emit path — the matched init value. Everything else
-     * (cond tests, arm keys, arm bodies) is emitted via `emitLiteral`
-     * and never consumes a per-fn cache slot.
+     * The lowered shape when `$node` will be emitted as a PHP `match` by
+     * `\Phel\Compiler\Domain\Emitter\OutputEmitter\NodeEmitter\IfChainMatchLowerer`.
+     * Only its matched init value still flows through the normal emit path;
+     * the cond tests, arm keys and arm bodies are written from values.
+     *
+     * @return array{init: AbstractNode, arms: list<array{key: mixed, expr: mixed}>, fallback: mixed}|null
      */
-    private function matchLoweredInit(AbstractNode $node): ?AbstractNode
+    private function matchLoweredShape(AbstractNode $node): ?array
     {
         if ($node instanceof LetNode) {
-            $shape = IfChainMatchLowerer::analyse($node);
-            return $shape['init'] ?? null;
+            return IfChainMatchLowerer::analyse($node);
         }
 
         if ($node instanceof IfNode) {
-            $shape = IfChainMatchLowerer::analyseIfChain($node);
-            return $shape['init'] ?? null;
+            return IfChainMatchLowerer::analyseIfChain($node);
         }
 
         return null;
+    }
+
+    private function reserveKeywordValue(mixed $value, ConstantScope $scope): void
+    {
+        if ($value instanceof Keyword) {
+            $scope->reserveKeyword($value);
+        }
     }
 
     private function isCacheableCollection(AbstractNode $node): bool
