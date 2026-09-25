@@ -6,6 +6,7 @@ All notable changes to this project will be documented in this file.
 
 ### Performance
 
+- `<`, `<=`, `>`, `>=`, `=`, `not=`, `zero?`, `pos?`, `neg?`, `inc` and `dec` on values of unknown type check for a native int (a scalar, for ordering) and answer inline, calling the core fn only for other values: `(< a b)` 7.9x faster in a loop, `(= x 3)` 8.8x, `(inc x)` 5.4x. (#3351)
 - `(not x)` on a value of any type compiles to an inline nil/false check instead of a call: 2.6x faster in a loop. An `if` over a `^bool` fn param skips the truthiness check (1.9x faster), and one over any other local checks it without a temporary (1.4x). (#3352 #3353)
 
 ## [0.53.0](https://github.com/phel-lang/phel-lang/compare/v0.52.0...v0.53.0) - 2026-09-24

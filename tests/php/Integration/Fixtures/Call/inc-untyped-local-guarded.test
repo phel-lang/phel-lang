@@ -1,0 +1,7 @@
+--PHEL--
+(fn [x] (inc x))
+--PHP--
+(function($x) {
+  static $__phel_call_0;
+  return (\is_int($x) && $x !== \PHP_INT_MAX ? ($x + 1) : ($__phel_call_0 ??= \Phel::getDefinition("phel.core", "inc"))->__invoke($x));
+});
