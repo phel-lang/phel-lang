@@ -431,7 +431,9 @@ process_repo() {
   # Resolve where the PR goes before touching the remote: a push whose PR
   # cannot be opened leaves a half-done branch behind.
   local SLUG
-  SLUG="$(repo_slug_from_url "$(git -C "$REPO_PATH" remote get-url origin 2>/dev/null)")"
+  # The push URL, not the fetch URL: the branch lands where `git push origin`
+  # sends it, which a fork setup may point somewhere else.
+  SLUG="$(repo_slug_from_url "$(git -C "$REPO_PATH" remote get-url --push origin 2>/dev/null)")"
   if [[ -z "$SLUG" ]]; then
     write_result "$name" PR_FAIL $(( $(date +%s) - T0 )) "origin is not a github.com URL; nothing committed or pushed"
     return
