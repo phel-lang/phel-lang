@@ -122,6 +122,30 @@
   (is (false? (not "")) "(not \"\")")
   (is (true? (not nil)) "(not nil)"))
 
+(defn- not-of-local [x] (not x))
+(defn- not-of-call [x] (not (identity x)))
+
+;; Untyped `(not x)` is inlined as a nil/false probe: a local is read in place,
+;; any other operand goes through a temporary. Both must keep Phel truthiness.
+(deftest test-not-inlined-over-an-untyped-operand
+  (doseq [[x expected] [[nil true] [false true] [true false] [0 false] ["" false]
+                        ["0" false] [0.0 false] [[] false] [(php/array) false]]]
+    (is (= expected (not-of-local x)) (str "local " (pr-str x)))
+    (is (= expected (not-of-call x)) (str "call " (pr-str x)))))
+
+(defn- branch-on-bool-local [x]
+  (let [b (php/is_int x)]
+    (if b :int :other)))
+
+(defn- branch-on-bool-param [^bool b]
+  (if b :yes :no))
+
+(deftest test-if-over-a-bool-typed-local
+  (is (= :int (branch-on-bool-local 1)))
+  (is (= :other (branch-on-bool-local "1")))
+  (is (= :yes (branch-on-bool-param true)))
+  (is (= :no (branch-on-bool-param false))))
+
 (deftest test-not=
   (is (false? (not= false)) "(not= false)")
   (is (false? (not= false false)) "(notfalse? false)")

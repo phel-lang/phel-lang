@@ -8,9 +8,11 @@ use Phel\Compiler\Domain\Analyzer\Ast\AbstractNode;
 use Phel\Compiler\Domain\Analyzer\Ast\CallNode;
 use Phel\Compiler\Domain\Analyzer\Ast\GlobalVarNode;
 use Phel\Compiler\Domain\Analyzer\Ast\LiteralNode;
+use Phel\Compiler\Domain\Analyzer\Ast\LocalVarNode;
 use Phel\Compiler\Domain\Analyzer\Ast\PhpVarNode;
 use Phel\Compiler\Domain\Analyzer\TypeAnalyzer\PhpFunctionReturnTypes;
 use Phel\Compiler\Domain\Emitter\OutputEmitter\CallSpecialization;
+use Phel\Compiler\Domain\Emitter\OutputEmitter\TagNormalizer;
 use Phel\Shared\TagResolver;
 
 use function in_array;
@@ -54,6 +56,14 @@ final class BooleanExprDetector
     {
         if ($node instanceof LiteralNode) {
             return is_bool($node->getValue());
+        }
+
+        // A local the analyser typed `bool`: a `^bool` param (a PHP `bool`
+        // parameter, checked on entry) or a binding inferred from a
+        // bool-returning init. The emitter trusts local tags the same way for
+        // the typed `int` / `float` lowerings.
+        if ($node instanceof LocalVarNode) {
+            return TagNormalizer::ofLocalVar($node) === 'bool';
         }
 
         if (!$node instanceof CallNode) {
