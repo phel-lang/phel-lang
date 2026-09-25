@@ -14,14 +14,36 @@ use Phel\Lang\Symbol;
 
 use function assert;
 use function count;
+use function implode;
+use function str_starts_with;
 
 /**
+ * A multi-arity fn compiles to an `AbstractFn` subclass with one method per
+ * arity (#3355). Captured locals are constructor-promoted properties, read
+ * back at the top of each method, as for a single-arity fn class.
+ *
+ * An arity whose PHP signature can override the fixed `invokeArityN` slot
+ * (no param type, no by-ref param, see
+ * {@see MethodEmitter::hasArityMethodCompatibleSignature()}) is emitted as
+ * that method, so a call site that has proven the arity reaches the body in
+ * one call. Any other arity, the variadic one and fixed arities above
+ * `AbstractFn::MAX_ARITY_SLOT` get a method of their own, which `__invoke`
+ * and, for a typed fixed arity, the `invokeArityN` slot call.
+ *
+ * Arity bodies used to be closures built in the constructor and stored in
+ * properties, which allocated one `Closure` per arity every time the fn
+ * value was created: every `(comp f g)`, `(partial f x)`, or local
+ * multi-arity fn.
+ *
  * @internal
  */
 final readonly class MultiFnAsClassEmitter implements NodeEmitterInterface
 {
+    private const string VARIADIC_METHOD = 'phelArityVariadic';
+
     public function __construct(
         private OutputEmitterInterface $outputEmitter,
+        private MethodEmitter $methodEmitter,
         private ClosureEmitterHelper $closureHelper,
     ) {}
 
@@ -33,8 +55,9 @@ final readonly class MultiFnAsClassEmitter implements NodeEmitterInterface
         $uses = $this->collectUses($fnNodes);
 
         $this->emitClassBegin($node, $uses);
-        $this->emitProperties($node, $uses, count($fnNodes));
-        $this->emitConstructor($node, $uses, $fnNodes);
+        $this->emitProperties($node, $uses);
+        $this->closureHelper->emitConstructor($uses, $node->getEnv(), $node->getStartSourceLocation());
+        $this->outputEmitter->emitLine();
         $this->emitInvoke($node, $fnNodes);
         $this->emitArityMethods($node, $fnNodes);
         $this->emitClassEnd($node);
@@ -77,63 +100,18 @@ final readonly class MultiFnAsClassEmitter implements NodeEmitterInterface
     /**
      * @param list<Symbol> $uses
      */
-    private function emitProperties(MultiFnNode $node, array $uses, int $fnCount): void
+    private function emitProperties(MultiFnNode $node, array $uses): void
     {
         $ns = addslashes($this->outputEmitter->mungeEncodePhpNs($node->getEnv()->getBoundTo()));
         $this->outputEmitter->emitLine('public const BOUND_TO = "' . $ns . '";', $node->getStartSourceLocation());
 
         $this->closureHelper->emitProperties($uses, $node->getEnv(), $node->getStartSourceLocation());
-
-        for ($i = 0; $i < $fnCount; ++$i) {
-            $this->outputEmitter->emitLine('private $fn' . $i . ';', $node->getStartSourceLocation());
-        }
     }
 
     /**
-     * @param list<Symbol> $uses
-     * @param list<FnNode> $fnNodes
-     */
-    private function emitConstructor(MultiFnNode $node, array $uses, array $fnNodes): void
-    {
-        $loc = $node->getStartSourceLocation();
-        $env = $node->getEnv();
-        $usesCount = count($uses);
-
-        $this->outputEmitter->emitLine();
-        $this->outputEmitter->emitStr('public function __construct(', $loc);
-
-        foreach ($uses as $i => $use) {
-            $this->outputEmitter->emitPhpVariable($this->closureHelper->normalizeUse($use, $env), $loc);
-            if ($i < $usesCount - 1) {
-                $this->outputEmitter->emitStr(', ', $loc);
-            }
-        }
-
-        $this->outputEmitter->emitLine(') {', $loc);
-        $this->outputEmitter->increaseIndentLevel();
-
-        foreach ($uses as $use) {
-            $varName = $this->outputEmitter->mungeEncode($this->closureHelper->normalizeUse($use, $env)->getName());
-            $this->outputEmitter->emitLine('$this->' . $varName . ' = $' . $varName . ';', $loc);
-        }
-
-        foreach ($fnNodes as $i => $fnNode) {
-            $this->outputEmitter->emitStr('$this->fn' . $i . ' = ', $loc);
-            $this->outputEmitter->emitNode($fnNode);
-            $this->outputEmitter->emitLine(';', $loc);
-        }
-
-        $this->outputEmitter->decreaseIndentLevel();
-        $this->outputEmitter->emitLine('}', $loc);
-        $this->outputEmitter->emitLine();
-    }
-
-    /**
-     * Multi-arity dispatch via a `match` jump table instead of the
-     * previous `switch` + post-`if`. PHP compiles `match` to a single
-     * branchless table when every arm is a constant `int`, and the
-     * variadic tail collapses into the `default` arm — same semantics,
-     * fewer instructions on every call.
+     * Multi-arity dispatch via a `match` jump table. PHP compiles `match` to
+     * a single branchless table when every arm is a constant `int`, and the
+     * variadic tail collapses into the `default` arm.
      *
      * @param list<FnNode> $fnNodes
      */
@@ -143,13 +121,13 @@ final readonly class MultiFnAsClassEmitter implements NodeEmitterInterface
 
         $this->outputEmitter->emitLine('public function __invoke(...$args) {', $loc);
         $this->outputEmitter->increaseIndentLevel();
-        $this->outputEmitter->emitLine('return match (\count($args)) {', $loc);
+        $this->outputEmitter->emitLine('return match (\\count($args)) {', $loc);
         $this->outputEmitter->increaseIndentLevel();
 
-        $variadicIndex = null;
-        foreach ($fnNodes as $i => $fnNode) {
+        $variadic = null;
+        foreach ($fnNodes as $fnNode) {
             if ($fnNode->isVariadic()) {
-                $variadicIndex = $i;
+                $variadic = $fnNode;
                 continue;
             }
 
@@ -160,16 +138,15 @@ final readonly class MultiFnAsClassEmitter implements NodeEmitterInterface
             }
 
             $this->outputEmitter->emitLine(
-                $arity . ' => ($this->fn' . $i . ')(' . implode(', ', $params) . '),',
+                $arity . ' => $this->' . $this->bodyMethodName($fnNode) . '(' . implode(', ', $params) . '),',
                 $loc,
             );
         }
 
-        if ($variadicIndex !== null) {
-            $min = $fnNodes[$variadicIndex]->getMinArity();
+        if ($variadic instanceof FnNode) {
             $this->outputEmitter->emitLine(
-                'default => \count($args) >= ' . $min
-                . ' ? ($this->fn' . $variadicIndex . ')(...$args)'
+                'default => \\count($args) >= ' . $variadic->getMinArity()
+                . ' ? $this->' . self::VARIADIC_METHOD . '(...$args)'
                 . ' : throw new \\InvalidArgumentException("No matching function arity"),',
                 $loc,
             );
@@ -187,52 +164,87 @@ final readonly class MultiFnAsClassEmitter implements NodeEmitterInterface
     }
 
     /**
-     * Fixed-arity dispatch slots overriding `AbstractFn::invokeArityN`. Each
-     * concrete (non-variadic) arity up to `AbstractFn::MAX_ARITY_SLOT` gets a
-     * method with real positional parameters that calls its closure directly,
-     * so a call site that has proven the arity can skip `__invoke`'s variadic
-     * packing and `$args[N]` re-indexing (#2715). Arities the multi-fn does
-     * not define as fixed (e.g. the variadic arm) keep the inherited default,
+     * One method per arity holding its body, plus an `invokeArityN` slot
+     * forwarding to a fixed arity whose body could not take the slot's
+     * signature itself. Arities without a slot of their own (the variadic
+     * one, fixed ones above `MAX_ARITY_SLOT`) keep the inherited default,
      * which routes back through `__invoke`.
      *
      * @param list<FnNode> $fnNodes
      */
     private function emitArityMethods(MultiFnNode $node, array $fnNodes): void
     {
-        $loc = $node->getStartSourceLocation();
-
-        foreach ($fnNodes as $i => $fnNode) {
-            if ($fnNode->isVariadic()) {
-                continue;
-            }
-
-            $arity = count($fnNode->getParams());
-            if ($arity > AbstractFn::MAX_ARITY_SLOT) {
-                continue;
-            }
-
-            $params = [];
-            $typedParams = [];
-            for ($p = 1; $p <= $arity; ++$p) {
-                $params[] = '$a' . $p;
-                // Signature must stay compatible with the `mixed ...): mixed`
-                // parent slot on AbstractFn, so declare params/return as mixed.
-                $typedParams[] = 'mixed $a' . $p;
-            }
+        foreach ($fnNodes as $fnNode) {
+            $methodName = $this->bodyMethodName($fnNode);
 
             $this->outputEmitter->emitLine();
-            $this->outputEmitter->emitLine(
-                'public function invokeArity' . $arity . '(' . implode(', ', $typedParams) . '): mixed {',
-                $loc,
+            $this->methodEmitter->emit(
+                $methodName,
+                $fnNode,
+                $this->isAritySlot($methodName) ? 'mixed' : null,
             );
-            $this->outputEmitter->increaseIndentLevel();
-            $this->outputEmitter->emitLine(
-                'return ($this->fn' . $i . ')(' . implode(', ', $params) . ');',
-                $loc,
-            );
-            $this->outputEmitter->decreaseIndentLevel();
-            $this->outputEmitter->emitLine('}', $loc);
+
+            if (!$fnNode->isVariadic() && !$this->isAritySlot($methodName) && $this->hasAritySlot($fnNode)) {
+                $this->emitAritySlotForwarder($node, $fnNode, $methodName);
+            }
         }
+    }
+
+    /**
+     * The name of the method holding an arity's body: the `invokeArityN`
+     * slot itself when the signature allows it, otherwise `phelArityN` /
+     * `phelArityVariadic`.
+     */
+    private function bodyMethodName(FnNode $fnNode): string
+    {
+        if ($fnNode->isVariadic()) {
+            return self::VARIADIC_METHOD;
+        }
+
+        $arity = count($fnNode->getParams());
+        if ($this->hasAritySlot($fnNode) && $this->methodEmitter->hasArityMethodCompatibleSignature($fnNode)) {
+            return 'invokeArity' . $arity;
+        }
+
+        return 'phelArity' . $arity;
+    }
+
+    private function hasAritySlot(FnNode $fnNode): bool
+    {
+        return count($fnNode->getParams()) <= AbstractFn::MAX_ARITY_SLOT;
+    }
+
+    private function isAritySlot(string $methodName): bool
+    {
+        return str_starts_with($methodName, 'invokeArity');
+    }
+
+    /**
+     * `public function invokeArityN(mixed $a1, ...): mixed` calling the
+     * arity's own method, whose typed or by-ref params PHP then checks as it
+     * did on the closure.
+     */
+    private function emitAritySlotForwarder(MultiFnNode $node, FnNode $fnNode, string $methodName): void
+    {
+        $loc = $node->getStartSourceLocation();
+        $arity = count($fnNode->getParams());
+
+        $params = [];
+        $typedParams = [];
+        for ($p = 1; $p <= $arity; ++$p) {
+            $params[] = '$a' . $p;
+            $typedParams[] = 'mixed $a' . $p;
+        }
+
+        $this->outputEmitter->emitLine();
+        $this->outputEmitter->emitLine(
+            'public function invokeArity' . $arity . '(' . implode(', ', $typedParams) . '): mixed {',
+            $loc,
+        );
+        $this->outputEmitter->increaseIndentLevel();
+        $this->outputEmitter->emitLine('return $this->' . $methodName . '(' . implode(', ', $params) . ');', $loc);
+        $this->outputEmitter->decreaseIndentLevel();
+        $this->outputEmitter->emitLine('}', $loc);
     }
 
     private function emitClassEnd(MultiFnNode $node): void

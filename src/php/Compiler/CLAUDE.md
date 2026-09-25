@@ -75,6 +75,10 @@ Opt-in, off by default (`CompilerConfig::isIntermediateCacheEnabled()`). Wired o
 - GOTCHA: replayed forms are deserialized Phel values, so anything used as a map key must compare by value, not identity (`Keyword::equals`/`Symbol::equals`) — else a cached keyword-keyed lookup silently misses on replay.
 - Emitted PHP is stable for a given counter trajectory, but gensym names are process-global; a build mixing fresh compiles with compiled-code-cache hits can renumber them (pre-existing, independent of this cache).
 
+### Multi-arity fn classes
+
+`MultiFnAsClassEmitter` writes one method per arity (#3355). An arity whose signature can override `AbstractFn::invokeArityN` (`MethodEmitter::hasArityMethodCompatibleSignature()`: no param type, no by-ref param, return type not `void`) is emitted as that method, so the build-mode arity shortcut reaches the body in one call. A typed or by-ref fixed arity gets `phelArityN` plus an `invokeArityN` forwarder; the variadic arity is `phelArityVariadic`. `__invoke` dispatches to those methods with a `match` on the argument count. Captures are constructor properties read back at the top of each method, as in a single-arity fn class. Arity bodies must not go back to closures stored in properties: each one bound `$this`, so every fn value created at runtime (`comp`, `partial`, local multi-arity fns) allocated a closure per arity and formed a reference cycle only the GC could free.
+
 ## Key Constraints
 
 - Every special-form analyzer checks its argument count before reading an argument, via `AssertsFormArityTrait::assertArityAtLeast()`. `PersistentListInterface::get()` throws past the end, and that exception is about a list rather than about the form the user wrote: it reached them as `[PHEL403] Index out of bounds`, a runtime code, with no snippet. `SpecialFormArityTest` walks the `AnalyzePersistentList` registry and fails when a form raises anything but an `AnalyzerException` (#3297).
