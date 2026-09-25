@@ -30,11 +30,21 @@ final readonly class MethodEmitter
         private BodyConstantScanner $constantScanner = new BodyConstantScanner(),
     ) {}
 
-    public function emit(string $methodName, FnNode $node): void
+    /**
+     * @param string|null $fallbackReturnType declared when the fn carries no
+     *                                        return type of its own, for a
+     *                                        method overriding a typed parent
+     */
+    public function emit(string $methodName, FnNode $node, ?string $fallbackReturnType = null): void
     {
+        $returnType = $this->returnTypeSuffix($node);
+        if ($returnType === '' && $fallbackReturnType !== null) {
+            $returnType = ': ' . $fallbackReturnType;
+        }
+
         $this->emitMethodBegin($methodName, $node);
         $this->emitMethodParameterList($node);
-        $this->outputEmitter->emitLine(')' . $this->returnTypeSuffix($node) . ' {', $node->getStartSourceLocation());
+        $this->outputEmitter->emitLine(')' . $returnType . ' {', $node->getStartSourceLocation());
         $this->outputEmitter->increaseIndentLevel();
         $this->emitMethodParametersExtraction($node);
         $this->emitSelfNameBinding($node);
@@ -52,6 +62,29 @@ final readonly class MethodEmitter
     {
         $type = $node->getReturnType();
         return $type === null ? '' : ': ' . $type;
+    }
+
+    /**
+     * Whether the fn's PHP signature can override an `AbstractFn::invokeArityN`
+     * slot (`mixed $a1, ...): mixed`) as it is: no param type, no by-ref
+     * param, and a return type covariant with `mixed`. PHP rejects a narrower
+     * param type or a reference param on an override, and `void` is not a
+     * subtype of `mixed`.
+     */
+    public function hasArityMethodCompatibleSignature(FnNode $node): bool
+    {
+        if ($node->getReturnType() === 'void') {
+            return false;
+        }
+
+        foreach ($node->getParams() as $param) {
+            $meta = $param->getMeta();
+            if ($this->extractTypeTag($meta) !== null || $this->isByRef($meta)) {
+                return false;
+            }
+        }
+
+        return true;
     }
 
     /**
