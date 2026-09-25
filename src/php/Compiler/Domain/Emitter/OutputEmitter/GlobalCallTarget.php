@@ -37,6 +37,37 @@ final readonly class GlobalCallTarget
     }
 
     /**
+     * Whether a call may cache its callee in a build-mode `$__phel_call_N`
+     * slot. A slot is filled once, on the first call, so a callee that can
+     * be rebound must not get one: the first call might run inside a
+     * `binding` frame and pin the bound value after the frame exits (#3367).
+     */
+    public static function isCacheableGlobalFnCall(CallNode $node): bool
+    {
+        $fn = $node->getFn();
+
+        return self::isGlobalFnCall($node)
+            && $fn instanceof GlobalVarNode
+            && !self::isBindable($fn);
+    }
+
+    /**
+     * A `^:dynamic` var can be rebound with `binding`; `^:redef` asks to stay
+     * interceptable (#3184). Both keep the full `\Phel::getDefinition` read,
+     * whether read as a value or called. Reads both key forms: the analyzer
+     * writes some metadata under a string key and some under a keyword.
+     */
+    public static function isBindable(GlobalVarNode $fn): bool
+    {
+        $meta = $fn->getMeta();
+
+        return array_any(
+            ['dynamic', 'redef'],
+            static fn(string $tag): bool => (bool) $meta->find($tag) || (bool) $meta->find(Keyword::create($tag)),
+        );
+    }
+
+    /**
      * Matches {@see CallEmitter::isSelfCall()}: a global resolves to `$this`
      * when its `<ns>\<name>` matches the current `boundTo`, including any
      * `let`/`loop` suffix appended while analysing the body.

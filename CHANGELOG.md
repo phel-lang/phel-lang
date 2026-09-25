@@ -14,6 +14,10 @@ All notable changes to this project will be documented in this file.
 - Sequential destructuring reads a vector by index: `(let [[a b] v] ...)` is 3.2x faster on a vector, and `[x & xs]` in a `loop` over a vector about 9% faster. Lists, lazy and infinite seqs, sets, maps, strings and `nil` keep the `first`/`next` walk and give the same results. (#3356)
 - `(not x)` on a value of any type compiles to an inline nil/false check instead of a call: 2.6x faster in a loop. An `if` over a `^bool` fn param skips the truthiness check (1.9x faster), and one over any other local checks it without a temporary (1.4x). (#3352 #3353)
 
+### Fixed
+
+- In a build, a call to a `^:dynamic` or `^:redef` fn reads the var on every call. It used to cache the first value it saw, so a call made inside `binding` kept the bound fn after the binding ended. (#3367)
+
 ## [0.53.0](https://github.com/phel-lang/phel-lang/compare/v0.52.0...v0.53.0) - 2026-09-24
 
 ### Changed
