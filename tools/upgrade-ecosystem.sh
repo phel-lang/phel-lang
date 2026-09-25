@@ -170,6 +170,12 @@ Steps:
    existing constraint is intentionally broader (e.g. ">=X <Y") -- in that case widen
    the upper bound but keep the existing style.
 2. Run: composer update phel-lang/phel-lang --with-all-dependencies
+   If the new phel-lang needs a newer PHP than this repo declares (compare
+   "require.php" in vendor/phel-lang/phel-lang/composer.json with this repo's
+   composer.json), raise this repo's "php" constraint to match and drop every
+   PHP version below it: CI matrices and php-version inputs, Dockerfile base
+   images, and README/docs requirement lines. Leave released CHANGELOG
+   entries as they are.
 3. Skim the phel-lang CHANGELOG for breaking changes between the previous and new tag
    (https://github.com/phel-lang/phel-lang/blob/main/CHANGELOG.md) and adapt source
    or tests as needed.
@@ -266,7 +272,7 @@ if (( DRY_RUN )); then
     fi
     log "      4. git add -A && git commit -m \"$COMMIT_MSG\""
     log "      5. git push -u origin $BRANCH"
-    log "      6. gh pr create --assignee @me --label dependencies --title \"$PR_TITLE\" --body \"...\""
+    log "      6. gh pr create --repo <origin owner/name> --base <default-branch> --assignee @me --label dependencies --title \"$PR_TITLE\" --body \"...\""
   fi
   log ""
   if (( UNSAFE )); then
@@ -321,6 +327,27 @@ process_repo() {
 
   if ! git -C "$REPO_PATH" rev-parse --git-dir >/dev/null 2>&1; then
     write_result "$name" SKIPPED 0 "not a git repo"; return
+  fi
+
+  # Where the push goes, settled before anything is touched. `git push`
+  # sends the branch to every push URL, so origin must have exactly one.
+  local SLUG="" FETCH_SLUG push_urls
+  push_urls="$(git -C "$REPO_PATH" remote get-url --push --all origin 2>/dev/null)"
+  if [[ -z "$push_urls" || "$push_urls" == *$'\n'* ]]; then
+    write_result "$name" SKIPPED 0 "origin needs exactly one push URL"; return
+  fi
+  # A PR also needs a github.com repository that is the one the default
+  # branch was pulled from, or its base could be a stale fork branch.
+  # --direct-push opens no PR, so it skips this.
+  if (( ! DIRECT_PUSH )); then
+    SLUG="$(repo_slug_from_url "$push_urls")"
+    FETCH_SLUG="$(repo_slug_from_url "$(git -C "$REPO_PATH" remote get-url origin 2>/dev/null)")"
+    if [[ -z "$SLUG" ]]; then
+      write_result "$name" SKIPPED 0 "origin is not a github.com URL"; return
+    fi
+    if [[ "$SLUG" != "$FETCH_SLUG" ]]; then
+      write_result "$name" SKIPPED 0 "origin fetches ${FETCH_SLUG:-a non-GitHub URL} but pushes to $SLUG"; return
+    fi
   fi
 
   DEFAULT_BRANCH="$(git -C "$REPO_PATH" symbolic-ref --short refs/remotes/origin/HEAD 2>/dev/null | sed 's@^origin/@@')"
@@ -431,10 +458,15 @@ process_repo() {
     local PR_BODY="Automated bump of \`phel-lang/phel-lang\` to ${VERSION} via build/upgrade-ecosystem.sh from the phel-lang repo. Tests passed locally before push."
     local PR_URL=""
     # Ensure the label exists; gh pr create aborts the whole PR if --label is missing.
-    ( cd "$REPO_PATH" && gh label create dependencies \
+    ( cd "$REPO_PATH" && gh label create dependencies --repo "$SLUG" \
         --color 0366d6 --description "Dependency updates" 2>>"$LOG_FILE" ) || true
     # Capture the URL directly from gh pr create's stdout (no race with gh pr view).
+    # --repo and --base pin the PR to origin: in a fork, gh would otherwise
+    # open it against the parent repository.
     PR_URL="$( cd "$REPO_PATH" && gh pr create \
+                 --repo "$SLUG" \
+                 --base "$DEFAULT_BRANCH" \
+                 --head "$BRANCH" \
                  --assignee @me \
                  --label dependencies \
                  --title "$COMMIT_MSG" \

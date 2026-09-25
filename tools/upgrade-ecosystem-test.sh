@@ -315,3 +315,123 @@ function test_script_rejects_zero_parallel() {
     out="$($SCRIPT --version=0.40.0 --parallel=0 --yes --only=__none__ 2>&1 || true)"
     assert_contains "--parallel must be >= 1" "$out"
 }
+
+# =============================================================================
+# repo_slug_from_url
+# =============================================================================
+
+function test_repo_slug_from_ssh_url() {
+    assert_equals "phel-lang/phel-log" "$(repo_slug_from_url 'git@github.com:phel-lang/phel-log.git')"
+}
+
+function test_repo_slug_from_https_url_with_git_suffix() {
+    assert_equals "phel-lang/phel-log" "$(repo_slug_from_url 'https://github.com/phel-lang/phel-log.git')"
+}
+
+function test_repo_slug_from_https_url_without_suffix() {
+    assert_equals "phel-lang/clojure-test-suite" "$(repo_slug_from_url 'https://github.com/phel-lang/clojure-test-suite')"
+}
+
+function test_repo_slug_from_ssh_scheme_url() {
+    assert_equals "phel-lang/phel-log" "$(repo_slug_from_url 'ssh://git@github.com/phel-lang/phel-log.git')"
+}
+
+function test_repo_slug_keeps_dots_inside_the_name() {
+    assert_equals "phel-lang/phel-lang.org" "$(repo_slug_from_url 'git@github.com:phel-lang/phel-lang.org.git')"
+}
+
+function test_repo_slug_is_empty_for_a_non_github_remote() {
+    assert_empty "$(repo_slug_from_url '/srv/git/phel-log.git')"
+}
+
+function test_repo_slug_from_ssh_url_with_port() {
+    assert_equals "phel-lang/phel-log" "$(repo_slug_from_url 'ssh://git@github.com:22/phel-lang/phel-log.git')"
+}
+
+function test_repo_slug_rejects_a_lookalike_host() {
+    assert_empty "$(repo_slug_from_url 'https://notgithub.com/phel-lang/phel-log.git')"
+}
+
+function test_repo_slug_rejects_github_com_inside_the_path() {
+    assert_empty "$(repo_slug_from_url 'https://mirror.example/github.com/phel-lang/phel-log.git')"
+}
+
+# =============================================================================
+# real run: an origin the script cannot trust is refused before any mutation
+# =============================================================================
+
+# One ecosystem repo under $TEMP_DIR/eco/demo, on main, clean, requiring phel,
+# with origin set to $1. claude and gh are stubs; claude leaves a marker.
+function _make_eco_repo() {
+    local origin="$1"
+    local repo="$TEMP_DIR/eco/demo"
+    mkdir -p "$repo"
+    printf '[user]\n\tname = Test\n\temail = test@example.com\n[commit]\n\tgpgsign = false\n[init]\n\tdefaultBranch = main\n' \
+        > "$TEMP_DIR/gitconfig"
+    export GIT_CONFIG_GLOBAL="$TEMP_DIR/gitconfig"
+    export GIT_CONFIG_NOSYSTEM=1
+    echo '{"require": {"phel-lang/phel-lang": "^0.52"}}' > "$repo/composer.json"
+    git -C "$repo" init -q
+    git -C "$repo" add -A
+    git -C "$repo" commit -q -m init
+    git -C "$repo" remote add origin "$origin"
+    printf '#!/usr/bin/env bash\ntouch "%s/claude-ran"\n' "$TEMP_DIR" > "$TEMP_DIR/bin/claude"
+    chmod +x "$TEMP_DIR/bin/claude"
+    _stub_bin gh
+}
+
+function _run_real() {
+    "$SCRIPT" --root="$TEMP_DIR/eco" --only=demo --version=0.53.0 --yes 2>&1 || true
+}
+
+function test_script_skips_a_non_github_origin_before_touching_the_repo() {
+    _make_eco_repo "$TEMP_DIR/elsewhere.git"
+
+    local out
+    out="$(_run_real)"
+
+    assert_contains "origin is not a github.com URL" "$out"
+    assert_file_not_exists "$TEMP_DIR/claude-ran"
+    assert_equals "main" "$(git -C "$TEMP_DIR/eco/demo" rev-parse --abbrev-ref HEAD)"
+    assert_empty "$(git -C "$TEMP_DIR/eco/demo" status --porcelain)"
+    unset GIT_CONFIG_GLOBAL GIT_CONFIG_NOSYSTEM
+}
+
+function test_script_skips_an_origin_with_two_push_urls() {
+    _make_eco_repo "git@github.com:phel-lang/demo.git"
+    git -C "$TEMP_DIR/eco/demo" remote set-url --add --push origin "git@github.com:phel-lang/demo.git"
+    git -C "$TEMP_DIR/eco/demo" remote set-url --add --push origin "git@github.com:someone/else.git"
+
+    local out
+    out="$(_run_real)"
+
+    assert_contains "origin needs exactly one push URL" "$out"
+    assert_file_not_exists "$TEMP_DIR/claude-ran"
+    unset GIT_CONFIG_GLOBAL GIT_CONFIG_NOSYSTEM
+}
+
+function test_script_skips_an_origin_that_pushes_elsewhere() {
+    _make_eco_repo "git@github.com:phel-lang/demo.git"
+    git -C "$TEMP_DIR/eco/demo" remote set-url --push origin "git@github.com:someone/fork.git"
+
+    local out
+    out="$(_run_real)"
+
+    assert_contains "origin fetches phel-lang/demo but pushes to someone/fork" "$out"
+    assert_file_not_exists "$TEMP_DIR/claude-ran"
+    unset GIT_CONFIG_GLOBAL GIT_CONFIG_NOSYSTEM
+}
+
+function test_script_direct_push_accepts_a_non_github_origin() {
+    git init -q --bare "$TEMP_DIR/elsewhere.git"
+    _make_eco_repo "$TEMP_DIR/elsewhere.git"
+    git -C "$TEMP_DIR/eco/demo" push -q origin main 2>/dev/null
+    git -C "$TEMP_DIR/eco/demo" remote set-head origin main 2>/dev/null
+
+    local out
+    out="$("$SCRIPT" --root="$TEMP_DIR/eco" --only=demo --version=0.53.0 --yes --direct-push 2>&1 || true)"
+
+    assert_not_contains "origin is not a github.com URL" "$out"
+    assert_file_exists "$TEMP_DIR/claude-ran"
+    unset GIT_CONFIG_GLOBAL GIT_CONFIG_NOSYSTEM
+}
