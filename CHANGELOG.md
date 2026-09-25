@@ -7,6 +7,7 @@ All notable changes to this project will be documented in this file.
 ### Performance
 
 - A multi-arity fn built at runtime, such as the value `comp` or `partial` returns, no longer allocates a closure per arity: `(comp f g)` created and called is 2.3x faster and peak memory in that loop drops from 125MB to 20MB. The arity a call site knows is reached in one call. (#3355)
+- `(not x)` on a value of any type compiles to an inline nil/false check instead of a call: 2.6x faster in a loop. An `if` over a `^bool` fn param skips the truthiness check (1.9x faster), and one over any other local checks it without a temporary (1.4x). (#3352 #3353)
 
 ## [0.53.0](https://github.com/phel-lang/phel-lang/compare/v0.52.0...v0.53.0) - 2026-09-24
 

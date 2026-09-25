@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Phel\Compiler\Domain\Emitter\OutputEmitter;
 
+use Phel\Compiler\Domain\Analyzer\Ast\AbstractNode;
 use Phel\Compiler\Domain\Analyzer\Ast\CallNode;
 
 use function count;
@@ -11,7 +12,7 @@ use function count;
 /**
  * Call-site eligibility checks for the single-argument `phel.core`
  * nil / boolean predicates (`nil?`, `some?`, `true?`, `false?`,
- * `truthy?`) that {@see NodeEmitter\CallEmitter}
+ * `truthy?`, `not`) that {@see NodeEmitter\CallEmitter}
  * lowers to a native PHP comparison instead of a registry dispatch.
  *
  * @internal
@@ -65,6 +66,34 @@ final readonly class NilAndBooleanCheckSpecialization
     public static function isTruthyCheck(CallNode $node): bool
     {
         return self::isUnaryCoreCall($node, 'truthy?');
+    }
+
+    /**
+     * `(not x)` over an operand of any type: the runtime body is `(if x false
+     * true)`, so the call collapses to the Phel-falsy probe. The two typed
+     * `not` shapes ({@see NumericOperationSpecialization::isNotEqPeephole()},
+     * {@see NumericOperationSpecialization::isNotOverBoolOperand()}) emit a
+     * tighter expression and keep precedence, which keeps the families
+     * disjoint.
+     */
+    public static function falsyCheckOperand(CallNode $node): ?AbstractNode
+    {
+        if (!self::isUnaryCoreCall($node, 'not')) {
+            return null;
+        }
+
+        if (NumericOperationSpecialization::isNotEqPeephole($node)
+            || NumericOperationSpecialization::isNotOverBoolOperand($node)
+        ) {
+            return null;
+        }
+
+        return $node->getArguments()[0];
+    }
+
+    public static function isFalsyCheck(CallNode $node): bool
+    {
+        return self::falsyCheckOperand($node) instanceof AbstractNode;
     }
 
     /**

@@ -8,9 +8,12 @@ use Phel\Compiler\Domain\Analyzer\Ast\AbstractNode;
 use Phel\Compiler\Domain\Analyzer\Ast\CallNode;
 use Phel\Compiler\Domain\Analyzer\Ast\GlobalVarNode;
 use Phel\Compiler\Domain\Analyzer\Ast\LiteralNode;
+use Phel\Compiler\Domain\Analyzer\Ast\LocalVarNode;
 use Phel\Compiler\Domain\Analyzer\Ast\PhpVarNode;
 use Phel\Compiler\Domain\Analyzer\TypeAnalyzer\PhpFunctionReturnTypes;
 use Phel\Compiler\Domain\Emitter\OutputEmitter\CallSpecialization;
+use Phel\Compiler\Domain\Emitter\OutputEmitter\TagNormalizer;
+use Phel\Lang\Symbol;
 use Phel\Shared\TagResolver;
 
 use function in_array;
@@ -56,6 +59,10 @@ final class BooleanExprDetector
             return is_bool($node->getValue());
         }
 
+        if ($node instanceof LocalVarNode) {
+            return self::isProvenBoolLocal($node);
+        }
+
         if (!$node instanceof CallNode) {
             return false;
         }
@@ -91,5 +98,21 @@ final class BooleanExprDetector
         // bool-typed PHP expression is also a hard bool — `IfEmitter`
         // can splice it into the test slot without the truthy adapter.
         return CallSpecialization::isBoolReturningSpecialisation($node);
+    }
+
+    /**
+     * A `^bool` fn param: it compiles to a PHP `bool` parameter, so PHP checks
+     * it on entry. Only a param. A `let` / `loop` / destructuring binding is
+     * read through its shadow (the renamed PHP variable), and a `^bool` the
+     * user wrote on it is never checked against the value, so
+     * `(let [^bool b 0] (if b ...))` keeps Phel truthiness, where 0 is
+     * truthy. By this point a tag the analyser inferred looks the same as one
+     * the user wrote, so an inferred bool binding declines too: it still
+     * skips the `$__truthy` temporary, being a plain variable read.
+     */
+    private static function isProvenBoolLocal(LocalVarNode $node): bool
+    {
+        return TagNormalizer::ofLocalVar($node) === 'bool'
+            && !$node->getEnv()->findLocalByShadowedName($node->getName()->getName()) instanceof Symbol;
     }
 }

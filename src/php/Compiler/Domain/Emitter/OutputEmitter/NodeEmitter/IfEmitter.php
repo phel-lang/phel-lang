@@ -7,6 +7,7 @@ namespace Phel\Compiler\Domain\Emitter\OutputEmitter\NodeEmitter;
 use Phel\Compiler\Domain\Analyzer\Ast\AbstractNode;
 use Phel\Compiler\Domain\Analyzer\Ast\IfNode;
 use Phel\Compiler\Domain\Analyzer\Ast\LiteralNode;
+use Phel\Compiler\Domain\Analyzer\Ast\LocalVarNode;
 use Phel\Compiler\Domain\Analyzer\Environment\NodeEnvironment;
 use Phel\Compiler\Domain\Emitter\OutputEmitter\Cache\BooleanExprDetector;
 use Phel\Compiler\Domain\Emitter\OutputEmitter\NodeEmitterInterface;
@@ -126,6 +127,17 @@ final class IfEmitter implements NodeEmitterInterface
             $this->outputEmitter->emitStr('(', $testExpr->getStartSourceLocation());
             $this->outputEmitter->emitNode($testExpr);
             $this->outputEmitter->emitStr(')', $testExpr->getStartSourceLocation());
+            return;
+        }
+
+        // A local is read twice in place: the `$__truthy` temporary only
+        // exists to evaluate an arbitrary expression once.
+        if ($testExpr instanceof LocalVarNode) {
+            $loc = $testExpr->getStartSourceLocation();
+            $this->outputEmitter->emitNode($testExpr);
+            $this->outputEmitter->emitStr(' !== null && ', $loc);
+            $this->outputEmitter->emitNode($testExpr);
+            $this->outputEmitter->emitStr(' !== false', $loc);
             return;
         }
 

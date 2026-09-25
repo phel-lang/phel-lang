@@ -3,7 +3,7 @@
 --PHP--
 (function($b): \Phel\Lang\Collections\Vector\PersistentVectorInterface {
   static $__phel_const_0;
-  if (($__truthy = $b) !== null && $__truthy !== false) {
+  if ($b !== null && $b !== false) {
     return ($__phel_const_0 ??= \Phel::vector([1, 2]));
   } else {
     return ($__phel_const_0 ??= \Phel::vector([1, 2]));
