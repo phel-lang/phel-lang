@@ -33,6 +33,25 @@
   (is (= :symbol (case 'range (range 0 5) :symbol :other)) "case list matcher treats symbols as constants")
   (is (= :default (case 3 (0 1) :small 2 :two :default)) "case list matcher falls through"))
 
+(defn- keyword-dispatch [k]
+  (case k
+    :a    :first
+    :ns/b :second
+    :c    :a
+    :fallback))
+
+;; A `case` over keyword literals lowers to a PHP `match` whose keyword keys
+;; and values are cached per fn after the first dispatch. The loop runs each
+;; input twice so the second pass reads the cached slots.
+(deftest test-case-on-keywords-hoisted-into-slots
+  (dotimes [_ 2]
+    (is (= :first (keyword-dispatch :a)))
+    (is (= :second (keyword-dispatch :ns/b)))
+    (is (= :a (keyword-dispatch :c)))
+    (is (= :fallback (keyword-dispatch :b)))
+    (is (= :fallback (keyword-dispatch "a")))
+    (is (= :fallback (keyword-dispatch nil)))))
+
 (deftest test-condp
   (is (= "one" (condp = 1 1 "one" 2 "two")) "condp basic match first")
   (is (= "two" (condp = 2 1 "one" 2 "two")) "condp basic match second")
