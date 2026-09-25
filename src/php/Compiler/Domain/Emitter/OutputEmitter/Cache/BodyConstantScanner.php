@@ -31,6 +31,7 @@ use Phel\Compiler\Domain\Analyzer\Ast\SetVarNode;
 use Phel\Compiler\Domain\Analyzer\Ast\ThrowNode;
 use Phel\Compiler\Domain\Analyzer\Ast\TryNode;
 use Phel\Compiler\Domain\Analyzer\Ast\VectorNode;
+use Phel\Compiler\Domain\Analyzer\Environment\NodeEnvironment;
 use Phel\Compiler\Domain\Emitter\OutputEmitter\AssocInSpecialization;
 use Phel\Compiler\Domain\Emitter\OutputEmitter\CallSpecialization;
 use Phel\Compiler\Domain\Emitter\OutputEmitter\GetInSpecialization;
@@ -69,7 +70,13 @@ final readonly class BodyConstantScanner
         }
 
         if ($this->isCacheableCollection($node) || $this->isCacheableKeyword($node)) {
-            $scope->reserve($node);
+            // `LiteralEmitter` writes nothing for a literal in statement
+            // position (its value is discarded), so a slot there would be an
+            // orphan `static` declaration. Collections are still written.
+            if (!$node instanceof LiteralNode || !$node->getEnv()->isContext(NodeEnvironment::CONTEXT_STATEMENT)) {
+                $scope->reserve($node);
+            }
+
             return;
         }
 
@@ -155,6 +162,12 @@ final readonly class BodyConstantScanner
      */
     private function matchLoweredShape(AbstractNode $node): ?array
     {
+        // Same gate as the emitters' `tryEmitAsMatch()`: a chain whose value
+        // is discarded keeps the if/else path, which emits its own nodes.
+        if ($node->getEnv()->isContext(NodeEnvironment::CONTEXT_STATEMENT)) {
+            return null;
+        }
+
         if ($node instanceof LetNode) {
             return IfChainMatchLowerer::analyse($node);
         }
