@@ -62,6 +62,21 @@ composer_phel_constraint() {
     "$path" 2>/dev/null
 }
 
+# Owner/name slug from a GitHub remote URL, or nothing when it is not one.
+# `gh pr create` needs it: in a fork, gh targets the parent repository by
+# default, so the PR would open upstream instead of on the fork itself.
+#   git@github.com:phel-lang/phel-log.git        -> phel-lang/phel-log
+#   https://github.com/phel-lang/phel-log.git    -> phel-lang/phel-log
+#   https://github.com/phel-lang/phel-log        -> phel-lang/phel-log
+#   ssh://git@github.com/phel-lang/phel-log.git  -> phel-lang/phel-log
+#   /some/local/path                             -> (empty)
+repo_slug_from_url() {
+  local url="$1"
+  if [[ "$url" =~ github\.com[:/]([^/]+)/([^/]+)$ ]]; then
+    printf '%s/%s' "${BASH_REMATCH[1]}" "${BASH_REMATCH[2]%.git}"
+  fi
+}
+
 # Portable timeout wrapper. macOS lacks coreutils `timeout` by default; fall
 # back to brew's `gtimeout`, and finally to perl alarm (perl ships with macOS).
 # Exit code 124 is reserved for "command timed out", matching coreutils.

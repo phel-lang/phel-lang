@@ -170,6 +170,12 @@ Steps:
    existing constraint is intentionally broader (e.g. ">=X <Y") -- in that case widen
    the upper bound but keep the existing style.
 2. Run: composer update phel-lang/phel-lang --with-all-dependencies
+   If the new phel-lang needs a newer PHP than this repo declares (compare
+   "require.php" in vendor/phel-lang/phel-lang/composer.json with this repo's
+   composer.json), raise this repo's "php" constraint to match and drop every
+   PHP version below it: CI matrices and php-version inputs, Dockerfile base
+   images, and README/docs requirement lines. Leave released CHANGELOG
+   entries as they are.
 3. Skim the phel-lang CHANGELOG for breaking changes between the previous and new tag
    (https://github.com/phel-lang/phel-lang/blob/main/CHANGELOG.md) and adapt source
    or tests as needed.
@@ -266,7 +272,7 @@ if (( DRY_RUN )); then
     fi
     log "      4. git add -A && git commit -m \"$COMMIT_MSG\""
     log "      5. git push -u origin $BRANCH"
-    log "      6. gh pr create --assignee @me --label dependencies --title \"$PR_TITLE\" --body \"...\""
+    log "      6. gh pr create --repo <origin owner/name> --base <default-branch> --assignee @me --label dependencies --title \"$PR_TITLE\" --body \"...\""
   fi
   log ""
   if (( UNSAFE )); then
@@ -428,13 +434,25 @@ process_repo() {
      && git -C "$REPO_PATH" commit -m "$COMMIT_MSG" >>"$LOG_FILE" 2>&1 \
      && git -C "$REPO_PATH" push -u origin "$BRANCH" >>"$LOG_FILE" 2>&1; then
 
+    local SLUG
+    SLUG="$(repo_slug_from_url "$(git -C "$REPO_PATH" remote get-url origin 2>/dev/null)")"
+    if [[ -z "$SLUG" ]]; then
+      write_result "$name" PR_FAIL $(( $(date +%s) - T0 )) "commit+push OK, origin is not a GitHub URL"
+      return
+    fi
+
     local PR_BODY="Automated bump of \`phel-lang/phel-lang\` to ${VERSION} via build/upgrade-ecosystem.sh from the phel-lang repo. Tests passed locally before push."
     local PR_URL=""
     # Ensure the label exists; gh pr create aborts the whole PR if --label is missing.
-    ( cd "$REPO_PATH" && gh label create dependencies \
+    ( cd "$REPO_PATH" && gh label create dependencies --repo "$SLUG" \
         --color 0366d6 --description "Dependency updates" 2>>"$LOG_FILE" ) || true
     # Capture the URL directly from gh pr create's stdout (no race with gh pr view).
+    # --repo and --base pin the PR to origin: in a fork, gh would otherwise
+    # open it against the parent repository.
     PR_URL="$( cd "$REPO_PATH" && gh pr create \
+                 --repo "$SLUG" \
+                 --base "$DEFAULT_BRANCH" \
+                 --head "$BRANCH" \
                  --assignee @me \
                  --label dependencies \
                  --title "$COMMIT_MSG" \

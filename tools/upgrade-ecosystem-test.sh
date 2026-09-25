@@ -315,3 +315,31 @@ function test_script_rejects_zero_parallel() {
     out="$($SCRIPT --version=0.40.0 --parallel=0 --yes --only=__none__ 2>&1 || true)"
     assert_contains "--parallel must be >= 1" "$out"
 }
+
+# =============================================================================
+# repo_slug_from_url
+# =============================================================================
+
+function test_repo_slug_from_ssh_url() {
+    assert_equals "phel-lang/phel-log" "$(repo_slug_from_url 'git@github.com:phel-lang/phel-log.git')"
+}
+
+function test_repo_slug_from_https_url_with_git_suffix() {
+    assert_equals "phel-lang/phel-log" "$(repo_slug_from_url 'https://github.com/phel-lang/phel-log.git')"
+}
+
+function test_repo_slug_from_https_url_without_suffix() {
+    assert_equals "phel-lang/clojure-test-suite" "$(repo_slug_from_url 'https://github.com/phel-lang/clojure-test-suite')"
+}
+
+function test_repo_slug_from_ssh_scheme_url() {
+    assert_equals "phel-lang/phel-log" "$(repo_slug_from_url 'ssh://git@github.com/phel-lang/phel-log.git')"
+}
+
+function test_repo_slug_keeps_dots_inside_the_name() {
+    assert_equals "phel-lang/phel-lang.org" "$(repo_slug_from_url 'git@github.com:phel-lang/phel-lang.org.git')"
+}
+
+function test_repo_slug_is_empty_for_a_non_github_remote() {
+    assert_empty "$(repo_slug_from_url '/srv/git/phel-log.git')"
+}
