@@ -465,11 +465,13 @@ final readonly class CallInliner
     }
 
     /**
-     * A definition that asks to stay interceptable.
+     * A definition that asks to stay interceptable: `^:redef`, or `^:dynamic`,
+     * which `binding` rebinds per frame.
      *
      * The call site keeps reading the global, so rebinding its root with
-     * `with-redefs` or `phel.mock` is still observed after the optimiser has
-     * run. It costs the inlining, which is the point.
+     * `with-redefs` or `phel.mock`, or binding it with `binding`, is still
+     * observed after the optimiser has run (#3367). It costs the inlining,
+     * which is the point.
      *
      * Splicing a body leaves no global read to intercept, which is inherent to
      * direct linking rather than a defect in it; Clojure answers the same
@@ -479,7 +481,7 @@ final readonly class CallInliner
      */
     private function isRedefinable(PersistentMapInterface $meta): bool
     {
-        return (bool) $meta[Keyword::create('redef')];
+        return (bool) $meta[Keyword::create('redef')] || (bool) $meta[Keyword::create('dynamic')];
     }
 
     /**

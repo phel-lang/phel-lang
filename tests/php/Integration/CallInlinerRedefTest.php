@@ -61,6 +61,20 @@ final class CallInlinerRedefTest extends TestCase
     }
 
     /**
+     * `binding` rebinds a `^:dynamic` fn per frame, so it must not be inlined
+     * past either (#3367).
+     */
+    public function test_a_dynamic_callee_still_sees_binding_at_level_two(): void
+    {
+        $this->compileAtLevelTwo($this->program());
+
+        self::assertEquals(
+            Keyword::create('rebound'),
+            $this->evalAtLevelTwo('dynamic-result'),
+        );
+    }
+
+    /**
      * At the default level nothing is inlined, so both spellings observe the
      * rebinding. `^:redef` costs nothing here and changes nothing.
      */
@@ -121,6 +135,9 @@ final class CallInlinerRedefTest extends TestCase
         ;; anything about `^:redef`.
         (def plain-result (with-redefs [plain (fn [x] :redefined)] (plain 1)))
         (def mockable-result (with-redefs [mockable (fn [x] :redefined)] (mockable 1)))
+
+        (defn ^:dynamic rebindable [x] :original)
+        (def dynamic-result (binding [rebindable (fn [x] :rebound)] (rebindable 1)))
         PHEL;
     }
 }
