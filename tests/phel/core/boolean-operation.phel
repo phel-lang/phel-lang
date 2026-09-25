@@ -146,6 +146,15 @@
   (is (= :yes (branch-on-bool-param true)))
   (is (= :no (branch-on-bool-param false))))
 
+;; A `^bool` written on a binding is not checked against its value, so the
+;; test keeps Phel truthiness: 0 is truthy. Only a `^bool` fn param, which PHP
+;; checks on entry, skips the truthiness check.
+(deftest test-if-over-a-binding-tagged-bool-keeps-phel-truthiness
+  (is (= :yes (let [^bool b 0] (if b :yes :no))))
+  (is (= :yes (let [[^bool a] [0]] (if a :yes :no))))
+  (is (= :yes (let [^bool b ""] (if b :yes :no))))
+  (is (= :no (let [^bool b nil] (if b :yes :no)))))
+
 (deftest test-not=
   (is (false? (not= false)) "(not= false)")
   (is (false? (not= false false)) "(notfalse? false)")

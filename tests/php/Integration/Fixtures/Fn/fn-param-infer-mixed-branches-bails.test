@@ -9,7 +9,7 @@
     public const BOUND_TO = "user\\mixed";
 
     public function __invoke($x, $flag) {
-      return (($__truthy = $flag) !== null && $__truthy !== false ? ($x + 1) : ($x . "!"));
+      return ($flag !== null && $flag !== false ? ($x + 1) : ($x . "!"));
 
     }
   },
