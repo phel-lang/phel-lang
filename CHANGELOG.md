@@ -4,6 +4,10 @@ All notable changes to this project will be documented in this file.
 
 ## Unreleased
 
+### Performance
+
+- A multi-arity fn built at runtime, such as the value `comp` or `partial` returns, no longer allocates a closure per arity: `(comp f g)` created and called is 2.3x faster and peak memory in that loop drops from 125MB to 20MB. The arity a call site knows is reached in one call. (#3355)
+
 ## [0.53.0](https://github.com/phel-lang/phel-lang/compare/v0.52.0...v0.53.0) - 2026-09-24
 
 ### Changed

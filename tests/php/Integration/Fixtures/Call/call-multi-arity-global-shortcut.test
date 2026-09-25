@@ -7,32 +7,21 @@
   "my-add",
   new class() extends \Phel\Lang\AbstractFn {
     public const BOUND_TO = "user\\my_add";
-    private $fn0;
-    private $fn1;
-
-    public function __construct() {
-      $this->fn0 = (function($a) {
-        return $a;
-      });
-      $this->fn1 = (function($a, $b) {
-        return ($a + $b);
-      });
-    }
 
     public function __invoke(...$args) {
       return match (\count($args)) {
-        1 => ($this->fn0)($args[0]),
-        2 => ($this->fn1)($args[0], $args[1]),
+        1 => $this->invokeArity1($args[0]),
+        2 => $this->invokeArity2($args[0], $args[1]),
         default => throw new \InvalidArgumentException("No matching function arity"),
       };
     }
 
-    public function invokeArity1(mixed $a1): mixed {
-      return ($this->fn0)($a1);
+    public function invokeArity1($a): mixed {
+      return $a;
     }
 
-    public function invokeArity2(mixed $a1, mixed $a2): mixed {
-      return ($this->fn1)($a1, $a2);
+    public function invokeArity2($a, $b): mixed {
+      return ($a + $b);
     }
   },
   static fn() => \Phel::locationMeta(

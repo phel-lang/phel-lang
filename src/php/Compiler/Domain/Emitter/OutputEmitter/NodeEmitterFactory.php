@@ -176,7 +176,7 @@ final class NodeEmitterFactory
             MapNode::class => new MapEmitter($outputEmitter),
             SetVarNode::class => new SetVarEmitter($outputEmitter),
             DefInterfaceNode::class => new DefInterfaceEmitter($outputEmitter),
-            MultiFnNode::class => new MultiFnAsClassEmitter($outputEmitter, $closureHelper),
+            MultiFnNode::class => new MultiFnAsClassEmitter($outputEmitter, $methodEmitter, $closureHelper),
             ReifyNode::class => new ReifyEmitter($outputEmitter, $methodEmitter, $closureHelper),
             default => throw NotSupportedAstException::withClassName($astNodeClassName),
         };
