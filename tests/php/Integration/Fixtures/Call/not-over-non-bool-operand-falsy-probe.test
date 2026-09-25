@@ -1,0 +1,6 @@
+--PHEL--
+(fn [x] (not (php/strlen x)))
+--PHP--
+(function($x): bool {
+  return (($__truthy = strlen($x)) === null || $__truthy === false);
+});

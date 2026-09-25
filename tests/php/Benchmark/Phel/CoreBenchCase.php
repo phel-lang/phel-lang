@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace PhelTest\Benchmark\Phel;
 
 use Phel;
+use Phel\Build\BuildFacade;
 use Phel\Run\RunFacade;
 use RuntimeException;
 
@@ -102,6 +103,28 @@ abstract class CoreBenchCase
         $fn = Phel::getDefinition($namespace, $name);
         if (!is_callable($fn)) {
             throw new RuntimeException(sprintf('%s/%s is not callable; is the namespace loaded?', $namespace, $name));
+        }
+
+        return $fn;
+    }
+
+    /**
+     * Compiles a Phel `fn` in build mode, the way `phel build` and the cached
+     * stdlib emit it, so call sites keep their `$__phel_call_N` slots and arity
+     * shortcuts. Use it for a subject whose saving lives in the emitted code
+     * rather than in a runtime fn.
+     */
+    final protected function compileBuildModeFn(string $phelCode): callable
+    {
+        BuildFacade::enableBuildMode();
+        try {
+            $fn = new RunFacade()->eval($phelCode);
+        } finally {
+            BuildFacade::disableBuildMode();
+        }
+
+        if (!is_callable($fn)) {
+            throw new RuntimeException(sprintf('%s did not evaluate to a callable', $phelCode));
         }
 
         return $fn;
