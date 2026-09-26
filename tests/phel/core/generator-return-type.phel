@@ -25,3 +25,12 @@
 (deftest test-anonymous-generator-fn
   (let [gen ((fn [] (identical? 1 (php/yield :a))))]
     (is (= :a (.current gen)))))
+
+;; The target of a `php/callable` method reference is emitted in place, so a
+;; yield there makes the enclosing fn the generator too.
+(defn- yields-in-a-callable-target []
+  (< (php/callable (php/yield (new \ArrayObject)) count) 5))
+
+(deftest test-yield-inside-a-callable-target
+  (let [gen (yields-in-a-callable-target)]
+    (is (php/instanceof gen \Generator))))
