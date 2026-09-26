@@ -10,7 +10,7 @@
   return ($__phel_call_0 ??= \Phel::getDefinition("phel.core", "assoc-in"))->__invoke($m, $p, $v);
 });(function($m, $p, $f) {
   static $__phel_call_0;
-  return ($__phel_call_0 ??= \Phel::getDefinition("phel.core", "update-in"))->__invoke($m, $p, $f);
+  return ($__phel_call_0 ??= \Phel::fnSlot("phel.core", "update-in"))->invokeArity3($m, $p, $f);
 });(function($m, $v) {
   static $__phel_const_0;
   return (\Phel\Lang\Registry::readRoot("phel.core", "assoc-in"))->__invoke($m, ($__phel_const_0 ??= \Phel::vector([\Phel\Lang\Keyword::create("a")])), $v);

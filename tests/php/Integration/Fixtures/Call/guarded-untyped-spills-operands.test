@@ -9,7 +9,7 @@
 --PHP--
 (function($m): bool {
   static $__phel_const_0, $__phel_call_0, $__phel_call_1;
-  return (($__phel_guard_1 = (($__phel_call_1 ??= \Phel::getDefinition("phel.core", "get")) instanceof \Phel\Lang\AbstractFn ? ($__phel_call_1 ??= \Phel::getDefinition("phel.core", "get"))->invokeArity2($m, ($__phel_const_0 ??= \Phel\Lang\Keyword::create("k"))) : ($__phel_call_1 ??= \Phel::getDefinition("phel.core", "get"))->__invoke($m, ($__phel_const_0 ??= \Phel\Lang\Keyword::create("k"))))) === 1 || (!(\is_int($__phel_guard_1)) && ($__phel_call_0 ??= \Phel::getDefinition("phel.core", "="))->__invoke($__phel_guard_1, 1)));
+  return (($__phel_guard_1 = ($__phel_call_1 ??= \Phel::fnSlot("phel.core", "get"))->invokeArity2($m, ($__phel_const_0 ??= \Phel\Lang\Keyword::create("k")))) === 1 || (!(\is_int($__phel_guard_1)) && ($__phel_call_0 ??= \Phel::getDefinition("phel.core", "="))->__invoke($__phel_guard_1, 1)));
 });(function($xs, $n): bool {
   static $__phel_call_0, $__phel_call_1;
   return (\is_scalar(($__phel_guard_3 = ($__phel_call_1 ??= \Phel::getDefinition("phel.core", "count"))->__invoke($xs))) & \is_scalar($n) ? ($__phel_guard_3 < $n) : ($__phel_call_0 ??= \Phel::getDefinition("phel.core", "<"))->__invoke($__phel_guard_3, $n));

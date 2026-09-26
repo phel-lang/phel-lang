@@ -7,7 +7,7 @@
 --PHP--
 (function($m, $x): \Phel\Lang\Collections\Vector\PersistentVectorInterface {
   static $__phel_const_0, $__phel_const_1, $__phel_const_2, $__phel_call_0, $__phel_call_1;
-  return \Phel::vector([($__phel_call_0 ??= \Phel::getDefinition("phel.core", "assoc"))->__invoke($m, ($__phel_const_0 ??= \Phel\Lang\Keyword::create("a")), $x), ($__phel_call_1 ??= \Phel::getDefinition("phel.core", "assoc"))->__invoke($m, ($__phel_const_0 ??= \Phel\Lang\Keyword::create("a")), 1, ($__phel_const_1 ??= \Phel\Lang\Keyword::create("b"))), (\Phel\Lang\Registry::readRoot("phel.core", "assoc"))($m, ...\Phel\Lang\Seq::toApplyArguments(($__phel_const_2 ??= \Phel::vector([\Phel\Lang\Keyword::create("a"), 1, \Phel\Lang\Keyword::create("b"), 2])))), (function() use($m,$x,&$__phel_const_0,&$__phel_const_1,&$__phel_const_2,&$__phel_call_0,&$__phel_call_1) {
+  return \Phel::vector([($__phel_call_0 ??= \Phel::fnSlot("phel.core", "assoc"))->invokeArity3($m, ($__phel_const_0 ??= \Phel\Lang\Keyword::create("a")), $x), ($__phel_call_1 ??= \Phel::getDefinition("phel.core", "assoc"))->__invoke($m, ($__phel_const_0 ??= \Phel\Lang\Keyword::create("a")), 1, ($__phel_const_1 ??= \Phel\Lang\Keyword::create("b"))), (\Phel\Lang\Registry::readRoot("phel.core", "assoc"))($m, ...\Phel\Lang\Seq::toApplyArguments(($__phel_const_2 ??= \Phel::vector([\Phel\Lang\Keyword::create("a"), 1, \Phel\Lang\Keyword::create("b"), 2])))), (function() use($m,$x,&$__phel_const_0,&$__phel_const_1,&$__phel_const_2,&$__phel_call_0,&$__phel_call_1) {
     $assoc_1 = (function(...$args) use($m, $x) {
       $args = \Phel::vector($args);
       return $args;

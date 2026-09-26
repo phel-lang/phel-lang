@@ -3,5 +3,5 @@
 --PHP--
 (function($m, $x) {
   static $__phel_const_0, $__phel_const_1, $__phel_call_0;
-  return (($__phel_call_0 ??= \Phel::getDefinition("phel.core", "assoc")) instanceof \Phel\Lang\AbstractFn ? ($__phel_call_0 ??= \Phel::getDefinition("phel.core", "assoc"))->invokeArity3(($__phel_call_0 ??= \Phel::getDefinition("phel.core", "assoc"))->invokeArity3($m, ($__phel_const_0 ??= \Phel\Lang\Keyword::create("a")), 1), ($__phel_const_1 ??= \Phel\Lang\Keyword::create("b")), $x) : ($__phel_call_0 ??= \Phel::getDefinition("phel.core", "assoc"))->__invoke($m, ($__phel_const_0 ??= \Phel\Lang\Keyword::create("a")), 1, ($__phel_const_1 ??= \Phel\Lang\Keyword::create("b")), $x));
+  return ($__phel_call_0 ??= \Phel::fnSlot("phel.core", "assoc"))->invokeArity3(($__phel_call_0 ??= \Phel::fnSlot("phel.core", "assoc"))->invokeArity3($m, ($__phel_const_0 ??= \Phel\Lang\Keyword::create("a")), 1), ($__phel_const_1 ??= \Phel\Lang\Keyword::create("b")), $x);
 });

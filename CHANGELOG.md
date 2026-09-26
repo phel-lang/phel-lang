@@ -6,10 +6,11 @@ All notable changes to this project will be documented in this file.
 
 ### Added
 
-- Public PHP API, since compiled code calls it: `Phel\Lang\Destructure`. (#3356)
+- Public PHP API, since compiled code calls it: `Phel\Lang\Destructure`, `\Phel::fnSlot()` and `Phel\Lang\ForeignFn`. (#3354 #3356)
 
 ### Performance
 
+- In a build, a call to a multi-arity fn at one of its fixed arities goes straight to that arity, now also when the fn has a variadic arity, as `+`, `<`, `str` and `conj` do: `(+ acc x)` in a loop is 1.6x faster. Nested calls such as `(-> m (get :a {}) (get :b {}))` compile to code that grows linearly with the nesting; it used to double at every level. (#3354)
 - `<`, `<=`, `>`, `>=`, `=`, `not=`, `zero?`, `pos?`, `neg?`, `inc` and `dec` on values of unknown type check for a native int (a scalar, for ordering) and answer inline, calling the core fn only for other values: `(< a b)` 7.9x faster in a loop, `(= x 3)` 8.8x, `(inc x)` 5.4x. (#3351)
 - `case` and `cond` over keywords look each keyword up once per fn instead of on every dispatch: a five-arm keyword `case` is 10x faster. (#3360)
 - A multi-arity fn built at runtime, such as the value `comp` or `partial` returns, no longer allocates a closure per arity: `(comp f g)` created and called is 2.3x faster and peak memory in that loop drops from 125MB to 20MB. The arity a call site knows is reached in one call. (#3355)

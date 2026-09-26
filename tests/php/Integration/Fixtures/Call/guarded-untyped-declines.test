@@ -8,20 +8,20 @@
 --PHP--
 (function($a): bool {
   static $__phel_call_0;
-  return ($__phel_call_0 ??= \Phel::getDefinition("phel.core", "="))->__invoke($a, 1.5);
+  return ($__phel_call_0 ??= \Phel::fnSlot("phel.core", "="))->invokeArity2($a, 1.5);
 });(function($a): bool {
   static $__phel_call_0;
-  return ($__phel_call_0 ??= \Phel::getDefinition("phel.core", "<"))->__invoke($a, "b");
+  return ($__phel_call_0 ??= \Phel::fnSlot("phel.core", "<"))->invokeArity2($a, "b");
 });(function($a): bool {
   static $__phel_call_0;
   return ($__phel_call_0 ??= \Phel::getDefinition("phel.core", "<"))->__invoke($a, 3, 4);
 });(function($a): bool {
   static $__phel_call_0;
-  return ($__phel_call_0 ??= \Phel::getDefinition("phel.core", "="))->__invoke($a, null);
+  return ($__phel_call_0 ??= \Phel::fnSlot("phel.core", "="))->invokeArity2($a, null);
 });(function($a): bool {
   static $__phel_const_0, $__phel_call_0;
-  return ($__phel_call_0 ??= \Phel::getDefinition("phel.core", "="))->__invoke($a, ($__phel_const_0 ??= \Phel::vector([1])));
+  return ($__phel_call_0 ??= \Phel::fnSlot("phel.core", "="))->invokeArity2($a, ($__phel_const_0 ??= \Phel::vector([1])));
 });(function($a): bool {
   static $__phel_call_0;
-  return ($__phel_call_0 ??= \Phel::getDefinition("phel.core", "<"))->__invoke($a, (\Phel\Lang\Symbol::create("b")));
+  return ($__phel_call_0 ??= \Phel::fnSlot("phel.core", "<"))->invokeArity2($a, (\Phel\Lang\Symbol::create("b")));
 });

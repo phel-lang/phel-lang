@@ -5,10 +5,10 @@
 --PHP--
 (function($x): string {
   static $__phel_call_0;
-  return ($__phel_call_0 ??= \Phel::getDefinition("phel.core", "str"))->__invoke("a", json_encode($x));
+  return ($__phel_call_0 ??= \Phel::fnSlot("phel.core", "str"))->invokeArity2("a", json_encode($x));
 });(function($x): string {
   static $__phel_call_0;
-  return ($__phel_call_0 ??= \Phel::getDefinition("phel.core", "str"))->__invoke("b", hex2bin($x));
+  return ($__phel_call_0 ??= \Phel::fnSlot("phel.core", "str"))->invokeArity2("b", hex2bin($x));
 });(function($x): string {
   return ("c" . bin2hex($x));
 });
