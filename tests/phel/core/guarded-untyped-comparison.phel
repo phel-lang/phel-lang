@@ -1,0 +1,84 @@
+(ns phel-test.core.guarded-untyped-comparison
+  (:require phel.test :refer [deftest is]))
+
+;; A comparison, equality or numeric step over untyped operands compiles to a
+;; native PHP expression behind an `is_int` / `is_string` guard, with the
+;; runtime fn as the fallback (#3351). Each lowered form is checked against
+;; `apply`, which always reaches the runtime fn, over values on both sides of
+;; every guard: native ints at the bounds, floats, NaN, BigInt, strings,
+;; keywords, collections and nil.
+
+(defn- outcome [f]
+  (try (f) (catch \Throwable _ :threw)))
+
+(def- numbers
+  [0 1 -1 3 php/PHP_INT_MAX php/PHP_INT_MIN 1.0 0.0 -2.5 (php/fdiv 0 0)
+   (bigint 1) (bigint 3)])
+
+;; Ordering over a collection is left out: the runtime fn itself raises a PHP
+;; notice there, on main as on this branch, which would only add noise.
+(def- orderable (concat numbers ["a" "x" "1" "" nil true false]))
+
+(def- values (concat orderable [:k [1] {:a 1}]))
+
+(defn- same? [a b]
+  (if (and (float? a) (float? b) (php/is_nan a) (php/is_nan b))
+    true
+    (= a b)))
+
+(deftest test-ordering-over-two-locals
+  (doseq [a orderable b orderable]
+    (is (same? (outcome #(apply < [a b])) (outcome #(< a b))) (str "(< " (pr-str a) " " (pr-str b) ")"))
+    (is (same? (outcome #(apply <= [a b])) (outcome #(<= a b))) (str "(<= " (pr-str a) " " (pr-str b) ")"))
+    (is (same? (outcome #(apply > [a b])) (outcome #(> a b))) (str "(> " (pr-str a) " " (pr-str b) ")"))
+    (is (same? (outcome #(apply >= [a b])) (outcome #(>= a b))) (str "(>= " (pr-str a) " " (pr-str b) ")"))))
+
+(deftest test-ordering-against-an-int-literal
+  (doseq [a orderable]
+    (is (same? (outcome #(apply < [a 3])) (outcome #(< a 3))) (str "(< " (pr-str a) " 3)"))
+    (is (same? (outcome #(apply >= [0 a])) (outcome #(>= 0 a))) (str "(>= 0 " (pr-str a) ")"))))
+
+(deftest test-equality-over-two-locals
+  (doseq [a values b values]
+    (is (identical? (apply = [a b]) (= a b)) (str "(= " (pr-str a) " " (pr-str b) ")"))
+    (is (identical? (apply not= [a b]) (not= a b)) (str "(not= " (pr-str a) " " (pr-str b) ")"))))
+
+(deftest test-equality-against-a-literal
+  (doseq [a values]
+    (is (identical? (apply = [a 1]) (= a 1)) (str "(= " (pr-str a) " 1)"))
+    (is (identical? (apply = ["x" a]) (= "x" a)) (str "(= \"x\" " (pr-str a) ")"))
+    (is (identical? (apply not= [a 1]) (not= a 1)) (str "(not= " (pr-str a) " 1)"))
+    (is (identical? (apply not= ["x" a]) (not= "x" a)) (str "(not= \"x\" " (pr-str a) ")"))))
+
+(deftest test-numeric-steps
+  (doseq [a orderable]
+    (is (same? (outcome #(apply zero? [a])) (outcome #(zero? a))) (str "(zero? " (pr-str a) ")"))
+    (is (same? (outcome #(apply pos? [a])) (outcome #(pos? a))) (str "(pos? " (pr-str a) ")"))
+    (is (same? (outcome #(apply neg? [a])) (outcome #(neg? a))) (str "(neg? " (pr-str a) ")"))
+    (is (same? (outcome #(apply inc [a])) (outcome #(inc a))) (str "(inc " (pr-str a) ")"))
+    (is (same? (outcome #(apply dec [a])) (outcome #(dec a))) (str "(dec " (pr-str a) ")"))))
+
+(deftest test-inc-and-dec-promote-at-the-native-bounds
+  (let [hi php/PHP_INT_MAX
+        lo php/PHP_INT_MIN]
+    (is (bigint? (inc hi)))
+    (is (bigint? (dec lo)))))
+
+;; An operand that is not a local or a literal is evaluated once, in order,
+;; whichever branch the guard takes.
+(deftest test-spilled-operands-run-once-in-order
+  (doseq [x orderable y orderable]
+    (let [log (atom [])
+          f   (fn [tag v] (swap! log conj tag) v)]
+      (outcome #(< (f :a x) (f :b y)))
+      (outcome #(= (f :c x) (f :d y)))
+      (outcome #(not= (f :e x) 1))
+      (outcome #(inc (f :g x)))
+      (is (= [:a :b :c :d :e :g] @log) (str "operands " (pr-str x) " " (pr-str y))))))
+
+(deftest test-lowered-comparison-as-an-if-test
+  (let [classify (fn [n] (if (< n 10) :small :big))]
+    (is (= :small (classify 3)))
+    (is (= :big (classify 30)))
+    (is (= :small (classify 2.5)))
+    (is (= :big (classify (bigint 99))))))

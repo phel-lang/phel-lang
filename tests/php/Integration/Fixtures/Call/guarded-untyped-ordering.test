@@ -1,0 +1,24 @@
+--PHEL--
+(fn [a b] (< a b))
+(fn [a] (<= a 3))
+(fn [b] (> 0 b))
+(fn [a] (< a 0.5))
+(fn [a b] (if (>= a b) :ge :lt))
+--PHP--
+(function($a, $b): bool {
+  static $__phel_call_0;
+  return (\is_scalar($a) && \is_scalar($b) ? ($a < $b) : ($__phel_call_0 ??= \Phel::getDefinition("phel.core", "<"))->__invoke($a, $b));
+});(function($a): bool {
+  static $__phel_call_0;
+  return (\is_scalar($a) ? ($a <= 3) : ($__phel_call_0 ??= \Phel::getDefinition("phel.core", "<="))->__invoke($a, 3));
+});(function($b): bool {
+  static $__phel_call_0;
+  return (\is_scalar($b) ? (0 > $b) : ($__phel_call_0 ??= \Phel::getDefinition("phel.core", ">"))->__invoke(0, $b));
+});(function($a): bool {
+  static $__phel_call_0;
+  return (\is_scalar($a) ? ($a < 0.5) : ($__phel_call_0 ??= \Phel::getDefinition("phel.core", "<"))->__invoke($a, 0.5));
+});(function($a, $b) {
+  static $__phel_const_0, $__phel_const_1, $__phel_call_0;
+  return (((\is_scalar($a) && \is_scalar($b) ? ($a >= $b) : ($__phel_call_0 ??= \Phel::getDefinition("phel.core", ">="))->__invoke($a, $b))) ? ($__phel_const_0 ??= \Phel\Lang\Keyword::create("ge")) : ($__phel_const_1 ??= \Phel\Lang\Keyword::create("lt")));
+
+});
