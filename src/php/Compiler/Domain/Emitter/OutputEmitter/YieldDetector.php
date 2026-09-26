@@ -25,14 +25,24 @@ use function array_any;
  * a `yield` inside a nested closure makes that closure the generator, not the
  * frame we are in, so it does not force the wrapper here.
  *
- * It **fails closed**: a node whose shape {@see NodeChildren} does not recognise
- * is assumed to possibly yield, so the wrapper is kept. Under-recognising only
- * costs an unnecessary IIFE; it can never silently misplace a generator boundary.
+ * By default it **fails closed**: a node whose shape {@see NodeChildren} does
+ * not recognise is assumed to possibly yield, so the wrapper is kept.
+ * Under-recognising only costs an unnecessary IIFE; it can never silently
+ * misplace a generator boundary.
+ *
+ * Return-type inference needs the opposite default (#3365): an unrecognised
+ * node there is a leaf such as a quoted form or a class constant, and
+ * treating it as a yield would drop the inferred type of every fn that holds
+ * one. It asks for `failClosed: false`.
  *
  * @internal
  */
-final class YieldDetector
+final readonly class YieldDetector
 {
+    public function __construct(
+        private bool $failClosed = true,
+    ) {}
+
     public function containsYield(AbstractNode $node): bool
     {
         if ($node instanceof CallNode) {
@@ -48,7 +58,7 @@ final class YieldDetector
 
         $children = NodeChildren::of($node);
         if ($children === null) {
-            return true;
+            return $this->failClosed;
         }
 
         return array_any($children, fn(AbstractNode $child): bool => $this->containsYield($child));

@@ -1,0 +1,27 @@
+(ns phel-test.core.generator-return-type
+  (:require phel.test :refer [deftest is]))
+
+;; A fn whose body yields is a PHP generator: calling it returns a Generator,
+;; whatever its tail expression would evaluate to. Return-type inference must
+;; not stamp the tail's type on it, or PHP refuses to compile the fn (#3365).
+
+(defn- yields-then-compares []
+  (< (php/yield 1) 5))
+
+(defn- yields-in-a-let [n]
+  (let [x (php/yield n)]
+    (+ n 1)))
+
+(deftest test-generator-fn-with-a-bool-tail
+  (let [gen (yields-then-compares)]
+    (is (php/instanceof gen \Generator))
+    (is (= 1 (.current gen)))))
+
+(deftest test-generator-fn-with-an-int-tail
+  (let [gen (yields-in-a-let 3)]
+    (is (php/instanceof gen \Generator))
+    (is (= 3 (.current gen)))))
+
+(deftest test-anonymous-generator-fn
+  (let [gen ((fn [] (identical? 1 (php/yield :a))))]
+    (is (= :a (.current gen)))))
