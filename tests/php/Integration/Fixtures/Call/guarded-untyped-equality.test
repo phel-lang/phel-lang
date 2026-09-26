@@ -1,0 +1,28 @@
+--PHEL--
+(fn [a] (= a 1))
+(fn [a] (= "x" a))
+(fn [a b] (= a b))
+(fn [a] (not= a 1))
+(fn [a b] (not= a b))
+(fn [a] (if (= a 0) :zero :other))
+--PHP--
+(function($a): bool {
+  static $__phel_call_0;
+  return ($a === 1 || (!(\is_int($a)) && ($__phel_call_0 ??= \Phel::getDefinition("phel.core", "="))->__invoke($a, 1)));
+});(function($a): bool {
+  static $__phel_call_0;
+  return ("x" === $a || (!(\is_string($a)) && ($__phel_call_0 ??= \Phel::getDefinition("phel.core", "="))->__invoke("x", $a)));
+});(function($a, $b): bool {
+  static $__phel_call_0;
+  return ($a === $b || (!(\is_int($a) && \is_int($b)) && ($__phel_call_0 ??= \Phel::getDefinition("phel.core", "="))->__invoke($a, $b)));
+});(function($a): bool {
+  static $__phel_call_0;
+  return ($a !== 1 && ((\is_int($a)) || ($__phel_call_0 ??= \Phel::getDefinition("phel.core", "not="))->__invoke($a, 1)));
+});(function($a, $b): bool {
+  static $__phel_call_0;
+  return ($a !== $b && ((\is_int($a) && \is_int($b)) || ($__phel_call_0 ??= \Phel::getDefinition("phel.core", "not="))->__invoke($a, $b)));
+});(function($a) {
+  static $__phel_const_0, $__phel_const_1, $__phel_call_0;
+  return ((($a === 0 || (!(\is_int($a)) && ($__phel_call_0 ??= \Phel::getDefinition("phel.core", "="))->__invoke($a, 0)))) ? ($__phel_const_0 ??= \Phel\Lang\Keyword::create("zero")) : ($__phel_const_1 ??= \Phel\Lang\Keyword::create("other")));
+
+});
