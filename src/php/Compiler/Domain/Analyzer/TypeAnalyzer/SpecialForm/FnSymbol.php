@@ -167,8 +167,8 @@ final readonly class FnSymbol implements SpecialFormAnalyzerInterface
         // don't emit a colliding `use (&$name)` / `$name = $this;`.
         $effectiveName = $this->resolveEffectiveName($name, $fnSymbolTuple->params());
 
-        $body = $this->analyzeBody($fnSymbolTuple, $recurFrame, $env, $effectiveName);
         $declaredReturnType = $this->extractReturnType($paramVector);
+        $body = $this->analyzeBody($fnSymbolTuple, $recurFrame, $env, $declaredReturnType === 'void', $effectiveName);
         if ($declaredReturnType !== null) {
             $tailType = TagCompatibility::tailLiteralType($body);
             if ($tailType !== null && !TagCompatibility::accepts($declaredReturnType, $tailType)) {
@@ -325,10 +325,16 @@ final readonly class FnSymbol implements SpecialFormAnalyzerInterface
         return $paramVector;
     }
 
+    /**
+     * A `^void` fn compiles to a PHP `: void` function, which may not return a
+     * value, so its body is analysed in statement context: the tail runs for
+     * effect and the call answers nil (#3363).
+     */
     private function analyzeBody(
         FnSymbolTuple $fnSymbolTuple,
         RecurFrame $recurFrame,
         NodeEnvironmentInterface $env,
+        bool $isVoid,
         ?Symbol $name = null,
     ): AbstractNode {
         $listBody = $fnSymbolTuple->parentListBody();
@@ -348,9 +354,8 @@ final readonly class FnSymbol implements SpecialFormAnalyzerInterface
             $locals = [$name, ...$locals];
         }
 
-        $bodyEnv = $env
-            ->withMergedLocals($locals)
-            ->withReturnContext()
+        $withLocals = $env->withMergedLocals($locals);
+        $bodyEnv = ($isVoid ? $withLocals->withStatementContext() : $withLocals->withReturnContext())
             ->withAddedRecurFrame($recurFrame)
             // The deferral applies only to this fn's own return type; nested
             // fns inside the body have no grafting step, so they must keep

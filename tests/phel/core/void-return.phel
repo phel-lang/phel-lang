@@ -1,0 +1,39 @@
+(ns phel-test.core.void-return
+  (:require phel.test :refer [deftest is]))
+
+;; A `^void` fn compiles to a PHP `: void` function, which must not return a
+;; value: its body runs for effect and the call answers nil (#3363).
+
+(defn- store! ^void [a x]
+  (swap! a conj x))
+
+(defn- store-many! ^void [a n]
+  (when (pos? n)
+    (swap! a conj n)
+    (recur a (dec n))))
+
+(defn- log!
+  ([a] (swap! a conj :none))
+  (^void [a x] (swap! a conj x)))
+
+(deftest test-void-fn-runs-its-body-and-answers-nil
+  (let [a (atom [])]
+    (is (nil? (store! a 1)))
+    (is (= [1] @a))))
+
+(deftest test-void-fn-with-recur
+  (let [a (atom [])]
+    (is (nil? (store-many! a 3)))
+    (is (= [3 2 1] @a))))
+
+(deftest test-void-arity-of-a-multi-arity-fn
+  (let [a (atom [])]
+    (is (= [:none] (log! a)))
+    (is (nil? (log! a :x)))
+    (is (= [:none :x] @a))))
+
+(deftest test-anonymous-void-fn
+  (let [a (atom 0)
+        bump (fn ^void [] (swap! a inc))]
+    (is (nil? (bump)))
+    (is (= 1 @a))))
