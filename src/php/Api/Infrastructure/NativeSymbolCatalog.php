@@ -57,7 +57,7 @@ Returns the namespace in the current scope.',
 (apply f expr*)
 ```
 Calls the function with the given arguments. The last argument must be a list of values, which are passed as separate arguments, rather than a single list. Apply returns the result of the calling function.',
-            'docUrl' => '/documentation/functions-and-recursion/#apply-functions',
+            'docUrl' => '/documentation/language/functions-and-recursion/#apply-functions',
             'signatures' => ['(apply f expr*)'],
             'desc' => 'Calls the function with the given arguments. The last argument must be a list of values, which are passed as separate arguments, rather than a single list. Apply returns the result of the calling function.',
             'example' => '(apply + [1 2 3]) ; => 6',
@@ -76,7 +76,7 @@ Pauses execution and opens an interactive debugger sub-REPL with access to the l
 (catch exception-type exception-name expr*)
 ```
 Handle exceptions thrown in a `try` block by matching on the provided exception type. The caught exception is bound to `exception-name` while evaluating the expressions.',
-            'docUrl' => '/documentation/control-flow/#try-catch-and-finally',
+            'docUrl' => '/documentation/language/error-handling/#try-catch-finally',
             'signatures' => ['(catch exception-type exception-name expr*)'],
             'desc' => 'Handle exceptions thrown in a `try` block by matching on the provided exception type. The caught exception is bound to exception-name while evaluating the expressions.',
             'example' => '(try (throw (new Exception "error")) (catch Exception e (.getMessage e)))',
@@ -91,7 +91,7 @@ Handle exceptions thrown in a `try` block by matching on the provided exception 
 Returns a new collection with values added. Appends to vectors/sets, prepends to lists.',
             'signatures' => ['(conj)', '(conj coll)', '(conj coll value)', '(conj coll value & more)'],
             'desc' => 'Returns a new collection with values added. Appends to vectors/sets, prepends to lists.',
-            'docUrl' => '/documentation/data-structures/#adding-elements-with-conj',
+            'docUrl' => '/documentation/language/data-structures/#adding-elements-with-conj',
             'example' => '(conj [1 2] 3) ; => [1 2 3]',
         ],
         Symbol::NAME_DEF => [
@@ -99,7 +99,7 @@ Returns a new collection with values added. Appends to vectors/sets, prepends to
 (def name meta? value)
 ```
 This special form binds a value to a global symbol.',
-            'docUrl' => '/documentation/global-and-local-bindings/#definition-def',
+            'docUrl' => '/documentation/language/global-and-local-bindings/#definition-def',
             'signatures' => ['(def name meta? value)'],
             'desc' => 'This special form binds a value to a global symbol.',
             'example' => '(def my-value 42)',
@@ -109,7 +109,7 @@ This special form binds a value to a global symbol.',
 (defonce name meta? value)
 ```
 Like `def`, but only binds the value when `name` is not already defined in the registry. Useful in REPL workflows where re-evaluating a file should not reset stateful holders (atoms, connections, caches).',
-            'docUrl' => '/documentation/global-and-local-bindings/#definition-def',
+            'docUrl' => '/documentation/language/global-and-local-bindings/#definition-def',
             'signatures' => ['(defonce name meta? value)'],
             'desc' => 'Like `def`, but only binds the value when `name` is not already defined.',
             'example' => '(defonce app-state (atom {}))',
@@ -119,7 +119,7 @@ Like `def`, but only binds the value when `name` is not already defined in the r
 (do expr*)
 ```
 Evaluates the expressions in order and returns the value of the last expression. If no expression is given, nil is returned.',
-            'docUrl' => '/documentation/control-flow/#statements-do',
+            'docUrl' => '/documentation/language/control-flow/#statements-do',
             'signatures' => ['(do expr*)'],
             'desc' => 'Evaluates the expressions in order and returns the value of the last expression. If no expression is given, nil is returned.',
             'example' => '(do (println "Hello") (+ 1 2)) ; prints "Hello", returns 3',
@@ -130,7 +130,7 @@ Evaluates the expressions in order and returns the value of the last expression.
 (defexception my-ex \RuntimeException)
 ```
 Define a new exception, optionally extending a custom parent class (defaults to \Exception).',
-            'docUrl' => '/documentation/exceptions',
+            'docUrl' => '/documentation/language/error-handling/#custom-exception-types-with-defexception',
             'signatures' => ['(defexception name)', '(defexception name parent)'],
             'desc' => 'Defines a new exception, optionally extending a custom parent class.',
             'example' => '(defexception my-error \RuntimeException)',
@@ -140,7 +140,7 @@ Define a new exception, optionally extending a custom parent class (defaults to 
 (definterface name & fns)
 ```
 An interface in Phel defines an abstract set of functions. It is directly mapped to a PHP interface. An interface can be defined by using the definterface macro.',
-            'docUrl' => '/documentation/interfaces/#defining-interfaces',
+            'docUrl' => '/documentation/language/interfaces/#defining-interfaces',
             'signatures' => ['(definterface name & fns)'],
             'desc' => 'An interface in Phel defines an abstract set of functions. It is directly mapped to a PHP interface. An interface can be defined by using the definterface macro.',
             'example' => '(definterface Greeter (greet [name]))',
@@ -150,7 +150,7 @@ An interface in Phel defines an abstract set of functions. It is directly mapped
 (defstruct my-struct [a b c])
 ```
 A Struct is a special kind of Map. It only supports a predefined number of keys and is associated to a global name. The Struct not only defines itself but also a predicate function.',
-            'docUrl' => '/documentation/data-structures/#structs',
+            'docUrl' => '/documentation/language/data-structures/#structs',
             'signatures' => ['(defstruct name [keys*])'],
             'desc' => 'A Struct is a special kind of Map. It only supports a predefined number of keys and is associated to a global name. The Struct not only defines itself but also a predicate function.',
             'example' => '(defstruct point [x y])',
@@ -160,7 +160,7 @@ A Struct is a special kind of Map. It only supports a predefined number of keys 
 (finally expr*)
 ```
 Evaluate expressions after the try body and all matching catches have completed. The finally block runs regardless of whether an exception was thrown.',
-            'docUrl' => '/documentation/control-flow/#try-catch-and-finally',
+            'docUrl' => '/documentation/language/error-handling/#try-catch-finally',
             'signatures' => ['(finally expr*)'],
             'desc' => 'Evaluate expressions after the try body and all matching catches have completed. The finally block runs regardless of whether an exception was thrown.',
             'example' => '(defn risky-operation [] (throw (new Exception "Error!")))' . PHP_EOL
@@ -172,7 +172,7 @@ Evaluate expressions after the try body and all matching catches have completed.
 (fn [params*] expr*)
 ```
 Defines a function. A function consists of a list of parameters and a list of expression. The value of the last expression is returned as the result of the function. All other expression are only evaluated for side effects. If no expression is given, the function returns nil.',
-            'docUrl' => '/documentation/functions-and-recursion/#anonymous-function-fn',
+            'docUrl' => '/documentation/language/functions-and-recursion/#anonymous-function-fn',
             'signatures' => ['(fn [params*] expr*)'],
             'desc' => 'Defines a function. A function consists of a list of parameters and a list of expression. The value of the last expression is returned as the result of the function. All other expression are only evaluated for side effects. If no expression is given, the function returns nil.',
             'example' => '(fn [x y] (+ x y))',
@@ -185,7 +185,7 @@ Defines a function. A function consists of a list of parameters and a list of ex
 The foreach special form can be used to iterate over all kind of PHP datastructures. The return value of foreach is always nil. The loop special form should be preferred of the foreach special form whenever possible.',
             'signatures' => ['(foreach [value valueExpr] expr*)', '(foreach [key value valueExpr] expr*)'],
             'desc' => 'The foreach special form can be used to iterate over all kind of PHP datastructures. The return value of foreach is always nil. The loop special form should be preferred of the foreach special form whenever possible.',
-            'docUrl' => '/documentation/control-flow/#foreach',
+            'docUrl' => '/documentation/language/control-flow/#foreach',
             'example' => '(foreach [x [1 2 3]] (println x))',
         ],
         Symbol::NAME_IF => [
@@ -195,7 +195,7 @@ The foreach special form can be used to iterate over all kind of PHP datastructu
 A control flow structure. First evaluates test. If test evaluates to true, only the then form is evaluated and the result is returned. If test evaluates to false only the else form is evaluated and the result is returned. If no else form is given, nil will be returned.
 
 The test evaluates to false if its value is false or equal to nil. Every other value evaluates to true. In sense of PHP this means (test != null && test !== false).',
-            'docUrl' => '/documentation/control-flow/#if',
+            'docUrl' => '/documentation/language/control-flow/#if',
             'signatures' => ['(if test then else?)'],
             'desc' => 'A control flow structure. First evaluates test. If test evaluates to true, only the then form is evaluated and the result is returned. If test evaluates to false only the else form is evaluated and the result is returned. If no else form is given, nil will be returned.',
             'example' => '(if (> x 0) "positive" "non-positive")',
@@ -205,7 +205,7 @@ The test evaluates to false if its value is false or equal to nil. Every other v
 (in-ns namespace)
 ```
 Switches to an existing namespace without creating it. Two uses: at the REPL, to navigate into a namespace and inspect or test private functions; and as the first form of a file pulled in with `(load ...)`, which must join its caller\'s namespace this way. Do not use it to switch namespace part-way through a file - the build system assumes one namespace per file.',
-            'docUrl' => '/documentation/namespaces/',
+            'docUrl' => '/documentation/language/namespaces/',
             'signatures' => ['(in-ns namespace)'],
             'desc' => 'Switches to an existing namespace without creating it (REPL, and `load`-ed files).',
             'example' => '(in-ns my-app.core)',
@@ -215,7 +215,7 @@ Switches to an existing namespace without creating it. Two uses: at the REPL, to
 (let [bindings*] expr*)
 ```
 Creates a new lexical context with assignments defined in bindings. Afterwards the list of expressions is evaluated and the value of the last expression is returned. If no expression is given nil is returned.',
-            'docUrl' => '/documentation/global-and-local-bindings/#local-bindings-let',
+            'docUrl' => '/documentation/language/global-and-local-bindings/#local-bindings-let',
             'signatures' => ['(let [bindings*] expr*)'],
             'desc' => 'Creates a new lexical context with assignments defined in bindings. Afterwards the list of expressions is evaluated and the value of the last expression is returned. If no expression is given nil is returned.',
             'example' => '(let [x 1 y 2] (+ x y)) ; => 3',
@@ -225,7 +225,7 @@ Creates a new lexical context with assignments defined in bindings. Afterwards t
 (list 1 2 3) ; => \'(1 2 3)
 ```
 Creates a new list. If no argument is provided, an empty list is created. Shortcut: \'()',
-            'docUrl' => '/documentation/data-structures/#lists',
+            'docUrl' => '/documentation/language/data-structures/#lists',
             'desc' => 'Creates a new list. If no argument is provided, an empty list is created.',
             'example' => "(list 1 2 3) ; => '(1 2 3)",
         ],
@@ -234,7 +234,7 @@ Creates a new list. If no argument is provided, an empty list is created. Shortc
 (load path)
 ```
 Loads a Phel source file into the caller namespace at runtime. Path resolution follows the spirit of Clojure\'s `clojure.core/load`: a path beginning with a slash is classpath-absolute (searched against the configured load-classpath roots); otherwise it is resolved relative to the caller file\'s compile-time location, so mutations to the runtime `*file*` value cannot break resolution. Pass the path without an extension (no `.phel`) and without a relative prefix (no `./` or `../`). Returns nil; the form runs for its side effects.',
-            'docUrl' => '/documentation/namespaces/',
+            'docUrl' => '/documentation/language/namespaces/',
             'signatures' => ['(load path)'],
             'desc' => 'Loads a Phel source file into the caller namespace at runtime, resolving the path relative to the caller file or against the configured classpath roots.',
             'example' => '(load "core/meta") ; loads and evaluates core/meta into the current namespace',
@@ -246,7 +246,7 @@ Loads a Phel source file into the caller namespace at runtime. Path resolution f
 Creates a new lexical context with variables defined in bindings and defines a recursion point at the top of the loop.',
             'signatures' => ['(loop [bindings*] expr*)'],
             'desc' => 'Creates a new lexical context with variables defined in bindings and defines a recursion point at the top of the loop.',
-            'docUrl' => '/documentation/control-flow/#loop',
+            'docUrl' => '/documentation/language/control-flow/#loop',
             'example' => '(loop [i 0] (if (< i 5) (do (println i) (recur (inc i)))))',
         ],
         Symbol::NAME_MAP => [
@@ -254,7 +254,7 @@ Creates a new lexical context with variables defined in bindings and defines a r
 (hash-map :a 1 :b 2) ; => {:a 1 :b 2}
 ```
 Creates a new hash map. If no argument is provided, an empty hash map is created. The number of parameters must be even. Shortcut: {}',
-            'docUrl' => '/documentation/data-structures/#maps',
+            'docUrl' => '/documentation/language/data-structures/#maps',
             'desc' => 'Creates a new hash map. If no argument is provided, an empty hash map is created. The number of parameters must be even.',
             'example' => '(hash-map :name "Alice" :age 30) ; => {:name "Alice", :age 30}',
         ],
@@ -263,7 +263,7 @@ Creates a new hash map. If no argument is provided, an empty hash map is created
 (ns name imports*)
 ```
 Defines the namespace for the current file and adds imports to the environment. Imports can either be uses or requires. The keyword `:use` is used to import PHP classes, the keyword `:require` is used to import Phel modules and the keyword `:require-file` is used to load php files.',
-            'docUrl' => '/documentation/namespaces/#namespace-ns',
+            'docUrl' => '/documentation/language/namespaces/#namespace-ns',
             'signatures' => ['(ns name imports*)'],
             'desc' => 'Defines the namespace for the current file and adds imports to the environment. Imports can either be uses or requires. The keyword :use is used to import PHP classes, the keyword :require is used to import Phel modules and the keyword :require-file is used to load php files.',
             'example' => '(ns my-app.core (:require phel.string :as str))',
@@ -414,7 +414,7 @@ Builds a native PHP 8.1 first-class callable `(...)` from a free function, a sta
 (.method object (php/ref local))
 ```
 Marks a local variable as passed by reference in an interop call, so an output-parameter PHP method can write back into the Phel binding.',
-            'docUrl' => '/documentation/php-interop/',
+            'docUrl' => '/documentation/php-interop/#by-reference-arguments',
             'signatures' => ['(php/ref local)'],
             'desc' => 'Passes a local variable by reference into a PHP interop call.',
             'example' => '(.bindColumn stmt 1 (php/ref out))',
@@ -426,7 +426,7 @@ Marks a local variable as passed by reference in an interop call, so an output-p
 Returns the unevaluated form.',
             'signatures' => ['(quote form)'],
             'desc' => 'Returns the unevaluated form.',
-            'docUrl' => '/documentation/macros/#quote',
+            'docUrl' => '/documentation/language/macros/#quote',
             'example' => "(quote (+ 1 2)) ; => '(+ 1 2)",
         ],
         Symbol::NAME_RECUR => [
@@ -434,7 +434,7 @@ Returns the unevaluated form.',
 (recur expr*)
 ```
 Internally recur is implemented as a PHP while loop and therefore prevents the Maximum function nesting level errors.',
-            'docUrl' => '/documentation/functions-and-recursion/#recursion',
+            'docUrl' => '/documentation/language/functions-and-recursion/#recursion',
             'signatures' => ['(recur expr*)'],
             'desc' => 'Internally recur is implemented as a PHP while loop and therefore prevents the Maximum function nesting level errors.',
             'example' => '(loop [n 5 acc 1] (if (<= n 1) acc (recur (dec n) (* acc n))))',
@@ -444,7 +444,7 @@ Internally recur is implemented as a PHP while loop and therefore prevents the M
 (var value)
 ```
 Variables provide a way to manage mutable state that can be updated with `set!` and `swap!`. Each variable contains a single value. To create a variable use the var function.',
-            'docUrl' => '/documentation/global-and-local-bindings/#variables',
+            'docUrl' => '/documentation/language/global-and-local-bindings/#variables',
             'signatures' => ['(var value)'],
             'desc' => 'Variables provide a way to manage mutable state that can be updated with `set!` and `swap!`. Each variable contains a single value. To create a variable use the var function.',
             'example' => '(def counter (var 0))',
@@ -454,7 +454,7 @@ Variables provide a way to manage mutable state that can be updated with `set!` 
 (throw exception)
 ```
 Throw an exception.',
-            'docUrl' => '/documentation/control-flow/#try-catch-and-finally',
+            'docUrl' => '/documentation/language/error-handling/#throwing',
             'signatures' => ['(throw exception)'],
             'desc' => 'Throw an exception.',
             'example' => '(throw (new InvalidArgumentException "Invalid input"))',
@@ -464,7 +464,7 @@ Throw an exception.',
 (try expr* catch-clause* finally-clause?)
 ```
 All expressions are evaluated and if no exception is thrown the value of the last expression is returned. If an exception occurs and a matching catch-clause is provided, its expression is evaluated and the value is returned. If no matching catch-clause can be found the exception is propagated out of the function. Before returning normally or abnormally the optionally finally-clause is evaluated.',
-            'docUrl' => '/documentation/control-flow/#try-catch-and-finally',
+            'docUrl' => '/documentation/language/error-handling/#try-catch-finally',
             'signatures' => ['(try expr* catch-clause* finally-clause?)'],
             'desc' => 'All expressions are evaluated and if no exception is thrown the value of the last expression is returned. If an exception occurs and a matching catch-clause is provided, its expression is evaluated and the value is returned. If no matching catch-clause can be found the exception is propagated out of the function. Before returning normally or abnormally the optionally finally-clause is evaluated.',
             'example' => '(try (/ 1 0) (catch Exception e "error"))',
@@ -475,7 +475,7 @@ All expressions are evaluated and if no exception is thrown the value of the las
 ~my-sym          ; Shorthand for (same as above)
 ```
 Values that should be evaluated in a macro are marked with the unquote function. Shortcut: `~`',
-            'docUrl' => '/documentation/macros/#quasiquote',
+            'docUrl' => '/documentation/language/macros/#quasiquote',
             'signatures' => ['(unquote expr)'],
             'desc' => 'Values that should be evaluated in a macro are marked with the unquote function. Shortcut: ~',
             'example' => '`(+ 1 ~(+ 2 3)) ; => (phel.core/+ 1 5)',
@@ -486,7 +486,7 @@ Values that should be evaluated in a macro are marked with the unquote function.
 ~@my-sym                  ; Shorthand for (same as above)
 ```
 Values that should be evaluated in a macro are marked with the unquote function. Shortcut: `~@`',
-            'docUrl' => '/documentation/macros/#quasiquote',
+            'docUrl' => '/documentation/language/macros/#quasiquote',
             'signatures' => ['(unquote-splicing expr)'],
             'desc' => 'Values that should be evaluated in a macro are marked with the unquote function. Shortcut: ~@',
             'example' => '`(+ ~@[1 2 3]) ; => (phel.core/+ 1 2 3)',
@@ -496,7 +496,7 @@ Values that should be evaluated in a macro are marked with the unquote function.
 (use ClassName [:as Alias])
 ```
 Registers PHP class aliases in the current namespace without the full `(ns ... (:use ...))` form. Intended for files that join an existing namespace via `(in-ns ...)` and only want to declare the imports they actually use. Pure compile-time registration; emits no runtime code.',
-            'docUrl' => '/documentation/namespaces/',
+            'docUrl' => '/documentation/language/namespaces/',
             'signatures' => ['(use ClassName & options)'],
             'desc' => 'Registers PHP class aliases in the current namespace (compile-time only).',
             'example' => '(use DateTimeImmutable :as Date)',
@@ -506,7 +506,7 @@ Registers PHP class aliases in the current namespace without the full `(ns ... (
 (var sym)
 ```
 Resolves `sym` against the current namespace, require aliases, and refers, yielding the first-class `Var` handle for that global definition. The reader shorthand `#\'sym` expands to `(var sym)`. Throws if `sym` does not resolve to a known global.',
-            'docUrl' => '/documentation/global-and-local-bindings/#variables',
+            'docUrl' => '/documentation/language/global-and-local-bindings/#variables',
             'signatures' => ['(var sym)'],
             'desc' => "Returns the Var handle for a global definition; reader shorthand is #'sym.",
             'example' => '(var map) ; resolves to the Var for phel.core/map',
@@ -516,7 +516,7 @@ Resolves `sym` against the current namespace, require aliases, and refers, yield
 (vector 1 2 3) ; => [1 2 3]
 ```
 Creates a new vector. If no argument is provided, an empty vector is created. Shortcut: []',
-            'docUrl' => '/documentation/data-structures/#vectors',
+            'docUrl' => '/documentation/language/data-structures/#vectors',
             'desc' => 'Creates a new vector. If no argument is provided, an empty vector is created.',
             'example' => '(vector 1 2 3) ; => [1 2 3]',
         ],

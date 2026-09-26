@@ -50,7 +50,7 @@
   "Returns `true` if `x` has the shape of a schema value (a keyword or a
   vector whose head is a keyword, including the `:=>` function marker)."
   {:example "(schema? :int) ; => true"
-   :see-also ["phel\\schema/validate"]}
+   :see-also ["schema/validate"]}
   [x]
   (cond
     (keyword? x)                       true
@@ -128,7 +128,7 @@
 (defn instrument!
   "Registers `f` under `name` (any key) wrapped with `schema`. Returns the wrapped fn. Subsequent calls to `unstrument!` with the same name can restore the original via `(instrumented-original name)`."
   {:example "(def add* (instrument! :add add [:=> [:int :int] :int]))"
-   :see-also ["unstrument!" "*schema-check*"]}
+   :see-also ["unstrument!" "schema-check?"]}
   [name f schema]
   (let [wrapped (wrap-with-function-schema f schema)]
     (swap! instrumented assoc name {:original f, :wrapped wrapped, :schema schema})

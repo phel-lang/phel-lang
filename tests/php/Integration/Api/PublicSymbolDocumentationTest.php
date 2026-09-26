@@ -14,10 +14,12 @@ use PHPUnit\Framework\Attributes\PreserveGlobalState;
 use PHPUnit\Framework\Attributes\RunInSeparateProcess;
 use PHPUnit\Framework\TestCase;
 
+use function array_filter;
 use function count;
 use function implode;
 use function in_array;
 use function sprintf;
+use function str_contains;
 use function strlen;
 use function trim;
 
@@ -128,6 +130,59 @@ final class PublicSymbolDocumentationTest extends TestCase
                 'Only %d definitions lack an `:example` now. Lower MAX_DEFINITIONS_WITHOUT_AN_EXAMPLE to %d.',
                 $count,
                 $count,
+            ),
+        );
+    }
+
+    /**
+     * `:see-also` and `:superseded-by` become links on the API reference. A name
+     * that matches no public definition renders as a link to an anchor that does
+     * not exist. A bare name resolves in its own namespace or in `phel.core`; a
+     * name from another namespace is written the way the API names it,
+     * `schema/validate`, not `phel\schema/validate`.
+     */
+    #[PreserveGlobalState(false)]
+    #[RunInSeparateProcess]
+    public function test_every_cross_reference_names_a_public_definition(): void
+    {
+        $definitions = $this->publicDefinitions();
+
+        $known = [];
+        foreach ($definitions as $function) {
+            $known[$function->namespace . '/' . $this->bareName($function)] = true;
+        }
+
+        $dangling = [];
+        foreach ($definitions as $function) {
+            $refs = [];
+            foreach ($function->meta['see-also'] ?? [] as $ref) {
+                $refs[] = (string) $ref;
+            }
+
+            if (isset($function->meta['superseded-by'])) {
+                $refs[] = (string) $function->meta['superseded-by'];
+            }
+
+            foreach ($refs as $ref) {
+                $candidates = str_contains($ref, '/') && $ref !== '/'
+                    ? [$ref]
+                    : [$function->namespace . '/' . $ref, 'core/' . $ref];
+
+                if (array_filter($candidates, static fn(string $c): bool => isset($known[$c])) !== []) {
+                    continue;
+                }
+
+                $dangling[] = sprintf('phel.%s/%s -> %s', $function->namespace, $this->bareName($function), $ref);
+            }
+        }
+
+        self::assertSame(
+            [],
+            $dangling,
+            sprintf(
+                "%d cross-reference(s) name no public definition:\n  %s",
+                count($dangling),
+                implode("\n  ", $dangling),
             ),
         );
     }
