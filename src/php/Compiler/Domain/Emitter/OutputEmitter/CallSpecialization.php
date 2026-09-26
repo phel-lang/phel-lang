@@ -32,11 +32,14 @@ final readonly class CallSpecialization
      * Subset of {@see self::isSpecialized()} that lowers to a bool-typed
      * PHP expression. The `BooleanExprDetector` consults this so the
      * `IfEmitter` can splice the call directly into the test slot
-     * without wrapping it in the Phel-truthy adapter.
+     * without wrapping it in the Phel-truthy adapter. The guarded
+     * comparisons are the one entry outside `isSpecialized()`: they keep
+     * the runtime call as a fallback, and with it the call slot.
      */
     public static function isBoolReturningSpecialisation(CallNode $node): bool
     {
-        if (NilAndBooleanCheckSpecialization::isNilCheck($node)
+        if (GuardedCoreCallSpecialization::isBoolReturning($node)
+            || NilAndBooleanCheckSpecialization::isNilCheck($node)
             || NilAndBooleanCheckSpecialization::isSomeCheck($node)
             || NilAndBooleanCheckSpecialization::isTrueCheck($node)
             || NilAndBooleanCheckSpecialization::isFalseCheck($node)

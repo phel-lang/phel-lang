@@ -1,0 +1,31 @@
+--PHEL--
+(fn [m] (= (get m :k) 1))
+(fn [xs n] (< (count xs) n))
+(fn [f g] (= (f) (g)))
+(fn [f] (not= "a" (f)))
+(fn [f] (zero? (f)))
+(fn [f] (inc (f)))
+(fn [a b] (< a (inc b)))
+--PHP--
+(function($m): bool {
+  static $__phel_const_0, $__phel_call_0, $__phel_call_1;
+  return (($__phel_guard_1 = ($__phel_call_1 ??= \Phel::fnSlot("phel.core", "get"))->invokeArity2($m, ($__phel_const_0 ??= \Phel\Lang\Keyword::create("k")))) === 1 || (!(\is_int($__phel_guard_1)) && ($__phel_call_0 ??= \Phel::getDefinition("phel.core", "="))->__invoke($__phel_guard_1, 1)));
+});(function($xs, $n): bool {
+  static $__phel_call_0, $__phel_call_1;
+  return (\is_scalar(($__phel_guard_3 = ($__phel_call_1 ??= \Phel::getDefinition("phel.core", "count"))->__invoke($xs))) & \is_scalar($n) ? ($__phel_guard_3 < $n) : ($__phel_call_0 ??= \Phel::getDefinition("phel.core", "<"))->__invoke($__phel_guard_3, $n));
+});(function($f, $g): bool {
+  static $__phel_call_0;
+  return (($__phel_guard_5 = ($f)()) === ($__phel_guard_6 = ($g)()) || (!(\is_int($__phel_guard_5) && \is_int($__phel_guard_6)) && ($__phel_call_0 ??= \Phel::getDefinition("phel.core", "="))->__invoke($__phel_guard_5, $__phel_guard_6)));
+});(function($f): bool {
+  static $__phel_call_0;
+  return ("a" !== ($__phel_guard_9 = ($f)()) && ((\is_string($__phel_guard_9)) || ($__phel_call_0 ??= \Phel::getDefinition("phel.core", "not="))->__invoke("a", $__phel_guard_9)));
+});(function($f): bool {
+  static $__phel_call_0;
+  return (\is_int(($__phel_guard_11 = ($f)())) ? ($__phel_guard_11 === 0) : ($__phel_call_0 ??= \Phel::getDefinition("phel.core", "zero?"))->__invoke($__phel_guard_11));
+});(function($f) {
+  static $__phel_call_0;
+  return (\is_int(($__phel_guard_13 = ($f)())) && $__phel_guard_13 !== \PHP_INT_MAX ? ($__phel_guard_13 + 1) : ($__phel_call_0 ??= \Phel::getDefinition("phel.core", "inc"))->__invoke($__phel_guard_13));
+});(function($a, $b): bool {
+  static $__phel_call_0, $__phel_call_1;
+  return (\is_scalar($a) & \is_scalar(($__phel_guard_15 = (\is_int($b) && $b !== \PHP_INT_MAX ? ($b + 1) : ($__phel_call_1 ??= \Phel::getDefinition("phel.core", "inc"))->__invoke($b)))) ? ($a < $__phel_guard_15) : ($__phel_call_0 ??= \Phel::getDefinition("phel.core", "<"))->__invoke($a, $__phel_guard_15));
+});

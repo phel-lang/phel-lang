@@ -9,7 +9,7 @@
 
     public function __invoke($x): bool {
       static $__phel_call_0;
-      return ($__phel_call_0 ??= \Phel::fnSlot("phel.core", "="))->invokeArity2($x, 5);
+      return ($x === 5 || (!(\is_int($x)) && ($__phel_call_0 ??= \Phel::getDefinition("phel.core", "="))->__invoke($x, 5)));
     }
   },
   static fn() => \Phel::locationMeta(

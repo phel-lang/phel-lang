@@ -21,6 +21,7 @@ use Phel\Compiler\Domain\Emitter\OutputEmitter\NodeEmitter\Specialized\AtomMetho
 use Phel\Compiler\Domain\Emitter\OutputEmitter\NodeEmitter\Specialized\ConstructorCallEmitter;
 use Phel\Compiler\Domain\Emitter\OutputEmitter\NodeEmitter\Specialized\CoreFnCallEmitter;
 use Phel\Compiler\Domain\Emitter\OutputEmitter\NodeEmitter\Specialized\GetInCallEmitter;
+use Phel\Compiler\Domain\Emitter\OutputEmitter\NodeEmitter\Specialized\GuardedCoreCallEmitter;
 use Phel\Compiler\Domain\Emitter\OutputEmitter\NodeEmitter\Specialized\NilBooleanCallEmitter;
 use Phel\Compiler\Domain\Emitter\OutputEmitter\NodeEmitter\Specialized\NumericOperationCallEmitter;
 use Phel\Compiler\Domain\Emitter\OutputEmitter\NodeEmitter\Specialized\ReduceCallEmitter;
@@ -46,6 +47,8 @@ final readonly class CallEmitter implements NodeEmitterInterface
     /** @var list<SpecializedCallEmitterInterface> */
     private array $specializedEmitters;
 
+    private GuardedCoreCallEmitter $guardedCoreCallEmitter;
+
     public function __construct(
         private OutputEmitterInterface $outputEmitter,
     ) {
@@ -68,6 +71,14 @@ final readonly class CallEmitter implements NodeEmitterInterface
             new NumericOperationCallEmitter($outputEmitter),
             new ReduceCallEmitter($outputEmitter),
         ];
+
+        // Not in the chain above: its lowering still calls the runtime fn on
+        // the fallback path, so it runs after the call slot is known and
+        // writes the callee the way the generic path does.
+        $this->guardedCoreCallEmitter = new GuardedCoreCallEmitter(
+            $outputEmitter,
+            $this->emitDynamicFunctionName(...),
+        );
     }
 
     public function emit(AbstractNode $node): void
@@ -194,6 +205,10 @@ final readonly class CallEmitter implements NodeEmitterInterface
             && (GlobalCallTarget::isGlobalFnCall($node) || CallSpecialization::isTypedAFnLocal($node));
 
         if ($useCallMethod && $this->tryEmitAssocPairsShortcut($node)) {
+            return;
+        }
+
+        if ($useCallMethod && $this->guardedCoreCallEmitter->tryEmit($node)) {
             return;
         }
 
