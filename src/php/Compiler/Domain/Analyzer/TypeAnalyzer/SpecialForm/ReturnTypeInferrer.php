@@ -20,6 +20,7 @@ use Phel\Compiler\Domain\Analyzer\Ast\SetNode;
 use Phel\Compiler\Domain\Analyzer\Ast\ThrowNode;
 use Phel\Compiler\Domain\Analyzer\Ast\VectorNode;
 use Phel\Compiler\Domain\Analyzer\TypeAnalyzer\PhpFunctionReturnTypes;
+use Phel\Compiler\Domain\Emitter\OutputEmitter\YieldDetector;
 use Phel\Lang\Collections\HashSet\PersistentHashSetInterface;
 use Phel\Lang\Collections\LinkedList\PersistentListInterface;
 use Phel\Lang\Collections\Map\PersistentMapInterface;
@@ -134,6 +135,10 @@ final class ReturnTypeInferrer
      * any self-referencing call as untagged keeps a redefinition from
      * inheriting that stale signal.
      *
+     * A body that yields in its own frame makes the fn a PHP generator: the
+     * call returns a `Generator` whatever the tail evaluates to, and any other
+     * declared return type is a compile error (#3365). Such a fn gets none.
+     *
      * @param list<Symbol> $params
      *
      * @psalm-suppress RedundantCondition `inferNode` mutates `sawOperator`
@@ -145,6 +150,10 @@ final class ReturnTypeInferrer
         ?string $selfNamespace = null,
         ?string $selfName = null,
     ): ?string {
+        if (new YieldDetector(failClosed: false)->containsYield($body)) {
+            return null;
+        }
+
         $paramTypes = $this->collectParamTypes($params, $isVariadic);
         $this->sawOperator = false;
         $this->selfNamespace = $selfNamespace;
