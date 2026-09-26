@@ -168,7 +168,7 @@ final readonly class FnSymbol implements SpecialFormAnalyzerInterface
         $effectiveName = $this->resolveEffectiveName($name, $fnSymbolTuple->params());
 
         $declaredReturnType = $this->extractReturnType($paramVector);
-        $body = $this->analyzeBody($fnSymbolTuple, $recurFrame, $env, $effectiveName, $declaredReturnType === 'void');
+        $body = $this->analyzeBody($fnSymbolTuple, $recurFrame, $env, $declaredReturnType === 'void', $effectiveName);
         if ($declaredReturnType !== null) {
             $tailType = TagCompatibility::tailLiteralType($body);
             if ($tailType !== null && !TagCompatibility::accepts($declaredReturnType, $tailType)) {
@@ -334,8 +334,8 @@ final readonly class FnSymbol implements SpecialFormAnalyzerInterface
         FnSymbolTuple $fnSymbolTuple,
         RecurFrame $recurFrame,
         NodeEnvironmentInterface $env,
+        bool $isVoid,
         ?Symbol $name = null,
-        bool $isVoid = false,
     ): AbstractNode {
         $listBody = $fnSymbolTuple->parentListBody();
 
