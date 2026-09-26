@@ -42,7 +42,7 @@
 
     public function __invoke($x, $y): string {
       static $__phel_call_0, $__phel_call_1;
-      return ($__phel_call_0 ??= \Phel::getDefinition("phel.core", "str"))->__invoke("<", (($__phel_call_1 ??= \Phel::getDefinition("user", "mixed")) instanceof \Phel\Lang\AbstractFn ? ($__phel_call_1 ??= \Phel::getDefinition("user", "mixed"))->invokeArity2($x, $y) : ($__phel_call_1 ??= \Phel::getDefinition("user", "mixed"))->__invoke($x, $y)), ">");
+      return ($__phel_call_0 ??= \Phel::fnSlot("phel.core", "str"))->invokeArity3("<", ($__phel_call_1 ??= \Phel::fnSlot("user", "mixed"))->invokeArity2($x, $y), ">");
     }
   },
   static fn() => \Phel::locationMeta(

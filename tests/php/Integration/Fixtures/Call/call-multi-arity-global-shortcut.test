@@ -42,7 +42,7 @@
 
     public function __invoke($x) {
       static $__phel_call_0;
-      return (($__phel_call_0 ??= \Phel::getDefinition("user", "my-add")) instanceof \Phel\Lang\AbstractFn ? ($__phel_call_0 ??= \Phel::getDefinition("user", "my-add"))->invokeArity2($x, $x) : ($__phel_call_0 ??= \Phel::getDefinition("user", "my-add"))->__invoke($x, $x));
+      return ($__phel_call_0 ??= \Phel::fnSlot("user", "my-add"))->invokeArity2($x, $x);
     }
   },
   static fn() => \Phel::locationMeta(
