@@ -8,6 +8,7 @@ use Phel;
 use Phel\Build\BuildFacade;
 use Phel\Compiler\CompilerFacade;
 use Phel\Compiler\Infrastructure\GlobalEnvironmentSingleton;
+use Phel\Lang\Collections\Vector\PersistentVectorInterface;
 use Phel\Lang\Registry;
 use Phel\Lang\Symbol;
 use Phel\Run\RunFacade;
@@ -159,6 +160,42 @@ final class CallSiteCacheTest extends TestCase
         } finally {
             BuildFacade::disableBuildMode();
         }
+    }
+
+    /**
+     * A slot is filled on the first call, which may run inside a `binding`
+     * frame. A bindable callee therefore gets no slot, or the bound value
+     * outlives the frame (#3367).
+     */
+    public function test_dynamic_callee_keeps_its_binding_scoped(): void
+    {
+        BuildFacade::enableBuildMode();
+        try {
+            $result = new RunFacade()->eval(
+                '(do (defn ^:dynamic dyn-fn ([a] (str "base:" a)) ([a b] (str "base2:" a b)))'
+                . ' (def call-it (fn [x] (dyn-fn x 1)))'
+                . ' [(binding [dyn-fn (fn [a b] (str "bound:" a b))] (call-it "in")) (call-it "out")])',
+            );
+        } finally {
+            BuildFacade::disableBuildMode();
+        }
+
+        self::assertSame(['bound:in1', 'base2:out1'], $result instanceof PersistentVectorInterface ? $result->toArray() : $result);
+    }
+
+    public function test_bindable_callees_get_no_call_slot(): void
+    {
+        BuildFacade::enableBuildMode();
+        $output = $this->compileSnippet(
+            '(defn ^:dynamic dyn-fn [x] x) (defn ^:redef redef-fn [x] x) (fn [x] [(dyn-fn x) (redef-fn x)])',
+        );
+        BuildFacade::disableBuildMode();
+
+        $phel = '\\' . Phel::class;
+
+        self::assertStringNotContainsString('$__phel_call_', $output);
+        self::assertStringContainsString('(' . $phel . '::getDefinition("user", "dyn-fn"))', $output);
+        self::assertStringContainsString('(' . $phel . '::getDefinition("user", "redef-fn"))', $output);
     }
 
     private function compileSnippet(string $phel): string

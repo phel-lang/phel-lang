@@ -6,9 +6,9 @@ namespace Phel\Compiler\Domain\Emitter\OutputEmitter\NodeEmitter;
 
 use Phel\Compiler\Domain\Analyzer\Ast\AbstractNode;
 use Phel\Compiler\Domain\Analyzer\Ast\GlobalVarNode;
+use Phel\Compiler\Domain\Emitter\OutputEmitter\GlobalCallTarget;
 use Phel\Compiler\Domain\Emitter\OutputEmitter\NodeEmitterInterface;
 use Phel\Compiler\Domain\Emitter\OutputEmitter\PhpStringEscape;
-use Phel\Lang\Keyword;
 
 use function assert;
 
@@ -59,19 +59,8 @@ final class GlobalVarEmitter implements NodeEmitterInterface
             return '\\Phel::getDefinitionReference';
         }
 
-        return $this->isBindable($node)
+        return GlobalCallTarget::isBindable($node)
             ? '\\Phel::getDefinition'
             : '\\Phel\\Lang\\Registry::readRoot';
-    }
-
-    /**
-     * Reads both key forms, as {@see \Phel\Compiler\Domain\Emitter\OutputEmitter\GlobalCallTarget}
-     * does: the analyzer writes some metadata under a string key and some under
-     * a keyword, and a var tagged either way must keep the full read path.
-     */
-    private function isBindable(GlobalVarNode $node): bool
-    {
-        $meta = $node->getMeta();
-        return array_any(['dynamic', 'redef'], static fn(string $tag): bool => (bool) $meta->find($tag) || (bool) $meta->find(Keyword::create($tag)));
     }
 }

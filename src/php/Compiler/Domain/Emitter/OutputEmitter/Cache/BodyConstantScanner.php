@@ -102,7 +102,7 @@ final readonly class BodyConstantScanner
 
         if ($cacheCalls
             && $node instanceof CallNode
-            && GlobalCallTarget::isGlobalFnCall($node)
+            && GlobalCallTarget::isCacheableGlobalFnCall($node)
             && !CallSpecialization::isSpecialized($node)
         ) {
             $scope->reserveCallSlot($node);

@@ -88,8 +88,13 @@ final readonly class UpdateLiteralFnLowering
 
         // Splicing leaves no read of `update` for `with-redefs` or
         // `phel.mock` to intercept, so it is direct linking and takes the
-        // same gates as {@see CallInliner}: level 2, and never on `:redef`.
-        if ($analyzer->getOptimizationLevel() < 2 || (bool) $f->getMeta()[Keyword::create('redef')]) {
+        // same gates as {@see CallInliner}: level 2, and never on `:redef` or
+        // `:dynamic`.
+        $meta = $f->getMeta();
+        if ($analyzer->getOptimizationLevel() < 2
+            || (bool) $meta[Keyword::create('redef')]
+            || (bool) $meta[Keyword::create('dynamic')]
+        ) {
             return null;
         }
 
