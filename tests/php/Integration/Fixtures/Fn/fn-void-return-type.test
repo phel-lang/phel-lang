@@ -1,0 +1,42 @@
+--PHEL--
+(fn ^void [x] (php/print x))
+(defn log-it ([] nil) (^void [x] (php/print x)))
+--PHP--
+(function($x): void {
+  print($x);
+});\Phel::addDefinition(
+  "user",
+  "log-it",
+  new class() extends \Phel\Lang\AbstractFn {
+    public const BOUND_TO = "user\\log_it";
+
+    public function __invoke(...$args) {
+      return match (\count($args)) {
+        0 => $this->invokeArity0(),
+        1 => $this->phelArity1($args[0]),
+        default => throw new \InvalidArgumentException("No matching function arity"),
+      };
+    }
+
+    public function invokeArity0(): mixed {
+      return null;
+    }
+
+    public function phelArity1($x): void {
+      print($x);
+    }
+
+    public function invokeArity1(mixed $a1): mixed {
+      return $this->phelArity1($a1);
+    }
+  },
+  static fn() => \Phel::locationMeta(
+    \Phel::location("Fn/fn-void-return-type.test", 2, 0),
+    \Phel::location("Fn/fn-void-return-type.test", 2, 48),
+    \Phel\Lang\Keyword::create("doc"), "```phel\n(log-it)\n(log-it x)\n```\n",
+    "min-arity", 0,
+    "is-variadic", false,
+    "max-arity", 1,
+    "arglists", "([] [x])"
+  )
+);
