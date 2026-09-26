@@ -68,16 +68,16 @@ links instead:
 | REPL / nREPL | https://phel-lang.org/documentation/tooling/repl/ |
 | Testing / mocking / parallel tests | https://phel-lang.org/documentation/testing/ |
 | Debugging (dbg, tap>, traces, Xdebug) | https://phel-lang.org/documentation/debugging/ |
-| Pattern matching (`match`) | https://phel-lang.org/documentation/language/functions-and-recursion/ |
+| Pattern matching (`match`) | https://phel-lang.org/documentation/language/control-flow/#match |
 | Reader shortcuts | https://phel-lang.org/documentation/language/reader-shortcuts/ |
 | Reader conditionals | https://phel-lang.org/documentation/language/reader-conditionals/ |
 | Numeric tower | https://phel-lang.org/documentation/language/numeric-tower/ |
 | Lazy sequences | https://phel-lang.org/documentation/language/lazy-sequences/ |
 | Transducers | https://phel-lang.org/documentation/language/transducers/ |
 | Async / fibers | https://phel-lang.org/documentation/language/async/ |
-| Schema | https://phel-lang.org/documentation/guides/schema/ |
-| AI | https://phel-lang.org/documentation/guides/ai/ |
-| Data interchange formats | https://phel-lang.org/documentation/guides/data-formats/ |
+| Schema | https://phel-lang.org/documentation/libraries/schema/ |
+| AI | https://phel-lang.org/documentation/libraries/ai/ |
+| Data interchange formats | https://phel-lang.org/documentation/libraries/data-formats/ |
 | Performance | https://phel-lang.org/documentation/performance/ |
 | Deployment | https://phel-lang.org/documentation/deployment/ |
 | Framework integration | https://phel-lang.org/documentation/web/framework-integration/ |

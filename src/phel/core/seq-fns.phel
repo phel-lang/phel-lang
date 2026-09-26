@@ -1001,7 +1001,7 @@ Works with vectors, lists, sets, and strings."
 (defn pairs
   "Gets the pairs of an associative data structure."
   {:example "(pairs {:a 1 :b 2}) ; => [[:a 1] [:b 2]]"
-   :see-also ["keys" "values" "kvs"]}
+   :see-also ["keys" "vals" "kvs"]}
   [coll]
   (let [result (for [p :pairs coll] p)]
     (copy-meta coll result)))
@@ -1009,7 +1009,7 @@ Works with vectors, lists, sets, and strings."
 (defn kvs
   "Returns a vector of key-value pairs like `[k1 v1 k2 v2 k3 v3 ...]`."
   {:example "(kvs {:a 1 :b 2}) ; => [:a 1 :b 2]"
-   :see-also ["pairs" "keys" "values"]}
+   :see-also ["pairs" "keys" "vals"]}
   [coll]
   ;; Collected into a PHP array and built once, as `vec` is (#3134).
   (let [arr (php/array)]

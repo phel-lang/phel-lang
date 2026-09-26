@@ -117,4 +117,4 @@ Per-fn call counts and self/total/avg/max timings, plus compile-phase cost (lex,
 
 - `RULES.md` § New features
 - `tasks/use-core-lib.md` for non-typed core ops
-- <https://phel-lang.org/documentation/guides/schema/> § Function instrumentation for runtime contracts on top of `:tag`
+- <https://phel-lang.org/documentation/libraries/schema/> § Function instrumentation for runtime contracts on top of `:tag`

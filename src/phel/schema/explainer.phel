@@ -234,7 +234,7 @@
 (defn explain
   "Returns `nil` if `value` conforms to `schema`, otherwise a map describing the violations."
   {:example "(explain :int :oops)"
-   :see-also ["phel\\schema/validate" "phel\\schema/human-readable-explain"]}
+   :see-also ["schema/validate" "schema/human-readable-explain"]}
   [schema value]
   (let [errors (-explain schema value [] [])]
     (if (empty? errors)

@@ -293,7 +293,7 @@
 (defn valid?
   "Returns `true` if `value` conforms to `schema`, otherwise `false`."
   {:example "(valid? :int 1) ; => true"
-   :see-also ["phel\\schema/validate"]}
+   :see-also ["schema/validate"]}
   [schema value]
   (cond
     (keyword? schema)

@@ -22,6 +22,7 @@ All notable changes to this project will be documented in this file.
 - A `^void` fn compiles and returns nil. It used to emit `return <value>` inside a PHP `: void` function, which PHP refuses to compile. (#3363)
 - A fn whose body contains `php/yield` compiles. Return-type inference used to give it the type of its tail, such as `: bool`, which PHP rejects on a generator. (#3365)
 - A call to a `^:dynamic` fn sees `binding`. In a build it used to cache the first value it saw, so a call made inside `binding` kept the bound fn after the binding ended, and at `-O2` a short `^:dynamic` fn was inlined past `binding` altogether. `^:redef` fns get the same treatment in builds. (#3367)
+- `phel doc --format json` and the API reference link special forms to their current guide sections, such as `/documentation/language/error-handling/#throwing` for `throw`. They used to point at pre-move paths that dropped the section anchor. `:see-also` entries that named no function, such as `values` on `kvs` and `phel\schema/validate` in the `phel.schema` sub-namespaces, now name `vals` and `schema/validate`. (#3371)
 
 ## [0.53.0](https://github.com/phel-lang/phel-lang/compare/v0.52.0...v0.53.0) - 2026-09-24
 

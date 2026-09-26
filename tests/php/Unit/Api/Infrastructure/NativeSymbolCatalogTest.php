@@ -78,6 +78,27 @@ final class NativeSymbolCatalogTest extends TestCase
     }
 
     /**
+     * The "Read more" link on phel-lang.org. The language guides moved under
+     * `/documentation/language/`, and a link to the old path lands on an alias
+     * page that drops the `#anchor`, so the reader arrives at the top of a
+     * redirect instead of the section.
+     */
+    public function test_every_doc_url_points_at_a_canonical_documentation_page(): void
+    {
+        foreach (NativeSymbolCatalog::definitions() as $symbol => $meta) {
+            if (!isset($meta['docUrl'])) {
+                continue;
+            }
+
+            self::assertMatchesRegularExpression(
+                '~^/documentation/(language/[a-z-]+|php-interop)/(#[a-z0-9-]+)?$~',
+                $meta['docUrl'],
+                sprintf('Entry "%s" links to a page outside /documentation/language/ or /documentation/php-interop/', $symbol),
+            );
+        }
+    }
+
+    /**
      * Guards against shipping a special form that `phel doc` and the API
      * reference cannot see (the gap that left `load` undocumented). Every
      * special form registered in the analyzer must have a catalog entry or

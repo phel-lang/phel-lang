@@ -162,7 +162,7 @@
   "Returns a `phel\\test\\gen` generator for `schema`. Honours a
   `{:gen <gen>}` override in the schema options when present."
   {:example "(schema->gen [:int])"
-   :see-also ["phel\\schema/generate"]}
+   :see-also ["schema/generate"]}
   [schema]
   (cond
     (keyword? schema) (keyword-kind->gen schema)
