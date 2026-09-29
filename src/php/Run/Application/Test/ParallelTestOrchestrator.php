@@ -31,10 +31,10 @@ use function stream_select;
  * flushing it in original namespace-discovery order so the on-screen view
  * stays deterministic across runs.
  *
- * Concurrency primitive: blocking {@see stream_select} over worker stdouts
- * with a generous timeout ({@see self::SELECT_TIMEOUT_MICROS}). No threads,
- * no pcntl, no shared memory. Parent and workers exchange length-prefixed
- * JSON frames ({@see WorkerFrame}).
+ * Concurrency primitive: blocking {@see stream_select} over worker stdout
+ * and stderr with a generous timeout ({@see self::SELECT_TIMEOUT_MICROS}).
+ * No threads, no pcntl, no shared memory. Parent and workers exchange
+ * length-prefixed JSON frames ({@see WorkerFrame}).
  *
  * @internal
  */
@@ -260,8 +260,12 @@ final readonly class ParallelTestOrchestrator
 
     /**
      * Block on `stream_select` until at least one of the busy workers
-     * has data ready (or the timeout fires). Returns the ready workers
-     * in the order their streams came back.
+     * has data ready (or the timeout fires). Returns the workers whose
+     * stdout is ready, in the order their streams came back.
+     *
+     * Stderr is in the set too, so the loop wakes to drain it. On macOS a
+     * worker blocked on a full stderr pipe refills it a few hundred bytes at
+     * a time, and draining only once per timeout left it stuck (#3378).
      *
      * @param array<int, TestWorkerHandle> $busyByStream
      *
@@ -272,6 +276,10 @@ final readonly class ParallelTestOrchestrator
         $reads = [];
         foreach ($busyByStream as $worker) {
             $reads[] = $worker->stdoutHandle();
+            $stderr = $worker->openStderrHandle();
+            if ($stderr !== null) {
+                $reads[] = $stderr;
+            }
         }
 
         $writes = null;

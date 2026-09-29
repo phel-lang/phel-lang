@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace PhelTest\Integration\Bootstrap;
 
+use PhelTest\Support\Subprocess;
 use PHPUnit\Framework\TestCase;
 
 use function bin2hex;
@@ -12,12 +13,9 @@ use function dirname;
 use function escapeshellarg;
 use function implode;
 use function mkdir;
-use function proc_close;
-use function proc_open;
 use function random_bytes;
 use function realpath;
 use function rmdir;
-use function stream_get_contents;
 use function sys_get_temp_dir;
 
 use const PHP_BINARY;
@@ -99,15 +97,8 @@ final class ReadOnlyProjectRootTest extends TestCase
         // No HOME mirrors the sandbox; keep PATH + TMPDIR so PHP still works.
         $env = array_diff_key(getenv(), ['HOME' => '']);
 
-        $proc = proc_open($cmd, [1 => ['pipe', 'w'], 2 => ['pipe', 'w']], $pipes, $this->readOnlyDir, $env);
-        self::assertIsResource($proc, 'proc_open failed');
+        $process = Subprocess::run($cmd, $this->readOnlyDir, env: $env);
 
-        $stdout = stream_get_contents($pipes[1]) ?: '';
-        $stderr = stream_get_contents($pipes[2]) ?: '';
-        fclose($pipes[1]);
-        fclose($pipes[2]);
-        $exit = proc_close($proc);
-
-        return ['exit' => $exit, 'stdout' => $stdout, 'stderr' => $stderr];
+        return ['exit' => $process->exitCode, 'stdout' => $process->stdout, 'stderr' => $process->stderr];
     }
 }

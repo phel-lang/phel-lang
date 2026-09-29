@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace PhelTest\Integration\Phar;
 
 use PhelTest\Support\RemoveDirTrait;
+use PhelTest\Support\Subprocess;
 use PHPUnit\Framework\TestCase;
 
 use function dirname;
@@ -316,21 +317,9 @@ final class PharExecutionTest extends TestCase
             implode(' ', array_map(escapeshellarg(...), $args)),
         );
 
-        $descriptors = [
-            1 => ['pipe', 'w'],
-            2 => ['pipe', 'w'],
-        ];
+        $process = Subprocess::run($cmd, $cwd);
 
-        $proc = proc_open($cmd, $descriptors, $pipes, $cwd);
-        self::assertIsResource($proc, 'proc_open failed');
-
-        $stdout = stream_get_contents($pipes[1]) ?: '';
-        $stderr = stream_get_contents($pipes[2]) ?: '';
-        fclose($pipes[1]);
-        fclose($pipes[2]);
-        $exit = proc_close($proc);
-
-        return ['exit' => $exit, 'stdout' => $stdout, 'stderr' => $stderr];
+        return ['exit' => $process->exitCode, 'stdout' => $process->stdout, 'stderr' => $process->stderr];
     }
 
     /**
@@ -346,25 +335,9 @@ final class PharExecutionTest extends TestCase
             implode(' ', array_map(escapeshellarg(...), $args)),
         );
 
-        $descriptors = [
-            0 => ['pipe', 'r'],
-            1 => ['pipe', 'w'],
-            2 => ['pipe', 'w'],
-        ];
+        $process = Subprocess::run($cmd, $this->tempProjectDir, $stdin);
 
-        $proc = proc_open($cmd, $descriptors, $pipes, $this->tempProjectDir);
-        self::assertIsResource($proc, 'proc_open failed');
-
-        fwrite($pipes[0], $stdin);
-        fclose($pipes[0]);
-
-        $stdout = stream_get_contents($pipes[1]) ?: '';
-        $stderr = stream_get_contents($pipes[2]) ?: '';
-        fclose($pipes[1]);
-        fclose($pipes[2]);
-        $exit = proc_close($proc);
-
-        return ['exit' => $exit, 'stdout' => $stdout, 'stderr' => $stderr];
+        return ['exit' => $process->exitCode, 'stdout' => $process->stdout, 'stderr' => $process->stderr];
     }
 
 }

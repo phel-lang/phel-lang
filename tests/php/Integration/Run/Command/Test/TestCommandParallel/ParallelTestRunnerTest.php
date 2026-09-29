@@ -4,15 +4,11 @@ declare(strict_types=1);
 
 namespace PhelTest\Integration\Run\Command\Test\TestCommandParallel;
 
+use PhelTest\Support\Subprocess;
 use PHPUnit\Framework\TestCase;
 
 use function dirname;
 use function extension_loaded;
-use function fclose;
-use function is_resource;
-use function proc_close;
-use function proc_open;
-use function stream_get_contents;
 use function sys_get_temp_dir;
 
 final class ParallelTestRunnerTest extends TestCase
@@ -246,34 +242,9 @@ final class ParallelTestRunnerTest extends TestCase
      */
     private function runPhel(array $args, string $cwd): array
     {
-        $cmd = [PHP_BINARY, $cwd . '/bin/phel', ...$args];
+        $process = Subprocess::run([PHP_BINARY, $cwd . '/bin/phel', ...$args], $cwd, '');
 
-        $pipes = [];
-        $process = proc_open(
-            $cmd,
-            [
-                0 => ['pipe', 'r'],
-                1 => ['pipe', 'w'],
-                2 => ['pipe', 'w'],
-            ],
-            $pipes,
-            $cwd,
-        );
-
-        self::assertIsResource($process, 'failed to spawn ' . implode(' ', $cmd));
-
-        fclose($pipes[0]);
-        $stdout = (string) stream_get_contents($pipes[1]);
-        $stderr = (string) stream_get_contents($pipes[2]);
-        foreach ([1, 2] as $i) {
-            if (is_resource($pipes[$i])) {
-                fclose($pipes[$i]);
-            }
-        }
-
-        $status = proc_close($process);
-
-        return [$status, $stdout . $stderr];
+        return [$process->exitCode, $process->stdout . $process->stderr];
     }
 
     private function projectRoot(): string
