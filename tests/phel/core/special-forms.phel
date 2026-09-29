@@ -34,6 +34,19 @@
   (let [form (read-string "(do (def a \"first\") (def a \"second\") a)")]
     (is (= "second" (eval form)))))
 
+(def- private-value 1)
+(def- private-value-with-doc "The doc." 2)
+
+(deftest test-private-def-binds-the-value
+  (is (= 1 private-value))
+  (is (true? (:private (meta (var private-value)))))
+  (is (nil? (:doc (meta (var private-value))))))
+
+(deftest test-private-def-keeps-the-docstring-as-metadata
+  (is (= 2 private-value-with-doc) "the docstring is not the value")
+  (is (= "The doc." (:doc (meta (var private-value-with-doc)))))
+  (is (true? (:private (meta (var private-value-with-doc))))))
+
 (deftest test-symbol-with-trailing-quote
   (let [form (read-string "(let [a 1 a' (+ a 1) a'' (+ a' 1)] [a a' a''])")]
     (is (= [1 2 3] (eval form)) "symbols may contain `'` in the middle and at the end")))
