@@ -2028,6 +2028,7 @@ final class Phel\Shared\LintRuleCodes
   public const string INVALID_DESTRUCTURING = 'phel/invalid-destructuring'
   public const string REDUNDANT_DO = 'phel/redundant-do'
   public const string SHADOWED_BINDING = 'phel/shadowed-binding'
+  public const string SHADOWED_CORE_FN = 'phel/shadowed-core-fn'
   public const string UNRESOLVED_SYMBOL = 'phel/unresolved-symbol'
   public const string UNUSED_BINDING = 'phel/unused-binding'
   public const string UNUSED_IMPORT = 'phel/unused-import'

@@ -1,0 +1,12 @@
+(ns fixtures.shadowed-core-fn)
+
+(defn bump [x]
+  (let [inc (fn [_] 99)]
+    (inc x)))
+
+(defn head [first]
+  first)
+
+(defn total [amount]
+  (let [tax 2]
+    (+ amount tax)))

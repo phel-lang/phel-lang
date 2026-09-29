@@ -13,6 +13,7 @@
 /.php-cs-fixer.dist.php export-ignore
 /.scrutinizer.yml       export-ignore
 /AGENTS.md              export-ignore
+/phel-lint.phel         export-ignore
 /phpbench.json          export-ignore
 /phpstan.neon           export-ignore
 /phpunit.xml.dist       export-ignore

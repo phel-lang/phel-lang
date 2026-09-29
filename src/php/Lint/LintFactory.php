@@ -23,6 +23,7 @@ use Phel\Lint\Application\Rule\DuplicateKeyRule;
 use Phel\Lint\Application\Rule\InvalidDestructuringRule;
 use Phel\Lint\Application\Rule\RedundantDoRule;
 use Phel\Lint\Application\Rule\ShadowedBindingRule;
+use Phel\Lint\Application\Rule\ShadowedCoreFnRule;
 use Phel\Lint\Application\Rule\UnresolvedSymbolRule;
 use Phel\Lint\Application\Rule\UnusedBindingRule;
 use Phel\Lint\Application\Rule\UnusedImportRule;
@@ -30,6 +31,7 @@ use Phel\Lint\Application\Rule\UnusedRequireRule;
 use Phel\Lint\Application\RulePipeline;
 use Phel\Lint\Application\SourceReader;
 use Phel\Lint\Domain\LintRuleInterface;
+use Phel\Lint\Infrastructure\RegistryCoreFunctionNames;
 use Phel\Shared\Facade\ApiFacadeInterface;
 use Phel\Shared\Facade\CommandFacadeInterface;
 use Phel\Shared\Facade\CompilerFacadeInterface;
@@ -76,6 +78,7 @@ final class LintFactory extends AbstractFactory
             new UnusedRequireRule(),
             new UnusedImportRule(),
             new ShadowedBindingRule(),
+            new ShadowedCoreFnRule(new RegistryCoreFunctionNames()),
             new RedundantDoRule(),
             new DuplicateKeyRule($this->getCompilerFacade()),
             new DuplicateDefRule(),
