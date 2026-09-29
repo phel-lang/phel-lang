@@ -8,6 +8,7 @@ use Phel\Shared\Process\WorkerFrame;
 use RuntimeException;
 
 use function fclose;
+use function feof;
 use function fread;
 use function fwrite;
 use function implode;
@@ -115,6 +116,22 @@ final class TestWorkerHandle
     public function stdoutHandle()
     {
         return $this->stdout;
+    }
+
+    /**
+     * Null once the worker closed stderr: a pipe at EOF stays readable, and
+     * selecting on it would spin the dispatch loop.
+     *
+     * @return resource|null
+     */
+    public function openStderrHandle()
+    {
+        /** @psalm-suppress PossiblyInvalidArgument */
+        if (!is_resource($this->stderr) || feof($this->stderr)) {
+            return null;
+        }
+
+        return $this->stderr;
     }
 
     public function isIdle(): bool
