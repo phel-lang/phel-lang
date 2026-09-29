@@ -32,7 +32,7 @@ Exit codes: `0` clean/warnings only, `1` errors (including `phel/internal-error`
 ## Rule Set (v1)
 
 - Errors: `phel/unresolved-symbol`, `phel/arity-mismatch`, `phel/invalid-destructuring`, `phel/duplicate-key`, `phel/duplicate-def`
-- Warnings: `phel/unused-binding`, `phel/unused-require`, `phel/unused-import`, `phel/shadowed-binding`, `phel/redundant-do`, `phel/discouraged-var`, `phel/comment-style`
+- Warnings: `phel/unused-binding`, `phel/unused-require`, `phel/unused-import`, `phel/shadowed-binding`, `phel/shadowed-core-fn`, `phel/redundant-do`, `phel/discouraged-var`, `phel/comment-style`
 
 Every shipped rule is on by default (it has an entry in `LintConfig::defaultSeverities()`); a rule with no entry there is off until a config opts it in.
 
@@ -42,7 +42,7 @@ Add a rule: implement `LintRuleInterface` in `Application/Rule/`, add a code con
 
 The code `RulePipeline` reports under when a rule's `apply()` throws. It is the
 one diagnostic the linter emits about itself, so it plays by different rules
-from the twelve above:
+from the thirteen above:
 
 - **Always `error` severity**, never `RuleSettings::severityFor()`. A configured
   severity grades a finding about the linted code; a crash is a finding about
@@ -80,6 +80,21 @@ excluded by design.
 The analyzer's own `DuplicateDefinitionException` cannot cover this: it only
 fires once the namespace has actually been evaluated, which a compile-only
 lint pass never does.
+
+### `phel/shadowed-core-fn`
+
+Flags a `let`/`loop`/`if-let`/`when-let`, `fn`/`defn`/`defmacro` parameter or
+`for`/`dofor`/`foreach` binding whose name is a public, non-macro `phel.core`
+function. Only plain symbols count; names bound by destructuring stay clean.
+
+The core names come from the runtime registry (`Infrastructure\RegistryCoreFunctionNames`),
+read once per run, because the lint command loads `phel.core` before any rule
+runs. Nothing loaded means an empty set, never a crash.
+
+The repo's own `phel-lint.phel` excludes `*/src/phel/*`: the stdlib's arglists
+(`name`, `key`, `val`, `rest`, ...) mirror Clojure's and are what `phel doc`
+prints, so renaming them to satisfy the rule would change the documented
+signatures.
 
 ### `phel/comment-style`
 
