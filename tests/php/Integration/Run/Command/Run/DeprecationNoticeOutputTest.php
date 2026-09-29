@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace PhelTest\Integration\Run\Command\Run;
 
 use PhelTest\Support\RemoveDirTrait;
+use PhelTest\Support\Subprocess;
 use PHPUnit\Framework\TestCase;
 
 use function bin2hex;
@@ -148,16 +149,8 @@ final class DeprecationNoticeOutputTest extends TestCase
         $cmd = 'cd ' . escapeshellarg($this->projectDir)
             . ' && php -d memory_limit=256M ' . escapeshellarg($this->repoRoot . '/bin/phel') . $args;
 
-        $process = proc_open($cmd, [1 => ['pipe', 'w'], 2 => ['pipe', 'w']], $pipes);
-        if ($process === false) {
-            self::fail('Cannot start bin/phel');
-        }
+        $process = Subprocess::run($cmd);
 
-        $stdout = (string) stream_get_contents($pipes[1]);
-        $stderr = (string) stream_get_contents($pipes[2]);
-        fclose($pipes[1]);
-        fclose($pipes[2]);
-
-        return [proc_close($process), $stdout, $stderr];
+        return [$process->exitCode, $process->stdout, $process->stderr];
     }
 }

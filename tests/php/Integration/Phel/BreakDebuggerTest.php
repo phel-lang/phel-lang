@@ -4,16 +4,11 @@ declare(strict_types=1);
 
 namespace PhelTest\Integration\Phel;
 
+use PhelTest\Support\Subprocess;
 use PHPUnit\Framework\TestCase;
 
 use function dirname;
-use function escapeshellarg;
-use function fclose;
-use function fwrite;
-use function proc_close;
-use function proc_open;
 use function sprintf;
-use function stream_get_contents;
 
 /**
  * Runs a script containing `(break)` end-to-end. With no interactive terminal
@@ -48,34 +43,13 @@ final class BreakDebuggerTest extends TestCase
     private function runScript(string $stdin): array
     {
         $repoRoot = dirname(__DIR__, 4);
-        $command = sprintf(
-            '%s %s run %s',
-            escapeshellarg(PHP_BINARY),
-            escapeshellarg($repoRoot . '/bin/phel'),
-            escapeshellarg($repoRoot . '/tests/php/Integration/Phel/Fixtures/break-e2e.phel'),
+        $process = Subprocess::run(
+            [PHP_BINARY, $repoRoot . '/bin/phel', 'run', $repoRoot . '/tests/php/Integration/Phel/Fixtures/break-e2e.phel'],
+            $repoRoot,
+            $stdin,
         );
 
-        $descriptors = [
-            0 => ['pipe', 'r'],
-            1 => ['pipe', 'w'],
-            2 => ['pipe', 'w'],
-        ];
-
-        $process = proc_open($command, $descriptors, $pipes, $repoRoot);
-        self::assertIsResource($process);
-
-        if ($stdin !== '') {
-            fwrite($pipes[0], $stdin);
-        }
-
-        fclose($pipes[0]);
-
-        $stdout = stream_get_contents($pipes[1]) ?: '';
-        $stderr = stream_get_contents($pipes[2]) ?: '';
-        fclose($pipes[1]);
-        fclose($pipes[2]);
-
-        return [proc_close($process), $stdout, $stderr];
+        return [$process->exitCode, $process->stdout, $process->stderr];
     }
 
     private function failureMessage(string $stdout, string $stderr): string
