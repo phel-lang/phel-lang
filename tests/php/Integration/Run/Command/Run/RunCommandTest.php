@@ -6,6 +6,8 @@ namespace PhelTest\Integration\Run\Command\Run;
 
 use PhelTest\Integration\Run\Command\AbstractTestCommand;
 
+use function sprintf;
+
 final class RunCommandTest extends AbstractTestCommand
 {
     use CapturesRunCommandOutputTrait;
@@ -40,6 +42,33 @@ final class RunCommandTest extends AbstractTestCommand
 
         self::assertStringContainsString("Cannot find namespace 'some.nonexistent.ns'", $output);
         self::assertStringContainsString("required by 'missing-require-script'", $output);
+        self::assertStringNotContainsString('must not reach here', $output);
+    }
+
+    /**
+     * Written to a temp dir at run time: a committed copy under tests/ is
+     * reached by other tests' source scans and fails them all.
+     */
+    public function test_a_file_not_starting_with_ns_hints_at_the_missing_ns_form(): void
+    {
+        $dir = sys_get_temp_dir() . '/phel-missing-ns-' . uniqid();
+        mkdir($dir);
+        $path = $dir . '/missing-ns-script.phel';
+        file_put_contents($path, "(defn- helper [] 1)\n\n(ns missing-ns-script)\n\n(println \"must not reach here\" (helper))\n");
+
+        try {
+            $output = $this->captureRunOutput($path);
+        } finally {
+            unlink($path);
+            rmdir($dir);
+        }
+
+        self::assertStringContainsString("[PHEL001] Cannot resolve symbol 'defn-'", $output);
+        self::assertStringContainsString(
+            sprintf("hint: '%s' does not start with an (ns ...) form.", $path),
+            $output,
+        );
+        self::assertStringNotContainsString('add (:require ...)', $output);
         self::assertStringNotContainsString('must not reach here', $output);
     }
 

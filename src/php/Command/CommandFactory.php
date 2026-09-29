@@ -25,6 +25,7 @@ use Phel\Shared\Exceptions\ExceptionPrinterInterface;
 use Phel\Shared\Exceptions\Hint\ArgumentCountHint;
 use Phel\Shared\Exceptions\Hint\ExceptionHintInterface;
 use Phel\Shared\Exceptions\Hint\ExceptionHintResolver;
+use Phel\Shared\Exceptions\Hint\MissingNsFormHint;
 use Phel\Shared\Exceptions\Hint\NotCallableHint;
 use Phel\Shared\Exceptions\Hint\UndefinedSymbolHint;
 use Phel\Shared\Munge;
@@ -76,6 +77,7 @@ final class CommandFactory extends AbstractFactory
     public function createExceptionHints(): array
     {
         return [
+            new MissingNsFormHint(),
             new NotCallableHint(),
             new ArgumentCountHint(),
             new UndefinedSymbolHint(),

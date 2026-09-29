@@ -13,11 +13,15 @@ use Phel\Build\Domain\Extractor\SourcePathResolver;
 use Phel\Build\Domain\IO\FileContentsIoInterface;
 use Phel\Compiler\Domain\Analyzer\Ast\InNsNode;
 use Phel\Compiler\Domain\Analyzer\Ast\NsNode;
+use Phel\Compiler\Domain\Analyzer\Exceptions\AnalyzerException;
 use Phel\Compiler\Domain\Lexer\Exceptions\LexerValueException;
 use Phel\Compiler\Domain\Parser\Exceptions\AbstractParserException;
 use Phel\Compiler\Domain\Reader\Exceptions\ReaderException;
+use Phel\Lang\Collections\LinkedList\PersistentListInterface;
 use Phel\Lang\Symbol;
 use Phel\Lang\TypeInterface;
+use Phel\Shared\Exceptions\ErrorCode;
+use Phel\Shared\Exceptions\MissingNsFormException;
 use Phel\Shared\Facade\CompilerFacadeInterface;
 use Phel\Shared\NamespaceInformation;
 use Phel\Shared\Parser\Node\NodeInterface;
@@ -29,6 +33,7 @@ use RuntimeException;
 use UnexpectedValueException;
 
 use function array_values;
+use function in_array;
 use function is_array;
 
 /**
@@ -83,7 +88,15 @@ final readonly class NamespaceExtractor implements NamespaceExtractorInterface
             $readerResult = $this->compilerFacade->read($parseTree);
             /** @var bool|float|int|string|TypeInterface|null $ast */
             $ast = $readerResult->getAst();
-            $node = $this->compilerFacade->analyze($ast, $this->compilerFacade->emptyNodeEnvironment());
+            try {
+                $node = $this->compilerFacade->analyze($ast, $this->compilerFacade->emptyNodeEnvironment());
+            } catch (AnalyzerException $analyzerException) {
+                if ($analyzerException->getErrorCode() === ErrorCode::UNDEFINED_SYMBOL && !$this->isNsForm($ast)) {
+                    throw MissingNsFormException::inFile($path, $analyzerException);
+                }
+
+                throw $analyzerException;
+            }
 
             if ($node instanceof NsNode) {
                 $realFile = realpath($path);
@@ -134,6 +147,17 @@ final readonly class NamespaceExtractor implements NamespaceExtractorInterface
         }
 
         return $this->grouper->groupAndSort($allInfos);
+    }
+
+    private function isNsForm(mixed $ast): bool
+    {
+        if (!$ast instanceof PersistentListInterface) {
+            return false;
+        }
+
+        $head = $ast->first();
+
+        return $head instanceof Symbol && in_array($head->getName(), [Symbol::NAME_NS, Symbol::NAME_IN_NS], true);
     }
 
     /**

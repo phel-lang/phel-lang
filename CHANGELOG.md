@@ -6,6 +6,7 @@ All notable changes to this project will be documented in this file.
 
 ### Added
 
+- A file whose first form is not `(ns ...)` fails with the hint `'src/app.phel' does not start with an (ns ...) form`, instead of the `Check the spelling, or add (:require ...)` hint for `Cannot resolve symbol 'defn-'`. `Phel\Shared\Exceptions\MissingNsFormException` and `Phel\Shared\Exceptions\Hint\MissingNsFormHint` are public PHP API. (#3373)
 - Public PHP API, since compiled code calls it: `Phel\Lang\Destructure`, `\Phel::fnSlot()` and `Phel\Lang\ForeignFn`. (#3354 #3356)
 
 ### Performance

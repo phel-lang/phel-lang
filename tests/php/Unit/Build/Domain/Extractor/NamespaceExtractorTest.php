@@ -11,8 +11,11 @@ use Phel\Build\Domain\Extractor\TopologicalNamespaceSorter;
 use Phel\Build\Domain\IO\FileContentsIoInterface;
 use Phel\Build\Infrastructure\IO\SystemFileIo;
 use Phel\Compiler\CompilerFacade;
+use Phel\Compiler\Domain\Analyzer\Exceptions\AnalyzerException;
 use Phel\Compiler\Domain\Lexer\Exceptions\LexerValueException;
 use Phel\Phel;
+use Phel\Shared\Exceptions\ErrorCode;
+use Phel\Shared\Exceptions\MissingNsFormException;
 use Phel\Shared\NamespaceInformation;
 use PhelTest\Support\CapturesDeprecationsTrait;
 use PHPUnit\Framework\TestCase;
@@ -81,6 +84,26 @@ final class NamespaceExtractorTest extends TestCase
         $this->expectException(ExtractorException::class);
         $fileContent = '(php/+ 1 1)';
         $this->extractNamespace($fileContent);
+    }
+
+    public function test_unresolved_symbol_in_a_first_form_that_is_not_ns_names_the_missing_ns(): void
+    {
+        try {
+            $this->extractNamespace("(no-such-macro helper [] 1)\n(ns app\\main)");
+            self::fail('Expected a MissingNsFormException.');
+        } catch (MissingNsFormException $missingNsFormException) {
+            $previous = $missingNsFormException->getPrevious();
+
+            self::assertInstanceOf(AnalyzerException::class, $previous);
+            self::assertSame(ErrorCode::UNDEFINED_SYMBOL, $previous->getErrorCode());
+            self::assertStringContainsString('does not start with an (ns ...) form', $missingNsFormException->getMessage());
+        }
+    }
+
+    public function test_other_analyzer_errors_in_a_first_form_that_is_not_ns_are_left_alone(): void
+    {
+        $this->expectException(AnalyzerException::class);
+        $this->extractNamespace('(def)');
     }
 
     public function test_get_namespace_from_file_unlexable_content_throws(): void
