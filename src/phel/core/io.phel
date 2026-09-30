@@ -2,7 +2,11 @@
 
 (use InvalidArgumentException)
 (use Phel)
-(use Phel.Lang.FormatArguments)
+(use Phel.Lang.BigDecimal)
+(use Phel.Lang.BigInt)
+(use Phel.Lang.NumericCoercion)
+(use Phel.Lang.PhelType)
+(use Phel.Lang.Ratio)
 (use Phel.Lang.Seq)
 (use Phel.Lang.SourceLocationInterface)
 (use Phel.Shared.Printer.Printer)
@@ -157,17 +161,57 @@
   ^string [& xs]
   (str (apply pr-str xs) "\n"))
 
+;; A sprintf directive: `%`, an optional `n$` position, flags (including `'c`
+;; padding), a width and a precision that are digits or `*` (optionally `*n$`),
+;; then the conversion.
+(def- format-directive-re
+  "/%(?:(\\d+)\\$)?(?:[-+ 0]|'.)*(\\*(?:(\\d+)\\$)?|\\d+)?(?:\\.(\\*(?:(\\d+)\\$)?|\\d*))?(.)/s")
+
+(defn- format-exact-number
+  "sprintf casts an object to 1 with a warning, so an exact number becomes what its directive consumes."
+  [x conversion]
+  (cond
+    (not (or (php/instanceof x Ratio) (php/instanceof x BigInt) (php/instanceof x BigDecimal))) x
+    (php/str_contains "eEfFgGhH" conversion) (NumericCoercion/toFloat x)
+    (not (php/str_contains "bcdouxX" conversion)) x
+    (not (php/instanceof x BigInt))
+    (throw (new InvalidArgumentException
+                (str "format: %" conversion " expects an integer, got " (PhelType/nameOf x) " " x)))
+    (not (.fitsInPhpInt x))
+    (throw (new InvalidArgumentException
+                (str "format: %" conversion " expects an integer that fits in a PHP int, got " x)))
+    :else (.toInt x)))
+
+(defn- format-args
+  "Converts each ratio, bigint and bigdec in `xs` by the directive in `fmt` that consumes it."
+  [fmt xs]
+  (let [directives (php-indexed-array)]
+    (php/preg_match_all format-directive-re fmt directives php/PREG_SET_ORDER)
+    (first
+     (reduce
+      (fn [[args next-index] [_ position width width-position precision precision-position conversion]]
+        (if (= conversion "%")
+          [args next-index]
+          (let [next-index (+ next-index
+                              (if (and (= width "*") (= width-position "")) 1 0)
+                              (if (and (= precision "*") (= precision-position "")) 1 0))
+                index      (if (= position "") next-index (dec (php/intval position)))]
+            [(if (contains? args index) (update args index format-exact-number conversion) args)
+             (if (= position "") (inc next-index) next-index)])))
+      [(vec xs) 0]
+      (php->phel directives)))))
+
 (defn format
   "Returns a formatted string. See PHP's [sprintf](https://www.php.net/manual/en/function.sprintf.php) for more information. A ratio, bigint or bigdec is converted first: to a float for `%f`, `%e` and `%g` (a bigdec keeps about 15 significant digits; use `%s` for all of them), and to an int for `%d` and the other integer directives, which throw for a ratio, a bigdec, or a bigint outside the PHP int range. `%s` prints the Phel representation."
   {:example "(format \"%d-%s\" 1 \"a\") ; => \"1-a\""
    :see-also ["str" "printf"]}
   [fmt & xs]
-  (apply php/sprintf fmt (FormatArguments/coerce fmt (apply php/array xs))))
+  (apply php/sprintf fmt (format-args fmt xs)))
 
 (defn printf
   "Output a formatted string. See PHP's [printf](https://www.php.net/manual/en/function.printf.php) for more information. Numbers convert as in `format`."
   [fmt & xs]
-  (apply php/printf fmt (FormatArguments/coerce fmt (apply php/array xs)))
+  (apply php/printf fmt (format-args fmt xs))
   nil)
 
 (defn dbg-write
