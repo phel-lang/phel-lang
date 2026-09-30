@@ -102,6 +102,26 @@ final class BreakSymbolTest extends TestCase
         );
     }
 
+    public function test_break_skips_prefixed_gensym_and_auto_gensym_locals(): void
+    {
+        $env = new NodeEnvironment(
+            [Symbol::create('x'), Symbol::create('res__12'), Symbol::create('temp__3'), Symbol::create('a__b')],
+            NodeEnvironment::CONTEXT_STATEMENT,
+            [],
+            [],
+        );
+
+        $node = new BreakSymbol($this->analyzer)->analyze(
+            Phel::list([Symbol::create(Symbol::NAME_BREAK)]),
+            $env,
+        );
+
+        self::assertSame(
+            $this->expectedBreakpointCall("\n  \"x\", \$x,\n  \"a__b\", \$a__b\n"),
+            $this->emit($node),
+        );
+    }
+
     public function test_break_dedupes_locals_by_name(): void
     {
         $env = new NodeEnvironment(

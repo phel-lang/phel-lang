@@ -26,7 +26,7 @@ All notable changes to this project will be documented in this file.
 - A call to a `^:dynamic` fn sees `binding`. In a build it used to cache the first value it saw, so a call made inside `binding` kept the bound fn after the binding ended, and at `-O2` a short `^:dynamic` fn was inlined past `binding` altogether. `^:redef` fns get the same treatment in builds. (#3367)
 - `(def- x "doc" 1)` binds `x` to `1` and keeps `"doc"` as its docstring, as `def` does. It used to bind `x` to `"doc"` and drop the value without a warning. (#3372)
 - `phel test` in parallel mode reads a worker's stderr as soon as it is written. On macOS a worker that wrote more than 16 KB to stderr, such as a burst of deprecation notices, used to wait on the full pipe and crawl at about 5 KB per second. (#3378)
-- `(gensym "tmp")` returns a symbol named `tmp` plus a unique number, such as `tmp42`, as in Clojure. `(gensym)` keeps the `__phel_` prefix. It used to ignore the prefix and always return `__phel_<N>`. (#3385)
+- `(gensym "tmp")` returns a symbol named `tmp` plus a unique number, such as `tmp42`, as in Clojure. `(gensym)` keeps the `__phel_` prefix. It used to ignore the prefix and always return `__phel_<N>`. `(break)` no longer lists macro-generated locals, including `x#` names. (#3385)
 
 ## [0.53.0](https://github.com/phel-lang/phel-lang/compare/v0.52.0...v0.53.0) - 2026-09-24
 

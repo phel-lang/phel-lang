@@ -203,7 +203,7 @@
   [bindings & body]
   (let [symbols   (take-nth 2 bindings)
         values    (take-nth 2 (drop 1 bindings))
-        mock-syms (map (fn [_] (gensym "mock")) values)]
+        mock-syms (map (fn [_] (gensym "mock__")) values)]
     `(let [~@(interleave mock-syms values)]
        (with-redefs [~@(interleave symbols mock-syms)]
          (try
@@ -233,8 +233,8 @@
         symbols      (map first grouped)
         mocks        (map second grouped)
         wrappers     (map (fn [g] (get g 2)) grouped)
-        mock-syms    (map (fn [_] (gensym "mock")) mocks)
-        wrapper-syms (map (fn [_] (gensym "wrapper")) wrappers)
+        mock-syms    (map (fn [_] (gensym "mock__")) mocks)
+        wrapper-syms (map (fn [_] (gensym "wrapper__")) wrappers)
         reset-forms  (map (fn [m] `(reset-mock! ~m)) mock-syms)]
     `(let [~@(interleave mock-syms mocks)
            ~@(interleave wrapper-syms wrappers)]
