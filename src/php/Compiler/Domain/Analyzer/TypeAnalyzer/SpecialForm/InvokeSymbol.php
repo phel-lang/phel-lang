@@ -78,7 +78,7 @@ final readonly class InvokeSymbol implements SpecialFormAnalyzerInterface
         }
 
         if ($f instanceof GlobalVarNode) {
-            $this->validateEnoughArgsProvided($f, $list);
+            $this->validateArgumentCount($f, $list);
         }
 
         $this->rejectNonCallableLiteral($f, $list);
@@ -522,7 +522,7 @@ final readonly class InvokeSymbol implements SpecialFormAnalyzerInterface
     /**
      * @param PersistentListInterface<mixed> $list
      */
-    private function validateEnoughArgsProvided(GlobalVarNode $f, PersistentListInterface $list): void
+    private function validateArgumentCount(GlobalVarNode $f, PersistentListInterface $list): void
     {
         // The resolved meta, not the runtime registry: a fn defined earlier in
         // a file that is compiled without being evaluated is only known to
