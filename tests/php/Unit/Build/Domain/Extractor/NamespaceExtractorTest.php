@@ -327,23 +327,20 @@ final class NamespaceExtractorTest extends TestCase
         self::assertSame(['vanishing.kept'], $namespaces);
     }
 
-    public function test_a_deprecation_found_while_extracting_names_the_file(): void
+    public function test_extracting_a_namespace_reports_no_deprecation(): void
     {
         $this->startCapturingDeprecations();
         $filePath = tempnam(sys_get_temp_dir(), self::class);
         file_put_contents($filePath, '(ns extracted\\ns)');
 
         try {
-            $this->newExtractor()->getNamespaceFromFile($filePath);
+            $info = $this->newExtractor()->getNamespaceFromFile($filePath);
         } finally {
             unlink($filePath);
         }
 
-        $captured = $this->capturedDeprecations();
-
-        self::assertCount(1, $captured);
-        self::assertStringContainsString($filePath . ':1', $captured[0]);
-        self::assertStringNotContainsString('string:1', $captured[0]);
+        self::assertSame('extracted.ns', $info->getNamespace());
+        self::assertSame([], $this->capturedDeprecations());
     }
 
     private function newExtractor(): NamespaceExtractor

@@ -72,10 +72,41 @@ final readonly class NamespaceExtractor implements NamespaceExtractorInterface
             throw ExtractorException::cannotReadFile($path, $runtimeException);
         }
 
+        // Indexing a file is not compiling it: its deprecations are reported
+        // by the compile that loads it, never by a scan that only read its
+        // `ns` form while some other source was being compiled (#3381).
+        return $this->compilerFacade->withoutDeprecations(
+            fn(): NamespaceInformation => $this->extractFromContent($content, $path),
+        );
+    }
+
+    /**
+     * @param list<string> $directories
+     *
+     * @throws ExtractorException
+     *
+     * @return list<NamespaceInformation>
+     */
+    public function getNamespacesFromDirectories(array $directories): array
+    {
+        $allInfos = [];
+        foreach ($directories as $directory) {
+            foreach ($this->findAllNs($directory) as $info) {
+                $allInfos[] = $info;
+            }
+        }
+
+        return $this->grouper->groupAndSort($allInfos);
+    }
+
+    /**
+     * @throws ExtractorException
+     */
+    private function extractFromContent(string $content, string $path): NamespaceInformation
+    {
         try {
-            // Named, not lexed as an anonymous string: a deprecation the `ns`
-            // form carries is reported at this location, and the default
-            // `string` source gave the user a place they cannot open (#3262).
+            // Named, not lexed as an anonymous string, so an error in the `ns`
+            // form reports names a place the user can open (#3262).
             $tokenStream = $this->compilerFacade->lexString($content, $path);
             do {
                 $parseTree = $this->compilerFacade->parseNext($tokenStream);
@@ -128,25 +159,6 @@ final readonly class NamespaceExtractor implements NamespaceExtractorInterface
         } catch (AbstractParserException|ReaderException|LexerValueException $e) {
             throw ExtractorException::cannotParseFile($path, $e);
         }
-    }
-
-    /**
-     * @param list<string> $directories
-     *
-     * @throws ExtractorException
-     *
-     * @return list<NamespaceInformation>
-     */
-    public function getNamespacesFromDirectories(array $directories): array
-    {
-        $allInfos = [];
-        foreach ($directories as $directory) {
-            foreach ($this->findAllNs($directory) as $info) {
-                $allInfos[] = $info;
-            }
-        }
-
-        return $this->grouper->groupAndSort($allInfos);
     }
 
     private function isNsForm(mixed $ast): bool

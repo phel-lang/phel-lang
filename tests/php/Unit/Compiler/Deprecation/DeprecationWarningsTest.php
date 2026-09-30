@@ -256,9 +256,48 @@ final class DeprecationWarningsTest extends TestCase
             DeprecationWarnings::replay($recorded);
         }));
 
+        DeprecationWarnings::reset();
         DeprecationWarnings::enable();
         self::assertSame(['gated', 'announced anyway'], $this->capture(static function () use ($recorded): void {
             DeprecationWarnings::replay($recorded);
+        }));
+    }
+
+    public function test_replay_skips_a_notice_this_process_already_raised(): void
+    {
+        $location = new SourceLocation('/app/lib.phel', 1, 0);
+        $message = static fn(string $file, int $line): string => sprintf('lib at %s:%d', $file, $line);
+
+        self::assertSame(['lib at /app/lib.phel:1', 'other'], $this->capture(static function () use ($location, $message): void {
+            DeprecationWarnings::announceOnceAtOrigin($location, 'dep\\lib', $message);
+            DeprecationWarnings::replay([
+                ['message' => 'lib at /app/lib.phel:1', 'announced' => true],
+                ['message' => 'other', 'announced' => true],
+            ]);
+        }));
+    }
+
+    public function test_without_notices_raises_records_and_marks_nothing(): void
+    {
+        $location = new SourceLocation('/app/lib.phel', 1, 0);
+        $message = static fn(string $file, int $line): string => sprintf('lib at %s:%d', $file, $line);
+
+        DeprecationWarnings::enable();
+        DeprecationWarnings::startRecording();
+        $muted = $this->capture(static function () use ($location, $message): void {
+            $result = DeprecationWarnings::withoutNotices(static function () use ($location, $message): string {
+                DeprecationWarnings::announceOnceAtOrigin($location, 'dep\\lib', $message);
+                DeprecationWarnings::warn('opt-in');
+
+                return 'scanned';
+            });
+            self::assertSame('scanned', $result);
+        });
+
+        self::assertSame([], $muted);
+        self::assertSame([], DeprecationWarnings::stopRecording());
+        self::assertSame(['lib at /app/lib.phel:1'], $this->capture(static function () use ($location, $message): void {
+            DeprecationWarnings::announceOnceAtOrigin($location, 'dep\\lib', $message);
         }));
     }
 

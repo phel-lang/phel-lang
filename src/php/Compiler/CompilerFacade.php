@@ -286,4 +286,10 @@ final class CompilerFacade extends AbstractFacade implements CompilerFacadeInter
         $this->getFactory()
             ->replayDeprecations($records);
     }
+
+    public function withoutDeprecations(callable $work): mixed
+    {
+        return $this->getFactory()
+            ->withoutDeprecations($work);
+    }
 }

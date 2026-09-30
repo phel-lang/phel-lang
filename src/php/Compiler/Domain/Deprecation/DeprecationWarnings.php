@@ -65,6 +65,18 @@ final class DeprecationWarnings
      */
     private static array $recording = [];
 
+    /**
+     * Every message raised so far, so a replay does not repeat what this
+     * process already printed: a cold run compiles a dependency, then loads
+     * it again from the cache entry it just wrote.
+     *
+     * @var array<string, true>
+     */
+    private static array $raised = [];
+
+    /** Depth of {@see withoutNotices()} calls in progress. */
+    private static int $muted = 0;
+
     public static function isEnabled(): bool
     {
         return self::$enabled ??= self::readEnvFlag();
@@ -77,6 +89,10 @@ final class DeprecationWarnings
      */
     public static function isDetecting(): bool
     {
+        if (self::$muted > 0) {
+            return false;
+        }
+
         if (self::isEnabled()) {
             return true;
         }
@@ -105,6 +121,29 @@ final class DeprecationWarnings
     }
 
     /**
+     * Run `$work` with every notice held back: not raised, not recorded into
+     * the compile in progress, and not marked as told. For reading a source
+     * without compiling it, such as the namespace scan indexing a directory:
+     * a file's notices belong to the compile of that file, which still
+     * reports them because nothing here was marked seen (#3381).
+     *
+     * @template T
+     *
+     * @param callable(): T $work
+     *
+     * @return T
+     */
+    public static function withoutNotices(callable $work): mixed
+    {
+        ++self::$muted;
+        try {
+            return $work();
+        } finally {
+            --self::$muted;
+        }
+    }
+
+    /**
      * Raise notices recorded by an earlier compile of the same source, each
      * by its own rule: an announced one always, the others when the flag is
      * on. Called on a compiled-code cache hit.
@@ -114,6 +153,10 @@ final class DeprecationWarnings
     public static function replay(array $records): void
     {
         foreach ($records as $record) {
+            if (isset(self::$raised[$record['message']])) {
+                continue;
+            }
+
             if ($record['announced'] || self::isEnabled()) {
                 self::raise($record['message']);
             }
@@ -141,6 +184,8 @@ final class DeprecationWarnings
         self::$seen = [];
         self::$normalizedPaths = [];
         self::$recording = [];
+        self::$raised = [];
+        self::$muted = 0;
     }
 
     /**
@@ -405,6 +450,10 @@ final class DeprecationWarnings
      */
     private static function emit(string $message, bool $announced, ?string $dedupKey = null): void
     {
+        if (self::$muted > 0) {
+            return;
+        }
+
         self::record($message, $announced, $dedupKey);
 
         if ($dedupKey !== null) {
@@ -442,6 +491,7 @@ final class DeprecationWarnings
 
     private static function raise(string $message): void
     {
+        self::$raised[$message] = true;
         ErrorNotice::raise($message, E_USER_DEPRECATED);
     }
 

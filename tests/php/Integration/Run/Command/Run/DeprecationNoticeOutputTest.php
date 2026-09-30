@@ -15,6 +15,7 @@ use function explode;
 use function file_put_contents;
 use function mkdir;
 use function random_bytes;
+use function realpath;
 use function sprintf;
 use function sys_get_temp_dir;
 use function trim;
@@ -66,9 +67,10 @@ final class DeprecationNoticeOutputTest extends TestCase
 
         self::assertSame(0, $exitCode, $stderr);
         self::assertSame("hi\n", $stdout);
-        // The path is the one the user typed, openable from where they ran.
+        // Reported by the compile of the file, which names it absolute.
         self::assertSame(
-            "deprecated: Backslash ('\\') namespace separator in symbol 'dep\\main' at src/main.phel:1;"
+            "deprecated: Backslash ('\\') namespace separator in symbol 'dep\\main' at "
+            . realpath($this->projectDir . '/src/main.phel') . ':1;'
             . " use dot ('.') instead, e.g. 'dep.main'."
             . ' The backslash form will be removed in a future release.',
             trim($stderr),
@@ -110,6 +112,40 @@ final class DeprecationNoticeOutputTest extends TestCase
         self::assertStringContainsString('/src/superseded.phel:2', $stderr);
     }
 
+    public function test_a_file_the_run_does_not_load_reports_nothing_cold_or_warm(): void
+    {
+        $this->writeSource('main.phel', "(ns dep.main)\n(println \"hi\")\n");
+        $this->writeSource('unloaded.phel', "(ns dep\\unloaded)\n");
+
+        [$coldExit, $coldStdout, $coldStderr] = $this->runPhel(['run', 'src/main.phel']);
+        [, , $warmStderr] = $this->runPhel(['run', 'src/main.phel']);
+
+        self::assertSame(0, $coldExit, $coldStderr);
+        self::assertSame("hi\n", $coldStdout);
+        self::assertSame('', trim($coldStderr));
+        self::assertSame('', trim($warmStderr));
+        self::assertSame([], $this->cachedDeprecationsOf('main.phel'));
+    }
+
+    public function test_a_loaded_file_reports_its_own_notice_cold_and_warm(): void
+    {
+        $this->writeSource('main.phel', "(ns dep.main\n  (:require dep.lib))\n(println \"hi\")\n");
+        $this->writeSource('lib.phel', "(ns dep\\lib)\n");
+        $this->writeSource('unloaded.phel', "(ns dep\\unloaded)\n");
+
+        [$coldExit, , $coldStderr] = $this->runPhel(['run', 'src/main.phel']);
+        [, , $warmStderr] = $this->runPhel(['run', 'src/main.phel']);
+
+        self::assertSame(0, $coldExit, $coldStderr);
+        foreach ([$coldStderr, $warmStderr] as $stderr) {
+            self::assertCount(1, explode("\n", trim($stderr)), $stderr);
+            self::assertStringContainsString("symbol 'dep\\lib'", $stderr);
+        }
+
+        self::assertSame([], $this->cachedDeprecationsOf('main.phel'));
+        self::assertCount(1, $this->cachedDeprecationsOf('lib.phel'));
+    }
+
     private function writeSeparatorNs(): void
     {
         $this->writeSource('main.phel', "(ns dep\\main)\n(println \"hi\")\n");
@@ -124,14 +160,23 @@ final class DeprecationNoticeOutputTest extends TestCase
         $this->writeSource('superseded.phel', "(ns dep.superseded)\n(to-php-array [1 2])\n(println \"hi\")\n");
     }
 
-    /**
-     * One source file per test: `phel run` scans every file in the source dirs
-     * to resolve namespaces, so a second fixture would report its own notices
-     * into the run being asserted.
-     */
     private function writeSource(string $name, string $code): void
     {
         file_put_contents($this->projectDir . '/src/' . $name, $code);
+    }
+
+    /**
+     * @return list<array{message: string, announced: bool}>
+     */
+    private function cachedDeprecationsOf(string $name): array
+    {
+        /** @var array{entries: array<string, array{deprecations?: list<array{message: string, announced: bool}>}>} $index */
+        $index = require $this->projectDir . '/.phel/cache/compiled-index.php';
+        $source = (string) realpath($this->projectDir . '/src/' . $name);
+
+        self::assertArrayHasKey($source, $index['entries']);
+
+        return $index['entries'][$source]['deprecations'] ?? [];
     }
 
     /**

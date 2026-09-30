@@ -229,6 +229,18 @@ final class CompilerFactory extends AbstractFactory
     }
 
     /**
+     * @template T
+     *
+     * @param callable(): T $work
+     *
+     * @return T
+     */
+    public function withoutDeprecations(callable $work): mixed
+    {
+        return DeprecationWarnings::withoutNotices($work);
+    }
+
+    /**
      * @param list<array{message: string, announced: bool}> $records
      */
     public function replayDeprecations(array $records): void
