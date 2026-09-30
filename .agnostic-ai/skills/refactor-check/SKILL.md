@@ -1,5 +1,5 @@
 ---
-description: Analyze code for SOLID violations, clean code issues, and architecture compliance
+description: Read-only design review of a file or directory.
 argument-hint: "[file-or-directory]"
 context: fork
 agent: Explore
@@ -30,12 +30,7 @@ Read and analyze the specified file(s) from `$ARGUMENTS`.
 
 ## Architecture Compliance
 
-| Check | Rule |
-|-------|------|
-| Lang independence | `Lang/` has zero deps on other modules |
-| Module boundaries | Cross-module access only via Facades |
-| Shared scope | `Shared/` contains only genuinely cross-cutting code |
-| Compiler phases | No phase skipping (Lexer → Parser → Analyzer → Emitter) |
+Check the file against `.agnostic-ai/rules/module-map.md` and its module's `.agnostic-ai/rules/module-<name>.md`: cross-module calls go through facade contracts, `Shared` holds only pure cross-cutting code, and no new dependency cycle appears. For compiler code, phases stay in order per `.agnostic-ai/rules/compiler.md`.
 
 ## For Phel Source Files (`src/phel/`)
 

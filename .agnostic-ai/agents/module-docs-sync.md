@@ -1,6 +1,6 @@
 ---
 name: module-docs-sync
-description: Audits and updates the module rules (.agnostic-ai/rules/module-*.md) for src/php/ modules to match the actual code. Use after large refactors, new modules, or periodic maintenance.
+description: Fixes drift between module rules and module code.
 model:
   claude: haiku
   codex: gpt-5.4-mini
@@ -23,7 +23,7 @@ Audits every module rule, `.agnostic-ai/rules/module-<name>.md` (scoped to `src/
 
 For each module directory in `src/php/`:
 
-1. **Rule exists**: if not, create `.agnostic-ai/rules/module-<name>.md` following the standard format
+1. **Rule exists**: if not, create `.agnostic-ai/rules/module-<name>.md` in the format of `.agnostic-ai/rules/modules.md`
 2. **Purpose line**: still accurate?
 3. **Gacela pattern**: Facade, Factory, Config, Provider class names match actual files
 4. **Public API**: every public method on the Facade is listed; removed methods are gone
@@ -43,30 +43,3 @@ For each module directory in `src/php/`:
 For each module, report one of:
 - **OK**: no changes needed
 - **Updated**: list what changed
-
-## Standard module rule format
-
-```markdown
----
-name: module-<name>
-description: '<Module> module: one-line purpose.'
-scope: src/php/<Module>
----
-
-# <Module> Module
-
-One-line purpose.
-
-## Gacela Pattern
-(or "## No Gacela Pattern" for leaf modules)
-
-## Public API (Facade)
-
-## Dependencies
-
-## Structure
-
-## Key Constraints
-```
-
-Keep content concise and scannable. No prose paragraphs: use lists, tables, and code blocks.

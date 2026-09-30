@@ -1,5 +1,5 @@
 ---
-description: Push branch and create a PR with concise description and labels
+description: Push the branch and open a PR from the template.
 argument-hint: "[issue-number]"
 x-claude:
   allowed-tools: "Read, Edit, Bash(git *), Bash(gh *)"

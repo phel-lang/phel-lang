@@ -1,5 +1,5 @@
 ---
-description: Walk over all open GitHub issues that are unassigned or assigned to the current user, and process each one via the /gh-issue skill, sequentially.
+description: Work through my open GitHub issues one by one.
 argument-hint: "[--limit N] [--label foo] [--dry-run]"
 disable-model-invocation: true
 x-claude:
@@ -105,5 +105,4 @@ With `--dry-run`, only execute Phase 1 and print the queue. No assignment, no br
 
 ## Notes
 
-- Treat GitHub CI as the full quality gate; locally run focused tests during implementation, full `composer test` once before commit.
 - Never split bundled changes into multiple PRs unless the issue explicitly demands it.

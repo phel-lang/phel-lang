@@ -1,5 +1,5 @@
 ---
-description: Create or validate a `.test` integration fixture under tests/php/Integration/Fixtures
+description: Add a .test integration fixture for one behavior.
 argument-hint: "[category] [name]"
 disable-model-invocation: true
 x-claude:
@@ -30,7 +30,7 @@ Scaffolds a new `.test` fixture in the two-section `--PHEL--` / `--PHP--` format
    --PHP--
    ```
 
-4. **Capture the output**: run `./vendor/bin/phpunit --filter=IntegrationTest`, copy the actual PHP from the failure diff into `--PHP--`, and check it is the output you intended. Never hand-write it: it must match byte for byte, source locations included.
+4. **Capture the output** as `.agnostic-ai/rules/integration-tests.md` describes, and check it is the output you intended.
 
 5. **Run the integration suite filtered to the new file** to confirm it passes:
    ```bash
@@ -41,6 +41,4 @@ Scaffolds a new `.test` fixture in the two-section `--PHEL--` / `--PHP--` format
 
 ## Constraints
 
-- One fixture per behavior: never bundle unrelated cases.
-- Source locations in the PHP output embed line/column metadata: any edit to the Phel input means regenerating the PHP section.
-- PHP output uses `\Phel::` static helpers (`addDefinition`, `map`, `keyword`, `vector`, etc.). Never `use` statements inside fixtures.
+- One fixture per behavior. Any edit to the Phel input means regenerating the PHP section: it embeds source locations.

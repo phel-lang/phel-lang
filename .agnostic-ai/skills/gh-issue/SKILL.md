@@ -1,5 +1,5 @@
 ---
-description: Fetch a GitHub issue, create a branch, implement with TDD, and open a PR
+description: Take one GitHub issue from branch to merged PR.
 argument-hint: "[issue-number]"
 ---
 
@@ -115,18 +115,3 @@ Read both the issue body **and every comment** as requirements input. Maintainer
     git checkout main && git fetch origin main && git reset --hard origin/main
     ```
 
-## Checklist
-- [ ] Issue fetched and understood
-- [ ] Self-assigned
-- [ ] Branch created from fresh `origin/main`
-- [ ] Plan created
-- [ ] Tests written first (TDD)
-- [ ] Implementation complete
-- [ ] `composer test` passes
-- [ ] Changelog updated
-- [ ] Feature commit with issue reference
-- [ ] Final refactor commit (last commit on branch, separate `ref(...)`)
-- [ ] PR created via `/pr`
-- [ ] CI green (`gh pr checks --watch`)
-- [ ] PR merged via `--admin --squash` (or `--auto` fallback if admin blocked)
-- [ ] Local `main` synced to `origin/main`

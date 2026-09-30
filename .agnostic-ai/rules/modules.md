@@ -27,4 +27,14 @@ If so, update that module's rule to match.
 
 ## Format
 
-Keep the existing structure: one-line purpose, Gacela pattern, public API, dependencies, structure tree, key constraints. Keep the rule flat in `.agnostic-ai/rules/` with an explicit `scope:`; a subdirectory would override it. Be concise. Agents need scannable facts, not prose.
+Keep the rule flat in `.agnostic-ai/rules/` with an explicit `scope:`; a subdirectory would override it. Sections, in order: one-line purpose, Gacela pattern (or "No Gacela Pattern" for a leaf), public API, dependencies, structure, key constraints. Scannable facts, not prose.
+
+```markdown
+---
+name: module-<name>
+description: '<Module> module: one-line purpose.'
+scope: src/php/<Module>
+---
+
+# <Module> Module
+```

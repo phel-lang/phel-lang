@@ -1,5 +1,5 @@
 ---
-description: Scaffold a new Gacela module under src/php/ with Facade, Provider, and a scoped module rule
+description: Scaffold a new Gacela module with its scoped rule.
 argument-hint: "<ModuleName>"
 disable-model-invocation: true
 x-claude:
@@ -40,14 +40,11 @@ Scaffolds a new module under `src/php/<ModuleName>/` following the project Gacel
    - Factory: `#[ServiceMap(method: 'getConfig', className: <ModuleName>Config::class)]`
    - Provider: the same `getConfig` mapping; use `AbstractConfig::class` only when the module intentionally has no custom Config
 
-6. **Module rule**: create `.agnostic-ai/rules/module-<kebab-name>.md` (flat, never in a subdirectory) with frontmatter `name`, `description` and `scope: src/php/<ModuleName>`. Follow `.agnostic-ai/rules/module-map.md` (shared conventions, and add the module to its map) and the section order of the reference module: one-line purpose, Gacela pattern, public API, dependencies, structure, key constraints. Document only what the code does not say. Run `agnostic-ai sync`: it emits `src/php/<ModuleName>/AGENTS.md` for Codex and a path-scoped Claude rule. Both are gitignored already.
+6. **Module rule**: create `.agnostic-ai/rules/module-<kebab-name>.md` in the format of `.agnostic-ai/rules/modules.md`, and add the module to the map in `.agnostic-ai/rules/module-map.md`. Document only what the code does not say. Run `agnostic-ai sync`.
 
-7. **Do not** register the module anywhere: Gacela auto-discovers via PSR-4.
+7. **Registration**: Gacela discovers the module through PSR-4. A module with CLI commands also needs a `<ModuleName>Commands` class in `src/php/Console/Infrastructure/Command/`, listed in `ConsoleProvider::commandProviders()`.
 
-8. **Run static analysis** on the new files only:
-   ```bash
-   composer test-quality
-   ```
+8. **Check**: `composer test-quality` (whole project) and `./vendor/bin/phpunit tests/php/Unit/Architecture`.
 
 ## Constraints
 

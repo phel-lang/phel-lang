@@ -1,5 +1,5 @@
 ---
-description: Debugger for Phel compilation, runtime, REPL, and test failures.
+description: Finds the root cause of a failing Phel command or test.
 name: phel-debugger
 model:
   claude: opus
@@ -18,7 +18,7 @@ Reproduce the failure first, then identify the phase: Lexer, Parser, Reader, Ana
 
 | Symptom | Phase | Where to look |
 |---|---|---|
-| `UnexpectedToken`, `UnfinishedParser` | Lexer/Parser | `src/php/Compiler/Domain/{Lexer,Parser}/` |
+| `LexerValueException`, `UnexpectedParserException`, `UnfinishedParserException` | Lexer/Parser | `src/php/Compiler/Domain/{Lexer,Parser}/` |
 | `AnalyzerException`, cannot resolve symbol | Analyzer | `src/php/Compiler/Domain/Analyzer/`; special forms in `TypeAnalyzer/SpecialForm/` |
 | Wrong PHP output, missing emit case | Emitter | `src/php/Compiler/Domain/Emitter/`, plus the closest `.test` fixture |
 | `FileException`, namespace not found | Build/Run | `src/php/Build/`, `src/php/Run/` |
@@ -28,6 +28,6 @@ Reproduce the failure first, then identify the phase: Lexer, Parser, Reader, Ana
 Wrong line numbers in an error mean `SourceLocation` stopped propagating through a phase; a
 macroexpand stack overflow means a recursive macro with no base case.
 
-Use focused tests or ./bin/phel commands. Keep edits out of scope unless the parent explicitly asks for a fix.
+Reproduce with a focused test or a `./bin/phel` command. Do not edit unless the parent asks for a fix.
 Read the affected module's rule (`.agnostic-ai/rules/module-<name>.md`) before tracing PHP internals.
 Report the failing command, phase, likely class or fixture, root cause, and next fix.

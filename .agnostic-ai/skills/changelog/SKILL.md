@@ -1,5 +1,5 @@
 ---
-description: Update CHANGELOG.md unreleased section from recent commits or manual entry; follows the changelog rule
+description: Draft or tidy the Unreleased changelog section.
 argument-hint: "[entry text | --optimize]"
 disable-model-invocation: true
 x-claude:
