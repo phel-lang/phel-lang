@@ -79,9 +79,19 @@ final class BenchAbCommandTest extends TestCase
 
     private string $projectDir;
 
+    /** @var array<string, false|string> */
+    private array $callerGitEnv = [];
+
     #[Override]
     protected function setUp(): void
     {
+        // A pre-commit hook exports these for the commit in progress. Left in
+        // place, the fixture's `git add` writes into the caller's index.
+        foreach (['GIT_DIR', 'GIT_INDEX_FILE', 'GIT_WORK_TREE'] as $name) {
+            $this->callerGitEnv[$name] = getenv($name);
+            putenv($name);
+        }
+
         $this->repoRoot = dirname(__DIR__, 6);
         $this->projectDir = sys_get_temp_dir() . '/phel-bench-ab-fixture-' . bin2hex(random_bytes(8));
         mkdir($this->projectDir . '/src', 0o755, true);
@@ -128,6 +138,10 @@ final class BenchAbCommandTest extends TestCase
     protected function tearDown(): void
     {
         exec('rm -rf ' . escapeshellarg($this->projectDir));
+
+        foreach ($this->callerGitEnv as $name => $value) {
+            putenv($value === false ? $name : $name . '=' . $value);
+        }
     }
 
     public function test_it_measures_the_ref_and_the_working_tree_apart(): void
