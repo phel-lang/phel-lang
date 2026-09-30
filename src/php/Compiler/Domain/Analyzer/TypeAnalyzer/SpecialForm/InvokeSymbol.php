@@ -77,7 +77,7 @@ final readonly class InvokeSymbol implements SpecialFormAnalyzerInterface
             return $this->globalMacro($list, $f, $env);
         }
 
-        if ($f instanceof GlobalVarNode) {
+        if ($f instanceof GlobalVarNode && !$f->isRebindable()) {
             $this->validateArgumentCount($f, $list);
         }
 

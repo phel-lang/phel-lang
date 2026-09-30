@@ -46,6 +46,16 @@ final class GlobalVarNode extends AbstractNode
         return $this->meta;
     }
 
+    /**
+     * A `^:dynamic` or `^:redef` global may be a different fn by the time a
+     * call runs (`binding`, `with-redefs`), so its definition proves nothing
+     * about the fn the call reaches.
+     */
+    public function isRebindable(): bool
+    {
+        return (bool) $this->meta[Keyword::create('dynamic')] || (bool) $this->meta[Keyword::create('redef')];
+    }
+
     public function isMacro(): bool
     {
         return $this->meta[Keyword::create('macro')] === true;

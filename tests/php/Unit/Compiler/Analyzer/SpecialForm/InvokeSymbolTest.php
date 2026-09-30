@@ -181,6 +181,25 @@ final class InvokeSymbolTest extends TestCase
         new InvokeSymbol($this->analyzer)->analyze($list, NodeEnvironment::empty());
     }
 
+    public function test_a_rebindable_fn_is_not_arity_checked(): void
+    {
+        foreach (['dynamic', 'redef'] as $flag) {
+            $name = Symbol::create('rebindable-' . $flag);
+            $this->analyzer->addDefinition('user', $name);
+            $this->analyzer->setCompileTimeMeta(
+                'user',
+                $name,
+                Phel::map('min-arity', 1, 'is-variadic', false, Keyword::create($flag), true),
+            );
+
+            $list = Phel::list([Symbol::createForNamespace('user', 'rebindable-' . $flag), '1arg', '2arg']);
+
+            new InvokeSymbol($this->analyzer)->analyze($list, NodeEnvironment::empty());
+        }
+
+        $this->expectNotToPerformAssertions();
+    }
+
     public function test_variadic_fn_accepts_any_count_above_min_arity(): void
     {
         $list = Phel::list([

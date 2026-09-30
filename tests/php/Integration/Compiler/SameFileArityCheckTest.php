@@ -136,6 +136,22 @@ final class SameFileArityCheckTest extends TestCase
         $this->assertSucceeds($this->phel('build'));
     }
 
+    public function test_every_path_accepts_another_count_for_a_rebindable_fn(): void
+    {
+        $this->writeCore(<<<'PHEL'
+            (defn ^:dynamic *handler* [a] a)
+            (defn ^:redef fetch [a] a)
+            (binding [*handler* (fn [a b] b)] (*handler* 1 2))
+            (with-redefs [fetch (fn [a b] b)] (fetch 1 2))
+            PHEL);
+
+        $this->assertSucceeds($this->phel('compile', 'src/core.phel'));
+        $this->assertSucceeds($this->phel('run', 'src/core.phel'));
+        $this->assertSucceeds($this->phel('build', '--no-cache'));
+        $this->assertSucceeds($this->phel('build'));
+        $this->assertSucceeds($this->phel('build'));
+    }
+
     private function writeCore(string $body): void
     {
         file_put_contents($this->projectDir . '/src/core.phel', "(ns same-file.core)\n" . $body . "\n");
