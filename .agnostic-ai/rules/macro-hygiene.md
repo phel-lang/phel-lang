@@ -1,6 +1,7 @@
 ---
+name: macro-hygiene
 description: Macro-hygiene pitfalls for quasiquote, gensym, and expand-time evaluation
-globs: src/phel/**,tests/phel/**
+scope: src/phel
 ---
 
 # Macro Hygiene

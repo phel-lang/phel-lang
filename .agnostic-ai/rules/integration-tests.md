@@ -1,6 +1,7 @@
 ---
+name: integration-tests
 description: Integration test fixture format and conventions
-globs: tests/php/Integration/**
+scope: tests/php/Integration
 ---
 
 # Integration Test Fixtures

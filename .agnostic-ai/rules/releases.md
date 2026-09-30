@@ -1,7 +1,17 @@
 ---
 name: releases
 description: How a Phel release is cut, and what needs a human go.
-globs: CHANGELOG.md,tools/release*,.github/RELEASE.md,.github/workflows/announce-release.yml,src/php/Shared/VersionFinder.php,resources/agents/VERSION,docs/stability.md,docs/migration/**
+# Codex gets no copy: it has no path-scoped rules for root files. workflow.md points it here.
+targets: [claude]
+globs:
+  - CHANGELOG.md
+  - tools/release*
+  - .github/RELEASE.md
+  - .github/workflows/announce-release.yml
+  - src/php/Shared/VersionFinder.php
+  - resources/agents/VERSION
+  - docs/stability.md
+  - docs/migration/**
 ---
 
 # Releases
