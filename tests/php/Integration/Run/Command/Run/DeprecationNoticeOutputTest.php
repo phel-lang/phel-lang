@@ -64,17 +64,16 @@ final class DeprecationNoticeOutputTest extends TestCase
         $this->writeSeparatorNs();
 
         [$exitCode, $stdout, $stderr] = $this->runPhel(['run', 'src/main.phel']);
+        [, , $warmStderr] = $this->runPhel(['run', 'src/main.phel']);
 
         self::assertSame(0, $exitCode, $stderr);
         self::assertSame("hi\n", $stdout);
-        // Reported by the compile of the file, which names it absolute.
-        self::assertSame(
-            "deprecated: Backslash ('\\') namespace separator in symbol 'dep\\main' at "
-            . realpath($this->projectDir . '/src/main.phel') . ':1;'
+        // The path is the one the user typed, openable from where they ran.
+        $expected = "deprecated: Backslash ('\\') namespace separator in symbol 'dep\\main' at src/main.phel:1;"
             . " use dot ('.') instead, e.g. 'dep.main'."
-            . ' The backslash form will be removed in a future release.',
-            trim($stderr),
-        );
+            . ' The backslash form will be removed in a future release.';
+        self::assertSame($expected, trim($stderr));
+        self::assertSame($expected, trim($warmStderr));
     }
 
     public function test_the_notice_names_no_phel_internal_file_and_no_synthetic_source(): void
@@ -109,7 +108,7 @@ final class DeprecationNoticeOutputTest extends TestCase
         self::assertSame(0, $exitCode, $stderr);
         self::assertCount(1, explode("\n", trim($stderr)));
         self::assertStringStartsWith("deprecated: Definition 'phel.core/to-php-array'", trim($stderr));
-        self::assertStringContainsString('/src/superseded.phel:2', $stderr);
+        self::assertStringContainsString(' used at src/superseded.phel:2 ', $stderr);
     }
 
     public function test_a_file_the_run_does_not_load_reports_nothing_cold_or_warm(): void

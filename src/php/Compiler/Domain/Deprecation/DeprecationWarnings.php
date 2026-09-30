@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Phel\Compiler\Domain\Deprecation;
 
 use Phel\Compiler\Domain\Diagnostic\ErrorNotice;
+use Phel\Compiler\Domain\Diagnostic\WorkingDirectoryPaths;
 use Phel\Lang\SourceLocation;
 use Phel\Shared\Facade\CompilerFacadeInterface;
 
@@ -492,7 +493,7 @@ final class DeprecationWarnings
     private static function raise(string $message): void
     {
         self::$raised[$message] = true;
-        ErrorNotice::raise($message, E_USER_DEPRECATED);
+        ErrorNotice::raise(WorkingDirectoryPaths::shorten($message), E_USER_DEPRECATED);
     }
 
     /**
