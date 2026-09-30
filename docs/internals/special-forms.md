@@ -106,4 +106,4 @@ Add a fixture `tests/php/Integration/Fixtures/Foo/foo-basic.test` plus an analyz
 
 ## See also
 
-[compiler.md](compiler.md), [macros.md](macros.md), `src/php/Compiler/CLAUDE.md`
+[compiler.md](compiler.md), [macros.md](macros.md), `.agnostic-ai/rules/module-compiler.md`

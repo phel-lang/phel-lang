@@ -9,10 +9,14 @@ if [[ ! -x ./bin/phel ]]; then
 fi
 
 input="$(</dev/stdin)"
+file_path="$(printf '%s' "$input" | jq -r '.tool_input.file_path // empty')"
 command="$(printf '%s' "$input" | jq -r '.tool_input.command // empty')"
 
-printf '%s' "$command" \
-  | sed -nE 's/^\*\*\* (Add|Update) File: (.*\.phel)$/\2/p' \
+{
+  [[ "$file_path" == *.phel ]] && printf '%s\n' "$file_path"
+  printf '%s' "$command" \
+    | sed -nE 's/^\*\*\* (Add|Update) File: (.*\.phel)$/\2/p'
+} \
   | sort -u \
   | while IFS= read -r file; do
       [[ -f "$file" ]] || continue

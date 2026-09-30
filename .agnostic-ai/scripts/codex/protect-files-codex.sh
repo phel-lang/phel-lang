@@ -36,7 +36,7 @@ if [[ -n "$file_path" ]] && is_protected_path "$file_path"; then
 fi
 
 if [[ "$tool_name" == "apply_patch" ]]; then
-  while IFS= read -r path; do
+  while IFS= read -r path || [[ -n "$path" ]]; do
     if is_protected_path "$path"; then
       deny "Protected file edit blocked. Ask the user to confirm before changing tools/release.sh, composer.lock, or .github/*."
       exit 0

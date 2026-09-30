@@ -5,7 +5,7 @@
 # .git/hooks/ next to them, so a checked-out branch cannot change what runs.
 #
 # Re-emits the gitignored agent config (.claude/, .codex/, .agents/,
-# AGENTS.md, CLAUDE.md) when HEAD's specs differ from the ones last synced in
+# every AGENTS.md, CLAUDE.md) when HEAD's specs differ from the ones last synced in
 # this worktree, so a session does not keep loading rules and skills from
 # before a pull, a rebase or a branch switch. It compares against its own
 # record, not ORIG_HEAD, which a rebase can overwrite.

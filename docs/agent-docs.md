@@ -61,7 +61,8 @@ The repo also contains AI tool config for maintaining phel-lang itself. Keep it 
 | Path | Audience |
 |------|----------|
 | `.agnostic-ai/` | Source for the repository's agent config: rules, skills, agents, hooks. Setup: [CONTRIBUTING.md](../.github/CONTRIBUTING.md#ai-tooling). |
-| `AGENTS.md`, `.codex/`, `.claude/`, `CLAUDE.md` | Generated from `.agnostic-ai/` by `agnostic-ai sync`. Gitignored; never edit them. |
+| `.agnostic-ai/rules/module-*.md` | Per-module docs for `src/php/<Module>/`: public API, dependencies, constraints. Scoped to the module directory. |
+| `AGENTS.md`, nested `AGENTS.md` under `src/` and `tests/`, `.codex/`, `.claude/`, `CLAUDE.md` | Generated from `.agnostic-ai/` by `agnostic-ai sync`. Gitignored; never edit them. |
 | `resources/agents/` | Assets shipped to users building their own Phel projects. |
 
 ## Feedback

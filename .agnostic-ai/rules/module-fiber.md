@@ -1,3 +1,9 @@
+---
+name: module-fiber
+description: 'Fiber module: Cooperative async primitives (promises, futures, single-threaded scheduler) backing `phel.core`''s `promise`/`deliver` and `future-call`/`future-fiber`.'
+scope: src/php/Fiber
+---
+
 # Fiber Module
 
 Cooperative async primitives (promises, futures, single-threaded scheduler) backing `phel.core`'s `promise`/`deliver` and `future-call`/`future-fiber`.
@@ -20,7 +26,7 @@ Cooperative async primitives (promises, futures, single-threaded scheduler) back
 
 | Path | Purpose |
 |------|---------|
-| `Domain/Awaitable.php` | contract: `isRealized()`, `deref()`, `derefWithTimeout(int, mixed)` — implemented by Promise + Future |
+| `Domain/Awaitable.php` | contract: `isRealized()`, `deref()`, `derefWithTimeout(int, mixed)`, implemented by Promise + Future |
 | `Domain/Promise.php` | single-delivery; implements `Awaitable` + `Phel\Lang\FnInterface` (callable) |
 | `Domain/Future.php` | runs a callable in a `Fiber`; cooperative cancel |
 | `Domain/Scheduler.php` | FIFO ready-queue, singleton via `instance()`/`setInstance()` |

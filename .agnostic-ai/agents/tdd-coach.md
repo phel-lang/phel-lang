@@ -1,18 +1,20 @@
 ---
 name: tdd-coach
-description: Guides test-driven development with red-green-refactor discipline. Use when implementing features or fixes with TDD.
+description: Implements a change test first, red-green-refactor.
 model:
   claude: sonnet
   codex: gpt-5.5
-maxTurns: 25
-tools: [Read, Write, Edit, Glob, Grep, Bash]
+effort: medium
+# Claude-only fields: Codex has no tool allowlist, memory or turn cap; it gets sandbox_mode instead.
+x-claude:
+  tools: [Read, Write, Edit, Glob, Grep, Bash]
+  maxTurns: 25
 x-codex:
-    model_reasoning_effort: medium
-    name: tdd_coach
-    nickname_candidates:
-        - Coach
-        - RedGreen
-        - Cycle
+  name: tdd_coach
+  nickname_candidates:
+    - Coach
+    - RedGreen
+    - Cycle
 ---
 
 # TDD Coach
@@ -33,28 +35,11 @@ REFACTOR → Improve code, keep tests green
 - **Baby steps**: each test adds ONE behavior, small incremental changes
 - **Tests are documentation**: names describe behavior, tests show usage
 
-## PHP Tests (tests/php/)
+## Where tests go
 
-```
-tests/php/Unit/         → Fast, isolated, no I/O
-tests/php/Integration/  → File system, real compilation
-```
-
-- Mirror `src/php/` structure
-- snake_case methods: `test_it_compiles_simple_expression()`
-- Run: `./vendor/bin/phpunit --filter=TestClassName`
-
-## Phel Tests (tests/phel/)
-
-```phel
-(ns phel-test.core
-  (:require phel.test :refer [deftest is]))
-
-(deftest test-my-function
-  (is (= expected (my-function input))))
-```
-
-- Run: `./bin/phel test tests/phel/<file>`
+- PHP: `tests/php/Unit/` (fast, no I/O) or `tests/php/Integration/` (files, real compilation), mirroring `src/php/`. Conventions in `.agnostic-ai/rules/php.md`.
+- Phel: `tests/phel/`. Conventions in `.agnostic-ai/rules/phel.md`.
+- Focused run commands: `.agnostic-ai/rules/build-test-and-development-commands.md`.
 
 ## Red Flags
 

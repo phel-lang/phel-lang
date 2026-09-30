@@ -34,7 +34,7 @@ Grouped by reader.
 
 ## Modifying the compiler
 
-**Where to start.** `src/php/Compiler/CLAUDE.md` for facade overview, then [compiler.md](compiler.md). Most edits hit one of:
+**Where to start.** `.agnostic-ai/rules/module-compiler.md` for facade overview, then [compiler.md](compiler.md). Most edits hit one of:
 
 - `Compiler/Domain/Analyzer/TypeAnalyzer/SpecialForm/`
 - `Compiler/Domain/Emitter/OutputEmitter/NodeEmitter/`
@@ -69,7 +69,7 @@ $emit   = $facade->compile('(print "hi")', new CompileOptions());
 
 ## Building tools around Phel
 
-**Public API.** Every `*Facade.php` under `src/php/*/`, with `*FacadeInterface.php` for typing. `CLAUDE.md` per module documents it. Tooling-relevant: `CompilerFacade`, `ApiFacade`, `LintFacade`, `FormatterFacade`. `Lsp/` and `Nrepl/` are worked examples.
+**Public API.** Every `*Facade.php` under `src/php/*/`, with `*FacadeInterface.php` for typing. Each module's `.agnostic-ai/rules/module-<name>.md` documents it. Tooling-relevant: `CompilerFacade`, `ApiFacade`, `LintFacade`, `FormatterFacade`. `Lsp/` and `Nrepl/` are worked examples.
 
 **Run compiler without CLI.** Bootstrap Gacela, fetch `CompilerFacade`, call `compile()` / `eval()`. `tests/php/Integration/` does this.
 
@@ -104,4 +104,4 @@ $emit   = $facade->compile('(print "hi")', new CompileOptions());
 | Quasiquote rewrite | `Compiler/Domain/Reader/QuasiquoteTransformer.php` |
 | Macro expansion | `Compiler/Application/MacroExpander.php` |
 | AST nodes | `Compiler/Domain/Analyzer/Ast/` |
-| Module API | each `*Facade.php` + `CLAUDE.md` |
+| Module API | each `*Facade.php` + `.agnostic-ai/rules/module-<name>.md` |

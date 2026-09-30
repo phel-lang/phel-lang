@@ -25,10 +25,11 @@ services:
                 - Phel\Config
 
     # Which module may reach which, from `module-rules.json`. Until now that
-    # decision lived only in prose: `Console/CLAUDE.md` says nothing may import
-    # Console, `Filesystem/CLAUDE.md` and `Fiber/CLAUDE.md` call themselves
-    # leaves. Prose cannot see a new import in a diff. Every rule in the file is
-    # one of those sentences, and each one held when it was added.
+    # decision lived only in prose: the Console module rule
+    # (`.agnostic-ai/rules/module-console.md`) says nothing may import Console,
+    # and the Filesystem and Fiber rules call those modules leaves. Prose cannot
+    # see a new import in a diff. Every rule in the file is one of those
+    # sentences, and each one held when it was added.
     #
     # `sharedNamespaces` must stay identical to the list above. It exempts the
     # namespaces Gacela's CLI graph cannot see at all (Lang, Shared and Config
@@ -119,7 +120,7 @@ parameters:
             count: 1
         - identifier: trait.unused
         # A `Shared\Facade\*FacadeInterface` is the *cross-module* contract, not
-        # a mirror of the facade. `Shared/CLAUDE.md` says to keep its imports
+        # a mirror of the facade. `.agnostic-ai/rules/module-shared.md` says to keep its imports
         # minimal, and every method below is called only from inside its own
         # module (its own `Infrastructure/Command/`, or emitted PHP for the
         # BuildMode trio and the `*loading-dependencies*` trio #3015 added

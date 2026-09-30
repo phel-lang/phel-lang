@@ -3,7 +3,7 @@
     {
       "from": "Phel",
       "deny": ["Phel\\Console"],
-      "reason": "Console is the graph's sink: it registers every module's commands and nothing may import it back, or the widest fan-in in the codebase becomes a cycle. A module that needs to describe console behaviour injects Shared\\Facade\\ConsoleFacadeInterface instead. See src/php/Console/CLAUDE.md."
+      "reason": "Console is the graph's sink: it registers every module's commands and nothing may import it back, or the widest fan-in in the codebase becomes a cycle. A module that needs to describe console behaviour injects Shared\\Facade\\ConsoleFacadeInterface instead. See .agnostic-ai/rules/module-console.md."
     },
     {
       "from": "Phel\\Compiler",
@@ -13,17 +13,17 @@
     {
       "from": "Phel\\Filesystem",
       "allow": [],
-      "reason": "Filesystem is a leaf: no Provider, no facade dependencies, and its only module import is the Config data model. See src/php/Filesystem/CLAUDE.md."
+      "reason": "Filesystem is a leaf: no Provider, no facade dependencies, and its only module import is the Config data model. See .agnostic-ai/rules/module-filesystem.md."
     },
     {
       "from": "Phel\\Fiber",
       "allow": [],
-      "reason": "Fiber depends on nothing beyond the Lang leaf: no Provider and no cross-module facades. See src/php/Fiber/CLAUDE.md."
+      "reason": "Fiber depends on nothing beyond the Lang leaf: no Provider and no cross-module facades. See .agnostic-ai/rules/module-fiber.md."
     },
     {
       "from": "Phel\\Command",
       "allow": ["Phel\\Compiler"],
-      "reason": "Command has no facade dependencies. Its single compiler import is the type-only EvaluatedCodeException instanceof check; it injects no compiler facade. See src/php/Command/CLAUDE.md."
+      "reason": "Command has no facade dependencies. Its single compiler import is the type-only EvaluatedCodeException instanceof check; it injects no compiler facade. See .agnostic-ai/rules/module-command.md."
     }
   ]
 }

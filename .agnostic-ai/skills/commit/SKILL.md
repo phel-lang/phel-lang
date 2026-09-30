@@ -1,9 +1,12 @@
 ---
-description: Auto-fix, lint, test, and commit changes with a conventional commit message
+description: Fix, gate and commit the current change.
 argument-hint: "[optional commit message]"
 disable-model-invocation: true
 x-claude:
   allowed-tools: "Read, Edit, Bash(composer *), Bash(./vendor/bin/*), Bash(./bin/phel *), Bash(git *)"
+x-codex:
+  interface:
+    display_name: Commit
 ---
 
 # Commit
@@ -16,55 +19,14 @@ x-claude:
 
 ## Instructions
 
-### Phase 1: Auto-fix
+1. **Auto-fix**: run `composer fix` (rector, then cs-fixer). Review what it changed.
 
-1. Run rector + cs-fixer on changed files:
-   ```bash
-   composer fix
-   ```
+2. **Stage** the changed files by name, never `git add -A`.
 
-2. If fixer modified files, review the changes and stage them.
+3. **Message**: use `$ARGUMENTS` when given; otherwise write one from the staged diff, per `.agnostic-ai/rules/workflow.md`. Add `(<scope>)` when the change stays in one module. No emojis.
 
-### Phase 2: Quality gates
+4. **Changelog**: a user-facing change needs its `CHANGELOG.md` entry, per `.agnostic-ai/rules/workflow.md`. Add it before committing.
 
-Run each step in order. Stop and fix issues before continuing.
+5. **Gate**: the pre-commit hook runs `composer test-all` when PHP or Phel files are staged. If `.git/hooks/pre-commit` is missing, run `tools/git-hooks/init.sh`, or run `COMPOSER_PROCESS_TIMEOUT=0 composer test` yourself first. Fix any failure; never commit past it.
 
-3. **Static analysis**:
-   ```bash
-   composer test-quality
-   ```
-
-4. **Unit + integration tests**:
-   ```bash
-   composer test-compiler
-   ```
-
-5. **Core tests** (only if `.phel` files changed):
-   ```bash
-   git diff --cached --name-only | grep -q '\.phel$' && composer test-core
-   ```
-
-If any step fails, fix the issue and re-run from that step. Do NOT proceed to commit with failures.
-
-The pre-commit hook runs `composer test-all` when PHP or Phel files are staged. These gates fail faster.
-
-### Phase 3: Commit
-
-6. **Stage files**: add specific changed files by name (never `git add -A`).
-
-7. **Draft commit message** using conventional commit format:
-   - If `$ARGUMENTS` is provided, use it as the commit message
-   - Otherwise, analyze the staged diff and generate one
-   - Prefixes: `feat:`, `fix:`, `ref:`, `perf:`, `chore:`, `docs:`, `test:`
-   - Add `(<scope>)` when changes are scoped to a single module
-   - **NEVER mention AI tooling in the message**
-   - **NEVER include emojis.** A squash merge copies the PR title into history, so strip any emoji from the PR title before merging
-
-8. **CHANGELOG check**: for a user-facing `feat:`, `fix:` or `perf:`, `CHANGELOG.md` must have its entry under `## Unreleased`, per `.agnostic-ai/rules/changelog.md`. Add it before committing.
-
-9. **Commit**:
-   ```bash
-   git commit -m "<message>"
-   ```
-
-10. Report: commit hash, message, and files included.
+6. **Commit** with `git commit -m "<message>"`, then report the hash, message and files.

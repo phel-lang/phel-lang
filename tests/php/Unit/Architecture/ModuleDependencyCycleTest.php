@@ -30,8 +30,8 @@ final class ModuleDependencyCycleTest extends TestCase
     /**
      * Every module pair that points at each other, smaller name first.
      *
-     * - `Compiler <-> Shared`: accepted in #2785; rationale in `src/php/Shared/CLAUDE.md`.
-     * - `Lang <-> Shared`: accepted; `src/php/Lang/CLAUDE.md` names both edges
+     * - `Compiler <-> Shared`: accepted in #2785; rationale in `.agnostic-ai/rules/module-shared.md`.
+     * - `Lang <-> Shared`: accepted; `.agnostic-ai/rules/module-lang.md` names both edges
      *   (`AbstractType::__toString` needs `Printer`, `AbstractPersistentStruct` needs `Munge`).
      * - `Api <-> Run`: the only mutual Gacela provider pair (see below).
      * - `Phel <-> Run`: the composition root wires `RunFacade`, and `RunCommand`
@@ -83,7 +83,7 @@ final class ModuleDependencyCycleTest extends TestCase
             $this->cyclicPairs($this->moduleEdges()),
             "The set of cyclic module pairs in src/php changed.\n"
             . "Removing one is good news: drop it from KNOWN_CYCLES.\n"
-            . 'Adding one needs a documented rationale in the owning module CLAUDE.md first.',
+            . 'Adding one needs a documented rationale in the owning module rule (.agnostic-ai/rules/module-<name>.md) first.',
         );
     }
 
