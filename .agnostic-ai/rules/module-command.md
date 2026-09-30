@@ -1,3 +1,9 @@
+---
+name: module-command
+description: 'Command module: Error reporting, exception formatting, and directory discovery for CLI commands.'
+scope: src/php/Command
+---
+
 # Command Module
 
 Error reporting, exception formatting, and directory discovery for CLI commands.

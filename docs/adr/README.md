@@ -85,4 +85,4 @@ decision did not have at the time is not an edit. That is a new record.
 ## See also
 
 [Stability policy](../stability.md) · [Spec](../spec/README.md) ·
-[Internals](../internals/README.md) · `src/php/<Module>/CLAUDE.md`
+[Internals](../internals/README.md) · `.agnostic-ai/rules/module-<name>.md`

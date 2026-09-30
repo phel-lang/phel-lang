@@ -1,3 +1,9 @@
+---
+name: module-interop
+description: 'Interop module: Generates PHP wrapper classes for Phel functions marked `^{:export true}`, so PHP code can call them.'
+scope: src/php/Interop
+---
+
 # Interop Module
 
 Generates PHP wrapper classes for Phel functions marked `^{:export true}`, so PHP code can call them.

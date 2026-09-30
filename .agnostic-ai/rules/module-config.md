@@ -1,3 +1,9 @@
+---
+name: module-config
+description: 'Config module: Pure data/model layer defining configuration structure for Phel projects.'
+scope: src/php/Config
+---
+
 # Config Module
 
 Pure data/model layer defining configuration structure for Phel projects. Leaf module, **no Gacela pattern**: these classes are consumed directly by other modules' `*Config` classes via Gacela's `AbstractConfig`.

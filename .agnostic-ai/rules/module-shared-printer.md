@@ -1,3 +1,9 @@
+---
+name: module-shared-printer
+description: 'Shared Printer: Converts Phel/PHP values into string representations.'
+scope: src/php/Shared/Printer
+---
+
 # Printer
 
 Converts Phel/PHP values into string representations. Stateless strategy pattern, no I/O, no Gacela boundary — consumers instantiate via factories.

@@ -15,3 +15,7 @@ on-unsupported: error
 
 sync:
   collision-policy: fail
+
+lint:
+  # Matches project_doc_max_bytes in .agnostic-ai/overlays/codex.config.toml.
+  codex-chain-bytes: 65536

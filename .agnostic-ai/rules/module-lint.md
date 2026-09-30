@@ -1,3 +1,9 @@
+---
+name: module-lint
+description: 'Lint module: Read-only semantic linter.'
+scope: src/php/Lint
+---
+
 # Lint Module
 
 Read-only semantic linter: emits diagnostics on Phel sources, never rewrites them.
@@ -67,7 +73,7 @@ crashing rule to `:off`, which skips it before `apply()` is ever reached.
 
 - `SymbolAlias`: the implicit alias of a `(:use ...)` / `(:require ...)` entry with no `:as`. Splits on both `.` and `\`, because Phel accepts both separators and the analyzer treats them alike.
 
-`Phel\Shared\Binding\IterationHead` parses the `for`/`dofor`/`foreach` heads for the binding rules. It lives in Shared because Api's `PointCompleter` reads the same heads; see `src/php/Shared/CLAUDE.md`.
+`Phel\Shared\Binding\IterationHead` parses the `for`/`dofor`/`foreach` heads for the binding rules. It lives in Shared because Api's `PointCompleter` reads the same heads; see `.agnostic-ai/rules/module-shared.md`.
 
 ### `phel/duplicate-def`
 
@@ -98,7 +104,7 @@ signatures.
 
 ### `phel/comment-style`
 
-Enforces the positional comment convention (`.claude/rules/phel.md`, shared with Clojure): `;` trails code on the same line, `;;` (or more) owns the whole line. Flags only a comment that starts a line and opens with exactly one `;`.
+Enforces the positional comment convention (`.agnostic-ai/rules/phel.md`, shared with Clojure): `;` trails code on the same line, `;;` (or more) owns the whole line. Flags only a comment that starts a line and opens with exactly one `;`.
 
 - `;;;`+ is clean — the rule asks that a whole-line comment is not written with the inline marker, and Clojure-style `;;;` section headers stay legal.
 - Scans the **token stream**, not the source text: only the lexer knows which `;` opens a comment, so a `;` in a string literal, a regex literal, or a `#| ... |#` block can never be flagged.

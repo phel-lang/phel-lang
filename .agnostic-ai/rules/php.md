@@ -1,6 +1,8 @@
 ---
 description: PHP code style, typing, module boundaries and PHPUnit conventions
-globs: src/php/**,tests/php/**
+globs:
+  - src/php/**
+  - tests/php/**
 ---
 
 # PHP Conventions
@@ -20,7 +22,7 @@ globs: src/php/**,tests/php/**
 
 ## Modules (Gacela)
 
-Read `src/php/CLAUDE.md` before adding a Facade, Factory, Provider or a cross-module call. It owns the wiring rules (`#[ServiceMap]`, `#[Provides]` keyed by the Shared facade contract) and the factory boundary: a Factory only `new`s classes from its own module or `Phel\Shared`, and other modules are reached through their facade.
+Read `.agnostic-ai/rules/module-map.md` before adding a Facade, Factory, Provider or a cross-module call. It owns the wiring rules (`#[ServiceMap]`, `#[Provides]` keyed by the Shared facade contract) and the factory boundary: a Factory only `new`s classes from its own module or `Phel\Shared`, and other modules are reached through their facade.
 
 ## Testing
 

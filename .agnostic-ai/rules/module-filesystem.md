@@ -1,3 +1,9 @@
+---
+name: module-filesystem
+description: 'Filesystem module: Temp dir management and compiled-artifact cleanup tracking.'
+scope: src/php/Filesystem
+---
+
 # Filesystem Module
 
 Temp dir management and compiled-artifact cleanup tracking.

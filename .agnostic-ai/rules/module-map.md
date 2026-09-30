@@ -1,6 +1,14 @@
+---
+name: module-map
+description: 'PHP module map, Gacela wiring and facade boundaries for every src/php module.'
+scope: src/php
+---
+
 # PHP Modules
 
-Each directory under `src/php/` is a module. The conventions here apply to all of them; each module's own CLAUDE.md documents only deviations and knowledge you cannot derive from the code.
+Each directory under `src/php/` is a module. The conventions here apply to all of them; each module's own rule (`.agnostic-ai/rules/module-<name>.md`) documents only deviations and knowledge you cannot derive from the code.
+
+Paths in a module rule are relative to that module's directory (`src/php/` for this one). A path that starts with `src/`, `tests/`, `docs/`, `.agnostic-ai/` or names a root file is relative to the repository root.
 
 ## Gacela Convention
 
@@ -32,8 +40,8 @@ Rules:
 - Cross-module access goes through facades only; inject `*FacadeInterface`, never a concrete facade. Exactly one exception survives (`LspFactory::getLintFacade()`), because Lint has no contract yet; `SatelliteFactoryFacadeInjectionTest` fails on a second. `*Provider` methods may name concrete facades only in their bodies because Gacela's locator resolves by class; the provided binding id should still be the consumer-facing contract whenever one exists.
 - A Factory may only `new` classes from its own module or `Phel\Shared`; cross-module instances come via the injected Facade. A pure stateless utility belongs in `Phel\Shared` (`Munge`, `ColorStyle`); stateful behaviour stays behind its owner's facade. Wanting a `createX()` passthrough on a neighbour facade so another module can `new` something means the class is a Shared utility: move it there.
 - New modules add their `FacadeInterface` to `Shared/Facade/` when another module injects them. `Balance` has none because nothing does: `Console` wraps its command, it never injects the facade.
-- `module-rules.json` at the repo root is the machine-readable half of the boundaries stated in prose here and in the per-module CLAUDE.md files: nothing imports `Console`, `Filesystem` and `Fiber` are leaves, `Compiler` reaches only `Filesystem` outside the shared kernel, `Command` reaches only `Compiler`. Both analysers read it (`DeclaredModuleDependencyRule` in `phpstan.neon`, `<moduleRules>` in `psalm.xml`), and `tests/php/Unit/Architecture/ModuleRulesTest` judges the same file with gacela's `ModuleAssertions`, so a new import that breaks one of those sentences fails the build instead of contradicting a paragraph. `phpstan.neon` also runs gacela's `CrossModuleViaFacadeRule` and `CrossModuleMethodCallRule` (the latter with the five compiler types `CompilerFacadeInterface` returns as `ignoreReceivers`) and `ServiceMapMissingRule`. Add a rule only once it already holds; `Lang`, `Shared` and `Config` cannot be governed, being declared shared kernels.
-- The module graph has exactly four cyclic pairs (`Api <-> Run`, `Compiler <-> Shared`, `Lang <-> Shared`, `Phel <-> Run`), each documented in the owning module's CLAUDE.md and pinned by `tests/php/Unit/Architecture/ModuleDependencyCycleTest.php`. `Api <-> Run` is the only mutual Gacela provider pair. Adding a fifth needs a written rationale, not just a green build.
+- `module-rules.json` at the repo root is the machine-readable half of the boundaries stated in prose here and in the per-module rules: nothing imports `Console`, `Filesystem` and `Fiber` are leaves, `Compiler` reaches only `Filesystem` outside the shared kernel, `Command` reaches only `Compiler`. Both analysers read it (`DeclaredModuleDependencyRule` in `phpstan.neon`, `<moduleRules>` in `psalm.xml`), and `tests/php/Unit/Architecture/ModuleRulesTest` judges the same file with gacela's `ModuleAssertions`, so a new import that breaks one of those sentences fails the build instead of contradicting a paragraph. `phpstan.neon` also runs gacela's `CrossModuleViaFacadeRule` and `CrossModuleMethodCallRule` (the latter with the five compiler types `CompilerFacadeInterface` returns as `ignoreReceivers`) and `ServiceMapMissingRule`. Add a rule only once it already holds; `Lang`, `Shared` and `Config` cannot be governed, being declared shared kernels.
+- The module graph has exactly four cyclic pairs (`Api <-> Run`, `Compiler <-> Shared`, `Lang <-> Shared`, `Phel <-> Run`), each documented in the owning module's rule and pinned by `tests/php/Unit/Architecture/ModuleDependencyCycleTest.php`. `Api <-> Run` is the only mutual Gacela provider pair. Adding a fifth needs a written rationale, not just a green build.
 
 ## Module Map
 

@@ -1,3 +1,9 @@
+---
+name: module-console
+description: 'Console module: CLI entry point.'
+scope: src/php/Console
+---
+
 # Console Module
 
 CLI entry point: bootstraps Symfony Console, lazily registers every module's commands, resolves version.

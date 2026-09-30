@@ -1,3 +1,9 @@
+---
+name: module-watch
+description: 'Watch module: Hot-reload file watcher.'
+scope: src/php/Watch
+---
+
 # Watch Module
 
 Hot-reload file watcher: detects `.phel` changes and re-evaluates affected namespaces in dependency order.

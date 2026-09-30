@@ -1,3 +1,9 @@
+---
+name: module-fiber
+description: 'Fiber module: Cooperative async primitives (promises, futures, single-threaded scheduler) backing `phel.core`''s `promise`/`deliver` and `future-call`/`future-fiber`.'
+scope: src/php/Fiber
+---
+
 # Fiber Module
 
 Cooperative async primitives (promises, futures, single-threaded scheduler) backing `phel.core`'s `promise`/`deliver` and `future-call`/`future-fiber`.

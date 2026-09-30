@@ -202,6 +202,6 @@ Carried lexer to AST to emitted source map. Don't drop. When constructing a form
 
 ## See also
 
-- `src/php/Lang/CLAUDE.md`
+- `.agnostic-ai/rules/module-lang.md`
 - [Data structures](https://phel-lang.org/documentation/language/data-structures/): user view
 - [compiler.md](compiler.md): emit path

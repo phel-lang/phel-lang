@@ -1,3 +1,9 @@
+---
+name: module-shared
+description: 'Shared module: leaf contract layer of facade interfaces, value objects and pure utilities.'
+scope: src/php/Shared
+---
+
 # Shared Module
 
 Leaf contract layer: facade interfaces, constants, cross-module value objects, and pure stateless utilities. No Gacela pattern; no outward dependencies (other modules appear only in interface signatures).
@@ -72,7 +78,7 @@ It also does not weaken the Gacela rule it appears to touch. Shared only *names*
 
 ## Printer (`Printer/`)
 
-Stateless strategy-pattern printer (see `Printer/CLAUDE.md`); consumers instantiate directly.
+Stateless strategy-pattern printer (see `.agnostic-ai/rules/module-shared-printer.md`); consumers instantiate directly.
 
 ## Utility Classes (pure, stateless — instantiate directly)
 

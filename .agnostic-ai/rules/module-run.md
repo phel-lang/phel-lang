@@ -1,3 +1,9 @@
+---
+name: module-run
+description: 'Run module: runtime execution, REPL, evaluation, test runner and most CLI commands.'
+scope: src/php/Run
+---
+
 # Run Module
 
 Runtime execution: runs Phel namespaces/files, REPL, evaluation, test runner, and most CLI commands.

@@ -26,4 +26,4 @@ One line each, with the reason it lost.
 
 ## See also
 
-Spec, internals, module `CLAUDE.md`, related ADRs.
+Spec, internals, module rule (`.agnostic-ai/rules/module-<name>.md`), related ADRs.

@@ -30,7 +30,7 @@ use function sprintf;
  * environment, the token stream).
  *
  * That back-edge is accepted deliberately; see the "Compiler Back-Edge"
- * section of `src/php/Shared/CLAUDE.md` for the rationale. What must NOT happen
+ * section of `.agnostic-ai/rules/module-shared.md` for the rationale. What must NOT happen
  * is the edge quietly widening: a second Shared file reaching into Compiler, or
  * a new compiler type leaking into the contract. Both are locked here.
  *
@@ -76,7 +76,7 @@ final class SharedCompilerBoundaryTest extends TestCase
             sprintf(
                 "Only %s may import Phel\\Compiler.\nThe Shared -> Compiler cycle is accepted only because it is "
                 . "confined to that one contract; a second back-edge makes it structural.\n"
-                . 'See the "Compiler Back-Edge" section of src/php/Shared/CLAUDE.md.',
+                . 'See the "Compiler Back-Edge" section of .agnostic-ai/rules/module-shared.md.',
                 self::ALLOWED_FILE,
             ),
         );
@@ -95,13 +95,13 @@ final class SharedCompilerBoundaryTest extends TestCase
             $imports,
             "The set of compiler types reachable from Phel\\Shared changed.\n"
             . "Removing one is good news: drop it from ALLOWED_IMPORTS.\n"
-            . 'Adding one widens the cycle: justify it in src/php/Shared/CLAUDE.md first.',
+            . 'Adding one widens the cycle: justify it in .agnostic-ai/rules/module-shared.md first.',
         );
     }
 
     public function test_the_documented_edge_count_matches_reality(): void
     {
-        // The CLAUDE.md rationale quotes a concrete number; keep the two honest
+        // The module-shared.md rationale quotes a concrete number; keep the two honest
         // about each other so the prose cannot silently drift from the code.
         self::assertCount(11, self::ALLOWED_IMPORTS);
     }

@@ -1,3 +1,9 @@
+---
+name: module-formatter
+description: 'Formatter module: Code formatter for `phel format`.'
+scope: src/php/Formatter
+---
+
 # Formatter Module
 
 Code formatter for `phel format`: lex/parse Phel source to a parse tree, apply ordered rules via a zipper, write back.

@@ -107,7 +107,7 @@
                 <file name="src/php/Config/PhelExportConfig.php" />
                 <file name="src/php/Lang/Collections/LazySeq/LazySeqConfig.php" />
                 <!-- Not in phpstan's list, which does not flag it. `Lang` is a
-                     leaf with no Gacela pillars at all (`src/php/CLAUDE.md`), so
+                     leaf with no Gacela pillars at all (`.agnostic-ai/rules/module-map.md`), so
                      this is the same category as the rest: a runtime type whose
                      suffix collides with a pillar name. The two lists are not
                      meant to match line for line; each analyser is pinned

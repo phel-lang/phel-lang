@@ -1,5 +1,5 @@
 ---
-description: Scaffold a new Gacela module under src/php/ with Facade, Provider, and CLAUDE.md
+description: Scaffold a new Gacela module under src/php/ with Facade, Provider, and a scoped module rule
 argument-hint: "<ModuleName>"
 disable-model-invocation: true
 x-claude:
@@ -22,7 +22,7 @@ Scaffolds a new module under `src/php/<ModuleName>/` following the project Gacel
    - Facade method shape
    - `#[ServiceMap(...)]` pillar mappings
    - `#[Provides(...)]` dependency keys
-   - CLAUDE.md section order
+   - the section order of its rule, `.agnostic-ai/rules/module-<name>.md`
 
 3. **Create the following files** under `src/php/<ModuleName>/`:
    ```
@@ -31,7 +31,6 @@ Scaffolds a new module under `src/php/<ModuleName>/` following the project Gacel
    <ModuleName>Provider.php        # only if the module depends on another module's Facade
    Domain/                         # pure business logic (no framework deps)
    Infrastructure/                 # adapters, CLI commands, IO
-   CLAUDE.md                       # one-line purpose, Gacela pattern, public API, deps, structure, constraints
    ```
 
 4. **Facade contract**: every public call must return from the Factory; never instantiate dependencies inline in the Facade.
@@ -41,7 +40,7 @@ Scaffolds a new module under `src/php/<ModuleName>/` following the project Gacel
    - Factory: `#[ServiceMap(method: 'getConfig', className: <ModuleName>Config::class)]`
    - Provider: the same `getConfig` mapping; use `AbstractConfig::class` only when the module intentionally has no custom Config
 
-6. **CLAUDE.md**: follow `src/php/CLAUDE.md` (shared conventions) and the section order of the reference module: one-line purpose, Gacela pattern, public API, dependencies, structure, key constraints. Document only what the code does not say.
+6. **Module rule**: create `.agnostic-ai/rules/module-<kebab-name>.md` (flat, never in a subdirectory) with frontmatter `name`, `description` and `scope: src/php/<ModuleName>`. Follow `.agnostic-ai/rules/module-map.md` (shared conventions, and add the module to its map) and the section order of the reference module: one-line purpose, Gacela pattern, public API, dependencies, structure, key constraints. Document only what the code does not say. Run `agnostic-ai sync`: it emits `src/php/<ModuleName>/AGENTS.md` for Codex and a path-scoped Claude rule. Both are gitignored already.
 
 7. **Do not** register the module anywhere: Gacela auto-discovers via PSR-4.
 

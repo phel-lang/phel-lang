@@ -16,7 +16,7 @@ Compiler is PHP. Stdlib is Phel: `src/phel/core.phel` bootstraps the core namesp
 
 ## Modules
 
-Every directory under `src/php/` is a module. Most follow the [Gacela](https://gacela-project.com/) pattern: `Facade` for public API, `Provider` for cross-module deps, `Factory` for internal wiring. The Gacela pillars themselves are internal PHP wiring, not user-facing API; public consumers enter through facades and documented Shared contracts. `Lang/`, `Shared/`, `Config/` and `HttpClient/` are leaves with no Gacela wiring; their `CLAUDE.md` says "No Gacela Pattern".
+Every directory under `src/php/` is a module. Most follow the [Gacela](https://gacela-project.com/) pattern: `Facade` for public API, `Provider` for cross-module deps, `Factory` for internal wiring. The Gacela pillars themselves are internal PHP wiring, not user-facing API; public consumers enter through facades and documented Shared contracts. `Lang/`, `Shared/`, `Config/` and `HttpClient/` are leaves with no Gacela wiring; their module rule in `.agnostic-ai/rules/` says "No Gacela Pattern".
 
 | Module | Purpose |
 |--------|---------|
@@ -78,7 +78,7 @@ public function compilerFacade(Container $container): CompilerFacadeInterface
 
 Use string keys only for non-facade services such as `ConsoleProvider::LAZY_COMMANDS` and `CommandProvider::PHP_CONFIG_READER`. The one concrete-facade exception is `LspProvider::FACADE_LINT`, because `Lint` has no Shared facade contract yet.
 
-Each module ships `CLAUDE.md` with API + constraints. Read it before editing.
+Each module has a rule at `.agnostic-ai/rules/module-<name>.md` with API + constraints. Read it before editing.
 
 ## Dependency map
 
@@ -97,7 +97,7 @@ Each module ships `CLAUDE.md` with API + constraints. Read it before editing.
 ```
 
 - Everything depends on `Compiler/` and `Lang/`.
-- `Lang/` and `Shared/` are leaves for every other module, but they reference each other: `Shared/Printer/` prints `Lang/` values, and `Lang/TypeStringifier` calls `Printer::readable()`. This is one of the four deliberate cycles listed in `src/php/CLAUDE.md` and pinned by `tests/php/Unit/Architecture/ModuleDependencyCycleTest.php`.
+- `Lang/` and `Shared/` are leaves for every other module, but they reference each other: `Shared/Printer/` prints `Lang/` values, and `Lang/TypeStringifier` calls `Printer::readable()`. This is one of the four deliberate cycles listed in `.agnostic-ai/rules/module-map.md` and pinned by `tests/php/Unit/Architecture/ModuleDependencyCycleTest.php`.
 - `Lsp/`, `Nrepl/`, `Watch/` reuse the compiler facade; not on the compile path.
 
 ## Compile-time vs runtime

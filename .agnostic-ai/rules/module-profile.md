@@ -1,3 +1,9 @@
+---
+name: module-profile
+description: 'Profile module: Instrumentation profiler for `phel profile`.'
+scope: src/php/Profile
+---
+
 # Profile Module
 
 Instrumentation profiler for `phel profile`. Reports per-fn call counts, self/total/avg/max timings, and compile-time phase costs.

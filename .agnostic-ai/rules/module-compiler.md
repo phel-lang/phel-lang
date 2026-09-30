@@ -1,3 +1,9 @@
+---
+name: module-compiler
+description: 'Compiler module: lexer, parser, reader, analyzer, simplifier and emitter pipeline.'
+scope: src/php/Compiler
+---
+
 # Compiler Module
 
 Core compilation pipeline: Phel source → tokens → AST → analyzed nodes → PHP code.
@@ -22,7 +28,7 @@ Core compilation pipeline: Phel source → tokens → AST → analyzed nodes →
 - **Filesystem** — file I/O (`FilesystemFacadeInterface::class`, the module's only Provider entry).
 - **Config** — `PhelConfig` data model, wrapped by `CompilerConfig` (`assertsEnabled()`, `warnDeprecationsEnabled()`, `isIntermediateCacheEnabled()`, `getCacheDir()`).
 - **Lang** — the compiler's widest edge by far (~200 files): every phase after the lexer reads and produces `Phel\Lang` values, and the emitter writes their FQNs into generated PHP.
-- **Shared** — `Munge`, `Printer`, exceptions, `SourceMap\VLQ`. Shared points back through `Facade/CompilerFacadeInterface`; see the "Compiler Back-Edge" section of `Shared/CLAUDE.md`.
+- **Shared**: `Munge`, `Printer`, exceptions, `SourceMap\VLQ`. Shared points back through `Facade/CompilerFacadeInterface`; see the "Compiler Back-Edge" section of `.agnostic-ai/rules/module-shared.md`.
 
 The source map is split across the boundary on purpose: the writer (`Domain/Emitter/OutputEmitter/SourceMap/SourceMapGenerator`, `SourceMapState`) is emitter state and stays here, while the reader (`Shared\SourceMap\SourceMapConsumer`) lives in Shared because Command decodes maps too and must not `new` a compiler-internal class.
 
@@ -37,7 +43,7 @@ Lexer (source → `TokenStream`) → Parser (→ `FileNode` parse tree) → Read
 
 `Application/Parser` stacks the delimiter of every form it is currently inside. A closer or an end-of-file token reaches `readExpression` only when the innermost open form did not consume it, and `Domain/Parser/OpenForm` turns that stacked opener into the message, the `ErrorCode` (`UNTERMINATED_LIST` / `_VECTOR` / `_MAP` / `_TABLE`, the last one for `#{}`) and the location the caret sits on: the opening delimiter, never the position where the stream ran out. `ListParser` keeps its own throw for a stream that ends without the lexer's `T_EOF`.
 
-An unclosed `"` never fails to lex, because the atom rule swallows it (`Balance` counts on that, see `src/php/Balance/CLAUDE.md`), so `Parser::parseAtomNode` reads the leading quote and raises `UNTERMINATED_STRING` from there rather than from the lexer.
+An unclosed `"` never fails to lex, because the atom rule swallows it (`Balance` counts on that, see `.agnostic-ai/rules/module-balance.md`), so `Parser::parseAtomNode` reads the leading quote and raises `UNTERMINATED_STRING` from there rather than from the lexer.
 
 ### Interop shorthand expansion
 
@@ -160,7 +166,7 @@ GOTCHA: only eager core fns can be lowered to a native loop. `reduce` (3-arity) 
 - `PhpBlockAnalyzer::analyze` takes an `enforceInvokeArity` flag (true only for structs, whose map `__invoke` constrains arity).
 - `^{:php/doc <str|[str...]>}` on any name/field/method → PHPDoc block (one-line string or multi-line list/vector) above the construct, so phpstan/psalm see generated classes as typed.
 - `^:php/override` on a method (defstruct/defenum interface impls, definterface methods) → `#[\Override]` (PHP 8.3); `PhpAttributeEmitterTrait::phpAttributeLines` renders it ahead of explicit `:php/attr` lines. Struct/enum inline method impls emit method-level `:php/attr`/`:php/doc`/`^:php/override` too.
-- Export wrappers carry the same `:php/attr` via `Interop`'s `CompiledPhpMethodBuilder` (see `src/php/Interop/CLAUDE.md`).
+- Export wrappers carry the same `:php/attr` via `Interop`'s `CompiledPhpMethodBuilder` (see `.agnostic-ai/rules/module-interop.md`).
 
 ## Compiler Diagnostics
 
@@ -218,7 +224,7 @@ Process-wide singleton in `Domain/Analyzer/Environment/GlobalEnvironmentRegistry
 
 ## Namespace Encoding
 
-Owned by `Phel\Shared\Munge` (see `src/php/Shared/CLAUDE.md`). Two encoders at different boundaries:
+Owned by `Phel\Shared\Munge` (see `.agnostic-ai/rules/module-shared.md`). Two encoders at different boundaries:
 
 - `encodePhpNs` — backslash form, for PHP `namespace` declarations and class FQNs.
 - `encodeRegistryKey` — dot form, for Phel registry lookups.

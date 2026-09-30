@@ -1,3 +1,9 @@
+---
+name: module-lsp
+description: 'Lsp module: Language Server Protocol v3.17 over stdio (JSON-RPC 2.0, `Content-Length` framing).'
+scope: src/php/Lsp
+---
+
 # Lsp Module
 
 Language Server Protocol v3.17 over stdio (JSON-RPC 2.0, `Content-Length` framing). Thin transport on top of Api, Lint, Formatter, and Run facades.
@@ -19,7 +25,7 @@ The facade is production surface only. `LspFactory::createDispatcher()` stays in
 | Formatter | `FormatterFacadeInterface` | String formatting (`formatString`) |
 | Run | `RunFacadeInterface` | Phel namespace loading |
 
-`LintFacade` is the last concrete binding left in the codebase. Lint has no Shared contract (`src/php/CLAUDE.md` lists it under "No interface, extend `AbstractFacade`"), and giving it one is not a signature change: its methods trade in `RuleSettings`, `LintCache` and `LintResult`, so the contract only becomes leaf-safe once those move too. `SatelliteFactoryFacadeInjectionTest` pins it and fails if a *second* concrete binding appears.
+`LintFacade` is the last concrete binding left in the codebase. Lint has no Shared contract (`.agnostic-ai/rules/module-map.md` lists it under "No interface, extend `AbstractFacade`"), and giving it one is not a signature change: its methods trade in `RuleSettings`, `LintCache` and `LintResult`, so the contract only becomes leaf-safe once those move too. `SatelliteFactoryFacadeInjectionTest` pins it and fails if a *second* concrete binding appears.
 
 ## Supported LSP Methods
 

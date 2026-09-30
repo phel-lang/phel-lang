@@ -1,3 +1,9 @@
+---
+name: module-lang
+description: 'Lang module: runtime types, persistent collections and language primitives.'
+scope: src/php/Lang
+---
+
 # Lang Module
 
 Core runtime type system: persistent data structures, language primitives, and collection protocols.

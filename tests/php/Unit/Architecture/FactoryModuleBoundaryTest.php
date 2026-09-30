@@ -26,7 +26,7 @@ use function sprintf;
  * removing it.
  *
  * `Phel\<Other>\Domain\…Interface` imported purely as a type hint is allowed by
- * `src/php/CLAUDE.md`, but nothing does it today, so the assertion stays at its
+ * `.agnostic-ai/rules/module-map.md`, but nothing does it today, so the assertion stays at its
  * strictest: zero cross-module layer imports at all. Should a genuine type-hint
  * case appear, relax it to interfaces only rather than adding an exception list.
  *

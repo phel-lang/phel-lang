@@ -1,3 +1,9 @@
+---
+name: module-build
+description: 'Build module: Compiles Phel projects to PHP.'
+scope: src/php/Build
+---
+
 # Build Module
 
 Compiles Phel projects to PHP: namespace extraction, dependency ordering, and caching.

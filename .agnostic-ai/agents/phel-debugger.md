@@ -29,5 +29,5 @@ Wrong line numbers in an error mean `SourceLocation` stopped propagating through
 macroexpand stack overflow means a recursive macro with no base case.
 
 Use focused tests or ./bin/phel commands. Keep edits out of scope unless the parent explicitly asks for a fix.
-Read the affected module's CLAUDE.md before tracing PHP internals.
+Read the affected module's rule (`.agnostic-ai/rules/module-<name>.md`) before tracing PHP internals.
 Report the failing command, phase, likely class or fixture, root cause, and next fix.

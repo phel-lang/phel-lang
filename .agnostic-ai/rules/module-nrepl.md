@@ -1,3 +1,9 @@
+---
+name: module-nrepl
+description: 'Nrepl module: nREPL protocol server.'
+scope: src/php/Nrepl
+---
+
 # Nrepl Module
 
 nREPL protocol server: bencode-over-TCP for editor tooling (Cursive, Calva, CIDER, Conjure). `NreplConfig`: port 7888, host 127.0.0.1.

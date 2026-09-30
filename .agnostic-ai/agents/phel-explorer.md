@@ -17,5 +17,5 @@ x-codex:
 
 Stay read-only. Use rg and targeted file reads first.
 Return relative paths, line numbers when useful, and concise evidence.
-For src/php modules, read the module's CLAUDE.md before summarizing architecture.
+For src/php modules, read the module's rule (`.agnostic-ai/rules/module-<name>.md`) before summarizing architecture.
 Do not run tests or edit files.

@@ -21,8 +21,8 @@ Modular architecture expert for the Phel compiler and runtime. Maintains clean m
 
 ## Read these first, never from memory
 
-The module map lives in `src/php/CLAUDE.md` (21 modules, their roles, and where each
-`FacadeInterface` lives) and each module's own `src/php/<Module>/CLAUDE.md`. The
+The module map lives in `.agnostic-ai/rules/module-map.md` (21 modules, their roles, and
+where each `FacadeInterface` lives) and each module's own `.agnostic-ai/rules/module-<name>.md`. The
 machine-readable half is `module-rules.json` at the repo root, which PHPStan, Psalm and
 `tests/php/Unit/Architecture/ModuleRulesTest` all judge against. Quote those, never a
 remembered table: the module list grows and an out-of-date map is worse than none.

@@ -1,3 +1,9 @@
+---
+name: module-api
+description: 'Api module: REPL autocompletion, function introspection/docs, and user-code semantic analysis (diagnostics, project index, jump-to-def, find-references, completion at point, PHP-interop tooling).'
+scope: src/php/Api
+---
+
 # Api Module
 
 REPL autocompletion, function introspection/docs, and user-code semantic analysis (diagnostics, project index, jump-to-def, find-references, completion at point, PHP-interop tooling).

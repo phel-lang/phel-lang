@@ -1,3 +1,9 @@
+---
+name: module-http-client
+description: 'HttpClient module: Outbound HTTP for `phel.http-client` via PHP''s built-in stream context (no cURL/Guzzle).'
+scope: src/php/HttpClient
+---
+
 # HttpClient Module
 
 Outbound HTTP for `phel.http-client` via PHP's built-in stream context (no cURL/Guzzle). No Gacela: stateless static utilities called directly from Phel interop by FQCN.
