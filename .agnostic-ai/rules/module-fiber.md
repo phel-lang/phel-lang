@@ -26,7 +26,7 @@ Cooperative async primitives (promises, futures, single-threaded scheduler) back
 
 | Path | Purpose |
 |------|---------|
-| `Domain/Awaitable.php` | contract: `isRealized()`, `deref()`, `derefWithTimeout(int, mixed)` — implemented by Promise + Future |
+| `Domain/Awaitable.php` | contract: `isRealized()`, `deref()`, `derefWithTimeout(int, mixed)`, implemented by Promise + Future |
 | `Domain/Promise.php` | single-delivery; implements `Awaitable` + `Phel\Lang\FnInterface` (callable) |
 | `Domain/Future.php` | runs a callable in a `Fiber`; cooperative cancel |
 | `Domain/Scheduler.php` | FIFO ready-queue, singleton via `instance()`/`setInstance()` |

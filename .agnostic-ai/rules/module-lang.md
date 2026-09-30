@@ -30,7 +30,7 @@ No Gacela pattern: foundational leaf module; all types used directly by other mo
 | Type | Notes |
 |------|-------|
 | `PhelVar` | First-class handle to global `def`: `deref`, `meta`, `alterRoot`, watches, `alterMeta`/`resetMeta`, cached `isDynamic`; callable via `__invoke` to current root. `withMeta` returns a handle-local copy while `meta()` and the mutation methods keep addressing canonical per-var state. Produced by `Registry::addDefinition`/`getVar` and `(var sym)` |
-| `PhelVarStateRegistry` | Singleton side table for per-var watches, metadata, dynamic-flag cache keyed by `(ns, name)`. Lets `PhelVar` stay `readonly` while `alter-meta!`/`add-watch` mutate canonical state. Clear `isDynamic` cache via `invalidateDynamicCache(ns, name)` on metadata change (`alter-meta!`/`reset-meta!`/re-`def`) — done here, NOT in `PhelVar` |
+| `PhelVarStateRegistry` | Singleton side table for per-var watches, metadata, dynamic-flag cache keyed by `(ns, name)`. Lets `PhelVar` stay `readonly` while `alter-meta!`/`add-watch` mutate canonical state. Clear `isDynamic` cache via `invalidateDynamicCache(ns, name)` on metadata change (`alter-meta!`/`reset-meta!`/re-`def`), done here, NOT in `PhelVar` |
 
 ## Lazy / Mutable / Control
 
@@ -57,7 +57,7 @@ Shared behaviour traits: `MetaTrait` (`getMeta`/copying `withMeta`), `HashCombin
 
 | Class | Notes |
 |-------|-------|
-| `Registry` | Singleton managing definitions by namespace (values + metadata). `readRoot(ns, name)` is the static one-hop read compiled code performs for a var that is not `^:dynamic`/`^:redef`: `\Phel::getDefinition()` reaches the same array behind a dynamic-scope gate only a `^:dynamic` var can trip (#3179). Do NOT rename `readRoot` — `GlobalVarEmitter` bakes its FQN into generated PHP and cached artifacts keep calling it |
+| `Registry` | Singleton managing definitions by namespace (values + metadata). `readRoot(ns, name)` is the static one-hop read compiled code performs for a var that is not `^:dynamic`/`^:redef`: `\Phel::getDefinition()` reaches the same array behind a dynamic-scope gate only a `^:dynamic` var can trip (#3179). Do NOT rename `readRoot`; `GlobalVarEmitter` bakes its FQN into generated PHP and cached artifacts keep calling it |
 | `TypeFactory` | Singleton creating persistent collections; provides `Hasher`/`Equalizer` singletons |
 | `Seq` | Static utility for sequence ops. Mostly thin delegates to `Generators/`, plus the two single-pull probes `isEmpty()` / `first()` that answer `empty?` / `first` for a source with no size or indexed access of its own |
 | `TagRegistry` | Reader literal tag-handler dispatch (`TagHandlers/`: `#inst`, `#uuid`, regex) |
@@ -82,7 +82,7 @@ Shared behaviour traits: `MetaTrait` (`getMeta`/copying `withMeta`), `HashCombin
 | `SortedMap/` | Sorted map variant |
 | `Vector/` | `PersistentVector` |
 | `LinkedList/` | `PersistentList` |
-| `Queue/` | `PersistentQueue` — two-stack banker's queue, O(1) amortized; printed `<-(...)-<` |
+| `Queue/` | `PersistentQueue`: two-stack banker's queue, O(1) amortized; printed `<-(...)-<` |
 | `HashSet/`, `SortedSet/` | Set variants |
 | `LazySeq/` | Lazy chunking |
 | `Struct/` | `AbstractPersistentStruct` |
@@ -91,11 +91,11 @@ Shared behaviour traits: `MetaTrait` (`getMeta`/copying `withMeta`), `HashCombin
 - `ValueIdentity::isSame()` is the unchanged-value test behind every keyed write (map `put`, vector `update`, struct `put`) that hands back the receiver. It is identity with a signed zero counted as a change, never `=`: an equal but distinguishable value (`-0.0`, a `BigInt`, a vector with other metadata) must still be written (#3321). A PHP array is never the same: `===` walks arrays, so it throws on recursive ones and misses references. An inline `===` in front of the call, as `PersistentVector` keeps for speed, must be guarded by `is_array` first.
 - `MapEntry`: equal by value to a 2-element vector (both directions); `first()` = key, `cdr()` = 1-vector with value.
 - Transients: `TransientVector`, `TransientMapWrapper`, `TransientHashMap`/`TransientArrayMap`/`TransientSortedMap`, `TransientHashSet`/`TransientSortedSet`. `TransientStateTrait` (`persistent()` invalidates; mutators call `ensureTransientActive()`) is applied exactly once per reachable transient, at the object Phel code actually holds:
-  - `TransientVector` uses it directly — `PersistentVector::asTransient()` returns it unwrapped.
+  - `TransientVector` uses it directly; `PersistentVector::asTransient()` returns it unwrapped.
   - `TransientMapWrapper` uses it, and every `PersistentMap*::asTransient()` returns a wrapper. `TransientHashMap` and `TransientArrayMap` therefore deliberately do **not** use it: they are inner implementations that are never handed to user code, and `TransientArrayMap::put()` must be able to hand its contents to a fresh `TransientHashMap` on overflow. `TransientSortedMap` also uses it, redundantly but harmlessly (two independent flags).
   - `TransientHashSet`/`TransientSortedSet` hold a `TransientMapWrapper` and inherit the guard through it.
 
-  Net effect: reuse after `persistent!` throws for every collection reachable from Phel. `tests/phel/core/transient-safety.phel` pins that for all six flavours. Do not "fix" the missing trait on the inner map classes — it would be dead code guarding an object nothing can reach.
+  Net effect: reuse after `persistent!` throws for every collection reachable from Phel. `tests/phel/core/transient-safety.phel` pins that for all six flavours. Do not "fix" the missing trait on the inner map classes: it would be dead code guarding an object nothing can reach.
 - A transient carries the metadata of the collection `asTransient()` opened it from and hands it back on `persistent()`, so the round trip is meta-preserving like Clojure's (`TransientMetaRoundTripTest` pins every flavour). `TransientArrayMap` copies it into the `TransientHashMap` it promotes to on overflow. Transients built from scratch (`TransientVector::empty`, `PersistentHashMap::fromArray`) still have no meta. Everything implemented through a transient inherits this: map `merge`, vector/set `concat`, and the compiler's `assoc`/`conj` chain specialisation.
 - Every transient stays callable like its persistent counterpart (`__invoke` on the concrete class, not on the transient interface): vector by index, map by key, both set flavours by membership.
 - `TransientHashSet` and `TransientSortedSet` share `HashSet\AbstractTransientSet` (both are a facade over a transient map keyed by the member itself; ordering lives in the backing map). Subclasses supply only `__toString()` and `persistent()`, mirroring how `SortedMap\PersistentSortedMap` extends `Map\AbstractPersistentMap`.

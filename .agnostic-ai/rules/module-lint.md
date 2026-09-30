@@ -23,7 +23,7 @@ Read-only semantic linter: emits diagnostics on Phel sources, never rewrites the
 | Facade | Injected as | Used for |
 |--------|-------------|----------|
 | Api | `ApiFacadeInterface` | `analyzeSource` (semantic diagnostics), `indexProject` |
-| Compiler | `CompilerFacadeInterface` | `readFormsBestEffort` (`SourceReader`); `lexString`, `parseNext`, `read` (`ConfigLoader`, `DuplicateKeyRule` — both need the failures reported, not swallowed) |
+| Compiler | `CompilerFacadeInterface` | `readFormsBestEffort` (`SourceReader`); `lexString`, `parseNext`, `read` (`ConfigLoader`, `DuplicateKeyRule`, both need the failures reported, not swallowed) |
 | Command | `CommandFacadeInterface` | default source directories |
 | Run | `RunFacadeInterface` | `loadPhelNamespaces()` to ensure symbols resolve |
 
@@ -106,7 +106,7 @@ signatures.
 
 Enforces the positional comment convention (`.agnostic-ai/rules/phel.md`, shared with Clojure): `;` trails code on the same line, `;;` (or more) owns the whole line. Flags only a comment that starts a line and opens with exactly one `;`.
 
-- `;;;`+ is clean — the rule asks that a whole-line comment is not written with the inline marker, and Clojure-style `;;;` section headers stay legal.
+- `;;;`+ is clean; the rule asks that a whole-line comment is not written with the inline marker, and Clojure-style `;;;` section headers stay legal.
 - Scans the **token stream**, not the source text: only the lexer knows which `;` opens a comment, so a `;` in a string literal, a regex literal, or a `#| ... |#` block can never be flagged.
 - Bare `#` line comments are out of scope; the lexer already emits a deprecation for them.
 
@@ -134,8 +134,8 @@ deprecating something does not flag its declaration.
 
 - Severities: `:error`, `:warning`, `:info`, `:hint`, `:off`
 - Exclude patterns match file path (when they contain `/` or `.phel`) or namespace name, via `fnmatch`
-- A missing config file means defaults. A file that exists but is unreadable, unparseable, or not a map raises `Domain\Exception\LintConfigException` and `phel lint` exits 2 — never silently falls back to defaults
-- A collected `.phel` file that cannot be read raises `Domain\Exception\LintSourceException` — never skipped, which would report it as clean and exit 0. A listed **directory** that cannot be walked raises the same exception (`cannotWalkDirectory`, chaining the iterator's `UnexpectedValueException`): yielding zero files there is the identical silent pass
+- A missing config file means defaults. A file that exists but is unreadable, unparseable, or not a map raises `Domain\Exception\LintConfigException` and `phel lint` exits 2; never silently falls back to defaults
+- A collected `.phel` file that cannot be read raises `Domain\Exception\LintSourceException`; never skipped, which would report it as clean and exit 0. A listed **directory** that cannot be walked raises the same exception (`cannotWalkDirectory`, chaining the iterator's `UnexpectedValueException`): yielding zero files there is the identical silent pass
 
 ## Output Formats
 

@@ -40,8 +40,8 @@ That makes Console the graph's sink: it depends on nearly everything and **nothi
 ## CLI Commands (lazy)
 
 - Sibling Command classes (in other modules) are NOT injected via Facade; each per-module `*Commands.php` provider wraps them as Symfony `LazyCommand`s.
-- Command providers: Run, Interop, Formatter, Api, Build, Framework (debug), Nrepl, Lint, Balance, Profile, Lsp, Watch — order set by `ConsoleProvider::commandProviders()`; command order follows that list.
-- `LazyCommand` wrappers carry name/aliases/description/hidden up front, so `list`/`help`/alias resolution work without constructing every command — only the dispatched one is built per invocation.
+- Command providers: Run, Interop, Formatter, Api, Build, Framework (debug), Nrepl, Lint, Balance, Profile, Lsp, Watch (order set by `ConsoleProvider::commandProviders()`); command order follows that list.
+- `LazyCommand` wrappers carry name/aliases/description/hidden up front, so `list`/`help`/alias resolution work without constructing every command; only the dispatched one is built per invocation.
 - `ConsoleProvider::LAZY_COMMANDS` aggregates all providers' commands; `ConsoleFactory::createCommandLoader()` feeds them to `LazyCommandLoader`.
 
 ## Key Constraints

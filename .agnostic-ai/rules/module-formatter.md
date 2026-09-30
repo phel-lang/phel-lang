@@ -29,9 +29,9 @@ Each path lands in at most one bucket; an already-formatted file appears in neit
 
 ## Dependencies
 
-- `CompilerFacadeInterface::class` — lex + parse to parse tree (`lexString`, `parseAll`).
-- `CommandFacadeInterface::class` — CLI output.
-- Config — `FormatterConfig.getFormatDirs()` reads `PhelConfig::FORMAT_DIRS`, defaults to `['src', 'tests']`; `getFormatExclude()` reads `PhelConfig::FORMAT_EXCLUDE` (default none), which `FormatCommand` unions with `--exclude`.
+- `CompilerFacadeInterface::class`: lex + parse to parse tree (`lexString`, `parseAll`).
+- `CommandFacadeInterface::class`: CLI output.
+- Config: `FormatterConfig.getFormatDirs()` reads `PhelConfig::FORMAT_DIRS`, defaults to `['src', 'tests']`; `getFormatExclude()` reads `PhelConfig::FORMAT_EXCLUDE` (default none), which `FormatCommand` unions with `--exclude`.
 
 Both getters return the Shared contract, never a concrete facade, and `SatelliteFactoryFacadeInjectionTest` pins the return types. The residual `Formatter -> Compiler` imports are exception types named in `@throws` (`LexerValueException`, `AbstractParserException`), not behaviour.
 
@@ -41,7 +41,7 @@ Wired in `FormatterFactory::createFormatter()`:
 
 1. `RemoveSurroundingWhitespaceRule`
 2. `UnindentRule`
-3. `RemoveConsecutiveBlankLinesRule` — collapses 2+ blank lines to one (cljfmt parity)
+3. `RemoveConsecutiveBlankLinesRule`: collapses 2+ blank lines to one (cljfmt parity)
 4. `IndentRule` (indenters below)
 5. `AlignPairsRule`
 6. `RemoveTrailingWhitespaceRule`
@@ -74,5 +74,5 @@ Symbol lists live as `FormatterFactory` constants; `createIndentRule()` instanti
 ## Key Constraints
 
 - Rules traverse/transform the parse tree via the zipper (`ParseTreeZipper`); add new rules as `RuleInterface` impls and wire them into `createFormatter()` in pipeline order.
-- Adding/changing an indenter means editing the `INNER_INDENT_SYMBOLS` / `BLOCK_INDENT_SYMBOLS` constants in `FormatterFactory` — `createIndentRule()` builds them automatically.
+- Adding/changing an indenter means editing the `INNER_INDENT_SYMBOLS` / `BLOCK_INDENT_SYMBOLS` constants in `FormatterFactory`; `createIndentRule()` builds them automatically.
 - `AbstractZipper` holds a location as the parent's whole child list plus an index, so `left`/`right`/`leftMost`/`rightMost`/`next` are O(1) and a walk over a literal of n elements is O(n); the two-halves representation made it O(n^2) and a 16 000-element literal took 28 s (#3218). `insertLeft`/`insertRight`/`remove` still copy the sibling list (PHP arrays), so a rule that edits once per line inside one huge literal is O(elements x lines): fine for real files, but do not add per-element edits to a rule walk.

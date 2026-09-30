@@ -14,7 +14,7 @@ Paths in a module rule are relative to that module's directory (`src/php/` for t
 
 Unless a module says "No Gacela Pattern", it follows this wiring:
 
-- `XFacade implements XFacadeInterface` — `XFactory extends AbstractFactory<XConfig>`; `XConfig` reads module settings. Every Facade explicitly maps `getFactory()` to `XFactory` with `#[ServiceMap]`; every Factory and Provider maps `getConfig()` to `XConfig` (`Console` maps to `AbstractConfig`).
+- `XFacade implements XFacadeInterface`; `XFactory extends AbstractFactory<XConfig>`; `XConfig` reads module settings. Every Facade explicitly maps `getFactory()` to `XFactory` with `#[ServiceMap]`; every Factory and Provider maps `getConfig()` to `XConfig` (`Console` maps to `AbstractConfig`).
 - `XProvider extends AbstractProvider` (the file must be named `<Module>Provider.php`: Gacela 2.0 resolves pillars by filename suffix) and exposes cross-module services with `#[Provides(...)]`. Facade dependencies are keyed by the Shared contract the consumer asks for (e.g. `CompilerFacadeInterface::class`), and the consuming Factory pulls them with `getProvidedDependency(CompilerFacadeInterface::class)`. String keys remain only for non-facade services (`CommandProvider::PHP_CONFIG_READER`, `ConsoleProvider::LAZY_COMMANDS`) and the one concrete-facade exception (`LspProvider::FACADE_LINT`).
 - `Facade`, `Factory`, `Config` and `Provider` are internal wiring. Public PHP consumers should enter through `Phel\<Module>\<Module>Facade` or the documented Shared facade contracts, not depend on Gacela pillars directly.
 
@@ -33,7 +33,7 @@ Keeping non-facade edges out of the docs is how the graph erodes quietly, so the
 ### Where the FacadeInterface lives
 
 - **`Shared/Facade/`** (dependency inversion): Api, Build, Command, Compiler, Console, Filesystem, Formatter, Interop, Run.
-- **No interface — extend `AbstractFacade`**: Balance, Fiber, Lint, Lsp, Mutate, Nrepl, Profile, Watch. `phel.core` builds `FiberFacade` directly; no module injects it.
+- **No interface, extend `AbstractFacade`**: Balance, Fiber, Lint, Lsp, Mutate, Nrepl, Profile, Watch. `phel.core` builds `FiberFacade` directly; no module injects it.
 
 Rules:
 

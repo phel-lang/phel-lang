@@ -8,7 +8,7 @@ For bigger changes, open an issue first so we can discuss.
 
 ## Understanding the Codebase
 
-Two-language project — compiler/runtime in PHP, standard library in Phel:
+Two-language project (compiler/runtime in PHP, standard library in Phel):
 
 ```
 src/php/      → Compiler, runtime, CLI tools (PHP, Gacela modules)
@@ -149,7 +149,7 @@ Issues labeled [`good first issue`](https://github.com/phel-lang/phel-lang/issue
 
 **`composer test` fails after fresh clone?** Check PHP 8.5+ (`php -v`) and run `composer install` again.
 
-**Tests pass locally but CI fails?** CI runs the full suite — make sure you ran `composer test`, not a subset.
+**Tests pass locally but CI fails?** CI runs the full suite; make sure you ran `composer test`, not a subset.
 
 **Code style errors?** Run `composer fix`.
 

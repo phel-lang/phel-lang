@@ -25,7 +25,7 @@ CLI: `./bin/phel watch [paths]... [-b backend] [--poll=500] [--debounce=100]` (`
 |--------|-------------|----------|
 | Run | `RunFacadeInterface` | `evalFile`, `structuredEval` (reload hooks) |
 | Build | `BuildFacadeInterface` | `getDependenciesForNamespace` (dep-order reload) |
-| Api | `ApiFacadeInterface` | `indexProject` — incremental re-index for tooling |
+| Api | `ApiFacadeInterface` | `indexProject`; incremental re-index for tooling |
 | Command | `CommandFacadeInterface` | source-directory defaults |
 
 All four getters return the Shared contract, never a concrete facade, and `SatelliteFactoryFacadeInjectionTest` pins the return types.
@@ -49,4 +49,4 @@ All four getters return the Shared contract, never a concrete facade, and `Satel
 - Debounce coalesces rapid changes so an editor double-save triggers a single reload.
 - `ReloadOrchestrator.handleChanges` order: resolve namespaces → reload in dep order → run `(phel.watch/run-on-reload-hooks <ns>)` per ns → re-index → publish event. Reload, hooks, and reindex are best-effort (catch `Throwable`) so one broken file never kills the loop. Deleted files are skipped.
 - `NullReloadEventPublisher` is the default; inject an nREPL-aware publisher for nREPL contexts.
-- `NamespaceResolver` uses a regex on the first `ns`/`in-ns` form (runs on every change — speed over full parse); not the compiler reader.
+- `NamespaceResolver` uses a regex on the first `ns`/`in-ns` form (runs on every change: speed over full parse); not the compiler reader.

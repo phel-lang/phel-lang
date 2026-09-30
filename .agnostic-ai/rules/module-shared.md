@@ -10,7 +10,7 @@ Leaf contract layer: facade interfaces, constants, cross-module value objects, a
 
 ## Facade Interfaces (`Facade/`)
 
-Cross-module facade contracts: Compiler, Build, Run, Command, Console, Filesystem, Formatter, Interop, Api. Modules inject these (`*FacadeInterface`), never concrete facades — enables dependency inversion. Add a new interface here when another module starts consuming it; keep its imports minimal.
+Cross-module facade contracts: Compiler, Build, Run, Command, Console, Filesystem, Formatter, Interop, Api. Modules inject these (`*FacadeInterface`), never concrete facades, for dependency inversion. Add a new interface here when another module starts consuming it; keep its imports minimal.
 
 ## Compiler Back-Edge (accepted cycle)
 
@@ -43,44 +43,44 @@ It also does not weaken the Gacela rule it appears to touch. Shared only *names*
 | Const | Value / note |
 |-------|--------------|
 | `CompilerConstants::PHEL_CORE_NAMESPACE` | `'phel.core'` |
-| `CompilerConstants::DEFAULT_SOURCE` | `'string'` — `lexString` source label; `CompilerFacadeInterface` defaults to it to avoid referencing `Application\Lexer` |
+| `CompilerConstants::DEFAULT_SOURCE` | `'string'`: `lexString` source label; `CompilerFacadeInterface` defaults to it to avoid referencing `Application\Lexer` |
 | `BuildConstants::BUILD_MODE` | `'*build-mode*'` |
-| `ReplConstants::REPL_MODE` | `'*repl-mode*'` — set by `phel repl` only; carries the `phel.repl` refer injection |
-| `ReplConstants::INTERACTIVE_MODE` | `'*interactive-mode*'` — set by `phel repl`, `phel eval` and the nREPL server; stands the duplicate-definition guard down |
+| `ReplConstants::REPL_MODE` | `'*repl-mode*'`: set by `phel repl` only; carries the `phel.repl` refer injection |
+| `ReplConstants::INTERACTIVE_MODE` | `'*interactive-mode*'`: set by `phel repl`, `phel eval` and the nREPL server; stands the duplicate-definition guard down |
 | `CompileOptions` defaults | `DEFAULT_SOURCE`, `DEFAULT_STARTING_LINE`, `DEFAULT_ENABLE_SOURCE_MAPS`, `DEFAULT_EMIT_ONLY` |
 
 ## Exceptions (`Exceptions/`)
 
-- `CompilerException` — wraps `AbstractLocatedException` with `CodeSnippet`
-- `AbstractLocatedException` — base for located errors; carries `SourceLocation` + `ErrorCode` (enum, PHEL001-PHEL404: analyzer, parser, reader, lexer, runtime), plus an optional `relatedLocationNote`: a second position worth naming, already formatted, that `TextExceptionPrinter` renders under the snippet (`first defined at foo.phel:2`, #3267)
+- `CompilerException`: wraps `AbstractLocatedException` with `CodeSnippet`
+- `AbstractLocatedException`: base for located errors; carries `SourceLocation` + `ErrorCode` (enum, PHEL001-PHEL404: analyzer, parser, reader, lexer, runtime), plus an optional `relatedLocationNote`: a second position worth naming, already formatted, that `TextExceptionPrinter` renders under the snippet (`first defined at foo.phel:2`, #3267)
 - `FileException` (file/dir ops); `CompiledCodeIsMalformedException` (wraps PHP `eval()` parse errors)
-- `ErrorCode` — the codes themselves, in five ranges (PHEL0xx analyzer, PHEL1xx parser, PHEL2xx reader, PHEL3xx lexer, PHEL4xx runtime). A case with no production caller fails `ErrorCodeInventoryTest`: a code nobody raises is a promise nobody keeps (#3266).
-- `RuntimeErrorCodeResolver` — maps an uncaught PHP throwable to its PHEL4xx code, unwrapping one `getPrevious()` level. Only the engine's own classes are recognised; a user's `ex-info` stays uncoded.
-- `ErrorCodeCatalog` + `ErrorCodeExplanation` — the prose behind every code (title, summary, minimal repro, fix). The single source `phel explain` prints and `composer error-docs:update` renders into `docs/errors/`, so the terminal and the pages cannot drift. `find()` accepts what a user types off their terminal: `PHEL008`, `phel008`, `8`.
+- `ErrorCode`: the codes themselves, in five ranges (PHEL0xx analyzer, PHEL1xx parser, PHEL2xx reader, PHEL3xx lexer, PHEL4xx runtime). A case with no production caller fails `ErrorCodeInventoryTest`: a code nobody raises is a promise nobody keeps (#3266).
+- `RuntimeErrorCodeResolver`: maps an uncaught PHP throwable to its PHEL4xx code, unwrapping one `getPrevious()` level. Only the engine's own classes are recognised; a user's `ex-info` stays uncoded.
+- `ErrorCodeCatalog` + `ErrorCodeExplanation`: the prose behind every code (title, summary, minimal repro, fix). The single source `phel explain` prints and `composer error-docs:update` renders into `docs/errors/`, so the terminal and the pages cannot drift. `find()` accepts what a user types off their terminal: `PHEL008`, `phel008`, `8`.
 - `MissingNsFormException`: thrown by Build's namespace extractor when a file's first form is not `(ns ...)` and analysing it hit an unresolved symbol. The analyzer error stays in the previous slot, so the report headline is unchanged and only the hint differs.
-- `Exceptions/Hint/` — pure error→hint mappers (`ExceptionHintInterface` + `MissingNsFormHint`, `UndefinedSymbolHint`, `ArgumentCountHint`, `NotCallableHint`) and `ExceptionHintResolver` (first applicable hint, unwrapping one `getPrevious()` level). Shared so a host rendering Phel errors of its own reaches the same guidance the one report gives (#3264).
+- `Exceptions/Hint/`: pure error→hint mappers (`ExceptionHintInterface` + `MissingNsFormHint`, `UndefinedSymbolHint`, `ArgumentCountHint`, `NotCallableHint`) and `ExceptionHintResolver` (first applicable hint, unwrapping one `getPrevious()` level). Shared so a host rendering Phel errors of its own reaches the same guidance the one report gives (#3264).
 - `ExceptionPrinterInterface`: contract for exception/stack-trace rendering; implemented by `Command\Application\TextExceptionPrinter`, consumed by Command's runtime error report formatter. Lives here so `CommandFacadeInterface` doesn't back-reference `Command\Domain`. Four methods: `getExceptionString()`, `getStackTraceString()`, `getUserFacingTraceString($e, $showInternalFrames)` (all string-returning, so the caller decides where the text goes) plus the one side-effecting `printStackTrace()`. The two side-effecting `print*` siblings are gone on purpose: `printError()` echoed straight to stdout, bypassing the Symfony `OutputInterface` that every command already writes through, and `printException()` only wrapped `getExceptionString()` in an error-log write that `CommandExceptionWriter` already performs. `printStackTrace()` looks unused in PHP but is called from `src/phel/test.phel` via interop.
 
 ## Value Objects
 
-- `NamespaceInformation` — `final readonly` DTO (`file`, `namespace`, `dependencies`, `isPrimaryDefinition`); produced by Build, consumed across Build/Run/Interop. Lives here so Shared facade contracts don't back-reference a foreign module's `Domain`.
-- `Eval/` — `final readonly` VOs for eval outcomes: `EvalResult` (`success()`/`incomplete()`/`failure()` named ctors), `EvalError`, `StackFrame`. Returned by `RunFacadeInterface::structuredEval()`, consumed by Nrepl/Watch. Producing orchestration lives in `Run\Application\StructuredEvaluator`, so these stay logic-free.
-- `CompiledFile` — `final readonly` DTO (`sourceFile`, `targetFile`, `namespace`, `cached`); produced by Build's compilers, returned by `BuildFacadeInterface`.
-- `Interop/Wrapper` — `final readonly` DTO (relative path + compiled PHP) for generated export wrappers; returned by `InteropFacadeInterface::generateExportCode()`.
-- `Api/` — `final readonly` DTOs named by `ApiFacadeInterface`, consumed by Api/Lint/Lsp/Nrepl/Run/Watch: `PhelFunction` and `CompletionResultTransfer` (function metadata, typed REPL completions) plus the semantic-analysis payloads `Diagnostic`, `Definition`, `Location`, `Completion` and `ProjectIndex`. They live here for the usual reason: the contract cannot name a `Phel\Api` class without turning `Api <-> Shared` into a cycle. All are logic-free apart from `toArray()` projections and `ProjectIndex`'s pure queries.
-- `Formatter/FormatResult` — `final readonly` DTO (`changedPaths`, `failedPaths` + emptiness predicates); returned by `FormatterFacadeInterface::format()`. Separating the two lists is what lets `phel format` exit non-zero on an unparsable file.
+- `NamespaceInformation`: `final readonly` DTO (`file`, `namespace`, `dependencies`, `isPrimaryDefinition`); produced by Build, consumed across Build/Run/Interop. Lives here so Shared facade contracts don't back-reference a foreign module's `Domain`.
+- `Eval/`: `final readonly` VOs for eval outcomes: `EvalResult` (`success()`/`incomplete()`/`failure()` named ctors), `EvalError`, `StackFrame`. Returned by `RunFacadeInterface::structuredEval()`, consumed by Nrepl/Watch. Producing orchestration lives in `Run\Application\StructuredEvaluator`, so these stay logic-free.
+- `CompiledFile`: `final readonly` DTO (`sourceFile`, `targetFile`, `namespace`, `cached`); produced by Build's compilers, returned by `BuildFacadeInterface`.
+- `Interop/Wrapper`: `final readonly` DTO (relative path + compiled PHP) for generated export wrappers; returned by `InteropFacadeInterface::generateExportCode()`.
+- `Api/`: `final readonly` DTOs named by `ApiFacadeInterface`, consumed by Api/Lint/Lsp/Nrepl/Run/Watch: `PhelFunction` and `CompletionResultTransfer` (function metadata, typed REPL completions) plus the semantic-analysis payloads `Diagnostic`, `Definition`, `Location`, `Completion` and `ProjectIndex`. They live here for the usual reason: the contract cannot name a `Phel\Api` class without turning `Api <-> Shared` into a cycle. All are logic-free apart from `toArray()` projections and `ProjectIndex`'s pure queries.
+- `Formatter/FormatResult`: `final readonly` DTO (`changedPaths`, `failedPaths` + emptiness predicates); returned by `FormatterFacadeInterface::format()`. Separating the two lists is what lets `phel format` exit non-zero on an unparsable file.
 
 ## Parser Model
 
-- `Parser/ReadModel/CodeSnippet` — `SourceLocation` (start/end) + source string; pure data.
-- `Parser/Node/*` — parse-tree VOs (`FileNode`, `ListNode`, `SymbolNode`, `MetaNode`, trivia nodes, …) plus the lexer `Token`. De-facto AST contract consumed by Formatter, Lint, Api; Compiler produces them. Living here removes `CompilerFacadeInterface → Compiler\Domain` references.
+- `Parser/ReadModel/CodeSnippet`: `SourceLocation` (start/end) + source string; pure data.
+- `Parser/Node/*`: parse-tree VOs (`FileNode`, `ListNode`, `SymbolNode`, `MetaNode`, trivia nodes, …) plus the lexer `Token`. De-facto AST contract consumed by Formatter, Lint, Api; Compiler produces them. Living here removes `CompilerFacadeInterface → Compiler\Domain` references.
 - Two shape-only base classes keep the leaf VOs one-liners: `AbstractAtomNode` (scalar atoms: `Boolean`, `Keyword`, `Nil`, `Number`, `String`, `Symbol`) and `AbstractTriviaNode` (`Whitespace`, `Newline`, `Comma`, `Comment`). Its constructor is `final`, so a trivia subclass carries no state of its own; `createWithToken()` returns `static`.
 
 ## Printer (`Printer/`)
 
 Stateless strategy-pattern printer (see `.agnostic-ai/rules/module-shared-printer.md`); consumers instantiate directly.
 
-## Utility Classes (pure, stateless — instantiate directly)
+## Utility Classes (pure, stateless; instantiate directly)
 
 | Class | Public API / purpose |
 |-------|----------------------|
@@ -91,13 +91,13 @@ Stateless strategy-pattern printer (see `.agnostic-ai/rules/module-shared-printe
 | `FrameworkNamespaces` | static `matches(string)` → is this the `phel.*`/`clojure.*` space Phel itself provides, plus the two prefix consts. A require of one resolves at runtime even when a source scan cannot see it (precompiled+lazily-loaded stdlib, or a `clojure.*` compat shim with no Phel counterpart at all, like `clojure.set`), so both Build's dependency walk and the emitted `ns` form must tolerate one instead of reporting it missing. Shared so those two cannot drift on which namespaces are exempt |
 | `ExistingPaths` | static `filter(list<string>)` → drops paths that are neither a file nor a dir. Shared by the `lint` / `watch` commands and `WatchRunner` so a user-supplied path list narrows identically everywhere |
 | `ResourceUsageFormatter` | `resourceUsageSinceStartOfRequest()` → "Time: HH:MM:SS.mmm, Memory: X.XX MB" |
-| `PhelProjectDirectory` | manages `.phel/` dir; static `ensure()`/`path()`/`opcachePath()`/`resolve()`/`resolveCacheDir()`. Effective location: `PHEL_DIR` env → `withPhelDir()` override → `<projectRoot>/.phel`. `resolveCacheDir()` (`PHEL_CACHE_DIR` env → `resolve()`) is the single source for `BuildConfig::getCacheDir()` and `CompilerConfig::getCacheDir()`, so the build cache and the intermediate-artifact cache cannot drift apart — and so Compiler needs no reference to Build. `opcachePath()` deliberately skips the `withPhelDir()` override: `bin/phel` resolves the OPcache file cache before any config is loaded, so `cache:clear` has to target the same path it writes |
+| `PhelProjectDirectory` | manages `.phel/` dir; static `ensure()`/`path()`/`opcachePath()`/`resolve()`/`resolveCacheDir()`. Effective location: `PHEL_DIR` env → `withPhelDir()` override → `<projectRoot>/.phel`. `resolveCacheDir()` (`PHEL_CACHE_DIR` env → `resolve()`) is the single source for `BuildConfig::getCacheDir()` and `CompilerConfig::getCacheDir()`, so the build cache and the intermediate-artifact cache cannot drift apart, and so Compiler needs no reference to Build. `opcachePath()` deliberately skips the `withPhelDir()` override: `bin/phel` resolves the OPcache file cache before any config is loaded, so `cache:clear` has to target the same path it writes |
 | `VersionFinder` | pure version-string builder from explicit git inputs (no I/O); `getVersion()`. `LATEST_VERSION` const is bumped by `tools/release.sh` |
 | `VersionResolver` | gathers ambient version inputs (git working copy, Composer `InstalledVersions`, build-time `.phel-release.php`/`OFFICIAL_RELEASE`) and calls `VersionFinder`; `resolve()`. Console and Run consume directly, so neither owns version-detection wiring |
 | `CompiledSourceHash` | static `of(code, optLevel, envFingerprint)` → compiled-code cache key (mixes `\|O{level}` when level>0 and `\|E{fingerprint}` when the project declares `cache-env-vars`, plain `md5` when neither applies). Shared so Build's `FileEvaluator` writer and `SecondaryFileHarvester` reader key identically |
-| `CompileOptions` | source maps, emit-only mode, optimization levels, `emitAsExpression` (analyse top-level forms in expression context so a folded pure value surfaces instead of being dropped — used by `phel compile`) |
+| `CompileOptions` | source maps, emit-only mode, optimization levels, `emitAsExpression` (analyse top-level forms in expression context so a folded pure value surfaces instead of being dropped, used by `phel compile`) |
 | `PhpAttributeRenderer` | renders `^{:php/attr …}` specs into PHP 8 attribute lines (`#[\ORM\Column(length: 255)]`). Accepts bare keyword (`:ORM/Entity`), single spec vector (`[:ORM/Column {:length 255}]`), or vector of specs. Consumed by `DefStructEmitter`/`DefInterfaceEmitter` + Interop export generator |
-| `Binding/IterationHead` | static `isIterationForm()` / `entries(formName, head)` — the bound names of a `for`/`dofor`/`foreach` head, each with the head forms where a reference counts as a use. Neither head is a `let`-style pair list, so a pairwise read offers the collection expression as a bound name; shared so Lint's `unused-binding` / `shadowed-binding` rules and Api's `PointCompleter` cannot drift on that grammar |
+| `Binding/IterationHead` | static `isIterationForm()` / `entries(formName, head)`: the bound names of a `for`/`dofor`/`foreach` head, each with the head forms where a reference counts as a use. Neither head is a `let`-style pair list, so a pairwise read offers the collection expression as a bound name; shared so Lint's `unused-binding` / `shadowed-binding` rules and Api's `PointCompleter` cannot drift on that grammar |
 | `TagResolver` | resolves a Phel `:tag` meta value to a PHP type string: static `fromMeta()` (null-safe) + `normalizeScalar()` (Symbol→name, else non-empty string or null; expands the `TYPE_ALIASES` value-type names to rooted classes, roots dotted names). Stateless. `expandImports($tag, $imports)` rewrites bare members a `:use` table names (alias → class) to rooted classes; only the compiler's `TagCanonicalizer` calls it, where a tag is declared, so tags on the AST and in definition meta are already canonical and no reader needs the owning namespace's imports. Single source for the analyzer type-inferrers, `MethodEmitter`, and `PhpAttributeEmitterTrait` |
 | `DeprecationResolver` | reads `:deprecated` off a definition's meta: static `reasonFromMeta()` -> the reason string, `'deprecated'` for a bare `^:deprecated`, `''` for neither. Shared so Api's `SymbolExtractor` (which fills `Definition::$deprecated`) and Lint's `discouraged-var` rule cannot drift. The compiler's `DeprecatedDefinitionWarner` deliberately keeps its own reading: it warns on any truthy value and never degrades one to a string |
 | `Performance/OpcacheAdvisor` | pure `advise(...)` (caller passes ini flags) → `OpcacheAdvice` (`optimal`, `messages`); flags when OPcache won't persist the compiled-code cache across CLI runs |

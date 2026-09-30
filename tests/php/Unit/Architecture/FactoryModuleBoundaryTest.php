@@ -22,7 +22,7 @@ use function sprintf;
  * move a pure stateless utility into `Phel\Shared`, or inject the owning
  * module's `*FacadeInterface` via the `DependencyProvider`. Adding a
  * `createX()` passthrough to a neighbour Facade so this side can keep calling
- * `new` is explicitly the wrong fix — it launders the coupling instead of
+ * `new` is explicitly the wrong fix: it launders the coupling instead of
  * removing it.
  *
  * `Phel\<Other>\Domain\…Interface` imported purely as a type hint is allowed by
@@ -100,7 +100,7 @@ final class FactoryModuleBoundaryTest extends TestCase
         self::assertGreaterThanOrEqual(
             15,
             count($factories),
-            'Far fewer factories than expected — the scan is probably no longer finding them.',
+            'Far fewer factories than expected; the scan is probably no longer finding them.',
         );
     }
 

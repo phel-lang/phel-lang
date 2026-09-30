@@ -50,11 +50,11 @@ The facade is production surface only. `LspFactory::createDispatcher()` stays in
 
 ## Key Constraints
 
-- Framing is strict `Content-Length: <n>\r\n\r\n<body>` (LSP spec) — not newline-delimited or bencode.
+- Framing is strict `Content-Length: <n>\r\n\r\n<body>` (LSP spec), not newline-delimited or bencode.
 - New LSP method: add a `HandlerInterface` subclass in `Application/Handler/`, register it in `LspFactory::createDispatcher()`.
-- Handlers never touch transport directly — return via `RequestDispatcher` or push via `Session::sink()`.
+- Handlers never touch transport directly; return via `RequestDispatcher` or push via `Session::sink()`.
 - `DocumentStore` is authoritative for open-file content.
 - Diagnostics are cooperatively debounced: callers check `DiagnosticPublisher::shouldPublish()` before `publish()`; `publishNow()` skips debounce (used on didSave).
 - Converters in `Application/Convert/` must stay pure (no Facade state) so they remain unit-testable.
-- PHP interop (completion/hover/signatureHelp) resolves through the Api facade (`phpInteropHoverAt`, `phpInteropSignatureAt`, `completeAtPoint`). `CompletionHandler`/`HoverHandler`/`SignatureHelpHandler` try interop first, then fall back to Phel symbols — signature help reads the symbol's documented arities via `phelSignatureAt`.
-- Variable completions (PHP superglobals, `php/$_SERVER`) are the one kind that ships an explicit `textEdit`: a client's own word range stops at the `$` sigil, so a plain `insertText` would produce `php/$$_SERVER`. `CompletionHandler` measures the `$...` token, `CompletionConverter` attaches the edit to variable items only. The handler deliberately does *not* re-check for the surrounding `php/` — that grammar lives in the Api's `PhpInteropContextResolver` and must not be forked here.
+- PHP interop (completion/hover/signatureHelp) resolves through the Api facade (`phpInteropHoverAt`, `phpInteropSignatureAt`, `completeAtPoint`). `CompletionHandler`/`HoverHandler`/`SignatureHelpHandler` try interop first, then fall back to Phel symbols; signature help reads the symbol's documented arities via `phelSignatureAt`.
+- Variable completions (PHP superglobals, `php/$_SERVER`) are the one kind that ships an explicit `textEdit`: a client's own word range stops at the `$` sigil, so a plain `insertText` would produce `php/$$_SERVER`. `CompletionHandler` measures the `$...` token, `CompletionConverter` attaches the edit to variable items only. The handler deliberately does *not* re-check for the surrounding `php/`; that grammar lives in the Api's `PhpInteropContextResolver` and must not be forked here.

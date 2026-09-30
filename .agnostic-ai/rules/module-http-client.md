@@ -25,18 +25,18 @@ Outbound HTTP for `phel.http-client` via PHP's built-in stream context (no cURL/
 
 ## Dependencies
 
-- `Phel\Shared\ScalarCoercion` (pure utility) — option coercion in `StreamTransport`. No module facades.
+- `Phel\Shared\ScalarCoercion` (pure utility): option coercion in `StreamTransport`. No module facades.
 
 ## Structure
 
-- `StreamTransport.php` — public interop entry; builds stream context, calls `file_get_contents`.
-- `ResponseParser.php` — header parsing.
+- `StreamTransport.php`: public interop entry; builds stream context, calls `file_get_contents`.
+- `ResponseParser.php`: header parsing.
 
 ## Key Constraints
 
-- **Do not rename either class** — `\Phel\HttpClient\StreamTransport` is referenced by FQCN in `src/phel/http-client.phel`. Renaming breaks the public interop surface.
-- **Cannot move to `Shared`** — `Shared` is reserved for I/O-free utilities; `StreamTransport` does network I/O. (Public-surface decision #2261: no Facade, kept as-is — zero internal PHP callers.)
+- **Do not rename either class**: `\Phel\HttpClient\StreamTransport` is referenced by FQCN in `src/phel/http-client.phel`. Renaming breaks the public interop surface.
+- **Cannot move to `Shared`**: `Shared` is reserved for I/O-free utilities; `StreamTransport` does network I/O. (Public-surface decision #2261: no Facade, kept as-is, zero internal PHP callers.)
 - Both classes `final` with stable static public APIs (addressable from user Phel).
 - `send` sets `ignore_errors => true` so non-2xx responses return a body (and parse) instead of throwing; only true transport failures throw.
-- `ResponseParser` lowercases header names and keeps the **last** value for duplicates (e.g. `Set-Cookie`) — flat `string => string` map; callers needing all values must read raw lines.
+- `ResponseParser` lowercases header names and keeps the **last** value for duplicates (e.g. `Set-Cookie`): a flat `string => string` map; callers needing all values must read raw lines.
 - `ResponseParser` resets status/version/reason on each new `HTTP/...` status line to handle redirect chains.
