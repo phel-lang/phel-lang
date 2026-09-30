@@ -46,3 +46,16 @@
   ;; Each macro invocation must get a fresh gensym; if they collided, the
   ;; nested expansion would not even compile.
   (is (= 26 (inc-then-double-hash (inc-then-double-hash 5)))))
+
+;; --- explicit `gensym` ---
+
+(deftest test-gensym-without-prefix-uses-phel-prefix
+  (is (php/str_starts_with (name (gensym)) "__phel_")))
+
+(deftest test-gensym-with-prefix
+  (let [s (name (gensym "tmp"))]
+    (is (php/str_starts_with s "tmp"))
+    (is (php/ctype_digit (php/substr s 3)))))
+
+(deftest test-gensym-with-prefix-is-unique
+  (is (not= (gensym "tmp") (gensym "tmp"))))

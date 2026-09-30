@@ -30,6 +30,7 @@ All notable changes to this project will be documented in this file.
 - `(let [a false] (if a a a))` returns `false`, and `(let [a true] (if a (not a) a))` returns `false`. When the other branch read the local again, the `let` was compiled away and that branch read an undefined PHP variable, returning `nil` with an `Undefined variable` warning. (#3383)
 - `phel doc --format json` and the API reference link special forms to their current guide sections, such as `/documentation/language/error-handling/#throwing` for `throw`. They used to point at pre-move paths that dropped the section anchor. `:see-also` entries that named no function, such as `values` on `kvs` and `phel\schema/validate` in the `phel.schema` sub-namespaces, now name `vals` and `schema/validate`. (#3371)
 - `format` and `printf` convert a ratio, bigint or bigdec before formatting: `(format "%.2f" (/ 250 100))` returns `"2.50"`. It used to print `"1.00"` with a PHP warning. `%d` and the other integer directives throw for a ratio, a bigdec, or a bigint outside the PHP int range. (#3386)
+- `(gensym "tmp")` returns a symbol named `tmp` plus a unique number, such as `tmp42`, as in Clojure. `(gensym)` keeps the `__phel_` prefix. It used to ignore the prefix and always return `__phel_<N>`. `(break)` no longer lists macro-generated locals, including `x#` names. (#3385)
 
 ## [0.53.0](https://github.com/phel-lang/phel-lang/compare/v0.52.0...v0.53.0) - 2026-09-24
 

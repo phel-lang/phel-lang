@@ -77,8 +77,8 @@ final class BreakSymbol implements SpecialFormAnalyzerInterface
 
     /**
      * Flat `name, symbol, name, symbol, ...` list for the locals map. Locals are
-     * deduped by name (first occurrence wins) and internal gensym locals
-     * (`__phel_*`) are skipped so only user-visible bindings are captured.
+     * deduped by name (first occurrence wins) and gensym locals are skipped
+     * so only user-visible bindings are captured.
      *
      * @param PersistentListInterface<mixed> $list
      *
@@ -94,7 +94,7 @@ final class BreakSymbol implements SpecialFormAnalyzerInterface
                 continue;
             }
 
-            if (str_starts_with($name, '__phel_')) {
+            if ($this->isGeneratedName($name)) {
                 continue;
             }
 
@@ -104,5 +104,14 @@ final class BreakSymbol implements SpecialFormAnalyzerInterface
         }
 
         return $kvs;
+    }
+
+    /**
+     * `(gensym)` gives `__phel_<n>`, a prefixed `(gensym "res__")` gives
+     * `res__<n>`, and auto-gensym `x#` gives `x__<n>`.
+     */
+    private function isGeneratedName(string $name): bool
+    {
+        return str_starts_with($name, '__phel_') || preg_match('/__\d+$/', $name) === 1;
     }
 }
