@@ -42,7 +42,7 @@ Exit codes: `0` clean/warnings only, `1` errors (including `phel/internal-error`
 
 Every shipped rule is on by default (it has an entry in `LintConfig::defaultSeverities()`); a rule with no entry there is off until a config opts it in.
 
-Add a rule: implement `LintRuleInterface` in `Application/Rule/`, add a code constant to `RuleRegistry`, register it in `LintFactory::createRules()`, and give it a default severity in `LintConfig::defaultSeverities()`. Do not edit existing rules.
+Add a rule: implement `LintRuleInterface` in `Application/Rule/`, add a code constant to `Shared\LintRuleCodes`, register it in `LintFactory::createRules()`, and give it a default severity in `LintConfig::defaultSeverities()`. Do not edit existing rules.
 
 ### `phel/internal-error` (not a rule)
 
@@ -54,7 +54,7 @@ from the thirteen above:
   severity grades a finding about the linted code; a crash is a finding about
   the linter. Honouring a `:warning` there would exit 0 with the rule's real
   findings missing, which is exactly the silent pass it exists to prevent.
-- **Not in `RuleRegistry::allCodes()` and not in `defaultSeverities()`**, so it
+- **Not in `LintRuleCodes::allCodes()` and not in `defaultSeverities()`**, so it
   has nothing to configure, contributes nothing to the cache fingerprint, and
   cannot be switched off from `phel-lint.phel`.
 - **Anchored at line 1, col 1** of the file being analysed: a crash has no

@@ -36,7 +36,7 @@ Every transfer the contract names lives in `Phel\Shared\Api`: `ProjectIndex`, `D
 
 - Run (namespace resolution, directory listing): provided as `RunFacadeInterface::class`.
 - Compiler (lex, parse, read, analyze phases): provided as `CompilerFacadeInterface::class`.
-- `ApiConfig::allNamespaces()` lists the 26 documented Phel namespaces; `ApiConfig::githubRef()` returns `VersionFinder::LATEST_VERSION`.
+- `ApiConfig::allNamespaces()` lists the 27 documented Phel namespaces; `ApiConfig::githubRef()` returns `VersionFinder::LATEST_VERSION`.
 
 `Api <-> Run` is the codebase's only mutual Gacela provider pair, and the cycle is a wiring detail rather than a structural one: both sides consume each other through `Phel\Shared\Facade\*Interface`, and the concrete facades appear only in `ApiProvider` / `RunProvider`, because Gacela's locator has to name a class. `ModuleDependencyCycleTest` pins exactly those two files.
 

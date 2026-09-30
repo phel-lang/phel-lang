@@ -21,6 +21,7 @@ Compiles Phel projects to PHP: namespace extraction, dependency ordering, and ca
 | `clearCache()` | Returns `string[]` paths cleared from the temp, cache and OPcache dirs |
 | `getHealthCheck()` | Cache, output, source dir checks |
 | `enableBuildMode()` / `disableBuildMode()` / `isBuildMode()` | Static; toggles `*build-mode*` via direct `Registry` write (avoids `Phel::__callStatic` on the hot `(load ...)` path) |
+| `enterDependencyLoad()` / `leaveDependencyLoad(bool)` / `isLoadingDependencies()` | Static; flag the region in which an `ns` form evaluates its required files (`BuildConstants::LOADING_DEPENDENCIES`, not build mode) |
 | `writeLocatedException` / `writeStackTrace` / `getOutputDirectory` | Delegate to Command facade |
 
 ## Dependencies

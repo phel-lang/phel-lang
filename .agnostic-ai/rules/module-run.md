@@ -18,7 +18,7 @@ Runtime execution: runs Phel namespaces/files, REPL, evaluation, test runner, an
 | Debugging | `enableDebugLineTap(?string $phelFileFilter, string $logPath)`, `disableDebugLineTap`, `breakpoint(PersistentMapInterface): void` (interactive `(break)` sub-REPL; blocks until resume) |
 | Parallel test | `createParallelTestOrchestrator()`, `createCpuCountDetector()` (`Shared\Process\CpuCountDetector`) |
 | Bench A/B | `createAbBenchRunner()` (`phel bench --ab`) |
-| Changed tests | `selectChangedTests(?string $ref, list<NamespaceInformation>, string $projectDir): ChangeSelection` (git-changed `.phel` files and the test namespaces they affect; throws `ChangedFilesUnavailableException` outside a repository) |
+| Changed tests | `selectChangedTests(?string $ref, list<NamespaceInformation>, string $projectDir): ChangeSelection` (git-changed `.phel` files and the test namespaces they affect; throws `GitUnavailableException` outside a repository) |
 | Watch test | `runTestWatchLoop(callable $runTests, OutputInterface): int` |
 | Coverage | `detectCoverageDriver(): ?CoverageDriver`, `buildCoverageReport(array, string): CoverageReport`, `buildPerTestCoverageReport(array, string): PerTestCoverageReport`; on the interface for hosts that run `phel.test` themselves (the mutation worker): `beginPerTestCoverage(): ?string`, `perTestCoverageByLine(): array`, `endPerTestCoverage()` (`PerTestCoverageSession`, one collector per process) |
 | Errors | `writeLocatedException`, `writeStackTrace` |

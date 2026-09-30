@@ -12,7 +12,7 @@ Pure data/model layer defining configuration structure for Phel projects. Leaf m
 
 | File | Role |
 |------|------|
-| `PhelConfig.php` | Immutable `final readonly` config model (~640 LOC); `with*()` builder API |
+| `PhelConfig.php` | Immutable `final readonly` config model (~760 LOC); `with*()` builder API |
 | `PhelBuildConfig.php` | Value object for build settings (key `out`) |
 | `PhelExportConfig.php` | Value object for export settings (key `export`) |
 | `ProjectLayout.php` | Backed enum: `Flat` / `Nested` / `Root` |
