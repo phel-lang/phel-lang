@@ -8,6 +8,7 @@ use Gacela\Framework\AbstractConfig;
 use Phel\Config\PhelBuildConfig;
 use Phel\Config\PhelConfig;
 use Phel\Shared\CompileOptions;
+use Phel\Shared\OptimizationLevel;
 use Phel\Shared\PhelProjectDirectory;
 use Phel\Shared\ScalarCoercion;
 
@@ -55,7 +56,7 @@ final class BuildConfig extends AbstractConfig implements BuildConfigInterface
 
     public function getOptimizationLevel(): int
     {
-        return max(0, ScalarCoercion::toInt($this->get(PhelConfig::OPTIMIZATION_LEVEL, CompileOptions::DEFAULT_OPTIMIZATION_LEVEL)));
+        return OptimizationLevel::resolve($this->get(PhelConfig::OPTIMIZATION_LEVEL, CompileOptions::DEFAULT_OPTIMIZATION_LEVEL));
     }
 
     public function shouldStripSymbolMeta(): bool

@@ -16,6 +16,7 @@ use Phel\Mutate\Domain\MutationReport;
 use Phel\Mutate\MutateConfig;
 use Phel\Mutate\MutateFacade;
 use Phel\Mutate\MutateFactory;
+use Phel\Shared\OptimizationLevel;
 use Phel\Shared\Process\GitUnavailableException;
 use Phel\Shared\ScalarCoercion;
 use Symfony\Component\Console\Command\Command;
@@ -124,6 +125,11 @@ HELP);
 
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
+        // A mutant is a redefined var. From level 1 up, callers inline the
+        // original body and never reach it, so every mutant would survive
+        // (#3396). The workers inherit the pin.
+        OptimizationLevel::pin(0);
+
         try {
             $options = $this->parseOptions($input);
         } catch (InvalidArgumentException $invalidArgumentException) {
