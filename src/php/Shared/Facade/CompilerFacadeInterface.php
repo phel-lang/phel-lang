@@ -229,4 +229,18 @@ interface CompilerFacadeInterface
      * @param list<array{message: string, announced: bool}> $records
      */
     public function replayDeprecations(array $records): void;
+
+    /**
+     * Run `$work` with every deprecation notice held back: not raised, not
+     * recorded, and not counted as reported. For reading a source without
+     * compiling it, so its notices stay with the compile of that source
+     * (#3381).
+     *
+     * @template T
+     *
+     * @param callable(): T $work
+     *
+     * @return T
+     */
+    public function withoutDeprecations(callable $work): mixed;
 }

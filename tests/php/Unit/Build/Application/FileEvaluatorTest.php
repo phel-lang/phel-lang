@@ -521,6 +521,9 @@ final class FileEvaluatorTest extends TestCase
         $compilerFacade->expects($this->never())->method('restoreNamespaceEnvironmentData');
         // lexString should be called as fallback (analyzeNsForm path)
         $compilerFacade->expects($this->once())->method('lexString');
+        $compilerFacade->expects($this->once())
+            ->method('withoutDeprecations')
+            ->willReturnCallback(static fn(callable $work): mixed => $work());
 
         $namespaceExtractor = $this->createStub(NamespaceExtractorInterface::class);
         $namespaceExtractor->method('getNamespaceFromFile')->willReturn(
@@ -587,6 +590,8 @@ final class FileEvaluatorTest extends TestCase
             ->method('lexString')
             ->with($sourceCode, $sourceFile)
             ->willThrowException(new RuntimeException('lex failure'));
+        $compilerFacade->method('withoutDeprecations')
+            ->willReturnCallback(static fn(callable $work): mixed => $work());
 
         $namespaceExtractor = $this->createStub(NamespaceExtractorInterface::class);
         $namespaceExtractor->method('getNamespaceFromFile')->willReturn(

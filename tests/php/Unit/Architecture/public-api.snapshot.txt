@@ -135,6 +135,7 @@ final class Phel\Compiler\CompilerFacade extends Gacela\Framework\AbstractFacade
   public function resetGlobalEnvironment(): void
   public function restoreNamespaceEnvironmentData(string $namespace, array $envData): void
   public function setGlobalEnvironment(Phel\Compiler\Domain\Analyzer\Environment\GlobalEnvironmentInterface $env): void
+  public function withoutDeprecations(callable $work): mixed
 
 final class Phel\Config\ConfigLoadException extends RuntimeException
   public static function wrapIfConfigError(Throwable $error, string $configPath): Throwable
@@ -1960,6 +1961,7 @@ interface Phel\Shared\Facade\CompilerFacadeInterface
   public function resetGlobalEnvironment(): void
   public function restoreNamespaceEnvironmentData(string $namespace, array $envData): void
   public function setGlobalEnvironment(Phel\Compiler\Domain\Analyzer\Environment\GlobalEnvironmentInterface $env): void
+  public function withoutDeprecations(callable $work): mixed
 
 interface Phel\Shared\Facade\ConsoleFacadeInterface
   public function getVersion(): string
