@@ -217,7 +217,7 @@ final class ErrorCodeCatalog
             new ErrorCodeExplanation(
                 code: ErrorCode::DUPLICATE_KEY,
                 title: 'Duplicate key in a literal',
-                summary: 'A map or set literal holds the same constant key twice, so one entry would be lost. Keywords, strings, numbers, booleans and `nil` count as constants. A symbol or a call keeps the last value, as `hash-map` and `hash-set` do.',
+                summary: 'A map or set literal holds the same constant key twice, so one entry would be lost. Keywords, strings, numbers (ratios and big numbers included), booleans and `nil` count as constants. Numbers compare by value, so `{1/2 :a 2/4 :b}` repeats a key. A symbol or a call keeps the last value, as `hash-map` and `hash-set` do.',
                 example: '{:a 1 :a 2}',
                 fix: 'Remove the repeated key, or rename the one you meant to be different.',
             ),

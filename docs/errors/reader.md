@@ -27,7 +27,7 @@ The reader found `~@` in a quasiquote with no collection to splice into. Splicin
 
 Enum case: `ErrorCode::DUPLICATE_KEY`
 
-A map or set literal holds the same constant key twice, so one entry would be lost. Keywords, strings, numbers, booleans and `nil` count as constants. A symbol or a call keeps the last value, as `hash-map` and `hash-set` do.
+A map or set literal holds the same constant key twice, so one entry would be lost. Keywords, strings, numbers (ratios and big numbers included), booleans and `nil` count as constants. Numbers compare by value, so `{1/2 :a 2/4 :b}` repeats a key. A symbol or a call keeps the last value, as `hash-map` and `hash-set` do.
 
 ```phel
 {:a 1 :a 2}

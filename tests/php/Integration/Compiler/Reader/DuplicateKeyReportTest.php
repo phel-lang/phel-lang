@@ -47,6 +47,20 @@ final class DuplicateKeyReportTest extends AbstractCompilerRuntimeTestCase
         self::assertSame($expected, $this->report('#{:a "b" 1 "b"}'));
     }
 
+    public function test_a_repeated_ratio_key_is_a_located_reader_error(): void
+    {
+        $expected = <<<'REPORT'
+            [PHEL203] Duplicate key: 1/2
+            in duplicate.phel:1
+
+            1| {1/2 :a 2/4 :b}
+                       ^^^
+
+            REPORT;
+
+        self::assertSame($expected, $this->report('{1/2 :a 2/4 :b}'));
+    }
+
     private function report(string $phelCode): string
     {
         try {

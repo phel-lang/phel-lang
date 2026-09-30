@@ -27,6 +27,7 @@ use Phel\Shared\Facade\CompilerFacadeInterface;
 use Phel\Shared\Parser\Node\NodeInterface;
 use Phel\Shared\Parser\Node\TriviaNodeInterface;
 use Phel\Shared\Printer\Printer;
+use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 
 use RuntimeException;
@@ -587,6 +588,29 @@ final class ReaderTest extends TestCase
         $this->expectException(ReaderException::class);
         $this->expectExceptionMessage('Duplicate key: nil');
         $this->read('#{nil true nil}');
+    }
+
+    /**
+     * @return iterable<string, array{string, string}>
+     */
+    public static function providerRepeatedExactNumberKey(): iterable
+    {
+        yield 'ratio map key' => ['{1/2 :a 1/2 :b}', 'Duplicate key: 1/2'];
+        yield 'equal ratios in lowest terms' => ['{1/2 :a 2/4 :b}', 'Duplicate key: 1/2'];
+        yield 'ratio set element' => ['#{1/2 1/2}', 'Duplicate key: 1/2'];
+        yield 'bigint map key' => ['{99999999999999999999N :a 99999999999999999999N :b}', 'Duplicate key: 99999999999999999999'];
+        yield 'bigint set element' => ['#{99999999999999999999N 99999999999999999999N}', 'Duplicate key: 99999999999999999999'];
+        yield 'bigdec map key' => ['{1.5M :a 1.5M :b}', 'Duplicate key: 1.5M'];
+        yield 'bigdec with a different scale' => ['{1.5M :a 1.50M :b}', 'Duplicate key: 1.50M'];
+        yield 'bigdec set element' => ['#{1.5M 1.5M}', 'Duplicate key: 1.5M'];
+    }
+
+    #[DataProvider('providerRepeatedExactNumberKey')]
+    public function test_a_repeated_exact_number_key_throws(string $source, string $message): void
+    {
+        $this->expectException(ReaderException::class);
+        $this->expectExceptionMessage($message);
+        $this->read($source);
     }
 
     public function test_map_with_a_repeated_non_constant_key_keeps_the_last_value(): void

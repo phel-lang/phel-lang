@@ -6,7 +6,10 @@ namespace Phel\Compiler\Domain\Reader\ExpressionReader;
 
 use Phel;
 use Phel\Compiler\Domain\Reader\Exceptions\ReaderException;
+use Phel\Lang\BigDecimal;
+use Phel\Lang\BigInt;
 use Phel\Lang\Keyword;
+use Phel\Lang\Ratio;
 use Phel\Shared\Exceptions\ErrorCode;
 use Phel\Shared\Parser\Node\NodeInterface;
 use Phel\Shared\Printer\Printer;
@@ -57,6 +60,11 @@ final readonly class DuplicateKeyGuard
 
     private static function isConstant(mixed $key): bool
     {
-        return $key === null || is_scalar($key) || $key instanceof Keyword;
+        return $key === null
+            || is_scalar($key)
+            || $key instanceof Keyword
+            || $key instanceof Ratio
+            || $key instanceof BigInt
+            || $key instanceof BigDecimal;
     }
 }
