@@ -244,7 +244,7 @@
               (rep {:type :begin-test-run})
               (rep {:type :pass :state :pass})
               (rep {:type :pass :state :pass})
-              (rep {:type :failed :state :failed :form "(= 1 2)"
+              (rep {:state :failed :form "(= 1 2)"
                     :type :binary :pred '= :expected 1 :actual 2 :result 2
                     :message "boom"})
               (rep {:type :summary :total 3 :pass 2 :failed 1 :error 0
