@@ -173,9 +173,9 @@
   (let [mock-http (mock {:status 200})
         mock-db   (mock :ok)]
     (with-mocks [fetch-user (fn [_ _] (mock-http))
-                 save-user  (fn [_] (mock-db))]
+                 save-user  (fn [_ _] (mock-db))]
                 (is (= {:status 200} (fetch-user nil 1)) "uses first mock")
-                (is (= :ok (save-user {})) "uses second mock")
+                (is (= :ok (save-user nil {})) "uses second mock")
                 (is (called? mock-http) "first mock was called")
                 (is (called? mock-db) "second mock was called"))))
 
@@ -186,7 +186,7 @@
     (with-mocks [fetch-user mock-http
                  save-user mock-db]
                 (fetch-user nil 123)
-                (save-user {})
+                (save-user nil {})
                 (is (= 1 (call-count mock-http)) "http called once inside with-mocks")
                 (is (= 1 (call-count mock-db)) "db called once inside with-mocks"))
 
@@ -197,7 +197,7 @@
                  save-user mock-db]
                 (fetch-user nil 123)
                 (fetch-user nil 456)
-                (save-user {})
+                (save-user nil {})
                 (is (= 2 (call-count mock-http)) "http called twice in second with-mocks")
                 (is (= 1 (call-count mock-db)) "db called once in second with-mocks"))
 
@@ -231,9 +231,9 @@
   (let [mock-http (mock {:status 200})
         mock-db   (mock :ok)]
     (with-mock-wrapper [fetch-user mock-http (fn [_ id] (mock-http id))
-                        save-user mock-db (fn [user] (mock-db user))]
+                        save-user mock-db (fn [_ user] (mock-db user))]
                        (fetch-user nil 123)
-                       (save-user {:name "Test"})
+                       (save-user nil {:name "Test"})
                        (is (called-once? mock-http) "http mock called")
                        (is (called-once? mock-db) "db mock called"))
 
@@ -249,9 +249,9 @@
                           (mock {:id (deref call-count-atom)}))]
 
     (with-mock-wrapper [fetch-user (counted-mock)
-                        (fn [id] {:id (deref call-count-atom)})]
+                        (fn [_ _] {:id (deref call-count-atom)})]
                        (is (= 1 (deref call-count-atom)) "mock factory called once during setup")
-                       (fetch-user 123))
+                       (fetch-user nil 123))
 
     ;; After with-mock-wrapper, verify the factory was still only called once
     ;; (not twice - once for setup and once for reset)

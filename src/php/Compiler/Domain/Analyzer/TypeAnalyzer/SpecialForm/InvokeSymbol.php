@@ -524,13 +524,10 @@ final readonly class InvokeSymbol implements SpecialFormAnalyzerInterface
      */
     private function validateEnoughArgsProvided(GlobalVarNode $f, PersistentListInterface $list): void
     {
-        $nodeName = $f->getName()->getName();
-        $data = Phel::getDefinitionMetaData($f->getNamespace(), $nodeName);
-
-        if (!$data instanceof PersistentMapInterface) {
-            return;
-        }
-
+        // The resolved meta, not the runtime registry: a fn defined earlier in
+        // a file that is compiled without being evaluated is only known to
+        // the analyzer (#3394).
+        $data = $f->getMeta();
         $minArity = $data->find('min-arity');
 
         if (!is_int($minArity)) {

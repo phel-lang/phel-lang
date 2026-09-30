@@ -408,8 +408,8 @@
     (is (false? (my-struct? :a)) "struct: incorrect type")))
 
 (deftest test-struct-with-types
-  (let [x (my-struct true 1 "str" {:a 1} [:b :c])]
-    (is (= x (my-struct true 1 "str" {:a 1} [:b :c])) "structs with same data")))
+  (let [x (my-struct true "str" [:b :c])]
+    (is (= x (my-struct true "str" [:b :c])) "structs with same data")))
 
 (defexception my-exception)
 
