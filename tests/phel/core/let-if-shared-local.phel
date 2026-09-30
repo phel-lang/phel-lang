@@ -1,0 +1,36 @@
+(ns phel-test.core.let-if-shared-local
+  (:require phel.test :refer [deftest is]))
+
+;; `(let [a x] (if a a y))` has the shape the `or` macro expands to, and
+;; `(let [a x] (if a y a))` the shape of `and`. The short-circuit lowering
+;; drops the `let`, so it must bail when `y` still reads `a` (#3383).
+
+(defn- or-shape [x] (let [a x] (if a a a)))
+(defn- or-shape-call [x] (let [a x] (if a a (str a))))
+(defn- and-shape [x] (let [a x] (if a (not a) a)))
+
+(deftest or-shape-keeps-local-in-else
+  (is (= false (let [a false] (if a a a))))
+  (is (= nil (let [a nil] (if a a a))))
+  (is (= true (let [a true] (if a a a))))
+  (is (= 1 (let [a 1] (if a a a))))
+  (is (= "s" (let [a "s"] (if a a a))))
+  (is (= false (or-shape false)))
+  (is (= "false" (or-shape-call false))))
+
+(deftest or-shape-keeps-renamed-local
+  (is (= false (let [a false] (let [b a] (if b b b)))))
+  (is (= "false" (let [a false] (if a a (let [b nil] (if b b (str a))))))))
+
+(deftest and-shape-keeps-local-in-then
+  (is (= false (let [a true] (if a (not a) a))))
+  (is (= false (and-shape true)))
+  (is (= nil (and-shape nil))))
+
+(deftest test-position-keeps-local
+  (is (= :yes (if (let [a false] (if a a (not a))) :yes :no)))
+  (is (= :no (if (let [a true] (if a (not a) a)) :yes :no))))
+
+(deftest or-and-macros-still-short-circuit
+  (is (= 2 (or false nil 2)))
+  (is (= nil (and 1 nil 3))))
