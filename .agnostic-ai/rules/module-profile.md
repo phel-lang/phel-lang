@@ -1,3 +1,9 @@
+---
+name: module-profile
+description: 'Profile module: Instrumentation profiler for `phel profile`.'
+scope: src/php/Profile
+---
+
 # Profile Module
 
 Instrumentation profiler for `phel profile`. Reports per-fn call counts, self/total/avg/max timings, and compile-time phase costs.
@@ -26,7 +32,7 @@ Instrumentation profiler for `phel profile`. Reports per-fn call counts, self/to
 ## How the hook works
 
 - `Registry` carries `static ?ProfilerHookInterface $profilerHook` (default null). When set, `Registry::addDefinition` calls `$profilerHook->wrapFn($value)` on each `AbstractFn` before storing; non-`AbstractFn` values pass through.
-- `ProfilerSession implements ProfilerHookInterface`; its `wrapFn` returns a `ProfilingFn` proxy (idempotent — an already-wrapped fn is returned as-is, never double-wrapped).
+- `ProfilerSession implements ProfilerHookInterface`; its `wrapFn` returns a `ProfilingFn` proxy (idempotent: an already-wrapped fn is returned as-is, never double-wrapped).
 - `GlobalVarEmitter` already routes global-fn calls through `\Phel::getDefinition(...)`, so the wrapped proxy is hit with no emitter changes. Off-state cost: one null-check per `addDefinition`; zero call-site overhead when disabled.
 
 ## Structure
@@ -44,7 +50,7 @@ Instrumentation profiler for `phel profile`. Reports per-fn call counts, self/to
 
 - `ProfilingFn extends AbstractFn` so downstream `instanceof` checks succeed; `ProfilerSession::wrapFn()` attaches the inner fn's metadata to the new proxy through copying `withMeta()` before returning it.
 - Fn name comes from the inner fn's `BOUND_TO` class constant (via reflection); falls back to `<anonymous>`.
-- Self-recursive calls are emitted as `$this(...)`, not a registry lookup, so they bypass the proxy and stay untimed — outer entry counted, recursion depth not. This is a compiler emit detail (commit bee78ffe), not a constraint of `ProfilingFn`.
+- Self-recursive calls are emitted as `$this(...)`, not a registry lookup, so they bypass the proxy and stay untimed: outer entry counted, recursion depth not. This is a compiler emit detail (commit bee78ffe), not a constraint of `ProfilingFn`.
 - Self time: `ProfilerSession` maintains a per-call stack and subtracts each child's inclusive time from its parent's self-time. Unmatched `exit()` on an empty stack is silently ignored.
-- The hook is global and not reentrant — never run a profiled script inside another profiling context.
+- The hook is global and not reentrant; never run a profiled script inside another profiling context.
 - `ProfileCommand` installs the hook before the run and clears it (`Registry::$profilerHook = null`) in a `finally` block.

@@ -559,7 +559,7 @@ Indexed sequences include lists, vectors, and indexed PHP arrays."
   Associative data structures include vectors, hash maps, structs, and PHP arrays
   (both indexed and associative), matching Clojure's `Associative` protocol."
   {:example "(associative? [1 2 3]) ; => true"
-   :see-also ["vector?" "map?" "hash-map?"]}
+   :see-also ["vector?" "map?"]}
   [x]
   (or (php/instanceof x PersistentMapInterface)
       (php/instanceof x PersistentVectorInterface)

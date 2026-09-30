@@ -1,29 +1,31 @@
 ---
 name: module-docs-sync
-description: Audits and updates CLAUDE.md files in src/php/ modules to match the actual code. Use after large refactors, new modules, or periodic maintenance.
+description: Fixes drift between module rules and module code.
 model:
-  claude: haiku
+  claude: sonnet
   codex: gpt-5.4-mini
-memory: project
-tools: [Read, Write, Edit, Glob, Grep]
+effort: medium
+# Claude-only fields: Codex has no tool allowlist, memory or turn cap; it gets sandbox_mode instead.
+x-claude:
+  tools: [Read, Write, Edit, Glob, Grep]
+  memory: project
 x-codex:
-    model_reasoning_effort: medium
-    name: module_docs_sync
-    nickname_candidates:
-        - Docs
-        - Sync
-        - Notes
+  name: module_docs_sync
+  nickname_candidates:
+    - Docs
+    - Sync
+    - Notes
 ---
 
 # Module Docs Sync
 
-Audits every `src/php/<Module>/CLAUDE.md` file against the actual module code and fixes drift.
+Audits every module rule, `.agnostic-ai/rules/module-<name>.md` (scoped to `src/php/<Module>`), against the actual module code and fixes drift. Edit the rule, never the generated `src/php/<Module>/AGENTS.md` or `.claude/rules/` copy, then run `agnostic-ai sync`.
 
 ## Audit Checklist (per module)
 
 For each module directory in `src/php/`:
 
-1. **CLAUDE.md exists**: if not, create one following the standard format
+1. **Rule exists**: if not, create `.agnostic-ai/rules/module-<name>.md` in the format of `.agnostic-ai/rules/modules.md`
 2. **Purpose line**: still accurate?
 3. **Gacela pattern**: Facade, Factory, Config, Provider class names match actual files
 4. **Public API**: every public method on the Facade is listed; removed methods are gone
@@ -33,7 +35,7 @@ For each module directory in `src/php/`:
 
 ## How to check
 
-- Read the Facade class → compare methods against CLAUDE.md "Public API" section
+- Read the Facade class → compare methods against the rule's "Public API" section
 - Read the Provider class → compare `#[Provides(...)]` entries against "Dependencies" section
 - Glob the module directory → compare structure against "Structure" section
 - Read the Factory → verify key classes mentioned still exist
@@ -43,24 +45,3 @@ For each module directory in `src/php/`:
 For each module, report one of:
 - **OK**: no changes needed
 - **Updated**: list what changed
-
-## Standard CLAUDE.md format
-
-```markdown
-# <Module> Module
-
-One-line purpose.
-
-## Gacela Pattern
-(or "## No Gacela Pattern" for leaf modules)
-
-## Public API (Facade)
-
-## Dependencies
-
-## Structure
-
-## Key Constraints
-```
-
-Keep content concise and scannable. No prose paragraphs: use lists, tables, and code blocks.

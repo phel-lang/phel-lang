@@ -1,9 +1,12 @@
 ---
-description: Run tests with smart filtering by scope, class, or file path
+description: Run the narrowest test scope for a change.
 argument-hint: "[scope-or-filter]"
 disable-model-invocation: true
 x-claude:
   allowed-tools: "Bash(composer *), Bash(./vendor/bin/phpunit *), Bash(./bin/phel *)"
+x-codex:
+  interface:
+    display_name: Test
 ---
 
 # Quick Test Runner
@@ -16,22 +19,13 @@ Run the **minimum** scope for the changed files. Prefer narrow over broad.
 |--------------------------|-----------------------------------------------|------------------------------------|
 | `src/php/**`             | `composer test-compiler`                      | PHPUnit unit + integration         |
 | `src/phel/**`            | `composer test-core`                          | Phel core tests                    |
-| Single PHP module        | `./vendor/bin/phpunit --filter=ModuleName`    | Fastest for focused work           |
+| Single PHP module        | `./vendor/bin/phpunit tests/php/Unit/<Module>` | Fastest for focused work           |
 | Integration fixtures     | `composer test-integration`                   | Paratest, integration suite only   |
 | Single Phel file         | `./bin/phel test tests/phel/<file>`           | Target a specific test             |
 | Any `.php` style change  | `composer test-quality`                       | Static analysis only               |
 | Mixed PHP + Phel         | `composer test`                               | Run everything                     |
 
-Available `composer` scripts:
-
-```bash
-composer test              # All tests (quality + compiler + core)
-composer test-quality      # Static analysis: cs-fixer, psalm, phpstan, rector
-composer test-compiler     # PHPUnit unit + integration tests
-composer test-core          # Phel core tests, in workers
-composer test-core:serial   # Phel core tests in one process
-composer fix               # Auto-fix: rector + cs-fixer
-```
+Every command is described in `.agnostic-ai/rules/build-test-and-development-commands.md`.
 
 ## Instructions
 

@@ -30,7 +30,7 @@ final class SatelliteFactoryFacadeInjectionTest extends TestCase
      * matters (#3062).
      *
      * Exactly one getter still returns a concrete facade: `Lsp` consumes
-     * `LintFacade`, for which `src/php/CLAUDE.md` records that no interface
+     * `LintFacade`, for which `.agnostic-ai/rules/module-map.md` records that no interface
      * exists. Unlike the Api and Formatter contracts, widening that one is not
      * a signature change: `LintFacade` trades in `RuleSettings`, `LintCache`
      * and `LintResult`, so a Shared contract means relocating Lint's own
@@ -47,7 +47,7 @@ final class SatelliteFactoryFacadeInjectionTest extends TestCase
             $expected,
             $this->concreteFacadeGetters(),
             "A factory getter returns a concrete facade instead of a Shared *FacadeInterface.\n"
-            . "src/php/CLAUDE.md requires injecting the interface. Add the method to the contract\n"
+            . ".agnostic-ai/rules/module-map.md requires injecting the interface. Add the method to the contract\n"
             . 'in Shared/Facade and widen the return type; only list it here if that is not yet possible.',
         );
     }

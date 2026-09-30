@@ -1,3 +1,9 @@
+---
+name: module-mutate
+description: 'Mutate module: Mutation testing for Phel code (`phel mutate`).'
+scope: src/php/Mutate
+---
+
 # Mutate Module
 
 Mutation testing for Phel code (`phel mutate`): every `defn` / `defn-` under the

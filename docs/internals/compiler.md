@@ -79,4 +79,4 @@ Each top-level form runs lex through eval before the next is analysed, so `defma
 ## See also
 
 - [special-forms.md](special-forms.md), [macros.md](macros.md), [architecture.md](architecture.md), [runtime.md](runtime.md), [faq.md](faq.md)
-- `src/php/Compiler/CLAUDE.md`
+- `.agnostic-ai/rules/module-compiler.md`

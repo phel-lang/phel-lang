@@ -1,9 +1,12 @@
 ---
+name: integration-tests
 description: Integration test fixture format and conventions
-globs: tests/php/Integration/**
+scope: tests/php/Integration
 ---
 
 # Integration Test Fixtures
+
+Compiler conventions (phases, special forms): `.agnostic-ai/rules/compiler.md`.
 
 ## `.test` File Format
 

@@ -215,6 +215,13 @@ final class ErrorCodeCatalog
                 fix: 'Wrap the splice in a collection, or use `~` to unquote a single value.',
             ),
             new ErrorCodeExplanation(
+                code: ErrorCode::DUPLICATE_KEY,
+                title: 'Duplicate key in a literal',
+                summary: 'A map or set literal holds the same constant key twice, so one entry would be lost. Keywords, strings, numbers (ratios and big numbers included), booleans and `nil` count as constants. Numbers compare by value, so `{1/2 :a 2/4 :b}` repeats a key. A symbol or a call keeps the last value, as `hash-map` and `hash-set` do.',
+                example: '{:a 1 :a 2}',
+                fix: 'Remove the repeated key, or rename the one you meant to be different.',
+            ),
+            new ErrorCodeExplanation(
                 code: ErrorCode::READER_ERROR,
                 title: 'Reader error',
                 summary: 'The fallback code for a reader error that carries no more specific one: an odd-length map literal, metadata on a value that cannot hold it, an unknown tagged literal. Editor diagnostics report it under this code; the terminal prints the same message with no code in front.',
