@@ -4,6 +4,14 @@ declare(strict_types=1);
 
 require_once __DIR__ . '/../vendor/autoload.php';
 
+// A pre-commit hook exports these for the commit in progress. Tests that run
+// git in a throwaway repo would inherit them and write into the committer's
+// index, so the suite never sees them.
+foreach (['GIT_DIR', 'GIT_INDEX_FILE', 'GIT_WORK_TREE'] as $gitVariable) {
+    putenv($gitVariable);
+    unset($_ENV[$gitVariable], $_SERVER[$gitVariable]);
+}
+
 (static function (): void {
     // Under paratest each worker is a separate process that re-runs this
     // bootstrap with a distinct TEST_TOKEN. Point the worker at its own system
