@@ -11,11 +11,8 @@ use Phel\Shared\Api\Diagnostic;
 use Phel\Shared\Facade\CompilerFacadeInterface;
 use Phel\Shared\LintRuleCodes;
 use Phel\Shared\Parser\Node\InnerNodeInterface;
-use Phel\Shared\Parser\Node\KeywordNode;
 use Phel\Shared\Parser\Node\ListNode;
 use Phel\Shared\Parser\Node\NodeInterface;
-use Phel\Shared\Parser\Node\NumberNode;
-use Phel\Shared\Parser\Node\StringNode;
 use Phel\Shared\Parser\Node\SymbolNode;
 use Phel\Shared\Parser\Node\Token;
 use Phel\Shared\Parser\Node\TriviaNodeInterface;
@@ -25,10 +22,10 @@ use Throwable;
 use function sprintf;
 
 /**
- * Scans literal map `{...}` parse-tree nodes for duplicate keys. Works on
- * the pre-read parse tree because the reader silently de-duplicates
- * literal maps — so by the time the read form reaches rules, duplicates
- * are gone.
+ * Scans literal map `{...}` parse-tree nodes for repeated symbol keys. The
+ * reader rejects a repeated constant key (PHEL203) but keeps the last of two
+ * equal symbols, so by the time the read form reaches rules the duplicate is
+ * gone. Works on the pre-read parse tree for that reason.
  *
  * @internal
  */
@@ -145,28 +142,13 @@ final readonly class DuplicateKeyRule implements LintRuleInterface
 
     private function keyRepr(NodeInterface $node): ?string
     {
-        if ($node instanceof KeywordNode) {
-            $value = $node->getValue();
-            $ns = $value->getNamespace();
-
-            return ':' . ($ns === null || $ns === '' ? '' : $ns . '/') . $value->getName();
+        if (!$node instanceof SymbolNode) {
+            return null;
         }
 
-        if ($node instanceof SymbolNode) {
-            $value = $node->getValue();
-            $ns = $value->getNamespace();
+        $value = $node->getValue();
+        $ns = $value->getNamespace();
 
-            return ($ns === null || $ns === '' ? '' : $ns . '/') . $value->getName();
-        }
-
-        if ($node instanceof StringNode) {
-            return '"' . $node->getValue() . '"';
-        }
-
-        if ($node instanceof NumberNode) {
-            return (string) $node->getValue();
-        }
-
-        return null;
+        return ($ns === null || $ns === '' ? '' : $ns . '/') . $value->getName();
     }
 }

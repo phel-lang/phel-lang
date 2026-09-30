@@ -10,6 +10,9 @@ use Phel\Compiler\Domain\Reader\ReaderInterface;
 use Phel\Lang\Collections\Map\PersistentMapInterface;
 use Phel\Shared\Parser\Node\ListNode;
 use Phel\Shared\Parser\Node\NodeInterface;
+use Phel\Shared\Parser\Node\TriviaNodeInterface;
+
+use function count;
 
 /**
  * @internal
@@ -23,13 +26,31 @@ final readonly class MapReader
      */
     public function read(ListNode $node, NodeInterface $root): PersistentMapInterface
     {
-        $list = new ListReader($this->reader)->read($node, $root);
+        $values = [];
+        $keys = [];
+        $keyNodes = [];
+        foreach ($node->getChildren() as $child) {
+            if ($child instanceof TriviaNodeInterface) {
+                continue;
+            }
 
-        if ($list->count() % 2 !== 0) {
+            $value = $this->reader->readExpression($child, $root);
+            if (count($values) % 2 === 0) {
+                $keys[] = $value;
+                $keyNodes[] = $child;
+            }
+
+            $values[] = $value;
+        }
+
+        if (count($values) % 2 !== 0) {
             throw ReaderException::forNode($node, $root, 'Maps must have an even number of parameters');
         }
 
-        return Phel::map(...$list->toArray())
+        $map = Phel::map(...$values);
+        DuplicateKeyGuard::assertUnique($keys, $keyNodes, $map->count(), $root);
+
+        return $map
             ->setStartLocation($node->getStartLocation())
             ->setEndLocation($node->getEndLocation());
     }

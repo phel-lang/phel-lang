@@ -21,6 +21,7 @@ All notable changes to this project will be documented in this file.
 
 ### Fixed
 
+- **BREAKING**: a map or set literal that repeats a constant key (keyword, string, number including ratios and big numbers, boolean or `nil`) fails with `[PHEL203] Duplicate key: :a` at the repeated key. It used to keep one entry and drop the other without a word: `{:a 1 :a 2}` read as `{:a 2}`. Symbol and call keys, `hash-map` and `hash-set` keep the last value. Lint rule `phel/duplicate-key` now reports only repeated symbol keys, so a constant key is not reported twice. (#3387)
 - A `^void` fn compiles and returns nil. It used to emit `return <value>` inside a PHP `: void` function, which PHP refuses to compile. (#3363)
 - A fn whose body contains `php/yield` compiles. Return-type inference used to give it the type of its tail, such as `: bool`, which PHP rejects on a generator. (#3365)
 - A call to a `^:dynamic` fn sees `binding`. In a build it used to cache the first value it saw, so a call made inside `binding` kept the bound fn after the binding ended, and at `-O2` a short `^:dynamic` fn was inlined past `binding` altogether. `^:redef` fns get the same treatment in builds. (#3367)
