@@ -165,13 +165,16 @@
 ;; padding), a width and a precision that are digits or `*` (optionally `*n$`),
 ;; then the conversion.
 (def- format-directive-re
-  "/%(?:(\\d+)\\$)?(?:[-+ 0]|'.)*(\\*(?:(\\d+)\\$)?|\\d+)?(?:\\.(\\*(?:(\\d+)\\$)?|\\d*))?(.)/s")
+  "/%(?:(\\d+)\\$)?((?:[-+ 0]|'.)*)(?:(\\*)(?:(\\d+)\\$)?|(\\d+))?(?:(\\.)(?:(\\*)(?:(\\d+)\\$)?|(\\d*)))?(.)/s")
+
+(defn- exact-number? [x]
+  (or (php/instanceof x Ratio) (php/instanceof x BigInt) (php/instanceof x BigDecimal)))
 
 (defn- format-exact-number
   "sprintf casts an object to 1 with a warning, so an exact number becomes what its directive consumes."
   [x conversion]
   (cond
-    (not (or (php/instanceof x Ratio) (php/instanceof x BigInt) (php/instanceof x BigDecimal))) x
+    (not (exact-number? x)) x
     (php/str_contains "eEfFgGhH" conversion) (NumericCoercion/toFloat x)
     (not (php/str_contains "bcdouxX" conversion)) x
     (not (php/instanceof x BigInt))
@@ -183,35 +186,57 @@
     :else (.toInt x)))
 
 (defn- format-args
-  "Converts each ratio, bigint and bigdec in `xs` by the directive in `fmt` that consumes it."
+  "Returns `[fmt args]` for sprintf. When `xs` holds a ratio, bigint or bigdec, every
+  directive is rewritten to an explicit position in a fresh argument list, so each
+  one converts its own copy of the original argument."
   [fmt xs]
-  (let [directives (php-indexed-array)]
-    (php/preg_match_all format-directive-re fmt directives php/PREG_SET_ORDER)
-    (first
-     (reduce
-      (fn [[args next-index] [_ position width width-position precision precision-position conversion]]
-        (if (= conversion "%")
-          [args next-index]
-          (let [next-index (+ next-index
-                              (if (and (= width "*") (= width-position "")) 1 0)
-                              (if (and (= precision "*") (= precision-position "")) 1 0))
-                index      (if (= position "") next-index (dec (php/intval position)))]
-            [(if (contains? args index) (update args index format-exact-number conversion) args)
-             (if (= position "") (inc next-index) next-index)])))
-      [(vec xs) 0]
-      (php->phel directives)))))
+  (let [args (vec xs)]
+    (if-not (some exact-number? args)
+      [fmt args]
+      (let [slots      (atom [])
+            next-index (atom 0)
+            missing?   (atom false)
+            ;; Follows sprintf: only sequential directives and `*` advance the count.
+            take-arg   (fn [position convert]
+                         (let [index (if (= position "")
+                                       (dec (swap! next-index inc))
+                                       (dec (php/intval position)))]
+                           (if (contains? args index)
+                             (count (swap! slots conj (convert (get args index))))
+                             (do (reset! missing? true) 1))))
+            rewritten  (php/preg_replace_callback
+                        format-directive-re
+                        (fn [m]
+                          (let [[directive position flags width-star width-position width
+                                 dot precision-star precision-position precision conversion] (php->phel m)]
+                            (if (= conversion "%")
+                              directive
+                              (let [width     (if (= width-star "")
+                                                width
+                                                (str "*" (take-arg width-position identity) "$"))
+                                    precision (cond
+                                                (= dot "") ""
+                                                (= precision-star "") (str "." precision)
+                                                :else (str ".*" (take-arg precision-position identity) "$"))
+                                    value     (take-arg position #(format-exact-number % conversion))]
+                                (str "%" value "$" flags width precision conversion)))))
+                        fmt)]
+        ;; A missing argument keeps the original format, so sprintf reports it as usual.
+        (if @missing? [fmt args] [rewritten @slots])))))
 
 (defn format
   "Returns a formatted string. See PHP's [sprintf](https://www.php.net/manual/en/function.sprintf.php) for more information. A ratio, bigint or bigdec is converted first: to a float for `%f`, `%e` and `%g` (a bigdec keeps about 15 significant digits; use `%s` for all of them), and to an int for `%d` and the other integer directives, which throw for a ratio, a bigdec, or a bigint outside the PHP int range. `%s` prints the Phel representation."
   {:example "(format \"%d-%s\" 1 \"a\") ; => \"1-a\""
    :see-also ["str" "printf"]}
   [fmt & xs]
-  (apply php/sprintf fmt (format-args fmt xs)))
+  (let [[fmt args] (format-args fmt xs)]
+    (apply php/sprintf fmt args)))
 
 (defn printf
   "Output a formatted string. See PHP's [printf](https://www.php.net/manual/en/function.printf.php) for more information. Numbers convert as in `format`."
   [fmt & xs]
-  (apply php/printf fmt (format-args fmt xs))
+  (let [[fmt args] (format-args fmt xs)]
+    (apply php/printf fmt args))
   nil)
 
 (defn dbg-write

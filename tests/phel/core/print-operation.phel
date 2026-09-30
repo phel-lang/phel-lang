@@ -116,6 +116,14 @@
   (is (= "42" (format "%d" (bigint 42))) "integer directive converts a bigint that fits")
   (is (= "ff" (format "%x" (bigint 255))) "hex directive converts a bigint that fits"))
 
+(deftest test-format-reuses-an-exact-number-by-position
+  (is (= "2.5|5/2" (format "%1$.1f|%1$s" (/ 5 2))) "a float directive leaves the ratio for a later string directive")
+  (is (= "5/2|2.5" (format "%1$s|%1$.1f" (/ 5 2))) "a string directive leaves the ratio for a later float directive")
+  (is (= "a|2.5|a|5/2" (format "%s|%.1f|%1$s|%2$s" "a" (/ 5 2))) "sequential and positional directives mix")
+  (is (= "  2.5|5/2" (format "%2$*1$.1f|%2$s" 5 (/ 5 2))) "a positional star width reuses its argument")
+  (is (= "  2.5|5/2|5" (format "%*.1f|%2$s|%1$s" 5 (/ 5 2))) "a sequential star width then positional reuse")
+  (is (= "7|7" (format "%1$d|%s" (bigint 7))) "a positional directive does not advance the sequential count"))
+
 (deftest test-format-integer-directive-rejects-inexact-numbers
   ;; Like Clojure's IllegalFormatConversionException: truncating silently would hide the same wrong number.
   (is (thrown-with-msg? InvalidArgumentException "format: %d expects an integer, got ratio 5/2"
