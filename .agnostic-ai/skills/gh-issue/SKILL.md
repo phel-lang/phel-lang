@@ -7,115 +7,29 @@ x-codex:
     display_name: GitHub Issue
 ---
 
-# GitHub Issue Workflow
+# GitHub Issue: phel-lang specifics
 
-## Context
-
-Read both the issue body **and every comment** as requirements input. Maintainer follow-ups frequently add scope, edge cases, or override the original description; when a later comment conflicts with the body, prefer the comment.
+Only what this repository adds to the generic issue workflow (read the issue and every comment, assign, branch, test first, verify each criterion, open the PR). Where they differ, this file wins.
 
 !`gh issue view ${ARGUMENTS#\#} --json number,url,title,body,labels,assignees,state,comments 2>/dev/null || echo "Provide an issue number"`
 
-## Instructions
+## Branch
 
-### Phase 1: Setup
+Prefix from the issue's label: `bug` gives `fix/`, `enhancement` gives `feat/`, `documentation` gives `docs/`, anything else `feat/`. Name: `<prefix><issue-number>-<slug>`, from a fresh `origin/main`.
 
-1. **Parse the issue number** from `$ARGUMENTS` (strip `#` if present)
+## Verify
 
-2. **Assign yourself if unassigned**:
-   ```bash
-   gh issue edit <number> --add-assignee @me
-   ```
+Run focused tests while working, then `COMPOSER_PROCESS_TIMEOUT=0 composer test` once, per `.agnostic-ai/rules/build-test-and-development-commands.md`. Fix every failure before shipping.
 
-3. **Create a branch** from `main` based on the issue type:
+## Ship
 
-   Determine the branch prefix from labels:
-   - `bug` → `fix/`
-   - `enhancement` → `feat/`
-   - `documentation` → `docs/`
-   - No label → `feat/` (default)
+1. Add or merge the `CHANGELOG.md` entry per `.agnostic-ai/rules/workflow.md`.
+2. Commit with a conventional message (`.agnostic-ai/rules/workflow.md`) and a body line `Related to #<issue-number>`.
+3. Final refactor commit, mandatory and last before the PR: reread every touched file for duplication, dead code, naming drift, speculative guards and violations of `.agnostic-ai/rules/php.md`, `modules.md` or `compiler.md`. Fix, rerun `composer test`, and commit as `ref(<scope>): polish <area> after #<issue-number>`. If there is nothing to fix, say so in the PR body.
+4. Open the PR with `/pr #<issue-number>`: it owns the template, title and label.
 
-   Branch name format: `<prefix><issue-number>-<slug>`
+## Merge
 
-   ```bash
-   git checkout main && git pull
-   git checkout -b <branch-name>
-   ```
-
-### Phase 2: Plan
-
-4. **Plan** the implementation (in plan mode when run interactively; inside `/gh-issues`, plan and proceed):
-   - Explore the codebase to understand affected areas
-   - Identify files that need changes
-   - Consider the module architecture (Gacela facades, module boundaries)
-   - Plan the TDD approach (what tests to write first)
-
-5. **Create implementation plan** with:
-   - Summary of what the issue requires
-   - List of files to create/modify
-   - Test strategy (unit, integration)
-   - Step-by-step implementation order
-
-### Phase 3: Implement
-
-6. **Implement** following TDD:
-   - Write failing tests first
-   - Implement minimum code to pass
-   - Refactor while keeping tests green
-
-7. **Run the full suite once**, after focused tests pass:
-   ```bash
-   COMPOSER_PROCESS_TIMEOUT=0 composer test
-   ```
-   Fix ALL errors before proceeding.
-
-### Phase 4: Ship
-
-8. **Update CHANGELOG.md**: add or merge the entry under `## Unreleased` per `.agnostic-ai/rules/changelog.md`
-
-9. **Commit changes**:
-   ```bash
-   git add <specific-files>
-   git commit -m "<type>(<scope>): <description>
-
-   Related to #<issue-number>"
-   ```
-
-10. **Final refactor commit (mandatory, last commit before PR)**:
-    Re-review every file touched by this change. Look for:
-    - duplication introduced by the new code (extract or reuse)
-    - dead branches, unused params, leftover debug
-    - naming drift vs. surrounding module conventions
-    - violations of `.agnostic-ai/rules/php.md`, `modules.md`, `compiler.md`
-    - speculative guards: keep only fixes for failures you observed or can reach
-    - over-engineering: speculative abstractions, premature interfaces
-
-    Apply fixes. Re-run `composer test`. Commit as a separate `ref(...)` commit. It must be the final commit on the branch before PR:
-    ```bash
-    git commit -m "ref(<scope>): polish <area> after #<issue-number>
-
-    Related to #<issue-number>"
-    ```
-    If review surfaces zero changes, record that fact in the PR body instead of skipping silently.
-
-11. **Create PR** using `/pr #<issue-number>`
-
-### Phase 5: Verify & Merge
-
-12. **Wait for CI green** on the PR:
-    ```bash
-    gh pr checks <pr-number-or-branch> --watch
-    ```
-    Fix red checks on the branch (push fixes; re-watch). Do not proceed while any required check is failing.
-
-13. **Merge with mandatory approval bypass when possible**:
-    Once every required check is green, merge via admin bypass to satisfy the mandatory-approval rule:
-    ```bash
-    gh pr merge <pr-number> --squash --admin --delete-branch
-    ```
-    If `--admin` is rejected (token lacks admin, branch protection blocks bypass), fall back to `--auto --squash --delete-branch` and surface that the PR is awaiting human approval. Never `--no-verify` past a failing required check.
-
-14. **Sync local main** after merge:
-    ```bash
-    git checkout main && git fetch origin main && git reset --hard origin/main
-    ```
-
+1. Wait for CI: `gh pr checks <pr> --watch`. Push fixes until every required check is green.
+2. Merge: `gh pr merge <pr> --squash --admin --delete-branch`. If `--admin` is refused, use `--auto --squash --delete-branch` and report that the PR waits for a human. Never merge past a failing required check.
+3. Sync: `git checkout main && git fetch origin main && git reset --hard origin/main`.
