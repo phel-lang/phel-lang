@@ -4,6 +4,9 @@ argument-hint: "[scope-or-filter]"
 disable-model-invocation: true
 x-claude:
   allowed-tools: "Bash(composer *), Bash(./vendor/bin/phpunit *), Bash(./bin/phel *)"
+x-codex:
+  interface:
+    display_name: Test
 ---
 
 # Quick Test Runner

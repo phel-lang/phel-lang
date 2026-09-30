@@ -4,6 +4,9 @@ argument-hint: "[optional commit message]"
 disable-model-invocation: true
 x-claude:
   allowed-tools: "Read, Edit, Bash(composer *), Bash(./vendor/bin/*), Bash(./bin/phel *), Bash(git *)"
+x-codex:
+  interface:
+    display_name: Commit
 ---
 
 # Commit

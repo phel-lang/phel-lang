@@ -4,6 +4,9 @@ argument-hint: "[entry text | --optimize]"
 disable-model-invocation: true
 x-claude:
   allowed-tools: "Read, Edit, Bash(git *)"
+x-codex:
+  interface:
+    display_name: Changelog
 ---
 
 # Update Changelog

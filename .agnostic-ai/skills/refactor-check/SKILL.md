@@ -5,6 +5,9 @@ context: fork
 agent: Explore
 x-claude:
   allowed-tools: "Read, Glob, Grep"
+x-codex:
+  interface:
+    display_name: Refactor Check
 ---
 
 # Refactor Check

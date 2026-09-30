@@ -4,6 +4,9 @@ argument-hint: "<phel expression>"
 disable-model-invocation: true
 x-claude:
   allowed-tools: "Bash(./bin/phel *), Bash(echo *), Bash(printf *)"
+x-codex:
+  interface:
+    display_name: Phel REPL
 ---
 
 # Phel REPL

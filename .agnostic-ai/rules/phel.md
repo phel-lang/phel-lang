@@ -1,5 +1,6 @@
 ---
 description: Phel language conventions for source and test files
+# Codex has no path activation for globs; it inlines this rule in the root AGENTS.md (Chemaclass/agnostic-ai#1435).
 globs:
   - src/phel/**
   - tests/phel/**

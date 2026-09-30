@@ -4,6 +4,9 @@ argument-hint: "[run|baseline|compare|filter]"
 disable-model-invocation: true
 x-claude:
   allowed-tools: "Read, Bash(composer *), Bash(./vendor/bin/phpbench *), Bash(./bin/phel *)"
+x-codex:
+  interface:
+    display_name: Benchmark
 ---
 
 # Benchmark Runner

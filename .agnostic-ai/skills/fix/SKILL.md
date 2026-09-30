@@ -4,6 +4,9 @@ argument-hint: "[file-path]"
 disable-model-invocation: true
 x-claude:
   allowed-tools: "Read, Edit, Bash(composer *), Bash(./vendor/bin/*)"
+x-codex:
+  interface:
+    display_name: Fix
 ---
 
 # Fix Code Quality

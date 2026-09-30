@@ -1,6 +1,7 @@
 ---
 name: docs-placement
 description: Which Markdown file owns which kind of content.
+# Codex has no path activation for globs; it inlines this rule in the root AGENTS.md (Chemaclass/agnostic-ai#1435).
 globs:
   - '*.md'
   - docs/**

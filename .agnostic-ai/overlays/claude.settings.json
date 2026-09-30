@@ -27,6 +27,6 @@
   "hooks": null,
   "statusLine": {
     "type": "command",
-    "command": "/bin/bash .agnostic-ai/scripts/claude/statusline.sh"
+    "command": "sh -c 'exec /bin/bash \"$(git rev-parse --show-toplevel 2>/dev/null || pwd)/.agnostic-ai/scripts/claude/statusline.sh\"'"
   }
 }

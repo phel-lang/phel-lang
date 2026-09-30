@@ -4,6 +4,9 @@ argument-hint: "[category] [name]"
 disable-model-invocation: true
 x-claude:
   allowed-tools: "Read, Write, Edit, Glob, Bash(ls *), Bash(./vendor/bin/phpunit *)"
+x-codex:
+  interface:
+    display_name: Integration Fixture
 ---
 
 # Integration Fixture

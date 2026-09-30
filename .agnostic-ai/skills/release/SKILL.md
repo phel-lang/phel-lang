@@ -2,6 +2,9 @@
 description: Cut a release with tools/release.sh.
 argument-hint: "[version or --dry-run]"
 disable-model-invocation: true
+x-codex:
+  interface:
+    display_name: Release
 ---
 
 # Release

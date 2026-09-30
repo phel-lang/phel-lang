@@ -1,5 +1,6 @@
 ---
 description: PHP code style, typing, module boundaries and PHPUnit conventions
+# Codex has no path activation for globs; it inlines this rule in the root AGENTS.md (Chemaclass/agnostic-ai#1435).
 globs:
   - src/php/**
   - tests/php/**

@@ -4,6 +4,9 @@ argument-hint: "<ModuleName>"
 disable-model-invocation: true
 x-claude:
   allowed-tools: "Read, Write, Edit, Glob, Bash(ls *), Bash(composer *)"
+x-codex:
+  interface:
+    display_name: New Module
 ---
 
 # New Gacela Module

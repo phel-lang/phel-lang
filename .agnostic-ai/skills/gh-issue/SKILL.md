@@ -1,6 +1,10 @@
 ---
 description: Take one GitHub issue from branch to merged PR.
 argument-hint: "[issue-number]"
+# Model-invocable on purpose: /gh-issue calls /pr, and /gh-issues calls /gh-issue.
+x-codex:
+  interface:
+    display_name: GitHub Issue
 ---
 
 # GitHub Issue Workflow
