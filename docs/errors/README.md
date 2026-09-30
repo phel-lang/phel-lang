@@ -14,7 +14,7 @@ failed before the program ran.
 |---|---|---|
 | PHEL000-099 | [Analyzer errors](analyzer.md) | 12 |
 | PHEL100-199 | [Parser errors](parser.md) | 6 |
-| PHEL200-299 | [Reader errors](reader.md) | 2 |
+| PHEL200-299 | [Reader errors](reader.md) | 3 |
 | PHEL300-399 | [Lexer errors](lexer.md) | 2 |
 | PHEL400-499 | [Runtime errors](runtime.md) | 5 |
 
@@ -41,6 +41,7 @@ failed before the program ran.
 | [PHEL110](parser.md#phel110-unexpected-token) | Unexpected token | `UNEXPECTED_TOKEN` | Parser |
 | [PHEL120](parser.md#phel120-parser-error) | Parser error | `PARSER_ERROR` | Parser |
 | [PHEL202](reader.md#phel202-unquote-splicing-outside-a-collection) | Unquote-splicing outside a collection | `INVALID_SPLICE` | Reader |
+| [PHEL203](reader.md#phel203-duplicate-key-in-a-literal) | Duplicate key in a literal | `DUPLICATE_KEY` | Reader |
 | [PHEL210](reader.md#phel210-reader-error) | Reader error | `READER_ERROR` | Reader |
 | [PHEL301](lexer.md#phel301-unterminated-string) | Unterminated string | `UNTERMINATED_STRING` | Lexer |
 | [PHEL310](lexer.md#phel310-lexer-error) | Lexer error | `LEXER_ERROR` | Lexer |

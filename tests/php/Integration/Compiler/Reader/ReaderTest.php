@@ -26,6 +26,7 @@ use Phel\Lang\UUID;
 use Phel\Shared\Facade\CompilerFacadeInterface;
 use Phel\Shared\Parser\Node\NodeInterface;
 use Phel\Shared\Parser\Node\TriviaNodeInterface;
+use Phel\Shared\Printer\Printer;
 use PHPUnit\Framework\TestCase;
 
 use RuntimeException;
@@ -565,6 +566,42 @@ final class ReaderTest extends TestCase
     {
         $this->expectException(ReaderException::class);
         $this->read('{:a}');
+    }
+
+    public function test_map_with_a_repeated_constant_key_throws(): void
+    {
+        $this->expectException(ReaderException::class);
+        $this->expectExceptionMessage('Duplicate key: :a');
+        $this->read('{:a 1 :b 2 :a 3}');
+    }
+
+    public function test_quoted_map_with_a_repeated_constant_key_throws(): void
+    {
+        $this->expectException(ReaderException::class);
+        $this->expectExceptionMessage('Duplicate key: 1');
+        $this->read("'{1 :x 1 :y}");
+    }
+
+    public function test_set_with_a_repeated_constant_element_throws(): void
+    {
+        $this->expectException(ReaderException::class);
+        $this->expectExceptionMessage('Duplicate key: nil');
+        $this->read('#{nil true nil}');
+    }
+
+    public function test_map_with_a_repeated_non_constant_key_keeps_the_last_value(): void
+    {
+        self::assertSame('{x 2}', Printer::readable()->print($this->read('{x 1 x 2}')));
+    }
+
+    public function test_set_with_a_repeated_call_keeps_one_element(): void
+    {
+        self::assertSame('#{(f)}', Printer::readable()->print($this->read('#{(f) (f)}')));
+    }
+
+    public function test_int_and_float_keys_are_distinct(): void
+    {
+        self::assertSame('{1 :a, 1.0 :b}', Printer::readable()->print($this->read('{1 :a 1.0 :b}')));
     }
 
     public function test_meta_keyword(): void

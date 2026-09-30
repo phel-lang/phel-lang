@@ -41,6 +41,7 @@ enum ErrorCode: string
 
     // Reader errors (PHEL200-299)
     case INVALID_SPLICE = 'PHEL202';
+    case DUPLICATE_KEY = 'PHEL203';
     case READER_ERROR = 'PHEL210';
 
     // Lexer errors (PHEL300-399)

@@ -24,15 +24,20 @@ final readonly class SetReader
     public function read(ListNode $node, NodeInterface $root): PersistentHashSetInterface
     {
         $acc = [];
+        $elementNodes = [];
         foreach ($node->getChildren() as $child) {
             if ($child instanceof TriviaNodeInterface) {
                 continue;
             }
 
             $acc[] = $this->reader->readExpression($child, $root);
+            $elementNodes[] = $child;
         }
 
-        return Phel::set($acc)
+        $set = Phel::set($acc);
+        DuplicateKeyGuard::assertUnique($acc, $elementNodes, $set->count(), $root);
+
+        return $set
             ->setStartLocation($node->getStartLocation())
             ->setEndLocation($node->getEndLocation());
     }
