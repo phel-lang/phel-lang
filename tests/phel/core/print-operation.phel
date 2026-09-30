@@ -1,5 +1,5 @@
 (ns phel-test.core.print-operation
-  (:require phel.test :refer [deftest is])
+  (:require phel.test :refer [deftest is thrown-with-msg?])
   (:require phel.string :as s))
 
 (deftest test-str
@@ -102,6 +102,31 @@
   (is (= "1" (format "%d" true)) "format on true")
   (is (= "0" (format "%d" false)) "format on false")
   (is (= "" (format "%s" nil)) "format on nil"))
+
+(deftest test-format-exact-numbers
+  (is (= "2.50" (format "%.2f" (/ 250 100))) "float directive converts a ratio")
+  (is (= "-3.333e-1" (format "%.3e" (/ -1 3))) "exponent directive converts a ratio")
+  (is (= "  2.50" (format "%6.2f" (/ 5 2))) "width and precision apply to the converted ratio")
+  (is (= "2.5|5/2" (format "%2$.1f|%1$s" (/ 5 2) (/ 5 2))) "positional arguments convert per directive")
+  (is (= "  2.500" (format "%*.*f" 7 3 (/ 5 2))) "star width and precision consume their own arguments")
+  (is (= "1.25" (format "%.2f" 1.25M)) "float directive converts a bigdec")
+  (is (= "5/2" (format "%s" (/ 5 2))) "string directive keeps the ratio representation")
+  (is (= "1.25" (format "%s" 1.25M)) "string directive keeps the bigdec digits")
+  (is (= "100% 2.50" (format "100%% %.2f" (/ 5 2))) "a literal percent consumes no argument")
+  (is (= "42" (format "%d" (bigint 42))) "integer directive converts a bigint that fits")
+  (is (= "ff" (format "%x" (bigint 255))) "hex directive converts a bigint that fits"))
+
+(deftest test-format-integer-directive-rejects-inexact-numbers
+  ;; Like Clojure's IllegalFormatConversionException: truncating silently would hide the same wrong number.
+  (is (thrown-with-msg? InvalidArgumentException "format: %d expects an integer, got ratio 5/2"
+                        (format "%d" (/ 5 2))))
+  (is (thrown-with-msg? InvalidArgumentException "format: %d expects an integer, got bigdec 2.5"
+                        (format "%d" 2.5M)))
+  (is (thrown-with-msg? InvalidArgumentException "format: %d expects an integer that fits in a PHP int, got 100000000000000000000"
+                        (format "%d" (bigint "100000000000000000000")))))
+
+(deftest test-printf-exact-numbers
+  (is (output? "2.50" (printf "%.2f" (/ 250 100))) "printf converts a ratio"))
 
 (deftest test-printf
   (is (output? "hello\nworld" (printf "%s\n%s" "hello" "world")) "printf hello\\nworld"))

@@ -26,6 +26,7 @@ All notable changes to this project will be documented in this file.
 - A call to a `^:dynamic` fn sees `binding`. In a build it used to cache the first value it saw, so a call made inside `binding` kept the bound fn after the binding ended, and at `-O2` a short `^:dynamic` fn was inlined past `binding` altogether. `^:redef` fns get the same treatment in builds. (#3367)
 - `(def- x "doc" 1)` binds `x` to `1` and keeps `"doc"` as its docstring, as `def` does. It used to bind `x` to `"doc"` and drop the value without a warning. (#3372)
 - `phel test` in parallel mode reads a worker's stderr as soon as it is written. On macOS a worker that wrote more than 16 KB to stderr, such as a burst of deprecation notices, used to wait on the full pipe and crawl at about 5 KB per second. (#3378)
+- `format` and `printf` convert a ratio, bigint or bigdec before formatting: `(format "%.2f" (/ 250 100))` returns `"2.50"`. It used to print `"1.00"` with a PHP warning. `%d` and the other integer directives throw for a ratio, a bigdec, or a bigint outside the PHP int range. (#3386)
 
 ## [0.53.0](https://github.com/phel-lang/phel-lang/compare/v0.52.0...v0.53.0) - 2026-09-24
 

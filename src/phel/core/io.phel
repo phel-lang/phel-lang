@@ -2,6 +2,7 @@
 
 (use InvalidArgumentException)
 (use Phel)
+(use Phel.Lang.FormatArguments)
 (use Phel.Lang.Seq)
 (use Phel.Lang.SourceLocationInterface)
 (use Phel.Shared.Printer.Printer)
@@ -157,16 +158,16 @@
   (str (apply pr-str xs) "\n"))
 
 (defn format
-  "Returns a formatted string. See PHP's [sprintf](https://www.php.net/manual/en/function.sprintf.php) for more information."
+  "Returns a formatted string. See PHP's [sprintf](https://www.php.net/manual/en/function.sprintf.php) for more information. A ratio, bigint or bigdec is converted first: to a float for `%f`, `%e` and `%g` (a bigdec keeps about 15 significant digits; use `%s` for all of them), and to an int for `%d` and the other integer directives, which throw for a ratio, a bigdec, or a bigint outside the PHP int range. `%s` prints the Phel representation."
   {:example "(format \"%d-%s\" 1 \"a\") ; => \"1-a\""
    :see-also ["str" "printf"]}
   [fmt & xs]
-  (apply php/sprintf fmt xs))
+  (apply php/sprintf fmt (FormatArguments/coerce fmt (apply php/array xs))))
 
 (defn printf
-  "Output a formatted string. See PHP's [printf](https://www.php.net/manual/en/function.printf.php) for more information."
+  "Output a formatted string. See PHP's [printf](https://www.php.net/manual/en/function.printf.php) for more information. Numbers convert as in `format`."
   [fmt & xs]
-  (apply php/printf fmt xs)
+  (apply php/printf fmt (FormatArguments/coerce fmt (apply php/array xs)))
   nil)
 
 (defn dbg-write
