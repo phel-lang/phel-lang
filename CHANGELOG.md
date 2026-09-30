@@ -6,6 +6,8 @@ All notable changes to this project will be documented in this file.
 
 ### Added
 
+- A file whose first form is not `(ns ...)` fails with the hint `'src/app.phel' does not start with an (ns ...) form`, instead of the `Check the spelling, or add (:require ...)` hint for `Cannot resolve symbol 'defn-'`. `Phel\Shared\Exceptions\MissingNsFormException` and `Phel\Shared\Exceptions\Hint\MissingNsFormHint` are public PHP API. (#3373)
+- Lint rule `phel/shadowed-core-fn` warns when a `let`, `loop` or `fn` parameter binding is named after a public `phel.core` function, as in `(let [inc (fn [x] 99)] (inc 1))`, where the local wins. Turn it off with `{:rules {:phel/shadowed-core-fn :off}}` in `phel-lint.phel`. (#3374)
 - Public PHP API, since compiled code calls it: `Phel\Lang\Destructure`, `\Phel::fnSlot()` and `Phel\Lang\ForeignFn`. (#3354 #3356)
 
 ### Performance
@@ -22,6 +24,9 @@ All notable changes to this project will be documented in this file.
 - A `^void` fn compiles and returns nil. It used to emit `return <value>` inside a PHP `: void` function, which PHP refuses to compile. (#3363)
 - A fn whose body contains `php/yield` compiles. Return-type inference used to give it the type of its tail, such as `: bool`, which PHP rejects on a generator. (#3365)
 - A call to a `^:dynamic` fn sees `binding`. In a build it used to cache the first value it saw, so a call made inside `binding` kept the bound fn after the binding ended, and at `-O2` a short `^:dynamic` fn was inlined past `binding` altogether. `^:redef` fns get the same treatment in builds. (#3367)
+- `(def- x "doc" 1)` binds `x` to `1` and keeps `"doc"` as its docstring, as `def` does. It used to bind `x` to `"doc"` and drop the value without a warning. (#3372)
+- `phel test` in parallel mode reads a worker's stderr as soon as it is written. On macOS a worker that wrote more than 16 KB to stderr, such as a burst of deprecation notices, used to wait on the full pipe and crawl at about 5 KB per second. (#3378)
+- `(let [a false] (if a a a))` returns `false`, and `(let [a true] (if a (not a) a))` returns `false`. When the other branch read the local again, the `let` was compiled away and that branch read an undefined PHP variable, returning `nil` with an `Undefined variable` warning. (#3383)
 - `phel doc --format json` and the API reference link special forms to their current guide sections, such as `/documentation/language/error-handling/#throwing` for `throw`. They used to point at pre-move paths that dropped the section anchor. `:see-also` entries that named no function, such as `values` on `kvs` and `phel\schema/validate` in the `phel.schema` sub-namespaces, now name `vals` and `schema/validate`. (#3371)
 
 ## [0.53.0](https://github.com/phel-lang/phel-lang/compare/v0.52.0...v0.53.0) - 2026-09-24

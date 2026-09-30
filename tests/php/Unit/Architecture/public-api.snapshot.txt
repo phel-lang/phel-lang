@@ -1865,6 +1865,10 @@ final readonly class Phel\Shared\Exceptions\Hint\ExceptionHintResolver
   public function __construct(array $hints)
   public function hintFor(Throwable $e): ?string
 
+final class Phel\Shared\Exceptions\Hint\MissingNsFormHint implements Phel\Shared\Exceptions\Hint\ExceptionHintInterface
+  public function appliesTo(Throwable $e): bool
+  public function hint(Throwable $e): string
+
 final class Phel\Shared\Exceptions\Hint\NotCallableHint implements Phel\Shared\Exceptions\Hint\ExceptionHintInterface
   public function appliesTo(Throwable $e): bool
   public function hint(Throwable $e): string
@@ -1872,6 +1876,10 @@ final class Phel\Shared\Exceptions\Hint\NotCallableHint implements Phel\Shared\E
 final class Phel\Shared\Exceptions\Hint\UndefinedSymbolHint implements Phel\Shared\Exceptions\Hint\ExceptionHintInterface
   public function appliesTo(Throwable $e): bool
   public function hint(Throwable $e): string
+
+final class Phel\Shared\Exceptions\MissingNsFormException extends RuntimeException
+  public function getPath(): string
+  public static function inFile(string $path, Throwable $previous): Phel\Shared\Exceptions\MissingNsFormException
 
 final readonly class Phel\Shared\Exceptions\RuntimeErrorCodeResolver
   public static function codeFor(Throwable $e): ?Phel\Shared\Exceptions\ErrorCode
@@ -2020,6 +2028,7 @@ final class Phel\Shared\LintRuleCodes
   public const string INVALID_DESTRUCTURING = 'phel/invalid-destructuring'
   public const string REDUNDANT_DO = 'phel/redundant-do'
   public const string SHADOWED_BINDING = 'phel/shadowed-binding'
+  public const string SHADOWED_CORE_FN = 'phel/shadowed-core-fn'
   public const string UNRESOLVED_SYMBOL = 'phel/unresolved-symbol'
   public const string UNUSED_BINDING = 'phel/unused-binding'
   public const string UNUSED_IMPORT = 'phel/unused-import'

@@ -80,22 +80,25 @@ Changing a signature requires auditing `Compiler/Domain/Emitter/OutputEmitter/No
 ## What embedding costs
 
 A PHP application that calls Phel pays on three lines, and only the third is
-per call. One snapshot, PHP 8.4 on macOS, warm `.phel/cache`, calling
-`phel.core/str`:
+per call. One snapshot, PHP 8.5 CLI on an Apple M4 Pro, a Composer project
+that requires `phel-lang/phel-lang` and loads one namespace of its own
+(`app.main`, which pulls in `phel.core`), medians (method after the recipe):
 
-| | no opcache | opcache file cache |
-|---|---|---|
-| `vendor/autoload.php` | 11ms | 8ms |
-| `Phel::bootstrap()` | 5ms | 4ms |
-| load `phel.core` | 491ms | 37ms |
-| **first call reachable after** | **508ms** | **49ms** |
-| peak memory | 48MB | 28MB |
-| per call after that | 0.2µs | 0.2µs |
+| | cold `.phel/cache` | warm, no opcache | warm, opcache file cache |
+|---|---|---|---|
+| `vendor/autoload.php` | 2ms | 2ms | 1ms |
+| `Phel::bootstrap()` | 9ms | 5ms | 4ms |
+| load the namespace | 1327ms | 48ms | 30ms |
+| **first call reachable after** | **1339ms** | **56ms** | **35ms** |
+| peak memory | 84MB | 18MB | 26MB |
 
-The shape matters more than the figures. The boundary is free, the load is
-everything, and opcache is worth more than an order of magnitude on it, which
-is why [`phel doctor`](../cli-reference.md) checks for it. A host that boots
-per request (PHP-FPM) pays the whole column; a worker runtime pays it once.
+The shape matters more than the figures. The call boundary is free
+(`Interop/ExportedCallBench` measured 0.2µs per call when it landed), the load
+is everything, and the load is only cheap once `.phel/cache` holds the
+compiled namespaces. Opcache takes the warm load down again, which is why
+[`phel doctor`](../cli-reference.md) checks for it. A host that boots per
+request (PHP-FPM) pays the load on every request; a worker runtime pays it
+once.
 
 Reproduce with any namespace of your own:
 
@@ -111,6 +114,80 @@ Two of the three lines are gated: `Run/ReplBootBench` guards namespace
 loading, `Interop/ExportedCallBench` guards the per-call boundary. Bootstrap
 is not gated, because it memoizes and cannot be re-entered in one process
 ([benchmarks.md](benchmarks.md)).
+
+### Warm-up recipe
+
+Three steps, each one measured below on the same machine as the table.
+
+**1. Compile at deploy time.** `.phel/cache` does not survive a move: a copy
+of the warm project in another directory recompiled from scratch on its first
+load. Run the host's own
+load lines once, from the directory the host will serve from, as the last
+build step:
+
+```php
+<?php // warmup.php, next to vendor/
+require __DIR__ . '/vendor/autoload.php';
+Phel\Phel::bootstrap(__DIR__);
+new Phel\Run\RunFacade()->runNamespace('app.main'); // your entry namespace
+```
+
+```bash
+php warmup.php
+```
+
+Without it the first request pays the cold column (1.3s here, 84MB).
+
+**2. CLI hosts: turn on the opcache file cache.** Opcache is off on the CLI by
+default, and its shared memory dies with the process, so a CLI host needs the
+file cache:
+
+```ini
+opcache.enable_cli=1
+opcache.file_cache=/var/cache/php-opcache   ; any writable directory that exists
+opcache.file_cache_only=1
+```
+
+| CLI process, warm `.phel/cache` | in script | whole process |
+|---|---|---|
+| no opcache | 56ms | 104ms |
+| file cache, first run (fills it) | 161ms | 214ms |
+| file cache, warm | 35ms | 84ms |
+| `php -r ''` on this machine | | 48ms |
+
+**3. PHP-FPM hosts: preload the same file.** FPM keeps opcache in shared memory
+across requests, so only the first request after a restart compiles the
+cached PHP. Point `opcache.preload` at the warm-up file and that request is
+warm too:
+
+```ini
+opcache.enable=1
+opcache.preload=/app/warmup.php
+opcache.preload_user=www-data   ; required when FPM starts as root
+```
+
+| per request, warm `.phel/cache` | first request | later requests |
+|---|---|---|
+| no opcache | 71ms | 69ms |
+| opcache | 127ms | 16ms |
+| opcache + `opcache.preload=warmup.php` | 19ms | 16ms |
+
+Preload runs the load, not just the compile, because that links the Phel
+runtime classes the compiled files extend. Preloading the files under
+`.phel/cache/compiled/` with `opcache_compile_file()` instead prints a "Can't
+preload unlinked class" warning for every compiled fn and still left the first
+request at 57ms. Preloaded code stays until PHP restarts, so restart FPM on
+every deploy. The per-request floor (about 16ms here) is the namespace
+definitions running again: PHP resets them between requests, and only a worker
+runtime keeps them.
+
+Method: PHP 8.5.10 (Homebrew), Apple M4 Pro, phel-lang `main` at 975d30d0a,
+the machine running other work (load average about 10 on 14 cores). CLI rows
+time `hrtime()` inside the script and the whole `php` process around it,
+median of 15 runs (3 for the cold and first-run rows). Per-request rows use
+`php -S` as the FPM stand-in (same per-request reset, one worker): 5 server
+starts of 20 requests each, the first-request median over the 5 starts, the
+rest over the other 95 requests. A second full run agreed within 15%.
 
 Deployment shapes for each, worker runtimes included:
 <https://phel-lang.org/documentation/deployment/>.

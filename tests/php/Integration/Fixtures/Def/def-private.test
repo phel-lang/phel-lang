@@ -1,0 +1,13 @@
+--PHEL--
+(def- x 1)
+--PHP--
+\Phel::addDefinition(
+  "user",
+  "x",
+  1,
+  static fn() => \Phel::locationMeta(
+    \Phel::location("Def/def-private.test", 1, 0),
+    \Phel::location("Def/def-private.test", 1, 10),
+    \Phel\Lang\Keyword::create("private"), true
+  )
+);

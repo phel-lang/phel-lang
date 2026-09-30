@@ -36,6 +36,7 @@ final class LintConfig extends AbstractConfig
             LintRuleCodes::UNUSED_REQUIRE => Diagnostic::SEVERITY_WARNING,
             LintRuleCodes::UNUSED_IMPORT => Diagnostic::SEVERITY_WARNING,
             LintRuleCodes::SHADOWED_BINDING => Diagnostic::SEVERITY_WARNING,
+            LintRuleCodes::SHADOWED_CORE_FN => Diagnostic::SEVERITY_WARNING,
             LintRuleCodes::REDUNDANT_DO => Diagnostic::SEVERITY_WARNING,
             LintRuleCodes::DISCOURAGED_VAR => Diagnostic::SEVERITY_WARNING,
             LintRuleCodes::COMMENT_STYLE => Diagnostic::SEVERITY_WARNING,

@@ -1,0 +1,14 @@
+--PHEL--
+(def- x "doc" 1)
+--PHP--
+\Phel::addDefinition(
+  "user",
+  "x",
+  1,
+  static fn() => \Phel::locationMeta(
+    \Phel::location("Def/def-private-docstring.test", 1, 0),
+    \Phel::location("Def/def-private-docstring.test", 1, 16),
+    \Phel\Lang\Keyword::create("doc"), "doc",
+    \Phel\Lang\Keyword::create("private"), true
+  )
+);

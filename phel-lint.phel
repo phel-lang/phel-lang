@@ -1,0 +1,1 @@
+{:exclude {:phel/shadowed-core-fn ["*/src/phel/*"]}}

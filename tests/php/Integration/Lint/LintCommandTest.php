@@ -156,6 +156,37 @@ final class LintCommandTest extends TestCase
 
     #[PreserveGlobalState(false)]
     #[RunInSeparateProcess]
+    public function test_it_reports_bindings_named_after_a_core_fn(): void
+    {
+        $this->bootstrap();
+
+        $tester = new CommandTester(new LintCommand());
+        $exit = $tester->execute([
+            'paths' => [__DIR__ . '/Fixtures/shadowed_core_fn.phel'],
+            '--format' => 'json',
+            '--no-cache' => true,
+        ]);
+
+        $payload = json_decode(trim($tester->getDisplay()), true);
+        self::assertIsArray($payload);
+
+        $shadowed = array_map(
+            static fn(array $d): array => [$d['severity'], $d['startLine'], $d['startCol'], $d['message']],
+            array_values(array_filter(
+                $payload,
+                static fn(array $d): bool => $d['code'] === 'phel/shadowed-core-fn',
+            )),
+        );
+
+        self::assertSame([
+            ['warning', 4, 8, "Binding 'inc' shadows the core function 'phel.core/inc'."],
+            ['warning', 7, 12, "Binding 'first' shadows the core function 'phel.core/first'."],
+        ], $shadowed);
+        self::assertSame(0, $exit, 'A shadowed core function is a warning, so the command still succeeds');
+    }
+
+    #[PreserveGlobalState(false)]
+    #[RunInSeparateProcess]
     public function test_github_format_emits_annotation_commands(): void
     {
         $this->bootstrap();

@@ -34,6 +34,8 @@ final class LintRuleCodes
 
     public const string SHADOWED_BINDING = 'phel/shadowed-binding';
 
+    public const string SHADOWED_CORE_FN = 'phel/shadowed-core-fn';
+
     public const string REDUNDANT_DO = 'phel/redundant-do';
 
     public const string DUPLICATE_KEY = 'phel/duplicate-key';
@@ -67,6 +69,7 @@ final class LintRuleCodes
             self::UNUSED_REQUIRE,
             self::UNUSED_IMPORT,
             self::SHADOWED_BINDING,
+            self::SHADOWED_CORE_FN,
             self::REDUNDANT_DO,
             self::DUPLICATE_KEY,
             self::DUPLICATE_DEF,

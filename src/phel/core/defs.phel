@@ -136,8 +136,18 @@
 
 (def def-
   {:macro true
-   :doc "Define a private value that will not be exported."}
-  (fn [name value] `(def ~name {:private true} ~value)))
+   :doc "Define a private value that will not be exported. Takes the same arguments as `def`, so `(def- x \"doc\" 1)` binds `x` to `1` with `\"doc\"` as its docstring."}
+  ;; The private flag rides on the name so the rest of the form reaches `def`
+  ;; untouched: a docstring stays metadata instead of becoming the value, and a
+  ;; wrong argument count fails in `def` instead of being dropped.
+  (fn [name & args]
+    (let [name-sym (if (php/instanceof name Symbol)
+                     (let [name-meta (.getMeta name)]
+                       (.withMeta name (if name-meta
+                                         (.put name-meta :private true)
+                                         {:private true})))
+                     name)]
+      `(def ~name-sym ~@args))))
 
 (def defmacro
   {:macro true

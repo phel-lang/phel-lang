@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace PhelTest\Integration\Bootstrap;
 
+use PhelTest\Support\Subprocess;
 use PHPUnit\Framework\TestCase;
 
-use function array_map;
 use function bin2hex;
 use function dirname;
 use function escapeshellarg;
@@ -15,10 +15,7 @@ use function file_put_contents;
 use function implode;
 use function is_dir;
 use function mkdir;
-use function proc_close;
-use function proc_open;
 use function random_bytes;
-use function stream_get_contents;
 use function sys_get_temp_dir;
 use function trim;
 
@@ -120,15 +117,8 @@ final class ExceptionHandlerTest extends TestCase
      */
     private static function runProcess(array $command): array
     {
-        $descriptors = [1 => ['pipe', 'w'], 2 => ['pipe', 'w']];
-        $proc = proc_open(implode(' ', $command), $descriptors, $pipes, self::$projectDir);
-        if ($proc === false) {
-            self::fail('proc_open failed for: ' . implode(' ', $command));
-        }
+        $process = Subprocess::run(implode(' ', $command), self::$projectDir);
 
-        $output = stream_get_contents($pipes[1]) . stream_get_contents($pipes[2]);
-        array_map(fclose(...), $pipes);
-
-        return [$output, proc_close($proc)];
+        return [$process->stdout . $process->stderr, $process->exitCode];
     }
 }
