@@ -26,6 +26,7 @@ All notable changes to this project will be documented in this file.
 - A call to a `^:dynamic` fn sees `binding`. In a build it used to cache the first value it saw, so a call made inside `binding` kept the bound fn after the binding ended, and at `-O2` a short `^:dynamic` fn was inlined past `binding` altogether. `^:redef` fns get the same treatment in builds. (#3367)
 - `(def- x "doc" 1)` binds `x` to `1` and keeps `"doc"` as its docstring, as `def` does. It used to bind `x` to `"doc"` and drop the value without a warning. (#3372)
 - `phel test` in parallel mode reads a worker's stderr as soon as it is written. On macOS a worker that wrote more than 16 KB to stderr, such as a burst of deprecation notices, used to wait on the full pipe and crawl at about 5 KB per second. (#3378)
+- `(let [a false] (if a a a))` returns `false`, and `(let [a true] (if a (not a) a))` returns `false`. When the other branch read the local again, the `let` was compiled away and that branch read an undefined PHP variable, returning `nil` with an `Undefined variable` warning. (#3383)
 
 ## [0.53.0](https://github.com/phel-lang/phel-lang/compare/v0.52.0...v0.53.0) - 2026-09-24
 
