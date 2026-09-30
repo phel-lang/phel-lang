@@ -1,0 +1,13 @@
+--PHEL--
+(fn [x] (let [a x] (if a a a)))
+(fn [x] (let [a x] (if a (not a) a)))
+--PHP--
+(function($x) {
+  $a_1 = $x;
+  return ($a_1 !== null && $a_1 !== false ? $a_1 : $a_1);
+
+});(function($x) {
+  $a_2 = $x;
+  return ($a_2 !== null && $a_2 !== false ? ($a_2 === null || $a_2 === false) : $a_2);
+
+});

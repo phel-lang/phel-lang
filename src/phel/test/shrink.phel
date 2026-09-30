@@ -50,7 +50,7 @@
 (defn value->rose
   "Builds a rose tree for `v` using the built-in shrink strategy that matches its runtime type. Integers shrink toward zero; strings, vectors, lists, hash-maps and sets shrink by element removal plus recursive element shrinks; everything else is a leaf."
   {:example "(value->rose 10)"
-   :see-also ["phel\\test\\rose/int-rose-tree"]}
+   :see-also ["test.rose/int-rose-tree"]}
   [v]
   (cond
     (int? v)    (r/int-rose-tree v)
