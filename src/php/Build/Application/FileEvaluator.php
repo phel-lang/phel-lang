@@ -103,7 +103,10 @@ final class FileEvaluator
                         if ($envData !== null) {
                             $this->compilerFacade->restoreNamespaceEnvironmentData($namespace, $envData);
                         } else {
-                            $this->analyzeNsForm($code, $src);
+                            // The replay below reports what this `ns` form carries.
+                            $this->compilerFacade->withoutDeprecations(
+                                fn() => $this->analyzeNsForm($code, $src),
+                            );
                         }
 
                         self::$restoredNamespaces[$namespace] = true;
