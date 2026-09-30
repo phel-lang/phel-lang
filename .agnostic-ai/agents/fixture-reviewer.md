@@ -4,15 +4,17 @@ description: Checks .test fixtures for drift after a compiler change.
 model:
   claude: sonnet
   codex: gpt-5.5
-maxTurns: 15
-tools: [Read, Glob, Grep, Bash]
+effort: medium
+# Claude-only fields: Codex has no tool allowlist, memory or turn cap; it gets sandbox_mode instead.
+x-claude:
+  tools: [Read, Glob, Grep, Bash]
+  maxTurns: 15
 x-codex:
-    model_reasoning_effort: medium
-    name: fixture_reviewer
-    nickname_candidates:
-        - Fixture
-        - Snapshot
-        - Drift
+  name: fixture_reviewer
+  nickname_candidates:
+    - Fixture
+    - Snapshot
+    - Drift
 ---
 
 # Fixture Reviewer

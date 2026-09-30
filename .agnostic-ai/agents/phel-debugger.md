@@ -1,17 +1,19 @@
 ---
-description: Finds the root cause of a failing Phel command or test.
 name: phel-debugger
+description: Finds the root cause of a failing Phel command or test.
 model:
   claude: opus
   codex: gpt-5.6-sol
-tools: [Read, Glob, Grep, Bash]
+effort: high
+# Claude-only fields: Codex has no tool allowlist, memory or turn cap; it gets sandbox_mode instead.
+x-claude:
+  tools: [Read, Glob, Grep, Bash]
 x-codex:
-    model_reasoning_effort: high
-    name: phel_debugger
-    nickname_candidates:
-        - Tracer
-        - Probe
-        - Inspector
+  name: phel_debugger
+  nickname_candidates:
+    - Tracer
+    - Probe
+    - Inspector
 ---
 
 Reproduce the failure first, then identify the phase: Lexer, Parser, Reader, Analyzer, Emitter, Build/Run, or Lang runtime.

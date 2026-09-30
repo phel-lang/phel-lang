@@ -1,18 +1,20 @@
 ---
-description: Read-only lookup of symbols, usages and module layout.
 name: phel-explorer
+description: Read-only lookup of symbols, usages and module layout.
 model:
   claude: haiku
   codex: gpt-5.4-mini
-tools: [Read, Glob, Grep]
+effort: low
+# Claude-only fields: Codex has no tool allowlist, memory or turn cap; it gets sandbox_mode instead.
+x-claude:
+  tools: [Read, Glob, Grep]
 x-codex:
-    model_reasoning_effort: medium
-    name: phel_explorer
-    nickname_candidates:
-        - Mapper
-        - Scout
-        - Index
-    sandbox_mode: read-only
+  name: phel_explorer
+  sandbox_mode: read-only
+  nickname_candidates:
+    - Mapper
+    - Scout
+    - Index
 ---
 
 Stay read-only: search and read, never edit or run tests.

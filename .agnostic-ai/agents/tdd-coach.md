@@ -4,15 +4,17 @@ description: Implements a change test first, red-green-refactor.
 model:
   claude: sonnet
   codex: gpt-5.5
-maxTurns: 25
-tools: [Read, Write, Edit, Glob, Grep, Bash]
+effort: medium
+# Claude-only fields: Codex has no tool allowlist, memory or turn cap; it gets sandbox_mode instead.
+x-claude:
+  tools: [Read, Write, Edit, Glob, Grep, Bash]
+  maxTurns: 25
 x-codex:
-    model_reasoning_effort: medium
-    name: tdd_coach
-    nickname_candidates:
-        - Coach
-        - RedGreen
-        - Cycle
+  name: tdd_coach
+  nickname_candidates:
+    - Coach
+    - RedGreen
+    - Cycle
 ---
 
 # TDD Coach

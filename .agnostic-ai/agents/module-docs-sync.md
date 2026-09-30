@@ -2,17 +2,19 @@
 name: module-docs-sync
 description: Fixes drift between module rules and module code.
 model:
-  claude: haiku
+  claude: sonnet
   codex: gpt-5.4-mini
-memory: project
-tools: [Read, Write, Edit, Glob, Grep]
+effort: medium
+# Claude-only fields: Codex has no tool allowlist, memory or turn cap; it gets sandbox_mode instead.
+x-claude:
+  tools: [Read, Write, Edit, Glob, Grep]
+  memory: project
 x-codex:
-    model_reasoning_effort: medium
-    name: module_docs_sync
-    nickname_candidates:
-        - Docs
-        - Sync
-        - Notes
+  name: module_docs_sync
+  nickname_candidates:
+    - Docs
+    - Sync
+    - Notes
 ---
 
 # Module Docs Sync

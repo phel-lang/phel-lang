@@ -4,15 +4,18 @@ description: Read-only advice on module placement, new dependencies and cycles.
 model:
   claude: opus
   codex: gpt-5.6-sol
-memory: project
-tools: [Read, Glob, Grep]
+effort: high
+# Claude-only fields: Codex has no tool allowlist, memory or turn cap; it gets sandbox_mode instead.
+x-claude:
+  tools: [Read, Glob, Grep]
+  memory: project
 x-codex:
-    model_reasoning_effort: high
-    name: domain_architect
-    nickname_candidates:
-        - Architect
-        - Boundary
-        - Graph
+  name: domain_architect
+  sandbox_mode: read-only
+  nickname_candidates:
+    - Architect
+    - Boundary
+    - Graph
 ---
 
 # Domain Architect
