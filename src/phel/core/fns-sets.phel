@@ -592,7 +592,7 @@ Without arguments, uses a default cache size of 128 entries."
 (defn update-vals
   "Returns a map with `f` applied to each value."
   {:example "(update-vals {:a 1 :b 2} inc) ; => {:a 2, :b 3}"
-   :see-also ["update-keys" "values" "update"]}
+   :see-also ["update-keys" "vals" "update"]}
   [m f]
   ;; `foreach` and not `for … :pairs`: the destructuring form was the cost
   ;; here, not the map building, and `.put` because the transient is local and

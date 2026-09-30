@@ -222,7 +222,7 @@
 (defn coerce
   "Walks `schema` and returns `value` with string-typed inputs coerced into their schema-required types. Already-typed values pass through. Unknown or untranslatable values are returned unchanged so validation can report the real failure."
   {:example "(coerce :int \"42\") ; => 42"
-   :see-also ["phel\\schema/conform" "phel\\schema/validate"]}
+   :see-also ["schema/conform" "schema/validate"]}
   [schema value]
   (cond
     (keyword? schema) (coerce-keyword-kind schema value)
@@ -232,7 +232,7 @@
 (defn conform
   "Coerces `value` against `schema`. Returns the coerced value if it then validates, otherwise the invalid marker `:phel.schema/invalid`."
   {:example "(conform :int \"42\") ; => 42"
-   :see-also ["coerce" "phel\\schema/validate"]}
+   :see-also ["coerce" "schema/validate"]}
   [schema value]
   (let [coerced (coerce schema value)]
     (if (v/valid? schema coerced)
