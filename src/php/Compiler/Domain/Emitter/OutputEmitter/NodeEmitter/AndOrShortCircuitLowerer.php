@@ -6,11 +6,19 @@ namespace Phel\Compiler\Domain\Emitter\OutputEmitter\NodeEmitter;
 
 use Phel\Compiler\Domain\Analyzer\Ast\AbstractNode;
 use Phel\Compiler\Domain\Analyzer\Ast\BindingNode;
+use Phel\Compiler\Domain\Analyzer\Ast\CallNode;
 use Phel\Compiler\Domain\Analyzer\Ast\DoNode;
+use Phel\Compiler\Domain\Analyzer\Ast\GlobalVarNode;
 use Phel\Compiler\Domain\Analyzer\Ast\IfNode;
 use Phel\Compiler\Domain\Analyzer\Ast\LetNode;
+use Phel\Compiler\Domain\Analyzer\Ast\LiteralNode;
 use Phel\Compiler\Domain\Analyzer\Ast\LocalVarNode;
+use Phel\Compiler\Domain\Analyzer\Ast\PhpArrayGetNode;
+use Phel\Compiler\Domain\Analyzer\Ast\PhpClassNameNode;
+use Phel\Compiler\Domain\Analyzer\Ast\PhpVarNode;
+use Phel\Compiler\Domain\Analyzer\Ast\QuoteNode;
 
+use function array_any;
 use function count;
 
 /**
@@ -119,7 +127,44 @@ final class AndOrShortCircuitLowerer
         $rest = self::collect($continuation, $shape);
         $rest ??= [$continuation];
 
+        foreach ($rest as $operand) {
+            if (self::mentionsBinding($operand, $binding)) {
+                return null;
+            }
+        }
+
         return [$binding->getInitExpr(), ...$rest];
+    }
+
+    /**
+     * The lowering drops the `let`, so an operand that still reads the
+     * binding would read an unassigned PHP variable.
+     */
+    private static function mentionsBinding(AbstractNode $node, BindingNode $binding): bool
+    {
+        if ($node instanceof LocalVarNode) {
+            return self::referencesBinding($node, $binding);
+        }
+
+        if ($node instanceof CallNode) {
+            return array_any(
+                [$node->getFn(), ...$node->getArguments()],
+                static fn(AbstractNode $child): bool => self::mentionsBinding($child, $binding),
+            );
+        }
+
+        if ($node instanceof PhpArrayGetNode) {
+            return array_any(
+                [$node->getArrayExpr(), ...$node->getAccessExprs()],
+                static fn(AbstractNode $child): bool => self::mentionsBinding($child, $binding),
+            );
+        }
+
+        return !$node instanceof LiteralNode
+            && !$node instanceof GlobalVarNode
+            && !$node instanceof PhpVarNode
+            && !$node instanceof PhpClassNameNode
+            && !$node instanceof QuoteNode;
     }
 
     private static function referencesBinding(AbstractNode $node, BindingNode $binding): bool

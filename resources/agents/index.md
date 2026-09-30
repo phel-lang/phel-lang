@@ -12,7 +12,7 @@ Rules + CLI: [`RULES.md`](RULES.md).
 | Add tests | [`tasks/add-tests.md`](tasks/add-tests.md) | `src/phel/test.phel`, https://phel-lang.org/documentation/testing/ |
 | REPL | [`tasks/repl-workflow.md`](tasks/repl-workflow.md) | `src/phel/repl.phel` |
 | Find core fn | [`tasks/use-core-lib.md`](tasks/use-core-lib.md) | `phel doc <fn>`, https://phel-lang.org/documentation/guides/cookbook/ |
-| Type a fn (params + return) | [`tasks/typed-defn.md`](tasks/typed-defn.md) | https://phel-lang.org/documentation/getting-started/, https://phel-lang.org/documentation/guides/schema/ |
+| Type a fn (params + return) | [`tasks/typed-defn.md`](tasks/typed-defn.md) | https://phel-lang.org/documentation/getting-started/, https://phel-lang.org/documentation/libraries/schema/ |
 | Debug errors | [`tasks/debug-errors.md`](tasks/debug-errors.md) | https://phel-lang.org/documentation/guides/cookbook/ |
 | Profile hot paths | [`tasks/typed-defn.md`](tasks/typed-defn.md) § Find hot paths | `phel profile <path>` |
 | Async / fibers | [`tasks/async.md`](tasks/async.md) | https://phel-lang.org/documentation/language/async/, `src/phel/async.phel` |
@@ -20,8 +20,8 @@ Rules + CLI: [`RULES.md`](RULES.md).
 | Write macros | [`tasks/write-macros.md`](tasks/write-macros.md) | https://phel-lang.org/documentation/language/macros/ |
 | Common pitfalls | [`tasks/common-gotchas.md`](tasks/common-gotchas.md) | `RULES.md` § Gotchas |
 | Use a PHP library | [`tasks/use-php-libs.md`](tasks/use-php-libs.md) | https://phel-lang.org/documentation/php-interop/ |
-| Validate data | [`tasks/validate-with-schema.md`](tasks/validate-with-schema.md) | `src/phel/schema.phel`, https://phel-lang.org/documentation/guides/schema/ |
-| Pattern match | [`tasks/pattern-match.md`](tasks/pattern-match.md) | `src/phel/match.phel`, https://phel-lang.org/documentation/language/functions-and-recursion/ |
+| Validate data | [`tasks/validate-with-schema.md`](tasks/validate-with-schema.md) | `src/phel/schema.phel`, https://phel-lang.org/documentation/libraries/schema/ |
+| Pattern match | [`tasks/pattern-match.md`](tasks/pattern-match.md) | `src/phel/match.phel`, https://phel-lang.org/documentation/language/control-flow/#match |
 | Lint code | — | https://phel-lang.org/documentation/tooling/cli-commands/ |
 | Editor / nREPL | — | https://phel-lang.org/documentation/tooling/editor-support/, https://phel-lang.org/documentation/tooling/repl/ |
 | Hot-reload | — | https://phel-lang.org/documentation/tooling/cli-commands/ |
