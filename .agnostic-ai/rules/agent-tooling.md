@@ -1,6 +1,8 @@
 ---
 name: agent-tooling
 description: Ownership boundaries for repository and downstream agent files.
+# Codex gets no copy; its developer_instructions in overlays/codex.config.toml point here.
+targets: [claude]
 globs:
   - .agnostic-ai/**
   - .codex/**

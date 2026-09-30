@@ -10,12 +10,7 @@
       "Bash(gh *)",
       "Bash(timeout *)",
       "Bash(ls *)",
-      "Bash(wc *)",
-      "Bash(rm -rf /tmp/phel)",
-      "Bash(rm -rf /tmp/phel/*)",
-      "Bash(rm -rf data/cache)",
-      "Bash(rm -rf data/cache/*)",
-      "Bash(rm -rf /tmp/phel data/cache)"
+      "Bash(wc *)"
     ],
     "deny": [
       "Bash(rm -rf /:*)",
